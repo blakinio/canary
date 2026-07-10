@@ -137,7 +137,7 @@ assert_scalar() {
 
 assert_scalar "analytics table count" "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${DB_NAME}' AND table_name LIKE 'analytics_%'" "7"
 assert_scalar "analytics InnoDB table count" "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${DB_NAME}' AND table_name LIKE 'analytics_%' AND engine='InnoDB'" "7"
-assert_scalar "analytics detail foreign keys" "SELECT COUNT(*) FROM information_schema.referential_constraints WHERE constraint_schema='${DB_NAME}' AND table_name LIKE 'analytics_session_%'" "5"
+assert_scalar "analytics detail foreign keys" "SELECT COUNT(*) FROM information_schema.referential_constraints WHERE constraint_schema='${DB_NAME}' AND table_name IN ('analytics_session_monsters','analytics_session_spells','analytics_session_damage_types','analytics_session_supplies','analytics_session_loot')" "5"
 assert_scalar "idempotent session row" "SELECT COUNT(*) FROM analytics_sessions WHERE session_uuid='00000000-0000-0000-0000-000000000001'" "1"
 assert_scalar "session upsert values" "SELECT CONCAT(player_name,'|',experience_raw,'|',damage_dealt) FROM analytics_sessions WHERE session_uuid='00000000-0000-0000-0000-000000000001'" "Integration Player Updated|2000|3000"
 assert_scalar "monster upsert" "SELECT CONCAT(COUNT(*),'|',MAX(kills),'|',MAX(damage_dealt)) FROM analytics_session_monsters" "1|3|200"
