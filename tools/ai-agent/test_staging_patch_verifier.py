@@ -17,7 +17,9 @@ class StagingPatchVerifierTests(unittest.TestCase):
         digest = hashlib.sha256(content.encode("utf-8")).hexdigest()
         target = "data-otservbr-global/scripts/quests/example.lua"
         patch = (
-            f"--- a/{target}\n"
+            f"diff --git a/{target} b/{target}\n"
+            "new file mode 100644\n"
+            "--- /dev/null\n"
             f"+++ b/{target}\n"
             "@@ -0,0 +1 @@\n"
             "+return true\n"
