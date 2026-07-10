@@ -38,7 +38,7 @@ jobs:
       - name: Validate gameplay analytics contract
         run: python tools/analytics/validate_gameplay_analytics.py
       - name: Run gameplay analytics validator tests
-        run: python -m unittest tools/analytics/test_validate_gameplay_analytics.py -v
+        run: python -m unittest discover -s tools/analytics -p "test_*.py" -v
       - name: Parse SQL schema
         run: |
           python - <<'PY'
