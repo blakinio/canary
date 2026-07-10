@@ -193,7 +193,7 @@ void Dispatcher::setQueueLatencyLoggingEnabled(const bool enabled) {
 		return;
 	}
 
-	queueLatencyLoggingStartedAt.store(OTSYS_TIME(), std::memory_order_relaxed);
+	queueLatencyLoggingStartedAt.store(OTSYS_TIME(true), std::memory_order_relaxed);
 	queueLatencyLoggingEnabled.store(true, std::memory_order_release);
 }
 
