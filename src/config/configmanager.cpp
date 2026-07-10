@@ -53,9 +53,9 @@ bool ConfigManager::load() {
 		loadFloatConfig(L, HOUSE_RENT_RATE, "houseRentRate", 1.0);
 
 		loadIntConfig(L, DISCONNECT_PROTECTION_COOLDOWN, "disconnectProtectionCooldown", 30 * 60 * 1000);
-	loadIntConfig(L, DISCONNECT_PROTECTION_DETECTION_TIME, "disconnectProtectionDetectionTime", 10 * 1000);
-	loadIntConfig(L, DISCONNECT_PROTECTION_DURATION, "disconnectProtectionDuration", 30 * 1000);
-	loadIntConfig(L, DEPOT_BOXES, "depotBoxes", 20);
+		loadIntConfig(L, DISCONNECT_PROTECTION_DETECTION_TIME, "disconnectProtectionDetectionTime", 10 * 1000);
+		loadIntConfig(L, DISCONNECT_PROTECTION_DURATION, "disconnectProtectionDuration", 30 * 1000);
+		loadIntConfig(L, DEPOT_BOXES, "depotBoxes", 20);
 		loadIntConfig(L, FREE_DEPOT_LIMIT, "freeDepotLimit", 2000);
 		loadIntConfig(L, GAME_PORT, "gameProtocolPort", 7172);
 		loadIntConfig(L, LEGACY_1100_GAME_PORT, "legacy1100GameProtocolPort", 0);
