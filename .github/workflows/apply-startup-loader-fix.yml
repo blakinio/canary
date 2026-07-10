@@ -20,62 +20,24 @@ jobs:
       - name: Replace startup polling with condition variable waits
         shell: python
         run: |
+          import re
           from pathlib import Path
 
           path = Path('src/canary_server.cpp')
           text = path.read_text(encoding='utf-8')
 
-          old_failure = '''\t\t\t} catch (FailedToInitializeCanary &err) {
-\t\t\t\t{
-\t\t\t\t\tstd::scoped_lock lock(loaderMutex);
-\t\t\t\t\tloaderStatus = LoaderStatus::FAILED;
-\t\t\t\t}
-\t\t\t\tlogger.error(err.what());
-\t\t\t}
-'''
-          new_failure = '''\t\t\t} catch (FailedToInitializeCanary &err) {
-\t\t\t\t{
-\t\t\t\t\tstd::scoped_lock lock(loaderMutex);
-\t\t\t\t\tloaderStatus = LoaderStatus::FAILED;
-\t\t\t\t}
-\t\t\t\tloaderCV.notify_all();
-\t\t\t\tlogger.error(err.what());
-\t\t\t}
-'''
-          if old_failure not in text:
-              raise SystemExit('startup failure block not found')
-          text = text.replace(old_failure, new_failure, 1)
+          failure_pattern = re.compile(
+              r'(\} catch \(FailedToInitializeCanary &err\) \{\n\s*\{\n\s*std::scoped_lock lock\(loaderMutex\);\n\s*loaderStatus = LoaderStatus::FAILED;\n\s*\}\n)(\s*logger\.error\(err\.what\(\)\);)'
+          )
+          text, failure_count = failure_pattern.subn(r'\1\t\t\t\tloaderCV.notify_all();\n\2', text, count=1)
+          if failure_count != 1:
+              raise SystemExit(f'expected one startup failure block, found {failure_count}')
 
-          old_wait = '''\tconstexpr auto timeout = std::chrono::minutes(10);
-\tconstexpr auto warnEvery = std::chrono::seconds(120);
-\tauto start = std::chrono::steady_clock::now();
-\tauto lastLog = start;
-
-\twhile (true) {
-\t\t{
-\t\t\tstd::scoped_lock lock(loaderMutex);
-\t\t\tif (loaderStatus != LoaderStatus::LOADING) {
-\t\t\t\tbreak;
-\t\t\t}
-\t\t}
-
-\t\tauto now = std::chrono::steady_clock::now();
-
-\t\tif (now - lastLog >= warnEvery) {
-\t\t\tlogger.warn("Startup still running ({} s)...", std::chrono::duration_cast<std::chrono::seconds>(now - start).count());
-\t\t\tlastLog = now;
-\t\t}
-
-\t\tif (now - start > timeout) {
-\t\t\tlogger.error("Startup exceeded {} minutes - aborting.", std::chrono::duration_cast<std::chrono::minutes>(timeout).count());
-\t\t\tshutdown();
-\t\t\treturn EXIT_FAILURE;
-\t\t}
-
-\t\tstd::this_thread::sleep_for(std::chrono::milliseconds(10));
-\t}
-'''
-          new_wait = '''\tconstexpr auto timeout = std::chrono::minutes(10);
+          wait_pattern = re.compile(
+              r'\tconstexpr auto timeout = std::chrono::minutes\(10\);.*?\t\tstd::this_thread::sleep_for\(std::chrono::milliseconds\(10\)\);\n\t\}\n',
+              re.DOTALL,
+          )
+          replacement = '''\tconstexpr auto timeout = std::chrono::minutes(10);
 \tconstexpr auto warnEvery = std::chrono::seconds(120);
 \tconst auto start = std::chrono::steady_clock::now();
 \tconst auto deadline = start + timeout;
@@ -107,11 +69,11 @@ jobs:
 \t}
 \tloaderLock.unlock();
 '''
-          if old_wait not in text:
-              raise SystemExit('startup polling block not found')
-          text = text.replace(old_wait, new_wait, 1)
-          path.write_text(text, encoding='utf-8')
+          text, wait_count = wait_pattern.subn(replacement, text, count=1)
+          if wait_count != 1:
+              raise SystemExit(f'expected one startup polling block, found {wait_count}')
 
+          path.write_text(text, encoding='utf-8')
           Path('.github/workflows/apply-startup-loader-fix.yml').unlink()
       - name: Commit changes
         run: |
