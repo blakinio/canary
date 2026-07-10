@@ -80,7 +80,17 @@ jobs:
       - name: Validate gameplay analytics migration contract
         run: python tools/analytics/validate_gameplay_analytics_migrations.py
       - name: Run gameplay analytics validator tests
-        run: python -m unittest discover -s tools/analytics -p "test_*.py" -v
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tools/analytics -p "test_*.py" -v 2>&1 | tee validator-tests.log
+      - name: Upload validator test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gameplay-analytics-validator-log
+          path: validator-tests.log
+          if-no-files-found: error
+          retention-days: 7
       - name: Install LuaJIT
         run: |
           sudo apt-get update
