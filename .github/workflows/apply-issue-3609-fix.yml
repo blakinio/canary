@@ -1,15 +1,14 @@
 name: Apply issue 3609 fix
 
 on:
-  pull_request:
-    branches: [main]
+  push:
+    branches: [fix/issue-3609-house-podium-duplication]
 
 permissions:
   contents: write
 
 jobs:
   apply-fix:
-    if: github.head_ref == 'fix/issue-3609-house-podium-duplication'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
