@@ -19,6 +19,7 @@ return {
 	retryMaxDelaySeconds = 900,
 	deadLetterQueueLimit = 1000,
 	serverVersion = os.getenv("CANARY_SERVER_VERSION") or "",
+	contextSampleIntervalSeconds = 1,
 	contextMaxGapSeconds = 10,
 	huntAreaGridSize = 64,
 	trackFallbackGridAreas = true,
