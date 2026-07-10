@@ -9,11 +9,18 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "cooldown": {"type": ["string", "integer"]},
+        "dependsOnQuests": {"type": "array", "items": {"type": "string"}},
+        "requiredActionIds": {"type": "array", "items": {"type": "integer", "minimum": 1}, "uniqueItems": true},
         "requiredLevel": {"type": "integer", "minimum": 0},
+        "requiredUniqueIds": {"type": "array", "items": {"type": "integer", "minimum": 1}, "uniqueItems": true},
+        "requiredVocations": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "repeatable": {"type": "boolean"},
-        "stages": {"type": "array", "items": {"type": "object"}},
         "rewards": {"type": "array", "items": {"type": "object"}},
-        "storage": {"type": "object"}
+        "starterNpc": {"type": "string", "minLength": 1},
+        "storage": {"type": "object"},
+        "stages": {"type": "array", "items": {"type": "object"}},
+        "mapRequirements": {"type": "array", "items": {"type": "string"}}
       }
     },
     "monster": {
@@ -89,6 +96,7 @@
         "capacity": {"type": "integer", "minimum": 1},
         "resetPolicy": {"type": "string"},
         "map": {"type": "object"},
+        "mapRequirements": {"type": "array", "items": {"type": "string"}},
         "encounters": {"type": "array", "items": {"type": "object"}},
         "rewards": {"type": "array", "items": {"type": "object"}}
       }
