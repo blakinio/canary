@@ -108,12 +108,14 @@ def validate_runtime(text: str) -> None:
         "GameplayAnalyticsMana",
         "GameplayAnalyticsDeath",
         "GameplayAnalyticsKill",
-        "GameplayAnalyticsExperience",
     ):
         require(event in text, f"missing runtime event: {event}")
     require('TalkAction("/analytics")' in text, "missing administrative command")
     require("creature:registerEvent(\"GameplayAnalyticsHealth\")" in text,
             "spawned monsters must receive the health event")
+    require("experienceSnapshot" in text, "experience delta snapshot is not implemented")
+    require("GameplayAnalyticsExperience" not in text,
+            "unsupported generic experience CreatureEvent must not be registered")
 
 
 def main() -> int:
