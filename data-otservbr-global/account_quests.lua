@@ -16,24 +16,30 @@ return {
     -- /questreset Player Name, quest-id
     allowSelfReset = false,
 
-    -- Register quests here. Storage keys listed in progressStorages are reset
-    -- only for the selected character. Account access and reward history are
-    -- deliberately not reset.
+    -- Storage keys listed in progressStorages are reset only for the selected
+    -- character. Account access and reward history are deliberately preserved.
     quests = {
-        -- Example:
-        -- ["example-quest"] = {
-        --     rewardMode = "oncePerAccount",
-        --     progressStorages = {
-        --         10001,
-        --         10002,
-        --         10003,
-        --     },
-        -- },
-        --
-        -- A quest whose final item must be obtainable by every character:
-        -- ["character-item-quest"] = {
-        --     rewardMode = "oncePerCharacter",
-        --     progressStorages = { 10100, 10101 },
-        -- },
+        ["the-ape-city"] = {
+            rewardMode = "oncePerCharacter",
+            progressStorages = {
+                40612, -- Started
+                40613, -- Questline
+                40614, -- DworcDoor
+                40615, -- ChorDoor
+                40616, -- ParchmentDecyphering
+                40617, -- FibulaDoor
+                40618, -- WitchesCapSpot
+                40619, -- CasksDoor
+                40620, -- Casks
+                40621, -- HolyApeHair
+                40622, -- SnakeDestroyer
+                40623, -- ShamanOutfit
+                40624, -- TheLargeAmphoras1
+                40625, -- TheLargeAmphoras2
+                40626, -- TheLargeAmphoras3
+                40627, -- TheLargeAmphoras4
+                40628, -- TheLargeAmphorasCooldown
+            },
+        },
     },
 }
