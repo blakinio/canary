@@ -476,39 +476,19 @@ local function insertDetails(session)
 	end
 	if Analytics.config.trackDamageTypes then
 		for damageType, data in pairs(session.damageTypes) do
-			local query = string.format(
-				"INSERT INTO `analytics_session_damage_types` (`session_id`,`damage_type`,`damage_dealt`,`damage_received`) VALUES (%d,%d,%d,%d) ON DUPLICATE KEY UPDATE `damage_dealt`=VALUES(`damage_dealt`),`damage_received`=VALUES(`damage_received`)",
-				sessionId,
-				damageType,
-				data.dealt,
-				data.received
-			)
+			local query = string.format("INSERT INTO `analytics_session_damage_types` (`session_id`,`damage_type`,`damage_dealt`,`damage_received`) VALUES (%d,%d,%d,%d) ON DUPLICATE KEY UPDATE `damage_dealt`=VALUES(`damage_dealt`),`damage_received`=VALUES(`damage_received`)", sessionId, damageType, data.dealt, data.received)
 			success = runDetailQuery(query) and success
 		end
 	end
 	if Analytics.config.trackSupplies then
 		for itemId, data in pairs(session.supplies) do
-			local query = string.format(
-				"INSERT INTO `analytics_session_supplies` (`session_id`,`item_id`,`amount_used`,`unit_value`,`total_value`) VALUES (%d,%d,%d,%d,%d) ON DUPLICATE KEY UPDATE `amount_used`=VALUES(`amount_used`),`unit_value`=VALUES(`unit_value`),`total_value`=VALUES(`total_value`)",
-				sessionId,
-				itemId,
-				data.amount,
-				data.unitValue,
-				data.totalValue
-			)
+			local query = string.format("INSERT INTO `analytics_session_supplies` (`session_id`,`item_id`,`amount_used`,`unit_value`,`total_value`) VALUES (%d,%d,%d,%d,%d) ON DUPLICATE KEY UPDATE `amount_used`=VALUES(`amount_used`),`unit_value`=VALUES(`unit_value`),`total_value`=VALUES(`total_value`)", sessionId, itemId, data.amount, data.unitValue, data.totalValue)
 			success = runDetailQuery(query) and success
 		end
 	end
 	if Analytics.config.trackLoot then
 		for itemId, data in pairs(session.loot) do
-			local query = string.format(
-				"INSERT INTO `analytics_session_loot` (`session_id`,`item_id`,`amount`,`npc_value`,`market_value`) VALUES (%d,%d,%d,%d,%d) ON DUPLICATE KEY UPDATE `amount`=VALUES(`amount`),`npc_value`=VALUES(`npc_value`),`market_value`=VALUES(`market_value`)",
-				sessionId,
-				itemId,
-				data.amount,
-				data.npcValue,
-				data.marketValue
-			)
+			local query = string.format("INSERT INTO `analytics_session_loot` (`session_id`,`item_id`,`amount`,`npc_value`,`market_value`) VALUES (%d,%d,%d,%d,%d) ON DUPLICATE KEY UPDATE `amount`=VALUES(`amount`),`npc_value`=VALUES(`npc_value`),`market_value`=VALUES(`market_value`)", sessionId, itemId, data.amount, data.npcValue, data.marketValue)
 			success = runDetailQuery(query) and success
 		end
 	end
