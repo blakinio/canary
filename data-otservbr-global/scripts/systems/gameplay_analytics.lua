@@ -7,8 +7,26 @@ function Analytics.start(player)
     local session = originalStart(player)
     if session then
         session.runtimeId = player:getId()
+        session.experienceSnapshot = session.experienceSnapshot or player:getExperience()
     end
     return session
+end
+
+local originalFinish = Analytics.finish
+function Analytics.finish(player, reason)
+    local session = player and Analytics.sessions[player:getGuid()] or nil
+    if session and session.experienceSnapshot then
+        local gained = math.max(0, player:getExperience() - session.experienceSnapshot)
+        -- Revscriptsys has no generic CreatureEvent for experience. Persist the
+        -- exact final delta; raw experience can also be supplied explicitly.
+        if session.experienceFinal == 0 then
+            session.experienceFinal = gained
+            session.experienceRaw = gained
+        elseif gained > session.experienceFinal then
+            session.experienceFinal = gained
+        end
+    end
+    originalFinish(player, reason)
 end
 
 function Analytics.expireInactive()
@@ -146,7 +164,6 @@ function login.onLogin(player)
     player:registerEvent("GameplayAnalyticsMana")
     player:registerEvent("GameplayAnalyticsDeath")
     player:registerEvent("GameplayAnalyticsKill")
-    player:registerEvent("GameplayAnalyticsExperience")
     Analytics.start(player)
     return true
 end
@@ -178,15 +195,6 @@ function kill.onKill(player, target)
     return true
 end
 kill:register()
-
-local experience = CreatureEvent("GameplayAnalyticsExperience")
-function experience.onGainExperience(player, source, experienceValue, rawExperience)
-    if Analytics.isEnabled() and source then
-        Analytics.recordExperience(player, experienceValue, rawExperience)
-    end
-    return experienceValue
-end
-experience:register()
 
 -- Every monster must carry the health-change event so outgoing player damage can
 -- be measured after final combat reductions. EventCallback.onSpawn is global and
