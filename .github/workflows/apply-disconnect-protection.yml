@@ -1,0 +1,31 @@
+name: Apply disconnect protection
+
+on:
+  push:
+    branches:
+      - feature/disconnect-protection
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/disconnect-protection
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply changes
+        run: python tools/apply_disconnect_protection.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add config.lua.dist src/config/config_enums.hpp src/config/configmanager.cpp src/creatures/players/player.hpp src/creatures/players/player.cpp
+          git commit -m "feat: add configurable disconnect death protection"
+          git push origin HEAD:feature/disconnect-protection
