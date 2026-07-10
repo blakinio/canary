@@ -8,11 +8,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = ROOT / "data-otservbr-global/account_quests.lua"
 RUNTIME = ROOT / "data-otservbr-global/scripts/custom/account_quest_system.lua"
+QUEST_DOORS = ROOT / "data/scripts/actions/doors/quest_door.lua"
 INTEGRATION_ROOTS = (
     ROOT / "data/scripts",
     ROOT / "data-otservbr-global/scripts",
 )
-QUEST_ID = re.compile(r'^[a-z0-9][a-z0-9_.-]*$')
+QUEST_ID = re.compile(r"^[a-z0-9][a-z0-9_.-]*$")
 
 
 def require(condition: bool, message: str) -> None:
@@ -36,7 +37,8 @@ def configured_quest_ids(text: str) -> set[str]:
 def integrated_quest_ids() -> set[str]:
     ids: set[str] = set()
     patterns = (
-        re.compile(r'local\s+questId\s*=\s*"([^"]+)"'),
+        re.compile(r'local\s+[A-Za-z_]*[Qq]uestId\s*=\s*"([^"]+)"'),
+        re.compile(r'addAccountQuestDoor\([^,]+,\s*"([^"]+)"'),
         re.compile(r'(?:has|unlock|claim|canClaim)AccountQuest(?:Access|Reward)\s*\([^,)]*,?\s*"([^"]+)"'),
     )
     for root in INTEGRATION_ROOTS:
@@ -81,15 +83,37 @@ def validate_runtime(text: str) -> None:
     require('questReset:groupType("god")' in text, "administrative reset command must remain god-only")
 
 
+def validate_door_integration(text: str) -> None:
+    require("local accountQuestUnlockDoors = {}" in text, "completion-only unlock mapping is missing")
+    require(
+        'addAccountQuestDoor(secretService.Mission07, "secret-service", true)' in text,
+        "Secret Service must unlock account access only at its final mission gate",
+    )
+    require(
+        re.search(r'addAccountQuestDoor\(theApeCity\.[^,]+,\s*"the-ape-city",\s*true\)', text) is None,
+        "The Ape City early doors must not unlock completed-quest access",
+    )
+    require(
+        "if hasCharacterAccess and accountQuestId then" not in text,
+        "ordinary quest doors must not unlock an entire account quest",
+    )
+    require(
+        "if hasCharacterAccess and completionQuestId then" in text,
+        "only explicit completion gates may unlock account quest access",
+    )
+
+
 def main() -> int:
     try:
         config_text = read(CONFIG)
         runtime_text = read(RUNTIME)
+        door_text = read(QUEST_DOORS)
         configured = configured_quest_ids(config_text)
         integrated = integrated_quest_ids()
         unknown = sorted(integrated - configured)
         require(not unknown, f"integrations reference unregistered quests: {', '.join(unknown)}")
         validate_runtime(runtime_text)
+        validate_door_integration(door_text)
     except AssertionError as error:
         print(f"account quest validation failed: {error}", file=sys.stderr)
         return 1
