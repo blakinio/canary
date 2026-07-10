@@ -170,7 +170,11 @@ end
             validator.validate_runtime(runtime)
 
     def test_rejects_session_creation_on_login(self) -> None:
-        broken = self.runtime.replace("registerPlayerEvents(player)", "registerPlayerEvents(player)\n\t\tAnalytics.start(player)", 1)
+        broken = self.runtime.replace(
+            "\tif Analytics.isEnabled() then\n\t\tregisterPlayerEvents(player)\n\tend",
+            "\tif Analytics.isEnabled() then\n\t\tregisterPlayerEvents(player)\n\t\tAnalytics.start(player)\n\tend",
+            1,
+        )
         with self.assertRaisesRegex(AssertionError, "empty analytics session"):
             validator.validate_runtime(broken)
 
