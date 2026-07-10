@@ -1,9 +1,9 @@
 name: Apply startup loader wait fix
 
 on:
-  push:
+  pull_request:
     branches:
-      - fix/startup-loader-wait
+      - main
     paths:
       - .github/workflows/apply-startup-loader-fix.yml
 
