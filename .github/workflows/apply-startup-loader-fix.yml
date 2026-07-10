@@ -1,0 +1,122 @@
+name: Apply startup loader wait fix
+
+on:
+  push:
+    branches:
+      - fix/startup-loader-wait
+    paths:
+      - .github/workflows/apply-startup-loader-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/startup-loader-wait
+      - name: Replace startup polling with condition variable waits
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('src/canary_server.cpp')
+          text = path.read_text(encoding='utf-8')
+
+          old_failure = '''\t\t\t} catch (FailedToInitializeCanary &err) {
+\t\t\t\t{
+\t\t\t\t\tstd::scoped_lock lock(loaderMutex);
+\t\t\t\t\tloaderStatus = LoaderStatus::FAILED;
+\t\t\t\t}
+\t\t\t\tlogger.error(err.what());
+\t\t\t}
+'''
+          new_failure = '''\t\t\t} catch (FailedToInitializeCanary &err) {
+\t\t\t\t{
+\t\t\t\t\tstd::scoped_lock lock(loaderMutex);
+\t\t\t\t\tloaderStatus = LoaderStatus::FAILED;
+\t\t\t\t}
+\t\t\t\tloaderCV.notify_all();
+\t\t\t\tlogger.error(err.what());
+\t\t\t}
+'''
+          if old_failure not in text:
+              raise SystemExit('startup failure block not found')
+          text = text.replace(old_failure, new_failure, 1)
+
+          old_wait = '''\tconstexpr auto timeout = std::chrono::minutes(10);
+\tconstexpr auto warnEvery = std::chrono::seconds(120);
+\tauto start = std::chrono::steady_clock::now();
+\tauto lastLog = start;
+
+\twhile (true) {
+\t\t{
+\t\t\tstd::scoped_lock lock(loaderMutex);
+\t\t\tif (loaderStatus != LoaderStatus::LOADING) {
+\t\t\t\tbreak;
+\t\t\t}
+\t\t}
+
+\t\tauto now = std::chrono::steady_clock::now();
+
+\t\tif (now - lastLog >= warnEvery) {
+\t\t\tlogger.warn("Startup still running ({} s)...", std::chrono::duration_cast<std::chrono::seconds>(now - start).count());
+\t\t\tlastLog = now;
+\t\t}
+
+\t\tif (now - start > timeout) {
+\t\t\tlogger.error("Startup exceeded {} minutes - aborting.", std::chrono::duration_cast<std::chrono::minutes>(timeout).count());
+\t\t\tshutdown();
+\t\t\treturn EXIT_FAILURE;
+\t\t}
+
+\t\tstd::this_thread::sleep_for(std::chrono::milliseconds(10));
+\t}
+'''
+          new_wait = '''\tconstexpr auto timeout = std::chrono::minutes(10);
+\tconstexpr auto warnEvery = std::chrono::seconds(120);
+\tconst auto start = std::chrono::steady_clock::now();
+\tconst auto deadline = start + timeout;
+\tauto nextWarning = start + warnEvery;
+
+\tstd::unique_lock loaderLock(loaderMutex);
+\twhile (loaderStatus == LoaderStatus::LOADING) {
+\t\tconst auto wakeAt = std::min(deadline, nextWarning);
+\t\tloaderCV.wait_until(loaderLock, wakeAt, [this] {
+\t\t\treturn loaderStatus != LoaderStatus::LOADING;
+\t\t});
+
+\t\tif (loaderStatus != LoaderStatus::LOADING) {
+\t\t\tbreak;
+\t\t}
+
+\t\tconst auto now = std::chrono::steady_clock::now();
+\t\tif (now >= deadline) {
+\t\t\tloaderLock.unlock();
+\t\t\tlogger.error("Startup exceeded {} minutes - aborting.", std::chrono::duration_cast<std::chrono::minutes>(timeout).count());
+\t\t\tshutdown();
+\t\t\treturn EXIT_FAILURE;
+\t\t}
+
+\t\tif (now >= nextWarning) {
+\t\t\tlogger.warn("Startup still running ({} s)...", std::chrono::duration_cast<std::chrono::seconds>(now - start).count());
+\t\t\tnextWarning = now + warnEvery;
+\t\t}
+\t}
+\tloaderLock.unlock();
+'''
+          if old_wait not in text:
+              raise SystemExit('startup polling block not found')
+          text = text.replace(old_wait, new_wait, 1)
+          path.write_text(text, encoding='utf-8')
+
+          Path('.github/workflows/apply-startup-loader-fix.yml').unlink()
+      - name: Commit changes
+        run: |
+          git config user.name "canary-maintenance-bot"
+          git config user.email "canary-maintenance-bot@users.noreply.github.com"
+          git add src/canary_server.cpp .github/workflows/apply-startup-loader-fix.yml
+          git commit -m "startup: wait on loader condition variable"
+          git push origin HEAD:fix/startup-loader-wait
