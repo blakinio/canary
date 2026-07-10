@@ -133,19 +133,7 @@ local function monsterBucket(session, creature)
 end
 
 local function sessionHasData(session)
-	return session.experienceRaw > 0
-		or session.experienceFinal > 0
-		or session.damageDealt > 0
-		or session.damageReceived > 0
-		or session.healingSelf > 0
-		or session.healingOthers > 0
-		or session.overhealing > 0
-		or session.manaSpent > 0
-		or session.monstersKilled > 0
-		or session.deaths > 0
-		or session.lootNpc > 0
-		or session.lootMarket > 0
-		or session.suppliesValue > 0
+	return session.experienceRaw > 0 or session.experienceFinal > 0 or session.damageDealt > 0 or session.damageReceived > 0 or session.healingSelf > 0 or session.healingOthers > 0 or session.overhealing > 0 or session.manaSpent > 0 or session.monstersKilled > 0 or session.deaths > 0 or session.lootNpc > 0 or session.lootMarket > 0 or session.suppliesValue > 0
 end
 
 function Analytics.isEnabled()
