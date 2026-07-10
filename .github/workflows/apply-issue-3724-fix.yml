@@ -90,3 +90,5 @@ jobs:
           git add src/creatures/players/components/wheel/player_wheel.cpp
           git diff --cached --quiet || git commit -m "fix: clear destroyed active wheel gems"
           git push origin HEAD:${{ github.head_ref }}
+
+# synchronization trigger
