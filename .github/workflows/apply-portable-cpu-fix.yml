@@ -1,0 +1,94 @@
+name: Apply portable CPU build fix
+
+on:
+  push:
+    branches:
+      - fix/portable-cpu-builds
+    paths:
+      - .github/workflows/apply-portable-cpu-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/portable-cpu-builds
+      - name: Make native CPU optimization opt-in
+        shell: python
+        run: |
+          from pathlib import Path
+
+          root = Path('.')
+          cmake = root / 'CMakeLists.txt'
+          text = cmake.read_text(encoding='utf-8')
+          metrics_option = '''option(
+              FEATURE_METRICS
+              "Enable metrics feature"
+              OFF
+          )
+          '''
+          native_option = metrics_option + '''option(
+              CANARY_NATIVE_ARCH
+              "Optimize release builds for the build host CPU (non-portable binaries)"
+              OFF
+          )
+          '''
+          if 'CANARY_NATIVE_ARCH' not in text:
+              if metrics_option not in text:
+                  raise SystemExit('FEATURE_METRICS option block not found')
+              text = text.replace(metrics_option, native_option, 1)
+          metrics_log = '''if(FEATURE_METRICS)
+              log_option_enabled("metrics")
+          else()
+              log_option_disabled("metrics")
+          endif()
+          '''
+          native_log = metrics_log + '''
+          if(CANARY_NATIVE_ARCH)
+              log_option_enabled("native CPU optimizations (non-portable)")
+          else()
+              log_option_disabled("native CPU optimizations; portable CPU baseline enabled")
+          endif()
+          '''
+          if 'native CPU optimizations (non-portable)' not in text:
+              if metrics_log not in text:
+                  raise SystemExit('metrics logging block not found')
+              text = text.replace(metrics_log, native_log, 1)
+          cmake.write_text(text, encoding='utf-8')
+
+          lib = root / 'cmake/modules/CanaryLib.cmake'
+          text = lib.read_text(encoding='utf-8')
+          old = '''        target_compile_options(
+                      ${core_target}
+                      PRIVATE $<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:-O3
+                              -march=native>
+                  )
+          '''
+          new = '''        target_compile_options(
+                      ${core_target}
+                      PRIVATE $<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:-O3>
+                  )
+                  if(CANARY_NATIVE_ARCH)
+                      target_compile_options(
+                          ${core_target}
+                          PRIVATE $<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:-march=native>
+                      )
+                  endif()
+          '''
+          if old not in text:
+              raise SystemExit('release optimization block not found')
+          lib.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          workflow = root / '.github/workflows/apply-portable-cpu-fix.yml'
+          workflow.unlink()
+      - name: Commit changes
+        run: |
+          git config user.name "canary-maintenance-bot"
+          git config user.email "canary-maintenance-bot@users.noreply.github.com"
+          git add CMakeLists.txt cmake/modules/CanaryLib.cmake .github/workflows/apply-portable-cpu-fix.yml
+          git commit -m "build: make native CPU optimization opt-in"
+          git push origin HEAD:fix/portable-cpu-builds
