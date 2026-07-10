@@ -18,7 +18,20 @@ SAFE_TASK_ID = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
 DATE_VALUE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 PAYLOAD_KEYS = {
-    "quest": {"requiredLevel", "repeatable", "stages", "rewards", "storage"},
+    "quest": {
+        "cooldown",
+        "dependsOnQuests",
+        "requiredActionIds",
+        "requiredLevel",
+        "requiredUniqueIds",
+        "requiredVocations",
+        "repeatable",
+        "rewards",
+        "starterNpc",
+        "storage",
+        "stages",
+        "mapRequirements",
+    },
     "monster": {
         "health",
         "maxHealth",
@@ -53,7 +66,18 @@ PAYLOAD_KEYS = {
         "effects",
     },
     "raid": {"interval", "margin", "repeatable", "steps"},
-    "instance": {"template", "entry", "exit", "duration", "capacity", "resetPolicy", "map", "encounters", "rewards"},
+    "instance": {
+        "template",
+        "entry",
+        "exit",
+        "duration",
+        "capacity",
+        "resetPolicy",
+        "map",
+        "mapRequirements",
+        "encounters",
+        "rewards",
+    },
 }
 CONTENT_BUNDLE_KEYS = {"components", "requestedIds", "mapRequirements", "manualSteps"}
 COMPONENT_KEYS = {"id", "type", "name", "dependsOn", "sourceRefs"}
