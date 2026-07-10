@@ -90,4 +90,12 @@ jobs:
           DB_USER: root
           DB_PASSWORD: root
           DB_NAME: canary_test
-        run: bash tools/analytics/test_mariadb_integration.sh
+        run: bash tools/analytics/test_mariadb_integration.sh 2>&1 | tee mariadb-integration.log
+      - name: Upload MariaDB integration log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gameplay-analytics-mariadb-log
+          path: mariadb-integration.log
+          if-no-files-found: error
+          retention-days: 7
