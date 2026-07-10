@@ -1,0 +1,92 @@
+name: Apply issue 3724 fix
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/apply-issue-3724-fix.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply-fix:
+    if: github.head_ref == 'fix/issue-3724-destroy-active-gem'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Apply targeted fix
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path("src/creatures/players/components/wheel/player_wheel.cpp")
+          text = path.read_text(encoding="utf-8")
+
+          old_destroy = '''void PlayerWheel::destroyGem(uint16_t index) {
+\tconst auto &gem = getGem(index);
+\tif (!gem) {
+\t\treturn;
+\t}
+'''
+          new_destroy = '''void PlayerWheel::destroyGem(uint16_t index) {
+\tif (index >= m_revealedGems.size()) {
+\t\tg_logger().error("[{}] Player {} tried to destroy gem {} but only has {} revealed gems", __FUNCTION__, m_player.getName(), index, m_revealedGems.size());
+\t\treturn;
+\t}
+
+\tconst auto gem = m_revealedGems[index];
+'''
+          if old_destroy not in text:
+              raise SystemExit("destroyGem precondition not found")
+          text = text.replace(old_destroy, new_destroy, 1)
+
+          old_erase = '''\tm_destroyedGems.emplace_back(gem);
+\tm_revealedGems.erase(m_revealedGems.begin() + index);
+'''
+          new_erase = '''\tfor (auto &activeGem : m_activeGems) {
+\t\tif (activeGem && activeGem.uuid == gem.uuid) {
+\t\t\tactiveGem = emptyGem;
+\t\t}
+\t}
+
+\tm_destroyedGems.emplace_back(gem);
+\tm_revealedGems.erase(m_revealedGems.begin() + index);
+'''
+          if old_erase not in text:
+              raise SystemExit("destroyGem erase block not found")
+          text = text.replace(old_erase, new_erase, 1)
+
+          old_active = '''void PlayerWheel::setActiveGem(WheelGemAffinity_t affinity, uint16_t index) {
+\tauto &gem = getGem(index);
+\tif (!gem) {
+\t\tg_logger().error("[{}] Failed to load gem with index {}", __FUNCTION__, index);
+\t\treturn;
+\t}
+'''
+          new_active = '''void PlayerWheel::setActiveGem(WheelGemAffinity_t affinity, uint16_t index) {
+\tif (index >= m_revealedGems.size()) {
+\t\tg_logger().error("[{}] Player {} tried to activate gem {} but only has {} revealed gems", __FUNCTION__, m_player.getName(), index, m_revealedGems.size());
+\t\tremoveActiveGem(affinity);
+\t\treturn;
+\t}
+
+\tauto &gem = m_revealedGems[index];
+'''
+          if old_active not in text:
+              raise SystemExit("setActiveGem precondition not found")
+          text = text.replace(old_active, new_active, 1)
+
+          path.write_text(text, encoding="utf-8")
+
+      - name: Commit targeted fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/creatures/players/components/wheel/player_wheel.cpp
+          git diff --cached --quiet || git commit -m "fix: clear destroyed active wheel gems"
+          git push origin HEAD:${{ github.head_ref }}
