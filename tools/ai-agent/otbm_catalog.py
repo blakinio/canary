@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import html
-import json
 import xml.etree.ElementTree as ET
 from collections import Counter
 from collections.abc import Mapping
@@ -42,6 +41,7 @@ class ItemCatalog:
     source: Path
     sha256: str
     items: dict[int, ItemInfo]
+    diagnostics: tuple[dict[str, Any], ...]
 
     def lookup(self, item_id: int) -> ItemInfo | None:
         return self.items.get(item_id)
@@ -56,6 +56,8 @@ class ItemCatalog:
             "itemCount": len(self.items),
             "namedItemCount": named,
             "categories": dict(sorted(categories.items())),
+            "diagnosticCount": len(self.diagnostics),
+            "diagnostics": list(self.diagnostics),
         }
 
 
@@ -85,15 +87,56 @@ def _merge_attribute(attributes: dict[str, Any], key: str, value: Any) -> None:
         attributes[key] = [existing, value]
 
 
-def _item_ids(element: ET.Element) -> range:
-    if "id" in element.attrib:
-        item_id = int(element.attrib["id"])
-        _require(0 <= item_id <= 0xFFFF, f"Item ID {item_id} is outside uint16")
-        return range(item_id, item_id + 1)
-    _require("fromid" in element.attrib and "toid" in element.attrib, "Item entry requires id or fromid/toid")
-    first = int(element.attrib["fromid"])
-    last = int(element.attrib["toid"])
-    _require(0 <= first <= last <= 0xFFFF, f"Invalid item range {first}..{last}")
+def _diagnostic(code: str, message: str, **details: Any) -> dict[str, Any]:
+    return {"code": code, "message": message, **details}
+
+
+def _item_ids(element: ET.Element, diagnostics: list[dict[str, Any]]) -> range:
+    try:
+        if "id" in element.attrib:
+            item_id = int(element.attrib["id"])
+            if not 0 <= item_id <= 0xFFFF:
+                diagnostics.append(_diagnostic("invalid_item_id", f"Skipping item ID outside uint16: {item_id}", itemId=item_id))
+                return range(0)
+            return range(item_id, item_id + 1)
+        if "fromid" not in element.attrib:
+            diagnostics.append(_diagnostic("missing_item_id", "Skipping item entry without id or fromid"))
+            return range(0)
+        if "toid" not in element.attrib:
+            diagnostics.append(
+                _diagnostic(
+                    "missing_toid",
+                    f"Skipping fromid={element.attrib['fromid']} without toid",
+                    fromId=element.attrib["fromid"],
+                )
+            )
+            return range(0)
+        first = int(element.attrib["fromid"])
+        last = int(element.attrib["toid"])
+    except ValueError as exc:
+        diagnostics.append(_diagnostic("invalid_item_id", f"Skipping non-numeric item identifier: {exc}"))
+        return range(0)
+
+    if not 0 <= first <= 0xFFFF or not 0 <= last <= 0xFFFF:
+        diagnostics.append(
+            _diagnostic(
+                "invalid_item_range",
+                f"Skipping item range outside uint16: {first}..{last}",
+                fromId=first,
+                toId=last,
+            )
+        )
+        return range(0)
+    if first > last:
+        diagnostics.append(
+            _diagnostic(
+                "reversed_item_range",
+                f"Skipping reversed item range {first}..{last}, matching Canary's zero-iteration loader behavior",
+                fromId=first,
+                toId=last,
+            )
+        )
+        return range(0)
     return range(first, last + 1)
 
 
@@ -138,6 +181,7 @@ def load_item_catalog(path: Path) -> ItemCatalog:
             digest.update(chunk)
 
     items: dict[int, ItemInfo] = {}
+    diagnostics: list[dict[str, Any]] = []
     for _, element in ET.iterparse(source, events=("end",)):
         if _local_name(element.tag) != "item":
             continue
@@ -159,8 +203,15 @@ def load_item_catalog(path: Path) -> ItemCatalog:
         plural = element.attrib.get("plural") or None
         item_type = element.attrib.get("type") or str(attributes.get("type") or "") or None
         category = _category(item_type, attributes)
-        for item_id in _item_ids(element):
-            _require(item_id not in items, f"Duplicate item definition for ID {item_id}")
+        for item_id in _item_ids(element, diagnostics):
+            if item_id in items:
+                diagnostics.append(
+                    _diagnostic(
+                        "duplicate_item_definition",
+                        f"Item ID {item_id} is defined more than once; the later XML entry wins",
+                        itemId=item_id,
+                    )
+                )
             items[item_id] = ItemInfo(
                 item_id=item_id,
                 name=name,
@@ -172,7 +223,7 @@ def load_item_catalog(path: Path) -> ItemCatalog:
             )
         element.clear()
     _require(items, f"No item definitions found in {source}")
-    return ItemCatalog(source=source, sha256=digest.hexdigest(), items=items)
+    return ItemCatalog(source=source, sha256=digest.hexdigest(), items=items, diagnostics=tuple(diagnostics))
 
 
 def resolve_items_xml(explicit: Path | None, map_path: Path | None = None) -> Path | None:
