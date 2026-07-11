@@ -1,0 +1,78 @@
+sum);
++	EXPECT_EQ(CompressionLayout::Official, gameSequence.compression);
++	EXPECT_TRUE(gameSequence.sequenceHighBitSignalsCompression);
++
++	EXPECT_EQ(TransportProfileId::CurrentGamePlain, gamePlain.id);
++	EXPECT_EQ(CHECKSUM_METHOD_NONE, gamePlain.inboundChecksum);
++	EXPECT_EQ(CHECKSUM_METHOD_NONE, gamePlain.outboundChecksum);
++	EXPECT_EQ(CompressionLayout::None, gamePlain.compression);
++	EXPECT_FALSE(gamePlain.sequenceHighBitSignalsCompression);
++}
++
++TEST(TransportCodecTest, CurrentLoginWritesAdlerChecksumFromProfile) {
++	TestTransportProtocol protocol;
++	protocol.enableEncryption();
++	OutputMessage msg;
++	msg.addByte(0xAB);
++
++	TransportCodecs::currentLogin().encodeOutbound(protocol, msg);
++
++	const auto* bytes = reinterpret_cast<const std::byte*>(msg.getOutputBuffer());
++	ASSERT_EQ(14, msg.getLength());
++	EXPECT_EQ(1, readU16(bytes));
++	const auto storedChecksum = readU32(bytes + HEADER_LENGTH);
++	const auto calculatedChecksum = adlerChecksum(msg.getOutputBuffer() + HEADER_LENGTH + CHECKSUM_LENGTH, msg.getLength() - HEADER_LENGTH - CHECKSUM_LENGTH);
++	EXPECT_EQ(calculatedChecksum, storedChecksum);
++}
++
++TEST(TransportCodecTest, CurrentGameSequenceWritesSequenceFromProfile) {
++	TestTransportProtocol protocol;
++	protocol.enableEncryption();
++	OutputMessage first;
++	first.addByte(0xAB);
++	TransportCodecs::currentGameSequence().encodeOutbound(protocol, first);
++
++	const auto* firstBytes = reinterpret_cast<const std::byte*>(first.getOutputBuffer());
++	EXPECT_EQ(1, readU32(firstBytes + HEADER_LENGTH));
++
++	OutputMessage second;
++	second.addByte(0xCD);
++	TransportCodecs::currentGameSequence().encodeOutbound(protocol, second);
++	const auto* secondBytes = reinterpret_cast<const std::byte*>(second.getOutputBuffer());
++	EXPECT_EQ(2, readU32(secondBytes + HEADER_LENGTH));
++}
++
++TEST(TransportCodecTest, InboundSequenceRejectsReplay) {
++	TestTransportProtocol protocol;
++	NetworkMessage first;
++	first.add<uint32_t>(1);
++	first.addByte(0xAA);
++	first.setBufferPosition(NetworkMessage::INITIAL_BUFFER_POSITION);
++	EXPECT_TRUE(TransportCodecs::currentGameSequence().prepareInbound(protocol, first));
++
++	NetworkMessage replay;
++	replay.add<uint32_t>(1);
++	replay.addByte(0xAA);
++	replay.setBufferPosition(NetworkMessage::INITIAL_BUFFER_POSITION);
++	EXPECT_FALSE(TransportCodecs::currentGameSequence().prepareInbound(protocol, replay));
++}
++
++TEST(TransportCodecTest, InboundAdlerValidatesPayload) {
++	TestTransportProtocol protocol;
++	constexpr uint8_t payload = 0x5A;
++	NetworkMessage valid;
++	valid.add<uint32_t>(adlerChecksum(&payload, sizeof(payload)));
++	valid.addByte(payload);
++	valid.setBufferPosition(NetworkMessage::INITIAL_BUFFER_POSITION);
++	EXPECT_TRUE(TransportCodecs::currentLogin().prepareInbound(protocol, valid));
++
++	NetworkMessage invalid;
++	invalid.add<uint32_t>(0xDEADBEEF);
++	invalid.addByte(payload);
++	invalid.setBufferPosition(NetworkMessage::INITIAL_BUFFER_POSITION);
++	EXPECT_FALSE(TransportCodecs::currentLogin().prepareInbound(protocol, invalid));
++}
++
+ TEST(SessionHintTest, ClaimDoesNotConsumeHint) {
+ 	auto &store = ProtocolSessionHintStore::getInstance();
+ 	constexpr uint32_t testIp = 0x0A000101;

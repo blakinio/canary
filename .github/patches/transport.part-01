@@ -1,0 +1,120 @@
+NONE;
+ 	bool encryptionEnabled = false;
+ 	bool rawMessages = false;
+ 
+diff --git a/src/server/network/protocol/protocol_profile.cpp b/src/server/network/protocol/protocol_profile.cpp
+index 5405c34..6a5cb8f 100644
+--- a/src/server/network/protocol/protocol_profile.cpp
++++ b/src/server/network/protocol/protocol_profile.cpp
+@@ -61,8 +61,22 @@ namespace {
+ 		.sequenceHighBitSignalsCompression = false,
+ 	};
+ 
+-	constexpr TransportProfile currentModernTransport {
+-		.id = TransportProfileId::CurrentModern,
++	constexpr TransportProfile currentLoginTransport {
++		.id = TransportProfileId::CurrentLogin,
++		.outerLength = OuterLengthEncoding::ModernBlockCount,
++		.encryptedPayload = EncryptedPayloadLayout::ModernPaddingByte,
++		.inboundChecksum = CHECKSUM_METHOD_ADLER32,
++		.outboundChecksum = CHECKSUM_METHOD_ADLER32,
++		.compression = CompressionLayout::None,
++		.modernLengthExtraBytes = CHECKSUM_LENGTH,
++		.serverFirstPacketHeaderBytes = 0,
++		.hasCryptoHeader = true,
++		.lengthIncludesChecksum = true,
++		.sequenceHighBitSignalsCompression = false,
++	};
++
++	constexpr TransportProfile currentGameSequenceTransport {
++		.id = TransportProfileId::CurrentGameSequence,
+ 		.outerLength = OuterLengthEncoding::ModernBlockCount,
+ 		.encryptedPayload = EncryptedPayloadLayout::ModernPaddingByte,
+ 		.inboundChecksum = CHECKSUM_METHOD_SEQUENCE,
+@@ -75,6 +89,20 @@ namespace {
+ 		.sequenceHighBitSignalsCompression = true,
+ 	};
+ 
++	constexpr TransportProfile currentGamePlainTransport {
++		.id = TransportProfileId::CurrentGamePlain,
++		.outerLength = OuterLengthEncoding::ModernBlockCount,
++		.encryptedPayload = EncryptedPayloadLayout::ModernPaddingByte,
++		.inboundChecksum = CHECKSUM_METHOD_NONE,
++		.outboundChecksum = CHECKSUM_METHOD_NONE,
++		.compression = CompressionLayout::None,
++		.modernLengthExtraBytes = CHECKSUM_LENGTH,
++		.serverFirstPacketHeaderBytes = CHECKSUM_LENGTH + 2,
++		.hasCryptoHeader = true,
++		.lengthIncludesChecksum = false,
++		.sequenceHighBitSignalsCompression = false,
++	};
++
+ 	constexpr TransportProfile legacyRawWithLoginHeaderTransport {
+ 		.id = TransportProfileId::LegacyRawWithLoginHeader,
+ 		.outerLength = OuterLengthEncoding::RawBodyLength,
+@@ -104,7 +132,7 @@ namespace {
+ 	};
+ 
+ 	constexpr InitialConnectionBehavior currentInitialBehavior {
+-		.transport = TransportProfileId::CurrentModern,
++		.transport = TransportProfileId::CurrentGamePlain,
+ 		.challenge = {
+ 			.flow = GameHandshakeFlow::ServerChallengeBeforeLogin,
+ 			.layout = ChallengeLayout::CurrentLoginChallenge,
+@@ -283,7 +311,7 @@ namespace {
+ 	constexpr AccountLoginLayout currentAccountLoginLayout {
+ 		.profileId = ProtocolProfileId::Current,
+ 		.clientVersion = CLIENT_VERSION,
+-		.responseTransport = TransportProfileId::CurrentModern,
++		.responseTransport = TransportProfileId::CurrentLogin,
+ 		.bytesToSkipBeforeRsa = 17,
+ 		.characterListLayout = AccountCharacterListLayout::WorldListWithSessionKey,
+ 		.sendsSessionKey = true,
+@@ -397,8 +425,12 @@ namespace {
+ const TransportProfile &ProtocolProfileRegistry::getTransportProfile(TransportProfileId id) {
+ 	using enum TransportProfileId;
+ 	switch (id) {
+-		case CurrentModern:
+-			return currentModernTransport;
++		case CurrentLogin:
++			return currentLoginTransport;
++		case CurrentGameSequence:
++			return currentGameSequenceTransport;
++		case CurrentGamePlain:
++			return currentGamePlainTransport;
+ 		case LegacyRawWithLoginHeader:
+ 			return legacyRawWithLoginHeaderTransport;
+ 		case LegacyClassic:
+diff --git a/src/server/network/protocol/protocol_profile.hpp b/src/server/network/protocol/protocol_profile.hpp
+index b9f1eec..d045189 100644
+--- a/src/server/network/protocol/protocol_profile.hpp
++++ b/src/server/network/protocol/protocol_profile.hpp
+@@ -91,7 +91,9 @@ enum class ProtocolFeature : uint64_t {
+ 
+ enum class TransportProfileId : uint8_t {
+ 	RawClientFirst,
+-	CurrentModern,
++	CurrentLogin,
++	CurrentGameSequence,
++	CurrentGamePlain,
+ 	LegacyRawWithLoginHeader,
+ 	LegacyClassic,
+ };
+@@ -198,7 +200,7 @@ enum class GameLoginAuthenticationLayout : uint8_t {
+ struct AccountLoginLayout {
+ 	ProtocolProfileId profileId = ProtocolProfileId::Current;
+ 	uint16_t clientVersion = CLIENT_VERSION;
+-	TransportProfileId responseTransport = TransportProfileId::CurrentModern;
++	TransportProfileId responseTransport = TransportProfileId::CurrentLogin;
+ 	uint8_t bytesToSkipBeforeRsa = 17;
+ 	bool hasAssetSignaturesBeforeRsa = false;
+ 	AccountCharacterListLayout characterListLayout = AccountCharacterListLayout::WorldListWithSessionKey;
+diff --git a/src/server/network/protocol/transport_codec.cpp b/src/server/network/protocol/transport_codec.cpp
+index 23804d0..6e5a876 100644
+--- a/src/server/network/protocol/transport_codec.cpp
++++ b/src/server/network/protocol/transport_codec.cpp
+@@ -32,11 +32,8 @@ std::optional<uint16_t> TransportCodec::decodeBodySize(uint16_t rawLengthHeader)
+ }
+ 
+ void TransportCodec::encodeOutbound(Protocol &protocol, OutputMessage &msg) const {
+-	// Checksum/compression selection still follo
