@@ -5,11 +5,13 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import xml.etree.ElementTree as ET
 from collections.abc import Sequence
 from pathlib import Path
 
 from otbm_binary import DEFAULT_MAX_TILES, OTBMError, _require, sha256_path, validate_complete_file
 from otbm_catalog import (
+    ItemCatalog,
     catalog_document,
     enrich_region_export,
     load_item_catalog,
@@ -21,7 +23,7 @@ from otbm_scan import build_export, normalize_bounds, position_from_text, render
 from otbm_schema import validate_patch_document
 
 
-def _load_catalog_for_map(args: argparse.Namespace, map_path: Path) -> object | None:
+def _load_catalog_for_map(args: argparse.Namespace, map_path: Path) -> ItemCatalog | None:
     explicit = Path(args.items_xml) if getattr(args, "items_xml", None) else None
     items_xml = resolve_items_xml(explicit, map_path)
     if items_xml is None:
@@ -196,7 +198,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         return int(args.func(args))
-    except (OTBMError, OSError, json.JSONDecodeError, ValueError, ET.ParseError if False else OTBMError) as exc:
+    except (OTBMError, OSError, json.JSONDecodeError, ValueError, ET.ParseError) as exc:
         sys.stderr.write(f"error: {exc}\n")
         return 2
 
