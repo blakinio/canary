@@ -37,7 +37,7 @@ class GameplayAnalyticsContextValidationTest(unittest.TestCase):
     def test_rejects_uncapped_context_gap(self) -> None:
         broken = self.context.replace(
             "delta = math.min(delta, clampInteger(Analytics.config.contextMaxGapSeconds, 1, 120, 10))",
-            "delta = math.max(0, delta)",
+            "delta = math.max(delta, clampInteger(Analytics.config.contextMaxGapSeconds, 1, 120, 10))",
             1,
         )
         with self.assertRaisesRegex(AssertionError, "capped"):
@@ -54,6 +54,7 @@ class GameplayAnalyticsContextValidationTest(unittest.TestCase):
 
     def test_rejects_missing_session_context_upsert(self) -> None:
         broken = self.batching.replace("`hunt_area`=VALUES(`hunt_area`),", "", 1)
+        self.assertNotEqual(broken, self.batching, "upsert mutation must alter the batching fixture")
         with self.assertRaisesRegex(AssertionError, "hunt_area"):
             validator.validate_batching(broken)
 
