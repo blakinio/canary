@@ -1,0 +1,34 @@
+name: Apply bank StyLua formatting
+
+on:
+  pull_request:
+    types: [synchronize]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  apply-format:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'fix/issues-3374-3453-3645'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Apply exact autofix artifact
+        shell: bash
+        run: |
+          git apply --check .github/automation/format-bank-system.patch
+          git apply .github/automation/format-bank-system.patch
+          rm .github/automation/format-bank-system.patch
+          rm .github/workflows/apply-format-bank-system.yml
+          git diff --check
+      - name: Commit formatting
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "style: apply StyLua bank formatting"
+          git push origin "HEAD:${{ github.head_ref }}"
