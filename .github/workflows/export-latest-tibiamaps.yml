@@ -6,6 +6,9 @@ on:
       - ops/tibiamaps-latest-data
     paths:
       - .github/workflows/export-latest-tibiamaps.yml
+  pull_request:
+    paths:
+      - .github/workflows/export-latest-tibiamaps.yml
   workflow_dispatch:
 
 permissions:
