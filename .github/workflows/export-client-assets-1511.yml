@@ -1,0 +1,63 @@
+name: Export 15.11 Render Assets
+
+on:
+  push:
+    branches:
+      - ops/export-client-assets-1511
+    paths:
+      - .github/workflows/export-client-assets-1511.yml
+      - .github/asset-export-1511/**
+      - tools/ai-agent/otbm_*.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export-assets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout Canary tools
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Export minimal client 15.11 package
+        run: python .github/asset-export-1511/export_subset.py
+
+      - name: Validate exported asset package
+        run: |
+          python tools/ai-agent/otbm_asset_tool.py artifacts/client-1511 \
+            --output artifacts/client-1511/asset-index.json
+          APPEARANCES=$(python - <<'PY'
+          import json
+          from pathlib import Path
+          catalog = json.loads(Path('artifacts/client-1511/assets/catalog-content.json').read_text())
+          print(next(entry['file'] for entry in catalog if entry.get('type') == 'appearances'))
+          PY
+          )
+          python tools/ai-agent/otbm_appearances_tool.py \
+            "artifacts/client-1511/assets/${APPEARANCES}" \
+            --asset-index artifacts/client-1511/asset-index.json \
+            --output artifacts/client-1511/appearances-index.json
+
+      - name: Include renderer tools
+        run: |
+          mkdir -p artifacts/render-tools
+          cp tools/ai-agent/*.py artifacts/render-tools/
+
+      - name: Upload render package
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-1511-thais-render-assets
+          path: |
+            artifacts/client-1511
+            artifacts/render-tools
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
