@@ -12,7 +12,7 @@ from pathlib import Path
 MODULE_DIR = Path(__file__).parent
 sys.path.insert(0, str(MODULE_DIR))
 
-from otbm_binary import OTBM_ITEM, OTBM_MAP_DATA, OTBM_TILE, OTBM_TILE_AREA, encode_node, encode_tile_properties
+from otbm_binary import OTBMError, OTBM_ITEM, OTBM_MAP_DATA, OTBM_TILE, OTBM_TILE_AREA, encode_node, encode_tile_properties
 from otbm_renderer import RenderDiagnostics, RenderItem, _blend, _pattern, render_region
 from otbm_sprites import CIP_SIGNATURE, SHEET_SIZE
 
