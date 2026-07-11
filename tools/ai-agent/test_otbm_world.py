@@ -18,14 +18,15 @@ from otbm_binary import (
     OTBM_MAP_DATA,
     OTBM_TILE_AREA,
     OTBM_TILE_ZONE,
-    OTBM_TOWN,
     OTBM_TOWNS,
-    OTBM_WAYPOINT,
     OTBM_WAYPOINTS,
     encode_node,
     encode_tile_properties,
 )
 from otbm_world import WORLD_INDEX_FORMAT, build_world_index
+
+OTBM_TOWN = 13
+OTBM_WAYPOINT = 16
 
 
 def encoded_string(value: str) -> bytes:
@@ -137,11 +138,6 @@ class WorldIndexTests(unittest.TestCase):
 
     def test_guesses_conventional_companion_names(self) -> None:
         guessed_map = self.root / "guessed.otbm"
-        make_world_map(guessed_map)
-        raw = guessed_map.read_bytes()
-        for filename in (b"test-monster.xml", b"test-npc.xml", b"test-house.xml", b"test-zones.xml"):
-            raw = raw.replace(bytes((len(filename), 0)) + filename, b"")
-        # Build a clean map without companion attributes instead of relying on malformed replacement.
         base = (256, 512, 7)
         props = encode_tile_properties(node_type=OTBM_HOUSETILE, offset_x=44, offset_y=88, house_id=7, flags=0, inline_item_id=100)
         area = encode_node(OTBM_TILE_AREA, struct.pack("<HHB", *base), [encode_node(OTBM_HOUSETILE, props)])
@@ -150,10 +146,10 @@ class WorldIndexTests(unittest.TestCase):
         map_data = encode_node(OTBM_MAP_DATA, b"", [area, towns, waypoints])
         guessed_map.write_bytes(b"\0\0\0\0" + encode_node(0, struct.pack("<IHHII", 4, 1024, 1024, 4, 4), [map_data]))
         for suffix, content in (
-            ("monster", '<monsters/>'),
-            ("npc", '<npcs/>'),
+            ("monster", "<monsters/>"),
+            ("npc", "<npcs/>"),
             ("house", '<houses><house houseid="7" name="H" entryx="1" entryy="1" entryz="7" townid="1"/></houses>'),
-            ("zones", '<zones/>'),
+            ("zones", "<zones/>"),
         ):
             (self.root / f"guessed-{suffix}.xml").write_text(content, encoding="utf-8")
         report = build_world_index(guessed_map)
