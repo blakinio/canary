@@ -1,0 +1,76 @@
+name: Export Latest TibiaMaps Data
+
+on:
+  push:
+    branches:
+      - ops/tibiamaps-latest-data
+    paths:
+      - .github/workflows/export-latest-tibiamaps.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Download all map and pathfinding floors
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p tibiamaps
+          for floor in $(seq -w 0 15); do
+            curl --fail --location --retry 3 \
+              "https://tibiamaps.github.io/tibia-map-data/floor-${floor}-map.png" \
+              --output "tibiamaps/floor-${floor}-map.png"
+            curl --fail --location --retry 3 \
+              "https://tibiamaps.github.io/tibia-map-data/floor-${floor}-path.png" \
+              --output "tibiamaps/floor-${floor}-path.png"
+          done
+
+      - name: Record provenance and dimensions
+        shell: bash
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import hashlib
+          import json
+          import struct
+          from pathlib import Path
+
+          root = Path('tibiamaps')
+          files = []
+          for path in sorted(root.glob('*.png')):
+              data = path.read_bytes()
+              if data[:8] != b'\x89PNG\r\n\x1a\n':
+                  raise SystemExit(f'Not a PNG: {path}')
+              width, height = struct.unpack('>II', data[16:24])
+              files.append({
+                  'name': path.name,
+                  'size': len(data),
+                  'sha256': hashlib.sha256(data).hexdigest(),
+                  'width': width,
+                  'height': height,
+              })
+          if len(files) != 32:
+              raise SystemExit(f'Expected 32 PNG files, found {len(files)}')
+          payload = {
+              'format': 'canary-tibiamaps-export-v1',
+              'source': 'https://tibiamaps.github.io/tibia-map-data/',
+              'files': files,
+          }
+          (root / 'manifest.json').write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
+          PY
+
+      - name: Upload TibiaMaps data
+        uses: actions/upload-artifact@v4
+        with:
+          name: tibiamaps-latest-all-floors
+          path: tibiamaps
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
