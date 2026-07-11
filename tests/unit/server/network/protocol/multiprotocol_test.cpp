@@ -7,6 +7,7 @@
  * Website: https://docs.opentibiabr.com/
  */
 
+#include "server/network/protocol/protocol.hpp"
 #include "server/network/protocol/protocol_profile.hpp"
 #include "server/network/protocol/protocol_session_hint.hpp"
 #include "server/network/protocol/transport_codec.hpp"
@@ -27,6 +28,19 @@ namespace {
 		return static_cast<uint32_t>(std::to_integer<uint8_t>(buffer[0])) | (static_cast<uint32_t>(std::to_integer<uint8_t>(buffer[1])) << 8) | (static_cast<uint32_t>(std::to_integer<uint8_t>(buffer[2])) << 16) | (static_cast<uint32_t>(std::to_integer<uint8_t>(buffer[3])) << 24);
 	}
 }
+
+class TestTransportProtocol final : public Protocol {
+public:
+	TestTransportProtocol() :
+		Protocol(nullptr) { }
+
+	void onRecvFirstMessage(NetworkMessage &) override { }
+
+	void enableEncryption(const std::array<uint32_t, 4> &xteaKey = { 1, 2, 3, 4 }) {
+		setXTEAKey(xteaKey.data());
+		enableXTEAEncryption();
+	}
+};
 
 TEST(ProtocolProfileRegistryTest, Version860ProfilesAreDifferentProfiles) {
 	using enum ProtocolProfileId;
@@ -142,7 +156,7 @@ TEST(ProtocolProfileRegistryTest, CurrentAnd1100UseDifferentInitialWireBehavior)
 }
 
 TEST(ConnectionTransportTest, ProtocolGameNoLongerImpliesModernFraming) {
-	const auto modernSize = TransportCodecs::currentModern().decodeBodySize(1);
+	const auto modernSize = TransportCodecs::currentGameSequence().decodeBodySize(1);
 	const auto rawSize = TransportCodecs::rawClientFirst().decodeBodySize(1);
 	const auto legacySize = TransportCodecs::legacyClassic().decodeBodySize(1);
 
@@ -152,7 +166,7 @@ TEST(ConnectionTransportTest, ProtocolGameNoLongerImpliesModernFraming) {
 	EXPECT_EQ(XTEA_MULTIPLE + CHECKSUM_LENGTH, *modernSize);
 	EXPECT_EQ(1, *rawSize);
 	EXPECT_EQ(1, *legacySize);
-	EXPECT_EQ(CHECKSUM_LENGTH + 2, TransportCodecs::currentModern().getProfile().serverFirstPacketHeaderBytes);
+	EXPECT_EQ(CHECKSUM_LENGTH + 2, TransportCodecs::currentGameSequence().getProfile().serverFirstPacketHeaderBytes);
 	EXPECT_EQ(CHECKSUM_LENGTH + 1, TransportCodecs::legacyClassic().getProfile().serverFirstPacketHeaderBytes);
 }
 
@@ -185,6 +199,93 @@ TEST(ConnectionTransportTest, LegacyLoginChallengeIncludesInnerMessageSize) {
 	EXPECT_EQ(payloadSize, readU16(byteBuffer + HEADER_LENGTH + CHECKSUM_LENGTH));
 	EXPECT_EQ(0x1F, buffer[HEADER_LENGTH + CHECKSUM_LENGTH + sizeof(uint16_t)]);
 	EXPECT_EQ(random, buffer[HEADER_LENGTH + CHECKSUM_LENGTH + sizeof(uint16_t) + 1 + sizeof(uint32_t)]);
+}
+
+TEST(TransportProfileTest, LoginAndGameContractsAreExplicitlySeparated) {
+	const auto &login = TransportCodecs::currentLogin().getProfile();
+	const auto &gameSequence = TransportCodecs::currentGameSequence().getProfile();
+	const auto &gamePlain = TransportCodecs::currentGamePlain().getProfile();
+
+	EXPECT_EQ(TransportProfileId::CurrentLogin, login.id);
+	EXPECT_EQ(CHECKSUM_METHOD_ADLER32, login.inboundChecksum);
+	EXPECT_EQ(CHECKSUM_METHOD_ADLER32, login.outboundChecksum);
+	EXPECT_EQ(CompressionLayout::None, login.compression);
+
+	EXPECT_EQ(TransportProfileId::CurrentGameSequence, gameSequence.id);
+	EXPECT_EQ(CHECKSUM_METHOD_SEQUENCE, gameSequence.inboundChecksum);
+	EXPECT_EQ(CHECKSUM_METHOD_SEQUENCE, gameSequence.outboundChecksum);
+	EXPECT_EQ(CompressionLayout::Official, gameSequence.compression);
+	EXPECT_TRUE(gameSequence.sequenceHighBitSignalsCompression);
+
+	EXPECT_EQ(TransportProfileId::CurrentGamePlain, gamePlain.id);
+	EXPECT_EQ(CHECKSUM_METHOD_NONE, gamePlain.inboundChecksum);
+	EXPECT_EQ(CHECKSUM_METHOD_NONE, gamePlain.outboundChecksum);
+	EXPECT_EQ(CompressionLayout::None, gamePlain.compression);
+	EXPECT_FALSE(gamePlain.sequenceHighBitSignalsCompression);
+}
+
+TEST(TransportCodecTest, CurrentLoginWritesAdlerChecksumFromProfile) {
+	TestTransportProtocol protocol;
+	protocol.enableEncryption();
+	OutputMessage msg;
+	msg.addByte(0xAB);
+
+	TransportCodecs::currentLogin().encodeOutbound(protocol, msg);
+
+	const auto* bytes = reinterpret_cast<const std::byte*>(msg.getOutputBuffer());
+	ASSERT_EQ(14, msg.getLength());
+	EXPECT_EQ(1, readU16(bytes));
+	const auto storedChecksum = readU32(bytes + HEADER_LENGTH);
+	const auto calculatedChecksum = adlerChecksum(msg.getOutputBuffer() + HEADER_LENGTH + CHECKSUM_LENGTH, msg.getLength() - HEADER_LENGTH - CHECKSUM_LENGTH);
+	EXPECT_EQ(calculatedChecksum, storedChecksum);
+}
+
+TEST(TransportCodecTest, CurrentGameSequenceWritesSequenceFromProfile) {
+	TestTransportProtocol protocol;
+	protocol.enableEncryption();
+	OutputMessage first;
+	first.addByte(0xAB);
+	TransportCodecs::currentGameSequence().encodeOutbound(protocol, first);
+
+	const auto* firstBytes = reinterpret_cast<const std::byte*>(first.getOutputBuffer());
+	EXPECT_EQ(1, readU32(firstBytes + HEADER_LENGTH));
+
+	OutputMessage second;
+	second.addByte(0xCD);
+	TransportCodecs::currentGameSequence().encodeOutbound(protocol, second);
+	const auto* secondBytes = reinterpret_cast<const std::byte*>(second.getOutputBuffer());
+	EXPECT_EQ(2, readU32(secondBytes + HEADER_LENGTH));
+}
+
+TEST(TransportCodecTest, InboundSequenceRejectsReplay) {
+	TestTransportProtocol protocol;
+	NetworkMessage first;
+	first.add<uint32_t>(1);
+	first.addByte(0xAA);
+	first.setBufferPosition(NetworkMessage::INITIAL_BUFFER_POSITION);
+	EXPECT_TRUE(TransportCodecs::currentGameSequence().prepareInbound(protocol, first));
+
+	NetworkMessage replay;
+	replay.add<uint32_t>(1);
+	replay.addByte(0xAA);
+	replay.setBufferPosition(NetworkMessage::INITIAL_BUFFER_POSITION);
+	EXPECT_FALSE(TransportCodecs::currentGameSequence().prepareInbound(protocol, replay));
+}
+
+TEST(TransportCodecTest, InboundAdlerValidatesPayload) {
+	TestTransportProtocol protocol;
+	constexpr uint8_t payload = 0x5A;
+	NetworkMessage valid;
+	valid.add<uint32_t>(adlerChecksum(&payload, sizeof(payload)));
+	valid.addByte(payload);
+	valid.setBufferPosition(NetworkMessage::INITIAL_BUFFER_POSITION);
+	EXPECT_TRUE(TransportCodecs::currentLogin().prepareInbound(protocol, valid));
+
+	NetworkMessage invalid;
+	invalid.add<uint32_t>(0xDEADBEEF);
+	invalid.addByte(payload);
+	invalid.setBufferPosition(NetworkMessage::INITIAL_BUFFER_POSITION);
+	EXPECT_FALSE(TransportCodecs::currentLogin().prepareInbound(protocol, invalid));
 }
 
 TEST(SessionHintTest, ClaimDoesNotConsumeHint) {
