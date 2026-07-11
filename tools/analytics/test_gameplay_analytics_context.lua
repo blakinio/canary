@@ -64,6 +64,10 @@ local party = {
 	shared = true,
 }
 
+function party:getLeader()
+	return leader
+end
+
 function party:getMembers()
 	return self.members
 end
@@ -167,7 +171,6 @@ assertEqual(Analytics.contextStats.samples, 3, "accepted context samples")
 assertEqual(Analytics.contextStats.namedAreaSamples, 3, "named-area samples")
 assertEqual(Analytics.contextStats.finalizedSessions, 1, "finalized session metric")
 
--- A player outside configured rectangles receives a stable coarse grid identifier.
 local fallbackPlayer = player(4, 4, { x = 640, y = 704, z = 8 })
 GameplayAnalytics.sessions[fallbackPlayer:getGuid()] = sessionFor(fallbackPlayer)
 clock = 1020
@@ -177,7 +180,15 @@ Analytics.finish(fallbackPlayer, "test")
 assertEqual(Analytics.queue[2].huntArea, "grid:10:11:8", "finalized fallback grid area")
 assertEqual(Analytics.contextStats.fallbackAreaSamples, 2, "fallback samples include initialization and finish")
 
--- Offline/shutdown paths can enqueue a session directly and still receive safe defaults.
+memberTwo.party = party
+GameplayAnalytics.sessions[memberTwo:getGuid()] = sessionFor(memberTwo)
+clock = 1030
+local memberSession = Analytics.get(memberTwo)
+assertEqual(memberSession.contextPartySize, 3, "member-perspective party size includes leader")
+assertEqual(memberSession.contextComposition, "1:1,2:1,3:1", "member-perspective composition includes leader")
+Analytics.finish(memberTwo, "test")
+assertEqual(Analytics.queue[3].partySizeMax, 3, "member-perspective finalized party size")
+
 local directSession = {
 	uuid = "00000000-0000-0000-0000-000000000099",
 	playerId = 99,
@@ -193,8 +204,8 @@ assertEqual(directSession.sharedExperienceSeconds, 0, "direct enqueue shared sec
 assertEqual(directSession.huntArea, nil, "direct enqueue has no invented hunt area")
 
 local status = Analytics.status()
-assertEqual(status.contextSamples, 5, "status context sample count")
-assertEqual(status.contextFinalizedSessions, 3, "status finalized session count")
+assertEqual(status.contextSamples, 7, "status context sample count")
+assertEqual(status.contextFinalizedSessions, 4, "status finalized session count")
 
 os.time = realTime
 print("gameplay analytics hunt context runtime test passed")
