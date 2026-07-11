@@ -1,0 +1,184 @@
+name: Reapply verified fixes 3584 and 2542
+
+on:
+  push:
+    branches: [fix/issues-3584-2542]
+
+permissions:
+  contents: write
+
+jobs:
+  reapply-fixes:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fix/issues-3584-2542
+      - name: Reapply fixes with exact-match validation
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected exactly one match, found {count}")
+              target.write_text(text.replace(old, new, 1))
+
+          replace_once(
+              "src/game/game.cpp",
+              '#include "game/game.hpp"\n',
+              '#include "game/game.hpp"\n#include "game/functions/use_with_policy.hpp"\n',
+          )
+          replace_once(
+              "src/game/game.cpp",
+              '''\tif (!g_configManager().getBoolean(AIMBOT_HOTKEY_ENABLED)) {
+          \t\tif (creature->getPlayer() || isHotkey) {
+          \t\t\tplayer->sendCancelMessage(RETURNVALUE_DIRECTPLAYERSHOOT);
+          \t\t\treturn;
+          \t\t}
+          \t}
+          ''',
+              '''\tif (UseWithPolicy::shouldBlockAimbotHotkey(g_configManager().getBoolean(AIMBOT_HOTKEY_ENABLED), isHotkey)) {
+          \t\tplayer->sendCancelMessage(RETURNVALUE_DIRECTPLAYERSHOOT);
+          \t\treturn;
+          \t}
+          ''',
+          )
+          replace_once(
+              "src/items/functions/item/item_parse.cpp",
+              '#include "items/functions/item/item_parse.hpp"\n',
+              '#include "items/functions/item/item_parse.hpp"\n#include "items/functions/item/item_parse_policy.hpp"\n',
+          )
+          replace_once(
+              "src/items/functions/item/item_parse.cpp",
+              '''\t\t\t\t} else {
+          \t\t\t\t\tcreateAndRegisterScript(itemType, attributeNode, eventType);
+          \t\t\t\t}
+          ''',
+              '''\t\t\t\t} else {
+          \t\t\t\t\tcreateAndRegisterScript(itemType, attributeNode, eventType);
+          \t\t\t\t\tif (ItemParsePolicy::shouldRegisterAddItemField(eventType == MOVE_EVENT_STEP_IN, itemType.isMagicField())) {
+          \t\t\t\t\t\tcreateAndRegisterScript(itemType, attributeNode, MOVE_EVENT_ADD_ITEM_ITEMTILE);
+          \t\t\t\t\t}
+          \t\t\t\t}
+          ''',
+          )
+          replace_once(
+              "tests/unit/game/CMakeLists.txt",
+              "            spawn_monster_test.cpp\n",
+              "            spawn_monster_test.cpp\n            use_with_policy_test.cpp\n",
+          )
+          replace_once(
+              "tests/unit/items/CMakeLists.txt",
+              "    PRIVATE containers/container_test.cpp\n",
+              "    PRIVATE containers/container_test.cpp item_parse_policy_test.cpp\n",
+          )
+
+          files = {
+              "src/game/functions/use_with_policy.hpp": '''/**
+           * Canary - A free and open-source MMORPG server emulator
+           * Copyright (©) 2019–present OpenTibiaBR <opentibiabr@outlook.com>
+           * Repository: https://github.com/opentibiabr/canary
+           * License: https://github.com/opentibiabr/canary/blob/main/LICENSE
+           * Contributors: https://github.com/opentibiabr/canary/graphs/contributors
+           * Website: https://docs.opentibiabr.com/
+           */
+
+          #pragma once
+
+          namespace UseWithPolicy {
+          \t[[nodiscard]] constexpr bool shouldBlockAimbotHotkey(bool aimbotHotkeyEnabled, bool isHotkey) {
+          \t\treturn !aimbotHotkeyEnabled && isHotkey;
+          \t}
+          }
+          ''',
+              "src/items/functions/item/item_parse_policy.hpp": '''/**
+           * Canary - A free and open-source MMORPG server emulator
+           * Copyright (©) 2019–present OpenTibiaBR <opentibiabr@outlook.com>
+           * Repository: https://github.com/opentibiabr/canary
+           * License: https://github.com/opentibiabr/canary/blob/main/LICENSE
+           * Contributors: https://github.com/opentibiabr/canary/graphs/contributors
+           * Website: https://docs.opentibiabr.com/
+           */
+
+          #pragma once
+
+          namespace ItemParsePolicy {
+          \t[[nodiscard]] constexpr bool shouldRegisterAddItemField(bool isStepInEvent, bool isMagicField) {
+          \t\treturn isMagicField && isStepInEvent;
+          \t}
+          }
+          ''',
+              "tests/unit/game/use_with_policy_test.cpp": '''/**
+           * Canary - A free and open-source MMORPG server emulator
+           * Copyright (©) 2019–present OpenTibiaBR <opentibiabr@outlook.com>
+           * Repository: https://github.com/opentibiabr/canary
+           * License: https://github.com/opentibiabr/canary/blob/main/LICENSE
+           * Contributors: https://github.com/opentibiabr/canary/graphs/contributors
+           * Website: https://docs.opentibiabr.com/
+           */
+
+          #include <gtest/gtest.h>
+
+          #include "game/functions/use_with_policy.hpp"
+
+          TEST(UseWithPolicyTest, BlocksOnlyDisabledAimbotHotkeys) {
+          \tEXPECT_TRUE(UseWithPolicy::shouldBlockAimbotHotkey(false, true));
+          \tEXPECT_FALSE(UseWithPolicy::shouldBlockAimbotHotkey(false, false));
+          \tEXPECT_FALSE(UseWithPolicy::shouldBlockAimbotHotkey(true, true));
+          \tEXPECT_FALSE(UseWithPolicy::shouldBlockAimbotHotkey(true, false));
+          }
+          ''',
+              "tests/unit/items/item_parse_policy_test.cpp": '''/**
+           * Canary - A free and open-source MMORPG server emulator
+           * Copyright (©) 2019–present OpenTibiaBR <opentibiabr@outlook.com>
+           * Repository: https://github.com/opentibiabr/canary
+           * License: https://github.com/opentibiabr/canary/blob/main/LICENSE
+           * Contributors: https://github.com/opentibiabr/canary/graphs/contributors
+           * Website: https://docs.opentibiabr.com/
+           */
+
+          #include <gtest/gtest.h>
+
+          #include "items/functions/item/item_parse_policy.hpp"
+
+          TEST(ItemParsePolicyTest, RegistersAddItemHandlerForMagicFieldStepIn) {
+          \tEXPECT_TRUE(ItemParsePolicy::shouldRegisterAddItemField(true, true));
+          \tEXPECT_FALSE(ItemParsePolicy::shouldRegisterAddItemField(true, false));
+          \tEXPECT_FALSE(ItemParsePolicy::shouldRegisterAddItemField(false, true));
+          }
+          ''',
+          }
+
+          for path, content in files.items():
+              target = Path(path)
+              if target.exists():
+                  raise SystemExit(f"{path}: file already exists")
+              target.parent.mkdir(parents=True, exist_ok=True)
+              target.write_text(content)
+          PY
+          rm .github/workflows/rebase-fixes-3584-2542.yml
+          git diff --check
+          cat > /tmp/policy_smoke.cpp <<'CPP'
+          #include "items/functions/item/item_parse_policy.hpp"
+          #include "game/functions/use_with_policy.hpp"
+          static_assert(ItemParsePolicy::shouldRegisterAddItemField(true, true));
+          static_assert(!ItemParsePolicy::shouldRegisterAddItemField(true, false));
+          static_assert(UseWithPolicy::shouldBlockAimbotHotkey(false, true));
+          static_assert(!UseWithPolicy::shouldBlockAimbotHotkey(false, false));
+          int main() { return 0; }
+          CPP
+          g++ -std=c++23 -Isrc -fsyntax-only /tmp/policy_smoke.cpp
+      - name: Commit rebased fixes
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: restore field impact and manual rune targeting"
+          git push origin HEAD:fix/issues-3584-2542
