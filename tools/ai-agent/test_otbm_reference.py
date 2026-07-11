@@ -171,7 +171,7 @@ class ReferenceTests(unittest.TestCase):
         scanner_source = MODULE_DIR / "otbm_reference_scan.cpp"
         scanner = self.root / "otbm_reference_scan"
         completed = subprocess.run(
-            [compiler, "-O2", "-std=c++20", str(scanner_source), "-o", str(scanner],
+            [compiler, "-O2", "-std=c++20", str(scanner_source), "-o", str(scanner)],
             capture_output=True,
             text=True,
             check=False,
@@ -181,7 +181,7 @@ class ReferenceTests(unittest.TestCase):
         map_path = self.root / "fixture.otbm"
         make_map(map_path)
         reference = self.root / "reference"
-        reference.mkdir(})
+        reference.mkdir()
         width, height = 4, 3
         blue = b"\x33\x66\x99\xff"
         red = b"\xff\x33\x00\xff"
