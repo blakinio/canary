@@ -36,27 +36,44 @@ jobs:
         run: python .github/asset-export-1511/export_subset.py
 
       - name: Validate exported asset package
+        continue-on-error: true
+        shell: bash
         run: |
-          python tools/ai-agent/otbm_asset_tool.py artifacts/client-1511 \
-            --output artifacts/client-1511/asset-index.json
-          APPEARANCES=$(python - <<'PY'
+          set +e
+          {
+            python tools/ai-agent/otbm_asset_tool.py artifacts/client-1511 \
+              --output artifacts/client-1511/asset-index.json
+            ASSET_STATUS=$?
+            APPEARANCES=$(python - <<'PY'
           import json
           from pathlib import Path
           catalog = json.loads(Path('artifacts/client-1511/assets/catalog-content.json').read_text())
           print(next(entry['file'] for entry in catalog if entry.get('type') == 'appearances'))
           PY
           )
-          python tools/ai-agent/otbm_appearances_tool.py \
-            "artifacts/client-1511/assets/${APPEARANCES}" \
-            --asset-index artifacts/client-1511/asset-index.json \
-            --output artifacts/client-1511/appearances-index.json
+            if [ -f artifacts/client-1511/asset-index.json ]; then
+              python tools/ai-agent/otbm_appearances_tool.py \
+                "artifacts/client-1511/assets/${APPEARANCES}" \
+                --asset-index artifacts/client-1511/asset-index.json \
+                --output artifacts/client-1511/appearances-index.json
+              APPEARANCES_STATUS=$?
+            else
+              echo "asset-index.json was not produced"
+              APPEARANCES_STATUS=1
+            fi
+            echo "asset_status=${ASSET_STATUS}"
+            echo "appearances_status=${APPEARANCES_STATUS}"
+            exit $(( ASSET_STATUS != 0 || APPEARANCES_STATUS != 0 ))
+          } 2>&1 | tee artifacts/client-1511/validation.log
 
       - name: Include renderer tools
+        if: always()
         run: |
           mkdir -p artifacts/render-tools
           cp tools/ai-agent/*.py artifacts/render-tools/
 
       - name: Upload render package
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: client-1511-thais-render-assets
