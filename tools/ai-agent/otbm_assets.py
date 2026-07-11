@@ -236,8 +236,10 @@ def build_asset_index(root: Path, *, hash_files: bool = True) -> dict[str, Any]:
                 gap = {"from": previous_last + 1, "to": first - 1}
                 gaps.append(gap)
                 issues.add("warning", "sprite_range_gap", f"Sprite range gap at {gap['from']}..{gap['to']}", **gap)
-        previous_last = max(previous_last or last, last)
+        previous_last = last if previous_last is None else max(previous_last, last)
 
+    package = _package_metadata(catalog_path, issues)
+    asset_identifier = _asset_identifier(catalog_dir, hash_files)
     issue_summary = issues.summary()
     existing_sprite_files = sum(1 for sprite in sprites if sprite["exists"])
     declared_sprite_count = sum(
@@ -254,8 +256,8 @@ def build_asset_index(root: Path, *, hash_files: bool = True) -> dict[str, Any]:
             "sha256": _sha256(catalog_path) if hash_files else None,
             "entryCount": len(entries),
         },
-        "package": _package_metadata(catalog_path, issues),
-        "assetIdentifier": _asset_identifier(catalog_dir, hash_files),
+        "package": package,
+        "assetIdentifier": asset_identifier,
         "appearances": appearances,
         "sprites": valid_ranges,
         "otherCatalogTypes": dict(sorted(other_types.items())),
