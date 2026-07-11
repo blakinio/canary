@@ -8,6 +8,11 @@ on:
       - .github/workflows/export-client-assets-1511.yml
       - .github/asset-export-1511/**
       - tools/ai-agent/otbm_*.py
+  pull_request:
+    paths:
+      - .github/workflows/export-client-assets-1511.yml
+      - .github/asset-export-1511/**
+      - tools/ai-agent/otbm_*.py
   workflow_dispatch:
 
 permissions:
