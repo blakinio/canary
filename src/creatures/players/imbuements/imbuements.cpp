@@ -314,19 +314,20 @@ bool Imbuements::loadFromXml(bool /* reloading */) {
 						imbuement.absorbPercent[combatTypeToIndex(combatType)] = percent;
 					} else if (strcasecmp(effecttype.c_str(), "speed") == 0) {
 						if (!((attr = childNode.attribute("value")))) {
-							g_logger().warn("Missing speed bonus for imbuement name {}", imbuement.name);
+							g_logger().warn("Missing speed value for imbuement name {}", imbuement.name);
 							continue;
 						}
 
-						imbuement.speed = pugi::cast<int32_t>(attr.value());
+						imbuement.speed = pugi::cast<uint32_t>(attr.value());
 					} else if (strcasecmp(effecttype.c_str(), "capacity") == 0) {
 						if (!((attr = childNode.attribute("value")))) {
-							g_logger().warn("Missing capacity bonus for imbuement name {}", imbuement.name);
+							g_logger().warn("Missing cap value for imbuement name {}", imbuement.name);
 							continue;
 						}
 
 						imbuement.capacity = pugi::cast<uint32_t>(attr.value());
-					} else if (strcasecmp(effecttype.c_str(), "paralysis") == 0) {
+
+					} else if (strcasecmp(effecttype.c_str(), "paralysis") == 0 || strcasecmp(effecttype.c_str(), "vibrancy") == 0) {
 						/////////Imbuement Vibrancy/////////
 						// Accept both 'chance' and 'value' as percent (0-100)
 						uint32_t chancePercent = 0;
@@ -524,6 +525,7 @@ void ImbuementDecay::startImbuementDecay(const std::shared_ptr<Item> &item) {
 	const int64_t now = OTSYS_TIME();
 
 	m_itemsToDecay.emplace(key, TrackedImbuementItem { item, now });
+
 	if (m_eventId == 0) {
 		m_eventId = g_dispatcher().scheduleEvent(
 			1000, [this] { checkImbuementDecay(); }, "ImbuementDecay::checkImbuementDecay"
