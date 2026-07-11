@@ -1,0 +1,397 @@
+diff --git a/data-otservbr-global/scripts/quests/the_ancient_tombs/actions_oasis_lever_door.lua b/data-otservbr-global/scripts/quests/the_ancient_tombs/actions_oasis_lever_door.lua
+index 29c93a7..a3f61a8 100644
+--- a/data-otservbr-global/scripts/quests/the_ancient_tombs/actions_oasis_lever_door.lua
++++ b/data-otservbr-global/scripts/quests/the_ancient_tombs/actions_oasis_lever_door.lua
+@@ -10,6 +10,11 @@ local function revertCarrotAndLever(position, carrotPosition)
+ 	if carrotItem then
+ 		carrotItem:remove()
+ 	end
++
++	local openDoor = Tile(doorPosition):getItemById(1663)
++	if openDoor then
++		openDoor:transform(1662)
++	end
+ end
+ 
+ local theAncientOasisLever = Action()
+@@ -45,5 +50,5 @@ function theAncientOasisLever.onUse(player, item, fromPosition, target, toPositi
+ 	return true
+ end
+ 
+-theAncientOasisLever:aid(12107)
++theAncientOasisLever:aid(12107, 12108)
+ theAncientOasisLever:register()
+diff --git a/data-otservbr-global/startup/tables/item.lua b/data-otservbr-global/startup/tables/item.lua
+index 883fe90..97d69aa 100644
+--- a/data-otservbr-global/startup/tables/item.lua
++++ b/data-otservbr-global/startup/tables/item.lua
+@@ -1099,7 +1099,7 @@ ItemAction = {
+ 			{ x = 33118, y = 32763, z = 14 },
+ 		},
+ 	},
+-	[12107] = {
++	[12108] = {
+ 		itemId = 1662,
+ 		itemPos = {
+ 			{ x = 33122, y = 32765, z = 14 },
+diff --git a/data/libs/functions/bank.lua b/data/libs/functions/bank.lua
+new file mode 100644
+index 0000000..dc01bad
+--- /dev/null
++++ b/data/libs/functions/bank.lua
+@@ -0,0 +1,2 @@
++-- Keep this value in sync with Bank::MAX_WITHDRAWAL_AMOUNT in src/game/bank/bank.hpp.
++Bank.MAX_WITHDRAWAL_AMOUNT = 100000000
+diff --git a/data/libs/functions/load.lua b/data/libs/functions/load.lua
+index 0fab2c3..087258d 100644
+--- a/data/libs/functions/load.lua
++++ b/data/libs/functions/load.lua
+@@ -1,6 +1,7 @@
+ -- Load core functions
+ dofile(CORE_DIRECTORY .. "/libs/functions/bit.lua")
+ dofile(CORE_DIRECTORY .. "/libs/functions/bitwise_flags.lua")
++dofile(CORE_DIRECTORY .. "/libs/functions/bank.lua")
+ dofile(CORE_DIRECTORY .. "/libs/functions/boss_lever.lua")
+ dofile(CORE_DIRECTORY .. "/libs/functions/combat.lua")
+ dofile(CORE_DIRECTORY .. "/libs/functions/constants.lua")
+diff --git a/data/npclib/npc_system/bank_system.lua b/data/npclib/npc_system/bank_system.lua
+index 862b57c..b012d14 100644
+--- a/data/npclib/npc_system/bank_system.lua
++++ b/data/npclib/npc_system/bank_system.lua
+@@ -1,4 +1,5 @@
+ local count = {}
++local maximumWithdrawal = Bank.MAX_WITHDRAWAL_AMOUNT
+ local transfer = {}
+ local receiptFormat = "Date: %s\nType: %s\nGold Amount: %d\nReceipt Owner: %s\nRecipient: %s\n\n%s"
+ 
+@@ -155,11 +156,14 @@ function Npc:parseBank(message, npc, creature, npcHandler)
+ 	elseif MsgContains(message, "withdraw") then
+ 		if string.match(message, "%d+") then
+ 			count[playerId] = getMoneyCount(message)
+-			if isValidMoney(count[playerId]) then
++			if isValidMoney(count[playerId]) and count[playerId] <= maximumWithdrawal then
+ 				npcHandler:say(string.format("Are you sure you wish to withdraw %d gold from your bank account?", count[playerId]), npc, creature)
+ 				npcHandler:setTopic(playerId, 7)
+ 			else
+-				npcHandler:say("There is not enough gold on your account.", npc, creature)
++				local messageText = count[playerId] and count[playerId] > maximumWithdrawal
++					and string.format("You can withdraw at most %d gold at a time.", maximumWithdrawal)
++					or "There is not enough gold on your account."
++				npcHandler:say(messageText, npc, creature)
+ 				npcHandler:setTopic(playerId, 0)
+ 			end
+ 			return true
+@@ -170,11 +174,14 @@ function Npc:parseBank(message, npc, creature, npcHandler)
+ 		end
+ 	elseif npcHandler:getTopic(playerId) == 6 then
+ 		count[playerId] = getMoneyCount(message)
+-		if isValidMoney(count[playerId]) then
++		if isValidMoney(count[playerId]) and count[playerId] <= maximumWithdrawal then
+ 			npcHandler:say(string.format("Are you sure you wish to withdraw %d gold from your bank account?", count[playerId]), npc, creature)
+ 			npcHandler:setTopic(playerId, 7)
+ 		else
+-			npcHandler:say("There is not enough gold on your account.", npc, creature)
++			local messageText = count[playerId] and count[playerId] > maximumWithdrawal
++				and string.format("You can withdraw at most %d gold at a time.", maximumWithdrawal)
++				or "There is not enough gold on your account."
++			npcHandler:say(messageText, npc, creature)
+ 			npcHandler:setTopic(playerId, 0)
+ 		end
+ 		return true
+diff --git a/data/scripts/talkactions/player/bank.lua b/data/scripts/talkactions/player/bank.lua
+index a9bb196..7742214 100644
+--- a/data/scripts/talkactions/player/bank.lua
++++ b/data/scripts/talkactions/player/bank.lua
+@@ -46,14 +46,20 @@ deposit:groupType("normal")
+ deposit:register()
+ 
+ local withdraw = TalkAction("!withdraw")
++local maximumWithdrawal = Bank.MAX_WITHDRAWAL_AMOUNT
+ 
+ function withdraw.onSay(player, words, param)
+ 	local amount = tonumber(param)
+-	if not amount or amount <= 0 and isValidMoney(amount) then
++	if not amount or not isValidMoney(amount) then
+ 		player:sendTextMessage(config.messageStyle, "Invalid amount.")
+ 		return true
+ 	end
+ 
++	if amount > maximumWithdrawal then
++		player:sendTextMessage(config.messageStyle, "You can withdraw at most " .. FormatNumber(maximumWithdrawal) .. " gold coins at a time.")
++		return true
++	end
++
+ 	if not Bank.withdraw(player, amount) then
+ 		player:sendTextMessage(config.messageStyle, "You don't have enough money.")
+ 		return true
+diff --git a/src/game/bank/bank.cpp b/src/game/bank/bank.cpp
+index ce61d57..147ebc3 100644
+--- a/src/game/bank/bank.cpp
++++ b/src/game/bank/bank.cpp
+@@ -140,7 +140,7 @@ bool Bank::transferTo(const std::shared_ptr<Bank> &destination, uint64_t amount)
+ }
+ 
+ bool Bank::withdraw(const std::shared_ptr<Player> &player, uint64_t amount) {
+-	if (!player) {
++	if (!player || !isWithdrawalAmountAllowed(amount)) {
+ 		return false;
+ 	}
+ 	if (!debit(amount)) {
+diff --git a/src/game/bank/bank.hpp b/src/game/bank/bank.hpp
+index b75c5e1..b40810b 100644
+--- a/src/game/bank/bank.hpp
++++ b/src/game/bank/bank.hpp
+@@ -29,6 +29,13 @@ public:
+ 
+ class Bank : public SharedObject {
+ public:
++	// Keep this value in sync with data/libs/functions/bank.lua.
++	static constexpr uint64_t MAX_WITHDRAWAL_AMOUNT = 100'000'000;
++
++	[[nodiscard]] static constexpr bool isWithdrawalAmountAllowed(uint64_t amount) {
++		return amount > 0 && amount <= MAX_WITHDRAWAL_AMOUNT;
++	}
++
+ 	explicit Bank(const std::shared_ptr<Bankable> &bankable);
+ 	~Bank() override;
+ 
+diff --git a/src/items/functions/item/item_parse.cpp b/src/items/functions/item/item_parse.cpp
+index 1acd380..852139b 100644
+--- a/src/items/functions/item/item_parse.cpp
++++ b/src/items/functions/item/item_parse.cpp
+@@ -1225,9 +1225,25 @@ void ItemParse::createAndRegisterScript(ItemType &itemType, pugi::xml_node attri
+ 
+ 	if (weapon) {
+ 		if (const auto &weaponWand = dynamic_pointer_cast<WeaponWand>(weapon)) {
++			itemType.combatType = weaponWand->getElementType();
+ 			g_logger().trace("Added weapon damage from '{}', to '{}'", fromDamage, toDamage);
+ 			weaponWand->setMinChange(fromDamage);
+ 			weaponWand->setMaxChange(toDamage);
++
++			int32_t attackValue = itemType.attack;
++			if (attackValue <= 0) {
++				attackValue = static_cast<int32_t>((fromDamage + toDamage) / 2);
++			}
++			if (attackValue <= 0) {
++				attackValue = 1;
++			}
++			if (itemType.attack <= 0) {
++				itemType.attack = attackValue;
++			}
++			if (itemType.maxHitChance <= 0) {
++				itemType.maxHitChance = attackValue;
++			}
++
+ 			weaponWand->configureWeapon(itemType);
+ 		}
+ 
+diff --git a/src/items/weapons/weapons.cpp b/src/items/weapons/weapons.cpp
+index 4094a12..ba3bc8f 100644
+--- a/src/items/weapons/weapons.cpp
++++ b/src/items/weapons/weapons.cpp
+@@ -969,8 +969,6 @@ WeaponWand::WeaponWand() = default;
+ 
+ void WeaponWand::configureWeapon(const ItemType &it) {
+ 	params.distanceEffect = it.shootType;
+-	const_cast<ItemType &>(it).combatType = params.combatType;
+-	const_cast<ItemType &>(it).maxHitChance = (minChange + maxChange) / 2;
+ 	Weapon::configureWeapon(it);
+ }
+ 
+diff --git a/src/server/network/protocol/protocolgame.cpp b/src/server/network/protocol/protocolgame.cpp
+index 7e52064..f147e07 100644
+--- a/src/server/network/protocol/protocolgame.cpp
++++ b/src/server/network/protocol/protocolgame.cpp
+@@ -5316,12 +5316,16 @@ void ProtocolGame::sendCyclopediaCharacterOffenceStats() {
+ 	if (weapon) {
+ 		const ItemType &it = Item::items[weapon->getID()];
+ 		if (it.weaponType == WEAPON_WAND) {
+-			msg.add<uint16_t>(it.maxHitChance);
+-			msg.add<uint16_t>(0);
+-			msg.add<uint16_t>(0);
++			const int32_t attackValue = std::max<int32_t>(1, weapon->getAttack());
++			const auto attackRawTotal = player->attackRawTotal(flatBonus, attackValue, 0);
++			const auto attackTotal = player->attackTotal(flatBonus, attackValue, 0);
++
++			msg.add<uint16_t>(attackTotal);
++			msg.add<uint16_t>(flatBonus);
++			msg.add<uint16_t>(static_cast<uint16_t>(attackValue));
+ 			msg.addByte(0x00);
+ 			msg.add<uint16_t>(0);
+-			msg.add<uint16_t>(0);
++			msg.add<uint16_t>(attackTotal - attackRawTotal);
+ 			msg.addByte(getCipbiaElement(it.combatType));
+ 			msg.addDouble(0.0);
+ 			msg.addByte(0x00);
+@@ -9815,7 +9819,9 @@ void ProtocolGame::AddPlayerSkills(NetworkMessage &msg) {
+ 	if (weapon) {
+ 		const ItemType &it = Item::items[weapon->getID()];
+ 		if (it.weaponType == WEAPON_WAND) {
+-			msg.add<uint16_t>(it.maxHitChance);
++			const int32_t attackValue = std::max<int32_t>(1, weapon->getAttack());
++			const auto attackTotal = player->attackTotal(flatBonus, attackValue, 0);
++			msg.add<uint16_t>(attackTotal);
+ 			msg.addByte(getCipbiaElement(it.combatType));
+ 			msg.addDouble(0.0);
+ 			msg.addByte(0x00);
+diff --git a/tests/lua/test_oasis_lever_door.lua b/tests/lua/test_oasis_lever_door.lua
+new file mode 100644
+index 0000000..7eeecad
+--- /dev/null
++++ b/tests/lua/test_oasis_lever_door.lua
+@@ -0,0 +1,119 @@
++-- Regression test for The Ancient Tombs Oasis lever and door action.
++
++local registeredAction
++local scheduledCallback
++local scheduledArgs
++local lever = { itemid = 2772, transforms = {} }
++local door = { itemid = 1662, transforms = {} }
++local carrot = { removed = false }
++
++function lever:transform(itemId)
++	self.itemid = itemId
++	table.insert(self.transforms, itemId)
++end
++
++function door:transform(itemId)
++	self.itemid = itemId
++	table.insert(self.transforms, itemId)
++end
++
++function carrot:remove()
++	self.removed = true
++end
++
++local positions = {}
++local function positionKey(position)
++	return string.format("%d:%d:%d", position.x, position.y, position.z)
++end
++
++function Position(x, y, z)
++	local position = { x = x, y = y, z = z }
++	function position:sendMagicEffect(_) end
++	positions[positionKey(position)] = position
++	return position
++end
++
++local doorPosition = Position(33122, 32765, 14)
++local leverPosition = Position(33118, 32761, 14)
++local hatPosition = Position(33117, 32761, 14)
++
++function Tile(position)
++	return {
++		getItemById = function(_, itemId)
++			local key = positionKey(position)
++			if key == positionKey(leverPosition) and itemId == lever.itemid then
++				return lever
++			end
++			if key == positionKey(doorPosition) and itemId == door.itemid then
++				return door
++			end
++			if key == positionKey(hatPosition) and itemId == 3595 and not carrot.removed then
++				return carrot
++			end
++			return nil
++		end,
++	}
++end
++
++Game = {
++	createItem = function(itemId, count, position)
++		assert(itemId == 3595 and count == 1 and positionKey(position) == positionKey(hatPosition))
++		carrot.removed = false
++		return carrot
++	end,
++}
++
++function Action()
++	local action = { actionIds = {} }
++	function action:aid(...)
++		self.actionIds = { ... }
++	end
++	function action:register()
++		registeredAction = self
++	end
++	return action
++end
++
++function addEvent(callback, _, ...)
++	scheduledCallback = callback
++	scheduledArgs = { ... }
++end
++
++function doAreaCombatHealth(...) end
++
++MESSAGE_EVENT_ADVANCE = 1
++CONST_ME_MAGIC_GREEN = 2
++CONST_ME_POFF = 3
++COMBAT_PHYSICALDAMAGE = 4
++
++local originalRandom = math.random
++math.random = function(_)
++	return 1
++end
++
++dofile("data-otservbr-global/scripts/quests/the_ancient_tombs/actions_oasis_lever_door.lua")
++
++assert(registeredAction, "Oasis action was not registered")
++assert(#registeredAction.actionIds == 2, "Oasis action must register lever and door action IDs")
++assert(registeredAction.actionIds[1] == 12107, "Lever action ID changed unexpectedly")
++assert(registeredAction.actionIds[2] == 12108, "Door action ID is not registered")
++
++local player = {
++	sendTextMessage = function(...) end,
++	getPosition = function()
++		return leverPosition
++	end,
++}
++
++assert(registeredAction.onUse(player, lever, leverPosition, nil, leverPosition, false))
++assert(lever.itemid == 2773, "Lever did not switch to its used state")
++assert(door.itemid == 1663, "Door did not open")
++assert(scheduledCallback, "Reset callback was not scheduled")
++
++scheduledCallback(unpack(scheduledArgs))
++assert(lever.itemid == 2772, "Lever did not reset")
++assert(door.itemid == 1662, "Door did not close after the timeout")
++assert(carrot.removed, "Carrot was not removed during reset")
++
++math.random = originalRandom
++print("Oasis lever/door regression test passed")
+diff --git a/tests/unit/game/CMakeLists.txt b/tests/unit/game/CMakeLists.txt
+index 0b3e1ea..370381c 100644
+--- a/tests/unit/game/CMakeLists.txt
++++ b/tests/unit/game/CMakeLists.txt
+@@ -1,6 +1,7 @@
+ target_sources(
+     canary_ut
+-    PRIVATE events_scheduler_test.cpp
++    PRIVATE bank_test.cpp
++            events_scheduler_test.cpp
+             highscores_test.cpp
+             npc_shop_range_test.cpp
+             random_mount_test.cpp
+diff --git a/tests/unit/game/bank_test.cpp b/tests/unit/game/bank_test.cpp
+new file mode 100644
+index 0000000..e7d611f
+--- /dev/null
++++ b/tests/unit/game/bank_test.cpp
+@@ -0,0 +1,17 @@
++/**
++ * Canary - A free and open-source MMORPG server emulator
++ * Copyright (©) 2019–present OpenTibiaBR <opentibiabr@outlook.com>
++ * Repository: https://github.com/opentibiabr/canary
++ * License: https://github.com/opentibiabr/canary/blob/main/LICENSE
++ * Contributors: https://github.com/opentibiabr/canary/graphs/contributors
++ * Website: https://docs.opentibiabr.com/
++ */
++
++#include "game/bank/bank.hpp"
++
++TEST(BankWithdrawalTest, RejectsZeroAndAmountsAboveMaximum) {
++	EXPECT_FALSE(Bank::isWithdrawalAmountAllowed(0));
++	EXPECT_TRUE(Bank::isWithdrawalAmountAllowed(1));
++	EXPECT_TRUE(Bank::isWithdrawalAmountAllowed(Bank::MAX_WITHDRAWAL_AMOUNT));
++	EXPECT_FALSE(Bank::isWithdrawalAmountAllowed(Bank::MAX_WITHDRAWAL_AMOUNT + 1));
+}
