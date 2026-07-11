@@ -114,6 +114,11 @@ bool TransportCodec::prepareInbound(Protocol &protocol, NetworkMessage &msg) con
 
 bool TransportCodec::decryptXtea(Protocol &protocol, NetworkMessage &msg) const {
 	const auto checksumLength = profile.inboundChecksum == CHECKSUM_METHOD_NONE ? HEADER_LENGTH : HEADER_LENGTH + CHECKSUM_LENGTH;
+	if (msg.getLength() < checksumLength) {
+		g_logger().error("[TransportCodec::decryptXtea] - message shorter than transport header: {} < {}", msg.getLength(), checksumLength);
+		return false;
+	}
+
 	uint16_t msgLength = msg.getLength() - checksumLength;
 	uint8_t* buffer = msg.getBuffer() + msg.getBufferPosition();
 	if ((msgLength % XTEA_MULTIPLE) != 0) {
@@ -137,6 +142,11 @@ bool TransportCodec::decryptXtea(Protocol &protocol, NetworkMessage &msg) const 
 	}
 
 	uint8_t paddingSize = msg.getByte();
+	if (paddingSize > messageLength) {
+		g_logger().error("[TransportCodec::decryptXtea] - invalid modern padding: {} > {}", paddingSize, messageLength);
+		return false;
+	}
+
 	uint16_t innerLength = messageLength - paddingSize;
 	if (innerLength + paddingSize > msgLength) {
 		g_logger().error("[TransportCodec::decryptXtea] - invalid modern inner length: {} + {} > {}", innerLength, paddingSize, msgLength);
