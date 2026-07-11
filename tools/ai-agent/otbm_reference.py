@@ -253,7 +253,7 @@ def run_native_scanner(
     scanner: Path,
     map_path: Path,
     output_directory: Path,
-    ,
+    *,
     origin: tuple[int, int],
     width: int,
     height: int,
@@ -303,11 +303,12 @@ def run_native_scanner(
 
 
 def read_native_occupancy(directory: Path, manifest: dict[str, Any], floor: int) -> bytes:
-    floors = manifest["floors"]
+    floors = manifest.get("floors", [])
     entry = next((item for item in floors if item.get("z") == floor), None)
     if entry is None:
         raise ReferenceError(f"Native occupancy manifest has no floor {floor}")
-    return (directory / entry["occupancyFile"]).read_bytes()
+    path = directory / entry["occupancyFile"]
+    return path.read_bytes()
 
 
 def _paeth(left: int, above: int, upper_left: int) -> int:
@@ -337,18 +338,18 @@ def read_png_rgb(path: Path) -> PngImage:
         if position + 12 > len(data):
             raise ReferenceError(f"Truncated PNG chunk in {source}")
         length = struct.unpack_from(">I", data, position)[0]
-        chunk-type = data[position + 4 : position + 8]
+        chunk_type = data[position + 4 : position + 8]
         payload_start = position + 8
         payload_end = payload_start + length
         crc_end = payload_end + 4
         if crc_end > len(data):
-            raise ReferenceError("PNG chunk exceeds file bounds in {source}")
+            raise ReferenceError(f"PNG chunk exceeds file bounds in {source}")
         payload = data[payload_start:payload_end]
         expected_crc = struct.unpack_from(">I", data, payload_end)[0]
-        actual_crc = binascii.crc32(chunk-type)
+        actual_crc = binascii.crc32(chunk_type)
         actual_crc = binascii.crc32(payload, actual_crc) & 0xFFFFFFFF
         if actual_crc != expected_crc:
-            raise ReferenceError(f"PNG CRC mismatch for {chunk-type!1r} in {source}")
+            raise ReferenceError(f"PNG CRC mismatch for {chunk_type!r} in {source}")
         if chunk_type == b"IHDR":
             if length != 13:
                 raise ReferenceError("Invalid PNG IHDR length")
@@ -361,9 +362,9 @@ def read_png_rgb(path: Path) -> PngImage:
             palette = [tuple(payload[index:index + 3]) for index in range(0, len(payload), 3)]
         elif chunk_type == b"tRNS":
             transparency = payload
-        elif chunk-type == b"IDAT":
+        elif chunk_type == b"IDAT":
             idat.extend(payload)
-        elif chunk-type == b"IEND":
+        elif chunk_type == b"IEND":
             break
         position = crc_end
     if width <= 0 or height <= 0:
@@ -478,6 +479,7 @@ class _UnionFind:
         self.stats[left_root].merge(self.stats[right_root])
         return left_root
 
+
 def _runs(row: bytes) -> list[tuple[int, int]]:
     result: list[tuple[int, int]] = []
     position = 0
@@ -492,7 +494,17 @@ def _runs(row: bytes) -> list[tuple[int, int]]:
         position = end
     return result
 
-def connected_components(mask: bytes | bytearray, walkable: bytes | bytearray, *, width: int, height: int, origin: tuple[int, int], floor: int, minimum_area: int) -> list[dict[str, Any]]:
+
+def connected_components(
+    mask: bytes | bytearray,
+    walkable: bytes | bytearray,
+    *,
+    width: int,
+    height: int,
+    origin: tuple[int, int],
+    floor: int,
+    minimum_area: int,
+) -> list[dict[str, Any]]:
     if len(mask) != width * height or len(walkable) != len(mask):
         raise ReferenceError("Component mask dimensions do not match")
     union_find = _UnionFind()
