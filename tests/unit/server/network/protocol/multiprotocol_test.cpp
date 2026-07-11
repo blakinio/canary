@@ -40,6 +40,12 @@ public:
 		setXTEAKey(xteaKey.data());
 		enableXTEAEncryption();
 	}
+
+	// Lets tests build deterministic ciphertext fixtures (e.g. an out-of-range
+	// decrypted padding byte) without duplicating the XTEA algorithm.
+	void encryptBlock(uint8_t* buffer, size_t length) {
+		XTEA_transform(buffer, length, true);
+	}
 };
 
 TEST(ProtocolProfileRegistryTest, Version860ProfilesAreDifferentProfiles) {
@@ -273,19 +279,86 @@ TEST(TransportCodecTest, InboundSequenceRejectsReplay) {
 }
 
 TEST(TransportCodecTest, InboundAdlerValidatesPayload) {
+	// prepareInbound's Adler branch reads the checksum and the remaining
+	// payload using absolute buffer offsets, exactly like a message freshly
+	// populated off the socket (position == HEADER_LENGTH, length == HEADER_LENGTH
+	// + body size). Building the fixture with NetworkMessage::add<T>() instead
+	// (which tracks length relative to INITIAL_BUFFER_POSITION) would desync
+	// that arithmetic, so construct it the same way Connection does.
 	TestTransportProtocol protocol;
 	constexpr uint8_t payload = 0x5A;
+	constexpr uint16_t bodyLength = CHECKSUM_LENGTH + sizeof(payload);
+
 	NetworkMessage valid;
+	valid.setBufferPosition(HEADER_LENGTH);
 	valid.add<uint32_t>(adlerChecksum(&payload, sizeof(payload)));
 	valid.addByte(payload);
-	valid.setBufferPosition(NetworkMessage::INITIAL_BUFFER_POSITION);
+	valid.setLength(HEADER_LENGTH + bodyLength);
+	valid.setBufferPosition(HEADER_LENGTH);
 	EXPECT_TRUE(TransportCodecs::currentLogin().prepareInbound(protocol, valid));
 
 	NetworkMessage invalid;
+	invalid.setBufferPosition(HEADER_LENGTH);
 	invalid.add<uint32_t>(0xDEADBEEF);
 	invalid.addByte(payload);
-	invalid.setBufferPosition(NetworkMessage::INITIAL_BUFFER_POSITION);
+	invalid.setLength(HEADER_LENGTH + bodyLength);
+	invalid.setBufferPosition(HEADER_LENGTH);
 	EXPECT_FALSE(TransportCodecs::currentLogin().prepareInbound(protocol, invalid));
+}
+
+TEST(TransportCodecTest, DecryptRejectsFrameShorterThanTransportHeader) {
+	TestTransportProtocol protocol;
+	protocol.enableEncryption();
+
+	NetworkMessage tooShort;
+	tooShort.setLength(HEADER_LENGTH - 1);
+	tooShort.setBufferPosition(HEADER_LENGTH);
+
+	EXPECT_FALSE(TransportCodecs::currentGamePlain().prepareInbound(protocol, tooShort));
+}
+
+TEST(TransportCodecTest, DecryptRejectsPaddingLargerThanBlock) {
+	TestTransportProtocol protocol;
+	protocol.enableEncryption();
+
+	// Encrypt a block whose decrypted first byte (the padding count) is
+	// larger than the block itself, the way a corrupted or hostile frame
+	// would look after a correct XTEA decrypt.
+	std::array<uint8_t, XTEA_MULTIPLE> block = { 250, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77 };
+	protocol.encryptBlock(block.data(), block.size());
+
+	NetworkMessage msg;
+	uint8_t* buffer = msg.getBuffer();
+	for (size_t i = 0; i < block.size(); ++i) {
+		buffer[HEADER_LENGTH + i] = block[i];
+	}
+	msg.setLength(HEADER_LENGTH + block.size());
+	msg.setBufferPosition(HEADER_LENGTH);
+
+	EXPECT_FALSE(TransportCodecs::currentGamePlain().prepareInbound(protocol, msg));
+}
+
+TEST(TransportCodecTest, CurrentGamePlainRoundTripsWithoutChecksum) {
+	TestTransportProtocol protocol;
+	protocol.enableEncryption();
+
+	OutputMessage outbound;
+	outbound.addByte(0x42);
+	TransportCodecs::currentGamePlain().encodeOutbound(protocol, outbound);
+
+	const auto wireLength = outbound.getLength();
+	const auto* wireBytes = outbound.getOutputBuffer();
+
+	NetworkMessage inbound;
+	uint8_t* inboundBuffer = inbound.getBuffer();
+	for (NetworkMessage::MsgSize_t i = 0; i < wireLength; ++i) {
+		inboundBuffer[i] = wireBytes[i];
+	}
+	inbound.setLength(wireLength);
+	inbound.setBufferPosition(HEADER_LENGTH);
+
+	ASSERT_TRUE(TransportCodecs::currentGamePlain().prepareInbound(protocol, inbound));
+	EXPECT_EQ(0x42, inbound.getByte());
 }
 
 TEST(SessionHintTest, ClaimDoesNotConsumeHint) {

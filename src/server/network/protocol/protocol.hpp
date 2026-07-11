@@ -70,6 +70,11 @@ protected:
 	/** Selects a complete transport profile matching the negotiated checksum contract. */
 	void setChecksumMethod(ChecksumMethods_t method);
 
+	// Exposed to Protocol subclasses (in addition to the TransportCodec friend
+	// declaration below) so test doubles can construct known-ciphertext fixtures
+	// for transport framing regression tests.
+	void XTEA_transform(uint8_t* buffer, size_t messageLength, bool encrypt) const;
+
 	static bool RSA_decrypt(NetworkMessage &msg);
 
 	void setRawMessages(bool value) {
@@ -90,7 +95,6 @@ private:
 		std::array<char, NETWORKMESSAGE_MAXSIZE> buffer {};
 	};
 
-	void XTEA_transform(uint8_t* buffer, size_t messageLength, bool encrypt) const;
 	bool compression(OutputMessage &msg, CompressionLayout layout) const;
 
 	OutputMessage_ptr outputBuffer;
