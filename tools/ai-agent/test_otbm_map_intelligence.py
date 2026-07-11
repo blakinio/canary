@@ -54,6 +54,7 @@ class ItemCatalogTests(unittest.TestCase):
         document = catalog_document(catalog)
         self.assertEqual(document["format"], "canary-item-catalog-v1")
         self.assertEqual(document["itemCount"], 4)
+        self.assertEqual(document["diagnosticCount"], 0)
         self.assertEqual(len(document["sha256"]), 64)
 
     def test_enriches_region_and_reports_unknown_ids(self) -> None:
@@ -103,11 +104,22 @@ class ItemCatalogTests(unittest.TestCase):
         self.assertIn("wooden door", text)
         self.assertIn("300,600,7", text)
 
-    def test_rejects_duplicate_definitions(self) -> None:
+    def test_duplicate_definition_uses_later_entry_and_reports_it(self) -> None:
         duplicate = self.root / "duplicate.xml"
         duplicate.write_text('<items><item id="1" name="one"/><item id="1" name="two"/></items>', encoding="utf-8")
-        with self.assertRaises(RuntimeError):
-            load_item_catalog(duplicate)
+        catalog = load_item_catalog(duplicate)
+        self.assertEqual(catalog.items[1].name, "two")
+        self.assertEqual(catalog.diagnostics[0]["code"], "duplicate_item_definition")
+
+    def test_reversed_range_is_skipped_like_canary_loader(self) -> None:
+        reversed_range = self.root / "reversed.xml"
+        reversed_range.write_text(
+            '<items><item id="1" name="one"/><item fromid="10" toid="5" name="ignored"/></items>',
+            encoding="utf-8",
+        )
+        catalog = load_item_catalog(reversed_range)
+        self.assertEqual(set(catalog.items), {1})
+        self.assertEqual(catalog.diagnostics[0]["code"], "reversed_item_range")
 
 
 class PatchSchemaTests(unittest.TestCase):
