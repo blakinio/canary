@@ -103,6 +103,10 @@ def validate_migration(text: str) -> None:
 def validate_batching(text: str) -> None:
     for column in CONTEXT_COLUMNS | {"server_version"}:
         require(f"`{column}`" in text, f"session upsert lacks {column}")
+        require(
+            f"`{column}`=VALUES(`{column}`)" in text,
+            f"session upsert does not update {column}",
+        )
     for value in ("session.huntArea", "session.partyVocations", "session.serverVersion"):
         require(value in text, f"session upsert does not use {value}")
     require("nullableSql" in text, "optional context strings must use NULL-safe SQL")
