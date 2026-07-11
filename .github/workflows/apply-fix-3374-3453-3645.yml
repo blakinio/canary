@@ -34,8 +34,13 @@ jobs:
         id: apply
         shell: bash
         run: |
+          patch_file=.github/automation/fix-3374-3453-3645.patch
+          if [[ "$(tail -n 1 "$patch_file")" == "}" ]]; then
+            sed -i '$s/^}/+}/' "$patch_file"
+          fi
+
           set +e
-          git apply --check --verbose .github/automation/fix-3374-3453-3645.patch > .github/automation/fix-3374-3453-3645-error.txt 2>&1
+          git apply --check --verbose "$patch_file" > .github/automation/fix-3374-3453-3645-error.txt 2>&1
           status=$?
           set -e
           if [[ $status -ne 0 ]]; then
@@ -43,8 +48,8 @@ jobs:
             exit 0
           fi
           rm .github/automation/fix-3374-3453-3645-error.txt
-          git apply .github/automation/fix-3374-3453-3645.patch
-          rm .github/automation/fix-3374-3453-3645.patch
+          git apply "$patch_file"
+          rm "$patch_file"
           git diff --check
           echo "applied=true" >> "$GITHUB_OUTPUT"
 
