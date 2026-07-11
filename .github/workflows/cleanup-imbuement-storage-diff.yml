@@ -1,0 +1,91 @@
+name: Restore unrelated imbuement lines
+
+on:
+  push:
+    branches: [fix/imbuement-storage-filter]
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fix/imbuement-storage-filter
+      - name: Restore base lines with exact-match validation
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/creatures/players/imbuements/imbuements.cpp")
+          text = path.read_text()
+
+          replacements = [
+              (
+                  '''\t\t\t\t\t} else if (strcasecmp(effecttype.c_str(), "speed") == 0) {
+          \t\t\t\t\t\tif (!((attr = childNode.attribute("value")))) {
+          \t\t\t\t\t\t\tg_logger().warn("Missing speed bonus for imbuement name {}", imbuement.name);
+          \t\t\t\t\t\t\tcontinue;
+          \t\t\t\t\t\t}
+
+          \t\t\t\t\t\timbuement.speed = pugi::cast<int32_t>(attr.value());
+          \t\t\t\t\t} else if (strcasecmp(effecttype.c_str(), "capacity") == 0) {
+          \t\t\t\t\t\tif (!((attr = childNode.attribute("value")))) {
+          \t\t\t\t\t\t\tg_logger().warn("Missing capacity bonus for imbuement name {}", imbuement.name);
+          \t\t\t\t\t\t\tcontinue;
+          \t\t\t\t\t\t}
+
+          \t\t\t\t\t\timbuement.capacity = pugi::cast<uint32_t>(attr.value());
+          \t\t\t\t\t} else if (strcasecmp(effecttype.c_str(), "paralysis") == 0) {
+          ''',
+                  '''\t\t\t\t\t} else if (strcasecmp(effecttype.c_str(), "speed") == 0) {
+          \t\t\t\t\t\tif (!((attr = childNode.attribute("value")))) {
+          \t\t\t\t\t\t\tg_logger().warn("Missing speed value for imbuement name {}", imbuement.name);
+          \t\t\t\t\t\t\tcontinue;
+          \t\t\t\t\t\t}
+
+          \t\t\t\t\t\timbuement.speed = pugi::cast<uint32_t>(attr.value());
+          \t\t\t\t\t} else if (strcasecmp(effecttype.c_str(), "capacity") == 0) {
+          \t\t\t\t\t\tif (!((attr = childNode.attribute("value")))) {
+          \t\t\t\t\t\t\tg_logger().warn("Missing cap value for imbuement name {}", imbuement.name);
+          \t\t\t\t\t\t\tcontinue;
+          \t\t\t\t\t\t}
+
+          \t\t\t\t\t\timbuement.capacity = pugi::cast<uint32_t>(attr.value());
+
+          \t\t\t\t\t} else if (strcasecmp(effecttype.c_str(), "paralysis") == 0 || strcasecmp(effecttype.c_str(), "vibrancy") == 0) {
+          ''',
+              ),
+              (
+                  '''\tm_itemsToDecay.emplace(key, TrackedImbuementItem { item, now });
+          \tif (m_eventId == 0) {
+          ''',
+                  '''\tm_itemsToDecay.emplace(key, TrackedImbuementItem { item, now });
+
+          \tif (m_eventId == 0) {
+          ''',
+              ),
+          ]
+
+          for old, new in replacements:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"expected exactly one match, found {count}")
+              text = text.replace(old, new, 1)
+
+          path.write_text(text)
+          PY
+          rm .github/workflows/cleanup-imbuement-storage-diff.yml
+          git diff --check
+      - name: Commit cleanup
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: keep imbuement storage fix focused"
+          git push origin HEAD:fix/imbuement-storage-filter
