@@ -115,6 +115,12 @@ local function partySnapshot(player)
 	addPlayer(player)
 	local party = player:getParty()
 	if party then
+		local leaderOk, leader = pcall(function()
+			return party:getLeader()
+		end)
+		if leaderOk then
+			addPlayer(leader)
+		end
 		for _, member in ipairs(party:getMembers() or {}) do
 			addPlayer(member)
 		end
@@ -250,6 +256,8 @@ function Analytics.finalizeContext(session)
 		session.sharedExperienceRatio = session.contextSharedExperience and 1 or 0
 	end
 
+	session.partySize = session.partySizeMax
+	session.sharedExperience = session.sharedExperienceSeconds > 0 or session.contextSharedExperience == true
 	session.huntArea = dominantScore(session.contextAreaScores)
 	session.partyVocations = boundedText(dominantScore(session.contextCompositionScores), 128)
 	session.serverVersion = boundedText(Analytics.config.serverVersion, 64)
