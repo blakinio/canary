@@ -40,11 +40,13 @@ class CompanionDocument:
 @dataclass
 class WorldPatchPlan:
     map_path: Path
+    map_sha256: str
     patch: dict[str, Any]
     documents: dict[str, CompanionDocument]
     operations: list[dict[str, Any]]
     conflicts: list[dict[str, Any]]
     warnings: list[str]
+    changed_kinds: set[str]
 
     @property
     def ok(self) -> bool:
@@ -108,6 +110,13 @@ def _inventory_entry(element: ET.Element, **identity: Any) -> dict[str, Any]:
     return {**identity, "entryHash": element_hash(element)}
 
 
+def _int_attribute(element: ET.Element, name: str, default: int) -> int:
+    try:
+        return int(element.attrib.get(name, str(default)))
+    except ValueError as exc:
+        raise OTBMError(f"Invalid integer attribute {name!r}: {element.attrib.get(name)!r}") from exc
+
+
 def build_world_patch_template(map_path: Path) -> dict[str, Any]:
     source = map_path.resolve()
     _require(source.is_file(), f"Map file does not exist: {source}")
@@ -117,36 +126,44 @@ def build_world_patch_template(map_path: Path) -> dict[str, Any]:
 
     for kind, (filename, path) in files.items():
         tree = _load_tree(path, ROOT_NAMES[kind])
-        base_files[kind] = {
-            "filename": filename,
-            "sha256": sha256_path(path) if path.is_file() else None,
-        }
+        base_files[kind] = {"filename": filename, "sha256": sha256_path(path) if path.is_file() else None}
         if kind == "house":
             for element in tree.getroot():
                 if _local_name(element.tag) != "house":
                     continue
-                try:
-                    house_id = int(element.attrib.get("houseid", ""))
-                except ValueError:
-                    continue
-                inventory[kind].append(_inventory_entry(element, houseId=house_id, name=element.attrib.get("name", "")))
+                inventory[kind].append(
+                    _inventory_entry(
+                        element,
+                        houseId=_int_attribute(element, "houseid", 0),
+                        name=element.attrib.get("name", ""),
+                    )
+                )
         elif kind == "zones":
             for element in tree.getroot():
                 if _local_name(element.tag) != "zone":
                     continue
-                try:
-                    zone_id = int(element.attrib.get("zoneid", "0"))
-                except ValueError:
-                    zone_id = 0
-                inventory[kind].append(_inventory_entry(element, zoneId=zone_id, name=element.attrib.get("name", "")))
+                inventory[kind].append(
+                    _inventory_entry(
+                        element,
+                        zoneId=_int_attribute(element, "zoneid", 0),
+                        name=element.attrib.get("name", ""),
+                    )
+                )
         else:
-            for index, element in enumerate(tree.getroot()):
+            spawn_index = 0
+            for element in tree.getroot():
                 if _local_name(element.tag) != "spawn":
                     continue
-                center = [int(element.attrib.get(name, "0")) for name in ("centerx", "centery", "centerz")]
+                center = [_int_attribute(element, name, 0) for name in ("centerx", "centery", "centerz")]
                 inventory[kind].append(
-                    _inventory_entry(element, groupIndex=index, centerPosition=center, radius=int(element.attrib.get("radius", "-1")))
+                    _inventory_entry(
+                        element,
+                        groupIndex=spawn_index,
+                        centerPosition=center,
+                        radius=_int_attribute(element, "radius", -1),
+                    )
                 )
+                spawn_index += 1
 
     return {
         "format": WORLD_PATCH_FORMAT,
@@ -170,15 +187,52 @@ def _valid_sha(value: Any, allow_none: bool = False) -> bool:
     return isinstance(value, str) and len(value) == 64 and all(character in "0123456789abcdefABCDEF" for character in value)
 
 
+def _is_int(value: Any) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def _valid_uint(value: Any, maximum: int) -> bool:
+    return _is_int(value) and 0 <= value <= maximum
+
+
 def _valid_position(value: Any) -> bool:
     return (
         isinstance(value, list)
         and len(value) == 3
-        and all(isinstance(part, int) and not isinstance(part, bool) for part in value)
-        and 0 <= value[0] <= 65535
-        and 0 <= value[1] <= 65535
-        and 0 <= value[2] <= 15
+        and _valid_uint(value[0], 65535)
+        and _valid_uint(value[1], 65535)
+        and _valid_uint(value[2], 15)
     )
+
+
+def _validate_spawn_group(group: Any, path: str, kind: str, issues: list[dict[str, str]]) -> None:
+    if not isinstance(group, dict):
+        issues.append(_issue(path, "must be an object", "group_type"))
+        return
+    if not _valid_position(group.get("centerPosition")):
+        issues.append(_issue(f"{path}.centerPosition", "must be [x,y,z] in OTBM range", "position"))
+    if "radius" in group and (not _is_int(group["radius"]) or group["radius"] < -1):
+        issues.append(_issue(f"{path}.radius", "must be an integer greater than or equal to -1", "radius"))
+    entities = group.get("entities")
+    if not isinstance(entities, list) or not entities:
+        issues.append(_issue(f"{path}.entities", "must be a non-empty array", "entities"))
+        return
+    for index, entity in enumerate(entities):
+        entity_path = f"{path}.entities[{index}]"
+        if not isinstance(entity, dict):
+            issues.append(_issue(entity_path, "must be an object", "entity_type"))
+            continue
+        if not isinstance(entity.get("name"), str) or not entity["name"].strip():
+            issues.append(_issue(f"{entity_path}.name", "must be a non-empty string", "name"))
+        offset = entity.get("offset")
+        if not isinstance(offset, list) or len(offset) != 2 or not all(_is_int(value) for value in offset):
+            issues.append(_issue(f"{entity_path}.offset", "must be [x,y] integers", "offset"))
+        if not _valid_uint(entity.get("spawntime"), 86400):
+            issues.append(_issue(f"{entity_path}.spawntime", "must be an integer from 0 to 86400", "spawntime"))
+        if "direction" in entity and entity["direction"] is not None and not _valid_uint(entity["direction"], 255):
+            issues.append(_issue(f"{entity_path}.direction", "must be a uint8", "direction"))
+        if kind == "monster" and "weight" in entity and entity["weight"] is not None and not _valid_uint(entity["weight"], 4294967295):
+            issues.append(_issue(f"{entity_path}.weight", "must be a uint32", "weight"))
 
 
 def validate_world_patch(payload: Any) -> dict[str, Any]:
@@ -192,8 +246,13 @@ def validate_world_patch(payload: Any) -> dict[str, Any]:
         issues.append(_issue("$.base", "must be an object", "base_type"))
     else:
         map_base = base.get("map")
-        if not isinstance(map_base, dict) or not _valid_sha(map_base.get("sha256")):
-            issues.append(_issue("$.base.map.sha256", "must be a SHA-256 string", "sha256"))
+        if not isinstance(map_base, dict):
+            issues.append(_issue("$.base.map", "must be an object", "map_base"))
+        else:
+            if not isinstance(map_base.get("filename"), str) or not map_base["filename"]:
+                issues.append(_issue("$.base.map.filename", "must be a non-empty string", "filename"))
+            if not _valid_sha(map_base.get("sha256")):
+                issues.append(_issue("$.base.map.sha256", "must be a SHA-256 string", "sha256"))
         files = base.get("files")
         if not isinstance(files, dict):
             issues.append(_issue("$.base.files", "must be an object", "files_type"))
@@ -234,43 +293,55 @@ def validate_world_patch(payload: Any) -> dict[str, Any]:
             issues.append(_issue(f"{path}.op", f"must be one of {sorted(supported)}", "operation_name"))
             continue
         if op in {"upsert_house", "remove_house", "upsert_zone", "remove_zone", "replace_spawn_group", "remove_spawn_group"}:
-            if "expectedEntryHash" not in operation or not _valid_sha(operation.get("expectedEntryHash"), allow_none=op.startswith("upsert_")):
+            allow_none = op in {"upsert_house", "upsert_zone"}
+            if "expectedEntryHash" not in operation or not _valid_sha(operation.get("expectedEntryHash"), allow_none=allow_none):
                 issues.append(_issue(f"{path}.expectedEntryHash", "must be SHA-256; upsert may use null only when adding", "precondition"))
         if op == "upsert_house":
             house = operation.get("house")
             if not isinstance(house, dict):
                 issues.append(_issue(f"{path}.house", "must be an object", "house_type"))
             else:
-                for field in ("houseId", "name", "entryPosition", "rent", "size", "townId", "clientId"):
+                required = ("houseId", "name", "entryPosition", "rent", "size", "townId", "clientId")
+                for field in required:
                     if field not in house:
                         issues.append(_issue(f"{path}.house.{field}", "is required", "required"))
+                if "houseId" in house and not (1 <= house["houseId"] <= 4294967295 if _is_int(house["houseId"]) else False):
+                    issues.append(_issue(f"{path}.house.houseId", "must be a positive uint32", "house_id"))
+                if "name" in house and not isinstance(house["name"], str):
+                    issues.append(_issue(f"{path}.house.name", "must be a string", "name"))
                 if "entryPosition" in house and not _valid_position(house["entryPosition"]):
                     issues.append(_issue(f"{path}.house.entryPosition", "must be [x,y,z] in OTBM range", "position"))
+                for field in ("rent", "size", "townId", "clientId"):
+                    if field in house and not _valid_uint(house[field], 4294967295):
+                        issues.append(_issue(f"{path}.house.{field}", "must be a uint32", "uint32"))
+                if "guildhall" in house and house["guildhall"] is not None and not isinstance(house["guildhall"], bool):
+                    issues.append(_issue(f"{path}.house.guildhall", "must be boolean or null", "boolean"))
+                if "beds" in house and house["beds"] is not None and not _is_int(house["beds"]):
+                    issues.append(_issue(f"{path}.house.beds", "must be integer or null", "beds"))
         elif op == "remove_house":
-            if not isinstance(operation.get("houseId"), int):
-                issues.append(_issue(f"{path}.houseId", "must be an integer", "house_id"))
+            if not (1 <= operation.get("houseId", 0) <= 4294967295 if _is_int(operation.get("houseId")) else False):
+                issues.append(_issue(f"{path}.houseId", "must be a positive uint32", "house_id"))
         elif op == "upsert_zone":
             zone = operation.get("zone")
-            if not isinstance(zone, dict) or not isinstance(zone.get("zoneId"), int) or not isinstance(zone.get("name"), str):
-                issues.append(_issue(f"{path}.zone", "requires integer zoneId and string name", "zone_type"))
+            if not isinstance(zone, dict):
+                issues.append(_issue(f"{path}.zone", "must be an object", "zone_type"))
+            else:
+                if not (1 <= zone.get("zoneId", 0) <= 65535 if _is_int(zone.get("zoneId")) else False):
+                    issues.append(_issue(f"{path}.zone.zoneId", "must be an integer from 1 to 65535", "zone_id"))
+                if not isinstance(zone.get("name"), str) or not zone["name"].strip():
+                    issues.append(_issue(f"{path}.zone.name", "must be a non-empty string", "name"))
         elif op == "remove_zone":
-            if not isinstance(operation.get("zoneId"), int):
-                issues.append(_issue(f"{path}.zoneId", "must be an integer", "zone_id"))
+            if not (1 <= operation.get("zoneId", 0) <= 65535 if _is_int(operation.get("zoneId")) else False):
+                issues.append(_issue(f"{path}.zoneId", "must be an integer from 1 to 65535", "zone_id"))
         else:
             kind = operation.get("kind")
             if kind not in {"monster", "npc"}:
                 issues.append(_issue(f"{path}.kind", "must be monster or npc", "spawn_kind"))
-            if op in {"replace_spawn_group", "remove_spawn_group"} and (not isinstance(operation.get("groupIndex"), int) or operation["groupIndex"] < 0):
+                kind = "monster"
+            if op in {"replace_spawn_group", "remove_spawn_group"} and (not _is_int(operation.get("groupIndex")) or operation["groupIndex"] < 0):
                 issues.append(_issue(f"{path}.groupIndex", "must be a non-negative integer", "group_index"))
             if op in {"add_spawn_group", "replace_spawn_group"}:
-                group = operation.get("group")
-                if not isinstance(group, dict):
-                    issues.append(_issue(f"{path}.group", "must be an object", "group_type"))
-                else:
-                    if not _valid_position(group.get("centerPosition")):
-                        issues.append(_issue(f"{path}.group.centerPosition", "must be [x,y,z] in OTBM range", "position"))
-                    if not isinstance(group.get("entities"), list) or not group["entities"]:
-                        issues.append(_issue(f"{path}.group.entities", "must be a non-empty array", "entities"))
+                _validate_spawn_group(operation.get("group"), f"{path}.group", kind, issues)
     return {
         "format": "canary-otbm-world-patch-validation-v1",
         "ok": not issues,
@@ -287,7 +358,7 @@ def load_world_patch(path: Path) -> dict[str, Any]:
 
 
 def _find_by_integer(root: ET.Element, tag: str, attribute: str, value: int) -> list[ET.Element]:
-    result: list[ET.Element] = []
+    matches: list[ET.Element] = []
     for element in root:
         if _local_name(element.tag) != tag:
             continue
@@ -296,8 +367,8 @@ def _find_by_integer(root: ET.Element, tag: str, attribute: str, value: int) -> 
         except ValueError:
             continue
         if current == value:
-            result.append(element)
-    return result
+            matches.append(element)
+    return matches
 
 
 def _set_or_remove(element: ET.Element, name: str, value: Any) -> None:
@@ -383,21 +454,16 @@ def _spawn_group_element(kind: str, group: dict[str, Any]) -> ET.Element:
         },
     )
     for entity in group["entities"]:
-        _require(isinstance(entity, dict), "Spawn entity must be an object")
-        name = str(entity.get("name", "")).strip()
-        _require(name, "Spawn entity requires a name")
-        offset = entity.get("offset", [0, 0])
-        _require(isinstance(offset, list) and len(offset) == 2 and all(isinstance(value, int) for value in offset), "Spawn offset must be [x,y]")
         attributes = {
-            "name": name,
-            "x": str(offset[0]),
-            "y": str(offset[1]),
-            "spawntime": str(int(entity.get("spawntime", 0))),
+            "name": str(entity["name"]).strip(),
+            "x": str(entity["offset"][0]),
+            "y": str(entity["offset"][1]),
+            "spawntime": str(entity["spawntime"]),
         }
         if entity.get("direction") is not None:
-            attributes["direction"] = str(int(entity["direction"]))
+            attributes["direction"] = str(entity["direction"])
         if kind == "monster" and entity.get("weight") is not None:
-            attributes["weight"] = str(int(entity["weight"]))
+            attributes["weight"] = str(entity["weight"])
         ET.SubElement(spawn, kind, attributes)
     return spawn
 
@@ -434,11 +500,14 @@ def plan_world_patch(map_path: Path, patch: dict[str, Any]) -> WorldPatchPlan:
     conflicts: list[dict[str, Any]] = []
     warnings: list[str] = []
     documents: dict[str, CompanionDocument] = {}
+    changed_kinds: set[str] = set()
 
-    expected_map_sha = patch["base"]["map"]["sha256"]
     actual_map_sha = sha256_path(source)
-    if expected_map_sha != actual_map_sha:
-        conflicts.append({"type": "mapHashMismatch", "expected": expected_map_sha, "actual": actual_map_sha})
+    expected_map = patch["base"]["map"]
+    if expected_map["filename"] != source.name:
+        conflicts.append({"type": "mapFilenameMismatch", "expected": expected_map["filename"], "actual": source.name})
+    if expected_map["sha256"] != actual_map_sha:
+        conflicts.append({"type": "mapHashMismatch", "expected": expected_map["sha256"], "actual": actual_map_sha})
 
     for kind, (filename, path) in files.items():
         expected_file = patch["base"]["files"][kind]
@@ -457,20 +526,26 @@ def plan_world_patch(map_path: Path, patch: dict[str, Any]) -> WorldPatchPlan:
                 op = operation["op"]
                 if op == "upsert_house":
                     _apply_house(documents["house"].tree.getroot(), operation)
+                    changed_kinds.add("house")
                 elif op == "remove_house":
                     _remove_house(documents["house"].tree.getroot(), operation)
+                    changed_kinds.add("house")
                 elif op == "upsert_zone":
                     _apply_zone(documents["zones"].tree.getroot(), operation)
+                    changed_kinds.add("zones")
                 elif op == "remove_zone":
                     _remove_zone(documents["zones"].tree.getroot(), operation)
+                    changed_kinds.add("zones")
                 else:
-                    _apply_spawn(documents[operation["kind"]].tree.getroot(), operation)
+                    kind = operation["kind"]
+                    _apply_spawn(documents[kind].tree.getroot(), operation)
+                    changed_kinds.add(kind)
             except (OTBMError, KeyError, TypeError, ValueError) as exc:
                 result["status"] = "conflict"
                 result["message"] = str(exc)
                 conflicts.append({"type": "operationConflict", **result})
             operation_results.append(result)
-    return WorldPatchPlan(source, patch, documents, operation_results, conflicts, warnings)
+    return WorldPatchPlan(source, actual_map_sha, patch, documents, operation_results, conflicts, warnings, changed_kinds)
 
 
 def _write_tree(tree: ET.ElementTree, path: Path) -> None:
@@ -482,11 +557,15 @@ def _write_tree(tree: ET.ElementTree, path: Path) -> None:
 
 def _stage_documents(plan: WorldPatchPlan, stage: Path) -> dict[str, Path]:
     staged: dict[str, Path] = {}
+    stage_root = stage.resolve()
     for kind, document in plan.documents.items():
-        relative = _safe_relative_filename(document.filename)
-        destination = (stage / relative).resolve()
-        _require(destination.is_relative_to(stage.resolve()), f"Companion output escapes staging directory: {document.filename}")
-        _write_tree(document.tree, destination)
+        destination = (stage_root / _safe_relative_filename(document.filename)).resolve()
+        _require(destination.is_relative_to(stage_root), f"Companion output escapes staging directory: {document.filename}")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if kind not in plan.changed_kinds and document.source_path.is_file():
+            shutil.copy2(document.source_path, destination)
+        else:
+            _write_tree(document.tree, destination)
         staged[kind] = destination
     return staged
 
@@ -525,6 +604,42 @@ def _validate_staged_package(map_path: Path, files: dict[str, Path]) -> dict[str
     }
 
 
+def _sources_unchanged(plan: WorldPatchPlan) -> list[dict[str, Any]]:
+    conflicts: list[dict[str, Any]] = []
+    actual_map_sha = sha256_path(plan.map_path)
+    if actual_map_sha != plan.map_sha256:
+        conflicts.append({"type": "sourceChangedAfterPlan", "kind": "map", "expected": plan.map_sha256, "actual": actual_map_sha})
+    for kind, document in plan.documents.items():
+        actual_sha = sha256_path(document.source_path) if document.source_path.is_file() else None
+        if actual_sha != document.source_sha256:
+            conflicts.append({"type": "sourceChangedAfterPlan", "kind": kind, "expected": document.source_sha256, "actual": actual_sha})
+    return conflicts
+
+
+def _publish_directory(stage: Path, destination: Path, overwrite: bool) -> Path | None:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    publish_stage = destination.parent / f".{destination.name}.staging-{os.getpid()}"
+    if publish_stage.exists():
+        shutil.rmtree(publish_stage)
+    shutil.copytree(stage, publish_stage)
+    backup: Path | None = None
+    try:
+        if destination.exists():
+            _require(overwrite, f"Output directory already exists: {destination}; use --overwrite")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+            backup = destination.with_name(f"{destination.name}.bak.{timestamp}")
+            _require(not backup.exists(), f"Backup directory already exists: {backup}")
+            os.replace(destination, backup)
+        os.replace(publish_stage, destination)
+    except Exception:
+        if publish_stage.exists():
+            shutil.rmtree(publish_stage, ignore_errors=True)
+        if backup is not None and backup.exists() and not destination.exists():
+            os.replace(backup, destination)
+        raise
+    return backup
+
+
 def execute_world_patch(
     plan: WorldPatchPlan,
     *,
@@ -537,6 +652,10 @@ def execute_world_patch(
     backup_dir: Path | None = None
     written = False
 
+    race_conflicts = _sources_unchanged(plan) if plan.ok else []
+    if race_conflicts:
+        plan.conflicts.extend(race_conflicts)
+
     if plan.ok:
         with tempfile.TemporaryDirectory(prefix="canary-world-patch-") as temp_dir:
             stage = Path(temp_dir).resolve()
@@ -546,37 +665,27 @@ def execute_world_patch(
                 _require(output_dir is not None, "output_dir is required when write=True")
                 destination = output_dir.resolve()
                 _require(destination != plan.map_path.parent.resolve(), "Output directory must differ from the source map directory")
-                destination.parent.mkdir(parents=True, exist_ok=True)
-                publish_stage = destination.parent / f".{destination.name}.staging-{os.getpid()}"
-                if publish_stage.exists():
-                    shutil.rmtree(publish_stage)
-                shutil.copytree(stage, publish_stage)
-                if destination.exists():
-                    _require(overwrite, f"Output directory already exists: {destination}; use --overwrite")
-                    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-                    backup_dir = destination.with_name(f"{destination.name}.bak.{timestamp}")
-                    _require(not backup_dir.exists(), f"Backup directory already exists: {backup_dir}")
-                    os.replace(destination, backup_dir)
-                os.replace(publish_stage, destination)
+                backup_dir = _publish_directory(stage, destination, overwrite)
                 written = True
                 for kind, document in plan.documents.items():
                     path = destination / _safe_relative_filename(document.filename)
-                    output_files[kind] = {"path": str(path), "sha256": sha256_path(path)}
+                    output_files[kind] = {"path": str(path), "sha256": sha256_path(path), "changed": kind in plan.changed_kinds}
             else:
                 for kind, path in staged.items():
-                    output_files[kind] = {"path": None, "sha256": sha256_path(path)}
+                    output_files[kind] = {"path": None, "sha256": sha256_path(path), "changed": kind in plan.changed_kinds}
 
     ok = plan.ok and validation is not None and validation["ok"]
     return {
         "format": WORLD_PATCH_REPORT_FORMAT,
         "ok": ok,
         "mode": "write" if written else "dry-run",
-        "map": {"path": str(plan.map_path), "sha256": sha256_path(plan.map_path)},
+        "map": {"path": str(plan.map_path), "sha256": plan.map_sha256},
         "outputDirectory": str(output_dir.resolve()) if output_dir else None,
         "backupDirectory": str(backup_dir) if backup_dir else None,
         "warnings": plan.warnings,
         "conflicts": plan.conflicts,
         "operations": plan.operations,
+        "changedKinds": sorted(plan.changed_kinds),
         "validation": validation,
         "files": output_files,
     }
