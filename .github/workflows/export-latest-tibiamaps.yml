@@ -20,6 +20,9 @@ jobs:
     timeout-minutes: 30
 
     steps:
+      - name: Checkout Canary
+        uses: actions/checkout@v4
+
       - name: Download all map and pathfinding floors
         shell: bash
         run: |
@@ -33,6 +36,7 @@ jobs:
               "https://tibiamaps.github.io/tibia-map-data/floor-${floor}-path.png" \
               --output "tibiamaps/floor-${floor}-path.png"
           done
+          cp data/items/items.xml tibiamaps/canary-items.xml
 
       - name: Record provenance and dimensions
         shell: bash
@@ -61,10 +65,16 @@ jobs:
               })
           if len(files) != 32:
               raise SystemExit(f'Expected 32 PNG files, found {len(files)}')
+          item_catalog = root / 'canary-items.xml'
           payload = {
               'format': 'canary-tibiamaps-export-v1',
               'source': 'https://tibiamaps.github.io/tibia-map-data/',
               'files': files,
+              'canaryItems': {
+                  'name': item_catalog.name,
+                  'size': item_catalog.stat().st_size,
+                  'sha256': hashlib.sha256(item_catalog.read_bytes()).hexdigest(),
+              },
           }
           (root / 'manifest.json').write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
           PY
