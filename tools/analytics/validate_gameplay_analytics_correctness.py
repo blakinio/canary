@@ -77,13 +77,14 @@ def validate_rune(text: str, name: str) -> None:
 
 
 def validate_docs(text: str) -> None:
+    normalized = text.lower()
     for phrase in (
-        "UTC day rollover",
+        "utc day rollover",
         "non-combat sessions",
         "short death sessions",
-        "REMOVE_RUNE_CHARGES",
+        "remove_rune_charges",
     ):
-        require(phrase in text, f"runtime documentation lacks: {phrase}")
+        require(phrase in normalized, f"runtime documentation lacks: {phrase}")
 
 
 def main() -> int:
