@@ -4,20 +4,33 @@ name: Account Quests
 on:
   pull_request:
     paths:
+      - "config.lua.dist"
+      - "schema.sql"
+      - "src/config/**"
+      - "src/database/**"
+      - "src/lua/functions/core/libs/db_functions.*"
       - "data-otservbr-global/account_quests.lua"
+      - "data-otservbr-global/migrations/**"
       - "data-otservbr-global/scripts/custom/account_quest_system.lua"
       - "data-otservbr-global/scripts/quests/**"
       - "data/scripts/actions/doors/quest_door.lua"
+      - "docs/systems/account-wide-quests*"
       - "tools/account-quests/**"
       - ".github/workflows/account-quests.yml"
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
+      - "config.lua.dist"
+      - "schema.sql"
+      - "src/config/**"
+      - "src/database/**"
+      - "src/lua/functions/core/libs/db_functions.*"
       - "data-otservbr-global/account_quests.lua"
+      - "data-otservbr-global/migrations/**"
       - "data-otservbr-global/scripts/custom/account_quest_system.lua"
       - "data-otservbr-global/scripts/quests/**"
       - "data/scripts/actions/doors/quest_door.lua"
+      - "docs/systems/account-wide-quests*"
       - "tools/account-quests/**"
       - ".github/workflows/account-quests.yml"
   workflow_dispatch:
@@ -36,4 +49,44 @@ jobs:
       - name: Validate account quest contract
         run: python tools/account-quests/validate_account_quests.py
       - name: Run account quest validator tests
-        run: python -m unittest discover -s tools/account-quests -p "test_*.py" -v
+        run: python -m unittest discover -s tools/account-quests -p "test_validate_*.py" -v
+
+  mariadb-integration:
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: account_quests_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      AQ_DB_HOST: 127.0.0.1
+      AQ_DB_PORT: 3306
+      AQ_DB_USER: root
+      AQ_DB_PASSWORD: root
+      AQ_DB_NAME: account_quests_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check pymysql
+      - name: Run MariaDB integration tests
+        shell: bash
+        run: |
+          set -o pipefail
+          python tools/account-quests/test_account_quests_db.py -v 2>&1 | tee /tmp/account-quests-db-tests.log
+      - name: Upload MariaDB test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: account-quests-db-test-log
+          path: /tmp/account-quests-db-tests.log
+          if-no-files-found: warn

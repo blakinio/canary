@@ -19,6 +19,7 @@ private:
 	static int luaDatabaseEscapeBlob(lua_State* L);
 	static int luaDatabaseEscapeString(lua_State* L);
 	static int luaDatabaseExecute(lua_State* L);
+	static int luaDatabaseExecuteAffectedRows(lua_State* L);
 	static int luaDatabaseLastInsertId(lua_State* L);
 	static int luaDatabaseStoreQuery(lua_State* L);
 	static int luaDatabaseTableExists(lua_State* L);

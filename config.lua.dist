@@ -15,6 +15,10 @@ luaApiDocsOutputDirectory = "docs/lua-api"
 -- NOTE: Debug and trace logs are only available if compiled in debug mode.
 logLevel = "info"
 
+-- Account-wide quest access. Disable this to fail closed without removing data.
+-- Restart the server after changing this value.
+accountWideQuestSystemEnabled = true
+
 --- Toggles the server's maintenance mode.
 -- When enabled, it restricts user access and indicates maintenance operations.
 -- @field [parent=#global] #boolean toggleMaintainMode false by default, set to true to enable maintenance mode.

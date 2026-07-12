@@ -6285,6 +6285,11 @@ C++ Lua binding handlers and registration lines can override inferred signatures
 - Returns: `boolean`
 - Source: `src/lua/functions/core/libs/db_functions.cpp`
 
+#### `db.queryAffectedRows(query: string)`
+
+- Returns: `number|false`
+- Source: `src/lua/functions/core/libs/db_functions.cpp`
+
 #### `db.storeQuery(query: string)`
 
 - Returns: `boolean|number`

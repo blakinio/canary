@@ -100,6 +100,19 @@ class AccountQuestValidatorTest(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "Mission 12"):
             validator.validate_door_integration(broken)
 
+    def test_atomic_claim_contract(self) -> None:
+        self.assertIn("db.queryAffectedRows", self.runtime)
+        claim = validator.function_body(self.runtime, "claimReward", "resetCharacterProgress")
+        self.assertNotIn("AccountQuest.canClaimReward", claim)
+
+    def test_main_config_switch_contract(self) -> None:
+        self.assertIn("accountWideQuestSystemEnabled = true", validator.CONFIG_DIST.read_text(encoding="utf-8"))
+        self.assertIn("ACCOUNT_WIDE_QUESTS_ENABLED", validator.CONFIG_ENUMS.read_text(encoding="utf-8"))
+
+    def test_admin_access_command_contract(self) -> None:
+        self.assertIn('TalkAction("/questaccess")', self.runtime)
+        self.assertIn('questAccess:groupType("god")', self.runtime)
+
 
 if __name__ == "__main__":
     unittest.main()

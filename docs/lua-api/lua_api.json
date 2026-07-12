@@ -9403,6 +9403,14 @@
         "source": "src/lua/functions/core/libs/db_functions.cpp"
       },
       {
+        "name": "queryAffectedRows",
+        "params": [
+          "query: string"
+        ],
+        "return": "number|false",
+        "source": "src/lua/functions/core/libs/db_functions.cpp"
+      },
+      {
         "name": "storeQuery",
         "params": [
           "query: string"

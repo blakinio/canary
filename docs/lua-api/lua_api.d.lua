@@ -4993,6 +4993,10 @@ function db.lastInsertId(...) end
 function db.query(query) end
 
 ---@param query string
+---@return number|false
+function db.queryAffectedRows(query) end
+
+---@param query string
 ---@return boolean|number
 function db.storeQuery(query) end
 

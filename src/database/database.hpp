@@ -14,6 +14,7 @@
 #ifndef USE_PRECOMPILED_HEADERS
 	#include <mysql/mysql.h>
 	#include <mutex>
+	#include <optional>
 	#include <utility>
 #endif
 
@@ -56,6 +57,7 @@ public:
 
 	bool retryQuery(std::string_view query, int retries);
 	bool executeQuery(std::string_view query);
+	std::optional<uint64_t> executeQueryAffectedRows(std::string_view query);
 
 	DBResult_ptr storeQuery(std::string_view query);
 

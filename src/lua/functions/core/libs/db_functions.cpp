@@ -17,6 +17,7 @@
 void DBFunctions::init(lua_State* L) {
 	Lua::registerTable(L, "db");
 	Lua::registerMethod(L, "db", "query", DBFunctions::luaDatabaseExecute);
+	Lua::registerMethod(L, "db", "queryAffectedRows", DBFunctions::luaDatabaseExecuteAffectedRows);
 	Lua::registerMethod(L, "db", "asyncQuery", DBFunctions::luaDatabaseAsyncExecute);
 	Lua::registerMethod(L, "db", "storeQuery", DBFunctions::luaDatabaseStoreQuery);
 	Lua::registerMethod(L, "db", "asyncStoreQuery", DBFunctions::luaDatabaseAsyncStoreQuery);
@@ -29,6 +30,17 @@ void DBFunctions::init(lua_State* L) {
 int DBFunctions::luaDatabaseExecute(lua_State* L) {
 	// db.query(query)
 	Lua::pushBoolean(L, Database::getInstance().executeQuery(Lua::getString(L, -1)));
+	return 1;
+}
+
+int DBFunctions::luaDatabaseExecuteAffectedRows(lua_State* L) {
+	// db.queryAffectedRows(query)
+	const auto affectedRows = Database::getInstance().executeQueryAffectedRows(Lua::getString(L, -1));
+	if (!affectedRows.has_value()) {
+		Lua::pushBoolean(L, false);
+	} else {
+		lua_pushnumber(L, static_cast<lua_Number>(*affectedRows));
+	}
 	return 1;
 }
 
