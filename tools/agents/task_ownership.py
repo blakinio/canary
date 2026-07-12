@@ -322,7 +322,11 @@ def render_index(paths: Iterable[Path]) -> str:
 
 
 def _task_files(root: Path) -> list[Path]:
-    return sorted(root.rglob("*.md"))
+    return sorted(
+        path
+        for path in root.rglob("*.md")
+        if path.name.casefold() != "readme.md"
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
