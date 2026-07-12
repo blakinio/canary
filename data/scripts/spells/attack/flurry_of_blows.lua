@@ -25,8 +25,12 @@ function onGetFormulaValues(player, skill, attack, factor)
 	return min, max
 end
 
+function onGetFormulaValuesWod(player, skill, attack, factor)
+	return onGetFormulaValues(player, skill, attack, factor)
+end
+
 combat:setCallback(CALLBACK_PARAM_SKILLVALUE, "onGetFormulaValues")
-combatWod:setCallback(CALLBACK_PARAM_SKILLVALUE, "onGetFormulaValues")
+combatWod:setCallback(CALLBACK_PARAM_SKILLVALUE, "onGetFormulaValuesWod")
 
 local spell = Spell("instant")
 
