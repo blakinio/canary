@@ -40,20 +40,20 @@ namespace {
 		Database &db = Database::getInstance();
 		std::ostringstream query;
 		query << "INSERT INTO `channel_runtime_status` (`channel_id`, `instance_id`, `node_id`, `started_at`, `last_heartbeat`, `status`, `players_online`, `build_sha`, `map_hash`, `data_hash`) VALUES ("
-		      << status.channelId << ", "
-		      << db.escapeString(status.instanceId) << ", "
-		      << db.escapeString(status.nodeId) << ", "
-		      << status.startedAtMs << ", "
-		      << status.lastHeartbeatMs << ", "
-		      << db.escapeString(status.status) << ", "
-		      << status.playersOnline << ", "
-		      << db.escapeString(status.buildSha) << ", "
-		      << db.escapeString(status.mapHash) << ", "
-		      << db.escapeString(status.dataHash)
-		      << ") ON DUPLICATE KEY UPDATE "
-		      << "`instance_id` = VALUES(`instance_id`), `node_id` = VALUES(`node_id`), `started_at` = VALUES(`started_at`), "
-		      << "`last_heartbeat` = VALUES(`last_heartbeat`), `status` = VALUES(`status`), `players_online` = VALUES(`players_online`), "
-		      << "`build_sha` = VALUES(`build_sha`), `map_hash` = VALUES(`map_hash`), `data_hash` = VALUES(`data_hash`);";
+			  << status.channelId << ", "
+			  << db.escapeString(status.instanceId) << ", "
+			  << db.escapeString(status.nodeId) << ", "
+			  << status.startedAtMs << ", "
+			  << status.lastHeartbeatMs << ", "
+			  << db.escapeString(status.status) << ", "
+			  << status.playersOnline << ", "
+			  << db.escapeString(status.buildSha) << ", "
+			  << db.escapeString(status.mapHash) << ", "
+			  << db.escapeString(status.dataHash)
+			  << ") ON DUPLICATE KEY UPDATE "
+			  << "`instance_id` = VALUES(`instance_id`), `node_id` = VALUES(`node_id`), `started_at` = VALUES(`started_at`), "
+			  << "`last_heartbeat` = VALUES(`last_heartbeat`), `status` = VALUES(`status`), `players_online` = VALUES(`players_online`), "
+			  << "`build_sha` = VALUES(`build_sha`), `map_hash` = VALUES(`map_hash`), `data_hash` = VALUES(`data_hash`);";
 
 		g_databaseTasks().execute(query.str(), [channelId = status.channelId](DBResult_ptr, bool success) {
 			if (!success) {

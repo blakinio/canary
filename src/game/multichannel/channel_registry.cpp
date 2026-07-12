@@ -146,13 +146,13 @@ bool ChannelRegistry::ensureBootstrapChannel() {
 
 	std::ostringstream query;
 	query << "INSERT INTO `channels` (`id`, `name`, `pvp_type`, `external_host`, `game_port`, `status_port`, `max_players`, `enabled`, `sort_order`, `maintenance`, `maintenance_message`, `login_gateway`, `map_hash`, `created_at`, `updated_at`) VALUES ("
-	      << "1, "
-	      << db.escapeString(name) << ", "
-	      << db.escapeString(pvpType) << ", "
-	      << db.escapeString(host) << ", "
-	      << gamePort << ", "
-	      << statusPort << ", "
-	      << "0, 1, 0, 0, '', 1, '', UNIX_TIMESTAMP(), UNIX_TIMESTAMP());";
+		  << "1, "
+		  << db.escapeString(name) << ", "
+		  << db.escapeString(pvpType) << ", "
+		  << db.escapeString(host) << ", "
+		  << gamePort << ", "
+		  << statusPort << ", "
+		  << "0, 1, 0, 0, '', 1, '', UNIX_TIMESTAMP(), UNIX_TIMESTAMP());";
 
 	if (!db.executeQuery(query.str())) {
 		g_logger().error("[ChannelRegistry::ensureBootstrapChannel] - Failed to insert bootstrap Channel 1 row.");

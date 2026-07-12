@@ -59,7 +59,8 @@ void ProtocolLogin::getCharacterList(const std::string &accountDescriptor, const
 	if (!motd.empty()) {
 		output->addByte(0x14);
 		std::ostringstream ss;
-		ss << g_game().getMotdNum() << "\n" << motd;
+		ss << g_game().getMotdNum() << "\n"
+		   << motd;
 		output->addString(ss.str());
 	}
 
@@ -341,7 +342,8 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage &msg) {
 			banInfo.reason = "(none)";
 		}
 		std::ostringstream ss;
-		ss << "Your IP has been banned until " << formatDateShort(banInfo.expiresAt) << " by " << banInfo.bannedBy << ".\n\nReason specified:\n" << banInfo.reason;
+		ss << "Your IP has been banned until " << formatDateShort(banInfo.expiresAt) << " by " << banInfo.bannedBy << ".\n\nReason specified:\n"
+		   << banInfo.reason;
 		disconnectClient(ss.str());
 		return;
 	}
