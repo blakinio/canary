@@ -9,38 +9,30 @@
 
 #include "game/instance/instance_manager.hpp"
 
-InstanceManager::InstanceManager(std::size_t slotCount) :
-	slotReserved(slotCount, false) {
-}
+#ifndef USE_PRECOMPILED_HEADERS
+	#include <stdexcept>
+	#include <utility>
+#endif
 
-std::optional<InstanceSlotId> InstanceManager::reserveSlotLocked() {
-	for (std::size_t index = 0; index < slotReserved.size(); ++index) {
-		if (!slotReserved[index]) {
-			slotReserved[index] = true;
-			return toSlotId(static_cast<uint32_t>(index));
-		}
-	}
-	return std::nullopt;
-}
-
-void InstanceManager::releaseSlotLocked(InstanceSlotId slot) {
-	const auto index = toIndex(slot);
-	if (index < slotReserved.size()) {
-		slotReserved[index] = false;
-	}
+InstanceManager::InstanceManager(std::vector<InstanceMapRegion> regions) :
+	regionPool(std::move(regions)) {
 }
 
 InstanceManager::CreateResult InstanceManager::createInstance(const InstanceDefinition &definition) {
 	std::scoped_lock lock(mutex);
 
-	const auto slot = reserveSlotLocked();
-	if (!slot) {
-		return { .ok = false, .id = InstanceId::Invalid, .error = "no available instance slots" };
+	const auto reservation = regionPool.reserve();
+	if (!reservation.ok || !reservation.region) {
+		return {
+			.ok = false,
+			.id = InstanceId::Invalid,
+			.error = reservation.error.empty() ? "no available instance regions" : reservation.error,
+		};
 	}
 
 	InstanceRecord record;
 	record.id = static_cast<InstanceId>(nextInstanceId++);
-	record.slot = *slot;
+	record.region = *reservation.region;
 	record.state = InstanceState::Creating;
 	record.definition = definition;
 	if (definition.timeout.count() > 0) {
@@ -48,7 +40,12 @@ InstanceManager::CreateResult InstanceManager::createInstance(const InstanceDefi
 	}
 
 	const auto id = record.id;
-	instances.emplace(id, std::move(record));
+	try {
+		instances.emplace(id, std::move(record));
+	} catch (...) {
+		regionPool.release(reservation.slot);
+		throw;
+	}
 	return { .ok = true, .id = id, .error = {} };
 }
 
@@ -64,7 +61,7 @@ bool InstanceManager::activate(InstanceId id) {
 
 bool InstanceManager::close(InstanceId id) {
 	InstanceCleanupCallback callback;
-	InstanceSlotId slot = InstanceSlotId::Invalid;
+	InstanceMapRegion region;
 
 	{
 		std::scoped_lock lock(mutex);
@@ -73,30 +70,32 @@ bool InstanceManager::close(InstanceId id) {
 			return false;
 		}
 		if (it->second.state == InstanceState::Closing || it->second.state == InstanceState::Destroyed) {
-			// Idempotent: whoever got here first already owns (or already
-			// finished) the teardown. Nothing left for us to do.
 			return true;
 		}
 
 		it->second.state = InstanceState::Closing;
 		callback = it->second.cleanupCallback;
-		slot = it->second.slot;
+		region = it->second.region;
 	}
 
-	// Run the callback outside the lock: it's caller-supplied code that may
-	// take arbitrary time or (once later PRs wire this into the scheduler)
-	// call back into this manager, which would deadlock if we still held it.
+	// Caller-supplied cleanup runs outside the manager lock. A thrown exception
+	// intentionally leaves the record Closing and the region reserved, which
+	// quarantines potentially dirty map space until the later recovery layer
+	// handles it explicitly.
 	if (callback) {
-		callback(id, slot);
+		callback(id, region);
 	}
 
 	{
 		std::scoped_lock lock(mutex);
 		const auto it = instances.find(id);
-		if (it != instances.end()) {
-			it->second.state = InstanceState::Destroyed;
+		if (it == instances.end()) {
+			throw std::logic_error("instance disappeared during close");
 		}
-		releaseSlotLocked(slot);
+		if (!regionPool.release(region.slot)) {
+			throw std::logic_error("failed to release reserved instance region");
+		}
+		it->second.state = InstanceState::Destroyed;
 	}
 
 	return true;
@@ -120,12 +119,20 @@ std::optional<InstanceState> InstanceManager::getState(InstanceId id) const {
 }
 
 std::optional<InstanceSlotId> InstanceManager::getSlot(InstanceId id) const {
+	const auto region = getRegion(id);
+	if (!region) {
+		return std::nullopt;
+	}
+	return region->slot;
+}
+
+std::optional<InstanceMapRegion> InstanceManager::getRegion(InstanceId id) const {
 	std::scoped_lock lock(mutex);
 	const auto it = instances.find(id);
 	if (it == instances.end()) {
 		return std::nullopt;
 	}
-	return it->second.slot;
+	return it->second.region;
 }
 
 std::size_t InstanceManager::closeExpiredInstances(std::chrono::steady_clock::time_point now) {
@@ -163,16 +170,9 @@ std::size_t InstanceManager::activeInstanceCount() const {
 }
 
 std::size_t InstanceManager::availableSlotCount() const {
-	std::scoped_lock lock(mutex);
-	std::size_t available = 0;
-	for (const bool reserved : slotReserved) {
-		if (!reserved) {
-			++available;
-		}
-	}
-	return available;
+	return regionPool.availableCount();
 }
 
 std::size_t InstanceManager::totalSlotCount() const {
-	return slotReserved.size();
+	return regionPool.totalCount();
 }

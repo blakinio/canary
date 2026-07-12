@@ -15,7 +15,9 @@
 	#include <cstdint>
 	#include <mutex>
 	#include <optional>
+	#include <stdexcept>
 	#include <string>
+	#include <utility>
 	#include <vector>
 #endif
 
@@ -82,3 +84,7 @@ private:
 	mutable std::mutex mutex;
 	std::vector<Entry> entries;
 };
+
+// The implementation is inline so the CMake and legacy Visual Studio project
+// paths cannot diverge by forgetting to compile a separate translation unit.
+#include "game/instance/instance_region_pool.inl"

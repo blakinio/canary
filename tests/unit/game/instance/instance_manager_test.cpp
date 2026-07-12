@@ -11,12 +11,36 @@
 
 #ifndef USE_PRECOMPILED_HEADERS
 	#include <atomic>
+	#include <stdexcept>
 	#include <thread>
 	#include <vector>
 #endif
 
-TEST(InstanceManagerTest, CreateReservesASlotAndStartsInCreatingState) {
-	InstanceManager manager(4);
+namespace {
+
+	std::vector<InstanceMapRegion> makeRegions(std::size_t count) {
+		std::vector<InstanceMapRegion> regions;
+		regions.reserve(count);
+		for (std::size_t index = 0; index < count; ++index) {
+			const auto minX = static_cast<uint16_t>(100 + index * 20);
+			regions.push_back({
+				.slot = toSlotId(static_cast<uint32_t>(index)),
+				.minX = minX,
+				.minY = 100,
+				.minZ = 7,
+				.maxX = static_cast<uint16_t>(minX + 9),
+				.maxY = 109,
+				.maxZ = 7,
+				.name = "region-" + std::to_string(index),
+			});
+		}
+		return regions;
+	}
+
+} // namespace
+
+TEST(InstanceManagerTest, CreateReservesAConfiguredRegionAndStartsInCreatingState) {
+	InstanceManager manager(makeRegions(4));
 	const auto result = manager.createInstance({ .name = "test-dungeon" });
 
 	ASSERT_TRUE(result.ok);
@@ -24,12 +48,14 @@ TEST(InstanceManagerTest, CreateReservesASlotAndStartsInCreatingState) {
 	ASSERT_TRUE(manager.getState(result.id).has_value());
 	EXPECT_EQ(InstanceState::Creating, *manager.getState(result.id));
 	ASSERT_TRUE(manager.getSlot(result.id).has_value());
+	ASSERT_TRUE(manager.getRegion(result.id).has_value());
+	EXPECT_EQ("region-0", manager.getRegion(result.id)->name);
 	EXPECT_EQ(3u, manager.availableSlotCount());
 	EXPECT_EQ(4u, manager.totalSlotCount());
 }
 
 TEST(InstanceManagerTest, ActivateMovesCreatingToActive) {
-	InstanceManager manager(1);
+	InstanceManager manager(makeRegions(1));
 	const auto result = manager.createInstance({ .name = "test" });
 
 	EXPECT_TRUE(manager.activate(result.id));
@@ -37,7 +63,7 @@ TEST(InstanceManagerTest, ActivateMovesCreatingToActive) {
 }
 
 TEST(InstanceManagerTest, ActivateFailsForUnknownOrAlreadyActiveInstance) {
-	InstanceManager manager(1);
+	InstanceManager manager(makeRegions(1));
 	const auto result = manager.createInstance({ .name = "test" });
 
 	EXPECT_FALSE(manager.activate(static_cast<InstanceId>(9999)));
@@ -46,36 +72,37 @@ TEST(InstanceManagerTest, ActivateFailsForUnknownOrAlreadyActiveInstance) {
 	EXPECT_FALSE(manager.activate(result.id)) << "already Active, not Creating - re-activation must be rejected";
 }
 
-TEST(InstanceManagerTest, CloseReleasesTheSlotAndRunsCleanupExactlyOnce) {
-	InstanceManager manager(2);
+TEST(InstanceManagerTest, CloseReleasesTheRegionAndRunsCleanupExactlyOnce) {
+	InstanceManager manager(makeRegions(2));
 	const auto result = manager.createInstance({ .name = "test" });
 	manager.activate(result.id);
 
 	int cleanupCalls = 0;
 	InstanceId cleanupId {};
-	InstanceSlotId cleanupSlot {};
-	manager.setCleanupCallback(result.id, [&](InstanceId id, InstanceSlotId slot) {
+	InstanceMapRegion cleanupRegion;
+	manager.setCleanupCallback(result.id, [&](InstanceId id, const InstanceMapRegion &region) {
 		++cleanupCalls;
 		cleanupId = id;
-		cleanupSlot = slot;
+		cleanupRegion = region;
 	});
 
-	const auto slotBeforeClose = *manager.getSlot(result.id);
+	const auto regionBeforeClose = *manager.getRegion(result.id);
 	EXPECT_TRUE(manager.close(result.id));
 
 	EXPECT_EQ(InstanceState::Destroyed, *manager.getState(result.id));
 	EXPECT_EQ(1, cleanupCalls);
 	EXPECT_EQ(result.id, cleanupId);
-	EXPECT_EQ(slotBeforeClose, cleanupSlot);
-	EXPECT_EQ(2u, manager.availableSlotCount()) << "the slot must be returned to the pool";
+	EXPECT_EQ(regionBeforeClose.slot, cleanupRegion.slot);
+	EXPECT_EQ(regionBeforeClose.name, cleanupRegion.name);
+	EXPECT_EQ(2u, manager.availableSlotCount()) << "the region must be returned to the pool";
 }
 
 TEST(InstanceManagerTest, CloseIsIdempotent) {
-	InstanceManager manager(1);
+	InstanceManager manager(makeRegions(1));
 	const auto result = manager.createInstance({ .name = "test" });
 
 	int cleanupCalls = 0;
-	manager.setCleanupCallback(result.id, [&](InstanceId, InstanceSlotId) { ++cleanupCalls; });
+	manager.setCleanupCallback(result.id, [&](InstanceId, const InstanceMapRegion &) { ++cleanupCalls; });
 
 	EXPECT_TRUE(manager.close(result.id));
 	EXPECT_TRUE(manager.close(result.id));
@@ -85,13 +112,30 @@ TEST(InstanceManagerTest, CloseIsIdempotent) {
 	EXPECT_EQ(InstanceState::Destroyed, *manager.getState(result.id));
 }
 
+TEST(InstanceManagerTest, CleanupFailureQuarantinesTheRegion) {
+	InstanceManager manager(makeRegions(1));
+	const auto result = manager.createInstance({ .name = "dirty" });
+	ASSERT_TRUE(result.ok);
+
+	manager.setCleanupCallback(result.id, [](InstanceId, const InstanceMapRegion &) {
+		throw std::runtime_error("synthetic cleanup failure");
+	});
+
+	EXPECT_THROW(manager.close(result.id), std::runtime_error);
+	EXPECT_EQ(InstanceState::Closing, *manager.getState(result.id));
+	EXPECT_EQ(0u, manager.availableSlotCount());
+
+	const auto blocked = manager.createInstance({ .name = "must-not-reuse-dirty-region" });
+	EXPECT_FALSE(blocked.ok);
+}
+
 TEST(InstanceManagerTest, CloseOfUnknownInstanceReturnsFalse) {
-	InstanceManager manager(1);
+	InstanceManager manager(makeRegions(1));
 	EXPECT_FALSE(manager.close(static_cast<InstanceId>(424242)));
 }
 
-TEST(InstanceManagerTest, CreateInstanceFailsOncePoolIsExhausted) {
-	InstanceManager manager(2);
+TEST(InstanceManagerTest, CreateInstanceFailsOnceRegionPoolIsExhausted) {
+	InstanceManager manager(makeRegions(2));
 	const auto first = manager.createInstance({ .name = "a" });
 	const auto second = manager.createInstance({ .name = "b" });
 	const auto third = manager.createInstance({ .name = "c" });
@@ -103,10 +147,11 @@ TEST(InstanceManagerTest, CreateInstanceFailsOncePoolIsExhausted) {
 	EXPECT_EQ(InstanceId::Invalid, third.id);
 }
 
-TEST(InstanceManagerTest, ClosingFreesASlotForReuse) {
-	InstanceManager manager(1);
+TEST(InstanceManagerTest, ClosingFreesTheSameRegionForReuse) {
+	InstanceManager manager(makeRegions(1));
 	const auto first = manager.createInstance({ .name = "a" });
 	ASSERT_TRUE(first.ok);
+	const auto firstRegion = *manager.getRegion(first.id);
 
 	const auto blocked = manager.createInstance({ .name = "b" });
 	ASSERT_FALSE(blocked.ok);
@@ -114,11 +159,14 @@ TEST(InstanceManagerTest, ClosingFreesASlotForReuse) {
 	ASSERT_TRUE(manager.close(first.id));
 
 	const auto second = manager.createInstance({ .name = "b-retry" });
-	EXPECT_TRUE(second.ok);
+	ASSERT_TRUE(second.ok);
+	ASSERT_TRUE(manager.getRegion(second.id).has_value());
+	EXPECT_EQ(firstRegion.slot, manager.getRegion(second.id)->slot);
+	EXPECT_EQ(firstRegion.name, manager.getRegion(second.id)->name);
 }
 
 TEST(InstanceManagerTest, InstancesWithoutATimeoutAreNeverAutoClosedBySweep) {
-	InstanceManager manager(1);
+	InstanceManager manager(makeRegions(1));
 	const auto result = manager.createInstance({ .name = "no-timeout" });
 
 	const auto closedCount = manager.closeExpiredInstances(std::chrono::steady_clock::now() + std::chrono::hours(24));
@@ -127,7 +175,7 @@ TEST(InstanceManagerTest, InstancesWithoutATimeoutAreNeverAutoClosedBySweep) {
 }
 
 TEST(InstanceManagerTest, ExpiredInstancesAreClosedBySweepAndUnexpiredOnesAreNot) {
-	InstanceManager manager(2);
+	InstanceManager manager(makeRegions(2));
 	const auto shortLived = manager.createInstance({ .name = "short", .timeout = std::chrono::seconds(10) });
 	const auto longLived = manager.createInstance({ .name = "long", .timeout = std::chrono::seconds(1000) });
 	manager.activate(shortLived.id);
@@ -139,23 +187,25 @@ TEST(InstanceManagerTest, ExpiredInstancesAreClosedBySweepAndUnexpiredOnesAreNot
 	EXPECT_EQ(1u, closedCount);
 	EXPECT_EQ(InstanceState::Destroyed, *manager.getState(shortLived.id));
 	EXPECT_EQ(InstanceState::Active, *manager.getState(longLived.id));
+	EXPECT_EQ(1u, manager.availableSlotCount());
 }
 
 TEST(InstanceManagerTest, SweepIsIdempotentAndSafeToCallRepeatedly) {
-	InstanceManager manager(1);
+	InstanceManager manager(makeRegions(1));
 	const auto result = manager.createInstance({ .name = "short", .timeout = std::chrono::seconds(1) });
 
 	int cleanupCalls = 0;
-	manager.setCleanupCallback(result.id, [&](InstanceId, InstanceSlotId) { ++cleanupCalls; });
+	manager.setCleanupCallback(result.id, [&](InstanceId, const InstanceMapRegion &) { ++cleanupCalls; });
 
 	const auto future = std::chrono::steady_clock::now() + std::chrono::seconds(10);
 	EXPECT_EQ(1u, manager.closeExpiredInstances(future));
 	EXPECT_EQ(0u, manager.closeExpiredInstances(future)) << "already closed, must not be counted or re-closed again";
 	EXPECT_EQ(1, cleanupCalls);
+	EXPECT_EQ(1u, manager.availableSlotCount());
 }
 
 TEST(InstanceManagerTest, ActiveInstanceCountReflectsCreatingAndActiveOnly) {
-	InstanceManager manager(3);
+	InstanceManager manager(makeRegions(3));
 	const auto a = manager.createInstance({ .name = "a" });
 	const auto b = manager.createInstance({ .name = "b" });
 	manager.activate(a.id);
@@ -167,12 +217,12 @@ TEST(InstanceManagerTest, ActiveInstanceCountReflectsCreatingAndActiveOnly) {
 }
 
 TEST(InstanceManagerTest, ConcurrentCloseOfTheSameInstanceRunsCleanupExactlyOnce) {
-	InstanceManager manager(1);
+	InstanceManager manager(makeRegions(1));
 	const auto result = manager.createInstance({ .name = "concurrent" });
 	manager.activate(result.id);
 
 	std::atomic<int> cleanupCalls { 0 };
-	manager.setCleanupCallback(result.id, [&](InstanceId, InstanceSlotId) { ++cleanupCalls; });
+	manager.setCleanupCallback(result.id, [&](InstanceId, const InstanceMapRegion &) { ++cleanupCalls; });
 
 	constexpr int attempts = 16;
 	std::vector<std::thread> threads;
@@ -189,9 +239,9 @@ TEST(InstanceManagerTest, ConcurrentCloseOfTheSameInstanceRunsCleanupExactlyOnce
 	EXPECT_EQ(1u, manager.availableSlotCount());
 }
 
-TEST(InstanceManagerTest, ConcurrentCreateNeverOversubscribesTheSlotPool) {
-	constexpr std::size_t slotCount = 8;
-	InstanceManager manager(slotCount);
+TEST(InstanceManagerTest, ConcurrentCreateNeverReservesTheSameRegionTwice) {
+	constexpr std::size_t regionCount = 8;
+	InstanceManager manager(makeRegions(regionCount));
 
 	constexpr int attempts = 32;
 	std::atomic<int> successCount { 0 };
@@ -208,7 +258,7 @@ TEST(InstanceManagerTest, ConcurrentCreateNeverOversubscribesTheSlotPool) {
 		thread.join();
 	}
 
-	EXPECT_EQ(static_cast<int>(slotCount), successCount.load());
+	EXPECT_EQ(static_cast<int>(regionCount), successCount.load());
 	EXPECT_EQ(0u, manager.availableSlotCount());
-	EXPECT_EQ(slotCount, manager.activeInstanceCount());
+	EXPECT_EQ(regionCount, manager.activeInstanceCount());
 }
