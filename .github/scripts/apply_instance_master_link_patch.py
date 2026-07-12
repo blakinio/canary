@@ -47,7 +47,7 @@ bool Creature::setMaster(const std::shared_ptr<Creature> &newMaster, InstanceCre
 \t});
 }
 '''.rstrip()
-creature_cpp.write_text(text.replace(anchor, overload + anchor, 1))
+creature_cpp.write_text(text.replace(anchor, overload + "\n" + anchor, 1))
 
 test_path = Path("tests/unit/game/instance/instance_creature_binder_test.cpp")
 replace_once(
@@ -73,7 +73,7 @@ if text.count(helper_anchor) != 1:
 text = text.replace(helper_anchor, helper + helper_anchor, 1)
 if "InstanceAwareSetMasterCommitsOwnershipAndLink" in text:
     raise RuntimeError("binder test: runtime setMaster tests already exist")
-tests = r'''
+tests = '''
 
 TEST(InstanceCreatureBinderTest, LegacySetMasterKeepsNormalWorldBehavior) {
 \tconst auto master = makeRuntimeMonster("legacy-master");
@@ -180,4 +180,4 @@ TEST(InstanceCreatureBinderTest, InstanceAwareClearMasterPreservesOwnershipBound
 \tEXPECT_EQ(instance.id, *binder.ownerOf(*summon));
 }
 '''
-test_path.write_text(text.rstrip() + tests + "\n")
+test_path.write_text(text.rstrip() + tests.rstrip() + "\n")
