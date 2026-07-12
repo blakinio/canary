@@ -37,7 +37,7 @@ void TransportCodec::encodeOutbound(Protocol &protocol, OutputMessage &msg) cons
 
 	const auto writeOuterLength = [&msg, this] {
 		if (profile.outerLength == OuterLengthEncoding::ModernBlockCount) {
-			msg.writeMessageLength();
+			msg.writeMessageLength(profile.modernLengthExtraBytes);
 		} else {
 			msg.writeRawMessageLength();
 		}

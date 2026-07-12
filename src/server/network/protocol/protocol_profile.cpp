@@ -96,7 +96,7 @@ namespace {
 		.inboundChecksum = CHECKSUM_METHOD_NONE,
 		.outboundChecksum = CHECKSUM_METHOD_NONE,
 		.compression = CompressionLayout::None,
-		.modernLengthExtraBytes = CHECKSUM_LENGTH,
+		.modernLengthExtraBytes = 0,
 		.serverFirstPacketHeaderBytes = CHECKSUM_LENGTH + 2,
 		.hasCryptoHeader = true,
 		.lengthIncludesChecksum = false,
