@@ -13,6 +13,7 @@ target_sources(
             instance/instance_region_pool_test.cpp
             multichannel/channel_context_test.cpp
             multichannel/channel_registry_test.cpp
+            multichannel/channel_runtime_registry_test.cpp
             multichannel/position_resolver_test.cpp
             multichannel/cluster_session_manager_test.cpp
             multichannel/cluster_runtime_test.cpp
