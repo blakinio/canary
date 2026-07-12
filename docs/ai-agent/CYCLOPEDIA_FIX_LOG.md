@@ -1,13 +1,20 @@
 # Cyclopedia Fix Log
 
-Last updated: 2026-07-12 22:15 Europe/Warsaw
+Last updated: 2026-07-12 22:20 Europe/Warsaw
 
 This file records every implementation batch derived from the read-only Cyclopedia audit. Each batch must update this log together with the affected source, validation status and compatibility decision.
+
+## 2026-07-12 22:20 — regression-test correction
+
+- The exact source replacement phase completed successfully in workflow run `29207302573`.
+- The generated commit was intentionally blocked because the first synthetic scanner test was too coupled to its fixture text.
+- The source scope is unchanged.
+- The replacement workflow now creates four direct source-contract tests against the modified repository files before committing.
 
 ## 2026-07-12 22:15 — PR-event execution trigger
 
 - PR #188 is open against `main`.
-- The one-shot workflow now accepts both branch pushes and same-repository pull-request synchronization.
+- The one-shot workflow accepts both branch pushes and same-repository pull-request synchronization.
 - Checkout and push explicitly target the PR head branch; the temporary workflow and applicator must disappear in the generated source commit.
 
 ## 2026-07-12 22:12 — execution trigger

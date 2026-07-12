@@ -34,8 +34,8 @@ jobs:
 
       - name: Run focused validator tests
         run: |
-          python -m unittest discover -s tools/ai-agent -p 'test_cyclopedia_validation.py' -v
-          python -m py_compile tools/ai-agent/cyclopedia_validation.py tools/ai-agent/test_cyclopedia_validation.py
+          python -m unittest discover -s tools/ai-agent -p 'test_cyclopedia*.py' -v
+          python -m py_compile tools/ai-agent/cyclopedia_validation.py tools/ai-agent/test_cyclopedia_validation.py tools/ai-agent/test_cyclopedia_runtime_fix_contracts.py
 
       - name: Commit atomic runtime fix batch
         env:
