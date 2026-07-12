@@ -6,19 +6,19 @@ agent: "GPT-5.6 Thinking"
 branch: fix/achievement-helper-enumeration
 base_branch: main
 created: 2026-07-12T18:15:00Z
-updated: 2026-07-12T18:15:00Z
-last_verified_commit: "55543011493b490e418f002f217140b5d2b12bb1"
+updated: 2026-07-12T18:44:00Z
+last_verified_commit: "576989a0a5f69844d843347ce7e2e3789dbaee71"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "#176"
 depends_on:
-  - "PR #175 post-merge task archival"
   - "merged audit PR #165"
+  - "merged cleanup PR #175"
 blocks: []
 owned_paths:
   - data/scripts/lib/register_achievements.lua
   - tests/lua/test_achievement_helpers.lua
-  - docs/ai-agent/OTS_AI_ACHIEVEMENT_VALIDATION_PROJECT.md
+  - docs/ai-agent/ACHIEVEMENT_HELPER_FIX.md
   - docs/agents/tasks/active/CAN-20260712-achievement-helper-fix.md
   - docs/agents/ACTIVE_WORK.md
   - docs/agents/CHANGELOG.md
@@ -45,27 +45,28 @@ Make achievement enumeration safe for the sparse registry and repair secret-meta
 
 # Acceptance criteria
 
-- [ ] Build a deterministic sorted list of valid registered numeric achievement IDs.
-- [ ] Derive `ACHIEVEMENT_FIRST` and `ACHIEVEMENT_LAST` from explicit IDs instead of Lua's sparse-table length operator.
-- [ ] Use the explicit ID list for all bulk/enumeration helpers.
-- [ ] Return resolved metadata from `Game.isAchievementSecret`.
-- [ ] Invalid ID/name returns false and logs the supplied identifier without a secondary Lua error.
-- [ ] Preserve existing registry definitions and player KV compatibility.
-- [ ] Add focused Lua tests covering gaps, highest ID, deterministic enumeration, bulk add/remove, public/secret filtering and invalid lookup.
-- [ ] Merged audit reports no achievement-helper defect findings.
-- [ ] Datapack smoke and required CI pass on the reviewed head.
-- [ ] No unrelated gameplay, C++, map, asset or database change.
-- [ ] Update durable achievement project documentation and agent changelog.
+- [x] Build a deterministic sorted list of valid registered numeric achievement IDs.
+- [x] Derive `ACHIEVEMENT_FIRST` and `ACHIEVEMENT_LAST` from explicit IDs instead of Lua's sparse-table length operator.
+- [x] Use the explicit ID list for all bulk/enumeration helpers.
+- [x] Return resolved metadata from `Game.isAchievementSecret`.
+- [x] Invalid ID/name returns false and logs the supplied identifier without a secondary Lua error.
+- [x] Preserve existing registry definitions and player KV compatibility.
+- [x] Add focused Lua tests covering gaps, highest ID, deterministic enumeration, bulk add/remove, public/secret filtering and invalid lookup.
+- [x] Merged audit reports no achievement-helper defect findings.
+- [ ] Lua test suite and datapack smoke pass on the final reviewed head.
+- [ ] Full required CI passes on the final reviewed head.
+- [x] No unrelated gameplay, C++, map, asset or database change.
+- [x] Update durable achievement repair documentation and agent changelog.
 - [ ] Autonomous merge gate satisfied.
 
 # Confirmed context
 
 - The registry has 541 definitions in ID range `1..570` with 29 gaps.
 - `#ACHIEVEMENTS` is not a valid boundary for a sparse Lua table.
-- Registration currently uses `pairs`, while `Player.getAchievements` uses `1..#ACHIEVEMENTS`, so helper enumeration can diverge from registered runtime data.
-- `Game.isAchievementSecret` resolves `foundAchievement` but returns `achievement.secret` from the input argument.
-- Its invalid path formats the error with undefined variable `ach`.
-- `Spdlog` exists only as a deprecated compatibility API; modern `logger.error` is available.
+- Registration previously used `pairs`, while `Player.getAchievements` used `1..#ACHIEVEMENTS`, so helper enumeration could diverge from registered runtime data.
+- `Game.isAchievementSecret` resolved `foundAchievement` but returned `achievement.secret` from the input argument.
+- Its invalid path formatted an error with undefined variable `ach`.
+- `Spdlog` is deprecated compatibility API; the repair uses modern `logger.error`.
 - No registry rename is permitted because unlocked KV is keyed by achievement name.
 
 # Existing work to reuse
@@ -78,30 +79,44 @@ Make achievement enumeration safe for the sparse registry and repair secret-meta
 
 # Ownership and overlap check
 
-- Open PRs inspected before branch creation.
-- PR #175 owns only post-merge task archival/index cleanup and is an explicit stack dependency.
-- No open PR changes `register_achievements.lua` or achievement helper tests.
-- Resolution: dedicated stacked branch; do not merge before #175.
+- Open PRs were inspected before branch creation.
+- Cleanup PR #175 has merged and the branch was refreshed against merge commit `ab0ca005625ca4f80fc5931d86a3f8d0b0304299`.
+- No open PR changes `register_achievements.lua` or the focused helper test.
+- The two broken literal trigger names remain explicitly outside this PR.
 
 # Current state
 
-The merged audit identifies three helper defects. No runtime behavior has been changed yet on this branch.
+The helper implementation and focused real-source Lua test are committed. The post-change achievement audit contains no helper defect findings. Full Lua/runtime CI remains pending because the PR is still draft.
 
-# Plan
+# Implemented behavior
 
-1. Replace sparse length/range logic with a sorted explicit numeric-ID list.
-2. Repair secret lookup/error handling.
-3. Add a focused real-source Lua helper test.
-4. Run audit, Lua tests, datapack smoke and full required CI.
-5. Update handoff/changelog and merge only after #175 and all gates pass.
+1. Collect numeric registry keys and sort ascending.
+2. Validate/register definitions in deterministic order.
+3. Retain only successfully registered IDs for helper enumeration.
+4. Derive first/last constants from the retained list.
+5. Reuse the list for unlocked, bulk, public and secret helper methods.
+6. Resolve secret metadata from the found achievement.
+7. Log invalid ID/name with `logger.error` and return false.
 
 # Work log
 
+## 2026-07-12T18:44:00Z
+
+- Changed: added focused repair documentation, changelog entry and refreshed Active Work after #175 merged.
+- Learned: the post-change audit has only the two unrelated static trigger errors; all three helper findings are gone.
+- Validation: Achievement Validation run `29204015123` succeeded on implementation head `b084331b8ae393e8159f7b0eaddfd6f2ed691408`; artifact `8263206451` was downloaded and inspected.
+- Failed/blocked: CI Lua/build jobs were skipped while the PR remained draft.
+- Result: implementation is ready for full runtime-facing CI after final documentation update.
+
+## 2026-07-12T18:28:00Z
+
+- Changed: applied the bounded helper patch and created `tests/lua/test_achievement_helpers.lua`; removed the temporary source-export workflow from the branch.
+- Learned: generated test indentation required a follow-up correction before CI.
+- Result: production helper and corrected test are now on a clean current-main branch.
+
 ## 2026-07-12T18:15:00Z
 
-- Changed: created dedicated helper-fix branch and task record stacked on post-audit cleanup.
-- Learned: all affected helper APIs can share one local sorted registered-ID list without changing public signatures or persistence.
-- Failed/blocked: merge is held until PR #175 lands.
+- Changed: created dedicated helper-fix branch, task record and draft PR #176.
 - Result: exact scope and ownership recorded before implementation.
 
 # Decisions
@@ -112,47 +127,56 @@ The merged audit identifies three helper defects. No runtime behavior has been c
 | Include only successfully validated/registered definitions | Helper enumeration must match runtime registration rather than invalid source entries. | none |
 | Keep canonical definitions and KV names unchanged | Prevents persistence compatibility risk. | none |
 | Use modern `logger.error` and explicit `return false` | Avoids deprecated API and ambiguous return-value chaining. | none |
+| Keep trigger typo fixes separate | Audit/fix boundaries require one logical behavior change per PR. | none |
 
 # Files and interfaces
 
 | Path/interface/config/schema | Purpose | Status |
 |---|---|---|
-| `data/scripts/lib/register_achievements.lua` | sparse-safe registration/enumeration and secret helper | planned |
-| `tests/lua/test_achievement_helpers.lua` | real-source helper behavior contract | planned |
-| achievement project/changelog/task docs | remediation status and handoff | planned |
+| `data/scripts/lib/register_achievements.lua` | sparse-safe registration/enumeration and secret helper | implemented |
+| `tests/lua/test_achievement_helpers.lua` | real-source helper behavior contract | implemented |
+| `docs/ai-agent/ACHIEVEMENT_HELPER_FIX.md` | durable remediation behavior and rollback | implemented |
+| task/changelog/Active Work | coordination and discovery | current |
 
 # Validation and CI
 
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
-| | `luajit tests/lua/test_achievement_helpers.lua` | not-run | implementation pending |
-| | Achievement Validation | not-run | implementation pending |
-| | CI / Lua Tests / datapack smoke | not-run | implementation pending |
+| `b084331b8ae393e8159f7b0eaddfd6f2ed691408` | Achievement Validation run `29204015123` | passed | no helper finding codes in artifact |
+| same | artifact `8263206451` | inspected | two unrelated static trigger errors remain |
+| final head | Lua Tests | not-run | PR still draft |
+| final head | Linux datapack smoke | not-run | PR still draft |
+| final head | required CI | not-run | PR still draft |
 
 Never write `passed` without verification.
 
 # Failed approaches and dead ends
 
+- The repository file is too large for a safe full replacement through the truncated text connector.
+- A temporary one-run workflow exported and then applied a bounded marker-checked patch; it removed itself before final review.
+- The generated test initially contained literal `\\t` sequences; the file was corrected before full CI.
+
 # Risks and compatibility
 
-- Runtime: helper enumeration and secret lookup behavior changes from broken/undefined to deterministic.
-- Data/migration: none; IDs, names and KV keys remain unchanged.
+- Runtime: helper enumeration changes from undefined sparse behavior to deterministic ascending registered IDs.
+- Data/migration: none; IDs, names, points and KV keys remain unchanged.
 - Security: none.
-- Backward compatibility: public helper signatures remain unchanged; output order becomes deterministic ascending ID.
+- Backward compatibility: public helper signatures remain unchanged; ordering becomes deterministic ascending ID.
 - Cross-repo rollout: none.
-- Rollback: revert the focused PR.
+- Rollback: revert PR #176; no data cleanup required.
 
 # Remaining work
 
-1. Implement helper changes and tests.
-2. Publish draft PR after Active Work update.
-3. Validate after PR #175 merges and rebase/merge current `main` if needed.
+1. Mark PR ready to run Lua tests, datapack smoke and full required CI.
+2. Inspect formatter output, full diff and exact changed-file list.
+3. Update PR/task with final head and checks.
+4. Merge only after all gates pass, then archive the task in a follow-up docs cleanup.
 
 # Handoff
 
 ## Start here
 
-Read merged audit report and this task, then inspect only the owned helper/test paths.
+Read `docs/ai-agent/ACHIEVEMENT_HELPER_FIX.md`, this task and PR #176.
 
 ## Do not repeat
 
@@ -166,8 +190,9 @@ Read merged audit report and this task, then inspect only the owned helper/test 
 - `AGENTS.md`
 - `docs/agents/ACTIVE_WORK.md`
 - `docs/ai-agent/ACHIEVEMENT_VALIDATION_REPORT.md`
-- `docs/ai-agent/OTS_AI_ACHIEVEMENT_VALIDATION_PROJECT.md`
+- `docs/ai-agent/ACHIEVEMENT_HELPER_FIX.md`
 - `data/scripts/lib/register_achievements.lua`
+- `tests/lua/test_achievement_helpers.lua`
 
 ## Open questions
 
@@ -176,8 +201,8 @@ Read merged audit report and this task, then inspect only the owned helper/test 
 # Completion
 
 - Final status: active
-- PR:
+- PR: #176
 - Merge commit:
 - Catalogue updated: not required; no new reusable module
-- Changelog updated: pending
+- Changelog updated: yes
 - Archived at:
