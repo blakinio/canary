@@ -6,6 +6,7 @@ import zlib
 from pathlib import Path
 
 # One-shot branch bootstrap; the workflow removes this file after validation.
+# The explicit second push ensures the workflow already exists on the branch.
 FILES = (
     "otbm_item_audit_scan.cpp",
     "otbm_world_index.py",
