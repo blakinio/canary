@@ -16,6 +16,7 @@ DOCS = ROOT / "docs/systems/gameplay-analytics-supply-loot.md"
 CORE_PATH = "data-otservbr-global/scripts/lib/gameplay_analytics.lua"
 
 SUPPLY_FILES = [POTIONS, FIREBALL_RUNE, HEALING_RUNE]
+RUNE_FILES = {FIREBALL_RUNE, HEALING_RUNE}
 
 
 def require(condition: bool, message: str) -> None:
@@ -31,16 +32,8 @@ def read(path: Path) -> str:
 def validate_prices(text: str) -> None:
     require("function GameplayAnalyticsPrices.buyPrice" in text, "price table is missing buyPrice")
     require("function GameplayAnalyticsPrices.sellPrice" in text, "price table is missing sellPrice")
-    require(
-        "return (entry and entry.buy) or 0" in text,
-        "an unmapped item or side must report zero, never a guess",
-    )
-    require(
-        "return (entry and entry.sell) or 0" in text,
-        "an unmapped item or side must report zero, never a guess",
-    )
-    # Every price entry must be traceable to a specific NPC shop script by a
-    # trailing comment; a bare number with no source is not verifiable.
+    require("return (entry and entry.buy) or 0" in text, "an unmapped item or side must report zero, never a guess")
+    require("return (entry and entry.sell) or 0" in text, "an unmapped item or side must report zero, never a guess")
     for lineno, line in enumerate(text.splitlines(), start=1):
         stripped = line.strip()
         if re.match(r"^\[\d+\]\s*=\s*\{", stripped):
@@ -58,44 +51,27 @@ def validate_loot_helper(text: str) -> None:
 
 
 def validate_loot_callback(text: str) -> None:
-    require(
-        'dofile("data/scripts/lib/gameplay_analytics_loot.lua")' in text,
-        "loot callback must use the shared loot helper",
-    )
-    require(
-        CORE_PATH not in text,
-        "loot callback must not reload the Gameplay Analytics core; doing so can overwrite installed runtime wrappers",
-    )
+    require('dofile("data/scripts/lib/gameplay_analytics_loot.lua")' in text, "loot callback must use the shared loot helper")
+    require(CORE_PATH not in text, "loot callback must not reload the Gameplay Analytics core; doing so can overwrite installed runtime wrappers")
     require("GameplayAnalytics" in text, "loot callback must resolve the live GameplayAnalytics global at event time")
     require("monsterPostDropLoot" in text, "loot callback must register on monsterPostDropLoot")
-    require(
-        "corpse:getCorpseOwner()" in text,
-        "loot must be attributed to the corpse owner, not every party member",
-    )
-    require(
-        "corpse:getItems(true)" in text,
-        "loot callback must walk nested corpse containers recursively so their contents are not omitted",
-    )
+    require("corpse:getCorpseOwner()" in text, "loot must be attributed to the corpse owner, not every party member")
+    require("corpse:getItems(true)" in text, "loot callback must walk nested corpse containers recursively so their contents are not omitted")
     for forbidden in ("participants", "getMembers()"):
         require(forbidden not in text, f"loot callback must not iterate party members ({forbidden}), which would double-count the same corpse")
 
 
 def validate_supply_integration(path: Path, text: str) -> None:
     label = path.relative_to(ROOT)
-    require(
-        'dofile("data/scripts/lib/gameplay_analytics_prices.lua")' in text,
-        f"{label} must load the shared price table",
-    )
-    require(
-        CORE_PATH not in text,
-        f"{label} must not reload the Gameplay Analytics core; doing so can overwrite installed runtime wrappers",
-    )
+    require('dofile("data/scripts/lib/gameplay_analytics_prices.lua")' in text, f"{label} must load the shared price table")
+    require(CORE_PATH not in text, f"{label} must not reload the Gameplay Analytics core; doing so can overwrite installed runtime wrappers")
     require("GameplayAnalytics" in text, f"{label} must resolve the live GameplayAnalytics global at use time")
-    require(
-        "recordSupply(" in text,
-        f"{label} must call Gameplay Analytics recordSupply",
-    )
+    require("recordSupply(" in text, f"{label} must call Gameplay Analytics recordSupply")
     require("AnalyticsPrices.buyPrice(" in text, f"{label} must price supply consumption from the verified table")
+    if path in RUNE_FILES:
+        guard = "configManager.getBoolean(configKeys.REMOVE_RUNE_CHARGES)"
+        require(guard in text, f"{label} must not report rune consumption when charges are disabled")
+        require(text.index(guard) < text.index("recordSupply("), f"{label} rune-charge guard must wrap recordSupply")
 
 
 def validate_docs(text: str) -> None:
@@ -106,6 +82,7 @@ def validate_docs(text: str) -> None:
         "gameplay_analytics_prices.lua",
         "corpse owner",
         "nested containers",
+        "REMOVE_RUNE_CHARGES",
     ):
         require(phrase in text, f"supply/loot documentation lacks: {phrase}")
     require("live" in text and "`GameplayAnalytics` global" in text, "supply/loot documentation must describe live GameplayAnalytics global lookup")
