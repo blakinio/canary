@@ -1,0 +1,49 @@
+name: Bootstrap Quest Map Validator
+
+on:
+  push:
+    branches:
+      - feat/quest-map-validator
+    paths:
+      - tools/ai-agent/bootstrap_quest_map_validator.py
+      - tools/ai-agent/.quest_map_bootstrap/**
+      - .github/workflows/bootstrap-quest-map-validator.yml
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Materialize implementation
+        run: python tools/ai-agent/bootstrap_quest_map_validator.py
+
+      - name: Run focused tests
+        run: PYTHONPATH=tools/ai-agent python -m unittest -v tools/ai-agent/test_quest_map_validation.py
+
+      - name: Compile Python modules
+        run: |
+          python -m py_compile \
+            tools/ai-agent/quest_map_validation.py \
+            tools/ai-agent/quest_map_validation_tool.py \
+            tools/ai-agent/test_quest_map_validation.py
+
+      - name: Commit materialized sources
+        run: |
+          rm -rf tools/ai-agent/.quest_map_bootstrap
+          rm -f tools/ai-agent/bootstrap_quest_map_validator.py
+          rm -f .github/workflows/bootstrap-quest-map-validator.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat(ai-agent): implement Quest Map Validator"
+          git push origin HEAD:feat/quest-map-validator
