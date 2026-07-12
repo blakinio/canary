@@ -1,11 +1,12 @@
 # Active Work Index
 
-Last reviewed: 2026-07-12T12:40:00+02:00
+Last reviewed: 2026-07-12T12:34:45+02:00
 
 Open pull requests and current changed files/checks are authoritative. This index helps agents detect likely overlap.
 
 | PR | Branch | State | Area / reusable work | Primary paths | Coordination note |
 |---:|---|---|---|---|---|
+| draft | `fix/analytics-data-correctness` | active | Gameplay Analytics data-correctness hardening | Analytics runtime, maintenance, reporting, rune supply and focused tests/docs | Task: `CAN-20260712-analytics-data-correctness`; avoid overlapping Analytics paths. |
 | [#132](https://github.com/blakinio/canary/pull/132) | `fix/required-linux-check` | open | Required Linux CI check emission | `.github/workflows/ci.yml` | Workflow/path-filter changes must inspect this PR. |
 | [#131](https://github.com/blakinio/canary/pull/131) | `docs/otbm-final-handoff-20260712` | draft | OTBM handoff documentation | OTBM handoff document | Verify whether superseded by merged #130/#133. |
 | [#125](https://github.com/blakinio/canary/pull/125) | `feat/materialize-promotion-overlay` | open | Reviewed AI-content promotion overlay materializer | `tools/ai-agent/materialize_promotion_overlay.py` and tests | Feeds deployment work in #118. |
