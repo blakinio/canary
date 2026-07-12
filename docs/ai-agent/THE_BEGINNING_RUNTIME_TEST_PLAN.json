@@ -1,0 +1,224 @@
+{
+  "format": "canary-runtime-test-plan-v1",
+  "generatedAt": "2026-07-12",
+  "quest": "The Beginning",
+  "preconditions": {
+    "server": "Canary built from the tested commit with the verified map and companion XML loaded",
+    "mapSha256": "a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2",
+    "character": "fresh non-GM character with all eight TheBeginningQuest storages unset",
+    "instrumentation": [
+      "capture storage values after every step",
+      "capture position, level, inventory and quest log",
+      "capture server errors and Lua warnings",
+      "record duplicate tutorial messages and map marks"
+    ]
+  },
+  "tests": [
+    {
+      "id": "TB-001",
+      "name": "Opening route and Santiago introduction",
+      "steps": [
+        "Cross AIDs 50058 through 50062 in route order.",
+        "Verify TutorialHintsStorage advances monotonically 1 through 5.",
+        "Verify map marks and tutorial windows fire once.",
+        "Greet Santiago and accept the first task."
+      ],
+      "assertions": [
+        "SantiagoNpcGreetStorage=2",
+        "SantiagoQuestLog=2",
+        "No repeated hint after recrossing completed AIDs"
+      ]
+    },
+    {
+      "id": "TB-002",
+      "name": "Santiago coat and cellar equipment",
+      "steps": [
+        "Use chest UID 50080.",
+        "Verify coat 3562 is awarded and chest becomes empty for the character.",
+        "Equip the coat and continue Santiago dialogue.",
+        "Receive weapon 3270 and enter the cellar.",
+        "Use chest UID 50082 and verify torch 2920."
+      ],
+      "assertions": [
+        "SantiagoNpcGreetStorage progresses 3,4,5",
+        "SantiagoQuestLog reaches 4",
+        "Chest rewards cannot be duplicated"
+      ]
+    },
+    {
+      "id": "TB-003",
+      "name": "Cellar navigation and cockroach legs",
+      "steps": [
+        "Use sewer grate 435 and ladder 1948 in both directions.",
+        "Kill and loot at least three tutorial cockroaches.",
+        "Return to Santiago with three item 7882 legs.",
+        "Complete the health/fish dialogue through the normal path."
+      ],
+      "assertions": [
+        "Every cockroach yields one leg",
+        "Three legs are removed exactly once",
+        "SantiagoQuestLog reaches 11",
+        "SantiagoNpcGreetStorage reaches 13",
+        "The player cannot become trapped in the cellar"
+      ]
+    },
+    {
+      "id": "TB-004",
+      "name": "Santiago alternate easy branch persistence",
+      "steps": [
+        "Repeat the fish lesson until the 'easy' response is available.",
+        "Use the alternate easy keyword branch.",
+        "Close dialogue or reconnect before answering the Zirella question.",
+        "Greet Santiago again."
+      ],
+      "expectedCurrentFailure": "Persistent storage remains 11 although the in-memory dialogue moved to the Zirella question.",
+      "acceptanceAfterFix": "The resumed greeting matches the persisted Zirella stage and no fish reward can repeat."
+    },
+    {
+      "id": "TB-005",
+      "name": "Paired Santiago route gates",
+      "steps": [
+        "Attempt AIDs 50070/50071/50072/50074 before Santiago prerequisites.",
+        "Cross 50071 then 50074 after Santiago completion.",
+        "Attempt reverse traversal and repeat after reconnect."
+      ],
+      "assertions": [
+        "Early access is denied with the intended message",
+        "Storage 13 character can follow the intended eastbound route",
+        "The paired-pass state cannot trap the player or survive incorrectly across sessions",
+        "Advanced characters are not trapped"
+      ]
+    },
+    {
+      "id": "TB-006",
+      "name": "Zirella dead-tree and cart chain",
+      "steps": [
+        "Advance Zirella dialogue to greet/log stage 6.",
+        "Use dead tree item 7753 and verify branch 7772 creation.",
+        "Push or carry the branch to Zirella's cart 7751.",
+        "Use the branch with the cart."
+      ],
+      "expectedCurrentFailure": "No active handler creates or delivers the branch, so stages 7/7 are unreachable.",
+      "acceptanceAfterFix": [
+        "Only eligible stage-6 characters can create the quest branch",
+        "Branch delivery consumes the correct branch",
+        "ZirellaNpcGreetStorage=7",
+        "ZirellaQuestLog=7",
+        "Wrong targets and retries do not advance state"
+      ]
+    },
+    {
+      "id": "TB-007",
+      "name": "Zirella reward door and shovel",
+      "steps": [
+        "Try door UID 50085 before Zirella completion.",
+        "Complete Zirella and try the door again.",
+        "Use chest UID 50093 and obtain shovel 3457.",
+        "Cross AIDs 50077/50078."
+      ],
+      "expectedCurrentFailure": "Door has no quest-specific UID handler and the chest's tutorial 10 mapping points at stale UID 50084.",
+      "acceptanceAfterFix": [
+        "Door denies stage<8 and opens at stage>=8",
+        "Shovel is awarded once",
+        "Tutorial mapping fires once for UID50093",
+        "AID50078 allows a character carrying the shovel"
+      ]
+    },
+    {
+      "id": "TB-008",
+      "name": "Shovel cave and rope exit",
+      "steps": [
+        "Use shovel 3457 on loose stone pile 7749.",
+        "Enter the temporary hole before it reverts.",
+        "Use chest UID 50094 and obtain rope 3003.",
+        "Cross AIDs 50079 and 50081.",
+        "Use rope on target 7762 and return to the surface."
+      ],
+      "assertions": [
+        "TutorialHintsStorage reaches 19,20,21 in order",
+        "Rope is awarded once",
+        "Rope exit works and player is not trapped",
+        "Tutorial 11 maps to UID50094 after correction",
+        "Rope success message does not repeat indefinitely after terminal hint persistence"
+      ]
+    },
+    {
+      "id": "TB-009",
+      "name": "Carlos intended food and trade flow",
+      "steps": [
+        "Greet Carlos and complete the outfit introduction without using bypass keywords.",
+        "Accept the food task.",
+        "Acquire meat 3577 or ham 3582.",
+        "Return, request trade and sell exactly one valid food item.",
+        "Say ready."
+      ],
+      "expectedCurrentFailure": "A valid sale does not move the persistent NPC state to the ready/completion stage.",
+      "acceptanceAfterFix": [
+        "CarlosQuestLog progresses 1 through 7 without skips",
+        "CarlosNpcGreetStorage progresses 1 through 8",
+        "CarlosNpcTradeStorage is enabled only at the trade step and finalized after sale",
+        "Unrelated sales do not complete the quest"
+      ]
+    },
+    {
+      "id": "TB-010",
+      "name": "Carlos outfit keyword bypass regression",
+      "steps": [
+        "On the initial Carlos dialogue state, say outfit.",
+        "Inspect all Carlos storages and quest log."
+      ],
+      "expectedCurrentFailure": "Current code writes final states 7/8 and skips the food/trade chain.",
+      "acceptanceAfterFix": "Outfit keyword only advances the intended outfit tutorial stage and cannot complete the quest."
+    },
+    {
+      "id": "TB-011",
+      "name": "Rookgaard border terminal transition",
+      "steps": [
+        "Approach AID50999 border tiles before CarlosQuestLog=7.",
+        "Attempt passage and verify denial or safe guidance.",
+        "Complete Carlos to stage 7 and cross AID50999.",
+        "Reconnect on both sides of the border."
+      ],
+      "expectedCurrentFailure": "No active handler consumes AID50999 or sets CarlosQuestLog=8.",
+      "acceptanceAfterFix": [
+        "Premature passage follows the intended world rule",
+        "Completed player crosses without trap",
+        "CarlosQuestLog becomes 8 exactly once",
+        "Rookgaard town/citizenship is assigned only if verified as current design"
+      ]
+    },
+    {
+      "id": "TB-012",
+      "name": "Skip tutorial contract",
+      "steps": [
+        "Say skip tutorial to Santiago on a fresh character.",
+        "Inspect position, town, inventory, experience and all quest storages."
+      ],
+      "expectedCurrentFailure": "Santiago has no active skip-tutorial keyword despite the feature being advertised.",
+      "acceptanceAfterFix": "Behavior matches a separately approved skip contract and cannot duplicate normal rewards."
+    },
+    {
+      "id": "TB-013",
+      "name": "Advanced-character and replay safety",
+      "steps": [
+        "Set each quest storage to completed values and traverse the full tutorial route in both directions.",
+        "Repeat with partially advanced combinations representing disconnects between every stage.",
+        "Repeat all reward chest and action interactions."
+      ],
+      "assertions": [
+        "No completed character is trapped",
+        "No reward duplicates",
+        "No storage decreases",
+        "No repeated tutorial spam",
+        "No branch/cart/door action can regress or skip unrelated missions"
+      ]
+    }
+  ],
+  "exitCriteria": [
+    "All blocking tests pass on a fresh character.",
+    "All negative and reconnect cases pass.",
+    "No Lua errors or unresolved quest identifiers remain for the implemented dependencies.",
+    "AID50999 becomes runtime-handled only after its focused gameplay PR is merged.",
+    "The final quest log reaches mission 3 state 8 without using the Carlos outfit bypass."
+  ]
+}
