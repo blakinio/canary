@@ -1,0 +1,48 @@
+name: Bootstrap OTBM world index implementation
+
+on:
+  push:
+    branches:
+      - feat/otbm-world-index-implementation
+    paths:
+      - tools/ai-agent/bootstrap_otbm_world_index.py
+      - tools/ai-agent/.otbm_world_bootstrap/**
+      - .github/workflows/bootstrap-otbm-world-index.yml
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Materialize implementation
+        run: python tools/ai-agent/bootstrap_otbm_world_index.py
+
+      - name: Compile native scanner
+        run: |
+          c++ -O2 -std=c++20 -Wall -Wextra -Wpedantic -Werror \
+            tools/ai-agent/otbm_item_audit_scan.cpp \
+            -o tools/ai-agent/otbm_item_audit_scan
+
+      - name: Run focused tests
+        run: PYTHONPATH=tools/ai-agent python -m unittest -v tools/ai-agent/test_otbm_world_index.py
+
+      - name: Compile Python modules
+        run: python -m py_compile tools/ai-agent/otbm_world_index.py tools/ai-agent/otbm_world_index_tool.py tools/ai-agent/test_otbm_world_index.py
+
+      - name: Commit materialized sources
+        run: |
+          rm -f tools/ai-agent/otbm_item_audit_scan
+          rm -rf tools/ai-agent/.otbm_world_bootstrap
+          rm -f tools/ai-agent/bootstrap_otbm_world_index.py
+          rm -f .github/workflows/bootstrap-otbm-world-index.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat(ai-agent): implement OTBM world index"
+          git push origin HEAD:feat/otbm-world-index-implementation
