@@ -24,7 +24,7 @@ on:
       - "tools/ai-agent/test_imbuement*_validation.py"
       - "docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md"
       - "docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json"
-      - "docs/agents/tasks/active/CAN-20260712-imbuement-validation.md"
+      - "docs/agents/tasks/**/CAN-*-imbuement*.md"
       - ".github/workflows/imbuement-validation.yml"
   pull_request:
     paths:
@@ -43,7 +43,7 @@ on:
       - "tools/ai-agent/test_imbuement*_validation.py"
       - "docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md"
       - "docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json"
-      - "docs/agents/tasks/active/CAN-20260712-imbuement-validation.md"
+      - "docs/agents/tasks/**/CAN-*-imbuement*.md"
       - ".github/workflows/imbuement-validation.yml"
   workflow_dispatch:
 
@@ -58,6 +58,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Upload registry source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: imbuement-registry-source
+          path: data/XML/imbuements.xml
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -93,7 +101,8 @@ jobs:
             --runtime-plan artifacts/IMBUEMENT_RUNTIME_TEST_PLAN.json
           python tools/ai-agent/imbuement_storage_validation.py \
             --repository-root . \
-            --output artifacts/IMBUEMENT_STORAGE_VALIDATION.json
+            --output artifacts/IMBUEMENT_STORAGE_VALIDATION.json \
+            --strict
 
       - name: Validate JSON outputs
         run: |
@@ -121,7 +130,7 @@ jobs:
               f"- families: {summary['families']}",
               f"- entries: {summary['entries']}",
               f"- undeclared unlock storage IDs: {len(storage_baseline['undeclared_storage_ids'])}",
-              f"- affected Powerful families: {storage_baseline['powerful_with_nonzero_storage']}",
+              f"- Powerful families with nonzero storage: {storage_baseline['powerful_with_nonzero_storage']}",
               f"- Powerful families with storage=0: {len(storage_baseline['powerful_with_zero_storage'])}",
           ]
           for severity, count in summary["findings"].items():
