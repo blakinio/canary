@@ -1,13 +1,13 @@
 ---
 task_id: CAN-20260712-otbm-world-index
 coordination_id: "OTS-OTBM-VALIDATION"
-status: validating
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/otbm-world-index-v2
 base_branch: main
 created: 2026-07-12T22:16:00+02:00
-updated: 2026-07-13T00:02:00+02:00
-last_verified_commit: "f0f7395dd8088ce05601adedf0806abc678485cc"
+updated: 2026-07-13T00:06:00+02:00
+last_verified_commit: "cdc78e55153a3833b37bb6754bcaf63cb8cd1443"
 risk: medium
 related_issue: ""
 related_pr: "#219"
@@ -55,116 +55,99 @@ Create a deterministic read-only full-world OTBM index so agents can query items
 
 # Acceptance criteria
 
-- [x] Extend the existing native scanner instead of creating a second OTBM parser.
+- [x] Extend the existing scanner instead of creating a second OTBM parser.
 - [x] Index tiles and placements by item ID, AID, UID, house-door ID, teleport destination, exact position and region.
-- [x] Preserve map/scanner/index hashes, OTBM versions, deterministic ordering and exact counts.
-- [x] Bound list output with pagination while retaining exact total counts.
-- [x] Preserve the legacy scanner JSON invocation.
+- [x] Preserve hashes, OTBM versions, deterministic ordering and exact counts.
+- [x] Preserve the legacy item-audit JSON invocation.
+- [x] Bound list output with pagination and exact totals.
 - [x] Add focused tests, schema, documentation and dedicated CI.
 - [x] Validate against the supplied real map outside Git.
 - [x] Keep maps, assets and generated `.widx` artifacts outside Git.
-- [x] Update catalogue/changelog/task documentation.
-- [x] Confirm no cross-repository behavior change.
-- [ ] Current-head GitHub checks pass and final diff/reviews are clear.
-- [ ] Autonomous merge gate satisfied.
+- [x] Update catalogue, changelog and task documentation.
+- [x] Confirm no runtime, DB, protocol, datapack or cross-repository change.
+- [x] Current-head GitHub checks passed.
+- [x] Final changed-file list and review threads are clear.
+- [x] Autonomous merge gate satisfied.
 
 # Confirmed context
 
 - PR #190 delivered only the roadmap.
-- PR #211 delivered the first implementation branch but became conflicted after unrelated shared-document changes; it is closed and superseded by PR #219.
-- PR #219 started from current `main`, does not edit `ACTIVE_WORK.md`, and GitHub currently reports it mergeable.
-- Source map: `/mnt/data/otservbr(4).otbm`, SHA-256 `a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2`.
-- No runtime, datapack, DB, protocol, map or OTClient behavior is changed.
+- Conflicted implementation PR #211 was closed and superseded by clean current-main PR #219.
+- Coordination policy #214 requires normal task branches to leave `ACTIVE_WORK.md` unchanged; this task file and the live PR are authoritative.
+- Real-map source: `/mnt/data/otservbr(4).otbm`, SHA-256 `a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2`.
+- GitHub reports PR #219 mergeable and there are no review threads.
 
-# Existing work to reuse
+# Existing work reused
 
-| Module/task/PR | Reuse | Why it fits |
-|---|---|---|
-| OTBM item audit | canonical native OTBM traversal and mechanic parsing | The new `--world-index` mode shares one parser and keeps legacy output. |
-| OTBM script resolution #104 | downstream AID/UID/item/position correlation | Phase 2 can consume indexed evidence without rescanning. |
-| Factual renderer #154/#161 | bounded visual evidence | Cobra counts cross-check the world-index region result. |
-
-# Ownership and overlap check
-
-- Open PRs and active task files were inspected before implementation and replacement.
-- No other task owns `otbm_world_index*` or the scanner's new mode.
-- Per coordination policy #214, `ACTIVE_WORK.md` remains unchanged; this task file and live PR are authoritative.
-
-# Current state
-
-Code, docs, schema, workflow and local/real-map validation are complete on PR #219. Current-head CI and final merge review remain.
+| Module | Reuse |
+|---|---|
+| OTBM item audit | canonical native OTBM traversal and mechanic parsing |
+| OTBM script resolution #104 | downstream AID/UID/item/position correlation |
+| Factual renderer #154/#161 | Cobra region count cross-check |
 
 # Implemented behavior
 
-- Native scanner mode: `otbm_item_audit_scan --world-index MAP OUTPUT.widx`.
-- Fixed little-endian v1 sections for item directory, unique areas, area postings, tiles, placements, mechanics and item postings.
-- Repeated raw tile-area nodes are merged by canonical 256×256×floor key; duplicate exact tile positions fail the build.
-- Python reader memory-maps and validates section ranges/record sizes before querying.
-- Build wrapper records source/scanner/index hashes and publishes the output atomically.
-- Query CLI supports summary, item, action, unique, house door, teleport destination, exact position and inclusive 3D region.
-- Generated index and manifest remain local/workflow artifacts.
+- Native mode: `otbm_item_audit_scan --world-index MAP OUTPUT.widx`.
+- Fixed little-endian `OTSWIDX1` sections for item directory, canonical areas, area postings, tiles, placements, mechanics and item postings.
+- Repeated raw tile-area nodes merge by canonical 256×256×floor key; duplicate exact tile positions fail.
+- Python memory-maps and validates the binary before queries.
+- CLI supports summary, item, action, unique, house door, teleport destination, exact position and inclusive 3D region.
+- Output publication is atomic; symlink targets and accidental overwrite are rejected.
+- Legacy `scanner MAP OUTPUT.json` remains unchanged.
 
 # Work log
 
 ## 2026-07-12T22:16:00+02:00
 
-- Claimed the roadmap and confirmed no overlapping implementation.
+- Claimed the phase and confirmed no overlapping implementation.
 
 ## 2026-07-12T23:31:00+02:00
 
-- Implemented the binary index, memory-mapped reader, CLI, tests, docs and workflow.
-- Abandoned NDJSON/SQLite after a real-map run exceeded five minutes.
-- Replaced a raw 1,175,983-entry area directory with 1,171 unique query areas and postings.
+- Implemented scanner mode, binary index, mmap reader, CLI, tests, docs and workflow.
+- Rejected NDJSON/SQLite after a real-map run exceeded five minutes.
+- Reduced 1,175,983 raw tile-area nodes to 1,171 canonical query areas plus postings.
 
-## 2026-07-13T00:02:00+02:00
+## 2026-07-13T00:06:00+02:00
 
 - Replaced conflicted PR #211 with current-main PR #219.
-- Reused reviewed Git blobs directly, preserved current shared coordination policy and closed #211 as superseded.
+- Reviewed all 11 changed paths; no forbidden map/asset/generated files are present.
+- Current head `cdc78e55153a3833b37bb6754bcaf63cb8cd1443` passed OTBM World Index, OTBM Map Tools, AI Agent Tools and CI.
 
 # Decisions
 
-| Decision | Reason/evidence |
+| Decision | Reason |
 |---|---|
-| Separate roadmap phases into independent PRs | Quest semantics, pathfinding, spawns and writing have different risks. |
-| Extend the existing scanner | Avoids binary-parser drift. |
-| Use an uncompressed deterministic postings index | Real-map JSON/SQLite generation was too slow; mmap enables bounded random access. |
-| Keep phase one read-only | Safe writer prerequisites are not yet satisfied. |
-| Replace rather than force-refresh PR #211 | Prevents overwriting concurrent shared documentation and respects policy #214. |
-
-# Files and interfaces
-
-| Path/interface | Purpose | Status |
-|---|---|---|
-| `tools/ai-agent/otbm_item_audit_scan.cpp` | legacy scan plus native index generation | implemented |
-| `tools/ai-agent/otbm_world_index.py` | validator, builder wrapper and query library | implemented |
-| `tools/ai-agent/otbm_world_index_tool.py` | CLI | implemented |
-| `tools/ai-agent/test_otbm_world_index.py` | focused regression tests | implemented |
-| `OTSWIDX1` | deterministic binary format v1 | implemented |
-| `canary-otbm-world-index-v1` | JSON provenance/summary manifest | implemented |
+| Separate roadmap phases | Quest semantics, pathfinding, spawns and writing have different risks. |
+| Extend the existing scanner | Prevents binary parser drift. |
+| Use deterministic binary postings | JSON/SQLite was too slow at real-world scale; mmap supports bounded random access. |
+| Keep phase one read-only | Safe writer prerequisites remain unsatisfied. |
+| Replace #211 instead of force-refreshing | Avoids overwriting concurrent shared documentation and respects #214. |
 
 # Validation and CI
 
-| Source | Command/check | Result | Evidence |
-|---|---|---|---|
-| local source | `c++ -O2 -std=c++20 -Wall -Wextra -Wpedantic -Werror ...` | passed | native scanner compiled cleanly. |
-| local source | `PYTHONPATH=. python -m unittest -v test_otbm_world_index.py` | passed | 10 tests in 3.015s. |
-| local source | `python -m py_compile ...` | passed | no syntax errors. |
-| supplied real map | build plus item/mechanic/position/region queries | passed | counts below. |
-| PR #219 head | OTBM World Index | passed | current dedicated run verified; remaining repository checks pending. |
+| Source | Check | Result |
+|---|---|---|
+| local | native compile with `-Wall -Wextra -Wpedantic -Werror` | passed |
+| local | `python -m unittest -v test_otbm_world_index.py` | 10 tests passed in 3.015 s |
+| local | `python -m py_compile ...` | passed |
+| real map | full build plus item/mechanic/position/region queries | passed |
+| PR #219 head `cdc78e...` | OTBM World Index run `29210650773` | success |
+| PR #219 head `cdc78e...` | OTBM Map Tools run `29210650833` | success |
+| PR #219 head `cdc78e...` | AI Agent Tools run `29210650772` | success |
+| PR #219 head `cdc78e...` | CI run `29210650805` | success |
 
 ## Real-map evidence
 
 ```text
-map SHA-256: a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2
 source size: 184,776,037 bytes
 index size: 842,280,592 bytes
-build wall time: 32.72 s
+build time: 32.72 s
 peak RSS: 419,140 KiB
 tiles: 17,972,761
 placements: 23,359,571
 used item IDs: 23,852
-mechanic placements: 9,339
-unique areas: 1,171
+mechanics: 9,339
+canonical areas: 1,171
 raw area nodes: 1,175,983
 unknown attribute tails: 0
 maximum item depth: 2
@@ -173,49 +156,32 @@ Cobra tiles: 1,681
 Cobra placements: 2,627
 ```
 
-# Failed approaches and dead ends
+# Failed approaches
 
-- NDJSON/SQLite exceeded five minutes on the real map.
-- One directory record per raw area node made validation unnecessarily expensive.
-- PR #211 was not force-refreshed because it conflicted through unrelated shared-document churn.
+- NDJSON/SQLite exceeded five minutes.
+- One directory entry per raw area node made validation unnecessarily expensive.
+- PR #211 became conflicted through unrelated shared-document churn.
 
 # Risks and compatibility
 
-- Runtime/data migration: none; offline read-only tooling.
-- Security: output symlinks are rejected, publication is atomic, source binaries stay outside Git.
-- Performance: `.widx` is a large generated cache and must not be shipped as a client asset.
-- Backward compatibility: legacy scanner invocation and JSON format remain unchanged.
-- Cross-repo rollout: none.
-- Rollback: revert PR #219; no persistent cleanup.
+- Offline read-only tool; no runtime or migration.
+- Generated `.widx` is a large cache and must remain outside Git/client distribution.
+- Existing scanner CLI and JSON report remain compatible.
+- Rollback is a PR revert with no persistent cleanup.
 
 # Remaining work
 
-1. Observe current-head repository checks.
-2. Review complete changed-file list and review threads.
-3. Mark ready and squash-merge.
-4. Archive the task and start Quest Map Validator separately.
+1. Mark PR #219 ready and squash-merge.
+2. Archive this task in a documentation-only follow-up.
+3. Start Quest Map Validator as the next independent phase.
 
 # Handoff
 
-## Start here
-
-Read PR #219, this task and `docs/ai-agent/OTBM_WORLD_INDEX.md`, then inspect current-head checks.
-
-## Do not repeat
-
-Do not revive #211, edit `ACTIVE_WORK.md`, create another OTBM parser, commit `.widx`, or add map writing.
-
-## Required reads
-
-- `AGENTS.md`
-- `docs/agents/tasks/active/CAN-20260712-otbm-world-index.md`
-- `docs/agents/MODULE_CATALOG.md`
-- `docs/ai-agent/OTBM_WORLD_INDEX.md`
-- `docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md`
+Read PR #219 and `docs/ai-agent/OTBM_WORLD_INDEX.md`. Do not revive #211, edit `ACTIVE_WORK.md`, create another OTBM parser, commit `.widx`, or add map writing.
 
 # Completion
 
-- Final status: validating
+- Final status: ready
 - PR: #219
 - Merge commit:
 - Catalogue updated: yes
