@@ -49,7 +49,7 @@ class GameplayAnalyticsRetentionValidationTest(unittest.TestCase):
 
     def test_rejects_missing_party_split(self) -> None:
         broken = self.runner.replace("analytics_daily_party_balance", "analytics_daily_balance", 1)
-        with self.assertRaisesRegex(AssertionError, "analytics_daily_party_balance"):
+        with self.assertRaisesRegex(AssertionError, "complete optional retention schema"):
             validator.validate_runner(broken)
 
     def test_rejects_missing_rolling_window(self) -> None:
