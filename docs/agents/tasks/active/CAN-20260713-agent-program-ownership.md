@@ -1,12 +1,12 @@
 ---
 task_id: CAN-20260713-agent-program-ownership
 program_id: CAN-PROGRAM-COORDINATION
-status: implementing
+status: ready
 agent: chatgpt-coordination
 branch: feat/agent-program-ownership-coordination
 base_branch: main
 created: 2026-07-13T00:00:00+02:00
-updated: 2026-07-13T00:35:00+02:00
+updated: 2026-07-13T00:40:00+02:00
 last_verified_commit: 97639776bb37c4f9aa1fa301cf43e7693a03a735
 risk: low
 related_issue: ""
@@ -62,9 +62,10 @@ Add program-level autonomous-agent coordination, deterministic task-path ownersh
 - [x] Repository-wide startup documentation requires program and ownership inspection.
 - [x] One universal E2E platform is defined for all feature agents.
 - [x] PR #224 is classified as a prototype to extract, not permanent Cyclopedia-owned infrastructure.
-- [ ] Current-head focused tests and ownership workflow pass.
-- [ ] Full diff and changed-file list are reviewed.
-- [ ] Autonomous merge gate satisfied.
+- [x] Focused tests and ownership validation passed on implementation head `ebfb1e3645c24e3b1d11a82ec7ca6257372ecb8d`.
+- [x] CI / Required passed on implementation head `ebfb1e3645c24e3b1d11a82ec7ca6257372ecb8d`.
+- [x] Full changed-file list and diff scope reviewed.
+- [ ] Autonomous merge gate satisfied on the final metadata head.
 
 # Confirmed context
 
@@ -77,51 +78,61 @@ Add program-level autonomous-agent coordination, deterministic task-path ownersh
 
 - Open PRs inspected: current coordination PRs, PR #224, and active autonomous-program PRs.
 - Active tasks inspected: legacy records remain read-only migration inputs.
+- Ownership checker: passed on implementation head; legacy overlaps are warnings, structured exclusive overlaps are errors.
 - Overlaps: shared task template and repository-wide coordination README.
 - Resolution: narrow edits on a dedicated coordination branch; no modification of PR #224 files.
 
 # Current state
 
-The PR has been rebuilt around two deliverables: migration-safe path ownership and the universal E2E program contract. CI repair is in progress after the first checker version rejected legacy active records too aggressively.
+Implementation is complete. The final task-record metadata commit requires the normal current-head checks before PR readiness and merge.
 
-# Plan
+# Delivered
 
-1. Make structured claims enforceable without breaking legacy task records.
-2. Publish the ownership index as a CI artifact.
-3. Make program rules visible through the repository-wide required README.
-4. Record the universal E2E platform, scenario contract, existing reusable foundations, and PR #224 migration path.
-5. Run CI, inspect the full diff, mark ready, and merge when the gate is satisfied.
+1. Persistent autonomous-program records and template.
+2. Structured `exclusive`, `shared`, and `read_only` task ownership.
+3. Migration-safe handling and optional strict audit of legacy flat claims.
+4. Deterministic conflict validation and generated ownership-index artifact.
+5. Repository-wide startup and lifecycle documentation.
+6. Universal E2E platform program with explicit reuse of existing Canary infrastructure.
+7. Reusable physical-client scenario template.
+8. Ordered extraction path from Cyclopedia prototype PR #224 to a shared platform.
 
 # Work log
 
 ## 2026-07-13T00:00:00+02:00
 
 - Changed: claimed coordination paths and branch.
-- Learned: existing rules already require task records and advisory ownership but lacked deterministic validation.
+- Learned: existing rules already required task records and advisory ownership but lacked deterministic validation.
 - Result: implementation started.
 
 ## 2026-07-13T00:35:00+02:00
 
-- Changed: rebuilt the checker to enforce new structured claims while preserving legacy records as warnings; expanded tests from five to ten cases; made startup rules repository-wide through `docs/agents/README.md`; converted the E2E design into an active program record.
-- Learned: PR #224 provides useful physical-client evidence but common orchestration must be extracted before it becomes the pattern for other modules.
-- Failed/blocked: first Agent Task Ownership workflow failed because legacy active records were required to contain new identity fields.
-- Result: root cause fixed; new CI run pending.
+- Changed: rebuilt the checker to enforce new structured claims while preserving legacy records as warnings; expanded tests from five to ten cases; made startup rules repository-wide; converted E2E design into an active program record.
+- Failed/blocked: first ownership workflow rejected legacy active records and then parsed the active-directory README as a task.
+- Result: both root causes fixed.
+
+## 2026-07-13T00:40:00+02:00
+
+- Changed: excluded task-directory README files, reran current implementation validation, reviewed all eleven changed paths and the base/head comparison.
+- Result: Agent Task Ownership and CI completed successfully on `ebfb1e3645c24e3b1d11a82ec7ca6257372ecb8d`; task marked ready for final-head gate.
 
 # Validation and CI
 
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
-| local design revision | `python -m unittest -v test_task_ownership.py` | passed | 10 focused tests in the reconstructed tool environment. |
-| f4a3ad9bcc017339636a5a3d5a77653cd120c6d8 | Agent Task Ownership | failed | legacy active records were treated as if already migrated; fixed in subsequent commits. |
-| current head | Agent Task Ownership | pending | must pass before readiness. |
-| current head | CI / Required | pending | must pass before readiness. |
+| local reconstructed tool | `python -m unittest -v test_task_ownership.py` | passed | 10 focused cases. |
+| f4a3ad9bcc017339636a5a3d5a77653cd120c6d8 | Agent Task Ownership | failed | new identity requirements were applied to legacy records; repaired. |
+| 52d52a891e3a64c1d1371d1dd55a6e834b66c4bd | Agent Task Ownership | failed | `tasks/active/README.md` was parsed as a task; repaired. |
+| ebfb1e3645c24e3b1d11a82ec7ca6257372ecb8d | Agent Task Ownership | passed | run 16. |
+| ebfb1e3645c24e3b1d11a82ec7ca6257372ecb8d | CI | passed | run 1011. |
+| final metadata head | Agent Task Ownership and CI | pending | verify immediately before readiness and merge. |
 
 # Remaining work
 
-1. Add the reusable E2E scenario template.
-2. Verify current-head CI and inspect logs.
-3. Review every changed file and update the PR body with exact validation.
-4. Mark ready and merge only when all gates pass.
+1. Verify final-head checks.
+2. Mark PR #222 ready and merge when every gate passes.
+3. Archive this task in a post-merge coordination cleanup.
+4. Continue universal E2E implementation through a separate bounded platform task.
 
 # Handoff
 
@@ -132,7 +143,8 @@ Read this task, `AGENTS.md`, `docs/agents/README.md`, `docs/agents/programs/E2E_
 ## Do not repeat
 
 - Do not create another manually maintained ownership index.
-- Do not enforce new structured fields retroactively on all legacy task records in default CI.
+- Do not enforce new structured fields retroactively on all legacy records in default CI.
+- Do not parse directory README files as task records.
 - Do not create one full Canary/OTClient workflow per feature.
 - Do not commit client assets, map binaries, database dumps, or credentials.
 
@@ -142,6 +154,7 @@ Read this task, `AGENTS.md`, `docs/agents/README.md`, `docs/agents/programs/E2E_
 - `docs/agents/README.md`
 - `docs/agents/templates/TASK.md`
 - `docs/agents/templates/PROGRAM.md`
+- `docs/agents/templates/E2E_SCENARIO.md`
 - `docs/agents/programs/E2E_AUTOMATION_PROGRAM.md`
 - PR #224 and its current workflow evidence
 
