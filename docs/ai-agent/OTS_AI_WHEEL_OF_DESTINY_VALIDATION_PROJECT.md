@@ -4,94 +4,83 @@
 > **Projekt nadrzędny:** `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md`  
 > **Repozytorium zapisywalne:** `blakinio/canary`  
 > **Gałąź robocza:** `feat/wheel-of-destiny-validation-audit`  
-> **PR roboczy:** pending  
-> **Aktualny etap:** read-only inwentaryzacja implementacji Wheel of Destiny i Gem Atelier  
-> **Najważniejsza zasada:** obecność handlera lub danych nie dowodzi poprawności efektu gameplay; każda cecha musi mieć oddzielne dowody definicji, aktywacji, naliczania, zapisu i protokołu.
+> **Draft PR:** [#169](https://github.com/blakinio/canary/pull/169)  
+> **Aktualny etap:** deterministyczny audyt statyczny; CI i dalsza walidacja protocol/persistence/runtime  
+> **Najważniejsza zasada:** obecność definicji, getter'a lub handlera nie dowodzi poprawności gameplay. Każda cecha wymaga osobnych dowodów definicji, aktywacji, efektu, zapisu, protokołu i runtime.
 
 ---
 
-## 1. Po co istnieje ten projekt
+## 1. Cel projektu
 
 Wheel of Destiny jest systemem rozproszonym pomiędzy:
 
-- definicje koła i perków;
-- stan postaci i zapis do bazy;
-- przydzielanie promotion points;
-- aktywację slice'ów, conviction i revelation perks;
-- modyfikatory czarów, walki, leczenia, statystyk i odporności;
-- Gem Atelier, affinity, sockety, resonance i fragmenty;
+- definicje Wheel, slice'ów i perków;
+- stan postaci, presety i przydział Promotion Points;
+- Dedication, Conviction i Revelation Perks;
+- spell augments, combat, healing, statystyki i odporności;
+- Gem Atelier, domain affinity, sockety, Vessel Resonance i fragmenty;
+- zapis/load, migracje i KV;
 - protokół klient–serwer;
-- Lua, itemy, bossy i źródła dodatkowych punktów;
-- migracje danych i zgodność z klientem.
+- Lua, itemy, bossy, questy i dodatkowe źródła punktów.
 
-Każda warstwa może wyglądać poprawnie osobno, a pełna mechanika nadal może być błędna. Przykładowe klasy problemów:
-
-- klient pokazuje perk jako aktywny, ale serwer nie stosuje bonusu;
-- serwer liczy bonus, lecz nie zapisuje poprawnie presetów lub gemów;
-- dwa źródła bonusu sumują się niezgodnie z regułą oficjalną;
-- spell augment ma poprawną nazwę, ale modyfikuje zły etap obliczeń;
-- affinity, resonance albo kolejność mod slotów jest walidowana niepoprawnie;
-- koszt reveal/rotate/upgrade różni się od źródła referencyjnego;
-- dodatkowe promotion points są przyznawane albo limitowane błędnie;
-- opcodes lub kolejność pól protokołu różnią się między serwerem i klientem;
-- system działa dla jednej profesji, ale nie dla pozostałych;
-- funkcja istnieje, lecz nie ma testu potwierdzającego realny efekt.
-
-Celem projektu jest stworzenie powtarzalnej, evidence-based walidacji całego systemu oraz trwałego handoffu dla kolejnych agentów. Pierwszy etap pozostaje read-only: nie zmienia balansu, danych koła, protokołu ani gameplay.
+Celem jest powtarzalna, evidence-based walidacja całego systemu względem wskazanego źródła referencyjnego i aktywnej wersji Canary. Pierwszy PR jest **read-only**: nie zmienia balansu, gameplay, protokołu, schema, datapacka, mapy ani assetów.
 
 ---
 
-## 2. Źródła prawdy
+## 2. Źródła prawdy i wersjonowanie
 
-### 2.1. Repozytorium runtime
-
-Zapisywalne źródło:
+### 2.1. Kod runtime
 
 ```text
-blakinio/canary
+writable: blakinio/canary
+reference-only: opentibiabr/canary
 ```
 
-Upstream referencyjny, tylko do odczytu:
-
-```text
-opentibiabr/canary
-```
-
-### 2.2. Źródło gameplay wskazane przez użytkownika
+### 2.2. Gameplay reference wskazany przez użytkownika
 
 ```text
 https://tibia.fandom.com/wiki/Wheel_of_Destiny
+snapshot checked: 2026-07-12
 ```
 
-Stan odczytany 2026-07-12 obejmuje między innymi:
+Zapisany baseline:
 
-- 1 promotion point za każdy poziom po 50 dla promowanej postaci premium;
-- cztery domeny i 36 slice'ów;
-- Revelation Perks przy progach 250 / 500 / 1000 punktów w domenie;
-- darmowy reset punktów wyłącznie w temple;
-- Gem Atelier, maksymalnie 225 ujawnionych gemów;
-- affinity domeny, Vessel Resonance i aktywację kolejnych mod slotów;
-- bonus resonance: lesser +1, regular +1, greater +2 do damage/healing;
-- koszty reveal i rotate zależne od rozmiaru gema;
-- Fragment Workshop, Grade I–IV i zależność aktywnego grade od poprzedniego slotu;
-- dodatkowe promotion points za pełne ulepszenie modów do Grade IV;
-- dodatkowe źródła punktów opisane na stronie referencyjnej.
+```text
+docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json
+```
 
-TibiaWiki/Fandom jest źródłem porównawczym, nie automatycznym dowodem implementacyjnym. Dla spornych lub zmiennych wartości należy szukać oficjalnych changelogów CipSoft i zachować datę wersji.
+Snapshot obejmuje między innymi:
 
-### 2.3. Źródła kontraktu klient–serwer
+- 1 punkt za każdy poziom po 50;
+- promoted Premium character od level 51;
+- 4 domeny i 36 slice'ów;
+- Revelation thresholds 250 / 500 / 1000;
+- darmowy reset punktów tylko w temple;
+- maksymalnie 50 punktów z Promotion Scrolls;
+- maksymalnie 10 punktów z The Way of the Monk;
+- maksymalnie 50 punktów z Hunting Task Shop;
+- maksymalnie 69 punktów z modów ulepszonych do Grade IV;
+- maksymalnie 225 revealed gems;
+- resonance bonus +1 / +1 / +2 damage and healing;
+- reveal costs 125k / 1m / 6m;
+- rotate costs 125k / 250k / 500k;
+- Basic upgrade costs 2m / 5m / 30m;
+- Supreme upgrade costs 5m / 12.5m / 75m;
+- 5 / 15 / 30 fragments;
+- Grade IV = +50% względem Grade I;
+- każdy Grade IV mod daje jeden stały Promotion Point.
 
-Jeżeli audyt dotknie payloadu lub opcode, wymagane jest równoległe porównanie z kompatybilnym OTClientem i zapis kontraktu w `docs/agents/CROSS_REPO_CONTRACTS.md`. Ten PR nie zmienia protokołu.
+TibiaWiki/Fandom jest wersjonowanym źródłem porównawczym, nie automatycznym oficjalnym kontraktem. Każdy mismatch musi zawierać datę snapshotu, dokładny symbol i confidence.
+
+### 2.3. Protokół
+
+Jeżeli audyt potwierdzi różnicę payloadu lub opcode, wymagane jest porównanie z kompatybilnym OTClientem i osobny kontrakt Canary ↔ OTClient w `docs/agents/CROSS_REPO_CONTRACTS.md`. PR #169 nie zmienia protokołu.
 
 ---
 
-## 3. Wstępna inwentaryzacja kodu
-
-Potwierdzone główne ścieżki w Canary:
+## 3. Główne ścieżki kodu
 
 ```text
-src/io/io_wheel.hpp
-src/io/io_wheel.cpp
 src/creatures/players/components/wheel/player_wheel.hpp
 src/creatures/players/components/wheel/player_wheel.cpp
 src/creatures/players/components/wheel/wheel_definitions.hpp
@@ -99,330 +88,325 @@ src/creatures/players/components/wheel/wheel_gems.hpp
 src/creatures/players/components/wheel/wheel_gems.cpp
 src/creatures/players/components/wheel/wheel_spells.hpp
 src/enums/player_wheel.hpp
-src/server/network/protocol/protocolgame.hpp
+src/io/io_wheel.hpp
+src/io/io_wheel.cpp
 src/io/iologindata.cpp
 src/io/functions/iologindata_load_player.cpp
-data/scripts/actions/items/wheel_scrolls.lua
-data-otservbr-global/migrations/32.lua
-data-otservbr-global/migrations/33.lua
-```
-
-Powiązane ścieżki wymagające skanowania:
-
-```text
+src/server/network/protocol/**
 src/creatures/combat/**
 src/creatures/players/vocations/**
 src/lua/functions/creatures/player/**
-data/scripts/spells/**
-data/scripts/actions/**
-data-otservbr-global/**
+data/scripts/actions/items/wheel_scrolls.lua
+data/libs/functions/gematelier.lua
+data/scripts/eventcallbacks/monster/ondroploot_gem_atelier.lua
+data-otservbr-global/migrations/32.lua
+data-otservbr-global/migrations/33.lua
 schema.sql
 ```
 
-Lista jest wstępna. Nie wolno uznać jej za pełną bez deterministycznego skanu wszystkich symboli Wheel, perków, gemów i promotion points.
+Lista nie jest uznana za kompletną bez wyniku skanera i semantic call-site review.
 
 ---
 
-## 4. Zakres walidacji
+## 4. Artefakty audytu
 
-### 4.1. Dostęp i promotion points
+| Path | Cel | Stan |
+|---|---|---|
+| `tools/ai-agent/wheel_of_destiny_validation.py` | deterministyczny read-only scanner i klasyfikator | utworzony |
+| `tools/ai-agent/test_wheel_of_destiny_validation.py` | focused parser/finding tests | utworzony; 7 lokalnych testów passed |
+| `docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json` | wersjonowane wartości ze wskazanego snapshotu | utworzony |
+| `docs/ai-agent/WHEEL_OF_DESTINY_VALIDATION_REPORT.md` | human-readable evidence report | utworzony |
+| `docs/ai-agent/WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json` | 20 scenariuszy runtime/protocol/persistence | utworzony |
+| `.github/workflows/wheel-of-destiny-validation.yml` | CI: tests, audit, JSON validation, artifacts | utworzony; wynik CI pending |
 
-Sprawdzić:
+Skaner obecnie:
 
-- wymagania level, promotion i premium;
-- wzór bazowych punktów;
-- limity i źródła dodatkowych punktów;
-- scrolls, questy, task shop i punkty z gem modów;
-- maksymalną pulę i zachowanie po zmianie level/premium/promotion;
-- walidację wydawania, zwrotu i resetu punktów;
-- ograniczenie resetu do temple;
-- brak duplikacji punktów przy ponownym użyciu źródła.
+- parsuje 36 slotów i Revelation thresholds;
+- parsuje config defaults, Promotion Scrolls, grade costs i multipliers;
+- porównuje kod z baseline;
+- wykrywa duplicate adjacency checks;
+- wykrywa podwójne naliczenie Revelation Mastery;
+- sprawdza ścieżkę Grade IV points i Hunting Task points;
+- flaguje brak cap check wewnątrz `revealGem()`;
+- flaguje kolejność resource removal oraz client-supplied grade position;
+- inwentaryzuje wszystkie tekstowe ścieżki Wheel/Gem Atelier.
 
-### 4.2. Topologia koła
-
-Sprawdzić:
-
-- cztery domeny;
-- 36 slice'ów;
-- połączenia i odblokowywanie sąsiednich slice'ów;
-- koszt i limit każdego slice'a;
-- odblokowanie Conviction Perk po pełnym slice;
-- sumowanie wielokrotnych Conviction Perks;
-- progi Revelation 250 / 500 / 1000 na domenę;
-- poprawność wszystkich profesji, w tym Monk jeżeli aktywna wersja protokołu/danych go obsługuje;
-- zachowanie presetów i przełączania konfiguracji.
-
-### 4.3. Dedication Perks
-
-Dla każdego bonusu potwierdzić:
-
-```text
-definicja
-  -> koszt / progres
-  -> aktywacja
-  -> miejsce obliczenia
-  -> stacking
-  -> widoczność klienta
-  -> zapis / reload
-  -> test runtime
-```
-
-Kategorie obejmują między innymi HP, mana, capacity, skills, magic level, obrażenia, leczenie i odporności. Dokładna lista musi wynikać z kodu i danych, nie z pamięci.
-
-### 4.4. Conviction Perks i spell augments
-
-Dla każdego perka:
-
-- profesja i slice;
-- nazwa/ID;
-- warunek aktywacji;
-- efekt i jednostka;
-- stacking;
-- modyfikowany spell lub mechanika;
-- etap obliczenia damage/healing/cooldown/mana/range/area;
-- interakcja z innymi perkami, charmami, imbue, equipment i gem mods;
-- test pozytywny, negatywny i graniczny.
-
-### 4.5. Revelation Perks
-
-Dla każdego z czterech perków profesji:
-
-- progi stage 1/2/3;
-- efekt każdego stage;
-- aktywacja/dezaktywacja po zmianie presetów;
-- cooldown, duration, charges i eventy okresowe;
-- cleanup po logout/death/reload;
-- brak przecieku efektu pomiędzy presetami lub profesjami.
-
-### 4.6. Gem Atelier
-
-Sprawdzić:
-
-- typy lesser / regular / greater;
-- liczbę Basic/Supreme mod slotów;
-- maksymalnie 225 ujawnionych gemów;
-- reveal, bind, destroy/remove i persistence;
-- domain affinity i rotację clockwise;
-- socket matching;
-- Vessel Resonance i kolejność aktywacji slotów;
-- bonus damage/healing przy pełnej liczbie resonance;
-- koszty reveal i rotate;
-- rozbijanie gemów i fragment rewards;
-- upgrade Grade I–IV;
-- koszt fragmentów i gold dla Basic/Supreme;
-- zasadę, że aktywny grade slotu nie może przekroczyć grade poprzedniego slotu;
-- +50% wartości Grade IV względem Grade I tam, gdzie reguła ma zastosowanie;
-- Momentum dla cooldown augments;
-- dodatkowy promotion point za pełne Grade IV;
-- limity, idempotencję i rollback transakcji.
-
-### 4.7. Persistence i migracje
-
-Sprawdzić:
-
-- schema i migracje;
-- serializację/deserializację presets, points, unlocked gems i grades;
-- walidację danych uszkodzonych, starych i częściowych;
-- brak utraty danych przy save/load;
-- zachowanie po zmianie wersji klienta/serwera;
-- transakcyjność operacji kosztowych.
-
-### 4.8. Protokół
-
-Sprawdzić bez zmiany kontraktu:
-
-- opcodes inbound/outbound;
-- kolejność, szerokość i signedness pól;
-- count fields i limity;
-- feature/version gates;
-- payload koła, presetów, gem atelier, reveal, rotate, socket i upgrade;
-- zachowanie na nieobsługiwanym kliencie;
-- walidację wejścia po stronie serwera.
-
-### 4.9. Runtime i regresja
-
-Docelowo wymagane są scenariusze:
-
-- bazowe punkty dla poziomów 50/51 i wysokiego levelu;
-- reset poza temple i w temple;
-- odblokowanie slice adjacency;
-- każdy typ dedication bonusu;
-- reprezentatywny spell augment każdej profesji;
-- każdy Revelation stage;
-- reveal/socket/unsocket/rotate/upgrade gema;
-- persistence przez save/logout/login;
-- błędne, powtórzone i graniczne pakiety klienta;
-- brak bonusu po dezaktywacji presetu.
+Skaner nie twierdzi, że statyczny match jest dowodem runtime.
 
 ---
 
 ## 5. Warstwy dowodowe
 
-Każdy element otrzymuje niezależny status w następujących warstwach:
+Każdy element otrzymuje niezależny status:
 
-1. **definition** — istnieje kompletna definicja;
-2. **reference** — wszystkie symbole, itemy, spelle i pola mają cel;
-3. **activation** — istnieje osiągalna ścieżka aktywacji;
-4. **effect** — efekt jest naliczany w odpowiednim miejscu;
-5. **persistence** — stan przeżywa save/load;
+1. **definition** — kompletna definicja;
+2. **reference** — symbole/itemy/spelle/pola mają cel;
+3. **activation** — osiągalna ścieżka aktywacji;
+4. **effect** — efekt jest naliczany w poprawnym miejscu i raz;
+5. **persistence** — save/load round-trip;
 6. **protocol** — klient i serwer zgadzają się co do kontraktu;
-7. **runtime** — scenariusz gameplay potwierdza zachowanie;
-8. **regression** — test automatyczny chroni potwierdzone zachowanie.
+7. **runtime** — rzeczywisty scenariusz gameplay;
+8. **regression** — test automatyczny chroni zachowanie.
 
-Nie wolno podnosić statusu wyższej warstwy na podstawie samej obecności kodu w niższej.
+Status wyższej warstwy nie może wynikać wyłącznie z obecności kodu w niższej.
 
----
+Disposition:
 
-## 6. Klasyfikacja wyników
-
-Planowane disposition:
-
-- `verified` — zgodność potwierdzona odpowiednimi dowodami i testem;
-- `static-consistent` — definicje i referencje są spójne, runtime niepotwierdzony;
-- `protocol-unverified` — logika wygląda spójnie, ale kontrakt klienta nie został zweryfikowany;
-- `runtime-unverified` — brak testu rzeczywistego efektu;
-- `partial` — część wariantów/profesji/stage działa lub jest zaimplementowana;
-- `mismatch` — potwierdzona różnica względem wybranego źródła prawdy;
-- `missing-path` — definicja istnieje, ale brak osiągalnej aktywacji;
-- `missing-effect` — aktywacja istnieje, ale brak efektu;
-- `persistence-risk` — zapis/load jest niepełny albo niebezpieczny;
-- `needs-manual-review` — dowody są niewystarczające;
-- `out-of-scope-version` — cecha pochodzi z innej wersji Tibii/protokołu.
-
-Każdy `mismatch` musi podawać:
-
-- wersję i datę źródła referencyjnego;
-- dokładną ścieżkę i symbol w kodzie;
-- aktualne zachowanie;
-- oczekiwane zachowanie;
-- confidence;
-- najmniejszy bezpieczny follow-up PR.
+- `verified`
+- `static-consistent`
+- `protocol-unverified`
+- `runtime-unverified`
+- `partial`
+- `mismatch`
+- `missing-path`
+- `missing-effect`
+- `persistence-risk`
+- `needs-manual-review`
+- `out-of-scope-version`
 
 ---
 
-## 7. Plan artefaktów
+## 6. Potwierdzone statyczne zgodności
 
-Pierwszy audyt powinien dostarczyć:
+Na snapshot 2026-07-12 kod jest statycznie spójny dla:
+
+- 36 slice'ów;
+- Revelation thresholds 250 / 500 / 1000;
+- level > 50, promoted, Premium gate;
+- 1 point per level;
+- pięciu Promotion Scrolls dających łącznie 50;
+- Monk quest bonus 10;
+- temple-only decrease/reset option;
+- reveal costs 125k / 1m / 6m;
+- rotate costs 125k / 250k / 500k;
+- Basic Grade II–IV costs;
+- Supreme Grade II i Grade IV costs;
+- Grade IV multiplier 1.5.
+
+Wszystkie te pozycje pozostają `static-consistent`, nie `verified`.
+
+---
+
+## 7. Potwierdzone statyczne problemy
+
+### WOD-F001 — Supreme Grade III: 12m zamiast 12.5m
+
+- **Disposition:** `mismatch`
+- **Confidence:** high
+- **Reference:** snapshot 2026-07-12 — 12,500,000 gold + 15 Greater Fragments.
+- **Code:** `PlayerWheel::getGreaterGradeCost()` zwraca 12,000,000 + 15.
+- **Impact:** upgrade jest tańszy o 500,000.
+- **Runtime:** unverified.
+- **Follow-up:** osobny minimalny gameplay PR z focused cost testem.
+
+### WOD-F002 — Grade IV points nie są spendable i są dodawane do każdej domeny
+
+- **Disposition:** `mismatch`
+- **Confidence:** high
+- **Reference:** każdy Grade IV mod daje jeden stały spendable Promotion Point; maksymalnie 69.
+- **Code:** `PlayerWheel::getExtraPoints()` sumuje scrolls i Monk bonus, ale nie `m_modsMaxGrade`.
+- **Code:** `PlayerWheel::getPlayerSliceStage()` dodaje globalne `m_modsMaxGrade` do totalu każdej domeny.
+- **Impact:** punktów nie można wydawać jak normalnych, natomiast ten sam globalny licznik może przesuwać Revelation thresholds w czterech domenach.
+- **Runtime:** unverified.
+- **Follow-up:** osobny points-accounting PR z save/load i threshold boundary tests.
+
+### WOD-F003 — Revelation Mastery Supreme Mods są naliczane podwójnie
+
+- **Disposition:** `missing-correct-effect`
+- **Confidence:** high
+- **Code:** przypadki Revelation Mastery jednocześnie tworzą `GemModifierRevelationStrategy` i wywołują `m_wheel.addRevelationBonus(...)` natychmiast.
+- **Execution:** `PlayerWheel::processActiveGems()` następnie uruchamia `executeStrategies()`, które stosuje queued strategy drugi raz.
+- **Impact:** aktywny mod wygląda na naliczany dwukrotnie.
+- **Runtime:** unverified.
+- **Follow-up:** osobny correction PR i regression test: exactly once per active gem, no accumulation on recalculation.
+
+Pełny opis: `docs/ai-agent/WHEEL_OF_DESTINY_VALIDATION_REPORT.md`.
+
+---
+
+## 8. Ryzyka wymagające dalszych dowodów
+
+- **WOD-R001:** bezpośrednia ścieżka Hunting Task Shop points nie występuje w `getExtraPoints()`; pełny Lua/KV review pending.
+- **WOD-R002:** `revealGem()` nie ma lokalnego limitu 225; caller/protocol check pending.
+- **WOD-R003:** reveal/upgrade usuwają money przed item/fragments bez lokalnego refund branch; fault-injection pending.
+- **WOD-R004:** `improveGemGrade()` wygląda na indeksowanie client-supplied `pos` przed bounds/membership check; protocol parser pending.
+- **WOD-R005:** `SLOT_GREEN_TOP_100` sprawdza `SLOT_GREEN_MIDDLE_100` dwa razy; pełny graph comparison pending.
+
+Nie wolno zmieniać ich na confirmed defects bez brakujących dowodów.
+
+---
+
+## 9. Zakres pozostałej walidacji
+
+### Promotion Points i topologia
+
+- Hunting Task Shop award path i idempotency;
+- Grade IV point lifecycle, cap i persistence;
+- wszystkie 36 adjacency edges;
+- max pool i zachowanie po level/premium/promotion changes;
+- forged packets i point refund rules.
+
+### Perki i spelle
+
+Dla każdego Dedication/Conviction/Revelation:
 
 ```text
-tools/ai-agent/wheel_of_destiny_validation.py
-tools/ai-agent/test_wheel_of_destiny_validation.py
-docs/ai-agent/WHEEL_OF_DESTINY_VALIDATION_REPORT.md
-docs/ai-agent/WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json
+definition -> activation -> effect -> stacking -> protocol visibility -> persistence -> runtime -> regression
 ```
 
-Planowane narzędzie ma być deterministyczne i read-only. Powinno co najmniej:
+Wymagane wszystkie aktywne profesje, w tym Monk tylko zgodnie z aktywną wersją danych/protokołu.
 
-- zinwentaryzować pliki i symbole Wheel;
-- wyodrębnić definicje profesji, slice'ów, perków i gemów;
-- zmapować miejsca użycia perków i augmentów;
-- zmapować persistence, migracje i protocol handlers;
-- wykrywać definicje bez efektu oraz efekt bez definicji;
-- generować raport i plan scenariuszy bez modyfikacji datapacka.
+### Gem Atelier
+
+- reveal/bind/remove/destroy;
+- fragment yields;
+- affinity clockwise rotation;
+- socket matching i 4 active vessels;
+- Vessel Resonance i kolejność mod slotów;
+- +1/+1/+2 damage/healing;
+- effective grade gating przez poprzedni slot;
+- Momentum;
+- transactional failure paths;
+- max 225;
+- save/load UUID consistency.
+
+### Persistence i protocol
+
+- schema, migrations, KV i corrupted/legacy data;
+- complete round-trip;
+- opcodes, field order, widths, counts i feature gates;
+- compatible OTClient comparison;
+- malformed indexes/counts rejected server-side.
+
+Machine-readable plan: `docs/ai-agent/WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json`.
 
 ---
 
-## 8. Safety boundary
+## 10. Safety boundary
 
-W tym pierwszym PR nie wolno zmieniać:
+W PR #169 nie wolno zmieniać:
 
-- wartości balansu;
-- aktywnych definicji Wheel/Gem Atelier;
+- balansu i wartości aktywnego Wheel;
 - spell/combat behavior;
-- protokołu;
-- schema/migracji;
-- itemów i datapacka;
-- `.otbm`, `items.otb` ani assetów klienta;
+- protocol payload/opcodes;
+- schema/migrations;
+- itemów, datapacka, `.otbm`, `items.otb` ani client assets;
 - produkcyjnej konfiguracji.
 
-Potwierdzone defekty muszą być dzielone na osobne, małe PR-y z focused testami. Zmiana protokołu wymaga osobnego kontraktu Canary ↔ OTClient.
+Każdy potwierdzony defect ma trafić do osobnego, małego PR-a z focused testem. Nie łączyć cost fix, points accounting i Revelation Mastery correction w jednym PR-ze.
 
 ---
 
-## 9. Changelog / work log
+## 11. Changelog / work log
 
-### 2026-07-12 — utworzenie projektu walidacji Wheel of Destiny
+### 2026-07-12 — scanner, baseline, report, runtime plan i CI
 
-- utworzono dedykowany dokument obok głównego World Validation project;
-- zapisano read-only scope i źródła prawdy;
-- zapisano wstępną inwentaryzację głównych plików Wheel;
-- rozdzielono warstwy definition/reference/activation/effect/persistence/protocol/runtime/regression;
-- zapisano zakres Wheel, spell augments, Revelation Perks i Gem Atelier;
-- zapisano plan deterministycznego narzędzia, raportu i runtime test planu;
-- nie zmieniono gameplay, danych, protokołu ani mapy.
+- dodano `WHEEL_OF_DESTINY_REFERENCE_BASELINE.json`;
+- dodano 20 machine-readable runtime/protocol/persistence scenarios;
+- dodano początkowy evidence report;
+- dodano deterministic read-only scanner;
+- dodano 7 focused unit tests;
+- wynik lokalny: `Ran 7 tests ... OK`;
+- dodano dedykowany GitHub Actions workflow;
+- potwierdzono WOD-F001, WOD-F002 i WOD-F003 na poziomie statycznym;
+- zapisano WOD-R001..R005 jako ryzyka, nie jako potwierdzone runtime defects;
+- nie zmieniono gameplay, protokołu, schema, datapacka ani mapy.
+
+### 2026-07-12 — publikacja pracy
+
+- utworzono branch `feat/wheel-of-destiny-validation-audit`;
+- utworzono draft PR #169;
+- utworzono persistent task record;
+- dodano wpis do `docs/agents/ACTIVE_WORK.md`;
+- merge-base gałęzi: `dbcc809bac57bb78425ca39c2523c723cef79bb0`;
+- `main` przesunął się po utworzeniu gałęzi niezależnym commitem dokumentacyjnym; brak overlap z owned paths.
+
+### 2026-07-12 — utworzenie projektu
+
+- utworzono ten dokument obok głównego World Validation project;
+- zapisano scope, evidence layers, safety boundary i handoff;
+- nie zmieniono runtime.
 
 ---
 
-## 10. Aktualny stan
+## 12. Aktualny stan
 
 ```text
 branch: feat/wheel-of-destiny-validation-audit
-base: main @ dbcc809bac57bb78425ca39c2523c723cef79bb0
-PR: pending
-phase: repository inventory
-code changes: none
+merge-base: dbcc809bac57bb78425ca39c2523c723cef79bb0
+PR: #169 draft
+phase: static scanner published; CI pending; protocol/persistence/runtime inventory pending
+local tests: 7 passed
 runtime claims: none
+gameplay changes: none
 ```
 
-Potwierdzone na tym etapie:
+### Acceptance state
 
-- repozytorium zawiera rozbudowany komponent Wheel, IO i Gem Atelier;
-- system ma zależności w combat/spells/vocations/protocol/persistence/Lua;
-- brak istniejącego aktywnego PR-a walidującego Wheel of Destiny;
-- wymagany jest osobny audyt, ponieważ sama walidacja questów nie obejmuje efektów koła.
-
-Niepotwierdzone jeszcze:
-
-- kompletność wszystkich perków i profesji;
-- zgodność wartości balansu;
-- poprawność kosztów Gem Atelier;
-- poprawność protocol payload;
-- save/load round-trip;
-- rzeczywiste efekty runtime.
+- [x] dedykowany durable project document;
+- [x] versioned reference baseline;
+- [x] deterministic static scanner;
+- [x] focused unit tests;
+- [x] initial evidence report;
+- [x] machine-readable runtime test plan;
+- [x] dedicated CI workflow;
+- [ ] CI run on actual repository branch reviewed;
+- [ ] complete Wheel/Gem source and call-site inventory;
+- [ ] every perk mapped to effect path;
+- [ ] persistence round-trip reviewed;
+- [ ] OTClient protocol contract reviewed;
+- [ ] runtime scenarios executed;
+- [ ] confirmed defects split into focused follow-up PRs.
 
 ---
 
-## 11. Handoff dla kolejnego agenta
+## 13. Handoff dla kolejnego agenta
 
-### Zacznij od tego
+### Start here
 
 1. Przeczytaj `AGENTS.md` i `docs/agents/**`.
 2. Przeczytaj `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md`.
-3. Przeczytaj ten dokument w całości.
-4. Sprawdź aktualny `main`, otwarte PR-y i task record.
-5. Nie zakładaj, że lista plików z sekcji 3 jest kompletna.
-6. Najpierw wykonaj deterministyczną inwentaryzację, potem klasyfikację.
-7. Oddziel wartości aktualnej wersji od historycznych zmian balansu.
-8. Nie naprawiaj gameplay w audytowym PR-ze.
+3. Przeczytaj ten dokument i `WHEEL_OF_DESTINY_VALIDATION_REPORT.md`.
+4. Otwórz PR #169, aktualny task record i CI run dla head.
+5. Pobierz artifact `WHEEL_OF_DESTINY_AUDIT.json/.md`.
+6. Nie naprawiaj gameplay w PR #169.
 
-### Minimalna kolejność analizy
+### Następny krok techniczny
 
-1. `wheel_definitions.hpp` i enumy;
-2. `player_wheel.*`;
-3. `wheel_gems.*`;
-4. `io_wheel.*` i save/load;
-5. protocol handlers;
-6. wszystkie call sites perków/spell augments;
-7. Lua/itemowe źródła punktów;
-8. schema i migracje;
-9. kompatybilny OTClient;
-10. focused runtime scenarios.
+1. Sprawdź GitHub Actions dla najnowszego head.
+2. Jeżeli scanner failuje na realnym kodzie, popraw parser i test fixture; zaktualizuj ten dokument i task record.
+3. Jeżeli scanner działa, zapisz exact findings/counts/source inventory w raporcie.
+4. Zmapuj protocol handlers i wszystkie call sites `revealGem`, `improveGemGrade`, `getExtraPoints`, `processActiveGems`.
+5. Zmapuj save/load oraz migrations/KV.
+6. Porównaj payload z kompatybilnym `opentibiabr/otclient`.
+7. Dopiero potem przygotuj osobne defect PR-y.
 
-### Czego nie zgadywać
+### Nie powtarzaj
 
-- znaczenia numeric enum bez potwierdzenia po obu stronach protokołu;
-- oficjalnej wartości balansu bez wersjonowanego źródła;
-- osiągalności dodatkowych punktów na podstawie samej obecności skryptu;
-- poprawności efektu na podstawie samego getter'a;
-- kompatybilności klienta bez porównania payloadu;
-- obsługi Monk bez sprawdzenia wersji danych i protokołu.
+- nie licz samego highest enum ID jako liczby slice'ów bez parsera;
+- nie uznawaj wiki za niewersjonowany official truth;
+- nie uznawaj getter'a za dowód efektu;
+- nie uznawaj lokalnego braku checku za exploit bez caller/protocol review;
+- nie uznawaj static match za runtime verified;
+- nie łącz trzech potwierdzonych problemów w jeden gameplay PR;
+- nie zmieniaj upstream `opentibiabr/canary`.
+
+### Otwarte pytania
+
+- Gdzie i jak Hunting Task Shop zapisuje dodatkowe punkty?
+- Czy cap 225 jest walidowany przed `revealGem()`?
+- Czy protocol parser blokuje invalid grade `pos`?
+- Czy resource prechecks eliminują partial-consumption failure, czy potrzebna jest transakcja/refund?
+- Jaki jest zamierzony drugi neighbour dla `SLOT_GREEN_TOP_100`?
+- Czy wszystkie Revelation Mastery variants są rzeczywiście podwajane w runtime?
+- Czy wszystkie pięć vocations ma kompletny Wheel i spell augment coverage?
 
 ### Obowiązek aktualizacji
 
-Po każdej zmianie kodu, testu, raportu, klasyfikacji lub decyzji:
+Po każdej zmianie kodu, testu, baseline, raportu, klasyfikacji lub decyzji:
 
 1. zaktualizuj ten dokument;
-2. zaktualizuj task record;
-3. zapisz dokładny test i wynik;
-4. zaktualizuj PR body, jeżeli zmienia się zakres lub stan;
-5. nie oznaczaj warstwy jako `verified` bez odpowiedniego dowodu.
+2. zaktualizuj `docs/agents/tasks/active/CAN-20260712-wheel-of-destiny-validation.md`;
+3. zapisz exact command/check i wynik;
+4. zaktualizuj PR body, jeżeli zmienił się zakres lub evidence;
+5. nie wpisuj `passed` ani `verified` bez wykonania odpowiedniego checku.
