@@ -1,5 +1,6 @@
 ---
 task_id: CAN-YYYYMMDD-short-slug
+program_id: CAN-PROGRAM-SHORT-NAME
 coordination_id: ""
 status: planned
 agent: ""
@@ -14,7 +15,12 @@ related_pr: ""
 depends_on: []
 blocks: []
 owned_paths:
-  - path/or/glob
+  exclusive:
+    - path/the/task/may/edit
+  shared:
+    - narrow/shared/index/or/contract
+  read_only:
+    - dependency/the/task/must/not/edit
 modules_touched: []
 reuses: []
 public_interfaces: []
@@ -27,16 +33,18 @@ State one exact, observable outcome.
 
 # Acceptance criteria
 
-- [ ] Observable behavior/artifact.
-- [ ] Relevant checks completed.
+- [ ] Observable behavior or artifact.
+- [ ] Relevant focused checks completed.
+- [ ] Current-head GitHub checks verified.
 - [ ] Module catalogue impact handled or none.
 - [ ] Documentation/changelog impact handled or none.
+- [ ] Program queue/handoff impact handled or none.
 - [ ] Cross-repository impact handled or none.
 - [ ] Autonomous merge gate satisfied.
 
 # Confirmed context
 
-Verified facts, commits/PRs, versions, constraints; mark assumptions.
+Verified facts, commits, PRs, versions, and constraints; mark assumptions and uncertainty explicitly.
 
 # Existing work to reuse
 
@@ -46,10 +54,21 @@ Verified facts, commits/PRs, versions, constraints; mark assumptions.
 
 # Ownership and overlap check
 
+- Program record:
 - Open PRs inspected:
 - Active tasks inspected:
+- Ownership checker result:
+- Exclusive claims:
+- Shared claims:
+- Read-only dependencies:
 - Overlaps:
 - Resolution:
+
+Before implementation, run when a local checkout is available:
+
+```text
+python tools/agents/task_ownership.py
+```
 
 # Current state
 
@@ -74,9 +93,9 @@ Verified facts, commits/PRs, versions, constraints; mark assumptions.
 
 # Files and interfaces
 
-| Path/interface/config/schema | Purpose | Status |
-|---|---|---|
-| | | planned |
+| Path/interface/config/schema | Ownership mode | Purpose | Status |
+|---|---|---|---|
+| | exclusive/shared/read_only | | planned |
 
 # Validation and CI
 
@@ -84,7 +103,7 @@ Verified facts, commits/PRs, versions, constraints; mark assumptions.
 |---|---|---|---|
 | | | not-run | |
 
-Never write `passed` without verification.
+Never write `passed` without verification on the stated commit.
 
 # Failed approaches and dead ends
 
@@ -110,9 +129,11 @@ Never write `passed` without verification.
 ## Required reads
 
 - `AGENTS.md`
-- `docs/agents/ACTIVE_WORK.md`
+- `docs/agents/README.md`
+- relevant program record under `docs/agents/programs/`
+- all overlapping active task records under `docs/agents/tasks/active/**`
 - `docs/agents/MODULE_CATALOG.md`
-- relevant source/tests/docs/ADRs
+- relevant source, tests, docs, contracts, and ADRs
 
 ## Open questions
 
@@ -121,6 +142,7 @@ Never write `passed` without verification.
 - Final status:
 - PR:
 - Merge commit:
+- Program record updated:
 - Catalogue updated:
 - Changelog updated:
 - Archived at:
