@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -66,6 +67,42 @@ class CanaryStagingTests(unittest.TestCase):
 
             with self.assertRaises(PathEscapesRootError):
                 assemble_staging_datapack(base, overlay, root / "destination")
+
+    def test_assemble_cleans_partial_destination_when_base_copy_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            base = root / "base"
+            overlay = root / "overlay"
+            destination = root / "destination"
+            base.mkdir()
+            overlay.mkdir()
+
+            def fail_after_partial_copy(_source: Path, target: Path, **_kwargs: object) -> None:
+                target_path = Path(target)
+                target_path.mkdir(parents=True)
+                (target_path / "partial.lua").write_text("partial", encoding="utf-8")
+                raise OSError("synthetic base copy failure")
+
+            with mock.patch("canary_staging.shutil.copytree", side_effect=fail_after_partial_copy):
+                with self.assertRaisesRegex(OSError, "synthetic base copy failure"):
+                    assemble_staging_datapack(base, overlay, destination)
+
+            self.assertFalse(destination.exists())
+
+    def test_assemble_cleans_destination_when_overlay_application_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            base = root / "base"
+            overlay = root / "overlay"
+            destination = root / "destination"
+            (base / "conflict.lua").mkdir(parents=True)
+            overlay.mkdir()
+            (overlay / "conflict.lua").write_text("file", encoding="utf-8")
+
+            with self.assertRaises(IsADirectoryError):
+                assemble_staging_datapack(base, overlay, destination)
+
+            self.assertFalse(destination.exists())
 
     def _smoke_fixture(self, root: Path) -> tuple[Path, CanarySmokeSettings]:
         repo = root / "repo"
