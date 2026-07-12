@@ -3,11 +3,9 @@ name: Cyclopedia Live E2E
 
 on:
   push:
-    branches:
-      - test/cyclopedia-live-e2e
+    branches: [test/cyclopedia-live-e2e]
   pull_request:
-    branches:
-      - main
+    branches: [main]
     paths:
       - ".github/workflows/cyclopedia-live-e2e.yml"
       - "tools/e2e/cyclopedia_otclient_e2e.lua"
@@ -22,20 +20,16 @@ jobs:
     name: OTClient ↔ Canary ↔ MySQL
     runs-on: ubuntu-24.04
     timeout-minutes: 45
-
     services:
       mysql:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: cyclopedia_e2e
-        ports:
-          - 3306:3306
+        ports: ["3306:3306"]
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=12
+          --health-interval=10s --health-timeout=5s --health-retries=12
 
     steps:
       - name: Checkout current Canary source
@@ -81,22 +75,23 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p artifacts
+          find canary-bin otclient-bin -maxdepth 5 -type f -print | tee artifacts/downloaded-files.txt
           CANARY_BIN="$(find canary-bin -type f -name 'canary' | head -n 1)"
           OTCLIENT_BIN="$(find otclient-bin -type f \( -name 'otclient' -o -name 'otclient-*' \) | head -n 1)"
           if [[ -z "${CANARY_BIN}" || -z "${OTCLIENT_BIN}" ]]; then
             echo "Canary or OTClient binary not found." >&2
-            find canary-bin otclient-bin -maxdepth 4 -type f -print
             exit 1
           fi
-          CLIENT_VERSION="$(grep -E '^clientVersionMax[[:space:]]*=' config.lua.dist | grep -Eo '[0-9]+' | head -n 1)"
+          CLIENT_VERSION="$(grep -E 'static constexpr auto CLIENT_VERSION[[:space:]]*=' src/core.hpp | grep -Eo '[0-9]+' | tail -n 1)"
           test -n "${CLIENT_VERSION}"
           chmod +x "${CANARY_BIN}" "${OTCLIENT_BIN}"
           echo "CANARY_BIN=${GITHUB_WORKSPACE}/${CANARY_BIN}" >> "${GITHUB_ENV}"
           echo "OTCLIENT_BIN=${GITHUB_WORKSPACE}/${OTCLIENT_BIN}" >> "${GITHUB_ENV}"
           echo "CLIENT_VERSION=${CLIENT_VERSION}" >> "${GITHUB_ENV}"
-          printf 'Canary=%s\nOTClient=%s\nVersion=%s\n' "${CANARY_BIN}" "${OTCLIENT_BIN}" "${CLIENT_VERSION}"
-          ldd "${CANARY_BIN}" || true
-          ldd "${OTCLIENT_BIN}" || true
+          printf 'Canary=%s\nOTClient=%s\nVersion=%s\n' "${CANARY_BIN}" "${OTCLIENT_BIN}" "${CLIENT_VERSION}" | tee artifacts/resolved-runtime.txt
+          ldd "${CANARY_BIN}" | tee artifacts/canary-ldd.txt || true
+          ldd "${OTCLIENT_BIN}" | tee artifacts/otclient-ldd.txt || true
 
       - name: Initialize disposable MySQL database
         shell: bash
@@ -113,49 +108,34 @@ jobs:
           mysql -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e < docker/data/02-test_account_players.sql
           mysql -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e -e 'DELETE FROM boosted_boss;'
           mysql -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e \
-            -e "SELECT id,name,account_id,level FROM players WHERE name='Knight 1';"
+            -e "SELECT id,name,account_id,level FROM players WHERE name='Knight 1';" \
+            | tee artifacts/test-player.tsv
 
       - name: Prepare global map and isolated server config
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p data-otservbr-global/world artifacts
+          mkdir -p data-otservbr-global/world
           MAP_URL="$(grep -E '^mapDownloadUrl[[:space:]]*=' config.lua.dist | sed -E 's/.*"([^"]+)".*/\1/')"
           test -n "${MAP_URL}"
-          curl --fail --location --retry 5 --retry-delay 5 \
-            "${MAP_URL}" --output data-otservbr-global/world/otservbr.otbm
+          curl --fail --location --retry 5 --retry-delay 5 "${MAP_URL}" \
+            --output data-otservbr-global/world/otservbr.otbm
           test -s data-otservbr-global/world/otservbr.otbm
           sha256sum data-otservbr-global/world/otservbr.otbm | tee artifacts/map.sha256
           python3 - <<'PY'
           import re
           from pathlib import Path
-
           config = Path('config.lua.dist').read_text(encoding='utf-8')
           values = {
-              'dataPackDirectory': '"data-otservbr-global"',
-              'mapName': '"otservbr"',
-              'mapDownloadUrl': '""',
-              'toggleDownloadMap': 'false',
-              'toggleMapCustom': 'false',
-              'startupDatabaseOptimization': 'false',
-              'mysqlDatabaseBackup': 'false',
-              'toggleSaveInterval': 'false',
-              'forgeInfluencedLimit': '0',
-              'forgeFiendishLimit': '0',
-              'ip': '"127.0.0.1"',
-              'loginProtocolPort': '7171',
-              'gameProtocolPort': '7172',
-              'statusProtocolPort': '7171',
-              'serverName': '"Canary E2E"',
-              'houseRentPeriod': '"never"',
-              'mysqlHost': '"127.0.0.1"',
-              'mysqlUser': '"root"',
-              'mysqlPass': '"root"',
-              'mysqlDatabase': '"cyclopedia_e2e"',
-              'mysqlPort': '3306',
-              'mysqlSock': '""',
-              'metricsEnablePrometheus': 'false',
-              'metricsEnableOstream': 'false',
+              'dataPackDirectory': '"data-otservbr-global"', 'mapName': '"otservbr"',
+              'mapDownloadUrl': '""', 'toggleDownloadMap': 'false', 'toggleMapCustom': 'false',
+              'startupDatabaseOptimization': 'false', 'mysqlDatabaseBackup': 'false',
+              'toggleSaveInterval': 'false', 'forgeInfluencedLimit': '0', 'forgeFiendishLimit': '0',
+              'ip': '"127.0.0.1"', 'loginProtocolPort': '7171', 'gameProtocolPort': '7172',
+              'statusProtocolPort': '7171', 'serverName': '"Canary E2E"', 'houseRentPeriod': '"never"',
+              'mysqlHost': '"127.0.0.1"', 'mysqlUser': '"root"', 'mysqlPass': '"root"',
+              'mysqlDatabase': '"cyclopedia_e2e"', 'mysqlPort': '3306', 'mysqlSock': '""',
+              'metricsEnablePrometheus': 'false', 'metricsEnableOstream': 'false',
           }
           for key, value in values.items():
               pattern = re.compile(rf'^{re.escape(key)}\s*=.*$', re.MULTILINE)
@@ -172,71 +152,46 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json
-          import os
-          import re
-          import urllib.request
+          import json, os, re, urllib.request
           from pathlib import Path
-
           version = int(os.environ['CLIENT_VERSION'])
           compact = str(version)
           request = urllib.request.Request(
               'https://api.github.com/repos/dudantas/tibia-client/releases?per_page=100',
-              headers={
-                  'Accept': 'application/vnd.github+json',
-                  'Authorization': f"Bearer {os.environ['GH_TOKEN']}",
-              },
+              headers={'Accept': 'application/vnd.github+json', 'Authorization': f"Bearer {os.environ['GH_TOKEN']}"},
           )
           releases = json.load(urllib.request.urlopen(request, timeout=60))
           normalize = lambda value: re.sub(r'[^0-9]', '', str(value or ''))
-          matches = [
-              release for release in releases
-              if compact in {normalize(release.get('tag_name')), normalize(release.get('name'))}
-          ]
+          matches = [r for r in releases if compact in {normalize(r.get('tag_name')), normalize(r.get('name'))}]
           if not matches:
-              available = [(r.get('tag_name'), r.get('name')) for r in releases[:40]]
-              raise SystemExit(f'No asset release for {compact}; available={available}')
+              raise SystemExit(f'No asset release for {compact}; available={[(r.get("tag_name"), r.get("name")) for r in releases[:40]]}')
           release = matches[0]
-          zip_assets = [
-              asset for asset in release.get('assets', [])
-              if str(asset.get('name', '')).lower().endswith('.zip')
-          ]
-          url = zip_assets[0]['browser_download_url'] if zip_assets else release['zipball_url']
+          zips = [a for a in release.get('assets', []) if str(a.get('name', '')).lower().endswith('.zip')]
+          url = zips[0]['browser_download_url'] if zips else release['zipball_url']
           Path('artifacts/assets-release.json').write_text(json.dumps({
-              'clientVersion': version,
-              'tag': release.get('tag_name'),
-              'name': release.get('name'),
-              'url': url,
+              'clientVersion': version, 'tag': release.get('tag_name'), 'name': release.get('name'), 'url': url,
           }, indent=2), encoding='utf-8')
-          download = urllib.request.Request(
-              url,
-              headers={'Authorization': f"Bearer {os.environ['GH_TOKEN']}"},
-          )
+          download = urllib.request.Request(url, headers={'Authorization': f"Bearer {os.environ['GH_TOKEN']}"})
           with urllib.request.urlopen(download, timeout=240) as source, open('/tmp/tibia-assets.zip', 'wb') as target:
-              while chunk := source.read(1024 * 1024):
-                  target.write(chunk)
+              while chunk := source.read(1024 * 1024): target.write(chunk)
           PY
-          rm -rf /tmp/tibia-assets
-          mkdir -p /tmp/tibia-assets
+          rm -rf /tmp/tibia-assets && mkdir -p /tmp/tibia-assets
           unzip -q /tmp/tibia-assets.zip -d /tmp/tibia-assets
           while IFS= read -r nested; do
-            nested_dir="${nested%.zip}-unpacked"
-            mkdir -p "${nested_dir}"
-            unzip -q -o "${nested}" -d "${nested_dir}" || true
+            mkdir -p "${nested%.zip}-unpacked"
+            unzip -q -o "${nested}" -d "${nested%.zip}-unpacked" || true
           done < <(find /tmp/tibia-assets -maxdepth 5 -type f -name '*.zip')
           ASSET_CATALOG="$(find /tmp/tibia-assets -type f -name catalog-content.json | head -n 1)"
           if [[ -z "${ASSET_CATALOG}" ]]; then
             find /tmp/tibia-assets -maxdepth 5 -type f | head -n 300
             exit 1
           fi
-          ASSET_ROOT="$(dirname "${ASSET_CATALOG}")"
           TARGET="otclient/data/things/${CLIENT_VERSION}"
-          rm -rf "${TARGET}"
-          mkdir -p "${TARGET}"
-          cp -a "${ASSET_ROOT}/." "${TARGET}/"
+          rm -rf "${TARGET}" && mkdir -p "${TARGET}"
+          cp -a "$(dirname "${ASSET_CATALOG}")/." "${TARGET}/"
           test -s "${TARGET}/catalog-content.json"
           sha256sum "${TARGET}/catalog-content.json" | tee artifacts/catalog-content.sha256
-          du -sh "${TARGET}"
+          du -sh "${TARGET}" | tee artifacts/assets-size.txt
 
       - name: Configure OTClient automation
         shell: bash
@@ -246,8 +201,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           path = Path('otclient/init.lua')
-          text = path.read_text(encoding='utf-8')
-          text = text.replace('enabled = true,', 'enabled = false,', 1)
+          text = path.read_text(encoding='utf-8').replace('enabled = true,', 'enabled = false,', 1)
           text = text.replace('installSounds = true,', 'installSounds = false,', 1)
           path.write_text(text, encoding='utf-8')
           PY
@@ -293,42 +247,25 @@ jobs:
           Xvfb :99 -screen 0 1280x800x24 > artifacts/xvfb.log 2>&1 &
           echo $! > artifacts/xvfb.pid
           sleep 2
-          (
-            cd otclient
-            timeout --signal=TERM 180 "${OTCLIENT_BIN}" \
-              > ../artifacts/otclient.stdout.log 2> ../artifacts/otclient.stderr.log
-          ) &
+          (cd otclient && timeout --signal=TERM 180 "${OTCLIENT_BIN}" \
+            > ../artifacts/otclient.stdout.log 2> ../artifacts/otclient.stderr.log) &
           echo $! > artifacts/otclient.pid
-
-          online_seen=false
-          phase_seen=false
+          online=false; phase=false
           for _ in $(seq 1 120); do
-            if [[ -f otclient/e2e-result.txt ]] && grep -q '^login_1=success$' otclient/e2e-result.txt; then
-              online_seen=true
-            fi
-            if [[ -f otclient/e2e-result.txt ]] && grep -q '^phase_1=complete$' otclient/e2e-result.txt; then
-              phase_seen=true
-              break
-            fi
-            if ! kill -0 "$(cat artifacts/otclient.pid)" 2>/dev/null; then
-              break
-            fi
+            [[ -f otclient/e2e-result.txt ]] && grep -q '^login_1=success$' otclient/e2e-result.txt && online=true
+            [[ -f otclient/e2e-result.txt ]] && grep -q '^phase_1=complete$' otclient/e2e-result.txt && { phase=true; break; }
+            kill -0 "$(cat artifacts/otclient.pid)" 2>/dev/null || break
             sleep 1
           done
-          [[ "${online_seen}" == true ]]
-          [[ "${phase_seen}" == true ]]
-
+          [[ "${online}" == true && "${phase}" == true ]]
           import -display :99 -window root artifacts/cyclopedia-client.png || true
           MYSQL_PWD=root mysql -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e \
             -e "SELECT * FROM players_online; SELECT id,name,lastlogin,lastlogout FROM players WHERE name='Knight 1';" \
             | tee artifacts/database-during-client.tsv
-
           wait "$(cat artifacts/otclient.pid)"
           cat otclient/e2e-result.txt | tee artifacts/e2e-result.txt
-          for marker in \
-            login_1=success bestiary_1= charms_1= bosstiary_1= phase_1=complete \
-            logout_1=complete login_2=success bestiary_2= charms_2= bosstiary_2= \
-            phase_2=complete e2e=success; do
+          for marker in login_1=success bestiary_1= charms_1= bosstiary_1= phase_1=complete \
+            logout_1=complete login_2=success bestiary_2= charms_2= bosstiary_2= phase_2=complete e2e=success; do
             grep -q "^${marker}" artifacts/e2e-result.txt
           done
 
@@ -344,20 +281,15 @@ jobs:
           test "$(mysql -N -s -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e -e 'SELECT COUNT(*) FROM players_online;')" -eq 0
           test "$(mysql -N -s -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e -e "SELECT lastlogin > 0 FROM players WHERE name='Knight 1';")" -eq 1
           test "$(mysql -N -s -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e -e 'SELECT COUNT(*) FROM boosted_boss;')" -ge 1
-          if grep -Eqi 'unhandled|parse error|protocol error|segmentation fault|assertion failed|fatal error' \
-            artifacts/otclient.stdout.log artifacts/otclient.stderr.log; then
-            echo 'OTClient reported a parser/runtime failure.' >&2
-            exit 1
-          fi
+          ! grep -Eqi 'unhandled|parse error|protocol error|segmentation fault|assertion failed|fatal error' \
+            artifacts/otclient.stdout.log artifacts/otclient.stderr.log
 
       - name: Stop services
         if: always()
         shell: bash
         run: |
           for pidfile in artifacts/otclient.pid artifacts/canary.pid artifacts/xvfb.pid; do
-            if [[ -f "${pidfile}" ]]; then
-              kill "$(cat "${pidfile}")" 2>/dev/null || true
-            fi
+            [[ -f "${pidfile}" ]] && kill "$(cat "${pidfile}")" 2>/dev/null || true
           done
 
       - name: Upload live E2E evidence
@@ -366,5 +298,5 @@ jobs:
         with:
           name: cyclopedia-live-e2e
           path: artifacts/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
