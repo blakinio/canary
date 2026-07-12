@@ -41,7 +41,11 @@ jobs:
           python-version: "3.12"
       - name: Validate shipped hunt-area catalogue
         run: python tools/analytics/validate_gameplay_analytics_hunt_areas.py
-      - name: Validate the example candidate file generates cleanly
-        run: python tools/analytics/generate_gameplay_analytics_hunt_areas.py tools/analytics/gameplay_analytics_hunt_area_candidates.example.json
+      - name: Confirm the example placeholder is rejected
+        run: |
+          if python tools/analytics/generate_gameplay_analytics_hunt_areas.py tools/analytics/gameplay_analytics_hunt_area_candidates.example.json; then
+            echo "placeholder candidate unexpectedly generated production Lua" >&2
+            exit 1
+          fi
       - name: Run hunt-area tooling tests
         run: python -m unittest discover -s tools/analytics -p "test_gameplay_analytics_hunt_areas.py" -v
