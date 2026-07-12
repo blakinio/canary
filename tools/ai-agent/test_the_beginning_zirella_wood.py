@@ -53,11 +53,18 @@ class TheBeginningZirellaWoodTests(unittest.TestCase):
         )
         self.assertGreaterEqual(self.source.count("if not isCollectingWoodActive(player) then"), 2)
 
-    def test_preserves_exhaust_and_hint_progression(self) -> None:
-        self.assertRegex(self.source, r"TREE_EXHAUST_MS\s*=\s*5000\b")
-        self.assertIn("Condition(CONDITION_EXHAUST_WEAPON)", self.source)
-        self.assertIn("player:getCondition(CONDITION_EXHAUST_WEAPON)", self.source)
-        self.assertIn("player:addCondition(treeExhaust)", self.source)
+    def test_preserves_five_second_cooldown_and_hint_progression(self) -> None:
+        self.assertRegex(self.source, r"TREE_EXHAUST_SECONDS\s*=\s*5\b")
+        self.assertIn("local treeExhaustUntil = {}", self.source)
+        self.assertIn("local playerGuid = player:getGuid()", self.source)
+        self.assertIn("local now = os.time()", self.source)
+        self.assertIn("(treeExhaustUntil[playerGuid] or 0) > now", self.source)
+        self.assertIn(
+            "treeExhaustUntil[playerGuid] = now + TREE_EXHAUST_SECONDS",
+            self.source,
+        )
+        self.assertNotIn("CONDITION_EXHAUST_WEAPON", self.source)
+        self.assertNotIn("Condition(", self.source)
         self.assertIn("player:sendTutorial(24)", self.source)
         self.assertRegex(self.source, r"BRANCH_HINT_STAGE\s*=\s*15\b")
         self.assertIn(
