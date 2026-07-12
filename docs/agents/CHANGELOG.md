@@ -4,6 +4,8 @@ Curated behavior/architecture log for discovery; not a replacement for Git histo
 
 ## Unreleased
 
+- Raid startup repair in PR #205 splits active Draptor and Yeti monster bursts into progressive waves, enforces spawn-before-stage-advance timing, and separates the Undead Cavebear encounter identity without changing populations, broadcasts, maps or assets.
+
 - The Beginning Carlos repair in PR #157 removes the stage-1 `outfit` completion bypass, gates trade to the accepted stage-6 task, sends tutorial `13` when that trade is first opened, and advances to stage 7 only after an actual meat/ham sale while preserving the existing shop transaction and prices.
 - The Beginning Zirella reward-room repair in PR #156 seals UID `50085` until Zirella stage 8 and remaps shovel/rope tutorials to current reward UIDs `50093/50094`; it remains open and requires refresh against the advanced `main` branch.
 - GameStore balance sequencing repair in PR #187 emits one post-mutation balance snapshot, removes the parser-level duplicate, and preserves the existing disabled-reason deduplication without changing opcodes, prices or coin arithmetic.

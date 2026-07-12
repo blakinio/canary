@@ -597,7 +597,7 @@ tested; the "freeze new logins" and "disconnect before another process can
 steal the lease" actions require the Phase 2 game-loop wiring to execute
 for real.
 
-## 10a. Leader election primitive (✅ module, ✅ wired to the market-expiry job, 📐 other jobs unwired)
+## 10a. Leader election primitive (✅ module, ✅ wired to 3 jobs, 📐 others unwired)
 
 Several background jobs must run exactly once cluster-wide rather than once
 per channel process (`OPERATIONS.md`'s "Leader election / cluster-singleton
@@ -658,14 +658,45 @@ normally, so it keeps checking every cycle). This is a **cheap in-memory
 check gating a whole DB query**, not a change to the query or the
 expiry/refund logic itself.
 
+**✅ `Game::loadBoostedCreature`/`IOBosstiary::loadBoostedBoss`**
+(`src/game/game.cpp`/`src/io/io_bosstiary.cpp`) are the second and third
+jobs wired, and structurally different from market expiry: both are
+**one-shot startup calls** (`CanaryServer::loadModules()`), not recurring
+dispatcher events, so there is no periodic heartbeat cycle available yet at
+the point they run to have kept leadership "warm." Each calls
+`ClusterJobLeadershipRegistry::renewOrAcquire("boosted.creature"/
+"boosted.boss", ...)` directly, once, as a one-shot leader-election *race*
+rather than a sustained leadership check: whichever channel process reaches
+this line first wins the lease and proceeds to reroll+persist a new
+selection; every other process reads whatever is currently on record
+(possibly stale-by-one-day) instead of independently rolling and persisting
+a *different* value. `boosted_creature`/`boosted_boss` are both
+`PRIMARY KEY(date)` with no `channel_id` - genuinely one shared row each,
+unlike houses (see below) - and `loadBoostedBoss`'s reroll additionally
+resets *global* `player_bosstiary` slot state tied to the old boss id,
+making an uncoordinated race actively corrupting, not just cosmetically
+inconsistent.
+
 **📐 Known gap, stated honestly:** every *other* job in OPERATIONS.md's
-table (house rent, house auction settlement, daily reward reset, global
-boosted creature/boss selection, table cleanup jobs, highscores cache
-rebuild, ...) still runs unconditionally on every channel process. Wiring
-each remaining job individually (deciding what "lost leadership mid-run"
-should mean for that specific job - e.g. a partially-applied rent charge)
-is real per-job design work left for a follow-up, not something safe to do
-blind in one broad pass across a dozen unrelated jobs.
+table (daily reward reset, table cleanup jobs, highscores cache rebuild,
+database optimization, global server record, global event scheduling)
+still runs unconditionally on every channel process. Wiring each remaining
+job individually (deciding what "lost leadership mid-run" should mean for
+that specific job) is real per-job design work left for a follow-up, not
+something safe to do blind in one broad pass across the rest.
+
+**Correction, found while scoping this phase:** house rent charging and
+house auction settlement were previously listed here (and in OPERATIONS.md)
+as `cluster-singleton` - this was wrong. `Houses::payHouses`
+(`src/map/house/house.cpp`) iterates the in-memory `houseMap`, populated
+per-channel from each channel's own OTBM map at startup; since houses
+already have composite `(channel_id, house_id)` identity (§2.5), each
+channel's `houseMap` only ever contains its own disjoint houses. Gating
+this behind cluster-wide leader election would have been a **regression**
+(every non-leader channel would simply stop charging rent for its own
+houses), not a fix - it is a genuine `per-channel` job needing no
+coordination. See OPERATIONS.md's job table for the corrected
+classification and full reasoning.
 
 ## 10b. GM/admin commands (✅ one read-only lookup, 📐 the rest)
 
