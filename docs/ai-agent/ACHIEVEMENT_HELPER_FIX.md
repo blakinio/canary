@@ -41,6 +41,8 @@ The helper now:
 7. resolves public/secret metadata by ID or exact name;
 8. logs the supplied invalid identifier with `logger.error` and returns `false`.
 
+Registration validation uses structured `if/elseif/else` flow rather than Lua labels. This preserves the skip-invalid behavior while remaining compatible with the repository's default StyLua parser configuration.
+
 Output ordering becomes deterministic ascending ID. Public function signatures remain unchanged.
 
 ## Compatibility boundary
