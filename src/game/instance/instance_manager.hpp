@@ -46,6 +46,15 @@ using InstanceCleanupCallback = std::function<void(InstanceId, const InstanceMap
 using InstanceCreatureId = uint32_t;
 constexpr InstanceCreatureId INVALID_INSTANCE_CREATURE_ID = 0;
 
+enum class InstanceCreatureRelation : uint8_t {
+	// Both runtime ids are currently outside every instance.
+	SameWorld,
+	// Both runtime ids are owned by the same active instance boundary.
+	SameInstance,
+	// Invalid ids, one owned/one unowned, or different instance owners.
+	Isolated,
+};
+
 // Owns the configured map-region pool and the lifecycle of instances that
 // reserve those regions. Deliberately a plain, constructor-instantiated class
 // rather than a g_x() singleton.
@@ -95,6 +104,17 @@ public:
 	// the instance is Closing so the cleanup callback can drain the registry.
 	bool unregisterCreature(InstanceId id, InstanceCreatureId creatureId);
 
+	// Applies summon ownership atomically from stable runtime identities.
+	// An unowned master accepts only an unowned summon and remains a no-op.
+	// An owned master registers an unowned summon to the same instance.
+	// Cross-instance ownership, invalid ids and Closing/Destroyed owners fail.
+	bool inheritCreatureOwnership(InstanceCreatureId masterId, InstanceCreatureId summonId);
+
+	// Central fail-closed ownership relation used by later visibility,
+	// targeting and combat wiring. No map or Creature pointer access occurs.
+	[[nodiscard]] InstanceCreatureRelation getCreatureRelation(InstanceCreatureId firstId, InstanceCreatureId secondId) const;
+	[[nodiscard]] bool canCreaturesInteract(InstanceCreatureId firstId, InstanceCreatureId secondId) const;
+
 	[[nodiscard]] std::optional<InstanceId> getCreatureOwner(InstanceCreatureId creatureId) const;
 	[[nodiscard]] std::vector<InstanceCreatureId> getRegisteredCreatureIds(InstanceId id) const;
 	[[nodiscard]] std::size_t registeredCreatureCount(InstanceId id) const;
@@ -122,6 +142,9 @@ private:
 		InstanceCleanupCallback cleanupCallback;
 		std::unordered_set<InstanceCreatureId> creatureIds;
 	};
+
+	[[nodiscard]] bool canAcceptCreatureLocked(const InstanceRecord &record) const noexcept;
+	bool registerCreatureLocked(InstanceRecord &record, InstanceCreatureId creatureId);
 
 	mutable std::mutex mutex;
 	InstanceRegionPool regionPool;
