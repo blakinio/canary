@@ -6,6 +6,9 @@ on:
       - ops/otbm-pr104-snapshot
     paths:
       - .github/workflows/otbm-pr104-snapshot.yml
+  pull_request:
+    paths:
+      - .github/workflows/otbm-pr104-snapshot.yml
   workflow_dispatch:
 
 permissions:
