@@ -13,20 +13,16 @@
 #include "database/databasetasks.hpp"
 #include "game/multichannel/channel_registry.hpp"
 #include "game/multichannel/channel_runtime_registry.hpp"
+#include "game/multichannel/wall_clock.hpp"
 #include "lib/logging/log_with_spd_log.hpp"
 
 #ifndef USE_PRECOMPILED_HEADERS
-	#include <chrono>
 	#include <cstdlib>
 	#include <sstream>
 	#include <tuple>
 #endif
 
 namespace {
-	int64_t wallClockMs() {
-		return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-	}
-
 	std::string environmentOr(const char* name, std::string fallback) {
 		const char* value = std::getenv(name);
 		if (value && *value != '\0') {
@@ -81,7 +77,7 @@ void ClusterRuntime::configure(std::shared_ptr<IRedisClient> client, int32_t new
 		leaseTtlMs = newLeaseTtlMs;
 		heartbeatIntervalMs = newHeartbeatIntervalMs;
 		failureGracePeriodMs = newFailureGracePeriodMs;
-		runtimeStartedAtMs = wallClockMs();
+		runtimeStartedAtMs = multichannel::wallClockMs();
 		tracked.clear();
 		enabled = true;
 	}
@@ -172,7 +168,7 @@ std::vector<int32_t> ClusterRuntime::renewAllAndCollectExpired(int64_t nowMs) {
 	std::vector<int32_t> expired;
 	ChannelRuntimeStatus ownStatus;
 	int64_t runtimeTtlMs = 0;
-	const int64_t runtimeNowMs = wallClockMs();
+	const int64_t runtimeNowMs = multichannel::wallClockMs();
 
 	{
 		std::lock_guard lock(mutex);

@@ -11,10 +11,7 @@
 
 #include "game/multichannel/channel_registry.hpp"
 #include "game/multichannel/channel_runtime_registry.hpp"
-
-#ifndef USE_PRECOMPILED_HEADERS
-	#include <chrono>
-#endif
+#include "game/multichannel/wall_clock.hpp"
 
 std::optional<ChannelSwitchPartyPolicy> parseChannelSwitchPartyPolicy(const std::string &value) {
 	if (value == "deny") {
@@ -70,9 +67,6 @@ namespace {
 		return decision;
 	}
 
-	int64_t wallClockMs() {
-		return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-	}
 } // namespace
 
 ChannelSwitchDecision ChannelSwitchService::evaluate(const ChannelSwitchRequest &request) {
@@ -113,7 +107,7 @@ ChannelSwitchDecision ChannelSwitchService::evaluate(const ChannelSwitchRequest 
 	if (g_channelRuntimeRegistry().isEnabled()) {
 		const auto targetChannel = g_channelRegistry().getChannel(request.targetChannelId);
 		const int32_t maxPlayers = targetChannel.has_value() ? targetChannel->maxPlayers : 0;
-		const auto availability = g_channelRuntimeRegistry().getAvailability(request.targetChannelId, maxPlayers, wallClockMs());
+		const auto availability = g_channelRuntimeRegistry().getAvailability(request.targetChannelId, maxPlayers, multichannel::wallClockMs());
 		targetOnline = availability.online;
 		targetFull = availability.full;
 	}

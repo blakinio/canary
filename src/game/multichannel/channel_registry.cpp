@@ -13,13 +13,13 @@
 #include "database/database.hpp"
 #include "game/multichannel/channel_context.hpp"
 #include "game/multichannel/channel_runtime_registry.hpp"
+#include "game/multichannel/wall_clock.hpp"
 #include "lib/di/container.hpp"
 #include "lib/logging/log_with_spd_log.hpp"
 
 #ifndef USE_PRECOMPILED_HEADERS
 	#include <algorithm>
 	#include <array>
-	#include <chrono>
 	#include <fstream>
 	#include <sstream>
 #endif
@@ -35,10 +35,6 @@ namespace {
 			return std::nullopt;
 		}
 		return value;
-	}
-
-	int64_t wallClockMs() {
-		return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	}
 } // namespace
 
@@ -95,7 +91,7 @@ std::optional<ChannelInfo> ChannelRegistry::getChannel(int32_t channelId) const 
 std::vector<ChannelInfo> ChannelRegistry::getLoginListChannels() const {
 	const auto snapshot = getAllChannels();
 	if (g_channelRuntimeRegistry().isEnabled()) {
-		return g_channelRuntimeRegistry().getLoginListChannels(snapshot, wallClockMs());
+		return g_channelRuntimeRegistry().getLoginListChannels(snapshot, multichannel::wallClockMs());
 	}
 
 	std::vector<ChannelInfo> selectable;
