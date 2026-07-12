@@ -5,12 +5,13 @@ on:
   pull_request:
     branches:
       - main
-  push:
-    branches:
-      - fix/account-quests-production-hardening
 
 permissions:
   contents: write
+
+concurrency:
+  group: account-quests-bootstrap-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   apply:
@@ -30,10 +31,22 @@ jobs:
         run: |
           git restore .github/workflows/account-quests-bootstrap.yml
           git restore tools/account-quests/bootstrap_hardening.py
+      - name: Prepare generated patch
+        run: |
+          git add -A
+          git status --short
+          git diff --cached --stat
+          git diff --cached --binary > /tmp/account-quests-hardening.patch
+      - name: Upload generated patch
+        uses: actions/upload-artifact@v4
+        with:
+          name: account-quests-hardening-patch
+          path: /tmp/account-quests-hardening.patch
+          if-no-files-found: error
       - name: Commit generated changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
           git commit -m "fix(account-quests): complete production hardening"
-          git push origin HEAD:fix/account-quests-production-hardening
+      - name: Push generated changes
+        run: git push origin HEAD:fix/account-quests-production-hardening
