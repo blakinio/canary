@@ -11,6 +11,7 @@
 
 #include "../../../shared/game/multichannel/fake_cluster_session_repository.hpp"
 #include "../../../shared/game/multichannel/fake_redis_client.hpp"
+#include "injection_fixture.hpp"
 
 #include <gtest/gtest.h>
 #include <memory>
@@ -20,6 +21,8 @@ protected:
 	void TearDown() override {
 		ClusterRuntime::getInstance().resetForTesting();
 	}
+
+	InjectionFixture fixture_ {};
 };
 
 TEST_F(ClusterRuntimeTest, DisabledByDefaultIsPermissiveNoOp) {
@@ -59,7 +62,6 @@ TEST_F(ClusterRuntimeTest, GetTrackedSessionInfoReflectsTheAcquiredHandle) {
 
 	const auto handle = runtime.acquireForLogin(42, 100, 1, 10000);
 	ASSERT_TRUE(handle.acquired);
-
 	const auto info = runtime.getTrackedSessionInfo(42);
 	ASSERT_TRUE(info.has_value());
 	EXPECT_EQ(handle.sessionId, info->sessionId);
@@ -125,10 +127,6 @@ TEST_F(ClusterRuntimeTest, OutageForcesDisconnectBeforeLeaseCouldBeLegallyStolen
 	ASSERT_TRUE(runtime.acquireForLogin(7, 100, 1, 10000).acquired);
 	fake->setHealthyForTesting(false);
 
-	// leaseTtlMs=1000, heartbeatIntervalMs=200: with no successful renew
-	// since acquire at 10000, the lease's own expiry (11000) is within one
-	// heartbeat interval by 10800 - integrity must win over availability
-	// even though the 500ms failureGracePeriodMs alone hasn't elapsed here.
 	const auto forcedOut = runtime.renewAllAndCollectExpired(10850);
 	ASSERT_EQ(1u, forcedOut.size());
 	EXPECT_EQ(7, forcedOut[0]);
