@@ -602,23 +602,17 @@ for _, id in ipairs(achievementIds) do
 	local achievTable = ACHIEVEMENTS[id]
 	if achievTable.name == nil then
 		logger.error(string.format("[Achievements registration] - Invalid achievement with no name, id: '%s'", id))
-		goto continue
-	end
-
-	if achievTable.description == nil then
+	elseif achievTable.description == nil then
 		logger.error(string.format("[Achievements registration] - Invalid achievement with no description, id: '%s'", id))
-		goto continue
+	else
+		local secret = achievTable.secret or false
+		local grade = achievTable.grade or 0
+		local points = achievTable.points or 0
+
+		logger.trace("[Achievements registration] - Registering achievement '{}' with id '{}'", achievTable.name, id)
+		Game.registerAchievement(id, achievTable.name, achievTable.description, secret, grade, points)
+		registeredAchievementIds[#registeredAchievementIds + 1] = id
 	end
-
-	local secret = achievTable.secret or false
-	local grade = achievTable.grade or 0
-	local points = achievTable.points or 0
-
-	logger.trace("[Achievements registration] - Registering achievement '{}' with id '{}'", achievTable.name, id)
-	Game.registerAchievement(id, achievTable.name, achievTable.description, secret, grade, points)
-	registeredAchievementIds[#registeredAchievementIds + 1] = id
-
-	::continue::
 end
 
 ACHIEVEMENT_FIRST = registeredAchievementIds[1] or 0
