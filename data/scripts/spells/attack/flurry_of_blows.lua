@@ -14,19 +14,19 @@ combatWod:setParameter(COMBAT_PARAM_BLOCKARMOR, 1)
 combatWod:setParameter(COMBAT_PARAM_USECHARGES, 1)
 combatWod:setArea(createCombatArea(AREA_GREATER_FLURRY_OF_BLOWS))
 
-function onGetFormulaValues(player, skill, attack, factor)
+local function calculateFormula(player, skill, attack)
 	local damageHealing = player:calculateFlatDamageHealing()
-
 	local damage = SPELL_BASE_POWER * (skill / 100) * (attack / 10) + damageHealing
 
-	local min = damage - (damage / 10)
-	local max = damage + (damage / 10)
+	return damage - (damage / 10), damage + (damage / 10)
+end
 
-	return min, max
+function onGetFormulaValues(player, skill, attack, factor)
+	return calculateFormula(player, skill, attack)
 end
 
 function onGetFormulaValuesWod(player, skill, attack, factor)
-	return onGetFormulaValues(player, skill, attack, factor)
+	return calculateFormula(player, skill, attack)
 end
 
 combat:setCallback(CALLBACK_PARAM_SKILLVALUE, "onGetFormulaValues")
