@@ -40,5 +40,18 @@ class CyclopediaRuntimeFixContractTests(unittest.TestCase):
         self.assertIn("INSERT INTO `boosted_boss`", body)
 
 
+    def test_current_login_prelude_matches_maintained_otclient(self) -> None:
+        text = self.read("src/server/network/protocol/protocol_profile.cpp")
+        layout = re.search(
+            r"constexpr AccountLoginLayout currentAccountLoginLayout \{.*?\n\t\};",
+            text,
+            re.S,
+        )
+        self.assertIsNotNone(layout)
+        body = layout.group(0)
+        self.assertIn(".bytesToSkipBeforeRsa = 9,", body)
+        self.assertNotIn(".bytesToSkipBeforeRsa = 17,", body)
+
+
 if __name__ == "__main__":
     unittest.main()
