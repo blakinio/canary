@@ -7,7 +7,7 @@ base_branch: main
 created: 2026-07-12
 updated: 2026-07-12
 risk: medium
-related_pr: ""
+related_pr: "#186"
 depends_on:
   - "PR #149 Zirella Collecting Wood restoration"
 blocks:
