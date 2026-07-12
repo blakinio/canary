@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "project": "OTS AI Cyclopedia Validation",
+  "updatedAt": "2026-07-12T20:08:00+02:00",
+  "reference": "https://tibia.fandom.com/wiki/Cyclopedia",
+  "safety": {
+    "readOnlyAuditPr": 170,
+    "requiresDisposableDatabase": true,
+    "requiresCompatibleOtclient": true,
+    "forbiddenTargets": [
+      "production database",
+      "production player accounts",
+      "production map",
+      "upstream repositories"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "BESTIARY-DIFFICULTY-BOUNDARIES",
+      "domain": "bestiary",
+      "priority": "P0",
+      "status": "planned",
+      "setup": "Call the active difficulty calculation with deterministic loot chances.",
+      "inputs": [199, 200, 999, 1000, 4999, 5000, 24999, 25000],
+      "assertions": [
+        "every documented difficulty band is reachable",
+        "boundary classification is monotonic",
+        "integer truncation does not collapse fractional bands"
+      ],
+      "cleanup": "none"
+    },
+    {
+      "id": "CHARM-RESET-ALL-COST-BOUNDARIES",
+      "domain": "charms",
+      "priority": "P0",
+      "status": "needs-current-rule-confirmation",
+      "setup": "Create disposable players with no active combat and deterministic balances.",
+      "inputs": [100, 101, 102, 500],
+      "assertions": [
+        "displayed and deducted reset cost use one formula",
+        "the level-100 transition matches the current Tibia rule",
+        "all assigned Charms are reset exactly once",
+        "relog preserves the reset state"
+      ],
+      "cleanup": "restore disposable player snapshot"
+    },
+    {
+      "id": "CHARM-REGISTRY-AND-PERSISTENCE",
+      "domain": "charms",
+      "priority": "P0",
+      "status": "planned",
+      "setup": "Load active Charm definitions and a disposable premium/non-premium character pair.",
+      "assertions": [
+        "all registered IDs and names are unique",
+        "each tier exposes matching cost, chance and effect metadata",
+        "assignment rejects locked or incompatible states",
+        "unlocked tier and assigned race survive relog",
+        "single and full reset release the expected slot state"
+      ],
+      "cleanup": "delete disposable player rows and KV state"
+    },
+    {
+      "id": "BESTIARY-KILL-NULL-SAFETY",
+      "domain": "bestiary",
+      "priority": "P0",
+      "status": "planned",
+      "setup": "Exercise kill attribution with a missing/invalid MonsterType in an isolated unit or integration harness.",
+      "assertions": [
+        "no null dereference occurs",
+        "no kill counter or Charm Point state changes",
+        "the server remains available"
+      ],
+      "cleanup": "none"
+    },
+    {
+      "id": "BESTIARY-PROGRESSION-RELOG",
+      "domain": "bestiary",
+      "priority": "P1",
+      "status": "planned",
+      "setup": "Select one active monster for each threshold shape and seed kills immediately below each threshold.",
+      "assertions": [
+        "one kill advances exactly one counter",
+        "unlock messages and Charm Points fire once at each stage",
+        "tracker update matches the saved count",
+        "relog restores the exact stage and count"
+      ],
+      "cleanup": "restore disposable player Bestiary state"
+    },
+    {
+      "id": "BOSSTIARY-MISSING-ROW-RECOVERY",
+      "domain": "bosstiary",
+      "priority": "P0",
+      "status": "planned",
+      "setup": "Use a disposable DB with an empty boosted_boss table, then start the Bosstiary loader.",
+      "assertions": [
+        "startup does not leave boosted boss uninitialized",
+        "a valid fallback row or selected boss is persisted",
+        "subsequent loads are idempotent"
+      ],
+      "cleanup": "drop disposable schema"
+    },
+    {
+      "id": "BOSSTIARY-STAGES-SLOTS-AND-RELOG",
+      "domain": "bosstiary",
+      "priority": "P1",
+      "status": "planned",
+      "setup": "Use disposable Bane, Archfoe and Nemesis bosses with counts around every stage boundary.",
+      "assertions": [
+        "Prowess, Expertise and Mastery thresholds use the correct rarity table",
+        "Boss Points are awarded once",
+        "slot assignment/removal price and boosted-boss inactivity are correct",
+        "loot bonus and slot state survive relog"
+      ],
+      "cleanup": "restore player_bosstiary and KV state"
+    },
+    {
+      "id": "CHARACTER-RECENT-PVP-70-DAY-PAGINATION",
+      "domain": "character",
+      "priority": "P0",
+      "status": "planned",
+      "setup": "Insert deterministic PvP deaths inside and outside the 70-day window.",
+      "assertions": [
+        "row list contains only in-window entries",
+        "page count is computed from the same window",
+        "requesting the last page returns the expected bounded rows",
+        "no empty phantom pages are advertised"
+      ],
+      "cleanup": "delete fixture deaths"
+    },
+    {
+      "id": "PROTOCOL-SEVEN-DOMAIN-SMOKE",
+      "domain": "cross-repo",
+      "priority": "P1",
+      "status": "planned",
+      "setup": "Connect the maintained OTClient build to an instrumented disposable Canary world.",
+      "assertions": [
+        "Items request/response parses without unread bytes",
+        "Bestiary and Charms requests parse without unread bytes",
+        "Bosstiary and boss slots parse without unread bytes",
+        "Map action is accepted or explicitly feature-gated",
+        "Character/Titles responses parse for every info type",
+        "Houses list and auction messages parse without unread bytes"
+      ],
+      "cleanup": "remove packet captures that contain player identifiers"
+    },
+    {
+      "id": "HOUSES-AUCTION-STATE-MATRIX",
+      "domain": "houses",
+      "priority": "P1",
+      "status": "planned",
+      "setup": "Create disposable available, rented, transfer and move-out houses plus premium/guild eligibility variants.",
+      "assertions": [
+        "only legal actions are accepted for each state",
+        "bid/transfer balances are atomic",
+        "cancel/accept/reject update owner and state exactly once",
+        "house list filters match persisted state"
+      ],
+      "cleanup": "restore disposable house and account rows"
+    }
+  ]
+}

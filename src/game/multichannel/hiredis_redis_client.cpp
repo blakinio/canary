@@ -17,14 +17,10 @@
 		#include <algorithm>
 		#include <cstdlib>
 		#include <cstring>
+		#include <unordered_map>
 	#endif
 
 namespace {
-	// Embedded verbatim from redis_scripts/*.lua (see docs/multichannel/
-	// ARCHITECTURE.md §5) rather than read from disk at runtime, so the
-	// production client can never drift from - or be pointed at a tampered
-	// copy of - the exact scripts already validated in TEST_PLAN.md against
-	// a real redis-server.
 	constexpr const char* kAcquireScript = R"lua(
 local key = KEYS[1]
 local newSessionId = ARGV[1]
@@ -80,6 +76,28 @@ if not currentSessionId or currentSessionId ~= sessionId then
 end
 
 redis.call("HSET", key, "expires_at", "0")
+return { 1 }
+)lua";
+
+	constexpr const char* kChannelHeartbeatScript = R"lua(
+local key = KEYS[1]
+local ttlMs = tonumber(ARGV[11])
+if not ttlMs or ttlMs <= 0 then
+	return { 0 }
+end
+
+redis.call("HSET", key,
+	"channel_id", ARGV[1],
+	"instance_id", ARGV[2],
+	"node_id", ARGV[3],
+	"started_at", ARGV[4],
+	"last_heartbeat", ARGV[5],
+	"status", ARGV[6],
+	"players_online", ARGV[7],
+	"build_sha", ARGV[8],
+	"map_hash", ARGV[9],
+	"data_hash", ARGV[10])
+redis.call("PEXPIRE", key, ttlMs)
 return { 1 }
 )lua";
 } // namespace
@@ -150,12 +168,10 @@ bool HiredisRedisClient::ensureConnected() {
 		}
 	}
 
-	// Re-cache script SHAs on every fresh connection - a Redis restart (or
-	// failover to a replica promoted without the script cache) means any
-	// previously-cached SHA is no longer guaranteed to resolve.
 	acquireSha.clear();
 	renewSha.clear();
 	releaseSha.clear();
+	channelHeartbeatSha.clear();
 	healthy = true;
 	return true;
 }
@@ -192,6 +208,19 @@ namespace {
 			}
 		}
 		return out;
+	}
+
+	int64_t parseInt64(const std::unordered_map<std::string, std::string> &fields, const std::string &name) {
+		const auto it = fields.find(name);
+		if (it == fields.end()) {
+			return 0;
+		}
+		return std::strtoll(it->second.c_str(), nullptr, 10);
+	}
+
+	std::string stringField(const std::unordered_map<std::string, std::string> &fields, const std::string &name) {
+		const auto it = fields.find(name);
+		return it == fields.end() ? std::string {} : it->second;
 	}
 } // namespace
 
@@ -234,9 +263,6 @@ std::vector<std::string> HiredisRedisClient::evalScript(std::string &cachedSha, 
 
 	if (reply->type == REDIS_REPLY_ERROR && reply->str && std::strstr(reply->str, "NOSCRIPT") != nullptr) {
 		freeReplyObject(reply);
-		// Script cache miss (e.g. a Redis restart/failover) - reload and
-		// retry once via EVAL directly, which also re-populates the cache
-		// for subsequent EVALSHA calls.
 		cachedSha = loadScript(context, scriptBody);
 		if (cachedSha.empty()) {
 			healthy = false;
@@ -257,9 +283,6 @@ std::vector<std::string> HiredisRedisClient::evalScript(std::string &cachedSha, 
 
 	if (reply->type == REDIS_REPLY_ERROR) {
 		freeReplyObject(reply);
-		// A real Lua error is not a connectivity problem - the scripts are
-		// fixed and already validated, so this should not happen in
-		// practice, but do not mask it as "healthy" silently either.
 		healthy = false;
 		return {};
 	}
@@ -319,6 +342,93 @@ std::optional<uint64_t> HiredisRedisClient::peekFencingToken(const std::string &
 	freeReplyObject(reply);
 	healthy = true;
 	return result;
+}
+
+bool HiredisRedisClient::writeChannelRuntimeStatus(const std::string &runtimeKey, const ChannelRuntimeStatus &status, int64_t ttlMs, int64_t /*nowMs*/) {
+	if (ttlMs <= 0 || status.channelId <= 0 || !status.hasValidState()) {
+		return false;
+	}
+	const auto reply = evalScript(
+		channelHeartbeatSha,
+		kChannelHeartbeatScript,
+		runtimeKey,
+		{
+			std::to_string(status.channelId),
+			status.instanceId,
+			status.nodeId,
+			std::to_string(status.startedAtMs),
+			std::to_string(status.lastHeartbeatMs),
+			status.status,
+			std::to_string(status.playersOnline),
+			status.buildSha,
+			status.mapHash,
+			status.dataHash,
+			std::to_string(ttlMs),
+		}
+	);
+	return !reply.empty() && reply[0] == "1";
+}
+
+std::optional<ChannelRuntimeStatus> HiredisRedisClient::readChannelRuntimeStatus(const std::string &runtimeKey, int64_t /*nowMs*/) {
+	std::lock_guard<std::mutex> lock(mutex);
+	if (!ensureConnected()) {
+		return std::nullopt;
+	}
+
+	const char* argv_c[] = { "HGETALL", runtimeKey.c_str() };
+	std::size_t argvlen[] = { 7, runtimeKey.size() };
+	redisReply* reply = static_cast<redisReply*>(redisCommandArgv(context, 2, argv_c, argvlen));
+	if (!reply) {
+		healthy = false;
+		return std::nullopt;
+	}
+	if (reply->type != REDIS_REPLY_ARRAY) {
+		freeReplyObject(reply);
+		healthy = false;
+		return std::nullopt;
+	}
+	if (reply->elements == 0) {
+		freeReplyObject(reply);
+		healthy = true;
+		return std::nullopt;
+	}
+	if (reply->elements % 2 != 0) {
+		freeReplyObject(reply);
+		healthy = false;
+		return std::nullopt;
+	}
+
+	std::unordered_map<std::string, std::string> fields;
+	for (std::size_t i = 0; i < reply->elements; i += 2) {
+		const auto* key = reply->element[i];
+		const auto* value = reply->element[i + 1];
+		if (!key || !value || key->type != REDIS_REPLY_STRING || value->type != REDIS_REPLY_STRING) {
+			freeReplyObject(reply);
+			healthy = false;
+			return std::nullopt;
+		}
+		fields.emplace(std::string(key->str, key->len), std::string(value->str, value->len));
+	}
+	freeReplyObject(reply);
+
+	ChannelRuntimeStatus status;
+	status.channelId = static_cast<int32_t>(parseInt64(fields, "channel_id"));
+	status.instanceId = stringField(fields, "instance_id");
+	status.nodeId = stringField(fields, "node_id");
+	status.startedAtMs = parseInt64(fields, "started_at");
+	status.lastHeartbeatMs = parseInt64(fields, "last_heartbeat");
+	status.status = stringField(fields, "status");
+	status.playersOnline = static_cast<int32_t>(parseInt64(fields, "players_online"));
+	status.buildSha = stringField(fields, "build_sha");
+	status.mapHash = stringField(fields, "map_hash");
+	status.dataHash = stringField(fields, "data_hash");
+
+	if (status.channelId <= 0 || !status.hasValidState()) {
+		healthy = false;
+		return std::nullopt;
+	}
+	healthy = true;
+	return status;
 }
 
 bool HiredisRedisClient::isHealthy() const {

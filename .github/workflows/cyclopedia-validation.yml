@@ -1,0 +1,135 @@
+---
+name: Cyclopedia Validation
+
+on:
+  push:
+    branches:
+      - main
+      - "feat/**"
+      - "fix/**"
+      - "ai/**"
+    paths:
+      - "data/scripts/lib/register_bestiary_charm.lua"
+      - "data/scripts/systems/bestiary_charms.lua"
+      - "data/monster/**/*.lua"
+      - "data-otservbr-global/monster/**/*.lua"
+      - "src/io/iobestiary.*"
+      - "src/io/io_bosstiary.*"
+      - "src/creatures/players/components/player_cyclopedia.*"
+      - "src/creatures/players/components/player_title.*"
+      - "src/server/network/protocol/protocolgame.*"
+      - "src/enums/player_cyclopedia.hpp"
+      - "src/map/house/**"
+      - "schema.sql"
+      - "tools/ai-agent/cyclopedia_validation.py"
+      - "tools/ai-agent/test_cyclopedia_validation.py"
+      - "docs/ai-agent/CYCLOPEDIA_RUNTIME_TEST_PLAN.json"
+      - "docs/ai-agent/CYCLOPEDIA_VALIDATION_REPORT.md"
+      - ".github/workflows/cyclopedia-validation.yml"
+  pull_request:
+    paths:
+      - "data/scripts/lib/register_bestiary_charm.lua"
+      - "data/scripts/systems/bestiary_charms.lua"
+      - "data/monster/**/*.lua"
+      - "data-otservbr-global/monster/**/*.lua"
+      - "src/io/iobestiary.*"
+      - "src/io/io_bosstiary.*"
+      - "src/creatures/players/components/player_cyclopedia.*"
+      - "src/creatures/players/components/player_title.*"
+      - "src/server/network/protocol/protocolgame.*"
+      - "src/enums/player_cyclopedia.hpp"
+      - "src/map/house/**"
+      - "schema.sql"
+      - "tools/ai-agent/cyclopedia_validation.py"
+      - "tools/ai-agent/test_cyclopedia_validation.py"
+      - "docs/ai-agent/CYCLOPEDIA_RUNTIME_TEST_PLAN.json"
+      - "docs/ai-agent/CYCLOPEDIA_VALIDATION_REPORT.md"
+      - ".github/workflows/cyclopedia-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Audit Cyclopedia registries and contracts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Canary
+        uses: actions/checkout@v4
+
+      - name: Checkout maintained OTClient reference
+        uses: actions/checkout@v4
+        with:
+          repository: opentibiabr/otclient
+          path: otclient
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run focused tests
+        run: python -m unittest discover -s tools/ai-agent -p "test_cyclopedia_validation.py" -v
+
+      - name: Compile validator
+        run: python -m py_compile tools/ai-agent/cyclopedia_validation.py tools/ai-agent/test_cyclopedia_validation.py
+
+      - name: Generate Cyclopedia audit
+        run: |
+          python tools/ai-agent/cyclopedia_validation.py \
+            --repository-root . \
+            --otclient-root otclient \
+            --output artifacts/CYCLOPEDIA_VALIDATION.json \
+            --fail-on none
+
+      - name: Validate generated JSON
+        run: |
+          python -m json.tool artifacts/CYCLOPEDIA_VALIDATION.json > /dev/null
+          python -m json.tool docs/ai-agent/CYCLOPEDIA_RUNTIME_TEST_PLAN.json > /dev/null
+
+      - name: Verify audit invariants
+        shell: python
+        run: |
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("artifacts/CYCLOPEDIA_VALIDATION.json").read_text(encoding="utf-8"))
+          assert report["schemaVersion"] == 1
+          assert report["summary"]["domains"] == 7
+          assert report["summary"]["charmCount"] > 0
+          assert report["summary"]["monsterFiles"] > 0
+          assert report["otclient"]["status"] == "scanned"
+          assert not [item for item in report["findings"] if item["id"] == "SOURCE-MISSING"]
+
+      - name: Publish audit summary
+        shell: python
+        run: |
+          import json
+          import os
+          from pathlib import Path
+
+          report = json.loads(Path("artifacts/CYCLOPEDIA_VALIDATION.json").read_text(encoding="utf-8"))
+          summary = report["summary"]
+          lines = [
+              "# Cyclopedia validation",
+              "",
+              f"- domains: {summary['domains']}",
+              f"- active monster files: {summary['monsterFiles']}",
+              f"- Bestiary entries: {summary['bestiaryEntries']}",
+              f"- Bosstiary entries: {summary['bosstiaryEntries']}",
+              f"- Charm entries: {summary['charmCount']}",
+              f"- findings: {summary['findingCount']}",
+              f"- severity: {summary['bySeverity']}",
+              f"- OTClient inventory: {report['otclient']['status']}",
+          ]
+          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+      - name: Upload audit artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyclopedia-validation-audit
+          path: artifacts/CYCLOPEDIA_VALIDATION.json
+          if-no-files-found: error
+          retention-days: 14
