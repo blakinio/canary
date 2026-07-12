@@ -1,273 +1,176 @@
-# OTS AI Wheel of Destiny Validation — stan, metodologia i handoff
+# OTS AI Wheel of Destiny Validation — stan i handoff
 
 > **Aktualizacja:** 2026-07-12  
-> **Projekt nadrzędny:** `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md`  
-> **Repozytorium zapisywalne:** `blakinio/canary`  
-> **Gałąź:** `feat/wheel-of-destiny-validation-audit`  
+> **Repo:** `blakinio/canary`  
+> **Branch:** `feat/wheel-of-destiny-validation-audit`  
 > **Draft PR:** [#169](https://github.com/blakinio/canary/pull/169)  
-> **Zakres PR:** wyłącznie dokumentacja, deterministyczne narzędzia walidacyjne, testy i CI; bez zmian gameplay, balansu, protokołu, schema, datapacka, mapy ani assetów.
+> **Projekt nadrzędny:** `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md`  
+> **Safety boundary:** ten PR zawiera wyłącznie dokumentację, read-only scannery, focused tests i CI. Nie zmienia gameplay, balansu, protokołu, schema, datapacka, mapy ani assetów.
 
----
+## Metodologia
 
-## 1. Cel i metodologia
-
-Zweryfikować Wheel of Destiny i Gem Atelier w pełnym łańcuchu:
+Każdą cechę sprawdzamy osobno:
 
 ```text
 definition -> reference -> activation -> effect -> persistence -> protocol -> runtime -> regression
 ```
 
-Sama obecność enumu, getter'a, handlera, skryptu lub danych nie jest dowodem poprawności efektu.
+Statyczny match nie oznacza runtime verification.
 
-Źródła:
+Reference snapshot:
 
 ```text
-writable: blakinio/canary
-upstream reference: opentibiabr/canary
-client contract: opentibiabr/otclient — pending
-reference snapshot: https://tibia.fandom.com/wiki/Wheel_of_Destiny, 2026-07-12
+https://tibia.fandom.com/wiki/Wheel_of_Destiny
+checked: 2026-07-12
 baseline: docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json
 ```
 
-Najważniejsze wartości baseline:
+Najważniejsze wartości: 36 slice'ów, Revelation 250/500/1000, 50 scroll points, 10 Monk quest points, do 50 Hunting Task Shop points, do 69 Grade IV points, limit 225 gems, reveal 125k/1m/6m, rotate 125k/250k/500k, Supreme Grade III 12.5m, Grade IV = 150% Grade I.
 
-- 36 slice'ów;
-- Revelation 250 / 500 / 1000;
-- 1 punkt za poziom po 50;
-- 50 punktów z Promotion Scrolls;
-- 10 punktów z The Way of the Monk;
-- maksymalnie 50 punktów z Hunting Task Shop;
-- maksymalnie 69 punktów z Grade IV mods;
-- limit 225 revealed gems;
-- reveal 125k / 1m / 6m;
-- rotate 125k / 250k / 500k;
-- Basic Grade II–IV: 2m / 5m / 30m;
-- Supreme Grade II–IV: 5m / 12.5m / 75m;
-- Grade IV = 150% Grade I;
-- każdy Grade IV mod daje jeden stały Promotion Point.
+## Artefakty
 
----
+| Path | Stan |
+|---|---|
+| `tools/ai-agent/wheel_of_destiny_validation.py` + test | 7 lokalnych testów passed |
+| `tools/ai-agent/wheel_protocol_validation.py` + test | 2 lokalne testy passed |
+| `tools/ai-agent/wheel_task_shop_validation.py` + test | 2 lokalne testy passed |
+| `docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json` | aktywny |
+| `docs/ai-agent/WHEEL_OF_DESTINY_VALIDATION_REPORT.md` | aktywny |
+| `docs/ai-agent/WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json` | 20 scenariuszy |
+| `.github/workflows/wheel-of-destiny-validation.yml` | trzy audyty, 11 testów, sześć artifact files; najnowszy run pending |
+| `docs/agents/MODULE_CATALOG.md` | audit skatalogowany jako aktywne narzędzie PR #169 |
 
-## 2. Artefakty
-
-| Path | Cel | Stan |
-|---|---|---|
-| `wheel_of_destiny_validation.py` | główny scanner definicji, kosztów, punktów i efektów | 7 testów passed lokalnie |
-| `wheel_protocol_validation.py` | current + legacy Gem Atelier boundary audit | 2 testy passed lokalnie |
-| `wheel_task_shop_validation.py` | Hunting Task Shop Wheel point-path audit | 2 testy passed lokalnie |
-| odpowiednie `test_*.py` | focused defect/guard fixtures | 11 testów łącznie lokalnie |
-| `WHEEL_OF_DESTINY_REFERENCE_BASELINE.json` | wersjonowany baseline | aktywny |
-| `WHEEL_OF_DESTINY_VALIDATION_REPORT.md` | raport dowodowy | aktywny |
-| `WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json` | 20 scenariuszy runtime/protocol/persistence | aktywny |
-| `.github/workflows/wheel-of-destiny-validation.yml` | trzy audyty, 11 testów, JSON validation i sześć artifact files | najnowszy run pending |
-
-Pełne ścieżki narzędzi: `tools/ai-agent/**`.
-
----
-
-## 3. CI
-
-Potwierdzony pierwszy run:
+## Potwierdzony CI
 
 ```text
-run: 29203018790
-result: success
-focused tests: 7 passed
-source inventory: 30 files
-main findings: 4 errors / 6 warnings
-Revelation Mastery double-pattern variants: 16
+run 29203018790: success
+7 focused tests passed
+30 Wheel-related paths
+4 errors / 6 warnings w pierwszym main artifact
+16 Revelation Mastery double-pattern variants
 ```
 
-Aktualny workflow dodatkowo generuje:
+Najnowsza wersja workflow dodatkowo generuje protocol i Task Shop audits. Nie oznaczać jej jako passed bez odczytu Actions.
 
-```text
-WHEEL_PROTOCOL_AUDIT.json/.md
-WHEEL_TASK_SHOP_AUDIT.json/.md
-```
+## Statyczne zgodności
 
-Najnowszego runu nie wolno oznaczyć jako passed przed odczytem GitHub Actions.
-
----
-
-## 4. Statyczne zgodności
-
-Status `static-consistent`, nie `verified`:
+`static-consistent`, nie `verified`:
 
 - 36 slice'ów;
-- Revelation thresholds 250 / 500 / 1000;
-- level 51+, promoted i Premium access;
-- 1 point per level;
-- pięć scrolli = 50;
+- Revelation 250/500/1000;
+- promoted Premium level 51+ access;
+- 1 point per level after 50;
+- 5 scrolls = 50;
 - Monk bonus = 10;
 - temple-only decrease/reset;
-- reveal i rotate costs;
-- Basic Grade II–IV costs;
-- Supreme Grade II i IV costs;
+- reveal/rotate costs;
+- Basic Grade II–IV;
+- Supreme Grade II i IV;
 - Grade IV multiplier 1.5.
 
----
-
-## 5. Potwierdzone problemy
+## Potwierdzone problemy
 
 ### WOD-F001 — Supreme Grade III 12m zamiast 12.5m
 
-High confidence. Follow-up: osobny cost PR.
+High confidence. Osobny cost PR.
 
-### WOD-F002 — Grade IV points nie są spendable i trafiają do każdej domeny
+### WOD-F002 — Grade IV points są błędnie księgowane
 
-`getExtraPoints()` pomija `m_modsMaxGrade`, a `getPlayerSliceStage()` dodaje globalny licznik do każdej domeny. Follow-up: osobny points-accounting PR.
+`getExtraPoints()` pomija `m_modsMaxGrade`; globalny licznik jest dodawany do każdej domeny. Osobny points/persistence PR.
 
-### WOD-F003 — Revelation Mastery jest naliczane podwójnie
+### WOD-F003 — Revelation Mastery double application
 
-16 wariantów dodaje bonus natychmiast i przez queued strategy. Runtime measurement pending. Follow-up: exactly-once PR.
+16 wariantów dodaje bonus bezpośrednio i przez queued strategy. Runtime measurement pending. Osobny exactly-once PR.
 
-### WOD-F004 — limit 225 revealed gems nie jest egzekwowany
+### WOD-F004 — brak limitu 225 revealed gems
 
-Current i legacy handler nie sprawdzają cap; `revealGem()` również nie. Follow-up: centralny invariant 225/226.
+Current handler, legacy handler i `revealGem()` nie sprawdzają cap. Osobny invariant 225/226 PR.
 
-### WOD-F005 — unchecked Grade position w current i legacy
+### WOD-F005 — unchecked Grade position
 
-Oba profile przekazują client byte do `improveGemGrade()`, które indeksuje tablice 49/95 przed walidacją. Follow-up: bounds + allowed-position validation przed pierwszym odczytem.
+Current i legacy przekazują client byte do `improveGemGrade()`, które indeksuje tablice 49/95 przed walidacją. Osobny input-hardening PR.
 
-### WOD-F006 — Hunting Task Shop Wheel points nie są zaimplementowane
+### WOD-F006 — brak Hunting Task Shop Wheel points
 
-High confidence dla aktualnego official Taskboard profile:
+Official Taskboard jest minimalnym shimem:
 
-- moduł deklaruje się jako minimalny packet shim;
-- `sendShopWindow()` wysyła `offer count = 0`;
-- `ShopBuy` tylko konsumuje payload i odsyła puste okno;
+- shop offer count = 0;
+- ShopBuy nie kupuje nagrody, tylko odsyła puste okno;
 - `getExtraPoints()` nie ma Hunting Task source;
-- zwykłe `task_points` są osobną walutą Task Hunting i nie stanowią Wheel Promotion Points.
+- `task_points` są osobną walutą Task Hunting, nie kupionymi Wheel points.
 
-Follow-up wymaga osobnego feature PR obejmującego shop offers, zakup, trwały licznik maksymalnie 50, idempotency, persistence i klient–serwer contract. Nie implementować tego jako prostego dodania całego salda `task_points` do Wheel.
+Osobny feature PR musi dodać oferty, zakup, bounded counter max 50, idempotency, persistence i klient–serwer contract. Nie dodawać całego salda `task_points` do Wheel.
 
 Nie łączyć F001–F006 w jednym PR-ze.
 
----
+## Otwarte ryzyka
 
-## 6. Otwarte ryzyka
+- **WOD-R003:** kolejność money -> item/fragments wymaga fault-injection/concurrency testu.
+- **WOD-R005:** duplicate neighbour dla `SLOT_GREEN_TOP_100` wymaga pełnego graph comparison.
 
-### WOD-R003 — kolejność usuwania zasobów
-
-Reveal/upgrade wykonują count precheck, potem money removal przed item/fragments, bez lokalnego refund branch. Wymagany fault-injection/concurrency test.
-
-### WOD-R005 — duplicate adjacency
-
-`SLOT_GREEN_TOP_100` sprawdza `SLOT_GREEN_MIDDLE_100` dwa razy. Pełny graph comparison pending.
-
----
-
-## 7. Persistence — stan
+## Persistence — stan
 
 Potwierdzone statycznie:
 
-- player save używa `DBTransaction`;
-- online save wywołuje slot points, revealed/active gems, grades i scrolls persistence;
-- active gems zapisują UUID i loadują się tylko, gdy UUID istnieje w revealed gems;
-- destroyed gems są usuwane przed zapisem current revealed gems;
+- save używa `DBTransaction`;
+- zapis obejmuje slot points, revealed/active gems, grades i scrolls;
+- load order: DB slot points, revealed gems, active gems, grades, scrolls, potem `initializePlayerData()`;
+- active gem UUID musi istnieć w revealed gems;
+- destroyed gems są usuwane przed zapisem;
 - `task_points` są ładowane jako Task Hunting currency.
 
-Niepotwierdzone:
+Pending:
 
-- pełna kolejność load calls;
-- DB transaction względem KV writes;
+- DB transaction vs KV atomicity;
 - corrupted/partial KV recovery;
-- repeated save behavior;
-- Grade IV count rebuild/idempotency;
-- migrations 32/33 i old-data compatibility;
+- repeated-save cleanup;
+- Grade IV counter rebuild/idempotency;
+- migrations 32/33;
 - logout/login/server-restart round trip.
 
----
+## Pozostały zakres
 
-## 8. Pozostały zakres
+- pełna mapa Dedication/Conviction/Revelation i spell augments;
+- resonance, fragment yields, effective Grade gating, Momentum;
+- complete persistence/migrations;
+- current + legacy Canary ↔ `opentibiabr/otclient` contract;
+- runtime i malformed-packet scenarios;
+- osobne follow-up PR-y.
 
-- pełna mapa Dedication/Conviction/Revelation i spell augments dla wszystkich aktywnych vocations;
-- resonance, fragment yields, effective Grade gating i Momentum;
-- complete persistence/KV/migration review;
-- current + legacy Canary ↔ OTClient payload contract;
-- execution scenariuszy runtime;
-- separate follow-up PRs dla potwierdzonych problemów.
+## Work log — 2026-07-12
 
----
-
-## 9. Work log
-
-### 2026-07-12 — Hunting Task Shop audit
-
-- potwierdzono, że official Taskboard jest pustym shimem i nie sprzedaje Wheel points;
-- WOD-R001 podniesiono do WOD-F006;
-- dodano `wheel_task_shop_validation.py` i 2 focused tests;
-- lokalny wynik: `Ran 2 tests ... OK`;
-- workflow rozszerzono do 11 testów i trzech JSON/Markdown audit pairs;
-- nie zmieniono runtime ani Taskboard behavior.
-
-### 2026-07-12 — oba profile Gem Atelier
-
-- odnaleziono legacy `Game::playerWheelGemAction()`;
-- potwierdzono F004/F005 dla current i legacy;
-- dodano protocol scanner i 2 focused tests;
-- lokalny wynik: `Ran 2 tests ... OK`.
-
-### 2026-07-12 — główny audit
-
-- utworzono baseline, raport, runtime plan, scanner i 7 testów;
+- utworzono branch, task record, ACTIVE_WORK i draft PR #169;
+- dodano baseline, report, 20-scenario plan, main scanner i 7 testów;
 - pierwszy repository CI passed;
-- potwierdzono F001–F005;
-- zinwentaryzowano 30 paths.
+- dodano current+legacy protocol scanner i 2 testy;
+- dodano Hunting Task Shop scanner i 2 testy;
+- workflow rozszerzono do 11 testów i trzech audit pairs;
+- potwierdzono WOD-F001..F006;
+- dodano audit do `MODULE_CATALOG.md`;
+- po każdej zmianie zaktualizowano ten handoff, task record, report lub PR evidence;
+- nie zmieniono runtime.
 
----
-
-## 10. Aktualny stan
+## Aktualny stan
 
 ```text
-PR: #169 draft
 confirmed findings: WOD-F001..WOD-F006
-local tests: 7 + 2 + 2 = 11 passed
+local focused tests: 11 passed
 first repository CI: passed
-latest three-audit workflow: pending
+latest three-audit CI: pending
+module catalogue: updated
 runtime claims: none
 gameplay changes: none
 ```
 
-### Acceptance
+## Handoff
 
-- [x] durable specialist document;
-- [x] versioned baseline;
-- [x] main, protocol i Task Shop scanners;
-- [x] 11 focused tests lokalnie;
-- [x] report i 20-scenario runtime plan;
-- [x] pierwszy successful repository CI;
-- [ ] latest 11-test workflow and artifacts reviewed;
-- [ ] complete persistence/migrations;
-- [ ] complete perks/spells;
-- [ ] OTClient contract;
-- [ ] runtime scenarios;
-- [ ] focused defect PRs.
+Następny agent:
 
----
+1. Odczytuje najnowszy `Wheel of Destiny Validation` run i trzy audit pairs.
+2. Aktualizuje ten plik, report, task record i PR body exact wynikiem.
+3. Kończy persistence/KV/migrations.
+4. Mapuje perki i spelle.
+5. Porównuje oba payload profiles z `opentibiabr/otclient`.
+6. Nie naprawia gameplay w PR #169.
 
-## 11. Handoff
-
-### Następny krok
-
-1. Odczytaj najnowszy workflow po commitach:
-   - `1ec4c2e8a0c67c675f9bd3f137ddbbec5592c18d`;
-   - `e3f1e4ab97ae4547852959e30901e43495e03389`;
-   - `a9ab587c8f21811a0a3b0311eed1b211522c9bb9`.
-2. Zapisz exact wynik i trzy artifacts w tym dokumencie, raporcie i task record.
-3. Dokończ persistence load order, KV i migrations.
-4. Zmapuj perks/spells.
-5. Porównaj payloads z `opentibiabr/otclient`.
-6. Nie naprawiaj gameplay w PR #169.
-
-### Nie powtarzaj
-
-- nie uznawaj static match za runtime verified;
-- nie traktuj całego `task_points` balance jako Wheel points;
-- nie uznawaj prechecku za transakcyjność bez failure testu;
-- nie łącz F001–F006;
-- nie modyfikuj upstream.
-
-### Obowiązek aktualizacji
-
-Po każdej zmianie kodu, testu, raportu, baseline, workflow lub klasyfikacji aktualizuj ten dokument, task record i PR evidence. Nie wpisuj `passed` ani `verified` bez wykonanego checku.
+Nie zgadywać. Nie uznawać statycznego matchu za runtime proof. Nie traktować `task_points` jako Wheel points. Nie łączyć F001–F006.
