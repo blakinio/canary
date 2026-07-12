@@ -2,6 +2,9 @@
 name: Account Quests Bootstrap
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - fix/account-quests-production-hardening
