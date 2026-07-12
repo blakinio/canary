@@ -55,7 +55,10 @@ jobs:
       contents: read
       pull-requests: read
     outputs:
-      linux: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || steps.filter.outputs.engine == 'true' || steps.filter.outputs.shared_datapack == 'true' || steps.filter.outputs.canary_datapack == 'true' || steps.filter.outputs.global_datapack == 'true' }}
+      # Branch protection requires the nested linux-release check. A skipped
+      # reusable workflow never creates that check and leaves PRs pending
+      # forever, so every CI-triggering PR must run at least linux-release.
+      linux: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event_name == 'pull_request' }}
       full_matrix: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || steps.filter.outputs.engine == 'true' }}
       run_canary_smoke: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || steps.filter.outputs.engine == 'true' || steps.filter.outputs.shared_datapack == 'true' || steps.filter.outputs.canary_datapack == 'true' }}
       run_global_smoke: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || steps.filter.outputs.engine == 'true' || steps.filter.outputs.shared_datapack == 'true' || steps.filter.outputs.global_datapack == 'true' }}
