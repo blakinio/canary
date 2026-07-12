@@ -1,0 +1,25 @@
+{
+  "format": "canary-achievement-reference-baseline-v1",
+  "source": {
+    "name": "TibiaWiki/Fandom Achievements",
+    "url": "https://tibia.fandom.com/wiki/Achievements",
+    "verifiedAt": "2026-07-12",
+    "scope": "Published achievement IDs, grade, secrecy and point totals; spoiler acquisition text is excluded."
+  },
+  "counts": {
+    "listed": 562,
+    "total": 563,
+    "common": 362,
+    "secretDiscovered": 200,
+    "secretTotal": 201
+  },
+  "points": {
+    "theoretical": 1470,
+    "maximumExcludingCoinciding": 1425
+  },
+  "notes": [
+    "The listed count excludes one undiscovered secret achievement.",
+    "The raw maximum achievement ID is not an achievement count because the ID space contains gaps.",
+    "The exclusive maximum cannot be derived by simply summing registry points because mutually exclusive achievements must be modelled semantically."
+  ]
+}
