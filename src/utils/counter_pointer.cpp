@@ -13,8 +13,7 @@
 #include "lib/logging/logger.hpp"
 
 SharedPtrManager &SharedPtrManager::getInstance() {
-	static SharedPtrManager instance;
-	return instance;
+	return inject<SharedPtrManager>();
 }
 
 void SharedPtrManager::countAllReferencesAndClean() {
