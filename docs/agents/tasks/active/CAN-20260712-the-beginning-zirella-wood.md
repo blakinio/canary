@@ -1,6 +1,6 @@
 ---
 task_id: CAN-20260712-the-beginning-zirella-wood
-status: in-progress
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: fix/the-beginning-zirella-wood
 base_branch: main
@@ -68,7 +68,7 @@ Official-Tibia historical cross-check:
 - [x] consume exactly one branch, show green magic, and set `ZirellaNpcGreetStorage` and `ZirellaQuestLog` to `7` exactly once;
 - [x] do not modify `.otbm`, items, NPCs, spawns, engine, or unrelated gameplay;
 - [x] add focused deterministic contract tests;
-- [ ] required CI passes on the final head.
+- [x] required CI passes on the implementation head.
 
 # Runtime tests
 
@@ -83,8 +83,9 @@ Official-Tibia historical cross-check:
 
 # Validation notes
 
-- A local clone attempt was unavailable because the execution environment could not resolve `github.com`; this is an environment/network limitation, not a test result.
-- The focused Python contract test is committed for CI execution.
+- Implementation head `1ac8cab15d1b996d2c2462ff6974126df002f34a` passed CI run 608, AI Agent Tools run 213, and Account Quests run 59.
+- The focused Python contract test ran inside AI Agent Tools.
+- A local clone attempt was unavailable because the execution environment could not resolve `github.com`; this is an environment/network limitation, not a failed test.
 - Runtime E2E remains required on an actual Canary world after repository validation.
 
 # Safety
