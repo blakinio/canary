@@ -6,6 +6,7 @@ Open pull requests and current changed files/checks are authoritative. This inde
 
 | PR | Branch | State | Area / reusable work | Primary paths | Coordination note |
 |---:|---|---|---|---|---|
+| [#165](https://github.com/blakinio/canary/pull/165) | `feat/achievement-validation-audit` | draft | Deterministic achievement registry and active-trigger validation | `tools/ai-agent/achievement_validation.py`, focused tests, `docs/ai-agent/OTS_AI_ACHIEVEMENT_VALIDATION_PROJECT.md`, audit docs | Read-only audit first; no registry or gameplay changes. |
 | [#166](https://github.com/blakinio/canary/pull/166) | `feat/imbuement-validation-audit` | draft | Deterministic read-only audit of Imbuing XML/reference values, runtime paths and unlock-storage wiring | `tools/ai-agent/imbuement*_validation*`, focused workflow and `docs/ai-agent/IMBUEMENT_*` | Found seven stale nonzero storage IDs affecting 22 Powerful families plus two zero-storage bypasses; no gameplay, map, asset or engine changes. |
 | [#149](https://github.com/blakinio/canary/pull/149) | `fix/the-beginning-zirella-wood` | ready | Authentic Zirella Collecting Wood progression | The Beginning quest Action, focused contract test, task record | No map change; exact tree/cart positions and current item/storage IDs. Depends on merged #146. |
 
