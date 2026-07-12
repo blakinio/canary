@@ -35,7 +35,6 @@ namespace {
 		}
 	};
 
-
 	std::shared_ptr<Monster> makeRuntimeMonster(const std::string &name) {
 		const auto monsterType = std::make_shared<MonsterType>(name);
 		const auto monster = std::make_shared<Monster>(monsterType);

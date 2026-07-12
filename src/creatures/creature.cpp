@@ -1302,7 +1302,6 @@ bool Creature::setMaster(const std::shared_ptr<Creature> &newMaster, bool reload
 	return true;
 }
 
-
 bool Creature::setMaster(const std::shared_ptr<Creature> &newMaster, InstanceCreatureBinder &binder, bool reloadCreature /* = false*/) {
 	if (!newMaster) {
 		return setMaster(newMaster, reloadCreature);
