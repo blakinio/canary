@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_SCRIPT_RESOLUTION_REPORT.schema.json",
+  "title": "Canary OTBM script-resolution report",
+  "type": "object",
+  "required": [
+    "format",
+    "ok",
+    "sources",
+    "summary",
+    "registrations",
+    "dynamicRegistrations",
+    "identifiers",
+    "conflicts",
+    "mechanicPlacements",
+    "notes"
+  ],
+  "properties": {
+    "format": { "const": "canary-otbm-script-resolution-v1" },
+    "ok": { "type": "boolean" },
+    "sources": {
+      "type": "object",
+      "required": ["map", "datapacks"],
+      "properties": {
+        "map": { "type": "object" },
+        "datapacks": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "filesScanned",
+        "registrations",
+        "dynamicRegistrations",
+        "mechanicPlacements",
+        "resolvedPlacements",
+        "partiallyResolvedPlacements",
+        "unresolvedPlacements",
+        "unresolvedIdentifiers",
+        "partiallyResolvedIdentifiers",
+        "conflicts",
+        "statusCounts"
+      ],
+      "properties": {
+        "filesScanned": { "type": "integer", "minimum": 0 },
+        "registrations": { "type": "integer", "minimum": 0 },
+        "dynamicRegistrations": { "type": "integer", "minimum": 0 },
+        "mechanicPlacements": { "type": "integer", "minimum": 0 },
+        "resolvedPlacements": { "type": "integer", "minimum": 0 },
+        "partiallyResolvedPlacements": { "type": "integer", "minimum": 0 },
+        "unresolvedPlacements": { "type": "integer", "minimum": 0 },
+        "unresolvedIdentifiers": { "type": "integer", "minimum": 0 },
+        "partiallyResolvedIdentifiers": { "type": "integer", "minimum": 0 },
+        "conflicts": { "type": "integer", "minimum": 0 },
+        "statusCounts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "additionalProperties": false
+    },
+    "registrations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/registration" }
+    },
+    "dynamicRegistrations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "line", "object", "method", "arguments", "reason"],
+        "properties": {
+          "path": { "type": "string" },
+          "line": { "type": "integer", "minimum": 1 },
+          "object": { "type": "string" },
+          "method": { "enum": ["aid", "uid", "id", "position"] },
+          "arguments": { "type": "string" },
+          "reason": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "identifiers": {
+      "type": "object",
+      "required": ["actionId", "uniqueId"],
+      "properties": {
+        "actionId": { "type": "array", "items": { "$ref": "#/$defs/identifier" } },
+        "uniqueId": { "type": "array", "items": { "$ref": "#/$defs/identifier" } }
+      },
+      "additionalProperties": false
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["namespace", "value", "handlerKind", "eventType", "handlers", "reason"],
+        "properties": {
+          "namespace": { "enum": ["actionId", "uniqueId"] },
+          "value": { "type": "integer", "minimum": 0 },
+          "handlerKind": { "type": "string" },
+          "eventType": { "type": "string" },
+          "handlers": { "type": "array", "items": { "$ref": "#/$defs/registration" } },
+          "reason": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "mechanicPlacements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["itemId", "position", "itemDepth", "status", "resolutions"],
+        "properties": {
+          "itemId": { "type": "integer", "minimum": 0 },
+          "position": { "$ref": "#/$defs/position" },
+          "itemDepth": { "type": "integer", "minimum": 0 },
+          "actionId": { "type": "integer", "minimum": 0 },
+          "uniqueId": { "type": "integer", "minimum": 0 },
+          "houseDoorId": { "type": "integer", "minimum": 0 },
+          "teleportDestination": { "$ref": "#/$defs/position" },
+          "status": { "enum": ["resolved", "partially-resolved", "unresolved"] },
+          "resolutions": { "type": "array", "items": { "$ref": "#/$defs/resolution" } }
+        },
+        "additionalProperties": false
+      }
+    },
+    "notes": { "type": "array", "items": { "type": "string" } }
+  },
+  "$defs": {
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "integer", "minimum": 0 },
+        { "type": "integer", "minimum": 0 },
+        { "type": "integer", "minimum": 0 }
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "registration": {
+      "type": "object",
+      "required": [
+        "handlerKind",
+        "eventType",
+        "namespace",
+        "values",
+        "path",
+        "line",
+        "object",
+        "registrationType",
+        "confidence"
+      ],
+      "properties": {
+        "handlerKind": { "enum": ["action", "moveevent", "unknown"] },
+        "eventType": { "type": "string" },
+        "namespace": { "enum": ["actionId", "uniqueId", "itemId", "position"] },
+        "values": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              { "type": "integer" },
+              { "$ref": "#/$defs/position" }
+            ]
+          }
+        },
+        "path": { "type": "string" },
+        "line": { "type": "integer", "minimum": 1 },
+        "object": { "type": "string" },
+        "registrationType": { "type": "string" },
+        "confidence": { "enum": ["high", "medium", "low"] },
+        "details": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "resolution": {
+      "type": "object",
+      "required": ["mechanic", "status", "handlers"],
+      "properties": {
+        "mechanic": { "enum": ["actionId", "uniqueId", "houseDoorId", "teleportDestination"] },
+        "value": { "type": "integer" },
+        "status": {
+          "enum": [
+            "handled-directly",
+            "handled-by-range",
+            "handled-generically",
+            "handled-by-item-id",
+            "handled-as-target",
+            "handled-by-engine",
+            "handled-multiple",
+            "unresolved"
+          ]
+        },
+        "handlers": { "type": "array", "items": { "$ref": "#/$defs/registration" } }
+      },
+      "additionalProperties": false
+    },
+    "identifier": {
+      "type": "object",
+      "required": ["value", "placements", "status", "statusCounts", "itemIds", "positions", "handlers"],
+      "properties": {
+        "value": { "type": "integer", "minimum": 0 },
+        "placements": { "type": "integer", "minimum": 1 },
+        "status": { "type": "string" },
+        "statusCounts": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+        "itemIds": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "placements"],
+            "properties": {
+              "id": { "type": "integer", "minimum": 0 },
+              "placements": { "type": "integer", "minimum": 1 }
+            },
+            "additionalProperties": false
+          }
+        },
+        "positions": { "type": "array", "items": { "$ref": "#/$defs/position" } },
+        "handlers": { "type": "array", "items": { "$ref": "#/$defs/registration" } }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
