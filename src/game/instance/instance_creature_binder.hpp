@@ -28,6 +28,9 @@ public:
 	}
 
 	template <typename RuntimeCreature>
+		requires requires(const RuntimeCreature &value) {
+			value.getID();
+		}
 	bool bind(InstanceId instanceId, const RuntimeCreature &creature) {
 		return bind(instanceId, static_cast<InstanceCreatureId>(creature.getID()));
 	}
@@ -41,6 +44,9 @@ public:
 	}
 
 	template <typename RuntimeCreature>
+		requires requires(const RuntimeCreature &value) {
+			value.getID();
+		}
 	bool unbind(const RuntimeCreature &creature) {
 		return unbind(static_cast<InstanceCreatureId>(creature.getID()));
 	}
@@ -50,6 +56,10 @@ public:
 	}
 
 	template <typename MasterCreature, typename SummonCreature>
+		requires requires(const MasterCreature &masterValue, const SummonCreature &summonValue) {
+			masterValue.getID();
+			summonValue.getID();
+		}
 	bool inherit(const MasterCreature &master, const SummonCreature &summon) {
 		return inherit(
 			static_cast<InstanceCreatureId>(master.getID()),
@@ -62,6 +72,10 @@ public:
 	}
 
 	template <typename FirstCreature, typename SecondCreature>
+		requires requires(const FirstCreature &firstValue, const SecondCreature &secondValue) {
+			firstValue.getID();
+			secondValue.getID();
+		}
 	[[nodiscard]] InstanceCreatureRelation relation(const FirstCreature &first, const SecondCreature &second) const {
 		return relation(
 			static_cast<InstanceCreatureId>(first.getID()),
@@ -74,6 +88,10 @@ public:
 	}
 
 	template <typename FirstCreature, typename SecondCreature>
+		requires requires(const FirstCreature &firstValue, const SecondCreature &secondValue) {
+			firstValue.getID();
+			secondValue.getID();
+		}
 	[[nodiscard]] bool canInteract(const FirstCreature &first, const SecondCreature &second) const {
 		return canInteract(
 			static_cast<InstanceCreatureId>(first.getID()),
@@ -86,6 +104,9 @@ public:
 	}
 
 	template <typename RuntimeCreature>
+		requires requires(const RuntimeCreature &value) {
+			value.getID();
+		}
 	[[nodiscard]] std::optional<InstanceId> ownerOf(const RuntimeCreature &creature) const {
 		return ownerOf(static_cast<InstanceCreatureId>(creature.getID()));
 	}
