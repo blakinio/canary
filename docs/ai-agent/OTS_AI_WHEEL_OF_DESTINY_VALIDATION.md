@@ -4,7 +4,7 @@
 > **Started:** 2026-07-12
 > **Last updated:** 2026-07-12
 > **Repository:** `blakinio/canary`
-> **Working branch:** `validation/wheel-of-destiny`
+> **Working branch:** `validation/wheel-of-destiny-review-v2`
 > **Reference process:** `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md`
 > **Primary gameplay reference:** `https://tibia.fandom.com/wiki/Wheel_of_Destiny`
 > **Rule:** update this file whenever Wheel of Destiny code, data, tests, or validation conclusions change.
@@ -81,6 +81,22 @@ The referenced TibiaWiki page currently states:
 
 These values are a working comparison baseline, not yet a declaration that every detail is authoritative or unchanged. Official CipSoft sources and captured protocol behavior supersede community documentation when available.
 
+### 3.1. Current 15.25 balance baseline
+
+The June 16, 2026 update additionally requires:
+
+- Gift of Life to restore 20/25/30% maximum mana as well as health;
+- Dedication mitigation to grant 0.075% per Promotion Point;
+- Gem mitigation to scale as 20/22/24/30% at Grades I/II/III/IV;
+- Ballistic Mastery bow attacks/spells to gain 4% physical and holy pierce;
+- Healing Link to transfer 25% healing;
+- Battle Healing to increase healing spells by 10%, tripled while a shield is equipped, with no challenge-triggered heal;
+- Blessing of the Grove to add 5/7.5/10% below 60% health, doubled below 30%, and to enable critical healing;
+- multiple existing augments to use new values/order/area/cooldown behavior;
+- new vocation stances and replacement spells that do not currently exist in Canary.
+
+The missing new spells/stances are tracked separately instead of being emulated by renaming old Wheel entries.
+
 ---
 
 ## 4. Repository surface discovered
@@ -133,9 +149,9 @@ Confirmed definitions and active paths:
 | Temple-only reallocation | partial | proposed decreases are now rejected server-side unless `getOptions()` confirms temple access | forged-packet integration test |
 | Premium/promoted eligibility | confirmed | `canOpenWheel()` rejects unpromoted, non-Premium, level <= 50, and vocation-none players | protocol rejection test |
 | Vocation wheels | partial | effects for five vocations are represented | verify every slice/effect/value per vocation |
-| Dedication perks | unverified | stats structures present | map each slot to exact scaling and tests |
-| Conviction perks | unverified | spell/passive hooks present | map each perk and stacking behavior |
-| Revelation perks | partial | stages/avatars represented; Blue-domain spell grade loops corrected to one grade per Revelation stage | verify stages, cooldowns, death/relogin state |
+| Dedication perks | partial | current 15.25 mitigation is now 0.075% per Promotion Point; remaining values require matrix/runtime proof | complete per-vocation value matrix and gameplay tests |
+| Conviction perks | partial | supported 15.25 augment values were corrected where an existing runtime spell path is present | implement missing replacement spells/stances and test every augment |
+| Revelation perks | partial | Blue spell grades corrected; Gift of Life now restores health and mana; Battle Healing and Blessing values updated | implement remaining 15.25 Revelation reworks and verify death/relogin state |
 | Presets | unverified | no complete preset path proved yet | save/load/switch validation and limits |
 | Client protocol | partial | raw modifier reachability proved; save plus current/legacy Gem Atelier payloads now validate required bytes, enum ranges, flags, indexes, and affinities | parser integration tests and official captures |
 | Slot persistence | partial | blob records now reject malformed size, duplicate/out-of-range slots, per-slot overflow, disconnected and over-budget state | DB round-trip integration test |
@@ -143,12 +159,12 @@ Confirmed definitions and active paths:
 | Gem reveal and capacity | partial | server-side 225 cap added; initial gems are inserted into the in-memory list immediately | cap and first-open integration tests |
 | Gem reveal transaction | partial | item is reserved first, money prechecked, and item restored if the money mutation unexpectedly fails | failure-injection integration test |
 | Affinity rotation | partial | active copies are removed by UUID, stale KV is cleared, gem is persisted, and bonuses reload | rotation/login round-trip test |
-| Vessel resonance | partial | activation thresholds and +1/+1/+2 full-resonance damage/healing bonus implemented | deterministic runtime effect test |
+| Vessel resonance | partial | activation thresholds, effective Grade chaining, +1/+1/+2 full-resonance bonus, and current mitigation scaling are implemented | deterministic runtime effect test |
 | Gem mod generation | partial | allowed pools exist; effective Grade is now capped by every preceding gem slot | verify pools, slot restrictions, vocation rules, duplicates, and runtime values |
 | Fragment Workshop | partial | 12,500,000 cost applied; type/range/vocation allow-list validation added before indexing; payment rollback added | forged-packet and failure-injection tests |
 | Grade persistence | partial | arrays and max-grade count reset; only grades 0..3 are accepted; upgrades persist immediately | KV round-trip test |
 | Unused-points accounting | partial | spent points are summed in `uint32_t`; overspent state returns zero and allocation validator rejects it | unit test added; CI pending |
-| Combat/stat integration | partial | bonus structures and hooks present | deterministic effect tests |
+| Combat/stat integration | partial | 15.25 mitigation, Gift mana, Ballistic pierce, Healing Link, Battle Healing, and low-health Grove scaling are wired into runtime | critical-healing, missing stance/spell, and deterministic effect tests |
 | Monk support | partial | Monk stages/avatar and quest bonus represented | full wheel/perk validation |
 | Security/anti-cheat | partial | network reachability confirmed; atomic slot/gem proposal, temple enforcement, current/legacy packet length and enum checks, and modifier allow-lists implemented | integration fuzz/forged-packet tests |
 
@@ -327,6 +343,76 @@ The engine unlocked gem modifier slots from Vessel Resonance but did not add the
 
 Both current and legacy packet paths read action parameters without first proving that the bytes existed. A truncated packet could therefore supply zero-valued defaults and reach destructive or mutating operations, including gem index zero. Both parsers now reject missing action/index/quality/fragment bytes and out-of-range quality or fragment enums before updating UI exhaustion or calling Wheel methods.
 
+### WOD-020 — Dedication mitigation used the pre-15.25 value
+
+**Disposition:** `incorrect` → correction implemented, CI pending
+**Severity:** high
+
+The Wheel used 0.03% mitigation per Promotion Point. The current 15.25 value is 0.075%. The value is now centralized in `WheelBalance::DEDICATION_MITIGATION_PER_POINT` and used by slot loading.
+
+### WOD-021 — Gem mitigation used obsolete Grade values
+
+**Disposition:** `incorrect` → correction implemented, CI pending
+**Severity:** high
+
+The base value of 500 produced 5/5.5/6/7.5%. The current values are 20/22/24/30%, so the Grade multiplier now starts from 2000.
+
+### WOD-022 — Gift of Life restored health but not mana
+
+**Disposition:** `missing` → correction implemented, CI pending
+**Severity:** high
+
+The runtime health effect existed, but no mana restoration path was present. Gift of Life now restores the same stage percentage of maximum mana after the health effect.
+
+### WOD-023 — Ballistic Mastery bow pierce remained at 2%
+
+**Disposition:** `incorrect` → correction implemented, CI pending
+**Severity:** medium
+
+Bow attacks/spells granted 2% physical and holy pierce. Both values now use the current 4% baseline. Crossbow critical extra damage already matched 10%.
+
+### WOD-024 — Healing Link remained at 10%
+
+**Disposition:** `incorrect` → correction implemented, CI pending
+**Severity:** high
+
+The linked-healing value now uses 25%.
+
+### WOD-025 — Battle Healing still used challenge-triggered healing
+
+**Disposition:** `incorrect` → correction implemented, CI pending
+**Severity:** high
+
+The old implementation healed when a monster challenge succeeded and scaled from shield skill and missing health. The challenge hook was removed. Healing spells now receive +10% healing, or +30% while a shield is equipped.
+
+### WOD-026 — Blessing of the Grove low-health values were obsolete
+
+**Disposition:** `incorrect` → percentage correction implemented; critical healing still missing
+**Severity:** high
+
+The engine used 6/9/12%. It now uses 5/7.5/10% below 60% health and doubles the value at or below 30%. The newly required critical-healing capability remains a separate unimplemented combat feature.
+
+### WOD-027 — supported existing augment values/order were outdated
+
+**Disposition:** `incorrect` → partial correction implemented, CI pending
+**Severity:** high
+
+Existing runtime paths were updated for Front Sweep, Groundshaker, Divine Dazzle, Energy Wave, Heal Friend, Terra Wave, Strong Ice Wave metadata, Mass Spirit Mend, Mystic Repulse, and Flurry of Blows. Front Sweep and Flurry now execute their larger Wheel areas. Strong Ice Wave's exact current base/augmented tile layouts remain blocked pending authoritative area evidence.
+
+### WOD-028 — current replacement spells and vocation stances are absent
+
+**Disposition:** `missing`
+**Severity:** critical for 15.25 parity
+
+No implementation was found for Shield Bash, Shield Slam, Divine Barrage, Ethereal Barrage, Death Echo, Forked Glacier, Forked Thorns, Thousand Fist Blows, or the new vocation stance framework. Old augment targets such as Chivalrous Challenge, Swift Foot, Sharpshooter, Sap Strength, Magic Shield, Nature's Embrace, and Sweeping Takedown must not be silently treated as equivalent.
+
+### WOD-029 — several 15.25 Revelation/passive reworks remain absent
+
+**Disposition:** `missing`
+**Severity:** critical for 15.25 parity
+
+Combat Mastery still follows its old behavior; Beam Mastery does not implement adjacent-target scaling; Lord of Destruction is absent; Focus Mastery lacks the current group-cooldown reduction; Blessing critical healing is absent; and the latest Guiding Presence, Sanctuary, and other vocation reworks still require dedicated runtime implementation.
+
 ---
 
 ## 7. Change log
@@ -376,19 +462,33 @@ Both current and legacy packet paths read action parameters without first provin
 - Proved that both current and legacy Gem Atelier parsers could read truncated payloads as zero-valued actions or parameters.
 - Added byte-length and enum-range validation before every current/legacy Gem Atelier mutation.
 - Added focused unit tests for Grade chaining and full-resonance thresholds.
-- Standard repository CI for PR #202 is queued; local full compilation is unavailable because this execution environment lacks the repository vcpkg toolchain and Ninja.
+- Standard repository CI for clean PR #209 completed successfully, including the dedicated Wheel validation workflow and repository build matrix.
+
+### 2026-07-12 — current 15.25 balance and augment follow-up
+
+- Captured the June 16, 2026 Wheel balance baseline and separated implementable numeric/runtime corrections from missing spell/stance systems.
+- Updated Dedication and Gem mitigation scaling.
+- Added Gift of Life mana restoration, 4% Ballistic Mastery pierce, and 25% Healing Link.
+- Replaced challenge-triggered Battle Healing with +10% healing-spell output, or +30% with a shield.
+- Corrected Blessing of the Grove low-health percentages while leaving critical healing explicitly unresolved.
+- Updated supported existing augment values/order and added runtime area variants for Front Sweep and Flurry of Blows.
+- Recorded missing current spells, stances, and major passive/Revelation reworks instead of mapping them onto obsolete mechanics.
+- Added centralized balance constants and focused regression assertions.
+- Status: local third patch prepared; formatting/build/CI evidence pending.
 
 ---
 
 ## 8. Immediate next tasks
 
-1. Apply this follow-up to a clean review head and run standard repository CI.
-2. Fix every compiler, formatter, sanitizer, or test failure.
-3. Add integration tests for forged save/Gem Atelier packets, invalid modifier positions, temple decreases, transaction rollback, KV/DB round trips, cap behavior, and first-open starter gems.
-4. Generate a machine-readable 36-slot topology/perk matrix for every vocation.
-5. Compare every Dedication, Conviction, Revelation, spell augment, and gem modifier value with authoritative/captured behavior.
-6. Implement the missing Hunting Task Shop point source in its Taskboard subsystem or keep it explicitly blocked as a separate dependency.
-7. Update this document with each code/test commit and final runtime evidence.
+1. Run formatter, build, focused unit tests, and standard repository CI for the current 15.25 balance patch.
+2. Implement critical healing and verify Blessing of the Grove end to end.
+3. Add the missing 15.25 spell/stance subsystem rather than repurposing obsolete augment targets.
+4. Implement the remaining Combat Mastery, Beam Mastery, Lord of Destruction, Focus Mastery, Guiding Presence, Sanctuary, and vocation reworks.
+5. Confirm Strong Ice Wave's current base and augmented tile areas from authoritative/captured evidence before changing Lua areas.
+6. Add integration tests for forged packets, transaction rollback, KV/DB round trips, cap behavior, and first-open starter gems.
+7. Generate and retain a machine-readable vocation/slot/perk matrix with implementation and test status.
+8. Implement the missing Hunting Task Shop point source in the Taskboard subsystem or keep it explicitly blocked as a separate dependency.
+9. Update this document with each code/test commit and final runtime evidence.
 
 ---
 

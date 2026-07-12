@@ -16,6 +16,14 @@
 	#include <vector>
 #endif
 
+namespace WheelBalance {
+constexpr double DEDICATION_MITIGATION_PER_POINT = 0.075;
+constexpr int32_t GEM_MITIGATION_BASE = 2000;
+constexpr uint16_t BALLISTIC_PIERCE_PERCENT = 4;
+constexpr int32_t HEALING_LINK_PERCENT = 25;
+constexpr std::array<double, 3> BLESSING_GROVE_HEALING_PERCENT = { 5.0, 7.5, 10.0 };
+} // namespace WheelBalance
+
 enum class WheelSlots_t : uint8_t {
 	SLOT_GREEN_200 = 1,
 	SLOT_GREEN_TOP_150 = 2,

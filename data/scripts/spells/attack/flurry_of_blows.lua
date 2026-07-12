@@ -7,6 +7,13 @@ combat:setParameter(COMBAT_PARAM_BLOCKARMOR, 1)
 combat:setParameter(COMBAT_PARAM_USECHARGES, 1)
 combat:setArea(createCombatArea(AREA_FLURRY_OF_BLOWS))
 
+local combatWod = Combat()
+combatWod:setParameter(COMBAT_PARAM_TYPE, COMBAT_PHYSICALDAMAGE)
+combatWod:setParameter(COMBAT_PARAM_EFFECT, CONST_ME_WHIRLWIND_BLOW_WHITE)
+combatWod:setParameter(COMBAT_PARAM_BLOCKARMOR, 1)
+combatWod:setParameter(COMBAT_PARAM_USECHARGES, 1)
+combatWod:setArea(createCombatArea(AREA_FLURRY_OF_BLOWS_GREATER))
+
 function onGetFormulaValues(player, skill, attack, factor)
 	local damageHealing = player:calculateFlatDamageHealing()
 
@@ -19,10 +26,14 @@ function onGetFormulaValues(player, skill, attack, factor)
 end
 
 combat:setCallback(CALLBACK_PARAM_SKILLVALUE, "onGetFormulaValues")
+combatWod:setCallback(CALLBACK_PARAM_SKILLVALUE, "onGetFormulaValues")
 
 local spell = Spell("instant")
 
 function spell.onCastSpell(creature, var)
+	if creature:getWheelSpellAdditionalArea("Flurry of Blows") then
+		return combatWod:execute(creature, var)
+	end
 	return combat:execute(creature, var)
 end
 

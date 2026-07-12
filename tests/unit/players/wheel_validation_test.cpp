@@ -88,3 +88,11 @@ TEST_F(WheelValidationTest, FullVesselResonanceAddsQualityBonusOnlyWhenComplete)
 	EXPECT_EQ(0, WheelGemUtils::getFullResonanceBonus(WheelGemQuality_t::Greater, 2));
 	EXPECT_EQ(2, WheelGemUtils::getFullResonanceBonus(WheelGemQuality_t::Greater, 3));
 }
+
+TEST_F(WheelValidationTest, CurrentWheelBalanceConstantsMatchUpdate1525) {
+	EXPECT_DOUBLE_EQ(0.075, WheelBalance::DEDICATION_MITIGATION_PER_POINT);
+	EXPECT_EQ(2000, WheelBalance::GEM_MITIGATION_BASE);
+	EXPECT_EQ(4, WheelBalance::BALLISTIC_PIERCE_PERCENT);
+	EXPECT_EQ(25, WheelBalance::HEALING_LINK_PERCENT);
+	EXPECT_EQ((std::array<double, 3> { 5.0, 7.5, 10.0 }), WheelBalance::BLESSING_GROVE_HEALING_PERCENT);
+}

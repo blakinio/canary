@@ -8195,7 +8195,8 @@ void Game::applyWheelOfDestinyHealing(CombatDamage &damage, const std::shared_pt
 		}
 
 		if (attackerPlayer->wheel().getInstant("Blessing of the Grove")) {
-			damage.primary.value += (damage.primary.value * attackerPlayer->wheel().checkBlessingGroveHealingByTarget(target)) / 100.;
+			const double blessingPercent = attackerPlayer->wheel().checkBlessingGroveHealingByTarget(target);
+			damage.primary.value += static_cast<int32_t>(std::round(damage.primary.value * blessingPercent / 100.0));
 		}
 	}
 }

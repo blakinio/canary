@@ -5,6 +5,23 @@ combat:setParameter(COMBAT_PARAM_BLOCKARMOR, 1)
 combat:setParameter(COMBAT_PARAM_USECHARGES, 1)
 combat:setArea(createCombatArea(AREA_WAVE6, AREADIAGONAL_WAVE6))
 
+local AREA_WAVE6_WOD = {
+	{ 1, 1, 3, 1, 1 },
+}
+local AREADIAGONAL_WAVE6_WOD = {
+	{ 0, 0, 0, 0, 1 },
+	{ 0, 0, 0, 1, 0 },
+	{ 0, 0, 3, 0, 0 },
+	{ 0, 1, 0, 0, 0 },
+	{ 1, 0, 0, 0, 0 },
+}
+local combatWod = Combat()
+combatWod:setParameter(COMBAT_PARAM_TYPE, COMBAT_PHYSICALDAMAGE)
+combatWod:setParameter(COMBAT_PARAM_EFFECT, CONST_ME_HITAREA)
+combatWod:setParameter(COMBAT_PARAM_BLOCKARMOR, 1)
+combatWod:setParameter(COMBAT_PARAM_USECHARGES, 1)
+combatWod:setArea(createCombatArea(AREA_WAVE6_WOD, AREADIAGONAL_WAVE6_WOD))
+
 function onGetFormulaValues(player, skill, attack, factor)
 	local skillTotal = skill * attack
 	local levelTotal = player:getLevel() / 5
@@ -12,10 +29,14 @@ function onGetFormulaValues(player, skill, attack, factor)
 end
 
 combat:setCallback(CALLBACK_PARAM_SKILLVALUE, "onGetFormulaValues")
+combatWod:setCallback(CALLBACK_PARAM_SKILLVALUE, "onGetFormulaValues")
 
 local spell = Spell("instant")
 
 function spell.onCastSpell(creature, var)
+	if creature:getWheelSpellAdditionalArea("Front Sweep") then
+		return combatWod:execute(creature, var)
+	end
 	return combat:execute(creature, var)
 end
 

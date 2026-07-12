@@ -3217,8 +3217,8 @@ bool PlayerWheel::checkBallisticMastery() {
 	setOnThinkTimer(WheelOnThink_t::BALLISTIC_MASTERY, OTSYS_TIME() + 2000);
 	bool updateClient = false;
 	constexpr int32_t newCritical = 1000;
-	constexpr uint16_t newHolyBonus = 2; // 2%
-	constexpr uint16_t newPhysicalBonus = 2; // 2%
+	constexpr uint16_t newHolyBonus = WheelBalance::BALLISTIC_PIERCE_PERCENT;
+	constexpr uint16_t newPhysicalBonus = WheelBalance::BALLISTIC_PIERCE_PERCENT;
 
 	const auto &item = m_player.getWeapon();
 	if (item && item->getAmmoType() == AMMO_BOLT) {
@@ -3371,6 +3371,8 @@ void PlayerWheel::checkGiftOfLife() {
 	m_player.sendTextMessage(MESSAGE_EVENT_ADVANCE, "That was close! Fortunately, your were saved by the Gift of Life.");
 	g_game().addMagicEffect(m_player.getPosition(), CONST_ME_WATER_DROP);
 	g_game().combatChangeHealth(m_player.getPlayer(), m_player.getPlayer(), giftDamage);
+	const int32_t mana = (m_player.getMaxMana() * getGiftOfLifeValue()) / 100;
+	m_player.changeMana(mana);
 	// Condition cooldown reduction
 	constexpr uint16_t reductionTimer = 60000;
 	reduceAllSpellsCooldownTimer(reductionTimer);
@@ -3380,30 +3382,24 @@ void PlayerWheel::checkGiftOfLife() {
 	sendGiftOfLifeCooldown();
 }
 
-int32_t PlayerWheel::checkBlessingGroveHealingByTarget(const std::shared_ptr<Creature> &target) const {
+double PlayerWheel::checkBlessingGroveHealingByTarget(const std::shared_ptr<Creature> &target) const {
 	if (!target || target == m_player.getPlayer()) {
 		return 0;
 	}
 
-	int32_t healingBonus = 0;
 	const uint8_t stage = getStage(WheelStage_t::BLESSING_OF_THE_GROVE);
-	const int32_t healthPercent = std::round((static_cast<double>(target->getHealth()) * 100) / static_cast<double>(target->getMaxHealth()));
-	if (healthPercent <= 30) {
-		if (stage >= 3) {
-			healingBonus = 24;
-		} else if (stage >= 2) {
-			healingBonus = 18;
-		} else if (stage >= 1) {
-			healingBonus = 12;
-		}
-	} else if (healthPercent <= 60) {
-		if (stage >= 3) {
-			healingBonus = 12;
-		} else if (stage >= 2) {
-			healingBonus = 9;
-		} else if (stage >= 1) {
-			healingBonus = 6;
-		}
+	if (stage == 0 || stage > WheelBalance::BLESSING_GROVE_HEALING_PERCENT.size()) {
+		return 0;
+	}
+
+	const double healthPercent = (static_cast<double>(target->getHealth()) * 100.0) / static_cast<double>(target->getMaxHealth());
+	if (healthPercent > 60.0) {
+		return 0;
+	}
+
+	double healingBonus = WheelBalance::BLESSING_GROVE_HEALING_PERCENT[stage - 1];
+	if (healthPercent <= 30.0) {
+		healingBonus *= 2.0;
 	}
 
 	return healingBonus;
@@ -3496,17 +3492,6 @@ int32_t PlayerWheel::checkDrainBodyLeech(const std::shared_ptr<Creature> &target
 	}
 
 	return 0;
-}
-
-int32_t PlayerWheel::checkBattleHealingAmount() const {
-	double amount = static_cast<double>(m_player.getSkillLevel(SKILL_SHIELD)) * 0.2;
-	const uint8_t healthPercent = (m_player.getHealth() * 100) / m_player.getMaxHealth();
-	if (healthPercent <= 30) {
-		amount *= 3;
-	} else if (healthPercent <= 60) {
-		amount *= 2;
-	}
-	return static_cast<int32_t>(amount);
 }
 
 int32_t PlayerWheel::checkAvatarSkill(WheelAvatarSkill_t skill) const {
@@ -3720,8 +3705,14 @@ std::shared_ptr<Spell> PlayerWheel::getCombatDataSpell(CombatDamage &damage) {
 		const auto &spellName = spell->getName();
 
 		damage.damageMultiplier += checkFocusMasteryDamage();
+		if (damage.primary.type == COMBAT_HEALING && getInstant("Battle Healing")) {
+			std::shared_ptr<Item> shield;
+			std::shared_ptr<Item> weapon;
+			m_player.getShieldAndWeapon(shield, weapon);
+			damage.healingMultiplier += shield ? 30 : 10;
+		}
 		if (getHealingLinkUpgrade(spellName)) {
-			damage.healingLink += 10;
+			damage.healingLink += WheelBalance::HEALING_LINK_PERCENT;
 		}
 		if (spell->getSecondaryGroup() == SPELLGROUP_FOCUS && getInstant("Focus Mastery")) {
 			setOnThinkTimer(WheelOnThink_t::FOCUS_MASTERY, (OTSYS_TIME() + 12000));
@@ -4259,15 +4250,6 @@ void PlayerWheel::updateBeamMasteryDamage(CombatDamage &tmpDamage, uint8_t &beam
 		reduceAllSpellsCooldownTimer(1000); // Reduces all spell cooldown by 1 second per target hit (max 3 seconds)
 		--beamAffectedTotal;
 		beamAffectedCurrent++;
-	}
-}
-
-void PlayerWheel::healIfBattleHealingActive() const {
-	if (getInstant("Battle Healing")) {
-		CombatDamage damage;
-		damage.primary.value = checkBattleHealingAmount();
-		damage.primary.type = COMBAT_HEALING;
-		g_game().combatChangeHealth(m_player.getPlayer(), m_player.getPlayer(), damage);
 	}
 }
 
