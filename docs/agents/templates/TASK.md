@@ -1,5 +1,6 @@
 ---
 task_id: CAN-YYYYMMDD-short-slug
+program_id: CAN-PROGRAM-SHORT-NAME
 coordination_id: ""
 status: planned
 agent: ""
@@ -14,7 +15,12 @@ related_pr: ""
 depends_on: []
 blocks: []
 owned_paths:
-  - path/or/glob
+  exclusive:
+    - path/the/task/may/edit
+  shared:
+    - narrow/shared/index/or/contract
+  read_only:
+    - dependency/the/task/must/not/edit
 modules_touched: []
 reuses: []
 public_interfaces: []
@@ -46,8 +52,12 @@ Verified facts, commits/PRs, versions, constraints; mark assumptions.
 
 # Ownership and overlap check
 
+- Program record:
 - Open PRs inspected:
 - Active tasks inspected:
+- Exclusive claims:
+- Shared claims:
+- Read-only dependencies:
 - Overlaps:
 - Resolution:
 
@@ -74,9 +84,9 @@ Verified facts, commits/PRs, versions, constraints; mark assumptions.
 
 # Files and interfaces
 
-| Path/interface/config/schema | Purpose | Status |
-|---|---|---|
-| | | planned |
+| Path/interface/config/schema | Ownership mode | Purpose | Status |
+|---|---|---|---|
+| | exclusive/shared/read_only | | planned |
 
 # Validation and CI
 
@@ -110,7 +120,9 @@ Never write `passed` without verification.
 ## Required reads
 
 - `AGENTS.md`
-- `docs/agents/ACTIVE_WORK.md`
+- `docs/agents/README.md`
+- relevant program record under `docs/agents/programs/`
+- all active task records under `docs/agents/tasks/active/**`
 - `docs/agents/MODULE_CATALOG.md`
 - relevant source/tests/docs/ADRs
 
@@ -121,6 +133,7 @@ Never write `passed` without verification.
 - Final status:
 - PR:
 - Merge commit:
+- Programme record updated:
 - Catalogue updated:
 - Changelog updated:
 - Archived at:
