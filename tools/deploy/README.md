@@ -1,11 +1,22 @@
-# Atomic content deployment engine
+# Canary atomic content deployment
 
-Stage → atomic switch → health check → automatic rollback, with an audit
-manifest and constant-time-safe path handling scoped to a single configured
-deployment root.
+The deployment tools provide two layers:
 
-See `docs/systems/ai-content-deployment.md` for the full design, current
-scope, and usage. Run the tests with:
+- `run_deployment.py` — generic stage → atomic switch → health check → rollback;
+- `run_canary_deployment.py` — assemble a complete datapack, run real Canary
+  preflight, deploy atomically, then run Canary again from the published
+  release.
+
+Key modules:
+
+- `release_manager.py` — release publication, switching and rollback;
+- `canary_staging.py` — safe overlay assembly and real runtime smoke adapter;
+- `manifest.py` — SHA-256 audit manifest;
+- `path_policy.py` — deployment-root confinement and escape rejection.
+
+See `docs/systems/ai-content-deployment.md` for the design and operator usage.
+
+Run all deployment tests with:
 
 ```bash
 python -m unittest discover -s tools/deploy -p "test_*.py" -v

@@ -34,7 +34,12 @@ jobs:
           python-version: "3.12"
 
       - name: Run unit tests
-        run: python -m unittest discover -s tools/deploy -p "test_*.py" -v
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p build/deployment-test-logs
+          python -m unittest discover -s tools/deploy -p "test_*.py" -v \
+            2>&1 | tee build/deployment-test-logs/unittest.log
 
       - name: End-to-end dry-run and real deploy smoke test
         shell: bash
@@ -104,3 +109,11 @@ jobs:
           fi
 
           rm -rf "$work"
+
+      - name: Upload deployment test logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: deployment-test-logs
+          path: build/deployment-test-logs/
+          if-no-files-found: ignore
