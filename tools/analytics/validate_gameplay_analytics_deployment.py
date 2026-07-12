@@ -19,6 +19,9 @@ REQUIRED_ENV_KEYS = {
     "CANARY_SERVER_VERSION",
 }
 
+PASSWORD_GUARD = 'if [[ -z "${DB_PASSWORD//[[:space:]]/}" || "${DB_PASSWORD}" == "CHANGE_ME" ]]; then'
+SERVER_VERSION_GUARD = 'if [[ -z "${CANARY_SERVER_VERSION//[[:space:]]/}" || "${CANARY_SERVER_VERSION}" == "CHANGE_ME" ]]; then'
+
 
 def require(condition: bool, message: str) -> None:
     if not condition:
@@ -49,9 +52,17 @@ def validate_install_script(text: str) -> None:
     require(text.startswith("#!/usr/bin/env bash"), "install script must be a bash script")
     require("set -euo pipefail" in text, "install script must fail fast")
     require(
-        'if [[ "${DB_PASSWORD}" == "CHANGE_ME" ]]' in text,
-        "install script must refuse to run with the placeholder password",
+        'CANARY_SERVER_VERSION="${CANARY_SERVER_VERSION:-}"' in text,
+        "install script must load CANARY_SERVER_VERSION from the environment",
     )
+    require(PASSWORD_GUARD in text, "install script must refuse empty and placeholder database passwords")
+    require(SERVER_VERSION_GUARD in text, "install script must refuse empty and placeholder server versions")
+
+    first_sql_access = text.find('export MYSQL_PWD="${DB_PASSWORD}"')
+    require(first_sql_access >= 0, "install script must configure MariaDB access")
+    require(text.find(PASSWORD_GUARD) < first_sql_access, "password validation must happen before any SQL access")
+    require(text.find(SERVER_VERSION_GUARD) < first_sql_access, "server-version validation must happen before any SQL access")
+
     require("schema/gameplay_analytics.sql" in text, "install script must apply the baseline schema file")
     require("migrate_gameplay_analytics.sh" in text, "install script must run the migration runner")
     require(
@@ -83,6 +94,7 @@ def validate_docs(text: str) -> None:
         "gameplay-analytics.env.example",
         "must never prevent Canary from starting",
         "repeatable",
+        "empty or placeholder",
     ):
         require(phrase in text, f"deployment documentation lacks: {phrase}")
 
