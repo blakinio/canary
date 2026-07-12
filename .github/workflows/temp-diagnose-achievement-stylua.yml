@@ -1,5 +1,5 @@
 ---
-name: Temporary Diagnose Achievement StyLua
+name: Temporary Apply Achievement Helper Style Fix
 
 on:
   pull_request:
@@ -8,87 +8,87 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  diagnose:
+  apply:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout task branch
         uses: actions/checkout@v6
         with:
           ref: fix/achievement-helper-enumeration
+          fetch-depth: 0
 
-      - name: Install StyLua and format registry
-        id: registry
-        continue-on-error: true
-        uses: JohnnyMorganz/stylua-action@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          version: latest
-          args: data/scripts/lib/register_achievements.lua
-
-      - name: Capture raw registry error
+      - name: Replace label flow with structured control flow
         shell: bash
         run: |
-          set +e
-          {
-            echo "PATH=$PATH"
-            command -v stylua || true
-            find "$RUNNER_TOOL_CACHE" "$RUNNER_TEMP" -type f -name stylua -perm -111 2>/dev/null | head -20
-          } > stylua-location.txt
-          STYLUA="$(command -v stylua || true)"
-          if [ -z "$STYLUA" ]; then
-            STYLUA="$(find "$RUNNER_TOOL_CACHE" "$RUNNER_TEMP" -type f -name stylua -perm -111 2>/dev/null | head -1)"
-          fi
-          if [ -n "$STYLUA" ]; then
-            "$STYLUA" data/scripts/lib/register_achievements.lua > stylua-registry.log 2>&1
-            echo $? > stylua-registry-exit.txt
-          else
-            echo "stylua binary not found" > stylua-registry.log
-            echo 127 > stylua-registry-exit.txt
-          fi
-          git reset --hard HEAD
+          python - <<'PY'
+          from pathlib import Path
 
-      - name: Format test only
-        id: test
-        continue-on-error: true
-        uses: JohnnyMorganz/stylua-action@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          version: latest
-          args: tests/lua/test_achievement_helpers.lua
+          path = Path("data/scripts/lib/register_achievements.lua")
+          text = path.read_text(encoding="utf-8")
+          old = '''for _, id in ipairs(achievementIds) do
+          \tlocal achievTable = ACHIEVEMENTS[id]
+          \tif achievTable.name == nil then
+          \t\tlogger.error(string.format("[Achievements registration] - Invalid achievement with no name, id: '%s'", id))
+          \t\tgoto continue
+          \tend
 
-      - name: Reset isolated formatting
-        run: git reset --hard HEAD
+          \tif achievTable.description == nil then
+          \t\tlogger.error(string.format("[Achievements registration] - Invalid achievement with no description, id: '%s'", id))
+          \t\tgoto continue
+          \tend
 
-      - name: Format repository
-        id: repository
-        continue-on-error: true
-        uses: JohnnyMorganz/stylua-action@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          version: latest
-          args: .
+          \tlocal secret = achievTable.secret or false
+          \tlocal grade = achievTable.grade or 0
+          \tlocal points = achievTable.points or 0
 
-      - name: Record outcomes
+          \tlogger.trace("[Achievements registration] - Registering achievement '{}' with id '{}'", achievTable.name, id)
+          \tGame.registerAchievement(id, achievTable.name, achievTable.description, secret, grade, points)
+          \tregisteredAchievementIds[#registeredAchievementIds + 1] = id
+
+          \t::continue::
+          end
+          '''
+          new = '''for _, id in ipairs(achievementIds) do
+          \tlocal achievTable = ACHIEVEMENTS[id]
+          \tif achievTable.name == nil then
+          \t\tlogger.error(string.format("[Achievements registration] - Invalid achievement with no name, id: '%s'", id))
+          \telseif achievTable.description == nil then
+          \t\tlogger.error(string.format("[Achievements registration] - Invalid achievement with no description, id: '%s'", id))
+          \telse
+          \t\tlocal secret = achievTable.secret or false
+          \t\tlocal grade = achievTable.grade or 0
+          \t\tlocal points = achievTable.points or 0
+
+          \t\tlogger.trace("[Achievements registration] - Registering achievement '{}' with id '{}'", achievTable.name, id)
+          \t\tGame.registerAchievement(id, achievTable.name, achievTable.description, secret, grade, points)
+          \t\tregisteredAchievementIds[#registeredAchievementIds + 1] = id
+          \tend
+          end
+          '''
+          if text.count(old) != 1:
+              raise SystemExit("expected achievement registration helper block was not found exactly once")
+          path.write_text(text.replace(old, new), encoding="utf-8")
+          PY
+
+          rm .github/workflows/temp-diagnose-achievement-stylua.yml
+
+      - name: Verify StyLua and focused Lua test
+        shell: bash
         run: |
-          printf 'registry=%s\ntest=%s\nrepository=%s\n' \
-            '${{ steps.registry.outcome }}' \
-            '${{ steps.test.outcome }}' \
-            '${{ steps.repository.outcome }}' | tee stylua-outcomes.txt
-          git status --short | tee stylua-status.txt
-          git diff --stat | tee stylua-diff-stat.txt
+          curl -fsSL https://github.com/JohnnyMorganz/StyLua/releases/latest/download/stylua-linux-x86_64.zip -o /tmp/stylua.zip
+          unzip -q /tmp/stylua.zip -d /tmp/stylua
+          /tmp/stylua/stylua data/scripts/lib/register_achievements.lua tests/lua/test_achievement_helpers.lua
+          luajit tests/lua/test_achievement_helpers.lua
 
-      - name: Upload diagnosis
-        uses: actions/upload-artifact@v4
-        with:
-          name: achievement-stylua-diagnosis
-          path: |
-            stylua-outcomes.txt
-            stylua-status.txt
-            stylua-diff-stat.txt
-            stylua-location.txt
-            stylua-registry.log
-            stylua-registry-exit.txt
-          retention-days: 1
+      - name: Commit bounded result
+        shell: bash
+        run: |
+          git config user.name "achievement-helper-bot"
+          git config user.email "achievement-helper-bot@users.noreply.github.com"
+          git add data/scripts/lib/register_achievements.lua tests/lua/test_achievement_helpers.lua .github/workflows/temp-diagnose-achievement-stylua.yml
+          git diff --cached --check
+          git commit -m "fix(achievement): avoid label syntax in helper registration"
+          git push origin HEAD:fix/achievement-helper-enumeration
