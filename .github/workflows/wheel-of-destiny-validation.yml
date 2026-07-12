@@ -15,6 +15,7 @@ on:
       - "src/config/configmanager.cpp"
       - "src/server/network/protocol/**"
       - "src/game/game.cpp"
+      - "data/modules/scripts/taskboard/taskboard.lua"
       - "data/**/*wheel*.lua"
       - "data/**/*gem*.lua"
       - "data-otservbr-global/**/*wheel*.lua"
@@ -23,6 +24,8 @@ on:
       - "tools/ai-agent/test_wheel_of_destiny_validation.py"
       - "tools/ai-agent/wheel_protocol_validation.py"
       - "tools/ai-agent/test_wheel_protocol_validation.py"
+      - "tools/ai-agent/wheel_task_shop_validation.py"
+      - "tools/ai-agent/test_wheel_task_shop_validation.py"
       - "docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json"
       - "docs/ai-agent/WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json"
       - ".github/workflows/wheel-of-destiny-validation.yml"
@@ -34,6 +37,7 @@ on:
       - "src/config/configmanager.cpp"
       - "src/server/network/protocol/**"
       - "src/game/game.cpp"
+      - "data/modules/scripts/taskboard/taskboard.lua"
       - "data/**/*wheel*.lua"
       - "data/**/*gem*.lua"
       - "data-otservbr-global/**/*wheel*.lua"
@@ -42,6 +46,8 @@ on:
       - "tools/ai-agent/test_wheel_of_destiny_validation.py"
       - "tools/ai-agent/wheel_protocol_validation.py"
       - "tools/ai-agent/test_wheel_protocol_validation.py"
+      - "tools/ai-agent/wheel_task_shop_validation.py"
+      - "tools/ai-agent/test_wheel_task_shop_validation.py"
       - "docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json"
       - "docs/ai-agent/WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json"
       - ".github/workflows/wheel-of-destiny-validation.yml"
@@ -85,10 +91,20 @@ jobs:
             --markdown artifacts/WHEEL_PROTOCOL_AUDIT.md \
             --allow-findings
 
+      - name: Generate Hunting Task Shop audit
+        run: |
+          python tools/ai-agent/wheel_task_shop_validation.py \
+            --repository-root . \
+            --maximum-points 50 \
+            --output artifacts/WHEEL_TASK_SHOP_AUDIT.json \
+            --markdown artifacts/WHEEL_TASK_SHOP_AUDIT.md \
+            --allow-findings
+
       - name: Validate generated JSON
         run: |
           python -m json.tool artifacts/WHEEL_OF_DESTINY_AUDIT.json > /dev/null
           python -m json.tool artifacts/WHEEL_PROTOCOL_AUDIT.json > /dev/null
+          python -m json.tool artifacts/WHEEL_TASK_SHOP_AUDIT.json > /dev/null
           python -m json.tool docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json > /dev/null
           python -m json.tool docs/ai-agent/WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json > /dev/null
 
@@ -97,6 +113,8 @@ jobs:
           cat artifacts/WHEEL_OF_DESTINY_AUDIT.md >> "$GITHUB_STEP_SUMMARY"
           printf '\n---\n\n' >> "$GITHUB_STEP_SUMMARY"
           cat artifacts/WHEEL_PROTOCOL_AUDIT.md >> "$GITHUB_STEP_SUMMARY"
+          printf '\n---\n\n' >> "$GITHUB_STEP_SUMMARY"
+          cat artifacts/WHEEL_TASK_SHOP_AUDIT.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload audit artifact
         uses: actions/upload-artifact@v4
@@ -107,5 +125,7 @@ jobs:
             artifacts/WHEEL_OF_DESTINY_AUDIT.md
             artifacts/WHEEL_PROTOCOL_AUDIT.json
             artifacts/WHEEL_PROTOCOL_AUDIT.md
+            artifacts/WHEEL_TASK_SHOP_AUDIT.json
+            artifacts/WHEEL_TASK_SHOP_AUDIT.md
           if-no-files-found: error
           retention-days: 14
