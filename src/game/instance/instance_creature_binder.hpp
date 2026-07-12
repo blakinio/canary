@@ -49,8 +49,8 @@ public:
 		return manager.inheritCreatureOwnership(masterId, summonId);
 	}
 
-	template <typename RuntimeCreature>
-	bool inherit(const RuntimeCreature &master, const RuntimeCreature &summon) {
+	template <typename MasterCreature, typename SummonCreature>
+	bool inherit(const MasterCreature &master, const SummonCreature &summon) {
 		return inherit(
 			static_cast<InstanceCreatureId>(master.getID()),
 			static_cast<InstanceCreatureId>(summon.getID())
@@ -61,8 +61,8 @@ public:
 		return manager.getCreatureRelation(firstId, secondId);
 	}
 
-	template <typename RuntimeCreature>
-	[[nodiscard]] InstanceCreatureRelation relation(const RuntimeCreature &first, const RuntimeCreature &second) const {
+	template <typename FirstCreature, typename SecondCreature>
+	[[nodiscard]] InstanceCreatureRelation relation(const FirstCreature &first, const SecondCreature &second) const {
 		return relation(
 			static_cast<InstanceCreatureId>(first.getID()),
 			static_cast<InstanceCreatureId>(second.getID())
@@ -73,8 +73,8 @@ public:
 		return manager.canCreaturesInteract(firstId, secondId);
 	}
 
-	template <typename RuntimeCreature>
-	[[nodiscard]] bool canInteract(const RuntimeCreature &first, const RuntimeCreature &second) const {
+	template <typename FirstCreature, typename SecondCreature>
+	[[nodiscard]] bool canInteract(const FirstCreature &first, const SecondCreature &second) const {
 		return canInteract(
 			static_cast<InstanceCreatureId>(first.getID()),
 			static_cast<InstanceCreatureId>(second.getID())
