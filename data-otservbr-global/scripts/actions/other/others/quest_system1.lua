@@ -20,8 +20,8 @@ local questLog = {
 local tutorialIds = {
 	[50080] = 5,
 	[50082] = 6,
-	[50084] = 10,
-	[50086] = 11,
+	[50093] = 10,
+	[50094] = 11,
 }
 
 local function copyContainerItem(originalContainer, newContainer)
