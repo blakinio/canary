@@ -94,6 +94,26 @@ def validate_door_integration(text: str) -> None:
         "The Ape City early doors must not unlock completed-quest access",
     )
     require(
+        'addAccountQuestDoor(yalahar.DoorToReward, "in-service-of-yalahar", true, false)' in text,
+        "Yalahar must unlock at the reward-room gate without sharing that room",
+    )
+    require(
+        'addAccountQuestDoor(newFrontier.Mission10 and newFrontier.Mission10.MagicCarpetDoor, "the-new-frontier", true)' in text,
+        "The New Frontier must unlock only after the final Magic Carpet access",
+    )
+    require(
+        'addAccountQuestDoor(wrath.Mission12, "wrath-of-the-emperor", true, false)' in text,
+        "Wrath must unlock at Mission 12 without sharing the reward stage",
+    )
+    require(
+        "newFrontier.Mission09.RewardDoor" not in text,
+        "The New Frontier reward door must remain per character",
+    )
+    require(
+        'addAccountQuestDoor(yalahar.DoorToLastFight, "in-service-of-yalahar")' not in text,
+        "Yalahar final fight access must remain per character",
+    )
+    require(
         "if hasCharacterAccess and accountQuestId then" not in text,
         "ordinary quest doors must not unlock an entire account quest",
     )

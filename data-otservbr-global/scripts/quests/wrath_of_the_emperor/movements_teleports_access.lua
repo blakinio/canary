@@ -40,20 +40,24 @@ local config = {
 	{ Access = Storage.Quest.U8_6.WrathOfTheEmperor.TeleportAccess.InnerSanctum, teleportPos = Position(33028, 31084, 13), destinationA = Position(33109, 31122, 12), destinationB = Position(33028, 31086, 13) },
 }
 
+local function standardDestination(entry, position)
+	if position == entry.teleportPos then
+		return entry.destinationA
+	end
+	return entry.destinationB
+end
+
 local function tpX(i, player, position)
-	if player:getStorageValue(config[i].Access) == 1 then
-		if position == config[i].teleportPos then
-			return config[i].destinationA
-		else
-			return config[i].destinationB
-		end
-	elseif player:getStorageValue(config[i].Access) == 2 then
+	local accessValue = player:getStorageValue(config[i].Access)
+	if accessValue == 1 then
+		return standardDestination(config[i], position)
+	elseif accessValue == 2 then
 		if position == config[i].teleportPos then
 			return config[i].destinationC
 		else
 			return config[i].destinationB
 		end
-	elseif player:getStorageValue(config[i].Access) == 3 then
+	elseif accessValue == 3 then
 		if position == config[i].teleportPos then
 			if Tile(config[i].itemPos):getItemById(11673) then
 				config[i].itemPos:removeItem(11673, 1)
@@ -65,6 +69,10 @@ local function tpX(i, player, position)
 		else
 			return config[i].destinationB
 		end
+	end
+
+	if player:hasAccountQuestAccess("wrath-of-the-emperor") then
+		return standardDestination(config[i], position)
 	end
 	return false
 end
