@@ -6,11 +6,12 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from canary_staging import CanarySmokeSettings, assemble_staging_datapack, run_canary_smoke
+from canary_staging import CanarySmokeSettings, _staging_smoke_executor, assemble_staging_datapack, run_canary_smoke
 from path_policy import PathEscapesRootError
 
 
@@ -114,6 +115,33 @@ class CanaryStagingTests(unittest.TestCase):
         binary.write_text("binary", encoding="utf-8")
         settings = CanarySmokeSettings(repo_root=repo, binary_path=binary)
         return datapack, settings
+
+    def test_staging_executor_enables_any_datapack_only_in_generated_config(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            config_path = repo / "config.lua"
+            observed: list[str] = []
+
+            def standard_write(_args: argparse.Namespace) -> None:
+                config_path.write_text("useAnyDatapackFolder = false\n", encoding="utf-8")
+
+            def set_lua_value(content: str, name: str, value: str) -> str:
+                self.assertEqual(name, "useAnyDatapackFolder")
+                return content.replace("useAnyDatapackFolder = false", f"useAnyDatapackFolder = {value}")
+
+            def run_smoke(_args: argparse.Namespace) -> None:
+                observed.append(config_path.read_text(encoding="utf-8"))
+
+            fake_module = SimpleNamespace(
+                write_smoke_config=standard_write,
+                set_lua_value=set_lua_value,
+                run_smoke=run_smoke,
+            )
+            with mock.patch("canary_staging._load_smoke_module", return_value=fake_module):
+                executor = _staging_smoke_executor(repo)
+                executor(argparse.Namespace())
+
+            self.assertEqual(observed, ["useAnyDatapackFolder = true\n"])
 
     def test_run_canary_smoke_uses_short_alias_and_cleans_it(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
