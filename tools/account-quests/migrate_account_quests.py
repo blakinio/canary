@@ -5,7 +5,6 @@ import argparse
 import os
 import re
 import sys
-from contextlib import contextmanager
 
 import pymysql
 
@@ -53,10 +52,12 @@ def migrate_quest_id(connection, old_id, new_id, apply=False, executed_by="tool"
 
         cursor.execute(
             "INSERT INTO account_quest_access (account_id, quest_id, unlocked_by, unlocked_at) "
-            "SELECT account_id, %s, unlocked_by, unlocked_at FROM account_quest_access WHERE quest_id=%s "
+            "SELECT account_id, %s, unlocked_by, unlocked_at "
+            "FROM account_quest_access AS source_access WHERE source_access.quest_id=%s "
             "ON DUPLICATE KEY UPDATE "
-            "unlocked_by=IF(VALUES(unlocked_at) < unlocked_at, VALUES(unlocked_by), unlocked_by), "
-            "unlocked_at=LEAST(unlocked_at, VALUES(unlocked_at))",
+            "unlocked_by=IF(VALUES(unlocked_at) < account_quest_access.unlocked_at, "
+            "VALUES(unlocked_by), account_quest_access.unlocked_by), "
+            "unlocked_at=LEAST(account_quest_access.unlocked_at, VALUES(unlocked_at))",
             (new_id, old_id),
         )
         cursor.execute("DELETE FROM account_quest_access WHERE quest_id=%s", (old_id,))
@@ -65,10 +66,11 @@ def migrate_quest_id(connection, old_id, new_id, apply=False, executed_by="tool"
             "INSERT INTO account_quest_rewards "
             "(account_id, player_id, quest_id, reward_mode, claimed_by, claimed_at) "
             "SELECT account_id, player_id, %s, reward_mode, claimed_by, claimed_at "
-            "FROM account_quest_rewards WHERE quest_id=%s "
+            "FROM account_quest_rewards AS source_rewards WHERE source_rewards.quest_id=%s "
             "ON DUPLICATE KEY UPDATE "
-            "claimed_by=IF(VALUES(claimed_at) < claimed_at, VALUES(claimed_by), claimed_by), "
-            "claimed_at=LEAST(claimed_at, VALUES(claimed_at))",
+            "claimed_by=IF(VALUES(claimed_at) < account_quest_rewards.claimed_at, "
+            "VALUES(claimed_by), account_quest_rewards.claimed_by), "
+            "claimed_at=LEAST(account_quest_rewards.claimed_at, VALUES(claimed_at))",
             (new_id, old_id),
         )
         cursor.execute("DELETE FROM account_quest_rewards WHERE quest_id=%s", (old_id,))
