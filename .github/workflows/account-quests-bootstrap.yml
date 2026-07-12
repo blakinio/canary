@@ -31,17 +31,29 @@ jobs:
         run: |
           git restore .github/workflows/account-quests-bootstrap.yml
           git restore tools/account-quests/bootstrap_hardening.py
-      - name: Prepare generated patch
+      - name: Prepare generated outputs
         run: |
           git add -A
           git status --short
           git diff --cached --stat
           git diff --cached --binary > /tmp/account-quests-hardening.patch
+          mkdir -p /tmp/account-quests-generated
+          git diff --cached --name-only -z | while IFS= read -r -d '' file; do
+            mkdir -p "/tmp/account-quests-generated/$(dirname "$file")"
+            cp "$file" "/tmp/account-quests-generated/$file"
+          done
       - name: Upload generated patch
         uses: actions/upload-artifact@v4
         with:
           name: account-quests-hardening-patch
           path: /tmp/account-quests-hardening.patch
+          if-no-files-found: error
+      - name: Upload generated files
+        uses: actions/upload-artifact@v4
+        with:
+          name: account-quests-hardening-files
+          path: /tmp/account-quests-generated
+          include-hidden-files: true
           if-no-files-found: error
       - name: Commit generated changes
         run: |
@@ -49,4 +61,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "fix(account-quests): complete production hardening"
       - name: Push generated changes
+        continue-on-error: true
         run: git push origin HEAD:fix/account-quests-production-hardening
