@@ -83,12 +83,14 @@ TEST(InstanceCreatureBinderTest, RejectsInvalidUnknownClosingAndCrossInstanceBin
 	const auto second = manager.createInstance({ .name = "second" });
 	const RuntimeCreatureIdentity invalid {};
 	const RuntimeCreatureIdentity creature { .id = 303 };
+	const RuntimeCreatureIdentity secondOwnerCreature { .id = 305 };
 
 	EXPECT_FALSE(binder.bind(first.id, invalid));
 	EXPECT_FALSE(binder.bind(static_cast<InstanceId>(9999), creature));
 	ASSERT_TRUE(binder.bind(first.id, creature));
 	EXPECT_FALSE(binder.bind(second.id, creature));
 
+	ASSERT_TRUE(binder.bind(second.id, secondOwnerCreature));
 	EXPECT_THROW(manager.close(second.id), std::logic_error);
 	const RuntimeCreatureIdentity closingCreature { .id = 304 };
 	EXPECT_FALSE(binder.bind(second.id, closingCreature));
