@@ -1,0 +1,90 @@
+---
+name: Wheel of Destiny Validation
+
+on:
+  push:
+    branches:
+      - main
+      - "feat/**"
+      - "fix/**"
+      - "ai/**"
+    paths:
+      - "src/creatures/players/components/wheel/**"
+      - "src/enums/player_wheel.hpp"
+      - "src/io/io_wheel.*"
+      - "src/config/configmanager.cpp"
+      - "src/server/network/protocol/**"
+      - "data/**/*wheel*.lua"
+      - "data/**/*gem*.lua"
+      - "data-otservbr-global/**/*wheel*.lua"
+      - "data-otservbr-global/**/*gem*.lua"
+      - "tools/ai-agent/wheel_of_destiny_validation.py"
+      - "tools/ai-agent/test_wheel_of_destiny_validation.py"
+      - "docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json"
+      - "docs/ai-agent/WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json"
+      - ".github/workflows/wheel-of-destiny-validation.yml"
+  pull_request:
+    paths:
+      - "src/creatures/players/components/wheel/**"
+      - "src/enums/player_wheel.hpp"
+      - "src/io/io_wheel.*"
+      - "src/config/configmanager.cpp"
+      - "src/server/network/protocol/**"
+      - "data/**/*wheel*.lua"
+      - "data/**/*gem*.lua"
+      - "data-otservbr-global/**/*wheel*.lua"
+      - "data-otservbr-global/**/*gem*.lua"
+      - "tools/ai-agent/wheel_of_destiny_validation.py"
+      - "tools/ai-agent/test_wheel_of_destiny_validation.py"
+      - "docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json"
+      - "docs/ai-agent/WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json"
+      - ".github/workflows/wheel-of-destiny-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Audit Wheel of Destiny and Gem Atelier
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run focused tests
+        run: python -m unittest discover -s tools/ai-agent -p "test_wheel_of_destiny_validation.py" -v
+
+      - name: Generate Wheel audit
+        run: |
+          python tools/ai-agent/wheel_of_destiny_validation.py \
+            --repository-root . \
+            --reference-baseline docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json \
+            --output artifacts/WHEEL_OF_DESTINY_AUDIT.json \
+            --markdown artifacts/WHEEL_OF_DESTINY_AUDIT.md \
+            --allow-findings
+
+      - name: Validate generated JSON
+        run: |
+          python -m json.tool artifacts/WHEEL_OF_DESTINY_AUDIT.json > /dev/null
+          python -m json.tool docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json > /dev/null
+          python -m json.tool docs/ai-agent/WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json > /dev/null
+
+      - name: Publish audit summary
+        run: cat artifacts/WHEEL_OF_DESTINY_AUDIT.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload audit artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-of-destiny-validation-audit
+          path: |
+            artifacts/WHEEL_OF_DESTINY_AUDIT.json
+            artifacts/WHEEL_OF_DESTINY_AUDIT.md
+          if-no-files-found: error
+          retention-days: 14
