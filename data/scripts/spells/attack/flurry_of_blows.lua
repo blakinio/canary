@@ -12,7 +12,7 @@ combatWod:setParameter(COMBAT_PARAM_TYPE, COMBAT_PHYSICALDAMAGE)
 combatWod:setParameter(COMBAT_PARAM_EFFECT, CONST_ME_WHIRLWIND_BLOW_WHITE)
 combatWod:setParameter(COMBAT_PARAM_BLOCKARMOR, 1)
 combatWod:setParameter(COMBAT_PARAM_USECHARGES, 1)
-combatWod:setArea(createCombatArea(AREA_FLURRY_OF_BLOWS_GREATER))
+combatWod:setArea(createCombatArea(AREA_GREATER_FLURRY_OF_BLOWS))
 
 function onGetFormulaValues(player, skill, attack, factor)
 	local damageHealing = player:calculateFlatDamageHealing()
