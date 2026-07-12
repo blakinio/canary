@@ -28,7 +28,6 @@ REQUIRED_CONFIG = {
     "anonymizePlayers",
     "queueLimit",
     "detailLevel",
-    "levelBrackets",
     "excludedPlayerNames",
     "excludedAccountTypes",
 }
@@ -74,6 +73,7 @@ def validate_config(text: str) -> None:
     keys = set(re.findall(r"^\s*([A-Za-z][A-Za-z0-9_]*)\s*=", text, flags=re.MULTILINE))
     missing = sorted(REQUIRED_CONFIG - keys)
     require(not missing, f"missing config keys: {', '.join(missing)}")
+    require("levelBrackets" not in keys, "maintenance-only level brackets must not be exposed as unused runtime config")
     require(
         re.search(r"^\s*enabled\s*=\s*false\s*,?\s*$", text, flags=re.MULTILINE) is not None,
         "analytics must be disabled by default",
