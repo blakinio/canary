@@ -31,4 +31,21 @@ if profile.count(old_profile) != 1:
     raise SystemExit("current account-login layout revert precondition did not match")
 PROFILE.write_text(profile.replace(old_profile, new_profile, 1), encoding="utf-8")
 
-test = TEST.read_text(encoding="utf-8")n
+test = TEST.read_text(encoding="utf-8")
+method = """
+
+    def test_current_login_prelude_matches_maintained_otclient(self) -> None:
+        text = self.read(\"src/server/network/protocol/protocol_profile.cpp\")
+        layout = re.search(
+            r\"constexpr AccountLoginLayout currentAccountLoginLayout \\{.*?\\n\\t\\};\",
+            text,
+            re.S,
+        )
+        self.assertIsNotNone(layout)
+        body = layout.group(0)
+        self.assertIn(\".bytesToSkipBeforeRsa = 9,\", body)
+        self.assertNotIn(\".bytesToSkipBeforeRsa = 17,\", body)
+"""
+if test.count(method) != 1:
+    raise SystemExit("temporary login prelude contract did not match")
+TEST.write_text(test.replace(method, "", 1), encoding="utf-8")
