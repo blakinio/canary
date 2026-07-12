@@ -1,0 +1,27 @@
+---
+name: Temporary Achievement Helper Source Export
+
+on:
+  push:
+    branches:
+      - fix/achievement-helper-enumeration
+    paths:
+      - ".github/workflows/temp-export-achievement-helper-source.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Upload achievement helper source
+        uses: actions/upload-artifact@v4
+        with:
+          name: achievement-helper-source
+          path: data/scripts/lib/register_achievements.lua
+          if-no-files-found: error
+          retention-days: 1
