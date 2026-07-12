@@ -179,3 +179,128 @@ TEST(InstanceCreatureBinderTest, ClosingOwnerFailsClosedForRuntimeObjects) {
 	EXPECT_EQ(InstanceCreatureRelation::Isolated, binder.relation(first, second));
 	EXPECT_FALSE(binder.canInteract(first, second));
 }
+
+TEST(InstanceCreatureBinderTest, TransactionCommitsNewOwnershipAfterSuccessfulLink) {
+	InstanceManager manager(makeBinderRegions(1));
+	InstanceCreatureBinder binder(manager);
+	const auto instance = manager.createInstance({ .name = "commit" });
+	const RuntimeCreatureIdentity master { .id = 901 };
+	const RuntimeSummonIdentity summon { .id = 902 };
+	ASSERT_TRUE(binder.bind(instance.id, master));
+
+	bool linkApplied = false;
+	EXPECT_TRUE(binder.inheritAndApply(master, summon, [&] {
+		linkApplied = true;
+		return true;
+	}));
+
+	EXPECT_TRUE(linkApplied);
+	ASSERT_TRUE(binder.ownerOf(summon).has_value());
+	EXPECT_EQ(instance.id, *binder.ownerOf(summon));
+}
+
+TEST(InstanceCreatureBinderTest, FalseLinkRollsBackOnlyNewlyInheritedOwnership) {
+	InstanceManager manager(makeBinderRegions(1));
+	InstanceCreatureBinder binder(manager);
+	const auto instance = manager.createInstance({ .name = "rollback-false" });
+	const RuntimeCreatureIdentity master { .id = 1001 };
+	const RuntimeSummonIdentity summon { .id = 1002 };
+	ASSERT_TRUE(binder.bind(instance.id, master));
+
+	EXPECT_FALSE(binder.inheritAndApply(master, summon, [] { return false; }));
+	EXPECT_FALSE(binder.ownerOf(summon).has_value());
+	EXPECT_EQ((std::vector<InstanceCreatureId> { 1001 }), manager.getRegisteredCreatureIds(instance.id));
+}
+
+TEST(InstanceCreatureBinderTest, ThrowingLinkRollsBackNewOwnershipAndRethrows) {
+	InstanceManager manager(makeBinderRegions(1));
+	InstanceCreatureBinder binder(manager);
+	const auto instance = manager.createInstance({ .name = "rollback-throw" });
+	const RuntimeCreatureIdentity master { .id = 1101 };
+	const RuntimeSummonIdentity summon { .id = 1102 };
+	ASSERT_TRUE(binder.bind(instance.id, master));
+
+	EXPECT_THROW(
+		binder.inheritAndApply(master, summon, []() -> bool {
+			throw std::runtime_error("synthetic link failure");
+		}),
+		std::runtime_error
+	);
+	EXPECT_FALSE(binder.ownerOf(summon).has_value());
+	EXPECT_EQ((std::vector<InstanceCreatureId> { 1101 }), manager.getRegisteredCreatureIds(instance.id));
+}
+
+TEST(InstanceCreatureBinderTest, FailedLinkPreservesPreexistingSameInstanceOwnership) {
+	InstanceManager manager(makeBinderRegions(1));
+	InstanceCreatureBinder binder(manager);
+	const auto instance = manager.createInstance({ .name = "preexisting" });
+	const RuntimeCreatureIdentity master { .id = 1201 };
+	const RuntimeSummonIdentity summon { .id = 1202 };
+	ASSERT_TRUE(binder.bind(instance.id, master));
+	ASSERT_TRUE(binder.bind(instance.id, summon));
+
+	EXPECT_FALSE(binder.inheritAndApply(master, summon, [] { return false; }));
+	ASSERT_TRUE(binder.ownerOf(summon).has_value());
+	EXPECT_EQ(instance.id, *binder.ownerOf(summon));
+	EXPECT_EQ((std::vector<InstanceCreatureId> { 1201, 1202 }), manager.getRegisteredCreatureIds(instance.id));
+}
+
+TEST(InstanceCreatureBinderTest, RollbackPreservesNewOwnerAndReportsOwnershipRace) {
+	InstanceManager manager(makeBinderRegions(2));
+	InstanceCreatureBinder binder(manager);
+	const auto first = manager.createInstance({ .name = "first" });
+	const auto second = manager.createInstance({ .name = "second" });
+	const RuntimeCreatureIdentity master { .id = 1251 };
+	const RuntimeSummonIdentity summon { .id = 1252 };
+	ASSERT_TRUE(binder.bind(first.id, master));
+
+	EXPECT_THROW(
+		binder.inheritAndApply(master, summon, [&]() -> bool {
+			EXPECT_TRUE(binder.unbind(summon));
+			EXPECT_TRUE(binder.bind(second.id, summon));
+			return false;
+		}),
+		std::logic_error
+	);
+
+	ASSERT_TRUE(binder.ownerOf(summon).has_value());
+	EXPECT_EQ(second.id, *binder.ownerOf(summon));
+	EXPECT_EQ((std::vector<InstanceCreatureId> { 1251 }), manager.getRegisteredCreatureIds(first.id));
+	EXPECT_EQ((std::vector<InstanceCreatureId> { 1252 }), manager.getRegisteredCreatureIds(second.id));
+}
+
+TEST(InstanceCreatureBinderTest, RejectedInheritanceDoesNotRunLinkOperation) {
+	InstanceManager manager(makeBinderRegions(2));
+	InstanceCreatureBinder binder(manager);
+	const auto first = manager.createInstance({ .name = "first" });
+	const auto second = manager.createInstance({ .name = "second" });
+	const RuntimeCreatureIdentity master { .id = 1301 };
+	const RuntimeSummonIdentity summon { .id = 1302 };
+	ASSERT_TRUE(binder.bind(first.id, master));
+	ASSERT_TRUE(binder.bind(second.id, summon));
+
+	bool linkCalled = false;
+	EXPECT_FALSE(binder.inheritAndApply(master, summon, [&] {
+		linkCalled = true;
+		return true;
+	}));
+	EXPECT_FALSE(linkCalled);
+	EXPECT_EQ(first.id, *binder.ownerOf(master));
+	EXPECT_EQ(second.id, *binder.ownerOf(summon));
+}
+
+TEST(InstanceCreatureBinderTest, NormalWorldTransactionRunsWithoutCreatingOwnership) {
+	InstanceManager manager(makeBinderRegions(1));
+	InstanceCreatureBinder binder(manager);
+	const RuntimeCreatureIdentity master { .id = 1401 };
+	const RuntimeSummonIdentity summon { .id = 1402 };
+
+	bool linkCalled = false;
+	EXPECT_TRUE(binder.inheritAndApply(master, summon, [&] {
+		linkCalled = true;
+		return true;
+	}));
+	EXPECT_TRUE(linkCalled);
+	EXPECT_FALSE(binder.ownerOf(master).has_value());
+	EXPECT_FALSE(binder.ownerOf(summon).has_value());
+}

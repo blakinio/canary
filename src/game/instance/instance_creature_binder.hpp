@@ -11,6 +11,10 @@
 
 #include "game/instance/instance_manager.hpp"
 
+#ifndef USE_PRECOMPILED_HEADERS
+	#include <stdexcept>
+#endif
+
 // Synchronous adapter between runtime objects exposing getID() and the
 // pointer-free ownership registry. It keeps only the manager reference and
 // never retains a Creature pointer/reference after a call returns.
@@ -67,6 +71,54 @@ public:
 		);
 	}
 
+	// Applies ownership inheritance and a synchronous master-link operation as
+	// one compensating transaction. A newly inherited owner is removed when the
+	// operation returns false or throws. Ownership that existed before this call
+	// is never removed by rollback.
+	//
+	// The callback must perform only the immediate link mutation and must not
+	// directly mutate instance ownership. No callback or runtime object is
+	// retained after this function returns.
+	template <typename ApplyMasterLink>
+	bool inheritAndApply(InstanceCreatureId masterId, InstanceCreatureId summonId, ApplyMasterLink applyMasterLink) {
+		const auto previousOwner = ownerOf(summonId);
+		if (!inherit(masterId, summonId)) {
+			return false;
+		}
+
+		const auto inheritedOwner = ownerOf(summonId);
+		const bool ownershipAddedByThisCall = !previousOwner.has_value() && inheritedOwner.has_value();
+
+		try {
+			if (static_cast<bool>(applyMasterLink())) {
+				return true;
+			}
+		} catch (...) {
+			if (ownershipAddedByThisCall) {
+				rollbackInheritedOwnership(summonId, *inheritedOwner);
+			}
+			throw;
+		}
+
+		if (ownershipAddedByThisCall) {
+			rollbackInheritedOwnership(summonId, *inheritedOwner);
+		}
+		return false;
+	}
+
+	template <typename MasterCreature, typename SummonCreature, typename ApplyMasterLink>
+		requires requires(const MasterCreature &masterValue, const SummonCreature &summonValue) {
+			masterValue.getID();
+			summonValue.getID();
+		}
+	bool inheritAndApply(const MasterCreature &master, const SummonCreature &summon, ApplyMasterLink applyMasterLink) {
+		return inheritAndApply(
+			static_cast<InstanceCreatureId>(master.getID()),
+			static_cast<InstanceCreatureId>(summon.getID()),
+			applyMasterLink
+		);
+	}
+
 	[[nodiscard]] InstanceCreatureRelation relation(InstanceCreatureId firstId, InstanceCreatureId secondId) const {
 		return manager.getCreatureRelation(firstId, secondId);
 	}
@@ -112,5 +164,18 @@ public:
 	}
 
 private:
+	void rollbackInheritedOwnership(InstanceCreatureId creatureId, InstanceId expectedOwner) {
+		const auto currentOwner = ownerOf(creatureId);
+		if (!currentOwner) {
+			return;
+		}
+		if (*currentOwner != expectedOwner) {
+			throw std::logic_error("creature ownership changed during master-link transaction");
+		}
+		if (!manager.unregisterCreature(expectedOwner, creatureId)) {
+			throw std::logic_error("failed to rollback inherited creature ownership");
+		}
+	}
+
 	InstanceManager &manager;
 };
