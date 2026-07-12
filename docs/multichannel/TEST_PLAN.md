@@ -224,6 +224,49 @@ wiring got two levels of real verification:
   same wall as `channel_switch_audit_store.cpp`/`house.cpp`) - reviewed by
   hand, verified at the SQL level for real as above.
 
+### Phase 5: economic ledger idempotency (market-offer-expiry job)
+
+`IOMarket::processExpiredOffers`'s new `EconomicLedgerStore` wiring
+(`beginPending`/`markCommitted`/`markFailed`) got the same two-level
+treatment:
+
+- **5 new gtest cases** (`tests/unit/game/multichannel/
+  economic_ledger_id_test.cpp`) against the pure, dependency-free
+  `multichannel::computeDeterministicLedgerUuid` (`economic_ledger_id.hpp`/
+  `.cpp`, split out of `EconomicLedgerStore` the same way
+  `position_serialization.hpp` was split out of `channel_switch_audit_store`
+  in Phase 2, purely so it can be compiled and tested standalone without
+  pulling in `database.hpp`): produces a 36-char, 8-4-4-4-12-shaped string;
+  deterministic for the same inputs; differs for different natural keys;
+  differs for different namespace tags sharing the same natural key; and
+  no collisions across a sequential range of 10,000 natural keys. Compiled
+  standalone with real `g++ -std=c++20` + real `libgtest`/`libgtest_main`
+  and run - **5/5 passing**.
+- **Real MariaDB 10.11**, the exact SQL `EconomicLedgerStore` issues,
+  imported against the real `schema.sql`'s `economic_ledger` table:
+  `beginPending`'s `INSERT` followed by `markCommitted`'s `UPDATE`
+  produces the expected `COMMITTED` row; **a second `beginPending` INSERT
+  for the same `transaction_uuid` (the replay scenario) is rejected with a
+  real `ERROR 1062 Duplicate entry ... for key 'PRIMARY'`** - this is the
+  core idempotency guarantee the whole mechanism exists to provide, and it
+  was verified against the actual constraint, not assumed. Also verified:
+  the item-delivery ledger record shape (`amount = 0`, `item_id`/
+  `item_count` populated) reaching `FAILED` via `markFailed`, and the
+  currency-refund shape (`amount` populated, no item fields) reaching
+  `COMMITTED` via `markCommitted`.
+- `economic_ledger_store.cpp` itself is not standalone-compilable (same
+  `database.hpp` wall as `db_cluster_session_repository.cpp`/
+  `channel_switch_audit_store.cpp`) - reviewed by hand, verified at the SQL
+  level for real as above.
+- **Not covered by this phase**: the three live market call sites
+  (`Game::playerCreateMarketOffer`/`...CancelMarketOffer`/
+  `...AcceptMarketOffer`) do not write to `economic_ledger` yet - only the
+  expiry background job does. No integration test exercises
+  `IOMarket::checkExpiredOffers`'s actual scheduling/dispatch path (that
+  requires the full engine + `g_databaseTasks()`, unavailable in this
+  sandbox); only the SQL `EconomicLedgerStore` issues was verified
+  directly.
+
 ## 15.1b Redis Lua CAS script validation — ✅ run against a real `redis-server`
 
 The acquire/renew/release Lua scripts in

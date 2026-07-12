@@ -521,17 +521,62 @@ follow-up. Also unresolved from Phase 1: house ids still aren't
 independently reusable per channel (`houses_id_unique`, see
 MIGRATION.md's "Known limitation").
 
-## 8. Economy (📐 schema + idempotency contract, not wired)
+## 8. Economy (✅ market-offer-expiry job wired, 📐 remaining call sites not wired)
 
 `economic_ledger.transaction_uuid` is a `CHAR(36)` primary key: a retried
 operation `INSERT`s the same UUID and gets a duplicate-key error instead of
 a second effect, which the caller treats as "already applied, look up the
 existing row's `status`". This is the idempotency mechanism the spec
-requires for market/mail/bank/house operations (§8.2). No engine call site
-writes to this table yet — see DECISION_MATRIX.md for the precise list of
-functions that need it (market buy/cancel, mail send, house
-purchase/transfer) and why wiring transactional economy code blind, in an
-environment with no compiler/DB to verify it, would be irresponsible.
+requires for market/mail/bank/house operations (§8.2).
+
+**✅ `IOMarket::processExpiredOffers`** (`src/io/iomarket.cpp`), the
+background job `IOMarket::checkExpiredOffers` schedules periodically, is
+the first (and so far only) engine call site wired to this table. The
+pre-existing bug this closes: `moveOfferToHistory` does a synchronous
+`DELETE FROM market_offers` for the expiring offer *before*
+`processExpiredOffers` credits the refund (gold to bank balance) or
+delivers the item to the player's inbox; a crash between that `DELETE` and
+the credit/delivery silently and permanently drops the refund or item —
+there is no second attempt (the row that would have driven a retry is
+already gone) and, before this change, no durable trace that it ever
+happened.
+
+`EconomicLedgerStore` (`src/game/multichannel/economic_ledger_store.hpp`/
+`.cpp`) now brackets each expiring offer:
+
+- `beginPending` inserts a `PENDING` row keyed by a **deterministic** UUID
+  derived from the offer's own `id` (`EconomicLedgerStore::deterministicUuid
+  ("market.expire", offerId)`, via the pure, dependency-free
+  `multichannel::computeDeterministicLedgerUuid` in
+  `economic_ledger_id.hpp`/`.cpp`) — deterministic rather than random
+  because this is a scheduled job with no per-attempt nonce to rely on; the
+  same offer id must always retry into the same row rather than creating a
+  fresh one. If this `INSERT` fails (duplicate key = this exact offer was
+  already attempted; any other DB error = fail closed), the offer is
+  skipped for this run rather than risking a second effect.
+- `moveOfferToHistory` runs as before (deleting the offer, appending
+  history); if it fails, the ledger row is marked `FAILED` and the offer is
+  skipped.
+- Once the refund/delivery branch actually completes (item(s) placed in
+  the inbox, or the bank balance/`increaseBankBalance` credit applied), the
+  row is marked `COMMITTED`. The two early-exit checks inside the
+  item-delivery branch (`itemType.id == 0`, player not resolvable) mark the
+  row `FAILED` instead, since no delivery occurred.
+
+This makes a crash mid-expiry **detectable and auditable** (a `PENDING`
+row with no matching `COMMITTED` is exactly the offer that needs manual
+reconciliation) even though it does not yet make the DELETE-then-credit
+sequence atomic — see TEST_PLAN.md for what was verified against a real
+MariaDB instance (the core duplicate-`transaction_uuid` rejection, plus
+both the item-delivery and currency-refund ledger record shapes).
+
+**📐 Known gap, stated honestly:** the three *live* market call sites
+(`Game::playerCreateMarketOffer`, `Game::playerCancelMarketOffer`,
+`Game::playerAcceptMarketOffer`) are not wired to `economic_ledger` yet,
+nor are mail delivery or house purchase/transfer — see DECISION_MATRIX.md
+for the precise list of functions that still need it and why wiring all of
+transactional economy code in one pass, in an environment with no
+compiler to verify most of it, would be irresponsible.
 
 ## 9. Redis client dependency
 

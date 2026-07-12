@@ -87,6 +87,8 @@
     <ClInclude Include="..\src\game\multichannel\cluster_session_manager.hpp" />
     <ClInclude Include="..\src\game\multichannel\cluster_session_repository.hpp" />
     <ClInclude Include="..\src\game\multichannel\db_cluster_session_repository.hpp" />
+    <ClInclude Include="..\src\game\multichannel\economic_ledger_id.hpp" />
+    <ClInclude Include="..\src\game\multichannel\economic_ledger_store.hpp" />
     <ClInclude Include="..\src\game\multichannel\engine_position_legality.hpp" />
     <ClInclude Include="..\src\game\multichannel\position_serialization.hpp" />
     <ClInclude Include="..\src\game\multichannel\hiredis_redis_client.hpp" />
@@ -329,6 +331,8 @@
     <ClCompile Include="..\src\game\multichannel\cluster_runtime.cpp" />
     <ClCompile Include="..\src\game\multichannel\cluster_session_manager.cpp" />
     <ClCompile Include="..\src\game\multichannel\db_cluster_session_repository.cpp" />
+    <ClCompile Include="..\src\game\multichannel\economic_ledger_id.cpp" />
+    <ClCompile Include="..\src\game\multichannel\economic_ledger_store.cpp" />
     <ClCompile Include="..\src\game\multichannel\engine_position_legality.cpp" />
     <ClCompile Include="..\src\game\multichannel\position_serialization.cpp" />
     <ClCompile Include="..\src\game\multichannel\hiredis_redis_client.cpp" />
