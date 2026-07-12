@@ -38,9 +38,8 @@ jobs:
       contents: read
       pull-requests: read
     outputs:
-      # Branch protection requires the nested linux-release check. A skipped
-      # reusable workflow never creates that check and leaves PRs pending
-      # forever, so every CI-triggering PR must run at least linux-release.
+      # Every pull request runs at least Linux Release. Other expensive jobs
+      # remain scoped by the existing path filters.
       linux: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event_name == 'pull_request' }}
       full_matrix: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || steps.filter.outputs.engine == 'true' }}
       run_canary_smoke: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || steps.filter.outputs.engine == 'true' || steps.filter.outputs.shared_datapack == 'true' || steps.filter.outputs.canary_datapack == 'true' }}
@@ -175,3 +174,89 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/reusable-docker-quickstart-smoke.yml
+
+  required:
+    name: Required
+    if: always()
+    needs:
+      - changes
+      - checks
+      - tests-lua
+      - build-linux
+      - build-windows
+      - build-macos
+      - build-docker
+      - docker-quickstart-smoke
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Evaluate required jobs
+        env:
+          IS_DRAFT: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft && 'true' || 'false' }}
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+
+          jobs = json.loads(os.environ["NEEDS_JSON"])
+          rejected = {}
+          is_draft = os.environ["IS_DRAFT"] == "true"
+
+          if jobs["changes"].get("result") != "success":
+              rejected["changes"] = (
+                  f"expected success, got {jobs['changes'].get('result')}"
+              )
+
+          for name in ("checks", "tests-lua"):
+              result = jobs[name].get("result")
+              allowed = {"success", "skipped"} if is_draft else {"success"}
+              if result not in allowed:
+                  rejected[name] = f"expected {sorted(allowed)}, got {result}"
+
+          scopes = jobs["changes"].get("outputs", {})
+          for scope in ("linux", "full_matrix", "docker", "docker_quickstart"):
+              if scopes.get(scope) not in {"true", "false"}:
+                  rejected[f"scope:{scope}"] = (
+                      f"expected true or false, got {scopes.get(scope)!r}"
+                  )
+
+          required_builds = {
+              "build-linux": scopes.get("linux") == "true",
+              "build-windows": scopes.get("full_matrix") == "true",
+              "build-macos": scopes.get("full_matrix") == "true",
+              "build-docker": scopes.get("docker") == "true",
+              "docker-quickstart-smoke": (
+                  scopes.get("docker") == "true"
+                  or scopes.get("docker_quickstart") == "true"
+              ),
+          }
+
+          for name, required in required_builds.items():
+              result = jobs[name].get("result")
+              if result not in {"success", "skipped"}:
+                  rejected[name] = f"unexpected conclusion {result}"
+              elif not is_draft and required and result != "success":
+                  rejected[name] = (
+                      f"selected scope requires success, got {result}"
+                  )
+
+          print("Required job results:")
+          for name in sorted(jobs):
+              print(f"- {name}: {jobs[name].get('result')}")
+
+          print("Detected scopes:")
+          for scope in sorted(scopes):
+              print(f"- {scope}: {scopes.get(scope)}")
+
+          if rejected:
+              for name, reason in sorted(rejected.items()):
+                  print(
+                      "::error title=Required CI job did not pass::"
+                      f"{name}: {reason}"
+                  )
+              sys.exit(1)
+          PY

@@ -9,19 +9,21 @@ local raid = Raid("farmine.draptor", {
 	targetChancePerDay = 0.02,
 	maxChancePerCheck = 0.6,
 	minGapBetween = "12h",
+	timeToSpawnMonsters = "1s",
 })
 
 raid:addBroadcast("The dragons of the Dragonblaze Mountains have  descended to Zao to protect the lizardkin!"):autoAdvance("30s")
 
-for i = 1, 3 do
+local dragonWaves = { 20, 20, 20, 10, 20, 20, 20, 20 }
+for _, amount in ipairs(dragonWaves) do
 	raid
 		:addSpawnMonsters({
 			{
 				name = "Dragon",
-				amount = 50,
+				amount = amount,
 			},
 		})
-		:autoAdvance("2m")
+		:autoAdvance("2s")
 end
 
 for i = 1, 8 do
