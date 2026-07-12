@@ -37,12 +37,14 @@ class ManifestTests(unittest.TestCase):
     def test_manifest_round_trip(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             manifest = DeploymentManifest(
-                schema_version="1.0",
+                schema_version="1.1",
                 release_id="rel-1",
                 created_at="2026-01-01T00:00:00+00:00",
                 source_description="unit test",
                 dry_run=False,
             )
+            manifest.preflight_status = "passed"
+            manifest.preflight_detail = "Canary started cleanly"
             manifest.outcome = "deployed"
             output_path = Path(tmp) / "manifest.json"
             manifest.write(output_path)
@@ -51,11 +53,13 @@ class ManifestTests(unittest.TestCase):
             self.assertEqual(loaded["releaseId"], "rel-1")
             self.assertEqual(loaded["outcome"], "deployed")
             self.assertEqual(loaded["fileCount"], 0)
+            self.assertEqual(loaded["preflightStatus"], "passed")
+            self.assertEqual(loaded["preflightDetail"], "Canary started cleanly")
 
     def test_write_is_atomic_no_partial_file_left_behind(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             manifest = DeploymentManifest(
-                schema_version="1.0",
+                schema_version="1.1",
                 release_id="rel-1",
                 created_at="2026-01-01T00:00:00+00:00",
                 source_description="unit test",
