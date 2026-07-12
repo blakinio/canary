@@ -4,13 +4,15 @@
 > **Branch:** `feat/wheel-of-destiny-validation-audit`  
 > **Draft PR:** #169  
 > **Reference:** `https://tibia.fandom.com/wiki/Wheel_of_Destiny`, checked 2026-07-12  
-> **Evidence:** static source analysis, current + legacy caller-boundary analysis, focused parser tests; runtime and compatible-client contract remain unverified.
+> **Evidence:** static source analysis, current + legacy caller-boundary analysis and focused parser tests; runtime and compatible-client contract remain unverified.
 
 ## Decision
 
-Canary's Wheel of Destiny is **not yet verified as faithful**. The audit has five confirmed static/caller-boundary findings and three unresolved risks. This PR changes only documentation, tools, tests and CI.
+Canary's Wheel of Destiny is **not yet verified as faithful**. The audit currently has six confirmed static/caller-path findings and two unresolved risks. This PR changes only documentation, tools, tests and CI.
 
-## Confirmed static matches
+## Static matches
+
+Status `static-consistent`, not runtime verified:
 
 - 36 slices;
 - Revelation thresholds 250 / 500 / 1000;
@@ -18,137 +20,114 @@ Canary's Wheel of Destiny is **not yet verified as faithful**. The audit has fiv
 - 1 point per level after 50;
 - five Promotion Scrolls totaling 50;
 - Monk quest bonus 10;
-- temple-only point decrease/reset;
-- reveal costs 125k / 1m / 6m;
-- rotate costs 125k / 250k / 500k;
-- Basic Grade II–IV costs;
-- Supreme Grade II and IV costs;
+- temple-only decrease/reset;
+- reveal 125k / 1m / 6m;
+- rotate 125k / 250k / 500k;
+- Basic Grade II–IV;
+- Supreme Grade II and IV;
 - Grade IV multiplier 1.5.
-
-These are `static-consistent`, not runtime verified.
 
 ## Confirmed findings
 
-### WOD-F001 — Supreme Grade III cost mismatch
+### WOD-F001 — Supreme Grade III cost
 
-- expected: 12,500,000 gold + 15 Greater Fragments;
-- actual: 12,000,000 + 15;
-- confidence: high;
-- follow-up: isolated cost PR and focused test.
+Expected 12,500,000 + 15 Greater Fragments; current code returns 12,000,000 + 15. High confidence. Isolated cost PR required.
 
 ### WOD-F002 — Grade IV point accounting
 
-- `m_modsMaxGrade` is absent from spendable `getExtraPoints()`;
-- the global count is added separately to every domain Revelation total;
-- reference behavior: each Grade IV mod grants one permanent spendable Promotion Point, maximum 69;
-- confidence: high;
-- follow-up: isolated points-accounting PR with persistence and four-domain boundary tests.
+`m_modsMaxGrade` is absent from spendable points and added globally to every domain Revelation total. Reference behavior is one permanent spendable point per Grade IV mod, maximum 69. Isolated points/persistence PR required.
 
 ### WOD-F003 — Revelation Mastery double application
 
-- 16 detected general/vocation variants both add immediately and queue a strategy;
-- `executeStrategies()` later applies the queued value;
-- confidence: high static, runtime effect measurement pending;
-- follow-up: isolated exactly-once correction and no-accumulation test.
+Sixteen detected variants add immediately and queue a strategy applied later by `executeStrategies()`. High-confidence static pattern; runtime measurement pending. Exactly-once regression required.
 
-### WOD-F004 — 225 revealed-gem maximum unenforced in both profiles
+### WOD-F004 — 225 revealed-gem cap missing
 
-- current profile: `ProtocolGame::parseWheelGemAction()` has no cap guard;
-- legacy profile: `Game::playerWheelGemAction()` has no cap guard;
-- runtime: `PlayerWheel::revealGem()` has no `m_revealedGems.size()` guard;
-- confidence: high for caller boundary;
-- follow-up: central invariant and 225/226 resource-preservation test.
+Current handler, legacy handler and `revealGem()` contain no cap check. Central 225/226 invariant and no-resource-loss test required.
 
-### WOD-F005 — unchecked Grade position in both profiles
+### WOD-F005 — unchecked Grade position
 
-- current and legacy profiles pass a client byte to `improveGemGrade()`;
-- runtime reads `m_basicGrades[pos]` or `m_supremeGrades[pos]` before validation;
-- array sizes: 49 and 95; byte range: 0..255;
-- confidence: high for out-of-bounds possibility; controlled runtime impact test pending;
-- follow-up: bounds and allowed-position validation before first read plus malformed-packet test.
+Current and legacy handlers pass an arbitrary byte to `improveGemGrade()`, which reads 49/95-element arrays before validation. Bounds and allowed-position guards must precede the first read; malformed-packet runtime test required.
+
+### WOD-F006 — Hunting Task Shop Wheel points missing
+
+The selected reference permits up to 50 purchased Wheel points. Current official Taskboard implementation:
+
+- declares itself a minimal packet shim;
+- sends shop offer count `0`;
+- treats `ShopBuy` only as a payload shape and returns an empty shop window;
+- has no Wheel-point purchase or persistence path;
+- `PlayerWheel::getExtraPoints()` has no Hunting Task source.
+
+`task_points` is Task Hunting currency earned by task claims; it must not be interpreted as already purchased Wheel points. Implementing F006 requires a bounded purchase record, price/offer contract, maximum 50, idempotency, save/load and OTClient compatibility.
 
 ## Open risks
 
-### WOD-R001 — Hunting Task Shop Wheel points
-
-The reference permits up to 50 Wheel points from the Hunting Task Shop. `getExtraPoints()` has no visible source. DB `task_points` is ordinary Task Hunting currency and is not proof of a Wheel reward path. Task Shop handlers, rewards, Lua and KV remain to be traced.
-
 ### WOD-R003 — resource removal ordering
 
-Reveal and Grade upgrade perform count prechecks, then remove money before item/fragments, without a local refund branch. Fault-injection/concurrency evidence is required before stronger classification.
+Count prechecks exist, but reveal/upgrade remove money before item/fragments and have no local refund branch. Fault-injection/concurrency evidence is required.
 
-### WOD-R005 — duplicate adjacency check
+### WOD-R005 — duplicate adjacency
 
-`SLOT_GREEN_TOP_100` checks `SLOT_GREEN_MIDDLE_100` twice. Full graph comparison is pending.
+`SLOT_GREEN_TOP_100` checks `SLOT_GREEN_MIDDLE_100` twice. Full graph comparison pending.
 
 ## Persistence evidence
 
 Confirmed statically:
 
-- player save is wrapped in `DBTransaction`;
-- online save calls slot-point, revealed-gem, active-gem, Grade and scroll persistence;
-- active gems persist by UUID and load only when the UUID exists in revealed gems;
-- destroyed gems are removed before current revealed gems are saved.
+- save uses `DBTransaction`;
+- slot points, revealed/active gems, grades and scrolls are persisted;
+- active gem UUID must resolve to a revealed gem on load;
+- destroyed gems are removed before saving current revealed gems;
+- `task_points` is loaded as Task Hunting currency.
 
-Still unverified:
+Pending:
 
 - complete load order;
-- DB transaction versus KV atomicity;
+- DB transaction vs KV atomicity;
 - corrupted/partial KV recovery;
-- repeated save behavior;
+- repeated saves and destroyed-gem cleanup;
 - Grade IV count rebuild/idempotency;
-- migrations 32/33 and old-data compatibility;
-- real logout/login/server-restart round trip.
+- migrations 32/33;
+- logout/login/server-restart round trip.
 
-## Test and CI evidence
+## Tests and CI
 
-### Local focused tests
+Local focused suites:
 
 - main scanner: 7 passed;
-- current + legacy protocol scanner: 2 passed.
+- current + legacy protocol: 2 passed;
+- Hunting Task Shop: 2 passed;
+- total: 11 passed.
 
-### Confirmed repository run
+Confirmed repository run before companion audits:
 
 ```text
-run: 29203018790
-result: success
-source inventory: 30 files
-main artifact: 4 errors / 6 warnings
-Revelation double-pattern count: 16
+run 29203018790: success
+30 source files
+4 errors / 6 warnings
+16 Revelation double-pattern variants
 ```
 
-### Latest workflow version
-
-The workflow now executes nine tests and generates:
+Latest workflow now creates:
 
 - `WHEEL_OF_DESTINY_AUDIT.json/.md`;
-- `WHEEL_PROTOCOL_AUDIT.json/.md`.
+- `WHEEL_PROTOCOL_AUDIT.json/.md`;
+- `WHEEL_TASK_SHOP_AUDIT.json/.md`.
 
-Its result is pending and must not be marked passed until read from GitHub Actions.
-
-## Audit artifacts
-
-- `tools/ai-agent/wheel_of_destiny_validation.py`
-- `tools/ai-agent/test_wheel_of_destiny_validation.py`
-- `tools/ai-agent/wheel_protocol_validation.py`
-- `tools/ai-agent/test_wheel_protocol_validation.py`
-- `docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json`
-- `docs/ai-agent/WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json`
-- `.github/workflows/wheel-of-destiny-validation.yml`
+Latest result is pending and must not be marked passed before GitHub Actions evidence.
 
 ## Remaining evidence
 
-- every Dedication/Conviction/Revelation and spell augment for all active vocations;
-- Gem Atelier resonance, fragment yields, effective Grade gating and Momentum;
-- Hunting Task Shop point award/storage path;
-- complete persistence and migrations;
-- current and legacy payload comparison with compatible OTClient;
-- malformed-packet and gameplay runtime scenarios.
+- all Dedication/Conviction/Revelation effects and spell augments;
+- Gem resonance, fragments, Grade gating and Momentum;
+- complete persistence/migrations;
+- current + legacy payload comparison with compatible OTClient;
+- runtime and malformed-packet scenarios.
 
 ## Safe follow-up order
 
-1. Review latest nine-test CI and both artifacts.
-2. Finish Hunting Task and persistence analysis.
-3. Compare both profiles with OTClient.
-4. Execute runtime scenarios.
-5. Open separate PRs for F001, F002, F003, F004 and F005.
+1. Review latest eleven-test CI and all three artifacts.
+2. Complete persistence and OTClient analysis.
+3. Execute runtime scenarios.
+4. Open separate PRs for F001–F006.
