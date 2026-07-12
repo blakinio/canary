@@ -384,6 +384,56 @@ the first real compiler for the actual `.cpp`, and its
 fix - will auto-correct the doc entry if the hand-written version drifts
 from a real regeneration).
 
+### Phase 9: leader election for boosted creature/boss, and a corrected misclassification
+
+While scoping "wire the next cluster-singleton job" as a follow-up to
+Phase 7, house rent charging (`Houses::payHouses`) was investigated first
+as the next candidate. Tracing its actual data access (iterates the
+in-memory `houseMap`, itself populated per-channel from each channel's own
+OTBM map) revealed it - and house auction settlement, which shares the same
+per-channel `houseMap` - are **not** cluster-singleton at all: each channel
+already only ever touches its own disjoint houses. Gating either behind
+`ClusterJobLeadershipRegistry` would have caused non-leader channels to
+silently stop charging rent/settling auctions for their own houses - a real
+regression, not a fix. No code change was made for these two; OPERATIONS.md
+and ARCHITECTURE.md were corrected instead (`per-channel`, not
+`cluster-singleton`).
+
+Two other candidates - `Game::loadBoostedCreature` (`src/game/game.cpp`)
+and `IOBosstiary::loadBoostedBoss` (`src/io/io_bosstiary.cpp`) - were
+checked the same way and confirmed genuinely global: `boosted_creature`/
+`boosted_boss` are both `PRIMARY KEY(date)` with no `channel_id` column, and
+`schema.sql` grep-confirmed this directly (not just trusting the existing
+OPERATIONS.md claim, having just been burned by a wrong one). Both are now
+wired:
+
+- Each function, upon finding its row's `date` is stale, now calls
+  `ClusterJobLeadershipRegistry::renewOrAcquire("boosted.creature"/
+  "boosted.boss", SESSION_LEASE_TTL, OTSYS_TIME())` directly (a one-shot
+  acquire race, not a sustained per-cycle check, since both are one-shot
+  startup calls with no periodic heartbeat cycle running yet at this point
+  in `CanaryServer::loadModules()`) and checks `isLeader(...)` immediately
+  after. The winner proceeds with the existing reroll+persist logic
+  unchanged; every other process falls back to reading whatever is
+  currently on record instead.
+- Neither new call site is standalone-compilable (both transitively pull in
+  `game/game.hpp`/`database/database.hpp`'s full dependency chain, the same
+  wall as every engine-glue file in this series) - reviewed by hand. The
+  underlying `ClusterLeaderElection`/`ClusterJobLeadershipRegistry`
+  primitives being called were already thoroughly verified with real gtest
+  in Phase 6 (13 cases, including a 16-thread concurrent-acquire race with
+  exactly one winner) and Phase 7 (8 cases, including outage/recovery); this
+  phase's changes are thin, mechanical call sites invoking already-proven
+  logic, not new logic of their own.
+- `schema.sql` was checked directly to confirm `boosted_creature`/
+  `boosted_boss` each already seed a default row
+  (`INSERT INTO boosted_boss (...) VALUES ('default', 0, 0);` and the
+  `boosted_creature` equivalent), meaning `IOBosstiary::loadBoostedBoss`'s
+  `if (!result)` "no row exists" branch is dead code on any server
+  initialized from this schema - a pre-existing quirk, not something this
+  phase's gate needed to specially handle (the gate still runs correctly on
+  either branch).
+
 ## 15.1b Redis Lua CAS script validation — ✅ run against a real `redis-server`
 
 The acquire/renew/release Lua scripts in

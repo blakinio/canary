@@ -717,6 +717,26 @@ void Game::loadBoostedCreature() {
 		return;
 	}
 
+	// Cluster-singleton (docs/multichannel/OPERATIONS.md): `boosted_creature`
+	// has no channel_id and every channel process races to read/reroll/write
+	// this exact same row at startup. Rather than every process independently
+	// rolling (and persisting) a different monster - leaving the cluster
+	// showing a different boosted creature depending on which channel a
+	// player happens to be on - only the winner of a one-shot leader-election
+	// race for this exact reroll actually picks a new monster and persists
+	// it; every other process falls back to whatever is currently on record
+	// (even if stale-by-one-day) instead. This is a one-shot startup event,
+	// not a recurring job, so leadership is acquired here directly rather
+	// than relying on the periodic heartbeat cycle (which hasn't started
+	// yet at this point in startup).
+	if (g_clusterJobLeadershipRegistry().isEnabled()) {
+		g_clusterJobLeadershipRegistry().renewOrAcquire("boosted.creature", g_configManager().getNumber(SESSION_LEASE_TTL), OTSYS_TIME());
+		if (!g_clusterJobLeadershipRegistry().isLeader("boosted.creature")) {
+			setBoostedName(result->getString("boostname"));
+			return;
+		}
+	}
+
 	const auto oldRace = result->getNumber<uint16_t>("raceid");
 	const auto &monsterlist = getBestiaryList();
 
