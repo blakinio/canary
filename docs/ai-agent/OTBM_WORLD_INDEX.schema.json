@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_WORLD_INDEX.schema.json",
+  "title": "Canary unified OTBM world-index manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "ok",
+    "schemaVersion",
+    "source",
+    "scanner",
+    "index",
+    "otbm",
+    "summary",
+    "warnings"
+  ],
+  "properties": {
+    "format": {"const": "canary-otbm-world-index-v1"},
+    "ok": {"type": "boolean"},
+    "schemaVersion": {"const": 1},
+    "source": {"$ref": "#/$defs/hashedFile"},
+    "scanner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "buildFormat"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "buildFormat": {"const": "canary-otbm-world-index-build-v1"}
+      }
+    },
+    "index": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "size",
+        "sha256",
+        "fileSize",
+        "tileRecordSize",
+        "placementRecordSize",
+        "mechanicRecordSize",
+        "areaRecordSize",
+        "postingRecordSize"
+      ],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "size": {"$ref": "#/$defs/nonNegative"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "fileSize": {"$ref": "#/$defs/nonNegative"},
+        "tileRecordSize": {"const": 22},
+        "placementRecordSize": {"const": 12},
+        "mechanicRecordSize": {"const": 18},
+        "areaRecordSize": {"const": 16},
+        "postingRecordSize": {"const": 4}
+      }
+    },
+    "otbm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "width", "height", "itemsMajor", "itemsMinor"],
+      "properties": {
+        "version": {"type": "integer", "minimum": 1, "maximum": 5},
+        "width": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "height": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "itemsMajor": {"type": "integer", "minimum": 0},
+        "itemsMinor": {"type": "integer", "minimum": 0}
+      }
+    },
+    "summary": {"$ref": "#/$defs/summary"},
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "message"],
+        "properties": {
+          "code": {"type": "string", "minLength": 1},
+          "message": {"type": "string", "minLength": 1},
+          "count": {"$ref": "#/$defs/nonNegative"}
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "$defs": {
+    "nonNegative": {"type": "integer", "minimum": 0},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "hashedFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "size", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "size": {"$ref": "#/$defs/nonNegative"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tileCount",
+        "totalPlacements",
+        "mechanicPlacements",
+        "tileAreaCount",
+        "rawTileAreaNodes",
+        "usedItemIds",
+        "unknownAttributeTails",
+        "maxItemDepth"
+      ],
+      "properties": {
+        "tileCount": {"$ref": "#/$defs/nonNegative"},
+        "totalPlacements": {"$ref": "#/$defs/nonNegative"},
+        "mechanicPlacements": {"$ref": "#/$defs/nonNegative"},
+        "tileAreaCount": {"$ref": "#/$defs/nonNegative"},
+        "rawTileAreaNodes": {"$ref": "#/$defs/nonNegative"},
+        "usedItemIds": {"type": "integer", "minimum": 0, "maximum": 65536},
+        "unknownAttributeTails": {"$ref": "#/$defs/nonNegative"},
+        "maxItemDepth": {"type": "integer", "minimum": 0, "maximum": 32767}
+      }
+    }
+  }
+}
