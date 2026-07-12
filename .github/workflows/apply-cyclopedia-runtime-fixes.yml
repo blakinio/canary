@@ -1,0 +1,44 @@
+---
+name: Apply Cyclopedia Runtime Fixes
+
+on:
+  push:
+    branches:
+      - fix/cyclopedia-runtime-correctness
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout fix branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Apply reviewed source replacements
+        run: python tools/ai-agent/apply_cyclopedia_runtime_fixes.py
+
+      - name: Run focused validator tests
+        run: |
+          python -m unittest discover -s tools/ai-agent -p 'test_cyclopedia_validation.py' -v
+          python -m py_compile tools/ai-agent/cyclopedia_validation.py tools/ai-agent/test_cyclopedia_validation.py
+
+      - name: Commit atomic runtime fix batch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --exit-code && { echo 'Expected source changes were not produced.'; exit 1; }
+          git commit -m 'fix(cyclopedia): correct runtime rules and resilience'
+          git push origin HEAD:${{ github.ref_name }}
