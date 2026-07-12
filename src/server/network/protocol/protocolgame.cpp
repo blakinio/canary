@@ -1033,7 +1033,7 @@ void ProtocolGame::login(const std::string &name, uint32_t accountId, OperatingS
 		// rejection above (ban, waiting list, PZ-account-limit) still
 		// returns before ever acquiring a lease this function would then
 		// have to remember to release.
-		const auto clusterSessionHandle = g_clusterRuntime().acquireForLogin(static_cast<int32_t>(accountId), g_channelContext().getChannelId(), OTSYS_TIME());
+		const auto clusterSessionHandle = g_clusterRuntime().acquireForLogin(static_cast<int32_t>(accountId), static_cast<int32_t>(player->getGUID()), g_channelContext().getChannelId(), OTSYS_TIME());
 		if (!clusterSessionHandle.acquired) {
 			if (!g_clusterRuntime().isAcceptingNewSessions()) {
 				disconnectClient("The game cluster is temporarily unable to verify your session.\nPlease try again in a moment.");

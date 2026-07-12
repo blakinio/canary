@@ -217,10 +217,8 @@ full policy against the player's live state and, on success, resolves an
 arrival position and performs a normal clean disconnect; logging back in
 on the target channel picks up that resolved position automatically. See
 ARCHITECTURE.md §5/§6 for exactly what's wired and its stated gaps (most
-notably: the `cluster_sessions` DB table isn't dual-written yet, so Redis
-is the sole session-enforcement mechanism; and target-channel online/
-capacity checks are optimistic placeholders since no heartbeat loop exists
-yet to check them for real).
+notably: target-channel online/capacity checks are optimistic placeholders
+since no heartbeat loop exists yet to check them for real).
 
 **Phase 3:** `House::setOwner` — the one real chokepoint every ownership
 change (auction win, trade-based sale, rent/inactivity repossession)
@@ -230,6 +228,14 @@ funnels through — now mirrors every grant/revoke into
 §7 and TEST_PLAN.md). This makes the cluster-wide "one house per account"
 table accurate as of *this* PR, not just from whenever an operator
 eventually flips the flag — no backfill migration will be needed later.
+
+**Phase 4:** the `cluster_sessions` DB table (§5's defense-in-depth layer)
+is now dual-written too — `ClusterRuntime` upserts/updates/deletes it
+alongside every Redis acquire/renew/release, verified against a real
+MariaDB (including a real upsert-corruption edge case found and fixed;
+see TEST_PLAN.md). Redis is still the fast path and the primary
+enforcement mechanism; the DB table now actually backs it up instead of
+sitting empty.
 
 **Still not enforced**, and still the reason not to enable
 `multiChannelEnabled = true` in production yet: nothing yet *blocks* an
