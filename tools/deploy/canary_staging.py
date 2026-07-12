@@ -102,12 +102,8 @@ def _load_smoke_module(repo_root: Path) -> ModuleType:
 def _staging_smoke_executor(repo_root: Path) -> SmokeExecutor:
     """Load the standard smoke runner while allowing its temporary datapack alias.
 
-    Canary intentionally rejects arbitrary datapack directory names in normal
-    operation. Deployment validation uses a unique symlink alias so staging and
-    the published release can be tested without replacing the repository's
-    real ``data-canary`` directory. Patch only the dynamically loaded smoke
-    module's config writer; the repository config and normal smoke workflow
-    keep their strict default.
+    The generated config alone enables arbitrary datapack folders. Normal
+    runtime configuration and the repository smoke workflow stay strict.
     """
     module = _load_smoke_module(repo_root)
     standard_write_smoke_config = module.write_smoke_config
@@ -135,12 +131,12 @@ def run_canary_smoke(
     phase: str,
     executor: SmokeExecutor | None = None,
 ) -> HealthCheckResult:
-    """Run the repository's proven runtime smoke logic against an arbitrary datapack.
+    """Run the repository smoke logic against an arbitrary datapack.
 
-    The existing smoke helper expects a short datapack name because it embeds
-    that value in log filenames. A temporary, unique repository-root symlink
-    provides that short name while the actual staged/release directory remains
-    outside the source tree. The alias is always removed.
+    Canary's Lua package path expects datapack directories to keep the
+    ``data-`` prefix. A unique repository-root symlink supplies a compatible
+    short name while the assembled release stays outside the source tree.
+    The alias is always removed.
     """
     repo_root = Path(settings.repo_root).resolve(strict=True)
     datapack = Path(datapack_dir).resolve(strict=True)
@@ -149,7 +145,7 @@ def run_canary_smoke(
         binary = repo_root / binary
     binary = binary.resolve(strict=True)
 
-    alias = repo_root / f".canary-deploy-{_safe_phase(phase)}-{uuid.uuid4().hex[:10]}"
+    alias = repo_root / f"data-canary-deploy-{_safe_phase(phase)}-{uuid.uuid4().hex[:10]}"
     if alias.exists() or alias.is_symlink():
         raise FileExistsError(f"temporary datapack alias already exists: {alias}")
 
