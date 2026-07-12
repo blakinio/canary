@@ -65,8 +65,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p build/deployment-smoke-logs
 
-          binary="$(find build/linux-release/bin -maxdepth 2 -type f -name canary | head -n 1)"
+          binary="$(find build/linux-release/bin -maxdepth 2 -type f -name canary -print -quit)"
           if [[ -z "${binary}" ]]; then
             echo "Canary binary artifact was not found" >&2
             exit 1
@@ -77,7 +78,7 @@ jobs:
           trap 'rm -rf "${work}"' EXIT
           mkdir -p "${work}/overlay" "${work}/deploy-root"
 
-          source_file="$(find data-canary -type f -name '*.lua' | sort | head -n 1)"
+          source_file="$(find data-canary -type f -name '*.lua' -print -quit)"
           if [[ -z "${source_file}" ]]; then
             echo "No Lua file was found in data-canary" >&2
             exit 1
@@ -87,6 +88,7 @@ jobs:
           cp "${source_file}" "${work}/overlay/${relative_file}"
           printf '\n-- canary staging deployment CI overlay\n' >> "${work}/overlay/${relative_file}"
 
+          set +e
           python3 tools/deploy/run_canary_deployment.py \
             --source "${work}/overlay" \
             --base-datapack data-canary \
@@ -102,12 +104,20 @@ jobs:
             --game-port 7572 \
             --status-port 7571 \
             --startup-timeout-seconds 420 \
-            --source-description "GitHub Actions real Canary staging deployment"
+            --source-description "GitHub Actions real Canary staging deployment" \
+            2>&1 | tee build/deployment-smoke-logs/deployment.log
+          deployment_status=${PIPESTATUS[0]}
+          set -e
+          if [[ ${deployment_status} -ne 0 ]]; then
+            exit "${deployment_status}"
+          fi
 
           test "$(readlink "${work}/deploy-root/active")" = "releases/ci-real-canary"
           grep -q "canary staging deployment CI overlay" \
             "${work}/deploy-root/active/${relative_file}"
 
+          cp "${work}/deploy-root/manifests/ci-real-canary.json" \
+            build/deployment-smoke-logs/manifest.json
           python3 - "${work}/deploy-root/manifests/ci-real-canary.json" <<'PY'
           import json
           import sys
@@ -121,3 +131,13 @@ jobs:
           assert manifest["outcome"] == "deployed", manifest
           assert manifest["fileCount"] > 0, manifest
           PY
+
+      - name: Upload real deployment logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: canary-staging-deployment-logs
+          path: |
+            build/deployment-smoke-logs/
+            build/runtime-smoke-logs/
+          if-no-files-found: ignore
