@@ -15,6 +15,7 @@
 #include "creatures/monsters/monster.hpp"
 #include "creatures/players/grouping/party.hpp"
 #include "game/game.hpp"
+#include "game/instance/instance_creature_binder.hpp"
 #include "game/scheduling/dispatcher.hpp"
 #include "game/zones/zone.hpp"
 #include "lib/metrics/metrics.hpp"
@@ -1299,6 +1300,17 @@ bool Creature::setMaster(const std::shared_ptr<Creature> &newMaster, bool reload
 		}
 	}
 	return true;
+}
+
+bool Creature::setMaster(const std::shared_ptr<Creature> &newMaster, InstanceCreatureBinder &binder, bool reloadCreature /* = false*/) {
+	if (!newMaster) {
+		return setMaster(newMaster, reloadCreature);
+	}
+
+	const auto &self = getCreature();
+	return binder.inheritAndApply(*newMaster, *self, [this, newMaster, reloadCreature] {
+		return setMaster(newMaster, reloadCreature);
+	});
 }
 
 bool Creature::addCondition(const std::shared_ptr<Condition> &condition, bool attackerPlayer /* = false*/) {
