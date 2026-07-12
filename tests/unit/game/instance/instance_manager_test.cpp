@@ -18,24 +18,24 @@
 
 namespace {
 
-std::vector<InstanceMapRegion> makeRegions(std::size_t count) {
-	std::vector<InstanceMapRegion> regions;
-	regions.reserve(count);
-	for (std::size_t index = 0; index < count; ++index) {
-		const auto minX = static_cast<uint16_t>(100 + index * 20);
-		regions.push_back({
-			.slot = toSlotId(static_cast<uint32_t>(index)),
-			.minX = minX,
-			.minY = 100,
-			.minZ = 7,
-			.maxX = static_cast<uint16_t>(minX + 9),
-			.maxY = 109,
-			.maxZ = 7,
-			.name = "region-" + std::to_string(index),
-		});
+	std::vector<InstanceMapRegion> makeRegions(std::size_t count) {
+		std::vector<InstanceMapRegion> regions;
+		regions.reserve(count);
+		for (std::size_t index = 0; index < count; ++index) {
+			const auto minX = static_cast<uint16_t>(100 + index * 20);
+			regions.push_back({
+				.slot = toSlotId(static_cast<uint32_t>(index)),
+				.minX = minX,
+				.minY = 100,
+				.minZ = 7,
+				.maxX = static_cast<uint16_t>(minX + 9),
+				.maxY = 109,
+				.maxZ = 7,
+				.name = "region-" + std::to_string(index),
+			});
+		}
+		return regions;
 	}
-	return regions;
-}
 
 } // namespace
 
