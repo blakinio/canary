@@ -22,14 +22,19 @@ combatWod:setParameter(COMBAT_PARAM_BLOCKARMOR, 1)
 combatWod:setParameter(COMBAT_PARAM_USECHARGES, 1)
 combatWod:setArea(createCombatArea(AREA_WAVE6_WOD, AREADIAGONAL_WAVE6_WOD))
 
-function onGetFormulaValues(player, skill, attack, factor)
+local function calculateFormula(player, skill, attack)
 	local skillTotal = skill * attack
 	local levelTotal = player:getLevel() / 5
+
 	return -(((skillTotal * 0.04) + 31) + levelTotal) * 1.1, -(((skillTotal * 0.08) + 45) + levelTotal) * 1.1 -- TODO : Use New Real Formula instead of an %
 end
 
+function onGetFormulaValues(player, skill, attack, factor)
+	return calculateFormula(player, skill, attack)
+end
+
 function onGetFormulaValuesWod(player, skill, attack, factor)
-	return onGetFormulaValues(player, skill, attack, factor)
+	return calculateFormula(player, skill, attack)
 end
 
 combat:setCallback(CALLBACK_PARAM_SKILLVALUE, "onGetFormulaValues")
