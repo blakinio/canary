@@ -55,21 +55,22 @@ VALUES (@detail_session,'retention monster',2,800,200,700)" >/dev/null
 
 run_maintenance() {
 	DB_HOST="${DB_HOST}" DB_PORT="${DB_PORT}" DB_USER="${DB_USER}" DB_PASSWORD="${DB_PASSWORD}" DB_NAME="${DB_NAME}" \
-	AGGREGATION_LAG_DAYS=1 MAX_DAYS_PER_RUN=30 REAGGREGATE_DAYS=7 RAW_RETENTION_DAYS=10 DELETE_BATCH_SIZE=2 DELETE_MAX_BATCHES=10 \
-	DELETE_RAW_SESSIONS="$1" bash tools/analytics/maintain_gameplay_analytics.sh
+	AGGREGATION_LAG_DAYS=1 MAX_DAYS_PER_RUN=30 REAGGREGATE_DAYS=7 LEVEL_BRACKETS=50,100,200,300,400,600,800,1000 \
+	RAW_RETENTION_DAYS=10 DELETE_BATCH_SIZE=2 DELETE_MAX_BATCHES=10 DELETE_RAW_SESSIONS="$1" \
+	bash tools/analytics/maintain_gameplay_analytics.sh
 }
 
 run_maintenance false
 
 assert_scalar "daily aggregate groups" "SELECT COUNT(*) FROM analytics_daily_balance" "3"
 assert_scalar "party aggregate groups" "SELECT COUNT(*) FROM analytics_daily_party_balance" "4"
-assert_scalar "primary aggregate sessions" "SELECT source_sessions FROM analytics_daily_balance WHERE server_version='retention-build' AND hunt_area='retention-area' AND vocation_id=1 AND level_bracket=500" "2"
-assert_scalar "primary aggregate experience" "SELECT experience_raw FROM analytics_daily_balance WHERE server_version='retention-build' AND hunt_area='retention-area' AND vocation_id=1 AND level_bracket=500" "3000"
-assert_scalar "primary aggregate damage" "SELECT damage_dealt FROM analytics_daily_balance WHERE server_version='retention-build' AND hunt_area='retention-area' AND vocation_id=1 AND level_bracket=500" "6000"
-assert_scalar "primary aggregate party weight" "SELECT party_size_weighted FROM analytics_daily_balance WHERE server_version='retention-build' AND hunt_area='retention-area' AND vocation_id=1 AND level_bracket=500" "900.0000"
-assert_scalar "primary aggregate party seconds" "SELECT party_weight_seconds FROM analytics_daily_balance WHERE server_version='retention-build' AND hunt_area='retention-area' AND vocation_id=1 AND level_bracket=500" "300"
-assert_scalar "primary aggregate average party" "SELECT ROUND(party_size_weighted / NULLIF(party_weight_seconds, 0), 4) FROM analytics_daily_balance WHERE server_version='retention-build' AND hunt_area='retention-area' AND vocation_id=1 AND level_bracket=500" "3.0000"
-assert_scalar "shared seconds are clamped per session" "SELECT shared_experience_seconds FROM analytics_daily_balance WHERE server_version='retention-build' AND hunt_area='retention-area' AND vocation_id=1 AND level_bracket=500" "200"
+assert_scalar "configured level bracket applied" "SELECT source_sessions FROM analytics_daily_balance WHERE server_version='retention-build' AND hunt_area='retention-area' AND vocation_id=1 AND level_bracket=400" "2"
+assert_scalar "primary aggregate experience" "SELECT experience_raw FROM analytics_daily_balance WHERE server_version='retention-build' AND hunt_area='retention-area' AND vocation_id=1 AND level_bracket=400" "3000"
+assert_scalar "primary aggregate damage" "SELECT damage_dealt FROM analytics_daily_balance WHERE server_version='retention-build' AND hunt_area='retention-area' AND vocation_id=1 AND level_bracket=400" "6000"
+assert_scalar "primary aggregate party weight" "SELECT party_size_weighted FROM analytics_daily_balance WHERE server_version='retention-build' AND hunt_area='retention-area' AND vocation_id=1 AND level_bracket=400" "900.0000"
+assert_scalar "primary aggregate party seconds" "SELECT party_weight_seconds FROM analytics_daily_balance WHERE server_version='retention-build' AND hunt_area='retention-area' AND vocation_id=1 AND level_bracket=400" "300"
+assert_scalar "primary aggregate average party" "SELECT ROUND(party_size_weighted / NULLIF(party_weight_seconds, 0), 4) FROM analytics_daily_balance WHERE server_version='retention-build' AND hunt_area='retention-area' AND vocation_id=1 AND level_bracket=400" "3.0000"
+assert_scalar "shared seconds are clamped per session" "SELECT shared_experience_seconds FROM analytics_daily_balance WHERE server_version='retention-build' AND hunt_area='retention-area' AND vocation_id=1 AND level_bracket=400" "200"
 assert_scalar "solo aggregate sessions" "SELECT source_sessions FROM analytics_daily_party_balance WHERE hunt_area='retention-area' AND vocation_id=1 AND party_mode='solo'" "1"
 assert_scalar "party aggregate sessions" "SELECT source_sessions FROM analytics_daily_party_balance WHERE hunt_area='retention-area' AND vocation_id=1 AND party_mode='party'" "1"
 assert_scalar "solo aggregate experience" "SELECT experience_raw FROM analytics_daily_party_balance WHERE hunt_area='retention-area' AND vocation_id=1 AND party_mode='solo'" "1000"

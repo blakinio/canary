@@ -25,7 +25,6 @@ return {
 	trackFallbackGridAreas = true,
 	huntAreas = {},
 	detailLevel = 1,
-	levelBrackets = { 50, 100, 200, 300, 400, 600, 800, 1000 },
 	excludedPlayerNames = {},
 	excludedAccountTypes = { ACCOUNT_TYPE_GAMEMASTER, ACCOUNT_TYPE_GOD },
 }

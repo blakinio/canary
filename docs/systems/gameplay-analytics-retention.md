@@ -48,6 +48,7 @@ DB_NAME=canary \
 AGGREGATION_LAG_DAYS=1 \
 MAX_DAYS_PER_RUN=31 \
 REAGGREGATE_DAYS=7 \
+LEVEL_BRACKETS=50,100,200,300,400,600,800,1000 \
 RAW_RETENTION_DAYS=180 \
 DELETE_RAW_SESSIONS=false \
 bash tools/analytics/maintain_gameplay_analytics.sh
@@ -62,12 +63,35 @@ The runner requires the main Analytics schema version `3` and all three optional
 | `AGGREGATION_LAG_DAYS` | `1` | Do not aggregate the newest incomplete days. |
 | `MAX_DAYS_PER_RUN` | `31` | Bound historical catch-up work per invocation. |
 | `REAGGREGATE_DAYS` | `7` | Rebuild this many recent complete days on every run. |
+| `LEVEL_BRACKETS` | `50,100,200,300,400,600,800,1000` | Strictly ascending lower-bound transitions used to classify `level_start`. |
 | `RAW_RETENTION_DAYS` | `180` | Raw sessions older than this may be deleted after aggregation. |
 | `DELETE_RAW_SESSIONS` | `false` | Explicit deletion switch. |
 | `DELETE_BATCH_SIZE` | `5000` | Maximum sessions removed by one SQL delete. |
 | `DELETE_MAX_BATCHES` | `20` | Maximum delete batches per invocation. |
 
 A large historical backlog is intentionally processed over several runs. This avoids one maintenance execution monopolizing MariaDB.
+
+### Level-bracket contract
+
+`LEVEL_BRACKETS` must be a comma-separated, strictly ascending list of positive integers. Malformed, duplicate or descending input is rejected before any MariaDB access.
+
+The default list produces these buckets:
+
+```text
+0-49      -> 0
+50-99     -> 50
+100-199   -> 100
+200-299   -> 200
+300-399   -> 300
+400-599   -> 400
+600-799   -> 600
+800-999   -> 800
+1000+     -> 1000
+```
+
+The stored `level_bracket` is the lower bound shown on the right. This setting belongs to the maintenance process because daily aggregation assigns the bracket; the runtime Lua configuration does not duplicate it.
+
+Changing `LEVEL_BRACKETS` changes reporting dimensions. Keep raw deletion disabled, use a new `CANARY_SERVER_VERSION`, and rebuild the required dates before comparing old and new data. Existing daily rows are replaced when their dates are reaggregated.
 
 ## Aggregation dimensions
 
@@ -99,22 +123,17 @@ party_size_weighted / NULLIF(party_weight_seconds, 0)
 
 Party weighting uses combat seconds only. Shared-experience seconds are clamped per raw session to that session's combat time before summing, so the resulting dashboard percentage cannot be inflated by context sampling outside combat or exceed `100%`.
 
+The runtime closes a session before recording the first metric on a later UTC day. Maintenance still groups by `started_at`, but post-midnight events now belong to the newly created session rather than the previous day's row.
+
 For every rebuilt date, the runner deletes the old daily rows and inserts their complete replacements in one transaction. Re-running the same day does not add counters twice, delayed rows appear on the next run, and corrected dimensions remove stale groups.
 
 ## Recommended schedule
 
-Run once per day after the aggregation lag using the ready-to-use systemd
-units in `tools/analytics/systemd/`:
+Run once per day after the aggregation lag using the ready-to-use systemd units in `tools/analytics/systemd/`:
 
-- `gameplay-analytics-maintenance.service` — a oneshot service that loads
-  `/etc/canary/gameplay-analytics-maintenance.env` and runs
-  `maintain_gameplay_analytics.sh`. It has no `[Install]` section because it
-  is only ever started by the timer below.
-- `gameplay-analytics-maintenance.timer` — a systemd timer that schedules the
-  service daily at 04:30 UTC with `Persistent=true` (a missed run fires on the next boot) and
-  a randomized delay to avoid a thundering herd across multiple hosts.
-- `gameplay-analytics-maintenance.env.example` — the environment file
-  template, with `DELETE_RAW_SESSIONS=false` and `REAGGREGATE_DAYS=7` as the shipped defaults.
+- `gameplay-analytics-maintenance.service` — a oneshot service that loads `/etc/canary/gameplay-analytics-maintenance.env` and runs `maintain_gameplay_analytics.sh`;
+- `gameplay-analytics-maintenance.timer` — a systemd timer that schedules the service daily at 04:30 UTC with `Persistent=true` and a randomized delay;
+- `gameplay-analytics-maintenance.env.example` — the environment template, with safe aggregation and deletion defaults.
 
 Use a database account restricted to the Analytics tables.
 
@@ -123,7 +142,7 @@ Use a database account restricted to the Analytics tables.
 ```bash
 sudo cp tools/analytics/systemd/gameplay-analytics-maintenance.env.example /etc/canary/gameplay-analytics-maintenance.env
 sudo chmod 600 /etc/canary/gameplay-analytics-maintenance.env
-# Edit /etc/canary/gameplay-analytics-maintenance.env with the real DB_PASSWORD.
+# Edit the copy with the real DB_PASSWORD and intended LEVEL_BRACKETS.
 
 sudo cp tools/analytics/systemd/gameplay-analytics-maintenance.service /etc/systemd/system/
 sudo cp tools/analytics/systemd/gameplay-analytics-maintenance.timer /etc/systemd/system/
@@ -131,11 +150,7 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now gameplay-analytics-maintenance.timer
 ```
 
-The unit's `WorkingDirectory` and `ExecStart` assume Canary is deployed at
-`/opt/canary`; adjust both paths in the copied unit file if your deployment
-uses a different path. Run the first several executions with the shipped
-`DELETE_RAW_SESSIONS=false` default so only aggregation happens; only flip it
-to `true` after validating the aggregates as described below.
+The unit's `WorkingDirectory` and `ExecStart` assume Canary is deployed at `/opt/canary`; adjust both paths in the copied unit file if your deployment uses a different path. Run the first several executions with `DELETE_RAW_SESSIONS=false` so only aggregation happens.
 
 Check the result with:
 
@@ -152,17 +167,18 @@ sudo rm /etc/systemd/system/gameplay-analytics-maintenance.service /etc/systemd/
 sudo systemctl daemon-reload
 ```
 
-This stops future scheduled runs. It does not modify or delete any data already written to `analytics_daily_balance`, `analytics_daily_party_balance` or `analytics_maintenance_state`.
+This stops future scheduled runs. It does not modify or delete data already written to the aggregate or maintenance tables.
 
 ## Rollout procedure
 
 1. Back up the MariaDB database.
 2. Apply the main Analytics migrations and `gameplay_analytics_retention.sql`.
-3. Run for at least several days with `DELETE_RAW_SESSIONS=false`.
-4. Compare both daily aggregate tables with raw queries for several dates, vocations, hunts and solo/party modes.
-5. Confirm the rolling rebuild picks up a deliberately delayed test session in a non-production environment.
-6. Enable deletion with a conservative `RAW_RETENTION_DAYS`, such as `180`, while keeping it larger than the lag plus rebuild window.
-7. Monitor runtime, deleted-row counters, MariaDB load and table size.
+3. Set and record the intended `LEVEL_BRACKETS` and `CANARY_SERVER_VERSION`.
+4. Run for at least several days with `DELETE_RAW_SESSIONS=false`.
+5. Compare both daily aggregate tables with raw queries for several dates, vocations, brackets, hunts and solo/party modes.
+6. Confirm the rolling rebuild picks up a deliberately delayed test session in a non-production environment.
+7. Enable deletion only with a conservative `RAW_RETENTION_DAYS` outside the lag plus rebuild window.
+8. Monitor runtime, deleted-row counters, MariaDB load and table size.
 
 ## Recovery
 

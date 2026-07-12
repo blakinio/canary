@@ -40,13 +40,18 @@ class GameplayAnalyticsDashboardValidationTest(unittest.TestCase):
             validator.validate_views(broken)
 
     def test_rejects_uncapped_shared_experience(self) -> None:
-        broken = self.views.replace("LEAST(100.00, ", "", 1).replace(" AS `shared_experience_percent`", " AS `shared_experience_percent`", 1)
+        broken = self.views.replace("LEAST(100.00, ", "", 1)
         with self.assertRaisesRegex(AssertionError, "100 percent"):
+            validator.validate_views(broken)
+
+    def test_rejects_missing_terminal_dead_letter_count(self) -> None:
+        broken = self.views.replace("COUNT(*) AS `dead_letter_records`,", "", 1)
+        with self.assertRaisesRegex(AssertionError, "terminal record count"):
             validator.validate_views(broken)
 
     def test_rejects_missing_panel(self) -> None:
         dashboard = json.loads(self.dashboard_raw)
-        dashboard["panels"] = [panel for panel in dashboard["panels"] if panel.get("title") != "Pending dead-letter sessions"]
+        dashboard["panels"] = [panel for panel in dashboard["panels"] if panel.get("title") != "Persisted dead-letter sessions"]
         with self.assertRaisesRegex(AssertionError, "missing required panels"):
             validator.validate_dashboard(json.dumps(dashboard))
 
@@ -59,7 +64,28 @@ class GameplayAnalyticsDashboardValidationTest(unittest.TestCase):
     def test_rejects_non_mariadb_datasource(self) -> None:
         dashboard = json.loads(self.dashboard_raw)
         dashboard["panels"][1]["datasource"]["type"] = "postgres"
-        with self.assertRaisesRegex(AssertionError, "mysql \(MariaDB-compatible\) datasource"):
+        with self.assertRaisesRegex(AssertionError, r"mysql \(MariaDB-compatible\) datasource"):
+            validator.validate_dashboard(json.dumps(dashboard))
+
+    def test_rejects_ambiguous_series_label(self) -> None:
+        dashboard = json.loads(self.dashboard_raw)
+        panel = next(panel for panel in dashboard["panels"] if panel.get("title") == "Deaths per 100 sessions")
+        panel["targets"][0]["rawSql"] = panel["targets"][0]["rawSql"].replace("' L', level_bracket, '+ ', ", "", 1)
+        with self.assertRaisesRegex(AssertionError, "metric label lacks level_bracket"):
+            validator.validate_dashboard(json.dumps(dashboard))
+
+    def test_rejects_missing_party_hunt_filter(self) -> None:
+        dashboard = json.loads(self.dashboard_raw)
+        panel = next(panel for panel in dashboard["panels"] if panel.get("title") == "Solo versus party: EXP/h")
+        panel["targets"][0]["rawSql"] = panel["targets"][0]["rawSql"].replace(" AND hunt_area IN ($hunt_area)", "", 1)
+        with self.assertRaisesRegex(AssertionError, "lacks the hunt-area filter"):
+            validator.validate_dashboard(json.dumps(dashboard))
+
+    def test_rejects_pending_dead_letter_label(self) -> None:
+        dashboard = json.loads(self.dashboard_raw)
+        panel = next(panel for panel in dashboard["panels"] if panel.get("title") == "Persisted dead-letter sessions")
+        panel["targets"][0]["rawSql"] = "SELECT pending_dead_letters FROM analytics_dead_letter_health"
+        with self.assertRaisesRegex(AssertionError, "terminal record count"):
             validator.validate_dashboard(json.dumps(dashboard))
 
     def test_rejects_committed_datasource_password(self) -> None:
