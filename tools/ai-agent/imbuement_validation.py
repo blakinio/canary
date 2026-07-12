@@ -125,8 +125,11 @@ RUNTIME_REQUIREMENTS: dict[str, tuple[str, ...]] = {
         "playerApplyImbuement", "playerClearImbuement",
     ),
     "src/creatures/players/player.hpp": (
-        "applyImbuementScroll", "onApplyImbuement", "onClearImbuement",
+        "onApplyImbuement", "onClearImbuement",
         "clearAllImbuements", "openImbuementWindow",
+    ),
+    "src/lua/functions/creatures/player/player_functions.cpp": (
+        "applyImbuementScroll",
     ),
     "data-otservbr-global/scripts/actions/object/imbuement_shrine.lua": (
         "TOGGLE_IMBUEMENT_SHRINE_STORAGE", "openImbuementWindow",
