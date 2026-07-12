@@ -31,6 +31,7 @@ FILES = {
     "io_header": SourceFile("io_header", "src/io/io_wheel.hpp"),
     "io": SourceFile("io", "src/io/io_wheel.cpp"),
     "config": SourceFile("config", "src/config/configmanager.cpp"),
+    "protocol": SourceFile("protocol", "src/server/network/protocol/protocolgame.cpp"),
 }
 
 WHEEL_CONFIG_KEYS = {
@@ -120,7 +121,7 @@ def extract_block_after(text: str, pattern: str) -> str:
 
 
 def extract_function(text: str, name: str) -> str:
-    pattern = rf"\b(?:[\w:<>,&*\s]+)\b(?:PlayerWheel|WheelModifierContext|IOWheel)::{re.escape(name)}\s*\([^;]*?\)\s*(?:const\s*)?\{{"
+    pattern = rf"\b(?:[\w:<>,&*\s]+)\b(?:PlayerWheel|WheelModifierContext|IOWheel|ProtocolGame)::{re.escape(name)}\s*\([^;]*?\)\s*(?:const\s*)?\{{"
     match = re.search(pattern, text, flags=re.MULTILINE)
     if not match:
         raise WheelAuditError(f"function not found: {name}")
@@ -236,6 +237,24 @@ def count_revelation_double_application(text: str) -> list[str]:
     return doubled
 
 
+def parse_uint8_array_size(text: str, member_name: str) -> int:
+    match = re.search(
+        rf"std::array\s*<\s*uint8_t\s*,\s*(\d+)\s*>\s*{re.escape(member_name)}\b",
+        strip_cpp_comments(text),
+    )
+    if not match:
+        raise WheelAuditError(f"uint8_t array not found: {member_name}")
+    return int(match.group(1))
+
+
+def has_position_validation(body: str, variable: str = "position") -> bool:
+    return bool(
+        re.search(rf"\b{re.escape(variable)}\b\s*(?:>=|>|<|<=)\s*[^;]+", body)
+        or re.search(rf"[^;]+\s*(?:>=|>|<|<=)\s*\b{re.escape(variable)}\b", body)
+        or re.search(rf"(?:validate|isValid)[A-Za-z0-9_]*\s*\([^)]*\b{re.escape(variable)}\b", body)
+    )
+
+
 def scan_wheel_files(root: Path, roots: Iterable[str] = ("src", "data", "data-otservbr-global")) -> list[str]:
     matched: list[str] = []
     pattern = re.compile(r"WheelOfDestiny|PlayerWheel|WheelGem|wheel-of-destiny|GemAtelier", re.IGNORECASE)
@@ -311,6 +330,9 @@ def audit_sources(sources: dict[str, str], baseline: dict[str, Any] | None = Non
     grade_multipliers = parse_grade_multipliers(sources["gems"])
     duplicates = duplicate_adjacency_checks(sources["player"])
     doubled_revelation = count_revelation_double_application(sources["gems"])
+    protocol_gem_action = extract_function(sources["protocol"], "parseWheelGemAction")
+    basic_grade_array_size = parse_uint8_array_size(sources["player_header"], "m_basicGrades")
+    supreme_grade_array_size = parse_uint8_array_size(sources["player_header"], "m_supremeGrades")
 
     if duplicates:
         findings.append(
@@ -362,15 +384,37 @@ def audit_sources(sources: dict[str, str], baseline: dict[str, Any] | None = Non
 
     reveal = extract_function(sources["player"], "revealGem")
     max_revealed = baseline.get("atelier", {}).get("maxRevealedGems") if baseline else 225
-    if max_revealed and not (
-        str(max_revealed) in reveal
-        or re.search(r"m_revealedGems\.size\s*\(\s*\)\s*(?:>=|==|>)", reveal)
-    ):
+    reveal_has_cap = bool(
+        max_revealed
+        and (
+            str(max_revealed) in reveal
+            or re.search(r"m_revealedGems\.size\s*\(\s*\)\s*(?:>=|==|>)", reveal)
+        )
+    )
+    protocol_has_cap = bool(
+        max_revealed
+        and (
+            str(max_revealed) in protocol_gem_action
+            or re.search(r"(?:revealedGems|getRevealedGems)[^;]*(?:>=|==|>)", protocol_gem_action)
+        )
+    )
+    if max_revealed and not reveal_has_cap and not protocol_has_cap:
+        findings.append(
+            finding(
+                "error",
+                "revealed-gem-cap-unenforced",
+                "Neither parseWheelGemAction() nor revealGem() enforces the recorded maximum revealed-gem count.",
+                expectedMaximum=max_revealed,
+                protocolEntry="ProtocolGame::parseWheelGemAction",
+                runtimeEntry="PlayerWheel::revealGem",
+            )
+        )
+    elif max_revealed and not reveal_has_cap:
         findings.append(
             finding(
                 "warning",
-                "revealed-gem-cap-not-enforced-in-reveal",
-                "revealGem() does not enforce the recorded maximum revealed-gem count; caller/protocol validation still requires review.",
+                "revealed-gem-cap-only-at-protocol-boundary",
+                "revealGem() relies on a protocol-layer cap and is unsafe for future non-protocol callers unless the invariant is centralized.",
                 expectedMaximum=max_revealed,
             )
         )
@@ -408,12 +452,30 @@ def audit_sources(sources: dict[str, str], baseline: dict[str, Any] | None = Non
         improve.find("modsSupremePosition"),
     ]
     first_bounds = min([position for position in bounds_markers if position >= 0], default=-1)
-    if first_array_access >= 0 and (first_bounds < 0 or first_bounds > first_array_access):
+    runtime_position_unvalidated = first_array_access >= 0 and (first_bounds < 0 or first_bounds > first_array_access)
+    protocol_position_unvalidated = (
+        "improveGemGrade" in protocol_gem_action
+        and not has_position_validation(protocol_gem_action, "position")
+    )
+    if runtime_position_unvalidated and protocol_position_unvalidated:
+        findings.append(
+            finding(
+                "error",
+                "grade-position-unvalidated-across-protocol",
+                "parseWheelGemAction() forwards an arbitrary client byte and improveGemGrade() indexes fixed arrays before validating the position.",
+                basicArraySize=basic_grade_array_size,
+                supremeArraySize=supreme_grade_array_size,
+                inputWidthBits=8,
+            )
+        )
+    elif runtime_position_unvalidated:
         findings.append(
             finding(
                 "warning",
-                "grade-position-unvalidated",
-                "improveGemGrade() indexes grade arrays with the client-supplied position before a visible bounds/membership check.",
+                "grade-position-only-validated-by-protocol",
+                "improveGemGrade() relies on protocol-layer position validation and remains unsafe for future direct callers.",
+                basicArraySize=basic_grade_array_size,
+                supremeArraySize=supreme_grade_array_size,
             )
         )
 
@@ -469,6 +531,8 @@ def audit_sources(sources: dict[str, str], baseline: dict[str, Any] | None = Non
             "config": config,
             "doubledRevelationModifierCount": len(doubled_revelation),
             "duplicateAdjacencyCount": len(duplicates),
+            "basicGradeArraySize": basic_grade_array_size,
+            "supremeGradeArraySize": supreme_grade_array_size,
             "findingsBySeverity": dict(sorted(severities.items())),
         },
         "reference": baseline.get("source") if baseline else None,
