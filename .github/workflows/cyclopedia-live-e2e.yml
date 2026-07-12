@@ -12,16 +12,16 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   actions: read
-  packages: read
+  packages: write
 
 jobs:
   build-canary:
     name: Build exact Canary head
     permissions:
       contents: write
-      packages: read
+      packages: write
     uses: ./.github/workflows/reusable-build-linux.yml
     with:
       buildtypes: '["linux-release"]'
@@ -34,6 +34,9 @@ jobs:
     needs: [build-canary]
     runs-on: ubuntu-24.04
     timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
     services:
       mysql:
         image: mysql:8.0
