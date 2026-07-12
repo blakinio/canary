@@ -16,7 +16,9 @@ end
 local callback = EventCallback("GameplayAnalyticsPostDropLoot")
 
 function callback.monsterPostDropLoot(monster, corpse)
-	AnalyticsLoot.recordCorpseLoot(Analytics, AnalyticsPrices, Player(corpse:getCorpseOwner()), corpse:getItems(false))
+	-- Recursive enumeration includes items generated inside bags/backpacks.
+	-- Each physical item is still reported once and only for the corpse owner.
+	AnalyticsLoot.recordCorpseLoot(Analytics, AnalyticsPrices, Player(corpse:getCorpseOwner()), corpse:getItems(true))
 end
 
 callback:register()
