@@ -16,6 +16,7 @@ target_sources(
             multichannel/channel_registry.cpp
             multichannel/position_resolver.cpp
             multichannel/cluster_session_manager.cpp
+            multichannel/cluster_leader_election.cpp
             multichannel/channel_switch_service.cpp
             multichannel/channel_switch_audit_store.cpp
             multichannel/cluster_config_validator.cpp

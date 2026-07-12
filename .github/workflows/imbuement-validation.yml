@@ -1,0 +1,150 @@
+---
+name: Imbuement Validation
+
+on:
+  push:
+    branches:
+      - main
+      - "feat/**"
+      - "fix/**"
+      - "ai/**"
+    paths:
+      - "config.lua.dist"
+      - "data/XML/imbuements.xml"
+      - "data-otservbr-global/lib/core/storages.lua"
+      - "data-otservbr-global/scripts/quests/forgotten_knowledge/creaturescripts_bosses_kill.lua"
+      - "src/creatures/players/imbuements/**"
+      - "src/creatures/players/player.*"
+      - "src/game/game.cpp"
+      - "src/lua/functions/creatures/player/player_functions.cpp"
+      - "data-otservbr-global/scripts/actions/object/imbuement_shrine.lua"
+      - "data-otservbr-global/scripts/actions/object/imbuement_scrolls.lua"
+      - "data-otservbr-global/scripts/actions/object/etcher.lua"
+      - "tools/ai-agent/imbuement*_validation.py"
+      - "tools/ai-agent/test_imbuement*_validation.py"
+      - "docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md"
+      - "docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json"
+      - "docs/agents/tasks/active/CAN-20260712-imbuement-validation.md"
+      - ".github/workflows/imbuement-validation.yml"
+  pull_request:
+    paths:
+      - "config.lua.dist"
+      - "data/XML/imbuements.xml"
+      - "data-otservbr-global/lib/core/storages.lua"
+      - "data-otservbr-global/scripts/quests/forgotten_knowledge/creaturescripts_bosses_kill.lua"
+      - "src/creatures/players/imbuements/**"
+      - "src/creatures/players/player.*"
+      - "src/game/game.cpp"
+      - "src/lua/functions/creatures/player/player_functions.cpp"
+      - "data-otservbr-global/scripts/actions/object/imbuement_shrine.lua"
+      - "data-otservbr-global/scripts/actions/object/imbuement_scrolls.lua"
+      - "data-otservbr-global/scripts/actions/object/etcher.lua"
+      - "tools/ai-agent/imbuement*_validation.py"
+      - "tools/ai-agent/test_imbuement*_validation.py"
+      - "docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md"
+      - "docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json"
+      - "docs/agents/tasks/active/CAN-20260712-imbuement-validation.md"
+      - ".github/workflows/imbuement-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Audit imbuement definitions and runtime wiring
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile focused Python files
+        run: |
+          python -m py_compile \
+            tools/ai-agent/imbuement_validation.py \
+            tools/ai-agent/imbuement_storage_validation.py \
+            tools/ai-agent/test_imbuement_validation.py \
+            tools/ai-agent/test_imbuement_storage_validation.py
+
+      - name: Run focused tests
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          set +e
+          python -m unittest discover \
+            -s tools/ai-agent \
+            -p "test_imbuement*_validation.py" \
+            -v 2>&1 | tee artifacts/IMBUEMENT_TESTS.log
+          status=${PIPESTATUS[0]}
+          echo "Focused test exit code: ${status}" >> "$GITHUB_STEP_SUMMARY"
+          exit "${status}"
+
+      - name: Generate imbuement audits and runtime plan
+        run: |
+          python tools/ai-agent/imbuement_validation.py \
+            --repository-root . \
+            --output artifacts/IMBUEMENT_VALIDATION.json \
+            --runtime-plan artifacts/IMBUEMENT_RUNTIME_TEST_PLAN.json
+          python tools/ai-agent/imbuement_storage_validation.py \
+            --repository-root . \
+            --output artifacts/IMBUEMENT_STORAGE_VALIDATION.json
+
+      - name: Validate JSON outputs
+        run: |
+          python -m json.tool artifacts/IMBUEMENT_VALIDATION.json > /dev/null
+          python -m json.tool artifacts/IMBUEMENT_STORAGE_VALIDATION.json > /dev/null
+          python -m json.tool artifacts/IMBUEMENT_RUNTIME_TEST_PLAN.json > /dev/null
+          python -m json.tool docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json > /dev/null
+
+      - name: Publish audit summary
+        shell: python
+        run: |
+          import json
+          import os
+          from pathlib import Path
+
+          audit = json.loads(Path("artifacts/IMBUEMENT_VALIDATION.json").read_text(encoding="utf-8"))
+          storage = json.loads(Path("artifacts/IMBUEMENT_STORAGE_VALIDATION.json").read_text(encoding="utf-8"))
+          summary = audit["summary"]
+          storage_baseline = storage["baseline"]
+          lines = [
+              "# Imbuement validation",
+              "",
+              f"- base tiers: {summary['base_tiers']}",
+              f"- categories: {summary['categories']}",
+              f"- families: {summary['families']}",
+              f"- entries: {summary['entries']}",
+              f"- undeclared unlock storage IDs: {len(storage_baseline['undeclared_storage_ids'])}",
+              f"- affected Powerful families: {storage_baseline['powerful_with_nonzero_storage']}",
+              f"- Powerful families with storage=0: {len(storage_baseline['powerful_with_zero_storage'])}",
+          ]
+          for severity, count in summary["findings"].items():
+              lines.append(f"- {severity} registry findings: {count}")
+          lines.append(f"- storage wiring findings: {len(storage['findings'])}")
+          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+      - name: Upload audit artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: imbuement-validation-audit
+          path: |
+            artifacts/IMBUEMENT_VALIDATION.json
+            artifacts/IMBUEMENT_STORAGE_VALIDATION.json
+            artifacts/IMBUEMENT_RUNTIME_TEST_PLAN.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload focused test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: imbuement-validation-test-log
+          path: artifacts/IMBUEMENT_TESTS.log
+          if-no-files-found: warn
+          retention-days: 14

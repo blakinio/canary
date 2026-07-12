@@ -51,7 +51,7 @@ Status legend: ✅ shipped and tested · 📐 designed/schema-ready, not wired �
 | 8.1–8.4 | Transactions, idempotency, ledger, item UID | `economic_ledger` schema, wired into the market-offer-expiry job (`IOMarket::processExpiredOffers`) via `EconomicLedgerStore`; item UID explicitly *not* added (see rationale below) | ✅ expiry job / 📐 remaining call sites (live market ops, mail, house) / 🔭 item UID |
 | 9 | Redis: keys/scripts vs Pub/Sub vs Streams, no economic ops over Pub/Sub | Documented split; only the lease/fencing Lua scripts are implemented | ✅ scripts / 📐 Pub/Sub, Streams |
 | 10.1–10.3 | Fail-closed Redis/DB loss, isolated channel crash doesn't affect others | State machine + documented operator runbook | ✅ state machine / 📐 live wiring |
-| 11 | Leader election for singleton jobs | `EventClusterScope` enum + job inventory table in OPERATIONS.md | 📐 |
+| 11 | Leader election for singleton jobs | `EventClusterScope` enum + job inventory table in OPERATIONS.md; `ClusterLeaderElection` primitive (reuses `ClusterSessionManager`'s Redis lease/fencing mechanism, keyed by job name) + `ClusterJobLeadershipRegistry` cache, wired into `IOMarket::checkExpiredOffers` (market offer expiration) as the flagship example | ✅ primitive+tests+one job wired / 📐 remaining jobs in the inventory table unwired |
 | 12 | Status/admin/metrics | Documented command and metric list, tagged by channel/instance | 🔭 |
 | 13 | Migrations idempotent, backward compatible, default off | `59.lua`/`60.lua`, guarded by `tableExists`/`columnExists` checks like existing migrations; `multiChannelEnabled=false` by default | ✅ |
 | 14 | Table scope matrix | This document + ARCHITECTURE.md §2 | ✅ |

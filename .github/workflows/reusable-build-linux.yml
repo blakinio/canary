@@ -160,9 +160,13 @@ jobs:
               if ! git push origin "HEAD:$PR_HEAD_REF"; then
                 echo "Initial docs push failed, retrying after fetch/rebase..."
                 git fetch origin "$PR_HEAD_REF"
-                git rebase "origin/$PR_HEAD_REF"
-                if ! git push origin "HEAD:$PR_HEAD_REF"; then
-                  echo "Docs push still failed after retry (likely concurrent push). Continuing without failing this step."
+                if git rebase "origin/$PR_HEAD_REF"; then
+                  if ! git push origin "HEAD:$PR_HEAD_REF"; then
+                    echo "Docs push still failed after retry (likely concurrent push). Continuing without failing this step."
+                  fi
+                else
+                  echo "Rebase against origin/$PR_HEAD_REF hit a real conflict (unrelated to docs/lua-api). Aborting rebase and continuing without pushing regenerated docs."
+                  git rebase --abort
                 fi
               fi
             fi

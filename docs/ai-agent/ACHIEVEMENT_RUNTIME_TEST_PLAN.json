@@ -1,0 +1,152 @@
+{
+  "format": "canary-achievement-runtime-test-plan-v1",
+  "generatedAt": "2026-07-12",
+  "component": "AI World Validation / Achievements",
+  "preconditions": {
+    "server": "Canary loads the active data and data-otservbr-global datapacks",
+    "database": "Disposable test database or isolated player KV namespace",
+    "character": "Fresh non-GM character unless a scenario states otherwise",
+    "referenceBaseline": "docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json"
+  },
+  "scenarios": [
+    {
+      "id": "registry-full-registration",
+      "layer": "runtime-load",
+      "priority": "blocking",
+      "steps": [
+        "Start Canary and load register_achievements.lua.",
+        "Read Game.getAchievements().",
+        "Compare all registered IDs, names, grades, points and secret flags with the parsed registry."
+      ],
+      "expected": [
+        "Every explicit registry entry is registered exactly once.",
+        "No explicit high ID after a gap is omitted.",
+        "No duplicate ID or duplicate exact name is accepted silently."
+      ]
+    },
+    {
+      "id": "sparse-high-id-enumeration",
+      "layer": "runtime-api",
+      "priority": "blocking",
+      "steps": [
+        "Award the highest explicit achievement ID to a fresh character without displaying a message.",
+        "Call Player.getAchievements(), Player.getPublicAchievements() or Player.getSecretAchievements() as appropriate.",
+        "Request the character achievement list through the protocol-facing path."
+      ],
+      "expected": [
+        "The highest explicit achievement is returned despite lower ID gaps.",
+        "Enumeration never uses a sparse-table length boundary."
+      ],
+      "coversFindings": ["sparse-table-length-operator"]
+    },
+    {
+      "id": "secret-metadata-lookup",
+      "layer": "runtime-api",
+      "priority": "blocking",
+      "steps": [
+        "Call Game.isAchievementSecret with one public achievement ID and name.",
+        "Call it with one secret achievement ID and name.",
+        "Call it with an invalid ID and invalid name."
+      ],
+      "expected": [
+        "Public inputs return false and secret inputs return true.",
+        "ID and name forms use resolved registry metadata.",
+        "Invalid inputs return false and log a bounded error without a secondary Lua failure."
+      ],
+      "coversFindings": [
+        "secret-helper-returns-input",
+        "secret-helper-undefined-error-variable"
+      ]
+    },
+    {
+      "id": "award-idempotency-and-points",
+      "layer": "runtime-behaviour",
+      "priority": "blocking",
+      "steps": [
+        "Record initial achievement points.",
+        "Award one known achievement.",
+        "Award the same achievement again.",
+        "Remove it twice."
+      ],
+      "expected": [
+        "The first award succeeds and adds exactly the configured points.",
+        "The second award is rejected without adding points.",
+        "The first removal subtracts exactly the configured points.",
+        "The second removal is rejected without underflow."
+      ]
+    },
+    {
+      "id": "persistence-reload",
+      "layer": "runtime-persistence",
+      "priority": "blocking",
+      "steps": [
+        "Award one public and one secret achievement.",
+        "Log out and reload the player.",
+        "Read unlocked IDs, timestamps, points and secret count."
+      ],
+      "expected": [
+        "Both achievements survive reload with stable IDs and timestamps.",
+        "The point total equals the sum of the two definitions.",
+        "The secret count includes only the secret definition."
+      ]
+    },
+    {
+      "id": "progress-threshold",
+      "layer": "runtime-behaviour",
+      "priority": "high",
+      "steps": [
+        "Choose an active addAchievementProgress path with a known threshold.",
+        "Advance to threshold minus one and reload the player.",
+        "Advance once more, then attempt additional increments."
+      ],
+      "expected": [
+        "Progress persists across reload.",
+        "The achievement is awarded exactly at the threshold.",
+        "Additional increments do not duplicate the award or points."
+      ]
+    },
+    {
+      "id": "admin-bulk-high-ids",
+      "layer": "runtime-administration",
+      "priority": "high",
+      "steps": [
+        "On an isolated GM test character call addAllAchievements(false).",
+        "Verify the complete explicit registry including IDs after gaps.",
+        "Call removeAllAchievements() and verify points and unlocked state."
+      ],
+      "expected": [
+        "Bulk award covers every explicit entry exactly once.",
+        "Bulk removal clears every awarded entry and returns points to zero."
+      ]
+    },
+    {
+      "id": "representative-static-triggers",
+      "layer": "gameplay-e2e",
+      "priority": "high",
+      "selection": {
+        "minimum": 8,
+        "classes": [
+          "NPC dialogue completion",
+          "quest reward/action",
+          "monster or boss kill",
+          "movement/area discovery",
+          "item use",
+          "counter/progress threshold",
+          "secret achievement",
+          "newest supported content"
+        ]
+      },
+      "expected": [
+        "Each selected trigger awards the exact registry achievement once.",
+        "Prerequisites, storage transitions and rewards remain unchanged.",
+        "A denied or incomplete path does not award early."
+      ]
+    }
+  ],
+  "acceptance": {
+    "staticAudit": "No undefined static achievement reference remains.",
+    "helperCorrectness": "All confirmed helper-defect scenarios pass.",
+    "runtime": "All blocking scenarios pass on a disposable character/database.",
+    "regression": "Representative trigger scenarios run in CI or a documented staging gate."
+  }
+}

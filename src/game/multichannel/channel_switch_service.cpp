@@ -9,6 +9,10 @@
 
 #include "game/multichannel/channel_switch_service.hpp"
 
+#include "game/multichannel/channel_registry.hpp"
+#include "game/multichannel/channel_runtime_registry.hpp"
+#include "game/multichannel/wall_clock.hpp"
+
 std::optional<ChannelSwitchPartyPolicy> parseChannelSwitchPartyPolicy(const std::string &value) {
 	if (value == "deny") {
 		return ChannelSwitchPartyPolicy::Deny;
@@ -62,45 +66,30 @@ namespace {
 		decision.denyReason = reason;
 		return decision;
 	}
+
 } // namespace
 
 ChannelSwitchDecision ChannelSwitchService::evaluate(const ChannelSwitchRequest &request) {
-	// 1. Plain relog on the same channel is not a switch at all - no
-	// cooldown, no audit row beyond the normal login (spec §6).
 	if (request.sourceChannelId.has_value() && *request.sourceChannelId == request.targetChannelId) {
 		return deny(ChannelSwitchDenyReason::SameChannel);
 	}
 
-	// 2. Cooldown.
 	if (request.lastChannelSwitchAt > 0 && (request.nowMs - request.lastChannelSwitchAt) < request.cooldownMs) {
 		return deny(ChannelSwitchDenyReason::Cooldown);
 	}
 
-	// 3. No login/switch while a cluster session shows this account already
-	// online somewhere else - this is the same lock ClusterSessionManager
-	// enforces, checked here again so the policy decision is self-contained
-	// and cannot be reached by skipping the session check.
 	if (request.hasActiveClusterSessionElsewhere) {
 		return deny(ChannelSwitchDenyReason::AlreadyOnlineElsewhere);
 	}
 
-	// 4. PZ lock / active combat always blocks a switch, unconditionally -
-	// this can never be disabled by configuration (spec §4.3, §7).
 	if (request.hasActivePzLockOrCombat) {
 		return deny(ChannelSwitchDenyReason::CombatOrPzLock);
 	}
 
-	// 5. Entering a No-PvP channel: apply the configured exit policy. Combat
-	// was already ruled out in step 4, so CombatOnly has nothing further to
-	// check here; CombatOrSkull additionally blocks a skulled character from
-	// hopping to a calmer channel (spec §2.10).
 	if (request.targetIsNoPvp && request.pvpExitPolicy == PvpChannelExitPolicy::CombatOrSkull && request.isSkulled) {
 		return deny(ChannelSwitchDenyReason::SkullBlocksNoPvpEntry);
 	}
 
-	// 6. Party policy (spec §2.7). Deny blocks the switch outright; Leave
-	// allows it but tells the caller to remove the player from the party
-	// first.
 	bool mustLeavePartyFirst = false;
 	if (request.isInParty) {
 		if (request.partyPolicy == ChannelSwitchPartyPolicy::Deny) {
@@ -109,14 +98,24 @@ ChannelSwitchDecision ChannelSwitchService::evaluate(const ChannelSwitchRequest 
 		mustLeavePartyFirst = true;
 	}
 
-	// 7. Target channel must be enabled, online (fresh heartbeat) and not full.
 	if (!request.targetChannelEnabled) {
 		return deny(ChannelSwitchDenyReason::TargetDisabled);
 	}
-	if (!request.targetChannelOnline) {
+
+	bool targetOnline = request.targetChannelOnline;
+	bool targetFull = request.targetChannelFull;
+	if (g_channelRuntimeRegistry().isEnabled()) {
+		const auto targetChannel = g_channelRegistry().getChannel(request.targetChannelId);
+		const int32_t maxPlayers = targetChannel.has_value() ? targetChannel->maxPlayers : 0;
+		const auto availability = g_channelRuntimeRegistry().getAvailability(request.targetChannelId, maxPlayers, multichannel::wallClockMs());
+		targetOnline = availability.online;
+		targetFull = availability.full;
+	}
+
+	if (!targetOnline) {
 		return deny(ChannelSwitchDenyReason::TargetOffline);
 	}
-	if (request.targetChannelFull) {
+	if (targetFull) {
 		return deny(ChannelSwitchDenyReason::TargetFull);
 	}
 

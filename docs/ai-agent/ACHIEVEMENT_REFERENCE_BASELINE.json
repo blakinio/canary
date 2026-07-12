@@ -1,0 +1,49 @@
+{
+  "format": "canary-achievement-reference-baseline-v1",
+  "source": {
+    "name": "TibiaWiki/Fandom Achievements",
+    "url": "https://tibia.fandom.com/wiki/Achievements",
+    "verifiedAt": "2026-07-12",
+    "scope": "Published achievement IDs, grade, secrecy and point totals; spoiler acquisition text is excluded."
+  },
+  "counts": {
+    "listed": 562,
+    "total": 563,
+    "common": 362,
+    "secretDiscovered": 200,
+    "secretTotal": 201
+  },
+  "points": {
+    "theoretical": 1470,
+    "maximumExcludingCoinciding": 1425
+  },
+  "knownReferenceEntriesAbsentFromRegistryAtAuditTime": [
+    {"id": 550, "name": "A Friend in Need", "implemented": "2024-07-01"},
+    {"id": 551, "name": "Holzkopf", "implemented": "2024-07-01"},
+    {"id": 567, "name": "The Forbidden Build", "implemented": "2025-07-21"},
+    {"id": 572, "name": "Errand Runner", "implemented": "2025-11-24"},
+    {"id": 573, "name": "Workhorse", "implemented": "2025-11-24"},
+    {"id": 574, "name": "Taskaholic", "implemented": "2025-11-24"},
+    {"id": 575, "name": "Pest Control", "implemented": "2025-11-24"},
+    {"id": 576, "name": "Mimic", "implemented": "2025-11-24"},
+    {"id": 577, "name": "Bastard", "implemented": "2025-11-24"},
+    {"id": 578, "name": "Razor's Edge", "implemented": "2025-11-24"},
+    {"id": 579, "name": "Lost Letters", "implemented": "2025-11-24"},
+    {"id": 580, "name": "Stagmeister", "implemented": "2025-11-24"},
+    {"id": 581, "name": "Feral Trapper", "implemented": "2025-11-24"},
+    {"id": 582, "name": "Castle Crasher", "implemented": "2026-03-17"},
+    {"id": 585, "name": "A reliable Friend", "implemented": "2026-03-17"},
+    {"id": 586, "name": "Echo Initiate", "implemented": "Summer 2026"},
+    {"id": 587, "name": "Echo Hunter", "implemented": "Summer 2026"},
+    {"id": 588, "name": "Echo Walker", "implemented": "Summer 2026"},
+    {"id": 592, "name": "Six Steps Ahead", "implemented": "Summer 2026"},
+    {"id": 593, "name": "Radiant Nimbus", "implemented": "Summer 2026"},
+    {"id": 594, "name": "Amati's Echo", "implemented": "Summer 2026"}
+  ],
+  "notes": [
+    "The listed count excludes one undiscovered secret achievement.",
+    "The raw maximum achievement ID is not an achievement count because the ID space contains gaps.",
+    "The exact 21-entry list records current reference entries manually verified as absent from the audited Canary registry; it is not a full copied external catalogue.",
+    "The point difference cannot be assigned only from this missing-entry list because some current reference point values remain unverified and mutually exclusive achievements require semantic modelling."
+  ]
+}

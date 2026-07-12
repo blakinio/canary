@@ -249,6 +249,29 @@ idempotency guarantee itself), plus both the item-delivery and
 currency-refund ledger record shapes (see ARCHITECTURE.md §8 and
 TEST_PLAN.md).
 
+**Phase 6:** `ClusterLeaderElection` (§10a of ARCHITECTURE.md) implements
+the leader-election primitive for cluster-singleton background jobs (house
+rent, market expiry, daily reward reset, etc.), reusing
+`ClusterSessionManager`'s exact Redis lease/fencing mechanism and Lua
+scripts unchanged, just keyed by job name instead of account id. No schema
+change — this is a pure Redis-key convention, nothing persisted to MySQL.
+13/13 gtest cases passing (compiled standalone with real gtest, same as
+`ClusterSessionManager` — this module has no engine dependency). Not yet
+wired into any actual job: every job in OPERATIONS.md's inventory table
+still runs unconditionally on every channel process today.
+
+**Phase 7:** `ClusterLeaderElection` (Phase 6) is now actually wired to one
+job - `ClusterJobLeadershipRegistry` (§10a of ARCHITECTURE.md) renews/
+acquires leadership for `"market.expire"` on the existing session heartbeat
+cycle (`Game::renewClusterSessions`), and `IOMarket::checkExpiredOffers`
+checks it before running its query, so market-offer expiration now runs on
+exactly one channel process cluster-wide instead of once per channel. No
+schema change. A real recovery bug was found and fixed while testing this
+against `FakeRedisClient`: a failed renew during a transient outage
+discarded the remembered lease id, so leadership never recovered even after
+Redis became reachable again until the full TTL elapsed - fixed by keeping
+the id and retrying renew (not a fresh acquire) on the next cycle.
+
 **Still not enforced**, and still the reason not to enable
 `multiChannelEnabled = true` in production yet: nothing yet *blocks* an
 account from bidding on or trading for a second house before an already-
