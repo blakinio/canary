@@ -1,16 +1,16 @@
 ---
 task_id: CAN-20260712-analytics-data-correctness
 coordination_id: ""
-status: in-progress
+status: ready-to-merge
 agent: "GPT-5.6 Thinking"
 branch: fix/analytics-data-correctness
 base_branch: main
 created: 2026-07-12T10:34:45Z
-updated: 2026-07-12T10:34:45Z
-last_verified_commit: "f0b1f38ca84743a4c79851d306ae8d1fdd33176d"
+updated: 2026-07-12T11:01:00Z
+last_verified_commit: "4837508d5d25b37f99be859e780f6e1ec47947e5"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "#135"
 depends_on: []
 blocks: []
 owned_paths:
@@ -50,134 +50,111 @@ Eliminate the verified data-correctness defects in Gameplay Analytics without we
 
 # Acceptance criteria
 
-- [ ] Mana/supply/spell-only sessions expire and are not persisted as hunt sessions without combat or death.
-- [ ] Death sessions persist even when shorter than `minimumSessionSeconds`.
-- [ ] Sessions roll over at a UTC day boundary before recording the first event of the new day.
-- [ ] Rune supply cost is recorded only when rune charges are actually removed.
-- [ ] Maintenance uses validated configurable level-bracket boundaries rather than ignoring the Lua list.
-- [ ] Grafana series include every grouping dimension and use consistent hunt/server filters.
-- [ ] Persisted dead-letter rows are labelled as terminal records, not an active retry queue.
-- [ ] Focused Lua, Python, shell and MariaDB regression coverage is added and passes in CI.
-- [ ] Module catalogue and changelog are updated.
-- [ ] Cross-repository impact is none.
-- [ ] Autonomous merge gate satisfied.
+- [x] Mana/supply/spell-only sessions expire and are not persisted as hunt sessions without combat or death.
+- [x] Death sessions persist even when shorter than `minimumSessionSeconds`.
+- [x] Sessions roll over at a UTC day boundary before recording the first event of the new day.
+- [x] Rune supply cost is recorded only when rune charges are actually removed.
+- [x] Maintenance uses validated configurable level-bracket boundaries rather than ignoring the Lua list.
+- [x] Grafana series include every grouping dimension and use consistent hunt/server filters.
+- [x] Persisted dead-letter rows are labelled as terminal records, not an active retry queue.
+- [x] Focused Lua, Python, shell and MariaDB regression coverage is added and passes in CI.
+- [x] Module catalogue and changelog are updated.
+- [x] Cross-repository impact is none.
+- [x] Autonomous merge gate satisfied at verified head `4837508d5d25b37f99be859e780f6e1ec47947e5`.
 
 # Confirmed context
 
-- Current verified `main`: `f0b1f38ca84743a4c79851d306ae8d1fdd33176d`.
-- No open PR matching Gameplay Analytics was found before branch creation.
-- `docs/agents/ACTIVE_WORK.md` contains no overlapping Analytics task.
-- Existing Analytics implementation is disabled by default and already has schema, batching, reliability, retention, dashboard and MariaDB tests.
-- Local Git worktree/remote commands are unavailable because this session has GitHub connector access but no DNS-capable repository checkout; GitHub branch/ref state is authoritative.
+- Work started from `main` commit `f0b1f38ca84743a4c79851d306ae8d1fdd33176d`.
+- No open Analytics PR or active Analytics task overlapped the claimed paths.
+- Later `main` changes did not modify the Analytics paths and GitHub reports PR #135 mergeable.
+- Local Git commands remain unavailable because the sandbox cannot resolve GitHub; GitHub connector state and Actions are authoritative.
 
-# Existing work to reuse
+# Existing work reused
 
 | Module/task/PR | Reuse | Evidence/path | Why it fits |
 |---|---|---|---|
-| Gameplay Analytics wrapper layers | Extend with a final correctness wrapper | `data-otservbr-global/scripts/lib/gameplay_analytics_*.lua` | Preserves existing core/context/schema/batching/reliability separation. |
-| PR #114 aggregation fixes | Extend existing retention and dashboard semantics | maintenance script, views, MariaDB tests | Already owns rolling rebuild, party separation and shared-EXP caps. |
-| Existing focused validators | Add explicit contracts instead of weakening checks | `tools/analytics/validate_*` | Matches repository test conventions. |
+| Gameplay Analytics wrapper layers | Added one final correctness wrapper | `data-otservbr-global/scripts/lib/gameplay_analytics_*.lua` | Preserves core/context/schema/batching/reliability separation. |
+| PR #114 aggregation fixes | Extended retention and dashboard semantics | maintenance script, views, MariaDB tests | Reuses rolling rebuild, party separation and shared-EXP caps. |
+| Existing focused validators | Added explicit contracts and regression tests | `tools/analytics/validate_*` | Matches repository test conventions. |
 
-# Ownership and overlap check
+# Implementation summary
 
-- Open PRs inspected: repository-wide list and Analytics search; no Analytics overlap.
-- Active tasks inspected: `docs/agents/ACTIVE_WORK.md`.
-- Overlaps: none in claimed Analytics paths; PR #132 only affects `.github/workflows/ci.yml`.
-- Resolution: use a dedicated branch and avoid `.github/workflows/ci.yml`.
-
-# Current state
-
-Verified defects affect session lifecycle, short-death retention, rune supply accounting, level-bracket configuration, daily rollover, Grafana series identity/filtering and dead-letter naming.
-
-# Plan
-
-1. Add focused regression tests and a final runtime correctness wrapper.
-2. Move level-bracket ownership to validated maintenance configuration and test generated SQL behavior.
-3. Correct rune supply guards, reporting views and dashboard queries.
-4. Update validators, workflows, docs, catalogue and changelog.
-5. Review the full diff, inspect CI, repair failures, then merge only if all gates pass.
+- Added `gameplay_analytics_correctness.lua` after reliability to enforce UTC rollover, combat/death persistence eligibility, non-combat expiry and short death/rollover retention.
+- Added lifecycle health counters to `/analytics status`.
+- Removed the unused runtime `levelBrackets` option and added validated maintenance `LEVEL_BRACKETS` with explicit bucket semantics.
+- Guarded integrated rune supply events with `REMOVE_RUNE_CHARGES`.
+- Made Grafana series identities include vocation, bracket, hunt and server version; aligned party filters.
+- Relabelled persisted dead letters as terminal failure history while preserving a compatibility SQL alias.
+- Added Lua, Python, shell and real MariaDB regression coverage plus documentation and agent catalogue updates.
 
 # Work log
 
 ## 2026-07-12T10:34:45Z
 
-- Changed: created task branch and claimed exact Analytics paths.
-- Learned: no current Analytics PR or active-task overlap exists.
-- Failed/blocked: local git status/build commands unavailable because the sandbox cannot resolve GitHub; repository writes and CI remain available through the GitHub connector.
-- Result: implementation may proceed on `fix/analytics-data-correctness`.
+- Created the task branch and claimed exact Analytics paths.
+- Verified no current Analytics PR/task overlap.
+- Recorded the local Git/DNS limitation.
+
+## 2026-07-12T10:36:06Z
+
+- Opened draft PR #135.
+- Implemented lifecycle, rune, maintenance, reporting and dashboard fixes with focused tests.
+
+## 2026-07-12T10:54:00Z
+
+- First CI pass exposed two documentation-validator mismatches: the reliability document omitted the exact `lastFlushDurationMs` field name, and a dead-letter semantic phrase was split across SQL comment lines.
+- Corrected the documentation/contracts without weakening runtime tests.
+
+## 2026-07-12T11:01:00Z
+
+- Verified all workflows at head `4837508d5d25b37f99be859e780f6e1ec47947e5` are complete and successful.
+- Verified no unresolved review threads and GitHub reports the PR mergeable.
 
 # Decisions
 
 | Decision | Reason/evidence | ADR |
 |---|---|---|
-| Add a final runtime correctness wrapper instead of rewriting the core | Existing layer composition is stable and wrapper overrides can preserve all current public functions while minimizing regression surface. | Not required; task-local implementation choice. |
-| Configure level brackets in maintenance, not Lua runtime | Brackets are assigned only during external daily aggregation; keeping a runtime-only list is misleading. | Not required; documented environment contract. |
-| Rename dead-letter reporting semantics instead of inventing automatic replay | Persisted rows are terminal failure records today; adding replay needs a separate product/data lifecycle design. | Not required. |
-
-# Files and interfaces
-
-| Path/interface/config/schema | Purpose | Status |
-|---|---|---|
-| `gameplay_analytics_correctness.lua` | Lifecycle, rollover and persistence eligibility | planned |
-| `LEVEL_BRACKETS` | Strict ascending maintenance aggregation boundaries | planned |
-| rune scripts | Respect `REMOVE_RUNE_CHARGES` | planned |
-| reporting view/dashboard | Unique series and truthful dead-letter labels | planned |
-| focused tests/validators/workflows | Regression coverage | planned |
+| Add a final runtime correctness wrapper | Minimizes regression surface while preserving existing wrappers and dynamic enqueue behavior. | Not required. |
+| Configure level brackets in maintenance | Daily aggregation, not runtime collection, assigns the bracket. | Not required. |
+| Report dead letters truthfully instead of inventing replay | Persisted rows have no automatic replay lifecycle. | Not required. |
+| Split active sessions at the first event on a later UTC day | Keeps post-midnight metrics out of the previous daily group without storing movement/segment history. | Not required. |
 
 # Validation and CI
 
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
-| | Focused local checks | not-run | No repository checkout in sandbox. |
-| | GitHub Gameplay Analytics workflows | not-run | Will inspect on PR head. |
-
-Never write `passed` without verification.
-
-# Failed approaches and dead ends
-
-- Direct `git clone`/`git ls-remote` is unavailable because the container cannot resolve `github.com`; use GitHub connector writes and GitHub Actions.
+| `4837508d5d25b37f99be859e780f6e1ec47947e5` | Gameplay Analytics | passed | validators, Python unit tests, Lua context/batching/reliability/correctness/schema tests, MariaDB schema/persistence/migrations |
+| `4837508d5d25b37f99be859e780f6e1ec47947e5` | Gameplay Analytics Retention | passed | validator, shell syntax, systemd validation, MariaDB aggregation/retention lifecycle |
+| `4837508d5d25b37f99be859e780f6e1ec47947e5` | Gameplay Analytics Dashboards | passed | JSON/YAML/static validation and MariaDB reporting-view integration |
+| `4837508d5d25b37f99be859e780f6e1ec47947e5` | Gameplay Analytics Supply and Loot Telemetry | passed | static/unit/Lua/MariaDB coverage including rune charge guard |
+| `4837508d5d25b37f99be859e780f6e1ec47947e5` | Gameplay Analytics Spell Telemetry | passed | static and Lua integration coverage |
+| `4837508d5d25b37f99be859e780f6e1ec47947e5` | Gameplay Analytics Hunt Areas | passed | no regression in shared Analytics tooling/docs |
+| `4837508d5d25b37f99be859e780f6e1ec47947e5` | General CI | passed | build-scope workflow completed successfully; non-applicable matrix jobs skipped by path scope |
+| current task | Local checks | unavailable | No DNS-capable checkout in sandbox; no result claimed. |
 
 # Risks and compatibility
 
-- Runtime: wrapper order must preserve context, schema, batching and reliability behavior.
-- Data/migration: level-bracket defaults change from implicit 100-level buckets to the previously advertised explicit boundaries; deployment should use a new `CANARY_SERVER_VERSION` for before/after comparison.
-- Security: no secrets or new identity dimensions.
-- Backward compatibility: no protocol/client change; reporting view keeps compatibility aliases where practical.
-- Cross-repo rollout: none.
-- Rollback: disable Analytics, revert the PR, restore previous maintenance environment and rebuild recent aggregates while raw rows remain.
+- Runtime wrapper order is enforced by static and Lua regression tests.
+- No protocol, client or cross-repository change.
+- `LEVEL_BRACKETS` changes daily dimensions; deployment must record a new `CANARY_SERVER_VERSION` and rebuild while raw rows remain.
+- `pending_dead_letters` remains a compatibility alias, while the shipped dashboard uses `dead_letter_records`.
+- Rollback: disable Analytics, revert #135, restore the prior maintenance environment and rebuild recent aggregates before enabling raw deletion.
 
 # Remaining work
 
-1. Publish the early task index update and open a draft PR.
-2. Implement focused fixes and tests.
+1. Mark PR #135 ready.
+2. Squash-merge after rechecking the current head and merge gate.
+3. Archive this task record after merge.
 
 # Handoff
 
-## Start here
-
-Read this task, current PR diff and all Analytics focused docs before changing wrapper order or aggregation semantics.
-
-## Do not repeat
-
-Do not create a second Analytics core or bypass existing batching/reliability/schema layers.
-
-## Required reads
-
-- `AGENTS.md`
-- `docs/agents/ACTIVE_WORK.md`
-- `docs/agents/MODULE_CATALOG.md`
-- `docs/systems/gameplay-analytics-agent-handoff.md`
-- current Analytics source/tests/docs
-
-## Open questions
-
-- None blocking implementation.
+Read PR #135, this task and the focused Analytics docs before changing lifecycle or aggregation semantics. Do not bypass the wrapper stack, duplicate `LEVEL_BRACKETS` in runtime config, or interpret persisted dead-letter rows as an active retry queue.
 
 # Completion
 
-- Final status: in progress
-- PR:
-- Merge commit:
-- Catalogue updated: pending
-- Changelog updated: pending
-- Archived at:
+- Final status: ready to merge
+- PR: #135
+- Merge commit: pending
+- Catalogue updated: yes
+- Changelog updated: yes
+- Archived at: pending after merge
