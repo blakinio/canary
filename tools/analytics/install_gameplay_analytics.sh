@@ -18,14 +18,30 @@ DB_PORT="${DB_PORT:-3306}"
 DB_USER="${DB_USER:-canary}"
 DB_PASSWORD="${DB_PASSWORD:-}"
 DB_NAME="${DB_NAME:-canary}"
+CANARY_SERVER_VERSION="${CANARY_SERVER_VERSION:-}"
 REQUIRED_SCHEMA_VERSION=3
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BASELINE_SCHEMA="${BASELINE_SCHEMA:-${SCRIPT_DIR}/../../schema/gameplay_analytics.sql}"
 MIGRATE_SCRIPT="${SCRIPT_DIR}/migrate_gameplay_analytics.sh"
 
-if [[ "${DB_PASSWORD}" == "CHANGE_ME" ]]; then
-	echo "DB_PASSWORD still has the placeholder value from gameplay-analytics.env.example; set the real database password before installing" >&2
+if [[ -z "${DB_PASSWORD}" || "${DB_PASSWORD}" == "CHANGE_ME" ]]; then
+	echo "DB_PASSWORD must be set to a real non-empty database password before installing" >&2
+	exit 1
+fi
+
+if [[ -z "${CANARY_SERVER_VERSION}" || "${CANARY_SERVER_VERSION}" == "CHANGE_ME" ]]; then
+	echo "CANARY_SERVER_VERSION must be set to a stable non-empty build identifier before installing" >&2
+	exit 1
+fi
+
+if [[ ! "${DB_PORT}" =~ ^[0-9]+$ || "${DB_PORT}" -lt 1 || "${DB_PORT}" -gt 65535 ]]; then
+	echo "DB_PORT must be an integer between 1 and 65535" >&2
+	exit 1
+fi
+
+if [[ -z "${DB_USER}" || -z "${DB_NAME}" ]]; then
+	echo "DB_USER and DB_NAME must be non-empty" >&2
 	exit 1
 fi
 
@@ -62,7 +78,7 @@ Gameplay Analytics database installation complete (schema version ${current_vers
 Analytics remains disabled until you complete verification:
 
   1. Start (or restart) Canary with this schema in place and with
-     CANARY_SERVER_VERSION exported to the Canary process environment.
+     CANARY_SERVER_VERSION=${CANARY_SERVER_VERSION} exported to the Canary process environment.
   2. As a gamemaster, run "/analytics schema" and confirm
      ready=true, current=${REQUIRED_SCHEMA_VERSION}, required=${REQUIRED_SCHEMA_VERSION}, error=none.
   3. As a gamemaster, run "/analytics status" and confirm schemaReady=true
