@@ -38,8 +38,9 @@ chmod 600 /etc/canary/gameplay-analytics.env
 
 Edit `/etc/canary/gameplay-analytics.env` and replace both `CHANGE_ME`
 placeholders with the real `DB_PASSWORD` and a stable `CANARY_SERVER_VERSION`
-build identifier (for example `balance-2026-07-11`). Never commit the filled-in
-file; only the placeholder example belongs in version control.
+build identifier (for example `balance-2026-07-11`). Neither value may be empty
+or whitespace-only. Never commit the filled-in file; only the placeholder
+example belongs in version control.
 
 ## 2. Run the installation script
 
@@ -50,7 +51,9 @@ set +a
 bash tools/analytics/install_gameplay_analytics.sh
 ```
 
-The script applies `schema/gameplay_analytics.sql`, runs
+Before touching MariaDB, the script rejects an empty or placeholder
+`DB_PASSWORD` and an empty or placeholder `CANARY_SERVER_VERSION`. It then
+applies `schema/gameplay_analytics.sql`, runs
 `migrate_gameplay_analytics.sh`, and confirms the installed schema version.
 It is repeatable: the baseline schema uses `CREATE TABLE IF NOT EXISTS` and the
 migration runner is idempotent by checksum, so re-running after a partial
@@ -139,8 +142,11 @@ safe to repeat.
 
 ## Failure isolation
 
-- Missing or placeholder `DB_PASSWORD` — the installer exits before running
-  any SQL.
+- Empty or placeholder `DB_PASSWORD` — the installer exits before running any
+  SQL.
+- Empty or placeholder `CANARY_SERVER_VERSION` — the installer exits before
+  running any SQL, so an unlabeled production dataset cannot be created by
+  accident.
 - Unreachable database during installation — the installer exits non-zero;
   Canary is unaffected because it has not been started or restarted yet.
 - Unreachable database or stale schema at Canary startup — Analytics stays
