@@ -6,6 +6,7 @@ local CLOSED_DOOR_ITEM_ID = 6898
 local OPEN_DOOR_ITEM_ID = 6899
 local zirellaDoorPosition = Position(32058, 32266, 7)
 
+-- UID 50085 is the map-authoritative quest gate; generic quest-door AIDs do not encode Zirella's stage.
 local function isSamePosition(first, second)
 	return first.x == second.x and first.y == second.y and first.z == second.z
 end
