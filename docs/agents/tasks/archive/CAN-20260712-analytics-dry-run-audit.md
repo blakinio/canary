@@ -1,24 +1,15 @@
 ---
 task_id: CAN-20260712-analytics-dry-run-audit
-status: ready-to-merge
+status: completed
 agent: "GPT-5.6 Thinking"
 branch: test/analytics-dry-run-audit
 base_branch: main
 created: 2026-07-12T13:15:00+02:00
-updated: 2026-07-12T13:24:00+02:00
+updated: 2026-07-12T13:25:00+02:00
 last_verified_commit: "880a508e3f4ca71f17cbff78cb2cf11bd3b7ef88"
 risk: low
 related_pr: "#140"
-owned_paths:
-  - data-otservbr-global/scripts/lib/gameplay_analytics_correctness.lua
-  - tools/analytics/maintain_gameplay_analytics.sh
-  - tools/analytics/test_gameplay_analytics_correctness_edge_cases.lua
-  - tools/analytics/test_gameplay_analytics_maintenance_config_dry_run.sh
-  - tools/analytics/systemd/gameplay-analytics-maintenance.env.example
-  - docs/systems/gameplay-analytics-dry-run.md
-  - .github/workflows/gameplay-analytics-dry-run.yml
-  - docs/agents/ACTIVE_WORK.md
-  - docs/agents/tasks/active/CAN-20260712-analytics-dry-run-audit.md
+merge_commit: "86f553c15cbabf2234243f11584cdc6ed8008029"
 ---
 
 # Goal
@@ -69,7 +60,8 @@ These tests do not prove real event-hook ordering, production database permissio
 
 # Completion
 
-- Final status: ready to merge
+- Final status: merged
 - PR: #140
-- Merge commit: pending
+- Merge commit: `86f553c15cbabf2234243f11584cdc6ed8008029`
 - Cross-repository impact: none
+- Archived at: `docs/agents/tasks/archive/CAN-20260712-analytics-dry-run-audit.md`
