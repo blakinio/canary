@@ -63,31 +63,33 @@ cluster-aware tooling:
 ## Leader election / cluster-singleton jobs
 
 Inventory of periodic/global jobs that must not run N times in an
-N-channel cluster (📐 scope classification, leader election itself not
-implemented in this PR):
+N-channel cluster:
 
-| Job | Scope | Notes |
-|---|---|---|
-| House rent charging | `cluster-singleton` | touches global bank balance |
-| House auction settlement | `cluster-singleton` | touches `account_house_ownership` |
-| Market offer expiration | `cluster-singleton` | market is global |
-| Daily reward reset | `cluster-singleton` | player-global state |
-| Global boosted creature/boss selection | `cluster-singleton` | one boosted target for the whole cluster |
-| Global event scheduling | `cluster-singleton` unless the event is explicitly declared `per-channel` |
-| Table cleanup jobs (e.g. expired bans, stale storages) | `cluster-singleton` |
-| Highscores cache rebuild | `cluster-singleton` |
-| Database optimization | `cluster-singleton` |
-| Global server record | `cluster-singleton` |
-| Local map/server save | `per-channel` | this is the one job type that *should* run once per process |
-| Monster/NPC spawn cycles | `per-channel` |
-| Local instance/boss-room timers | `per-channel` unless the boss is declared `cluster-singleton` |
+| Job | Scope | Notes | Wired? |
+|---|---|---|---|
+| House rent charging | `cluster-singleton` | touches global bank balance | 📐 |
+| House auction settlement | `cluster-singleton` | touches `account_house_ownership` | 📐 |
+| Market offer expiration | `cluster-singleton` | market is global | ✅ `IOMarket::checkExpiredOffers` checks `ClusterJobLeadershipRegistry::isLeader("market.expire")` |
+| Daily reward reset | `cluster-singleton` | player-global state | 📐 |
+| Global boosted creature/boss selection | `cluster-singleton` | one boosted target for the whole cluster | 📐 |
+| Global event scheduling | `cluster-singleton` unless the event is explicitly declared `per-channel` | | 📐 |
+| Table cleanup jobs (e.g. expired bans, stale storages) | `cluster-singleton` | | 📐 |
+| Highscores cache rebuild | `cluster-singleton` | | 📐 |
+| Database optimization | `cluster-singleton` | | 📐 |
+| Global server record | `cluster-singleton` | | 📐 |
+| Local map/server save | `per-channel` | this is the one job type that *should* run once per process | n/a |
+| Monster/NPC spawn cycles | `per-channel` | | n/a |
+| Local instance/boss-room timers | `per-channel` unless the boss is declared `cluster-singleton` | | n/a |
 
-Design for Phase 2: a Redis-based leader election (lock key
-`cluster:leader:<job-name>`, same fencing-token pattern as session leases)
-elects exactly one process to run each `cluster-singleton` job; the job
-implementation itself carries the fencing token and must no-op if it
-observes a newer token mid-run (same anti-zombie pattern as T2 in
-THREAT_MODEL.md).
+The leader election mechanism itself is implemented: `ClusterLeaderElection`
+(lock key `cluster:leader:<job-name>`, same fencing-token pattern as session
+leases, docs/multichannel/ARCHITECTURE.md §10a) plus
+`ClusterJobLeadershipRegistry`, the Redis-backed cache that renews/acquires
+on the existing session heartbeat cycle and exposes a cheap `isLeader(name)`
+check to job call sites. Market offer expiration is wired as the flagship
+example; every other `cluster-singleton` job above still runs unconditionally
+on every channel process and needs its own follow-up wiring (deciding what
+"lost leadership mid-run" means for that specific job before gating it).
 
 ## GM / admin commands (📐 contract, not implemented)
 

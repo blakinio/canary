@@ -21,6 +21,7 @@
 #include "game/multichannel/channel_context.hpp"
 #include "game/multichannel/channel_registry.hpp"
 #include "game/multichannel/cluster_config_validator.hpp"
+#include "game/multichannel/cluster_job_leadership_registry.hpp"
 #include "game/multichannel/cluster_runtime.hpp"
 #include "game/multichannel/db_cluster_session_repository.hpp"
 #include "game/multichannel/hiredis_redis_client.hpp"
@@ -553,15 +554,17 @@ void CanaryServer::initializeMultichannelCluster() {
 	redisOptions.password = g_configManager().getString(REDIS_PASSWORD);
 	auto redisClient = std::make_shared<HiredisRedisClient>(redisOptions);
 	auto sessionRepository = std::make_shared<DbClusterSessionRepository>();
+	const auto instanceId = ClusterSessionManager::generateSessionId();
 	g_clusterRuntime().configure(
 		redisClient,
 		g_channelContext().getChannelId(),
-		ClusterSessionManager::generateSessionId(),
+		instanceId,
 		validationInput.sessionLeaseTtlMs,
 		validationInput.sessionHeartbeatIntervalMs,
 		g_configManager().getNumber(REDIS_FAILURE_GRACE_PERIOD),
 		sessionRepository
 	);
+	g_clusterJobLeadershipRegistry().configure(redisClient, g_channelContext().getChannelId(), instanceId);
 	logger.info("[multichannel] Cluster session runtime configured against Redis at {}:{}, with the cluster_sessions DB defense-in-depth layer active.", redisOptions.host, redisOptions.port);
 #endif
 }

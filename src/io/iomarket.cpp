@@ -13,6 +13,7 @@
 #include "database/databasetasks.hpp"
 #include "game/game.hpp"
 #include "game/scheduling/dispatcher.hpp"
+#include "game/multichannel/cluster_job_leadership_registry.hpp"
 #include "game/multichannel/economic_ledger_store.hpp"
 #include "game/scheduling/save_manager.hpp"
 #include "io/iologindata.hpp"
@@ -269,11 +270,18 @@ void IOMarket::processExpiredOffers(const DBResult_ptr &result, bool) {
 }
 
 void IOMarket::checkExpiredOffers() {
-	const time_t lastExpireDate = getTimeNow() - g_configManager().getNumber(MARKET_OFFER_DURATION);
+	// Cluster-singleton job (docs/multichannel/OPERATIONS.md): market
+	// expiration is global, so only the elected leader actually runs the
+	// query - every other channel process just reschedules and checks
+	// again next cycle. A single-node deployment (registry disabled) is
+	// unaffected: isEnabled() is false there, so this never gates anything.
+	if (!g_clusterJobLeadershipRegistry().isEnabled() || g_clusterJobLeadershipRegistry().isLeader("market.expire")) {
+		const time_t lastExpireDate = getTimeNow() - g_configManager().getNumber(MARKET_OFFER_DURATION);
 
-	std::ostringstream query;
-	query << "SELECT `id`, `amount`, `price`, `itemtype`, `player_id`, `sale`, `tier` FROM `market_offers` WHERE `created` <= " << lastExpireDate;
-	g_databaseTasks().store(query.str(), IOMarket::processExpiredOffers);
+		std::ostringstream query;
+		query << "SELECT `id`, `amount`, `price`, `itemtype`, `player_id`, `sale`, `tier` FROM `market_offers` WHERE `created` <= " << lastExpireDate;
+		g_databaseTasks().store(query.str(), IOMarket::processExpiredOffers);
+	}
 
 	int32_t checkExpiredMarketOffersEachMinutes = g_configManager().getNumber(CHECK_EXPIRED_MARKET_OFFERS_EACH_MINUTES);
 	if (checkExpiredMarketOffersEachMinutes <= 0) {

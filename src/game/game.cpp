@@ -14,6 +14,7 @@
 #include "game/multichannel/channel_registry.hpp"
 #include "game/multichannel/channel_switch_audit_store.hpp"
 #include "game/multichannel/channel_switch_service.hpp"
+#include "game/multichannel/cluster_job_leadership_registry.hpp"
 #include "game/multichannel/cluster_runtime.hpp"
 #include "game/multichannel/engine_position_legality.hpp"
 #include "game/multichannel/position_resolver.hpp"
@@ -12563,7 +12564,16 @@ void Game::renewClusterSessions() {
 		return;
 	}
 
-	const auto expiredAccountIds = g_clusterRuntime().renewAllAndCollectExpired(OTSYS_TIME());
+	const auto nowMs = OTSYS_TIME();
+	const auto expiredAccountIds = g_clusterRuntime().renewAllAndCollectExpired(nowMs);
+
+	if (g_clusterJobLeadershipRegistry().isEnabled()) {
+		// Reuses the session lease TTL rather than introducing a dedicated
+		// job-lease config key for this one wired example - see
+		// docs/multichannel/ARCHITECTURE.md §10a.
+		g_clusterJobLeadershipRegistry().renewOrAcquire("market.expire", g_configManager().getNumber(SESSION_LEASE_TTL), nowMs);
+	}
+
 	if (expiredAccountIds.empty()) {
 		return;
 	}

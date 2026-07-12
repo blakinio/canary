@@ -85,6 +85,7 @@
     <ClInclude Include="..\src\game\multichannel\channel_switch_audit_store.hpp" />
     <ClInclude Include="..\src\game\multichannel\cluster_runtime.hpp" />
     <ClInclude Include="..\src\game\multichannel\cluster_session_manager.hpp" />
+    <ClInclude Include="..\src\game\multichannel\cluster_job_leadership_registry.hpp" />
     <ClInclude Include="..\src\game\multichannel\cluster_leader_election.hpp" />
     <ClInclude Include="..\src\game\multichannel\cluster_session_repository.hpp" />
     <ClInclude Include="..\src\game\multichannel\db_cluster_session_repository.hpp" />
