@@ -71,6 +71,7 @@ local function openStore(playerId)
 		end
 		msg:sendToPlayer(player)
 		sendStoreBalanceUpdating(playerId, true)
+		sendUpdatedStoreBalances(playerId)
 	end
 end
 
@@ -471,12 +472,8 @@ local function sendStoreBalanceUpdating(playerId, updating)
 
 	local msg = NetworkMessage()
 	msg:addByte(GameStore.SendingPackets.S_CoinBalanceUpdating)
-	msg:addByte(0x00)
+	msg:addByte(updating and 0x00 or 0x01)
 	msg:sendToPlayer(player)
-
-	if updating then
-		sendUpdatedStoreBalances(playerId)
-	end
 end
 
 local function sendUpdatedStoreBalances(playerId)
