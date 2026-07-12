@@ -139,6 +139,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: imbuement-validation-test-log
-          path: artifacts/IMBUEMENT_TESTS.log
+          path: |
+            artifacts/IMBUEMENT_TESTS.log
+            tools/ai-agent/imbuement_validation.py
           if-no-files-found: warn
           retention-days: 14
