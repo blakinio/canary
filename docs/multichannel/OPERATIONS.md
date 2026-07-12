@@ -67,11 +67,11 @@ N-channel cluster:
 
 | Job | Scope | Notes | Wired? |
 |---|---|---|---|
-| House rent charging | `cluster-singleton` | touches global bank balance | 📐 |
-| House auction settlement | `cluster-singleton` | touches `account_house_ownership` | 📐 |
+| House rent charging | `per-channel` (corrected — see below) | touches global bank balance, but each channel's houses are already disjoint | n/a |
+| House auction settlement | `per-channel` (corrected — see below) | touches `account_house_ownership`, but each channel's houses are already disjoint | n/a |
 | Market offer expiration | `cluster-singleton` | market is global | ✅ `IOMarket::checkExpiredOffers` checks `ClusterJobLeadershipRegistry::isLeader("market.expire")` |
-| Daily reward reset | `cluster-singleton` | player-global state | 📐 |
-| Global boosted creature/boss selection | `cluster-singleton` | one boosted target for the whole cluster | 📐 |
+| Daily reward reset | `cluster-singleton` | the actual shared state is one `global_storage` row (`DailyReward.storages.lastServerSave`, no `channel_id`), written by each channel's own `global_server_save.lua` `GlobalEvent` on its own schedule | 📐 (Lua-side; would need a Lua-exposed leadership check) |
+| Global boosted creature/boss selection | `cluster-singleton` | `boosted_creature`/`boosted_boss` are both `PRIMARY KEY(date)`, no `channel_id` — genuinely one shared row each | ✅ `Game::loadBoostedCreature`/`IOBosstiary::loadBoostedBoss` check `ClusterJobLeadershipRegistry::isLeader("boosted.creature"/"boosted.boss")` |
 | Global event scheduling | `cluster-singleton` unless the event is explicitly declared `per-channel` | | 📐 |
 | Table cleanup jobs (e.g. expired bans, stale storages) | `cluster-singleton` | | 📐 |
 | Highscores cache rebuild | `cluster-singleton` | | 📐 |
@@ -81,15 +81,35 @@ N-channel cluster:
 | Monster/NPC spawn cycles | `per-channel` | | n/a |
 | Local instance/boss-room timers | `per-channel` unless the boss is declared `cluster-singleton` | | n/a |
 
+**Correction (this phase):** house rent charging and house auction
+settlement were previously misclassified as `cluster-singleton`. On closer
+inspection: `Houses::payHouses` (`src/map/house/house.cpp`) iterates the
+in-memory `houseMap`, populated per-channel from each channel's own OTBM map
+file at startup (`src/canary_server.cpp`'s `setupHousesRent()`, a one-shot
+call, not a recurring job) — since houses already have composite
+`(channel_id, house_id)` identity (§2.5), each channel's `houseMap` only
+ever contains *its own* disjoint set of houses. Gating this behind
+cluster-wide leader election would have been an actual **regression**: every
+non-leader channel would simply never charge rent for (or settle auctions
+on) its own houses, since the call would be skipped entirely rather than
+raced. This is a genuine `per-channel` job, correctly requiring no
+coordination — the original classification was written before house
+partitioning's implications were fully traced through.
+
 The leader election mechanism itself is implemented: `ClusterLeaderElection`
 (lock key `cluster:leader:<job-name>`, same fencing-token pattern as session
 leases, docs/multichannel/ARCHITECTURE.md §10a) plus
 `ClusterJobLeadershipRegistry`, the Redis-backed cache that renews/acquires
-on the existing session heartbeat cycle and exposes a cheap `isLeader(name)`
-check to job call sites. Market offer expiration is wired as the flagship
-example; every other `cluster-singleton` job above still runs unconditionally
-on every channel process and needs its own follow-up wiring (deciding what
-"lost leadership mid-run" means for that specific job before gating it).
+on the existing session heartbeat cycle (for recurring jobs) or via a direct
+one-shot acquire call (for startup-only jobs like the boosted
+creature/boss selections) and exposes a cheap `isLeader(name)` check to job
+call sites. Market offer expiration and the two boosted-X selections are
+wired; every other genuinely `cluster-singleton` job above still runs
+unconditionally on every channel process and needs its own follow-up wiring
+(deciding what "lost leadership mid-run" means for that specific job before
+gating it) — and, per the correction above, every future candidate must
+first be checked for hidden per-channel partitioning before assuming it
+needs gating at all.
 
 ## GM / admin commands (✅ one implemented, 📐 the rest still contract-only)
 

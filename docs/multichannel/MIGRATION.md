@@ -282,6 +282,20 @@ against a real MariaDB: online player found, unknown player returns
 nothing, and a `DIRTY` row is correctly excluded from being reported as a
 live location.
 
+**Phase 9:** two more genuinely-global cluster-singleton jobs are wired to
+`ClusterJobLeadershipRegistry` (Phase 7's mechanism) - `Game::
+loadBoostedCreature` and `IOBosstiary::loadBoostedBoss`, both one-shot
+startup calls (not recurring jobs), gated via a direct one-shot leader-
+election race rather than the periodic heartbeat cycle. No schema change.
+**A misclassification was also found and corrected while scoping this
+phase**: house rent charging and house auction settlement were listed as
+`cluster-singleton` in OPERATIONS.md/ARCHITECTURE.md, but houses are
+already disjoint per channel (composite `(channel_id, house_id)` identity
+from Phase 1) - gating them behind leader election would have been a
+regression (non-leader channels would simply stop charging rent for their
+own houses), not a fix. Corrected the classification to `per-channel`
+rather than implementing anything for them.
+
 **Still not enforced**, and still the reason not to enable
 `multiChannelEnabled = true` in production yet: nothing yet *blocks* an
 account from bidding on or trading for a second house before an already-
