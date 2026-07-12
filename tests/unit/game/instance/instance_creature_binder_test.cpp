@@ -7,6 +7,8 @@
  * Website: https://docs.opentibiabr.com/
  */
 
+#include "creatures/monsters/monster.hpp"
+#include "creatures/monsters/monsters.hpp"
 #include "game/instance/instance_creature_binder.hpp"
 
 #ifndef USE_PRECOMPILED_HEADERS
@@ -32,6 +34,14 @@ namespace {
 			return id;
 		}
 	};
+
+
+	std::shared_ptr<Monster> makeRuntimeMonster(const std::string &name) {
+		const auto monsterType = std::make_shared<MonsterType>(name);
+		const auto monster = std::make_shared<Monster>(monsterType);
+		monster->setID();
+		return monster;
+	}
 
 	std::vector<InstanceMapRegion> makeBinderRegions(std::size_t count) {
 		std::vector<InstanceMapRegion> regions;
@@ -303,4 +313,109 @@ TEST(InstanceCreatureBinderTest, NormalWorldTransactionRunsWithoutCreatingOwners
 	EXPECT_TRUE(linkCalled);
 	EXPECT_FALSE(binder.ownerOf(master).has_value());
 	EXPECT_FALSE(binder.ownerOf(summon).has_value());
+}
+
+TEST(InstanceCreatureBinderTest, LegacySetMasterKeepsNormalWorldBehavior) {
+	const auto master = makeRuntimeMonster("legacy-master");
+	const auto summon = makeRuntimeMonster("legacy-summon");
+
+	EXPECT_TRUE(summon->setMaster(master));
+	EXPECT_EQ(master, summon->getMaster());
+	EXPECT_TRUE(summon->hasBeenSummoned());
+	ASSERT_EQ(1u, master->getSummons().size());
+	EXPECT_EQ(summon, master->getSummons().front());
+}
+
+TEST(InstanceCreatureBinderTest, InstanceAwareSetMasterCommitsOwnershipAndLink) {
+	InstanceManager manager(makeBinderRegions(1));
+	InstanceCreatureBinder binder(manager);
+	const auto instance = manager.createInstance({ .name = "runtime-master-link" });
+	const auto master = makeRuntimeMonster("instance-master");
+	const auto summon = makeRuntimeMonster("instance-summon");
+	ASSERT_TRUE(instance.ok);
+	ASSERT_TRUE(binder.bind(instance.id, *master));
+
+	EXPECT_TRUE(summon->setMaster(master, binder));
+	EXPECT_EQ(master, summon->getMaster());
+	EXPECT_TRUE(summon->hasBeenSummoned());
+	ASSERT_TRUE(binder.ownerOf(*summon).has_value());
+	EXPECT_EQ(instance.id, *binder.ownerOf(*summon));
+	ASSERT_EQ(1u, master->getSummons().size());
+	EXPECT_EQ(summon, master->getSummons().front());
+}
+
+TEST(InstanceCreatureBinderTest, InstanceAwareSetMasterRejectsCrossInstanceBeforeMutation) {
+	InstanceManager manager(makeBinderRegions(2));
+	InstanceCreatureBinder binder(manager);
+	const auto first = manager.createInstance({ .name = "first" });
+	const auto second = manager.createInstance({ .name = "second" });
+	const auto master = makeRuntimeMonster("first-master");
+	const auto summon = makeRuntimeMonster("second-summon");
+	ASSERT_TRUE(first.ok);
+	ASSERT_TRUE(second.ok);
+	ASSERT_TRUE(binder.bind(first.id, *master));
+	ASSERT_TRUE(binder.bind(second.id, *summon));
+
+	EXPECT_FALSE(summon->setMaster(master, binder));
+	EXPECT_FALSE(summon->getMaster());
+	EXPECT_FALSE(summon->hasBeenSummoned());
+	EXPECT_TRUE(master->getSummons().empty());
+	EXPECT_EQ(first.id, *binder.ownerOf(*master));
+	EXPECT_EQ(second.id, *binder.ownerOf(*summon));
+}
+
+TEST(InstanceCreatureBinderTest, InstanceAwareSetMasterRejectsUnownedMasterForOwnedSummon) {
+	InstanceManager manager(makeBinderRegions(1));
+	InstanceCreatureBinder binder(manager);
+	const auto instance = manager.createInstance({ .name = "owned-summon" });
+	const auto master = makeRuntimeMonster("unowned-master");
+	const auto summon = makeRuntimeMonster("owned-summon");
+	ASSERT_TRUE(instance.ok);
+	ASSERT_TRUE(binder.bind(instance.id, *summon));
+
+	EXPECT_FALSE(summon->setMaster(master, binder));
+	EXPECT_FALSE(summon->getMaster());
+	EXPECT_FALSE(summon->hasBeenSummoned());
+	EXPECT_TRUE(master->getSummons().empty());
+	EXPECT_FALSE(binder.ownerOf(*master).has_value());
+	EXPECT_EQ(instance.id, *binder.ownerOf(*summon));
+}
+
+TEST(InstanceCreatureBinderTest, InstanceAwareSetMasterReassignsWithinSameInstance) {
+	InstanceManager manager(makeBinderRegions(1));
+	InstanceCreatureBinder binder(manager);
+	const auto instance = manager.createInstance({ .name = "reassign" });
+	const auto firstMaster = makeRuntimeMonster("first-master");
+	const auto secondMaster = makeRuntimeMonster("second-master");
+	const auto summon = makeRuntimeMonster("reassigned-summon");
+	ASSERT_TRUE(instance.ok);
+	ASSERT_TRUE(binder.bind(instance.id, *firstMaster));
+	ASSERT_TRUE(binder.bind(instance.id, *secondMaster));
+	ASSERT_TRUE(summon->setMaster(firstMaster, binder));
+
+	EXPECT_TRUE(summon->setMaster(secondMaster, binder));
+	EXPECT_EQ(secondMaster, summon->getMaster());
+	EXPECT_TRUE(firstMaster->getSummons().empty());
+	ASSERT_EQ(1u, secondMaster->getSummons().size());
+	EXPECT_EQ(summon, secondMaster->getSummons().front());
+	EXPECT_EQ(instance.id, *binder.ownerOf(*summon));
+	EXPECT_EQ(3u, manager.registeredCreatureCount(instance.id));
+}
+
+TEST(InstanceCreatureBinderTest, InstanceAwareClearMasterPreservesOwnershipBoundary) {
+	InstanceManager manager(makeBinderRegions(1));
+	InstanceCreatureBinder binder(manager);
+	const auto instance = manager.createInstance({ .name = "clear-master" });
+	const auto master = makeRuntimeMonster("clear-master");
+	const auto summon = makeRuntimeMonster("clear-summon");
+	ASSERT_TRUE(instance.ok);
+	ASSERT_TRUE(binder.bind(instance.id, *master));
+	ASSERT_TRUE(summon->setMaster(master, binder));
+
+	EXPECT_TRUE(summon->setMaster(nullptr, binder));
+	EXPECT_FALSE(summon->getMaster());
+	EXPECT_TRUE(summon->hasBeenSummoned());
+	EXPECT_TRUE(master->getSummons().empty());
+	ASSERT_TRUE(binder.ownerOf(*summon).has_value());
+	EXPECT_EQ(instance.id, *binder.ownerOf(*summon));
 }
