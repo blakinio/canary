@@ -10,6 +10,7 @@
 #include "game/multichannel/cluster_runtime.hpp"
 
 #include "../../../shared/game/multichannel/fake_redis_client.hpp"
+#include "injection_fixture.hpp"
 
 #include <gtest/gtest.h>
 #include <memory>
@@ -19,6 +20,8 @@ protected:
 	void TearDown() override {
 		ClusterRuntime::getInstance().resetForTesting();
 	}
+
+	InjectionFixture fixture_ {};
 };
 
 TEST_F(ClusterRuntimeTest, DisabledByDefaultIsPermissiveNoOp) {
@@ -55,10 +58,8 @@ TEST_F(ClusterRuntimeTest, GetTrackedSessionInfoReflectsTheAcquiredHandle) {
 	runtime.configure(fake, 1, "instance-A", 1000, 200, 500);
 
 	EXPECT_FALSE(runtime.getTrackedSessionInfo(42).has_value());
-
 	const auto handle = runtime.acquireForLogin(42, 1, 10000);
 	ASSERT_TRUE(handle.acquired);
-
 	const auto info = runtime.getTrackedSessionInfo(42);
 	ASSERT_TRUE(info.has_value());
 	EXPECT_EQ(handle.sessionId, info->sessionId);
@@ -85,10 +86,6 @@ TEST_F(ClusterRuntimeTest, LegitimateSupersessionExpiresImmediatelyWithNoGracePe
 	runtime.configure(fake, 1, "instance-A", 1000, 200, 500);
 
 	ASSERT_TRUE(runtime.acquireForLogin(42, 1, 10000).acquired);
-
-	// Someone else takes the lease directly (bypassing this ClusterRuntime),
-	// simulating a legitimate transfer once this process's lease has
-	// expired on Redis's own clock.
 	const auto stolen = fake->acquireLease(ClusterSessionManager::makeLockKey(42), "other-session", "2", "other-instance", 1000, 11000);
 	ASSERT_TRUE(stolen.acquired);
 
@@ -108,9 +105,6 @@ TEST_F(ClusterRuntimeTest, OutageBlocksNewLoginsImmediatelyButKeepsExistingSessi
 
 	EXPECT_FALSE(runtime.isAcceptingNewSessions());
 	EXPECT_FALSE(runtime.acquireForLogin(99, 1, 10001).acquired);
-
-	// A brief outage, well within both the grace period and the lease's
-	// remaining validity, must not disconnect the already-online account.
 	const auto stillOnline = runtime.renewAllAndCollectExpired(10050);
 	EXPECT_TRUE(stillOnline.empty());
 	EXPECT_EQ(1u, runtime.trackedCount());
@@ -124,10 +118,6 @@ TEST_F(ClusterRuntimeTest, OutageForcesDisconnectBeforeLeaseCouldBeLegallyStolen
 	ASSERT_TRUE(runtime.acquireForLogin(7, 1, 10000).acquired);
 	fake->setHealthyForTesting(false);
 
-	// leaseTtlMs=1000, heartbeatIntervalMs=200: with no successful renew
-	// since acquire at 10000, the lease's own expiry (11000) is within one
-	// heartbeat interval by 10800 - integrity must win over availability
-	// even though the 500ms failureGracePeriodMs alone hasn't elapsed here.
 	const auto forcedOut = runtime.renewAllAndCollectExpired(10850);
 	ASSERT_EQ(1u, forcedOut.size());
 	EXPECT_EQ(7, forcedOut[0]);
