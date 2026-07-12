@@ -589,30 +589,40 @@ Functions:
 	Player:getAchievementPoints()
 ]]
 
-ACHIEVEMENT_FIRST = 1
-ACHIEVEMENT_LAST = #ACHIEVEMENTS
+local achievementIds = {}
+for id in pairs(ACHIEVEMENTS) do
+	if type(id) == "number" then
+		achievementIds[#achievementIds + 1] = id
+	end
+end
+table.sort(achievementIds)
 
-for id, achievTable in pairs(ACHIEVEMENTS) do
+local registeredAchievementIds = {}
+for _, id in ipairs(achievementIds) do
+	local achievTable = ACHIEVEMENTS[id]
 	if achievTable.name == nil then
 		logger.error(string.format("[Achievements registration] - Invalid achievement with no name, id: '%s'", id))
-		goto continue -- Skips to the next iteration using the 'continue' label
+		goto continue
 	end
 
 	if achievTable.description == nil then
 		logger.error(string.format("[Achievements registration] - Invalid achievement with no description, id: '%s'", id))
-		goto continue -- Skips to the next iteration
+		goto continue
 	end
 
-	-- Set default values for 'secret', 'grade', and 'points' if not present
 	local secret = achievTable.secret or false
 	local grade = achievTable.grade or 0
 	local points = achievTable.points or 0
 
 	logger.trace("[Achievements registration] - Registering achievement '{}' with id '{}'", achievTable.name, id)
 	Game.registerAchievement(id, achievTable.name, achievTable.description, secret, grade, points)
+	registeredAchievementIds[#registeredAchievementIds + 1] = id
 
-	::continue:: -- Label used by 'goto' to continue the loop
+	::continue::
 end
+
+ACHIEVEMENT_FIRST = registeredAchievementIds[1] or 0
+ACHIEVEMENT_LAST = registeredAchievementIds[#registeredAchievementIds] or 0
 
 function Game.isAchievementSecret(achievement)
 	local foundAchievement
@@ -621,48 +631,44 @@ function Game.isAchievementSecret(achievement)
 	else
 		foundAchievement = Game.getAchievementInfoByName(achievement)
 	end
+
 	if not foundAchievement then
-		return Spdlog.error(string.format("[isAchievementSecret] - Invalid achievement '%s'", ach)) and false
+		logger.error("[Game.isAchievementSecret] - Invalid achievement '{}'", achievement)
+		return false
 	end
 
-	return achievement.secret
+	return foundAchievement.secret
 end
 
 function Player.getAchievements(self)
 	local unlockedAchievements = {}
-	local index = 1
-	for achievIdentifier = 1, #ACHIEVEMENTS do
-		if self:hasAchievement(achievIdentifier) then
-			unlockedAchievements[index] = achievIdentifier
-			index = index + 1
+	for _, achievementId in ipairs(registeredAchievementIds) do
+		if self:hasAchievement(achievementId) then
+			unlockedAchievements[#unlockedAchievements + 1] = achievementId
 		end
 	end
 	return unlockedAchievements
 end
 
 function Player.addAllAchievements(self, denyMsg)
-	for id in pairs(ACHIEVEMENTS) do
-		if type(id) == "number" then
-			self:addAchievement(id, denyMsg)
-		end
+	for _, achievementId in ipairs(registeredAchievementIds) do
+		self:addAchievement(achievementId, denyMsg)
 	end
 	return true
 end
 
 function Player.removeAllAchievements(self)
-	for id in pairs(ACHIEVEMENTS) do
-		if type(id) == "number" then
-			self:removeAchievement(id)
-		end
+	for _, achievementId in ipairs(registeredAchievementIds) do
+		self:removeAchievement(achievementId)
 	end
 	return true
 end
 
 function Player.getSecretAchievements(self)
 	local unlockedSecretAchievements = {}
-	for achievIdentifier, achievementDetails in pairs(ACHIEVEMENTS) do
-		if self:hasAchievement(achievIdentifier) and achievementDetails.secret then
-			unlockedSecretAchievements[#unlockedSecretAchievements + 1] = achievIdentifier
+	for _, achievementId in ipairs(registeredAchievementIds) do
+		if self:hasAchievement(achievementId) and ACHIEVEMENTS[achievementId].secret then
+			unlockedSecretAchievements[#unlockedSecretAchievements + 1] = achievementId
 		end
 	end
 	return unlockedSecretAchievements
@@ -670,9 +676,9 @@ end
 
 function Player.getPublicAchievements(self)
 	local unlockedPublicAchievements = {}
-	for achievIdentifier, achievementDetails in pairs(ACHIEVEMENTS) do
-		if self:hasAchievement(achievIdentifier) and not achievementDetails.secret then
-			unlockedPublicAchievements[#unlockedPublicAchievements + 1] = achievIdentifier
+	for _, achievementId in ipairs(registeredAchievementIds) do
+		if self:hasAchievement(achievementId) and not ACHIEVEMENTS[achievementId].secret then
+			unlockedPublicAchievements[#unlockedPublicAchievements + 1] = achievementId
 		end
 	end
 	return unlockedPublicAchievements
