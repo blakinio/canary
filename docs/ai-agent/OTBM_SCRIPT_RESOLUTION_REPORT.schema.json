@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_SCRIPT_RESOLUTION_REPORT.schema.json",
+  "title": "Canary OTBM script-resolution report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "ok",
+    "sources",
+    "summary",
+    "identifiers",
+    "placements",
+    "registrations",
+    "unresolvedDynamicRegistrations",
+    "inactiveRegistrations",
+    "notes"
+  ],
+  "properties": {
+    "format": {"const": "canary-otbm-script-resolution-v1"},
+    "ok": {"type": "boolean"},
+    "sources": {
+      "type": "object",
+      "required": ["itemAudit", "repositoryRoot", "scriptRoots"],
+      "properties": {
+        "itemAudit": {},
+        "repositoryRoot": {"type": "string"},
+        "scriptRoots": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "filesScanned",
+        "registrations",
+        "luaXmlRegistrations",
+        "manualRules",
+        "reviewRules",
+        "references",
+        "mechanicPlacements",
+        "resolvedPlacements",
+        "runtimeUnresolvedPlacements",
+        "conflictingPlacements",
+        "identifierCounts",
+        "identifierStatusCounts",
+        "placementStatusCounts",
+        "runtimeUnresolvedIdentifiers",
+        "unreviewedIdentifiers",
+        "reviewDispositionCounts",
+        "unresolvedDynamicRegistrations",
+        "inactiveRegistrations"
+      ],
+      "properties": {
+        "filesScanned": {"$ref": "#/$defs/nonNegative"},
+        "registrations": {"$ref": "#/$defs/nonNegative"},
+        "luaXmlRegistrations": {"$ref": "#/$defs/nonNegative"},
+        "manualRules": {"$ref": "#/$defs/nonNegative"},
+        "reviewRules": {"$ref": "#/$defs/nonNegative"},
+        "references": {"$ref": "#/$defs/nonNegative"},
+        "mechanicPlacements": {"$ref": "#/$defs/nonNegative"},
+        "resolvedPlacements": {"$ref": "#/$defs/nonNegative"},
+        "runtimeUnresolvedPlacements": {"$ref": "#/$defs/nonNegative"},
+        "conflictingPlacements": {"$ref": "#/$defs/nonNegative"},
+        "identifierCounts": {"$ref": "#/$defs/countObject"},
+        "identifierStatusCounts": {"$ref": "#/$defs/countObject"},
+        "placementStatusCounts": {"$ref": "#/$defs/countObject"},
+        "runtimeUnresolvedIdentifiers": {"$ref": "#/$defs/nonNegative"},
+        "unreviewedIdentifiers": {"$ref": "#/$defs/nonNegative"},
+        "reviewDispositionCounts": {"$ref": "#/$defs/countObject"},
+        "unresolvedDynamicRegistrations": {"$ref": "#/$defs/nonNegative"},
+        "inactiveRegistrations": {"$ref": "#/$defs/nonNegative"}
+      }
+    },
+    "identifiers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actionId", "uniqueId"],
+      "properties": {
+        "actionId": {"type": "array", "items": {"$ref": "#/$defs/identifier"}},
+        "uniqueId": {"type": "array", "items": {"$ref": "#/$defs/identifier"}}
+      }
+    },
+    "placements": {"type": "array", "items": {"$ref": "#/$defs/placement"}},
+    "registrations": {"type": "array", "items": {"$ref": "#/$defs/registration"}},
+    "unresolvedDynamicRegistrations": {"type": "array", "items": {"type": "object"}},
+    "inactiveRegistrations": {"type": "array", "items": {"type": "object"}},
+    "notes": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "nonNegative": {"type": "integer", "minimum": 0},
+    "countObject": {"type": "object", "additionalProperties": {"$ref": "#/$defs/nonNegative"}},
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "source": {
+      "type": "object",
+      "required": ["path", "line", "context"],
+      "properties": {
+        "path": {"type": "string"},
+        "line": {"type": "integer", "minimum": 0},
+        "context": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "registration": {
+      "type": "object",
+      "required": ["namespace", "eventType", "handler", "mode", "source", "generic", "confidence", "origin"],
+      "properties": {
+        "namespace": {"enum": ["actionId", "uniqueId", "itemId", "position"]},
+        "eventType": {"type": "string"},
+        "handler": {"type": "string"},
+        "mode": {"type": "string"},
+        "source": {"$ref": "#/$defs/source"},
+        "generic": {"type": "boolean"},
+        "confidence": {"type": "string"},
+        "origin": {"type": "string"},
+        "values": {"type": "array", "items": {"type": "integer", "minimum": 0, "maximum": 65535}},
+        "range": {
+          "type": "object",
+          "required": ["from", "to"],
+          "properties": {
+            "from": {"type": "integer", "minimum": 0, "maximum": 65535},
+            "to": {"type": "integer", "minimum": 0, "maximum": 65535}
+          }
+        },
+        "position": {"$ref": "#/$defs/position"}
+      },
+      "additionalProperties": false
+    },
+    "identifier": {
+      "type": "object",
+      "required": ["value", "placements", "status", "placementStatuses", "handlers", "references", "samplePositions"],
+      "properties": {
+        "value": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "placements": {"type": "integer", "minimum": 1},
+        "status": {"type": "string"},
+        "placementStatuses": {"$ref": "#/$defs/countObject"},
+        "handlers": {"type": "array", "items": {"$ref": "#/$defs/registration"}},
+        "references": {"type": "array", "items": {"type": "object"}},
+        "samplePositions": {"type": "array", "items": {"$ref": "#/$defs/position"}},
+        "review": {
+          "type": "object",
+          "required": ["disposition", "reason", "source"],
+          "properties": {
+            "disposition": {"type": "string"},
+            "reason": {"type": "string"},
+            "source": {"type": ["string", "null"]}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "placement": {
+      "type": "object",
+      "required": [
+        "index",
+        "itemId",
+        "position",
+        "depth",
+        "actionId",
+        "uniqueId",
+        "houseDoorId",
+        "teleportDestination",
+        "status",
+        "resolutions",
+        "selectedByEvent",
+        "handlers",
+        "shadowedHandlers",
+        "references"
+      ],
+      "properties": {
+        "index": {"$ref": "#/$defs/nonNegative"},
+        "itemId": {"type": ["integer", "null"]},
+        "position": {"oneOf": [{"$ref": "#/$defs/position"}, {"type": "null"}]},
+        "depth": {"type": ["integer", "null"], "minimum": 0},
+        "actionId": {"type": ["integer", "null"]},
+        "uniqueId": {"type": ["integer", "null"]},
+        "houseDoorId": {"type": ["integer", "null"]},
+        "teleportDestination": {"oneOf": [{"$ref": "#/$defs/position"}, {"type": "null"}]},
+        "status": {"type": "string"},
+        "resolutions": {"type": "object"},
+        "selectedByEvent": {"type": "object", "additionalProperties": {"type": "string"}},
+        "handlers": {"type": "array", "items": {"$ref": "#/$defs/registration"}},
+        "shadowedHandlers": {"type": "array", "items": {"$ref": "#/$defs/registration"}},
+        "references": {"type": "array", "items": {"type": "object"}}
+      },
+      "additionalProperties": false
+    }
+  }
+}
