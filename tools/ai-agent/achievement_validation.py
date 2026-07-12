@@ -136,7 +136,9 @@ def parse_registry_text(text: str) -> tuple[list[AchievementDefinition], list[di
             findings.append(finding("error", "registry-duplicate-name", f"Duplicate name {name!r}.", line=line_number, firstLine=seen_names[name]))
         if previous and achievement_id < previous:
             findings.append(finding("warning", "registry-id-order", f"ID {achievement_id} appears after {previous}.", line=line_number))
-        if grade not in GRADE_POINTS or points not in GRADE_POINTS[grade]:
+        if points == 0 and grade in GRADE_POINTS:
+            findings.append(finding("info", "registry-zero-point-exception", f"ID {achievement_id} ({name}) has grade {grade} and zero points.", line=line_number))
+        elif grade not in GRADE_POINTS or points not in GRADE_POINTS[grade]:
             findings.append(finding("error", "registry-grade-points-mismatch", f"ID {achievement_id} ({name}) has grade {grade} and {points} points.", line=line_number))
         seen_ids.setdefault(achievement_id, line_number)
         seen_names.setdefault(name, line_number)
