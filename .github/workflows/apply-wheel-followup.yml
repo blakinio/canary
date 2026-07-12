@@ -25,10 +25,19 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh api "repos/${GITHUB_REPOSITORY}/git/blobs/74bc49cbdf2f618b738741e82449305720988988" --jq .content \
-            | tr -d '\n' \
-            | base64 --decode > /tmp/wheel-followup.patch.b64
-          base64 --decode /tmp/wheel-followup.patch.b64 > /tmp/wheel-followup.patch
+          : > /tmp/wheel-followup.patch.gz.b64
+          for blob in \
+            0ecd3869d6132aa40466cc6ecd869c0056d714c0 \
+            c7246cb96bdb022ff4081226e10c3e0053c08b48 \
+            04ae5db8925145e79923352015a37e77be98755a \
+            e422b725394a13b50ddbb958baf21251354ffe73
+          do
+            gh api "repos/${GITHUB_REPOSITORY}/git/blobs/${blob}" --jq .content \
+              | tr -d '\n' \
+              | base64 --decode \
+              | tr -d '\n' >> /tmp/wheel-followup.patch.gz.b64
+          done
+          base64 --decode /tmp/wheel-followup.patch.gz.b64 | gzip --decompress > /tmp/wheel-followup.patch
           echo "df177498f2ba826c385ca699561ed5539cd1a006c978a2e552957a90225ab43f  /tmp/wheel-followup.patch" | sha256sum --check --strict
           git apply --check /tmp/wheel-followup.patch
 
