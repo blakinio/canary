@@ -5,23 +5,6 @@ on:
   workflow_dispatch:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - "src/**"
-      - "tests/**"
-      - "data/**"
-      - "data-canary/**"
-      - "data-otservbr-global/**"
-      - "cmake/**"
-      - "docker/**"
-      - "docs/lua-api/**"
-      - "docs/systems/**"
-      - "tools/**"
-      - "vcproj/**"
-      - "vcpkg.json"
-      - "CMakeLists.txt"
-      - "CMakePresets.json"
-      - ".github/scripts/**"
-      - ".github/workflows/**"
   push:
     branches:
       - main
