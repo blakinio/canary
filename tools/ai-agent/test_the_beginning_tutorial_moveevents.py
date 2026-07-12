@@ -33,7 +33,7 @@ EXPECTED_AIDS = EXPECTED_HINT_AIDS | EXPECTED_STOP_AIDS
 
 def parse_aid_registrations(source: str) -> list[set[int]]:
     registrations: list[set[int]] = []
-    for match in re.finditer(r"\.aid\(([^)]*)\)", source, re.DOTALL):
+    for match in re.finditer(r"[:.]aid\(([^)]*)\)", source, re.DOTALL):
         registrations.append({int(value) for value in re.findall(r"\b\d+\b", match.group(1))})
     return registrations
 
@@ -63,9 +63,9 @@ class TheBeginningTutorialMoveEventsTests(unittest.TestCase):
             self.assertIn(key, self.source)
 
     def test_restores_both_stepin_families(self) -> None:
-        self.assertEqual(self.source.count('MoveEvent()'), 2)
+        self.assertEqual(self.source.count("MoveEvent()"), 2)
         self.assertEqual(self.source.count(':type("stepin")'), 2)
-        self.assertEqual(self.source.count(':register()'), 2)
+        self.assertEqual(self.source.count(":register()"), 2)
         self.assertIn("advanceHint(player, config)", self.source)
         self.assertIn("denyPassage(player, fromPosition", self.source)
 
