@@ -79,4 +79,14 @@ jobs:
           python-version: "3.12"
       - run: python -m pip install --disable-pip-version-check pymysql
       - name: Run MariaDB integration tests
-        run: python -m unittest tools/account-quests/test_account_quests_db.py -v
+        shell: bash
+        run: |
+          set -o pipefail
+          python tools/account-quests/test_account_quests_db.py -v 2>&1 | tee /tmp/account-quests-db-tests.log
+      - name: Upload MariaDB test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: account-quests-db-test-log
+          path: /tmp/account-quests-db-tests.log
+          if-no-files-found: warn
