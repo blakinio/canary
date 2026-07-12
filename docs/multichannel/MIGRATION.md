@@ -249,6 +249,17 @@ idempotency guarantee itself), plus both the item-delivery and
 currency-refund ledger record shapes (see ARCHITECTURE.md §8 and
 TEST_PLAN.md).
 
+**Phase 6:** `ClusterLeaderElection` (§10a of ARCHITECTURE.md) implements
+the leader-election primitive for cluster-singleton background jobs (house
+rent, market expiry, daily reward reset, etc.), reusing
+`ClusterSessionManager`'s exact Redis lease/fencing mechanism and Lua
+scripts unchanged, just keyed by job name instead of account id. No schema
+change — this is a pure Redis-key convention, nothing persisted to MySQL.
+13/13 gtest cases passing (compiled standalone with real gtest, same as
+`ClusterSessionManager` — this module has no engine dependency). Not yet
+wired into any actual job: every job in OPERATIONS.md's inventory table
+still runs unconditionally on every channel process today.
+
 **Still not enforced**, and still the reason not to enable
 `multiChannelEnabled = true` in production yet: nothing yet *blocks* an
 account from bidding on or trading for a second house before an already-

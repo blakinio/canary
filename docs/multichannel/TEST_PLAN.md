@@ -267,6 +267,41 @@ treatment:
   sandbox); only the SQL `EconomicLedgerStore` issues was verified
   directly.
 
+### Phase 6: cluster leader election primitive
+
+`ClusterLeaderElection` (`src/game/multichannel/cluster_leader_election.hpp`/
+`.cpp`) got the same standalone-gtest treatment as `ClusterSessionManager`
+in Phase 1, since it has the same zero-engine-dependency property (it only
+depends on `redis_client.hpp` and reuses `ClusterSessionManager::
+generateSessionId()`):
+
+- **13 new gtest cases** (`tests/unit/game/multichannel/
+  cluster_leader_election_test.cpp`) against `FakeRedisClient`: first
+  acquire gets fencing token 1; a second acquire while held is rejected and
+  correctly reports the current holder; different job names don't
+  contend; renew by owner succeeds and preserves the token; renew by a
+  non-owner session id fails; renew past expiry does not resurrect
+  leadership; release by owner succeeds and immediately frees the lock for
+  a new acquire; release by non-owner fails; the fencing token is
+  monotonic across release/reacquire cycles; an expired, never-released
+  lease can be reacquired with a strictly higher token; a stale token
+  correctly reads as no-longer-current after a takeover; a 16-thread
+  concurrent-acquire race has exactly one winner and exactly one fencing
+  token issued; and lock keys are correctly scoped per job name. Compiled
+  standalone with real `g++ -std=c++20` + real `libgtest`/`libgtest_main`
+  and run - **13/13 passing**.
+- No new Redis Lua scripts were needed: `acquire.lua`/`renew.lua`/
+  `release.lua` (already validated against a real `redis-server` in Phase
+  1/2 - see 15.1b below) only ever operate on an opaque lock key/session
+  id/TTL and have no player-session-specific semantics, so they apply
+  unchanged to a leader-election lock keyed by job name.
+- **Not covered by this phase**: no actual background job calls
+  `ClusterLeaderElection::acquire`/`renew`/`isFencingTokenCurrent` yet -
+  this phase implements and verifies the primitive only. No integration
+  test exercises a real job (e.g. `IOMarket::checkExpiredOffers`) actually
+  contending for leadership across two simulated processes, since that
+  requires the full engine + scheduler, unavailable in this sandbox.
+
 ## 15.1b Redis Lua CAS script validation — ✅ run against a real `redis-server`
 
 The acquire/renew/release Lua scripts in
