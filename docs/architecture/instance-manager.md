@@ -98,8 +98,30 @@ visibility, targeting and combat wiring:
   owners are `Isolated`.
 
 `canCreaturesInteract()` is true only for `SameWorld` and `SameInstance`.
-Actual `Creature::setMaster`, spectator, targeting and combat call sites are
-wired in separate PRs so this policy can be tested independently first.
+
+## Runtime creature binder
+
+`InstanceCreatureBinder` is the synchronous adapter from runtime objects to the
+stable-ID registry. It accepts any object exposing `getID()` and stores only one
+`InstanceManager &` reference. It never retains the supplied object, a raw
+`Creature*` or a shared pointer after the call returns.
+
+The binder:
+
+- binds a runtime object's nonzero id to an instance through
+  `registerCreature()`;
+- unbinds by first resolving the authoritative reverse owner rather than
+  trusting a caller-provided instance id;
+- delegates master/summon inheritance to the tested manager policy;
+- delegates relation and interaction decisions to the same authoritative
+  registry;
+- preserves normal-world behavior when both ids are unowned;
+- inherits all unknown, Closing, Destroyed and cross-instance rejection rules
+  from `InstanceManager`.
+
+The adapter deliberately does not mutate `Creature` internals and does not own
+runtime lifetimes. Actual spawn, `setMaster`, removal, spectator, targeting and
+combat call sites remain separate focused integrations.
 
 ## Map region pool
 
@@ -141,8 +163,8 @@ creatures.
 
 ## Remaining integration sequence
 
-1. **Runtime wiring**: creature/summon creation and `setMaster` call the tested
-   ownership policy through an explicitly owned runtime component.
+1. **Runtime call-site wiring**: instance-aware creature/summon creation and
+   `setMaster` use the binder through an explicitly owned runtime component.
 2. **Spawn and NPC ownership**: instance-created spawn products register stable
    ids, automatically unregister on removal and are cleaned before region release.
 3. **Cross-instance isolation**: spectator, targeting and combat call sites use
@@ -185,6 +207,17 @@ creatures.
 - fail-closed behavior after close begins;
 - concurrent summon inheritance.
 
+`instance_creature_binder_test.cpp` covers:
+
+- binding runtime objects through `getID()`;
+- no dependency on the runtime object's lifetime after binding;
+- invalid, unknown, Closing and cross-instance rejection;
+- authoritative-owner unbind;
+- owned-master summon inheritance;
+- cross-instance master assignment rollback;
+- unchanged normal-world relation behavior;
+- fail-closed runtime relations after close begins.
+
 `instance_region_pool_test.cpp` covers:
 
 - bounds and floor validation;
@@ -200,5 +233,5 @@ creatures.
 - no multiworld identifiers;
 - no channel identifiers;
 - no global `InstanceManager` singleton;
-- no creature pointer ownership in `InstanceManager`;
-- no direct spawn, scheduler, player or Lua integration in the ownership-policy PR.
+- no creature pointer ownership in `InstanceManager` or its binder;
+- no direct spawn, scheduler, player or Lua integration in the binder PR.
