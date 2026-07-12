@@ -20,4 +20,5 @@ target_sources(
             multichannel/channel_switch_service_test.cpp
             multichannel/cluster_config_validator_test.cpp
             multichannel/idempotency_test.cpp
+            multichannel/economic_ledger_id_test.cpp
 )

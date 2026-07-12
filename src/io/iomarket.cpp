@@ -13,6 +13,7 @@
 #include "database/databasetasks.hpp"
 #include "game/game.hpp"
 #include "game/scheduling/dispatcher.hpp"
+#include "game/multichannel/economic_ledger_store.hpp"
 #include "game/scheduling/save_manager.hpp"
 #include "io/iologindata.hpp"
 #include "items/containers/inbox/inbox.hpp"
@@ -158,21 +159,53 @@ void IOMarket::processExpiredOffers(const DBResult_ptr &result, bool) {
 	}
 
 	do {
-		if (!IOMarket::moveOfferToHistory(result->getNumber<uint32_t>("id"), OFFERSTATE_EXPIRED)) {
+		const auto offerId = result->getNumber<uint32_t>("id");
+		const auto playerId = result->getNumber<uint32_t>("player_id");
+		const auto amount = result->getNumber<uint16_t>("amount");
+		const auto sale = result->getNumber<uint16_t>("sale");
+		const auto price = result->getNumber<uint64_t>("price");
+		auto tier = getTierFromDatabaseTable(result->getString("tier"));
+
+		// Idempotency/audit trail (docs/multichannel/ARCHITECTURE.md §8):
+		// before this, an expired offer's refund/delivery was pure
+		// in-memory state with nothing durable tying it to the
+		// synchronous `market_offers` DELETE inside moveOfferToHistory
+		// below - a crash between the two silently dropped the item/gold
+		// forever, with no trace anywhere to even notice. A deterministic
+		// UUID derived from this offer's own id turns every expiry into a
+		// durable, auditable row; beginPending failing (a genuine replay
+		// or a real DB error) means "do not credit this offer again",
+		// which is the safe default for money-moving code either way.
+		const auto nowMs = static_cast<int64_t>(getTimeNow()) * 1000;
+		const auto transactionUuid = EconomicLedgerStore::deterministicUuid("market.expire", offerId);
+		EconomicLedgerRecord ledgerRecord;
+		ledgerRecord.transactionUuid = transactionUuid;
+		ledgerRecord.operationType = "market.expire";
+		ledgerRecord.playerId = static_cast<int32_t>(playerId);
+		ledgerRecord.amount = sale == 1 ? 0 : static_cast<int64_t>(price * amount);
+		if (sale == 1) {
+			ledgerRecord.itemId = static_cast<int32_t>(result->getNumber<uint16_t>("itemtype"));
+			ledgerRecord.itemCount = static_cast<int32_t>(amount);
+		}
+		if (!EconomicLedgerStore::beginPending(ledgerRecord, nowMs)) {
 			continue;
 		}
 
-		const auto playerId = result->getNumber<uint32_t>("player_id");
-		const auto amount = result->getNumber<uint16_t>("amount");
-		auto tier = getTierFromDatabaseTable(result->getString("tier"));
-		if (result->getNumber<uint16_t>("sale") == 1) {
+		if (!IOMarket::moveOfferToHistory(offerId, OFFERSTATE_EXPIRED)) {
+			EconomicLedgerStore::markFailed(transactionUuid, nowMs);
+			continue;
+		}
+
+		if (sale == 1) {
 			const ItemType &itemType = Item::items[result->getNumber<uint16_t>("itemtype")];
 			if (itemType.id == 0) {
+				EconomicLedgerStore::markFailed(transactionUuid, nowMs);
 				continue;
 			}
 
 			const auto &player = g_game().getPlayerByGUID(playerId, true);
 			if (!player) {
+				EconomicLedgerStore::markFailed(transactionUuid, nowMs);
 				continue;
 			}
 
@@ -218,6 +251,8 @@ void IOMarket::processExpiredOffers(const DBResult_ptr &result, bool) {
 			if (player->isOffline()) {
 				g_saveManager().savePlayer(player);
 			}
+
+			EconomicLedgerStore::markCommitted(transactionUuid, nowMs);
 		} else {
 			uint64_t totalPrice = result->getNumber<uint64_t>("price") * amount;
 
@@ -227,6 +262,8 @@ void IOMarket::processExpiredOffers(const DBResult_ptr &result, bool) {
 			} else {
 				IOLoginData::increaseBankBalance(playerId, totalPrice);
 			}
+
+			EconomicLedgerStore::markCommitted(transactionUuid, nowMs);
 		}
 	} while (result->next());
 }
