@@ -4,6 +4,7 @@ Curated behavior/architecture log for discovery; not a replacement for Git histo
 
 ## Unreleased
 
+- PR #211 implements the unified read-only OTBM world index planned by #190: the existing native scanner now emits a deterministic binary postings cache, while a memory-mapped Python library and CLI provide bounded item/AID/UID/house-door/teleport/position/region queries with hashes, duplicate detection, atomic output and real-map validation without committing map or index artifacts.
 - The Beginning Carlos repair in PR #157 removes the stage-1 `outfit` completion bypass, gates trade to the accepted stage-6 task, sends tutorial `13` when that trade is first opened, and advances to stage 7 only after an actual meat/ham sale while preserving the existing shop transaction and prices.
 - The Beginning Zirella reward-room repair in PR #156 seals UID `50085` until Zirella stage 8 and remaps shovel/rope tutorials to current reward UIDs `50093/50094`; it remains open and requires refresh against the advanced `main` branch.
 - GameStore balance sequencing repair in PR #187 emits one post-mutation balance snapshot, removes the parser-level duplicate, and preserves the existing disabled-reason deduplication without changing opcodes, prices or coin arithmetic.
