@@ -11,6 +11,7 @@ target_sources(
             use_with_policy_test.cpp
             instance/instance_manager_test.cpp
             instance/instance_region_pool_test.cpp
+            instance/instance_creature_ownership_policy_test.cpp
             multichannel/channel_context_test.cpp
             multichannel/channel_registry_test.cpp
             multichannel/position_resolver_test.cpp
