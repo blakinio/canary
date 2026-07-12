@@ -31,6 +31,40 @@ void GemModifierSpellBonusStrategy::execute() {
 	m_wheel.addSpellBonus(m_spellName, m_bonus);
 }
 
+std::array<uint8_t, 3> WheelGemUtils::getEffectiveGrades(WheelGemQuality_t quality, uint8_t basicGrade1, uint8_t basicGrade2, uint8_t supremeGrade) {
+	basicGrade1 = std::min<uint8_t>(basicGrade1, 3);
+	basicGrade2 = std::min<uint8_t>(basicGrade2, 3);
+	supremeGrade = std::min<uint8_t>(supremeGrade, 3);
+
+	if (quality == WheelGemQuality_t::Lesser) {
+		return { basicGrade1, 0, 0 };
+	}
+
+	const uint8_t effectiveBasicGrade2 = std::min(basicGrade2, basicGrade1);
+	if (quality == WheelGemQuality_t::Regular) {
+		return { basicGrade1, effectiveBasicGrade2, 0 };
+	}
+
+	if (quality == WheelGemQuality_t::Greater) {
+		return { basicGrade1, effectiveBasicGrade2, std::min(supremeGrade, effectiveBasicGrade2) };
+	}
+
+	return { 0, 0, 0 };
+}
+
+uint8_t WheelGemUtils::getFullResonanceBonus(WheelGemQuality_t quality, uint16_t resonanceCount) {
+	switch (quality) {
+		case WheelGemQuality_t::Lesser:
+			return resonanceCount >= 1 ? 1 : 0;
+		case WheelGemQuality_t::Regular:
+			return resonanceCount >= 2 ? 1 : 0;
+		case WheelGemQuality_t::Greater:
+			return resonanceCount >= 3 ? 2 : 0;
+		default:
+			return 0;
+	}
+}
+
 void WheelModifierContext::addStrategies(WheelGemBasicModifier_t modifier, uint8_t grade) {
 	float gradeMultiplier = 1.0;
 	if (grade == 1) {
@@ -154,7 +188,7 @@ void WheelModifierContext::addStrategies(WheelGemBasicModifier_t modifier, uint8
 			m_strategies.emplace_back(std::make_unique<GemModifierResistanceStrategy>(m_wheel, CombatType_t::COMBAT_LIFEDRAIN, 150 * gradeMultiplier));
 			break;
 		case WheelGemBasicModifier_t::General_MitigationMultiplier:
-			m_strategies.emplace_back(std::make_unique<GemModifierStatStrategy>(m_wheel, WheelStat_t::MITIGATION, 500 * gradeMultiplier));
+			m_strategies.emplace_back(std::make_unique<GemModifierStatStrategy>(m_wheel, WheelStat_t::MITIGATION, WheelBalance::GEM_MITIGATION_BASE * gradeMultiplier));
 			break;
 
 		case WheelGemBasicModifier_t::Vocation_Health:
