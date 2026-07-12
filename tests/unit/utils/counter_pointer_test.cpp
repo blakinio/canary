@@ -13,7 +13,8 @@
 namespace {
 	class TestContainerScope final {
 	public:
-		explicit TestContainerScope(di::extension::injector<>* container) : previousContainer(DI::getTestContainer()) {
+		explicit TestContainerScope(di::extension::injector<>* container) :
+			previousContainer(DI::getTestContainer()) {
 			DI::setTestContainer(container);
 		}
 
