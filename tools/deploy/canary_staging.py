@@ -49,7 +49,12 @@ def _collect_overlay_files(overlay_root: Path) -> list[Path]:
 
 
 def assemble_staging_datapack(base_datapack: str | Path, overlay_dir: str | Path, destination: str | Path) -> Path:
-    """Copy a trusted base datapack and apply a reviewed, symlink-free overlay."""
+    """Copy a trusted base datapack and apply a reviewed, symlink-free overlay.
+
+    The destination is all-or-nothing from the caller's perspective: any
+    copy/overlay failure removes the partially assembled tree before the
+    exception is propagated.
+    """
     base = Path(base_datapack).resolve(strict=True)
     overlay = Path(overlay_dir).resolve(strict=True)
     target = Path(destination)
@@ -63,9 +68,8 @@ def assemble_staging_datapack(base_datapack: str | Path, overlay_dir: str | Path
 
     overlay_files = _collect_overlay_files(overlay)
     target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(base, target, symlinks=False)
-
     try:
+        shutil.copytree(base, target, symlinks=False)
         for source in overlay_files:
             relative = source.relative_to(overlay)
             destination_file = target / relative
