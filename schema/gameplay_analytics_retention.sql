@@ -31,6 +31,26 @@ CREATE TABLE IF NOT EXISTS `analytics_daily_balance` (
     KEY `analytics_daily_balance_hunt_date` (`hunt_area`, `session_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Solo and party must remain separate dimensions. They cannot be inferred from
+-- an average after sessions have already been merged into analytics_daily_balance.
+CREATE TABLE IF NOT EXISTS `analytics_daily_party_mode` (
+    `session_date` DATE NOT NULL,
+    `server_version` VARCHAR(64) NOT NULL DEFAULT '',
+    `hunt_area` VARCHAR(128) NOT NULL DEFAULT '',
+    `vocation_id` SMALLINT UNSIGNED NOT NULL,
+    `level_bracket` INT UNSIGNED NOT NULL,
+    `party_mode` ENUM('solo', 'party') NOT NULL,
+    `source_sessions` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    `combat_seconds` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    `experience_raw` DECIMAL(30,0) UNSIGNED NOT NULL DEFAULT 0,
+    `loot_value_npc` DECIMAL(30,0) UNSIGNED NOT NULL DEFAULT 0,
+    `supplies_value` DECIMAL(30,0) UNSIGNED NOT NULL DEFAULT 0,
+    `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`session_date`, `server_version`, `hunt_area`, `vocation_id`, `level_bracket`, `party_mode`),
+    KEY `analytics_daily_party_mode_vocation_date` (`vocation_id`, `session_date`),
+    KEY `analytics_daily_party_mode_hunt_date` (`hunt_area`, `session_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `analytics_maintenance_state` (
     `state_key` VARCHAR(64) NOT NULL,
     `value_date` DATE DEFAULT NULL,
