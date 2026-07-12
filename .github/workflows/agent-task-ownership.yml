@@ -1,0 +1,43 @@
+name: Agent Task Ownership
+
+on:
+  pull_request:
+    paths:
+      - "AGENTS.md"
+      - "docs/agents/**"
+      - "tools/agents/task_ownership.py"
+      - "tools/agents/test_task_ownership.py"
+      - ".github/workflows/agent-task-ownership.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "AGENTS.md"
+      - "docs/agents/**"
+      - "tools/agents/task_ownership.py"
+      - "tools/agents/test_task_ownership.py"
+      - ".github/workflows/agent-task-ownership.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run focused unit tests
+        working-directory: tools/agents
+        run: python -m unittest -v test_task_ownership.py
+      - name: Validate active task ownership
+        run: python tools/agents/task_ownership.py
+      - name: Render ownership index artifact
+        run: python tools/agents/task_ownership.py --write-index artifacts/agent-coordination/OWNERSHIP_INDEX.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: active-task-ownership
+          path: artifacts/agent-coordination/OWNERSHIP_INDEX.md
+          if-no-files-found: error
