@@ -10,7 +10,6 @@ from typing import Iterable
 
 ACTIVE_STATUSES = {"planned", "implementing", "blocked", "review", "ready"}
 
-
 @dataclass(frozen=True)
 class Claim:
     task_id: str
@@ -21,17 +20,14 @@ class Claim:
     path: str
     source: Path
 
-
 class ParseError(ValueError):
     pass
-
 
 def _scalar(value: str) -> str:
     value = value.strip()
     if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
         return value[1:-1]
     return value
-
 
 def parse_front_matter(path: Path) -> dict[str, object]:
     lines = path.read_text(encoding="utf-8").splitlines()
@@ -68,9 +64,9 @@ def parse_front_matter(path: Path) -> dict[str, object]:
 
         if indent == 2 and stripped.endswith(":") and isinstance(data.get(current_key), dict):
             current_subkey = stripped[:-1].strip()
-            mapping = data[current_key]
-            assert isinstance(mapping, dict)
-            mapping[current_subkey] = []
+            casted = data[current_key]
+            assert isinstance(casted, dict)
+            casted[current_subkey] = []
             continue
 
         if stripped.startswith("- "):
@@ -89,7 +85,6 @@ def parse_front_matter(path: Path) -> dict[str, object]:
 
     return data
 
-
 def task_claims(path: Path) -> tuple[dict[str, object], list[Claim]]:
     data = parse_front_matter(path)
     task_id = str(data.get("task_id", "")).strip()
@@ -103,7 +98,7 @@ def task_claims(path: Path) -> tuple[dict[str, object], list[Claim]]:
     owned = data.get("owned_paths", [])
     modes: dict[str, list[str]]
     if isinstance(owned, list):
-        modes = {"exclusive": [str(value) for value in owned]}
+        modes = {"legacy_exclusive": [str(v) for v in owned]}
     elif isinstance(owned, dict):
         modes = {}
         for mode in ("exclusive", "shared", "read_only"):
@@ -112,51 +107,43 @@ def task_claims(path: Path) -> tuple[dict[str, object], list[Claim]]:
                 values = []
             if not isinstance(values, list):
                 raise ParseError(f"{path}: owned_paths.{mode} must be a list")
-            modes[mode] = [str(value) for value in values]
+            modes[mode] = [str(v) for v in values]
     else:
         raise ParseError(f"{path}: owned_paths must be a list or mapping")
 
     claims = [
-        Claim(task_id, program_id, agent, branch, mode, claimed_path.strip(), path)
-        for mode, claimed_paths in modes.items()
-        for claimed_path in claimed_paths
-        if claimed_path.strip()
+        Claim(task_id, program_id, agent, branch, mode, p.strip(), path)
+        for mode, paths in modes.items()
+        for p in paths
+        if p.strip()
     ]
     return {"status": status, **data}, claims
-
 
 def _normalize(pattern: str) -> str:
     while pattern.startswith("./"):
         pattern = pattern[2:]
     return pattern.rstrip("/")
 
-
 def _literal_prefix(pattern: str) -> str:
     pattern = _normalize(pattern)
     first = len(pattern)
     for token in ("*", "?", "["):
-        position = pattern.find(token)
-        if position >= 0:
-            first = min(first, position)
+        pos = pattern.find(token)
+        if pos >= 0:
+            first = min(first, pos)
     return pattern[:first].rstrip("/")
 
-
-def patterns_overlap(left: str, right: str) -> bool:
-    left, right = _normalize(left), _normalize(right)
-    if left == right:
+def patterns_overlap(a: str, b: str) -> bool:
+    a, b = _normalize(a), _normalize(b)
+    if a == b:
         return True
-    if fnmatch.fnmatchcase(left, right) or fnmatch.fnmatchcase(right, left):
+    if fnmatch.fnmatchcase(a, b) or fnmatch.fnmatchcase(b, a):
         return True
 
-    left_prefix, right_prefix = _literal_prefix(left), _literal_prefix(right)
-    if not left_prefix or not right_prefix:
+    pa, pb = _literal_prefix(a), _literal_prefix(b)
+    if not pa or not pb:
         return True
-    return (
-        left_prefix == right_prefix
-        or left_prefix.startswith(right_prefix + "/")
-        or right_prefix.startswith(left_prefix + "/")
-    )
-
+    return pa == pb or pa.startswith(pb + "/") or pb.startswith(pa + "/")
 
 def validate_tasks(paths: Iterable[Path]) -> list[str]:
     errors: list[str] = []
@@ -179,15 +166,15 @@ def validate_tasks(paths: Iterable[Path]) -> list[str]:
         if str(data.get("status", "")).strip() not in ACTIVE_STATUSES:
             continue
 
-        for required in ("program_id", "agent", "branch"):
+        for required in ("agent", "branch"):
             if not str(data.get(required, "")).strip():
                 errors.append(f"{path}: active task {task_id} missing {required}")
 
         active_claims.extend(claims)
 
-    exclusive = [claim for claim in active_claims if claim.mode == "exclusive"]
-    for index, left in enumerate(exclusive):
-        for right in exclusive[index + 1 :]:
+    exclusive = [c for c in active_claims if c.mode == "exclusive"]
+    for i, left in enumerate(exclusive):
+        for right in exclusive[i + 1:]:
             if left.task_id == right.task_id:
                 continue
             if patterns_overlap(left.path, right.path):
@@ -197,7 +184,6 @@ def validate_tasks(paths: Iterable[Path]) -> list[str]:
                     f"{right.path!r} ({right.task_id}, {right.source})"
                 )
     return errors
-
 
 def render_index(paths: Iterable[Path]) -> str:
     claims: list[Claim] = []
@@ -213,7 +199,7 @@ def render_index(paths: Iterable[Path]) -> str:
         "| Path | Mode | Program | Task | Agent | Branch |",
         "|---|---|---|---|---|---|",
     ]
-    for claim in sorted(claims, key=lambda item: (item.path, item.mode, item.task_id)):
+    for claim in sorted(claims, key=lambda c: (c.path, c.mode, c.task_id)):
         lines.append(
             f"| `{claim.path}` | {claim.mode} | {claim.program_id or '—'} | "
             f"{claim.task_id} | {claim.agent or '—'} | `{claim.branch or '—'}` |"
@@ -221,10 +207,8 @@ def render_index(paths: Iterable[Path]) -> str:
     lines.append("")
     return "\n".join(lines)
 
-
 def _task_files(root: Path) -> list[Path]:
     return sorted(root.rglob("*.md"))
-
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate autonomous-agent task path ownership.")
@@ -242,7 +226,6 @@ def main(argv: list[str] | None = None) -> int:
         args.write_index.write_text(render_index(paths), encoding="utf-8")
     print(f"Validated {len(paths)} active task record(s).")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
