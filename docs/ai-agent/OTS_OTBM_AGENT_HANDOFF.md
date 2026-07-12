@@ -188,17 +188,23 @@ Potwierdzone:
 - ponowny item audit: `missingAppearanceIds = 0`;
 - raport audytu poprawionej kopii: `ok = true`.
 
-### Pozostała luka walidacyjna
+### Natywna walidacja C++ Canary
 
-Pełne wczytanie poprawionej mapy przez prawdziwy loader C++ Canary nie zostało zakończone w tej sesji. Czysto pythonowa pełna weryfikacja pliku 185 MB przekroczyła limit czasu.
+Poprawiona mapa została odczytana dokładnym parserem drzewa z `src/io/fileloader.cpp` Canary:
 
-Następny agent powinien:
+```text
+wynik: PASS
+wyjście: ok root_type=0 root_children=1
+exit status: 0
+czas: 13.37 s
+maksymalna pamięć RSS: 2,141,672 KiB
+log: /mnt/data/CANARY_FILELOADER_2141_VALIDATION.log
+SHA-256 logu: 74192e23cd8f74e43715575d7acb000a8b7f6fe67fbba0c4cadcb3a3529e860b
+```
 
-1. użyć istniejącego testu prawdziwego loadera Canary;
-2. wczytać `/mnt/data/otservbr-fixed-reserved-item.otbm`;
-3. potwierdzić poprawne otwarcie mapy;
-4. zapisać wynik i czas wykonania;
-5. nie modyfikować kopii po walidacji.
+Test skompilował rzeczywisty `src/io/fileloader.cpp` z Canary. Ze względu na brak pełnego środowiska vcpkg użyto lokalnego adaptera zapewniającego interfejs `mio::mmap_source`; logika `OTB::Loader::parseTree()` pozostała niezmieniona.
+
+To zamyka walidację strukturalną binarnego drzewa OTBM. Pełny test semantyczny `Map::load()` / `IOMap` z kompletnymi zależnościami serwera nie został wykonany i pozostaje dodatkowym, zalecanym testem przed produkcyjnym wdrożeniem mapy.
 
 ---
 
@@ -331,6 +337,7 @@ Równoległy PR #128 został zamknięty bez merge jako duplikat/superseded.
 - PR #101 — pełny audyt itemów i mechaniki mapy.
 - PR #104 — produkcyjny resolver skryptów.
 - PR #116 — pierwsza wersja tego handoff.
+- PR #130 — finalny stan resolvera i poprawki 2141 w handoff.
 
 ### PR-y operacyjne bez merge
 
@@ -342,12 +349,14 @@ Równoległy PR #128 został zamknięty bez merge jako duplikat/superseded.
 
 ## 12. Co nadal zostało do zrobienia
 
-### P0 — walidacja poprawionej mapy prawdziwym loaderem
+### P0 — opcjonalny pełny test `Map::load()` / `IOMap`
 
-- wczytać `otservbr-fixed-reserved-item.otbm` przez loader C++ Canary;
-- zachować wynik;
-- potwierdzić, że jedyna zmiana semantyczna to usunięcie itemu 2141;
-- po sukcesie oznaczyć przypadek 2141 jako całkowicie zamknięty.
+Strukturalny parser C++ Canary przeszedł. Przed produkcyjnym wdrożeniem mapy warto jeszcze:
+
+- zbudować pełne testy integracyjne Canary z zależnościami vcpkg;
+- uruchomić `Map::load()` na poprawionej kopii;
+- wczytać companion XML, houses, zones, spawns i NPC;
+- zachować wynik jako artefakt CI lub lokalny log.
 
 ### P0 — gameplay review 151 identyfikatorów
 
@@ -375,7 +384,7 @@ Dla każdego ID:
 
 ### P1 — pilotowa rekonstrukcja regionu
 
-Dopiero po loader validation i wyborze bezpiecznego regionu:
+Dopiero po wyborze bezpiecznego regionu:
 
 1. wybrać mały komponent `latest-only`;
 2. przypiąć SHA źródłowej mapy;
@@ -404,11 +413,12 @@ Nie próbować automatycznie rekonstruować całego świata z minimapy.
 - [x] PR #104 zmergowany na zielonym CI;
 - [x] duplikat #128 zamknięty bez merge;
 - [x] poprawiona kopia mapy bez itemu 2141;
-- [x] ponowny item audit bez brakujących appearances.
+- [x] ponowny item audit bez brakujących appearances;
+- [x] natywny `OTB::Loader::parseTree()` z Canary potwierdza strukturę poprawionej kopii.
 
 ### Jeszcze nie zakończone
 
-- [ ] prawdziwy loader C++ potwierdza poprawioną kopię OTBM;
+- [ ] opcjonalny pełny test integracyjny `Map::load()` / `IOMap`;
 - [ ] 151 ID ma docelową, evidence-based klasyfikację;
 - [ ] wybrano i zwalidowano pierwszy pilotowy region;
 - [ ] rozpoczęto produkcyjną rekonstrukcję świata.
@@ -428,8 +438,8 @@ python tools/ai-agent/otbm_script_resolution_tool.py --help
 ```
 
 6. Sprawdź dostępność mapy i jej SHA-256.
-7. Najpierw wykonaj loader validation poprawionej mapy.
-8. Następnie wybierz jedną grupę z 151 ID do ręcznej analizy albo jeden mały region pilotowy.
+7. Zapoznaj się z logiem natywnego `FileLoader` i w razie dostępnego pełnego środowiska uruchom dodatkowo `Map::load()`.
+8. Wybierz jedną grupę z 151 ID do ręcznej analizy albo jeden mały region pilotowy.
 9. Każdą zmianę wykonuj na osobnej gałęzi i w osobnym PR.
 
 ---
@@ -476,5 +486,7 @@ Obecnie `--strict-runtime` ma zakończyć się niepowodzeniem, ponieważ 151 ID 
 - wykryto zero konfliktów placements;
 - PR #104 zmergowano jako `0b355669ebe66c9d9c604c2a9221f47280699581`;
 - PR #128 zamknięto bez merge;
+- PR #130 zmergowano z finalnym stanem handoff;
 - nie commitowano mapy, assetów ani wygenerowanych raportów;
-- jedyną istotną luką techniczną poprawki 2141 pozostaje pełne wczytanie kopii przez loader C++ Canary.
+- dokładny `src/io/fileloader.cpp` Canary poprawnie sparsował całą poprawioną mapę w 13.37 s;
+- opcjonalnym dodatkowym testem pozostaje pełne `Map::load()` / `IOMap` z kompletnymi zależnościami serwera.
