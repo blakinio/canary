@@ -597,6 +597,50 @@ tested; the "freeze new logins" and "disconnect before another process can
 steal the lease" actions require the Phase 2 game-loop wiring to execute
 for real.
 
+## 10a. Leader election primitive (✅ module, 📐 not wired to any job yet)
+
+Several background jobs must run exactly once cluster-wide rather than once
+per channel process (`OPERATIONS.md`'s "Leader election / cluster-singleton
+jobs" table: house rent charging, house auction settlement, market offer
+expiration, daily reward reset, global boosted creature/boss selection,
+table cleanup jobs, highscores cache rebuild, ...). `ClusterLeaderElection`
+(`src/game/multichannel/cluster_leader_election.hpp`/`.cpp`) is the
+primitive that will let exactly one process win each of those jobs: it
+reuses the *exact same* atomic Redis lease/fencing mechanism as
+`ClusterSessionManager` (§5) - the same `IRedisClient` seam, the same
+`redis_scripts/{acquire,renew,release}.lua` (already validated against a
+real `redis-server`, see TEST_PLAN.md; these scripts only ever operate on
+an opaque lock key/session id/TTL, so they needed no changes to serve
+leader election too), just keyed by a job name string (`cluster:leader:
+<jobName>`) instead of an account id. A job leader has no multi-state
+lifecycle the way a player session does (no Acquiring/Saving/Dirty) -
+either this process currently holds the lease for that job or it doesn't;
+a job run is expected to call `isFencingTokenCurrent` immediately before
+any effect that must not run twice, mirroring the anti-zombie check
+THREAT_MODEL.md T2 already requires for session saves.
+
+**✅ Verified**: 13 new gtest cases (`tests/unit/game/multichannel/
+cluster_leader_election_test.cpp`), compiled standalone with real `g++
+-std=c++20` + real `libgtest`/`libgtest_main` (this module has zero engine
+dependency, same as `ClusterSessionManager`, so it needed no MariaDB
+verification and no hand-review substitute) - acquire/reject-while-held,
+independent job names don't contend, renew by owner/non-owner, renew past
+expiry doesn't resurrect, release by owner/non-owner, fencing token
+monotonicity across release/reacquire cycles, reacquire-after-expiry gets
+a higher token, stale token correctly reads as not-current after a
+takeover, and a 16-thread concurrent-acquire race with exactly one winner.
+**13/13 passing.**
+
+**📐 Known gap, stated honestly:** this is the primitive only. No actual
+job (market expiry, house rent, ...) calls `acquire`/`renew`/
+`isFencingTokenCurrent` yet - every job listed in OPERATIONS.md's table
+still runs unconditionally on every channel process today. Wiring each job
+individually (deciding its lease TTL, where in its existing scheduling
+code to call acquire/renew, and what "lost leadership mid-run" should mean
+for that specific job - e.g. `IOMarket::checkExpiredOffers` half-processed
+a batch) is real per-job design work left for a follow-up, not something
+safe to do blind in one broad pass across a dozen unrelated jobs.
+
 ## 11. Why Phase 1 and not the whole spec
 
 The full spec (all 23 sections) describes cluster-wide leader election for
