@@ -1,0 +1,63 @@
+---
+name: Achievement Validation
+
+on:
+  pull_request:
+    paths:
+      - "data/scripts/lib/register_achievements.lua"
+      - "data/**/*.lua"
+      - "data-otservbr-global/**/*.lua"
+      - "tools/ai-agent/achievement_validation.py"
+      - "tools/ai-agent/test_achievement_validation.py"
+      - "docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json"
+      - "docs/ai-agent/ACHIEVEMENT_RUNTIME_TEST_PLAN.json"
+      - ".github/workflows/achievement-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Audit achievement registry and triggers
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run focused tests
+        run: python -m unittest tools/ai-agent/test_achievement_validation.py -v
+
+      - name: Generate achievement audit
+        run: |
+          python tools/ai-agent/achievement_validation.py \
+            --repository-root . \
+            --reference-baseline docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json \
+            --output artifacts/ACHIEVEMENT_AUDIT.json \
+            --markdown artifacts/ACHIEVEMENT_AUDIT.md \
+            --allow-findings
+
+      - name: Validate generated JSON
+        run: |
+          python -m json.tool artifacts/ACHIEVEMENT_AUDIT.json > /dev/null
+          python -m json.tool docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json > /dev/null
+          python -m json.tool docs/ai-agent/ACHIEVEMENT_RUNTIME_TEST_PLAN.json > /dev/null
+
+      - name: Publish audit summary
+        run: cat artifacts/ACHIEVEMENT_AUDIT.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload audit artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: achievement-validation-audit
+          path: |
+            artifacts/ACHIEVEMENT_AUDIT.json
+            artifacts/ACHIEVEMENT_AUDIT.md
+          if-no-files-found: error
+          retention-days: 14
