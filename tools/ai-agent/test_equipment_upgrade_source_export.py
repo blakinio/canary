@@ -35,6 +35,13 @@ class EquipmentUpgradeSourceExportTest(unittest.TestCase):
             b"momentumChanceFormula",
             b"transcendenceChanceFormula",
             b"amplificationChanceFormula",
+            b"getFatalChance",
+            b"damage.fatal",
+            b"getDodgeChance",
+            b"triggerMomentum",
+            b"triggerTranscendence",
+            b"getAmplificationChance",
+            b"quadraticPoly",
         )
 
         files: dict[str, dict[str, int | str]] = {}
