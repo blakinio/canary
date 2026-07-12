@@ -38,7 +38,7 @@ Instance creation:
 Instance close:
 
 1. marks the record `Closing`, which immediately blocks new ownership
-   registrations;
+   registrations and instance interactions;
 2. runs caller-supplied cleanup outside the manager lock and passes the complete
    reserved region;
 3. verifies that the creature identity registry is empty;
@@ -69,11 +69,59 @@ The registry contract is:
 - cleanup can enumerate ids deterministically and unregister them while the
   instance is `Closing`;
 - a non-empty registry prevents region release and quarantines the instance;
-- destroyed or unknown instances cannot be mutated.
+- destroyed or unknown instances cannot be mutated;
+- insertion into both ownership indexes is transactional on allocation failure.
 
-This PR establishes lifecycle-safe bookkeeping only. A follow-up wires the
-registry to `Creature`, summon inheritance, instance-aware spawns and actual
-creature removal.
+## Summon inheritance and interaction policy
+
+Ownership inheritance and interaction decisions use only stable runtime ids and
+the manager's authoritative registry. They do not duplicate ownership fields or
+retain creature pointers.
+
+`inheritCreatureOwnership(masterId, summonId)` applies these rules atomically:
+
+- invalid or identical ids fail;
+- an unowned normal-world master accepts only an unowned summon and leaves both
+  unowned;
+- a Creating or Active instance-owned master registers an unowned summon to the
+  same instance;
+- inheritance is idempotent when both already share the same owner;
+- a summon already owned by another instance is rejected without mutation;
+- Closing or Destroyed instance owners cannot acquire new summons.
+
+`getCreatureRelation()` centralizes the fail-closed policy used by later
+visibility, targeting and combat wiring:
+
+- two unowned runtime ids are `SameWorld`;
+- two ids owned by the same Creating or Active instance are `SameInstance`;
+- invalid ids, owned/unowned pairs, different owners and Closing/Destroyed
+  owners are `Isolated`.
+
+`canCreaturesInteract()` is true only for `SameWorld` and `SameInstance`.
+
+## Runtime creature binder
+
+`InstanceCreatureBinder` is the synchronous adapter from runtime objects to the
+stable-ID registry. It accepts any object exposing `getID()` and stores only one
+`InstanceManager &` reference. It never retains the supplied object, a raw
+`Creature*` or a shared pointer after the call returns.
+
+The binder:
+
+- binds a runtime object's nonzero id to an instance through
+  `registerCreature()`;
+- unbinds by first resolving the authoritative reverse owner rather than
+  trusting a caller-provided instance id;
+- delegates master/summon inheritance to the tested manager policy;
+- delegates relation and interaction decisions to the same authoritative
+  registry;
+- preserves normal-world behavior when both ids are unowned;
+- inherits all unknown, Closing, Destroyed and cross-instance rejection rules
+  from `InstanceManager`.
+
+The adapter deliberately does not mutate `Creature` internals and does not own
+runtime lifetimes. Actual spawn, `setMaster`, removal, spectator, targeting and
+combat call sites remain separate focused integrations.
 
 ## Map region pool
 
@@ -115,22 +163,22 @@ creatures.
 
 ## Remaining integration sequence
 
-1. **Creature metadata and spawn wiring**: creatures, summons, NPCs and spawn
-   products created for an instance carry `InstanceId` and register their stable
-   runtime ids; cleanup removes them.
-2. **Cross-instance isolation**: visibility, targeting and ownership changes are
-   rejected across instance boundaries while normal-world behavior stays
-   unchanged.
-3. **Scheduler/event ownership**: scheduled callbacks carry `InstanceId`, are
+1. **Runtime call-site wiring**: instance-aware creature/summon creation and
+   `setMaster` use the binder through an explicitly owned runtime component.
+2. **Spawn and NPC ownership**: instance-created spawn products register stable
+   ids, automatically unregister on removal and are cleaned before region release.
+3. **Cross-instance isolation**: spectator, targeting and combat call sites use
+   the central relation policy while normal-world behavior stays unchanged.
+4. **Scheduler/event ownership**: scheduled callbacks carry `InstanceId`, are
    invalidated on close and cannot execute against destroyed state. The timeout
    sweep gets an actual periodic owner.
-4. **Player enter/leave**: validated entry, safe return position, closing,
+5. **Player enter/leave**: validated entry, safe return position, closing,
    logout, death and reconnect behavior.
-5. **Lua API**: create/get/enter/leave/close/state with stable errors and no raw
+6. **Lua API**: create/get/enter/leave/close/state with stable errors and no raw
    pointer exposure.
-6. **Cleanup/recovery**: evacuate players, remove temporary creatures/items,
+7. **Cleanup/recovery**: evacuate players, remove temporary creatures/items,
    cancel timers, define retry policy and return quarantined regions safely.
-7. **Two parallel instances E2E**: prove region, creature, player and event
+8. **Two parallel instances E2E**: prove region, creature, player and event
    isolation and clean region reuse.
 
 ## Tests
@@ -149,6 +197,27 @@ creatures.
 - cleanup-failure quarantine;
 - concurrent create/close behavior.
 
+`instance_creature_ownership_policy_test.cpp` covers:
+
+- normal-world summon inheritance as a no-op;
+- owned-master inheritance and idempotency;
+- cross-instance and owned-to-unowned boundary rejection;
+- invalid/self inheritance;
+- the complete interaction relation matrix;
+- fail-closed behavior after close begins;
+- concurrent summon inheritance.
+
+`instance_creature_binder_test.cpp` covers:
+
+- binding runtime objects through `getID()`;
+- no dependency on the runtime object's lifetime after binding;
+- invalid, unknown, Closing and cross-instance rejection;
+- authoritative-owner unbind;
+- owned-master summon inheritance;
+- cross-instance master assignment rollback;
+- unchanged normal-world relation behavior;
+- fail-closed runtime relations after close begins.
+
 `instance_region_pool_test.cpp` covers:
 
 - bounds and floor validation;
@@ -164,5 +233,5 @@ creatures.
 - no multiworld identifiers;
 - no channel identifiers;
 - no global `InstanceManager` singleton;
-- no creature pointer ownership in `InstanceManager`;
-- no spawn, scheduler, player or Lua integration in the creature-registry PR.
+- no creature pointer ownership in `InstanceManager` or its binder;
+- no direct spawn, scheduler, player or Lua integration in the binder PR.
