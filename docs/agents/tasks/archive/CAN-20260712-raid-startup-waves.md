@@ -1,12 +1,12 @@
 ---
 task_id: CAN-20260712-raid-startup-waves
-status: testing
+status: completed
 agent: "OpenAI Codex"
 branch: fix/raid-startup-waves
 base_branch: main
 created: 2026-07-12T21:20:00Z
-updated: 2026-07-12T22:00:00Z
-last_verified_commit: "c3f295b927027d7a598068d3323e196a929ea9a4"
+updated: 2026-07-12T23:25:00Z
+last_verified_commit: "c5a0af67fa680b369887ea51b9ad643055474dc9"
 risk: medium
 related_issue: "opentibiabr/canary#3599"
 related_pr: "blakinio/canary#205"
@@ -42,8 +42,8 @@ Reduce raid monster-creation peaks reported in upstream #3599 by splitting activ
 - [x] Focused contract proves spawn delay is shorter than stage advance, because stage changes cancel pending encounter events.
 - [x] Existing broadcasts, eight Draptor stages and Grand Mother Foulscale remain unchanged.
 - [x] Undead Cavebear no longer reuses and resets the `farmine.draptor` encounter identity.
-- [ ] Focused tests, Lua formatting/tests, datapack runtime smoke and required CI pass on the final head.
-- [ ] Exact changed-file list and review state are verified before merge.
+- [x] Focused tests, Lua formatting/tests, datapack runtime smoke and required CI pass on the final head.
+- [x] Exact changed-file list and review state are verified before merge.
 
 # Confirmed context
 
@@ -71,6 +71,13 @@ Reduce raid monster-creation peaks reported in upstream #3599 by splitting activ
 5. Undead Cavebear uses its own raid/zone identity and its legacy floor-10 area, preventing it from replacing Draptor registration.
 
 # Work log
+
+## 2026-07-12T23:25:00Z
+
+- Final head `97b5afc4...` passed autofix run 645, AI Agent Tools run 408, Achievement Validation run 89 and CI run 930.
+- CI included Lua Tests, Fast Checks, Linux release compile, the Required gate and Global datapack runtime smoke; every applicable job passed.
+- Final diff contained exactly six claimed files, with no comments, reviews or unresolved threads.
+- PR #205 squash-merged as `c5a0af67fa680b369887ea51b9ad643055474dc9`.
 
 ## 2026-07-12T22:05:00Z
 
@@ -117,7 +124,7 @@ Reduce raid monster-creation peaks reported in upstream #3599 by splitting activ
 
 # Remaining work
 
-Run full focused validation, publish a draft PR, complete CI/review gates and merge.
+None.
 
 # Handoff
 
@@ -125,8 +132,8 @@ Read this task, upstream #3599, the three owned raid Lua files and `data/libs/sy
 
 # Completion
 
-- Final status: testing
+- Final status: merged
 - PR: https://github.com/blakinio/canary/pull/205
-- Merge commit:
-- Changelog updated: pending completion
-- Archived at:
+- Merge commit: `c5a0af67fa680b369887ea51b9ad643055474dc9`
+- Changelog updated: yes
+- Archived at: `docs/agents/tasks/archive/CAN-20260712-raid-startup-waves.md`
