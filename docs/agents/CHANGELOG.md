@@ -4,6 +4,7 @@ Curated behavior/architecture log for discovery; not a replacement for Git histo
 
 ## Unreleased
 
+- Achievement helper repair in PR #176 replaces sparse-table length/range iteration with a deterministic sorted list of successfully registered IDs, derives real first/last bounds, and fixes public/secret metadata lookup and invalid-input logging without changing registry definitions or player KV data.
 - PR #161 extends the OTBM HD pipeline with a one-process batch external AI backend, strict source/output path confinement, independent partial-output normalization, exact source-alpha restoration, compatible override manifests, and an optional no-weights-committed TibiaSR 2x reference adapter.
 - PR #154 (replacement for auto-closed #147) adds a deterministic OTBM HD-sprite artifact pipeline: bounded-region sprite export with provenance, padded nearest/external upscale backends, source-alpha restoration, hash/geometry validation, 2x renderer overrides with original-sprite fallback, and visual comparison reports without modifying OTBM or client assets.
 - The Beginning Collecting Wood restoration in PR #149 adds exact-position Actions for the five tutorial dead trees and Zirella's cart, creating branch `7772` on the ground and advancing both Zirella storages from stage 6 to 7 after one authentic branch delivery without changing the OTBM.
