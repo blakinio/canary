@@ -121,6 +121,7 @@ class CanaryStagingTests(unittest.TestCase):
             repo = Path(tmp)
             config_path = repo / "config.lua"
             observed: list[str] = []
+            fake_module = SimpleNamespace()
 
             def standard_write(_args: argparse.Namespace) -> None:
                 config_path.write_text("useAnyDatapackFolder = false\n", encoding="utf-8")
@@ -129,14 +130,14 @@ class CanaryStagingTests(unittest.TestCase):
                 self.assertEqual(name, "useAnyDatapackFolder")
                 return content.replace("useAnyDatapackFolder = false", f"useAnyDatapackFolder = {value}")
 
-            def run_smoke(_args: argparse.Namespace) -> None:
+            def run_smoke(args: argparse.Namespace) -> None:
+                fake_module.write_smoke_config(args)
                 observed.append(config_path.read_text(encoding="utf-8"))
 
-            fake_module = SimpleNamespace(
-                write_smoke_config=standard_write,
-                set_lua_value=set_lua_value,
-                run_smoke=run_smoke,
-            )
+            fake_module.write_smoke_config = standard_write
+            fake_module.set_lua_value = set_lua_value
+            fake_module.run_smoke = run_smoke
+
             with mock.patch("canary_staging._load_smoke_module", return_value=fake_module):
                 executor = _staging_smoke_executor(repo)
                 executor(argparse.Namespace())
@@ -151,6 +152,7 @@ class CanaryStagingTests(unittest.TestCase):
 
             def executor(args: argparse.Namespace) -> None:
                 self.assertNotIn(os.sep, args.data_pack)
+                self.assertTrue(args.data_pack.startswith("data-"))
                 alias = settings.repo_root / args.data_pack
                 self.assertTrue(alias.is_symlink())
                 self.assertEqual(alias.resolve(), datapack.resolve())
