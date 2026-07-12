@@ -217,10 +217,8 @@ full policy against the player's live state and, on success, resolves an
 arrival position and performs a normal clean disconnect; logging back in
 on the target channel picks up that resolved position automatically. See
 ARCHITECTURE.md §5/§6 for exactly what's wired and its stated gaps (most
-notably: the `cluster_sessions` DB table isn't dual-written yet, so Redis
-is the sole session-enforcement mechanism; and target-channel online/
-capacity checks are optimistic placeholders since no heartbeat loop exists
-yet to check them for real).
+notably: target-channel online/capacity checks are optimistic placeholders
+since no heartbeat loop exists yet to check them for real).
 
 **Phase 3:** `House::setOwner` — the one real chokepoint every ownership
 change (auction win, trade-based sale, rent/inactivity repossession)
@@ -231,15 +229,38 @@ funnels through — now mirrors every grant/revoke into
 table accurate as of *this* PR, not just from whenever an operator
 eventually flips the flag — no backfill migration will be needed later.
 
+**Phase 4:** the `cluster_sessions` DB table (§5's defense-in-depth layer)
+is now dual-written too — `ClusterRuntime` upserts/updates/deletes it
+alongside every Redis acquire/renew/release, verified against a real
+MariaDB (including a real upsert-corruption edge case found and fixed;
+see TEST_PLAN.md). Redis is still the fast path and the primary
+enforcement mechanism; the DB table now actually backs it up instead of
+sitting empty.
+
+**Phase 5:** `economic_ledger` (§8's idempotency table) is now written by
+the market-offer-expiry background job — `IOMarket::processExpiredOffers`
+brackets each expiring offer with a `PENDING` → `COMMITTED`/`FAILED` row
+keyed by a deterministic UUID derived from the offer's own id, closing a
+real pre-existing bug where a crash between `moveOfferToHistory`'s
+synchronous `market_offers` DELETE and the refund/item credit silently and
+permanently dropped that refund/item with no trace. Verified against a
+real MariaDB: the core duplicate-`transaction_uuid` rejection (the
+idempotency guarantee itself), plus both the item-delivery and
+currency-refund ledger record shapes (see ARCHITECTURE.md §8 and
+TEST_PLAN.md).
+
 **Still not enforced**, and still the reason not to enable
 `multiChannelEnabled = true` in production yet: nothing yet *blocks* an
 account from bidding on or trading for a second house before an already-
 decided purchase for a different one settles (the mirror above only
 records an outcome once `setOwner` is actually called, which for auctions
 happens on the next restart, not at bid-placement time) — see
-ARCHITECTURE.md §7's stated gap. The economy ledger (§8) — market/mail/
-bank idempotency — is also still entirely unwired; a switch or a normal
-login does not touch money-moving state at all today, which is the safe
-side to be wrong on, but also means this is not yet a complete cluster.
+ARCHITECTURE.md §7's stated gap. The economy ledger (§8) is now wired for
+one background job only; the three live market call sites
+(`Game::playerCreateMarketOffer`/`...CancelMarketOffer`/
+`...AcceptMarketOffer`), mail delivery, and bank/house money movement
+remain entirely unwired — a switch or a normal login does not touch any of
+that money-moving state today, which is the safe side to be wrong on, but
+also means this is not yet a complete cluster.
 Do not enable `multiChannelEnabled = true` in production until those ship
 and are tested.

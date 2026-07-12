@@ -41,7 +41,6 @@
         24894,
         24895,
         24896,
-        26002,
         26688,
         26698,
         26701,
@@ -59,6 +58,37 @@
         48004,
         48005,
         48006,
+        50094,
+        50109,
+        50113,
+        50114,
+        50116,
+        50199,
+        54502,
+        54503,
+        54504,
+        54505,
+        60326,
+        60626,
+        64013,
+        64014,
+        64019,
+        64020,
+        64021,
+        64022,
+        64023,
+        64024,
+        64025,
+        64026,
+        64027
+      ],
+      "disposition": "needs-manual-review",
+      "reason": "No active runtime handler was confirmed by the current resolver. Preserve the map attribute and review its gameplay purpose before deleting, remapping, or implementing a script.",
+      "source": "2026-07-12 full-map audit of otservbr(2).otbm"
+    },
+    {
+      "namespace": "actionId",
+      "values": [
         50058,
         50059,
         50060,
@@ -82,35 +112,29 @@
         50079,
         50080,
         50081,
-        50088,
-        50094,
-        50109,
-        50113,
-        50114,
-        50116,
-        50199,
-        50999,
-        54502,
-        54503,
-        54504,
-        54505,
-        60326,
-        60626,
-        64013,
-        64014,
-        64019,
-        64020,
-        64021,
-        64022,
-        64023,
-        64024,
-        64025,
-        64026,
-        64027
+        50088
       ],
-      "disposition": "needs-manual-review",
-      "reason": "No active runtime handler was confirmed by the current resolver. Preserve the map attribute and review its gameplay purpose before deleting, remapping, or implementing a script.",
-      "source": "2026-07-12 full-map audit of otservbr(2).otbm"
+      "disposition": "missing-script",
+      "reason": "The current map retains 157 Rookgaard Tutorial Island step-in/stop-tile placements for these action IDs, but the active datapack has no MoveEvent registrations. Independent historical implementations register the same IDs for The Beginning tutorial hints, map marks, storage progression and quest-order gates. Current Canary retains the matching tutorial storages, NPC flow and exact effect positions, so the behavior was not replaced. Preserve the map attributes and restore the handlers in a separate gameplay PR.",
+      "source": "2026-07-12 World Semantic Review; docs/ai-agent/WORLD_SEMANTIC_REVIEW_ACTIONIDS_50058_50088.md"
+    },
+    {
+      "namespace": "actionId",
+      "values": [
+        50999
+      ],
+      "disposition": "missing-script",
+      "reason": "The verified map retains four item 7886 border tiles at 32073..32076,32252,6 whose current item description identifies the Rookgaard village border. The active quest catalogue requires CarlosQuestLog stage 8 after crossing the bridge, while Carlos only reaches stage 7 and no active Lua/XML/C++ path handles AID 50999 or writes the terminal state. Preserve the AID and implement the current one-way/town behavior only after focused gameplay verification.",
+      "source": "2026-07-12 The Beginning quest dependency audit; docs/ai-agent/THE_BEGINNING_QUEST_DEPENDENCY_REPORT.md"
+    },
+    {
+      "namespace": "actionId",
+      "values": [
+        26002
+      ],
+      "disposition": "legacy-unused",
+      "reason": "Soul War Ebb and Flow boat transitions are handled by the active position-registered MoveEvent ebbAndFlowBoatTeleports. The actionId itself is not read by the datapack or engine; 64 of 71 marked positions match active position registrations, while the handler registers 109 additional positions without this actionId. Preserve the map attributes until a separate cleanup is explicitly approved.",
+      "source": "2026-07-12 manual review of otservbr(3).otbm; docs/ai-agent/OTBM_ACTIONID_26002_REVIEW.md"
     },
     {
       "namespace": "uniqueId",

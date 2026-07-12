@@ -20,6 +20,7 @@ class GameplayAnalyticsSupplyLootValidationTest(unittest.TestCase):
         validator.validate_loot_callback(self.loot_callback)
         for path, text in self.supply_files.items():
             validator.validate_supply_integration(path, text)
+        validator.validate_docs(self.docs)
 
     def test_rejects_price_entry_without_source_comment(self) -> None:
         broken = self.prices.replace("[266] = { buy = 50 }, -- health potion", "[266] = { buy = 50 },")
@@ -61,6 +62,13 @@ class GameplayAnalyticsSupplyLootValidationTest(unittest.TestCase):
         path = validator.SUPPLY_FILES[0]
         broken = self.supply_files[path] + f'\nlocal Analytics = dofile("{validator.CORE_PATH}")\n'
         with self.assertRaisesRegex(AssertionError, "must not reload"):
+            validator.validate_supply_integration(path, broken)
+
+    def test_rejects_rune_supply_without_charge_guard(self) -> None:
+        path = validator.FIREBALL_RUNE
+        broken = self.supply_files[path].replace(" and configManager.getBoolean(configKeys.REMOVE_RUNE_CHARGES)", "", 1)
+        self.assertNotEqual(broken, self.supply_files[path])
+        with self.assertRaisesRegex(AssertionError, "charges are disabled"):
             validator.validate_supply_integration(path, broken)
 
 

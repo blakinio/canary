@@ -9,38 +9,31 @@
 
 #include "game/instance/instance_manager.hpp"
 
-InstanceManager::InstanceManager(std::size_t slotCount) :
-	slotReserved(slotCount, false) {
-}
+#ifndef USE_PRECOMPILED_HEADERS
+	#include <algorithm>
+	#include <stdexcept>
+	#include <utility>
+#endif
 
-std::optional<InstanceSlotId> InstanceManager::reserveSlotLocked() {
-	for (std::size_t index = 0; index < slotReserved.size(); ++index) {
-		if (!slotReserved[index]) {
-			slotReserved[index] = true;
-			return toSlotId(static_cast<uint32_t>(index));
-		}
-	}
-	return std::nullopt;
-}
-
-void InstanceManager::releaseSlotLocked(InstanceSlotId slot) {
-	const auto index = toIndex(slot);
-	if (index < slotReserved.size()) {
-		slotReserved[index] = false;
-	}
+InstanceManager::InstanceManager(std::vector<InstanceMapRegion> regions) :
+	regionPool(std::move(regions)) {
 }
 
 InstanceManager::CreateResult InstanceManager::createInstance(const InstanceDefinition &definition) {
 	std::scoped_lock lock(mutex);
 
-	const auto slot = reserveSlotLocked();
-	if (!slot) {
-		return { .ok = false, .id = InstanceId::Invalid, .error = "no available instance slots" };
+	const auto reservation = regionPool.reserve();
+	if (!reservation.ok || !reservation.region) {
+		return {
+			.ok = false,
+			.id = InstanceId::Invalid,
+			.error = reservation.error.empty() ? "no available instance regions" : reservation.error,
+		};
 	}
 
 	InstanceRecord record;
 	record.id = static_cast<InstanceId>(nextInstanceId++);
-	record.slot = *slot;
+	record.region = *reservation.region;
 	record.state = InstanceState::Creating;
 	record.definition = definition;
 	if (definition.timeout.count() > 0) {
@@ -48,7 +41,12 @@ InstanceManager::CreateResult InstanceManager::createInstance(const InstanceDefi
 	}
 
 	const auto id = record.id;
-	instances.emplace(id, std::move(record));
+	try {
+		instances.emplace(id, std::move(record));
+	} catch (...) {
+		regionPool.release(reservation.slot);
+		throw;
+	}
 	return { .ok = true, .id = id, .error = {} };
 }
 
@@ -64,7 +62,7 @@ bool InstanceManager::activate(InstanceId id) {
 
 bool InstanceManager::close(InstanceId id) {
 	InstanceCleanupCallback callback;
-	InstanceSlotId slot = InstanceSlotId::Invalid;
+	InstanceMapRegion region;
 
 	{
 		std::scoped_lock lock(mutex);
@@ -73,30 +71,35 @@ bool InstanceManager::close(InstanceId id) {
 			return false;
 		}
 		if (it->second.state == InstanceState::Closing || it->second.state == InstanceState::Destroyed) {
-			// Idempotent: whoever got here first already owns (or already
-			// finished) the teardown. Nothing left for us to do.
 			return true;
 		}
 
 		it->second.state = InstanceState::Closing;
 		callback = it->second.cleanupCallback;
-		slot = it->second.slot;
+		region = it->second.region;
 	}
 
-	// Run the callback outside the lock: it's caller-supplied code that may
-	// take arbitrary time or (once later PRs wire this into the scheduler)
-	// call back into this manager, which would deadlock if we still held it.
+	// Caller-supplied cleanup runs outside the manager lock. A thrown exception
+	// intentionally leaves the record Closing and the region reserved, which
+	// quarantines potentially dirty map space until the later recovery layer
+	// handles it explicitly.
 	if (callback) {
-		callback(id, slot);
+		callback(id, region);
 	}
 
 	{
 		std::scoped_lock lock(mutex);
 		const auto it = instances.find(id);
-		if (it != instances.end()) {
-			it->second.state = InstanceState::Destroyed;
+		if (it == instances.end()) {
+			throw std::logic_error("instance disappeared during close");
 		}
-		releaseSlotLocked(slot);
+		if (!it->second.creatureIds.empty()) {
+			throw std::logic_error("instance cleanup left registered creatures");
+		}
+		if (!regionPool.release(region.slot)) {
+			throw std::logic_error("failed to release reserved instance region");
+		}
+		it->second.state = InstanceState::Destroyed;
 	}
 
 	return true;
@@ -110,6 +113,150 @@ void InstanceManager::setCleanupCallback(InstanceId id, InstanceCleanupCallback 
 	}
 }
 
+bool InstanceManager::canAcceptCreatureLocked(const InstanceRecord &record) const noexcept {
+	return record.state == InstanceState::Creating || record.state == InstanceState::Active;
+}
+
+bool InstanceManager::registerCreatureLocked(InstanceRecord &record, InstanceCreatureId creatureId) {
+	const auto ownerIt = creatureOwners.find(creatureId);
+	if (ownerIt != creatureOwners.end()) {
+		return ownerIt->second == record.id && record.creatureIds.contains(creatureId);
+	}
+
+	const auto [insertedOwnerIt, insertedOwner] = creatureOwners.emplace(creatureId, record.id);
+	if (!insertedOwner) {
+		return false;
+	}
+
+	try {
+		record.creatureIds.insert(creatureId);
+	} catch (...) {
+		creatureOwners.erase(insertedOwnerIt);
+		throw;
+	}
+	return true;
+}
+
+bool InstanceManager::registerCreature(InstanceId id, InstanceCreatureId creatureId) {
+	if (id == InstanceId::Invalid || creatureId == INVALID_INSTANCE_CREATURE_ID) {
+		return false;
+	}
+
+	std::scoped_lock lock(mutex);
+	const auto instanceIt = instances.find(id);
+	if (instanceIt == instances.end() || !canAcceptCreatureLocked(instanceIt->second)) {
+		return false;
+	}
+
+	return registerCreatureLocked(instanceIt->second, creatureId);
+}
+
+bool InstanceManager::unregisterCreature(InstanceId id, InstanceCreatureId creatureId) {
+	if (id == InstanceId::Invalid || creatureId == INVALID_INSTANCE_CREATURE_ID) {
+		return false;
+	}
+
+	std::scoped_lock lock(mutex);
+	const auto instanceIt = instances.find(id);
+	if (instanceIt == instances.end() || instanceIt->second.state == InstanceState::Destroyed) {
+		return false;
+	}
+
+	const auto ownerIt = creatureOwners.find(creatureId);
+	if (ownerIt == creatureOwners.end() || ownerIt->second != id) {
+		return false;
+	}
+
+	instanceIt->second.creatureIds.erase(creatureId);
+	creatureOwners.erase(ownerIt);
+	return true;
+}
+
+bool InstanceManager::inheritCreatureOwnership(InstanceCreatureId masterId, InstanceCreatureId summonId) {
+	if (masterId == INVALID_INSTANCE_CREATURE_ID || summonId == INVALID_INSTANCE_CREATURE_ID || masterId == summonId) {
+		return false;
+	}
+
+	std::scoped_lock lock(mutex);
+	const auto masterOwnerIt = creatureOwners.find(masterId);
+	const auto summonOwnerIt = creatureOwners.find(summonId);
+
+	if (masterOwnerIt == creatureOwners.end()) {
+		// The normal world remains the default ownership domain. A summon that
+		// already belongs to an instance may not cross that boundary by taking
+		// an unowned master.
+		return summonOwnerIt == creatureOwners.end();
+	}
+
+	const auto instanceIt = instances.find(masterOwnerIt->second);
+	if (instanceIt == instances.end() || !canAcceptCreatureLocked(instanceIt->second)) {
+		return false;
+	}
+
+	return registerCreatureLocked(instanceIt->second, summonId);
+}
+
+InstanceCreatureRelation InstanceManager::getCreatureRelation(InstanceCreatureId firstId, InstanceCreatureId secondId) const {
+	if (firstId == INVALID_INSTANCE_CREATURE_ID || secondId == INVALID_INSTANCE_CREATURE_ID) {
+		return InstanceCreatureRelation::Isolated;
+	}
+
+	std::scoped_lock lock(mutex);
+	const auto firstOwnerIt = creatureOwners.find(firstId);
+	const auto secondOwnerIt = creatureOwners.find(secondId);
+
+	if (firstOwnerIt == creatureOwners.end() && secondOwnerIt == creatureOwners.end()) {
+		return InstanceCreatureRelation::SameWorld;
+	}
+	if (firstOwnerIt == creatureOwners.end() || secondOwnerIt == creatureOwners.end() || firstOwnerIt->second != secondOwnerIt->second) {
+		return InstanceCreatureRelation::Isolated;
+	}
+
+	const auto instanceIt = instances.find(firstOwnerIt->second);
+	if (instanceIt == instances.end() || !canAcceptCreatureLocked(instanceIt->second)) {
+		return InstanceCreatureRelation::Isolated;
+	}
+	return InstanceCreatureRelation::SameInstance;
+}
+
+bool InstanceManager::canCreaturesInteract(InstanceCreatureId firstId, InstanceCreatureId secondId) const {
+	return getCreatureRelation(firstId, secondId) != InstanceCreatureRelation::Isolated;
+}
+
+std::optional<InstanceId> InstanceManager::getCreatureOwner(InstanceCreatureId creatureId) const {
+	if (creatureId == INVALID_INSTANCE_CREATURE_ID) {
+		return std::nullopt;
+	}
+
+	std::scoped_lock lock(mutex);
+	const auto it = creatureOwners.find(creatureId);
+	if (it == creatureOwners.end()) {
+		return std::nullopt;
+	}
+	return it->second;
+}
+
+std::vector<InstanceCreatureId> InstanceManager::getRegisteredCreatureIds(InstanceId id) const {
+	std::scoped_lock lock(mutex);
+	const auto it = instances.find(id);
+	if (it == instances.end()) {
+		return {};
+	}
+
+	std::vector<InstanceCreatureId> ids(it->second.creatureIds.begin(), it->second.creatureIds.end());
+	std::ranges::sort(ids);
+	return ids;
+}
+
+std::size_t InstanceManager::registeredCreatureCount(InstanceId id) const {
+	std::scoped_lock lock(mutex);
+	const auto it = instances.find(id);
+	if (it == instances.end()) {
+		return 0;
+	}
+	return it->second.creatureIds.size();
+}
+
 std::optional<InstanceState> InstanceManager::getState(InstanceId id) const {
 	std::scoped_lock lock(mutex);
 	const auto it = instances.find(id);
@@ -120,12 +267,20 @@ std::optional<InstanceState> InstanceManager::getState(InstanceId id) const {
 }
 
 std::optional<InstanceSlotId> InstanceManager::getSlot(InstanceId id) const {
+	const auto region = getRegion(id);
+	if (!region) {
+		return std::nullopt;
+	}
+	return region->slot;
+}
+
+std::optional<InstanceMapRegion> InstanceManager::getRegion(InstanceId id) const {
 	std::scoped_lock lock(mutex);
 	const auto it = instances.find(id);
 	if (it == instances.end()) {
 		return std::nullopt;
 	}
-	return it->second.slot;
+	return it->second.region;
 }
 
 std::size_t InstanceManager::closeExpiredInstances(std::chrono::steady_clock::time_point now) {
@@ -163,16 +318,9 @@ std::size_t InstanceManager::activeInstanceCount() const {
 }
 
 std::size_t InstanceManager::availableSlotCount() const {
-	std::scoped_lock lock(mutex);
-	std::size_t available = 0;
-	for (const bool reserved : slotReserved) {
-		if (!reserved) {
-			++available;
-		}
-	}
-	return available;
+	return regionPool.availableCount();
 }
 
 std::size_t InstanceManager::totalSlotCount() const {
-	return slotReserved.size();
+	return regionPool.totalCount();
 }

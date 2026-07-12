@@ -1,128 +1,179 @@
 # Atomic AI content deployment
 
-## What this is
+## Purpose
 
-`tools/deploy/` is a small, dependency-free (stdlib only) Python engine that
-takes a directory of already-reviewed content and deploys it as an
-atomically-switchable "release", with automatic rollback on a failed
-post-switch health check. It sits *after* the existing
-`tools/ai-agent/` content-authoring pipeline (task validation → planning →
-preview rendering → `build_promotion_handoff.py`'s human-approved,
-manual-copy-only handoff bundle - see `docs/ai-agent/CONTENT_AUTHORING_PIPELINE.md`)
-and *before* anything touches a real running server.
+`tools/deploy/` turns reviewed content into an atomically switchable Canary
+datapack release. The complete Canary path now performs both real-server
+validation and filesystem-safe publication:
 
-## Target pipeline and current scope
+1. validate the AI-content task and generated files;
+2. assemble a full staging datapack from a trusted base plus reviewed overlay;
+3. start the real compiled Canary binary against staging;
+4. verify datapack/Lua loading, online readiness and clean startup logs;
+5. publish the complete release directory atomically;
+6. atomically repoint `active`;
+7. start Canary again from the published release;
+8. roll back `active` automatically if that post-switch smoke fails;
+9. retain previous releases and write a SHA-256 audit manifest.
 
-The full target pipeline this is part of:
+The existing authoring pipeline under `tools/ai-agent/` remains responsible for
+generation, schema/dependency checks and the human-reviewed promotion handoff.
 
-1. generate content,
-2. validate schemas,
-3. validate dependencies/identifiers,
-4. create a staging datapack,
-5. run the real binary server against staging,
-6. verify Lua/datapack loading,
-7. smoke test startup,
-8. prepare a release directory,
-9. atomically switch the active version,
-10. health check after the switch,
-11. automatic rollback on a failed health check,
-12. retain the previous version,
-13. audit manifest with checksums.
+## Components
 
-Steps 1-3 already exist (`tools/ai-agent/`, unchanged by this work). **This
-first PR builds steps 8-13 - the deployment mechanics** - as a standalone,
-fully unit-tested engine that operates on any directory of files, deliberately
-decoupled from step 4-7's real-server integration so each piece can be
-reviewed independently. Steps 4-7 (building an actual staging datapack
-overlay and running the real compiled `canary_server` binary against it,
-reusing `.github/scripts/smoke_test_canary.py`'s already-proven
-start/wait-for-online/check-clean-logs/stop sequence) are a planned,
-separate follow-up that plugs into this engine as the health check run
-*before* `deploy()` is called, not a replacement for anything here.
+### Generic release engine
 
-## How it works
+`run_deployment.py` and `release_manager.py` implement the reusable mechanics:
 
-```
+- hidden same-filesystem staging directory;
+- atomic release publication with `os.replace()`;
+- atomic `active` and `previous` symlink updates;
+- pluggable health check;
+- automatic, idempotent rollback;
+- immutable retained release directories;
+- per-file SHA-256 manifest;
+- dry-run and explicit production confirmation.
+
+### Canary-aware deployment
+
+`run_canary_deployment.py` adds the engine-specific gate:
+
+- copies a trusted full datapack into a temporary workspace;
+- applies a symlink-free reviewed overlay;
+- removes the entire partial tree if assembly fails;
+- reuses `.github/scripts/smoke_test_canary.py` for real startup validation;
+- records preflight status and detail in manifest schema `1.1`;
+- uses a second database name for post-switch validation;
+- deploys only after preflight succeeds;
+- runs the same real smoke against the published release.
+
+`canary_staging.py` exposes the assembly and real-smoke helpers for tests and
+other tooling.
+
+## Release layout
+
+```text
 releases_root/
   releases/
-    <release_id>/           # fully-populated release; only ever appears atomically
-  active   -> releases/<release_id>       # symlink, atomically repointed
-  previous -> releases/<old_release_id>   # symlink, updated just before active moves
+    <release_id>/
+  active   -> releases/<release_id>
+  previous -> releases/<old_release_id>
   manifests/
-    <release_id>.json       # audit manifest: files, checksums, outcome
+    <release_id>.json
 ```
 
-- **Staging** (`stage_release`) copies the source directory's content into a
-  hidden temp directory under `releases_root/releases/`, then
-  `os.replace()`s it into its final `<release_id>` name in one step. The
-  final path either doesn't exist yet or is fully populated - there is no
-  in-between state a health check or another process could observe.
-- **Switching** (`switch_active`) creates a new symlink under a temp name and
-  `os.replace()`s it onto `active` - again a single atomic rename. Nothing
-  ever copies into `active` directly.
-- **Health check** (`health_check.py`) is pluggable and defaults to a real
-  process-liveness probe (`kill(pid, 0)` against a PID file), not a file
-  existence check.
-- **Rollback** (`rollback`) is idempotent: pointing `active` back at a
-  release it's already pointing at is a reported no-op, not an error.
-- **Retention** is "never delete a release directory" - there is no separate
-  cleanup mechanism in this PR.
-- Every path operation is checked against the configured `releases_root` (or
-  the source directory, for staging) via `path_policy.resolve_within_root`,
-  which resolves `..` and follows symlinks *before* checking containment, so
-  it catches both traversal and symlink escape with one mechanism. Source
-  content containing any symlink at all is rejected outright, rather than
-  trying to distinguish "safe" from "unsafe" ones.
-- `deploy()` orchestrates all of the above and always returns a manifest,
-  including on failure - staging, switching, and health-check-with-rollback
-  each have distinct, tested failure paths (see `test_release_manager.py`).
+A release path is never visible half-populated. Content is copied to a hidden
+temporary directory under `releases/` and renamed into place only after the
+copy completes. `active` is switched by replacing a temporary symlink in one
+filesystem operation.
 
-## Safety defaults
+## Safety guarantees
 
-- `--dry-run` performs every validation a real deploy would, without writing
-  anything or touching `active`/`previous`.
-- `--environment` defaults to `staging`. Reaching `production` additionally
-  requires `--confirm-production` - there is no default or single flag that
-  reaches production by accident.
-- Without `--pid-file`, the CLI's health check trivially passes. That's only
-  appropriate for staging/dry-run validation of the mechanics themselves;
-  the real-server follow-up will make a genuine health check a hard
-  requirement before production is reachable at all.
+- `releases_root` must already exist and is resolved strictly.
+- All release operations are confined to that root.
+- Reviewed overlay content may not contain any symlink.
+- Traversal and symlink escape are rejected.
+- Partial datapack assembly is deleted on every copy/overlay exception.
+- Production requires both `--environment production` and
+  `--confirm-production`.
+- Dry-run never changes `active`, `previous`, release directories or manifests.
+  It may create and remove a temporary workspace and run the real preflight
+  server because that is part of validation.
+- A failed preflight never switches the active release.
+- A failed post-switch smoke restores the previous active release when one
+  exists.
+- Rollback is idempotent.
+- Releases are not automatically deleted.
 
-## Usage
+## Real Canary deployment example
 
 ```bash
-# Validate only, touches nothing:
-python tools/deploy/run_deployment.py \
-  --source /path/to/reviewed-content \
-  --releases-root /path/to/deploy-root \
-  --release-id 2026-07-12-abc123 \
-  --dry-run
+mkdir -p /srv/canary-content
 
-# Real deploy to staging, with a real health check:
-python tools/deploy/run_deployment.py \
-  --source /path/to/reviewed-content \
-  --releases-root /path/to/deploy-root \
+python3 tools/deploy/run_canary_deployment.py \
+  --source /srv/reviewed-overlay \
+  --base-datapack data-canary \
+  --releases-root /srv/canary-content \
   --release-id 2026-07-12-abc123 \
-  --pid-file /path/to/deploy-root/active/server.pid \
-  --source-description "task-id or commit sha"
-
-# Manual rollback:
-python -c "
-import sys; sys.path.insert(0, 'tools/deploy')
-from release_manager import rollback
-rollback('/path/to/deploy-root', 'previous-release-id')
-"
+  --binary-path build/linux-release/bin/canary \
+  --db-host 127.0.0.1 \
+  --db-port 3306 \
+  --db-user canary_smoke \
+  --db-password '<secret>' \
+  --db-name canary_content_validation \
+  --login-port 7471 \
+  --game-port 7472 \
+  --status-port 7471 \
+  --source-description 'TASK-123 commit abc123'
 ```
 
-## Known limitations
+Production additionally requires:
 
-- No real server is started or checked by this PR's CLI by default - only a
-  PID file, if you supply one. The real-server smoke test (steps 5-7) is a
-  separate follow-up.
-- No automatic pruning of old releases; disk usage grows with every deploy
-  until an operator removes old `releases/<id>` directories by hand.
-- Not wired into `tools/ai-agent/build_promotion_handoff.py`'s output format
-  yet - this engine takes a plain source directory, which today means a
-  human has already copied the approved content there per the handoff
-  bundle's own manual integration steps.
+```bash
+  --environment production --confirm-production
+```
+
+The base datapack and binary paths may be relative to `--repo-root`. Relative
+`--source`, `--workspace-root` and map-cache paths are also resolved from that
+root.
+
+## Manifest states
+
+Manifest schema `1.1` includes:
+
+- `preflightStatus` and `preflightDetail`;
+- all released files with size and SHA-256;
+- previous release id;
+- switch status;
+- post-switch health status and detail;
+- rollback status;
+- final outcome.
+
+Important outcomes include:
+
+- `failed-assembly`;
+- `failed-preflight`;
+- `failed-staging`;
+- `failed-switch`;
+- `deployed`;
+- `rolled-back`;
+- `failed-health-check-no-rollback-target`;
+- `failed-health-check-rollback-failed`;
+- `dry-run-ok`.
+
+## CI validation
+
+Two workflows cover the deployment system:
+
+- `Content Deployment Pipeline` runs unit tests and generic CLI smoke tests,
+  including traversal, symlink, dry-run and rollback failures.
+- `Canary Staging Deployment` builds the real Linux Canary binary, assembles a
+  datapack with an overlay, runs preflight, performs the atomic switch, runs a
+  second real server smoke from the published release and validates the
+  resulting manifest.
+
+The repository-wide CI also emits the required Linux release check for this
+workflow-only change, so branch protection cannot remain waiting for a check
+that was intentionally skipped.
+
+## Operational integration
+
+The deployment command intentionally starts short-lived validation processes
+and stops them cleanly. It does not replace the host's long-running process
+supervisor. After a successful production deployment, systemd, Docker,
+Kubernetes or another operator-controlled service must restart/reload the
+long-lived server so its configured datapack path resolves through `active`.
+
+That supervisor step must not copy files into `active`; it should only consume
+the already-published release.
+
+## Remaining limitation
+
+The promotion handoff generated by `tools/ai-agent/build_promotion_handoff.py`
+is not yet converted automatically into the plain overlay directory consumed
+by `run_canary_deployment.py`. Until that adapter is added, the reviewed file
+mapping must be materialized into an overlay by the operator or orchestration
+layer.
+
+Old release pruning is also deliberately manual so rollback targets are never
+removed implicitly.

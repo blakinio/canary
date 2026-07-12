@@ -1,0 +1,143 @@
+---
+name: Canary Staging Deployment
+
+on:
+  pull_request:
+    paths:
+      - "tools/deploy/**"
+      - "docs/systems/ai-content-deployment.md"
+      - ".github/workflows/deploy-canary-staging.yml"
+      - ".github/workflows/reusable-build-linux.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-canary:
+    uses: ./.github/workflows/reusable-build-linux.yml
+    with:
+      buildtypes: '["linux-release"]'
+      run_canary_smoke: false
+      run_global_smoke: false
+    secrets: inherit
+
+  validate-real-staging-deployment:
+    name: Validate real Canary staging deployment
+    needs: build-canary
+    runs-on: ubuntu-24.04
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=6
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install MySQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mysql-client
+
+      - name: Download Canary binary
+        uses: actions/download-artifact@v7
+        with:
+          name: canary-linux-release
+          path: build/linux-release/bin
+
+      - name: Run real preflight, atomic switch and post-switch smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/deployment-smoke-logs
+
+          binary="$(find build/linux-release/bin -maxdepth 2 -type f -name canary -print -quit)"
+          if [[ -z "${binary}" ]]; then
+            echo "Canary binary artifact was not found" >&2
+            exit 1
+          fi
+          chmod +x "${binary}"
+
+          work="$(mktemp -d)"
+          trap 'rm -rf "${work}"' EXIT
+          mkdir -p "${work}/overlay" "${work}/deploy-root"
+
+          source_file="$(find data-canary -type f -name '*.lua' -print -quit)"
+          if [[ -z "${source_file}" ]]; then
+            echo "No Lua file was found in data-canary" >&2
+            exit 1
+          fi
+          relative_file="${source_file#data-canary/}"
+          mkdir -p "${work}/overlay/$(dirname "${relative_file}")"
+          cp "${source_file}" "${work}/overlay/${relative_file}"
+          printf '\n-- canary staging deployment CI overlay\n' >> "${work}/overlay/${relative_file}"
+
+          set +e
+          python3 tools/deploy/run_canary_deployment.py \
+            --source "${work}/overlay" \
+            --base-datapack data-canary \
+            --releases-root "${work}/deploy-root" \
+            --release-id ci-real-canary \
+            --binary-path "${binary}" \
+            --db-host 127.0.0.1 \
+            --db-port 3306 \
+            --db-user root \
+            --db-password root \
+            --db-name canary_deployment_ci \
+            --login-port 7571 \
+            --game-port 7572 \
+            --status-port 7571 \
+            --startup-timeout-seconds 420 \
+            --source-description "GitHub Actions real Canary staging deployment" \
+            2>&1 | tee build/deployment-smoke-logs/deployment.log
+          deployment_status=${PIPESTATUS[0]}
+          set -e
+          if [[ ${deployment_status} -ne 0 ]]; then
+            exit "${deployment_status}"
+          fi
+
+          test "$(readlink "${work}/deploy-root/active")" = "releases/ci-real-canary"
+          grep -q "canary staging deployment CI overlay" \
+            "${work}/deploy-root/active/${relative_file}"
+
+          cp "${work}/deploy-root/manifests/ci-real-canary.json" \
+            build/deployment-smoke-logs/manifest.json
+          python3 - "${work}/deploy-root/manifests/ci-real-canary.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          manifest = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          assert manifest["preflightStatus"] == "passed", manifest
+          assert manifest["switchStatus"] == "switched", manifest
+          assert manifest["healthCheckStatus"] == "healthy", manifest
+          assert manifest["rollbackStatus"] == "not-needed", manifest
+          assert manifest["outcome"] == "deployed", manifest
+          assert manifest["fileCount"] > 0, manifest
+          PY
+
+      - name: Upload real deployment logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: canary-staging-deployment-logs
+          path: |
+            build/deployment-smoke-logs/
+            build/runtime-smoke-logs/
+          if-no-files-found: ignore

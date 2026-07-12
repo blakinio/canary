@@ -21,7 +21,7 @@ function rune.onCastSpell(creature, var, isHotkey)
 	local success = AnalyticsSpell.recordCast(analytics, creature, "Fireball Rune", 0, 1, function()
 		return combat:execute(creature, var)
 	end)
-	if success and analytics then
+	if success and analytics and configManager.getBoolean(configKeys.REMOVE_RUNE_CHARGES) then
 		analytics.recordSupply(creature, 3189, 1, AnalyticsPrices.buyPrice(3189))
 	end
 	return success

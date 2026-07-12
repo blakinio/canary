@@ -2,9 +2,31 @@
 
 > **Stan:** 2026-07-12  
 > **Repozytorium robocze:** `blakinio/canary`  
-> **Etap audytu narzędziowego:** zakończony i zmergowany  
+> **Etap narzędziowy:** zakończony i zmergowany  
 > **Kanoniczny resolver:** PR #104, merge `0b355669ebe66c9d9c604c2a9221f47280699581`  
-> **Dokument dla:** kolejnego agenta, który ma kontynuować ręczny audyt mechaniki albo rozpocząć pilotową rekonstrukcję regionu.
+> **Dokument dla:** kolejnego agenta kontynuującego techniczną pracę z OTBM, resolverem albo pilotową rekonstrukcją regionu.
+
+---
+
+## 0. Podsumowanie zakończonego czatu
+
+Zakres tej sesji dotyczył **technicznego warsztatu OTBM**, a nie budowy ogólnego systemu AI review questów, NPC i świata.
+
+Wykonano:
+
+1. parser, writer, inspect, verify, diff, patch i walidację semantyczną OTBM;
+2. obsługę `actionId`, `uniqueId`, townów, waypointów, houses, zones, spawnów, NPC i companion XML;
+3. parser współczesnego `appearances.dat`, dekoder sprite-sheetów CIP/LZMA i renderer zgodny z kolejnością warstw OTClient;
+4. rzeczywisty render fragmentu Thais z assetów klienta, bez brakujących appearances i sprite'ów;
+5. pełne porównanie geometrii OTBM z TibiaMaps;
+6. audyt `23,359,571` umieszczeń itemów i `9,339` mechanik mapowych;
+7. produkcyjny resolver wiążący identyfikatory mapy z handlerami Lua/XML;
+8. poprawioną lokalną kopię mapy bez pojedynczego nieobsługiwanego itemu `2141`;
+9. natywne potwierdzenie struktury poprawionej kopii przez Canary `OTB::Loader::parseTree()`.
+
+Najważniejszy wynik: **warstwa narzędziowa jest gotowa**. Pozostały ręczny audyt 151 nierozwiązanych identyfikatorów, opcjonalny pełny test `Map::load()` / `IOMap` i pierwsza mała rekonstrukcja regionu.
+
+Szerszy projekt AI review map, questów, NPC i spawnów jest osobnym zadaniem i nie należy mieszać go z tym handoffem.
 
 ---
 
@@ -14,14 +36,14 @@ Projekt ma zapewnić bezpieczny i powtarzalny proces pracy z dużą mapą OTBM:
 
 1. odczyt, zapis, diff i patch OTBM bez nadpisywania źródła;
 2. porównanie geometrii świata z aktualną TibiaMaps;
-3. audyt wszystkich itemów i ich zgodności z `appearances.dat`, sprite’ami klienta i `items.xml`;
-4. audyt mechaniki zapisanej w mapie: `actionId`, `uniqueId`, teleporty i drzwi domów;
+3. audyt itemów względem `appearances.dat`, sprite'ów klienta i `items.xml`;
+4. audyt `actionId`, `uniqueId`, teleportów i house-door IDs;
 5. powiązanie identyfikatorów mapy z aktywnymi handlerami Lua/XML;
-6. zachowanie customowej zawartości i nierozpoznanych markerów do czasu ręcznej decyzji;
+6. zachowanie customowej zawartości i niejasnych markerów do czasu ręcznej decyzji;
 7. rekonstrukcja brakujących regionów jako małych, odwracalnych patchy;
 8. walidacja przez testy, raporty, prawdziwy loader Canary i CI.
 
-Docelowym rezultatem jest mapa wynikowa oparta na dostarczonym OTBM, uzupełniana etapami bez uszkodzenia questów, teleportów, domów, spawnów, NPC i skryptów.
+Docelowy wynik to mapa oparta na dostarczonym OTBM, uzupełniana etapami bez uszkodzenia questów, teleportów, domów, spawnów, NPC i skryptów.
 
 ---
 
@@ -31,7 +53,7 @@ Docelowym rezultatem jest mapa wynikowa oparta na dostarczonym OTBM, uzupełnian
 
 - `https://github.com/blakinio/canary`
 
-Wszystkie zmiany wykonuj tylko tutaj:
+Obowiązujący przepływ:
 
 ```text
 osobna gałąź -> PR -> pełne CI -> squash merge
@@ -46,6 +68,15 @@ osobna gałąź -> PR -> pełne CI -> squash merge
 
 Nie twórz zmian w repozytoriach `opentibiabr/*` w ramach tego projektu.
 
+### Kanoniczne dokumenty tego zakresu
+
+```text
+docs/ai-agent/OTS_OTBM_AGENT_HANDOFF.md
+docs/ai-agent/OTBM_SCRIPT_RESOLUTION.md
+docs/ai-agent/OTBM_SCRIPT_REVIEW_RULES.json
+docs/ai-agent/OTBM_SCRIPT_RESOLUTION_REPORT.schema.json
+```
+
 ---
 
 ## 3. Zasady bezpieczeństwa
@@ -53,8 +84,8 @@ Nie twórz zmian w repozytoriach `opentibiabr/*` w ramach tego projektu.
 - Nie nadpisuj źródłowego OTBM.
 - Nie commituj `.otbm`, `items.otb`, `appearances.dat`, sprite-sheetów, paczek klienta ani danych TibiaMaps.
 - Nie pushuj bezpośrednio do `main`.
-- Nie merge’uj PR bez przeglądu changed-files i zielonych wymaganych workflow.
-- Nie usuwaj `actionId` ani `uniqueId` tylko dlatego, że statyczny resolver nie znalazł handlera.
+- Nie merge'uj PR bez przeglądu changed-files i zielonych wymaganych workflow.
+- Nie usuwaj `actionId` ani `uniqueId` tylko dlatego, że resolver nie znalazł handlera.
 - Nie traktuj `OTBM-only` jako automatycznego błędu.
 - Nie odtwarzaj dokładnych item stacków na podstawie samych kolorów minimapy.
 - Nie używaj generatora obrazów do renderowania mapy. Render ma pochodzić z OTBM i prawdziwych assetów.
@@ -82,7 +113,7 @@ unikalne item ID: 23,852
 mechaniki mapowe: 9,339
 ```
 
-Nowa sesja może nie mieć plików z `/mnt/data`. Wtedy użytkownik musi ponownie przesłać mapę; przed pracą sprawdź SHA-256.
+Nowa sesja może nie mieć plików z `/mnt/data`. W takim przypadku użytkownik musi ponownie przesłać mapę; przed pracą obowiązkowo sprawdź SHA-256.
 
 ### Oficjalne assety klienta
 
@@ -94,16 +125,17 @@ appearance objects: 42,107
 
 Archiwum zawiera m.in. `catalog-content.json`, `appearances.dat`, sprite-sheety CIP/LZMA i minimapy. Nie commituj go.
 
-### Najważniejsze raporty sesji
+### Najważniejsze raporty lokalne
 
 ```text
 /mnt/data/OTBM_LATEST_AUDIT.md
 /mnt/data/OTBM_LATEST_AUDIT.json
 /mnt/data/OTBM_LATEST_DIFF_OVERVIEW.png
 /mnt/data/resolver-dev/OTBM_SCRIPT_RESOLUTION_FINAL.json
+/mnt/data/CANARY_FILELOADER_2141_VALIDATION.log
 ```
 
-Kanoniczny lokalny raport resolvera:
+Kanoniczny raport resolvera:
 
 ```text
 SHA-256: 596e119470ae43b07a86ab2fd61e47af98900746d3360e8f49747241917d9bd3
@@ -114,8 +146,6 @@ Raporty są artefaktami lokalnymi i nie są commitowane.
 ---
 
 ## 5. Wyniki porównania z TibiaMaps
-
-Zweryfikowany przebieg strukturalny:
 
 ```text
 pola referencyjne: 11,434,263
@@ -135,9 +165,9 @@ Interpretacja:
 
 ---
 
-## 6. Audyt itemów
+## 6. Audyt itemów i poprawka 2141
 
-Pełny natywny skan mapy:
+Pełny skan mapy:
 
 ```text
 kafle: 17,972,761
@@ -147,27 +177,11 @@ umieszczenia z actionId/uniqueId/teleport/house-door: 9,339
 nieznane lub ucięte atrybuty: 0
 ```
 
-W źródłowej mapie tylko item ID `2141`, użyty raz, nie miał appearance w kliencie 15.25.
+Tylko item ID `2141`, użyty raz na pozycji `33572,32528,14`, nie miał appearance w kliencie 15.25.
 
-Brak jawnego wpisu w `items.xml` nie oznacza automatycznie nieobsługiwanego itemu — Canary tworzy bazowe `ItemType` z `appearances.dat`, a XML stosuje nadpisania.
+Brak wpisu w `items.xml` nie oznacza automatycznie nieobsługiwanego itemu — Canary tworzy bazowe `ItemType` z `appearances.dat`, a XML nakłada nadpisania.
 
----
-
-## 7. Item 2141 — wykonana lokalna poprawka
-
-### Źródłowy przypadek
-
-```text
-item ID: 2141
-pozycja: 33572,32528,14
-wystąpienia: 1
-actionId: brak
-uniqueId: brak
-teleport destination: brak
-house-door ID: brak
-```
-
-### Poprawiona kopia
+### Poprawiona lokalna kopia
 
 ```text
 plik: /mnt/data/otservbr-fixed-reserved-item.otbm
@@ -178,19 +192,16 @@ SHA-256: 0eb5672a315704b816b430af29b1bc8e51b031fbe20689e271437319973ae83b
 Potwierdzone:
 
 - źródłowy plik pozostał nietknięty;
-- zmieniona została tylko pozycja `33572,32528,14`;
+- zmieniono tylko pozycję `33572,32528,14`;
 - usunięto dokładnie jedno umieszczenie itemu `2141`;
 - liczba kafli pozostała `17,972,761`;
-- liczba itemów spadła z `23,359,571` do `23,359,570`;
-- liczba unikalnych ID spadła z `23,852` do `23,851`;
+- liczba itemów spadła do `23,359,570`;
+- liczba unikalnych ID spadła do `23,851`;
 - mechaniki mapowe pozostały bez zmian;
-- nieznane/ucięte atrybuty: `0`;
-- ponowny item audit: `missingAppearanceIds = 0`;
-- raport audytu poprawionej kopii: `ok = true`.
+- `missingAppearanceIds = 0`;
+- ponowny audyt: `ok = true`.
 
-### Natywna walidacja C++ Canary
-
-Poprawiona mapa została odczytana dokładnym parserem drzewa z `src/io/fileloader.cpp` Canary:
+### Natywna walidacja Canary
 
 ```text
 wynik: PASS
@@ -198,17 +209,16 @@ wyjście: ok root_type=0 root_children=1
 exit status: 0
 czas: 13.37 s
 maksymalna pamięć RSS: 2,141,672 KiB
-log: /mnt/data/CANARY_FILELOADER_2141_VALIDATION.log
 SHA-256 logu: 74192e23cd8f74e43715575d7acb000a8b7f6fe67fbba0c4cadcb3a3529e860b
 ```
 
-Test skompilował rzeczywisty `src/io/fileloader.cpp` z Canary. Ze względu na brak pełnego środowiska vcpkg użyto lokalnego adaptera zapewniającego interfejs `mio::mmap_source`; logika `OTB::Loader::parseTree()` pozostała niezmieniona.
+Test użył rzeczywistego `src/io/fileloader.cpp` i niezmienionej logiki `OTB::Loader::parseTree()`.
 
-To zamyka walidację strukturalną binarnego drzewa OTBM. Pełny test semantyczny `Map::load()` / `IOMap` z kompletnymi zależnościami serwera nie został wykonany i pozostaje dodatkowym, zalecanym testem przed produkcyjnym wdrożeniem mapy.
+To zamyka walidację strukturalną binarnego drzewa OTBM. Pełny test semantyczny `Map::load()` / `IOMap` z kompletnymi zależnościami serwera nadal pozostaje zalecanym testem przed produkcyjnym wdrożeniem mapy.
 
 ---
 
-## 8. Produkcyjny resolver handlerów — zakończony
+## 7. Produkcyjny resolver handlerów
 
 PR #104 został zmergowany:
 
@@ -237,7 +247,7 @@ data-otservbr-global
 
 `data-canary` nie jest mieszany automatycznie.
 
-Obsługiwane wzorce:
+Obsługiwane wzorce obejmują:
 
 - `Action()` i `MoveEvent()`;
 - bezpośrednie `:aid()`, `:uid()`, `:id()`, `:position()`;
@@ -252,11 +262,7 @@ Obsługiwane wzorce:
 
 MoveEventy `stepin`, `stepout`, `additem`, `removeitem`, `equip` i `deequip` są rozdzielone, więc prawidłowe pary nie tworzą fałszywych konfliktów.
 
----
-
-## 9. Wyniki resolvera
-
-Walidacja na dostarczonej mapie i aktywnych datapackach:
+### Wyniki resolvera
 
 ```text
 pliki Lua/XML: 5,384
@@ -286,11 +292,11 @@ uniqueId 62135
 
 `docs/ai-agent/OTBM_SCRIPT_REVIEW_RULES.json` nadaje wszystkim 151 ID dyspozycję `needs-manual-review`.
 
-To nie jest potwierdzenie handlera. Review disposition jest zapisem bezpieczeństwa i nie zmienia statusu runtime `unresolved` na `handled`.
+To nie jest potwierdzenie handlera. Dyspozycja review jest zapisem bezpieczeństwa i nie zmienia statusu runtime `unresolved` na `handled`.
 
 ---
 
-## 10. Walidacja PR #104
+## 8. Walidacja PR #104
 
 Przed merge potwierdzono:
 
@@ -312,7 +318,7 @@ Równoległy PR #128 został zamknięty bez merge jako duplikat/superseded.
 
 ---
 
-## 11. Historia zmergowanych etapów
+## 9. Historia zmergowanych etapów
 
 ### Fundament OTBM
 
@@ -336,36 +342,29 @@ Równoległy PR #128 został zamknięty bez merge jako duplikat/superseded.
 - PR #100 — porównanie OTBM z TibiaMaps.
 - PR #101 — pełny audyt itemów i mechaniki mapy.
 - PR #104 — produkcyjny resolver skryptów.
-- PR #116 — pierwsza wersja tego handoff.
-- PR #130 — finalny stan resolvera i poprawki 2141 w handoff.
+- PR #116 — pierwsza wersja tego handoffu.
+- PR #130 — finalny stan resolvera i poprawki 2141 w handoffie.
+- PR #133 — natywna walidacja `OTB::Loader::parseTree()`.
 
 ### PR-y operacyjne bez merge
 
 - PR #97 — tymczasowy eksport assetów.
 - PR #99 — tymczasowe pobieranie TibiaMaps.
 - PR #128 — duplikat resolvera, zamknięty bez merge.
+- PR #131 — nieaktualny duplikat handoffu, zamknięty bez merge.
 
 ---
 
-## 12. Co nadal zostało do zrobienia
+## 10. Co nadal zostało do zrobienia
 
 ### P0 — opcjonalny pełny test `Map::load()` / `IOMap`
-
-Strukturalny parser C++ Canary przeszedł. Przed produkcyjnym wdrożeniem mapy warto jeszcze:
 
 - zbudować pełne testy integracyjne Canary z zależnościami vcpkg;
 - uruchomić `Map::load()` na poprawionej kopii;
 - wczytać companion XML, houses, zones, spawns i NPC;
 - zachować wynik jako artefakt CI lub lokalny log.
 
-### P0 — gameplay review 151 identyfikatorów
-
-Repozytorium ma wyłączone GitHub Issues, więc praca jest śledzona w:
-
-```text
-docs/ai-agent/OTS_OTBM_AGENT_HANDOFF.md
-docs/ai-agent/OTBM_SCRIPT_REVIEW_RULES.json
-```
+### P0 — ręczny audyt 151 identyfikatorów
 
 Dla każdego ID:
 
@@ -384,8 +383,6 @@ Dla każdego ID:
 
 ### P1 — pilotowa rekonstrukcja regionu
 
-Dopiero po wyborze bezpiecznego regionu:
-
 1. wybrać mały komponent `latest-only`;
 2. przypiąć SHA źródłowej mapy;
 3. przygotować patch do nowego pliku;
@@ -399,9 +396,9 @@ Nie próbować automatycznie rekonstruować całego świata z minimapy.
 
 ---
 
-## 13. Definicja ukończenia
+## 11. Definicja ukończenia
 
-### Etap narzędziowego audytu mapy — zakończony
+### Etap narzędziowy — zakończony
 
 - [x] parser/writer i patchowanie OTBM;
 - [x] porównanie z TibiaMaps;
@@ -411,10 +408,9 @@ Nie próbować automatycznie rekonstruować całego świata z minimapy.
 - [x] 151 ID ma bezpieczne review disposition;
 - [x] konflikty placements = 0;
 - [x] PR #104 zmergowany na zielonym CI;
-- [x] duplikat #128 zamknięty bez merge;
 - [x] poprawiona kopia mapy bez itemu 2141;
 - [x] ponowny item audit bez brakujących appearances;
-- [x] natywny `OTB::Loader::parseTree()` z Canary potwierdza strukturę poprawionej kopii.
+- [x] natywny `OTB::Loader::parseTree()` potwierdza strukturę poprawionej kopii.
 
 ### Jeszcze nie zakończone
 
@@ -425,26 +421,26 @@ Nie próbować automatycznie rekonstruować całego świata z minimapy.
 
 ---
 
-## 14. Szybki start kolejnego agenta
+## 12. Szybki start kolejnego agenta
 
 1. Przeczytaj `AGENTS.md`.
 2. Przeczytaj ten dokument.
 3. Sprawdź aktualny `main`.
 4. Potwierdź obecność merge `0b355669ebe66c9d9c604c2a9221f47280699581`.
-5. Uruchom:
+5. Sprawdź dostępność mapy i jej SHA-256.
+6. Uruchom:
 
 ```bash
 python tools/ai-agent/otbm_script_resolution_tool.py --help
 ```
 
-6. Sprawdź dostępność mapy i jej SHA-256.
 7. Zapoznaj się z logiem natywnego `FileLoader` i w razie dostępnego pełnego środowiska uruchom dodatkowo `Map::load()`.
 8. Wybierz jedną grupę z 151 ID do ręcznej analizy albo jeden mały region pilotowy.
 9. Każdą zmianę wykonuj na osobnej gałęzi i w osobnym PR.
 
 ---
 
-## 15. Przykładowe uruchomienie resolvera
+## 13. Przykładowe uruchomienie resolvera
 
 ```bash
 python tools/ai-agent/otbm_script_resolution_tool.py \
@@ -467,26 +463,23 @@ python tools/ai-agent/otbm_script_resolution_tool.py \
   --output artifacts/OTBM_SCRIPT_RESOLUTION.json
 ```
 
-Obecnie `--strict-runtime` ma zakończyć się niepowodzeniem, ponieważ 151 ID nadal wymaga gameplay review.
+`--strict-runtime` ma obecnie zakończyć się niepowodzeniem, ponieważ 151 ID nadal wymaga ręcznego audytu.
 
 ---
 
-## 16. Changelog 2026-07-12
+## 14. Changelog 2026-07-12
 
-- porównano pełny OTBM z najnowszą referencją TibiaMaps;
-- wykonano audyt 23,359,571 umieszczeń itemów;
-- wykryto jeden brak appearance: item 2141;
-- utworzono poprawioną kopię bez itemu 2141;
-- ponowny audyt poprawionej kopii wykazał zero brakujących appearances;
-- zbudowano produkcyjny resolver handlerów;
-- wykonano audyt 9,339 mechanik mapowych;
-- potwierdzono 8,964 runtime-resolved placements;
-- zachowano 375 unresolved/partial placements;
-- 151 ID zapisano jako `needs-manual-review`;
+- zbudowano pełny warsztat OTBM i renderer wykorzystujący prawdziwe assety klienta;
+- porównano pełny OTBM z TibiaMaps;
+- wykonano audyt `23,359,571` umieszczeń itemów;
+- wykryto jeden brak appearance: item `2141`;
+- utworzono poprawioną lokalną kopię bez itemu `2141`;
+- ponowny audyt wykazał zero brakujących appearances;
+- dokładny `src/io/fileloader.cpp` Canary poprawnie sparsował całą poprawioną mapę w `13.37 s`;
+- zbudowano i zmergowano produkcyjny resolver handlerów;
+- wykonano audyt `9,339` mechanik mapowych;
+- potwierdzono `8,964` runtime-resolved placements;
+- zachowano `375` unresolved/partial placements i `151` identyfikatorów do ręcznego audytu;
 - wykryto zero konfliktów placements;
-- PR #104 zmergowano jako `0b355669ebe66c9d9c604c2a9221f47280699581`;
-- PR #128 zamknięto bez merge;
-- PR #130 zmergowano z finalnym stanem handoff;
-- nie commitowano mapy, assetów ani wygenerowanych raportów;
-- dokładny `src/io/fileloader.cpp` Canary poprawnie sparsował całą poprawioną mapę w 13.37 s;
-- opcjonalnym dodatkowym testem pozostaje pełne `Map::load()` / `IOMap` z kompletnymi zależnościami serwera.
+- nie commitowano mapy, assetów ani dużych wygenerowanych raportów;
+- oddzielono ten techniczny handoff od późniejszego, szerszego projektu AI review map, questów, NPC i spawnów.

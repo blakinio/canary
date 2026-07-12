@@ -20,6 +20,9 @@ target_sources(
             multichannel/channel_switch_audit_store.cpp
             multichannel/cluster_config_validator.cpp
             multichannel/cluster_runtime.cpp
+            multichannel/db_cluster_session_repository.cpp
+            multichannel/economic_ledger_id.cpp
+            multichannel/economic_ledger_store.cpp
             multichannel/engine_position_legality.cpp
             multichannel/position_serialization.cpp
 )

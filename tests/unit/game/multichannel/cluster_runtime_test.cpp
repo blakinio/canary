@@ -9,6 +9,7 @@
 
 #include "game/multichannel/cluster_runtime.hpp"
 
+#include "../../../shared/game/multichannel/fake_cluster_session_repository.hpp"
 #include "../../../shared/game/multichannel/fake_redis_client.hpp"
 #include "injection_fixture.hpp"
 
@@ -28,7 +29,7 @@ TEST_F(ClusterRuntimeTest, DisabledByDefaultIsPermissiveNoOp) {
 	auto &runtime = ClusterRuntime::getInstance();
 	EXPECT_FALSE(runtime.isEnabled());
 	EXPECT_TRUE(runtime.isAcceptingNewSessions());
-	EXPECT_TRUE(runtime.acquireForLogin(1, 1, 1000).acquired);
+	EXPECT_TRUE(runtime.acquireForLogin(1, 1, 1, 1000).acquired);
 }
 
 TEST_F(ClusterRuntimeTest, SecondLoginForSameAccountIsRejectedWhileFirstIsOnline) {
@@ -36,8 +37,8 @@ TEST_F(ClusterRuntimeTest, SecondLoginForSameAccountIsRejectedWhileFirstIsOnline
 	auto fake = std::make_shared<FakeRedisClient>();
 	runtime.configure(fake, 1, "instance-A", 1000, 200, 500);
 
-	EXPECT_TRUE(runtime.acquireForLogin(42, 1, 10000).acquired);
-	EXPECT_FALSE(runtime.acquireForLogin(42, 2, 10010).acquired);
+	EXPECT_TRUE(runtime.acquireForLogin(42, 100, 1, 10000).acquired);
+	EXPECT_FALSE(runtime.acquireForLogin(42, 100, 2, 10010).acquired);
 	EXPECT_EQ(1u, runtime.trackedCount());
 }
 
@@ -46,10 +47,10 @@ TEST_F(ClusterRuntimeTest, CleanLogoutReleasesAndAllowsReacquire) {
 	auto fake = std::make_shared<FakeRedisClient>();
 	runtime.configure(fake, 1, "instance-A", 1000, 200, 500);
 
-	ASSERT_TRUE(runtime.acquireForLogin(42, 1, 10000).acquired);
+	ASSERT_TRUE(runtime.acquireForLogin(42, 100, 1, 10000).acquired);
 	runtime.releaseForLogout(42, 10010);
 	EXPECT_EQ(0u, runtime.trackedCount());
-	EXPECT_TRUE(runtime.acquireForLogin(42, 1, 10020).acquired);
+	EXPECT_TRUE(runtime.acquireForLogin(42, 100, 1, 10020).acquired);
 }
 
 TEST_F(ClusterRuntimeTest, GetTrackedSessionInfoReflectsTheAcquiredHandle) {
@@ -58,7 +59,8 @@ TEST_F(ClusterRuntimeTest, GetTrackedSessionInfoReflectsTheAcquiredHandle) {
 	runtime.configure(fake, 1, "instance-A", 1000, 200, 500);
 
 	EXPECT_FALSE(runtime.getTrackedSessionInfo(42).has_value());
-	const auto handle = runtime.acquireForLogin(42, 1, 10000);
+
+	const auto handle = runtime.acquireForLogin(42, 100, 1, 10000);
 	ASSERT_TRUE(handle.acquired);
 	const auto info = runtime.getTrackedSessionInfo(42);
 	ASSERT_TRUE(info.has_value());
@@ -74,7 +76,7 @@ TEST_F(ClusterRuntimeTest, HealthyRenewKeepsSessionTracked) {
 	auto fake = std::make_shared<FakeRedisClient>();
 	runtime.configure(fake, 1, "instance-A", 1000, 200, 500);
 
-	ASSERT_TRUE(runtime.acquireForLogin(42, 1, 10000).acquired);
+	ASSERT_TRUE(runtime.acquireForLogin(42, 100, 1, 10000).acquired);
 	const auto expired = runtime.renewAllAndCollectExpired(10100);
 	EXPECT_TRUE(expired.empty());
 	EXPECT_EQ(1u, runtime.trackedCount());
@@ -85,7 +87,11 @@ TEST_F(ClusterRuntimeTest, LegitimateSupersessionExpiresImmediatelyWithNoGracePe
 	auto fake = std::make_shared<FakeRedisClient>();
 	runtime.configure(fake, 1, "instance-A", 1000, 200, 500);
 
-	ASSERT_TRUE(runtime.acquireForLogin(42, 1, 10000).acquired);
+	ASSERT_TRUE(runtime.acquireForLogin(42, 100, 1, 10000).acquired);
+
+	// Someone else takes the lease directly (bypassing this ClusterRuntime),
+	// simulating a legitimate transfer once this process's lease has
+	// expired on Redis's own clock.
 	const auto stolen = fake->acquireLease(ClusterSessionManager::makeLockKey(42), "other-session", "2", "other-instance", 1000, 11000);
 	ASSERT_TRUE(stolen.acquired);
 
@@ -100,11 +106,14 @@ TEST_F(ClusterRuntimeTest, OutageBlocksNewLoginsImmediatelyButKeepsExistingSessi
 	auto fake = std::make_shared<FakeRedisClient>();
 	runtime.configure(fake, 1, "instance-A", 1000, 200, 500);
 
-	ASSERT_TRUE(runtime.acquireForLogin(7, 1, 10000).acquired);
+	ASSERT_TRUE(runtime.acquireForLogin(7, 100, 1, 10000).acquired);
 	fake->setHealthyForTesting(false);
 
 	EXPECT_FALSE(runtime.isAcceptingNewSessions());
-	EXPECT_FALSE(runtime.acquireForLogin(99, 1, 10001).acquired);
+	EXPECT_FALSE(runtime.acquireForLogin(99, 200, 1, 10001).acquired);
+
+	// A brief outage, well within both the grace period and the lease's
+	// remaining validity, must not disconnect the already-online account.
 	const auto stillOnline = runtime.renewAllAndCollectExpired(10050);
 	EXPECT_TRUE(stillOnline.empty());
 	EXPECT_EQ(1u, runtime.trackedCount());
@@ -115,11 +124,81 @@ TEST_F(ClusterRuntimeTest, OutageForcesDisconnectBeforeLeaseCouldBeLegallyStolen
 	auto fake = std::make_shared<FakeRedisClient>();
 	runtime.configure(fake, 1, "instance-A", 1000, 200, 500);
 
-	ASSERT_TRUE(runtime.acquireForLogin(7, 1, 10000).acquired);
+	ASSERT_TRUE(runtime.acquireForLogin(7, 100, 1, 10000).acquired);
 	fake->setHealthyForTesting(false);
 
 	const auto forcedOut = runtime.renewAllAndCollectExpired(10850);
 	ASSERT_EQ(1u, forcedOut.size());
 	EXPECT_EQ(7, forcedOut[0]);
 	EXPECT_EQ(0u, runtime.trackedCount());
+}
+
+// --- cluster_sessions DB defense-in-depth (docs/multichannel/ARCHITECTURE.md §5) ---
+
+TEST_F(ClusterRuntimeTest, AcquireWritesRowToSessionRepository) {
+	auto &runtime = ClusterRuntime::getInstance();
+	auto fake = std::make_shared<FakeRedisClient>();
+	auto repository = std::make_shared<FakeClusterSessionRepository>();
+	runtime.configure(fake, 1, "instance-A", 1000, 200, 500, repository);
+
+	ASSERT_TRUE(runtime.acquireForLogin(42, 100, 1, 10000).acquired);
+	EXPECT_TRUE(repository->hasRow(42));
+	EXPECT_EQ(1u, repository->rowCount());
+}
+
+TEST_F(ClusterRuntimeTest, CleanLogoutDeletesRowFromSessionRepository) {
+	auto &runtime = ClusterRuntime::getInstance();
+	auto fake = std::make_shared<FakeRedisClient>();
+	auto repository = std::make_shared<FakeClusterSessionRepository>();
+	runtime.configure(fake, 1, "instance-A", 1000, 200, 500, repository);
+
+	ASSERT_TRUE(runtime.acquireForLogin(42, 100, 1, 10000).acquired);
+	ASSERT_TRUE(repository->hasRow(42));
+
+	runtime.releaseForLogout(42, 10010);
+	EXPECT_FALSE(repository->hasRow(42));
+}
+
+TEST_F(ClusterRuntimeTest, RepositoryFailureOnAcquireRollsBackTheRedisLease) {
+	auto &runtime = ClusterRuntime::getInstance();
+	auto fake = std::make_shared<FakeRedisClient>();
+	auto repository = std::make_shared<FakeClusterSessionRepository>();
+	repository->setNextAcquireSucceedsForTesting(false);
+	runtime.configure(fake, 1, "instance-A", 1000, 200, 500, repository);
+
+	const auto handle = runtime.acquireForLogin(42, 100, 1, 10000);
+	EXPECT_FALSE(handle.acquired);
+	EXPECT_EQ(0u, runtime.trackedCount());
+
+	// The Redis lease must have been released again, not left dangling -
+	// a subsequent acquire attempt (with the repository fixed) must succeed.
+	repository->setNextAcquireSucceedsForTesting(true);
+	EXPECT_TRUE(runtime.acquireForLogin(42, 100, 1, 10001).acquired);
+}
+
+TEST_F(ClusterRuntimeTest, HealthyRenewUpdatesRepositoryHeartbeat) {
+	auto &runtime = ClusterRuntime::getInstance();
+	auto fake = std::make_shared<FakeRedisClient>();
+	auto repository = std::make_shared<FakeClusterSessionRepository>();
+	runtime.configure(fake, 1, "instance-A", 1000, 200, 500, repository);
+
+	ASSERT_TRUE(runtime.acquireForLogin(42, 100, 1, 10000).acquired);
+	const auto expired = runtime.renewAllAndCollectExpired(10100);
+	EXPECT_TRUE(expired.empty());
+	EXPECT_TRUE(repository->hasRow(42));
+}
+
+TEST_F(ClusterRuntimeTest, OutageForcedDisconnectDeletesRepositoryRow) {
+	auto &runtime = ClusterRuntime::getInstance();
+	auto fake = std::make_shared<FakeRedisClient>();
+	auto repository = std::make_shared<FakeClusterSessionRepository>();
+	runtime.configure(fake, 1, "instance-A", 1000, 200, 500, repository);
+
+	ASSERT_TRUE(runtime.acquireForLogin(7, 100, 1, 10000).acquired);
+	ASSERT_TRUE(repository->hasRow(7));
+	fake->setHealthyForTesting(false);
+
+	const auto forcedOut = runtime.renewAllAndCollectExpired(10850);
+	ASSERT_EQ(1u, forcedOut.size());
+	EXPECT_FALSE(repository->hasRow(7));
 }

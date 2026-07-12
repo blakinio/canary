@@ -2,9 +2,8 @@
 
 The manifest is the durable, human- and machine-readable record of what a
 deploy actually did: which release id, which files (with checksums) went
-into it, what the previous release was, and how the switch/health-check/
-rollback sequence resolved. It's written regardless of whether the deploy
-ultimately succeeded or was rolled back.
+into it, whether real Canary preflight validation passed, what the previous
+release was, and how the switch/health-check/rollback sequence resolved.
 """
 
 from __future__ import annotations
@@ -49,6 +48,8 @@ class DeploymentManifest:
     source_description: str
     dry_run: bool
     files: list[ManifestFileEntry] = field(default_factory=list)
+    preflight_status: str = "not-attempted"
+    preflight_detail: str = ""
     previous_release_id: str | None = None
     switch_status: str = "not-attempted"
     health_check_status: str = "not-attempted"
@@ -65,6 +66,8 @@ class DeploymentManifest:
             "dryRun": self.dry_run,
             "files": [entry.to_json() for entry in self.files],
             "fileCount": len(self.files),
+            "preflightStatus": self.preflight_status,
+            "preflightDetail": self.preflight_detail,
             "previousReleaseId": self.previous_release_id,
             "switchStatus": self.switch_status,
             "healthCheckStatus": self.health_check_status,

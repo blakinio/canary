@@ -53,14 +53,12 @@ SELECT
     ROUND((`loot_value_npc` - `supplies_value`) / NULLIF(`combat_seconds`, 0) * 3600) AS `npc_profit_per_hour`
 FROM `analytics_daily_party_balance`;
 
--- Dead-letter queue health. Backed by the persisted dead-letter table, so
--- this is real MariaDB data rather than a snapshot of process-local
--- counters. Queue depth, retry-in-progress counts and flush duration are
--- process-local runtime counters with no MariaDB representation; they
--- remain available only through the in-game "/analytics status" command
--- (see docs/systems/gameplay-analytics-dashboards.md).
+-- Persisted dead-letter history for sessions that exhausted in-memory retries.
+-- These terminal records are not an active database replay queue.
+-- `pending_dead_letters` remains as a compatibility alias for older dashboards.
 CREATE OR REPLACE VIEW `analytics_dead_letter_health` AS
 SELECT
+    COUNT(*) AS `dead_letter_records`,
     COUNT(*) AS `pending_dead_letters`,
     COALESCE(MAX(`retry_count`), 0) AS `max_retry_count`,
     MAX(`failed_at`) AS `last_failure_at`,

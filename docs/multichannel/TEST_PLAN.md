@@ -180,6 +180,93 @@ accounts, two real houses on channel 1):
   own, so the `channel_id` scoping is inert until that separate,
   documented limitation is lifted.
 
+### Phase 4: cluster_sessions DB defense-in-depth
+
+`ClusterRuntime`'s new `IClusterSessionRepository`/`DbClusterSessionRepository`
+wiring got two levels of real verification:
+
+- **13 gtest cases** (up from 7) against `FakeClusterSessionRepository`
+  (`tests/shared/game/multichannel/fake_cluster_session_repository.hpp`, an
+  in-memory model of the real table's `PRIMARY KEY(account_id)` +
+  `UNIQUE(player_id)` constraints): acquire writes a row, clean logout
+  deletes it, a healthy renew updates its heartbeat, an outage-forced
+  disconnect deletes it, and - the interesting one - a simulated
+  repository write failure on acquire rolls back the Redis lease it had
+  just taken (verified a subsequent acquire then succeeds cleanly). All
+  13/13 passing.
+- **Real MariaDB 10.11**, the exact SQL the code issues: a fresh acquire
+  produces one row; a second acquire for the same account (relogin/switch)
+  moves that same row in place rather than duplicating it; heartbeat and
+  release both behave as expected. **A real bug found and fixed here**: a
+  naive single `INSERT ... ON DUPLICATE KEY UPDATE` silently corrupted a
+  row when an INSERT collided on `cluster_sessions_player_unique` (a
+  *different* account's existing row) rather than the `account_id` primary
+  key - MySQL updated that other row's session/channel columns via
+  `VALUES()` but left its `account_id` untouched, since `account_id` was
+  never itself in the `UPDATE` clause. The result was one row whose
+  `account_id` belonged to the old holder but whose `session_id`/
+  `channel_id`/etc. described the new one - an internally inconsistent
+  record, not a clean rejection. This exact scenario is realistically
+  unreachable through the real call path (`player_id` is permanently tied
+  to one `account_id` in this engine, and `ProtocolGame::login` only ever
+  calls this with a `(accountId, playerId)` pair `IOLoginData` already
+  verified belong together) - but it was worth fixing anyway, since it's
+  precisely the kind of anomaly this defense-in-depth layer exists to
+  catch cleanly rather than silently mishandle. Fixed with an explicit
+  `DELETE FROM cluster_sessions WHERE player_id = ? AND account_id != ?`
+  before the upsert (mirroring the same "explicit multi-step over one
+  clever multi-key statement" choice already made for
+  `account_house_ownership` in Phase 3); re-verified against the real
+  database that both the normal re-acquire case and the anomaly case now
+  behave correctly.
+- `db_cluster_session_repository.cpp` itself is not standalone-compilable
+  (transitively pulls in `database/database.hpp`'s full dependency chain,
+  same wall as `channel_switch_audit_store.cpp`/`house.cpp`) - reviewed by
+  hand, verified at the SQL level for real as above.
+
+### Phase 5: economic ledger idempotency (market-offer-expiry job)
+
+`IOMarket::processExpiredOffers`'s new `EconomicLedgerStore` wiring
+(`beginPending`/`markCommitted`/`markFailed`) got the same two-level
+treatment:
+
+- **5 new gtest cases** (`tests/unit/game/multichannel/
+  economic_ledger_id_test.cpp`) against the pure, dependency-free
+  `multichannel::computeDeterministicLedgerUuid` (`economic_ledger_id.hpp`/
+  `.cpp`, split out of `EconomicLedgerStore` the same way
+  `position_serialization.hpp` was split out of `channel_switch_audit_store`
+  in Phase 2, purely so it can be compiled and tested standalone without
+  pulling in `database.hpp`): produces a 36-char, 8-4-4-4-12-shaped string;
+  deterministic for the same inputs; differs for different natural keys;
+  differs for different namespace tags sharing the same natural key; and
+  no collisions across a sequential range of 10,000 natural keys. Compiled
+  standalone with real `g++ -std=c++20` + real `libgtest`/`libgtest_main`
+  and run - **5/5 passing**.
+- **Real MariaDB 10.11**, the exact SQL `EconomicLedgerStore` issues,
+  imported against the real `schema.sql`'s `economic_ledger` table:
+  `beginPending`'s `INSERT` followed by `markCommitted`'s `UPDATE`
+  produces the expected `COMMITTED` row; **a second `beginPending` INSERT
+  for the same `transaction_uuid` (the replay scenario) is rejected with a
+  real `ERROR 1062 Duplicate entry ... for key 'PRIMARY'`** - this is the
+  core idempotency guarantee the whole mechanism exists to provide, and it
+  was verified against the actual constraint, not assumed. Also verified:
+  the item-delivery ledger record shape (`amount = 0`, `item_id`/
+  `item_count` populated) reaching `FAILED` via `markFailed`, and the
+  currency-refund shape (`amount` populated, no item fields) reaching
+  `COMMITTED` via `markCommitted`.
+- `economic_ledger_store.cpp` itself is not standalone-compilable (same
+  `database.hpp` wall as `db_cluster_session_repository.cpp`/
+  `channel_switch_audit_store.cpp`) - reviewed by hand, verified at the SQL
+  level for real as above.
+- **Not covered by this phase**: the three live market call sites
+  (`Game::playerCreateMarketOffer`/`...CancelMarketOffer`/
+  `...AcceptMarketOffer`) do not write to `economic_ledger` yet - only the
+  expiry background job does. No integration test exercises
+  `IOMarket::checkExpiredOffers`'s actual scheduling/dispatch path (that
+  requires the full engine + `g_databaseTasks()`, unavailable in this
+  sandbox); only the SQL `EconomicLedgerStore` issues was verified
+  directly.
+
 ## 15.1b Redis Lua CAS script validation — ✅ run against a real `redis-server`
 
 The acquire/renew/release Lua scripts in
