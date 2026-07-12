@@ -1,47 +1,56 @@
+# Summary
 
-# Description
+<!-- What changed and why? State user-visible and architecture impact. -->
 
-Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. List any dependencies that are required for this change.
+# Existing work reused
 
-## Behaviour
-### **Actual**
+- Module catalogue entries reviewed:
+- Reused modules/utilities:
+- New reusable module/interface introduced:
 
-Do this and that doesn't happens
+# Scope and changed components
 
-### **Expected**
+- [ ] C++ runtime/framework
+- [ ] Lua/data/module/UI
+- [ ] Protocol or cross-repository contract
+- [ ] Database/schema/migration
+- [ ] Build/CI/dependencies
+- [ ] Tooling/deployment
+- [ ] Tests
+- [ ] Documentation/governance
 
-Do this and that happens
+# Behavior before
 
-### Fixes #issuenumber
+# Behavior after
 
-## Type of change
+# Compatibility, rollout and rollback
 
-Please delete options that are not relevant.
+- Risk: low / medium / high
+- Canary ↔ OTClient coordination ID/PRs:
+- Version/capability gate:
+- Rollout order:
+- Failure behavior when partially deployed:
+- Rollback:
 
-  - [ ] Bug fix (non-breaking change which fixes an issue)
-  - [ ] New feature (non-breaking change which adds functionality)
-  - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-  - [ ] This change requires a documentation update
+# Validation
 
-## How Has This Been Tested
+| Commit | Command/check | Result | Evidence/notes |
+|---|---|---|---|
+| | | | |
 
-Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration
+# CI repair history
 
-  - [ ] Test A
-  - [ ] Test B
+<!-- Record failures caused by this PR and root-cause fixes. Use `None` when no failures occurred. -->
 
-**Test Configuration**:
+# Autonomous merge checklist
 
-  - Server Version:
-  - Client:
-  - Operating System:
-
-## Checklist
-
-  - [ ] My code follows the style guidelines of this project
-  - [ ] I have performed a self-review of my own code
-  - [ ] I checked the PR checks reports
-  - [ ] I have commented my code, particularly in hard-to-understand areas
-  - [ ] I have made corresponding changes to the documentation
-  - [ ] My changes generate no new warnings
-  - [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] Base/head repositories and branches are correct; upstream is not targeted
+- [ ] One logical change; full diff and changed-file list reviewed
+- [ ] Active task record is current and acceptance criteria are satisfied
+- [ ] Existing modules/open PRs were checked and duplicate work was avoided
+- [ ] Module catalogue and changelog are updated when applicable
+- [ ] Tests/docs/migrations/rollback are included when applicable
+- [ ] No secrets, private data, forbidden binaries, generated output, or unrelated files
+- [ ] All required checks pass at the current head
+- [ ] No unresolved requested changes, review threads, blockers, or atomic cross-repo hold
+- [ ] PR is safe for autonomous squash merge
