@@ -42,9 +42,27 @@ class GameplayAnalyticsRetentionValidationTest(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "batched"):
             validator.validate_runner(broken)
 
-    def test_rejects_non_idempotent_aggregate(self) -> None:
-        broken = self.runner.replace("ON DUPLICATE KEY UPDATE", "ON DUPLICATE KEY IGNORE", 1)
-        with self.assertRaisesRegex(AssertionError, "ON DUPLICATE KEY UPDATE"):
+    def test_rejects_upsert_only_daily_aggregate(self) -> None:
+        broken = self.runner.replace("DELETE FROM analytics_daily_balance WHERE session_date", "-- no full-day delete")
+        with self.assertRaisesRegex(AssertionError, "delete the complete day"):
+            validator.validate_runner(broken)
+
+    def test_rejects_missing_party_split(self) -> None:
+        broken = self.runner.replace("analytics_daily_party_balance", "analytics_daily_balance", 1)
+        with self.assertRaisesRegex(AssertionError, "analytics_daily_party_balance"):
+            validator.validate_runner(broken)
+
+    def test_rejects_missing_rolling_window(self) -> None:
+        broken = self.runner.replace('REAGGREGATE_DAYS="${REAGGREGATE_DAYS:-7}"', 'REAGGREGATE_DAYS="${REAGGREGATE_DAYS:-0}"', 1)
+        with self.assertRaisesRegex(AssertionError, "bounded recent window"):
+            validator.validate_runner(broken)
+
+    def test_rejects_unbounded_shared_seconds(self) -> None:
+        broken = self.runner.replace(
+            "LEAST(COALESCE(SUM(shared_experience_seconds), 0), COALESCE(SUM(combat_seconds), 0))",
+            "COALESCE(SUM(shared_experience_seconds), 0)",
+        )
+        with self.assertRaisesRegex(AssertionError, "LEAST"):
             validator.validate_runner(broken)
 
 
