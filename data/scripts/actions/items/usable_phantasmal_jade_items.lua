@@ -33,7 +33,7 @@ function usablePhantasmalJadeItems.onUse(player, item, fromPosition, target, toP
 
 	player:addMount(config.mountId)
 	player:addAchievement("Natural Born Cowboy")
-	player:addAchievement("You got Horse Power")
+	player:addAchievement("You Got Horse Power")
 	player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "Phantasmal jade is now yours!")
 	return true
 end
