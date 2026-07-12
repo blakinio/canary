@@ -1,13 +1,13 @@
 ---
 task_id: CAN-20260712-achievement-validation
 coordination_id: ""
-status: ready-for-review
+status: completed
 agent: "GPT-5.6 Thinking"
 branch: feat/achievement-validation-audit
 base_branch: main
 created: 2026-07-12T17:16:14Z
-updated: 2026-07-12T20:25:00Z
-last_verified_commit: "483c635f068f7b35db0e00e5582c1bb46c70ae38"
+updated: 2026-07-12T20:35:00Z
+last_verified_commit: "e2029621d4f429d4f51ba853f30c2a339168b1da"
 risk: low
 related_issue: ""
 related_pr: "#165"
@@ -21,9 +21,6 @@ owned_paths:
   - docs/ai-agent/ACHIEVEMENT_VALIDATION_REPORT.md
   - docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json
   - docs/ai-agent/ACHIEVEMENT_RUNTIME_TEST_PLAN.json
-  - docs/agents/tasks/active/CAN-20260712-achievement-validation.md
-  - docs/agents/ACTIVE_WORK.md
-  - docs/agents/MODULE_CATALOG.md
 modules_touched:
   - AI world validation
   - achievement registry and trigger audit
@@ -57,8 +54,8 @@ Create a deterministic, evidence-based, read-only audit of Canary achievement de
 - [x] Verify all required workflows on the reviewed head.
 - [x] Review the full changed-file list and confirm no forbidden paths.
 - [x] Update module catalogue and persistent handoff.
-- [ ] Merge through PR #165 after final head checks.
-- [ ] Archive the task and remove the Active Work row after merge.
+- [x] Merge through PR #165 after final head checks.
+- [x] Archive the task and remove the Active Work row after merge.
 
 # Confirmed findings
 
@@ -122,9 +119,15 @@ C++ uses exact `std::map<std::string, uint16_t>::find(name)`, confirming both li
 - Open PRs and current Active Work were inspected repeatedly.
 - No achievement-validation tool or gameplay overlap was found.
 - Shared `ACTIVE_WORK.md` and `MODULE_CATALOG.md` were refreshed against current `main` before the final audit run.
-- Branch contains current `main` as a parent and is not behind.
+- Branch contained current `main` as a parent and was not behind at merge time.
 
 # Work log
+
+## 2026-07-12T20:35:00Z
+
+- PR #165 was marked ready after all current-head checks passed.
+- Squash-merged into `main` as `55543011493b490e418f002f217140b5d2b12bb1`.
+- Started post-merge archival and coordination cleanup.
 
 ## 2026-07-12T20:25:00Z
 
@@ -147,17 +150,17 @@ C++ uses exact `std::map<std::string, uint16_t>::find(name)`, confirming both li
 
 # Validation and CI
 
-Audited commit:
+Reviewed head:
 
 ```text
-483c635f068f7b35db0e00e5582c1bb46c70ae38
+e2029621d4f429d4f51ba853f30c2a339168b1da
 ```
 
 | Check | Result |
 |---|---|
-| Achievement Validation run `29203216508` | success |
-| AI Agent Tools run `29203216501` | success |
-| CI run `29203216610` | success |
+| Achievement Validation run `29203260725` | success |
+| AI Agent Tools run `29203260679` | success |
+| CI run `29203260820` | success |
 | focused scanner tests | 8/8 passed |
 | artifact downloaded and parsed | success |
 | full changed-file list | reviewed |
@@ -185,12 +188,12 @@ sha256: 4e127d6c708b6422f520f5833394b652331addcbf989f345523f9d31b9171baa
 
 # Risks and compatibility
 
-- Runtime: unchanged.
+- Runtime: unchanged by audit.
 - Player data: unchanged.
 - Registry/datapacks: unchanged.
 - Migration: none.
 - Cross-repo rollout: none.
-- Rollback: revert PR #165.
+- Rollback: revert merge commit `55543011493b490e418f002f217140b5d2b12bb1`.
 - Known limitation: static audit does not prove gameplay reachability of all 541 definitions.
 
 # Follow-up order
@@ -210,7 +213,7 @@ sha256: 4e127d6c708b6422f520f5833394b652331addcbf989f345523f9d31b9171baa
 - `docs/ai-agent/ACHIEVEMENT_VALIDATION_REPORT.md`
 - `docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json`
 - `docs/ai-agent/ACHIEVEMENT_RUNTIME_TEST_PLAN.json`
-- PR #165 and its latest artifact
+- merged PR #165 and its artifact
 
 ## Do not repeat
 
@@ -223,9 +226,9 @@ sha256: 4e127d6c708b6422f520f5833394b652331addcbf989f345523f9d31b9171baa
 
 # Completion
 
-- Final status: ready-for-review
+- Final status: completed
 - PR: #165
-- Merge commit:
+- Merge commit: `55543011493b490e418f002f217140b5d2b12bb1`
 - Catalogue updated: yes
 - Changelog updated: specialist project changelog updated; global behavior changelog not applicable to read-only audit
-- Archived at:
+- Archived at: `docs/agents/tasks/archive/CAN-20260712-achievement-validation.md`
