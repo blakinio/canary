@@ -312,8 +312,7 @@ namespace {
 		.profileId = ProtocolProfileId::Current,
 		.clientVersion = CLIENT_VERSION,
 		.responseTransport = TransportProfileId::CurrentLogin,
-		// OTClient 15.25 sends client version (4), content revision (4), and preview state (1) before RSA.
-		.bytesToSkipBeforeRsa = 9,
+		.bytesToSkipBeforeRsa = 17,
 		.characterListLayout = AccountCharacterListLayout::WorldListWithSessionKey,
 		.sendsSessionKey = true,
 	};
