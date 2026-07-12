@@ -6,7 +6,7 @@ local ZIRELLA_CART_ITEM_ID = 7751
 local ZIRELLA_ACTIVE_STAGE = 6
 local ZIRELLA_DELIVERED_STAGE = 7
 local BRANCH_HINT_STAGE = 15
-local TREE_EXHAUST_MS = 5000
+local TREE_EXHAUST_SECONDS = 5
 
 local zirellaCartPosition = Position(32062, 32271, 7)
 local tutorialDeadTreePositions = {
@@ -16,9 +16,7 @@ local tutorialDeadTreePositions = {
 	["32081:32276:7"] = true,
 	["32066:32288:7"] = true,
 }
-
-local treeExhaust = Condition(CONDITION_EXHAUST_WEAPON)
-treeExhaust:setParameter(CONDITION_PARAM_TICKS, TREE_EXHAUST_MS)
+local treeExhaustUntil = {}
 
 local function positionKey(position)
 	return string.format("%d:%d:%d", position.x, position.y, position.z)
@@ -43,7 +41,9 @@ function tutorialDeadTree.onUse(player, item, fromPosition, target, toPosition, 
 		return true
 	end
 
-	if player:getCondition(CONDITION_EXHAUST_WEAPON) then
+	local playerGuid = player:getGuid()
+	local now = os.time()
+	if (treeExhaustUntil[playerGuid] or 0) > now then
 		player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "You have to wait a few seconds until this tree can be used again.")
 		return true
 	end
@@ -54,7 +54,7 @@ function tutorialDeadTree.onUse(player, item, fromPosition, target, toPosition, 
 		return true
 	end
 
-	player:addCondition(treeExhaust)
+	treeExhaustUntil[playerGuid] = now + TREE_EXHAUST_SECONDS
 	player:sendTutorial(24)
 	branch:decay()
 
