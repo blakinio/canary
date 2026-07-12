@@ -72,6 +72,51 @@ TEST(InstanceManagerTest, ActivateFailsForUnknownOrAlreadyActiveInstance) {
 	EXPECT_FALSE(manager.activate(result.id)) << "already Active, not Creating - re-activation must be rejected";
 }
 
+TEST(InstanceManagerTest, RegisterCreatureTracksStableIdsAndIsIdempotent) {
+	InstanceManager manager(makeRegions(1));
+	const auto result = manager.createInstance({ .name = "owned-creatures" });
+	ASSERT_TRUE(result.ok);
+
+	EXPECT_TRUE(manager.registerCreature(result.id, 300));
+	EXPECT_TRUE(manager.registerCreature(result.id, 100));
+	EXPECT_TRUE(manager.registerCreature(result.id, 300)) << "same-owner registration must be idempotent";
+	EXPECT_EQ(2u, manager.registeredCreatureCount(result.id));
+	EXPECT_EQ((std::vector<InstanceCreatureId> { 100, 300 }), manager.getRegisteredCreatureIds(result.id));
+	ASSERT_TRUE(manager.getCreatureOwner(100).has_value());
+	EXPECT_EQ(result.id, *manager.getCreatureOwner(100));
+}
+
+TEST(InstanceManagerTest, RegisterCreatureRejectsInvalidUnknownAndCrossInstanceOwnership) {
+	InstanceManager manager(makeRegions(2));
+	const auto first = manager.createInstance({ .name = "first" });
+	const auto second = manager.createInstance({ .name = "second" });
+	ASSERT_TRUE(first.ok);
+	ASSERT_TRUE(second.ok);
+
+	EXPECT_FALSE(manager.registerCreature(InstanceId::Invalid, 100));
+	EXPECT_FALSE(manager.registerCreature(first.id, INVALID_INSTANCE_CREATURE_ID));
+	EXPECT_FALSE(manager.registerCreature(static_cast<InstanceId>(9999), 100));
+
+	ASSERT_TRUE(manager.registerCreature(first.id, 100));
+	EXPECT_FALSE(manager.registerCreature(second.id, 100)) << "one runtime creature id cannot belong to two instances";
+	EXPECT_EQ(first.id, *manager.getCreatureOwner(100));
+	EXPECT_EQ(0u, manager.registeredCreatureCount(second.id));
+}
+
+TEST(InstanceManagerTest, UnregisterCreatureChecksTheRecordedOwner) {
+	InstanceManager manager(makeRegions(2));
+	const auto first = manager.createInstance({ .name = "first" });
+	const auto second = manager.createInstance({ .name = "second" });
+	ASSERT_TRUE(manager.registerCreature(first.id, 100));
+
+	EXPECT_FALSE(manager.unregisterCreature(second.id, 100));
+	EXPECT_FALSE(manager.unregisterCreature(first.id, 200));
+	EXPECT_TRUE(manager.unregisterCreature(first.id, 100));
+	EXPECT_FALSE(manager.unregisterCreature(first.id, 100));
+	EXPECT_FALSE(manager.getCreatureOwner(100).has_value());
+	EXPECT_EQ(0u, manager.registeredCreatureCount(first.id));
+}
+
 TEST(InstanceManagerTest, CloseReleasesTheRegionAndRunsCleanupExactlyOnce) {
 	InstanceManager manager(makeRegions(2));
 	const auto result = manager.createInstance({ .name = "test" });
@@ -95,6 +140,58 @@ TEST(InstanceManagerTest, CloseReleasesTheRegionAndRunsCleanupExactlyOnce) {
 	EXPECT_EQ(regionBeforeClose.slot, cleanupRegion.slot);
 	EXPECT_EQ(regionBeforeClose.name, cleanupRegion.name);
 	EXPECT_EQ(2u, manager.availableSlotCount()) << "the region must be returned to the pool";
+}
+
+TEST(InstanceManagerTest, CleanupCanDrainCreatureRegistryBeforeRegionRelease) {
+	InstanceManager manager(makeRegions(1));
+	const auto result = manager.createInstance({ .name = "cleanup" });
+	ASSERT_TRUE(result.ok);
+	ASSERT_TRUE(manager.registerCreature(result.id, 101));
+	ASSERT_TRUE(manager.registerCreature(result.id, 202));
+
+	std::vector<InstanceCreatureId> cleanupIds;
+	manager.setCleanupCallback(result.id, [&](InstanceId id, const InstanceMapRegion &) {
+		cleanupIds = manager.getRegisteredCreatureIds(id);
+		for (const auto creatureId : cleanupIds) {
+			EXPECT_TRUE(manager.unregisterCreature(id, creatureId));
+		}
+	});
+
+	EXPECT_TRUE(manager.close(result.id));
+	EXPECT_EQ((std::vector<InstanceCreatureId> { 101, 202 }), cleanupIds);
+	EXPECT_EQ(InstanceState::Destroyed, *manager.getState(result.id));
+	EXPECT_EQ(0u, manager.registeredCreatureCount(result.id));
+	EXPECT_EQ(1u, manager.availableSlotCount());
+}
+
+TEST(InstanceManagerTest, RegisteredCreatureLeakQuarantinesTheRegion) {
+	InstanceManager manager(makeRegions(1));
+	const auto result = manager.createInstance({ .name = "leaking-creature" });
+	ASSERT_TRUE(result.ok);
+	ASSERT_TRUE(manager.registerCreature(result.id, 101));
+
+	EXPECT_THROW(manager.close(result.id), std::logic_error);
+	EXPECT_EQ(InstanceState::Closing, *manager.getState(result.id));
+	EXPECT_EQ(0u, manager.availableSlotCount());
+	EXPECT_EQ(1u, manager.registeredCreatureCount(result.id));
+
+	const auto blocked = manager.createInstance({ .name = "must-not-reuse-dirty-region" });
+	EXPECT_FALSE(blocked.ok);
+}
+
+TEST(InstanceManagerTest, ClosingRejectsNewRegistrationsButAllowsCleanupUnregister) {
+	InstanceManager manager(makeRegions(1));
+	const auto result = manager.createInstance({ .name = "closing" });
+	ASSERT_TRUE(manager.registerCreature(result.id, 101));
+
+	EXPECT_THROW(manager.close(result.id), std::logic_error);
+	ASSERT_EQ(InstanceState::Closing, *manager.getState(result.id));
+
+	EXPECT_FALSE(manager.registerCreature(result.id, 202));
+	EXPECT_TRUE(manager.unregisterCreature(result.id, 101));
+	EXPECT_FALSE(manager.getCreatureOwner(101).has_value());
+	EXPECT_EQ(0u, manager.registeredCreatureCount(result.id));
+	EXPECT_EQ(0u, manager.availableSlotCount()) << "later recovery must explicitly finish a quarantined close";
 }
 
 TEST(InstanceManagerTest, CloseIsIdempotent) {
