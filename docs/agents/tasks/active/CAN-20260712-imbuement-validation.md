@@ -6,19 +6,21 @@ agent: "GPT-5.6 Thinking"
 branch: feat/imbuement-validation-audit
 base_branch: main
 created: 2026-07-12T17:18:21Z
-updated: 2026-07-12T17:42:23Z
-last_verified_commit: "a249670a2dd8543174ff967d2fb9fdc9a7e0ad5b"
+updated: 2026-07-12T17:53:42Z
+last_verified_commit: "78524d140fa9e5f6be94d59604f486a0fd8abf40"
 risk: low
 related_issue: ""
 related_pr: "#166"
 depends_on: []
 blocks: []
 owned_paths:
+  - .github/workflows/imbuement-validation.yml
   - tools/ai-agent/imbuement_validation.py
   - tools/ai-agent/test_imbuement_validation.py
   - docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md
   - docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json
   - docs/agents/tasks/active/CAN-20260712-imbuement-validation.md
+  - docs/agents/ACTIVE_WORK.md
   - docs/agents/MODULE_CATALOG.md
 modules_touched:
   - AI world validation
@@ -31,6 +33,7 @@ public_interfaces:
   - imbuement validation report format
   - imbuement validation CLI
   - imbuement runtime test-plan schema v1
+  - focused Imbuement Validation workflow
 cross_repo_tasks: []
 ---
 
@@ -46,6 +49,7 @@ Create a deterministic, evidence-based audit of Canary's Imbuing system against 
 - [x] Compare the current registry and mechanics baseline with the referenced TibiaWiki/Fandom Imbuing page using evidence, without copying large wiki tables into the repository.
 - [x] Produce a human-readable evidence report and a machine-readable runtime test plan.
 - [x] Add focused unit tests for parser and classifier behavior.
+- [x] Add a focused CI workflow for deterministic execution and artifact publication.
 - [x] Do not modify `data/XML/imbuements.xml`, active datapacks, map, assets, item binaries, protocol behavior or engine behavior in this audit PR.
 - [ ] Relevant checks completed.
 - [x] Module catalogue impact handled.
@@ -61,7 +65,8 @@ Create a deterministic, evidence-based audit of Canary's Imbuing system against 
 - The referenced TibiaWiki/Fandom page observed on 2026-07-12 describes 20-hour duration, current tier fees, clearing fee, account restrictions, source requirements, duplicate-category restrictions, scroll availability and item-type eligibility.
 - The world-validation project requires explicit structure/reference/semantic/runtime/regression layers and forbids guessing runtime behavior.
 - Open PRs were inspected on 2026-07-12; no active Imbuement-validation overlap was found.
-- PR #165 owns the general achievement/world-validation documentation paths; this task reads but does not edit `OTS_AI_WORLD_VALIDATION_PROJECT.md`.
+- `main` advanced during implementation to `478ea77fd77e74c6f867cf327570c63828508e47`; shared coordination files were refreshed from the current `main` content before retaining the narrow #166 entries.
+- This task reads but does not edit `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md`.
 
 # Existing work to reuse
 
@@ -71,18 +76,19 @@ Create a deterministic, evidence-based audit of Canary's Imbuing system against 
 | Imbuements registry/loader | Canonical server definitions | `data/XML/imbuements.xml`, `src/creatures/players/imbuements/**` | Defines tiers, costs, sources, effects, categories and storage gates. |
 | Shrine/scroll runtime | Application and removal entry points | active shrine and scroll scripts plus Player/Lua APIs | Provides the real gameplay call paths to classify. |
 | PR #86 | Storage-filter policy and focused tests | merged imbuement storage-filter fix | Prevents repeating a known defect and supplies reusable policy coverage. |
+| Achievement validation PR #165 | Focused validation-workflow pattern | `.github/workflows/achievement-validation.yml` on its branch | Supplies a repository-consistent Python audit/test/artifact pattern without sharing specialist paths. |
 
 # Ownership and overlap check
 
-- Open PRs inspected: current open PR set including #165, #164, #163, #157, #156, #155 and #136.
+- Open PRs and merged state were re-inspected while the task was active.
 - Imbuement-specific PR history inspected: merged #86.
 - Active tasks inspected: `docs/agents/ACTIVE_WORK.md` and GitHub open PR state.
-- Overlap: shared coordination indexes only; PR #165 also changes `ACTIVE_WORK.md` and owns its specialist validation paths.
-- Resolution: do not edit `ACTIVE_WORK.md` in this branch while the overlap is active; PR #166 and this task record provide discovery. Do not edit `OTS_AI_WORLD_VALIDATION_PROJECT.md`.
+- Overlap: PR #165 also changes the shared coordination files `ACTIVE_WORK.md` and `MODULE_CATALOG.md`; specialist Imbuement paths do not overlap.
+- Resolution: shared files are edited narrowly using current `main` as the content baseline and only the #166 entries are added. `OTS_AI_WORLD_VALIDATION_PROJECT.md` remains untouched. Any later base update must re-resolve those two shared files rather than taking either branch wholesale.
 
 # Current state
 
-The read-only audit implementation is complete on branch `feat/imbuement-validation-audit` and published in draft/active PR #166.
+The read-only audit implementation is complete on branch `feat/imbuement-validation-audit` and published in draft PR #166.
 
 Deterministic baseline encoded by the scanner:
 
@@ -110,10 +116,11 @@ No gameplay, XML, engine, map, asset, item-binary or production-configuration fi
 
 # Plan
 
-1. Verify focused tests and scanner execution through the AI Agent Tools workflow or an available full checkout.
-2. Inspect the complete PR diff and any review/CI feedback.
-3. Keep this audit PR read-only and update evidence if CI exposes scanner assumptions.
-4. Deliver confirmed gameplay fixes as separate focused PRs only after the audit is reviewed.
+1. Obtain an actual focused Imbuement Validation workflow run or execute the documented commands in a full checkout.
+2. Inspect workflow logs and repair scanner/test assumptions if required.
+3. Re-check current `main`, PR mergeability, full changed-file list and shared-file overlap before readiness.
+4. Keep this audit PR read-only.
+5. Deliver confirmed gameplay fixes as separate focused PRs only after the audit is reviewed and validated.
 
 # Work log
 
@@ -130,8 +137,16 @@ No gameplay, XML, engine, map, asset, item-binary or production-configuration fi
 - Learned: the active XML is structurally complete at 72 entries; most current effects/materials align, but six discrepancy groups remain.
 - Confirmed defect: the active Lua action registers Vibrancy scroll IDs `51466` and `51746`, while XML provides no corresponding scroll mapping.
 - Confirmed reference mismatches: Strike values, Basic Punch source, two missing Powerful storage gates and the fee/success model.
-- Failed/blocked: GitHub returned no workflow runs or commit statuses for head `a249670a2dd8543174ff967d2fb9fdc9a7e0ad5b`; local clone/test execution is unavailable because DNS resolution for `github.com` fails in the execution container.
+- Failed/blocked: GitHub returned no workflow runs or commit statuses; local clone/test execution is unavailable because DNS resolution for `github.com` fails in the execution container.
 - Result: implementation and evidence are committed; validation remains explicitly `not-run`, not passed.
+
+## 2026-07-12T17:53:42Z
+
+- Changed: added `.github/workflows/imbuement-validation.yml`; refreshed `ACTIVE_WORK.md` and `MODULE_CATALOG.md` from current `main` while preserving narrow #166 entries; returned PR #166 to draft state.
+- Learned: connector-created commits and a close/reopen cycle still produced no workflow run or combined status for the checked heads.
+- Reviewed: the PR changed-file set contains only the focused workflow, scanner/tests, specialist docs and agent coordination records; no forbidden gameplay/map/asset paths are present.
+- Blocked: no verified Python/test/scanner execution is available yet, and shared coordination files overlap with PR #165.
+- Result: handoff and coordination now describe the real state; PR remains open, draft and unmerged.
 
 # Decisions
 
@@ -142,33 +157,37 @@ No gameplay, XML, engine, map, asset, item-binary or production-configuration fi
 | Separate the fee model from data corrections | Moving from chance/protection to fixed fees affects economy, UI/protocol and charging logic. | future ADR if changed |
 | Classify Vibrancy scrolls as a confirmed cross-file defect | Both IDs are registered by active Lua ranges but absent from the XML-derived scroll map. | none |
 | Do not invent Featherweight/Vibrancy storage IDs | Exact active quest completion storages must be traced before a data fix. | none |
-| Do not edit the shared project document or `ACTIVE_WORK.md` during overlap | Avoid path-ownership conflict with PR #165. | none |
+| Keep `OTS_AI_WORLD_VALIDATION_PROJECT.md` unchanged | The general methodology is reused as-is; a specialist report provides Imbuement-specific evidence. | none |
+| Retain narrow shared-index edits | Repository policy requires discoverability, but current-main content must be preserved and overlap re-resolved before merge. | none |
 
 # Files and interfaces
 
 | Path/interface/config/schema | Purpose | Status |
 |---|---|---|
+| `.github/workflows/imbuement-validation.yml` | focused Python tests, audit generation, JSON validation and artifact publication | implemented, no run emitted yet |
 | `tools/ai-agent/imbuement_validation.py` | deterministic XML/runtime/reference correlation scanner | implemented |
 | `tools/ai-agent/test_imbuement_validation.py` | focused parser/classifier/regression tests | implemented, not yet executed |
 | `docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md` | evidence report, findings, confidence and limitations | implemented |
 | `docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json` | machine-readable gameplay/runtime scenarios | implemented |
-| `docs/agents/MODULE_CATALOG.md` | reusable audit-tool discovery | updated |
+| `docs/agents/ACTIVE_WORK.md` | active-task discoverability | updated narrowly from current main |
+| `docs/agents/MODULE_CATALOG.md` | reusable audit-tool discovery | updated narrowly from current main |
 
 # Validation and CI
 
-| Commit | Command/check/workflow | Result | Evidence/notes |
+| Commit/head | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
-| `a249670a2dd8543174ff967d2fb9fdc9a7e0ad5b` | `python -m py_compile tools/ai-agent/imbuement_validation.py tools/ai-agent/test_imbuement_validation.py` | not-run | full checkout unavailable in execution container |
-| `a249670a2dd8543174ff967d2fb9fdc9a7e0ad5b` | `python -m unittest tools/ai-agent/test_imbuement_validation.py -v` | not-run | full checkout unavailable in execution container |
-| `a249670a2dd8543174ff967d2fb9fdc9a7e0ad5b` | scanner generation command from report | not-run | full checkout unavailable in execution container |
-| `a249670a2dd8543174ff967d2fb9fdc9a7e0ad5b` | AI Agent Tools workflow | not-run | GitHub API returned no workflow run/status for current head |
+| current PR head | `python -m py_compile tools/ai-agent/imbuement_validation.py tools/ai-agent/test_imbuement_validation.py` | not-run | full checkout unavailable in execution container |
+| current PR head | `python -m unittest discover -s tools/ai-agent -p "test_imbuement_validation.py" -v` | not-run | full checkout unavailable in execution container |
+| current PR head | scanner generation command from report | not-run | full checkout unavailable in execution container |
+| `92f44aae8267dcc7401a6ec9e11bbff2e6332143` and later heads | Imbuement Validation workflow / combined status | not-run | GitHub API returned no workflow run or status after workflow creation and PR reopen |
 
 Never write `passed` without verification.
 
 # Failed approaches and dead ends
 
 - Direct `git clone` / `git ls-remote` from the execution container fails because DNS resolution for `github.com` is unavailable.
-- GitHub Actions had not emitted a run or status for the current head when last checked; no result was inferred.
+- Connector-created commits did not emit a GitHub Actions run visible through the workflow-run or combined-status APIs.
+- Closing and reopening draft PR #166 did not emit a workflow run.
 - Static evidence cannot identify exact quest storage IDs for the two missing Powerful gates without tracing the corresponding quest completion paths.
 
 # Risks and compatibility
@@ -176,18 +195,20 @@ Never write `passed` without verification.
 - Runtime: no runtime change in the audit PR.
 - Data/migration: none.
 - Security: no secrets or player data.
-- Backward compatibility: report/tool only.
+- Backward compatibility: report/tool/workflow only.
 - Cross-repo rollout: none; no OTClient change is proposed.
 - Reference drift: the external baseline is dated 2026-07-12 and must be re-observed before future corrections.
-- Rollback: revert documentation/tool commits.
+- Shared indexes: PR #165 also edits `ACTIVE_WORK.md` and `MODULE_CATALOG.md`; resolve from current `main` before readiness.
+- Rollback: revert documentation/tool/workflow commits.
 
 # Remaining work
 
-1. Obtain an actual AI Agent Tools workflow run or execute the documented commands in a full checkout.
+1. Obtain an actual Imbuement Validation workflow run or execute the documented commands in a full checkout.
 2. Repair scanner/test assumptions if validation fails.
-3. Inspect complete changed-file list and diff.
-4. Update PR body and task validation table with exact results.
-5. Keep the PR unmerged until the autonomous merge gate is satisfied.
+3. Re-check current `main` and resolve the two shared coordination files.
+4. Inspect the complete changed-file list and diff again.
+5. Update the PR body and validation table with exact results.
+6. Keep the PR draft and unmerged until the autonomous merge gate is satisfied.
 
 # Handoff
 
@@ -195,12 +216,13 @@ Never write `passed` without verification.
 
 Read this task, then:
 
-1. inspect PR #166 and its current head;
+1. inspect PR #166, its current base/head and mergeability;
 2. read `docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md`;
-3. run `tools/ai-agent/test_imbuement_validation.py`;
+3. run `tools/ai-agent/test_imbuement_validation.py` through the focused workflow or a full checkout;
 4. run the scanner command from the report;
-5. inspect the AI Agent Tools workflow logs;
-6. verify the full changed-file list contains only the six read-only audit files plus this task/catalogue record.
+5. inspect the Imbuement Validation workflow logs and generated artifacts;
+6. verify the changed-file list contains exactly the focused workflow, scanner/tests, specialist docs and coordination records;
+7. re-resolve `ACTIVE_WORK.md` and `MODULE_CATALOG.md` from current `main` if either changed.
 
 ## Do not repeat
 
@@ -209,6 +231,7 @@ Read this task, then:
 - Do not modify `data/XML/imbuements.xml` in this audit PR.
 - Do not merge gameplay fixes into PR #166.
 - Do not claim runtime or CI success without an actual run.
+- Do not take stale shared-index content wholesale from either PR #165 or #166.
 
 ## Required reads
 
@@ -218,6 +241,7 @@ Read this task, then:
 - `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md`
 - `docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md`
 - `docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json`
+- `.github/workflows/imbuement-validation.yml`
 - `data/XML/imbuements.xml`
 - engine Imbuements sources and active shrine/scroll scripts
 - merged PR #86 and its focused tests
