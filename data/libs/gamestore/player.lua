@@ -2,6 +2,7 @@ local senders = require("gamestore.senders")
 local player = {}
 
 local sendStoreBalanceUpdating = senders.sendStoreBalanceUpdating
+local sendUpdatedStoreBalances = senders.sendUpdatedStoreBalances
 local sendShowStoreOffers = senders.sendShowStoreOffers
 local sendHomePage = senders.sendHomePage
 local openStorePacket = senders.openStore
@@ -198,16 +199,21 @@ end
 local function removeCoinsBalance(self, coins)
 	if self:canRemoveCoins(coins) then
 		sendStoreBalanceUpdating(self:getId(), true)
-		return self:removeTibiaCoins(coins) == true
+		local removed = self:removeTibiaCoins(coins) == true
+		sendUpdatedStoreBalances(self:getId())
+		return removed
 	end
 
 	return false
 end
 
 local function addCoinsBalance(self, coins, update)
-	self:addTibiaCoins(coins)
 	if update then
 		sendStoreBalanceUpdating(self:getId(), true)
+	end
+	self:addTibiaCoins(coins)
+	if update then
+		sendUpdatedStoreBalances(self:getId())
 	end
 	return true
 end
@@ -219,25 +225,29 @@ end
 local function removeTransferableCoinsBalance(self, coins)
 	if self:canRemoveTransferableCoins(coins) then
 		sendStoreBalanceUpdating(self:getId(), true)
-		return self:removeTransferableCoins(coins) == true
+		local removed = self:removeTransferableCoins(coins) == true
+		sendUpdatedStoreBalances(self:getId())
+		return removed
 	end
 
 	return false
 end
 
 local function addTransferableCoinsBalance(self, coins, update)
-	self:addTransferableCoins(coins)
 	if update then
 		sendStoreBalanceUpdating(self:getId(), true)
+	end
+	self:addTransferableCoins(coins)
+	if update then
+		sendUpdatedStoreBalances(self:getId())
 	end
 	return true
 end
 
 local function removeCombinedCoinsBalance(self, coins)
+	sendStoreBalanceUpdating(self:getId(), true)
 	local removed = self:removeTransferableAndTibiaCoins(coins) == true
-	if removed then
-		sendStoreBalanceUpdating(self:getId(), true)
-	end
+	sendUpdatedStoreBalances(self:getId())
 	return removed
 end
 
