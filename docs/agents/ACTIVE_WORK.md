@@ -6,7 +6,7 @@ Open pull requests and current changed files/checks are authoritative. This inde
 
 | PR | Branch | State | Area / reusable work | Primary paths | Coordination note |
 |---:|---|---|---|---|---|
-| [#149](https://github.com/blakinio/canary/pull/149) | `fix/the-beginning-zirella-wood` | ready | Authentic Zirella Collecting Wood progression | The Beginning quest Action, focused contract test, task record | No map change; exact tree/cart positions and current item/storage IDs. Depends on merged #146. |
+| [#156](https://github.com/blakinio/canary/pull/156) | `fix/the-beginning-zirella-door-rewards-clean` | draft | Zirella reward-room gate and current shovel/rope tutorial UIDs | UID50085 door Action, quest reward tutorial mapping, focused test | Clean post-#149 branch; no map, NPC, spawn, engine, or reward-content changes. Supersedes #153. |
 
 ## Rules
 
