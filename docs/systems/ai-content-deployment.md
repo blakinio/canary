@@ -152,6 +152,10 @@ Two workflows cover the deployment system:
   second real server smoke from the published release and validates the
   resulting manifest.
 
+The repository-wide CI also emits the required Linux release check for this
+workflow-only change, so branch protection cannot remain waiting for a check
+that was intentionally skipped.
+
 ## Operational integration
 
 The deployment command intentionally starts short-lived validation processes
