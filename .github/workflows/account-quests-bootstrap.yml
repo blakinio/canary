@@ -1,0 +1,31 @@
+---
+name: Account Quests Bootstrap
+
+on:
+  push:
+    branches:
+      - fix/account-quests-production-hardening
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/account-quests-production-hardening
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Apply hardening patch
+        run: python tools/account-quests/bootstrap_hardening.py
+      - name: Commit generated changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(account-quests): complete production hardening"
+          git push origin HEAD:fix/account-quests-production-hardening
