@@ -209,3 +209,22 @@ Start with the project document, this task, evidence report, runtime plan, PR #1
 - restored boosted-boss initialization when the table has no row;
 - added four source-contract regression tests covering all six corrections;
 - no protocol, schema, map, asset or player-data migration was added in this batch.
+
+## Work log update
+
+### 2026-07-12 22:45 Europe/Warsaw — Bestiary/Bosstiary data batch
+
+- assigned Monk's Apparition Bestiary ID `2636`;
+- assigned Crypt Warrior Bestiary ID `1995` and Undead race metadata;
+- added Bird, Mammal and Dragon numeric race metadata to the three affected definitions;
+- moved the alternate Eradicator form from Rupture ID `1225` to Eradicator ID `1226`;
+- added exact path-set allowlists for intentional shared forms; unexpected extra or missing forms still fail validation;
+- added full active-monster inventory and source-contract regression tests;
+- target result: zero Cyclopedia scanner findings.
+
+Evidence used before changing technical IDs:
+
+- Crypt Warrior uses Bestiary ID `1995` in an independent complete Bestiary registry; `1674` is already occupied by Skeleton Elite Warrior.
+- Monk's Apparition uses `2636` in two independent modern server datasets, while Druid's Apparition remains `1946`.
+- `eradicator2.lua` exposes the display name Eradicator and is an alternate Eradicator form; it now shares `1226` with `eradicator.lua` instead of colliding with Rupture `1225`.
+- Existing ambiguous historical counters are not copied or duplicated: `1946` remains Druid's Apparition, `1225` remains Rupture, and Eradicator forms use `1226`.
