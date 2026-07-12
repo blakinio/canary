@@ -12,12 +12,14 @@
 #include "config/configmanager.hpp"
 #include "database/database.hpp"
 #include "game/multichannel/channel_context.hpp"
+#include "game/multichannel/channel_runtime_registry.hpp"
 #include "lib/di/container.hpp"
 #include "lib/logging/log_with_spd_log.hpp"
 
 #ifndef USE_PRECOMPILED_HEADERS
 	#include <algorithm>
 	#include <array>
+	#include <chrono>
 	#include <fstream>
 	#include <sstream>
 #endif
@@ -33,6 +35,10 @@ namespace {
 			return std::nullopt;
 		}
 		return value;
+	}
+
+	int64_t wallClockMs() {
+		return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	}
 } // namespace
 
@@ -87,13 +93,16 @@ std::optional<ChannelInfo> ChannelRegistry::getChannel(int32_t channelId) const 
 }
 
 std::vector<ChannelInfo> ChannelRegistry::getLoginListChannels() const {
+	const auto snapshot = getAllChannels();
+	if (g_channelRuntimeRegistry().isEnabled()) {
+		return g_channelRuntimeRegistry().getLoginListChannels(snapshot, wallClockMs());
+	}
+
 	std::vector<ChannelInfo> selectable;
-	{
-		std::lock_guard lock(mutex);
-		for (const auto &info : channels) {
-			if (info.isSelectable()) {
-				selectable.push_back(info);
-			}
+	selectable.reserve(snapshot.size());
+	for (const auto &info : snapshot) {
+		if (info.isSelectable()) {
+			selectable.push_back(info);
 		}
 	}
 	std::sort(selectable.begin(), selectable.end(), [](const ChannelInfo &a, const ChannelInfo &b) {
