@@ -4,6 +4,7 @@ Curated behavior/architecture log for discovery; not a replacement for Git histo
 
 ## Unreleased
 
+- Gameplay Analytics correctness hardening in PR #135 adds UTC day rollover, persistence eligibility requiring combat/death, retention of short death sessions, truthful dead-letter reporting, rune-charge-aware supply costs, configurable maintenance `LEVEL_BRACKETS`, and dimension-safe Grafana series.
 - Added persistent multi-agent coordination, autonomous PR/CI/merge rules, active-work discovery, module catalogue, task/handoff templates, ADRs, and cross-repository contracts.
 
 ## 2026-07-12 bootstrap inventory
