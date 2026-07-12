@@ -4,7 +4,7 @@
 >
 > Repository: `blakinio/canary`
 >
-> Verified `main` at refresh start: `17a392cad0e25ad20765c1bc428fca744a691cc6`
+> Verified `main`: `95244309453e980ac0377379f8ba5605ca3aba6b`
 >
 > Purpose: current source of truth for agents continuing the engine architecture work.
 
@@ -51,8 +51,9 @@ Harden and modularize Canary without breaking existing clients or datapacks. The
 
 ### Instance foundation
 
-- PR #107 — `InstanceManager` lifecycle/registry foundation with strong IDs, fixed slot capacity, timeout and concurrency tests.
-- PR #121 — thread-safe `MapRegionPool` with 3D overlap validation, deterministic reservation, release/reuse and concurrency tests.
+- PR #107 — `InstanceManager` lifecycle/registry foundation with strong IDs, timeout and concurrency tests.
+- PR #121 — thread-safe `InstanceRegionPool` with 3D overlap validation, deterministic reservation, release/reuse and concurrency tests.
+- PR #151 — integrates `InstanceRegionPool` into `InstanceManager`; each instance owns one concrete map region, close releases it only after successful cleanup, and failed cleanup quarantines the region. Full Linux, Windows, macOS and Docker CI passed. Merge commit: `95244309453e980ac0377379f8ba5605ca3aba6b`.
 
 ### CI reliability
 
@@ -64,6 +65,8 @@ Harden and modularize Canary without breaking existing clients or datapacks. The
 - PR #69 — registry/schema/config and cluster primitives.
 - PR #74 — Redis-backed cluster session lifecycle.
 - PR #102 — house ownership mirror.
+- PR #148 — `cluster_sessions` DB dual-write defense-in-depth layer.
+- PR #152 — economic-ledger idempotency for market-offer expiry.
 
 Do not extend these phases as part of the engine architecture roadmap below.
 
@@ -71,44 +74,43 @@ Do not extend these phases as part of the engine architecture roadmap below.
 
 At the time of this refresh, notable separate open work includes:
 
-- PR #136 — multi-channel runtime heartbeat and fail-closed availability; outside current scope and previously had real cross-platform compile failures.
-- PR #148 — multi-channel `cluster_sessions` DB dual-write; outside current scope.
-- PR #147 — draft OTBM HD sprite pipeline; separate AI/map tooling work.
-- PR #149 — draft The Beginning/Zirella quest repair; separate gameplay work.
+- PR #136 — multi-channel runtime heartbeat and fail-closed availability; outside current scope.
+- PR #155 — checksum-free transport framing correction; relevant to the later packet-level protocol E2E phase but independent from instance ownership.
+- PR #156 and #157 — The Beginning quest repairs; gameplay-only and outside the engine architecture roadmap.
 
 Every agent must query GitHub again before editing because this list changes quickly.
 
-## Remaining roadmap
+## Current engine workstream
 
-### A. Connect `MapRegionPool` to `InstanceManager`
+### Creature and spawn ownership
 
-This is the next engine-architecture PR.
+This is the next engine-architecture phase.
+
+The first PR should establish ownership metadata and lifecycle-safe registration without attempting every cleanup and visibility rule at once.
 
 Requirements:
 
-- `InstanceManager` reserves a concrete `MapRegion` when creating an instance;
-- the instance record exposes its reserved region read-only;
-- creation fails atomically when no region is available;
-- close releases the region only after cleanup succeeds or the defined failure policy completes;
-- repeated close/release remains idempotent;
-- timeout close uses the same path as explicit close;
-- no full map copy;
-- no global singleton;
-- no multiworld or channel identifier.
+- `Creature` can carry `InstanceId::Invalid` for the normal world or one valid instance owner;
+- ownership is read-only to general callers and changed only through explicit engine APIs;
+- summons inherit the master's instance ownership;
+- an instance-aware spawn assigns its owner to created monsters;
+- default global spawns and creatures remain unowned and preserve current behavior;
+- `InstanceManager` can register and unregister stable creature identities per instance without owning creature pointers;
+- registration rejects unknown, closing or destroyed instances;
+- close prevents new registrations before cleanup begins;
+- tests prove no cross-instance registration and no ownership inheritance regression.
 
-Tests:
+Follow-up requirements in the same phase:
 
-- successful create binds exactly one region;
-- capacity is determined by region availability;
-- close returns the same region to the pool;
-- concurrent create never double-reserves a region;
-- concurrent/repeated close releases once;
-- cleanup failure cannot silently expose a dirty region for reuse;
-- timeout close releases through the same lifecycle.
+- NPC ownership;
+- instance-created spawn ownership and cleanup;
+- cross-instance visibility/targeting rules where required by the map model;
+- removal of all owned creatures before region release;
+- proof that region reuse does not expose stale entities.
 
-### B. Creature and spawn ownership
+## Remaining roadmap
 
-After the region integration merges:
+### A. Creature and spawn ownership
 
 - associate monsters, summons, NPCs and instance-created spawns with `InstanceId`;
 - default/non-instanced entities retain current behavior;
@@ -116,7 +118,7 @@ After the region integration merges:
 - remove owned entities during close;
 - prove no entity leaks remain after region reuse.
 
-### C. Scheduler and event ownership
+### B. Scheduler and event ownership
 
 - tag scheduled tasks/events with `InstanceId`;
 - cancel or invalidate callbacks during close;
@@ -124,7 +126,7 @@ After the region integration merges:
 - test close racing a pending callback;
 - preserve current behavior for unowned global events.
 
-### D. Player enter/leave API
+### C. Player enter/leave API
 
 - validated entry into an active instance;
 - remember a safe return position;
@@ -133,7 +135,7 @@ After the region integration merges:
 - define logout, reconnect, death and timeout behavior;
 - ensure no player is stranded in a reusable region.
 
-### E. Lua API
+### D. Lua API
 
 Suggested minimal API:
 
@@ -153,7 +155,7 @@ Requirements:
 - validation and permission rules;
 - focused Lua tests.
 
-### F. Cleanup and recovery
+### E. Cleanup and recovery
 
 - remove temporary creatures, items, spawns and callbacks;
 - evacuate players before region release;
@@ -162,7 +164,7 @@ Requirements:
 - metrics/logging for failed cleanup;
 - startup/recovery policy for referenced or interrupted instances.
 
-### G. Two-instance end-to-end test
+### F. Two-instance end-to-end test
 
 Prove that two simultaneous instances:
 
@@ -172,7 +174,7 @@ Prove that two simultaneous instances:
 - return players safely;
 - release and reuse regions without stale state.
 
-### H. Protocol/session end-to-end verification
+### G. Protocol/session end-to-end verification
 
 The unit-level transport and token work is merged. A packet-level integration harness still needs to prove:
 
@@ -184,20 +186,20 @@ The unit-level transport and token work is merged. A packet-level integration ha
 - Adler32, sequence checksum, no-checksum and compression profiles remain compatible;
 - malformed and truncated encrypted frames are rejected.
 
-This work can run in parallel if no active PR touches `ProtocolLogin`, `ProtocolGame`, `IOLoginData`, transport codecs or protocol profiles.
+This work can run in parallel if no active PR touches `ProtocolLogin`, `ProtocolGame`, `IOLoginData`, transport codecs or protocol profiles. PR #155 currently touches this area, so protocol E2E work must wait for it to merge or close.
 
 ## Recommended execution order
 
 ```text
-MapRegionPool ↔ InstanceManager integration
-    └─> creature/spawn ownership
+creature ownership metadata and manager registry
+    └─> spawn/NPC ownership and creature cleanup
           └─> scheduler/event ownership
                 └─> player enter/leave
                       └─> Lua API
                             └─> cleanup/recovery
                                   └─> two-instance E2E
 
-Protocol/session packet-level E2E may run in parallel when file ownership is clear.
+Protocol/session packet-level E2E starts after current transport PR collisions clear.
 ```
 
 ## CI gate
@@ -247,7 +249,7 @@ After each merge, update this file with:
 
 The engine architecture program is complete when:
 
-- `MapRegionPool` is integrated with `InstanceManager`;
+- concrete region ownership is integrated with `InstanceManager` — completed by PR #151;
 - creature/spawn and scheduler/event ownership are merged;
 - player enter/leave and Lua APIs are merged;
 - cleanup/recovery and two-instance isolation tests pass;
