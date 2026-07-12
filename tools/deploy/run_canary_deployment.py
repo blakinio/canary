@@ -26,7 +26,7 @@ def _repo_path(repo_root: Path, value: Path) -> Path:
 def parse_args() -> argparse.Namespace:
     default_repo_root = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", required=True, type=Path, help="Reviewed overlay relative to the base datapack root.")
+    parser.add_argument("--source", required=True, type=Path, help="Reviewed overlay. Relative paths are resolved from --repo-root.")
     parser.add_argument("--base-datapack", required=True, type=Path, help="Complete trusted datapack used as the staging base.")
     parser.add_argument("--releases-root", required=True, type=Path, help="Pre-provisioned atomic deployment root.")
     parser.add_argument("--release-id", required=True)
@@ -74,6 +74,17 @@ def _write_manifest(args: argparse.Namespace, manifest: DeploymentManifest, rele
     manifest.write(output)
 
 
+def _failed_preflight_manifest(args: argparse.Namespace, status: str, detail: str) -> DeploymentManifest:
+    manifest = _new_manifest(args)
+    manifest.preflight_status = status
+    manifest.preflight_detail = detail
+    manifest.switch_status = "skipped"
+    manifest.health_check_status = "skipped"
+    manifest.rollback_status = "not-needed"
+    manifest.outcome = "failed-preflight" if status == "failed" else "failed-assembly"
+    return manifest
+
+
 def main() -> int:
     args = parse_args()
 
@@ -82,19 +93,23 @@ def main() -> int:
         return 2
 
     repo_root = args.repo_root.resolve(strict=True)
-    source = args.source.resolve(strict=True)
+    source = _repo_path(repo_root, args.source).resolve(strict=True)
     base_datapack = _repo_path(repo_root, args.base_datapack).resolve(strict=True)
     releases_root = args.releases_root.resolve(strict=True)
     binary = _repo_path(repo_root, args.binary_path).resolve(strict=True)
-    workspace_root = args.workspace_root or (repo_root / "build/deployment-staging")
+    workspace_root = _repo_path(repo_root, args.workspace_root) if args.workspace_root else (repo_root / "build/deployment-staging")
     workspace_root.mkdir(parents=True, exist_ok=True)
+
+    map_cache_path = None
+    if args.map_cache_path:
+        map_cache_path = _repo_path(repo_root, args.map_cache_path)
 
     smoke_settings = CanarySmokeSettings(
         repo_root=repo_root,
         binary_path=binary,
         map_name=args.map_name,
         map_download_url=args.map_download_url,
-        map_cache_path=args.map_cache_path,
+        map_cache_path=map_cache_path,
         db_host=args.db_host,
         db_port=args.db_port,
         db_user=args.db_user,
@@ -110,16 +125,18 @@ def main() -> int:
 
     workspace = Path(tempfile.mkdtemp(prefix=f"{args.release_id}-", dir=workspace_root))
     try:
-        assembled = assemble_staging_datapack(base_datapack, source, workspace / "datapack")
+        try:
+            assembled = assemble_staging_datapack(base_datapack, source, workspace / "datapack")
+        except Exception as exc:
+            detail = f"staging assembly failed: {type(exc).__name__}: {exc}"
+            manifest = _failed_preflight_manifest(args, "failed-assembly", detail)
+            _write_manifest(args, manifest, releases_root)
+            print(json.dumps(manifest.to_json(), indent=2, ensure_ascii=False))
+            return 1
+
         preflight = run_canary_smoke(assembled, smoke_settings, phase="preflight")
         if not preflight.healthy:
-            manifest = _new_manifest(args)
-            manifest.preflight_status = "failed"
-            manifest.preflight_detail = preflight.detail
-            manifest.switch_status = "skipped"
-            manifest.health_check_status = "skipped"
-            manifest.rollback_status = "not-needed"
-            manifest.outcome = "failed-preflight"
+            manifest = _failed_preflight_manifest(args, "failed", preflight.detail)
             _write_manifest(args, manifest, releases_root)
             print(json.dumps(manifest.to_json(), indent=2, ensure_ascii=False))
             return 1
