@@ -10,7 +10,10 @@ on:
       - "data-otservbr-global/scripts/lib/gameplay_analytics_schema.lua"
       - "data-otservbr-global/scripts/lib/gameplay_analytics_batching.lua"
       - "data-otservbr-global/scripts/lib/gameplay_analytics_reliability.lua"
+      - "data-otservbr-global/scripts/lib/gameplay_analytics_correctness.lua"
       - "data-otservbr-global/scripts/systems/gameplay_analytics.lua"
+      - "data/scripts/runes/fireball.lua"
+      - "data/scripts/runes/intense_healing_rune.lua"
       - "schema/gameplay_analytics.sql"
       - "schema/gameplay_analytics_migrations/**"
       - "docs/systems/gameplay-analytics.md"
@@ -25,6 +28,7 @@ on:
       - "tools/analytics/migrate_gameplay_analytics.sh"
       - "tools/analytics/test_gameplay_analytics_batching.lua"
       - "tools/analytics/test_gameplay_analytics_context.lua"
+      - "tools/analytics/test_gameplay_analytics_correctness.lua"
       - "tools/analytics/test_gameplay_analytics_reliability.lua"
       - "tools/analytics/test_gameplay_analytics_schema.lua"
       - "tools/analytics/test_mariadb_integration.sh"
@@ -32,12 +36,14 @@ on:
       - "tools/analytics/test_validate_gameplay_analytics.py"
       - "tools/analytics/test_validate_gameplay_analytics_batching.py"
       - "tools/analytics/test_validate_gameplay_analytics_context.py"
+      - "tools/analytics/test_validate_gameplay_analytics_correctness.py"
       - "tools/analytics/test_validate_gameplay_analytics_deployment.py"
       - "tools/analytics/test_validate_gameplay_analytics_reliability.py"
       - "tools/analytics/test_validate_gameplay_analytics_migrations.py"
       - "tools/analytics/validate_gameplay_analytics.py"
       - "tools/analytics/validate_gameplay_analytics_batching.py"
       - "tools/analytics/validate_gameplay_analytics_context.py"
+      - "tools/analytics/validate_gameplay_analytics_correctness.py"
       - "tools/analytics/validate_gameplay_analytics_deployment.py"
       - "tools/analytics/validate_gameplay_analytics_reliability.py"
       - "tools/analytics/validate_gameplay_analytics_migrations.py"
@@ -51,7 +57,10 @@ on:
       - "data-otservbr-global/scripts/lib/gameplay_analytics_schema.lua"
       - "data-otservbr-global/scripts/lib/gameplay_analytics_batching.lua"
       - "data-otservbr-global/scripts/lib/gameplay_analytics_reliability.lua"
+      - "data-otservbr-global/scripts/lib/gameplay_analytics_correctness.lua"
       - "data-otservbr-global/scripts/systems/gameplay_analytics.lua"
+      - "data/scripts/runes/fireball.lua"
+      - "data/scripts/runes/intense_healing_rune.lua"
       - "schema/gameplay_analytics.sql"
       - "schema/gameplay_analytics_migrations/**"
       - "docs/systems/gameplay-analytics.md"
@@ -66,6 +75,7 @@ on:
       - "tools/analytics/migrate_gameplay_analytics.sh"
       - "tools/analytics/test_gameplay_analytics_batching.lua"
       - "tools/analytics/test_gameplay_analytics_context.lua"
+      - "tools/analytics/test_gameplay_analytics_correctness.lua"
       - "tools/analytics/test_gameplay_analytics_reliability.lua"
       - "tools/analytics/test_gameplay_analytics_schema.lua"
       - "tools/analytics/test_mariadb_integration.sh"
@@ -73,12 +83,14 @@ on:
       - "tools/analytics/test_validate_gameplay_analytics.py"
       - "tools/analytics/test_validate_gameplay_analytics_batching.py"
       - "tools/analytics/test_validate_gameplay_analytics_context.py"
+      - "tools/analytics/test_validate_gameplay_analytics_correctness.py"
       - "tools/analytics/test_validate_gameplay_analytics_deployment.py"
       - "tools/analytics/test_validate_gameplay_analytics_reliability.py"
       - "tools/analytics/test_validate_gameplay_analytics_migrations.py"
       - "tools/analytics/validate_gameplay_analytics.py"
       - "tools/analytics/validate_gameplay_analytics_batching.py"
       - "tools/analytics/validate_gameplay_analytics_context.py"
+      - "tools/analytics/validate_gameplay_analytics_correctness.py"
       - "tools/analytics/validate_gameplay_analytics_deployment.py"
       - "tools/analytics/validate_gameplay_analytics_reliability.py"
       - "tools/analytics/validate_gameplay_analytics_migrations.py"
@@ -103,6 +115,8 @@ jobs:
         run: python tools/analytics/validate_gameplay_analytics_batching.py
       - name: Validate gameplay analytics reliability contract
         run: python tools/analytics/validate_gameplay_analytics_reliability.py
+      - name: Validate gameplay analytics correctness contract
+        run: python tools/analytics/validate_gameplay_analytics_correctness.py
       - name: Validate gameplay analytics migration contract
         run: python tools/analytics/validate_gameplay_analytics_migrations.py
       - name: Validate gameplay analytics deployment contract
@@ -135,6 +149,8 @@ jobs:
         run: luajit tools/analytics/test_gameplay_analytics_batching.lua
       - name: Run gameplay analytics Lua reliability test
         run: luajit tools/analytics/test_gameplay_analytics_reliability.lua
+      - name: Run gameplay analytics Lua correctness test
+        run: luajit tools/analytics/test_gameplay_analytics_correctness.lua
       - name: Run gameplay analytics Lua schema test
         run: luajit tools/analytics/test_gameplay_analytics_schema.lua
       - name: Parse SQL schema
