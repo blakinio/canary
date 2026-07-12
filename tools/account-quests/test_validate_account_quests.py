@@ -15,7 +15,16 @@ class AccountQuestValidatorTest(unittest.TestCase):
     def test_repository_contract(self) -> None:
         configured = validator.configured_quest_ids(self.config)
         integrated = validator.integrated_quest_ids()
-        self.assertEqual({"the-ape-city", "secret-service"}, integrated)
+        self.assertEqual(
+            {
+                "the-ape-city",
+                "secret-service",
+                "in-service-of-yalahar",
+                "the-new-frontier",
+                "wrath-of-the-emperor",
+            },
+            integrated,
+        )
         self.assertFalse(integrated - configured)
         validator.validate_runtime(self.runtime)
         validator.validate_door_integration(self.doors)
@@ -59,6 +68,36 @@ class AccountQuestValidatorTest(unittest.TestCase):
             1,
         )
         with self.assertRaisesRegex(AssertionError, "ordinary quest doors"):
+            validator.validate_door_integration(broken)
+
+    def test_rejects_shared_yalahar_final_fight(self) -> None:
+        marker = 'addAccountQuestDoor(yalahar.DoorToMatrix, "in-service-of-yalahar")'
+        broken = self.doors.replace(
+            marker,
+            marker + '\naddAccountQuestDoor(yalahar.DoorToLastFight, "in-service-of-yalahar")',
+            1,
+        )
+        with self.assertRaisesRegex(AssertionError, "final fight"):
+            validator.validate_door_integration(broken)
+
+    def test_rejects_shared_new_frontier_reward_door(self) -> None:
+        marker = 'addAccountQuestDoor(newFrontier.Mission09 and newFrontier.Mission09.ArenaDoor, "the-new-frontier")'
+        broken = self.doors.replace(
+            marker,
+            marker
+            + '\naddAccountQuestDoor(newFrontier.Mission09 and newFrontier.Mission09.RewardDoor, "the-new-frontier")',
+            1,
+        )
+        with self.assertRaisesRegex(AssertionError, "reward door"):
+            validator.validate_door_integration(broken)
+
+    def test_rejects_sharing_wrath_reward_stage(self) -> None:
+        broken = self.doors.replace(
+            'addAccountQuestDoor(wrath.Mission12, "wrath-of-the-emperor", true, false)',
+            'addAccountQuestDoor(wrath.Mission12, "wrath-of-the-emperor", true)',
+            1,
+        )
+        with self.assertRaisesRegex(AssertionError, "Mission 12"):
             validator.validate_door_integration(broken)
 
 
