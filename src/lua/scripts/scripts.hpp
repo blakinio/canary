@@ -13,6 +13,8 @@
 
 class Scripts {
 public:
+	Scripts();
+
 	// non-copyable
 	Scripts(const Scripts &) = delete;
 	Scripts &operator=(const Scripts &) = delete;
@@ -29,7 +31,6 @@ public:
 
 private:
 	LuaScriptInterface scriptInterface;
-	Scripts();
 };
 
 constexpr auto g_scripts = Scripts::getInstance;

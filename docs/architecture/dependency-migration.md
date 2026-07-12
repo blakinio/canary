@@ -3,26 +3,22 @@
 ## Starting point
 
 The premise that Canary still needs a broad migration from raw `g_x()` Meyers
-singletons to dependency injection is mostly outdated in this fork. The
-repository already has a working `boost::di` container under `src/lib/di/`, and
-most accessors follow this compatibility-preserving path:
+singletons to dependency injection is outdated in this fork. The repository
+already has a working `boost::di` container under `src/lib/di/`, and the normal
+compatibility-preserving path is:
 
 ```text
 global function -> dependency accessor using inject<T>() -> constructor injection where useful
 ```
 
-`ConfigManager`, `Database`, `Dispatcher`, `Game`, `Logger` and most other
-shared services already resolve through `inject<T>()`. The default container
-still returns one shared production instance, while tests can install an
-isolated container with `DI::setTestContainer()`.
+`ConfigManager`, `Database`, `Dispatcher`, `Game`, `Logger` and the other
+standard services resolve through `inject<T>()`. The default container still
+returns one shared production instance, while tests can install an isolated
+container with `DI::setTestContainer()`.
 
-The useful remaining work is therefore:
-
-1. migrate the few raw accessors that were missed;
-2. use constructor injection only in modules where it provides concrete
-   isolation or testability benefits;
-3. defer map/world ownership changes until the instance subsystem actually
-   needs them.
+The accessor migration is now complete for non-multichannel code. Future work
+is limited to constructor injection in modules where it provides concrete
+instance isolation or testability benefits.
 
 ## Audit summary
 
@@ -42,7 +38,7 @@ The useful remaining work is therefore:
 | `g_saveManager` | `SaveManager` | DI-backed | process-global |
 | `g_gameReload` | `GameReload` | DI-backed | process-global |
 | `g_modules` | `Modules` | DI-backed | process-global |
-| `g_scripts` | `Scripts` | **raw Meyers** | process-global, real callers |
+| `g_scripts` | `Scripts` | DI-backed by the Scripts migration | process-global, isolated in tests |
 | `g_luaEnvironment` | `LuaEnvironment` | DI-backed | process-global |
 | `g_callbacks` | `EventsCallbacks` | DI-backed | process-global |
 | `g_globalEvents` | `GlobalEvents` | DI-backed | world-dependent |
@@ -66,7 +62,7 @@ The useful remaining work is therefore:
 | `g_iobestiary` | `IOBestiary` | DI-backed | world-dependent |
 | `g_ioBosstiary` | `IOBosstiary` | DI-backed | world-dependent |
 | `g_ioprey` | `IOPrey` | DI-backed | world-dependent |
-| `g_counterPointer` | `SharedPtrManager` | migrated by this change | easy to isolate |
+| `g_counterPointer` | `SharedPtrManager` | DI-backed by PR #117 | easy to isolate |
 | `g_channelContext` | `ChannelContext` | DI-backed | multi-channel |
 | `g_channelRegistry` | `ChannelRegistry` | DI-backed | multi-channel |
 | `g_clusterRuntime` | `ClusterRuntime` | raw Meyers | multi-channel, out of scope |
@@ -100,59 +96,55 @@ paused, so this migration does not modify them.
 
 ### Proven test seams
 
-`Logger` already has test implementations. After this migration,
-`SharedPtrManager` can also be resolved from an isolated test container while
-production callers continue receiving the same default shared instance.
+`Logger` already has test implementations. `SharedPtrManager` and `Scripts`
+can now also be resolved from isolated test containers while production
+callers continue receiving their normal default shared instances.
 
 ## SharedPtrManager migration
 
-`SharedPtrManager::getInstance()` previously returned a function-local static:
-
-```cpp
-static SharedPtrManager instance;
-return instance;
-```
-
-It now uses the same accessor pattern as the rest of the engine:
+PR #117 changed `SharedPtrManager::getInstance()` from a function-local static
+to:
 
 ```cpp
 return inject<SharedPtrManager>();
 ```
 
-No explicit binding is needed because it is a concrete default-constructible
-class. The default container still provides one shared instance. Tests cover:
+Tests cover default-container identity, isolated test-container resolution,
+normal `store()`/cleanup behavior and RAII restoration of the previous test
+container.
 
-- default-container identity through both `getInstance()` and
-  `g_counterPointer()`;
-- isolation through a test-installed injector;
-- normal `store()` and `countAllReferencesAndClean()` behavior using the
-  default container, which includes the real logger binding;
-- RAII restoration of the previous test container.
+## Scripts migration
 
-## Next migration
-
-The next small PR should migrate `g_scripts()` / `Scripts`, the remaining
-non-multichannel raw Meyers singleton with real callers.
-
-Expected change:
+`Scripts::getInstance()` now follows the same pattern:
 
 ```cpp
-Scripts &Scripts::getInstance() {
-    return inject<Scripts>();
-}
+return inject<Scripts>();
 ```
 
-Requirements:
+The constructor is public so Boost.DI can construct the concrete service and a
+test injector can create an isolated instance. This does not create a second
+Lua runtime: every `LuaScriptInterface` still attaches to the process-wide
+`LuaEnvironment`, while each interface owns a separate Lua registry reference
+and releases only that reference in its destructor.
 
-- inventory all `g_scripts()` callers;
-- keep production behavior unchanged;
-- add a default-container identity test;
-- add an isolated-container test where construction permits it;
-- run the complete C++ build and runtime smoke matrix;
-- do not combine this accessor migration with call-site constructor injection.
+Tests are intentionally limited to identity and isolation. They do not load,
+clear or register gameplay scripts and therefore do not mutate production Lua
+registries.
 
-After that, constructor injection should be introduced one consumer/module at
-a time only when needed by tests or the `InstanceManager` integration.
+## Remaining dependency work
+
+There is no remaining broad accessor migration in the active workstream.
+Constructor injection should be introduced only when a concrete consumer needs
+one of these seams, for example:
+
+- an instance-owned scheduler/event context;
+- map-region cleanup tests;
+- a module that currently cannot be tested without reaching a process-global
+  service.
+
+Each consumer migration must remain a small, behavior-preserving PR. The
+`g_*()` accessor may stay as the production wiring adapter while constructors
+receive explicit references in the code under test.
 
 ## Map and InstanceManager boundary
 
