@@ -28,28 +28,52 @@ an explicit component such as `Game`.
 configured region list. There is no second vector-based slot allocator and no
 independent capacity counter.
 
-Instance creation now:
+Instance creation:
 
 1. reserves the first free configured `InstanceMapRegion`;
 2. stores the complete region in the instance record;
 3. exposes the region through a read-only copy returned by `getRegion()`;
 4. fails without creating a record when every region is reserved.
 
-Instance close now:
+Instance close:
 
-1. marks the record `Closing`;
+1. marks the record `Closing`, which immediately blocks new ownership
+   registrations;
 2. runs caller-supplied cleanup outside the manager lock and passes the complete
    reserved region;
-3. releases the region only after cleanup returns successfully;
-4. marks the record `Destroyed`.
+3. verifies that the creature identity registry is empty;
+4. releases the region only after cleanup returns successfully and no registered
+   creature remains;
+5. marks the record `Destroyed`.
 
-If cleanup throws, the instance remains `Closing` and its region stays reserved.
-This deliberately quarantines potentially dirty map space instead of exposing
-it to another instance. Retry/recovery policy belongs to the later cleanup and
-recovery phase.
+If cleanup throws or leaves a registered creature behind, the instance remains
+`Closing` and its region stays reserved. This deliberately quarantines
+potentially dirty map space instead of exposing it to another instance.
+Retry/recovery policy belongs to the later cleanup and recovery phase.
 
 `availableSlotCount()` and `totalSlotCount()` are compatibility names whose
-values now come directly from the region pool.
+values come directly from the region pool.
+
+## Creature identity ownership foundation
+
+`InstanceManager` maintains a bidirectional ownership index using stable runtime
+creature ids (`Creature::getID()` values). It does not retain raw or shared
+creature pointers.
+
+The registry contract is:
+
+- id `0` is invalid because it means runtime identity has not been assigned;
+- registration is allowed only while an instance is `Creating` or `Active`;
+- registering the same id with the same instance is idempotent;
+- one creature id cannot be registered to two instances;
+- cleanup can enumerate ids deterministically and unregister them while the
+  instance is `Closing`;
+- a non-empty registry prevents region release and quarantines the instance;
+- destroyed or unknown instances cannot be mutated.
+
+This PR establishes lifecycle-safe bookkeeping only. A follow-up wires the
+registry to `Creature`, summon inheritance, instance-aware spawns and actual
+creature removal.
 
 ## Map region pool
 
@@ -91,18 +115,22 @@ creatures.
 
 ## Remaining integration sequence
 
-1. **Creature/spawn ownership**: creatures, summons, NPCs and spawn products
-   created for an instance carry `InstanceId`; cleanup can enumerate them.
-2. **Scheduler/event ownership**: scheduled callbacks carry `InstanceId`, are
+1. **Creature metadata and spawn wiring**: creatures, summons, NPCs and spawn
+   products created for an instance carry `InstanceId` and register their stable
+   runtime ids; cleanup removes them.
+2. **Cross-instance isolation**: visibility, targeting and ownership changes are
+   rejected across instance boundaries while normal-world behavior stays
+   unchanged.
+3. **Scheduler/event ownership**: scheduled callbacks carry `InstanceId`, are
    invalidated on close and cannot execute against destroyed state. The timeout
    sweep gets an actual periodic owner.
-3. **Player enter/leave**: validated entry, safe return position, closing,
+4. **Player enter/leave**: validated entry, safe return position, closing,
    logout, death and reconnect behavior.
-4. **Lua API**: create/get/enter/leave/close/state with stable errors and no raw
+5. **Lua API**: create/get/enter/leave/close/state with stable errors and no raw
    pointer exposure.
-5. **Cleanup/recovery**: evacuate players, remove temporary creatures/items,
+6. **Cleanup/recovery**: evacuate players, remove temporary creatures/items,
    cancel timers, define retry policy and return quarantined regions safely.
-6. **Two parallel instances E2E**: prove region, creature, player and event
+7. **Two parallel instances E2E**: prove region, creature, player and event
    isolation and clean region reuse.
 
 ## Tests
@@ -113,6 +141,10 @@ creatures.
 - binding a concrete configured region to every instance;
 - capacity derived from region availability;
 - exactly-once cleanup with the concrete region;
+- stable creature id registration and deterministic enumeration;
+- same-owner idempotency and cross-instance ownership rejection;
+- cleanup-time unregistration;
+- creature-leak quarantine before region release;
 - region release and deterministic reuse;
 - cleanup-failure quarantine;
 - concurrent create/close behavior.
@@ -132,4 +164,5 @@ creatures.
 - no multiworld identifiers;
 - no channel identifiers;
 - no global `InstanceManager` singleton;
-- no creature, scheduler, player or Lua integration in the region-binding PR.
+- no creature pointer ownership in `InstanceManager`;
+- no spawn, scheduler, player or Lua integration in the creature-registry PR.
