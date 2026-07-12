@@ -41,7 +41,6 @@
         24894,
         24895,
         24896,
-        26002,
         26688,
         26698,
         26701,
@@ -111,6 +110,15 @@
       "disposition": "needs-manual-review",
       "reason": "No active runtime handler was confirmed by the current resolver. Preserve the map attribute and review its gameplay purpose before deleting, remapping, or implementing a script.",
       "source": "2026-07-12 full-map audit of otservbr(2).otbm"
+    },
+    {
+      "namespace": "actionId",
+      "values": [
+        26002
+      ],
+      "disposition": "legacy-unused",
+      "reason": "Soul War Ebb and Flow boat transitions are handled by the active position-registered MoveEvent ebbAndFlowBoatTeleports. The actionId itself is not read by the datapack or engine; 64 of 71 marked positions match active position registrations, while the handler registers 109 additional positions without this actionId. Preserve the map attributes until a separate cleanup is explicitly approved.",
+      "source": "2026-07-12 manual review of otservbr(3).otbm; docs/ai-agent/OTBM_ACTIONID_26002_REVIEW.md"
     },
     {
       "namespace": "uniqueId",
