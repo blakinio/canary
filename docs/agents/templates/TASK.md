@@ -33,16 +33,18 @@ State one exact, observable outcome.
 
 # Acceptance criteria
 
-- [ ] Observable behavior/artifact.
-- [ ] Relevant checks completed.
+- [ ] Observable behavior or artifact.
+- [ ] Relevant focused checks completed.
+- [ ] Current-head GitHub checks verified.
 - [ ] Module catalogue impact handled or none.
 - [ ] Documentation/changelog impact handled or none.
+- [ ] Program queue/handoff impact handled or none.
 - [ ] Cross-repository impact handled or none.
 - [ ] Autonomous merge gate satisfied.
 
 # Confirmed context
 
-Verified facts, commits/PRs, versions, constraints; mark assumptions.
+Verified facts, commits, PRs, versions, and constraints; mark assumptions and uncertainty explicitly.
 
 # Existing work to reuse
 
@@ -55,11 +57,18 @@ Verified facts, commits/PRs, versions, constraints; mark assumptions.
 - Program record:
 - Open PRs inspected:
 - Active tasks inspected:
+- Ownership checker result:
 - Exclusive claims:
 - Shared claims:
 - Read-only dependencies:
 - Overlaps:
 - Resolution:
+
+Before implementation, run when a local checkout is available:
+
+```text
+python tools/agents/task_ownership.py
+```
 
 # Current state
 
@@ -94,7 +103,7 @@ Verified facts, commits/PRs, versions, constraints; mark assumptions.
 |---|---|---|---|
 | | | not-run | |
 
-Never write `passed` without verification.
+Never write `passed` without verification on the stated commit.
 
 # Failed approaches and dead ends
 
@@ -122,9 +131,9 @@ Never write `passed` without verification.
 - `AGENTS.md`
 - `docs/agents/README.md`
 - relevant program record under `docs/agents/programs/`
-- all active task records under `docs/agents/tasks/active/**`
+- all overlapping active task records under `docs/agents/tasks/active/**`
 - `docs/agents/MODULE_CATALOG.md`
-- relevant source/tests/docs/ADRs
+- relevant source, tests, docs, contracts, and ADRs
 
 ## Open questions
 
@@ -133,7 +142,7 @@ Never write `passed` without verification.
 - Final status:
 - PR:
 - Merge commit:
-- Programme record updated:
+- Program record updated:
 - Catalogue updated:
 - Changelog updated:
 - Archived at:
