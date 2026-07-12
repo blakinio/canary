@@ -6,7 +6,7 @@ Open pull requests and current changed files/checks are authoritative. This inde
 
 | PR | Branch | State | Area / reusable work | Primary paths | Coordination note |
 |---:|---|---|---|---|---|
-| [#146](https://github.com/blakinio/canary/pull/146) | `docs/the-beginning-runtime-audit` | draft | Full semantic dependency and runtime/E2E audit of The Beginning | dependency report, runtime test plan, AID50999 classification, task record | Documentation-only audit; no OTBM or active datapack changes. Depends on merged #144 and #145. |
+| [#146](https://github.com/blakinio/canary/pull/146) | `docs/the-beginning-runtime-audit` | ready | Full semantic dependency and runtime/E2E audit of The Beginning | dependency report, runtime test plan, AID50999 classification, task record | Documentation-only audit; no OTBM or active datapack changes. Depends on merged #144 and #145. |
 
 ## Rules
 
