@@ -14,7 +14,7 @@
 Celem jest bezpieczny, powtarzalny proces, który pozwala:
 
 1. analizować bardzo duże mapy OTBM bez ładowania całego świata do pamięci;
-2. porównywać mapę serwera z TibiaMaps i innymi wersjonowanyymi referencjami;
+2. porównywać mapę serwera z TibiaMaps i innymi wersjonowanymi referencjami;
 3. wykrywać brakujące regiony, różnice przechodniości i obszary customowe;
 4. sprawdzać zgodność itemów z `appearances.dat`, assetami klienta i `items.xml`;
 5. zachować mechanikę mapy: `actionId`, `uniqueId`, teleporty, domy, kontenery, questy i skrypty;
@@ -436,7 +436,7 @@ Dla każdego pilotowego regionu:
 - [x] lokalnie przeszło 140 testów;
 - [x] wykonano pełny audyt dostarczonej mapy;
 - [x] konflikty dispatchu w raporcie: 0;
-- [ ] CI PR #128 jest w pełni zielone;
+- [x] CI PR #128 jest w pełni zielone;
 - [ ] raport został ponownie wygenerowany z dokładnego checkoutu PR #128;
 - [ ] wszystkie nierozwiązane ID mają ręczną klasyfikację;
 - [ ] item 2141 został bezpiecznie usunięty w kopii mapy albo świadomie odroczony;
@@ -460,6 +460,7 @@ Dla każdego pilotowego regionu:
 - rozwiązano 8,907 umieszczeń, 76 oznaczono częściowo, 356 pozostało nierozwiązanych;
 - wykryto 0 konfliktów dispatchu;
 - otwarto draft PR #128;
+- workflow `CI`, `OTBM Map Tools` i `AI Agent Tools` zakończyły się sukcesem na head `79a5df066e681b2c9249ac723b41ca3b86fc6fd7`;
 - zaktualizowano niniejszy handoff dla nowego agenta;
 - nie zmodyfikowano ani nie commitowano mapy, assetów, `items.otb`, datapacka ani produkcyjnej konfiguracji.
 
