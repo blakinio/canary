@@ -29,8 +29,7 @@ local function isSamePosition(first, second)
 end
 
 local function isCollectingWoodActive(player)
-	return player:getStorageValue(tutorialStorage.ZirellaNpcGreetStorage) == ZIRELLA_ACTIVE_STAGE
-		and player:getStorageValue(tutorialStorage.ZirellaQuestLog) == ZIRELLA_ACTIVE_STAGE
+	return player:getStorageValue(tutorialStorage.ZirellaNpcGreetStorage) == ZIRELLA_ACTIVE_STAGE and player:getStorageValue(tutorialStorage.ZirellaQuestLog) == ZIRELLA_ACTIVE_STAGE
 end
 
 local tutorialDeadTree = Action()
