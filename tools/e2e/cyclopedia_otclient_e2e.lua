@@ -1,8 +1,8 @@
 local RESULT_PATH = 'e2e-result.txt'
 local CLIENT_VERSION = tonumber(os.getenv('CYCLOPEDIA_E2E_CLIENT_VERSION') or '1525')
--- Current protocol profiles require the account e-mail identifier. The disposable
--- fixture stores account test1 under e-mail @test1 and password "test".
-local ACCOUNT = '@test1'
+-- Current protocol profiles require an e-mail identifier. The disposable E2E
+-- fixture sets account test1 to this syntactically valid address.
+local ACCOUNT = 'test1@example.com'
 local PASSWORD = os.getenv('CYCLOPEDIA_E2E_PASSWORD') or 'test'
 local CHARACTER = os.getenv('CYCLOPEDIA_E2E_CHARACTER') or 'Knight 1'
 local HOST = os.getenv('CYCLOPEDIA_E2E_HOST') or '127.0.0.1'
