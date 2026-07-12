@@ -4,11 +4,11 @@
 > **Branch:** `feat/wheel-of-destiny-validation-audit`  
 > **PR:** #169  
 > **Reference:** current user-requested `https://tibia.fandom.com/wiki/Wheel_of_Destiny` snapshot  
-> **Evidence level:** static source analysis; runtime, persistence round-trip and OTClient protocol remain unverified
+> **Evidence level:** static source analysis confirmed by GitHub Actions run `29203018790`; runtime, persistence round-trip and OTClient protocol remain unverified
 
 ## Decision
 
-The current implementation is **not yet verified as faithful**. Static analysis confirms several core definitions and costs, but also identifies three high-confidence mismatches/defects and multiple risks requiring focused runtime or protocol evidence.
+The current implementation is **not yet verified as faithful**. GitHub Actions successfully ran the scanner and seven focused tests against the actual PR merge. The audit inventoried **30 Wheel-related source files** and emitted **4 errors / 6 warnings**. Three high-confidence mismatches/defects and multiple risks require focused runtime or protocol evidence.
 
 No gameplay, balance, protocol, schema, datapack, map or asset files are changed by this audit.
 
@@ -58,13 +58,14 @@ A static match is not a runtime verification.
 
 - **Disposition:** `missing-correct-effect`
 - **Confidence:** high
+- **CI evidence:** all **16** detected Revelation Mastery cases (general plus Knight, Paladin, Druid, Sorcerer and Monk variants) are affected.
 - **Current code:** each Revelation Mastery case in `WheelModifierContext::addStrategies(WheelGemSupremeModifier_t, ...)` both:
   1. queues `GemModifierRevelationStrategy`, and
   2. calls `m_wheel.addRevelationBonus(...)` immediately.
 - **Execution path:** `PlayerWheel::processActiveGems()` later calls `m_modifierContext->executeStrategies()`, which executes the queued strategy and adds the same value again.
 - **Impact:** affected active Supreme Mods appear to contribute twice their configured Revelation Mastery value.
 - **Runtime evidence:** not yet executed.
-- **Safe follow-up:** separate behavioral correction plus a regression test proving one application per active gem and no accumulation across recalculation.
+- **Safe follow-up:** separate one-line behavioral correction plus a regression test proving one application per active gem and no accumulation across recalculation.
 
 ## Risks requiring further evidence
 
@@ -97,7 +98,22 @@ The `SLOT_GREEN_TOP_100` branch checks `SLOT_GREEN_MIDDLE_100` twice. This may b
 - all persistence fields, migration behavior and malformed-data recovery;
 - complete inbound/outbound opcode and payload comparison with the compatible OTClient;
 - focused gameplay/runtime tests;
-- CI execution of the repository scanner on the actual branch.
+
+## CI evidence
+
+- workflow: `Wheel of Destiny Validation`
+- run: `29203018790`
+- head SHA: `13c14437b40db057a094f3625215b10b4061ed6b`
+- job: `Audit Wheel of Destiny and Gem Atelier` — success
+- focused tests: success
+- generated audit: success
+- JSON validation: success
+- artifact upload: success
+- artifact summary: 36 slices, thresholds 250/500/1000, 5 scrolls/50 points, 30 source files, 16 doubled Revelation modifiers, 4 errors, 6 warnings
+
+## Audited source inventory
+
+The generated artifact records 30 paths, including Wheel components, combat/spells, player/vocation, IO, protocol, Lua bindings and Gem Atelier/reward scripts. The full machine-readable list remains in the workflow artifact `WHEEL_OF_DESTINY_AUDIT.json`.
 
 ## Audit artifacts
 
@@ -109,7 +125,7 @@ The `SLOT_GREEN_TOP_100` branch checks `SLOT_GREEN_MIDDLE_100` twice. This may b
 
 ## Next safe actions
 
-1. Run the deterministic scanner in GitHub Actions and retain its JSON/Markdown artifacts.
+1. Retain and review the successful GitHub Actions JSON/Markdown artifact when the scanner changes.
 2. Finish the protocol, persistence and call-site inventory.
 3. Convert each confirmed defect into a separate focused PR only after evidence review.
 4. Do not combine balance corrections, point accounting and Revelation Mastery behavior in one gameplay PR.
