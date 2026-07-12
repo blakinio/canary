@@ -22,7 +22,9 @@ on:
       - "data-otservbr-global/scripts/actions/object/etcher.lua"
       - "tools/ai-agent/imbuement*_validation.py"
       - "tools/ai-agent/test_imbuement*_validation.py"
+      - "docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md"
       - "docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json"
+      - "docs/agents/tasks/active/CAN-20260712-imbuement-validation.md"
       - ".github/workflows/imbuement-validation.yml"
   pull_request:
     paths:
@@ -39,7 +41,9 @@ on:
       - "data-otservbr-global/scripts/actions/object/etcher.lua"
       - "tools/ai-agent/imbuement*_validation.py"
       - "tools/ai-agent/test_imbuement*_validation.py"
+      - "docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md"
       - "docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json"
+      - "docs/agents/tasks/active/CAN-20260712-imbuement-validation.md"
       - ".github/workflows/imbuement-validation.yml"
   workflow_dispatch:
 
