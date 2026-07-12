@@ -6,8 +6,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/achievement-validation-audit
 base_branch: main
 created: 2026-07-12T17:16:14Z
-updated: 2026-07-12T17:43:00Z
-last_verified_commit: "3f7d38ebbfc81480e43949541df2a29bc89e7631"
+updated: 2026-07-12T17:50:00Z
+last_verified_commit: "bb7f3cf8558ac03c71547697a61192de7e56dc88"
 risk: low
 related_issue: ""
 related_pr: "#165"
@@ -93,6 +93,13 @@ The deterministic scanner, focused tests, reference baseline, runtime test plan,
 
 # Work log
 
+## 2026-07-12T17:50:00Z
+
+- Changed: added the eighth focused test for the documented zero-point exception; refreshed the PR body; closed and reopened the draft to emit a `pull_request/reopened` event.
+- Learned: neither reopening nor earlier synchronize events exposed any pull-request workflow run through the GitHub connector. A follow-up task-record commit is being used to emit a fresh `push` and `pull_request/synchronize` event.
+- Failed/blocked: Actions/check status remains unavailable; no CI success is claimed.
+- Result: all known local parser cases have focused coverage; full-repository artifact remains the only validation blocker.
+
 ## 2026-07-12T17:43:00Z
 
 - Changed: added `achievement_validation.py`, seven focused tests, external metadata baseline, runtime scenario plan, dedicated workflow and module catalogue entry.
@@ -130,7 +137,7 @@ The deterministic scanner, focused tests, reference baseline, runtime test plan,
 |---|---|---|
 | `docs/ai-agent/OTS_AI_ACHIEVEMENT_VALIDATION_PROJECT.md` | durable methodology, state and handoff | created |
 | `tools/ai-agent/achievement_validation.py` | deterministic registry/reference scanner and Markdown renderer | implemented |
-| `tools/ai-agent/test_achievement_validation.py` | parser, helper, classifier and baseline tests | implemented; 7 local tests passed |
+| `tools/ai-agent/test_achievement_validation.py` | parser, helper, classifier and baseline tests | implemented; 8 local tests passed |
 | `docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json` | versioned external metadata snapshot | created and JSON-validated |
 | `docs/ai-agent/ACHIEVEMENT_RUNTIME_TEST_PLAN.json` | machine-readable runtime/E2E scenarios | created and JSON-validated |
 | `.github/workflows/achievement-validation.yml` | focused tests, full scan, summary and artifact upload | implemented; CI run pending |
@@ -140,12 +147,12 @@ The deterministic scanner, focused tests, reference baseline, runtime test plan,
 
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
-| local candidate matching scanner/tests before upload | `python -m unittest -v` in isolated tool directory | passed | 7 tests |
+| local candidate matching scanner/tests | `python -m unittest -v` in isolated tool directory | passed | 8 tests after zero-point case |
 | local candidate | `python -m py_compile achievement_validation.py test_achievement_validation.py` | passed | no syntax error |
 | local candidate | `python -m json.tool` for reference baseline and runtime plan | passed | both valid JSON |
-| `3f7d38ebbfc81480e43949541df2a29bc89e7631` | changed-file/diff scope review | reviewed | tools/docs/workflow/agent-memory only; no gameplay or binary path |
-| current PR head | Achievement Validation workflow | not-run/unknown | no associated pull-request run visible at last check |
-| current PR head | existing AI Agent Tools workflow | not-run/unknown | no associated pull-request run visible at last check |
+| `bb7f3cf8558ac03c71547697a61192de7e56dc88` | changed-file/diff scope review | reviewed | tools/docs/workflow/agent-memory only; no gameplay or binary path |
+| current PR head | Achievement Validation workflow | not-run/unknown | no associated pull-request run visible after synchronize and reopen |
+| current PR head | existing AI Agent Tools workflow | not-run/unknown | no associated pull-request run visible after synchronize and reopen |
 
 Never write `passed` without verification.
 
@@ -154,6 +161,7 @@ Never write `passed` without verification.
 - Direct `git clone` and `git ls-remote` from the execution container fail because DNS cannot resolve `github.com`.
 - GitHub code search does not index the user fork sufficiently for a complete repository scan.
 - GitHub file fetch cannot retrieve a recursive repository tree/archive; the complete scan must therefore run in Actions or another real checkout.
+- The connector exposes only pull-request-associated workflow runs; push-run discovery is not available through its current Actions surface.
 
 # Risks and compatibility
 
