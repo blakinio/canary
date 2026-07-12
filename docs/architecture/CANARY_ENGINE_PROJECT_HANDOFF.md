@@ -29,6 +29,7 @@ Harden and modularize Canary without breaking existing clients or datapacks. The
 - PR #77 — secure single-use `LoginSessionManager` with 256-bit tokens, TTL, hash-only storage and concurrency tests.
 - PR #80 — fixes modern-client login rejection.
 - PR #82 — wires secure login tokens into the modern `authType == "session"` handshake while preserving legacy/password paths.
+- PR #103 — atomic release/deployment engine with path confinement, atomic switch, process health check, rollback, audit manifest and failure-phase tests. Merge commit: `9b966b59b5c59a8097e6caf5ce365645bf0f3a8e`.
 - PR #107 — `InstanceManager` lifecycle/registry foundation with strong IDs, slot pool, timeout and concurrency tests.
 
 Additional merged multi-channel phases already present in `main`:
@@ -41,37 +42,19 @@ Do not extend these phases in the current workstream.
 
 ## Current work
 
-### PR #103 — atomic content deployment engine
+### Real Canary staging integration for atomic deployment
 
-Status at last verification:
-
-- open and mergeable;
-- deployment workflow green;
-- full CI green on its current head;
-- branch was created from an older `main` and must be refreshed/rebuilt on current `main` before final merge.
-
-Provides:
-
-- deployment-root confinement;
-- traversal and symlink-escape rejection;
-- hidden staging directory;
-- atomic release publication and `active` switch;
-- process health check;
-- automatic and idempotent rollback;
-- SHA-256 manifest;
-- production confirmation gate;
-- dry-run;
-- failure-phase tests.
-
-Still required after merge:
+The deployment mechanics from PR #103 are merged. The remaining deployment work is a separate real-server integration:
 
 1. build a full staging datapack from reviewed AI output;
-2. run the real compiled `canary_server`;
+2. run the actual compiled `canary_server`;
 3. reuse `.github/scripts/smoke_test_canary.py`;
 4. verify Lua/datapack loading and startup logs;
 5. stop staging cleanly;
 6. switch only after successful staging validation;
 7. run post-switch health check and rollback on failure.
+
+Production deployment must remain disabled by default and require explicit approval.
 
 ### PR #106 — dependency migration audit and `SharedPtrManager` DI migration
 
@@ -103,10 +86,9 @@ Audit result: most `g_*()` accessors already use the existing DI container. Afte
 
 ### A. Atomic deployment integration
 
-1. merge refreshed #103;
-2. real staging Canary integration;
-3. production approval/runbook;
-4. end-to-end rollback test.
+1. real staging Canary integration;
+2. production approval/runbook;
+3. end-to-end rollback test.
 
 ### B. Dependency migration
 
@@ -141,7 +123,8 @@ Add a packet-level integration harness proving:
 ## Recommended execution order
 
 ```text
-refresh + merge #103 ──> real staging-server deployment
+real staging-server deployment
+
 fix + merge #106 ──────> Scripts DI migration
                             └─> map region pool
                                   └─> creature/spawn ownership
