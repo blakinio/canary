@@ -11,8 +11,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  packages: read
+  contents: write
+  packages: write
 
 jobs:
   build-canary:
