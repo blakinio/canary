@@ -7,7 +7,7 @@ base_branch: main
 created: 2026-07-12
 updated: 2026-07-12
 risk: medium
-related_pr: ""
+related_pr: "#153"
 depends_on:
   - "PR #146 The Beginning dependency audit"
   - "PR #149 Zirella Collecting Wood restoration"
@@ -43,7 +43,7 @@ Current Canary/map evidence:
 - Zirella grants permission to enter only when `ZirellaNpcGreetStorage` reaches stage `8`;
 - shovel chest UID `50093` at `32059,32265,7` contains item `3457` and uses generic quest AID `2000`;
 - rope chest UID `50094` at `32067,32264,8` contains item `3003` and uses generic quest AID `2000`;
-- `quest_system1.lua` still assigns tutorials `10/11` to absent/stale UIDs `50084/50086`.
+- `quest_system1.lua` previously assigned tutorials `10/11` to absent/stale UIDs `50084/50086`.
 
 Historical real-Tibia cross-check:
 
@@ -51,17 +51,26 @@ Historical real-Tibia cross-check:
 - the historical handler denies the closed door before Zirella stage `8`, opens `6898 → 6899` after completion, and uses the standard sealed-door message;
 - the historical route then teaches taking the shovel from Zirella's reward chest and the rope from the cave box.
 
+# Implemented contract
+
+- `the_beginning_zirella_door.lua` registers only UID `50085` and verifies the exact current map position.
+- The closed door denies players below Zirella greet stage `8` with the canonical message.
+- Eligible use transforms `6898 → 6899`, emits the normal opening sound, and moves the player through.
+- Open-door use preserves the current Canary obstruction check before transforming `6899 → 6898` with the normal closing sound.
+- The generic quest reward table now maps tutorial `10` to UID `50093` and tutorial `11` to UID `50094`.
+- No reward item, capacity handling, storage ownership, AID registration, or NPC state was changed.
+
 # Acceptance criteria
 
-- [ ] add one UID `50085` Action handling both door states `6898/6899`;
-- [ ] deny opening while `ZirellaNpcGreetStorage < 8` with the canonical sealed-door message;
-- [ ] open and teleport using current door semantics, with the normal opening sound;
-- [ ] close only when no creature blocks the doorway, with the normal closing sound;
-- [ ] map tutorial `10` to current shovel chest UID `50093`;
-- [ ] map tutorial `11` to current rope chest UID `50094`;
-- [ ] remove stale tutorial mappings `50084/50086` without changing reward storage or contents;
-- [ ] add deterministic focused contract tests;
-- [ ] do not modify `.otbm`, items, NPC dialogue, spawns, engine, or unrelated quest rewards;
+- [x] add one UID `50085` Action handling both door states `6898/6899`;
+- [x] deny opening while `ZirellaNpcGreetStorage < 8` with the canonical sealed-door message;
+- [x] open and teleport using current door semantics, with the normal opening sound;
+- [x] close only when no creature blocks the doorway, with the normal closing sound;
+- [x] map tutorial `10` to current shovel chest UID `50093`;
+- [x] map tutorial `11` to current rope chest UID `50094`;
+- [x] remove stale tutorial mappings `50084/50086` without changing reward storage or contents;
+- [x] add deterministic focused contract tests;
+- [x] do not modify `.otbm`, items, NPC dialogue, spawns, engine, or unrelated quest rewards;
 - [ ] final-head CI passes.
 
 # Runtime tests
@@ -73,6 +82,12 @@ Historical real-Tibia cross-check:
 5. Taking UID `50093` shovel reward sends tutorial `10` exactly once through the existing one-shot chest storage.
 6. Taking UID `50094` rope reward sends tutorial `11` exactly once.
 7. Existing reward contents, capacity errors, storage keys, and AID `2000` registration remain unchanged.
+
+# Validation notes
+
+- Focused Python contract coverage is committed in `tools/ai-agent/test_the_beginning_zirella_door_rewards.py`.
+- PR #153 is stacked on PR #149 and must not merge until #149 lands; changed-file review must be repeated after the base diff collapses.
+- Runtime E2E remains required on an actual Canary world after repository validation.
 
 # Safety
 
