@@ -19,7 +19,7 @@ jobs:
         with:
           ref: fix/achievement-helper-enumeration
 
-      - name: Format registry only
+      - name: Install StyLua and format registry
         id: registry
         continue-on-error: true
         uses: JohnnyMorganz/stylua-action@v5
@@ -28,8 +28,27 @@ jobs:
           version: latest
           args: data/scripts/lib/register_achievements.lua
 
-      - name: Reset isolated formatting
-        run: git reset --hard HEAD
+      - name: Capture raw registry error
+        shell: bash
+        run: |
+          set +e
+          {
+            echo "PATH=$PATH"
+            command -v stylua || true
+            find "$RUNNER_TOOL_CACHE" "$RUNNER_TEMP" -type f -name stylua -perm -111 2>/dev/null | head -20
+          } > stylua-location.txt
+          STYLUA="$(command -v stylua || true)"
+          if [ -z "$STYLUA" ]; then
+            STYLUA="$(find "$RUNNER_TOOL_CACHE" "$RUNNER_TEMP" -type f -name stylua -perm -111 2>/dev/null | head -1)"
+          fi
+          if [ -n "$STYLUA" ]; then
+            "$STYLUA" data/scripts/lib/register_achievements.lua > stylua-registry.log 2>&1
+            echo $? > stylua-registry-exit.txt
+          else
+            echo "stylua binary not found" > stylua-registry.log
+            echo 127 > stylua-registry-exit.txt
+          fi
+          git reset --hard HEAD
 
       - name: Format test only
         id: test
@@ -40,7 +59,7 @@ jobs:
           version: latest
           args: tests/lua/test_achievement_helpers.lua
 
-      - name: Reset isolated formatting again
+      - name: Reset isolated formatting
         run: git reset --hard HEAD
 
       - name: Format repository
@@ -69,4 +88,7 @@ jobs:
             stylua-outcomes.txt
             stylua-status.txt
             stylua-diff-stat.txt
+            stylua-location.txt
+            stylua-registry.log
+            stylua-registry-exit.txt
           retention-days: 1
