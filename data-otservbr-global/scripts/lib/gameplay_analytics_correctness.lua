@@ -103,12 +103,13 @@ function Analytics.finish(player, reason)
 	local minimum = clampInteger(Analytics.config.minimumSessionSeconds, 0, nil, 60)
 	local forceShortSession = reason == "death" or reason == "utc-day-rollover"
 	if forceShortSession and duration < minimum then
+		local resultValue = callFinishWithMinimum(player, reason, 0)
 		if reason == "death" then
 			Analytics.correctnessStats.shortDeathSessionsPersisted = Analytics.correctnessStats.shortDeathSessionsPersisted + 1
 		else
 			Analytics.correctnessStats.shortRolloverSessionsPersisted = Analytics.correctnessStats.shortRolloverSessionsPersisted + 1
 		end
-		return callFinishWithMinimum(player, reason, 0)
+		return resultValue
 	end
 
 	return originalFinish(player, reason)
@@ -136,7 +137,7 @@ function Analytics.expireInactive()
 			player = Player(entry.session.runtimeId)
 		end
 		if player then
-			Analytics.finish(player, "activity-timeout")
+			callFinishWithMinimum(player, "activity-timeout", 0)
 		else
 			Analytics.sessions[entry.playerGuid] = nil
 			Analytics.correctnessStats.discardedNonCombatSessions = Analytics.correctnessStats.discardedNonCombatSessions + 1

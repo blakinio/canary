@@ -14,7 +14,9 @@ RAW_RETENTION_DAYS="${RAW_RETENTION_DAYS:-180}"
 DELETE_RAW_SESSIONS="${DELETE_RAW_SESSIONS:-false}"
 DELETE_BATCH_SIZE="${DELETE_BATCH_SIZE:-5000}"
 DELETE_MAX_BATCHES="${DELETE_MAX_BATCHES:-20}"
+VALIDATE_CONFIG_ONLY="${VALIDATE_CONFIG_ONLY:-false}"
 REQUIRED_SCHEMA_VERSION=3
+MAX_LEVEL_BRACKET=2147483647
 
 for numeric_name in DB_PORT AGGREGATION_LAG_DAYS MAX_DAYS_PER_RUN REAGGREGATE_DAYS RAW_RETENTION_DAYS DELETE_BATCH_SIZE DELETE_MAX_BATCHES; do
 	value="${!numeric_name}"
@@ -34,6 +36,11 @@ if [[ "${DELETE_RAW_SESSIONS}" != "true" && "${DELETE_RAW_SESSIONS}" != "false" 
 	exit 1
 fi
 
+if [[ "${VALIDATE_CONFIG_ONLY}" != "true" && "${VALIDATE_CONFIG_ONLY}" != "false" ]]; then
+	echo "VALIDATE_CONFIG_ONLY must be true or false" >&2
+	exit 1
+fi
+
 if [[ ! "${LEVEL_BRACKETS}" =~ ^[0-9]+(,[0-9]+)*$ ]]; then
 	echo "LEVEL_BRACKETS must be a comma-separated strictly ascending list of positive integers" >&2
 	exit 1
@@ -43,7 +50,15 @@ IFS=',' read -r -a level_bracket_values <<< "${LEVEL_BRACKETS}"
 level_bracket_case="CASE"
 previous_bracket=0
 for raw_bracket in "${level_bracket_values[@]}"; do
+	if [[ "${#raw_bracket}" -gt 10 ]]; then
+		echo "LEVEL_BRACKETS values must not exceed ${MAX_LEVEL_BRACKET}" >&2
+		exit 1
+	fi
 	bracket=$((10#${raw_bracket}))
+	if [[ "${bracket}" -gt "${MAX_LEVEL_BRACKET}" ]]; then
+		echo "LEVEL_BRACKETS values must not exceed ${MAX_LEVEL_BRACKET}" >&2
+		exit 1
+	fi
 	if [[ "${bracket}" -le "${previous_bracket}" ]]; then
 		echo "LEVEL_BRACKETS must be a comma-separated strictly ascending list of positive integers" >&2
 		exit 1
@@ -59,6 +74,14 @@ level_bracket_case+=" ELSE ${previous_bracket} END"
 if [[ "${DELETE_RAW_SESSIONS}" == "true" && "${RAW_RETENTION_DAYS}" -le $((REAGGREGATE_DAYS + AGGREGATION_LAG_DAYS)) ]]; then
 	echo "RAW_RETENTION_DAYS must be greater than REAGGREGATE_DAYS + AGGREGATION_LAG_DAYS when raw deletion is enabled" >&2
 	exit 1
+fi
+
+if [[ "${VALIDATE_CONFIG_ONLY}" == "true" ]]; then
+	echo "Gameplay Analytics maintenance configuration valid"
+	echo "LEVEL_BRACKETS=${LEVEL_BRACKETS}"
+	echo "LEVEL_BRACKET_SQL=${level_bracket_case}"
+	echo "DELETE_RAW_SESSIONS=${DELETE_RAW_SESSIONS}"
+	exit 0
 fi
 
 export MYSQL_PWD="${DB_PASSWORD}"

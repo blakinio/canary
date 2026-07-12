@@ -48,8 +48,8 @@ def validate_correctness(text: str) -> None:
         "active sessions must roll over at the next UTC day",
     )
     require(
-        'Analytics.finish(player, "activity-timeout")' in text,
-        "non-combat activity sessions must expire through the normal finish path",
+        'callFinishWithMinimum(player, "activity-timeout", 0)' in text,
+        "expired non-combat sessions must reach the explicit eligibility filter regardless of normal minimum duration",
     )
 
 
