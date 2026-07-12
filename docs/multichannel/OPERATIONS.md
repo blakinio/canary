@@ -91,11 +91,22 @@ example; every other `cluster-singleton` job above still runs unconditionally
 on every channel process and needs its own follow-up wiring (deciding what
 "lost leadership mid-run" means for that specific job before gating it).
 
-## GM / admin commands (📐 contract, not implemented)
+## GM / admin commands (✅ one implemented, 📐 the rest still contract-only)
 
 - Cluster-wide online list (aggregates all channels' presence).
 - Kick a player who is on a different channel.
-- Locate a player's current channel.
+- ✅ **Locate a player's current channel** — `Game.getPlayerClusterChannel(name)`
+  (`src/lua/functions/core/game/game_functions.cpp`), a read-only Lua global
+  reading the `cluster_sessions` DB defense-in-depth layer (not Redis, since
+  a GM issuing this from one channel process needs to find a player who may
+  be logged into a *different* one) via
+  `multichannel::findOnlineChannelForPlayer` (`src/game/multichannel/
+  cluster_session_lookup.hpp`/`.cpp`). Returns the channel id, or `nil` if
+  the player is unknown or not currently tracked online anywhere in the
+  cluster. No access check inside the binding - permission gating is left to
+  the calling script/talkaction, matching this codebase's existing
+  convention (verified: no other `Game.*`/`Player:*` binding checks GM group
+  access internally either).
 - Broadcast: cluster-wide vs. this-channel-only variants.
 - Force-save a specific channel.
 - Drain a channel (stop accepting new logins/switches, let existing

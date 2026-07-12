@@ -1,0 +1,188 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-12",
+  "status": "planned",
+  "evidenceBoundary": "Static checks do not verify runtime effects, protocol compatibility or persistence round trips.",
+  "scenarios": [
+    {
+      "id": "WOD-ACCESS-001",
+      "area": "access",
+      "title": "Level, premium and promotion gates",
+      "status": "planned",
+      "setup": ["Create characters at levels 50 and 51", "Cover promoted/unpromoted and premium/free combinations"],
+      "actions": ["Open the Wheel window"],
+      "assertions": ["Only level 51+ promoted premium characters can use the Wheel", "Denied characters receive a non-usable payload"]
+    },
+    {
+      "id": "WOD-POINTS-001",
+      "area": "points",
+      "title": "Base points per level",
+      "status": "planned",
+      "setup": ["Create level 51, 100 and 1000 promoted premium characters"],
+      "actions": ["Read available Wheel points"],
+      "assertions": ["Available base points equal level minus 50"]
+    },
+    {
+      "id": "WOD-POINTS-002",
+      "area": "points",
+      "title": "Promotion Scroll accumulation and idempotency",
+      "status": "planned",
+      "setup": ["Give all five Promotion Scrolls"],
+      "actions": ["Use each scroll once", "Attempt to reuse each scroll", "Relog"],
+      "assertions": ["The five scrolls grant exactly 50 points", "Repeated use grants no additional points", "State persists"]
+    },
+    {
+      "id": "WOD-POINTS-003",
+      "area": "points",
+      "title": "The Way of the Monk quest bonus",
+      "status": "planned",
+      "setup": ["Use Monk before and after all required shrines"],
+      "actions": ["Open the Wheel and compare point totals"],
+      "assertions": ["Completed quest grants exactly the configured 10 points", "Other vocations receive no Monk quest points"]
+    },
+    {
+      "id": "WOD-POINTS-004",
+      "area": "points",
+      "title": "Hunting Task Shop points",
+      "status": "planned",
+      "setup": ["Acquire each Hunting Task Shop promotion-point reward up to the documented maximum"],
+      "actions": ["Spend and reload the Wheel"],
+      "assertions": ["Rewards add spendable points", "Total from this source cannot exceed 50", "Repeated acquisition is prevented"]
+    },
+    {
+      "id": "WOD-POINTS-005",
+      "area": "points",
+      "title": "Grade IV permanent Promotion Points",
+      "status": "planned",
+      "setup": ["Upgrade representative Basic and Supreme Mods to Grade IV"],
+      "actions": ["Observe the spendable point pool", "Switch domains and presets", "Relog"],
+      "assertions": ["Each fully enhanced mod grants one spendable permanent point", "A point is granted only once per mod", "The point is not injected independently into every domain threshold"]
+    },
+    {
+      "id": "WOD-TOPOLOGY-001",
+      "area": "topology",
+      "title": "All 36 slice adjacency rules",
+      "status": "planned",
+      "setup": ["Prepare enough points for every boundary"],
+      "actions": ["Attempt every valid and invalid transition from the center to the outer ring"],
+      "assertions": ["Only fully connected predecessor slices unlock a target", "All intended edges are reachable", "No duplicate check hides a missing edge"]
+    },
+    {
+      "id": "WOD-RESET-001",
+      "area": "reset",
+      "title": "Temple-only point decrease",
+      "status": "planned",
+      "setup": ["Save a non-empty Wheel preset"],
+      "actions": ["Try decreasing points outside a temple", "Try again in the character's temple range"],
+      "assertions": ["Outside temple only increases are accepted", "Inside temple increases and decreases are accepted", "Server rejects forged decrease packets outside temple"]
+    },
+    {
+      "id": "WOD-REVELATION-001",
+      "area": "revelation",
+      "title": "Domain thresholds and stage transitions",
+      "status": "planned",
+      "setup": ["Prepare domain totals at 249/250, 499/500 and 999/1000"],
+      "actions": ["Save each configuration and trigger recalculation"],
+      "assertions": ["Stages activate exactly at 250, 500 and 1000", "Stage state is removed when points fall below a threshold"]
+    },
+    {
+      "id": "WOD-GEM-001",
+      "area": "gem-atelier",
+      "title": "Maximum 225 revealed gems",
+      "status": "planned",
+      "setup": ["Prepare 226 revealable gems and sufficient money"],
+      "actions": ["Reveal gems up to and beyond the limit", "Remove one revealed gem", "Reveal again"],
+      "assertions": ["The 226th reveal is rejected without consuming resources", "Removing a gem frees exactly one slot"]
+    },
+    {
+      "id": "WOD-GEM-002",
+      "area": "gem-atelier",
+      "title": "Reveal operation atomicity",
+      "status": "planned",
+      "setup": ["Inject failures after money validation and after item validation"],
+      "actions": ["Attempt reveal under each failure condition"],
+      "assertions": ["Money and gem item are either both consumed or both retained", "No partially persisted revealed gem exists"]
+    },
+    {
+      "id": "WOD-GEM-003",
+      "area": "gem-atelier",
+      "title": "Affinity rotation and costs",
+      "status": "planned",
+      "setup": ["Prepare Lesser, Regular and Greater revealed gems"],
+      "actions": ["Rotate each affinity repeatedly"],
+      "assertions": ["Rotation follows the clockwise domain order", "Costs are 125000/250000/500000", "Locked gems cannot rotate"]
+    },
+    {
+      "id": "WOD-GEM-004",
+      "area": "gem-atelier",
+      "title": "Vessel Resonance slot activation and damage/healing bonus",
+      "status": "planned",
+      "setup": ["Socket each gem quality with 0..3 matching resonances"],
+      "actions": ["Measure active mods, damage and healing"],
+      "assertions": ["Mod slots activate in order", "Full Lesser/Regular/Greater resonance grants +1/+1/+2 damage and healing", "Mismatched affinity gives no bonus"]
+    },
+    {
+      "id": "WOD-GRADE-001",
+      "area": "fragment-workshop",
+      "title": "Basic and Supreme upgrade costs",
+      "status": "planned",
+      "setup": ["Prepare fragments and gold for every grade"],
+      "actions": ["Upgrade Basic and Supreme Mods through Grade IV"],
+      "assertions": ["Basic costs match 2m/5m/30m and 5/15/30 fragments", "Supreme costs match 5m/12.5m/75m and 5/15/30 fragments", "Failed upgrades consume nothing"]
+    },
+    {
+      "id": "WOD-GRADE-002",
+      "area": "fragment-workshop",
+      "title": "Previous-slot grade gating",
+      "status": "planned",
+      "setup": ["Create Regular and Greater gems with later slots above earlier-slot grades"],
+      "actions": ["Socket and inspect effective bonuses"],
+      "assertions": ["Each slot benefits from no grade higher than the previous slot's effective grade"]
+    },
+    {
+      "id": "WOD-GRADE-003",
+      "area": "fragment-workshop",
+      "title": "Grade IV modifier scaling",
+      "status": "planned",
+      "setup": ["Select representative resistance, stat and spell modifiers"],
+      "actions": ["Compare Grade I and Grade IV effects"],
+      "assertions": ["Applicable Grade IV bonuses are exactly 50% above Grade I", "Integer rounding is defined and consistent"]
+    },
+    {
+      "id": "WOD-GRADE-004",
+      "area": "fragment-workshop",
+      "title": "Cooldown augmentation Momentum",
+      "status": "planned",
+      "setup": ["Prepare cooldown augment mods at each grade"],
+      "actions": ["Trigger eligible spells repeatedly under deterministic RNG"],
+      "assertions": ["Higher grade does not further reduce the fixed cooldown amount", "Higher grades grant the expected Momentum chance"]
+    },
+    {
+      "id": "WOD-DEFECT-001",
+      "area": "gem-atelier",
+      "title": "Revelation Mastery applies once",
+      "status": "planned",
+      "setup": ["Socket one Revelation Mastery Supreme Mod with three resonances"],
+      "actions": ["Recalculate Wheel bonuses", "Repeat save/load and preset switching"],
+      "assertions": ["The modifier contributes its configured Revelation points exactly once per active gem", "Repeated recalculation does not accumulate the bonus"]
+    },
+    {
+      "id": "WOD-PERSIST-001",
+      "area": "persistence",
+      "title": "Complete save/load round trip",
+      "status": "planned",
+      "setup": ["Create points, scrolls, revealed/active gems, locks and mod grades"],
+      "actions": ["Save, logout, restart server if possible, login"],
+      "assertions": ["Every field round-trips exactly", "Destroyed gems do not reappear", "Active gem UUIDs resolve to existing revealed gems"]
+    },
+    {
+      "id": "WOD-PROTOCOL-001",
+      "area": "protocol",
+      "title": "Canary and compatible OTClient payload contract",
+      "status": "planned",
+      "setup": ["Capture official-profile and legacy-profile Wheel payloads"],
+      "actions": ["Open, save, reveal, rotate, lock, socket and upgrade through the client"],
+      "assertions": ["Opcode, field order, widths, counts and feature gates match on both sides", "Malformed indexes and counts are rejected server-side"]
+    }
+  ]
+}
