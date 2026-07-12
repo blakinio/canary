@@ -64,7 +64,6 @@
         50114,
         50116,
         50199,
-        50999,
         54502,
         54503,
         54504,
@@ -118,6 +117,15 @@
       "disposition": "missing-script",
       "reason": "The current map retains 157 Rookgaard Tutorial Island step-in/stop-tile placements for these action IDs, but the active datapack has no MoveEvent registrations. Independent historical implementations register the same IDs for The Beginning tutorial hints, map marks, storage progression and quest-order gates. Current Canary retains the matching tutorial storages, NPC flow and exact effect positions, so the behavior was not replaced. Preserve the map attributes and restore the handlers in a separate gameplay PR.",
       "source": "2026-07-12 World Semantic Review; docs/ai-agent/WORLD_SEMANTIC_REVIEW_ACTIONIDS_50058_50088.md"
+    },
+    {
+      "namespace": "actionId",
+      "values": [
+        50999
+      ],
+      "disposition": "missing-script",
+      "reason": "The verified map retains four item 7886 border tiles at 32073..32076,32252,6 whose current item description identifies the Rookgaard village border. The active quest catalogue requires CarlosQuestLog stage 8 after crossing the bridge, while Carlos only reaches stage 7 and no active Lua/XML/C++ path handles AID 50999 or writes the terminal state. Preserve the AID and implement the current one-way/town behavior only after focused gameplay verification.",
+      "source": "2026-07-12 The Beginning quest dependency audit; docs/ai-agent/THE_BEGINNING_QUEST_DEPENDENCY_REPORT.md"
     },
     {
       "namespace": "actionId",

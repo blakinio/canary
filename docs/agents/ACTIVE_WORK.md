@@ -1,13 +1,12 @@
 # Active Work Index
 
-Last reviewed: 2026-07-12T13:25:00+02:00
+Last reviewed: 2026-07-12
 
 Open pull requests and current changed files/checks are authoritative. This index helps agents detect likely overlap.
 
 | PR | Branch | State | Area / reusable work | Primary paths | Coordination note |
 |---:|---|---|---|---|---|
-| [#131](https://github.com/blakinio/canary/pull/131) | `docs/otbm-final-handoff-20260712` | draft | OTBM handoff documentation | OTBM handoff document | Verify whether superseded by merged #130/#133. |
-| [#124](https://github.com/blakinio/canary/pull/124) | `fix/account-quests-production-hardening` | open | Account-wide quest configuration, atomic claims, migrations, admin tooling | account-quest Lua/config/DB/tooling paths in PR | Crosses DB and Lua API contracts. |
+| [#146](https://github.com/blakinio/canary/pull/146) | `docs/the-beginning-runtime-audit` | ready | Full semantic dependency and runtime/E2E audit of The Beginning | dependency report, runtime test plan, AID50999 classification, task record | Documentation-only audit; no OTBM or active datapack changes. Depends on merged #144 and #145. |
 
 ## Rules
 
