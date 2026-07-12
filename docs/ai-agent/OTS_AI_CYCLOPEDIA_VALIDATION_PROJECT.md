@@ -212,3 +212,14 @@ Next actions:
 5. update this file, task and report after every implementation/test/CI/review batch.
 
 Do not edit gameplay, protocol, DB schema, map or assets in #170. Do not write to `opentibiabr/*`. Do not duplicate merged Achievement Validation #165. Do not invent missing IDs or rules.
+
+### 2026-07-12 22:20 Europe/Warsaw — runtime correctness batch
+
+- corrected Bestiary difficulty arithmetic to preserve fractional thresholds;
+- corrected the all-Charm reset formula to charge 11,000 gold only for levels above 100;
+- made Bestiary kill attribution null-safe before reading the monster type;
+- corrected the Charm category guard;
+- aligned recent-PvP pagination count with the 70-day row window;
+- restored boosted-boss initialization when the table has no row;
+- added four source-contract regression tests covering all six corrections;
+- no protocol, schema, map, asset or player-data migration was added in this batch.

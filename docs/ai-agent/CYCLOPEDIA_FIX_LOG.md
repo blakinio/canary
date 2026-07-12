@@ -29,3 +29,16 @@ This file records every implementation batch derived from the read-only Cycloped
 - Scope reserved: difficulty arithmetic, reset cost, Bestiary null guard, Charm category guard, recent-PvP count window and empty boosted-boss row recovery.
 - One-shot automation performs exact precondition-checked replacements, runs focused tests, updates all project logs and removes itself before committing.
 - Data IDs, protocol, schema, maps, assets and player-state migration are outside this batch.
+
+## Applied batch
+
+### 2026-07-12 22:20 Europe/Warsaw — runtime correctness batch
+
+- corrected Bestiary difficulty arithmetic to preserve fractional thresholds;
+- corrected the all-Charm reset formula to charge 11,000 gold only for levels above 100;
+- made Bestiary kill attribution null-safe before reading the monster type;
+- corrected the Charm category guard;
+- aligned recent-PvP pagination count with the 70-day row window;
+- restored boosted-boss initialization when the table has no row;
+- added four source-contract regression tests covering all six corrections;
+- no protocol, schema, map, asset or player-data migration was added in this batch.
