@@ -11330,6 +11330,8 @@ void Player::forgeFuseItems(ForgeAction_t actionType, uint16_t firstItemId, uint
 		}
 	}
 
+	history.firstItemId = firstItemId;
+	history.secondItemId = secondItemId;
 	history.firstItemName = firstForgingItem->getName();
 	history.secondItemName = secondForgingItem->getName();
 	history.bonus = bonus;
@@ -11493,6 +11495,8 @@ void Player::forgeTransferItemTier(ForgeAction_t actionType, uint16_t donorItemI
 	history.dustCost = dustCost;
 	g_metrics().addCounter("balance_decrease", cost, { { "player", getName() }, { "context", "forge_transfer" } });
 
+	history.firstItemId = donorItemId;
+	history.secondItemId = receiveItemId;
 	history.firstItemName = Item::items[donorItemId].name;
 	history.secondItemName = newReceiveItem->getName();
 	history.createdAt = getTimeMsNow();
@@ -11666,8 +11670,8 @@ void Player::registerForgeHistoryDescription(ForgeHistory history) {
 	std::string historyTierString = history.tier > 0 ? "tier - 1" : "consumed";
 	std::string price = history.bonus != 3 ? formatPrice(std::to_string(history.cost), true) : "0";
 	std::stringstream detailsResponse;
-	auto itemId = Item::items.getItemIdByName(history.firstItemName);
-	const ItemType &itemType = Item::items[itemId];
+	const auto firstItemId = history.firstItemId != 0 ? history.firstItemId : Item::items.getItemIdByName(history.firstItemName);
+	const ItemType &itemType = Item::items[firstItemId];
 	if (history.actionType == ForgeAction_t::FUSION) {
 		if (history.success) {
 			detailsResponse << fmt::format(
@@ -11755,7 +11759,7 @@ void Player::registerForgeHistoryDescription(ForgeHistory history) {
 			);
 		}
 	} else if (history.actionType == ForgeAction_t::TRANSFER) {
-		const auto secondItemId = Item::items.getItemIdByName(history.secondItemName);
+		const auto secondItemId = history.secondItemId != 0 ? history.secondItemId : Item::items.getItemIdByName(history.secondItemName);
 		const ItemType &secondItemType = Item::items[secondItemId];
 		const uint8_t resultTier = ForgeTransferPolicy::resultTier(history.tier, history.convergence);
 		detailsResponse << fmt::format(
