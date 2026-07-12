@@ -6,11 +6,11 @@ agent: "GPT-5.6 Thinking"
 branch: fix/imbuement-forgotten-knowledge-storages
 base_branch: main
 created: 2026-07-12T20:55:00Z
-updated: 2026-07-12T20:55:00Z
-last_verified_commit: ""
+updated: 2026-07-12T23:03:00+02:00
+last_verified_commit: "ef88c689b59c476c1cfea18357384b9280043c7d"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "#206"
 depends_on:
   - merged audit PR #166
 blocks: []
@@ -58,9 +58,9 @@ Current XML instead uses undeclared `50488, 50490, 50492, 50494, 50496, 50498, 5
 
 - [ ] Replace all 22 affected Powerful entries with the corresponding active storage IDs.
 - [ ] Preserve every unrelated Imbuement value, item, scroll, category and effect.
-- [ ] Extend the deterministic storage audit to verify exact family-to-storage grouping.
-- [ ] Make undeclared nonzero Imbuement storage IDs fail the focused workflow.
-- [ ] Add fixture and repository-level regression coverage.
+- [x] Extend the deterministic storage audit to verify exact family-to-storage grouping.
+- [x] Make undeclared nonzero Imbuement storage IDs fail the focused workflow.
+- [x] Add fixture and repository-level regression coverage.
 - [ ] Update the Imbuement report with repaired status and retained unresolved findings.
 - [ ] Run focused tests, generators and repository CI.
 - [ ] Review changed files and confirm no map, item binary, client asset or unrelated gameplay changes.
@@ -78,3 +78,8 @@ Current XML instead uses undeclared `50488, 50490, 50492, 50494, 50496, 50498, 5
 - Confirmed writable target `blakinio/canary`; upstream remains reference-only.
 - Reviewed open PRs and `ACTIVE_WORK.md`; no active Imbuement storage repair overlaps this scope.
 - Revalidated the seven active Forgotten Knowledge storage declarations and boss write paths on current `main`.
+- Published draft PR #206 before the gameplay data change.
+- Extended the storage validator to reject undeclared IDs, legacy IDs and incorrect family grouping.
+- Added fixture coverage plus a repository-level regression test.
+- Updated the focused workflow to run storage validation with `--strict` and publish the reviewed XML source as an artifact.
+- XML replacement, report update and final CI remain in progress.
