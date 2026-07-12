@@ -6,17 +6,19 @@ agent: "GPT-5.6 Thinking"
 branch: feat/wheel-of-destiny-validation-audit
 base_branch: main
 created: 2026-07-12T19:37:47+02:00
-updated: 2026-07-12T19:37:47+02:00
-last_verified_commit: "ca93c9dbcec380cc1bd0cce13ef1e248e334f18d"
+updated: 2026-07-12T20:25:00+02:00
+last_verified_commit: "ecd31f646a39f0ac4aa9d59ba47dc918f2d292b6"
 risk: low
 related_issue: ""
-related_pr: "pending"
+related_pr: "169"
 depends_on: []
 blocks: []
 owned_paths:
+  - .github/workflows/wheel-of-destiny-validation.yml
   - tools/ai-agent/wheel_of_destiny_validation.py
   - tools/ai-agent/test_wheel_of_destiny_validation.py
   - docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION_PROJECT.md
+  - docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json
   - docs/ai-agent/WHEEL_OF_DESTINY_VALIDATION_REPORT.md
   - docs/ai-agent/WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json
   - docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md
@@ -31,8 +33,9 @@ reuses:
   - existing Wheel runtime components
   - existing protocol and persistence implementation
 public_interfaces:
-  - Wheel validation report format
+  - canary-wheel-of-destiny-audit-v1
   - Wheel validation CLI
+  - Wheel runtime test plan schema v1
 cross_repo_tasks: []
 ---
 
@@ -49,136 +52,161 @@ Create a deterministic, evidence-based audit of Canary's Wheel of Destiny and Ge
 - [ ] Validate gem reveal, affinity, socketing, resonance, grades, fragments, costs and persistence.
 - [ ] Map protocol handlers and compare payloads with the compatible OTClient when required.
 - [ ] Validate schema, migrations and save/load paths.
-- [ ] Compare current behavior and values with the referenced versioned Tibia sources.
+- [x] Compare initial core values with the versioned 2026-07-12 TibiaWiki/Fandom snapshot.
 - [x] Create a dedicated durable project document beside the main World Validation project.
-- [ ] Produce a human-readable evidence report and machine-readable runtime test plan.
-- [ ] Add focused deterministic unit tests for the scanner/classifier.
-- [ ] Do not modify active Wheel data, combat/spells, protocol, schema, datapacks, map or assets in this audit PR.
-- [ ] Relevant checks completed.
+- [x] Produce an initial human-readable evidence report and machine-readable runtime test plan.
+- [x] Add focused deterministic unit tests for the scanner/classifier.
+- [x] Add a dedicated CI workflow for the scanner and JSON artifacts.
+- [x] Do not modify active Wheel data, combat/spells, protocol, schema, datapacks, map or assets in this audit PR.
+- [ ] Review the first CI run on the actual repository branch.
 - [ ] Module catalogue impact handled.
-- [ ] Documentation/changelog impact handled or recorded as none.
+- [ ] Main World Validation document links this specialist project.
 - [ ] Cross-repository impact handled or explicitly recorded.
 - [ ] Autonomous merge gate satisfied.
 
 # Confirmed context
 
-- The writable repository is `blakinio/canary`; `opentibiabr/canary` is reference-only.
-- The main World Validation project requires separate evidence for definitions, references, semantics, runtime and regression.
-- The referenced TibiaWiki/Fandom page describes the base Wheel, Gem Atelier and Fragment Workshop, including version-sensitive additions.
-- Current Canary contains dedicated Wheel runtime, gem, IO, protocol, Lua and persistence paths.
-- Open PRs inspected on 2026-07-12; no Wheel of Destiny validation overlap was found.
-- Dedicated project document: `docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION_PROJECT.md`.
+- Writable repository: `blakinio/canary`; upstream is reference-only.
+- Draft PR: #169.
+- Branch merge-base: `dbcc809bac57bb78425ca39c2523c723cef79bb0`.
+- `main` moved after branch creation by an unrelated documentation commit; no owned-path overlap was found.
+- Dedicated handoff: `docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION_PROJECT.md`.
+- External baseline: `docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json`.
+- No gameplay/runtime files are changed by this task.
 
-# Existing work to reuse
+# Current evidence
 
-| Module/task/PR | Reuse | Evidence/path | Why it fits |
-|---|---|---|---|
-| OTS AI World Validation | Evidence layers and handoff rules | `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md` | Defines structure/reference/semantic/runtime/regression separation. |
-| Wheel runtime components | Canonical server implementation | `src/creatures/players/components/wheel/**` | Definitions, activation, effects and gem behavior live here. |
-| Wheel IO/persistence | Canonical save/load path | `src/io/io_wheel.*`, player load/save sources | Required for round-trip and migration validation. |
-| Protocol implementation | Server payload contract | `src/server/network/protocol/**` | Required for client compatibility evidence. |
-| Existing achievement/imbuing validation PR pattern | Coordination and audit structure | PRs #165 and #166 | Confirms read-only specialist audit, task record and draft PR workflow. |
+## Static matches
 
-# Ownership and overlap check
+- 36 slices.
+- Revelation thresholds 250/500/1000.
+- level 51+, promoted Premium access gate.
+- 1 point per level after 50.
+- five Promotion Scrolls total 50 points.
+- Monk quest bonus 10.
+- temple-only decrease/reset option.
+- reveal costs 125k/1m/6m.
+- rotate costs 125k/250k/500k.
+- Basic Grade II–IV costs.
+- Supreme Grade II and IV costs.
+- Grade IV multiplier 1.5.
 
-- Open PR state inspected on 2026-07-12.
-- Active work index inspected; it is stale relative to GitHub and therefore not treated as authoritative.
-- No active branch or PR was found claiming Wheel of Destiny/Gem Atelier validation paths.
-- Resolution: dedicated branch and documentation/tool-only audit scope.
+These remain `static-consistent`, not runtime verified.
 
-# Current state
+## Confirmed static findings
 
-A dedicated project document exists and records scope, evidence layers, safety boundary, preliminary source inventory and handoff. No gameplay or runtime files have been changed. The next step is a deterministic source inventory and baseline extraction.
+- `WOD-F001`: Supreme Grade III returns 12,000,000 instead of the selected reference value 12,500,000.
+- `WOD-F002`: `m_modsMaxGrade` is absent from `getExtraPoints()` and is added to every domain in `getPlayerSliceStage()`.
+- `WOD-F003`: Revelation Mastery Supreme Mod cases both apply immediately and queue a strategy that applies the same value again.
+
+## Risks pending caller/protocol/runtime evidence
+
+- `WOD-R001`: Hunting Task Shop points path not found in `getExtraPoints()`.
+- `WOD-R002`: no 225 cap check inside `revealGem()`.
+- `WOD-R003`: reveal/upgrade resource removal is not visibly atomic.
+- `WOD-R004`: grade arrays appear indexed with client-supplied position before local validation.
+- `WOD-R005`: duplicate neighbour check for `SLOT_GREEN_TOP_100`.
 
 # Plan
 
-1. Inventory all Wheel/Gem symbols and files from current branch.
-2. Extract static definitions, topology, costs, thresholds and persistence fields.
-3. Map all runtime effect call sites and spell augments.
-4. Map protocol handlers and client-facing payloads.
-5. Implement a deterministic read-only scanner and focused tests.
-6. Generate the evidence report and runtime test plan.
-7. Split confirmed defects into separate focused PRs after evidence review.
+1. Review the first GitHub Actions run and generated audit artifact.
+2. Fix scanner parser assumptions if the actual branch run fails; update project/task/report immediately.
+3. Record exact source inventory, finding counts and comparisons from CI.
+4. Complete protocol handler and call-site mapping.
+5. Complete persistence, migration and malformed-data review.
+6. Compare payloads with compatible `opentibiabr/otclient`.
+7. Execute focused runtime scenarios.
+8. Split confirmed gameplay defects into separate minimal PRs.
 
 # Work log
 
+## 2026-07-12T20:25:00+02:00
+
+- Changed: published scanner, seven focused tests, versioned baseline, initial report, 20-scenario runtime plan and dedicated CI workflow.
+- Changed: updated durable project/handoff with PR, findings, risks, test result and next steps.
+- Learned: the selected reference confirms 12.5m Supreme Grade III, 225 revealed-gem cap, 50 Hunting Task points and 69 Grade IV points.
+- Learned: three high-confidence static implementation problems are separable into cost, point-accounting and Revelation Mastery follow-up work.
+- Validation: `python -m unittest discover -s /mnt/data -p 'test_wheel_of_destiny_validation.py' -v` -> 7 tests, OK.
+- Failed/blocked: runtime execution and compatible-client packet capture are not available locally; CI and later integration environment are required.
+- Result: audit infrastructure exists; no gameplay behavior changed.
+
+## 2026-07-12T19:45:00+02:00
+
+- Changed: published active work entry and draft PR #169.
+- Learned: branch merge-base predates one unrelated main documentation commit.
+- Result: ownership and overlap are explicit.
+
 ## 2026-07-12T19:37:47+02:00
 
-- Changed: created the persistent task record and claimed Wheel validation paths.
-- Learned: existing repository governance requires the specialist document, task record, active-work visibility and early draft PR before substantial implementation.
-- Failed/blocked: local shell cannot resolve `github.com`; repository analysis and writes use the GitHub connector, and runtime execution may require CI.
-- Result: task ownership is explicit; no gameplay files changed.
+- Changed: created persistent task record and claimed validation paths.
+- Failed/blocked: direct local clone cannot resolve `github.com`; GitHub connector is used for authoritative reads/writes.
 
 ## 2026-07-12T19:35:00+02:00
 
-- Changed: created `docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION_PROJECT.md`.
-- Learned: Wheel validation must separate definition, activation, effect, persistence, protocol, runtime and regression evidence.
-- Failed/blocked: none for documentation creation.
-- Result: durable project scope and handoff now exist in Git.
-
-# Decisions
-
-| Decision | Reason/evidence | ADR |
-|---|---|---|
-| Keep a separate project document beside the main World Validation project | Wheel/Gem definitions, effects, persistence and protocol require a durable specialist handoff without bloating the general project document. | none |
-| Keep the first PR read-only | A complete evidence baseline must precede balance, gameplay, schema or protocol changes. | none |
-| Treat wiki values as versioned comparison data, not automatic truth | Wheel and Gem Atelier changed across updates; source date/version must accompany every mismatch. | none |
-| Split protocol changes from server-only audit | Canary ↔ OTClient payload changes require an explicit cross-repository contract. | none |
+- Changed: created the specialist project document beside the main World Validation project.
 
 # Files and interfaces
 
-| Path/interface/config/schema | Purpose | Status |
+| Path/interface | Purpose | Status |
 |---|---|---|
-| `docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION_PROJECT.md` | durable methodology, state, changelog and handoff | created |
-| `tools/ai-agent/wheel_of_destiny_validation.py` | deterministic source scanner/classifier | planned |
-| `tools/ai-agent/test_wheel_of_destiny_validation.py` | focused parser/classifier tests | planned |
-| `docs/ai-agent/WHEEL_OF_DESTINY_VALIDATION_REPORT.md` | evidence report and findings | planned |
-| `docs/ai-agent/WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json` | machine-readable runtime scenarios | planned |
+| `docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION_PROJECT.md` | durable scope, changelog and handoff | current |
+| `docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json` | versioned requested reference values | created |
+| `tools/ai-agent/wheel_of_destiny_validation.py` | deterministic static scanner | created |
+| `tools/ai-agent/test_wheel_of_destiny_validation.py` | parser/finding regression tests | created |
+| `docs/ai-agent/WHEEL_OF_DESTINY_VALIDATION_REPORT.md` | initial evidence report | created |
+| `docs/ai-agent/WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json` | 20 runtime/protocol/persistence scenarios | created |
+| `.github/workflows/wheel-of-destiny-validation.yml` | CI and audit artifact publication | created |
 
 # Validation and CI
 
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
-| `ca93c9dbcec380cc1bd0cce13ef1e248e334f18d` | documentation path/content review | reviewed | specialist project file created on task branch |
-| | focused Python tests | not-run | implementation pending |
-| | AI Agent Tools workflow | not-run | tool implementation pending |
+| local workspace | `python -m unittest discover -s /mnt/data -p 'test_wheel_of_destiny_validation.py' -v` | passed | 7 tests, 0 failures, 0 errors |
+| `ecd31f646a39f0ac4aa9d59ba47dc918f2d292b6` | specialist project/handoff update | written | records all changes through this iteration |
+| latest PR head | Wheel of Destiny Validation workflow | pending review | must inspect run, job logs and generated artifact |
 
 Never write `passed` without verification.
 
+# Decisions
+
+| Decision | Reason/evidence | ADR |
+|---|---|---|
+| Keep first PR read-only | Complete evidence baseline must precede gameplay, schema or protocol changes. | none |
+| Store external values in a versioned JSON baseline | Prevents silent drift and preserves the exact requested snapshot. | none |
+| Compare only externally supported multiplier values | The page explicitly supports Grade I and Grade IV/+50%; intermediate multipliers are not guessed. | none |
+| Split confirmed defects by behavior | Cost, point accounting and double effect have different risk and test surfaces. | none |
+| Keep cap/atomicity/index issues as risks | Direct method inspection is insufficient without caller/protocol/runtime evidence. | none |
+
 # Failed approaches and dead ends
 
-- Direct `git clone` from the execution container failed because DNS resolution for `github.com` is unavailable.
-- Code search on the private fork index returned no Wheel matches; upstream code search was used only to discover paths, then fork files are fetched directly for authoritative content.
+- Direct `git clone` failed because the execution container cannot resolve `github.com`.
+- Private-fork code search returned incomplete Wheel results; authoritative files are fetched directly from `blakinio/canary` after upstream path discovery.
+- Local unit tests validate parser behavior and fixtures only; they do not replace repository CI or gameplay tests.
 
 # Risks and compatibility
 
-- Runtime: no runtime change in audit PR.
-- Data/migration: no schema or migration change in audit PR.
-- Protocol: read-only mapping only; any change requires Canary ↔ OTClient contract work.
-- Security: no secrets or player data.
-- Backward compatibility: report/tool only.
-- Cross-repo rollout: none unless a protocol defect is confirmed later.
-- Rollback: revert documentation/tool commits.
+- Runtime: no runtime code changed.
+- Data/migration: no schema/migration changed.
+- Protocol: read-only analysis only; any correction needs Canary ↔ OTClient contract work.
+- Security: malformed client positions and partial resource consumption are under review, not yet confirmed exploitable.
+- Backward compatibility: documentation/tool/workflow only.
+- Rollback: revert audit commits.
 
 # Remaining work
 
-1. Open the early draft PR and publish active-work visibility.
-2. Fetch and classify all current Wheel source files.
-3. Implement scanner and tests.
-4. Produce evidence report and runtime test plan.
-5. Link the specialist project from the main World Validation document.
+1. Inspect CI for the latest PR head.
+2. Update generated finding counts and source inventory in the report.
+3. Link specialist project from the main World Validation document.
+4. Update module catalogue.
+5. Complete protocol/persistence/call-site analysis.
+6. Execute runtime plan.
+7. Create separate focused defect PRs after evidence review.
 
 # Handoff
 
 ## Start here
 
-Read `docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION_PROJECT.md`, then inspect `src/creatures/players/components/wheel/**`, `src/io/io_wheel.*`, protocol handlers, player save/load, migrations and every Wheel-related spell/combat call site.
-
-## Do not repeat
-
-Do not infer correctness from a getter, enum or protocol handler existing. Each perk needs an activation path, effect path, persistence evidence and eventually a runtime test.
-
-## Required reads
+Read:
 
 - `AGENTS.md`
 - `docs/agents/ACTIVE_WORK.md`
@@ -186,20 +214,27 @@ Do not infer correctness from a getter, enum or protocol handler existing. Each 
 - `docs/agents/CROSS_REPO_CONTRACTS.md`
 - `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md`
 - `docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION_PROJECT.md`
-- current Wheel, IO, protocol and persistence sources
+- `docs/ai-agent/WHEEL_OF_DESTINY_VALIDATION_REPORT.md`
+- PR #169 and its latest workflow run
 
-## Open questions
+## Next exact action
 
-- Which Wheel features are fully implemented for every vocation and which are partial?
-- Which values correspond to the active protocol/version rather than older Tibia balance?
-- Are all gem operations transactional and round-trip safe?
-- Does the compatible OTClient consume every emitted payload exactly as Canary sends it?
+Inspect the `Wheel of Destiny Validation` workflow for the latest head. If it fails, use the job log to correct only the scanner or fixture assumptions, then update the specialist project, this task record and PR body. If it succeeds, record exact generated comparisons/findings/inventory and continue with protocol and persistence mapping.
+
+## Do not repeat
+
+- Do not infer runtime correctness from a static match.
+- Do not upgrade WOD-R001..R005 to confirmed defects without missing evidence.
+- Do not repair gameplay in PR #169.
+- Do not combine WOD-F001/F002/F003 in one correction PR.
+- Do not modify `opentibiabr/canary`.
 
 # Completion
 
 - Final status: active
-- PR: pending
+- PR: #169 draft
 - Merge commit:
 - Catalogue updated: no
-- Changelog updated: no
+- Main project linked: no
+- Cross-repo impact: pending protocol review
 - Archived at:
