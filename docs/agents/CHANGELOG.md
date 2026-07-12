@@ -6,6 +6,8 @@ Curated behavior/architecture log for discovery; not a replacement for Git histo
 
 - The Beginning Carlos repair in PR #157 removes the stage-1 `outfit` completion bypass, gates trade to the accepted stage-6 task, sends tutorial `13` when that trade is first opened, and advances to stage 7 only after an actual meat/ham sale while preserving the existing shop transaction and prices.
 - The Beginning Zirella reward-room repair in PR #156 seals UID `50085` until Zirella stage 8 and remaps shovel/rope tutorials to current reward UIDs `50093/50094`; it remains open and requires refresh against the advanced `main` branch.
+- GameStore balance sequencing repair in PR #187 emits one post-mutation balance snapshot, removes the parser-level duplicate, and preserves the existing disabled-reason deduplication without changing opcodes, prices or coin arithmetic.
+
 - Achievement trigger repair in PR #184 corrects the exact canonical names for `You Got Horse Power` and `The Professor's Nut`, with a real-source scanner contract and no registry or persistence rename.
 - Achievement helper repair in PR #176 replaces sparse-table length/range iteration with a deterministic sorted list of successfully registered IDs, derives real first/last bounds, and fixes public/secret metadata lookup and invalid-input logging without changing registry definitions or player KV data.
 - PR #161 extends the OTBM HD pipeline with a one-process batch external AI backend, strict source/output path confinement, independent partial-output normalization, exact source-alpha restoration, compatible override manifests, and an optional no-weights-committed TibiaSR 2x reference adapter.
