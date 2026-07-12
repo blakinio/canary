@@ -27,10 +27,6 @@ ChannelRegistry &ChannelRegistry::getInstance() {
 }
 
 namespace {
-	// `channels.temple_town_id` is nullable; the DBResult API surfaced by this
-	// codebase collapses NULL and 0 into the same T() default rather than
-	// exposing a distinct null check, and town id 0 is never a real town, so
-	// treating 0 as "unset" is the safe, spec-consistent interpretation here.
 	std::optional<int32_t> optionalIntColumn(const DBResult_ptr &result, const std::string &column) {
 		const auto value = result->getNumber<int32_t>(column);
 		if (value == 0) {
@@ -109,6 +105,11 @@ std::vector<ChannelInfo> ChannelRegistry::getLoginListChannels() const {
 	return selectable;
 }
 
+std::vector<ChannelInfo> ChannelRegistry::getAllChannels() const {
+	std::lock_guard lock(mutex);
+	return channels;
+}
+
 std::size_t ChannelRegistry::size() const {
 	std::lock_guard lock(mutex);
 	return channels.size();
@@ -119,9 +120,6 @@ bool ChannelRegistry::ensureBootstrapChannel() {
 		return true;
 	}
 	if (g_channelContext().getChannelId() != ChannelContext::DefaultSingleChannelId) {
-		// Only the bootstrap process (channel 1) is allowed to auto-create a
-		// row; every other channel must be configured explicitly by the
-		// operator (see docs/multichannel/MIGRATION.md).
 		return true;
 	}
 
@@ -139,13 +137,13 @@ bool ChannelRegistry::ensureBootstrapChannel() {
 
 	std::ostringstream query;
 	query << "INSERT INTO `channels` (`id`, `name`, `pvp_type`, `external_host`, `game_port`, `status_port`, `max_players`, `enabled`, `sort_order`, `maintenance`, `maintenance_message`, `login_gateway`, `map_hash`, `created_at`, `updated_at`) VALUES ("
-		  << "1, "
-		  << db.escapeString(name) << ", "
-		  << db.escapeString(pvpType) << ", "
-		  << db.escapeString(host) << ", "
-		  << gamePort << ", "
-		  << statusPort << ", "
-		  << "0, 1, 0, 0, '', 1, '', UNIX_TIMESTAMP(), UNIX_TIMESTAMP());";
+	      << "1, "
+	      << db.escapeString(name) << ", "
+	      << db.escapeString(pvpType) << ", "
+	      << db.escapeString(host) << ", "
+	      << gamePort << ", "
+	      << statusPort << ", "
+	      << "0, 1, 0, 0, '', 1, '', UNIX_TIMESTAMP(), UNIX_TIMESTAMP());";
 
 	if (!db.executeQuery(query.str())) {
 		g_logger().error("[ChannelRegistry::ensureBootstrapChannel] - Failed to insert bootstrap Channel 1 row.");
@@ -157,9 +155,6 @@ bool ChannelRegistry::ensureBootstrapChannel() {
 }
 
 std::string ChannelRegistry::hashBytes(const unsigned char* data, std::size_t length) {
-	// FNV-1a 64-bit. Not a cryptographic hash - this is a compatibility
-	// fingerprint (spec §3.5), not a security boundary, so a fast,
-	// dependency-free, deterministic hash is the right tool.
 	constexpr uint64_t offsetBasis = 0xcbf29ce484222325ULL;
 	constexpr uint64_t prime = 0x100000001b3ULL;
 
