@@ -67,7 +67,17 @@ jobs:
             tools/ai-agent/test_imbuement_storage_validation.py
 
       - name: Run focused tests
-        run: python -m unittest discover -s tools/ai-agent -p "test_imbuement*_validation.py" -v
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          set +e
+          python -m unittest discover \
+            -s tools/ai-agent \
+            -p "test_imbuement*_validation.py" \
+            -v 2>&1 | tee artifacts/IMBUEMENT_TESTS.log
+          status=${PIPESTATUS[0]}
+          echo "Focused test exit code: ${status}" >> "$GITHUB_STEP_SUMMARY"
+          exit "${status}"
 
       - name: Generate imbuement audits and runtime plan
         run: |
@@ -122,4 +132,13 @@ jobs:
             artifacts/IMBUEMENT_STORAGE_VALIDATION.json
             artifacts/IMBUEMENT_RUNTIME_TEST_PLAN.json
           if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload focused test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: imbuement-validation-test-log
+          path: artifacts/IMBUEMENT_TESTS.log
+          if-no-files-found: warn
           retention-days: 14
