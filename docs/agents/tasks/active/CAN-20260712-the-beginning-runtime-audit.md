@@ -1,6 +1,6 @@
 ---
 task_id: CAN-20260712-the-beginning-runtime-audit
-status: in-progress
+status: ready-for-review
 agent: "GPT-5.6 Thinking"
 branch: docs/the-beginning-runtime-audit
 base_branch: main
@@ -43,7 +43,7 @@ Build an evidence-based dependency graph and runtime/E2E validation plan for the
 - [x] Produce a human-readable audit report with bounded follow-up PR specifications.
 - [x] Classify current Rookgaard border AID 50999 from `needs-manual-review` to `missing-script`.
 - [x] Do not change `.otbm`, active datapack content, engine, NPCs, spawns or OTBM tooling.
-- [ ] Required documentation/AI-agent checks pass on final head.
+- [x] Required documentation/AI-agent checks pass on reviewed head.
 
 # Scope boundary
 
@@ -88,7 +88,10 @@ This task audits and documents. Any confirmed gameplay fix must use a separate f
 - active Lua/NPC/catalog/storage/action search;
 - companion NPC and monster spawn XML review;
 - current items.xml name/description correlation;
-- independent historical behavior used only as corroboration.
+- independent historical behavior used only as corroboration;
+- OTBM Map Tools workflow run 82: success;
+- AI Agent Tools workflow run 207: success;
+- final changed-file list reviewed: six documentation/classification files only.
 
 # Outputs
 
