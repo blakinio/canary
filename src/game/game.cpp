@@ -12248,6 +12248,14 @@ const std::unique_ptr<AttachedEffects> &Game::getAttachedEffects() const {
 	return m_attachedEffects;
 }
 
+InstanceManager &Game::getInstanceManager() {
+	return m_instanceManager;
+}
+
+const InstanceManager &Game::getInstanceManager() const {
+	return m_instanceManager;
+}
+
 void Game::transferHouseItemsToDepot() {
 	if (!g_configManager().getBoolean(TOGGLE_HOUSE_TRANSFER_ON_SERVER_RESTART)) {
 		return;

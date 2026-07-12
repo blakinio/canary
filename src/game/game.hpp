@@ -14,6 +14,7 @@
 #include "creatures/players/components/player_title.hpp"
 #include "creatures/players/grouping/familiars.hpp"
 #include "creatures/players/grouping/groups.hpp"
+#include "game/instance/instance_manager.hpp"
 #include "lua/creature/raids.hpp"
 #include "map/map.hpp"
 #include "modal_window/modal_window.hpp"
@@ -706,6 +707,16 @@ public:
 	std::unique_ptr<AttachedEffects> &getAttachedEffects();
 	const std::unique_ptr<AttachedEffects> &getAttachedEffects() const;
 
+	// The single runtime owner of the instance subsystem (docs/architecture/
+	// instance-manager.md). Constructed with zero configured regions until a
+	// concrete instanced feature defines real ones - createInstance() simply
+	// fails with "no available instance regions" until then. Nothing calls
+	// this yet: spawn/NPC creation, the scheduler and player enter/leave all
+	// still run entirely in the normal world. This only removes the
+	// prerequisite blocking those follow-ups from wiring in for real.
+	InstanceManager &getInstanceManager();
+	const InstanceManager &getInstanceManager() const;
+
 	void setTransferPlayerHouseItems(uint32_t houseId, uint32_t playerId);
 	void transferHouseItemsToDepot();
 
@@ -978,6 +989,8 @@ private:
 	std::unique_ptr<IOWheel> m_IOWheel;
 
 	std::unique_ptr<AttachedEffects> m_attachedEffects;
+
+	InstanceManager m_instanceManager { std::vector<InstanceMapRegion> {} };
 
 	void cacheQueryHighscore(const std::string &key, const std::string &query, uint32_t page, uint8_t entriesPerPage);
 	void processHighscoreResults(const DBResult_ptr &result, uint32_t playerID, uint8_t category, uint32_t vocation, uint8_t entriesPerPage);
