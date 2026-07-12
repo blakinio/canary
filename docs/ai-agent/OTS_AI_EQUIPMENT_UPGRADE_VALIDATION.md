@@ -101,9 +101,10 @@ These changes are baseline evidence, not proof that the complete Equipment Upgra
 | Dust capacity upgrade | Cost is current limit minus 75; maximum 325 | formula confirmed; **mismatch F-001:** configured and fallback maximum are 225 |
 | Dust conversion | 60 Dust creates 3 Slivers | **confirmed statically**; mutation/failure tests pending |
 | Core conversion | 50 Slivers creates 1 Exalted Core | **confirmed statically**; mutation/failure tests pending |
-| Influenced creatures | 1–5 stacks with stack-dependent HP, damage, XP and Dust | stack range, HP and damage **confirmed statically**; XP, Dust and Premium path pending |
-| Fiendish creatures | Strength equivalent to 15 stacks; world cap and lifecycle rules | stack 15 and configured cap 4 confirmed; **mismatch F-002:** engine fallback cap is 3; lifecycle/rewards pending |
-| Premium restriction | No Dust reward without Premium | **not yet confirmed** |
+| Influenced creatures | 1–5 stacks with stack-dependent HP, damage, XP and Dust | stack range and HP/damage/XP multipliers **confirmed statically**; reward eligibility mismatches F-006/F-007 remain |
+| Fiendish creatures | Strength equivalent to 15 stacks; maximum four alive; replacement/lifetime rules | stack 15, HP/damage/XP, configured cap 4, 270-second replacement and one-hour default lifetime confirmed; **mismatch F-002** and Sliver mismatch F-009 remain |
+| Premium restriction | No Dust reward without Premium | **mismatch F-006:** current reward script has no Premium check |
+| Party Dust eligibility | Shared-experience members must meet combat/range/floor eligibility | **mismatch F-007:** all leader/members are rewarded when shared experience is enabled |
 | Regular Fusion eligibility | Two identical items of equal tier | equal tier/item availability checked; **mismatch F-003:** identical item ID is not revalidated server-side |
 | Fusion success | Base 50%; optional core raises to 65% | configuration and server-side random outcome path confirmed statically; statistical/runtime test pending |
 | Fusion failure | Optional core changes the tier-loss/destruction risk | implementation located; exact outcome matrix and boundary tests pending |
@@ -112,11 +113,11 @@ These changes are baseline evidence, not proof that the complete Equipment Upgra
 | Convergence Fusion | Class 4 only; different items, same normalized body slot and equal tier; guaranteed; no bonus | client list filters class/slot; **mismatch F-004:** these restrictions are not fully revalidated server-side |
 | Regular Transfer | Same classification; receiver tier 0; source destroyed; result donor tier minus one | partially confirmed by PR #89 and focused tests; full gameplay test pending |
 | Convergence Transfer | Class 4 only; no tier loss; may cross body slots; source destroyed | result/cost path located; **mismatch F-005:** class 4 is not enforced server-side |
-| Onslaught | Weapon chance and damage rules | configuration present; exact formula use and combat test pending |
-| Ruse | Armor dodge chance rules | configuration present; exact formula use and combat test pending |
-| Momentum | Helmet cooldown-reset rules | configuration present; exact formula use and cooldown test pending |
-| Transcendence | Legs trigger and avatar duration rules | configuration and 7000 ms duration present; trigger semantics pending |
-| Amplification | Boots modify other Forge effects | configuration present; interaction semantics pending |
+| Onslaught | Weapon chance table; triggered basic attack gains 60% damage | formula coefficients and combat application **confirmed statically**; AoE and runtime sampling pending |
+| Ruse | Armor dodge chance table | formula path confirmed; **precision risk F-010:** probability is truncated to integer basis points rather than rounded |
+| Momentum | Helmet chance table; reduce eligible cooldowns by two seconds | formula and two-second reduction confirmed statically; **semantic risk F-012:** visual trigger can occur without an eligible cooldown being changed |
+| Transcendence | Legs chance table; check after offensive action; seven-second Avatar; cannot overlap Avatar spell | formula, two-second action window and duration confirmed; **mismatch F-011:** only the Forge timer is checked |
+| Amplification | Boots multiplicatively increase other Forge effect chances | base table and multiplicative use for Ruse, Onslaught, Momentum and Transcendence confirmed; event-bonus ordering/runtime tests pending |
 | History | Exact partners, result, costs, bonus and success state | partially covered by PRs #89 and #110; Fusion/Convergence cases pending |
 | Transaction safety | Rejected or failed operations cannot partially consume resources | **not yet proven**; malformed-packet integration tests required |
 
@@ -140,18 +141,28 @@ These changes are baseline evidence, not proof that the complete Equipment Upgra
 - `src/game/game.cpp`
 - `src/game/functions/forge_transfer_policy.hpp`
 
-### Creature scaling and lifecycle
+### Creature scaling, rewards and lifecycle
 
 - `src/creatures/monsters/monster.cpp`
 - `src/creatures/monsters/monster.hpp`
+- `data/libs/systems/exaltation_forge.lua`
+- `data/scripts/creaturescripts/monster/forge_kill.lua`
 - Forge creature-event and datapack registration paths
+
+### Equipment effects
+
+- `src/items/item.cpp`
+- `src/creatures/combat/combat.cpp`
+- `src/creatures/players/player.cpp`
+- `data/scripts/spells/support/avatar_of_*.lua`
+- Lua binding for `Player:avatarTimer`
 
 ### Persistence and tests
 
 - `schema.sql`
 - player load/save paths for Forge resources
 - `tests/unit/players/forge_test.cpp`
-- Forge integration tests introduced by earlier Transfer work
+- `tests/integration/game/forge_it.cpp`
 
 ---
 
@@ -174,19 +185,19 @@ These changes are baseline evidence, not proof that the complete Equipment Upgra
 
 **Severity:** low/medium configuration inconsistency  
 **Evidence level:** B  
-**Observed:** distributed configuration uses 4 while the engine fallback uses 3.
+**Observed:** distributed configuration uses 4 while the engine fallback uses 3. The Lua helper also retains an unused legacy `maxFiendish = 3` value.
 
-**Required correction:** align the fallback with the intended value after confirming the selected Tibia version, then test startup without the Lua key and normal population refresh.
+**Required correction:** align active fallback/default sources with the selected Tibia version, remove or document stale dead configuration, then test startup without the Lua key and population refresh.
 
 ### F-003 — regular Fusion identity relies on the client list
 
 **Severity:** high server-authority issue  
 **Evidence level:** C  
-**Observed:** the Forge window only lists pairs of identical item IDs, but the operation handler does not independently require `firstItemId == secondItemId` before mutation.
+**Observed:** the Forge window only lists pairs of identical item IDs, but the operation handler does not independently require `firstItemId == secondItemId` before mutation. An existing integration test currently uses two different item IDs for a successful regular Fusion, which codifies the wrong eligibility rule.
 
 **Risk:** a crafted packet may request a regular Fusion using two different item types that otherwise satisfy tier and availability checks.
 
-**Required correction:** add a pure server-side Fusion eligibility policy and reject the request before any item or resource mutation.
+**Required correction:** add a pure server-side Fusion eligibility policy, reject the request before mutation and replace the permissive integration case.
 
 ### F-004 — Convergence Fusion restrictions are incomplete server-side
 
@@ -208,6 +219,62 @@ These changes are baseline evidence, not proof that the complete Equipment Upgra
 
 **Required correction:** extend the Transfer policy with an explicit convergence classification rule and add focused regression tests.
 
+### F-006 — Dust is awarded without Premium
+
+**Severity:** high gameplay/economy mismatch  
+**Evidence level:** C  
+**Observed:** `ForgeMonster:onDeath` calculates and credits Dust without checking the recipient's Premium status in either the solo or party path.
+
+**Required correction:** centralize recipient eligibility and reject Dust credit for non-Premium players while leaving Fiendish Sliver drops independent of Premium.
+
+### F-007 — party Dust eligibility is broader than the reference rule
+
+**Severity:** high gameplay/economy mismatch  
+**Evidence level:** C  
+**Observed:** when shared experience is enabled, the script adds the party leader and every party member to the reward list. It does not verify logout/combat participation state, distance, floor difference or the normal experience-sharing range for each recipient.
+
+**Required correction:** calculate eligible recipients from the actual shared-experience participation/range rules and add boundary tests for 30/31 tiles and adjacent floors.
+
+### F-008 — Dust cap message reports the requested amount, not the credited amount
+
+**Severity:** low feedback mismatch  
+**Evidence level:** C  
+**Observed:** when a reward would exceed the player's Dust limit, the script credits only the remaining capacity but still reports the original random amount as received.
+
+**Required correction:** compute `creditedAmount` once, use it for mutation and messaging, and test a reward at `limit - 1`.
+
+### F-009 — Fiendish Sliver quantity ignores creature difficulty
+
+**Severity:** medium reward mismatch  
+**Evidence level:** C  
+**Observed:** every Fiendish corpse receives a uniform random amount between global `forgeMinSlivers` and `forgeMaxSlivers`; no creature difficulty input is used.
+
+**Required correction:** determine the exact versioned difficulty-to-Sliver rule from an authoritative reference before implementation. Do not invent a formula.
+
+### F-010 — Ruse runtime chance truncates fractional basis points
+
+**Severity:** low probability precision risk  
+**Evidence level:** B–C, authoritative runtime confirmation required  
+**Observed:** the item formula returns a floating-point percentage, but `Player::getDodgeChance()` converts `percentage * 100` directly to `uint16_t`, truncating rather than rounding. Amplification is truncated again when added.
+
+**Required action:** confirm whether the intended server probability is the displayed two-decimal table or a hidden higher-precision formula. If the documented two-decimal values are authoritative, use explicit rounding and add all-tier tests.
+
+### F-011 — Transcendence can overlap the Avatar spell
+
+**Severity:** medium/high effect-rule mismatch  
+**Evidence level:** C  
+**Observed:** Avatar spells set `WheelOnThink_t::AVATAR_SPELL`, but `Player::triggerTranscendence()` only blocks while `AVATAR_FORGE` is active. It never checks the active Avatar-spell timer before creating the seven-second Forge Avatar condition.
+
+**Required correction:** block Transcendence while either Avatar timer is active and add tests for spell→Forge, Forge→Forge and post-expiry transitions.
+
+### F-012 — Momentum can show a false-positive trigger
+
+**Severity:** low feedback/semantic risk  
+**Evidence level:** C  
+**Observed:** `triggered` is set for every condition visited before checking whether that condition is an eligible spell or offensive group cooldown. The hourglass/message may therefore appear even when no cooldown was reduced.
+
+**Required correction:** set `triggered = true` only after an eligible cooldown is changed; test players with only `CONDITION_INFIGHT` and with support-only group cooldowns.
+
 ---
 
 ## 8. Required regression scenarios
@@ -221,7 +288,14 @@ These changes are baseline evidence, not proof that the complete Equipment Upgra
 7. every rejected packet leaves both items, Dust, cores and bank balance unchanged;
 8. Dust capacity stops at 325 and uses the current-limit-minus-75 price;
 9. conversions reject insufficient Dust/items without partial mutation;
-10. history stores the exact item IDs, tiers, costs, result, bonus and success state.
+10. non-Premium characters receive no Dust but can still loot valid Fiendish Slivers;
+11. party Dust recipients satisfy shared-experience combat/range/floor rules;
+12. Dust cap messaging reports the amount actually credited;
+13. Fiendish Slivers follow the confirmed difficulty rule;
+14. Transcendence cannot activate during an Avatar spell and expires after seven seconds;
+15. Momentum reports a trigger only when at least one eligible cooldown changed;
+16. effect chance tables and Amplification are tested for tiers 1–10;
+17. history stores exact item IDs, tiers, costs, result, bonus and success state.
 
 ---
 
@@ -245,27 +319,41 @@ No production code was changed in this step.
 - Traced packet-controlled fields through regular and Convergence Fusion/Transfer.
 - Confirmed that success and bonus rolls are generated by the server, not accepted from the client.
 - Confirmed influenced/fiendish stack assignment and HP/damage multipliers.
-- Recorded five concrete findings F-001 through F-005.
-- Verified that temporary technical files used during investigation were removed and the pull request currently contains only this validation document.
+- Recorded findings F-001 through F-005.
 
-No production-code correction is claimed in this pass. The available connector safely supports complete-file replacement but not textual patch application; therefore the large handler change was not retained without a clean, reviewable commit. The prepared remediation must be applied through a normal repository checkout or an equivalent patch-capable tool, followed by focused tests.
+No production-code correction is claimed in this pass.
+
+### 2026-07-12 — static and semantic audit pass 2
+
+- Used a temporary read-only CI exporter to capture the current branch versions of Forge-related C++, Lua, SQL and test sources; the exporter was removed immediately after the audit.
+- Confirmed influenced/fiendish XP multipliers, Fiendish replacement delay and default lifetime.
+- Traced solo and party Dust credit paths and found missing Premium and recipient-range validation.
+- Traced Fiendish Sliver creation and confirmed it uses only global minimum/maximum values.
+- Reconstructed all tier 1–10 chance tables from the configured quadratic formulas.
+- Confirmed static Onslaught damage, Momentum cooldown reduction, Transcendence duration/action window and multiplicative Amplification paths.
+- Confirmed Avatar spells and Transcendence use separate timers and found the missing overlap guard.
+- Recorded findings F-006 through F-012.
+- Removed all temporary exporter/scaffolding files; the intended pull-request diff remains this validation document only.
+
+No production-code correction is claimed in this pass. Static evidence now reaches B–C for the explicitly marked rows; runtime/gameplay evidence remains absent.
 
 ---
 
 ## 10. Next actions
 
-1. implement F-001 and F-002 in `config.lua.dist` and `src/config/configmanager.cpp`;
-2. add a pure `forge_fusion_policy.hpp` and extend `forge_transfer_policy.hpp` for F-003 through F-005;
-3. call the policies from `Player::forgeFuseItems` and `Player::forgeTransferItemTier` before mutation;
-4. add focused unit tests and malformed-request integration tests;
-5. run the normal build/test matrix and inspect all Forge-related failures;
-6. validate Fusion bonus outcomes and Forge history packets;
-7. validate XP, Dust, Premium and lifecycle behaviour for influenced/fiendish creatures;
-8. validate all five equipment effect formulas and Amplification interactions;
-9. perform runtime and gameplay validation before declaring parity.
+1. implement high-severity server-authority fixes F-003 through F-005 before resource mutation;
+2. implement Dust eligibility/accounting fixes F-006 through F-008 with shared-recipient tests;
+3. implement configuration corrections F-001/F-002;
+4. establish the authoritative Fiendish difficulty-to-Sliver rule before addressing F-009;
+5. fix the confirmed Transcendence and Momentum control-flow issues F-011/F-012;
+6. resolve Ruse precision only after confirming the intended probability representation;
+7. add focused unit and malformed-request integration tests;
+8. run the normal build/test matrix and inspect all Forge-related failures;
+9. validate all eight Fusion bonus outcomes and Forge history packets;
+10. perform runtime and gameplay validation before declaring parity.
 
 ---
 
 ## 11. Handoff
 
-Continue on `validation/equipment-upgrade` and read this document plus `OTS_AI_WORLD_VALIDATION_PROJECT.md` first. Preserve the behaviour already merged in PRs #89 and #110. Do not describe F-001 through F-005 as fixed until production code and regression tests are present in the branch. Static evidence currently reaches levels B–C for the explicitly marked rows; runtime, gameplay and complete regression evidence remain open. Full Equipment Upgrade parity has not been established.
+Continue on `validation/equipment-upgrade` and read this document plus `OTS_AI_WORLD_VALIDATION_PROJECT.md` first. Preserve the behaviour already merged in PRs #89 and #110. Do not describe F-001 through F-012 as fixed until production code and regression tests are present in the branch. Static evidence currently reaches levels B–C for the explicitly marked rows; runtime, gameplay and complete regression evidence remain open. Full Equipment Upgrade parity has not been established.
