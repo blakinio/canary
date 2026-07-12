@@ -9,6 +9,12 @@ ROOT = Path(__file__).resolve().parents[2]
 CONFIG = ROOT / "data-otservbr-global/account_quests.lua"
 RUNTIME = ROOT / "data-otservbr-global/scripts/custom/account_quest_system.lua"
 QUEST_DOORS = ROOT / "data/scripts/actions/doors/quest_door.lua"
+CONFIG_DIST = ROOT / "config.lua.dist"
+CONFIG_ENUMS = ROOT / "src/config/config_enums.hpp"
+CONFIG_MANAGER = ROOT / "src/config/configmanager.cpp"
+DB_FUNCTIONS = ROOT / "src/lua/functions/core/libs/db_functions.cpp"
+MIGRATION_TOOL = ROOT / "tools/account-quests/migrate_account_quests.py"
+DB_MIGRATION = ROOT / "data-otservbr-global/migrations/62.lua"
 INTEGRATION_ROOTS = (
     ROOT / "data/scripts",
     ROOT / "data-otservbr-global/scripts",
@@ -81,6 +87,11 @@ def validate_runtime(text: str) -> None:
 
     require('selfReset:groupType("normal")' in text, "self-service command must use the normal group")
     require('questReset:groupType("god")' in text, "administrative reset command must remain god-only")
+    require('local questAccess = TalkAction("/questaccess")' in text, "account access inspection command is missing")
+    require('questAccess:groupType("god")' in text, "account access inspection must remain god-only")
+    claim_body = function_body(text, "claimReward", "resetCharacterProgress")
+    require("db.queryAffectedRows" in claim_body, "reward claim must use atomic affected-row insert")
+    require("AccountQuest.canClaimReward" not in claim_body, "reward claim must not use read-then-insert")
 
 
 def validate_door_integration(text: str) -> None:
@@ -128,12 +139,24 @@ def main() -> int:
         config_text = read(CONFIG)
         runtime_text = read(RUNTIME)
         door_text = read(QUEST_DOORS)
+        config_dist = read(CONFIG_DIST)
+        config_enums = read(CONFIG_ENUMS)
+        config_manager = read(CONFIG_MANAGER)
+        db_functions = read(DB_FUNCTIONS)
+        migration_tool = read(MIGRATION_TOOL)
+        db_migration = read(DB_MIGRATION)
         configured = configured_quest_ids(config_text)
         integrated = integrated_quest_ids()
         unknown = sorted(integrated - configured)
         require(not unknown, f"integrations reference unregistered quests: {', '.join(unknown)}")
         validate_runtime(runtime_text)
         validate_door_integration(door_text)
+        require("accountWideQuestSystemEnabled = true" in config_dist, "main config switch is missing")
+        require("ACCOUNT_WIDE_QUESTS_ENABLED" in config_enums, "config enum is missing")
+        require('"accountWideQuestSystemEnabled"' in config_manager, "ConfigManager binding is missing")
+        require('"queryAffectedRows"' in db_functions, "atomic DB Lua primitive is missing")
+        require("--apply" in migration_tool and "conflict-policy" in migration_tool, "migration CLI safety controls are missing")
+        require("account_quest_migrations" in db_migration, "migration audit table is missing")
     except AssertionError as error:
         print(f"account quest validation failed: {error}", file=sys.stderr)
         return 1

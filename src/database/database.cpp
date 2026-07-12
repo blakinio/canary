@@ -258,6 +258,33 @@ bool Database::executeQuery(std::string_view query) {
 	return success;
 }
 
+std::optional<uint64_t> Database::executeQueryAffectedRows(std::string_view query) {
+	if (!handle) {
+		g_logger().error("Database not initialized!");
+		return std::nullopt;
+	}
+
+	g_logger().trace("Executing Query with affected rows: {}", query);
+
+	metrics::lock_latency measureLock("database");
+	std::scoped_lock lock { databaseLock };
+	measureLock.stop();
+
+	metrics::query_latency measure(query.substr(0, 50));
+	if (!retryQuery(query, 10)) {
+		mysql_free_result(mysql_store_result(handle));
+		return std::nullopt;
+	}
+
+	mysql_free_result(mysql_store_result(handle));
+	const auto affectedRows = mysql_affected_rows(handle);
+	if (affectedRows == static_cast<my_ulonglong>(-1)) {
+		g_logger().error("Failed to read affected rows: {}", mysql_error(handle));
+		return std::nullopt;
+	}
+	return static_cast<uint64_t>(affectedRows);
+}
+
 DBResult_ptr Database::storeQuery(std::string_view query) {
 	if (!handle) {
 		g_logger().error("Database not initialized!");

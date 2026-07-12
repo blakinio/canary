@@ -95,7 +95,7 @@ local function rewardPlayerId(player, mode)
 end
 
 function AccountQuest.isEnabled()
-	return AccountQuest.config.enabled == true
+	return configManager.getBoolean(configKeys.ACCOUNT_WIDE_QUESTS_ENABLED) and AccountQuest.config.enabled == true
 end
 
 function AccountQuest.reload()
@@ -175,11 +175,36 @@ function AccountQuest.claimReward(player, questId)
 	local mode = getRewardMode(definition)
 	local playerId = rewardPlayerId(player, mode)
 
-	if not AccountQuest.canClaimReward(player, normalizedId) then
-		return false
+	local affectedRows = db.queryAffectedRows(string.format("INSERT IGNORE INTO `account_quest_rewards` (`account_id`, `player_id`, `quest_id`, `reward_mode`, `claimed_by`) VALUES (%d, %d, %s, %s, %d)", accountId, playerId, db.escapeString(normalizedId), db.escapeString(mode), player:getGuid()))
+	return affectedRows == 1
+end
+
+function AccountQuest.getAccessList(player)
+	local accountId = getPlayerAccountId(player)
+	if not accountId then
+		return nil, "Player has no valid account id."
 	end
 
-	return db.query(string.format("INSERT IGNORE INTO `account_quest_rewards` (`account_id`, `player_id`, `quest_id`, `reward_mode`, `claimed_by`) VALUES (%d, %d, %s, %s, %d)", accountId, playerId, db.escapeString(normalizedId), db.escapeString(mode), player:getGuid()))
+	local entries = {}
+	local query = db.storeQuery(string.format([[
+		SELECT `quest_id`, `unlocked_by`, DATE_FORMAT(`unlocked_at`, '%%Y-%%m-%%d %%H:%%i:%%s') AS `unlocked_at`
+		FROM `account_quest_access`
+		WHERE `account_id` = %d
+		ORDER BY `quest_id` ASC
+	]], accountId))
+	if not query then
+		return entries
+	end
+
+	repeat
+		table.insert(entries, {
+			questId = result.getString(query, "quest_id"),
+			unlockedBy = result.getNumber(query, "unlocked_by"),
+			unlockedAt = result.getString(query, "unlocked_at"),
+		})
+	until not result.next(query)
+	result.free(query)
+	return entries
 end
 
 function AccountQuest.resetCharacterProgress(player, questId)
@@ -321,3 +346,38 @@ end
 selfReset:separator(" ")
 selfReset:groupType("normal")
 selfReset:register()
+
+local questAccess = TalkAction("/questaccess")
+
+function questAccess.onSay(player, words, param)
+	local target = player
+	local playerName = param:gsub("^%s+", ""):gsub("%s+$", "")
+	if playerName ~= "" then
+		target = Player(playerName)
+		if not target then
+			player:sendCancelMessage("The target player must be online.")
+			return true
+		end
+	end
+
+	local entries, errorMessage = AccountQuest.getAccessList(target)
+	if not entries then
+		player:sendCancelMessage(errorMessage)
+		return true
+	end
+
+	player:sendTextMessage(MESSAGE_EVENT_ADVANCE, string.format("Account quest access for %s (account %d):", target:getName(), target:getAccountId()))
+	if #entries == 0 then
+		player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "No account-wide quest access is recorded.")
+		return true
+	end
+
+	for _, entry in ipairs(entries) do
+		player:sendTextMessage(MESSAGE_EVENT_ADVANCE, string.format("%s | unlocked by GUID %d | %s", entry.questId, entry.unlockedBy, entry.unlockedAt))
+	end
+	return true
+end
+
+questAccess:separator(" ")
+questAccess:groupType("god")
+questAccess:register()

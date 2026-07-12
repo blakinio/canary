@@ -859,6 +859,40 @@ CREATE TABLE IF NOT EXISTS `towns` (
     UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
 
+-- Table structure `account_quest_access`
+CREATE TABLE IF NOT EXISTS `account_quest_access` (
+    `account_id` int(11) UNSIGNED NOT NULL,
+    `quest_id` varchar(128) NOT NULL,
+    `unlocked_by` int(11) NOT NULL DEFAULT '0',
+    `unlocked_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT `account_quest_access_pk` PRIMARY KEY (`account_id`, `quest_id`),
+    CONSTRAINT `account_quest_access_account_fk` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table structure `account_quest_rewards`
+CREATE TABLE IF NOT EXISTS `account_quest_rewards` (
+    `account_id` int(11) UNSIGNED NOT NULL,
+    `player_id` int(11) NOT NULL DEFAULT '0',
+    `quest_id` varchar(128) NOT NULL,
+    `reward_mode` varchar(32) NOT NULL,
+    `claimed_by` int(11) NOT NULL DEFAULT '0',
+    `claimed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT `account_quest_rewards_pk` PRIMARY KEY (`account_id`, `quest_id`, `reward_mode`, `player_id`),
+    CONSTRAINT `account_quest_rewards_account_fk` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table structure `account_quest_migrations`
+CREATE TABLE IF NOT EXISTS `account_quest_migrations` (
+    `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+    `migration_type` varchar(32) NOT NULL,
+    `old_value` varchar(128) NOT NULL,
+    `new_value` varchar(128) NOT NULL,
+    `rows_affected` int UNSIGNED NOT NULL DEFAULT '0',
+    `executed_by` varchar(128) NOT NULL DEFAULT 'tool',
+    `executed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT `account_quest_migrations_pk` PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Table structure `account_sessions`
 CREATE TABLE IF NOT EXISTS `account_sessions` (
   `id` VARCHAR(191) NOT NULL,

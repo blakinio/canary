@@ -4,189 +4,107 @@ Status updated: 2026-07-12
 
 ## Goal
 
-Keep quest progress, fight state and cooldowns per character while sharing only permanent location access across every character on the same account. Never copy quest-completion storages to alternate characters. Rewards remain controlled by `rewardMode` and their original quest scripts.
+Keep quest progress, fight state and cooldowns per character while sharing only permanent location access across characters on the same account. Never copy quest-completion storages to alternate characters.
 
-## Merged implementation
+## Completed scope
 
-The first planned five-quest batch is merged to `main`.
+The following are implemented on `main` or in the production-hardening batch:
 
-Merged PRs:
-
-- PR #31: framework, persistence, reward modes and character reset;
-- PR #37: The Ape City;
-- PR #39: The Secret Service;
-- PR #42: formatting cleanup;
-- PR #53: registered-ID checks, correct quest counting, completion-only unlocks and contract validation;
-- PR #113: In Service of Yalahar, The New Frontier, Wrath of the Emperor, validators and this handoff.
-
-Implemented quests:
-
+- framework persistence, reward modes and character reset;
 - The Ape City;
 - The Secret Service;
 - In Service of Yalahar;
 - The New Frontier;
-- Wrath of the Emperor.
-
-Core files:
-
-```text
-data-otservbr-global/account_quests.lua
-data-otservbr-global/scripts/custom/account_quest_system.lua
-data/scripts/actions/doors/quest_door.lua
-tools/account-quests/validate_account_quests.py
-tools/account-quests/test_validate_account_quests.py
-```
-
-## Current status
-
-The location-access scope of the first batch is complete and merged. CI and the dedicated Account Quests workflow passed for PR #113.
-
-The implementation currently provides:
-
-- account-wide permanent location access for the five configured quests;
+- Wrath of the Emperor;
 - completion-only unlock gates;
-- per-character mission progress, fight state and special cooldown/state storages;
-- per-character quest reset that preserves account access and reward history;
-- contract validation for configured quest IDs and forbidden reward/fight sharing.
+- contract validation and MariaDB integration coverage;
+- main `config.lua` switch: `accountWideQuestSystemEnabled`;
+- god-only `/questaccess [Player Name]` inspection command;
+- atomic reward claim through `db.queryAffectedRows`;
+- versioned DB migration 62 and fresh-install schema;
+- audited quest-id/storage migration CLI.
 
-## Quest boundaries
-
-### In Service of Yalahar
-
-Shared after completion:
-
-- confirmed ordinary location doors for the quest areas.
-
-Completion gate:
-
-- `DoorToReward` records account completion but is not itself shared.
-
-Kept per character:
-
-- final-fight door and teleport;
-- reward room;
-- Matrix reward;
-- side decision;
-- rewards and mission progress.
-
-### The New Frontier
-
-Shared after completion:
-
-- confirmed ordinary mission doors;
-- arena access;
-- final Magic Carpet access.
-
-Completion gate:
-
-- `Mission10.MagicCarpetDoor`, awarded only after the final report to Ongulf.
-
-Kept per character or separate progression:
-
-- Mission09 reward door;
-- potion/gold-ingot/pig-bank rewards;
-- Tome of Knowledge counter;
-- Zao Palace doors;
-- Snake Head teleport;
-- Corruption Hole.
-
-Tome-based access must not be inferred from completing The New Frontier.
-
-### Wrath of the Emperor
-
-Shared after completion:
-
-- confirmed ordinary quest doors;
-- the normal A/B route of the quest teleport network.
-
-Completion gate:
-
-- Mission12 records account completion but the reward stage is not shared.
-
-Kept per character:
-
-- reward chests 43034–43036;
-- special teleport states 2 and 3;
-- item-dependent teleport behaviour;
-- current fight state and rewards.
-
-A character's own teleport storage always takes priority. Account access is only the fallback when no character-specific access exists.
-
-## Reset boundaries
-
-Configured progress reset intentionally excludes:
-
-- New Frontier rewards and Tome-of-Knowledge access;
-- Wrath reward chests;
-- unrelated global state;
-- account access and account reward history.
-
-## Remaining required work
-
-### 1. Make reward claiming atomic
-
-`AccountQuest.claimReward` still performs:
+## Operational commands
 
 ```text
-canClaimReward -> INSERT IGNORE
+/questaccess
+/questaccess Player Name
+/questreset Player Name, quest-id
 ```
 
-Two concurrent calls may both pass the initial read. The reward subsystem should not be considered fully production-hardened until the claim is atomic.
+`/questaccess` shows every persisted account access row, the unlocking character GUID and timestamp. It is god-only.
 
-Required approach:
+## Main switch
 
-1. confirm Canary's DB affected-row semantics or locate an established atomic-claim pattern;
-2. replace the read-then-insert flow with one authoritative reservation/insert operation;
-3. grant the physical reward only after the reservation succeeds;
-4. add a regression test for duplicate concurrent claims.
+```lua
+accountWideQuestSystemEnabled = true
+```
 
-Do not implement this by guessing the return semantics of `db.query()`.
+The main switch and `data-otservbr-global/account_quests.lua.enabled` must both be true. Disabling the switch fails closed without deleting access or reward history. Restart after changing it.
 
-### 2. Run live-server acceptance tests
+## Reward claim safety
 
-Automated contract validation passed, but the following still require an actual test server:
+`claimReward` no longer performs `SELECT` followed by `INSERT`. It performs one `INSERT IGNORE` through `db.queryAffectedRows`, which executes the statement and reads `mysql_affected_rows()` while holding the same database lock. Exactly one concurrent caller receives `true`; duplicate callers receive `false`.
 
-- character A: quest completed and account access recorded;
-- character B: same account, no completion storage, receives only permitted location access;
-- character C: different account, receives no access;
-- `/questreset` for all five quest IDs;
-- reward rooms and final-fight gates remain inaccessible through account access alone;
-- account access survives logout, restart and character reset.
+## Database integration tests
 
-These tests are deployment verification, not missing implementation code.
+The Account Quests workflow starts a temporary MariaDB 11.4 service and verifies:
 
-## Optional improvements
+- exactly one winner across concurrent reward claims;
+- access sharing inside one account and isolation from another account;
+- quest-id migration with conflict merging and audit history;
+- storage conflict protection and explicit merge policy;
+- character storage reset preserving account access and other characters.
 
-These are not blockers for the completed first batch:
+## Migration procedure
 
-- add a top-level `config.lua`/`config.lua.dist` switch in addition to `account_quests.lua.enabled`;
-- add more quests using the same opt-in integration model;
-- add integration tests backed by a disposable database;
-- add administrator inspection commands for account access and reward rows;
-- document a migration strategy if quest IDs or storage mappings change.
+The tool defaults to dry-run and requires `--apply` to write. Connection variables are `AQ_DB_HOST`, `AQ_DB_PORT`, `AQ_DB_USER`, `AQ_DB_PASSWORD`, and `AQ_DB_NAME`. Take a database backup and stop the game server before storage migration.
 
-## Contract validation
+Quest ID:
 
-The validator must continue to enforce:
+```bash
+python tools/account-quests/migrate_account_quests.py quest-id --from old-id --to new-id
+python tools/account-quests/migrate_account_quests.py --apply --executed-by operator quest-id --from old-id --to new-id
+```
 
-- every integrated quest ID is configured;
-- only explicit completion gates unlock account access;
-- Yalahar final fight is not shared;
-- New Frontier reward door is not shared;
-- Wrath Mission12 reward stage is not shared;
-- ordinary early doors never unlock a whole quest.
+Storage key:
+
+```bash
+python tools/account-quests/migrate_account_quests.py storage --from 41950 --to 51950
+python tools/account-quests/migrate_account_quests.py --apply --executed-by operator storage --from 41950 --to 51950 --conflict-policy abort
+```
+
+Conflict policies:
+
+- `abort` — default and safest; no writes when any player has both keys;
+- `keep-target` — discard the old conflicting value;
+- `keep-source` — overwrite the target conflicting value;
+- `max` — retain the larger value, only for known monotonic progress storages.
+
+Every applied migration writes an `account_quest_migrations` audit row. Quest-ID migration merges existing destination records and retains the earliest unlock/claim timestamp.
+
+## Access boundaries
+
+Still per character by design:
+
+- quest logs and mission storages;
+- reward rooms and physical rewards;
+- boss/fight state and cooldowns;
+- Yalahar final fight and side decision;
+- New Frontier Tome-of-Knowledge access and reward door;
+- Wrath special teleport states 2/3 and item-dependent behavior.
+
+## Acceptance and deployment
+
+Repository verification consists of standard CI, Account Quests contract tests, a C++ build, and temporary-MariaDB tests. Operators should still perform a short smoke test on their own production-like server because repository CI cannot connect to an external live world:
+
+1. character A completes a quest and records access;
+2. character B on the same account can use only shared permanent access;
+3. character C on another account is denied;
+4. `/questreset` clears only the selected character progress;
+5. restart preserves account access;
+6. reward and final-fight gates remain inaccessible through account access.
 
 ## Definition of done
 
-### First five-quest access batch
-
-Complete and merged.
-
-### Full production-hardening
-
-Complete only when:
-
-- reward claiming is atomic;
-- live A/B/C and reset tests pass;
-- no reward or fight gate is reachable through shared access;
-- this document reflects the verified deployment state.
+Repository-side implementation is complete when the production-hardening PR is merged with green standard CI and Account Quests MariaDB integration tests. Production rollout is complete after the operator runs the six smoke checks above on the target deployment.
