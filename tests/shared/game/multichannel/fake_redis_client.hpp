@@ -14,12 +14,8 @@
 #include <mutex>
 #include <unordered_map>
 
-// In-memory model of the exact same compare-and-swap semantics implemented
-// by src/game/multichannel/redis_scripts/{acquire,renew,release}.lua. Used
-// so ClusterSessionManager's state machine can be unit-tested without a
-// live Redis; the Lua scripts themselves are separately validated against a
-// real local redis-server (see docs/multichannel/TEST_PLAN.md) to prove the
-// two implementations agree.
+// In-memory model of the Redis CAS and runtime-heartbeat semantics. Logical
+// timestamps are supplied by tests, so expiry/race behavior is deterministic.
 class FakeRedisClient : public IRedisClient {
 public:
 	LeaseAcquireOutcome acquireLease(const std::string &lockKey, const std::string &sessionId, const std::string &channelId, const std::string &instanceId, int64_t ttlMs, int64_t nowMs) override {
@@ -33,7 +29,7 @@ public:
 			return { false, entry.sessionId, entry.fencingToken };
 		}
 
-		entry.fencingToken += 1; // never reset by release - see below
+		entry.fencingToken += 1;
 		entry.sessionId = sessionId;
 		entry.channelId = channelId;
 		entry.instanceId = instanceId;
@@ -67,8 +63,6 @@ public:
 		if (it == entries.end() || it->second.sessionId != sessionId) {
 			return false;
 		}
-		// Fencing token is intentionally left untouched, matching
-		// release.lua: it must never go backwards for this key.
 		it->second.expiresAt = 0;
 		return true;
 	}
@@ -85,14 +79,36 @@ public:
 		return it->second.fencingToken;
 	}
 
+	bool writeChannelRuntimeStatus(const std::string &runtimeKey, const ChannelRuntimeStatus &status, int64_t ttlMs, int64_t nowMs) override {
+		std::lock_guard lock(mutex);
+		if (!healthy || ttlMs <= 0 || status.channelId <= 0 || !status.hasValidState()) {
+			return false;
+		}
+		runtimeEntries[runtimeKey] = RuntimeEntry { status, nowMs + ttlMs };
+		return true;
+	}
+
+	std::optional<ChannelRuntimeStatus> readChannelRuntimeStatus(const std::string &runtimeKey, int64_t nowMs) override {
+		std::lock_guard lock(mutex);
+		if (!healthy) {
+			return std::nullopt;
+		}
+		const auto it = runtimeEntries.find(runtimeKey);
+		if (it == runtimeEntries.end()) {
+			return std::nullopt;
+		}
+		if (it->second.expiresAtMs <= nowMs) {
+			runtimeEntries.erase(it);
+			return std::nullopt;
+		}
+		return it->second.status;
+	}
+
 	[[nodiscard]] bool isHealthy() const override {
 		std::lock_guard lock(mutex);
 		return healthy;
 	}
 
-	// Test-only: simulate a Redis outage (or recovery) without touching any
-	// lease state, so a test can assert on ClusterRuntime's outage handling
-	// independent of the CAS semantics above.
 	void setHealthyForTesting(bool value) {
 		std::lock_guard lock(mutex);
 		healthy = value;
@@ -107,7 +123,13 @@ private:
 		int64_t expiresAt = 0;
 	};
 
+	struct RuntimeEntry {
+		ChannelRuntimeStatus status;
+		int64_t expiresAtMs = 0;
+	};
+
 	mutable std::mutex mutex;
 	std::unordered_map<std::string, Entry> entries;
+	std::unordered_map<std::string, RuntimeEntry> runtimeEntries;
 	bool healthy = true;
 };
