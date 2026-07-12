@@ -152,6 +152,7 @@ std::vector<int32_t> ClusterRuntime::renewAllAndCollectExpired(int64_t nowMs) {
 	std::vector<int32_t> expired;
 	ChannelRuntimeStatus ownStatus;
 	int64_t runtimeTtlMs = 0;
+	const int64_t runtimeNowMs = wallClockMs();
 
 	{
 		std::lock_guard lock(mutex);
@@ -184,14 +185,13 @@ std::vector<int32_t> ClusterRuntime::renewAllAndCollectExpired(int64_t nowMs) {
 				it = tracked.erase(it);
 				continue;
 			}
-
 			++it;
 		}
 
 		ownStatus.channelId = channelId;
 		ownStatus.instanceId = instanceId;
 		ownStatus.startedAtMs = runtimeStartedAtMs;
-		ownStatus.lastHeartbeatMs = nowMs;
+		ownStatus.lastHeartbeatMs = runtimeNowMs;
 		ownStatus.playersOnline = static_cast<int32_t>(tracked.size());
 		runtimeTtlMs = leaseTtlMs;
 	}
@@ -217,7 +217,7 @@ std::vector<int32_t> ClusterRuntime::renewAllAndCollectExpired(int64_t nowMs) {
 	ownStatus.buildSha = environmentOr("CANARY_BUILD_SHA", "unknown");
 	ownStatus.dataHash = environmentOr("CANARY_DATA_HASH", "unknown");
 
-	const bool heartbeatPublished = g_channelRuntimeRegistry().publishAndRefresh(ownStatus, runtimeTtlMs, channelIds, nowMs);
+	const bool heartbeatPublished = g_channelRuntimeRegistry().publishAndRefresh(ownStatus, runtimeTtlMs, channelIds, runtimeNowMs);
 	if (!heartbeatPublished) {
 		g_logger().error("[multichannel] Channel {} heartbeat publication/refresh failed; runtime availability cache was cleared (fail-closed).", ownStatus.channelId);
 	}
