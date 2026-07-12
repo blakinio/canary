@@ -1,6 +1,6 @@
 ---
 task_id: CAN-20260712-the-beginning-carlos-flow
-status: in-progress
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: fix/the-beginning-carlos-flow
 base_branch: main
@@ -47,7 +47,8 @@ Current Canary is authoritative:
 - stage 6 requires asking Carlos for trade;
 - stage 7 means the player successfully learnt NPC trading;
 - Carlos's current dialogue says to sell the food and then say `ready`;
-- current shop buys only meat `3577` and ham `3582` for two gold each.
+- current shop buys only meat `3577` and ham `3582` for two gold each;
+- engine `Npc::onPlayerSellItem` invokes the Lua callback only after a non-zero amount was actually removed and sale proceeds were successfully applied, passing the real `soldAmount` to Lua.
 
 Historical ORTS code is corroborating evidence only. It confirms tutorial `13` belongs to the trade-opening step, but its premature stage-7 write is not copied because current dialogue and quest text require an actual sale first.
 
@@ -70,7 +71,8 @@ Historical ORTS code is corroborating evidence only. It confirms tutorial `13` b
 - [x] prevent unrelated items, wrong stages, or repeated sales from altering quest state;
 - [x] preserve current item prices and shop transaction implementation;
 - [x] add focused deterministic contract tests;
-- [ ] pass Lua tests, fast checks, AI Agent Tools, Account Quests, and global datapack runtime smoke;
+- [x] pass Lua tests, fast checks, AI Agent Tools, Linux release build, and global datapack runtime smoke;
+- [x] Account Quests workflow is not applicable and was not emitted because no account-quest path or contract changed;
 - [x] do not modify `.otbm`, `items.otb`, NPC placement, spawns, engine, or other quests.
 
 # Runtime tests
@@ -88,7 +90,10 @@ Historical ORTS code is corroborating evidence only. It confirms tutorial `13` b
 
 - Implementation commit: `86a857ba045d3830bea9932c41f12ee79ca29b44`.
 - Focused contract test commit: `fa531c98964126d794ef9f50838d6a23c26d63d7`.
-- Draft PR: #157.
+- AI Agent Tools run 240 passed, including the focused Carlos contract tests and repository reference validation.
+- CI run 653 passed Lua tests, Fast Checks/StyLua, Linux release build, generated Lua API documentation verification, and Global datapack runtime smoke.
+- Engine audit confirmed the Lua `onSellItem` callback occurs after successful removal/payment and receives actual `soldAmount`.
+- PR #157 has no review threads and exactly five intended changed files.
 - Runtime E2E remains required on an actual Canary world after repository validation.
 
 # Safety
