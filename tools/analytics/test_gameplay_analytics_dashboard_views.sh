@@ -4,8 +4,9 @@ set -euo pipefail
 # Verifies schema/gameplay_analytics_views.sql against a real MariaDB
 # instance: the views apply cleanly, compute correct ratios from sample data,
 # keep solo and party in separate aggregates, cap shared experience at 100%,
-# handle zero denominators, return zero rows against empty datasets, and use
-# indexes for representative bounded dashboard queries.
+# handle zero denominators, return zero rows against empty datasets, preserve
+# truthful dead-letter history semantics, and use indexes for representative
+# bounded dashboard queries.
 
 DB_HOST="${DB_HOST:-127.0.0.1}"
 DB_PORT="${DB_PORT:-3306}"
@@ -58,7 +59,7 @@ assert_scalar "empty daily metrics view" "SELECT COUNT(*) FROM analytics_daily_v
 assert_scalar "empty party mode view" "SELECT COUNT(*) FROM analytics_daily_party_mode_metrics" "0"
 assert_scalar "empty drilldown view" "SELECT COUNT(*) FROM analytics_session_drilldown" "0"
 assert_scalar "empty spell efficiency view" "SELECT COUNT(*) FROM analytics_spell_efficiency_drilldown" "0"
-assert_scalar "empty dead-letter health view" "SELECT CONCAT(pending_dead_letters,'|',max_retry_count) FROM analytics_dead_letter_health" "0|0"
+assert_scalar "empty dead-letter health view" "SELECT CONCAT(dead_letter_records,'|',pending_dead_letters,'|',max_retry_count) FROM analytics_dead_letter_health" "0|0|0"
 
 echo "Inserting sample rows"
 "${MARIADB[@]}" "${DB_NAME}" <<'SQL'
@@ -101,7 +102,7 @@ assert_scalar "zero combat_seconds does not error" "SELECT CONCAT(COALESCE(exp_p
 assert_scalar "zero party combat_seconds does not error" "SELECT COALESCE(exp_per_hour,'NULL') FROM analytics_daily_party_mode_metrics WHERE hunt_area='zero-combat-area'" "NULL"
 assert_scalar "drilldown row" "SELECT CONCAT(vocation_id,'|',hunt_area,'|',damage_dealt) FROM analytics_session_drilldown WHERE id=(SELECT id FROM analytics_sessions WHERE session_uuid='00000000-0000-0000-0000-0000000000a1')" "1|rotten-blood-east|45000"
 assert_scalar "spell efficiency row" "SELECT CONCAT(spell_name,'|',casts,'|',damage) FROM analytics_spell_efficiency_drilldown WHERE spell_name='ethereal spear'" "ethereal spear|10|4500"
-assert_scalar "dead-letter health" "SELECT CONCAT(pending_dead_letters,'|',max_retry_count) FROM analytics_dead_letter_health" "1|3"
+assert_scalar "dead-letter terminal history" "SELECT CONCAT(dead_letter_records,'|',pending_dead_letters,'|',max_retry_count) FROM analytics_dead_letter_health" "1|1|3"
 
 echo "Checking query plans avoid full table scans"
 assert_uses_index "session drilldown time filter" "SELECT * FROM analytics_session_drilldown WHERE started_at BETWEEN 0 AND 999999999"

@@ -52,6 +52,8 @@ def validate_runner(text: str) -> None:
         "daily_aggregate_through",
         "MAX_DAYS_PER_RUN",
         "REAGGREGATE_DAYS",
+        "LEVEL_BRACKETS",
+        "level_bracket_case",
         "DELETE_RAW_SESSIONS",
         "DELETE_BATCH_SIZE",
         "DELETE_MAX_BATCHES",
@@ -79,6 +81,20 @@ def validate_runner(text: str) -> None:
         "runner must rebuild a bounded recent window by default",
     )
     require(
+        'LEVEL_BRACKETS="${LEVEL_BRACKETS:-50,100,200,300,400,600,800,1000}"' in text,
+        "runner must expose the documented default level brackets",
+    )
+    require(
+        '[[ ! "${LEVEL_BRACKETS}" =~ ^[0-9]+(,[0-9]+)*$ ]]' in text,
+        "runner must reject malformed level bracket input before SQL access",
+    )
+    require(
+        'if [[ "${bracket}" -le "${previous_bracket}" ]]' in text,
+        "runner must reject duplicate or descending level brackets",
+    )
+    require("FLOOR(level_start / 100) * 100" not in text, "runner must not ignore configured level brackets")
+    require(text.count("${level_bracket_case}") >= 4, "both aggregate selects and groups must use configured brackets")
+    require(
         "RAW_RETENTION_DAYS must be greater than REAGGREGATE_DAYS + AGGREGATION_LAG_DAYS" in text,
         "raw deletion must stay outside the rolling rebuild window",
     )
@@ -97,6 +113,7 @@ def validate_runner(text: str) -> None:
 def validate_test(text: str) -> None:
     for phrase in (
         "party aggregate groups",
+        "configured level bracket applied",
         "solo aggregate sessions",
         "party aggregate sessions",
         "shared seconds are clamped per session",
@@ -108,11 +125,14 @@ def validate_test(text: str) -> None:
         "party aggregates retained",
     ):
         require(phrase in text, f"retention integration test lacks {phrase}")
+    require("LEVEL_BRACKETS=50,100,200,300,400,600,800,1000" in text, "retention test must exercise configured brackets")
+    require("level_bracket=400" in text, "retention test must distinguish configured brackets from fixed 100-level buckets")
 
 
 def validate_docs(text: str) -> None:
     for phrase in (
         "DELETE_RAW_SESSIONS=false",
+        "LEVEL_BRACKETS",
         "daily_aggregate_through",
         "systemd timer",
         "Back up",

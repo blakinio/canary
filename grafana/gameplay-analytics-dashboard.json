@@ -16,13 +16,13 @@
   "id": null,
   "uid": "gameplay-analytics",
   "title": "Gameplay Analytics",
-  "description": "Vocation balance, DPS/EXP/loot performance and Analytics pipeline health. Long-range panels read daily aggregates (analytics_daily_balance); drill-down panels read raw sessions and are intended for short time ranges only.",
+  "description": "Vocation balance, DPS/EXP/loot performance and Analytics pipeline health. Long-range panels read daily aggregates; drill-down panels read raw sessions and are intended for short time ranges only.",
   "tags": ["gameplay-analytics", "canary"],
   "timezone": "utc",
   "editable": true,
   "graphTooltip": 1,
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "refresh": "5m",
   "time": { "from": "now-30d", "to": "now" },
   "templating": {
@@ -98,7 +98,7 @@
       "id": 3,
       "type": "timeseries",
       "title": "DPS, damage taken/s and healing/s",
-      "description": "Daily aggregate, filtered by the same vocation/hunt/server-version variables.",
+      "description": "Daily aggregate. Every metric label includes vocation, level bracket, hunt area and server version.",
       "gridPos": { "h": 9, "w": 12, "x": 12, "y": 1 },
       "datasource": { "type": "mysql", "uid": "${DS_MARIADB}" },
       "fieldConfig": { "defaults": { "unit": "none" }, "overrides": [] },
@@ -106,17 +106,17 @@
         {
           "refId": "A",
           "format": "time_series",
-          "rawSql": "SELECT session_date AS time, CONCAT('voc ', vocation_id, ' dps') AS metric, dps AS value FROM analytics_daily_vocation_metrics WHERE session_date BETWEEN $__timeFrom() AND $__timeTo() AND vocation_id IN ($vocation_id) AND hunt_area IN ($hunt_area) AND server_version IN ($server_version) AND sessions >= $min_sessions ORDER BY session_date"
+          "rawSql": "SELECT session_date AS time, CONCAT('voc ', vocation_id, ' L', level_bracket, '+ ', hunt_area, ' ', server_version, ' dps') AS metric, dps AS value FROM analytics_daily_vocation_metrics WHERE session_date BETWEEN $__timeFrom() AND $__timeTo() AND vocation_id IN ($vocation_id) AND hunt_area IN ($hunt_area) AND server_version IN ($server_version) AND sessions >= $min_sessions ORDER BY session_date"
         },
         {
           "refId": "B",
           "format": "time_series",
-          "rawSql": "SELECT session_date AS time, CONCAT('voc ', vocation_id, ' damage taken/s') AS metric, damage_taken_per_second AS value FROM analytics_daily_vocation_metrics WHERE session_date BETWEEN $__timeFrom() AND $__timeTo() AND vocation_id IN ($vocation_id) AND hunt_area IN ($hunt_area) AND server_version IN ($server_version) AND sessions >= $min_sessions ORDER BY session_date"
+          "rawSql": "SELECT session_date AS time, CONCAT('voc ', vocation_id, ' L', level_bracket, '+ ', hunt_area, ' ', server_version, ' damage taken/s') AS metric, damage_taken_per_second AS value FROM analytics_daily_vocation_metrics WHERE session_date BETWEEN $__timeFrom() AND $__timeTo() AND vocation_id IN ($vocation_id) AND hunt_area IN ($hunt_area) AND server_version IN ($server_version) AND sessions >= $min_sessions ORDER BY session_date"
         },
         {
           "refId": "C",
           "format": "time_series",
-          "rawSql": "SELECT session_date AS time, CONCAT('voc ', vocation_id, ' healing/s') AS metric, healing_per_second AS value FROM analytics_daily_vocation_metrics WHERE session_date BETWEEN $__timeFrom() AND $__timeTo() AND vocation_id IN ($vocation_id) AND hunt_area IN ($hunt_area) AND server_version IN ($server_version) AND sessions >= $min_sessions ORDER BY session_date"
+          "rawSql": "SELECT session_date AS time, CONCAT('voc ', vocation_id, ' L', level_bracket, '+ ', hunt_area, ' ', server_version, ' healing/s') AS metric, healing_per_second AS value FROM analytics_daily_vocation_metrics WHERE session_date BETWEEN $__timeFrom() AND $__timeTo() AND vocation_id IN ($vocation_id) AND hunt_area IN ($hunt_area) AND server_version IN ($server_version) AND sessions >= $min_sessions ORDER BY session_date"
         }
       ]
     },
@@ -124,6 +124,7 @@
       "id": 4,
       "type": "timeseries",
       "title": "Deaths per 100 sessions",
+      "description": "Series are separated by vocation, level bracket, hunt area and server version.",
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 10 },
       "datasource": { "type": "mysql", "uid": "${DS_MARIADB}" },
       "fieldConfig": { "defaults": { "unit": "none" }, "overrides": [] },
@@ -131,7 +132,7 @@
         {
           "refId": "A",
           "format": "time_series",
-          "rawSql": "SELECT session_date AS time, CONCAT('voc ', vocation_id) AS metric, deaths_per_100_sessions AS value FROM analytics_daily_vocation_metrics WHERE session_date BETWEEN $__timeFrom() AND $__timeTo() AND vocation_id IN ($vocation_id) AND hunt_area IN ($hunt_area) AND server_version IN ($server_version) AND sessions >= $min_sessions ORDER BY session_date"
+          "rawSql": "SELECT session_date AS time, CONCAT('voc ', vocation_id, ' L', level_bracket, '+ ', hunt_area, ' ', server_version) AS metric, deaths_per_100_sessions AS value FROM analytics_daily_vocation_metrics WHERE session_date BETWEEN $__timeFrom() AND $__timeTo() AND vocation_id IN ($vocation_id) AND hunt_area IN ($hunt_area) AND server_version IN ($server_version) AND sessions >= $min_sessions ORDER BY session_date"
         }
       ]
     },
@@ -139,7 +140,7 @@
       "id": 5,
       "type": "timeseries",
       "title": "Solo versus party: EXP/h",
-      "description": "party_size_weighted / party_weight_seconds <= 1 is classified solo, otherwise party.",
+      "description": "Each raw session is classified before daily aggregation from its time-weighted average party size: values at or below 1 are solo; values above 1 are party.",
       "gridPos": { "h": 8, "w": 8, "x": 8, "y": 10 },
       "datasource": { "type": "mysql", "uid": "${DS_MARIADB}" },
       "fieldConfig": { "defaults": { "unit": "none" }, "overrides": [] },
@@ -147,7 +148,7 @@
         {
           "refId": "A",
           "format": "time_series",
-          "rawSql": "SELECT session_date AS time, CONCAT('voc ', vocation_id, ' ', mode) AS metric, exp_per_hour AS value FROM analytics_daily_party_mode_metrics WHERE session_date BETWEEN $__timeFrom() AND $__timeTo() AND vocation_id IN ($vocation_id) AND sessions >= $min_sessions ORDER BY session_date"
+          "rawSql": "SELECT session_date AS time, CONCAT('voc ', vocation_id, ' L', level_bracket, '+ ', hunt_area, ' ', server_version, ' ', mode) AS metric, exp_per_hour AS value FROM analytics_daily_party_mode_metrics WHERE session_date BETWEEN $__timeFrom() AND $__timeTo() AND vocation_id IN ($vocation_id) AND hunt_area IN ($hunt_area) AND server_version IN ($server_version) AND sessions >= $min_sessions ORDER BY session_date"
         }
       ]
     },
@@ -155,6 +156,7 @@
       "id": 6,
       "type": "timeseries",
       "title": "Shared experience ratio",
+      "description": "Series are separated by vocation, level bracket, hunt area and server version.",
       "gridPos": { "h": 8, "w": 8, "x": 16, "y": 10 },
       "datasource": { "type": "mysql", "uid": "${DS_MARIADB}" },
       "fieldConfig": { "defaults": { "unit": "percent", "max": 100, "min": 0 }, "overrides": [] },
@@ -162,7 +164,7 @@
         {
           "refId": "A",
           "format": "time_series",
-          "rawSql": "SELECT session_date AS time, CONCAT('voc ', vocation_id) AS metric, shared_experience_percent AS value FROM analytics_daily_vocation_metrics WHERE session_date BETWEEN $__timeFrom() AND $__timeTo() AND vocation_id IN ($vocation_id) AND hunt_area IN ($hunt_area) AND server_version IN ($server_version) AND sessions >= $min_sessions ORDER BY session_date"
+          "rawSql": "SELECT session_date AS time, CONCAT('voc ', vocation_id, ' L', level_bracket, '+ ', hunt_area, ' ', server_version) AS metric, shared_experience_percent AS value FROM analytics_daily_vocation_metrics WHERE session_date BETWEEN $__timeFrom() AND $__timeTo() AND vocation_id IN ($vocation_id) AND hunt_area IN ($hunt_area) AND server_version IN ($server_version) AND sessions >= $min_sessions ORDER BY session_date"
         }
       ]
     },
@@ -170,7 +172,7 @@
       "id": 7,
       "type": "timeseries",
       "title": "Profit and supply cost per hour (NPC value)",
-      "description": "Market-value profit is not shown: the engine has no trustworthy Lua-accessible market price source, so loot_value_market is currently always 0 (see docs/systems/gameplay-analytics-supply-loot.md).",
+      "description": "Market-value profit is not shown: the engine has no trustworthy Lua-accessible market price source, so loot_value_market is currently always 0.",
       "gridPos": { "h": 9, "w": 12, "x": 0, "y": 18 },
       "datasource": { "type": "mysql", "uid": "${DS_MARIADB}" },
       "fieldConfig": { "defaults": { "unit": "none" }, "overrides": [] },
@@ -178,12 +180,12 @@
         {
           "refId": "A",
           "format": "time_series",
-          "rawSql": "SELECT session_date AS time, CONCAT('voc ', vocation_id, ' npc profit/h') AS metric, npc_profit_per_hour AS value FROM analytics_daily_vocation_metrics WHERE session_date BETWEEN $__timeFrom() AND $__timeTo() AND vocation_id IN ($vocation_id) AND hunt_area IN ($hunt_area) AND server_version IN ($server_version) AND sessions >= $min_sessions ORDER BY session_date"
+          "rawSql": "SELECT session_date AS time, CONCAT('voc ', vocation_id, ' L', level_bracket, '+ ', hunt_area, ' ', server_version, ' npc profit/h') AS metric, npc_profit_per_hour AS value FROM analytics_daily_vocation_metrics WHERE session_date BETWEEN $__timeFrom() AND $__timeTo() AND vocation_id IN ($vocation_id) AND hunt_area IN ($hunt_area) AND server_version IN ($server_version) AND sessions >= $min_sessions ORDER BY session_date"
         },
         {
           "refId": "B",
           "format": "time_series",
-          "rawSql": "SELECT session_date AS time, CONCAT('voc ', vocation_id, ' supply cost/h') AS metric, supply_cost_per_hour AS value FROM analytics_daily_vocation_metrics WHERE session_date BETWEEN $__timeFrom() AND $__timeTo() AND vocation_id IN ($vocation_id) AND hunt_area IN ($hunt_area) AND server_version IN ($server_version) AND sessions >= $min_sessions ORDER BY session_date"
+          "rawSql": "SELECT session_date AS time, CONCAT('voc ', vocation_id, ' L', level_bracket, '+ ', hunt_area, ' ', server_version, ' supply cost/h') AS metric, supply_cost_per_hour AS value FROM analytics_daily_vocation_metrics WHERE session_date BETWEEN $__timeFrom() AND $__timeTo() AND vocation_id IN ($vocation_id) AND hunt_area IN ($hunt_area) AND server_version IN ($server_version) AND sessions >= $min_sessions ORDER BY session_date"
         }
       ]
     },
@@ -235,7 +237,7 @@
       "id": 10,
       "type": "table",
       "title": "Spell efficiency",
-      "description": "Drill-down panel reading analytics_session_spells directly (spell detail is not part of the daily aggregate). Keep the dashboard time range short (hours, not months) when viewing this panel; it is not a long-range panel.",
+      "description": "Drill-down panel reading analytics_session_spells directly. Keep the dashboard time range short when viewing this panel.",
       "gridPos": { "h": 9, "w": 24, "x": 0, "y": 28 },
       "datasource": { "type": "mysql", "uid": "${DS_MARIADB}" },
       "fieldConfig": { "defaults": {}, "overrides": [] },
@@ -258,8 +260,8 @@
     {
       "id": 12,
       "type": "stat",
-      "title": "Pending dead-letter sessions",
-      "description": "MariaDB-backed: real, persisted dead-letter rows awaiting a retried write. Queue depth, in-flight retry count and last flush duration are process-local runtime counters with no MariaDB representation; check the in-game \"/analytics status\" command for those.",
+      "title": "Persisted dead-letter sessions",
+      "description": "MariaDB-backed terminal failure records for sessions that exhausted in-memory retries. They are retained for operator investigation and are not an active database replay queue.",
       "gridPos": { "h": 6, "w": 6, "x": 0, "y": 38 },
       "datasource": { "type": "mysql", "uid": "${DS_MARIADB}" },
       "fieldConfig": {
@@ -279,14 +281,14 @@
         {
           "refId": "A",
           "format": "table",
-          "rawSql": "SELECT pending_dead_letters FROM analytics_dead_letter_health"
+          "rawSql": "SELECT dead_letter_records FROM analytics_dead_letter_health"
         }
       ]
     },
     {
       "id": 13,
       "type": "stat",
-      "title": "Oldest pending dead-letter failure",
+      "title": "Oldest persisted dead-letter failure",
       "gridPos": { "h": 6, "w": 6, "x": 6, "y": 38 },
       "datasource": { "type": "mysql", "uid": "${DS_MARIADB}" },
       "fieldConfig": { "defaults": { "unit": "dateTimeAsIso" }, "overrides": [] },
@@ -305,7 +307,7 @@
       "gridPos": { "h": 6, "w": 12, "x": 12, "y": 38 },
       "options": {
         "mode": "markdown",
-        "content": "Queue depth, in-flight retry counts and last-flush duration are **process-local runtime counters** (see `docs/systems/gameplay-analytics.md`, \"Administrative commands\"). They reset on restart and are not written to MariaDB, so they cannot be charted from this MariaDB-only dashboard. Check them with:\n\n```\n/analytics status\n```\n\nDead-letter counts to the left *are* persisted and safe to chart here."
+        "content": "Queue depth, in-flight retry counts and last-flush duration are **process-local runtime counters**. They reset on restart and are not written to MariaDB. Check them with:\n\n```\n/analytics status\n```\n\nThe dead-letter values to the left are persisted terminal failure records, not an active retry queue."
       }
     }
   ]
