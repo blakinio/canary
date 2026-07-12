@@ -8,6 +8,7 @@
  */
 
 #include "lib/di/container.hpp"
+#include "lib/logging/in_memory_logger.hpp"
 #include "lua/scripts/scripts.hpp"
 
 namespace {
@@ -39,8 +40,9 @@ TEST(ScriptsDiMigrationTest, DefaultContainerReturnsTheSameScriptsInstance) {
 TEST(ScriptsDiMigrationTest, TestContainerProvidesAnIsolatedScriptsInstance) {
 	Scripts &productionInstance = Scripts::getInstance();
 	di::extension::injector<> testInjector {};
+	auto &installedInjector = InMemoryLogger::install(testInjector);
 
-	TestContainerScope scope(&testInjector);
+	TestContainerScope scope(&installedInjector);
 	Scripts &testInstance = Scripts::getInstance();
 
 	EXPECT_NE(&productionInstance, &testInstance);
