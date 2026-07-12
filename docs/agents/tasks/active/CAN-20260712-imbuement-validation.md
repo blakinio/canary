@@ -1,13 +1,13 @@
 ---
 task_id: CAN-20260712-imbuement-validation
 coordination_id: ""
-status: active
+status: ready-for-review
 agent: "GPT-5.6 Thinking"
 branch: feat/imbuement-validation-audit
 base_branch: main
 created: 2026-07-12T17:18:21Z
-updated: 2026-07-12T18:12:32Z
-last_verified_commit: "2f0828f06f1b4510d906056de6f3f261fda1a63b"
+updated: 2026-07-12T20:43:00Z
+last_verified_commit: "eec25a5e354cf40e86e62f03512df0717623d1f6"
 risk: low
 related_issue: ""
 related_pr: "#166"
@@ -26,7 +26,7 @@ owned_paths:
   - docs/agents/MODULE_CATALOG.md
 modules_touched:
   - AI world validation
-  - imbuement definitions, shrine protocol and runtime audit
+  - imbuement definition and runtime audit
   - imbuement unlock-storage wiring audit
 reuses:
   - OTS AI World Validation evidence methodology
@@ -34,9 +34,9 @@ reuses:
   - existing shrine, scroll and Player imbuement runtime APIs
   - active Lua storage registry and Forgotten Knowledge boss storage paths
 public_interfaces:
-  - imbuement validation report format
   - imbuement registry validation CLI
   - imbuement storage validation CLI
+  - imbuement validation report format
   - imbuement runtime test-plan schema v1
   - focused Imbuement Validation workflow
 cross_repo_tasks: []
@@ -44,87 +44,76 @@ cross_repo_tasks: []
 
 # Goal
 
-Create a deterministic, evidence-based audit of Canary's Imbuing system against the current reference mechanics without changing gameplay data or engine behavior.
+Create a deterministic, evidence-based, read-only audit of Canary's Imbuing system against the current referenced mechanics.
 
 # Acceptance criteria
 
-- [x] Parse the active `data/XML/imbuements.xml` registry and report structural, tier, cost, duration, source-item and effect defects.
-- [x] Audit engine loading, item-slot eligibility, shrine visibility/application, scroll application, removal/clearing and duration consumption paths.
-- [x] Correlate every nonzero imbuement unlock storage with active Lua storage declarations.
-- [x] Distinguish confirmed static behavior, configuration-dependent behavior and unresolved runtime behavior.
-- [x] Compare the baseline with the referenced TibiaWiki/Fandom Imbuing page using dated evidence.
-- [x] Produce a human-readable evidence report and a machine-readable runtime test plan.
-- [x] Add focused unit tests and a focused CI workflow.
-- [x] Do not modify XML gameplay data, active datapacks, map, assets, item binaries, protocol behavior or engine behavior.
-- [ ] Full focused workflow and repository checks completed.
-- [x] Module catalogue impact handled.
-- [x] Documentation impact handled; changelog deferred until final merged behavior is known.
-- [x] Cross-repository impact handled as none.
-- [ ] Autonomous merge gate satisfied.
+- [x] Parse the active `data/XML/imbuements.xml` registry.
+- [x] Validate structure, tiers, costs, duration, materials, effects, scrolls and storage gates.
+- [x] Audit engine, Lua, shrine, scroll, clearing and decay paths.
+- [x] Correlate every nonzero XML unlock storage with active Lua declarations.
+- [x] Produce a human-readable evidence report.
+- [x] Produce machine-readable registry, storage and runtime-plan JSON artifacts.
+- [x] Add focused tests and a dedicated CI workflow.
+- [x] Keep the audit read-only: no gameplay XML, datapack, engine, map, asset, item-binary or production-config changes.
+- [x] Verify focused workflow, AI Agent Tools and repository CI on the reviewed head.
+- [x] Review the complete changed-file list and forbidden-path boundary.
+- [x] Update module catalogue and persistent handoff.
+- [ ] Mark PR #166 ready and merge after final current-head checks.
+- [ ] Archive the task and remove the Active Work row after merge.
 
-# Confirmed context
-
-- The writable repository is `blakinio/canary`; `opentibiabr/canary` is reference-only.
-- Merged PR #86 corrected the storage policy to read the configured storage ID.
-- `toggleImbuementShrineStorage` is disabled by default.
-- The active storage policy hides a configured entry only when its storage reads `-1`; `storage=0` bypasses family-specific filtering.
-- The active Forgotten Knowledge boss path writes named storages `45489..45495`.
-- The XML instead uses nonzero storage IDs `50488, 50490, 50492, 50494, 50496, 50498, 50501`, none declared in active `storages.lua`.
-- Those seven IDs affect 22 Powerful families. Powerful Featherweight and Vibrancy use `storage=0`.
-- `main` advanced during implementation; shared coordination files were refreshed from current `main` and retain only the narrow #166 entries.
-- This task reads but does not edit `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md`.
-
-# Existing work to reuse
-
-| Module/task/PR | Reuse | Evidence/path | Why it fits |
-|---|---|---|---|
-| OTS AI World Validation | Evidence layers and handoff rules | `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md` | Defines structure/reference/semantic/runtime/regression boundaries. |
-| Imbuements registry/loader | Canonical server definitions | `data/XML/imbuements.xml`, `src/creatures/players/imbuements/**` | Defines tiers, costs, sources, effects, categories and storage gates. |
-| Storage registry | Active identifier declarations | `data-otservbr-global/lib/core/storages.lua` | Distinguishes valid named storage IDs from stale numeric XML values. |
-| Forgotten Knowledge boss path | Runtime unlock writes | `data-otservbr-global/scripts/quests/forgotten_knowledge/creaturescripts_bosses_kill.lua` | Confirms current boss storage names and write path. |
-| Shrine/scroll runtime | Application and removal entry points | active shrine/scroll scripts plus Player/Lua APIs | Provides real gameplay call paths. |
-| PR #86 | Corrected storage policy | merged focused fix/tests | Prevents repeating a known boolean-vs-ID defect. |
-| Achievement validation PR #165 | Focused validation-workflow pattern | its validation workflow | Repository-consistent Python test/artifact pattern. |
-
-# Ownership and overlap check
-
-- Open PRs and merged state were inspected while the task was active.
-- PR #165 also edits `ACTIVE_WORK.md` and `MODULE_CATALOG.md`; specialist Imbuement paths do not overlap.
-- Shared files are edited narrowly using current `main` as the content baseline.
-- Any later base update must re-resolve the two shared files rather than taking either branch wholesale.
-
-# Current state
-
-The read-only implementation is published in draft PR #166.
+# Deterministic baseline
 
 ```text
 base tiers: 3
 categories: 20
 families: 24
 tier entries: 72
-XML-mapped scroll IDs: 46
+XML-mapped Intricate/Powerful scrolls: 46
 Lua-registered scroll IDs: 48
 duration: 72,000 seconds
 clear cost: 15,000 gold
 nonzero XML unlock storage IDs: 7
 Powerful families using stale nonzero IDs: 22
 Powerful families using storage=0: 2
+storage filtering default: disabled
 ```
 
-Confirmed discrepancy groups:
+# Confirmed findings
 
-1. fee/success model differs from the current fixed-fee reference;
-2. Strike differs in all three tiers;
-3. Basic Punch uses a different source item/count;
-4. Vibrancy scroll IDs `51466` and `51746` are registered by Lua but unmapped in XML;
-5. seven nonzero Powerful storage IDs are absent from active `storages.lua`, affecting 22 families;
-6. Powerful Featherweight and Vibrancy use `storage=0` and bypass family-specific filtering.
+## IMB-001 — fee/success model differs
 
-No gameplay, XML, engine, map, asset, item-binary or production-configuration file was changed.
+Active XML uses chance plus optional protection; the observed reference uses fixed fees. This requires an explicit target-version/economy decision and is not an automatic fix.
+
+## IMB-002 — Strike values differ
+
+All three Strike tiers use different critical chance/damage values from the observed reference.
+
+## IMB-003 — Basic Punch source differs
+
+Active Basic Punch uses item `9690 x20`; the observed reference chain begins with item `10281 x25`.
+
+## IMB-004 — Vibrancy scrolls are registered but unmapped
+
+Lua registers `51466` and `51746`, while XML maps neither ID. The active scroll action therefore cannot resolve either Vibrancy tier through `getImbuementByScrollID()`.
+
+## IMB-005 — seven nonzero Powerful storage IDs are stale
+
+XML uses:
+
+```text
+50488, 50490, 50492, 50494, 50496, 50498, 50501
+```
+
+None is declared in active `storages.lua`. They affect 22 Powerful families. Active Forgotten Knowledge boss paths instead write named storages `45489..45495`.
+
+## IMB-006 — two Powerful families bypass filtering
+
+Powerful Featherweight and Vibrancy use `storage=0`, so the policy does not hide them even when family-specific filtering is enabled. Exact Dangerous Depths and Dream Courts completion storage/value remains unresolved and must not be guessed.
 
 # Storage evidence
 
-| Stale XML storage | Affected families | Strong current semantic counterpart |
+| Stale XML storage | Families | Strong current semantic counterpart |
 |---:|---|---:|
 | 50488 | Reap, Vampirism, Lich Shroud | 45489 — Lady Tenebris |
 | 50490 | Electrify, Cloud Fabric, Swiftness | 45490 — Lloyd |
@@ -134,156 +123,106 @@ No gameplay, XML, engine, map, asset, item-binary or production-configuration fi
 | 50498 | Demon Presence, Precision | 45494 — Time Guardian |
 | 50501 | Strike, Epiphany | 45495 — Last Lore Keeper |
 
-The grouping is strong evidence, but a separate data-fix PR must verify each mapping and test before/after visibility. Exact Dangerous Depths and Dream Courts completion conditions remain unresolved; do not invent them.
+This mapping is strong semantic evidence, not authorization for blind replacement. A separate fix PR must verify before/after visibility for every group.
 
-# Plan
+# Validation
 
-1. Obtain an actual focused workflow run or execute the complete commands in a full checkout.
-2. Repair any scanner/test assumptions exposed by that run.
-3. Re-check current `main`, PR mergeability, full diff and shared-file overlap.
-4. Keep PR #166 read-only and draft until all checks pass.
-5. Deliver storage, scroll, effect/material and economy changes as separate focused PRs.
+Reviewed head:
 
-# Work log
+```text
+eec25a5e354cf40e86e62f03512df0717623d1f6
+```
 
-## 2026-07-12T17:18:21Z
+| Check | Result |
+|---|---|
+| Imbuement Validation run `29204201080` | success |
+| AI Agent Tools run `29204201098` | success |
+| CI run `29204201176` | success |
+| focused tests | 10/10 passed |
+| Python compilation | passed |
+| both audit generators | passed |
+| generated JSON validation | passed |
+| artifact download and parse | passed |
+| full changed-file list | reviewed |
+| forbidden runtime/map/asset paths | none |
 
-- Created the dedicated branch and persistent task record.
-- Confirmed Imbuing spans XML, C++, Lua, item metadata, storage gates and protocol/UI paths.
-- Local shell could not resolve `github.com`; repository-wide execution required connector/CI access.
+Audit artifact:
 
-## 2026-07-12T17:42:23Z
+```text
+artifact id: 8263257100
+digest: sha256:17f2ecfab6aa28bac5b8f3f24b4de1b88ecde260d866e35afdaa6852b3581861
+```
 
-- Added the registry/runtime scanner, tests, report and runtime plan.
-- Confirmed structural baseline of 72 entries.
-- Confirmed Vibrancy scroll, Strike, Punch and fee-model discrepancies.
+Artifact evidence:
 
-## 2026-07-12T17:53:42Z
+```text
+IMBUEMENT_VALIDATION.json:
+  base tiers: 3
+  categories: 20
+  families: 24
+  entries: 72
+  findings: 1 error, 11 mismatches
 
-- Added the focused workflow.
-- Refreshed shared coordination files from current `main`.
-- No GitHub workflow run or combined status was emitted; PR remained draft.
+IMBUEMENT_STORAGE_VALIDATION.json:
+  undeclared storage IDs: 7
+  affected Powerful families: 22
+  storage=0 Powerful families: Featherweight, Vibrancy
+  boss named-storage wiring: present
 
-## 2026-07-12T18:12:32Z
+IMBUEMENT_RUNTIME_TEST_PLAN.json:
+  scenarios: 12
+```
 
-- Added `imbuement_storage_validation.py` and focused tests.
-- Expanded the workflow to audit `storages.lua`, default configuration and Forgotten Knowledge boss wiring.
-- Expanded the report and runtime plan with the 22 stale-gated families and two zero-storage bypasses.
-- Locally validated the exact new storage-tool/test contents: Python compilation passed; four focused unit tests passed; runtime-plan JSON syntax passed.
-- Full repository tests, original registry scanner tests and GitHub workflow remain not run.
+The audit reports confirmed defects as findings; their presence is expected and does not mean the audit execution failed.
 
-# Decisions
+# Failure and repair history
 
-| Decision | Reason/evidence | ADR |
-|---|---|---|
-| Keep PR #166 read-only | Evidence must precede gameplay/data changes. | none |
-| Treat the wiki as a dated reference, not executable truth | Server may intentionally target historical/custom behavior. | none |
-| Separate economy from data corrections | Fixed fees affect protocol, charging and balance. | future ADR if changed |
-| Classify Vibrancy scrolls as confirmed cross-file defect | Active Lua registers both IDs; XML maps neither. | none |
-| Classify seven nonzero XML storage IDs as stale | They are absent from active storage declarations and current boss scripts write different IDs. | none |
-| Do not blindly replace stale IDs | Semantic mapping is strong but each replacement needs focused regression evidence. | none |
-| Do not invent Featherweight/Vibrancy completion IDs | Exact Dangerous Depths/Dream Courts completion semantics are not yet proven. | none |
-| Keep the general project document unchanged | Specialist evidence belongs in the dedicated report. | none |
+- Initial focused run failed one structural assertion because `applyImbuementScroll` was incorrectly expected in `player.hpp`.
+- Full test diagnostics identified the exact false marker.
+- The scanner now checks `applyImbuementScroll` in `src/lua/functions/creatures/player/player_functions.cpp` while retaining the Player declarations in `player.hpp`.
+- A clean read-only workflow run then passed all steps.
 
-# Files and interfaces
+# Coordination and safety
 
-| Path/interface/config/schema | Purpose | Status |
-|---|---|---|
-| `.github/workflows/imbuement-validation.yml` | focused tests, audit generation, JSON validation and artifacts | implemented; no GitHub run emitted |
-| `tools/ai-agent/imbuement_validation.py` | XML/runtime/reference audit | implemented; full run pending |
-| `tools/ai-agent/imbuement_storage_validation.py` | XML storage-to-Lua declaration audit | implemented; focused local tests passed |
-| `tools/ai-agent/test_imbuement_validation.py` | registry/parser/classifier tests | implemented; full run pending |
-| `tools/ai-agent/test_imbuement_storage_validation.py` | storage parser/wiring tests | implemented; 4/4 local tests passed |
-| `docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md` | evidence report and findings | implemented |
-| `docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json` | machine-readable gameplay/runtime scenarios | implemented; local JSON syntax passed |
-| `docs/agents/ACTIVE_WORK.md` | discoverability | updated narrowly from current main |
-| `docs/agents/MODULE_CATALOG.md` | reusable-tool discovery | updated narrowly from current main |
+- Writable repository verified as `blakinio/canary`.
+- `opentibiabr/canary` was used only as a reference.
+- Branch contains current `main` commit `ab0ca005625ca4f80fc5931d86a3f8d0b0304299` as an ancestor and is not behind.
+- PR #166 changes exactly ten focused audit/coordination files.
+- No `.otbm`, `items.otb`, client assets, active gameplay XML, Lua gameplay scripts, C++ runtime or production configuration were changed.
+- Shared `ACTIVE_WORK.md` and `MODULE_CATALOG.md` were reconciled after achievement audit archival.
 
-# Validation and CI
+# Follow-up order
 
-| Scope | Command/check | Result | Evidence/notes |
-|---|---|---|---|
-| exact new storage tool | `python -m py_compile /tmp/imbuement_storage_validation.py` | passed | temporary file content was identical to committed file |
-| exact new storage tests | `python -m py_compile /tmp/test_imbuement_storage_validation.py` | passed | temporary file content was identical to committed file |
-| focused storage tests | `cd /tmp && python -m unittest test_imbuement_storage_validation.py -v` | passed | 4 tests, 0 failures |
-| runtime plan | `python -m json.tool /tmp/IMBUEMENT_RUNTIME_TEST_PLAN.json` | passed | temporary file content was identical to committed JSON |
-| full focused suite | repository commands from report | not-run | no full checkout; DNS failure for `github.com` |
-| GitHub Actions | Imbuement Validation workflow | not-run | no workflow run/status emitted for connector commits |
-
-Never write `passed` for unexecuted checks.
-
-# Failed approaches and dead ends
-
-- `git clone` and `git ls-remote` fail because the execution container cannot resolve `github.com`.
-- Connector-created commits did not emit an Actions run visible through workflow-run or combined-status APIs.
-- Closing/reopening draft PR #166 did not emit a workflow run.
-- Questline storage `45851` is set when Dangerous Depths tasks begin and is not sufficient evidence for the final Featherweight unlock condition.
-
-# Risks and compatibility
-
-- Runtime/data: no runtime or gameplay data change in this PR.
-- Security: no secrets or player data.
-- Cross-repo rollout: none; no OTClient change.
-- Reference drift: re-observe the external baseline before future corrections.
-- Configuration: default-disabled storage filtering masks the broad stale-ID defect.
-- Shared indexes: re-resolve `ACTIVE_WORK.md` and `MODULE_CATALOG.md` from current `main` before readiness.
-- Rollback: revert audit/tool/workflow/docs commits.
-
-# Remaining work
-
-1. Run the complete focused suite and both generators in a full checkout or GitHub Actions.
-2. Inspect generated artifacts and repair failures.
-3. Rebase/update from current `main` using a safe supported mechanism.
-4. Resolve shared coordination-file overlap.
-5. Review the full changed-file list and diff again.
-6. Keep the PR draft and unmerged until the autonomous merge gate is satisfied.
+1. Repair the seven Forgotten Knowledge storage mappings with focused before/after unlock tests.
+2. Prove exact Dangerous Depths and Dream Courts completion conditions, then gate Featherweight and Vibrancy.
+3. Add Vibrancy scroll mappings and atomicity tests.
+4. Decide the target Imbuing economy/version.
+5. Correct Strike and Basic Punch in a separate data-fidelity PR.
+6. Execute the runtime gameplay plan in Canary staging.
+7. Audit full equipment eligibility against current item metadata.
 
 # Handoff
 
 ## Start here
 
-1. Inspect PR #166 base/head, mergeability, checks and changed files.
+1. Inspect PR #166 and current checks.
 2. Read `docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md`.
-3. Run the reproduction commands from the report.
-4. Inspect both JSON audits and the runtime-plan artifact.
-5. Re-resolve shared files from current `main` if changed.
+3. Inspect the final artifact from run `29204201080`.
+4. Re-check current `main`, mergeability and changed files before merge.
 
 ## Do not repeat
 
-- Do not classify the fee model as an automatic bug without choosing the target economy/version.
-- Do not replace storage IDs blindly or invent Dangerous Depths/Dream Courts completion values.
-- Do not modify `data/XML/imbuements.xml` in PR #166.
-- Do not merge gameplay fixes into this audit PR.
-- Do not claim CI/runtime success without an actual run.
-- Do not take stale shared-index content wholesale from another branch.
-
-## Required reads
-
-- `AGENTS.md`
-- `docs/agents/ACTIVE_WORK.md`
-- `docs/agents/MODULE_CATALOG.md`
-- `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md`
-- `docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md`
-- `docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json`
-- `.github/workflows/imbuement-validation.yml`
-- both Imbuement audit tools/tests
-- `data/XML/imbuements.xml`
-- active `storages.lua`, boss-kill script and shrine/scroll runtime
-- merged PR #86
-
-## Open questions
-
-- Does the project target historical chance/protection or current fixed-fee Imbuing?
-- Which exact active completion storage/value should unlock Powerful Featherweight?
-- Which exact active completion storage/value should unlock Powerful Vibrancy?
-- Does the complete equipment metadata match every current imbuable item?
-- Do real save/load, combat and client scenarios satisfy the runtime plan?
+- Do not treat the historical/current fee-model difference as an automatic bug.
+- Do not blindly replace stale storage IDs.
+- Do not invent Dangerous Depths or Dream Courts completion values.
+- Do not put gameplay fixes into this audit PR.
+- Do not claim runtime gameplay validation; only static/semantic audits and planned scenarios are complete.
 
 # Completion
 
-- Final status: active; implementation complete, full validation pending
+- Final status: ready-for-review
 - PR: #166
 - Merge commit:
 - Catalogue updated: yes
-- Changelog updated: deferred until final merged state
+- Changelog updated: specialist report added; global behavior changelog not applicable to read-only audit
 - Archived at:
