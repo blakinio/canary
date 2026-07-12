@@ -36,6 +36,37 @@ BESTIARY_REQUIRED = ("class", "toKill", "FirstUnlock", "SecondUnlock", "CharmsPo
 CHARM_CATEGORIES = {"CHARM_MAJOR", "CHARM_MINOR"}
 CHARM_TYPES = {"CHARM_OFFENSIVE", "CHARM_DEFENSIVE", "CHARM_PASSIVE"}
 BOSS_RARITIES = {"RARITY_BANE", "RARITY_ARCHFOE", "RARITY_NEMESIS"}
+KNOWN_SHARED_BESTIARY_IDS = {
+    213: frozenset({
+        "data-otservbr-global/monster/quests/the_explorer_society/pink_butterfly.lua",
+        "data-otservbr-global/monster/quests/the_explorer_society/purple_butterfly.lua",
+    }),
+    227: frozenset({
+        "data-otservbr-global/monster/quests/the_explorer_society/blue_butterfly.lua",
+        "data-otservbr-global/monster/vermins/butterfly.lua",
+    }),
+}
+KNOWN_SHARED_BOSSTIARY_IDS = {
+    1226: frozenset({
+        "data-otservbr-global/monster/quests/heart_of_destruction/eradicator.lua",
+        "data-otservbr-global/monster/quests/heart_of_destruction/eradicator2.lua",
+    }),
+    1406: frozenset({
+        "data-otservbr-global/monster/quests/cults_of_tibia/bosses/the_armored_voidborn.lua",
+        "data-otservbr-global/monster/quests/cults_of_tibia/bosses/the_unarmored_voidborn.lua",
+    }),
+    1811: frozenset({
+        "data-otservbr-global/monster/quests/kilmaresh/urmahlullu_the_immaculate.lua",
+        "data-otservbr-global/monster/quests/kilmaresh/urmahlullu_the_tamed.lua",
+        "data-otservbr-global/monster/quests/kilmaresh/urmahlullu_the_weakened.lua",
+        "data-otservbr-global/monster/quests/kilmaresh/wildness_of_urmahlullu.lua",
+        "data-otservbr-global/monster/quests/kilmaresh/wisdom_of_urmahlullu.lua",
+    }),
+    1969: frozenset({
+        "data-otservbr-global/monster/quests/soul_war/goshnar's_megalomania_blue.lua",
+        "data-otservbr-global/monster/quests/soul_war/goshnar's_megalomania_green.lua",
+    }),
+}
 NUMBER = re.compile(r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)")
 
 
@@ -249,7 +280,7 @@ def validate_monsters(inventory: dict[str, Any]) -> list[dict[str, Any]]:
             if first < 0 or second < first or total < second or total <= 0:
                 out.append(finding("BESTIARY-INVALID-THRESHOLDS", "bestiary", "error", "definition-invalid", "high", "Thresholds must satisfy 0 <= FirstUnlock <= SecondUnlock <= toKill and toKill > 0.", path, data["line"], {"raceId": race_id, "FirstUnlock": first, "SecondUnlock": second, "toKill": total}))
     for race_id, paths in sorted(bestiary_ids.items()):
-        if len(paths) > 1:
+        if len(paths) > 1 and frozenset(paths) != KNOWN_SHARED_BESTIARY_IDS.get(race_id):
             out.append(finding(f"BESTIARY-DUPLICATE-RACE-ID-{race_id}", "bestiary", "warning", "definition-needs-review", "high", f"Bestiary race ID {race_id} is used by {len(paths)} active definitions.", evidence={"paths": paths}))
     for item in inventory["bosstiaryEntries"]:
         data, path = item["bosstiary"], item["path"]
@@ -261,7 +292,7 @@ def validate_monsters(inventory: dict[str, Any]) -> list[dict[str, Any]]:
         if rarity not in BOSS_RARITIES:
             out.append(finding("BOSSTIARY-INVALID-RARITY", "bosstiary", "error", "definition-invalid", "high", f"Unsupported rarity {rarity!r}.", path, data["line"], {"bossRaceId": boss_id}))
     for boss_id, paths in sorted(boss_ids.items()):
-        if len(paths) > 1:
+        if len(paths) > 1 and frozenset(paths) != KNOWN_SHARED_BOSSTIARY_IDS.get(boss_id):
             out.append(finding(f"BOSSTIARY-DUPLICATE-BOSS-RACE-ID-{boss_id}", "bosstiary", "warning", "definition-needs-review", "high", f"Bosstiary boss ID {boss_id} is used by {len(paths)} active definitions.", evidence={"paths": paths}))
     return out
 
