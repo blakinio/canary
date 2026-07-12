@@ -1,0 +1,106 @@
+---
+name: Imbuement Validation
+
+on:
+  push:
+    branches:
+      - main
+      - "feat/**"
+      - "fix/**"
+      - "ai/**"
+    paths:
+      - "data/XML/imbuements.xml"
+      - "src/creatures/players/imbuements/**"
+      - "src/creatures/players/player.*"
+      - "src/game/game.cpp"
+      - "data-otservbr-global/scripts/actions/object/imbuement_shrine.lua"
+      - "data-otservbr-global/scripts/actions/object/imbuement_scrolls.lua"
+      - "data-otservbr-global/scripts/actions/object/etcher.lua"
+      - "tools/ai-agent/imbuement_validation.py"
+      - "tools/ai-agent/test_imbuement_validation.py"
+      - "docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json"
+      - ".github/workflows/imbuement-validation.yml"
+  pull_request:
+    paths:
+      - "data/XML/imbuements.xml"
+      - "src/creatures/players/imbuements/**"
+      - "src/creatures/players/player.*"
+      - "src/game/game.cpp"
+      - "data-otservbr-global/scripts/actions/object/imbuement_shrine.lua"
+      - "data-otservbr-global/scripts/actions/object/imbuement_scrolls.lua"
+      - "data-otservbr-global/scripts/actions/object/etcher.lua"
+      - "tools/ai-agent/imbuement_validation.py"
+      - "tools/ai-agent/test_imbuement_validation.py"
+      - "docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json"
+      - ".github/workflows/imbuement-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Audit imbuement definitions and runtime wiring
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile focused Python files
+        run: |
+          python -m py_compile \
+            tools/ai-agent/imbuement_validation.py \
+            tools/ai-agent/test_imbuement_validation.py
+
+      - name: Run focused tests
+        run: python -m unittest discover -s tools/ai-agent -p "test_imbuement_validation.py" -v
+
+      - name: Generate imbuement audit and runtime plan
+        run: |
+          python tools/ai-agent/imbuement_validation.py \
+            --repository-root . \
+            --output artifacts/IMBUEMENT_VALIDATION.json \
+            --runtime-plan artifacts/IMBUEMENT_RUNTIME_TEST_PLAN.json
+
+      - name: Validate JSON outputs
+        run: |
+          python -m json.tool artifacts/IMBUEMENT_VALIDATION.json > /dev/null
+          python -m json.tool artifacts/IMBUEMENT_RUNTIME_TEST_PLAN.json > /dev/null
+          python -m json.tool docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json > /dev/null
+
+      - name: Publish audit summary
+        shell: python
+        run: |
+          import json
+          import os
+          from pathlib import Path
+
+          audit = json.loads(Path("artifacts/IMBUEMENT_VALIDATION.json").read_text(encoding="utf-8"))
+          summary = audit["summary"]
+          lines = [
+              "# Imbuement validation",
+              "",
+              f"- base tiers: {summary['base_tiers']}",
+              f"- categories: {summary['categories']}",
+              f"- families: {summary['families']}",
+              f"- entries: {summary['entries']}",
+          ]
+          for severity, count in summary["findings"].items():
+              lines.append(f"- {severity} findings: {count}")
+          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+      - name: Upload audit artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: imbuement-validation-audit
+          path: |
+            artifacts/IMBUEMENT_VALIDATION.json
+            artifacts/IMBUEMENT_RUNTIME_TEST_PLAN.json
+          if-no-files-found: error
+          retention-days: 14
