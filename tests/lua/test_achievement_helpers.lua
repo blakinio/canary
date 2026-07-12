@@ -161,11 +161,13 @@ test("secret lookup resolves ID and name metadata", function()
 	assert_equal(Game.isAchievementSecret(ACHIEVEMENTS[secretId].name), true)
 end)
 
-test("invalid secret lookup logs supplied identifier and returns false", function()
+test("invalid secret lookup logs supplied ID and name and returns false", function()
 	local before = #logErrors
 	assert_equal(Game.isAchievementSecret(99999), false)
-	assert_equal(#logErrors, before + 1)
-	assert_equal(logErrors[#logErrors].args[1], 99999)
+	assert_equal(Game.isAchievementSecret("Missing Achievement"), false)
+	assert_equal(#logErrors, before + 2)
+	assert_equal(logErrors[before + 1].args[1], 99999)
+	assert_equal(logErrors[before + 2].args[1], "Missing Achievement")
 end)
 
 print(string.format("\n%d passed, %d failed", passed, failed))
