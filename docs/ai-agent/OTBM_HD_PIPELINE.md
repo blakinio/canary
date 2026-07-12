@@ -85,7 +85,7 @@ python tools/ai-agent/otbm_hd_tool.py upscale \
   --command 'python ai_backend.py --input "{input}" --output "{output}" --scale {scale} --sprite-id {sprite_id}'
 ```
 
-The repository does not bundle model weights. Do not place API tokens or credentials in the command template because the template is written to the generated manifest.
+The repository does not bundle model weights. The command template itself is not persisted in generated manifests, but secrets still must not be placed on the command line because process inspection and external backend logs may expose them.
 
 For best results, the external backend should preserve the sprite silhouette and palette instead of inventing new objects. Padding reduces edge damage for walls, floors, borders, and multi-sprite structures. The normalized output always receives the original scaled alpha mask.
 
