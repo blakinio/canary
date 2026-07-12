@@ -351,6 +351,39 @@ with zero engine dependency:
   are covered at the `ClusterLeaderElection`/`ClusterJobLeadershipRegistry`
   unit level instead.
 
+### Phase 8: GM command to locate a player's cluster channel
+
+`multichannel::findOnlineChannelForPlayer` (`src/game/multichannel/
+cluster_session_lookup.hpp`/`.cpp`), backing the new
+`Game.getPlayerClusterChannel(name)` Lua global, was verified against a real
+MariaDB 10.11, importing the real `schema.sql`:
+
+- A player with an `ONLINE` row in `cluster_sessions` is found and its
+  `channel_id` returned correctly.
+- A player with no row at all (unknown to the cluster) correctly returns
+  nothing, matching the function's `std::nullopt` contract.
+- **The important defensive case**: after transitioning that same row's
+  `status` to `DIRTY` (simulating an orphaned session per
+  ARCHITECTURE.md §5.3), the exact same query correctly returns nothing -
+  confirming the `status = 'ONLINE'` filter actually matters and isn't a
+  no-op, since a naive "does a row exist for this player_id" query would
+  have wrongly reported a dirty session as a live location.
+- `IOLoginData::getGuidByName`'s existing name-to-id resolution was
+  exercised alongside it (a known player name resolves; an unknown name
+  returns no row), since the Lua binding chains both lookups.
+
+`game_functions.cpp`'s new binding itself is not standalone-compilable
+(transitively pulls in the full engine, same wall as every other Lua
+binding file) - reviewed by hand against the verified SQL above; it is a
+thin two-call chain (name → guid → channel id) with no additional logic of
+its own. `check_lua_api_binding_docs.py`/`check_lua_api_quality.py` both
+pass against the hand-written `docs/lua-api/lua_api.json` entry (mirrors
+Phase 2's `Player:requestChannelSwitch` precedent: this repo's own CI is
+the first real compiler for the actual `.cpp`, and its
+`--generate-lua-api-docs-only` step - made more robust by the Phase 6/7 CI
+fix - will auto-correct the doc entry if the hand-written version drifts
+from a real regeneration).
+
 ## 15.1b Redis Lua CAS script validation — ✅ run against a real `redis-server`
 
 The acquire/renew/release Lua scripts in

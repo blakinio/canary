@@ -1599,6 +1599,14 @@
         "source": "src/lua/functions/core/game/game_functions.cpp"
       },
       {
+        "name": "getPlayerClusterChannel",
+        "params": [
+          "name: string"
+        ],
+        "return": "number|nil",
+        "source": "src/lua/functions/core/game/game_functions.cpp"
+      },
+      {
         "name": "getPlayerCount",
         "params": [
           "...: any"
