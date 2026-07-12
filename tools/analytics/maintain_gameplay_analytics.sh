@@ -9,6 +9,7 @@ DB_NAME="${DB_NAME:-canary}"
 AGGREGATION_LAG_DAYS="${AGGREGATION_LAG_DAYS:-1}"
 MAX_DAYS_PER_RUN="${MAX_DAYS_PER_RUN:-31}"
 REAGGREGATE_DAYS="${REAGGREGATE_DAYS:-7}"
+LEVEL_BRACKETS="${LEVEL_BRACKETS:-50,100,200,300,400,600,800,1000}"
 RAW_RETENTION_DAYS="${RAW_RETENTION_DAYS:-180}"
 DELETE_RAW_SESSIONS="${DELETE_RAW_SESSIONS:-false}"
 DELETE_BATCH_SIZE="${DELETE_BATCH_SIZE:-5000}"
@@ -32,6 +33,25 @@ if [[ "${DELETE_RAW_SESSIONS}" != "true" && "${DELETE_RAW_SESSIONS}" != "false" 
 	echo "DELETE_RAW_SESSIONS must be true or false" >&2
 	exit 1
 fi
+
+if [[ ! "${LEVEL_BRACKETS}" =~ ^[0-9]+(,[0-9]+)*$ ]]; then
+	echo "LEVEL_BRACKETS must be a comma-separated strictly ascending list of positive integers" >&2
+	exit 1
+fi
+
+IFS=',' read -r -a level_bracket_values <<< "${LEVEL_BRACKETS}"
+level_bracket_case="CASE"
+previous_bracket=0
+for raw_bracket in "${level_bracket_values[@]}"; do
+	bracket=$((10#${raw_bracket}))
+	if [[ "${bracket}" -le "${previous_bracket}" ]]; then
+		echo "LEVEL_BRACKETS must be a comma-separated strictly ascending list of positive integers" >&2
+		exit 1
+	fi
+	level_bracket_case+=" WHEN level_start < ${bracket} THEN ${previous_bracket}"
+	previous_bracket="${bracket}"
+done
+level_bracket_case+=" ELSE ${previous_bracket} END"
 
 # The rolling rebuild must never reach dates whose raw sessions may already
 # have been deleted, otherwise a rebuild could erase the only retained
@@ -78,7 +98,7 @@ SELECT
     COALESCE(server_version, ''),
     COALESCE(hunt_area, ''),
     vocation_id,
-    FLOOR(level_start / 100) * 100,
+    ${level_bracket_case},
     COUNT(*),
     COALESCE(SUM(combat_seconds), 0),
     COALESCE(SUM(experience_raw), 0),
@@ -99,7 +119,7 @@ SELECT
 FROM analytics_sessions
 WHERE started_at >= UNIX_TIMESTAMP('${current_date} 00:00:00')
   AND started_at < UNIX_TIMESTAMP('${next_date} 00:00:00')
-GROUP BY COALESCE(server_version, ''), COALESCE(hunt_area, ''), vocation_id, FLOOR(level_start / 100) * 100;
+GROUP BY COALESCE(server_version, ''), COALESCE(hunt_area, ''), vocation_id, ${level_bracket_case};
 
 DELETE FROM analytics_daily_party_balance WHERE session_date = '${current_date}';
 INSERT INTO analytics_daily_party_balance
@@ -109,7 +129,7 @@ SELECT
     COALESCE(server_version, ''),
     COALESCE(hunt_area, ''),
     vocation_id,
-    FLOOR(level_start / 100) * 100,
+    ${level_bracket_case},
     CASE WHEN COALESCE(party_size_avg, party_size, 1) <= 1 THEN 'solo' ELSE 'party' END,
     COUNT(*),
     COALESCE(SUM(combat_seconds), 0),
@@ -135,7 +155,7 @@ GROUP BY
     COALESCE(server_version, ''),
     COALESCE(hunt_area, ''),
     vocation_id,
-    FLOOR(level_start / 100) * 100,
+    ${level_bracket_case},
     CASE WHEN COALESCE(party_size_avg, party_size, 1) <= 1 THEN 'solo' ELSE 'party' END;
 COMMIT;" >/dev/null
 }
@@ -184,7 +204,7 @@ while [[ "${reaggregate_date}" < "${target_date}" || "${reaggregate_date}" == "$
 done
 
 aggregate_through="$(query_scalar "SELECT COALESCE(DATE_FORMAT(value_date, '%Y-%m-%d'), '') FROM analytics_maintenance_state WHERE state_key = 'daily_aggregate_through' LIMIT 1")"
-echo "Gameplay Analytics aggregation processed ${processed_days} catch-up day(s), rebuilt ${reprocessed_days} recent day(s); checkpoint=${aggregate_through:-none}; target=${target_date}"
+echo "Gameplay Analytics aggregation processed ${processed_days} catch-up day(s), rebuilt ${reprocessed_days} recent day(s); brackets=${LEVEL_BRACKETS}; checkpoint=${aggregate_through:-none}; target=${target_date}"
 
 if [[ "${DELETE_RAW_SESSIONS}" != "true" ]]; then
 	echo "Raw-session deletion disabled; set DELETE_RAW_SESSIONS=true after validating aggregates"
