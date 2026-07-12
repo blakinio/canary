@@ -4,7 +4,7 @@
 >
 > Repository: `blakinio/canary`
 >
-> Verified `main`: `dbcc809bac57bb78425ca39c2523c723cef79bb0`
+> Verified `main`: `2cd7ecacef872fe247833515602d670626a9ff18`
 >
 > Purpose: current source of truth for agents continuing the engine architecture work.
 
@@ -56,6 +56,7 @@ Harden and modularize Canary without breaking existing clients or datapacks. The
 - PR #151 — integrates `InstanceRegionPool` into `InstanceManager`; each instance owns one concrete map region, close releases it only after successful cleanup, and failed cleanup quarantines the region. Full Linux, Windows, macOS and Docker CI passed. Merge commit: `95244309453e980ac0377379f8ba5605ca3aba6b`.
 - PR #159 — adds lifecycle-safe creature identity ownership to `InstanceManager`: stable runtime IDs, same-owner idempotency, cross-instance rejection, cleanup-time unregister and region quarantine while owned IDs remain. Full Linux release/debug, Windows CMake/Solution, macOS, Docker, smoke and unit-test CI passed. Merge commit: `74ea517d13333248d0e0868a5b212eced5ef24dc`.
 - PR #163 — defines pointer-free summon inheritance and creature interaction policy on the stable-ID registry. Normal-world pairs remain compatible; same-instance inheritance is atomic/idempotent; invalid, cross-instance, owned/unowned and Closing/Destroyed interactions fail closed. Full Linux release/debug, Windows CMake/Solution, macOS, Docker, smoke and dedicated ownership-policy tests passed. Merge commit: `dbcc809bac57bb78425ca39c2523c723cef79bb0`.
+- PR #168 — adds `InstanceCreatureBinder`, a synchronous adapter from runtime objects exposing `getID()` to the authoritative stable-ID registry. It supports heterogeneous master/summon types, authoritative-owner unbind and lifetime-safe operations without retaining runtime pointers. The first Linux-debug compile exposed unconstrained templates selecting `int` as an object; the overloads were constrained to real `getID()` types and the full rerun passed. Linux debug completed 444/444 tests; Linux release, Canary/Global smoke, Windows CMake/Solution, macOS and Docker also passed. Merge commit: `2cd7ecacef872fe247833515602d670626a9ff18`.
 
 ### CI reliability
 
@@ -78,36 +79,39 @@ At the time of this refresh, notable separate open work includes:
 
 - PR #136 — multi-channel runtime heartbeat and fail-closed availability; outside current scope.
 - PR #155 — checksum-free transport framing correction; relevant to the later packet-level protocol E2E phase but independent from instance ownership.
-- PR #156 and #157 — The Beginning quest repairs; gameplay-only and outside the engine architecture roadmap.
-- PR #165 and #166 — draft achievement and Imbuing validation layers; separate read-only AI/world-validation work.
+- gameplay and AI/world-validation PRs continue independently and must be re-queried before every edit.
 
 Every agent must query GitHub again before editing because this list changes quickly.
 
 ## Current engine workstream
 
-### Runtime creature ownership binding
+### Transactional master/summon call-site wiring
 
-The authoritative stable-ID registry and ownership policy are complete in PRs #159 and #163. The next focused PR must connect real runtime creature objects to those tested operations without introducing a global `InstanceManager` or storing creature pointers in it.
+The manager registry, ownership policy and runtime-ID binder are complete in PRs #159, #163 and #168. The next focused PR must make instance-aware master assignment transactional without storing a manager or binder pointer in `Creature`.
 
 Preferred boundary:
 
-- add a small explicit runtime binder/service that owns only an `InstanceManager &` reference;
-- bind/unbind synchronously using `Creature::getID()` after a nonzero runtime ID exists;
-- delegate summon inheritance and interaction decisions to the tested manager policy;
-- retain no raw/shared creature pointer beyond the current call;
-- fail without partially mutating the registry;
-- preserve all current normal-world behavior when both creatures are unowned;
-- do not yet mix spawn scheduling, NPCs, spectator filtering, combat or player movement into the same PR.
+- add an explicit binder transaction that snapshots the summon's current owner;
+- validate/inherit ownership before mutating master/summon lists;
+- execute the existing master-link operation through a synchronous callback or a dedicated `Creature::setMaster` overload receiving a binder reference;
+- if the link operation returns false or throws after a newly inherited registration, unregister that new ownership before returning or rethrowing;
+- never remove pre-existing same-instance ownership during rollback;
+- reject cross-instance, owned/unowned and Closing/Destroyed assignments before setting `summoned`, changing `m_master` or editing summon lists;
+- clearing a master must not silently erase established instance ownership;
+- preserve the existing `setMaster(master, reload)` path for normal-world callers;
+- do not add a global `InstanceManager`, a raw binder field or a long-lived runtime pointer.
 
 Required tests:
 
-- bind a runtime creature ID to one instance;
-- reject ID `0`, unknown/Closing instances and cross-instance rebinding;
-- unbind using the authoritative owner;
-- inherit an owned master's boundary to a summon;
-- reject cross-instance master assignment without changing either owner;
-- normal-world master assignment remains unchanged;
-- no pointers remain stored after the operation returns.
+- normal-world assignment remains unchanged;
+- owned master registers an unowned summon and commits after successful linking;
+- same-instance reassignment is idempotent;
+- cross-instance and owned/unowned assignments leave both ownership records and link state unchanged;
+- callback false rolls back only newly inherited ownership;
+- callback exception rolls back newly inherited ownership and rethrows;
+- pre-existing ownership survives callback failure;
+- clearing the master preserves the summon's instance boundary;
+- no binder/runtime pointer is retained.
 
 Follow-up requirements in the same phase:
 
@@ -121,8 +125,9 @@ Follow-up requirements in the same phase:
 
 ### A. Creature and spawn ownership
 
-- add explicit runtime binding to the merged stable-ID ownership registry;
-- wire monsters, summons, NPCs and instance-created spawns;
+- wire transactional master/summon assignment to the binder;
+- wire monsters, NPCs and instance-created spawns;
+- automatically unregister removed owned creatures;
 - keep default/non-instanced entities unchanged;
 - prevent cross-instance visibility/targeting where required;
 - remove owned entities during close;
@@ -201,7 +206,7 @@ This work can run in parallel if no active PR touches `ProtocolLogin`, `Protocol
 ## Recommended execution order
 
 ```text
-explicit runtime creature binder
+transactional master/summon call-site wiring
     └─> spawn/NPC ownership + automatic unregister
           └─> owned-creature cleanup + isolation call sites
                 └─> scheduler/event ownership
@@ -263,6 +268,7 @@ The engine architecture program is complete when:
 - concrete region ownership is integrated with `InstanceManager` — completed by PR #151;
 - lifecycle-safe creature identity registration is merged — completed by PR #159;
 - summon inheritance and interaction policy are merged — completed by PR #163;
+- runtime-ID binding is merged — completed by PR #168;
 - runtime creature/spawn and scheduler/event ownership are merged;
 - player enter/leave and Lua APIs are merged;
 - cleanup/recovery and two-instance isolation tests pass;
