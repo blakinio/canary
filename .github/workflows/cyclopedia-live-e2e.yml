@@ -1,0 +1,388 @@
+---
+name: Cyclopedia Live E2E
+
+on:
+  push:
+    branches:
+      - test/cyclopedia-live-e2e
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  live-e2e:
+    name: OTClient ↔ Canary ↔ MySQL
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: cyclopedia_e2e
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+
+    steps:
+      - name: Checkout current Canary source
+        uses: actions/checkout@v6
+
+      - name: Checkout maintained OTClient source
+        uses: actions/checkout@v6
+        with:
+          repository: opentibiabr/otclient
+          path: otclient
+
+      - name: Download current-main Canary binary
+        uses: dawidd6/action-download-artifact@v11
+        with:
+          repo: blakinio/canary
+          workflow: ci.yml
+          branch: main
+          workflow_conclusion: success
+          name: canary-linux-release
+          path: canary-bin
+          search_artifacts: true
+
+      - name: Download maintained OTClient binary
+        uses: dawidd6/action-download-artifact@v11
+        with:
+          repo: opentibiabr/otclient
+          workflow: ci.yml
+          branch: main
+          workflow_conclusion: success
+          name: linux-linux-release
+          path: otclient-bin
+          search_artifacts: true
+
+      - name: Install runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            curl \
+            imagemagick \
+            jq \
+            libgl1 \
+            libglu1-mesa \
+            libopenal1 \
+            libpulse0 \
+            libx11-6 \
+            libxcursor1 \
+            libxi6 \
+            libxinerama1 \
+            libxrandr2 \
+            mysql-client \
+            unzip \
+            x11-utils \
+            xvfb
+
+      - name: Resolve binaries and protocol version
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANARY_BIN="$(find canary-bin -type f -name 'canary' -perm -u+x | head -n 1)"
+          OTCLIENT_BIN="$(find otclient-bin -type f -name 'otclient*' -perm -u+x | head -n 1)"
+          if [[ -z "${CANARY_BIN}" || -z "${OTCLIENT_BIN}" ]]; then
+            echo "Canary or OTClient binary not found." >&2
+            find canary-bin otclient-bin -maxdepth 3 -type f -print
+            exit 1
+          fi
+          CLIENT_VERSION="$(grep -E '^clientVersionMax[[:space:]]*=' config.lua.dist | grep -Eo '[0-9]+' | head -n 1)"
+          if [[ -z "${CLIENT_VERSION}" ]]; then
+            echo "clientVersionMax not found." >&2
+            exit 1
+          fi
+          chmod +x "${CANARY_BIN}" "${OTCLIENT_BIN}"
+          echo "CANARY_BIN=${GITHUB_WORKSPACE}/${CANARY_BIN}" >> "${GITHUB_ENV}"
+          echo "OTCLIENT_BIN=${GITHUB_WORKSPACE}/${OTCLIENT_BIN}" >> "${GITHUB_ENV}"
+          echo "CLIENT_VERSION=${CLIENT_VERSION}" >> "${GITHUB_ENV}"
+          echo "Canary: ${CANARY_BIN}"
+          echo "OTClient: ${OTCLIENT_BIN}"
+          echo "Protocol/client version: ${CLIENT_VERSION}"
+          ldd "${CANARY_BIN}" || true
+          ldd "${OTCLIENT_BIN}" || true
+
+      - name: Initialize disposable MySQL database
+        shell: bash
+        env:
+          MYSQL_PWD: root
+        run: |
+          set -euo pipefail
+          for _ in $(seq 1 60); do
+            mysql -h 127.0.0.1 -P 3306 -u root -e 'SELECT 1' >/dev/null 2>&1 && break
+            sleep 2
+          done
+          mysql -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e < schema.sql
+          mysql -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e < docker/data/01-test_account.sql
+          mysql -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e < docker/data/02-test_account_players.sql
+          mysql -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e -e 'DELETE FROM boosted_boss;'
+          mysql -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e -e "SELECT id,name,account_id,level FROM players WHERE name='Knight 1';"
+
+      - name: Prepare global map and isolated server config
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p data-otservbr-global/world artifacts
+          MAP_URL="$(grep -E '^mapDownloadUrl[[:space:]]*=' config.lua.dist | sed -E 's/.*"([^"]+)".*/\1/')"
+          if [[ -z "${MAP_URL}" ]]; then
+            echo 'mapDownloadUrl missing.' >&2
+            exit 1
+          fi
+          curl --fail --location --retry 5 --retry-delay 5 \
+            "${MAP_URL}" \
+            --output data-otservbr-global/world/otservbr.otbm
+          test -s data-otservbr-global/world/otservbr.otbm
+          sha256sum data-otservbr-global/world/otservbr.otbm | tee artifacts/map.sha256
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          path = Path('config.lua.dist')
+          config = path.read_text(encoding='utf-8')
+          values = {
+              'dataPackDirectory': '"data-otservbr-global"',
+              'mapName': '"otservbr"',
+              'mapDownloadUrl': '""',
+              'toggleDownloadMap': 'false',
+              'toggleMapCustom': 'false',
+              'startupDatabaseOptimization': 'false',
+              'mysqlDatabaseBackup': 'false',
+              'toggleSaveInterval': 'false',
+              'forgeInfluencedLimit': '0',
+              'forgeFiendishLimit': '0',
+              'ip': '"127.0.0.1"',
+              'loginProtocolPort': '7171',
+              'gameProtocolPort': '7172',
+              'statusProtocolPort': '7171',
+              'serverName': '"Canary E2E"',
+              'houseRentPeriod': '"never"',
+              'mysqlHost': '"127.0.0.1"',
+              'mysqlUser': '"root"',
+              'mysqlPass': '"root"',
+              'mysqlDatabase': '"cyclopedia_e2e"',
+              'mysqlPort': '3306',
+              'mysqlSock': '""',
+              'metricsEnablePrometheus': 'false',
+              'metricsEnableOstream': 'false',
+          }
+          for key, value in values.items():
+              pattern = re.compile(rf'^{re.escape(key)}\s*=.*$', re.MULTILINE)
+              if len(pattern.findall(config)) != 1:
+                  raise SystemExit(f'expected exactly one config key {key}')
+              config = pattern.sub(f'{key} = {value}', config, count=1)
+          Path('config.lua').write_text(config, encoding='utf-8')
+          PY
+
+      - name: Install matching OTClient assets from public release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          import urllib.request
+          from pathlib import Path
+
+          version = int(os.environ['CLIENT_VERSION'])
+          label = f'{version // 100}.{version % 100:02d}'
+          compact = str(version)
+          req = urllib.request.Request(
+              'https://api.github.com/repos/dudantas/tibia-client/releases?per_page=100',
+              headers={'Accept': 'application/vnd.github+json', 'Authorization': f"Bearer {os.environ['GH_TOKEN']}"},
+          )
+          releases = json.load(urllib.request.urlopen(req, timeout=60))
+          def normalized(value):
+              return re.sub(r'[^0-9]', '', str(value or ''))
+          matches = [r for r in releases if compact in {normalized(r.get('tag_name')), normalized(r.get('name'))}]
+          if not matches:
+              available = [(r.get('tag_name'), r.get('name')) for r in releases[:30]]
+              raise SystemExit(f'No dudantas/tibia-client release for {label} ({compact}); available={available}')
+          release = matches[0]
+          zip_assets = [a for a in release.get('assets', []) if str(a.get('name', '')).lower().endswith('.zip')]
+          url = zip_assets[0]['browser_download_url'] if zip_assets else release['zipball_url']
+          Path('artifacts/assets-release.json').write_text(json.dumps({
+              'clientVersion': version,
+              'label': label,
+              'tag': release.get('tag_name'),
+              'name': release.get('name'),
+              'url': url,
+          }, indent=2), encoding='utf-8')
+          request = urllib.request.Request(url, headers={'Authorization': f"Bearer {os.environ['GH_TOKEN']}"})
+          with urllib.request.urlopen(request, timeout=180) as source, open('/tmp/tibia-assets.zip', 'wb') as target:
+              while True:
+                  chunk = source.read(1024 * 1024)
+                  if not chunk:
+                      break
+                  target.write(chunk)
+          PY
+          rm -rf /tmp/tibia-assets
+          mkdir -p /tmp/tibia-assets
+          unzip -q /tmp/tibia-assets.zip -d /tmp/tibia-assets
+          while IFS= read -r nested; do
+            nested_dir="${nested%.zip}-unpacked"
+            mkdir -p "${nested_dir}"
+            unzip -q -o "${nested}" -d "${nested_dir}" || true
+          done < <(find /tmp/tibia-assets -maxdepth 4 -type f -name '*.zip')
+          ASSET_CATALOG="$(find /tmp/tibia-assets -type f -name catalog-content.json | head -n 1)"
+          if [[ -z "${ASSET_CATALOG}" ]]; then
+            echo 'catalog-content.json not found in selected release.' >&2
+            find /tmp/tibia-assets -maxdepth 4 -type f | head -n 200
+            exit 1
+          fi
+          ASSET_ROOT="$(dirname "${ASSET_CATALOG}")"
+          TARGET="otclient/data/things/${CLIENT_VERSION}"
+          rm -rf "${TARGET}"
+          mkdir -p "${TARGET}"
+          cp -a "${ASSET_ROOT}/." "${TARGET}/"
+          test -s "${TARGET}/catalog-content.json"
+          sha256sum "${TARGET}/catalog-content.json" | tee artifacts/catalog-content.sha256
+          du -sh "${TARGET}"
+
+      - name: Configure OTClient automation
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp tools/e2e/cyclopedia_otclient_e2e.lua otclient/otclientrc.lua
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('otclient/init.lua')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace('enabled = true,\n        repository = "dudantas/tibia-client",', 'enabled = false,\n        repository = "dudantas/tibia-client",', 1)
+          text = text.replace('installSounds = true,', 'installSounds = false,', 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Start real Canary server
+        shell: bash
+        run: |
+          set -euo pipefail
+          "${CANARY_BIN}" > artifacts/canary.stdout.log 2> artifacts/canary.stderr.log &
+          echo $! > artifacts/canary.pid
+          for _ in $(seq 1 450); do
+            if ! kill -0 "$(cat artifacts/canary.pid)" 2>/dev/null; then
+              cat artifacts/canary.stdout.log artifacts/canary.stderr.log
+              exit 1
+            fi
+            if grep -qi 'server online!' artifacts/canary.stdout.log artifacts/canary.stderr.log; then
+              break
+            fi
+            sleep 2
+          done
+          grep -qi 'server online!' artifacts/canary.stdout.log artifacts/canary.stderr.log
+          python3 - <<'PY'
+          import socket
+          for port in (7171, 7172):
+              with socket.create_connection(('127.0.0.1', port), timeout=10):
+                  print(f'port {port} reachable')
+          PY
+          MYSQL_PWD=root mysql -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e \
+            -e 'SELECT * FROM boosted_boss;' | tee artifacts/boosted-boss-after-start.tsv
+          test "$(MYSQL_PWD=root mysql -N -s -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e -e 'SELECT COUNT(*) FROM boosted_boss;')" -ge 1
+
+      - name: Run physical OTClient under Xvfb with relog
+        shell: bash
+        env:
+          CYCLOPEDIA_E2E_CLIENT_VERSION: ${{ env.CLIENT_VERSION }}
+          CYCLOPEDIA_E2E_ACCOUNT: test1
+          CYCLOPEDIA_E2E_PASSWORD: test
+          CYCLOPEDIA_E2E_CHARACTER: Knight 1
+          CYCLOPEDIA_E2E_HOST: 127.0.0.1
+          CYCLOPEDIA_E2E_PORT: 7172
+          CYCLOPEDIA_E2E_WORLD: Canary E2E
+        run: |
+          set -euo pipefail
+          export DISPLAY=:99
+          Xvfb :99 -screen 0 1280x800x24 > artifacts/xvfb.log 2>&1 &
+          echo $! > artifacts/xvfb.pid
+          sleep 2
+          (
+            cd otclient
+            timeout --signal=TERM 180 "${OTCLIENT_BIN}" > ../artifacts/otclient.stdout.log 2> ../artifacts/otclient.stderr.log
+          ) &
+          echo $! > artifacts/otclient.pid
+
+          online_seen=false
+          phase_seen=false
+          for _ in $(seq 1 120); do
+            if [[ -f otclient/e2e-result.txt ]] && grep -q '^login_1=success$' otclient/e2e-result.txt; then
+              online_seen=true
+            fi
+            if [[ -f otclient/e2e-result.txt ]] && grep -q '^phase_1=complete$' otclient/e2e-result.txt; then
+              phase_seen=true
+              break
+            fi
+            if ! kill -0 "$(cat artifacts/otclient.pid)" 2>/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          [[ "${online_seen}" == true ]]
+          [[ "${phase_seen}" == true ]]
+
+          import -display :99 -window root artifacts/cyclopedia-client.png || true
+          MYSQL_PWD=root mysql -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e \
+            -e "SELECT * FROM players_online; SELECT id,name,lastlogin,lastlogout FROM players WHERE name='Knight 1';" \
+            | tee artifacts/database-during-client.tsv
+
+          wait "$(cat artifacts/otclient.pid)"
+          cat otclient/e2e-result.txt | tee artifacts/e2e-result.txt
+          grep -q '^login_1=success$' artifacts/e2e-result.txt
+          grep -q '^bestiary_1=' artifacts/e2e-result.txt
+          grep -q '^charms_1=' artifacts/e2e-result.txt
+          grep -q '^bosstiary_1=' artifacts/e2e-result.txt
+          grep -q '^phase_1=complete$' artifacts/e2e-result.txt
+          grep -q '^logout_1=complete$' artifacts/e2e-result.txt
+          grep -q '^login_2=success$' artifacts/e2e-result.txt
+          grep -q '^bestiary_2=' artifacts/e2e-result.txt
+          grep -q '^charms_2=' artifacts/e2e-result.txt
+          grep -q '^bosstiary_2=' artifacts/e2e-result.txt
+          grep -q '^phase_2=complete$' artifacts/e2e-result.txt
+          grep -q '^e2e=success$' artifacts/e2e-result.txt
+
+      - name: Verify database state after client exit
+        shell: bash
+        env:
+          MYSQL_PWD: root
+        run: |
+          set -euo pipefail
+          mysql -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e \
+            -e "SELECT * FROM players_online; SELECT id,name,lastlogin,lastlogout FROM players WHERE name='Knight 1'; SELECT * FROM boosted_boss;" \
+            | tee artifacts/database-after-client.tsv
+          test "$(mysql -N -s -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e -e 'SELECT COUNT(*) FROM players_online;')" -eq 0
+          test "$(mysql -N -s -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e -e "SELECT lastlogin > 0 FROM players WHERE name='Knight 1';")" -eq 1
+          test "$(mysql -N -s -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e -e 'SELECT COUNT(*) FROM boosted_boss;')" -ge 1
+          if grep -Eqi 'unhandled|parse error|protocol error|segmentation fault|assertion failed|fatal error' \
+            artifacts/otclient.stdout.log artifacts/otclient.stderr.log; then
+            echo 'OTClient reported a parser/runtime failure.' >&2
+            exit 1
+          fi
+
+      - name: Stop services
+        if: always()
+        shell: bash
+        run: |
+          for pidfile in artifacts/otclient.pid artifacts/canary.pid artifacts/xvfb.pid; do
+            if [[ -f "${pidfile}" ]]; then
+              kill "$(cat "${pidfile}")" 2>/dev/null || true
+            fi
+          done
+
+      - name: Upload live E2E evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyclopedia-live-e2e
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 14
