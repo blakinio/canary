@@ -99,6 +99,7 @@ def cleanup() -> None:
     for relative in (
         ".cmake-format.py",
         "docs/ai-agent/.equipment-upgrade-tree-probe",
+        "src/.equipment-upgrade-trigger",
         "tools/ai-agent/test_equipment_upgrade_patch_export.py",
     ):
         path = ROOT / relative
