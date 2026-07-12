@@ -1,15 +1,15 @@
 ---
 task_id: CAN-20260712-raid-startup-waves
-status: active
+status: testing
 agent: "OpenAI Codex"
 branch: fix/raid-startup-waves
 base_branch: main
 created: 2026-07-12T21:20:00Z
 updated: 2026-07-12T22:00:00Z
-last_verified_commit: "366b3d4e6bba4cb8d3dee09a8c5a0181cc3d7423"
+last_verified_commit: "c3f295b927027d7a598068d3323e196a929ea9a4"
 risk: medium
 related_issue: "opentibiabr/canary#3599"
-related_pr: ""
+related_pr: "blakinio/canary#205"
 depends_on: []
 blocks: []
 owned_paths:
@@ -72,6 +72,12 @@ Reduce raid monster-creation peaks reported in upstream #3599 by splitting activ
 
 # Work log
 
+## 2026-07-12T22:05:00Z
+
+- Published draft PR #205 in the approved fork from `main` to `fix/raid-startup-waves`; upstream remains read-only.
+- Verified the remote commit contains exactly the six claimed files.
+- CI and final review gates are pending on remote head `c3f295b9...`.
+
 ## 2026-07-12T22:00:00Z
 
 - Rebased the complete six-file change onto current `main` `366b3d4e...`; resolved only the expected shared Active Work index cleanup.
@@ -119,8 +125,8 @@ Read this task, upstream #3599, the three owned raid Lua files and `data/libs/sy
 
 # Completion
 
-- Final status: active
-- PR:
+- Final status: testing
+- PR: https://github.com/blakinio/canary/pull/205
 - Merge commit:
 - Changelog updated: pending completion
 - Archived at:
