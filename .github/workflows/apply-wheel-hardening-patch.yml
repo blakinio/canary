@@ -32,7 +32,7 @@ jobs:
           set -euo pipefail
           : > /tmp/wheel-hardening.patch.b64
           for blob in \
-            7b31ed62d084b554df7abd33efbb198ee3a3b6f6 \
+            2184f92bc208b403725bd565316fe76f7d7b529d \
             35bb2a666cb259f29a8ed9b02fbc0498d52e8b39 \
             0030c12f0830923f5c34a3d121e36ebbe1dd0a7c \
             576bb7e8fd154230b35063dd5e6021fefcce9fd8 \
