@@ -99,6 +99,30 @@ def _load_smoke_module(repo_root: Path) -> ModuleType:
     return module
 
 
+def _staging_smoke_executor(repo_root: Path) -> SmokeExecutor:
+    """Load the standard smoke runner while allowing its temporary datapack alias.
+
+    Canary intentionally rejects arbitrary datapack directory names in normal
+    operation. Deployment validation uses a unique symlink alias so staging and
+    the published release can be tested without replacing the repository's
+    real ``data-canary`` directory. Patch only the dynamically loaded smoke
+    module's config writer; the repository config and normal smoke workflow
+    keep their strict default.
+    """
+    module = _load_smoke_module(repo_root)
+    standard_write_smoke_config = module.write_smoke_config
+
+    def write_staging_smoke_config(args: argparse.Namespace) -> None:
+        standard_write_smoke_config(args)
+        config_path = repo_root / "config.lua"
+        config = config_path.read_text(encoding="utf-8")
+        config = module.set_lua_value(config, "useAnyDatapackFolder", "true")
+        config_path.write_text(config, encoding="utf-8", newline="\n")
+
+    module.write_smoke_config = write_staging_smoke_config
+    return module.run_smoke
+
+
 def _safe_phase(phase: str) -> str:
     cleaned = "".join(character if character.isalnum() or character in "-_" else "-" for character in phase)
     return cleaned.strip("-") or "smoke"
@@ -131,9 +155,7 @@ def run_canary_smoke(
 
     alias.symlink_to(datapack, target_is_directory=True)
     try:
-        smoke_executor = executor
-        if smoke_executor is None:
-            smoke_executor = _load_smoke_module(repo_root).run_smoke
+        smoke_executor = executor or _staging_smoke_executor(repo_root)
 
         args = argparse.Namespace(
             binary_path=str(binary),
