@@ -1,18 +1,19 @@
 local RESULT_PATH = 'e2e-result.txt'
 local CLIENT_VERSION = tonumber(os.getenv('CYCLOPEDIA_E2E_CLIENT_VERSION') or '1525')
--- Current protocol profiles require an e-mail identifier. The disposable E2E
--- fixture sets account test1 to this syntactically valid address.
 local ACCOUNT = 'test1@example.com'
 local PASSWORD = os.getenv('CYCLOPEDIA_E2E_PASSWORD') or 'test'
 local CHARACTER = os.getenv('CYCLOPEDIA_E2E_CHARACTER') or 'Knight 1'
 local HOST = os.getenv('CYCLOPEDIA_E2E_HOST') or '127.0.0.1'
-local PORT = tonumber(os.getenv('CYCLOPEDIA_E2E_PORT') or '7172')
-local WORLD = os.getenv('CYCLOPEDIA_E2E_WORLD') or 'Canary E2E'
+local LOGIN_PORT = tonumber(os.getenv('CYCLOPEDIA_E2E_LOGIN_PORT') or '7171')
 
 local phase = 1
 local phaseComplete = false
 local received = {}
 local finished = false
+local protocolLogin
+local sessionKey
+local characters
+local enteringWorld = false
 
 local function appendResult(key, value)
     local file = assert(io.open(RESULT_PATH, 'a'))
@@ -32,11 +33,19 @@ local function valueCount(value)
     return value == nil and 0 or 1
 end
 
+local function closeLoginProtocol()
+    if protocolLogin then
+        protocolLogin:cancelLogin()
+        protocolLogin = nil
+    end
+end
+
 local function finishFailure(message)
     if finished then
         return
     end
     finished = true
+    closeLoginProtocol()
     appendResult('e2e', 'failure')
     appendResult('error', message)
     scheduleEvent(function()
@@ -44,13 +53,84 @@ local function finishFailure(message)
     end, 250)
 end
 
-local function startLogin()
-    appendResult('login_attempt_' .. phase, string.format('%s:%d/%s/v%d', HOST, PORT, CHARACTER, CLIENT_VERSION))
-    g_game.setClientVersion(CLIENT_VERSION)
-    if g_game.setProtocolVersion then
-        g_game.setProtocolVersion(CLIENT_VERSION)
+local function findCharacter(list)
+    for _, character in ipairs(list or {}) do
+        if character.name == CHARACTER then
+            return character
+        end
     end
-    g_game.loginWorld(ACCOUNT, PASSWORD, WORLD, HOST, PORT, CHARACTER, '', '', '')
+    return nil
+end
+
+local function maybeEnterWorld()
+    if finished or enteringWorld or not sessionKey or not characters then
+        return
+    end
+
+    local selected = findCharacter(characters)
+    if not selected then
+        finishFailure('character not present in login-server response: ' .. CHARACTER)
+        return
+    end
+
+    if not selected.worldIp or not selected.worldPort or not selected.worldName then
+        finishFailure('selected character has incomplete world connection data')
+        return
+    end
+
+    enteringWorld = true
+    appendResult('session_key_' .. phase, #sessionKey)
+    appendResult('character_list_' .. phase, valueCount(characters))
+    appendResult(
+        'game_login_attempt_' .. phase,
+        string.format('%s:%d/%s/%s', tostring(selected.worldIp), tonumber(selected.worldPort), selected.worldName, selected.name)
+    )
+
+    g_game.loginWorld(
+        ACCOUNT,
+        PASSWORD,
+        selected.worldName,
+        selected.worldIp,
+        selected.worldPort,
+        selected.name,
+        '',
+        sessionKey,
+        ''
+    )
+end
+
+local function startLogin()
+    closeLoginProtocol()
+    sessionKey = nil
+    characters = nil
+    enteringWorld = false
+
+    appendResult('login_server_attempt_' .. phase, string.format('%s:%d/v%d', HOST, LOGIN_PORT, CLIENT_VERSION))
+
+    g_game.setClientVersion(CLIENT_VERSION)
+    g_game.setProtocolVersion(g_game.getClientProtocolVersion(CLIENT_VERSION))
+    g_game.chooseRsa(HOST)
+
+    protocolLogin = ProtocolLogin.create()
+    protocolLogin.onLoginError = function(_, message, errorCode)
+        finishFailure(string.format('login server error %s: %s', tostring(errorCode), tostring(message)))
+    end
+    protocolLogin.onSessionKey = function(_, key)
+        sessionKey = key
+        appendResult('login_server_session_' .. phase, #key)
+        maybeEnterWorld()
+    end
+    protocolLogin.onCharacterList = function(_, list, account)
+        characters = list
+        appendResult('login_server_characters_' .. phase, valueCount(list))
+        appendResult('login_server_account_' .. phase, account and 'received' or 'missing')
+        maybeEnterWorld()
+    end
+    protocolLogin.onUpdateNeeded = function(_, signature)
+        finishFailure('login server requested client update: ' .. tostring(signature))
+    end
+
+    protocolLogin:login(HOST, LOGIN_PORT, ACCOUNT, PASSWORD, '', false)
 end
 
 local function maybeCompletePhase()
@@ -110,6 +190,7 @@ end
 
 connect(g_game, {
     onGameStart = function()
+        closeLoginProtocol()
         appendResult('login_' .. phase, 'success')
         requestCyclopediaSurfaces()
     end,
@@ -121,10 +202,10 @@ connect(g_game, {
         end
     end,
     onLoginError = function(message)
-        finishFailure('login error: ' .. tostring(message))
+        finishFailure('game login error: ' .. tostring(message))
     end,
     onConnectionError = function(message, code)
-        finishFailure(string.format('connection error %s: %s', tostring(code), tostring(message)))
+        finishFailure(string.format('game connection error %s: %s', tostring(code), tostring(message)))
     end,
     onParseBestiaryRaces = function(data)
         received.bestiary = true
