@@ -1,7 +1,8 @@
 function onUpdateDatabase()
 	logger.info("Updating database to version 62 (account-wide quest persistence and migration audit)")
 
-	if not db.query([[
+	if
+		not db.query([[
 		CREATE TABLE IF NOT EXISTS `account_quest_access` (
 			`account_id` INT(11) UNSIGNED NOT NULL,
 			`quest_id` VARCHAR(128) NOT NULL,
@@ -10,11 +11,13 @@ function onUpdateDatabase()
 			PRIMARY KEY (`account_id`, `quest_id`),
 			CONSTRAINT `account_quest_access_account_fk` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-	]]) then
+	]])
+	then
 		return false
 	end
 
-	if not db.query([[
+	if
+		not db.query([[
 		CREATE TABLE IF NOT EXISTS `account_quest_rewards` (
 			`account_id` INT(11) UNSIGNED NOT NULL,
 			`player_id` INT(11) NOT NULL DEFAULT 0,
@@ -25,7 +28,8 @@ function onUpdateDatabase()
 			PRIMARY KEY (`account_id`, `quest_id`, `reward_mode`, `player_id`),
 			CONSTRAINT `account_quest_rewards_account_fk` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-	]]) then
+	]])
+	then
 		return false
 	end
 

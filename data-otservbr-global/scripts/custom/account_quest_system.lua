@@ -186,12 +186,15 @@ function AccountQuest.getAccessList(player)
 	end
 
 	local entries = {}
-	local query = db.storeQuery(string.format([[
+	local query = db.storeQuery(string.format(
+		[[
 		SELECT `quest_id`, `unlocked_by`, DATE_FORMAT(`unlocked_at`, '%%Y-%%m-%%d %%H:%%i:%%s') AS `unlocked_at`
 		FROM `account_quest_access`
 		WHERE `account_id` = %d
 		ORDER BY `quest_id` ASC
-	]], accountId))
+	]],
+		accountId
+	))
 	if not query then
 		return entries
 	end
