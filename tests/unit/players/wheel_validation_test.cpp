@@ -46,7 +46,7 @@ TEST_F(WheelValidationTest, LevelPointsStartAfterLevelFifty) {
 
 TEST_F(WheelValidationTest, InvalidOverspentStateDoesNotUnderflowUnusedPoints) {
 	auto player = makePlayer(51);
-	player->wheel().setPointsBySlotType(enumToValue(WheelSlots_t::SLOT_GREEN_50), 50);
+	player->wheel().setPointsBySlotType(static_cast<uint8_t>(WheelSlots_t::SLOT_GREEN_50), 50);
 	EXPECT_EQ(0, player->wheel().getUnusedPoints());
 }
 
