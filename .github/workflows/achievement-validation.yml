@@ -2,6 +2,21 @@
 name: Achievement Validation
 
 on:
+  push:
+    branches:
+      - main
+      - "feat/**"
+      - "fix/**"
+      - "ai/**"
+    paths:
+      - "data/scripts/lib/register_achievements.lua"
+      - "data/**/*.lua"
+      - "data-otservbr-global/**/*.lua"
+      - "tools/ai-agent/achievement_validation.py"
+      - "tools/ai-agent/test_achievement_validation.py"
+      - "docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json"
+      - "docs/ai-agent/ACHIEVEMENT_RUNTIME_TEST_PLAN.json"
+      - ".github/workflows/achievement-validation.yml"
   pull_request:
     paths:
       - "data/scripts/lib/register_achievements.lua"
