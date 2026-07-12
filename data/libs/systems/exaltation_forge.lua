@@ -57,7 +57,7 @@ function ForgeMonster:getPlayerKiller(killer)
 end
 
 function ForgeMonster:creditDust(player, amount)
-	if not player or player:getPremiumDays() <= 0 then
+	if not player then
 		return 0
 	end
 
