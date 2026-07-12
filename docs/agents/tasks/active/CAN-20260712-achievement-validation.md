@@ -6,16 +6,17 @@ agent: "GPT-5.6 Thinking"
 branch: feat/achievement-validation-audit
 base_branch: main
 created: 2026-07-12T17:16:14Z
-updated: 2026-07-12T17:16:14Z
-last_verified_commit: ""
+updated: 2026-07-12T17:22:00Z
+last_verified_commit: "84c328e043f6bed9673f9e9615bd793ad522ea2b"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "#165"
 depends_on: []
 blocks: []
 owned_paths:
   - tools/ai-agent/achievement_validation.py
   - tools/ai-agent/test_achievement_validation.py
+  - docs/ai-agent/OTS_AI_ACHIEVEMENT_VALIDATION_PROJECT.md
   - docs/ai-agent/ACHIEVEMENT_VALIDATION_REPORT.md
   - docs/ai-agent/ACHIEVEMENT_RUNTIME_TEST_PLAN.json
   - docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md
@@ -45,6 +46,7 @@ Create a deterministic, evidence-based audit of Canary achievements that validat
 - [ ] Scan active datapacks for static and dynamic achievement award/progress paths.
 - [ ] Distinguish definitions, runtime awards, progress-only references, checks, removals, admin-only paths, and unresolved dynamic references.
 - [ ] Compare the current registry baseline with the referenced TibiaWiki/Fandom achievements page without copying spoiler text into the repository.
+- [x] Create a dedicated durable project document beside the main World Validation project.
 - [ ] Produce a human-readable evidence report and a machine-readable runtime test plan.
 - [ ] Add focused unit tests for parser and classifier behavior.
 - [ ] Do not modify the achievement registry, active datapacks, map, assets, or engine behavior in this audit PR.
@@ -61,6 +63,7 @@ Create a deterministic, evidence-based audit of Canary achievements that validat
 - The referenced TibiaWiki/Fandom page currently states 562 discovered achievements out of 563 total and lists 562 entries.
 - The world-validation project requires evidence-based classification and forbids guessing runtime behavior.
 - Open PRs inspected on 2026-07-12; no achievement-validation overlap was found.
+- Dedicated project document: `docs/ai-agent/OTS_AI_ACHIEVEMENT_VALIDATION_PROJECT.md`.
 
 # Existing work to reuse
 
@@ -79,7 +82,7 @@ Create a deterministic, evidence-based audit of Canary achievements that validat
 
 # Current state
 
-The registry exists and runtime calls are distributed across active datapacks. No deterministic repository-wide audit or persistent evidence report currently exists.
+The registry exists and runtime calls are distributed across active datapacks. No deterministic repository-wide audit or persistent evidence report currently exists. A dedicated project document now defines the scope, evidence model, status taxonomy, safety boundary and handoff.
 
 # Plan
 
@@ -90,6 +93,13 @@ The registry exists and runtime calls are distributed across active datapacks. N
 5. Record evidence, gaps, confidence and bounded follow-up work.
 
 # Work log
+
+## 2026-07-12T17:22:00Z
+
+- Changed: added `docs/ai-agent/OTS_AI_ACHIEVEMENT_VALIDATION_PROJECT.md` beside the main World Validation project.
+- Learned: achievement validation needs its own durable methodology because definition validity, runtime award paths and gameplay dependencies are independent dimensions.
+- Failed/blocked: none for documentation creation.
+- Result: project scope, dispositions, confirmed helper defects, planned CLI/report/test plan and handoff are now persistent in Git.
 
 ## 2026-07-12T17:16:14Z
 
@@ -102,6 +112,7 @@ The registry exists and runtime calls are distributed across active datapacks. N
 
 | Decision | Reason/evidence | ADR |
 |---|---|---|
+| Keep a separate project document beside the main World Validation project | Achievement definitions, trigger classification, persistence and runtime scenarios require a durable specialist handoff without bloating the main project document. | none |
 | Keep the first PR read-only | A definition/trigger audit must precede gameplay fixes under the world-validation methodology. | none |
 | Do not treat missing static text matches as proof of a broken achievement | Dynamic tables/wrappers can award achievements indirectly. | none |
 | Keep wiki-derived spoiler descriptions out of committed reports | Only metadata and source references are needed for validation. | none |
@@ -110,6 +121,7 @@ The registry exists and runtime calls are distributed across active datapacks. N
 
 | Path/interface/config/schema | Purpose | Status |
 |---|---|---|
+| `docs/ai-agent/OTS_AI_ACHIEVEMENT_VALIDATION_PROJECT.md` | durable project methodology, state and handoff | created |
 | `tools/ai-agent/achievement_validation.py` | deterministic registry/trigger scanner | planned |
 | `tools/ai-agent/test_achievement_validation.py` | focused parser/classifier tests | planned |
 | `docs/ai-agent/ACHIEVEMENT_VALIDATION_REPORT.md` | evidence report and findings | planned |
@@ -119,8 +131,9 @@ The registry exists and runtime calls are distributed across active datapacks. N
 
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
+| `84c328e043f6bed9673f9e9615bd793ad522ea2b` | documentation path/content review | reviewed | dedicated project file created on task branch |
 | | focused Python tests | not-run | implementation pending |
-| | AI Agent Tools workflow | not-run | PR not opened yet |
+| | AI Agent Tools workflow | not-run | tool implementation pending |
 
 Never write `passed` without verification.
 
@@ -141,13 +154,14 @@ Never write `passed` without verification.
 
 1. Implement the scanner and tests.
 2. Produce an evidence report from current repository state.
-3. Open a draft PR and update coordination indexes.
+3. Link the specialist document from the main World Validation document.
+4. Update PR #165 after implementation and CI evidence.
 
 # Handoff
 
 ## Start here
 
-Read this task, then inspect `data/scripts/lib/register_achievements.lua`, Player achievement APIs, and all active `addAchievement`/`addAchievementProgress` call sites.
+Read `docs/ai-agent/OTS_AI_ACHIEVEMENT_VALIDATION_PROJECT.md`, then inspect `data/scripts/lib/register_achievements.lua`, Player achievement APIs, and all active `addAchievement`/`addAchievementProgress` call sites.
 
 ## Do not repeat
 
@@ -159,6 +173,7 @@ Do not infer that an achievement is unobtainable solely because its name does no
 - `docs/agents/ACTIVE_WORK.md`
 - `docs/agents/MODULE_CATALOG.md`
 - `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md`
+- `docs/ai-agent/OTS_AI_ACHIEVEMENT_VALIDATION_PROJECT.md`
 - achievement registry and Player achievement API sources
 
 ## Open questions
@@ -169,7 +184,7 @@ Do not infer that an achievement is unobtainable solely because its name does no
 # Completion
 
 - Final status: active
-- PR:
+- PR: #165
 - Merge commit:
 - Catalogue updated: no
 - Changelog updated: no
