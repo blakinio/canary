@@ -1,0 +1,307 @@
+{
+  "format": "canary-quest-dependency-report-v1",
+  "generatedAt": "2026-07-12",
+  "component": "World Semantic Review",
+  "quest": {
+    "name": "The Beginning",
+    "area": "Rookgaard Tutorial Island",
+    "missions": [
+      "The Cockroach Plague",
+      "Collecting Wood",
+      "A Hungry Tailor"
+    ]
+  },
+  "baseline": {
+    "mapFile": "otservbr(3).otbm",
+    "mapSha256": "a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2",
+    "semanticReviewPr": 144,
+    "movementRestorationPr": 145,
+    "movementRestorationCommit": "b1992c7380416139f4a0a2eb7ea0d593be47fdb2"
+  },
+  "overallDecision": {
+    "status": "conflicting",
+    "confidence": "high",
+    "runtimeE2EProven": false,
+    "summary": "The active world contains the three NPCs, quest catalogue, storages, map route, cockroach spawns, generic ladder/sewer/tool mechanics and four reward chests. The complete quest is not statically completable as intended because required Zirella branch/cart transitions are absent, Carlos has contradictory bypass and non-completing trade paths, the terminal Rookgaard-border transition is missing, and several tutorial-only events/mappings are stale or absent."
+  },
+  "storages": [
+    {"name": "TutorialHintsStorage", "value": 41670},
+    {"name": "SantiagoNpcGreetStorage", "value": 41671},
+    {"name": "SantiagoQuestLog", "value": 41672},
+    {"name": "ZirellaNpcGreetStorage", "value": 41673},
+    {"name": "ZirellaQuestLog", "value": 41674},
+    {"name": "CarlosNpcTradeStorage", "value": 41675},
+    {"name": "CarlosNpcGreetStorage", "value": 41676},
+    {"name": "CarlosQuestLog", "value": 41677}
+  ],
+  "dependencies": [
+    {
+      "id": "npc-santiago",
+      "kind": "npc",
+      "status": "confirmed",
+      "criticality": "blocking",
+      "position": [32034, 32273, 6],
+      "sourceFiles": ["data-otservbr-global/npc/santiago.lua", "data-otservbr-global/world/otservbr-npc.xml"],
+      "evidence": "NPC is spawned and implements the current 41671/41672 storage chain, coat/weapon/fish rewards and cockroach-leg turn-in.",
+      "unresolved": ["Runtime dialogue execution is not yet E2E-tested."]
+    },
+    {
+      "id": "santiago-easy-persistence",
+      "kind": "npc-state-transition",
+      "status": "conflicting",
+      "criticality": "medium",
+      "sourceFiles": ["data-otservbr-global/npc/santiago.lua"],
+      "evidence": "The normal fish-lesson path persists SantiagoNpcGreetStorage=12 before asking about Zirella, while the alternate 'easy' branch persists 11 but advances the in-memory dialogue state to the Zirella question.",
+      "impact": "A focus loss or reconnect after the alternate branch can resume the prior fish stage instead of the persisted Zirella stage.",
+      "proposedFollowup": "Focused Santiago NPC state-machine fix and deterministic dialogue test."
+    },
+    {
+      "id": "santiago-coat-chest",
+      "kind": "quest-reward",
+      "status": "confirmed",
+      "criticality": "blocking",
+      "position": [32032, 32276, 5],
+      "itemId": 7757,
+      "actionId": 2000,
+      "uniqueId": 50080,
+      "contents": [{"itemId": 2853, "children": [{"itemId": 3562, "name": "coat"}]}],
+      "sourceFiles": ["data-otservbr-global/scripts/actions/other/others/quest_system1.lua"],
+      "evidence": "Generic quest chest handler awards the contents once, sends tutorial 5 and sets SantiagoNpcGreetStorage=3."
+    },
+    {
+      "id": "santiago-torch-chest",
+      "kind": "quest-reward",
+      "status": "confirmed",
+      "criticality": "supporting",
+      "position": [32033, 32278, 8],
+      "itemId": 7757,
+      "actionId": 2000,
+      "uniqueId": 50082,
+      "contents": [{"itemId": 2920, "name": "torch"}],
+      "sourceFiles": ["data-otservbr-global/scripts/actions/other/others/quest_system1.lua"],
+      "evidence": "Generic quest chest handler awards the torch and maps UID 50082 to tutorial 6."
+    },
+    {
+      "id": "santiago-cellar-navigation",
+      "kind": "world-navigation",
+      "status": "confirmed",
+      "criticality": "blocking",
+      "positions": [[32035, 32285, 8], [32038, 32273, 8]],
+      "items": [{"itemId": 435, "name": "sewer grate"}, {"itemId": 1948, "name": "ladder"}],
+      "sourceFiles": ["data/scripts/actions/items/ladder_up.lua"],
+      "evidence": "The generic ladder action registers item 435 and every item typed as a ladder, moving the player between floors. No special UID 50083 is present in the verified map.",
+      "runtimeTestRequired": true
+    },
+    {
+      "id": "cockroach-spawn-and-loot",
+      "kind": "monster-spawn",
+      "status": "confirmed",
+      "criticality": "blocking",
+      "sourceFiles": ["data-otservbr-global/world/otservbr-monster.xml", "data-otservbr-global/monster/vermins/cockroach.lua", "data-otservbr-global/npc/santiago.lua"],
+      "positions": [[32035, 32284, 9], [32038, 32291, 9], [32036, 32292, 9], [32038, 32293, 9], [32038, 32294, 9], [32034, 32296, 9]],
+      "rewardItem": {"itemId": 7882, "name": "cockroach leg", "chance": 100000},
+      "evidence": "Six tutorial-area cockroach placements exist and every cockroach drops one leg; Santiago removes three legs at greet storage 6."
+    },
+    {
+      "id": "cockroach-tutorial-events",
+      "kind": "creature-and-corpse-events",
+      "status": "missing-script",
+      "criticality": "non-blocking",
+      "sourceFiles": ["data-otservbr-global/monster/vermins/cockroach.lua"],
+      "evidence": "No active CreatureEvent or corpse Action sends the expected first-kill, chase-control or corpse-looting tutorial hints. Core leg acquisition remains possible.",
+      "proposedFollowup": "Restore only current-client-compatible tutorial hints with per-player one-shot storage and focused tests."
+    },
+    {
+      "id": "zirella-npc",
+      "kind": "npc",
+      "status": "confirmed",
+      "criticality": "blocking",
+      "position": [32058, 32268, 7],
+      "sourceFiles": ["data-otservbr-global/npc/zirella.lua", "data-otservbr-global/world/otservbr-npc.xml"],
+      "evidence": "NPC is spawned and advances storages 41673/41674 from 1 through 6, then waits for an external action to set both values to 7 before granting stage 8 and experience."
+    },
+    {
+      "id": "dead-tree-branch-acquisition",
+      "kind": "action",
+      "status": "missing-script",
+      "criticality": "blocking",
+      "itemId": 7753,
+      "itemName": "dead tree",
+      "positions": [[32073, 32276, 7], [32067, 32281, 7], [32079, 32285, 7], [32081, 32276, 7], [32066, 32288, 7]],
+      "expectedOutput": {"itemId": 7772, "name": "branch"},
+      "evidence": "The map and item descriptions explicitly instruct the player to use these trees, but the active source contains no handler for item 7753 that creates branch 7772 or advances tutorial state.",
+      "proposedFollowup": "Add a focused current-API Action for dead tree item 7753, gated by Zirella stage 6, with exhaustion and deterministic tests."
+    },
+    {
+      "id": "zirella-cart-branch-use",
+      "kind": "action-use-with",
+      "status": "missing-script",
+      "criticality": "blocking",
+      "position": [32062, 32271, 7],
+      "targetItem": {"itemId": 7751, "name": "Zirella's cart"},
+      "sourceItem": {"itemId": 7772, "name": "branch"},
+      "requiredTransitions": [
+        {"storage": "ZirellaNpcGreetStorage", "from": 6, "to": 7},
+        {"storage": "ZirellaQuestLog", "from": 6, "to": 7}
+      ],
+      "evidence": "Zirella cannot set stage 7 herself and no active use-with handler references items 7772/7751 or writes the required stage-7 transitions.",
+      "proposedFollowup": "Add a focused Action for branch-on-cart, consume the used branch, set both stage-7 storages atomically and test retries/wrong targets."
+    },
+    {
+      "id": "zirella-door",
+      "kind": "quest-door",
+      "status": "missing-script",
+      "criticality": "gate-bypass",
+      "position": [32058, 32266, 7],
+      "itemId": 6898,
+      "uniqueId": 50085,
+      "expectedRequirement": {"storage": "ZirellaNpcGreetStorage", "minimum": 8},
+      "evidence": "The map retains UID 50085 and Zirella promises access only after completion, but no active UID handler exists. The generic door path therefore has no quest-specific seal check.",
+      "proposedFollowup": "Add a UID 50085 Action using the current door API and test denied/allowed directions."
+    },
+    {
+      "id": "tutorial-shovel-chest",
+      "kind": "quest-reward",
+      "status": "confirmed",
+      "criticality": "blocking",
+      "position": [32059, 32265, 7],
+      "itemId": 7757,
+      "actionId": 2000,
+      "uniqueId": 50093,
+      "contents": [{"itemId": 3457, "name": "shovel"}],
+      "evidence": "The generic quest system awards the shovel once using UID 50093 as reward storage.",
+      "defect": "tutorial-mapping-stale"
+    },
+    {
+      "id": "tutorial-rope-chest",
+      "kind": "quest-reward",
+      "status": "confirmed",
+      "criticality": "blocking",
+      "position": [32067, 32264, 8],
+      "itemId": 7757,
+      "actionId": 2000,
+      "uniqueId": 50094,
+      "contents": [{"itemId": 3003, "name": "rope"}],
+      "evidence": "The generic quest system awards the rope once using UID 50094 as reward storage.",
+      "defect": "tutorial-mapping-stale"
+    },
+    {
+      "id": "reward-tutorial-uid-mapping",
+      "kind": "tutorial-mapping",
+      "status": "conflicting",
+      "criticality": "non-blocking",
+      "sourceFiles": ["data-otservbr-global/scripts/actions/other/others/quest_system1.lua"],
+      "evidence": "The active tutorialIds table maps tutorials 10/11 to UIDs 50084/50086, while the verified shovel/rope chests use 50093/50094. Rewards work, but those chest tutorial windows do not fire.",
+      "proposedFollowup": "Replace stale tutorial mappings only after confirming tutorial IDs 10/11 remain valid for the current client."
+    },
+    {
+      "id": "shovel-cave-entry",
+      "kind": "tool-action",
+      "status": "confirmed",
+      "criticality": "blocking",
+      "targetItemId": 7749,
+      "resultItemId": 594,
+      "storageTransition": {"storage": "TutorialHintsStorage", "to": 19},
+      "sourceFiles": ["data-otservbr-global/scripts/lib/register_actions.lua"],
+      "evidence": "The active shovel helper opens the tutorial hole for 30 seconds, updates storage to 19 and emits tutorial effects."
+    },
+    {
+      "id": "rope-cave-exit",
+      "kind": "tool-action",
+      "status": "confirmed",
+      "criticality": "blocking",
+      "targetItemId": 7762,
+      "position": [32070, 32266, 8],
+      "sourceFiles": ["data-otservbr-global/scripts/lib/register_actions.lua"],
+      "evidence": "The active rope helper teleports from rope spots and sends the tutorial success message for target 7762.",
+      "defect": "The helper tests TutorialHintsStorage<22 but does not persist stage 22, so the success message can repeat."
+    },
+    {
+      "id": "snake-head-lever",
+      "kind": "optional-world-interaction",
+      "status": "legacy-unused",
+      "criticality": "non-blocking",
+      "positions": [[32034, 32272, 8], [32034, 32274, 8]],
+      "items": [{"itemId": 5058, "name": "small snake head"}, {"itemId": 2772, "name": "lever"}],
+      "evidence": "Both visual objects remain, but neither carries the historical UID and no active handler connects them. No active quest storage or route dependency references this interaction.",
+      "decision": "Preserve map objects; do not restore unless runtime design explicitly requires the cosmetic puzzle."
+    },
+    {
+      "id": "tutorial-moveevents",
+      "kind": "movement-events",
+      "status": "confirmed",
+      "criticality": "blocking",
+      "actionIds": [50058,50059,50060,50061,50062,50063,50064,50065,50066,50067,50068,50069,50070,50071,50072,50074,50075,50076,50077,50078,50079,50080,50081,50088],
+      "sourceFiles": ["data-otservbr-global/scripts/quests/the_beginning/the_beginning_tutorial_moveevents.lua"],
+      "evidence": "Merged PR 145 registers exactly the 24 map-present AIDs. Resolver coverage is confirmed; route semantics still require E2E testing, particularly paired 50071/50074 and advanced-character traversal."
+    },
+    {
+      "id": "npc-carlos",
+      "kind": "npc",
+      "status": "conflicting",
+      "criticality": "blocking",
+      "position": [32082, 32263, 7],
+      "sourceFiles": ["data-otservbr-global/npc/carlos.lua", "data-otservbr-global/world/otservbr-npc.xml"],
+      "evidence": "NPC is spawned and defines the intended outfit, food and trade stages, but two code paths contradict that state machine."
+    },
+    {
+      "id": "carlos-outfit-keyword-bypass",
+      "kind": "npc-state-transition",
+      "status": "conflicting",
+      "criticality": "blocking-bypass",
+      "sourceFiles": ["data-otservbr-global/npc/carlos.lua"],
+      "evidence": "When storeTalkCid==1, saying 'outfit' sends the final completion dialogue and writes CarlosQuestLog=7/CarlosNpcGreetStorage=8, skipping the food and trade missions.",
+      "proposedFollowup": "Correct the keyword branch to the intended outfit tutorial step and add a state-machine regression test."
+    },
+    {
+      "id": "carlos-trade-completion",
+      "kind": "npc-shop-transition",
+      "status": "missing-script",
+      "criticality": "blocking",
+      "sourceFiles": ["data-otservbr-global/npc/carlos.lua"],
+      "evidence": "The food path sets CarlosNpcTradeStorage=1 and opens a shop, but onSellItem only prints a sale message. No active code moves CarlosNpcGreetStorage to 7 or storeTalkCid to 7 after a valid meat/ham sale; the 'ready' completion branch is therefore unreachable through the intended flow.",
+      "proposedFollowup": "On a valid quest food sale, close the trade step deterministically, update the persistent NPC state and test meat, ham, unrelated sales and repeated sales."
+    },
+    {
+      "id": "rookgaard-border-50999",
+      "kind": "terminal-movement-event",
+      "status": "missing-script",
+      "criticality": "blocking",
+      "actionId": 50999,
+      "positions": [[32073,32252,6],[32074,32252,6],[32075,32252,6],[32076,32252,6]],
+      "itemId": 7886,
+      "itemDescription": "This is the border to the village of Rookgaard.",
+      "requiredTransition": {"storage": "CarlosQuestLog", "from": 7, "to": 8},
+      "evidence": "The quest catalogue defines stage 8 as passing the bridge; Carlos only reaches stage 7; the verified border tiles carry unresolved AID 50999; no active Lua/XML/C++ handler sets the terminal state. This is the current map-side replacement candidate for the absent historical AID 50089.",
+      "proposedFollowup": "Implement a current-world border MoveEvent after verifying the intended Rookgaard town assignment and one-way behavior; preserve AID 50999."
+    },
+    {
+      "id": "skip-tutorial-command",
+      "kind": "npc-dialogue",
+      "status": "missing-script",
+      "criticality": "feature-gap",
+      "sourceFiles": ["data-otservbr-global/npc/santiago.lua", "data-otservbr-global/npc/carlos.lua", "data-otservbr-global/lib/core/quests/catalog/018_the_beginning.lua"],
+      "evidence": "Carlos and the completed quest text advertise the phrase 'skip tutorial', but Santiago contains no matching keyword or callback.",
+      "proposedFollowup": "Define the intended skip contract, rewards forfeited, destination/town and storage terminal values before implementing."
+    }
+  ],
+  "confirmedBlockingGaps": [
+    "dead-tree-branch-acquisition",
+    "zirella-cart-branch-use",
+    "carlos-trade-completion",
+    "rookgaard-border-50999"
+  ],
+  "confirmedBypassesOrStateConflicts": [
+    "zirella-door",
+    "carlos-outfit-keyword-bypass",
+    "santiago-easy-persistence",
+    "reward-tutorial-uid-mapping"
+  ],
+  "followupPrOrder": [
+    "Fix Zirella branch acquisition and cart delivery with focused tests.",
+    "Restore UID 50085 door gate and correct shovel/rope tutorial mappings.",
+    "Repair Carlos state machine and trade completion.",
+    "Implement and test AID 50999 terminal border transition.",
+    "Restore optional tutorial hint events and define skip-tutorial behavior only after the core route passes E2E."
+  ]
+}
