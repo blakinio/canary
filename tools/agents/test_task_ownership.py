@@ -67,7 +67,7 @@ class TaskOwnershipTests(unittest.TestCase):
             root = Path(tmp)
             task = write_task(root, "a", task_id="A", owned="  - src/a.cpp")
             _, claims = task_ownership.task_claims(task)
-            self.assertEqual("exclusive", claims[0].mode)
+            self.assertEqual("legacy_exclusive", claims[0].mode)
 
     def test_inactive_task_does_not_hold_lock(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -82,7 +82,7 @@ class TaskOwnershipTests(unittest.TestCase):
             right = write_task(root, "b", task_id="B", owned="  exclusive:\n    - src/a.cpp")
             self.assertEqual([], task_ownership.validate_tasks([left, right]))
 
-    def test_active_task_requires_identity_fields(self) -> None:
+    def test_active_task_requires_agent_and_branch(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             task = write_task(
@@ -95,7 +95,7 @@ class TaskOwnershipTests(unittest.TestCase):
                 branch="",
             )
             errors = task_ownership.validate_tasks([task])
-            self.assertEqual(3, len(errors))
+            self.assertEqual(2, len(errors))
 
 
 if __name__ == "__main__":
