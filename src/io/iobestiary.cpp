@@ -381,8 +381,12 @@ void IOBestiary::addMinorCharmEchoes(const std::shared_ptr<Player> &player, uint
 }
 
 void IOBestiary::addBestiaryKill(const std::shared_ptr<Player> &player, const std::shared_ptr<MonsterType> &mtype, uint32_t amount /*= 1*/) {
-	uint16_t raceid = mtype->info.raceid;
-	if (raceid == 0 || !player || !mtype) {
+	if (!player || !mtype) {
+		return;
+	}
+
+	const uint16_t raceid = mtype->info.raceid;
+	if (raceid == 0) {
 		return;
 	}
 	uint32_t curCount = player->getBestiaryKillCount(raceid);
@@ -546,7 +550,7 @@ void IOBestiary::sendBuyCharmRune(const std::shared_ptr<Player> &player, uint8_t
 		g_metrics().addCounter("balance_decrease", fee, { { "player", player->getName() }, { "context", "charm_removal" } });
 	} else if (action == 3) {
 		const auto playerLevel = player->getLevel();
-		uint64_t resetAllCharmsCost = 100000 + (playerLevel > 100 ? playerLevel * 11000 : 0);
+		uint64_t resetAllCharmsCost = 100000 + (playerLevel > 100 ? (playerLevel - 100) * 11000 : 0);
 		if (player->hasCharmExpansion()) {
 			resetAllCharmsCost = (resetAllCharmsCost * 75) / 100;
 		}
@@ -658,7 +662,7 @@ std::vector<uint16_t> IOBestiary::getBestiaryStageTwo(const std::shared_ptr<Play
 }
 
 int8_t IOBestiary::calculateDifficult(uint32_t chance) const {
-	float chanceInPercent = chance / 1000;
+	const double chanceInPercent = static_cast<double>(chance) / 1000.0;
 
 	if (chanceInPercent < 0.2) {
 		return 4;

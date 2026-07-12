@@ -196,3 +196,16 @@ Start with the project document, this task, evidence report, runtime plan, PR #1
 - Static CI/artifact: verified
 - Gameplay/runtime fixes: separate follow-up work
 - Archived at:
+
+## Work log update
+
+### 2026-07-12 22:20 Europe/Warsaw — runtime correctness batch
+
+- corrected Bestiary difficulty arithmetic to preserve fractional thresholds;
+- corrected the all-Charm reset formula to charge 11,000 gold only for levels above 100;
+- made Bestiary kill attribution null-safe before reading the monster type;
+- corrected the Charm category guard;
+- aligned recent-PvP pagination count with the 70-day row window;
+- restored boosted-boss initialization when the table has no row;
+- added four source-contract regression tests covering all six corrections;
+- no protocol, schema, map, asset or player-data migration was added in this batch.
