@@ -6,6 +6,11 @@ on:
       - validation/wheel-of-destiny-hardening
     paths:
       - .github/workflows/apply-wheel-hardening-patch.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/apply-wheel-hardening-patch.yml
 
 permissions:
   contents: write
