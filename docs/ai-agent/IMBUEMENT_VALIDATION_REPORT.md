@@ -1,6 +1,6 @@
 # Canary Imbuement Validation Report
 
-> **Status:** evidence collected; static audit implemented; runtime scenarios not yet executed  
+> **Status:** static evidence collected; deterministic audits implemented; runtime scenarios not yet executed  
 > **Observed:** 2026-07-12  
 > **Writable repository:** `blakinio/canary`  
 > **Reference:** <https://tibia.fandom.com/wiki/Imbuing>  
@@ -9,14 +9,14 @@
 
 ## 1. Purpose
 
-This report validates Canary's active Imbuing definitions and their runtime wiring against the current TibiaWiki/Fandom Imbuing reference.
+This report validates Canary's active Imbuing definitions and runtime wiring against the TibiaWiki/Fandom Imbuing reference observed on 2026-07-12.
 
 It follows `OTS_AI_WORLD_VALIDATION_PROJECT.md` and keeps the validation layers separate:
 
-1. XML structure;
+1. XML and registry structure;
 2. static references and registrations;
-3. semantic agreement between XML, C++, Lua and the reference;
-4. a machine-readable runtime scenario plan;
+3. semantic agreement between XML, C++, Lua, storage declarations and the reference;
+4. machine-readable runtime scenarios;
 5. later gameplay regression tests.
 
 This PR is read-only. It does not modify `data/XML/imbuements.xml`, active scripts, item definitions, engine behavior, map files, client assets or production configuration. Confirmed gameplay changes must be delivered in separate focused PRs.
@@ -35,11 +35,14 @@ This PR is read-only. It does not modify `data/XML/imbuements.xml`, active scrip
 - `src/lua/functions/creatures/player/player_functions.cpp`;
 - `data-otservbr-global/scripts/actions/object/imbuement_shrine.lua`;
 - `data-otservbr-global/scripts/actions/object/imbuement_scrolls.lua`;
-- `data-otservbr-global/scripts/actions/object/etcher.lua`.
+- `data-otservbr-global/scripts/actions/object/etcher.lua`;
+- `data-otservbr-global/lib/core/storages.lua`;
+- `data-otservbr-global/scripts/quests/forgotten_knowledge/creaturescripts_bosses_kill.lua`;
+- `config.lua.dist`.
 
 ### External reference
 
-The referenced TibiaWiki/Fandom page was observed on 2026-07-12. The audit records only mechanics, numeric values, item IDs/counts and source links. It does not copy spoiler prose into the repository.
+The referenced TibiaWiki/Fandom page was observed on 2026-07-12. The audit records mechanics, numeric values, item IDs/counts and source links. It does not copy spoiler prose into the repository.
 
 ## 3. Deterministic baseline
 
@@ -53,23 +56,27 @@ The referenced TibiaWiki/Fandom page was observed on 2026-07-12. The audit recor
 | Scroll item IDs registered by active Lua | 48 |
 | Duration per tier | 72,000 seconds / 20 hours |
 | Shrine clear cost | 15,000 gold |
+| Distinct nonzero XML unlock storage IDs | 7 |
+| Powerful families using nonzero XML storage | 22 |
+| Powerful families using `storage=0` | 2 |
+| Default storage filtering | disabled |
 
-The registry has one Basic, Intricate and Powerful entry for every family. No duplicate base IDs, category IDs, family/tier pairs, source item IDs within one entry, or XML scroll IDs were found in the reviewed baseline.
+The registry contains one Basic, Intricate and Powerful entry for every family. No duplicate base IDs, category IDs, family/tier pairs, source item IDs within one entry or XML scroll IDs were found.
 
 ## 4. Overall result
 
 The active Imbuing system is structurally complete and its major runtime paths are connected. Most effects, creature-product requirements, durations, clearing behavior and scroll mappings agree with the current reference.
 
-The audit found six distinct discrepancy groups:
+The audit found six material discrepancy groups:
 
 1. the application fee/success model differs from the current reference;
-2. all three Strike tiers use outdated critical values;
+2. all three Strike tiers use different critical values;
 3. Basic Punch uses a different source item and count;
 4. Intricate and Powerful Vibrancy scrolls are registered in Lua but cannot resolve through XML;
-5. Powerful Featherweight has no unlock storage;
-6. Powerful Vibrancy has no unlock storage.
+5. all seven nonzero Powerful unlock storage IDs are absent from the active storage registry, affecting 22 families;
+6. Powerful Featherweight and Vibrancy use `storage=0`, so they bypass family-specific filtering.
 
-The Vibrancy scroll gap is a directly demonstrated cross-file runtime defect. The remaining discrepancies are high-confidence reference mismatches, but their fixes must be split by concern and must not be mixed into this audit PR.
+The storage defect is configuration-dependent but broad. The default configuration disables storage filtering, which hides the defect. When filtering is enabled, the policy hides an entry whenever its configured storage reads `-1`. Undeclared IDs therefore leave the 22 affected Powerful families hidden, while the two zero-storage families remain visible without their documented unlocks.
 
 ## 5. Findings
 
@@ -78,23 +85,13 @@ The Vibrancy scroll gap is a directly demonstrated cross-file runtime defect. Th
 **Disposition:** `reference-mismatch; target-version decision required`  
 **Confidence:** high
 
-Current XML:
+| Tier | Active attempt price | Active success | Active protection | Active guaranteed total | Current reference fee |
+|---|---:|---:|---:|---:|---:|
+| Basic | 5,000 | 90% | 10,000 | 15,000 | 7,500 |
+| Intricate | 30,000 | 70% | 30,000 | 60,000 | 60,000 |
+| Powerful | 200,000 | 50% | 50,000 | 250,000 | 250,000 |
 
-| Tier | Attempt price | Success | Protection | Guaranteed total |
-|---|---:|---:|---:|---:|
-| Basic | 5,000 | 90% | 10,000 | 15,000 |
-| Intricate | 30,000 | 70% | 30,000 | 60,000 |
-| Powerful | 200,000 | 50% | 50,000 | 250,000 |
-
-Current referenced values:
-
-| Tier | Fixed fee |
-|---|---:|
-| Basic | 7,500 |
-| Intricate | 60,000 |
-| Powerful | 250,000 |
-
-The current reference describes one fixed price rather than a chance plus optional protection. Intricate and Powerful guaranteed totals happen to equal the reference fees; Basic does not.
+The current reference describes one fixed price rather than a chance plus optional protection. Intricate and Powerful guaranteed totals happen to equal the current fees; Basic does not.
 
 Do not patch this automatically. First decide whether the server intentionally targets the historical chance/protection economy or the current fixed-price economy. That decision affects protocol presentation, charging logic, tests and balance.
 
@@ -109,7 +106,7 @@ Do not patch this automatically. First decide whether the server intentionally t
 | Intricate | 10% chance, +25% damage | 5% chance, +15% damage |
 | Powerful | 10% chance, +50% damage | 5% chance, +40% damage |
 
-The XML loader stores these values directly in critical chance/damage skill fields. No reviewed runtime correction layer replaces them.
+The XML loader stores these values directly in the critical chance/damage skill fields. No reviewed runtime correction layer replaces them.
 
 A separate data-fix PR should update the effect values and descriptions together, then add focused combat tests.
 
@@ -124,9 +121,7 @@ A separate data-fix PR should update the effect values and descriptions together
 | Intricate | item `10281` ×25 + item `11489` ×20 | same |
 | Powerful | previous sources + item `40529` ×15 | same |
 
-Only Basic Punch differs. Intricate and Powerful already start with the current Basic source, which reinforces that the Basic row is stale rather than a deliberate alternate chain.
-
-A separate data-fix PR should change the Basic source and add an inventory-consumption regression test.
+Only Basic Punch differs. Intricate and Powerful already start with the current Basic source, reinforcing that the Basic row is stale rather than a deliberate alternate chain.
 
 ### IMB-004 — Vibrancy scrolls are registered but unmapped
 
@@ -138,59 +133,112 @@ The active scroll action registers both complete ranges:
 - Powerful: `51444..51467`;
 - Intricate: `51724..51747`.
 
-Therefore it registers:
+Therefore it registers Powerful Vibrancy scroll `51466` and Intricate Vibrancy scroll `51746`. `data/XML/imbuements.xml` contains no `scroll` attribute for either Vibrancy tier. `Imbuements::getImbuementByScrollID()` can only resolve IDs inserted into the XML-derived scroll map, so these two registered actions have no target imbuement.
 
-- Powerful Vibrancy scroll `51466`;
-- Intricate Vibrancy scroll `51746`.
+This is a narrow follow-up fix: add the two mappings in a dedicated PR and cover successful application, invalid target, occupied category and consumption atomicity.
 
-`data/XML/imbuements.xml` contains no `scroll` attribute for Intricate or Powerful Vibrancy. `Imbuements::getImbuementByScrollID()` can only resolve IDs inserted into the XML-derived scroll map, so these two registered item actions have no target imbuement.
+### IMB-005 — nonzero Powerful unlock storages are stale
 
-This is the smallest and least ambiguous follow-up fix: add the two mappings in a dedicated PR and cover successful application, invalid target, occupied category and consumption atomicity.
-
-### IMB-005 — Powerful Featherweight has no unlock storage
-
-**Disposition:** `reference-mismatch; configuration-dependent gameplay defect`  
+**Disposition:** `confirmed-configuration-dependent-runtime-defect`  
 **Confidence:** high
 
-The current reference requires the Dangerous Depths unlock for Powerful Featherweight. The active XML stores `storage="0"`, which the storage policy treats as not having a family-specific gate.
+The XML uses these seven nonzero storage IDs:
 
-When shrine storage filtering is enabled, the common shrine gate still applies, but this entry cannot enforce the documented Powerful Featherweight unlock independently.
+```text
+50488, 50490, 50492, 50494, 50496, 50498, 50501
+```
 
-The follow-up must first identify and verify the exact existing quest storage and completion value. Do not invent a storage ID.
+None is declared in the active `storages.lua`. They affect 22 Powerful families:
 
-### IMB-006 — Powerful Vibrancy has no unlock storage
+| XML storage | Affected families |
+|---:|---|
+| 50488 | Reap, Vampirism, Lich Shroud |
+| 50490 | Electrify, Cloud Fabric, Swiftness |
+| 50492 | Venom, Snake Skin, Chop, Slash, Bash, Punch |
+| 50494 | Scorch, Void, Dragon Hide |
+| 50496 | Frost, Quara Scale, Blockade |
+| 50498 | Demon Presence, Precision |
+| 50501 | Strike, Epiphany |
 
-**Disposition:** `reference-mismatch; configuration-dependent gameplay defect`  
-**Confidence:** high
+The active Forgotten Knowledge boss path instead uses named storages with current IDs:
 
-The current reference requires the Dream Courts unlock for Powerful Vibrancy. The active XML stores `storage="0"`.
+| Active storage | Boss/unlock group |
+|---:|---|
+| 45489 | Lady Tenebris |
+| 45490 | Lloyd |
+| 45491 | Thorn Knight |
+| 45492 | Dragonking |
+| 45493 | Frozen Horror |
+| 45494 | Time Guardian |
+| 45495 | Last Lore Keeper |
 
-As with Featherweight, the common shrine gate is not equivalent to the documented family-specific Powerful unlock. The exact active quest storage must be traced and verified before changing XML.
+The family grouping creates a strong one-to-one semantic correspondence between each stale XML group and these current boss storages. A data-fix PR should still verify the mapping explicitly and add before/after unlock tests rather than replacing IDs blindly.
+
+`toggleImbuementShrineStorage` is disabled by default. With filtering disabled, the stale IDs are dormant. With filtering enabled, `ImbuementStoragePolicy::shouldHide()` reads each stale ID and hides the entry while it remains `-1`; active boss kills write different storage IDs, so the documented unlock cannot reveal those 22 entries.
+
+### IMB-006 — Powerful Featherweight and Vibrancy bypass unlock filtering
+
+**Disposition:** `confirmed-reference-mismatch; exact completion condition unresolved`  
+**Confidence:** high for bypass, medium for the final replacement storage/value
+
+Powerful Featherweight and Powerful Vibrancy use `storage="0"`. The storage policy explicitly does not hide zero-storage entries. They therefore remain visible when family-specific filtering is enabled, despite the current reference requiring:
+
+- Dangerous Depths for Powerful Featherweight;
+- Dream Courts for Powerful Vibrancy.
+
+Dangerous Depths has active storage declarations beginning at questline `45851`, but the exact completion condition that should unlock Featherweight has not yet been proven. The same evidence step remains for Dream Courts/Vibrancy. Do not invent either replacement ID or value.
 
 ## 6. Confirmed conforming behavior
 
-The static audit confirms the following current behavior:
+The static audit confirms:
 
-- 20-hour duration is configured for all three tiers;
-- clearing one slot costs 15,000 gold for all tiers;
-- every family has Basic, Intricate and Powerful definitions;
+- 20-hour duration for all three tiers;
+- 15,000-gold clearing cost for every tier;
+- Basic, Intricate and Powerful definitions for all 24 families;
 - all non-Strike effect values match the current reference baseline used by the scanner;
 - all material chains except Basic Punch match that baseline;
 - all scroll mappings except Vibrancy match the active contiguous Lua ranges;
-- the shrine action has a common Forgotten Knowledge gate when storage filtering is enabled;
-- the merged storage-policy correction from PR #86 reads the configured storage ID rather than a boolean expression;
-- item filtering uses item-declared categories/tiers and rejects a second imbuement from an already occupied category;
-- Etcher item `51443` calls `clearAllImbuements`, is consumed only after a successful clear, and reports failure otherwise;
+- the shrine has a common access gate when storage filtering is enabled;
+- PR #86 corrected the policy to read the configured storage ID rather than a boolean expression;
+- item filtering uses item-declared categories/tiers and rejects a second imbuement from an occupied category;
+- Etcher item `51443` calls `clearAllImbuements`, is consumed only after a successful clear and reports failure otherwise;
 - combat and non-combat duration policies are implemented separately;
 - the decay scheduler persists remaining seconds on the item and removes expired stats.
 
-These are static and semantic confirmations. They do not replace a real server/client gameplay run.
+The policy implementation is correct for valid storage IDs; the current defect is the XML-to-storage wiring.
 
-## 7. Runtime test plan
+## 7. Deterministic tools
+
+### Registry and runtime audit
+
+```text
+tools/ai-agent/imbuement_validation.py
+```
+
+Checks XML structure, effects, materials, costs, duration, scroll registration and required runtime paths.
+
+### Storage wiring audit
+
+```text
+tools/ai-agent/imbuement_storage_validation.py
+```
+
+Checks:
+
+- every nonzero XML storage against active Lua declarations;
+- affected Powerful families;
+- zero-storage bypasses;
+- default filtering configuration;
+- current Forgotten Knowledge named-storage wiring.
+
+The focused workflow publishes both JSON reports as artifacts.
+
+## 8. Runtime test plan
 
 `docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json` defines bounded scenarios for:
 
-- shrine and storage access;
+- shrine and common access;
+- Powerful unlock storage mapping;
 - account/tier rules;
 - charging and resource atomicity;
 - Strike effects;
@@ -204,41 +252,50 @@ These are static and semantic confirmations. They do not replace a real server/c
 
 The most important invariant is atomicity: a rejected or failed application must not consume gold, source items or scrolls, and a successful application must consume each required resource exactly once.
 
-## 8. Limitations
+## 9. Limitations
 
 This audit does **not** yet prove:
 
-- that a real Canary process loads the registry without runtime warnings in the user's deployment configuration;
+- real Canary startup without imbuement warnings in the user's deployment configuration;
 - complete current-reference parity for every individual imbuable equipment item;
 - exact protocol/UI presentation for every supported client profile;
-- exact quest completion storage values for Featherweight and Vibrancy;
+- the exact Dangerous Depths and Dream Courts completion storage/value for Featherweight and Vibrancy;
 - end-to-end combat math under live gameplay;
 - save/load persistence through a real database.
 
-No server, database or game client was available in the GitHub connector environment. These gaps are explicitly represented in the runtime plan rather than marked as passed.
+No server, database or game client was available in the connector environment. These gaps are represented in the runtime plan rather than marked as passed.
 
-## 9. Recommended delivery order
+## 10. Recommended delivery order
 
-1. **Fix Vibrancy scroll mappings** in a narrow XML + focused-test PR.
-2. **Confirm target Tibia economy/version** before changing the fee/success model.
-3. **Fix Strike and Basic Punch** in a separate data-fidelity PR with combat/inventory tests.
-4. **Trace exact existing storages** for Dangerous Depths and Dream Courts, then gate Powerful Featherweight/Vibrancy in a focused PR.
+1. **Repair Powerful unlock storage wiring** in a focused data + regression-test PR after confirming the seven current Forgotten Knowledge mappings and the two external quest completion conditions.
+2. **Fix Vibrancy scroll mappings** in a narrow XML + focused-test PR.
+3. **Confirm the target Tibia economy/version** before changing the fee/success model.
+4. **Fix Strike and Basic Punch** in a separate data-fidelity PR with combat/inventory tests.
 5. **Execute the runtime plan** in controlled Canary staging and retain the report as a CI artifact.
 6. **Add equipment eligibility parity** as a separate audit using `items.xml` and item metadata.
 
-## 10. Reproduction
+## 11. Reproduction
 
 ```bash
 python -m py_compile \
   tools/ai-agent/imbuement_validation.py \
-  tools/ai-agent/test_imbuement_validation.py
+  tools/ai-agent/imbuement_storage_validation.py \
+  tools/ai-agent/test_imbuement_validation.py \
+  tools/ai-agent/test_imbuement_storage_validation.py
 
-python -m unittest tools/ai-agent/test_imbuement_validation.py -v
+python -m unittest discover \
+  -s tools/ai-agent \
+  -p 'test_imbuement*_validation.py' \
+  -v
 
 python tools/ai-agent/imbuement_validation.py \
   --repository-root . \
   --output artifacts/IMBUEMENT_VALIDATION.json \
   --runtime-plan artifacts/IMBUEMENT_RUNTIME_TEST_PLAN.json
+
+python tools/ai-agent/imbuement_storage_validation.py \
+  --repository-root . \
+  --output artifacts/IMBUEMENT_STORAGE_VALIDATION.json
 ```
 
-Known reference discrepancies are report data, so the default invocation returns success after a valid audit. CI can use `--fail-on error` to fail on broken structure or runtime wiring while preserving reviewed reference mismatches as evidence.
+Known reference and storage discrepancies are audit evidence, so default report generation returns success. Strict modes are available for targeted CI or follow-up validation after the defects are repaired.
