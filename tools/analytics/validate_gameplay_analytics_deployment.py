@@ -49,9 +49,15 @@ def validate_install_script(text: str) -> None:
     require(text.startswith("#!/usr/bin/env bash"), "install script must be a bash script")
     require("set -euo pipefail" in text, "install script must fail fast")
     require(
-        'if [[ "${DB_PASSWORD}" == "CHANGE_ME" ]]' in text,
-        "install script must refuse to run with the placeholder password",
+        '[[ -z "${DB_PASSWORD}" || "${DB_PASSWORD}" == "CHANGE_ME" ]]' in text,
+        "install script must reject an empty or placeholder database password",
     )
+    require(
+        '[[ -z "${CANARY_SERVER_VERSION}" || "${CANARY_SERVER_VERSION}" == "CHANGE_ME" ]]' in text,
+        "install script must reject an empty or placeholder server version",
+    )
+    require("DB_PORT must be an integer between 1 and 65535" in text, "install script must validate the database port")
+    require("DB_USER and DB_NAME must be non-empty" in text, "install script must validate database identifiers")
     require("schema/gameplay_analytics.sql" in text, "install script must apply the baseline schema file")
     require("migrate_gameplay_analytics.sh" in text, "install script must run the migration runner")
     require(
