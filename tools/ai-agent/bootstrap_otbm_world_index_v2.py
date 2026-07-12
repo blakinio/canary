@@ -5,6 +5,7 @@ import base64
 import zlib
 from pathlib import Path
 
+# One-shot branch bootstrap; the workflow removes this file after validation.
 FILES = (
     "otbm_item_audit_scan.cpp",
     "otbm_world_index.py",
