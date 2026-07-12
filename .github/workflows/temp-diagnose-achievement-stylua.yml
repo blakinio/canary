@@ -75,13 +75,15 @@ jobs:
 
           rm .github/workflows/temp-diagnose-achievement-stylua.yml
 
-      - name: Verify StyLua and focused Lua test
-        shell: bash
-        run: |
-          curl -fsSL https://github.com/JohnnyMorganz/StyLua/releases/latest/download/stylua-linux-x86_64.zip -o /tmp/stylua.zip
-          unzip -q /tmp/stylua.zip -d /tmp/stylua
-          /tmp/stylua/stylua data/scripts/lib/register_achievements.lua tests/lua/test_achievement_helpers.lua
-          luajit tests/lua/test_achievement_helpers.lua
+      - name: Format changed Lua files
+        uses: JohnnyMorganz/stylua-action@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: latest
+          args: data/scripts/lib/register_achievements.lua tests/lua/test_achievement_helpers.lua
+
+      - name: Run focused Lua test
+        run: luajit tests/lua/test_achievement_helpers.lua
 
       - name: Commit bounded result
         shell: bash
