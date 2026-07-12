@@ -1,0 +1,106 @@
+---
+name: Content Deployment Pipeline
+
+on:
+  push:
+    branches:
+      - "ai/**"
+    paths:
+      - "tools/deploy/**"
+      - "docs/systems/ai-content-deployment.md"
+      - ".github/workflows/deploy-pipeline.yml"
+  pull_request:
+    paths:
+      - "tools/deploy/**"
+      - "docs/systems/ai-content-deployment.md"
+      - ".github/workflows/deploy-pipeline.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-deploy-engine:
+    name: Validate atomic deployment engine
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tools/deploy -p "test_*.py" -v
+
+      - name: End-to-end dry-run and real deploy smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          work=$(mktemp -d)
+          mkdir -p "$work/deploy-root" "$work/content-v1/npc"
+          echo "return npc" > "$work/content-v1/npc/keeper.lua"
+
+          echo "=== dry run must not touch the filesystem ==="
+          before=$(find "$work/deploy-root" | sort)
+          python3 tools/deploy/run_deployment.py \
+            --source "$work/content-v1" \
+            --releases-root "$work/deploy-root" \
+            --release-id rel-1 \
+            --dry-run
+          after=$(find "$work/deploy-root" | sort)
+          if [ "$before" != "$after" ]; then
+            echo "::error::dry-run modified the releases root"
+            exit 1
+          fi
+
+          echo "=== real deploy ==="
+          python3 tools/deploy/run_deployment.py \
+            --source "$work/content-v1" \
+            --releases-root "$work/deploy-root" \
+            --release-id rel-1 \
+            --source-description "ci smoke test"
+
+          if [ "$(readlink "$work/deploy-root/active")" != "releases/rel-1" ]; then
+            echo "::error::active symlink does not point at rel-1"
+            exit 1
+          fi
+          if [ ! -f "$work/deploy-root/manifests/rel-1.json" ]; then
+            echo "::error::manifest was not written"
+            exit 1
+          fi
+          python3 -m json.tool "$work/deploy-root/manifests/rel-1.json" > /dev/null
+
+          echo "=== production deploy without confirmation must be refused ==="
+          mkdir -p "$work/content-v2"
+          echo "v2" > "$work/content-v2/file.lua"
+          if python3 tools/deploy/run_deployment.py \
+              --source "$work/content-v2" \
+              --releases-root "$work/deploy-root" \
+              --release-id rel-2 \
+              --environment production; then
+            echo "::error::production deploy without --confirm-production must be refused"
+            exit 1
+          fi
+          if [ "$(readlink "$work/deploy-root/active")" != "releases/rel-1" ]; then
+            echo "::error::refused production deploy must not have touched active"
+            exit 1
+          fi
+
+          echo "=== failed health check must roll back automatically ==="
+          echo "never-alive" > "$work/deploy-root/does-not-exist.pid"
+          rm -f "$work/deploy-root/does-not-exist.pid"
+          python3 tools/deploy/run_deployment.py \
+            --source "$work/content-v2" \
+            --releases-root "$work/deploy-root" \
+            --release-id rel-2 \
+            --pid-file "$work/deploy-root/does-not-exist.pid" || true
+          if [ "$(readlink "$work/deploy-root/active")" != "releases/rel-1" ]; then
+            echo "::error::a failed health check must have rolled back to rel-1"
+            exit 1
+          fi
+
+          rm -rf "$work"
