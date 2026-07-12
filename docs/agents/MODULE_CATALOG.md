@@ -24,6 +24,7 @@ Update this file in the same PR that adds a reusable module/service/manager/pars
 
 | Module/tool | Status | Purpose/public surface | Source/tests/docs | Reuse notes |
 |---|---|---|---|---|
+| OTBM HD sprite pipeline | active (#154; replaces #147) | Export bounded-region sprite sets, prepare/normalize external AI output, validate hashes/alpha/geometry, and render 2x override packs with deterministic fallback | `tools/ai-agent/otbm_hd.py`, `otbm_hd_tool.py`, focused tests, `docs/ai-agent/OTBM_HD_PIPELINE.md` | Renderer-only artifact workflow; does not modify OTBM, client assets, CWM, or OTClient. Use nearest mode as a geometry baseline, not as AI-quality evidence. |
 | OTBM script-resolution audit | merged (#104) | Read-only mapping of OTBM AID/UID placements to active Lua/XML handlers | `tools/ai-agent/otbm_script_resolution*`, tests, `docs/ai-agent/OTBM_SCRIPT_RESOLUTION*` | Reuse for map mechanic audits; dynamic registrations remain explicit, never guessed. |
 | Promotion overlay materializer | merged (#125) | Atomic, hash-verified materialization of reviewed AI-content overlays | `tools/ai-agent/materialize_promotion_overlay.py` and tests | Feeds deployment pipeline; does not deploy or approve production. |
 | Canary staging/deployment pipeline | merged (#118) | Trusted-base assembly, real Canary smoke, atomic switch/rollback, manifest | `tools/deploy/**`, workflows, `docs/systems/ai-content-deployment.md` | Canonical deployment path; extend rather than duplicate. |

@@ -4,6 +4,7 @@ Curated behavior/architecture log for discovery; not a replacement for Git histo
 
 ## Unreleased
 
+- PR #154 (replacement for auto-closed #147) adds a deterministic OTBM HD-sprite artifact pipeline: bounded-region sprite export with provenance, padded nearest/external upscale backends, source-alpha restoration, hash/geometry validation, 2x renderer overrides with original-sprite fallback, and visual comparison reports without modifying OTBM or client assets.
 - The Beginning Collecting Wood restoration in PR #149 adds exact-position Actions for the five tutorial dead trees and Zirella's cart, creating branch `7772` on the ground and advancing both Zirella storages from stage 6 to 7 after one authentic branch delivery without changing the OTBM.
 - The Beginning tutorial restoration in PR #145 adds current-API MoveEvents for the 24 map AIDs classified by PR #144, restoring one-shot guidance, map marks, effects and Santiago/Zirella/cave progression gates without changing the OTBM.
 - Gameplay Analytics dry-run audit merged in PR #140: a no-server/no-database workflow now tests lifecycle boundaries and maintenance configuration; it fixed false short-session persistence counters, undercounted non-combat discards, and overflowing `LEVEL_BRACKETS` input.
