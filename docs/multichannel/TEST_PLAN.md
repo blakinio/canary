@@ -180,6 +180,50 @@ accounts, two real houses on channel 1):
   own, so the `channel_id` scoping is inert until that separate,
   documented limitation is lifted.
 
+### Phase 4: cluster_sessions DB defense-in-depth
+
+`ClusterRuntime`'s new `IClusterSessionRepository`/`DbClusterSessionRepository`
+wiring got two levels of real verification:
+
+- **13 gtest cases** (up from 7) against `FakeClusterSessionRepository`
+  (`tests/shared/game/multichannel/fake_cluster_session_repository.hpp`, an
+  in-memory model of the real table's `PRIMARY KEY(account_id)` +
+  `UNIQUE(player_id)` constraints): acquire writes a row, clean logout
+  deletes it, a healthy renew updates its heartbeat, an outage-forced
+  disconnect deletes it, and - the interesting one - a simulated
+  repository write failure on acquire rolls back the Redis lease it had
+  just taken (verified a subsequent acquire then succeeds cleanly). All
+  13/13 passing.
+- **Real MariaDB 10.11**, the exact SQL the code issues: a fresh acquire
+  produces one row; a second acquire for the same account (relogin/switch)
+  moves that same row in place rather than duplicating it; heartbeat and
+  release both behave as expected. **A real bug found and fixed here**: a
+  naive single `INSERT ... ON DUPLICATE KEY UPDATE` silently corrupted a
+  row when an INSERT collided on `cluster_sessions_player_unique` (a
+  *different* account's existing row) rather than the `account_id` primary
+  key - MySQL updated that other row's session/channel columns via
+  `VALUES()` but left its `account_id` untouched, since `account_id` was
+  never itself in the `UPDATE` clause. The result was one row whose
+  `account_id` belonged to the old holder but whose `session_id`/
+  `channel_id`/etc. described the new one - an internally inconsistent
+  record, not a clean rejection. This exact scenario is realistically
+  unreachable through the real call path (`player_id` is permanently tied
+  to one `account_id` in this engine, and `ProtocolGame::login` only ever
+  calls this with a `(accountId, playerId)` pair `IOLoginData` already
+  verified belong together) - but it was worth fixing anyway, since it's
+  precisely the kind of anomaly this defense-in-depth layer exists to
+  catch cleanly rather than silently mishandle. Fixed with an explicit
+  `DELETE FROM cluster_sessions WHERE player_id = ? AND account_id != ?`
+  before the upsert (mirroring the same "explicit multi-step over one
+  clever multi-key statement" choice already made for
+  `account_house_ownership` in Phase 3); re-verified against the real
+  database that both the normal re-acquire case and the anomaly case now
+  behave correctly.
+- `db_cluster_session_repository.cpp` itself is not standalone-compilable
+  (transitively pulls in `database/database.hpp`'s full dependency chain,
+  same wall as `channel_switch_audit_store.cpp`/`house.cpp`) - reviewed by
+  hand, verified at the SQL level for real as above.
+
 ## 15.1b Redis Lua CAS script validation — ✅ run against a real `redis-server`
 
 The acquire/renew/release Lua scripts in

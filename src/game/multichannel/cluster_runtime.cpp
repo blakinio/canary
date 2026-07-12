@@ -18,10 +18,11 @@ ClusterRuntime &ClusterRuntime::getInstance() {
 	return instance;
 }
 
-void ClusterRuntime::configure(std::shared_ptr<IRedisClient> client, int32_t newChannelId, std::string newInstanceId, int64_t newLeaseTtlMs, int64_t newHeartbeatIntervalMs, int64_t newFailureGracePeriodMs) {
+void ClusterRuntime::configure(std::shared_ptr<IRedisClient> client, int32_t newChannelId, std::string newInstanceId, int64_t newLeaseTtlMs, int64_t newHeartbeatIntervalMs, int64_t newFailureGracePeriodMs, std::shared_ptr<IClusterSessionRepository> newSessionRepository) {
 	std::lock_guard lock(mutex);
 	redisClient = std::move(client);
 	sessionManager = std::make_unique<ClusterSessionManager>(*redisClient);
+	sessionRepository = std::move(newSessionRepository);
 	channelId = newChannelId;
 	instanceId = std::move(newInstanceId);
 	leaseTtlMs = newLeaseTtlMs;
@@ -35,6 +36,7 @@ void ClusterRuntime::resetForTesting() {
 	std::lock_guard lock(mutex);
 	redisClient.reset();
 	sessionManager.reset();
+	sessionRepository.reset();
 	tracked.clear();
 	enabled = false;
 }
@@ -52,7 +54,7 @@ bool ClusterRuntime::isAcceptingNewSessions() const {
 	return redisClient->isHealthy();
 }
 
-ClusterSessionHandle ClusterRuntime::acquireForLogin(int32_t accountId, int32_t forChannelId, int64_t nowMs) {
+ClusterSessionHandle ClusterRuntime::acquireForLogin(int32_t accountId, int32_t playerId, int32_t forChannelId, int64_t nowMs) {
 	std::lock_guard lock(mutex);
 	if (!enabled) {
 		ClusterSessionHandle handle;
@@ -74,9 +76,24 @@ ClusterSessionHandle ClusterRuntime::acquireForLogin(int32_t accountId, int32_t 
 	}
 
 	auto handle = sessionManager->acquire(accountId, forChannelId, instanceId, leaseTtlMs, nowMs);
-	if (handle.acquired) {
-		tracked[accountId] = TrackedSession { handle.sessionId, handle.fencingToken, nowMs + leaseTtlMs };
+	if (!handle.acquired) {
+		return handle;
 	}
+
+	const int64_t expiresAtMs = nowMs + leaseTtlMs;
+	if (sessionRepository && !sessionRepository->recordAcquire(accountId, playerId, forChannelId, instanceId, handle.sessionId, handle.fencingToken, nowMs, expiresAtMs)) {
+		// The defense-in-depth layer could not persist this lease - do not
+		// hand out a session the database side disputes. Release the Redis
+		// lease we just took so a later attempt (by this process or another)
+		// is not blocked by a lease nothing actually recorded.
+		std::ignore = sessionManager->release(accountId, handle.sessionId);
+		ClusterSessionHandle failed;
+		failed.acquired = false;
+		failed.status = ClusterSessionStatus::Offline;
+		return failed;
+	}
+
+	tracked[accountId] = TrackedSession { handle.sessionId, handle.fencingToken, expiresAtMs };
 	return handle;
 }
 
@@ -95,6 +112,9 @@ void ClusterRuntime::releaseForLogout(int32_t accountId, int64_t /*nowMs*/) {
 	// TTL in Redis is what protects against a stale entry outliving it -
 	// see redis_scripts/acquire.lua's PEXPIRE belt-and-suspenders.
 	std::ignore = sessionManager->release(accountId, it->second.sessionId);
+	if (sessionRepository) {
+		std::ignore = sessionRepository->recordRelease(accountId, it->second.sessionId);
+	}
 	tracked.erase(it);
 }
 
@@ -112,6 +132,13 @@ std::vector<int32_t> ClusterRuntime::renewAllAndCollectExpired(int64_t nowMs) {
 		const bool renewed = sessionManager->renew(accountId, session.sessionId, leaseTtlMs, nowMs);
 		if (renewed) {
 			session.expiresAtMs = nowMs + leaseTtlMs;
+			if (sessionRepository) {
+				// Best-effort, matching the mirror-not-gate posture used
+				// elsewhere: a transient DB hiccup during a routine
+				// heartbeat must not force-disconnect a player whose Redis
+				// lease (the fast path, already confirmed above) is fine.
+				std::ignore = sessionRepository->recordHeartbeat(accountId, session.sessionId, session.fencingToken, nowMs, session.expiresAtMs);
+			}
 			++it;
 			continue;
 		}
@@ -137,6 +164,17 @@ std::vector<int32_t> ClusterRuntime::renewAllAndCollectExpired(int64_t nowMs) {
 		const bool pastGracePeriod = (nowMs - lastRenewedAtMs) >= failureGracePeriodMs;
 		const bool lastChanceBeforeExpiry = nowMs >= (session.expiresAtMs - heartbeatIntervalMs);
 		if (pastGracePeriod || lastChanceBeforeExpiry) {
+			// This process is relinquishing the account before anyone else
+			// can legally take over - unlike the supersession branch above,
+			// nothing has overwritten the DB row yet, so it must be cleared
+			// here (a database write, a separate failure domain from the
+			// Redis outage this branch exists for). Leaving a stale ONLINE
+			// row behind would eventually block every future login for this
+			// account once Redis recovers - worse than the row simply not
+			// existing.
+			if (sessionRepository) {
+				std::ignore = sessionRepository->recordRelease(accountId, session.sessionId);
+			}
 			expired.push_back(accountId);
 			it = tracked.erase(it);
 			continue;

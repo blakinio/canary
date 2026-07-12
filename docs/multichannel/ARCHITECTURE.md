@@ -322,14 +322,37 @@ implements the lease/fencing state machine from spec §5.1:
   (no grace period) or a Redis outage whose grace period or lease margin
   has run out (see §10).
 
-**📐 Known gap, stated honestly:** the `cluster_sessions` DB table (the
-defense-in-depth layer for a *total* Redis loss) is not yet dual-written by
-these call sites — today it only exists as schema. Redis is the sole
-enforcement mechanism this session actually wires. If Redis is wiped,
-misconfigured, or bypassed entirely, the DB constraint would have caught a
-second concurrent session; without the dual-write, it currently cannot.
-Also not yet wired: the admin tool to inspect/clear orphaned `DIRTY`
-sessions (§5.3, §12.2).
+**✅ `cluster_sessions` DB dual-write (Phase 4):** `IClusterSessionRepository`
+(`src/game/multichannel/cluster_session_repository.hpp`) is the abstraction,
+`DbClusterSessionRepository` the real implementation, wired into
+`ClusterRuntime` at the exact same three events as the Redis side:
+
+- **Acquire**: `INSERT ... ON DUPLICATE KEY UPDATE`, matching the "latest
+  acquire wins" semantics `account_house_ownership` already uses (§7) - a
+  relogin or channel switch moves the account's one row rather than
+  leaving two. If the DB write fails, the just-acquired Redis lease is
+  released and the login is rejected — the defense-in-depth layer failing
+  to persist is treated the same as Redis refusing the lease outright.
+  Verified against a real MariaDB: a naive single-statement upsert
+  silently corrupted a row when a (realistically unreachable, since
+  player_id→account_id never changes in this engine) `player_id` collision
+  hit a *different* account's row than the one colliding on the
+  `account_id` primary key — `ON DUPLICATE KEY UPDATE` updated that other
+  row's columns without updating its `account_id`, producing an internally
+  inconsistent record instead of an error. Fixed with an explicit
+  `DELETE ... WHERE player_id = ? AND account_id != ?` before the upsert,
+  re-verified clean afterward.
+- **Heartbeat**: a plain `UPDATE` alongside every successful Redis renew -
+  best-effort (a transient DB hiccup during a routine heartbeat must not
+  force-disconnect a player whose Redis lease, the fast path, is fine).
+- **Release**: a plain `DELETE`, both on a clean logout and when
+  `ClusterRuntime` force-expires an account after a Redis outage (the
+  legitimate-supersession case needs no separate delete here - the new
+  holder's own acquire already overwrote the row).
+
+Not yet wired: the admin tool to inspect/clear orphaned `DIRTY` sessions
+(§5.3, §12.2) - this dual-write only ever deletes or upserts a row as
+`ONLINE`, it never writes `DIRTY` itself.
 
 ## 6. Channel switch (✅ policy engine and position resolver, 📐 switch command)
 
