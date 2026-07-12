@@ -1,0 +1,62 @@
+name: Apply Wheel 15.25 balance patch
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/apply-wheel-1525.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply-patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out staging branch
+        uses: actions/checkout@v4
+        with:
+          ref: validation/wheel-1525-stage
+          fetch-depth: 0
+
+      - name: Reconstruct and verify patch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          : > /tmp/wheel-1525.patch.gz.b64
+          for blob in \
+            3758bcd768d1fe1f6cd0a80ef53340e57f10c3e9 \
+            ffe1488991c8b787d02aecec5b5fc4d54e6f8802 \
+            da896cb234feb27e29d2e9049ed3bb42fb1c8732 \
+            3b50349605f38e46ee09d0b31b4d61fb422e4b82 \
+            75a10f92c5a6139c7e26f8155c351947a0b4a829 \
+            3c6347ba6423f199379319bbb2d503843c76f1b9 \
+            e97f392dfc536b9c299e6ef39dce01b00d12dccd \
+            fb4ab5609a0ae71abb8bde6d973fb3776dda939b
+          do
+            gh api "repos/${GITHUB_REPOSITORY}/git/blobs/${blob}" --jq .content \
+              | tr -d '\n' \
+              | base64 --decode \
+              | tr -d '\n' >> /tmp/wheel-1525.patch.gz.b64
+          done
+          base64 --decode /tmp/wheel-1525.patch.gz.b64 | gzip --decompress > /tmp/wheel-1525.patch
+          echo "00dfb5fc54d537d2678ffb9898d4a313829ba7222d22b55cdcc14e0fb8d195ab  /tmp/wheel-1525.patch" | sha256sum --check --strict
+          git apply --check /tmp/wheel-1525.patch
+
+      - name: Apply patch and remove staging workflow
+        run: |
+          set -euo pipefail
+          git apply /tmp/wheel-1525.patch
+          rm -f .github/workflows/apply-wheel-1525.yml
+          git diff --check
+
+      - name: Commit current Wheel values
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(wheel): align supported mechanics with client 15.25"
+          git push origin HEAD:validation/wheel-1525-stage
