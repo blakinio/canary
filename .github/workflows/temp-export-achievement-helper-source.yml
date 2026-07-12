@@ -2,11 +2,10 @@
 name: Temporary Achievement Helper Source Export
 
 on:
-  push:
-    branches:
-      - fix/achievement-helper-enumeration
+  pull_request:
     paths:
       - ".github/workflows/temp-export-achievement-helper-source.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
