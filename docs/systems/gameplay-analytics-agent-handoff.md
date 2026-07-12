@@ -12,8 +12,10 @@ post-audit state of the module.
 
 ### Repository implementation
 
-The required repository-side implementation is complete after the final
-hardening change containing this document.
+The required repository-side implementation is complete on `main`. Final
+hardening was merged in PR #122 as commit
+`97954d5d468190aeb46f223e87309396e2bfc3fa` after all dedicated Analytics,
+hunt-area, Lua, Fast Checks, autofix and Linux CI completed successfully.
 
 Implemented and tested:
 
@@ -223,7 +225,7 @@ is implemented.
 
 ## 7. Final hardening completed
 
-The final repository hardening adds these protections:
+PR #122 added these protections:
 
 1. `install_gameplay_analytics.sh` rejects empty, whitespace-only and
    `CHANGE_ME` database passwords before SQL access.
@@ -314,6 +316,7 @@ Major merged PRs:
 | #109 | First comprehensive agent handoff. |
 | #114 | Correct solo/party aggregates, shared EXP and rolling rebuilds. |
 | #115 | Remaining implementation execution brief. |
+| #122 | Final deployment and hunt-area hardening; implementation plan closed. |
 
 Closed/superseded PRs and their branches are historical references only. Do not
 merge them or rebuild current work on top of them.
