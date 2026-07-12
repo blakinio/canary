@@ -1,0 +1,30 @@
+name: Export Wheel validation source
+
+on:
+  push:
+    branches:
+      - validation/wheel-of-destiny
+    paths:
+      - .github/workflows/export-wheel-validation-source.yml
+
+permissions:
+  contents: read
+
+jobs:
+  export-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out validation branch
+        uses: actions/checkout@v4
+
+      - name: Create source archive
+        run: |
+          git archive --format=zip --output=wheel-validation-source.zip HEAD
+
+      - name: Upload source archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-validation-source
+          path: wheel-validation-source.zip
+          if-no-files-found: error
+          retention-days: 1
