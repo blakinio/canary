@@ -475,7 +475,7 @@ Combat Mastery still follows its old behavior; Beam Mastery does not implement a
 - Recorded missing current spells, stances, and major passive/Revelation reworks instead of mapping them onto obsolete mechanics.
 - Clean PR #220 completed the repository CI build matrix, dedicated Wheel validation, and AI codebase checks successfully.
 - Added centralized balance constants and focused regression assertions.
-- Status: local third patch prepared; formatting/build/CI evidence pending.
+- Status: merged to `main` via PR #220; remaining Tibia 15.25 gaps are explicitly tracked below.
 
 ---
 
