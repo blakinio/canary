@@ -1,92 +1,109 @@
-# InstanceManager foundation
+# InstanceManager architecture
 
-## Scope of this PR
+## Scope and boundaries
 
-Types, lifecycle, and registry only - `src/game/instance/instance_id.hpp` and
-`src/game/instance/instance_manager.{hpp,cpp}` - with no connection to
-`Game`, the real map, or any scheduler. Per the workstream's own phasing
-rule, full integration starts only after the first dependency-migration PR
-(`docs/architecture/dependency-migration.md`) has merged; this PR is the
-"design, data types, and tests of an independent component" step that's
-allowed to happen in parallel with that.
+The instance subsystem builds isolated gameplay areas inside one Canary world.
+It does not implement multiworld or multi-channel routing. It uses pre-carved,
+physically separated regions in the existing map rather than copying the full
+map for every instance.
 
-No multiworld and no channel id anywhere in this module. Multichannel code
-(`src/game/multichannel/`) is a separate, unrelated concept and this module
-doesn't reference it.
+`InstanceManager` and `InstanceRegionPool` are plain constructor-owned
+components, not new `g_*()` singletons. Their eventual owner should be an
+explicit runtime component such as `Game`.
 
-## What's here
+## Lifecycle foundation
 
-- **`InstanceId`** / **`InstanceSlotId`**: strong-typed ids (`enum class ... : uint32_t`),
-  so an instance id, a slot index, and an arbitrary integer can't be
-  accidentally interchanged at a call site.
-- **`InstanceState`**: `Creating -> Active -> Closing -> Destroyed`. Nothing
-  skips `Closing` - even a timeout-driven close runs the same cleanup path
-  as an explicit one.
-- **`InstanceDefinition`**: a name and an optional timeout (`0` = none).
-- **`InstanceManager`**: owns a fixed-size pool of slots and every
-  instance's lifecycle:
-  - `createInstance` reserves a free slot or fails cleanly once the pool is
-    exhausted - the slot pool size *is* the instance count limit, not a
-    second number that could disagree with it.
-  - `activate` is the only `Creating -> Active` transition.
-  - `close` is idempotent: concurrent or repeated calls for the same
-    instance run the cleanup callback exactly once and are otherwise a
-    no-op. The callback runs outside the internal lock so it can safely take
-    real time (or, once this is wired into the scheduler, call back into
-    other systems) without risking a deadlock.
-  - `closeExpiredInstances(now)` sweeps and closes anything past its
-    timeout, through the same idempotent `close()` - "controlled timeout"
-    here means "swept on demand," not a background thread; owning the sweep
-    schedule is the scheduler-integration PR's job (see below).
-  - Nothing is ever deleted out from under a slot mid-use: a slot is only
-    released after cleanup has run and the instance is `Destroyed`.
+`InstanceManager` provides:
 
-`InstanceManager` is a plain, constructor-instantiated class, deliberately
-**not** a new `g_x()` singleton - this workstream's whole point is reducing
-that pattern, so introducing a fresh one here (only to migrate it away
-later) would be working against the rest of the plan. How it ultimately
-gets owned (a `Game` member, most likely, mirroring how `Map map;` is
-already just a plain member of `Game` rather than its own singleton) is for
-the `Game` integration PR to decide.
+- strong `InstanceId` and `InstanceSlotId` types;
+- `Creating -> Active -> Closing -> Destroyed` lifecycle;
+- optional timeout and on-demand expiry sweeping;
+- fixed-capacity slot reservation;
+- idempotent close;
+- exactly-once cleanup callback outside the manager lock;
+- concurrent create/close safety.
 
-## What a "slot" is, deliberately not decided here
+A slot is released only after cleanup completes and the record reaches
+`Destroyed`.
 
-A slot is an opaque, reservable resource identified by an index. This PR
-does not say what index 3 *means* - that's intentional. The target model
-(see the parent task) is a pool of pre-carved, physically separate map
-regions, each with its own offset, handed out one per instance; **not**
-copying the whole map per instance. Making `InstanceSlotId` mean "map region
-N" is exactly what the next PR in the list below does, once there's a real
-map-region pool to back it with.
+## Map region pool
 
-## Planned follow-up PRs, in order
+`InstanceRegionPool` gives each `InstanceSlotId` concrete map meaning without
+owning or copying tiles.
 
-1. **Map region pool**: a fixed set of pre-carved, physically separate map
-   areas, each with an offset/region. `InstanceSlotId` starts meaning
-   "region N" instead of an opaque index once this lands.
-2. **Creature/spawn ownership**: creatures, spawns, and events created
-   inside an instance carry its `InstanceId`, so cleanup can find and remove
-   everything that belongs to a closing instance.
-3. **Scheduler/event ownership**: scoping scheduled events to an instance,
-   and moving the timeout sweep from "call `closeExpiredInstances` on
-   demand" (this PR) to an actual periodic scheduler tick.
-4. **Player enter/leave API**: the actual gameplay-facing API for moving a
-   player into and out of an instance's reserved region.
-5. **Lua API**: script-facing bindings once the above are real.
-6. **Cleanup and recovery**: handling a server restart with instances that
-   were mid-lifecycle when it stopped.
-7. **Two parallel instances test**: an end-to-end test running two live
-   instances side by side once map-region ownership (step 1) exists to make
-   that meaningful.
+Each `InstanceMapRegion` contains inclusive XYZ bounds:
 
-Each of these is its own PR, same reasoning as everywhere else in this
-workstream: small, focused, reviewable and revertable independently.
+```text
+slot
+minX, minY, minZ
+maxX, maxY, maxZ
+name
+```
 
-## Tests
+Construction validates the complete configuration before the pool can be
+used:
 
-`tests/unit/game/instance/instance_manager_test.cpp` covers: slot
-reservation and pool exhaustion, the full state lifecycle, idempotent close
-(including under concurrent calls from multiple threads, verifying the
-cleanup callback runs exactly once), timeout sweeping (including that it's
-safe to call repeatedly without double-closing), and concurrent
-`createInstance` calls never oversubscribing the pool.
+- slot id must not be `Invalid`;
+- minimum coordinates must not exceed maximum coordinates;
+- floors must stay within Tibia's `0..15` range;
+- slot ids must be unique;
+- no two regions may overlap on X, Y and Z simultaneously.
+
+Regions with the same X/Y bounds are valid when their Z ranges are disjoint.
+Touching regions are valid only when their inclusive bounds do not share a
+coordinate.
+
+The pool supports:
+
+- deterministic reserve-any in configuration order;
+- reservation of a specific slot;
+- release and reuse;
+- lookup of configured bounds before reservation;
+- available/total counters;
+- thread-safe concurrent reservations.
+
+It deliberately does not inspect `Map`, create tiles, move players or clean
+creatures. Those responsibilities belong to later integration layers.
+
+## Integration sequence
+
+1. **Connect `InstanceManager` to `InstanceRegionPool`** so instance creation
+   reserves a real configured region rather than an opaque vector index, while
+   preserving the current constructor/API as a compatibility adapter if
+   needed.
+2. **Creature/spawn ownership**: creatures, summons, NPCs and spawn products
+   created for an instance carry `InstanceId`; cleanup can enumerate them.
+3. **Scheduler/event ownership**: scheduled callbacks carry `InstanceId`, are
+   invalidated on close and cannot execute against destroyed state. The
+   timeout sweep gets an actual periodic owner.
+4. **Player enter/leave**: validated entry, safe return position, closing,
+   logout, death and reconnect behavior.
+5. **Lua API**: create/get/enter/leave/close/state with stable errors and no raw
+   pointer exposure.
+6. **Cleanup/recovery**: evacuate players, remove temporary creatures/items,
+   cancel timers and return a region only after cleanup succeeds.
+7. **Two parallel instances E2E**: prove region, creature, player and event
+   isolation and clean slot reuse.
+
+## Current tests
+
+`instance_manager_test.cpp` covers lifecycle, capacity, timeout sweeping,
+exactly-once cleanup and concurrent create/close behavior.
+
+`instance_region_pool_test.cpp` covers:
+
+- bounds and floor validation;
+- containment and three-dimensional overlap semantics;
+- duplicate and overlapping region rejection;
+- deterministic reserve/release/reuse;
+- lookup of configured bounds;
+- concurrent reservations never returning the same slot.
+
+## Explicit non-goals
+
+- no full-map copies;
+- no multiworld identifiers;
+- no channel identifiers;
+- no global `InstanceManager` singleton;
+- no map ownership move before a real integration requires it;
+- no gameplay/Lua API in the region-pool PR.
