@@ -23,6 +23,12 @@ from gameplay_analytics_hunt_areas_lib import HuntAreaError, format_lua_table, p
 
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = ROOT / "data-otservbr-global/scripts/config/gameplay_analytics.lua"
+PLACEHOLDER_NAMES = {"replace_with_real_hunt_name", "example", "placeholder"}
+
+
+def is_placeholder(area) -> bool:
+    normalized = area.name.strip().lower()
+    return normalized in PLACEHOLDER_NAMES or normalized.startswith("replace_with_")
 
 
 def main(argv: list[str]) -> int:
@@ -35,6 +41,11 @@ def main(argv: list[str]) -> int:
     try:
         existing = parse_lua_config(CONFIG.read_text(encoding="utf-8"), str(CONFIG.relative_to(ROOT)))
         candidates = parse_candidate_file(candidate_path)
+        placeholders = [area.name for area in candidates if is_placeholder(area)]
+        if placeholders:
+            raise HuntAreaError(
+                "candidate file still contains placeholder hunt names: " + ", ".join(placeholders)
+            )
         combined = existing + candidates
         problems = validate_areas(combined)
     except HuntAreaError as error:
