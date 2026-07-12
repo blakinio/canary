@@ -106,6 +106,7 @@ local function sessionFor(subject)
 		playerId = subject:getGuid(),
 		partySize = 1,
 		sharedExperience = false,
+		combatSeconds = 10,
 	}
 end
 
@@ -160,7 +161,7 @@ assertEqual(finalized.partySizeMin, 1, "minimum party size")
 assertEqual(finalized.partySizeMax, 3, "maximum party size")
 assertNear(finalized.partySizeAvg, 2.0, 0.0001, "time-weighted average party size")
 assertEqual(finalized.sharedExperienceSeconds, 5, "shared experience seconds")
-assertNear(finalized.sharedExperienceRatio, 0.5, 0.0001, "shared experience ratio")
+assertNear(finalized.sharedExperienceRatio, 0.5, 0.0001, "shared experience ratio uses combat time")
 assertEqual(finalized.partySize, 3, "legacy party size remains representative")
 assertEqual(finalized.sharedExperience, true, "legacy shared experience remains representative")
 assertEqual(finalized.huntArea, "area-beta", "dominant hunt area")
@@ -194,6 +195,7 @@ local directSession = {
 	playerId = 99,
 	partySize = 1,
 	sharedExperience = false,
+	combatSeconds = 0,
 }
 assertEqual(Analytics.enqueue(directSession), true, "direct enqueue")
 assertEqual(directSession.contextFinalized, true, "direct enqueue finalizes context")
@@ -201,11 +203,29 @@ assertEqual(directSession.partySizeMin, 1, "direct enqueue party minimum")
 assertEqual(directSession.partySizeMax, 1, "direct enqueue party maximum")
 assertNear(directSession.partySizeAvg, 1.0, 0.0001, "direct enqueue party average")
 assertEqual(directSession.sharedExperienceSeconds, 0, "direct enqueue shared seconds")
+assertEqual(directSession.sharedExperienceRatio, 0, "direct enqueue shared ratio")
 assertEqual(directSession.huntArea, nil, "direct enqueue has no invented hunt area")
+
+local cappedSession = {
+	uuid = "00000000-0000-0000-0000-000000000100",
+	playerId = 100,
+	partySize = 2,
+	combatSeconds = 3,
+	contextSeconds = 10,
+	contextPartySize = 2,
+	contextPartySizeWeighted = 20,
+	contextSharedSeconds = 8,
+	contextSharedExperience = true,
+	contextAreaScores = {},
+	contextCompositionScores = {},
+}
+Analytics.finalizeContext(cappedSession)
+assertEqual(cappedSession.sharedExperienceSeconds, 3, "shared seconds are capped to combat time")
+assertNear(cappedSession.sharedExperienceRatio, 1.0, 0.0001, "shared ratio cannot exceed one")
 
 local status = Analytics.status()
 assertEqual(status.contextSamples, 7, "status context sample count")
-assertEqual(status.contextFinalizedSessions, 4, "status finalized session count")
+assertEqual(status.contextFinalizedSessions, 5, "status finalized session count")
 
 os.time = realTime
 print("gameplay analytics hunt context runtime test passed")
