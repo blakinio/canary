@@ -123,6 +123,32 @@ The adapter deliberately does not mutate `Creature` internals and does not own
 runtime lifetimes. Actual spawn, `setMaster`, removal, spectator, targeting and
 combat call sites remain separate focused integrations.
 
+## Scheduler/event liveness
+
+`InstanceScopedEvent` is the lazy-check counterpart to the creature binder: a
+scheduled task can outlive the instance it was created for (the instance may
+close, or never leave `Creating`, before the task fires), and `InstanceManager`
+has no visibility into scheduler/dispatcher task handles, so it cannot reach in
+and cancel them.
+
+Instead, `InstanceScopedEvent` wraps the *callback* side:
+
+- it retains only an `InstanceManager &` and an `InstanceId`, never a
+  scheduler/dispatcher handle, so it stays cheap to copy into a scheduled task
+  without coupling this module to a specific scheduler implementation;
+- `isLive()` is true only while the instance is `Active`; `Creating`,
+  `Closing`, `Destroyed` and unknown ids are all unsafe to run gameplay logic
+  against;
+- `runIfLive(callback)` runs the callback only if the instance is still
+  `Active` at the moment it is actually invoked, and reports whether it ran.
+
+This intentionally does not give scheduled tasks a way to keep an instance
+alive, and does not touch `src/game/scheduling/*`. Wiring an actual dispatcher
+task through this wrapper, and giving `closeExpiredInstances()` a periodic
+owner, both need a live `InstanceManager` instance owned by `Game` first -
+that ownership decision has not been made by any PR yet and is out of scope
+here.
+
 ## Map region pool
 
 `InstanceRegionPool` gives each `InstanceSlotId` concrete map meaning without
@@ -169,9 +195,11 @@ creatures.
    ids, automatically unregister on removal and are cleaned before region release.
 3. **Cross-instance isolation**: spectator, targeting and combat call sites use
    the central relation policy while normal-world behavior stays unchanged.
-4. **Scheduler/event ownership**: scheduled callbacks carry `InstanceId`, are
-   invalidated on close and cannot execute against destroyed state. The timeout
-   sweep gets an actual periodic owner.
+4. **Scheduler/event ownership**: `InstanceScopedEvent` gives a scheduled
+   callback a lazy liveness check (done - see above). Still open: an actual
+   dispatcher/task call site uses it, and the timeout sweep gets a real
+   periodic owner. Both need `Game` (or another explicit runtime component) to
+   own a live `InstanceManager` instance first.
 5. **Player enter/leave**: validated entry, safe return position, closing,
    logout, death and reconnect behavior.
 6. **Lua API**: create/get/enter/leave/close/state with stable errors and no raw
@@ -218,6 +246,15 @@ creatures.
 - unchanged normal-world relation behavior;
 - fail-closed runtime relations after close begins.
 
+`instance_scoped_event_test.cpp` covers:
+
+- liveness true only while `Active`, false for `Creating`, unknown ids and
+  after `close()`;
+- liveness already false from inside the `Closing`-state cleanup callback,
+  before the instance reaches `Destroyed`;
+- `runIfLive()` executing the callback only while live and reporting whether
+  it ran.
+
 `instance_region_pool_test.cpp` covers:
 
 - bounds and floor validation;
@@ -234,4 +271,5 @@ creatures.
 - no channel identifiers;
 - no global `InstanceManager` singleton;
 - no creature pointer ownership in `InstanceManager` or its binder;
-- no direct spawn, scheduler, player or Lua integration in the binder PR.
+- no direct spawn, scheduler, player or Lua integration in the binder PR;
+- no dispatcher/task call site wiring or periodic sweep owner in the scoped-event PR - both need a live, `Game`-owned `InstanceManager` first.
