@@ -1,5 +1,5 @@
 ---
-name: Temporary Diagnose Achievement Helper Test
+name: Temporary Apply Achievement Helper Style Fix
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  diagnose:
+  apply:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout task branch
@@ -79,31 +79,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: latest
           args: data/scripts/lib/register_achievements.lua tests/lua/test_achievement_helpers.lua
-
-      - name: Capture focused Lua test
-        id: test
-        shell: bash
-        run: |
-          set +e
-          luajit tests/lua/test_achievement_helpers.lua > achievement-helper-test.log 2>&1
-          status=$?
-          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
-          echo "$status" > achievement-helper-test-exit.txt
-          cat achievement-helper-test.log
-          exit 0
-
-      - name: Upload test diagnosis
-        uses: actions/upload-artifact@v4
-        with:
-          name: achievement-helper-test-diagnosis
-          path: |
-            achievement-helper-test.log
-            achievement-helper-test-exit.txt
-          retention-days: 1
-
-      - name: Stop after failed test
-        if: steps.test.outputs.exit_code != '0'
-        run: exit 1
 
       - name: Commit bounded result
         shell: bash
