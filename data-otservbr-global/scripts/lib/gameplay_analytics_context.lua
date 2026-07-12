@@ -242,18 +242,23 @@ function Analytics.finalizeContext(session)
 		return session
 	end
 
-	local contextSeconds = tonumber(session.contextSeconds) or 0
+	local contextSeconds = math.max(0, tonumber(session.contextSeconds) or 0)
+	local combatSeconds = math.max(0, tonumber(session.combatSeconds) or 0)
 	local currentPartySize = tonumber(session.contextPartySize) or tonumber(session.partySize) or 1
 	session.partySizeMin = tonumber(session.partySizeMin) or currentPartySize
 	session.partySizeMax = tonumber(session.partySizeMax) or currentPartySize
 	if contextSeconds > 0 then
 		session.partySizeAvg = session.contextPartySizeWeighted / contextSeconds
-		session.sharedExperienceSeconds = math.min(contextSeconds, tonumber(session.contextSharedSeconds) or 0)
-		session.sharedExperienceRatio = session.sharedExperienceSeconds / contextSeconds
+		local sampledSharedSeconds = math.min(contextSeconds, math.max(0, tonumber(session.contextSharedSeconds) or 0))
+		session.sharedExperienceSeconds = math.min(sampledSharedSeconds, combatSeconds)
 	else
 		session.partySizeAvg = currentPartySize
 		session.sharedExperienceSeconds = 0
-		session.sharedExperienceRatio = session.contextSharedExperience and 1 or 0
+	end
+	if combatSeconds > 0 then
+		session.sharedExperienceRatio = math.min(1, session.sharedExperienceSeconds / combatSeconds)
+	else
+		session.sharedExperienceRatio = 0
 	end
 
 	session.partySize = session.partySizeMax
