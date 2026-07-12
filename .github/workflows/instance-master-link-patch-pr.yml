@@ -1,0 +1,49 @@
+name: Instance Master Link Patch PR
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.head_ref == 'chore/instance-master-link-patch-runner'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout runner files
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          ref: chore/instance-master-link-patch-runner
+          path: runner
+          persist-credentials: false
+
+      - name: Checkout target branch
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          ref: feat/instance-aware-creature-master-link
+          path: target
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Apply validated patch
+        working-directory: target
+        run: python3 ../runner/.github/scripts/apply_instance_master_link_patch.py
+
+      - name: Validate and push target branch
+        working-directory: target
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          test "$(git diff --name-only | wc -l)" -eq 3
+          git diff --name-only | grep -Fx "src/creatures/creature.hpp"
+          git diff --name-only | grep -Fx "src/creatures/creature.cpp"
+          git diff --name-only | grep -Fx "tests/unit/game/instance/instance_creature_binder_test.cpp"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/creatures/creature.hpp src/creatures/creature.cpp tests/unit/game/instance/instance_creature_binder_test.cpp
+          git commit -m "feat(instance): wire Creature master links to ownership"
+          git push origin HEAD:feat/instance-aware-creature-master-link
