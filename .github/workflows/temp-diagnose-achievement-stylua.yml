@@ -1,0 +1,52 @@
+---
+name: Temporary Diagnose Achievement StyLua
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/temp-diagnose-achievement-stylua.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v6
+        with:
+          ref: fix/achievement-helper-enumeration
+
+      - name: Format registry only
+        id: registry
+        continue-on-error: true
+        uses: JohnnyMorganz/stylua-action@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: latest
+          args: data/scripts/lib/register_achievements.lua
+
+      - name: Format test only
+        id: test
+        continue-on-error: true
+        uses: JohnnyMorganz/stylua-action@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: latest
+          args: tests/lua/test_achievement_helpers.lua
+
+      - name: Record outcomes
+        run: |
+          printf 'registry=%s\ntest=%s\n' '${{ steps.registry.outcome }}' '${{ steps.test.outcome }}' | tee stylua-outcomes.txt
+          git status --short | tee stylua-status.txt
+
+      - name: Upload diagnosis
+        uses: actions/upload-artifact@v4
+        with:
+          name: achievement-stylua-diagnosis
+          path: |
+            stylua-outcomes.txt
+            stylua-status.txt
+          retention-days: 1
