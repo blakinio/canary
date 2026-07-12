@@ -83,9 +83,10 @@ Official-Tibia historical cross-check:
 
 # Validation notes
 
-- Implementation head `1ac8cab15d1b996d2c2462ff6974126df002f34a` passed CI run 608, AI Agent Tools run 213, and Account Quests run 59.
+- Implementation head `400b4e91736c40227124b8aebb5c2f8f43164c7a` passed CI run 610, AI Agent Tools run 215, and Account Quests run 61.
+- Autofix commit `e6b4456cfa4721c9531c68782f7284decf35f1bd` was authored by `github-actions[bot]` and changed only the StyLua line wrapping of `isCollectingWoodActive`; the diff was manually reviewed and preserves the exact boolean contract.
 - The focused Python contract test ran inside AI Agent Tools.
-- A local clone attempt was unavailable because the execution environment could not resolve `github.com`; this is an environment/network limitation, not a failed test.
+- Final-head checks are required before merge because bot-authored workflow runs were marked `action_required` by GitHub.
 - Runtime E2E remains required on an actual Canary world after repository validation.
 
 # Safety
