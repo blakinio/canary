@@ -2,6 +2,8 @@
   "schema_version": 1,
   "source": {
     "registry": "data/XML/imbuements.xml",
+    "storage_registry": "data-otservbr-global/lib/core/storages.lua",
+    "boss_unlock_script": "data-otservbr-global/scripts/quests/forgotten_knowledge/creaturescripts_bosses_kill.lua",
     "reference": "https://tibia.fandom.com/wiki/Imbuing",
     "reference_observed": "2026-07-12"
   },
@@ -13,7 +15,31 @@
     "xml_mapped_scrolls": 46,
     "lua_registered_scrolls": 48,
     "duration_seconds": 72000,
-    "clear_cost": 15000
+    "clear_cost": 15000,
+    "nonzero_xml_storage_ids": [
+      50488,
+      50490,
+      50492,
+      50494,
+      50496,
+      50498,
+      50501
+    ],
+    "powerful_with_nonzero_storage": 22,
+    "powerful_with_zero_storage": [
+      "Featherweight",
+      "Vibrancy"
+    ],
+    "storage_filter_default": false,
+    "active_forgotten_knowledge_storage_ids": [
+      45489,
+      45490,
+      45491,
+      45492,
+      45493,
+      45494,
+      45495
+    ]
   },
   "known_findings": [
     {
@@ -38,13 +64,13 @@
     },
     {
       "id": "IMB-005",
-      "kind": "storage-gate-mismatch",
-      "summary": "Powerful Featherweight has storage 0 despite the documented Dangerous Depths unlock."
+      "kind": "configuration-dependent-runtime-defect",
+      "summary": "Seven nonzero XML unlock storage IDs are absent from the active storage registry and affect 22 Powerful families."
     },
     {
       "id": "IMB-006",
-      "kind": "storage-gate-mismatch",
-      "summary": "Powerful Vibrancy has storage 0 despite the documented Dream Courts unlock."
+      "kind": "unlock-bypass",
+      "summary": "Powerful Featherweight and Vibrancy use storage 0 and bypass family-specific storage filtering."
     }
   ],
   "scenarios": [
@@ -52,21 +78,53 @@
       "id": "shrine-access-gate",
       "layer": "gameplay",
       "preconditions": [
-        "TOGGLE_IMBUEMENT_SHRINE_STORAGE is enabled"
+        "toggleImbuementShrineStorage is enabled"
       ],
       "assertions": [
-        "A player without the common Forgotten Knowledge shrine storage cannot open the window.",
-        "A player with the common shrine storage can open the window.",
-        "A failed gate does not mutate items, gold or storages."
+        "A player without the common shrine access storage cannot open the imbuement window.",
+        "A player with the common shrine access storage can open the window.",
+        "A rejected gate does not mutate items, gold, bank balance or storages."
+      ]
+    },
+    {
+      "id": "powerful-unlock-storage",
+      "layer": "static-and-gameplay",
+      "fixtures": {
+        "stale_xml_storage_ids": [
+          50488,
+          50490,
+          50492,
+          50494,
+          50496,
+          50498,
+          50501
+        ],
+        "current_forgotten_knowledge_storage_ids": [
+          45489,
+          45490,
+          45491,
+          45492,
+          45493,
+          45494,
+          45495
+        ]
+      },
+      "assertions": [
+        "Every nonzero XML unlock storage is declared in the active storage registry.",
+        "Each Powerful family maps to its documented boss or quest completion path.",
+        "With filtering enabled, the family is hidden before and visible after the matching unlock.",
+        "The default-disabled filter does not mask stale storage wiring in deterministic validation.",
+        "Featherweight uses the proven Dangerous Depths completion condition.",
+        "Vibrancy uses the proven Dream Courts completion condition."
       ]
     },
     {
       "id": "tier-account-and-storage-policy",
       "layer": "gameplay",
       "assertions": [
-        "Basic entries are available to free and premium accounts after common shrine access.",
-        "Intricate entries require premium account access under the approved target rules.",
-        "Powerful entries require premium account access and their family-specific unlock storage.",
+        "Basic entries are available under the approved account rules after common shrine access.",
+        "Intricate entries follow the approved premium-account rule.",
+        "Powerful entries require their family-specific unlock when filtering is enabled.",
         "A hidden entry cannot be applied by sending its numeric runtime ID directly."
       ]
     },
@@ -97,11 +155,11 @@
         }
       ],
       "assertions": [
-        "The displayed fee and success policy match the approved target model.",
-        "Insufficient gold leaves gold, bank balance, materials and slot state unchanged.",
-        "Insufficient materials leaves all resources and slot state unchanged.",
-        "A successful application consumes each material and gold charge exactly once.",
-        "A protected failure follows the approved target model and cannot double-charge."
+        "Displayed fee, success policy and charged fee match the approved target model.",
+        "Insufficient gold leaves all resources and slot state unchanged.",
+        "Insufficient materials leave all resources and slot state unchanged.",
+        "Successful application consumes each material and gold charge exactly once.",
+        "A protected failure cannot double-charge."
       ]
     },
     {
@@ -126,58 +184,49 @@
       ],
       "assertions": [
         "Each tier exposes the approved critical chance and damage values.",
-        "Equipping and unequipping the item adds and removes the effect exactly once.",
-        "Save and reload preserve the selected tier and remaining duration."
+        "Equipping and unequipping adds and removes the effect exactly once.",
+        "Save and reload preserve the tier and remaining duration."
       ]
     },
     {
       "id": "punch-materials",
       "layer": "gameplay",
-      "reference": [
-        {
-          "tier": "Basic",
-          "materials": [
-            {
-              "item_id": 10281,
-              "count": 25
-            }
-          ]
-        },
-        {
-          "tier": "Intricate",
-          "materials": [
-            {
-              "item_id": 10281,
-              "count": 25
-            },
-            {
-              "item_id": 11489,
-              "count": 20
-            }
-          ]
-        },
-        {
-          "tier": "Powerful",
-          "materials": [
-            {
-              "item_id": 10281,
-              "count": 25
-            },
-            {
-              "item_id": 11489,
-              "count": 20
-            },
-            {
-              "item_id": 40529,
-              "count": 15
-            }
-          ]
-        }
-      ],
+      "reference": {
+        "Basic": [
+          {
+            "item_id": 10281,
+            "count": 25
+          }
+        ],
+        "Intricate": [
+          {
+            "item_id": 10281,
+            "count": 25
+          },
+          {
+            "item_id": 11489,
+            "count": 20
+          }
+        ],
+        "Powerful": [
+          {
+            "item_id": 10281,
+            "count": 25
+          },
+          {
+            "item_id": 11489,
+            "count": 20
+          },
+          {
+            "item_id": 40529,
+            "count": 15
+          }
+        ]
+      },
       "assertions": [
         "The shrine lists the approved source chain for every tier.",
-        "A successful application consumes the exact source counts.",
-        "A rejected application consumes none of the source items."
+        "Successful application consumes the exact source counts.",
+        "Rejected application consumes no source items."
       ]
     },
     {
@@ -192,7 +241,7 @@
         "Each scroll resolves to the corresponding Vibrancy tier.",
         "A valid boot receives the correct imbuement and duration.",
         "The scroll is consumed only after successful application.",
-        "An invalid item, occupied Vibrancy category or unavailable slot does not consume the scroll."
+        "Invalid item, occupied category or unavailable slot does not consume the scroll."
       ]
     },
     {
@@ -200,7 +249,7 @@
       "layer": "gameplay",
       "assertions": [
         "An item cannot receive two imbuements from the same category.",
-        "The rejection does not consume gold, materials or scrolls.",
+        "Rejection does not consume gold, materials or scrolls.",
         "Other eligible categories remain available in free slots."
       ]
     },
@@ -222,8 +271,8 @@
       "id": "duration-combat",
       "layer": "runtime",
       "assertions": [
-        "Aggressive imbuements decay while the item is equipped, the player is in combat and outside protection zones.",
-        "They do not decay while the player is out of combat, in a protection zone or while the item is inside a backpack.",
+        "Aggressive imbuements decay while equipped, in combat and outside protection zones.",
+        "They do not decay out of combat, in a protection zone or inside a backpack.",
         "Crossing a decay boundary cannot remove stats more than once."
       ]
     },
@@ -239,7 +288,7 @@
       "assertions": [
         "Non-aggressive imbuements decay while their item is directly equipped.",
         "They do not decay while their item is stored in a container.",
-        "The optional non-aggressive-fight-only configuration changes behavior exactly as documented."
+        "The optional non-aggressive-fight-only setting changes behavior exactly as documented."
       ]
     },
     {
@@ -255,11 +304,11 @@
       "id": "item-eligibility",
       "layer": "static-and-gameplay",
       "assertions": [
-        "Only categories and tiers declared by the item metadata appear in the shrine.",
+        "Only item-declared categories and tiers appear in the shrine.",
         "Items with no imbuement slots are rejected.",
         "Native conflicting bonuses are not offered under the approved rules.",
         "Leg items are not imbuable under the current referenced rules.",
-        "The complete active item set is compared with the current reference as a separate deterministic audit."
+        "The complete active item set is compared with the current reference in a separate deterministic audit."
       ]
     }
   ]
