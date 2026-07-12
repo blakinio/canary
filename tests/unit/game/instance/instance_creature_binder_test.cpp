@@ -25,6 +25,14 @@ namespace {
 		}
 	};
 
+	struct RuntimeSummonIdentity {
+		uint32_t id = 0;
+
+		[[nodiscard]] uint32_t getID() const noexcept {
+			return id;
+		}
+	};
+
 	std::vector<InstanceMapRegion> makeBinderRegions(std::size_t count) {
 		std::vector<InstanceMapRegion> regions;
 		regions.reserve(count);
@@ -112,12 +120,12 @@ TEST(InstanceCreatureBinderTest, UnbindUsesAuthoritativeOwnerAndIsIdempotentSafe
 	EXPECT_EQ(0u, manager.registeredCreatureCount(second.id));
 }
 
-TEST(InstanceCreatureBinderTest, OwnedMasterPassesBoundaryToSummon) {
+TEST(InstanceCreatureBinderTest, OwnedMasterPassesBoundaryToHeterogeneousSummon) {
 	InstanceManager manager(makeBinderRegions(1));
 	InstanceCreatureBinder binder(manager);
 	const auto instance = manager.createInstance({ .name = "summons" });
 	const RuntimeCreatureIdentity master { .id = 501 };
-	const RuntimeCreatureIdentity summon { .id = 502 };
+	const RuntimeSummonIdentity summon { .id = 502 };
 	ASSERT_TRUE(binder.bind(instance.id, master));
 
 	EXPECT_TRUE(binder.inherit(master, summon));
@@ -133,7 +141,7 @@ TEST(InstanceCreatureBinderTest, CrossInstanceMasterAssignmentFailsWithoutMutati
 	const auto first = manager.createInstance({ .name = "first" });
 	const auto second = manager.createInstance({ .name = "second" });
 	const RuntimeCreatureIdentity master { .id = 601 };
-	const RuntimeCreatureIdentity summon { .id = 602 };
+	const RuntimeSummonIdentity summon { .id = 602 };
 	ASSERT_TRUE(binder.bind(first.id, master));
 	ASSERT_TRUE(binder.bind(second.id, summon));
 
@@ -148,7 +156,7 @@ TEST(InstanceCreatureBinderTest, NormalWorldObjectsKeepExistingInteractionBehavi
 	InstanceManager manager(makeBinderRegions(1));
 	InstanceCreatureBinder binder(manager);
 	const RuntimeCreatureIdentity master { .id = 701 };
-	const RuntimeCreatureIdentity summon { .id = 702 };
+	const RuntimeSummonIdentity summon { .id = 702 };
 
 	EXPECT_TRUE(binder.inherit(master, summon));
 	EXPECT_FALSE(binder.ownerOf(master).has_value());
@@ -162,7 +170,7 @@ TEST(InstanceCreatureBinderTest, ClosingOwnerFailsClosedForRuntimeObjects) {
 	InstanceCreatureBinder binder(manager);
 	const auto instance = manager.createInstance({ .name = "closing" });
 	const RuntimeCreatureIdentity first { .id = 801 };
-	const RuntimeCreatureIdentity second { .id = 802 };
+	const RuntimeSummonIdentity second { .id = 802 };
 	ASSERT_TRUE(binder.bind(instance.id, first));
 	ASSERT_TRUE(binder.bind(instance.id, second));
 
