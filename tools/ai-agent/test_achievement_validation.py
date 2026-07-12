@@ -98,6 +98,29 @@ player:addAllAchievements(false)
         self.assertFalse(report["ok"])
         self.assertEqual(report["summary"]["unknownStaticReferenceCount"], 1)
 
+    def test_confirmed_gameplay_trigger_names_resolve_exactly(self) -> None:
+        root = Path(__file__).resolve().parents[2]
+        registry_path = root / "data/scripts/lib/register_achievements.lua"
+        definitions, registry_findings = parse_registry_text(registry_path.read_text(encoding="utf-8"))
+        expected = {
+            "data/scripts/actions/items/usable_phantasmal_jade_items.lua": "You Got Horse Power",
+            "data-otservbr-global/scripts/quests/hero_of_rathleton/actions_reward.lua": "The Professor's Nut",
+        }
+        references = []
+        for relative_path, expected_name in expected.items():
+            path = root / relative_path
+            file_references = scan_reference_text(path.read_text(encoding="utf-8"), relative_path)
+            static_awards = {
+                reference.identifier
+                for reference in file_references
+                if reference.kind == "award" and reference.identifier_type == "name"
+            }
+            self.assertIn(expected_name, static_awards)
+            references.extend(file_references)
+
+        report = build_report(definitions, registry_findings, [], references)
+        self.assertEqual(report["summary"]["unknownStaticReferenceCount"], 0, report["unknownStaticReferences"])
+
     def test_repository_audit_and_baseline(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
