@@ -1,5 +1,5 @@
 ---
-name: Temporary Apply Achievement Helper Style Fix
+name: Temporary Diagnose Achievement Helper Test
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  apply:
+  diagnose:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout task branch
@@ -73,8 +73,6 @@ jobs:
           path.write_text(text.replace(old, new), encoding="utf-8")
           PY
 
-          rm .github/workflows/temp-diagnose-achievement-stylua.yml
-
       - name: Format changed Lua files
         uses: JohnnyMorganz/stylua-action@v5
         with:
@@ -82,12 +80,35 @@ jobs:
           version: latest
           args: data/scripts/lib/register_achievements.lua tests/lua/test_achievement_helpers.lua
 
-      - name: Run focused Lua test
-        run: luajit tests/lua/test_achievement_helpers.lua
+      - name: Capture focused Lua test
+        id: test
+        shell: bash
+        run: |
+          set +e
+          luajit tests/lua/test_achievement_helpers.lua > achievement-helper-test.log 2>&1
+          status=$?
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          echo "$status" > achievement-helper-test-exit.txt
+          cat achievement-helper-test.log
+          exit 0
+
+      - name: Upload test diagnosis
+        uses: actions/upload-artifact@v4
+        with:
+          name: achievement-helper-test-diagnosis
+          path: |
+            achievement-helper-test.log
+            achievement-helper-test-exit.txt
+          retention-days: 1
+
+      - name: Stop after failed test
+        if: steps.test.outputs.exit_code != '0'
+        run: exit 1
 
       - name: Commit bounded result
         shell: bash
         run: |
+          rm .github/workflows/temp-diagnose-achievement-stylua.yml
           git config user.name "achievement-helper-bot"
           git config user.email "achievement-helper-bot@users.noreply.github.com"
           git add data/scripts/lib/register_achievements.lua tests/lua/test_achievement_helpers.lua .github/workflows/temp-diagnose-achievement-stylua.yml
