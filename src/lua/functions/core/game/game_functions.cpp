@@ -16,9 +16,11 @@
 #include "creatures/players/player.hpp"
 #include "game/functions/game_reload.hpp"
 #include "game/game.hpp"
+#include "game/multichannel/cluster_session_lookup.hpp"
 #include "game/scheduling/dispatcher.hpp"
 #include "io/io_bosstiary.hpp"
 #include "io/iobestiary.hpp"
+#include "io/iologindata.hpp"
 #include "items/item.hpp"
 #include "lua/callbacks/events_callbacks.hpp"
 #include "lua/creature/events.hpp"
@@ -85,6 +87,7 @@ void GameFunctions::init(lua_State* L) {
 	Lua::registerMethod(L, "Game", "hasEffect", GameFunctions::luaGameHasEffect);
 	Lua::registerMethod(L, "Game", "getOfflinePlayer", GameFunctions::luaGameGetOfflinePlayer);
 	Lua::registerMethod(L, "Game", "getNormalizedPlayerName", GameFunctions::luaGameGetNormalizedPlayerName);
+	Lua::registerMethod(L, "Game", "getPlayerClusterChannel", GameFunctions::luaGameGetPlayerClusterChannel);
 	Lua::registerMethod(L, "Game", "getNormalizedGuildName", GameFunctions::luaGameGetNormalizedGuildName);
 
 	Lua::registerMethod(L, "Game", "addInfluencedMonster", GameFunctions::luaGameAddInfluencedMonster);
@@ -834,6 +837,35 @@ int GameFunctions::luaGameGetOfflinePlayer(lua_State* L) {
 		Lua::setMetatable(L, -1, "Player");
 	}
 
+	return 1;
+}
+
+/***
+ * @function Game.getPlayerClusterChannel
+ * @param name string
+ * @return number|nil
+ */
+int GameFunctions::luaGameGetPlayerClusterChannel(lua_State* L) {
+	// Game.getPlayerClusterChannel(name)
+	// GM/admin lookup (docs/multichannel/OPERATIONS.md): finds which
+	// channel a player is currently online on, cluster-wide - reads the DB
+	// mirror rather than any in-memory state, since the target may well be
+	// logged into a different channel process than the one running this
+	// script.
+	const auto name = Lua::getString(L, 1);
+	const uint32_t guid = IOLoginData::getGuidByName(name);
+	if (guid == 0) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	const auto channelId = multichannel::findOnlineChannelForPlayer(static_cast<int32_t>(guid));
+	if (!channelId.has_value()) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	Lua::pushNumber(L, *channelId);
 	return 1;
 }
 

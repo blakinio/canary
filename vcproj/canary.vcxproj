@@ -84,6 +84,7 @@
     <ClInclude Include="..\src\game\multichannel\cluster_config_validator.hpp" />
     <ClInclude Include="..\src\game\multichannel\channel_switch_audit_store.hpp" />
     <ClInclude Include="..\src\game\multichannel\cluster_runtime.hpp" />
+    <ClInclude Include="..\src\game\multichannel\cluster_session_lookup.hpp" />
     <ClInclude Include="..\src\game\multichannel\cluster_session_manager.hpp" />
     <ClInclude Include="..\src\game\multichannel\cluster_job_leadership_registry.hpp" />
     <ClInclude Include="..\src\game\multichannel\cluster_leader_election.hpp" />
@@ -332,6 +333,7 @@
     <ClCompile Include="..\src\game\multichannel\cluster_config_validator.cpp" />
     <ClCompile Include="..\src\game\multichannel\channel_switch_audit_store.cpp" />
     <ClCompile Include="..\src\game\multichannel\cluster_runtime.cpp" />
+    <ClCompile Include="..\src\game\multichannel\cluster_session_lookup.cpp" />
     <ClCompile Include="..\src\game\multichannel\cluster_session_manager.cpp" />
     <ClCompile Include="..\src\game\multichannel\cluster_leader_election.cpp" />
     <ClCompile Include="..\src\game\multichannel\db_cluster_session_repository.cpp" />

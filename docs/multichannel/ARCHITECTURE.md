@@ -667,6 +667,51 @@ should mean for that specific job - e.g. a partially-applied rent charge)
 is real per-job design work left for a follow-up, not something safe to do
 blind in one broad pass across a dozen unrelated jobs.
 
+## 10b. GM/admin commands (✅ one read-only lookup, 📐 the rest)
+
+`OPERATIONS.md`'s "GM / admin commands" list was previously a contract only.
+**"Locate a player's current channel"** is now implemented as
+`Game.getPlayerClusterChannel(name)` (`src/lua/functions/core/game/
+game_functions.cpp`): a read-only Lua global that resolves a player name to
+a guid (`IOLoginData::getGuidByName`, existing), then queries
+`multichannel::findOnlineChannelForPlayer` (`src/game/multichannel/
+cluster_session_lookup.hpp`/`.cpp`) - a new, tiny DB-glue module, styled
+after `ChannelSwitchAuditStore`'s existing query pattern - against the
+`cluster_sessions` table for a row with that `player_id` and
+`status = 'ONLINE'`. Returns the channel id, or `nil` if the player is
+unknown or has no such row.
+
+This deliberately reads the **DB mirror, not Redis**: unlike every other
+multichannel fast path in this codebase, a GM issuing this command from one
+channel process is very likely asking about a player logged into a
+*different* one, so Redis's per-process caching advantage doesn't apply -
+the DB table is the one thing every process can equally query regardless of
+which one currently holds the player's session.
+
+Following this codebase's own existing convention (verified: no
+`Game.*`/`Player:*` Lua binding checks GM group access internally - e.g.
+`luaGameReload`, `luaGameSetGameState` have zero access checks; the one real
+enforcement point is `TalkAction:groupType(...)` at the framework/dispatch
+layer, `src/lua/creature/talkaction.cpp`), this new function does not check
+permissions itself - that is left to whatever talkaction/script exposes it
+to GMs, exactly like every other admin-oriented Lua function already in this
+engine.
+
+**✅ Verified** against a real MariaDB 10.11: a player with an `ONLINE`
+`cluster_sessions` row is correctly found and its `channel_id` returned; an
+unknown player (no row at all) correctly returns nothing; and - the
+important defensive case - a row that has been transitioned to `DIRTY`
+(simulating an orphaned session, docs/multichannel/ARCHITECTURE.md §5.3) is
+correctly **not** reported as a live channel location, since the query
+filters on `status = 'ONLINE'` rather than merely "a row exists for this
+player_id".
+
+**📐 Known gap, stated honestly:** every other command in OPERATIONS.md's
+list (cluster-wide online list, kick a player on another channel,
+cross-channel broadcast, force-save/drain/maintenance a channel, DIRTY
+session recovery, session lock/fencing inspection, channel-switch audit
+history) remains contract-only.
+
 ## 11. Why Phase 1 and not the whole spec
 
 The full spec (all 23 sections) describes cluster-wide leader election for
