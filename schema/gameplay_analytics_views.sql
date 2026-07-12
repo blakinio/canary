@@ -53,10 +53,9 @@ SELECT
     ROUND((`loot_value_npc` - `supplies_value`) / NULLIF(`combat_seconds`, 0) * 3600) AS `npc_profit_per_hour`
 FROM `analytics_daily_party_balance`;
 
--- Persisted dead-letter history. These rows represent sessions that exhausted
--- in-memory retries and were stored for operator investigation; they are not an
--- active database replay queue. `pending_dead_letters` remains as a compatibility
--- alias for older dashboards and should not be interpreted as retry-in-progress.
+-- Persisted dead-letter history for sessions that exhausted in-memory retries.
+-- These terminal records are not an active database replay queue.
+-- `pending_dead_letters` remains as a compatibility alias for older dashboards.
 CREATE OR REPLACE VIEW `analytics_dead_letter_health` AS
 SELECT
     COUNT(*) AS `dead_letter_records`,
