@@ -338,6 +338,45 @@ TEST(TransportCodecTest, DecryptRejectsPaddingLargerThanBlock) {
 	EXPECT_FALSE(TransportCodecs::currentGamePlain().prepareInbound(protocol, msg));
 }
 
+TEST(TransportCodecTest, CurrentGamePlainWritesBlockCountHeaderWithoutChecksumOffset) {
+	// Regression test: writeMessageLength() used to unconditionally subtract
+	// CHECKSUM_LENGTH (4) before dividing by XTEA_MULTIPLE, an assumption
+	// that only holds for profiles that actually write a checksum first.
+	// CurrentGamePlain has no checksum, so the header must equal the exact
+	// encrypted block count, not (blockBytes - 4) / 8.
+	TestTransportProtocol protocol;
+	protocol.enableEncryption();
+
+	OutputMessage msg;
+	msg.addByte(0x42);
+	TransportCodecs::currentGamePlain().encodeOutbound(protocol, msg);
+
+	const auto* bytes = reinterpret_cast<const std::byte*>(msg.getOutputBuffer());
+	ASSERT_EQ(HEADER_LENGTH + XTEA_MULTIPLE, msg.getLength());
+	EXPECT_EQ(1, readU16(bytes));
+}
+
+TEST(TransportCodecTest, CurrentGamePlainLengthHeaderDecodesToActualEncodedBodySize) {
+	// Proves encode and decode agree: the length header written by
+	// encodeOutbound() must decode (via decodeBodySize) to exactly the
+	// number of bytes that actually follow it on the wire. A prior bug made
+	// the encoder and decoder disagree by one XTEA block for checksum-free
+	// transports, which desyncs the connection's socket read.
+	TestTransportProtocol protocol;
+	protocol.enableEncryption();
+
+	OutputMessage msg;
+	msg.addByte(0x42);
+	TransportCodecs::currentGamePlain().encodeOutbound(protocol, msg);
+
+	const auto* bytes = reinterpret_cast<const std::byte*>(msg.getOutputBuffer());
+	const uint16_t lengthHeader = readU16(bytes);
+
+	const auto decodedBodySize = TransportCodecs::currentGamePlain().decodeBodySize(lengthHeader);
+	ASSERT_TRUE(decodedBodySize.has_value());
+	EXPECT_EQ(msg.getLength() - HEADER_LENGTH, *decodedBodySize);
+}
+
 TEST(TransportCodecTest, CurrentGamePlainRoundTripsWithoutChecksum) {
 	TestTransportProtocol protocol;
 	protocol.enableEncryption();
