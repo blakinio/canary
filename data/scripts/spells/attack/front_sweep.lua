@@ -28,8 +28,12 @@ function onGetFormulaValues(player, skill, attack, factor)
 	return -(((skillTotal * 0.04) + 31) + levelTotal) * 1.1, -(((skillTotal * 0.08) + 45) + levelTotal) * 1.1 -- TODO : Use New Real Formula instead of an %
 end
 
+function onGetFormulaValuesWod(player, skill, attack, factor)
+	return onGetFormulaValues(player, skill, attack, factor)
+end
+
 combat:setCallback(CALLBACK_PARAM_SKILLVALUE, "onGetFormulaValues")
-combatWod:setCallback(CALLBACK_PARAM_SKILLVALUE, "onGetFormulaValues")
+combatWod:setCallback(CALLBACK_PARAM_SKILLVALUE, "onGetFormulaValuesWod")
 
 local spell = Spell("instant")
 
