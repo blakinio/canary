@@ -4,4 +4,5 @@ target_sources(
             string_functions_test.cpp
             map_download_test.cpp
             test_batch_update.cpp
+            counter_pointer_test.cpp
 )
