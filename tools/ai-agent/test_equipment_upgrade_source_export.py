@@ -42,6 +42,8 @@ class EquipmentUpgradeSourceExportTest(unittest.TestCase):
             b"triggerTranscendence",
             b"getAmplificationChance",
             b"quadraticPoly",
+            b"avatarTimer(",
+            b"WHEEL_AVATAR",
         )
 
         files: dict[str, dict[str, int | str]] = {}
