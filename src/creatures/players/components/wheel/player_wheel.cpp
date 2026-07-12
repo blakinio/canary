@@ -2900,25 +2900,31 @@ void PlayerWheel::processActiveGems() {
 			continue;
 		}
 
-		auto count = m_playerBonusData.unlockedVesselResonances[static_cast<uint8_t>(affinity)];
-		if (count >= 1) {
-			uint8_t grade = getGemGrade(WheelFragmentType_t::Lesser, static_cast<uint8_t>(basicModifier1));
+		const auto resonanceCount = m_playerBonusData.unlockedVesselResonances[static_cast<uint8_t>(affinity)];
+		const uint8_t basicGrade1 = getGemGrade(WheelFragmentType_t::Lesser, static_cast<uint8_t>(basicModifier1));
+		const uint8_t basicGrade2 = quality >= WheelGemQuality_t::Regular ? getGemGrade(WheelFragmentType_t::Lesser, static_cast<uint8_t>(basicModifier2)) : 0;
+		const uint8_t supremeGrade = quality >= WheelGemQuality_t::Greater ? getGemGrade(WheelFragmentType_t::Greater, static_cast<uint8_t>(supremeModifier)) : 0;
+		const auto effectiveGrades = WheelGemUtils::getEffectiveGrades(quality, basicGrade1, basicGrade2, supremeGrade);
+
+		if (resonanceCount >= 1) {
 			std::string modifierName(magic_enum::enum_name(basicModifier1));
-			g_logger().debug("[{}] Adding basic modifier 1 {} to player {} from {} gem affinity {}", __FUNCTION__, modifierName, playerName, magic_enum::enum_name(quality), magic_enum::enum_name(affinity));
-			m_modifierContext->addStrategies(basicModifier1, grade);
+			g_logger().debug("[{}] Adding basic modifier 1 {} to player {} from {} gem affinity {} at effective grade {}", __FUNCTION__, modifierName, playerName, magic_enum::enum_name(quality), magic_enum::enum_name(affinity), effectiveGrades[0]);
+			m_modifierContext->addStrategies(basicModifier1, effectiveGrades[0]);
 		}
-		if (count >= 2 && quality >= WheelGemQuality_t::Regular) {
-			uint8_t grade = getGemGrade(WheelFragmentType_t::Lesser, static_cast<uint8_t>(basicModifier2));
+		if (resonanceCount >= 2 && quality >= WheelGemQuality_t::Regular) {
 			std::string modifierName(magic_enum::enum_name(basicModifier2));
-			g_logger().debug("[{}] Adding basic modifier 2 {} to player {} from {} gem affinity {}", __FUNCTION__, modifierName, playerName, magic_enum::enum_name(quality), magic_enum::enum_name(affinity));
-			m_modifierContext->addStrategies(basicModifier2, grade);
+			g_logger().debug("[{}] Adding basic modifier 2 {} to player {} from {} gem affinity {} at effective grade {}", __FUNCTION__, modifierName, playerName, magic_enum::enum_name(quality), magic_enum::enum_name(affinity), effectiveGrades[1]);
+			m_modifierContext->addStrategies(basicModifier2, effectiveGrades[1]);
 		}
-		if (count >= 3 && quality >= WheelGemQuality_t::Greater) {
-			uint8_t grade = getGemGrade(WheelFragmentType_t::Greater, static_cast<uint8_t>(supremeModifier));
+		if (resonanceCount >= 3 && quality >= WheelGemQuality_t::Greater) {
 			std::string modifierName(magic_enum::enum_name(supremeModifier));
-			g_logger().debug("[{}] Adding supreme modifier {} to player {} from {} gem affinity {}", __FUNCTION__, modifierName, playerName, magic_enum::enum_name(quality), magic_enum::enum_name(affinity));
-			m_modifierContext->addStrategies(supremeModifier, grade);
+			g_logger().debug("[{}] Adding supreme modifier {} to player {} from {} gem affinity {} at effective grade {}", __FUNCTION__, modifierName, playerName, magic_enum::enum_name(quality), magic_enum::enum_name(affinity), effectiveGrades[2]);
+			m_modifierContext->addStrategies(supremeModifier, effectiveGrades[2]);
 		}
+
+		const uint8_t fullResonanceBonus = WheelGemUtils::getFullResonanceBonus(quality, resonanceCount);
+		m_playerBonusData.stats.damage += fullResonanceBonus;
+		m_playerBonusData.stats.healing += fullResonanceBonus;
 	}
 
 	g_logger().debug("[{}] active gems: {} ", __FUNCTION__, activeGems.size());
@@ -3015,12 +3021,12 @@ void PlayerWheel::applyBlueStageBonus(uint8_t stageValue, Vocation_t vocationEnu
 		m_playerBonusData.stages.combatMastery = stageValue;
 	} else if (vocationEnum == Vocation_t::VOCATION_SORCERER_CIP) {
 		m_playerBonusData.stages.drainBody = stageValue;
-		for (uint8_t i = 0; i <= stageValue; ++i) {
+		for (uint8_t i = 0; i < stageValue; ++i) {
 			addSpellToVector("Drain_Body_Spells");
 		}
 	} else if (vocationEnum == Vocation_t::VOCATION_PALADIN_CIP) {
 		m_playerBonusData.stages.divineEmpowerment = stageValue;
-		for (uint8_t i = 0; i <= stageValue; ++i) {
+		for (uint8_t i = 0; i < stageValue; ++i) {
 			addSpellToVector("Divine Empowerment");
 		}
 	} else if (vocationEnum == Vocation_t::VOCATION_DRUID_CIP) {

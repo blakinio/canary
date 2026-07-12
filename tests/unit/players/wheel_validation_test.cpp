@@ -10,6 +10,8 @@
 #include <gtest/gtest.h>
 
 #include "creatures/players/player.hpp"
+#include "creatures/players/components/wheel/wheel_gems.hpp"
+#include "enums/player_wheel.hpp"
 #include "lib/di/container.hpp"
 #include "lib/logging/in_memory_logger.hpp"
 
@@ -69,4 +71,20 @@ TEST_F(WheelValidationTest, InvalidGradeHasNoCost) {
 	const auto [gold, fragments] = player->wheel().getGreaterGradeCost(4);
 	EXPECT_EQ(0, gold);
 	EXPECT_EQ(0, fragments);
+}
+
+TEST_F(WheelValidationTest, GemGradesAreLimitedByPreviousSlots) {
+	EXPECT_EQ((std::array<uint8_t, 3> { 3, 0, 0 }), WheelGemUtils::getEffectiveGrades(WheelGemQuality_t::Lesser, 3, 3, 3));
+	EXPECT_EQ((std::array<uint8_t, 3> { 1, 1, 0 }), WheelGemUtils::getEffectiveGrades(WheelGemQuality_t::Regular, 1, 3, 3));
+	EXPECT_EQ((std::array<uint8_t, 3> { 3, 2, 2 }), WheelGemUtils::getEffectiveGrades(WheelGemQuality_t::Greater, 3, 2, 3));
+	EXPECT_EQ((std::array<uint8_t, 3> { 0, 0, 0 }), WheelGemUtils::getEffectiveGrades(WheelGemQuality_t::Greater, 0, 3, 3));
+}
+
+TEST_F(WheelValidationTest, FullVesselResonanceAddsQualityBonusOnlyWhenComplete) {
+	EXPECT_EQ(0, WheelGemUtils::getFullResonanceBonus(WheelGemQuality_t::Lesser, 0));
+	EXPECT_EQ(1, WheelGemUtils::getFullResonanceBonus(WheelGemQuality_t::Lesser, 1));
+	EXPECT_EQ(0, WheelGemUtils::getFullResonanceBonus(WheelGemQuality_t::Regular, 1));
+	EXPECT_EQ(1, WheelGemUtils::getFullResonanceBonus(WheelGemQuality_t::Regular, 2));
+	EXPECT_EQ(0, WheelGemUtils::getFullResonanceBonus(WheelGemQuality_t::Greater, 2));
+	EXPECT_EQ(2, WheelGemUtils::getFullResonanceBonus(WheelGemQuality_t::Greater, 3));
 }

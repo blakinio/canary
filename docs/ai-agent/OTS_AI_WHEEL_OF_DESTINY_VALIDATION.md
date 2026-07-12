@@ -135,22 +135,22 @@ Confirmed definitions and active paths:
 | Vocation wheels | partial | effects for five vocations are represented | verify every slice/effect/value per vocation |
 | Dedication perks | unverified | stats structures present | map each slot to exact scaling and tests |
 | Conviction perks | unverified | spell/passive hooks present | map each perk and stacking behavior |
-| Revelation perks | partial | stages/avatars represented | verify stages, cooldowns, death/relogin state |
+| Revelation perks | partial | stages/avatars represented; Blue-domain spell grade loops corrected to one grade per Revelation stage | verify stages, cooldowns, death/relogin state |
 | Presets | unverified | no complete preset path proved yet | save/load/switch validation and limits |
-| Client protocol | partial | raw modifier position reachability proved; save payload now checks required bytes, flags, indexes, and affinities | parser integration tests and official captures |
+| Client protocol | partial | raw modifier reachability proved; save plus current/legacy Gem Atelier payloads now validate required bytes, enum ranges, flags, indexes, and affinities | parser integration tests and official captures |
 | Slot persistence | partial | blob records now reject malformed size, duplicate/out-of-range slots, per-slot overflow, disconnected and over-budget state | DB round-trip integration test |
 | KV persistence | partial | scroll/gem/active/grade paths traced | round-trip and stale-reference tests |
 | Gem reveal and capacity | partial | server-side 225 cap added; initial gems are inserted into the in-memory list immediately | cap and first-open integration tests |
 | Gem reveal transaction | partial | item is reserved first, money prechecked, and item restored if the money mutation unexpectedly fails | failure-injection integration test |
 | Affinity rotation | partial | active copies are removed by UUID, stale KV is cleared, gem is persisted, and bonuses reload | rotation/login round-trip test |
-| Vessel resonance | partial | four resonance values represented | verify activation order and full-resonance bonus |
-| Gem mod generation | partial | allowed pools exist | verify pools, slot restrictions, vocation rules, and duplicates |
+| Vessel resonance | partial | activation thresholds and +1/+1/+2 full-resonance damage/healing bonus implemented | deterministic runtime effect test |
+| Gem mod generation | partial | allowed pools exist; effective Grade is now capped by every preceding gem slot | verify pools, slot restrictions, vocation rules, duplicates, and runtime values |
 | Fragment Workshop | partial | 12,500,000 cost applied; type/range/vocation allow-list validation added before indexing; payment rollback added | forged-packet and failure-injection tests |
 | Grade persistence | partial | arrays and max-grade count reset; only grades 0..3 are accepted; upgrades persist immediately | KV round-trip test |
 | Unused-points accounting | partial | spent points are summed in `uint32_t`; overspent state returns zero and allocation validator rejects it | unit test added; CI pending |
 | Combat/stat integration | partial | bonus structures and hooks present | deterministic effect tests |
 | Monk support | partial | Monk stages/avatar and quest bonus represented | full wheel/perk validation |
-| Security/anti-cheat | partial | network reachability confirmed; atomic slot/gem proposal, temple enforcement, packet length/range checks, and modifier allow-lists implemented | integration fuzz/forged-packet tests |
+| Security/anti-cheat | partial | network reachability confirmed; atomic slot/gem proposal, temple enforcement, current/legacy packet length and enum checks, and modifier allow-lists implemented | integration fuzz/forged-packet tests |
 
 ---
 
@@ -299,6 +299,34 @@ The previous formula subtracted 50 from an unsigned level before applying `std::
 
 The login sequence loaded the DB allocation before scroll and Grade IV point sources. A semantic allocation validator would therefore reject a valid configuration that spends those points. KV grades and scrolls now load before the persisted allocation is validated.
 
+### WOD-016 — gem modifier Grade ignored preceding-slot limits
+
+**Disposition:** `incorrect` → correction implemented, CI pending
+**Severity:** high
+
+The runtime applied each globally upgraded modifier Grade independently. Officially documented Gem Atelier behavior limits the second Basic Mod to the effective Grade of the first Basic Mod, and the Supreme Mod to the effective Grades of both preceding Basic Mods. A deterministic helper now calculates effective Grades in slot order before any modifier strategy is executed.
+
+### WOD-017 — full Vessel Resonance damage/healing bonus was absent
+
+**Disposition:** `missing` → correction implemented, CI pending
+**Severity:** high
+
+The engine unlocked gem modifier slots from Vessel Resonance but did not add the documented full-resonance damage/healing bonus. Runtime loading now adds +1 for a fully enabled Lesser gem, +1 for a fully enabled Regular gem, and +2 for a fully enabled Greater gem.
+
+### WOD-018 — two Blue Revelation spell grades were one stage too high
+
+**Disposition:** `incorrect` → correction implemented, CI pending
+**Severity:** high
+
+`Drain_Body_Spells` and `Divine Empowerment` were inserted `stage + 1` times because their loops used `i <= stageValue`. One insertion maps to Regular, two to Upgraded, and three to Max, so Revelation Stage I incorrectly produced Grade II. Both loops now perform exactly `stageValue` insertions, matching the other vocation Revelation paths.
+
+### WOD-019 — truncated Gem Atelier packets could execute default actions
+
+**Disposition:** `incorrect` → correction implemented, CI pending
+**Severity:** critical
+
+Both current and legacy packet paths read action parameters without first proving that the bytes existed. A truncated packet could therefore supply zero-valued defaults and reach destructive or mutating operations, including gem index zero. Both parsers now reject missing action/index/quality/fragment bytes and out-of-range quality or fragment enums before updating UI exhaustion or calling Wheel methods.
+
 ---
 
 ## 7. Change log
@@ -337,20 +365,30 @@ The login sequence loaded the DB allocation before scroll and Grade IV point sou
 - Added the 225-gem reveal cap, first-open starter-gem synchronization, stale active-gem cleanup, and active-bonus reload on destruction/rotation.
 - Reordered reveal/upgrade transactions so consumed items are restored if the later money mutation unexpectedly fails.
 - Added focused unit tests for level thresholds, overspent-state saturation, Supreme costs, and invalid grades.
-- Status: local patch prepared; formatter, build, unit tests, and CI evidence still pending.
+- Applied the SHA-256-verified patch to the clean review branch and removed every temporary patch/export workflow before opening PR #202.
+
+### 2026-07-12 — Gem Atelier grade/resonance and parser follow-up
+
+- Confirmed that active gem runtime ignored the preceding-slot Grade cap documented by the Gem Atelier.
+- Added deterministic effective-Grade calculation for Lesser, Regular, and Greater gems.
+- Added the missing +1/+1/+2 full Vessel Resonance damage/healing bonuses.
+- Corrected `Drain_Body_Spells` and `Divine Empowerment` from `stage + 1` to exactly one spell-grade insertion per Revelation stage.
+- Proved that both current and legacy Gem Atelier parsers could read truncated payloads as zero-valued actions or parameters.
+- Added byte-length and enum-range validation before every current/legacy Gem Atelier mutation.
+- Added focused unit tests for Grade chaining and full-resonance thresholds.
+- Standard repository CI for PR #202 is queued; local full compilation is unavailable because this execution environment lacks the repository vcpkg toolchain and Ninja.
 
 ---
 
 ## 8. Immediate next tasks
 
-1. Apply the prepared patch to the validation branch and let repository formatters normalize it.
-2. Run Linux build and focused/unit test suites; fix every compiler, formatter, sanitizer, or test failure.
-3. Add integration tests for forged save packets, invalid modifier positions, temple decreases, transaction rollback, KV/DB round trips, cap behavior, and first-open starter gems.
+1. Apply this follow-up to a clean review head and run standard repository CI.
+2. Fix every compiler, formatter, sanitizer, or test failure.
+3. Add integration tests for forged save/Gem Atelier packets, invalid modifier positions, temple decreases, transaction rollback, KV/DB round trips, cap behavior, and first-open starter gems.
 4. Generate a machine-readable 36-slot topology/perk matrix for every vocation.
 5. Compare every Dedication, Conviction, Revelation, spell augment, and gem modifier value with authoritative/captured behavior.
 6. Implement the missing Hunting Task Shop point source in its Taskboard subsystem or keep it explicitly blocked as a separate dependency.
-7. Remove all temporary patch/export workflows before the PR is marked ready.
-8. Update this document with each code/test commit and final runtime evidence.
+7. Update this document with each code/test commit and final runtime evidence.
 
 ---
 
