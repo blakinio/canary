@@ -178,3 +178,5 @@ Evidence used before changing technical IDs:
 - Monk's Apparition uses `2636` in two independent modern server datasets, while Druid's Apparition remains `1946`.
 - `eradicator2.lua` exposes the display name Eradicator and is an alternate Eradicator form; it now shares `1226` with `eradicator.lua` instead of colliding with Rupture `1225`.
 - Existing ambiguous historical counters are not copied or duplicated: `1946` remains Druid's Apparition, `1225` remains Rupture, and Eradicator forms use `1226`.
+
+<!-- dry-run trigger: 2026-07-12 current-main verification -->
