@@ -137,7 +137,7 @@ function Analytics.expireInactive()
 			player = Player(entry.session.runtimeId)
 		end
 		if player then
-			Analytics.finish(player, "activity-timeout")
+			callFinishWithMinimum(player, "activity-timeout", 0)
 		else
 			Analytics.sessions[entry.playerGuid] = nil
 			Analytics.correctnessStats.discardedNonCombatSessions = Analytics.correctnessStats.discardedNonCombatSessions + 1
