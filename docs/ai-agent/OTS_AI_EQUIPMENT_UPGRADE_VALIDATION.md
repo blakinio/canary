@@ -88,8 +88,8 @@ These are baseline evidence, not proof of complete Equipment Upgrade parity.
 | Imbuements | Imbued equipment cannot enter Forge | **confirmed statically** in list and server item lookup |
 | Initial Dust limit | 100 | **confirmed statically** in schema |
 | Dust limit upgrade | Cost = current limit − 75; maximum 325 | formula confirmed; **F-001 open:** configured/fallback maximum 225 |
-| Dust conversion | 60 Dust → 3 Slivers | **confirmed statically**; failure tests pending |
-| Core conversion | 50 Slivers → 1 Core | **confirmed statically**; failure tests pending |
+| Dust conversion | 60 Dust → 3 Slivers | static success path confirmed; **F-024:** history is config-insensitive; failure tests pending |
+| Core conversion | 50 Slivers → 1 Core | **F-021 open:** removal precedes result creation and can lose Slivers |
 | Influenced scaling | 1–5 stacks; HP/damage/XP and 1–3 Dust per stack | HP/damage/XP confirmed statically; Dust reward remediation present, runtime pending |
 | Fiendish scaling/lifecycle | strength of 15 stacks; four alive; 270 s replacement; one-hour lifetime | default path confirmed statically; **F-002/F-009 open** |
 | Premium Dust | no Dust without Premium | **F-006 remediated in branch**; runtime test pending |
@@ -98,19 +98,20 @@ These are baseline evidence, not proof of complete Equipment Upgrade parity.
 | Regular Fusion eligibility | identical item IDs and equal tier | **F-003 open:** item identity not revalidated server-side |
 | Fusion success | 50%; optional core raises to 65% | confirmed statically; statistical test pending |
 | Fusion failure | optional core modifies tier-loss/destruction chance | implementation located; complete outcome matrix pending |
-| Fusion costs | class/tier gold + Dust + optional cores | **confirmed statically**; accounting tests pending |
+| Fusion costs | class/tier gold + Dust + optional cores | static table confirmed; **F-022:** failed history hardcodes 100 Dust |
 | Fusion bonuses | eight documented success bonuses | **F-014–F-016 open:** eighth bonus absent, +2 tier cap wrong, rolls not tier-aware |
-| Fusion history | exact result for each bonus and both partner IDs | **F-017 open:** several bonus/Convergence outcomes are described incorrectly |
+| Fusion history | exact result for each bonus and both partner IDs | **F-017/F-022 open:** results and configurable costs can be wrong |
 | Forge result protocol/client | payload and OTClient must represent every result exactly | **F-018/F-019 open:** OTClient omits bonus types 5–8 and decreased-tier payload displays wrong tier |
 | Convergence Fusion | class 4; different IDs; same normalized slot/tier; guaranteed; no bonus | **F-004 open:** restrictions incomplete server-side |
 | Regular Transfer | same class; receiver tier 0; result donor tier − 1 | partially confirmed by PR #89; gameplay test pending |
 | Convergence Transfer | class 4; no tier loss; source destroyed; cross-slot allowed | **F-005 open:** class 4 not enforced server-side |
+| Atomicity | rejected/failed operation must not leave partial inventory/resources | **F-020/F-021 open:** mutation sequences have no rollback |
+| Conversion history type | conversion entries preserve the executed action | **F-023 open:** Core and limit entries are rewritten as Dust→Slivers |
 | Onslaught | tier chance; triggered basic attack +60% damage | formula/combat path confirmed statically; runtime/AoE pending |
 | Ruse | tier dodge chance | formula path confirmed; **F-010 precision risk** |
 | Momentum | tier chance; eligible cooldowns −2 s | formula/reduction confirmed; **F-012 open** |
 | Transcendence | offensive-action check; seven-second Avatar; no overlap with Avatar spell | formula/window/duration confirmed; **F-011 open** |
 | Amplification | multiplicative increase to Forge effect chances | base table and four paths confirmed; event ordering/runtime pending |
-| Transaction safety | rejected operations consume nothing | not proven; malformed-request integration tests required |
 
 ---
 
@@ -124,7 +125,7 @@ These are baseline evidence, not proof of complete Equipment Upgrade parity.
 - `src/items/items_classification.hpp`
 - `data/libs/functions/register_item_tier.lua`
 
-### Forge operations and protocol
+### Forge operations, history and protocol
 
 - `src/game/game.cpp`
 - `src/creatures/players/player.cpp`
@@ -283,7 +284,7 @@ The documented eighth success bonus refills Dust to the character's maximum. `fo
 
 The application condition is `tier + 2 <= firstForgedItem->getClassification()`. That accidentally matches caps of classes 1–3 but treats class 4 as if its maximum tier were 4 instead of 10. A class-4 item at tier 3 or above can be reported as receiving bonus 7 while receiving only the normal +1 result.
 
-**Required:** resolve the actual `ItemClassification` tier table/cap and reject or reroll the bonus when +2 would exceed that cap.
+**Required:** resolve the actual classification tier table/cap and reject or reroll the bonus when +2 would exceed that cap.
 
 ### F-016 — Fusion bonus selection is not tier-aware
 
@@ -317,6 +318,46 @@ For bonus 4 the server changes the retained second item from tier `t` to `t−1`
 
 **Required:** send explicit result-item ID/tier values and make OTClient display those values directly. Add protocol round-trip tests.
 
+### F-020 — Fusion and Transfer are not atomic after mutation starts
+
+**Severity:** high inventory/economy integrity risk. **Status:** open. **Evidence:** C.
+
+Both operations prevalidate normal resources, but then add an Exaltation Chest and remove the two input items sequentially. Later failure to remove the second item, create/add a result, remove cores or remove gold returns without rolling back prior mutations. Transfer also deducts Dust before core and gold removal.
+
+**Required:** stage all output objects and use an explicit transaction/rollback guard. Add injected-failure tests after each mutation boundary and assert exact inventory/resource restoration.
+
+### F-021 — Sliver-to-Core conversion can consume Slivers without granting a Core
+
+**Severity:** high inventory integrity risk. **Status:** open. **Evidence:** C.
+
+The conversion removes 50 Slivers before creating and adding the Core. If Core creation returns null, the initialized success return value remains unchanged and the function can register successful history without adding a Core. If insertion fails, the removed Slivers are not restored.
+
+**Required:** create and validate the output before removing inputs, then commit atomically or restore Slivers on every failure. Test null creation and insertion failure.
+
+### F-022 — failed Fusion history hardcodes 100 Dust
+
+**Severity:** low/medium history mismatch. **Status:** open. **Evidence:** C.
+
+The failed-Fusion history text writes `100 dust` instead of `history.dustCost`. This diverges whenever configuration or operation type changes the actual Dust charge.
+
+**Required:** render the stored actual cost and add a non-default configuration test.
+
+### F-023 — conversion history rewrites action types
+
+**Severity:** medium history/protocol mismatch. **Status:** open. **Evidence:** C.
+
+Before history insertion, both `SLIVERSTOCORES` and `INCREASELIMIT` are overwritten with `DUSTTOSLIVERS`. The description text differs, but the stored action type used by history consumers no longer identifies the executed operation.
+
+**Required:** preserve the original action type and verify serialized history rows/icons for all three conversions.
+
+### F-024 — Dust-to-Slivers history hardcodes the gained amount
+
+**Severity:** low configuration mismatch. **Status:** open. **Evidence:** C.
+
+The created Sliver count uses `FORGE_SLIVER_AMOUNT`, but `history.gained` is always set to 3. A configured amount other than 3 creates correct items and incorrect history.
+
+**Required:** store the actual `itemCount` and test a non-default conversion amount.
+
 ---
 
 ## 8. Required regression scenarios
@@ -326,7 +367,7 @@ For bonus 4 the server changes the retained second item from tier `t` to `t−1`
 3. Convergence Fusion accepts only different class-4 items of equal tier in the same normalized slot;
 4. Convergence Transfer rejects classes 1–3 and preserves PR #89 normal Transfer behaviour;
 5. Dust capacity stops at 325 with the current-limit-minus-75 price;
-6. 60 Dust → 3 Slivers and 50 Slivers → 1 Core fail atomically when resources are insufficient;
+6. 60 Dust → 3 Slivers and 50 Slivers → 1 Core fail atomically when resources are insufficient or result insertion fails;
 7. non-Premium characters receive no Dust but can loot valid Fiendish Slivers;
 8. one Dust roll is shared by all eligible party recipients;
 9. party recipients satisfy shared-experience range plus current `CONDITION_INFIGHT`;
@@ -337,7 +378,9 @@ For bonus 4 the server changes the retained second item from tier `t` to `t−1`
 14. tier 1–10 chance tables and Amplification are tested;
 15. every Fusion success bonus is forced deterministically and checked for item tiers/resources/history/protocol;
 16. impossible boundary bonuses are never reported without their documented effect;
-17. OTClient displays all server bonus outcomes from a captured packet fixture.
+17. OTClient displays all server bonus outcomes from a captured packet fixture;
+18. injected failure after every Forge mutation restores the complete pre-operation state;
+19. all three conversion history types and actual configurable amounts round-trip correctly.
 
 ---
 
@@ -394,7 +437,18 @@ Updated F-006, F-007, F-008 and F-013. Formatter and repository agent-tool workf
 - Confirmed existing Forge integration tests do not cover the complete bonus matrix.
 - Recorded F-014 through F-019.
 
-No production code changed in this pass.
+No production code changed.
+
+### 2026-07-12 — audit pass 4: atomicity and conversion history
+
+- Traced every mutation boundary in Fusion, Transfer and resource conversion.
+- Confirmed that prevalidation does not provide rollback after mutation starts.
+- Found Sliver loss and false-success history paths in Sliver→Core conversion.
+- Found hardcoded failed-Fusion Dust history, rewritten conversion action types and hardcoded Sliver history amount.
+- Confirmed existing integration coverage protects selected early-abort cases but does not inject failures after the first mutation.
+- Recorded F-020 through F-024.
+
+No production code changed.
 
 ---
 
@@ -402,16 +456,17 @@ No production code changed in this pass.
 
 1. add focused runtime/integration coverage for the Dust reward change;
 2. implement high-severity server-authority fixes F-003 through F-005 before resource mutation;
-3. redesign bonus result data and implement F-014 through F-019 jointly across Canary and OTClient;
-4. implement configuration corrections F-001/F-002;
-5. establish the authoritative Fiendish difficulty-to-Sliver rule for F-009;
-6. fix F-011/F-012 and add effect tests;
-7. resolve F-010 only after confirming intended precision;
-8. run the normal build/test matrix;
-9. perform runtime and gameplay validation before declaring parity.
+3. introduce atomic transaction/rollback handling for F-020/F-021;
+4. redesign bonus result data and implement F-014 through F-019 jointly across Canary and OTClient;
+5. correct conversion/history findings F-022 through F-024;
+6. implement configuration corrections F-001/F-002;
+7. establish the authoritative Fiendish difficulty-to-Sliver rule for F-009;
+8. fix F-011/F-012 and add effect tests;
+9. resolve F-010 only after confirming intended precision;
+10. run the normal build/test matrix and perform runtime/gameplay validation before declaring parity.
 
 ---
 
 ## 11. Handoff
 
-Continue on `validation/equipment-upgrade` and read this file plus `OTS_AI_WORLD_VALIDATION_PROJECT.md` first. Preserve PR #89/#110 behaviour. F-006/F-007/F-008/F-013 have code changes but still require runtime evidence. F-001–F-005 and F-009–F-012 remain open. F-014–F-019 require a coordinated Canary/OTClient result model; do not patch only the labels. Static evidence reaches B–C for explicitly marked rows; full Equipment Upgrade parity has not been established.
+Continue on `validation/equipment-upgrade` and read this file plus `OTS_AI_WORLD_VALIDATION_PROJECT.md` first. Preserve PR #89/#110 behaviour. F-006/F-007/F-008/F-013 have code changes but still require runtime evidence. F-001–F-005 and F-009–F-012 remain open. F-014–F-019 require a coordinated Canary/OTClient result model. F-020–F-024 require transaction and history regression tests. Static evidence reaches B–C for explicitly marked rows; full Equipment Upgrade parity has not been established.
