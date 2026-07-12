@@ -40,10 +40,11 @@ Lua editing.
 - `tools/analytics/generate_gameplay_analytics_hunt_areas.py` — assembles a candidate file into
   a ready-to-paste Lua snippet, after validating it together with the
   existing table.
-- `tools/analytics/gameplay_analytics_hunt_area_candidates.example.json` — a template with
-  placeholder coordinates; copy it, do not edit it in place.
+- `tools/analytics/gameplay_analytics_hunt_area_candidates.example.json` — an intentionally
+  invalid template with placeholder coordinates; copy it, do not edit it in
+  place, and replace every placeholder before running the generator.
 - `tools/analytics/fixtures/hunt_areas/*.json` — synthetic fixtures (not
-  real game locations) used by `test_gameplay_analytics_hunt_areas.py`.
+  real game locations) used by `test_gameplay_analytics_hunt_areas.py` and CI.
 
 ## Process for adding a new hunt area
 
@@ -61,8 +62,9 @@ Lua editing.
    ```
 
    This validates your candidate together with every area already in the
-   shipped config. It refuses to print anything if the result would contain
-   a duplicate name or an overlapping rectangle.
+   shipped config. It refuses to print anything if the result contains the
+   shipped placeholder name, the example-only `_comment` marker, a duplicate
+   name or an overlapping rectangle.
 4. Paste the printed `huntAreas = { ... }` table over the existing one in
    `data-otservbr-global/scripts/config/gameplay_analytics.lua`.
 5. Run the validator as a final check:
@@ -75,6 +77,11 @@ Lua editing.
    with fallback-grid totals for the same period before relying on the new
    name in a dashboard, as already recommended in the context rollout
    checklist.
+
+The example candidate file is expected to fail validation. This is deliberate:
+it prevents a copied but unfinished template from being mistaken for a verified
+hunt. CI separately generates a catalogue from the valid synthetic fixture to
+prove the normal generation path still works.
 
 ## First-match ordering
 
@@ -90,6 +97,10 @@ silently order-dependent in production.
 
 ## What the validator checks
 
+- **Placeholder content**: the exact `REPLACE_WITH_REAL_HUNT_NAME` value is
+  rejected in both candidate JSON and the shipped Lua table. Candidate JSON
+  is also rejected while it still contains the example-only `_comment`
+  marker.
 - **Malformed coordinates**: `from.x/y/z` must not exceed the matching
   `to.x/y/z`; every coordinate must be an integer within the range the
   engine can represent (`x`/`y` in `[0, 65535]`, `z` in `[0, 15]` per
@@ -116,7 +127,8 @@ persisted.
 
 `tools/analytics/test_gameplay_analytics_hunt_areas.py` covers: parsing a candidate file,
 parsing (and round-tripping) the Lua table format, rejecting a missing
-`huntAreas` block, rejecting inverted or out-of-range coordinates, accepting
-non-overlapping areas, rejecting overlapping and case-insensitive-duplicate
-areas, and confirming that identical footprints on different floors are not
-flagged as overlapping.
+`huntAreas` block, rejecting inverted or out-of-range coordinates, rejecting
+the placeholder name and example-only comment marker, accepting non-overlapping
+areas, rejecting overlapping and case-insensitive-duplicate areas, and
+confirming that identical footprints on different floors are not flagged as
+overlapping.

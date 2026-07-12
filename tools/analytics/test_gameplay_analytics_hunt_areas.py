@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import sys
+import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -53,6 +55,50 @@ class HuntAreaParsingTest(unittest.TestCase):
     def test_rejects_out_of_range_floor(self) -> None:
         with self.assertRaisesRegex(HuntAreaError, "valid floor range"):
             parse_candidate_file(FIXTURES / "out_of_range.json")
+
+    def test_rejects_placeholder_name_in_candidate(self) -> None:
+        candidate = [
+            {
+                "name": "REPLACE_WITH_REAL_HUNT_NAME",
+                "from": {"x": 100, "y": 100, "z": 7},
+                "to": {"x": 110, "y": 110, "z": 7},
+            }
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "candidate.json"
+            path.write_text(json.dumps(candidate), encoding="utf-8")
+            with self.assertRaisesRegex(HuntAreaError, "placeholder hunt area name"):
+                parse_candidate_file(path)
+
+    def test_rejects_placeholder_name_in_lua_config(self) -> None:
+        text = """
+        return {
+            huntAreas = {
+                {
+                    name = "REPLACE_WITH_REAL_HUNT_NAME",
+                    from = { x = 100, y = 100, z = 7 },
+                    to = { x = 110, y = 110, z = 7 },
+                },
+            },
+        }
+        """
+        with self.assertRaisesRegex(HuntAreaError, "placeholder hunt area name"):
+            parse_lua_config(text, "fixture")
+
+    def test_rejects_example_comment_marker(self) -> None:
+        candidate = [
+            {
+                "name": "verified-area",
+                "from": {"x": 100, "y": 100, "z": 7},
+                "to": {"x": 110, "y": 110, "z": 7},
+                "_comment": "EXAMPLE ONLY. Replace these values.",
+            }
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "candidate.json"
+            path.write_text(json.dumps(candidate), encoding="utf-8")
+            with self.assertRaisesRegex(HuntAreaError, "example-only _comment marker"):
+                parse_candidate_file(path)
 
 
 class HuntAreaValidationTest(unittest.TestCase):

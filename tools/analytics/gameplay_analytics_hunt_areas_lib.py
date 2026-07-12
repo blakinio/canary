@@ -22,6 +22,8 @@ from typing import Any
 # engine itself can represent - not a guessed play-area size.
 MIN_Z, MAX_Z = 0, 15
 MIN_XY, MAX_XY = 0, 65535
+PLACEHOLDER_NAME = "REPLACE_WITH_REAL_HUNT_NAME"
+EXAMPLE_COMMENT_MARKER = "EXAMPLE ONLY"
 
 
 @dataclass(frozen=True)
@@ -52,14 +54,18 @@ def _require(condition: bool, message: str) -> None:
 
 
 def _coerce_area(raw: dict[str, Any], source: str) -> HuntArea:
-    _require(isinstance(raw.get("name"), str) and raw["name"].strip() != "", f"{source}: hunt area name must be a non-empty string")
+    raw_name = raw.get("name")
+    _require(isinstance(raw_name, str) and raw_name.strip() != "", f"{source}: hunt area name must be a non-empty string")
+    name = raw_name.strip()
+    _require(name.casefold() != PLACEHOLDER_NAME.casefold(), f"{source}: replace the placeholder hunt area name before validation")
+
     for key in ("from", "to"):
-        _require(isinstance(raw.get(key), dict), f"{source} ({raw.get('name')}): missing '{key}' coordinates")
+        _require(isinstance(raw.get(key), dict), f"{source} ({name}): missing '{key}' coordinates")
         for axis in ("x", "y", "z"):
-            _require(isinstance(raw[key].get(axis), int), f"{source} ({raw.get('name')}): '{key}.{axis}' must be an integer")
+            _require(isinstance(raw[key].get(axis), int), f"{source} ({name}): '{key}.{axis}' must be an integer")
 
     area = HuntArea(
-        name=raw["name"],
+        name=name,
         from_x=raw["from"]["x"],
         from_y=raw["from"]["y"],
         from_z=raw["from"]["z"],
@@ -125,7 +131,18 @@ def parse_lua_config(text: str, source: str) -> list[HuntArea]:
 def parse_candidate_file(path: Path) -> list[HuntArea]:
     data = json.loads(path.read_text(encoding="utf-8"))
     _require(isinstance(data, list), f"{path}: candidate file must contain a JSON list of hunt areas")
-    return [_coerce_area(entry, str(path)) for entry in data]
+
+    areas = []
+    for index, entry in enumerate(data):
+        source = f"{path}[{index}]"
+        _require(isinstance(entry, dict), f"{source}: each candidate must be a JSON object")
+        comment = entry.get("_comment")
+        _require(
+            not (isinstance(comment, str) and EXAMPLE_COMMENT_MARKER.casefold() in comment.casefold()),
+            f"{source}: remove the example-only _comment marker before generating",
+        )
+        areas.append(_coerce_area(entry, source))
+    return areas
 
 
 def validate_areas(areas: list[HuntArea]) -> list[str]:

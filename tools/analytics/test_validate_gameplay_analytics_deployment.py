@@ -27,13 +27,24 @@ class GameplayAnalyticsDeploymentValidationTest(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "missing keys"):
             validator.validate_env_example(broken)
 
-    def test_rejects_missing_placeholder_guard(self) -> None:
-        broken = self.install.replace(
-            'if [[ "${DB_PASSWORD}" == "CHANGE_ME" ]]; then\n\techo "DB_PASSWORD still has the placeholder value from gameplay-analytics.env.example; set the real database password before installing" >&2\n\texit 1\nfi\n\n',
-            "",
-            1,
-        )
-        with self.assertRaisesRegex(AssertionError, "placeholder password"):
+    def test_rejects_missing_password_guard(self) -> None:
+        broken = self.install.replace(validator.PASSWORD_GUARD, 'if [[ "${DB_PASSWORD}" == "CHANGE_ME" ]]; then', 1)
+        with self.assertRaisesRegex(AssertionError, "empty and placeholder database passwords"):
+            validator.validate_install_script(broken)
+
+    def test_rejects_missing_server_version_guard(self) -> None:
+        broken = self.install.replace(validator.SERVER_VERSION_GUARD, 'if [[ "${CANARY_SERVER_VERSION}" == "CHANGE_ME" ]]; then', 1)
+        with self.assertRaisesRegex(AssertionError, "empty and placeholder server versions"):
+            validator.validate_install_script(broken)
+
+    def test_rejects_guard_after_sql_access(self) -> None:
+        guard = validator.SERVER_VERSION_GUARD
+        start = self.install.index(guard)
+        end = self.install.index("fi\n", start) + len("fi\n")
+        block = self.install[start:end]
+        without_block = self.install[:start] + self.install[end:]
+        broken = without_block.replace('export MYSQL_PWD="${DB_PASSWORD}"', f'export MYSQL_PWD="${{DB_PASSWORD}}"\n{block}', 1)
+        with self.assertRaisesRegex(AssertionError, "before any SQL access"):
             validator.validate_install_script(broken)
 
     def test_rejects_config_file_write(self) -> None:

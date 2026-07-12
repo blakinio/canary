@@ -21,6 +21,7 @@ on:
       - "docs/systems/gameplay-analytics-deployment.md"
       - "tools/analytics/gameplay-analytics.env.example"
       - "tools/analytics/install_gameplay_analytics.sh"
+      - "tools/analytics/test_install_gameplay_analytics_guards.sh"
       - "tools/analytics/migrate_gameplay_analytics.sh"
       - "tools/analytics/test_gameplay_analytics_batching.lua"
       - "tools/analytics/test_gameplay_analytics_context.lua"
@@ -61,6 +62,7 @@ on:
       - "docs/systems/gameplay-analytics-deployment.md"
       - "tools/analytics/gameplay-analytics.env.example"
       - "tools/analytics/install_gameplay_analytics.sh"
+      - "tools/analytics/test_install_gameplay_analytics_guards.sh"
       - "tools/analytics/migrate_gameplay_analytics.sh"
       - "tools/analytics/test_gameplay_analytics_batching.lua"
       - "tools/analytics/test_gameplay_analytics_context.lua"
@@ -106,7 +108,11 @@ jobs:
       - name: Validate gameplay analytics deployment contract
         run: python tools/analytics/validate_gameplay_analytics_deployment.py
       - name: Check deployment shell syntax
-        run: bash -n tools/analytics/install_gameplay_analytics.sh
+        run: |
+          bash -n tools/analytics/install_gameplay_analytics.sh
+          bash -n tools/analytics/test_install_gameplay_analytics_guards.sh
+      - name: Test deployment environment guards
+        run: bash tools/analytics/test_install_gameplay_analytics_guards.sh
       - name: Run gameplay analytics validator tests
         run: |
           set -o pipefail
