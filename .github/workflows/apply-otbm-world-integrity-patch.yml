@@ -1,0 +1,51 @@
+name: Apply OTBM world-index integrity patch
+
+on:
+  push:
+    branches:
+      - feat/otbm-world-index-implementation
+    paths:
+      - tools/ai-agent/apply_otbm_world_integrity_patch.py
+      - tools/ai-agent/.otbm_world_patch/**
+      - .github/workflows/apply-otbm-world-integrity-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Materialize reviewed patch
+        run: python tools/ai-agent/apply_otbm_world_integrity_patch.py
+
+      - name: Compile native scanner
+        run: |
+          c++ -O2 -std=c++20 -Wall -Wextra -Wpedantic -Werror \
+            tools/ai-agent/otbm_item_audit_scan.cpp \
+            -o /tmp/otbm_item_audit_scan
+
+      - name: Run focused tests
+        run: PYTHONPATH=tools/ai-agent python -m unittest -v tools/ai-agent/test_otbm_world_index.py
+
+      - name: Compile Python modules
+        run: |
+          python -m py_compile \
+            tools/ai-agent/otbm_world_index.py \
+            tools/ai-agent/otbm_world_index_tool.py \
+            tools/ai-agent/test_otbm_world_index.py
+
+      - name: Commit reviewed sources and remove bootstrap payloads
+        run: |
+          rm -rf tools/ai-agent/.otbm_world_patch
+          rm -f tools/ai-agent/apply_otbm_world_integrity_patch.py
+          rm -f .github/workflows/apply-otbm-world-integrity-patch.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(ai-agent): harden OTBM world-index integrity"
+          git push origin HEAD:feat/otbm-world-index-implementation
