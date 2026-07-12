@@ -1,11 +1,12 @@
 # Active Work Index
 
-Last reviewed: 2026-07-12
+Last reviewed: 2026-07-12T18:07:00+02:00
 
 Open pull requests and current changed files/checks are authoritative. This index helps agents detect likely overlap.
 
 | PR | Branch | State | Area / reusable work | Primary paths | Coordination note |
 |---:|---|---|---|---|---|
+| draft | `feat/otbm-hd-batch-ai-backend` | active | One-process batch external AI backend and optional TibiaSR 2x reference adapter for the merged OTBM HD pipeline | `tools/ai-agent/otbm_hd_batch*`, focused tests/docs | Reuses #154 override validation; no map, client asset, model weight, or generated preview changes. |
 | [#149](https://github.com/blakinio/canary/pull/149) | `fix/the-beginning-zirella-wood` | ready | Authentic Zirella Collecting Wood progression | The Beginning quest Action, focused contract test, task record | No map change; exact tree/cart positions and current item/storage IDs. Depends on merged #146. |
 
 ## Rules
