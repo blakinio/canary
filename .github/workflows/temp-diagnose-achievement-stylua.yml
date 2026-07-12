@@ -28,6 +28,9 @@ jobs:
           version: latest
           args: data/scripts/lib/register_achievements.lua
 
+      - name: Reset isolated formatting
+        run: git reset --hard HEAD
+
       - name: Format test only
         id: test
         continue-on-error: true
@@ -37,10 +40,26 @@ jobs:
           version: latest
           args: tests/lua/test_achievement_helpers.lua
 
+      - name: Reset isolated formatting again
+        run: git reset --hard HEAD
+
+      - name: Format repository
+        id: repository
+        continue-on-error: true
+        uses: JohnnyMorganz/stylua-action@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: latest
+          args: .
+
       - name: Record outcomes
         run: |
-          printf 'registry=%s\ntest=%s\n' '${{ steps.registry.outcome }}' '${{ steps.test.outcome }}' | tee stylua-outcomes.txt
+          printf 'registry=%s\ntest=%s\nrepository=%s\n' \
+            '${{ steps.registry.outcome }}' \
+            '${{ steps.test.outcome }}' \
+            '${{ steps.repository.outcome }}' | tee stylua-outcomes.txt
           git status --short | tee stylua-status.txt
+          git diff --stat | tee stylua-diff-stat.txt
 
       - name: Upload diagnosis
         uses: actions/upload-artifact@v4
@@ -49,4 +68,5 @@ jobs:
           path: |
             stylua-outcomes.txt
             stylua-status.txt
+            stylua-diff-stat.txt
           retention-days: 1
