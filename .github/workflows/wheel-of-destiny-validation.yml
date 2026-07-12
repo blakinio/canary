@@ -14,12 +14,15 @@ on:
       - "src/io/io_wheel.*"
       - "src/config/configmanager.cpp"
       - "src/server/network/protocol/**"
+      - "src/game/game.cpp"
       - "data/**/*wheel*.lua"
       - "data/**/*gem*.lua"
       - "data-otservbr-global/**/*wheel*.lua"
       - "data-otservbr-global/**/*gem*.lua"
       - "tools/ai-agent/wheel_of_destiny_validation.py"
       - "tools/ai-agent/test_wheel_of_destiny_validation.py"
+      - "tools/ai-agent/wheel_protocol_validation.py"
+      - "tools/ai-agent/test_wheel_protocol_validation.py"
       - "docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json"
       - "docs/ai-agent/WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json"
       - ".github/workflows/wheel-of-destiny-validation.yml"
@@ -30,12 +33,15 @@ on:
       - "src/io/io_wheel.*"
       - "src/config/configmanager.cpp"
       - "src/server/network/protocol/**"
+      - "src/game/game.cpp"
       - "data/**/*wheel*.lua"
       - "data/**/*gem*.lua"
       - "data-otservbr-global/**/*wheel*.lua"
       - "data-otservbr-global/**/*gem*.lua"
       - "tools/ai-agent/wheel_of_destiny_validation.py"
       - "tools/ai-agent/test_wheel_of_destiny_validation.py"
+      - "tools/ai-agent/wheel_protocol_validation.py"
+      - "tools/ai-agent/test_wheel_protocol_validation.py"
       - "docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json"
       - "docs/ai-agent/WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json"
       - ".github/workflows/wheel-of-destiny-validation.yml"
@@ -59,7 +65,7 @@ jobs:
           python-version: "3.12"
 
       - name: Run focused tests
-        run: python -m unittest discover -s tools/ai-agent -p "test_wheel_of_destiny_validation.py" -v
+        run: python -m unittest discover -s tools/ai-agent -p "test_wheel*_validation.py" -v
 
       - name: Generate Wheel audit
         run: |
@@ -70,14 +76,27 @@ jobs:
             --markdown artifacts/WHEEL_OF_DESTINY_AUDIT.md \
             --allow-findings
 
+      - name: Generate protocol boundary audit
+        run: |
+          python tools/ai-agent/wheel_protocol_validation.py \
+            --repository-root . \
+            --maximum-revealed 225 \
+            --output artifacts/WHEEL_PROTOCOL_AUDIT.json \
+            --markdown artifacts/WHEEL_PROTOCOL_AUDIT.md \
+            --allow-findings
+
       - name: Validate generated JSON
         run: |
           python -m json.tool artifacts/WHEEL_OF_DESTINY_AUDIT.json > /dev/null
+          python -m json.tool artifacts/WHEEL_PROTOCOL_AUDIT.json > /dev/null
           python -m json.tool docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json > /dev/null
           python -m json.tool docs/ai-agent/WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json > /dev/null
 
       - name: Publish audit summary
-        run: cat artifacts/WHEEL_OF_DESTINY_AUDIT.md >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          cat artifacts/WHEEL_OF_DESTINY_AUDIT.md >> "$GITHUB_STEP_SUMMARY"
+          printf '\n---\n\n' >> "$GITHUB_STEP_SUMMARY"
+          cat artifacts/WHEEL_PROTOCOL_AUDIT.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload audit artifact
         uses: actions/upload-artifact@v4
@@ -86,5 +105,7 @@ jobs:
           path: |
             artifacts/WHEEL_OF_DESTINY_AUDIT.json
             artifacts/WHEEL_OF_DESTINY_AUDIT.md
+            artifacts/WHEEL_PROTOCOL_AUDIT.json
+            artifacts/WHEEL_PROTOCOL_AUDIT.md
           if-no-files-found: error
           retention-days: 14
