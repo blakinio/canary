@@ -7,7 +7,7 @@ base_branch: main
 created: 2026-07-12
 updated: 2026-07-12
 risk: medium
-related_pr: ""
+related_pr: "#149"
 depends_on:
   - "PR #146 The Beginning dependency audit"
 blocks:
@@ -48,17 +48,26 @@ Official-Tibia historical cross-check:
 - historical ORTS implementations remove the branch, show green magic, and set both Zirella storages to 7 after one delivery;
 - the old dialogue mentions two branches, but the actual historical server transition and current Canary state machine complete after one. The implementation follows the executable/current contract and records this discrepancy rather than inventing a counter storage.
 
+# Implemented contract
+
+- `the_beginning_zirella_wood.lua` registers only item `7753` and item `7772` actions.
+- Tree behavior is bounded to the five map-verified Tutorial Island coordinates.
+- Both Zirella storages must equal stage `6` before either action can progress.
+- A successful tree use creates branch `7772` on the player's tile, starts its decay, sends tutorial `24`, advances the hint to at least `15`, and applies the historical five-second weapon-exhaust condition.
+- A successful branch use requires cart `7751` at exactly `32062,32271,7`, removes one branch, emits `CONST_ME_MAGIC_GREEN`, and writes both Zirella storages to stage `7`.
+- Stage `7+` cannot consume another branch because the exact stage-6 gate is no longer satisfied.
+
 # Acceptance criteria
 
-- [ ] register exactly dead-tree item `7753` and branch item `7772`;
-- [ ] bound dead-tree behavior to the five verified tutorial positions;
-- [ ] require the accepted Zirella stage before branch creation;
-- [ ] create branch `7772` on the player's ground tile, not directly in inventory;
-- [ ] preserve the historical short-use exhaust and tutorial-hint progression;
-- [ ] accept the branch only on cart `7751` at `32062,32271,7`;
-- [ ] consume exactly one branch, show green magic, and set `ZirellaNpcGreetStorage` and `ZirellaQuestLog` to `7` exactly once;
-- [ ] do not modify `.otbm`, items, NPCs, spawns, engine, or unrelated gameplay;
-- [ ] add focused deterministic contract tests;
+- [x] register exactly dead-tree item `7753` and branch item `7772`;
+- [x] bound dead-tree behavior to the five verified tutorial positions;
+- [x] require the accepted Zirella stage before branch creation;
+- [x] create branch `7772` on the player's ground tile, not directly in inventory;
+- [x] preserve the historical short-use exhaust and tutorial-hint progression;
+- [x] accept the branch only on cart `7751` at `32062,32271,7`;
+- [x] consume exactly one branch, show green magic, and set `ZirellaNpcGreetStorage` and `ZirellaQuestLog` to `7` exactly once;
+- [x] do not modify `.otbm`, items, NPCs, spawns, engine, or unrelated gameplay;
+- [x] add focused deterministic contract tests;
 - [ ] required CI passes on the final head.
 
 # Runtime tests
@@ -71,6 +80,12 @@ Official-Tibia historical cross-check:
 6. Stage 6: using one branch on the verified cart consumes it and writes both storages to 7.
 7. Stage 7 or 8: repeated delivery does not consume another branch or duplicate progression.
 8. Zirella dialogue at stage 7 grants the existing 50 XP reward and advances both storages to 8.
+
+# Validation notes
+
+- A local clone attempt was unavailable because the execution environment could not resolve `github.com`; this is an environment/network limitation, not a test result.
+- The focused Python contract test is committed for CI execution.
+- Runtime E2E remains required on an actual Canary world after repository validation.
 
 # Safety
 
