@@ -14,6 +14,7 @@ permissions:
 
 jobs:
   apply:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,6 +26,10 @@ jobs:
           python-version: "3.12"
       - name: Apply hardening patch
         run: python tools/account-quests/bootstrap_hardening.py
+      - name: Preserve bootstrap files outside generated commit
+        run: |
+          git restore .github/workflows/account-quests-bootstrap.yml
+          git restore tools/account-quests/bootstrap_hardening.py
       - name: Commit generated changes
         run: |
           git config user.name "github-actions[bot]"
