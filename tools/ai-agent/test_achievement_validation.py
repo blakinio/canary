@@ -48,6 +48,14 @@ class AchievementValidationTests(unittest.TestCase):
         _, findings = parse_registry_text(text)
         self.assertIn("registry-grade-points-mismatch", {item["code"] for item in findings})
 
+    def test_zero_point_definition_is_an_information_exception(self) -> None:
+        text = 'ACHIEVEMENTS = {\n[1] = { name = "Zero", grade = 1, points = 0, description = "Zero." },\n}\n'
+        _, findings = parse_registry_text(text)
+        by_code = {item["code"]: item for item in findings}
+        self.assertIn("registry-zero-point-exception", by_code)
+        self.assertEqual(by_code["registry-zero-point-exception"]["severity"], "info")
+        self.assertNotIn("registry-grade-points-mismatch", by_code)
+
     def test_scans_static_dynamic_and_admin_references(self) -> None:
         text = '''
 player:addAchievement("Public One")
