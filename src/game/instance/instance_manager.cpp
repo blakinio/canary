@@ -10,6 +10,7 @@
 #include "game/instance/instance_manager.hpp"
 
 #ifndef USE_PRECOMPILED_HEADERS
+	#include <algorithm>
 	#include <stdexcept>
 	#include <utility>
 #endif
@@ -92,6 +93,9 @@ bool InstanceManager::close(InstanceId id) {
 		if (it == instances.end()) {
 			throw std::logic_error("instance disappeared during close");
 		}
+		if (!it->second.creatureIds.empty()) {
+			throw std::logic_error("instance cleanup left registered creatures");
+		}
 		if (!regionPool.release(region.slot)) {
 			throw std::logic_error("failed to release reserved instance region");
 		}
@@ -107,6 +111,85 @@ void InstanceManager::setCleanupCallback(InstanceId id, InstanceCleanupCallback 
 	if (it != instances.end()) {
 		it->second.cleanupCallback = std::move(callback);
 	}
+}
+
+bool InstanceManager::registerCreature(InstanceId id, InstanceCreatureId creatureId) {
+	if (id == InstanceId::Invalid || creatureId == INVALID_INSTANCE_CREATURE_ID) {
+		return false;
+	}
+
+	std::scoped_lock lock(mutex);
+	const auto instanceIt = instances.find(id);
+	if (instanceIt == instances.end()) {
+		return false;
+	}
+	if (instanceIt->second.state != InstanceState::Creating && instanceIt->second.state != InstanceState::Active) {
+		return false;
+	}
+
+	const auto ownerIt = creatureOwners.find(creatureId);
+	if (ownerIt != creatureOwners.end()) {
+		return ownerIt->second == id;
+	}
+
+	instanceIt->second.creatureIds.insert(creatureId);
+	creatureOwners.emplace(creatureId, id);
+	return true;
+}
+
+bool InstanceManager::unregisterCreature(InstanceId id, InstanceCreatureId creatureId) {
+	if (id == InstanceId::Invalid || creatureId == INVALID_INSTANCE_CREATURE_ID) {
+		return false;
+	}
+
+	std::scoped_lock lock(mutex);
+	const auto instanceIt = instances.find(id);
+	if (instanceIt == instances.end() || instanceIt->second.state == InstanceState::Destroyed) {
+		return false;
+	}
+
+	const auto ownerIt = creatureOwners.find(creatureId);
+	if (ownerIt == creatureOwners.end() || ownerIt->second != id) {
+		return false;
+	}
+
+	instanceIt->second.creatureIds.erase(creatureId);
+	creatureOwners.erase(ownerIt);
+	return true;
+}
+
+std::optional<InstanceId> InstanceManager::getCreatureOwner(InstanceCreatureId creatureId) const {
+	if (creatureId == INVALID_INSTANCE_CREATURE_ID) {
+		return std::nullopt;
+	}
+
+	std::scoped_lock lock(mutex);
+	const auto it = creatureOwners.find(creatureId);
+	if (it == creatureOwners.end()) {
+		return std::nullopt;
+	}
+	return it->second;
+}
+
+std::vector<InstanceCreatureId> InstanceManager::getRegisteredCreatureIds(InstanceId id) const {
+	std::scoped_lock lock(mutex);
+	const auto it = instances.find(id);
+	if (it == instances.end()) {
+		return {};
+	}
+
+	std::vector<InstanceCreatureId> ids(it->second.creatureIds.begin(), it->second.creatureIds.end());
+	std::ranges::sort(ids);
+	return ids;
+}
+
+std::size_t InstanceManager::registeredCreatureCount(InstanceId id) const {
+	std::scoped_lock lock(mutex);
+	const auto it = instances.find(id);
+	if (it == instances.end()) {
+		return 0;
+	}
+	return it->second.creatureIds.size();
 }
 
 std::optional<InstanceState> InstanceManager::getState(InstanceId id) const {
