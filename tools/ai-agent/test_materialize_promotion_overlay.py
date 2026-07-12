@@ -86,6 +86,19 @@ class PromotionOverlayTests(unittest.TestCase):
             with self.assertRaisesRegex(OverlayMaterializationError, "outside target datapack"):
                 materialize(handoff, generated, root / "escape", confirm_reviewed=True)
 
+    def test_rejects_absolute_and_parent_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            handoff, generated, _content = self._fixture(root)
+            handoff["files"][0]["targetPath"] = "/data-canary/npc/keeper.lua"
+            with self.assertRaisesRegex(OverlayMaterializationError, "unsafe target path"):
+                materialize(handoff, generated, root / "absolute", confirm_reviewed=True)
+
+            handoff, generated, _content = self._fixture(root / "second")
+            handoff["files"][0]["previewPath"] = "../keeper.lua"
+            with self.assertRaisesRegex(OverlayMaterializationError, "unsafe preview path"):
+                materialize(handoff, generated, root / "parent", confirm_reviewed=True)
+
     def test_rejects_duplicate_target_and_symlinked_source(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
