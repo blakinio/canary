@@ -43,8 +43,14 @@ class ImbuementValidationTests(unittest.TestCase):
             "MISSING_RUNTIME_PATH",
             "MISSING_RUNTIME_MARKER",
         }
+        structural_findings = [
+            finding
+            for finding in self.findings
+            if finding.code in structural_codes
+        ]
         self.assertFalse(
-            structural_codes.intersection(finding.code for finding in self.findings)
+            structural_findings,
+            [finding.message for finding in structural_findings],
         )
 
     def test_current_reference_differences_are_detected(self) -> None:
