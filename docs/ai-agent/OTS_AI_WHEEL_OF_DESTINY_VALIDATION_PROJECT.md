@@ -5,7 +5,7 @@
 > **Repozytorium zapisywalne:** `blakinio/canary`  
 > **Gałąź robocza:** `feat/wheel-of-destiny-validation-audit`  
 > **Draft PR:** [#169](https://github.com/blakinio/canary/pull/169)  
-> **Aktualny etap:** deterministyczny audyt statyczny; CI i dalsza walidacja protocol/persistence/runtime  
+> **Aktualny etap:** audyt statyczny i current-payload protocol boundary; persistence, OTClient contract i runtime pozostają otwarte  
 > **Najważniejsza zasada:** obecność definicji, getter'a lub handlera nie dowodzi poprawności gameplay. Każda cecha wymaga osobnych dowodów definicji, aktywacji, efektu, zapisu, protokołu i runtime.
 
 ---
@@ -76,6 +76,16 @@ TibiaWiki/Fandom jest wersjonowanym źródłem porównawczym, nie automatycznym 
 
 Jeżeli audyt potwierdzi różnicę payloadu lub opcode, wymagane jest porównanie z kompatybilnym OTClientem i osobny kontrakt Canary ↔ OTClient w `docs/agents/CROSS_REPO_CONTRACTS.md`. PR #169 nie zmienia protokołu.
 
+Current-payload entry point został potwierdzony:
+
+```text
+opcode 0xE7
+  -> ProtocolGame::parseWheelGemAction
+  -> direct PlayerWheel methods
+```
+
+Dla `Reveal` i `ImproveGrade` parser przekazuje wartości klienta bez walidacji limitu/indeksu. Legacy payload nadal wymaga osobnego prześledzenia przez `Game::playerWheelGemAction`.
+
 ---
 
 ## 3. Główne ścieżki kodu
@@ -104,7 +114,7 @@ data-otservbr-global/migrations/33.lua
 schema.sql
 ```
 
-Lista nie jest uznana za kompletną bez wyniku skanera i semantic call-site review.
+Pierwszy CI artifact zinwentaryzował 30 Wheel-related paths. Lista nadal nie jest uznana za kompletną semantycznie bez pełnego call-site review.
 
 ---
 
@@ -112,26 +122,33 @@ Lista nie jest uznana za kompletną bez wyniku skanera i semantic call-site revi
 
 | Path | Cel | Stan |
 |---|---|---|
-| `tools/ai-agent/wheel_of_destiny_validation.py` | deterministyczny read-only scanner i klasyfikator | utworzony |
-| `tools/ai-agent/test_wheel_of_destiny_validation.py` | focused parser/finding tests | utworzony; 7 lokalnych testów passed |
+| `tools/ai-agent/wheel_of_destiny_validation.py` | deterministyczny read-only scanner i klasyfikator | utworzony; rozszerzony o protocol boundary |
+| `tools/ai-agent/test_wheel_of_destiny_validation.py` | focused parser/finding tests | utworzony; 7 lokalnych testów passed po rozszerzeniu |
 | `docs/ai-agent/WHEEL_OF_DESTINY_REFERENCE_BASELINE.json` | wersjonowane wartości ze wskazanego snapshotu | utworzony |
-| `docs/ai-agent/WHEEL_OF_DESTINY_VALIDATION_REPORT.md` | human-readable evidence report | utworzony |
+| `docs/ai-agent/WHEEL_OF_DESTINY_VALIDATION_REPORT.md` | human-readable evidence report | utworzony i aktualizowany |
 | `docs/ai-agent/WHEEL_OF_DESTINY_RUNTIME_TEST_PLAN.json` | 20 scenariuszy runtime/protocol/persistence | utworzony |
-| `.github/workflows/wheel-of-destiny-validation.yml` | CI: tests, audit, JSON validation, artifacts | utworzony; wynik CI pending |
+| `.github/workflows/wheel-of-destiny-validation.yml` | CI: tests, audit, JSON validation, artifacts | pierwszy run `29203018790` passed; run po protocol enhancement pending |
 
-Skaner obecnie:
+Pierwszy potwierdzony CI artifact:
 
-- parsuje 36 slotów i Revelation thresholds;
-- parsuje config defaults, Promotion Scrolls, grade costs i multipliers;
-- porównuje kod z baseline;
-- wykrywa duplicate adjacency checks;
-- wykrywa podwójne naliczenie Revelation Mastery;
-- sprawdza ścieżkę Grade IV points i Hunting Task points;
-- flaguje brak cap check wewnątrz `revealGem()`;
-- flaguje kolejność resource removal oraz client-supplied grade position;
-- inwentaryzuje wszystkie tekstowe ścieżki Wheel/Gem Atelier.
+```text
+run: 29203018790
+head: 13c14437b40db057a094f3625215b10b4061ed6b
+result: success
+source files: 30
+findings: 4 errors / 6 warnings
+doubled Revelation Mastery variants: 16
+```
 
-Skaner nie twierdzi, że statyczny match jest dowodem runtime.
+Po caller/protocol review skaner został rozszerzony tak, aby:
+
+- analizował `ProtocolGame::parseWheelGemAction()`;
+- traktował brak cap 225 w parserze i `revealGem()` jako błąd;
+- odczytywał rozmiary `m_basicGrades[49]` i `m_supremeGrades[95]`;
+- traktował dowolny client byte przekazany do bezpośredniego indeksowania jako błąd bounds safety;
+- zachowywał resource-ordering jako ostrzeżenie do fault-injection review.
+
+Oczekiwany wynik nowej wersji na niezmienionym runtime to 6 errors / 4 warnings; wiążący wynik zostanie zapisany dopiero po CI.
 
 ---
 
@@ -187,7 +204,7 @@ Wszystkie te pozycje pozostają `static-consistent`, nie `verified`.
 
 ---
 
-## 7. Potwierdzone statyczne problemy
+## 7. Potwierdzone problemy
 
 ### WOD-F001 — Supreme Grade III: 12m zamiast 12.5m
 
@@ -216,9 +233,29 @@ Wszystkie te pozycje pozostają `static-consistent`, nie `verified`.
 - **Confidence:** high
 - **Code:** przypadki Revelation Mastery jednocześnie tworzą `GemModifierRevelationStrategy` i wywołują `m_wheel.addRevelationBonus(...)` natychmiast.
 - **Execution:** `PlayerWheel::processActiveGems()` następnie uruchamia `executeStrategies()`, które stosuje queued strategy drugi raz.
-- **Impact:** aktywny mod wygląda na naliczany dwukrotnie.
+- **Coverage:** pierwszy CI artifact wykrył 16 wariantów general/vocation.
 - **Runtime:** unverified.
 - **Follow-up:** osobny correction PR i regression test: exactly once per active gem, no accumulation on recalculation.
+
+### WOD-F004 — limit 225 revealed gems nie jest egzekwowany
+
+- **Disposition:** `mismatch`
+- **Confidence:** high dla current payload.
+- **Reference:** maksymalnie 225 revealed gems.
+- **Protocol:** `ProtocolGame::parseWheelGemAction()` przekazuje Reveal bez sprawdzenia liczby gemów.
+- **Runtime:** `PlayerWheel::revealGem()` sprawdza item i money, ale nie rozmiar `m_revealedGems`.
+- **Impact:** current-payload client może ujawniać kolejne gemy po przekroczeniu 225, jeżeli ma wymagane zasoby.
+- **Follow-up:** osobny invariant PR z checkiem centralnym i boundary testem 225/226.
+
+### WOD-F005 — ImproveGrade przyjmuje dowolny indeks klienta przed bounds check
+
+- **Disposition:** `protocol-input-safety`
+- **Confidence:** high dla current payload.
+- **Protocol:** pozycja jest pojedynczym client byte i jest bezpośrednio przekazywana do `improveGemGrade()`.
+- **Runtime:** metoda najpierw odczytuje `m_basicGrades[pos]` lub `m_supremeGrades[pos]`.
+- **Bounds:** tablice mają odpowiednio 49 i 95 elementów, a byte dopuszcza 0..255.
+- **Impact:** malformed current-payload packet może wywołać out-of-bounds access/undefined behavior przed jakąkolwiek walidacją grade/cost.
+- **Follow-up:** osobny input-hardening PR z membership/bounds validation przed odczytem oraz malformed-packet testem.
 
 Pełny opis: `docs/ai-agent/WHEEL_OF_DESTINY_VALIDATION_REPORT.md`.
 
@@ -227,12 +264,11 @@ Pełny opis: `docs/ai-agent/WHEEL_OF_DESTINY_VALIDATION_REPORT.md`.
 ## 8. Ryzyka wymagające dalszych dowodów
 
 - **WOD-R001:** bezpośrednia ścieżka Hunting Task Shop points nie występuje w `getExtraPoints()`; pełny Lua/KV review pending.
-- **WOD-R002:** `revealGem()` nie ma lokalnego limitu 225; caller/protocol check pending.
-- **WOD-R003:** reveal/upgrade usuwają money przed item/fragments bez lokalnego refund branch; fault-injection pending.
-- **WOD-R004:** `improveGemGrade()` wygląda na indeksowanie client-supplied `pos` przed bounds/membership check; protocol parser pending.
+- **WOD-R003:** reveal/upgrade usuwają money przed item/fragments bez lokalnego refund branch; oba wykonują precheck item count, dlatego klasyfikacja wymaga fault-injection/concurrency evidence.
 - **WOD-R005:** `SLOT_GREEN_TOP_100` sprawdza `SLOT_GREEN_MIDDLE_100` dwa razy; pełny graph comparison pending.
+- **WOD-R006:** legacy payload przechodzi przez `Game::playerWheelGemAction`; jego walidacja i zgodność z current payload są pending.
 
-Nie wolno zmieniać ich na confirmed defects bez brakujących dowodów.
+Nie wolno zmieniać tych ryzyk na confirmed defects bez brakujących dowodów.
 
 ---
 
@@ -267,13 +303,13 @@ Wymagane wszystkie aktywne profesje, w tym Monk tylko zgodnie z aktywną wersją
 - effective grade gating przez poprzedni slot;
 - Momentum;
 - transactional failure paths;
-- max 225;
 - save/load UUID consistency.
 
 ### Persistence i protocol
 
 - schema, migrations, KV i corrupted/legacy data;
 - complete round-trip;
+- legacy payload path;
 - opcodes, field order, widths, counts i feature gates;
 - compatible OTClient comparison;
 - malformed indexes/counts rejected server-side.
@@ -293,11 +329,30 @@ W PR #169 nie wolno zmieniać:
 - itemów, datapacka, `.otbm`, `items.otb` ani client assets;
 - produkcyjnej konfiguracji.
 
-Każdy potwierdzony defect ma trafić do osobnego, małego PR-a z focused testem. Nie łączyć cost fix, points accounting i Revelation Mastery correction w jednym PR-ze.
+Każdy potwierdzony defect ma trafić do osobnego, małego PR-a z focused testem. Nie łączyć cost fix, points accounting, Revelation Mastery, cap enforcement ani input hardening w jednym PR-ze.
 
 ---
 
 ## 11. Changelog / work log
+
+### 2026-07-12 — current-payload caller review i scanner protocol boundary
+
+- potwierdzono `0xE7 -> parseWheelGemAction()` dla current payload;
+- potwierdzono brak cap 225 w parserze i `revealGem()`; WOD-R002 podniesiono do WOD-F004;
+- potwierdzono przekazanie dowolnego byte `position` do bezpośredniego indeksowania tablic 49/95; WOD-R004 podniesiono do WOD-F005;
+- potwierdzono, że invalid index dla destroy/switch/lock przechodzi przez bezpieczny `getGem()` guard;
+- rozszerzono scanner o `protocolgame.cpp`, cap invariant i bounds safety;
+- zaktualizowano focused fixtures/test assertions;
+- lokalnie ponownie wykonano 7 testów: `OK`;
+- najnowszy CI po rozszerzeniu jest pending;
+- nie zmieniono gameplay, protokołu, schema, datapacka ani mapy.
+
+### 2026-07-12 — pierwszy CI artifact
+
+- workflow run `29203018790` zakończył się sukcesem;
+- wszystkie kroki: tests, audit, JSON validation, summary i artifact upload — success;
+- artifact: 30 source files, 4 errors, 6 warnings, 16 doubled Revelation modifiers;
+- zaktualizowano evidence report dokładnymi wynikami.
 
 ### 2026-07-12 — scanner, baseline, report, runtime plan i CI
 
@@ -309,7 +364,7 @@ Każdy potwierdzony defect ma trafić do osobnego, małego PR-a z focused testem
 - wynik lokalny: `Ran 7 tests ... OK`;
 - dodano dedykowany GitHub Actions workflow;
 - potwierdzono WOD-F001, WOD-F002 i WOD-F003 na poziomie statycznym;
-- zapisano WOD-R001..R005 jako ryzyka, nie jako potwierdzone runtime defects;
+- zapisano początkowe ryzyka bez przedwczesnych runtime claims;
 - nie zmieniono gameplay, protokołu, schema, datapacka ani mapy.
 
 ### 2026-07-12 — publikacja pracy
@@ -335,8 +390,10 @@ Każdy potwierdzony defect ma trafić do osobnego, małego PR-a z focused testem
 branch: feat/wheel-of-destiny-validation-audit
 merge-base: dbcc809bac57bb78425ca39c2523c723cef79bb0
 PR: #169 draft
-phase: static scanner published; CI pending; protocol/persistence/runtime inventory pending
-local tests: 7 passed
+phase: current-payload boundary classified; latest enhanced scanner CI pending
+first CI: run 29203018790 passed
+local tests after enhancement: 7 passed
+confirmed findings: WOD-F001..WOD-F005
 runtime claims: none
 gameplay changes: none
 ```
@@ -350,7 +407,9 @@ gameplay changes: none
 - [x] initial evidence report;
 - [x] machine-readable runtime test plan;
 - [x] dedicated CI workflow;
-- [ ] CI run on actual repository branch reviewed;
+- [x] pierwszy CI run na actual repository branch reviewed;
+- [x] current-payload Reveal/ImproveGrade caller boundary reviewed;
+- [ ] CI run rozszerzonego protocol scanner reviewed;
 - [ ] complete Wheel/Gem source and call-site inventory;
 - [ ] every perk mapped to effect path;
 - [ ] persistence round-trip reviewed;
@@ -367,18 +426,18 @@ gameplay changes: none
 1. Przeczytaj `AGENTS.md` i `docs/agents/**`.
 2. Przeczytaj `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md`.
 3. Przeczytaj ten dokument i `WHEEL_OF_DESTINY_VALIDATION_REPORT.md`.
-4. Otwórz PR #169, aktualny task record i CI run dla head.
-5. Pobierz artifact `WHEEL_OF_DESTINY_AUDIT.json/.md`.
+4. Otwórz PR #169, aktualny task record i workflow runs dla head.
+5. Pobierz najnowszy artifact `WHEEL_OF_DESTINY_AUDIT.json/.md`.
 6. Nie naprawiaj gameplay w PR #169.
 
 ### Następny krok techniczny
 
-1. Sprawdź GitHub Actions dla najnowszego head.
-2. Jeżeli scanner failuje na realnym kodzie, popraw parser i test fixture; zaktualizuj ten dokument i task record.
-3. Jeżeli scanner działa, zapisz exact findings/counts/source inventory w raporcie.
-4. Zmapuj protocol handlers i wszystkie call sites `revealGem`, `improveGemGrade`, `getExtraPoints`, `processActiveGems`.
-5. Zmapuj save/load oraz migrations/KV.
-6. Porównaj payload z kompatybilnym `opentibiabr/otclient`.
+1. Sprawdź CI dla head po commitach protocol scanner/test.
+2. Potwierdź exact finding counts: oczekiwane 6 errors / 4 warnings, ale nie zapisuj tego jako wynik bez artifactu.
+3. Zaktualizuj report, ten dokument, task record i PR body wynikiem CI.
+4. Prześledź legacy `Game::playerWheelGemAction`.
+5. Zmapuj save/load, migrations/KV oraz wszystkie Hunting Task point paths.
+6. Porównaj current i legacy payload z kompatybilnym `opentibiabr/otclient`.
 7. Dopiero potem przygotuj osobne defect PR-y.
 
 ### Nie powtarzaj
@@ -386,20 +445,20 @@ gameplay changes: none
 - nie licz samego highest enum ID jako liczby slice'ów bez parsera;
 - nie uznawaj wiki za niewersjonowany official truth;
 - nie uznawaj getter'a za dowód efektu;
-- nie uznawaj lokalnego braku checku za exploit bez caller/protocol review;
+- nie uznawaj resource-order warning za exploit bez fault-injection evidence;
 - nie uznawaj static match za runtime verified;
-- nie łącz trzech potwierdzonych problemów w jeden gameplay PR;
+- nie łącz WOD-F001..F005 w jeden gameplay PR;
 - nie zmieniaj upstream `opentibiabr/canary`.
 
 ### Otwarte pytania
 
 - Gdzie i jak Hunting Task Shop zapisuje dodatkowe punkty?
-- Czy cap 225 jest walidowany przed `revealGem()`?
-- Czy protocol parser blokuje invalid grade `pos`?
+- Jak legacy payload waliduje action, quality, index i grade position?
 - Czy resource prechecks eliminują partial-consumption failure, czy potrzebna jest transakcja/refund?
 - Jaki jest zamierzony drugi neighbour dla `SLOT_GREEN_TOP_100`?
 - Czy wszystkie Revelation Mastery variants są rzeczywiście podwajane w runtime?
 - Czy wszystkie pięć vocations ma kompletny Wheel i spell augment coverage?
+- Czy kompatybilny OTClient ogranicza UI, ale serwer nadal musi bronić invariantów niezależnie od klienta?
 
 ### Obowiązek aktualizacji
 
