@@ -1,0 +1,88 @@
+---
+name: Wheel Linux Debug Diagnostic
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/wheel-linux-debug-diagnostic.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    env:
+      CC: gcc-13
+      CXX: g++-13
+      VCPKG_BINARY_SOURCES: clear
+    steps:
+      - name: Check out diagnostic branch
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          ref: validation/wheel-linux-debug-diagnostic
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ccache ninja-build gcc-13 g++-13
+          sudo ln -sf /usr/bin/ninja /usr/bin/ninja-build
+
+      - name: Read vcpkg baseline
+        shell: bash
+        run: |
+          baseline="$(grep '.builtin-baseline' vcpkg.json | awk -F: '{print $2}' | tr -d '," ')"
+          echo "VCPKG_GIT_COMMIT_ID=${baseline}" >> "$GITHUB_ENV"
+
+      - name: Set up vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitURL: https://github.com/microsoft/vcpkg.git
+          vcpkgGitCommitId: ${{ env.VCPKG_GIT_COMMIT_ID }}
+
+      - name: Capture linux-debug compiler output
+        shell: bash
+        run: |
+          set +e
+          mkdir -p build/wheel-debug-diagnostic
+
+          cmake --preset linux-debug \
+            -DTOGGLE_BIN_FOLDER=ON \
+            -DOPTIONS_ENABLE_CCACHE=OFF \
+            -DOPTIONS_ENABLE_SCCACHE=OFF \
+            > build/wheel-debug-diagnostic/configure.log 2>&1
+          configure_status=$?
+
+          build_status=125
+          if [[ $configure_status -eq 0 ]]; then
+            cmake --build --preset linux-debug \
+              --target canary_ut \
+              --parallel 2 \
+              > build/wheel-debug-diagnostic/build.log 2>&1
+            build_status=$?
+          fi
+
+          {
+            echo "configure_status=${configure_status}"
+            echo "build_status=${build_status}"
+          } > build/wheel-debug-diagnostic/status.txt
+
+          echo "=== STATUS ==="
+          cat build/wheel-debug-diagnostic/status.txt
+          echo "=== CONFIGURE TAIL ==="
+          tail -n 120 build/wheel-debug-diagnostic/configure.log || true
+          echo "=== BUILD TAIL ==="
+          tail -n 240 build/wheel-debug-diagnostic/build.log || true
+
+      - name: Upload diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: wheel-linux-debug-diagnostic
+          path: build/wheel-debug-diagnostic/
+          if-no-files-found: error
+          retention-days: 1
