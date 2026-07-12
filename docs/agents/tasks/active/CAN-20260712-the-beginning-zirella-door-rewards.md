@@ -7,7 +7,7 @@ base_branch: main
 created: 2026-07-12
 updated: 2026-07-12
 risk: medium
-related_pr: ""
+related_pr: "#156"
 depends_on:
   - "PR #146 The Beginning dependency audit"
   - "PR #149 Zirella Collecting Wood restoration"
@@ -86,7 +86,7 @@ Historical real-Tibia cross-check:
 # Validation notes
 
 - Focused Python contract coverage is committed in `tools/ai-agent/test_the_beginning_zirella_door_rewards.py`.
-- This clean branch was recreated from post-merge `main` after stacked PR #153 developed history conflicts following squash merge of #149.
+- Clean PR #156 was recreated from post-merge `main` after stacked PR #153 developed history conflicts following squash merge of #149.
 - Runtime E2E remains required on an actual Canary world after repository validation.
 
 # Safety
