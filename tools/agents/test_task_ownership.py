@@ -37,7 +37,7 @@ owned_paths:
 
 
 class TaskOwnershipTests(unittest.TestCase):
-    def test_nested_exclusive_paths_conflict(self) -> None:
+    def test_nested_structured_exclusive_paths_conflict(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             left = write_task(root, "a", task_id="A", owned="  exclusive:\n    - src/game/**")
@@ -62,12 +62,48 @@ class TaskOwnershipTests(unittest.TestCase):
             )
             self.assertEqual([], task_ownership.validate_tasks([left, right]))
 
-    def test_flat_owned_paths_remain_compatible(self) -> None:
+    def test_legacy_record_is_migration_safe_without_identity(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            task = write_task(root, "a", task_id="A", owned="  - src/a.cpp")
-            _, claims = task_ownership.task_claims(task)
-            self.assertEqual("legacy_exclusive", claims[0].mode)
+            task = write_task(
+                root,
+                "legacy",
+                task_id="OLD",
+                owned="  - src/a.cpp",
+                program_id="",
+                agent="",
+                branch="",
+            )
+            record = task_ownership.load_task_record(task)
+            self.assertEqual("legacy", record.schema)
+            self.assertEqual("legacy_exclusive", record.claims[0].mode)
+            self.assertEqual([], task_ownership.validate_tasks([task]))
+
+    def test_legacy_overlap_warns_but_does_not_fail_by_default(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            legacy = write_task(root, "legacy", task_id="OLD", owned="  - src/game/**")
+            structured = write_task(
+                root,
+                "new",
+                task_id="NEW",
+                owned="  exclusive:\n    - src/game/player.cpp",
+            )
+            self.assertEqual([], task_ownership.validate_tasks([legacy, structured]))
+            self.assertEqual(1, len(task_ownership.migration_warnings([legacy, structured])))
+
+    def test_strict_legacy_mode_detects_overlap(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            legacy = write_task(root, "legacy", task_id="OLD", owned="  - src/game/**")
+            structured = write_task(
+                root,
+                "new",
+                task_id="NEW",
+                owned="  exclusive:\n    - src/game/player.cpp",
+            )
+            errors = task_ownership.validate_tasks([legacy, structured], strict_legacy=True)
+            self.assertTrue(any("exclusive ownership conflict" in error for error in errors))
 
     def test_inactive_task_does_not_hold_lock(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -82,7 +118,7 @@ class TaskOwnershipTests(unittest.TestCase):
             right = write_task(root, "b", task_id="B", owned="  exclusive:\n    - src/a.cpp")
             self.assertEqual([], task_ownership.validate_tasks([left, right]))
 
-    def test_active_task_requires_agent_and_branch(self) -> None:
+    def test_structured_active_task_requires_identity_fields(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             task = write_task(
@@ -95,7 +131,44 @@ class TaskOwnershipTests(unittest.TestCase):
                 branch="",
             )
             errors = task_ownership.validate_tasks([task])
-            self.assertEqual(2, len(errors))
+            self.assertEqual(3, len(errors))
+
+    def test_unknown_ownership_mode_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            task = write_task(
+                root,
+                "a",
+                task_id="A",
+                owned="  locked:\n    - src/a.cpp",
+            )
+            errors = task_ownership.validate_tasks([task])
+            self.assertTrue(any("unsupported owned_paths mode" in error for error in errors))
+
+    def test_repository_escape_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            task = write_task(
+                root,
+                "a",
+                task_id="A",
+                owned="  exclusive:\n    - ../outside",
+            )
+            errors = task_ownership.validate_tasks([task])
+            self.assertTrue(any("must not escape" in error for error in errors))
+
+    def test_rendered_index_contains_source_and_schema(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            task = write_task(
+                root,
+                "a",
+                task_id="A",
+                owned="  exclusive:\n    - src/a.cpp",
+            )
+            rendered = task_ownership.render_index([task])
+            self.assertIn("| structured |", rendered)
+            self.assertIn(task.as_posix(), rendered)
 
 
 if __name__ == "__main__":
