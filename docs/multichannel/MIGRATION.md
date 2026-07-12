@@ -272,6 +272,16 @@ discarded the remembered lease id, so leadership never recovered even after
 Redis became reachable again until the full TTL elapsed - fixed by keeping
 the id and retrying renew (not a fresh acquire) on the next cycle.
 
+**Phase 8:** the first real GM/admin command from OPERATIONS.md's
+contract-only list is implemented - `Game.getPlayerClusterChannel(name)`, a
+read-only Lua global that finds which channel a player is currently online
+on cluster-wide, reading the `cluster_sessions` DB table (not Redis, since
+the caller may be on a different channel process than the target). No
+schema change - pure read against an already-existing table. Verified
+against a real MariaDB: online player found, unknown player returns
+nothing, and a `DIRTY` row is correctly excluded from being reported as a
+live location.
+
 **Still not enforced**, and still the reason not to enable
 `multiChannelEnabled = true` in production yet: nothing yet *blocks* an
 account from bidding on or trading for a second house before an already-
