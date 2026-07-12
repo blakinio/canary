@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "name": "TibiaWiki/Fandom — Wheel of Destiny",
+    "url": "https://tibia.fandom.com/wiki/Wheel_of_Destiny",
+    "checkedAt": "2026-07-12",
+    "scope": "Current requested Fandom snapshot. Values are version-sensitive and must not be treated as an unversioned official contract."
+  },
+  "wheel": {
+    "sliceCount": 36,
+    "revelationThresholds": [250, 500, 1000],
+    "pointsPerLevel": 1,
+    "monkQuestBonus": 10,
+    "promotionScrollPoints": 50,
+    "huntingTaskPointsMaximum": 50,
+    "gradeIVPromotionPointMaximum": 69
+  },
+  "atelier": {
+    "maxRevealedGems": 225,
+    "costs": {
+      "reveal": {
+        "lesser": 125000,
+        "regular": 1000000,
+        "greater": 6000000
+      },
+      "rotate": {
+        "lesser": 125000,
+        "regular": 250000,
+        "greater": 500000
+      }
+    },
+    "basicGradeCosts": {
+      "2": {"gold": 2000000, "fragments": 5},
+      "3": {"gold": 5000000, "fragments": 15},
+      "4": {"gold": 30000000, "fragments": 30}
+    },
+    "supremeGradeCosts": {
+      "2": {"gold": 5000000, "fragments": 5},
+      "3": {"gold": 12500000, "fragments": 15},
+      "4": {"gold": 75000000, "fragments": 30}
+    },
+    "gradeMultipliers": {
+      "1": 1.0,
+      "4": 1.5
+    },
+    "resonanceDamageHealing": {
+      "lesser": 1,
+      "regular": 1,
+      "greater": 2
+    }
+  }
+}
