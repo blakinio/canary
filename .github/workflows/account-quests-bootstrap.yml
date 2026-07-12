@@ -71,7 +71,7 @@ jobs:
           token = os.environ["GH_TOKEN"]
           parent = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
           files = subprocess.check_output(["git", "diff", "--cached", "--name-only", "-z"]).decode().split("\0")
-          files = [path for path in files if path]
+          files = [path for path in files if path and path != ".github/workflows/account-quests.yml"]
 
           def api(method, path, payload=None):
               data = None if payload is None else json.dumps(payload).encode()
