@@ -65,6 +65,7 @@ private:
 
 	static int luaGameGetOfflinePlayer(lua_State* L);
 	static int luaGameGetNormalizedPlayerName(lua_State* L);
+	static int luaGameGetPlayerClusterChannel(lua_State* L);
 	static int luaGameGetNormalizedGuildName(lua_State* L);
 	static int luaGameHasEffect(lua_State* L);
 	static int luaGameHasDistanceEffect(lua_State* L);
