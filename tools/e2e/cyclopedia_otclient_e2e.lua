@@ -33,6 +33,126 @@ local function valueCount(value)
     return value == nil and 0 or 1
 end
 
+-- Canary currently resolves the first client packet through the legacy raw-length
+-- transport before it knows the protocol/client version. Maintained OTClient 15.25
+-- normally emits a modern block-count outer frame at this point. This test-only
+-- override keeps the complete 15.25 payload/RSA/features, but asks the generic
+-- sender to frame only the first account-login packet using the legacy outer
+-- length. The client version is restored before receiving the login response;
+-- the game connection and every Cyclopedia packet remain native 15.25.
+function ProtocolLogin:sendLoginPacket()
+    local msg = OutputMessage.create()
+    msg:addU8(ClientOpcodes.ClientEnterAccount)
+    msg:addU16(g_game.getOs())
+    msg:addU16(g_game.getProtocolVersion())
+
+    local usesClientVersion = g_game.getFeature(GameClientVersion)
+    local usesContentRevision = g_game.getFeature(GameContentRevision)
+    local usesPreviewState = g_game.getFeature(GamePreviewState)
+    local usesLoginEncryption = g_game.getFeature(GameLoginPacketEncryption)
+    local usesAccountNames = g_game.getFeature(GameAccountNames)
+    local usesOglInformation = g_game.getFeature(GameOGLInformation)
+    local usesAuthenticator = g_game.getFeature(GameAuthenticator)
+    local usesSessionKey = g_game.getFeature(GameSessionKey)
+    local usesChecksum = g_game.getFeature(GameProtocolChecksum)
+    local usesSequencedPackets = g_game.getFeature(GameSequencedPackets)
+
+    if usesClientVersion then
+        msg:addU32(g_game.getClientVersion())
+    end
+
+    if usesContentRevision then
+        msg:addU16(g_things.getContentRevision())
+        msg:addU16(0)
+    else
+        msg:addU32(g_things.getDatSignature())
+    end
+    msg:addU32(g_sprites.getSprSignature())
+    msg:addU32(PIC_SIGNATURE)
+
+    if usesPreviewState then
+        msg:addU8(0)
+    end
+
+    local offset = msg:getMessageSize()
+    if usesLoginEncryption then
+        msg:addU8(0)
+        self:generateXteaKey()
+        local xteaKey = self:getXteaKey()
+        msg:addU32(xteaKey[1])
+        msg:addU32(xteaKey[2])
+        msg:addU32(xteaKey[3])
+        msg:addU32(xteaKey[4])
+    end
+
+    if usesAccountNames then
+        msg:addString(self.accountName)
+    else
+        msg:addU32(tonumber(self.accountName))
+    end
+    msg:addString(self.accountPassword)
+
+    if self.getLoginExtendedData then
+        msg:addString(self:getLoginExtendedData())
+    end
+
+    local paddingBytes = g_crypt.rsaGetSize() - (msg:getMessageSize() - offset)
+    assert(paddingBytes >= 0)
+    for _ = 1, paddingBytes do
+        msg:addU8(math.random(0, 0xff))
+    end
+
+    if usesLoginEncryption then
+        msg:encryptRsa()
+    end
+
+    if usesOglInformation then
+        msg:addU8(1)
+        msg:addU8(1)
+        if CLIENT_VERSION >= 1072 then
+            msg:addString(string.format('%s %s', g_graphics.getVendor(), g_graphics.getRenderer()))
+        else
+            msg:addString(g_graphics.getRenderer())
+        end
+        msg:addString(g_graphics.getVersion())
+    end
+
+    if usesAuthenticator then
+        offset = msg:getMessageSize()
+        msg:addU8(0)
+        msg:addString(self.authenticatorToken)
+        if usesSessionKey then
+            msg:addU8(booleantonumber(self.stayLogged))
+        end
+        paddingBytes = g_crypt.rsaGetSize() - (msg:getMessageSize() - offset)
+        assert(paddingBytes >= 0)
+        for _ = 1, paddingBytes do
+            msg:addU8(math.random(0, 0xff))
+        end
+        msg:encryptRsa()
+    end
+
+    if usesChecksum then
+        self:enableChecksum()
+    end
+
+    appendResult('login_first_frame_' .. phase, 'legacy-raw-shim')
+    local activeVersion = g_game.getClientVersion()
+    g_game.setClientVersion(1404)
+    self:send(msg)
+    g_game.setClientVersion(activeVersion)
+
+    if usesLoginEncryption then
+        self:enableXteaEncryption()
+    end
+    if usesSequencedPackets then
+        scheduleEvent(function()
+            self:enabledSequencedPackets()
+        end, 1000)
+    end
+    self:recv()
+end
+
 local function closeLoginProtocol()
     if protocolLogin then
         protocolLogin:cancelLogin()
