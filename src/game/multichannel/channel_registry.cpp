@@ -12,6 +12,8 @@
 #include "config/configmanager.hpp"
 #include "database/database.hpp"
 #include "game/multichannel/channel_context.hpp"
+#include "game/multichannel/channel_runtime_registry.hpp"
+#include "game/multichannel/wall_clock.hpp"
 #include "lib/di/container.hpp"
 #include "lib/logging/log_with_spd_log.hpp"
 
@@ -27,10 +29,6 @@ ChannelRegistry &ChannelRegistry::getInstance() {
 }
 
 namespace {
-	// `channels.temple_town_id` is nullable; the DBResult API surfaced by this
-	// codebase collapses NULL and 0 into the same T() default rather than
-	// exposing a distinct null check, and town id 0 is never a real town, so
-	// treating 0 as "unset" is the safe, spec-consistent interpretation here.
 	std::optional<int32_t> optionalIntColumn(const DBResult_ptr &result, const std::string &column) {
 		const auto value = result->getNumber<int32_t>(column);
 		if (value == 0) {
@@ -91,13 +89,16 @@ std::optional<ChannelInfo> ChannelRegistry::getChannel(int32_t channelId) const 
 }
 
 std::vector<ChannelInfo> ChannelRegistry::getLoginListChannels() const {
+	const auto snapshot = getAllChannels();
+	if (g_channelRuntimeRegistry().isEnabled()) {
+		return g_channelRuntimeRegistry().getLoginListChannels(snapshot, multichannel::wallClockMs());
+	}
+
 	std::vector<ChannelInfo> selectable;
-	{
-		std::lock_guard lock(mutex);
-		for (const auto &info : channels) {
-			if (info.isSelectable()) {
-				selectable.push_back(info);
-			}
+	selectable.reserve(snapshot.size());
+	for (const auto &info : snapshot) {
+		if (info.isSelectable()) {
+			selectable.push_back(info);
 		}
 	}
 	std::sort(selectable.begin(), selectable.end(), [](const ChannelInfo &a, const ChannelInfo &b) {
@@ -107,6 +108,11 @@ std::vector<ChannelInfo> ChannelRegistry::getLoginListChannels() const {
 		return a.id < b.id;
 	});
 	return selectable;
+}
+
+std::vector<ChannelInfo> ChannelRegistry::getAllChannels() const {
+	std::lock_guard lock(mutex);
+	return channels;
 }
 
 std::size_t ChannelRegistry::size() const {
@@ -119,9 +125,6 @@ bool ChannelRegistry::ensureBootstrapChannel() {
 		return true;
 	}
 	if (g_channelContext().getChannelId() != ChannelContext::DefaultSingleChannelId) {
-		// Only the bootstrap process (channel 1) is allowed to auto-create a
-		// row; every other channel must be configured explicitly by the
-		// operator (see docs/multichannel/MIGRATION.md).
 		return true;
 	}
 
@@ -157,9 +160,6 @@ bool ChannelRegistry::ensureBootstrapChannel() {
 }
 
 std::string ChannelRegistry::hashBytes(const unsigned char* data, std::size_t length) {
-	// FNV-1a 64-bit. Not a cryptographic hash - this is a compatibility
-	// fingerprint (spec §3.5), not a security boundary, so a fast,
-	// dependency-free, deterministic hash is the right tool.
 	constexpr uint64_t offsetBasis = 0xcbf29ce484222325ULL;
 	constexpr uint64_t prime = 0x100000001b3ULL;
 

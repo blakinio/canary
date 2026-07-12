@@ -10,6 +10,7 @@
 #include "game/instance/instance_manager.hpp"
 
 #ifndef USE_PRECOMPILED_HEADERS
+	#include <algorithm>
 	#include <stdexcept>
 	#include <utility>
 #endif
@@ -92,6 +93,9 @@ bool InstanceManager::close(InstanceId id) {
 		if (it == instances.end()) {
 			throw std::logic_error("instance disappeared during close");
 		}
+		if (!it->second.creatureIds.empty()) {
+			throw std::logic_error("instance cleanup left registered creatures");
+		}
 		if (!regionPool.release(region.slot)) {
 			throw std::logic_error("failed to release reserved instance region");
 		}
@@ -107,6 +111,150 @@ void InstanceManager::setCleanupCallback(InstanceId id, InstanceCleanupCallback 
 	if (it != instances.end()) {
 		it->second.cleanupCallback = std::move(callback);
 	}
+}
+
+bool InstanceManager::canAcceptCreatureLocked(const InstanceRecord &record) const noexcept {
+	return record.state == InstanceState::Creating || record.state == InstanceState::Active;
+}
+
+bool InstanceManager::registerCreatureLocked(InstanceRecord &record, InstanceCreatureId creatureId) {
+	const auto ownerIt = creatureOwners.find(creatureId);
+	if (ownerIt != creatureOwners.end()) {
+		return ownerIt->second == record.id && record.creatureIds.contains(creatureId);
+	}
+
+	const auto [insertedOwnerIt, insertedOwner] = creatureOwners.emplace(creatureId, record.id);
+	if (!insertedOwner) {
+		return false;
+	}
+
+	try {
+		record.creatureIds.insert(creatureId);
+	} catch (...) {
+		creatureOwners.erase(insertedOwnerIt);
+		throw;
+	}
+	return true;
+}
+
+bool InstanceManager::registerCreature(InstanceId id, InstanceCreatureId creatureId) {
+	if (id == InstanceId::Invalid || creatureId == INVALID_INSTANCE_CREATURE_ID) {
+		return false;
+	}
+
+	std::scoped_lock lock(mutex);
+	const auto instanceIt = instances.find(id);
+	if (instanceIt == instances.end() || !canAcceptCreatureLocked(instanceIt->second)) {
+		return false;
+	}
+
+	return registerCreatureLocked(instanceIt->second, creatureId);
+}
+
+bool InstanceManager::unregisterCreature(InstanceId id, InstanceCreatureId creatureId) {
+	if (id == InstanceId::Invalid || creatureId == INVALID_INSTANCE_CREATURE_ID) {
+		return false;
+	}
+
+	std::scoped_lock lock(mutex);
+	const auto instanceIt = instances.find(id);
+	if (instanceIt == instances.end() || instanceIt->second.state == InstanceState::Destroyed) {
+		return false;
+	}
+
+	const auto ownerIt = creatureOwners.find(creatureId);
+	if (ownerIt == creatureOwners.end() || ownerIt->second != id) {
+		return false;
+	}
+
+	instanceIt->second.creatureIds.erase(creatureId);
+	creatureOwners.erase(ownerIt);
+	return true;
+}
+
+bool InstanceManager::inheritCreatureOwnership(InstanceCreatureId masterId, InstanceCreatureId summonId) {
+	if (masterId == INVALID_INSTANCE_CREATURE_ID || summonId == INVALID_INSTANCE_CREATURE_ID || masterId == summonId) {
+		return false;
+	}
+
+	std::scoped_lock lock(mutex);
+	const auto masterOwnerIt = creatureOwners.find(masterId);
+	const auto summonOwnerIt = creatureOwners.find(summonId);
+
+	if (masterOwnerIt == creatureOwners.end()) {
+		// The normal world remains the default ownership domain. A summon that
+		// already belongs to an instance may not cross that boundary by taking
+		// an unowned master.
+		return summonOwnerIt == creatureOwners.end();
+	}
+
+	const auto instanceIt = instances.find(masterOwnerIt->second);
+	if (instanceIt == instances.end() || !canAcceptCreatureLocked(instanceIt->second)) {
+		return false;
+	}
+
+	return registerCreatureLocked(instanceIt->second, summonId);
+}
+
+InstanceCreatureRelation InstanceManager::getCreatureRelation(InstanceCreatureId firstId, InstanceCreatureId secondId) const {
+	if (firstId == INVALID_INSTANCE_CREATURE_ID || secondId == INVALID_INSTANCE_CREATURE_ID) {
+		return InstanceCreatureRelation::Isolated;
+	}
+
+	std::scoped_lock lock(mutex);
+	const auto firstOwnerIt = creatureOwners.find(firstId);
+	const auto secondOwnerIt = creatureOwners.find(secondId);
+
+	if (firstOwnerIt == creatureOwners.end() && secondOwnerIt == creatureOwners.end()) {
+		return InstanceCreatureRelation::SameWorld;
+	}
+	if (firstOwnerIt == creatureOwners.end() || secondOwnerIt == creatureOwners.end() || firstOwnerIt->second != secondOwnerIt->second) {
+		return InstanceCreatureRelation::Isolated;
+	}
+
+	const auto instanceIt = instances.find(firstOwnerIt->second);
+	if (instanceIt == instances.end() || !canAcceptCreatureLocked(instanceIt->second)) {
+		return InstanceCreatureRelation::Isolated;
+	}
+	return InstanceCreatureRelation::SameInstance;
+}
+
+bool InstanceManager::canCreaturesInteract(InstanceCreatureId firstId, InstanceCreatureId secondId) const {
+	return getCreatureRelation(firstId, secondId) != InstanceCreatureRelation::Isolated;
+}
+
+std::optional<InstanceId> InstanceManager::getCreatureOwner(InstanceCreatureId creatureId) const {
+	if (creatureId == INVALID_INSTANCE_CREATURE_ID) {
+		return std::nullopt;
+	}
+
+	std::scoped_lock lock(mutex);
+	const auto it = creatureOwners.find(creatureId);
+	if (it == creatureOwners.end()) {
+		return std::nullopt;
+	}
+	return it->second;
+}
+
+std::vector<InstanceCreatureId> InstanceManager::getRegisteredCreatureIds(InstanceId id) const {
+	std::scoped_lock lock(mutex);
+	const auto it = instances.find(id);
+	if (it == instances.end()) {
+		return {};
+	}
+
+	std::vector<InstanceCreatureId> ids(it->second.creatureIds.begin(), it->second.creatureIds.end());
+	std::ranges::sort(ids);
+	return ids;
+}
+
+std::size_t InstanceManager::registeredCreatureCount(InstanceId id) const {
+	std::scoped_lock lock(mutex);
+	const auto it = instances.find(id);
+	if (it == instances.end()) {
+		return 0;
+	}
+	return it->second.creatureIds.size();
 }
 
 std::optional<InstanceState> InstanceManager::getState(InstanceId id) const {

@@ -29,6 +29,7 @@ class Zone;
 class MonsterType;
 class Cylinder;
 class ItemType;
+class InstanceCreatureBinder;
 
 struct CreatureIcon;
 struct Position;
@@ -458,6 +459,7 @@ public:
 	void applyAbsorbDamageModifications(const std::shared_ptr<Creature> &attacker, int32_t &damage, CombatType_t combatType) const;
 
 	bool setMaster(const std::shared_ptr<Creature> &newMaster, bool reloadCreature = false);
+	bool setMaster(const std::shared_ptr<Creature> &newMaster, InstanceCreatureBinder &binder, bool reloadCreature = false);
 
 	void removeMaster() {
 		if (getMaster()) {

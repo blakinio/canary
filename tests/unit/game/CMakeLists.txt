@@ -11,14 +11,20 @@ target_sources(
             use_with_policy_test.cpp
             instance/instance_manager_test.cpp
             instance/instance_region_pool_test.cpp
+            instance/instance_creature_ownership_policy_test.cpp
+            instance/instance_creature_binder_test.cpp
+            instance/instance_scoped_event_test.cpp
             multichannel/channel_context_test.cpp
             multichannel/channel_registry_test.cpp
+            multichannel/channel_runtime_registry_test.cpp
             multichannel/position_resolver_test.cpp
             multichannel/cluster_session_manager_test.cpp
+            multichannel/cluster_leader_election_test.cpp
             multichannel/cluster_runtime_test.cpp
             multichannel/position_serialization_test.cpp
             multichannel/channel_switch_service_test.cpp
             multichannel/cluster_config_validator_test.cpp
             multichannel/idempotency_test.cpp
             multichannel/economic_ledger_id_test.cpp
+            multichannel/cluster_job_leadership_registry_test.cpp
 )

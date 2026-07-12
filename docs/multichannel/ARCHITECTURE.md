@@ -597,6 +597,76 @@ tested; the "freeze new logins" and "disconnect before another process can
 steal the lease" actions require the Phase 2 game-loop wiring to execute
 for real.
 
+## 10a. Leader election primitive (✅ module, ✅ wired to the market-expiry job, 📐 other jobs unwired)
+
+Several background jobs must run exactly once cluster-wide rather than once
+per channel process (`OPERATIONS.md`'s "Leader election / cluster-singleton
+jobs" table: house rent charging, house auction settlement, market offer
+expiration, daily reward reset, global boosted creature/boss selection,
+table cleanup jobs, highscores cache rebuild, ...). `ClusterLeaderElection`
+(`src/game/multichannel/cluster_leader_election.hpp`/`.cpp`) is the
+primitive that will let exactly one process win each of those jobs: it
+reuses the *exact same* atomic Redis lease/fencing mechanism as
+`ClusterSessionManager` (§5) - the same `IRedisClient` seam, the same
+`redis_scripts/{acquire,renew,release}.lua` (already validated against a
+real `redis-server`, see TEST_PLAN.md; these scripts only ever operate on
+an opaque lock key/session id/TTL, so they needed no changes to serve
+leader election too), just keyed by a job name string (`cluster:leader:
+<jobName>`) instead of an account id. A job leader has no multi-state
+lifecycle the way a player session does (no Acquiring/Saving/Dirty) -
+either this process currently holds the lease for that job or it doesn't;
+a job run is expected to call `isFencingTokenCurrent` immediately before
+any effect that must not run twice, mirroring the anti-zombie check
+THREAT_MODEL.md T2 already requires for session saves.
+
+**✅ Verified**: 13 new gtest cases (`tests/unit/game/multichannel/
+cluster_leader_election_test.cpp`), compiled standalone with real `g++
+-std=c++20` + real `libgtest`/`libgtest_main` (this module has zero engine
+dependency, same as `ClusterSessionManager`, so it needed no MariaDB
+verification and no hand-review substitute) - acquire/reject-while-held,
+independent job names don't contend, renew by owner/non-owner, renew past
+expiry doesn't resurrect, release by owner/non-owner, fencing token
+monotonicity across release/reacquire cycles, reacquire-after-expiry gets
+a higher token, stale token correctly reads as not-current after a
+takeover, and a 16-thread concurrent-acquire race with exactly one winner.
+**13/13 passing.**
+
+**✅ `ClusterJobLeadershipRegistry`** (`src/game/multichannel/
+cluster_job_leadership_registry.hpp`, header-only like
+`ChannelRuntimeRegistry`) is the Redis-backed cache that sits between the
+primitive and a job call site: `renewOrAcquire(jobName, ttlMs, nowMs)` does
+the actual Redis work once per heartbeat cycle (called from
+`Game::renewClusterSessions`, right alongside the existing session-lease
+renewal, reusing `SESSION_LEASE_TTL` rather than adding a dedicated job-lease
+config key for this one wired example); `isLeader(jobName)` is a cheap,
+I/O-free read any job call site can check. A failed renew keeps the
+remembered lease id instead of discarding it, so a merely-transient Redis
+outage recovers cleanly on the very next cycle once reachable again (the
+lease was never actually touched on the Redis side while unreachable) - a
+real takeover by another process is, correctly, not reversible this way. Set
+up once in `CanaryServer::initializeMultichannelCluster()` alongside
+`ClusterRuntime`, sharing the same Redis client and instance id.
+
+**✅ `IOMarket::checkExpiredOffers`** (`src/io/iomarket.cpp`) is the first
+(and so far only) job wired to it, matching OPERATIONS.md's own listing of
+market offer expiration as `cluster-singleton`: before running its query, it
+checks `isLeader("market.expire")` - if the registry is disabled (single-node,
+or `multiChannelEnabled=false`), the check is skipped entirely and behavior
+is unchanged; if enabled and this process is not the current leader, the
+query is skipped for this cycle (the function still reschedules itself
+normally, so it keeps checking every cycle). This is a **cheap in-memory
+check gating a whole DB query**, not a change to the query or the
+expiry/refund logic itself.
+
+**📐 Known gap, stated honestly:** every *other* job in OPERATIONS.md's
+table (house rent, house auction settlement, daily reward reset, global
+boosted creature/boss selection, table cleanup jobs, highscores cache
+rebuild, ...) still runs unconditionally on every channel process. Wiring
+each remaining job individually (deciding what "lost leadership mid-run"
+should mean for that specific job - e.g. a partially-applied rent charge)
+is real per-job design work left for a follow-up, not something safe to do
+blind in one broad pass across a dozen unrelated jobs.
+
 ## 11. Why Phase 1 and not the whole spec
 
 The full spec (all 23 sections) describes cluster-wide leader election for
