@@ -7,7 +7,7 @@ base_branch: main
 created: 2026-07-12
 updated: 2026-07-12
 risk: medium
-related_pr: ""
+related_pr: "#157"
 depends_on:
   - "PR #146 The Beginning dependency audit"
 blocks:
@@ -51,26 +51,27 @@ Current Canary is authoritative:
 
 Historical ORTS code is corroborating evidence only. It confirms tutorial `13` belongs to the trade-opening step, but its premature stage-7 write is not copied because current dialogue and quest text require an actual sale first.
 
-# Planned contract
+# Implemented contract
 
-- `outfit` at stage 1 follows the same outfit-instruction transition as `yes/help/ok`: stages 1 -> 2 and tutorial `12`.
-- trade opens only while both Carlos greet/log progression are at stage 6 and trade permission is active.
-- opening the permitted trade window sends tutorial `13` once without completing the mission.
-- the first successful sale of meat or ham while stage 6 advances `CarlosQuestLog` and `CarlosNpcGreetStorage` to 7 and disables further tutorial trade access.
-- saying `ready` at stage 7 preserves the existing final dialogue and advances greet storage to 8.
-- no inventory removal or gold handling is reimplemented; the existing shop transaction remains authoritative.
+- `outfit` at stage 1 calls the same `teachOutfit` transition as `yes/help/ok`: both Carlos storages become 2 and tutorial `12` is sent.
+- `CALLBACK_ON_TRADE_REQUEST` is registered and requires both Carlos storages at stage 6 plus an active trade permission state.
+- the first valid trade request sends tutorial `13` and records that the tutorial trade window was opened, without completing the mission;
+- reopening the same valid trade remains allowed without repeating tutorial `13`;
+- `NpcType.onSellItem` advances both Carlos storages to 7 only after a positive-amount sale of meat `3577` or ham `3582` while the valid tutorial trade is open;
+- a successful tutorial sale marks the trade state completed and makes the existing same-session `ready` dialogue reachable;
+- item removal and two-gold payment remain entirely inside the existing NPC shop transaction implementation.
 
 # Acceptance criteria
 
-- [ ] remove the `outfit` completion bypass;
-- [ ] register and enforce `CALLBACK_ON_TRADE_REQUEST`;
-- [ ] send tutorial `13` only for the valid stage-6 trade request;
-- [ ] advance to stage 7 only after a successful meat/ham sale;
-- [ ] prevent unrelated items, wrong stages, or repeated sales from altering quest state;
-- [ ] preserve current item prices and shop transaction implementation;
-- [ ] add focused deterministic contract tests;
+- [x] remove the `outfit` completion bypass;
+- [x] register and enforce `CALLBACK_ON_TRADE_REQUEST`;
+- [x] send tutorial `13` only for the valid stage-6 trade request;
+- [x] advance to stage 7 only after a successful meat/ham sale;
+- [x] prevent unrelated items, wrong stages, or repeated sales from altering quest state;
+- [x] preserve current item prices and shop transaction implementation;
+- [x] add focused deterministic contract tests;
 - [ ] pass Lua tests, fast checks, AI Agent Tools, Account Quests, and global datapack runtime smoke;
-- [ ] do not modify `.otbm`, `items.otb`, NPC placement, spawns, engine, or other quests.
+- [x] do not modify `.otbm`, `items.otb`, NPC placement, spawns, engine, or other quests.
 
 # Runtime tests
 
@@ -82,6 +83,13 @@ Historical ORTS code is corroborating evidence only. It confirms tutorial `13` b
 6. Selling ham has the same transition.
 7. Wrong item or repeated sale does not alter completed state.
 8. Saying `ready` at stage 7 performs the existing completion dialogue and advances greet storage to 8.
+
+# Validation notes
+
+- Implementation commit: `86a857ba045d3830bea9932c41f12ee79ca29b44`.
+- Focused contract test commit: `fa531c98964126d794ef9f50838d6a23c26d63d7`.
+- Draft PR: #157.
+- Runtime E2E remains required on an actual Canary world after repository validation.
 
 # Safety
 
