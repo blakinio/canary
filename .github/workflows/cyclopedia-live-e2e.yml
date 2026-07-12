@@ -14,10 +14,24 @@ on:
 permissions:
   contents: read
   actions: read
+  packages: read
 
 jobs:
+  build-canary:
+    name: Build exact Canary head
+    permissions:
+      contents: write
+      packages: read
+    uses: ./.github/workflows/reusable-build-linux.yml
+    with:
+      buildtypes: '["linux-release"]'
+      run_canary_smoke: false
+      run_global_smoke: false
+    secrets: inherit
+
   live-e2e:
     name: OTClient ↔ Canary ↔ MySQL
+    needs: [build-canary]
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     services:
@@ -32,7 +46,7 @@ jobs:
           --health-interval=10s --health-timeout=5s --health-retries=12
 
     steps:
-      - name: Checkout current Canary source
+      - name: Checkout exact Canary head
         uses: actions/checkout@v6
 
       - name: Checkout maintained OTClient source
@@ -48,16 +62,11 @@ jobs:
           path: tibia-client-assets
           lfs: true
 
-      - name: Download current-main Canary binary
-        uses: dawidd6/action-download-artifact@v11
+      - name: Download exact-head Canary binary
+        uses: actions/download-artifact@v4
         with:
-          repo: blakinio/canary
-          workflow: ci.yml
-          branch: main
-          workflow_conclusion: success
           name: canary-linux-release
           path: canary-bin
-          search_artifacts: true
 
       - name: Download maintained OTClient binary
         uses: dawidd6/action-download-artifact@v11
@@ -86,23 +95,17 @@ jobs:
           find canary-bin otclient-bin -maxdepth 5 -type f -print | tee artifacts/downloaded-files.txt
           CANARY_BIN="$(find canary-bin -type f -name 'canary' | head -n 1)"
           OTCLIENT_BIN="$(find otclient-bin -type f \( -name 'otclient' -o -name 'otclient-*' \) | head -n 1)"
-          if [[ -z "${CANARY_BIN}" || -z "${OTCLIENT_BIN}" ]]; then
-            echo "Canary or OTClient binary not found." >&2
-            exit 1
-          fi
+          test -n "${CANARY_BIN}" && test -n "${OTCLIENT_BIN}"
           CLIENT_VERSION="$(grep -E 'static constexpr auto CLIENT_VERSION[[:space:]]*=' src/core.hpp | grep -Eo '[0-9]+' | tail -n 1)"
           ASSET_VERSION="$(tr -cd '0-9.' < tibia-client-assets/package.json.version | cut -d. -f1,2 | tr -d '.')"
           test -n "${CLIENT_VERSION}"
-          if [[ "${ASSET_VERSION}" != "${CLIENT_VERSION}" ]]; then
-            echo "Asset version ${ASSET_VERSION} does not match Canary ${CLIENT_VERSION}." >&2
-            exit 1
-          fi
+          [[ "${ASSET_VERSION}" == "${CLIENT_VERSION}" ]]
           chmod +x "${CANARY_BIN}" "${OTCLIENT_BIN}"
           echo "CANARY_BIN=${GITHUB_WORKSPACE}/${CANARY_BIN}" >> "${GITHUB_ENV}"
           echo "OTCLIENT_BIN=${GITHUB_WORKSPACE}/${OTCLIENT_BIN}" >> "${GITHUB_ENV}"
           echo "CLIENT_VERSION=${CLIENT_VERSION}" >> "${GITHUB_ENV}"
-          printf 'Canary=%s\nOTClient=%s\nVersion=%s\nAssetVersion=%s\n' \
-            "${CANARY_BIN}" "${OTCLIENT_BIN}" "${CLIENT_VERSION}" "${ASSET_VERSION}" \
+          printf 'Canary=%s\nOTClient=%s\nVersion=%s\nAssetVersion=%s\nHead=%s\n' \
+            "${CANARY_BIN}" "${OTCLIENT_BIN}" "${CLIENT_VERSION}" "${ASSET_VERSION}" "${GITHUB_SHA}" \
             | tee artifacts/resolved-runtime.txt
           ldd "${CANARY_BIN}" | tee artifacts/canary-ldd.txt || true
           ldd "${OTCLIENT_BIN}" | tee artifacts/otclient-ldd.txt || true
@@ -165,8 +168,7 @@ jobs:
           set -euo pipefail
           test -s tibia-client-assets/assets/catalog-content.json
           TARGET="otclient/data/things/${CLIENT_VERSION}"
-          rm -rf "${TARGET}"
-          mkdir -p "${TARGET}"
+          rm -rf "${TARGET}" && mkdir -p "${TARGET}"
           cp -a tibia-client-assets/assets/. "${TARGET}/"
           test -s "${TARGET}/catalog-content.json"
           sha256sum "${TARGET}/catalog-content.json" | tee artifacts/catalog-content.sha256
@@ -187,7 +189,7 @@ jobs:
           path.write_text(text, encoding='utf-8')
           PY
 
-      - name: Start real Canary server
+      - name: Start exact-head Canary server
         shell: bash
         run: |
           set -euo pipefail
