@@ -5,6 +5,7 @@ import base64
 import zlib
 from pathlib import Path
 
+# One-shot bootstrap; the workflow removes this file after validation.
 FILES = (
     "quest_map_validation.py",
     "quest_map_validation_tool.py",
