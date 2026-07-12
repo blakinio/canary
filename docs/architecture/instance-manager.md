@@ -8,8 +8,8 @@ physically separated regions in the existing map rather than copying the full
 map for every instance.
 
 `InstanceManager` and `InstanceRegionPool` are plain constructor-owned
-components, not new `g_*()` singletons. Their eventual owner should be an
-explicit runtime component such as `Game`.
+components, not new `g_*()` singletons. Their eventual runtime owner should be
+an explicit component such as `Game`.
 
 ## Lifecycle foundation
 
@@ -18,13 +18,38 @@ explicit runtime component such as `Game`.
 - strong `InstanceId` and `InstanceSlotId` types;
 - `Creating -> Active -> Closing -> Destroyed` lifecycle;
 - optional timeout and on-demand expiry sweeping;
-- fixed-capacity slot reservation;
 - idempotent close;
 - exactly-once cleanup callback outside the manager lock;
 - concurrent create/close safety.
 
-A slot is released only after cleanup completes and the record reaches
-`Destroyed`.
+## Region-backed lifecycle
+
+`InstanceManager` owns one `InstanceRegionPool` constructed from the complete
+configured region list. There is no second vector-based slot allocator and no
+independent capacity counter.
+
+Instance creation now:
+
+1. reserves the first free configured `InstanceMapRegion`;
+2. stores the complete region in the instance record;
+3. exposes the region through a read-only copy returned by `getRegion()`;
+4. fails without creating a record when every region is reserved.
+
+Instance close now:
+
+1. marks the record `Closing`;
+2. runs caller-supplied cleanup outside the manager lock and passes the complete
+   reserved region;
+3. releases the region only after cleanup returns successfully;
+4. marks the record `Destroyed`.
+
+If cleanup throws, the instance remains `Closing` and its region stays reserved.
+This deliberately quarantines potentially dirty map space instead of exposing
+it to another instance. Retry/recovery policy belongs to the later cleanup and
+recovery phase.
+
+`availableSlotCount()` and `totalSlotCount()` are compatibility names whose
+values now come directly from the region pool.
 
 ## Map region pool
 
@@ -40,8 +65,7 @@ maxX, maxY, maxZ
 name
 ```
 
-Construction validates the complete configuration before the pool can be
-used:
+Construction validates the complete configuration before the pool can be used:
 
 - slot id must not be `Invalid`;
 - minimum coordinates must not exceed maximum coordinates;
@@ -58,37 +82,40 @@ The pool supports:
 - deterministic reserve-any in configuration order;
 - reservation of a specific slot;
 - release and reuse;
-- lookup of configured bounds before reservation;
+- lookup of configured bounds;
 - available/total counters;
 - thread-safe concurrent reservations.
 
 It deliberately does not inspect `Map`, create tiles, move players or clean
-creatures. Those responsibilities belong to later integration layers.
+creatures.
 
-## Integration sequence
+## Remaining integration sequence
 
-1. **Connect `InstanceManager` to `InstanceRegionPool`** so instance creation
-   reserves a real configured region rather than an opaque vector index, while
-   preserving the current constructor/API as a compatibility adapter if
-   needed.
-2. **Creature/spawn ownership**: creatures, summons, NPCs and spawn products
+1. **Creature/spawn ownership**: creatures, summons, NPCs and spawn products
    created for an instance carry `InstanceId`; cleanup can enumerate them.
-3. **Scheduler/event ownership**: scheduled callbacks carry `InstanceId`, are
-   invalidated on close and cannot execute against destroyed state. The
-   timeout sweep gets an actual periodic owner.
-4. **Player enter/leave**: validated entry, safe return position, closing,
+2. **Scheduler/event ownership**: scheduled callbacks carry `InstanceId`, are
+   invalidated on close and cannot execute against destroyed state. The timeout
+   sweep gets an actual periodic owner.
+3. **Player enter/leave**: validated entry, safe return position, closing,
    logout, death and reconnect behavior.
-5. **Lua API**: create/get/enter/leave/close/state with stable errors and no raw
+4. **Lua API**: create/get/enter/leave/close/state with stable errors and no raw
    pointer exposure.
-6. **Cleanup/recovery**: evacuate players, remove temporary creatures/items,
-   cancel timers and return a region only after cleanup succeeds.
-7. **Two parallel instances E2E**: prove region, creature, player and event
-   isolation and clean slot reuse.
+5. **Cleanup/recovery**: evacuate players, remove temporary creatures/items,
+   cancel timers, define retry policy and return quarantined regions safely.
+6. **Two parallel instances E2E**: prove region, creature, player and event
+   isolation and clean region reuse.
 
-## Current tests
+## Tests
 
-`instance_manager_test.cpp` covers lifecycle, capacity, timeout sweeping,
-exactly-once cleanup and concurrent create/close behavior.
+`instance_manager_test.cpp` covers:
+
+- lifecycle and timeout sweeping;
+- binding a concrete configured region to every instance;
+- capacity derived from region availability;
+- exactly-once cleanup with the concrete region;
+- region release and deterministic reuse;
+- cleanup-failure quarantine;
+- concurrent create/close behavior.
 
 `instance_region_pool_test.cpp` covers:
 
@@ -105,5 +132,4 @@ exactly-once cleanup and concurrent create/close behavior.
 - no multiworld identifiers;
 - no channel identifiers;
 - no global `InstanceManager` singleton;
-- no map ownership move before a real integration requires it;
-- no gameplay/Lua API in the region-pool PR.
+- no creature, scheduler, player or Lua integration in the region-binding PR.
