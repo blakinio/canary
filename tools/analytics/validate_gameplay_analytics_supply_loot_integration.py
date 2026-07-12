@@ -98,6 +98,19 @@ def validate_supply_integration(path: Path, text: str) -> None:
     require("AnalyticsPrices.buyPrice(" in text, f"{label} must price supply consumption from the verified table")
 
 
+def validate_docs(text: str) -> None:
+    for phrase in (
+        "Value-source precedence",
+        "never guessed",
+        "marketValue",
+        "gameplay_analytics_prices.lua",
+        "corpse owner",
+        "nested containers",
+    ):
+        require(phrase in text, f"supply/loot documentation lacks: {phrase}")
+    require("live" in text and "`GameplayAnalytics` global" in text, "supply/loot documentation must describe live GameplayAnalytics global lookup")
+
+
 def main() -> int:
     try:
         prices_text = read(PRICES)
@@ -106,17 +119,7 @@ def main() -> int:
         validate_loot_callback(read(LOOT_CALLBACK))
         for path in SUPPLY_FILES:
             validate_supply_integration(path, read(path))
-        docs = read(DOCS)
-        for phrase in (
-            "Value-source precedence",
-            "never guessed",
-            "marketValue",
-            "gameplay_analytics_prices.lua",
-            "corpse owner",
-            "nested containers",
-            "live `GameplayAnalytics` global",
-        ):
-            require(phrase in docs, f"supply/loot documentation lacks: {phrase}")
+        validate_docs(read(DOCS))
     except AssertionError as error:
         print(f"gameplay analytics supply/loot validation failed: {error}", file=sys.stderr)
         return 1
