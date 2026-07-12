@@ -157,6 +157,32 @@ void WheelModifierContext::executeStrategies() const {
 }
 """
 
+PLAYER_HEADER = r"""
+class PlayerWheel {
+    std::array<uint8_t, 49> m_basicGrades = { 0 };
+    std::array<uint8_t, 95> m_supremeGrades = { 0 };
+};
+"""
+
+PROTOCOL = r"""
+void ProtocolGame::parseWheelGemAction(NetworkMessage &msg) {
+    const auto action = static_cast<WheelGemAction_t>(msg.getByte());
+    switch (action) {
+        case WheelGemAction_t::Reveal:
+            player->wheel().revealGem(static_cast<WheelGemQuality_t>(msg.getByte(true)));
+            break;
+        case WheelGemAction_t::ImproveGrade: {
+            const auto fragmentType = static_cast<WheelFragmentType_t>(msg.getByte(true) != 0 ? 1 : 0);
+            const auto position = msg.getByte(true);
+            player->wheel().improveGemGrade(fragmentType, position);
+            break;
+        }
+        default:
+            break;
+    }
+}
+"""
+
 CONFIG = r"""
 loadIntConfig(L, WHEEL_MONK_QUEST_BONUS, "wheelMonkQuestBonus", 10);
 loadIntConfig(L, WHEEL_ATELIER_REVEAL_GREATER_COST, "wheelAtelierRevealGreaterCost", 6000000);
@@ -201,13 +227,14 @@ BASELINE = {
 def fixture_sources() -> dict[str, str]:
     return {
         "definitions": DEFINITIONS,
-        "player_header": "",
+        "player_header": PLAYER_HEADER,
         "player": PLAYER,
         "gems": GEMS,
         "enums": "",
         "io_header": "",
         "io": "",
         "config": CONFIG,
+        "protocol": PROTOCOL,
     }
 
 
@@ -243,10 +270,12 @@ class WheelOfDestinyValidationTests(unittest.TestCase):
         self.assertIn("revelation-bonus-double-applied", codes)
         self.assertIn("grade-iv-points-not-spendable", codes)
         self.assertIn("grade-iv-points-injected-into-every-domain", codes)
-        self.assertIn("revealed-gem-cap-not-enforced-in-reveal", codes)
+        self.assertIn("revealed-gem-cap-unenforced", codes)
         self.assertIn("reveal-operation-not-transactional", codes)
         self.assertIn("grade-upgrade-not-transactional", codes)
-        self.assertIn("grade-position-unvalidated", codes)
+        self.assertIn("grade-position-unvalidated-across-protocol", codes)
+        self.assertEqual(report["summary"]["basicGradeArraySize"], 49)
+        self.assertEqual(report["summary"]["supremeGradeArraySize"], 95)
         self.assertFalse(report["ok"])
         self.assertTrue(all(item["matches"] for item in report["comparisons"].values()))
 
