@@ -35,6 +35,8 @@ The Equipment Upgrade / Exaltation Forge validation handoff was refreshed agains
 - Squash merge: `56ee9bc72b91ba1110cd6d957c7eb0d974fc54e1`.
 - Cleanup branch: `docs/archive-equipment-upgrade-handoff-refresh`.
 - Cleanup PR: #244.
+- Duplicate documentation PR #241 was closed unmerged after #242 had already merged; do not reopen it or continue branch `fix/equipment-upgrade-validation-2`.
+- Duplicate cleanup PR #246 was closed unmerged in favor of #244; do not reopen it or continue branch `docs/equipment-upgrade-handoff-archive`.
 - Final changed files in #242:
   - `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md`;
   - `docs/agents/tasks/active/CAN-20260713-equipment-upgrade-handoff-refresh.md`.
@@ -55,6 +57,7 @@ The Equipment Upgrade / Exaltation Forge validation handoff was refreshed agains
 - No later change was found in Forge configuration, item-tier tables, Player Forge functions, Forge reward Lua, Forge item/combat effects, Forge tests or the validation report.
 - Later generic Player/protocol/creature changes were reviewed as unrelated to the audited Forge functions.
 - The main report now records current repository state, preserved repairs, row-by-row F-001–F-024 status, evidence boundaries, bounded follow-ups and a non-stale handoff.
+- Open-PR searches for `F-003`, `F-004`, `F-005`, `forgeFuseItems`, `forgeTransferItemTier` and Equipment Upgrade found no separate active implementation PR; only the duplicate lifecycle PRs described above overlapped this task.
 
 # Local checkout and commands
 
@@ -124,6 +127,7 @@ Historical draft-head evidence was recorded in the active task and PR body but w
 - No gameplay repair was bundled into the documentation refresh.
 - Auto-merge was attempted after all final checks were green; GitHub rejected enabling it because the PR was already in clean status and immediately mergeable.
 - PR #242 was then squash-merged with expected head SHA protection.
+- PR #244 is the sole authoritative lifecycle cleanup; duplicate PRs #241 and #246 are closed and superseded.
 
 # Failed approaches
 
@@ -133,6 +137,7 @@ Historical draft-head evidence was recorded in the active task and PR body but w
 - The first post-ready CI run was cancelled during runner setup and was replaced by successful run `29242935439`.
 - Fetching logs for the still-running Linux job returned a transient blob-not-found response; final job steps were inspected after completion.
 - An archive-file creation attempt was made before the cleanup branch existed and returned 404; the branch was then created from merge commit `56ee9bc72b91ba1110cd6d957c7eb0d974fc54e1`.
+- Concurrent duplicate PRs #241 and #246 were identified during final preflight; both were closed unmerged instead of forcing conflicting or redundant changes.
 
 # Remaining work
 
@@ -140,4 +145,4 @@ None for this task after cleanup PR #244 is merged.
 
 # Handoff
 
-Use `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md` as the current Forge handoff. Start each follow-up as a separate bounded task. Do not reopen #177, do not continue the deleted historical branch, do not claim F-007/F-008/F-013 complete without runtime proof, and coordinate F-014–F-019 with maintained `blakinio/otclient`.
+Use `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md` as the current Forge handoff. Start each follow-up as a separate bounded task. Do not reopen #177, #241 or #246; do not continue their historical/duplicate branches; do not claim F-007/F-008/F-013 complete without runtime proof; and coordinate F-014–F-019 with maintained `blakinio/otclient`.
