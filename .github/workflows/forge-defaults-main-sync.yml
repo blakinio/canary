@@ -19,12 +19,43 @@ jobs:
           ref: fix/forge-live-defaults
           fetch-depth: 0
           show-progress: false
-      - name: Merge current main
+      - name: Merge current main with bounded conflict policy
+        shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch --no-tags origin main
-          git merge --no-edit --no-ff origin/main
+
+          set +e
+          git merge --no-commit --no-ff origin/main
+          merge_status=$?
+          set -e
+
+          if [[ $merge_status -ne 0 ]]; then
+            conflicts=$(git diff --name-only --diff-filter=U)
+            allowed='^(docs/agents/CHANGELOG.md|docs/agents/MODULE_CATALOG.md|docs/agents/programs/EQUIPMENT_UPGRADE_PARITY_PROGRAM.md|docs/agents/tasks/active/CAN-20260713-forge-server-authority.md|docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md|src/creatures/players/player.cpp|src/game/functions/forge_fusion_policy.hpp|src/game/functions/forge_transfer_policy.hpp|tests/integration/game/forge_it.cpp|tests/unit/players/forge_test.cpp)$'
+            unexpected=$(printf '%s\n' "$conflicts" | grep -v -E "$allowed" || true)
+            if [[ -n "$unexpected" ]]; then
+              echo "Unexpected conflicts:"
+              printf '%s\n' "$unexpected"
+              exit 1
+            fi
+            while IFS= read -r path; do
+              [[ -z "$path" ]] && continue
+              git checkout --theirs -- "$path"
+              git add "$path"
+            done <<< "$conflicts"
+          fi
+
+          unresolved=$(git diff --name-only --diff-filter=U)
+          if [[ -n "$unresolved" ]]; then
+            echo "Unresolved conflicts:"
+            printf '%s\n' "$unresolved"
+            exit 1
+          fi
+
+          git diff --check
+          git commit -m "merge: synchronize Forge live defaults with main"
           git diff --check origin/main...HEAD
           git push origin HEAD:fix/forge-live-defaults
