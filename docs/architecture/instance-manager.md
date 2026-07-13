@@ -166,11 +166,11 @@ Instead, `InstanceScopedEvent` wraps the *callback* side:
   `Active` at the moment it is actually invoked, and reports whether it ran.
 
 This intentionally does not give scheduled tasks a way to keep an instance
-alive, and does not touch `src/game/scheduling/*`. Wiring an actual dispatcher
-task through this wrapper, and giving `closeExpiredInstances()` a periodic
-owner, both need a live `InstanceManager` instance owned by `Game` first -
-that ownership decision has not been made by any PR yet and is out of scope
-here.
+alive, and does not touch `src/game/scheduling/*`. `Game::start()` now gives
+`closeExpiredInstances()` a real periodic owner (see "Remaining integration
+sequence" item 4 below). Wiring an actual dispatcher/task call site through
+`InstanceScopedEvent` itself remains open - nothing schedules instance-scoped
+work at all today, since nothing creates a real instance in production.
 
 ## Map region pool
 
