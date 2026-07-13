@@ -127,6 +127,8 @@ private:
 #endif
 
 	[[nodiscard]] static WeaponProficiencyData createInitialState(uint32_t experience, uint32_t maxExperience);
+	[[nodiscard]] static std::vector<uint16_t> getMasteryAchievementIds(size_t masteredWeaponCount);
+	void reconcileMasteryAchievements(bool message);
 	static constexpr uint8_t TRACKED_SKILL_COUNT = static_cast<uint8_t>(SKILL_MAGLEVEL) + 1;
 	void applyCriticalBonus(const ProficiencyPerk &perk);
 	void applySkillPercentageBonus(const ProficiencyPerk &perk);
