@@ -1,4 +1,4 @@
-name: Apply Forge transaction-safety patch
+name: Apply Forge transaction-safety corrections
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  apply-transaction-patch:
+  apply-transaction-corrections:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout task branch
@@ -21,11 +21,11 @@ jobs:
           fetch-depth: 1
           show-progress: false
 
-      - name: Apply exact transaction changes
+      - name: Apply exact transaction corrections
         shell: bash
-        run: python3 tools/ai-agent/apply_forge_transaction_safety_patch.py
+        run: python3 tools/ai-agent/apply_forge_transaction_safety_corrections.py
 
-      - name: Review and commit bounded patch
+      - name: Review and commit bounded corrections
         shell: bash
         run: |
           git diff --check
@@ -37,5 +37,5 @@ jobs:
           git add \
             src/creatures/players/player.cpp \
             tests/integration/game/forge_it.cpp
-          git commit -m "fix(forge): make mutations transactional"
+          git commit -m "fix(forge): harden transaction preflight and rollback tests"
           git push origin HEAD:fix/forge-transaction-safety
