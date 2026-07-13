@@ -69,7 +69,7 @@ InstanceManager infrastructure PRs without a real consumer.
 
 | Task ID | Branch | PR | State | Exact next action |
 |---|---|---:|---|---|
-| CAN-20260713-instance-arena-monster-spawn | `feat/instance-arena-monster-spawn` | (pending) | in_progress | Open PR 4; merge once CI green. |
+| CAN-20260713-instance-arena-monster-spawn | `feat/instance-arena-monster-spawn` | #304 | in_progress | Merge once CI green. |
 
 # Queue
 

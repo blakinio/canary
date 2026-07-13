@@ -11,7 +11,7 @@ updated: 2026-07-13T22:35:00Z
 last_verified_commit: "d9b10c322cd6bb9690c2a29fd3354082dde066f9"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "#304"
 depends_on:
   - CAN-20260713-instance-arena-talkaction (player session API, PR #295)
 blocks:
@@ -207,7 +207,7 @@ inherits its owner through the existing binder.
 
 # Remaining work
 
-1. Open PR, get CI green, merge.
+1. PR #304 open; get CI green, merge.
 2. Proceed to program queue item 5: instance-scoped delayed events +
    timeout/cleanup wiring (`InstanceScopedEvent`).
 
@@ -226,6 +226,6 @@ inherits its owner through the existing binder.
 
 # Completion
 
-- Final status: pending PR/CI.
-- PR: (to be filled after opening).
+- Final status: pending CI.
+- PR: #304.
 - Merge commit: (to be filled after merge).
