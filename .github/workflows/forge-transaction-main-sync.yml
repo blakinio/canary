@@ -1,0 +1,33 @@
+name: Synchronize Forge transaction branch with main
+
+on:
+  pull_request:
+    branches:
+      - fix/forge-transaction-safety
+    paths:
+      - docs/ai-agent/.forge-transaction-main-sync-runner
+
+permissions:
+  contents: write
+
+jobs:
+  sync-main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout transaction branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/forge-transaction-safety
+          fetch-depth: 0
+          show-progress: false
+
+      - name: Merge current main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch --no-tags origin main
+          git merge --no-edit --no-ff origin/main
+          git diff --check origin/main...HEAD
+          git push origin HEAD:fix/forge-transaction-safety
