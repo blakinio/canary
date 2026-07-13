@@ -8,6 +8,7 @@
  */
 
 #include "creatures/players/player.hpp"
+#include "game/functions/forge_fusion_policy.hpp"
 #include "game/functions/forge_transfer_policy.hpp"
 
 #include "account/account.hpp"
@@ -11069,6 +11070,33 @@ void Player::forgeFuseItems(ForgeAction_t actionType, uint16_t firstItemId, uint
 		return;
 	}
 
+	auto normalizeForgeSlot = [](uint32_t slotPosition) {
+		return (slotPosition & SLOTP_TWO_HAND) != 0 ? static_cast<uint32_t>(SLOTP_HAND) : slotPosition;
+	};
+	const bool sameForgeSlot = normalizeForgeSlot(firstForgingItem->getSlotPosition()) == normalizeForgeSlot(secondForgingItem->getSlotPosition());
+	if (!ForgeFusionPolicy::isValid(
+			firstItemId,
+			secondItemId,
+			firstForgingItem->getClassification(),
+			secondForgingItem->getClassification(),
+			sameForgeSlot,
+			convergence)) {
+		g_logger().warn(
+			"[{}] Rejected invalid fusion for player {}: first item {}, second item {}, first class {}, second class {}, tier {}, same slot {}, convergence {}",
+			__FUNCTION__,
+			getName(),
+			firstItemId,
+			secondItemId,
+			firstForgingItem->getClassification(),
+			secondForgingItem->getClassification(),
+			tier,
+			sameForgeSlot,
+			convergence
+		);
+		sendForgeError(RETURNVALUE_NOTPOSSIBLE);
+		return;
+	}
+
 	// Pre-validate all resources before mutating player inventory.
 	// All parameters (convergence, success, bonus, coreCount, tier) are already
 	// known, so we can compute expected costs and abort before removing anything.
@@ -11369,7 +11397,7 @@ void Player::forgeTransferItemTier(ForgeAction_t actionType, uint16_t donorItemI
 
 	const uint8_t donorClassification = donorItem->getClassification();
 	const uint8_t receiveClassification = receiveItem->getClassification();
-	if (!ForgeTransferPolicy::isValidDonorTier(donorItem->getTier(), convergence) || !ForgeTransferPolicy::hasMatchingClassification(donorClassification, receiveClassification)) {
+	if (!ForgeTransferPolicy::isValidTransfer(donorClassification, receiveClassification, donorItem->getTier(), convergence)) {
 		g_logger().warn("[{}] Rejected invalid transfer for player {}: donor class {}, receiver class {}, donor tier {}, convergence {}", __FUNCTION__, getName(), donorClassification, receiveClassification, donorItem->getTier(), convergence);
 		sendForgeError(RETURNVALUE_NOTPOSSIBLE);
 		return;
