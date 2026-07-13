@@ -7,7 +7,7 @@ agent: "GPT-5.6 Thinking"
 branch: fix/imbuement-vibrancy-scrolls
 base_branch: main
 created: 2026-07-13T10:22:00+02:00
-updated: 2026-07-13T11:12:00+02:00
+updated: 2026-07-13T11:15:00+02:00
 completed: 2026-07-13T11:07:00+02:00
 last_verified_commit: "4acd5a6c43f73478768f8f4e85d0a51abb7b8c6a"
 merge_commit: "a356d5625e2290d6ffe45ecd6579f9dd8b7649bc"
@@ -15,7 +15,7 @@ risk: medium
 related_issue: "IMB-004"
 related_pr: "#239"
 cleanup_branch: docs/archive-imbuement-vibrancy-scrolls
-cleanup_pr: pending
+cleanup_pr: "#240"
 depends_on:
   - merged Imbuement audit PR #166
   - merged Forgotten Knowledge storage repair PR #206
@@ -89,7 +89,7 @@ The repair:
 - [x] Verified concrete post-ready CI jobs and the Linux Debug test artifact on the final head.
 - [x] Inspected final changed files, diff, reviews, comments and threads.
 - [x] Attempted auto-merge, then squash-merged after GitHub reported the PR was already clean.
-- [x] Archived the task through a dedicated post-merge cleanup branch/PR.
+- [x] Moved the record from `tasks/active/` to `tasks/archive/` in cleanup PR #240.
 
 # Exact evidence
 
@@ -135,7 +135,7 @@ The validator enforces the exact ID-to-family/tier mappings and this ordering. T
 - `tests/unit/players/imbuements/imbuements_test.cpp`
 - `docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md`
 - `docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json`
-- the active task record, subsequently moved here by cleanup
+- the active task record, subsequently moved here by cleanup PR #240
 
 `docs/agents/ACTIVE_WORK.md` was not edited. No temporary staging file remained in the final feature diff.
 
@@ -197,7 +197,7 @@ None of these commands is recorded as locally passed.
 - Windows CMake job `86773515784`: success; configure/build artifact and runtime smoke passed.
 - Windows Solution job `86773515783`: success; MSBuild compile passed.
 - macOS job `86773515802`: success; configure/build and runtime smoke passed.
-- Required: success as part of completed successful run.
+- Required: success as part of the completed successful run.
 
 ## Linux Debug CTest artifact
 
@@ -254,7 +254,12 @@ Artifact ID `8274081272` (`linux-debug-test-logs`) was downloaded and inspected.
 
 - Attempted auto-merge; GitHub reported the PR was already clean and ready for immediate merge.
 - Squash-merged PR #239 as `a356d5625e2290d6ffe45ecd6579f9dd8b7649bc`.
-- Started dedicated post-merge archive cleanup from the merged `main`.
+
+## 2026-07-13T11:15:00+02:00
+
+- Created cleanup branch `docs/archive-imbuement-vibrancy-scrolls` from merged `main`.
+- Opened draft cleanup PR #240.
+- Added the final archive record and removed the stale active record.
 
 # Decisions
 
@@ -265,7 +270,7 @@ Artifact ID `8274081272` (`linux-debug-test-logs`) was downloaded and inspected.
 | Extend the existing parser/validator | Prevents duplicate and divergent Imbuement tooling. | none |
 | Use real C++ runtime objects | Acceptance criteria required application and consumption evidence, not a static model. | none |
 | Separate CI from local validation | DNS prevented local checkout; claims remain precise. | none |
-| Archive in a post-merge cleanup PR | Final head, CI IDs and merge SHA are only known after feature delivery. | none |
+| Archive in post-merge cleanup PR #240 | Final head, CI IDs and merge SHA were only known after feature delivery. | none |
 
 # Failed approaches and dead ends
 
@@ -276,7 +281,7 @@ Artifact ID `8274081272` (`linux-debug-test-logs`) was downloaded and inspected.
 
 # Remaining work
 
-Only the archive cleanup PR remains until this record is removed from `tasks/active/` and present under `tasks/archive/` on `main`.
+Cleanup PR #240 must pass its applicable checks and be squash-merged. No feature work remains.
 
 # Handoff
 
@@ -290,4 +295,4 @@ No feature work remains. Do not resume PR #206 or expand this completed task int
 - Feature merge commit: `a356d5625e2290d6ffe45ecd6579f9dd8b7649bc`
 - Post-ready CI: run `29236786366`, success
 - Local tests: unavailable due DNS; not claimed as passed
-- Cleanup/archive: in progress on `docs/archive-imbuement-vibrancy-scrolls`
+- Cleanup/archive: PR #240
