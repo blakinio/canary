@@ -1543,6 +1543,16 @@ bool Game::removeCreature(const std::shared_ptr<Creature> &creature, bool isLogo
 	creature->removeList();
 	creature->setRemoved();
 
+	// Whatever registered this creature's stable id with the instance
+	// ownership registry (spawn, summon inheritance, a future player
+	// enter/leave path) may not run again to unregister it, so this is the
+	// one deterministic place every removed creature passes through.
+	// getCreatureOwner()/unregisterCreature() already no-op safely for id 0
+	// and for creatures that were never registered.
+	if (const auto instanceOwner = getInstanceManager().getCreatureOwner(creature->getID())) {
+		getInstanceManager().unregisterCreature(*instanceOwner, creature->getID());
+	}
+
 	removeCreatureCheck(creature);
 
 	for (const auto &summon : creature->getSummons()) {

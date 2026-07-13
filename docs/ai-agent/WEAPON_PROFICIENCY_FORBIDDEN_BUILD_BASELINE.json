@@ -1,0 +1,34 @@
+{
+  "format": "canary-weapon-proficiency-forbidden-build-baseline-v1",
+  "verifiedAt": "2026-07-12",
+  "source": {
+    "archiveName": "assets(1).zip",
+    "archiveSha256": "01c45146e2fcec3f4087844e0cbc1817fb1d60b310a35ac5d88c07aab6f73d1a",
+    "appearancesEntry": "assets/appearances-aa44a154f30c7ed59acc25f246286396e4043851ef0b54ef3cf3951e46d1ce50.dat",
+    "appearancesSha256": "aa44a154f30c7ed59acc25f246286396e4043851ef0b54ef3cf3951e46d1ce50",
+    "proficienciesEntry": "assets/proficiencies-1a915dffd9265cd1c18d39e55da7ede691b2e58add534bc186238ae028a73f22.json",
+    "proficienciesSha256": "1a915dffd9265cd1c18d39e55da7ede691b2e58add534bc186238ae028a73f22",
+    "proficienciesGitBlobSha1": "49ec7edc6dacdee4a055fc0f3a9544f15eafabdd",
+    "activeServerProficienciesBlobSha1": "49ec7edc6dacdee4a055fc0f3a9544f15eafabdd",
+    "assetJsonMatchesActiveServerBlob": true,
+    "assetProficiencyDefinitionCount": 420,
+    "allMappedProficienciesPresentInAssetJson": true,
+    "schema": "src/protobuf/appearances.proto",
+    "schemaBlobSha": "f39de45976e372b2306f6ff9c4a40412f4debe4e",
+    "note": "Only deterministic metadata extracted from the user-provided asset archive is committed; no binary asset is stored. The asset proficiency JSON is byte-identical to active data/items/proficiencies.json by Git blob SHA-1; CI also validates item identities and referenced IDs."
+  },
+  "items": [
+    {"referenceName": "Club of the Fury", "itemId": 9385, "appearanceName": "club of the fury", "proficiencyId": 245},
+    {"referenceName": "Glooth Blade", "itemId": 21179, "appearanceName": "glooth blade", "proficiencyId": 413},
+    {"referenceName": "Glutton's Mace", "itemId": 9373, "appearanceName": "glutton's mace", "proficiencyId": 244},
+    {"referenceName": "Glooth Club", "itemId": 21178, "appearanceName": "glooth club", "proficiencyId": 411},
+    {"referenceName": "Ice Rapier", "itemId": 3284, "appearanceName": "ice rapier", "proficiencyId": 161},
+    {"referenceName": "Incredible Mumpiz Slayer", "itemId": 9396, "appearanceName": "incredible mumpiz slayer", "proficiencyId": 242},
+    {"referenceName": "Musician's Bow", "itemId": 9378, "appearanceName": "musician's bow", "proficiencyId": 331},
+    {"referenceName": "Ornate Carving Rod", "itemId": 26073, "appearanceName": "ornate carving rod", "proficiencyId": 162},
+    {"referenceName": "Ornate Mayhem Wand", "itemId": 26009, "appearanceName": "ornate mayhem wand", "proficiencyId": 177},
+    {"referenceName": "Pointed Rabbitslayer", "itemId": 9375, "appearanceName": "pointed rabbitslayer", "proficiencyId": 259},
+    {"referenceName": "Small Stone", "itemId": 1781, "appearanceName": "small stone", "proficiencyId": 125},
+    {"referenceName": "Snowball", "itemId": 2992, "appearanceName": "snowball", "proficiencyId": 126}
+  ]
+}

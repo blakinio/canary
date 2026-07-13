@@ -296,6 +296,20 @@ regression (non-leader channels would simply stop charging rent for their
 own houses), not a fix. Corrected the classification to `per-channel`
 rather than implementing anything for them.
 
+**Phase 10:** two more read-only GM/admin commands from OPERATIONS.md's
+list are implemented, mirroring Phase 8's exact template -
+`Game.getClusterOnlinePlayers()` (cluster-wide online list, a
+`cluster_sessions` ⋈ `players` join) and `Game.getPlayerChannelSwitchHistory
+(name[, limit])` (channel-switch audit history, a new
+`ChannelSwitchAuditStore::getRecentHistory` query). No schema change - pure
+reads against already-existing tables. Verified against a real MariaDB:
+online-list join ordering across channels; history query's newest-first
+ordering, `LIMIT` honoring, `NULL` `source_channel_id` (first-ever login)
+representation, and empty-history case. All three GM commands implemented
+so far are read-only; every remaining command in the list needs either
+cluster-state mutation or cross-process signaling this codebase doesn't
+have a mechanism for yet.
+
 **Still not enforced**, and still the reason not to enable
 `multiChannelEnabled = true` in production yet: nothing yet *blocks* an
 account from bidding on or trading for a second house before an already-
