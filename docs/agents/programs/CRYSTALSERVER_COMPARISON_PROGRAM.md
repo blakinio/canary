@@ -4,8 +4,8 @@ name: CrystalServer Comparison Program
 status: active
 owner: GPT-5.6 Thinking
 created: 2026-07-13T21:01:05Z
-updated: 2026-07-13T21:21:00Z
-last_verified_commit: "bceccba9349d35a1d84f446757e53ac3adb602e1"
+updated: 2026-07-14T00:05:00+02:00
+last_verified_commit: "b2036bd5d56423894b72eaa2ebaff32feba382a5"
 primary_paths:
   - docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md
   - artifacts/upstream/crystalserver/**
@@ -93,13 +93,15 @@ Text similarity, `patch-id`, symbol search, and commit messages are signals, not
 
 # Active tasks
 
-None. Select exactly one bounded queue item and create a new task before implementation.
+| Task/PR | Candidate | Status | Scope |
+|---|---|---|---|
+| `CAN-20260713-conditionlight-zero-level` / [#297](https://github.com/blakinio/canary/pull/297) | `CS-001` | active | Test-first normalization of zero light levels at `ConditionLight` start and deserialization boundaries. |
 
 # Queue
 
 | ID | CrystalServer commit | Status | Risk | Area | Next action |
 |---|---|---|---|---|---|
-| `CS-001` | `a7350014528002fb27ed64d260a96d28a580d41a` | `VALID_FIX_MISSING` | high | `ConditionLight` zero-level division/deserialization | Create a separate test-first task after fresh baseline, ownership, and test-harness checks. |
+| `CS-001` | `a7350014528002fb27ed64d260a96d28a580d41a` | `VALID_FIX_MISSING` | high | `ConditionLight` zero-level division/deserialization | Active in task `CAN-20260713-conditionlight-zero-level` / PR #297; merge only after focused C++ and required CI gates pass. |
 | `CS-002` | `0c0f1acafd77a86fb5ce56fe768ff6d98d100c35` | `ALREADY_PRESENT` | medium | NPC shop iteration | Closed evidence; no implementation. |
 | `CS-003` | `90ac0eb7d2ba0a88476881c972d9de83fbbcb3e8` | `CANARY_SUPERIOR` | high | KV shared Lua userdata GC | Preserve typed shared-class registration. |
 | `CS-004` | `dcb4f00ffd55ede2399c979eee3b7fe6e7e0ee6e` | `ALREADY_PRESENT` | high | `Container::replaceThing` validation | Closed evidence; no implementation. |

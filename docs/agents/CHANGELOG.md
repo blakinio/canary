@@ -4,6 +4,8 @@ Curated behavior/architecture log for discovery; not a replacement for Git histo
 
 ## Unreleased
 
+- PR #297 normalizes zero-level `ConditionLight` state at construction/start and deserialization boundaries, preventing integer division by zero while preserving valid light levels and fade intervals.
+
 - PR #286 adds Phase 4 read-only spawn, boss and NPC validation: explicit active companion XML and definition evidence, current loader coordinate/radius/interval semantics, separate reward-boss and Bosstiary spawn-boss classification, conservative literal dynamic-creation inventory, exact static/dynamic overlap findings, and bounded World Index plus Phase 3 geometry correlation without executing Lua or modifying map/gameplay data. Its first active global datapack scan observed 52,903 groups, 84,294 placements, 2,688 definitions and 461 dynamic creation calls; duplicate active Harlow definitions and the resulting ambiguous placement remain review evidence rather than automatic repair.
 - PR #274 adds the read-only Phase 3 OTBM teleport and reachability validator: bounded strict/optimistic walkability from World Index plus real appearance flags, automatic indexed teleport checks, reviewed non-teleport floor-transition manifests, no-corner-cut pathfinding, route/mechanic reachability, one-way/dead-end/cycle findings, optional script-resolution evidence, atomic reports and a local toolkit workflow without committing maps, indexes or client assets.
 - Added bounded Forge server-authority policies and regressions in PR #250 so crafted normal Fusion, Convergence Fusion and Convergence Transfer requests are rejected before item/resource/history mutation; full Forge parity remains tracked by `CAN-PROGRAM-EQUIPMENT-UPGRADE-PARITY`.
