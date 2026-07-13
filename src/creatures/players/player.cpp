@@ -11080,7 +11080,8 @@ void Player::forgeFuseItems(ForgeAction_t actionType, uint16_t firstItemId, uint
 			firstForgingItem->getClassification(),
 			secondForgingItem->getClassification(),
 			sameForgeSlot,
-			convergence)) {
+			convergence
+		)) {
 		g_logger().warn(
 			"[{}] Rejected invalid fusion for player {}: first item {}, second item {}, first class {}, second class {}, tier {}, same slot {}, convergence {}",
 			__FUNCTION__,
