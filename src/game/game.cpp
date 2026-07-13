@@ -12340,6 +12340,14 @@ const InstanceManager &Game::getInstanceManager() const {
 	return m_instanceManager;
 }
 
+InstanceArenaService &Game::getInstanceArenaService() {
+	return m_instanceArenaService;
+}
+
+const InstanceArenaService &Game::getInstanceArenaService() const {
+	return m_instanceArenaService;
+}
+
 void Game::transferHouseItemsToDepot() {
 	if (!g_configManager().getBoolean(TOGGLE_HOUSE_TRANSFER_ON_SERVER_RESTART)) {
 		return;

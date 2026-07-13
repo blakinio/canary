@@ -12,6 +12,7 @@ target_sources(
             zones/zone.cpp
             instance/instance_manager.cpp
             instance/instance_region_pool.cpp
+            instance/instance_arena_service.cpp
             multichannel/channel_context.cpp
             multichannel/channel_registry.cpp
             multichannel/position_resolver.cpp

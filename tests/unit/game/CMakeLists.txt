@@ -15,6 +15,7 @@ target_sources(
             instance/instance_creature_ownership_policy_test.cpp
             instance/instance_creature_binder_test.cpp
             instance/instance_scoped_event_test.cpp
+            instance/instance_arena_service_test.cpp
             multichannel/channel_context_test.cpp
             multichannel/channel_registry_test.cpp
             multichannel/channel_runtime_registry_test.cpp

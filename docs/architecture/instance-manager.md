@@ -9,13 +9,14 @@ map for every instance.
 
 `InstanceManager` and `InstanceRegionPool` are plain constructor-owned
 components, not new `g_*()` singletons. `Game` owns the single runtime
-instance through `Game::getInstanceManager()`, constructed with zero
-configured regions until a concrete instanced feature defines real ones -
-`createInstance()` simply fails with `"no available instance regions"` until
-then. Nothing calls `getInstanceManager()` yet: spawn/NPC creation, the
-scheduler and player enter/leave all still run entirely in the normal world.
-This only removes the prerequisite that was blocking those follow-ups from
-wiring in for real.
+instance through `Game::getInstanceManager()`, configured with the
+Instanced Test Arena's two regions
+(`InstanceArenaService::configuredRegions()`, see
+`docs/architecture/instanced-test-arena.md` for the full OTBM evidence
+behind those coordinates) - the first concrete instanced feature to define
+real ones. `Game::getInstanceArenaService()` is the real consumer; spawn/NPC
+creation, the scheduler and player enter/leave outside that one feature
+still run entirely in the normal world.
 
 ## Lifecycle foundation
 
@@ -212,8 +213,10 @@ creatures.
 
 ## Remaining integration sequence
 
-0. **Runtime owner**: `Game::getInstanceManager()` (done - see above). Nothing
-   calls it yet.
+0. **Runtime owner**: `Game::getInstanceManager()` (done - see above).
+   `InstanceArenaService` is now a real caller (done - see
+   `docs/architecture/instanced-test-arena.md`); every other planned
+   integration below still runs entirely in the normal world.
 1. **Runtime call-site wiring**: `Creature::setMaster(master, binder)` exists
    and is tested (done), but no production spawn/summon call site passes
    `Game::getInstanceManager()`'s binder to it yet - only direct unit tests
