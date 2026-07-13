@@ -78,6 +78,23 @@ The registry contract is:
 - destroyed or unknown instances cannot be mutated;
 - insertion into both ownership indexes is transactional on allocation failure.
 
+## Automatic cleanup on removal
+
+`Game::removeCreature()` is the one path every removed creature passes
+through (monsters, NPCs, players on logout, and summons recursively). It now
+looks up `getInstanceManager().getCreatureOwner(creature->getID())` and calls
+`unregisterCreature()` when an owner is found, so a registered creature's
+ownership entry cannot outlive the creature itself regardless of which future
+call site registered it (spawn, summon inheritance, player enter/leave).
+
+This is intentionally generic and not spawn/NPC-specific: it closes the
+"automatically unregister on removal" half of the spawn/NPC ownership
+integration step below without waiting for the "register at creation" half,
+which still needs a design decision (Spawn/NpcSpawn have no concept today of
+"which instance am I in"). Today this is a safe no-op in production, since
+nothing yet calls `registerCreature()`/`InstanceCreatureBinder::bind()`
+outside tests.
+
 ## Summon inheritance and interaction policy
 
 Ownership inheritance and interaction decisions use only stable runtime ids and
@@ -201,8 +218,11 @@ creatures.
    and is tested (done), but no production spawn/summon call site passes
    `Game::getInstanceManager()`'s binder to it yet - only direct unit tests
    exercise the overload today.
-2. **Spawn and NPC ownership**: instance-created spawn products register stable
-   ids, automatically unregister on removal and are cleaned before region release.
+2. **Spawn and NPC ownership**: automatic unregistration on removal is done
+   (see above, `Game::removeCreature()`). Still open: spawn/NPC creation
+   itself has no concept of "which instance am I in", so nothing registers a
+   spawn product's id at creation time yet - that needs a design decision on
+   how a `Spawn`/`SpawnNpc` becomes instance-scoped in the first place.
 3. **Cross-instance isolation**: spectator, targeting and combat call sites use
    the central relation policy while normal-world behavior stays unchanged.
 4. **Scheduler/event ownership**: `InstanceScopedEvent` gives a scheduled
@@ -282,4 +302,5 @@ creatures.
 - no creature pointer ownership in `InstanceManager` or its binder;
 - no direct spawn, scheduler, player or Lua integration in the binder PR;
 - no dispatcher/task call site wiring or periodic sweep owner in the scoped-event PR - both need a live, `Game`-owned `InstanceManager` first;
-- no spawn/NPC/scheduler/player/Lua call site changes in the `Game::getInstanceManager()` PR - it only removes the ownership prerequisite, configured with zero regions.
+- no spawn/NPC/scheduler/player/Lua call site changes in the `Game::getInstanceManager()` PR - it only removes the ownership prerequisite, configured with zero regions;
+- no instance-scoped `Spawn`/`SpawnNpc` concept in the automatic-cleanup PR - `Game::removeCreature()` only unregisters whatever a future call site already registered.

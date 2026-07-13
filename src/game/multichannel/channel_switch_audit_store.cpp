@@ -82,6 +82,41 @@ int64_t ChannelSwitchAuditStore::getLastSwitchAtMs(int32_t accountId) {
 	return result->getNumber<int64_t>("created_at");
 }
 
+std::vector<ChannelSwitchHistoryEntry> ChannelSwitchAuditStore::getRecentHistory(int32_t playerId, int32_t limit) {
+	Database &db = Database::getInstance();
+
+	std::ostringstream query;
+	query << "SELECT `id`, COALESCE(`source_channel_id`, 0) AS `source_channel_id`, `target_channel_id`, `result`, `deny_reason`, `created_at` "
+		  << "FROM `channel_switch_audit` WHERE `player_id` = " << playerId
+		  << " ORDER BY `created_at` DESC, `id` DESC LIMIT " << limit << ";";
+
+	std::vector<ChannelSwitchHistoryEntry> entries;
+	const DBResult_ptr result = db.storeQuery(query.str());
+	if (!result) {
+		return entries;
+	}
+
+	do {
+		ChannelSwitchHistoryEntry entry;
+		entry.auditId = result->getNumber<int64_t>("id");
+		// 0 is never a valid channel id - the bootstrap/default channel is
+		// id 1 (ChannelContext::DefaultSingleChannelId) - so it safely
+		// stands in for SQL NULL here, mirroring ChannelRegistry's existing
+		// optionalIntColumn convention for other nullable int columns.
+		const auto sourceChannelId = result->getNumber<int32_t>("source_channel_id");
+		if (sourceChannelId != 0) {
+			entry.sourceChannelId = sourceChannelId;
+		}
+		entry.targetChannelId = result->getNumber<int32_t>("target_channel_id");
+		entry.result = result->getString("result");
+		entry.denyReason = result->getString("deny_reason");
+		entry.createdAtMs = result->getNumber<int64_t>("created_at");
+		entries.push_back(std::move(entry));
+	} while (result->next());
+
+	return entries;
+}
+
 bool ChannelSwitchAuditStore::markConsumed(int64_t auditId, int64_t nowMs) {
 	Database &db = Database::getInstance();
 	const std::string query = "UPDATE `channel_switch_audit` SET `consumed_at` = " + std::to_string(nowMs) + " WHERE `id` = " + std::to_string(auditId) + ";";
