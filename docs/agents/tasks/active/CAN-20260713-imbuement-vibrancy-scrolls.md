@@ -2,16 +2,16 @@
 task_id: CAN-20260713-imbuement-vibrancy-scrolls
 program_id: ""
 coordination_id: ""
-status: in_progress
+status: validation_pending
 agent: "GPT-5.6 Thinking"
 branch: fix/imbuement-vibrancy-scrolls
 base_branch: main
 created: 2026-07-13T10:22:00+02:00
-updated: 2026-07-13T10:22:00+02:00
-last_verified_commit: "f96680987955cde24d4264e9473bde70501ed534"
+updated: 2026-07-13T10:52:00+02:00
+last_verified_commit: "fa9247068c32d46981f6a5ae73aecc5f2448c332"
 risk: medium
 related_issue: "IMB-004"
-related_pr: ""
+related_pr: "#239"
 depends_on:
   - merged Imbuement audit PR #166
   - merged Forgotten Knowledge storage repair PR #206
@@ -27,26 +27,17 @@ owned_paths:
     - docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md
     - docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json
     - docs/agents/tasks/active/CAN-20260713-imbuement-vibrancy-scrolls.md
-  shared:
-    - .github/workflows/imbuement-validation.yml
+  shared: []
   read_only:
-    - AGENTS.md
-    - docs/agents/README.md
-    - docs/agents/MODULE_CATALOG.md
-    - docs/agents/REPOSITORY_MAP.md
-    - docs/agents/KNOWN_RISKS.md
-    - docs/agents/BUILD_TEST_MATRIX.md
     - data-otservbr-global/scripts/actions/object/imbuement_scrolls.lua
     - src/creatures/players/imbuements/imbuements.cpp
-    - src/creatures/players/imbuements/imbuements.hpp
     - src/lua/functions/creatures/player/player_functions.cpp
     - src/creatures/players/player.cpp
     - src/items/item.cpp
-    - src/items/item.hpp
 modules_touched:
   - Imbuement XML registry
-  - Imbuement deterministic validation
-  - Imbuement focused tests
+  - Imbuement deterministic validator
+  - Imbuement focused C++ and Python tests
 reuses:
   - tools/ai-agent/imbuement_validation.py
   - tools/ai-agent/imbuement_storage_validation.py
@@ -58,175 +49,172 @@ cross_repo_tasks: []
 
 # Goal
 
-Repair only IMB-004 so Intricate Vibrancy scroll `51746` and Powerful Vibrancy scroll `51466` resolve through the active XML loader and apply through the existing scroll path, with focused resolution, target-rejection and consumption-atomicity regression evidence.
-
-# Acceptance criteria
-
-- [x] Confirm both candidate IDs on current `main` in the active Lua action.
-- [x] Confirm the missing XML mappings on current `main`.
-- [x] Confirm the runtime chain through `getImbuementByScrollID()` on current `main`.
-- [ ] Add the minimal Intricate Vibrancy XML mapping.
-- [ ] Add the minimal Powerful Vibrancy XML mapping.
-- [ ] Add successful resolution tests for both scroll IDs.
-- [ ] Add successful application coverage on a valid target.
-- [ ] Add invalid-target coverage.
-- [ ] Add occupied-category coverage.
-- [ ] Prove failed operations do not consume a scroll.
-- [ ] Prove a successful operation consumes exactly one scroll.
-- [ ] Check mutation/resource atomicity.
-- [ ] Extend the existing validator; do not add a competing parser.
-- [ ] Update `IMBUEMENT_VALIDATION_REPORT.md` and the runtime plan where applicable.
-- [ ] Verify no economy, effect, storage, map, `items.otb`, asset or protocol changes.
-- [ ] Run all validation available in the execution environment and record unavailable local checks separately.
-- [ ] Verify every concrete CI job and relevant log on the final head.
-- [ ] Satisfy the autonomous merge gate, squash-merge and archive this task.
-
-# Confirmed context
-
-- Branch base and current `main` at task creation: `f96680987955cde24d4264e9473bde70501ed534`.
-- `data-otservbr-global/scripts/actions/object/imbuement_scrolls.lua` registers Powerful IDs `51444..51467` and Intricate IDs `51724..51747`; therefore `51466` and `51746` are active action IDs.
-- The same action rejects a non-item target and a target with zero Imbuement slots before calling `player:applyImbuementScroll(target, item)`.
-- `data/XML/imbuements.xml` contains no `scroll` child for Intricate or Powerful Vibrancy, while adjacent Intricate/Powerful families do contain one.
-- `Imbuements::loadFromXml()` reads only XML `scroll` attributes into `Imbuement::scrollId`, then populates `scrollIdMap`; `getImbuementByScrollID()` only queries that map.
-- Lua `Player.applyImbuementScroll` delegates to `Player::applyScrollImbuement`.
-- `Player::applyScrollImbuement` validates free slot, XML resolution, base entry and `Item::canAddImbuement` before `internalRemoveItem(scrollItem, 1)`; the target is mutated only after that exact one-item removal succeeds.
-- The existing deterministic baseline already records `Vibrancy: (None, 51746, 51466)` and currently reports exactly those registered-but-unmapped IDs.
-- The current external Imbuing reference observed on 2026-07-13 states that Intricate and Powerful Imbuements are available as scrolls and that Vibrancy applies to boots; the numeric IDs are not taken from that prose alone.
-- Read-only inspection of current upstream `opentibiabr/canary` shows the same missing Vibrancy XML attributes, so upstream is not a repair source.
-- Excluded findings remain IMB-001, IMB-002, IMB-003 and IMB-006.
-
-# Existing work to reuse
-
-| Module/task/PR | Reuse | Evidence/path | Why it fits |
-|---|---|---|---|
-| Imbuement audit #166 | XML parser, scroll-range correlation, runtime markers, tests and report | `tools/ai-agent/imbuement_validation.py` | Already detects IMB-004 conservatively. |
-| Storage repair #206 / cleanup #237 | Current main baseline and lifecycle precedent | archived task and report | Completed, merged and must not be resumed. |
-| Imbuements C++ fixture | Loader-level registry tests | `tests/shared/imbuements/imbuements_test_fixture.hpp` | Existing fixture reloads the real XML loader. |
-| Focused workflow | Python compilation, focused unit tests, validators and artifacts | `.github/workflows/imbuement-validation.yml` | Must be extended only if existing jobs do not cover required tests. |
-
-# Ownership and overlap check
-
-- Program record: none required for this bounded follow-up.
-- Open PRs inspected: live open PRs and searches for `imbuement`, `imbuing`, `scroll`, and `item action`; no matching open PR exists. Unrelated open PRs include #238, #234, #230 and #224.
-- Active tasks inspected: `ACTIVE_WORK.md` as a read-only snapshot plus live PR/task searches; no active Imbuement/scroll/item-action ownership overlaps were found.
-- Ownership checker result: not run locally because no checkout is available.
-- Exclusive claims: only the focused XML, validator, fixture/test and durable documentation paths listed above.
-- Shared claims: focused workflow only if concrete CI coverage must be added.
-- Read-only dependencies: active Lua action, loader, Lua binding, Player application path and Item eligibility path.
-- Overlaps: none found.
-- Resolution: proceed on this dedicated branch; do not edit `docs/agents/ACTIVE_WORK.md`.
+Repair only IMB-004 so Intricate Vibrancy scroll `51746` and Powerful Vibrancy scroll `51466` resolve through the existing XML loader and apply through the existing scroll runtime path. Do not change IMB-001, IMB-002, IMB-003, IMB-006 or redesign Imbuing.
 
 # Current state
 
-Task claimed from current `main`; no runtime/data implementation change has been made yet. Draft PR is the next action.
+Implementation and focused draft-head validation are complete. PR #239 remains draft until the task/PR records are current; full post-ready CI, review-thread inspection, merge and archive remain.
 
-# Plan
+# Acceptance criteria
 
-1. Publish the task branch and open a draft PR.
-2. Inspect `Item::canAddImbuement`, item mutation helpers and existing C++ test infrastructure to choose executable application/atomicity coverage.
-3. Add exactly two XML `scroll` attributes.
-4. Extend the existing validator and focused tests; add or wire C++ coverage where required.
-5. Update the report/runtime plan and task after each result.
-6. Inspect the complete diff, mark ready, verify concrete post-ready CI jobs/logs on the final SHA, merge and archive.
+- [x] Confirm both scroll IDs on current `main` in the active Lua action.
+- [x] Confirm both missing XML mappings on current `main`.
+- [x] Confirm the exact runtime path through `getImbuementByScrollID()`.
+- [x] Add the minimal Intricate Vibrancy mapping `51746`.
+- [x] Add the minimal Powerful Vibrancy mapping `51466`.
+- [x] Add successful resolution tests for both IDs.
+- [x] Add successful application tests on a valid boots target.
+- [x] Add invalid-target rejection coverage.
+- [x] Add occupied-category rejection coverage.
+- [x] Assert no scroll consumption on failed operations.
+- [x] Assert exactly one scroll is consumed on success.
+- [x] Check mutation/resource atomicity through runtime ordering and executable tests.
+- [x] Extend the existing validator instead of adding another parser.
+- [x] Update `IMBUEMENT_VALIDATION_REPORT.md` and `IMBUEMENT_RUNTIME_TEST_PLAN.json`.
+- [x] Confirm no economy, effect, storage, map, `items.otb`, asset or protocol changes.
+- [x] Run all validation available without a local checkout and record local unavailability separately.
+- [ ] Mark PR ready and verify every concrete post-ready CI job and relevant failure log on the final head.
+- [ ] Inspect review threads and final changed files/diff.
+- [ ] Set `last_verified_commit` to final head, enable auto-merge, squash-merge and archive this task.
+
+# Exact evidence
+
+## Identifiers and XML
+
+- Active Lua registers Powerful range `51444..51467` and Intricate range `51724..51747`; therefore `51466` and `51746` are active scroll actions.
+- On base commit `f96680987955cde24d4264e9473bde70501ed534`, neither Intricate nor Powerful Vibrancy had a `scroll` child.
+- PR #239 adds only `<attribute key="scroll" value="51746" />` to Intricate Vibrancy and `<attribute key="scroll" value="51466" />` to Powerful Vibrancy.
+- Current upstream `opentibiabr/canary` had the same omission and was used read-only; it was not treated as a fix source.
+
+## Runtime chain and atomicity
+
+1. `imbuement_scrolls.lua` validates an item target with Imbuement slots and calls `player:applyImbuementScroll(target, item)`.
+2. The Lua Player binding delegates to `Player::applyScrollImbuement`.
+3. `Player::applyScrollImbuement` obtains a free slot.
+4. It calls `getImbuementByScrollID(scrollItem->getID())`; the lookup reads `scrollIdMap`, populated only from XML `scroll` children by `Imbuements::loadFromXml()`.
+5. It resolves base data and calls `Item::canAddImbuement`, which rejects unsupported targets and an occupied category.
+6. Only after those checks does it call `internalRemoveItem(scrollItem, 1)`.
+7. Only after successful removal does it call `setImbuement` and start decay.
+
+The validator now checks the exact two ID-to-family/tier mappings and the required ordering. The C++ fixture executes the real Player/Inbox/Item path and asserts target state and scroll count.
+
+## Tests added
+
+- `ResolvesIntricateAndPowerfulVibrancyScrolls`
+- `AppliesEachVibrancyScrollAndConsumesExactlyOne`
+- `RejectsInvalidTargetWithoutConsumingScrollOrMutatingItem`
+- `RejectsOccupiedVibrancyCategoryWithoutConsumingScroll`
+- Python regression `test_vibrancy_scrolls_resolve_to_exact_tiers`
+
+# Scope review
+
+Final changed paths at implementation cleanup head `fa9247068c32d46981f6a5ae73aecc5f2448c332`:
+
+- `data/XML/imbuements.xml`
+- `tools/ai-agent/imbuement_validation.py`
+- `tools/ai-agent/test_imbuement_validation.py`
+- `tests/fixture/core/XML/imbuements.xml`
+- `tests/unit/players/imbuements/imbuements_test.cpp`
+- `docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md`
+- `docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json`
+- this task record
+
+No workflow remains changed. `docs/agents/ACTIVE_WORK.md` was not edited. No economy, success percentage, fee, effect, material, storage, map, `items.otb`, asset, protocol, client, schema, database or production configuration path changed.
+
+# Local checkout and tests
+
+Local checkout and local tests are unavailable because the execution environment cannot resolve `github.com`. CI is recorded separately and is not described as local validation.
+
+Commands attempted and blocked:
+
+```text
+getent hosts github.com
+# no DNS result
+
+git ls-remote https://github.com/blakinio/canary.git HEAD
+# fatal: unable to access ... Could not resolve host: github.com
+```
+
+Commands that could not be run because no local checkout exists:
+
+```text
+git clone https://github.com/blakinio/canary.git
+git status --short --branch
+git branch -vv
+git remote -v
+git worktree list
+python tools/agents/task_ownership.py
+python -m py_compile tools/ai-agent/imbuement_validation.py tools/ai-agent/imbuement_storage_validation.py tools/ai-agent/test_imbuement_validation.py tools/ai-agent/test_imbuement_storage_validation.py
+python -m unittest discover -s tools/ai-agent -p 'test_imbuement*_validation.py' -v
+python tools/ai-agent/imbuement_validation.py --repository-root . --output artifacts/IMBUEMENT_VALIDATION.json --runtime-plan artifacts/IMBUEMENT_RUNTIME_TEST_PLAN.json
+python tools/ai-agent/imbuement_storage_validation.py --repository-root . --output artifacts/IMBUEMENT_STORAGE_VALIDATION.json --strict
+ctest --test-dir build/linux-debug --output-on-failure -R canary_ut
+```
+
+None of these local commands is claimed as passed.
+
+# CI evidence
+
+| Head / run | Workflow / job | Result | Concrete coverage |
+|---|---|---|---|
+| `fa9247068c32d46981f6a5ae73aecc5f2448c332`, run `29236654064` | Agent Task Ownership | success | repository ownership validation |
+| `fa9247068c32d46981f6a5ae73aecc5f2448c332`, run `29236654112`, job `86772772470` | Imbuement Validation / Audit imbuement definitions and runtime wiring | success | focused Python compilation; focused unit tests; registry and storage validators; generated audit/runtime JSON; JSON validation; artifacts |
+| `fa9247068c32d46981f6a5ae73aecc5f2448c332`, run `29236654386` | CI | success only for draft gate | Detect Build Scope and Required succeeded; Fast Checks, Lua Tests, Linux/Windows/macOS builds and C++ tests were skipped because PR was draft. This is not full validation. |
+
+The post-ready CI run ID, all concrete jobs, C++ `ctest` result and final head SHA are still pending and must be recorded before merge.
 
 # Work log
 
 ## 2026-07-13T10:22:00+02:00
 
-- Changed: created `fix/imbuement-vibrancy-scrolls` from `main` and claimed this task record.
-- Learned: both IDs are active in Lua; both XML mappings are absent; runtime resolution is XML-map-only; scroll removal is ordered after eligibility validation and before target mutation.
-- Failed/blocked: local Git checkout and local tests are unavailable because the execution environment cannot resolve `github.com`.
-- Result: scope and runtime defect are confirmed; implementation has not started.
+- Created branch from `main` commit `f96680987955cde24d4264e9473bde70501ed534`.
+- Created this task and draft PR #239 after overlap search found no active Imbuement/scroll/item-action conflict.
+
+## 2026-07-13T10:35:00+02:00
+
+- Confirmed both IDs, the XML omission, loader-only resolution and pre-removal validation ordering.
+- Added exact XML mappings, validator assertions, Python tests and real C++ application/atomicity tests.
+
+## 2026-07-13T10:46:00+02:00
+
+- Used temporary branch-only staging files because the execution environment had no Git checkout. They were removed before scope review and do not appear in the final changed-file list.
+- Failed patch workflow runs:
+  - `29236378484`: initial combined apply/self-cleanup attempt failed;
+  - `29236466671`: retry failed;
+  - `29236517422`: `git diff --check` exposed four trailing-whitespace lines in the report patch.
+- Fixed the actual whitespace issue instead of suppressing the check.
+- Successful deterministic patch application run: `29236611125`; implementation commit `b1501511a050dcf327f17e1f84ea1c1ad577399e`.
+- Removed temporary patch and workflow through GitHub API; cleanup head `fa9247068c32d46981f6a5ae73aecc5f2448c332`.
 
 # Decisions
 
-| Decision | Reason/evidence | ADR |
-|---|---|---|
-| Add only the two missing XML mappings | Existing loader and action already support the behavior; no runtime redesign is justified. | none |
-| Keep IMB-006 storage bypass unchanged | Exact Dream Courts completion storage is outside this task and remains unresolved. | none |
-| Treat CI and local validation as separate evidence | The environment lacks DNS; CI cannot be reported as local execution. | none |
-| Extend existing validator and C++ fixture | Repository catalogue and user scope prohibit duplicate parsing/tooling. | none |
+- Keep the fix XML-only at runtime; the existing action, loader and Player path are reused unchanged.
+- Keep IMB-006 `storage=0` behavior unchanged because the exact Dream Courts storage is outside this task.
+- Use real C++ runtime objects for application/consumption tests rather than a Python model.
+- Treat CI as separate evidence; draft `Required` is insufficient because heavy jobs were skipped.
+- No module catalogue or changelog update is required: no reusable public interface or broad behavior architecture changed.
 
-# Files and interfaces
+# Failed approaches
 
-| Path/interface/config/schema | Ownership mode | Purpose | Status |
-|---|---|---|---|
-| `data/XML/imbuements.xml` | exclusive | Two exact scroll mappings | planned |
-| `tools/ai-agent/imbuement_validation.py` | exclusive | Exact resolved mapping/runtime contract | planned |
-| `tools/ai-agent/test_imbuement_validation.py` | exclusive | Deterministic regression | planned |
-| `tests/fixture/core/XML/imbuements.xml` | exclusive | Real loader fixture for both tiers | planned |
-| `tests/unit/players/imbuements/imbuements_test.cpp` | exclusive | C++ loader resolution tests | planned |
-| `.github/workflows/imbuement-validation.yml` | shared | Focused CI coverage if required | under review |
-| report/runtime plan/task | exclusive | Durable evidence and handoff | in progress |
-
-# Validation and CI
-
-| Commit | Command/check/workflow | Result | Evidence/notes |
-|---|---|---|---|
-| environment | `git ls-remote https://github.com/blakinio/canary.git HEAD` | blocked | `fatal: unable to access ... Could not resolve host: github.com` |
-| environment | `getent hosts github.com` | blocked | no DNS result |
-| not available | `git clone https://github.com/blakinio/canary.git` | not-run | checkout cannot begin without DNS |
-| not available | `git status --short --branch`; `git branch -vv`; `git remote -v`; `git worktree list` | not-run | no local checkout |
-| not available | `python tools/agents/task_ownership.py` | not-run | no local checkout |
-| not available | `python -m py_compile tools/ai-agent/imbuement_validation.py tools/ai-agent/imbuement_storage_validation.py tools/ai-agent/test_imbuement_validation.py tools/ai-agent/test_imbuement_storage_validation.py` | not-run | no local checkout |
-| not available | `python -m unittest discover -s tools/ai-agent -p 'test_imbuement*_validation.py' -v` | not-run | no local checkout |
-| not available | `python tools/ai-agent/imbuement_validation.py --repository-root . --output artifacts/IMBUEMENT_VALIDATION.json --runtime-plan artifacts/IMBUEMENT_RUNTIME_TEST_PLAN.json` | not-run | no local checkout |
-| not available | `python tools/ai-agent/imbuement_storage_validation.py --repository-root . --output artifacts/IMBUEMENT_STORAGE_VALIDATION.json --strict` | not-run | no local checkout |
-
-Never write `passed` without verification on the stated commit. CI workflow IDs, exact jobs, tests and logs will be added only after they run on the implementation head.
-
-# Failed approaches and dead ends
-
-- Direct local Git access cannot be used in this execution environment because `github.com` DNS resolution fails.
-- Current upstream XML contains the same omission and therefore cannot be copied as evidence of a fix.
-
-# Risks and compatibility
-
-- Runtime: low implementation size, medium validation risk because scroll consumption mutates inventory and target state.
-- Data/migration: XML-only registry mapping; no database/schema migration.
-- Security: no security-sensitive surface.
-- Backward compatibility: adds resolution for two already-registered item actions; no removal or identifier reassignment.
-- Cross-repo rollout: none; no protocol/client contract change.
-- Rollback: revert the two XML attributes and corresponding tests/docs.
+- Local clone/test execution: blocked by DNS, exact commands above.
+- Temporary patch run `29236517422`: failed correctly on trailing whitespace; fixed at source.
+- No check was disabled, weakened or marked successful manually.
 
 # Remaining work
 
-1. Open the draft PR and record its number.
-2. Prove executable application/invalid-target/occupied-category/consumption coverage through existing test infrastructure or record a precise blocker.
-3. Implement and validate the two mappings.
+1. Update PR body and mark #239 ready.
+2. Wait for the full ready-for-review CI event and inspect every job, including Linux Debug `ctest`.
+3. Repair any in-scope failure and repeat on the new final head.
+4. Inspect review threads, complete changed files/diff and set final SHA/run IDs here.
+5. Enable auto-merge or squash-merge after the autonomous merge gate passes.
+6. Move this record to `docs/agents/tasks/archive/` in the proper cleanup step.
 
 # Handoff
 
-## Start here
+Start with PR #239 and this record. The next concrete command in a local checkout would be:
 
-Read this record, then inspect the draft PR and current branch head. Do not resume PR #206 or its archived branch/task.
+```text
+python -m unittest discover -s tools/ai-agent -p 'test_imbuement*_validation.py' -v
+```
 
-## Do not repeat
-
-The Lua ranges, missing XML attributes and loader path are already confirmed above.
-
-## Required reads
-
-- `AGENTS.md`
-- `docs/agents/README.md`
-- `docs/agents/MODULE_CATALOG.md`
-- `docs/agents/REPOSITORY_MAP.md`
-- `docs/agents/KNOWN_RISKS.md`
-- `docs/agents/BUILD_TEST_MATRIX.md`
-- `docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md`
-- `docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json`
-- active action, loader, Player application path and focused tests/workflow
-
-## Open questions
-
-- Which existing test target can execute `Player::applyScrollImbuement` with a real target and removable scroll without introducing a new test framework?
-
-# Completion
-
-- Final status: in progress
-- PR: pending
-- Merge commit: pending
-- Program record updated: not applicable
-- Catalogue updated: not required unless a reusable interface changes
-- Changelog updated: pending scope review
-- Archived at: pending
+Do not resume PR #206 or the archived Forgotten Knowledge task. Do not expand scope to IMB-001, IMB-002, IMB-003 or IMB-006.
