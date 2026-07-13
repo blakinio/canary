@@ -1,10 +1,12 @@
 # Weapon Proficiency achievements 564–567 — evidence report
 
+> **Secret implementation update:** PR #288 adds the canonical ID 567 definition, exact twelve-item mastered-state condition, live award and silent login reconciliation. Full real-client E2E remains unproven.
+
 > **Threshold implementation update:** PR #272 adds idempotent awards for IDs 564–566 at 1/10/50 mastered weapons and login-time reconciliation for existing players. ID 567 remains separate. Full runtime/E2E remains unproven.
 
 > **Runtime remediation update:** PR #212 corrects the first-entry mastery state and adds the const `WeaponProficiency::getMasteredWeaponCount()` query. Achievement awards 564–566, historical backfill and ID 567 remain intentionally outside that PR.
 
-## Final static decision
+## Original static decision (PR #195)
 
 ```text
 scope: read-only audit
@@ -13,8 +15,9 @@ runtimeModified: false
 registryModified: false
 assetBinaryCommitted: false
 thresholdDefinitionsPresent: 3/3
-thresholdAwardPathsPresent: 0/3
-secretDefinitionPresent: false
+thresholdAwardPathsPresent: 3/3
+secretDefinitionPresent: true
+secretAwardPathPresent: true
 secretItemProficiencyContract: 12/12 verified
 ```
 
@@ -34,9 +37,9 @@ No runtime or registry change is authorized merely because a reference achieveme
 | 564 | The First of Many | master 1 weapon | present |
 | 565 | A Well-Honed Arsenal | master 10 weapons | present |
 | 566 | Arsenal of War | master 50 weapons | present |
-| 567 | The Forbidden Build | master the reviewed secret weapon set | absent |
+| 567 | The Forbidden Build | master the reviewed secret weapon set | present |
 
-The first three definitions exist but have no award hook. ID 567 is absent, although its complete item/proficiency data contract is now proven.
+IDs 564–566 have threshold award hooks from PR #272. ID 567 now has a registry definition and a runtime condition requiring mastered state for every reviewed item ID.
 
 ## Confirmed runtime findings
 
@@ -204,4 +207,4 @@ This audit does not modify:
 
 ## Conclusion
 
-IDs 564–566 are defined but unobtainable through the currently inspected runtime because no award path exists. The initial-entry mastery transition has a confirmed flag defect. Existing stored XP is normalizable and can support a deliberate historical backfill, but no policy exists yet. ID 567's twelve-item asset/server eligibility contract is fully verified; implementation must still be performed in separate focused runtime and registry PRs with the supplied test plan.
+IDs 564–566 have idempotent threshold awards and login reconciliation. ID 567 has the canonical definition and requires normalized mastery for the exact reviewed twelve-item set, using the same live-transition and login reconciliation surface. Full real-client runtime/E2E remains a separate proof layer.

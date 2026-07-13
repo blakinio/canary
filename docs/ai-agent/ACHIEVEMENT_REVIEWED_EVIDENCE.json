@@ -1,7 +1,7 @@
 {
   "format": "canary-achievement-reviewed-evidence-v1",
   "reviewedAt": "2026-07-13",
-  "scope": "Reviewed Weapon Proficiency evidence including threshold awards/backfill for 564-566 and the still-separate secret achievement 567.",
+  "scope": "Reviewed Weapon Proficiency evidence including threshold awards/backfill for 564-566 and exact-set implementation for secret achievement 567.",
   "entries": [
     {
       "id": 564,
@@ -101,30 +101,40 @@
     },
     {
       "id": 567,
-      "status": "conflicting",
-      "reason": "The current external reference defines the achievement, but Canary has no registry definition or award path. The exact twelve-item proficiency contract is proven, which is not authorization to implement it inside this validation PR.",
+      "status": "partially-confirmed",
+      "reason": "The canonical definition, exact reviewed twelve-item mastered-state condition, live award hook and login-time reconciliation are implemented and unit-covered. Full real-client runtime/E2E remains unproven.",
       "evidence": [
         {
-          "path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md",
-          "line": 37,
-          "kind": "definition-absent"
+          "path": "data/scripts/lib/register_achievements.lua",
+          "line": 566,
+          "kind": "canonical-definition"
         },
         {
-          "path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md",
-          "line": 39,
-          "kind": "award-path-absent"
+          "path": "src/creatures/players/components/weapon_proficiency.cpp",
+          "line": 46,
+          "kind": "exact-item-set"
         },
         {
-          "path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md",
-          "line": 107,
-          "kind": "secret-item-contract"
+          "path": "src/creatures/players/components/weapon_proficiency.cpp",
+          "line": 376,
+          "kind": "normalized-mastered-condition"
+        },
+        {
+          "path": "src/creatures/players/components/weapon_proficiency.cpp",
+          "line": 388,
+          "kind": "canonical-award-api"
+        },
+        {
+          "path": "tests/unit/players/components/weapon_proficiency_test.cpp",
+          "line": 110,
+          "kind": "condition-unit-test"
         }
       ],
-      "persistenceBackfill": "unresolved",
-      "newPlayerAttainability": "conflicting",
-      "existingPlayerAttainability": "conflicting",
+      "persistenceBackfill": "implemented-login-reconciliation",
+      "newPlayerAttainability": "partially-confirmed",
+      "existingPlayerAttainability": "partially-confirmed",
       "runtimeE2EProven": false,
-      "testStatus": "missing"
+      "testStatus": "unit-covered"
     }
   ]
 }
