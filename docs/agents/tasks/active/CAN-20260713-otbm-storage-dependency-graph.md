@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/otbm-storage-dependency-graph
 base_branch: main
 created: 2026-07-13T23:55:00+02:00
-updated: 2026-07-14T00:40:00+02:00
-last_verified_commit: "aa2b3bf2f8c3eef86835d890def1e88d2699da16"
+updated: 2026-07-14T00:45:00+02:00
+last_verified_commit: "28897bcc4171e9a057621b2c89e2802df9fd0162"
 risk: medium
 related_issue: ""
 related_pr: "#299"
@@ -124,7 +124,7 @@ Ready head `b1a2c2fe5d2478cf94d55fcb9b589baf5f4d439a`:
 - Required job `86952155215`: success;
 - review threads: zero.
 
-The branch was then refreshed onto `main` `de89067565bddc59768cfd043062e7957db0d7a9`, preserving the completed achievement #567 catalogue update and new Real Tibia evidence-source records. Merge head `aa2b3bf2f8c3eef86835d890def1e88d2699da16` was ahead and behind by 0. This contents-API task pin creates the final workflow-bearing head.
+The branch was refreshed onto `main` `752595ae22dc4b8f1ff70d07bae489ceb559b14c`, preserving unrelated current-main ConditionLight, achievement and evidence-source work. Merge head `28897bcc4171e9a057621b2c89e2802df9fd0162` was ahead and behind by 0. This contents-API-only task update triggers the final required-status gate over that tree plus this record.
 
 Representative The Beginning/Zirella contract smoke:
 
@@ -145,7 +145,7 @@ Artifact ID `8294353648`, digest `sha256:ad9a3fd6b8627c58159f81187b4f725a0dbe5a0
 # Work log
 
 - 2026-07-13: claimed Phase 5 after overlap searches and opened draft #299.
-- 2026-07-14: implemented the graph, tests, schema, docs, ADR and workflow; repaired the catalogue after an intermediate API overwrite before any merge; verified the final 15-file diff; refreshed twice as concurrent `main` advanced; preserved all unrelated current-main files.
+- 2026-07-14: implemented the graph, tests, schema, docs, ADR and workflow; repaired the catalogue after an intermediate API overwrite before any merge; verified the final 15-file diff; refreshed as concurrent `main` advanced; preserved all unrelated current-main files.
 
 # Risks and compatibility
 
