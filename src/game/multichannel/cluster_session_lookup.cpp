@@ -29,3 +29,31 @@ std::optional<int32_t> multichannel::findOnlineChannelForPlayer(int32_t playerId
 
 	return result->getNumber<int32_t>("channel_id");
 }
+
+std::vector<multichannel::ClusterOnlinePlayerEntry> multichannel::listOnlinePlayers() {
+	Database &db = Database::getInstance();
+
+	std::ostringstream query;
+	query << "SELECT `cs`.`account_id`, `cs`.`player_id`, `p`.`name`, `cs`.`channel_id` "
+		  << "FROM `cluster_sessions` `cs` "
+		  << "INNER JOIN `players` `p` ON `p`.`id` = `cs`.`player_id` "
+		  << "WHERE `cs`.`status` = 'ONLINE' "
+		  << "ORDER BY `cs`.`channel_id` ASC, `p`.`name` ASC;";
+
+	std::vector<ClusterOnlinePlayerEntry> entries;
+	const DBResult_ptr result = db.storeQuery(query.str());
+	if (!result) {
+		return entries;
+	}
+
+	do {
+		ClusterOnlinePlayerEntry entry;
+		entry.accountId = result->getNumber<int32_t>("account_id");
+		entry.playerId = result->getNumber<int32_t>("player_id");
+		entry.playerName = result->getString("name");
+		entry.channelId = result->getNumber<int32_t>("channel_id");
+		entries.push_back(std::move(entry));
+	} while (result->next());
+
+	return entries;
+}

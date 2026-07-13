@@ -111,9 +111,14 @@ gating it) — and, per the correction above, every future candidate must
 first be checked for hidden per-channel partitioning before assuming it
 needs gating at all.
 
-## GM / admin commands (✅ one implemented, 📐 the rest still contract-only)
+## GM / admin commands (✅ three implemented, 📐 the rest still contract-only)
 
-- Cluster-wide online list (aggregates all channels' presence).
+- ✅ **Cluster-wide online list** — `Game.getClusterOnlinePlayers()`
+  (`src/lua/functions/core/game/game_functions.cpp`), a read-only Lua global
+  returning an array of `{accountId, playerId, name, channelId}` for every
+  `cluster_sessions` row currently `ONLINE`, via a new
+  `multichannel::listOnlinePlayers()` (`src/game/multichannel/
+  cluster_session_lookup.hpp`/`.cpp`).
 - Kick a player who is on a different channel.
 - ✅ **Locate a player's current channel** — `Game.getPlayerClusterChannel(name)`
   (`src/lua/functions/core/game/game_functions.cpp`), a read-only Lua global
@@ -135,7 +140,22 @@ needs gating at all.
 - Inspect and, with explicit confirmation + audit log entry, clear an
   orphaned `DIRTY` session.
 - Inspect a session's current lock owner and fencing token.
-- Inspect the last N channel-switch audit rows for a player.
+- ✅ **Inspect the last N channel-switch audit rows for a player** —
+  `Game.getPlayerChannelSwitchHistory(name[, limit = 10])`, a read-only Lua
+  global returning an array of `{sourceChannelId (nil on first-ever login),
+  targetChannelId, result, denyReason, createdAt}`, newest first, via a new
+  `ChannelSwitchAuditStore::getRecentHistory(playerId, limit)`
+  (`src/game/multichannel/channel_switch_audit_store.hpp`/`.cpp`).
+
+The three implemented commands are all **read-only**; every remaining
+command either mutates cluster state or needs cross-process signaling to a
+*different* channel process, neither of which this codebase currently has a
+mechanism for - the live channel switch (§6 of ARCHITECTURE.md) is the one
+existing precedent for "coordinate an effect on a different channel," and it
+was deliberately built as a DB-row handoff rather than any direct
+process-to-process call specifically to avoid needing cross-process
+signaling at all; the same reasoning applies here rather than building
+ad hoc signaling for one admin command.
 
 All cross-node commands must be authorized (existing GM permission checks)
 and written to an audit trail — no new unauthenticated control surface.
