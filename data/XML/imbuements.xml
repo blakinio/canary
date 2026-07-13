@@ -343,6 +343,7 @@
 		<attribute key="effect" type="paralysis" chance="25" pvpDeflect="1" />
 		<attribute key="item" value="22053" count="20" />
 		<attribute key="item" value="23507" count="15" />
+		<attribute key="scroll" value="51746" />
 	</imbuement>
 	
 	<imbuement name="Vibrancy" base="3" category="19" iconid="79" premium="1" storage="0">
@@ -351,6 +352,7 @@
 		<attribute key="item" value="22053" count="20" />
 		<attribute key="item" value="23507" count="15" />
 		<attribute key="item" value="28567" count="5" />
+		<attribute key="scroll" value="51466" />
 	</imbuement>
 	<!-- Skills Imbuements -->
 	<imbuement name="Chop" base="1" category="11" iconid="52" premium="0" storage="0">

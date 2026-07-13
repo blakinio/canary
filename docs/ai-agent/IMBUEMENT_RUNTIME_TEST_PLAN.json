@@ -5,14 +5,14 @@
     "storage_registry": "data-otservbr-global/lib/core/storages.lua",
     "boss_unlock_script": "data-otservbr-global/scripts/quests/forgotten_knowledge/creaturescripts_bosses_kill.lua",
     "reference": "https://tibia.fandom.com/wiki/Imbuing",
-    "reference_observed": "2026-07-12"
+    "reference_observed": "2026-07-13"
   },
   "baseline": {
     "base_tiers": 3,
     "categories": 20,
     "families": 24,
     "entries": 72,
-    "xml_mapped_scrolls": 46,
+    "xml_mapped_scrolls": 48,
     "lua_registered_scrolls": 48,
     "duration_seconds": 72000,
     "clear_cost": 15000,
@@ -59,8 +59,8 @@
     },
     {
       "id": "IMB-004",
-      "kind": "runtime-defect",
-      "summary": "Vibrancy scroll IDs 51746 and 51466 are registered by Lua but not mapped by XML."
+      "kind": "repaired-in-pr-239",
+      "summary": "Vibrancy scroll IDs 51746 and 51466 are mapped by XML and covered by focused resolver/application atomicity tests."
     },
     {
       "id": "IMB-005",
