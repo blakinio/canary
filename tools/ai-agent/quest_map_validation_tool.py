@@ -12,7 +12,8 @@ from quest_map_validation import (
     scan_to_file,
     validate_to_file,
 )
-from otbm_world_index_tool import position_from_text
+from otbm_world_index import WorldIndexError
+from otbm_world_index_tool import position as position_from_text
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -54,7 +55,13 @@ def main() -> int:
             if not payload["ok"] and not args.allow_empty:
                 raise QuestMapValidationError("No selected Lua/XML files were found")
             summary = payload["summary"]
-            sys.stdout.write(json.dumps({"ok": payload["ok"], "summary": summary, "output": str(args.output.resolve())}, indent=2) + "\n")
+            sys.stdout.write(
+                json.dumps(
+                    {"ok": payload["ok"], "summary": summary, "output": str(args.output.resolve())},
+                    indent=2,
+                )
+                + "\n"
+            )
             return 0
 
         if bool(args.region_from) != bool(args.region_to):
@@ -69,7 +76,18 @@ def main() -> int:
             sample_limit=args.sample_limit,
         )
         summary = payload["summary"]
-        sys.stdout.write(json.dumps({"ok": payload["ok"], "complete": payload["complete"], "summary": summary, "output": str(args.output.resolve())}, indent=2) + "\n")
+        sys.stdout.write(
+            json.dumps(
+                {
+                    "ok": payload["ok"],
+                    "complete": payload["complete"],
+                    "summary": summary,
+                    "output": str(args.output.resolve()),
+                },
+                indent=2,
+            )
+            + "\n"
+        )
         if args.fail_on == "none":
             return 0
         if args.fail_on == "conflicting":
@@ -77,7 +95,7 @@ def main() -> int:
         if args.fail_on == "finding":
             return 2 if any(summary["byClassification"][name] for name in ("map-only", "script-only", "conflicting")) else 0
         return 2 if not payload["complete"] else 0
-    except (FileNotFoundError, OSError, ValueError, QuestMapValidationError) as exc:
+    except (FileNotFoundError, OSError, ValueError, QuestMapValidationError, WorldIndexError) as exc:
         sys.stderr.write(f"error: {exc}\n")
         return 2
 
