@@ -2,14 +2,14 @@
 
 > Repository: `blakinio/canary`  
 > Coordination: `OTS-OTBM-VALIDATION`  
-> Last refreshed: 2026-07-13  
+> Last refreshed: 2026-07-14  
 > Evidence rule: static source/map evidence is not live gameplay proof
 
 ## Mission
 
 Maintain one deterministic, evidence-based OTBM analysis stack that agents can reuse for quests, teleportation, reachability, NPCs, spawns, storage progression, semantic diffs and—only after explicit safety gates—bounded map patching.
 
-The stack reuses the existing native OTBM scanner, World Index, script resolver, Quest Map Validator, appearances parser, Phase 3 reachability and factual renderer. It must not create competing OTBM parsers/pathfinders or use AI-generated imagery as map evidence.
+The stack reuses the existing native OTBM scanner, World Index, script resolver, Quest Map Validator, appearances parser, Phase 3 reachability, Phase 4 spawn/NPC evidence and factual renderer. It must not create competing OTBM parsers/pathfinders or use AI-generated imagery as map evidence.
 
 ## Programme status
 
@@ -19,7 +19,7 @@ The stack reuses the existing native OTBM scanner, World Index, script resolver,
 | 2 | Quest Map Validator | merged and archived | #225 / #236 |
 | 3 | Teleports, floor transitions and reachability | merged and archived | #274 / #277 |
 | 4 | Spawns, bosses and NPCs | merged and archived | #286 / #290 |
-| 5 | Storage dependency graph | not started | separate future task |
+| 5 | Storage dependency graph | active draft | #299 |
 | 6 | Semantic OTBM diff and visual evidence | not started | separate future task |
 | 7 | Geometry and consistency audit | not started | separate future task |
 | 8 | Safe bounded OTBM patch writer | blocked by Phases 6–7 safety gates | separate future task |
@@ -31,12 +31,12 @@ Every phase is a separate bounded task, branch and PR. Do not combine phases.
 - Dynamic Lua is not executed.
 - Dynamic expressions remain `unresolved`.
 - `unresolved` is never promoted to handled without direct evidence.
-- `map-only` or source-only evidence is a review candidate, not automatic proof of a defect.
-- AID/UID presence, creature definitions and handler resolution do not prove player reachability or successful execution.
+- `map-only`, source-only and selected-scope findings are review candidates, not automatic proof of a defect.
+- AID/UID presence, creature definitions, storage edges and handler resolution do not prove player reachability or successful execution.
 - A source/map match can still be blocked by doors, quest state, walkability, direction, account state, protocol or runtime conditions.
 - Green CI proves only the checks executed at that commit; it does not prove live gameplay.
 - Coordinates, item IDs, AID, UID, storage values, spawn radii/times and transition offsets must never be invented.
-- World Index, Quest Map Validator, reachability and spawn/NPC validation are read-only.
+- World Index, Quest Map Validator, reachability, spawn/NPC validation and storage dependency analysis are read-only.
 - `.otbm`, `.widx`, `items.otb`, appearances binaries, client packages, generated large reports and renders stay outside Git.
 - Map images must come from the real OTBM, compatible client assets and the factual renderer.
 - Do not use AI image generation to visualize or modify the map.
@@ -95,7 +95,7 @@ The existing native scanner is reused. No second OTBM parser exists.
 - classifications `confirmed`, `map-only`, `script-only`, `unresolved`, `conflicting`;
 - bounded samples, exact counts, atomic output and symlink rejection.
 
-Storage facts remain inventory only until Phase 5. A missing static item is not automatically `script-only` because rewards and dynamic creation may not require an OTBM placement.
+Static storage evidence is an inventory. Phase 5 consumes the exact selected and hashed Phase 2 source set to derive conservative operation and transition evidence.
 
 ## Phase 3 — Teleports, floor transitions and reachability
 
@@ -105,16 +105,14 @@ Merged PR #274 delivered:
 
 - report `canary-otbm-reachability-v1`;
 - reviewed transition manifest `canary-otbm-transition-manifest-v1`;
-- public facade `tools/ai-agent/otbm_reachability.py`;
-- CLI `tools/ai-agent/otbm_reachability_tool.py`;
+- public facade and CLI `tools/ai-agent/otbm_reachability*.py`;
 - focused evidence, transition, graph and analysis modules;
-- `docs/ai-agent/OTBM_REACHABILITY.schema.json`;
-- `docs/ai-agent/OTBM_TRANSITIONS.schema.json`;
-- `docs/ai-agent/OTBM_REACHABILITY.md`;
-- evidence-boundary ADR and dedicated workflow.
+- schemas `OTBM_REACHABILITY.schema.json` and `OTBM_TRANSITIONS.schema.json`;
+- documentation, evidence-boundary ADR and dedicated workflow.
 
 Final feature head: `230237188cf8beed738e96923b6346948dc70d20`.  
-Squash merge: `0a9afe2821e249a15c9402419483675a2842f5a8`.
+Squash merge: `0a9afe2821e249a15c9402419483675a2842f5a8`.  
+Lifecycle cleanup: #277, merge `5fe0b307f73d992e604dc490eb3da2a5cc67df21`.
 
 ### Geometry and transition policy
 
@@ -149,18 +147,17 @@ Merged PR #286 delivered:
 
 - source evidence `canary-otbm-spawn-npc-evidence-v1`;
 - bounded correlation report `canary-otbm-spawn-npc-validation-v1`;
-- public facade `tools/ai-agent/otbm_spawn_npc.py`;
-- implementation `tools/ai-agent/otbm_spawn_npc_validation.py`;
-- CLI `tools/ai-agent/otbm_spawn_npc_tool.py`;
+- public facade, implementation and CLI `tools/ai-agent/otbm_spawn_npc*.py`;
 - source and validation JSON Schemas;
 - `docs/ai-agent/OTBM_SPAWN_NPC_VALIDATION.md`;
 - evidence-boundary ADR;
 - dedicated workflow `.github/workflows/otbm-spawn-npc-validation.yml`.
 
 Final feature head: `40ce55b791e11b2344a7c9662675ab4e3e15f31f`.  
-Squash merge: `360d79ebad5802edd4d89e99d0f210ab19b36b60`.
+Squash merge: `360d79ebad5802edd4d89e99d0f210ab19b36b60`.  
+Lifecycle cleanup: #290, merge `91d04b854495d827d7b896d5778dff3a701bdde5`.
 
-### Active-datapack policy
+### Active-datapack and runtime-source policy
 
 - one explicit datapack root;
 - explicit companion monster/NPC XML files only;
@@ -168,8 +165,6 @@ Squash merge: `360d79ebad5802edd4d89e99d0f210ab19b36b60`.
 - no mixing of `data-otservbr-global` with `data-canary`;
 - symlink/path escapes and DTD/entity XML fail closed;
 - optional/custom/event XML is excluded unless its active load path is proven and selected explicitly.
-
-### Runtime source semantics
 
 The current C++ loaders resolve static positions as:
 
@@ -181,29 +176,13 @@ z = centerz
 
 A differing child `z` is evidence of an ignored source attribute, not a different runtime floor. Radius is an inclusive square. NPC intervals outside `1..86400` seconds are rejected by the runtime. Monster missing/non-positive intervals use the configured default; intervals above one day remain rate-dependent until runtime rate scaling and final clamping.
 
-Names resolve case-insensitively against active literal `Game.createMonsterType` / `Game.createNpcType` registrations. Missing and duplicate definitions remain explicit.
+Names resolve case-insensitively against active literal `Game.createMonsterType` / `Game.createNpcType` registrations. Missing and duplicate definitions remain explicit. `rewardBoss` and runtime spawn-boss evidence stay separate; a literal non-empty Bosstiary class is the only static `spawnBossLiteral` proof.
 
-`rewardBoss` and runtime spawn-boss evidence are separate. `MonsterType::isBoss()` currently checks a non-empty Bosstiary class, so Phase 4 promotes only a literal non-empty Bosstiary `class` to `spawnBossLiteral`. It does not treat `rewardBoss = true` as runtime spawn-block boss proof.
-
-### Dynamic creation policy
-
-Only literal `Game.createMonster` / `Game.createNpc` names with literal `Position(x,y,z)` or literal position tables are resolved. Other calls remain `unresolved`; Lua is never executed. Exact literal static/dynamic overlaps and quest-source locations are reported.
-
-Literal dynamic positions are bounded by the selected validation region. Calls without a statically resolved position cannot be assigned to a coordinate region and are reported separately as selected-active-datapack-global evidence.
-
-### World Index and Phase 3 reuse
-
-Bounded map validation requires:
-
-1. Phase 4 source evidence;
-2. the canonical `OTSWIDX1` World Index;
-3. a non-truncated `canary-otbm-reachability-v1` report fully covering the selected region.
-
-World Index proves tile existence. Phase 3 supplies strict/optimistic geometry. Phase 4 does not create another OTBM parser or pathfinder. Truncated Phase 3 tile diagnostics fail closed.
+Only literal `Game.createMonster` / `Game.createNpc` names with literal positions are resolved. Other calls remain `unresolved`; Lua is never executed. Bounded map validation reuses World Index and a non-truncated Phase 3 report rather than creating another parser/pathfinder.
 
 ### Active global datapack scan
 
-The final read-only scan of explicit `data-otservbr-global` companion files observed:
+The final read-only scan observed:
 
 - 2 spawn XML files;
 - 2,692 definition files and 2,688 resolved definitions;
@@ -213,20 +192,17 @@ The final read-only scan of explicit `data-otservbr-global` companion files obse
 - 461 dynamic creation calls: 151 literal and 310 unresolved;
 - 318 findings: 2 errors and 316 warnings;
 - 356 literal reward-boss definitions;
-- 0 literal non-empty Bosstiary-class spawn-boss definitions in the selected sources.
+- 0 literal non-empty Bosstiary-class spawn-boss definitions in selected sources.
 
-The two errors are one underlying duplicate active NPC type:
+The two errors are one underlying duplicate active NPC type: canonical `harlow` is defined by `npc/harlow.lua` and `npc/harlow_trade.lua`, so the static Harlow placement at `32836,31364,7` resolves ambiguously. This is review evidence, not automatic authorization to delete or rewrite either source.
 
-- canonical `harlow` is defined by `npc/harlow.lua` and `npc/harlow_trade.lua`;
-- static Harlow at `32836,31364,7` resolves to both definitions.
-
-This is review evidence, not automatic authorization to delete or rewrite either NPC. One exact static/dynamic overlap was also recorded for `bone capsule` at `33485,32333,14`; nonliteral dynamic calls remain unresolved.
+One exact static/dynamic overlap was recorded for `bone capsule` at `33485,32333,14`; nonliteral dynamic calls remain unresolved.
 
 ### Final validation evidence
 
 Head `40ce55b791e11b2344a7c9662675ab4e3e15f31f`:
 
-- OTBM Spawn and NPC Validation `29283580455`: success; job `86930499868` succeeded;
+- OTBM Spawn and NPC Validation `29283580455`: success;
 - Agent Task Ownership `29283580606`: success;
 - AI Agent Tools `29283580631`: success;
 - OTBM Map Tools `29283580582`: success;
@@ -238,9 +214,81 @@ Head `40ce55b791e11b2344a7c9662675ab4e3e15f31f`:
 - Required `86932589537`: success;
 - review threads: zero.
 
-The dedicated workflow ran 18 focused tests, Python compilation, schema validation, the real source scan, contract assertions and toolkit packaging. This is source/static evidence; it does not prove live gameplay.
+## Phase 5 — Storage dependency graph
 
-### Private-map bounded smoke
+### Active delivery
+
+Draft PR #299 adds:
+
+- report `canary-otbm-storage-graph-v1`;
+- public facade and focused internal modules `tools/ai-agent/otbm_storage_graph*.py`;
+- CLI `tools/ai-agent/otbm_storage_graph_tool.py`;
+- schema `docs/ai-agent/OTBM_STORAGE_GRAPH.schema.json`;
+- documentation `docs/ai-agent/OTBM_STORAGE_GRAPH.md`;
+- evidence-boundary ADR;
+- dedicated workflow `.github/workflows/otbm-storage-graph.yml`.
+
+### Source-selection and namespace policy
+
+The required input is `canary-quest-map-evidence-v1`. Phase 5 reads only its selected source paths, confines them below the supplied repository root, rejects symlinks/path escapes and verifies each current SHA-256 against Phase 2 before reading it.
+
+Optional correlation inputs are Phase 2 validation, Phase 3 reachability and Phase 4 spawn/NPC evidence/validation. They add handler, map, actor or geometry context but never prove runtime progression.
+
+Namespaces remain separate:
+
+- `player-storage`;
+- `account-storage`;
+- `player-kv`;
+- `account-kv`;
+- `global-storage`;
+- `global-kv`;
+- narrow literal `database` storage evidence.
+
+### Transition proof rule
+
+An explicit edge requires one enclosing source branch that proves exactly one same-key equality prerequisite and one literal, delete or exact same-key delta result.
+
+The tool does not create exact edges from:
+
+- inequalities;
+- `else` negation;
+- dynamic keys or values;
+- nearby reads/writes;
+- operations in different functions or files;
+- unproven callback order.
+
+Nested explicit branches may retain exact outer prerequisites. Source proximity and lexical/file order never imply runtime order.
+
+### Conservative findings
+
+- read without a selected writer means `external-or-unproven`, not broken;
+- write without a selected read means `write-only-in-selected-scope`, not globally unused;
+- a consumed prerequisite without a selected producer is informational selected-scope evidence;
+- a numeric decrease is warned only for one proven same-key transition;
+- writer conflict requires the same exact namespace/key/prerequisite with incompatible literal outputs;
+- dynamic expressions remain `unresolved`.
+
+Output is bounded and deterministic. Core graph limits fail closed; sampled findings/unresolved lists retain exact totals. Writes are atomic, existing output requires explicit overwrite and symlink outputs are rejected.
+
+### Initial workflow smoke
+
+The first dedicated-workflow smoke on The Beginning/Zirella selected source evidence produced:
+
+```text
+files: 1
+operations: 23
+nodes: 2
+transitions: 0
+unresolved: 0
+findings: 1 informational write-only-in-selected-scope
+ok: true
+complete: true
+sourceDigest: e995eeaa2916ffb6aee8f8867d97674d8812fe83b77f9f0e77e69b127bfa3d7c
+```
+
+This is a representative contract smoke, not a full-world quest-progression audit.
+
+## Private-map provenance retained from Phases 1–4
 
 The supplied private map was indexed with the existing native scanner and World Index:
 
@@ -260,23 +308,19 @@ Harlow region `32820,31350,7` through `32850,31380,7`:
 - exact Harlow tile exists and is strict/optimistic walkable;
 - Harlow remains `conflicting-definition` because both active Harlow source files resolve;
 - nine other static placements in the region were confirmed;
-- Phase 3 separately found seven indexed map teleports targeting `0,0,0` at `32822,31373,7`, `32830,31374,7`, `32830,31375,7`, `32834,31364,7`, `32850,31367,7`, `32850,31368,7` and `32850,31369,7`;
-- these map-mechanic findings were not modified or treated as proof of intended behavior.
+- Phase 3 found seven indexed map teleports targeting `0,0,0` at `32822,31373,7`, `32830,31374,7`, `32830,31375,7`, `32834,31364,7`, `32850,31367,7`, `32850,31368,7` and `32850,31369,7`;
+- none of these findings was modified or treated as proof of intended behavior.
 
 Bone Capsule region `33470,32320,14` through `33500,32350,14`:
 
 - static `Bone Capsule` at `33485,32333,14` is confirmed;
-- literal quest-side `Game.createMonster` evidence at the same position is confirmed;
+- literal quest-side dynamic creation at the same position is confirmed;
 - the target tile exists and is strict/optimistic walkable;
 - the bounded Phase 3 report has no transition or mechanic errors.
 
-The OTBM, WIDX, appearances binary, client assets and generated reports remain external and uncommitted.
+Earlier Phase 1/2 builds of the same map observed 32.72 seconds / 419,140 KiB and 40.21 seconds / 418,956 KiB. A Phase 3 rebuild attempt exceeded its execution window and was abandoned without using a partial index.
 
-## Real-map provenance retained from Phases 1–4
-
-The current private map evidence is the Phase 4 build above. Earlier Phase 1/2 builds of the same map observed 32.72 seconds / 419,140 KiB and 40.21 seconds / 418,956 KiB respectively. A Phase 3 rebuild attempt exceeded its execution window and was abandoned without using a partial index.
-
-No private map, WIDX, appearances binary or client asset package was committed.
+No private map, WIDX, appearances binary, client asset package or generated full report was committed.
 
 ## Factual rendering
 
@@ -287,20 +331,6 @@ Entrypoints:
 
 The renderer requires the real OTBM and compatible client assets, hashes its inputs and uses real appearance/sprite/stack/displacement data. One render is produced per floor. Visual context does not prove runtime behavior.
 
-## Phase 5 — Storage dependency graph
-
-Planned deliverables:
-
-- inventory reads, writes, comparisons and increments;
-- build explicit stage transitions;
-- identify unreachable values and conflicting writers;
-- separate player, account, KV and database namespaces;
-- preserve dynamic expressions as unresolved;
-- link transitions to NPC dialogue, Actions, MoveEvents, kills and rewards only where proven;
-- never infer execution order from source proximity alone.
-
-Phase 5 must consume Phase 2 quest evidence and Phase 4 creature/source evidence rather than create another source scanner.
-
 ## Phase 6 — Semantic OTBM diff
 
 Planned deliverables:
@@ -308,9 +338,11 @@ Planned deliverables:
 - tiles and item stacks added/removed;
 - AID/UID/house/teleport changes;
 - walkability-relevant changes using Phase 3 semantics;
-- affected handlers, quest and spawn/NPC evidence;
+- affected handlers, quest, spawn/NPC and storage evidence;
 - bounded factual before/after/context renders;
 - maps, indexes and generated images remain external artifacts.
+
+Phase 6 must compare canonical World Index/scan evidence and must not add a competing OTBM parser.
 
 ## Phase 7 — Geometry and consistency audit
 
@@ -324,11 +356,11 @@ Planned deliverables:
 - house/PZ continuity issues;
 - exact positions, confidence levels and bounded factual renders.
 
-Visual-style rules remain warnings unless backed by deterministic contracts.
+Visual-style rules remain warnings unless backed by deterministic item/appearance/map contracts.
 
 ## Phase 8 — Safe bounded OTBM patch writer
 
-Phase 8 remains blocked until semantic-diff and geometry gates are complete. Every future approved operation must:
+Phase 8 remains blocked until semantic-diff and geometry gates are complete. Every approved operation must:
 
 - work on a copy, never the source map in place;
 - require exact expected previous state;
@@ -342,16 +374,16 @@ Phase 8 remains blocked until semantic-diff and geometry gates are complete. Eve
 - write atomically;
 - provide backup and rollback instructions.
 
-Existing older patch surfaces do not authorize production-map edits.
+Existing older patch surfaces do not authorize production-map edits. Phase 8 should begin with narrow attribute edits only; arbitrary tile/item-stack writes require a later explicit safety review.
 
 ## Programme handoff
 
-Phases 1–4 are merged and archived. The next bounded programme task is Phase 5, but it may start only from current `main` after a fresh PR/task ownership search.
+Phases 1–4 are merged and archived. Phase 5 is isolated in draft PR #299 and must be merged and archived before Phase 6 starts.
 
-Phase 5 must reuse:
+Phase 5 reuses:
 
 1. `canary-quest-map-evidence-v1` and `canary-quest-map-validation-v1` from Phase 2;
-2. `canary-otbm-reachability-v1` from Phase 3 where coordinate/geometry evidence is required;
+2. `canary-otbm-reachability-v1` from Phase 3 where coordinate/geometry evidence is supplied;
 3. `canary-otbm-spawn-npc-evidence-v1` and `canary-otbm-spawn-npc-validation-v1` from Phase 4.
 
-Do not combine Phase 5 with Harlow cleanup, `0,0,0` teleport repair, semantic map diff, geometry audit or map writing. Those findings remain separate evidence-backed tasks.
+Do not combine Phase 5 with Harlow cleanup, `0,0,0` teleport repair, semantic map diff, geometry audit or map writing. After #299 is merged and archived, start Phase 6 only from then-current `main` after a fresh ownership and PR search.
