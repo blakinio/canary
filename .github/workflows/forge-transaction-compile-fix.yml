@@ -1,0 +1,46 @@
+name: Apply Forge transaction compile fix
+
+on:
+  pull_request:
+    branches:
+      - fix/forge-transaction-safety
+    paths:
+      - docs/ai-agent/.forge-transaction-compile-fix-runner
+
+permissions:
+  contents: write
+
+jobs:
+  apply-compile-fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/forge-transaction-safety
+          fetch-depth: 1
+          show-progress: false
+
+      - name: Remove inaccessible generic count fallback
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("src/creatures/players/player.cpp")
+          text = path.read_text(encoding="utf-8")
+          old = "\t\treturn player.getItemTypeCount(itemId);\n"
+          new = "\t\treturn 0;\n"
+          if text.count(old) != 1:
+              raise RuntimeError(f"expected one private-count fallback, found {text.count(old)}")
+          path.write_text(text.replace(old, new), encoding="utf-8")
+          PY
+          git diff --check
+
+      - name: Commit compile fix
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/creatures/players/player.cpp
+          git commit -m "fix(forge): use public Forge resource counts in rollback"
+          git push origin HEAD:fix/forge-transaction-safety
