@@ -17,8 +17,8 @@
 #include "config/forge_config_defaults.hpp"
 
 namespace {
-	std::string readDistributedConfig() {
-		std::ifstream input(std::string(TESTS_SOURCE_DIR) + "/config.lua.dist");
+	std::string readRepositoryFile(const std::string &relativePath) {
+		std::ifstream input(std::string(TESTS_SOURCE_DIR) + "/" + relativePath);
 		if (!input.is_open()) {
 			return {};
 		}
@@ -37,8 +37,14 @@ TEST(ForgeConfigTest, RetailDefaultsArePinnedInCpp) {
 }
 
 TEST(ForgeConfigTest, DistributedLuaConfigMatchesCppDefaults) {
-	const std::string config = readDistributedConfig();
+	const std::string config = readRepositoryFile("config.lua.dist");
 	ASSERT_FALSE(config.empty());
 	EXPECT_TRUE(hasLuaIntegerAssignment(config, "forgeMaxDust", ForgeConfigDefaults::maxDust));
 	EXPECT_TRUE(hasLuaIntegerAssignment(config, "forgeFiendishLimit", ForgeConfigDefaults::fiendishCreaturesLimit));
+}
+
+TEST(ForgeConfigTest, ForgeLuaLibraryMatchesFiendishDefault) {
+	const std::string forgeLibrary = readRepositoryFile("data/libs/systems/exaltation_forge.lua");
+	ASSERT_FALSE(forgeLibrary.empty());
+	EXPECT_TRUE(hasLuaIntegerAssignment(forgeLibrary, "maxFiendish", ForgeConfigDefaults::fiendishCreaturesLimit));
 }
