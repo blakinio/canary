@@ -54,12 +54,10 @@ local function startLogin()
     g_game.setProtocolVersion(g_game.getClientProtocolVersion(CLIENT_VERSION))
     g_game.chooseRsa(HOST)
 
-    -- Canary's default password authentication accepts the modern session-key
-    -- packet layout when the key contains "account-or-email\npassword". This
-    -- avoids the account-login socket entirely and keeps the real 15.25 client
-    -- version, transport, features and assets active for the whole test.
     local sessionKey = ACCOUNT .. '\n' .. PASSWORD
+    local recordName = string.format('cyclopedia-session-%d.record', phase)
     appendResult('session_key_mode_' .. phase, 'password')
+    appendResult('packet_record_' .. phase, recordName)
     appendResult(
         'direct_game_login_' .. phase,
         string.format('%s:%d/%s/%s/v%d', HOST, GAME_PORT, WORLD, CHARACTER, CLIENT_VERSION)
@@ -74,7 +72,7 @@ local function startLogin()
         CHARACTER,
         '',
         sessionKey,
-        ''
+        recordName
     )
 end
 
@@ -109,6 +107,7 @@ local function requestCyclopediaSurfaces()
     phaseComplete = false
 
     scheduleEvent(function()
+        appendResult('request_bestiary_' .. phase, 'sent')
         if type(toggle) == 'function' then
             toggle('bestiary')
         else
@@ -117,6 +116,7 @@ local function requestCyclopediaSurfaces()
     end, 500)
 
     scheduleEvent(function()
+        appendResult('request_charms_' .. phase, 'sent')
         if type(showCharms) == 'function' then
             showCharms()
         else
@@ -125,6 +125,7 @@ local function requestCyclopediaSurfaces()
     end, 1800)
 
     scheduleEvent(function()
+        appendResult('request_bosstiary_' .. phase, 'sent')
         if type(showBosstiary) == 'function' then
             showBosstiary()
         else
@@ -134,6 +135,15 @@ local function requestCyclopediaSurfaces()
 end
 
 connect(g_game, {
+    onLogin = function()
+        appendResult('protocol_login_' .. phase, 'received')
+    end,
+    onPendingGame = function()
+        appendResult('pending_game_' .. phase, 'received')
+    end,
+    onEnterGame = function()
+        appendResult('enter_game_' .. phase, 'received')
+    end,
     onGameStart = function()
         enteringWorld = false
         appendResult('login_' .. phase, 'success')
@@ -145,7 +155,21 @@ connect(g_game, {
         if phase == 1 and phaseComplete and not finished then
             phase = 2
             scheduleEvent(startLogin, 1500)
+        elseif not phaseComplete and not finished then
+            finishFailure('unexpected game end during phase ' .. tostring(phase))
         end
+    end,
+    onSessionEnd = function(reason)
+        appendResult('session_end_' .. phase, tostring(reason))
+    end,
+    onLoginAdvice = function(message)
+        appendResult('login_advice_' .. phase, tostring(message))
+    end,
+    onLoginWait = function(message, time)
+        appendResult('login_wait_' .. phase, string.format('%s/%s', tostring(message), tostring(time)))
+    end,
+    onUpdateNeeded = function(signature)
+        appendResult('update_needed_' .. phase, tostring(signature))
     end,
     onLoginError = function(message)
         enteringWorld = false
@@ -153,6 +177,7 @@ connect(g_game, {
     end,
     onConnectionError = function(message, code)
         enteringWorld = false
+        appendResult('connection_error_' .. phase, string.format('%s/%s', tostring(code), tostring(message)))
         finishFailure(string.format('game connection error %s: %s', tostring(code), tostring(message)))
     end,
     onParseBestiaryRaces = function(data)
