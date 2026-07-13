@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/otbm-storage-dependency-graph
 base_branch: main
 created: 2026-07-13T23:55:00+02:00
-updated: 2026-07-14T00:30:00+02:00
-last_verified_commit: "e0dcc7f80eedcb15f5a4d9c7d37fd66a613235e3"
+updated: 2026-07-14T00:40:00+02:00
+last_verified_commit: "aa2b3bf2f8c3eef86835d890def1e88d2699da16"
 risk: medium
 related_issue: ""
 related_pr: "#299"
@@ -64,73 +64,45 @@ cross_repo_tasks: []
 
 # Goal
 
-Deliver Phase 5 of the OTBM tooling programme: a deterministic read-only storage dependency graph that consumes the existing Quest Map Validator and optional Phase 3/4 evidence, inventories exact storage operations and explicit stage transitions, preserves unresolved dynamic expressions, and never infers execution order from source proximity.
+Deliver Phase 5 as deterministic read-only storage dependency analysis over the existing Phase 2 selected source set, with optional Phase 3/4 context and no inferred runtime order.
 
 # Acceptance criteria
 
-- [x] Consume `canary-quest-map-evidence-v1` rather than creating another broad source scanner.
-- [x] Optionally consume Phase 2 validation, Phase 3 reachability and Phase 4 spawn/NPC reports as correlation evidence.
-- [x] Inventory player storage reads, writes, comparisons and exact same-key increments/decrements.
-- [x] Separate player storage, account storage, player KV, account KV, global storage, global KV and database namespaces.
-- [x] Represent literal/symbolic keys and literal values deterministically; preserve dynamic keys/values as `unresolved`.
-- [x] Emit explicit transition edges only where one enclosing source construct proves both prerequisite and resulting value.
-- [x] Never infer execution order from line order, source proximity or file order.
-- [x] Detect selected-scope read/write gaps, unproven prerequisite values, backward literal transitions and conflicting literal writers conservatively.
-- [x] Preserve exact file/line/context provenance and source SHA-256 evidence.
-- [x] Bound selected files/source bytes, operations, nodes, transitions, unresolved expressions and output samples.
-- [x] Add atomic JSON output, overwrite protection and symlink rejection.
-- [x] Add JSON Schema, documentation, ADR, focused tests and a dedicated workflow/artifact.
-- [x] Update module catalogue, changelog and authoritative roadmap.
-- [x] Confirm no map, WIDX, appearances binary, client asset, generated full report, gameplay, active datapack, protocol, persistence schema or production configuration is changed.
-- [x] Refresh onto current `main` without losing concurrent achievement work.
-- [ ] Final task-record-head required checks pass, no review threads remain, and the PR is squash-merged.
-- [ ] Archive this task in a separate lifecycle PR.
+- [x] Reuse `canary-quest-map-evidence-v1` source selection and hashes.
+- [x] Optionally correlate Phase 2 validation, Phase 3 reachability and Phase 4 spawn/NPC evidence.
+- [x] Inventory reads, writes, deletes, comparisons and exact same-key increments/decrements.
+- [x] Keep player/account/global storage, KV and narrow database namespaces separate.
+- [x] Preserve dynamic keys and values as unresolved.
+- [x] Emit exact edges only for one enclosing same-key equality and one literal/delete/delta result.
+- [x] Never infer callback/file/line execution order from proximity.
+- [x] Emit conservative selected-scope findings and exact counts.
+- [x] Preserve path, line, context and SHA-256 provenance.
+- [x] Bound source bytes, operations, nodes, edges, unresolved expressions and samples.
+- [x] Add atomic output, overwrite protection and symlink rejection.
+- [x] Add schema, documentation, ADR, 19 focused tests and dedicated CI/artifact.
+- [x] Update catalogue, changelog and authoritative roadmap.
+- [x] Confirm no map, WIDX, asset, active datapack, gameplay, protocol, database schema or production configuration change.
+- [x] Refresh onto latest reviewed `main` while retaining concurrent achievement/evidence-source work.
+- [ ] Final contents-API head checks pass, no review threads remain, and #299 is squash-merged.
+- [ ] Archive the task in a separate lifecycle PR.
 
-# Confirmed context
+# Delivered behavior
 
-- Write target is exactly `blakinio/canary`; every `opentibiabr/*` repository is read-only.
-- Initial branch base was `7cc47983cc78e06587fee09d1dcc5cc597836ade`.
-- The reviewed implementation was refreshed onto current `main` `c9b607bdc5b9253f3eaf75b0f4a513877b8a42d7` through merge head `e0dcc7f80eedcb15f5a4d9c7d37fd66a613235e3`; compare state was ahead and behind by 0.
-- Open PR searches found no competing Phase 5–8 OTBM owner.
-- `docs/agents/ACTIVE_WORK.md` remains untouched.
-- Local Git access failed with `Could not resolve host: github.com`; repository mutations and current-head validation use GitHub APIs/Actions. No local checkout/full-suite claim is made.
+`canary-otbm-storage-graph-v1` revalidates every selected source SHA-256 and path, inventories normalized operations, emits per-namespace nodes and directly proven transitions, preserves unresolved expressions, and optionally attaches handler/map/actor/geometry context. Missing selected-scope readers/writers are informational. Backward literal transitions and incompatible outputs for the same exact prerequisite are warnings.
 
-# Delivered contract and behavior
+The implementation does not create another OTBM parser, pathfinder, renderer or broad source selector. Lua, callbacks and persisted state are not executed or simulated.
 
-`canary-otbm-storage-graph-v1` contains:
+# Validation
 
-- input provenance and SHA-256 hashes;
-- Phase 2 selected-source revalidation with path confinement and symlink rejection;
-- normalized operations across player/account/global storage, player/account/global KV and narrow literal SQL evidence;
-- per-namespace/key nodes;
-- explicit same-key equality prerequisite-to-literal/delete/delta transitions;
-- optional actor, handler, map and geometry correlation;
-- conservative selected-scope findings and exact summary counts;
-- unresolved dynamic keys/values;
-- atomic output, overwrite protection and bounded samples.
+## Isolated checks
 
-The implementation is split into evidence types, call inventory, branch parsing, graph analysis, a public facade and CLI. It does not create a second OTBM parser, pathfinder, renderer or broad quest scanner.
+- 19 focused unit tests: passed.
+- Python compilation: passed.
+- schema syntax and representative `jsonschema` validation: passed.
 
-# Evidence policy
+These are isolated-file checks, not a local repository checkout or gameplay proof. Local Git remains unavailable because `github.com` cannot be resolved from the shell.
 
-- A read without a selected-scope writer is `external-or-unproven`, not automatically a defect.
-- A write without a selected-scope read is `write-only-in-selected-scope`, not proof that the key is globally unused.
-- A numeric decrease is warned only when one proven transition compares one literal value and writes a lower literal value.
-- Writers conflict only when the same exact namespace/key/prerequisite has incompatible literal outputs.
-- Inequalities, `else` negation, dynamic values and source proximity do not create exact edges.
-- Lua, callbacks and persisted state are never executed or simulated.
-
-# Validation and CI
-
-## Isolated implementation checks
-
-- `python -m unittest -v test_otbm_storage_graph.py`: 19 tests passed.
-- `python -m py_compile otbm_storage_graph*.py test_otbm_storage_graph.py`: passed.
-- schema JSON syntax and representative `jsonschema.validate`: passed.
-
-These are isolated-file checks, not a repository checkout or gameplay proof.
-
-## Validated current-main refresh head
+## GitHub-validated heads
 
 Head `e0dcc7f80eedcb15f5a4d9c7d37fd66a613235e3`:
 
@@ -138,20 +110,23 @@ Head `e0dcc7f80eedcb15f5a4d9c7d37fd66a613235e3`:
 - Agent Task Ownership `29289762881`: success;
 - AI Agent Tools `29289762840`: success;
 - OTBM Map Tools `29289762813`: success;
-- repository CI `29289763132`: success;
-- compare against `main`: ahead, behind by 0;
-- changed files: exactly 15 expected workflow/source/schema/documentation/task paths;
-- review threads before this task-only finalization: zero.
+- repository CI `29289763132`: success.
 
-The dedicated workflow runs the focused suite, Python compilation, schema syntax, a real repository Phase 2 evidence scan, a representative Phase 5 graph, contract assertions, `jsonschema` validation and toolkit upload.
+Ready head `b1a2c2fe5d2478cf94d55fcb9b589baf5f4d439a`:
 
-Artifact from prior validated head:
+- OTBM Storage Graph `29289866801`: success;
+- Agent Task Ownership `29289866798`: success;
+- AI Agent Tools `29289866811`: success;
+- OTBM Map Tools `29289866866`: success;
+- autofix.ci `29289905094`: success;
+- repository CI `29289905234`: success;
+- Linux Release job `86951199888`: success;
+- Required job `86952155215`: success;
+- review threads: zero.
 
-- name `otbm-storage-graph`;
-- artifact ID `8294353648`;
-- digest `sha256:ad9a3fd6b8627c58159f81187b4f725a0dbe5a02f54f7bb0a9a7b038ed205e02`.
+The branch was then refreshed onto `main` `de89067565bddc59768cfd043062e7957db0d7a9`, preserving the completed achievement #567 catalogue update and new Real Tibia evidence-source records. Merge head `aa2b3bf2f8c3eef86835d890def1e88d2699da16` was ahead and behind by 0. This contents-API task pin creates the final workflow-bearing head.
 
-Representative The Beginning/Zirella smoke:
+Representative The Beginning/Zirella contract smoke:
 
 ```text
 files: 1
@@ -165,50 +140,33 @@ complete: true
 sourceDigest: e995eeaa2916ffb6aee8f8867d97674d8812fe83b77f9f0e77e69b127bfa3d7c
 ```
 
-This is a contract smoke, not a full-world progression audit.
+Artifact ID `8294353648`, digest `sha256:ad9a3fd6b8627c58159f81187b4f725a0dbe5a02f54f7bb0a9a7b038ed205e02`.
 
 # Work log
 
-## 2026-07-13T23:55:00+02:00
-
-- Created the current-main task branch and draft PR #299 after overlap searches.
-- Recorded the unavailable local Git/DNS environment.
-
-## 2026-07-14T00:15:00+02:00
-
-- Implemented the graph library/facade, CLI, schema, documentation, evidence ADR, 19 focused tests and dedicated workflow.
-- Split the implementation into bounded internal modules.
-- Verified isolated tests, compilation and schema validation.
-
-## 2026-07-14T00:30:00+02:00
-
-- Updated catalogue, changelog and authoritative roadmap.
-- Reviewed the exact 15-file feature diff and removed the temporary roadmap-edit workflow from the final diff.
-- Refreshed the branch onto current `main` while preserving concurrent achievement files.
-- Confirmed all workflows on refreshed head `e0dcc7f80eedcb15f5a4d9c7d37fd66a613235e3` passed and the branch is behind by 0.
-- This task-only finalization commit triggers the final merge gate; its result must be checked before merge.
+- 2026-07-13: claimed Phase 5 after overlap searches and opened draft #299.
+- 2026-07-14: implemented the graph, tests, schema, docs, ADR and workflow; repaired the catalogue after an intermediate API overwrite before any merge; verified the final 15-file diff; refreshed twice as concurrent `main` advanced; preserved all unrelated current-main files.
 
 # Risks and compatibility
 
-- Runtime/gameplay: none; offline read-only tooling.
-- Persistence/database: no writes or migrations.
-- Source parsing: dynamic helper abstractions can be missed; they remain unresolved.
-- Compatibility: existing Phase 2–4 contracts remain unchanged.
-- Cross-repository rollout: none.
-- Rollback: squash-revert PR #299; no persistent cleanup is required.
+- Offline read-only tooling only; no runtime/data migration.
+- Dynamic abstractions can be missed and remain unresolved.
+- Phase 2–4 contracts remain backward compatible.
+- Rollback is a squash revert with no persistent cleanup.
+- No cross-repository rollout.
 
 # Remaining work
 
-1. Verify final task-record-head workflows and zero review threads.
-2. Mark PR #299 ready and squash-merge with an expected-head guard.
-3. Archive Phase 5 in a separate lifecycle PR.
-4. Start Phase 6 only from then-current `main` after a fresh overlap search.
+1. Verify this final head and zero review threads.
+2. Squash-merge #299 with an expected-head guard.
+3. Archive Phase 5 separately.
+4. Start Phase 6 from then-current `main` after fresh overlap checks.
 
 # Completion
 
 - Final status: ready-for-review
 - PR: #299
-- Final feature head: pending final task-record-head checks
+- Final feature head: pending final contents-API checks
 - Merge commit:
 - Cleanup PR:
 - Archived at:
