@@ -1,0 +1,64 @@
+name: Apply ConditionLight zero-level patch
+
+on:
+  push:
+    branches:
+      - fix/conditionlight-zero-level
+    paths:
+      - .github/workflows/apply-conditionlight-zero-level.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-conditionlight-zero-level
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    if: github.repository == 'blakinio/canary'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/conditionlight-zero-level
+          fetch-depth: 1
+          show-progress: false
+
+      - name: Apply, validate and commit bounded patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile tools/ai-agent/apply_conditionlight_zero_level.py
+          python3 tools/ai-agent/apply_conditionlight_zero_level.py
+          git diff --check
+          git add -A
+          git diff --cached --check
+          python3 - <<'PY'
+          import subprocess
+
+          expected = sorted([
+              '.github/workflows/apply-conditionlight-zero-level.yml',
+              'docs/agents/CHANGELOG.md',
+              'docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md',
+              'docs/agents/tasks/active/CAN-20260713-conditionlight-zero-level.md',
+              'src/creatures/combat/condition.cpp',
+              'tests/unit/players/condition/CMakeLists.txt',
+              'tests/unit/players/condition/condition_light_test.cpp',
+              'tools/ai-agent/apply_conditionlight_zero_level.py',
+          ])
+          actual = sorted(subprocess.check_output(
+              ['git', 'diff', '--cached', '--name-only'], text=True
+          ).splitlines())
+          if actual != expected:
+              raise SystemExit(f'unexpected changed files: {actual!r}')
+          PY
+          test ! -e .github/workflows/apply-conditionlight-zero-level.yml
+          test ! -e tools/ai-agent/apply_conditionlight_zero_level.py
+          git status --short
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix(combat): guard zero-level light conditions'
+          git push origin HEAD:fix/conditionlight-zero-level
