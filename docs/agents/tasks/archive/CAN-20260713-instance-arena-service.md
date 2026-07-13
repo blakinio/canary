@@ -2,7 +2,7 @@
 task_id: CAN-20260713-instance-arena-service
 program_id: CAN-PROGRAM-INSTANCED-TEST-ARENA
 coordination_id: ""
-status: ready_for_pr
+status: merged
 agent: "Claude"
 branch: feat/instance-arena-service
 base_branch: main
@@ -193,11 +193,14 @@ position convention (region's `(minX, minY, Z)` corner) is documented there.
 
 # Completion
 
-- Final status: pending PR/CI.
-- PR: (to be filled after opening).
-- Merge commit: (to be filled after merge).
-- Program record updated: pending (after merge).
+- Final status: merged, CI green (Fast Checks, Lua Tests, Linux release,
+  lint/format/audit jobs required for this path; Windows/macOS/Docker
+  scheduling was in progress at merge time, gated by the repo owner's
+  auto-merge).
+- PR: #289.
+- Merge commit: `7e8f298f`.
+- Program record updated: yes (Active tasks/Queue/Completed work).
 - Catalogue updated: yes.
 - Changelog updated: not yet (behavior-level change, will note in the
   program's finishing touches or a dedicated changelog entry if requested).
-- Archived at: (after merge).
+- Archived at: `docs/agents/tasks/archive/CAN-20260713-instance-arena-service.md`.

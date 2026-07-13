@@ -69,13 +69,13 @@ InstanceManager infrastructure PRs without a real consumer.
 
 | Task ID | Branch | PR | State | Exact next action |
 |---|---|---:|---|---|
-| CAN-20260713-instance-arena-service | `feat/instance-arena-service` | #289 | in_progress | Awaiting CI; merge once green. |
+| CAN-20260713-instance-arena-talkaction | `feat/instance-arena-talkaction` | (pending) | in_progress | Open PR 3; merge once CI green. |
 
 # Queue
 
 1. ~~PR 1 - fix `docs/architecture/instance-manager.md` inconsistency, add `docs/architecture/instanced-test-arena.md` region plan with OTBM evidence.~~ Done (#287).
-2. PR 2 - region config + `InstanceArenaService` + create/activate/close lifecycle, no player yet (this task, #289).
-3. PR 3 - admin talkaction: create/leave/close, return-position capture, evacuation.
+2. ~~PR 2 - region config + `InstanceArenaService` + create/activate/close lifecycle, no player yet.~~ Done (#289).
+3. PR 3 - admin talkaction: create/leave/close, return-position capture, evacuation (this task).
 4. PR 4 - monster spawn + binder registration after nonzero runtime ID + summon inheritance.
 5. PR 5 - instance-scoped delayed events + timeout/cleanup wiring.
 6. PR 6 - run two real arenas, fix concrete cross-instance leaks only.
@@ -85,6 +85,8 @@ InstanceManager infrastructure PRs without a real consumer.
 
 | Task/PR | Result | Merge commit | Follow-up |
 |---|---|---|---|
+| CAN-20260713-instanced-test-arena / #287 | Fixed stale `instance-manager.md` paragraph; added evidence-backed region plan | `47270c39f4e36568e8440cf6d2f421f5f09e6f67` | PR 2 consumed the region coordinates. |
+| CAN-20260713-instance-arena-service / #289 | `InstanceArenaService` real consumer, `Game::getInstanceArenaService()`, two real configured regions | `7e8f298f` (squash) | PR 3 adds a player-reachable command. |
 | CAN-20260713-instanced-test-arena / #287 | Fixed stale `instance-manager.md` paragraph; added evidence-backed region plan (`docs/architecture/instanced-test-arena.md`) | `47270c39f4e36568e8440cf6d2f421f5f09e6f67` | PR 2 consumes the region coordinates. |
 
 | Task/PR | Result | Merge commit | Follow-up |

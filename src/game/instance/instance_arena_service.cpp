@@ -69,3 +69,64 @@ std::optional<InstanceMapRegion> InstanceArenaService::getRegion(InstanceId id) 
 std::size_t InstanceArenaService::activeArenaCount() const {
 	return manager.activeInstanceCount();
 }
+
+InstanceArenaService::EnterResult InstanceArenaService::enterArena(uint32_t playerId, const Position &returnPosition) {
+	// Held across the whole operation (not just the "already has a session"
+	// check) to avoid a create-under-race double session for the same
+	// player. Safe from deadlock: nothing else ever holds InstanceManager's
+	// internal mutex while trying to acquire this one.
+	std::scoped_lock lock(sessionMutex);
+	if (sessions.contains(playerId)) {
+		return { .ok = false, .entryPosition = {}, .error = "You already have an active instance arena. Close it first." };
+	}
+
+	const auto created = createArena();
+	if (!created.ok) {
+		return { .ok = false, .entryPosition = {}, .error = created.error };
+	}
+
+	const auto region = manager.getRegion(created.id);
+	if (!region) {
+		manager.close(created.id);
+		return { .ok = false, .entryPosition = {}, .error = "internal error: created arena has no region" };
+	}
+
+	const Position entryPosition { region->minX, region->minY, region->minZ };
+	sessions.emplace(playerId, PlayerSession { .instanceId = created.id, .returnPosition = returnPosition });
+	return { .ok = true, .entryPosition = entryPosition, .error = {} };
+}
+
+InstanceArenaService::LeaveResult InstanceArenaService::leaveArena(uint32_t playerId) {
+	std::scoped_lock lock(sessionMutex);
+	const auto it = sessions.find(playerId);
+	if (it == sessions.end()) {
+		return { .ok = false, .returnPosition = {}, .error = "You do not have an active instance arena." };
+	}
+
+	// The arena instance stays reserved - only closeArenaForPlayer() (or a
+	// future timeout) releases it.
+	return { .ok = true, .returnPosition = it->second.returnPosition, .error = {} };
+}
+
+InstanceArenaService::CloseResult InstanceArenaService::closeArenaForPlayer(uint32_t playerId) {
+	std::scoped_lock lock(sessionMutex);
+	const auto it = sessions.find(playerId);
+	if (it == sessions.end()) {
+		return { .ok = false, .evacuationPosition = {}, .error = "You do not have an active instance arena." };
+	}
+
+	// NOTE for the cleanup/timeout PR: InstanceManager::close() runs the
+	// cleanup callback outside InstanceManager's own lock, but this call
+	// happens while sessionMutex is held. A future cleanup callback must
+	// not try to re-acquire sessionMutex synchronously here, or it will
+	// deadlock - hand it the session data it needs instead.
+	const auto session = it->second;
+	manager.close(session.instanceId);
+	sessions.erase(it);
+	return { .ok = true, .evacuationPosition = session.returnPosition, .error = {} };
+}
+
+bool InstanceArenaService::hasActiveSession(uint32_t playerId) const {
+	std::scoped_lock lock(sessionMutex);
+	return sessions.contains(playerId);
+}

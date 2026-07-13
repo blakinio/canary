@@ -97,6 +97,10 @@ void GameFunctions::init(lua_State* L) {
 	Lua::registerMethod(L, "Game", "tryClaimClusterJobLeadership", GameFunctions::luaGameTryClaimClusterJobLeadership);
 	Lua::registerMethod(L, "Game", "getNormalizedGuildName", GameFunctions::luaGameGetNormalizedGuildName);
 
+	Lua::registerMethod(L, "Game", "createInstanceArena", GameFunctions::luaGameCreateInstanceArena);
+	Lua::registerMethod(L, "Game", "leaveInstanceArena", GameFunctions::luaGameLeaveInstanceArena);
+	Lua::registerMethod(L, "Game", "closeInstanceArena", GameFunctions::luaGameCloseInstanceArena);
+
 	Lua::registerMethod(L, "Game", "addInfluencedMonster", GameFunctions::luaGameAddInfluencedMonster);
 	Lua::registerMethod(L, "Game", "removeInfluencedMonster", GameFunctions::luaGameRemoveInfluencedMonster);
 	Lua::registerMethod(L, "Game", "getInfluencedMonsters", GameFunctions::luaGameGetInfluencedMonsters);
@@ -1032,6 +1036,93 @@ int GameFunctions::luaGameGetNormalizedGuildName(lua_State* L) {
 		lua_pushnil(L);
 	}
 	return 1;
+}
+
+/***
+ * @function Game.createInstanceArena
+ * @param player Player
+ * @return Position|nil, string|nil
+ */
+int GameFunctions::luaGameCreateInstanceArena(lua_State* L) {
+	// Game.createInstanceArena(player)
+	// Instanced Test Arena (docs/architecture/instanced-test-arena.md):
+	// administrator-only real InstanceManager consumer. Reserves one of the
+	// two configured regions, creates and activates a real instance, and
+	// returns the entry position to teleport the caller to.
+	const auto &player = Lua::getPlayer(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		Lua::pushString(L, "Player not found.");
+		return 2;
+	}
+
+	const auto result = g_game().getInstanceArenaService().enterArena(player->getID(), player->getPosition());
+	if (!result.ok) {
+		lua_pushnil(L);
+		Lua::pushString(L, result.error);
+		return 2;
+	}
+
+	Lua::pushPosition(L, result.entryPosition);
+	lua_pushnil(L);
+	return 2;
+}
+
+/***
+ * @function Game.leaveInstanceArena
+ * @param player Player
+ * @return Position|nil, string|nil
+ */
+int GameFunctions::luaGameLeaveInstanceArena(lua_State* L) {
+	// Game.leaveInstanceArena(player)
+	// Returns the caller's saved return position without closing their
+	// arena instance - it stays reserved until Game.closeInstanceArena.
+	const auto &player = Lua::getPlayer(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		Lua::pushString(L, "Player not found.");
+		return 2;
+	}
+
+	const auto result = g_game().getInstanceArenaService().leaveArena(player->getID());
+	if (!result.ok) {
+		lua_pushnil(L);
+		Lua::pushString(L, result.error);
+		return 2;
+	}
+
+	Lua::pushPosition(L, result.returnPosition);
+	lua_pushnil(L);
+	return 2;
+}
+
+/***
+ * @function Game.closeInstanceArena
+ * @param player Player
+ * @return Position|nil, string|nil
+ */
+int GameFunctions::luaGameCloseInstanceArena(lua_State* L) {
+	// Game.closeInstanceArena(player)
+	// Closes the caller's arena instance and returns the evacuation
+	// position (the same saved return position), whether or not the
+	// caller had already used Game.leaveInstanceArena.
+	const auto &player = Lua::getPlayer(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		Lua::pushString(L, "Player not found.");
+		return 2;
+	}
+
+	const auto result = g_game().getInstanceArenaService().closeArenaForPlayer(player->getID());
+	if (!result.ok) {
+		lua_pushnil(L);
+		Lua::pushString(L, result.error);
+		return 2;
+	}
+
+	Lua::pushPosition(L, result.evacuationPosition);
+	lua_pushnil(L);
+	return 2;
 }
 
 int GameFunctions::luaGameAddInfluencedMonster(lua_State* L) {
