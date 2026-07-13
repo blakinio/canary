@@ -48,9 +48,58 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
+  finalize-live-parity:
+    name: Finalize live parity patch
+    if: >-
+      github.event_name == 'push' &&
+      github.ref_name == 'fix/imbuement-live-parity' &&
+      !contains(github.event.head_commit.message, 'enforce quest completion unlocks')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: fix/imbuement-live-parity
+          fetch-depth: 0
+
+      - name: Apply final evidence-backed patch
+        run: python tools/ai-agent/apply_imbuement_live_parity_patch.py
+
+      - name: Validate focused contracts
+        run: |
+          python -m py_compile \
+            tools/ai-agent/imbuement_validation.py \
+            tools/ai-agent/imbuement_storage_validation.py \
+            tools/ai-agent/test_imbuement_validation.py \
+            tools/ai-agent/test_imbuement_storage_validation.py
+          python -m unittest discover -s tools/ai-agent -p 'test_imbuement*.py'
+          python tools/ai-agent/imbuement_validation.py \
+            --repository-root . \
+            --output /tmp/IMBUEMENT_VALIDATION.json
+          python tools/ai-agent/imbuement_storage_validation.py \
+            --repository-root . \
+            --output /tmp/IMBUEMENT_STORAGE_VALIDATION.json \
+            --strict
+          python -m json.tool docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json >/dev/null
+
+      - name: Commit final live parity data
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            data/XML/imbuements.xml \
+            tools/ai-agent/imbuement_storage_validation.py \
+            tools/ai-agent/test_imbuement_storage_validation.py \
+            tests/fixture/core/XML/imbuements.xml \
+            docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md \
+            docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json \
+            docs/agents/tasks/active/CAN-20260713-imbuement-live-parity.md
+          git commit -m 'fix(imbuement): enforce quest completion unlocks'
+          git push origin HEAD:fix/imbuement-live-parity
+
   audit:
     name: Audit imbuement definitions and runtime wiring
     runs-on: ubuntu-latest
