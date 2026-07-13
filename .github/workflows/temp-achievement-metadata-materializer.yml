@@ -45,22 +45,22 @@ jobs:
 
           test_path = Path("tools/ai-agent/test_achievement_validation.py")
           text = test_path.read_text(encoding="utf-8")
-          marker = '''    def test_persistence_evidence_is_line_grounded(self) -> None:
-          '''
-          addition = '''    def test_confirmed_live_non_point_metadata_matches_reference(self) -> None:
-              root = Path(__file__).resolve().parents[2]
-              registry_path = root / "data/scripts/lib/register_achievements.lua"
-              definitions, _ = parse_registry_text(registry_path.read_text(encoding="utf-8"))
-              by_id = {item.id: item for item in definitions}
-
-              self.assertEqual(0, by_id[406].grade)
-              self.assertEqual(0, by_id[406].points)
-              self.assertTrue(by_id[406].secret)
-              self.assertEqual(4, by_id[513].grade)
-              self.assertEqual(10, by_id[513].points)
-              self.assertTrue(by_id[513].secret)
-
-          '''
+          marker = "    def test_persistence_evidence_is_line_grounded(self) -> None:\n"
+          addition = (
+              "    def test_confirmed_live_non_point_metadata_matches_reference(self) -> None:\n"
+              "        root = Path(__file__).resolve().parents[2]\n"
+              "        registry_path = root / \"data/scripts/lib/register_achievements.lua\"\n"
+              "        definitions, _ = parse_registry_text(registry_path.read_text(encoding=\"utf-8\"))\n"
+              "        by_id = {item.id: item for item in definitions}\n"
+              "\n"
+              "        self.assertEqual(0, by_id[406].grade)\n"
+              "        self.assertEqual(0, by_id[406].points)\n"
+              "        self.assertTrue(by_id[406].secret)\n"
+              "        self.assertEqual(4, by_id[513].grade)\n"
+              "        self.assertEqual(10, by_id[513].points)\n"
+              "        self.assertTrue(by_id[513].secret)\n"
+              "\n"
+          )
           if text.count(marker) != 1:
               raise SystemExit("test insertion marker not found exactly once")
           test_path.write_text(text.replace(marker, addition + marker), encoding="utf-8")
@@ -69,34 +69,25 @@ jobs:
       - name: Run focused validation and preserve log
         shell: bash
         run: |
-          mkdir -p materialized/data/scripts/lib materialized/tools/ai-agent materialized/artifacts
-          set +e
-          {
-            python -m py_compile tools/ai-agent/achievement_validation.py tools/ai-agent/test_achievement_validation.py
-            python -m unittest discover -s tools/ai-agent -p "test_achievement_validation.py" -v
-            mkdir -p artifacts
-            python tools/ai-agent/achievement_validation.py \
-              --repository-root . \
-              --reference-baseline docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json \
-              --reference-catalog docs/ai-agent/ACHIEVEMENT_REFERENCE_CATALOG.json \
-              --reviewed-evidence docs/ai-agent/ACHIEVEMENT_REVIEWED_EVIDENCE.json \
-              --output artifacts/ACHIEVEMENT_AUDIT.json \
-              --markdown artifacts/ACHIEVEMENT_AUDIT.md \
-              --allow-findings
-            python -m json.tool artifacts/ACHIEVEMENT_AUDIT.json > /dev/null
-            git diff --check
-          } > materialized/artifacts/validation.log 2>&1
-          status=$?
+          mkdir -p materialized/data/scripts/lib materialized/tools/ai-agent materialized/artifacts artifacts
+          status=0
+          : > materialized/artifacts/validation.log
+          python -m py_compile tools/ai-agent/achievement_validation.py tools/ai-agent/test_achievement_validation.py >> materialized/artifacts/validation.log 2>&1 || status=$?
+          python -m unittest discover -s tools/ai-agent -p "test_achievement_validation.py" -v >> materialized/artifacts/validation.log 2>&1 || status=$?
+          python tools/ai-agent/achievement_validation.py \
+            --repository-root . \
+            --reference-baseline docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json \
+            --reference-catalog docs/ai-agent/ACHIEVEMENT_REFERENCE_CATALOG.json \
+            --reviewed-evidence docs/ai-agent/ACHIEVEMENT_REVIEWED_EVIDENCE.json \
+            --output artifacts/ACHIEVEMENT_AUDIT.json \
+            --markdown artifacts/ACHIEVEMENT_AUDIT.md \
+            --allow-findings >> materialized/artifacts/validation.log 2>&1 || status=$?
+          python -m json.tool artifacts/ACHIEVEMENT_AUDIT.json > /dev/null 2>> materialized/artifacts/validation.log || status=$?
+          git diff --check >> materialized/artifacts/validation.log 2>&1 || status=$?
           echo "$status" > materialized/artifacts/validation.status
           cp data/scripts/lib/register_achievements.lua materialized/data/scripts/lib/
           cp tools/ai-agent/test_achievement_validation.py materialized/tools/ai-agent/
-          if [[ -f artifacts/ACHIEVEMENT_AUDIT.json ]]; then
-            cp artifacts/ACHIEVEMENT_AUDIT.json materialized/artifacts/
-          fi
-          if [[ -f artifacts/ACHIEVEMENT_AUDIT.md ]]; then
-            cp artifacts/ACHIEVEMENT_AUDIT.md materialized/artifacts/
-          fi
-          exit 0
+          cp artifacts/ACHIEVEMENT_AUDIT.json artifacts/ACHIEVEMENT_AUDIT.md materialized/artifacts/
 
       - name: Upload materialized files and diagnostics
         uses: actions/upload-artifact@v4
