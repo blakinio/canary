@@ -64,8 +64,7 @@ class ImbuementValidationTests(unittest.TestCase):
         self.assertEqual(len(grouped.get("WIKI_MATERIALS", [])), 1)
         self.assertIn("Punch tier 1", grouped["WIKI_MATERIALS"][0].message)
 
-        self.assertEqual(len(grouped.get("WIKI_SCROLL", [])), 2)
-        self.assertTrue(all("Vibrancy" in finding.message for finding in grouped["WIKI_SCROLL"]))
+        self.assertEqual(grouped.get("WIKI_SCROLL", []), [])
 
         unlock_messages = {
             finding.message
@@ -76,14 +75,26 @@ class ImbuementValidationTests(unittest.TestCase):
 
         self.assertEqual(len(grouped.get("WIKI_FEE_MODEL", [])), 3)
 
-    def test_active_scroll_action_exposes_unresolved_vibrancy_ids(self) -> None:
-        orphan_findings = [
-            finding
-            for finding in self.findings
-            if finding.code == "ORPHAN_REGISTERED_SCROLL"
+    def test_vibrancy_scrolls_resolve_to_exact_tiers(self) -> None:
+        for scroll_id, tier in ((51746, 2), (51466, 3)):
+            with self.subTest(scroll_id=scroll_id):
+                entry = validation.resolve_scroll_entry(self.registry, scroll_id)
+                self.assertIsNotNone(entry)
+                assert entry is not None
+                self.assertEqual(entry.name, "Vibrancy")
+                self.assertEqual(entry.base, tier)
+
+        forbidden_codes = {
+            "ORPHAN_REGISTERED_SCROLL",
+            "UNREGISTERED_XML_SCROLL",
+            "VIBRANCY_SCROLL_UNRESOLVED",
+            "VIBRANCY_SCROLL_WRONG_TARGET",
+            "SCROLL_APPLICATION_ATOMICITY",
+        }
+        failures = [
+            finding for finding in self.findings if finding.code in forbidden_codes
         ]
-        self.assertEqual(len(orphan_findings), 1)
-        self.assertIn("[51466, 51746]", orphan_findings[0].message)
+        self.assertFalse(failures, [finding.message for finding in failures])
 
     def test_scroll_range_parser(self) -> None:
         text = """
