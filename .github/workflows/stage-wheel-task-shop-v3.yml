@@ -35,16 +35,37 @@ jobs:
           ref: feat/wheel-15-25-runtime-completion
           fetch-depth: 0
 
-      - name: Apply cache fix
-        run: python /tmp/fix_wheel_task_shop_cache.py
+      - name: Apply cache fix and capture diagnostics
+        id: apply
+        shell: bash
+        run: |
+          set +e
+          python /tmp/fix_wheel_task_shop_cache.py > /tmp/wheel-task-shop-cache-fix.log 2>&1
+          status=$?
+          cat /tmp/wheel-task-shop-cache-fix.log
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload cache-fix diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-task-shop-cache-fix-diagnostics
+          path: /tmp/wheel-task-shop-cache-fix.log
+
+      - name: Enforce cache-fix application
+        if: steps.apply.outputs.status != '0'
+        run: exit 1
 
       - name: Validate focused fix
+        if: steps.apply.outputs.status == '0'
         run: |
           git diff --check
           PYTHONPATH=tools/ai-agent python -m unittest -v tools/ai-agent/test_wheel_task_shop_validation.py
           python tools/check_lua_api_binding_docs.py
 
       - name: Commit to real Wheel branch
+        if: steps.apply.outputs.status == '0'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
