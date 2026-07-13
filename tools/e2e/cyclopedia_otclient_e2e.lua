@@ -6,6 +6,7 @@ local CHARACTER = os.getenv('CYCLOPEDIA_E2E_CHARACTER') or 'Knight 1'
 local HOST = os.getenv('CYCLOPEDIA_E2E_HOST') or '127.0.0.1'
 local GAME_PORT = tonumber(os.getenv('CYCLOPEDIA_E2E_PORT') or '7172')
 local WORLD = os.getenv('CYCLOPEDIA_E2E_WORLD') or 'Canary E2E'
+local STARTUP_MODE = os.getenv('CYCLOPEDIA_E2E_STARTUP_MODE') or 'minimal'
 
 local phase = 1
 local phaseComplete = false
@@ -20,6 +21,39 @@ local function appendResult(key, value)
     file:write(string.format('%s=%s\n', tostring(key), tostring(value)))
     file:close()
     g_logger.info(string.format('[cyclopedia-e2e] %s=%s', tostring(key), tostring(value)))
+end
+
+local function disableStartupModule(name)
+    local module = g_modules.getModule(name)
+    if not module or not module:isLoaded() then
+        appendResult('startup_module_' .. name, 'not-loaded')
+        return
+    end
+
+    local ok, err = pcall(function()
+        module:unload()
+    end)
+    if ok then
+        appendResult('startup_module_' .. name, 'disabled')
+    else
+        appendResult('startup_module_' .. name, 'disable-error:' .. tostring(err))
+    end
+end
+
+local function installMinimalStartupMode()
+    appendResult('startup_mode', STARTUP_MODE)
+    if STARTUP_MODE ~= 'minimal' then
+        return
+    end
+
+    -- These modules immediately send unrelated packets during onGameStart.
+    -- Disable them only in this diagnostic prototype to identify which packet
+    -- makes Canary close the modern game socket. The feature suite itself does
+    -- not depend on them and the modules will be restored one by one once the
+    -- incompatible sender is proven.
+    disableStartupModule('game_quickloot')
+    disableStartupModule('game_imbuementtracker')
+    disableStartupModule('game_shop')
 end
 
 local function valueCount(value)
@@ -205,6 +239,7 @@ if previous then
     previous:close()
 end
 
+installMinimalStartupMode()
 scheduleEvent(startLogin, 2500)
 scheduleEvent(function()
     if not finished then
