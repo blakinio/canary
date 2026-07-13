@@ -1,5 +1,5 @@
 ---
-name: Imbuement Source Export
+name: Apply Vibrancy Patch
 
 on:
   pull_request:
@@ -7,28 +7,35 @@ on:
       - ".github/workflows/imbuement-source-export.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  export:
-    name: Export focused source files
+  apply:
+    name: Apply deterministic patch
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout task branch
         uses: actions/checkout@v4
-      - name: Upload focused sources
-        uses: actions/upload-artifact@v4
         with:
-          name: imbuement-source-export
-          path: |
-            data/XML/imbuements.xml
-            tools/ai-agent/imbuement_validation.py
-            tools/ai-agent/test_imbuement_validation.py
-            tests/fixture/core/XML/imbuements.xml
-            tests/unit/players/imbuements/imbuements_test.cpp
-            docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Apply patch and remove staging files
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git apply -p1 --check .github/imbuement-vibrancy.patch
+          git apply -p1 .github/imbuement-vibrancy.patch
+          git rm .github/imbuement-vibrancy.patch .github/workflows/imbuement-source-export.yml
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/XML/imbuements.xml \
+            tools/ai-agent/imbuement_validation.py \
+            tools/ai-agent/test_imbuement_validation.py \
+            docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md \
             docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json
-            docs/agents/tasks/active/CAN-20260713-imbuement-vibrancy-scrolls.md
-            .github/workflows/imbuement-validation.yml
-          if-no-files-found: error
-          retention-days: 1
+          git commit -m "fix(imbuement): map Vibrancy scrolls"
+          git push origin "HEAD:${HEAD_REF}"
