@@ -8,10 +8,10 @@ branch: feat/instance-arena-service
 base_branch: main
 created: 2026-07-13T21:00:00Z
 updated: 2026-07-13T21:20:00Z
-last_verified_commit: "6fb9c65d3e8b9105e65515dc2b03827a06753eb0"
+last_verified_commit: "47270c39f4e36568e8440cf6d2f421f5f09e6f67"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "#289"
 depends_on:
   - CAN-20260713-instanced-test-arena (region plan, PR #287)
 blocks:
