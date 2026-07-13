@@ -11,7 +11,7 @@ last_verified_commit: "9e426612eb725d95454b6ed7874d3edf8b481255"
 merge_commit: "56ee9bc72b91ba1110cd6d957c7eb0d974fc54e1"
 risk: low
 related_pr: "#242"
-cleanup_pr: "pending"
+cleanup_pr: "#244"
 reuses:
   - docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md
   - docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md
@@ -33,6 +33,8 @@ The Equipment Upgrade / Exaltation Forge validation handoff was refreshed agains
 - Feature PR: #242.
 - Final feature head: `9e426612eb725d95454b6ed7874d3edf8b481255`.
 - Squash merge: `56ee9bc72b91ba1110cd6d957c7eb0d974fc54e1`.
+- Cleanup branch: `docs/archive-equipment-upgrade-handoff-refresh`.
+- Cleanup PR: #244.
 - Final changed files in #242:
   - `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md`;
   - `docs/agents/tasks/active/CAN-20260713-equipment-upgrade-handoff-refresh.md`.
@@ -134,7 +136,7 @@ Historical draft-head evidence was recorded in the active task and PR body but w
 
 # Remaining work
 
-None for this task after the cleanup PR is merged.
+None for this task after cleanup PR #244 is merged.
 
 # Handoff
 
