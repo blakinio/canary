@@ -88,7 +88,7 @@ jobs:
           sudo apt-get install -y \
             imagemagick libgl1 libglu1-mesa libopenal1 libpulse0 \
             libx11-6 libxcursor1 libxi6 libxinerama1 libxrandr2 \
-            mysql-client x11-utils xvfb
+            mysql-client tcpdump x11-utils xvfb
 
       - name: Resolve binaries and protocol version
         shell: bash
@@ -241,6 +241,9 @@ jobs:
           export DISPLAY=:99
           Xvfb :99 -screen 0 1280x800x24 > artifacts/xvfb.log 2>&1 &
           echo $! > artifacts/xvfb.pid
+          sudo tcpdump -U -nn -i lo -s 0 -w artifacts/game-port.pcap 'tcp port 7172' \
+            > artifacts/tcpdump.stdout.log 2> artifacts/tcpdump.stderr.log &
+          echo $! > artifacts/tcpdump.pid
           sleep 2
           (cd otclient && timeout --signal=TERM 180 "${OTCLIENT_BIN}" \
             > ../artifacts/otclient.stdout.log 2> ../artifacts/otclient.stderr.log) &
@@ -257,8 +260,19 @@ jobs:
 
           import -display :99 -window root artifacts/cyclopedia-client.png || true
           [[ -f otclient/e2e-result.txt ]] && cp otclient/e2e-result.txt artifacts/e2e-result.txt || true
+          MYSQL_PWD=root mysql -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e \
+            -e "SELECT * FROM players_online; SELECT id,name,lastlogin,lastlogout FROM players WHERE name='Knight 1';" \
+            | tee artifacts/database-at-client-end.tsv || true
+          ss -tinp '( sport = :7172 or dport = :7172 )' > artifacts/game-port-sockets.txt || true
+          if [[ -f artifacts/tcpdump.pid ]]; then
+            sudo kill -INT "$(cat artifacts/tcpdump.pid)" 2>/dev/null || true
+            wait "$(cat artifacts/tcpdump.pid)" 2>/dev/null || true
+          fi
+          sudo tcpdump -nn -tttt -r artifacts/game-port.pcap > artifacts/game-port-packets.txt 2>&1 || true
+
           if [[ "${online}" != true || "${phase}" != true ]]; then
-            cat artifacts/e2e-result.txt artifacts/otclient.stdout.log artifacts/otclient.stderr.log 2>/dev/null || true
+            cat artifacts/e2e-result.txt artifacts/otclient.stdout.log artifacts/otclient.stderr.log \
+              artifacts/game-port-packets.txt 2>/dev/null || true
             exit 1
           fi
 
@@ -288,15 +302,20 @@ jobs:
           test "$(mysql -N -s -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e -e "SELECT lastlogin > 0 FROM players WHERE name='Knight 1';")" -eq 1
           test "$(mysql -N -s -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e -e 'SELECT COUNT(*) FROM boosted_boss;')" -ge 1
           ! grep -Eqi 'unhandled|parse error|protocol error|segmentation fault|assertion failed|fatal error' \
-            artifacts/otclient.stdout.log artifacts/otclient.stderr.log
+            artifacts/otclient.stdout.log artifacts/otclient.stderr.log artifacts/otclient.internal.log
 
       - name: Stop services
         if: always()
         shell: bash
         run: |
+          if [[ -f artifacts/tcpdump.pid ]]; then
+            sudo kill -INT "$(cat artifacts/tcpdump.pid)" 2>/dev/null || true
+          fi
           for pidfile in artifacts/otclient.pid artifacts/canary.pid artifacts/xvfb.pid; do
             [[ -f "${pidfile}" ]] && kill "$(cat "${pidfile}")" 2>/dev/null || true
           done
+          [[ -f artifacts/game-port.pcap ]] && \
+            sudo tcpdump -nn -tttt -r artifacts/game-port.pcap > artifacts/game-port-packets.txt 2>&1 || true
 
       - name: Upload live E2E evidence
         if: always()
