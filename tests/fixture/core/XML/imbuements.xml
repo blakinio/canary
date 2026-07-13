@@ -1,20 +1,46 @@
 <imbuements>
-	<base id="1" name="Basic" price="0" protectionPrice="0" percent="42" removecost="0" duration="3600" />
-	<base id="2" name="Intricate" price="0" protectionPrice="0" percent="100" removecost="0" duration="72000" />
-	<base id="3" name="Powerful" price="0" protectionPrice="0" percent="100" removecost="0" duration="72000" />
+	<base id="1" name="Basic" price="7500" protectionPrice="0" percent="100" removecost="15000" duration="72000" />
+	<base id="2" name="Intricate" price="60000" protectionPrice="0" percent="100" removecost="15000" duration="72000" />
+	<base id="3" name="Powerful" price="250000" protectionPrice="0" percent="100" removecost="15000" duration="72000" />
+	<category id="3" name="Critical Hit" agressive="1" />
 	<category id="15" name="Skillboost (Distance Fighting)" agressive="1" />
+	<category id="18" name="Skillboost (Fist Fighting)" agressive="1" />
 	<category id="19" name="Paralysis Deflection" agressive="0" />
 
 	<imbuement name="Precision" base="1" category="15" iconid="1" premium="0" storage="0">
 		<attribute key="description" value="Boosts distance." />
 		<attribute key="effect" type="skill" value="distance" bonus="3" />
 	</imbuement>
+	<imbuement name="Strike" base="1" category="3" iconid="1" premium="0" storage="0">
+		<attribute key="description" value="Raises critical hit damage by 5% and critical hit chance by 5%." />
+		<attribute key="effect" type="skill" value="critical" bonus="500" chance="500" />
+		<attribute key="item" value="11444" count="20" />
+	</imbuement>
+	<imbuement name="Strike" base="2" category="3" iconid="1" premium="1" storage="0">
+		<attribute key="description" value="Raises critical hit damage by 15% and critical hit chance by 5%." />
+		<attribute key="effect" type="skill" value="critical" bonus="1500" chance="500" />
+		<attribute key="item" value="11444" count="20" />
+		<attribute key="item" value="10311" count="25" />
+	</imbuement>
+	<imbuement name="Strike" base="3" category="3" iconid="1" premium="1" storage="45495">
+		<attribute key="description" value="Raises critical hit damage by 40% and critical hit chance by 5%." />
+		<attribute key="effect" type="skill" value="critical" bonus="4000" chance="500" />
+		<attribute key="item" value="11444" count="20" />
+		<attribute key="item" value="10311" count="25" />
+		<attribute key="item" value="22728" count="5" />
+	</imbuement>
+	<imbuement name="Punch" base="1" category="18" iconid="61" premium="0" storage="0">
+		<attribute key="description" value="Raises fist fighting skill by 1." />
+		<attribute key="effect" type="skill" value="fist" bonus="1" />
+		<attribute key="item" value="10281" count="25" />
+	</imbuement>
+
 	<imbuement name="Vibrancy" base="2" category="19" iconid="79" premium="1" storage="0">
 		<attribute key="description" value="Deflects paralysis." />
 		<attribute key="effect" type="paralysis" chance="25" pvpDeflect="1" />
 		<attribute key="scroll" value="51746" />
 	</imbuement>
-	<imbuement name="Vibrancy" base="3" category="19" iconid="79" premium="1" storage="0">
+	<imbuement name="Vibrancy" base="3" category="19" iconid="79" premium="1" storage="46365">
 		<attribute key="description" value="Strongly deflects paralysis." />
 		<attribute key="effect" type="paralysis" chance="50" pvpDeflect="1" />
 		<attribute key="scroll" value="51466" />
