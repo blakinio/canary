@@ -1,0 +1,41 @@
+name: Apply Forge live-default patch
+
+on:
+  pull_request:
+    branches:
+      - fix/forge-live-defaults
+    paths:
+      - docs/ai-agent/.forge-live-defaults-runner
+
+permissions:
+  contents: write
+
+jobs:
+  apply-live-defaults:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/forge-live-defaults
+          fetch-depth: 1
+          show-progress: false
+
+      - name: Apply exact live-default changes
+        shell: bash
+        run: python3 tools/ai-agent/apply_forge_live_defaults_patch.py
+
+      - name: Review and commit bounded patch
+        shell: bash
+        run: |
+          git diff --check
+          git diff -- \
+            src/config/configmanager.cpp \
+            config.lua.dist
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            src/config/configmanager.cpp \
+            config.lua.dist
+          git commit -m "fix(forge): align live Dust and Fiendish defaults"
+          git push origin HEAD:fix/forge-live-defaults
