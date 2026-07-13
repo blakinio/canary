@@ -13,6 +13,8 @@ local received = {}
 local finished = false
 local enteringWorld = false
 
+g_logger.setLogFile('../artifacts/otclient.internal.log')
+
 local function appendResult(key, value)
     local file = assert(io.open(RESULT_PATH, 'a'))
     file:write(string.format('%s=%s\n', tostring(key), tostring(value)))
@@ -55,7 +57,7 @@ local function startLogin()
     g_game.chooseRsa(HOST)
 
     local sessionKey = ACCOUNT .. '\n' .. PASSWORD
-    local recordName = string.format('cyclopedia-session-%d.record', phase)
+    local recordName = string.format('../../artifacts/cyclopedia-session-%d.record', phase)
     appendResult('session_key_mode_' .. phase, 'password')
     appendResult('packet_record_' .. phase, recordName)
     appendResult(
