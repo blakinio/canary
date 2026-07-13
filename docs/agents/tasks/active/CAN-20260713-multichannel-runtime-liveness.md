@@ -239,7 +239,7 @@ Never write `passed` without verification on the stated commit.
 3. ~~Implement `IRedisClient::ping()` (Hiredis real + Fake), wire into `ClusterConfigValidator`, reorder `canary_server.cpp`.~~ done
 4. ~~Update docs with corrected current-state facts and honestly-documented limitations.~~ done
 5. ~~Update `docs/agents/MODULE_CATALOG.md`'s multichannel row.~~ done
-6. Push both branches, open both PRs, monitor CI, fix any real failures. Do not merge without explicit user "yes, merge #NNN" per this branch's standing rule.
+6. ~~Push both branches, open both PRs.~~ done - PR #292 (`claude/canary-multichannel-cluster-e1jhrr`, Part A: shutdown OFFLINE + test gaps) and PR #293 (`claude/canary-multichannel-redis-ping`, Part B: live Redis PING) are both open against `main`. Monitoring the full CI matrix on both is in progress; no CI results or review comments yet as of this update. Do not merge without explicit user "yes, merge #NNN" per this branch's standing rule.
 7. Once both PRs are known-good (green CI), move this task record to `docs/agents/tasks/archive/` and fill in the Completion section below.
 
 # Handoff
@@ -272,10 +272,10 @@ None blocking; proceeding with the plan above.
 
 # Completion
 
-- Final status: in progress
-- PR:
-- Merge commit:
+- Final status: in progress - both PRs open, CI running, awaiting green matrix and explicit user merge approval
+- PR: #292 (Part A - heartbeat/login-filter completeness), #293 (Part B - live Redis PING)
+- Merge commit: none yet - not merged
 - Program record updated: no (no long-lived program record exists yet for multichannel under `docs/agents/programs/`; could be created as a follow-up)
-- Catalogue updated: pending
+- Catalogue updated: yes (`docs/agents/MODULE_CATALOG.md`, in PR #292)
 - Changelog updated: pending
-- Archived at: pending
+- Archived at: pending - will move to `docs/agents/tasks/archive/` once both PRs are green and merged
