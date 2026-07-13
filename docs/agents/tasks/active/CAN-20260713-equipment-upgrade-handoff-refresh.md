@@ -7,8 +7,8 @@ agent: ChatGPT
 branch: fix/equipment-upgrade-validation-2
 base_branch: main
 created: 2026-07-13T10:16:00Z
-updated: 2026-07-13T10:24:00Z
-last_verified_commit: d4eeab3db322f26ee72d7f0ad958d35dc9bd007d
+updated: 2026-07-13T10:32:00Z
+last_verified_commit: 048503f164cd1f4192d928fd4070134f43e79ccc
 risk: low
 related_issue: ""
 related_pr: "241"
@@ -65,9 +65,9 @@ Refresh the durable Equipment Upgrade / Exaltation Forge validation handoff agai
 - [x] F-001–F-024 are reclassified against current `main` with evidence level, remaining proof and bounded follow-up scope.
 - [x] Current open Forge PRs/tasks and post-#177 relevant changes are recorded.
 - [x] Local checkout limitation and exact DNS error are recorded; no unexecuted local test is reported as passed.
-- [ ] Changed files remain documentation/task only and exclude `docs/agents/ACTIVE_WORK.md` — final PR file-list check pending.
-- [ ] Current-head GitHub checks and concrete jobs are inspected and recorded.
-- [ ] PR is ready, squash-merged and task lifecycle cleanup is completed unless a real blocker is recorded.
+- [x] Changed files are documentation/task only and exclude `docs/agents/ACTIVE_WORK.md`.
+- [x] Current-head GitHub checks and concrete jobs were inspected and recorded for verified head `048503f164cd1f4192d928fd4070134f43e79ccc`.
+- [ ] PR is squash-merged and task lifecycle cleanup is completed unless a real blocker is recorded.
 - [x] Module catalogue impact handled: no reusable interface/module change, therefore no catalogue edit required.
 - [x] Changelog impact handled: no behavior or architecture change, therefore no changelog edit required.
 - [x] Cross-repository impact handled: future client work targets `blakinio/otclient`; no cross-repository write in this task.
@@ -75,10 +75,10 @@ Refresh the durable Equipment Upgrade / Exaltation Forge validation handoff agai
 # Confirmed context
 
 - Writable repository: `blakinio/canary` only.
-- Current `main` at task start: `d4eeab3db322f26ee72d7f0ad958d35dc9bd007d`.
-- Existing branch reused: `fix/equipment-upgrade-validation-2`; it was force-reset through the GitHub API to the current `main` before this task record was created.
+- Current `main` at task start and before verified-head metadata update: `d4eeab3db322f26ee72d7f0ad958d35dc9bd007d`.
+- Existing branch reused: `fix/equipment-upgrade-validation-2`; it was force-reset through the GitHub API to current `main` before this task record was created.
 - The reset removed two incomplete experimental files (`.github/workflows/equipment-upgrade-phase1.yml` and `tools/ai-agent/apply_equipment_upgrade_phase1.py`) from the branch; they were never part of a PR and are not retained.
-- Documentation PR: #241, created as draft from current main.
+- Documentation PR: #241; state after content completion: Ready for review.
 - Historical merge baseline:
   - PR #89 merged as `209289d38e64aafe7ce3e036867bb632cd0363b8`.
   - PR #110 merged as `84f5c09263f459d726fbc7b9f79557b2cbb0801d`.
@@ -86,6 +86,11 @@ Refresh the durable Equipment Upgrade / Exaltation Forge validation handoff agai
 - `validation/equipment-upgrade` is historical, has no current branch match and must not be continued or reopened.
 - No open Forge implementation PR was found. PR #222 only establishes future shared E2E ownership and does not remediate Forge.
 - No active Forge-specific task was identified before this record.
+- Exact PR #241 changed files at verified-head review:
+  - `docs/agents/tasks/active/CAN-20260713-equipment-upgrade-handoff-refresh.md`;
+  - `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md`.
+- `docs/agents/ACTIVE_WORK.md`, runtime/config/protocol/test paths and both client repositories are unchanged.
+- Review threads at readiness review: none.
 - Current finding summary:
   - `partially-remediated; runtime-untested`: F-007, F-008, F-013;
   - `target-version-decision-required`: F-009, F-010;
@@ -106,41 +111,47 @@ Refresh the durable Equipment Upgrade / Exaltation Forge validation handoff agai
 - Program record: no Forge-specific program; shared future E2E ownership is PR #222/program record.
 - Open PRs inspected: current repository open PR list plus Forge search; no Forge implementation PR overlaps these documentation paths.
 - Active tasks inspected: `ACTIVE_WORK.md` read-only plus current task context; no Equipment Upgrade task overlapped the owned report path.
-- Ownership checker result: not run locally because the repository could not be cloned due DNS failure.
+- Local ownership checker: not run because the repository could not be cloned due DNS failure.
+- CI ownership validation: run `29242597949`, job `Validate active ownership`, success on head `048503f164cd1f4192d928fd4070134f43e79ccc`.
 - Exclusive claims: the Equipment Upgrade report and this task record only.
 - Shared claims: none.
-- Read-only dependencies: source/config/tests/contracts/client path listed in front matter.
-- Overlaps: later PR #220 touched broad Wheel/monster/game/protocol paths; #231/#233 touched `game.cpp`; #195/#212 touched weapon proficiency/monster overlap. Current Forge functions/config/Lua/tests were re-read and the findings remain as recorded.
+- Overlaps reviewed: #220 broad Wheel/monster/game/protocol paths; #231/#233 `game.cpp`; #195/#212 weapon proficiency/monster overlap. Current Forge functions/config/Lua/tests were re-read and findings remain as recorded.
 - Resolution: documentation-only refresh; no `ACTIVE_WORK.md` edit.
 
 # Current state
 
-PR #241 contains the rewritten current-main report and this task record. No runtime source, configuration, protocol, test or OTClient file is intentionally changed. The PR remains draft until the exact file list, review threads and concrete final-head GitHub jobs have been inspected.
-
-# Plan
-
-1. Verify exact changed-file boundary and PR metadata/review threads.
-2. Update PR body with the completed finding classification.
-3. Mark ready only after documentation is internally complete.
-4. Inspect concrete current-head workflows/jobs and logs when needed.
-5. Record final head/run IDs, enable auto-merge or squash-merge directly when eligible.
-6. Create a separate lifecycle cleanup PR moving this task from active to archive, then verify and merge it.
+PR #241 contains the rewritten current-main report and this task record. It is Ready for review. Verified content head `048503f164cd1f4192d928fd4070134f43e79ccc` passed the concrete checks listed below. This metadata commit records those results and must receive final metadata-equivalent checks before merge.
 
 # Work log
 
 ## 2026-07-13T10:16:00Z
 
-- Changed: reset `fix/equipment-upgrade-validation-2` to current `main`; created this task record.
-- Learned: the old report was stale; current main was 77 commits after PR #177. Broad files changed later, but the principal finding-bearing Forge implementation/config/Lua/tests did not change in the combined comparison.
-- Failed/blocked: local clone command failed: `git clone --filter=blob:none --no-checkout https://github.com/blakinio/canary.git canary-handoff` -> `fatal: unable to access 'https://github.com/blakinio/canary.git/': Could not resolve host: github.com`.
-- Result: GitHub API is the execution path; local checkout/build/test evidence is unavailable.
+- Reset `fix/equipment-upgrade-validation-2` to current `main`; created this task record.
+- Confirmed the old report was stale and current main was 77 commits after PR #177. Broad shared files changed later, but principal finding-bearing Forge implementation/config/Lua/tests did not change in the combined comparison.
+- Local command failed:
+
+```text
+cd /tmp && rm -rf canary-handoff && git clone --filter=blob:none --no-checkout https://github.com/blakinio/canary.git canary-handoff
+```
+
+```text
+fatal: unable to access 'https://github.com/blakinio/canary.git/': Could not resolve host: github.com
+```
+
+- `git fetch`, `git pull`, local checkout, local ownership validation, builds and tests were not attempted after clone failure because no checkout existed.
 
 ## 2026-07-13T10:24:00Z
 
-- Changed: opened draft PR #241; rewrote `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md` with `Current repository state`, full F-001–F-024 table, post-#177 drift review, evidence boundaries, work log, ordered bounded scopes and explicit handoff warnings.
-- Learned: current code still directly supports the historical findings. F-007/F-008/F-013 retain PR #177 code but remain runtime-untested; F-009/F-010 require authoritative target-version decisions; all other findings remain open.
-- Failed/blocked: two accidental attempts to recreate the already-existing branch returned GitHub 422 `Reference already exists`; no branch state changed. A duplicate create-file attempt for this already-created task returned 422 because `sha` was not supplied; no file state changed.
-- Result: safe state is persisted in PR #241; CI and final lifecycle remain.
+- Opened draft PR #241; rewrote the main validation report with current repository state, full F-001–F-024 table, post-#177 drift review, evidence boundaries, work log, ordered bounded scopes and handoff warnings.
+- Two accidental attempts to recreate the already-existing branch returned GitHub 422 `Reference already exists`; no branch state changed.
+- A duplicate create-file attempt for this already-created task returned GitHub 422 because `sha` was not supplied; no file state changed.
+
+## 2026-07-13T10:32:00Z
+
+- Confirmed PR changed files are exactly the report and task record; no `ACTIVE_WORK.md` or runtime/client path.
+- Confirmed no review threads.
+- Updated PR body and marked PR #241 Ready for review.
+- Inspected every workflow run and concrete job for head `048503f164cd1f4192d928fd4070134f43e79ccc`; results are recorded below.
 
 # Decisions
 
@@ -156,30 +167,44 @@ PR #241 contains the rewritten current-main report and this task record. No runt
 
 | Path/interface/config/schema | Ownership mode | Purpose | Status |
 |---|---|---|---|
-| `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md` | exclusive | Current-main validation and handoff | complete pending CI |
-| `docs/agents/tasks/active/CAN-20260713-equipment-upgrade-handoff-refresh.md` | exclusive | Durable task state, evidence and CI lifecycle | in progress |
+| `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md` | exclusive | Current-main validation and handoff | complete and verified at `048503f...` |
+| `docs/agents/tasks/active/CAN-20260713-equipment-upgrade-handoff-refresh.md` | exclusive | Durable task state, evidence and CI lifecycle | final metadata pending equivalent CI/merge |
 | `docs/agents/ACTIVE_WORK.md` | forbidden/read-only | Coordination snapshot | unchanged |
 | Source/config/tests/client paths | read_only | Current-state evidence | inspected only |
 
 # Validation and CI
 
-| Commit | Command/check/workflow | Result | Evidence/notes |
-|---|---|---|---|
-| `d4eeab3d...` | local `git clone --filter=blob:none --no-checkout https://github.com/blakinio/canary.git canary-handoff` | unavailable | DNS: `Could not resolve host: github.com`; therefore no local diff check, Markdown check, ownership tool, build or test was executed. |
-| `902882df7cb379b3060a1f97f5fd3be5b5aa25b3` | report content persisted on PR #241 | completed | Documentation write only; not a test result. |
-| pending final head | PR current-head GitHub checks | pending | Concrete workflow run IDs, job names, outcomes and evidence limits will be recorded after the final documentation commit. |
+## Local environment
 
-Never write `passed` without verification on the stated commit.
+| Command/check | Result | Evidence/limits |
+|---|---|---|
+| `cd /tmp && rm -rf canary-handoff && git clone --filter=blob:none --no-checkout https://github.com/blakinio/canary.git canary-handoff` | unavailable | `Could not resolve host: github.com`. No local checkout, diff check, Markdown check, ownership tool, build, C++/Lua test, runtime, gameplay or E2E execution. |
+
+## GitHub head `048503f164cd1f4192d928fd4070134f43e79ccc`
+
+| Workflow run | Job | Result | What it proves | What it does not prove |
+|---:|---|---|---|---|
+| `29242597949` — Agent Task Ownership | `Validate active ownership` | success | Ownership tool compiled; focused ownership tests passed; active tasks validated and ownership index rendered. | No Forge source/runtime/gameplay behavior. |
+| `29242597980` — AI Agent Tools | `Validate AI agent tools` | success | AI-agent unit/index/reference/schema/content-pack validation completed. | No Forge-specific runtime/gameplay proof. |
+| `29242598112` — CI draft run | `Detect Build Scope` | success | Changed paths were detected. | No compile/test proof. |
+| `29242598112` — CI draft run | `Required` | success | The jobs required by that draft scope evaluated successfully. Fast Checks, Lua, builds and smoke were skipped. | Not full CI or runtime proof. |
+| `29242668078` — CI ready run | `Detect Build Scope` | success | Ready-event scope resolved correctly. | No behavior proof alone. |
+| `29242668078` — CI ready run | `Lua Tests / Run Lua Tests` | success | Repository Lua test suite invoked by this job passed on the recorded head. | No focused live Dust-party or client gameplay scenario. |
+| `29242668078` — CI ready run | `Fast Checks / run-checks` | success | clang-format, Stylua, cmake-format diff, Lua API quality/new-binding docs, reviewdog analysis and yamllint passed. | No compiled or runtime Forge behavior. |
+| `29242668078` — CI ready run | `Build - Linux / Compile (linux-release)` | success | Linux release CMake/compile and generated Lua API docs check passed. | `Smoke test Canary datapack runtime`, Global smoke, DB import and `Run Tests` were explicitly skipped; no runtime, C++ regression, gameplay or E2E proof. |
+| `29242668078` — CI ready run | `Required` | success | Required job aggregation passed after the concrete successful jobs above. | Does not add evidence beyond those concrete jobs. |
+
+Skipped in ready run `29242668078`: Build Docker, macOS, Windows, Docker Quickstart Smoke, Canary datapack runtime smoke, Global datapack runtime smoke, database import and C++ `Run Tests`. These are not reported as passed.
 
 # Failed approaches and dead ends
 
-- Two preliminary scaffolding files were created before the task was narrowed to handoff-only. They were not safe evidence or production changes, had no PR, and the branch was reset to current `main`; they must not be recreated.
-- Direct local Git operations are unavailable due DNS. CI results will be listed individually; no generic claim that CI replaces local tests is permitted.
-- GitHub 422 responses for an already-existing branch and duplicate task creation caused no repository mutation.
+- Two preliminary scaffolding files were created before the task was narrowed to handoff-only. They were not safe evidence or production changes, had no PR, and were removed by resetting the branch to current `main`; do not recreate them.
+- Direct local Git operations remain unavailable due DNS.
+- GitHub 422 responses for the already-existing branch and duplicate task creation caused no repository mutation.
 
 # Risks and compatibility
 
-- Runtime: none changed; no runtime proof is added.
+- Runtime: none changed; no runtime proof added.
 - Data/migration: none.
 - Security: no secrets or private assets.
 - Backward compatibility: documentation only.
@@ -188,11 +213,10 @@ Never write `passed` without verification on the stated commit.
 
 # Remaining work
 
-1. Confirm exact PR changed files and no `ACTIVE_WORK.md`/runtime paths.
-2. Update PR body and mark ready.
-3. Inspect final-head GitHub workflow runs/jobs and repair documentation-scope failures.
-4. Set `last_verified_commit`, merge PR #241 and record merge.
-5. Move this task to archive in a separate lifecycle PR and merge that cleanup.
+1. Inspect metadata-equivalent checks for the new task-record commit.
+2. Recheck main SHA, PR changed files/review threads/mergeability.
+3. Enable auto-merge or squash-merge PR #241 when eligible.
+4. Create a separate lifecycle cleanup PR moving this task from active to archive; verify and merge it.
 
 # Handoff
 
@@ -251,11 +275,12 @@ Then confirm current CMake presets before building/running focused Forge tests.
 
 - Final status: in progress
 - PR: #241
-- PR state: draft
-- Current recorded head before this task update: `902882df7cb379b3060a1f97f5fd3be5b5aa25b3`
+- PR state: Ready for review
+- Verified content head: `048503f164cd1f4192d928fd4070134f43e79ccc`
+- Current metadata commit: created by this update; final checks pending
 - Merge commit: pending
-- Auto-merge: disabled/pending
-- Review threads: pending final inspection
+- Auto-merge: disabled pending final-head checks
+- Review threads: none at verified-head review
 - Program record updated: not applicable
 - Catalogue updated: not required; no module/interface change
 - Changelog updated: not required; no behavior/architecture change
