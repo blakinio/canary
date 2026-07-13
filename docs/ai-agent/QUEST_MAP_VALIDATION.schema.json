@@ -1,0 +1,311 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/QUEST_MAP_VALIDATION.schema.json",
+  "title": "Canary Quest Map Validator reports",
+  "oneOf": [
+    {"$ref": "#/$defs/evidenceReport"},
+    {"$ref": "#/$defs/validationReport"}
+  ],
+  "$defs": {
+    "nonNegative": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "line", "context"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "line": {"type": "integer", "minimum": 0},
+        "context": {"type": "string"}
+      }
+    },
+    "evidenceValue": {
+      "oneOf": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "string", "minLength": 1},
+        {"$ref": "#/$defs/position"}
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "value", "role", "confidence", "source"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[0-9a-f]{20}$"},
+        "kind": {
+          "enum": ["actionId", "uniqueId", "itemId", "position", "teleportDestination", "storage"]
+        },
+        "value": {"$ref": "#/$defs/evidenceValue"},
+        "role": {"type": "string", "minLength": 1},
+        "confidence": {"type": "string", "minLength": 1},
+        "source": {"$ref": "#/$defs/source"},
+        "details": {"type": "object"}
+      }
+    },
+    "unresolved": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "expression", "source", "reason"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[0-9a-f]{20}$"},
+        "kind": {"type": "string", "minLength": 1},
+        "expression": {"type": "string"},
+        "source": {"$ref": "#/$defs/source"},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    },
+    "sourceFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "evidenceCount", "unresolvedCount"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "evidenceCount": {"$ref": "#/$defs/nonNegative"},
+        "unresolvedCount": {"$ref": "#/$defs/nonNegative"}
+      }
+    },
+    "countObject": {
+      "type": "object",
+      "additionalProperties": {"$ref": "#/$defs/nonNegative"}
+    },
+    "evidenceReport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "ok",
+        "selectors",
+        "sourceDigest",
+        "summary",
+        "files",
+        "evidence",
+        "unresolved"
+      ],
+      "properties": {
+        "format": {"const": "canary-quest-map-evidence-v1"},
+        "ok": {"type": "boolean"},
+        "selectors": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repositoryRoot", "sourceRoots", "includes", "excludes"],
+          "properties": {
+            "repositoryRoot": {"const": "."},
+            "sourceRoots": {
+              "type": "array",
+              "minItems": 1,
+              "items": {"type": "string", "minLength": 1}
+            },
+            "includes": {
+              "type": "array",
+              "minItems": 1,
+              "items": {"type": "string", "minLength": 1}
+            },
+            "excludes": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        "sourceDigest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["filesScanned", "evidenceCount", "unresolvedCount", "byKind", "byRole"],
+          "properties": {
+            "filesScanned": {"$ref": "#/$defs/nonNegative"},
+            "evidenceCount": {"$ref": "#/$defs/nonNegative"},
+            "unresolvedCount": {"$ref": "#/$defs/nonNegative"},
+            "byKind": {"$ref": "#/$defs/countObject"},
+            "byRole": {"$ref": "#/$defs/countObject"}
+          }
+        },
+        "files": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/sourceFile"}
+        },
+        "evidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/evidence"}
+        },
+        "unresolved": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/unresolved"}
+        }
+      }
+    },
+    "mapEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["count", "samples"],
+      "properties": {
+        "count": {"$ref": "#/$defs/nonNegative"},
+        "samples": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {"type": "object"}
+        },
+        "tile": {"type": "object"}
+      }
+    },
+    "classification": {
+      "enum": ["confirmed", "map-only", "script-only", "unresolved", "conflicting"]
+    },
+    "evidenceFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidenceId", "kind", "value", "role", "classification", "source", "map"],
+      "properties": {
+        "evidenceId": {"type": "string", "pattern": "^[0-9a-f]{20}$"},
+        "kind": {
+          "enum": ["actionId", "uniqueId", "itemId", "position", "teleportDestination", "storage"]
+        },
+        "value": {"$ref": "#/$defs/evidenceValue"},
+        "role": {"type": "string", "minLength": 1},
+        "classification": {"$ref": "#/$defs/classification"},
+        "source": {"$ref": "#/$defs/source"},
+        "map": {"$ref": "#/$defs/mapEvidence"},
+        "scriptResolution": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "evidence"],
+          "properties": {
+            "status": {"type": "string", "minLength": 1},
+            "evidence": {"type": "object"}
+          }
+        },
+        "reason": {"type": "string", "minLength": 1}
+      }
+    },
+    "mapOnlyFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value", "classification", "map", "reason"],
+      "properties": {
+        "kind": {"enum": ["actionId", "uniqueId", "teleportDestination"]},
+        "value": {
+          "oneOf": [
+            {"type": "integer", "minimum": 0, "maximum": 65535},
+            {"$ref": "#/$defs/position"}
+          ]
+        },
+        "classification": {"const": "map-only"},
+        "map": {"$ref": "#/$defs/mapEvidence"},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    },
+    "validationReport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "ok",
+        "complete",
+        "sources",
+        "region",
+        "summary",
+        "findings",
+        "mapOnlyRegionMechanics",
+        "sourceUnresolved",
+        "notes"
+      ],
+      "properties": {
+        "format": {"const": "canary-quest-map-validation-v1"},
+        "ok": {"type": "boolean"},
+        "complete": {"type": "boolean"},
+        "sources": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["evidenceDigest", "worldIndex", "scriptResolution"],
+          "properties": {
+            "evidenceDigest": {"type": ["string", "null"]},
+            "worldIndex": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["path", "sha256"],
+              "properties": {
+                "path": {"type": "string", "minLength": 1},
+                "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+              }
+            },
+            "scriptResolution": {"type": ["object", "null"]}
+          }
+        },
+        "region": {
+          "oneOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["from", "to"],
+              "properties": {
+                "from": {"$ref": "#/$defs/position"},
+                "to": {"$ref": "#/$defs/position"}
+              }
+            }
+          ]
+        },
+        "summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "evidenceCount",
+            "findingCount",
+            "sourceUnresolvedCount",
+            "byClassification",
+            "byKind",
+            "mapOnlyRegionMechanics"
+          ],
+          "properties": {
+            "evidenceCount": {"$ref": "#/$defs/nonNegative"},
+            "findingCount": {"$ref": "#/$defs/nonNegative"},
+            "sourceUnresolvedCount": {"$ref": "#/$defs/nonNegative"},
+            "byClassification": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["confirmed", "conflicting", "map-only", "script-only", "unresolved"],
+              "properties": {
+                "confirmed": {"$ref": "#/$defs/nonNegative"},
+                "conflicting": {"$ref": "#/$defs/nonNegative"},
+                "map-only": {"$ref": "#/$defs/nonNegative"},
+                "script-only": {"$ref": "#/$defs/nonNegative"},
+                "unresolved": {"$ref": "#/$defs/nonNegative"}
+              }
+            },
+            "byKind": {"$ref": "#/$defs/countObject"},
+            "mapOnlyRegionMechanics": {"$ref": "#/$defs/nonNegative"}
+          }
+        },
+        "findings": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/evidenceFinding"}
+        },
+        "mapOnlyRegionMechanics": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/mapOnlyFinding"}
+        },
+        "sourceUnresolved": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/unresolved"}
+        },
+        "notes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}
