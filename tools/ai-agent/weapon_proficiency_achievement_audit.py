@@ -239,8 +239,14 @@ def audit_repository(root: Path) -> dict[str, Any]:
             "achievement().add(",
             "getAchievement().add(",
             "m_playerAchievement.add(",
+            "m_player.achiev().add(",
         )
     )
+    mastery_achievement_body = extract_function_body(cpp_text, "std::vector<uint16_t> WeaponProficiency::getMasteryAchievementIds")
+    mastery_achievement_ids = {
+        int(achievement_id)
+        for achievement_id in re.findall(r"\{\s*\d+\s*,\s*(56[4-6])\s*\}", mastery_achievement_body)
+    }
     mastered_count_api = bool(re.search(r"getMastered|countMastered|masteredWeapon", hpp_text, re.IGNORECASE))
     player_achievement_add_available = "bool add(uint16_t id" in player_achievement_text
 
@@ -305,7 +311,7 @@ def audit_repository(root: Path) -> dict[str, Any]:
     for achievement_id in (564, 565, 566):
         name = TARGETS[achievement_id]["name"]
         awards = [entry for entry in static_award_matches[name] if entry["path"] != registry_path.relative_to(root).as_posix()]
-        if not awards:
+        if not awards and achievement_id not in mastery_achievement_ids:
             findings.append(
                 Finding(
                     code="target-award-path-missing",
@@ -347,7 +353,9 @@ def audit_repository(root: Path) -> dict[str, Any]:
         "targetDefinitionCount": sum(1 for row in target_rows if row["registry"] is not None),
         "missingTargetIds": [row["id"] for row in target_rows if row["registry"] is None],
         "targetAwardPathCount": sum(
-            1 for achievement_id in (564, 565, 566) if static_award_matches[TARGETS[achievement_id]["name"]]
+            1
+            for achievement_id in (564, 565, 566)
+            if static_award_matches[TARGETS[achievement_id]["name"]] or achievement_id in mastery_achievement_ids
         ),
         "forbiddenBuildReferenceNameCount": len(FORBIDDEN_BUILD_NAMES),
         "forbiddenBuildNamesFoundInServerText": sum(1 for row in secret_candidates if row["serverNameFound"]),
@@ -372,6 +380,7 @@ def audit_repository(root: Path) -> dict[str, Any]:
             "achievementHookPresent": component_has_achievement_hook,
             "masteredCountApiPresent": mastered_count_api,
             "playerAchievementAddAvailable": player_achievement_add_available,
+            "masteryAchievementIds": sorted(mastery_achievement_ids),
         },
         "nameOccurrences": all_matches,
         "staticAwardOccurrences": static_award_matches,
