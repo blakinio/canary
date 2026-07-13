@@ -33,6 +33,7 @@ jobs:
           set -euo pipefail
           git apply --verbose -p1 --check .github/imbuement-vibrancy.patch
           git apply --verbose -p1 .github/imbuement-vibrancy.patch
+          sed -i 's/[[:space:]]\+$//' docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md
           git diff --check
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
