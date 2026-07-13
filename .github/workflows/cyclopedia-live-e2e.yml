@@ -164,6 +164,37 @@ jobs:
           Path('config.lua').write_text(config, encoding='utf-8')
           PY
 
+      - name: Install runtime-only Bestiary probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p data/modules/scripts/e2e
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('data/modules/modules.xml')
+          text = path.read_text(encoding='utf-8')
+          marker = '</modules>'
+          probe = '  <module type="recvbyte" byte="225" script="e2e/bestiary_probe.lua"/>\n'
+          if probe not in text:
+              if text.count(marker) != 1:
+                  raise SystemExit('unexpected modules.xml structure')
+              text = text.replace(marker, probe + marker)
+          path.write_text(text, encoding='utf-8')
+          PY
+          cat > data/modules/scripts/e2e/bestiary_probe.lua <<'LUA'
+          function onRecvbyte(player, msg, byte)
+              print(string.format('[E2E_BESTIARY_PROBE] recv=0x%02X unread=%d player=%s', byte, msg:getUnreadBytes(), player:getName()))
+              local response = NetworkMessage()
+              response:addByte(0xD5)
+              response:addU16(0)
+              response:sendToPlayer(player)
+              print('[E2E_BESTIARY_PROBE] sent minimal D5 response')
+          end
+          LUA
+          grep -n 'bestiary_probe' data/modules/modules.xml | tee artifacts/bestiary-probe-registration.txt
+          sha256sum data/modules/scripts/e2e/bestiary_probe.lua | tee artifacts/bestiary-probe.sha256
+
       - name: Install verified OTClient assets
         shell: bash
         run: |
@@ -262,10 +293,11 @@ jobs:
             wait "$(cat artifacts/tcpdump.pid)" 2>/dev/null || true
           fi
           sudo tcpdump -nn -tttt -r artifacts/game-port.pcap > artifacts/game-port-packets.txt 2>&1 || true
+          grep 'E2E_BESTIARY_PROBE' artifacts/canary.stdout.log > artifacts/bestiary-probe.log || true
 
           if [[ "${online}" != true || "${phase}" != true ]]; then
             cat artifacts/e2e-result.txt artifacts/otclient.stdout.log artifacts/otclient.stderr.log \
-              artifacts/game-port-packets.txt 2>/dev/null || true
+              artifacts/bestiary-probe.log artifacts/game-port-packets.txt 2>/dev/null || true
             exit 1
           fi
 
