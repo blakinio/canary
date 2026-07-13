@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from weapon_proficiency_achievement_audit import (
+    FORBIDDEN_BUILD_ITEM_IDS,
     FORBIDDEN_BUILD_NAMES,
     audit_repository,
     extract_function_body,
@@ -20,12 +21,16 @@ class WeaponProficiencyAchievementAuditTests(unittest.TestCase):
 [564] = { name = "The First of Many", grade = 1, points = 3, description = "One." },
 [565] = { name = "A Well-Honed Arsenal", grade = 2, points = 5, description = "Ten." },
 [566] = { name = "Arsenal of War", grade = 3, points = 7, description = "Fifty." },
+[567] = { name = "The Forbidden Build", grade = 1, points = 3, secret = true, description = "Secret." },
 }
 '''
         entries = parse_registry(text)
         self.assertEqual(entries[564]["name"], "The First of Many")
         self.assertEqual(entries[565]["points"], 5)
-        self.assertNotIn(567, entries)
+        self.assertEqual(entries[567]["name"], "The Forbidden Build")
+        self.assertEqual(entries[567]["grade"], 1)
+        self.assertEqual(entries[567]["points"], 3)
+        self.assertTrue(entries[567]["secret"])
 
     def test_extract_function_body_handles_nested_blocks(self) -> None:
         text = '''void Test::run() {
@@ -118,10 +123,14 @@ void WeaponProficiency::addExperience(uint32_t experience, uint16_t weaponId) {
     def test_real_repository_confirms_current_bounded_findings(self) -> None:
         root = Path(__file__).resolve().parents[2]
         report = audit_repository(root)
-        self.assertEqual(report["summary"]["missingTargetIds"], [567])
+        self.assertEqual(report["summary"]["missingTargetIds"], [])
         self.assertTrue(report["runtimeEvidence"]["achievementHookPresent"])
         self.assertEqual(report["runtimeEvidence"]["masteryAchievementIds"], [564, 565, 566])
-        self.assertEqual(report["summary"]["targetAwardPathCount"], 3)
+        self.assertEqual(report["summary"]["targetAwardPathCount"], 4)
+        self.assertEqual(report["runtimeEvidence"]["forbiddenBuildWeaponIds"], list(FORBIDDEN_BUILD_ITEM_IDS))
+        self.assertTrue(report["runtimeEvidence"]["forbiddenBuildExactItemSet"])
+        self.assertTrue(report["runtimeEvidence"]["forbiddenBuildConditionPresent"])
+        self.assertTrue(report["runtimeEvidence"]["forbiddenBuildAwardPresent"])
         self.assertTrue(report["runtimeEvidence"]["initialCreationSetsMastered"])
         self.assertTrue(report["runtimeEvidence"]["initialCreationCapsExperience"])
         self.assertTrue(report["runtimeEvidence"]["loadCallsNormalizeStoredState"])
