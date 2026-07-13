@@ -14,7 +14,7 @@ def replace_once(path: str, old: str, new: str) -> None:
 
 
 report = "docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md"
-replace_once(report, "> **Documentation branch:** `docs/equipment-upgrade-handoff-refresh`  \n> **Documentation PR:** `#242`  ", "> **Active implementation branch:** `fix/forge-server-authority`  \n> **Active implementation PR:** `#250`  ")
+replace_once(report, "> **Documentation branch:** `docs/equipment-upgrade-handoff-refresh`  \n> **Documentation PR:** `#242`  ", "> **Active implementation branch:** `fix/forge-server-authority`\n> **Active implementation PR:** `#250`")
 replace_once(report, "> **Evidence boundary:** structural/static/semantic and compiled-regression evidence exist; full runtime, gameplay and physical-client E2E parity do not.", "> **Evidence boundary:** F-003–F-005 have semantic and compiled-regression evidence on PR #250; full Forge runtime gameplay and physical-client E2E parity do not.")
 replace_once(report, "| Open Forge PRs | none found |\n| Active Forge tasks | none found in open PR/task searches or the read-only coordination snapshot |\n| Last merged Forge PR | #177, merge `f1d217c43e8e302978f533212e6aa9d1ce2b77c8` |", "| Open Forge PRs | #250 — bounded F-003–F-005 server-authority remediation |\n| Active Forge tasks | `CAN-20260713-forge-server-authority` under `CAN-PROGRAM-EQUIPMENT-UPGRADE-PARITY` |\n| Last merged Forge PR | #177, merge `f1d217c43e8e302978f533212e6aa9d1ce2b77c8`; #250 pending merge |")
 replace_once(report, "| Current validation state | F-001–F-024 rechecked against current source history; no later Forge implementation PR found |", "| Current validation state | F-003–F-005 remediated and regression-tested on PR #250; all remaining finding states are unchanged |")
