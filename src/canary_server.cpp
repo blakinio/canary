@@ -48,6 +48,7 @@
 
 #ifndef USE_PRECOMPILED_HEADERS
 	#include <algorithm>
+	#include <sstream>
 	#include <string_view>
 #endif
 
@@ -544,6 +545,35 @@ void CanaryServer::initializeMultichannelCluster() {
 	}
 
 	logger.info("[multichannel] Channel {} validated OK ({} channel(s) known to the registry).", g_channelContext().getChannelId(), g_channelRegistry().size());
+
+	// Map/datapack compatibility (docs/multichannel/ARCHITECTURE.md §3.5):
+	// house/tile identity is positionally derived from the OTBM file, so
+	// every channel in the cluster must be running byte-identical map data
+	// for (channel_id, house_id)/(channel_id, position) partitioning to mean
+	// the same thing across channels. Computed before loadMaps() runs (this
+	// only needs the raw file, not a parsed Map), so a mismatch is caught
+	// and refused before any game state loads. The first channel to ever
+	// record a hash seeds it for the whole cluster; every later boot (any
+	// channel, including restarts of this one) must match it exactly.
+	const std::string mapFilePath = g_configManager().getString(DATA_DIRECTORY) + "/world/" + g_configManager().getString(MAP_NAME) + ".otbm";
+	const std::string computedMapHash = ChannelRegistry::computeFileHash(mapFilePath);
+	if (computedMapHash.empty()) {
+		throw FailedToInitializeCanary(fmt::format("Multi-channel cluster mode is enabled but the map file '{}' could not be read to compute its cluster compatibility hash; refusing to start (fail-closed). See docs/multichannel/ARCHITECTURE.md §3.5.", mapFilePath));
+	}
+
+	Database &clusterDb = Database::getInstance();
+	const DBResult_ptr existingMapHashResult = clusterDb.storeQuery("SELECT `map_hash` FROM `channels` WHERE `map_hash` != '' LIMIT 1;");
+	if (existingMapHashResult) {
+		const std::string clusterMapHash = existingMapHashResult->getString("map_hash");
+		if (clusterMapHash != computedMapHash) {
+			throw FailedToInitializeCanary(fmt::format("Multi-channel cluster mode is enabled but this channel's map file hash ({}) does not match the cluster's already-established map hash ({}); refusing to start (fail-closed) - every channel must run the same map data. See docs/multichannel/ARCHITECTURE.md §3.5.", computedMapHash, clusterMapHash));
+		}
+	}
+
+	std::ostringstream seedMapHashQuery;
+	seedMapHashQuery << "UPDATE `channels` SET `map_hash` = " << clusterDb.escapeString(computedMapHash) << " WHERE `id` = " << g_channelContext().getChannelId();
+	clusterDb.executeQuery(seedMapHashQuery.str());
+	logger.info("[multichannel] Map compatibility hash recorded for channel {}: {}", g_channelContext().getChannelId(), computedMapHash);
 
 #ifdef CANARY_MULTICHANNEL_REDIS
 	HiredisRedisClient::Options redisOptions;

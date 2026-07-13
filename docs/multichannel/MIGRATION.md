@@ -390,6 +390,32 @@ to the already-tested `ClusterJobLeadershipRegistry` (Phase 7) with no new
 logic of its own to unit test, so it was reviewed by hand rather than
 re-verified against Redis.
 
+**Phase 14:** the map/datapack compatibility check from §3.5 is wired -
+`CanaryServer::initializeMultichannelCluster()` now computes
+`ChannelRegistry::computeFileHash` (already implemented and unit-tested
+since Phase 1, just never called anywhere - the doc previously called it
+`computeMapHash`, a name that was never actually used in code) over the raw
+OTBM file and compares it against every other channel's `channels.map_hash`
+row, not just its own, since house/tile identity is positionally derived
+from the map file and every channel must run byte-identical map data for
+`(channel_id, house_id)`/`(channel_id, position)` to mean the same thing
+across channels. The first channel to ever record a hash seeds it for the
+whole cluster; every later boot of any channel must match exactly or the
+process refuses to start. Runs before `loadMaps()`, using only the raw file
+path built from existing `DATA_DIRECTORY`/`MAP_NAME` config (the same path
+`Game::loadMainMap` already builds), so no engine/Map state is needed. No
+schema change (`channels.map_hash` already existed, just unused). Verified
+against a real MariaDB: the exact `SELECT`/`UPDATE` sequence for a
+first-boot seed, a second channel matching an already-seeded hash, and a
+mismatched hash being correctly detected (by direct comparison, since the
+throw itself can't be exercised without a compiled binary). A narrow,
+honestly-documented gap remains: this is a plain SQL check, not a
+Redis-CAS-protected one, so two channels booting for the very first time
+truly simultaneously with different map files could both seed without
+comparing - strictly better than the total absence of this check before
+this phase, and self-correcting on either channel's next restart. See
+ARCHITECTURE.md §3.5 for the full reasoning.
+
 **Still not enforced**, and still the reason not to enable
 `multiChannelEnabled = true` in production yet: nothing yet *blocks* an
 account from bidding on or trading for a second house before an already-
