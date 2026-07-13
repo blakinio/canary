@@ -87,7 +87,7 @@ public:
 	[[nodiscard]] WeaponProficiencyCriticalBonus getElementCritical(CombatType_t type) const;
 	void addElementCritical(CombatType_t type, const WeaponProficiencyCriticalBonus &bonus);
 
-	[[nodiscard]] uint32_t getSpellBonus(uint16_t spellId, WeaponProficiencySpellBoost_t boost) const;
+	[[nodiscard]] uint32_t getSpellBonus(uint16_t spellId, WeaponProficiencySpells::Bonus &bonus);
 	void addSpellBonus(uint16_t spellId, const WeaponProficiencySpells::Bonus &bonus);
 
 	void setPerfectShotBonus(uint8_t range, double_t damage);
@@ -127,8 +127,15 @@ private:
 #endif
 
 	[[nodiscard]] static WeaponProficiencyData createInitialState(uint32_t experience, uint32_t maxExperience);
+
+	// Returns every mastery-threshold achievement satisfied by the current count.
+	// Reconciliation deliberately awards all eligible IDs so existing players and
+	// large mastery jumps cannot skip lower thresholds.
 	[[nodiscard]] static std::vector<uint16_t> getMasteryAchievementIds(size_t masteredWeaponCount);
+
+	// Uses PlayerAchievement::add for idempotent live awards and login backfill.
 	void reconcileMasteryAchievements(bool message);
+
 	static constexpr uint8_t TRACKED_SKILL_COUNT = static_cast<uint8_t>(SKILL_MAGLEVEL) + 1;
 	void applyCriticalBonus(const ProficiencyPerk &perk);
 	void applySkillPercentageBonus(const ProficiencyPerk &perk);
