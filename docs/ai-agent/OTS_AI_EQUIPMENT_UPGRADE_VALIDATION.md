@@ -288,7 +288,7 @@ Do not combine configuration limits, server authority, Premium/Dust runtime, Fie
 - completed full readiness CI run `29250747788` before this evidence update;
 - no local checkout or uncommitted local code exists;
 - an initial oversized task-record write was rejected by the tool before GitHub mutation; the content was reduced and safely committed through the normal GitHub contents API;
-- no temporary write-enabled workflow was created.
+- temporary write-enabled workflows were used only on task-local branches to apply exact-anchor source/evidence patches; runner PRs #252 and #253 were closed unmerged and all temporary files were removed from the permanent #250 diff.
 
 Sources were read on 2026-07-13. The primary wiki snapshot remains a historical comparison source, not sole authority for numeric implementation changes.
 
