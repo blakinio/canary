@@ -54,6 +54,7 @@ local function installMinimalStartupMode()
     disableStartupModule('game_quickloot')
     disableStartupModule('game_imbuementtracker')
     disableStartupModule('game_shop')
+    disableStartupModule('client_locales')
 end
 
 local function valueCount(value)
