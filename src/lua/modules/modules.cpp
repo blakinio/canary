@@ -81,11 +81,27 @@ Module_ptr Modules::getEventByRecvbyte(uint8_t recvbyte, bool force) const {
 }
 
 bool Modules::executeOnRecvbyte(const std::shared_ptr<Player> &player, NetworkMessage &msg, uint8_t byte) const {
+	if (byte == 0xE1) {
+		g_logger().info(
+			"[CyclopediaE2E] recvbyte 0xE1 reached module dispatch: player={} length={} position={}",
+			player ? player->getName() : "<none>",
+			msg.getLength(),
+			msg.getBufferPosition()
+		);
+	}
+
 	if (!player) {
 		return false;
 	}
 
 	const auto modulePtr = getEventByRecvbyte(byte, false);
+	if (byte == 0xE1) {
+		g_logger().info(
+			"[CyclopediaE2E] recvbyte 0xE1 module lookup: found={} loaded={}",
+			modulePtr != nullptr,
+			modulePtr != nullptr && modulePtr->isLoaded()
+		);
+	}
 	if (modulePtr && modulePtr->getRecvbyte() == 0) {
 		g_logger().error("Invalid module id 0.");
 		return false;
@@ -95,11 +111,17 @@ bool Modules::executeOnRecvbyte(const std::shared_ptr<Player> &player, NetworkMe
 		return false;
 	}
 	if (!player->canRunModule(modulePtr->getRecvbyte())) {
+		if (byte == 0xE1) {
+			g_logger().info("[CyclopediaE2E] recvbyte 0xE1 module throttled for player={}", player->getName());
+		}
 		return false;
 	}
 
 	player->setModuleDelay(modulePtr->getRecvbyte(), modulePtr->getDelay());
 	modulePtr->executeOnRecvbyte(player, msg);
+	if (byte == 0xE1) {
+		g_logger().info("[CyclopediaE2E] recvbyte 0xE1 module callback completed for player={}", player->getName());
+	}
 	return true;
 }
 
