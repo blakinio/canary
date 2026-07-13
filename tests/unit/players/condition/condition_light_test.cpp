@@ -51,18 +51,18 @@ namespace {
 		uint32_t internalTicks = 0;
 
 		if (!readAttribute(input, CONDITIONATTR_TYPE, type)
-			|| !readAttribute(input, CONDITIONATTR_ID, id)
-			|| !readAttribute(input, CONDITIONATTR_TICKS, ticks)
-			|| !readAttribute(input, CONDITIONATTR_ISBUFF, isBuff)
-			|| !readAttribute(input, CONDITIONATTR_SUBID, subId)
-			|| !readAttribute(input, CONDITIONATTR_TICKSOUND, tickSound)
-			|| !readAttribute(input, CONDITIONATTR_ADDSOUND, addSound)
-			|| !readAttribute(input, CONDITIONATTR_PERSISTENT, persistent)
-			|| !readAttribute(input, CONDITIONATTR_LIGHTCOLOR, color)
-			|| !readAttribute(input, CONDITIONATTR_LIGHTLEVEL, state.level)
-			|| !readAttribute(input, CONDITIONATTR_LIGHTTICKS, internalTicks)
-			|| !readAttribute(input, CONDITIONATTR_LIGHTINTERVAL, state.interval)
-			|| input.size() != 0) {
+		    || !readAttribute(input, CONDITIONATTR_ID, id)
+		    || !readAttribute(input, CONDITIONATTR_TICKS, ticks)
+		    || !readAttribute(input, CONDITIONATTR_ISBUFF, isBuff)
+		    || !readAttribute(input, CONDITIONATTR_SUBID, subId)
+		    || !readAttribute(input, CONDITIONATTR_TICKSOUND, tickSound)
+		    || !readAttribute(input, CONDITIONATTR_ADDSOUND, addSound)
+		    || !readAttribute(input, CONDITIONATTR_PERSISTENT, persistent)
+		    || !readAttribute(input, CONDITIONATTR_LIGHTCOLOR, color)
+		    || !readAttribute(input, CONDITIONATTR_LIGHTLEVEL, state.level)
+		    || !readAttribute(input, CONDITIONATTR_LIGHTTICKS, internalTicks)
+		    || !readAttribute(input, CONDITIONATTR_LIGHTINTERVAL, state.interval)
+		    || input.size() != 0) {
 			return std::nullopt;
 		}
 
