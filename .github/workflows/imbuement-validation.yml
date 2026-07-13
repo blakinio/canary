@@ -4,120 +4,148 @@ name: Imbuement Validation
 on:
   push:
     branches:
-      - "fix/imbuement-live-parity"
+      - main
+      - "feat/**"
+      - "fix/**"
+      - "ai/**"
+    paths:
+      - "config.lua.dist"
+      - "data/XML/imbuements.xml"
+      - "data-otservbr-global/lib/core/storages.lua"
+      - "data-otservbr-global/scripts/quests/forgotten_knowledge/creaturescripts_bosses_kill.lua"
+      - "src/creatures/players/imbuements/**"
+      - "src/creatures/players/player.*"
+      - "src/game/game.cpp"
+      - "src/lua/functions/creatures/player/player_functions.cpp"
+      - "data-otservbr-global/scripts/actions/object/imbuement_shrine.lua"
+      - "data-otservbr-global/scripts/actions/object/imbuement_scrolls.lua"
+      - "data-otservbr-global/scripts/actions/object/etcher.lua"
+      - "tools/ai-agent/imbuement*_validation.py"
+      - "tools/ai-agent/test_imbuement*_validation.py"
+      - "docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md"
+      - "docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json"
+      - "docs/agents/tasks/**/CAN-*-imbuement*.md"
+      - ".github/workflows/imbuement-validation.yml"
   pull_request:
     paths:
+      - "config.lua.dist"
+      - "data/XML/imbuements.xml"
+      - "data-otservbr-global/lib/core/storages.lua"
+      - "data-otservbr-global/scripts/quests/forgotten_knowledge/creaturescripts_bosses_kill.lua"
+      - "src/creatures/players/imbuements/**"
+      - "src/creatures/players/player.*"
+      - "src/game/game.cpp"
+      - "src/lua/functions/creatures/player/player_functions.cpp"
+      - "data-otservbr-global/scripts/actions/object/imbuement_shrine.lua"
+      - "data-otservbr-global/scripts/actions/object/imbuement_scrolls.lua"
+      - "data-otservbr-global/scripts/actions/object/etcher.lua"
+      - "tools/ai-agent/imbuement*_validation.py"
+      - "tools/ai-agent/test_imbuement*_validation.py"
+      - "docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md"
+      - "docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json"
+      - "docs/agents/tasks/**/CAN-*-imbuement*.md"
       - ".github/workflows/imbuement-validation.yml"
-      - "tools/ai-agent/test_imbuement_validation.py"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  diagnose-finalization:
-    name: Diagnose Imbuement finalization
-    if: >-
-      (github.event_name == 'push' && github.ref_name == 'fix/imbuement-live-parity') ||
-      (github.event_name == 'pull_request' && github.head_ref == 'fix/imbuement-live-parity')
+  audit:
+    name: Audit imbuement definitions and runtime wiring
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          ref: fix/imbuement-live-parity
-          fetch-depth: 0
+          python-version: "3.12"
 
-      - name: Correct temporary helper anchor
-        shell: python
+      - name: Compile focused Python files
         run: |
-          from pathlib import Path
-          import re
+          python -m py_compile \
+            tools/ai-agent/imbuement_validation.py \
+            tools/ai-agent/imbuement_storage_validation.py \
+            tools/ai-agent/test_imbuement_validation.py \
+            tools/ai-agent/test_imbuement_storage_validation.py
 
-          path = Path("tools/ai-agent/apply_imbuement_live_parity_patch.py")
-          text = path.read_text(encoding="utf-8")
-          pattern = re.compile(
-              r'    old_actual = .*?    path\.write_text\(text\.replace\(old_actual, new_actual, 1\), encoding="utf-8"\)\n',
-              re.S,
-          )
-          replacement = '''    marker = '        "actual_forgotten_knowledge_groups": {'
-              if marker not in text:
-                  raise RuntimeError("storage validator baseline marker missing")
-              quest_block = ''' + '"""' + '''        "expected_quest_unlock_groups": {
-              str(storage_id): list(families)
-              for storage_id, families in EXPECTED_QUEST_UNLOCK_GROUPS.items()
-          },
-          ''' + '"""' + '''
-              text = text.replace(
-                  marker,
-                  quest_block + '        "actual_powerful_storage_groups": {',
-                  1,
-              )
-              path.write_text(text, encoding="utf-8")
-          '''
-          text, count = pattern.subn(replacement, text, count=1)
-          if count != 1:
-              raise SystemExit("temporary helper baseline section not found")
-          path.write_text(text, encoding="utf-8")
-
-      - name: Capture patch, validation and Git status
+      - name: Run focused tests
         shell: bash
         run: |
+          mkdir -p artifacts
           set +e
-          {
-            echo '=== apply patch ==='
-            python tools/ai-agent/apply_imbuement_live_parity_patch.py
-            echo "apply_status=$?"
-            echo '=== py_compile ==='
-            python -m py_compile \
-              tools/ai-agent/imbuement_validation.py \
-              tools/ai-agent/imbuement_storage_validation.py \
-              tools/ai-agent/test_imbuement_validation.py \
-              tools/ai-agent/test_imbuement_storage_validation.py
-            echo "compile_status=$?"
-            echo '=== unittest ==='
-            python -m unittest discover -s tools/ai-agent -p 'test_imbuement*.py' -v
-            echo "unittest_status=$?"
-            echo '=== registry audit ==='
-            python tools/ai-agent/imbuement_validation.py --repository-root . --output /tmp/IMBUEMENT_VALIDATION.json
-            echo "registry_status=$?"
-            echo '=== storage audit ==='
-            python tools/ai-agent/imbuement_storage_validation.py --repository-root . --output /tmp/IMBUEMENT_STORAGE_VALIDATION.json --strict
-            echo "storage_status=$?"
-            echo '=== runtime plan JSON ==='
-            python -m json.tool docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json >/dev/null
-            echo "json_status=$?"
-            echo '=== status before add ==='
-            git status --short --branch
-            echo '=== add ==='
-            git add \
-              data/XML/imbuements.xml \
-              tools/ai-agent/imbuement_storage_validation.py \
-              tools/ai-agent/test_imbuement_storage_validation.py \
-              tests/fixture/core/XML/imbuements.xml \
-              docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md \
-              docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json \
-              docs/agents/tasks/active/CAN-20260713-imbuement-live-parity.md
-            echo "add_status=$?"
-            echo '=== status after add ==='
-            git status --short --branch
-            echo '=== cached stat ==='
-            git diff --cached --stat
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            echo '=== commit ==='
-            git commit -m 'fix(imbuement): enforce quest completion unlocks'
-            echo "commit_status=$?"
-            echo '=== push dry run ==='
-            git push --dry-run origin HEAD:fix/imbuement-live-parity
-            echo "push_dry_run_status=$?"
-          } > /tmp/IMBUEMENT_FINALIZATION_DIAGNOSTIC.txt 2>&1
-          exit 0
+          python -m unittest discover \
+            -s tools/ai-agent \
+            -p "test_imbuement*_validation.py" \
+            -v 2>&1 | tee artifacts/IMBUEMENT_TESTS.log
+          status=${PIPESTATUS[0]}
+          echo "Focused test exit code: ${status}" >> "$GITHUB_STEP_SUMMARY"
+          exit "${status}"
 
-      - name: Upload finalization diagnostic
+      - name: Generate imbuement audits and runtime plan
+        run: |
+          python tools/ai-agent/imbuement_validation.py \
+            --repository-root . \
+            --output artifacts/IMBUEMENT_VALIDATION.json \
+            --runtime-plan artifacts/IMBUEMENT_RUNTIME_TEST_PLAN.json
+          python tools/ai-agent/imbuement_storage_validation.py \
+            --repository-root . \
+            --output artifacts/IMBUEMENT_STORAGE_VALIDATION.json \
+            --strict
+
+      - name: Validate JSON outputs
+        run: |
+          python -m json.tool artifacts/IMBUEMENT_VALIDATION.json > /dev/null
+          python -m json.tool artifacts/IMBUEMENT_STORAGE_VALIDATION.json > /dev/null
+          python -m json.tool artifacts/IMBUEMENT_RUNTIME_TEST_PLAN.json > /dev/null
+          python -m json.tool docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json > /dev/null
+
+      - name: Publish audit summary
+        shell: python
+        run: |
+          import json
+          import os
+          from pathlib import Path
+
+          audit = json.loads(Path("artifacts/IMBUEMENT_VALIDATION.json").read_text(encoding="utf-8"))
+          storage = json.loads(Path("artifacts/IMBUEMENT_STORAGE_VALIDATION.json").read_text(encoding="utf-8"))
+          summary = audit["summary"]
+          storage_baseline = storage["baseline"]
+          lines = [
+              "# Imbuement validation",
+              "",
+              f"- base tiers: {summary['base_tiers']}",
+              f"- categories: {summary['categories']}",
+              f"- families: {summary['families']}",
+              f"- entries: {summary['entries']}",
+              f"- undeclared unlock storage IDs: {len(storage_baseline['undeclared_storage_ids'])}",
+              f"- Powerful families with nonzero storage: {storage_baseline['powerful_with_nonzero_storage']}",
+              f"- Powerful families with storage=0: {len(storage_baseline['powerful_with_zero_storage'])}",
+          ]
+          for severity, count in summary["findings"].items():
+              lines.append(f"- {severity} registry findings: {count}")
+          lines.append(f"- storage wiring findings: {len(storage['findings'])}")
+          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+      - name: Upload audit artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: imbuement-finalization-diagnostic
-          path: /tmp/IMBUEMENT_FINALIZATION_DIAGNOSTIC.txt
+          name: imbuement-validation-audit
+          path: |
+            artifacts/IMBUEMENT_VALIDATION.json
+            artifacts/IMBUEMENT_STORAGE_VALIDATION.json
+            artifacts/IMBUEMENT_RUNTIME_TEST_PLAN.json
           if-no-files-found: error
-          retention-days: 2
+          retention-days: 14
+
+      - name: Upload focused test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: imbuement-validation-test-log
+          path: artifacts/IMBUEMENT_TESTS.log
+          if-no-files-found: warn
+          retention-days: 14
