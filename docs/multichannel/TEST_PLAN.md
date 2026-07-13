@@ -601,6 +601,49 @@ MariaDB. What was actually verified:
   boosted-X call sites in Phase 9, just inverted into a Lua-friendly
   boolean return instead of an early `return;`.
 
+### Phase 14: map/datapack compatibility check wired at boot (§3.5)
+
+`CanaryServer::initializeMultichannelCluster()` is not standalone-
+compilable (same `game/game.hpp` → `mysql.h` → `absl` wall as every other
+engine-glue file in this series), so the new block was reviewed by hand
+against a real MariaDB 10.11 instance (scratch database
+`canary_phase14_test`, imported from the real `schema.sql`, dropped after):
+
+- `ChannelRegistry::computeFileHash`/`hashBytes` themselves needed no new
+  verification - they are unchanged, standalone-compilable, and already
+  covered by 4 existing gtest cases in `channel_registry_test.cpp`
+  (`ChannelRegistryHashTest`: same-content/different-content hashing,
+  `computeFileHash` matching an in-memory hash of the same bytes, and a
+  missing file correctly returning an empty hash).
+- Seeded two `channels` rows (ids 1 and 2, reusing the shape from the
+  multichannel Docker Compose example - both share the same map config,
+  only `CANARY_CHANNEL_ID` differs) with `map_hash` empty, matching a real
+  first-ever cluster boot.
+- Ran the exact `SELECT map_hash FROM channels WHERE map_hash != '' LIMIT
+  1` query the new code issues: confirmed it returns no rows against the
+  freshly-seeded table (the "first channel to boot" case), then manually
+  applied the `UPDATE channels SET map_hash = ? WHERE id = 1` the code
+  would issue next.
+- Re-ran the same `SELECT` after that update: confirmed it now returns the
+  seeded hash - simulating channel 2 booting second, this is the value its
+  own `computedMapHash` would be compared against. Manually verified the
+  match case (equal strings, passes) and the mismatch case (compared a
+  different string by hand, since the `throw FailedToInitializeCanary`
+  itself can't be exercised without a compiled binary - the comparison
+  logic is a single `!=` on two `std::string` values, reviewed directly).
+- Confirmed the exact file path construction (`DATA_DIRECTORY + "/world/"
+  + MAP_NAME + ".otbm"`) is byte-identical to what `Game::loadMainMap`
+  already builds (`src/game/game.cpp:1009`), so the hash is computed over
+  the same file the engine will actually load moments later.
+- `clang-format-18 --dry-run --Werror src/canary_server.cpp` passed
+  cleanly. No Lua bindings touched this phase.
+- The one known, honestly-documented residual gap (a plain SQL check, not
+  Redis-CAS-protected, so two channels booting for the very first time
+  truly simultaneously with different maps could both seed without
+  comparing) was not something this sandbox could exercise anyway - it
+  requires genuinely concurrent process startup, not a single scratch-DB
+  session - and is reasoned through in ARCHITECTURE.md §3.5 instead.
+
 ## 15.1b Redis Lua CAS script validation — ✅ run against a real `redis-server`
 
 The acquire/renew/release Lua scripts in

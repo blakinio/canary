@@ -38,7 +38,7 @@ Status legend: ✅ shipped and tested · 📐 designed/schema-ready, not wired �
 | 3.2 | Login gateway via existing multi-world protocol structure | Extended `ProtocolLogin::getCharacterList` (modern + legacy layouts) | ✅ |
 | 3.3 | `channels` registry table, exact column set | Implemented as specified plus `login_gateway`, `map_hash` | ✅ |
 | 3.4 | Runtime heartbeat table | `channel_runtime_status` | ✅ schema / 📐 heartbeat loop |
-| 3.5 | Map/data hash compatibility check, refuse on mismatch | `ChannelRegistry::computeMapHash` + comparison against `channels.map_hash` | ✅ algorithm+tests / 📐 boot-sequence hook |
+| 3.5 | Map/data hash compatibility check, refuse on mismatch | `ChannelRegistry::computeFileHash` (the doc previously called it `computeMapHash`, a name never actually used in code) + comparison against every `channels.map_hash` row, wired into `CanaryServer::initializeMultichannelCluster()` before `loadMaps()` runs, verified against a real MariaDB (first-boot seed, cross-channel match, mismatch detection) | ✅ algorithm+tests+boot-sequence hook / 📐 narrow simultaneous-first-boot race, not Redis-CAS-protected (see ARCHITECTURE.md §3.5) |
 | 4.1 | `config.lua.dist` keys exactly as specified | Added verbatim | ✅ |
 | 4.3 | No unsafe disable-safety toggles | Confirmed none added | ✅ |
 | 4.4 | Fail-closed startup validator | `ClusterConfigValidator`, called from `CanaryServer::initializeMultichannelCluster()` | ✅ config-shape checks incl. single-login-gateway, wired into real startup and aborts via `FailedToInitializeCanary` / 📐 live Redis ping, live cross-process heartbeat checks |

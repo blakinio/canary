@@ -170,16 +170,46 @@ specified in [OPERATIONS.md](OPERATIONS.md).
 
 ### 3.5 Map/datapack compatibility
 
-📐 Designed: at startup, when `multiChannelEnabled = true`, the process
-computes a hash of the loaded OTBM file and house data
-(`ChannelRegistry::computeMapHash`, ✅ implemented and unit-tested) and
-compares it against `channels.map_hash` for its own row. First channel to
-boot in a cluster seeds the hash; subsequent channels that disagree refuse
-to start with a clear error. `pvp_type` is explicitly exempt from this
-check (channels are allowed to diverge there). Full datapack-file hashing
-beyond the map is listed as 🔭 roadmap — the OTBM hash is the
-integrity-critical piece since it is what determines house/tile geometry
-compatibility across channels.
+✅ Wired: at startup, when `multiChannelEnabled = true`,
+`CanaryServer::initializeMultichannelCluster()` computes a hash of the raw
+OTBM file at `<dataDirectory>/world/<mapName>.otbm`
+(`ChannelRegistry::computeFileHash`, an FNV-1a hash over the file bytes, ✅
+implemented and unit-tested since Phase 1 - the doc previously referred to
+this as `computeMapHash`, a name that was never actually used in code) and
+compares it against every other row's `channels.map_hash` in the cluster
+(`SELECT map_hash FROM channels WHERE map_hash != '' LIMIT 1`), not just
+its own row - correct because house/tile identity (`(channel_id, house_id)`
+/`(channel_id, position)`, §2.2/§2.5) is positionally derived from the map
+file, so every channel must run byte-identical map data for that identity
+scheme to mean the same thing across channels; the multichannel Docker
+Compose example (`docker/multichannel/`) confirms this design intent -
+all three channels share the same `mapName`/`dataDirectory` config, only
+`CANARY_CHANNEL_ID` differs. The first channel to ever record a non-empty
+hash seeds it for the whole cluster (no existing row has one yet); every
+later boot of any channel, including a restart of the seeding channel
+itself, must match that hash exactly or the process refuses to start
+(`FailedToInitializeCanary`, fail-closed). Runs *before* `loadMaps()`, so a
+mismatch is caught before any game state loads - it only needs the raw
+file bytes, not a parsed `Map`. `pvp_type` is explicitly exempt from this
+check (channels are allowed to diverge there) - not touched by this code
+at all. Full datapack-file hashing beyond the map is listed as 🔭
+roadmap - the OTBM hash is the integrity-critical piece since it is what
+determines house/tile geometry compatibility across channels.
+
+**📐 Known, narrow gap, stated honestly:** this check is a plain
+`SELECT`/`UPDATE` pair, not an atomic Redis CAS like the session/leader
+election primitives - if two channels boot for the very first time
+*simultaneously* (an empty `channels` table, genuinely concurrent cluster
+bootstrap) with *different* map files, both could see an empty result set
+and both seed their own row without ever comparing against each other,
+since neither observes the other's write in time. This is strictly better
+than the status quo (no check ever existed before this phase) and is a
+narrow, one-time bootstrap-only race rather than a routine-operation risk -
+every subsequent boot of either channel, including their very next
+restart, would then correctly detect and refuse the mismatch. Closing it
+fully would mean routing this specific check through the same Redis
+lease/fencing mechanism as leader election, which is more machinery than
+this narrow bootstrap-only race justifies for now.
 
 ## 4. Configuration
 
