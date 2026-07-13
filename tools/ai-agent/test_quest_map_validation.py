@@ -281,10 +281,10 @@ action:register()
 player:addItem(7772, 1)
 player:addItem(9999, 1)
 local p = Position(300, 600, 7)
-local areaCenter = Position(400, 700, 7)
 player:teleportTo(Position(401, 701, 7))
 """,
         )
+        self.write_lua("generic.lua", "local areaCenter = Position(400, 700, 7)\n")
         evidence = self.scan()
         report = validate_quest_evidence(
             evidence_report=evidence,
