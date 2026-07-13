@@ -9,17 +9,33 @@ on:
     paths:
       - ".github/workflows/cyclopedia-live-e2e.yml"
       - "tools/e2e/cyclopedia_otclient_e2e.lua"
+      - "src/lua/modules/modules.cpp"
+      - "src/server/network/protocol/transport_codec.cpp"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   actions: read
+  packages: write
 
 jobs:
+  build-canary:
+    name: Build exact Canary diagnostic head
+    permissions:
+      contents: write
+      packages: write
+    uses: ./.github/workflows/reusable-build-linux.yml
+    with:
+      buildtypes: '["linux-release"]'
+      run_canary_smoke: false
+      run_global_smoke: false
+    secrets: inherit
+
   live-e2e:
     name: OTClient ↔ Canary ↔ MySQL
+    needs: [build-canary]
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     permissions:
       contents: read
       actions: read
@@ -51,16 +67,11 @@ jobs:
           path: tibia-client-assets
           lfs: true
 
-      - name: Download verified Canary diagnostic binary
-        uses: dawidd6/action-download-artifact@v11
+      - name: Download exact-head Canary binary
+        uses: actions/download-artifact@v4
         with:
-          repo: blakinio/canary
-          workflow: cyclopedia-live-e2e.yml
-          branch: test/cyclopedia-live-e2e
-          workflow_conclusion: failure
           name: canary-linux-release
           path: canary-bin
-          search_artifacts: true
 
       - name: Download maintained OTClient binary
         uses: dawidd6/action-download-artifact@v11
@@ -99,7 +110,7 @@ jobs:
           echo "OTCLIENT_BIN=${GITHUB_WORKSPACE}/${OTCLIENT_BIN}" >> "${GITHUB_ENV}"
           echo "CLIENT_VERSION=${CLIENT_VERSION}" >> "${GITHUB_ENV}"
           printf 'Canary=%s\nCanaryArtifactHead=%s\nOTClient=%s\nVersion=%s\nAssetVersion=%s\nTestHead=%s\n' \
-            "${CANARY_BIN}" "4aee80e84554628e6e6378ffd8708e689c06a60e" "${OTCLIENT_BIN}" \
+            "${CANARY_BIN}" "${GITHUB_SHA}" "${OTCLIENT_BIN}" \
             "${CLIENT_VERSION}" "${ASSET_VERSION}" "${GITHUB_SHA}" \
             | tee artifacts/resolved-runtime.txt
           ldd "${CANARY_BIN}" | tee artifacts/canary-ldd.txt || true
@@ -183,6 +194,7 @@ jobs:
           path.write_text(text, encoding='utf-8')
           PY
           cat > data/modules/scripts/e2e/bestiary_probe.lua <<'LUA'
+          print('[E2E_BESTIARY_PROBE] module loaded')
           function onRecvbyte(player, msg, byte)
               print(string.format('[E2E_BESTIARY_PROBE] recv=0x%02X unread=%d player=%s', byte, msg:getUnreadBytes(), player:getName()))
               local response = NetworkMessage()
@@ -223,7 +235,7 @@ jobs:
           path.write_text(text, encoding='utf-8')
           PY
 
-      - name: Start Canary diagnostic server
+      - name: Start exact-head Canary diagnostic server
         shell: bash
         run: |
           set -euo pipefail
@@ -245,6 +257,7 @@ jobs:
               with socket.create_connection(('127.0.0.1', port), timeout=10):
                   print(f'port {port} reachable')
           PY
+          grep 'E2E_BESTIARY_PROBE' artifacts/canary.stdout.log | tee artifacts/bestiary-probe-load.log
           MYSQL_PWD=root mysql -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e \
             -e 'SELECT * FROM boosted_boss;' | tee artifacts/boosted-boss-after-start.tsv
           test "$(MYSQL_PWD=root mysql -N -s -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e -e 'SELECT COUNT(*) FROM boosted_boss;')" -ge 1
@@ -293,11 +306,12 @@ jobs:
             wait "$(cat artifacts/tcpdump.pid)" 2>/dev/null || true
           fi
           sudo tcpdump -nn -tttt -r artifacts/game-port.pcap > artifacts/game-port-packets.txt 2>&1 || true
-          grep 'E2E_BESTIARY_PROBE' artifacts/canary.stdout.log > artifacts/bestiary-probe.log || true
+          grep -E 'E2E_BESTIARY_PROBE|CyclopediaE2E|TransportCodec::prepareInbound|TransportCodec::decryptXtea' \
+            artifacts/canary.stdout.log artifacts/canary.stderr.log > artifacts/server-diagnostic-markers.log || true
 
           if [[ "${online}" != true || "${phase}" != true ]]; then
             cat artifacts/e2e-result.txt artifacts/otclient.stdout.log artifacts/otclient.stderr.log \
-              artifacts/bestiary-probe.log artifacts/game-port-packets.txt 2>/dev/null || true
+              artifacts/server-diagnostic-markers.log artifacts/game-port-packets.txt 2>/dev/null || true
             exit 1
           fi
 
