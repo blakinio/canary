@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: fix/forge-server-authority
 base_branch: main
 created: 2026-07-13T13:15:00+02:00
-updated: 2026-07-13T15:18:00+02:00
-last_verified_commit: "940d650dd84c2835fbe621eb1a1f3789ff75eeb4"
+updated: 2026-07-13T15:51:00+02:00
+last_verified_commit: "c4a58a5c9c87614e31709111433a247b1fc841b6"
 risk: medium
 related_issue: ""
 related_pr: "#250"
@@ -132,7 +132,8 @@ The execution environment could not resolve `github.com`, so local clone/build/t
 | Windows | jobs `86818664418`, `86818664461` | success | CMake/runtime and MSBuild paths |
 | Docker | job `86818664405` | success | image build/export/validation |
 | Fast Checks | run `29250747788` | success | formatting/static/doc checks; produced formatter commit `f50c9c73eeb5265461409d419c5daf853fc17ab4` |
-| final permanent head | pending | required | must repeat applicable gates after final task/program/report commits |
+| final head `c4a58a5c...` | CI `29253241129` | partial success / infrastructure-stalled | Lua, Fast Checks, Windows, Docker, Linux debug smoke/schema/full tests and Imbuement Validation passed; Linux release stalled in `Install mono for NuGet` without code failure |
+| fresh retrigger head | pending | required | bookkeeping-only commit retriggers the full final gate for unchanged production code |
 
 This is semantic, compiled-regression and generic runtime-smoke evidence. It is not focused Forge gameplay or physical-client E2E proof.
 
@@ -155,11 +156,10 @@ This is semantic, compiled-regression and generic runtime-smoke evidence. It is 
 
 # Remaining work
 
-1. Update PR #250 body with exact evidence and permanent path list.
-2. Mark #250 Ready and inspect every final-head workflow/job.
-3. Squash-merge if current-main, overlap, review and CI gates remain clean.
-4. Archive this task in a separate lifecycle PR.
-5. Start F-020/F-021 atomicity/rollback from merged `main`.
+1. Verify the fresh final-head workflow after the infrastructure-stalled release job.
+2. Squash-merge if current-main, overlap, review and CI gates remain clean.
+3. Archive this task in a separate lifecycle PR.
+4. Start F-020/F-021 atomicity/rollback from merged `main`.
 
 # Handoff
 
