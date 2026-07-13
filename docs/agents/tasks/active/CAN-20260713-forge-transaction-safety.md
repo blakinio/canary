@@ -2,18 +2,18 @@
 task_id: CAN-20260713-forge-transaction-safety
 program_id: CAN-PROGRAM-EQUIPMENT-UPGRADE-PARITY
 coordination_id: ""
-status: in_progress
+status: ready_for_merge_pending_final_head_ci
 agent: "GPT-5.6 Thinking"
 branch: fix/forge-transaction-safety
-base_branch: fix/forge-server-authority
+base_branch: main
 created: 2026-07-13T16:02:00+02:00
-updated: 2026-07-13T16:02:00+02:00
-last_verified_commit: "d5ca8d3ecfa1d83f69184e1f7ba58dd7906693e5"
+updated: 2026-07-13T17:42:00+02:00
+last_verified_commit: "0a7acd0a70ff7601c63638bbf705d961ada881b1"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "#257"
 depends_on:
-  - PR #250 Forge server authority
+  - PR #250 Forge server authority, merged as 94f8a3b63271b3708e33496e937620a6cd4b9717
 blocks:
   - F-022 through F-024 history remediation
 owned_paths:
@@ -21,6 +21,7 @@ owned_paths:
     - src/creatures/players/player.cpp
     - src/game/functions/forge_transaction.hpp
     - tests/unit/players/forge_transaction_test.cpp
+    - tests/unit/players/CMakeLists.txt
     - tests/integration/game/forge_it.cpp
     - docs/agents/tasks/active/CAN-20260713-forge-transaction-safety.md
   shared:
@@ -53,38 +54,50 @@ Resolve F-020 and F-021 by making valid Fusion, Transfer and Sliver-to-Core conv
 
 # Acceptance criteria
 
-- [ ] All output items and prices are created/resolved before mutation.
-- [ ] Every staged item addition/removal is preflighted with Game test mode.
-- [ ] A commit failure restores original input items, resource counts, Dust and money/bank state.
-- [ ] History/result packets are emitted only after commit success.
-- [ ] Sliver-to-Core never consumes Slivers unless the Core was successfully committed.
-- [ ] Existing #250 invalid-request authority tests remain green.
-- [ ] Focused rollback/no-mutation tests cover Fusion, Transfer and conversion boundaries.
-- [ ] Full current-head CI passes before merge.
+- [x] All output items and prices are created/resolved before mutation.
+- [x] Every staged item addition/removal is preflighted with Game test mode where the Game API supports it.
+- [x] A commit failure restores original input items, stackable resource counts and money/bank state.
+- [x] Dust, history and result packets are mutated/emitted only after commit success.
+- [x] Sliver-to-Core never consumes Slivers unless the Core can be placed and the commit succeeds.
+- [x] Existing #250 invalid-request authority tests remain green.
+- [x] Focused transaction-helper tests cover success, false return after partial mutation, exception rollback, reverse order and one-shot commit.
+- [x] Integration tests cover successful Sliver-to-Core conversion and full-backpack no-mutation rejection.
+- [x] Full implementation-head CI `29261872735` passed after synchronization with `main`.
+- [ ] Fresh final-head CI passes after this evidence-only task update.
+
+# Confirmed result
+
+- Fusion precomputes costs, result tiers and every output item before inventory/resource mutation.
+- Fusion preflights chest insertion and both input removals, snapshots parents/indexes, stackable resources and money, then commits through `ForgeTransaction`.
+- Transfer follows the same prepare/preflight/snapshot/commit model while preserving PR #89 and #250 policy.
+- Sliver-to-Core creates and preflights the Core before removing Slivers; a failed commit restores both resource counts.
+- `ForgeTransaction` rolls back the failed step and prior completed steps in reverse order for both `false` returns and exceptions.
+- History registration, metrics and result packets occur only after a successful transaction.
+
+# Validation
+
+- Permanent diff: this task, `player.cpp`, internal transaction header, registered unit test, players unit CMake and Forge integration test.
+- Implementation-head CI: `29261872735` — success.
+- Linux debug compiled, passed Canary smoke, imported the database schema and passed full `Run Tests`.
+- Linux release, macOS, Windows CMake/MSBuild and Docker build/runtime paths passed.
+- Lua Tests, Fast Checks, Agent Task Ownership, Imbuement Validation and autofix passed.
+- Temporary materialization PR #258, compile-fix PR #266 and main-sync PR #269 were closed without merge; all runner files were removed.
+- Local clone/build remained unavailable because the execution container could not resolve `github.com`; no local pass is claimed.
+- This is deterministic transaction-unit/integration and repository runtime-smoke evidence, not a physical-client gameplay test.
 
 # Design boundary
 
 This task does not change retail costs, probabilities, bonus meanings, history descriptions, Premium eligibility, protocol fields or OTClient presentation. It only changes transaction ordering and rollback behavior.
 
-# Initial evidence
+# Compatibility and rollback
 
-- Fusion currently creates/adds the Exaltation Chest, removes both inputs and then performs additional fallible output/resource operations.
-- Transfer currently removes both inputs and creates/adds the receiver before deducting all resources.
-- Sliver-to-Core currently removes Slivers before creating/adding the Core.
-- `Game` exposes test-mode add/remove APIs, and item parent/index can be captured through `Thing::getParent()` plus `Cylinder::getThingIndex()`.
-
-# Work plan
-
-1. Add a small internal transaction helper with staged item operations and resource snapshots.
-2. Refactor Sliver-to-Core first as the minimal proof.
-3. Refactor Transfer while preserving #89/#250 policy.
-4. Refactor Fusion while preserving all current result/bonus semantics.
-5. Add deterministic commit-failure injection at the helper boundary for tests only.
-6. Run focused and full CI, update the validation report, then retarget the stacked PR to `main` after #250 merges.
+- Preserves #250 authority checks, #89 Transfer rules and existing Fusion outcome semantics.
+- No protocol, persistence schema, Lua API, configuration, client or asset change.
+- Rollback is a squash-revert of PR #257.
 
 # Completion
 
-- Final status: in_progress
-- PR:
+- Final status: ready_for_merge_pending_final_head_ci
+- PR: #257
 - Merge commit:
-- Archived at:
+- Archived at: pending lifecycle cleanup
