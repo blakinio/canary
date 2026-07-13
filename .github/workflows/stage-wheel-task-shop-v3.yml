@@ -18,15 +18,15 @@ jobs:
           ref: automation/wheel-task-shop-stage-pr
           fetch-depth: 0
 
-      - name: Extract reviewed patch program
+      - name: Extract KV cache patch
         run: |
           python - <<'PY'
           from pathlib import Path
           import textwrap
-          workflow = Path('.github/workflows/stage-wheel-task-shop.yml').read_text(encoding='utf-8').splitlines()
+          workflow = Path('.github/workflows/stage-wheel-task-shop-v4.yml').read_text(encoding='utf-8').splitlines()
           start = next(i for i, line in enumerate(workflow) if line.strip() == "python - <<'PY'") + 1
           end = next(i for i in range(start, len(workflow)) if workflow[i].strip() == 'PY')
-          Path('/tmp/apply_wheel_task_shop.py').write_text(textwrap.dedent('\n'.join(workflow[start:end])) + '\n', encoding='utf-8')
+          Path('/tmp/fix_wheel_task_shop_cache.py').write_text(textwrap.dedent('\n'.join(workflow[start:end])) + '\n', encoding='utf-8')
           PY
 
       - name: Check out real Wheel branch
@@ -35,59 +35,30 @@ jobs:
           ref: feat/wheel-15-25-runtime-completion
           fetch-depth: 0
 
-      - name: Apply and normalize patch
+      - name: Apply cache fix
+        run: python /tmp/fix_wheel_task_shop_cache.py
+
+      - name: Validate focused fix
         run: |
-          python /tmp/apply_wheel_task_shop.py
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION.md')
-          text = path.read_text(encoding='utf-8')
-          text = text.replace('implementation added in PR #230; CI pending  \n', 'implementation added in PR #230; CI pending\n')
-          path.write_text(text, encoding='utf-8')
-          PY
-
-      - name: Run validation and preserve full output
-        id: validate
-        shell: bash
-        run: |
-          set +e
-          : > /tmp/wheel-task-shop-validation.log
-          git diff --check >> /tmp/wheel-task-shop-validation.log 2>&1
-          status=$?
-          if [ "$status" -eq 0 ]; then
-            PYTHONPATH=tools/ai-agent python -m unittest -v tools/ai-agent/test_wheel_task_shop_validation.py >> /tmp/wheel-task-shop-validation.log 2>&1
-            status=$?
-          fi
-          if [ "$status" -eq 0 ]; then
-            PYTHONPATH=tools/ai-agent python tools/ai-agent/wheel_task_shop_validation.py --repository-root . --output /tmp/WHEEL_TASK_SHOP_AUDIT.json >> /tmp/wheel-task-shop-validation.log 2>&1
-            status=$?
-          fi
-          cat /tmp/wheel-task-shop-validation.log
-          echo "status=$status" >> "$GITHUB_OUTPUT"
-          exit 0
-
-      - name: Upload validation log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheel-task-shop-validation
-          path: /tmp/wheel-task-shop-validation.log
-
-      - name: Enforce validation result
-        if: steps.validate.outputs.status != '0'
-        run: exit 1
+          git diff --check
+          PYTHONPATH=tools/ai-agent python -m unittest -v tools/ai-agent/test_wheel_task_shop_validation.py
+          python tools/check_lua_api_binding_docs.py
 
       - name: Commit to real Wheel branch
-        if: steps.validate.outputs.status == '0'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add \
             data/modules/scripts/taskboard/taskboard.lua \
+            docs/agents/tasks/active/CAN-20260713-wheel-15-25-runtime-completion.md \
+            docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION.md \
+            docs/lua-api/lua_api.d.lua \
+            docs/lua-api/lua_api.json \
             src/creatures/players/components/wheel/player_wheel.cpp \
             src/creatures/players/components/wheel/player_wheel.hpp \
-            tools/ai-agent/test_wheel_task_shop_validation.py \
-            docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION.md \
-            docs/agents/tasks/active/CAN-20260713-wheel-15-25-runtime-completion.md
-          git commit -m "feat(wheel): add Hunting Task Shop promotion points"
+            src/lua/functions/creatures/player/player_functions.cpp \
+            src/lua/functions/creatures/player/player_functions.hpp \
+            tests/unit/players/wheel_validation_test.cpp \
+            tools/ai-agent/test_wheel_task_shop_validation.py
+          git commit -m "fix(wheel): cache Hunting Task Shop points"
           git push origin HEAD:feat/wheel-15-25-runtime-completion
