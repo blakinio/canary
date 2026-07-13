@@ -85,27 +85,6 @@ public:
 	void addGeneralCritical(const WeaponProficiencyCriticalBonus &bonus);
 
 	[[nodiscard]] WeaponProficiencyCriticalBonus getElementCritical(CombatType_t type) const;
-	void addElementCritical(CombatType_t type, uint16_t value);
-	void resetSpecializedMagic();
-
-	[[nodiscard]] uint32_t getSkillBonus(skills_t type) const;
-	void addSkillBonus(skills_t type, uint32_t value);
-	void resetSkillBonuses();
-
-	[[nodiscard]] double_t getPowerfulFoeDamage() const;
-	void addPowerfulFoeDamage(double_t percent);
-	void resetPowerfulFoeDamage();
-
-	[[nodiscard]] const WeaponProficiencyCriticalBonus &getAutoAttackCritical() const;
-	void addAutoAttackCritical(const WeaponProficiencyCriticalBonus &bonus);
-
-	[[nodiscard]] const WeaponProficiencyCriticalBonus &getRunesCritical() const;
-	void addRunesCritical(const WeaponProficiencyCriticalBonus &bonus);
-
-	[[nodiscard]] const WeaponProficiencyCriticalBonus &getGeneralCritical() const;
-	void addGeneralCritical(const WeaponProficiencyCriticalBonus &bonus);
-
-	[[nodiscard]] WeaponProficiencyCriticalBonus getElementCritical(CombatType_t type) const;
 	void addElementCritical(CombatType_t type, const WeaponProficiencyCriticalBonus &bonus);
 
 	[[nodiscard]] uint32_t getSpellBonus(uint16_t spellId, WeaponProficiencySpellBoost_t boost) const;
