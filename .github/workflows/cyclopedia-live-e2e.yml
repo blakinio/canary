@@ -1,16 +1,8 @@
 ---
 name: Cyclopedia Live E2E
 
+# Paused experiment: preserve the workflow for manual historical use only.
 on:
-  push:
-    branches: [test/cyclopedia-live-e2e]
-  pull_request:
-    branches: [main]
-    paths:
-      - ".github/workflows/cyclopedia-live-e2e.yml"
-      - "tools/e2e/cyclopedia_otclient_e2e.lua"
-      - "src/lua/modules/modules.cpp"
-      - "src/server/network/protocol/transport_codec.cpp"
   workflow_dispatch:
 
 permissions:
