@@ -10,24 +10,24 @@
 #include "creatures/players/imbuements/imbuement_storage_policy.hpp"
 
 namespace ImbuementAccessPolicy {
-    template <typename StorageReader>
-    [[nodiscard]] bool canApplyDirectly(
-        bool storageFilteringEnabled,
-        bool playerPremium,
-        bool imbuementPremium,
-        uint32_t storageId,
-        uint16_t baseId,
-        StorageReader &&readStorage
-    ) {
-        if (imbuementPremium && !playerPremium) {
-            return false;
-        }
+	template <typename StorageReader>
+	[[nodiscard]] bool canApplyDirectly(
+		bool storageFilteringEnabled,
+		bool playerPremium,
+		bool imbuementPremium,
+		uint32_t storageId,
+		uint16_t baseId,
+		StorageReader &&readStorage
+	) {
+		if (imbuementPremium && !playerPremium) {
+			return false;
+		}
 
-        return !ImbuementStoragePolicy::shouldHide(
-            storageFilteringEnabled,
-            storageId,
-            baseId,
-            readStorage
-        );
-    }
+		return !ImbuementStoragePolicy::shouldHide(
+			storageFilteringEnabled,
+			storageId,
+			baseId,
+			readStorage
+		);
+	}
 } // namespace ImbuementAccessPolicy
