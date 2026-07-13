@@ -15,6 +15,7 @@
 
 	#ifndef USE_PRECOMPILED_HEADERS
 		#include <algorithm>
+		#include <cctype>
 		#include <cstdlib>
 		#include <cstring>
 		#include <unordered_map>
@@ -127,6 +128,7 @@ bool HiredisRedisClient::ensureConnected() {
 	context = redisConnectWithTimeout(options.host.c_str(), options.port, timeout);
 	if (!context || context->err) {
 		healthy = false;
+		classifyConnectError(context);
 		if (context) {
 			redisFree(context);
 			context = nullptr;
@@ -143,6 +145,10 @@ bool HiredisRedisClient::ensureConnected() {
 			reply = static_cast<redisReply*>(redisCommand(context, "AUTH %s", options.password.c_str()));
 		}
 		const bool authOk = reply && reply->type != REDIS_REPLY_ERROR;
+		if (!authOk) {
+			lastConnectOutcome = RedisPingOutcome::AuthenticationFailed;
+			lastConnectErrorDetail = (reply && reply->str) ? std::string(reply->str, static_cast<std::size_t>(reply->len)) : "AUTH failed";
+		}
 		if (reply) {
 			freeReplyObject(reply);
 		}
@@ -157,6 +163,10 @@ bool HiredisRedisClient::ensureConnected() {
 	if (options.database != 0) {
 		redisReply* reply = static_cast<redisReply*>(redisCommand(context, "SELECT %d", options.database));
 		const bool selectOk = reply && reply->type != REDIS_REPLY_ERROR;
+		if (!selectOk) {
+			lastConnectOutcome = RedisPingOutcome::Other;
+			lastConnectErrorDetail = (reply && reply->str) ? std::string(reply->str, static_cast<std::size_t>(reply->len)) : "SELECT failed";
+		}
 		if (reply) {
 			freeReplyObject(reply);
 		}
@@ -173,7 +183,77 @@ bool HiredisRedisClient::ensureConnected() {
 	releaseSha.clear();
 	channelHeartbeatSha.clear();
 	healthy = true;
+	lastConnectOutcome = RedisPingOutcome::Success;
+	lastConnectErrorDetail.clear();
 	return true;
+}
+
+void HiredisRedisClient::classifyConnectError(redisContext* ctx) {
+	if (!ctx) {
+		lastConnectOutcome = RedisPingOutcome::Other;
+		lastConnectErrorDetail = "failed to allocate a Redis connection context";
+		return;
+	}
+
+	const std::string errstr = ctx->errstr;
+	lastConnectErrorDetail = errstr.empty() ? "unknown connection error" : errstr;
+
+	if (ctx->err == REDIS_ERR_TIMEOUT) {
+		lastConnectOutcome = RedisPingOutcome::Timeout;
+		return;
+	}
+
+	// hiredis does not expose a dedicated DNS-vs-refused error code across
+	// versions/platforms; classify from the connect-time message it sets
+	// (REDIS_ERR_OTHER for a resolve failure, REDIS_ERR_IO for a
+	// connect()-level errno like ECONNREFUSED). The raw errstr captured
+	// above is always available as the ground truth regardless of whether
+	// this best-effort classification guesses right.
+	std::string lowered = errstr;
+	std::transform(lowered.begin(), lowered.end(), lowered.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+	if (lowered.find("resolve") != std::string::npos || lowered.find("name or service") != std::string::npos || lowered.find("nodename") != std::string::npos) {
+		lastConnectOutcome = RedisPingOutcome::DnsFailure;
+	} else if (lowered.find("timeout") != std::string::npos || lowered.find("timed out") != std::string::npos) {
+		lastConnectOutcome = RedisPingOutcome::Timeout;
+	} else if (lowered.find("refused") != std::string::npos || ctx->err == REDIS_ERR_IO) {
+		lastConnectOutcome = RedisPingOutcome::ConnectionRefused;
+	} else {
+		lastConnectOutcome = RedisPingOutcome::Other;
+	}
+}
+
+RedisPingResult HiredisRedisClient::ping() {
+	std::lock_guard<std::mutex> lock(mutex);
+	if (!ensureConnected()) {
+		RedisPingResult result;
+		result.outcome = lastConnectOutcome;
+		result.detail = lastConnectErrorDetail;
+		return result;
+	}
+
+	redisReply* reply = static_cast<redisReply*>(redisCommand(context, "PING"));
+	RedisPingResult result;
+	if (!reply) {
+		healthy = false;
+		result.outcome = RedisPingOutcome::Other;
+		result.detail = (context && context->errstr[0] != '\0') ? context->errstr : "PING returned no reply";
+		return result;
+	}
+
+	if (reply->type == REDIS_REPLY_STATUS && reply->str && std::strcmp(reply->str, "PONG") == 0) {
+		result.outcome = RedisPingOutcome::Success;
+		healthy = true;
+	} else if (reply->type == REDIS_REPLY_ERROR) {
+		result.outcome = RedisPingOutcome::UnexpectedResponse;
+		result.detail = reply->str ? std::string(reply->str, static_cast<std::size_t>(reply->len)) : "PING returned an error reply";
+		healthy = false;
+	} else {
+		result.outcome = RedisPingOutcome::UnexpectedResponse;
+		result.detail = "PING returned an unexpected reply type";
+		healthy = false;
+	}
+	freeReplyObject(reply);
+	return result;
 }
 
 namespace {

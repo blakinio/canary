@@ -31,9 +31,43 @@ std::string describeClusterConfigValidationError(ClusterConfigValidationError er
 			return "more than one enabled channel has login_gateway=true; exactly one login gateway is allowed cluster-wide";
 		case ClusterConfigValidationError::RedisTlsNotSupported:
 			return "redisUseTls=true is not supported by this build's Redis client yet; refusing to silently connect without TLS";
+		case ClusterConfigValidationError::RedisPingDnsFailure:
+			return "live Redis PING failed: could not resolve the configured Redis host; check redisHost";
+		case ClusterConfigValidationError::RedisPingConnectionRefused:
+			return "live Redis PING failed: connection refused; check that Redis is running and redisHost/redisPort are correct";
+		case ClusterConfigValidationError::RedisPingTimeout:
+			return "live Redis PING failed: connection timed out; check network reachability and firewall rules to the configured Redis host";
+		case ClusterConfigValidationError::RedisPingAuthenticationFailed:
+			return "live Redis PING failed: authentication rejected; check redisUsername/redisPassword";
+		case ClusterConfigValidationError::RedisPingUnexpectedResponse:
+			return "live Redis PING failed: the server responded, but not with the expected PONG; check that redisHost/redisPort actually point at a Redis server";
+		case ClusterConfigValidationError::RedisPingOtherFailure:
+			return "live Redis PING failed for an unclassified reason; see the server log for the raw connection error";
 	}
 	return "unknown validation error";
 }
+
+namespace {
+	std::optional<ClusterConfigValidationError> redisPingFailureError(RedisPingOutcome outcome) {
+		switch (outcome) {
+			case RedisPingOutcome::Success:
+				return std::nullopt;
+			case RedisPingOutcome::DnsFailure:
+				return ClusterConfigValidationError::RedisPingDnsFailure;
+			case RedisPingOutcome::ConnectionRefused:
+				return ClusterConfigValidationError::RedisPingConnectionRefused;
+			case RedisPingOutcome::Timeout:
+				return ClusterConfigValidationError::RedisPingTimeout;
+			case RedisPingOutcome::AuthenticationFailed:
+				return ClusterConfigValidationError::RedisPingAuthenticationFailed;
+			case RedisPingOutcome::UnexpectedResponse:
+				return ClusterConfigValidationError::RedisPingUnexpectedResponse;
+			case RedisPingOutcome::Other:
+				return ClusterConfigValidationError::RedisPingOtherFailure;
+		}
+		return ClusterConfigValidationError::RedisPingOtherFailure;
+	}
+} // namespace
 
 ClusterConfigValidationResult ClusterConfigValidator::validate(const ClusterConfigValidationInput &input) {
 	ClusterConfigValidationResult result;
@@ -64,6 +98,17 @@ ClusterConfigValidationResult ClusterConfigValidator::validate(const ClusterConf
 	if (!input.redisClientCompiledIn) {
 		result.valid = false;
 		result.errors.push_back(ClusterConfigValidationError::RedisClientNotCompiledIn);
+	} else {
+		// Only meaningful once a client actually exists to ping - when it
+		// doesn't (redisClientCompiledIn == false), RedisClientNotCompiledIn
+		// above already fails closed for the right reason; reporting a ping
+		// failure too would be a confusing, redundant second error. A
+		// nullopt outcome (ping never attempted) is treated the same as a
+		// failure - see ClusterConfigValidationInput::redisPingOutcome.
+		if (const auto pingError = redisPingFailureError(input.redisPingOutcome.value_or(RedisPingOutcome::Other))) {
+			result.valid = false;
+			result.errors.push_back(*pingError);
+		}
 	}
 
 	if (input.redisUseTls) {

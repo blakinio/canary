@@ -46,15 +46,29 @@ public:
 	std::optional<ChannelRuntimeStatus> readChannelRuntimeStatus(const std::string &runtimeKey, int64_t nowMs) override;
 
 	[[nodiscard]] bool isHealthy() const override;
+	[[nodiscard]] RedisPingResult ping() override;
 
 private:
 	bool ensureConnected();
+	// Classifies the connection-level failure captured on ctx (or the
+	// allocation failure if ctx is null) into lastConnectOutcome/
+	// lastConnectErrorDetail, for ping() to report after a failed
+	// ensureConnected() call - by the time ensureConnected() returns, ctx
+	// has already been freed, so this must run before that happens.
+	void classifyConnectError(redisContext* ctx);
 	std::vector<std::string> evalScript(std::string &cachedSha, const char* scriptBody, const std::string &key, const std::vector<std::string> &argv);
 
 	Options options;
 	redisContext* context = nullptr;
 	mutable std::mutex mutex;
 	bool healthy = false;
+
+	// Set by ensureConnected()/its AUTH step on failure (Success + empty
+	// detail on the most recent successful connect); ping() reads this when
+	// ensureConnected() itself fails, since the failing redisContext is
+	// already freed by then.
+	RedisPingOutcome lastConnectOutcome = RedisPingOutcome::Other;
+	std::string lastConnectErrorDetail;
 
 	std::string acquireSha;
 	std::string renewSha;

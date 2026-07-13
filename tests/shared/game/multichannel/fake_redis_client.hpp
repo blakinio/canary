@@ -109,9 +109,29 @@ public:
 		return healthy;
 	}
 
+	[[nodiscard]] RedisPingResult ping() override {
+		std::lock_guard lock(mutex);
+		RedisPingResult result;
+		if (healthy) {
+			result.outcome = RedisPingOutcome::Success;
+		} else {
+			result.outcome = pingFailureOutcome;
+			result.detail = "FakeRedisClient: healthy=false (see setHealthyForTesting/setPingFailureOutcomeForTesting)";
+		}
+		return result;
+	}
+
 	void setHealthyForTesting(bool value) {
 		std::lock_guard lock(mutex);
 		healthy = value;
+	}
+
+	// Only consulted by ping() while healthy == false; every other method's
+	// failure behavior is controlled by setHealthyForTesting alone, matching
+	// the existing convention in this fake.
+	void setPingFailureOutcomeForTesting(RedisPingOutcome outcome) {
+		std::lock_guard lock(mutex);
+		pingFailureOutcome = outcome;
 	}
 
 private:
@@ -132,4 +152,5 @@ private:
 	std::unordered_map<std::string, Entry> entries;
 	std::unordered_map<std::string, RuntimeEntry> runtimeEntries;
 	bool healthy = true;
+	RedisPingOutcome pingFailureOutcome = RedisPingOutcome::Other;
 };
