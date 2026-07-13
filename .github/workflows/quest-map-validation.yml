@@ -68,17 +68,29 @@ jobs:
         run: python -m json.tool docs/ai-agent/QUEST_MAP_VALIDATION.schema.json > /dev/null
 
       - name: Generate representative The Beginning evidence artifact
+        id: evidence
+        continue-on-error: true
         run: |
           mkdir -p artifacts
-          test -f data-otservbr-global/scripts/quests/the_beginning/the_beginning_zirella_wood.lua
-          PYTHONPATH=tools/ai-agent \
-            python tools/ai-agent/quest_map_validation_tool.py scan \
-              --repository-root . \
-              --source-root data-otservbr-global \
-              --include 'data-otservbr-global/scripts/quests/the_beginning/the_beginning_zirella_wood.lua' \
-              --output artifacts/QUEST_MAP_EVIDENCE.json
+          set +e
+          {
+            echo "repository=$(pwd)"
+            ls -l data-otservbr-global/scripts/quests/the_beginning/the_beginning_zirella_wood.lua
+            PYTHONPATH=tools/ai-agent \
+              python tools/ai-agent/quest_map_validation_tool.py scan \
+                --repository-root . \
+                --source-root data-otservbr-global \
+                --include 'data-otservbr-global/scripts/quests/the_beginning/the_beginning_zirella_wood.lua' \
+                --output artifacts/QUEST_MAP_EVIDENCE.json
+          } > artifacts/scan.stdout 2> artifacts/scan.stderr
+          status=$?
+          echo "exit_code=${status}" >> "$GITHUB_OUTPUT"
+          cat artifacts/scan.stdout
+          cat artifacts/scan.stderr >&2
+          exit "$status"
 
       - name: Verify evidence invariants
+        if: steps.evidence.outcome == 'success'
         run: |
           python - <<'PY'
           import json
@@ -98,10 +110,20 @@ jobs:
           print(json.dumps(payload["summary"], indent=2, sort_keys=True))
           PY
 
-      - name: Upload source-only quest evidence
+      - name: Upload source-only quest evidence and diagnostics
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: quest-map-evidence-the-beginning
-          path: artifacts/QUEST_MAP_EVIDENCE.json
+          path: |
+            artifacts/QUEST_MAP_EVIDENCE.json
+            artifacts/scan.stdout
+            artifacts/scan.stderr
           if-no-files-found: error
           retention-days: 14
+
+      - name: Fail when evidence generation failed
+        if: steps.evidence.outcome != 'success'
+        run: |
+          echo "Quest evidence generation failed with exit code ${{ steps.evidence.outputs.exit_code }}" >&2
+          exit 1
