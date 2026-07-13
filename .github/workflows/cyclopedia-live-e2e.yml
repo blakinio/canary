@@ -128,8 +128,8 @@ jobs:
           mysql -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e < docker/data/02-test_account_players.sql
           mysql -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e -e 'DELETE FROM boosted_boss;'
           mysql -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e \
-            -e "SELECT id,name,account_id,level FROM players WHERE name='Knight 1';" \
-            | tee artifacts/test-player.tsv
+            -e "SELECT id,name,email FROM accounts WHERE id=101; SELECT id,name,account_id,level FROM players WHERE name='Knight 1';" \
+            | tee artifacts/test-fixtures.tsv
 
       - name: Prepare global map and isolated server config
         shell: bash
@@ -145,6 +145,7 @@ jobs:
           python3 - <<'PY'
           import re
           from pathlib import Path
+
           config = Path('config.lua.dist').read_text(encoding='utf-8')
           values = {
               'dataPackDirectory': '"data-otservbr-global"', 'mapName': '"otservbr"',
@@ -162,6 +163,12 @@ jobs:
               if len(pattern.findall(config)) != 1:
                   raise SystemExit(f'expected exactly one config key {key}')
               config = pattern.sub(f'{key} = {value}', config, count=1)
+
+          auth_pattern = re.compile(r'^authType\s*=.*$', re.MULTILINE)
+          if auth_pattern.search(config):
+              config = auth_pattern.sub('authType = "password"', config, count=1)
+          else:
+              config += '\nauthType = "password"\n'
           Path('config.lua').write_text(config, encoding='utf-8')
           PY
 
@@ -186,6 +193,7 @@ jobs:
           cp tools/e2e/cyclopedia_otclient_e2e.lua otclient/otclientrc.lua
           python3 - <<'PY'
           from pathlib import Path
+
           path = Path('otclient/init.lua')
           text = path.read_text(encoding='utf-8').replace('enabled = true,', 'enabled = false,', 1)
           text = text.replace('installSounds = true,', 'installSounds = false,', 1)
@@ -209,6 +217,7 @@ jobs:
           grep -qi 'server online!' artifacts/canary.stdout.log artifacts/canary.stderr.log
           python3 - <<'PY'
           import socket
+
           for port in (7171, 7172):
               with socket.create_connection(('127.0.0.1', port), timeout=10):
                   print(f'port {port} reachable')
@@ -221,7 +230,7 @@ jobs:
         shell: bash
         env:
           CYCLOPEDIA_E2E_CLIENT_VERSION: ${{ env.CLIENT_VERSION }}
-          CYCLOPEDIA_E2E_ACCOUNT: test1
+          CYCLOPEDIA_E2E_ACCOUNT: test1@example.com
           CYCLOPEDIA_E2E_PASSWORD: test
           CYCLOPEDIA_E2E_CHARACTER: Knight 1
           CYCLOPEDIA_E2E_HOST: 127.0.0.1
@@ -236,22 +245,33 @@ jobs:
           (cd otclient && timeout --signal=TERM 180 "${OTCLIENT_BIN}" \
             > ../artifacts/otclient.stdout.log 2> ../artifacts/otclient.stderr.log) &
           echo $! > artifacts/otclient.pid
-          online=false; phase=false
+
+          online=false
+          phase=false
           for _ in $(seq 1 120); do
             [[ -f otclient/e2e-result.txt ]] && grep -q '^login_1=success$' otclient/e2e-result.txt && online=true
             [[ -f otclient/e2e-result.txt ]] && grep -q '^phase_1=complete$' otclient/e2e-result.txt && { phase=true; break; }
             kill -0 "$(cat artifacts/otclient.pid)" 2>/dev/null || break
             sleep 1
           done
-          [[ "${online}" == true && "${phase}" == true ]]
+
           import -display :99 -window root artifacts/cyclopedia-client.png || true
+          [[ -f otclient/e2e-result.txt ]] && cp otclient/e2e-result.txt artifacts/e2e-result.txt || true
+          if [[ "${online}" != true || "${phase}" != true ]]; then
+            cat artifacts/e2e-result.txt artifacts/otclient.stdout.log artifacts/otclient.stderr.log 2>/dev/null || true
+            exit 1
+          fi
+
           MYSQL_PWD=root mysql -h 127.0.0.1 -P 3306 -u root cyclopedia_e2e \
             -e "SELECT * FROM players_online; SELECT id,name,lastlogin,lastlogout FROM players WHERE name='Knight 1';" \
             | tee artifacts/database-during-client.tsv
           wait "$(cat artifacts/otclient.pid)"
-          cat otclient/e2e-result.txt | tee artifacts/e2e-result.txt
-          for marker in login_1=success bestiary_1= charms_1= bosstiary_1= phase_1=complete \
-            logout_1=complete login_2=success bestiary_2= charms_2= bosstiary_2= phase_2=complete e2e=success; do
+          cp otclient/e2e-result.txt artifacts/e2e-result.txt
+          cat artifacts/e2e-result.txt
+          for marker in session_key_mode_1=password direct_game_login_1= login_1=success \
+            bestiary_1= charms_1= bosstiary_1= phase_1=complete logout_1=complete \
+            session_key_mode_2=password direct_game_login_2= login_2=success \
+            bestiary_2= charms_2= bosstiary_2= phase_2=complete logout_2=complete e2e=success; do
             grep -q "^${marker}" artifacts/e2e-result.txt
           done
 
