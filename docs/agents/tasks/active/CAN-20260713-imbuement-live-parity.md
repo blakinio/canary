@@ -2,13 +2,13 @@
 task_id: CAN-20260713-imbuement-live-parity
 program_id: ""
 coordination_id: ""
-status: implementation_complete_pending_ci
+status: ready_for_review_pending_ci
 agent: "GPT-5.6 Thinking"
 branch: fix/imbuement-live-parity
 base_branch: main
 created: 2026-07-13T14:20:00+02:00
-updated: 2026-07-13T14:20:00+02:00
-last_verified_commit: "3ad10132cbd76adc42f946da3ca3077e5bd6bbd0"
+updated: 2026-07-13T15:00:00+02:00
+last_verified_commit: "8f67a9c6967f7d6b0db63783e19601d7a9d0ef28"
 risk: medium
 related_issue: "IMB-001, IMB-002, IMB-003, IMB-006"
 related_pr: "#251"
@@ -20,7 +20,6 @@ blocks: []
 owned_paths:
   exclusive:
     - data/XML/imbuements.xml
-    - tools/ai-agent/imbuement_validation.py
     - tools/ai-agent/test_imbuement_validation.py
     - tools/ai-agent/imbuement_storage_validation.py
     - tools/ai-agent/test_imbuement_storage_validation.py
@@ -33,6 +32,7 @@ owned_paths:
     - docs/agents/tasks/active/CAN-20260713-imbuement-live-parity.md
   shared: []
   read_only:
+    - tools/ai-agent/imbuement_validation.py
     - src/creatures/players/imbuements/imbuements.cpp
     - src/creatures/players/imbuements/imbuements.hpp
     - src/creatures/players/player.cpp
@@ -42,8 +42,8 @@ owned_paths:
     - data-otservbr-global/npc/**
 modules_touched:
   - Imbuement XML registry
-  - Imbuement deterministic validators
-  - Imbuement focused tests and report
+  - Imbuement deterministic storage validator
+  - Imbuement focused tests, report and runtime plan
 reuses:
   - tools/ai-agent/imbuement_validation.py
   - tools/ai-agent/imbuement_storage_validation.py
@@ -55,161 +55,167 @@ cross_repo_tasks: []
 
 # Goal
 
-Align the active Canary Imbuement registry with the current live Tibia mechanics for the confirmed IMB-001 fee model, IMB-002 Strike values and IMB-003 Basic Punch materials, and resolve IMB-006 only when exact active quest storage/value evidence exists in the repository.
+Align the active Canary Imbuement registry with the current live Tibia mechanics selected by the user, while preserving the merged Forgotten Knowledge and Vibrancy scroll repairs.
 
 # Acceptance criteria
 
 - [x] Base application fees are exactly 7,500 / 60,000 / 250,000 gold with 100% success and no protection surcharge.
 - [x] Basic, Intricate and Powerful Strike are exactly 5% critical chance with +5% / +15% / +40% critical damage.
-- [x] Basic Punch consumes item 10281 x25 and higher tiers retain their verified cumulative material chains.
-- [x] Protocol-visible base price/percent/protection fields match the same live model without a new protocol contract.
-- [x] IMB-006 storages are changed only if exact active completion storage and accepted value semantics are proven; otherwise the blocker remains explicit.
+- [x] Basic Punch consumes item 10281 x25 and higher tiers retain their cumulative material chains.
+- [x] Protocol-visible base price/percent/protection fields use the same registry values without a protocol-shape change.
+- [x] Powerful Featherweight uses proven Dangerous Depths completion storage 45929.
+- [x] Powerful Vibrancy uses proven Dream Courts completion storage 46365.
 - [x] Focused deterministic and C++ regression coverage is updated.
-- [x] Validation report, runtime plan and agent changelog are current.
+- [x] Validation report, rich runtime plan, module catalogue and changelog are current.
+- [x] Final changed-file boundary contains only the 11 intended data/test/documentation paths.
 - [ ] Current-head GitHub checks are inspected job-by-job and pass before merge.
-- [x] No map, items.otb, binary asset, database schema, production configuration, client or ACTIVE_WORK.md change.
 - [ ] Autonomous merge gate is satisfied and the task is archived in a separate cleanup PR.
 
-# Confirmed context
+# Final implementation state
 
-- Writable repository: `blakinio/canary` only.
+- Repository: `blakinio/canary`.
 - Base main at task start: `3ad10132cbd76adc42f946da3ca3077e5bd6bbd0`.
-- User selected current live Tibia mechanics as the authoritative target, not the historical chance/protection model.
-- Current XML uses historical base values, Strike values and Basic Punch source data.
-- `Player::onApplyImbuement` charges `BaseImbuement::price` and applies deterministically; the current protocol serializes price, percent and protection price from the same base registry.
-- Existing validators already encode the current-reference fee, Strike and Punch values.
-- IMB-004 and IMB-005 remain preserved and are not reopened.
-- Open PR inspection found no Imbuement implementation PR or owned-path overlap. The universal E2E PR #245 is separate and does not own these paths.
-- `docs/agents/ACTIVE_WORK.md` is read-only and will remain unchanged.
+- Final implementation/cleanup head before ready state: `8f67a9c6967f7d6b0db63783e19601d7a9d0ef28`.
+- PR: #251, draft at this record update.
+- User-selected authority: current live Tibia, not the historical chance/protection economy.
+- IMB-004 from PR #239 and IMB-005 from PR #206 remain preserved.
+- No open Imbuement implementation PR or owned-path overlap was found before implementation.
+- `docs/agents/ACTIVE_WORK.md` is unchanged.
 
-# Existing work to reuse
+# Implemented behavior
 
-| Module/task/PR | Reuse | Evidence/path | Why it fits |
-|---|---|---|---|
-| PR #166 | deterministic Imbuement audit | validators/report/workflow | canonical scanner and evidence format |
-| PR #206 | exact Forgotten Knowledge storage policy | storage validator/tests | preserve repaired 45489..45495 groups |
-| PR #239 | Vibrancy scroll mappings and atomicity tests | XML/validator/C++ tests | preserve both repaired scroll paths |
-| Current registry loader | base/effect/material parsing | `imbuements.cpp` | no new parser or runtime subsystem required |
+## IMB-001 — fixed current-live fees
 
-# Ownership and overlap check
+| Tier | Price | Success | Protection surcharge |
+|---|---:|---:|---:|
+| Basic | 7,500 | 100% | 0 |
+| Intricate | 60,000 | 100% | 0 |
+| Powerful | 250,000 | 100% | 0 |
 
-- Program record: none required for this bounded repair.
-- Open PRs inspected: all current open PRs plus Imbuement search; no overlap found.
-- Active tasks inspected: current index and exact Imbuement task searches; no active overlap found.
-- Ownership checker result: unavailable locally because `github.com` DNS resolution fails; GitHub ownership CI will be used as separate evidence.
-- Exclusive claims: listed in frontmatter.
-- Shared claims: none.
-- Read-only dependencies: Player/runtime/protocol and quest storage sources.
-- Resolution: proceed on a new branch and draft PR; do not modify runtime C++ unless XML-only alignment proves insufficient.
+`Player::onApplyImbuement` charges the registry price and applies after validation. The protocol reads price, percent and protection price from the same registry, so the XML remains the single authority.
 
-# Current state
+## IMB-002 — Strike
 
-Branch created. Task claimed before implementation. Reference and current code paths have been inspected. IMB-006 evidence search is in progress.
+| Tier | Critical chance | Critical damage |
+|---|---:|---:|
+| Basic | 5% | +5% |
+| Intricate | 5% | +15% |
+| Powerful | 5% | +40% |
 
-# Plan
+## IMB-003 — Punch
 
-1. Prove or reject candidate Dangerous Depths and Dream Courts completion storages from active scripts.
-2. Apply the smallest XML changes for confirmed live values.
-3. Update validators and focused tests so the repaired values are exact zero-finding contracts.
-4. Update report, runtime plan and changelog.
-5. Inspect final diff, run existing focused workflow and full CI, repair failures, merge, then archive.
+- Basic: item `10281` x25.
+- Intricate: item `10281` x25 + item `11489` x20.
+- Powerful: previous sources + item `40529` x15.
 
-# Work log
+## IMB-006 — quest completion unlocks
 
-## 2026-07-13T14:20:00+02:00
+- Powerful Featherweight: storage `45929` (`DangerousDepths.Bosses.LastAchievement`). The active action writes it only after all three final boss-achievement markers are complete.
+- Powerful Vibrancy: storage `46365` (`TheDreamCourts.DreamScarGlobal.NightmareTimer`). The active Nightmare Beast death path writes the persistent player marker used by the existing initialized-storage policy.
+- Generic questline storages were rejected because they are written at quest start and would unlock the Powerful imbuements too early.
 
-- Changed: created branch and durable task record.
-- Learned: price/percent/protection are registry-driven in both server application and protocol presentation.
-- Failed/blocked: local checkout commands remain unavailable because `github.com` cannot be resolved.
-- Result: implementation may proceed through GitHub API and CI; no local test is claimed.
+# Deterministic baseline after repair
+
+- 3 tiers, 20 categories, 24 families, 72 entries.
+- 48 XML scroll mappings and 48 active Lua scroll registrations.
+- 24 Powerful families with nonzero unlock storage.
+- No Powerful family with `storage=0`.
+- Nonzero storage IDs: `45489..45495`, `45929`, `46365`.
+- Registry validator: no findings in the verified focused runner.
+- Strict storage validator: no findings in the verified focused runner.
+
+# Final changed-file boundary
+
+Exactly:
+
+1. `data/XML/imbuements.xml`
+2. `docs/agents/CHANGELOG.md`
+3. `docs/agents/MODULE_CATALOG.md`
+4. `docs/agents/tasks/active/CAN-20260713-imbuement-live-parity.md`
+5. `docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json`
+6. `docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md`
+7. `tests/fixture/core/XML/imbuements.xml`
+8. `tests/unit/players/imbuements/imbuements_test.cpp`
+9. `tools/ai-agent/imbuement_storage_validation.py`
+10. `tools/ai-agent/test_imbuement_storage_validation.py`
+11. `tools/ai-agent/test_imbuement_validation.py`
+
+No workflow, temporary helper, trigger, diagnostic, map, `items.otb`, binary asset, database schema, production configuration, client, protocol or `ACTIVE_WORK.md` path remains in the diff.
+
+# Validation and evidence
+
+## Local environment
+
+Local checkout and local tests were unavailable:
+
+```text
+getent hosts github.com
+# no DNS result
+
+git ls-remote https://github.com/blakinio/canary.git HEAD
+# fatal: unable to access 'https://github.com/blakinio/canary.git/': Could not resolve host: github.com
+```
+
+No local command or local test is claimed as passed. GitHub Actions is separate evidence.
+
+## Focused runner evidence before final ready-head CI
+
+- The temporary focused diagnostic run `29251409297` proved the patch applied and both deterministic audits returned no findings; its single failed test was an obsolete assertion expecting IMB-006 mismatches.
+- The assertion was corrected to require `WIKI_POWERFUL_UNLOCK` findings to be absent.
+- Finalization diagnostic run `29251754951` then reported:
+  - Python compilation success;
+  - 13/13 focused unit tests success;
+  - registry audit success with `findings=[]`;
+  - strict storage audit success with `findings=[]`;
+  - runtime-plan JSON validation success.
+- The same diagnostic proved `github-actions[bot]` cannot push to this repository (`HTTP 403`). Repository writes were therefore completed through the authorized GitHub API, not represented as local validation.
+- Temporary workflows, helper, trigger and diagnostic files were removed, and the canonical Imbuement workflow was restored byte-for-byte from current `main`.
+
+These runs are implementation evidence only. Fresh checks on the final ready head remain the merge gate.
+
+# C++ regression coverage
+
+The fixture and unit test now enforce:
+
+- current live base prices, 100% success, zero protection surcharge, clear cost and duration;
+- all three Strike chance/damage pairs;
+- Basic Punch item `10281` x25;
+- existing Vibrancy scroll resolution and scroll application atomicity.
 
 # Decisions
 
-| Decision | Reason/evidence | ADR |
-|---|---|---|
-| Target current live Tibia | explicit user decision | none |
-| Reuse XML registry and existing validators | current runtime already consumes these values | none |
-| Do not invent IMB-006 storage/value | identifier safety and incomplete quest completion proof | none |
-
-# Files and interfaces
-
-| Path/interface/config/schema | Ownership mode | Purpose | Status |
-|---|---|---|---|
-| `data/XML/imbuements.xml` | exclusive | live fees, Strike, Punch and proven unlocks | planned |
-| existing Imbuement validators/tests | exclusive | exact regression contract | planned |
-| report/runtime plan/changelog | exclusive | durable evidence and behavior record | planned |
-| Player/protocol/quest sources | read_only | prove runtime and storage semantics | inspected/in progress |
-
-# Validation and CI
-
-| Commit | Command/check/workflow | Result | Evidence/notes |
-|---|---|---|---|
-| base `3ad10132...` | `getent hosts github.com` | unavailable | no DNS result |
-| base `3ad10132...` | `git ls-remote https://github.com/blakinio/canary.git HEAD` | unavailable | `Could not resolve host: github.com` |
-| pending | Agent Task Ownership | not-run | GitHub CI required |
-| pending | Imbuement Validation | not-run | existing focused workflow |
-| pending | full CI | not-run | concrete jobs must be inspected |
-
-Never write `passed` without verification on the stated commit.
+- Target current live Tibia because the user selected it explicitly.
+- Reuse the existing registry/loader/runtime rather than add a second subsystem.
+- Use only active, proven completion markers for IMB-006.
+- Preserve PR #206 and #239 behavior.
+- Keep runtime, gameplay and physical-client evidence separate from static/compiled regression evidence.
 
 # Failed approaches and dead ends
 
-- Several guessed quest-script paths returned 404; exact paths and storage semantics will be discovered from repository evidence rather than inferred from names.
-
-# Risks and compatibility
-
-- Runtime: wrong fee/effect/material values directly affect gameplay; exact tests required.
-- Data/migration: XML-only data change, no schema migration.
-- Security: none.
-- Backward compatibility: legacy client protocol fields retain their existing shape; values change to the selected live mechanics.
-- Cross-repo rollout: none expected; no protocol shape change.
-- Rollback: revert the squash merge.
+- Several guessed quest paths returned 404; exact paths were found through repository search instead of inferred.
+- A validator-generated runtime plan temporarily reduced the rich scenario document; the 319-line plan was restored from the exact base and updated.
+- Temporary workflow finalizers initially skipped PR events, used an indentation-sensitive helper anchor, and contained one stale IMB-006 test assertion. Each was diagnosed with artifacts and corrected.
+- GitHub Actions push attempts failed with `Permission to blakinio/canary.git denied to github-actions[bot]` / HTTP 403.
+- All temporary workflows, scripts, triggers and diagnostics are absent from the final diff.
 
 # Remaining work
 
-1. Remove temporary patch files and confirm the final changed-file boundary.
-2. Inspect final-head focused and repository CI job by job.
-3. Mark ready, merge and archive if all gates pass.
+1. Update PR #251 body and mark Ready for review.
+2. Inspect every final-head workflow and concrete job; do not rely only on aggregate `Required`.
+3. Check reviews and changed-file boundary again.
+4. Squash-merge if green.
+5. Archive this task in a separate lifecycle cleanup PR with exact feature head, merge SHA and workflow/job IDs.
 
 # Handoff
 
-## Start here
-
-Continue only on branch `fix/imbuement-live-parity` and its draft PR. Preserve PR #206 and #239 behavior.
-
-## Do not repeat
-
-Do not create a second Imbuement parser, do not restore the historical chance/protection model, and do not invent quest storage IDs or completion values.
-
-## Required reads
-
-- `AGENTS.md`
-- `docs/agents/README.md`
-- `docs/agents/MODULE_CATALOG.md`
-- `docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md`
-- archived task `CAN-20260713-imbuement-vibrancy-scrolls`
-- current XML, validators, Player/runtime/protocol and quest storage sources
-
-## Open questions
-
-- Which exact active Dangerous Depths and Dream Courts storage/value pairs represent the current live unlock conditions for Powerful Featherweight and Vibrancy?
+Continue only on PR #251 and branch `fix/imbuement-live-parity`. Do not restore the historical chance/protection model, do not replace storages `45929` or `46365` without stronger active evidence, and do not add workflow or unrelated runtime changes.
 
 # Completion
 
-- Final status: in progress
-- PR: pending
-- Merge commit: pending
-- Program record updated: not applicable
-- Catalogue updated: pending determination
-- Changelog updated: pending
-- Archived at: pending
-
-
-## 2026-07-13T14:35:00+02:00
-
-- Implemented IMB-001/002/003 and exact deterministic/C++ regressions in `1f5819d045815e6aa548112cacb62727fec5255b`.
-- Proved Featherweight completion storage `45929` from the all-three-boss achievement action.
-- Proved Vibrancy completion storage `46365` from the Nightmare Beast death handler plus final quest/NPC state.
-- Rejected generic questline storages because they are written at quest start and the current policy only checks for an initialized storage.
-- Restored the rich runtime plan instead of retaining the validator-generated reduced JSON.
-- Local commands remain unavailable because `github.com` DNS resolution fails; no local result is claimed.
+- Final status: ready for review pending final-head CI.
+- PR: #251.
+- Merge commit: pending.
+- Program record: not applicable.
+- Catalogue: updated.
+- Changelog: updated.
+- Archive: pending cleanup PR.
