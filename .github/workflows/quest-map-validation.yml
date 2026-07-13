@@ -1,0 +1,107 @@
+name: Quest Map Validator
+
+on:
+  push:
+    branches:
+      - main
+      - "feat/**"
+      - "fix/**"
+      - "ai/**"
+    paths:
+      - "tools/ai-agent/quest_map_validation.py"
+      - "tools/ai-agent/quest_map_validation_tool.py"
+      - "tools/ai-agent/test_quest_map_validation.py"
+      - "tools/ai-agent/otbm_world_index.py"
+      - "tools/ai-agent/otbm_item_audit_scan.cpp"
+      - "tools/ai-agent/otbm_script_resolution.py"
+      - "docs/ai-agent/QUEST_MAP_VALIDATION.schema.json"
+      - "data-otservbr-global/scripts/quests/the_beginning/**"
+      - ".github/workflows/quest-map-validation.yml"
+  pull_request:
+    paths:
+      - "tools/ai-agent/quest_map_validation.py"
+      - "tools/ai-agent/quest_map_validation_tool.py"
+      - "tools/ai-agent/test_quest_map_validation.py"
+      - "tools/ai-agent/otbm_world_index.py"
+      - "tools/ai-agent/otbm_item_audit_scan.cpp"
+      - "tools/ai-agent/otbm_script_resolution.py"
+      - "docs/ai-agent/QUEST_MAP_VALIDATION.schema.json"
+      - "data-otservbr-global/scripts/quests/the_beginning/**"
+      - ".github/workflows/quest-map-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Build quest evidence and run synthetic map correlation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile native OTBM scanner with warnings as errors
+        run: |
+          c++ -O2 -std=c++20 -Wall -Wextra -Wpedantic -Werror \
+            tools/ai-agent/otbm_item_audit_scan.cpp \
+            -o /tmp/otbm_item_audit_scan
+
+      - name: Run focused Quest Map Validator tests
+        env:
+          OTBM_WORLD_INDEX_SCANNER: /tmp/otbm_item_audit_scan
+        run: |
+          PYTHONPATH=tools/ai-agent \
+            python -m unittest -v tools/ai-agent/test_quest_map_validation.py
+
+      - name: Compile Python modules
+        run: |
+          python -m py_compile \
+            tools/ai-agent/quest_map_validation.py \
+            tools/ai-agent/quest_map_validation_tool.py \
+            tools/ai-agent/test_quest_map_validation.py
+
+      - name: Validate JSON schema syntax
+        run: python -m json.tool docs/ai-agent/QUEST_MAP_VALIDATION.schema.json > /dev/null
+
+      - name: Generate representative The Beginning evidence artifact
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=tools/ai-agent \
+            python tools/ai-agent/quest_map_validation_tool.py scan \
+              --repository-root . \
+              --source-root data-otservbr-global \
+              --include 'data-otservbr-global/scripts/quests/the_beginning/*.lua' \
+              --include 'data-otservbr-global/scripts/quests/the_beginning/**/*.lua' \
+              --output artifacts/QUEST_MAP_EVIDENCE.json
+
+      - name: Verify evidence invariants
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("artifacts/QUEST_MAP_EVIDENCE.json")
+          payload = json.loads(path.read_text(encoding="utf-8"))
+          assert payload["format"] == "canary-quest-map-evidence-v1"
+          assert payload["ok"] is True
+          assert payload["summary"]["filesScanned"] > 0
+          assert payload["summary"]["filesScanned"] == len(payload["files"])
+          assert payload["summary"]["evidenceCount"] == len(payload["evidence"])
+          assert payload["summary"]["unresolvedCount"] == len(payload["unresolved"])
+          assert len({entry["id"] for entry in payload["evidence"]}) == len(payload["evidence"])
+          assert len({entry["id"] for entry in payload["unresolved"]}) == len(payload["unresolved"])
+          assert len(payload["sourceDigest"]) == 64
+          print(json.dumps(payload["summary"], indent=2, sort_keys=True))
+          PY
+
+      - name: Upload source-only quest evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: quest-map-evidence-the-beginning
+          path: artifacts/QUEST_MAP_EVIDENCE.json
+          if-no-files-found: error
+          retention-days: 14
