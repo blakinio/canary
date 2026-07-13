@@ -6,8 +6,8 @@ agent: "GPT-5.6 Thinking"
 branch: fix/imbuement-forgotten-knowledge-storages
 base_branch: main
 created: 2026-07-12T20:55:00Z
-updated: 2026-07-12T23:03:00+02:00
-last_verified_commit: "ef88c689b59c476c1cfea18357384b9280043c7d"
+updated: 2026-07-13T09:22:00+02:00
+last_verified_commit: ""
 risk: medium
 related_issue: ""
 related_pr: "#206"
@@ -52,17 +52,17 @@ Active `storages.lua` declares and the boss-death script writes:
 | Time Guardian | 45494 | Demon Presence, Precision |
 | Last Lore Keeper | 45495 | Strike, Epiphany |
 
-Current XML instead uses undeclared `50488, 50490, 50492, 50494, 50496, 50498, 50501` for those same groups.
+The original XML used undeclared `50488, 50490, 50492, 50494, 50496, 50498, 50501` for the same groups.
 
 # Acceptance criteria
 
-- [ ] Replace all 22 affected Powerful entries with the corresponding active storage IDs.
-- [ ] Preserve every unrelated Imbuement value, item, scroll, category and effect.
+- [x] Replace all 22 affected Powerful entries with the corresponding active storage IDs.
+- [x] Preserve every unrelated Imbuement value, item, scroll, category and effect.
 - [x] Extend the deterministic storage audit to verify exact family-to-storage grouping.
 - [x] Make undeclared nonzero Imbuement storage IDs fail the focused workflow.
 - [x] Add fixture and repository-level regression coverage.
-- [ ] Update the Imbuement report with repaired status and retained unresolved findings.
-- [ ] Run focused tests, generators and repository CI.
+- [x] Update the Imbuement report with repaired status and retained unresolved findings.
+- [ ] Run focused tests, generators and repository CI on the current, refreshed head.
 - [ ] Review changed files and confirm no map, item binary, client asset or unrelated gameplay changes.
 - [ ] Mark ready and merge only after current-head checks pass.
 - [ ] Archive this task and remove its Active Work row after merge.
@@ -73,13 +73,39 @@ Current XML instead uses undeclared `50488, 50490, 50492, 50494, 50496, 50498, 5
 - Do not change fees, success chances, Strike values, Punch materials or Vibrancy scrolls in this PR.
 - Do not edit `.otbm`, `items.otb`, assets, production configuration, boss scripts or storage declarations.
 
+# Implemented change
+
+Exact replacement counts:
+
+```text
+50488 -> 45489: 3
+50490 -> 45490: 3
+50492 -> 45491: 6
+50494 -> 45492: 3
+50496 -> 45493: 3
+50498 -> 45494: 2
+50501 -> 45495: 2
+Total: 22
+```
+
+The validator now rejects:
+
+- undeclared nonzero Imbuement storages;
+- all seven legacy IDs;
+- any family assigned to the wrong Forgotten Knowledge group;
+- missing active boss storage tokens.
+
+The focused workflow runs the storage validator with `--strict` and remains read-only.
+
 # Log
 
 - Confirmed writable target `blakinio/canary`; upstream remains reference-only.
 - Reviewed open PRs and `ACTIVE_WORK.md`; no active Imbuement storage repair overlaps this scope.
-- Revalidated the seven active Forgotten Knowledge storage declarations and boss write paths on current `main`.
-- Published draft PR #206 before the gameplay data change.
-- Extended the storage validator to reject undeclared IDs, legacy IDs and incorrect family grouping.
-- Added fixture coverage plus a repository-level regression test.
-- Updated the focused workflow to run storage validation with `--strict` and publish the reviewed XML source as an artifact.
-- XML replacement, report update and final CI remain in progress.
+- Revalidated all seven active storage declarations and boss write paths.
+- Published draft PR #206 before changing gameplay data.
+- Replaced exactly 22 Powerful XML storage attributes with the active IDs.
+- Extended the storage validator and added fixture plus repository-level regression tests.
+- Updated the audit report and retained the unresolved Featherweight/Vibrancy, fee, Strike, Punch and scroll findings.
+- Removed all temporary write-enabled/diagnostic workflows and XML export steps.
+- Reconciled `ACTIVE_WORK.md` with the current main-branch rows.
+- Current-head refresh and CI remain pending.
