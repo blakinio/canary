@@ -22,8 +22,6 @@ jobs:
           show-progress: false
 
       - name: Merge current main with bounded conflict policy
-        id: merge
-        continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
@@ -37,17 +35,19 @@ jobs:
             set -e
             if [ "$status" -ne 0 ]; then
               conflicts=$(git diff --name-only --diff-filter=U | sort)
-              expected=$(printf '%s\n' \
-                'src/creatures/players/player.cpp' \
-                'tests/unit/players/CMakeLists.txt' | sort)
               echo "Conflicts found:"
               printf '%s\n' "$conflicts"
-              if [ "$conflicts" != "$expected" ]; then
+              unexpected=$(printf '%s\n' "$conflicts" | grep -Ev '^(src/creatures/players/player.cpp|tests/unit/players/CMakeLists.txt)$' || true)
+              if [ -n "$unexpected" ] || [ -z "$conflicts" ]; then
                 echo "Unexpected conflict set"
                 exit 1
               fi
-              git checkout --ours src/creatures/players/player.cpp
-              git checkout --theirs tests/unit/players/CMakeLists.txt
+              if printf '%s\n' "$conflicts" | grep -qx 'src/creatures/players/player.cpp'; then
+                git checkout --ours src/creatures/players/player.cpp
+              fi
+              if printf '%s\n' "$conflicts" | grep -qx 'tests/unit/players/CMakeLists.txt'; then
+                git checkout --theirs tests/unit/players/CMakeLists.txt
+              fi
               python3 tools/ai-agent/sync_forge_transaction_with_main.py
               git add src/creatures/players/player.cpp tests/unit/players/CMakeLists.txt
             fi
@@ -68,7 +68,3 @@ jobs:
           name: forge-transaction-sync-log
           path: forge-transaction-sync.log
           if-no-files-found: error
-
-      - name: Fail when merge failed
-        if: steps.merge.outcome != 'success'
-        run: exit 1
