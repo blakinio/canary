@@ -66,30 +66,39 @@ jobs:
           test_path.write_text(text.replace(marker, addition + marker), encoding="utf-8")
           PY
 
-      - name: Run focused validation
-        run: |
-          python -m py_compile tools/ai-agent/achievement_validation.py tools/ai-agent/test_achievement_validation.py
-          python -m unittest discover -s tools/ai-agent -p "test_achievement_validation.py" -v
-          mkdir -p artifacts
-          python tools/ai-agent/achievement_validation.py \
-            --repository-root . \
-            --reference-baseline docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json \
-            --reference-catalog docs/ai-agent/ACHIEVEMENT_REFERENCE_CATALOG.json \
-            --reviewed-evidence docs/ai-agent/ACHIEVEMENT_REVIEWED_EVIDENCE.json \
-            --output artifacts/ACHIEVEMENT_AUDIT.json \
-            --markdown artifacts/ACHIEVEMENT_AUDIT.md \
-            --allow-findings
-          python -m json.tool artifacts/ACHIEVEMENT_AUDIT.json > /dev/null
-          git diff --check
-
-      - name: Package materialized files
+      - name: Run focused validation and preserve log
+        shell: bash
         run: |
           mkdir -p materialized/data/scripts/lib materialized/tools/ai-agent materialized/artifacts
+          set +e
+          {
+            python -m py_compile tools/ai-agent/achievement_validation.py tools/ai-agent/test_achievement_validation.py
+            python -m unittest discover -s tools/ai-agent -p "test_achievement_validation.py" -v
+            mkdir -p artifacts
+            python tools/ai-agent/achievement_validation.py \
+              --repository-root . \
+              --reference-baseline docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json \
+              --reference-catalog docs/ai-agent/ACHIEVEMENT_REFERENCE_CATALOG.json \
+              --reviewed-evidence docs/ai-agent/ACHIEVEMENT_REVIEWED_EVIDENCE.json \
+              --output artifacts/ACHIEVEMENT_AUDIT.json \
+              --markdown artifacts/ACHIEVEMENT_AUDIT.md \
+              --allow-findings
+            python -m json.tool artifacts/ACHIEVEMENT_AUDIT.json > /dev/null
+            git diff --check
+          } > materialized/artifacts/validation.log 2>&1
+          status=$?
+          echo "$status" > materialized/artifacts/validation.status
           cp data/scripts/lib/register_achievements.lua materialized/data/scripts/lib/
           cp tools/ai-agent/test_achievement_validation.py materialized/tools/ai-agent/
-          cp artifacts/ACHIEVEMENT_AUDIT.json artifacts/ACHIEVEMENT_AUDIT.md materialized/artifacts/
+          if [[ -f artifacts/ACHIEVEMENT_AUDIT.json ]]; then
+            cp artifacts/ACHIEVEMENT_AUDIT.json materialized/artifacts/
+          fi
+          if [[ -f artifacts/ACHIEVEMENT_AUDIT.md ]]; then
+            cp artifacts/ACHIEVEMENT_AUDIT.md materialized/artifacts/
+          fi
+          exit 0
 
-      - name: Upload materialized files
+      - name: Upload materialized files and diagnostics
         uses: actions/upload-artifact@v4
         with:
           name: achievement-metadata-materialized
