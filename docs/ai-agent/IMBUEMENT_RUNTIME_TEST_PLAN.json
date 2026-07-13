@@ -1,315 +1,139 @@
 {
-  "schema_version": 1,
-  "source": {
-    "registry": "data/XML/imbuements.xml",
-    "storage_registry": "data-otservbr-global/lib/core/storages.lua",
-    "boss_unlock_script": "data-otservbr-global/scripts/quests/forgotten_knowledge/creaturescripts_bosses_kill.lua",
-    "reference": "https://tibia.fandom.com/wiki/Imbuing",
-    "reference_observed": "2026-07-13"
-  },
   "baseline": {
     "base_tiers": 3,
     "categories": 20,
-    "families": 24,
     "entries": 72,
-    "xml_mapped_scrolls": 48,
-    "lua_registered_scrolls": 48,
-    "duration_seconds": 72000,
-    "clear_cost": 15000,
-    "nonzero_xml_storage_ids": [
-      50488,
-      50490,
-      50492,
-      50494,
-      50496,
-      50498,
-      50501
-    ],
-    "powerful_with_nonzero_storage": 22,
-    "powerful_with_zero_storage": [
-      "Featherweight",
-      "Vibrancy"
-    ],
-    "storage_filter_default": false,
-    "active_forgotten_knowledge_storage_ids": [
-      45489,
-      45490,
-      45491,
-      45492,
-      45493,
-      45494,
-      45495
-    ]
+    "families": 24,
+    "mapped_scrolls": 48
   },
   "known_findings": [
     {
-      "id": "IMB-001",
-      "kind": "reference-mismatch",
-      "summary": "The active chance/protection fee model differs from the current fixed-fee reference."
+      "code": "WIKI_POWERFUL_UNLOCK",
+      "evidence": [
+        "https://tibia.fandom.com/wiki/Imbuing"
+      ],
+      "message": "Powerful Vibrancy has storage=0 although TibiaWiki documents a quest/boss unlock",
+      "severity": "mismatch"
     },
     {
-      "id": "IMB-002",
-      "kind": "data-mismatch",
-      "summary": "All three Strike tiers use different critical chance and damage values."
-    },
-    {
-      "id": "IMB-003",
-      "kind": "data-mismatch",
-      "summary": "Basic Punch uses item 9690 x20 instead of item 10281 x25."
-    },
-    {
-      "id": "IMB-004",
-      "kind": "repaired-in-pr-239",
-      "summary": "Vibrancy scroll IDs 51746 and 51466 are mapped by XML and covered by focused resolver/application atomicity tests."
-    },
-    {
-      "id": "IMB-005",
-      "kind": "configuration-dependent-runtime-defect",
-      "summary": "Seven nonzero XML unlock storage IDs are absent from the active storage registry and affect 22 Powerful families."
-    },
-    {
-      "id": "IMB-006",
-      "kind": "unlock-bypass",
-      "summary": "Powerful Featherweight and Vibrancy use storage 0 and bypass family-specific storage filtering."
+      "code": "WIKI_POWERFUL_UNLOCK",
+      "evidence": [
+        "https://tibia.fandom.com/wiki/Imbuing"
+      ],
+      "message": "Powerful Featherweight has storage=0 although TibiaWiki documents a quest/boss unlock",
+      "severity": "mismatch"
     }
   ],
   "scenarios": [
     {
+      "assertions": [
+        "locked player cannot open the shrine when storage filtering is enabled",
+        "unlocked player can open the shrine"
+      ],
       "id": "shrine-access-gate",
-      "layer": "gameplay",
-      "preconditions": [
-        "toggleImbuementShrineStorage is enabled"
+      "layer": "gameplay"
+    },
+    {
+      "assertions": [
+        "free account can apply Basic after the common unlock",
+        "premium account can apply Intricate after the common unlock",
+        "Powerful entries remain hidden until their documented unlock storage is set"
       ],
-      "assertions": [
-        "A player without the common shrine access storage cannot open the imbuement window.",
-        "A player with the common shrine access storage can open the window.",
-        "A rejected gate does not mutate items, gold, bank balance or storages."
-      ]
-    },
-    {
-      "id": "powerful-unlock-storage",
-      "layer": "static-and-gameplay",
-      "fixtures": {
-        "stale_xml_storage_ids": [
-          50488,
-          50490,
-          50492,
-          50494,
-          50496,
-          50498,
-          50501
-        ],
-        "current_forgotten_knowledge_storage_ids": [
-          45489,
-          45490,
-          45491,
-          45492,
-          45493,
-          45494,
-          45495
-        ]
-      },
-      "assertions": [
-        "Every nonzero XML unlock storage is declared in the active storage registry.",
-        "Each Powerful family maps to its documented boss or quest completion path.",
-        "With filtering enabled, the family is hidden before and visible after the matching unlock.",
-        "The default-disabled filter does not mask stale storage wiring in deterministic validation.",
-        "Featherweight uses the proven Dangerous Depths completion condition.",
-        "Vibrancy uses the proven Dream Courts completion condition."
-      ]
-    },
-    {
       "id": "tier-account-and-storage-policy",
-      "layer": "gameplay",
-      "assertions": [
-        "Basic entries are available under the approved account rules after common shrine access.",
-        "Intricate entries follow the approved premium-account rule.",
-        "Powerful entries require their family-specific unlock when filtering is enabled.",
-        "A hidden entry cannot be applied by sending its numeric runtime ID directly."
-      ]
+      "layer": "gameplay"
     },
     {
+      "assertions": [
+        "displayed fee, success policy and charged fee match the approved target model",
+        "missing gold or materials leaves all resources and item slots unchanged",
+        "successful application consumes each source exactly once"
+      ],
       "id": "application-cost-and-atomicity",
-      "layer": "runtime",
-      "matrix": [
-        {
-          "tier": "Basic",
-          "active_attempt_price": 5000,
-          "active_success_percent": 90,
-          "active_protection_price": 10000,
-          "reference_fixed_fee": 7500
-        },
-        {
-          "tier": "Intricate",
-          "active_attempt_price": 30000,
-          "active_success_percent": 70,
-          "active_protection_price": 30000,
-          "reference_fixed_fee": 60000
-        },
-        {
-          "tier": "Powerful",
-          "active_attempt_price": 200000,
-          "active_success_percent": 50,
-          "active_protection_price": 50000,
-          "reference_fixed_fee": 250000
-        }
-      ],
-      "assertions": [
-        "Displayed fee, success policy and charged fee match the approved target model.",
-        "Insufficient gold leaves all resources and slot state unchanged.",
-        "Insufficient materials leave all resources and slot state unchanged.",
-        "Successful application consumes each material and gold charge exactly once.",
-        "A protected failure cannot double-charge."
-      ]
+      "layer": "runtime"
     },
     {
+      "assertions": [
+        "critical chance and damage match the approved Tibia reference for all three tiers"
+      ],
       "id": "strike-effect",
-      "layer": "gameplay",
-      "reference": [
-        {
-          "tier": "Basic",
-          "critical_chance_percent": 5,
-          "critical_damage_percent": 5
-        },
-        {
-          "tier": "Intricate",
-          "critical_chance_percent": 5,
-          "critical_damage_percent": 15
-        },
-        {
-          "tier": "Powerful",
-          "critical_chance_percent": 5,
-          "critical_damage_percent": 40
-        }
+      "layer": "gameplay"
+    },
+    {
+      "assertions": [
+        "Basic, Intricate and Powerful Punch consume the current documented source chain"
       ],
-      "assertions": [
-        "Each tier exposes the approved critical chance and damage values.",
-        "Equipping and unequipping adds and removes the effect exactly once.",
-        "Save and reload preserve the tier and remaining duration."
-      ]
-    },
-    {
       "id": "punch-materials",
-      "layer": "gameplay",
-      "reference": {
-        "Basic": [
-          {
-            "item_id": 10281,
-            "count": 25
-          }
-        ],
-        "Intricate": [
-          {
-            "item_id": 10281,
-            "count": 25
-          },
-          {
-            "item_id": 11489,
-            "count": 20
-          }
-        ],
-        "Powerful": [
-          {
-            "item_id": 10281,
-            "count": 25
-          },
-          {
-            "item_id": 11489,
-            "count": 20
-          },
-          {
-            "item_id": 40529,
-            "count": 15
-          }
-        ]
-      },
-      "assertions": [
-        "The shrine lists the approved source chain for every tier.",
-        "Successful application consumes the exact source counts.",
-        "Rejected application consumes no source items."
-      ]
+      "layer": "gameplay"
     },
     {
+      "assertions": [
+        "each scroll resolves to Vibrancy",
+        "a valid boot receives the correct tier",
+        "the scroll is consumed only after successful application"
+      ],
+      "fixtures": {
+        "scroll_ids": [
+          51746,
+          51466
+        ]
+      },
       "id": "vibrancy-scrolls",
-      "layer": "gameplay",
-      "fixtures": {
-        "intricate_scroll_id": 51746,
-        "powerful_scroll_id": 51466,
-        "eligible_slot": "boots"
-      },
-      "assertions": [
-        "Each scroll resolves to the corresponding Vibrancy tier.",
-        "A valid boot receives the correct imbuement and duration.",
-        "The scroll is consumed only after successful application.",
-        "Invalid item, occupied category or unavailable slot does not consume the scroll."
-      ]
+      "layer": "gameplay"
     },
     {
+      "assertions": [
+        "an item cannot receive two entries from the same category",
+        "rejection does not consume resources"
+      ],
       "id": "duplicate-category-rejection",
-      "layer": "gameplay",
-      "assertions": [
-        "An item cannot receive two imbuements from the same category.",
-        "Rejection does not consume gold, materials or scrolls.",
-        "Other eligible categories remain available in free slots."
-      ]
+      "layer": "gameplay"
     },
     {
+      "assertions": [
+        "single-slot shrine clearing charges 15000 gold",
+        "Etcher clears all active slots and is consumed only on success"
+      ],
       "id": "clearing",
-      "layer": "gameplay",
-      "fixtures": {
-        "etcher_item_id": 51443,
-        "single_slot_clear_cost": 15000
-      },
-      "assertions": [
-        "Shrine clearing removes only the selected slot and charges exactly 15000 gold.",
-        "Insufficient gold leaves the imbuement and resources unchanged.",
-        "Etcher clears all active slots and is consumed only on success.",
-        "Etcher used on an item without active imbuements is not consumed."
-      ]
+      "layer": "gameplay"
     },
     {
+      "assertions": [
+        "combat imbuements decay only while equipped and in combat outside protection zones",
+        "combat imbuements do not decay in backpack or while out of combat"
+      ],
       "id": "duration-combat",
-      "layer": "runtime",
-      "assertions": [
-        "Aggressive imbuements decay while equipped, in combat and outside protection zones.",
-        "They do not decay out of combat, in a protection zone or inside a backpack.",
-        "Crossing a decay boundary cannot remove stats more than once."
-      ]
+      "layer": "runtime"
     },
     {
+      "assertions": [
+        "Swiftness and Featherweight decay while their item is directly equipped",
+        "they do not decay while stored in a container"
+      ],
       "id": "duration-noncombat",
-      "layer": "runtime",
-      "fixtures": {
-        "families": [
-          "Swiftness",
-          "Featherweight"
-        ]
-      },
-      "assertions": [
-        "Non-aggressive imbuements decay while their item is directly equipped.",
-        "They do not decay while their item is stored in a container.",
-        "The optional non-aggressive-fight-only setting changes behavior exactly as documented."
-      ]
+      "layer": "runtime"
     },
     {
+      "assertions": [
+        "imbuement IDs and remaining duration survive save/logout/login",
+        "expired effects are removed exactly once"
+      ],
       "id": "persistence",
-      "layer": "runtime",
-      "assertions": [
-        "Imbuement IDs, slots and remaining duration survive save, logout and login.",
-        "An expired effect is absent after reload and its modifiers are not applied.",
-        "Repeated equip or login paths do not duplicate modifiers."
-      ]
+      "layer": "runtime"
     },
     {
-      "id": "item-eligibility",
-      "layer": "static-and-gameplay",
       "assertions": [
-        "Only item-declared categories and tiers appear in the shrine.",
-        "Items with no imbuement slots are rejected.",
-        "Native conflicting bonuses are not offered under the approved rules.",
-        "Leg items are not imbuable under the current referenced rules.",
-        "The complete active item set is compared with the current reference in a separate deterministic audit."
-      ]
+        "only item-declared categories and tiers appear in the shrine",
+        "native conflicting bonuses are not offered",
+        "Legs are not imbuable under the approved Tibia rules"
+      ],
+      "id": "item-eligibility",
+      "layer": "static-and-gameplay"
     }
-  ]
+  ],
+  "schema_version": 1,
+  "source": {
+    "reference": "https://tibia.fandom.com/wiki/Imbuing",
+    "reference_observed": "2026-07-13",
+    "registry": "data/XML/imbuements.xml"
+  }
 }

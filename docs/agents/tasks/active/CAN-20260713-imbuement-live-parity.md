@@ -11,7 +11,7 @@ updated: 2026-07-13T14:20:00+02:00
 last_verified_commit: "3ad10132cbd76adc42f946da3ca3077e5bd6bbd0"
 risk: medium
 related_issue: "IMB-001, IMB-002, IMB-003, IMB-006"
-related_pr: "pending"
+related_pr: "#251"
 depends_on:
   - merged Imbuement audit PR #166
   - merged Forgotten Knowledge storage repair PR #206
@@ -29,6 +29,7 @@ owned_paths:
     - docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md
     - docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json
     - docs/agents/CHANGELOG.md
+    - docs/agents/MODULE_CATALOG.md
     - docs/agents/tasks/active/CAN-20260713-imbuement-live-parity.md
   shared: []
   read_only:

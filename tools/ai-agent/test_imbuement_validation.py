@@ -53,18 +53,15 @@ class ImbuementValidationTests(unittest.TestCase):
             [finding.message for finding in structural_findings],
         )
 
-    def test_current_reference_differences_are_detected(self) -> None:
+    def test_confirmed_live_reference_values_match(self) -> None:
         grouped: dict[str, list[validation.Finding]] = {}
         for finding in self.findings:
             grouped.setdefault(finding.code, []).append(finding)
 
-        self.assertEqual(len(grouped.get("WIKI_EFFECT", [])), 3)
-        self.assertTrue(all("Strike" in finding.message for finding in grouped["WIKI_EFFECT"]))
-
-        self.assertEqual(len(grouped.get("WIKI_MATERIALS", [])), 1)
-        self.assertIn("Punch tier 1", grouped["WIKI_MATERIALS"][0].message)
-
+        self.assertEqual(grouped.get("WIKI_EFFECT", []), [])
+        self.assertEqual(grouped.get("WIKI_MATERIALS", []), [])
         self.assertEqual(grouped.get("WIKI_SCROLL", []), [])
+        self.assertEqual(grouped.get("WIKI_FEE_MODEL", []), [])
 
         unlock_messages = {
             finding.message
@@ -72,8 +69,6 @@ class ImbuementValidationTests(unittest.TestCase):
         }
         self.assertTrue(any("Featherweight" in message for message in unlock_messages))
         self.assertTrue(any("Vibrancy" in message for message in unlock_messages))
-
-        self.assertEqual(len(grouped.get("WIKI_FEE_MODEL", [])), 3)
 
     def test_vibrancy_scrolls_resolve_to_exact_tiers(self) -> None:
         for scroll_id, tier in ((51746, 2), (51466, 3)):
