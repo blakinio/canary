@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_REACHABILITY.schema.json",
+  "title": "Canary OTBM Reachability Report",
+  "type": "object",
+  "required": ["format", "schemaVersion", "provenance", "summary", "transitionAudit", "evidenceBoundary"],
+  "properties": {
+    "format": {"const": "canary-otbm-reachability-v1"},
+    "schemaVersion": {"const": 1},
+    "provenance": {
+      "type": "object",
+      "required": ["worldIndex", "appearances", "movementCatalog"],
+      "properties": {
+        "worldIndex": {
+          "type": "object",
+          "required": ["path", "sha256", "header"],
+          "properties": {
+            "path": {"type": "string"},
+            "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "header": {"type": "object"}
+          },
+          "additionalProperties": true
+        },
+        "appearances": {
+          "type": "object",
+          "required": ["path", "sha256", "objectCount"],
+          "properties": {
+            "path": {"type": "string"},
+            "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "objectCount": {"type": "integer", "minimum": 0}
+          },
+          "additionalProperties": true
+        },
+        "movementCatalog": {
+          "oneOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "required": ["path", "sha256", "ruleCount"],
+              "properties": {
+                "path": {"type": "string"},
+                "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+                "ruleCount": {"type": "integer", "minimum": 0}
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "bounds": {
+      "oneOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/bounds"}
+      ]
+    },
+    "summary": {
+      "type": "object",
+      "required": ["transitionCount", "confirmed", "conditional", "unresolved", "invalid", "selfLoop", "reversePaired", "oneWay", "deadEnd", "routeStatus"],
+      "properties": {
+        "transitionCount": {"type": "integer", "minimum": 0},
+        "confirmed": {"type": "integer", "minimum": 0},
+        "conditional": {"type": "integer", "minimum": 0},
+        "unresolved": {"type": "integer", "minimum": 0},
+        "invalid": {"type": "integer", "minimum": 0},
+        "selfLoop": {"type": "integer", "minimum": 0},
+        "reversePaired": {"type": "integer", "minimum": 0},
+        "oneWay": {"type": "integer", "minimum": 0},
+        "deadEnd": {"type": "integer", "minimum": 0},
+        "routeStatus": {"enum": [null, "confirmed", "unresolved", "unreachable"]}
+      },
+      "additionalProperties": false
+    },
+    "transitionAudit": {
+      "type": "object",
+      "required": ["totalCount", "sampleLimit", "truncated", "counts", "findings"],
+      "properties": {
+        "totalCount": {"type": "integer", "minimum": 0},
+        "sampleLimit": {"type": "integer", "minimum": 1, "maximum": 10000},
+        "truncated": {"type": "boolean"},
+        "counts": {"type": "object"},
+        "findings": {"type": "array", "items": {"$ref": "#/$defs/transitionFinding"}}
+      },
+      "additionalProperties": false
+    },
+    "route": {
+      "oneOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/route"}
+      ]
+    },
+    "evidenceBoundary": {
+      "type": "object",
+      "required": ["dynamicLuaExecuted", "mapModified", "appearanceUnpassableIsRuntimeProof", "unreviewedFloorTransitionsGuessed"],
+      "properties": {
+        "dynamicLuaExecuted": {"const": false},
+        "mapModified": {"const": false},
+        "appearanceUnpassableIsRuntimeProof": {"const": false},
+        "unreviewedFloorTransitionsGuessed": {"const": false}
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "bounds": {
+      "type": "object",
+      "required": ["from", "to"],
+      "properties": {
+        "from": {"$ref": "#/$defs/position"},
+        "to": {"$ref": "#/$defs/position"}
+      },
+      "additionalProperties": false
+    },
+    "tileEvidence": {
+      "type": "object",
+      "required": ["position", "exists", "floor", "walkability", "reasons", "placements"],
+      "properties": {
+        "position": {"$ref": "#/$defs/position"},
+        "exists": {"type": "boolean"},
+        "floor": {"enum": ["confirmed", "absent", "unresolved"]},
+        "walkability": {"enum": ["walkable", "blocked", "conditional", "unresolved"]},
+        "reasons": {"type": "array", "items": {"type": "string"}},
+        "placements": {"type": "array", "items": {"type": "object"}}
+      },
+      "additionalProperties": true
+    },
+    "transitionFinding": {
+      "type": "object",
+      "required": ["status", "codes", "transition", "reversePaired", "oneWay", "deadEnd", "sourceEvidence", "destinationEvidence"],
+      "properties": {
+        "status": {"enum": ["confirmed", "conditional", "unresolved", "invalid"]},
+        "codes": {"type": "array", "items": {"type": "string"}},
+        "transition": {
+          "type": "object",
+          "required": ["source", "destination", "kind", "itemId", "placementOrdinal"],
+          "properties": {
+            "source": {"$ref": "#/$defs/position"},
+            "destination": {"$ref": "#/$defs/position"},
+            "kind": {"enum": ["teleport", "relative", "relative-reverse"]},
+            "itemId": {"type": "integer", "minimum": 0, "maximum": 65535},
+            "placementOrdinal": {"type": "integer", "minimum": 0},
+            "role": {"type": "string"}
+          },
+          "additionalProperties": false
+        },
+        "reversePaired": {"type": "boolean"},
+        "oneWay": {"type": "boolean"},
+        "deadEnd": {"type": "boolean"},
+        "sourceEvidence": {"$ref": "#/$defs/tileEvidence"},
+        "destinationEvidence": {"$ref": "#/$defs/tileEvidence"}
+      },
+      "additionalProperties": false
+    },
+    "route": {
+      "type": "object",
+      "required": ["status", "reason", "bounds", "start", "goal", "startEvidence", "goalEvidence", "indexedNodeCount", "transitionEdgeCount", "pathLength", "pathTruncated", "path", "conditionalPathPositions"],
+      "properties": {
+        "status": {"enum": ["confirmed", "unresolved", "unreachable"]},
+        "reason": {"type": "string"},
+        "bounds": {"$ref": "#/$defs/bounds"},
+        "start": {"$ref": "#/$defs/position"},
+        "goal": {"$ref": "#/$defs/position"},
+        "startEvidence": {"$ref": "#/$defs/tileEvidence"},
+        "goalEvidence": {"$ref": "#/$defs/tileEvidence"},
+        "indexedNodeCount": {"type": "integer", "minimum": 0},
+        "transitionEdgeCount": {"type": "integer", "minimum": 0},
+        "pathLength": {"type": ["integer", "null"], "minimum": 0},
+        "pathTruncated": {"type": "boolean"},
+        "path": {"type": "array", "items": {"$ref": "#/$defs/position"}},
+        "conditionalPathPositions": {"type": "array", "items": {"$ref": "#/$defs/position"}}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
