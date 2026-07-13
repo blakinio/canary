@@ -14,6 +14,7 @@
 #include "creatures/players/components/player_title.hpp"
 #include "creatures/players/grouping/familiars.hpp"
 #include "creatures/players/grouping/groups.hpp"
+#include "game/instance/instance_arena_service.hpp"
 #include "game/instance/instance_manager.hpp"
 #include "lua/creature/raids.hpp"
 #include "map/map.hpp"
@@ -709,14 +710,18 @@ public:
 	const std::unique_ptr<AttachedEffects> &getAttachedEffects() const;
 
 	// The single runtime owner of the instance subsystem (docs/architecture/
-	// instance-manager.md). Constructed with zero configured regions until a
-	// concrete instanced feature defines real ones - createInstance() simply
-	// fails with "no available instance regions" until then. Nothing calls
-	// this yet: spawn/NPC creation, the scheduler and player enter/leave all
-	// still run entirely in the normal world. This only removes the
-	// prerequisite blocking those follow-ups from wiring in for real.
+	// instance-manager.md), configured with the Instanced Test Arena's two
+	// regions (docs/architecture/instanced-test-arena.md). Spawn/NPC
+	// creation, the scheduler and player enter/leave outside the arena
+	// feature still run entirely in the normal world.
 	InstanceManager &getInstanceManager();
 	const InstanceManager &getInstanceManager() const;
+
+	// The Instanced Test Arena's real consumer of the instance manager
+	// above (docs/architecture/instanced-test-arena.md). Administrator-only;
+	// not a generic dungeon framework.
+	InstanceArenaService &getInstanceArenaService();
+	const InstanceArenaService &getInstanceArenaService() const;
 
 	void setTransferPlayerHouseItems(uint32_t houseId, uint32_t playerId);
 	void transferHouseItemsToDepot();
@@ -991,7 +996,8 @@ private:
 
 	std::unique_ptr<AttachedEffects> m_attachedEffects;
 
-	InstanceManager m_instanceManager { std::vector<InstanceMapRegion> {} };
+	InstanceManager m_instanceManager { InstanceArenaService::configuredRegions() };
+	InstanceArenaService m_instanceArenaService { m_instanceManager };
 
 	void cacheQueryHighscore(const std::string &key, const std::string &query, uint32_t page, uint8_t entriesPerPage);
 	void processHighscoreResults(const DBResult_ptr &result, uint32_t playerID, uint8_t category, uint32_t vocation, uint8_t entriesPerPage);

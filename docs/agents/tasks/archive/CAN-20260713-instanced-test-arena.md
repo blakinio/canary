@@ -2,7 +2,7 @@
 task_id: CAN-20260713-instanced-test-arena
 program_id: CAN-PROGRAM-INSTANCED-TEST-ARENA
 coordination_id: ""
-status: ready_for_pr
+status: merged
 agent: "Claude"
 branch: docs/instanced-test-arena-plan
 base_branch: main
@@ -228,10 +228,13 @@ for the exact coordinates.
 
 # Completion
 
-- Final status: pending PR/CI.
-- PR: (to be filled after opening).
-- Merge commit: (to be filled after merge).
-- Program record updated: yes (Active tasks/Queue).
-- Catalogue updated: not applicable yet (no runtime module in this PR).
-- Changelog updated: not applicable yet (docs-planning PR, no behavior change).
-- Archived at: (after merge).
+- Final status: merged, CI green (Required, Fast Checks, Lua Tests, Linux
+  release, lint/format/audit jobs; Windows/macOS/Docker skipped as expected
+  for a docs-only change).
+- PR: #287.
+- Merge commit: `47270c39f4e36568e8440cf6d2f421f5f09e6f67`.
+- Program record updated: yes (Active tasks/Queue/Completed work).
+- Catalogue updated: not applicable (no runtime module in this PR; PR 2
+  added `InstanceArenaService` to the catalogue).
+- Changelog updated: not applicable (docs-planning PR, no behavior change).
+- Archived at: `docs/agents/tasks/archive/CAN-20260713-instanced-test-arena.md`.
