@@ -19,6 +19,7 @@ jobs:
         with:
           ref: fix/forge-server-authority
           fetch-depth: 0
+          show-progress: false
 
       - name: Apply exact Forge authority changes
         shell: bash
