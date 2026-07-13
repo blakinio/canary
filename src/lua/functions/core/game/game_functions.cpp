@@ -16,6 +16,7 @@
 #include "creatures/players/player.hpp"
 #include "game/functions/game_reload.hpp"
 #include "game/game.hpp"
+#include "game/multichannel/channel_switch_audit_store.hpp"
 #include "game/multichannel/cluster_session_lookup.hpp"
 #include "game/scheduling/dispatcher.hpp"
 #include "io/io_bosstiary.hpp"
@@ -88,6 +89,8 @@ void GameFunctions::init(lua_State* L) {
 	Lua::registerMethod(L, "Game", "getOfflinePlayer", GameFunctions::luaGameGetOfflinePlayer);
 	Lua::registerMethod(L, "Game", "getNormalizedPlayerName", GameFunctions::luaGameGetNormalizedPlayerName);
 	Lua::registerMethod(L, "Game", "getPlayerClusterChannel", GameFunctions::luaGameGetPlayerClusterChannel);
+	Lua::registerMethod(L, "Game", "getClusterOnlinePlayers", GameFunctions::luaGameGetClusterOnlinePlayers);
+	Lua::registerMethod(L, "Game", "getPlayerChannelSwitchHistory", GameFunctions::luaGameGetPlayerChannelSwitchHistory);
 	Lua::registerMethod(L, "Game", "getNormalizedGuildName", GameFunctions::luaGameGetNormalizedGuildName);
 
 	Lua::registerMethod(L, "Game", "addInfluencedMonster", GameFunctions::luaGameAddInfluencedMonster);
@@ -866,6 +869,71 @@ int GameFunctions::luaGameGetPlayerClusterChannel(lua_State* L) {
 	}
 
 	Lua::pushNumber(L, *channelId);
+	return 1;
+}
+
+/***
+ * @function Game.getClusterOnlinePlayers
+ * @return table[]
+ */
+int GameFunctions::luaGameGetClusterOnlinePlayers(lua_State* L) {
+	// Game.getClusterOnlinePlayers()
+	// GM/admin lookup (docs/multichannel/OPERATIONS.md "Cluster-wide online
+	// list"): every player currently recorded online anywhere in the
+	// cluster, reading the DB mirror rather than any in-memory state (this
+	// process only knows about players logged into itself).
+	const auto entries = multichannel::listOnlinePlayers();
+
+	int index = 0;
+	lua_createtable(L, static_cast<int>(entries.size()), 0);
+	for (const auto &entry : entries) {
+		lua_createtable(L, 0, 4);
+		Lua::setField(L, "accountId", entry.accountId);
+		Lua::setField(L, "playerId", entry.playerId);
+		Lua::setField(L, "name", entry.playerName);
+		Lua::setField(L, "channelId", entry.channelId);
+		lua_rawseti(L, -2, ++index);
+	}
+	return 1;
+}
+
+/***
+ * @function Game.getPlayerChannelSwitchHistory
+ * @param name string
+ * @param limit number
+ * @return table[]
+ */
+int GameFunctions::luaGameGetPlayerChannelSwitchHistory(lua_State* L) {
+	// Game.getPlayerChannelSwitchHistory(name[, limit = 10])
+	// GM/admin lookup (docs/multichannel/OPERATIONS.md "Inspect the last N
+	// channel-switch audit rows for a player").
+	const auto name = Lua::getString(L, 1);
+	const auto limit = Lua::getNumber<int32_t>(L, 2, 10);
+
+	const uint32_t guid = IOLoginData::getGuidByName(name);
+	if (guid == 0) {
+		lua_createtable(L, 0, 0);
+		return 1;
+	}
+
+	const auto entries = ChannelSwitchAuditStore::getRecentHistory(static_cast<int32_t>(guid), limit);
+
+	int index = 0;
+	lua_createtable(L, static_cast<int>(entries.size()), 0);
+	for (const auto &entry : entries) {
+		lua_createtable(L, 0, 5);
+		if (entry.sourceChannelId.has_value()) {
+			Lua::setField(L, "sourceChannelId", *entry.sourceChannelId);
+		} else {
+			lua_pushnil(L);
+			lua_setfield(L, -2, "sourceChannelId");
+		}
+		Lua::setField(L, "targetChannelId", entry.targetChannelId);
+		Lua::setField(L, "result", entry.result);
+		Lua::setField(L, "denyReason", entry.denyReason);
+		Lua::setField(L, "createdAt", entry.createdAtMs);
+		lua_rawseti(L, -2, ++index);
+	}
 	return 1;
 }
 

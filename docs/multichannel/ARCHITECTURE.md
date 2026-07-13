@@ -698,7 +698,7 @@ houses), not a fix - it is a genuine `per-channel` job needing no
 coordination. See OPERATIONS.md's job table for the corrected
 classification and full reasoning.
 
-## 10b. GM/admin commands (✅ one read-only lookup, 📐 the rest)
+## 10b. GM/admin commands (✅ three read-only lookups, 📐 the rest)
 
 `OPERATIONS.md`'s "GM / admin commands" list was previously a contract only.
 **"Locate a player's current channel"** is now implemented as
@@ -737,11 +737,46 @@ correctly **not** reported as a live channel location, since the query
 filters on `status = 'ONLINE'` rather than merely "a row exists for this
 player_id".
 
+**✅ `Game.getClusterOnlinePlayers()`** (`src/lua/functions/core/game/
+game_functions.cpp`) implements **"Cluster-wide online list"**: a read-only
+Lua global returning an array of `{accountId, playerId, name, channelId}`
+for every player currently recorded `ONLINE` anywhere in the cluster, via a
+new `multichannel::listOnlinePlayers()` (`cluster_session_lookup.hpp`/
+`.cpp`, a sibling of `findOnlineChannelForPlayer` above) - a single
+`cluster_sessions` ⋈ `players` join, ordered by channel then name. Same
+no-access-check convention as the previous command; same DB-mirror
+rationale (a GM's own process only knows about players logged into itself).
+
+**✅ `Game.getPlayerChannelSwitchHistory(name[, limit = 10])`** implements
+**"Inspect the last N channel-switch audit rows for a player"**: resolves
+the name to a guid the same way, then calls a new `ChannelSwitchAuditStore::
+getRecentHistory(playerId, limit)` (`channel_switch_audit_store.hpp`/`.cpp`,
+alongside the store's existing `findPending`/`getLastSwitchAtMs`) against
+the `channel_switch_audit` table (§6), returning an array of
+`{sourceChannelId (nil on first-ever login), targetChannelId, result,
+denyReason, createdAt}`, newest first. `source_channel_id` is a nullable DB
+column with no `isNull()` accessor available on this codebase's `DBResult`
+type, so the query reads `COALESCE(source_channel_id, 0)` and treats `0` as
+"unset" in C++ - safe because channel ids start at `1`
+(`ChannelContext::DefaultSingleChannelId`), the same convention
+`ChannelRegistry`'s existing `optionalIntColumn` helper already uses for a
+different nullable int column.
+
+**✅ Verified** against a real MariaDB 10.11 (both new queries, alongside
+the existing one for this phase): the online-list join correctly returns
+and orders multiple players across different channels; the history query
+correctly returns rows newest-first, correctly honors `LIMIT`, correctly
+represents a `NULL` `source_channel_id` (first-ever login) as absent in the
+result, and correctly returns an empty list for a player with no audit
+history at all.
+
 **📐 Known gap, stated honestly:** every other command in OPERATIONS.md's
-list (cluster-wide online list, kick a player on another channel,
-cross-channel broadcast, force-save/drain/maintenance a channel, DIRTY
-session recovery, session lock/fencing inspection, channel-switch audit
-history) remains contract-only.
+list (kick a player on another channel, cross-channel broadcast,
+force-save/drain/maintenance a channel, DIRTY session recovery, session
+lock/fencing inspection) remains contract-only - notably, every command
+implemented so far is read-only; none of the remaining ones are (they all
+either mutate cluster state or need cross-process signaling to a *different*
+channel process, which no mechanism in this codebase currently provides).
 
 ## 11. Why Phase 1 and not the whole spec
 
