@@ -8,14 +8,14 @@ branch: ci/cyclopedia-validation-gate
 base_branch: main
 cleanup_branch: docs/archive-cyclopedia-validation-gate
 created: 2026-07-13T12:00:00+02:00
-updated: 2026-07-13T13:55:00+02:00
+updated: 2026-07-13T14:00:00+02:00
 completed: 2026-07-13T13:50:00+02:00
 last_verified_commit: "a1e245825288fb738f33be67790335cea3ae55b8"
 merge_commit: "be502f4180fbef7d4d415f28b95c44d0330f04d2"
 risk: low
 related_issue: ""
 related_pr: "#243"
-cleanup_pr: "pending"
+cleanup_pr: "#249"
 depends_on:
   - merged Cyclopedia audit PR #170
   - merged Cyclopedia runtime/source remediation PR #188
@@ -112,8 +112,6 @@ Feature changed files exactly:
 
 # Final deterministic result
 
-Final feature-head Cyclopedia Validation:
-
 ```text
 run: 29244750696
 job: Audit Cyclopedia registries and contracts
@@ -184,16 +182,16 @@ Local checkout and local tests were unavailable. No local test is claimed. GitHu
 # Cleanup
 
 - cleanup branch: `docs/archive-cyclopedia-validation-gate`;
-- cleanup PR: pending at initial archive commit;
+- cleanup PR: #249;
+- initial move head before PR-number metadata: `0ab02c95d1b7136cb6faa746404469c21ab85ad7`;
 - cleanup scope: move this record from `tasks/active` to `tasks/archive` only;
 - no code, workflow, report, E2E or `ACTIVE_WORK.md` change.
 
 # Remaining work
 
-1. Open the cleanup PR.
-2. Record its number and final head in this archive record.
-3. Verify exact two-path move and applicable CI.
-4. Squash-merge cleanup.
+1. Verify the final cleanup head and exact two-path move.
+2. Verify applicable cleanup CI and review threads.
+3. Squash-merge cleanup PR #249.
 
 # Handoff
 
