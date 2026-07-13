@@ -11,7 +11,7 @@ last_verified_commit: "9673ea895adae1bb3e829be7f6ba99294ef714b3"
 merge_commit: "7eb891044d5753b713aa398202d232679501b01e"
 risk: medium
 related_pr: "#251"
-cleanup_pr: "pending"
+cleanup_pr: "#255"
 depends_on:
   - merged Imbuement audit PR #166
   - merged Forgotten Knowledge storage repair PR #206
@@ -29,6 +29,7 @@ The active Canary Imbuement registry was aligned with the current live Tibia mec
 - Feature PR: #251.
 - Final feature head: `9673ea895adae1bb3e829be7f6ba99294ef714b3`.
 - Squash merge: `7eb891044d5753b713aa398202d232679501b01e`.
+- Cleanup PR: #255.
 - Final changed-file count: 11.
 - No workflow, temporary helper, trigger, diagnostic, map, `items.otb`, binary asset, database schema, production configuration, client, protocol or `docs/agents/ACTIVE_WORK.md` path remained in the feature diff.
 - Review conversation and review threads: none.
@@ -160,7 +161,7 @@ This task proves current audited registry data, loader integration, deterministi
 
 # Remaining work
 
-None for this bounded task after the cleanup PR is merged.
+None for this bounded task after cleanup PR #255 is merged.
 
 # Handoff
 
