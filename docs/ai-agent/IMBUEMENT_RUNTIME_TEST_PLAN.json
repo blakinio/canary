@@ -313,5 +313,13 @@
         "The complete active item set is compared with the current reference in a separate deterministic audit."
       ]
     }
-  ]
+  ],
+  "dry_test_evidence": {
+    "direct_id_access_guard": {
+      "status": "implemented_pending_final_ci",
+      "normal_application": "server checks premium and configured quest storage before resource mutation",
+      "scroll_creation": "server checks premium and configured quest storage before resource mutation",
+      "existing_scroll_application": "unchanged; possession of the scroll remains the entitlement token"
+    }
+  }
 }

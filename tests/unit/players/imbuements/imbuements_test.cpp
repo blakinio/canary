@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "creatures/players/imbuements/imbuements.hpp"
+#include "creatures/players/imbuements/imbuement_access_policy.hpp"
 #include "creatures/players/player.hpp"
 #include "items/containers/inbox/inbox.hpp"
 #include "items/item.hpp"
@@ -223,6 +224,17 @@ namespace {
 		EXPECT_EQ(2U, inbox->size());
 		ImbuementInfo info;
 		EXPECT_FALSE(target->getImbuementInfo(0, &info));
+	}
+
+	TEST_F(ImbuementsUnitTest, DirectAccessPolicyEnforcesPremiumAndStorageWithoutChangingScrollEntitlement) {
+		const auto missingStorage = [](uint32_t) { return -1; };
+		const auto unlockedStorage = [](uint32_t) { return 1; };
+
+		EXPECT_TRUE(ImbuementAccessPolicy::canApplyDirectly(false, false, false, 0, 1, missingStorage));
+		EXPECT_FALSE(ImbuementAccessPolicy::canApplyDirectly(false, false, true, 0, 2, missingStorage));
+		EXPECT_FALSE(ImbuementAccessPolicy::canApplyDirectly(true, true, true, 45929, 3, missingStorage));
+		EXPECT_TRUE(ImbuementAccessPolicy::canApplyDirectly(true, true, true, 45929, 3, unlockedStorage));
+		EXPECT_TRUE(ImbuementAccessPolicy::canApplyDirectly(false, true, true, 45929, 3, missingStorage));
 	}
 
 	TEST_F(ImbuementsUnitTest, RejectsOccupiedVibrancyCategoryWithoutConsumingScroll) {

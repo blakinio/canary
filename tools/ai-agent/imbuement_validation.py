@@ -126,6 +126,14 @@ RUNTIME_REQUIREMENTS: dict[str, tuple[str, ...]] = {
     "src/game/game.cpp": (
         "playerApplyImbuement", "playerClearImbuement",
     ),
+    "src/creatures/players/player.cpp": (
+        "ImbuementAccessPolicy::canApplyDirectly",
+        "canApplyImbuementDirectly(thisPlayer, imbuement)",
+        "canApplyImbuementDirectly(getPlayer(), imbuement)",
+    ),
+    "src/creatures/players/imbuements/imbuement_access_policy.hpp": (
+        "canApplyDirectly", "ImbuementStoragePolicy::shouldHide",
+    ),
     "src/creatures/players/player.hpp": (
         "onApplyImbuement", "onClearImbuement",
         "clearAllImbuements", "openImbuementWindow",

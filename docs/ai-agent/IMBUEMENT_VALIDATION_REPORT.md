@@ -270,3 +270,8 @@ ctest --test-dir build/linux-debug \
   --output-on-failure \
   -R canary_ut
 ```
+
+
+## Direct-ID dry-test finding
+
+A post-merge dry review found that storage and premium filtering had been enforced only while building the normal client list. A modified client could submit a hidden numeric Imbuement ID directly. PR #282 adds a server-side direct-access policy before money or material mutation in both normal application and scroll creation. Applying an already-created Imbuement Scroll remains a separate path and is intentionally unchanged.
