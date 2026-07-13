@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opentibiabr.github.io/canary/schemas/otbm-spawn-npc-validation-v1.json",
+  "title": "Canary OTBM spawn and NPC map validation",
+  "type": "object",
+  "required": ["format", "schemaVersion", "ok", "provenance", "region", "policy", "summary", "spawnGroups", "spawnGroupsTruncated", "placements", "placementsTruncated", "dynamicCreations", "dynamicCreationsTruncated", "findings"],
+  "properties": {
+    "format": {"const": "canary-otbm-spawn-npc-validation-v1"},
+    "schemaVersion": {"const": 1},
+    "ok": {"type": "boolean"},
+    "provenance": {"type": "object"},
+    "region": {
+      "type": "object",
+      "required": ["from", "to", "coordinateCount"],
+      "properties": {
+        "from": {"$ref": "#/$defs/position"},
+        "to": {"$ref": "#/$defs/position"},
+        "coordinateCount": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "policy": {"type": "object"},
+    "summary": {"type": "object"},
+    "spawnGroups": {"type": "array", "items": {"type": "object"}},
+    "spawnGroupsTruncated": {"type": "boolean"},
+    "placements": {"type": "array", "items": {"type": "object"}},
+    "placementsTruncated": {"type": "boolean"},
+    "dynamicCreations": {"type": "array", "items": {"type": "object"}},
+    "dynamicCreationsTruncated": {"type": "boolean"},
+    "findings": {"type": "array", "items": {"type": "object"}}
+  },
+  "$defs": {
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    }
+  },
+  "additionalProperties": false
+}

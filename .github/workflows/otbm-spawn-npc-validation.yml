@@ -1,0 +1,124 @@
+name: OTBM Spawn and NPC Validation
+
+on:
+  push:
+    branches:
+      - main
+      - "feat/**"
+      - "fix/**"
+      - "ai/**"
+    paths:
+      - "tools/ai-agent/otbm_spawn_npc*.py"
+      - "tools/ai-agent/test_otbm_spawn_npc*.py"
+      - "tools/ai-agent/otbm_world_index.py"
+      - "tools/ai-agent/otbm_reachability*.py"
+      - "data-otservbr-global/world/otservbr-monster.xml"
+      - "data-otservbr-global/world/otservbr-npc.xml"
+      - "data-otservbr-global/monster/**/*.lua"
+      - "data-otservbr-global/npc/**/*.lua"
+      - "data-otservbr-global/scripts/**/*.lua"
+      - "docs/ai-agent/OTBM_SPAWN_NPC_*.schema.json"
+      - ".github/workflows/otbm-spawn-npc-validation.yml"
+  pull_request:
+    paths:
+      - "tools/ai-agent/otbm_spawn_npc*.py"
+      - "tools/ai-agent/test_otbm_spawn_npc*.py"
+      - "tools/ai-agent/otbm_world_index.py"
+      - "tools/ai-agent/otbm_reachability*.py"
+      - "data-otservbr-global/world/otservbr-monster.xml"
+      - "data-otservbr-global/world/otservbr-npc.xml"
+      - "data-otservbr-global/monster/**/*.lua"
+      - "data-otservbr-global/npc/**/*.lua"
+      - "data-otservbr-global/scripts/**/*.lua"
+      - "docs/ai-agent/OTBM_SPAWN_NPC_*.schema.json"
+      - ".github/workflows/otbm-spawn-npc-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate active spawn, boss and NPC evidence
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run focused Phase 4 tests
+        run: |
+          PYTHONPATH=tools/ai-agent \
+            python -m unittest -v \
+              tools/ai-agent/test_otbm_spawn_npc_validation.py \
+              tools/ai-agent/test_otbm_spawn_npc_runtime_semantics.py
+
+      - name: Compile Python modules
+        run: |
+          python -m py_compile \
+            tools/ai-agent/otbm_spawn_npc.py \
+            tools/ai-agent/otbm_spawn_npc_validation.py \
+            tools/ai-agent/otbm_spawn_npc_tool.py \
+            tools/ai-agent/test_otbm_spawn_npc_validation.py \
+            tools/ai-agent/test_otbm_spawn_npc_runtime_semantics.py
+
+      - name: Validate JSON schema syntax
+        run: |
+          python -m json.tool docs/ai-agent/OTBM_SPAWN_NPC_EVIDENCE.schema.json > /dev/null
+          python -m json.tool docs/ai-agent/OTBM_SPAWN_NPC_VALIDATION.schema.json > /dev/null
+
+      - name: Scan the selected active global datapack without executing Lua
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=tools/ai-agent \
+            python tools/ai-agent/otbm_spawn_npc_tool.py scan \
+              --datapack-root data-otservbr-global \
+              --monster-spawn world/otservbr-monster.xml \
+              --npc-spawn world/otservbr-npc.xml \
+              --monster-definition-glob 'monster/**/*.lua' \
+              --npc-definition-glob 'npc/**/*.lua' \
+              --dynamic-glob 'scripts/**/*.lua' \
+              --sample-limit 1000 \
+              --output artifacts/OTBM_SPAWN_NPC_EVIDENCE.json
+
+      - name: Verify source evidence contract and bounds
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("artifacts/OTBM_SPAWN_NPC_EVIDENCE.json").read_text(encoding="utf-8"))
+          assert report["format"] == "canary-otbm-spawn-npc-evidence-v1"
+          assert report["policy"]["dynamicLuaExecuted"] is False
+          assert report["policy"]["activeDatapackConfined"] is True
+          assert report["policy"]["runtimeBossEvidence"] == "literal-nonempty-bosstiary-class"
+          assert report["policy"]["rewardBossKeptSeparate"] is True
+          assert report["summary"]["monsterSpawnFiles"] == 1
+          assert report["summary"]["npcSpawnFiles"] == 1
+          assert report["summary"]["placements"] > 0
+          assert report["summary"]["definitions"] > 0
+          assert all("spawnBossLiteral" in definition for definition in report["definitions"])
+          for category in report["sources"].values():
+              for source in category:
+                  assert not Path(source["path"]).is_absolute()
+                  assert ".." not in Path(source["path"]).parts
+          PY
+
+      - name: Assemble local Phase 4 toolkit
+        run: |
+          mkdir -p artifacts/toolkit
+          cp tools/ai-agent/otbm_spawn_npc*.py artifacts/toolkit/
+          cp tools/ai-agent/otbm_world_index.py artifacts/toolkit/
+          cp tools/ai-agent/otbm_reachability*.py artifacts/toolkit/
+          cp docs/ai-agent/OTBM_SPAWN_NPC_*.schema.json artifacts/toolkit/
+          cp docs/ai-agent/OTBM_SPAWN_NPC_VALIDATION.md artifacts/toolkit/
+
+      - name: Upload source evidence and toolkit
+        uses: actions/upload-artifact@v4
+        with:
+          name: otbm-spawn-npc-validation
+          path: artifacts
+          if-no-files-found: error
+          retention-days: 14
