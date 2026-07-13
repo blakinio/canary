@@ -1,28 +1,38 @@
-# OTS AI Achievement Validation — cel, metodologia, stan i handoff
+# OTS AI Achievement Validation — projekt v2
 
-> **Stan dokumentu:** 2026-07-12  
-> **Projekt nadrzędny:** `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md`  
-> **Repozytorium zapisywalne:** `blakinio/canary`  
-> **Gałąź / PR audytu:** `feat/achievement-validation-audit`, `#165`  
-> **Aktualny etap:** statyczny audyt rejestru i aktywnych triggerów ukończony; następne są małe fixy i walidacja semantyczna/runtime  
-> **Najważniejsza zasada:** brak literalnego `addAchievement` nie jest dowodem, że achievement jest nieosiągalny.
+> **Stan dokumentu:** 2026-07-13  
+> **Repozytorium:** `blakinio/canary`  
+> **Gałąź / PR:** `feat/achievements-comprehensive-validation`, draft `#238`  
+> **Formaty:** `canary-achievement-reference-catalog-v1`, `canary-achievement-audit-v2`, `canary-achievement-reviewed-evidence-v1`  
+> **Zasada nadrzędna:** definicja ani literalna referencja nie są dowodem osiągalności achievementu.
 
----
+## Cel
 
-## 1. Cel
+Projekt tworzy powtarzalną, evidence-based walidację każdego achievementu z bieżącej tabeli TibiaWiki/Fandom. Dla każdego wpisu rozdziela:
 
-Projekt ma odpowiedzieć osobno na cztery pytania:
+1. definicję w rejestrze Canary;
+2. fakty referencyjne i klasę warunku;
+3. statyczne lub reviewed ścieżki award/progress/check/remove;
+4. persistence i wymagania backfill;
+5. osiągalność dla obecnych i nowych graczy;
+6. rejestrację runtime oraz testy;
+7. końcowy konserwatywny status.
 
-1. Czy achievement jest poprawnie zdefiniowany?
-2. Czy aktywny kod ma ścieżkę, która może go przyznać albo inkrementować?
-3. Czy zależności gameplay tej ścieżki są spójne?
-4. Czy testowa postać faktycznie może zdobyć achievement i zachować go po relogu/restarcie?
+Dozwolone statusy:
 
-Definicja, statyczna referencja, semantycznie poprawny trigger i działający runtime są czterema oddzielnymi poziomami dowodu.
+```text
+confirmed
+partially-confirmed
+definition-only
+handler-missing
+unresolved
+conflicting
+intentionally-unsupported
+```
 
----
+`unresolved` jest poprawnym wynikiem, gdy dowód jest niewystarczający. Nie wolno go promować przez zgadywanie dynamicznego Lua, pośrednich ścieżek C++ ani same istnienie wpisu na wiki.
 
-## 2. Źródła prawdy
+## Źródła
 
 ### Canary
 
@@ -35,320 +45,157 @@ src/game/game.cpp
 src/lua/functions/core/game/game_functions.cpp
 ```
 
+### Referencja zewnętrzna
+
+```text
+page: https://tibia.fandom.com/wiki/Achievements
+retrieval: https://tibia.fandom.com/api.php?action=parse&page=Achievements&prop=text%7Crevid&format=json&formatversion=2
+page ID: 49280
+revision ID: 1188274
+observed: 2026-07-13
+source bytes: 1,026,270
+source SHA-256: 8a429425ab7b088758646b07f036afdd1d579188d056491aed8e77650306ae8b
+```
+
+Surowy payload i długie opisy/spoilery nie są commitowane. Repo przechowuje fakty, linki encji, klasy warunków, liczby, hashe oraz długości tekstu.
+
+## Trwałe pliki
+
+```text
+tools/ai-agent/achievement_validation.py
+tools/ai-agent/test_achievement_validation.py
+.github/workflows/achievement-validation.yml
+docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json
+docs/ai-agent/ACHIEVEMENT_REFERENCE_CATALOG.json
+docs/ai-agent/ACHIEVEMENT_REVIEWED_EVIDENCE.json
+docs/ai-agent/ACHIEVEMENT_COMPREHENSIVE_VALIDATION.md
+docs/ai-agent/ACHIEVEMENT_VALIDATION_REPORT.md
+docs/ai-agent/ACHIEVEMENT_RUNTIME_TEST_PLAN.json
+```
+
+Pełna tabela 564 wierszy, metodologia, per-row evidence i plan napraw znajdują się w `ACHIEVEMENT_COMPREHENSIVE_VALIDATION.md` oraz w artefakcie workflow.
+
+## Aktualny baseline
+
 ### Referencja
 
 ```text
-https://tibia.fandom.com/wiki/Achievements
+listed/discovered: 564
+total including undiscovered secret: 565
+common: 363
+secret discovered/total: 201/202
+known theoretical points: 1475
+maximum excluding coinciding: 1430
+unknown point rows: 5
+conditions available/unavailable: 558/6
+ID range/gaps: 1..595 / 31
 ```
 
-Versioned snapshot:
+### Canary
 
 ```text
-docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json
-```
-
-Stan 2026-07-12:
-
-- 562 odkryte / wymienione achievementy;
-- 563 łącznie;
-- 362 common;
-- 200 odkrytych secret z 201 łącznie;
-- 1470 punktów teoretycznie;
-- 1425 po wykluczeniu wzajemnie wykluczających się wpisów.
-
-Wiki jest źródłem porównawczym, nie automatyczną zgodą na zmianę Canary. Każda różnica musi zostać skorelowana z aktualnym contentem i runtime.
-
----
-
-## 3. Narzędzie
-
-```text
-tools/ai-agent/achievement_validation.py
-tools/ai-agent/test_achievement_validation.py
-.github/workflows/achievement-validation.yml
-```
-
-Format raportu:
-
-```text
-canary-achievement-audit-v1
-```
-
-CLI:
-
-```bash
-python tools/ai-agent/achievement_validation.py \
-  --repository-root . \
-  --reference-baseline docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json \
-  --output artifacts/ACHIEVEMENT_AUDIT.json \
-  --markdown artifacts/ACHIEVEMENT_AUDIT.md \
-  --allow-findings
-```
-
-Narzędzie:
-
-- parsuje jawne rekordy `[id] = { ... }`;
-- wykrywa brakujące pola, błędne typy, duplikaty ID/nazw, kolejność i luki;
-- waliduje grade/points z jawnym zero-point wyjątkiem informacyjnym;
-- wykrywa błędne helpery rejestru;
-- skanuje oba aktywne datapacki;
-- rozpoznaje `addAchievement`, `addAchievementProgress`, `hasAchievement`, `removeAchievement`, bulk add/remove;
-- odróżnia literalne ID/nazwy od argumentów dynamicznych;
-- oddziela GOD/admin od normalnego gameplay;
-- rozwiązuje statyczne referencje wobec aktywnego rejestru;
-- generuje per-achievement dyspozycje;
-- porównuje count/common/secret/points z baseline;
-- publikuje pełny JSON jako artefakt CI.
-
----
-
-## 4. Dyspozycje
-
-- `direct-static-award` — aktywny literalny award;
-- `static-progress-path` — aktywny literalny progress;
-- `referenced-without-static-award` — check/remove bez literalnego awardu;
-- `admin-only-static-reference` — wyłącznie ścieżka administracyjna;
-- `no-direct-static-reference` — brak literalnej referencji;
-- `needs-semantic-or-runtime-review` — dynamiczny albo pośredni przypadek wymagający dalszych dowodów;
-- `confirmed-broken-static-trigger` — aktywna literalna nazwa/ID nie rozwiązuje się;
-- `confirmed-infrastructure-defect` — helper/rejestracja ma potwierdzony błąd niezależny od konkretnego questa;
-- `reference-entry-not-implemented` — wpis istnieje w bieżącej referencji, lecz nie w rejestrze Canary; nie oznacza automatycznej gotowości contentu.
-
----
-
-## 5. Zweryfikowany baseline Canary
-
-Pełny skan workflow na commit:
-
-```text
-8642fdfa78d83bd41b6948ddf6aee10593cfcdbe
-```
-
-Wynik:
-
-```text
-registry definitions: 541
-ID range: 1..570
-ID gaps: 29
-public: 350
-secret: 191
+definitions: 541
+public/secret: 350/191
 points: 1428
+ID range/gaps: 1..570 / 29
+```
+
+### Pełny skan aktywnych datapacków
+
+```text
 API references: 182
 resolved static references: 160
-unknown static references: 2
+unknown static references: 0
 dynamic references: 22
-admin references: 3
+admin references: 2
+direct-static-award definitions: 89
+static-progress-path definitions: 32
+referenced-without-static-award definitions: 1
+no-direct-static-reference definitions: 419
 ```
 
-Trigger coverage:
+### Statusy v2
 
 ```text
-direct-static-award: 87
-static-progress-path: 32
-referenced-without-static-award: 1
-no-direct-static-reference: 421
+confirmed: 0
+partially-confirmed: 121
+definition-only: 0
+handler-missing: 3
+unresolved: 409
+conflicting: 31
+intentionally-unsupported: 0
 ```
 
-`421` nie oznacza 421 błędów. To kolejka do bezpiecznej analizy tabel, wrapperów, questów i runtime.
+Brak `confirmed` jest celowy: statyczny skan nie dowodzi jednocześnie reachability, persistence/backfill i runtime/E2E.
 
----
+## Potwierdzone różnice
 
-## 6. Potwierdzone findings
+- 24 wpisy bieżącej referencji nie mają definicji w Canary;
+- 7 istniejących definicji różni się grade/secret/points;
+- pięć bieżących wpisów ma nieznane punkty, a sześć nie ma dostępnego warunku źródłowego;
+- ID 564–566 mają definicje, ale reviewed audit nie znalazł award hooków;
+- ID 567 ma zweryfikowany kontrakt dwunastu itemów/proficiency, lecz brak definicji, awardu i backfillu;
+- persistence jest kluczowane kanoniczną nazwą, więc rename wymaga migracji lub aliasu.
 
-### 6.1. Rzadka tabela + `#ACHIEVEMENTS`
+Nie jest to zgoda na automatyczne zmiany gameplayu.
 
-Rejestr ma luki, ale helper używa operatora długości jako granicy. Wysokie ID mogą zostać zarejestrowane przez `pairs`, a pominięte przez helper iterujący `1..#ACHIEVEMENTS`.
+## Metodologia
 
-Dyspozycja: `confirmed-infrastructure-defect`.
+Validator v2:
 
-### 6.2. `Game.isAchievementSecret`
+- zachowuje parser i legacy rows z v1;
+- parsuje commitowany factual reference catalogue;
+- łączy referencję z definicjami po ID i nazwie;
+- zapisuje dokładne path/line dla definicji oraz statycznych API references;
+- oddziela gameplay od GOD/admin;
+- pozostawia dynamiczne argumenty nierozwiązane;
+- pozwala na silniejsze statusy tylko przez versioned reviewed evidence;
+- zapisuje persistence/backfill, attainability, registration i test evidence osobno;
+- publikuje JSON i Markdown w dedykowanym workflow.
 
-Helper:
+## Walidacja
 
-- wyszukuje `foundAchievement`, ale zwraca `achievement.secret` z argumentu;
-- w invalid path używa niezdefiniowanej zmiennej `ach`.
-
-Dyspozycja: `confirmed-infrastructure-defect`.
-
-### 6.3. `You got Horse Power`
+Zweryfikowany implementation head:
 
 ```text
-data/scripts/actions/items/usable_phantasmal_jade_items.lua:36
-trigger: You got Horse Power
-registry: ID 514, You Got Horse Power
+commit: 741c0c40593c894c97212977485f073d8c2e52bb
+Achievement Validation run: 29237298141 (success)
+artifact: 8273938137
+artifact digest: sha256:3a36eec8d0eebb87010a5b12309ab5f2d8015160cbb6f0be7b2b497ba032c140
+AI Agent Tools run: 29237298034 (success)
+Agent Task Ownership run: 29237298047 (success)
+focused tests: 13/13
 ```
 
-C++ wykonuje dokładny `std::map::find(name)`, więc różnica wielkości litery blokuje award.
+Finalny current-head CI musi zostać powtórzony po rebase/refresh i aktualizacji dokumentów.
 
-Dyspozycja: `confirmed-broken-static-trigger`.
+## Granica audytu i napraw
 
-### 6.4. `The Professors Nut`
+Ten PR nie zmienia:
 
-```text
-data-otservbr-global/scripts/quests/hero_of_rathleton/actions_reward.lua:9
-trigger: The Professors Nut
-registry: ID 360, The Professor's Nut
-```
+- aktywnego rejestru;
+- Lua/C++ gameplayu;
+- questów, NPC, bossów, actions ani movements;
+- KV lub schematu bazy;
+- map, `items.otb`, assetów i konfiguracji produkcyjnej.
 
-Brak apostrofu i formy dzierżawczej blokuje lookup.
+Kolejne prace muszą być małymi PR-ami rozdzielającymi:
 
-Dyspozycja: `confirmed-broken-static-trigger`.
+1. metadata conflicts;
+2. missing definitions z pełnym content proof;
+3. dynamic resolvers;
+4. award/progress handlers;
+5. existing-player backfill;
+6. runtime/E2E i denied-path tests.
 
-### 6.5. Persistence po nazwie
+## Handoff
 
-Unlocked KV jest kluczowane nazwą achievementu. Rename może osierocić dane gracza, dlatego błędne call sites należy poprawić do kanonicznych nazw zamiast zmieniać nazwy rejestru.
+Najpierw przeczytaj:
 
----
+1. aktywny task `CAN-20260713-achievements-validation.md`;
+2. `ACHIEVEMENT_COMPREHENSIVE_VALIDATION.md`;
+3. `ACHIEVEMENT_REFERENCE_CATALOG.json`;
+4. `ACHIEVEMENT_REVIEWED_EVIDENCE.json`;
+5. najnowszy artefakt `Achievement Validation`.
 
-## 7. Braki względem bieżącej referencji
-
-Canary ma 541 definicji wobec 562 odkrytych wpisów referencyjnych. Ręcznie potwierdzono 21 nieobecnych ID/nazw:
-
-```text
-550 A Friend in Need
-551 Holzkopf
-567 The Forbidden Build
-572 Errand Runner
-573 Workhorse
-574 Taskaholic
-575 Pest Control
-576 Mimic
-577 Bastard
-578 Razor's Edge
-579 Lost Letters
-580 Stagmeister
-581 Feral Trapper
-582 Castle Crasher
-585 A reliable Friend
-586 Echo Initiate
-587 Echo Hunter
-588 Echo Walker
-592 Six Steps Ahead
-593 Radiant Nimbus
-594 Amati's Echo
-```
-
-Szczegóły i daty są zapisane w baseline JSON oraz w:
-
-```text
-docs/ai-agent/ACHIEVEMENT_VALIDATION_REPORT.md
-```
-
-Nie wolno masowo dodawać tych wpisów bez potwierdzenia odpowiadającego contentu. ID `550`, `551` i `567` są szczególnie ważne, ponieważ nie są wyłącznie przyszłymi ID ponad obecnym maksimum rejestru.
-
----
-
-## 8. Runtime plan
-
-```text
-docs/ai-agent/ACHIEVEMENT_RUNTIME_TEST_PLAN.json
-```
-
-Obejmuje:
-
-- pełną rejestrację wszystkich jawnych ID;
-- enumerację wysokich ID po lukach;
-- lookup public/secret po ID i nazwie;
-- invalid lookup;
-- idempotencję award/remove i punkty;
-- persistence/reload;
-- progress threshold;
-- bulk admin add/remove;
-- reprezentatywne E2E dla NPC, questów, bossów, movement, item-use, progress i secret achievements.
-
----
-
-## 9. CI i artefakty
-
-Na audytowanym headzie:
-
-```text
-Achievement Validation run 29202931191: success
-AI Agent Tools run 29202931162: success
-CI run 29202931226: success
-focused tests: 8/8
-artifact: achievement-validation-audit
-artifact id: 8262907252
-artifact sha256: 4e127d6c708b6422f520f5833394b652331addcbf989f345523f9d31b9171baa
-```
-
-Pełny raport per-achievement pozostaje artefaktem CI. Do Git trafiają tylko narzędzie, testy, mały evidence report, baseline i runtime plan.
-
----
-
-## 10. Bezpieczeństwo
-
-Audytowy PR nie modyfikuje:
-
-- aktywnego rejestru achievementów;
-- questów, NPC, actions, movements ani creature events;
-- C++ runtime;
-- `.otbm`, `items.otb`, assetów ani produkcyjnej konfiguracji.
-
-Każdy gameplay/infrastructure fix musi mieć osobny task, branch, PR i focused testy.
-
----
-
-## 11. Kolejność dalszej pracy
-
-1. Naprawić helpery `#ACHIEVEMENTS` i `Game.isAchievementSecret` w osobnym PR.
-2. Naprawić dwa literalne triggery w osobnym PR.
-3. Rozszerzyć skaner o bezpieczne resolvery wybranych dynamicznych tabel.
-4. Walidować istniejące achievementy grupami systemowymi.
-5. Osobno przeanalizować ID `550`, `551`, `567`.
-6. Osobno przeanalizować Winter Update 2025 `572..581`.
-7. Osobno przeanalizować Spring/Summer 2026 `582`, `585..588`, `592..594`.
-8. Uruchamiać małe scenariusze runtime/E2E przed zmianą produkcyjnego rejestru.
-
----
-
-## 12. Handoff
-
-### Zacznij od
-
-1. `AGENTS.md`;
-2. `docs/agents/ACTIVE_WORK.md`;
-3. `docs/agents/MODULE_CATALOG.md`;
-4. tego dokumentu;
-5. `ACHIEVEMENT_VALIDATION_REPORT.md`;
-6. aktywnego task recordu i aktualnych PR-ów;
-7. najnowszego artefaktu workflow.
-
-### Nie powtarzaj
-
-- nie licz wpisów przez najwyższy ID;
-- nie używaj `#ACHIEVEMENTS` jako liczby rekordów;
-- nie uznawaj `no-direct-static-reference` za brak mechaniki;
-- nie mieszaj GOD commands z gameplay;
-- nie zmieniaj kanonicznych nazw bez planu migracji KV;
-- nie dopisuj brakujących ID wyłącznie na podstawie wiki;
-- nie commituj pełnego wygenerowanego raportu;
-- nie mieszaj helper fixów, typo triggerów i nowych content definitions w jednym PR.
-
-### Trwałe pliki
-
-```text
-docs/ai-agent/OTS_AI_ACHIEVEMENT_VALIDATION_PROJECT.md
-docs/ai-agent/ACHIEVEMENT_VALIDATION_REPORT.md
-docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json
-docs/ai-agent/ACHIEVEMENT_RUNTIME_TEST_PLAN.json
-tools/ai-agent/achievement_validation.py
-tools/ai-agent/test_achievement_validation.py
-.github/workflows/achievement-validation.yml
-docs/agents/tasks/active/CAN-20260712-achievement-validation.md
-```
-
----
-
-## 13. Changelog
-
-### 2026-07-12 — pełny statyczny audyt
-
-- uruchomiono skan obu aktywnych datapacków;
-- zapisano 541 definicji, 182 wywołania API i 22 dynamiczne referencje;
-- wykryto dwa nierozwiązywalne statyczne triggery;
-- potwierdzono trzy findings helperów;
-- porównano aggregate metadata z bieżącą referencją;
-- zapisano 21 brakujących referencyjnych wpisów;
-- dodano evidence report, runtime plan, focused tests i CI artifact;
-- wszystkie wymagane workflow na audytowanym headzie zakończyły się sukcesem.
+Nie powtarzaj parsera rejestru ani skanera API. Nie edytuj ręcznie `ACTIVE_WORK.md`. Nie traktuj `no-direct-static-reference` jako błędu. Nie zmieniaj kanonicznych nazw bez analizy name-keyed KV.

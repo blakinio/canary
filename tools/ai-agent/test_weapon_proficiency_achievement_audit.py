@@ -120,12 +120,14 @@ void WeaponProficiency::addExperience(uint32_t experience, uint16_t weaponId) {
         report = audit_repository(root)
         self.assertEqual(report["summary"]["missingTargetIds"], [567])
         self.assertFalse(report["runtimeEvidence"]["achievementHookPresent"])
-        self.assertFalse(report["runtimeEvidence"]["initialCreationSetsMastered"])
+        self.assertTrue(report["runtimeEvidence"]["initialCreationSetsMastered"])
         self.assertTrue(report["runtimeEvidence"]["initialCreationCapsExperience"])
         self.assertTrue(report["runtimeEvidence"]["loadCallsNormalizeStoredState"])
+        self.assertTrue(report["runtimeEvidence"]["masteredCountApiPresent"])
         codes = {finding["code"] for finding in report["findings"]}
         self.assertIn("mastery-achievement-hook-missing", codes)
-        self.assertIn("initial-mastery-flag-not-set", codes)
+        self.assertNotIn("initial-mastery-flag-not-set", codes)
+        self.assertNotIn("mastered-count-api-missing", codes)
         self.assertIn("target-award-path-missing", codes)
 
 

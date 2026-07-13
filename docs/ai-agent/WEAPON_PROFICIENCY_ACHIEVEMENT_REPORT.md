@@ -1,5 +1,7 @@
 # Weapon Proficiency achievements 564–567 — evidence report
 
+> **Runtime remediation update:** PR #212 corrects the first-entry mastery state and adds the const `WeaponProficiency::getMasteredWeaponCount()` query. Achievement awards 564–566, historical backfill and ID 567 remain intentionally outside that PR.
+
 ## Final static decision
 
 ```text

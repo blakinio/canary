@@ -1630,6 +1630,14 @@
         "source": "src/lua/functions/core/game/game_functions.cpp"
       },
       {
+        "name": "getPlayerSessionLockInfo",
+        "params": [
+          "name: string"
+        ],
+        "return": "table|nil",
+        "source": "src/lua/functions/core/game/game_functions.cpp"
+      },
+      {
         "name": "getPlayers",
         "params": [
           "...: any"
@@ -1808,6 +1816,14 @@
           "raidName: string"
         ],
         "return": "number",
+        "source": "src/lua/functions/core/game/game_functions.cpp"
+      },
+      {
+        "name": "tryClaimClusterJobLeadership",
+        "params": [
+          "jobName: string"
+        ],
+        "return": "boolean",
         "source": "src/lua/functions/core/game/game_functions.cpp"
       }
     ],

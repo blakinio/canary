@@ -9,6 +9,7 @@
 
 #include "lua/functions/core/game/game_functions.hpp"
 
+#include "config/configmanager.hpp"
 #include "core.hpp"
 #include "creatures/monsters/monster.hpp"
 #include "creatures/monsters/monsters.hpp"
@@ -17,6 +18,7 @@
 #include "game/functions/game_reload.hpp"
 #include "game/game.hpp"
 #include "game/multichannel/channel_switch_audit_store.hpp"
+#include "game/multichannel/cluster_job_leadership_registry.hpp"
 #include "game/multichannel/cluster_session_lookup.hpp"
 #include "game/scheduling/dispatcher.hpp"
 #include "io/io_bosstiary.hpp"
@@ -91,6 +93,8 @@ void GameFunctions::init(lua_State* L) {
 	Lua::registerMethod(L, "Game", "getPlayerClusterChannel", GameFunctions::luaGameGetPlayerClusterChannel);
 	Lua::registerMethod(L, "Game", "getClusterOnlinePlayers", GameFunctions::luaGameGetClusterOnlinePlayers);
 	Lua::registerMethod(L, "Game", "getPlayerChannelSwitchHistory", GameFunctions::luaGameGetPlayerChannelSwitchHistory);
+	Lua::registerMethod(L, "Game", "getPlayerSessionLockInfo", GameFunctions::luaGameGetPlayerSessionLockInfo);
+	Lua::registerMethod(L, "Game", "tryClaimClusterJobLeadership", GameFunctions::luaGameTryClaimClusterJobLeadership);
 	Lua::registerMethod(L, "Game", "getNormalizedGuildName", GameFunctions::luaGameGetNormalizedGuildName);
 
 	Lua::registerMethod(L, "Game", "addInfluencedMonster", GameFunctions::luaGameAddInfluencedMonster);
@@ -934,6 +938,74 @@ int GameFunctions::luaGameGetPlayerChannelSwitchHistory(lua_State* L) {
 		Lua::setField(L, "createdAt", entry.createdAtMs);
 		lua_rawseti(L, -2, ++index);
 	}
+	return 1;
+}
+
+/***
+ * @function Game.getPlayerSessionLockInfo
+ * @param name string
+ * @return table|nil
+ */
+int GameFunctions::luaGameGetPlayerSessionLockInfo(lua_State* L) {
+	// Game.getPlayerSessionLockInfo(name)
+	// GM/admin lookup (docs/multichannel/OPERATIONS.md "Inspect a session's
+	// current lock owner and fencing token"): the raw cluster_sessions row
+	// for a player, whatever its status - this is the one lookup meant for
+	// inspecting a stale/DIRTY session, not just an ONLINE one, so unlike
+	// getPlayerClusterChannel it is not filtered to ONLINE.
+	const auto name = Lua::getString(L, 1);
+	const uint32_t guid = IOLoginData::getGuidByName(name);
+	if (guid == 0) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	const auto info = multichannel::findSessionLockInfo(static_cast<int32_t>(guid));
+	if (!info.has_value()) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	lua_createtable(L, 0, 9);
+	Lua::setField(L, "accountId", info->accountId);
+	Lua::setField(L, "playerId", info->playerId);
+	Lua::setField(L, "channelId", info->channelId);
+	Lua::setField(L, "instanceId", info->instanceId);
+	Lua::setField(L, "sessionId", info->sessionId);
+	Lua::setField(L, "fencingToken", info->fencingToken);
+	Lua::setField(L, "status", info->status);
+	Lua::setField(L, "acquiredAt", info->acquiredAtMs);
+	Lua::setField(L, "lastHeartbeat", info->lastHeartbeatMs);
+	Lua::setField(L, "expiresAt", info->expiresAtMs);
+	return 1;
+}
+
+/***
+ * @function Game.tryClaimClusterJobLeadership
+ * @param jobName string
+ * @return boolean
+ */
+int GameFunctions::luaGameTryClaimClusterJobLeadership(lua_State* L) {
+	// Game.tryClaimClusterJobLeadership(jobName)
+	// Lua-exposed leader-election gate for cluster-singleton jobs
+	// (docs/multichannel/OPERATIONS.md "Leader election / cluster-singleton
+	// jobs"), for jobs whose scheduling lives in Lua (GlobalEvents) rather
+	// than the C++ engine - e.g. global_server_save.lua's daily reward reset.
+	// Mirrors the exact gating pattern already used by the two C++ call
+	// sites (Game::loadBoostedCreature / IOBosstiary::loadBoostedBoss): when
+	// clustering is disabled this always returns true so single-node
+	// deployments are never gated, otherwise it performs a one-shot
+	// renew-or-acquire attempt and reports whether this process currently
+	// holds the lease.
+	const auto jobName = Lua::getString(L, 1);
+
+	if (!g_clusterJobLeadershipRegistry().isEnabled()) {
+		Lua::pushBoolean(L, true);
+		return 1;
+	}
+
+	g_clusterJobLeadershipRegistry().renewOrAcquire(jobName, g_configManager().getNumber(SESSION_LEASE_TTL), OTSYS_TIME());
+	Lua::pushBoolean(L, g_clusterJobLeadershipRegistry().isLeader(jobName));
 	return 1;
 }
 

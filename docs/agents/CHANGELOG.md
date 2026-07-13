@@ -4,6 +4,10 @@ Curated behavior/architecture log for discovery; not a replacement for Git histo
 
 ## Unreleased
 
+- Added bounded Forge server-authority policies and regressions in PR #250 so crafted normal Fusion, Convergence Fusion and Convergence Transfer requests are rejected before item/resource/history mutation; full Forge parity remains tracked by `CAN-PROGRAM-EQUIPMENT-UPGRADE-PARITY`.
+- PR #251 aligns the Imbuement registry with the selected current live Tibia mechanics: fixed application fees of 7,500/60,000/250,000 gold at 100% success with no protection surcharge, Strike at 5% chance and +5%/+15%/+40% damage, and Basic Punch using item 10281 x25; existing Forgotten Knowledge and Vibrancy scroll repairs remain preserved.
+
+- PR #225 adds the read-only Quest Map Validator on top of the merged World Index and script-resolution contracts: explicit quest source globs produce hashed AID/UID/item/position/teleport/storage evidence, bounded local `.widx` correlation classifies confirmed/map-only/script-only/unresolved/conflicting results, dynamic Lua remains unresolved, static item absence and generic missing positions are treated conservatively, JSON output is atomic, and CI publishes source evidence plus a local correlation toolkit without committing map artifacts.
 - PR #219 implements the unified read-only OTBM world index planned by #190 and supersedes conflicted #211: the existing native scanner emits a deterministic binary postings cache, while a memory-mapped Python library and CLI provide bounded item/AID/UID/house-door/teleport/position/region queries with hashes, duplicate detection, atomic output and real-map validation without committing map or index artifacts.
 - Raid startup repair in PR #205 splits active Draptor and Yeti monster bursts into progressive waves, enforces spawn-before-stage-advance timing, and separates the Undead Cavebear encounter identity without changing populations, broadcasts, maps or assets.
 

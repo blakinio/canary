@@ -211,9 +211,25 @@ def audit_repository(root: Path) -> dict[str, Any]:
     normalize_body = extract_function_body(cpp_text, "void WeaponProficiency::normalizeStoredState")
 
     existing_transition_sets_mastered = "mastered = true" in add_experience
-    initial_creation_caps_experience = "try_emplace(weaponId, std::min(experience, maxExperience))" in add_experience
+    initial_creation_caps_experience = any(
+        marker in add_experience
+        for marker in (
+            "try_emplace(weaponId, std::min(experience, maxExperience))",
+            "try_emplace(weaponId, createInitialState(experience, maxExperience))",
+        )
+    )
     initial_creation_body = extract_function_body(add_experience, "if (!proficiency.contains(weaponId))")
-    initial_creation_sets_mastered = "mastered = true" in initial_creation_body
+    initial_state_body = extract_function_body(cpp_text, "WeaponProficiencyData WeaponProficiency::createInitialState")
+    initial_creation_uses_state_factory = "createInitialState(experience, maxExperience)" in initial_creation_body
+    initial_state_derives_mastered = bool(
+        re.search(
+            r"mastered\s*=\s*maxExperience\s*>\s*0\s*&&\s*state\.experience\s*>=\s*maxExperience",
+            initial_state_body,
+        )
+    )
+    initial_creation_sets_mastered = "mastered = true" in initial_creation_body or (
+        initial_creation_uses_state_factory and initial_state_derives_mastered
+    )
     load_normalizes = "normalizeStoredState(weaponId)" in load_body
     normalize_derives_mastered = bool(re.search(r"mastered\s*=\s*[^;]*experience\s*>=\s*maxExperience", normalize_body))
     component_has_achievement_hook = any(

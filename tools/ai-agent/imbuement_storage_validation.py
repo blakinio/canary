@@ -21,16 +21,36 @@ BOSS_UNLOCK_PATH = Path(
     "data-otservbr-global/scripts/quests/forgotten_knowledge/creaturescripts_bosses_kill.lua"
 )
 
-EXPECTED_STALE_STORAGE_IDS = {50488, 50490, 50492, 50494, 50496, 50498, 50501}
-CURRENT_FORGOTTEN_KNOWLEDGE_STORAGE_IDS = {
-    45489,
-    45490,
-    45491,
-    45492,
-    45493,
-    45494,
-    45495,
+LEGACY_STALE_STORAGE_IDS = {50488, 50490, 50492, 50494, 50496, 50498, 50501}
+EXPECTED_FORGOTTEN_KNOWLEDGE_GROUPS: dict[int, tuple[str, ...]] = {
+    45489: ("Lich Shroud", "Reap", "Vampirism"),
+    45490: ("Cloud Fabric", "Electrify", "Swiftness"),
+    45491: ("Bash", "Chop", "Punch", "Slash", "Snake Skin", "Venom"),
+    45492: ("Dragon Hide", "Scorch", "Void"),
+    45493: ("Blockade", "Frost", "Quara Scale"),
+    45494: ("Demon Presence", "Precision"),
+    45495: ("Epiphany", "Strike"),
 }
+EXPECTED_QUEST_UNLOCK_GROUPS: dict[int, tuple[str, ...]] = {
+    45929: ("Featherweight",),
+    46365: ("Vibrancy",),
+}
+EXPECTED_POWERFUL_STORAGE_GROUPS = {
+    **EXPECTED_FORGOTTEN_KNOWLEDGE_GROUPS,
+    **EXPECTED_QUEST_UNLOCK_GROUPS,
+}
+CURRENT_FORGOTTEN_KNOWLEDGE_STORAGE_IDS = set(
+    EXPECTED_FORGOTTEN_KNOWLEDGE_GROUPS
+)
+EXPECTED_BOSS_STORAGE_TOKENS = (
+    "LadyTenebrisKilled",
+    "LloydKilled",
+    "ThornKnightKilled",
+    "DragonkingKilled",
+    "HorrorKilled",
+    "TimeGuardianKilled",
+    "LastLoreKilled",
+)
 
 
 @dataclass(frozen=True)
@@ -76,6 +96,39 @@ def config_boolean(lua_text: str, key: str) -> bool | None:
     return match.group(1) == "true"
 
 
+def powerful_storage_groups(entries: Sequence[object]) -> dict[int, tuple[str, ...]]:
+    groups: dict[int, list[str]] = {}
+    for entry in entries:
+        if entry.base != 3 or entry.storage == 0:
+            continue
+        groups.setdefault(entry.storage, []).append(entry.name)
+    return {
+        storage_id: tuple(sorted(names))
+        for storage_id, names in sorted(groups.items())
+    }
+
+
+def family_group_mismatches(
+    actual: dict[int, tuple[str, ...]],
+) -> list[dict[str, object]]:
+    mismatches: list[dict[str, object]] = []
+    for storage_id in sorted(
+        set(actual) | set(EXPECTED_POWERFUL_STORAGE_GROUPS)
+    ):
+        actual_families = actual.get(storage_id, ())
+        expected_families = EXPECTED_POWERFUL_STORAGE_GROUPS.get(storage_id, ())
+        if actual_families == expected_families:
+            continue
+        mismatches.append(
+            {
+                "storage_id": storage_id,
+                "actual_families": list(actual_families),
+                "expected_families": list(expected_families),
+            }
+        )
+    return mismatches
+
+
 def validate(repository_root: Path) -> tuple[dict[str, object], list[StorageFinding]]:
     parser_module = _load_registry_parser()
     registry = parser_module.parse_registry(repository_root / "data/XML/imbuements.xml")
@@ -88,10 +141,25 @@ def validate(repository_root: Path) -> tuple[dict[str, object], list[StorageFind
             raise FileNotFoundError(path)
 
     declared = declared_storage_ids(storage_path.read_text(encoding="utf-8"))
-    configured = {entry.storage for entry in registry.entries if entry.storage != 0}
+    actual_groups = powerful_storage_groups(registry.entries)
+    configured = set(actual_groups)
     undeclared = sorted(configured - declared)
+    legacy_in_use = sorted(configured & LEGACY_STALE_STORAGE_IDS)
+    group_mismatches = family_group_mismatches(actual_groups)
+    powerful_nonzero_families = sorted(
+        entry.name
+        for entry in registry.entries
+        if entry.base == 3 and entry.storage != 0
+    )
+    affected_storage_ids = set(undeclared) | set(legacy_in_use) | {
+        int(mismatch["storage_id"]) for mismatch in group_mismatches
+    }
     affected_families = sorted(
-        {entry.name for entry in registry.entries if entry.storage in set(undeclared)}
+        {
+            entry.name
+            for entry in registry.entries
+            if entry.base == 3 and entry.storage in affected_storage_ids
+        }
     )
     powerful_zero_storage = sorted(
         entry.name for entry in registry.entries if entry.base == 3 and entry.storage == 0
@@ -106,16 +174,7 @@ def validate(repository_root: Path) -> tuple[dict[str, object], list[StorageFind
         if storage_id in declared
     )
     boss_uses_named_storages = all(
-        token in boss_text
-        for token in (
-            "LadyTenebrisKilled",
-            "LloydKilled",
-            "ThornKnightKilled",
-            "DragonkingKilled",
-            "HorrorKilled",
-            "TimeGuardianKilled",
-            "LastLoreKilled",
-        )
+        token in boss_text for token in EXPECTED_BOSS_STORAGE_TOKENS
     )
 
     findings: list[StorageFinding] = []
@@ -129,6 +188,34 @@ def validate(repository_root: Path) -> tuple[dict[str, object], list[StorageFind
                     f"{undeclared}; affected Powerful families: {affected_families}"
                 ),
                 evidence=(str(STORAGE_REGISTRY_PATH), "data/XML/imbuements.xml"),
+            )
+        )
+    if legacy_in_use:
+        findings.append(
+            StorageFinding(
+                severity="error",
+                code="LEGACY_IMBUEMENT_STORAGE",
+                message=(
+                    "XML still uses legacy Forgotten Knowledge Imbuement storage IDs: "
+                    f"{legacy_in_use}"
+                ),
+                evidence=("data/XML/imbuements.xml",),
+            )
+        )
+    if group_mismatches:
+        findings.append(
+            StorageFinding(
+                severity="error",
+                code="FORGOTTEN_KNOWLEDGE_FAMILY_GROUP",
+                message=(
+                    "Powerful family-to-storage grouping differs from the confirmed "
+                    f"Forgotten Knowledge and quest-unlock mapping: {group_mismatches}"
+                ),
+                evidence=(
+                    "data/XML/imbuements.xml",
+                    str(STORAGE_REGISTRY_PATH),
+                    str(BOSS_UNLOCK_PATH),
+                ),
             )
         )
     if powerful_zero_storage:
@@ -168,12 +255,27 @@ def validate(repository_root: Path) -> tuple[dict[str, object], list[StorageFind
     baseline = {
         "configured_nonzero_storage_ids": sorted(configured),
         "undeclared_storage_ids": undeclared,
-        "expected_stale_storage_ids": sorted(EXPECTED_STALE_STORAGE_IDS),
+        "legacy_storage_ids_in_use": legacy_in_use,
+        "legacy_storage_ids": sorted(LEGACY_STALE_STORAGE_IDS),
         "affected_powerful_families": affected_families,
-        "powerful_with_nonzero_storage": len(affected_families),
+        "powerful_families_with_nonzero_storage": powerful_nonzero_families,
+        "powerful_with_nonzero_storage": len(powerful_nonzero_families),
         "powerful_with_zero_storage": powerful_zero_storage,
         "storage_filter_default": filtering_default,
         "current_forgotten_knowledge_storage_ids": current_fk_ids_present,
+        "expected_forgotten_knowledge_groups": {
+            str(storage_id): list(families)
+            for storage_id, families in EXPECTED_FORGOTTEN_KNOWLEDGE_GROUPS.items()
+        },
+        "expected_quest_unlock_groups": {
+    str(storage_id): list(families)
+    for storage_id, families in EXPECTED_QUEST_UNLOCK_GROUPS.items()
+},
+        "actual_powerful_storage_groups": {
+            str(storage_id): list(families)
+            for storage_id, families in actual_groups.items()
+        },
+        "family_group_mismatches": group_mismatches,
         "boss_script_uses_named_storages": boss_uses_named_storages,
     }
     return baseline, findings
@@ -196,7 +298,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
 
     payload = {
-        "schema_version": 1,
+        "schema_version": 2,
         "baseline": baseline,
         "findings": [asdict(finding) for finding in findings],
     }

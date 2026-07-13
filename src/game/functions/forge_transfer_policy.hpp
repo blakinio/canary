@@ -20,6 +20,16 @@ namespace ForgeTransferPolicy {
 		return convergence ? donorTier >= 1 : donorTier >= 2;
 	}
 
+	[[nodiscard]] constexpr bool isValidClassification(uint8_t donorClassification, uint8_t receiveClassification, bool convergence) {
+		return hasMatchingClassification(donorClassification, receiveClassification)
+			&& (!convergence || donorClassification == 4);
+	}
+
+	[[nodiscard]] constexpr bool isValidTransfer(uint8_t donorClassification, uint8_t receiveClassification, uint8_t donorTier, bool convergence) {
+		return isValidDonorTier(donorTier, convergence)
+			&& isValidClassification(donorClassification, receiveClassification, convergence);
+	}
+
 	[[nodiscard]] constexpr uint8_t resourceTier(uint8_t donorTier) {
 		return donorTier;
 	}
@@ -27,4 +37,4 @@ namespace ForgeTransferPolicy {
 	[[nodiscard]] constexpr uint8_t resultTier(uint8_t donorTier, bool convergence) {
 		return convergence ? donorTier : static_cast<uint8_t>(donorTier - 1);
 	}
-}
+} // namespace ForgeTransferPolicy

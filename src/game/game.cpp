@@ -16,6 +16,7 @@
 #include "game/multichannel/channel_switch_service.hpp"
 #include "game/multichannel/cluster_job_leadership_registry.hpp"
 #include "game/multichannel/cluster_runtime.hpp"
+#include "game/multichannel/economic_ledger_store.hpp"
 #include "game/multichannel/engine_position_legality.hpp"
 #include "game/multichannel/position_resolver.hpp"
 
@@ -833,6 +834,12 @@ void Game::start(ServiceManager* manager) {
 	);
 	[[maybe_unused]] auto eventId5 = g_dispatcher().cycleEvent(
 		EVENT_CHECK_CREATURE_INTERVAL, [this] { checkCreatures(); }, "Game::checkCreatures"
+	);
+	// Gives closeExpiredInstances() a real periodic owner (docs/architecture/
+	// instance-manager.md). A safe no-op today: m_instanceManager has zero
+	// configured regions, so no instance can ever exist to expire.
+	[[maybe_unused]] auto eventIdInstanceSweep = g_dispatcher().cycleEvent(
+		EVENT_INSTANCE_TIMEOUT_SWEEP_MS, [this] { getInstanceManager().closeExpiredInstances(); }, "Game::sweepExpiredInstances"
 	);
 	[[maybe_unused]] auto eventId6 = g_dispatcher().cycleEvent(
 		EVENT_LUA_GARBAGE_COLLECTION, [this] { g_luaEnvironment().collectGarbage(); }, "Calling GC"
@@ -10761,6 +10768,34 @@ void Game::playerCancelMarketOffer(uint32_t playerId, uint32_t timestamp, uint16
 		return;
 	}
 
+	// Idempotency/audit trail (docs/multichannel/ARCHITECTURE.md §8): mirrors
+	// IOMarket::processExpiredOffers's pattern - a deterministic UUID keyed
+	// off the offer's own id is safe here specifically because a given offer
+	// can be cancelled at most once (moveOfferToHistory below deletes its
+	// market_offers row, so this exact key can never legitimately recur).
+	// Store-coin refunds are deliberately excluded below, matching this
+	// function's pre-existing "do not register a transaction for coins"
+	// comment - that path already goes through the account's own
+	// coin-transaction system, not the gold/item economy this ledger tracks.
+	const bool isStoreCoinOffer = offer.type != MARKETACTION_BUY && Item::items[offer.itemId].id == ITEM_STORE_COIN;
+	const auto nowMs = static_cast<int64_t>(OTSYS_TIME());
+	const auto transactionUuid = EconomicLedgerStore::deterministicUuid("market.cancel", offer.id);
+	if (!isStoreCoinOffer) {
+		EconomicLedgerRecord ledgerRecord;
+		ledgerRecord.transactionUuid = transactionUuid;
+		ledgerRecord.operationType = "market.cancel";
+		ledgerRecord.playerId = static_cast<int32_t>(player->getGUID());
+		if (offer.type == MARKETACTION_BUY) {
+			ledgerRecord.amount = static_cast<int64_t>(offer.price) * offer.amount;
+		} else {
+			ledgerRecord.itemId = static_cast<int32_t>(offer.itemId);
+			ledgerRecord.itemCount = static_cast<int32_t>(offer.amount);
+		}
+		if (!EconomicLedgerStore::beginPending(ledgerRecord, nowMs)) {
+			return;
+		}
+	}
+
 	if (offer.type == MARKETACTION_BUY) {
 		player->setBankBalance(player->getBankBalance() + offer.price * offer.amount);
 		g_metrics().addCounter("balance_decrease", offer.price * offer.amount, { { "player", player->getName() }, { "context", "market_purchase" } });
@@ -10769,6 +10804,7 @@ void Game::playerCancelMarketOffer(uint32_t playerId, uint32_t timestamp, uint16
 	} else {
 		const ItemType &it = Item::items[offer.itemId];
 		if (it.id == 0) {
+			EconomicLedgerStore::markFailed(transactionUuid, nowMs);
 			return;
 		}
 
@@ -10782,6 +10818,7 @@ void Game::playerCancelMarketOffer(uint32_t playerId, uint32_t timestamp, uint16
 		} else {
 			ReturnValue inboxCheckResult = queryItemInsertion(player, it.id, offer.amount, offerTier);
 			if (handleInboxPrecheckFailure(player, inboxCheckResult, __FUNCTION__)) {
+				EconomicLedgerStore::markFailed(transactionUuid, nowMs);
 				return;
 			}
 
@@ -10789,12 +10826,17 @@ void Game::playerCancelMarketOffer(uint32_t playerId, uint32_t timestamp, uint16
 			if (inboxInsertResult != RETURNVALUE_NOERROR) {
 				player->sendTextMessage(MESSAGE_MARKET, "There was an error returning your items, please contact the administrator.");
 				g_logger().error("{} - Failed to return cancelled offer item {} total amount {} to inbox for player {}, error code: {}", __FUNCTION__, it.id, offer.amount, player->getName(), getReturnMessage(inboxInsertResult));
+				EconomicLedgerStore::markFailed(transactionUuid, nowMs);
 				return;
 			}
 		}
 	}
 
 	IOMarket::moveOfferToHistory(offer.id, OFFERSTATE_CANCELLED);
+
+	if (!isStoreCoinOffer) {
+		EconomicLedgerStore::markCommitted(transactionUuid, nowMs);
+	}
 
 	offer.amount = 0;
 	offer.timestamp += g_configManager().getNumber(MARKET_OFFER_DURATION);
