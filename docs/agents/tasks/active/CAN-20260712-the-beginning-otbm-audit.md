@@ -1,11 +1,11 @@
 ---
 task_id: CAN-20260712-the-beginning-otbm-audit
-status: validating
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: docs/the-beginning-otbm-audit
 base_branch: main
 created: 2026-07-12
-updated: 2026-07-12
+updated: 2026-07-13
 risk: low
 related_pr: "#204"
 depends_on:
@@ -13,7 +13,7 @@ depends_on:
   - "Merged OTBM script-resolution audit #104"
   - "Merged factual OTBM renderer / HD pipeline #154 and #161"
 blocks:
-  - "The Beginning repair plan"
+  - "PR #207 The Beginning repair plan"
   - "Further The Beginning gameplay fixes"
 owned_paths:
   - docs/ai-agent/THE_BEGINNING_OTBM_AUDIT.md
@@ -48,7 +48,7 @@ Produce a complete evidence-first audit of The Beginning quest against the suppl
 - asset catalogue SHA-256: `93ea5888174ef44b352d7c2b1f8061573a4a260bfaba4b7ec32ea836b9e411ab`;
 - appearances SHA-256: `aa44a154f30c7ed59acc25f246286396e4043851ef0b54ef3cf3951e46d1ce50`;
 - report baseline: `366b3d4e6bba4cb8d3dee09a8c5a0181cc3d7423`;
-- final report head before this record-only update: `b492b37ad8877e87929b68381879534ef82663a2`.
+- validated report head before this record-only update: `12d5860530a7792c04872bc35ace693f407cfc60`.
 
 # Acceptance criteria
 
@@ -63,7 +63,7 @@ Produce a complete evidence-first audit of The Beginning quest against the suppl
 - [x] publish the complete quest/mission report and classification matrix;
 - [x] publish priorities, regression risk, likely files and required pre-merge tests;
 - [x] keep the audit PR documentation-only and leave all generated JSON/PNG artifacts uncommitted;
-- [ ] final-head documentation/AI-agent checks pass.
+- [x] final-head documentation, AI Agent Tools and Agent Task Ownership checks passed on the validated report head.
 
 # Final findings
 
@@ -74,8 +74,18 @@ Produce a complete evidence-first audit of The Beginning quest against the suppl
 - `unresolved`: exact safe contract for AID `50999`, `skip tutorial`, static cart branch, two nearby `0,0,0` teleport attributes and ambient non-whitelisted dead trees.
 - `conflicting`: none in the quest-scoped final resolver run.
 
+# Validation record
+
+Head `12d5860530a7792c04872bc35ace693f407cfc60` passed:
+
+- CI run 1076;
+- AI Agent Tools run 494;
+- Agent Task Ownership run 45.
+
+The branch was four unrelated commits behind `main` during final review. The changed-file list remained exactly the audit report and this task record, so no owned-path overlap was found. GitHub mergeability and final-head checks remain authoritative immediately before merge.
+
 # Validation notes
 
 The shell environment cannot resolve GitHub, so it could not clone the latest repository. The audit uses the existing PR #104 tooling source snapshot and overlays the exact current-main files relevant to The Beginning fetched through the GitHub connector. This limitation is recorded explicitly and does not authorize guessing. The map and renderer inputs are the supplied binaries with recorded hashes.
 
-The final quest-scoped resolver run recorded zero conflicts, direct resolution for the map-present tutorial AIDs and UID `50085`, generic reward fallback for UIDs `50080/50082/50093/50094`, and four unresolved AID `50999` placements. Seven factual renderer outputs reported zero missing appearances and zero missing sprites. The separate repair-plan task may start only from the published report, not from historical assumptions.
+The final quest-scoped resolver run recorded zero conflicts, direct resolution for the map-present tutorial AIDs and UID `50085`, generic reward fallback for UIDs `50080/50082/50093/50094`, and four unresolved AID `50999` placements. Seven factual renderer outputs reported zero missing appearances and zero missing sprites. PR #207 may merge only after this audit and only if these findings remain unchanged.
