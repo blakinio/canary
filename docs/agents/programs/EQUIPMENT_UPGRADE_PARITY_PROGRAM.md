@@ -4,8 +4,8 @@ name: Equipment Upgrade / Exaltation Forge retail parity
 status: active
 owner: "GPT-5.6 Thinking"
 created: 2026-07-13T13:15:00+02:00
-updated: 2026-07-13T13:15:00+02:00
-last_verified_commit: "3ad10132cbd76adc42f946da3ca3077e5bd6bbd0"
+updated: 2026-07-13T15:12:00+02:00
+last_verified_commit: "58c258de79ceded987d92642923e879c4a9905f6"
 primary_paths:
   - docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md
   - src/creatures/players/player.cpp
@@ -13,6 +13,7 @@ primary_paths:
   - tests/integration/game/forge_it.cpp
 shared_integration_paths:
   - src/server/network/protocol/protocolgame.cpp
+  - src/game/functions/forge_fusion_policy.hpp
   - src/game/functions/forge_transfer_policy.hpp
   - docs/agents/CROSS_REPO_CONTRACTS.md
 related_programs:
@@ -45,7 +46,8 @@ Bring Canary's Equipment Upgrade / Exaltation Forge behavior to evidence-backed 
 
 | Module/tool/contract | Source | Required reuse rule |
 |---|---|---|
-| Forge transfer policy | `src/game/functions/forge_transfer_policy.hpp` | Preserve normal-transfer classification, resource-tier and result-tier behavior from PR #89. |
+| Forge Fusion authority policy | `src/game/functions/forge_fusion_policy.hpp`, PR #250 | Preserve same-ID normal Fusion and class-4/different-ID/normalized-slot Convergence authority before mutation. |
+| Forge transfer policy | `src/game/functions/forge_transfer_policy.hpp`, PRs #89/#250 | Preserve normal-transfer classification/tier behavior and Convergence class-4 authority. |
 | Forge history ID resolution | PR #110 and Player Forge history paths | Keep ID-based item identity; later history fixes must not regress it. |
 | Dust reward remediation | PR #177 and `data/libs/systems/exaltation_forge.lua` | Preserve direct/summon killer resolution, one shared party roll and capped credited amount. |
 | Equipment Upgrade validation report | `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md` | Update finding state only with exact code/test/runtime evidence. |
@@ -56,19 +58,18 @@ Bring Canary's Equipment Upgrade / Exaltation Forge behavior to evidence-backed 
 
 | Task ID | Branch | PR | State | Exact next action |
 |---|---|---:|---|---|
-| CAN-20260713-forge-server-authority | `fix/forge-server-authority` | draft pending | active | Enforce F-003–F-005 before mutation and add crafted-request integration regressions. |
+| CAN-20260713-forge-server-authority | `fix/forge-server-authority` | #250 | ready_for_review_pending_final_ci | Run final-head CI, merge, archive, then start F-020/F-021. |
 
 # Queue
 
-1. F-003–F-005: server authority for Fusion, Convergence Fusion and Convergence Transfer.
-2. F-020–F-021: transactional mutation/rollback for Fusion, Transfer and Sliver-to-Core conversion.
-3. F-022–F-024: correct history action types and configurable amounts.
-4. F-006 plus runtime proof for F-007/F-008/F-013: exact Premium semantics and Dust recipient/cap/shared-roll scenarios.
-5. F-011–F-012: Transcendence/Avatar mutual exclusion and Momentum feedback correctness.
-6. F-001–F-002: supported live defaults and boundary tests after authoritative version confirmation.
-7. F-014–F-019: versioned bonus contract, server result/history, protocol and maintained OTClient presentation; cross-repository writes require explicit authorization and an atomic rollout plan.
-8. F-009–F-010: only after authoritative difficulty/reward and precision/rounding evidence is pinned.
-9. Focused runtime, gameplay and physical-client Forge scenarios using the shared E2E platform.
+1. F-020–F-021: transactional mutation/rollback for Fusion, Transfer and Sliver-to-Core conversion, preserving #250 authority checks.
+2. F-022–F-024: correct history action types and configurable amounts.
+3. F-006 plus runtime proof for F-007/F-008/F-013: exact Premium semantics and Dust recipient/cap/shared-roll scenarios.
+4. F-011–F-012: Transcendence/Avatar mutual exclusion and Momentum feedback correctness.
+5. F-001–F-002: supported live defaults and boundary tests after authoritative version confirmation.
+6. F-014–F-019: versioned bonus contract, server result/history, protocol and maintained OTClient presentation; cross-repository writes require explicit authorization and an atomic rollout plan.
+7. F-009–F-010: only after authoritative difficulty/reward and precision/rounding evidence is pinned.
+8. Focused runtime, gameplay and physical-client Forge scenarios using the shared E2E platform.
 
 # Completed work
 
@@ -77,7 +78,17 @@ Bring Canary's Equipment Upgrade / Exaltation Forge behavior to evidence-backed 
 | PR #89 | Normal Transfer rules, donor-tier costs/result and history costs | `209289d38e64aafe7ce3e036867bb632cd0363b8` | Preserve. |
 | PR #110 | Forge history item identity by ID | `84f5c09263f459d726fbc7b9f79557b2cbb0801d` | Preserve. |
 | PR #177 | Killer resolution, one party Dust roll and actual capped credit | `f1d217c43e8e302978f533212e6aa9d1ce2b77c8` | Runtime proof and Premium remain. |
-| PR #242/#244 | Current finding handoff and archived lifecycle record | `56ee9bc72b91ba1110cd6d957c7eb0d974fc54e1` / `88e0140329a91fb877633307d2b749fecb175a43` | Source of truth for the queue. |
+| PR #242/#244 | Current finding handoff and archived lifecycle record | `56ee9bc72b91ba1110cd6d957c7eb0d974fc54e1` / `88e0140329a91fb877633307d2b749fecb175a43` | Source of truth for the program start. |
+| PR #250 | F-003–F-005 implementation and compiled/runtime-smoke regression evidence | pending merge | Final-head CI, archive, then F-020/F-021. |
+
+# Current evidence
+
+- PR #250 readiness CI `29250747788` passed on the implementation diff.
+- Linux debug compiled, ran Canary smoke, imported the database schema and passed the full `Run Tests` step.
+- Linux release passed CMake, generated Lua API docs and Canary/global datapack smoke.
+- macOS, Windows and Docker build/runtime paths passed.
+- This is semantic, compiled-regression and generic runtime-smoke evidence; focused player gameplay and physical-client E2E remain separate.
+- Temporary source/evidence runner PRs #252/#253 were closed unmerged and their files were removed from the permanent diff.
 
 # Dependencies and blockers
 
@@ -92,11 +103,12 @@ Bring Canary's Equipment Upgrade / Exaltation Forge behavior to evidence-backed 
 - Rejection tests must prove unchanged items, tiers, Dust, cores, money and history.
 - One task owns one bounded responsibility; authority, atomicity, history, rewards, effects and protocol/client work stay separate.
 - Compilation and generic CI are not focused Forge gameplay proof.
+- Later mutation/rollback work must preserve the pure authority policies introduced by #250.
 
 # Validation strategy
 
 - Focused C++ unit/integration tests for each rule and each crafted/stale request.
-- Required Linux build, generated Lua API documentation check, Lua/Fast checks and repository ownership validation on every current head.
+- Required Linux build, generated Lua API documentation check, Lua/Fast checks and repository ownership validation on every final head.
 - Runtime/gameplay tests for reward/effect behavior and real supported-client E2E for protocol/UI parity.
 - Record skipped workflow steps and unavailable local checks; never report them as passed.
 
@@ -106,17 +118,17 @@ Bring Canary's Equipment Upgrade / Exaltation Forge behavior to evidence-backed 
 
 Read `AGENTS.md`, `docs/agents/README.md`, this program record, the current task, open Forge PRs and `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md`.
 
-## Task creation protocol
+## Next task creation protocol
 
-1. Select one bounded queue item.
+1. Finish and archive #250.
 2. Recheck current `main`, open PRs and active ownership.
-3. Create one task record, branch and draft PR.
-4. Declare exact exclusive/shared/read-only paths.
-5. Implement, validate, merge, archive the task and update this program.
+3. Create a new bounded F-020/F-021 task/branch/draft PR.
+4. Preserve #250 policy helpers and rejection-order tests.
+5. Add injected-failure coverage for every mutation boundary before claiming rollback complete.
 
 ## Do not repeat
 
-- Do not reopen #177, #241 or #246 or continue their historical branches.
+- Do not reopen #177, #241, #246, #252 or #253 or continue their historical branches.
 - Do not treat client-side filtering as server authority.
 - Do not implement F-009/F-010 from memory or an unversioned secondary summary.
 - Do not combine the coordinated bonus/protocol/client program with transactional or history cleanup.
