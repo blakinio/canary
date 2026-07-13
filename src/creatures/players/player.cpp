@@ -11090,7 +11090,7 @@ namespace {
 		if (itemId == ITEM_FORGE_CORE) {
 			return coreCount;
 		}
-		return player.getItemTypeCount(itemId);
+		return 0;
 	}
 
 	void restoreForgeStackable(const std::shared_ptr<Player> &player, uint16_t itemId, uint32_t expectedCount) {
