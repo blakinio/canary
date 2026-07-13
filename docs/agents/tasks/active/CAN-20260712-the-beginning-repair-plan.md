@@ -1,6 +1,6 @@
 ---
 task_id: CAN-20260712-the-beginning-repair-plan
-status: validating
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: docs/the-beginning-repair-plan
 base_branch: main
@@ -53,10 +53,16 @@ Turn the completed evidence report into an ordered set of minimal, independently
 - [x] define when stale PR #157 may be closed;
 - [x] define resolver/render/runtime revalidation gates where map mechanics are involved;
 - [x] keep the PR documentation-only with exactly the plan and task record;
-- [ ] final-head documentation, AI Agent Tools and Agent Task Ownership checks pass.
+- [x] documentation, AI Agent Tools and Agent Task Ownership checks pass on the validated content head.
 
 # Validation record
 
-Previous head `b940d0e3c6b754980bacdb9bb4fb77750492e640` passed CI run 1075, AI Agent Tools run 493 and Agent Task Ownership run 44. Those results predate this metadata correction and are not treated as final-head validation.
+Content head `3cc5375e110d8450023f709443db0ad9690ac1a3` passed:
 
-The branch was one unrelated commit behind `main` during review (`#233`, InstanceManager timeout sweep). It does not overlap either owned documentation path. Mergeability and final-head checks must be reverified before readiness.
+- CI run 1096;
+- AI Agent Tools run 506;
+- Agent Task Ownership run 60.
+
+This final commit changes only the task status and validation record. GitHub checks on the resulting PR head remain authoritative before merge.
+
+The branch was one unrelated commit behind `main` during review (`#233`, InstanceManager timeout sweep). It does not overlap either owned documentation path. PR mergeability and the dependency on #204 must be reverified immediately before merge.
