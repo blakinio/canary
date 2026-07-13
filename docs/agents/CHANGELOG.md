@@ -4,6 +4,7 @@ Curated behavior/architecture log for discovery; not a replacement for Git histo
 
 ## Unreleased
 
+- Added bounded Forge server-authority policies and regressions in PR #250 so crafted normal Fusion, Convergence Fusion and Convergence Transfer requests are rejected before item/resource/history mutation; full Forge parity remains tracked by `CAN-PROGRAM-EQUIPMENT-UPGRADE-PARITY`.
 - PR #251 aligns the Imbuement registry with the selected current live Tibia mechanics: fixed application fees of 7,500/60,000/250,000 gold at 100% success with no protection surcharge, Strike at 5% chance and +5%/+15%/+40% damage, and Basic Punch using item 10281 x25; existing Forgotten Knowledge and Vibrancy scroll repairs remain preserved.
 
 - PR #225 adds the read-only Quest Map Validator on top of the merged World Index and script-resolution contracts: explicit quest source globs produce hashed AID/UID/item/position/teleport/storage evidence, bounded local `.widx` correlation classifies confirmed/map-only/script-only/unresolved/conflicting results, dynamic Lua remains unresolved, static item absence and generic missing positions are treated conservatively, JSON output is atomic, and CI publishes source evidence plus a local correlation toolkit without committing map artifacts.

@@ -10,6 +10,7 @@
 #include <gtest/gtest.h>
 
 #include "creatures/players/player.hpp"
+#include "game/functions/forge_fusion_policy.hpp"
 #include "game/functions/forge_transfer_policy.hpp"
 #include "lib/di/container.hpp"
 #include "lib/logging/in_memory_logger.hpp"
@@ -119,4 +120,24 @@ TEST(ForgeTransferPolicyTest, UsesDonorTierForResourcesAndCalculatesResultTier) 
 	EXPECT_EQ(3, ForgeTransferPolicy::resourceTier(3));
 	EXPECT_EQ(2, ForgeTransferPolicy::resultTier(3, false));
 	EXPECT_EQ(3, ForgeTransferPolicy::resultTier(3, true));
+}
+
+TEST(ForgeTransferPolicyTest, RestrictsConvergenceTransferToClassFour) {
+	EXPECT_TRUE(ForgeTransferPolicy::isValidTransfer(4, 4, 1, true));
+	EXPECT_FALSE(ForgeTransferPolicy::isValidTransfer(3, 3, 1, true));
+	EXPECT_FALSE(ForgeTransferPolicy::isValidTransfer(4, 3, 1, true));
+	EXPECT_TRUE(ForgeTransferPolicy::isValidTransfer(3, 3, 2, false));
+}
+
+TEST(ForgeFusionPolicyTest, RegularFusionRequiresIdenticalForgeItems) {
+	EXPECT_TRUE(ForgeFusionPolicy::isValid(100, 100, 3, 3, true, false));
+	EXPECT_FALSE(ForgeFusionPolicy::isValid(100, 101, 3, 3, true, false));
+	EXPECT_FALSE(ForgeFusionPolicy::isValid(100, 100, 0, 0, true, false));
+}
+
+TEST(ForgeFusionPolicyTest, ConvergenceFusionRequiresDifferentClassFourItemsInSameSlot) {
+	EXPECT_TRUE(ForgeFusionPolicy::isValid(100, 101, 4, 4, true, true));
+	EXPECT_FALSE(ForgeFusionPolicy::isValid(100, 100, 4, 4, true, true));
+	EXPECT_FALSE(ForgeFusionPolicy::isValid(100, 101, 3, 3, true, true));
+	EXPECT_FALSE(ForgeFusionPolicy::isValid(100, 101, 4, 4, false, true));
 }

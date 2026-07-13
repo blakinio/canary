@@ -3,12 +3,12 @@
 > **Updated:** 2026-07-13  
 > **Repository:** `blakinio/canary`  
 > **Current main at refresh start:** `d4eeab3db322f26ee72d7f0ad958d35dc9bd007d`  
-> **Documentation branch:** `docs/equipment-upgrade-handoff-refresh`  
-> **Documentation PR:** `#242`  
+> **Active implementation branch:** `fix/forge-server-authority`
+> **Active implementation PR:** `#250`
 > **Historical validation PR:** `#177` — merged; do not reopen  
 > **Primary comparison page:** `https://tibia.fandom.com/wiki/Equipment_Upgrade`  
 > **Parent methodology:** `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md`  
-> **Evidence boundary:** structural/static/semantic and compiled-regression evidence exist; full runtime, gameplay and physical-client E2E parity do not.
+> **Evidence boundary:** F-003–F-005 have semantic and compiled-regression evidence on PR #250; full Forge runtime gameplay and physical-client E2E parity do not.
 
 ---
 
@@ -33,15 +33,15 @@ A successful build, client-side filtering or an aggregate `Required` job is not 
 | Item | Current state |
 |---|---|
 | Current `blakinio/canary` main | `d4eeab3db322f26ee72d7f0ad958d35dc9bd007d` at refresh start |
-| Open Forge PRs | none found |
-| Active Forge tasks | none found in open PR/task searches or the read-only coordination snapshot |
-| Last merged Forge PR | #177, merge `f1d217c43e8e302978f533212e6aa9d1ce2b77c8` |
+| Open Forge PRs | #250 — bounded F-003–F-005 server-authority remediation |
+| Active Forge tasks | `CAN-20260713-forge-server-authority` under `CAN-PROGRAM-EQUIPMENT-UPGRADE-PARITY` |
+| Last merged Forge PR | #177, merge `f1d217c43e8e302978f533212e6aa9d1ce2b77c8`; #250 pending merge |
 | Historical branch | `validation/equipment-upgrade` is not present; it is historical and must not be continued |
-| Current validation state | F-001–F-024 rechecked against current source history; no later Forge implementation PR found |
+| Current validation state | F-003–F-005 remediated and regression-tested on PR #250; all remaining finding states are unchanged |
 | Maintained client | `blakinio/otclient` main `2fcfa2b61f4cd2e47beb49ec036a01152979dd79` |
 | Upstream client | `opentibiabr/otclient` is reference-only and must not be modified |
-| Current handoff task | `docs/agents/tasks/active/CAN-20260713-equipment-upgrade-handoff-refresh.md` |
-| Current documentation PR | #242, documentation-only |
+| Current handoff task | `docs/agents/tasks/active/CAN-20260713-forge-server-authority.md` |
+| Current implementation PR | #250 |
 
 Comparison of PR #177's merge commit with current `main` shows 77 later commits. None changes Forge configuration, item-tier tables, `Player` Forge functions, Forge reward Lua, Forge item/combat effects, Forge tests or this report. Later generic changes in `protocolgame.cpp`, Player/Wheel and creature/instance lifecycle were reviewed and do not modify the audited Forge functions or packet contract.
 
@@ -107,6 +107,7 @@ PR #177 head had successful CI run `29205082784`: Detect Build Scope, Fast Check
   - `Player::registerForgeHistoryDescription`;
 - `src/server/network/protocol/protocolgame.cpp`:
   - `ProtocolGame::sendOpenForge` and Forge packet serialization;
+- `src/game/functions/forge_fusion_policy.hpp`;
 - `src/game/functions/forge_transfer_policy.hpp`.
 
 ### Rewards and effects
@@ -137,9 +138,9 @@ The old report's references to `opentibiabr/otclient` as the implementation targ
 |---|---|---|---|---|---|---|
 | F-001 | open | still-open | `config.lua.dist` and `src/config/configmanager.cpp` retain maximum Dust 225; no post-#177 change | none | authoritative target version plus 324→325 and >325 regression/runtime boundaries | separate configuration-limit PR with F-002 only if independently justified |
 | F-002 | open | still-open | distributed Fiendish limit 4 conflicts with engine/legacy fallback 3; configuration paths unchanged | none | decide one supported default and test configuration/fallback loading | configuration-limit PR, separate from gameplay validation |
-| F-003 | open | still-open | `Player::forgeFuseItems`; regular Fusion still lacks an independent identical-item-ID authority check and historical integration permits different IDs | none | crafted/stale packet regression before any mutation | first bounded server-authority PR |
-| F-004 | open | still-open | `Player::forgeFuseItems` and `ProtocolGame::sendOpenForge`; class 4, different IDs and normalized slot restrictions are not fully duplicated server-side | none | crafted Convergence packet tests for class, identity, slot and tier | same bounded authority family as F-003, not atomicity/history |
-| F-005 | open | still-open | `Player::forgeTransferItemTier` uses matching classification/tier policy from #89 but does not additionally require class 4 for Convergence | #89 partially relevant | crafted Convergence Transfer class rejection before mutation | same bounded authority family as F-003/F-004 |
+| F-003 | open | remediated-on-PR-branch; compiled-regression-passed | PR #250 adds `ForgeFusionPolicy` and rejects different item IDs in `Player::forgeFuseItems` before resource/chest/item mutation; the historical different-ID success integration test is now a no-mutation rejection test | #250 | merge to `main`; focused protocol/gameplay execution remains separate evidence | preserve in later transactional work |
+| F-004 | open | remediated-on-PR-branch; compiled-regression-passed | PR #250 duplicates the Convergence pair contract server-side: different IDs, both class 4 and the same normalized slot; existing item lookup enforces requested tier, distinct copies and no active imbuements | #250 | merge to `main`; focused gameplay through the protocol remains pending | preserve in later bonus/protocol work |
+| F-005 | open | remediated-on-PR-branch; compiled-regression-passed | PR #250 extends `ForgeTransferPolicy` so convergence requires matching class 4 while normal Transfer retains #89 donor-tier/classification behavior; integration regression proves non-class-4 rejection before mutation | #89 baseline + #250 | merge to `main`; focused gameplay execution remains pending | preserve normal Transfer policy |
 | F-006 | open | still-open | `ForgeMonster:onDeath`/`creditDust` have no complete Premium predicate; days-only check was removed in #177 | #177 explicitly left open | exact `Player::isPremium()` binding/placement; normal, final partial day, free-Premium, always-Premium tests | dedicated Premium semantics PR |
 | F-007 | remediated statically; runtime pending | runtime-untested | #177 requires `CONDITION_INFIGHT` per shared-party recipient; source unchanged | #177 | focused runtime/gameplay boundaries for active, stale, out-of-range and logged-out members | dedicated Dust runtime-proof PR/test pack |
 | F-008 | remediated; runtime pending | runtime-untested | `ForgeMonster:creditDust` uses `min(amount, limit-current)` for credit and message | #177 | cap-edge runtime assertions and persisted resource balance | same Dust runtime-proof scope as F-007/F-013 |
@@ -162,10 +163,11 @@ The old report's references to `opentibiabr/otclient` as the implementation targ
 
 ### Status summary
 
-- **still-open:** F-001–F-006, F-011–F-012, F-014–F-024;
+- **remediated-on-PR-branch; compiled-regression-passed:** F-003, F-004, F-005 on #250;
+- **still-open:** F-001–F-002, F-006, F-011–F-012, F-014–F-024;
 - **runtime-untested:** F-007, F-008, F-013;
 - **target-version-decision-required:** F-009, F-010;
-- **remediated/superseded/no-longer-applicable:** none of F-001–F-024 is promoted to these final states by this refresh.
+- **full gameplay/E2E parity:** not claimed.
 
 PR #89 and #110 remain confirmed repairs outside the unresolved portions described above. PR #177 remains the retained code remediation for F-007/F-008/F-013, but not gameplay proof.
 
@@ -181,7 +183,7 @@ The post-#177 history was checked for Forge, Player, protocol, combat, item-tier
 - #210 changes boosted creature/boss leader election, not Fiendish Forge reward rules;
 - #220 changes Wheel of Destiny Player/protocol paths, not Forge packet/result paths;
 - #222 creates E2E coordination documentation but supplies no Forge gameplay or physical-client execution;
-- no later merged/open Canary PR remediates F-001–F-024;
+- PR #250 is the bounded active remediation for F-003–F-005; it does not address other findings;
 - no later `blakinio/otclient` Forge PR was found.
 
 This review does not treat unrelated generic-file edits as Forge remediation.
@@ -233,15 +235,15 @@ No local test is claimed as passed. GitHub API inspection and CI are separate ev
 | #177 head `05134a4…` | `29205082784` | Detect Build Scope, Fast Checks, Lua Tests and Linux Release/runtime smoke success; other platform jobs skipped by scope | Lua remediation syntax/static checks and general runtime smoke | focused party/cap/Premium gameplay |
 | #177 head `05134a4…` | `29206161337` | CI failure | records a later non-green run that must not be hidden | no positive proof; inspect only if resuming historical diagnosis, not by reopening #177 |
 
-The final documentation PR's current-head workflow IDs and concrete jobs are recorded in the task/PR before merge.
+PR #250 readiness CI run `29250747788` succeeded on the implementation diff before the final evidence-only commit: Lua Tests and Fast Checks passed; Linux debug compiled, ran Canary smoke, imported the database schema and passed `Run Tests`; Linux release compiled and passed Canary/global datapack smoke; macOS compiled and passed runtime smoke; Windows CMake/runtime and MSBuild paths passed; Docker image build/validation passed. Fast Checks produced formatting commit `f50c9c73eeb5265461409d419c5daf853fc17ab4`. A fresh final-head run is still required after documentation bookkeeping; this run is compiled/runtime regression evidence, not focused real-client gameplay proof.
 
 ---
 
 ## 7. Required future regression scenarios
 
-1. regular Fusion accepts identical IDs and rejects crafted different IDs before mutation;
-2. Convergence Fusion/Transfer enforce class 4 and exact identity/slot/tier rules server-side;
-3. every rejected or failed operation preserves items, Dust, cores and gold;
+1. preserve PR #250 regressions: regular Fusion accepts identical IDs and rejects crafted different IDs before mutation;
+2. preserve PR #250 Convergence Fusion/Transfer class, identity, normalized-slot and tier authority; add focused protocol/gameplay execution before claiming full parity;
+3. extend no-mutation guarantees from invalid-request rejection to injected failures during valid operations in F-020/F-021;
 4. Dust capacity and Fiendish defaults follow an explicit selected target version;
 5. Premium eligibility matches complete `Player::isPremium()` semantics;
 6. one party Dust roll is shared only among eligible recipients, including logout-block boundaries;
@@ -257,8 +259,7 @@ The final documentation PR's current-head workflow IDs and concrete jobs are rec
 
 After refreshing from then-current `main`, and only when current code still confirms the finding:
 
-1. **F-003–F-005:** server-authority validation before any mutation;
-2. **F-020–F-021:** atomicity and rollback;
+1. **F-020–F-021:** atomicity and rollback after preserving #250 authority checks;
 3. **F-022–F-024:** history action types and configurable amounts;
 4. **F-006:** complete Premium semantics;
 5. **runtime proof F-007/F-008/F-013;**
@@ -280,10 +281,14 @@ Do not combine configuration limits, server authority, Premium/Dust runtime, Fie
 - reclassified every finding F-001–F-024;
 - attempted DNS/Git remote checks and recorded exact failures;
 - created documentation branch, task and draft PR #242;
-- did not change or prepare gameplay code, tests, workflows, E2E infrastructure or OTClient;
-- no uncommitted code fragment exists because no local checkout exists;
+- created parity program `CAN-PROGRAM-EQUIPMENT-UPGRADE-PARITY`, task `CAN-20260713-forge-server-authority` and PR #250;
+- implemented localized C++ authority checks and focused unit/integration regressions for F-003–F-005;
+- used temporary controlled runner PR #252 because local GitHub DNS was unavailable; failed exact-anchor attempts changed no source, the successful run was `29250410323`, and the runner was closed unmerged;
+- removed all temporary runner files from the final PR diff;
+- completed full readiness CI run `29250747788` before this evidence update;
+- no local checkout or uncommitted local code exists;
 - an initial oversized task-record write was rejected by the tool before GitHub mutation; the content was reduced and safely committed through the normal GitHub contents API;
-- no temporary write-enabled workflow was created.
+- temporary write-enabled workflows were used only on task-local branches to apply exact-anchor source/evidence patches; runner PRs #252 and #253 were closed unmerged and all temporary files were removed from the permanent #250 diff.
 
 Sources were read on 2026-07-13. The primary wiki snapshot remains a historical comparison source, not sole authority for numeric implementation changes.
 
@@ -295,21 +300,22 @@ Sources were read on 2026-07-13. The primary wiki snapshot remains a historical 
 |---|---|
 | Repository | `blakinio/canary` |
 | Main at refresh start | `d4eeab3db322f26ee72d7f0ad958d35dc9bd007d` |
-| Branch | `docs/equipment-upgrade-handoff-refresh` |
-| PR | #242 |
-| Task | `docs/agents/tasks/active/CAN-20260713-equipment-upgrade-handoff-refresh.md` |
-| Current status | documentation refresh in progress until PR/cleanup merge |
+| Branch | `fix/forge-server-authority` |
+| PR | #250 |
+| Program | `docs/agents/programs/EQUIPMENT_UPGRADE_PARITY_PROGRAM.md` |
+| Task | `docs/agents/tasks/active/CAN-20260713-forge-server-authority.md` |
+| Current status | F-003–F-005 implementation and compiled regressions complete; final-head CI/merge pending |
 | Branch exists | yes |
 | PR draft | initially yes; final state recorded in PR/task |
 | Auto-merge | not enabled until final applicable jobs and review gate pass |
 | Review threads | inspect on final head before merge |
-| Changed files | this report and task record only |
-| Completed | current-main history/overlap review, F-001–F-024 classification, bounded plan, DNS record |
-| Incomplete | final PR CI/merge and post-merge task archive until recorded complete |
+| Changed files | localized Player authority, two internal policy helpers, Forge unit/integration tests, program/task/report/catalogue/changelog |
+| Completed | F-003–F-005 implementation; no-mutation regression coverage; full pre-evidence readiness CI `29250747788` |
+| Incomplete | fresh final-head CI, merge, task archive and all remaining Forge findings |
 | Local tests | unavailable; exact DNS error and commands above |
 | Cross-repository dependency | F-018/F-019 and later F-014–F-019 use `blakinio/otclient`; upstream is read-only |
-| First bounded follow-up | F-003–F-005 server-authority validation before mutation |
-| First server file/functions | `src/creatures/players/player.cpp`: `Player::forgeFuseItems`, then `Player::forgeTransferItemTier` |
+| Next bounded follow-up | F-020–F-021 transactional mutation/rollback |
+| Next server file/functions | `src/creatures/players/player.cpp`: `Player::forgeFuseItems`, `Player::forgeTransferItemTier`, `Player::forgeResourceConversion` |
 | First client file when coordinated | `blakinio/otclient/modules/game_forge/game_forge.lua`: `forgeResultData` |
 
 Recommended first local commands for a future implementation agent starting from current `main`:
