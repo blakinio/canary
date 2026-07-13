@@ -9,7 +9,7 @@
 
 Maintain one deterministic, evidence-based OTBM analysis stack that agents can reuse for quests, teleportation, reachability, NPCs, spawns, storage progression, semantic diffs and—only after explicit safety gates—bounded map patching.
 
-The stack must reuse the existing native OTBM scanner, World Index, script resolver, Quest Map Validator, appearances parser and factual renderer. It must not create competing parsers or use AI-generated imagery as map evidence.
+The stack reuses the existing native OTBM scanner, World Index, script resolver, Quest Map Validator, appearances parser and factual renderer. It must not create competing parsers or use AI-generated imagery as map evidence.
 
 ## Programme status
 
@@ -17,7 +17,7 @@ The stack must reuse the existing native OTBM scanner, World Index, script resol
 |---:|---|---|---|
 | 1 | Unified OTBM World Index | merged and archived | #219 / #223 |
 | 2 | Quest Map Validator | merged and archived | #225 / #236 |
-| 3 | Teleports, floor transitions and reachability | implementation complete; draft PR awaiting final gate | #274 |
+| 3 | Teleports, floor transitions and reachability | merged and archived | #274 / lifecycle cleanup |
 | 4 | Spawns, bosses and NPCs | not started | separate future task |
 | 5 | Storage dependency graph | not started | separate future task |
 | 6 | Semantic OTBM diff and visual evidence | not started | separate future task |
@@ -27,8 +27,6 @@ The stack must reuse the existing native OTBM scanner, World Index, script resol
 Every phase is a separate bounded task, branch and PR. Do not combine phases.
 
 ## Shared evidence boundaries
-
-The following rules are mandatory for every phase and quest/map repair:
 
 - Dynamic Lua is not executed.
 - Dynamic expressions remain `unresolved`.
@@ -46,16 +44,12 @@ The following rules are mandatory for every phase and quest/map repair:
 
 ## Phase 1 — Unified OTBM World Index
 
-### Contract
+### Contract and entrypoints
 
-- binary magic: `OTSWIDX1`;
-- binary version: `1`;
-- provenance manifest: `canary-otbm-world-index-v1`;
-- query response: `canary-otbm-world-query-v1`;
-- native build report: `canary-otbm-world-index-build-v1`.
-
-Entrypoints:
-
+- binary magic `OTSWIDX1`, version `1`;
+- provenance manifest `canary-otbm-world-index-v1`;
+- query response `canary-otbm-world-query-v1`;
+- native build report `canary-otbm-world-index-build-v1`;
 - `tools/ai-agent/otbm_item_audit_scan.cpp`;
 - `tools/ai-agent/otbm_world_index.py`;
 - `tools/ai-agent/otbm_world_index_tool.py`.
@@ -76,13 +70,11 @@ The existing native scanner is reused. No second OTBM parser exists.
 ### Safety
 
 - deterministic binary sections and postings;
-- duplicate exact tile positions fail closed;
-- corrupt/incompatible headers fail closed;
+- duplicate exact tile positions and corrupt/incompatible headers fail closed;
 - bounded query output with exact total counts;
 - source map, scanner and index hashes;
 - source stability check during build;
-- atomic output;
-- symlink output rejection;
+- atomic output and symlink rejection;
 - source map is never modified.
 
 ### Example
@@ -100,14 +92,11 @@ python tools/ai-agent/otbm_world_index_tool.py position world.widx 32062,32271,7
 
 ## Phase 2 — Quest Map Validator
 
-### Contracts
+### Contracts and entrypoints
 
-- source evidence: `canary-quest-map-evidence-v1`;
-- correlated report: `canary-quest-map-validation-v1`;
-- schema: `docs/ai-agent/QUEST_MAP_VALIDATION.schema.json`.
-
-Entrypoints:
-
+- source evidence `canary-quest-map-evidence-v1`;
+- correlated report `canary-quest-map-validation-v1`;
+- schema `docs/ai-agent/QUEST_MAP_VALIDATION.schema.json`;
 - `tools/ai-agent/quest_map_validation.py`;
 - `tools/ai-agent/quest_map_validation_tool.py`.
 
@@ -117,9 +106,8 @@ Entrypoints:
 - per-source SHA-256, line and bounded context;
 - static AID/UID/item/position/teleport/storage evidence;
 - direct `Storage...` alias canonicalization;
-- World Index correlation;
-- script-resolution correlation;
-- classifications: `confirmed`, `map-only`, `script-only`, `unresolved`, `conflicting`;
+- World Index and script-resolution correlation;
+- classifications `confirmed`, `map-only`, `script-only`, `unresolved`, `conflicting`;
 - bounded samples and exact counts;
 - atomic output and symlink rejection.
 
@@ -149,19 +137,22 @@ python tools/ai-agent/quest_map_validation_tool.py validate \
 
 ### Delivery
 
-Draft PR #274 implements:
+Merged PR #274 delivered:
 
-- report: `canary-otbm-reachability-v1`;
-- reviewed transition manifest: `canary-otbm-transition-manifest-v1`;
-- CLI: `tools/ai-agent/otbm_reachability_tool.py`;
-- public facade: `tools/ai-agent/otbm_reachability.py`;
+- report `canary-otbm-reachability-v1`;
+- reviewed transition manifest `canary-otbm-transition-manifest-v1`;
+- CLI `tools/ai-agent/otbm_reachability_tool.py`;
+- public facade `tools/ai-agent/otbm_reachability.py`;
 - focused modules for evidence types, transition validation, graph traversal and report orchestration;
 - schemas:
   - `docs/ai-agent/OTBM_REACHABILITY.schema.json`;
   - `docs/ai-agent/OTBM_TRANSITIONS.schema.json`;
-- documentation: `docs/ai-agent/OTBM_REACHABILITY.md`;
+- documentation `docs/ai-agent/OTBM_REACHABILITY.md`;
 - evidence-boundary ADR;
 - dedicated workflow `.github/workflows/otbm-reachability.yml`.
+
+Final feature head: `230237188cf8beed738e96923b6346948dc70d20`.  
+Squash merge: `0a9afe2821e249a15c9402419483675a2842f5a8`.
 
 ### Geometry policy
 
@@ -200,7 +191,7 @@ Routes:
 - `confirmed` — strict path exists;
 - `conditional` — only optimistic path exists;
 - `unreachable` — neither path exists inside the explicit region;
-- `invalid` — malformed/out-of-region request.
+- `invalid` — malformed or out-of-region request.
 
 Map mechanics reachable from supplied origins are classified as `confirmed`, `conditional` or `unreachable`.
 
@@ -215,7 +206,7 @@ This is bounded geometry evidence, not gameplay proof. It does not model current
 - sample output: 10,000;
 - path sample: 10,000 positions;
 - exact summary counts retained when samples truncate;
-- output written atomically;
+- atomic output;
 - existing output requires explicit overwrite;
 - symlink output targets rejected;
 - map and index remain unchanged.
@@ -237,18 +228,23 @@ python tools/ai-agent/otbm_reachability_tool.py analyze \
   --output /tmp/OTBM_REACHABILITY.json
 ```
 
-### Validation state
+### Final validation evidence
 
-At PR head `2fb1fe195a13e830709c0ae028a7f9d8280ff7db`:
+Head `230237188cf8beed738e96923b6346948dc70d20`:
 
-- OTBM Reachability workflow `29269281476`: success;
-- Agent Task Ownership `29269281465`: success;
-- AI Agent Tools `29269281509`: success;
-- OTBM Map Tools `29269281596`: success;
-- repository CI `29269281801`: success with `Required` success;
-- review threads: zero at the recorded inspection.
+- OTBM Reachability `29271057597`: success;
+- Agent Task Ownership `29271057936`: success;
+- AI Agent Tools `29271058098`: success;
+- OTBM Map Tools `29271057570`: success;
+- autofix.ci `29271058771`: success;
+- repository CI `29271058469`: success;
+- Linux Release `86888848766`: success;
+- Required `86890150987`: success;
+- review threads: zero.
 
-The dedicated workflow compiles the existing scanner, executes the focused suite including real World Index fixture integration, compiles all Python modules, validates schema syntax and uploads a local toolkit without maps or client assets.
+The dedicated workflow compiled the existing native scanner, ran the focused suite including real World Index fixture integration, compiled the Python modules, validated schema syntax and uploaded a local toolkit without maps or client assets.
+
+Runtime/database/C++ test execution was skipped by repository path scope, so this evidence does not claim live gameplay.
 
 ## Real-map provenance retained from Phases 1–2
 
@@ -277,7 +273,7 @@ maximum item depth: 2
 
 A later Phase 2 rebuild of the same map observed 40.21 s and 418,956 KiB peak RSS. These are separate measured runs, not conflicting format values.
 
-No private map, WIDX or asset package was committed.
+A Phase 3 attempt to rebuild the complete private-map WIDX exceeded the available execution window and was aborted. No partial output was used as evidence. No private map, WIDX or asset package was committed.
 
 ## Factual rendering
 
@@ -302,7 +298,7 @@ Planned deliverables:
 - compare quest expectations with static and dynamic creation;
 - never invent names, positions, radii or spawn times.
 
-Phase 4 must consume the Phase 3 report rather than create another geometry engine.
+Phase 4 must consume `canary-otbm-reachability-v1` rather than create another geometry engine.
 
 ## Phase 5 — Storage dependency graph
 
@@ -337,13 +333,13 @@ Planned deliverables:
 - isolated/orphan tiles;
 - suspicious duplicate ground;
 - house/PZ continuity issues;
-- exact positions, confidence and bounded factual renders.
+- exact positions, confidence levels and bounded factual renders.
 
 Visual-style rules remain warnings unless backed by deterministic contracts.
 
 ## Phase 8 — Safe bounded OTBM patch writer
 
-Phase 8 remains blocked until semantic diff and geometry gates are complete.
+Phase 8 remains blocked until semantic-diff and geometry gates are complete.
 
 Every approved future operation must:
 
@@ -363,11 +359,14 @@ Existing older patch surfaces do not authorize production-map edits.
 
 ## Programme handoff
 
-Until PR #274 is merged, continue only its branch/task and do not start Phase 4. After merge:
+Phase 3 is complete. The next programme agent may begin Phase 4 only from current `main` after a fresh open-PR and structured ownership check.
 
-1. archive `CAN-20260713-otbm-reachability-validator` in a separate lifecycle PR;
-2. pin the final Phase 3 merge SHA and workflow evidence here;
-3. begin Phase 4 only from current `main` after a fresh PR/task ownership search;
-4. reuse `canary-otbm-reachability-v1` rather than creating another walkability/pathfinding tool.
+The Phase 4 implementation must:
 
-The next gameplay-specific The Beginning repairs remain separate from this tooling programme and must follow their own evidence/task records.
+1. reuse the World Index, Quest Map Validator and `canary-otbm-reachability-v1`;
+2. keep active and inactive datapacks separate;
+3. avoid another parser/pathfinder/renderer;
+4. keep maps, indexes, client assets and generated reports outside Git;
+5. preserve runtime/dynamic uncertainty instead of guessing.
+
+Gameplay-specific quest repairs remain separate from this tooling programme and must follow their own evidence/task records.
