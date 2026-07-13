@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: fix/imbuement-direct-access-guard
 base_branch: main
 created: 2026-07-13T15:55:00+02:00
-updated: 2026-07-13T21:36:00+02:00
-last_verified_commit: "4e97f66f9f78d49ebbcbaf9acf8a31c49cf1c4a2"
+updated: 2026-07-13T21:38:00+02:00
+last_verified_commit: "b2253e0337507fc90d9867ecf6e8cf318958c79a"
 risk: medium
 related_issue: "dry-test finding after IMB-001..006 live-parity repair"
 related_pr: "#282"
@@ -62,6 +62,7 @@ Close the dry-test-discovered server-side authorization gap where a modified cli
 - Added focused C++ policy coverage for Basic/free access, premium rejection, missing storage rejection, unlocked storage success and disabled-storage-filter behavior.
 - Extended the deterministic runtime marker audit to require both server-side guard call sites.
 - Refreshed the Markdown baseline from 7/22/2 to 9/24/0 and documented the direct-ID finding.
+- Autofix commit `b2253e0337507fc90d9867ecf6e8cf318958c79a` changed only formatting in the new policy header.
 
 # Dry-test matrix
 
