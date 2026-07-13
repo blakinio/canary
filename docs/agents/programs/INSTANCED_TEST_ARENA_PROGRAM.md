@@ -1,0 +1,153 @@
+---
+program_id: CAN-PROGRAM-INSTANCED-TEST-ARENA
+name: Instanced Test Arena
+status: active
+owner: Claude
+created: 2026-07-13T20:00:00Z
+updated: 2026-07-13T20:50:00Z
+last_verified_commit: "6fb9c65d3e8b9105e65515dc2b03827a06753eb0"
+primary_paths:
+  - src/game/instance/
+  - src/game/game.hpp
+  - src/game/game.cpp
+  - data/talkactions/
+  - docs/architecture/instanced-test-arena.md
+shared_integration_paths:
+  - docs/architecture/instance-manager.md
+  - docs/architecture/CANARY_ENGINE_PROJECT_HANDOFF.md
+  - docs/agents/MODULE_CATALOG.md
+related_programs: []
+cross_repo_contracts: []
+---
+
+# Mission
+
+Deliver one small, real, administrator-only vertical-slice feature - an
+Instanced Test Arena - that is a genuine production consumer of the merged
+`InstanceManager` foundation (region-backed lifecycle, `Game::
+getInstanceManager()`, `InstanceCreatureBinder`, automatic unregister on
+removal, `InstanceScopedEvent`, periodic timeout sweep). No further
+InstanceManager infrastructure PRs without a real consumer.
+
+# Scope
+
+- one `InstanceArenaService`-style component owning two configured map
+  regions and consuming the existing manager/binder/event APIs;
+- an admin-gated command (`/instancearena create|leave|close`) matching
+  existing talkaction conventions;
+- create -> teleport player into a reserved region -> spawn and register a
+  real monster -> summons inherit ownership;
+- leave -> return player to their saved position;
+- close/timeout -> evacuate player, remove creatures, run cleanup, release
+  region only after success;
+- fix whatever concrete cross-instance leaks two real running arenas expose
+  (spectator/target/combat call sites), nothing speculative;
+- two-parallel-instances end-to-end proof and region reuse.
+
+# Explicit exclusions
+
+- no multiworld or multi-channel work;
+- no generic dungeon/instance authoring framework;
+- no new `InstanceManager`/registry/binder/global singleton;
+- no OTBM parser/renderer duplication;
+- no AI image generation;
+- no `.otbm`/`items.otb` binary edits.
+
+# Existing systems to reuse
+
+| Module/tool/contract | Source | Required reuse rule |
+|---|---|---|
+| InstanceManager (region-backed) | `src/game/instance/instance_manager.{hpp,cpp}` | One manager instance via `Game::getInstanceManager()`; do not create a second. |
+| InstanceRegionPool | `src/game/instance/instance_region_pool.*` | Region config is one explicit list; do not invent a second pool. |
+| InstanceCreatureBinder | `src/game/instance/instance_creature_binder.hpp` | Register/unregister/inherit through this adapter only. |
+| InstanceScopedEvent | `src/game/instance/instance_scoped_event.hpp` | Wrap arena-scheduled callbacks; do not build a parallel liveness check. |
+| `Game::removeCreature()` auto-unregister | `src/game/game.cpp` | Already unregisters on removal; do not duplicate. |
+| `Game::start()` timeout sweep | `src/game/game.cpp` | Already calls `closeExpiredInstances()` periodically; do not add a second sweep. |
+| Unified OTBM world index / item audit / script resolution | `tools/ai-agent/otbm_*` | Region evidence only; never invent coordinates or hand-edit `.otbm`. |
+
+# Active tasks
+
+| Task ID | Branch | PR | State | Exact next action |
+|---|---|---:|---|---|
+| CAN-20260713-instanced-test-arena | `docs/instanced-test-arena-plan` | (pending) | in_progress | Open PR 1: doc fix + region plan. |
+
+# Queue
+
+1. PR 1 - fix `docs/architecture/instance-manager.md` inconsistency, add `docs/architecture/instanced-test-arena.md` region plan with OTBM evidence (this task).
+2. PR 2 - region config + `InstanceArenaService` + create/activate/close lifecycle, no player yet.
+3. PR 3 - admin talkaction: create/leave/close, return-position capture, evacuation.
+4. PR 4 - monster spawn + binder registration after nonzero runtime ID + summon inheritance.
+5. PR 5 - instance-scoped delayed events + timeout/cleanup wiring.
+6. PR 6 - run two real arenas, fix concrete cross-instance leaks only.
+7. PR 7 - two-parallel-instances E2E, region reuse proof, final docs.
+
+# Completed work
+
+| Task/PR | Result | Merge commit | Follow-up |
+|---|---|---|---|
+| (none yet) | | | |
+
+# Dependencies and blockers
+
+- None currently. `data-canary/world/canary.otbm` is the only complete map
+  physically present in this environment (`otservbr.otbm` is downloaded at
+  server startup and not committed); the region plan records this as an
+  assumption the owner can redirect.
+
+# Decisions and invariants
+
+- Region configuration lives in exactly one place (`InstanceArenaService`'s
+  region list); every later PR reads it, none duplicates it.
+- Physical region separation is a defense-in-depth buffer, not the sole
+  isolation mechanism - the ownership-registry relation checks
+  (`getCreatureRelation()`/`canCreaturesInteract()`) are the actual
+  cross-instance isolation guarantee and must keep working even if a player
+  physically walks near the buffer zone.
+- Every PR in this program must compile-affecting-file-check with
+  `clang-format`/`cmake-format` locally (no compiler available in this
+  sandbox) and rely on CI for the first real build confirmation.
+- No PR in this program adds a new `g_*()` singleton or a second
+  manager/registry/binder.
+
+# Validation strategy
+
+- Focused gtest coverage per PR where a real unit-test harness exists.
+- `Game`-touching changes have no local unit-test harness (documented
+  precedent from PRs #201/#231/#233); rely on full CI compile + the
+  project's existing Canary/global datapack smoke jobs.
+- PR 7 adds the first genuine end-to-end proof (two concurrent instances).
+
+# Handoff
+
+## Start here
+
+Read `docs/architecture/instanced-test-arena.md` for the region evidence,
+then `docs/architecture/instance-manager.md` for the underlying API surface,
+then the active task record for exact current progress.
+
+## Task creation protocol
+
+1. Select the next queue item above.
+2. Re-check open PRs and this program record for overlap before branching.
+3. Create one task record, branch, and PR from current `main`.
+4. Implement the smallest complete slice; validate what can be validated
+   locally; open/update the PR; merge only after real CI is green.
+5. Update this program record's Active tasks/Queue/Completed work sections
+   and `docs/architecture/instance-manager.md`/
+   `docs/architecture/CANARY_ENGINE_PROJECT_HANDOFF.md` after merge.
+
+## Do not repeat
+
+- Do not add another "safe no-op" InstanceManager adapter PR without a real
+  call site behind it - that phase is over; this program's job is to be the
+  real consumer.
+- Do not attempt to hand-edit `data-canary/world/canary.otbm` or invent new
+  rooms without RME access - reuse the existing "Tps Room" evidence instead.
+
+## Open questions
+
+- Is `data-canary/world/canary.otbm` actually the intended production map
+  for this feature, or should the region plan be redone against the
+  downloaded `otservbr.otbm` once/if that file is available in a real
+  deployment? Recorded as an assumption in
+  `docs/architecture/instanced-test-arena.md`, not a blocker.
