@@ -26,7 +26,7 @@ namespace {
 	}
 
 	bool hasLuaIntegerAssignment(const std::string &content, const std::string &name, int32_t value) {
-		const std::regex expression("(^|\\n)[\\t ]*" + name + "[\\t ]*=[\\t ]*" + std::to_string(value) + "[\\t ]*(\\r?\\n|$)");
+		const std::regex expression("(^|\\n)[\\t ]*" + name + "[\\t ]*=[\\t ]*" + std::to_string(value) + "[\\t ]*[,;]?[\\t ]*(\\r?\\n|$)");
 		return std::regex_search(content, expression);
 	}
 } // namespace
