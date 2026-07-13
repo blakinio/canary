@@ -1,0 +1,466 @@
+name: Stage Wheel Task Shop implementation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/stage-wheel-task-shop.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/wheel-15-25-runtime-completion
+          fetch-depth: 0
+
+      - name: Apply evidence-backed Task Shop patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected exactly one match, found {count}")
+              return text.replace(old, new, 1)
+
+          taskboard_path = Path("data/modules/scripts/taskboard/taskboard.lua")
+          taskboard = taskboard_path.read_text(encoding="utf-8")
+
+          taskboard = replace_once(
+              taskboard,
+              '''local ShopResponseActions = {
+          \t[ClientAction.Shop] = true,
+          \t[ClientAction.ShopBuy] = true,
+          }
+
+          -- Official-client packet shim for 15.25 Taskboard traffic.
+          -- This intentionally sends empty but structurally valid 0x5B windows. Full
+          -- task state, rewards, shop contents and Soulpit behavior should be added on
+          -- top of these byte writers instead of changing the packet contract.
+          ''',
+              '''local ShopResponseActions = {
+          \t[ClientAction.Shop] = true,
+          \t[ClientAction.ShopBuy] = true,
+          }
+
+          local ShopOfferType = {
+          \tBonusPromotion = 0x04,
+          }
+
+          local ShopStatus = {
+          \tAvailable = 0x00,
+          \tNotEnoughPoints = 0x02,
+          \tBought = 0x04,
+          }
+
+          local BonusPromotion = {
+          \tOfferId = 0,
+          \tMaxPoints = 50,
+          \tKvScope = "wheel-of-destiny",
+          \tKvKey = "hunting-task-shop-points",
+          }
+
+          -- Official-client packet implementation for 15.25 Taskboard traffic.
+          -- Bounty and Weekly remain structurally valid empty windows. The Hunting
+          -- Task Shop exposes the retail Bonus Promotion offer and persists only the
+          -- purchased Wheel points, never the player's complete Hunting Task balance.
+          ''',
+              "taskboard constants",
+          )
+
+          taskboard = replace_once(
+              taskboard,
+              '''local function sendShopWindow(player)
+          \tlocal msg = NetworkMessage()
+          \tmsg:addByte(ServerPackets.Taskboard)
+          \tmsg:addByte(OutboundWindow.Shop)
+          \tmsg:addByte(0) -- offer count
+          \tmsg:sendToPlayer(player)
+          end
+          ''',
+              '''local function getBonusPromotionKV(player)
+          \treturn player:kv():scoped(BonusPromotion.KvScope)
+          end
+
+          local function getPurchasedBonusPromotionPoints(player)
+          \tlocal stored = getBonusPromotionKV(player):get(BonusPromotion.KvKey)
+          \tlocal points = math.floor(tonumber(stored) or 0)
+          \treturn math.max(0, math.min(BonusPromotion.MaxPoints, points))
+          end
+
+          local function getBonusPromotionPointCost(pointNumber)
+          \tif pointNumber < 1 or pointNumber > BonusPromotion.MaxPoints then
+          \t\treturn 0
+          \tend
+
+          \treturn 100 * (1 + math.floor((pointNumber * (pointNumber - 1)) / 2))
+          end
+
+          local function getBonusPromotionStatus(player, purchasedPoints, nextCost)
+          \tif purchasedPoints >= BonusPromotion.MaxPoints then
+          \t\treturn ShopStatus.Bought
+          \tend
+          \tif player:getTaskHuntingPoints() < nextCost then
+          \t\treturn ShopStatus.NotEnoughPoints
+          \tend
+          \treturn ShopStatus.Available
+          end
+
+          local function sendShopWindow(player)
+          \tlocal purchasedPoints = getPurchasedBonusPromotionPoints(player)
+          \tlocal nextPoint = purchasedPoints + 1
+          \tlocal nextCost = getBonusPromotionPointCost(nextPoint)
+
+          \tlocal msg = NetworkMessage()
+          \tmsg:addByte(ServerPackets.Taskboard)
+          \tmsg:addByte(OutboundWindow.Shop)
+          \tmsg:addByte(1) -- offer count
+          \tmsg:addByte(ShopOfferType.BonusPromotion)
+          \tmsg:addU16(nextPoint) -- client derives purchased count as value - 1
+          \tmsg:addU32(nextCost)
+          \tmsg:addByte(getBonusPromotionStatus(player, purchasedPoints, nextCost))
+          \tmsg:sendToPlayer(player)
+          end
+
+          local function purchaseBonusPromotionPoint(player, offerId)
+          \tif offerId ~= BonusPromotion.OfferId then
+          \t\tlogger.debug("[Taskboard] player='{}' requested unknown shop offer {}", player:getName(), offerId)
+          \t\treturn false
+          \tend
+
+          \tlocal purchasedPoints = getPurchasedBonusPromotionPoints(player)
+          \tif purchasedPoints >= BonusPromotion.MaxPoints then
+          \t\treturn false
+          \tend
+
+          \tlocal cost = getBonusPromotionPointCost(purchasedPoints + 1)
+          \tif cost <= 0 or player:getTaskHuntingPoints() < cost then
+          \t\treturn false
+          \tend
+
+          \tplayer:removeTaskHuntingPoints(cost)
+          \tgetBonusPromotionKV(player):set(BonusPromotion.KvKey, purchasedPoints + 1)
+          \tlogger.info("[Taskboard] player='{}' bought Wheel Promotion Point {} for {} Hunting Task Points", player:getName(), purchasedPoints + 1, cost)
+          \treturn true
+          end
+          ''',
+              "taskboard shop implementation",
+          )
+
+          taskboard = replace_once(
+              taskboard,
+              '''local function consumeActionPayload(msg, action)
+          \tif OneBytePayloadActions[action] then
+          \t\treturn consumeU8(msg)
+          \tend
+
+          \tif OneU16PayloadActions[action] then
+          \t\treturn consumeU16(msg)
+          \tend
+
+          \tif TwoU16PayloadActions[action] then
+          \t\treturn consumeU16(msg) and consumeU16(msg)
+          \tend
+
+          \treturn true
+          end
+          ''',
+              '''local function readActionPayload(msg, action)
+          \tif OneBytePayloadActions[action] then
+          \t\tlocal value = readU8(msg)
+          \t\treturn value ~= nil, value
+          \tend
+
+          \tif OneU16PayloadActions[action] then
+          \t\tlocal value = readU16(msg)
+          \t\treturn value ~= nil, value
+          \tend
+
+          \tif TwoU16PayloadActions[action] then
+          \t\tlocal first = readU16(msg)
+          \t\tlocal second = readU16(msg)
+          \t\treturn first ~= nil and second ~= nil, first, second
+          \tend
+
+          \treturn true
+          end
+          ''',
+              "taskboard payload reader",
+          )
+
+          old_recv = '''function onRecvbyte(player, msg, byte)
+          \tif byte ~= ClientPackets.Taskboard then
+          \t\treturn
+          \tend
+
+          \tlocal action = readU8(msg)
+          \tif not action then
+          \t\tlogger.debug("[Taskboard] ignored malformed 0x5F packet from player='{}': missing action", player:getName())
+          \t\treturn
+          \tend
+
+          \tif not consumeActionPayload(msg, action) then
+          \t\tlogger.debug("[Taskboard] ignored malformed 0x5F packet from player='{}': incomplete action {}", player:getName(), action)
+          \t\treturn
+          \tend
+
+          \tlocal trailingBytes = msg:getUnreadBytes()
+          \tif trailingBytes > 0 then
+          \t\tlogger.debug("[Taskboard] ignored malformed 0x5F packet from player='{}': action={} unexpected trailing bytes={}", player:getName(), action, trailingBytes)
+          \t\treturn
+          \tend
+
+          \tif BountyResponseActions[action] then
+          \t\tsendWindow(player, OutboundWindow.Bounty)
+          \telseif WeeklyResponseActions[action] then
+          \t\tsendWindow(player, OutboundWindow.Weekly)
+          \telseif ShopResponseActions[action] then
+          \t\tsendWindow(player, OutboundWindow.Shop)
+          \telse
+          \t\tsendWindow(player, OutboundWindow.Bounty)
+          \tend
+
+          \tlogger.debug("[Taskboard] player='{}' action={} handled by minimal official packet shim.", player:getName(), action)
+          end
+          '''
+          new_recv = '''function onRecvbyte(player, msg, byte)
+          \tif byte ~= ClientPackets.Taskboard then
+          \t\treturn
+          \tend
+
+          \tlocal action = readU8(msg)
+          \tif not action then
+          \t\tlogger.debug("[Taskboard] ignored malformed 0x5F packet from player='{}': missing action", player:getName())
+          \t\treturn
+          \tend
+
+          \tlocal payloadValid, firstPayload = readActionPayload(msg, action)
+          \tif not payloadValid then
+          \t\tlogger.debug("[Taskboard] ignored malformed 0x5F packet from player='{}': incomplete action {}", player:getName(), action)
+          \t\treturn
+          \tend
+
+          \tlocal trailingBytes = msg:getUnreadBytes()
+          \tif trailingBytes > 0 then
+          \t\tlogger.debug("[Taskboard] ignored malformed 0x5F packet from player='{}': action={} unexpected trailing bytes={}", player:getName(), action, trailingBytes)
+          \t\treturn
+          \tend
+
+          \tif action == ClientAction.ShopBuy then
+          \t\tpurchaseBonusPromotionPoint(player, firstPayload)
+          \t\tsendWindow(player, OutboundWindow.Shop)
+          \telseif BountyResponseActions[action] then
+          \t\tsendWindow(player, OutboundWindow.Bounty)
+          \telseif WeeklyResponseActions[action] then
+          \t\tsendWindow(player, OutboundWindow.Weekly)
+          \telseif ShopResponseActions[action] then
+          \t\tsendWindow(player, OutboundWindow.Shop)
+          \telse
+          \t\tsendWindow(player, OutboundWindow.Bounty)
+          \tend
+
+          \tlogger.debug("[Taskboard] player='{}' action={} handled.", player:getName(), action)
+          end
+          '''
+          taskboard = replace_once(taskboard, old_recv, new_recv, "taskboard receiver")
+          taskboard_path.write_text(taskboard, encoding="utf-8")
+
+          header_path = Path("src/creatures/players/components/wheel/player_wheel.hpp")
+          header = header_path.read_text(encoding="utf-8")
+          header = replace_once(
+              header,
+              "\tuint16_t getExtraPoints() const;\n",
+              "\tuint16_t getExtraPoints() const;\n\tuint16_t getHuntingTaskShopPoints() const;\n",
+              "PlayerWheel header",
+          )
+          header_path.write_text(header, encoding="utf-8")
+
+          wheel_path = Path("src/creatures/players/components/wheel/player_wheel.cpp")
+          wheel = wheel_path.read_text(encoding="utf-8")
+          old_extra = '''uint16_t PlayerWheel::getExtraPoints() const {
+          \tif (m_player.getLevel() <= m_minLevelToStartCountPoints) {
+          \t\treturn 0;
+          \t}
+
+          \tuint32_t totalBonus = m_modsMaxGrade;
+          \tfor (const auto &[itemId, name, extraPoints] : m_unlockedScrolls) {
+          \t\tif (itemId != 0) {
+          \t\t\ttotalBonus += extraPoints;
+          \t\t}
+          \t}
+
+          \tif (hasCompletedMonkQuest()) {
+          \t\tconst auto monkQuestBonus = std::max<int32_t>(0, g_configManager().getNumber(WHEEL_MONK_QUEST_BONUS));
+          \t\ttotalBonus += static_cast<uint32_t>(monkQuestBonus);
+          \t}
+
+          \treturn static_cast<uint16_t>(std::min<uint32_t>(totalBonus, std::numeric_limits<uint16_t>::max()));
+          }
+          '''
+          new_extra = '''uint16_t PlayerWheel::getHuntingTaskShopPoints() const {
+          \tconst auto wheelKV = m_player.kv()->scoped("wheel-of-destiny");
+          \tif (!wheelKV) {
+          \t\treturn 0;
+          \t}
+
+          \tconst auto storedValue = wheelKV->get("hunting-task-shop-points");
+          \tif (!storedValue.has_value()) {
+          \t\treturn 0;
+          \t}
+
+          \tconstexpr IntType maximumPoints = 50;
+          \tconst auto storedPoints = storedValue->get<IntType>();
+          \tif (storedPoints < 0 || storedPoints > maximumPoints) {
+          \t\tg_logger().warn("[{}] Clamping invalid Hunting Task Shop Wheel points {} for player {}", __FUNCTION__, storedPoints, m_player.getName());
+          \t}
+
+          \treturn static_cast<uint16_t>(std::clamp<IntType>(storedPoints, 0, maximumPoints));
+          }
+
+          uint16_t PlayerWheel::getExtraPoints() const {
+          \tif (m_player.getLevel() <= m_minLevelToStartCountPoints) {
+          \t\treturn 0;
+          \t}
+
+          \tuint32_t totalBonus = m_modsMaxGrade;
+          \tfor (const auto &[itemId, name, extraPoints] : m_unlockedScrolls) {
+          \t\tif (itemId != 0) {
+          \t\t\ttotalBonus += extraPoints;
+          \t\t}
+          \t}
+
+          \tif (hasCompletedMonkQuest()) {
+          \t\tconst auto monkQuestBonus = std::max<int32_t>(0, g_configManager().getNumber(WHEEL_MONK_QUEST_BONUS));
+          \t\ttotalBonus += static_cast<uint32_t>(monkQuestBonus);
+          \t}
+
+          \ttotalBonus += getHuntingTaskShopPoints();
+          \treturn static_cast<uint16_t>(std::min<uint32_t>(totalBonus, std::numeric_limits<uint16_t>::max()));
+          }
+          '''
+          wheel = replace_once(wheel, old_extra, new_extra, "PlayerWheel extra points")
+          wheel = replace_once(
+              wheel,
+              '''\tif (usesOfficialSkillWheelPayload) {
+          \t\t// Current clients read a quest flag plus a u16 bonus before the gem lists.
+          \t\tmsg.addByte(hasMonkQuestBonus ? 1 : 0); // The Way of the Monk quest bonus
+          \t\tmsg.add<uint16_t>(hasMonkQuestBonus ? static_cast<uint16_t>(std::min<int32_t>(monkQuestBonus, 0xFFFF)) : 0);
+          \t} else {
+          ''',
+              '''\tif (usesOfficialSkillWheelPayload) {
+          \t\t// Current clients read the Monk quest flag followed by purchased Hunting Task Shop points.
+          \t\tmsg.addByte(hasMonkQuestBonus ? 1 : 0); // The Way of the Monk quest bonus flag
+          \t\tmsg.add<uint16_t>(getHuntingTaskShopPoints());
+          \t} else {
+          ''',
+              "official Wheel task-shop payload",
+          )
+          wheel_path.write_text(wheel, encoding="utf-8")
+
+          test_path = Path("tools/ai-agent/test_wheel_task_shop_validation.py")
+          test = test_path.read_text(encoding="utf-8")
+          test = replace_once(test, "import unittest\n", "import unittest\nfrom pathlib import Path\n", "test imports")
+          test = replace_once(
+              test,
+              '''    def test_accepts_implemented_shop_and_point_path(self) -> None:
+          ''',
+              '''    def test_repository_implements_bounded_persistent_promotion_offer(self) -> None:
+          \t\troot = Path(__file__).resolve().parents[2]
+          \t\ttaskboard = (root / "data/modules/scripts/taskboard/taskboard.lua").read_text(encoding="utf-8")
+          \t\tplayer_wheel = (root / "src/creatures/players/components/wheel/player_wheel.cpp").read_text(encoding="utf-8")
+          \t\treport = audit_sources(taskboard, player_wheel)
+          \t\tself.assertTrue(report["ok"], report["findings"])
+          \t\tself.assertIn("MaxPoints = 50", taskboard)
+          \t\tself.assertIn("100 * (1 + math.floor((pointNumber * (pointNumber - 1)) / 2))", taskboard)
+          \t\tself.assertIn("player:removeTaskHuntingPoints(cost)", taskboard)
+          \t\tself.assertIn('KvKey = "hunting-task-shop-points"', taskboard)
+          \t\tself.assertIn("totalBonus += getHuntingTaskShopPoints();", player_wheel)
+          \t\tself.assertIn("msg.add<uint16_t>(getHuntingTaskShopPoints());", player_wheel)
+
+          \tdef test_accepts_implemented_shop_and_point_path(self) -> None:
+          ''',
+              "repository task-shop test",
+          )
+          # Normalize tabs introduced in the inserted Python block to four spaces.
+          test = test.replace("\n\t\t", "\n        ").replace("\n\tdef test_accepts", "\n    def test_accepts")
+          test_path.write_text(test, encoding="utf-8")
+
+          validation_path = Path("docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION.md")
+          validation = validation_path.read_text(encoding="utf-8")
+          validation = replace_once(
+              validation,
+              "| Hunting Task Shop points | missing | current Taskboard module explicitly sends an empty shop shim | implement Taskboard reward/shop persistence |",
+              "| Hunting Task Shop points | partial | PR #230 adds the official Bonus Promotion offer, exact escalating 1–50 cost formula, bounded player KV persistence, Wheel accounting, and official-client payload field | runtime purchase/relogin and insufficient-balance scenarios |",
+              "validation matrix Task Shop row",
+          )
+          finding = '''### WOD-030 — Hunting Task Shop Promotion Points were absent and the official Wheel payload used the wrong value
+
+          **Disposition:** `missing` / `incorrect` → implementation added in PR #230; CI pending  
+          **Severity:** high
+
+          The Taskboard shop previously advertised zero offers and `ShopBuy` only reopened the empty window. The official Wheel payload also wrote the configured Monk quest bonus into the `u16` field that maintained clients parse as Hunting Task Shop Promotion Points.
+
+          The implementation now exposes the official Bonus Promotion offer, charges the documented escalating cost `100 × (1 + n(n−1)/2)` for points 1–50, stores only the bounded purchased count under the player Wheel KV scope, includes it in `getExtraPoints()`, and serializes that count in the official-client field. The complete Hunting Task balance is never treated as Wheel points.
+
+          '''
+          validation = replace_once(validation, "## 7. Change log\n", finding + "## 7. Change log\n", "WOD-030 finding")
+          changelog = '''### 2026-07-13 — Hunting Task Shop Promotion Points
+
+          - Added the official Taskboard Bonus Promotion offer and exact 1–50 cost progression.
+          - Added bounded player-KV persistence under `wheel-of-destiny/hunting-task-shop-points`.
+          - Included purchased points in Wheel extra-point accounting.
+          - Corrected the official Wheel payload field from Monk bonus amount to purchased Task Shop points.
+          - Added a focused repository contract test; runtime and CI evidence remain pending.
+
+          '''
+          validation = replace_once(validation, "## 8. Validation conclusion\n", changelog + "## 8. Validation conclusion\n", "validation change log")
+          validation_path.write_text(validation, encoding="utf-8")
+
+          task_path = Path("docs/agents/tasks/active/CAN-20260713-wheel-15-25-runtime-completion.md")
+          task = task_path.read_text(encoding="utf-8")
+          task = replace_once(task, "updated: 2026-07-13T06:22:00Z", "updated: 2026-07-13T18:30:00Z", "task updated timestamp")
+          task = replace_once(task, "- [ ] Hunting Task Shop sells a bounded, persisted maximum of 50 Wheel points without treating the whole task-points balance as Wheel points.", "- [x] Hunting Task Shop sells a bounded, persisted maximum of 50 Wheel points without treating the whole task-points balance as Wheel points; runtime CI evidence pending.", "task acceptance")
+          worklog = '''## 2026-07-13T18:30:00Z
+
+          - Changed: implemented the official Bonus Promotion Task Shop offer, exact escalating costs, bounded player KV persistence, Wheel accounting, and the official-client `u16` payload source.
+          - Learned: the maintained client parses the `u16` after the Monk quest flag as Hunting Task Shop points; the prior server payload incorrectly filled it with the Monk bonus amount.
+          - Validation: added repository contract assertions; CI has not yet been observed and is not claimed as passed.
+          - Remaining: stances/replacement spells, passive/Revelation reworks, Blessing critical healing, Strong Ice Wave geometry, and end-to-end runtime scenarios.
+
+          '''
+          task = replace_once(task, "# Decisions\n", worklog + "# Decisions\n", "task work log")
+          task = replace_once(task, "| `data/modules/scripts/taskboard/taskboard.lua` | bounded Wheel-point shop | discovery |", "| `data/modules/scripts/taskboard/taskboard.lua` | bounded Wheel-point shop | implemented; CI pending |", "task file status")
+          task = replace_once(task, "1. Publish the draft PR and update ACTIVE_WORK.\n2. Map exact current source and packet surfaces.", "1. Verify the Task Shop implementation in CI and runtime scenarios.\n2. Implement stance state and replacement spells from authoritative evidence.\n3. Continue passive/Revelation, Blessing, Strong Ice Wave, and end-to-end coverage.", "task remaining work")
+          task_path.write_text(task, encoding="utf-8")
+          PY
+
+      - name: Validate patch
+        shell: bash
+        run: |
+          git diff --check
+          python -m unittest -v tools/ai-agent/test_wheel_task_shop_validation.py
+          python tools/ai-agent/wheel_task_shop_validation.py \
+            --repository-root . \
+            --output /tmp/WHEEL_TASK_SHOP_AUDIT.json
+          python -m json.tool /tmp/WHEEL_TASK_SHOP_AUDIT.json > /dev/null
+
+      - name: Commit to the real Wheel branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            data/modules/scripts/taskboard/taskboard.lua \
+            src/creatures/players/components/wheel/player_wheel.cpp \
+            src/creatures/players/components/wheel/player_wheel.hpp \
+            tools/ai-agent/test_wheel_task_shop_validation.py \
+            docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION.md \
+            docs/agents/tasks/active/CAN-20260713-wheel-15-25-runtime-completion.md
+          git commit -m "feat(wheel): add Hunting Task Shop promotion points"
+          git push origin HEAD:feat/wheel-15-25-runtime-completion
