@@ -1,19 +1,17 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import struct
+import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 MODULE_DIR = Path(__file__).resolve().parent
-WORLD_DIR = Path("/mnt/data/otbm_world_impl")
-STUB_DIR = MODULE_DIR / "stubs"
-sys.path.insert(0, str(STUB_DIR))
-sys.path.insert(1, str(MODULE_DIR))
-sys.path.insert(2, str(WORLD_DIR))
+sys.path.insert(0, str(MODULE_DIR))
 
 from quest_map_validation import (
     EVIDENCE_FORMAT,
@@ -62,7 +60,7 @@ def tile(offset_x: int, offset_y: int, inline: int, children: list[bytes]) -> by
 
 def make_map(path: Path) -> None:
     base = (256, 512, 7)
-    t1 = tile(
+    first = tile(
         44,
         88,
         100,
@@ -73,8 +71,8 @@ def make_map(path: Path) -> None:
             item(203, bytes((ATTR_HOUSEDOOR_ID, 7))),
         ],
     )
-    t2 = tile(45, 88, 101, [item(7772)])
-    area = node(OTBM_TILE_AREA, struct.pack("<HHB", *base), [t1, t2])
+    second = tile(45, 88, 101, [item(7772)])
+    area = node(OTBM_TILE_AREA, struct.pack("<HHB", *base), [first, second])
     map_data = node(OTBM_MAP_DATA, b"", [area])
     root = node(0, struct.pack("<IHHII", 4, 1024, 1024, 4, 4), [map_data])
     path.write_bytes(b"\0\0\0\0" + root)
@@ -90,9 +88,51 @@ def script_resolution(*entries: tuple[str, int, str]) -> dict:
 class QuestMapValidationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.scanner = WORLD_DIR / "otbm_item_audit_scan"
-        if not cls.scanner.is_file():
-            raise unittest.SkipTest("compiled world-index scanner is unavailable")
+        configured = os.environ.get("OTBM_WORLD_INDEX_SCANNER")
+        if configured:
+            cls.scanner = Path(configured).resolve()
+            if not cls.scanner.is_file():
+                raise RuntimeError(f"Configured scanner does not exist: {cls.scanner}")
+            cls.scanner_temp = None
+            return
+
+        compiler = shutil.which("c++")
+        if compiler is None:
+            raise unittest.SkipTest("A C++ compiler is required for the synthetic OTBM fixtures")
+        source = MODULE_DIR / "otbm_item_audit_scan.cpp"
+        if not source.is_file():
+            raise RuntimeError(f"World-index scanner source is unavailable: {source}")
+
+        cls.scanner_temp = tempfile.TemporaryDirectory()
+        cls.scanner = Path(cls.scanner_temp.name) / "otbm_item_audit_scan"
+        completed = subprocess.run(
+            [
+                compiler,
+                "-O2",
+                "-std=c++20",
+                "-Wall",
+                "-Wextra",
+                "-Wpedantic",
+                "-Werror",
+                str(source),
+                "-o",
+                str(cls.scanner),
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if completed.returncode != 0:
+            raise RuntimeError(
+                "Cannot compile the world-index scanner for Quest Map Validator tests:\n"
+                + completed.stdout
+                + completed.stderr
+            )
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        if cls.scanner_temp is not None:
+            cls.scanner_temp.cleanup()
 
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
@@ -152,7 +192,10 @@ end
         )
         report = self.scan()
         self.assertEqual(report["format"], EVIDENCE_FORMAT)
-        values = {(entry["kind"], json.dumps(entry["value"], sort_keys=True), entry["role"]) for entry in report["evidence"]}
+        values = {
+            (entry["kind"], json.dumps(entry["value"], sort_keys=True), entry["role"])
+            for entry in report["evidence"]
+        }
         self.assertIn(("actionId", "8026", "registration"), values)
         self.assertIn(("itemId", "7772", "item-reward"), values)
         self.assertIn(("itemId", "3031", "item-consume"), values)
@@ -199,7 +242,10 @@ local p = Position(config.x, 600, 7)
         second = self.scan(excludes=["**/b.lua"])
         self.assertEqual(first, second)
         self.assertEqual(first["summary"]["filesScanned"], 1)
-        self.assertEqual({entry["value"] for entry in first["evidence"] if entry["kind"] == "itemId"}, {7772})
+        self.assertEqual(
+            {entry["value"] for entry in first["evidence"] if entry["kind"] == "itemId"},
+            {7772},
+        )
 
     def test_requires_explicit_include_glob(self) -> None:
         with self.assertRaises(QuestMapValidationError):
@@ -226,7 +272,10 @@ local missing = Position(400, 700, 7)
             sample_limit=2,
         )
         self.assertEqual(report["format"], VALIDATION_FORMAT)
-        classification = {(entry["kind"], json.dumps(entry["value"])): entry["classification"] for entry in report["findings"]}
+        classification = {
+            (entry["kind"], json.dumps(entry["value"])): entry["classification"]
+            for entry in report["findings"]
+        }
         self.assertEqual(classification[("actionId", "8026")], "confirmed")
         self.assertEqual(classification[("itemId", "7772")], "confirmed")
         self.assertEqual(classification[("itemId", "9999")], "script-only")
@@ -241,6 +290,17 @@ local missing = Position(400, 700, 7)
         )
         self.assertFalse(report["ok"])
         self.assertEqual(report["summary"]["byClassification"]["conflicting"], 1)
+
+    def test_reviewed_unresolved_identifier_is_not_promoted_to_confirmed(self) -> None:
+        self.write_lua("quest.lua", "local action=Action()\naction:aid(8026)\naction:register()\n")
+        report = validate_quest_evidence(
+            evidence_report=self.scan(),
+            world_index=self.index_path,
+            script_resolution=script_resolution(("actionId", 8026, "unresolved")),
+        )
+        action = next(item for item in report["findings"] if item["kind"] == "actionId")
+        self.assertEqual(action["classification"], "map-only")
+        self.assertNotEqual(action["classification"], "confirmed")
 
     def test_region_reports_unreferenced_map_mechanics_as_map_only(self) -> None:
         self.write_lua("quest.lua", "local action=Action()\naction:aid(8026)\naction:register()\n")
