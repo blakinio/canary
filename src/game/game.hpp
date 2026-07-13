@@ -723,6 +723,13 @@ public:
 	InstanceArenaService &getInstanceArenaService();
 	const InstanceArenaService &getInstanceArenaService() const;
 
+	// The one InstanceCreatureBinder for the one InstanceManager above -
+	// exposed generally (not only through InstanceArenaService) because
+	// summon-ownership inheritance at real monster-summon call sites is a
+	// general instance concern, not arena-specific. Delegates to the same
+	// binder instance the arena service owns; does not create a second one.
+	InstanceCreatureBinder &getInstanceCreatureBinder() noexcept;
+
 	void setTransferPlayerHouseItems(uint32_t houseId, uint32_t playerId);
 	void transferHouseItemsToDepot();
 

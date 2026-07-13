@@ -4,8 +4,8 @@ name: Instanced Test Arena
 status: active
 owner: Claude
 created: 2026-07-13T20:00:00Z
-updated: 2026-07-13T20:50:00Z
-last_verified_commit: "6fb9c65d3e8b9105e65515dc2b03827a06753eb0"
+updated: 2026-07-13T22:35:00Z
+last_verified_commit: "d9b10c322cd6bb9690c2a29fd3354082dde066f9"
 primary_paths:
   - src/game/instance/
   - src/game/game.hpp
@@ -69,14 +69,14 @@ InstanceManager infrastructure PRs without a real consumer.
 
 | Task ID | Branch | PR | State | Exact next action |
 |---|---|---:|---|---|
-| CAN-20260713-instance-arena-talkaction | `feat/instance-arena-talkaction` | (pending) | in_progress | Open PR 3; merge once CI green. |
+| CAN-20260713-instance-arena-monster-spawn | `feat/instance-arena-monster-spawn` | (pending) | in_progress | Open PR 4; merge once CI green. |
 
 # Queue
 
 1. ~~PR 1 - fix `docs/architecture/instance-manager.md` inconsistency, add `docs/architecture/instanced-test-arena.md` region plan with OTBM evidence.~~ Done (#287).
 2. ~~PR 2 - region config + `InstanceArenaService` + create/activate/close lifecycle, no player yet.~~ Done (#289).
-3. PR 3 - admin talkaction: create/leave/close, return-position capture, evacuation (this task).
-4. PR 4 - monster spawn + binder registration after nonzero runtime ID + summon inheritance.
+3. ~~PR 3 - admin talkaction: create/leave/close, return-position capture, evacuation.~~ Done (#295).
+4. PR 4 - monster spawn + binder registration after nonzero runtime ID + summon inheritance (this task).
 5. PR 5 - instance-scoped delayed events + timeout/cleanup wiring.
 6. PR 6 - run two real arenas, fix concrete cross-instance leaks only.
 7. PR 7 - two-parallel-instances E2E, region reuse proof, final docs.
@@ -85,13 +85,9 @@ InstanceManager infrastructure PRs without a real consumer.
 
 | Task/PR | Result | Merge commit | Follow-up |
 |---|---|---|---|
-| CAN-20260713-instanced-test-arena / #287 | Fixed stale `instance-manager.md` paragraph; added evidence-backed region plan | `47270c39f4e36568e8440cf6d2f421f5f09e6f67` | PR 2 consumed the region coordinates. |
+| CAN-20260713-instanced-test-arena / #287 | Fixed stale `instance-manager.md` paragraph; added evidence-backed region plan (`docs/architecture/instanced-test-arena.md`) | `47270c39f4e36568e8440cf6d2f421f5f09e6f67` | PR 2 consumed the region coordinates. |
 | CAN-20260713-instance-arena-service / #289 | `InstanceArenaService` real consumer, `Game::getInstanceArenaService()`, two real configured regions | `7e8f298f` (squash) | PR 3 adds a player-reachable command. |
-| CAN-20260713-instanced-test-arena / #287 | Fixed stale `instance-manager.md` paragraph; added evidence-backed region plan (`docs/architecture/instanced-test-arena.md`) | `47270c39f4e36568e8440cf6d2f421f5f09e6f67` | PR 2 consumes the region coordinates. |
-
-| Task/PR | Result | Merge commit | Follow-up |
-|---|---|---|---|
-| (none yet) | | | |
+| CAN-20260713-instance-arena-talkaction / #295 | `/instancearena create\|leave\|close` talkaction, `Game.createInstanceArena/leaveInstanceArena/closeInstanceArena` Lua bindings, player-session API on `InstanceArenaService` | `d9b10c322cd6bb9690c2a29fd3354082dde066f9` (squash) | PR 4 adds the real monster spawn + binder registration. |
 
 # Dependencies and blockers
 

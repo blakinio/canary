@@ -1498,7 +1498,12 @@ void Monster::onThinkDefense(uint32_t interval) {
 					const auto stack = getForgeStack();
 					summon->setSoulPitStack(stack, true);
 				}
-				summon->setMaster(static_self_cast<Monster>(), true);
+				// Instance-aware overload: a no-op pass-through to the plain
+				// setMaster(master, reload) for every normal-world summon
+				// (master's id isn't registered anywhere), and inherits the
+				// instance owner for an instance-owned master (docs/
+				// architecture/instance-manager.md, instanced-test-arena.md).
+				summon->setMaster(static_self_cast<Monster>(), g_game().getInstanceCreatureBinder(), true);
 				g_game().addMagicEffect(getPosition(), CONST_ME_MAGIC_BLUE);
 				g_game().addMagicEffect(summon->getPosition(), CONST_ME_TELEPORT);
 				g_game().sendSingleSoundEffect(summon->getPosition(), SoundEffect_t::MONSTER_SPELL_SUMMON, getMonster());
