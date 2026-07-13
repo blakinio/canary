@@ -16,8 +16,8 @@ def replace_once(path: str, old: str, new: str) -> None:
 
 replace_once(
     "data/libs/systems/exaltation_forge.lua",
-    "\tif amount <= 0 then\n\t\treturn 0\n\tend\n\n\tlocal totalDusts = player:getForgeDusts()\n",
-    "\tif amount <= 0 then\n\t\treturn 0\n\tend\n\n\tif not player:isPremium() then\n\t\tplayer:sendTextMessage(MESSAGE_EVENT_ADVANCE, \"You did not receive \" .. amount .. \" dust for the Exaltation Forge because a Premium Account is required.\")\n\t\treturn 0\n\tend\n\n\tlocal totalDusts = player:getForgeDusts()\n",
+    "\tif not player then\n\t\treturn 0\n\tend\n\n\tlocal totalDusts = player:getForgeDusts()\n",
+    "\tif not player then\n\t\treturn 0\n\tend\n\n\tif not player:isPremium() then\n\t\tplayer:sendTextMessage(MESSAGE_EVENT_ADVANCE, \"You did not receive \" .. amount .. \" dust for the Exaltation Forge because a Premium Account is required.\")\n\t\treturn 0\n\tend\n\n\tlocal totalDusts = player:getForgeDusts()\n",
 )
 
 replace_once(
@@ -38,12 +38,8 @@ replace_once(
 
 api_path = Path("docs/lua-api/lua_api.json")
 api = json.loads(api_path.read_text(encoding="utf-8"))
-player_methods = None
-for entry in api:
-    if isinstance(entry, dict) and entry.get("name") == "Player" and isinstance(entry.get("methods"), list):
-        player_methods = entry["methods"]
-        break
-if player_methods is None:
+player_methods = api.get("classes", {}).get("Player")
+if not isinstance(player_methods, list):
     raise RuntimeError("Player methods array not found in Lua API JSON")
 if any(method.get("name") == "isPremium" for method in player_methods):
     raise RuntimeError("Player:isPremium already exists")
