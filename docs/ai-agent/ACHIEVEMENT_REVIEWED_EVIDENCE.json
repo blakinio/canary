@@ -1,0 +1,67 @@
+{
+  "format": "canary-achievement-reviewed-evidence-v1",
+  "reviewedAt": "2026-07-13",
+  "scope": "Evidence already proven by the dedicated Weapon Proficiency achievement audit and its bounded runtime follow-up.",
+  "entries": [
+    {
+      "id": 564,
+      "status": "handler-missing",
+      "reason": "The definition exists, but the dedicated bounded audit found no active Weapon Proficiency or textual award path. Mastery-state correctness and the count API were repaired separately without adding awards.",
+      "evidence": [
+        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 34, "kind": "definition-present"},
+        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 67, "kind": "confirmed-missing-award-path"},
+        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 5, "kind": "runtime-remediation-boundary"}
+      ],
+      "persistenceBackfill": "unresolved",
+      "newPlayerAttainability": "handler-missing",
+      "existingPlayerAttainability": "unresolved",
+      "runtimeE2EProven": false,
+      "testStatus": "missing"
+    },
+    {
+      "id": 565,
+      "status": "handler-missing",
+      "reason": "The definition exists, but the dedicated bounded audit found no active Weapon Proficiency or textual award path. Mastery-state correctness and the count API were repaired separately without adding awards.",
+      "evidence": [
+        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 35, "kind": "definition-present"},
+        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 67, "kind": "confirmed-missing-award-path"},
+        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 5, "kind": "runtime-remediation-boundary"}
+      ],
+      "persistenceBackfill": "unresolved",
+      "newPlayerAttainability": "handler-missing",
+      "existingPlayerAttainability": "unresolved",
+      "runtimeE2EProven": false,
+      "testStatus": "missing"
+    },
+    {
+      "id": 566,
+      "status": "handler-missing",
+      "reason": "The definition exists, but the dedicated bounded audit found no active Weapon Proficiency or textual award path. Mastery-state correctness and the count API were repaired separately without adding awards.",
+      "evidence": [
+        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 36, "kind": "definition-present"},
+        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 67, "kind": "confirmed-missing-award-path"},
+        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 5, "kind": "runtime-remediation-boundary"}
+      ],
+      "persistenceBackfill": "unresolved",
+      "newPlayerAttainability": "handler-missing",
+      "existingPlayerAttainability": "unresolved",
+      "runtimeE2EProven": false,
+      "testStatus": "missing"
+    },
+    {
+      "id": 567,
+      "status": "conflicting",
+      "reason": "The current external reference defines the achievement, but Canary has no registry definition or award path. The exact twelve-item proficiency contract is proven, which is not authorization to implement it inside this validation PR.",
+      "evidence": [
+        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 37, "kind": "definition-absent"},
+        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 39, "kind": "award-path-absent"},
+        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 107, "kind": "secret-item-contract"}
+      ],
+      "persistenceBackfill": "unresolved",
+      "newPlayerAttainability": "conflicting",
+      "existingPlayerAttainability": "conflicting",
+      "runtimeE2EProven": false,
+      "testStatus": "missing"
+    }
+  ]
+}

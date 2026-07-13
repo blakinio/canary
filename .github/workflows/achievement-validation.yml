@@ -12,20 +12,30 @@ on:
       - "data/scripts/lib/register_achievements.lua"
       - "data/**/*.lua"
       - "data-otservbr-global/**/*.lua"
+      - "src/creatures/players/components/player_achievement.*"
       - "tools/ai-agent/achievement_validation.py"
       - "tools/ai-agent/test_achievement_validation.py"
       - "docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json"
+      - "docs/ai-agent/ACHIEVEMENT_REFERENCE_CATALOG.json"
+      - "docs/ai-agent/ACHIEVEMENT_REVIEWED_EVIDENCE.json"
       - "docs/ai-agent/ACHIEVEMENT_RUNTIME_TEST_PLAN.json"
+      - "docs/ai-agent/ACHIEVEMENT_COMPREHENSIVE_VALIDATION.md"
+      - "docs/agents/tasks/**/CAN-*-achievements-validation.md"
       - ".github/workflows/achievement-validation.yml"
   pull_request:
     paths:
       - "data/scripts/lib/register_achievements.lua"
       - "data/**/*.lua"
       - "data-otservbr-global/**/*.lua"
+      - "src/creatures/players/components/player_achievement.*"
       - "tools/ai-agent/achievement_validation.py"
       - "tools/ai-agent/test_achievement_validation.py"
       - "docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json"
+      - "docs/ai-agent/ACHIEVEMENT_REFERENCE_CATALOG.json"
+      - "docs/ai-agent/ACHIEVEMENT_REVIEWED_EVIDENCE.json"
       - "docs/ai-agent/ACHIEVEMENT_RUNTIME_TEST_PLAN.json"
+      - "docs/ai-agent/ACHIEVEMENT_COMPREHENSIVE_VALIDATION.md"
+      - "docs/agents/tasks/**/CAN-*-achievements-validation.md"
       - ".github/workflows/achievement-validation.yml"
   workflow_dispatch:
 
@@ -34,7 +44,7 @@ permissions:
 
 jobs:
   audit:
-    name: Audit achievement registry and triggers
+    name: Audit achievement definitions, reference conditions and handlers
     runs-on: ubuntu-latest
 
     steps:
@@ -49,20 +59,67 @@ jobs:
       - name: Run focused tests
         run: python -m unittest discover -s tools/ai-agent -p "test_achievement_validation.py" -v
 
-      - name: Generate achievement audit
+      - name: Compile validator modules
         run: |
+          python -m py_compile \
+            tools/ai-agent/achievement_validation.py \
+            tools/ai-agent/test_achievement_validation.py
+
+      - name: Validate committed evidence JSON
+        run: |
+          python -m json.tool docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json > /dev/null
+          python -m json.tool docs/ai-agent/ACHIEVEMENT_REFERENCE_CATALOG.json > /dev/null
+          python -m json.tool docs/ai-agent/ACHIEVEMENT_REVIEWED_EVIDENCE.json > /dev/null
+          python -m json.tool docs/ai-agent/ACHIEVEMENT_RUNTIME_TEST_PLAN.json > /dev/null
+
+      - name: Generate comprehensive achievement audit
+        run: |
+          mkdir -p artifacts
           python tools/ai-agent/achievement_validation.py \
             --repository-root . \
             --reference-baseline docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json \
+            --reference-catalog docs/ai-agent/ACHIEVEMENT_REFERENCE_CATALOG.json \
+            --reviewed-evidence docs/ai-agent/ACHIEVEMENT_REVIEWED_EVIDENCE.json \
             --output artifacts/ACHIEVEMENT_AUDIT.json \
             --markdown artifacts/ACHIEVEMENT_AUDIT.md \
             --allow-findings
 
-      - name: Validate generated JSON
+      - name: Verify comprehensive evidence invariants
         run: |
-          python -m json.tool artifacts/ACHIEVEMENT_AUDIT.json > /dev/null
-          python -m json.tool docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json > /dev/null
-          python -m json.tool docs/ai-agent/ACHIEVEMENT_RUNTIME_TEST_PLAN.json > /dev/null
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          allowed_statuses = {
+              "confirmed",
+              "partially-confirmed",
+              "definition-only",
+              "handler-missing",
+              "unresolved",
+              "conflicting",
+              "intentionally-unsupported",
+          }
+          catalog = json.loads(Path("docs/ai-agent/ACHIEVEMENT_REFERENCE_CATALOG.json").read_text(encoding="utf-8"))
+          report = json.loads(Path("artifacts/ACHIEVEMENT_AUDIT.json").read_text(encoding="utf-8"))
+
+          assert catalog["format"] == "canary-achievement-reference-catalog-v1"
+          assert catalog["summary"]["rows"] == 564
+          assert catalog["summary"]["rows"] == len(catalog["achievements"])
+          assert catalog["summary"]["common"] == 363
+          assert catalog["summary"]["secret"] == 201
+          assert catalog["summary"]["knownPointTotal"] == 1475
+          assert catalog["sourceConflicts"] == []
+          assert report["format"] == "canary-achievement-audit-v2"
+          assert report["summary"]["referenceCatalogCount"] == 564
+          assert report["summary"]["unknownStaticReferenceCount"] == 0
+          assert len(report["referenceValidation"]) == 564
+          assert set(report["summary"]["validationStatuses"]) <= allowed_statuses
+          assert all(row["status"] in allowed_statuses for row in report["referenceValidation"])
+          assert not any("description" in row for row in catalog["achievements"])
+          assert not any("text" in row["condition"] for row in catalog["achievements"])
+          assert report["complete"] is False
+          print(json.dumps(report["summary"], indent=2, sort_keys=True))
+          PY
 
       - name: Publish audit summary
         run: cat artifacts/ACHIEVEMENT_AUDIT.md >> "$GITHUB_STEP_SUMMARY"

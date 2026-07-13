@@ -1,49 +1,183 @@
 {
-  "format": "canary-achievement-reference-baseline-v1",
+  "format": "canary-achievement-reference-baseline-v2",
   "source": {
     "name": "TibiaWiki/Fandom Achievements",
-    "url": "https://tibia.fandom.com/wiki/Achievements",
-    "verifiedAt": "2026-07-12",
-    "scope": "Published achievement IDs, grade, secrecy and point totals; spoiler acquisition text is excluded."
+    "pageUrl": "https://tibia.fandom.com/wiki/Achievements",
+    "retrievalUrl": "https://tibia.fandom.com/api.php?action=parse&page=Achievements&prop=text%7Crevid&format=json&formatversion=2",
+    "observedAt": "2026-07-13",
+    "pageId": 49280,
+    "revisionId": 1188274,
+    "sourceSha256": "8a429425ab7b088758646b07f036afdd1d579188d056491aed8e77650306ae8b",
+    "sourceBytes": 1026270,
+    "copyrightBoundary": "Factual metadata, links and hashes retained; description/spoiler prose is not copied."
   },
   "counts": {
-    "listed": 562,
-    "total": 563,
-    "common": 362,
-    "secretDiscovered": 200,
-    "secretTotal": 201
+    "listed": 564,
+    "total": 565,
+    "common": 363,
+    "secretDiscovered": 201,
+    "secretTotal": 202
   },
   "points": {
-    "theoretical": 1470,
-    "maximumExcludingCoinciding": 1425
+    "theoretical": 1475,
+    "theoreticalKnown": 1475,
+    "unknownRows": 5,
+    "maximumExcludingCoinciding": 1430
+  },
+  "conditions": {
+    "available": 558,
+    "unavailable": 6
   },
   "knownReferenceEntriesAbsentFromRegistryAtAuditTime": [
-    {"id": 550, "name": "A Friend in Need", "implemented": "2024-07-01"},
-    {"id": 551, "name": "Holzkopf", "implemented": "2024-07-01"},
-    {"id": 567, "name": "The Forbidden Build", "implemented": "2025-07-21"},
-    {"id": 572, "name": "Errand Runner", "implemented": "2025-11-24"},
-    {"id": 573, "name": "Workhorse", "implemented": "2025-11-24"},
-    {"id": 574, "name": "Taskaholic", "implemented": "2025-11-24"},
-    {"id": 575, "name": "Pest Control", "implemented": "2025-11-24"},
-    {"id": 576, "name": "Mimic", "implemented": "2025-11-24"},
-    {"id": 577, "name": "Bastard", "implemented": "2025-11-24"},
-    {"id": 578, "name": "Razor's Edge", "implemented": "2025-11-24"},
-    {"id": 579, "name": "Lost Letters", "implemented": "2025-11-24"},
-    {"id": 580, "name": "Stagmeister", "implemented": "2025-11-24"},
-    {"id": 581, "name": "Feral Trapper", "implemented": "2025-11-24"},
-    {"id": 582, "name": "Castle Crasher", "implemented": "2026-03-17"},
-    {"id": 585, "name": "A reliable Friend", "implemented": "2026-03-17"},
-    {"id": 586, "name": "Echo Initiate", "implemented": "Summer 2026"},
-    {"id": 587, "name": "Echo Hunter", "implemented": "Summer 2026"},
-    {"id": 588, "name": "Echo Walker", "implemented": "Summer 2026"},
-    {"id": 592, "name": "Six Steps Ahead", "implemented": "Summer 2026"},
-    {"id": 593, "name": "Radiant Nimbus", "implemented": "Summer 2026"},
-    {"id": 594, "name": "Amati's Echo", "implemented": "Summer 2026"}
+    {
+      "id": 195,
+      "name": "Smart Thinking",
+      "implemented": "December 8, 2010",
+      "sourcePage": "https://tibia.fandom.com/wiki/Smart_Thinking"
+    },
+    {
+      "id": 550,
+      "name": "A Friend in Need",
+      "implemented": "July 01, 2024",
+      "sourcePage": "https://tibia.fandom.com/wiki/A_Friend_in_Need"
+    },
+    {
+      "id": 551,
+      "name": "Holzkopf",
+      "implemented": "July 01, 2024",
+      "sourcePage": "https://tibia.fandom.com/wiki/Holzkopf"
+    },
+    {
+      "id": 567,
+      "name": "The Forbidden Build",
+      "implemented": "July 21, 2025",
+      "sourcePage": "https://tibia.fandom.com/wiki/The_Forbidden_Build"
+    },
+    {
+      "id": 572,
+      "name": "Errand Runner",
+      "implemented": "November 24, 2025",
+      "sourcePage": "https://tibia.fandom.com/wiki/Errand_Runner"
+    },
+    {
+      "id": 573,
+      "name": "Workhorse",
+      "implemented": "November 24, 2025",
+      "sourcePage": "https://tibia.fandom.com/wiki/Workhorse"
+    },
+    {
+      "id": 574,
+      "name": "Taskaholic",
+      "implemented": "November 24, 2025",
+      "sourcePage": "https://tibia.fandom.com/wiki/Taskaholic"
+    },
+    {
+      "id": 575,
+      "name": "Pest Control",
+      "implemented": "November 24, 2025",
+      "sourcePage": "https://tibia.fandom.com/wiki/Pest_Control"
+    },
+    {
+      "id": 576,
+      "name": "Mimic",
+      "implemented": "November 24, 2025",
+      "sourcePage": "https://tibia.fandom.com/wiki/Mimic_(Achievement)"
+    },
+    {
+      "id": 577,
+      "name": "Bastard",
+      "implemented": "November 24, 2025",
+      "sourcePage": "https://tibia.fandom.com/wiki/Bastard"
+    },
+    {
+      "id": 578,
+      "name": "Razor's Edge",
+      "implemented": "November 24, 2025",
+      "sourcePage": "https://tibia.fandom.com/wiki/Razor%27s_Edge"
+    },
+    {
+      "id": 579,
+      "name": "Lost Letters",
+      "implemented": "November 24, 2025",
+      "sourcePage": "https://tibia.fandom.com/wiki/Lost_Letters"
+    },
+    {
+      "id": 580,
+      "name": "Stagmeister",
+      "implemented": "November 24, 2025",
+      "sourcePage": "https://tibia.fandom.com/wiki/Stagmeister"
+    },
+    {
+      "id": 581,
+      "name": "Feral Trapper",
+      "implemented": "November 24, 2025",
+      "sourcePage": "https://tibia.fandom.com/wiki/Feral_Trapper"
+    },
+    {
+      "id": 582,
+      "name": "Castle Crasher",
+      "implemented": "March 17, 2026",
+      "sourcePage": "https://tibia.fandom.com/wiki/Castle_Crasher"
+    },
+    {
+      "id": 585,
+      "name": "A reliable Friend",
+      "implemented": "March 17, 2026",
+      "sourcePage": "https://tibia.fandom.com/wiki/A_reliable_Friend"
+    },
+    {
+      "id": 586,
+      "name": "Echo Initiate",
+      "implemented": "Summer 2026",
+      "sourcePage": "https://tibia.fandom.com/wiki/Echo_Initiate"
+    },
+    {
+      "id": 587,
+      "name": "Echo Hunter",
+      "implemented": "Summer 2026",
+      "sourcePage": "https://tibia.fandom.com/wiki/Echo_Hunter"
+    },
+    {
+      "id": 588,
+      "name": "Echo Walker",
+      "implemented": "Summer 2026",
+      "sourcePage": "https://tibia.fandom.com/wiki/Echo_Walker"
+    },
+    {
+      "id": 591,
+      "name": "Purrfectly Addicted",
+      "implemented": "Summer 2026",
+      "sourcePage": "https://tibia.fandom.com/wiki/Purrfectly_Addicted"
+    },
+    {
+      "id": 592,
+      "name": "Six Steps Ahead",
+      "implemented": "Summer 2026",
+      "sourcePage": "https://tibia.fandom.com/wiki/Six_Steps_Ahead"
+    },
+    {
+      "id": 593,
+      "name": "Radiant Nimbus",
+      "implemented": "Summer 2026",
+      "sourcePage": "https://tibia.fandom.com/wiki/Radiant_Nimbus"
+    },
+    {
+      "id": 594,
+      "name": "Amati's Echo",
+      "implemented": "Summer 2026",
+      "sourcePage": "https://tibia.fandom.com/wiki/Amati%27s_Echo"
+    },
+    {
+      "id": 595,
+      "name": "Enlightened, Indeed",
+      "implemented": "Summer 2026",
+      "sourcePage": "https://tibia.fandom.com/wiki/Enlightened,_Indeed"
+    }
   ],
   "notes": [
-    "The listed count excludes one undiscovered secret achievement.",
-    "The raw maximum achievement ID is not an achievement count because the ID space contains gaps.",
-    "The exact 21-entry list records current reference entries manually verified as absent from the audited Canary registry; it is not a full copied external catalogue.",
-    "The point difference cannot be assigned only from this missing-entry list because some current reference point values remain unverified and mutually exclusive achievements require semantic modelling."
+    "The current MediaWiki parse revision is authoritative for this snapshot.",
+    "Raw Fandom HTML/API payload and long description/spoiler prose are not committed.",
+    "A reference entry is not authorization to add a Canary definition or gameplay hook.",
+    "Unknown point and condition cells remain unresolved rather than inferred."
   ]
 }
