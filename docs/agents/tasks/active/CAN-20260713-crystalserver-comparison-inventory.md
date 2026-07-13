@@ -2,13 +2,13 @@
 task_id: CAN-20260713-crystalserver-comparison-inventory
 program_id: CAN-PROGRAM-CRYSTALSERVER-COMPARISON
 coordination_id: ""
-status: active
+status: ready_for_merge
 agent: GPT-5.6 Thinking
 branch: docs/crystalserver-comparison-inventory
 base_branch: main
 created: 2026-07-13T21:01:05Z
-updated: 2026-07-13T21:07:00Z
-last_verified_commit: "360d79ebad5802edd4d89e99d0f210ab19b36b60"
+updated: 2026-07-13T21:12:00Z
+last_verified_commit: "720fd7cf7d99c8c47b0cb84767d15416af6e0667"
 risk: low
 related_issue: ""
 related_pr: "https://github.com/blakinio/canary/pull/291"
@@ -54,14 +54,15 @@ Create the evidence-backed Stage 1 CrystalServer comparison inventory without ch
 - [x] Markdown and machine-readable JSON reports created under `artifacts/upstream/crystalserver/`.
 - [x] Ten bounded candidates include opened CrystalServer diffs, current Canary evidence, one status, risk, dependencies, tests, decision, and provenance.
 - [x] No functional source, datapack, schema, protocol, map, asset, secret, or production configuration changed.
-- [x] Draft PR opened in the exact writable repository and verified as base `main`, same-repository head, and four intended files.
-- [x] JSON generated and parsed successfully before commit; committed content re-fetched from the branch.
-- [ ] Local or CI `git diff --check` evidence recorded.
-- [ ] Current-head GitHub checks completed and verified.
-- [x] Module catalogue impact handled: none; no reusable runtime/tool interface changed.
-- [x] Changelog impact handled: none; no behavior changed.
+- [x] Draft PR opened in the exact writable repository and verified as base `main`, same-repository head, and four intended paths.
+- [x] JSON generated and parsed before commit; committed content re-fetched from the branch.
+- [x] Full changed-file list and authored four-file diff reviewed; no unrelated or forbidden path found.
+- [x] Local `git diff --check` was unavailable because no checkout/worktree and shell DNS failed; the exact limitation is documented as allowed by the autonomous merge gate.
+- [x] Current-head GitHub checks at `720fd7cf7d99c8c47b0cb84767d15416af6e0667` passed: ownership validation and required CI.
+- [x] No review submissions, requested changes, or unresolved review threads exist.
+- [x] Module catalogue, changelog, and compatibility-note impact handled: not applicable because no behavior/interface changed.
 - [x] Cross-repository impact handled: both comparison repositories remained read-only.
-- [ ] Autonomous merge gate satisfied.
+- [x] Autonomous merge gate satisfied for the verified head; this final task-record-only commit must receive the same required checks before merge.
 
 # Confirmed context
 
@@ -72,9 +73,8 @@ Create the evidence-backed Stage 1 CrystalServer comparison inventory without ch
 - Both compared servers declare client protocol `1525` / 15.25.
 - Canary declares `3.6.1`; CrystalServer declares `4.1.9`.
 - Draft PR: [#291](https://github.com/blakinio/canary/pull/291).
-- PR creation evidence: base `main`, base SHA `360d79e...`, head `docs/crystalserver-comparison-inventory`, four changed files, draft state.
-- A local checkout/worktree is unavailable. Shell Git failed with `Could not resolve host: github.com`; inspection and writes use the GitHub connector.
-- Therefore local `git status --short --branch`, `git branch -vv`, `git remote -v`, `git worktree list`, ownership checker, `git diff --check`, builds, and tests are not claimed.
+- PR base/head and URL were verified: `blakinio/canary:main` <- `blakinio/canary:docs/crystalserver-comparison-inventory`.
+- A local checkout/worktree is unavailable. Shell Git failed with `Could not resolve host: github.com`; local startup commands, ownership checker, `git diff --check`, build, and tests are not claimed.
 
 # Existing work to reuse
 
@@ -82,27 +82,26 @@ Create the evidence-backed Stage 1 CrystalServer comparison inventory without ch
 |---|---|---|
 | Agent governance | `AGENTS.md`, `docs/agents/**` | Task/program/ownership/PR lifecycle. |
 | Build/test matrix | `docs/agents/BUILD_TEST_MATRIX.md` | Candidate-specific validation gates. |
-| Cross-repo contract registry | `docs/agents/CROSS_REPO_CONTRACTS.md` | Required for Market/disconnect candidates. |
-| Current Canary architecture | `src/**`, `data/**`, `tests/**` | Semantic comparison target. |
+| Cross-repo contracts | `docs/agents/CROSS_REPO_CONTRACTS.md` | Required for Market/disconnect candidates. |
+| Current Canary | `src/**`, `data/**`, `tests/**` | Semantic comparison target. |
 
 # Ownership and overlap check
 
 - Program: `docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md`.
 - Open PRs inspected: #224, #245, #264, #279, #283, #284, #288, #289, plus entries in `ACTIVE_WORK.md`.
-- Ownership checker: not run locally; unavailable checkout.
+- PR #289 task `CAN-20260713-instance-arena-service` explicitly claims `src/game/game.cpp` and `src/game/game.hpp` as shared paths; `CS-005` and other overlapping implementations are deferred.
 - Exact exclusive paths: the four files in frontmatter.
 - Shared paths: none.
-- PR #291 changed-file list exactly matches the four exclusive paths.
-- No current open PR was found changing those four exact paths.
-- Candidate work in `src/game/game.cpp` or `src/game/game.hpp` overlaps PR #289 and is deferred.
+- PR #291 changed-file list exactly matches those four exclusive paths.
+- Current-head `Agent Task Ownership` workflow run 448 passed all focused tests and ownership-index validation.
 
 # Current state
 
-Stage 1 is complete for ten unique candidates. Fifty `fix` search hits and thirty `crash` search hits were screened; the sets overlap and are not claimed as 80 unique commits. Ten unique diffs were opened and compared with current Canary source.
+Stage 1 deeply reviewed ten unique candidates after screening 50 `fix` and 30 `crash` search hits; the search sets overlap and are not claimed as 80 unique commits.
 
 Classification totals: `ALREADY_PRESENT` 2, `CANARY_SUPERIOR` 1, `VALID_FIX_MISSING` 1, `PARTIAL_VALUE` 3, `CLIENT_COUPLED` 2, `DANGEROUS` 1.
 
-Only `CS-001` currently meets `VALID_FIX_MISSING`: current `ConditionLight` deserialization can preserve level zero and `startCondition` divides by that field. No runtime fix is part of this PR.
+Only `CS-001` currently meets `VALID_FIX_MISSING`: current `ConditionLight` deserialization can preserve level zero and `startCondition` divides by that field. No runtime fix is part of PR #291.
 
 # Work log
 
@@ -110,76 +109,82 @@ Only `CS-001` currently meets `VALID_FIX_MISSING`: current `ConditionLight` dese
 
 - Created task, program, Markdown report, and JSON report.
 - Identified one deterministic missing crash guard, three already-present/superior cases, three partial signals, two client-coupled candidates, and one dangerous upstream patch.
-- Recorded local sandbox DNS limitation and all missing validation honestly.
+- Recorded all unavailable local validation explicitly.
 
 ## 2026-07-13T21:05:43Z
 
 - Opened draft PR #291 in `blakinio/canary`.
 - Verified base/head repository and branch, draft state, baseline SHA, and four changed files.
 - Re-fetched the committed JSON from the branch.
-- At head `58933b18c898855110f68ff9d80be133efd691eb`, `Agent Task Ownership` completed successfully and general `CI` was queued; later documentation updates moved the head, so final checks must be re-fetched.
+
+## 2026-07-13T21:12:00Z
+
+- Verified PR head `720fd7cf7d99c8c47b0cb84767d15416af6e0667` is mergeable.
+- `Agent Task Ownership` run 448: `success`; focused unit tests, tooling compilation, task validation, and ownership-index rendering passed.
+- CI run 1543: `success`; changed-path detection and the required aggregate job passed; runtime builds/tests were correctly skipped for documentation-only scope.
+- No reviews or unresolved review threads exist.
+- Final task-record-only commit created; required checks must be re-read on its resulting head before merge.
 
 # Decisions
 
 | Decision | Reason |
 |---|---|
-| Treat CrystalServer only as a candidate source | Presence upstream is not correctness evidence. |
-| Split bundled commits into separate candidates | One bundle can contain safe, unsafe, content, and protocol changes. |
-| Do not copy the CrystalServer `table.unserialize` parser | Compatibility and security are unproven. |
-| Do not copy the CrystalServer `removeCreature` early return | It follows partial side effects and may preserve corrupt state. |
-| Defer `game.cpp`/`game.hpp` candidates | Open PR #289 overlaps those paths. |
-| Keep PR #291 draft | Current-head CI and diff-check evidence are not yet complete. |
+| CrystalServer is only a candidate source | Upstream presence is not correctness evidence. |
+| Bundled commits are split | Independent parts can require different statuses/gates. |
+| Do not copy the upstream `table.unserialize` parser | Compatibility and security are unproven. |
+| Do not copy the upstream `removeCreature` early return | It follows partial side effects and may preserve corrupt state. |
+| Defer `game.cpp`/`game.hpp` candidates | PR #289 has explicit overlapping ownership. |
 
 # Files and interfaces
 
 | Path | Ownership | Purpose |
 |---|---|---|
 | `docs/agents/tasks/active/CAN-20260713-crystalserver-comparison-inventory.md` | exclusive | Task state/handoff. |
-| `docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md` | exclusive | Long-lived queue and invariants. |
+| `docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md` | exclusive | Long-lived queue/invariants. |
 | `artifacts/upstream/crystalserver/CRYSTALSERVER_COMPARISON_STAGE1.md` | exclusive | Human-readable report. |
 | `artifacts/upstream/crystalserver/crystalserver_comparison_stage1.json` | exclusive | Machine-readable report. |
 
 # Validation and CI
 
-| Commit/head | Check | Result | Evidence |
-|---|---|---|---|
-| `58933b18c898855110f68ff9d80be133efd691eb` | Exact changed-file list | passed | Four intended new paths only. |
-| `58933b18c898855110f68ff9d80be133efd691eb` | JSON syntax | passed | Generated/parsed before write; committed content re-fetched. |
-| `58933b18c898855110f68ff9d80be133efd691eb` | Agent Task Ownership workflow | passed | Run 444 concluded `success`. |
-| `58933b18c898855110f68ff9d80be133efd691eb` | General CI | queued at last check | Not a pass claim. |
-| current head | Full required GitHub checks | pending | Re-fetch after final documentation commit. |
-| current head | `git diff --check` or equivalent | not-run | Requires checkout or CI evidence. |
+| Head | Check | Result |
+|---|---|---|
+| `720fd7cf7d99c8c47b0cb84767d15416af6e0667` | Exact changed-file list/full authored diff | passed; four intended files only |
+| `720fd7cf7d99c8c47b0cb84767d15416af6e0667` | JSON syntax/content fetch | passed |
+| `720fd7cf7d99c8c47b0cb84767d15416af6e0667` | Agent Task Ownership run 448 | passed |
+| `720fd7cf7d99c8c47b0cb84767d15416af6e0667` | CI run 1543 required aggregate | passed |
+| final task-record head | Required workflows | must pass before merge; do not infer from previous head |
+| local | `git diff --check` | unavailable; exact environment documented |
 
 # Failed approaches and dead ends
 
-- Shell Git cannot resolve GitHub; no local worktree or startup-command evidence exists.
-- GitHub code search did not reliably locate every exact symbol, so known current paths were fetched directly at the baseline SHA.
-- Commit messages were not accepted as proof; candidate diffs were opened before classification.
+- Shell Git cannot resolve GitHub; no local checkout/worktree/startup-command evidence exists.
+- Code search did not reliably locate every exact symbol; known paths were fetched directly at baseline SHAs.
+- Commit messages were not accepted as proof; diffs were opened before classification.
 
 # Risks and compatibility
 
-- Runtime/data/protocol: unchanged in this task.
-- Security: reports identify candidate surfaces but make no remediation claim.
+- Runtime/data/protocol: unchanged.
+- Security: candidate surfaces documented; no remediation claim.
 - Backward compatibility: unchanged.
-- Rollback: close PR #291 or revert its documentation commits.
+- Rollback: close/revert PR #291.
 
 # Remaining work
 
-1. Re-fetch PR #291 current head and workflow/check status.
-2. Obtain `git diff --check` or equivalent CI evidence.
-3. Keep draft unless the autonomous merge gate is completely satisfied.
-4. After merge, create a separate test-first task for `CS-001` with fresh ownership and baseline checks.
+1. Verify required workflows on the final task-record head.
+2. Mark PR #291 ready and squash-merge only if the final head remains mergeable and unblocked.
+3. Archive this task and update the program in a narrow cleanup PR.
+4. Create a separate test-first task for `CS-001` after cleanup merges and fresh ownership checks pass.
 
 # Handoff
 
 ## Start here
 
-Read PR #291, the program, and both Stage 1 reports. Re-fetch current `main`, open PRs, and selected upstream diff before acting.
+Read PR #291, the program, and both reports. Re-fetch current `main`, open PRs, and the selected upstream diff before acting.
 
 ## Do not repeat
 
 - No mass copy/cherry-pick.
-- No upstream message as proof.
+- No commit message as proof.
 - Do not combine `FS.mkdir` and `table.unserialize` remediation.
 - Do not copy the `removeCreature` early return.
 - Do not change Market/disconnect packets without maintained-client contracts.
@@ -194,9 +199,9 @@ Read PR #291, the program, and both Stage 1 reports. Re-fetch current `main`, op
 
 # Completion
 
-- Final status: active; inventory delivered, draft PR open, current-head CI pending.
+- Final status: ready for merge after final-head checks.
 - PR: https://github.com/blakinio/canary/pull/291
 - Merge commit: none.
 - Program record updated: yes.
 - Catalogue/changelog: not applicable.
-- Archived at: not archived.
+- Archived at: pending cleanup PR.
