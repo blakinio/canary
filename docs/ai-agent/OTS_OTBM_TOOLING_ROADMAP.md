@@ -18,8 +18,8 @@ The stack reuses the existing native OTBM scanner, World Index, script resolver,
 | 1 | Unified OTBM World Index | merged and archived | #219 / #223 |
 | 2 | Quest Map Validator | merged and archived | #225 / #236 |
 | 3 | Teleports, floor transitions and reachability | merged and archived | #274 / #277 |
-| 4 | Spawns, bosses and NPCs | implementation, active-datapack scan and bounded private-map smoke complete; final gate pending | #286 |
-| 5 | Storage dependency graph | not started; blocked by Phase 4 lifecycle gate | separate future task |
+| 4 | Spawns, bosses and NPCs | merged and archived | #286 / #290 |
+| 5 | Storage dependency graph | not started | separate future task |
 | 6 | Semantic OTBM diff and visual evidence | not started | separate future task |
 | 7 | Geometry and consistency audit | not started | separate future task |
 | 8 | Safe bounded OTBM patch writer | blocked by Phases 6–7 safety gates | separate future task |
@@ -143,9 +143,9 @@ Head `230237188cf8beed738e96923b6346948dc70d20`:
 
 ## Phase 4 — Spawns, bosses and NPCs
 
-### Active delivery
+### Delivery
 
-Draft PR #286 implements:
+Merged PR #286 delivered:
 
 - source evidence `canary-otbm-spawn-npc-evidence-v1`;
 - bounded correlation report `canary-otbm-spawn-npc-validation-v1`;
@@ -156,6 +156,9 @@ Draft PR #286 implements:
 - `docs/ai-agent/OTBM_SPAWN_NPC_VALIDATION.md`;
 - evidence-boundary ADR;
 - dedicated workflow `.github/workflows/otbm-spawn-npc-validation.yml`.
+
+Final feature head: `40ce55b791e11b2344a7c9662675ab4e3e15f31f`.  
+Squash merge: `360d79ebad5802edd4d89e99d0f210ab19b36b60`.
 
 ### Active-datapack policy
 
@@ -200,7 +203,7 @@ World Index proves tile existence. Phase 3 supplies strict/optimistic geometry. 
 
 ### Active global datapack scan
 
-Corrected head `818b8d39f95609230bfbc80dffaa948164e8dbf4` ran a read-only scan of explicit `data-otservbr-global` companion files and observed:
+The final read-only scan of explicit `data-otservbr-global` companion files observed:
 
 - 2 spawn XML files;
 - 2,692 definition files and 2,688 resolved definitions;
@@ -219,18 +222,23 @@ The two errors are one underlying duplicate active NPC type:
 
 This is review evidence, not automatic authorization to delete or rewrite either NPC. One exact static/dynamic overlap was also recorded for `bone capsule` at `33485,32333,14`; nonliteral dynamic calls remain unresolved.
 
-### Corrected source-scan validation evidence
+### Final validation evidence
 
-Head `818b8d39f95609230bfbc80dffaa948164e8dbf4`:
+Head `40ce55b791e11b2344a7c9662675ab4e3e15f31f`:
 
-- OTBM Spawn and NPC Validation `29282539729`: success; job `86927034480` succeeded;
-- Agent Task Ownership `29282539719`: success;
-- AI Agent Tools `29282539775`: success;
-- OTBM Map Tools `29282539774`: success;
-- repository CI `29282539976`: success;
-- artifact `8291860094`, digest `sha256:f11ee0dfe7d864357d52554bd86bd5ad96ad0deb037cc54806578623fe29a4be`.
+- OTBM Spawn and NPC Validation `29283580455`: success; job `86930499868` succeeded;
+- Agent Task Ownership `29283580606`: success;
+- AI Agent Tools `29283580631`: success;
+- OTBM Map Tools `29283580582`: success;
+- ready-state autofix.ci `29283719806`: success;
+- ready-state repository CI `29283719990`: success;
+- Fast Checks `86930966539`: success;
+- Lua Tests `86930966552`: success;
+- Linux Release `86931249627`: success;
+- Required `86932589537`: success;
+- review threads: zero.
 
-The dedicated workflow ran 17 focused tests, Python compilation, schema validation, the real source scan, contract assertions and toolkit packaging. This is source/static evidence; it does not prove live gameplay.
+The dedicated workflow ran 18 focused tests, Python compilation, schema validation, the real source scan, contract assertions and toolkit packaging. This is source/static evidence; it does not prove live gameplay.
 
 ### Private-map bounded smoke
 
@@ -291,7 +299,7 @@ Planned deliverables:
 - link transitions to NPC dialogue, Actions, MoveEvents, kills and rewards only where proven;
 - never infer execution order from source proximity alone.
 
-Phase 5 must consume Phase 2 quest evidence and Phase 4 creature/source evidence after Phase 4 is merged and archived.
+Phase 5 must consume Phase 2 quest evidence and Phase 4 creature/source evidence rather than create another source scanner.
 
 ## Phase 6 — Semantic OTBM diff
 
@@ -338,12 +346,12 @@ Existing older patch surfaces do not authorize production-map edits.
 
 ## Programme handoff
 
-Continue only PR #286 and task `CAN-20260713-otbm-spawn-npc-validator` until Phase 4 is merged and archived. Before merge:
+Phases 1–4 are merged and archived. The next bounded programme task is Phase 5, but it may start only from current `main` after a fresh PR/task ownership search.
 
-1. inspect every final-head workflow and exact changed-file boundary;
-2. keep duplicate Harlow, `0,0,0` teleports and other findings as evidence, not automatic gameplay/map changes;
-3. confirm zero unresolved review threads and current-main compatibility;
-4. preserve the private-map and generated-artifact boundary;
-5. archive the task in a separate documentation-only lifecycle PR.
+Phase 5 must reuse:
 
-Do not start Phase 5 or a gameplay-specific spawn/NPC repair in the Phase 4 tooling PR.
+1. `canary-quest-map-evidence-v1` and `canary-quest-map-validation-v1` from Phase 2;
+2. `canary-otbm-reachability-v1` from Phase 3 where coordinate/geometry evidence is required;
+3. `canary-otbm-spawn-npc-evidence-v1` and `canary-otbm-spawn-npc-validation-v1` from Phase 4.
+
+Do not combine Phase 5 with Harlow cleanup, `0,0,0` teleport repair, semantic map diff, geometry audit or map writing. Those findings remain separate evidence-backed tasks.
