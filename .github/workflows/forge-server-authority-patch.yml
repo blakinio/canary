@@ -18,14 +18,35 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: fix/forge-server-authority
-          fetch-depth: 0
+          fetch-depth: 1
           show-progress: false
 
       - name: Apply exact Forge authority changes
+        id: apply
+        continue-on-error: true
         shell: bash
-        run: python3 tools/ai-agent/apply_forge_server_authority_patch.py
+        run: |
+          set +e
+          python3 tools/ai-agent/apply_forge_server_authority_patch.py > forge-authority-patch.log 2>&1
+          status=$?
+          cat forge-authority-patch.log
+          exit $status
+
+      - name: Upload patch diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: forge-authority-patch-log
+          path: forge-authority-patch.log
+          if-no-files-found: error
+
+      - name: Stop on patch failure
+        if: steps.apply.outcome != 'success'
+        shell: bash
+        run: exit 1
 
       - name: Review and commit bounded patch
+        if: steps.apply.outcome == 'success'
         shell: bash
         run: |
           git diff --check
