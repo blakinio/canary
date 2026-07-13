@@ -1,12 +1,12 @@
 ---
 task_id: CAN-20260713-achievement-metadata-parity
-status: active
+status: ready-for-review
 agent: "GPT-5.6 Thinking"
 branch: fix/achievement-metadata-parity
 base_branch: main
 created: 2026-07-13T15:30:00+02:00
-updated: 2026-07-13T16:25:00+02:00
-last_verified_commit: "b0015325c6bfd4d5db48f7fbeee28da08fd84473"
+updated: 2026-07-13T16:35:00+02:00
+last_verified_commit: "26162dd10231c2362cf1c271b5ce6bcffb20be81"
 risk: medium
 related_issue: ""
 related_pr: "#256"
@@ -41,111 +41,110 @@ cross_repo_tasks: []
 
 # Goal
 
-Correct the non-point achievement metadata conflicts that are safe without a persistence migration, and split point changes into a separate backfill-aware task.
+Correct the two non-point achievement metadata conflicts that are safe without a persistence migration, while preserving the five point conflicts for a separate backfill-aware task.
 
 # Exact scope
 
-Implemented in PR #256:
+Implemented:
 
-1. ID 406 `The More the Merrier`: grade 1 -> 0.
-2. ID 513 `Soul Mender`: secret false/default -> true.
+1. ID 406 `The More the Merrier`: grade `1 -> 0`.
+2. ID 513 `Soul Mender`: secret `false/default -> true`.
 
-Explicitly deferred to a separate point reconciliation task:
+Deferred:
 
-1. ID 526 `King's Council`: points 0 -> 2.
-2. ID 555 `Inner Peace`: points 2 -> 3.
-3. ID 556 `Fiend Rider`: points 2 -> 3.
-4. ID 559 `Hope of the Merudri`: points 3 -> 2.
-5. ID 562 `Alpha Rider`: points 2 -> 3.
+1. ID 526 `King's Council`: points `0 -> 2`.
+2. ID 555 `Inner Peace`: points `2 -> 3`.
+3. ID 556 `Fiend Rider`: points `2 -> 3`.
+4. ID 559 `Hope of the Merudri`: points `3 -> 2`.
+5. ID 562 `Alpha Rider`: points `2 -> 3`.
 
-No achievement name, ID, award condition, handler, storage, unlock timestamp, quest, map or item is changed.
+No achievement name, ID, points value, award condition, handler, storage, unlock timestamp, quest, map, item, database schema or client contract is changed in PR #256.
 
 # Acceptance criteria
 
 - [x] Current main and open achievement-related PR state inspected.
 - [x] No open PR owns `register_achievements.lua`, `player_achievement.cpp` or `achievement_validation.py`.
 - [x] Dedicated branch and durable task record created.
-- [x] Draft PR #256 opened.
-- [x] Exact seven registry definitions and reference catalogue rows inspected.
-- [x] Live external evidence for IDs 406, 513, 526 and 559 rechecked on 2026-07-13.
-- [x] Pinned complete table revision and source hash retained for all seven rows.
-- [x] Persistence behavior inspected before changing point values.
-- [x] Unsafe registry-only point changes split into a separate backfill-aware task.
-- [x] Only evidence-backed non-point metadata fields changed.
-- [x] No achievement name/ID, handler, storage, backfill, map, item or quest condition changed.
-- [x] Focused real-registry regression test added.
-- [x] Fourteen focused tests pass after the corrections.
-- [x] Comprehensive validator removes exactly the two repaired metadata conflicts.
-- [x] Five point conflicts remain explicit rather than hidden or guessed.
-- [x] Existing handler/disposition counts remain unchanged.
-- [x] Temporary materializer workflow removed from the final diff.
+- [x] Draft PR #256 opened early.
+- [x] Exact seven registry definitions and factual reference rows inspected.
+- [x] Current live evidence for IDs 406, 513, 526 and 559 rechecked on 2026-07-13.
+- [x] Pinned full-table revision/hash retained for all seven rows.
+- [x] `PlayerAchievement` point persistence inspected before implementation.
+- [x] Unsafe registry-only point edits split into a separate reconciliation task.
+- [x] Only grade 406 and secret 513 changed.
+- [x] Real-registry regression test added.
+- [x] Fourteen focused tests pass.
+- [x] Comprehensive audit removes exactly two conflicts: `31 -> 29`.
+- [x] Five point conflicts remain visible.
+- [x] Point total remains `1428`.
+- [x] Static/reference disposition counts remain unchanged.
+- [x] Temporary materializer workflow removed.
 - [x] Durable focused documentation created.
-- [ ] Current-head dedicated audit, AI Agent Tools, ownership, autofix and required CI pass after final task/document update.
-- [ ] PR body narrowed to the implemented two-field scope.
-- [ ] PR marked Ready and auto-merge enabled only after all current-head gates pass.
+- [x] PR title/body narrowed to the implemented scope.
+- [x] Exact four-file diff reviewed.
+- [x] Review threads and reviews are empty.
+- [x] Dedicated audit, Weapon Proficiency audit, AI Agent Tools, ownership and required CI passed on `26162dd10231c2362cf1c271b5ce6bcffb20be81`.
+- [x] `autofix.ci` was explicitly skipped on that head; it is not misreported as passed.
+- [ ] Current-head checks pass after this final task-record commit.
+- [ ] PR marked Ready and auto-merge enabled after the final current-head gates.
 - [ ] Task archived in a separate cleanup PR after merge.
 
 # Sources and observation dates
 
 | Source | Date | Purpose |
 |---|---|---|
-| `docs/ai-agent/ACHIEVEMENT_VALIDATION_REPORT.md` | 2026-07-13 | seven original metadata conflicts |
-| `docs/ai-agent/ACHIEVEMENT_REFERENCE_CATALOG.json` revision `1188274` | 2026-07-13 | complete factual reference metadata |
-| `data/scripts/lib/register_achievements.lua` | 2026-07-13 | active Canary registry values |
-| `src/creatures/players/components/player_achievement.cpp` | 2026-07-13 | persisted point-total behavior |
-| live Fandom page `The More the Merrier` | 2026-07-13 | grade 0, 0 points, secret, historical obtainability |
-| live Fandom page `Soul Mender` | 2026-07-13 | grade 4, 10 points, secret |
-| live Fandom page `King's Council` | 2026-07-13 | 2 points and post-Winter-Update-2025 obtainability |
-| live Fandom page `Hope of the Merudri` | 2026-07-13 | 2 points |
-| merged PR #238 | 2026-07-13 | validator v2, provenance and evidence model |
-| live open PR search | 2026-07-13 | ownership/overlap check |
+| `docs/ai-agent/ACHIEVEMENT_REFERENCE_CATALOG.json` revision `1188274` | 2026-07-13 | complete factual metadata |
+| `data/scripts/lib/register_achievements.lua` | 2026-07-13 | active Canary values |
+| `src/creatures/players/components/player_achievement.cpp` | 2026-07-13 | point persistence and load behavior |
+| live Fandom `The More the Merrier` | 2026-07-13 | grade 0, 0 points, secret, historical availability |
+| live Fandom `Soul Mender` | 2026-07-13 | grade 4, 10 points, secret |
+| live Fandom `King's Council` | 2026-07-13 | 2 points, active/current obtainability note |
+| live Fandom `Hope of the Merudri` | 2026-07-13 | 2 points |
+| PR #238 | 2026-07-13 | audit v2 and provenance |
+| live open PR search | 2026-07-13 | overlap check |
 
 # Confirmed findings
 
-- PR #238 merged as `3ad10132cbd76adc42f946da3ca3077e5bd6bbd0`.
-- Audit v2 initially reported 31 conflicts: seven metadata conflicts plus other missing/structural conflicts.
-- ID 406 is grade 0, zero-point and secret in the current live reference; the page states it is no longer obtainable for new players.
-- ID 513 is grade 4, ten-point and secret in the current live reference.
-- The Canary registry had ID 406 at grade 1 and ID 513 without `secret=true`.
-- `PlayerAchievement::add()` increments the persisted points KV from the definition at unlock time.
-- `getPoints()` reads the persisted aggregate; `loadUnlockedAchievements()` does not recompute it.
-- A registry-only point correction would fix new unlocks but leave existing characters with stale totals.
-- The five point changes therefore require deterministic reconciliation/backfill in a separate PR.
-- The implemented two-field correction changes public/secret count from `350/191` to `349/192`, while point total remains `1428`.
-- The comprehensive audit after the patch reports `conflicting=29`, `handler-missing=3`, `partially-confirmed=121`, `unresolved=411`.
-- Static reference/disposition counts remain unchanged: 182 references, 160 resolved static, 0 unknown static, 22 dynamic.
+- Current reference source SHA-256 is `8a429425ab7b088758646b07f036afdd1d579188d056491aed8e77650306ae8b`.
+- ID 406 is currently grade 0, zero-point and secret; its live page says it is no longer obtainable for new players.
+- ID 513 is grade 4, ten-point and secret.
+- Canary previously stored 406 as grade 1 and treated 513 as public by default.
+- `PlayerAchievement::add()` increments the persisted points KV from the definition.
+- `getPoints()` reads the persisted aggregate.
+- `loadUnlockedAchievements()` restores unlocks by canonical name but does not recompute points.
+- Registry-only point edits would create existing-player drift.
+- After the two safe fixes, public/secret becomes `349/192`, total points remain `1428`, and conflicts become `29`.
+- Handler/disposition evidence remains unchanged: 182 API references, 160 resolved static, 0 unknown static, 22 dynamic.
 
-# Uncertain findings requiring future evidence
+# Uncertain findings requiring later proof
 
-- The final exact design for idempotent point reconciliation.
-- Whether point reconciliation should happen on every load, once by a versioned migration marker, or through an administrative migration command.
-- Handling of unlocked canonical names that no longer resolve to a current definition.
-- Whether historical grade changes need any UI cache invalidation beyond reading current registry metadata.
+- Authoritative lifecycle for point reconciliation: per-load calculation, versioned migration marker or administrative migration.
+- Behavior when an unlocked canonical name no longer resolves.
+- Whether a mismatch should be repaired silently or recorded diagnostically.
+- Runtime/E2E parity for the award conditions of IDs 406 and 513; this PR changes metadata only.
 
 # Conflicts and disposition
 
-| ID | Field | Canary before | Reference | Current disposition |
+| ID | Field | Before | Reference | Disposition |
 |---:|---|---|---|---|
-| 406 | grade | 1 | 0 | repaired in #256 |
-| 513 | secret | false/default | true | repaired in #256 |
-| 526 | points | 0 | 2 | deferred; requires point reconciliation |
-| 555 | points | 2 | 3 | deferred; requires point reconciliation |
-| 556 | points | 2 | 3 | deferred; requires point reconciliation |
-| 559 | points | 3 | 2 | deferred; requires point reconciliation |
-| 562 | points | 2 | 3 | deferred; requires point reconciliation |
+| 406 | grade | 1 | 0 | repaired #256 |
+| 513 | secret | false | true | repaired #256 |
+| 526 | points | 0 | 2 | deferred with backfill |
+| 555 | points | 2 | 3 | deferred with backfill |
+| 556 | points | 2 | 3 | deferred with backfill |
+| 559 | points | 3 | 2 | deferred with backfill |
+| 562 | points | 2 | 3 | deferred with backfill |
 
 # Files changed and purpose
 
 | Path | Purpose |
 |---|---|
-| `data/scripts/lib/register_achievements.lua` | correct grade 406 and secret flag 513 |
-| `tools/ai-agent/test_achievement_validation.py` | real-registry regression for exact two entries |
-| `docs/ai-agent/ACHIEVEMENT_METADATA_PARITY_FIX.md` | evidence, persistence boundary and follow-up plan |
-| `docs/agents/tasks/active/CAN-20260713-achievement-metadata-parity.md` | durable execution record and handoff |
+| `data/scripts/lib/register_achievements.lua` | two exact registry field corrections |
+| `tools/ai-agent/test_achievement_validation.py` | real-registry regression |
+| `docs/ai-agent/ACHIEVEMENT_METADATA_PARITY_FIX.md` | evidence and point-backfill boundary |
+| `docs/agents/tasks/active/CAN-20260713-achievement-metadata-parity.md` | durable task and handoff |
 
 # Commands and tests
-
-Materializer equivalent commands:
 
 ```text
 python -m py_compile tools/ai-agent/achievement_validation.py tools/ai-agent/test_achievement_validation.py
@@ -164,80 +163,61 @@ git diff --check
 
 # Validation and CI
 
-| Commit/run | Check | Result |
+| Head/run | Check | Result |
 |---|---|---|
-| `54ea4b4bc2e70052d97bd923b056bcf1a9ee0765` / `29257029150` | first materializer | failed: generated test indentation error |
-| `8bb89b058010471fdfe20cba4ea9a2e4a9987e6c` / `29257339662` | diagnostic materializer | artifact produced; exposed incorrect status propagation and indentation failure |
-| `1cc51c32268a1780a544511ec75780c959b105c6` / `29257442036` | corrected materializer validation | passed: 14/14 tests, Python compilation, full audit, JSON validation, `git diff --check` |
-| `9816bb21a8f60f8b1d318cb6c92f4ed97475de01` / `29257672213` | atomic publication | passed; created `b0015325c6bfd4d5db48f7fbeee28da08fd84473`, removed temporary workflow |
-| `9816bb21a8f60f8b1d318cb6c92f4ed97475de01` / `29257672528` | baseline CI before published commit | passed; not accepted as final current-head proof |
-
-Never represent the diagnostic run as a passed validation; its artifact deliberately preserved the failure.
+| `54ea4b4bc2e70052d97bd923b056bcf1a9ee0765` / `29257029150` | first materializer | failed: generated test indentation |
+| `8bb89b058010471fdfe20cba4ea9a2e4a9987e6c` / `29257339662` | diagnostics | artifact captured failure; status propagation was incorrect |
+| `1cc51c32268a1780a544511ec75780c959b105c6` / `29257442036` | corrected materializer | passed 14/14, compile, audit, JSON, diff check |
+| `9816bb21a8f60f8b1d318cb6c92f4ed97475de01` / `29257672213` | atomic publication | passed; created `b0015325c6bfd4d5db48f7fbeee28da08fd84473` and removed workflow |
+| `26162dd10231c2362cf1c271b5ce6bcffb20be81` / `29257883595` | Achievement Validation | success |
+| same / `29257882359` | Weapon Proficiency Achievement Audit | success |
+| same / `29257883228` | AI Agent Tools | success |
+| same / `29257882821` | Agent Task Ownership | success |
+| same / `29257884508` | required CI | success |
+| same / `29257882587` | autofix.ci | skipped |
 
 # Failed approaches and causes
 
-1. An unnecessary second branch-create request returned `422 Reference already exists`; no state changed.
-2. A create-file request targeted an existing task record and returned `422`; the correct update operation is used afterward.
-3. Materializer run `29257029150` generated the test body at class indentation instead of method-body indentation.
-4. Diagnostic run `29257339662` incorrectly captured the final shell-command status rather than the earlier failing test; its log, not its status file, exposed the issue.
-5. Explicit string construction fixed indentation, and per-command status propagation fixed diagnostics.
+1. Duplicate branch creation returned `422 Reference already exists`; no state changed.
+2. Creating an already-existing task file returned `422`; subsequent writes used update semantics.
+3. First materializer inserted the test body at the wrong indentation.
+4. First diagnostic status captured the last command rather than the earlier failed test.
+5. Explicit test-string indentation and per-command status capture fixed both defects.
 
 # Decisions
 
 | Decision | Reason |
 |---|---|
-| Repair only grade 406 and secret 513 in #256 | they do not mutate persisted point totals |
-| Split all point corrections | existing characters store an incremental aggregate KV |
-| Keep names unchanged | unlock persistence is keyed by canonical name |
-| Do not bundle handlers or missing definitions | different evidence, rollback and test boundaries |
-| Test the real registry | prevents fixture-only false confidence |
-| Publish atomically and delete materializer | final diff must contain no transport infrastructure |
+| Repair only grade 406 and secret 513 | no persisted point-total mutation |
+| Split five point changes | existing players use incremental aggregate KV |
+| Preserve names and IDs | canonical-name persistence compatibility |
+| Keep handlers out | separate evidence and runtime risk |
+| Parse real registry in test | avoids fixture-only confidence |
+| Remove materializer atomically | no transport infrastructure in final diff |
 
-# Remaining work in this task
+# Remaining work
 
-1. Narrow PR title/body to the implemented non-point scope.
-2. Run all current-head gates after this task/document commit.
-3. Review exact four-file diff and review threads.
-4. Mark Ready and enable auto-merge only after green gates.
-5. Archive this task after merge in a separate cleanup PR.
-6. Create the point-reconciliation task from current `main` after cleanup.
+1. Wait for final current-head gates triggered by this commit.
+2. Mark PR Ready and enable auto-merge when green.
+3. Confirm merge.
+4. Archive this task in a separate cleanup PR.
+5. Start a new point-reconciliation task from updated `main`.
 
 # Handoff
 
-## Current state
-
 - branch: `fix/achievement-metadata-parity`
 - PR: `#256`
-- published implementation commit: `b0015325c6bfd4d5db48f7fbeee28da08fd84473`
-- current task/document head: generated by this update
-- implemented: grade 406 and secret 513
-- deliberately not implemented: five point changes and point backfill
-- last valid focused validation: run `29257442036`, 14/14 tests
-- blocker: final current-head CI only
-
-## First next step
-
-Update PR #256 body/title to the two-field scope, then inspect workflow runs for the current task/document head. Do not add point changes to this PR.
-
-## Reproduction commands
-
-```text
-python -m unittest discover -s tools/ai-agent -p "test_achievement_validation.py" -v
-python tools/ai-agent/achievement_validation.py \
-  --repository-root . \
-  --reference-baseline docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json \
-  --reference-catalog docs/ai-agent/ACHIEVEMENT_REFERENCE_CATALOG.json \
-  --reviewed-evidence docs/ai-agent/ACHIEVEMENT_REVIEWED_EVIDENCE.json \
-  --output artifacts/ACHIEVEMENT_AUDIT.json \
-  --markdown artifacts/ACHIEVEMENT_AUDIT.md \
-  --allow-findings
-python -m json.tool artifacts/ACHIEVEMENT_AUDIT.json > /dev/null
-git diff --check
-```
+- last fully validated head before this final task update: `26162dd10231c2362cf1c271b5ce6bcffb20be81`
+- implementation commit: `b0015325c6bfd4d5db48f7fbeee28da08fd84473`
+- completed: grade 406, secret 513, regression, docs, clean diff
+- not completed by design: five point changes, backfill, handler/runtime parity
+- last focused validation: run `29257442036`, 14/14
+- blockers: final current-head CI only
+- first next step: inspect workflow runs for this task-record commit; do not add point changes
 
 # Completion
 
-- Final status: active
+- Final status: ready-for-review
 - PR: #256
 - Merge commit:
 - Archived at:
