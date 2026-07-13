@@ -61,6 +61,11 @@ function ForgeMonster:creditDust(player, amount)
 		return 0
 	end
 
+	if not player:isPremium() then
+		player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "You did not receive " .. amount .. " dust for the Exaltation Forge because a Premium Account is required.")
+		return 0
+	end
+
 	local totalDusts = player:getForgeDusts()
 	local limitDusts = player:getForgeDustLevel()
 	if totalDusts >= limitDusts then
