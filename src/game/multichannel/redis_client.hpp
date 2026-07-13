@@ -17,6 +17,32 @@
 	#include <string>
 #endif
 
+// Categorized outcome of a live PING (docs/multichannel/ARCHITECTURE.md
+// §4.4): "the client object was constructed" and "the config was present"
+// are not proof Redis is actually reachable - only a real round-trip is.
+// Deliberately coarser than raw hiredis error codes (which do not always
+// distinguish DNS failure from connection refused from a bare I/O error
+// across platforms/versions); each category maps to hiredis's best
+// available signal, with the exact library-reported string always logged
+// separately by the caller for full diagnostic value.
+enum class RedisPingOutcome : uint8_t {
+	Success,
+	DnsFailure,
+	ConnectionRefused,
+	Timeout,
+	AuthenticationFailed,
+	UnexpectedResponse,
+	Other,
+};
+
+struct RedisPingResult {
+	RedisPingOutcome outcome = RedisPingOutcome::Other;
+	// Raw, human-readable diagnostic (e.g. the hiredis errstr) for logging
+	// only - never parsed/matched on by callers, since the exact wording is
+	// not a stable contract.
+	std::string detail;
+};
+
 struct LeaseAcquireOutcome {
 	bool acquired = false;
 	std::string sessionId;
@@ -65,4 +91,13 @@ public:
 
 	// True if the connection itself is currently usable.
 	[[nodiscard]] virtual bool isHealthy() const = 0;
+
+	// Performs a real, synchronous round-trip (connect if needed, then
+	// PING) against the configured server. Distinct from isHealthy(), which
+	// only reflects whichever *other* operation last ran - this is the one
+	// method whose entire purpose is proving reachability right now, used
+	// once at startup by ClusterConfigValidator's caller
+	// (docs/multichannel/ARCHITECTURE.md §4.4) so "Redis is configured" is
+	// never confused with "Redis is actually reachable."
+	[[nodiscard]] virtual RedisPingResult ping() = 0;
 };

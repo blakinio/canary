@@ -519,8 +519,28 @@ void CanaryServer::initializeMultichannelCluster() {
 	validationInput.sessionHeartbeatIntervalMs = g_configManager().getNumber(SESSION_HEARTBEAT_INTERVAL);
 	validationInput.channelSwitchPartyPolicy = g_configManager().getString(CHANNEL_SWITCH_PARTY_POLICY);
 	validationInput.pvpChannelExitPolicy = g_configManager().getString(PVP_CHANNEL_EXIT_POLICY);
+
 #ifdef CANARY_MULTICHANNEL_REDIS
 	validationInput.redisClientCompiledIn = true;
+
+	// Constructed here (rather than after validation, as before) so a real,
+	// live PING can prove Redis is actually reachable - not just configured
+	// - before validate() decides whether to fail closed. The same client
+	// instance is reused below for ClusterRuntime/ClusterJobLeadershipRegistry
+	// once validation passes, rather than opening a second connection.
+	HiredisRedisClient::Options redisOptions;
+	redisOptions.host = g_configManager().getString(REDIS_HOST);
+	redisOptions.port = static_cast<int>(g_configManager().getNumber(REDIS_PORT));
+	redisOptions.database = static_cast<int>(g_configManager().getNumber(REDIS_DATABASE));
+	redisOptions.username = g_configManager().getString(REDIS_USERNAME);
+	redisOptions.password = g_configManager().getString(REDIS_PASSWORD);
+	auto redisClient = std::make_shared<HiredisRedisClient>(redisOptions);
+
+	const auto pingResult = redisClient->ping();
+	validationInput.redisPingOutcome = pingResult.outcome;
+	if (pingResult.outcome != RedisPingOutcome::Success) {
+		logger.error("[multichannel] Live Redis PING to {}:{} failed: {}", redisOptions.host, redisOptions.port, pingResult.detail);
+	}
 #else
 	validationInput.redisClientCompiledIn = false;
 #endif
@@ -576,13 +596,8 @@ void CanaryServer::initializeMultichannelCluster() {
 	logger.info("[multichannel] Map compatibility hash recorded for channel {}: {}", g_channelContext().getChannelId(), computedMapHash);
 
 #ifdef CANARY_MULTICHANNEL_REDIS
-	HiredisRedisClient::Options redisOptions;
-	redisOptions.host = g_configManager().getString(REDIS_HOST);
-	redisOptions.port = static_cast<int>(g_configManager().getNumber(REDIS_PORT));
-	redisOptions.database = static_cast<int>(g_configManager().getNumber(REDIS_DATABASE));
-	redisOptions.username = g_configManager().getString(REDIS_USERNAME);
-	redisOptions.password = g_configManager().getString(REDIS_PASSWORD);
-	auto redisClient = std::make_shared<HiredisRedisClient>(redisOptions);
+	// Reuses the redisClient constructed and pinged above - no second
+	// connection is opened.
 	auto sessionRepository = std::make_shared<DbClusterSessionRepository>();
 	const auto instanceId = ClusterSessionManager::generateSessionId();
 	g_clusterRuntime().configure(

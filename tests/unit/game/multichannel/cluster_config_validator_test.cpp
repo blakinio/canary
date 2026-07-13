@@ -22,6 +22,7 @@ namespace {
 		input.pvpChannelExitPolicy = "combat-or-skull";
 		input.redisClientCompiledIn = true;
 		input.enabledLoginGatewayCount = 1;
+		input.redisPingOutcome = RedisPingOutcome::Success;
 
 		ChannelInfo channel;
 		channel.id = 1;
@@ -151,6 +152,92 @@ TEST(ClusterConfigValidatorTest, RejectsMultipleEnabledLoginGateways) {
 	EXPECT_TRUE(contains(result.errors, ClusterConfigValidationError::MultipleLoginGatewaysEnabled));
 }
 
+// --- Live Redis PING (docs/multichannel/ARCHITECTURE.md §4.4): "Redis is
+// configured" or "a client object was constructed" is not proof Redis is
+// reachable - only a real round-trip is. redisPingOutcome is a plain input
+// (the live I/O happens in the caller, before validate() runs) so this
+// stays a pure, fully unit-testable function without touching a real Redis. ---
+
+TEST(ClusterConfigValidatorTest, AcceptsSuccessfulPing) {
+	auto input = validInput();
+	input.redisPingOutcome = RedisPingOutcome::Success;
+	const auto result = ClusterConfigValidator::validate(input);
+	EXPECT_TRUE(result.valid);
+}
+
+TEST(ClusterConfigValidatorTest, RejectsDnsFailure) {
+	auto input = validInput();
+	input.redisPingOutcome = RedisPingOutcome::DnsFailure;
+	const auto result = ClusterConfigValidator::validate(input);
+	EXPECT_FALSE(result.valid);
+	EXPECT_TRUE(contains(result.errors, ClusterConfigValidationError::RedisPingDnsFailure));
+}
+
+TEST(ClusterConfigValidatorTest, RejectsConnectionRefused) {
+	auto input = validInput();
+	input.redisPingOutcome = RedisPingOutcome::ConnectionRefused;
+	const auto result = ClusterConfigValidator::validate(input);
+	EXPECT_FALSE(result.valid);
+	EXPECT_TRUE(contains(result.errors, ClusterConfigValidationError::RedisPingConnectionRefused));
+}
+
+TEST(ClusterConfigValidatorTest, RejectsTimeout) {
+	auto input = validInput();
+	input.redisPingOutcome = RedisPingOutcome::Timeout;
+	const auto result = ClusterConfigValidator::validate(input);
+	EXPECT_FALSE(result.valid);
+	EXPECT_TRUE(contains(result.errors, ClusterConfigValidationError::RedisPingTimeout));
+}
+
+TEST(ClusterConfigValidatorTest, RejectsAuthenticationFailed) {
+	auto input = validInput();
+	input.redisPingOutcome = RedisPingOutcome::AuthenticationFailed;
+	const auto result = ClusterConfigValidator::validate(input);
+	EXPECT_FALSE(result.valid);
+	EXPECT_TRUE(contains(result.errors, ClusterConfigValidationError::RedisPingAuthenticationFailed));
+}
+
+TEST(ClusterConfigValidatorTest, RejectsUnexpectedResponse) {
+	auto input = validInput();
+	input.redisPingOutcome = RedisPingOutcome::UnexpectedResponse;
+	const auto result = ClusterConfigValidator::validate(input);
+	EXPECT_FALSE(result.valid);
+	EXPECT_TRUE(contains(result.errors, ClusterConfigValidationError::RedisPingUnexpectedResponse));
+}
+
+TEST(ClusterConfigValidatorTest, RejectsOtherPingFailure) {
+	auto input = validInput();
+	input.redisPingOutcome = RedisPingOutcome::Other;
+	const auto result = ClusterConfigValidator::validate(input);
+	EXPECT_FALSE(result.valid);
+	EXPECT_TRUE(contains(result.errors, ClusterConfigValidationError::RedisPingOtherFailure));
+}
+
+TEST(ClusterConfigValidatorTest, UnattemptedPingIsTreatedAsFailure) {
+	// A caller that forgot to actually ping (nullopt) must not silently pass
+	// as if it had succeeded - fail-closed default for "unknown" the same
+	// as for "failed".
+	auto input = validInput();
+	input.redisPingOutcome.reset();
+	const auto result = ClusterConfigValidator::validate(input);
+	EXPECT_FALSE(result.valid);
+	EXPECT_TRUE(contains(result.errors, ClusterConfigValidationError::RedisPingOtherFailure));
+}
+
+TEST(ClusterConfigValidatorTest, PingNotAttemptedIsIgnoredWhenRedisClientNotCompiledIn) {
+	// There is nothing to ping when the client isn't even compiled in -
+	// RedisClientNotCompiledIn alone must fail closed, without also
+	// reporting a redundant, confusing ping-failure error for a ping that
+	// could never have been attempted.
+	auto input = validInput();
+	input.redisClientCompiledIn = false;
+	input.redisPingOutcome.reset();
+	const auto result = ClusterConfigValidator::validate(input);
+	EXPECT_FALSE(result.valid);
+	EXPECT_TRUE(contains(result.errors, ClusterConfigValidationError::RedisClientNotCompiledIn));
+	EXPECT_FALSE(contains(result.errors, ClusterConfigValidationError::RedisPingOtherFailure));
+}
+
 TEST(ClusterConfigValidatorTest, CollectsMultipleErrorsAtOnce) {
 	auto input = validInput();
 	input.channelSwitchPartyPolicy = "bad";
@@ -172,6 +259,12 @@ TEST(ClusterConfigValidatorTest, DescribeReturnsNonEmptyStringForEveryError) {
 		ClusterConfigValidationError::CurrentChannelInvalidPvpType,
 		ClusterConfigValidationError::MultipleLoginGatewaysEnabled,
 		ClusterConfigValidationError::RedisTlsNotSupported,
+		ClusterConfigValidationError::RedisPingDnsFailure,
+		ClusterConfigValidationError::RedisPingConnectionRefused,
+		ClusterConfigValidationError::RedisPingTimeout,
+		ClusterConfigValidationError::RedisPingAuthenticationFailed,
+		ClusterConfigValidationError::RedisPingUnexpectedResponse,
+		ClusterConfigValidationError::RedisPingOtherFailure,
 	};
 	for (const auto &error : allErrors) {
 		EXPECT_FALSE(describeClusterConfigValidationError(error).empty());

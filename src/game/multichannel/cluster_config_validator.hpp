@@ -10,6 +10,7 @@
 #pragma once
 
 #include "game/multichannel/channel_info.hpp"
+#include "game/multichannel/redis_client.hpp"
 
 #ifndef USE_PRECOMPILED_HEADERS
 	#include <cstdint>
@@ -28,6 +29,17 @@ enum class ClusterConfigValidationError : uint8_t {
 	CurrentChannelInvalidPvpType,
 	MultipleLoginGatewaysEnabled,
 	RedisTlsNotSupported,
+	// One value per RedisPingOutcome failure category (Success excluded) -
+	// see ClusterConfigValidationInput::redisPingOutcome. Kept as distinct
+	// values rather than one generic "ping failed" so
+	// describeClusterConfigValidationError gives a specific, readable
+	// startup error per category without needing extra caller-side state.
+	RedisPingDnsFailure,
+	RedisPingConnectionRefused,
+	RedisPingTimeout,
+	RedisPingAuthenticationFailed,
+	RedisPingUnexpectedResponse,
+	RedisPingOtherFailure,
 };
 
 [[nodiscard]] std::string describeClusterConfigValidationError(ClusterConfigValidationError error);
@@ -57,6 +69,15 @@ struct ClusterConfigValidationInput {
 	// "is another process's login gateway actually alive" check, which
 	// remains 📐 (see docs/multichannel/ARCHITECTURE.md §4.4).
 	int32_t enabledLoginGatewayCount = 0;
+	// Result of the caller performing a real, synchronous IRedisClient::
+	// ping() against the just-constructed Redis client, *before* calling
+	// validate() - kept as a plain input rather than doing the live I/O
+	// inside this function, preserving full unit-testability without
+	// touching a real Redis. std::nullopt means "no ping was attempted",
+	// which validate() treats as equivalent to a failure whenever a ping
+	// would have been required (multiChannelEnabled && redisClientCompiledIn) -
+	// "never attempted" must not silently pass as "succeeded".
+	std::optional<RedisPingOutcome> redisPingOutcome;
 };
 
 struct ClusterConfigValidationResult {
