@@ -12,28 +12,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   actions: read
-  packages: write
 
 jobs:
-  build-canary:
-    name: Build exact Canary head
-    permissions:
-      contents: write
-      packages: write
-    uses: ./.github/workflows/reusable-build-linux.yml
-    with:
-      buildtypes: '["linux-release"]'
-      run_canary_smoke: false
-      run_global_smoke: false
-    secrets: inherit
-
   live-e2e:
     name: OTClient ↔ Canary ↔ MySQL
-    needs: [build-canary]
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 30
     permissions:
       contents: read
       actions: read
@@ -49,7 +35,7 @@ jobs:
           --health-interval=10s --health-timeout=5s --health-retries=12
 
     steps:
-      - name: Checkout exact Canary head
+      - name: Checkout exact Canary test head
         uses: actions/checkout@v6
 
       - name: Checkout maintained OTClient source
@@ -65,11 +51,16 @@ jobs:
           path: tibia-client-assets
           lfs: true
 
-      - name: Download exact-head Canary binary
-        uses: actions/download-artifact@v4
+      - name: Download verified Canary diagnostic binary
+        uses: dawidd6/action-download-artifact@v11
         with:
+          repo: blakinio/canary
+          workflow: cyclopedia-live-e2e.yml
+          branch: test/cyclopedia-live-e2e
+          workflow_conclusion: failure
           name: canary-linux-release
           path: canary-bin
+          search_artifacts: true
 
       - name: Download maintained OTClient binary
         uses: dawidd6/action-download-artifact@v11
@@ -107,8 +98,9 @@ jobs:
           echo "CANARY_BIN=${GITHUB_WORKSPACE}/${CANARY_BIN}" >> "${GITHUB_ENV}"
           echo "OTCLIENT_BIN=${GITHUB_WORKSPACE}/${OTCLIENT_BIN}" >> "${GITHUB_ENV}"
           echo "CLIENT_VERSION=${CLIENT_VERSION}" >> "${GITHUB_ENV}"
-          printf 'Canary=%s\nOTClient=%s\nVersion=%s\nAssetVersion=%s\nHead=%s\n' \
-            "${CANARY_BIN}" "${OTCLIENT_BIN}" "${CLIENT_VERSION}" "${ASSET_VERSION}" "${GITHUB_SHA}" \
+          printf 'Canary=%s\nCanaryArtifactHead=%s\nOTClient=%s\nVersion=%s\nAssetVersion=%s\nTestHead=%s\n' \
+            "${CANARY_BIN}" "4aee80e84554628e6e6378ffd8708e689c06a60e" "${OTCLIENT_BIN}" \
+            "${CLIENT_VERSION}" "${ASSET_VERSION}" "${GITHUB_SHA}" \
             | tee artifacts/resolved-runtime.txt
           ldd "${CANARY_BIN}" | tee artifacts/canary-ldd.txt || true
           ldd "${OTCLIENT_BIN}" | tee artifacts/otclient-ldd.txt || true
@@ -200,7 +192,7 @@ jobs:
           path.write_text(text, encoding='utf-8')
           PY
 
-      - name: Start exact-head Canary server
+      - name: Start Canary diagnostic server
         shell: bash
         run: |
           set -euo pipefail
@@ -236,6 +228,7 @@ jobs:
           CYCLOPEDIA_E2E_HOST: 127.0.0.1
           CYCLOPEDIA_E2E_PORT: 7172
           CYCLOPEDIA_E2E_WORLD: Canary E2E
+          CYCLOPEDIA_E2E_STARTUP_MODE: minimal
         run: |
           set -euo pipefail
           export DISPLAY=:99
