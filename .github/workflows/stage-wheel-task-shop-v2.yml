@@ -1,0 +1,67 @@
+name: Stage Wheel Task Shop implementation v2
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/stage-wheel-task-shop-v2.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out staging source
+        uses: actions/checkout@v4
+        with:
+          ref: automation/wheel-task-shop-stage-pr
+          fetch-depth: 0
+
+      - name: Extract the reviewed patch program
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import textwrap
+
+          workflow = Path('.github/workflows/stage-wheel-task-shop.yml').read_text(encoding='utf-8').splitlines()
+          start = next(i for i, line in enumerate(workflow) if line.strip() == "python - <<'PY'") + 1
+          end = next(i for i in range(start, len(workflow)) if workflow[i].strip() == 'PY')
+          script = textwrap.dedent('\n'.join(workflow[start:end])) + '\n'
+          Path('/tmp/apply_wheel_task_shop.py').write_text(script, encoding='utf-8')
+          PY
+
+      - name: Check out real Wheel branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/wheel-15-25-runtime-completion
+          fetch-depth: 0
+
+      - name: Apply patch
+        run: python /tmp/apply_wheel_task_shop.py
+
+      - name: Validate patch
+        shell: bash
+        run: |
+          git diff --check
+          PYTHONPATH=tools/ai-agent python -m unittest -v tools/ai-agent/test_wheel_task_shop_validation.py
+          PYTHONPATH=tools/ai-agent python tools/ai-agent/wheel_task_shop_validation.py \
+            --repository-root . \
+            --output /tmp/WHEEL_TASK_SHOP_AUDIT.json
+          python -m json.tool /tmp/WHEEL_TASK_SHOP_AUDIT.json > /dev/null
+
+      - name: Commit to real Wheel branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            data/modules/scripts/taskboard/taskboard.lua \
+            src/creatures/players/components/wheel/player_wheel.cpp \
+            src/creatures/players/components/wheel/player_wheel.hpp \
+            tools/ai-agent/test_wheel_task_shop_validation.py \
+            docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION.md \
+            docs/agents/tasks/active/CAN-20260713-wheel-15-25-runtime-completion.md
+          git commit -m "feat(wheel): add Hunting Task Shop promotion points"
+          git push origin HEAD:feat/wheel-15-25-runtime-completion
