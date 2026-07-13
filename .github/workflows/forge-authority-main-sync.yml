@@ -1,0 +1,84 @@
+name: Synchronize Forge authority with main
+
+on:
+  pull_request:
+    branches:
+      - fix/forge-server-authority
+    paths:
+      - docs/ai-agent/.forge-authority-main-sync-runner
+
+permissions:
+  contents: write
+
+jobs:
+  sync-main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Forge authority branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/forge-server-authority
+          fetch-depth: 0
+          show-progress: false
+
+      - name: Merge latest main and preserve both documentation records
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch --no-tags origin main
+
+          set +e
+          git merge --no-commit --no-ff origin/main
+          merge_status=$?
+          set -e
+
+          if [[ $merge_status -ne 0 ]]; then
+            conflicts=$(git diff --name-only --diff-filter=U)
+            unexpected=$(printf '%s\n' "$conflicts" | grep -v -E '^(docs/agents/CHANGELOG.md|docs/agents/MODULE_CATALOG.md)$' || true)
+            if [[ -n "$unexpected" ]]; then
+              echo "Unexpected merge conflicts:"
+              printf '%s\n' "$unexpected"
+              exit 1
+            fi
+
+            git checkout --theirs docs/agents/CHANGELOG.md docs/agents/MODULE_CATALOG.md
+
+            python3 - <<'PY'
+          from pathlib import Path
+
+          changelog = Path("docs/agents/CHANGELOG.md")
+          changelog_text = changelog.read_text(encoding="utf-8")
+          forge_changelog = "- Added bounded Forge server-authority policies and regressions in PR #250 so crafted normal Fusion, Convergence Fusion and Convergence Transfer requests are rejected before item/resource/history mutation; full Forge parity remains tracked by `CAN-PROGRAM-EQUIPMENT-UPGRADE-PARITY`."
+          if forge_changelog not in changelog_text:
+              anchor = "## Unreleased\n\n"
+              if changelog_text.count(anchor) != 1:
+                  raise RuntimeError("unexpected CHANGELOG Unreleased anchor")
+              changelog_text = changelog_text.replace(anchor, anchor + forge_changelog + "\n", 1)
+              changelog.write_text(changelog_text, encoding="utf-8")
+
+          catalog = Path("docs/agents/MODULE_CATALOG.md")
+          catalog_text = catalog.read_text(encoding="utf-8")
+          forge_row = "| Forge server authority policies | active (#250) | Validates regular/Convergence Fusion pairs and Transfer class/tier rules before mutation | `src/game/functions/forge_fusion_policy.hpp`, `forge_transfer_policy.hpp`, Player Forge handlers, focused unit/integration tests | Preserve normal Transfer rules from #89; runtime gameplay/E2E and transaction rollback remain separate evidence. |"
+          if forge_row not in catalog_text:
+              anchor = "| Forge history ID resolution | merged (#110) | Resolves history item types by ID with name fallback | Forge sources/integration test | Reuse ID-based lookup for custom/duplicate names. |"
+              if catalog_text.count(anchor) != 1:
+                  raise RuntimeError("unexpected MODULE_CATALOG Forge history anchor")
+              catalog_text = catalog_text.replace(anchor, anchor + "\n" + forge_row, 1)
+              catalog.write_text(catalog_text, encoding="utf-8")
+          PY
+
+            git add docs/agents/CHANGELOG.md docs/agents/MODULE_CATALOG.md
+          fi
+
+          unresolved=$(git diff --name-only --diff-filter=U)
+          if [[ -n "$unresolved" ]]; then
+            echo "Unresolved conflicts remain:"
+            printf '%s\n' "$unresolved"
+            exit 1
+          fi
+
+          git diff --check
+          git commit -m "merge: synchronize Forge authority with current main"
+          git push origin HEAD:fix/forge-server-authority
