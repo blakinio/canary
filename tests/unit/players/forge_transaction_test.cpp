@@ -135,7 +135,7 @@ TEST(ForgeTransactionTest, RollsBackWhenCommitStepThrows) {
 
 TEST(ForgeTransactionTest, CannotCommitTwice) {
 	ForgeTransaction transaction;
-	transaction.stage([] { return true; }, [] { });
+	transaction.stage([] { return true; }, [] {});
 
 	EXPECT_TRUE(transaction.commit());
 	EXPECT_FALSE(transaction.commit());
