@@ -1,0 +1,54 @@
+name: OTBM Reachability
+
+on:
+  pull_request:
+    paths:
+      - "tools/ai-agent/otbm_reachability.py"
+      - "tools/ai-agent/otbm_reachability_tool.py"
+      - "tools/ai-agent/test_otbm_reachability.py"
+      - "tools/ai-agent/otbm_world_index.py"
+      - "tools/ai-agent/otbm_appearances.py"
+      - "docs/ai-agent/OTBM_REACHABILITY.md"
+      - "docs/ai-agent/OTBM_REACHABILITY.schema.json"
+      - ".github/workflows/otbm-reachability.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-reachability-tool:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run focused reachability tests
+        env:
+          PYTHONPATH: tools/ai-agent
+        run: python -m unittest -v tools/ai-agent/test_otbm_reachability.py
+
+      - name: Byte-compile reachability modules
+        run: |
+          python -m py_compile \
+            tools/ai-agent/otbm_reachability.py \
+            tools/ai-agent/otbm_reachability_tool.py \
+            tools/ai-agent/test_otbm_reachability.py
+
+      - name: Validate JSON schema syntax
+        run: python -m json.tool docs/ai-agent/OTBM_REACHABILITY.schema.json > /dev/null
+
+      - name: Exercise CLI help
+        env:
+          PYTHONPATH: tools/ai-agent
+        run: |
+          python tools/ai-agent/otbm_reachability_tool.py --help
+          python tools/ai-agent/otbm_reachability_tool.py audit --help
+          python tools/ai-agent/otbm_reachability_tool.py route --help
+          python tools/ai-agent/otbm_reachability_tool.py tile --help
