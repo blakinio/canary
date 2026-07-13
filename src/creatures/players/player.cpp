@@ -10,6 +10,7 @@
 #include "creatures/players/player.hpp"
 #include "game/functions/forge_effect_policy.hpp"
 #include "game/functions/forge_fusion_policy.hpp"
+#include "game/functions/forge_transaction.hpp"
 #include "game/functions/forge_transfer_policy.hpp"
 
 #include "account/account.hpp"
@@ -11091,6 +11092,101 @@ void Player::triggerTranscendence() {
 	}
 }
 
+namespace {
+	struct ForgeItemSnapshot {
+		std::shared_ptr<Item> item;
+		std::shared_ptr<Cylinder> parent;
+		int32_t index = INDEX_WHEREEVER;
+	};
+
+	ForgeItemSnapshot captureForgeItem(const std::shared_ptr<Item> &item) {
+		ForgeItemSnapshot snapshot;
+		snapshot.item = item;
+		if (!item) {
+			return snapshot;
+		}
+
+		snapshot.parent = item->getParent();
+		if (snapshot.parent) {
+			snapshot.index = snapshot.parent->getThingIndex(item);
+		}
+		return snapshot;
+	}
+
+	void restoreForgeItem(const ForgeItemSnapshot &snapshot, const std::string &playerName) {
+		if (!snapshot.item || !snapshot.parent) {
+			g_logger().error("[ForgeTransaction] Cannot restore an item for player {} because its snapshot is incomplete", playerName);
+			return;
+		}
+
+		if (snapshot.parent->getThingIndex(snapshot.item) >= 0) {
+			return;
+		}
+
+		const auto returnValue = g_game().internalAddItem(snapshot.parent, snapshot.item, snapshot.index, FLAG_NOLIMIT);
+		if (returnValue != RETURNVALUE_NOERROR) {
+			g_logger().error("[ForgeTransaction] Failed to restore item {} for player {}: {}", snapshot.item->getID(), playerName, getReturnMessage(returnValue));
+		}
+	}
+
+	uint32_t getForgeStackableCount(Player &player, uint16_t itemId) {
+		const auto &[sliverCount, coreCount] = player.getForgeSliversAndCores();
+		if (itemId == ITEM_FORGE_SLIVER) {
+			return sliverCount;
+		}
+		if (itemId == ITEM_FORGE_CORE) {
+			return coreCount;
+		}
+		return 0;
+	}
+
+	void restoreForgeStackable(const std::shared_ptr<Player> &player, uint16_t itemId, uint32_t expectedCount) {
+		const uint32_t currentCount = getForgeStackableCount(*player, itemId);
+		if (currentCount == expectedCount) {
+			return;
+		}
+
+		if (currentCount < expectedCount) {
+			const auto &replacement = Item::CreateItem(itemId, expectedCount - currentCount);
+			if (!replacement || g_game().internalAddItem(player, replacement, INDEX_WHEREEVER, FLAG_NOLIMIT) != RETURNVALUE_NOERROR) {
+				g_logger().error("[ForgeTransaction] Failed to restore {} units of item {} for player {}", expectedCount - currentCount, itemId, player->getName());
+			}
+			return;
+		}
+
+		if (!player->removeItemCountById(itemId, currentCount - expectedCount)) {
+			g_logger().error("[ForgeTransaction] Failed to remove {} excess units of item {} for player {}", currentCount - expectedCount, itemId, player->getName());
+		}
+	}
+
+	void restoreForgeMoney(const std::shared_ptr<Player> &player, uint64_t expectedInventoryMoney, uint64_t expectedBankBalance) {
+		const uint64_t currentInventoryMoney = player->getMoney();
+		if (currentInventoryMoney < expectedInventoryMoney) {
+			const auto [remainder, returnValue] = g_game().addMoney(player, expectedInventoryMoney - currentInventoryMoney, FLAG_NOLIMIT);
+			if (returnValue != RETURNVALUE_NOERROR || remainder != 0) {
+				g_logger().error("[ForgeTransaction] Failed to restore inventory money for player {}", player->getName());
+			}
+		} else if (currentInventoryMoney > expectedInventoryMoney) {
+			if (!g_game().removeMoney(player, currentInventoryMoney - expectedInventoryMoney, FLAG_NOLIMIT, false)) {
+				g_logger().error("[ForgeTransaction] Failed to remove excess inventory money for player {}", player->getName());
+			}
+		}
+
+		player->setBankBalance(expectedBankBalance);
+	}
+
+	void removePreparedForgeChest(const std::shared_ptr<Container> &container, const std::string &playerName) {
+		if (!container || !container->getParent()) {
+			return;
+		}
+
+		const auto returnValue = g_game().internalRemoveItem(container, 1, false, 0, true);
+		if (returnValue != RETURNVALUE_NOERROR) {
+			g_logger().error("[ForgeTransaction] Failed to roll back Exaltation Chest for player {}", playerName);
+		}
+	}
+} // namespace
+
 // Forge system
 void Player::forgeFuseItems(ForgeAction_t actionType, uint16_t firstItemId, uint8_t tier, uint16_t secondItemId, bool success, bool reduceTierLoss, bool convergence, uint8_t bonus, uint8_t coreCount) {
 	if (getFreeBackpackSlots() == 0) {
@@ -11145,277 +11241,189 @@ void Player::forgeFuseItems(ForgeAction_t actionType, uint16_t firstItemId, uint
 		return;
 	}
 
-	// Pre-validate all resources before mutating player inventory.
-	// All parameters (convergence, success, bonus, coreCount, tier) are already
-	// known, so we can compute expected costs and abort before removing anything.
-	{
-		const auto configKey = convergence ? FORGE_CONVERGENCE_FUSION_DUST_COST : FORGE_FUSION_DUST_COST;
-		const auto dustCost = static_cast<uint64_t>(g_configManager().getNumber(configKey));
+	const auto player = static_self_cast<Player>();
+	const uint64_t dustCost = static_cast<uint64_t>(g_configManager().getNumber(convergence ? FORGE_CONVERGENCE_FUSION_DUST_COST : FORGE_FUSION_DUST_COST));
+	const bool chargeDust = convergence || !success || bonus != 1;
+	const bool chargeCores = !convergence && coreCount != 0 && (!success || bonus != 2);
+	const bool chargeGold = convergence || !success || bonus != 3;
 
-		// Dust check: convergence always spends dust; success skips only on bonus 1.
-		if ((convergence || !success || bonus != 1) && getForgeDusts() < dustCost) {
-			g_logger().error("[{}] Not enough dust to forge for player {}", __FUNCTION__, getName());
-			sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-			return;
-		}
+	if (chargeDust && getForgeDusts() < dustCost) {
+		g_logger().error("[{}] Not enough dust to forge for player {}", __FUNCTION__, getName());
+		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
+		return;
+	}
+	if (chargeCores && !hasItemCountById(ITEM_FORGE_CORE, coreCount, true)) {
+		g_logger().error("[{}] Not enough forge cores for player {}", __FUNCTION__, getName());
+		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
+		return;
+	}
 
-		// Core check: convergence needs no cores; success skips on bonus 2.
-		if (!convergence && (!success || bonus != 2) && coreCount != 0
-		    && !hasItemCountById(ITEM_FORGE_CORE, coreCount, true)) {
-			g_logger().error("[{}] Not enough forge cores for player {}", __FUNCTION__, getName());
-			sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-			return;
-		}
-
-		// Gold check: only skipped when success && bonus == 3.
-		if (convergence || !success || bonus != 3) {
-			bool hasMatchingClassification = false;
-			uint64_t preGoldCost = 0;
-			for (const auto* itemClassification : g_game().getItemsClassifications()) {
-				if (!itemClassification || itemClassification->id != firstForgingItem->getClassification()) {
-					continue;
-				}
-				hasMatchingClassification = true;
-				if (!itemClassification->tiers.contains(tier + 1)) {
-					g_logger().error("[{}] Tier {} not found in classification {} for player {}", __FUNCTION__, tier + 1, itemClassification->id, getName());
-					sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-					return;
-				}
-				const auto &tierPrices = itemClassification->tiers.at(tier + 1);
-				preGoldCost = convergence ? tierPrices.convergenceFusionPrice : tierPrices.regularPrice;
-				break;
+	uint64_t goldCost = 0;
+	if (chargeGold) {
+		bool hasMatchingClassification = false;
+		for (const auto* itemClassification : g_game().getItemsClassifications()) {
+			if (!itemClassification || itemClassification->id != firstForgingItem->getClassification()) {
+				continue;
 			}
-			if (!hasMatchingClassification) {
-				g_logger().error("[{}] Failed to find classification {} for player {}", __FUNCTION__, firstForgingItem->getClassification(), getName());
+
+			hasMatchingClassification = true;
+			if (!itemClassification->tiers.contains(tier + 1)) {
+				g_logger().error("[{}] Tier {} not found in classification {} for player {}", __FUNCTION__, tier + 1, itemClassification->id, getName());
 				sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
 				return;
 			}
-			if (getMoney() + getBankBalance() < preGoldCost) {
-				g_logger().error("[{}] Not enough money to forge for player {}", __FUNCTION__, getName());
-				sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-				return;
+			const auto &tierPrices = itemClassification->tiers.at(tier + 1);
+			goldCost = convergence ? tierPrices.convergenceFusionPrice : tierPrices.regularPrice;
+			break;
+		}
+		if (!hasMatchingClassification) {
+			g_logger().error("[{}] Failed to find classification {} for player {}", __FUNCTION__, firstForgingItem->getClassification(), getName());
+			sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
+			return;
+		}
+		if (getMoney() + getBankBalance() < goldCost) {
+			g_logger().error("[{}] Not enough money to forge for player {}", __FUNCTION__, getName());
+			sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
+			return;
+		}
+	}
+
+	uint8_t resultBonus = bonus;
+	uint8_t firstResultTier = tier;
+	uint8_t secondResultTier = tier;
+	bool keepSecondOutput = false;
+	if (convergence) {
+		firstResultTier = tier + 1;
+	} else if (success) {
+		firstResultTier = tier + 1;
+		if (bonus == 4) {
+			keepSecondOutput = true;
+			secondResultTier = tier > 0 ? tier - 1 : tier;
+		} else if (bonus == 5 || bonus == 8) {
+			keepSecondOutput = true;
+		} else if (bonus == 6) {
+			keepSecondOutput = true;
+			secondResultTier = tier + 1;
+		} else if (bonus == 7 && tier + 2 <= firstForgingItem->getClassification()) {
+			firstResultTier = tier + 2;
+		}
+	} else {
+		const bool isTierLost = uniform_random(1, 100) <= (reduceTierLoss ? g_configManager().getNumber(FORGE_TIER_LOSS_REDUCTION) : 100);
+		resultBonus = isTierLost ? 0 : 8;
+		if (isTierLost) {
+			if (tier >= 1) {
+				keepSecondOutput = true;
+				secondResultTier = tier - 1;
 			}
+		} else {
+			keepSecondOutput = true;
 		}
 	}
 
 	const auto &exaltationChest = Item::CreateItem(ITEM_EXALTATION_CHEST, 1);
-	if (!exaltationChest) {
-		g_logger().error("Failed to create exaltation chest");
-		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-		return;
-	}
-	const auto &exaltationContainer = exaltationChest->getContainer();
+	const auto &exaltationContainer = exaltationChest ? exaltationChest->getContainer() : nullptr;
 	if (!exaltationContainer) {
-		g_logger().error("Failed to create exaltation container");
-		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-		return;
-	}
-
-	auto returnValue = g_game().internalAddItem(static_self_cast<Player>(), exaltationContainer, INDEX_WHEREEVER);
-	if (returnValue != RETURNVALUE_NOERROR) {
-		g_logger().error("Failed to add exaltation chest to player with name {}", getName());
-		sendForgeError(returnValue);
-		return;
-	}
-
-	if (returnValue = g_game().internalRemoveItem(firstForgingItem, 1);
-	    returnValue != RETURNVALUE_NOERROR) {
-		g_logger().error("[Log 1] Failed to remove forge item {} from player with name {}", firstItemId, getName());
-		sendCancelMessage(getReturnMessage(returnValue));
-		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-		return;
-	}
-	if (returnValue = g_game().internalRemoveItem(secondForgingItem, 1);
-	    returnValue != RETURNVALUE_NOERROR) {
-		g_logger().error("[Log 2] Failed to remove forge item {} from player with name {}", secondItemId, getName());
-		sendCancelMessage(getReturnMessage(returnValue));
+		g_logger().error("[{}] Failed to prepare Exaltation Chest for player {}", __FUNCTION__, getName());
 		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
 		return;
 	}
 
 	const auto &firstForgedItem = Item::CreateItem(firstItemId, 1);
 	if (!firstForgedItem) {
-		g_logger().error("[Log 3] Player with name {} failed to fuse item with id {}", getName(), firstItemId);
+		g_logger().error("[{}] Failed to prepare result item {} for player {}", __FUNCTION__, firstItemId, getName());
 		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
 		return;
 	}
-	returnValue = g_game().internalAddItem(exaltationContainer, firstForgedItem, INDEX_WHEREEVER);
-	if (returnValue != RETURNVALUE_NOERROR) {
-		g_logger().error("[Log 1] Failed to add forge item {} from player with name {}", firstItemId, getName());
-		sendCancelMessage(getReturnMessage(returnValue));
+	firstForgedItem->setTier(firstResultTier);
+	if (g_game().internalAddItem(exaltationContainer, firstForgedItem, INDEX_WHEREEVER, FLAG_NOLIMIT) != RETURNVALUE_NOERROR) {
+		g_logger().error("[{}] Failed to stage result item {} for player {}", __FUNCTION__, firstItemId, getName());
 		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
 		return;
 	}
 
-	auto configKey = convergence ? FORGE_CONVERGENCE_FUSION_DUST_COST : FORGE_FUSION_DUST_COST;
-	auto dustCost = static_cast<uint64_t>(g_configManager().getNumber(configKey));
-	if (convergence) {
-		firstForgedItem->setTier(tier + 1);
-		history.dustCost = dustCost;
-		setForgeDusts(getForgeDusts() - dustCost);
-
-		uint64_t cost = 0;
-		for (const auto* itemClassification : g_game().getItemsClassifications()) {
-			if (!itemClassification || itemClassification->id != firstForgingItem->getClassification()) {
-				continue;
-			}
-
-			for (const auto &[mapTier, mapPrice] : itemClassification->tiers) {
-				if (mapTier == firstForgingItem->getTier() + 1) {
-					cost = mapPrice.convergenceFusionPrice;
-					break;
-				}
-			}
-			break;
-		}
-		if (!g_game().removeMoney(static_self_cast<Player>(), cost, 0, true)) {
-			g_logger().error("[{}] Failed to remove {} gold from player with name {}", __FUNCTION__, cost, getName());
-			sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-			return;
-		}
-		g_metrics().addCounter("balance_decrease", cost, { { "player", getName() }, { "context", "forge_convergence_fuse" } });
-		history.cost = cost;
-	} else {
-		firstForgedItem->setTier(tier);
+	if (keepSecondOutput) {
 		const auto &secondForgedItem = Item::CreateItem(secondItemId, 1);
 		if (!secondForgedItem) {
-			g_logger().error("[Log 4] Player with name {} failed to fuse item with id {}", getName(), secondItemId);
+			g_logger().error("[{}] Failed to prepare second result item {} for player {}", __FUNCTION__, secondItemId, getName());
 			sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
 			return;
 		}
-
-		secondForgedItem->setTier(tier);
-		returnValue = g_game().internalAddItem(exaltationContainer, secondForgedItem, INDEX_WHEREEVER);
-		if (returnValue != RETURNVALUE_NOERROR) {
-			g_logger().error("[Log 2] Failed to add forge item {} from player with name {}", secondItemId, getName());
-			sendCancelMessage(getReturnMessage(returnValue));
+		secondForgedItem->setTier(secondResultTier);
+		if (g_game().internalAddItem(exaltationContainer, secondForgedItem, INDEX_WHEREEVER, FLAG_NOLIMIT) != RETURNVALUE_NOERROR) {
+			g_logger().error("[{}] Failed to stage second result item {} for player {}", __FUNCTION__, secondItemId, getName());
 			sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
 			return;
 		}
+	}
 
-		if (success) {
-			firstForgedItem->setTier(tier + 1);
+	if (g_game().internalAddItem(player, exaltationContainer, INDEX_WHEREEVER, 0, true) != RETURNVALUE_NOERROR
+	    || g_game().internalRemoveItem(firstForgingItem, 1, true) != RETURNVALUE_NOERROR
+	    || g_game().internalRemoveItem(secondForgingItem, 1, true) != RETURNVALUE_NOERROR) {
+		g_logger().error("[{}] Forge inventory preflight failed for player {}", __FUNCTION__, getName());
+		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
+		return;
+	}
 
-			if (bonus != 1) {
-				history.dustCost = dustCost;
-				setForgeDusts(getForgeDusts() - dustCost);
-			}
-			if (bonus != 2) {
-				if (coreCount != 0 && !removeItemCountById(ITEM_FORGE_CORE, coreCount)) {
-					g_logger().error("[{}][Log 1] Failed to remove item 'id :{} count: {}' from player {}", __FUNCTION__, fmt::underlying(ITEM_FORGE_CORE), coreCount, getName());
-					sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-					return;
-				}
-				history.coresCost = coreCount;
-			}
-			if (bonus != 3) {
-				uint64_t cost = 0;
-				for (const auto* itemClassification : g_game().getItemsClassifications()) {
-					if (!itemClassification || itemClassification->id != firstForgedItem->getClassification()) {
-						continue;
-					}
-					if (!itemClassification->tiers.contains(firstForgedItem->getTier())) {
-						g_logger().error("[{}] Failed to find tier {} for item {} in classification {}", __FUNCTION__, firstForgedItem->getTier(), firstForgedItem->getClassification(), itemClassification->id);
-						sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-						return;
-					}
-					cost = itemClassification->tiers.at(firstForgedItem->getTier()).regularPrice;
-					break;
-				}
-				if (!g_game().removeMoney(static_self_cast<Player>(), cost, 0, true)) {
-					g_logger().error("[{}] Failed to remove {} gold from player with name {}", __FUNCTION__, cost, getName());
-					sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-					return;
-				}
-				g_metrics().addCounter("balance_decrease", cost, { { "player", getName() }, { "context", "forge_fuse" } });
-				history.cost = cost;
-			}
+	const auto firstSnapshot = captureForgeItem(firstForgingItem);
+	const auto secondSnapshot = captureForgeItem(secondForgingItem);
+	const auto coresBefore = getForgeSliversAndCores().second;
+	const uint64_t inventoryMoneyBefore = getMoney();
+	const uint64_t bankBalanceBefore = getBankBalance();
 
-			if (bonus == 4) {
-				if (tier > 0) {
-					secondForgedItem->setTier(tier - 1);
-				}
-			} else if (bonus == 6) {
-				secondForgedItem->setTier(tier + 1);
-			} else if (bonus == 7 && tier + 2 <= firstForgedItem->getClassification()) {
-				firstForgedItem->setTier(tier + 2);
-			}
+	ForgeTransaction transaction;
+	transaction.stage(
+		[firstForgingItem] { return g_game().internalRemoveItem(firstForgingItem, 1) == RETURNVALUE_NOERROR; },
+		[firstSnapshot, playerName = getName()] { restoreForgeItem(firstSnapshot, playerName); }
+	);
+	transaction.stage(
+		[secondForgingItem] { return g_game().internalRemoveItem(secondForgingItem, 1) == RETURNVALUE_NOERROR; },
+		[secondSnapshot, playerName = getName()] { restoreForgeItem(secondSnapshot, playerName); }
+	);
+	if (chargeCores) {
+		transaction.stage(
+			[player, coreCount] { return player->removeItemCountById(ITEM_FORGE_CORE, coreCount); },
+			[player, coresBefore] { restoreForgeStackable(player, ITEM_FORGE_CORE, coresBefore); }
+		);
+	}
+	if (chargeGold) {
+		transaction.stage(
+			[player, goldCost] { return g_game().removeMoney(player, goldCost, 0, true); },
+			[player, inventoryMoneyBefore, bankBalanceBefore] { restoreForgeMoney(player, inventoryMoneyBefore, bankBalanceBefore); }
+		);
+	}
+	transaction.stage(
+		[player, exaltationContainer] { return g_game().internalAddItem(player, exaltationContainer, INDEX_WHEREEVER) == RETURNVALUE_NOERROR; },
+		[exaltationContainer, playerName = getName()] { removePreparedForgeChest(exaltationContainer, playerName); }
+	);
 
-			if (bonus != 4 && bonus != 5 && bonus != 6 && bonus != 8) {
-				returnValue = g_game().internalRemoveItem(secondForgedItem, 1);
-				if (returnValue != RETURNVALUE_NOERROR) {
-					g_logger().error("[Log 6] Failed to remove forge item {} from player with name {}", secondItemId, getName());
-					sendCancelMessage(getReturnMessage(returnValue));
-					sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-					return;
-				}
-			}
-		} else {
-			auto isTierLost = uniform_random(1, 100) <= (reduceTierLoss ? g_configManager().getNumber(FORGE_TIER_LOSS_REDUCTION) : 100);
-			if (isTierLost) {
-				if (secondForgedItem->getTier() >= 1) {
-					secondForgedItem->setTier(tier - 1);
-				} else {
-					returnValue = g_game().internalRemoveItem(secondForgedItem, 1);
-					if (returnValue != RETURNVALUE_NOERROR) {
-						g_logger().error("[Log 7] Failed to remove forge item {} from player with name {}", secondItemId, getName());
-						sendCancelMessage(getReturnMessage(returnValue));
-						sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-						return;
-					}
-				}
-			}
-			bonus = (isTierLost ? 0 : 8);
-			history.coresCost = coreCount;
+	if (!transaction.commit()) {
+		g_logger().error("[{}] Forge transaction rolled back for player {}", __FUNCTION__, getName());
+		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
+		return;
+	}
 
-			if (getForgeDusts() < dustCost) {
-				g_logger().error("[Log 7] Failed to remove fuse dusts from player with name {}", getName());
-				sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-				return;
-			} else {
-				setForgeDusts(getForgeDusts() - dustCost);
-			}
-
-			if (coreCount != 0 && !removeItemCountById(ITEM_FORGE_CORE, coreCount)) {
-				g_logger().error("[{}][Log 2] Failed to remove item 'id: {}, count: {}' from player {}", __FUNCTION__, fmt::underlying(ITEM_FORGE_CORE), coreCount, getName());
-				sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-				return;
-			}
-
-			uint64_t cost = 0;
-			for (const auto* itemClassification : g_game().getItemsClassifications()) {
-				if (!itemClassification || itemClassification->id != firstForgingItem->getClassification()) {
-					continue;
-				}
-				if (!itemClassification->tiers.contains(firstForgingItem->getTier() + 1)) {
-					g_logger().error("[{}] Failed to find tier {} for item {} in classification {}", __FUNCTION__, firstForgingItem->getTier() + 1, firstForgingItem->getClassification(), itemClassification->id);
-					sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-					return;
-				}
-				cost = itemClassification->tiers.at(firstForgingItem->getTier() + 1).regularPrice;
-				break;
-			}
-			if (!g_game().removeMoney(static_self_cast<Player>(), cost, 0, true)) {
-				g_logger().error("[{}] Failed to remove {} gold from player with name {}", __FUNCTION__, cost, getName());
-				sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-				return;
-			}
-			g_metrics().addCounter("balance_decrease", cost, { { "player", getName() }, { "context", "forge_fuse" } });
-
-			history.cost = cost;
-		}
+	if (chargeDust) {
+		setForgeDusts(getForgeDusts() - dustCost);
+		history.dustCost = dustCost;
+	}
+	if (chargeCores) {
+		history.coresCost = coreCount;
+	}
+	if (chargeGold) {
+		history.cost = goldCost;
+		g_metrics().addCounter("balance_decrease", goldCost, { { "player", getName() }, { "context", convergence ? "forge_convergence_fuse" : "forge_fuse" } });
 	}
 
 	history.firstItemId = firstItemId;
 	history.secondItemId = secondItemId;
 	history.firstItemName = firstForgingItem->getName();
 	history.secondItemName = secondForgingItem->getName();
-	history.bonus = bonus;
+	history.bonus = resultBonus;
 	history.createdAt = getTimeMsNow();
 	history.convergence = convergence;
 	registerForgeHistoryDescription(history);
 
-	sendForgeResult(actionType, firstItemId, tier, secondItemId, tier + 1, success, bonus, coreCount, convergence);
+	sendForgeResult(actionType, firstItemId, tier, secondItemId, tier + 1, success, resultBonus, coreCount, convergence);
 }
 
 void Player::forgeTransferItemTier(ForgeAction_t actionType, uint16_t donorItemId, uint8_t tier, uint16_t receiveItemId, bool convergence) {
@@ -11435,7 +11443,6 @@ void Player::forgeTransferItemTier(ForgeAction_t actionType, uint16_t donorItemI
 		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
 		return;
 	}
-
 	const auto &receiveItem = getForgeItemFromId(receiveItemId, 0, donorItem);
 	if (!receiveItem) {
 		g_logger().error("[Log 2] Player with name {} failed to transfer item with id {}", getName(), receiveItemId);
@@ -11451,9 +11458,7 @@ void Player::forgeTransferItemTier(ForgeAction_t actionType, uint16_t donorItemI
 		return;
 	}
 
-	// Pre-validate all resources before mutating player inventory.
-	auto configKey = convergence ? FORGE_CONVERGENCE_TRANSFER_DUST_COST : FORGE_TRANSFER_DUST_COST;
-	auto dustCost = static_cast<uint64_t>(g_configManager().getNumber(configKey));
+	const uint64_t dustCost = static_cast<uint64_t>(g_configManager().getNumber(convergence ? FORGE_CONVERGENCE_TRANSFER_DUST_COST : FORGE_TRANSFER_DUST_COST));
 	if (getForgeDusts() < dustCost) {
 		g_logger().error("[{}] Insufficient transfer dust for player with name {}", __FUNCTION__, getName());
 		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
@@ -11461,7 +11466,7 @@ void Player::forgeTransferItemTier(ForgeAction_t actionType, uint16_t donorItemI
 	}
 
 	uint8_t coresAmount = 0;
-	uint64_t cost = 0;
+	uint64_t goldCost = 0;
 	bool hasMatchingClassification = false;
 	const uint8_t resourceTier = ForgeTransferPolicy::resourceTier(donorItem->getTier());
 	for (const auto* itemClassification : g_game().getItemsClassifications()) {
@@ -11475,105 +11480,90 @@ void Player::forgeTransferItemTier(ForgeAction_t actionType, uint16_t donorItemI
 			return;
 		}
 		const auto &tierPrices = itemClassification->tiers.at(resourceTier);
-		cost = convergence ? tierPrices.convergenceTransferPrice : tierPrices.regularPrice;
+		goldCost = convergence ? tierPrices.convergenceTransferPrice : tierPrices.regularPrice;
 		coresAmount = tierPrices.corePrice;
 		break;
 	}
-	if (!hasMatchingClassification) {
-		g_logger().error("[{}] Failed to find classification {} for player {}", __FUNCTION__, donorItem->getClassification(), getName());
-		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-		return;
-	}
-
-	if (!hasItemCountById(ITEM_FORGE_CORE, coresAmount, true)) {
-		g_logger().error("[{}] Not enough forge cores for player {}", __FUNCTION__, getName());
-		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-		return;
-	}
-
-	if (getMoney() + getBankBalance() < cost) {
-		g_logger().error("[{}] Not enough money to transfer for player {}", __FUNCTION__, getName());
-		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-		return;
-	}
-
-	// Same reasoning as forgeFuseItems: place the exaltation chest in the
-	// player's inventory only after all read-only checks pass.
-	const auto &exaltationChest = Item::CreateItem(ITEM_EXALTATION_CHEST, 1);
-	if (!exaltationChest) {
-		g_logger().error("Exaltation chest is nullptr");
-		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-		return;
-	}
-	const auto &exaltationContainer = exaltationChest->getContainer();
-	if (!exaltationContainer) {
-		g_logger().error("Exaltation container is nullptr");
-		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-		return;
-	}
-
-	auto returnValue = g_game().internalAddItem(static_self_cast<Player>(), exaltationContainer, INDEX_WHEREEVER);
-	if (returnValue != RETURNVALUE_NOERROR) {
-		g_logger().error("Failed to add exaltation chest to player with name {}", getName());
-		sendForgeError(returnValue);
-		return;
-	}
-
-	// All resources validated — begin mutations.
-	if (returnValue = g_game().internalRemoveItem(donorItem, 1);
-	    returnValue != RETURNVALUE_NOERROR) {
-		g_logger().error("[Log 1] Failed to remove transfer item {} from player with name {}", donorItemId, getName());
-		sendCancelMessage(getReturnMessage(returnValue));
-		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-		return;
-	}
-
-	if (returnValue = g_game().internalRemoveItem(receiveItem, 1);
-	    returnValue != RETURNVALUE_NOERROR) {
-		g_logger().error("[Log 2] Failed to remove transfer item {} from player with name {}", receiveItemId, getName());
-		sendCancelMessage(getReturnMessage(returnValue));
-		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-		return;
-	}
-
-	const auto &newReceiveItem = Item::CreateItem(receiveItemId, 1);
-	if (!newReceiveItem) {
-		g_logger().error("[Log 6] Player with name {} failed to fuse item with id {}", getName(), receiveItemId);
+	if (!hasMatchingClassification || !hasItemCountById(ITEM_FORGE_CORE, coresAmount, true) || getMoney() + getBankBalance() < goldCost) {
+		g_logger().error("[{}] Transfer resource preflight failed for player {}", __FUNCTION__, getName());
 		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
 		return;
 	}
 
 	const uint8_t resultTier = ForgeTransferPolicy::resultTier(donorItem->getTier(), convergence);
+	const auto &exaltationChest = Item::CreateItem(ITEM_EXALTATION_CHEST, 1);
+	const auto &exaltationContainer = exaltationChest ? exaltationChest->getContainer() : nullptr;
+	const auto &newReceiveItem = Item::CreateItem(receiveItemId, 1);
+	if (!exaltationContainer || !newReceiveItem) {
+		g_logger().error("[{}] Failed to prepare Transfer output for player {}", __FUNCTION__, getName());
+		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
+		return;
+	}
 	newReceiveItem->setTier(resultTier);
-	returnValue = g_game().internalAddItem(exaltationContainer, newReceiveItem, INDEX_WHEREEVER);
-	if (returnValue != RETURNVALUE_NOERROR) {
-		g_logger().error("[Log 7] Failed to add forge item {} from player with name {}", receiveItemId, getName());
-		sendCancelMessage(getReturnMessage(returnValue));
+	if (g_game().internalAddItem(exaltationContainer, newReceiveItem, INDEX_WHEREEVER, FLAG_NOLIMIT) != RETURNVALUE_NOERROR) {
+		g_logger().error("[{}] Failed to stage Transfer output for player {}", __FUNCTION__, getName());
+		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
+		return;
+	}
+
+	const auto player = static_self_cast<Player>();
+	if (g_game().internalAddItem(player, exaltationContainer, INDEX_WHEREEVER, 0, true) != RETURNVALUE_NOERROR
+	    || g_game().internalRemoveItem(donorItem, 1, true) != RETURNVALUE_NOERROR
+	    || g_game().internalRemoveItem(receiveItem, 1, true) != RETURNVALUE_NOERROR) {
+		g_logger().error("[{}] Transfer inventory preflight failed for player {}", __FUNCTION__, getName());
+		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
+		return;
+	}
+
+	const auto donorSnapshot = captureForgeItem(donorItem);
+	const auto receiveSnapshot = captureForgeItem(receiveItem);
+	const auto coresBefore = getForgeSliversAndCores().second;
+	const uint64_t inventoryMoneyBefore = getMoney();
+	const uint64_t bankBalanceBefore = getBankBalance();
+
+	ForgeTransaction transaction;
+	transaction.stage(
+		[donorItem] { return g_game().internalRemoveItem(donorItem, 1) == RETURNVALUE_NOERROR; },
+		[donorSnapshot, playerName = getName()] { restoreForgeItem(donorSnapshot, playerName); }
+	);
+	transaction.stage(
+		[receiveItem] { return g_game().internalRemoveItem(receiveItem, 1) == RETURNVALUE_NOERROR; },
+		[receiveSnapshot, playerName = getName()] { restoreForgeItem(receiveSnapshot, playerName); }
+	);
+	if (coresAmount != 0) {
+		transaction.stage(
+			[player, coresAmount] { return player->removeItemCountById(ITEM_FORGE_CORE, coresAmount); },
+			[player, coresBefore] { restoreForgeStackable(player, ITEM_FORGE_CORE, coresBefore); }
+		);
+	}
+	if (goldCost != 0) {
+		transaction.stage(
+			[player, goldCost] { return g_game().removeMoney(player, goldCost, 0, true); },
+			[player, inventoryMoneyBefore, bankBalanceBefore] { restoreForgeMoney(player, inventoryMoneyBefore, bankBalanceBefore); }
+		);
+	}
+	transaction.stage(
+		[player, exaltationContainer] { return g_game().internalAddItem(player, exaltationContainer, INDEX_WHEREEVER) == RETURNVALUE_NOERROR; },
+		[exaltationContainer, playerName = getName()] { removePreparedForgeChest(exaltationContainer, playerName); }
+	);
+
+	if (!transaction.commit()) {
+		g_logger().error("[{}] Transfer transaction rolled back for player {}", __FUNCTION__, getName());
 		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
 		return;
 	}
 
 	setForgeDusts(getForgeDusts() - dustCost);
-
-	if (!removeItemCountById(ITEM_FORGE_CORE, coresAmount)) {
-		g_logger().error("[{}] Failed to remove item 'id: {}, count: {}' from player {}", __FUNCTION__, fmt::underlying(ITEM_FORGE_CORE), coresAmount, getName());
-		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-		return;
-	}
-
-	if (!g_game().removeMoney(static_self_cast<Player>(), cost, 0, true)) {
-		g_logger().error("[{}] Failed to remove {} gold from player with name {}", __FUNCTION__, cost, getName());
-		sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
-		return;
-	}
-	history.cost = cost;
+	history.cost = goldCost;
 	history.coresCost = coresAmount;
 	history.dustCost = dustCost;
-	g_metrics().addCounter("balance_decrease", cost, { { "player", getName() }, { "context", "forge_transfer" } });
+	if (goldCost != 0) {
+		g_metrics().addCounter("balance_decrease", goldCost, { { "player", getName() }, { "context", "forge_transfer" } });
+	}
 
 	history.firstItemId = donorItemId;
 	history.secondItemId = receiveItemId;
-	history.firstItemName = Item::items[donorItemId].name;
+	history.firstItemName = donorItem->getName();
 	history.secondItemName = newReceiveItem->getName();
 	history.createdAt = getTimeMsNow();
 	history.convergence = convergence;
@@ -11589,16 +11579,21 @@ void Player::forgeResourceConversion(ForgeAction_t actionType) {
 
 	ReturnValue returnValue = RETURNVALUE_NOERROR;
 	if (actionType == ForgeAction_t::DUSTTOSLIVERS) {
-		auto dusts = getForgeDusts();
-		auto cost = static_cast<uint16_t>(g_configManager().getNumber(FORGE_COST_ONE_SLIVER) * g_configManager().getNumber(FORGE_SLIVER_AMOUNT));
+		const auto dusts = getForgeDusts();
+		const auto cost = static_cast<uint16_t>(g_configManager().getNumber(FORGE_COST_ONE_SLIVER) * g_configManager().getNumber(FORGE_SLIVER_AMOUNT));
 		if (cost > dusts) {
 			g_logger().error("[{}] Not enough dust", __FUNCTION__);
 			sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
 			return;
 		}
 
-		auto itemCount = static_cast<uint16_t>(g_configManager().getNumber(FORGE_SLIVER_AMOUNT));
+		const auto itemCount = static_cast<uint16_t>(g_configManager().getNumber(FORGE_SLIVER_AMOUNT));
 		const auto &item = Item::CreateItem(ITEM_FORGE_SLIVER, itemCount);
+		if (!item) {
+			g_logger().error("[{}] Failed to create {} slivers for player {}", __FUNCTION__, itemCount, getName());
+			sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
+			return;
+		}
 		returnValue = g_game().internalPlayerAddItem(static_self_cast<Player>(), item);
 		if (returnValue != RETURNVALUE_NOERROR) {
 			g_logger().error("Failed to add {} slivers to player with name {}", itemCount, getName());
@@ -11610,27 +11605,45 @@ void Player::forgeResourceConversion(ForgeAction_t actionType) {
 		history.gained = 3;
 		setForgeDusts(dusts - cost);
 	} else if (actionType == ForgeAction_t::SLIVERSTOCORES) {
-		const auto &[sliverCount, coreCount] = getForgeSliversAndCores();
-		auto cost = static_cast<uint16_t>(g_configManager().getNumber(FORGE_CORE_COST));
+		const auto player = static_self_cast<Player>();
+		const auto [sliverCount, coreCount] = getForgeSliversAndCores();
+		const auto cost = static_cast<uint16_t>(g_configManager().getNumber(FORGE_CORE_COST));
 		if (cost > sliverCount) {
 			g_logger().error("[{}] Not enough sliver", __FUNCTION__);
 			sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
 			return;
 		}
 
-		if (!removeItemCountById(ITEM_FORGE_SLIVER, cost)) {
-			g_logger().error("[{}] Failed to remove item 'id: {}, count {}' from player {}", __FUNCTION__, fmt::underlying(ITEM_FORGE_SLIVER), cost, getName());
+		const auto &core = Item::CreateItem(ITEM_FORGE_CORE, 1);
+		if (!core) {
+			g_logger().error("[{}] Failed to create Forge Core for player {}", __FUNCTION__, getName());
 			sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
 			return;
 		}
-
-		if (const auto &item = Item::CreateItem(ITEM_FORGE_CORE, 1);
-		    item) {
-			returnValue = g_game().internalPlayerAddItem(static_self_cast<Player>(), item);
+		if (g_game().internalAddItem(player, core, INDEX_WHEREEVER, 0, true) != RETURNVALUE_NOERROR) {
+			g_logger().error("[{}] No inventory capacity for a Forge Core for player {}", __FUNCTION__, getName());
+			sendForgeError(RETURNVALUE_NOTENOUGHROOM);
+			return;
 		}
-		if (returnValue != RETURNVALUE_NOERROR) {
-			g_logger().error("Failed to add one core to player with name {}", getName());
-			sendCancelMessage(getReturnMessage(returnValue));
+
+		ForgeTransaction transaction;
+		transaction.stage(
+			[player, cost] { return player->removeItemCountById(ITEM_FORGE_SLIVER, cost); },
+			[player, sliverCount, coreCount] {
+				restoreForgeStackable(player, ITEM_FORGE_SLIVER, sliverCount);
+				restoreForgeStackable(player, ITEM_FORGE_CORE, coreCount);
+			}
+		);
+		transaction.stage(
+			[player, core] { return g_game().internalPlayerAddItem(player, core, false) == RETURNVALUE_NOERROR; },
+			[player, sliverCount, coreCount] {
+				restoreForgeStackable(player, ITEM_FORGE_SLIVER, sliverCount);
+				restoreForgeStackable(player, ITEM_FORGE_CORE, coreCount);
+			}
+		);
+
+		if (!transaction.commit()) {
+			g_logger().error("[{}] Sliver-to-Core transaction rolled back for player {}", __FUNCTION__, getName());
 			sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
 			return;
 		}
@@ -11638,7 +11651,7 @@ void Player::forgeResourceConversion(ForgeAction_t actionType) {
 		history.cost = cost;
 		history.gained = 1;
 	} else {
-		auto dustLevel = getForgeDustLevel();
+		const auto dustLevel = getForgeDustLevel();
 		if (dustLevel >= g_configManager().getNumber(FORGE_MAX_DUST)) {
 			g_logger().error("[{}] Maximum level reached", __FUNCTION__);
 			sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
@@ -11646,8 +11659,7 @@ void Player::forgeResourceConversion(ForgeAction_t actionType) {
 		}
 
 		const auto upgradeCost = dustLevel - 75;
-		if (const auto dusts = getForgeDusts();
-		    upgradeCost > dusts) {
+		if (const auto dusts = getForgeDusts(); upgradeCost > dusts) {
 			g_logger().error("[{}] Not enough dust", __FUNCTION__);
 			sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
 			return;

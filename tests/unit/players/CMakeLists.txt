@@ -11,6 +11,7 @@ target_sources(
     canary_ut
     PRIVATE forge_effect_policy_test.cpp
             forge_test.cpp
+            forge_transaction_test.cpp
             party_test.cpp
             wheel_validation_test.cpp
 )
