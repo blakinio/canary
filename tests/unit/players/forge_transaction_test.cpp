@@ -9,6 +9,7 @@
 
 #include <gtest/gtest.h>
 
+#include <stdexcept>
 #include <vector>
 
 #include "game/functions/forge_transaction.hpp"
@@ -107,6 +108,29 @@ TEST(ForgeTransactionTest, RestoresResourcesWhenFailedStepMutatesBeforeReturning
 	EXPECT_EQ(1, secondItemCount);
 	EXPECT_EQ(4, coreCount);
 	EXPECT_EQ(100, gold);
+}
+
+TEST(ForgeTransactionTest, RollsBackWhenCommitStepThrows) {
+	std::vector<int> events;
+	ForgeTransaction transaction;
+	transaction.stage(
+		[&events] {
+			events.push_back(1);
+			return true;
+		},
+		[&events] { events.push_back(-1); }
+	);
+	transaction.stage(
+		[&events]() -> bool {
+			events.push_back(2);
+			throw std::runtime_error("commit failure");
+		},
+		[&events] { events.push_back(-2); }
+	);
+
+	EXPECT_FALSE(transaction.commit());
+	EXPECT_FALSE(transaction.isCommitted());
+	EXPECT_EQ((std::vector<int> { 1, 2, -2, -1 }), events);
 }
 
 TEST(ForgeTransactionTest, CannotCommitTwice) {
