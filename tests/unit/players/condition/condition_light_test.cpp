@@ -13,6 +13,8 @@
 #include "items/tile.hpp"
 #include "utils/tools.hpp"
 
+#include <optional>
+
 namespace {
 	struct SerializedLightState {
 		uint32_t level = 0;
