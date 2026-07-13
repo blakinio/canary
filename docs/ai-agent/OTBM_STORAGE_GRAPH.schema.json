@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_STORAGE_GRAPH.schema.json",
+  "title": "Canary OTBM storage dependency graph",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "schemaVersion", "ok", "complete", "inputs", "sourceDigest", "policy", "summary", "files", "nodes", "operations", "transitions", "unresolved", "unresolvedTruncated", "findings", "findingsTruncated", "correlation", "notes"
+  ],
+  "properties": {
+    "format": {"const": "canary-otbm-storage-graph-v1"},
+    "schemaVersion": {"const": 1},
+    "ok": {"type": "boolean"},
+    "complete": {"type": "boolean"},
+    "inputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["questEvidence", "questValidation", "spawnNpcEvidence", "spawnNpcValidation", "reachability"],
+      "properties": {
+        "questEvidence": {"$ref": "#/$defs/input"},
+        "questValidation": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/input"}]},
+        "spawnNpcEvidence": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/input"}]},
+        "spawnNpcValidation": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/input"}]},
+        "reachability": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/input"}]}
+      }
+    },
+    "sourceDigest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "policy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["dynamicLuaExecuted", "executionOrderInferred", "sourceSelectionExpanded", "selectedFilesHashVerified", "mapModified", "sampleLimit", "readWithoutWriterMeans", "writeWithoutReadMeans"],
+      "properties": {
+        "dynamicLuaExecuted": {"const": false},
+        "executionOrderInferred": {"const": false},
+        "sourceSelectionExpanded": {"const": false},
+        "selectedFilesHashVerified": {"const": true},
+        "mapModified": {"const": false},
+        "sampleLimit": {"type": "integer", "minimum": 1, "maximum": 10000},
+        "readWithoutWriterMeans": {"const": "external-or-unproven"},
+        "writeWithoutReadMeans": {"const": "write-only-in-selected-scope"}
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["files", "operations", "nodes", "transitions", "unresolved", "findings", "byNamespace", "byOperation", "findingsBySeverity", "findingsByCode"],
+      "properties": {
+        "files": {"$ref": "#/$defs/count"}, "operations": {"$ref": "#/$defs/count"}, "nodes": {"$ref": "#/$defs/count"}, "transitions": {"$ref": "#/$defs/count"}, "unresolved": {"$ref": "#/$defs/count"}, "findings": {"$ref": "#/$defs/count"},
+        "byNamespace": {"$ref": "#/$defs/countMap"}, "byOperation": {"$ref": "#/$defs/countMap"},
+        "findingsBySeverity": {
+          "type": "object", "additionalProperties": false, "required": ["error", "warning", "info"],
+          "properties": {"error": {"$ref": "#/$defs/count"}, "warning": {"$ref": "#/$defs/count"}, "info": {"$ref": "#/$defs/count"}}
+        },
+        "findingsByCode": {"$ref": "#/$defs/countMap"}
+      }
+    },
+    "files": {"type": "array", "maxItems": 10000, "items": {"$ref": "#/$defs/file"}},
+    "nodes": {"type": "array", "maxItems": 100000, "items": {"$ref": "#/$defs/node"}},
+    "operations": {"type": "array", "maxItems": 250000, "items": {"$ref": "#/$defs/operation"}},
+    "transitions": {"type": "array", "maxItems": 250000, "items": {"$ref": "#/$defs/transition"}},
+    "unresolved": {"type": "array", "maxItems": 10000, "items": {"$ref": "#/$defs/unresolved"}},
+    "unresolvedTruncated": {"type": "boolean"},
+    "findings": {"type": "array", "maxItems": 10000, "items": {"$ref": "#/$defs/finding"}},
+    "findingsTruncated": {"type": "boolean"},
+    "correlation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["questValidationProvided", "spawnNpcEvidenceProvided", "spawnNpcValidationProvided", "reachabilityProvided", "reachabilitySummary", "spawnNpcValidationSummary"],
+      "properties": {
+        "questValidationProvided": {"type": "boolean"}, "spawnNpcEvidenceProvided": {"type": "boolean"}, "spawnNpcValidationProvided": {"type": "boolean"}, "reachabilityProvided": {"type": "boolean"},
+        "reachabilitySummary": {"type": ["object", "null"]}, "spawnNpcValidationSummary": {"type": ["object", "null"]}
+      }
+    },
+    "notes": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+  },
+  "$defs": {
+    "count": {"type": "integer", "minimum": 0},
+    "countMap": {"type": "object", "additionalProperties": {"$ref": "#/$defs/count"}},
+    "hash20": {"type": "string", "pattern": "^[0-9a-f]{20}$"},
+    "hash64": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "namespace": {"enum": ["player-storage", "account-storage", "player-kv", "account-kv", "global-storage", "global-kv", "database"]},
+    "key": {"oneOf": [{"type": "integer"}, {"type": "string", "minLength": 1}]},
+    "literal": {"type": ["integer", "string", "boolean", "null"]},
+    "input": {
+      "type": "object", "additionalProperties": false, "required": ["path", "sha256", "format"],
+      "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/hash64"}, "format": {"type": "string", "minLength": 1}}
+    },
+    "source": {
+      "type": "object", "additionalProperties": false, "required": ["path", "line", "context"],
+      "properties": {"path": {"type": "string", "minLength": 1}, "line": {"type": "integer", "minimum": 1}, "context": {"type": "string"}}
+    },
+    "file": {
+      "type": "object", "additionalProperties": true, "required": ["path", "sha256", "operations", "unresolved", "language"],
+      "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/hash64"}, "operations": {"$ref": "#/$defs/count"}, "unresolved": {"$ref": "#/$defs/count"}, "language": {"type": "string", "minLength": 1}}
+    },
+    "nodeRef": {
+      "type": "object", "required": ["namespace", "key", "nodeId"],
+      "properties": {"namespace": {"$ref": "#/$defs/namespace"}, "key": {"$ref": "#/$defs/key"}, "nodeId": {"$ref": "#/$defs/hash20"}}
+    },
+    "condition": {
+      "allOf": [
+        {"$ref": "#/$defs/nodeRef"},
+        {"type": "object", "required": ["operator", "value", "exact", "source"], "properties": {"operator": {"enum": ["==", "~=", "<", "<=", ">", ">="]}, "value": {"$ref": "#/$defs/literal"}, "exact": {"type": "boolean"}, "source": {"$ref": "#/$defs/source"}}}
+      ]
+    },
+    "operation": {
+      "allOf": [
+        {"$ref": "#/$defs/nodeRef"},
+        {"type": "object", "additionalProperties": true, "required": ["id", "operation", "method", "receiver", "source", "rawArguments", "conditions", "handlerContext", "handlerContextTruncated", "mapContext", "mapContextTruncated"], "properties": {
+          "id": {"$ref": "#/$defs/hash20"}, "operation": {"enum": ["read", "write", "delete", "increment", "decrement"]}, "method": {"type": "string", "minLength": 1}, "receiver": {"type": "string"}, "source": {"$ref": "#/$defs/source"},
+          "rawArguments": {"type": "array", "items": {"type": "string"}}, "conditions": {"type": "array", "items": {"$ref": "#/$defs/condition"}},
+          "handlerContext": {"type": "array", "items": {"type": "object"}}, "handlerContextTruncated": {"type": "boolean"}, "mapContext": {"type": "array", "items": {"type": "object"}}, "mapContextTruncated": {"type": "boolean"},
+          "valueKind": {"enum": ["literal", "dynamic", "delta", "delete", null]}, "value": {"$ref": "#/$defs/literal"}, "delta": {"type": "integer"}, "valueExpression": {"type": "string"}, "uncertainties": {"type": "array", "items": {"type": "string"}}
+        }}
+      ]
+    },
+    "node": {
+      "allOf": [
+        {"$ref": "#/$defs/nodeRef"},
+        {"type": "object", "required": ["operationCounts", "operationCount", "transitionCount", "statuses", "sourceFiles", "operationIds", "transitionIds"], "properties": {
+          "operationCounts": {"$ref": "#/$defs/countMap"}, "operationCount": {"$ref": "#/$defs/count"}, "transitionCount": {"$ref": "#/$defs/count"}, "statuses": {"type": "array", "items": {"type": "string"}},
+          "sourceFiles": {"type": "array", "items": {"type": "string", "minLength": 1}}, "operationIds": {"type": "array", "items": {"$ref": "#/$defs/hash20"}}, "transitionIds": {"type": "array", "items": {"$ref": "#/$defs/hash20"}}
+        }}
+      ]
+    },
+    "transition": {
+      "allOf": [
+        {"$ref": "#/$defs/nodeRef"},
+        {"type": "object", "additionalProperties": true, "required": ["id", "prerequisite", "result", "operationId", "source", "handlerContext", "mapContext", "confidence", "issues"], "properties": {
+          "id": {"$ref": "#/$defs/hash20"},
+          "prerequisite": {"type": "object", "additionalProperties": false, "required": ["operator", "value"], "properties": {"operator": {"const": "=="}, "value": {"$ref": "#/$defs/literal"}}},
+          "result": {"type": "object", "additionalProperties": true, "required": ["kind", "value"], "properties": {"kind": {"enum": ["literal", "delta", "delete"]}, "value": {"$ref": "#/$defs/literal"}, "delta": {"type": "integer"}}},
+          "operationId": {"$ref": "#/$defs/hash20"}, "source": {"$ref": "#/$defs/source"}, "handlerContext": {"type": "array", "items": {"type": "object"}}, "actorContext": {"type": ["object", "null"]}, "mapContext": {"type": "array", "items": {"type": "object"}}, "confidence": {"const": "high"}, "issues": {"type": "array", "items": {"type": "string"}}
+        }}
+      ]
+    },
+    "unresolved": {
+      "type": "object", "additionalProperties": false, "required": ["id", "kind", "expression", "source", "reason"],
+      "properties": {"id": {"type": "string", "minLength": 1}, "kind": {"type": "string", "minLength": 1}, "expression": {"type": "string"}, "source": {"$ref": "#/$defs/source"}, "reason": {"type": "string", "minLength": 1}}
+    },
+    "finding": {
+      "type": "object", "additionalProperties": true, "required": ["id", "severity", "code", "message"],
+      "properties": {"id": {"$ref": "#/$defs/hash20"}, "severity": {"enum": ["error", "warning", "info"]}, "code": {"type": "string", "minLength": 1}, "message": {"type": "string", "minLength": 1}}
+    }
+  }
+}
