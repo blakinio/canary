@@ -623,6 +623,23 @@ DECISION_MATRIX.md for the precise list of functions that still need it and
 why wiring all of transactional economy code in one pass, in an environment
 with no compiler to verify most of it, would be irresponsible.
 
+**🐛 Real bug found while scoping GM commands, not fixed this phase:** mail
+delivery has a correctness gap that goes beyond "no idempotency guard yet."
+`Mailbox::sendItem` (`src/items/containers/mailbox/mailbox.cpp`) resolves
+the recipient via `g_game().getPlayerByName(receiver, true)`, which only
+checks this process's own in-memory online-player map; if the recipient
+isn't found there — which is exactly what happens when they're online on a
+*different* channel, not just when they're genuinely offline — it silently
+falls back to loading a throwaway offline `Player` copy from the DB,
+delivers the item into that copy's inbox, and saves it. The recipient's own
+channel process, holding the real live `Player` object, has no idea this
+happened; its own next periodic or logout save overwrites the DB row,
+silently discarding the item. A correct fix needs the same DB-row-handoff
+pattern §6 already uses for channel switching (a pending-delivery row the
+owning channel's own process picks up and applies to its own live player
+object), which is materially more design work than call-site wiring — see
+MIGRATION.md "Phase 12" and DECISION_MATRIX.md row 2.12.
+
 ## 9. Redis client dependency
 
 New optional vcpkg feature `multichannel` (mirrors the existing `metrics`
@@ -743,7 +760,7 @@ houses), not a fix - it is a genuine `per-channel` job needing no
 coordination. See OPERATIONS.md's job table for the corrected
 classification and full reasoning.
 
-## 10b. GM/admin commands (✅ three read-only lookups, 📐 the rest)
+## 10b. GM/admin commands (✅ four read-only lookups, 📐 the rest)
 
 `OPERATIONS.md`'s "GM / admin commands" list was previously a contract only.
 **"Locate a player's current channel"** is now implemented as
@@ -815,13 +832,38 @@ represents a `NULL` `source_channel_id` (first-ever login) as absent in the
 result, and correctly returns an empty list for a player with no audit
 history at all.
 
+**✅ `Game.getPlayerSessionLockInfo(name)`** implements **"Inspect a
+session's current lock owner and fencing token"**: resolves the name to a
+guid the same way, then calls a new `multichannel::findSessionLockInfo(
+playerId)` (`cluster_session_lookup.hpp`/`.cpp`) returning the raw
+`cluster_sessions` row - `{accountId, playerId, channelId, instanceId,
+sessionId, fencingToken, status, acquiredAt, lastHeartbeat, expiresAt}` - or
+`nil` if no lease has ever been acquired for that player. This lookup is
+deliberately **not** filtered to `status = 'ONLINE'`, unlike
+`getPlayerClusterChannel` - inspecting a stale/`DIRTY` session (the row left
+behind by §5.3's dirty-session-recovery scenario) is the primary reason a
+GM would reach for this command, so filtering it out would defeat the
+command's purpose. `fencingToken` is a `bigint(20) unsigned` column read via
+`DBResult::getNumber<uint64_t>`, verified to round-trip a token value of
+`UINT64_MAX` correctly through both the DB layer's `std::stoull` parsing and
+the existing `Lua::setField(lua_State*, const char*, lua_Number)` overload
+(`lua_Number` is `double`; verified this is the same established pattern
+already used for every other 64-bit field this series exposes to Lua, e.g.
+`createdAt` in the channel-switch-history command above).
+
+**✅ Verified** against a real MariaDB 10.11: inserted a `DIRTY` session row
+with `fencing_token = 18446744073709551615` (`UINT64_MAX`) and confirmed the
+exact projection query returns it unfiltered by status; confirmed a
+nonexistent `player_id` correctly yields an empty result set (`nullopt` in
+C++).
+
 **📐 Known gap, stated honestly:** every other command in OPERATIONS.md's
 list (kick a player on another channel, cross-channel broadcast,
-force-save/drain/maintenance a channel, DIRTY session recovery, session
-lock/fencing inspection) remains contract-only - notably, every command
-implemented so far is read-only; none of the remaining ones are (they all
-either mutate cluster state or need cross-process signaling to a *different*
-channel process, which no mechanism in this codebase currently provides).
+force-save/drain/maintenance a channel, DIRTY session recovery) remains
+contract-only - notably, every command implemented so far is read-only;
+none of the remaining ones are (they all either mutate cluster state or
+need cross-process signaling to a *different* channel process, which no
+mechanism in this codebase currently provides).
 
 ## 11. Why Phase 1 and not the whole spec
 

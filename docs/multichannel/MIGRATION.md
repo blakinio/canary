@@ -333,6 +333,44 @@ MariaDB: buy-offer cancel's `PENDING → COMMITTED` transition, sell-offer
 cancel's `PENDING → FAILED` transition, and a replay `INSERT` against an
 already-used offer-id key correctly rejected with `ERROR 1062`.
 
+**Phase 12:** a fourth read-only GM/admin command from OPERATIONS.md's list
+is implemented - `Game.getPlayerSessionLockInfo(name)`, returning the raw
+`cluster_sessions` row for a player (`{accountId, playerId, channelId,
+instanceId, sessionId, fencingToken, status, acquiredAt, lastHeartbeat,
+expiresAt}`) via a new `multichannel::findSessionLockInfo`. Unlike
+`getPlayerClusterChannel`, this is deliberately *not* filtered to
+`status = 'ONLINE'`, since inspecting a stale/`DIRTY` session is the whole
+point of the command. No schema change - pure read against an
+already-existing table. Verified against a real MariaDB: a `DIRTY` row
+with `fencing_token = UINT64_MAX` round-trips correctly through
+`DBResult::getNumber<uint64_t>` and the existing `Lua::setField`/
+`lua_Number` (`double`) path, and an unknown player correctly returns
+`nil`.
+
+**A real, previously-undetected bug was also found while scoping this
+phase** (not fixed - see below): `Mailbox::sendItem`
+(`src/items/containers/mailbox/mailbox.cpp`) resolves the recipient via
+`g_game().getPlayerByName(receiver, true)`, which only checks *this*
+process's in-memory online-player map; if the recipient is not found there
+it unconditionally falls back to loading a throwaway offline `Player`
+object straight from the DB (`IOLoginData::loadPlayerByName`) and, since
+`allowOffline=true` makes no distinction between "genuinely offline" and
+"online on a different channel process," it adds the mail item to that
+throwaway copy's inbox and calls `g_saveManager().savePlayer(player)` on
+it. If the recipient is actually online on a *different* channel, that
+channel's own live, authoritative in-memory `Player` object has no idea
+this happened - its own next periodic/logout save will overwrite the DB
+row, silently discarding the mail item that was just written. This is
+exactly the failure mode DECISION_MATRIX.md's 2.12 ("Mail/parcel
+exactly-once across channels") anticipated, except the risk is not
+duplicate delivery but **silent loss** under this specific race. Not fixed
+in this phase: a correct fix needs the same DB-row-handoff pattern already
+established for channel switching (§6 of ARCHITECTURE.md) - a "pending
+mail" row the owning channel's own process picks up and applies to its own
+live player object on its own heartbeat cycle - which is materially more
+design and engineering than a bounded call-site wiring change, and is
+recorded as a new, explicit gap rather than attempted blind.
+
 **Still not enforced**, and still the reason not to enable
 `multiChannelEnabled = true` in production yet: nothing yet *blocks* an
 account from bidding on or trading for a second house before an already-
@@ -344,6 +382,8 @@ one background job and one live call site; `Game::playerCreateMarketOffer`,
 `Game::playerAcceptMarketOffer`, mail delivery, and bank/house money
 movement remain entirely unwired — a switch or a normal login does not
 touch any of that money-moving state today, which is the safe side to be
-wrong on, but also means this is not yet a complete cluster.
+wrong on, but also means this is not yet a complete cluster. Mail delivery
+in particular now has a documented, real cross-channel data-loss race (see
+Phase 12 above), not just a missing idempotency guard.
 Do not enable `multiChannelEnabled = true` in production until those ship
 and are tested.

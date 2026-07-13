@@ -91,6 +91,7 @@ void GameFunctions::init(lua_State* L) {
 	Lua::registerMethod(L, "Game", "getPlayerClusterChannel", GameFunctions::luaGameGetPlayerClusterChannel);
 	Lua::registerMethod(L, "Game", "getClusterOnlinePlayers", GameFunctions::luaGameGetClusterOnlinePlayers);
 	Lua::registerMethod(L, "Game", "getPlayerChannelSwitchHistory", GameFunctions::luaGameGetPlayerChannelSwitchHistory);
+	Lua::registerMethod(L, "Game", "getPlayerSessionLockInfo", GameFunctions::luaGameGetPlayerSessionLockInfo);
 	Lua::registerMethod(L, "Game", "getNormalizedGuildName", GameFunctions::luaGameGetNormalizedGuildName);
 
 	Lua::registerMethod(L, "Game", "addInfluencedMonster", GameFunctions::luaGameAddInfluencedMonster);
@@ -934,6 +935,45 @@ int GameFunctions::luaGameGetPlayerChannelSwitchHistory(lua_State* L) {
 		Lua::setField(L, "createdAt", entry.createdAtMs);
 		lua_rawseti(L, -2, ++index);
 	}
+	return 1;
+}
+
+/***
+ * @function Game.getPlayerSessionLockInfo
+ * @param name string
+ * @return table|nil
+ */
+int GameFunctions::luaGameGetPlayerSessionLockInfo(lua_State* L) {
+	// Game.getPlayerSessionLockInfo(name)
+	// GM/admin lookup (docs/multichannel/OPERATIONS.md "Inspect a session's
+	// current lock owner and fencing token"): the raw cluster_sessions row
+	// for a player, whatever its status - this is the one lookup meant for
+	// inspecting a stale/DIRTY session, not just an ONLINE one, so unlike
+	// getPlayerClusterChannel it is not filtered to ONLINE.
+	const auto name = Lua::getString(L, 1);
+	const uint32_t guid = IOLoginData::getGuidByName(name);
+	if (guid == 0) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	const auto info = multichannel::findSessionLockInfo(static_cast<int32_t>(guid));
+	if (!info.has_value()) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	lua_createtable(L, 0, 9);
+	Lua::setField(L, "accountId", info->accountId);
+	Lua::setField(L, "playerId", info->playerId);
+	Lua::setField(L, "channelId", info->channelId);
+	Lua::setField(L, "instanceId", info->instanceId);
+	Lua::setField(L, "sessionId", info->sessionId);
+	Lua::setField(L, "fencingToken", info->fencingToken);
+	Lua::setField(L, "status", info->status);
+	Lua::setField(L, "acquiredAt", info->acquiredAtMs);
+	Lua::setField(L, "lastHeartbeat", info->lastHeartbeatMs);
+	Lua::setField(L, "expiresAt", info->expiresAtMs);
 	return 1;
 }
 

@@ -111,7 +111,7 @@ gating it) — and, per the correction above, every future candidate must
 first be checked for hidden per-channel partitioning before assuming it
 needs gating at all.
 
-## GM / admin commands (✅ three implemented, 📐 the rest still contract-only)
+## GM / admin commands (✅ four implemented, 📐 the rest still contract-only)
 
 - ✅ **Cluster-wide online list** — `Game.getClusterOnlinePlayers()`
   (`src/lua/functions/core/game/game_functions.cpp`), a read-only Lua global
@@ -139,7 +139,21 @@ needs gating at all.
 - Set a channel to maintenance with a message.
 - Inspect and, with explicit confirmation + audit log entry, clear an
   orphaned `DIRTY` session.
-- Inspect a session's current lock owner and fencing token.
+- ✅ **Inspect a session's current lock owner and fencing token** —
+  `Game.getPlayerSessionLockInfo(name)` (`src/lua/functions/core/game/
+  game_functions.cpp`), a read-only Lua global returning the raw
+  `cluster_sessions` row - `{accountId, playerId, channelId, instanceId,
+  sessionId, fencingToken, status, acquiredAt, lastHeartbeat, expiresAt}` -
+  or `nil` if no lease has ever been acquired for that player, via a new
+  `multichannel::findSessionLockInfo` (`src/game/multichannel/
+  cluster_session_lookup.hpp`/`.cpp`). Deliberately **not** filtered to
+  `status = 'ONLINE'` (unlike `getPlayerClusterChannel`) - inspecting a
+  stale/`DIRTY` session is the primary reason a GM would call this, so an
+  `ONLINE`-only filter would hide exactly the sessions this command exists
+  to surface. Reads the DB defense-in-depth row, not Redis, for the same
+  reason as the other lookups: the GM issuing the command and the session
+  being inspected may be on different channel processes, and the DB table
+  is the one source both can always read.
 - ✅ **Inspect the last N channel-switch audit rows for a player** —
   `Game.getPlayerChannelSwitchHistory(name[, limit = 10])`, a read-only Lua
   global returning an array of `{sourceChannelId (nil on first-ever login),
@@ -147,7 +161,7 @@ needs gating at all.
   `ChannelSwitchAuditStore::getRecentHistory(playerId, limit)`
   (`src/game/multichannel/channel_switch_audit_store.hpp`/`.cpp`).
 
-The three implemented commands are all **read-only**; every remaining
+All four implemented commands are **read-only**; every remaining
 command either mutates cluster state or needs cross-process signaling to a
 *different* channel process, neither of which this codebase currently has a
 mechanism for - the live channel switch (§6 of ARCHITECTURE.md) is the one

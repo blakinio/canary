@@ -520,6 +520,57 @@ from the real `schema.sql`, dropped after):
   check_lua_api_binding_docs.py`/`check_lua_api_quality.py` are unaffected
   (confirmed 0 new findings from both).
 
+### Phase 12: fourth GM command (session lock/fencing inspection)
+
+`multichannel::findSessionLockInfo` (`cluster_session_lookup.hpp`/`.cpp`)
+and its Lua binding `Game.getPlayerSessionLockInfo` were verified against a
+real MariaDB 10.11 (scratch database `canary_phase12_test`, imported from
+the real `schema.sql`, dropped after), mirroring Phase 8's methodology:
+
+- Reused the sample seed rows `schema.sql` itself inserts (`players.id = 1`,
+  `"Rook Sample"`, `account_id = 1`) rather than hand-crafting new
+  account/player rows, after an initial attempt to `INSERT` synthetic ones
+  failed on a stale guessed column list (`accounts.premium_ends_at` doesn't
+  exist in this schema) - a reminder to check the real seeded seed data
+  before writing throwaway fixture rows.
+- Inserted a `cluster_sessions` row with `status = 'DIRTY'` and
+  `fencing_token = 18446744073709551615` (`UINT64_MAX`) and ran the exact
+  projection query the new code issues: confirmed it returns the row
+  **unfiltered by status** (the defining difference from
+  `findOnlineChannelForPlayer`, which does filter to `ONLINE`) and that the
+  `UINT64_MAX` fencing token round-trips through MariaDB's `bigint(20)
+  unsigned` column intact.
+- Confirmed a query for a `player_id` with no `cluster_sessions` row at all
+  returns an empty result set, which the C++ layer maps to `std::nullopt`
+  (existing, already-verified `storeQuery` → `nullptr` convention).
+- Traced `DBResult::getNumber<uint64_t>`'s implementation
+  (`src/database/database.hpp`) to confirm it parses via `std::stoull` for
+  unsigned types, and confirmed the existing `Lua::setField(lua_State*,
+  const char*, lua_Number)` overload (`lua_Number` is `double`,
+  `src/lua/functions/lua_functions_loader.hpp:55`) is the same pattern
+  already used for every other 64-bit field this series has exposed to Lua
+  (e.g. `createdAt` in Phase 10's channel-switch-history command) - not a
+  new risk introduced by this field.
+- `clang-format-18 --dry-run --Werror` on all four changed files passed
+  cleanly; `tools/check_lua_api_binding_docs.py --base origin/main` and
+  `tools/check_lua_api_quality.py` both passed, the latter confirming the
+  new binding's `"table|nil"` return type does not exact-string-match
+  `RETURN_METRICS`' `"table"` key and so does not regress
+  `return_plain_table` (stayed at 22).
+- Neither new C++ file nor the Lua binding file is standalone-compilable
+  (same engine-glue wall as every other file in this series) - reviewed by
+  hand against the SQL verified above.
+
+**A real bug was found while scoping this command, not fixed** (documented
+in ARCHITECTURE.md §8, DECISION_MATRIX.md row 2.12, and MIGRATION.md "Phase
+12"): `Mailbox::sendItem` silently writes mail into a throwaway offline
+copy of a recipient who is actually online on a *different* channel, which
+that channel's own next save can silently overwrite - a genuine
+cross-channel data-loss race, not just a missing idempotency guard. Not
+attempted this phase: the fix needs the same DB-row-handoff design already
+used for channel switching (§6), which is materially larger than a bounded
+GM-command addition.
+
 ## 15.1b Redis Lua CAS script validation — ✅ run against a real `redis-server`
 
 The acquire/renew/release Lua scripts in
