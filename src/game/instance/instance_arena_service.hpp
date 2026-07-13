@@ -11,11 +11,15 @@
 
 #include "game/instance/instance_creature_binder.hpp"
 #include "game/instance/instance_manager.hpp"
+#include "game/movement/position.hpp"
 
 #ifndef USE_PRECOMPILED_HEADERS
 	#include <cstddef>
+	#include <cstdint>
+	#include <mutex>
 	#include <optional>
 	#include <string>
+	#include <unordered_map>
 	#include <vector>
 #endif
 
@@ -30,7 +34,7 @@
 // alternative manager, registry or binder.
 class InstanceArenaService {
 public:
-	explicit InstanceArenaService(InstanceManager &manager) noexcept :
+	explicit InstanceArenaService(InstanceManager &manager) :
 		manager(manager), binder(manager) { }
 
 	InstanceArenaService(const InstanceArenaService &) = delete;
@@ -71,7 +75,53 @@ public:
 
 	[[nodiscard]] std::size_t activeArenaCount() const;
 
+	struct EnterResult {
+		bool ok = false;
+		Position entryPosition;
+		std::string error;
+	};
+
+	// One stable player id owns at most one active arena session at a time.
+	// Fails if playerId already has one (close it first) or if no region is
+	// free. Remembers returnPosition for the later leaveArena()/
+	// closeArenaForPlayer() call - it is never used to look the player up,
+	// only to know where to send them back.
+	[[nodiscard]] EnterResult enterArena(uint32_t playerId, const Position &returnPosition);
+
+	struct LeaveResult {
+		bool ok = false;
+		Position returnPosition;
+		std::string error;
+	};
+
+	// Fails if playerId has no active session. Returns the saved return
+	// position without releasing the instance or its region - the arena
+	// stays reserved until closeArenaForPlayer() (or a future timeout).
+	[[nodiscard]] LeaveResult leaveArena(uint32_t playerId);
+
+	struct CloseResult {
+		bool ok = false;
+		Position evacuationPosition;
+		std::string error;
+	};
+
+	// Fails if playerId has no active session. Closes the underlying
+	// instance and forgets the session; evacuationPosition is always the
+	// saved return position, whether or not the player had already called
+	// leaveArena() first.
+	[[nodiscard]] CloseResult closeArenaForPlayer(uint32_t playerId);
+
+	[[nodiscard]] bool hasActiveSession(uint32_t playerId) const;
+
 private:
+	struct PlayerSession {
+		InstanceId instanceId = InstanceId::Invalid;
+		Position returnPosition;
+	};
+
 	InstanceManager &manager;
 	InstanceCreatureBinder binder;
+
+	mutable std::mutex sessionMutex;
+	std::unordered_map<uint32_t, PlayerSession> sessions;
 };

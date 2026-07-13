@@ -1286,6 +1286,14 @@
         "source": "src/lua/functions/core/game/game_functions.cpp"
       },
       {
+        "name": "closeInstanceArena",
+        "params": [
+          "player: Player"
+        ],
+        "return": "Position|nil, string|nil",
+        "source": "src/lua/functions/core/game/game_functions.cpp"
+      },
+      {
         "name": "createBestiaryCharm",
         "params": [
           "id: number"
@@ -1301,6 +1309,14 @@
           "position?: Position"
         ],
         "return": "Container|nil",
+        "source": "src/lua/functions/core/game/game_functions.cpp"
+      },
+      {
+        "name": "createInstanceArena",
+        "params": [
+          "player: Player"
+        ],
+        "return": "Position|nil, string|nil",
         "source": "src/lua/functions/core/game/game_functions.cpp"
       },
       {
@@ -1729,6 +1745,14 @@
           "effectId: number"
         ],
         "return": "boolean",
+        "source": "src/lua/functions/core/game/game_functions.cpp"
+      },
+      {
+        "name": "leaveInstanceArena",
+        "params": [
+          "player: Player"
+        ],
+        "return": "Position|nil, string|nil",
         "source": "src/lua/functions/core/game/game_functions.cpp"
       },
       {
