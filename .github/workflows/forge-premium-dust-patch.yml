@@ -1,0 +1,45 @@
+name: Apply Forge Premium Dust patch
+
+on:
+  pull_request:
+    branches:
+      - fix/forge-premium-dust
+    paths:
+      - docs/ai-agent/.forge-premium-dust-runner
+
+permissions:
+  contents: write
+
+jobs:
+  apply-premium-dust:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/forge-premium-dust
+          fetch-depth: 1
+          show-progress: false
+
+      - name: Apply exact Premium Dust changes
+        shell: bash
+        run: python3 tools/ai-agent/apply_forge_premium_dust_patch.py
+
+      - name: Review and commit bounded patch
+        shell: bash
+        run: |
+          git diff --check
+          git diff -- \
+            src/lua/functions/creatures/player/player_functions.hpp \
+            src/lua/functions/creatures/player/player_functions.cpp \
+            docs/lua-api/lua_api.json \
+            data/libs/systems/exaltation_forge.lua
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            src/lua/functions/creatures/player/player_functions.hpp \
+            src/lua/functions/creatures/player/player_functions.cpp \
+            docs/lua-api/lua_api.json \
+            data/libs/systems/exaltation_forge.lua
+          git commit -m "fix(forge): require Premium status for Dust rewards"
+          git push origin HEAD:fix/forge-premium-dust
