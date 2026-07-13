@@ -24,6 +24,17 @@ std::optional<uint16_t> TransportCodec::decodeBodySize(uint16_t rawLengthHeader)
 		size = (size * XTEA_MULTIPLE) + profile.modernLengthExtraBytes;
 	}
 
+	if (profile.id == TransportProfileId::CurrentGameSequence) {
+		g_logger().info(
+			"[CyclopediaE2E] decode body: rawHeader={} profile={} outer={} extra={} decoded={}",
+			rawLengthHeader,
+			static_cast<uint8_t>(profile.id),
+			static_cast<uint8_t>(profile.outerLength),
+			profile.modernLengthExtraBytes,
+			size
+		);
+	}
+
 	if (size == 0 || size > std::numeric_limits<uint16_t>::max()) {
 		return std::nullopt;
 	}
@@ -74,6 +85,17 @@ void TransportCodec::encodeOutbound(Protocol &protocol, OutputMessage &msg) cons
 }
 
 bool TransportCodec::prepareInbound(Protocol &protocol, NetworkMessage &msg) const {
+	if (profile.id == TransportProfileId::CurrentGameSequence) {
+		const uint8_t* bytes = msg.getBuffer();
+		g_logger().info(
+			"[CyclopediaE2E] inbound frame before checksum: length={} position={} bytes={:02X} {:02X} {:02X} {:02X} {:02X} {:02X} {:02X} {:02X} {:02X} {:02X} {:02X} {:02X} {:02X} {:02X}",
+			msg.getLength(),
+			msg.getBufferPosition(),
+			bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
+			bytes[7], bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13]
+		);
+	}
+
 	if (profile.inboundChecksum != CHECKSUM_METHOD_NONE) {
 		const auto recvChecksum = msg.get<uint32_t>();
 		if (profile.inboundChecksum == CHECKSUM_METHOD_SEQUENCE) {
