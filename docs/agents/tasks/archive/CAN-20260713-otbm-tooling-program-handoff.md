@@ -12,7 +12,7 @@ last_verified_commit: "fbc04d1cefeb9e553de624107cb0775705f50be6"
 merge_commit: "1d41e4c93a5830ea33040747e67e9f90d56de01e"
 risk: low
 related_pr: "#247"
-cleanup_pr: "pending"
+cleanup_pr: "#248"
 owned_paths: []
 ---
 
@@ -28,6 +28,8 @@ The authoritative OTBM tooling roadmap was refreshed into a complete, self-conta
 - Feature PR: #247.
 - Final feature head: `fbc04d1cefeb9e553de624107cb0775705f50be6`.
 - Squash merge: `1d41e4c93a5830ea33040747e67e9f90d56de01e`.
+- Cleanup branch: `docs/archive-otbm-tooling-program-handoff`.
+- Cleanup PR: #248.
 - Net changed files in #247:
   - `docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md`;
   - `docs/agents/tasks/active/CAN-20260713-otbm-tooling-program-handoff.md`.
@@ -104,4 +106,4 @@ After this first confirmed DNS failure, clone/fetch/ls-remote was not repeated. 
 
 # Cleanup
 
-This archive record replaces the active task record. The cleanup PR is documentation-only and records the final feature merge and workflow evidence. No implementation work belongs in the cleanup branch.
+This archive record replaces the active task record. PR #248 is documentation-only and records the final feature merge and workflow evidence. No implementation work belongs in the cleanup branch.
