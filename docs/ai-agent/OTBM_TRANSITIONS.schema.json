@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_TRANSITIONS.schema.json",
+  "title": "Canary reviewed OTBM floor-transition manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "transitions"],
+  "properties": {
+    "format": {"const": "canary-otbm-transition-manifest-v1"},
+    "transitions": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {"$ref": "#/$defs/transition"}
+    }
+  },
+  "$defs": {
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "delta": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": -65535, "maximum": 65535},
+        {"type": "integer", "minimum": -65535, "maximum": 65535},
+        {"type": "integer", "minimum": -15, "maximum": 15}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "source"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 160},
+        "kind": {"enum": ["stairs", "ladder", "hole", "rope", "floor-change", "custom"]},
+        "source": {"$ref": "#/$defs/position"},
+        "destination": {"$ref": "#/$defs/position"},
+        "delta": {"$ref": "#/$defs/delta"},
+        "expectedItemIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "integer", "minimum": 0, "maximum": 65535}
+        },
+        "bidirectional": {"type": "boolean", "default": false},
+        "uncertainties": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1, "maxLength": 80}
+        },
+        "evidence": {"type": "object", "additionalProperties": true}
+      },
+      "oneOf": [
+        {"required": ["destination"], "not": {"required": ["delta"]}},
+        {"required": ["delta"], "not": {"required": ["destination"]}}
+      ]
+    }
+  }
+}
