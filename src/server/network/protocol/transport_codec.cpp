@@ -78,6 +78,12 @@ bool TransportCodec::prepareInbound(Protocol &protocol, NetworkMessage &msg) con
 		const auto recvChecksum = msg.get<uint32_t>();
 		if (profile.inboundChecksum == CHECKSUM_METHOD_SEQUENCE) {
 			if (recvChecksum == 0) {
+				g_logger().warn(
+					"[TransportCodec::prepareInbound] rejected zero inbound sequence: length={} position={} currentSequence={}",
+					msg.getLength(),
+					msg.getBufferPosition(),
+					protocol.clientSequenceNumber
+				);
 				return false;
 			}
 
@@ -87,6 +93,13 @@ bool TransportCodec::prepareInbound(Protocol &protocol, NetworkMessage &msg) con
 			}
 
 			if (recvChecksum != checksum) {
+				g_logger().warn(
+					"[TransportCodec::prepareInbound] rejected inbound sequence mismatch: received={} expected={} length={} position={}",
+					recvChecksum,
+					checksum,
+					msg.getLength(),
+					msg.getBufferPosition()
+				);
 				return false;
 			}
 		} else {
@@ -99,6 +112,13 @@ bool TransportCodec::prepareInbound(Protocol &protocol, NetworkMessage &msg) con
 			}
 
 			if (recvChecksum != checksum) {
+				g_logger().warn(
+					"[TransportCodec::prepareInbound] rejected Adler-32 mismatch: received={} expected={} length={} position={}",
+					recvChecksum,
+					checksum,
+					msg.getLength(),
+					msg.getBufferPosition()
+				);
 				return false;
 			}
 		}
