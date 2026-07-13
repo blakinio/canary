@@ -47,42 +47,33 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
+          import re
 
           path = Path("tools/ai-agent/apply_imbuement_live_parity_patch.py")
           text = path.read_text(encoding="utf-8")
-          old = '''    old_actual = """            "actual_forgotten_knowledge_groups": {
-                  str(storage_id): list(families)
-                  for storage_id, families in actual_groups.items()
-              },
-          """
-              new_actual = """            "expected_quest_unlock_groups": {
-                  str(storage_id): list(families)
-                  for storage_id, families in EXPECTED_QUEST_UNLOCK_GROUPS.items()
-              },
-              "actual_powerful_storage_groups": {
-                  str(storage_id): list(families)
-                  for storage_id, families in actual_groups.items()
-              },
-          """
-          '''
-          new = '''    old_actual = """        "actual_forgotten_knowledge_groups": {
-              str(storage_id): list(families)
-              for storage_id, families in actual_groups.items()
-          },
-          """
-              new_actual = """        "expected_quest_unlock_groups": {
+          pattern = re.compile(
+              r'    old_actual = .*?    path\.write_text\(text\.replace\(old_actual, new_actual, 1\), encoding="utf-8"\)\n',
+              re.S,
+          )
+          replacement = '''    marker = '        "actual_forgotten_knowledge_groups": {'
+              if marker not in text:
+                  raise RuntimeError("storage validator baseline marker missing")
+              quest_block = ''' + '"""' + '''        "expected_quest_unlock_groups": {
               str(storage_id): list(families)
               for storage_id, families in EXPECTED_QUEST_UNLOCK_GROUPS.items()
           },
-          "actual_powerful_storage_groups": {
-              str(storage_id): list(families)
-              for storage_id, families in actual_groups.items()
-          },
-          """
+          ''' + '"""' + '''
+              text = text.replace(
+                  marker,
+                  quest_block + '        "actual_powerful_storage_groups": {',
+                  1,
+              )
+              path.write_text(text, encoding="utf-8")
           '''
-          if old not in text:
-              raise SystemExit("temporary helper anchor source not found")
-          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          text, count = pattern.subn(replacement, text, count=1)
+          if count != 1:
+              raise SystemExit("temporary helper baseline section not found")
+          path.write_text(text, encoding="utf-8")
 
       - name: Apply final evidence-backed patch
         if: steps.gate.outputs.needed == 'true'
