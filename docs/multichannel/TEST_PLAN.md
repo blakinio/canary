@@ -351,6 +351,132 @@ with zero engine dependency:
   are covered at the `ClusterLeaderElection`/`ClusterJobLeadershipRegistry`
   unit level instead.
 
+### Phase 8: GM command to locate a player's cluster channel
+
+`multichannel::findOnlineChannelForPlayer` (`src/game/multichannel/
+cluster_session_lookup.hpp`/`.cpp`), backing the new
+`Game.getPlayerClusterChannel(name)` Lua global, was verified against a real
+MariaDB 10.11, importing the real `schema.sql`:
+
+- A player with an `ONLINE` row in `cluster_sessions` is found and its
+  `channel_id` returned correctly.
+- A player with no row at all (unknown to the cluster) correctly returns
+  nothing, matching the function's `std::nullopt` contract.
+- **The important defensive case**: after transitioning that same row's
+  `status` to `DIRTY` (simulating an orphaned session per
+  ARCHITECTURE.md §5.3), the exact same query correctly returns nothing -
+  confirming the `status = 'ONLINE'` filter actually matters and isn't a
+  no-op, since a naive "does a row exist for this player_id" query would
+  have wrongly reported a dirty session as a live location.
+- `IOLoginData::getGuidByName`'s existing name-to-id resolution was
+  exercised alongside it (a known player name resolves; an unknown name
+  returns no row), since the Lua binding chains both lookups.
+
+`game_functions.cpp`'s new binding itself is not standalone-compilable
+(transitively pulls in the full engine, same wall as every other Lua
+binding file) - reviewed by hand against the verified SQL above; it is a
+thin two-call chain (name → guid → channel id) with no additional logic of
+its own. `check_lua_api_binding_docs.py`/`check_lua_api_quality.py` both
+pass against the hand-written `docs/lua-api/lua_api.json` entry (mirrors
+Phase 2's `Player:requestChannelSwitch` precedent: this repo's own CI is
+the first real compiler for the actual `.cpp`, and its
+`--generate-lua-api-docs-only` step - made more robust by the Phase 6/7 CI
+fix - will auto-correct the doc entry if the hand-written version drifts
+from a real regeneration).
+
+### Phase 9: leader election for boosted creature/boss, and a corrected misclassification
+
+While scoping "wire the next cluster-singleton job" as a follow-up to
+Phase 7, house rent charging (`Houses::payHouses`) was investigated first
+as the next candidate. Tracing its actual data access (iterates the
+in-memory `houseMap`, itself populated per-channel from each channel's own
+OTBM map) revealed it - and house auction settlement, which shares the same
+per-channel `houseMap` - are **not** cluster-singleton at all: each channel
+already only ever touches its own disjoint houses. Gating either behind
+`ClusterJobLeadershipRegistry` would have caused non-leader channels to
+silently stop charging rent/settling auctions for their own houses - a real
+regression, not a fix. No code change was made for these two; OPERATIONS.md
+and ARCHITECTURE.md were corrected instead (`per-channel`, not
+`cluster-singleton`).
+
+Two other candidates - `Game::loadBoostedCreature` (`src/game/game.cpp`)
+and `IOBosstiary::loadBoostedBoss` (`src/io/io_bosstiary.cpp`) - were
+checked the same way and confirmed genuinely global: `boosted_creature`/
+`boosted_boss` are both `PRIMARY KEY(date)` with no `channel_id` column, and
+`schema.sql` grep-confirmed this directly (not just trusting the existing
+OPERATIONS.md claim, having just been burned by a wrong one). Both are now
+wired:
+
+- Each function, upon finding its row's `date` is stale, now calls
+  `ClusterJobLeadershipRegistry::renewOrAcquire("boosted.creature"/
+  "boosted.boss", SESSION_LEASE_TTL, OTSYS_TIME())` directly (a one-shot
+  acquire race, not a sustained per-cycle check, since both are one-shot
+  startup calls with no periodic heartbeat cycle running yet at this point
+  in `CanaryServer::loadModules()`) and checks `isLeader(...)` immediately
+  after. The winner proceeds with the existing reroll+persist logic
+  unchanged; every other process falls back to reading whatever is
+  currently on record instead.
+- Neither new call site is standalone-compilable (both transitively pull in
+  `game/game.hpp`/`database/database.hpp`'s full dependency chain, the same
+  wall as every engine-glue file in this series) - reviewed by hand. The
+  underlying `ClusterLeaderElection`/`ClusterJobLeadershipRegistry`
+  primitives being called were already thoroughly verified with real gtest
+  in Phase 6 (13 cases, including a 16-thread concurrent-acquire race with
+  exactly one winner) and Phase 7 (8 cases, including outage/recovery); this
+  phase's changes are thin, mechanical call sites invoking already-proven
+  logic, not new logic of their own.
+- `schema.sql` was checked directly to confirm `boosted_creature`/
+  `boosted_boss` each already seed a default row
+  (`INSERT INTO boosted_boss (...) VALUES ('default', 0, 0);` and the
+  `boosted_creature` equivalent), meaning `IOBosstiary::loadBoostedBoss`'s
+  `if (!result)` "no row exists" branch is dead code on any server
+  initialized from this schema - a pre-existing quirk, not something this
+  phase's gate needed to specially handle (the gate still runs correctly on
+  either branch).
+
+### Phase 10: two more read-only GM commands
+
+`multichannel::listOnlinePlayers()` (`cluster_session_lookup.hpp`/`.cpp`)
+and `ChannelSwitchAuditStore::getRecentHistory` (`channel_switch_audit_store
+.hpp`/`.cpp`) were both verified against a real MariaDB 10.11, mirroring
+Phase 8's methodology exactly:
+
+- **`listOnlinePlayers`**: seeded two players on two different channels
+  (both `ONLINE` in `cluster_sessions`); the `cluster_sessions` ⋈ `players`
+  join correctly returned both, correctly ordered by `channel_id` then
+  `name` (the lower-channel-id player first, regardless of insertion
+  order).
+- **`getRecentHistory`**: seeded three `channel_switch_audit` rows for one
+  player - a first-ever-login row (`source_channel_id IS NULL`), a normal
+  `SUCCESS` switch, and a `DENIED` switch - and one player with no rows at
+  all. Verified: all three rows returned newest-first when queried with a
+  generous limit; `LIMIT 2` correctly truncated to the two newest; the
+  `NULL` source channel correctly read back as `0` via
+  `COALESCE(source_channel_id, 0)` and correctly translated to
+  `std::nullopt` in C++ (0 is confirmed never a valid channel id -
+  `ChannelContext::DefaultSingleChannelId = 1`); and the player with no
+  history correctly produced an empty result set, not an error.
+- **A real, if minor, mistake was caught and fixed before committing**:
+  the first attempt to add the two new `lua_api.json` entries used
+  Python's `json.dump(..., indent=2, sort_keys=True)` to rewrite the whole
+  file, which reformatted ~50 unrelated lines across the file (whitespace/
+  key-ordering differences from whatever originally generated it) - a
+  needlessly large, noisy diff for a two-entry addition. Reverted and redid
+  it as two precise text edits instead (15 lines changed, matching every
+  other `lua_api.json` edit in this series).
+- **A real Lua API quality regression was also caught and fixed**: the
+  first version of both new bindings' return type was the literal string
+  `"table"`, which `tools/check_lua_api_quality.py` tracks as the
+  `return_plain_table` metric against a baseline - two new plain-`table`
+  returns would have pushed it from 22 to 24, failing the check. Fixed by
+  using the more accurate `table[]` (both functions return an array of
+  records, not a single flat table) in both the EmmyLua docblocks and the
+  hand-written JSON entries; re-ran `check_lua_api_quality.py` and
+  confirmed the metric stayed at 22.
+- Neither new Lua binding is standalone-compilable (same engine-glue wall
+  as every other Lua binding file in this series) - reviewed by hand
+  against the SQL verified above.
+
 ## 15.1b Redis Lua CAS script validation — ✅ run against a real `redis-server`
 
 The acquire/renew/release Lua scripts in

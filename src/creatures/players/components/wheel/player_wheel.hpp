@@ -105,18 +105,6 @@ public:
 	bool checkSavePointsBySlotType(WheelSlots_t slotType, uint16_t points);
 
 	/**
-	 * @brief Handles retry errors for saving slot points.
-	 *
-	 * @details This function iterates over the retry table and attempts to save slot points for each entry.
-	 * @details If the points are successfully saved, the error counter is decremented. If the points cannot be saved,
-	 * @details the entry is added to a temporary table for further retry.
-	 *
-	 * @param retryTable The vector containing the slot information to be retried.
-	 * @param errors The error counter that keeps track of the number of errors encountered.
-	 */
-	void saveSlotPointsHandleRetryErrors(std::vector<SlotInfo> &retryTable, int &errors);
-
-	/**
 	 * @brief Saves the slot points when the save (ok) button is pressed.
 	 * @param msg Network message containing slot data.
 	 * @details If maximum number of points allowed for the slot, an error message is sent to the player and the function returns.
@@ -270,7 +258,9 @@ private:
 
 	std::shared_ptr<KV> gemsKV() const;
 	std::shared_ptr<KV> gemsGradeKV(WheelFragmentType_t quality, uint8_t pos) const;
+	bool isValidModifierPosition(WheelFragmentType_t type, uint8_t pos) const;
 	uint8_t getGemGrade(WheelFragmentType_t quality, uint8_t pos) const;
+	bool validateSlotAllocation(const std::array<uint16_t, magic_enum::enum_count<WheelSlots_t>() + 1> &proposedSlots);
 
 	std::vector<PlayerWheelGem> getRevealedGems() const;
 	std::vector<PlayerWheelGem> getActiveGems() const;
@@ -297,8 +287,7 @@ public:
 	bool checkDivineEmpowerment();
 	int32_t checkDrainBodyLeech(const std::shared_ptr<Creature> &target, skills_t skill) const;
 	int32_t checkBeamMasteryDamage() const;
-	int32_t checkBattleHealingAmount() const;
-	int32_t checkBlessingGroveHealingByTarget(const std::shared_ptr<Creature> &target) const;
+	double checkBlessingGroveHealingByTarget(const std::shared_ptr<Creature> &target) const;
 	int32_t checkTwinBurstByTarget(const std::shared_ptr<Creature> &target) const;
 	int32_t checkExecutionersThrow(const std::shared_ptr<Creature> &target) const;
 	int32_t checkDivineGrenade(const std::shared_ptr<Creature> &target) const;
@@ -436,16 +425,6 @@ public:
 	// Combat functions
 	uint8_t getBeamAffectedTotal(const CombatDamage &tmpDamage) const;
 	void updateBeamMasteryDamage(CombatDamage &tmpDamage, uint8_t &beamAffectedTotal, uint8_t &beamAffectedCurrent) const;
-	/**
-	 * @brief Checks if the player has the "Battle Healing" instant active and, if so, heals the player.
-	 *
-	 * This function checks if a creature is a player and if the player is not removed from the game world.
-	 * If the player has the "Battle Healing" instant active, the player is healed by an amount defined by the
-	 * checkBattleHealingAmount() function.
-	 *
-	 * @param creature The creature to check and potentially heal.
-	 */
-	void healIfBattleHealingActive() const;
 	/**
 	 * @brief Adjusts the incoming damage based on the player's resistance and avatar skill.
 	 *

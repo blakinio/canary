@@ -9,9 +9,11 @@
 
 #include "io/io_bosstiary.hpp"
 
+#include "config/configmanager.hpp"
 #include "creatures/monsters/monsters.hpp"
 #include "creatures/players/player.hpp"
 #include "game/game.hpp"
+#include "game/multichannel/cluster_job_leadership_registry.hpp"
 #include "lib/di/container.hpp"
 #include "utils/tools.hpp"
 
@@ -34,13 +36,7 @@ void IOBosstiary::loadBoostedBoss() {
 	auto time = localtime(&timeNow);
 	auto today = time->tm_mday;
 
-	if (!result) {
-		g_logger().warn("[{}] No boosted boss row found. A new one will be selected.", __FUNCTION__);
-		if (!database.executeQuery("INSERT INTO `boosted_boss` (`boostname`, `date`, `raceid`) VALUES ('default', '0', '0')")) {
-			g_logger().error("[{}] Failed to initialize the boosted boss database row. (CODE 01)", __FUNCTION__);
-			return;
-		}
-	} else {
+	if (result) {
 		auto date = result->getNumber<uint16_t>("date");
 		if (date == today) {
 			std::string bossName = result->getString("boostname");
@@ -48,6 +44,34 @@ void IOBosstiary::loadBoostedBoss() {
 			setBossBoostedName(bossName);
 			setBossBoostedId(bossId);
 			g_logger().info("Boosted boss: {}", bossName);
+			return;
+		}
+	}
+
+	// Cluster-singleton (docs/multichannel/OPERATIONS.md): mirrors
+	// Game::loadBoostedCreature's reasoning exactly - `boosted_boss` has no
+	// channel_id, every channel process races to read/insert/reroll/write it
+	// at startup, and a reroll here also resets *global* `player_bosstiary`
+	// slot state tied to the old boss id, making an uncoordinated race
+	// actively corrupting (not just cosmetically inconsistent). Only the
+	// winner of a one-shot leader-election race performs the
+	// insert-if-missing/reroll/persist below; every other process leaves the
+	// boosted boss unset for this boot rather than risk picking a second,
+	// inconsistent boss - self-corrects on a future restart once the
+	// winner's pick has landed (the `date == today` branch above will then
+	// find it).
+	if (g_clusterJobLeadershipRegistry().isEnabled()) {
+		g_clusterJobLeadershipRegistry().renewOrAcquire("boosted.boss", g_configManager().getNumber(SESSION_LEASE_TTL), OTSYS_TIME());
+		if (!g_clusterJobLeadershipRegistry().isLeader("boosted.boss")) {
+			g_logger().warn("[{}] Not the elected cluster leader for the boosted boss reroll this boot; leaving unset until a future restart observes the winner's pick.", __FUNCTION__);
+			return;
+		}
+	}
+
+	if (!result) {
+		g_logger().warn("[{}] No boosted boss row found. A new one will be selected.", __FUNCTION__);
+		if (!database.executeQuery("INSERT INTO `boosted_boss` (`boostname`, `date`, `raceid`) VALUES ('default', '0', '0')")) {
+			g_logger().error("[{}] Failed to initialize the boosted boss database row. (CODE 01)", __FUNCTION__);
 			return;
 		}
 	}

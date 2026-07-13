@@ -272,6 +272,44 @@ discarded the remembered lease id, so leadership never recovered even after
 Redis became reachable again until the full TTL elapsed - fixed by keeping
 the id and retrying renew (not a fresh acquire) on the next cycle.
 
+**Phase 8:** the first real GM/admin command from OPERATIONS.md's
+contract-only list is implemented - `Game.getPlayerClusterChannel(name)`, a
+read-only Lua global that finds which channel a player is currently online
+on cluster-wide, reading the `cluster_sessions` DB table (not Redis, since
+the caller may be on a different channel process than the target). No
+schema change - pure read against an already-existing table. Verified
+against a real MariaDB: online player found, unknown player returns
+nothing, and a `DIRTY` row is correctly excluded from being reported as a
+live location.
+
+**Phase 9:** two more genuinely-global cluster-singleton jobs are wired to
+`ClusterJobLeadershipRegistry` (Phase 7's mechanism) - `Game::
+loadBoostedCreature` and `IOBosstiary::loadBoostedBoss`, both one-shot
+startup calls (not recurring jobs), gated via a direct one-shot leader-
+election race rather than the periodic heartbeat cycle. No schema change.
+**A misclassification was also found and corrected while scoping this
+phase**: house rent charging and house auction settlement were listed as
+`cluster-singleton` in OPERATIONS.md/ARCHITECTURE.md, but houses are
+already disjoint per channel (composite `(channel_id, house_id)` identity
+from Phase 1) - gating them behind leader election would have been a
+regression (non-leader channels would simply stop charging rent for their
+own houses), not a fix. Corrected the classification to `per-channel`
+rather than implementing anything for them.
+
+**Phase 10:** two more read-only GM/admin commands from OPERATIONS.md's
+list are implemented, mirroring Phase 8's exact template -
+`Game.getClusterOnlinePlayers()` (cluster-wide online list, a
+`cluster_sessions` ⋈ `players` join) and `Game.getPlayerChannelSwitchHistory
+(name[, limit])` (channel-switch audit history, a new
+`ChannelSwitchAuditStore::getRecentHistory` query). No schema change - pure
+reads against already-existing tables. Verified against a real MariaDB:
+online-list join ordering across channels; history query's newest-first
+ordering, `LIMIT` honoring, `NULL` `source_channel_id` (first-ever login)
+representation, and empty-history case. All three GM commands implemented
+so far are read-only; every remaining command in the list needs either
+cluster-state mutation or cross-process signaling this codebase doesn't
+have a mechanism for yet.
+
 **Still not enforced**, and still the reason not to enable
 `multiChannelEnabled = true` in production yet: nothing yet *blocks* an
 account from bidding on or trading for a second house before an already-

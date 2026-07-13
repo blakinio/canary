@@ -8,8 +8,14 @@ physically separated regions in the existing map rather than copying the full
 map for every instance.
 
 `InstanceManager` and `InstanceRegionPool` are plain constructor-owned
-components, not new `g_*()` singletons. Their eventual runtime owner should be
-an explicit component such as `Game`.
+components, not new `g_*()` singletons. `Game` owns the single runtime
+instance through `Game::getInstanceManager()`, constructed with zero
+configured regions until a concrete instanced feature defines real ones -
+`createInstance()` simply fails with `"no available instance regions"` until
+then. Nothing calls `getInstanceManager()` yet: spawn/NPC creation, the
+scheduler and player enter/leave all still run entirely in the normal world.
+This only removes the prerequisite that was blocking those follow-ups from
+wiring in for real.
 
 ## Lifecycle foundation
 
@@ -71,6 +77,23 @@ The registry contract is:
 - a non-empty registry prevents region release and quarantines the instance;
 - destroyed or unknown instances cannot be mutated;
 - insertion into both ownership indexes is transactional on allocation failure.
+
+## Automatic cleanup on removal
+
+`Game::removeCreature()` is the one path every removed creature passes
+through (monsters, NPCs, players on logout, and summons recursively). It now
+looks up `getInstanceManager().getCreatureOwner(creature->getID())` and calls
+`unregisterCreature()` when an owner is found, so a registered creature's
+ownership entry cannot outlive the creature itself regardless of which future
+call site registered it (spawn, summon inheritance, player enter/leave).
+
+This is intentionally generic and not spawn/NPC-specific: it closes the
+"automatically unregister on removal" half of the spawn/NPC ownership
+integration step below without waiting for the "register at creation" half,
+which still needs a design decision (Spawn/NpcSpawn have no concept today of
+"which instance am I in"). Today this is a safe no-op in production, since
+nothing yet calls `registerCreature()`/`InstanceCreatureBinder::bind()`
+outside tests.
 
 ## Summon inheritance and interaction policy
 
@@ -189,17 +212,23 @@ creatures.
 
 ## Remaining integration sequence
 
-1. **Runtime call-site wiring**: instance-aware creature/summon creation and
-   `setMaster` use the binder through an explicitly owned runtime component.
-2. **Spawn and NPC ownership**: instance-created spawn products register stable
-   ids, automatically unregister on removal and are cleaned before region release.
+0. **Runtime owner**: `Game::getInstanceManager()` (done - see above). Nothing
+   calls it yet.
+1. **Runtime call-site wiring**: `Creature::setMaster(master, binder)` exists
+   and is tested (done), but no production spawn/summon call site passes
+   `Game::getInstanceManager()`'s binder to it yet - only direct unit tests
+   exercise the overload today.
+2. **Spawn and NPC ownership**: automatic unregistration on removal is done
+   (see above, `Game::removeCreature()`). Still open: spawn/NPC creation
+   itself has no concept of "which instance am I in", so nothing registers a
+   spawn product's id at creation time yet - that needs a design decision on
+   how a `Spawn`/`SpawnNpc` becomes instance-scoped in the first place.
 3. **Cross-instance isolation**: spectator, targeting and combat call sites use
    the central relation policy while normal-world behavior stays unchanged.
 4. **Scheduler/event ownership**: `InstanceScopedEvent` gives a scheduled
    callback a lazy liveness check (done - see above). Still open: an actual
    dispatcher/task call site uses it, and the timeout sweep gets a real
-   periodic owner. Both need `Game` (or another explicit runtime component) to
-   own a live `InstanceManager` instance first.
+   periodic owner - both can now use `Game::getInstanceManager()`.
 5. **Player enter/leave**: validated entry, safe return position, closing,
    logout, death and reconnect behavior.
 6. **Lua API**: create/get/enter/leave/close/state with stable errors and no raw
@@ -272,4 +301,6 @@ creatures.
 - no global `InstanceManager` singleton;
 - no creature pointer ownership in `InstanceManager` or its binder;
 - no direct spawn, scheduler, player or Lua integration in the binder PR;
-- no dispatcher/task call site wiring or periodic sweep owner in the scoped-event PR - both need a live, `Game`-owned `InstanceManager` first.
+- no dispatcher/task call site wiring or periodic sweep owner in the scoped-event PR - both need a live, `Game`-owned `InstanceManager` first;
+- no spawn/NPC/scheduler/player/Lua call site changes in the `Game::getInstanceManager()` PR - it only removes the ownership prerequisite, configured with zero regions;
+- no instance-scoped `Spawn`/`SpawnNpc` concept in the automatic-cleanup PR - `Game::removeCreature()` only unregisters whatever a future call site already registered.

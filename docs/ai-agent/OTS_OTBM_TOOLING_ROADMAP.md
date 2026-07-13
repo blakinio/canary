@@ -13,7 +13,8 @@ The project already has:
 - a native OTBM item/mechanic scan and item audit;
 - a script-resolution audit for `actionId`, `uniqueId`, item-ID and position handlers;
 - a factual region renderer using the supplied client assets;
-- provenance, hash and deterministic fallback conventions from the HD rendering pipeline.
+- provenance, hash and deterministic fallback conventions from the HD rendering pipeline;
+- the active Phase 1 implementation in PR #211: a deterministic binary `.widx` cache, JSON provenance manifest, memory-mapped query library and CLI.
 
 New phases must reuse those contracts instead of creating competing parsers.
 
@@ -21,18 +22,22 @@ New phases must reuse those contracts instead of creating competing parsers.
 
 The programme is intentionally split into independently testable PRs. Each phase must be merged and documented before downstream phases depend on it.
 
-### Phase 1 — Unified OTBM World Index
+### Phase 1 — Unified OTBM World Index — implemented in PR #211, validating
 
-Deliverables:
+Delivered interfaces:
 
-- `canary-otbm-world-index-v1` JSON contract;
-- deterministic indexes for position, region, item ID, action ID, unique ID, house door and teleport source/destination;
-- bounded position samples with exact total counts;
-- provenance hashes for map and source reports;
-- reusable query library and CLI;
-- focused tests, schema and CI.
+- `OTSWIDX1` deterministic binary postings index;
+- `canary-otbm-world-index-v1` JSON provenance/summary manifest;
+- `canary-otbm-world-query-v1` bounded query responses;
+- indexes for position, region, item ID, action ID, unique ID, house door and teleport destination;
+- pagination with exact total counts;
+- source, scanner and index SHA-256 provenance;
+- reusable memory-mapped query library and CLI;
+- focused tests, schema and dedicated CI.
 
-Safety boundary: read-only; consumes the existing native scan instead of parsing OTBM independently.
+The implementation extends the existing native scanner instead of creating a second OTBM parser. Full-world generated `.widx` files remain local/workflow artifacts and are never committed.
+
+Safety boundary: read-only; no map, item or asset write path.
 
 ### Phase 2 — Quest Map Validator
 
@@ -82,12 +87,12 @@ Safety boundary: dynamic storage calculations remain explicit unknowns.
 
 Deliverables:
 
-- compare two scan/index reports without requiring binary map files in Git;
+- compare two world indexes/manifests without requiring binary map files in Git;
 - report added/removed/changed tiles, item stacks, AID/UID, teleport destinations, house flags and walkability-relevant changes;
 - determine affected script registrations and quest evidence;
 - render bounded before/after/difference views from local approved artifacts.
 
-Safety boundary: generated images and reports remain workflow/local artifacts, not repository data.
+Safety boundary: generated indexes, images and reports remain workflow/local artifacts, not repository data.
 
 ### Phase 7 — Geometry and consistency audit
 

@@ -28,7 +28,7 @@ When rules conflict, follow the more restrictive safety rule.
 Before implementation:
 
 1. Read this file and `docs/agents/README.md`.
-2. Read `docs/agents/ACTIVE_WORK.md` and inspect all open PRs; GitHub state is authoritative when the index is stale.
+2. Read `docs/agents/ACTIVE_WORK.md` only as a coordination snapshot, then inspect `docs/agents/tasks/active/**` and all open PRs; task files and live GitHub state are authoritative when the index is stale.
 3. Read `docs/agents/MODULE_CATALOG.md` and search the repository for reusable code before designing a new module.
 4. Read `docs/agents/REPOSITORY_MAP.md`, `KNOWN_RISKS.md`, and `BUILD_TEST_MATRIX.md`.
 5. Read relevant contracts in `docs/agents/CROSS_REPO_CONTRACTS.md`.
@@ -43,7 +43,10 @@ Every agent must make its work discoverable:
 - create `docs/agents/tasks/active/CAN-YYYYMMDD-short-slug.md` before substantial implementation;
 - declare `owned_paths`, `modules_touched`, `reuses`, `depends_on`, `blocks`, and cross-repository task IDs;
 - publish the branch and open a draft PR early;
-- add the task to `docs/agents/ACTIVE_WORK.md` in the same early commit when practical;
+- do not manually add, remove, or edit rows in `docs/agents/ACTIVE_WORK.md` from a normal feature/fix/docs task branch;
+- treat the individual task file and the live draft PR as the task's source of truth and discovery mechanism;
+- until a deterministic generator is merged, leave `ACTIVE_WORK.md` unchanged unless the PR is a dedicated coordination/index repair;
+- after a generator exists, update `ACTIVE_WORK.md` only through that generator in a dedicated coordination or post-merge step, not by hand;
 - update the task record after discoveries, decisions, failures, tests, review changes, and before context exhaustion;
 - update `docs/agents/MODULE_CATALOG.md` in the same PR that adds a reusable module, changes a public interface, deprecates a module, or introduces a new integration point;
 - update `docs/agents/CHANGELOG.md` for completed behavior-level or architecture-level changes;
@@ -59,7 +62,9 @@ A new agent must be able to continue from Git, the PR, and the task record witho
 - Never share a branch or worktree between agents.
 - `owned_paths` are advisory locks; resolve overlaps before editing.
 - Do not perform unrelated cleanup or broad refactors.
-- Edit shared indexes narrowly and resolve conflicts from current `main`.
+- Do not use `docs/agents/ACTIVE_WORK.md` as a writable shared lock or per-PR checklist.
+- If an existing PR conflicts only in `docs/agents/ACTIVE_WORK.md`, take the current `main` version of that file, preserve the PR's own task record under `docs/agents/tasks/active/`, and continue validation.
+- Edit other shared indexes narrowly and resolve their conflicts from current `main`.
 
 ## Autonomous delivery policy
 

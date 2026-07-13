@@ -597,7 +597,7 @@ tested; the "freeze new logins" and "disconnect before another process can
 steal the lease" actions require the Phase 2 game-loop wiring to execute
 for real.
 
-## 10a. Leader election primitive (✅ module, ✅ wired to the market-expiry job, 📐 other jobs unwired)
+## 10a. Leader election primitive (✅ module, ✅ wired to 3 jobs, 📐 others unwired)
 
 Several background jobs must run exactly once cluster-wide rather than once
 per channel process (`OPERATIONS.md`'s "Leader election / cluster-singleton
@@ -658,14 +658,125 @@ normally, so it keeps checking every cycle). This is a **cheap in-memory
 check gating a whole DB query**, not a change to the query or the
 expiry/refund logic itself.
 
+**✅ `Game::loadBoostedCreature`/`IOBosstiary::loadBoostedBoss`**
+(`src/game/game.cpp`/`src/io/io_bosstiary.cpp`) are the second and third
+jobs wired, and structurally different from market expiry: both are
+**one-shot startup calls** (`CanaryServer::loadModules()`), not recurring
+dispatcher events, so there is no periodic heartbeat cycle available yet at
+the point they run to have kept leadership "warm." Each calls
+`ClusterJobLeadershipRegistry::renewOrAcquire("boosted.creature"/
+"boosted.boss", ...)` directly, once, as a one-shot leader-election *race*
+rather than a sustained leadership check: whichever channel process reaches
+this line first wins the lease and proceeds to reroll+persist a new
+selection; every other process reads whatever is currently on record
+(possibly stale-by-one-day) instead of independently rolling and persisting
+a *different* value. `boosted_creature`/`boosted_boss` are both
+`PRIMARY KEY(date)` with no `channel_id` - genuinely one shared row each,
+unlike houses (see below) - and `loadBoostedBoss`'s reroll additionally
+resets *global* `player_bosstiary` slot state tied to the old boss id,
+making an uncoordinated race actively corrupting, not just cosmetically
+inconsistent.
+
 **📐 Known gap, stated honestly:** every *other* job in OPERATIONS.md's
-table (house rent, house auction settlement, daily reward reset, global
-boosted creature/boss selection, table cleanup jobs, highscores cache
-rebuild, ...) still runs unconditionally on every channel process. Wiring
-each remaining job individually (deciding what "lost leadership mid-run"
-should mean for that specific job - e.g. a partially-applied rent charge)
-is real per-job design work left for a follow-up, not something safe to do
-blind in one broad pass across a dozen unrelated jobs.
+table (daily reward reset, table cleanup jobs, highscores cache rebuild,
+database optimization, global server record, global event scheduling)
+still runs unconditionally on every channel process. Wiring each remaining
+job individually (deciding what "lost leadership mid-run" should mean for
+that specific job) is real per-job design work left for a follow-up, not
+something safe to do blind in one broad pass across the rest.
+
+**Correction, found while scoping this phase:** house rent charging and
+house auction settlement were previously listed here (and in OPERATIONS.md)
+as `cluster-singleton` - this was wrong. `Houses::payHouses`
+(`src/map/house/house.cpp`) iterates the in-memory `houseMap`, populated
+per-channel from each channel's own OTBM map at startup; since houses
+already have composite `(channel_id, house_id)` identity (§2.5), each
+channel's `houseMap` only ever contains its own disjoint houses. Gating
+this behind cluster-wide leader election would have been a **regression**
+(every non-leader channel would simply stop charging rent for its own
+houses), not a fix - it is a genuine `per-channel` job needing no
+coordination. See OPERATIONS.md's job table for the corrected
+classification and full reasoning.
+
+## 10b. GM/admin commands (✅ three read-only lookups, 📐 the rest)
+
+`OPERATIONS.md`'s "GM / admin commands" list was previously a contract only.
+**"Locate a player's current channel"** is now implemented as
+`Game.getPlayerClusterChannel(name)` (`src/lua/functions/core/game/
+game_functions.cpp`): a read-only Lua global that resolves a player name to
+a guid (`IOLoginData::getGuidByName`, existing), then queries
+`multichannel::findOnlineChannelForPlayer` (`src/game/multichannel/
+cluster_session_lookup.hpp`/`.cpp`) - a new, tiny DB-glue module, styled
+after `ChannelSwitchAuditStore`'s existing query pattern - against the
+`cluster_sessions` table for a row with that `player_id` and
+`status = 'ONLINE'`. Returns the channel id, or `nil` if the player is
+unknown or has no such row.
+
+This deliberately reads the **DB mirror, not Redis**: unlike every other
+multichannel fast path in this codebase, a GM issuing this command from one
+channel process is very likely asking about a player logged into a
+*different* one, so Redis's per-process caching advantage doesn't apply -
+the DB table is the one thing every process can equally query regardless of
+which one currently holds the player's session.
+
+Following this codebase's own existing convention (verified: no
+`Game.*`/`Player:*` Lua binding checks GM group access internally - e.g.
+`luaGameReload`, `luaGameSetGameState` have zero access checks; the one real
+enforcement point is `TalkAction:groupType(...)` at the framework/dispatch
+layer, `src/lua/creature/talkaction.cpp`), this new function does not check
+permissions itself - that is left to whatever talkaction/script exposes it
+to GMs, exactly like every other admin-oriented Lua function already in this
+engine.
+
+**✅ Verified** against a real MariaDB 10.11: a player with an `ONLINE`
+`cluster_sessions` row is correctly found and its `channel_id` returned; an
+unknown player (no row at all) correctly returns nothing; and - the
+important defensive case - a row that has been transitioned to `DIRTY`
+(simulating an orphaned session, docs/multichannel/ARCHITECTURE.md §5.3) is
+correctly **not** reported as a live channel location, since the query
+filters on `status = 'ONLINE'` rather than merely "a row exists for this
+player_id".
+
+**✅ `Game.getClusterOnlinePlayers()`** (`src/lua/functions/core/game/
+game_functions.cpp`) implements **"Cluster-wide online list"**: a read-only
+Lua global returning an array of `{accountId, playerId, name, channelId}`
+for every player currently recorded `ONLINE` anywhere in the cluster, via a
+new `multichannel::listOnlinePlayers()` (`cluster_session_lookup.hpp`/
+`.cpp`, a sibling of `findOnlineChannelForPlayer` above) - a single
+`cluster_sessions` ⋈ `players` join, ordered by channel then name. Same
+no-access-check convention as the previous command; same DB-mirror
+rationale (a GM's own process only knows about players logged into itself).
+
+**✅ `Game.getPlayerChannelSwitchHistory(name[, limit = 10])`** implements
+**"Inspect the last N channel-switch audit rows for a player"**: resolves
+the name to a guid the same way, then calls a new `ChannelSwitchAuditStore::
+getRecentHistory(playerId, limit)` (`channel_switch_audit_store.hpp`/`.cpp`,
+alongside the store's existing `findPending`/`getLastSwitchAtMs`) against
+the `channel_switch_audit` table (§6), returning an array of
+`{sourceChannelId (nil on first-ever login), targetChannelId, result,
+denyReason, createdAt}`, newest first. `source_channel_id` is a nullable DB
+column with no `isNull()` accessor available on this codebase's `DBResult`
+type, so the query reads `COALESCE(source_channel_id, 0)` and treats `0` as
+"unset" in C++ - safe because channel ids start at `1`
+(`ChannelContext::DefaultSingleChannelId`), the same convention
+`ChannelRegistry`'s existing `optionalIntColumn` helper already uses for a
+different nullable int column.
+
+**✅ Verified** against a real MariaDB 10.11 (both new queries, alongside
+the existing one for this phase): the online-list join correctly returns
+and orders multiple players across different channels; the history query
+correctly returns rows newest-first, correctly honors `LIMIT`, correctly
+represents a `NULL` `source_channel_id` (first-ever login) as absent in the
+result, and correctly returns an empty list for a player with no audit
+history at all.
+
+**📐 Known gap, stated honestly:** every other command in OPERATIONS.md's
+list (kick a player on another channel, cross-channel broadcast,
+force-save/drain/maintenance a channel, DIRTY session recovery, session
+lock/fencing inspection) remains contract-only - notably, every command
+implemented so far is read-only; none of the remaining ones are (they all
+either mutate cluster state or need cross-process signaling to a *different*
+channel process, which no mechanism in this codebase currently provides).
 
 ## 11. Why Phase 1 and not the whole spec
 

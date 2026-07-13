@@ -1462,6 +1462,12 @@
         "source": "src/lua/functions/core/game/game_functions.cpp"
       },
       {
+        "name": "getClusterOnlinePlayers",
+        "params": [],
+        "return": "table[]",
+        "source": "src/lua/functions/core/game/game_functions.cpp"
+      },
+      {
         "name": "getDummies",
         "params": [
           "...: any"
@@ -1596,6 +1602,23 @@
           "nameOrId: number|string"
         ],
         "return": "nil|Player",
+        "source": "src/lua/functions/core/game/game_functions.cpp"
+      },
+      {
+        "name": "getPlayerChannelSwitchHistory",
+        "params": [
+          "name: string",
+          "limit: number"
+        ],
+        "return": "table[]",
+        "source": "src/lua/functions/core/game/game_functions.cpp"
+      },
+      {
+        "name": "getPlayerClusterChannel",
+        "params": [
+          "name: string"
+        ],
+        "return": "number|nil",
         "source": "src/lua/functions/core/game/game_functions.cpp"
       },
       {
