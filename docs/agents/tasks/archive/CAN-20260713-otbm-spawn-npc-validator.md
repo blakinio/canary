@@ -14,7 +14,7 @@ merge_commit: "360d79ebad5802edd4d89e99d0f210ab19b36b60"
 risk: medium
 related_issue: ""
 related_pr: "#286"
-cleanup_pr: "pending"
+cleanup_pr: "#290"
 owned_paths: []
 modules_touched:
   - OTBM spawn, boss and NPC validator
@@ -163,5 +163,5 @@ The next programme task may start Phase 5 only from current `main`, after a fres
 - Feature PR: #286
 - Final feature head: `40ce55b791e11b2344a7c9662675ab4e3e15f31f`
 - Merge commit: `360d79ebad5802edd4d89e99d0f210ab19b36b60`
-- Cleanup PR: pending
+- Cleanup PR: #290
 - Archived at: `docs/agents/tasks/archive/CAN-20260713-otbm-spawn-npc-validator.md`
