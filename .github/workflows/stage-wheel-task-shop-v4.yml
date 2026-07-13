@@ -1,0 +1,275 @@
+name: Fix Wheel Task Shop KV cache
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/stage-wheel-task-shop-v4.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/wheel-15-25-runtime-completion
+          fetch-depth: 0
+
+      - name: Apply KV cache fix
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected one match, found {count}")
+              return text.replace(old, new, 1)
+
+          header_path = Path('src/creatures/players/components/wheel/player_wheel.hpp')
+          header = header_path.read_text(encoding='utf-8')
+          header = replace_once(
+              header,
+              '\tuint16_t getHuntingTaskShopPoints() const;\n',
+              '\tuint16_t getHuntingTaskShopPoints() const;\n\tvoid setHuntingTaskShopPoints(uint16_t points);\n',
+              'wheel setter declaration',
+          )
+          header = replace_once(
+              header,
+              '\tstd::vector<PromotionScroll> m_unlockedScrolls;\n',
+              '\tstd::vector<PromotionScroll> m_unlockedScrolls;\n\tuint16_t m_huntingTaskShopPoints = 0;\n',
+              'wheel cached member',
+          )
+          header_path.write_text(header, encoding='utf-8')
+
+          wheel_path = Path('src/creatures/players/components/wheel/player_wheel.cpp')
+          wheel = wheel_path.read_text(encoding='utf-8')
+          old_getter = '''uint16_t PlayerWheel::getHuntingTaskShopPoints() const {
+\tconst auto wheelKV = m_player.kv()->scoped("wheel-of-destiny");
+\tif (!wheelKV) {
+\t\treturn 0;
+\t}
+
+\tconst auto storedValue = wheelKV->get("hunting-task-shop-points");
+\tif (!storedValue.has_value()) {
+\t\treturn 0;
+\t}
+
+\tconstexpr IntType maximumPoints = 50;
+\tconst auto storedPoints = storedValue->get<IntType>();
+\tif (storedPoints < 0 || storedPoints > maximumPoints) {
+\t\tg_logger().warn("[{}] Clamping invalid Hunting Task Shop Wheel points {} for player {}", __FUNCTION__, storedPoints, m_player.getName());
+\t}
+
+\treturn static_cast<uint16_t>(std::clamp<IntType>(storedPoints, 0, maximumPoints));
+}
+'''
+          new_getter = '''uint16_t PlayerWheel::getHuntingTaskShopPoints() const {
+\treturn m_huntingTaskShopPoints;
+}
+
+void PlayerWheel::setHuntingTaskShopPoints(uint16_t points) {
+\tm_huntingTaskShopPoints = std::min<uint16_t>(points, 50);
+}
+'''
+          wheel = replace_once(wheel, old_getter, new_getter, 'cached getter')
+
+          old_load = '''void PlayerWheel::loadKVScrolls() {
+\tconst auto &scrollKv = m_player.kv()->scoped("wheel-of-destiny")->scoped("scrolls");
+\tif (!scrollKv) {
+\t\treturn;
+\t}
+
+\tfor (const auto &[itemId, name, extraPoints] : WheelOfDestinyPromotionScrolls) {
+\t\tconst auto scrollValue = scrollKv->get(name);
+\t\tif (scrollValue && scrollValue->get<bool>()) {
+\t\t\tm_unlockedScrolls.emplace_back(itemId, name, extraPoints);
+\t\t}
+\t}
+}
+'''
+          new_load = '''void PlayerWheel::loadKVScrolls() {
+\tm_huntingTaskShopPoints = 0;
+\tconst auto &wheelKv = m_player.kv()->scoped("wheel-of-destiny");
+\tif (!wheelKv) {
+\t\treturn;
+\t}
+
+\tif (const auto storedValue = wheelKv->get("hunting-task-shop-points"); storedValue.has_value()) {
+\t\tconstexpr IntType maximumPoints = 50;
+\t\tconst auto storedPoints = storedValue->get<IntType>();
+\t\tif (storedPoints < 0 || storedPoints > maximumPoints) {
+\t\t\tg_logger().warn("[{}] Clamping invalid Hunting Task Shop Wheel points {} for player {}", __FUNCTION__, storedPoints, m_player.getName());
+\t\t}
+\t\tsetHuntingTaskShopPoints(static_cast<uint16_t>(std::clamp<IntType>(storedPoints, 0, maximumPoints)));
+\t}
+
+\tconst auto &scrollKv = wheelKv->scoped("scrolls");
+\tif (!scrollKv) {
+\t\treturn;
+\t}
+
+\tfor (const auto &[itemId, name, extraPoints] : WheelOfDestinyPromotionScrolls) {
+\t\tconst auto scrollValue = scrollKv->get(name);
+\t\tif (scrollValue && scrollValue->get<bool>()) {
+\t\t\tm_unlockedScrolls.emplace_back(itemId, name, extraPoints);
+\t\t}
+\t}
+}
+'''
+          wheel = replace_once(wheel, old_load, new_load, 'KV load cache')
+          wheel_path.write_text(wheel, encoding='utf-8')
+
+          taskboard_path = Path('data/modules/scripts/taskboard/taskboard.lua')
+          taskboard = taskboard_path.read_text(encoding='utf-8')
+          taskboard = replace_once(
+              taskboard,
+              '\tgetBonusPromotionKV(player):set(BonusPromotion.KvKey, purchasedPoints + 1)\n',
+              '\tgetBonusPromotionKV(player):set(BonusPromotion.KvKey, purchasedPoints + 1)\n\tplayer:setWheelHuntingTaskShopPoints(purchasedPoints + 1)\n',
+              'Taskboard cache synchronization',
+          )
+          taskboard_path.write_text(taskboard, encoding='utf-8')
+
+          cpp_path = Path('src/lua/functions/creatures/player/player_functions.cpp')
+          cpp = cpp_path.read_text(encoding='utf-8')
+          cpp = replace_once(
+              cpp,
+              '\tLua::registerMethod(L, "Player", "wheelUnlockScroll", PlayerFunctions::luaPlayerWheelUnlockScroll);\n',
+              '\tLua::registerMethod(L, "Player", "wheelUnlockScroll", PlayerFunctions::luaPlayerWheelUnlockScroll);\n\tLua::registerMethod(L, "Player", "setWheelHuntingTaskShopPoints", PlayerFunctions::luaPlayerSetWheelHuntingTaskShopPoints);\n',
+              'Lua registration',
+          )
+          marker = '''int PlayerFunctions::luaPlayerUpdateConcoction(lua_State* L) {
+'''
+          implementation = '''int PlayerFunctions::luaPlayerSetWheelHuntingTaskShopPoints(lua_State* L) {
+\t// player:setWheelHuntingTaskShopPoints(points)
+\tconst auto &player = Lua::getUserdataShared<Player>(L, 1, "Player");
+\tif (!player) {
+\t\tLua::reportErrorFunc(Lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
+\t\tLua::pushBoolean(L, false);
+\t\treturn 1;
+\t}
+
+\tplayer->wheel().setHuntingTaskShopPoints(Lua::getNumber<uint16_t>(L, 2));
+\tLua::pushBoolean(L, true);
+\treturn 1;
+}
+
+'''
+          cpp = replace_once(cpp, marker, implementation + marker, 'Lua implementation')
+          cpp_path.write_text(cpp, encoding='utf-8')
+
+          hpp_path = Path('src/lua/functions/creatures/player/player_functions.hpp')
+          hpp = hpp_path.read_text(encoding='utf-8')
+          hpp = replace_once(
+              hpp,
+              '\tstatic int luaPlayerWheelUnlockScroll(lua_State* L);\n',
+              '\tstatic int luaPlayerWheelUnlockScroll(lua_State* L);\n\tstatic int luaPlayerSetWheelHuntingTaskShopPoints(lua_State* L);\n',
+              'Lua declaration',
+          )
+          hpp_path.write_text(hpp, encoding='utf-8')
+
+          test_path = Path('tests/unit/players/wheel_validation_test.cpp')
+          test = test_path.read_text(encoding='utf-8')
+          test_case = '''
+TEST_F(WheelValidationTest, HuntingTaskShopPointsAreCachedAndBounded) {
+\tauto player = makePlayer(51);
+\tEXPECT_EQ(0, player->wheel().getHuntingTaskShopPoints());
+
+\tplayer->wheel().setHuntingTaskShopPoints(50);
+\tEXPECT_EQ(50, player->wheel().getHuntingTaskShopPoints());
+\tEXPECT_EQ(51, player->wheel().getWheelPoints());
+
+\tplayer->wheel().setHuntingTaskShopPoints(51);
+\tEXPECT_EQ(50, player->wheel().getHuntingTaskShopPoints());
+}
+'''
+          test = replace_once(test, '\nTEST_F(WheelValidationTest, SupremeGradeCostsMatchTheSkillWheelContract) {\n', test_case + '\nTEST_F(WheelValidationTest, SupremeGradeCostsMatchTheSkillWheelContract) {\n', 'cache unit test')
+          test_path.write_text(test, encoding='utf-8')
+
+          d_path = Path('docs/lua-api/lua_api.d.lua')
+          d = d_path.read_text(encoding='utf-8')
+          d = replace_once(
+              d,
+              '---@param scrollName string\n---@return boolean\nfunction Player:wheelUnlockScroll(scrollName) end\n',
+              '---@param scrollName string\n---@return boolean\nfunction Player:wheelUnlockScroll(scrollName) end\n\n---@param points integer\n---@return boolean\nfunction Player:setWheelHuntingTaskShopPoints(points) end\n',
+              'Lua declaration docs',
+          )
+          d_path.write_text(d, encoding='utf-8')
+
+          json_path = Path('docs/lua-api/lua_api.json')
+          api = json.loads(json_path.read_text(encoding='utf-8'))
+          methods = api['classes']['Player'] if 'classes' in api else api['Player']
+          if not any(item.get('name') == 'setWheelHuntingTaskShopPoints' for item in methods):
+              index = next(i for i, item in enumerate(methods) if item.get('name') == 'wheelUnlockScroll') + 1
+              methods.insert(index, {
+                  'name': 'setWheelHuntingTaskShopPoints',
+                  'params': ['points: integer'],
+                  'return': 'boolean',
+                  'source': 'src/lua/functions/creatures/player/player_functions.cpp',
+              })
+          json_path.write_text(json.dumps(api, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+
+          contract_path = Path('tools/ai-agent/test_wheel_task_shop_validation.py')
+          contract = contract_path.read_text(encoding='utf-8')
+          contract = replace_once(
+              contract,
+              '        self.assertIn("totalBonus += getHuntingTaskShopPoints();", player_wheel)\n',
+              '        self.assertIn("totalBonus += getHuntingTaskShopPoints();", player_wheel)\n        self.assertIn("return m_huntingTaskShopPoints;", player_wheel)\n',
+              'contract cache assertion',
+          )
+          contract_path.write_text(contract, encoding='utf-8')
+
+          validation_path = Path('docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION.md')
+          validation = validation_path.read_text(encoding='utf-8')
+          validation = replace_once(
+              validation,
+              'The implementation now exposes the official Bonus Promotion offer, charges the documented escalating cost `100 × (1 + n(n−1)/2)` for points 1–50, stores only the bounded purchased count under the player Wheel KV scope, includes it in `getExtraPoints()`, and serializes that count in the official-client field. The complete Hunting Task balance is never treated as Wheel points.\n',
+              'The implementation now exposes the official Bonus Promotion offer, charges the documented escalating cost `100 × (1 + n(n−1)/2)` for points 1–50, stores only the bounded purchased count under the player Wheel KV scope, loads it into a 0–50 `PlayerWheel` cache during login, synchronizes that cache immediately after purchase, includes it in `getExtraPoints()`, and serializes that count in the official-client field. The complete Hunting Task balance is never treated as Wheel points.\n',
+              'validation architecture note',
+          )
+          validation_path.write_text(validation, encoding='utf-8')
+
+          task_path = Path('docs/agents/tasks/active/CAN-20260713-wheel-15-25-runtime-completion.md')
+          task = task_path.read_text(encoding='utf-8')
+          note = '''## 2026-07-13T20:25:00Z
+
+- CI finding: Linux debug compiled and the server smoke test passed, but two pre-existing lightweight Wheel tests aborted because `getWheelPoints()` now resolved `KVStore` through DI.
+- Root cause: persistence was read on every point query instead of during the established Wheel KV login phase.
+- Changed: moved the purchased count to bounded `PlayerWheel` cache state, loaded it with other Wheel KV data, synchronized it immediately from Taskboard after purchase, and added deterministic cache/bounds coverage.
+- Validation: follow-up full CI pending; no green claim yet.
+
+'''
+          task = replace_once(task, '# Decisions\n', note + '# Decisions\n', 'task CI finding')
+          task_path.write_text(task, encoding='utf-8')
+          PY
+
+      - name: Validate focused fix
+        shell: bash
+        run: |
+          git diff --check
+          PYTHONPATH=tools/ai-agent python -m unittest -v tools/ai-agent/test_wheel_task_shop_validation.py
+          python tools/check_lua_api_binding_docs.py
+
+      - name: Commit fix to PR branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            data/modules/scripts/taskboard/taskboard.lua \
+            docs/agents/tasks/active/CAN-20260713-wheel-15-25-runtime-completion.md \
+            docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION.md \
+            docs/lua-api/lua_api.d.lua \
+            docs/lua-api/lua_api.json \
+            src/creatures/players/components/wheel/player_wheel.cpp \
+            src/creatures/players/components/wheel/player_wheel.hpp \
+            src/lua/functions/creatures/player/player_functions.cpp \
+            src/lua/functions/creatures/player/player_functions.hpp \
+            tests/unit/players/wheel_validation_test.cpp \
+            tools/ai-agent/test_wheel_task_shop_validation.py
+          git commit -m "fix(wheel): cache Hunting Task Shop points"
+          git push origin HEAD:feat/wheel-15-25-runtime-completion
