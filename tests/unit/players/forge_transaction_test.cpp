@@ -9,6 +9,8 @@
 
 #include <gtest/gtest.h>
 
+#include <vector>
+
 #include "game/functions/forge_transaction.hpp"
 
 TEST(ForgeTransactionTest, CommitsAllStepsWithoutRollback) {
@@ -62,6 +64,49 @@ TEST(ForgeTransactionTest, RollsBackFailedStepAndPriorStepsInReverseOrder) {
 	EXPECT_FALSE(transaction.commit());
 	EXPECT_FALSE(transaction.isCommitted());
 	EXPECT_EQ((std::vector<int> { 1, 2, -2, -1 }), events);
+}
+
+TEST(ForgeTransactionTest, RestoresResourcesWhenFailedStepMutatesBeforeReturningFalse) {
+	int firstItemCount = 1;
+	int secondItemCount = 1;
+	int coreCount = 4;
+	int gold = 100;
+
+	ForgeTransaction transaction;
+	transaction.stage(
+		[&firstItemCount] {
+			--firstItemCount;
+			return true;
+		},
+		[&firstItemCount] { ++firstItemCount; }
+	);
+	transaction.stage(
+		[&secondItemCount] {
+			--secondItemCount;
+			return true;
+		},
+		[&secondItemCount] { ++secondItemCount; }
+	);
+	transaction.stage(
+		[&coreCount] {
+			coreCount -= 2;
+			return true;
+		},
+		[&coreCount] { coreCount = 4; }
+	);
+	transaction.stage(
+		[&gold] {
+			gold -= 60;
+			return false;
+		},
+		[&gold] { gold = 100; }
+	);
+
+	EXPECT_FALSE(transaction.commit());
+	EXPECT_EQ(1, firstItemCount);
+	EXPECT_EQ(1, secondItemCount);
+	EXPECT_EQ(4, coreCount);
+	EXPECT_EQ(100, gold);
 }
 
 TEST(ForgeTransactionTest, CannotCommitTwice) {
