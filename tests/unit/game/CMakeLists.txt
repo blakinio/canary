@@ -3,6 +3,7 @@ target_sources(
     PRIVATE bank_test.cpp
             combat_policy_test.cpp
             events_scheduler_test.cpp
+            forge_config_test.cpp
             highscores_test.cpp
             npc_shop_range_test.cpp
             random_mount_test.cpp
