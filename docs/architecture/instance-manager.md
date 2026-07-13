@@ -226,9 +226,13 @@ creatures.
 3. **Cross-instance isolation**: spectator, targeting and combat call sites use
    the central relation policy while normal-world behavior stays unchanged.
 4. **Scheduler/event ownership**: `InstanceScopedEvent` gives a scheduled
-   callback a lazy liveness check (done - see above). Still open: an actual
-   dispatcher/task call site uses it, and the timeout sweep gets a real
-   periodic owner - both can now use `Game::getInstanceManager()`.
+   callback a lazy liveness check (done - see above). `closeExpiredInstances()`
+   now has a real periodic owner: `Game::start()` registers a
+   `g_dispatcher().cycleEvent(EVENT_INSTANCE_TIMEOUT_SWEEP_MS, ...)` tick that
+   calls `getInstanceManager().closeExpiredInstances()` (done). Still open: no
+   actual dispatcher/task call site wraps its callback with
+   `InstanceScopedEvent` yet - nothing schedules instance-scoped work at all,
+   since nothing creates a real instance in production.
 5. **Player enter/leave**: validated entry, safe return position, closing,
    logout, death and reconnect behavior.
 6. **Lua API**: create/get/enter/leave/close/state with stable errors and no raw
