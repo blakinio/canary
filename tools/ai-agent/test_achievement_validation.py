@@ -261,6 +261,19 @@ player:addAllAchievements(false)
         self.assertEqual(row["status"], "handler-missing")
         self.assertEqual(row["attainability"]["newPlayers"], "handler-missing")
 
+    def test_confirmed_live_non_point_metadata_matches_reference(self) -> None:
+        root = Path(__file__).resolve().parents[2]
+        registry_path = root / "data/scripts/lib/register_achievements.lua"
+        definitions, _ = parse_registry_text(registry_path.read_text(encoding="utf-8"))
+        by_id = {item.id: item for item in definitions}
+
+        self.assertEqual(0, by_id[406].grade)
+        self.assertEqual(0, by_id[406].points)
+        self.assertTrue(by_id[406].secret)
+        self.assertEqual(4, by_id[513].grade)
+        self.assertEqual(10, by_id[513].points)
+        self.assertTrue(by_id[513].secret)
+
     def test_persistence_evidence_is_line_grounded(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
