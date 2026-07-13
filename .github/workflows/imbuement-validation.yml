@@ -8,20 +8,16 @@ on:
   pull_request:
     paths:
       - ".github/workflows/imbuement-validation.yml"
-      - "data/XML/imbuements.xml"
-      - "tools/ai-agent/imbuement*_validation.py"
-      - "tools/ai-agent/test_imbuement*_validation.py"
-      - "docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md"
-      - "docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json"
-      - "docs/agents/tasks/**/CAN-*-imbuement*.md"
+      - "tools/ai-agent/apply_imbuement_live_parity_patch.py"
+      - "docs/ai-agent/IMBUEMENT_FINALIZER_DIAGNOSTIC.tmp"
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  finalize-live-parity:
-    name: Finalize live parity patch
+  diagnose-live-parity:
+    name: Diagnose live parity patch
     if: >-
       (github.event_name == 'push' && github.ref_name == 'fix/imbuement-live-parity') ||
       (github.event_name == 'pull_request' && github.head_ref == 'fix/imbuement-live-parity')
@@ -33,50 +29,33 @@ jobs:
           ref: fix/imbuement-live-parity
           fetch-depth: 0
 
-      - name: Detect whether finalization is required
+      - name: Detect whether diagnostic is required
         id: gate
-        shell: bash
         run: |
-          if grep -Fq '<imbuement name="Vibrancy" base="3" category="19" iconid="79" premium="1" storage="0">' data/XML/imbuements.xml; then
-            echo 'needed=true' >> "$GITHUB_OUTPUT"
-          else
+          if test -f docs/ai-agent/IMBUEMENT_FINALIZER_DIAGNOSTIC.tmp; then
             echo 'needed=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'needed=true' >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Apply final evidence-backed patch
+      - name: Capture finalizer output
         if: steps.gate.outputs.needed == 'true'
-        run: python tools/ai-agent/apply_imbuement_live_parity_patch.py
-
-      - name: Validate focused contracts
-        if: steps.gate.outputs.needed == 'true'
+        shell: bash
         run: |
-          python -m py_compile \
-            tools/ai-agent/imbuement_validation.py \
-            tools/ai-agent/imbuement_storage_validation.py \
-            tools/ai-agent/test_imbuement_validation.py \
-            tools/ai-agent/test_imbuement_storage_validation.py
-          python -m unittest discover -s tools/ai-agent -p 'test_imbuement*.py'
-          python tools/ai-agent/imbuement_validation.py \
-            --repository-root . \
-            --output /tmp/IMBUEMENT_VALIDATION.json
-          python tools/ai-agent/imbuement_storage_validation.py \
-            --repository-root . \
-            --output /tmp/IMBUEMENT_STORAGE_VALIDATION.json \
-            --strict
-          python -m json.tool docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json >/dev/null
+          set +e
+          python tools/ai-agent/apply_imbuement_live_parity_patch.py > /tmp/finalizer.log 2>&1
+          status=$?
+          {
+            echo "exit_status=$status"
+            cat /tmp/finalizer.log
+          } > docs/ai-agent/IMBUEMENT_FINALIZER_DIAGNOSTIC.tmp
+          exit 0
 
-      - name: Commit final live parity data
+      - name: Commit diagnostic
         if: steps.gate.outputs.needed == 'true'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add \
-            data/XML/imbuements.xml \
-            tools/ai-agent/imbuement_storage_validation.py \
-            tools/ai-agent/test_imbuement_storage_validation.py \
-            tests/fixture/core/XML/imbuements.xml \
-            docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md \
-            docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json \
-            docs/agents/tasks/active/CAN-20260713-imbuement-live-parity.md
-          git commit -m 'fix(imbuement): enforce quest completion unlocks'
+          git add docs/ai-agent/IMBUEMENT_FINALIZER_DIAGNOSTIC.tmp
+          git commit -m 'docs(imbuement): capture active finalizer failure'
           git push origin HEAD:fix/imbuement-live-parity
