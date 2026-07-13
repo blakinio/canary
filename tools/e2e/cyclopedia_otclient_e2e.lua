@@ -46,15 +46,15 @@ local function installMinimalStartupMode()
         return
     end
 
-    -- These modules immediately send unrelated packets during onGameStart.
-    -- Disable them only in this diagnostic prototype to identify which packet
-    -- makes Canary close the modern game socket. The feature suite itself does
-    -- not depend on them and the modules will be restored one by one once the
-    -- incompatible sender is proven.
+    -- These modules immediately send packets unrelated to the Cyclopedia
+    -- scenario. Disable them only in this diagnostic prototype, then restore
+    -- them one by one after the exact incompatible sender is proven.
     disableStartupModule('game_quickloot')
     disableStartupModule('game_imbuementtracker')
     disableStartupModule('game_shop')
     disableStartupModule('client_locales')
+    disableStartupModule('game_proficiency')
+    disableStartupModule('game_questlog')
 end
 
 local function valueCount(value)
