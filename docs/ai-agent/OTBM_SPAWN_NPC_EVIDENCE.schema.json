@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opentibiabr.github.io/canary/schemas/otbm-spawn-npc-evidence-v1.json",
+  "title": "Canary OTBM spawn and NPC source evidence",
+  "type": "object",
+  "required": ["format", "schemaVersion", "ok", "activeDatapack", "policy", "sources", "summary", "definitions", "spawnGroups", "placements", "dynamicCreations", "findings"],
+  "properties": {
+    "format": {"const": "canary-otbm-spawn-npc-evidence-v1"},
+    "schemaVersion": {"const": 1},
+    "ok": {"type": "boolean"},
+    "activeDatapack": {
+      "type": "object",
+      "required": ["rootName", "sourceManifestSha256"],
+      "properties": {
+        "rootName": {"type": "string", "minLength": 1},
+        "sourceManifestSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "policy": {"type": "object"},
+    "sources": {"type": "object"},
+    "summary": {"type": "object"},
+    "definitions": {"type": "array", "items": {"$ref": "#/$defs/definition"}},
+    "spawnGroups": {"type": "array", "items": {"$ref": "#/$defs/group"}},
+    "placements": {"type": "array", "items": {"$ref": "#/$defs/placement"}},
+    "dynamicCreations": {"type": "array", "items": {"type": "object"}},
+    "findings": {"type": "array", "items": {"type": "object"}}
+  },
+  "$defs": {
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "definition": {
+      "type": "object",
+      "required": ["kind", "name", "canonicalName", "source", "line", "sourceSha256", "rewardBossLiteral", "spawnBossLiteral"],
+      "properties": {
+        "kind": {"enum": ["monster", "npc"]},
+        "name": {"type": "string", "minLength": 1},
+        "canonicalName": {"type": "string", "minLength": 1},
+        "source": {"type": "string", "minLength": 1},
+        "line": {"type": "integer", "minimum": 1},
+        "sourceSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "rewardBossLiteral": {"type": "boolean"},
+        "spawnBossLiteral": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "group": {
+      "type": "object",
+      "required": ["id", "kind", "source", "ordinal", "center", "radius", "placementCount"],
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {"enum": ["monster", "npc"]},
+        "source": {"type": "string"},
+        "ordinal": {"type": "integer", "minimum": 1},
+        "center": {"$ref": "#/$defs/position"},
+        "radius": {"type": "integer", "minimum": -1},
+        "placementCount": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": true
+    },
+    "placement": {
+      "type": "object",
+      "required": ["id", "groupId", "kind", "name", "canonicalName", "source", "center", "radius", "offset", "position", "spawntimeStatus", "spawnBossLiteral"],
+      "properties": {
+        "id": {"type": "string"},
+        "groupId": {"type": "string"},
+        "kind": {"enum": ["monster", "npc"]},
+        "name": {"type": "string", "minLength": 1},
+        "canonicalName": {"type": "string", "minLength": 1},
+        "source": {"type": "string"},
+        "center": {"$ref": "#/$defs/position"},
+        "radius": {"type": "integer", "minimum": -1},
+        "offset": {"type": "array", "items": {"type": "integer"}, "minItems": 2, "maxItems": 2},
+        "position": {"$ref": "#/$defs/position"},
+        "spawntimeStatus": {"type": "string"},
+        "spawnBossLiteral": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}
