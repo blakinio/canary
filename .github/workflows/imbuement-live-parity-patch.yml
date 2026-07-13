@@ -1,4 +1,4 @@
-name: Imbuement Live Parity Finalizer
+name: Imbuement Live Parity Diagnostics
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  finalize:
+  diagnose:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -19,37 +19,22 @@ jobs:
           ref: fix/imbuement-live-parity
           fetch-depth: 0
 
-      - name: Apply final evidence-backed patch
-        run: python tools/ai-agent/apply_imbuement_live_parity_patch.py
-
-      - name: Validate focused contracts
+      - name: Execute finalizer and capture output
+        shell: bash
         run: |
-          python -m py_compile \
-            tools/ai-agent/imbuement_validation.py \
-            tools/ai-agent/imbuement_storage_validation.py \
-            tools/ai-agent/test_imbuement_validation.py \
-            tools/ai-agent/test_imbuement_storage_validation.py
-          python -m unittest discover -s tools/ai-agent -p 'test_imbuement*.py'
-          python tools/ai-agent/imbuement_validation.py \
-            --repository-root . \
-            --output /tmp/IMBUEMENT_VALIDATION.json
-          python tools/ai-agent/imbuement_storage_validation.py \
-            --repository-root . \
-            --output /tmp/IMBUEMENT_STORAGE_VALIDATION.json \
-            --strict
-          python -m json.tool docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json >/dev/null
+          set +e
+          python tools/ai-agent/apply_imbuement_live_parity_patch.py > /tmp/finalizer.log 2>&1
+          status=$?
+          {
+            echo "exit_status=$status"
+            cat /tmp/finalizer.log
+          } > docs/ai-agent/IMBUEMENT_FINALIZER_DIAGNOSTIC.tmp
+          exit 0
 
-      - name: Commit final live parity data
+      - name: Commit diagnostic
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add \
-            data/XML/imbuements.xml \
-            tools/ai-agent/imbuement_storage_validation.py \
-            tools/ai-agent/test_imbuement_storage_validation.py \
-            tests/fixture/core/XML/imbuements.xml \
-            docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md \
-            docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json \
-            docs/agents/tasks/active/CAN-20260713-imbuement-live-parity.md
-          git commit -m 'fix(imbuement): enforce quest completion unlocks'
+          git add docs/ai-agent/IMBUEMENT_FINALIZER_DIAGNOSTIC.tmp
+          git commit -m 'docs(imbuement): capture finalizer diagnostic'
           git push origin HEAD:fix/imbuement-live-parity
