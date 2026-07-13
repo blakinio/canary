@@ -190,7 +190,8 @@ inherits its owner through the existing binder.
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
 | (pre-commit) | `clang-format --dry-run --Werror` on all changed C++ files (`instance_arena_service.{hpp,cpp}`, `game.hpp`, `game.cpp`, `monster.cpp`, the test file) | Pass | No formatting diffs |
-| (pending) | CI (full Linux/Windows/macOS/Docker compile matrix, unit tests, Canary/Global smoke) | not-run | First real build/link/test-run confirmation |
+| `24e8165d` | CI compile matrix (Linux release/debug, Windows CMake) | Fail | Real compile error: `binder.bind(created.id, monster)` passed a `shared_ptr<Monster>` where the templated overload requires a value exposing `getID()` directly - not caught locally since this sandbox has no build. |
+| `be7bd8cc` | Fix: `binder.bind(created.id, *monster)` | pending | Re-run in progress |
 
 # Risks and compatibility
 
