@@ -2,16 +2,16 @@
 task_id: CAN-20260713-imbuement-direct-access-guard
 program_id: ""
 coordination_id: ""
-status: in_progress
+status: ready_for_review_pending_ci
 agent: "GPT-5.6 Thinking"
 branch: fix/imbuement-direct-access-guard
 base_branch: main
 created: 2026-07-13T15:55:00+02:00
-updated: 2026-07-13T15:55:00+02:00
-last_verified_commit: "600418aa26fedb6c09eb1e035d82b332955e84c6"
+updated: 2026-07-13T21:36:00+02:00
+last_verified_commit: "4e97f66f9f78d49ebbcbaf9acf8a31c49cf1c4a2"
 risk: medium
 related_issue: "dry-test finding after IMB-001..006 live-parity repair"
-related_pr: "pending"
+related_pr: "#282"
 depends_on:
   - merged Imbuement live-parity PR #251
   - merged lifecycle cleanup PR #255
@@ -22,7 +22,6 @@ owned_paths:
     - src/creatures/players/player.cpp
     - tests/unit/players/imbuements/imbuements_test.cpp
     - tools/ai-agent/imbuement_validation.py
-    - tools/ai-agent/test_imbuement_validation.py
     - docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md
     - docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json
     - docs/agents/tasks/active/CAN-20260713-imbuement-direct-access-guard.md
@@ -44,35 +43,56 @@ cross_repo_tasks: []
 
 # Goal
 
-Close the dry-test-discovered server-side authorization gap where a modified client can submit a hidden Imbuement numeric ID directly and bypass the presentation-only premium/storage filtering.
+Close the dry-test-discovered server-side authorization gap where a modified client can submit a hidden Imbuement numeric ID directly and bypass presentation-only premium/storage filtering.
 
 # Confirmed dry-test finding
 
 - `Imbuements::getImbuements()` hides locked storage entries before presenting the window.
 - `Game::playerApplyImbuement()` resolves the submitted numeric ID and delegates to `Player::onApplyImbuement()`.
-- `Player::onApplyImbuement()` delegates target validation to `Item::canAddImbuement()`.
+- `Player::onApplyImbuement()` delegated target validation to `Item::canAddImbuement()`.
 - `Item::canAddImbuement()` validates slot bounds, target category/tier compatibility and duplicate category, but does not validate premium entitlement or quest storage.
-- Therefore a crafted packet can attempt an Intricate/Powerful ID that the normal client did not present.
+- Therefore a crafted packet could attempt an Intricate/Powerful ID that the normal client did not present.
 
-# Intended repair
+# Implemented repair
 
-- Add one deterministic direct-access policy reusing `ImbuementStoragePolicy`.
-- Enforce it before any money/material mutation in normal direct application and scroll creation.
-- Preserve `Player::applyScrollImbuement()` behavior: possession/use of an already-created scroll remains a separate path and must not be accidentally gated by the shrine unlock.
-- Add C++ and Python regressions for premium, storage enabled/disabled, unlocked storage and exact runtime guard coverage.
-- Refresh the stale Markdown report baseline/status discovered by the same dry review.
+- Added `ImbuementAccessPolicy::canApplyDirectly`, reusing `ImbuementStoragePolicy`.
+- `Player::onApplyImbuement()` now checks premium and configured quest storage before target, money or material mutation.
+- `Player::createScrollImbuement()` now applies the same server-side authorization before money/material/empty-scroll mutation.
+- `Player::applyScrollImbuement()` is intentionally unchanged: possession of an already-created scroll remains the entitlement token.
+- Added focused C++ policy coverage for Basic/free access, premium rejection, missing storage rejection, unlocked storage success and disabled-storage-filter behavior.
+- Extended the deterministic runtime marker audit to require both server-side guard call sites.
+- Refreshed the Markdown baseline from 7/22/2 to 9/24/0 and documented the direct-ID finding.
+
+# Dry-test matrix
+
+| Scenario | Result after repair |
+|---|---|
+| Valid Basic direct application policy | PASS |
+| Non-premium direct premium ID | REJECTED |
+| Powerful ID with filtering enabled and missing storage | REJECTED |
+| Powerful ID with proven storage present | ALLOWED |
+| Powerful ID with storage filtering disabled | ALLOWED by configuration |
+| Existing Intricate/Powerful Imbuement Scroll use | unchanged |
+| Invalid slot/target/category | existing rejection preserved |
+| Duplicate category/name | existing rejection preserved |
+| Missing materials | rejected before gold mutation |
+| Missing gold | rejected before material mutation |
 
 # Acceptance criteria
 
-- [ ] Non-premium players cannot directly apply or create premium Imbuements by sending an ID.
-- [ ] With shrine-storage filtering enabled, missing quest storage blocks direct application and scroll creation before resources are mutated.
-- [ ] A present unlock storage permits the operation.
-- [ ] With storage filtering disabled, the storage gate remains disabled.
-- [ ] Existing Imbuement Scroll application remains unchanged.
-- [ ] Deterministic validators and focused tests cover the guard.
+- [x] Non-premium players cannot directly apply or create premium Imbuements by sending an ID.
+- [x] With shrine-storage filtering enabled, missing quest storage blocks direct application and scroll creation before resources are mutated.
+- [x] A present unlock storage permits the operation.
+- [x] With storage filtering disabled, the storage gate remains disabled.
+- [x] Existing Imbuement Scroll application remains unchanged.
+- [x] Deterministic validators and focused tests cover the guard.
 - [ ] Full current-head CI is inspected before merge.
 - [ ] Task is archived in a separate cleanup PR.
 
+# Evidence boundary
+
+The dry test proves control flow and deterministic policy behavior. Full C++ compilation/tests, runtime smoke and platform builds remain GitHub CI evidence. Physical-client packet/E2E and production database persistence remain separate runtime evidence.
+
 # Local limitation
 
-The execution environment previously could not resolve `github.com`; no local checkout/test is claimed unless this changes. GitHub API and GitHub Actions remain separate evidence.
+The execution environment cannot resolve `github.com`; no local checkout/test is claimed. GitHub API and GitHub Actions are separate evidence.
