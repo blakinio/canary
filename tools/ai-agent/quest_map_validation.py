@@ -3,7 +3,9 @@ from __future__ import annotations
 import fnmatch
 import hashlib
 import json
+import os
 import re
+import tempfile
 from collections import Counter
 from dataclasses import asdict
 from pathlib import Path
@@ -54,8 +56,27 @@ def _load_json(path: Path) -> dict[str, Any]:
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")
+    target = path.expanduser()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if target.is_symlink():
+        raise QuestMapValidationError(f"Refusing to replace symlink output: {target}")
+    text = json.dumps(payload, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{target.name}.",
+        suffix=".tmp",
+        dir=target.parent,
+        text=True,
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as stream:
+            stream.write(text)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, target)
+    except Exception:
+        temporary.unlink(missing_ok=True)
+        raise
 
 
 def _line_number(text: str, offset: int) -> int:
@@ -145,6 +166,10 @@ _TELEPORT_VARIABLE_RE = re.compile(
 )
 _STORAGE_RE = re.compile(
     r"\b(?P<method>getStorageValue|setStorageValue)\s*\(\s*(?P<arg>[^,\)\n]+)", re.I
+)
+_STORAGE_ALIAS_RE = re.compile(
+    r"(?m)^\s*(?:local\s+)?(?P<name>[A-Za-z_]\w*)\s*=\s*"
+    r"(?P<value>Storage(?:\.[A-Za-z_]\w*)+)\s*(?:[,;]|$)"
 )
 _ITEM_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
     (re.compile(r"\b(?:Game\s*\.\s*)?createItem\s*\(\s*(?P<value>[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*|\d+)", re.I), "item-create"),
@@ -300,6 +325,7 @@ def _lua_evidence(path: Path, root: Path) -> tuple[list[dict[str, Any]], list[di
     lines = text.splitlines()
     rel = path.relative_to(root).as_posix()
     numbers = {match.group(1): int(match.group(2)) for match in _NUMBER_ASSIGN_RE.finditer(cleaned)}
+    storage_aliases = {match.group("name"): match.group("value") for match in _STORAGE_ALIAS_RE.finditer(cleaned)}
     position_constants: dict[str, tuple[int, int, int]] = {}
     evidence, unresolved = _registration_evidence(path, root)
 
@@ -384,15 +410,20 @@ def _lua_evidence(path: Path, root: Path) -> tuple[list[dict[str, Any]], list[di
         elif re.fullmatch(r"Storage(?:\.[A-Za-z_]\w*)+", expression):
             value = expression
         else:
-            unresolved.append(
-                _unresolved(
-                    kind="storage",
-                    expression=expression,
-                    source=source,
-                    reason="Storage key expression is dynamic",
+            alias_match = re.fullmatch(r"(?P<alias>[A-Za-z_]\w*)(?P<suffix>(?:\.[A-Za-z_]\w*)+)", expression)
+            alias = storage_aliases.get(alias_match.group("alias")) if alias_match else None
+            if alias is not None:
+                value = alias + alias_match.group("suffix")
+            else:
+                unresolved.append(
+                    _unresolved(
+                        kind="storage",
+                        expression=expression,
+                        source=source,
+                        reason="Storage key expression is dynamic",
+                    )
                 )
-            )
-            continue
+                continue
         role = "storage-read" if match.group("method").lower().startswith("get") else "storage-write"
         evidence.append(_evidence(kind="storage", value=value, role=role, source=source))
 
@@ -565,10 +596,16 @@ def _correlate_one(
     tile: dict[str, Any] | None = None
     script_entry: dict[str, Any] | None = None
     runtime_status: str | None = None
+    reason: str | None = None
 
     if kind == "itemId":
         map_count, samples = _sample_query_result(query_item(index_path, int(value), limit=sample_limit), sample_limit)
-        classification = "confirmed" if map_count else "script-only"
+        if map_count:
+            classification = "confirmed"
+            reason = "The item ID has at least one static placement in the indexed map; quest relevance still depends on source and region context"
+        else:
+            classification = "unresolved"
+            reason = "Absence from the static map does not prove an item ID is invalid; rewards, inventory items and dynamically created items require item-registry/runtime evidence"
     elif kind == "actionId":
         map_count, samples = _sample_query_result(query_action(index_path, int(value), limit=sample_limit), sample_limit)
         script_entry = script_statuses.get((kind, int(value)))
@@ -599,9 +636,17 @@ def _correlate_one(
         tile = result.get("tile") if isinstance(result.get("tile"), dict) else None
         samples = list(result.get("placements", []))[:sample_limit]
         map_count = 1 if tile is not None else 0
-        classification = "confirmed" if tile is not None else "script-only"
+        map_required = kind == "teleportDestination" or entry.get("role") == "registration"
+        if tile is not None:
+            classification = "confirmed"
+        elif map_required:
+            classification = "script-only"
+        else:
+            classification = "unresolved"
+            reason = "A generic Position literal can be an area bound, center or transient coordinate; an absent tile is not enough to prove a broken quest requirement"
     elif kind == "storage":
         classification = "unresolved"
+        reason = "Storage evidence is inventoried but map-independent; transition analysis is a later phase"
     else:
         raise QuestMapValidationError(f"Unsupported evidence kind: {kind}")
 
@@ -621,8 +666,8 @@ def _correlate_one(
             "status": runtime_status,
             "evidence": script_entry,
         }
-    if kind == "storage":
-        result_entry["reason"] = "Storage evidence is inventoried but map-independent; transition analysis is a later phase"
+    if reason is not None:
+        result_entry["reason"] = reason
     return result_entry
 
 
@@ -750,6 +795,8 @@ def validate_quest_evidence(
             "confirmed means the selected source evidence and required map placement were both found; AID/UID handler confirmation uses script-resolution when supplied.",
             "map-only means the map placement exists but a confirmed selected handler/reference was not established.",
             "script-only means selected source evidence expects an identifier or position absent from the indexed map.",
+            "Item-ID map counts are context only: absence from static OTBM is unresolved for rewards, inventory items and dynamic creation, not automatically script-only.",
+            "Generic Position literals absent from the map remain unresolved unless they are explicit registrations or teleport destinations.",
             "Dynamic Lua and storage transition semantics remain unresolved rather than guessed.",
         ],
     }
