@@ -11319,7 +11319,7 @@ void Player::forgeFuseItems(ForgeAction_t actionType, uint16_t firstItemId, uint
 
 	const auto firstSnapshot = captureForgeItem(firstForgingItem);
 	const auto secondSnapshot = captureForgeItem(secondForgingItem);
-	const auto [sliversBefore, coresBefore] = getForgeSliversAndCores();
+	const auto coresBefore = getForgeSliversAndCores().second;
 	const uint64_t inventoryMoneyBefore = getMoney();
 	const uint64_t bankBalanceBefore = getBankBalance();
 
@@ -11470,7 +11470,7 @@ void Player::forgeTransferItemTier(ForgeAction_t actionType, uint16_t donorItemI
 
 	const auto donorSnapshot = captureForgeItem(donorItem);
 	const auto receiveSnapshot = captureForgeItem(receiveItem);
-	const auto [sliversBefore, coresBefore] = getForgeSliversAndCores();
+	const auto coresBefore = getForgeSliversAndCores().second;
 	const uint64_t inventoryMoneyBefore = getMoney();
 	const uint64_t bankBalanceBefore = getBankBalance();
 
@@ -11573,6 +11573,11 @@ void Player::forgeResourceConversion(ForgeAction_t actionType) {
 			sendForgeError(RETURNVALUE_CONTACTADMINISTRATOR);
 			return;
 		}
+		if (g_game().internalAddItem(player, core, INDEX_WHEREEVER, 0, true) != RETURNVALUE_NOERROR) {
+			g_logger().error("[{}] No inventory capacity for a Forge Core for player {}", __FUNCTION__, getName());
+			sendForgeError(RETURNVALUE_NOTENOUGHROOM);
+			return;
+		}
 
 		ForgeTransaction transaction;
 		transaction.stage(
@@ -11583,7 +11588,7 @@ void Player::forgeResourceConversion(ForgeAction_t actionType) {
 			}
 		);
 		transaction.stage(
-			[player, core] { return g_game().internalPlayerAddItem(player, core) == RETURNVALUE_NOERROR; },
+			[player, core] { return g_game().internalPlayerAddItem(player, core, false) == RETURNVALUE_NOERROR; },
 			[player, sliverCount, coreCount] {
 				restoreForgeStackable(player, ITEM_FORGE_SLIVER, sliverCount);
 				restoreForgeStackable(player, ITEM_FORGE_CORE, coreCount);
