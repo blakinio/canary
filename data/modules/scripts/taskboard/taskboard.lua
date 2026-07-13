@@ -78,10 +78,27 @@ local ShopResponseActions = {
 	[ClientAction.ShopBuy] = true,
 }
 
--- Official-client packet shim for 15.25 Taskboard traffic.
--- This intentionally sends empty but structurally valid 0x5B windows. Full
--- task state, rewards, shop contents and Soulpit behavior should be added on
--- top of these byte writers instead of changing the packet contract.
+local ShopOfferType = {
+	BonusPromotion = 0x04,
+}
+
+local ShopStatus = {
+	Available = 0x00,
+	NotEnoughPoints = 0x02,
+	Bought = 0x04,
+}
+
+local BonusPromotion = {
+	OfferId = 0,
+	MaxPoints = 50,
+	KvScope = "wheel-of-destiny",
+	KvKey = "hunting-task-shop-points",
+}
+
+-- Official-client packet implementation for 15.25 Taskboard traffic.
+-- Bounty and Weekly remain structurally valid empty windows. The Hunting
+-- Task Shop exposes the retail Bonus Promotion offer and persists only the
+-- purchased Wheel points, never the player's complete Hunting Task balance.
 
 local function readU8(msg)
 	if msg:getUnreadBytes() < 1 then
@@ -151,12 +168,71 @@ local function sendWeeklyWindow(player)
 	msg:sendToPlayer(player)
 end
 
+local function getBonusPromotionKV(player)
+	return player:kv():scoped(BonusPromotion.KvScope)
+end
+
+local function getPurchasedBonusPromotionPoints(player)
+	local stored = getBonusPromotionKV(player):get(BonusPromotion.KvKey)
+	local points = math.floor(tonumber(stored) or 0)
+	return math.max(0, math.min(BonusPromotion.MaxPoints, points))
+end
+
+local function getBonusPromotionPointCost(pointNumber)
+	if pointNumber < 1 or pointNumber > BonusPromotion.MaxPoints then
+		return 0
+	end
+
+	return 100 * (1 + math.floor((pointNumber * (pointNumber - 1)) / 2))
+end
+
+local function getBonusPromotionStatus(player, purchasedPoints, nextCost)
+	if purchasedPoints >= BonusPromotion.MaxPoints then
+		return ShopStatus.Bought
+	end
+	if player:getTaskHuntingPoints() < nextCost then
+		return ShopStatus.NotEnoughPoints
+	end
+	return ShopStatus.Available
+end
+
 local function sendShopWindow(player)
+	local purchasedPoints = getPurchasedBonusPromotionPoints(player)
+	local nextPoint = purchasedPoints + 1
+	local nextCost = getBonusPromotionPointCost(nextPoint)
+
 	local msg = NetworkMessage()
 	msg:addByte(ServerPackets.Taskboard)
 	msg:addByte(OutboundWindow.Shop)
-	msg:addByte(0) -- offer count
+	msg:addByte(1) -- offer count
+	msg:addByte(ShopOfferType.BonusPromotion)
+	msg:addU16(nextPoint) -- client derives purchased count as value - 1
+	msg:addU32(nextCost)
+	msg:addByte(getBonusPromotionStatus(player, purchasedPoints, nextCost))
 	msg:sendToPlayer(player)
+end
+
+local function purchaseBonusPromotionPoint(player, offerId)
+	if offerId ~= BonusPromotion.OfferId then
+		logger.debug("[Taskboard] player='{}' requested unknown shop offer {}", player:getName(), offerId)
+		return false
+	end
+
+	local purchasedPoints = getPurchasedBonusPromotionPoints(player)
+	if purchasedPoints >= BonusPromotion.MaxPoints then
+		return false
+	end
+
+	local cost = getBonusPromotionPointCost(purchasedPoints + 1)
+	if cost <= 0 or player:getTaskHuntingPoints() < cost then
+		return false
+	end
+
+	player:removeTaskHuntingPoints(cost)
+	getBonusPromotionKV(player):set(BonusPromotion.KvKey, purchasedPoints + 1)
+	player:setWheelHuntingTaskShopPoints(purchasedPoints + 1)
+	logger.info("[Taskboard] player='{}' bought Wheel Promotion Point {} for {} Hunting Task Points", player:getName(), purchasedPoints + 1, cost)
+	return true
 end
 
 local function sendWindow(player, window)
@@ -169,17 +245,21 @@ local function sendWindow(player, window)
 	end
 end
 
-local function consumeActionPayload(msg, action)
+local function readActionPayload(msg, action)
 	if OneBytePayloadActions[action] then
-		return consumeU8(msg)
+		local value = readU8(msg)
+		return value ~= nil, value
 	end
 
 	if OneU16PayloadActions[action] then
-		return consumeU16(msg)
+		local value = readU16(msg)
+		return value ~= nil, value
 	end
 
 	if TwoU16PayloadActions[action] then
-		return consumeU16(msg) and consumeU16(msg)
+		local first = readU16(msg)
+		local second = readU16(msg)
+		return first ~= nil and second ~= nil, first, second
 	end
 
 	return true
@@ -196,7 +276,8 @@ function onRecvbyte(player, msg, byte)
 		return
 	end
 
-	if not consumeActionPayload(msg, action) then
+	local payloadValid, firstPayload = readActionPayload(msg, action)
+	if not payloadValid then
 		logger.debug("[Taskboard] ignored malformed 0x5F packet from player='{}': incomplete action {}", player:getName(), action)
 		return
 	end
@@ -207,7 +288,10 @@ function onRecvbyte(player, msg, byte)
 		return
 	end
 
-	if BountyResponseActions[action] then
+	if action == ClientAction.ShopBuy then
+		purchaseBonusPromotionPoint(player, firstPayload)
+		sendWindow(player, OutboundWindow.Shop)
+	elseif BountyResponseActions[action] then
 		sendWindow(player, OutboundWindow.Bounty)
 	elseif WeeklyResponseActions[action] then
 		sendWindow(player, OutboundWindow.Weekly)
@@ -217,5 +301,5 @@ function onRecvbyte(player, msg, byte)
 		sendWindow(player, OutboundWindow.Bounty)
 	end
 
-	logger.debug("[Taskboard] player='{}' action={} handled by minimal official packet shim.", player:getName(), action)
+	logger.debug("[Taskboard] player='{}' action={} handled.", player:getName(), action)
 end
