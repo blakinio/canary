@@ -1,0 +1,53 @@
+---
+name: Agent Task Ownership
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "AGENTS.md"
+      - "docs/agents/**"
+      - "tools/agents/task_ownership.py"
+      - "tools/agents/test_task_ownership.py"
+      - ".github/workflows/agent-task-ownership.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "AGENTS.md"
+      - "docs/agents/**"
+      - "tools/agents/task_ownership.py"
+      - "tools/agents/test_task_ownership.py"
+      - ".github/workflows/agent-task-ownership.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate active ownership
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile ownership tooling
+        run: python -m py_compile tools/agents/task_ownership.py tools/agents/test_task_ownership.py
+      - name: Run focused unit tests
+        working-directory: tools/agents
+        run: python -m unittest -v test_task_ownership.py
+      - name: Validate tasks and render ownership index
+        run: >-
+          python tools/agents/task_ownership.py
+          --write-index artifacts/agent-coordination/OWNERSHIP_INDEX.md
+      - name: Upload ownership index
+        uses: actions/upload-artifact@v4
+        with:
+          name: active-task-ownership
+          path: artifacts/agent-coordination/OWNERSHIP_INDEX.md
+          if-no-files-found: error
+          retention-days: 14

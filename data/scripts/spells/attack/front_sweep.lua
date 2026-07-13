@@ -5,17 +5,47 @@ combat:setParameter(COMBAT_PARAM_BLOCKARMOR, 1)
 combat:setParameter(COMBAT_PARAM_USECHARGES, 1)
 combat:setArea(createCombatArea(AREA_WAVE6, AREADIAGONAL_WAVE6))
 
-function onGetFormulaValues(player, skill, attack, factor)
+local AREA_WAVE6_WOD = {
+	{ 1, 1, 3, 1, 1 },
+}
+local AREADIAGONAL_WAVE6_WOD = {
+	{ 0, 0, 0, 0, 1 },
+	{ 0, 0, 0, 1, 0 },
+	{ 0, 0, 3, 0, 0 },
+	{ 0, 1, 0, 0, 0 },
+	{ 1, 0, 0, 0, 0 },
+}
+local combatWod = Combat()
+combatWod:setParameter(COMBAT_PARAM_TYPE, COMBAT_PHYSICALDAMAGE)
+combatWod:setParameter(COMBAT_PARAM_EFFECT, CONST_ME_HITAREA)
+combatWod:setParameter(COMBAT_PARAM_BLOCKARMOR, 1)
+combatWod:setParameter(COMBAT_PARAM_USECHARGES, 1)
+combatWod:setArea(createCombatArea(AREA_WAVE6_WOD, AREADIAGONAL_WAVE6_WOD))
+
+local function calculateFormula(player, skill, attack)
 	local skillTotal = skill * attack
 	local levelTotal = player:getLevel() / 5
+
 	return -(((skillTotal * 0.04) + 31) + levelTotal) * 1.1, -(((skillTotal * 0.08) + 45) + levelTotal) * 1.1 -- TODO : Use New Real Formula instead of an %
 end
 
+function onGetFormulaValues(player, skill, attack, factor)
+	return calculateFormula(player, skill, attack)
+end
+
+function onGetFormulaValuesWod(player, skill, attack, factor)
+	return calculateFormula(player, skill, attack)
+end
+
 combat:setCallback(CALLBACK_PARAM_SKILLVALUE, "onGetFormulaValues")
+combatWod:setCallback(CALLBACK_PARAM_SKILLVALUE, "onGetFormulaValuesWod")
 
 local spell = Spell("instant")
 
 function spell.onCastSpell(creature, var)
+	if creature:getWheelSpellAdditionalArea("Front Sweep") then
+		return combatWod:execute(creature, var)
+	end
 	return combat:execute(creature, var)
 end
 
