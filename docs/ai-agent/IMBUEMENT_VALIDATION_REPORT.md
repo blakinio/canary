@@ -1,6 +1,6 @@
 # Canary Imbuement Validation Report
 
-> **Status:** IMB-001/002/003 repaired in PR #251; IMB-004/005 preserved; IMB-006 evidence pending; final CI pending
+> **Status:** IMB-001/002/003/006 repaired in PR #251; IMB-004/005 preserved; final CI pending
 > **Observed:** 2026-07-13
 > **Writable repository:** `blakinio/canary`
 > **Reference:** <https://tibia.fandom.com/wiki/Imbuing>
@@ -63,7 +63,7 @@ The registry contains one Basic, Intricate and Powerful entry for every family. 
 
 The active system is structurally complete and its major runtime paths are connected. PR #251 aligns the confirmed current-live application fees, Strike values and Basic Punch materials. PR #206 and PR #239 remain preserved.
 
-The only remaining material reference discrepancy is IMB-006: Powerful Featherweight and Vibrancy still use `storage=0` because their exact active completion storage/value semantics have not yet been proven from the implemented quest paths.
+All six audited discrepancy groups now have evidence-backed repairs. Powerful Featherweight uses the permanent all-three-boss Dangerous Depths completion marker `45929`; Powerful Vibrancy uses the persistent Nightmare Beast completion marker `46365`. Neither marker is written at quest start.
 
 ## 5. Findings
 
@@ -150,14 +150,15 @@ The focused validator now:
 
 With storage filtering enabled, a boss kill now writes the same storage ID read by the corresponding Powerful entry.
 
-### IMB-006 — Featherweight and Vibrancy bypass filtering
+### IMB-006 — Featherweight and Vibrancy quest unlocks repaired
 
-**Disposition:** `confirmed-reference-mismatch; exact completion condition unresolved`
-**Confidence:** high for the bypass, medium for any future replacement storage/value
+**Disposition:** `repaired-in-pr-251`
+**Confidence:** high
 
-Powerful Featherweight and Powerful Vibrancy still use `storage="0"`. The policy intentionally does not hide zero-storage entries, so they remain visible when family-specific filtering is enabled.
+- Powerful Featherweight uses storage `45929` (`DangerousDepths.Bosses.LastAchievement`). The active action writes it only after all three final boss-achievement markers equal `1`.
+- Powerful Vibrancy uses storage `46365` (`TheDreamCourts.DreamScarGlobal.NightmareTimer`). The active death handler writes this player storage only for The Nightmare Beast; the quest catalogue and Vanys NPC identify that kill as the final main Dream Courts step. The timestamp remains set after the cooldown expires, so the existing `storage != -1` policy preserves the unlock permanently.
 
-The observed reference requires Dangerous Depths for Powerful Featherweight and Dream Courts for Powerful Vibrancy. The exact active completion storage and value for each quest have not yet been proven. Do not invent either mapping.
+The generic questline storages were deliberately rejected: both are set when the quest starts and would unlock Powerful imbuements too early. No new storage ID or threshold semantics were invented.
 
 ## 6. Confirmed conforming behavior
 
@@ -238,9 +239,8 @@ These remain runtime scenarios, not passed claims.
 
 ## 10. Recommended delivery order
 
-1. Prove the exact Dangerous Depths and Dream Courts completion conditions before assigning Featherweight/Vibrancy storages.
-2. Execute the remaining runtime plan in controlled Canary staging.
-3. Audit full equipment eligibility against item metadata.
+1. Execute the remaining runtime plan in controlled Canary staging.
+2. Audit full equipment eligibility against item metadata.
 
 ## 11. Reproduction
 

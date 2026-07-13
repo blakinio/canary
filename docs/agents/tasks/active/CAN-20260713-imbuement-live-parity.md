@@ -2,7 +2,7 @@
 task_id: CAN-20260713-imbuement-live-parity
 program_id: ""
 coordination_id: ""
-status: in_progress
+status: implementation_complete_pending_ci
 agent: "GPT-5.6 Thinking"
 branch: fix/imbuement-live-parity
 base_branch: main
@@ -59,15 +59,15 @@ Align the active Canary Imbuement registry with the current live Tibia mechanics
 
 # Acceptance criteria
 
-- [ ] Base application fees are exactly 7,500 / 60,000 / 250,000 gold with 100% success and no protection surcharge.
-- [ ] Basic, Intricate and Powerful Strike are exactly 5% critical chance with +5% / +15% / +40% critical damage.
-- [ ] Basic Punch consumes item 10281 x25 and higher tiers retain their verified cumulative material chains.
-- [ ] Protocol-visible base price/percent/protection fields match the same live model without a new protocol contract.
-- [ ] IMB-006 storages are changed only if exact active completion storage and accepted value semantics are proven; otherwise the blocker remains explicit.
-- [ ] Focused deterministic and C++ regression coverage is updated.
-- [ ] Validation report, runtime plan and agent changelog are current.
+- [x] Base application fees are exactly 7,500 / 60,000 / 250,000 gold with 100% success and no protection surcharge.
+- [x] Basic, Intricate and Powerful Strike are exactly 5% critical chance with +5% / +15% / +40% critical damage.
+- [x] Basic Punch consumes item 10281 x25 and higher tiers retain their verified cumulative material chains.
+- [x] Protocol-visible base price/percent/protection fields match the same live model without a new protocol contract.
+- [x] IMB-006 storages are changed only if exact active completion storage and accepted value semantics are proven; otherwise the blocker remains explicit.
+- [x] Focused deterministic and C++ regression coverage is updated.
+- [x] Validation report, runtime plan and agent changelog are current.
 - [ ] Current-head GitHub checks are inspected job-by-job and pass before merge.
-- [ ] No map, items.otb, binary asset, database schema, production configuration, client or ACTIVE_WORK.md change.
+- [x] No map, items.otb, binary asset, database schema, production configuration, client or ACTIVE_WORK.md change.
 - [ ] Autonomous merge gate is satisfied and the task is archived in a separate cleanup PR.
 
 # Confirmed context
@@ -167,9 +167,9 @@ Never write `passed` without verification on the stated commit.
 
 # Remaining work
 
-1. Open a draft PR for discovery.
-2. Complete IMB-006 evidence search.
-3. Implement and validate confirmed repairs.
+1. Remove temporary patch files and confirm the final changed-file boundary.
+2. Inspect final-head focused and repository CI job by job.
+3. Mark ready, merge and archive if all gates pass.
 
 # Handoff
 
@@ -203,3 +203,13 @@ Do not create a second Imbuement parser, do not restore the historical chance/pr
 - Catalogue updated: pending determination
 - Changelog updated: pending
 - Archived at: pending
+
+
+## 2026-07-13T14:35:00+02:00
+
+- Implemented IMB-001/002/003 and exact deterministic/C++ regressions in `1f5819d045815e6aa548112cacb62727fec5255b`.
+- Proved Featherweight completion storage `45929` from the all-three-boss achievement action.
+- Proved Vibrancy completion storage `46365` from the Nightmare Beast death handler plus final quest/NPC state.
+- Rejected generic questline storages because they are written at quest start and the current policy only checks for an initialized storage.
+- Restored the rich runtime plan instead of retaining the validator-generated reduced JSON.
+- Local commands remain unavailable because `github.com` DNS resolution fails; no local result is claimed.

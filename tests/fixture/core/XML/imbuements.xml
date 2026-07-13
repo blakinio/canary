@@ -40,7 +40,7 @@
 		<attribute key="effect" type="paralysis" chance="25" pvpDeflect="1" />
 		<attribute key="scroll" value="51746" />
 	</imbuement>
-	<imbuement name="Vibrancy" base="3" category="19" iconid="79" premium="1" storage="0">
+	<imbuement name="Vibrancy" base="3" category="19" iconid="79" premium="1" storage="46365">
 		<attribute key="description" value="Strongly deflects paralysis." />
 		<attribute key="effect" type="paralysis" chance="50" pvpDeflect="1" />
 		<attribute key="scroll" value="51466" />

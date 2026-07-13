@@ -31,13 +31,10 @@ class FakeRegistry:
 def mapped_entries() -> tuple[FakeEntry, ...]:
     entries = tuple(
         FakeEntry(name, 3, storage_id)
-        for storage_id, names in validation.EXPECTED_FORGOTTEN_KNOWLEDGE_GROUPS.items()
+        for storage_id, names in validation.EXPECTED_POWERFUL_STORAGE_GROUPS.items()
         for name in names
     )
-    return entries + (
-        FakeEntry("Featherweight", 3, 0),
-        FakeEntry("Vibrancy", 3, 0),
-    )
+    return entries
 
 
 def write_support_files(root: Path) -> None:
@@ -56,6 +53,8 @@ def write_support_files(root: Path) -> None:
         HorrorKilled = 45493,
         TimeGuardianKilled = 45494,
         LastLoreKilled = 45495,
+        LastAchievement = 45929,
+        NightmareTimer = 46365,
         """,
         encoding="utf-8",
     )
@@ -99,7 +98,7 @@ class ImbuementStorageValidationTests(unittest.TestCase):
             {45495: ("Epiphany", "Strike")},
         )
 
-    def test_validate_accepts_confirmed_mapping_and_retains_zero_storage_warning(
+    def test_validate_accepts_confirmed_mapping_without_unlock_bypass(
         self,
     ) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -116,14 +115,12 @@ class ImbuementStorageValidationTests(unittest.TestCase):
         self.assertNotIn("UNDECLARED_IMBUEMENT_STORAGE", by_code)
         self.assertNotIn("LEGACY_IMBUEMENT_STORAGE", by_code)
         self.assertNotIn("FORGOTTEN_KNOWLEDGE_FAMILY_GROUP", by_code)
-        self.assertIn("POWERFUL_UNLOCK_BYPASS", by_code)
+        self.assertNotIn("POWERFUL_UNLOCK_BYPASS", by_code)
         self.assertEqual(baseline["undeclared_storage_ids"], [])
         self.assertEqual(baseline["legacy_storage_ids_in_use"], [])
         self.assertEqual(baseline["family_group_mismatches"], [])
-        self.assertEqual(baseline["powerful_with_nonzero_storage"], 22)
-        self.assertEqual(
-            baseline["powerful_with_zero_storage"], ["Featherweight", "Vibrancy"]
-        )
+        self.assertEqual(baseline["powerful_with_nonzero_storage"], 24)
+        self.assertEqual(baseline["powerful_with_zero_storage"], [])
         self.assertFalse(baseline["storage_filter_default"])
         self.assertTrue(baseline["boss_script_uses_named_storages"])
 
@@ -162,6 +159,10 @@ class ImbuementStorageValidationTests(unittest.TestCase):
             ("Epiphany", "Strike"),
         )
         self.assertEqual(
+            validation.EXPECTED_QUEST_UNLOCK_GROUPS,
+            {45929: ("Featherweight",), 46365: ("Vibrancy",)},
+        )
+        self.assertEqual(
             sum(
                 len(families)
                 for families in validation.EXPECTED_FORGOTTEN_KNOWLEDGE_GROUPS.values()
@@ -176,7 +177,7 @@ class ImbuementStorageValidationTests(unittest.TestCase):
         self.assertEqual(baseline["undeclared_storage_ids"], [])
         self.assertEqual(baseline["legacy_storage_ids_in_use"], [])
         self.assertEqual(baseline["family_group_mismatches"], [])
-        self.assertEqual(baseline["powerful_with_nonzero_storage"], 22)
+        self.assertEqual(baseline["powerful_with_nonzero_storage"], 24)
 
 
 if __name__ == "__main__":

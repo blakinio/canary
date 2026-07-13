@@ -346,7 +346,7 @@
 		<attribute key="scroll" value="51746" />
 	</imbuement>
 	
-	<imbuement name="Vibrancy" base="3" category="19" iconid="79" premium="1" storage="0">
+	<imbuement name="Vibrancy" base="3" category="19" iconid="79" premium="1" storage="46365">
 		<attribute key="description" value="Removes paralysis with a chance of 50% and always deflects PvP paralysis upon additional paralyse attacks." />
 		<attribute key="effect" type="paralysis" chance="50" pvpDeflect="1" />
 		<attribute key="item" value="22053" count="20" />
@@ -508,7 +508,7 @@
 		<attribute key="item" value="25702" count="10" />
 		<attribute key="scroll" value="51732" />
 	</imbuement>
-	<imbuement name="Featherweight" base="3" category="17" iconid="76" premium="1" storage="0">
+	<imbuement name="Featherweight" base="3" category="17" iconid="76" premium="1" storage="45929">
 		<attribute key="description" value="Raises capacity by 15." />
 		<attribute key="effect" type="capacity" value="15" />
 		<attribute key="item" value="25694" count="20" />
