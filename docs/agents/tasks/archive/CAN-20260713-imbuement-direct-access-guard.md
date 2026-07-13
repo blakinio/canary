@@ -11,7 +11,7 @@ last_verified_commit: "cf93781d2f9c0bdfcf89bb96490d15f79a51feee"
 merge_commit: "6e92ca68dbabd76acef6331ba8b77b1843dc2bc3"
 risk: medium
 related_pr: "#282"
-cleanup_pr: "pending"
+cleanup_pr: "#285"
 depends_on:
   - merged Imbuement live-parity PR #251
   - merged lifecycle cleanup PR #255
@@ -30,6 +30,7 @@ PR #282 added a deterministic server-side guard before any direct-application or
 - Feature branch: `fix/imbuement-direct-access-guard`.
 - Final feature head: `cf93781d2f9c0bdfcf89bb96490d15f79a51feee`.
 - Squash merge: `6e92ca68dbabd76acef6331ba8b77b1843dc2bc3`.
+- Cleanup PR: #285.
 - Final changed-file count: 7.
 - No XML value, map, asset, item binary, protocol shape, database schema, client, production configuration, workflow or `docs/agents/ACTIVE_WORK.md` change remained in the feature diff.
 - PR conversation/review threads: none.
@@ -120,7 +121,7 @@ The execution environment could not resolve `github.com`, so no local checkout/b
 
 # Remaining work
 
-None for this bounded dry-test finding after the cleanup PR is merged.
+None for this bounded dry-test finding after cleanup PR #285 is merged.
 
 # Handoff
 
