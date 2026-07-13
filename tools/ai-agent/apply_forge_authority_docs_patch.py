@@ -14,7 +14,6 @@ def replace_once(path: str, old: str, new: str) -> None:
 
 
 report = "docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md"
-
 replace_once(report, "> **Documentation branch:** `docs/equipment-upgrade-handoff-refresh`  \n> **Documentation PR:** `#242`  ", "> **Active implementation branch:** `fix/forge-server-authority`  \n> **Active implementation PR:** `#250`  ")
 replace_once(report, "> **Evidence boundary:** structural/static/semantic and compiled-regression evidence exist; full runtime, gameplay and physical-client E2E parity do not.", "> **Evidence boundary:** F-003–F-005 have semantic and compiled-regression evidence on PR #250; full Forge runtime gameplay and physical-client E2E parity do not.")
 replace_once(report, "| Open Forge PRs | none found |\n| Active Forge tasks | none found in open PR/task searches or the read-only coordination snapshot |\n| Last merged Forge PR | #177, merge `f1d217c43e8e302978f533212e6aa9d1ce2b77c8` |", "| Open Forge PRs | #250 — bounded F-003–F-005 server-authority remediation |\n| Active Forge tasks | `CAN-20260713-forge-server-authority` under `CAN-PROGRAM-EQUIPMENT-UPGRADE-PARITY` |\n| Last merged Forge PR | #177, merge `f1d217c43e8e302978f533212e6aa9d1ce2b77c8`; #250 pending merge |")
@@ -40,6 +39,6 @@ new_catalog = old_catalog + "\n| Forge server authority policies | active (#250)
 replace_once(catalog, old_catalog, new_catalog)
 
 changelog = "docs/agents/CHANGELOG.md"
-replace_once(changelog, "- Documented Canary ↔ OTClient cyclopedia protocol field ordering, compatibility policy, ownership, validation expectations and coordinated rollout rules in the cross-repository contract registry.\n", "- Documented Canary ↔ OTClient cyclopedia protocol field ordering, compatibility policy, ownership, validation expectations and coordinated rollout rules in the cross-repository contract registry.\n- Added bounded Forge server-authority policies and regressions in PR #250 so crafted normal Fusion, Convergence Fusion and Convergence Transfer requests are rejected before item/resource/history mutation; full Forge parity remains tracked by `CAN-PROGRAM-EQUIPMENT-UPGRADE-PARITY`.\n")
+replace_once(changelog, "## Unreleased\n\n", "## Unreleased\n\n- Added bounded Forge server-authority policies and regressions in PR #250 so crafted normal Fusion, Convergence Fusion and Convergence Transfer requests are rejected before item/resource/history mutation; full Forge parity remains tracked by `CAN-PROGRAM-EQUIPMENT-UPGRADE-PARITY`.\n")
 
 print("Updated Forge authority report, module catalogue and changelog evidence.")
