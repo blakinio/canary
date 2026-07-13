@@ -9,7 +9,8 @@ add_subdirectory(imbuements)
 
 target_sources(
     canary_ut
-    PRIVATE forge_test.cpp
+    PRIVATE forge_effect_policy_test.cpp
+            forge_test.cpp
             party_test.cpp
             wheel_validation_test.cpp
 )
