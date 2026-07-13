@@ -1,3 +1,7 @@
+-- Instanced Test Arena (docs/architecture/instanced-test-arena.md): the
+-- only player-facing entry point into InstanceArenaService. "leave" just
+-- teleports back without releasing the reserved region; only "close"
+-- evacuates and releases it, so the arena can be left and re-closed later.
 local instanceArena = TalkAction("/instancearena")
 
 function instanceArena.onSay(player, words, param)
