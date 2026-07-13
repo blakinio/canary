@@ -31,6 +31,14 @@ EXPECTED_FORGOTTEN_KNOWLEDGE_GROUPS: dict[int, tuple[str, ...]] = {
     45494: ("Demon Presence", "Precision"),
     45495: ("Epiphany", "Strike"),
 }
+EXPECTED_QUEST_UNLOCK_GROUPS: dict[int, tuple[str, ...]] = {
+    45929: ("Featherweight",),
+    46365: ("Vibrancy",),
+}
+EXPECTED_POWERFUL_STORAGE_GROUPS = {
+    **EXPECTED_FORGOTTEN_KNOWLEDGE_GROUPS,
+    **EXPECTED_QUEST_UNLOCK_GROUPS,
+}
 CURRENT_FORGOTTEN_KNOWLEDGE_STORAGE_IDS = set(
     EXPECTED_FORGOTTEN_KNOWLEDGE_GROUPS
 )
@@ -105,10 +113,10 @@ def family_group_mismatches(
 ) -> list[dict[str, object]]:
     mismatches: list[dict[str, object]] = []
     for storage_id in sorted(
-        set(actual) | set(EXPECTED_FORGOTTEN_KNOWLEDGE_GROUPS)
+        set(actual) | set(EXPECTED_POWERFUL_STORAGE_GROUPS)
     ):
         actual_families = actual.get(storage_id, ())
-        expected_families = EXPECTED_FORGOTTEN_KNOWLEDGE_GROUPS.get(storage_id, ())
+        expected_families = EXPECTED_POWERFUL_STORAGE_GROUPS.get(storage_id, ())
         if actual_families == expected_families:
             continue
         mismatches.append(
@@ -201,7 +209,7 @@ def validate(repository_root: Path) -> tuple[dict[str, object], list[StorageFind
                 code="FORGOTTEN_KNOWLEDGE_FAMILY_GROUP",
                 message=(
                     "Powerful family-to-storage grouping differs from the confirmed "
-                    f"Forgotten Knowledge mapping: {group_mismatches}"
+                    f"Forgotten Knowledge and quest-unlock mapping: {group_mismatches}"
                 ),
                 evidence=(
                     "data/XML/imbuements.xml",
@@ -259,7 +267,11 @@ def validate(repository_root: Path) -> tuple[dict[str, object], list[StorageFind
             str(storage_id): list(families)
             for storage_id, families in EXPECTED_FORGOTTEN_KNOWLEDGE_GROUPS.items()
         },
-        "actual_forgotten_knowledge_groups": {
+        "expected_quest_unlock_groups": {
+    str(storage_id): list(families)
+    for storage_id, families in EXPECTED_QUEST_UNLOCK_GROUPS.items()
+},
+        "actual_powerful_storage_groups": {
             str(storage_id): list(families)
             for storage_id, families in actual_groups.items()
         },
