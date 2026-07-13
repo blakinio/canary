@@ -56,6 +56,6 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add docs/ai-agent/IMBUEMENT_FINALIZER_DIAGNOSTIC.tmp
+          git add -f docs/ai-agent/IMBUEMENT_FINALIZER_DIAGNOSTIC.tmp
           git commit -m 'docs(imbuement): capture active finalizer failure'
           git push origin HEAD:fix/imbuement-live-parity
