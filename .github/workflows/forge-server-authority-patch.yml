@@ -1,11 +1,11 @@
 name: Apply bounded Forge server authority patch
 
 on:
-  push:
+  pull_request:
     branches:
       - fix/forge-server-authority
     paths:
-      - .github/workflows/forge-server-authority-patch.yml
+      - docs/ai-agent/.forge-server-authority-runner
 
 permissions:
   contents: write
