@@ -145,7 +145,7 @@ InstanceArenaService::EnterResult InstanceArenaService::enterArena(uint32_t play
 
 	// Only after the factory assigned a real, nonzero runtime id (the
 	// production factory does this via Game::placeCreature()).
-	if (!binder.bind(created.id, monster)) {
+	if (!binder.bind(created.id, *monster)) {
 		creatureRemover(monster->getID());
 		manager.close(created.id);
 		return { .ok = false, .entryPosition = {}, .error = "failed to register the arena monster" };
