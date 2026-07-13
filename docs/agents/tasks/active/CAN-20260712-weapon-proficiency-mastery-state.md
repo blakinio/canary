@@ -1,6 +1,6 @@
 ---
 task_id: CAN-20260712-weapon-proficiency-mastery-state
-status: active
+status: ready-for-review
 agent: "GPT-5.6 Thinking"
 branch: fix/weapon-proficiency-mastery-state
 base_branch: main
@@ -9,7 +9,7 @@ updated: 2026-07-12T21:20:00Z
 last_verified_commit: "5c0c9495bf1f93f15e95b1dd65e744d3c986d9d0"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "#212"
 depends_on:
   - "weapon proficiency achievement audit PR #195"
 blocks:
@@ -21,9 +21,11 @@ owned_paths:
   - tests/unit/players/components/weapon_proficiency_test.cpp
   - tests/unit/players/components/CMakeLists.txt
   - docs/ai-agent/WEAPON_PROFICIENCY_MASTERY_STATE_FIX.md
+  - docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md
+  - tools/ai-agent/weapon_proficiency_achievement_audit.py
+  - tools/ai-agent/test_weapon_proficiency_achievement_audit.py
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260712-weapon-proficiency-mastery-state.md
-  - docs/agents/ACTIVE_WORK.md
-  - docs/agents/CHANGELOG.md
 modules_touched:
   - WeaponProficiency runtime
 reuses:
@@ -40,15 +42,15 @@ Correct the first-entry mastery flag and expose one deterministic mastered-weapo
 
 # Acceptance criteria
 
-- [ ] A first XP gain reaching or exceeding maximum stores capped XP and `mastered=true` before return.
-- [ ] A first below-maximum gain remains unmastered.
-- [ ] Existing-entry mastery behavior remains unchanged.
-- [ ] `getMasteredWeaponCount()` counts only stored entries with normalized `mastered=true`.
-- [ ] Count is independent of unordered-map iteration order.
-- [ ] Public API is const, read-only and documented.
-- [ ] Focused C++ unit tests cover initial mastered/unmastered state and mixed mastered counts.
-- [ ] No achievement award, registry definition, backfill policy or ID 567 condition is added.
-- [ ] No player KV key/schema, items, proficiencies, map, assets, database or production configuration change.
+- [x] A first XP gain reaching or exceeding maximum stores capped XP and `mastered=true` before return.
+- [x] A first below-maximum gain remains unmastered.
+- [x] Existing-entry mastery behavior remains unchanged.
+- [x] `getMasteredWeaponCount()` counts only stored entries with normalized `mastered=true`.
+- [x] Count is independent of unordered-map iteration order.
+- [x] Public API is const, read-only and documented.
+- [x] Focused C++ unit tests cover initial mastered/unmastered state and mixed mastered counts.
+- [x] No achievement award, registry definition, backfill policy or ID 567 condition is added.
+- [x] No player KV key/schema, items, proficiencies, map, assets, database or production configuration change.
 - [ ] Linux build, unit tests, formatter and datapack smoke pass on the reviewed head.
 - [ ] Branch is refreshed after #195 merges and exact changed-file list is reviewed.
 - [ ] Autonomous merge gate satisfied.
@@ -76,6 +78,12 @@ Correct the first-entry mastery flag and expose one deterministic mastered-weapo
 5. Merge only after #195 and all current-head gates pass.
 
 # Work log
+
+## 2026-07-13T07:00:00Z
+
+- Changed: implemented the initial-state factory, const mastered count, focused C++ tests and synchronized the audit detector.
+- Learned: the component CMake target uses `target_sources`; the stale temporary workflow marker was corrected before execution.
+- Result: runtime scope is complete; current-head CI and exact diff review remain.
 
 ## 2026-07-12T21:20:00Z
 
@@ -115,8 +123,8 @@ Read audit #195, this task and the two WeaponProficiency source files. Do not ad
 
 # Completion
 
-- Final status: active
-- PR:
+- Final status: ready-for-review
+- PR: #212
 - Merge commit:
 - Changelog updated: pending
 - Archived at:
