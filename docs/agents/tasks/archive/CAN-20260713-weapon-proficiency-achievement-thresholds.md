@@ -5,7 +5,7 @@ agent: "GPT-5.6 Thinking"
 branch: fix/weapon-proficiency-achievement-thresholds
 base_branch: main
 created: 2026-07-13T18:00:00+02:00
-updated: 2026-07-13
+updated: 2026-07-13T23:45:00+02:00
 last_verified_commit: "76ef99391f255653ddfb4cb16ab8a5fae239591c"
 risk: medium
 related_issue: ""
@@ -131,10 +131,15 @@ Achievement ID 567 `The Forbidden Build` remains a separate task. Before impleme
 - No ID 567 definition or guessed condition was introduced.
 - No unresolved achievement was promoted to `confirmed` without runtime E2E proof.
 
+# Post-merge catalogue synchronization
+
+A follow-up documentation PR corrected `MODULE_CATALOG.md` to include merged PR #272, the live/login award path for IDs 564–566, and the explicit remaining boundary for ID 567. This prevents future agents from duplicating the already merged threshold implementation.
+
 # Completion
 
 - Final status: merged
 - PR: #272
 - Merge commit: `ef258a535349052bcd1ad4188664a006ede36660`
 - Final reviewed head: `76ef99391f255653ddfb4cb16ab8a5fae239591c`
+- Catalogue synchronized: yes
 - Archived at: `docs/agents/tasks/archive/CAN-20260713-weapon-proficiency-achievement-thresholds.md`
