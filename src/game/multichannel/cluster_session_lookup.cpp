@@ -57,3 +57,31 @@ std::vector<multichannel::ClusterOnlinePlayerEntry> multichannel::listOnlinePlay
 
 	return entries;
 }
+
+std::optional<multichannel::ClusterSessionLockInfo> multichannel::findSessionLockInfo(int32_t playerId) {
+	Database &db = Database::getInstance();
+
+	std::ostringstream query;
+	query << "SELECT `account_id`, `player_id`, `channel_id`, `instance_id`, `session_id`, "
+			 "`fencing_token`, `status`, `acquired_at`, `last_heartbeat`, `expires_at` "
+			 "FROM `cluster_sessions` WHERE `player_id` = "
+		  << playerId << " LIMIT 1;";
+
+	const DBResult_ptr result = db.storeQuery(query.str());
+	if (!result) {
+		return std::nullopt;
+	}
+
+	ClusterSessionLockInfo info;
+	info.accountId = result->getNumber<int32_t>("account_id");
+	info.playerId = result->getNumber<int32_t>("player_id");
+	info.channelId = result->getNumber<int32_t>("channel_id");
+	info.instanceId = result->getString("instance_id");
+	info.sessionId = result->getString("session_id");
+	info.fencingToken = result->getNumber<uint64_t>("fencing_token");
+	info.status = result->getString("status");
+	info.acquiredAtMs = result->getNumber<int64_t>("acquired_at");
+	info.lastHeartbeatMs = result->getNumber<int64_t>("last_heartbeat");
+	info.expiresAtMs = result->getNumber<int64_t>("expires_at");
+	return info;
+}

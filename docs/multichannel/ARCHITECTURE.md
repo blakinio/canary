@@ -521,7 +521,34 @@ follow-up. Also unresolved from Phase 1: house ids still aren't
 independently reusable per channel (`houses_id_unique`, see
 MIGRATION.md's "Known limitation").
 
-## 8. Economy (✅ market-offer-expiry job wired, 📐 remaining call sites not wired)
+**🐛 A deeper mechanism behind this gap was traced while scoping a possible
+fix, not fixed:** even when `House::setOwner` *does* eventually run for a
+grant, it only clears and reinserts the `account_house_ownership` **mirror**
+row for the account - it does not revoke the *actual* `houses.owner` column
+of whatever *other* house that account previously owned. If that other
+house physically lives on a different channel (a different `houses` table
+partition, per §2.2's composite `(channel_id, id)` identity), the owning
+channel's own in-memory `House` object and DB row are simply never touched
+by this grant at all. The account ends up genuinely, concretely owning two
+houses at once (full in-game access, rent billed on both) even though the
+cluster-wide mirror - by construction of its own `PRIMARY KEY(account_id)`
+- can only ever show one. A correct fix would need to find and revoke the
+account's previous house *before or during* the grant, which for a
+different-channel house means either a blind cross-channel DB `UPDATE`
+(desyncs that channel's in-memory `House` object from its own DB row until
+its next reload - arguably worse than today's gap) or the same DB-row-handoff
+signaling pattern already needed for §6 (channel switch) and the mail-loss
+bug (§8) - i.e. a pending-revocation row the *owning* channel's own process
+picks up and applies to its own live `House` object. This is genuinely more
+design work than a bounded gate-the-bid-call-site change, and a partial fix
+(e.g. blocking *new* bids when `account_house_ownership` already has a row)
+would not close the underlying gap and could give a false sense of safety -
+so, per this project's established "don't fix blind" discipline (see the
+house-rent misclassification correction above, and MIGRATION.md's mail-loss
+finding), nothing was changed here this phase; this refines the gap
+description for whoever picks it up next.
+
+## 8. Economy (✅ market-offer-expiry job + cancel-offer wired, 📐 create/accept not wired)
 
 `economic_ledger.transaction_uuid` is a `CHAR(36)` primary key: a retried
 operation `INSERT`s the same UUID and gets a duplicate-key error instead of
@@ -570,13 +597,75 @@ sequence atomic — see TEST_PLAN.md for what was verified against a real
 MariaDB instance (the core duplicate-`transaction_uuid` rejection, plus
 both the item-delivery and currency-refund ledger record shapes).
 
-**📐 Known gap, stated honestly:** the three *live* market call sites
-(`Game::playerCreateMarketOffer`, `Game::playerCancelMarketOffer`,
-`Game::playerAcceptMarketOffer`) are not wired to `economic_ledger` yet,
-nor are mail delivery or house purchase/transfer — see DECISION_MATRIX.md
-for the precise list of functions that still need it and why wiring all of
-transactional economy code in one pass, in an environment with no
-compiler to verify most of it, would be irresponsible.
+**✅ `Game::playerCancelMarketOffer`** (`src/game/game.cpp`) is now the
+second call site wired to `economic_ledger`, using the same deterministic-UUID
+pattern as the expiry job, but keyed off namespace `"market.cancel"` and the
+cancelled offer's own `id`
+(`EconomicLedgerStore::deterministicUuid("market.cancel", offer.id)`). This
+key is safe specifically *because* a given `market_offers` row can be
+cancelled at most once — `IOMarket::moveOfferToHistory` deletes the row as
+part of cancellation, so the same `(namespace, offer.id)` pair can never
+legitimately recur; a retried/duplicated cancel request replays into the
+same `PENDING`/`COMMITTED` row and is rejected by the `transaction_uuid`
+primary key exactly like the expiry job's replay case. The ledger bracket
+follows the same shape: `beginPending` before the refund/delivery attempt,
+`markCommitted` right after `moveOfferToHistory` succeeds, `markFailed` on
+every early-exit error path (unknown item type, inbox insertion failure).
+Store-coin cancellations (`it.id == ITEM_STORE_COIN`) are deliberately
+excluded from the ledger entirely, matching this function's pre-existing
+"do not register a transaction for coins" comment — that path already goes
+through the account's own coin-transaction system, which is a different
+ledger than the gold/item economy `economic_ledger` tracks. Verified against
+a real MariaDB instance: a buy-offer cancel's `PENDING → COMMITTED`
+transition (currency `amount` populated, no item fields), a sell-offer
+cancel's `PENDING → FAILED` transition (item fields populated, `amount`
+unset), and a replay `INSERT` against an already-used offer-id key correctly
+rejected with `ERROR 1062` on the `transaction_uuid` primary key — see
+TEST_PLAN.md.
+
+**📐 Known gap, stated honestly:** `Game::playerCreateMarketOffer` and
+`Game::playerAcceptMarketOffer` remain unwired, for two different reasons
+rather than one:
+
+- **Create** has no natural, pre-existing single-use key to derive a
+  deterministic UUID from — unlike expiry/cancel, there is no offer `id` yet
+  at the point a new offer is created (the DB assigns it during the same
+  `INSERT` this would need to guard). Reusing the deterministic pattern here
+  would require inventing a client-supplied nonce, a materially different
+  design than "key off an entity that can only be consumed once," and worth
+  its own follow-up rather than forcing the existing pattern where it
+  doesn't fit.
+- **Accept** cannot safely use `offer.id` alone as a key: a single offer can
+  legitimately be *partially* accepted multiple times by different
+  counter-parties for different `amount`s until it is exhausted, so
+  `(namespace, offer.id)` is not single-use the way it is for expiry/cancel —
+  a second, legitimate partial accept would collide with the first and be
+  wrongly rejected as a replay. This needs a compound key (offer id plus
+  something that distinguishes each accept attempt, e.g. acceptor account id
+  and amount) worked out deliberately rather than reusing cancel's key shape
+  by analogy.
+
+Mail delivery and house purchase/transfer are also still unwired — see
+DECISION_MATRIX.md for the precise list of functions that still need it and
+why wiring all of transactional economy code in one pass, in an environment
+with no compiler to verify most of it, would be irresponsible.
+
+**🐛 Real bug found while scoping GM commands, not fixed this phase:** mail
+delivery has a correctness gap that goes beyond "no idempotency guard yet."
+`Mailbox::sendItem` (`src/items/containers/mailbox/mailbox.cpp`) resolves
+the recipient via `g_game().getPlayerByName(receiver, true)`, which only
+checks this process's own in-memory online-player map; if the recipient
+isn't found there — which is exactly what happens when they're online on a
+*different* channel, not just when they're genuinely offline — it silently
+falls back to loading a throwaway offline `Player` copy from the DB,
+delivers the item into that copy's inbox, and saves it. The recipient's own
+channel process, holding the real live `Player` object, has no idea this
+happened; its own next periodic or logout save overwrites the DB row,
+silently discarding the item. A correct fix needs the same DB-row-handoff
+pattern §6 already uses for channel switching (a pending-delivery row the
+owning channel's own process picks up and applies to its own live player
+object), which is materially more design work than call-site wiring — see
+MIGRATION.md "Phase 12" and DECISION_MATRIX.md row 2.12.
 
 ## 9. Redis client dependency
 
@@ -597,7 +686,7 @@ tested; the "freeze new logins" and "disconnect before another process can
 steal the lease" actions require the Phase 2 game-loop wiring to execute
 for real.
 
-## 10a. Leader election primitive (✅ module, ✅ wired to 3 jobs, 📐 others unwired)
+## 10a. Leader election primitive (✅ module, ✅ wired to 4 jobs, 📐 others unwired)
 
 Several background jobs must run exactly once cluster-wide rather than once
 per channel process (`OPERATIONS.md`'s "Leader election / cluster-singleton
@@ -677,13 +766,33 @@ resets *global* `player_bosstiary` slot state tied to the old boss id,
 making an uncoordinated race actively corrupting, not just cosmetically
 inconsistent.
 
+**✅ Daily reward reset** (`data/scripts/globalevents/global_server_save.lua`)
+is the fourth job wired, and the first one whose scheduling lives in Lua
+(a `GlobalEvent`) rather than the C++ engine - `DailyReward.storages.
+lastServerSave` is a single shared `global_storage` row with no
+`channel_id`, written on each channel's own `GlobalServerSave` schedule
+(OPERATIONS.md), so an unguarded write from every channel would race the
+same way market expiry did before Phase 7. Since there was no existing
+Lua-side leadership check to call, a new one-shot wrapper was added:
+`Game.tryClaimClusterJobLeadership(jobName)` (`src/lua/functions/core/game/
+game_functions.cpp`) mirrors the exact gating shape already used by
+`loadBoostedCreature`/`loadBoostedBoss` above - `true` unconditionally when
+clustering is disabled (so single-node deployments are never gated), else a
+one-shot `renewOrAcquire` + `isLeader` check. Only the `
+UpdateDailyRewardGlobalStorage` line inside `ServerSave()` is gated - the
+same function's `cleanMap()`, `Game.setGameState(...)`, and the per-raid
+daily-counter reset are deliberately left unguarded, since those act on
+this channel's own in-memory map/game-state/raid registry and must keep
+running on every process (the same "don't over-gate a genuinely per-channel
+effect" lesson as the house-rent correction below).
+
 **📐 Known gap, stated honestly:** every *other* job in OPERATIONS.md's
-table (daily reward reset, table cleanup jobs, highscores cache rebuild,
-database optimization, global server record, global event scheduling)
-still runs unconditionally on every channel process. Wiring each remaining
-job individually (deciding what "lost leadership mid-run" should mean for
-that specific job) is real per-job design work left for a follow-up, not
-something safe to do blind in one broad pass across the rest.
+table (table cleanup jobs, highscores cache rebuild, database optimization,
+global server record, global event scheduling) still runs unconditionally
+on every channel process. Wiring each remaining job individually (deciding
+what "lost leadership mid-run" should mean for that specific job) is real
+per-job design work left for a follow-up, not something safe to do blind in
+one broad pass across the rest.
 
 **Correction, found while scoping this phase:** house rent charging and
 house auction settlement were previously listed here (and in OPERATIONS.md)
@@ -698,7 +807,7 @@ houses), not a fix - it is a genuine `per-channel` job needing no
 coordination. See OPERATIONS.md's job table for the corrected
 classification and full reasoning.
 
-## 10b. GM/admin commands (✅ three read-only lookups, 📐 the rest)
+## 10b. GM/admin commands (✅ four read-only lookups, 📐 the rest)
 
 `OPERATIONS.md`'s "GM / admin commands" list was previously a contract only.
 **"Locate a player's current channel"** is now implemented as
@@ -770,13 +879,38 @@ represents a `NULL` `source_channel_id` (first-ever login) as absent in the
 result, and correctly returns an empty list for a player with no audit
 history at all.
 
+**✅ `Game.getPlayerSessionLockInfo(name)`** implements **"Inspect a
+session's current lock owner and fencing token"**: resolves the name to a
+guid the same way, then calls a new `multichannel::findSessionLockInfo(
+playerId)` (`cluster_session_lookup.hpp`/`.cpp`) returning the raw
+`cluster_sessions` row - `{accountId, playerId, channelId, instanceId,
+sessionId, fencingToken, status, acquiredAt, lastHeartbeat, expiresAt}` - or
+`nil` if no lease has ever been acquired for that player. This lookup is
+deliberately **not** filtered to `status = 'ONLINE'`, unlike
+`getPlayerClusterChannel` - inspecting a stale/`DIRTY` session (the row left
+behind by §5.3's dirty-session-recovery scenario) is the primary reason a
+GM would reach for this command, so filtering it out would defeat the
+command's purpose. `fencingToken` is a `bigint(20) unsigned` column read via
+`DBResult::getNumber<uint64_t>`, verified to round-trip a token value of
+`UINT64_MAX` correctly through both the DB layer's `std::stoull` parsing and
+the existing `Lua::setField(lua_State*, const char*, lua_Number)` overload
+(`lua_Number` is `double`; verified this is the same established pattern
+already used for every other 64-bit field this series exposes to Lua, e.g.
+`createdAt` in the channel-switch-history command above).
+
+**✅ Verified** against a real MariaDB 10.11: inserted a `DIRTY` session row
+with `fencing_token = 18446744073709551615` (`UINT64_MAX`) and confirmed the
+exact projection query returns it unfiltered by status; confirmed a
+nonexistent `player_id` correctly yields an empty result set (`nullopt` in
+C++).
+
 **📐 Known gap, stated honestly:** every other command in OPERATIONS.md's
 list (kick a player on another channel, cross-channel broadcast,
-force-save/drain/maintenance a channel, DIRTY session recovery, session
-lock/fencing inspection) remains contract-only - notably, every command
-implemented so far is read-only; none of the remaining ones are (they all
-either mutate cluster state or need cross-process signaling to a *different*
-channel process, which no mechanism in this codebase currently provides).
+force-save/drain/maintenance a channel, DIRTY session recovery) remains
+contract-only - notably, every command implemented so far is read-only;
+none of the remaining ones are (they all either mutate cluster state or
+need cross-process signaling to a *different* channel process, which no
+mechanism in this codebase currently provides).
 
 ## 11. Why Phase 1 and not the whole spec
 
