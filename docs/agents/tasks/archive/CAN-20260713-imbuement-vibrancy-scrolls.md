@@ -7,7 +7,7 @@ agent: "GPT-5.6 Thinking"
 branch: fix/imbuement-vibrancy-scrolls
 base_branch: main
 created: 2026-07-13T10:22:00+02:00
-updated: 2026-07-13T11:15:00+02:00
+updated: 2026-07-13T11:20:00+02:00
 completed: 2026-07-13T11:07:00+02:00
 last_verified_commit: "4acd5a6c43f73478768f8f4e85d0a51abb7b8c6a"
 merge_commit: "a356d5625e2290d6ffe45ecd6579f9dd8b7649bc"
@@ -57,7 +57,7 @@ Repair only IMB-004 so Intricate Vibrancy scroll `51746` and Powerful Vibrancy s
 
 # Final result
 
-PR #239 was squash-merged into `main` as `a356d5625e2290d6ffe45ecd6579f9dd8b7649bc`. The final feature head verified by full post-ready CI was `4acd5a6c43f73478768f8f4e85d0a51abb7b8c6a`.
+Feature PR #239 was squash-merged into `main` as `a356d5625e2290d6ffe45ecd6579f9dd8b7649bc`. The final feature head verified by full post-ready CI was `4acd5a6c43f73478768f8f4e85d0a51abb7b8c6a`.
 
 The repair:
 
@@ -68,43 +68,38 @@ The repair:
 - updates the validation report and runtime plan;
 - changes no economy, effects, materials, storages, maps, `items.otb`, assets, protocol, client, schema, database or production configuration.
 
+Cleanup PR #240 removes the active task record and preserves this final record under `tasks/archive/`.
+
 # Acceptance criteria
 
 - [x] Confirmed both scroll IDs on current `main` in the active Lua action.
 - [x] Confirmed both missing XML mappings on current `main`.
 - [x] Confirmed the exact runtime path through `getImbuementByScrollID()`.
-- [x] Added the minimal Intricate Vibrancy mapping `51746`.
-- [x] Added the minimal Powerful Vibrancy mapping `51466`.
-- [x] Added successful resolution tests for both IDs.
-- [x] Added successful application tests on a valid boots target.
-- [x] Added invalid-target rejection coverage.
-- [x] Added occupied-category rejection coverage.
+- [x] Added minimal Intricate mapping `51746` and Powerful mapping `51466`.
+- [x] Added successful resolution and application tests for both tiers.
+- [x] Added invalid-target and occupied-category rejection tests.
 - [x] Proved failed operations do not consume a scroll or mutate the target.
 - [x] Proved success consumes exactly one scroll and applies the correct tier/duration.
-- [x] Checked mutation/resource atomicity through runtime ordering and executable tests.
-- [x] Extended the existing validator.
-- [x] Updated `IMBUEMENT_VALIDATION_REPORT.md` and `IMBUEMENT_RUNTIME_TEST_PLAN.json`.
+- [x] Checked runtime mutation ordering and resource atomicity.
+- [x] Extended the existing validator and tests.
+- [x] Updated report and runtime plan.
 - [x] Confirmed no excluded behavior or forbidden path changed.
 - [x] Recorded local validation unavailability separately from CI.
-- [x] Verified concrete post-ready CI jobs and the Linux Debug test artifact on the final head.
+- [x] Inspected concrete CI jobs and Linux Debug test artifact.
 - [x] Inspected final changed files, diff, reviews, comments and threads.
-- [x] Attempted auto-merge, then squash-merged after GitHub reported the PR was already clean.
+- [x] Attempted auto-merge, then completed expected-head squash merge.
 - [x] Moved the record from `tasks/active/` to `tasks/archive/` in cleanup PR #240.
 
-# Exact evidence
+# Evidence
 
-## Item IDs and active action
+## IDs and XML
 
-`data-otservbr-global/scripts/actions/object/imbuement_scrolls.lua` registers:
+Active Lua registers:
 
 - Powerful range `51444..51467`, containing `51466`;
 - Intricate range `51724..51747`, containing `51746`.
 
-The candidate IDs were therefore confirmed from active Lua registration and were not adopted solely from the earlier report or external prose.
-
-## XML defect and fix
-
-On base commit `f96680987955cde24d4264e9473bde70501ed534`, both Intricate and Powerful Vibrancy entries lacked a `scroll` child. PR #239 added only:
+On base commit `f96680987955cde24d4264e9473bde70501ed534`, both Vibrancy entries lacked a `scroll` child. PR #239 added only:
 
 ```xml
 <attribute key="scroll" value="51746" />
@@ -115,18 +110,18 @@ Current read-only upstream `opentibiabr/canary` had the same omission and was no
 
 ## Runtime path and atomicity
 
-1. `imbuement_scrolls.lua` validates an item target with Imbuement slots and calls `player:applyImbuementScroll(target, item)`.
-2. The Player Lua binding delegates to `Player::applyScrollImbuement`.
-3. `Player::applyScrollImbuement` obtains a free slot.
+1. `imbuement_scrolls.lua` validates an item target and calls `player:applyImbuementScroll(target, item)`.
+2. The Lua binding delegates to `Player::applyScrollImbuement`.
+3. The Player path obtains a free slot.
 4. It calls `getImbuementByScrollID(scrollItem->getID())`.
-5. `getImbuementByScrollID()` queries `scrollIdMap`, populated only from XML `scroll` attributes by `Imbuements::loadFromXml()`.
-6. The Player path resolves base data and calls `Item::canAddImbuement`, rejecting unsupported targets and an occupied category.
-7. Only after all validation does it call `internalRemoveItem(scrollItem, 1)`.
-8. Only after successful removal does it call `setImbuement` and start decay.
+5. The getter queries `scrollIdMap`, populated only from XML `scroll` attributes by `Imbuements::loadFromXml()`.
+6. Base resolution and `Item::canAddImbuement` run before consumption; unsupported targets and occupied categories are rejected.
+7. `internalRemoveItem(scrollItem, 1)` removes exactly one scroll only after validation.
+8. `setImbuement` and decay start only after successful removal.
 
-The validator enforces the exact ID-to-family/tier mappings and this ordering. The C++ tests execute the actual Player/Inbox/Item path.
+The validator enforces the exact mappings and ordering. C++ tests execute the actual Player/Inbox/Item path.
 
-# Files changed by PR #239
+# Feature changed files
 
 - `data/XML/imbuements.xml`
 - `tools/ai-agent/imbuement_validation.py`
@@ -135,15 +130,15 @@ The validator enforces the exact ID-to-family/tier mappings and this ordering. T
 - `tests/unit/players/imbuements/imbuements_test.cpp`
 - `docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md`
 - `docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json`
-- the active task record, subsequently moved here by cleanup PR #240
+- the task record
 
-`docs/agents/ACTIVE_WORK.md` was not edited. No temporary staging file remained in the final feature diff.
+`docs/agents/ACTIVE_WORK.md` was not edited. Temporary staging files were absent from the final feature diff.
 
 # Local checkout and test limitation
 
-Local checkout and local tests were unavailable because the execution environment could not resolve `github.com`. CI was treated as separate evidence and was never described as local validation.
+Local checkout and local tests were unavailable because the execution environment could not resolve `github.com`. CI was separate evidence and was never described as local validation.
 
-Commands attempted and blocked:
+Attempted and blocked:
 
 ```text
 getent hosts github.com
@@ -153,7 +148,7 @@ git ls-remote https://github.com/blakinio/canary.git HEAD
 # fatal: unable to access ... Could not resolve host: github.com
 ```
 
-Commands that could not be run because no local checkout existed:
+Not run because no local checkout existed:
 
 ```text
 git clone https://github.com/blakinio/canary.git
@@ -177,122 +172,140 @@ None of these commands is recorded as locally passed.
 
 `4acd5a6c43f73478768f8f4e85d0a51abb7b8c6a`
 
-## Focused and repository workflows
+## Feature workflows
 
-| Workflow run ID | Job ID | Result | Concrete coverage |
+| Workflow run ID | Job ID | Result | Coverage |
 |---:|---:|---|---|
-| `29236756475` | repository workflow job | success | Agent Task Ownership |
-| `29236756588` | `86773107291` | success | Imbuement Validation: focused Python compilation/tests, registry/storage validators, audit/runtime-plan generation, JSON validation and artifacts |
-| `29236756496` | `86773107115` | success | AI Agent Tools: unit tests and full deterministic tooling/index/schema/content-pack validation |
-| `29236786219` | autofix workflow | success | formatter automation completed without a formatting commit |
-| `29236786366` | multiple jobs below | success | full post-ready CI matrix |
+| `29236756475` | ownership job | success | Agent Task Ownership |
+| `29236756588` | `86773107291` | success | focused Python compile/tests, registry/storage validators, audit/runtime-plan generation, JSON validation |
+| `29236756496` | `86773107115` | success | AI Agent Tools unit and deterministic tooling validation |
+| `29236786219` | autofix job | success | formatter automation, no formatting commit |
+| `29236786366` | CI matrix | success | full post-ready CI |
 
-## Post-ready CI run `29236786366`
+Post-ready CI run `29236786366`:
 
-- Detect Build Scope: success.
-- Lua Tests job `86773199888`: success.
-- Fast Checks job `86773199902`: success; clang-format, stylua, cmake-format, formatter diff, Lua API documentation checks, reviewdog and yamllint passed.
-- Linux Debug job `86773515765`: success; build, Canary runtime smoke, database bootstrap and `Run Tests` passed.
-- Linux Release job `86773515792`: success; build and Canary/global datapack runtime smoke passed; tests were intentionally skipped for release configuration.
-- Windows CMake job `86773515784`: success; configure/build artifact and runtime smoke passed.
-- Windows Solution job `86773515783`: success; MSBuild compile passed.
-- macOS job `86773515802`: success; configure/build and runtime smoke passed.
-- Required: success as part of the completed successful run.
+- Detect Build Scope — success.
+- Lua Tests job `86773199888` — success.
+- Fast Checks job `86773199902` — success: clang-format, stylua, cmake-format, formatter diff, API docs checks, reviewdog and yamllint.
+- Linux Debug job `86773515765` — success: build, runtime smoke, DB bootstrap and `Run Tests`.
+- Linux Release job `86773515792` — success: build and Canary/global runtime smoke; release tests intentionally skipped.
+- Windows CMake job `86773515784` — success: configure/build and runtime smoke.
+- Windows Solution job `86773515783` — success: MSBuild compile.
+- macOS job `86773515802` — success: configure/build and runtime smoke.
+- Required — success.
 
-## Linux Debug CTest artifact
-
-Artifact ID `8274081272` (`linux-debug-test-logs`) was downloaded and inspected. It recorded:
+Linux Debug artifact `8274081272` was downloaded and inspected:
 
 - `ImbuementsUnitTest.ResolvesIntricateAndPowerfulVibrancyScrolls` — passed;
 - `ImbuementsUnitTest.AppliesEachVibrancyScrollAndConsumesExactlyOne` — passed;
 - `ImbuementsUnitTest.RejectsInvalidTargetWithoutConsumingScrollOrMutatingItem` — passed;
 - `ImbuementsUnitTest.RejectsOccupiedVibrancyCategoryWithoutConsumingScroll` — passed;
-- complete CTest result: `100% tests passed, 0 tests failed out of 507`.
+- complete result: `100% tests passed, 0 tests failed out of 507`.
+
+## Cleanup validation
+
+Cleanup head before this final record update: `772bd8fd772e986627da3fa371d712f68088a3cc`.
+
+- Agent Task Ownership run `29238041657`, job `86777243084` — success; ownership tooling compilation, focused tests and task/index validation passed.
+- Imbuement Validation run `29238041699`, job `86777242619` — success; focused compile/tests, validators, generated JSON and artifacts passed.
+- CI run `29238041959` — success:
+  - Detect Build Scope job `86777244055` — success;
+  - Required job `86777298233` — success;
+  - Lua, Fast Checks and build jobs — intentionally skipped because the final diff is task documentation only.
+
+This final record update triggers the same applicable checks on its new cleanup head; PR #240 must merge only after they pass.
 
 # Review and merge gate
 
-- Final changed-file list and full diff were reviewed.
-- No review submissions existed.
-- No PR comments existed.
-- No unresolved review threads existed.
-- No blocker, requested change, cross-repository hold or forbidden file remained.
-- Auto-merge was attempted after all checks passed. GitHub rejected enablement with `Pull request is in clean status`, meaning it was already eligible for immediate merge.
-- PR #239 was then squash-merged with expected head `4acd5a6c43f73478768f8f4e85d0a51abb7b8c6a`.
-- Merge commit: `a356d5625e2290d6ffe45ecd6579f9dd8b7649bc`.
+Feature PR #239:
+
+- final changed-file list and full diff reviewed;
+- no reviews, comments or unresolved threads;
+- no blocker or forbidden file;
+- auto-merge attempt returned `Pull request is in clean status`;
+- expected-head squash merge completed at `a356d5625e2290d6ffe45ecd6579f9dd8b7649bc`.
+
+Cleanup PR #240:
+
+- final diff contains only deletion of the active record and addition of this archive record;
+- `ACTIVE_WORK.md` unchanged;
+- applicable checks are required on the current cleanup head before merge.
 
 # Work log
 
 ## 2026-07-13T10:22:00+02:00
 
 - Created `fix/imbuement-vibrancy-scrolls` from `main` commit `f96680987955cde24d4264e9473bde70501ed534`.
-- Created the active task and draft PR #239 after overlap search found no active Imbuement/scroll/item-action conflict.
+- Created the active task and draft PR #239 after overlap search found no conflicting Imbuement work.
 
 ## 2026-07-13T10:35:00+02:00
 
-- Confirmed both IDs, the XML omission, XML-only scroll lookup and mutation ordering.
+- Confirmed IDs, XML omission, XML-only lookup and mutation ordering.
 - Added exact mappings, validator assertions, Python tests and real C++ application/atomicity tests.
 
 ## 2026-07-13T10:46:00+02:00
 
-- Used temporary branch-only staging files because no local Git checkout was possible.
-- Failed temporary workflow runs:
-  - `29236378484`: initial combined apply/self-cleanup attempt failed;
-  - `29236466671`: retry failed;
-  - `29236517422`: `git diff --check` exposed four trailing-whitespace lines in the report patch.
-- Fixed the whitespace at source; no check was weakened or disabled.
-- Successful patch application run: `29236611125`.
-- Implementation commit: `b1501511a050dcf327f17e1f84ea1c1ad577399e`.
-- Temporary patch and workflow were removed before final scope review.
+- Used temporary branch-only staging because no local checkout was possible.
+- Failed temporary runs:
+  - `29236378484`: initial apply/self-cleanup attempt;
+  - `29236466671`: retry;
+  - `29236517422`: `git diff --check` found four trailing-whitespace lines.
+- Fixed whitespace at source; no check weakened.
+- Successful patch application run `29236611125`; implementation commit `b1501511a050dcf327f17e1f84ea1c1ad577399e`.
+- Removed all temporary staging files before final scope review.
 
 ## 2026-07-13T11:04:00+02:00
 
-- Full post-ready CI run `29236786366` completed successfully on final head `4acd5a6c43f73478768f8f4e85d0a51abb7b8c6a`.
-- Downloaded and inspected CTest artifact `8274081272`; all four new tests and all 507 total tests passed.
-- Rechecked changed files, reviews, comments and threads; no blocker remained.
+- Full post-ready CI `29236786366` passed on feature head `4acd5a6c43f73478768f8f4e85d0a51abb7b8c6a`.
+- Inspected CTest artifact `8274081272`: all four new tests and all 507 tests passed.
+- Rechecked changed files, reviews, comments and threads.
 
 ## 2026-07-13T11:07:00+02:00
 
-- Attempted auto-merge; GitHub reported the PR was already clean and ready for immediate merge.
+- Auto-merge enablement returned clean-status error.
 - Squash-merged PR #239 as `a356d5625e2290d6ffe45ecd6579f9dd8b7649bc`.
 
-## 2026-07-13T11:15:00+02:00
+## 2026-07-13T11:20:00+02:00
 
-- Created cleanup branch `docs/archive-imbuement-vibrancy-scrolls` from merged `main`.
-- Opened draft cleanup PR #240.
-- Added the final archive record and removed the stale active record.
+- Created cleanup branch and PR #240 from merged `main`.
+- Removed active task and added this archive record.
+- Verified first cleanup-head ownership, Imbuement Validation and Required runs.
+- Updated this record with final cleanup validation evidence.
 
 # Decisions
 
-| Decision | Reason/evidence | ADR |
+| Decision | Reason | ADR |
 |---|---|---|
-| Add only two XML mappings | Existing action, loader and Player path already implement the behavior. | none |
-| Keep IMB-006 storage behavior unchanged | Exact Dream Courts completion storage remained outside this task. | none |
-| Extend the existing parser/validator | Prevents duplicate and divergent Imbuement tooling. | none |
-| Use real C++ runtime objects | Acceptance criteria required application and consumption evidence, not a static model. | none |
-| Separate CI from local validation | DNS prevented local checkout; claims remain precise. | none |
-| Archive in post-merge cleanup PR #240 | Final head, CI IDs and merge SHA were only known after feature delivery. | none |
+| Add only two XML mappings | Existing runtime already supports scroll application. | none |
+| Keep IMB-006 unchanged | Dream Courts storage remains outside scope. | none |
+| Reuse existing validator | Prevent duplicate tooling. | none |
+| Use real C++ objects | Required executable application/atomicity evidence. | none |
+| Separate CI from local validation | DNS prevented local checkout. | none |
+| Archive in cleanup PR #240 | Final feature head, CI and merge SHA were known only after delivery. | none |
 
-# Failed approaches and dead ends
+# Failed approaches
 
-- Local checkout/test execution: blocked by `github.com` DNS failure.
-- Initial temporary patch workflow self-cleanup: failed and was replaced with a bounded apply-then-API-cleanup sequence.
-- One patch run failed `git diff --check` because of trailing whitespace; the actual whitespace was fixed.
-- Auto-merge enablement after green CI returned `Pull request is in clean status`; immediate expected-head squash merge was used instead.
+- Local checkout/tests: blocked by DNS.
+- Initial temporary self-cleaning patch workflow: failed; replaced by bounded apply plus API cleanup.
+- One patch failed whitespace validation; whitespace was fixed.
+- Auto-merge enablement returned clean status; immediate expected-head squash merge used.
 
 # Remaining work
 
-Cleanup PR #240 must pass its applicable checks and be squash-merged. No feature work remains.
+None. Cleanup PR #240 is the delivery mechanism for this completed archive record and must be merged only after applicable checks pass on its current head.
 
 # Handoff
 
-No feature work remains. Do not resume PR #206 or expand this completed task into IMB-001, IMB-002, IMB-003 or IMB-006. Any future follow-up must start from current `main` with a new task, branch and PR.
+No work remains for IMB-004. Do not resume PR #206 or expand this task into IMB-001, IMB-002, IMB-003 or IMB-006. Any follow-up must start from current `main` with a new task, branch and PR.
 
 # Completion
 
-- Final status: completed
+- Status: completed
+- Feature branch: `fix/imbuement-vibrancy-scrolls`
 - Feature PR: #239
 - Feature final head: `4acd5a6c43f73478768f8f4e85d0a51abb7b8c6a`
 - Feature merge commit: `a356d5625e2290d6ffe45ecd6579f9dd8b7649bc`
-- Post-ready CI: run `29236786366`, success
+- Feature post-ready CI: `29236786366`, success
 - Local tests: unavailable due DNS; not claimed as passed
-- Cleanup/archive: PR #240
+- Cleanup branch: `docs/archive-imbuement-vibrancy-scrolls`
+- Cleanup PR: #240
