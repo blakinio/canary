@@ -2,13 +2,13 @@
 task_id: CAN-20260713-forge-server-authority
 program_id: CAN-PROGRAM-EQUIPMENT-UPGRADE-PARITY
 coordination_id: ""
-status: active
+status: ready_for_review_pending_final_ci
 agent: "GPT-5.6 Thinking"
 branch: fix/forge-server-authority
 base_branch: main
 created: 2026-07-13T13:15:00+02:00
-updated: 2026-07-13T14:25:00+02:00
-last_verified_commit: "60606cd13c11c75edb6588fcf0ff300f8b4493e5"
+updated: 2026-07-13T15:12:00+02:00
+last_verified_commit: "58c258de79ceded987d92642923e879c4a9905f6"
 risk: medium
 related_issue: ""
 related_pr: "#250"
@@ -26,8 +26,6 @@ owned_paths:
     - tests/unit/players/forge_test.cpp
     - tests/integration/game/forge_it.cpp
     - docs/agents/tasks/active/CAN-20260713-forge-server-authority.md
-    - .github/workflows/forge-server-authority-patch.yml
-    - tools/ai-agent/apply_forge_server_authority_patch.py
   shared:
     - docs/agents/programs/EQUIPMENT_UPGRADE_PARITY_PROGRAM.md
     - docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md
@@ -56,161 +54,140 @@ Reject invalid normal Fusion, Convergence Fusion and Convergence Transfer reques
 
 # Acceptance criteria
 
-- [ ] Normal Fusion rejects different item IDs before mutation while existing lookup continues to enforce matching tier, distinct copies and no active imbuements.
-- [ ] Convergence Fusion accepts only different class-4 item IDs with the same normalized equipment slot and requested tier; existing lookup/tier limits remain effective.
-- [ ] Convergence Transfer requires both donor and receiver to be class 4; existing normal Transfer behavior from PR #89 remains unchanged.
-- [ ] Focused negative integration tests prove unchanged items, tiers, Dust, cores, bank/gold, exaltation chest count and Forge history.
-- [ ] Existing identical-item normal Fusion and normal Transfer success regressions remain valid.
-- [ ] Relevant focused checks completed.
-- [ ] Current-head GitHub checks verified.
-- [ ] Module catalogue impact handled.
-- [ ] Documentation/changelog impact handled.
-- [ ] Program queue/handoff updated.
-- [ ] Cross-repository impact confirmed none.
+- [x] Normal Fusion rejects different item IDs before mutation while existing lookup continues to enforce matching tier, distinct copies and no active imbuements.
+- [x] Convergence Fusion accepts only different class-4 item IDs with the same normalized equipment slot and requested tier; existing lookup/tier limits remain effective.
+- [x] Convergence Transfer requires both donor and receiver to be class 4; existing normal Transfer behavior from PR #89 remains unchanged.
+- [x] Focused negative integration tests prove unchanged items, tiers, Dust, cores, bank/gold, exaltation chest count and Forge history.
+- [x] Existing identical-item normal Fusion and normal Transfer success regressions remain valid.
+- [x] Relevant focused checks completed on the implementation diff.
+- [ ] Fresh final-head GitHub checks verified after final documentation bookkeeping.
+- [x] Module catalogue impact handled.
+- [x] Documentation/changelog impact handled.
+- [x] Program queue/handoff updated.
+- [x] Cross-repository impact confirmed none.
 - [ ] Autonomous merge gate satisfied.
 
-# Confirmed context
+# Confirmed result
 
-- Current program base was created from `main` after merge #244; branch base is `3ad10132cbd76adc42f946da3ca3077e5bd6bbd0`.
-- Open PR search found no Forge implementation PR. PR #245 is a reusable E2E platform and changes no Forge gameplay.
-- The current report classifies F-003, F-004 and F-005 as still open.
-- `ProtocolGame::sendOpenForge` filters normal Fusion to two equal IDs/tier, groups Convergence Fusion by class 4 and normalized slot, and groups Convergence Transfer by classification. Those client-facing lists are not server authority.
-- `Player::forgeFuseItems` resolves two items and pre-validates resources but does not enforce the complete normal/Convergence pair contract before mutation.
-- `Player::forgeTransferItemTier` checks donor tier and matching nonzero classification, but a crafted convergence request can use a non-class-4 pair.
-- The local command `git clone --filter=blob:none --no-checkout https://github.com/blakinio/canary.git` failed with `Could not resolve host: github.com`; no local build or test is claimed.
+- `Player::forgeFuseItems` now resolves both concrete items and then validates the pair before resource pre-validation, chest creation, input removal or history registration.
+- Normal Fusion requires the same item ID and matching nonzero classification.
+- Convergence Fusion requires different item IDs, both classification 4 and the same slot after the existing two-hand-to-hand normalization.
+- `Player::getForgeItemFromId` remains responsible for exact requested tier, distinct instances and rejecting active imbuements.
+- `Player::forgeTransferItemTier` now calls `ForgeTransferPolicy::isValidTransfer`; convergence requires matching class 4 while normal Transfer preserves PR #89 tier/classification behavior.
+- No opcode, payload, database schema, OTClient or upstream repository changed.
 
-# Existing work to reuse
+# Existing work reused
 
-| Module/task/PR | Reuse | Evidence/path | Why it fits |
+| Module/task/PR | Reuse | Evidence/path | Result |
 |---|---|---|---|
-| PR #89 | Preserve normal Transfer classification/donor-tier/resource/result rules | `src/game/functions/forge_transfer_policy.hpp`, Player and tests | Avoids regression while adding only convergence class-4 authority. |
-| Current Forge integration fixture | Extend item types and resource invariants | `tests/integration/game/forge_it.cpp` | Already exercises Player Forge flow with real inventory/resource state. |
-| `Player::getForgeItemFromId` | Resolve distinct copies, matching tier and reject imbued items before pair authority | `player.cpp` | Existing same-ID and single-copy regressions must remain intact. |
-| Validation report | Update F-003–F-005 evidence after checks | `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md` | Durable finding source of truth. |
+| PR #89 | Normal Transfer classification, donor-tier, resource-tier and result-tier policy | `forge_transfer_policy.hpp`, Player and tests | Preserved; normal class-3 tier-2 policy remains accepted. |
+| `Player::getForgeItemFromId` | Concrete item resolution, tier, distinct-copy and imbuement checks | `player.cpp` | Reused before pair policy. |
+| Forge integration fixture | Real Player inventory/resource/history state | `tests/integration/game/forge_it.cpp` | Extended with no-mutation rejection regressions. |
+| Validation report | Finding/evidence source of truth | `OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md` | F-003–F-005 marked remediated on PR branch with compiled-regression evidence only. |
 
-# Ownership and overlap check
+# Ownership and overlap
 
-- Program record: `docs/agents/programs/EQUIPMENT_UPGRADE_PARITY_PROGRAM.md`.
-- Open PRs inspected: Forge/Equipment Upgrade/Exaltation searches; only unrelated E2E platform #245 matched generic Forge text.
-- Active tasks inspected: `ACTIVE_WORK.md`, live open PRs and repository search; no active Forge implementation task found.
-- Ownership checker result: local checker unavailable because the repository cannot be cloned; GitHub Agent Task Ownership workflow is required on every current head.
-- Exclusive claims: localized Player Forge functions, both policy helpers, focused Forge unit/integration tests, task record and temporary task-local patch files.
-- Shared claims: program, report, catalogue and changelog only for narrow status/interface entries.
-- Read-only dependencies: protocol list generation and cross-repository registry.
-- Overlaps: `player.cpp` is a broad runtime file; no current open PR owns the Forge functions.
-- Resolution: make only localized Forge-function edits, remove temporary runner files before readiness and recheck all open PR changed files.
+- Open Forge/Equipment Upgrade/Exaltation PR searches found no competing implementation PR.
+- PR #245 is the shared E2E platform and changes no Forge gameplay.
+- Temporary runner PR #252 and evidence runner PR #253 were trigger-only and closed unmerged.
+- `player.cpp` is broad, but the diff is localized to `forgeFuseItems` and `forgeTransferItemTier`.
+- Final permanent diff contains no runner workflow/script, no `ACTIVE_WORK.md`, no protocol/client change and no upstream write.
 
-# Current state
+# Implementation summary
 
-The server trusts several client-selected Fusion/Convergence properties. Existing different-ID normal Fusion integration coverage currently succeeds, demonstrating F-003. Convergence-specific negative tests are absent.
-
-# Plan
-
-1. Apply one pair-authority block in `Player::forgeFuseItems` before resource pre-validation.
-2. Extend the existing transfer helper with class-4 convergence authority and call it before resource mutation.
-3. Convert the historical different-ID normal Fusion success test into a no-mutation rejection regression.
-4. Add Convergence Fusion rejection tests for non-class-4, same ID and different normalized slot.
-5. Add Convergence Transfer rejection for non-class-4 and preserve normal Transfer success coverage.
-6. Remove temporary patch workflow/script from the final diff.
-7. Update report, program, catalogue, changelog, task and PR evidence.
-8. Inspect current-head CI job by job, fix failures, mark ready and squash-merge when the autonomous gate is satisfied.
+1. Added `ForgeFusionPolicy::isValid` as a pure constexpr contract.
+2. Extended `ForgeTransferPolicy` with convergence-aware classification and combined transfer validation.
+3. Added the Fusion pair check immediately after resolving both inputs.
+4. Replaced the historical different-ID normal Fusion success regression with a no-mutation rejection test.
+5. Added class-4 Convergence Fusion/Transfer rejection integration coverage.
+6. Added pure policy boundary tests for identity, class and normalized-slot rules.
+7. Updated the validation report, module catalogue, changelog and parity program.
 
 # Work log
 
 ## 2026-07-13T13:15:00+02:00
 
-- Changed: created the parity program, task branch and ownership record.
-- Learned: no active Forge implementation PR exists; the generic E2E platform is non-overlapping.
-- Failed/blocked: local clone failed because `github.com` DNS resolution is unavailable.
-- Result: bounded F-003–F-005 task became visible.
+- Created the parity program, task branch and ownership record.
+- Confirmed no active overlapping Forge implementation PR.
+- Local clone remained blocked by `Could not resolve host: github.com`.
 
-## 2026-07-13T14:25:00+02:00
+## Source materialization
 
-- Changed: opened draft PR #250; created a task-local exact-anchor workflow and an idempotent Python patch script because full local Git operations are unavailable.
-- Learned: the first push containing a newly introduced workflow did not execute that workflow; ordinary PR CI on `bc1bd696e0ec28e8e6f2b208c27e4164b50f074b` only validated the documentation/workflow scope and skipped source builds/tests.
-- Failed/blocked: no source patch has yet been claimed applied; temporary runner files must not remain in the final diff.
-- Result: ownership now covers every path the bounded patch will edit.
+- Direct local patching was unavailable; a controlled exact-anchor runner was used.
+- Failed source runner runs `29249939468` and `29250125565` found no matching anchor and changed no source.
+- Diagnostic run `29250247910` proved Python `dedent` had removed the leading C++ tab.
+- The script was rewritten with explicit line markers that preserve whitespace.
+- Successful source runner: run `29250410323`, job `86817279766`; source commit `fa6bf1fcf4767db13cc3ee84136c3223ffd7f04a`.
+- Runner PR #252 was closed unmerged.
+- Fast Checks later produced formatting commit `f50c9c73eeb5265461409d419c5daf853fc17ab4`.
 
-# Decisions
+## Documentation evidence
 
-| Decision | Reason/evidence | ADR |
-|---|---|---|
-| Keep authority separate from rollback/history fixes | Makes rejection behavior reviewable and avoids masking F-020/F-021 mutation-order work | none |
-| Match the same two-hand-to-hand normalization used by `sendOpenForge` | Keeps server validation aligned with the existing supported-client list contract | none |
-| Reject before all resource and inventory mutation | Required to prove crafted requests cannot consume or create anything | none |
-| Use a temporary exact-anchor patch runner | GitHub contents API cannot safely replace a 13k-line C++ file without a local clone; anchors fail closed on drift | none |
-
-# Files and interfaces
-
-| Path/interface/config/schema | Ownership mode | Purpose | Status |
-|---|---|---|---|
-| `src/creatures/players/player.cpp` | exclusive | Server authority before Forge mutation | planned |
-| `src/game/functions/forge_fusion_policy.hpp` | exclusive | Pure regular/Convergence Fusion pair policy | planned |
-| `src/game/functions/forge_transfer_policy.hpp` | exclusive | Preserve normal rules and add convergence class-4 policy | planned |
-| `tests/unit/players/forge_test.cpp` | exclusive | Pure policy boundaries | planned |
-| `tests/integration/game/forge_it.cpp` | exclusive | Crafted-request and no-mutation regressions | planned |
-| temporary patch workflow/script | exclusive | Controlled branch-local materialization only | temporary; remove before readiness |
-| program/report/catalogue/changelog | shared | Durable status, interface and sequencing | pending |
+- Evidence runner attempts stopped safely on stale catalogue/changelog anchors or workflow bookkeeping; no partial branch commit occurred.
+- Successful evidence runner: run `29252490066`, job `86824214976`.
+- Runner PR #253 was closed unmerged.
+- All temporary workflow/script files were removed from #250 before final-head validation.
 
 # Validation and CI
 
-| Commit | Command/check/workflow | Result | Evidence/notes |
+| Commit/run | Check | Result | Exact evidence boundary |
 |---|---|---|---|
-| branch start | local clone/build/test | blocked | `Could not resolve host: github.com`; no local result claimed |
-| `bc1bd696e0ec28e8e6f2b208c27e4164b50f074b` | CI run `29249235355` | partial only | Detect Build Scope/Required succeeded; Fast/Lua/Linux/platform jobs skipped because source patch had not run |
+| branch environment | local clone/build/test | blocked | DNS failure; no local result claimed |
+| `bc1bd696e0ec28e8e6f2b208c27e4164b50f074b`, run `29249235355` | early PR CI | partial only | source patch had not run; build/test jobs skipped |
+| implementation diff, run `29250747788` | Lua Tests | success | Lua regression suite passed |
+| implementation diff, run `29250747788` | Fast Checks | success | clang-format, StyLua, cmake-format, analysis, yamllint and Lua API documentation checks passed; formatter commit created |
+| implementation diff, job `86818664373` | Linux debug | success | CMake, Canary smoke, DB schema import and full `Run Tests` passed |
+| implementation diff, job `86818664416` | Linux release | success | CMake, generated Lua docs and Canary/global datapack smoke passed |
+| implementation diff, job `86818664344` | macOS | success | configure/build, MySQL and runtime smoke passed |
+| implementation diff, jobs `86818664418`, `86818664461` | Windows | success | CMake/runtime path and MSBuild path passed |
+| implementation diff, job `86818664405` | Docker | success | image build/export/validation passed |
+| final documentation head | full PR CI | pending | required before merge; earlier run is not substituted for final-head evidence |
 
-Never write `passed` without verification on the stated commit.
+This is semantic, compiled-regression and generic runtime-smoke evidence. It is not a focused physical-client Forge gameplay test.
 
-# Failed approaches and dead ends
+# Decisions
 
-- Local clone and local validation are unavailable due DNS resolution failure.
-- Adding the temporary workflow and expecting it to execute in the same introducing push did not materialize the patch; a subsequent existing-workflow update is required.
+| Decision | Reason/evidence |
+|---|---|
+| Keep authority separate from rollback/history fixes | Makes rejection behavior reviewable and leaves F-020/F-021 mutation ordering explicit. |
+| Normalize two-handed items to the hand slot | Matches the existing supported-client Forge list contract. |
+| Reject before all mutation | Crafted/stale packets must not consume or create resources. |
+| Use pure policy helpers | Enables deterministic boundary tests without changing protocol or persistence. |
+| Keep gameplay/E2E status separate | Multi-platform CI and runtime smoke do not prove a player completed every Forge scenario. |
 
 # Risks and compatibility
 
-- Runtime: rejection order must remain before chest creation, input removal, resource deductions and history registration.
-- Data/migration: none.
+- Runtime: checks execute only after both actual items are resolved and before mutation.
 - Security: closes crafted/stale packet trust gaps.
-- Backward compatibility: valid normal Fusion/Transfer and valid class-4 Convergence operations must remain accepted.
-- Cross-repo rollout: none; no payload or opcode change.
-- Rollback: squash revert of this bounded PR restores prior authority behavior.
+- Backward compatibility: normal Transfer policy from #89 and valid same-ID normal Fusion remain covered.
+- Data/migration: none.
+- Cross-repository rollout: none.
+- Rollback: squash-revert #250.
 
 # Remaining work
 
-1. Execute the existing task-local runner, inspect the exact patch and remove runner files.
-2. Validate and finish PR #250.
+1. Recheck final permanent diff, open overlaps, current `main` and review threads.
+2. Mark #250 Ready and inspect every final-head workflow/job.
+3. Squash-merge if the autonomous gate is clean.
+4. Archive this task in a separate lifecycle PR.
+5. Start F-020/F-021 atomicity/rollback from the merged `main`.
 
 # Handoff
 
-## Start here
+Start with PR #250, this task, `forge_fusion_policy.hpp`, `forge_transfer_policy.hpp`, the localized Player Forge functions and focused tests.
 
-Open PR #250, this task, `Player::forgeFuseItems`, `Player::forgeTransferItemTier`, both policy helpers, `tests/integration/game/forge_it.cpp` and the parity program.
-
-## Do not repeat
-
-- Do not reopen #177/#241/#246.
-- Do not edit protocol or OTClient for this task.
-- Do not bundle atomic rollback, history, rewards, effects or bonus payload work.
-- Do not treat the partial CI run before source materialization as implementation evidence.
-
-## Required reads
-
-- `AGENTS.md`
-- `docs/agents/README.md`
-- `docs/agents/programs/EQUIPMENT_UPGRADE_PARITY_PROGRAM.md`
-- `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md`
-- current Forge source/tests and open PRs
-
-## Open questions
-
-- None for F-003–F-005; the selected constraints are explicit in the report and current client-facing list generation.
+Do not:
+- reopen #177/#241/#246/#252/#253;
+- add protocol or OTClient changes to this PR;
+- combine rollback, history, Premium, effects or bonus payload work;
+- treat generic CI/runtime smoke as full gameplay or physical-client E2E proof.
 
 # Completion
 
-- Final status: active
+- Final status: ready_for_review_pending_final_ci
 - PR: #250
 - Merge commit:
-- Program record updated: initial
-- Catalogue updated: pending helper entry
-- Changelog updated: pending
+- Program record updated: pending final-head SHA/merge
+- Catalogue updated: yes
+- Changelog updated: yes
 - Archived at:
