@@ -1,235 +1,186 @@
-# Canary achievements — statyczny audyt rejestru i triggerów
+# Canary achievements — comprehensive evidence report v2
 
 ## Decyzja
 
 ```text
-status: conflicting
-confidence: high dla findings statycznych
-runtimeE2EProven: false
+status: comprehensive-static-audit-complete
+runtimeE2EProvenForAllRows: false
+referenceRevision: 1188274
+referenceRows: 564
+referenceTotal: 565
 registryDefinitions: 541
-referenceListed: 562
-referenceTotal: 563
 activeApiReferences: 182
-undefinedStaticReferences: 2
+resolvedStaticReferences: 160
+unknownStaticReferences: 0
 dynamicReferences: 22
 ```
 
-Aktualny system achievementów ładuje istniejący rejestr, ale nie jest zgodny z bieżącym źródłem referencyjnym i zawiera potwierdzone błędy infrastrukturalne oraz dwa aktywne triggery, które nie mogą rozwiązać achievementu po nazwie. Audyt nie dowodzi jeszcze osiągalności wszystkich wpisów w gameplay; wyznacza bezpieczną kolejność dalszych napraw i testów runtime.
+Audyt objął każdy wiersz bieżącej tabeli TibiaWiki/Fandom i każdy aktywny wpis rejestru Canary. Wynik jest kompletny jako katalog i klasyfikacja dowodowa, ale nie dowodzi pełnej osiągalności runtime wszystkich achievementów.
 
-## Zakres i źródła
-
-Audyt wykonano na headzie PR `#165` po scaleniu aktualnego `main`:
+Pełna tabela, warunki, exact path/line evidence, persistence/backfill, attainability, test gaps i plan napraw:
 
 ```text
-commit: 8642fdfa78d83bd41b6948ddf6aee10593cfcdbe
-```
-
-Źródła aktywne:
-
-- `data/scripts/lib/register_achievements.lua`;
-- wszystkie pliki Lua pod `data/`;
-- wszystkie pliki Lua pod `data-otservbr-global/`;
-- C++ achievement registry i player persistence;
-- TibiaWiki/Fandom `Achievements`, stan zweryfikowany 2026-07-12.
-
-Pełny per-achievement JSON i lista referencji są artefaktem workflow `Achievement Validation`, nie plikiem commitowanym do repozytorium.
-
-## Wynik rejestru
-
-| Wymiar | Canary | Referencja | Różnica |
-|---|---:|---:|---:|
-| jawne / odkryte wpisy | 541 | 562 | -21 |
-| common | 350 | 362 | -12 |
-| odkryte secret | 191 | 200 | -9 |
-| suma punktów | 1428 | 1470 | -42 |
-
-Rejestr używa ID `1..570`, ale ma 29 luk. Najwyższy ID nie jest liczbą achievementów.
-
-Dwa wpisy mają świadomie zapisane `0` punktów i są raportowane jako wyjątki informacyjne, nie jako automatyczna korupcja:
-
-- ID `406` — `The More the Merrier`;
-- ID `526` — `King's Council`.
-
-## 21 referencyjnych wpisów nieobecnych w rejestrze
-
-Poniższe ID i nazwy zostały ręcznie potwierdzone na bieżącej stronie referencyjnej i nie występują w audytowanym rejestrze Canary:
-
-| ID | Nazwa | Wersja / data źródłowa |
-|---:|---|---|
-| 550 | A Friend in Need | 2024-07-01 |
-| 551 | Holzkopf | 2024-07-01 |
-| 567 | The Forbidden Build | 2025-07-21 |
-| 572 | Errand Runner | 2025-11-24 |
-| 573 | Workhorse | 2025-11-24 |
-| 574 | Taskaholic | 2025-11-24 |
-| 575 | Pest Control | 2025-11-24 |
-| 576 | Mimic | 2025-11-24 |
-| 577 | Bastard | 2025-11-24 |
-| 578 | Razor's Edge | 2025-11-24 |
-| 579 | Lost Letters | 2025-11-24 |
-| 580 | Stagmeister | 2025-11-24 |
-| 581 | Feral Trapper | 2025-11-24 |
-| 582 | Castle Crasher | 2026-03-17 |
-| 585 | A reliable Friend | 2026-03-17 |
-| 586 | Echo Initiate | Summer 2026 |
-| 587 | Echo Hunter | Summer 2026 |
-| 588 | Echo Walker | Summer 2026 |
-| 592 | Six Steps Ahead | Summer 2026 |
-| 593 | Radiant Nimbus | Summer 2026 |
-| 594 | Amati's Echo | Summer 2026 |
-
-To nie jest zgoda na dopisanie samych definicji. Każdy wpis wymaga potwierdzenia, że odpowiadający content, storage, item, quest, task board, mount, outfit albo event istnieje i działa w analizowanej wersji Canary. Szczególnie wpisy Summer 2026 muszą być skorelowane z faktycznie zaimportowanym contentem, a nie dodane wyłącznie dlatego, że istnieją na wiki.
-
-Różnicy `42` punktów nie wolno przypisywać mechanicznie tym 21 wpisom. Niektóre bieżące wartości punktowe pozostają niepotwierdzone, a mutually exclusive achievements wymagają osobnego modelu semantycznego.
-
-## Potwierdzony defekt 1 — rzadka tabela używana z `#ACHIEVEMENTS`
-
-Rejestr ma jawne luki, ale helper Lua używa operatora długości jako granicy:
-
-```lua
-ACHIEVEMENT_LAST = #ACHIEVEMENTS
-```
-
-oraz iteruje `Player.getAchievements` po zakresie `1..#ACHIEVEMENTS`.
-
-Lua nie gwarantuje użytecznej długości dla rzadkiej tabeli. Rejestracja przez `pairs` może dodać wysokie ID, podczas gdy helpery zakresowe mogą ich nie zwrócić.
-
-Dyspozycja: `confirmed-infrastructure-defect`.
-
-Wymagany osobny fix:
-
-- iteracja po jawnych kluczach lub po runtime `Game.getAchievements()`;
-- test ID przed i po pierwszej luce;
-- test najwyższego jawnego ID;
-- test bulk add/remove;
-- brak zmiany ID istniejących wpisów.
-
-## Potwierdzony defekt 2 — `Game.isAchievementSecret`
-
-Helper rozwiązuje `foundAchievement`, lecz zwraca:
-
-```lua
-return achievement.secret
-```
-
-Argument `achievement` jest ID albo nazwą, nie tabelą metadata. Ścieżka invalid dodatkowo formatuje komunikat niezdefiniowaną zmienną `ach`.
-
-Dyspozycja: `confirmed-infrastructure-defect`.
-
-Wymagany osobny fix i testy:
-
-- public po ID;
-- secret po ID;
-- public po nazwie;
-- secret po nazwie;
-- niepoprawne ID i nazwa bez wtórnego błędu Lua.
-
-## Potwierdzone defekty 3–4 — dwa aktywne triggery z błędną nazwą
-
-C++ rejestruje nazwy w `std::map<std::string, uint16_t>` i wykonuje dokładne `find(name)`. Lookup jest case-sensitive i uwzględnia apostrofy.
-
-### Phantasmal jade mount
-
-```text
-plik: data/scripts/actions/items/usable_phantasmal_jade_items.lua
-linia: 36
-trigger: You got Horse Power
-rejestr: ID 514, You Got Horse Power
-```
-
-Różnica wielkości litery `got/Got` powoduje brak rozwiązania achievementu.
-
-### Hero of Rathleton reward
-
-```text
-plik: data-otservbr-global/scripts/quests/hero_of_rathleton/actions_reward.lua
-linia: 9
-trigger: The Professors Nut
-rejestr: ID 360, The Professor's Nut
-```
-
-Brak apostrofu i formy dzierżawczej powoduje brak rozwiązania achievementu.
-
-Dyspozycja obu: `confirmed-broken-static-trigger`.
-
-Poprawki powinny znaleźć się w osobnym focused PR z testem kontraktowym, który sprawdza każdą literalną nazwę wobec aktywnego rejestru.
-
-## Pokrycie triggerów statycznych
-
-| Dyspozycja | Liczba |
-|---|---:|
-| bezpośredni statyczny award | 87 |
-| statyczna ścieżka progress | 32 |
-| referencja bez statycznego awardu | 1 |
-| brak bezpośredniej statycznej referencji | 421 |
-
-Łącznie znaleziono `182` wywołania API, w tym `22` argumenty dynamiczne.
-
-`421` wpisów bez literalnego triggera nie oznacza `421` uszkodzonych achievementów. Część jest przyznawana przez:
-
-- wspólne tabele itemów, mountów, outfitów lub skinningu;
-- wrappery questowe;
-- dynamiczne zmienne nazw;
-- liczniki progress;
-- NPC i state machines;
-- ścieżki wymagające analizy engine/runtime.
-
-Każdy taki wpis pozostaje `needs-semantic-or-runtime-review`.
-
-## Persistence i kompatybilność nazw
-
-C++ zapisuje unlocked achievement w KV pod jego nazwą, a przy ładowaniu mapuje nazwę ponownie na aktualne ID.
-
-Konsekwencje:
-
-- rename może osierocić istniejący zapis gracza;
-- zmiana ID przy tej samej nazwie może przepiąć zapis na nowe ID;
-- duplikat nazwy jest krytyczny;
-- każda korekta nazwy definicji wymaga migracji lub aliasu kompatybilności.
-
-Dlatego dwa błędne triggery należy poprawić w call sites, a nie przez zmianę kanonicznych nazw rejestru.
-
-## Walidacja wykonana
-
-Na commit `8642fdfa78d83bd41b6948ddf6aee10593cfcdbe`:
-
-- `Achievement Validation` run `29202931191`: success;
-- `AI Agent Tools` run `29202931162`: success;
-- główny `CI` run `29202931226`: success;
-- focused unit tests skanera: 8/8;
-- pełny skan obu aktywnych datapacków zakończony;
-- JSON baseline i runtime plan poprawne składniowo;
-- artefakt `achievement-validation-audit`, ID `8262907252`, SHA-256 `4e127d6c708b6422f520f5833394b652331addcbf989f345523f9d31b9171baa`;
-- diff PR obejmuje wyłącznie narzędzie, testy, workflow i dokumentację;
-- brak zmian `.otbm`, `items.otb`, assetów, aktywnego rejestru, gameplay i C++.
-
-## Czego ten audyt jeszcze nie dowodzi
-
-- pełnej osiągalności 541 istniejących definicji;
-- prawidłowych progów wszystkich progress counters;
-- zgodności każdego description/grade/secret z aktualną Tibią;
-- działania questów, NPC, bossów i itemów zależnych;
-- persistence po rzeczywistym restarcie serwera;
-- poprawności mutually exclusive achievements;
-- gotowości 21 brakujących wpisów do bezpiecznego dodania.
-
-Scenariusze runtime są zapisane w:
-
-```text
+docs/ai-agent/ACHIEVEMENT_COMPREHENSIVE_VALIDATION.md
+docs/ai-agent/ACHIEVEMENT_REFERENCE_CATALOG.json
+docs/ai-agent/ACHIEVEMENT_REVIEWED_EVIDENCE.json
 docs/ai-agent/ACHIEVEMENT_RUNTIME_TEST_PLAN.json
 ```
 
-## Kolejność dalszych prac
+## Źródło referencyjne
 
-1. Osobny PR: naprawa `#ACHIEVEMENTS` i `Game.isAchievementSecret`.
-2. Osobny PR: poprawa dwóch literalnych nazw triggerów wraz z kontraktowym skanem regresyjnym.
-3. Rozszerzenie skanera o bezpieczne rozwiązywanie wybranych dynamicznych tabel i wrapperów.
-4. Grupowa walidacja semantyczna istniejących achievementów według systemu: quest, boss, NPC, mount/outfit, item-use, progress.
-5. Osobny audyt contentu dla ID `550`, `551`, `567`.
-6. Osobny audyt Winter Update 2025 dla ID `572..581`.
-7. Osobny audyt Spring/Summer 2026 dla ID `582`, `585..588`, `592..594`.
-8. Runtime smoke i reprezentatywne E2E przed każdą zmianą produkcyjnego rejestru.
+```text
+page: https://tibia.fandom.com/wiki/Achievements
+MediaWiki revision: 1188274
+observed: 2026-07-13
+source SHA-256: 8a429425ab7b088758646b07f036afdd1d579188d056491aed8e77650306ae8b
+```
 
-## Końcowy wniosek
+Aktualna rewizja zawiera:
 
-Warstwa statyczna jest gotowa i powtarzalna w CI. Canary ma trzy potwierdzone defekty helperów, dwa nieskuteczne literalne triggery oraz co najmniej 21 bieżących referencyjnych definicji nieobecnych w rejestrze. Nie należy jednak masowo dopisywać achievementów ani uznawać pozostałych `no-direct-static-reference` za uszkodzone. Następna bezpieczna praca to małe PR-y naprawiające potwierdzone błędy, równolegle z semantyczną i runtime walidacją kolejnych grup.
+| Wymiar | Wartość |
+|---|---:|
+| listed/discovered | 564 |
+| total incl. undiscovered secret | 565 |
+| common | 363 |
+| secret discovered/total | 201/202 |
+| known theoretical points | 1475 |
+| maximum excluding coinciding | 1430 |
+| unknown point rows | 5 |
+| available/unavailable conditions | 558/6 |
+
+Wcześniejsze 562/563 było wynikiem starszego cache/renderu i nie jest aktualnym baseline.
+
+## Canary
+
+| Wymiar | Wartość |
+|---|---:|
+| definitions | 541 |
+| public | 350 |
+| secret | 191 |
+| points | 1428 |
+| ID range | 1..570 |
+| ID gaps | 29 |
+
+## Statusy per-achievement
+
+| Status | Liczba | Znaczenie |
+|---|---:|---|
+| confirmed | 0 | wszystkie warstwy wraz z runtime/E2E potwierdzone |
+| partially-confirmed | 121 | definicja i statyczna ścieżka kandydująca, bez pełnego proof |
+| definition-only | 0 | wyłącznie definicja z reviewed dowodem braku handlera niepotwierdzonym |
+| handler-missing | 3 | reviewed subsystem evidence potwierdza brak award hooka |
+| unresolved | 409 | dowód niewystarczający lub ścieżka dynamiczna/pośrednia |
+| conflicting | 31 | brak definicji, metadata mismatch lub inny jawny konflikt |
+| intentionally-unsupported | 0 | brak dowodu świadomego wyłączenia |
+
+Brak `confirmed` nie jest błędem validatora. To konsekwencja rygorystycznego wymagania jednoczesnego proof warunku, reachability, persistence/backfill i runtime/E2E.
+
+## Skan statyczny
+
+| Dyspozycja | Liczba definicji |
+|---|---:|
+| direct-static-award | 89 |
+| static-progress-path | 32 |
+| referenced-without-static-award | 1 |
+| no-direct-static-reference | 419 |
+
+Znaleziono `182` aktywne referencje API: `160` statycznych rozwiązanych, `0` statycznych nierozwiązanych, `22` dynamiczne i `2` administracyjne.
+
+Literalna referencja jest tylko kandydatem handlera. Brak literalnej referencji nie dowodzi braku mechaniki.
+
+## 24 brakujące definicje
+
+```text
+195 Smart Thinking
+550 A Friend in Need
+551 Holzkopf
+567 The Forbidden Build
+572 Errand Runner
+573 Workhorse
+574 Taskaholic
+575 Pest Control
+576 Mimic
+577 Bastard
+578 Razor's Edge
+579 Lost Letters
+580 Stagmeister
+581 Feral Trapper
+582 Castle Crasher
+585 A reliable Friend
+586 Echo Initiate
+587 Echo Hunter
+588 Echo Walker
+591 Purrfectly Addicted
+592 Six Steps Ahead
+593 Radiant Nimbus
+594 Amati's Echo
+595 Enlightened, Indeed
+```
+
+Nie wolno dodawać ich tylko na podstawie wiki. Każdy wymaga content, storage, handler, backfill i runtime proof.
+
+## 7 konfliktów metadata
+
+```text
+406 The More the Merrier: reference grade 0, Canary 1
+513 Soul Mender: reference secret true, Canary false
+526 King's Council: reference points 2, Canary 0
+555 Inner Peace: reference points 3, Canary 2
+556 Fiend Rider: reference points 3, Canary 2
+559 Hope of the Merudri: reference points 2, Canary 3
+562 Alpha Rider: reference points 3, Canary 2
+```
+
+Nie zmieniono żadnej wartości. Każdy konflikt musi zostać rozstrzygnięty względem wspieranej wersji i aktywnego contentu.
+
+## Niepełne komórki źródłowe
+
+Nieznane punkty: `574`, `587`, `588`, `591`, `595`.
+
+Brak warunku: `195`, `561`, `574`, `587`, `588`, `595`.
+
+Pozostają unresolved; niczego nie uzupełniono przez domysł.
+
+## Persistence i backfill
+
+`PlayerAchievement` przechowuje unlocked state pod kanoniczną nazwą:
+
+```text
+src/creatures/players/components/player_achievement.cpp:35  save by canonical name
+src/creatures/players/components/player_achievement.cpp:103 load stored name
+src/creatures/players/components/player_achievement.cpp:87  points persistence
+```
+
+Rename może osierocić istniejący KV. Zmiana nazwy wymaga migracji lub aliasu. Per-achievement backfill pozostaje unresolved bez osobnego planu subsystemowego.
+
+## Reviewed Weapon Proficiency
+
+- `564`–`566`: `handler-missing`; definicje istnieją, award hooków nie ma;
+- `567`: `conflicting`; kontrakt 12 itemów/proficiency jest zweryfikowany, ale definicji, awardu i backfillu brak;
+- PR #212 naprawił stan mastery i dodał count API, bez implementowania achievementów.
+
+## Walidacja
+
+```text
+implementation commit: 741c0c40593c894c97212977485f073d8c2e52bb
+Achievement Validation run: 29237298141 — success
+artifact: 8273938137
+artifact digest: sha256:3a36eec8d0eebb87010a5b12309ab5f2d8015160cbb6f0be7b2b497ba032c140
+AI Agent Tools run: 29237298034 — success
+Agent Task Ownership run: 29237298047 — success
+focused tests: 13/13
+```
+
+Finalne gate'y muszą zostać wykonane ponownie po czystym refreshu na aktualnym `main`.
+
+## Co zostało naprawione wcześniej
+
+Historyczne findings z PR #165 nie są już aktywne:
+
+- sparse registry/helper i `Game.isAchievementSecret` naprawiono w #176;
+- dwa błędne literalne triggery naprawiono w #184;
+- current scan ma `unknownStaticReferences=0`.
+
+## Granica bezpieczeństwa
+
+Ten PR nie modyfikuje rejestru, Lua/C++ gameplayu, storage, KV schema, DB, map ani assetów. Naprawy muszą być osobnymi, małymi PR-ami: metadata, missing definitions, dynamic resolvers, handlers, backfill i runtime/E2E osobno.

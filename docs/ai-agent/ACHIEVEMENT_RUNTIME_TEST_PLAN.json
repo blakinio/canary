@@ -1,13 +1,32 @@
 {
-  "format": "canary-achievement-runtime-test-plan-v1",
-  "generatedAt": "2026-07-12",
+  "format": "canary-achievement-runtime-test-plan-v2",
+  "generatedAt": "2026-07-13",
   "component": "AI World Validation / Achievements",
+  "reference": {
+    "catalog": "docs/ai-agent/ACHIEVEMENT_REFERENCE_CATALOG.json",
+    "sourceRevisionId": 1188274,
+    "sourceSha256": "8a429425ab7b088758646b07f036afdd1d579188d056491aed8e77650306ae8b",
+    "listed": 564,
+    "total": 565
+  },
   "preconditions": {
     "server": "Canary loads the active data and data-otservbr-global datapacks",
     "database": "Disposable test database or isolated player KV namespace",
     "character": "Fresh non-GM character unless a scenario states otherwise",
-    "referenceBaseline": "docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json"
+    "referenceBaseline": "docs/ai-agent/ACHIEVEMENT_REFERENCE_BASELINE.json",
+    "referenceCatalog": "docs/ai-agent/ACHIEVEMENT_REFERENCE_CATALOG.json"
   },
+  "evidenceLayers": [
+    "reference condition",
+    "Canary definition",
+    "active handler candidate",
+    "semantic reachability",
+    "persistence and backfill",
+    "existing-player attainability",
+    "new-player attainability",
+    "runtime registration",
+    "test evidence"
+  ],
   "scenarios": [
     {
       "id": "registry-full-registration",
@@ -91,6 +110,21 @@
       ]
     },
     {
+      "id": "canonical-name-compatibility",
+      "layer": "runtime-persistence",
+      "priority": "blocking-before-rename",
+      "steps": [
+        "Persist an unlocked achievement under its canonical current name.",
+        "Evaluate a proposed definition rename in a disposable migration test.",
+        "Reload the original and migrated records."
+      ],
+      "expected": [
+        "A rename is rejected unless an alias or migration preserves name-keyed unlocked state.",
+        "Existing timestamps and points remain stable.",
+        "A call-site typo is repaired at the call site rather than by renaming the canonical definition."
+      ]
+    },
+    {
       "id": "progress-threshold",
       "layer": "runtime-behaviour",
       "priority": "high",
@@ -120,6 +154,66 @@
       ]
     },
     {
+      "id": "reference-metadata-conflict-gate",
+      "layer": "reference-validation",
+      "priority": "blocking-before-metadata-change",
+      "steps": [
+        "Select every reference row whose grade, secrecy, points, ID or exact name conflicts with Canary.",
+        "Review the current source revision and the active Canary content that depends on the definition.",
+        "Run persistence and point-accounting tests before proposing any change."
+      ],
+      "expected": [
+        "No metadata is changed from the wiki alone.",
+        "Every accepted change has exact source and runtime evidence.",
+        "Name changes include an explicit migration or compatibility alias plan."
+      ]
+    },
+    {
+      "id": "missing-definition-content-gate",
+      "layer": "reference-validation",
+      "priority": "blocking-before-definition-add",
+      "steps": [
+        "Select one reference achievement absent from the Canary registry.",
+        "Prove the corresponding quest, item, NPC, event or subsystem exists in the active server version.",
+        "Prove a safe award condition, current-player backfill decision and denied-path behavior."
+      ],
+      "expected": [
+        "A reference-only row remains conflicting/unresolved until content and an award path are proven.",
+        "A definition is not added without the matching gameplay and tests.",
+        "Backfill is explicit and idempotent."
+      ]
+    },
+    {
+      "id": "candidate-handler-semantic-reachability",
+      "layer": "semantic-validation",
+      "priority": "high",
+      "steps": [
+        "Choose one static addAchievement or addAchievementProgress candidate from each handler class.",
+        "Validate all prerequisite storage, item, NPC, boss, movement and registration dependencies.",
+        "Execute both the qualifying path and a denied/incomplete path."
+      ],
+      "expected": [
+        "A static call is promoted from partially-confirmed only after semantic reachability is proven.",
+        "The qualifying path awards exactly once.",
+        "The denied path does not award early."
+      ]
+    },
+    {
+      "id": "existing-player-backfill",
+      "layer": "runtime-persistence",
+      "priority": "blocking-before-new-hook",
+      "steps": [
+        "Create an existing-player state that already satisfies a newly implemented condition but lacks the achievement.",
+        "Load the player at the selected bounded backfill integration point.",
+        "Repeat load and normal gameplay evaluation."
+      ],
+      "expected": [
+        "The backfill decision is explicit: award, intentionally no backfill, or blocked pending evidence.",
+        "Any award occurs exactly once and does not replace an existing timestamp.",
+        "Repeated load/evaluation is idempotent."
+      ]
+    },
+    {
       "id": "representative-static-triggers",
       "layer": "gameplay-e2e",
       "priority": "high",
@@ -143,10 +237,21 @@
       ]
     }
   ],
+  "statusPromotionRules": {
+    "confirmed": "Reference condition, definition, active handler, semantic reachability, persistence/backfill and runtime/test evidence are all proven.",
+    "partially-confirmed": "Definition and a static award/progress candidate exist, but semantic reachability or runtime proof is incomplete.",
+    "definition-only": "A bounded reviewed subsystem proves the definition exists and no usable active handler is registered in that scope.",
+    "handler-missing": "A required award handler is specifically proven absent.",
+    "unresolved": "Evidence is dynamic, indirect, incomplete or not yet reviewed.",
+    "conflicting": "Reference and Canary identity, metadata or subsystem evidence disagree.",
+    "intentionally-unsupported": "A versioned, documented support decision with tests explicitly excludes the achievement."
+  },
   "acceptance": {
     "staticAudit": "No undefined static achievement reference remains.",
+    "sourceCatalog": "Every current listed reference row is represented with revision/hash provenance without copied long prose.",
     "helperCorrectness": "All confirmed helper-defect scenarios pass.",
-    "runtime": "All blocking scenarios pass on a disposable character/database.",
-    "regression": "Representative trigger scenarios run in CI or a documented staging gate."
+    "runtime": "All blocking scenarios for a changed subsystem pass on a disposable character/database.",
+    "regression": "Representative trigger scenarios run in CI or a documented staging gate.",
+    "auditBoundary": "Unresolved and conflicting rows are never promoted without evidence."
   }
 }
