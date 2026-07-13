@@ -9,11 +9,10 @@ on:
     paths:
       - ".github/workflows/imbuement-validation.yml"
       - "tools/ai-agent/apply_imbuement_live_parity_patch.py"
-      - "docs/ai-agent/IMBUEMENT_FINALIZER_DIAGNOSTIC.tmp"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   diagnose-live-parity:
@@ -29,17 +28,7 @@ jobs:
           ref: fix/imbuement-live-parity
           fetch-depth: 0
 
-      - name: Detect whether diagnostic is required
-        id: gate
-        run: |
-          if test -f docs/ai-agent/IMBUEMENT_FINALIZER_DIAGNOSTIC.tmp; then
-            echo 'needed=false' >> "$GITHUB_OUTPUT"
-          else
-            echo 'needed=true' >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Capture finalizer output
-        if: steps.gate.outputs.needed == 'true'
         shell: bash
         run: |
           set +e
@@ -48,14 +37,13 @@ jobs:
           {
             echo "exit_status=$status"
             cat /tmp/finalizer.log
-          } > docs/ai-agent/IMBUEMENT_FINALIZER_DIAGNOSTIC.tmp
+          } > /tmp/IMBUEMENT_FINALIZER_DIAGNOSTIC.txt
           exit 0
 
-      - name: Commit diagnostic
-        if: steps.gate.outputs.needed == 'true'
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -f docs/ai-agent/IMBUEMENT_FINALIZER_DIAGNOSTIC.tmp
-          git commit -m 'docs(imbuement): capture active finalizer failure'
-          git push origin HEAD:fix/imbuement-live-parity
+      - name: Upload finalizer diagnostic
+        uses: actions/upload-artifact@v4
+        with:
+          name: imbuement-finalizer-diagnostic
+          path: /tmp/IMBUEMENT_FINALIZER_DIAGNOSTIC.txt
+          if-no-files-found: error
+          retention-days: 2
