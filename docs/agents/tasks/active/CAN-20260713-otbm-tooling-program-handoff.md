@@ -1,16 +1,16 @@
 ---
 task_id: CAN-20260713-otbm-tooling-program-handoff
 coordination_id: "OTS-OTBM-VALIDATION"
-status: active
+status: ready_for_review_pending_ci
 agent: "GPT-5.6 Thinking"
 branch: docs/otbm-tooling-program-handoff
 base_branch: main
 created: 2026-07-13T12:52:00+02:00
-updated: 2026-07-13T12:52:00+02:00
-last_verified_commit: "56ee9bc72b91ba1110cd6d957c7eb0d974fc54e1"
+updated: 2026-07-13T13:00:00+02:00
+last_verified_commit: "2d9cb2984e611c43709bfa8136b5890cf281a7ed"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "#247"
 depends_on:
   - "merged Unified OTBM World Index #219 and lifecycle #223"
   - "merged Quest Map Validator #225 and lifecycle #236"
@@ -66,15 +66,18 @@ cross_repo_tasks: []
 
 Refresh the single authoritative OTBM tooling roadmap into a complete, self-contained programme handoff for the next agent. This task is documentation-only and must not start a new implementation, parser, validator, renderer, gameplay repair, workflow, map or asset change.
 
-# Current repository state at claim
+# Current repository state
 
 - Repository: `blakinio/canary`.
-- Base `main`: `56ee9bc72b91ba1110cd6d957c7eb0d974fc54e1`.
+- Base at branch creation: `56ee9bc72b91ba1110cd6d957c7eb0d974fc54e1`.
+- Current `main` before Ready transition: `88e0140329a91fb877633307d2b749fecb175a43`.
 - Branch: `docs/otbm-tooling-program-handoff`.
+- Draft PR: #247.
 - Existing authoritative programme document: `docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md`.
 - No competing `docs/ai-agent/OTBM_TOOLING_ROADMAP_HANDOFF.md` exists.
-- `docs/agents/ACTIVE_WORK.md` is read-only, not owned and will not be edited.
+- `docs/agents/ACTIVE_WORK.md` is read-only, not owned and unchanged.
 - Open-PR searches found no direct OTBM/Quest Map Validator implementation overlap. PR #245 is adjacent universal E2E infrastructure and currently owns only its own task record; it does not own the OTBM roadmap.
+- Final pre-ready changed-file list contains exactly the roadmap and this task record.
 
 # Verified historical baseline
 
@@ -102,20 +105,21 @@ It failed with:
 fatal: unable to access 'https://github.com/blakinio/canary.git/': Could not resolve host: github.com
 ```
 
-After this confirmed DNS failure, clone/fetch/ls-remote is not being repeated. GitHub API is being used for repository, file, PR, branch, workflow, job and review inspection and for documentation mutations. No local checkout, local unit test, local formatter, local ownership check or local build result is claimed.
+After this confirmed DNS failure, clone/fetch/ls-remote was not repeated. GitHub API was used for repository, file, PR, branch, workflow, job and review inspection and for documentation mutations. No local checkout, local unit test, local formatter, local ownership check or local build result is claimed.
 
 # Acceptance criteria
 
-- [ ] Reconstruct current `main`, merged/open PRs, branches, tasks, ownership and final workflow evidence.
-- [ ] Update the existing authoritative roadmap instead of creating a competing programme document.
-- [ ] Record exact contracts for World Index, Quest Map Validator, script resolution and factual rendering.
-- [ ] Record real-map provenance and The Beginning correlation evidence.
-- [ ] Recheck The Beginning findings against current `main`, including merged Carlos repair.
-- [ ] Record bounded Phases 3–8 without implementing them.
-- [ ] Select exactly one next bounded scope that is still open, owner-free and map-free.
-- [ ] Record hard prohibitions, DNS/local-checkout boundary and first-command handoff.
-- [ ] Keep changed files documentation-only and exclude `ACTIVE_WORK.md`.
-- [ ] Open a draft PR, inspect changed files, mark Ready, inspect concrete CI jobs, enable auto-merge and reach squash merge.
+- [x] Reconstruct current `main`, merged/open PRs, branches, tasks, ownership and historical workflow evidence.
+- [x] Update the existing authoritative roadmap instead of creating a competing programme document.
+- [x] Record exact contracts for World Index, Quest Map Validator, script resolution and factual rendering.
+- [x] Record real-map provenance and The Beginning correlation evidence.
+- [x] Recheck The Beginning findings against current `main`, including merged Carlos repair.
+- [x] Record bounded Phases 3–8 without implementing them.
+- [x] Select exactly one next bounded scope that is still open, owner-free and map-free.
+- [x] Record hard prohibitions, DNS/local-checkout boundary and first-command handoff.
+- [x] Keep changed files documentation-only and exclude `ACTIVE_WORK.md`.
+- [x] Open a draft PR and inspect the exact changed-file list.
+- [ ] Mark Ready, inspect fresh concrete CI jobs/reviews, enable auto-merge and reach squash merge.
 - [ ] Archive this task in a separate documentation-only lifecycle PR.
 
 # Safety boundaries
@@ -129,6 +133,22 @@ After this confirmed DNS failure, clone/fetch/ls-remote is not being repeated. G
 - Do not use AI image generation for map visualization.
 - Do not modify the map or upstream repositories.
 
+# Validation and CI
+
+Draft-head `2d9cb2984e611c43709bfa8136b5890cf281a7ed`:
+
+- Agent Task Ownership run `29244622842`: success.
+  - Job `Validate active ownership` (`86798452530`) succeeded.
+  - Ownership tooling compilation, focused unit tests and active-task/index validation succeeded.
+- AI Agent Tools run `29244622820`: success.
+  - Job `Validate AI agent tools` (`86798452521`) succeeded, including unit tests, registries, reference validation, schemas and realistic content-pack checks.
+- CI run `29244622919`: success.
+  - `Detect Build Scope` (`86798452854`) succeeded.
+  - `Required` (`86798499039`) succeeded.
+  - Lua, Fast Checks, Linux, Windows, macOS, Docker and Docker Quickstart were skipped because the net diff is documentation-only.
+
+These are draft-head checks. A fresh final-head/post-ready run remains required before merge.
+
 # Work log
 
 ## 2026-07-13T12:52:00+02:00
@@ -140,14 +160,28 @@ After this confirmed DNS failure, clone/fetch/ls-remote is not being repeated. G
 - Confirmed from current `main` that the rope-success branch still checks `< 22` without writing stage 22.
 - Confirmed local Git access is blocked by DNS and recorded the exact command/error.
 
+## 2026-07-13T13:00:00+02:00
+
+- Opened draft PR #247 and confirmed its net changed-file list contains exactly two documentation files.
+- Replaced the stale roadmap with the complete programme handoff, preserving exact evidence boundaries and selecting Santiago persistence as the next bounded package.
+- Inspected draft-head ownership, AI Agent Tools and CI jobs individually; all emitted checks succeeded.
+- Main advanced independently from `56ee9bc7...` to `88e01403...` through unrelated documentation lifecycle work; no owned-path overlap was introduced.
+
+# Failed approaches and corrections
+
+- Local checkout/fetch was blocked by the recorded DNS failure; no local result is claimed.
+- An attempted contents-API write used the create-file action for an existing roadmap and was rejected with HTTP 422 because the current blob SHA was required; the correct update-file action was then used.
+- A temporary empty `README_DO_NOT_CREATE.tmp` file was accidentally created while loading the correct PR action and immediately deleted in the next commit. It is absent from the PR diff and changed-file list.
+- An attempted create-file call against the existing task record was rejected before mutation because the current SHA was required; the task was updated through the correct update-file action.
+
 # Remaining work
 
-1. Open the draft documentation PR.
-2. Replace the stale roadmap content with the complete current-state programme handoff.
-3. Inspect the exact diff and changed-file list.
-4. Record final-head workflow and review evidence, mark Ready and merge.
-5. Archive this task in a separate cleanup PR.
+1. Mark PR #247 Ready for review.
+2. Record the resulting final head SHA and inspect every fresh workflow/job.
+3. Inspect review threads and mergeability.
+4. Enable auto-merge and allow squash merge after the required gate succeeds.
+5. Archive this task in a separate cleanup PR with exact feature head, merge SHA and workflow evidence.
 
 # Handoff
 
-This task owns only the roadmap and its own task record. Do not add code, gameplay, workflow, map, asset or `ACTIVE_WORK.md` changes. If interrupted, continue only on `docs/otbm-tooling-program-handoff`, recheck current `main` and open PR ownership, then finish the roadmap/PR lifecycle.
+Continue only on PR #247 and branch `docs/otbm-tooling-program-handoff` until it merges. Do not add code, gameplay, workflow, map, asset or `ACTIVE_WORK.md` changes. After merge, create one documentation-only cleanup branch that moves this task to `docs/agents/tasks/archive/`, records final evidence and updates the roadmap only if final merge/main metadata must be pinned.
