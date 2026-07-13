@@ -28,7 +28,16 @@ public:
 		}
 
 		for (size_t index = 0; index < steps.size(); ++index) {
-			if (steps[index].commit()) {
+			bool stepCommitted = false;
+			try {
+				stepCommitted = steps[index].commit();
+			} catch (...) {
+				rollbackThrough(index);
+				finished = true;
+				return false;
+			}
+
+			if (stepCommitted) {
 				continue;
 			}
 
