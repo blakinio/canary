@@ -15,16 +15,20 @@ jobs:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout task branch
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 1
-          show-progress: false
+      - name: Clone task branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --quiet --depth 1 --branch "${HEAD_REF}" \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" repo
       - name: Apply and push implementation
         env:
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
         shell: bash
+        working-directory: repo
         run: |
           set -euo pipefail
           git apply --verbose -p1 --check .github/imbuement-vibrancy.patch
