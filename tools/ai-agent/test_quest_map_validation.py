@@ -19,6 +19,7 @@ from quest_map_validation import (
     QuestMapValidationError,
     mask_lua_noncode,
     scan_quest_sources,
+    scan_to_file,
     validate_quest_evidence,
 )
 from otbm_world_index import build_world_index
@@ -203,6 +204,25 @@ end
         self.assertIn(("storage", '"Storage.Quest.Sample"', "storage-read"), values)
         self.assertIn(("storage", '"Storage.Quest.Sample"', "storage-write"), values)
 
+    def test_resolves_direct_storage_aliases(self) -> None:
+        self.write_lua(
+            "storage_alias.lua",
+            """
+local tutorialStorage = Storage.Quest.U8_2.TheBeginningQuest
+if player:getStorageValue(tutorialStorage.ZirellaQuestLog) < 1 then
+  player:setStorageValue(tutorialStorage.ZirellaQuestLog, 1)
+end
+""",
+        )
+        report = self.scan()
+        storage = [entry for entry in report["evidence"] if entry["kind"] == "storage"]
+        self.assertEqual(
+            {entry["value"] for entry in storage},
+            {"Storage.Quest.U8_2.TheBeginningQuest.ZirellaQuestLog"},
+        )
+        self.assertEqual({entry["role"] for entry in storage}, {"storage-read", "storage-write"})
+        self.assertFalse([entry for entry in report["unresolved"] if entry["kind"] == "storage"])
+
     def test_ignores_fake_references_inside_comments_and_strings(self) -> None:
         self.write_lua(
             "fake.lua",
@@ -251,7 +271,7 @@ local p = Position(config.x, 600, 7)
         with self.assertRaises(QuestMapValidationError):
             scan_quest_sources(repository_root=self.root, source_roots=["data"], includes=[])
 
-    def test_validation_classifies_confirmed_and_script_only(self) -> None:
+    def test_validation_uses_conservative_map_semantics(self) -> None:
         self.write_lua(
             "quest.lua",
             """
@@ -261,7 +281,8 @@ action:register()
 player:addItem(7772, 1)
 player:addItem(9999, 1)
 local p = Position(300, 600, 7)
-local missing = Position(400, 700, 7)
+local areaCenter = Position(400, 700, 7)
+player:teleportTo(Position(401, 701, 7))
 """,
         )
         evidence = self.scan()
@@ -278,8 +299,9 @@ local missing = Position(400, 700, 7)
         }
         self.assertEqual(classification[("actionId", "8026")], "confirmed")
         self.assertEqual(classification[("itemId", "7772")], "confirmed")
-        self.assertEqual(classification[("itemId", "9999")], "script-only")
-        self.assertEqual(classification[("position", "[400, 700, 7]")], "script-only")
+        self.assertEqual(classification[("itemId", "9999")], "unresolved")
+        self.assertEqual(classification[("position", "[400, 700, 7]")], "unresolved")
+        self.assertEqual(classification[("teleportDestination", "[401, 701, 7]")], "script-only")
 
     def test_validation_preserves_conflicting_script_resolution(self) -> None:
         self.write_lua("quest.lua", "local action=Action()\naction:aid(8026)\naction:register()\n")
@@ -329,6 +351,23 @@ local missing = Position(400, 700, 7)
         storage = next(item for item in report["findings"] if item["kind"] == "storage")
         self.assertEqual(storage["classification"], "unresolved")
         self.assertIn("later phase", storage["reason"])
+
+    def test_scan_output_rejects_symlinks(self) -> None:
+        self.write_lua("quest.lua", "player:addItem(7772, 1)\n")
+        real_output = self.root / "real.json"
+        symlink_output = self.root / "linked.json"
+        real_output.write_text("{}\n", encoding="utf-8")
+        try:
+            symlink_output.symlink_to(real_output)
+        except (OSError, NotImplementedError):
+            self.skipTest("Symlinks are unavailable on this platform")
+        with self.assertRaises(QuestMapValidationError):
+            scan_to_file(
+                symlink_output,
+                repository_root=self.root,
+                source_roots=["data"],
+                includes=["data/quests/*.lua"],
+            )
 
     def test_invalid_formats_and_region_limits_fail(self) -> None:
         with self.assertRaises(QuestMapValidationError):
