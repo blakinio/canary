@@ -1,0 +1,35 @@
+name: Apply Forge authority report history correction
+
+on:
+  pull_request:
+    branches:
+      - fix/forge-server-authority
+    paths:
+      - docs/ai-agent/.forge-authority-report-history-runner
+
+permissions:
+  contents: write
+
+jobs:
+  apply-report-correction:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/forge-server-authority
+          fetch-depth: 1
+          show-progress: false
+
+      - name: Apply correction
+        run: python3 tools/ai-agent/fix_forge_authority_report_history.py
+
+      - name: Commit correction
+        run: |
+          git diff --check
+          git diff -- docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md
+          git commit -m "docs(forge): correct authority runner history"
+          git push origin HEAD:fix/forge-server-authority
