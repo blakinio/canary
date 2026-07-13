@@ -8,6 +8,7 @@ on:
       - "feat/**"
       - "fix/**"
       - "ai/**"
+      - "ci/**"
     paths:
       - "data/scripts/lib/register_bestiary_charm.lua"
       - "data/scripts/systems/bestiary_charms.lua"
@@ -22,7 +23,7 @@ on:
       - "src/map/house/**"
       - "schema.sql"
       - "tools/ai-agent/cyclopedia_validation.py"
-      - "tools/ai-agent/test_cyclopedia_validation.py"
+      - "tools/ai-agent/test_cyclopedia*.py"
       - "docs/ai-agent/CYCLOPEDIA_RUNTIME_TEST_PLAN.json"
       - "docs/ai-agent/CYCLOPEDIA_VALIDATION_REPORT.md"
       - ".github/workflows/cyclopedia-validation.yml"
@@ -41,7 +42,7 @@ on:
       - "src/map/house/**"
       - "schema.sql"
       - "tools/ai-agent/cyclopedia_validation.py"
-      - "tools/ai-agent/test_cyclopedia_validation.py"
+      - "tools/ai-agent/test_cyclopedia*.py"
       - "docs/ai-agent/CYCLOPEDIA_RUNTIME_TEST_PLAN.json"
       - "docs/ai-agent/CYCLOPEDIA_VALIDATION_REPORT.md"
       - ".github/workflows/cyclopedia-validation.yml"
@@ -71,10 +72,10 @@ jobs:
           python-version: "3.12"
 
       - name: Run focused tests
-        run: python -m unittest discover -s tools/ai-agent -p "test_cyclopedia_validation.py" -v
+        run: python -m unittest discover -s tools/ai-agent -p "test_cyclopedia*.py" -v
 
-      - name: Compile validator
-        run: python -m py_compile tools/ai-agent/cyclopedia_validation.py tools/ai-agent/test_cyclopedia_validation.py
+      - name: Compile validator and focused tests
+        run: python -m py_compile tools/ai-agent/cyclopedia_validation.py tools/ai-agent/test_cyclopedia*.py
 
       - name: Generate Cyclopedia audit
         run: |
@@ -82,7 +83,7 @@ jobs:
             --repository-root . \
             --otclient-root otclient \
             --output artifacts/CYCLOPEDIA_VALIDATION.json \
-            --fail-on none
+            --fail-on error
 
       - name: Validate generated JSON
         run: |
@@ -102,6 +103,8 @@ jobs:
           assert report["summary"]["monsterFiles"] > 0
           assert report["otclient"]["status"] == "scanned"
           assert not [item for item in report["findings"] if item["id"] == "SOURCE-MISSING"]
+          assert report["summary"]["findingCount"] == 0, report["findings"]
+          assert report["findings"] == []
 
       - name: Publish audit summary
         shell: python
