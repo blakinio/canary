@@ -1,6 +1,6 @@
 # Canary Imbuement Validation Report
 
-> **Status:** IMB-004 implemented in PR #239; IMB-005 repaired by PR #206; final CI pending
+> **Status:** IMB-001/002/003/006 repaired in PR #251; IMB-004/005 preserved; final CI pending
 > **Observed:** 2026-07-13
 > **Writable repository:** `blakinio/canary`
 > **Reference:** <https://tibia.fandom.com/wiki/Imbuing>
@@ -10,7 +10,7 @@
 
 ## 1. Purpose and evidence boundary
 
-This report validates Canary's active Imbuing definitions and runtime wiring and records the focused repairs of the Forgotten Knowledge Powerful unlock storages and the Intricate/Powerful Vibrancy scroll resolution defect.
+This report validates Canary's active Imbuing definitions and runtime wiring and records the focused live-Tibia repairs for fees, Strike, Basic Punch, Forgotten Knowledge storages and Vibrancy scroll resolution.
 
 Evidence layers remain separate:
 
@@ -61,55 +61,50 @@ The registry contains one Basic, Intricate and Powerful entry for every family. 
 
 ## 4. Current result
 
-The active system is structurally complete and its major runtime paths are connected. PR #206 repairs the broad Forgotten Knowledge storage-wiring defect, and PR #239 maps both active Vibrancy scroll IDs through the existing loader.
+The active system is structurally complete and its major runtime paths are connected. PR #251 aligns the confirmed current-live application fees, Strike values and Basic Punch materials. PR #206 and PR #239 remain preserved.
 
-Remaining material discrepancy groups are:
-
-1. the application fee/success model differs from the observed current reference;
-2. all three Strike tiers use different critical values;
-3. Basic Punch uses a different source item and count;
-4. Powerful Featherweight and Vibrancy use `storage=0`, so they bypass family-specific filtering.
+All six audited discrepancy groups now have evidence-backed repairs. Powerful Featherweight uses the permanent all-three-boss Dangerous Depths completion marker `45929`; Powerful Vibrancy uses the persistent Nightmare Beast completion marker `46365`. Neither marker is written at quest start.
 
 ## 5. Findings
 
-### IMB-001 — application fee and success model differs
+### IMB-001 — current fixed application fees repaired
 
-**Disposition:** `reference-mismatch; target-version decision required`
+**Disposition:** `repaired-in-pr-251`
 **Confidence:** high
 
-| Tier | Active attempt price | Active success | Active protection | Active guaranteed total | Observed reference fee |
-|---|---:|---:|---:|---:|---:|
-| Basic | 5,000 | 90% | 10,000 | 15,000 | 7,500 |
-| Intricate | 30,000 | 70% | 30,000 | 60,000 | 60,000 |
-| Powerful | 200,000 | 50% | 50,000 | 250,000 | 250,000 |
+| Tier | Active fee | Success | Protection surcharge | Current reference fee |
+|---|---:|---:|---:|---:|
+| Basic | 7,500 | 100% | 0 | 7,500 |
+| Intricate | 60,000 | 100% | 0 | 60,000 |
+| Powerful | 250,000 | 100% | 0 | 250,000 |
 
-Do not patch this automatically. The server must first choose whether it targets the historical chance/protection economy or the current fixed-fee economy.
+The user explicitly selected current live Tibia rather than the historical chance/protection model. `Player::onApplyImbuement` charges the registry price and applies deterministically; the protocol reads price, percent and protection price from the same registry, so one XML authority now drives server mutation and UI presentation.
 
-### IMB-002 — Strike critical values differ
+### IMB-002 — Strike critical values repaired
 
-**Disposition:** `confirmed-data-mismatch`
+**Disposition:** `repaired-in-pr-251`
 **Confidence:** high
 
-| Tier | Active XML | Observed reference |
-|---|---|---|
-| Basic | 10% chance, +15% damage | 5% chance, +5% damage |
-| Intricate | 10% chance, +25% damage | 5% chance, +15% damage |
-| Powerful | 10% chance, +50% damage | 5% chance, +40% damage |
+| Tier | Active/current value |
+|---|---|
+| Basic | 5% chance, +5% damage |
+| Intricate | 5% chance, +15% damage |
+| Powerful | 5% chance, +40% damage |
 
-The loader stores these values directly. No reviewed runtime layer replaces them.
+The loader stores the exact chance and damage values in the critical skill slots. Focused C++ and deterministic Python tests enforce all three tiers.
 
-### IMB-003 — Basic Punch source differs
+### IMB-003 — Basic Punch source repaired
 
-**Disposition:** `confirmed-data-mismatch`
+**Disposition:** `repaired-in-pr-251`
 **Confidence:** high
 
-| Tier | Active XML | Observed reference chain |
-|---|---|---|
-| Basic | item `9690` ×20 | item `10281` ×25 |
-| Intricate | item `10281` ×25 + item `11489` ×20 | same |
-| Powerful | previous sources + item `40529` ×15 | same |
+| Tier | Active/current material chain |
+|---|---|
+| Basic | item `10281` ×25 |
+| Intricate | item `10281` ×25 + item `11489` ×20 |
+| Powerful | previous sources + item `40529` ×15 |
 
-Only Basic Punch differs.
+Only the Basic entry changed. Higher-tier cumulative chains remain unchanged and validator-covered.
 
 ### IMB-004 — Vibrancy scroll mappings repaired
 
@@ -155,14 +150,15 @@ The focused validator now:
 
 With storage filtering enabled, a boss kill now writes the same storage ID read by the corresponding Powerful entry.
 
-### IMB-006 — Featherweight and Vibrancy bypass filtering
+### IMB-006 — Featherweight and Vibrancy quest unlocks repaired
 
-**Disposition:** `confirmed-reference-mismatch; exact completion condition unresolved`
-**Confidence:** high for the bypass, medium for any future replacement storage/value
+**Disposition:** `repaired-in-pr-251`
+**Confidence:** high
 
-Powerful Featherweight and Powerful Vibrancy still use `storage="0"`. The policy intentionally does not hide zero-storage entries, so they remain visible when family-specific filtering is enabled.
+- Powerful Featherweight uses storage `45929` (`DangerousDepths.Bosses.LastAchievement`). The active action writes it only after all three final boss-achievement markers equal `1`.
+- Powerful Vibrancy uses storage `46365` (`TheDreamCourts.DreamScarGlobal.NightmareTimer`). The active death handler writes this player storage only for The Nightmare Beast; the quest catalogue and Vanys NPC identify that kill as the final main Dream Courts step. The timestamp remains set after the cooldown expires, so the existing `storage != -1` policy preserves the unlock permanently.
 
-The observed reference requires Dangerous Depths for Powerful Featherweight and Dream Courts for Powerful Vibrancy. The exact active completion storage and value for each quest have not yet been proven. Do not invent either mapping.
+The generic questline storages were deliberately rejected: both are set when the quest starts and would unlock Powerful imbuements too early. No new storage ID or threshold semantics were invented.
 
 ## 6. Confirmed conforming behavior
 
@@ -171,8 +167,8 @@ Static evidence confirms:
 - 20-hour duration for all tiers;
 - 15,000-gold clearing cost;
 - Basic, Intricate and Powerful definitions for all 24 families;
-- all non-Strike effect values match the scanner baseline;
-- all material chains except Basic Punch match that baseline;
+- all effect values match the current scanner baseline;
+- all material chains match the current scanner baseline;
 - all 48 Intricate/Powerful scroll mappings match the active Lua ranges, including both Vibrancy tiers;
 - the shrine has a common access gate when storage filtering is enabled;
 - PR #86 corrected the storage policy to read the configured storage ID;
@@ -243,11 +239,8 @@ These remain runtime scenarios, not passed claims.
 
 ## 10. Recommended delivery order
 
-1. Prove the exact Dangerous Depths and Dream Courts completion conditions before assigning Featherweight/Vibrancy storages.
-2. Decide the target Imbuing economy/version before changing fees or success logic.
-3. Fix Strike and Basic Punch in a separate data-fidelity PR.
-4. Execute the remaining runtime plan in controlled Canary staging.
-5. Audit full equipment eligibility against item metadata.
+1. Execute the remaining runtime plan in controlled Canary staging.
+2. Audit full equipment eligibility against item metadata.
 
 ## 11. Reproduction
 

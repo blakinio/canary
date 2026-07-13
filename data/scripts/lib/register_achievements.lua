@@ -404,7 +404,7 @@ ACHIEVEMENTS = {
 	[403] = { name = "Icy Glare", grade = 1, points = 1, description = "Here's looking at you, kid. This ancient creature seems to size you up with its brilliant eyes and barely tolerates you riding it. Maybe it thinks you're the defrosted snack, after all?" },
 	[404] = { name = "Cartography 101", grade = 1, points = 2, description = "You succeeded in finding and charting several previously unexplored landmarks and locations for the Adventurer's Guild, you probably never need to ask anyone for the way - do you?" },
 	[405] = { name = "Lost Palace Raider", grade = 1, points = 2, secret = true, description = "Lifting the secrets of a fabulous palace and defeating a beautiful demon princess was a thrilling experience indeed. This site's marvels nearly matched its terrors. Nearly." },
-	[406] = { name = "The More the Merrier", grade = 1, points = 0, secret = true, description = "It's dangerous to go alone... Take ten friends." },
+	[406] = { name = "The More the Merrier", grade = 0, points = 0, secret = true, description = "It's dangerous to go alone... Take ten friends." },
 	-- [407] = Unknown/non-existent
 	[408] = { name = "Rift Warrior", grade = 1, points = 3, description = "You went through hell. Seven times. You defeated the demons. Countless times. You put an end to Ferumbras claims to ascendancy. Once and for all." },
 	-- [409] = Unknown/non-existent
@@ -511,7 +511,7 @@ ACHIEVEMENTS = {
 	[510] = { name = "Drama in Darama", grade = 1, points = 3, description = "If a pride of lions and a pack of hyaenas feud, it is not called a catfight but a ... whatsoever. For sure, it caused a lot of drama in the Darama Desert." },
 	[511] = { name = "Malefitz", grade = 1, points = 1, secret = true, description = "Made acquaintance with three brothers Fitz." },
 	[512] = { name = "Lionheart", grade = 1, points = 3, description = "You bested the maleficent duo Drume and Fugue and restored order to the besieged town of Bounac. You conquered the exotic stronghold of the Order of the Cobra and bested the undead knights of the Order of the Falcon. A true knight in heart and mind." },
-	[513] = { name = "Soul Mender", grade = 4, points = 10, description = "Brought back to the realm of the living this magnificent creature will carry you through death and everything that lays beyond." },
+	[513] = { name = "Soul Mender", grade = 4, points = 10, secret = true, description = "Brought back to the realm of the living this magnificent creature will carry you through death and everything that lays beyond." },
 	[514] = { name = "You Got Horse Power", grade = 3, points = 8, description = "Brought back to the realm of the living this magnificent creature will carry you through death and everything that lays beyond." },
 	[515] = { name = "Unleash the Beast", grade = 3, points = 8, description = "You defeated the manifestation of Goshnar's evil traits by fighting your way through beasts you didn't even want to imagine. It transformed you and now you can also look the part." },
 	[516] = { name = "Well Roared, Lion!", grade = 1, points = 1, description = "You helped Domizian and thus proved yourself worthy to enter the werelion sanctum underneath Lion's Rock. You faced the mighty werelions there and one of the rare white lions even chose to accompany you." },
