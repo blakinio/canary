@@ -1,10 +1,10 @@
 # OTS AI Wheel of Destiny Validation — plan, evidence, findings and handoff
 
-> **Status:** active validation
+> **Status:** validation phase complete; confirmed fixes in PR #220; missing systems and runtime proofs explicitly tracked
 > **Started:** 2026-07-12
 > **Last updated:** 2026-07-12
 > **Repository:** `blakinio/canary`
-> **Working branch:** `validation/wheel-of-destiny`
+> **Integrated via:** PR #220 into `main` (`35ff51ac022e36d215db9d0fa86053b326a0bdf0`)
 > **Reference process:** `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md`
 > **Primary gameplay reference:** `https://tibia.fandom.com/wiki/Wheel_of_Destiny`
 > **Rule:** update this file whenever Wheel of Destiny code, data, tests, or validation conclusions change.
@@ -81,6 +81,22 @@ The referenced TibiaWiki page currently states:
 
 These values are a working comparison baseline, not yet a declaration that every detail is authoritative or unchanged. Official CipSoft sources and captured protocol behavior supersede community documentation when available.
 
+### 3.1. Current 15.25 balance baseline
+
+The June 16, 2026 update additionally requires:
+
+- Gift of Life to restore 20/25/30% maximum mana as well as health;
+- Dedication mitigation to grant 0.075% per Promotion Point;
+- Gem mitigation to scale as 20/22/24/30% at Grades I/II/III/IV;
+- Ballistic Mastery bow attacks/spells to gain 4% physical and holy pierce;
+- Healing Link to transfer 25% healing;
+- Battle Healing to increase healing spells by 10%, tripled while a shield is equipped, with no challenge-triggered heal;
+- Blessing of the Grove to add 5/7.5/10% below 60% health, doubled below 30%, and to enable critical healing;
+- multiple existing augments to use new values/order/area/cooldown behavior;
+- new vocation stances and replacement spells that do not currently exist in Canary.
+
+The missing new spells/stances are tracked separately instead of being emulated by renaming old Wheel entries.
+
 ---
 
 ## 4. Repository surface discovered
@@ -123,34 +139,34 @@ Confirmed definitions and active paths:
 
 | Area | Status | Current evidence | Next proof required |
 |---|---|---|---|
-| Promotion points from levels | confirmed | formula starts after level 50 and defaults to one point/level | regression test |
+| Promotion points from levels | partial | formula handles levels 1–50 without unsigned wrap; unit coverage and PR #220 CI passed | runtime login test |
 | Promotion Scroll points | confirmed | five unique scrolls total 50; KV persistence traced | Lua/runtime use test |
 | Way of the Monk points | partial | storage/config path exists and is included in extra points | quest completion and protocol test |
 | Hunting Task Shop points | missing | current Taskboard module explicitly sends an empty shop shim | implement Taskboard reward/shop persistence |
-| Grade IV permanent points | incorrect | `m_modsMaxGrade` increases usable points but is omitted from the protocol extra-points field | fix serialization/accounting and test |
-| 36-slice topology | incorrect | 36 slots exist; one green adjacency check repeats the same prerequisite and allocation is non-atomic | correct topology and validate every legal path |
+| Grade IV permanent points | partial | accounting consolidated into `getExtraPoints()`; load order fixed; PR #220 CI passed | protocol capture and Grade IV round trip |
+| 36-slice topology | partial | duplicated green edge corrected by quadrant symmetry; complete allocation is validated before commit | exhaustive topology matrix test |
 | Revelation thresholds | partial | 250/500/1000 definitions and runtime stages exist | domain totals and effect tests |
-| Temple-only reallocation | incorrect | client options expose the restriction but save handling does not reject decreases outside a temple | enforce server-side and test forged packet |
+| Temple-only reallocation | partial | proposed decreases are now rejected server-side unless `getOptions()` confirms temple access | forged-packet integration test |
 | Premium/promoted eligibility | confirmed | `canOpenWheel()` rejects unpromoted, non-Premium, level <= 50, and vocation-none players | protocol rejection test |
 | Vocation wheels | partial | effects for five vocations are represented | verify every slice/effect/value per vocation |
-| Dedication perks | unverified | stats structures present | map each slot to exact scaling and tests |
-| Conviction perks | unverified | spell/passive hooks present | map each perk and stacking behavior |
-| Revelation perks | partial | stages/avatars represented | verify stages, cooldowns, death/relogin state |
+| Dedication perks | partial | current 15.25 mitigation is now 0.075% per Promotion Point; remaining values require matrix/runtime proof | complete per-vocation value matrix and gameplay tests |
+| Conviction perks | partial | supported 15.25 augment values were corrected where an existing runtime spell path is present | implement missing replacement spells/stances and test every augment |
+| Revelation perks | partial | Blue spell grades corrected; Gift of Life now restores health and mana; Battle Healing and Blessing values updated | implement remaining 15.25 Revelation reworks and verify death/relogin state |
 | Presets | unverified | no complete preset path proved yet | save/load/switch validation and limits |
-| Client protocol | partial | open/save/gem packet entry points located | malformed/truncated packet tests and payload captures |
-| Slot persistence | partial | DB primary key and blob round trip traced | validate malformed, oversized, disconnected, and over-budget stored state |
+| Client protocol | partial | raw modifier reachability proved; save plus current/legacy Gem Atelier payloads now validate required bytes, enum ranges, flags, indexes, and affinities | parser integration tests and official captures |
+| Slot persistence | partial | blob records now reject malformed size, duplicate/out-of-range slots, per-slot overflow, disconnected and over-budget state | DB round-trip integration test |
 | KV persistence | partial | scroll/gem/active/grade paths traced | round-trip and stale-reference tests |
-| Gem reveal and capacity | incorrect | reveal path has no 225-gem server-side cap | enforce cap and test |
-| Gem reveal transaction | incorrect | gold is removed before the gem item; item-removal failure can lose gold | make transaction failure-safe |
-| Affinity rotation | incorrect | rotation mutates the revealed gem while an active gem is stored by value; bonuses are not reloaded | deactivate/update active gem and reload bonuses |
-| Vessel resonance | partial | four resonance values represented | verify activation order and full-resonance bonus |
-| Gem mod generation | partial | allowed pools exist | verify pools, slot restrictions, vocation rules, and duplicates |
-| Fragment Workshop | incorrect | Supreme Grade III cost is 12,000,000 instead of baseline 12,500,000; modifier position is not validated before array access | correct value, whitelist positions, add bounds tests |
-| Grade persistence | incorrect | load path does not reset `m_modsMaxGrade` and trusts stored grade values | reset/recalculate and validate 0..3 |
-| Unused-points accounting | incorrect | unsigned subtraction can underflow when loaded or partially applied state exceeds available points | saturating calculation and state rejection |
-| Combat/stat integration | partial | bonus structures and hooks present | deterministic effect tests |
+| Gem reveal and capacity | partial | server-side 225 cap added; initial gems are inserted into the in-memory list immediately | cap and first-open integration tests |
+| Gem reveal transaction | partial | item is reserved first, money prechecked, and item restored if the money mutation unexpectedly fails | failure-injection integration test |
+| Affinity rotation | partial | active copies are removed by UUID, stale KV is cleared, gem is persisted, and bonuses reload | rotation/login round-trip test |
+| Vessel resonance | partial | activation thresholds, effective Grade chaining, +1/+1/+2 full-resonance bonus, and current mitigation scaling are implemented | deterministic runtime effect test |
+| Gem mod generation | partial | allowed pools exist; effective Grade is now capped by every preceding gem slot | verify pools, slot restrictions, vocation rules, duplicates, and runtime values |
+| Fragment Workshop | partial | 12,500,000 cost applied; type/range/vocation allow-list validation added before indexing; payment rollback added | forged-packet and failure-injection tests |
+| Grade persistence | partial | arrays and max-grade count reset; only grades 0..3 are accepted; upgrades persist immediately | KV round-trip test |
+| Unused-points accounting | confirmed | spent points use `uint32_t`; overspent state returns zero; allocation validator rejects it; focused test and PR #220 CI passed | runtime malformed-state test remains defense-in-depth |
+| Combat/stat integration | partial | 15.25 mitigation, Gift mana, Ballistic pierce, Healing Link, Battle Healing, and low-health Grove scaling are wired into runtime | critical-healing, missing stance/spell, and deterministic effect tests |
 | Monk support | partial | Monk stages/avatar and quest bonus represented | full wheel/perk validation |
-| Security/anti-cheat | incorrect | forged save can decrease outside temple; partial invalid save mutates accepted slots; raw grade positions require protocol confirmation | atomic validator, packet length/range checks, tests |
+| Security/anti-cheat | partial | network reachability confirmed; atomic slot/gem proposal, temple enforcement, current/legacy packet length and enum checks, and modifier allow-lists implemented | integration fuzz/forged-packet tests |
 
 ---
 
@@ -158,7 +174,7 @@ Confirmed definitions and active paths:
 
 ### WOD-001 — server does not enforce temple-only decreases
 
-**Disposition:** `incorrect`  
+**Disposition:** `incorrect`
 **Severity:** high
 
 `getOptions()` tells the client whether decreases are allowed, but `saveSlotPointsOnPressSaveButton()` only checks `canOpenWheel()` and per-slot topology/maximum values. A modified client can submit lower allocations outside a temple.
@@ -171,7 +187,7 @@ Required correction:
 
 ### WOD-002 — Wheel save is not atomic
 
-**Disposition:** `incorrect`  
+**Disposition:** `incorrect`
 **Severity:** high
 
 The save handler clears and writes slots sequentially. Invalid entries are retried, and after retry exhaustion earlier accepted changes remain applied. The handler then still loads bonuses and sends the resulting Wheel state.
@@ -184,7 +200,7 @@ Required correction:
 
 ### WOD-003 — Grade IV permanent points are not serialized as extra points
 
-**Disposition:** `incorrect`  
+**Disposition:** `incorrect`
 **Severity:** high
 
 `getUnusedPoints()` adds `m_modsMaxGrade`, but `getExtraPoints()` and the Wheel-open payload only report scroll and Monk quest points. The server and client can therefore disagree about the available permanent-point total.
@@ -197,7 +213,7 @@ Required correction:
 
 ### WOD-004 — Hunting Task Shop source is absent
 
-**Disposition:** `missing`  
+**Disposition:** `missing`
 **Severity:** medium
 
 The current Taskboard module explicitly implements empty, structurally valid windows and an empty shop. No Wheel point reward/purchase path was found. This blocks the documented additional 50 points.
@@ -206,7 +222,7 @@ Required correction is a Taskboard subsystem implementation, not a fabricated Wh
 
 ### WOD-005 — malformed stored/allocation state can underflow unused points
 
-**Disposition:** `incorrect`  
+**Disposition:** `incorrect`
 **Severity:** high
 
 The unused-point accumulator is unsigned and subtracts each allocated slot without first proving that the allocation total is within the available budget. Invalid persisted or partially applied state can wrap to a large value.
@@ -219,7 +235,7 @@ Required correction:
 
 ### WOD-006 — green topology prerequisite contains a duplicated check
 
-**Disposition:** `incorrect`  
+**Disposition:** `incorrect`
 **Severity:** medium
 
 The `SLOT_GREEN_TOP_100` prerequisite expression checks `SLOT_GREEN_MIDDLE_100` twice. The second occurrence should be verified against the intended adjacent upper branch; current code does not express two distinct paths.
@@ -228,7 +244,7 @@ Required correction: derive the expected graph from the 36-slot layout and test 
 
 ### WOD-007 — Supreme modifier upgrade cost mismatch
 
-**Disposition:** `incorrect`  
+**Disposition:** `incorrect`
 **Severity:** medium
 
 The current Grade III Supreme upgrade cost is 12,000,000 gold. The captured gameplay baseline states 12,500,000.
@@ -237,10 +253,10 @@ Required correction: change the value only after a second authoritative/captured
 
 ### WOD-008 — modifier position is used before validation
 
-**Disposition:** `incorrect`  
-**Severity:** critical if reachable from an untrusted packet
+**Disposition:** `incorrect`
+**Severity:** critical
 
-`getGemGrade()` and `improveGemGrade()` index fixed arrays using the supplied modifier position without a range/allow-list check. Protocol parsing must be fully traced, but the called API itself is not safe for arbitrary `uint8_t` values.
+`getGemGrade()` and `improveGemGrade()` index fixed arrays using the supplied modifier position without a range/allow-list check. Protocol tracing confirmed that the current and legacy Gem Atelier packet paths pass the client-supplied modifier position directly to this API. The unsafe array access was therefore network-reachable.
 
 Required correction:
 
@@ -251,21 +267,21 @@ Required correction:
 
 ### WOD-009 — no revealed-gem capacity enforcement
 
-**Disposition:** `incorrect`  
+**Disposition:** `incorrect`
 **Severity:** medium
 
 The reveal path appends a generated gem without enforcing the documented limit of 225 revealed gems.
 
 ### WOD-010 — affinity rotation can leave stale active bonuses
 
-**Disposition:** `incorrect`  
+**Disposition:** `incorrect`
 **Severity:** high
 
 Active gems are stored as values. Rotating the affinity of the revealed-gem object does not update/remove the active copy and does not reload Wheel bonus data. The active state can therefore disagree with the revealed gem.
 
 ### WOD-011 — reveal payment order is failure-unsafe
 
-**Disposition:** `incorrect`  
+**Disposition:** `incorrect`
 **Severity:** medium
 
 Gold is removed before the required gem item. If item removal fails after the money operation, the operation returns without refunding the gold.
@@ -277,6 +293,125 @@ Gold is removed before the required gem item. If item removal fails after the mo
 Migration 32 creates `player_wheeldata` with a non-unique index, but migration 33 adds `PRIMARY KEY (player_id)`, and the current `schema.sql` contains the same primary key. No new deduplication migration is required for a fully migrated installation.
 
 The remaining persistence risk is semantic validation of the blob, not row uniqueness.
+
+### WOD-013 — levels below 50 wrap in the point formula
+
+**Disposition:** `incorrect` → correction implemented; PR #220 CI passed
+**Severity:** high
+
+The previous formula subtracted 50 from an unsigned level before applying `std::max`, so levels 1–49 wrapped to a large value. Wheel opening blocked these characters, but the public point API still returned invalid values. The formula now branches before subtraction and clamps the final protocol-sized result.
+
+### WOD-014 — initial gems are not visible during the first Wheel open
+
+**Disposition:** `incorrect` → correction implemented; PR #220 CI passed
+**Severity:** medium
+
+`addInitialGems()` wrote starter gems only to KV after revealed gems had already been loaded. The same first-open payload therefore omitted the newly created gems. New starter gems are now persisted and inserted into the in-memory revealed list before serialization.
+
+### WOD-015 — permanent point sources were loaded after slot allocation
+
+**Disposition:** `incorrect` → correction implemented; PR #220 CI passed
+**Severity:** high
+
+The login sequence loaded the DB allocation before scroll and Grade IV point sources. A semantic allocation validator would therefore reject a valid configuration that spends those points. KV grades and scrolls now load before the persisted allocation is validated.
+
+### WOD-016 — gem modifier Grade ignored preceding-slot limits
+
+**Disposition:** `incorrect` → correction implemented; PR #220 CI passed
+**Severity:** high
+
+The runtime applied each globally upgraded modifier Grade independently. Officially documented Gem Atelier behavior limits the second Basic Mod to the effective Grade of the first Basic Mod, and the Supreme Mod to the effective Grades of both preceding Basic Mods. A deterministic helper now calculates effective Grades in slot order before any modifier strategy is executed.
+
+### WOD-017 — full Vessel Resonance damage/healing bonus was absent
+
+**Disposition:** `missing` → correction implemented; PR #220 CI passed
+**Severity:** high
+
+The engine unlocked gem modifier slots from Vessel Resonance but did not add the documented full-resonance damage/healing bonus. Runtime loading now adds +1 for a fully enabled Lesser gem, +1 for a fully enabled Regular gem, and +2 for a fully enabled Greater gem.
+
+### WOD-018 — two Blue Revelation spell grades were one stage too high
+
+**Disposition:** `incorrect` → correction implemented; PR #220 CI passed
+**Severity:** high
+
+`Drain_Body_Spells` and `Divine Empowerment` were inserted `stage + 1` times because their loops used `i <= stageValue`. One insertion maps to Regular, two to Upgraded, and three to Max, so Revelation Stage I incorrectly produced Grade II. Both loops now perform exactly `stageValue` insertions, matching the other vocation Revelation paths.
+
+### WOD-019 — truncated Gem Atelier packets could execute default actions
+
+**Disposition:** `incorrect` → correction implemented; PR #220 CI passed
+**Severity:** critical
+
+Both current and legacy packet paths read action parameters without first proving that the bytes existed. A truncated packet could therefore supply zero-valued defaults and reach destructive or mutating operations, including gem index zero. Both parsers now reject missing action/index/quality/fragment bytes and out-of-range quality or fragment enums before updating UI exhaustion or calling Wheel methods.
+
+### WOD-020 — Dedication mitigation used the pre-15.25 value
+
+**Disposition:** `incorrect` → correction implemented; PR #220 CI passed
+**Severity:** high
+
+The Wheel used 0.03% mitigation per Promotion Point. The current 15.25 value is 0.075%. The value is now centralized in `WheelBalance::DEDICATION_MITIGATION_PER_POINT` and used by slot loading.
+
+### WOD-021 — Gem mitigation used obsolete Grade values
+
+**Disposition:** `incorrect` → correction implemented; PR #220 CI passed
+**Severity:** high
+
+The base value of 500 produced 5/5.5/6/7.5%. The current values are 20/22/24/30%, so the Grade multiplier now starts from 2000.
+
+### WOD-022 — Gift of Life restored health but not mana
+
+**Disposition:** `missing` → correction implemented; PR #220 CI passed
+**Severity:** high
+
+The runtime health effect existed, but no mana restoration path was present. Gift of Life now restores the same stage percentage of maximum mana after the health effect.
+
+### WOD-023 — Ballistic Mastery bow pierce remained at 2%
+
+**Disposition:** `incorrect` → correction implemented; PR #220 CI passed
+**Severity:** medium
+
+Bow attacks/spells granted 2% physical and holy pierce. Both values now use the current 4% baseline. Crossbow critical extra damage already matched 10%.
+
+### WOD-024 — Healing Link remained at 10%
+
+**Disposition:** `incorrect` → correction implemented; PR #220 CI passed
+**Severity:** high
+
+The linked-healing value now uses 25%.
+
+### WOD-025 — Battle Healing still used challenge-triggered healing
+
+**Disposition:** `incorrect` → correction implemented; PR #220 CI passed
+**Severity:** high
+
+The old implementation healed when a monster challenge succeeded and scaled from shield skill and missing health. The challenge hook was removed. Healing spells now receive +10% healing, or +30% while a shield is equipped.
+
+### WOD-026 — Blessing of the Grove low-health values were obsolete
+
+**Disposition:** `incorrect` → percentage correction implemented; critical healing still missing
+**Severity:** high
+
+The engine used 6/9/12%. It now uses 5/7.5/10% below 60% health and doubles the value at or below 30%. The newly required critical-healing capability remains a separate unimplemented combat feature.
+
+### WOD-027 — supported existing augment values/order were outdated
+
+**Disposition:** `incorrect` → partial correction implemented; PR #220 CI passed
+**Severity:** high
+
+Existing runtime paths were updated for Front Sweep, Groundshaker, Divine Dazzle, Energy Wave, Heal Friend, Terra Wave, Strong Ice Wave metadata, Mass Spirit Mend, Mystic Repulse, and Flurry of Blows. Front Sweep and Flurry now execute their larger Wheel areas. Strong Ice Wave's exact current base/augmented tile layouts remain blocked pending authoritative area evidence.
+
+### WOD-028 — current replacement spells and vocation stances are absent
+
+**Disposition:** `missing`
+**Severity:** critical for 15.25 parity
+
+No implementation was found for Shield Bash, Shield Slam, Divine Barrage, Ethereal Barrage, Death Echo, Forked Glacier, Forked Thorns, Thousand Fist Blows, or the new vocation stance framework. Old augment targets such as Chivalrous Challenge, Swift Foot, Sharpshooter, Sap Strength, Magic Shield, Nature's Embrace, and Sweeping Takedown must not be silently treated as equivalent.
+
+### WOD-029 — several 15.25 Revelation/passive reworks remain absent
+
+**Disposition:** `missing`
+**Severity:** critical for 15.25 parity
+
+Combat Mastery still follows its old behavior; Beam Mastery does not implement adjacent-target scaling; Lord of Destruction is absent; Focus Mastery lacks the current group-cooldown reduction; Blessing critical healing is absent; and the latest Guiding Presence, Sanctuary, and other vocation reworks still require dedicated runtime implementation.
 
 ---
 
@@ -300,22 +435,64 @@ The remaining persistence risk is semantic validation of the blob, not row uniqu
 - Located a duplicated green topology prerequisite.
 - Confirmed the missing 225 revealed-gem cap, stale active-gem rotation behavior, and failure-unsafe reveal payment order.
 - Confirmed the 12,000,000 versus 12,500,000 Supreme cost mismatch against the captured baseline.
-- Confirmed unsafe modifier-position array indexing; protocol reachability still requires completion.
-- No production code has been changed yet; fixes will be grouped with focused tests rather than applied speculatively.
+- Confirmed unsafe modifier-position array indexing and proved reachability from both current and legacy Gem Atelier packet paths.
+- Identified the below-level unsigned wrap, first-open starter-gem omission, and login load-order dependency.
+
+
+### 2026-07-12 — first hardening implementation
+
+- Added an atomic 36-slot proposal validator: invalid topology, over-budget state, malformed gem references, or truncated packets leave the previous Wheel unchanged.
+- Enforced temple-only decreases on the server instead of trusting the client option byte.
+- Added semantic validation for persisted Wheel blobs and moved permanent point-source loading before allocation validation.
+- Consolidated Grade IV points into `getExtraPoints()` and replaced subtractive unsigned accounting with a saturating spent/available calculation.
+- Fixed the unsigned point formula for levels 1–50.
+- Added modifier type, bounds, and vocation allow-list checks before any grade-array access.
+- Corrected the Supreme Grade III gold cost to 12,500,000 and persisted successful upgrades immediately.
+- Added the 225-gem reveal cap, first-open starter-gem synchronization, stale active-gem cleanup, and active-bonus reload on destruction/rotation.
+- Reordered reveal/upgrade transactions so consumed items are restored if the later money mutation unexpectedly fails.
+- Added focused unit tests for level thresholds, overspent-state saturation, Supreme costs, and invalid grades.
+- Applied the SHA-256-verified patch to the clean review branch and removed every temporary patch/export workflow before opening the clean review PR.
+
+### 2026-07-12 — Gem Atelier grade/resonance and parser follow-up
+
+- Confirmed that active gem runtime ignored the preceding-slot Grade cap documented by the Gem Atelier.
+- Added deterministic effective-Grade calculation for Lesser, Regular, and Greater gems.
+- Added the missing +1/+1/+2 full Vessel Resonance damage/healing bonuses.
+- Corrected `Drain_Body_Spells` and `Divine Empowerment` from `stage + 1` to exactly one spell-grade insertion per Revelation stage.
+- Proved that both current and legacy Gem Atelier parsers could read truncated payloads as zero-valued actions or parameters.
+- Added byte-length and enum-range validation before every current/legacy Gem Atelier mutation.
+- Added focused unit tests for Grade chaining and full-resonance thresholds.
+- Standard repository CI for clean PR #209 completed successfully, including the dedicated Wheel validation workflow and repository build matrix.
+
+### 2026-07-12 — current 15.25 balance and augment follow-up
+
+- Captured the June 16, 2026 Wheel balance baseline and separated implementable numeric/runtime corrections from missing spell/stance systems.
+- Updated Dedication and Gem mitigation scaling.
+- Added Gift of Life mana restoration, 4% Ballistic Mastery pierce, and 25% Healing Link.
+- Replaced challenge-triggered Battle Healing with +10% healing-spell output, or +30% with a shield.
+- Corrected Blessing of the Grove low-health percentages while leaving critical healing explicitly unresolved.
+- Updated supported existing augment values/order and added runtime area variants for Front Sweep and Flurry of Blows.
+- Recorded missing current spells, stances, and major passive/Revelation reworks instead of mapping them onto obsolete mechanics.
+- Clean PR #220 completed the repository CI build matrix, dedicated Wheel validation, and AI codebase checks successfully.
+- Added centralized balance constants and focused regression assertions.
+- Status: merged to `main` via PR #220; remaining Tibia 15.25 gaps are explicitly tracked below.
 
 ---
 
-## 8. Immediate next tasks
+## 8. Validation conclusion
 
-1. Finish inbound protocol tracing for save and every Gem Atelier action, including unread-byte checks and raw position reachability.
-2. Implement an atomic Wheel proposal validator and server-side temple decrease enforcement.
-3. Consolidate extra-point accounting and add saturating spent/unused calculations.
-4. Add modifier position allow-list/bounds validation and safe grade loading.
-5. Enforce the gem cap and repair reveal/rotation transaction state.
-6. Validate the full topology graph before correcting WOD-006.
-7. Build the vocation/slice/perk matrix and test every runtime effect.
-8. Treat Hunting Task Shop as a separate missing subsystem dependency.
-9. Update this document with every code/test change and final CI/runtime evidence.
+The evidence-based validation phase is complete for the currently implemented Wheel subsystem. PR #220 contains the confirmed, non-speculative corrections and passed the repository CI build matrix plus dedicated Wheel validation.
+
+The Wheel is **not fully feature-complete for Tibia 15.25**. The following are explicit implementation gaps rather than unresolved audit ambiguity:
+
+1. the new vocation stance framework and replacement spells/augments absent from Canary;
+2. Blessing of the Grove critical-healing support;
+3. Strong Ice Wave expanded tile layout pending authoritative geometry;
+4. remaining major 15.25 passive/Revelation reworks listed in WOD-029;
+5. Hunting Task Shop promotion points, blocked by the empty Taskboard shop subsystem;
+6. end-to-end protocol, DB/KV round-trip, failure-injection, and gameplay scenario tests.
+
+These gaps must not be represented as compatible until their runtime behavior and client protocol are implemented and tested. They are suitable for separate focused PRs because they require new gameplay systems or authoritative data, not small corrections to the existing Wheel implementation.
 
 ---
 
