@@ -1674,9 +1674,9 @@ void PlayerWheel::sendOpenWheelWindow(NetworkMessage &msg, uint32_t ownerId) {
 	const auto monkQuestBonus = std::max<int32_t>(0, g_configManager().getNumber(WHEEL_MONK_QUEST_BONUS));
 	const bool hasMonkQuestBonus = hasCompletedMonkQuest() && monkQuestBonus > 0;
 	if (usesOfficialSkillWheelPayload) {
-		// Current clients read a quest flag plus a u16 bonus before the gem lists.
-		msg.addByte(hasMonkQuestBonus ? 1 : 0); // The Way of the Monk quest bonus
-		msg.add<uint16_t>(hasMonkQuestBonus ? static_cast<uint16_t>(std::min<int32_t>(monkQuestBonus, 0xFFFF)) : 0);
+		// Current clients read the Monk quest flag followed by purchased Hunting Task Shop points.
+		msg.addByte(hasMonkQuestBonus ? 1 : 0); // The Way of the Monk quest bonus flag
+		msg.add<uint16_t>(getHuntingTaskShopPoints());
 	} else {
 		msg.addByte(hasMonkQuestBonus ? static_cast<uint8_t>(std::min<int32_t>(monkQuestBonus, 0xFF)) : 0);
 	}
@@ -1988,7 +1988,22 @@ bool PlayerWheel::unlockScroll(const std::string &scrollName) {
 }
 
 void PlayerWheel::loadKVScrolls() {
-	const auto &scrollKv = m_player.kv()->scoped("wheel-of-destiny")->scoped("scrolls");
+	m_huntingTaskShopPoints = 0;
+	const auto &wheelKv = m_player.kv()->scoped("wheel-of-destiny");
+	if (!wheelKv) {
+		return;
+	}
+
+	if (const auto storedValue = wheelKv->get("hunting-task-shop-points"); storedValue.has_value()) {
+		constexpr IntType maximumPoints = 50;
+		const auto storedPoints = storedValue->get<IntType>();
+		if (storedPoints < 0 || storedPoints > maximumPoints) {
+			g_logger().warn("[{}] Clamping invalid Hunting Task Shop Wheel points {} for player {}", __FUNCTION__, storedPoints, m_player.getName());
+		}
+		setHuntingTaskShopPoints(static_cast<uint16_t>(std::clamp<IntType>(storedPoints, 0, maximumPoints)));
+	}
+
+	const auto &scrollKv = wheelKv->scoped("scrolls");
 	if (!scrollKv) {
 		return;
 	}
@@ -2167,6 +2182,14 @@ bool PlayerWheel::saveDBPlayerSlotPointsOnLogout() const {
 	return true;
 }
 
+uint16_t PlayerWheel::getHuntingTaskShopPoints() const {
+	return m_huntingTaskShopPoints;
+}
+
+void PlayerWheel::setHuntingTaskShopPoints(uint16_t points) {
+	m_huntingTaskShopPoints = std::min<uint16_t>(points, 50);
+}
+
 uint16_t PlayerWheel::getExtraPoints() const {
 	if (m_player.getLevel() <= m_minLevelToStartCountPoints) {
 		return 0;
@@ -2184,6 +2207,7 @@ uint16_t PlayerWheel::getExtraPoints() const {
 		totalBonus += static_cast<uint32_t>(monkQuestBonus);
 	}
 
+	totalBonus += getHuntingTaskShopPoints();
 	return static_cast<uint16_t>(std::min<uint32_t>(totalBonus, std::numeric_limits<uint16_t>::max()));
 }
 

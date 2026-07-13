@@ -4165,6 +4165,10 @@ function Player:upgradeSpellsWOD(name, add) end
 ---@return boolean
 function Player:wheelUnlockScroll(scrollName) end
 
+---@param points integer
+---@return boolean
+function Player:setWheelHuntingTaskShopPoints(points) end
+
 ---@class Position
 ---@field x integer
 ---@field y integer

@@ -154,6 +154,8 @@ public:
 	 */
 	uint16_t getWheelPoints(bool includeExtraPoints = true) const;
 	uint16_t getExtraPoints() const;
+	uint16_t getHuntingTaskShopPoints() const;
+	void setHuntingTaskShopPoints(uint16_t points);
 	uint8_t getMaxPointsPerSlot(WheelSlots_t slot) const;
 	uint16_t getUnusedPoints() const;
 
@@ -498,6 +500,7 @@ private:
 	std::unordered_set<std::string> m_beamMasterySpells;
 
 	std::vector<PromotionScroll> m_unlockedScrolls;
+	uint16_t m_huntingTaskShopPoints = 0;
 
 	std::array<PlayerWheelGem, 4> m_activeGems;
 	std::vector<PlayerWheelGem> m_revealedGems;

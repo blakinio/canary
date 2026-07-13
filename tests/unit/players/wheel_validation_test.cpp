@@ -50,6 +50,18 @@ TEST_F(WheelValidationTest, InvalidOverspentStateDoesNotUnderflowUnusedPoints) {
 	EXPECT_EQ(0, player->wheel().getUnusedPoints());
 }
 
+TEST_F(WheelValidationTest, HuntingTaskShopPointsAreCachedAndBounded) {
+	auto player = makePlayer(51);
+	EXPECT_EQ(0, player->wheel().getHuntingTaskShopPoints());
+
+	player->wheel().setHuntingTaskShopPoints(50);
+	EXPECT_EQ(50, player->wheel().getHuntingTaskShopPoints());
+	EXPECT_EQ(51, player->wheel().getWheelPoints());
+
+	player->wheel().setHuntingTaskShopPoints(51);
+	EXPECT_EQ(50, player->wheel().getHuntingTaskShopPoints());
+}
+
 TEST_F(WheelValidationTest, SupremeGradeCostsMatchTheSkillWheelContract) {
 	auto player = makePlayer(51);
 

@@ -7928,6 +7928,14 @@
         ],
         "return": "boolean",
         "source": "src/lua/functions/creatures/player/player_functions.cpp"
+      },
+      {
+        "name": "setWheelHuntingTaskShopPoints",
+        "params": [
+          "points: integer"
+        ],
+        "return": "boolean",
+        "source": "src/lua/functions/creatures/player/player_functions.cpp"
       }
     ],
     "Position": [

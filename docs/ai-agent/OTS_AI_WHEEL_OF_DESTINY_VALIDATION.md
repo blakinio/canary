@@ -142,7 +142,7 @@ Confirmed definitions and active paths:
 | Promotion points from levels | partial | formula handles levels 1–50 without unsigned wrap; unit coverage and PR #220 CI passed | runtime login test |
 | Promotion Scroll points | confirmed | five unique scrolls total 50; KV persistence traced | Lua/runtime use test |
 | Way of the Monk points | partial | storage/config path exists and is included in extra points | quest completion and protocol test |
-| Hunting Task Shop points | missing | current Taskboard module explicitly sends an empty shop shim | implement Taskboard reward/shop persistence |
+| Hunting Task Shop points | partial | PR #230 adds the official Bonus Promotion offer, exact escalating 1–50 cost formula, bounded player KV persistence, Wheel accounting, and official-client payload field | runtime purchase/relogin and insufficient-balance scenarios |
 | Grade IV permanent points | partial | accounting consolidated into `getExtraPoints()`; load order fixed; PR #220 CI passed | protocol capture and Grade IV round trip |
 | 36-slice topology | partial | duplicated green edge corrected by quadrant symmetry; complete allocation is validated before commit | exhaustive topology matrix test |
 | Revelation thresholds | partial | 250/500/1000 definitions and runtime stages exist | domain totals and effect tests |
@@ -415,6 +415,15 @@ Combat Mastery still follows its old behavior; Beam Mastery does not implement a
 
 ---
 
+### WOD-030 — Hunting Task Shop Promotion Points were absent and the official Wheel payload used the wrong value
+
+**Disposition:** `missing` / `incorrect` → implementation added in PR #230; CI pending
+**Severity:** high
+
+The Taskboard shop previously advertised zero offers and `ShopBuy` only reopened the empty window. The official Wheel payload also wrote the configured Monk quest bonus into the `u16` field that maintained clients parse as Hunting Task Shop Promotion Points.
+
+The implementation now exposes the official Bonus Promotion offer, charges the documented escalating cost `100 × (1 + n(n−1)/2)` for points 1–50, stores only the bounded purchased count under the player Wheel KV scope, loads it into a 0–50 `PlayerWheel` cache during login, synchronizes that cache immediately after purchase, includes it in `getExtraPoints()`, and serializes that count in the official-client field. The complete Hunting Task balance is never treated as Wheel points.
+
 ## 7. Change log
 
 ### 2026-07-12 — validation initialized
@@ -478,6 +487,14 @@ Combat Mastery still follows its old behavior; Beam Mastery does not implement a
 - Status: merged to `main` via PR #220; remaining Tibia 15.25 gaps are explicitly tracked below.
 
 ---
+
+### 2026-07-13 — Hunting Task Shop Promotion Points
+
+- Added the official Taskboard Bonus Promotion offer and exact 1–50 cost progression.
+- Added bounded player-KV persistence under `wheel-of-destiny/hunting-task-shop-points`.
+- Included purchased points in Wheel extra-point accounting.
+- Corrected the official Wheel payload field from Monk bonus amount to purchased Task Shop points.
+- Added a focused repository contract test; runtime and CI evidence remain pending.
 
 ## 8. Validation conclusion
 
