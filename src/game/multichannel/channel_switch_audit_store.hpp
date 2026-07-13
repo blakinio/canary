@@ -15,6 +15,7 @@
 	#include <cstdint>
 	#include <optional>
 	#include <string>
+	#include <vector>
 #endif
 
 // Read/write access to the `channel_switch_audit` table (docs/multichannel/
@@ -50,6 +51,16 @@ struct PendingChannelSwitch {
 	Position resolvedPosition;
 };
 
+struct ChannelSwitchHistoryEntry {
+	int64_t auditId = 0;
+	std::optional<int32_t> sourceChannelId;
+	int32_t targetChannelId = 0;
+	// "SUCCESS", "DENIED", or "ERROR" - see ChannelSwitchAuditRecord::result.
+	std::string result;
+	std::string denyReason;
+	int64_t createdAtMs = 0;
+};
+
 class ChannelSwitchAuditStore {
 public:
 	// Inserts one row unconditionally (both allowed and denied switches are
@@ -75,4 +86,9 @@ public:
 	// would touch that table's large load/save path unnecessarily. Returns
 	// 0 (never switched before) if there is no such row.
 	static int64_t getLastSwitchAtMs(int32_t accountId);
+
+	// GM/admin inspection (docs/multichannel/OPERATIONS.md "Inspect the
+	// last N channel-switch audit rows for a player"): the most recent
+	// `limit` rows for this player, any result, newest first.
+	static std::vector<ChannelSwitchHistoryEntry> getRecentHistory(int32_t playerId, int32_t limit);
 };
