@@ -25,6 +25,7 @@
 #include "creatures/npcs/npc.hpp"
 #include "creatures/players/grouping/party.hpp"
 #include "creatures/players/imbuements/imbuements.hpp"
+#include "creatures/players/imbuements/imbuement_access_policy.hpp"
 #include "creatures/players/storages/storages.hpp"
 #include "creatures/players/components/player_forge_history.hpp"
 #include "server/network/protocol/protocolgame.hpp"
@@ -103,6 +104,33 @@ namespace {
 			}
 		}
 
+		return false;
+	}
+
+	[[nodiscard]] bool canApplyImbuementDirectly(const std::shared_ptr<Player> &player, const Imbuement* imbuement) {
+		if (!player || !imbuement) {
+			return false;
+		}
+
+		const bool allowed = ImbuementAccessPolicy::canApplyDirectly(
+			g_configManager().getBoolean(TOGGLE_IMBUEMENT_SHRINE_STORAGE),
+			player->isPremium(),
+			imbuement->isPremium(),
+			imbuement->getStorage(),
+			imbuement->getBaseID(),
+			[&player](uint32_t storageId) {
+				return player->getStorageValue(storageId);
+			}
+		);
+		if (allowed) {
+			return true;
+		}
+
+		if (imbuement->isPremium() && !player->isPremium()) {
+			player->sendImbuementResult("You need a premium account to use this imbuement.");
+		} else {
+			player->sendImbuementResult("You have not unlocked this imbuement.");
+		}
 		return false;
 	}
 }
@@ -2597,6 +2625,10 @@ void Player::createScrollImbuement(const Imbuement* imbuement) {
 		return;
 	}
 
+	if (!canApplyImbuementDirectly(getPlayer(), imbuement)) {
+		return;
+	}
+
 	const BaseImbuement* baseImbuement = g_imbuements().getBaseByID(imbuement->getBaseID());
 	if (!baseImbuement) {
 		return;
@@ -2707,6 +2739,10 @@ void Player::onApplyImbuement(const Imbuement* imbuement, const std::shared_ptr<
 	}
 
 	const auto &thisPlayer = getPlayer();
+	if (!canApplyImbuementDirectly(thisPlayer, imbuement)) {
+		return;
+	}
+
 	if (!item->canAddImbuement(slot, thisPlayer, imbuement)) {
 		return;
 	}

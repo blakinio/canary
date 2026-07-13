@@ -1,6 +1,6 @@
 # Canary Imbuement Validation Report
 
-> **Status:** IMB-001/002/003/006 repaired in PR #251; IMB-004/005 preserved; final CI pending
+> **Status:** IMB-001..006 live parity merged; direct-ID server authorization repaired in PR #282 pending final CI
 > **Observed:** 2026-07-13
 > **Writable repository:** `blakinio/canary`
 > **Reference:** <https://tibia.fandom.com/wiki/Imbuing>
@@ -27,6 +27,7 @@ PR #166 was a read-only audit. PR #206 changed only the seven nonzero Powerful s
 - `data/XML/imbuements.xml`;
 - `src/creatures/players/imbuements/imbuements.{hpp,cpp}`;
 - `src/creatures/players/imbuements/imbuement_storage_policy.hpp`;
+- `src/creatures/players/imbuements/imbuement_access_policy.hpp`;
 - `src/creatures/players/player.{hpp,cpp}`;
 - `src/game/game.cpp`;
 - `src/items/item.{hpp,cpp}`;
@@ -52,9 +53,9 @@ The report records mechanics and numeric evidence without copying spoiler prose.
 | Scroll item IDs registered by active Lua | 48 |
 | Duration per tier | 72,000 seconds / 20 hours |
 | Shrine clear cost | 15,000 gold |
-| Distinct nonzero Powerful storage IDs | 7 |
-| Powerful families using nonzero storage | 22 |
-| Powerful families using `storage=0` | 2 |
+| Distinct nonzero Powerful storage IDs | 9 |
+| Powerful families using nonzero storage | 24 |
+| Powerful families using `storage=0` | 0 |
 | Default storage filtering | disabled |
 
 The registry contains one Basic, Intricate and Powerful entry for every family. No duplicate base IDs, category IDs, family/tier pairs, source item IDs within one entry or XML scroll IDs were found.
@@ -228,7 +229,7 @@ A rejected or failed application must not consume gold, source items or scrolls;
 This work does not yet prove:
 
 - real Canary startup in the user's deployment configuration;
-- live before/after shrine visibility for all seven boss groups;
+- live before/after shrine visibility for all Powerful unlock groups;
 - full equipment eligibility parity;
 - exact protocol/UI presentation for every supported client profile;
 - the Dangerous Depths and Dream Courts completion conditions;
@@ -270,3 +271,7 @@ ctest --test-dir build/linux-debug \
   --output-on-failure \
   -R canary_ut
 ```
+
+## Direct-ID dry-test finding
+
+A post-merge dry review found that storage and premium filtering had been enforced only while building the normal client list. A modified client could submit a hidden numeric Imbuement ID directly. PR #282 adds a server-side direct-access policy before money or material mutation in both normal application and scroll creation. Applying an already-created Imbuement Scroll remains a separate path and is intentionally unchanged.
