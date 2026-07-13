@@ -371,6 +371,25 @@ live player object on its own heartbeat cycle - which is materially more
 design and engineering than a bounded call-site wiring change, and is
 recorded as a new, explicit gap rather than attempted blind.
 
+**Phase 13:** the fourth job is wired to `ClusterJobLeadershipRegistry` -
+daily reward reset, the first one scheduled from Lua
+(`data/scripts/globalevents/global_server_save.lua`'s `GlobalEvent`) rather
+than the C++ engine. Since no Lua-exposed leadership check existed yet, a
+new binding was added - `Game.tryClaimClusterJobLeadership(jobName)`
+(`src/lua/functions/core/game/game_functions.cpp`) - mirroring the exact
+one-shot-race gating shape already used by `loadBoostedCreature`/
+`loadBoostedBoss`: always `true` when clustering is disabled (single-node
+deployments are never gated), otherwise a one-shot `renewOrAcquire` +
+`isLeader` check. Only `ServerSave()`'s `UpdateDailyRewardGlobalStorage`
+call is gated; `cleanMap()`, `Game.setGameState(...)`, and the per-raid
+daily-counter reset in the same function are deliberately left unguarded
+since they act on this channel's own in-memory state and must keep running
+on every process. No schema change. Verified: `luac5.1 -p` syntax-checked
+the edited script; the new C++ binding is a thin, unconditional delegation
+to the already-tested `ClusterJobLeadershipRegistry` (Phase 7) with no new
+logic of its own to unit test, so it was reviewed by hand rather than
+re-verified against Redis.
+
 **Still not enforced**, and still the reason not to enable
 `multiChannelEnabled = true` in production yet: nothing yet *blocks* an
 account from bidding on or trading for a second house before an already-

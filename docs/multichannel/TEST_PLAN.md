@@ -571,6 +571,36 @@ attempted this phase: the fix needs the same DB-row-handoff design already
 used for channel switching (§6), which is materially larger than a bounded
 GM-command addition.
 
+### Phase 13: fourth leader-election job (daily reward reset, Lua-side)
+
+`Game.tryClaimClusterJobLeadership(jobName)` is a thin, unconditional
+delegation to the already-tested `ClusterJobLeadershipRegistry` (Phase 7's
+`isEnabled`/`renewOrAcquire`/`isLeader`, unchanged in this phase) - it has
+no new logic of its own beyond marshaling a Lua string argument and pushing
+a boolean result, so there was nothing new to verify against Redis or
+MariaDB. What was actually verified:
+
+- `luac5.1 -p data/scripts/globalevents/global_server_save.lua` - syntax
+  check of the edited `GlobalEvent` script (this sandbox has `luac5.1`
+  available even without the full `luacheck` CI tooling).
+- Hand-traced that only the `UpdateDailyRewardGlobalStorage` call inside
+  `ServerSave()` is newly gated; `cleanMap()`, both `Game.setGameState(...)`
+  calls, and the per-raid daily-counter reset loop are unchanged in the
+  diff, confirming the genuinely per-channel parts of the same function
+  were not accidentally gated too (the house-rent-correction lesson from
+  Phase 9, applied here proactively instead of after the fact).
+- `clang-format-18 --dry-run --Werror` on both changed C++ files passed
+  cleanly; `tools/check_lua_api_binding_docs.py --base origin/main` and
+  `tools/check_lua_api_quality.py` both passed (`"boolean"` return type
+  introduces no new weak-type metric).
+- Confirmed the disabled-clustering path returns `true` unconditionally by
+  reading `ClusterJobLeadershipRegistry::isEnabled()`'s existing,
+  already-tested implementation directly (`return enabled;`, false by
+  default) rather than re-deriving it - this is exactly the same "always
+  true/skip when disabled" shape already proven correct for the two
+  boosted-X call sites in Phase 9, just inverted into a Lua-friendly
+  boolean return instead of an early `return;`.
+
 ## 15.1b Redis Lua CAS script validation — ✅ run against a real `redis-server`
 
 The acquire/renew/release Lua scripts in

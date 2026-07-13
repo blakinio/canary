@@ -10,8 +10,12 @@ local function ServerSave()
 		Game.setGameState(GAME_STATE_SHUTDOWN)
 	end
 
-	-- Update daily reward next server save timestamp
-	UpdateDailyRewardGlobalStorage(DailyReward.storages.lastServerSave, os.time())
+	-- Update daily reward next server save timestamp (cluster-singleton:
+	-- DailyReward.storages.lastServerSave is one shared global_storage row,
+	-- not per-channel - see docs/multichannel/OPERATIONS.md "Leader election")
+	if Game.tryClaimClusterJobLeadership("daily.reward.reset") then
+		UpdateDailyRewardGlobalStorage(DailyReward.storages.lastServerSave, os.time())
+	end
 
 	-- Reset raid daily counters
 	for name, raid in pairs(Raid.registry) do

@@ -659,7 +659,7 @@ tested; the "freeze new logins" and "disconnect before another process can
 steal the lease" actions require the Phase 2 game-loop wiring to execute
 for real.
 
-## 10a. Leader election primitive (✅ module, ✅ wired to 3 jobs, 📐 others unwired)
+## 10a. Leader election primitive (✅ module, ✅ wired to 4 jobs, 📐 others unwired)
 
 Several background jobs must run exactly once cluster-wide rather than once
 per channel process (`OPERATIONS.md`'s "Leader election / cluster-singleton
@@ -739,13 +739,33 @@ resets *global* `player_bosstiary` slot state tied to the old boss id,
 making an uncoordinated race actively corrupting, not just cosmetically
 inconsistent.
 
+**✅ Daily reward reset** (`data/scripts/globalevents/global_server_save.lua`)
+is the fourth job wired, and the first one whose scheduling lives in Lua
+(a `GlobalEvent`) rather than the C++ engine - `DailyReward.storages.
+lastServerSave` is a single shared `global_storage` row with no
+`channel_id`, written on each channel's own `GlobalServerSave` schedule
+(OPERATIONS.md), so an unguarded write from every channel would race the
+same way market expiry did before Phase 7. Since there was no existing
+Lua-side leadership check to call, a new one-shot wrapper was added:
+`Game.tryClaimClusterJobLeadership(jobName)` (`src/lua/functions/core/game/
+game_functions.cpp`) mirrors the exact gating shape already used by
+`loadBoostedCreature`/`loadBoostedBoss` above - `true` unconditionally when
+clustering is disabled (so single-node deployments are never gated), else a
+one-shot `renewOrAcquire` + `isLeader` check. Only the `
+UpdateDailyRewardGlobalStorage` line inside `ServerSave()` is gated - the
+same function's `cleanMap()`, `Game.setGameState(...)`, and the per-raid
+daily-counter reset are deliberately left unguarded, since those act on
+this channel's own in-memory map/game-state/raid registry and must keep
+running on every process (the same "don't over-gate a genuinely per-channel
+effect" lesson as the house-rent correction below).
+
 **📐 Known gap, stated honestly:** every *other* job in OPERATIONS.md's
-table (daily reward reset, table cleanup jobs, highscores cache rebuild,
-database optimization, global server record, global event scheduling)
-still runs unconditionally on every channel process. Wiring each remaining
-job individually (deciding what "lost leadership mid-run" should mean for
-that specific job) is real per-job design work left for a follow-up, not
-something safe to do blind in one broad pass across the rest.
+table (table cleanup jobs, highscores cache rebuild, database optimization,
+global server record, global event scheduling) still runs unconditionally
+on every channel process. Wiring each remaining job individually (deciding
+what "lost leadership mid-run" should mean for that specific job) is real
+per-job design work left for a follow-up, not something safe to do blind in
+one broad pass across the rest.
 
 **Correction, found while scoping this phase:** house rent charging and
 house auction settlement were previously listed here (and in OPERATIONS.md)

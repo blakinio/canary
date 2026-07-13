@@ -70,7 +70,7 @@ N-channel cluster:
 | House rent charging | `per-channel` (corrected — see below) | touches global bank balance, but each channel's houses are already disjoint | n/a |
 | House auction settlement | `per-channel` (corrected — see below) | touches `account_house_ownership`, but each channel's houses are already disjoint | n/a |
 | Market offer expiration | `cluster-singleton` | market is global | ✅ `IOMarket::checkExpiredOffers` checks `ClusterJobLeadershipRegistry::isLeader("market.expire")` |
-| Daily reward reset | `cluster-singleton` | the actual shared state is one `global_storage` row (`DailyReward.storages.lastServerSave`, no `channel_id`), written by each channel's own `global_server_save.lua` `GlobalEvent` on its own schedule | 📐 (Lua-side; would need a Lua-exposed leadership check) |
+| Daily reward reset | `cluster-singleton` | the actual shared state is one `global_storage` row (`DailyReward.storages.lastServerSave`, no `channel_id`), written by each channel's own `global_server_save.lua` `GlobalEvent` on its own schedule | ✅ `global_server_save.lua` checks `Game.tryClaimClusterJobLeadership("daily.reward.reset")`, a new Lua-exposed wrapper around `ClusterJobLeadershipRegistry` |
 | Global boosted creature/boss selection | `cluster-singleton` | `boosted_creature`/`boosted_boss` are both `PRIMARY KEY(date)`, no `channel_id` — genuinely one shared row each | ✅ `Game::loadBoostedCreature`/`IOBosstiary::loadBoostedBoss` check `ClusterJobLeadershipRegistry::isLeader("boosted.creature"/"boosted.boss")` |
 | Global event scheduling | `cluster-singleton` unless the event is explicitly declared `per-channel` | | 📐 |
 | Table cleanup jobs (e.g. expired bans, stale storages) | `cluster-singleton` | | 📐 |
@@ -103,8 +103,13 @@ leases, docs/multichannel/ARCHITECTURE.md §10a) plus
 on the existing session heartbeat cycle (for recurring jobs) or via a direct
 one-shot acquire call (for startup-only jobs like the boosted
 creature/boss selections) and exposes a cheap `isLeader(name)` check to job
-call sites. Market offer expiration and the two boosted-X selections are
-wired; every other genuinely `cluster-singleton` job above still runs
+call sites. Market offer expiration, the two boosted-X selections, and now
+daily reward reset are wired; the last of these is scheduled from Lua
+(`global_server_save.lua`'s `GlobalEvent`, not C++), so a new Lua-exposed
+wrapper, `Game.tryClaimClusterJobLeadership(jobName)`, was added for it —
+same one-shot-race gating shape as the boosted-X jobs, callable from any
+future Lua-scheduled cluster-singleton job without needing its own bespoke
+binding. Every other genuinely `cluster-singleton` job above still runs
 unconditionally on every channel process and needs its own follow-up wiring
 (deciding what "lost leadership mid-run" means for that specific job before
 gating it) — and, per the correction above, every future candidate must
