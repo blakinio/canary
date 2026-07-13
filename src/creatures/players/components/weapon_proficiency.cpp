@@ -117,6 +117,13 @@ std::vector<uint32_t> WeaponProficiency::standardExperience = {
 WeaponProficiency::WeaponProficiency(Player &player) :
 	m_player(player) { }
 
+WeaponProficiencyData WeaponProficiency::createInitialState(uint32_t experience, uint32_t maxExperience) {
+	WeaponProficiencyData state;
+	state.experience = std::min(experience, maxExperience);
+	state.mastered = maxExperience > 0 && state.experience >= maxExperience;
+	return state;
+}
+
 bool WeaponProficiency::isValidWeaponId(uint16_t weaponId) const {
 	return weaponId > 0 && weaponId < Item::items.size();
 }
@@ -327,6 +334,12 @@ std::vector<uint16_t> WeaponProficiency::getTrackedWeaponIds() const {
 
 	(void)std::ranges::sort(weaponIds);
 	return weaponIds;
+}
+
+size_t WeaponProficiency::getMasteredWeaponCount() const {
+	return static_cast<size_t>(std::ranges::count_if(proficiency, [](const auto &entry) {
+		return entry.second.mastered;
+	}));
 }
 
 WeaponProficiencyData WeaponProficiency::deserialize(const ValueWrapper &val) {
@@ -760,7 +773,7 @@ void WeaponProficiency::addExperience(uint32_t experience, uint16_t weaponId /* 
 	uint32_t maxExperience = getMaxExperience(weaponId);
 
 	if (!proficiency.contains(weaponId)) {
-		const auto [_, inserted] = proficiency.try_emplace(weaponId, std::min(experience, maxExperience));
+		const auto [_, inserted] = proficiency.try_emplace(weaponId, createInitialState(experience, maxExperience));
 		if (!inserted) {
 			g_logger().warn("{} - Failed to create proficiency state for weapon ID '{}'", __FUNCTION__, weaponId);
 			return;

@@ -1,374 +1,336 @@
-# OTS AI Equipment Upgrade Validation — status, findings and handoff
+# OTS AI Equipment Upgrade Validation — current status and handoff
 
-> **Status date:** 2026-07-12  
+> **Updated:** 2026-07-13  
 > **Repository:** `blakinio/canary`  
-> **Working branch:** `validation/equipment-upgrade`  
-> **Current pull request:** `#177`  
+> **Current main at refresh start:** `d4eeab3db322f26ee72d7f0ad958d35dc9bd007d`  
+> **Documentation branch:** `docs/equipment-upgrade-handoff-refresh`  
+> **Documentation PR:** `#242`  
+> **Historical validation PR:** `#177` — merged; do not reopen  
 > **Primary comparison page:** `https://tibia.fandom.com/wiki/Equipment_Upgrade`  
 > **Parent methodology:** `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md`  
-> **Current phase:** static/semantic validation plus limited evidence-backed remediation; runtime and gameplay evidence remain open  
-> **Rule:** every implementation change made during this validation must be recorded in this file in the same commit or immediately following commit.
+> **Evidence boundary:** structural/static/semantic and compiled-regression evidence exist; full runtime, gameplay and physical-client E2E parity do not.
 
 ---
 
-## 1. Goal and scope
+## 1. Purpose
 
-Validate Canary's complete Equipment Upgrade / Exaltation Forge implementation against documented Tibia behaviour. Code presence, a successful build or client-side filtering is not accepted as gameplay proof.
+Validate Canary's Equipment Upgrade / Exaltation Forge implementation and preserve a trustworthy handoff. This refresh does not change gameplay. It rechecks historical findings F-001–F-024 against current `main`, records merged remediation, separates evidence levels and defines small follow-up scopes.
 
-Scope:
+A successful build, client-side filtering or an aggregate `Required` job is not gameplay proof. Evidence levels remain separate:
 
-1. classifications, tier caps and item eligibility;
-2. Dust, Slivers and Exalted Cores;
-3. influenced/fiendish spawn, scaling, rewards and lifecycle;
-4. regular and Convergence Fusion/Transfer;
-5. Fusion bonuses, history and transaction safety;
-6. Onslaught, Ruse, Momentum, Transcendence and Amplification;
-7. Canary ↔ OTClient result compatibility;
-8. unit, integration, runtime and gameplay evidence.
-
----
-
-## 2. Evidence levels
-
-- **A — structural:** relevant files/configuration load and compile.
-- **B — static:** identifiers, metadata, tables and handlers resolve.
-- **C — semantic:** formulas, eligibility, costs and outcomes match the reference.
-- **D — runtime:** the server starts and Forge systems register without critical errors.
-- **E — gameplay:** test characters execute the complete scenarios correctly.
-- **F — regression:** automated tests preserve confirmed behaviour and reject malformed requests.
-
-A lower level is never reported as proof of a higher level.
+- **structural:** files/configuration load or compile;
+- **static:** identifiers, handlers and tables resolve;
+- **semantic:** formulas, validation and mutation ordering match the selected target;
+- **compiled regression:** automated unit/integration assertions execute;
+- **runtime:** server starts and the relevant system registers/executes without critical failure;
+- **gameplay:** a player executes the scenario through the game protocol;
+- **physical-client E2E:** a real supported client completes the scenario.
 
 ---
 
-## 3. Safety rules
+## Current repository state
 
-- Do not change prices, probabilities or formulas without evidence.
-- Treat all client-supplied item IDs, tiers and action flags as untrusted.
-- Validate before removing items, Dust, cores or gold.
-- Preserve merged behaviour from PRs #89 and #110 and the same-object removal guard.
-- Prefer the smallest independently testable correction.
-- Keep server-mechanic and OTClient-presentation findings separate.
-- Record unresolved questions instead of guessing.
+| Item | Current state |
+|---|---|
+| Current `blakinio/canary` main | `d4eeab3db322f26ee72d7f0ad958d35dc9bd007d` at refresh start |
+| Open Forge PRs | none found |
+| Active Forge tasks | none found in open PR/task searches or the read-only coordination snapshot |
+| Last merged Forge PR | #177, merge `f1d217c43e8e302978f533212e6aa9d1ce2b77c8` |
+| Historical branch | `validation/equipment-upgrade` is not present; it is historical and must not be continued |
+| Current validation state | F-001–F-024 rechecked against current source history; no later Forge implementation PR found |
+| Maintained client | `blakinio/otclient` main `2fcfa2b61f4cd2e47beb49ec036a01152979dd79` |
+| Upstream client | `opentibiabr/otclient` is reference-only and must not be modified |
+| Current handoff task | `docs/agents/tasks/active/CAN-20260713-equipment-upgrade-handoff-refresh.md` |
+| Current documentation PR | #242, documentation-only |
+
+Comparison of PR #177's merge commit with current `main` shows 77 later commits. None changes Forge configuration, item-tier tables, `Player` Forge functions, Forge reward Lua, Forge item/combat effects, Forge tests or this report. Later generic changes in `protocolgame.cpp`, Player/Wheel and creature/instance lifecycle were reviewed and do not modify the audited Forge functions or packet contract.
+
+No current open PR or active task overlaps this documentation refresh. `docs/agents/ACTIVE_WORK.md` is read-only and is not edited.
 
 ---
 
-## 4. Existing baseline that must be preserved
+## 2. Historical baseline that must be preserved
 
 ### PR #89 — normal Transfer
 
-Already merged:
-
-- compatibility based on upgrade classification rather than equipment slot;
-- donor-tier and classification validation;
-- correct regular Transfer costs and resulting tier;
+- head `570d6e077c02107eb712a4ff214cf4442d6c91d8`;
+- merge `209289d38e64aafe7ce3e036867bb632cd0363b8`;
+- server-side classification and donor-tier validation;
+- donor-tier configured gold/core costs and separate result tier;
 - actual Dust/core/gold values in history;
-- corrected donor/receiver rendering;
-- focused policy and integration tests.
+- corrected donor/receiver result and history rendering;
+- focused policy/integration coverage.
 
-### PR #110 — Forge history identity
+This is a confirmed normal-Transfer baseline, not full Forge parity.
 
-Already merged:
+### PR #110 — Forge history item identity
 
-- both item IDs stored in in-memory history;
-- item resolution by ID instead of ambiguous name-only lookup;
-- name fallback for older call sites.
+- head `78e10449f9c9c8401bf576f5751998f0fa7da655`;
+- merge `84f5c09263f459d726fbc7b9f79557b2cbb0801d`;
+- `ForgeHistory` stores first and second item IDs;
+- Fusion and Transfer populate those IDs;
+- `Player::registerForgeHistoryDescription` resolves by ID with name fallback;
+- PR CI reported all 383 C++ tests passing, including the Forge Transfer integration flow.
 
-These are baseline evidence, not proof of complete parity.
+This fixes item identity, not all action-type, amount or bonus-history semantics.
 
----
+### PR #177 — Equipment Upgrade audit and Dust rewards
 
-## 5. Validation matrix
+- head `05134a4c96083c9b21e5e86a5e51dcfc3f53bee6`;
+- merge `f1d217c43e8e302978f533212e6aa9d1ce2b77c8`;
+- `ForgeMonster:getPlayerKiller` handles direct and summon killers;
+- one Dust amount is rolled per death and shared with eligible party recipients;
+- each party recipient requires current `CONDITION_INFIGHT`;
+- `ForgeMonster:creditDust` credits and reports the actual capped amount.
 
-| Area | Reference behaviour | Current result |
-|---|---|---|
-| Classification | Class 1/2/3/4 caps: 1/2/3/10 | **confirmed statically**; runtime loading pending |
-| Imbuements | Imbued equipment cannot enter Forge | **confirmed statically** in list and server item lookup |
-| Initial Dust limit | 100 | **confirmed statically** in schema |
-| Dust limit upgrade | Cost = current limit − 75; maximum 325 | formula confirmed; **F-001 open:** configured/fallback maximum 225 |
-| Dust conversion | 60 Dust → 3 Slivers | success path confirmed; **F-024:** history is config-insensitive |
-| Core conversion | 50 Slivers → 1 Core | **F-021 open:** removal precedes result creation |
-| Influenced scaling | 1–5 stacks; HP/damage/XP and 1–3 Dust per stack | HP/damage/XP confirmed statically; reward tests pending |
-| Fiendish scaling/lifecycle | strength of 15 stacks; four alive; replacement/lifetime rules | default path confirmed statically; **F-002/F-009 open** |
-| Premium Dust | no Dust without Premium | **F-006 open:** Lua has no binding matching full `Player::isPremium()` semantics |
-| Party Dust | one amount for eligible shared-experience members with logout block | **F-007/F-013 remediated in branch**; runtime boundaries pending |
-| Dust cap feedback | report actual credited amount | **F-008 remediated in branch**; runtime test pending |
-| Regular Fusion eligibility | identical item IDs and equal tier | **F-003 open:** identity not revalidated server-side |
-| Fusion success/failure | documented probabilities and loss rules | static path located; deterministic outcome tests pending |
-| Fusion costs | class/tier gold + Dust + optional cores | table confirmed; **F-022:** failed history hardcodes 100 Dust |
-| Fusion bonuses | eight documented success bonuses | **F-014–F-016 open:** eighth bonus absent, +2 cap wrong, selection not tier-aware |
-| Fusion history | exact result for each bonus and both IDs | **F-017/F-022 open** |
-| Forge result protocol/client | every result represented exactly | **F-018/F-019 open** |
-| Convergence Fusion | class 4; different IDs; same normalized slot/tier | **F-004 open:** restrictions incomplete server-side |
-| Regular Transfer | same class; receiver tier 0; result donor tier − 1 | partially confirmed by PR #89; gameplay test pending |
-| Convergence Transfer | class 4; no tier loss; cross-slot allowed | **F-005 open:** class 4 not enforced server-side |
-| Atomicity | failed operation leaves no partial mutation | **F-020/F-021 open** |
-| Conversion history type | preserve executed action type and actual amounts | **F-023/F-024 open** |
-| Onslaught | tier chance; triggered basic attack +60% damage | formula/combat path confirmed statically; runtime/AoE pending |
-| Ruse | tier dodge chance | formula path confirmed; **F-010 precision risk** |
-| Momentum | eligible cooldowns −2 s | formula/reduction confirmed; **F-012 open** |
-| Transcendence | seven-second Avatar; cannot overlap Avatar spell | formula/window/duration confirmed; **F-011 open** |
-| Amplification | multiplicatively increases other Forge chances | four paths confirmed statically; runtime/event ordering pending |
+Premium was deliberately left open because a days-only Lua check did not match complete `Player::isPremium()` semantics. Focused gameplay/runtime Dust scenarios were not executed. Do not reopen PR #177 or continue its deleted branch.
+
+### Historical CI boundary
+
+PR #177 head had successful CI run `29205082784`: Detect Build Scope, Fast Checks, Lua Tests and Linux Release/runtime smoke succeeded; platform jobs outside detected scope were skipped. A later CI run `29206161337` on the same recorded head concluded failure and must not be hidden. Neither run is a focused gameplay proof for party Dust, cap boundaries or Premium. The merged source change is preserved; F-007/F-008/F-013 remain runtime-untested.
 
 ---
 
-## 6. Confirmed implementation paths
+## 3. Current source areas
 
-### Server/configuration
+### Configuration and Forge operations
 
-- `config.lua.dist`
-- `src/config/configmanager.cpp`
-- `data/scripts/systems/item_tiers.lua`
-- `src/items/items_classification.hpp`
-- `src/game/game.cpp`
-- `src/creatures/players/player.cpp`
-- `src/server/network/protocol/protocolgame.cpp`
-- `src/utils/tools.cpp`
-- `src/game/functions/forge_transfer_policy.hpp`
+- `config.lua.dist`;
+- `src/config/configmanager.cpp`;
+- `data/scripts/systems/item_tiers.lua`;
+- `src/items/items_classification.hpp`;
+- `src/creatures/players/player.cpp`:
+  - `Player::forgeFuseItems`;
+  - `Player::forgeTransferItemTier`;
+  - `Player::forgeResourceConversion`;
+  - `Player::sendForgeResult`;
+  - `Player::registerForgeHistoryDescription`;
+- `src/server/network/protocol/protocolgame.cpp`:
+  - `ProtocolGame::sendOpenForge` and Forge packet serialization;
+- `src/game/functions/forge_transfer_policy.hpp`.
 
-### Creatures/rewards/effects
+### Rewards and effects
 
-- `src/creatures/monsters/monster.cpp`
-- `data/libs/systems/exaltation_forge.lua`
-- `data/scripts/creaturescripts/monster/forge_kill.lua`
-- `src/creatures/players/grouping/party.cpp`
-- `src/items/item.cpp`
-- `src/creatures/combat/combat.cpp`
-- `data/scripts/spells/support/avatar_of_*.lua`
+- `data/libs/systems/exaltation_forge.lua`:
+  - `ForgeMonster:onDeath`;
+  - `ForgeMonster:getPlayerKiller`;
+  - `ForgeMonster:creditDust`;
+- `data/scripts/creaturescripts/monster/forge_kill.lua`;
+- `src/creatures/monsters/monster.cpp`;
+- `src/items/item.cpp`;
+- `src/creatures/combat/combat.cpp`;
+- `data/scripts/spells/support/avatar_of_*.lua`.
 
-### Client/tests
+### Tests and client contract
 
-- `opentibiabr/otclient/modules/game_forge/game_forge.lua`
-- `opentibiabr/otclient/src/client/protocolgameparse.cpp`
-- `tests/unit/players/forge_test.cpp`
-- `tests/integration/game/forge_it.cpp`
+- current Forge tests under `tests/unit/players/forge/` and `tests/integration/players/`;
+- maintained client `blakinio/otclient/modules/game_forge/game_forge.lua`;
+- maintained client Forge packet parser under `blakinio/otclient/src/client/protocolgameparse.cpp`.
+
+The old report's references to `opentibiabr/otclient` as the implementation target are superseded. Future client writes belong only in `blakinio/otclient`.
 
 ---
 
-## 7. Findings and remediation status
-
-### F-001 — maximum Dust capacity remains 225
-
-**Severity:** medium. **Status:** open. **Evidence:** B–C.
-
-`config.lua.dist` and the `ConfigManager` fallback use 225; the selected post-February-2023 behaviour uses 325.
-
-**Required:** update both sources and test 324 → 325 plus rejection above 325.
-
-### F-002 — Fiendish limit defaults are inconsistent
-
-**Severity:** low/medium. **Status:** open. **Evidence:** B.
-
-Distributed configuration uses 4; engine fallback and an unused legacy Lua value use 3.
-
-### F-003 — regular Fusion identity relies on client filtering
-
-**Severity:** high. **Status:** open. **Evidence:** C.
-
-The handler does not independently require identical item IDs. An integration test currently permits two different IDs.
-
-### F-004 — Convergence Fusion restrictions are incomplete server-side
-
-**Severity:** high. **Status:** open. **Evidence:** C.
-
-Class 4, different IDs and same normalized slot are filtered for the UI but not fully revalidated before mutation.
-
-### F-005 — Convergence Transfer does not enforce class 4
-
-**Severity:** high. **Status:** open. **Evidence:** C.
-
-Matching classifications and donor tier are checked; convergence does not additionally require classification 4.
-
-### F-006 — Premium Dust eligibility is not enforced
-
-**Severity:** high. **Status:** open. **Evidence:** C.
-
-The reward path has no Premium check. A temporary `getPremiumDays() > 0` check was removed because it did not match `Player::isPremium()`, which also recognizes global free Premium, `IsAlwaysPremium` and an active `premiumLastDay`.
-
-**Required:** expose `Player::isPremium()` to Lua or move reward eligibility to C++; test normal, final partial day, free-Premium and always-Premium cases.
-
-### F-007 — party Dust needed an explicit current logout block
-
-**Severity:** high. **Status:** remediated statically; runtime boundaries pending. **Evidence:** C.
-
-Shared experience controls activity, level and 30×30×1 range. The reward path now also requires `CONDITION_INFIGHT` for every recipient.
-
-### F-008 — Dust cap message reported the requested amount
-
-**Severity:** low. **Status:** remediated; runtime test pending. **Evidence:** C.
-
-The reward helper now uses `min(amount, limit − current)` for mutation and success messaging.
-
-### F-009 — Fiendish Slivers ignore creature difficulty
-
-**Severity:** medium. **Status:** open. **Evidence:** C.
-
-Every Fiendish corpse uses a global random minimum/maximum; creature difficulty is unused. The exact versioned mapping must be sourced before implementation.
-
-### F-010 — Ruse truncates fractional basis points
-
-**Severity:** low. **Status:** open precision question. **Evidence:** B–C.
-
-Floating-point percentages and Amplification are cast to integer basis points by truncation. Confirm authoritative precision before changing.
-
-### F-011 — Transcendence can overlap the Avatar spell
-
-**Severity:** medium/high. **Status:** open. **Evidence:** C.
-
-Avatar spells set `AVATAR_SPELL`; Transcendence checks only `AVATAR_FORGE`.
-
-### F-012 — Momentum can display a false trigger
-
-**Severity:** low. **Status:** open. **Evidence:** C.
-
-The trigger flag can be set before any eligible cooldown is reduced.
-
-### F-013 — party members received independently randomized Dust
-
-**Severity:** medium/high. **Status:** remediated; runtime test pending. **Evidence:** C.
-
-One amount is now rolled per death and passed to every eligible recipient.
-
-### F-014 — the Dust-refill success bonus is not implemented
-
-**Severity:** high. **Status:** open. **Evidence:** C.
-
-The documented eighth success bonus refills Dust. `forgeBonus()` generates only values 0–7; value 8 is overloaded for a failed-Fusion retained-tier outcome.
-
-### F-015 — +2 tiers uses classification ID as the cap
-
-**Severity:** high. **Status:** open. **Evidence:** C.
-
-`tier + 2` is compared with classification ID. Class 4 is therefore treated as if capped at tier 4 instead of 10.
-
-### F-016 — Fusion bonus selection is not tier-aware
-
-**Severity:** medium/high. **Status:** open. **Evidence:** C.
-
-Impossible decreased-tier or +2 outcomes can be selected and reported without their documented effect.
-
-### F-017 — Fusion history misreports Convergence and bonus results
-
-**Severity:** high. **Status:** open. **Evidence:** C.
-
-Fusion history resolves only the first item type, always reports +1 on success and marks retained items consumed except for overloaded bonus 8.
-
-### F-018 — OTClient renders only bonus types 1–4
-
-**Severity:** medium/high. **Status:** open in `opentibiabr/otclient`. **Evidence:** C.
-
-Values 5–8 have no complete result presentation.
-
-### F-019 — decreased-tier payload/UI reports the wrong tier
-
-**Severity:** medium. **Status:** open. **Evidence:** C.
-
-The server retains the item at `t−1`, but the packet/UI represents tier `t`.
-
-### F-020 — Fusion and Transfer are not atomic after mutation starts
-
-**Severity:** high. **Status:** open. **Evidence:** C.
-
-The chest and input removals occur before all output/resource mutations succeed. Later failures return without rollback.
-
-### F-021 — Sliver→Core can consume Slivers without granting a Core
-
-**Severity:** high. **Status:** open. **Evidence:** C.
-
-Slivers are removed before Core creation/insertion. Null creation can still lead to success history; insertion failure does not restore Slivers.
-
-### F-022 — failed Fusion history hardcodes 100 Dust
-
-**Severity:** low/medium. **Status:** open. **Evidence:** C.
-
-History ignores the actual stored/configured Dust cost.
-
-### F-023 — conversion history rewrites action types
-
-**Severity:** medium. **Status:** open. **Evidence:** C.
-
-`SLIVERSTOCORES` and `INCREASELIMIT` are stored as `DUSTTOSLIVERS`.
-
-### F-024 — Dust→Slivers history hardcodes gained amount 3
-
-**Severity:** low. **Status:** open. **Evidence:** C.
-
-Created quantity uses configuration; history always says 3.
+## 4. Current-main findings
+
+| Finding | Historical status | Current-main status | Evidence | Remediation PR | Remaining proof | Recommended next scope |
+|---|---|---|---|---|---|---|
+| F-001 | open | still-open | `config.lua.dist` and `src/config/configmanager.cpp` retain maximum Dust 225; no post-#177 change | none | authoritative target version plus 324→325 and >325 regression/runtime boundaries | separate configuration-limit PR with F-002 only if independently justified |
+| F-002 | open | still-open | distributed Fiendish limit 4 conflicts with engine/legacy fallback 3; configuration paths unchanged | none | decide one supported default and test configuration/fallback loading | configuration-limit PR, separate from gameplay validation |
+| F-003 | open | still-open | `Player::forgeFuseItems`; regular Fusion still lacks an independent identical-item-ID authority check and historical integration permits different IDs | none | crafted/stale packet regression before any mutation | first bounded server-authority PR |
+| F-004 | open | still-open | `Player::forgeFuseItems` and `ProtocolGame::sendOpenForge`; class 4, different IDs and normalized slot restrictions are not fully duplicated server-side | none | crafted Convergence packet tests for class, identity, slot and tier | same bounded authority family as F-003, not atomicity/history |
+| F-005 | open | still-open | `Player::forgeTransferItemTier` uses matching classification/tier policy from #89 but does not additionally require class 4 for Convergence | #89 partially relevant | crafted Convergence Transfer class rejection before mutation | same bounded authority family as F-003/F-004 |
+| F-006 | open | still-open | `ForgeMonster:onDeath`/`creditDust` have no complete Premium predicate; days-only check was removed in #177 | #177 explicitly left open | exact `Player::isPremium()` binding/placement; normal, final partial day, free-Premium, always-Premium tests | dedicated Premium semantics PR |
+| F-007 | remediated statically; runtime pending | runtime-untested | #177 requires `CONDITION_INFIGHT` per shared-party recipient; source unchanged | #177 | focused runtime/gameplay boundaries for active, stale, out-of-range and logged-out members | dedicated Dust runtime-proof PR/test pack |
+| F-008 | remediated; runtime pending | runtime-untested | `ForgeMonster:creditDust` uses `min(amount, limit-current)` for credit and message | #177 | cap-edge runtime assertions and persisted resource balance | same Dust runtime-proof scope as F-007/F-013 |
+| F-009 | open | target-version-decision-required | Fiendish corpse reward still uses global random min/max; creature difficulty is unused | none | authoritative versioned difficulty→Sliver mapping | defer until version decision; do not guess |
+| F-010 | open precision question | target-version-decision-required | Ruse/Amplification path converts floating percentages to integer basis points by truncation | none | authoritative precision/rounding rule for selected target version | defer until version decision; do not bundle with effects fixes |
+| F-011 | open | still-open | Avatar spells set `AVATAR_SPELL`; Transcendence checks only `AVATAR_FORGE` in spell/combat state paths | none | compiled regression proving mutual exclusion and cleanup | bounded effects PR with F-012 only |
+| F-012 | open | still-open | Momentum trigger feedback can be set before an eligible cooldown is actually reduced | none | deterministic cooldown/no-cooldown regression and runtime feedback | bounded effects PR with F-011 |
+| F-013 | remediated; runtime pending | runtime-untested | #177 rolls once in `ForgeMonster:onDeath` and passes the same amount to all eligible recipients | #177 | deterministic party runtime test proving one shared amount and recipient boundaries | Dust runtime-proof scope with F-007/F-008 |
+| F-014 | open | still-open | `Player::forgeFuseItems` bonus generation lacks the documented Dust-refill success outcome; value 8 is overloaded for failed retained-tier behavior | none | versioned bonus contract, deterministic forced outcome, packet/history/client result | coordinated F-014–F-019 program |
+| F-015 | open | still-open | +2 result compares `tier + 2` with classification ID, treating class 4 as capped at tier 4 instead of 10 | none | forced +2 tests across class/tier boundaries | coordinated bonus server PR after contract design |
+| F-016 | open | still-open | bonus selection is not tier-aware and can select impossible decreased/+2 outcomes | none | deterministic selection matrix by tier/outcome | coordinated bonus server PR |
+| F-017 | open | still-open | `Player::registerForgeHistoryDescription` reports incomplete Convergence/bonus results despite #110 identity fix | #110 fixes identity only | forced outcome history assertions for all bonuses and both IDs | history/protocol part of coordinated program |
+| F-018 | open in upstream client | still-open in maintained client | `blakinio/otclient` `forgeResultData` handles bonus values 1–4 only; no later Forge client PR found | none | agreed server enum/payload plus client presentation/tests for every value | explicit Canary + `blakinio/otclient` program; never upstream write |
+| F-019 | open | still-open | server retained tier and result payload can diverge for decreased-tier outcome; client uses supplied `leftTier`/`rightTier` directly | none | packet fixture and client rendering assertion for retained `t-1` | coordinated protocol/client program |
+| F-020 | open | still-open | `Player::forgeFuseItems` and `forgeTransferItemTier` remove/move inputs before all output/resource mutations succeed; no rollback | none | injected failure at every mutation boundary with exact resource/item restoration | second bounded PR family: transaction/rollback |
+| F-021 | open | still-open | `Player::forgeResourceConversion` removes Slivers before Core creation/insertion and does not restore on failure | none | null creation/add failure injection and rollback assertions | atomicity PR, separate from history fixes |
+| F-022 | open | still-open | failed Fusion history in `registerForgeHistoryDescription` uses hardcoded 100 Dust rather than stored/configured cost | none | configured non-100 failure-history regression | third bounded PR family: history amounts/types |
+| F-023 | open | still-open | `forgeResourceConversion` history rewrites `SLIVERSTOCORES` and `INCREASELIMIT` as `DUSTTOSLIVERS` | none | round-trip action-type tests for every conversion | history correctness PR with F-022/F-024 |
+| F-024 | open | still-open | creation uses configured Dust→Sliver quantity but history records gained 3 | none | non-default configured amount test across mutation and history | history correctness PR with F-022/F-023 |
+
+### Status summary
+
+- **still-open:** F-001–F-006, F-011–F-012, F-014–F-024;
+- **runtime-untested:** F-007, F-008, F-013;
+- **target-version-decision-required:** F-009, F-010;
+- **remediated/superseded/no-longer-applicable:** none of F-001–F-024 is promoted to these final states by this refresh.
+
+PR #89 and #110 remain confirmed repairs outside the unresolved portions described above. PR #177 remains the retained code remediation for F-007/F-008/F-013, but not gameplay proof.
 
 ---
 
-## 8. Required regression scenarios
+## 5. Later PR impact review
 
-1. regular Fusion accepts identical IDs and rejects different IDs;
-2. all rejected/failed operations preserve items, Dust, cores and gold;
-3. Convergence Fusion/Transfer enforce class 4 and their exact slot/tier rules;
-4. Dust capacity stops at 325 and conversions are atomic;
-5. Premium eligibility matches `Player::isPremium()` in every account/configuration case;
-6. party recipients share one Dust roll and satisfy range/activity/logout rules;
-7. Dust cap messaging reports the credited amount;
-8. Fiendish Slivers follow the confirmed difficulty rule;
-9. Transcendence cannot overlap Avatar and Momentum triggers only after a real reduction;
-10. every bonus is forced deterministically and checked across item state, resources, history, packet and OTClient;
-11. every mutation boundary has an injected-failure rollback test;
-12. all conversion history action types and configurable amounts round-trip correctly.
+The post-#177 history was checked for Forge, Player, protocol, combat, item-tier, client-contract and history overlap.
 
----
+- instance/lifecycle PRs #180, #183, #201, #231 and #233 do not change Forge functions;
+- Cyclopedia PRs #188/#192 do not change Forge contracts;
+- #197 changes CI gating only;
+- #210 changes boosted creature/boss leader election, not Fiendish Forge reward rules;
+- #220 changes Wheel of Destiny Player/protocol paths, not Forge packet/result paths;
+- #222 creates E2E coordination documentation but supplies no Forge gameplay or physical-client execution;
+- no later merged/open Canary PR remediates F-001–F-024;
+- no later `blakinio/otclient` Forge PR was found.
 
-## 9. Work log
-
-### 2026-07-12 — initialization
-
-- Read the parent methodology.
-- Created `validation/equipment-upgrade` and this document.
-- Identified PRs #89/#110 and the same-object removal guard as baseline.
-
-### 2026-07-12 — audit passes 1–4
-
-- Reconstructed classifications, costs, probabilities, conversions and protocol flows.
-- Traced influenced/fiendish scaling, rewards and lifecycle.
-- Traced all five item effects.
-- Traced every Fusion bonus through mutation, history, packet and OTClient.
-- Traced mutation ordering in Fusion, Transfer and conversion.
-- Recorded F-001 through F-024.
-
-### 2026-07-12 — remediation pass 1: Dust accounting and party delivery
-
-Changed `data/libs/systems/exaltation_forge.lua`:
-
-- centralized player/summon killer resolution;
-- generated one Dust amount per kill;
-- reused that amount for eligible shared-experience recipients;
-- added explicit `CONDITION_INFIGHT` validation;
-- used the actual capped amount for mutation and messaging.
-
-The initial Premium-days check was deliberately removed after proving it did not match full server Premium semantics. F-006 remains open; F-007/F-008/F-013 retain code remediation.
-
-### CI evidence
-
-For the Lua remediation and current document state:
-
-- Lua tests passed;
-- clang-format, StyLua and cmake-format checks passed without generated changes;
-- Lua API documentation checks, analysis and yamllint passed;
-- the current Linux compile/runtime/test job was still running at the time of this update.
-
-No focused Forge gameplay test has been executed. Full parity is not claimed.
+This review does not treat unrelated generic-file edits as Forge remediation.
 
 ---
 
-## 10. Next actions
+## 6. Validation and test record
 
-1. expose exact `Player::isPremium()` semantics and test F-006;
-2. implement server-authority fixes F-003–F-005 before mutation;
-3. introduce atomic transaction/rollback handling for F-020/F-021;
-4. redesign bonus result data and resolve F-014–F-019 jointly across Canary/OTClient;
-5. correct F-001/F-002 and history F-022–F-024;
-6. source the Fiendish difficulty→Sliver mapping for F-009;
-7. fix F-011/F-012; resolve F-010 only after precision confirmation;
-8. complete build, runtime and gameplay validation.
+### Local execution
+
+Local checkout and local tests are unavailable because the execution environment cannot resolve `github.com`.
+
+Attempted:
+
+```text
+getent hosts github.com
+# no DNS result
+
+git ls-remote https://github.com/blakinio/canary.git HEAD
+# fatal: unable to access 'https://github.com/blakinio/canary.git/': Could not resolve host: github.com
+```
+
+Could not be run without a checkout:
+
+```text
+git clone https://github.com/blakinio/canary.git
+git fetch --all --prune
+git pull --ff-only
+git checkout docs/equipment-upgrade-handoff-refresh
+git status --short --branch
+git branch -vv
+git remote -v
+git worktree list
+git diff --check
+python tools/agents/task_ownership.py
+cmake --preset linux-debug
+cmake --build --preset linux-debug --target canary_ut
+ctest --test-dir build/linux-debug --output-on-failure
+```
+
+No local test is claimed as passed. GitHub API inspection and CI are separate evidence.
+
+### Historical CI
+
+| Head | Run | Concrete jobs/result | Confirms | Does not confirm |
+|---|---|---|---|---|
+| #89 head `570d6e0…` | `29164115572` | CI success; a later run `29167859855` failed | at least one complete historical regression cycle for the retained Transfer implementation | current-main Forge parity or gameplay |
+| #110 head `78e1044…` | `29185907405` and `29185890664` | CI success; PR reports formatting, Lua, Linux debug/release, 383 C++ tests, Windows, macOS and Docker | item-ID history repair compiled and its Forge Transfer integration regression passed | F-017/F-022–F-024 or gameplay |
+| #177 head `05134a4…` | `29205082784` | Detect Build Scope, Fast Checks, Lua Tests and Linux Release/runtime smoke success; other platform jobs skipped by scope | Lua remediation syntax/static checks and general runtime smoke | focused party/cap/Premium gameplay |
+| #177 head `05134a4…` | `29206161337` | CI failure | records a later non-green run that must not be hidden | no positive proof; inspect only if resuming historical diagnosis, not by reopening #177 |
+
+The final documentation PR's current-head workflow IDs and concrete jobs are recorded in the task/PR before merge.
 
 ---
 
-## 11. Handoff
+## 7. Required future regression scenarios
 
-Continue on `validation/equipment-upgrade` and read this file plus `OTS_AI_WORLD_VALIDATION_PROJECT.md` first. Preserve PR #89/#110. Only F-007/F-008/F-013 currently have retained production-code remediation, and they still need runtime evidence. All other findings remain open. Static evidence reaches B–C for explicitly marked rows; full Equipment Upgrade parity has not been established.
+1. regular Fusion accepts identical IDs and rejects crafted different IDs before mutation;
+2. Convergence Fusion/Transfer enforce class 4 and exact identity/slot/tier rules server-side;
+3. every rejected or failed operation preserves items, Dust, cores and gold;
+4. Dust capacity and Fiendish defaults follow an explicit selected target version;
+5. Premium eligibility matches complete `Player::isPremium()` semantics;
+6. one party Dust roll is shared only among eligible recipients, including logout-block boundaries;
+7. cap messages report exactly the credited amount;
+8. Transcendence cannot overlap spell Avatar and Momentum reports only real reduction;
+9. all bonus outcomes are forced deterministically and checked in item state, resources, history, packet and maintained OTClient;
+10. every mutation boundary has injected-failure rollback coverage;
+11. every conversion action type and configurable amount round-trips into history.
+
+---
+
+## 8. Recommended order of bounded follow-ups
+
+After refreshing from then-current `main`, and only when current code still confirms the finding:
+
+1. **F-003–F-005:** server-authority validation before any mutation;
+2. **F-020–F-021:** atomicity and rollback;
+3. **F-022–F-024:** history action types and configurable amounts;
+4. **F-006:** complete Premium semantics;
+5. **runtime proof F-007/F-008/F-013;**
+6. **F-011/F-012;**
+7. **F-014–F-019:** explicit coordinated Canary + `blakinio/otclient` program;
+8. **F-009/F-010:** only after authoritative versioned evidence.
+
+Do not combine configuration limits, server authority, Premium/Dust runtime, Fiendish/effects, Fusion bonuses/protocol, atomicity and history into one PR.
+
+---
+
+## 9. Current-session record
+
+- read all required agent governance, repository map, module catalogue, known risks, build matrix, cross-repository contracts and world-validation methodology;
+- verified current `main`, open Forge PRs, active Forge work and historical branch state;
+- read PRs #89, #110 and #177 and recorded actual merge commits;
+- compared #177 merge to current `main` and reviewed later potentially overlapping PRs;
+- inspected current maintained `blakinio/otclient` Forge UI and current PR history;
+- reclassified every finding F-001–F-024;
+- attempted DNS/Git remote checks and recorded exact failures;
+- created documentation branch, task and draft PR #242;
+- did not change or prepare gameplay code, tests, workflows, E2E infrastructure or OTClient;
+- no uncommitted code fragment exists because no local checkout exists;
+- an initial oversized task-record write was rejected by the tool before GitHub mutation; the content was reduced and safely committed through the normal GitHub contents API;
+- no temporary write-enabled workflow was created.
+
+Sources were read on 2026-07-13. The primary wiki snapshot remains a historical comparison source, not sole authority for numeric implementation changes.
+
+---
+
+## 10. Handoff
+
+| Field | Value |
+|---|---|
+| Repository | `blakinio/canary` |
+| Main at refresh start | `d4eeab3db322f26ee72d7f0ad958d35dc9bd007d` |
+| Branch | `docs/equipment-upgrade-handoff-refresh` |
+| PR | #242 |
+| Task | `docs/agents/tasks/active/CAN-20260713-equipment-upgrade-handoff-refresh.md` |
+| Current status | documentation refresh in progress until PR/cleanup merge |
+| Branch exists | yes |
+| PR draft | initially yes; final state recorded in PR/task |
+| Auto-merge | not enabled until final applicable jobs and review gate pass |
+| Review threads | inspect on final head before merge |
+| Changed files | this report and task record only |
+| Completed | current-main history/overlap review, F-001–F-024 classification, bounded plan, DNS record |
+| Incomplete | final PR CI/merge and post-merge task archive until recorded complete |
+| Local tests | unavailable; exact DNS error and commands above |
+| Cross-repository dependency | F-018/F-019 and later F-014–F-019 use `blakinio/otclient`; upstream is read-only |
+| First bounded follow-up | F-003–F-005 server-authority validation before mutation |
+| First server file/functions | `src/creatures/players/player.cpp`: `Player::forgeFuseItems`, then `Player::forgeTransferItemTier` |
+| First client file when coordinated | `blakinio/otclient/modules/game_forge/game_forge.lua`: `forgeResultData` |
+
+Recommended first local commands for a future implementation agent starting from current `main`:
+
+```text
+git fetch origin --prune
+git checkout main
+git pull --ff-only
+git checkout -b fix/forge-server-authority
+rg -n "forgeFuseItems|forgeTransferItemTier|sendOpenForge" src tests
+git log --oneline -- src/creatures/players/player.cpp src/server/network/protocol/protocolgame.cpp tests
+```
+
+Then read the full current functions and existing Forge tests before writing code. If no active bounded branch exists, start from current `main`, not from `validation/equipment-upgrade`.
+
+### Mandatory prohibitions
+
+- **DO NOT REOPEN PR #177.**
+- **DO NOT CONTINUE A DELETED HISTORICAL BRANCH.**
+- **DO NOT EDIT `ACTIVE_WORK.md`.**
+- **DO NOT CLAIM FULL FORGE PARITY.**
+- **DO NOT CLAIM GAMEPLAY OR E2E PROOF WITHOUT EXECUTION.**
+- **DO NOT MODIFY `opentibiabr/otclient`.**
+- **DO NOT FIX ALL FINDINGS IN ONE PR.**

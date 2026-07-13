@@ -15,7 +15,7 @@ from typing import Iterable, Mapping, Sequence
 
 
 WIKI_REFERENCE_URL = "https://tibia.fandom.com/wiki/Imbuing"
-WIKI_OBSERVED_DATE = "2026-07-12"
+WIKI_OBSERVED_DATE = "2026-07-13"
 
 EXPECTED_FAMILIES = (
     "Scorch", "Venom", "Frost", "Electrify", "Reap", "Vampirism", "Void", "Strike",
@@ -113,6 +113,8 @@ EXPECTED_SCROLLS: dict[str, tuple[int | None, int, int]] = {
     "Vibrancy": (None, 51746, 51466),
     "Void": (None, 51747, 51467),
 }
+
+VIBRANCY_SCROLL_IDS = {2: 51746, 3: 51466}
 
 POWERFUL_REQUIRES_UNLOCK = set(EXPECTED_FAMILIES)
 
@@ -270,6 +272,11 @@ def parse_registry(path: Path) -> Registry:
     return Registry(bases=bases, categories=categories, entries=tuple(entries))
 
 
+def resolve_scroll_entry(registry: Registry, scroll_id: int) -> Entry | None:
+    """Resolve one XML scroll ID without duplicating the registry parser."""
+    return next((entry for entry in registry.entries if entry.scroll == scroll_id), None)
+
+
 def _effect_signature(entry: Entry) -> tuple[str, str | None, int, int | None] | None:
     effect_type = entry.effect.get("type")
     if not effect_type:
@@ -353,6 +360,21 @@ def validate_registry(registry: Registry, repository_root: Path | None = None) -
     duplicates = sorted(scroll_id for scroll_id, count in scroll_counts.items() if count > 1)
     if duplicates:
         _add(findings, "error", "DUPLICATE_SCROLL_ID", f"duplicate scroll IDs: {duplicates}")
+
+    for tier, scroll_id in VIBRANCY_SCROLL_IDS.items():
+        entry = resolve_scroll_entry(registry, scroll_id)
+        if entry is None:
+            _add(
+                findings, "error", "VIBRANCY_SCROLL_UNRESOLVED",
+                f"Vibrancy tier {tier} scroll {scroll_id} is not mapped by XML",
+                "data/XML/imbuements.xml",
+            )
+        elif entry.name != "Vibrancy" or entry.base != tier:
+            _add(
+                findings, "error", "VIBRANCY_SCROLL_WRONG_TARGET",
+                f"scroll {scroll_id} resolves to {entry.name} tier {entry.base}, expected Vibrancy tier {tier}",
+                "data/XML/imbuements.xml",
+            )
 
     # Current TibiaWiki comparison.
     for family in EXPECTED_FAMILIES:
@@ -472,6 +494,28 @@ def validate_runtime_wiring(repository_root: Path, registry: Registry) -> list[F
             _add(
                 findings, "error", "UNREGISTERED_XML_SCROLL",
                 f"XML maps scroll IDs that the active action does not register: {unregistered}",
+            )
+
+    player_source = repository_root / "src/creatures/players/player.cpp"
+    if player_source.is_file():
+        source = player_source.read_text(encoding="utf-8")
+        start = source.find("void Player::applyScrollImbuement")
+        end = source.find("void Player::createScrollImbuement", start)
+        body = source[start:end] if start >= 0 and end > start else ""
+        ordered_markers = (
+            "getFreeImbuementSlot()",
+            "getImbuementByScrollID(scrollItem->getID())",
+            "getBaseByID(imbuement->getBaseID())",
+            "canAddImbuement",
+            "internalRemoveItem(scrollItem, 1)",
+            "setImbuement",
+        )
+        positions = [body.find(marker) for marker in ordered_markers]
+        if not body or any(position < 0 for position in positions) or positions != sorted(positions):
+            _add(
+                findings, "error", "SCROLL_APPLICATION_ATOMICITY",
+                "Player::applyScrollImbuement no longer validates resolution/eligibility, removes exactly one scroll, and mutates the target in the required order",
+                str(player_source.relative_to(repository_root)),
             )
 
     return findings

@@ -1,6 +1,6 @@
 # Active Work Index
 
-Last reviewed: 2026-07-12T23:15:00+02:00
+Last reviewed: 2026-07-13T09:40:00+02:00
 
 Open pull requests and current changed files/checks are authoritative. This index helps agents detect likely overlap.
 
