@@ -5,7 +5,7 @@ agent: "GPT-5.6 Thinking"
 branch: docs/equipment-upgrade-handoff-refresh
 base_branch: main
 created: 2026-07-13T12:35:00+02:00
-updated: 2026-07-13T12:52:00+02:00
+updated: 2026-07-13T13:02:00+02:00
 last_verified_commit: "d4eeab3db322f26ee72d7f0ad958d35dc9bd007d"
 risk: low
 related_pr: "#242"
@@ -110,8 +110,9 @@ None of these local checks is claimed as passed. GitHub API and CI are separate 
 
 - #89 head `570d6e077c02107eb712a4ff214cf4442d6c91d8`: CI run `29164115572` succeeded; later run `29167859855` failed.
 - #110 head `78e10449f9c9c8401bf576f5751998f0fa7da655`: CI runs `29185907405` and `29185890664` succeeded; PR reports 383 C++ tests including Forge Transfer integration.
-- #177 head `05134a4c96083c9b21e5e86a5e51dcfc3f53bee6`: CI run `29205082784` succeeded for Detect Build Scope, Fast Checks, Lua Tests and Linux Release/runtime smoke; later CI run `29206161337` failed.
-- These runs do not prove focused Forge gameplay or physical-client E2E.
+- #177 head `05134a4c96083c9b21e5e86a5e51dcfc3f53bee6`: CI run `29205082784` succeeded for Detect Build Scope, Fast Checks, Lua Tests and Linux Release/runtime smoke.
+- Later #177 CI run `29206161337`: Detect Build Scope, Lua Tests and Fast Checks succeeded; Linux Release job `86685992572` failed specifically at `Check generated Lua API docs are current`. Runtime smoke and tests were skipped after that failure. This is not a Forge gameplay failure and is not positive Forge proof.
+- None of these historical runs proves focused Forge gameplay or physical-client E2E.
 
 # Work log
 
@@ -123,15 +124,18 @@ None of these local checks is claimed as passed. GitHub API and CI are separate 
 - Reclassified F-001–F-024 and replaced stale current-state/handoff text in the main report.
 - Recorded exact DNS failure and unavailable local commands.
 - Created branch, task and draft PR #242 using GitHub API only.
+- Inspected #177's later failed run job-by-job and recorded the exact generated-docs failure.
 - First oversized task write was rejected by the tool before GitHub mutation; a smaller durable record was then committed normally.
 - No temporary workflow, gameplay change, test, E2E platform or client change was created.
 
 # Changed files
 
-Expected only:
+Final scope review currently shows exactly:
 
 - `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md`;
 - `docs/agents/tasks/active/CAN-20260713-equipment-upgrade-handoff-refresh.md`.
+
+`docs/agents/ACTIVE_WORK.md` is absent. No gameplay/runtime path is changed.
 
 # Recommended bounded follow-ups
 
@@ -146,11 +150,10 @@ Expected only:
 
 # Remaining work
 
-1. Inspect final changed files/diff and confirm `ACTIVE_WORK.md` is absent.
-2. Update PR body and mark Ready for review.
-3. Inspect concrete final-head jobs/logs; do not rely only on aggregate `Required`.
-4. Merge documentation PR if no blocker.
-5. Archive this task in a separate lifecycle cleanup PR.
+1. Update PR body and mark Ready for review.
+2. Inspect concrete final-head jobs/logs; do not rely only on aggregate `Required`.
+3. Merge documentation PR if no blocker.
+4. Archive this task in a separate lifecycle cleanup PR.
 
 # Invariants
 
