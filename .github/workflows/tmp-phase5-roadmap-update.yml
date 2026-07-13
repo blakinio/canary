@@ -1,0 +1,99 @@
+name: Temporary Phase 5 roadmap update
+
+on:
+  push:
+    branches:
+      - feat/otbm-storage-dependency-graph
+    paths:
+      - ".github/workflows/tmp-phase5-roadmap-update.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/otbm-storage-dependency-graph
+
+      - name: Apply bounded roadmap replacements
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md")
+          text = path.read_text(encoding="utf-8")
+
+          replacements = {
+              "> Last refreshed: 2026-07-13  ": "> Last refreshed: 2026-07-14  ",
+              "| 5 | Storage dependency graph | not started | separate future task |": "| 5 | Storage dependency graph | active draft | #299 |",
+              "- World Index, Quest Map Validator, reachability and spawn/NPC validation are read-only.": "- World Index, Quest Map Validator, reachability, spawn/NPC validation and storage dependency analysis are read-only.",
+              """## Phase 5 — Storage dependency graph
+
+Planned deliverables:
+
+- inventory reads, writes, comparisons and increments;
+- build explicit stage transitions;
+- identify unreachable values and conflicting writers;
+- separate player, account, KV and database namespaces;
+- preserve dynamic expressions as unresolved;
+- link transitions to NPC dialogue, Actions, MoveEvents, kills and rewards only where proven;
+- never infer execution order from source proximity alone.
+
+Phase 5 must consume Phase 2 quest evidence and Phase 4 creature/source evidence rather than create another source scanner.
+""": """## Phase 5 — Storage dependency graph
+
+Draft PR #299 delivers:
+
+- report `canary-otbm-storage-graph-v1`;
+- public facade and CLI `tools/ai-agent/otbm_storage_graph*.py`;
+- schema `docs/ai-agent/OTBM_STORAGE_GRAPH.schema.json`;
+- documentation and an evidence-boundary ADR;
+- dedicated workflow `.github/workflows/otbm-storage-graph.yml`.
+
+The tool consumes the exact selected and SHA-256-verified file set from `canary-quest-map-evidence-v1`. It optionally correlates Phase 2 validation, Phase 3 reachability and Phase 4 spawn/NPC reports without widening source selection.
+
+It inventories player/account/global storage, player/account/global KV and narrow literal SQL evidence. Exact graph edges require one enclosing same-key `==` prerequisite and one literal, delete or exact same-key delta write. Inequalities, `else` negation, lexical proximity and dynamic expressions never create guessed transitions.
+
+Selected-scope reads without writers, writes without readers and unproduced prerequisites are informational evidence. Backward literal transitions and incompatible outputs for the same exact prerequisite are conservative warnings. Lua, callbacks and persisted state are not executed or simulated.
+""",
+              """Phases 1–4 are merged and archived. The next bounded programme task is Phase 5, but it may start only from current `main` after a fresh PR/task ownership search.
+
+Phase 5 must reuse:
+
+1. `canary-quest-map-evidence-v1` and `canary-quest-map-validation-v1` from Phase 2;
+2. `canary-otbm-reachability-v1` from Phase 3 where coordinate/geometry evidence is required;
+3. `canary-otbm-spawn-npc-evidence-v1` and `canary-otbm-spawn-npc-validation-v1` from Phase 4.
+
+Do not combine Phase 5 with Harlow cleanup, `0,0,0` teleport repair, semantic map diff, geometry audit or map writing. Those findings remain separate evidence-backed tasks.
+""": """Phases 1–4 are merged and archived. Phase 5 is isolated in draft PR #299 and must be merged and archived before Phase 6 starts.
+
+Phase 5 reuses:
+
+1. `canary-quest-map-evidence-v1` and `canary-quest-map-validation-v1` from Phase 2;
+2. `canary-otbm-reachability-v1` from Phase 3 where coordinate/geometry evidence is supplied;
+3. `canary-otbm-spawn-npc-evidence-v1` and `canary-otbm-spawn-npc-validation-v1` from Phase 4.
+
+Do not combine Phase 5 with Harlow cleanup, `0,0,0` teleport repair, semantic map diff, geometry audit or map writing. After #299 is merged and archived, start Phase 6 only from then-current `main` after a fresh ownership and PR search.
+""",
+          }
+
+          for old, new in replacements.items():
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"expected one roadmap match, found {count}: {old[:80]!r}")
+              text = text.replace(old, new)
+
+          path.write_text(text, encoding="utf-8")
+          PY
+
+      - name: Commit roadmap update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md
+          git diff --cached --check
+          git commit -m "docs(ai-agent): update OTBM roadmap for Phase 5"
+          git push origin HEAD:feat/otbm-storage-dependency-graph
