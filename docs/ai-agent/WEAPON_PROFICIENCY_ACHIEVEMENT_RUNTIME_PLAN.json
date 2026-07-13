@@ -1,0 +1,99 @@
+{
+  "format": "canary-weapon-proficiency-achievement-runtime-plan-v1",
+  "scope": "Weapon Proficiency achievements 564-567",
+  "safety": {
+    "auditPrReadOnly": true,
+    "registryChangesAllowed": false,
+    "runtimeChangesAllowed": false,
+    "mapOrAssetChangesAllowed": false
+  },
+  "implementationPrerequisites": [
+    "Expose a deterministic mastered-weapon count from WeaponProficiency.",
+    "Set mastered=true on the initial try_emplace path when capped XP reaches max experience.",
+    "Choose an explicit existing-player backfill point after load normalization.",
+    "Use PlayerAchievement::add for idempotent canonical ID awards.",
+    "Prove every ID 567 weapon item ID and resolved proficiency eligibility before adding the definition or hook."
+  ],
+  "scenarios": [
+    {
+      "id": "wp-ach-001",
+      "priority": "blocking",
+      "title": "Existing entry reaches first mastery",
+      "setup": ["Player has one tracked weapon at maxExperience-1.", "Achievements 564-566 are locked."],
+      "actions": ["Award one proficiency XP through the normal addExperience path."],
+      "expected": ["Weapon is mastered.", "Mastered count is 1.", "Achievement 564 is awarded once.", "Achievements 565 and 566 remain locked."]
+    },
+    {
+      "id": "wp-ach-002",
+      "priority": "blocking",
+      "title": "Initial entry reaches mastery in one gain",
+      "setup": ["Weapon has no stored proficiency entry.", "Gain is greater than or equal to maxExperience."],
+      "actions": ["Call addExperience for the weapon."],
+      "expected": ["Stored XP is capped at maxExperience.", "mastered is true before return.", "Mastered count includes the weapon.", "Threshold awards are evaluated."]
+    },
+    {
+      "id": "wp-ach-003",
+      "priority": "blocking",
+      "title": "Mastery thresholds 1, 10 and 50",
+      "setup": ["Prepare players with 0, 9 and 49 mastered weapons respectively."],
+      "actions": ["Master one additional eligible weapon for each player."],
+      "expected": ["ID 564 unlocks at count 1.", "ID 565 unlocks at count 10.", "ID 566 unlocks at count 50.", "No threshold unlocks early."]
+    },
+    {
+      "id": "wp-ach-004",
+      "priority": "blocking",
+      "title": "Idempotent repeated evaluation",
+      "setup": ["Player already owns threshold achievements and has qualifying mastery counts."],
+      "actions": ["Re-evaluate thresholds after additional XP, relog and explicit backfill."],
+      "expected": ["No duplicate points or messages.", "Unlocked timestamps are not replaced unless existing API specifies otherwise."]
+    },
+    {
+      "id": "wp-ach-005",
+      "priority": "blocking",
+      "title": "Existing-player load backfill",
+      "setup": ["Persist 1, 10 and 50 max-XP weapon entries without threshold achievements."],
+      "actions": ["Load player and normalize stored proficiency state."],
+      "expected": ["mastered flags are derived from XP.", "Threshold achievements are awarded exactly once at the selected post-load integration point.", "No gameplay action is required to repair historical state."]
+    },
+    {
+      "id": "wp-ach-006",
+      "priority": "high",
+      "title": "Stale mastered flag normalization",
+      "setup": ["Persist maxExperience with mastered=false and below-max XP with mastered=true."],
+      "actions": ["Load both entries."],
+      "expected": ["mastered reflects normalized XP state.", "Only normalized mastered entries contribute to counts."]
+    },
+    {
+      "id": "wp-ach-007",
+      "priority": "high",
+      "title": "Persistence and relog",
+      "setup": ["Master a weapon and unlock a threshold achievement."],
+      "actions": ["Save, logout, reload and reopen Weapon Proficiency UI."],
+      "expected": ["XP, mastered state, selected perks and achievement remain consistent.", "No duplicate award occurs on reload."]
+    },
+    {
+      "id": "wp-ach-008",
+      "priority": "high",
+      "title": "Catalyst and combat parity",
+      "setup": ["Use separate weapons one XP step below mastery."],
+      "actions": ["Master one through combat XP and one through Player:addWeaponExperience catalyst flow."],
+      "expected": ["Both paths pass through the same transition and threshold evaluation."]
+    },
+    {
+      "id": "wp-ach-009",
+      "priority": "blocking-for-567",
+      "title": "The Forbidden Build item eligibility contract",
+      "setup": ["Provide the reviewed canonical item ID set for all reference names.", "Each item has a resolved nonzero valid proficiency ID."],
+      "actions": ["Master each required candidate independently and evaluate the secret condition."],
+      "expected": ["ID 567 is not implemented until all item IDs and eligibility are proven.", "After implementation, only the exact reviewed set satisfies the secret condition.", "Items sharing a name or lacking active proficiency do not count by accident."]
+    },
+    {
+      "id": "wp-ach-010",
+      "priority": "high",
+      "title": "Invalid or removed proficiency data",
+      "setup": ["Persist an invalid item ID, an item with proficiencyId=0 and a removed proficiency definition."],
+      "actions": ["Load player and evaluate mastery achievements."],
+      "expected": ["Invalid entries are skipped by existing validation.", "They do not increase mastered count or unlock achievements."]
+    }
+  ]
+}

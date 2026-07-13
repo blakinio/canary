@@ -1,0 +1,58 @@
+name: OTBM World Index
+
+on:
+  push:
+    branches:
+      - main
+      - "feat/**"
+      - "fix/**"
+      - "ai/**"
+    paths:
+      - "tools/ai-agent/otbm_item_audit_scan.cpp"
+      - "tools/ai-agent/otbm_world_index.py"
+      - "tools/ai-agent/otbm_world_index_tool.py"
+      - "tools/ai-agent/test_otbm_world_index.py"
+      - "docs/ai-agent/OTBM_WORLD_INDEX.schema.json"
+      - ".github/workflows/otbm-world-index.yml"
+  pull_request:
+    paths:
+      - "tools/ai-agent/otbm_item_audit_scan.cpp"
+      - "tools/ai-agent/otbm_world_index.py"
+      - "tools/ai-agent/otbm_world_index_tool.py"
+      - "tools/ai-agent/test_otbm_world_index.py"
+      - "docs/ai-agent/OTBM_WORLD_INDEX.schema.json"
+      - ".github/workflows/otbm-world-index.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Build and query synthetic OTBM indexes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile native scanner with warnings as errors
+        run: |
+          c++ -O2 -std=c++20 -Wall -Wextra -Wpedantic -Werror \
+            tools/ai-agent/otbm_item_audit_scan.cpp \
+            -o /tmp/otbm_item_audit_scan
+
+      - name: Run focused tests
+        run: PYTHONPATH=tools/ai-agent python -m unittest -v tools/ai-agent/test_otbm_world_index.py
+
+      - name: Compile Python modules
+        run: |
+          python -m py_compile \
+            tools/ai-agent/otbm_world_index.py \
+            tools/ai-agent/otbm_world_index_tool.py \
+            tools/ai-agent/test_otbm_world_index.py
+
+      - name: Validate JSON schema syntax
+        run: python -m json.tool docs/ai-agent/OTBM_WORLD_INDEX.schema.json > /dev/null

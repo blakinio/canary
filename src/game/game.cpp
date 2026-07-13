@@ -1543,6 +1543,16 @@ bool Game::removeCreature(const std::shared_ptr<Creature> &creature, bool isLogo
 	creature->removeList();
 	creature->setRemoved();
 
+	// Whatever registered this creature's stable id with the instance
+	// ownership registry (spawn, summon inheritance, a future player
+	// enter/leave path) may not run again to unregister it, so this is the
+	// one deterministic place every removed creature passes through.
+	// getCreatureOwner()/unregisterCreature() already no-op safely for id 0
+	// and for creatures that were never registered.
+	if (const auto instanceOwner = getInstanceManager().getCreatureOwner(creature->getID())) {
+		getInstanceManager().unregisterCreature(*instanceOwner, creature->getID());
+	}
+
 	removeCreatureCheck(creature);
 
 	for (const auto &summon : creature->getSummons()) {
@@ -8215,7 +8225,8 @@ void Game::applyWheelOfDestinyHealing(CombatDamage &damage, const std::shared_pt
 		}
 
 		if (attackerPlayer->wheel().getInstant("Blessing of the Grove")) {
-			damage.primary.value += (damage.primary.value * attackerPlayer->wheel().checkBlessingGroveHealingByTarget(target)) / 100.;
+			const double blessingPercent = attackerPlayer->wheel().checkBlessingGroveHealingByTarget(target);
+			damage.primary.value += static_cast<int32_t>(std::round(damage.primary.value * blessingPercent / 100.0));
 		}
 	}
 }
@@ -11472,15 +11483,23 @@ void Game::playerWheelGemAction(uint32_t playerId, NetworkMessage &msg) {
 		return;
 	}
 
+	if (!msg.canRead(2)) {
+		g_logger().warn("[{}] Player {} sent a truncated legacy Wheel gem action", __FUNCTION__, player->getName());
+		return;
+	}
+
 	const auto action = msg.getByte();
 	const auto param = msg.getByte();
-	uint8_t pos = 0;
 
 	switch (static_cast<WheelGemAction_t>(action)) {
 		case WheelGemAction_t::Destroy:
 			player->wheel().destroyGem(param);
 			break;
 		case WheelGemAction_t::Reveal:
+			if (param > fmt::underlying(WheelGemQuality_t::Greater)) {
+				g_logger().warn("[{}] Player {} sent invalid legacy Wheel gem quality {}", __FUNCTION__, player->getName(), param);
+				return;
+			}
 			player->wheel().revealGem(static_cast<WheelGemQuality_t>(param));
 			break;
 		case WheelGemAction_t::SwitchDomain:
@@ -11490,12 +11509,15 @@ void Game::playerWheelGemAction(uint32_t playerId, NetworkMessage &msg) {
 			player->wheel().toggleGemLock(param);
 			break;
 		case WheelGemAction_t::ImproveGrade:
-			pos = msg.getByte();
-			player->wheel().improveGemGrade(static_cast<WheelFragmentType_t>(param), pos);
+			if (param > fmt::underlying(WheelFragmentType_t::Lesser) || !msg.canRead(1)) {
+				g_logger().warn("[{}] Player {} sent invalid or truncated legacy Wheel grade data", __FUNCTION__, player->getName());
+				return;
+			}
+			player->wheel().improveGemGrade(static_cast<WheelFragmentType_t>(param), msg.getByte());
 			break;
 		default:
 			g_logger().error("[{}] player {} is trying to do invalid action {} on wheel", __FUNCTION__, player->getName(), action);
-			break;
+			return;
 	}
 	player->updateUIExhausted();
 }

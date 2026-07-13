@@ -4,6 +4,7 @@ Curated behavior/architecture log for discovery; not a replacement for Git histo
 
 ## Unreleased
 
+- PR #219 implements the unified read-only OTBM world index planned by #190 and supersedes conflicted #211: the existing native scanner emits a deterministic binary postings cache, while a memory-mapped Python library and CLI provide bounded item/AID/UID/house-door/teleport/position/region queries with hashes, duplicate detection, atomic output and real-map validation without committing map or index artifacts.
 - Raid startup repair in PR #205 splits active Draptor and Yeti monster bursts into progressive waves, enforces spawn-before-stage-advance timing, and separates the Undead Cavebear encounter identity without changing populations, broadcasts, maps or assets.
 
 - The Beginning Carlos repair in PR #157 removes the stage-1 `outfit` completion bypass, gates trade to the accepted stage-6 task, sends tutorial `13` when that trade is first opened, and advances to stage 7 only after an actual meat/ham sale while preserving the existing shop transaction and prices.
