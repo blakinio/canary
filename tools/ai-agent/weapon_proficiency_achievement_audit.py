@@ -17,11 +17,12 @@ from typing import Any, Iterable
 
 FORMAT = "canary-weapon-proficiency-achievement-audit-v1"
 TARGETS = {
-    564: {"name": "The First of Many", "masteredWeapons": 1, "secret": False},
-    565: {"name": "A Well-Honed Arsenal", "masteredWeapons": 10, "secret": False},
-    566: {"name": "Arsenal of War", "masteredWeapons": 50, "secret": False},
-    567: {"name": "The Forbidden Build", "masteredWeapons": None, "secret": True},
+    564: {"name": "The First of Many", "masteredWeapons": 1, "grade": 1, "points": 3, "secret": False},
+    565: {"name": "A Well-Honed Arsenal", "masteredWeapons": 10, "grade": 2, "points": 5, "secret": False},
+    566: {"name": "Arsenal of War", "masteredWeapons": 50, "grade": 3, "points": 7, "secret": False},
+    567: {"name": "The Forbidden Build", "masteredWeapons": None, "grade": 1, "points": 3, "secret": True},
 }
+FORBIDDEN_BUILD_ITEM_IDS = (9385, 21179, 9373, 21178, 3284, 9396, 9378, 26073, 26009, 9375, 1781, 2992)
 FORBIDDEN_BUILD_NAMES = (
     "Club of the Fury",
     "Glooth Blade",
@@ -204,6 +205,19 @@ def audit_repository(root: Path) -> dict[str, Any]:
                     evidence={"id": achievement_id, "actual": definition.get("name"), "expected": reference["name"]},
                 )
             )
+        elif any(definition.get(field) != reference[field] for field in ("grade", "points", "secret")):
+            findings.append(
+                Finding(
+                    code="target-metadata-mismatch",
+                    severity="error",
+                    message=f"Achievement ID {achievement_id} does not use the expected grade, points or secret metadata.",
+                    evidence={
+                        "id": achievement_id,
+                        "actual": {field: definition.get(field) for field in ("grade", "points", "secret")},
+                        "expected": {field: reference[field] for field in ("grade", "points", "secret")},
+                    },
+                )
+            )
         target_rows.append({"id": achievement_id, "reference": reference, "registry": definition})
 
     add_experience = extract_function_body(cpp_text, "void WeaponProficiency::addExperience")
@@ -247,6 +261,23 @@ def audit_repository(root: Path) -> dict[str, Any]:
         int(achievement_id)
         for achievement_id in re.findall(r"\{\s*\d+\s*,\s*(56[4-6])\s*\}", mastery_achievement_body)
     }
+    forbidden_ids_match = re.search(
+        r"FORBIDDEN_BUILD_WEAPON_IDS\s*=\s*\{(?P<body>.*?)\};",
+        cpp_text,
+        re.DOTALL,
+    )
+    forbidden_build_weapon_ids = tuple(
+        int(item_id) for item_id in re.findall(r"\b\d+\b", forbidden_ids_match.group("body"))
+    ) if forbidden_ids_match else ()
+    forbidden_build_body = extract_function_body(cpp_text, "bool WeaponProficiency::hasForbiddenBuildMastery")
+    reconcile_body = extract_function_body(cpp_text, "void WeaponProficiency::reconcileMasteryAchievements")
+    forbidden_build_condition_present = (
+        forbidden_build_weapon_ids == FORBIDDEN_BUILD_ITEM_IDS
+        and "std::ranges::all_of" in forbidden_build_body
+        and "proficiency.find(weaponId)" in forbidden_build_body
+        and "it->second.mastered" in forbidden_build_body
+    )
+    forbidden_build_award_present = bool(re.search(r"\.add\(\s*567\s*,", reconcile_body))
     mastered_count_api = bool(re.search(r"getMastered|countMastered|masteredWeapon", hpp_text, re.IGNORECASE))
     player_achievement_add_available = "bool add(uint16_t id" in player_achievement_text
 
@@ -284,6 +315,33 @@ def audit_repository(root: Path) -> dict[str, Any]:
                 severity="warning",
                 message="WeaponProficiency exposes tracked IDs but no public mastered-weapon count/query API.",
                 evidence={"source": str(hpp_path.relative_to(root))},
+            )
+        )
+    if forbidden_build_weapon_ids != FORBIDDEN_BUILD_ITEM_IDS:
+        findings.append(
+            Finding(
+                code="forbidden-build-item-set-mismatch",
+                severity="error",
+                message="The Forbidden Build runtime item set does not match the reviewed twelve-item contract.",
+                evidence={"actual": list(forbidden_build_weapon_ids), "expected": list(FORBIDDEN_BUILD_ITEM_IDS)},
+            )
+        )
+    if not forbidden_build_condition_present:
+        findings.append(
+            Finding(
+                code="forbidden-build-condition-missing",
+                severity="error",
+                message="WeaponProficiency does not require mastered state for every reviewed Forbidden Build item.",
+                evidence={"source": str(cpp_path.relative_to(root))},
+            )
+        )
+    if not forbidden_build_award_present:
+        findings.append(
+            Finding(
+                code="target-award-path-missing",
+                severity="error",
+                message="No active ID-based award path was found for The Forbidden Build.",
+                evidence={"id": 567, "name": TARGETS[567]["name"]},
             )
         )
 
@@ -356,7 +414,7 @@ def audit_repository(root: Path) -> dict[str, Any]:
             1
             for achievement_id in (564, 565, 566)
             if static_award_matches[TARGETS[achievement_id]["name"]] or achievement_id in mastery_achievement_ids
-        ),
+        ) + int(forbidden_build_condition_present and forbidden_build_award_present),
         "forbiddenBuildReferenceNameCount": len(FORBIDDEN_BUILD_NAMES),
         "forbiddenBuildNamesFoundInServerText": sum(1 for row in secret_candidates if row["serverNameFound"]),
         "forbiddenBuildEligibilityProven": sum(1 for row in secret_candidates if row["eligibilityProven"]),
@@ -381,6 +439,10 @@ def audit_repository(root: Path) -> dict[str, Any]:
             "masteredCountApiPresent": mastered_count_api,
             "playerAchievementAddAvailable": player_achievement_add_available,
             "masteryAchievementIds": sorted(mastery_achievement_ids),
+            "forbiddenBuildWeaponIds": list(forbidden_build_weapon_ids),
+            "forbiddenBuildExactItemSet": forbidden_build_weapon_ids == FORBIDDEN_BUILD_ITEM_IDS,
+            "forbiddenBuildConditionPresent": forbidden_build_condition_present,
+            "forbiddenBuildAwardPresent": forbidden_build_award_present,
         },
         "nameOccurrences": all_matches,
         "staticAwardOccurrences": static_award_matches,
@@ -398,7 +460,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- status: `{'ok' if report['ok'] else 'findings'}`",
         f"- active target definitions: `{summary['targetDefinitionCount']}/4`",
         f"- missing target IDs: `{summary['missingTargetIds']}`",
-        f"- detected target award paths: `{summary['targetAwardPathCount']}/3`",
+        f"- detected target award paths: `{summary['targetAwardPathCount']}/4`",
         f"- secret-build names found in server text: `{summary['forbiddenBuildNamesFoundInServerText']}/{summary['forbiddenBuildReferenceNameCount']}`",
         f"- secret-build eligibility proven by explicit valid XML override: `{summary['forbiddenBuildEligibilityProven']}`",
         "",
@@ -411,6 +473,9 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- normalization derives mastery from XP: `{runtime['normalizeDerivesMasteredFromExperience']}`",
         f"- achievement hook present: `{runtime['achievementHookPresent']}`",
         f"- mastered-count API present: `{runtime['masteredCountApiPresent']}`",
+        f"- Forbidden Build exact item set: `{runtime['forbiddenBuildExactItemSet']}`",
+        f"- Forbidden Build condition present: `{runtime['forbiddenBuildConditionPresent']}`",
+        f"- Forbidden Build award present: `{runtime['forbiddenBuildAwardPresent']}`",
         "",
         "## Findings",
         "",
