@@ -2,20 +2,19 @@
 task_id: CAN-20260713-cyclopedia-live-e2e
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: OTS-E2E-CANARY-OTCLIENT
-status: implementing
+status: paused
 agent: chatgpt-e2e-prototype
 branch: test/cyclopedia-live-e2e
 base_branch: main
 created: 2026-07-13T08:09:00+02:00
-updated: 2026-07-13T10:00:00+02:00
-last_verified_commit: f8a8efe704bbb342469623f8d92a90e1f01f9dc8
+updated: 2026-07-13T10:36:00+02:00
+last_verified_commit: 04ff2d0d77097773a13cca1a05a0cbfea06209ef
 risk: medium
 related_issue: ""
 related_pr: "224"
 depends_on:
   - CAN-20260713-agent-program-ownership
-blocks:
-  - CAN-E2E-PLATFORM-BOOTSTRAP
+blocks: []
 owned_paths:
   exclusive:
     - .github/workflows/cyclopedia-live-e2e.yml
@@ -26,177 +25,196 @@ owned_paths:
     - src/server/network/protocol/transport_codec.cpp
   shared: []
   read_only:
-    - docs/agents/programs/E2E_AUTOMATION_PROGRAM.md
-    - src/config/configmanager.cpp
-    - src/server/network/connection/connection.cpp
-    - src/server/network/protocol/protocol.cpp
-    - src/server/network/protocol/protocolgame.cpp
-    - src/server/network/protocol/protocollogin.cpp
+    - docs/agents/tasks/archive/CAN-20260712-cyclopedia-validation.md
+    - docs/ai-agent/OTS_AI_CYCLOPEDIA_VALIDATION_PROJECT.md
+    - docs/ai-agent/CYCLOPEDIA_VALIDATION_REPORT.md
+    - docs/ai-agent/CYCLOPEDIA_FIX_LOG.md
+    - docs/ai-agent/CYCLOPEDIA_RUNTIME_TEST_PLAN.json
+    - tools/ai-agent/cyclopedia_validation.py
+    - tools/ai-agent/test_cyclopedia_validation.py
+    - tools/ai-agent/test_cyclopedia_runtime_fix_contracts.py
+    - .github/workflows/cyclopedia-validation.yml
 modules_touched:
-  - physical-client E2E prototype
-  - Cyclopedia scenario automation
-  - temporary inbound transport diagnostics
-reuses:
-  - reusable Linux Canary build workflow
-  - existing Docker test-account and player fixtures
-  - global datapack and map download contract
-  - maintained OTClient Linux artifact
-public_interfaces:
-  - Cyclopedia E2E result markers
-cross_repo_tasks:
-  - OTC-E2E-CLIENT-AUTOMATION
+  - paused physical-client E2E prototype
+  - paused Cyclopedia client automation
+  - experimental transport/module diagnostics
+pause_reason: physical-client E2E excluded by scope change
 ---
 
-# Goal
+# Status
 
-Prove Bestiary, Charms and Bosstiary through a real 15.25 OTClient connected to an exact-head Canary server in two separate login sessions, with disposable MySQL state and reviewable evidence.
+**PAUSED. PR #224 is excluded from the current Cyclopedia validation handoff.**
 
-# Acceptance criteria
+The physical-client E2E is incomplete and no runtime/gameplay confirmation is claimed. The completed task `CAN-20260712-cyclopedia-validation` remains archived and must not be reopened.
 
-- [ ] Exact Canary head builds and starts with the global datapack and map.
-- [x] Real OTClient 15.25 logs into `Knight 1` through the native modern game transport.
-- [ ] Bestiary, Charms and Bosstiary parser events are observed during session one.
-- [ ] Safe logout and a complete second login succeed.
-- [ ] The same three Cyclopedia response families are observed after relog.
-- [ ] Database evidence confirms online state during the test and clean offline state afterward.
-- [x] Logs, hashes, SQL snapshots, packet records, TCP capture, result markers and a screenshot are uploaded on failure.
-- [x] No map, gameplay, schema, production state or committed client asset is modified.
-- [ ] Temporary diagnostic source changes are removed or converted into justified permanent hardening before merge.
-- [ ] Current-head ownership and repository CI pass.
-- [ ] Complete live E2E workflow passes and its artifact is reviewed.
+# Repository state
 
-# Confirmed context
+| Field | Value |
+|---|---|
+| Repository | `blakinio/canary` |
+| Base | `main` |
+| Current main SHA | `f96680987955cde24d4264e9473bde70501ed534` |
+| Branch | `test/cyclopedia-live-e2e` |
+| PR | #224 |
+| Source head before handoff commit | `04ff2d0d77097773a13cca1a05a0cbfea06209ef` |
+| State | open, draft, mergeable |
+| Compare | diverged; 41 ahead, 8 behind; merge base `8a0889b18acf6aa384eb5081b90f707d4febfa95` |
+| Review threads | 0 |
+| Reviews / requested changes | 0 / 0 |
+| Requested reviewers | none |
+| Auto-merge | not enabled; no auto-merge action performed |
+| Upstream writes | none |
 
-- Merged PR #222 defines this PR as the first bounded prototype for `CAN-PROGRAM-E2E-PLATFORM`.
-- Canary's default `authType` is `password`.
-- The modern game login layout accepts a session-key field containing `account-or-email`, a newline, and the password when password authentication is active.
-- Account fixture 101 uses email `test1@example.com`, password `test`, and owns `Knight 1`.
-- Current client and asset version resolve to 15.25 in the workflow.
-- The real client completes protocol login, pending-game, enter-game and game-start callbacks.
-- The first Bestiary request is a single plaintext opcode `0xE1` in the OTClient packet record.
-- TCP evidence shows the server endpoint sends FIN/RST immediately after receiving the encrypted packet containing `0xE1`.
-- A runtime-only recvbyte module registered for byte 225 did not receive the packet, so the failure currently appears before Lua recvbyte dispatch or the module registration needs explicit load verification.
+The post-handoff head is recorded in the PR body because a commit cannot contain its own SHA.
 
-# Existing work to reuse
+Changed files in #224:
 
-| Module/task/PR | Reuse | Evidence/path | Why it fits |
-|---|---|---|---|
-| PR #222 | Universal E2E ownership and scenario boundary | `docs/agents/programs/E2E_AUTOMATION_PROGRAM.md` | Prevents this prototype from becoming duplicated per-feature infrastructure. |
-| Reusable Linux build | Exact-head Canary artifact | `.github/workflows/reusable-build-linux.yml` | Existing supported build path. |
-| Test fixtures | Disposable account and characters | `docker/data/01-test_account.sql`, `docker/data/02-test_account_players.sql` | Deterministic existing fixture set. |
-| Canary protocol profiles | Native modern game transport and password-mode session key | `src/server/network/protocol/protocolgame.cpp` | Removes the need for a custom account-login framing shim. |
-| OTClient packet recorder | Decrypted client/server packet evidence | `cyclopedia-session-1.record` workflow artifact | Proves the requested client opcode without guessing from encrypted TCP bytes. |
-
-# Ownership and overlap check
-
-- Program record: `docs/agents/programs/E2E_AUTOMATION_PROGRAM.md`.
-- Open PRs inspected: #224 and current E2E/coordination work.
-- Active tasks inspected: no structured exclusive claim was found for the two narrow diagnostic source files.
-- Ownership checker: required after each new source claim.
-- Exclusive claims: workflow, Cyclopedia Lua scenario, exact account fixture, task record, module dispatcher diagnostics and transport-codec diagnostics.
-- Shared claims: none.
-- Read-only dependencies: program contract and remaining Canary connection/protocol/authentication sources.
-- Overlaps: none confirmed.
-- Resolution: keep generic platform extraction out of this PR and remove temporary logging before final merge unless it is retained as justified failure hardening.
-
-# Current state
-
-The environment consistently starts MySQL, Canary, the global datapack/map, Xvfb and a real OTClient 15.25. The client logs `Knight 1` into the world. Roughly 500 ms later it sends Bestiary opcode `0xE1`; Canary immediately closes the game socket before any Bestiary response is recorded. Disabling unrelated OTClient startup modules did not change the result.
-
-A runtime-only Lua module was injected for recvbyte 225 and returned a minimal `0xD5` response, but its callback marker was absent. The next bounded step is source-level logging around sequence/checksum validation and Lua recvbyte dispatch using an exact-head Canary build.
-
-# Plan
-
-1. Add narrow diagnostics for rejected sequence/checksum packets in `transport_codec.cpp`.
-2. Add a temporary marker at the entry of `Modules::executeOnRecvbyte` for `0xE1`.
-3. Restore an exact-head Canary build in the E2E workflow.
-4. Run the physical test and classify the failure as transport rejection versus dispatcher/native handler execution.
-5. Implement the smallest evidence-backed fix.
-6. Remove diagnostic-only code, restore the full two-session scenario and verify current-head CI.
-7. Extract reusable orchestration only after the prototype is proven.
-
-# Work log
-
-## 2026-07-13T08:09:00+02:00
-
-- Changed: replaced account-login orchestration with direct native game-port login and strengthened failure evidence and markers.
-- Learned: the prior account-login shim changed global client state and caused OTClient to look for non-existent 14.04 assets.
-- Failed/blocked: run 39 failed before world login.
-- Result: native 15.25 game login implemented.
-
-## 2026-07-13T09:00:00+02:00
-
-- Changed: disabled unrelated automatic startup packet senders, enabled OTClient packet recording, added internal logs, SQL snapshots and TCP capture.
-- Learned: login is real and stable until the first explicit Bestiary request.
-- Result: packet recorder identifies the failing client packet as plaintext `0xE1`.
-
-## 2026-07-13T10:00:00+02:00
-
-- Changed: injected a runtime-only byte-225 Lua probe that would bypass the native Bestiary handler and send an empty valid `0xD5` response.
-- Learned: the server still closed immediately and no probe callback marker appeared.
-- Failed/blocked: live run 67 failed at the same boundary.
-- Result: transport/module-entry diagnostics claimed as the next bounded step.
-
-# Validation and CI
-
-| Commit | Command/check/workflow | Result | Evidence/notes |
-|---|---|---|---|
-| a22c49019622248593a4e9f5f7bc7107ce9cd51b | Cyclopedia Live E2E run 39 | failed | Account-login shim changed global client version and loaded wrong assets. |
-| 7b82440b96e4f5a46616f3566288fea9797abaf3 | Cyclopedia Live E2E run 65 | failed | Native login succeeds; server closes directly after client opcode `0xE1`. |
-| f8a8efe704bbb342469623f8d92a90e1f01f9dc8 | Cyclopedia Live E2E run 67 | failed | Runtime byte-225 probe installed; no callback marker; same immediate server FIN/RST. |
-| f8a8efe704bbb342469623f8d92a90e1f01f9dc8 | Agent Task Ownership | passed | Structured task remained conflict-free before new source claims. |
-| f8a8efe704bbb342469623f8d92a90e1f01f9dc8 | CI / Required | passed | Repository checks green; live E2E remains the only failing proof. |
-| current head | exact-head diagnostic live E2E | pending | Must identify the rejection layer. |
-
-Never write `passed` without verification on the stated commit.
-
-# Failed approaches and dead ends
-
-- Overriding `ProtocolLogin:sendLoginPacket()` and temporarily calling `g_game.setClientVersion(1404)` is invalid. Client version is global runtime state and reloads the wrong asset set.
-- Disabling Quick Loot, Imbuement Tracker, Shop, Locales, Weapon Proficiency and Quest Log startup modules did not prevent the close.
-- A runtime-only byte-225 module did not receive the request in run 67; do not assume the native Bestiary serializer is reached until exact-head diagnostics prove it.
-- Do not duplicate the full workflow for every future feature suite.
-
-# Risks and compatibility
-
-- Runtime: CI-only disposable processes; temporary source logging must not survive unreviewed into production.
-- Data/migration: existing schema and fixture imports only; no migration.
-- Security: fixed local test credentials in an isolated CI database only.
-- Backward compatibility: no intended protocol behavior change until a failing boundary is proven.
-- Cross-repo rollout: permanent client automation must later use an explicitly coordinated user-owned OTClient task.
-- Rollback: remove the diagnostic commits or close the prototype PR; no persistent runtime state exists.
-
-# Remaining work
-
-1. Build and run the exact-head diagnostic server.
-2. Inspect transport/module-entry markers and TCP/packet artifacts.
-3. Apply and verify the smallest real fix.
-4. Remove diagnostic-only changes and complete the two-session test.
-
-# Handoff
-
-## Start here
-
-Read this task, PR #224, `docs/agents/programs/E2E_AUTOMATION_PROGRAM.md`, and the newest `cyclopedia-live-e2e` artifact.
-
-## Do not repeat
-
-- Do not restore the 14.04 client-version framing shim.
-- Do not claim a successful E2E run from server startup or login alone.
-- Do not assume `parseBestiarySendRaces()` runs without a dispatcher marker.
-- Do not move generic orchestration into a feature-specific permanent contract.
-
-## Required reads
-
-- `AGENTS.md`
-- `docs/agents/README.md`
-- `docs/agents/programs/E2E_AUTOMATION_PROGRAM.md`
 - `.github/workflows/cyclopedia-live-e2e.yml`
-- `tools/e2e/cyclopedia_otclient_e2e.lua`
+- `docker/data/01-test_account.sql`
+- `docs/agents/tasks/active/CAN-20260713-cyclopedia-live-e2e.md`
 - `src/lua/modules/modules.cpp`
 - `src/server/network/protocol/transport_codec.cpp`
-- relevant Canary connection, protocol-profile and authentication code
+- `tools/e2e/cyclopedia_otclient_e2e.lua`
 
-## Open questions
+`docs/agents/ACTIVE_WORK.md` is not changed and is not an owned path.
 
-- Whether the close is triggered by sequence/checksum validation, XTEA/padding validation, module dispatch, or the native Bestiary handler must be decided from the next exact-head artifact.
+# Completed Cyclopedia work
+
+**Non-E2E Cyclopedia validation is complete.** Static/deterministic, semantic and runtime source-contract validation are separate from physical-client E2E.
+
+Verified domains: Items, Bestiary, Charms, Bosstiary, Map, Character/Titles and Houses.
+
+Existing infrastructure:
+
+- `tools/ai-agent/cyclopedia_validation.py`
+- `tools/ai-agent/test_cyclopedia_validation.py`
+- `tools/ai-agent/test_cyclopedia_runtime_fix_contracts.py`
+- `.github/workflows/cyclopedia-validation.yml`
+- `docs/ai-agent/OTS_AI_CYCLOPEDIA_VALIDATION_PROJECT.md`
+- `docs/ai-agent/CYCLOPEDIA_VALIDATION_REPORT.md`
+- `docs/ai-agent/CYCLOPEDIA_FIX_LOG.md`
+- `docs/ai-agent/CYCLOPEDIA_RUNTIME_TEST_PLAN.json`
+- `docs/agents/tasks/archive/CAN-20260712-cyclopedia-validation.md`
+
+Do not create a second validator or competing report.
+
+Merged work:
+
+| PR | Result | Merge commit |
+|---:|---|---|
+| #170 | seven-domain read-only audit, scanner, tests, workflow and reports | `589a2f4809d665969e9af02a0f421f14563db23f` |
+| #188 | six runtime/helper fixes and four source-contract tests | `f105c8b44603d4ad640263a8971ebf2b71b06df2` |
+| #192 | Bestiary/Bosstiary IDs, race metadata and exact shared-form allowlists | `fb334741327f494b635a11cb110327439bdfea8f` |
+| #203 | cleanup and archival of completed Cyclopedia task | `7fd31e19053df305033ccd5dab54900a498a2488` |
+
+Fixed findings include Bestiary difficulty arithmetic, Charm reset boundaries, null-safe kill attribution, Charm category guard, recent-PvP 70-day count, missing boosted-boss row, Monk's Apparition ID `2636`, Crypt Warrior ID `1995` and race metadata, three missing race classifications, and alternate Eradicator ID `1226`.
+
+Final deterministic result at reviewed head `020a42118de9f8e5e48107567bb9b899aa26b4c7`:
+
+- artifact `8264392418`;
+- archive digest `sha256:d81adab07ef4cb3b8602790075473649be4bb8017f04e8b85f79ba54a6de6881`;
+- JSON digest `sha256:79bc4054aaf5750a764c140b911f79a3bb7d61fe15b633ba5d6ddb6b64c89cc9`;
+- 7 domains, 1,656 monster files, 749 Bestiary, 249 Bosstiary, 25 Charms;
+- maintained OTClient inventory scanned;
+- `findingCount = 0`, `findings = []`.
+
+# Current session work
+
+| File | Purpose | State / decision |
+|---|---|---|
+| `.github/workflows/cyclopedia-live-e2e.yml` | physical-client lifecycle | experimental and paused; not required for validation |
+| `docker/data/01-test_account.sql` | disposable E2E fixture correction | E2E-only; preserve on branch, not part of validation |
+| `src/lua/modules/modules.cpp` | temporary module-dispatch diagnostics | experimental; no production fix approved |
+| `src/server/network/protocol/transport_codec.cpp` | temporary transport diagnostics | experimental; no production fix approved |
+| `tools/e2e/cyclopedia_otclient_e2e.lua` | login/request/relog automation | incomplete and paused |
+| this task | durable handoff | completed documentation change |
+
+Decisions:
+
+- stop further E2E work;
+- preserve branch and draft PR non-destructively;
+- do not make #224 ready, merge it or enable auto-merge;
+- do not treat E2E as a scanner finding or validation blocker;
+- do not start a new PR, validator, Cyclopedia area or universal platform;
+- do not edit `ACTIVE_WORK.md`;
+- do not reopen the archived validation task.
+
+# Validation evidence
+
+| Head SHA | Workflow/run | Job | Result | What it proves | What it does not prove |
+|---|---|---|---|---|---|
+| `741ffed81275d37fd700cacdb05cbae05a0a1356` | `29204136200` Cyclopedia Validation | Audit Cyclopedia registries and contracts | success | original tests, validator compile, scan, JSON/invariants and artifact | no runtime/gameplay/client proof |
+| `4daf5fd22ad23b80d32c384b8e8e94c8274c227a` | `29207479990` Cyclopedia Validation | Audit Cyclopedia registries and contracts | success | scanner checks after runtime/helper fixes | no live DB/gameplay proof |
+| `4daf5fd22ad23b80d32c384b8e8e94c8274c227a` | `29207479947` AI Agent Tools | Validate AI agent tools | success | configured AI-agent unit/tool job completed | no packet or physical runtime proof |
+| `020a42118de9f8e5e48107567bb9b899aa26b4c7` | `29208312948` Cyclopedia Validation | Audit Cyclopedia registries and contracts | success | focused tests, `py_compile`, final scan, JSON/invariants and artifact; zero findings recorded | no E2E, relog or gameplay proof |
+| `04ff2d0d77097773a13cca1a05a0cbfea06209ef` | `29234887276` Agent Task Ownership | Validate active ownership | success | task/ownership metadata validated | no feature correctness |
+| `04ff2d0d77097773a13cca1a05a0cbfea06209ef` | `29234887393` CI | Detect Build Scope; Required | success; builds skipped | path detection and aggregation only | not compilation or tests |
+| `04ff2d0d77097773a13cca1a05a0cbfea06209ef` | `29234887426` Cyclopedia Live E2E | Build exact Canary diagnostic head / Compile (linux-release) | success | exact E2E head compiled | no runtime/client proof |
+| `04ff2d0d77097773a13cca1a05a0cbfea06209ef` | `29234887426` Cyclopedia Live E2E | OTClient ↔ Canary ↔ MySQL | failure | setup reached physical-client step and uploaded evidence | no Cyclopedia response, relog, final SQL or runtime confirmation |
+
+Run `29234887426` artifact: ID `8273179822`, digest `sha256:205cdc53de0a7f2c592ab25fde1193c92f73ea0d2f784e7521382c233a2895f1`.
+
+The connector exposed job summaries, artifact metadata and a partial decoded log. The log response was truncated, so no stronger claim is based on it.
+
+Validation boundary:
+
+- static validation: verified by run `29208312948` and artifact `8264392418`;
+- focused tests: verified by that CI job;
+- runtime source-contract validation: verified by committed tests and #188 CI evidence, without live runtime implication;
+- compilation of paused head: verified by run `29234887426` compile job;
+- database/runtime validation for this handoff: not run as accepted bounded non-client validation;
+- physical-client E2E: incomplete and intentionally skipped from further work;
+- gameplay confirmation: not claimed.
+
+# DNS/environment limitation
+
+No local checkout was available. The attempted command:
+
+`git ls-remote https://github.com/blakinio/canary.git HEAD`
+
+failed exactly with:
+
+`fatal: unable to access 'https://github.com/blakinio/canary.git/': Could not resolve host: github.com`
+
+Therefore local clone/fetch/checkout, local Python tests, local validator compilation, local CMake build, local database/server runtime and local OTClient lifecycle were not run.
+
+GitHub API was used to read PRs #170/#188/#192/#203/#224, files, tasks, compare state, changed files, reviews, workflow jobs, artifact metadata and partial logs, and to save this task and PR metadata.
+
+# E2E paused state
+
+PR #224 / branch `test/cyclopedia-live-e2e` remains an open draft. It is excluded from validation and is not runtime proof.
+
+Attempted work included exact-head compilation, disposable MySQL, map/assets, real OTClient/Xvfb, direct/session login variants, packet recording, a runtime Bestiary probe, temporary transport/module diagnostics and an unfinished two-session design.
+
+Worked experimentally: exact-head compile, MySQL and fixture setup, map/assets, Canary startup, OTClient startup/world login in later runs, and evidence upload.
+
+Last recorded boundary: `Knight 1` entered the world and sent Bestiary opcode `0xE1`; the server connection closed before a Bestiary response. The byte-225 probe did not record a callback. The rejection layer was not proven.
+
+Not completed: Bestiary/Charms/Bosstiary responses, safe logout, second login, second-session assertions, final SQL state, complete E2E pass or gameplay confirmation.
+
+- **DO NOT CONTINUE PHYSICAL-CLIENT E2E.**
+- Keep #224 draft and do not enable auto-merge.
+- Do not repair Xvfb, client login/framing, relog, screenshots/OCR, map/assets, disposable DB E2E or full lifecycle in this scope.
+- Do not claim runtime E2E confirmation.
+
+# Remaining non-E2E work
+
+- non-E2E Cyclopedia validation complete;
+- current scanner findings: 0;
+- no new confirmed problem recorded;
+- no new remediation authorized;
+- future work requires a new bounded finding or explicit new scope.
+
+# Handoff for the next agent
+
+- Do not continue #224 as part of Cyclopedia validation; leave it draft.
+- For a future explicitly bounded finding, start from current `main`, not this E2E branch.
+- Do not create a task unless a new finding/scope is provided.
+- Read `AGENTS.md`, the archived task, all four `docs/ai-agent/CYCLOPEDIA_*`/project files, validator/tests/workflow, merged PRs #170/#188/#192/#203, and #224 only as paused history.
+- First step: confirm current main through GitHub API and check whether a new bounded non-E2E finding exists. If not, make no code change.
+- Real blocker for local work: DNS failure for `github.com`; no blocker remains for completed static/semantic validation.
+
+**DO NOT CONTINUE PHYSICAL-CLIENT E2E.**  
+**DO NOT EDIT ACTIVE_WORK.md.**  
+**DO NOT REOPEN ARCHIVED CYCLOPEDIA TASK.**  
+**DO NOT CLAIM RUNTIME E2E CONFIRMATION.**
