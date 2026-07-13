@@ -1,13 +1,13 @@
 ---
 task_id: CAN-20260713-quest-map-validator
 coordination_id: "OTS-OTBM-VALIDATION"
-status: validating
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/quest-map-validator
 base_branch: main
 created: 2026-07-13T00:18:00+02:00
-updated: 2026-07-13T09:10:00+02:00
-last_verified_commit: "0525d0924c6ea83a5f858aa4c6057b53a2ecd6a7"
+updated: 2026-07-13T09:25:00+02:00
+last_verified_commit: "23ae42bda6c3d791beb9b81ce3c2a70f93fbcae3"
 risk: medium
 related_issue: ""
 related_pr: "#225"
@@ -62,8 +62,8 @@ Create a deterministic read-only Quest Map Validator that extracts static quest 
 - [x] Add schema, documentation, catalogue/changelog updates and exact handoff.
 - [x] Confirm no map, `.widx`, generated report, asset, datapack or runtime behavior is committed.
 - [x] Cross-repository impact is none.
-- [ ] Current-head GitHub checks pass and final changed-file/review inspection is clear.
-- [ ] Autonomous merge gate satisfied.
+- [x] Current-head GitHub checks pass and final changed-file/review inspection is clear.
+- [x] Autonomous merge gate satisfied.
 
 # Confirmed context
 
@@ -86,11 +86,13 @@ Create a deterministic read-only Quest Map Validator that extracts static quest 
 
 - Open PR/task search showed no competing Quest Map Validator implementation.
 - Specific tutorial quest PRs own gameplay files, not validator implementation paths.
+- The final changed-file list contains only nine dedicated validator/workflow/schema/documentation paths.
+- No review threads or PR comments remain.
 - The branch does not edit `ACTIVE_WORK.md`, maps, assets or active datapack behavior.
 
 # Implemented behavior
 
-- Source-only `scan` command requires explicit include globs and records file hashes, lines and contexts.
+- Source-only `scan` requires explicit include globs and records file hashes, lines and contexts.
 - Static evidence includes AID, UID, item IDs, positions, teleport destinations and storage reads/writes.
 - Direct aliases rooted at `Storage`, including `tutorialStorage.ZirellaQuestLog`, are canonicalized without evaluating Lua.
 - `validate` correlates evidence with a memory-mapped `.widx` and optional script-resolution report.
@@ -124,14 +126,19 @@ Create a deterministic read-only Quest Map Validator that extracts static quest 
 - Workflow run `29230690806` passed and published both source evidence and a local-correlation toolkit.
 - Built the real map index outside Git in 40.21 seconds with peak RSS 418,956 KiB.
 - Correlated Zirella tutorial evidence against region `32055,32265,7 -> 32090,32295,7`.
-- The bounded review found six confirmed source/map facts and ten neighboring map-only mechanics; those map-only entries are review candidates, not proven defects.
 
 ## 2026-07-13T09:10:00+02:00
 
 - Hardened semantics after real-map review: missing static item placements and generic positions no longer create false script-only defects.
 - Added direct Storage alias resolution, atomic output and symlink rejection.
 - Expanded focused coverage and updated schema, workflow, documentation, catalogue and changelog.
-- Current-head CI is running; final real-map correlation will be repeated from the hardened evidence artifact before merge.
+- Repeated hardened source/map validation: 12 source facts, zero unresolved extraction expressions, six confirmed map facts, ten neighboring map-only review candidates, six intentionally unresolved storage-semantic findings, zero script-only and zero conflicts.
+
+## 2026-07-13T09:25:00+02:00
+
+- Current head `23ae42bda6c3d791beb9b81ce3c2a70f93fbcae3` passed Quest Map Validator run `29231871874`, Agent Task Ownership run `29231871854`, AI Agent Tools run `29231871873` and CI run `29231872032`.
+- The nested required CI job passed.
+- Final file list and review threads are clear; PR is ready for merge.
 
 # Decisions
 
@@ -160,10 +167,33 @@ Create a deterministic read-only Quest Map Validator that extracts static quest 
 
 | Commit/source | Check | Result |
 |---|---|---|
-| `0525d092...` | dedicated Quest Map Validator run `29230690806` | success |
-| `0525d092...` | focused tests, Python compile, schema syntax, evidence invariants, both artifacts | success |
-| supplied real map | world-index build and Zirella region correlation | passed outside Git |
-| current hardened head | dedicated workflow and required CI | running |
+| `23ae42bd...` | dedicated Quest Map Validator run `29231871874` | success |
+| `23ae42bd...` | Agent Task Ownership run `29231871854` | success |
+| `23ae42bd...` | AI Agent Tools run `29231871873` | success |
+| `23ae42bd...` | CI run `29231872032`, including nested `Required` | success |
+| supplied real map | world-index build and hardened Zirella region correlation | passed outside Git |
+
+## Real-map evidence
+
+```text
+map SHA-256: a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2
+source size: 184,776,037 bytes
+index size: 842,280,592 bytes
+index build: 40.21 s
+peak RSS: 418,956 KiB
+tiles: 17,972,761
+placements: 23,359,571
+used item IDs: 23,852
+mechanics: 9,339
+unknown attribute tails: 0
+Zirella source evidence: 12
+source unresolved: 0
+confirmed: 6
+map-only region mechanics: 10
+script-only: 0
+unresolved storage semantics: 6
+conflicting: 0
+```
 
 # Failed approaches and corrections
 
@@ -171,6 +201,7 @@ Create a deterministic read-only Quest Map Validator that extracts static quest 
 - Initial workflow glob selection was made explicit to one known quest source for a deterministic smoke artifact.
 - The CLI referenced a nonexistent `position_from_text` export. It now aliases the canonical `position` parser.
 - Initial correlation treated every missing item/position as script-only. Real-map review showed that was overconfident, so those cases now remain unresolved unless map presence is semantically required.
+- One test placed a generic position close enough to a teleport call to trigger the intentional lexical teleport heuristic. The fixture was separated into independent source files so the two semantics are tested without ambiguous context.
 
 # Risks and compatibility
 
@@ -183,11 +214,9 @@ Create a deterministic read-only Quest Map Validator that extracts static quest 
 
 # Remaining work
 
-1. Wait for current-head checks.
-2. Download the hardened evidence/toolkit artifacts and repeat real-map correlation.
-3. Review final changed files and review threads.
-4. Mark PR #225 ready and merge after the required gate passes.
-5. Archive this task in a documentation-only follow-up.
+1. Mark PR #225 ready and merge after the required gate on the final task-record commit.
+2. Archive this task in a documentation-only follow-up.
+3. Start teleport/pathfinding or storage dependency graph as the next independent phase.
 
 # Handoff
 
@@ -195,7 +224,7 @@ Read this task, `docs/ai-agent/QUEST_MAP_VALIDATION.md`, `OTBM_WORLD_INDEX.md` a
 
 # Completion
 
-- Final status: validating
+- Final status: ready
 - PR: #225
 - Merge commit:
 - Catalogue updated: yes
