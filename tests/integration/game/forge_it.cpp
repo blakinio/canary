@@ -553,3 +553,21 @@ TEST_F(ForgeIntegrationTest, ForgeConvergenceTransferRejectsNonClassFourBeforeMu
 	EXPECT_EQ(startCore, countItem(*player, ITEM_FORGE_CORE, 0));
 	EXPECT_EQ(startHistory, player->forgeHistory().get().size());
 }
+
+TEST_F(ForgeIntegrationTest, ForgeSliverToCoreConversionCommitsBothResourceSides) {
+	ensureBackpack();
+	const auto cost = static_cast<uint16_t>(g_configManager().getNumber(FORGE_CORE_COST));
+	const auto &slivers = Item::CreateItem(ITEM_FORGE_SLIVER, cost);
+	ASSERT_NE(nullptr, slivers);
+	ASSERT_EQ(RETURNVALUE_NOERROR, g_game().internalPlayerAddItem(player, slivers, false, CONST_SLOT_BACKPACK));
+
+	const auto [sliversBefore, coresBefore] = player->getForgeSliversAndCores();
+	const auto historyBefore = player->forgeHistory().get().size();
+
+	player->forgeResourceConversion(ForgeAction_t::SLIVERSTOCORES);
+
+	const auto [sliversAfter, coresAfter] = player->getForgeSliversAndCores();
+	EXPECT_EQ(sliversBefore - cost, sliversAfter);
+	EXPECT_EQ(coresBefore + 1, coresAfter);
+	EXPECT_EQ(historyBefore + 1, player->forgeHistory().get().size());
+}
