@@ -158,15 +158,67 @@ restart — nothing in this PR hot-swaps a running channel's ruleset.
 
 ### 3.4 Runtime registry / heartbeat
 
-📐 Schema-ready (`channel_runtime_status`), not yet wired to a live
-heartbeat loop. The design: each process upserts its row every
-`sessionHeartbeatInterval` (also mirrored into Redis as the fast path for
-the login gateway and session manager to consult without hitting MySQL on
-every login). A channel whose `last_heartbeat` is older than
-`sessionLeaseTtl` is treated as offline and dropped from the login list.
-Wiring this into the game's existing scheduler loop is Phase 2 work — the
-table, the `IRuntimeHeartbeat` interface, and the failure semantics are
-specified in [OPERATIONS.md](OPERATIONS.md).
+✅ Wired to a live heartbeat loop (as of the `feat/multichannel-runtime-
+heartbeat` PR #136, already merged - **this replaces a stale "📐 not yet
+wired" claim that survived in this document past that merge**; see
+`docs/multichannel/AGENT_HANDOFF.md`'s own correction note for how that
+happened and MIGRATION.md's "Runtime liveness" phase for the audit that
+caught it).
+
+`ChannelRuntimeRegistry` (`src/game/multichannel/channel_runtime_registry.
+hpp`) is the Redis-backed fail-closed cache: `publishAndRefresh(ownStatus,
+ttlMs, channelIds, nowMs)` atomically writes this process's own
+`ChannelRuntimeStatus` (channel/instance/node id, status, players online,
+started-at/last-heartbeat timestamps, build/map/data hash) with a Redis
+`PEXPIRE` TTL, then reads every other known channel's record back in the
+same call - any transport failure on *either* the write or any read
+immediately clears the entire in-memory cache (fail-closed: a partial
+refresh must never look like a complete, trustworthy one). `getStatus`/
+`getAvailability`/`getLoginListChannels` additionally enforce a *local*
+staleness cutoff (`staleAfterMs`, independent of Redis's own TTL) so a
+channel can never be reported online purely because its last-known record
+technically hasn't hit Redis's TTL yet.
+
+`ClusterRuntime::renewAllAndCollectExpired` (`src/game/multichannel/
+cluster_runtime.cpp`), already the entry point for session-lease renewal,
+also drives this every cycle: it builds this process's own status (players
+online = currently-tracked session count; status = `MAINTENANCE` when the
+`channels.maintenance` flag is set, else `ONLINE`; node id/map hash/build/
+data hash resolved from `CANARY_NODE_ID`/`CANARY_MAP_HASH`/
+`CANARY_BUILD_SHA`/`CANARY_DATA_HASH` environment variables, falling back
+to the `channels` row or `"unknown"`) and calls `publishAndRefresh`, then
+queues a best-effort `channel_runtime_status` DB diagnostic mirror write
+(`INSERT ... ON DUPLICATE KEY UPDATE`, fire-and-forget via
+`g_databaseTasks()` - a transient DB hiccup here must not affect the Redis
+fast path). Scheduled via `Game::init`'s existing `g_dispatcher().
+cycleEvent(heartbeatIntervalMs, ...)` pattern (`game.cpp`), the same
+mechanism every other periodic game job uses, gated behind
+`MULTICHANNEL_ENABLED`.
+
+**✅ Graceful shutdown**: `ClusterRuntime::publishOfflineForShutdown`
+forces one final publish with `status = "OFFLINE"` and 0 players, called
+from `Game::setGameState`'s `GAME_STATE_SHUTDOWN` case before players are
+kicked or anything is saved - without this, a clean shutdown was
+indistinguishable from a crash to every other channel/the login gateway
+until the heartbeat TTL elapsed.
+
+**📐 Known, narrow limitations, stated honestly:**
+- `DRAINING` is a designed, accepted status value (`ChannelRuntimeStatus::
+  hasValidState()` already permits it) but nothing ever publishes it - the
+  GM "drain a channel" command it would back does not exist yet (see
+  OPERATIONS.md's GM command list). Not implemented here since it would be
+  dead code without a trigger.
+- Both session-lease renewal (one Redis call per tracked account) and
+  heartbeat publish/refresh (one call per known channel) are synchronous
+  Redis I/O running on the main game dispatcher thread (the same thread
+  that processes combat, movement, etc.), via the `cycleEvent` mechanism
+  above - a pre-existing characteristic from Phase 2 (`ClusterRuntime`'s
+  original session-lease wiring) that this heartbeat work extends rather
+  than introduces. `HiredisRedisClient::Options::connectTimeoutMs` (default
+  2000ms) bounds each individual call's worst case, but a full redesign to
+  move this off the main thread (background thread pool + dispatcher
+  callback marshaling) is a materially larger change than this document's
+  scope and was not attempted blind.
 
 ### 3.5 Map/datapack compatibility
 
@@ -277,23 +329,64 @@ startup (fail-closed) on the first failure:
 3. `pvp_type` for this channel is one of `no-pvp`, `pvp`, `pvp-enforced`.
 4. `channelSwitchPartyPolicy` ∈ `{deny, leave}`.
 5. `pvpChannelExitPolicy` ∈ `{combat-only, combat-or-skull}`.
-6. Redis connectivity (best-effort ping) — see §10.1 for what happens if
-   this fails *after* startup instead.
+6. Redis connectivity: a real, live `PING` — ✅ wired (see below); distinct
+   from the *cross-process* "is that other login gateway actually still
+   alive" check, which needs the runtime heartbeat data from §3.4, is a
+   separate concern from raw Redis reachability, and remains 📐.
 
-Redis connectivity ping (#6) is 📐 (not implemented - see item 6 above,
-which today only fails closed if the binary wasn't *compiled* with the
-Redis client, not if Redis is unreachable at boot). The config-shape
-validations (1–5), plus a 7th check added alongside them - at most one
-*enabled* row in the whole `channels` table may have `login_gateway = true`
-(`ClusterConfigValidationError::MultipleLoginGatewaysEnabled`) - are ✅ and
-wired into real server startup (`CanaryServer::initializeMultichannelCluster`,
-called from `initializeDatabase()`): it reloads the registry, runs every
-check above, logs every warning/error, and throws `FailedToInitializeCanary`
-to abort the process on any hard failure. This 7th check is a static,
-single-snapshot check (every process reads the same table) - it is
-**not** the live, cross-process "is that other login gateway actually
-still alive" check, which still needs the runtime heartbeat table from
-§3.4 and remains 📐.
+**✅ Live Redis PING (item 6)**: `IRedisClient::ping()`
+(`src/game/multichannel/redis_client.hpp`) performs a real, synchronous
+round-trip - connect (if not already connected), `AUTH`/`SELECT` if
+configured, then `PING` - and returns a `RedisPingResult{outcome, detail}`.
+`RedisPingOutcome` distinguishes `Success` / `DnsFailure` /
+`ConnectionRefused` / `Timeout` / `AuthenticationFailed` /
+`UnexpectedResponse` / `Other`; `HiredisRedisClient::ping()`
+(`hiredis_redis_client.cpp`) classifies hiredis's connect-time error
+(`context->err`/`context->errstr`) into these categories - `REDIS_ERR_TIMEOUT`
+maps directly to `Timeout`; DNS/refused are inferred from the errstr text
+(hiredis does not expose a dedicated code for either across versions), with
+the raw string always preserved as `detail` regardless of whether the
+category guess is exactly right. `CanaryServer::initializeMultichannelCluster`
+constructs the Redis client *before* calling `ClusterConfigValidator::
+validate` (previously it was constructed only after validation passed),
+pings it once, and passes the outcome in as `ClusterConfigValidationInput::
+redisPingOutcome`; the same already-connected client instance is reused
+afterward for `ClusterRuntime`/`ClusterJobLeadershipRegistry::configure`,
+so this adds no second connection. `validate()` itself stays a pure
+function (the live I/O happens in the caller) - a `std::nullopt` outcome
+(ping never attempted) is treated the same as a failure, since "unknown"
+must not silently pass as "succeeded." Not attempted at all when
+`redisClientCompiledIn == false` (nothing to ping - `RedisClientNotCompiledIn`
+alone already fails closed for that case) or when `multiChannelEnabled ==
+false` (this whole function returns immediately, so single-channel
+deployments are never affected).
+
+Each connect/AUTH/SELECT/PING step is bounded by `HiredisRedisClient::
+Options::connectTimeoutMs` (default 2000ms, reused for hiredis's read/write
+timeout too via `redisSetTimeout`), so a fully unresponsive Redis delays
+startup by a bounded amount rather than hanging indefinitely.
+
+**✅ Verified against a real local `redis-server`** (not just hand-review):
+a standalone harness constructing real `HiredisRedisClient` instances
+confirmed all five failure categories classify correctly against genuine
+conditions - success (real PONG), connection refused (nothing listening),
+DNS failure (unresolvable hostname), timeout (a non-routable address with a
+short `connectTimeoutMs`), and authentication failure (wrong password
+against a real server) - each producing the exact expected `RedisPingOutcome`
+plus the real hiredis-reported error string. See TEST_PLAN.md for the exact
+harness and output.
+
+The config-shape validations (1–5), plus the 7th check added alongside them
+- at most one *enabled* row in the whole `channels` table may have
+`login_gateway = true` (`ClusterConfigValidationError::
+MultipleLoginGatewaysEnabled`) - remain ✅ and wired into real server
+startup (`CanaryServer::initializeMultichannelCluster`, called from
+`initializeDatabase()`): it reloads the registry, runs every check above,
+logs every warning/error, and throws `FailedToInitializeCanary` to abort
+the process on any hard failure. The 7th check is a static, single-snapshot
+check (every process reads the same table) - it is **not** the live,
+cross-process "is that other login gateway actually still alive" check
+noted above, which remains 📐.
 
 ## 5. Sessions, locks, anti-split-brain (✅ core algorithm and engine call sites)
 

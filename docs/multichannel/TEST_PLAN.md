@@ -644,6 +644,128 @@ against a real MariaDB 10.11 instance (scratch database
   requires genuinely concurrent process startup, not a single scratch-DB
   session - and is reasoned through in ARCHITECTURE.md §3.5 instead.
 
+### Phase "Runtime liveness", Part A: heartbeat/login-filter test gaps
+
+Scoped as a request to build the heartbeat/login-filtering system from
+scratch; tracing current `main` (not `docs/multichannel/AGENT_HANDOFF.md`'s
+stale account of it - see MIGRATION.md's "Runtime liveness" phase and the
+correction added directly to that document) found it already substantially
+shipped via PR #136. What this part actually delivered and verified:
+
+**Reviewed by hand** (`ClusterRuntime`/`ChannelRegistry` are not
+standalone-linkable in this sandbox - both transitively require
+`channel_registry.cpp` → `database/database.hpp` → `mysql.h`, this
+sandbox's established wall):
+
+- `ClusterRuntime::publishStatus`/`publishOfflineForShutdown`
+  (`cluster_runtime.cpp`) - the refactor was checked to preserve the
+  *exact* original heartbeat-path behavior bit-for-bit when
+  `forcedStatus == nullopt` (same maintenance-flag resolution, same
+  node/map hash fallback order), with the shutdown path's forced "OFFLINE"
+  correctly applying even if this channel's own row isn't found in the
+  registry snapshot (unlike the normal heartbeat path, which would leave
+  the struct's default `"STARTING"` in that edge case).
+- New tests in `cluster_runtime_test.cpp` (`RenewAllPublishesHeartbeatToRuntimeRegistry`,
+  `RenewAllRecoversHeartbeatPublishingAfterRedisOutage`,
+  `PublishOfflineForShutdownMarksChannelOffline`,
+  `PublishOfflineForShutdownIsNoOpWhenDisabled`), `channel_registry_test.cpp`
+  (`DelegatesToLiveRuntimeRegistryWhenEnabled`,
+  `RedisOutageYieldsEmptyLoginListNotFailOpen`), and
+  `channel_switch_service_test.cpp` (`LiveOnlineTargetOverridesStaleOfflineStaticFlag`,
+  `NoLiveHeartbeatOverridesStaleOnlineStaticFlag`,
+  `LiveFullTargetOverridesStaleNotFullStaticFlag`) were traced by hand
+  against `ChannelRuntimeRegistry`'s already-verified semantics (5 existing
+  gtest cases in `channel_runtime_registry_test.cpp`, unchanged) - a real,
+  non-hypothetical mistake was caught and fixed while drafting these: the
+  first draft published/asserted against fixed logical timestamps (e.g.
+  `lastHeartbeatMs = 100000`), but `ChannelRegistry::getLoginListChannels()`
+  and `ChannelSwitchService::evaluate()` both call `multichannel::
+  wallClockMs()` (real wall-clock time) internally rather than accepting a
+  caller-supplied clock, so a heartbeat "published" at a small fixed
+  timestamp would already be enormously stale by the time the assertion
+  ran against real current time - fixed by capturing
+  `multichannel::wallClockMs()` once per test and using it consistently for
+  both the publish and the elapsed-time reasoning.
+- Wiring `g_clusterRuntime().publishOfflineForShutdown(OTSYS_TIME())` into
+  `Game::setGameState`'s `GAME_STATE_SHUTDOWN` case, verified to run before
+  the existing player-kick/save sequence, not after.
+
+`clang-format-18 --dry-run --Werror` passed cleanly on every changed file.
+No Lua bindings touched this part.
+
+### Phase "Runtime liveness", Part B: live Redis PING in `ClusterConfigValidator`
+
+Unlike Part A, this genuinely did not exist before this phase - a fresh
+`IRedisClient::ping()` method, wired into the startup validator.
+
+**✅ `ClusterConfigValidator` (unchanged, dependency-free design) -
+standalone compiled, linked, and run with real gtest, not just reviewed:**
+
+```
+g++ -std=c++20 -I src -o /tmp/ccv_test_bin \
+  src/game/multichannel/cluster_config_validator.cpp \
+  <a two-function stub providing parseChannelSwitchPartyPolicy/
+    parsePvpChannelExitPolicy, since their real implementation lives in
+    channel_switch_service.cpp, which transitively requires
+    channel_registry.cpp -> database/database.hpp -> mysql.h, this
+    sandbox's established wall> \
+  tests/unit/game/multichannel/cluster_config_validator_test.cpp \
+  -lgtest -lgtest_main -lpthread
+```
+
+Result: **25/25 tests passed** (8 pre-existing, unaffected by this phase's
+changes, plus 9 new: `AcceptsSuccessfulPing`, one `Rejects*` test per
+`RedisPingOutcome` failure category, `UnattemptedPingIsTreatedAsFailure`,
+`PingNotAttemptedIsIgnoredWhenRedisClientNotCompiledIn` confirming no
+redundant double-error when there's nothing to ping, and
+`DescribeReturnsNonEmptyStringForEveryError` extended to the 6 new enum
+values). The stub is a local verification aid only, never committed - it
+exists purely because linking the *real* `channel_switch_service.cpp` pulls
+in the mysql wall for functionality this test suite doesn't exercise at
+all (channel switching itself).
+
+**✅ `HiredisRedisClient::ping()`/`classifyConnectError()` - standalone
+compiled against the real system `hiredis` (this sandbox has
+`libhiredis-dev` installed) and exercised against a real local
+`redis-server`, not simulated:**
+
+```
+g++ -std=c++20 -Wall -Wextra -DCANARY_MULTICHANNEL_REDIS -I src \
+  -c src/game/multichannel/hiredis_redis_client.cpp -o /tmp/o.o
+```
+
+Clean compile, zero warnings even with `-Wall -Wextra`. A small standalone
+harness then constructed real `HiredisRedisClient` instances against five
+genuine conditions and printed the classified outcome:
+
+| Condition | Real setup | `RedisPingOutcome` | Real detail string |
+|---|---|---|---|
+| Success | `redis-server --port 16399` (scratch instance) | `Success` | (empty) |
+| Connection refused | Port 16400, nothing listening | `ConnectionRefused` | `Connection refused` |
+| DNS failure | `this-host-does-not-exist.invalid` | `DnsFailure` | `Name or service not known` |
+| Timeout | `10.255.255.1` (non-routable), 300ms timeout | `Timeout` | `Connection timed out` |
+| Auth failure | Real server, wrong password (none configured) | `AuthenticationFailed` | `ERR AUTH <password> called without any password configured for the default user...` |
+
+All five matched the intended category exactly, using the real hiredis
+error surface (`REDIS_ERR_TIMEOUT` mapped directly; DNS/refused inferred
+from `errstr` text, both correct here) - not asserted from code reading
+alone. A follow-up run confirmed calling `ping()` twice on the same healthy
+client reuses the existing connection (`ensureConnected()`'s early-return
+path) rather than reconnecting each time, and that `lastConnectOutcome`/
+`detail` correctly reset to `Success`/empty on a fresh successful client
+(no stale failure state leaking across instances). The scratch
+`redis-server` and all harness binaries were removed after the run.
+
+**Reviewed by hand** (`canary_server.cpp` is not standalone-compilable in
+this sandbox - `game/game.hpp` → `mysql.h`/`absl` wall): the reorder moving
+Redis client construction before `ClusterConfigValidator::validate()` was
+checked to reuse the same `redisClient` shared_ptr for the later
+`ClusterRuntime`/`ClusterJobLeadershipRegistry::configure()` calls, not
+reconstruct it - no second connection opened.
+
+`clang-format-18 --dry-run --Werror` passed cleanly on every changed file.
+No Lua bindings touched this part.
+
 ## 15.1b Redis Lua CAS script validation — ✅ run against a real `redis-server`
 
 The acquire/renew/release Lua scripts in

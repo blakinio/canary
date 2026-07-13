@@ -519,11 +519,14 @@ Scalenie faz 1–3 nie oznacza kompletnego systemu produkcyjnego.
 - gotowego globalnego marketu w multi-process race;
 - exactly-once mail;
 - globalnego chat/PM;
-- realnego heartbeat kanałów;
 - recovery po crashu;
 - pełnego fail-closed DB;
 - pełnego testu trzech procesów;
 - kompletnej integracji MyAAC.
+
+(**Usunięto z tej listy** "realnego heartbeat kanałów" - patrz korekta P0.4
+poniżej: heartbeat jest realnie wdrożony od PR #136, ta lista była
+nieaktualna.)
 
 ---
 
@@ -584,24 +587,52 @@ Wymagane:
 - admin inspect/clear z audytem;
 - crash/pause tests.
 
-### P0.4. Realny runtime heartbeat kanałów
+### P0.4. Realny runtime heartbeat kanałów — ✅ ZAMKNIĘTE (korekta poniżej)
 
-`channel_runtime_status` istnieje jako schema, ale live heartbeat jest niedokończony.
+**Korekta wprowadzona podczas fazy "Runtime liveness"
+(`docs/agents/tasks/active/CAN-20260713-multichannel-runtime-liveness.md`,
+zweryfikowany `main` przy tej korekcie:
+`6fb9c65d3e8b9105e65515dc2b03827a06753eb0`):** ten punkt był nieaktualny w
+chwili, gdy go czytał kolejny agent - PR #136
+(`feat/multichannel-runtime-heartbeat`, już scalony) dostarczył niemal
+wszystko poniżej **zanim** ten dokument został po raz ostatni
+zaktualizowany, a data audytu tego dokumentu (2026-07-12,
+`97954d5d468190aeb46f223e87309396e2bfc3fa`) nie została odświeżona po tym
+merge'u. Zweryfikowano bezpośrednio w kodzie, nie na podstawie tego
+dokumentu:
 
-Aktualne braki:
+- `ChannelRuntimeRegistry` (`src/game/multichannel/
+  channel_runtime_registry.hpp`) - Redis-backed, fail-closed cache z lokalnym
+  stale cutoff niezależnym od TTL Redisa;
+- `ClusterRuntime::renewAllAndCollectExpired` publikuje heartbeat co cykl
+  (`instanceId`, `nodeId`, `status`, `playersOnline`, `buildSha`, `mapHash`,
+  `dataHash`) i kolejkuje diagnostyczny mirror DB (`channel_runtime_status`);
+- `ChannelRegistry::getLoginListChannels()` **realnie deleguje** do
+  `ChannelRuntimeRegistry` gdy jest włączony (nie tylko statyczny
+  fallback) - martwy/nigdy-nie-zgłoszony kanał jest poprawnie wykluczany;
+- `ChannelSwitchService::evaluate()` **realnie** nadpisuje statyczne flagi
+  `targetChannelOnline`/`targetChannelFull` danymi live (target online/full
+  nie ma już "optymistycznych placeholderów" - to nieaktualne twierdzenie
+  powyżej);
+- oba protokoły logowania (legacy i modern, `protocollogin.cpp`) poprawnie
+  odrzucają logowanie przy pustej liście kanałów zamiast tworzyć fikcyjny
+  endpoint single-world.
 
-- target online/full w switchu ma optymistyczne placeholdery;
-- login gateway nie ma wiarygodnego live statusu;
-- nie ma pewnej agregacji online per kanał;
-- nie ma bezpiecznego usuwania martwego kanału z listy.
+**Jedyne, co faktycznie dobudowano w tej fazie** (bo tego naprawdę
+brakowało): `ClusterRuntime::publishOfflineForShutdown` - graceful
+shutdown publikuje teraz `OFFLINE` zamiast pozostawiać kanał
+nieodróżnialny od crasha aż do wygaśnięcia TTL - oraz nowe testy dla
+wcześniej nieprzetestowanych ścieżek przekrojowych (heartbeat przez
+`ClusterRuntime`, reconnect po outage, delegacja `ChannelRegistry`, pusta
+lista, live-availability w `ChannelSwitchService`).
 
-Wymagane:
-
-- heartbeat Redis + diagnostyczny mirror DB;
-- stale cutoff;
-- instance id, players online, build SHA i map/data hash;
-- gateway/live ownership;
-- test crash jednego kanału.
+**Nadal otwarte, świadomie nie dotknięte w tej fazie:** status `DRAINING`
+nigdy nie jest publikowany (nie istnieje komenda GM "drain", więc byłby to
+martwy kod); zarówno renewal sesji jak i publikacja heartbeat wykonują
+synchroniczne wywołania Redis na głównym wątku dispatchera gry (od Fazy 2,
+ograniczone przez `connectTimeoutMs`, ale nie przeprojektowane w tej
+fazie - zbyt duża, ryzykowna zmiana względem już wdrożonego kodu
+bezpieczeństwa sesji).
 
 ### P0.5. Fail-closed przy utracie DB
 

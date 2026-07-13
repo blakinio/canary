@@ -69,6 +69,15 @@ public:
 	// and queues the diagnostic DB mirror write.
 	std::vector<int32_t> renewAllAndCollectExpired(int64_t nowMs);
 
+	// One-shot terminal publish for a clean shutdown: forces this channel's
+	// heartbeat status to "OFFLINE" (0 players) so other channels/the login
+	// gateway learn about the shutdown immediately instead of only finding
+	// out once the heartbeat TTL elapses, same as an ungraceful crash would
+	// look. Safe to call even if never configured (no-op) or called more
+	// than once. Intended to run once, early in GAME_STATE_SHUTDOWN
+	// handling, before players are kicked and the process exits.
+	void publishOfflineForShutdown(int64_t nowMs);
+
 	[[nodiscard]] std::size_t trackedCount() const;
 
 	struct TrackedSessionInfo {
@@ -80,6 +89,12 @@ public:
 
 private:
 	ClusterRuntime() = default;
+
+	// Shared by the periodic heartbeat cycle (renewAllAndCollectExpired,
+	// forcedStatus = nullopt, status resolved from the channels.maintenance
+	// flag exactly as before) and publishOfflineForShutdown (forcedStatus =
+	// "OFFLINE", applied unconditionally). No-op if not enabled.
+	void publishStatus(int32_t playersOnline, std::optional<std::string> forcedStatus, int64_t nowMs);
 
 	struct TrackedSession {
 		std::string sessionId;
