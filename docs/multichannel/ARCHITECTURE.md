@@ -521,6 +521,33 @@ follow-up. Also unresolved from Phase 1: house ids still aren't
 independently reusable per channel (`houses_id_unique`, see
 MIGRATION.md's "Known limitation").
 
+**🐛 A deeper mechanism behind this gap was traced while scoping a possible
+fix, not fixed:** even when `House::setOwner` *does* eventually run for a
+grant, it only clears and reinserts the `account_house_ownership` **mirror**
+row for the account - it does not revoke the *actual* `houses.owner` column
+of whatever *other* house that account previously owned. If that other
+house physically lives on a different channel (a different `houses` table
+partition, per §2.2's composite `(channel_id, id)` identity), the owning
+channel's own in-memory `House` object and DB row are simply never touched
+by this grant at all. The account ends up genuinely, concretely owning two
+houses at once (full in-game access, rent billed on both) even though the
+cluster-wide mirror - by construction of its own `PRIMARY KEY(account_id)`
+- can only ever show one. A correct fix would need to find and revoke the
+account's previous house *before or during* the grant, which for a
+different-channel house means either a blind cross-channel DB `UPDATE`
+(desyncs that channel's in-memory `House` object from its own DB row until
+its next reload - arguably worse than today's gap) or the same DB-row-handoff
+signaling pattern already needed for §6 (channel switch) and the mail-loss
+bug (§8) - i.e. a pending-revocation row the *owning* channel's own process
+picks up and applies to its own live `House` object. This is genuinely more
+design work than a bounded gate-the-bid-call-site change, and a partial fix
+(e.g. blocking *new* bids when `account_house_ownership` already has a row)
+would not close the underlying gap and could give a false sense of safety -
+so, per this project's established "don't fix blind" discipline (see the
+house-rent misclassification correction above, and MIGRATION.md's mail-loss
+finding), nothing was changed here this phase; this refines the gap
+description for whoever picks it up next.
+
 ## 8. Economy (✅ market-offer-expiry job + cancel-offer wired, 📐 create/accept not wired)
 
 `economic_ledger.transaction_uuid` is a `CHAR(36)` primary key: a retried
