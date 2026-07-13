@@ -10,7 +10,7 @@ if not ForgeMonster then
 			fiendish = 80,
 			influenced = 20,
 		},
-		maxFiendish = 3,
+		maxFiendish = 4,
 		eventName = "ForgeMonster",
 	}
 end
