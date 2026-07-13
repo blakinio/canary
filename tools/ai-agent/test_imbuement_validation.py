@@ -62,13 +62,7 @@ class ImbuementValidationTests(unittest.TestCase):
         self.assertEqual(grouped.get("WIKI_MATERIALS", []), [])
         self.assertEqual(grouped.get("WIKI_SCROLL", []), [])
         self.assertEqual(grouped.get("WIKI_FEE_MODEL", []), [])
-
-        unlock_messages = {
-            finding.message
-            for finding in grouped.get("WIKI_POWERFUL_UNLOCK", [])
-        }
-        self.assertTrue(any("Featherweight" in message for message in unlock_messages))
-        self.assertTrue(any("Vibrancy" in message for message in unlock_messages))
+        self.assertEqual(grouped.get("WIKI_POWERFUL_UNLOCK", []), [])
 
     def test_vibrancy_scrolls_resolve_to_exact_tiers(self) -> None:
         for scroll_id, tier in ((51746, 2), (51466, 3)):
