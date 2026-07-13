@@ -239,8 +239,8 @@ Never write `passed` without verification on the stated commit.
 3. ~~Implement `IRedisClient::ping()` (Hiredis real + Fake), wire into `ClusterConfigValidator`, reorder `canary_server.cpp`.~~ done
 4. ~~Update docs with corrected current-state facts and honestly-documented limitations.~~ done
 5. ~~Update `docs/agents/MODULE_CATALOG.md`'s multichannel row.~~ done
-6. ~~Push both branches, open both PRs.~~ done - PR #292 (`claude/canary-multichannel-cluster-e1jhrr`, Part A: shutdown OFFLINE + test gaps) and PR #293 (`claude/canary-multichannel-redis-ping`, Part B: live Redis PING) are both open against `main`. Monitoring the full CI matrix on both is in progress; no CI results or review comments yet as of this update. Do not merge without explicit user "yes, merge #NNN" per this branch's standing rule.
-7. Once both PRs are known-good (green CI), move this task record to `docs/agents/tasks/archive/` and fill in the Completion section below.
+6. ~~Push both branches, open both PRs, monitor full CI matrix.~~ done. PR #293 (Part B - live Redis PING): full matrix green (Linux debug/release, Windows CMake/Solution, macOS, Docker, Docker Quickstart Smoke, Fast Checks, Lua Tests), no review comments, **merged by the repo owner (blakinio) directly on GitHub at 2026-07-13T21:30:32Z** (merge commit `80249b6`) - not by this agent, satisfying "no merge without explicit user consent" via the user's own action. PR #292 (Part A - shutdown OFFLINE + test gaps): full matrix green including the "Required" gate, `mergeable_state: clean`, no review comments - **still open, not merged**; holding per the standing "no merge without a specific 'yes, merge #292'" instruction.
+7. PR #292 remains open awaiting an explicit user merge decision. Once merged, move this task record to `docs/agents/tasks/archive/` and finalize the Completion section below (currently reflects the interim state: one of two PRs merged).
 
 # Handoff
 
@@ -272,10 +272,10 @@ None blocking; proceeding with the plan above.
 
 # Completion
 
-- Final status: in progress - both PRs open, CI running, awaiting green matrix and explicit user merge approval
-- PR: #292 (Part A - heartbeat/login-filter completeness), #293 (Part B - live Redis PING)
-- Merge commit: none yet - not merged
+- Final status: in progress - PR #293 (Part B) merged; PR #292 (Part A) has a fully green CI matrix and `mergeable_state: clean` but is still open, awaiting an explicit user merge decision
+- PR: #292 (Part A - heartbeat/login-filter completeness, open, green), #293 (Part B - live Redis PING, merged)
+- Merge commit: #293 -> `80249b6` (merged by blakinio, 2026-07-13T21:30:32Z). #292 -> none yet, not merged
 - Program record updated: no (no long-lived program record exists yet for multichannel under `docs/agents/programs/`; could be created as a follow-up)
 - Catalogue updated: yes (`docs/agents/MODULE_CATALOG.md`, in PR #292)
 - Changelog updated: pending
-- Archived at: pending - will move to `docs/agents/tasks/archive/` once both PRs are green and merged
+- Archived at: pending - will move to `docs/agents/tasks/archive/` once PR #292 is also merged
