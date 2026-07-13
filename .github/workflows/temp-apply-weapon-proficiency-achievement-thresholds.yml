@@ -1,0 +1,101 @@
+---
+name: Temporary Apply Weapon Proficiency Achievement Thresholds
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/temp-apply-weapon-proficiency-achievement-thresholds.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v6
+        with:
+          ref: fix/weapon-proficiency-achievement-thresholds
+          fetch-depth: 0
+
+      - name: Apply bounded runtime changes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"marker in {path!r} found {count} times, expected once")
+              target.write_text(text.replace(old, new), encoding="utf-8")
+
+          replace_once(
+              "src/creatures/players/components/weapon_proficiency.hpp",
+              '''\t[[nodiscard]] size_t getMasteredWeaponCount() const;\n\n\tstatic WeaponProficiencyData deserialize''',
+              '''\t[[nodiscard]] size_t getMasteredWeaponCount() const;\n\n\tstatic WeaponProficiencyData deserialize''',
+          )
+          replace_once(
+              "src/creatures/players/components/weapon_proficiency.hpp",
+              '''\t[[nodiscard]] static WeaponProficiencyData createInitialState(uint32_t experience, uint32_t maxExperience);\n\tstatic constexpr uint8_t TRACKED_SKILL_COUNT''',
+              '''\t[[nodiscard]] static WeaponProficiencyData createInitialState(uint32_t experience, uint32_t maxExperience);\n\t[[nodiscard]] static std::vector<uint16_t> getMasteryAchievementIds(size_t masteredWeaponCount);\n\tvoid reconcileMasteryAchievements(bool message);\n\tstatic constexpr uint8_t TRACKED_SKILL_COUNT''',
+          )
+
+          replace_once(
+              "src/creatures/players/components/weapon_proficiency.cpp",
+              '''\t\tproficiency[weaponId] = deserialize(kv_it.value());\n\t\tnormalizeStoredState(weaponId);\n\t}\n}\n\nvoid WeaponProficiency::save''',
+              '''\t\tproficiency[weaponId] = deserialize(kv_it.value());\n\t\tnormalizeStoredState(weaponId);\n\t}\n\n\treconcileMasteryAchievements(false);\n}\n\nvoid WeaponProficiency::save''',
+          )
+          replace_once(
+              "src/creatures/players/components/weapon_proficiency.cpp",
+              '''size_t WeaponProficiency::getMasteredWeaponCount() const {\n\treturn static_cast<size_t>(std::ranges::count_if(proficiency, [](const auto &entry) {\n\t\treturn entry.second.mastered;\n\t}));\n}\n\nWeaponProficiencyData WeaponProficiency::deserialize''',
+              '''size_t WeaponProficiency::getMasteredWeaponCount() const {\n\treturn static_cast<size_t>(std::ranges::count_if(proficiency, [](const auto &entry) {\n\t\treturn entry.second.mastered;\n\t}));\n}\n\nstd::vector<uint16_t> WeaponProficiency::getMasteryAchievementIds(size_t masteredWeaponCount) {\n\tstd::vector<uint16_t> achievementIds;\n\tfor (const auto &[threshold, achievementId] : std::array<std::pair<size_t, uint16_t>, 3> { { { 1, 564 }, { 10, 565 }, { 50, 566 } } }) {\n\t\tif (masteredWeaponCount >= threshold) {\n\t\t\tachievementIds.push_back(achievementId);\n\t\t}\n\t}\n\treturn achievementIds;\n}\n\nvoid WeaponProficiency::reconcileMasteryAchievements(bool message) {\n\tfor (const auto achievementId : getMasteryAchievementIds(getMasteredWeaponCount())) {\n\t\tm_player.achiev().add(achievementId, message);\n\t}\n}\n\nWeaponProficiencyData WeaponProficiency::deserialize''',
+          )
+          replace_once(
+              "src/creatures/players/components/weapon_proficiency.cpp",
+              '''\tif (!proficiency.contains(weaponId)) {\n\t\tconst auto [_, inserted] = proficiency.try_emplace(weaponId, createInitialState(experience, maxExperience));\n\t\tif (!inserted) {\n\t\t\tg_logger().warn("{} - Failed to create proficiency state for weapon ID '{}'", __FUNCTION__, weaponId);\n\t\t\treturn;\n\t\t}\n\t\tm_player.sendWeaponProficiency(weaponId);\n\n\t\treturn;\n\t}\n\n\tconst uint64_t newExperience''',
+              '''\tif (!proficiency.contains(weaponId)) {\n\t\tconst auto [it, inserted] = proficiency.try_emplace(weaponId, createInitialState(experience, maxExperience));\n\t\tif (!inserted) {\n\t\t\tg_logger().warn("{} - Failed to create proficiency state for weapon ID '{}'", __FUNCTION__, weaponId);\n\t\t\treturn;\n\t\t}\n\t\tm_player.sendWeaponProficiency(weaponId);\n\t\tif (it->second.mastered) {\n\t\t\treconcileMasteryAchievements(true);\n\t\t}\n\n\t\treturn;\n\t}\n\n\tconst uint64_t newExperience''',
+          )
+          replace_once(
+              "src/creatures/players/components/weapon_proficiency.cpp",
+              '''\tif (newExperience >= maxExperience) {\n\t\tproficiency[weaponId].mastered = true;\n\t\tproficiency[weaponId].experience = maxExperience;\n\t\tm_player.sendWeaponProficiency(weaponId);\n\n\t\treturn;\n\t}''',
+              '''\tif (newExperience >= maxExperience) {\n\t\tconst bool wasMastered = proficiency[weaponId].mastered;\n\t\tproficiency[weaponId].mastered = true;\n\t\tproficiency[weaponId].experience = maxExperience;\n\t\tm_player.sendWeaponProficiency(weaponId);\n\t\tif (!wasMastered) {\n\t\t\treconcileMasteryAchievements(true);\n\t\t}\n\n\t\treturn;\n\t}''',
+          )
+
+          test = Path("tests/unit/players/components/weapon_proficiency_test.cpp")
+          text = test.read_text(encoding="utf-8")
+          helper_old = '''\tstatic void setMasteredState(WeaponProficiency &component, uint16_t weaponId, bool mastered) {\n\t\tWeaponProficiencyData state;\n\t\tstate.mastered = mastered;\n\t\tcomponent.proficiency.insert_or_assign(weaponId, std::move(state));\n\t}\n'''
+          helper_new = helper_old + '''\n\tstatic std::vector<uint16_t> getMasteryAchievementIds(size_t masteredWeaponCount) {\n\t\treturn WeaponProficiency::getMasteryAchievementIds(masteredWeaponCount);\n\t}\n'''
+          if text.count(helper_old) != 1:
+              raise SystemExit("test helper marker missing")
+          text = text.replace(helper_old, helper_new)
+          text += '''\nTEST_F(WeaponProficiencyTest, MasteryAchievementThresholdsAreExact) {\n\tEXPECT_TRUE(getMasteryAchievementIds(0).empty());\n\tEXPECT_EQ((std::vector<uint16_t> { 564 }), getMasteryAchievementIds(1));\n\tEXPECT_EQ((std::vector<uint16_t> { 564 }), getMasteryAchievementIds(9));\n\tEXPECT_EQ((std::vector<uint16_t> { 564, 565 }), getMasteryAchievementIds(10));\n\tEXPECT_EQ((std::vector<uint16_t> { 564, 565 }), getMasteryAchievementIds(49));\n\tEXPECT_EQ((std::vector<uint16_t> { 564, 565, 566 }), getMasteryAchievementIds(50));\n\tEXPECT_EQ((std::vector<uint16_t> { 564, 565, 566 }), getMasteryAchievementIds(500));\n}\n'''
+          test.write_text(text, encoding="utf-8")
+          PY
+
+      - name: Format and validate
+        run: |
+          clang-format -i \
+            src/creatures/players/components/weapon_proficiency.hpp \
+            src/creatures/players/components/weapon_proficiency.cpp \
+            tests/unit/players/components/weapon_proficiency_test.cpp
+          python -m unittest discover -s tools/ai-agent -p "test_weapon_proficiency_achievement_audit.py" -v
+          python -m unittest discover -s tools/ai-agent -p "test_achievement_validation.py" -v
+          git diff --check
+
+      - name: Commit result
+        run: |
+          rm .github/workflows/temp-apply-weapon-proficiency-achievement-thresholds.yml
+          git config user.name "weapon-achievement-bot"
+          git config user.email "weapon-achievement-bot@users.noreply.github.com"
+          git add \
+            src/creatures/players/components/weapon_proficiency.hpp \
+            src/creatures/players/components/weapon_proficiency.cpp \
+            tests/unit/players/components/weapon_proficiency_test.cpp \
+            .github/workflows/temp-apply-weapon-proficiency-achievement-thresholds.yml
+          git diff --cached --check
+          git commit -m "fix(achievements): award Weapon Proficiency mastery thresholds"
+          git push origin HEAD:fix/weapon-proficiency-achievement-thresholds
