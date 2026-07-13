@@ -1,0 +1,75 @@
+---
+name: Weapon Proficiency Achievement Audit
+
+on:
+  pull_request:
+    paths:
+      - "data/scripts/lib/register_achievements.lua"
+      - "data/items/proficiencies.json"
+      - "data/items/items.xml"
+      - "src/creatures/players/components/weapon_proficiency.*"
+      - "src/creatures/players/components/player_achievement.*"
+      - "tools/ai-agent/weapon_proficiency_achievement_audit.py"
+      - "tools/ai-agent/weapon_proficiency_forbidden_build_validation.py"
+      - "tools/ai-agent/test_weapon_proficiency_achievement_audit.py"
+      - "tools/ai-agent/test_weapon_proficiency_forbidden_build_validation.py"
+      - "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md"
+      - "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_RUNTIME_PLAN.json"
+      - "docs/ai-agent/WEAPON_PROFICIENCY_FORBIDDEN_BUILD_BASELINE.json"
+      - "docs/agents/tasks/active/CAN-20260712-weapon-proficiency-achievement-audit.md"
+      - ".github/workflows/weapon-proficiency-achievement-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run focused tests
+        run: |
+          python -m unittest discover -s tools/ai-agent -p "test_weapon_proficiency_achievement_audit.py" -v
+          python -m unittest discover -s tools/ai-agent -p "test_weapon_proficiency_forbidden_build_validation.py" -v
+
+      - name: Generate audit artifacts
+        run: |
+          python tools/ai-agent/weapon_proficiency_achievement_audit.py \
+            --repository-root . \
+            --output artifacts/WEAPON_PROFICIENCY_ACHIEVEMENT_AUDIT.json \
+            --markdown artifacts/WEAPON_PROFICIENCY_ACHIEVEMENT_AUDIT.md \
+            --allow-findings
+          python tools/ai-agent/weapon_proficiency_forbidden_build_validation.py \
+            --repository-root . \
+            --output artifacts/WEAPON_PROFICIENCY_FORBIDDEN_BUILD_VALIDATION.json \
+            --markdown artifacts/WEAPON_PROFICIENCY_FORBIDDEN_BUILD_VALIDATION.md
+          python -m json.tool artifacts/WEAPON_PROFICIENCY_ACHIEVEMENT_AUDIT.json > /dev/null
+          python -m json.tool artifacts/WEAPON_PROFICIENCY_FORBIDDEN_BUILD_VALIDATION.json > /dev/null
+          python -m json.tool docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_RUNTIME_PLAN.json > /dev/null
+          python -m json.tool docs/ai-agent/WEAPON_PROFICIENCY_FORBIDDEN_BUILD_BASELINE.json > /dev/null
+
+      - name: Publish summary
+        run: |
+          cat artifacts/WEAPON_PROFICIENCY_ACHIEVEMENT_AUDIT.md >> "$GITHUB_STEP_SUMMARY"
+          printf '\n' >> "$GITHUB_STEP_SUMMARY"
+          cat artifacts/WEAPON_PROFICIENCY_FORBIDDEN_BUILD_VALIDATION.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload audit artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: weapon-proficiency-achievement-audit
+          path: |
+            artifacts/WEAPON_PROFICIENCY_ACHIEVEMENT_AUDIT.json
+            artifacts/WEAPON_PROFICIENCY_ACHIEVEMENT_AUDIT.md
+            artifacts/WEAPON_PROFICIENCY_FORBIDDEN_BUILD_VALIDATION.json
+            artifacts/WEAPON_PROFICIENCY_FORBIDDEN_BUILD_VALIDATION.md
+          if-no-files-found: error
+          retention-days: 14

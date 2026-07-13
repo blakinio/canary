@@ -434,6 +434,49 @@ wired:
   phase's gate needed to specially handle (the gate still runs correctly on
   either branch).
 
+### Phase 10: two more read-only GM commands
+
+`multichannel::listOnlinePlayers()` (`cluster_session_lookup.hpp`/`.cpp`)
+and `ChannelSwitchAuditStore::getRecentHistory` (`channel_switch_audit_store
+.hpp`/`.cpp`) were both verified against a real MariaDB 10.11, mirroring
+Phase 8's methodology exactly:
+
+- **`listOnlinePlayers`**: seeded two players on two different channels
+  (both `ONLINE` in `cluster_sessions`); the `cluster_sessions` ⋈ `players`
+  join correctly returned both, correctly ordered by `channel_id` then
+  `name` (the lower-channel-id player first, regardless of insertion
+  order).
+- **`getRecentHistory`**: seeded three `channel_switch_audit` rows for one
+  player - a first-ever-login row (`source_channel_id IS NULL`), a normal
+  `SUCCESS` switch, and a `DENIED` switch - and one player with no rows at
+  all. Verified: all three rows returned newest-first when queried with a
+  generous limit; `LIMIT 2` correctly truncated to the two newest; the
+  `NULL` source channel correctly read back as `0` via
+  `COALESCE(source_channel_id, 0)` and correctly translated to
+  `std::nullopt` in C++ (0 is confirmed never a valid channel id -
+  `ChannelContext::DefaultSingleChannelId = 1`); and the player with no
+  history correctly produced an empty result set, not an error.
+- **A real, if minor, mistake was caught and fixed before committing**:
+  the first attempt to add the two new `lua_api.json` entries used
+  Python's `json.dump(..., indent=2, sort_keys=True)` to rewrite the whole
+  file, which reformatted ~50 unrelated lines across the file (whitespace/
+  key-ordering differences from whatever originally generated it) - a
+  needlessly large, noisy diff for a two-entry addition. Reverted and redid
+  it as two precise text edits instead (15 lines changed, matching every
+  other `lua_api.json` edit in this series).
+- **A real Lua API quality regression was also caught and fixed**: the
+  first version of both new bindings' return type was the literal string
+  `"table"`, which `tools/check_lua_api_quality.py` tracks as the
+  `return_plain_table` metric against a baseline - two new plain-`table`
+  returns would have pushed it from 22 to 24, failing the check. Fixed by
+  using the more accurate `table[]` (both functions return an array of
+  records, not a single flat table) in both the EmmyLua docblocks and the
+  hand-written JSON entries; re-ran `check_lua_api_quality.py` and
+  confirmed the metric stayed at 22.
+- Neither new Lua binding is standalone-compilable (same engine-glue wall
+  as every other Lua binding file in this series) - reviewed by hand
+  against the SQL verified above.
+
 ## 15.1b Redis Lua CAS script validation — ✅ run against a real `redis-server`
 
 The acquire/renew/release Lua scripts in
