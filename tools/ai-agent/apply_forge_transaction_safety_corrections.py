@@ -78,6 +78,6 @@ TEST_F(ForgeIntegrationTest, ForgeSliverToCoreConversionRejectsFullBackpackWitho
 \tEXPECT_EQ(historyBefore, player->forgeHistory().get().size());
 }
 """
-integration_path.write_text(integration + "\n", encoding="utf-8")
+integration_path.write_text(integration.rstrip() + "\n", encoding="utf-8")
 
 print("Applied Forge transaction-safety corrections.")
