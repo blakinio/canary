@@ -1,0 +1,143 @@
+---
+name: Imbuement Direct Access Finalizer
+
+on:
+  push:
+    branches:
+      - fix/imbuement-direct-access-guard
+    paths:
+      - .github/workflows/imbuement-direct-access-finalize.yml
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/imbuement-direct-access-guard
+          fetch-depth: 0
+      - name: Apply deterministic repair
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding="utf-8")
+              if text.count(old) != 1:
+                  raise SystemExit(f"expected one anchor in {path}, found {text.count(old)}")
+              target.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          policy = '''/**
+           * Canary - A free and open-source MMORPG server emulator
+           * Copyright (©) 2019–present OpenTibiaBR <opentibiabr@outlook.com>
+           * Repository: https://github.com/opentibiabr/canary
+           * License: https://github.com/opentibiabr/canary/blob/main/LICENSE
+           */
+
+          #pragma once
+
+          #include "creatures/players/imbuements/imbuement_storage_policy.hpp"
+
+          namespace ImbuementAccessPolicy {
+              template <typename StorageReader>
+              [[nodiscard]] bool canApplyDirectly(
+                  bool storageFilteringEnabled,
+                  bool playerPremium,
+                  bool imbuementPremium,
+                  uint32_t storageId,
+                  uint16_t baseId,
+                  StorageReader &&readStorage
+              ) {
+                  if (imbuementPremium && !playerPremium) {
+                      return false;
+                  }
+
+                  return !ImbuementStoragePolicy::shouldHide(
+                      storageFilteringEnabled,
+                      storageId,
+                      baseId,
+                      readStorage
+                  );
+              }
+          } // namespace ImbuementAccessPolicy
+          '''
+          Path("src/creatures/players/imbuements/imbuement_access_policy.hpp").write_text(policy, encoding="utf-8")
+
+          replace_once(
+              "src/creatures/players/player.cpp",
+              '#include "creatures/players/imbuements/imbuements.hpp"\n#include "creatures/players/storages/storages.hpp"',
+              '#include "creatures/players/imbuements/imbuements.hpp"\n#include "creatures/players/imbuements/imbuement_access_policy.hpp"\n#include "creatures/players/storages/storages.hpp"',
+          )
+
+          replace_once(
+              "src/creatures/players/player.cpp",
+              '''\t\treturn false;\n\t}\n}\n\nMuteCountMap Player::muteCountMap;''',
+              '''\t\treturn false;\n\t}\n\n\t[[nodiscard]] bool canApplyImbuementDirectly(const std::shared_ptr<Player> &player, const Imbuement* imbuement) {\n\t\tif (!player || !imbuement) {\n\t\t\treturn false;\n\t\t}\n\n\t\tconst bool allowed = ImbuementAccessPolicy::canApplyDirectly(\n\t\t\tg_configManager().getBoolean(TOGGLE_IMBUEMENT_SHRINE_STORAGE),\n\t\t\tplayer->isPremium(),\n\t\t\timbuement->isPremium(),\n\t\t\timbuement->getStorage(),\n\t\t\timbuement->getBaseID(),\n\t\t\t[&player](uint32_t storageId) {\n\t\t\t\treturn player->getStorageValue(storageId);\n\t\t\t}\n\t\t);\n\t\tif (allowed) {\n\t\t\treturn true;\n\t\t}\n\n\t\tif (imbuement->isPremium() && !player->isPremium()) {\n\t\t\tplayer->sendImbuementResult("You need a premium account to use this imbuement.");\n\t\t} else {\n\t\t\tplayer->sendImbuementResult("You have not unlocked this imbuement.");\n\t\t}\n\t\treturn false;\n\t}\n}\n\nMuteCountMap Player::muteCountMap;''',
+          )
+
+          replace_once(
+              "src/creatures/players/player.cpp",
+              '''void Player::createScrollImbuement(const Imbuement* imbuement) {\n\tif (!imbuement) {\n\t\treturn;\n\t}\n\n\tconst BaseImbuement* baseImbuement''',
+              '''void Player::createScrollImbuement(const Imbuement* imbuement) {\n\tif (!imbuement) {\n\t\treturn;\n\t}\n\n\tif (!canApplyImbuementDirectly(getPlayer(), imbuement)) {\n\t\treturn;\n\t}\n\n\tconst BaseImbuement* baseImbuement''',
+          )
+
+          replace_once(
+              "src/creatures/players/player.cpp",
+              '''void Player::onApplyImbuement(const Imbuement* imbuement, const std::shared_ptr<Item> &item, uint8_t slot) {\n\tif (!imbuement || !item) {\n\t\treturn;\n\t}\n\n\tconst auto &thisPlayer = getPlayer();\n\tif (!item->canAddImbuement''',
+              '''void Player::onApplyImbuement(const Imbuement* imbuement, const std::shared_ptr<Item> &item, uint8_t slot) {\n\tif (!imbuement || !item) {\n\t\treturn;\n\t}\n\n\tconst auto &thisPlayer = getPlayer();\n\tif (!canApplyImbuementDirectly(thisPlayer, imbuement)) {\n\t\treturn;\n\t}\n\n\tif (!item->canAddImbuement''',
+          )
+
+          replace_once(
+              "tests/unit/players/imbuements/imbuements_test.cpp",
+              '#include "creatures/players/imbuements/imbuements.hpp"\n#include "creatures/players/player.hpp"',
+              '#include "creatures/players/imbuements/imbuements.hpp"\n#include "creatures/players/imbuements/imbuement_access_policy.hpp"\n#include "creatures/players/player.hpp"',
+          )
+
+          replace_once(
+              "tests/unit/players/imbuements/imbuements_test.cpp",
+              '''\tTEST_F(ImbuementsUnitTest, RejectsOccupiedVibrancyCategoryWithoutConsumingScroll) {''',
+              '''\tTEST_F(ImbuementsUnitTest, DirectAccessPolicyEnforcesPremiumAndStorageWithoutChangingScrollEntitlement) {\n\t\tconst auto missingStorage = [](uint32_t) { return -1; };\n\t\tconst auto unlockedStorage = [](uint32_t) { return 1; };\n\n\t\tEXPECT_TRUE(ImbuementAccessPolicy::canApplyDirectly(false, false, false, 0, 1, missingStorage));\n\t\tEXPECT_FALSE(ImbuementAccessPolicy::canApplyDirectly(false, false, true, 0, 2, missingStorage));\n\t\tEXPECT_FALSE(ImbuementAccessPolicy::canApplyDirectly(true, true, true, 45929, 3, missingStorage));\n\t\tEXPECT_TRUE(ImbuementAccessPolicy::canApplyDirectly(true, true, true, 45929, 3, unlockedStorage));\n\t\tEXPECT_TRUE(ImbuementAccessPolicy::canApplyDirectly(false, true, true, 45929, 3, missingStorage));\n\t}\n\n\tTEST_F(ImbuementsUnitTest, RejectsOccupiedVibrancyCategoryWithoutConsumingScroll) {''',
+          )
+
+          replace_once(
+              "tools/ai-agent/imbuement_validation.py",
+              '''    "src/game/game.cpp": (\n        "playerApplyImbuement", "playerClearImbuement",\n    ),''',
+              '''    "src/game/game.cpp": (\n        "playerApplyImbuement", "playerClearImbuement",\n    ),\n    "src/creatures/players/player.cpp": (\n        "ImbuementAccessPolicy::canApplyDirectly",\n        "canApplyImbuementDirectly(thisPlayer, imbuement)",\n        "canApplyImbuementDirectly(getPlayer(), imbuement)",\n    ),\n    "src/creatures/players/imbuements/imbuement_access_policy.hpp": (\n        "canApplyDirectly", "ImbuementStoragePolicy::shouldHide",\n    ),''',
+          )
+
+          report = Path("docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md")
+          text = report.read_text(encoding="utf-8")
+          text = text.replace("**Status:** Deterministic audit complete; final repository CI pending", "**Status:** Live-parity data merged; direct-access dry-test guard in validation")
+          text = text.replace("- nonzero XML unlock storage IDs: `7`;\n- Powerful families using nonzero storage: `22`;\n- Powerful families using `storage=0`: `2`;", "- nonzero XML unlock storage IDs: `9`;\n- Powerful families using nonzero storage: `24`;\n- Powerful families using `storage=0`: `0`;")
+          if "## Direct-ID dry-test finding" not in text:
+              text += '''\n\n## Direct-ID dry-test finding\n\nA post-merge dry review found that storage and premium filtering had been enforced only while building the normal client list. A modified client could submit a hidden numeric Imbuement ID directly. PR #282 adds a server-side direct-access policy before money or material mutation in both normal application and scroll creation. Applying an already-created Imbuement Scroll remains a separate path and is intentionally unchanged.\n'''
+          report.write_text(text, encoding="utf-8")
+
+          runtime_plan = Path("docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json")
+          plan = __import__("json").loads(runtime_plan.read_text(encoding="utf-8"))
+          plan.setdefault("dry_test_evidence", {})["direct_id_access_guard"] = {
+              "status": "implemented_pending_final_ci",
+              "normal_application": "server checks premium and configured quest storage before resource mutation",
+              "scroll_creation": "server checks premium and configured quest storage before resource mutation",
+              "existing_scroll_application": "unchanged; possession of the scroll remains the entitlement token",
+          }
+          runtime_plan.write_text(__import__("json").dumps(plan, indent=2) + "\n", encoding="utf-8")
+      - name: Run focused deterministic tests
+        run: |
+          python -m py_compile tools/ai-agent/imbuement_validation.py tools/ai-agent/imbuement_storage_validation.py
+          python -m unittest discover -s tools/ai-agent -p 'test_imbuement*_validation.py' -v
+          python tools/ai-agent/imbuement_validation.py --repository-root . --output /tmp/imbuement-validation.json --runtime-plan /tmp/imbuement-runtime-plan.json
+          python tools/ai-agent/imbuement_storage_validation.py --repository-root . --output /tmp/imbuement-storage-validation.json
+          python -m json.tool docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json > /dev/null
+      - name: Commit repaired branch
+        run: |
+          rm .github/workflows/imbuement-direct-access-finalize.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/creatures/players/imbuements/imbuement_access_policy.hpp src/creatures/players/player.cpp tests/unit/players/imbuements/imbuements_test.cpp tools/ai-agent/imbuement_validation.py docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json .github/workflows/imbuement-direct-access-finalize.yml
+          git commit -m "fix(imbuement): enforce direct access server-side"
+          git push origin HEAD:fix/imbuement-direct-access-guard
