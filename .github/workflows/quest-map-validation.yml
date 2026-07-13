@@ -12,6 +12,7 @@ on:
       - "tools/ai-agent/quest_map_validation_tool.py"
       - "tools/ai-agent/test_quest_map_validation.py"
       - "tools/ai-agent/otbm_world_index.py"
+      - "tools/ai-agent/otbm_world_index_tool.py"
       - "tools/ai-agent/otbm_item_audit_scan.cpp"
       - "tools/ai-agent/otbm_script_resolution.py"
       - "docs/ai-agent/QUEST_MAP_VALIDATION.schema.json"
@@ -23,6 +24,7 @@ on:
       - "tools/ai-agent/quest_map_validation_tool.py"
       - "tools/ai-agent/test_quest_map_validation.py"
       - "tools/ai-agent/otbm_world_index.py"
+      - "tools/ai-agent/otbm_world_index_tool.py"
       - "tools/ai-agent/otbm_item_audit_scan.cpp"
       - "tools/ai-agent/otbm_script_resolution.py"
       - "docs/ai-agent/QUEST_MAP_VALIDATION.schema.json"
@@ -66,6 +68,17 @@ jobs:
 
       - name: Validate JSON schema syntax
         run: python -m json.tool docs/ai-agent/QUEST_MAP_VALIDATION.schema.json > /dev/null
+
+      - name: Assemble local correlation toolkit
+        run: |
+          mkdir -p artifacts/toolkit
+          cp /tmp/otbm_item_audit_scan artifacts/toolkit/
+          cp tools/ai-agent/quest_map_validation.py artifacts/toolkit/
+          cp tools/ai-agent/quest_map_validation_tool.py artifacts/toolkit/
+          cp tools/ai-agent/otbm_world_index.py artifacts/toolkit/
+          cp tools/ai-agent/otbm_world_index_tool.py artifacts/toolkit/
+          cp tools/ai-agent/otbm_script_resolution.py artifacts/toolkit/
+          cp docs/ai-agent/QUEST_MAP_VALIDATION.schema.json artifacts/toolkit/
 
       - name: Generate representative The Beginning evidence artifact
         id: evidence
@@ -119,6 +132,15 @@ jobs:
             artifacts/QUEST_MAP_EVIDENCE.json
             artifacts/scan.stdout
             artifacts/scan.stderr
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload local correlation toolkit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quest-map-validator-local-toolkit
+          path: artifacts/toolkit
           if-no-files-found: error
           retention-days: 14
 
