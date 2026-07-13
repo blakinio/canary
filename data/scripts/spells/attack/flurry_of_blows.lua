@@ -7,22 +7,37 @@ combat:setParameter(COMBAT_PARAM_BLOCKARMOR, 1)
 combat:setParameter(COMBAT_PARAM_USECHARGES, 1)
 combat:setArea(createCombatArea(AREA_FLURRY_OF_BLOWS))
 
-function onGetFormulaValues(player, skill, attack, factor)
-	local damageHealing = player:calculateFlatDamageHealing()
+local combatWod = Combat()
+combatWod:setParameter(COMBAT_PARAM_TYPE, COMBAT_PHYSICALDAMAGE)
+combatWod:setParameter(COMBAT_PARAM_EFFECT, CONST_ME_WHIRLWIND_BLOW_WHITE)
+combatWod:setParameter(COMBAT_PARAM_BLOCKARMOR, 1)
+combatWod:setParameter(COMBAT_PARAM_USECHARGES, 1)
+combatWod:setArea(createCombatArea(AREA_GREATER_FLURRY_OF_BLOWS))
 
+local function calculateFormula(player, skill, attack)
+	local damageHealing = player:calculateFlatDamageHealing()
 	local damage = SPELL_BASE_POWER * (skill / 100) * (attack / 10) + damageHealing
 
-	local min = damage - (damage / 10)
-	local max = damage + (damage / 10)
+	return damage - (damage / 10), damage + (damage / 10)
+end
 
-	return min, max
+function onGetFormulaValues(player, skill, attack, factor)
+	return calculateFormula(player, skill, attack)
+end
+
+function onGetFormulaValuesWod(player, skill, attack, factor)
+	return calculateFormula(player, skill, attack)
 end
 
 combat:setCallback(CALLBACK_PARAM_SKILLVALUE, "onGetFormulaValues")
+combatWod:setCallback(CALLBACK_PARAM_SKILLVALUE, "onGetFormulaValuesWod")
 
 local spell = Spell("instant")
 
 function spell.onCastSpell(creature, var)
+	if creature:getWheelSpellAdditionalArea("Flurry of Blows") then
+		return combatWod:execute(creature, var)
+	end
 	return combat:execute(creature, var)
 end
 
