@@ -1,14 +1,18 @@
 ---
 task_id: CAN-20260713-equipment-upgrade-handoff-refresh
-status: validation_pending
+status: ready_for_review_pending_ci
 agent: "GPT-5.6 Thinking"
 branch: docs/equipment-upgrade-handoff-refresh
 base_branch: main
 created: 2026-07-13T12:35:00+02:00
 updated: 2026-07-13T13:02:00+02:00
-last_verified_commit: "d4eeab3db322f26ee72d7f0ad958d35dc9bd007d"
+last_verified_commit: "5f963ea999367b4df65533382742fe0e4d111ef7"
 risk: low
 related_pr: "#242"
+reuses:
+  - docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md
+  - docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md
+  - merged Forge baselines from PRs #89, #110 and #177
 depends_on:
   - merged Forge transfer repair PR #89
   - merged Forge history identity repair PR #110
@@ -45,11 +49,11 @@ Refresh the durable Equipment Upgrade / Exaltation Forge handoff against current
 - Repository: `blakinio/canary`.
 - Base `main`: `d4eeab3db322f26ee72d7f0ad958d35dc9bd007d`.
 - Branch: `docs/equipment-upgrade-handoff-refresh`.
-- Draft PR: #242.
+- PR: #242, draft at the time of this record update.
 - Last merged Forge PR: #177, merge `f1d217c43e8e302978f533212e6aa9d1ce2b77c8`.
 - Historical branch `validation/equipment-upgrade`: not found and must not be continued.
-- Other open Forge PRs: none found.
-- Other active Forge tasks: none found.
+- Other open Forge PRs: none found before opening #242.
+- Other active Forge tasks: none found before creating this task.
 - Maintained client: `blakinio/otclient`, observed `main` `2fcfa2b61f4cd2e47beb49ec036a01152979dd79`.
 - `docs/agents/ACTIVE_WORK.md` is read-only, not owned and unchanged.
 
@@ -70,11 +74,18 @@ Refresh the durable Equipment Upgrade / Exaltation Forge handoff against current
 
 The full row-by-row evidence, paths, functions, remediation PRs, missing proof and recommended scope are recorded in `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md`.
 
-# Revalidation result
+# Exact evidence
 
-The comparison from #177 merge to current `main` contains 77 later commits but no change to Forge configuration, item-tier tables, Player Forge functions, Forge reward Lua, Forge effects/tests or the Equipment Upgrade report. Later generic Player/protocol/creature changes were reviewed as unrelated to the audited Forge functions. Maintained `blakinio/otclient` still handles bonus values only 1–4, so F-018 remains open and cross-repository.
+- Comparison from #177 merge to current `main`: 77 later commits.
+- No later change was found in Forge configuration, item-tier tables, Player Forge functions, Forge reward Lua, Forge item/combat effects, Forge tests or the validation report.
+- Later generic Player/protocol/creature changes were reviewed as unrelated to the audited Forge functions.
+- Maintained `blakinio/otclient` still handles Forge result bonus values only 1–4, so F-018 remains open and cross-repository.
+- Final scope review before ready state showed exactly two changed files:
+  - `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md`;
+  - `docs/agents/tasks/active/CAN-20260713-equipment-upgrade-handoff-refresh.md`.
+- `docs/agents/ACTIVE_WORK.md` is absent from the diff.
 
-# Local checkout and tests
+# Commands and local-test limitation
 
 Local checkout is unavailable because the execution environment cannot resolve `github.com`.
 
@@ -86,7 +97,7 @@ git ls-remote https://github.com/blakinio/canary.git HEAD
 # fatal: unable to access 'https://github.com/blakinio/canary.git/': Could not resolve host: github.com
 ```
 
-Could not run without a checkout:
+The following commands could not be run:
 
 ```text
 git clone https://github.com/blakinio/canary.git
@@ -106,36 +117,43 @@ ctest --test-dir build/linux-debug --output-on-failure
 
 None of these local checks is claimed as passed. GitHub API and CI are separate evidence.
 
-# Historical CI evidence
+# CI and test results
+
+Historical evidence:
 
 - #89 head `570d6e077c02107eb712a4ff214cf4442d6c91d8`: CI run `29164115572` succeeded; later run `29167859855` failed.
 - #110 head `78e10449f9c9c8401bf576f5751998f0fa7da655`: CI runs `29185907405` and `29185890664` succeeded; PR reports 383 C++ tests including Forge Transfer integration.
 - #177 head `05134a4c96083c9b21e5e86a5e51dcfc3f53bee6`: CI run `29205082784` succeeded for Detect Build Scope, Fast Checks, Lua Tests and Linux Release/runtime smoke.
-- Later #177 CI run `29206161337`: Detect Build Scope, Lua Tests and Fast Checks succeeded; Linux Release job `86685992572` failed specifically at `Check generated Lua API docs are current`. Runtime smoke and tests were skipped after that failure. This is not a Forge gameplay failure and is not positive Forge proof.
-- None of these historical runs proves focused Forge gameplay or physical-client E2E.
+- Later #177 CI run `29206161337`: Detect Build Scope, Lua Tests and Fast Checks succeeded; Linux Release job `86685992572` failed at `Check generated Lua API docs are current`. Runtime smoke and tests were skipped after that failure. This is not Forge gameplay proof.
 
-# Work log
+PR #242 draft-head evidence on `5f963ea999367b4df65533382742fe0e4d111ef7`:
 
-- Read all required governance, repository, risk, build, cross-repository and validation documents.
-- Verified current main, open PRs, active work and historical branch state.
-- Re-read PRs #89, #110 and #177 and recorded actual merge commits.
-- Compared #177 merge with current main and reviewed later potentially overlapping PRs.
-- Inspected maintained `blakinio/otclient`; no later Forge PR exists and bonus presentation remains limited to values 1–4.
-- Reclassified F-001–F-024 and replaced stale current-state/handoff text in the main report.
-- Recorded exact DNS failure and unavailable local commands.
-- Created branch, task and draft PR #242 using GitHub API only.
-- Inspected #177's later failed run job-by-job and recorded the exact generated-docs failure.
-- First oversized task write was rejected by the tool before GitHub mutation; a smaller durable record was then committed normally.
-- No temporary workflow, gameplay change, test, E2E platform or client change was created.
+- Agent Task Ownership run `29242755953`: success.
+  - Job `Validate active ownership` (`86792443247`) succeeded.
+  - Steps included ownership tooling compilation, focused unit tests and active-task/index validation.
+- CI run `29242756055`: success.
+  - `Detect Build Scope` (`86792444028`) succeeded.
+  - `Required` (`86792490230`) succeeded.
+  - Lua Tests, Fast Checks, Linux, Windows, macOS, Docker and Docker Quickstart were skipped because the changed paths are documentation-only.
+- AI Agent Tools run `29242755959`: success.
 
-# Changed files
+These draft-head runs are preliminary. A fresh post-ready run must be inspected job-by-job before merge.
 
-Final scope review currently shows exactly:
+# Decisions
 
-- `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md`;
-- `docs/agents/tasks/active/CAN-20260713-equipment-upgrade-handoff-refresh.md`.
+- Do not reopen PR #177 or continue its deleted branch.
+- Preserve all merged behavior from #89, #110 and #177.
+- Do not claim full Forge parity.
+- Keep F-007/F-008/F-013 as runtime-untested, not complete.
+- Keep F-009/F-010 blocked on authoritative target-version evidence.
+- Keep F-018/F-019 as coordinated Canary + maintained `blakinio/otclient` follow-up.
+- Do not implement gameplay changes, tests or E2E platform work in this PR.
 
-`docs/agents/ACTIVE_WORK.md` is absent. No gameplay/runtime path is changed.
+# Failed approaches
+
+- Local checkout and all local commands listed above were blocked by DNS resolution failure.
+- The first oversized task-record write was rejected by the connector before any GitHub mutation; a smaller valid record was committed.
+- An unnecessary attempt to set `maintainer_can_modify` on the same-repository PR returned HTTP 422 because fork collaboration applies only to cross-repository PRs; no repository state changed.
 
 # Recommended bounded follow-ups
 
@@ -150,17 +168,13 @@ Final scope review currently shows exactly:
 
 # Remaining work
 
-1. Update PR body and mark Ready for review.
-2. Inspect concrete final-head jobs/logs; do not rely only on aggregate `Required`.
-3. Merge documentation PR if no blocker.
-4. Archive this task in a separate lifecycle cleanup PR.
+1. Mark PR #242 Ready for review.
+2. Record final head SHA after this bookkeeping commit.
+3. Inspect every concrete post-ready workflow and job; do not rely only on aggregate `Required`.
+4. Check review threads.
+5. Squash-merge #242 if clean.
+6. Archive this task in a separate lifecycle cleanup PR with the exact final feature head, merge SHA, workflow run IDs and final state.
 
-# Invariants
+# Handoff
 
-- DO NOT REOPEN PR #177.
-- DO NOT CONTINUE A DELETED HISTORICAL BRANCH.
-- DO NOT EDIT ACTIVE_WORK.md.
-- DO NOT CLAIM FULL FORGE PARITY.
-- DO NOT CLAIM GAMEPLAY OR E2E PROOF WITHOUT EXECUTION.
-- DO NOT MODIFY `opentibiabr/otclient`.
-- DO NOT FIX ALL FINDINGS IN ONE PR.
+Continue only on PR #242 and branch `docs/equipment-upgrade-handoff-refresh`. The report refresh is complete and the diff is documentation-only. Do not add Forge implementation changes. The next action is to mark the PR Ready for review, inspect fresh final-head CI job-by-job, then merge and archive this task. If blocked, write the exact head SHA, workflow/job ID, failed step and next command into this record and PR conversation.
