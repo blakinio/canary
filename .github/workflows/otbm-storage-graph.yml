@@ -1,0 +1,129 @@
+name: OTBM Storage Graph
+
+on:
+  push:
+    branches:
+      - main
+      - "feat/**"
+      - "fix/**"
+      - "ai/**"
+    paths:
+      - "tools/ai-agent/otbm_storage_graph*.py"
+      - "tools/ai-agent/test_otbm_storage_graph.py"
+      - "tools/ai-agent/quest_map_validation*.py"
+      - "data-otservbr-global/scripts/quests/the_beginning/**/*.lua"
+      - "data-otservbr-global/npc/zirella.lua"
+      - "docs/ai-agent/OTBM_STORAGE_GRAPH.schema.json"
+      - ".github/workflows/otbm-storage-graph.yml"
+  pull_request:
+    paths:
+      - "tools/ai-agent/otbm_storage_graph*.py"
+      - "tools/ai-agent/test_otbm_storage_graph.py"
+      - "tools/ai-agent/quest_map_validation*.py"
+      - "data-otservbr-global/scripts/quests/the_beginning/**/*.lua"
+      - "data-otservbr-global/npc/zirella.lua"
+      - "docs/ai-agent/OTBM_STORAGE_GRAPH.schema.json"
+      - ".github/workflows/otbm-storage-graph.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate storage dependency evidence
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run focused Phase 5 tests
+        run: |
+          PYTHONPATH=tools/ai-agent \
+            python -m unittest -v tools/ai-agent/test_otbm_storage_graph.py
+
+      - name: Compile Python modules
+        run: |
+          python -m py_compile \
+            tools/ai-agent/otbm_storage_graph.py \
+            tools/ai-agent/otbm_storage_graph_types.py \
+            tools/ai-agent/otbm_storage_graph_calls.py \
+            tools/ai-agent/otbm_storage_graph_parser.py \
+            tools/ai-agent/otbm_storage_graph_analysis.py \
+            tools/ai-agent/otbm_storage_graph_tool.py \
+            tools/ai-agent/test_otbm_storage_graph.py
+
+      - name: Validate JSON schema syntax
+        run: python -m json.tool docs/ai-agent/OTBM_STORAGE_GRAPH.schema.json > /dev/null
+
+      - name: Build representative Phase 2 evidence
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=tools/ai-agent \
+            python tools/ai-agent/quest_map_validation_tool.py scan \
+              --repository-root . \
+              --source-root data-otservbr-global \
+              --include 'data-otservbr-global/scripts/quests/the_beginning/**/*.lua' \
+              --include 'data-otservbr-global/npc/zirella.lua' \
+              --output artifacts/QUEST_MAP_EVIDENCE.json
+
+      - name: Build representative Phase 5 graph
+        run: |
+          PYTHONPATH=tools/ai-agent \
+            python tools/ai-agent/otbm_storage_graph_tool.py \
+              --repository-root . \
+              --quest-evidence artifacts/QUEST_MAP_EVIDENCE.json \
+              --sample-limit 1000 \
+              --output artifacts/OTBM_STORAGE_GRAPH.json
+
+      - name: Verify storage graph contract and evidence boundaries
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("artifacts/OTBM_STORAGE_GRAPH.json").read_text(encoding="utf-8"))
+          assert report["format"] == "canary-otbm-storage-graph-v1"
+          assert report["schemaVersion"] == 1
+          assert report["policy"]["dynamicLuaExecuted"] is False
+          assert report["policy"]["executionOrderInferred"] is False
+          assert report["policy"]["sourceSelectionExpanded"] is False
+          assert report["policy"]["selectedFilesHashVerified"] is True
+          assert report["policy"]["mapModified"] is False
+          assert report["summary"]["files"] > 0
+          assert report["summary"]["operations"] > 0
+          assert all(not Path(entry["path"]).is_absolute() for entry in report["files"])
+          assert all(".." not in Path(entry["path"]).parts for entry in report["files"])
+          PY
+
+      - name: Validate representative report against schema
+        run: |
+          python -m pip install --disable-pip-version-check jsonschema
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import jsonschema
+
+          schema = json.loads(Path("docs/ai-agent/OTBM_STORAGE_GRAPH.schema.json").read_text(encoding="utf-8"))
+          report = json.loads(Path("artifacts/OTBM_STORAGE_GRAPH.json").read_text(encoding="utf-8"))
+          jsonschema.validate(report, schema)
+          PY
+
+      - name: Assemble local Phase 5 toolkit
+        run: |
+          mkdir -p artifacts/toolkit
+          cp tools/ai-agent/otbm_storage_graph*.py artifacts/toolkit/
+          cp tools/ai-agent/quest_map_validation*.py artifacts/toolkit/
+          cp docs/ai-agent/OTBM_STORAGE_GRAPH.schema.json artifacts/toolkit/
+          cp docs/ai-agent/OTBM_STORAGE_GRAPH.md artifacts/toolkit/
+
+      - name: Upload evidence and toolkit
+        uses: actions/upload-artifact@v4
+        with:
+          name: otbm-storage-graph
+          path: artifacts
+          if-no-files-found: error
+          retention-days: 14
