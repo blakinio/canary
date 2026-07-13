@@ -17,9 +17,9 @@ private/local OTBM world index (.widx)
   -> canary-quest-map-validation-v1
 ```
 
-This separation lets CI inspect public source code without requiring a private or very large map artifact. Local agents can then correlate the deterministic evidence artifact with the approved map snapshot.
+This separation lets CI inspect public source code without requiring a private or very large map artifact. Local agents can then correlate deterministic evidence with an approved map snapshot.
 
-The validator is read-only. It does not execute Lua, modify the OTBM, edit scripts, invent identifiers or generate gameplay fixes.
+The validator is read-only. It does not execute Lua, modify OTBM, edit scripts, invent identifiers or generate gameplay fixes.
 
 ## Source scan
 
@@ -30,15 +30,13 @@ python tools/ai-agent/quest_map_validation_tool.py scan \
   --repository-root . \
   --source-root data \
   --source-root data-otservbr-global \
-  --include 'data-otservbr-global/scripts/quests/*.lua' \
-  --include 'data-otservbr-global/scripts/quests/**/*.lua' \
-  --include 'data-otservbr-global/npc/*.lua' \
-  --include 'data-otservbr-global/npc/**/*.lua' \
+  --include 'data-otservbr-global/scripts/quests/example/*.lua' \
+  --include 'data-otservbr-global/scripts/quests/example/**/*.lua' \
   --exclude '**/test/**' \
   --output artifacts/QUEST_MAP_EVIDENCE.json
 ```
 
-At least one `--include` is required. The validator never guesses that every Lua file belongs to the same quest.
+At least one `--include` is required. The validator never guesses that every Lua file belongs to one quest.
 
 The source-only report is `canary-quest-map-evidence-v1` and contains:
 
@@ -60,6 +58,7 @@ Supported examples include:
 ```lua
 local reward = 7772
 local exitPosition = Position(33300, 31700, 7)
+local questStorage = Storage.Quest.Example
 
 local action = Action()
 action:aid(45001)
@@ -68,9 +67,11 @@ action:register()
 player:addItem(reward, 1)
 player:removeItem(3031, 100)
 player:teleportTo(exitPosition)
-player:getStorageValue(Storage.Quest.Example)
-player:setStorageValue(Storage.Quest.Example, 1)
+player:getStorageValue(questStorage.Stage)
+player:setStorageValue(questStorage.Stage, 1)
 ```
+
+Direct aliases rooted at `Storage`, such as `questStorage.Stage`, are expanded to their canonical symbolic path. Arbitrary tables, function calls and computed storage keys remain unresolved.
 
 Comments and strings are masked before supplementary extraction, so text such as `"Position(1, 2, 3)"` is not treated as map evidence.
 
@@ -106,11 +107,17 @@ Placement samples are bounded, while every finding retains its exact map count.
 
 ## Classifications
 
-- `confirmed` — selected source evidence and the required map placement both exist; AID/UID handler evidence is confirmed when script-resolution is available.
-- `map-only` — a map placement exists, but the selected sources do not establish a confirmed matching handler/reference.
-- `script-only` — selected source evidence expects an item, identifier or tile absent from the indexed map.
-- `unresolved` — evidence is insufficient or belongs to a later semantic phase, such as storage progression.
+- `confirmed` — selected evidence and the map fact required for that evidence were both found; AID/UID handler evidence is confirmed through script-resolution when supplied.
+- `map-only` — a map mechanic exists, but the selected sources do not establish a confirmed matching handler/reference.
+- `script-only` — an AID, UID, explicit position registration or teleport destination required by selected sources is absent from the indexed map.
+- `unresolved` — evidence is insufficient, dynamic or belongs to a later semantic phase.
 - `conflicting` — script-resolution found competing handlers for the same runtime event.
+
+The following conservative rules prevent false defects:
+
+- an item ID absent from static OTBM is `unresolved`, not automatically `script-only`, because rewards, inventory items and dynamically created items may never be placed on the map;
+- a generic `Position()` absent from OTBM is `unresolved`, because it may be an area bound, center or transient coordinate;
+- an absent explicit position registration or teleport destination is `script-only` because that mechanic requires an actual tile.
 
 `ok` is false only for confirmed conflicts. `complete` requires no map-only, script-only, unresolved or conflicting result and no unresolved source expressions.
 
@@ -130,26 +137,32 @@ When a bounded region is supplied, the validator enumerates indexed mechanics an
 
 This is useful for identifying a chest, lever or teleport near a selected quest area that was omitted from the reviewed source set. It is not proof that the mechanic is broken; dynamic or shared handlers may require manual review.
 
-## CI artifact
+## CI artifacts
 
 `.github/workflows/quest-map-validation.yml`:
 
-1. runs focused tests;
-2. compiles the Python modules;
-3. scans selected active source families without an OTBM;
-4. validates the JSON shape and invariants;
-5. uploads `QUEST_MAP_EVIDENCE.json` for local correlation.
+1. compiles the existing native OTBM scanner with warnings as errors;
+2. runs self-contained synthetic map tests;
+3. compiles the Python modules and validates the JSON Schema syntax;
+4. scans the explicitly selected Zirella tutorial quest file as a representative source-only smoke test;
+5. verifies report counts, IDs and provenance invariants;
+6. uploads `QUEST_MAP_EVIDENCE.json` plus diagnostics;
+7. uploads a local-correlation toolkit containing the scanner and required Python modules.
 
 The workflow does not upload `.otbm`, `.widx`, client assets or generated map renders.
 
-## Safety and failure behavior
+## Output safety
 
-- repository-relative source paths are recorded; local absolute paths are not required for evidence identity;
+Generated JSON is published atomically. Existing output symlinks are rejected so a validator invocation cannot overwrite an unintended target.
+
+Additional failure behavior:
+
+- repository-relative source paths are recorded;
 - include/exclude selection is deterministic;
 - source files receive SHA-256 provenance;
 - malformed evidence, script-resolution formats or corrupt world indexes fail closed;
 - query sample limits and region volumes are bounded;
-- generated JSON reports remain artifacts and are not committed;
+- generated reports remain artifacts and are not committed;
 - no map-writing API exists.
 
 ## Current limitations
@@ -170,4 +183,8 @@ python -m py_compile \
   tools/ai-agent/quest_map_validation.py \
   tools/ai-agent/quest_map_validation_tool.py \
   tools/ai-agent/test_quest_map_validation.py
+
+python -m json.tool \
+  docs/ai-agent/QUEST_MAP_VALIDATION.schema.json \
+  > /dev/null
 ```
