@@ -1,4 +1,4 @@
-name: Imbuement Live Parity Patch
+name: Imbuement Storage Discovery
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  patch:
+  discover:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -19,166 +19,28 @@ jobs:
           ref: fix/imbuement-live-parity
           fetch-depth: 0
 
-      - name: Discover active quest completion evidence
+      - name: Capture active quest storage references
         shell: bash
         run: |
-          set -o pipefail
-          echo '=== Dangerous Depths references ==='
-          rg -n --glob '*.lua' 'DangerousDepths|TheCountOfTheCore|TheDukeOfTheDepths|TheBaronFromBelow' data-otservbr-global | head -400 || true
-          echo '=== Dream Courts references ==='
-          rg -n --glob '*.lua' 'TheDreamCourts|DreamScar|BossCount|NightmareTimer|Malofur' data-otservbr-global | head -500 || true
+          {
+            echo '# Dangerous Depths symbolic references'
+            rg -n --glob '*.lua' 'DangerousDepths|TheCountOfTheCore|TheDukeOfTheDepths|TheBaronFromBelow' data-otservbr-global || true
+            echo
+            echo '# Dangerous Depths numeric references'
+            rg -n --glob '*.lua' '45851|45852|45860|45875|45923|45924|45925|45929' data-otservbr-global || true
+            echo
+            echo '# Dream Courts symbolic references'
+            rg -n --glob '*.lua' 'TheDreamCourts|DreamScar|BossCount|Maxxenius|Alptramun|PlagueRoot|Izcandar|Malofur|Nightmare' data-otservbr-global || true
+            echo
+            echo '# Dream Courts numeric references'
+            rg -n --glob '*.lua' '46301|46347|46348|46349|46350|46351|46352|46353|46354|46355|46368' data-otservbr-global || true
+          } > docs/ai-agent/IMBUEMENT_STORAGE_DISCOVERY.tmp
 
-      - name: Apply confirmed live Tibia values and regression contracts
+      - name: Commit discovery evidence
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
-
-          def replace_once(path: str, old: str, new: str) -> None:
-              file = Path(path)
-              text = file.read_text(encoding='utf-8')
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f'{path}: expected one occurrence, found {count}: {old[:80]!r}')
-              file.write_text(text.replace(old, new, 1), encoding='utf-8')
-
-          xml = 'data/XML/imbuements.xml'
-          replace_once(xml,
-              '\t<base id="1" name="Basic" price="5000" protectionPrice="10000" percent="90" removecost="15000" duration="72000" />',
-              '\t<base id="1" name="Basic" price="7500" protectionPrice="0" percent="100" removecost="15000" duration="72000" />')
-          replace_once(xml,
-              '\t<base id="2" name="Intricate" price="30000" protectionPrice="30000" percent="70" removecost="15000" duration="72000" />',
-              '\t<base id="2" name="Intricate" price="60000" protectionPrice="0" percent="100" removecost="15000" duration="72000" />')
-          replace_once(xml,
-              '\t<base id="3" name="Powerful" price="200000" protectionPrice="50000" percent="50" removecost="15000" duration="72000" />',
-              '\t<base id="3" name="Powerful" price="250000" protectionPrice="0" percent="100" removecost="15000" duration="72000" />')
-
-          for old, new in (
-              ('Raises crit hit damage by 15% and crit hit chance by 10%.', 'Raises critical hit damage by 5% and critical hit chance by 5%.'),
-              ('type="skill" value="critical" bonus="1500" chance="1000"', 'type="skill" value="critical" bonus="500" chance="500"'),
-              ('Raises crit hit damage by 25% and crit hit chance by 10%.', 'Raises critical hit damage by 15% and critical hit chance by 5%.'),
-              ('type="skill" value="critical" bonus="2500" chance="1000"', 'type="skill" value="critical" bonus="1500" chance="500"'),
-              ('Raises crit hit damage by 50% and crit hit chance by 10%.', 'Raises critical hit damage by 40% and critical hit chance by 5%.'),
-              ('type="skill" value="critical" bonus="5000" chance="1000"', 'type="skill" value="critical" bonus="4000" chance="500"'),
-              ('<attribute key="item" value="9690" count="20" />', '<attribute key="item" value="10281" count="25" />'),
-          ):
-              replace_once(xml, old, new)
-
-          test_path = Path('tools/ai-agent/test_imbuement_validation.py')
-          text = test_path.read_text(encoding='utf-8')
-          pattern = re.compile(
-              r'    def test_current_reference_differences_are_detected\(self\) -> None:\n.*?(?=    def test_vibrancy_scrolls_resolve_to_exact_tiers)',
-              re.S,
-          )
-          replacement = '''    def test_confirmed_live_reference_values_match(self) -> None:\n        grouped: dict[str, list[validation.Finding]] = {}\n        for finding in self.findings:\n            grouped.setdefault(finding.code, []).append(finding)\n\n        self.assertEqual(grouped.get("WIKI_EFFECT", []), [])\n        self.assertEqual(grouped.get("WIKI_MATERIALS", []), [])\n        self.assertEqual(grouped.get("WIKI_SCROLL", []), [])\n        self.assertEqual(grouped.get("WIKI_FEE_MODEL", []), [])\n\n        unlock_messages = {\n            finding.message\n            for finding in grouped.get("WIKI_POWERFUL_UNLOCK", [])\n        }\n        self.assertTrue(any("Featherweight" in message for message in unlock_messages))\n        self.assertTrue(any("Vibrancy" in message for message in unlock_messages))\n\n'''
-          text, count = pattern.subn(replacement, text, count=1)
-          if count != 1:
-              raise SystemExit(f'{test_path}: failed to replace current-reference test')
-          test_path.write_text(text, encoding='utf-8')
-
-          fixture = 'tests/fixture/core/XML/imbuements.xml'
-          replace_once(fixture,
-              '\t<base id="1" name="Basic" price="0" protectionPrice="0" percent="42" removecost="0" duration="3600" />\n\t<base id="2" name="Intricate" price="0" protectionPrice="0" percent="100" removecost="0" duration="72000" />\n\t<base id="3" name="Powerful" price="0" protectionPrice="0" percent="100" removecost="0" duration="72000" />',
-              '\t<base id="1" name="Basic" price="7500" protectionPrice="0" percent="100" removecost="15000" duration="72000" />\n\t<base id="2" name="Intricate" price="60000" protectionPrice="0" percent="100" removecost="15000" duration="72000" />\n\t<base id="3" name="Powerful" price="250000" protectionPrice="0" percent="100" removecost="15000" duration="72000" />')
-          replace_once(fixture,
-              '\t<category id="15" name="Skillboost (Distance Fighting)" agressive="1" />\n\t<category id="19" name="Paralysis Deflection" agressive="0" />',
-              '\t<category id="3" name="Critical Hit" agressive="1" />\n\t<category id="15" name="Skillboost (Distance Fighting)" agressive="1" />\n\t<category id="18" name="Skillboost (Fist Fighting)" agressive="1" />\n\t<category id="19" name="Paralysis Deflection" agressive="0" />')
-          fixture_insert = '''\n\t<imbuement name="Strike" base="1" category="3" iconid="1" premium="0" storage="0">\n\t\t<attribute key="description" value="Raises critical hit damage by 5% and critical hit chance by 5%." />\n\t\t<attribute key="effect" type="skill" value="critical" bonus="500" chance="500" />\n\t\t<attribute key="item" value="11444" count="20" />\n\t</imbuement>\n\t<imbuement name="Strike" base="2" category="3" iconid="1" premium="1" storage="0">\n\t\t<attribute key="description" value="Raises critical hit damage by 15% and critical hit chance by 5%." />\n\t\t<attribute key="effect" type="skill" value="critical" bonus="1500" chance="500" />\n\t\t<attribute key="item" value="11444" count="20" />\n\t\t<attribute key="item" value="10311" count="25" />\n\t</imbuement>\n\t<imbuement name="Strike" base="3" category="3" iconid="1" premium="1" storage="45495">\n\t\t<attribute key="description" value="Raises critical hit damage by 40% and critical hit chance by 5%." />\n\t\t<attribute key="effect" type="skill" value="critical" bonus="4000" chance="500" />\n\t\t<attribute key="item" value="11444" count="20" />\n\t\t<attribute key="item" value="10311" count="25" />\n\t\t<attribute key="item" value="22728" count="5" />\n\t</imbuement>\n\t<imbuement name="Punch" base="1" category="18" iconid="61" premium="0" storage="0">\n\t\t<attribute key="description" value="Raises fist fighting skill by 1." />\n\t\t<attribute key="effect" type="skill" value="fist" bonus="1" />\n\t\t<attribute key="item" value="10281" count="25" />\n\t</imbuement>\n'''
-          replace_once(fixture, '\n\t<imbuement name="Vibrancy" base="2"', fixture_insert + '\n\t<imbuement name="Vibrancy" base="2"')
-
-          cpp_path = Path('tests/unit/players/imbuements/imbuements_test.cpp')
-          cpp = cpp_path.read_text(encoding='utf-8')
-          old_test = '''\tTEST_F(ImbuementsUnitTest, LoadsBasePercentAndSkillBonus) {\n\t\tauto* base = g_imbuements().getBaseByID(1);\n\t\tASSERT_NE(nullptr, base);\n\t\tEXPECT_EQ(42, base->percent);\n\n\t\tauto* imbuement = g_imbuements().getImbuement(1);\n\t\tASSERT_NE(nullptr, imbuement);\n\t\tEXPECT_EQ("Precision", imbuement->getName());\n\t\tEXPECT_EQ("Boosts distance.", imbuement->getDescription());\n\t\tEXPECT_EQ(3, imbuement->skills[SKILL_DISTANCE]);\n\t}\n'''
-          new_test = '''\tTEST_F(ImbuementsUnitTest, LoadsLiveFeesAndSkillBonus) {\n\t\tstruct BaseExpected {\n\t\t\tuint16_t id;\n\t\t\tuint32_t price;\n\t\t};\n\t\tconst std::array expectedBases {\n\t\t\tBaseExpected { 1, 7500 },\n\t\t\tBaseExpected { 2, 60000 },\n\t\t\tBaseExpected { 3, 250000 },\n\t\t};\n\t\tfor (const auto &[id, price] : expectedBases) {\n\t\t\tconst auto* base = g_imbuements().getBaseByID(id);\n\t\t\tASSERT_NE(nullptr, base);\n\t\t\tEXPECT_EQ(price, base->price);\n\t\t\tEXPECT_EQ(0U, base->protectionPrice);\n\t\t\tEXPECT_EQ(100U, base->percent);\n\t\t\tEXPECT_EQ(15000U, base->removeCost);\n\t\t\tEXPECT_EQ(72000U, base->duration);\n\t\t}\n\n\t\tauto* imbuement = g_imbuements().getImbuement(1);\n\t\tASSERT_NE(nullptr, imbuement);\n\t\tEXPECT_EQ("Precision", imbuement->getName());\n\t\tEXPECT_EQ("Boosts distance.", imbuement->getDescription());\n\t\tEXPECT_EQ(3, imbuement->skills[SKILL_DISTANCE]);\n\t}\n\n\tTEST_F(ImbuementsUnitTest, LoadsLiveStrikeAndBasicPunchData) {\n\t\tstruct StrikeExpected {\n\t\t\tuint16_t id;\n\t\t\tint32_t damage;\n\t\t\tint32_t chance;\n\t\t};\n\t\tconst std::array expectedStrikes {\n\t\t\tStrikeExpected { 2, 500, 500 },\n\t\t\tStrikeExpected { 3, 1500, 500 },\n\t\t\tStrikeExpected { 4, 4000, 500 },\n\t\t};\n\t\tfor (const auto &[id, damage, chance] : expectedStrikes) {\n\t\t\tconst auto* strike = g_imbuements().getImbuement(id);\n\t\t\tASSERT_NE(nullptr, strike);\n\t\t\tEXPECT_EQ("Strike", strike->getName());\n\t\t\tEXPECT_EQ(damage, strike->skills[SKILL_CRITICAL_HIT_DAMAGE]);\n\t\t\tEXPECT_EQ(chance, strike->skills[SKILL_CRITICAL_HIT_CHANCE]);\n\t\t}\n\n\t\tconst auto* punch = g_imbuements().getImbuement(5);\n\t\tASSERT_NE(nullptr, punch);\n\t\tEXPECT_EQ("Punch", punch->getName());\n\t\tconst std::vector<std::pair<uint16_t, uint16_t>> expectedItems { { 10281, 25 } };\n\t\tEXPECT_EQ(expectedItems, punch->getItems());\n\t}\n'''
-          if old_test not in cpp:
-              raise SystemExit(f'{cpp_path}: original loader test not found')
-          cpp_path.write_text(cpp.replace(old_test, new_test, 1), encoding='utf-8')
-
-          report_path = Path('docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md')
-          report = report_path.read_text(encoding='utf-8')
-          report = report.replace(
-              '> **Status:** IMB-004 implemented in PR #239; IMB-005 repaired by PR #206; final CI pending',
-              '> **Status:** IMB-001/002/003 repaired in PR #251; IMB-004/005 preserved; IMB-006 evidence pending; final CI pending',
-              1,
-          )
-          report = report.replace(
-              "This report validates Canary's active Imbuing definitions and runtime wiring and records the focused repairs of the Forgotten Knowledge Powerful unlock storages and the Intricate/Powerful Vibrancy scroll resolution defect.",
-              "This report validates Canary's active Imbuing definitions and runtime wiring and records the focused live-Tibia repairs for fees, Strike, Basic Punch, Forgotten Knowledge storages and Vibrancy scroll resolution.",
-              1,
-          )
-          current_pattern = re.compile(r'## 4\. Current result\n.*?(?=## 5\. Findings)', re.S)
-          current = '''## 4. Current result\n\nThe active system is structurally complete and its major runtime paths are connected. PR #251 aligns the confirmed current-live application fees, Strike values and Basic Punch materials. PR #206 and PR #239 remain preserved.\n\nThe only remaining material reference discrepancy is IMB-006: Powerful Featherweight and Vibrancy still use `storage=0` because their exact active completion storage/value semantics have not yet been proven from the implemented quest paths.\n\n'''
-          report, count = current_pattern.subn(current, report, count=1)
-          if count != 1:
-              raise SystemExit('report: current result section not replaced')
-
-          finding_pattern = re.compile(r'### IMB-001 .*?(?=### IMB-004)', re.S)
-          findings = '''### IMB-001 — current fixed application fees repaired\n\n**Disposition:** `repaired-in-pr-251`\n**Confidence:** high\n\n| Tier | Active fee | Success | Protection surcharge | Current reference fee |\n|---|---:|---:|---:|---:|\n| Basic | 7,500 | 100% | 0 | 7,500 |\n| Intricate | 60,000 | 100% | 0 | 60,000 |\n| Powerful | 250,000 | 100% | 0 | 250,000 |\n\nThe user explicitly selected current live Tibia rather than the historical chance/protection model. `Player::onApplyImbuement` charges the registry price and applies deterministically; the protocol reads price, percent and protection price from the same registry, so one XML authority now drives server mutation and UI presentation.\n\n### IMB-002 — Strike critical values repaired\n\n**Disposition:** `repaired-in-pr-251`\n**Confidence:** high\n\n| Tier | Active/current value |\n|---|---|\n| Basic | 5% chance, +5% damage |\n| Intricate | 5% chance, +15% damage |\n| Powerful | 5% chance, +40% damage |\n\nThe loader stores the exact chance and damage values in the critical skill slots. Focused C++ and deterministic Python tests enforce all three tiers.\n\n### IMB-003 — Basic Punch source repaired\n\n**Disposition:** `repaired-in-pr-251`\n**Confidence:** high\n\n| Tier | Active/current material chain |\n|---|---|\n| Basic | item `10281` ×25 |\n| Intricate | item `10281` ×25 + item `11489` ×20 |\n| Powerful | previous sources + item `40529` ×15 |\n\nOnly the Basic entry changed. Higher-tier cumulative chains remain unchanged and validator-covered.\n\n'''
-          report, count = finding_pattern.subn(findings, report, count=1)
-          if count != 1:
-              raise SystemExit('report: IMB-001..003 sections not replaced')
-          report = report.replace('- all non-Strike effect values match the scanner baseline;', '- all effect values match the current scanner baseline;', 1)
-          report = report.replace('- all material chains except Basic Punch match that baseline;', '- all material chains match the current scanner baseline;', 1)
-          report = report.replace(
-              '2. Decide the target Imbuing economy/version before changing fees or success logic.\n3. Fix Strike and Basic Punch in a separate data-fidelity PR.\n4. Execute the remaining runtime plan in controlled Canary staging.\n5. Audit full equipment eligibility against item metadata.',
-              '2. Execute the remaining runtime plan in controlled Canary staging.\n3. Audit full equipment eligibility against item metadata.',
-              1,
-          )
-          report_path.write_text(report, encoding='utf-8')
-
-          changelog = Path('docs/agents/CHANGELOG.md')
-          change_text = changelog.read_text(encoding='utf-8')
-          marker = '## Unreleased\n'
-          entry = '\n- PR #251 aligns the Imbuement registry with the selected current live Tibia mechanics: fixed application fees of 7,500/60,000/250,000 gold at 100% success with no protection surcharge, Strike at 5% chance and +5%/+15%/+40% damage, and Basic Punch using item 10281 x25; existing Forgotten Knowledge and Vibrancy scroll repairs remain preserved.\n'
-          if entry.strip() not in change_text:
-              if marker not in change_text:
-                  raise SystemExit('changelog: Unreleased marker missing')
-              change_text = change_text.replace(marker, marker + entry, 1)
-              changelog.write_text(change_text, encoding='utf-8')
-
-          catalog = Path('docs/agents/MODULE_CATALOG.md')
-          catalog_text = catalog.read_text(encoding='utf-8')
-          old = '| Imbuement validation and Forgotten Knowledge storage remediation | merged (#166, #206) | Deterministic audit of Imbuing XML/reference values, scroll/runtime wiring and storage declarations; strict regression for exact Powerful family-to-boss-storage grouping | `tools/ai-agent/imbuement_validation.py`, `imbuement_storage_validation.py`, focused tests, `.github/workflows/imbuement-validation.yml`, `docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md`, `IMBUEMENT_RUNTIME_TEST_PLAN.json` | Reuse for Imbuing drift checks. Nonzero storages must be declared and match the exact `45489..45495` groups. Featherweight/Vibrancy `storage=0`, Vibrancy scrolls, economy target, Strike and Punch remain explicit follow-ups rather than guessed fixes. |'
-          new = '| Imbuement validation and live-data remediation | merged audit/storage/scroll baseline (#166, #206, #239); live fee/Strike/Punch repair active (#251) | Deterministic audit of Imbuing XML/reference values, scroll/runtime wiring and storage declarations; strict regression for exact Powerful family-to-boss-storage grouping and current live fees/effects/materials | `tools/ai-agent/imbuement_validation.py`, `imbuement_storage_validation.py`, focused tests, `.github/workflows/imbuement-validation.yml`, `docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md`, `IMBUEMENT_RUNTIME_TEST_PLAN.json` | Reuse for Imbuing drift checks. Nonzero storages must be declared and match the exact `45489..45495` groups. Vibrancy scrolls and confirmed live fee/Strike/Punch values are regression-covered; Featherweight/Vibrancy unlock storages remain evidence-gated rather than guessed. |'
-          if old not in catalog_text:
-              raise SystemExit('catalog: Imbuement row not found')
-          catalog.write_text(catalog_text.replace(old, new, 1), encoding='utf-8')
-
-          task = Path('docs/agents/tasks/active/CAN-20260713-imbuement-live-parity.md')
-          task_text = task.read_text(encoding='utf-8')
-          task_text = task_text.replace(
-              '    - docs/agents/CHANGELOG.md\n',
-              '    - docs/agents/CHANGELOG.md\n    - docs/agents/MODULE_CATALOG.md\n',
-              1,
-          )
-          task_text = task_text.replace('related_pr: "pending"', 'related_pr: "#251"', 1)
-          task.write_text(task_text, encoding='utf-8')
-          PY
-
-          python tools/ai-agent/imbuement_validation.py \
-            --repository-root . \
-            --output /tmp/IMBUEMENT_VALIDATION.json \
-            --runtime-plan docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json
-
-      - name: Commit confirmed repairs
-        shell: bash
-        run: |
-          if git diff --quiet; then
-            echo 'No patch changes to commit.'
-            exit 0
-          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add \
-            data/XML/imbuements.xml \
-            tools/ai-agent/test_imbuement_validation.py \
-            tests/fixture/core/XML/imbuements.xml \
-            tests/unit/players/imbuements/imbuements_test.cpp \
-            docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md \
-            docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json \
-            docs/agents/CHANGELOG.md \
-            docs/agents/MODULE_CATALOG.md \
-            docs/agents/tasks/active/CAN-20260713-imbuement-live-parity.md
-          git commit -m 'fix(imbuement): align confirmed live Tibia values'
+          git add docs/ai-agent/IMBUEMENT_STORAGE_DISCOVERY.tmp
+          git commit -m 'docs(imbuement): capture quest storage discovery'
           git push origin HEAD:fix/imbuement-live-parity
