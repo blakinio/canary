@@ -1,61 +1,124 @@
 {
   "format": "canary-achievement-reviewed-evidence-v1",
   "reviewedAt": "2026-07-13",
-  "scope": "Evidence already proven by the dedicated Weapon Proficiency achievement audit and its bounded runtime follow-up.",
+  "scope": "Reviewed Weapon Proficiency evidence including threshold awards/backfill for 564-566 and the still-separate secret achievement 567.",
   "entries": [
     {
       "id": 564,
-      "status": "handler-missing",
-      "reason": "The definition exists, but the dedicated bounded audit found no active Weapon Proficiency or textual award path. Mastery-state correctness and the count API were repaired separately without adding awards.",
+      "status": "partially-confirmed",
+      "reason": "The definition, exact mastered-weapon threshold, live mastery-transition award hook and login-time existing-player reconciliation are implemented and unit-covered. Full runtime/E2E remains unproven.",
       "evidence": [
-        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 34, "kind": "definition-present"},
-        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 67, "kind": "confirmed-missing-award-path"},
-        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 5, "kind": "runtime-remediation-boundary"}
+        {
+          "path": "src/creatures/players/components/weapon_proficiency.cpp",
+          "line": 347,
+          "kind": "threshold-map"
+        },
+        {
+          "path": "src/creatures/players/components/weapon_proficiency.cpp",
+          "line": 359,
+          "kind": "canonical-award-api"
+        },
+        {
+          "path": "src/creatures/players/components/weapon_proficiency.cpp",
+          "line": 294,
+          "kind": "existing-player-reconciliation"
+        },
+        {
+          "path": "tests/unit/players/components/weapon_proficiency_test.cpp",
+          "line": 85,
+          "kind": "threshold-unit-test"
+        }
       ],
-      "persistenceBackfill": "unresolved",
-      "newPlayerAttainability": "handler-missing",
-      "existingPlayerAttainability": "unresolved",
+      "persistenceBackfill": "implemented-login-reconciliation",
+      "newPlayerAttainability": "partially-confirmed",
+      "existingPlayerAttainability": "partially-confirmed",
       "runtimeE2EProven": false,
-      "testStatus": "missing"
+      "testStatus": "unit-covered"
     },
     {
       "id": 565,
-      "status": "handler-missing",
-      "reason": "The definition exists, but the dedicated bounded audit found no active Weapon Proficiency or textual award path. Mastery-state correctness and the count API were repaired separately without adding awards.",
+      "status": "partially-confirmed",
+      "reason": "The definition, exact mastered-weapon threshold, live mastery-transition award hook and login-time existing-player reconciliation are implemented and unit-covered. Full runtime/E2E remains unproven.",
       "evidence": [
-        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 35, "kind": "definition-present"},
-        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 67, "kind": "confirmed-missing-award-path"},
-        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 5, "kind": "runtime-remediation-boundary"}
+        {
+          "path": "src/creatures/players/components/weapon_proficiency.cpp",
+          "line": 347,
+          "kind": "threshold-map"
+        },
+        {
+          "path": "src/creatures/players/components/weapon_proficiency.cpp",
+          "line": 359,
+          "kind": "canonical-award-api"
+        },
+        {
+          "path": "src/creatures/players/components/weapon_proficiency.cpp",
+          "line": 294,
+          "kind": "existing-player-reconciliation"
+        },
+        {
+          "path": "tests/unit/players/components/weapon_proficiency_test.cpp",
+          "line": 85,
+          "kind": "threshold-unit-test"
+        }
       ],
-      "persistenceBackfill": "unresolved",
-      "newPlayerAttainability": "handler-missing",
-      "existingPlayerAttainability": "unresolved",
+      "persistenceBackfill": "implemented-login-reconciliation",
+      "newPlayerAttainability": "partially-confirmed",
+      "existingPlayerAttainability": "partially-confirmed",
       "runtimeE2EProven": false,
-      "testStatus": "missing"
+      "testStatus": "unit-covered"
     },
     {
       "id": 566,
-      "status": "handler-missing",
-      "reason": "The definition exists, but the dedicated bounded audit found no active Weapon Proficiency or textual award path. Mastery-state correctness and the count API were repaired separately without adding awards.",
+      "status": "partially-confirmed",
+      "reason": "The definition, exact mastered-weapon threshold, live mastery-transition award hook and login-time existing-player reconciliation are implemented and unit-covered. Full runtime/E2E remains unproven.",
       "evidence": [
-        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 36, "kind": "definition-present"},
-        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 67, "kind": "confirmed-missing-award-path"},
-        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 5, "kind": "runtime-remediation-boundary"}
+        {
+          "path": "src/creatures/players/components/weapon_proficiency.cpp",
+          "line": 347,
+          "kind": "threshold-map"
+        },
+        {
+          "path": "src/creatures/players/components/weapon_proficiency.cpp",
+          "line": 359,
+          "kind": "canonical-award-api"
+        },
+        {
+          "path": "src/creatures/players/components/weapon_proficiency.cpp",
+          "line": 294,
+          "kind": "existing-player-reconciliation"
+        },
+        {
+          "path": "tests/unit/players/components/weapon_proficiency_test.cpp",
+          "line": 85,
+          "kind": "threshold-unit-test"
+        }
       ],
-      "persistenceBackfill": "unresolved",
-      "newPlayerAttainability": "handler-missing",
-      "existingPlayerAttainability": "unresolved",
+      "persistenceBackfill": "implemented-login-reconciliation",
+      "newPlayerAttainability": "partially-confirmed",
+      "existingPlayerAttainability": "partially-confirmed",
       "runtimeE2EProven": false,
-      "testStatus": "missing"
+      "testStatus": "unit-covered"
     },
     {
       "id": 567,
       "status": "conflicting",
       "reason": "The current external reference defines the achievement, but Canary has no registry definition or award path. The exact twelve-item proficiency contract is proven, which is not authorization to implement it inside this validation PR.",
       "evidence": [
-        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 37, "kind": "definition-absent"},
-        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 39, "kind": "award-path-absent"},
-        {"path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md", "line": 107, "kind": "secret-item-contract"}
+        {
+          "path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md",
+          "line": 37,
+          "kind": "definition-absent"
+        },
+        {
+          "path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md",
+          "line": 39,
+          "kind": "award-path-absent"
+        },
+        {
+          "path": "docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md",
+          "line": 107,
+          "kind": "secret-item-contract"
+        }
       ],
       "persistenceBackfill": "unresolved",
       "newPlayerAttainability": "conflicting",
