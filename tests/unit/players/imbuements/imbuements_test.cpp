@@ -95,16 +95,57 @@ namespace {
 		inline static std::optional<ItemType> originalPowerfulScroll;
 	};
 
-	TEST_F(ImbuementsUnitTest, LoadsBasePercentAndSkillBonus) {
-		auto* base = g_imbuements().getBaseByID(1);
-		ASSERT_NE(nullptr, base);
-		EXPECT_EQ(42, base->percent);
+	TEST_F(ImbuementsUnitTest, LoadsLiveFeesAndSkillBonus) {
+		struct BaseExpected {
+			uint16_t id;
+			uint32_t price;
+		};
+		const std::array expectedBases {
+			BaseExpected { 1, 7500 },
+			BaseExpected { 2, 60000 },
+			BaseExpected { 3, 250000 },
+		};
+		for (const auto &[id, price] : expectedBases) {
+			const auto* base = g_imbuements().getBaseByID(id);
+			ASSERT_NE(nullptr, base);
+			EXPECT_EQ(price, base->price);
+			EXPECT_EQ(0U, base->protectionPrice);
+			EXPECT_EQ(100U, base->percent);
+			EXPECT_EQ(15000U, base->removeCost);
+			EXPECT_EQ(72000U, base->duration);
+		}
 
 		auto* imbuement = g_imbuements().getImbuement(1);
 		ASSERT_NE(nullptr, imbuement);
 		EXPECT_EQ("Precision", imbuement->getName());
 		EXPECT_EQ("Boosts distance.", imbuement->getDescription());
 		EXPECT_EQ(3, imbuement->skills[SKILL_DISTANCE]);
+	}
+
+	TEST_F(ImbuementsUnitTest, LoadsLiveStrikeAndBasicPunchData) {
+		struct StrikeExpected {
+			uint16_t id;
+			int32_t damage;
+			int32_t chance;
+		};
+		const std::array expectedStrikes {
+			StrikeExpected { 2, 500, 500 },
+			StrikeExpected { 3, 1500, 500 },
+			StrikeExpected { 4, 4000, 500 },
+		};
+		for (const auto &[id, damage, chance] : expectedStrikes) {
+			const auto* strike = g_imbuements().getImbuement(id);
+			ASSERT_NE(nullptr, strike);
+			EXPECT_EQ("Strike", strike->getName());
+			EXPECT_EQ(damage, strike->skills[SKILL_CRITICAL_HIT_DAMAGE]);
+			EXPECT_EQ(chance, strike->skills[SKILL_CRITICAL_HIT_CHANCE]);
+		}
+
+		const auto* punch = g_imbuements().getImbuement(5);
+		ASSERT_NE(nullptr, punch);
+		EXPECT_EQ("Punch", punch->getName());
+		const std::vector<std::pair<uint16_t, uint16_t>> expectedItems { { 10281, 25 } };
+		EXPECT_EQ(expectedItems, punch->getItems());
 	}
 
 	TEST_F(ImbuementsUnitTest, ResolvesIntricateAndPowerfulVibrancyScrolls) {
