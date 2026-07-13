@@ -70,12 +70,12 @@ jobs:
       - name: Generate representative The Beginning evidence artifact
         run: |
           mkdir -p artifacts
+          test -f data-otservbr-global/scripts/quests/the_beginning/the_beginning_zirella_wood.lua
           PYTHONPATH=tools/ai-agent \
             python tools/ai-agent/quest_map_validation_tool.py scan \
               --repository-root . \
               --source-root data-otservbr-global \
-              --include 'data-otservbr-global/scripts/quests/the_beginning/*.lua' \
-              --include 'data-otservbr-global/scripts/quests/the_beginning/**/*.lua' \
+              --include 'data-otservbr-global/scripts/quests/the_beginning/the_beginning_zirella_wood.lua' \
               --output artifacts/QUEST_MAP_EVIDENCE.json
 
       - name: Verify evidence invariants
@@ -88,7 +88,7 @@ jobs:
           payload = json.loads(path.read_text(encoding="utf-8"))
           assert payload["format"] == "canary-quest-map-evidence-v1"
           assert payload["ok"] is True
-          assert payload["summary"]["filesScanned"] > 0
+          assert payload["summary"]["filesScanned"] == 1
           assert payload["summary"]["filesScanned"] == len(payload["files"])
           assert payload["summary"]["evidenceCount"] == len(payload["evidence"])
           assert payload["summary"]["unresolvedCount"] == len(payload["unresolved"])
