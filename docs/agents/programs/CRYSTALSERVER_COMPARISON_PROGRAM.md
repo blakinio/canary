@@ -4,8 +4,8 @@ name: CrystalServer Comparison Program
 status: active
 owner: GPT-5.6 Thinking
 created: 2026-07-13T21:01:05Z
-updated: 2026-07-13T21:06:00Z
-last_verified_commit: "360d79ebad5802edd4d89e99d0f210ab19b36b60"
+updated: 2026-07-13T21:21:00Z
+last_verified_commit: "bceccba9349d35a1d84f446757e53ac3adb602e1"
 primary_paths:
   - docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md
   - artifacts/upstream/crystalserver/**
@@ -20,9 +20,9 @@ Continuously compare `zimbadev/crystalserver` with current `blakinio/canary`, us
 
 # Repository and baseline register
 
-Analysis date: 2026-07-13.
+Stage 1 analysis date: 2026-07-13.
 
-| Role | Repository | Baseline `main` SHA | Declared server version | Declared client protocol | Access |
+| Role | Repository | Stage 1 baseline `main` SHA | Declared server version | Declared client protocol | Access |
 |---|---|---|---|---:|---|
 | target | `blakinio/canary` | `360d79ebad5802edd4d89e99d0f210ab19b36b60` | `3.6.1` | `1525` / 15.25 | task branches and PRs only |
 | comparison | `zimbadev/crystalserver` | `fc0d53b9f9965463b6082c07e6d3d482294541a7` | `4.1.9` | `1525` / 15.25 | read-only |
@@ -30,7 +30,9 @@ Analysis date: 2026-07-13.
 
 Last analyzed CrystalServer commit: `fc0d53b9f9965463b6082c07e6d3d482294541a7`.
 
-Every later task must re-fetch all repository heads, open PRs, active ownership, and relevant contracts.
+Stage 1 merged through PR [#291](https://github.com/blakinio/canary/pull/291), squash commit `bceccba9349d35a1d84f446757e53ac3adb602e1`.
+
+Every later task must re-fetch all repository heads, open PRs, active ownership, relevant contracts, and the selected candidate diff.
 
 # Scope
 
@@ -63,15 +65,16 @@ Every later task must re-fetch all repository heads, open PRs, active ownership,
 # Methodology
 
 1. Record current heads, versions/protocols, open PRs, tasks, ownership, and worktree state.
-2. Search broadly, then open each CrystalServer diff and linked discussion.
-3. Split bundled commits into independent behavior units.
-4. Identify the defect trigger, state transition, and impact.
-5. Locate corresponding Canary symbols, tests, and later changes.
-6. Determine whether Canary already has an equivalent or safer solution.
-7. Check CrystalServer-only dependencies and client/protocol/schema/ID/asset coupling.
-8. Define a failing test or deterministic validator before `VALID_FIX_MISSING`.
-9. Assign exactly one status and record uncertainty.
-10. Implement only through a new bounded task after all gates pass.
+2. Continue after the recorded last analyzed CrystalServer commit unless deliberately re-auditing an older area.
+3. Search broadly, then open each CrystalServer diff and linked discussion.
+4. Split bundled commits into independent behavior units.
+5. Identify the defect trigger, state transition, and impact.
+6. Locate corresponding Canary symbols, tests, and later changes.
+7. Determine whether Canary already has an equivalent or safer solution.
+8. Check CrystalServer-only dependencies and client/protocol/schema/ID/asset coupling.
+9. Define a failing test or deterministic validator before `VALID_FIX_MISSING`.
+10. Assign exactly one status and record uncertainty.
+11. Implement only through a new bounded task after all gates pass.
 
 Text similarity, `patch-id`, symbol search, and commit messages are signals, not behavioral proof.
 
@@ -90,19 +93,17 @@ Text similarity, `patch-id`, symbol search, and commit messages are signals, not
 
 # Active tasks
 
-| Task ID | Branch | PR | State | Exact next action |
-|---|---|---:|---|---|
-| `CAN-20260713-crystalserver-comparison-inventory` | `docs/crystalserver-comparison-inventory` | [#291](https://github.com/blakinio/canary/pull/291) | draft | Verify current-head CI; keep draft until all documented checks are satisfied. |
+None. Select exactly one bounded queue item and create a new task before implementation.
 
-# Stage 1 candidate queue
+# Queue
 
 | ID | CrystalServer commit | Status | Risk | Area | Next action |
 |---|---|---|---|---|---|
-| `CS-001` | `a7350014528002fb27ed64d260a96d28a580d41a` | `VALID_FIX_MISSING` | high | `ConditionLight` zero-level division/deserialization | Separate test-first task after inventory merge and ownership check. |
+| `CS-001` | `a7350014528002fb27ed64d260a96d28a580d41a` | `VALID_FIX_MISSING` | high | `ConditionLight` zero-level division/deserialization | Create a separate test-first task after fresh baseline, ownership, and test-harness checks. |
 | `CS-002` | `0c0f1acafd77a86fb5ce56fe768ff6d98d100c35` | `ALREADY_PRESENT` | medium | NPC shop iteration | Closed evidence; no implementation. |
 | `CS-003` | `90ac0eb7d2ba0a88476881c972d9de83fbbcb3e8` | `CANARY_SUPERIOR` | high | KV shared Lua userdata GC | Preserve typed shared-class registration. |
 | `CS-004` | `dcb4f00ffd55ede2399c979eee3b7fe6e7e0ee6e` | `ALREADY_PRESENT` | high | `Container::replaceThing` validation | Closed evidence; no implementation. |
-| `CS-005` | `fc0d53b9f9965463b6082c07e6d3d482294541a7` | `PARTIAL_VALUE` | medium | player GUID index | Benchmark after PR #289 clears `game.cpp`/`game.hpp`. |
+| `CS-005` | `fc0d53b9f9965463b6082c07e6d3d482294541a7` | `PARTIAL_VALUE` | medium | player GUID index | Benchmark only after `game.cpp`/`game.hpp` ownership clears. |
 | `CS-006` | `891685169745e46f665069edcc35847f0704aa21` | `PARTIAL_VALUE` | high | `FS.mkdir` shell construction | Independent security task; do not copy upstream denylist. |
 | `CS-007` | `891685169745e46f665069edcc35847f0704aa21` | `PARTIAL_VALUE` | high | `table.unserialize` execution | Independent compatibility/security task; do not copy bespoke parser. |
 | `CS-008` | `34cbec0c34325619ef23c5d12c940b7b1c276975` | `CLIENT_COUPLED` | high | Market limits | Establish maintained OTClient limits and integration tests. |
@@ -118,14 +119,11 @@ Text similarity, `patch-id`, symbol search, and commit messages are signals, not
 | `55db69b7be12fa7b6a8865038033d953ae8cff18` | `UNVERIFIED` | Corpse/reward parent handling needs current state-transition tests. |
 | `6bda45e7d7b8f0e9a9c55b3b6b779b492504102f` | `UNVERIFIED` | Broad formula rewrite requires official behavior evidence and decomposition. |
 
-# Proposed task sequence
+# Completed work
 
-1. `CS-001`: isolated zero-light crash test and minimal fix.
-2. `CS-006`: `FS.mkdir` trust-boundary and safe filesystem operation.
-3. `CS-007`: serialized-table call-site inventory, corpus, and safe decoder design.
-4. `CS-010`: creature-removal invariant reproduction and lifecycle-safe design.
-5. `CS-008` and `CS-009`: separate maintained-client contract investigations.
-6. `CS-005`: benchmark and index-lifecycle proof after ownership clears.
+| Task/PR | Result | Merge commit | Follow-up |
+|---|---|---|---|
+| `CAN-20260713-crystalserver-comparison-inventory` / [#291](https://github.com/blakinio/canary/pull/291) | Stage 1 program, ten-candidate Markdown report, and machine-readable JSON; no functional changes | `bceccba9349d35a1d84f446757e53ac3adb602e1` | Select `CS-001` only through a new test-first task after fresh checks. |
 
 # Closed candidates
 
@@ -135,9 +133,9 @@ Text similarity, `patch-id`, symbol search, and commit messages are signals, not
 
 # Dependencies and blockers
 
-- Local Git/worktree inspection is unavailable because shell DNS cannot resolve GitHub; local startup commands remain unverified.
-- PR #289 currently overlaps `src/game/game.cpp` and `src/game/game.hpp`.
-- PR #245 is the future reusable physical-client E2E base; client-coupled candidates must not duplicate it.
+- Local Git/worktree inspection was unavailable during Stage 1 because shell DNS could not resolve GitHub; future tasks must record their own environment.
+- Recheck all open PRs before touching `src/game/game.cpp` or `src/game/game.hpp`; Stage 1 found explicit overlap with PR #289.
+- PR #245 is the intended future reusable physical-client E2E base; client-coupled candidates must not duplicate it.
 - `CS-010` cannot use the CrystalServer patch because its return follows partial removal side effects.
 
 # Decisions and invariants
@@ -153,7 +151,7 @@ Text similarity, `patch-id`, symbol search, and commit messages are signals, not
 
 # Validation strategy
 
-- Inventory: Markdown/path review, exact changed-file and full-PR-diff review, `git diff --check`, current-head checks.
+- Inventory/docs: Markdown/path review, exact changed-file and full-PR-diff review, `git diff --check` or documented unavailable environment, current-head checks.
 - C++: failing focused test, correct preset build, focused tests, required platform CI.
 - Lua/security: call-site inventory, compatibility/malicious-input corpus, syntax checks, runtime smoke.
 - DB: clean import, migration/rollback tests, temporary MariaDB integration.
@@ -164,13 +162,13 @@ Text similarity, `patch-id`, symbol search, and commit messages are signals, not
 
 ## Start here
 
-Read `AGENTS.md`, `docs/agents/README.md`, this program, the latest Stage 1 Markdown/JSON reports, active tasks, and open PRs. Re-fetch current heads before selecting work.
+Read `AGENTS.md`, `docs/agents/README.md`, this program, the Stage 1 Markdown/JSON reports, current active tasks, and open PRs. Re-fetch current heads before selecting work.
 
 ## Task creation protocol
 
 1. Select one bounded candidate.
 2. Re-open its CrystalServer diff and discussion.
-3. Compare new current Canary code/tests and revise status if evidence changed.
+3. Compare current Canary code/tests and revise status if evidence changed.
 4. Inspect ownership and overlapping PRs.
 5. Create one task, branch, worktree, and draft PR with exact path claims.
 6. Add failing evidence before the fix where practical.
