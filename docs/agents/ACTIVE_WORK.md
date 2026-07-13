@@ -1,11 +1,12 @@
 # Active Work Index
 
-Last reviewed: 2026-07-12T23:15:00+02:00
+Last reviewed: 2026-07-13T09:27:00+02:00
 
 Open pull requests and current changed files/checks are authoritative. This index helps agents detect likely overlap.
 
 | PR | Branch | State | Area / reusable work | Primary paths | Coordination note |
 |---:|---|---|---|---|---|
+| [#206](https://github.com/blakinio/canary/pull/206) | `fix/imbuement-forgotten-knowledge-storages` | ready | Repair Powerful Imbuement unlock wiring to active Forgotten Knowledge boss storages with exact grouping regression | `data/XML/imbuements.xml`, focused Imbuement storage validator/tests/workflow | Maps 22 Powerful families from seven undeclared legacy IDs to `45489..45495`; final head checks are green, with only Featherweight/Vibrancy `storage=0` retained as an explicit follow-up. |
 | [#156](https://github.com/blakinio/canary/pull/156) | `fix/the-beginning-zirella-door-rewards-clean` | ready; stale base | Zirella reward-room gate and current shovel/rope tutorial UIDs | UID `50085` door Action, quest reward tutorial mapping, focused test | Green final-head validation recorded; currently needs refresh against advanced `main`; no merge performed. |
 | [#157](https://github.com/blakinio/canary/pull/157) | `fix/the-beginning-carlos-flow` | ready | Carlos outfit, gated trade, successful-sale progression | Carlos NPC, focused contract test, task record | AI tools, Lua/Fast checks, Linux build and global datapack smoke passed; no map, item, economy, or engine changes. |
 | [#169](https://github.com/blakinio/canary/pull/169) | `feat/wheel-of-destiny-validation-audit` | draft | Deterministic Wheel of Destiny and Gem Atelier validation | `tools/ai-agent/wheel_of_destiny_validation.py`, focused tests, specialist project/report/runtime-plan docs | Read-only audit first; no Wheel balance, gameplay, protocol, schema, datapack, map or asset changes. |
