@@ -477,6 +477,49 @@ Phase 8's methodology exactly:
   as every other Lua binding file in this series) - reviewed by hand
   against the SQL verified above.
 
+### Phase 11: economic_ledger wired into `playerCancelMarketOffer`
+
+`Game::playerCancelMarketOffer` (`src/game/game.cpp`) is not standalone-
+compilable (same `game/game.hpp` → `mysql.h` → `absl` wall as every other
+engine-glue file in this series), so it was reviewed by hand against a real
+MariaDB 10.11 instance (scratch database `canary_phase11_test`, imported
+from the real `schema.sql`, dropped after):
+
+- Computed the real deterministic UUIDs the new code path produces via a
+  standalone compile of the already-merged, dependency-free
+  `economic_ledger_id.cpp` from Phase 5:
+  `multichannel::computeDeterministicLedgerUuid("market.cancel", 42)` =
+  `fe49ddeb-4440-2e43-0000-00000000002a`, and the same for offer 43 =
+  `...002b` - confirming the namespace tag actually changes the derived UUID
+  (as opposed to accidentally colliding with `"market.expire"`'s keyspace
+  for the same offer id).
+- Replayed the buy-offer cancel sequence by hand: `INSERT` a `PENDING` row
+  with the computed UUID and the currency `amount` populated (no item
+  fields), then `UPDATE ... SET status = 'COMMITTED'` - both statements
+  succeeded exactly as `EconomicLedgerStore::beginPending`/`markCommitted`
+  would issue them.
+- Replayed the sell-offer cancel sequence: `INSERT` a `PENDING` row with
+  `item_id`/`item_count` populated and no `amount`, then `UPDATE ... SET
+  status = 'FAILED'` - confirming the shape `markFailed` writes for an
+  inbox-insertion-failure early exit.
+- Replayed a duplicate cancel of the same offer: a second `INSERT` using
+  the identical offer-42 UUID was correctly rejected with `ERROR 1062
+  (23000): Duplicate entry ... for key 'PRIMARY'` on `transaction_uuid` -
+  the exact replay-protection guarantee the whole design depends on.
+- Hand-traced the store-coin exclusion: confirmed `ITEM_STORE_COIN` is
+  `22118` (`src/utils/utils_definitions.hpp:604`) and that the
+  `isStoreCoinOffer` check is evaluated once, before either the ledger
+  bracket or the `it.id == 0`/`it.id == ITEM_STORE_COIN` branches inside
+  the sell path - so the unconditional `EconomicLedgerStore::markFailed`
+  call inside the `it.id == 0` early-exit branch can never fire when
+  `beginPending` was skipped (`it.id == 0` and `it.id == ITEM_STORE_COIN`
+  are mutually exclusive by construction), ruling out a call to
+  `markFailed` on a transaction that was never begun.
+- `clang-format-18 --dry-run --Werror src/game/game.cpp` passed cleanly.
+- No Lua bindings touched this phase, so `tools/
+  check_lua_api_binding_docs.py`/`check_lua_api_quality.py` are unaffected
+  (confirmed 0 new findings from both).
+
 ## 15.1b Redis Lua CAS script validation — ✅ run against a real `redis-server`
 
 The acquire/renew/release Lua scripts in

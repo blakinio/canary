@@ -521,7 +521,7 @@ follow-up. Also unresolved from Phase 1: house ids still aren't
 independently reusable per channel (`houses_id_unique`, see
 MIGRATION.md's "Known limitation").
 
-## 8. Economy (✅ market-offer-expiry job wired, 📐 remaining call sites not wired)
+## 8. Economy (✅ market-offer-expiry job + cancel-offer wired, 📐 create/accept not wired)
 
 `economic_ledger.transaction_uuid` is a `CHAR(36)` primary key: a retried
 operation `INSERT`s the same UUID and gets a duplicate-key error instead of
@@ -570,13 +570,58 @@ sequence atomic — see TEST_PLAN.md for what was verified against a real
 MariaDB instance (the core duplicate-`transaction_uuid` rejection, plus
 both the item-delivery and currency-refund ledger record shapes).
 
-**📐 Known gap, stated honestly:** the three *live* market call sites
-(`Game::playerCreateMarketOffer`, `Game::playerCancelMarketOffer`,
-`Game::playerAcceptMarketOffer`) are not wired to `economic_ledger` yet,
-nor are mail delivery or house purchase/transfer — see DECISION_MATRIX.md
-for the precise list of functions that still need it and why wiring all of
-transactional economy code in one pass, in an environment with no
-compiler to verify most of it, would be irresponsible.
+**✅ `Game::playerCancelMarketOffer`** (`src/game/game.cpp`) is now the
+second call site wired to `economic_ledger`, using the same deterministic-UUID
+pattern as the expiry job, but keyed off namespace `"market.cancel"` and the
+cancelled offer's own `id`
+(`EconomicLedgerStore::deterministicUuid("market.cancel", offer.id)`). This
+key is safe specifically *because* a given `market_offers` row can be
+cancelled at most once — `IOMarket::moveOfferToHistory` deletes the row as
+part of cancellation, so the same `(namespace, offer.id)` pair can never
+legitimately recur; a retried/duplicated cancel request replays into the
+same `PENDING`/`COMMITTED` row and is rejected by the `transaction_uuid`
+primary key exactly like the expiry job's replay case. The ledger bracket
+follows the same shape: `beginPending` before the refund/delivery attempt,
+`markCommitted` right after `moveOfferToHistory` succeeds, `markFailed` on
+every early-exit error path (unknown item type, inbox insertion failure).
+Store-coin cancellations (`it.id == ITEM_STORE_COIN`) are deliberately
+excluded from the ledger entirely, matching this function's pre-existing
+"do not register a transaction for coins" comment — that path already goes
+through the account's own coin-transaction system, which is a different
+ledger than the gold/item economy `economic_ledger` tracks. Verified against
+a real MariaDB instance: a buy-offer cancel's `PENDING → COMMITTED`
+transition (currency `amount` populated, no item fields), a sell-offer
+cancel's `PENDING → FAILED` transition (item fields populated, `amount`
+unset), and a replay `INSERT` against an already-used offer-id key correctly
+rejected with `ERROR 1062` on the `transaction_uuid` primary key — see
+TEST_PLAN.md.
+
+**📐 Known gap, stated honestly:** `Game::playerCreateMarketOffer` and
+`Game::playerAcceptMarketOffer` remain unwired, for two different reasons
+rather than one:
+
+- **Create** has no natural, pre-existing single-use key to derive a
+  deterministic UUID from — unlike expiry/cancel, there is no offer `id` yet
+  at the point a new offer is created (the DB assigns it during the same
+  `INSERT` this would need to guard). Reusing the deterministic pattern here
+  would require inventing a client-supplied nonce, a materially different
+  design than "key off an entity that can only be consumed once," and worth
+  its own follow-up rather than forcing the existing pattern where it
+  doesn't fit.
+- **Accept** cannot safely use `offer.id` alone as a key: a single offer can
+  legitimately be *partially* accepted multiple times by different
+  counter-parties for different `amount`s until it is exhausted, so
+  `(namespace, offer.id)` is not single-use the way it is for expiry/cancel —
+  a second, legitimate partial accept would collide with the first and be
+  wrongly rejected as a replay. This needs a compound key (offer id plus
+  something that distinguishes each accept attempt, e.g. acceptor account id
+  and amount) worked out deliberately rather than reusing cancel's key shape
+  by analogy.
+
+Mail delivery and house purchase/transfer are also still unwired — see
+DECISION_MATRIX.md for the precise list of functions that still need it and
+why wiring all of transactional economy code in one pass, in an environment
+with no compiler to verify most of it, would be irresponsible.
 
 ## 9. Redis client dependency
 

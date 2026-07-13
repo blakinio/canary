@@ -310,6 +310,29 @@ so far are read-only; every remaining command in the list needs either
 cluster-state mutation or cross-process signaling this codebase doesn't
 have a mechanism for yet.
 
+**Phase 11:** the first *live* market call site is wired to
+`economic_ledger` - `Game::playerCancelMarketOffer`, using the same
+deterministic-UUID pattern as Phase 5's expiry job but keyed off namespace
+`"market.cancel"` and the cancelled offer's own `id`. This key is safe
+because a `market_offers` row can only ever be cancelled once
+(`moveOfferToHistory` deletes it as part of cancellation), so the same key
+can never legitimately recur - a duplicated/retried cancel request replays
+into the same row and is rejected by the `transaction_uuid` primary key,
+exactly like the expiry job's replay case. Store-coin cancellations are
+excluded from the ledger, matching the function's pre-existing "do not
+register a transaction for coins" comment - that path already has its own
+ledger (the account's coin-transaction system). `Game::
+playerCreateMarketOffer` and `Game::playerAcceptMarketOffer` remain
+deliberately unwired: create has no pre-existing single-use key to derive a
+deterministic UUID from (the offer id doesn't exist until the same `INSERT`
+this would guard), and accept cannot safely use `offer.id` alone since a
+single offer can be legitimately partially accepted multiple times by
+different counter-parties - both need their own key design, not a reuse of
+cancel's pattern by analogy. No schema change. Verified against a real
+MariaDB: buy-offer cancel's `PENDING → COMMITTED` transition, sell-offer
+cancel's `PENDING → FAILED` transition, and a replay `INSERT` against an
+already-used offer-id key correctly rejected with `ERROR 1062`.
+
 **Still not enforced**, and still the reason not to enable
 `multiChannelEnabled = true` in production yet: nothing yet *blocks* an
 account from bidding on or trading for a second house before an already-
@@ -317,11 +340,10 @@ decided purchase for a different one settles (the mirror above only
 records an outcome once `setOwner` is actually called, which for auctions
 happens on the next restart, not at bid-placement time) — see
 ARCHITECTURE.md §7's stated gap. The economy ledger (§8) is now wired for
-one background job only; the three live market call sites
-(`Game::playerCreateMarketOffer`/`...CancelMarketOffer`/
-`...AcceptMarketOffer`), mail delivery, and bank/house money movement
-remain entirely unwired — a switch or a normal login does not touch any of
-that money-moving state today, which is the safe side to be wrong on, but
-also means this is not yet a complete cluster.
+one background job and one live call site; `Game::playerCreateMarketOffer`,
+`Game::playerAcceptMarketOffer`, mail delivery, and bank/house money
+movement remain entirely unwired — a switch or a normal login does not
+touch any of that money-moving state today, which is the safe side to be
+wrong on, but also means this is not yet a complete cluster.
 Do not enable `multiChannelEnabled = true` in production until those ship
 and are tested.
