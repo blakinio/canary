@@ -8,6 +8,7 @@
  */
 
 #include "creatures/players/player.hpp"
+#include "game/functions/forge_effect_policy.hpp"
 #include "game/functions/forge_fusion_policy.hpp"
 #include "game/functions/forge_transaction.hpp"
 #include "game/functions/forge_transfer_policy.hpp"
@@ -10932,13 +10933,18 @@ void Player::triggerMomentum() {
 			constexpr auto maxu16 = std::numeric_limits<uint16_t>::max();
 			const auto checkSpellId = condItem->getSubId();
 			auto spellId = checkSpellId > maxu16 ? 0u : static_cast<uint16_t>(checkSpellId);
+			const bool isSpellCooldown = type == CONDITION_SPELLCOOLDOWN;
+			const bool isSpellGroupCooldown = type == CONDITION_SPELLGROUPCOOLDOWN;
+			if (!ForgeEffectPolicy::isMomentumCooldownEligible(isSpellCooldown, isSpellGroupCooldown, spellId, SPELLGROUP_SUPPORT)) {
+				++it;
+				continue;
+			}
+
 			const int32_t ticks = condItem->getTicks();
 			const int32_t newTicks = (ticks <= 2000) ? 0 : ticks - 2000;
+			condItem->setTicks(newTicks);
+			isSpellGroupCooldown ? sendSpellGroupCooldown(static_cast<SpellGroup_t>(spellId), newTicks) : sendSpellCooldown(spellId, newTicks);
 			triggered = true;
-			if (type == CONDITION_SPELLCOOLDOWN || (type == CONDITION_SPELLGROUPCOOLDOWN && spellId > SPELLGROUP_SUPPORT)) {
-				condItem->setTicks(newTicks);
-				type == CONDITION_SPELLGROUPCOOLDOWN ? sendSpellGroupCooldown(static_cast<SpellGroup_t>(spellId), newTicks) : sendSpellCooldown(spellId, newTicks);
-			}
 			++it;
 		}
 		if (triggered) {
@@ -10988,7 +10994,12 @@ void Player::clearCooldowns(bool spenders /* = false */, bool builders /* = fals
 }
 
 void Player::triggerTranscendence() {
-	if (wheel().getOnThinkTimer(WheelOnThink_t::AVATAR_FORGE) > OTSYS_TIME()) {
+	const uint64_t now = OTSYS_TIME();
+	if (ForgeEffectPolicy::isAvatarActive(
+			wheel().getOnThinkTimer(WheelOnThink_t::AVATAR_FORGE),
+			wheel().getOnThinkTimer(WheelOnThink_t::AVATAR_SPELL),
+			now
+		)) {
 		return;
 	}
 

@@ -4,6 +4,7 @@ Curated behavior/architecture log for discovery; not a replacement for Git histo
 
 ## Unreleased
 
+- PR #274 adds the read-only Phase 3 OTBM teleport and reachability validator: bounded strict/optimistic walkability from World Index plus real appearance flags, automatic indexed teleport checks, reviewed non-teleport floor-transition manifests, no-corner-cut pathfinding, route/mechanic reachability, one-way/dead-end/cycle findings, optional script-resolution evidence, atomic reports and a local toolkit workflow without committing maps, indexes or client assets.
 - Added bounded Forge server-authority policies and regressions in PR #250 so crafted normal Fusion, Convergence Fusion and Convergence Transfer requests are rejected before item/resource/history mutation; full Forge parity remains tracked by `CAN-PROGRAM-EQUIPMENT-UPGRADE-PARITY`.
 - PR #251 aligns the Imbuement registry with the selected current live Tibia mechanics: fixed application fees of 7,500/60,000/250,000 gold at 100% success with no protection surcharge, Strike at 5% chance and +5%/+15%/+40% damage, and Basic Punch using item 10281 x25; existing Forgotten Knowledge and Vibrancy scroll repairs remain preserved.
 

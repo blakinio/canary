@@ -290,6 +290,8 @@ void WeaponProficiency::load() {
 		proficiency[weaponId] = deserialize(kv_it.value());
 		normalizeStoredState(weaponId);
 	}
+
+	reconcileMasteryAchievements(false);
 }
 
 void WeaponProficiency::save(uint16_t weaponId) const {
@@ -340,6 +342,22 @@ size_t WeaponProficiency::getMasteredWeaponCount() const {
 	return static_cast<size_t>(std::ranges::count_if(proficiency, [](const auto &entry) {
 		return entry.second.mastered;
 	}));
+}
+
+std::vector<uint16_t> WeaponProficiency::getMasteryAchievementIds(size_t masteredWeaponCount) {
+	std::vector<uint16_t> achievementIds;
+	for (const auto &[threshold, achievementId] : std::array<std::pair<size_t, uint16_t>, 3> { { { 1, 564 }, { 10, 565 }, { 50, 566 } } }) {
+		if (masteredWeaponCount >= threshold) {
+			achievementIds.push_back(achievementId);
+		}
+	}
+	return achievementIds;
+}
+
+void WeaponProficiency::reconcileMasteryAchievements(bool message) {
+	for (const auto achievementId : getMasteryAchievementIds(getMasteredWeaponCount())) {
+		m_player.achiev().add(achievementId, message);
+	}
 }
 
 WeaponProficiencyData WeaponProficiency::deserialize(const ValueWrapper &val) {
@@ -773,12 +791,15 @@ void WeaponProficiency::addExperience(uint32_t experience, uint16_t weaponId /* 
 	uint32_t maxExperience = getMaxExperience(weaponId);
 
 	if (!proficiency.contains(weaponId)) {
-		const auto [_, inserted] = proficiency.try_emplace(weaponId, createInitialState(experience, maxExperience));
+		const auto [it, inserted] = proficiency.try_emplace(weaponId, createInitialState(experience, maxExperience));
 		if (!inserted) {
 			g_logger().warn("{} - Failed to create proficiency state for weapon ID '{}'", __FUNCTION__, weaponId);
 			return;
 		}
 		m_player.sendWeaponProficiency(weaponId);
+		if (it->second.mastered) {
+			reconcileMasteryAchievements(true);
+		}
 
 		return;
 	}
@@ -786,9 +807,13 @@ void WeaponProficiency::addExperience(uint32_t experience, uint16_t weaponId /* 
 	const uint64_t newExperience = static_cast<uint64_t>(proficiency[weaponId].experience) + experience;
 
 	if (newExperience >= maxExperience) {
+		const bool wasMastered = proficiency[weaponId].mastered;
 		proficiency[weaponId].mastered = true;
 		proficiency[weaponId].experience = maxExperience;
 		m_player.sendWeaponProficiency(weaponId);
+		if (!wasMastered) {
+			reconcileMasteryAchievements(true);
+		}
 
 		return;
 	}

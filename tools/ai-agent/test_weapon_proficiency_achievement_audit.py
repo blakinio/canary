@@ -119,16 +119,18 @@ void WeaponProficiency::addExperience(uint32_t experience, uint16_t weaponId) {
         root = Path(__file__).resolve().parents[2]
         report = audit_repository(root)
         self.assertEqual(report["summary"]["missingTargetIds"], [567])
-        self.assertFalse(report["runtimeEvidence"]["achievementHookPresent"])
+        self.assertTrue(report["runtimeEvidence"]["achievementHookPresent"])
+        self.assertEqual(report["runtimeEvidence"]["masteryAchievementIds"], [564, 565, 566])
+        self.assertEqual(report["summary"]["targetAwardPathCount"], 3)
         self.assertTrue(report["runtimeEvidence"]["initialCreationSetsMastered"])
         self.assertTrue(report["runtimeEvidence"]["initialCreationCapsExperience"])
         self.assertTrue(report["runtimeEvidence"]["loadCallsNormalizeStoredState"])
         self.assertTrue(report["runtimeEvidence"]["masteredCountApiPresent"])
         codes = {finding["code"] for finding in report["findings"]}
-        self.assertIn("mastery-achievement-hook-missing", codes)
+        self.assertNotIn("mastery-achievement-hook-missing", codes)
         self.assertNotIn("initial-mastery-flag-not-set", codes)
         self.assertNotIn("mastered-count-api-missing", codes)
-        self.assertIn("target-award-path-missing", codes)
+        self.assertNotIn("target-award-path-missing", codes)
 
 
 if __name__ == "__main__":

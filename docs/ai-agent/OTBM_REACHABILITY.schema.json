@@ -1,0 +1,293 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_REACHABILITY.schema.json",
+  "title": "Canary OTBM bounded reachability report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "ok",
+    "provenance",
+    "region",
+    "policy",
+    "summary",
+    "routes",
+    "transitions",
+    "transitionsTruncated",
+    "transitionLoops",
+    "transitionLoopsTruncated",
+    "mechanics",
+    "mechanicsTruncated",
+    "tileDiagnostics",
+    "tileDiagnosticsTruncated",
+    "findings"
+  ],
+  "properties": {
+    "format": {"const": "canary-otbm-reachability-v1"},
+    "schemaVersion": {"const": 1},
+    "ok": {"type": "boolean"},
+    "provenance": {"type": "object", "additionalProperties": true},
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "coordinateCount", "indexedTileCount"],
+      "properties": {
+        "from": {"$ref": "#/$defs/position"},
+        "to": {"$ref": "#/$defs/position"},
+        "coordinateCount": {"$ref": "#/$defs/nonNegative"},
+        "indexedTileCount": {"$ref": "#/$defs/nonNegative"}
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowDiagonal",
+        "diagonalCornerCutting",
+        "strictUnknownAppearancesBlocked",
+        "optimisticUnknownAppearancesAllowedWhenGroundKnown",
+        "dynamicLuaExecuted",
+        "mapModified",
+        "sampleLimit",
+        "pathLimit"
+      ],
+      "properties": {
+        "allowDiagonal": {"type": "boolean"},
+        "diagonalCornerCutting": {"const": false},
+        "strictUnknownAppearancesBlocked": {"const": true},
+        "optimisticUnknownAppearancesAllowedWhenGroundKnown": {"const": true},
+        "dynamicLuaExecuted": {"const": false},
+        "mapModified": {"const": false},
+        "sampleLimit": {"type": "integer", "minimum": 1, "maximum": 10000},
+        "pathLimit": {"type": "integer", "minimum": 1, "maximum": 10000}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "routes",
+        "routeStatusCounts",
+        "origins",
+        "transitions",
+        "transitionStatusCounts",
+        "oneWayTransitions",
+        "deadEndTransitions",
+        "transitionLoops",
+        "mechanics",
+        "mechanicStatusCounts",
+        "strictReachableTiles",
+        "optimisticReachableTiles",
+        "tileStatusCounts",
+        "findings"
+      ],
+      "properties": {
+        "routes": {"$ref": "#/$defs/nonNegative"},
+        "routeStatusCounts": {"$ref": "#/$defs/countObject"},
+        "origins": {"$ref": "#/$defs/nonNegative"},
+        "transitions": {"$ref": "#/$defs/nonNegative"},
+        "transitionStatusCounts": {"$ref": "#/$defs/countObject"},
+        "oneWayTransitions": {"$ref": "#/$defs/nonNegative"},
+        "deadEndTransitions": {"$ref": "#/$defs/nonNegative"},
+        "transitionLoops": {"$ref": "#/$defs/nonNegative"},
+        "mechanics": {"$ref": "#/$defs/nonNegative"},
+        "mechanicStatusCounts": {"$ref": "#/$defs/countObject"},
+        "strictReachableTiles": {"$ref": "#/$defs/nonNegative"},
+        "optimisticReachableTiles": {"$ref": "#/$defs/nonNegative"},
+        "tileStatusCounts": {"$ref": "#/$defs/countObject"},
+        "findings": {"$ref": "#/$defs/findingSummary"}
+      }
+    },
+    "routes": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/route"}},
+    "transitions": {"type": "array", "maxItems": 10000, "items": {"$ref": "#/$defs/transition"}},
+    "transitionsTruncated": {"type": "boolean"},
+    "transitionLoops": {"type": "array", "maxItems": 10000, "items": {"$ref": "#/$defs/loop"}},
+    "transitionLoopsTruncated": {"type": "boolean"},
+    "mechanics": {"type": "array", "maxItems": 10000, "items": {"$ref": "#/$defs/mechanic"}},
+    "mechanicsTruncated": {"type": "boolean"},
+    "tileDiagnostics": {"type": "array", "maxItems": 10000, "items": {"$ref": "#/$defs/tileDiagnostic"}},
+    "tileDiagnosticsTruncated": {"type": "boolean"},
+    "findings": {"type": "array", "maxItems": 10000, "items": {"$ref": "#/$defs/finding"}}
+  },
+  "$defs": {
+    "nonNegative": {"type": "integer", "minimum": 0},
+    "nullableNonNegative": {"type": ["integer", "null"], "minimum": 0},
+    "countObject": {"type": "object", "additionalProperties": {"$ref": "#/$defs/nonNegative"}},
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start",
+        "goal",
+        "status",
+        "strictDistance",
+        "optimisticDistance",
+        "path",
+        "pathTruncated",
+        "transitionIdsUsed",
+        "issues"
+      ],
+      "properties": {
+        "start": {"$ref": "#/$defs/position"},
+        "goal": {"$ref": "#/$defs/position"},
+        "status": {"enum": ["confirmed", "conditional", "unreachable", "invalid"]},
+        "strictDistance": {"$ref": "#/$defs/nullableNonNegative"},
+        "optimisticDistance": {"$ref": "#/$defs/nullableNonNegative"},
+        "path": {"type": "array", "maxItems": 10000, "items": {"$ref": "#/$defs/position"}},
+        "pathTruncated": {"type": "boolean"},
+        "transitionIdsUsed": {"type": "array", "items": {"type": "string"}},
+        "issues": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "origin",
+        "source",
+        "destination",
+        "itemId",
+        "expectedItemIds",
+        "bidirectional",
+        "uncertainties",
+        "scriptStatus",
+        "status",
+        "valid",
+        "strictEligible",
+        "optimisticEligible",
+        "issues"
+      ],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 160},
+        "kind": {"enum": ["teleport", "stairs", "ladder", "hole", "rope", "floor-change", "custom"]},
+        "origin": {"enum": ["world-index", "manifest"]},
+        "source": {"$ref": "#/$defs/position"},
+        "destination": {"$ref": "#/$defs/position"},
+        "itemId": {"type": ["integer", "null"], "minimum": 0, "maximum": 65535},
+        "expectedItemIds": {"type": "array", "items": {"type": "integer", "minimum": 0, "maximum": 65535}},
+        "bidirectional": {"type": "boolean"},
+        "uncertainties": {"type": "array", "items": {"type": "string", "maxLength": 80}},
+        "scriptStatus": {"type": ["string", "null"]},
+        "status": {"enum": ["confirmed", "conditional", "invalid"]},
+        "valid": {"type": "boolean"},
+        "strictEligible": {"type": "boolean"},
+        "optimisticEligible": {"type": "boolean"},
+        "issues": {"type": "array", "items": {"type": "string"}},
+        "evidence": {"type": "object", "additionalProperties": true}
+      }
+    },
+    "loop": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["positions", "closed", "outgoing"],
+      "properties": {
+        "positions": {"type": "array", "items": {"$ref": "#/$defs/position"}},
+        "closed": {"type": "boolean"},
+        "outgoing": {"type": "array", "items": {"$ref": "#/$defs/position"}}
+      }
+    },
+    "mechanic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "placementOrdinal",
+        "itemId",
+        "position",
+        "actionId",
+        "uniqueId",
+        "houseDoorId",
+        "teleportDestination",
+        "status"
+      ],
+      "properties": {
+        "placementOrdinal": {"$ref": "#/$defs/nonNegative"},
+        "itemId": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "position": {"$ref": "#/$defs/position"},
+        "actionId": {"type": ["integer", "null"], "minimum": 0, "maximum": 65535},
+        "uniqueId": {"type": ["integer", "null"], "minimum": 0, "maximum": 65535},
+        "houseDoorId": {"type": ["integer", "null"], "minimum": 0, "maximum": 255},
+        "teleportDestination": {
+          "oneOf": [{"$ref": "#/$defs/position"}, {"type": "null"}]
+        },
+        "status": {"enum": ["confirmed", "conditional", "unreachable"]}
+      }
+    },
+    "tileDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "position",
+        "kind",
+        "houseId",
+        "tileFlags",
+        "itemIds",
+        "hasGround",
+        "strictWalkable",
+        "optimisticWalkable",
+        "staticBlockers",
+        "conditionalBlockers",
+        "unknownAppearances",
+        "avoidItems",
+        "uncertainties"
+      ],
+      "properties": {
+        "position": {"$ref": "#/$defs/position"},
+        "kind": {"enum": ["tile", "house"]},
+        "houseId": {"type": ["integer", "null"], "minimum": 0},
+        "tileFlags": {"$ref": "#/$defs/nonNegative"},
+        "itemIds": {"type": "array", "items": {"type": "integer", "minimum": 0, "maximum": 65535}},
+        "hasGround": {"type": "boolean"},
+        "strictWalkable": {"type": "boolean"},
+        "optimisticWalkable": {"type": "boolean"},
+        "staticBlockers": {"type": "array", "items": {"type": "integer", "minimum": 0, "maximum": 65535}},
+        "conditionalBlockers": {"type": "array", "items": {"type": "integer", "minimum": 0, "maximum": 65535}},
+        "unknownAppearances": {"type": "array", "items": {"type": "integer", "minimum": 0, "maximum": 65535}},
+        "avoidItems": {"type": "array", "items": {"type": "integer", "minimum": 0, "maximum": 65535}},
+        "uncertainties": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "finding": {
+      "type": "object",
+      "required": ["severity", "code", "message"],
+      "properties": {
+        "severity": {"enum": ["error", "warning", "info"]},
+        "code": {"type": "string"},
+        "message": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "findingSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "bySeverity", "byCode", "truncated"],
+      "properties": {
+        "total": {"$ref": "#/$defs/nonNegative"},
+        "bySeverity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["error", "warning", "info"],
+          "properties": {
+            "error": {"$ref": "#/$defs/nonNegative"},
+            "warning": {"$ref": "#/$defs/nonNegative"},
+            "info": {"$ref": "#/$defs/nonNegative"}
+          }
+        },
+        "byCode": {"$ref": "#/$defs/countObject"},
+        "truncated": {"type": "boolean"}
+      }
+    }
+  }
+}

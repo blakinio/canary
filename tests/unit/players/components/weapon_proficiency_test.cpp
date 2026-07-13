@@ -29,6 +29,10 @@ protected:
 		component.proficiency.insert_or_assign(weaponId, std::move(state));
 	}
 
+	static std::vector<uint16_t> getMasteryAchievementIds(size_t masteredWeaponCount) {
+		return WeaponProficiency::getMasteryAchievementIds(masteredWeaponCount);
+	}
+
 private:
 	inline static di::extension::injector<> injector {};
 };
@@ -78,4 +82,14 @@ TEST_F(WeaponProficiencyTest, EmptyStateHasNoMasteredWeapons) {
 	const auto &component = player->weaponProficiency();
 
 	EXPECT_EQ(std::size_t { 0 }, component.getMasteredWeaponCount());
+}
+
+TEST_F(WeaponProficiencyTest, MasteryAchievementThresholdsAreExact) {
+	EXPECT_TRUE(getMasteryAchievementIds(0).empty());
+	EXPECT_EQ((std::vector<uint16_t> { 564 }), getMasteryAchievementIds(1));
+	EXPECT_EQ((std::vector<uint16_t> { 564 }), getMasteryAchievementIds(9));
+	EXPECT_EQ((std::vector<uint16_t> { 564, 565 }), getMasteryAchievementIds(10));
+	EXPECT_EQ((std::vector<uint16_t> { 564, 565 }), getMasteryAchievementIds(49));
+	EXPECT_EQ((std::vector<uint16_t> { 564, 565, 566 }), getMasteryAchievementIds(50));
+	EXPECT_EQ((std::vector<uint16_t> { 564, 565, 566 }), getMasteryAchievementIds(500));
 }

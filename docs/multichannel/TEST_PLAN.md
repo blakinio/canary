@@ -477,6 +477,173 @@ Phase 8's methodology exactly:
   as every other Lua binding file in this series) - reviewed by hand
   against the SQL verified above.
 
+### Phase 11: economic_ledger wired into `playerCancelMarketOffer`
+
+`Game::playerCancelMarketOffer` (`src/game/game.cpp`) is not standalone-
+compilable (same `game/game.hpp` → `mysql.h` → `absl` wall as every other
+engine-glue file in this series), so it was reviewed by hand against a real
+MariaDB 10.11 instance (scratch database `canary_phase11_test`, imported
+from the real `schema.sql`, dropped after):
+
+- Computed the real deterministic UUIDs the new code path produces via a
+  standalone compile of the already-merged, dependency-free
+  `economic_ledger_id.cpp` from Phase 5:
+  `multichannel::computeDeterministicLedgerUuid("market.cancel", 42)` =
+  `fe49ddeb-4440-2e43-0000-00000000002a`, and the same for offer 43 =
+  `...002b` - confirming the namespace tag actually changes the derived UUID
+  (as opposed to accidentally colliding with `"market.expire"`'s keyspace
+  for the same offer id).
+- Replayed the buy-offer cancel sequence by hand: `INSERT` a `PENDING` row
+  with the computed UUID and the currency `amount` populated (no item
+  fields), then `UPDATE ... SET status = 'COMMITTED'` - both statements
+  succeeded exactly as `EconomicLedgerStore::beginPending`/`markCommitted`
+  would issue them.
+- Replayed the sell-offer cancel sequence: `INSERT` a `PENDING` row with
+  `item_id`/`item_count` populated and no `amount`, then `UPDATE ... SET
+  status = 'FAILED'` - confirming the shape `markFailed` writes for an
+  inbox-insertion-failure early exit.
+- Replayed a duplicate cancel of the same offer: a second `INSERT` using
+  the identical offer-42 UUID was correctly rejected with `ERROR 1062
+  (23000): Duplicate entry ... for key 'PRIMARY'` on `transaction_uuid` -
+  the exact replay-protection guarantee the whole design depends on.
+- Hand-traced the store-coin exclusion: confirmed `ITEM_STORE_COIN` is
+  `22118` (`src/utils/utils_definitions.hpp:604`) and that the
+  `isStoreCoinOffer` check is evaluated once, before either the ledger
+  bracket or the `it.id == 0`/`it.id == ITEM_STORE_COIN` branches inside
+  the sell path - so the unconditional `EconomicLedgerStore::markFailed`
+  call inside the `it.id == 0` early-exit branch can never fire when
+  `beginPending` was skipped (`it.id == 0` and `it.id == ITEM_STORE_COIN`
+  are mutually exclusive by construction), ruling out a call to
+  `markFailed` on a transaction that was never begun.
+- `clang-format-18 --dry-run --Werror src/game/game.cpp` passed cleanly.
+- No Lua bindings touched this phase, so `tools/
+  check_lua_api_binding_docs.py`/`check_lua_api_quality.py` are unaffected
+  (confirmed 0 new findings from both).
+
+### Phase 12: fourth GM command (session lock/fencing inspection)
+
+`multichannel::findSessionLockInfo` (`cluster_session_lookup.hpp`/`.cpp`)
+and its Lua binding `Game.getPlayerSessionLockInfo` were verified against a
+real MariaDB 10.11 (scratch database `canary_phase12_test`, imported from
+the real `schema.sql`, dropped after), mirroring Phase 8's methodology:
+
+- Reused the sample seed rows `schema.sql` itself inserts (`players.id = 1`,
+  `"Rook Sample"`, `account_id = 1`) rather than hand-crafting new
+  account/player rows, after an initial attempt to `INSERT` synthetic ones
+  failed on a stale guessed column list (`accounts.premium_ends_at` doesn't
+  exist in this schema) - a reminder to check the real seeded seed data
+  before writing throwaway fixture rows.
+- Inserted a `cluster_sessions` row with `status = 'DIRTY'` and
+  `fencing_token = 18446744073709551615` (`UINT64_MAX`) and ran the exact
+  projection query the new code issues: confirmed it returns the row
+  **unfiltered by status** (the defining difference from
+  `findOnlineChannelForPlayer`, which does filter to `ONLINE`) and that the
+  `UINT64_MAX` fencing token round-trips through MariaDB's `bigint(20)
+  unsigned` column intact.
+- Confirmed a query for a `player_id` with no `cluster_sessions` row at all
+  returns an empty result set, which the C++ layer maps to `std::nullopt`
+  (existing, already-verified `storeQuery` → `nullptr` convention).
+- Traced `DBResult::getNumber<uint64_t>`'s implementation
+  (`src/database/database.hpp`) to confirm it parses via `std::stoull` for
+  unsigned types, and confirmed the existing `Lua::setField(lua_State*,
+  const char*, lua_Number)` overload (`lua_Number` is `double`,
+  `src/lua/functions/lua_functions_loader.hpp:55`) is the same pattern
+  already used for every other 64-bit field this series has exposed to Lua
+  (e.g. `createdAt` in Phase 10's channel-switch-history command) - not a
+  new risk introduced by this field.
+- `clang-format-18 --dry-run --Werror` on all four changed files passed
+  cleanly; `tools/check_lua_api_binding_docs.py --base origin/main` and
+  `tools/check_lua_api_quality.py` both passed, the latter confirming the
+  new binding's `"table|nil"` return type does not exact-string-match
+  `RETURN_METRICS`' `"table"` key and so does not regress
+  `return_plain_table` (stayed at 22).
+- Neither new C++ file nor the Lua binding file is standalone-compilable
+  (same engine-glue wall as every other file in this series) - reviewed by
+  hand against the SQL verified above.
+
+**A real bug was found while scoping this command, not fixed** (documented
+in ARCHITECTURE.md §8, DECISION_MATRIX.md row 2.12, and MIGRATION.md "Phase
+12"): `Mailbox::sendItem` silently writes mail into a throwaway offline
+copy of a recipient who is actually online on a *different* channel, which
+that channel's own next save can silently overwrite - a genuine
+cross-channel data-loss race, not just a missing idempotency guard. Not
+attempted this phase: the fix needs the same DB-row-handoff design already
+used for channel switching (§6), which is materially larger than a bounded
+GM-command addition.
+
+### Phase 13: fourth leader-election job (daily reward reset, Lua-side)
+
+`Game.tryClaimClusterJobLeadership(jobName)` is a thin, unconditional
+delegation to the already-tested `ClusterJobLeadershipRegistry` (Phase 7's
+`isEnabled`/`renewOrAcquire`/`isLeader`, unchanged in this phase) - it has
+no new logic of its own beyond marshaling a Lua string argument and pushing
+a boolean result, so there was nothing new to verify against Redis or
+MariaDB. What was actually verified:
+
+- `luac5.1 -p data/scripts/globalevents/global_server_save.lua` - syntax
+  check of the edited `GlobalEvent` script (this sandbox has `luac5.1`
+  available even without the full `luacheck` CI tooling).
+- Hand-traced that only the `UpdateDailyRewardGlobalStorage` call inside
+  `ServerSave()` is newly gated; `cleanMap()`, both `Game.setGameState(...)`
+  calls, and the per-raid daily-counter reset loop are unchanged in the
+  diff, confirming the genuinely per-channel parts of the same function
+  were not accidentally gated too (the house-rent-correction lesson from
+  Phase 9, applied here proactively instead of after the fact).
+- `clang-format-18 --dry-run --Werror` on both changed C++ files passed
+  cleanly; `tools/check_lua_api_binding_docs.py --base origin/main` and
+  `tools/check_lua_api_quality.py` both passed (`"boolean"` return type
+  introduces no new weak-type metric).
+- Confirmed the disabled-clustering path returns `true` unconditionally by
+  reading `ClusterJobLeadershipRegistry::isEnabled()`'s existing,
+  already-tested implementation directly (`return enabled;`, false by
+  default) rather than re-deriving it - this is exactly the same "always
+  true/skip when disabled" shape already proven correct for the two
+  boosted-X call sites in Phase 9, just inverted into a Lua-friendly
+  boolean return instead of an early `return;`.
+
+### Phase 14: map/datapack compatibility check wired at boot (§3.5)
+
+`CanaryServer::initializeMultichannelCluster()` is not standalone-
+compilable (same `game/game.hpp` → `mysql.h` → `absl` wall as every other
+engine-glue file in this series), so the new block was reviewed by hand
+against a real MariaDB 10.11 instance (scratch database
+`canary_phase14_test`, imported from the real `schema.sql`, dropped after):
+
+- `ChannelRegistry::computeFileHash`/`hashBytes` themselves needed no new
+  verification - they are unchanged, standalone-compilable, and already
+  covered by 4 existing gtest cases in `channel_registry_test.cpp`
+  (`ChannelRegistryHashTest`: same-content/different-content hashing,
+  `computeFileHash` matching an in-memory hash of the same bytes, and a
+  missing file correctly returning an empty hash).
+- Seeded two `channels` rows (ids 1 and 2, reusing the shape from the
+  multichannel Docker Compose example - both share the same map config,
+  only `CANARY_CHANNEL_ID` differs) with `map_hash` empty, matching a real
+  first-ever cluster boot.
+- Ran the exact `SELECT map_hash FROM channels WHERE map_hash != '' LIMIT
+  1` query the new code issues: confirmed it returns no rows against the
+  freshly-seeded table (the "first channel to boot" case), then manually
+  applied the `UPDATE channels SET map_hash = ? WHERE id = 1` the code
+  would issue next.
+- Re-ran the same `SELECT` after that update: confirmed it now returns the
+  seeded hash - simulating channel 2 booting second, this is the value its
+  own `computedMapHash` would be compared against. Manually verified the
+  match case (equal strings, passes) and the mismatch case (compared a
+  different string by hand, since the `throw FailedToInitializeCanary`
+  itself can't be exercised without a compiled binary - the comparison
+  logic is a single `!=` on two `std::string` values, reviewed directly).
+- Confirmed the exact file path construction (`DATA_DIRECTORY + "/world/"
+  + MAP_NAME + ".otbm"`) is byte-identical to what `Game::loadMainMap`
+  already builds (`src/game/game.cpp:1009`), so the hash is computed over
+  the same file the engine will actually load moments later.
+- `clang-format-18 --dry-run --Werror src/canary_server.cpp` passed
+  cleanly. No Lua bindings touched this phase.
+- The one known, honestly-documented residual gap (a plain SQL check, not
+  Redis-CAS-protected, so two channels booting for the very first time
+  truly simultaneously with different maps could both seed without
+  comparing) was not something this sandbox could exercise anyway - it
+  requires genuinely concurrent process startup, not a single scratch-DB
+  session - and is reasoned through in ARCHITECTURE.md §3.5 instead.
+
 ## 15.1b Redis Lua CAS script validation — ✅ run against a real `redis-server`
 
 The acquire/renew/release Lua scripts in
