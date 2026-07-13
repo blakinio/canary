@@ -1,15 +1,16 @@
 ---
 task_id: CAN-20260712-the-beginning-repair-plan
-status: active
+status: validating
 agent: "GPT-5.6 Thinking"
 branch: docs/the-beginning-repair-plan
 base_branch: main
 created: 2026-07-12
-updated: 2026-07-12
+updated: 2026-07-13
 risk: low
-related_pr: ""
+related_pr: "#207"
 depends_on:
-  - "PR #204 The Beginning OTBM/runtime audit"
+  - "PR #204 The Beginning OTBM/runtime audit — merge first"
+  - "merged PR #186 Zirella door and reward tutorials"
   - "map SHA-256 a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2"
 blocks:
   - "fresh Carlos repair PR"
@@ -38,6 +39,7 @@ Turn the completed evidence report into an ordered set of minimal, independently
 
 - This branch is documentation-only.
 - No OTBM, item, asset, NPC, Lua/XML, spawn, engine or production configuration change is permitted.
+- PR #204 is the evidence authority and must merge before PR #207; if its findings change, this plan must be synchronized before merge.
 - A `confirmed` defect may enter an implementation PR only with an exact current-source contract and focused tests.
 - A `map-only`, `script-only` or `unresolved` finding may not be converted into gameplay code by historical analogy alone.
 - AID `50999` and `skip tutorial` remain blocked until their missing current-world contracts are resolved.
@@ -45,9 +47,16 @@ Turn the completed evidence report into an ordered set of minimal, independently
 
 # Acceptance criteria
 
-- [ ] publish an ordered repair matrix covering every outstanding finding from PR #204;
-- [ ] define exact files, preconditions, tests, regression risk and merge order for every repair candidate;
-- [ ] separate implementation-ready work from contract-blocked work;
-- [ ] define when stale PR #157 may be closed;
-- [ ] define resolver/render/runtime revalidation gates where map mechanics are involved;
-- [ ] final-head documentation checks pass.
+- [x] publish an ordered repair matrix covering every outstanding finding from PR #204;
+- [x] define exact files, preconditions, tests, regression risk and merge order for every repair candidate;
+- [x] separate implementation-ready work from contract-blocked work;
+- [x] define when stale PR #157 may be closed;
+- [x] define resolver/render/runtime revalidation gates where map mechanics are involved;
+- [x] keep the PR documentation-only with exactly the plan and task record;
+- [ ] final-head documentation, AI Agent Tools and Agent Task Ownership checks pass.
+
+# Validation record
+
+Previous head `b940d0e3c6b754980bacdb9bb4fb77750492e640` passed CI run 1075, AI Agent Tools run 493 and Agent Task Ownership run 44. Those results predate this metadata correction and are not treated as final-head validation.
+
+The branch was one unrelated commit behind `main` during review (`#233`, InstanceManager timeout sweep). It does not overlap either owned documentation path. Mergeability and final-head checks must be reverified before readiness.
