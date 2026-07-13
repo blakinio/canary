@@ -20,7 +20,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
-      - name: Apply patch and remove staging files
+      - name: Apply and push implementation
         env:
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
         shell: bash
@@ -28,7 +28,6 @@ jobs:
           set -euo pipefail
           git apply -p1 --check .github/imbuement-vibrancy.patch
           git apply -p1 .github/imbuement-vibrancy.patch
-          git rm .github/imbuement-vibrancy.patch .github/workflows/imbuement-source-export.yml
           git diff --check
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
