@@ -1,0 +1,214 @@
+name: Stage Wheel Blessing critical healing
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/stage-wheel-blessing-critical.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/wheel-15-25-runtime-completion
+          fetch-depth: 0
+
+      - name: Apply evidence-backed Blessing critical-healing patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected exactly one match, found {count}")
+              return text.replace(old, new, 1)
+
+          definitions_path = Path("src/creatures/players/components/wheel/wheel_definitions.hpp")
+          definitions = definitions_path.read_text(encoding="utf-8")
+          definitions = replace_once(
+              definitions,
+              '''\tconstexpr int32_t HEALING_LINK_PERCENT = 25;
+\tconstexpr std::array<double, 3> BLESSING_GROVE_HEALING_PERCENT = { 5.0, 7.5, 10.0 };
+''',
+              '''\tconstexpr int32_t HEALING_LINK_PERCENT = 25;
+\tconstexpr std::array<double, 3> BLESSING_GROVE_HEALING_PERCENT = { 5.0, 7.5, 10.0 };
+\tconstexpr uint16_t CRITICAL_ROLL_SCALE = 10000;
+
+\tconstexpr bool isCriticalHealingRoll(int32_t criticalChance, uint16_t roll) {
+\t\treturn criticalChance > 0 && roll > 0 && roll <= CRITICAL_ROLL_SCALE && static_cast<int32_t>(roll) <= criticalChance;
+\t}
+
+\tconstexpr double criticalHealingMultiplier(int32_t criticalExtraDamage) {
+\t\treturn 1.0 + static_cast<double>(criticalExtraDamage > 0 ? criticalExtraDamage : 0) / CRITICAL_ROLL_SCALE;
+\t}
+''',
+              "WheelBalance critical helpers",
+          )
+          definitions_path.write_text(definitions, encoding="utf-8")
+
+          game_path = Path("src/game/game.cpp")
+          game = game_path.read_text(encoding="utf-8")
+          game = replace_once(
+              game,
+              '''\t\tif (attackerPlayer->wheel().getInstant("Blessing of the Grove")) {
+\t\t\tconst double blessingPercent = attackerPlayer->wheel().checkBlessingGroveHealingByTarget(target);
+\t\t\tdamage.primary.value += static_cast<int32_t>(std::round(damage.primary.value * blessingPercent / 100.0));
+\t\t}
+''',
+              '''\t\tif (attackerPlayer->wheel().getInstant("Blessing of the Grove")) {
+\t\t\tconst double blessingPercent = attackerPlayer->wheel().checkBlessingGroveHealingByTarget(target);
+\t\t\tdamage.primary.value += static_cast<int32_t>(std::round(damage.primary.value * blessingPercent / 100.0));
+
+\t\t\t// Blessing enables critical healing for instant healing spells and reuses
+\t\t\t// the character's current critical-hit chance and extra-damage values.
+\t\t\tif (!damage.instantSpellName.empty() && (damage.primary.value > 0 || damage.secondary.value > 0)) {
+\t\t\t\tconst int32_t criticalChance = attackerPlayer->getSkillLevel(SKILL_CRITICAL_HIT_CHANCE)
+\t\t\t\t\t+ static_cast<int32_t>(attackerPlayer->getBaseCritical().chance * WheelBalance::CRITICAL_ROLL_SCALE)
+\t\t\t\t\t+ damage.criticalChance;
+\t\t\t\tconst auto criticalRoll = static_cast<uint16_t>(uniform_random(1, WheelBalance::CRITICAL_ROLL_SCALE));
+\t\t\t\tif (WheelBalance::isCriticalHealingRoll(criticalChance, criticalRoll)) {
+\t\t\t\t\tconst int32_t criticalExtraDamage = attackerPlayer->getSkillLevel(SKILL_CRITICAL_HIT_DAMAGE)
+\t\t\t\t\t\t+ static_cast<int32_t>(attackerPlayer->getBaseCritical().damage * WheelBalance::CRITICAL_ROLL_SCALE)
+\t\t\t\t\t\t+ damage.criticalDamage;
+\t\t\t\t\tconst double criticalMultiplier = WheelBalance::criticalHealingMultiplier(criticalExtraDamage);
+\t\t\t\t\tdamage.critical = true;
+\t\t\t\t\tif (damage.primary.value > 0) {
+\t\t\t\t\t\tdamage.primary.value = static_cast<int32_t>(std::round(damage.primary.value * criticalMultiplier));
+\t\t\t\t\t}
+\t\t\t\t\tif (damage.secondary.value > 0) {
+\t\t\t\t\t\tdamage.secondary.value = static_cast<int32_t>(std::round(damage.secondary.value * criticalMultiplier));
+\t\t\t\t\t}
+\t\t\t\t}
+\t\t\t}
+\t\t}
+''',
+              "Blessing critical healing runtime",
+          )
+          game_path.write_text(game, encoding="utf-8")
+
+          test_path = Path("tests/unit/players/wheel_validation_test.cpp")
+          test = test_path.read_text(encoding="utf-8")
+          test_case = '''
+TEST_F(WheelValidationTest, BlessingCriticalHealingUsesCriticalHitUnits) {
+\tEXPECT_FALSE(WheelBalance::isCriticalHealingRoll(0, 1));
+\tEXPECT_TRUE(WheelBalance::isCriticalHealingRoll(500, 500));
+\tEXPECT_FALSE(WheelBalance::isCriticalHealingRoll(500, 501));
+\tEXPECT_TRUE(WheelBalance::isCriticalHealingRoll(20000, WheelBalance::CRITICAL_ROLL_SCALE));
+\tEXPECT_DOUBLE_EQ(1.0, WheelBalance::criticalHealingMultiplier(-100));
+\tEXPECT_DOUBLE_EQ(1.0, WheelBalance::criticalHealingMultiplier(0));
+\tEXPECT_DOUBLE_EQ(1.5, WheelBalance::criticalHealingMultiplier(5000));
+}
+'''
+          test = replace_once(
+              test,
+              '\nTEST_F(WheelValidationTest, SupremeGradeCostsMatchTheSkillWheelContract) {\n',
+              test_case + '\nTEST_F(WheelValidationTest, SupremeGradeCostsMatchTheSkillWheelContract) {\n',
+              "Blessing critical helper test",
+          )
+          test_path.write_text(test, encoding="utf-8")
+
+          validation_path = Path("docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION.md")
+          validation = validation_path.read_text(encoding="utf-8")
+          validation = replace_once(
+              validation,
+              '| Combat/stat integration | partial | 15.25 mitigation, Gift mana, Ballistic pierce, Healing Link, Battle Healing, and low-health Grove scaling are wired into runtime | critical-healing, missing stance/spell, and deterministic effect tests |',
+              '| Combat/stat integration | partial | 15.25 mitigation, Gift mana, Ballistic pierce, Healing Link, Battle Healing, low-health Grove scaling, and Blessing critical healing are wired into runtime | missing stance/spell and deterministic gameplay effect tests |',
+              "validation matrix combat row",
+          )
+          validation = replace_once(
+              validation,
+              '''**Disposition:** `incorrect` → percentage correction implemented; critical healing still missing
+**Severity:** high
+
+The engine used 6/9/12%. It now uses 5/7.5/10% below 60% health and doubles the value at or below 30%. The newly required critical-healing capability remains a separate unimplemented combat feature.
+''',
+              '''**Disposition:** `incorrect` → percentage and critical-healing corrections implemented in PR #230; CI pending
+**Severity:** high
+
+The engine used 6/9/12%. It now uses 5/7.5/10% below 60% health and doubles the value at or below 30%. While Blessing is active, named instant healing spells can also critically heal using the character's current critical-hit chance and critical extra-damage values. Anonymous health changes and item healing remain outside this spell-only path.
+''',
+              "WOD-026 disposition",
+          )
+          validation = replace_once(
+              validation,
+              'Combat Mastery still follows its old behavior; Beam Mastery does not implement adjacent-target scaling; Lord of Destruction is absent; Focus Mastery lacks the current group-cooldown reduction; Blessing critical healing is absent; and the latest Guiding Presence, Sanctuary, and other vocation reworks still require dedicated runtime implementation.',
+              'Combat Mastery still follows its old behavior; Beam Mastery does not implement adjacent-target scaling; Lord of Destruction is absent; Focus Mastery lacks the current group-cooldown reduction; and the latest Guiding Presence, Sanctuary, and other vocation reworks still require dedicated runtime implementation. Blessing critical healing is tracked separately in WOD-031.',
+              "WOD-029 Blessing status",
+          )
+          finding = '''### WOD-031 — Blessing of the Grove did not enable critical healing
+
+**Disposition:** `missing` → implementation added in PR #230; CI pending
+**Severity:** high
+
+The 15.25 behavior enables healing spells to critically heal while Blessing of the Grove is active, using the character's current critical-hit chance and critical extra-damage values. The runtime previously applied only the low-health percentage bonus.
+
+The implementation reuses the same 1–10,000 chance scale and extra-damage multiplier as ordinary critical hits, gates the effect to named instant healing spells, applies it after the low-health Blessing percentage, and marks the resulting combat payload as critical. Deterministic helper tests cover chance boundaries and multiplier units.
+
+'''
+          validation = replace_once(validation, "## 7. Change log\n", finding + "## 7. Change log\n", "WOD-031 finding")
+          changelog = '''### 2026-07-13 — Blessing of the Grove critical healing
+
+- Reused the existing character critical-hit chance and extra-damage unit model for healing.
+- Restricted critical healing to named instant healing spells while Blessing is active.
+- Added deterministic boundary and multiplier tests.
+- Left visual presentation unchanged because no authoritative effect requirement was established.
+
+'''
+          validation = replace_once(validation, "## 8. Validation conclusion\n", changelog + "## 8. Validation conclusion\n", "Blessing change log")
+          validation_path.write_text(validation, encoding="utf-8")
+
+          task_path = Path("docs/agents/tasks/active/CAN-20260713-wheel-15-25-runtime-completion.md")
+          task = task_path.read_text(encoding="utf-8")
+          task = replace_once(task, "updated: 2026-07-13T18:30:00Z", "updated: 2026-07-13T21:10:00Z", "task updated timestamp")
+          task = replace_once(
+              task,
+              '- [ ] Combat Mastery, Beam Mastery, Lord of Destruction, Focus Mastery, Guiding Presence, Sanctuary, and Blessing critical healing match the captured 15.25 baseline where authoritative values are available.',
+              '- [ ] Combat Mastery, Beam Mastery, Lord of Destruction, Focus Mastery, Guiding Presence, and Sanctuary match the captured 15.25 baseline where authoritative values are available; Blessing critical healing is implemented, CI pending.',
+              "task acceptance status",
+          )
+          worklog = '''## 2026-07-13T21:10:00Z
+
+- Changed: added Blessing of the Grove critical healing for named instant healing spells using the existing critical chance and extra-damage unit model.
+- Evidence: the 15.25 update states that Blessing uses the character's current critical-hit chance and critical extra damage; the existing damage runtime uses a 1–10,000 roll and bonus/10,000 multiplier.
+- Validation: deterministic helper tests added; full repository CI not yet observed and is not claimed as passed.
+- Boundary: item healing and anonymous health changes are deliberately excluded from the spell-only behavior.
+
+'''
+          task = replace_once(task, "# Decisions\n", worklog + "# Decisions\n", "task Blessing work log")
+          task_path.write_text(task, encoding="utf-8")
+          PY
+
+      - name: Validate focused patch
+        shell: bash
+        run: |
+          git diff --check
+          python - <<'PY'
+          from pathlib import Path
+          game = Path('src/game/game.cpp').read_text(encoding='utf-8')
+          definitions = Path('src/creatures/players/components/wheel/wheel_definitions.hpp').read_text(encoding='utf-8')
+          test = Path('tests/unit/players/wheel_validation_test.cpp').read_text(encoding='utf-8')
+          assert '!damage.instantSpellName.empty()' in game
+          assert 'WheelBalance::isCriticalHealingRoll' in game
+          assert 'criticalHealingMultiplier' in definitions
+          assert 'BlessingCriticalHealingUsesCriticalHitUnits' in test
+          PY
+
+      - name: Commit to Wheel PR branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            src/game/game.cpp \
+            src/creatures/players/components/wheel/wheel_definitions.hpp \
+            tests/unit/players/wheel_validation_test.cpp \
+            docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION.md \
+            docs/agents/tasks/active/CAN-20260713-wheel-15-25-runtime-completion.md
+          git commit -m "feat(wheel): enable Blessing critical healing"
+          git push origin HEAD:feat/wheel-15-25-runtime-completion
