@@ -310,6 +310,86 @@ so far are read-only; every remaining command in the list needs either
 cluster-state mutation or cross-process signaling this codebase doesn't
 have a mechanism for yet.
 
+**Phase 11:** the first *live* market call site is wired to
+`economic_ledger` - `Game::playerCancelMarketOffer`, using the same
+deterministic-UUID pattern as Phase 5's expiry job but keyed off namespace
+`"market.cancel"` and the cancelled offer's own `id`. This key is safe
+because a `market_offers` row can only ever be cancelled once
+(`moveOfferToHistory` deletes it as part of cancellation), so the same key
+can never legitimately recur - a duplicated/retried cancel request replays
+into the same row and is rejected by the `transaction_uuid` primary key,
+exactly like the expiry job's replay case. Store-coin cancellations are
+excluded from the ledger, matching the function's pre-existing "do not
+register a transaction for coins" comment - that path already has its own
+ledger (the account's coin-transaction system). `Game::
+playerCreateMarketOffer` and `Game::playerAcceptMarketOffer` remain
+deliberately unwired: create has no pre-existing single-use key to derive a
+deterministic UUID from (the offer id doesn't exist until the same `INSERT`
+this would guard), and accept cannot safely use `offer.id` alone since a
+single offer can be legitimately partially accepted multiple times by
+different counter-parties - both need their own key design, not a reuse of
+cancel's pattern by analogy. No schema change. Verified against a real
+MariaDB: buy-offer cancel's `PENDING → COMMITTED` transition, sell-offer
+cancel's `PENDING → FAILED` transition, and a replay `INSERT` against an
+already-used offer-id key correctly rejected with `ERROR 1062`.
+
+**Phase 12:** a fourth read-only GM/admin command from OPERATIONS.md's list
+is implemented - `Game.getPlayerSessionLockInfo(name)`, returning the raw
+`cluster_sessions` row for a player (`{accountId, playerId, channelId,
+instanceId, sessionId, fencingToken, status, acquiredAt, lastHeartbeat,
+expiresAt}`) via a new `multichannel::findSessionLockInfo`. Unlike
+`getPlayerClusterChannel`, this is deliberately *not* filtered to
+`status = 'ONLINE'`, since inspecting a stale/`DIRTY` session is the whole
+point of the command. No schema change - pure read against an
+already-existing table. Verified against a real MariaDB: a `DIRTY` row
+with `fencing_token = UINT64_MAX` round-trips correctly through
+`DBResult::getNumber<uint64_t>` and the existing `Lua::setField`/
+`lua_Number` (`double`) path, and an unknown player correctly returns
+`nil`.
+
+**A real, previously-undetected bug was also found while scoping this
+phase** (not fixed - see below): `Mailbox::sendItem`
+(`src/items/containers/mailbox/mailbox.cpp`) resolves the recipient via
+`g_game().getPlayerByName(receiver, true)`, which only checks *this*
+process's in-memory online-player map; if the recipient is not found there
+it unconditionally falls back to loading a throwaway offline `Player`
+object straight from the DB (`IOLoginData::loadPlayerByName`) and, since
+`allowOffline=true` makes no distinction between "genuinely offline" and
+"online on a different channel process," it adds the mail item to that
+throwaway copy's inbox and calls `g_saveManager().savePlayer(player)` on
+it. If the recipient is actually online on a *different* channel, that
+channel's own live, authoritative in-memory `Player` object has no idea
+this happened - its own next periodic/logout save will overwrite the DB
+row, silently discarding the mail item that was just written. This is
+exactly the failure mode DECISION_MATRIX.md's 2.12 ("Mail/parcel
+exactly-once across channels") anticipated, except the risk is not
+duplicate delivery but **silent loss** under this specific race. Not fixed
+in this phase: a correct fix needs the same DB-row-handoff pattern already
+established for channel switching (§6 of ARCHITECTURE.md) - a "pending
+mail" row the owning channel's own process picks up and applies to its own
+live player object on its own heartbeat cycle - which is materially more
+design and engineering than a bounded call-site wiring change, and is
+recorded as a new, explicit gap rather than attempted blind.
+
+**Phase 13:** the fourth job is wired to `ClusterJobLeadershipRegistry` -
+daily reward reset, the first one scheduled from Lua
+(`data/scripts/globalevents/global_server_save.lua`'s `GlobalEvent`) rather
+than the C++ engine. Since no Lua-exposed leadership check existed yet, a
+new binding was added - `Game.tryClaimClusterJobLeadership(jobName)`
+(`src/lua/functions/core/game/game_functions.cpp`) - mirroring the exact
+one-shot-race gating shape already used by `loadBoostedCreature`/
+`loadBoostedBoss`: always `true` when clustering is disabled (single-node
+deployments are never gated), otherwise a one-shot `renewOrAcquire` +
+`isLeader` check. Only `ServerSave()`'s `UpdateDailyRewardGlobalStorage`
+call is gated; `cleanMap()`, `Game.setGameState(...)`, and the per-raid
+daily-counter reset in the same function are deliberately left unguarded
+since they act on this channel's own in-memory state and must keep running
+on every process. No schema change. Verified: `luac5.1 -p` syntax-checked
+the edited script; the new C++ binding is a thin, unconditional delegation
+to the already-tested `ClusterJobLeadershipRegistry` (Phase 7) with no new
+logic of its own to unit test, so it was reviewed by hand rather than
+re-verified against Redis.
+
 **Still not enforced**, and still the reason not to enable
 `multiChannelEnabled = true` in production yet: nothing yet *blocks* an
 account from bidding on or trading for a second house before an already-
@@ -317,11 +397,12 @@ decided purchase for a different one settles (the mirror above only
 records an outcome once `setOwner` is actually called, which for auctions
 happens on the next restart, not at bid-placement time) — see
 ARCHITECTURE.md §7's stated gap. The economy ledger (§8) is now wired for
-one background job only; the three live market call sites
-(`Game::playerCreateMarketOffer`/`...CancelMarketOffer`/
-`...AcceptMarketOffer`), mail delivery, and bank/house money movement
-remain entirely unwired — a switch or a normal login does not touch any of
-that money-moving state today, which is the safe side to be wrong on, but
-also means this is not yet a complete cluster.
+one background job and one live call site; `Game::playerCreateMarketOffer`,
+`Game::playerAcceptMarketOffer`, mail delivery, and bank/house money
+movement remain entirely unwired — a switch or a normal login does not
+touch any of that money-moving state today, which is the safe side to be
+wrong on, but also means this is not yet a complete cluster. Mail delivery
+in particular now has a documented, real cross-channel data-loss race (see
+Phase 12 above), not just a missing idempotency guard.
 Do not enable `multiChannelEnabled = true` in production until those ship
 and are tested.

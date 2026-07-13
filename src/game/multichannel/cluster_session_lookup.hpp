@@ -39,4 +39,25 @@ namespace multichannel {
 	// recorded as ONLINE anywhere in the cluster, ordered by channel then
 	// name.
 	[[nodiscard]] std::vector<ClusterOnlinePlayerEntry> listOnlinePlayers();
+
+	struct ClusterSessionLockInfo {
+		int32_t accountId = 0;
+		int32_t playerId = 0;
+		int32_t channelId = 0;
+		std::string instanceId;
+		std::string sessionId;
+		uint64_t fencingToken = 0;
+		std::string status;
+		int64_t acquiredAtMs = 0;
+		int64_t lastHeartbeatMs = 0;
+		int64_t expiresAtMs = 0;
+	};
+
+	// "Inspect a session's current lock owner and fencing token"
+	// (OPERATIONS.md): the raw `cluster_sessions` row for playerId, whatever
+	// its status - unlike findOnlineChannelForPlayer this is not filtered to
+	// ONLINE, since inspecting a stale/DIRTY session is the primary reason a
+	// GM would call this. Returns std::nullopt if no row has ever been
+	// written for this player (lease never acquired).
+	[[nodiscard]] std::optional<ClusterSessionLockInfo> findSessionLockInfo(int32_t playerId);
 } // namespace multichannel
