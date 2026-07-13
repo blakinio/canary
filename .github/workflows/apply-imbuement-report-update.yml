@@ -1,0 +1,92 @@
+---
+name: Apply Imbuement Report Update
+
+on:
+  push:
+    branches:
+      - fix/imbuement-forgotten-knowledge-storages
+    paths:
+      - ".github/workflows/apply-imbuement-report-update.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/imbuement-forgotten-knowledge-storages
+
+      - name: Update repaired finding status
+        shell: python
+        run: |
+          from pathlib import Path
+
+          report = Path("docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md")
+          text = report.read_text(encoding="utf-8")
+
+          replacements = {
+              "> **Status:** static evidence collected; deterministic audits implemented; runtime scenarios not yet executed  ":
+                  "> **Status:** static evidence collected; IMB-005 repaired in PR #206; runtime scenarios not yet executed  ",
+              "5. all seven nonzero Powerful unlock storage IDs are absent from the active storage registry, affecting 22 families;":
+                  "5. the seven nonzero Powerful unlock storage IDs were stale in the original audit and are repaired by PR #206;",
+              "The storage defect is configuration-dependent but broad. The default configuration disables storage filtering, which hides the defect. When filtering is enabled, the policy hides an entry whenever its configured storage reads `-1`. Undeclared IDs therefore leave the 22 affected Powerful families hidden, while the two zero-storage families remain visible without their documented unlocks.":
+                  "The original storage defect was configuration-dependent but broad. PR #206 maps all 22 affected Powerful families to the active Forgotten Knowledge boss storages and makes undeclared nonzero Imbuement storage IDs fail focused CI. The two zero-storage families remain a separate unresolved finding.",
+              "The policy implementation is correct for valid storage IDs; the current defect is the XML-to-storage wiring.":
+                  "The policy implementation is correct for valid storage IDs. PR #206 repairs the Forgotten Knowledge XML-to-storage wiring; Featherweight and Vibrancy remain unresolved because their exact quest completion conditions are not yet proven.",
+              "- current Forgotten Knowledge named-storage wiring.":
+                  "- current Forgotten Knowledge named-storage wiring;\n- exact Powerful family-to-storage grouping for all seven boss unlocks.",
+              "1. **Repair Powerful unlock storage wiring** in a focused data + regression-test PR after confirming the seven current Forgotten Knowledge mappings and the two external quest completion conditions.\n2. **Fix Vibrancy scroll mappings** in a narrow XML + focused-test PR.\n3. **Confirm the target Tibia economy/version** before changing the fee/success model.\n4. **Fix Strike and Basic Punch** in a separate data-fidelity PR with combat/inventory tests.\n5. **Execute the runtime plan** in controlled Canary staging and retain the report as a CI artifact.\n6. **Add equipment eligibility parity** as a separate audit using `items.xml` and item metadata.":
+                  "1. **Prove the exact Dangerous Depths and Dream Courts completion conditions** before assigning Featherweight and Vibrancy unlock storages.\n2. **Fix Vibrancy scroll mappings** in a narrow XML + focused-test PR.\n3. **Confirm the target Tibia economy/version** before changing the fee/success model.\n4. **Fix Strike and Basic Punch** in a separate data-fidelity PR with combat/inventory tests.\n5. **Execute the runtime plan** in controlled Canary staging and retain the report as a CI artifact.\n6. **Add equipment eligibility parity** as a separate audit using `items.xml` and item metadata.",
+          }
+
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f"expected report text not found: {old[:80]}")
+              text = text.replace(old, new, 1)
+
+          start = text.index("### IMB-005 — nonzero Powerful unlock storages are stale")
+          end = text.index("### IMB-006 — Powerful Featherweight and Vibrancy bypass unlock filtering")
+          repaired = """### IMB-005 — Forgotten Knowledge Powerful unlock storages repaired
+
+**Disposition:** `repaired-by-pr-206`  
+**Confidence:** high
+
+The original audit found these stale XML IDs:
+
+```text
+50488, 50490, 50492, 50494, 50496, 50498, 50501
+```
+
+PR #206 replaces them with the active named Forgotten Knowledge boss storages while preserving every unrelated Imbuement attribute:
+
+| Active storage | Boss/unlock group | Powerful families |
+|---:|---|---|
+| 45489 | Lady Tenebris | Reap, Vampirism, Lich Shroud |
+| 45490 | Lloyd | Electrify, Cloud Fabric, Swiftness |
+| 45491 | Thorn Knight | Venom, Snake Skin, Chop, Slash, Bash, Punch |
+| 45492 | Dragonking | Scorch, Void, Dragon Hide |
+| 45493 | Frozen Horror | Frost, Quara Scale, Blockade |
+| 45494 | Time Guardian | Demon Presence, Precision |
+| 45495 | Last Lore Keeper | Strike, Epiphany |
+
+The focused validator now verifies the exact family grouping, rejects every legacy ID, rejects undeclared nonzero Imbuement storages and runs in `--strict` mode in CI. With storage filtering enabled, a boss kill now writes the same storage ID read by the corresponding Powerful Imbuement entry.
+
+This repair does not change Featherweight or Vibrancy because their XML entries use `storage=0` and their exact Dangerous Depths/Dream Courts completion conditions remain unproven.
+
+"""
+          text = text[:start] + repaired + text[end:]
+          report.write_text(text, encoding="utf-8")
+
+      - name: Remove one-shot workflow and commit
+        shell: bash
+        run: |
+          rm .github/workflows/apply-imbuement-report-update.yml
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md .github/workflows/apply-imbuement-report-update.yml
+          git commit -m "docs(imbuement): record Forgotten Knowledge storage repair"
+          git push origin HEAD:fix/imbuement-forgotten-knowledge-storages
