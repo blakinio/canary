@@ -2,13 +2,13 @@
 task_id: CAN-20260713-otbm-reachability-validator
 program_id: ""
 coordination_id: "OTS-OTBM-VALIDATION"
-status: active
+status: ready_for_review_pending_ci
 agent: "GPT-5.6 Thinking"
 branch: feat/otbm-reachability-validator
 base_branch: main
 created: 2026-07-13T18:43:00+02:00
-updated: 2026-07-13T19:05:00+02:00
-last_verified_commit: "afd5b2eeac2ae2137ea52cf3ce0cd19035eb9360"
+updated: 2026-07-13T19:22:00+02:00
+last_verified_commit: "c185482e50e18160531d5fee697eb3c4522c2c7d"
 risk: medium
 related_issue: ""
 related_pr: "#274"
@@ -68,7 +68,7 @@ cross_repo_tasks: []
 
 # Goal
 
-Deliver Phase 3 of the OTBM tooling roadmap: a deterministic read-only validator for bounded teleport/floor-transition correctness and conservative player reachability without creating another OTBM parser or modifying any map.
+Deliver Phase 3 of the OTBM tooling roadmap: deterministic read-only validation for bounded teleport/floor-transition correctness and conservative player reachability without creating another OTBM parser or modifying any map.
 
 # Acceptance criteria
 
@@ -84,147 +84,130 @@ Deliver Phase 3 of the OTBM tooling roadmap: a deterministic read-only validator
 - [x] Bound region size, route starts, routes, transitions, samples and path output.
 - [x] Write reports atomically and reject symlink outputs and provenance mismatches.
 - [x] Add focused tests, schemas, documentation, dedicated CI and a durable evidence-boundary ADR.
-- [ ] Update catalogue, changelog and roadmap.
+- [x] Update catalogue, changelog and authoritative roadmap.
 - [x] Confirm no `.otbm`, `.widx`, `items.otb`, appearances binary, client asset, generated report/render, gameplay, protocol or production configuration is committed.
-- [ ] Current-head required GitHub checks pass and autonomous merge gate is satisfied.
+- [ ] Final ready-head workflows and autonomous merge gate pass.
+- [ ] Merge and archive this task in a separate lifecycle PR.
 
 # Confirmed context
 
 - Write target is exactly `blakinio/canary`; upstream repositories are read-only.
 - Branch was created from `main` commit `444aa8ae13edc01c6e77b03139a43d386b437308`.
 - Local Git access was attempted once with `git ls-remote https://github.com/blakinio/canary.git HEAD` and failed with `Could not resolve host: github.com`; GitHub API is the repository mutation path and no local checkout result is claimed.
-- Open PR search for OTBM/reachability/teleport/stairs/pathfinding ownership returned no overlap. Adjacent open work is Forge, achievements, Wheel and E2E; none owns the claimed paths.
+- Open PR search for OTBM/reachability/teleport/stairs/pathfinding ownership returned no overlap. Adjacent work is Forge, achievements, Wheel and E2E; none owns the claimed paths.
 - `ACTIVE_WORK.md` is stale and read-only for this task.
-- Phases 1 and 2 were merged before this branch; Phase 3 implementation is isolated in draft PR #274.
+- Phases 1 and 2 were merged before this branch; Phase 3 is isolated in PR #274.
 
-# Existing work to reuse
+# Architecture and reuse
 
-| Module/task/PR | Reuse | Evidence/path | Why it fits |
-|---|---|---|---|
-| Unified OTBM World Index #219 | memory-mapped exact tile/placement/mechanic/region queries | `tools/ai-agent/otbm_world_index.py` | Avoids rescanning and avoids a competing OTBM parser. |
-| Appearances catalogue | object ground/unpassable/avoid/usable flags | `tools/ai-agent/otbm_appearances.py` | Supplies conservative geometry semantics from actual client metadata. |
-| Script resolution #104 | placement runtime status | `OTBM_SCRIPT_RESOLUTION_REPORT.schema.json` | Distinguishes engine/direct handling, unresolved registrations and conflicts. |
-| Factual renderer | review-only visual context | `tools/ai-agent/otbm_renderer.py` | Users can render exact reported bounds without AI-generated map imagery. |
-
-# Ownership and overlap check
-
-- Program record: `docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md` is the authoritative programme handoff.
-- Open PRs inspected: current user-owned open PR list plus targeted OTBM/reachability search; no matching ownership.
-- Active tasks inspected: stale `ACTIVE_WORK.md`, targeted repository search and live PRs.
-- Ownership checker result: pending GitHub Agent Task Ownership workflow.
-- Exclusive claims: new reachability modules, CLI, tests, schemas, workflow, ADR and this task.
-- Shared claims: narrow catalogue/changelog/roadmap entries.
-- Read-only dependencies: World Index, appearances, script resolution, renderer and existing contracts.
-- Overlaps: none confirmed.
-
-# Current state
-
-Implementation, CLI, tests, schemas, documentation, workflow and ADR are published on draft PR #274. The module is split by responsibility only to keep the reusable contracts reviewable; `otbm_reachability.py` remains the public facade.
-
-# Plan
-
-1. Update module catalogue, changelog and programme roadmap.
-2. Inspect the complete PR diff and current-head workflows.
-3. Repair any formatter, ownership, schema or integration failure.
-4. Mark ready and merge only after every required gate succeeds.
-5. Archive this task in a separate lifecycle PR.
-
-# Work log
-
-## 2026-07-13T18:43:00+02:00
-
-- Created `feat/otbm-reachability-validator`, claimed exact paths and opened draft PR #274.
-- Confirmed that World Index already exposes tile stacks and teleport destinations, while appearances expose `bank`, `unpassable`, `avoid`, `usable`, `multiUse` and `forceUse`.
-- Rejected parser duplication and automatic stair/ladder inference.
-
-## 2026-07-13T19:05:00+02:00
-
-- Published strict/optimistic tile classification, teleport and reviewed transition validation, bounded BFS, no-corner-cut diagonals, route/mechanic reachability, one-way/dead-end/cycle findings and provenance-safe output.
-- Added `canary-otbm-reachability-v1` and `canary-otbm-transition-manifest-v1` schemas.
-- Added 16 focused tests, including a synthetic map built by the real World Index scanner when CI supplies it.
-- Added dedicated CI and local toolkit artifact packaging without map/client binaries.
-- Local isolated result: 16 tests passed with the scanner integration test skipped because no scanner path was available; Python compilation and schema syntax passed. This is not current-main CI evidence.
-
-# Decisions
-
-| Decision | Reason/evidence | ADR |
+| Dependency | Reuse | Reason |
 |---|---|---|
-| Require reviewed manifests for stairs/holes/ladders | Appearance flags do not prove destination offsets or direction. | `ADR-20260713-otbm-reachability-evidence-boundary.md` |
-| Emit strict and optimistic reachability | Runtime door/quest/dynamic/unknown state must remain visible instead of guessed. | same ADR |
-| Default to four-direction movement | Avoids claiming diagonal semantics; optional diagonals never cut corners. | same ADR |
-| Keep a public facade plus focused internal modules | Preserves one stable import surface while keeping evidence, graph and analysis responsibilities reviewable. | none |
+| Unified OTBM World Index #219 | exact memory-mapped tile/placement/mechanic/region queries | prevents rescanning and parser duplication |
+| appearances catalogue parser | actual ground/unpassable/avoid/interaction flags | supplies conservative geometry evidence |
+| script-resolution #104 | placement runtime status | preserves unresolved and conflicts |
+| factual renderer | separate bounded visual review | prevents AI-generated map evidence |
 
-# Files and interfaces
+The implementation provides one public facade, `otbm_reachability.py`, with focused internal modules for evidence types, transition validation, graph traversal and report orchestration.
 
-| Path/interface/config/schema | Ownership mode | Purpose | Status |
-|---|---|---|---|
-| `tools/ai-agent/otbm_reachability.py` | exclusive | public facade, input provenance, atomic output | implemented |
-| `tools/ai-agent/otbm_reachability_types.py` | exclusive | contracts, loaders and shared evidence types | implemented |
-| `tools/ai-agent/otbm_reachability_transition.py` | exclusive | tile/transition validation | implemented |
-| `tools/ai-agent/otbm_reachability_graph.py` | exclusive | bounded BFS and transition-cycle analysis | implemented |
-| `tools/ai-agent/otbm_reachability_analysis.py` | exclusive | report orchestration | implemented |
-| `tools/ai-agent/otbm_reachability_tool.py` | exclusive | CLI | implemented |
-| `canary-otbm-reachability-v1` | exclusive | machine-readable output | implemented |
-| `canary-otbm-transition-manifest-v1` | exclusive | reviewed floor-transition evidence | implemented |
+# Delivered behavior
+
+- `canary-otbm-reachability-v1` report and JSON Schema;
+- `canary-otbm-transition-manifest-v1` reviewed floor-transition contract and JSON Schema;
+- strict graph: confirmed ground, no static/conditional blocker, no unknown appearance;
+- optimistic graph: confirmed ground and no static blocker while conditional/unknown state remains explicit;
+- four-direction movement by default;
+- optional diagonal movement without corner cutting;
+- automatic indexed teleport validation;
+- explicit reviewed stairs/ladder/hole/rope/floor-change edges;
+- optional script-resolution correlation;
+- route and map-mechanic reachability;
+- one-way, dead-end and transition-cycle findings;
+- deterministic bounded path samples and exact totals;
+- atomic output, overwrite protection, symlink rejection and provenance hashes;
+- dedicated workflow and local toolkit artifact without map/client binaries.
+
+# Evidence and safety boundary
+
+- Dynamic Lua is never executed.
+- Non-teleport floor offsets are never inferred from item names, sprites or visual memory.
+- Conditional/optimistic reachability is not gameplay proof.
+- The validator does not model creatures, players, movable blockers, live storage/account/database state or physical-client behavior.
+- No map, WIDX, appearances binary, client asset, generated report/render or upstream repository is modified or committed.
 
 # Validation and CI
 
-| Commit | Command/check/workflow | Result | Evidence/notes |
-|---|---|---|---|
-| isolated local files | `python -m unittest -v test_otbm_reachability.py` | passed | 16 tests; scanner integration skipped because no scanner path was supplied |
-| isolated local files | `python -m py_compile otbm_reachability*.py test_otbm_reachability.py` | passed | no repository checkout claim |
-| isolated local files | JSON syntax and `jsonschema` sample validation | passed | report and transition sample validated |
-| current PR head | OTBM Reachability / ownership / AI tools / repository CI | not-run | final documentation head not published yet |
+## Isolated local files
 
-Never treat the isolated local result as full current-main or real private-map proof.
+- `python -m unittest -v test_otbm_reachability.py`: 16 tests passed; the real-scanner integration test was skipped because no scanner path was supplied.
+- `python -m py_compile otbm_reachability*.py test_otbm_reachability.py`: passed.
+- report/transition JSON syntax and representative `jsonschema` validation: passed.
 
-# Failed approaches and dead ends
+These are isolated-file checks, not current-main/full-repository or private-map proof.
+
+## Reviewed implementation head
+
+Head `2fb1fe195a13e830709c0ae028a7f9d8280ff7db`:
+
+- OTBM Reachability run `29269281476`: success.
+  - job `86882600269` succeeded;
+  - native scanner compiled with warnings as errors;
+  - focused tests including real World Index fixture integration succeeded;
+  - Python compilation, schema syntax and toolkit upload succeeded.
+- Agent Task Ownership run `29269281465`: success; job `86882600120` succeeded.
+- AI Agent Tools run `29269281509`: success; job `86882600789` succeeded.
+- OTBM Map Tools run `29269281596`: success; job `86882600654` succeeded.
+- repository CI run `29269281801`: success.
+  - Detect Build Scope job `86882601595`: success;
+  - Required job `86882669487`: success;
+  - C++/Lua platform jobs were skipped by path scope, so no runtime/gameplay claim is made.
+- review threads: zero at inspection.
+- changed-file list: exactly 15 text/source/workflow/schema/documentation paths; no map/index/asset/generated artifact.
+
+## Ready-head gate
+
+The catalogue, changelog and authoritative roadmap were subsequently updated. Fresh workflows on the final ready head remain required before merge.
+
+# Decisions
+
+| Decision | Reason | ADR |
+|---|---|---|
+| reviewed manifests for stairs/holes/ladders | appearance flags do not prove destination offset/direction | `ADR-20260713-otbm-reachability-evidence-boundary.md` |
+| strict and optimistic graphs | runtime door/quest/dynamic/unknown state must remain visible | same ADR |
+| four-direction default, corner-safe diagonals | avoids guessing client movement semantics | same ADR |
+| read-only consumer of World Index | preserves one canonical OTBM parser/cache | same ADR |
+
+# Failed approaches and corrections
 
 - Local Git DNS failed once; clone/fetch was not repeatedly retried.
 - Automatic stairs/ladder inference from item names, sprites or visual memory was rejected.
 - A single passable/blocked graph was rejected because it would hide runtime uncertainty or create false failures.
+- A local attempt to rebuild the full private-map WIDX exceeded the available execution window and was aborted; no partial file was used as evidence. The earlier verified map provenance remains documented, while Phase 3 correctness is supported by the dedicated real-scanner fixture integration in CI.
 
 # Risks and compatibility
 
 - Runtime: none; offline read-only tooling.
 - Data/migration: none.
-- Security: input hashes, bounded memory/output, atomic writes and symlink rejection.
-- Backward compatibility: existing World Index, Quest Map Validator, script-resolution and renderer contracts remain unchanged.
-- Cross-repo rollout: none; no OTClient protocol/client-code change.
-- Rollback: squash-revert the tooling PR; no map or production state changes.
+- Backward compatibility: World Index, Quest Map Validator, script-resolution and renderer contracts are unchanged.
+- Cross-repository rollout: none; no OTClient protocol/client-code change.
+- Rollback: squash-revert PR #274; no map or production state cleanup.
 
 # Remaining work
 
-1. Finish shared documentation and current-head CI review.
+1. Mark PR #274 Ready for review.
+2. Inspect every fresh final-head workflow/job, reviews, mergeability and exact changed files.
+3. Squash-merge after the autonomous gate passes.
+4. Move this record to `docs/agents/tasks/archive/` in a separate documentation-only lifecycle PR and pin the final merge SHA in the roadmap.
 
 # Handoff
 
-## Start here
-
-Continue only PR #274 and `feat/otbm-reachability-validator` until it merges.
-
-## Do not repeat
-
-Do not create a new OTBM parser, infer floor transitions from imagery, execute dynamic Lua, modify the map, commit binary assets or edit `ACTIVE_WORK.md`.
-
-## Required reads
-
-- `AGENTS.md`
-- `docs/agents/README.md`
-- `docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md`
-- `docs/ai-agent/OTBM_REACHABILITY.md`
-- `docs/agents/decisions/ADR-20260713-otbm-reachability-evidence-boundary.md`
-
-## Open questions
-
-- A real-map smoke requires a local `.widx` plus compatible appearances catalogue. Absence of these artifacts must remain an explicit evidence limitation; they must not be committed.
+Continue only PR #274 and branch `feat/otbm-reachability-validator` until merge. Do not start Phase 4, create another OTBM parser/pathfinder, modify the map, commit binary artifacts or edit `ACTIVE_WORK.md`.
 
 # Completion
 
-- Final status: active
+- Final status: ready_for_review_pending_ci
 - PR: #274
 - Merge commit:
-- Program record updated: pending
-- Catalogue updated: pending
-- Changelog updated: pending
-- Archived at:
+- Programme record updated: yes
+- Catalogue updated: yes
+- Changelog updated: yes
+- Archived at: pending lifecycle PR
