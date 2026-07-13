@@ -19,6 +19,7 @@ Update this file in the same PR that adds a reusable module/service/manager/pars
 | Account-wide quest access | active hardening (#124) | Approved account-shared access, atomic claims, migration/validation/admin paths | `data-otservbr-global/scripts/custom/account_quest_system.lua`, `tools/account-quests/**`, DB/config/API/docs | Use existing APIs/store; do not create a second account quest system. |
 | Multi-channel architecture | merged phases; safeguards documented | Shared/per-channel state architecture | current source and multichannel handoffs | Read latest handoff and production gates before changes. |
 | Forge history ID resolution | merged (#110) | Resolves history item types by ID with name fallback | Forge sources/integration test | Reuse ID-based lookup for custom/duplicate names. |
+| Forge server authority policies | active (#250) | Validates regular/Convergence Fusion pairs and Transfer class/tier rules before mutation | `src/game/functions/forge_fusion_policy.hpp`, `forge_transfer_policy.hpp`, Player Forge handlers, focused unit/integration tests | Preserve normal Transfer rules from #89; runtime gameplay/E2E and transaction rollback remain separate evidence. |
 
 ## AI, map, and deployment tooling
 
