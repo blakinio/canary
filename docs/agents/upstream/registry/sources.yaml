@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "report": {
     "repository": "blakinio/canary",
     "issue_title": "[Upstream Intelligence] Current drift report",
