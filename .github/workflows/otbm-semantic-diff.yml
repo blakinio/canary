@@ -1,0 +1,197 @@
+name: OTBM Semantic Diff
+
+on:
+  push:
+    branches:
+      - main
+      - "feat/**"
+      - "fix/**"
+      - "ai/**"
+    paths:
+      - "tools/ai-agent/otbm_semantic_diff*.py"
+      - "tools/ai-agent/test_otbm_semantic_diff.py"
+      - "tools/ai-agent/otbm_world_index*.py"
+      - "tools/ai-agent/otbm_item_audit_scan.cpp"
+      - "tools/ai-agent/otbm_reachability*.py"
+      - "tools/ai-agent/otbm_renderer.py"
+      - "tools/ai-agent/otbm_render_tool.py"
+      - "docs/ai-agent/OTBM_SEMANTIC_DIFF.schema.json"
+      - ".github/workflows/otbm-semantic-diff.yml"
+  pull_request:
+    paths:
+      - "tools/ai-agent/otbm_semantic_diff*.py"
+      - "tools/ai-agent/test_otbm_semantic_diff.py"
+      - "tools/ai-agent/otbm_world_index*.py"
+      - "tools/ai-agent/otbm_item_audit_scan.cpp"
+      - "tools/ai-agent/otbm_reachability*.py"
+      - "tools/ai-agent/otbm_renderer.py"
+      - "tools/ai-agent/otbm_render_tool.py"
+      - "docs/ai-agent/OTBM_SEMANTIC_DIFF.schema.json"
+      - ".github/workflows/otbm-semantic-diff.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate semantic map evidence
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile existing native scanner with warnings as errors
+        run: |
+          c++ -O2 -std=c++20 -Wall -Wextra -Wpedantic -Werror \
+            tools/ai-agent/otbm_item_audit_scan.cpp \
+            -o /tmp/otbm_item_audit_scan
+
+      - name: Run focused Phase 6 tests
+        run: |
+          PYTHONPATH=tools/ai-agent \
+            python -m unittest -v tools/ai-agent/test_otbm_semantic_diff.py
+
+      - name: Compile Python modules
+        run: |
+          python -m py_compile \
+            tools/ai-agent/otbm_semantic_diff.py \
+            tools/ai-agent/otbm_semantic_diff_types.py \
+            tools/ai-agent/otbm_semantic_diff_analysis.py \
+            tools/ai-agent/otbm_semantic_diff_render.py \
+            tools/ai-agent/otbm_semantic_diff_tool.py \
+            tools/ai-agent/test_otbm_semantic_diff.py
+
+      - name: Validate JSON schema syntax
+        run: python -m json.tool docs/ai-agent/OTBM_SEMANTIC_DIFF.schema.json > /dev/null
+
+      - name: Build two deterministic synthetic maps and canonical indexes
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=tools/ai-agent python - <<'PY'
+          import json
+          from pathlib import Path
+
+          from otbm_world_index import build_world_index
+          from test_otbm_semantic_diff import base_tiles, copy_tiles, make_variant
+
+          root = Path("artifacts")
+          before = base_tiles()
+          after = copy_tiles()
+          after[0]["items"][0]["action"] = 1001
+          after[0]["items"][0], after[0]["items"][1] = after[0]["items"][1], after[0]["items"][0]
+          after[1]["flags"] = 8
+          make_variant(root / "before.otbm", before)
+          make_variant(root / "after.otbm", after)
+          for role in ("before", "after"):
+              build_world_index(
+                  map_path=root / f"{role}.otbm",
+                  scanner=Path("/tmp/otbm_item_audit_scan"),
+                  output=root / f"{role}.widx",
+                  manifest_output=root / f"{role}.widx.json",
+              )
+          (root / "appearances.json").write_text(
+              json.dumps(
+                  {
+                      "format": "canary-appearances-index-v1",
+                      "ok": True,
+                      "appearances": [
+                          {"category": "object", "id": item_id, "flags": {"bank": {}} if item_id == 100 else {}}
+                          for item_id in (100, 200, 202, 203, 204, 205)
+                      ],
+                  },
+                  sort_keys=True,
+              ),
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Run representative semantic diff twice
+        run: |
+          for output in semantic-diff-a.json semantic-diff-b.json; do
+            PYTHONPATH=tools/ai-agent \
+              python tools/ai-agent/otbm_semantic_diff_tool.py diff \
+                --artifact-root artifacts \
+                --before-index before.widx \
+                --before-manifest before.widx.json \
+                --after-index after.widx \
+                --after-manifest after.widx.json \
+                --appearances appearances.json \
+                --before-map before.otbm \
+                --after-map after.otbm \
+                --output "$output"
+          done
+          cmp artifacts/semantic-diff-a.json artifacts/semantic-diff-b.json
+
+      - name: Verify contract, determinism and evidence boundaries
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          first = Path("artifacts/semantic-diff-a.json")
+          second = Path("artifacts/semantic-diff-b.json")
+          report = json.loads(first.read_text(encoding="utf-8"))
+          assert hashlib.sha256(first.read_bytes()).hexdigest() == hashlib.sha256(second.read_bytes()).hexdigest()
+          assert report["format"] == "canary-otbm-semantic-diff-v1"
+          assert report["schemaVersion"] == 1
+          assert report["policy"]["dynamicLuaExecuted"] is False
+          assert report["policy"]["mapModified"] is False
+          assert report["policy"]["worldIndexReused"] is True
+          assert report["policy"]["nativeScannerReused"] is True
+          assert report["policy"]["newParserCreated"] is False
+          assert report["policy"]["newPathfinderCreated"] is False
+          assert report["policy"]["newRendererCreated"] is False
+          assert report["policy"]["heuristicItemMatching"] is False
+          assert report["summary"]["findings"]["total"] >= len(report["findings"])
+          kinds = {finding["kind"] for finding in report["findings"]}
+          assert "tile-flags-changed" in kinds
+          assert "item-replaced" in kinds or "action-id-changed" in kinds
+          assert all(not Path(side["worldIndex"]["path"]).is_absolute() for side in (report["provenance"]["before"], report["provenance"]["after"]))
+          assert all(".." not in Path(side["worldIndex"]["path"]).parts for side in (report["provenance"]["before"], report["provenance"]["after"]))
+          PY
+
+      - name: Validate representative report against schema
+        run: |
+          python -m pip install --disable-pip-version-check jsonschema
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import jsonschema
+
+          schema = json.loads(Path("docs/ai-agent/OTBM_SEMANTIC_DIFF.schema.json").read_text(encoding="utf-8"))
+          report = json.loads(Path("artifacts/semantic-diff-a.json").read_text(encoding="utf-8"))
+          jsonschema.validate(report, schema)
+          PY
+
+      - name: Verify forbidden generated inputs are not publishable
+        run: |
+          find artifacts -type f \( -name '*.otbm' -o -name '*.widx' -o -name '*.png' \) -delete
+          test -z "$(find artifacts -type f \( -name '*.otbm' -o -name '*.widx' -o -name '*.png' \) -print -quit)"
+
+      - name: Assemble local Phase 6 toolkit
+        run: |
+          mkdir -p artifacts/toolkit
+          cp tools/ai-agent/otbm_semantic_diff*.py artifacts/toolkit/
+          cp tools/ai-agent/otbm_item_audit_scan.cpp artifacts/toolkit/
+          cp tools/ai-agent/otbm_world_index*.py artifacts/toolkit/
+          cp tools/ai-agent/otbm_reachability_types.py artifacts/toolkit/
+          cp tools/ai-agent/otbm_reachability_transition.py artifacts/toolkit/
+          cp tools/ai-agent/otbm_renderer.py artifacts/toolkit/
+          cp tools/ai-agent/otbm_render_tool.py artifacts/toolkit/
+          cp docs/ai-agent/OTBM_SEMANTIC_DIFF.schema.json artifacts/toolkit/
+          cp docs/ai-agent/OTBM_SEMANTIC_DIFF.md artifacts/toolkit/
+
+      - name: Upload small report and local toolkit
+        uses: actions/upload-artifact@v4
+        with:
+          name: otbm-semantic-diff
+          path: |
+            artifacts/semantic-diff-a.json
+            artifacts/toolkit
+          if-no-files-found: error
+          retention-days: 14
