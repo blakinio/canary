@@ -60,6 +60,33 @@ Connection::Connection(asio::io_service &initIoService, ConstServicePort_ptr ini
 	socket(initIoService), m_msg() {
 }
 
+void Connection::scheduleProtocolRelease() {
+	if (!protocol || protocolReleaseScheduled) {
+		return;
+	}
+
+	protocolReleaseScheduled = true;
+	g_logger().debug(
+		"[ConnectionSessionLifecycle] event=release_scheduled connection_id={} connection={} protocol={} context=connection_io",
+		connectionId,
+		fmt::ptr(this),
+		fmt::ptr(protocol.get())
+	);
+	g_dispatcher().addEvent(
+		[protocol = protocol, connectionId = connectionId, connectionAddress = static_cast<const void*>(this)] {
+			g_logger().debug(
+				"[ConnectionSessionLifecycle] event=release_executed connection_id={} connection={} protocol={} context=dispatcher",
+				connectionId,
+				fmt::ptr(connectionAddress),
+				fmt::ptr(protocol.get())
+			);
+			protocol->release();
+		},
+		__FUNCTION__,
+		std::chrono::milliseconds(CONNECTION_WRITE_TIMEOUT * 1000).count()
+	);
+}
+
 void Connection::close(bool force) {
 	ConnectionManager::getInstance().releaseConnection(shared_from_this());
 
@@ -72,7 +99,19 @@ void Connection::close(bool force) {
 	connectionState = CONNECTION_STATE_CLOSED;
 
 	if (protocol) {
-		g_dispatcher().addEvent([protocol = protocol] { protocol->release(); }, __FUNCTION__, std::chrono::milliseconds(CONNECTION_WRITE_TIMEOUT * 1000).count());
+		const auto releaseAction = protocolReleaseGate.requestRelease();
+		g_logger().debug(
+			"[ConnectionSessionLifecycle] event=connection_close connection_id={} connection={} protocol={} callback_pending={} release_action={} force={} context=connection_io",
+			connectionId,
+			fmt::ptr(this),
+			fmt::ptr(protocol.get()),
+			protocolReleaseGate.hasPendingCallback(),
+			releaseAction == ProtocolReleaseAction::ReleaseNow ? "release-now" : "defer-until-callback",
+			force
+		);
+		if (releaseAction == ProtocolReleaseAction::ReleaseNow) {
+			scheduleProtocolRelease();
+		}
 	}
 
 	if (messageQueue.empty() || force) {
@@ -281,8 +320,17 @@ void Connection::parsePacket(const std::error_code &error) {
 
 		protocol->onRecvFirstMessage(m_msg);
 	} else {
-		// Send the packet to the current protocol
+		// Mark the callback before publishing it to the dispatcher. This prevents
+		// a peer close from releasing ProtocolGame before an already-received
+		// ClientLeaveGame packet has executed on the dispatcher.
+		protocolReleaseGate.beginCallback();
 		skipReadingNextPacket = protocol->onRecvMessage(m_msg);
+		if (!skipReadingNextPacket) {
+			const bool releaseRequested = protocolReleaseGate.completeCallback();
+			if (releaseRequested && connectionState == CONNECTION_STATE_CLOSED) {
+				scheduleProtocolRelease();
+			}
+		}
 	}
 
 	try {
@@ -300,6 +348,24 @@ void Connection::parsePacket(const std::error_code &error) {
 }
 
 void Connection::resumeWork() {
+	std::scoped_lock lock(connectionLock);
+	const bool releaseRequested = protocolReleaseGate.completeCallback();
+	g_logger().debug(
+		"[ConnectionSessionLifecycle] event=dispatcher_callback_complete connection_id={} connection={} protocol={} connection_closed={} release_requested={} context=dispatcher",
+		connectionId,
+		fmt::ptr(this),
+		fmt::ptr(protocol.get()),
+		connectionState == CONNECTION_STATE_CLOSED,
+		releaseRequested
+	);
+
+	if (connectionState == CONNECTION_STATE_CLOSED) {
+		if (releaseRequested) {
+			scheduleProtocolRelease();
+		}
+		return;
+	}
+
 	readTimer.expires_from_now(std::chrono::seconds(CONNECTION_READ_TIMEOUT));
 	readTimer.async_wait([self = std::weak_ptr<Connection>(shared_from_this())](const std::error_code &error) { Connection::handleTimeout(self, error); });
 
