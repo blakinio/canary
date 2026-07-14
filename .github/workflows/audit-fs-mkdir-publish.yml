@@ -1,0 +1,63 @@
+name: Publish FS mkdir audit
+
+on:
+  push:
+    branches:
+      - security/fs-mkdir-shell-free
+    paths:
+      - .github/workflows/audit-fs-mkdir-publish.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: github.repository == 'blakinio/canary' && github.ref == 'refs/heads/security/fs-mkdir-shell-free'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact task branch
+        uses: actions/checkout@v4
+        with:
+          ref: security/fs-mkdir-shell-free
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Generate and validate audit
+        run: |
+          python3 tools/ai-agent/audit_fs_mkdir.py
+          python3 -m json.tool artifacts/upstream/crystalserver/cs006_fs_mkdir_audit.json >/dev/null
+          test -s artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT.md
+
+      - name: Stage reports and remove every temporary runner
+        run: |
+          rm -f tools/ai-agent/audit_fs_mkdir.py
+          rm -f .github/workflows/audit-fs-mkdir.yml
+          rm -f .github/workflows/audit-fs-mkdir-publish.yml
+          git add -f artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT.md
+          git add -f artifacts/upstream/crystalserver/cs006_fs_mkdir_audit.json
+          git add -A tools/ai-agent/audit_fs_mkdir.py .github/workflows/audit-fs-mkdir.yml .github/workflows/audit-fs-mkdir-publish.yml
+
+      - name: Enforce bounded final commit
+        run: |
+          mapfile -t changed < <(git diff --cached --name-only)
+          printf '%s\n' "${changed[@]}"
+          allowed='^(artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT\.md|artifacts/upstream/crystalserver/cs006_fs_mkdir_audit\.json|tools/ai-agent/audit_fs_mkdir\.py|\.github/workflows/audit-fs-mkdir\.yml|\.github/workflows/audit-fs-mkdir-publish\.yml)$'
+          for path in "${changed[@]}"; do
+            [[ "$path" =~ $allowed ]] || { echo "Unexpected path: $path" >&2; exit 1; }
+          done
+          test -n "${changed[*]}"
+          test ! -e tools/ai-agent/audit_fs_mkdir.py
+          test ! -e .github/workflows/audit-fs-mkdir.yml
+          test ! -e .github/workflows/audit-fs-mkdir-publish.yml
+          git diff --cached --check
+
+      - name: Commit exact audit evidence
+        run: |
+          git commit -m "docs(security): publish FS mkdir call-site audit"
+          git push origin HEAD:security/fs-mkdir-shell-free
