@@ -14,11 +14,48 @@
 #ifndef USE_PRECOMPILED_HEADERS
 	#include <cstdint>
 	#include <optional>
+	#include <string_view>
 #endif
 
 class NetworkMessage;
 class OutputMessage;
 class Protocol;
+
+enum class InboundTransportStatus : uint8_t {
+	Accepted,
+	ZeroSequence,
+	SequenceMismatch,
+	ChecksumMismatch,
+	DecryptFailure,
+	MalformedFrame,
+};
+
+struct InboundTransportResult {
+	InboundTransportStatus status = InboundTransportStatus::MalformedFrame;
+	std::optional<uint32_t> receivedSequence;
+	std::optional<uint32_t> expectedSequence;
+
+	[[nodiscard]] bool accepted() const {
+		return status == InboundTransportStatus::Accepted;
+	}
+};
+
+[[nodiscard]] constexpr uint32_t nextInboundSequence(uint32_t acceptedSequence) {
+	return acceptedSequence + 1;
+}
+
+[[nodiscard]] constexpr uint32_t storedInboundSequence(uint32_t acceptedSequence) {
+	return acceptedSequence >= 0x7FFFFFFF ? 0 : acceptedSequence;
+}
+
+[[nodiscard]] std::string_view getInboundTransportStatusName(InboundTransportStatus status);
+
+#ifdef BUILD_TESTS
+static_assert(nextInboundSequence(0) == 1);
+static_assert(nextInboundSequence(1) == 2);
+static_assert(storedInboundSequence(1) == 1);
+static_assert(storedInboundSequence(0x7FFFFFFF) == 0);
+#endif
 
 class TransportCodec {
 public:
@@ -41,10 +78,10 @@ public:
 	/**
 	 * @brief Validates and unwraps an inbound message using the complete active transport contract.
 	 */
-	[[nodiscard]] bool prepareInbound(Protocol &protocol, NetworkMessage &msg) const;
+	[[nodiscard]] InboundTransportResult prepareInbound(Protocol &protocol, NetworkMessage &msg) const;
 
 private:
-	[[nodiscard]] bool decryptXtea(Protocol &protocol, NetworkMessage &msg) const;
+	[[nodiscard]] InboundTransportStatus decryptXtea(Protocol &protocol, NetworkMessage &msg) const;
 	void encryptXtea(Protocol &protocol, OutputMessage &msg) const;
 
 	const TransportProfile &profile;
