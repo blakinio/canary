@@ -1,10 +1,49 @@
 #include "server/network/connection/connection.hpp"
 
+#include "game/scheduling/dispatcher.hpp"
+#include "server/network/protocol/protocol.hpp"
+
 #include <gtest/gtest.h>
 
 namespace {
 	struct SessionToken {
 		uint64_t generation = 0;
+	};
+
+	struct ProtocolProbe {
+		uint32_t parseCount = 0;
+		uint32_t releaseCount = 0;
+		uint8_t parsedOpcode = 0;
+		bool connectionAliveDuringParse = false;
+	};
+
+	class LifetimeTestProtocol final : public Protocol {
+	public:
+		LifetimeTestProtocol(const Connection_ptr &connection, uint64_t generation, std::shared_ptr<uint64_t> currentGeneration, std::shared_ptr<ProtocolProbe> probe) :
+			Protocol(connection), generation(generation), currentGeneration(std::move(currentGeneration)), probe(std::move(probe)) { }
+
+		void onRecvFirstMessage(NetworkMessage &) override { }
+
+		void parsePacket(NetworkMessage &message) override {
+			++probe->parseCount;
+			probe->connectionAliveDuringParse = static_cast<bool>(getConnection());
+			probe->parsedOpcode = message.getByte();
+
+			// The queued callback carries session A's exact identity. It may finish
+			// its own packet, but it cannot clear a replacement session B.
+			if (*currentGeneration == generation) {
+				*currentGeneration = 0;
+			}
+		}
+
+		void release() override {
+			++probe->releaseCount;
+		}
+
+	private:
+		uint64_t generation;
+		std::shared_ptr<uint64_t> currentGeneration;
+		std::shared_ptr<ProtocolProbe> probe;
 	};
 }
 
@@ -29,6 +68,59 @@ TEST(ConnectionProtocolReleaseGateTest, DefersReleaseUntilQueuedClientPacketComp
 
 	// Completion consumes the pending release exactly once.
 	EXPECT_FALSE(gate.completeCallback());
+}
+
+TEST(ConnectionProtocolReleaseGateTest, QueuedLeaveGameOwnsMessageAndConnectionUntilDispatcherCompletion) {
+	asio::io_service ioService;
+	const auto currentGeneration = std::make_shared<uint64_t>(1);
+	const auto probe = std::make_shared<ProtocolProbe>();
+
+	auto connection = ConnectionManager::getInstance().createConnection(ioService, nullptr);
+	auto protocolA = std::make_shared<LifetimeTestProtocol>(connection, 1, currentGeneration, probe);
+	connection->attachProtocolForTest(protocolA);
+
+	NetworkMessage leaveGame;
+	leaveGame.addByte(0x14);
+	leaveGame.setBufferPosition(NetworkMessage::INITIAL_BUFFER_POSITION);
+
+	connection->beginProtocolCallbackForTest();
+	ASSERT_TRUE(protocolA->sendRecvMessageCallback(leaveGame));
+
+	// Prove the dispatcher callback owns a message copy rather than Connection::m_msg
+	// or this caller-owned object.
+	leaveGame.getBuffer()[NetworkMessage::INITIAL_BUFFER_POSITION] = 0xFF;
+	leaveGame.reset();
+
+	std::weak_ptr<Connection> connectionWeak = connection;
+	connection->close(true);
+	connection.reset();
+	protocolA.reset();
+
+	// ConnectionManager ownership was removed by close(); only the queued callback's
+	// exact shared_ptr keeps the Connection and its Protocol alive now.
+	ASSERT_FALSE(connectionWeak.expired());
+
+	// Simulate replacement session B before stale A executes. The exact A callback
+	// may parse once but must not clear B.
+	*currentGeneration = 2;
+	g_dispatcher().executeSerialEventsForTest();
+
+	EXPECT_EQ(1, probe->parseCount);
+	EXPECT_EQ(0x14, probe->parsedOpcode);
+	EXPECT_TRUE(probe->connectionAliveDuringParse);
+	EXPECT_EQ(2, *currentGeneration);
+	EXPECT_EQ(0, probe->releaseCount);
+
+	// resumeWork() queued release only after parsePacket completed. Drain that exact
+	// release and prove both parse and release remain one-shot.
+	g_dispatcher().executeSerialEventsForTest();
+	EXPECT_EQ(1, probe->parseCount);
+	EXPECT_EQ(1, probe->releaseCount);
+
+	g_dispatcher().executeSerialEventsForTest();
+	EXPECT_EQ(1, probe->parseCount);
+	EXPECT_EQ(1, probe->releaseCount);
+	EXPECT_TRUE(connectionWeak.expired());
 }
 
 TEST(ConnectionProtocolReleaseGateTest, StaleSessionCompletionCannotClearReplacementSession) {
