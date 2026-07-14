@@ -68,14 +68,14 @@ bool Protocol::sendRecvMessageCallback(NetworkMessage &msg) {
 
 	auto queuedMessage = std::make_shared<NetworkMessage>(msg);
 	auto protocol = shared_from_this();
-	const uint8_t opcode = queuedMessage->getBufferPosition() < queuedMessage->getLength() ? queuedMessage->getBuffer()[queuedMessage->getBufferPosition()] : 0;
+	const uint8_t opcode = queuedMessage->canRead(sizeof(uint8_t)) ? queuedMessage->getBuffer()[queuedMessage->getBufferPosition()] : 0;
 	const uint64_t connectionId = connection->getConnectionId();
 	const void* connectionAddress = connection.get();
 	const bool clientLeaveGame = opcode == 0x14;
 
 	if (clientLeaveGame) {
-		g_logger().debug(
-			"[ConnectionSessionLifecycle] event=client_leave_received connection_id={} connection={} protocol={} opcode=0x14 context=connection_io",
+		g_logger().info(
+			"[ConnectionSessionLifecycle] event=client_leave_queued connection_id={} connection={} protocol={} opcode=0x14 context=connection_io",
 			connectionId,
 			fmt::ptr(connectionAddress),
 			fmt::ptr(this)
@@ -85,8 +85,8 @@ bool Protocol::sendRecvMessageCallback(NetworkMessage &msg) {
 	g_dispatcher().addEvent(
 		[queuedMessage = std::move(queuedMessage), protocol = std::move(protocol), connection, connectionId, connectionAddress, clientLeaveGame]() mutable {
 			if (clientLeaveGame) {
-				g_logger().debug(
-					"[ConnectionSessionLifecycle] event=client_leave_dispatch connection_id={} connection={} protocol={} opcode=0x14 context=dispatcher",
+				g_logger().info(
+					"[ConnectionSessionLifecycle] event=client_leave_dispatch_begin connection_id={} connection={} protocol={} opcode=0x14 context=dispatcher",
 					connectionId,
 					fmt::ptr(connectionAddress),
 					fmt::ptr(protocol.get())
@@ -96,7 +96,7 @@ bool Protocol::sendRecvMessageCallback(NetworkMessage &msg) {
 			protocol->parsePacket(*queuedMessage);
 
 			if (clientLeaveGame) {
-				g_logger().debug(
+				g_logger().info(
 					"[ConnectionSessionLifecycle] event=client_leave_dispatch_complete connection_id={} connection={} protocol={} opcode=0x14 context=dispatcher",
 					connectionId,
 					fmt::ptr(connectionAddress),
@@ -113,9 +113,41 @@ bool Protocol::sendRecvMessageCallback(NetworkMessage &msg) {
 }
 
 bool Protocol::onRecvMessage(NetworkMessage &msg) {
-	const auto &connection = getConnection();
-	if (!connection || !connection->getTransportCodec().prepareInbound(*this, msg)) {
+	const auto connection = getConnection();
+	if (!connection) {
 		return false;
+	}
+
+	const auto &transportCodec = connection->getTransportCodec();
+	const auto transportResult = transportCodec.prepareInbound(*this, msg);
+	if (!transportResult.accepted()) {
+		g_logger().warn(
+			"[InboundTransport] event=frame_rejected reason={} profile={} connection_id={} connection={} protocol={} received_present={} received={} expected_present={} expected={}",
+			getInboundTransportStatusName(transportResult.status),
+			static_cast<uint8_t>(transportCodec.getProfile().id),
+			connection->getConnectionId(),
+			fmt::ptr(connection.get()),
+			fmt::ptr(this),
+			transportResult.receivedSequence.has_value(),
+			transportResult.receivedSequence.value_or(0),
+			transportResult.expectedSequence.has_value(),
+			transportResult.expectedSequence.value_or(0)
+		);
+		return false;
+	}
+
+	if (msg.canRead(sizeof(uint8_t)) && msg.getBuffer()[msg.getBufferPosition()] == 0x14) {
+		g_logger().info(
+			"[InboundTransport] event=client_leave_transport_accepted profile={} connection_id={} connection={} protocol={} received_present={} received={} expected_present={} expected={} opcode=0x14",
+			static_cast<uint8_t>(transportCodec.getProfile().id),
+			connection->getConnectionId(),
+			fmt::ptr(connection.get()),
+			fmt::ptr(this),
+			transportResult.receivedSequence.has_value(),
+			transportResult.receivedSequence.value_or(0),
+			transportResult.expectedSequence.has_value(),
+			transportResult.expectedSequence.value_or(0)
+		);
 	}
 
 	return sendRecvMessageCallback(msg);
