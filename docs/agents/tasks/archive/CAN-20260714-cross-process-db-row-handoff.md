@@ -2,7 +2,7 @@
 task_id: CAN-20260714-cross-process-db-row-handoff
 program_id: CAN-PROGRAM-MULTICHANNEL
 coordination_id: ""
-status: in_progress
+status: completed
 agent: "claude"
 branch: claude/canary-multichannel-handoff-docs
 base_branch: main
@@ -713,10 +713,110 @@ None blocking; proceeding with the plan above.
 
 # Completion
 
-- Final status: in progress
-- PR:
-- Merge commit:
-- Program record updated: no (none exists yet for multichannel)
-- Catalogue updated: pending
-- Changelog updated: pending
-- Archived at: pending
+- Final status: done - all three PRs merged
+- PR: #308 (foundation), #343 (mail-loss fix), #352 (docs)
+- Merge commit: `4de9350` (#308), `dcfd326` (#343), `b0d7583` (#352) - all
+  on `main`, confirmed via `git log --oneline origin/main`
+- Program record updated: no (none exists yet for multichannel - same gap
+  noted, not created, consistent with the prior task's own note)
+- Catalogue updated: yes (`docs/agents/MODULE_CATALOG.md`, in #352)
+- Changelog updated: n/a (this repo has no separate CHANGELOG.md; PR
+  descriptions and this task record are the durable record)
+- Archived at: this commit (moved from `docs/agents/tasks/active/` to
+  `docs/agents/tasks/archive/`)
+
+## Final report (per the task's own required format)
+
+1. **What was implemented**: a general-purpose cross-process DB-row
+   handoff mechanism (`cluster_pending_operations` table +
+   `IClusterPendingOperationRepository`/`IClusterRecordOwnershipResolver`/
+   `ClusterRecordHandoff`, production wrapper `ClusterHandoffRuntime`),
+   chosen after comparing 6 variants against the existing lease/fencing/
+   session/house infrastructure and reusing it rather than building a
+   parallel system (design doc §3-4); and its first real consumer, a fix
+   for the cross-channel mail-loss bug in `Mailbox::sendItem` (`applyOwned`/
+   `applyUnowned` handlers, `enqueueAndTryApplyNow` for low-latency
+   synchronous delivery when safe, a real DB row-lock transaction guarding
+   the offline-delivery race).
+2. **PR numbers**: #308, #343, #352.
+3. **Status of each PR**: all three merged to `main`.
+4. **CI results**: full matrix green on #308 (after fixing a real Windows
+   unity-build symbol collision and reconciling with the repo owner's own
+   concurrent `db_version`-drift fix) and #343 (after correctly diagnosing
+   one false-alarm "Required" failure as a stale-superseded-run artifact,
+   not a real regression); lighter docs-appropriate checks green on #352.
+   No CI job was ever counted as passing while still `skipped`/cancelled/
+   in a draft-suppressed state - every "passed" in the Validation and CI
+   table above was confirmed against the correct, current HEAD via
+   `get_check_runs` before being recorded.
+5. **Branch sync**: `main` at `b0d7583` contains all three merge commits
+   in order (`4de9350` → `dcfd326` → `b0d7583`), confirmed by direct
+   `git log` inspection, not assumed.
+6. **No item loss/duplication evidence**: proven at three levels - (a) 17
+   original + 8 new real gtest cases against `ClusterRecordHandoff`,
+   including a 16-thread same-row sweep race (exactly one `Applied`) and a
+   2-thread distinct-operation-id race to the same offline recipient (both
+   `Applied`, neither lost); (b) real MariaDB `enqueue` duplicate-key
+   rejection (idempotent replay) and `markApplied`/`markFailed`
+   double-transition guards; (c) a genuine two-separate-MySQL-connection
+   test proving `applyUnowned`'s row lock actually serializes at the
+   database engine level (session B measurably blocked ~2.5s on session
+   A's held lock, then observed A's post-commit state). What is **not**
+   proven: an actual multi-process (not just multi-threaded-against-fakes)
+   run of two real `canary` binaries against one database - no vcpkg
+   toolchain was available in this sandbox to build and run the real
+   engine, consistent with every prior phase of this whole program.
+7. **Remaining risks**: (a) a deferred (not synchronously-attempted)
+   delivery that is later rejected asynchronously by its true owner's own
+   sweep has no return-to-sender path - the item is lost, mirroring the
+   pre-existing `FLAG_NOLIMIT`-bypassed rejection risk profile of the
+   original single-channel code but newly reachable through an async path
+   (documented in the PR 2 work log, not silently accepted); (b) no
+   automated test exercises full-mailbox rejection or mid-flight channel-
+   switch/logout timing end-to-end - both analyzed by hand, not run;
+   (c) `MailDeliveryOperationHandler`/`Mailbox::sendItem` are hand-reviewed
+   against exact API signatures but never actually compiled in this
+   sandbox (the mysql/game.hpp wall) - CI was the first real compiler for
+   these files, same as every engine-glue file in this program's history.
+8. **House-ownership consumption plan**: written and merged, not
+   implemented - `CROSS_PROCESS_DB_ROW_HANDOFF.md` §6.2/§12. Enqueue side:
+   `House::setOwner`'s grant path calls
+   `ClusterRecordHandoff::enqueue(HOUSE, previousHouseId, "REVOKE_HOUSE_OWNER", ...)`
+   when the account's previous house lives on a *different* channel (same-
+   channel case needs no handoff - call `setOwner(0)` directly, as today).
+   Apply side (§6.2) is already specified: look up the live `House` object,
+   `markApplied`-with-note if already stale (goal state already true), else
+   call the existing `house->setOwner(0)` chokepoint - reusing, not
+   duplicating, the one real ownership-change path.
+9. **DIRTY-session consumption plan**: written and merged, not implemented
+   - §12. Two-step: (1) wire the *write* side first - `ClusterRuntime`
+   should transition a session to `DIRTY` (instead of silently deleting the
+   row, its current behavior, confirmed by reading
+   `db_cluster_session_repository.cpp`) when it detects a fencing conflict
+   or an ungraceful loss; (2) build the GM recovery tool on the *same*
+   `ClusterRecordHandoff` primitive - "force-clear a DIRTY session" is
+   itself a cross-process operation when the dirty row's `channel_id`
+   refers to a different, possibly-crashed process, so the admin action
+   should `enqueue` a `PLAYER_SESSION`/`FORCE_CLEAR_DIRTY` operation rather
+   than directly `DELETE`-ing the row out from under a process that might
+   still believe it owns it. Needs its own design pass on top of this
+   foundation, explicitly left for a follow-up task.
+10. **Production-readiness verdict**: **not** production-ready as a
+    blanket claim, for one precise reason - this task never ran a real,
+    compiled, multi-process Canary cluster against a shared database (no
+    vcpkg toolchain in this sandbox, the same gap present in every prior
+    phase of this whole program). What *is* real: genuine multi-threaded
+    race tests (16-thread and 2-thread, both against real
+    `ClusterRecordHandoff` logic, not fakes-of-fakes), a genuine two-
+    separate-database-connection lock-contention test proving the one
+    piece of new SQL that matters most for correctness is safe at the
+    engine level, and a full green CI matrix (real compilers, real
+    linkers, on Linux/Windows/macOS/Docker) for every line of code in this
+    task. The gap between "this" and "verified production-ready" is
+    specifically: an actual 2-3-process integration run exercising the
+    mail-specific scenario list end-to-end (offline→offline, cross-channel
+    online, channel-switch mid-send, concurrent sends from real distinct
+    processes) against a real database, which this sandbox cannot provide
+    and which should be the explicit gate before this mechanism (or its
+    still-unimplemented house-ownership/DIRTY-session consumers) is
+    declared safe to enable in a real multi-channel deployment.
