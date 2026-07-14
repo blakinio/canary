@@ -1,0 +1,67 @@
+name: Phase 8 archive task
+
+on:
+  push:
+    branches:
+      - docs/archive-otbm-bounded-attribute-patcher
+
+permissions:
+  contents: write
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/archive-otbm-bounded-attribute-patcher
+          fetch-depth: 0
+      - name: Archive exact Phase 8 task record
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from datetime import datetime
+          from pathlib import Path
+          from zoneinfo import ZoneInfo
+
+          active = Path("docs/agents/tasks/active/CAN-20260714-otbm-bounded-attribute-patcher.md")
+          archived = Path("docs/agents/tasks/archived/CAN-20260714-otbm-bounded-attribute-patcher.md")
+          if not active.is_file():
+              raise SystemExit(f"missing active task: {active}")
+          if archived.exists():
+              raise SystemExit(f"archive destination already exists: {archived}")
+
+          text = active.read_text(encoding="utf-8")
+
+          def replace_once(old: str, new: str) -> None:
+              global text
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"expected one match, found {count}: {old!r}")
+              text = text.replace(old, new, 1)
+
+          now = datetime.now(ZoneInfo("Europe/Warsaw")).isoformat(timespec="seconds")
+          replace_once("status: active", "status: archived")
+          replace_once("updated: 2026-07-14T14:03:00+02:00", f"updated: {now}")
+          replace_once('last_verified_commit: "d061dbe72265c89df9ab683717b18b598a106964"', 'last_verified_commit: "9350f2fb7420f9af2ecf79ea7085ca4e094a3891"')
+          replace_once("    - docs/agents/tasks/active/CAN-20260714-otbm-bounded-attribute-patcher.md", "    - docs/agents/tasks/archived/CAN-20260714-otbm-bounded-attribute-patcher.md")
+          replace_once("- [ ] Update catalogue/changelog/roadmap in the separate lifecycle PR after current shared owner #331 releases those paths.", "- [x] Defer catalogue/changelog/roadmap integration while draft PR #331 owns those shared paths; handle it in a later dedicated integration change.")
+          replace_once("- [ ] Confirm exact final 11-file diff, all required current-head checks and zero review threads.", "- [x] Confirm exact final 11-file diff, all required final-head checks and zero review threads.")
+          replace_once("- [ ] Squash-merge and archive separately.", "- [x] Squash-merge PR #325; archive in this separate lifecycle change.")
+          replace_once("- Feature branch was merged forward without conflicts to current `main` `d061dbe72265c89df9ab683717b18b598a106964` on 2026-07-14.", "- PR #325 was squash-merged into `main` as `9350f2fb7420f9af2ecf79ea7085ca4e094a3891` on 2026-07-14.")
+          replace_once("- PR #325 owns the scanner and new Phase 8 paths; no other open PR owns those implementation paths.", "- Feature ownership is released; this lifecycle branch owns only this task record move.")
+          replace_once("| pending direct head | complete current-head merge gate | pending | required final workflow set |", "| `132fa913bbd1607928d9bd70a080c6b27f5ce669` | complete final-head merge gate | success | OTBM Bounded Patch `29331044093`; CI `29331044300`; all OTBM/agent workflows success |")
+          replace_once("# Remaining work\n\n1. Require successful current-head bounded patch, OTBM suites, ownership and repository Required checks.\n2. Confirm exact 11-file diff and zero blocking comments/reviews/threads.\n3. Squash-merge PR #325 with the exact reviewed head.\n4. Open a separate lifecycle PR to archive this task and update shared documentation after #331 releases it.", "# Remaining work\n\n1. Merge this lifecycle PR.\n2. Update shared catalogue/changelog/roadmap later, after draft PR #331 releases those paths.\n\nNo feature implementation work remains.")
+          replace_once("- Final status: active; implementation complete, final merge gate pending\n- PR: #325\n- Final feature head: pending direct-head CI\n- Merge commit:\n- Cleanup PR:\n- Archived at:", f"- Final status: archived; implementation merged\n- PR: #325\n- Final feature head: `132fa913bbd1607928d9bd70a080c6b27f5ce669`\n- Merge commit: `9350f2fb7420f9af2ecf79ea7085ca4e094a3891`\n- Cleanup PR: pending\n- Archived at: {now}")
+
+          archived.parent.mkdir(parents=True, exist_ok=True)
+          archived.write_text(text, encoding="utf-8")
+          active.unlink()
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/phase8-archive-task.yml
+          git add docs/agents/tasks/active/CAN-20260714-otbm-bounded-attribute-patcher.md docs/agents/tasks/archived/CAN-20260714-otbm-bounded-attribute-patcher.md
+          git commit -m "docs(agents): archive OTBM bounded patcher task"
+          git push origin HEAD:docs/archive-otbm-bounded-attribute-patcher
