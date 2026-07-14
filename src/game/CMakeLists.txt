@@ -31,6 +31,9 @@ target_sources(
             multichannel/db_cluster_pending_operation_repository.cpp
             multichannel/db_cluster_record_ownership_resolver.cpp
             multichannel/cluster_record_handoff.cpp
+            multichannel/cluster_operation_id.cpp
+            multichannel/mail_delivery_payload.cpp
+            multichannel/mail_delivery_operation_handler.cpp
 )
 
 if(FEATURE_MULTICHANNEL_REDIS)
