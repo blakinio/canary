@@ -11,6 +11,8 @@ RESULT_FORMAT = "canary-otbm-bounded-patch-result-v1"
 ANCHOR_FORMAT = "canary-otbm-patch-anchors-v1"
 NATIVE_ANCHOR_FORMAT = "canary-otbm-patch-anchors-native-v1"
 MAX_REGION_COORDINATES = 1_000_000
+MAX_OPERATIONS = 10_000
+MAX_OPERATION_ID_LENGTH = 200
 SUPPORTED_OPERATIONS = {
     "set-action-id": ("actionId", 0xFFFF, 2),
     "set-unique-id": ("uniqueId", 0xFFFF, 2),
@@ -210,8 +212,13 @@ class PatchOperation:
             replacement = _integer(value["replacement"], f"operations[{index}].replacement", 0, maximum)
         if expected == replacement:
             raise BoundedPatchError(f"operations[{index}] does not change the value")
+        operation_id = _text(value["id"], f"operations[{index}].id")
+        if len(operation_id) > MAX_OPERATION_ID_LENGTH:
+            raise BoundedPatchError(
+                f"operations[{index}].id exceeds {MAX_OPERATION_ID_LENGTH} characters"
+            )
         return cls(
-            operation_id=_text(value["id"], f"operations[{index}].id"),
+            operation_id=operation_id,
             kind=kind,
             position=parse_position(value["position"], f"operations[{index}].position"),
             tile_placement_index=_integer(
@@ -248,6 +255,8 @@ class PatchPlan:
         raw_operations = value["operations"]
         if not isinstance(raw_operations, list) or not raw_operations:
             raise BoundedPatchError("operations must be a non-empty array")
+        if len(raw_operations) > MAX_OPERATIONS:
+            raise BoundedPatchError(f"operations contains {len(raw_operations)} entries; limit is {MAX_OPERATIONS}")
         operations = tuple(PatchOperation.from_raw(entry, index) for index, entry in enumerate(raw_operations))
         ids = [operation.operation_id for operation in operations]
         if len(ids) != len(set(ids)):

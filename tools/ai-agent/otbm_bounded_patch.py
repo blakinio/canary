@@ -19,6 +19,7 @@ from otbm_bounded_patch_types import (
     NATIVE_ANCHOR_FORMAT,
     PLAN_FORMAT,
     RESULT_FORMAT,
+    MAX_OPERATIONS,
     BoundedPatchError,
     PatchOperation,
     PatchPlan,
@@ -28,7 +29,6 @@ from otbm_bounded_patch_types import (
     value_bytes,
 )
 
-MAX_OPERATIONS = 10_000
 MAX_NATIVE_ANCHOR_BYTES = 512 * 1024 * 1024
 BUFFER_SIZE = 8 * 1024 * 1024
 DIFF_KIND = {
@@ -65,7 +65,7 @@ def _prepare_artifact_root(path: Path) -> Path:
 def _check_ancestors(root: Path, path: Path, label: str) -> None:
     current = path.parent
     while True:
-        if current.exists() and current.is_symlink():
+        if current.is_symlink():
             raise BoundedPatchError(f"{label} parent must not be a symlink: {current}")
         if current == root:
             return

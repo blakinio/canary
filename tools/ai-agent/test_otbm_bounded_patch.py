@@ -12,7 +12,7 @@ from unittest import mock
 
 import otbm_bounded_patch
 from otbm_bounded_patch import apply_bounded_patch
-from otbm_bounded_patch_types import BoundedPatchError, PatchPlan, sha256_file
+from otbm_bounded_patch_types import MAX_OPERATIONS, BoundedPatchError, PatchPlan, sha256_file
 
 NODE_ESCAPE = 0xFD
 NODE_START = 0xFE
@@ -370,6 +370,24 @@ class BoundedPatchIntegrationTests(unittest.TestCase):
             )
 
     @unittest.skipUnless(hasattr(os, "symlink"), "symlinks are unavailable")
+    def test_rejects_broken_symlink_parent(self) -> None:
+        self.write_map()
+        plan = self.make_plan([operation("action", "set-action-id", 0, 100, 1000, 1001)])
+        self.artifacts.mkdir()
+        os.symlink(self.artifacts / "missing-target", self.artifacts / "broken-parent", target_is_directory=True)
+        with self.assertRaisesRegex(BoundedPatchError, "symlink"):
+            apply_bounded_patch(
+                plan=plan,
+                source_path=self.source,
+                scanner_path=self.scanner,
+                artifact_root=self.artifacts,
+                output_path=Path("broken-parent/patched.otbm"),
+                evidence_directory=Path("evidence-broken-parent"),
+                result_path=Path("result-broken-parent.json"),
+                timeout_seconds=60,
+            )
+
+    @unittest.skipUnless(hasattr(os, "symlink"), "symlinks are unavailable")
     def test_rejects_symlink_output(self) -> None:
         self.write_map()
         plan = self.make_plan([operation("action", "set-action-id", 0, 100, 1000, 1001)])
@@ -433,6 +451,40 @@ class BoundedPatchPlanTests(unittest.TestCase):
             "operations": [operation("action", "set-action-id", 0, 100, 1, 2)],
         }
         with self.assertRaisesRegex(BoundedPatchError, "lowercase SHA-256"):
+            PatchPlan.from_raw(raw)
+
+    def test_rejects_operation_count_before_parsing_entries(self) -> None:
+        raw = {
+            "format": "canary-otbm-bounded-patch-plan-v1",
+            "source": {
+                "fileName": "map.otbm",
+                "sha256": "0" * 64,
+                "size": 10,
+                "otbmVersion": 4,
+                "itemsMajor": 3,
+                "itemsMinor": 57,
+            },
+            "region": {"from": [1, 1, 7], "to": [1, 1, 7]},
+            "operations": [None] * (MAX_OPERATIONS + 1),
+        }
+        with self.assertRaisesRegex(BoundedPatchError, "limit is 10000"):
+            PatchPlan.from_raw(raw)
+
+    def test_rejects_overlong_operation_id(self) -> None:
+        raw = {
+            "format": "canary-otbm-bounded-patch-plan-v1",
+            "source": {
+                "fileName": "map.otbm",
+                "sha256": "0" * 64,
+                "size": 10,
+                "otbmVersion": 4,
+                "itemsMajor": 3,
+                "itemsMinor": 57,
+            },
+            "region": {"from": [1000, 2000, 7], "to": [1100, 2200, 7]},
+            "operations": [operation("x" * 201, "set-action-id", 0, 100, 1, 2)],
+        }
+        with self.assertRaisesRegex(BoundedPatchError, "exceeds 200 characters"):
             PatchPlan.from_raw(raw)
 
     def test_rejects_duplicate_target(self) -> None:
