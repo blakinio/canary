@@ -1,0 +1,33 @@
+name: Phase 8 final current-main sync
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          show-progress: false
+      - name: Merge current main without conflict tolerance
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = "b0d3e6d1854e7ab6d7a24e083bb6ac2468867055"
+          git merge --no-edit --no-ff origin/main
+          rm .github/workflows/phase8-final-main-sync-once.yml
+          git add -A
+          git commit --amend --no-edit
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
