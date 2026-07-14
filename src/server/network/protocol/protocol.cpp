@@ -83,7 +83,7 @@ bool Protocol::sendRecvMessageCallback(NetworkMessage &msg) {
 	}
 
 	g_dispatcher().addEvent(
-		[queuedMessage = std::move(queuedMessage), protocol = std::move(protocol), connection, opcode, connectionId, connectionAddress, clientLeaveGame]() mutable {
+		[queuedMessage = std::move(queuedMessage), protocol = std::move(protocol), connection, connectionId, connectionAddress, clientLeaveGame]() mutable {
 			if (clientLeaveGame) {
 				g_logger().debug(
 					"[ConnectionSessionLifecycle] event=client_leave_dispatch connection_id={} connection={} protocol={} opcode=0x14 context=dispatcher",
