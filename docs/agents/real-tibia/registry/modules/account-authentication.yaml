@@ -57,7 +57,7 @@
   "source_requirements": [
     {"source": "canary-current", "mode": "required"},
     {"source": "runtime-observation", "mode": "required-when-related"},
-    {"source": "maintained-client", "mode": "required-when-protocol"}
+    {"source": "maintained-otclient", "mode": "required-when-related"}
   ],
   "maturity": {
     "implementation": "inventory",
