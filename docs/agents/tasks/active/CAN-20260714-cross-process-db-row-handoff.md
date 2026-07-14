@@ -7,24 +7,29 @@ agent: "claude"
 branch: claude/canary-cross-process-handoff
 base_branch: main
 created: 2026-07-14T08:40:00Z
-updated: 2026-07-14T08:40:00Z
+updated: 2026-07-14T09:20:00Z
 last_verified_commit: e94c9db085f25fbd9d76721fc86ca2d40119e676
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "#308"
 depends_on: []
 blocks:
   - "house double-ownership fix (deferred, needs this foundation)"
   - "DIRTY session recovery/admin tooling (deferred, needs this foundation)"
 owned_paths:
   exclusive:
-    - src/game/multichannel/cluster_pending_operation_store.hpp
-    - src/game/multichannel/cluster_pending_operation_store.cpp
+    - src/game/multichannel/cluster_pending_operation_repository.hpp
+    - src/game/multichannel/db_cluster_pending_operation_repository.hpp
+    - src/game/multichannel/db_cluster_pending_operation_repository.cpp
+    - src/game/multichannel/cluster_record_ownership.hpp
+    - src/game/multichannel/db_cluster_record_ownership_resolver.hpp
+    - src/game/multichannel/db_cluster_record_ownership_resolver.cpp
     - src/game/multichannel/cluster_record_handoff.hpp
     - src/game/multichannel/cluster_record_handoff.cpp
     - data-otservbr-global/migrations/63.lua
-    - tests/unit/game/multichannel/cluster_pending_operation_store_test.cpp
     - tests/unit/game/multichannel/cluster_record_handoff_test.cpp
+    - tests/shared/game/multichannel/fake_cluster_pending_operation_repository.hpp
+    - tests/shared/game/multichannel/fake_cluster_record_ownership_resolver.hpp
     - docs/multichannel/CROSS_PROCESS_DB_ROW_HANDOFF.md
   shared:
     - schema.sql
@@ -76,9 +81,12 @@ follow-up task, per the user's explicit exclusion.
 
 - [x] `docs/multichannel/CROSS_PROCESS_DB_ROW_HANDOFF.md` written, comparing
       6 variants, selecting and justifying one composite mechanism.
-- [ ] PR 1: `cluster_pending_operations` schema (migration 63) +
-      `ClusterPendingOperationStore` + `ClusterRecordHandoff`, tests per
-      design doc §14, no existing call site changed.
+- [x] PR 1: `cluster_pending_operations` schema (migration 63) +
+      `IClusterPendingOperationRepository`/`DbClusterPendingOperationRepository` +
+      `IClusterRecordOwnershipResolver`/`DbClusterRecordOwnershipResolver` +
+      `ClusterRecordHandoff`, tests per design doc §14 (17/17 real gtest
+      passing), no existing call site changed. CI not yet verified on the
+      pushed commit (pending).
 - [ ] PR 2: `Mailbox::sendItem` cross-channel fix using PR 1's foundation,
       tests per the design doc's mail-specific list.
 - [ ] PR 3: `DECISION_MATRIX.md`/`TEST_PLAN.md` updated, this task record's
@@ -173,8 +181,18 @@ follow-up task, per the user's explicit exclusion.
 
 # Current state
 
-Design doc complete (`docs/multichannel/CROSS_PROCESS_DB_ROW_HANDOFF.md`).
-Implementation of PR 1 (foundation) starting next.
+PR 1 (foundation) implementation complete and verified. Design doc renamed
+a few pieces during implementation for clarity/consistency with the
+project's `IClusterSessionRepository`/`DbClusterSessionRepository` split
+(see Decisions table): `ClusterPendingOperationStore` became the interface
+`IClusterPendingOperationRepository` + impl `DbClusterPendingOperationRepository`;
+ownership resolution became its own `IClusterRecordOwnershipResolver` +
+`DbClusterRecordOwnershipResolver` pair, injected into `ClusterRecordHandoff`
+so the orchestration logic itself is fully unit-testable without a live
+database - the design doc's intent is unchanged, only the concrete
+interface split is more granular than originally sketched. Draft PR #308
+open with the design doc; foundation code not yet pushed to it as of this
+update - next action is to commit and push.
 
 # Plan
 
@@ -206,6 +224,39 @@ Implementation of PR 1 (foundation) starting next.
 - Failed/blocked: none yet.
 - Result: design doc complete; starting PR 1 implementation.
 
+## 2026-07-14T09:20:00Z
+
+- Changed: implemented PR 1 foundation - migration 63 + schema.sql,
+  `IClusterPendingOperationRepository`/`DbClusterPendingOperationRepository`,
+  `IClusterRecordOwnershipResolver`/`DbClusterRecordOwnershipResolver`,
+  `ClusterRecordHandoff`, two test fakes, 17 gtest cases (including a real
+  16-thread concurrent-apply race test), registered in
+  `src/game/CMakeLists.txt`/`tests/unit/game/CMakeLists.txt`/
+  `vcproj/canary.vcxproj`.
+- Learned: `Database::storeQuery` cannot distinguish "zero matching rows"
+  from "a real query/connection error" at the call site (confirmed by
+  reading `database.cpp` directly) - every existing store in this codebase
+  already accepts that ambiguity for its own "no such row" case, but for
+  `DbClusterRecordOwnershipResolver`'s PLAYER_INBOX resolution this
+  ambiguity is a real fail-closed correctness question (conflating
+  "confirmed offline" with "DB unreachable" would let an uncertain state
+  be treated as safe-to-apply-directly). Closed with a cheap `SELECT 1;`
+  liveness probe that only runs when the real query returned no rows,
+  distinguishing the two without changing `Database`'s own contract.
+- Failed/blocked: two real, if minor, mid-implementation corrections: (1)
+  `db.getUpdateRows()` does not exist on `Database` - the real method is
+  `executeQueryAffectedRows(query) -> std::optional<uint64_t>`, confirmed
+  by reading `database.cpp`/`database.hpp` directly and cross-checked
+  against its one other real caller (`db_functions.cpp`); (2) a seed
+  `players` row insert for the ownership-resolver's real-MariaDB
+  verification hit `ERROR 1364 (HY000) - Field 'conditions' doesn't have a
+  default value` on a hand-crafted INSERT - fixed by reusing schema.sql's
+  own already-seeded sample players instead of crafting new rows (the same
+  lesson Phase 12's task history already recorded once for a different
+  table - reused here, not rediscovered).
+- Result: PR 1 foundation complete and verified (see Validation and CI
+  table below). Not yet pushed to PR #308 as of this log entry.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |
@@ -215,18 +266,25 @@ Implementation of PR 1 (foundation) starting next.
 | Reuse `cluster_sessions`/`houses.channel_id` for ownership instead of a new generic ownership table | Avoids a second source of truth for the same fact, per this program's own established "one authoritative representation" principle | none yet |
 | `record_kind`/`operation_type` as strings, not DB enums | New consumer kinds (house, future ones) are data, not a schema migration | none yet |
 | House double-ownership fix and DIRTY session tooling deferred to a follow-up task | Explicit user instruction this session; migration plan written now (design doc §12) so the follow-up isn't starting from zero | none yet |
+| Split into `I*Repository`/`Db*` interface pairs (mirroring `IClusterSessionRepository`) instead of the design doc's original static-method sketch | Needed so `ClusterRecordHandoff`'s ownership/apply-or-defer logic is unit-testable against fakes, matching this project's own established testability pattern - decided during implementation, not a design change, just a more granular interface split | none yet |
+| Tri-state `ClusterRecordOwnershipOutcome` (OwnedByChannel/NoLiveOwner/Unknown) instead of `std::optional<int32_t>` | A bool+optional pair cannot represent "cannot currently confirm" distinctly from "confirmed no owner" in one atomic call - the distinction is load-bearing for fail-closed correctness (design doc §14 test 12) | none yet |
 
 # Files and interfaces
 
 | Path/interface/config/schema | Ownership mode | Purpose | Status |
 |---|---|---|---|
 | `docs/multichannel/CROSS_PROCESS_DB_ROW_HANDOFF.md` | exclusive | Design document | done |
-| `data-otservbr-global/migrations/63.lua` | exclusive | `cluster_pending_operations` schema | planned |
-| `schema.sql` | shared | Same table, fresh-install path | planned |
-| `src/game/multichannel/cluster_pending_operation_store.hpp/.cpp` | exclusive | DB layer | planned |
-| `src/game/multichannel/cluster_record_handoff.hpp/.cpp` | exclusive | Ownership resolution + apply orchestration | planned |
-| `tests/unit/game/multichannel/cluster_pending_operation_store_test.cpp` | exclusive | Unit tests | planned |
-| `tests/unit/game/multichannel/cluster_record_handoff_test.cpp` | exclusive | Unit tests | planned |
+| `data-otservbr-global/migrations/63.lua` | exclusive | `cluster_pending_operations` schema | done, real-MariaDB verified |
+| `schema.sql` | shared | Same table, fresh-install path | done, real-MariaDB verified |
+| `src/game/multichannel/cluster_pending_operation_repository.hpp` | exclusive | `IClusterPendingOperationRepository` interface | done |
+| `src/game/multichannel/db_cluster_pending_operation_repository.hpp/.cpp` | exclusive | Real DB-backed implementation | done, SQL hand-verified against real MariaDB (mysql wall - not standalone-compilable, same as `db_cluster_session_repository.cpp`) |
+| `src/game/multichannel/cluster_record_ownership.hpp` | exclusive | `IClusterRecordOwnershipResolver` interface + tri-state outcome | done, standalone-compiled (dependency-free) |
+| `src/game/multichannel/db_cluster_record_ownership_resolver.hpp/.cpp` | exclusive | Real DB-backed implementation | done, SQL hand-verified against real MariaDB (mysql wall) |
+| `src/game/multichannel/cluster_record_handoff.hpp/.cpp` | exclusive | Ownership resolution + apply orchestration | done, standalone-compiled with `-Wall -Wextra` (zero warnings) |
+| `tests/shared/game/multichannel/fake_cluster_pending_operation_repository.hpp` | exclusive | Test double | done |
+| `tests/shared/game/multichannel/fake_cluster_record_ownership_resolver.hpp` | exclusive | Test double | done |
+| `tests/unit/game/multichannel/cluster_record_handoff_test.cpp` | exclusive | Unit tests, 17 cases | done, **run with real gtest, 17/17 passed** |
+| `src/game/CMakeLists.txt`, `tests/unit/game/CMakeLists.txt`, `vcproj/canary.vcxproj` | shared | Build registration | done |
 | `src/items/containers/mailbox/mailbox.cpp` | shared | PR 2 fix | planned |
 | `src/game/game.cpp` | shared | PR 2 sweep call site | planned |
 
@@ -234,7 +292,18 @@ Implementation of PR 1 (foundation) starting next.
 
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
-| | | not-run | PR 1 not yet implemented as of this record's creation |
+| (pre-commit) | `clang-format-18 --dry-run --Werror` on all 11 new C++ files | passed | exit 0 after one auto-`-i` fix (pointer-alignment style in `cluster_record_ownership.hpp`/test file) |
+| (pre-commit) | Standalone `g++ -std=c++20 -Wall -Wextra` compile of `cluster_record_handoff.cpp` | passed | zero warnings - this file has no `database.hpp`/`game.hpp` dependency |
+| (pre-commit) | Standalone compile+link+run of `cluster_record_handoff_test.cpp` against real `libgtest`/`libgtest_main` | passed | **17/17 tests passed**, including a genuine 16-thread concurrent-apply race test (`ConcurrentSweepOfNoLiveOwnerRecordHasExactlyOneWinner`), run 5x to confirm no flakiness |
+| (pre-commit) | Attempted standalone compile of `db_cluster_pending_operation_repository.cpp`/`db_cluster_record_ownership_resolver.cpp` | expected failure, confirmed | hits the same pre-existing wall as `db_cluster_session_repository.cpp` (`database.hpp` → `declarations.hpp` → the full PCH-dependent engine graph) - tried with `libmariadb-dev` header shim first, per this project's "try before assuming" precedent; got past `mysql.h` but failed on `creatures_definitions.hpp`'s PCH-dependent `<array>`/`<ranges>` usage, confirming the wall is the engine graph, not just mysql.h |
+| (pre-commit) | Real MariaDB 10.11 (`service mariadb start`, scratch DB `canary_handoff_test`) - fresh `schema.sql` import including the new table | passed | clean import, `SHOW CREATE TABLE cluster_pending_operations` matches the design exactly |
+| (pre-commit) | Real MariaDB - exact `enqueue` SQL, replayed with a duplicate `operation_id` | passed | first INSERT succeeds; replay correctly rejected with `ERROR 1062 Duplicate entry ... for key 'PRIMARY'`, matching `economic_ledger.transaction_uuid`'s contract |
+| (pre-commit) | Real MariaDB - exact `markApplied` SQL, called twice on the same row | passed | first call: 1 affected row, transitions to APPLIED; second call: 0 affected rows (guarded by `WHERE status='PENDING'`), `attempts`/`applied_at` unchanged from the first - confirms the double-transition race guard |
+| (pre-commit) | Real MariaDB - `findPendingForKind`/`findPendingForRecord`/`countStalePending` exact SQL against 4 seeded rows across 2 record kinds and 3 statuses | passed | correct kind/status isolation confirmed (a HOUSE row never appears in a PLAYER_INBOX sweep query); `EXPLAIN` confirms index usage (`status_created_at`) |
+| (pre-commit) | Real MariaDB - `markFailed`/`markAbandoned` exact SQL | passed | both transition correctly and record the reason in `last_error` |
+| (pre-commit) | Real MariaDB - migration 63 idempotency, simulating `db.tableExists()`'s guard on a fresh pre-63 DB | passed | first run: table absent, CREATE executes; second simulated run: table present, guard would skip (matches every prior migration's convention) |
+| (pre-commit) | Real MariaDB - `DbClusterRecordOwnershipResolver`'s exact SQL (houses.channel_id lookup, cluster_sessions ONLINE lookup found/not-found, `SELECT 1` liveness probe) | passed | house lookup returns the seeded `channel_id=2`; online-elsewhere lookup returns `channel_id=5` for a seeded ONLINE row; not-online lookup correctly returns empty (the NoLiveOwner case); liveness probe returns `1` |
+| | Full CI matrix (Linux/Windows/macOS/Docker) | not-run | Not yet pushed to PR #308 as of this update |
 
 Never write `passed` without verification on the stated commit.
 
