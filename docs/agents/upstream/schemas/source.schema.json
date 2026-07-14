@@ -25,7 +25,7 @@
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "id", "name", "repository", "role", "writable", "default_branch",
+          "id", "name", "repository", "role", "module_mapping", "writable", "default_branch",
           "kinds", "max_items_per_kind", "max_pages", "daily_file_details",
           "deep_file_details", "initial_baseline"
         ],
@@ -34,6 +34,19 @@
           "name": {"type": "string", "minLength": 1},
           "repository": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"},
           "role": {"enum": ["upstream-server", "upstream-client", "donor-server", "editor"]},
+          "module_mapping": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path_buckets"],
+            "properties": {
+              "path_buckets": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {"enum": ["server", "client", "data", "tests", "docs"]}
+              }
+            }
+          },
           "writable": {"const": false},
           "default_branch": {"type": "string", "minLength": 1},
           "kinds": {
