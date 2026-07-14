@@ -1,13 +1,14 @@
 ---
 program_id: CAN-PROGRAM-EQUIPMENT-UPGRADE-PARITY
 name: Equipment Upgrade / Exaltation Forge retail parity
-status: active
-owner: "GPT-5.6 Thinking"
+status: paused
+owner: unassigned
 created: 2026-07-13T13:15:00+02:00
-updated: 2026-07-13T15:12:00+02:00
-last_verified_commit: "58c258de79ceded987d92642923e879c4a9905f6"
+updated: 2026-07-14T18:45:00+02:00
+last_verified_commit: "709693b4cca42214c52e63ea15a1a22b93f9a113"
 primary_paths:
   - docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md
+  - docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_HANDOFF_2026-07-14.md
   - src/creatures/players/player.cpp
   - data/libs/systems/exaltation_forge.lua
   - tests/integration/game/forge_it.cpp
@@ -15,6 +16,8 @@ shared_integration_paths:
   - src/server/network/protocol/protocolgame.cpp
   - src/game/functions/forge_fusion_policy.hpp
   - src/game/functions/forge_transfer_policy.hpp
+  - src/game/functions/forge_transaction.hpp
+  - src/game/functions/forge_effect_policy.hpp
   - docs/agents/CROSS_REPO_CONTRACTS.md
 related_programs:
   - CAN-PROGRAM-E2E-PLATFORM
@@ -24,117 +27,118 @@ cross_repo_contracts:
 
 # Mission
 
-Bring Canary's Equipment Upgrade / Exaltation Forge behavior to evidence-backed parity with the live Tibia rules selected on 2026-07-13, including server authority, resource safety, history, Dust eligibility, effects, result payloads and focused runtime/gameplay proof.
+Bring Canary's Equipment Upgrade / Exaltation Forge behavior to evidence-backed parity with the selected live Tibia rules, including server authority, resource safety, history, Dust eligibility, effects, result payloads and focused gameplay proof.
 
-# Scope
+# Current lifecycle state
 
-- Resolve findings F-001 through F-024 recorded in `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md`.
-- Preserve merged repairs from PRs #89, #110 and #177.
-- Keep each remediation in a bounded task and PR with focused negative and success-path regression coverage.
-- Treat the server as authoritative even when a supported client filters invalid choices.
-- Coordinate protocol/result changes with the maintained client before claiming F-014 through F-019 complete.
+This program is paused with no assigned agent and no active Forge task. The 2026-07-13/14 implementation cycle was archived after all six feature PRs merged.
 
-# Explicit exclusions
+Paused does **not** mean complete. Server authority, defaults, Premium Dust, effect gating, transaction safety and history correctness are merged. Bonus/result protocol and maintained-client parity, selected reward/rounding evidence and focused physical-client gameplay proof remain open.
 
-- No writes to `opentibiabr/*`.
-- No invented rule, probability, reward mapping or rounding formula where the selected live-version evidence is incomplete.
-- No all-findings mega-PR.
-- No claim of complete parity from compilation, static inspection or aggregate CI alone.
-- No modification of the universal E2E platform; feature work may only add a Forge scenario after that platform is merged and reusable.
+# Source of truth
 
-# Existing systems to reuse
+Read in this order:
 
-| Module/tool/contract | Source | Required reuse rule |
-|---|---|---|
-| Forge Fusion authority policy | `src/game/functions/forge_fusion_policy.hpp`, PR #250 | Preserve same-ID normal Fusion and class-4/different-ID/normalized-slot Convergence authority before mutation. |
-| Forge transfer policy | `src/game/functions/forge_transfer_policy.hpp`, PRs #89/#250 | Preserve normal-transfer classification/tier behavior and Convergence class-4 authority. |
-| Forge history ID resolution | PR #110 and Player Forge history paths | Keep ID-based item identity; later history fixes must not regress it. |
-| Dust reward remediation | PR #177 and `data/libs/systems/exaltation_forge.lua` | Preserve direct/summon killer resolution, one shared party roll and capped credited amount. |
-| Equipment Upgrade validation report | `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md` | Update finding state only with exact code/test/runtime evidence. |
-| Universal E2E platform | `docs/agents/programs/E2E_AUTOMATION_PROGRAM.md`, PR #245 | Reuse when merged; do not create Forge-specific orchestration. |
-| Canary ↔ OTClient contract registry | `docs/agents/CROSS_REPO_CONTRACTS.md` | Record field order, values, rollout and linked tasks before protocol changes. |
-
-# Active tasks
-
-| Task ID | Branch | PR | State | Exact next action |
-|---|---|---:|---|---|
-| CAN-20260713-forge-server-authority | `fix/forge-server-authority` | #250 | ready_for_review_pending_final_ci | Run final-head CI, merge, archive, then start F-020/F-021. |
-
-# Queue
-
-1. F-020–F-021: transactional mutation/rollback for Fusion, Transfer and Sliver-to-Core conversion, preserving #250 authority checks.
-2. F-022–F-024: correct history action types and configurable amounts.
-3. F-006 plus runtime proof for F-007/F-008/F-013: exact Premium semantics and Dust recipient/cap/shared-roll scenarios.
-4. F-011–F-012: Transcendence/Avatar mutual exclusion and Momentum feedback correctness.
-5. F-001–F-002: supported live defaults and boundary tests after authoritative version confirmation.
-6. F-014–F-019: versioned bonus contract, server result/history, protocol and maintained OTClient presentation; cross-repository writes require explicit authorization and an atomic rollout plan.
-7. F-009–F-010: only after authoritative difficulty/reward and precision/rounding evidence is pinned.
-8. Focused runtime, gameplay and physical-client Forge scenarios using the shared E2E platform.
+1. `AGENTS.md` and `docs/agents/README.md`;
+2. this program;
+3. `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_HANDOFF_2026-07-14.md`;
+4. `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md`;
+5. archived Forge task records;
+6. current `main`, open PRs and active ownership;
+7. `docs/agents/CROSS_REPO_CONTRACTS.md` before client/protocol work.
 
 # Completed work
 
-| Task/PR | Result | Merge commit | Follow-up |
-|---|---|---|---|
-| PR #89 | Normal Transfer rules, donor-tier costs/result and history costs | `209289d38e64aafe7ce3e036867bb632cd0363b8` | Preserve. |
-| PR #110 | Forge history item identity by ID | `84f5c09263f459d726fbc7b9f79557b2cbb0801d` | Preserve. |
-| PR #177 | Killer resolution, one party Dust roll and actual capped credit | `f1d217c43e8e302978f533212e6aa9d1ce2b77c8` | Runtime proof and Premium remain. |
-| PR #242/#244 | Current finding handoff and archived lifecycle record | `56ee9bc72b91ba1110cd6d957c7eb0d974fc54e1` / `88e0140329a91fb877633307d2b749fecb175a43` | Source of truth for the program start. |
-| PR #250 | F-003–F-005 implementation and compiled/runtime-smoke regression evidence | pending merge | Final-head CI, archive, then F-020/F-021. |
+| Findings/scope | PR | Merge commit | Archive |
+|---|---:|---|---|
+| Normal Transfer baseline | #89 | `209289d38e64aafe7ce3e036867bb632cd0363b8` | preserved dependency |
+| History item identity | #110 | `84f5c09263f459d726fbc7b9f79557b2cbb0801d` | preserved dependency |
+| Dust killer/party/cap behavior | #177 | `f1d217c43e8e302978f533212e6aa9d1ce2b77c8` | preserved dependency |
+| F-003–F-005 server authority | #250 | `94f8a3b63271b3708e33496e937620a6cd4b9717` | `tasks/archive/CAN-20260713-forge-server-authority.md` |
+| F-001–F-002 live defaults | #259 | `444aa8ae13edc01c6e77b03139a43d386b437308` | `tasks/archive/CAN-20260713-forge-live-defaults.md` |
+| F-011–F-012 effects | #267 | `7771bbec22d970d9779bff740e3f7f2e0df42f19` | `tasks/archive/CAN-20260713-forge-effect-correctness.md` |
+| F-020–F-021 transaction safety | #257 | `e16c9f769b1bcdd05e1719e861f0a52cc2594560` | `tasks/archive/CAN-20260713-forge-transaction-safety.md` |
+| F-006 Premium Dust | #262 | `ded1830b143388d65c895ad30918faf128df66ed` | `tasks/archive/CAN-20260713-forge-premium-dust.md` |
+| F-022–F-024 history correctness | #283 | `82348f9faca788a8cbb5c13feb75b4e06d8da9dc` | `tasks/archive/CAN-20260713-forge-history-correctness.md` |
 
-# Current evidence
+# Preserved invariants
 
-- PR #250 readiness CI `29250747788` passed on the implementation diff.
-- Linux debug compiled, ran Canary smoke, imported the database schema and passed the full `Run Tests` step.
-- Linux release passed CMake, generated Lua API docs and Canary/global datapack smoke.
-- macOS, Windows and Docker build/runtime paths passed.
-- This is semantic, compiled-regression and generic runtime-smoke evidence; focused player gameplay and physical-client E2E remain separate.
-- Temporary source/evidence runner PRs #252/#253 were closed unmerged and their files were removed from the permanent diff.
+- Validate every client-supplied Forge choice again in C++ before mutation.
+- Normal Fusion requires distinct instances of the same item ID and requested tier.
+- Convergence Fusion requires different class-4 item IDs, matching requested tier and normalized slot.
+- Convergence Transfer requires class 4.
+- Active imbuements remain disallowed.
+- Fusion, Transfer and Sliver-to-Core mutations are transactional.
+- History and result packets occur only after successful commit.
+- Dust eligibility delegates to exact C++ Premium semantics.
+- One death uses one shared Dust roll and cap-aware actual credit.
+- Either Avatar source blocks Transcendence.
+- Momentum feedback requires an actual eligible cooldown reduction.
+- Distributed defaults are Dust `325` and Fiendish `4`, while server-owner overrides remain supported.
+
+# Remaining queue
+
+## Next — F-014 through F-019 contract audit
+
+Create one bounded evidence/contract task before changing code:
+
+- map all server bonus enum values and selection gates;
+- pin the missing Dust-refill bonus behavior;
+- verify `+2 tier` maximum-tier handling;
+- define tier-aware bonus eligibility;
+- map Fusion result/history state;
+- map exact packet field order and values;
+- inspect maintained OTClient decoding and UI presentation;
+- record compatibility and rollout order in `docs/agents/CROSS_REPO_CONTRACTS.md`.
+
+Do not modify another repository without explicit authorization. Do not change protocol bytes until the server and maintained-client contract is documented.
+
+## Runtime/gameplay evidence
+
+- F-007: party/logout/combat-block scenario;
+- F-008: actual credited amount at Dust cap;
+- F-013: one roll shared across direct, summon and party paths.
+
+Reuse PR #177/#262 behavior unless a focused scenario reproduces a defect.
+
+## Evidence-blocked rules
+
+- F-009: exact difficulty-to-Sliver mapping;
+- F-010: exact percentage precision and rounding.
+
+Pin authoritative, versioned evidence before implementation. Do not infer from memory or an unversioned secondary summary.
+
+## Physical-client proof
+
+Reuse the universal E2E platform after it is merged and stable. Add only a Forge scenario and assertions; do not copy or modify platform orchestration from a feature task.
 
 # Dependencies and blockers
 
-- The execution container cannot resolve `github.com`; local clone/build/test commands are unavailable. GitHub API writes and current-head CI are separate evidence.
-- F-014–F-019 require a maintained OTClient contract and explicit authorization before any cross-repository write.
-- F-009/F-010 remain blocked until the selected live-version rule is authoritative enough to encode.
+- Maintained-client/protocol work requires explicit cross-repository authorization and rollout planning.
+- F-009/F-010 lack sufficient authoritative selected-version evidence.
+- Aggregate CI is not physical-client gameplay proof.
+- Recheck current open PR #245 and the E2E program before adding a Forge scenario.
 
-# Decisions and invariants
+# Exact next task
 
-- Target the live rule set observed on 2026-07-13; pin later rule changes explicitly rather than silently moving the target.
-- Validate every client-supplied Forge choice again in C++ before inventory or resource mutation.
-- Rejection tests must prove unchanged items, tiers, Dust, cores, money and history.
-- One task owns one bounded responsibility; authority, atomicity, history, rewards, effects and protocol/client work stay separate.
-- Compilation and generic CI are not focused Forge gameplay proof.
-- Later mutation/rollback work must preserve the pure authority policies introduced by #250.
+```text
+task: CAN-YYYYMMDD-forge-bonus-result-contract
+branch: docs/forge-bonus-result-contract
+scope: evidence and Canary ↔ maintained-OTClient contract for F-014 through F-019
+```
 
-# Validation strategy
+The task must begin from then-current `main`, inspect active ownership and open PRs, and stay documentation/evidence-first until the contract is complete.
 
-- Focused C++ unit/integration tests for each rule and each crafted/stale request.
-- Required Linux build, generated Lua API documentation check, Lua/Fast checks and repository ownership validation on every final head.
-- Runtime/gameplay tests for reward/effect behavior and real supported-client E2E for protocol/UI parity.
-- Record skipped workflow steps and unavailable local checks; never report them as passed.
+# Do not repeat
+
+- Do not reopen completed Forge feature PRs #250, #257, #259, #262, #267 or #283.
+- Do not continue helper PRs #252, #253, #254, #258, #260, #266, #268, #269, #270, #271, #280, #281 or #284.
+- Do not bypass the merged policy/transaction helpers.
+- Do not treat client-side filtering as server authority.
+- Do not claim full parity from compilation or generic runtime smoke.
+- Do not implement F-009/F-010 without pinned evidence.
+- Do not combine reward mapping, rounding, bonus rules, protocol and client UI into one unbounded PR.
 
 # Handoff
 
-## Start here
-
-Read `AGENTS.md`, `docs/agents/README.md`, this program record, the current task, open Forge PRs and `docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md`.
-
-## Next task creation protocol
-
-1. Finish and archive #250.
-2. Recheck current `main`, open PRs and active ownership.
-3. Create a new bounded F-020/F-021 task/branch/draft PR.
-4. Preserve #250 policy helpers and rejection-order tests.
-5. Add injected-failure coverage for every mutation boundary before claiming rollback complete.
-
-## Do not repeat
-
-- Do not reopen #177, #241, #246, #252 or #253 or continue their historical branches.
-- Do not treat client-side filtering as server authority.
-- Do not implement F-009/F-010 from memory or an unversioned secondary summary.
-- Do not combine the coordinated bonus/protocol/client program with transactional or history cleanup.
-
-## Open questions
-
-- Exact live difficulty-to-Sliver mapping for F-009.
-- Exact live percentage precision/rounding for F-010.
-- Authorization and rollout order for maintained `blakinio/otclient` changes required by F-014–F-019.
+The previous agent cycle is archived. A new agent must create a fresh bounded active task and draft PR before editing. No active path ownership from the archived tasks remains.
