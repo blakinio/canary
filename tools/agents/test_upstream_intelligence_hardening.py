@@ -80,17 +80,19 @@ class UpstreamIntelligenceHardeningTests(unittest.TestCase):
             )
             self.assertEqual(result["state"], "not-found")
 
-    def test_report_escapes_external_markdown_and_html(self) -> None:
+    def test_report_encodes_external_markdown_and_html(self) -> None:
         candidate = _candidate(
             title="evil](javascript:alert(1)) <script>|`",
             url="javascript:alert(1)",
         )
         report = render_markdown(_snapshot(candidate))
         self.assertIn("&lt;script&gt;", report)
-        self.assertIn("\\]", report)
-        self.assertIn("\\|", report)
+        self.assertIn("&#93;", report)
+        self.assertIn("&#124;", report)
+        self.assertIn("&#96;", report)
         self.assertNotIn("](javascript:alert(1))", report)
         self.assertNotIn("<script>", report)
+        self.assertNotIn("[evil](javascript:", report)
 
     def test_report_links_only_canonical_github_urls(self) -> None:
         url = "https://github.com/opentibiabr/canary/issues/1"
