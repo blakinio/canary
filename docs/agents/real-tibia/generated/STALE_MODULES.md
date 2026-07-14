@@ -10,10 +10,13 @@ Evaluated as of **2026-07-14**.
 | `achievements` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `charms` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `combat` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `configuration` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `cyclopedia` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `engine-runtime-lifecycle` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `exaltation-forge` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `houses` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `imbuements` | 2026-07-14 | 0 | `current` | 60 / 180 |
+| `lua-runtime` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `market` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `npcs` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `otbm-tooling` | 2026-07-14 | 0 | `current` | 60 / 180 |
