@@ -20,7 +20,7 @@ The stack reuses the existing native OTBM scanner, World Index, script resolver,
 | 3 | Teleports, floor transitions and reachability | merged and archived | #274 / #277 |
 | 4 | Spawns, bosses and NPCs | merged and archived | #286 / #290 |
 | 5 | Storage dependency graph | merged and archived | #299 / #309 |
-| 6 | Semantic OTBM diff and visual evidence | merged and archived | #311 / lifecycle PR pending |
+| 6 | Semantic OTBM diff and visual evidence | merged and archived | #311 / #315 |
 | 7 | Geometry and consistency audit | not started | separate future task |
 | 8 | Safe bounded OTBM patch writer | blocked by Phase 7 safety gates | separate future task |
 
@@ -352,7 +352,7 @@ Merged PR #311 delivered:
 
 Final feature head: `5ae3141d6809b7a046b95922b304f905f7c636b2`.  
 Squash merge: `4ab2dd2d72e3f55badfd45d76dd9f59d65c22f5a`.  
-Lifecycle cleanup: pending this dedicated documentation PR.
+Lifecycle cleanup: #315 (merge pending).
 
 ### Comparison contract
 
@@ -436,6 +436,6 @@ Existing older patch surfaces do not authorize production-map edits. Phase 8 sho
 
 ## Programme handoff
 
-Phases 1–6 are merged and archived. Phase 7 is the exact next planned programme phase, but it has not started. It requires a fresh current-main/open-PR/active-task/ownership/existing-tool preflight after this lifecycle PR is merged.
+Phases 1–6 are merged and archived. Phase 7 is the exact next planned programme phase, but it has not started. It requires a fresh current-main/open-PR/active-task/ownership/existing-tool preflight after lifecycle PR #315 is merged.
 
 Do not reopen historical OTBM PRs or continue their branches. Do not combine Phase 7 with Harlow cleanup, `0,0,0` teleport repair, Bone Capsule repair, map writing, gameplay fixes or Phase 8.
