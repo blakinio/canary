@@ -23,6 +23,7 @@
 | `data-otservbr-global/world/**` | `spawns` | `data` |
 | `data/**imbu**` | `imbuements` | `data` |
 | `data/XML/vocations.xml` | `vocations` | `data` |
+| `data/items/items.xml` | `item-definitions` | `data` |
 | `data/items/proficiencies.json` | `weapon-proficiency` | `data` |
 | `data/libs/systems/reward_boss.lua` | `boss-encounters` | `data` |
 | `data/modules/scripts/taskboard/**` | `prey` | `data` |
@@ -45,6 +46,7 @@
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `character-progression` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `combat-conditions` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `configuration` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `containers` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `creature-ai` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `creature-definitions` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `cyclopedia-character` | `docs` |
@@ -53,6 +55,9 @@
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-runtime-lifecycle` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-scheduler` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-service-container` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `item-decay` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `item-definitions` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `item-instances` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `lua-bindings` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `lua-runtime` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `raids` | `docs` |
@@ -88,6 +93,10 @@
 | `docs/agents/real-tibia/TSD_006_CREATURES_HUNTING_RAIDS_BOSSES_REPORT.md` | `creature-ai` | `docs` |
 | `docs/agents/real-tibia/TSD_006_CREATURES_HUNTING_RAIDS_BOSSES_REPORT.md` | `creature-definitions` | `docs` |
 | `docs/agents/real-tibia/TSD_006_CREATURES_HUNTING_RAIDS_BOSSES_REPORT.md` | `raids` | `docs` |
+| `docs/agents/real-tibia/TSD_007_ITEMS_ECONOMY_REPORT.md` | `containers` | `docs` |
+| `docs/agents/real-tibia/TSD_007_ITEMS_ECONOMY_REPORT.md` | `item-decay` | `docs` |
+| `docs/agents/real-tibia/TSD_007_ITEMS_ECONOMY_REPORT.md` | `item-definitions` | `docs` |
+| `docs/agents/real-tibia/TSD_007_ITEMS_ECONOMY_REPORT.md` | `item-instances` | `docs` |
 | `docs/agents/upstream/**` | `upstream-intelligence` | `docs` |
 | `docs/ai-agent/ACHIEVEMENT_POINT_RECONCILIATION.md` | `achievements` | `docs` |
 | `docs/ai-agent/CYCLOPEDIA_VALIDATION_REPORT.md` | `bestiary` | `docs` |
@@ -168,6 +177,14 @@
 | `src/io/iologindata.*` | `character-lifecycle` | `server` |
 | `src/io/iomapserialize.*` | `world-persistence` | `server` |
 | `src/io/iomarket.*` | `market` | `server` |
+| `src/items/containers/**` | `containers` | `server` |
+| `src/items/cylinder.*` | `containers` | `server` |
+| `src/items/decay/**` | `item-decay` | `server` |
+| `src/items/functions/item/attribute.*` | `item-instances` | `server` |
+| `src/items/functions/item/custom_attribute.*` | `item-instances` | `server` |
+| `src/items/functions/item/item_parse.*` | `item-definitions` | `server` |
+| `src/items/item.*` | `item-instances` | `server` |
+| `src/items/items.*` | `item-definitions` | `server` |
 | `src/items/weapons/**` | `weapons` | `server` |
 | `src/kv/**` | `world-persistence` | `server` |
 | `src/lib/di/**` | `engine-service-container` | `server` |
