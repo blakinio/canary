@@ -3,9 +3,9 @@
 #include <gtest/gtest.h>
 
 namespace {
-struct SessionToken {
-	uint64_t generation = 0;
-};
+	struct SessionToken {
+		uint64_t generation = 0;
+	};
 }
 
 TEST(ConnectionProtocolReleaseGateTest, ReleasesImmediatelyWithoutQueuedCallback) {
