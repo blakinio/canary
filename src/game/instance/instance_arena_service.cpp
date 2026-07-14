@@ -58,7 +58,8 @@ InstanceArenaService::InstanceArenaService(
 	MessageNotifier messageNotifier,
 	PlayerEvacuator playerEvacuator
 ) :
-	manager(manager), binder(manager), monsterFactory(std::move(monsterFactory)), creatureRemover(std::move(creatureRemover)),
+	manager(manager),
+	binder(manager), monsterFactory(std::move(monsterFactory)), creatureRemover(std::move(creatureRemover)),
 	eventScheduler(std::move(eventScheduler)), messageNotifier(std::move(messageNotifier)), playerEvacuator(std::move(playerEvacuator)) { }
 
 std::vector<InstanceMapRegion> InstanceArenaService::configuredRegions() {
