@@ -1,0 +1,412 @@
+name: Apply shell-free FS mkdir implementation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/apply-fs-mkdir-shell-free.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out implementation branch
+        uses: actions/checkout@v6
+        with:
+          ref: security/fs-mkdir-shell-free
+          fetch-depth: 0
+
+      - name: Apply reviewed implementation
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              file_path = Path(path)
+              text = file_path.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"expected one anchor in {path}, found {count}: {old!r}")
+              file_path.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          Path("src/lua/functions/core/libs/filesystem_functions.hpp").write_text(r'''/**
+           * Canary - A free and open-source MMORPG server emulator
+           * Copyright (©) 2019–present OpenTibiaBR <opentibiabr@outlook.com>
+           * Repository: https://github.com/opentibiabr/canary
+           * License: https://github.com/opentibiabr/canary/blob/main/LICENSE
+           * Contributors: https://github.com/opentibiabr/canary/graphs/contributors
+           * Website: https://docs.opentibiabr.com/
+           */
+
+          #pragma once
+
+          #ifndef USE_PRECOMPILED_HEADERS
+          	#include <string>
+          #endif
+
+          struct FilesystemOperationResult {
+          	bool success = false;
+          	std::string error;
+          };
+
+          class FilesystemFunctions {
+          public:
+          	static void init(lua_State* L);
+          	static FilesystemOperationResult createDirectory(const std::string &path, bool recursive);
+
+          private:
+          	static int luaCreateDirectory(lua_State* L);
+          	static int luaCreateDirectories(lua_State* L);
+          	static int pushResult(lua_State* L, const FilesystemOperationResult &result);
+          };
+          '''.replace("          ", ""), encoding="utf-8")
+
+          Path("src/lua/functions/core/libs/filesystem_functions.cpp").write_text(r'''/**
+           * Canary - A free and open-source MMORPG server emulator
+           * Copyright (©) 2019–present OpenTibiaBR <opentibiabr@outlook.com>
+           * Repository: https://github.com/opentibiabr/canary
+           * License: https://github.com/opentibiabr/canary/blob/main/LICENSE
+           * Contributors: https://github.com/opentibiabr/canary/graphs/contributors
+           * Website: https://docs.opentibiabr.com/
+           */
+
+          #include "lua/functions/core/libs/filesystem_functions.hpp"
+
+          #include "lua/functions/lua_functions_loader.hpp"
+
+          #ifndef USE_PRECOMPILED_HEADERS
+          	#include <filesystem>
+          	#include <system_error>
+          #endif
+
+          void FilesystemFunctions::init(lua_State* L) {
+          	Lua::registerTable(L, "fs");
+          	Lua::registerMethod(L, "fs", "createDirectory", FilesystemFunctions::luaCreateDirectory);
+          	Lua::registerMethod(L, "fs", "createDirectories", FilesystemFunctions::luaCreateDirectories);
+          }
+
+          FilesystemOperationResult FilesystemFunctions::createDirectory(const std::string &path, bool recursive) {
+          	if (path.empty()) {
+          		return { false, "Path must not be empty." };
+          	}
+
+          	const std::filesystem::path directory(path);
+          	std::error_code error;
+          	if (std::filesystem::is_directory(directory, error)) {
+          		return { true, {} };
+          	}
+          	if (error) {
+          		return { false, error.message() };
+          	}
+
+          	const bool created = recursive ? std::filesystem::create_directories(directory, error) : std::filesystem::create_directory(directory, error);
+          	if (error) {
+          		return { false, error.message() };
+          	}
+          	if (created) {
+          		return { true, {} };
+          	}
+
+          	error.clear();
+          	if (std::filesystem::is_directory(directory, error)) {
+          		return { true, {} };
+          	}
+          	if (error) {
+          		return { false, error.message() };
+          	}
+
+          	return { false, "Path exists and is not a directory." };
+          }
+
+          int FilesystemFunctions::luaCreateDirectory(lua_State* L) {
+          	// fs.createDirectory(path)
+          	if (!Lua::isString(L, 1)) {
+          		lua_pushboolean(L, false);
+          		Lua::pushString(L, "Path must be a string.");
+          		return 2;
+          	}
+
+          	return pushResult(L, createDirectory(Lua::getString(L, 1), false));
+          }
+
+          int FilesystemFunctions::luaCreateDirectories(lua_State* L) {
+          	// fs.createDirectories(path)
+          	if (!Lua::isString(L, 1)) {
+          		lua_pushboolean(L, false);
+          		Lua::pushString(L, "Path must be a string.");
+          		return 2;
+          	}
+
+          	return pushResult(L, createDirectory(Lua::getString(L, 1), true));
+          }
+
+          int FilesystemFunctions::pushResult(lua_State* L, const FilesystemOperationResult &result) {
+          	lua_pushboolean(L, result.success);
+          	if (result.success) {
+          		return 1;
+          	}
+
+          	Lua::pushString(L, result.error);
+          	return 2;
+          }
+          '''.replace("          ", ""), encoding="utf-8")
+
+          Path("data/libs/functions/fs.lua").write_text('''FS = FS or {}
+
+          function FS.exists(path)
+          \tlocal file = io.open(path, "r")
+          \tif file then
+          \t\tfile:close()
+          \t\treturn true
+          \tend
+          \treturn false
+          end
+
+          function FS.mkdir(path)
+          \treturn fs.createDirectory(path)
+          end
+
+          function FS.mkdir_p(path)
+          \tif path == "" then
+          \t\treturn true
+          \tend
+
+          \treturn fs.createDirectories(path)
+          end
+          '''.replace("          ", ""), encoding="utf-8")
+
+          replace_once(
+              "src/lua/functions/core/libs/core_libs_functions.hpp",
+              '#include "lua/functions/core/libs/kv_functions.hpp"\n',
+              '#include "lua/functions/core/libs/kv_functions.hpp"\n#include "lua/functions/core/libs/filesystem_functions.hpp"\n',
+          )
+          replace_once(
+              "src/lua/functions/core/libs/core_libs_functions.hpp",
+              '\t\tKVFunctions::init(L);\n',
+              '\t\tKVFunctions::init(L);\n\t\tFilesystemFunctions::init(L);\n',
+          )
+          replace_once(
+              "src/lua/functions/core/CMakeLists.txt",
+              '            libs/kv_functions.cpp\n',
+              '            libs/kv_functions.cpp\n            libs/filesystem_functions.cpp\n',
+          )
+          replace_once(
+              "vcproj/canary.vcxproj",
+              '    <ClInclude Include="..\\src\\lua\\functions\\core\\libs\\kv_functions.hpp" />\n',
+              '    <ClInclude Include="..\\src\\lua\\functions\\core\\libs\\kv_functions.hpp" />\n    <ClInclude Include="..\\src\\lua\\functions\\core\\libs\\filesystem_functions.hpp" />\n',
+          )
+          replace_once(
+              "vcproj/canary.vcxproj",
+              '    <ClCompile Include="..\\src\\lua\\functions\\core\\libs\\kv_functions.cpp" />\n',
+              '    <ClCompile Include="..\\src\\lua\\functions\\core\\libs\\kv_functions.cpp" />\n    <ClCompile Include="..\\src\\lua\\functions\\core\\libs\\filesystem_functions.cpp" />\n',
+          )
+          replace_once(
+              "tests/unit/lua/CMakeLists.txt",
+              '    PRIVATE event_callback_manager_test.cpp\n',
+              '    PRIVATE event_callback_manager_test.cpp\n            filesystem_functions_test.cpp\n',
+          )
+
+          Path("tests/unit/lua/filesystem_functions_test.cpp").write_text(r'''/**
+           * Canary - A free and open-source MMORPG server emulator
+           * Copyright (©) 2019–present OpenTibiaBR <opentibiabr@outlook.com>
+           * Repository: https://github.com/opentibiabr/canary
+           * License: https://github.com/opentibiabr/canary/blob/main/LICENSE
+           * Contributors: https://github.com/opentibiabr/canary/graphs/contributors
+           * Website: https://docs.opentibiabr.com/
+           */
+
+          #include "lua/functions/core/libs/filesystem_functions.hpp"
+
+          #ifndef USE_PRECOMPILED_HEADERS
+          	#include <chrono>
+          	#include <filesystem>
+          #endif
+
+          namespace {
+          	class TemporaryDirectory {
+          	public:
+          		TemporaryDirectory() {
+          			const auto unique = std::chrono::steady_clock::now().time_since_epoch().count();
+          			path = std::filesystem::temp_directory_path() / ("canary-fs-functions-" + std::to_string(unique));
+          			std::filesystem::create_directories(path);
+          		}
+
+          		~TemporaryDirectory() {
+          			std::error_code error;
+          			std::filesystem::remove_all(path, error);
+          		}
+
+          		std::filesystem::path path;
+          	};
+          } // namespace
+
+          TEST(FilesystemFunctionsTest, CreatesSingleAndRecursiveDirectories) {
+          	TemporaryDirectory temporary;
+
+          	const auto single = temporary.path / "single directory";
+          	const auto singleResult = FilesystemFunctions::createDirectory(single.string(), false);
+          	EXPECT_TRUE(singleResult.success) << singleResult.error;
+          	EXPECT_TRUE(std::filesystem::is_directory(single));
+
+          	const auto existingResult = FilesystemFunctions::createDirectory(single.string(), false);
+          	EXPECT_TRUE(existingResult.success) << existingResult.error;
+
+          	const auto nested = temporary.path / "nested directory" / "child";
+          	const auto recursiveResult = FilesystemFunctions::createDirectory(nested.string(), true);
+          	EXPECT_TRUE(recursiveResult.success) << recursiveResult.error;
+          	EXPECT_TRUE(std::filesystem::is_directory(nested));
+          }
+
+          TEST(FilesystemFunctionsTest, RejectsEmptyPathAndExistingFile) {
+          	const auto emptyResult = FilesystemFunctions::createDirectory("", false);
+          	EXPECT_FALSE(emptyResult.success);
+          	EXPECT_FALSE(emptyResult.error.empty());
+
+          	TemporaryDirectory temporary;
+          	const auto file = temporary.path / "existing-file";
+          	{
+          		std::ofstream output(file);
+          		output << "content";
+          	}
+
+          	const auto fileResult = FilesystemFunctions::createDirectory(file.string(), false);
+          	EXPECT_FALSE(fileResult.success);
+          	EXPECT_FALSE(fileResult.error.empty());
+          }
+
+          TEST(FilesystemFunctionsTest, DoesNotInterpretShellMetacharacters) {
+          	TemporaryDirectory temporary;
+          	const auto unique = std::chrono::steady_clock::now().time_since_epoch().count();
+          	const auto marker = std::filesystem::current_path() / ("canary-fs-shell-marker-" + std::to_string(unique));
+          	std::error_code error;
+          	std::filesystem::remove(marker, error);
+
+          	const auto hostileName = "unsafe\" & echo injected > " + marker.filename().string() + " & echo \"";
+          	const auto hostilePath = temporary.path / hostileName;
+          	const auto result = FilesystemFunctions::createDirectory(hostilePath.string(), true);
+
+          	EXPECT_FALSE(std::filesystem::exists(marker));
+          #ifndef _WIN32
+          	EXPECT_TRUE(result.success) << result.error;
+          	EXPECT_TRUE(std::filesystem::is_directory(hostilePath));
+          #endif
+          	std::filesystem::remove(marker, error);
+          }
+          '''.replace("          ", ""), encoding="utf-8")
+
+          Path("tests/lua/test_fs.lua").write_text(r'''-- Runtime-independent contract tests for data/libs/functions/fs.lua
+          -- Run: luajit tests/lua/test_fs.lua
+
+          local passed, failed, errors = 0, 0, {}
+
+          local function test(name, fn)
+          	local ok, err = pcall(fn)
+          	if ok then
+          		passed = passed + 1
+          	else
+          		failed = failed + 1
+          		table.insert(errors, { name = name, err = err })
+          	end
+          end
+
+          local function assert_equal(actual, expected, message)
+          	if actual ~= expected then
+          		error(message or string.format("expected %s, got %s", tostring(expected), tostring(actual)), 2)
+          	end
+          end
+
+          local calls = {}
+          fs = {
+          	createDirectory = function(path)
+          		table.insert(calls, { method = "createDirectory", path = path })
+          		return true
+          	end,
+          	createDirectories = function(path)
+          		table.insert(calls, { method = "createDirectories", path = path })
+          		return true
+          	end,
+          }
+
+          local originalExecute = os.execute
+          os.execute = function()
+          	error("FS helpers must not execute a shell", 2)
+          end
+          dofile("data/libs/functions/fs.lua")
+
+          test("mkdir delegates hostile paths literally to the native binding", function()
+          	local hostile = 'reports/unsafe" & echo injected > marker & echo "'
+          	assert_equal(FS.mkdir(hostile), true)
+          	assert_equal(calls[#calls].method, "createDirectory")
+          	assert_equal(calls[#calls].path, hostile)
+          end)
+
+          test("mkdir_p delegates recursive creation without path splitting", function()
+          	local path = "reports/bugs/Player Name/child"
+          	assert_equal(FS.mkdir_p(path), true)
+          	assert_equal(calls[#calls].method, "createDirectories")
+          	assert_equal(calls[#calls].path, path)
+          end)
+
+          test("mkdir_p preserves the empty-path success contract", function()
+          	local before = #calls
+          	assert_equal(FS.mkdir_p(""), true)
+          	assert_equal(#calls, before)
+          end)
+
+          os.execute = originalExecute
+
+          print(string.format("\n%d passed, %d failed", passed, failed))
+          if #errors > 0 then
+          	print("\nFailed tests:")
+          	for _, entry in ipairs(errors) do
+          		print(string.format("  FAIL: %s\n        %s", entry.name, entry.err))
+          	end
+          	os.exit(1)
+          end
+          '''.replace("          ", ""), encoding="utf-8")
+
+          task_path = Path("docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md")
+          task = task_path.read_text(encoding="utf-8")
+          task = task.replace("updated: 2026-07-14T08:00:00+02:00", "updated: 2026-07-14T09:30:00+02:00")
+          task = task.replace("- [ ] Full current-repository inventory", "- [x] Full current-repository inventory")
+          task = task.replace("- [ ] Existing shell-free filesystem facilities", "- [x] Existing shell-free filesystem facilities")
+          task = task.replace("- [ ] CrystalServer commit", "- [x] CrystalServer commit")
+          task += """
+
+          ## 2026-07-14T09:30:00+02:00
+
+          - Changed: replaced shell-backed `FS.mkdir`/`FS.mkdir_p` with a narrow native `fs.createDirectory`/`fs.createDirectories` binding backed by `std::filesystem`.
+          - Changed: added C++ filesystem behavior tests and a runtime-independent Lua contract test that fails if `os.execute` is called.
+          - Learned: the only runtime call sites are report paths derived from validated player names, but the public helper accepted arbitrary strings; removing the shell closes the boundary instead of relying on name validation or a denylist.
+          - Compatibility: existing public `FS` function names and empty recursive-path behavior are preserved; recursive creation now delegates directly to `std::filesystem::create_directories` and correctly preserves absolute/drive roots.
+          - Validation pending: exact-head full CI, generated Lua API docs, Windows solution registration and runtime smoke.
+          """
+          task_path.write_text(task, encoding="utf-8")
+
+          Path(".github/workflows/apply-fs-mkdir-shell-free.yml").unlink()
+          PY
+
+      - name: Run focused validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          if command -v luajit >/dev/null 2>&1; then
+            luajit tests/lua/test_fs.lua
+          else
+            sudo apt-get update
+            sudo apt-get install -y luajit
+            luajit tests/lua/test_fs.lua
+          fi
+
+      - name: Commit implementation
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "security(lua): remove shell execution from FS.mkdir"
+          git push origin HEAD:security/fs-mkdir-shell-free
