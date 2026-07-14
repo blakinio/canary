@@ -26,6 +26,7 @@
 | `data/npc/**` | `npcs` | `data` |
 | `data/scripts/quests/**` | `quests` | `data` |
 | `data/scripts/spells/**` | `spells` | `data` |
+| `data/scripts/weapons/**` | `weapons` | `data` |
 | `data/world/**` | `spawns` | `data` |
 | `docs/agents/programs/E2E_AUTOMATION_PROGRAM.md` | `physical-client-e2e` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `account-authentication` | `docs` |
@@ -35,6 +36,7 @@
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `build-system` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `character-lifecycle` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `character-progression` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `combat-conditions` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `configuration` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `cyclopedia-character` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `database-connection` | `docs` |
@@ -47,6 +49,7 @@
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `titles` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `vocations` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `weapon-proficiency` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `weapons` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `world-persistence` | `docs` |
 | `docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md` | `upstream-intelligence` | `docs` |
 | `docs/agents/real-tibia/TIBIA_SYSTEM_DECOMPOSITION_REPORT.md` | `configuration` | `docs` |
@@ -69,6 +72,8 @@
 | `docs/agents/real-tibia/TSD_004_CYCLOPEDIA_FAMILY_REPORT.md` | `bosstiary` | `docs` |
 | `docs/agents/real-tibia/TSD_004_CYCLOPEDIA_FAMILY_REPORT.md` | `cyclopedia-character` | `docs` |
 | `docs/agents/real-tibia/TSD_004_CYCLOPEDIA_FAMILY_REPORT.md` | `titles` | `docs` |
+| `docs/agents/real-tibia/TSD_005_COMBAT_WEAPONS_VOCATIONS_REPORT.md` | `combat-conditions` | `docs` |
+| `docs/agents/real-tibia/TSD_005_COMBAT_WEAPONS_VOCATIONS_REPORT.md` | `weapons` | `docs` |
 | `docs/agents/upstream/**` | `upstream-intelligence` | `docs` |
 | `docs/ai-agent/ACHIEVEMENT_POINT_RECONCILIATION.md` | `achievements` | `docs` |
 | `docs/ai-agent/CYCLOPEDIA_VALIDATION_REPORT.md` | `bestiary` | `docs` |
@@ -105,6 +110,7 @@
 | `src/client/**` | `wheel-of-destiny` | `client` |
 | `src/config/**` | `configuration` | `server` |
 | `src/creatures/combat/**` | `combat` | `server` |
+| `src/creatures/combat/condition.*` | `combat-conditions` | `server` |
 | `src/creatures/combat/spells/**` | `spells` | `server` |
 | `src/creatures/players/**` | `charms` | `server` |
 | `src/creatures/players/**` | `cyclopedia` | `server` |
@@ -146,6 +152,7 @@
 | `src/io/iologindata.*` | `character-lifecycle` | `server` |
 | `src/io/iomapserialize.*` | `world-persistence` | `server` |
 | `src/io/iomarket.*` | `market` | `server` |
+| `src/items/weapons/**` | `weapons` | `server` |
 | `src/kv/**` | `world-persistence` | `server` |
 | `src/lib/di/**` | `engine-service-container` | `server` |
 | `src/lib/thread/thread_pool.*` | `engine-scheduler` | `server` |
