@@ -19,6 +19,7 @@ class UpstreamIntelligenceDecompositionTests(unittest.TestCase):
             "paths": [
                 "src/lua/scripts/lua_environment.hpp",
                 "src/canary_server.cpp",
+                "src/config/configmanager.cpp",
             ],
             "module_ids": [],
             "mapped_paths": [],
@@ -31,8 +32,8 @@ class UpstreamIntelligenceDecompositionTests(unittest.TestCase):
         self.assertEqual(candidate["mapping_state"], "mapped")
         self.assertEqual(candidate["module_ids"], sorted(candidate["module_ids"]))
         self.assertIn("engine-runtime-lifecycle", candidate["module_ids"])
+        self.assertIn("configuration", candidate["module_ids"])
         self.assertIn("lua-runtime", candidate["module_ids"])
-        self.assertIn("protocol", candidate["module_ids"])
         self.assertEqual(
             candidate["mapped_paths"],
             sorted(
