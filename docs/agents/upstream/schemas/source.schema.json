@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["schema_version", "report", "sources"],
   "properties": {
-    "schema_version": {"const": 1},
+    "schema_version": {"const": 2},
     "report": {
       "type": "object",
       "additionalProperties": false,
