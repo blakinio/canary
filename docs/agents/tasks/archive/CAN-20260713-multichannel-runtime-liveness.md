@@ -2,16 +2,16 @@
 task_id: CAN-20260713-multichannel-runtime-liveness
 program_id: CAN-PROGRAM-MULTICHANNEL
 coordination_id: ""
-status: in_review
+status: completed
 agent: "claude"
 branch: claude/canary-multichannel-cluster-e1jhrr (Part A); claude/canary-multichannel-redis-ping (Part B)
 base_branch: main
 created: 2026-07-13T20:39:00Z
-updated: 2026-07-13T21:20:00Z
-last_verified_commit: 6fb9c65d3e8b9105e65515dc2b03827a06753eb0
+updated: 2026-07-14T06:07:43Z
+last_verified_commit: eb36f97
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "#292, #293"
 depends_on: []
 blocks: []
 owned_paths:
@@ -239,8 +239,8 @@ Never write `passed` without verification on the stated commit.
 3. ~~Implement `IRedisClient::ping()` (Hiredis real + Fake), wire into `ClusterConfigValidator`, reorder `canary_server.cpp`.~~ done
 4. ~~Update docs with corrected current-state facts and honestly-documented limitations.~~ done
 5. ~~Update `docs/agents/MODULE_CATALOG.md`'s multichannel row.~~ done
-6. ~~Push both branches, open both PRs, monitor full CI matrix.~~ done. PR #293 (Part B - live Redis PING): full matrix green (Linux debug/release, Windows CMake/Solution, macOS, Docker, Docker Quickstart Smoke, Fast Checks, Lua Tests), no review comments, **merged by the repo owner (blakinio) directly on GitHub at 2026-07-13T21:30:32Z** (merge commit `80249b6`) - not by this agent, satisfying "no merge without explicit user consent" via the user's own action. PR #292 (Part A - shutdown OFFLINE + test gaps): full matrix green including the "Required" gate, `mergeable_state: clean`, no review comments - **still open, not merged**; holding per the standing "no merge without a specific 'yes, merge #292'" instruction.
-7. PR #292 remains open awaiting an explicit user merge decision. Once merged, move this task record to `docs/agents/tasks/archive/` and finalize the Completion section below (currently reflects the interim state: one of two PRs merged).
+6. ~~Push both branches, open both PRs, monitor full CI matrix.~~ done. Both PRs reached a fully green matrix (Linux debug/release, Windows CMake/Solution, macOS, Docker, Docker Quickstart Smoke, Fast Checks, Lua Tests, plus lint/audit jobs) and had zero review comments.
+7. ~~Merge both PRs.~~ done. **PR #293** merged by the repo owner (blakinio) directly on GitHub at 2026-07-13T21:30:32Z (merge commit `80249b6`). **PR #292** merged by the repo owner (blakinio) directly on GitHub at 2026-07-14T06:07:43Z (merge commit `eb36f97`). Neither merge was performed by this agent - both satisfy "no merge without explicit user consent" via the user's own action on GitHub. Task record archived below.
 
 # Handoff
 
@@ -272,10 +272,16 @@ None blocking; proceeding with the plan above.
 
 # Completion
 
-- Final status: in progress - PR #293 (Part B) merged; PR #292 (Part A) has a fully green CI matrix and `mergeable_state: clean` but is still open, awaiting an explicit user merge decision
-- PR: #292 (Part A - heartbeat/login-filter completeness, open, green), #293 (Part B - live Redis PING, merged)
-- Merge commit: #293 -> `80249b6` (merged by blakinio, 2026-07-13T21:30:32Z). #292 -> none yet, not merged
+- Final status: completed - both PRs merged, full CI matrix green on each, no unresolved review comments
+- PR: #292 (Part A - heartbeat/login-filter completeness, shutdown OFFLINE + test coverage gaps), #293 (Part B - live Redis PING in ClusterConfigValidator)
+- Merge commit: #293 -> `80249b6` (merged by blakinio, 2026-07-13T21:30:32Z). #292 -> `eb36f97` (merged by blakinio, 2026-07-14T06:07:43Z)
 - Program record updated: no (no long-lived program record exists yet for multichannel under `docs/agents/programs/`; could be created as a follow-up)
 - Catalogue updated: yes (`docs/agents/MODULE_CATALOG.md`, in PR #292)
-- Changelog updated: pending
-- Archived at: pending - will move to `docs/agents/tasks/archive/` once PR #292 is also merged
+- Changelog updated: n/a - this repository has no root CHANGELOG.md; PR descriptions serve as the change record
+- Archived at: `docs/agents/tasks/archive/CAN-20260713-multichannel-runtime-liveness.md` (this move)
+
+## Known limitations carried forward (not blockers, documented for the next agent)
+
+- `DRAINING` channel status has no trigger - no GM "drain a channel" command exists yet to publish it. Implementing it now would be dead code; revisit if/when such a command is added.
+- Heartbeat publish and session-lease renewal still run as synchronous Redis I/O on the main game dispatcher thread (pre-existing since Phase 2/PR #74, not introduced by this task). Bounded by `HiredisRedisClient::Options::connectTimeoutMs` (default 2000ms) but not redesigned off the main thread - a background-thread/dispatcher-marshaling redesign was judged out of scope for this task.
+- The two items explicitly excluded from this task's scope from the start - house double-ownership fix and DIRTY session tooling - both still require a shared, safe cross-process DB-row-handoff design before anyone starts them.
