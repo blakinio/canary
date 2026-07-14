@@ -2,16 +2,16 @@
 task_id: CAN-20260714-otbm-geometry-consistency-audit
 program_id: ""
 coordination_id: "OTS-OTBM-VALIDATION"
-status: active
+status: ready-for-review
 agent: "GPT-5.6 Thinking"
 branch: feat/otbm-geometry-consistency-audit-refresh
 base_branch: main
 created: 2026-07-14T10:35:00+02:00
-updated: 2026-07-14T11:15:00+02:00
-last_verified_commit: "b6a6b3d8e851409de448f4e621df909cb041d05a"
+updated: 2026-07-14T11:25:00+02:00
+last_verified_commit: "d9a363f5e9bae46de8e96edcca06665de697ef88"
 risk: medium
 related_issue: ""
-related_pr: "pending replacement for #320"
+related_pr: "#322"
 depends_on:
   - "merged and archived Unified OTBM World Index #219/#223"
   - "merged and archived OTBM reachability validator #274/#277"
@@ -84,10 +84,11 @@ Deliver Phase 7 as a deterministic, bounded, read-only geometry and consistency 
 - [x] Add schemas, documentation, ADR, 21 focused tests and dedicated CI/artifacts.
 - [x] Keep `.otbm`, `.widx`, appearances binaries, assets, generated reports and renders outside Git.
 - [x] Confirm no map, datapack, gameplay, protocol, database, item or OTClient change.
-- [ ] Restore the validated Phase 7 implementation onto this clean current-main branch.
-- [ ] Update catalogue, changelog and roadmap from current `main` without unrelated diffs.
-- [ ] Verify final changed-file scope, current-head CI, Required and zero review threads.
-- [ ] Squash-merge and archive this task separately.
+- [x] Restore the validated Phase 7 implementation onto a clean current-main branch.
+- [x] Update catalogue, changelog and roadmap from current `main` without unrelated diffs.
+- [x] Verify the exact 15-file scope, clean current-main comparison, draft-state CI, Required and zero unrelated/forbidden paths.
+- [ ] Mark #322 ready, verify ready-state checks and zero review threads, then squash-merge.
+- [ ] Archive this task separately before Phase 8 starts.
 
 # Delivered contracts and behavior
 
@@ -102,14 +103,14 @@ Deliver Phase 7 as a deterministic, bounded, read-only geometry and consistency 
 - Optional render-manifest output is confined through the same artifact-root resolver before writing.
 - No wall or border rule is inferred from names, sprite appearance or proximity.
 
-# Branch refresh
+# Clean branch replacement
 
-- Original draft PR #320 was created from pre-#318 main and validated the implementation.
-- After #318 and #319 advanced shared documentation, GitHub's three-dot diff attributed preserved current-main lines to #320.
-- No force-push or synthetic partial merge was used.
-- Clean replacement branch `feat/otbm-geometry-consistency-audit-refresh` was created directly from current main `b6a6b3d8e851409de448f4e621df909cb041d05a` after #319 merged.
-- The replacement PR will contain only Phase 7 files and narrow current-main-based catalogue/changelog/roadmap edits.
-- Draft #320 will be closed as superseded only after the replacement PR exists.
+- Original draft #320 was created before shared-document advances from #318/#319 and validated the implementation.
+- Its old merge-base caused GitHub to attribute preserved current-main catalogue lines to Phase 7.
+- No force-push, history rewrite or partial synthetic merge was used.
+- Replacement branch `feat/otbm-geometry-consistency-audit-refresh` was created directly from current main `b6a6b3d8e851409de448f4e621df909cb041d05a` after #319 merged.
+- Validated implementation blobs were copied exactly, then current-main catalogue/changelog/roadmap were updated narrowly.
+- Historical #320 was commented and closed without merge; #322 is the only active Phase 7 delivery PR.
 
 # Confirmed context
 
@@ -141,25 +142,32 @@ Deliver Phase 7 as a deterministic, bounded, read-only geometry and consistency 
 
 # Validation history
 
-## Failure and repair
+## Failure and repair on superseded draft
 
 - Initial dedicated run `29319415323`, job `87040890744`, failed during focused tests before compilation/schema steps.
 - Diagnostic artifact `8305301685` proved the only cause was the existing synthetic-fixture edge: maps with no node-item reported scanner `maxItemDepth=-1`, while the binary index represents `0`.
 - Test fixtures were repaired with one neutral known nested item. No production contract or fail-closed validation was weakened.
+- Superseded implementation head `69658ddabf74b4202ef7ee896e2262c67d7224a8` then passed the dedicated workflow, all 21 tests, ownership, map tools, AI tools and repository Required.
 
-## Validated implementation head on original branch
+## Clean replacement draft-state validation
 
-Head `69658ddabf74b4202ef7ee896e2262c67d7224a8`:
+Head `d9a363f5e9bae46de8e96edcca06665de697ef88`:
 
-- OTBM Geometry Audit `29319667799`: success; job `87041720844`: success.
-- All 21 focused tests, Python compilation, both schema checks and representative `jsonschema`: success.
+- OTBM Geometry Audit run `29321325585`: success.
+- `Validate bounded geometry evidence` job `87047089681`: success.
+- All 21 focused tests: success.
+- Python compilation: success.
+- Both schema syntax checks and representative `jsonschema`: success.
 - Synthetic map/index/report, reviewed-rules validation and forbidden generated-artifact check: success.
-- Agent Task Ownership `29319667792`: success.
-- OTBM Map Tools `29319667803`: success.
-- AI Agent Tools `29319667808`: success.
-- repository CI `29319667975`: success; Required `87041773144`: success.
+- Toolkit/report artifact publication: success.
+- Agent Task Ownership run `29321325508`: success.
+- OTBM Map Tools run `29321325546`: success.
+- AI Agent Tools run `29321325460`: success.
+- repository CI run `29321325680`: success.
+- Required job `87047140975`: success.
+- Branch comparison: exactly 15 expected paths, ahead and behind by 0 at verification.
 
-The replacement branch must rerun every relevant check; validation is not inherited merely because file content is copied.
+The current task-record readiness commit must pass its own final checks before merge.
 
 # Risks and compatibility
 
@@ -172,18 +180,18 @@ The replacement branch must rerun every relevant check; validation is not inheri
 
 # Remaining work
 
-1. Restore exact validated files and current-main shared documentation to this clean branch.
-2. Open replacement draft PR, then close #320 as superseded.
-3. Run current-head CI and repair only evidence-backed failures.
-4. Review exact diff, mark ready, pass ready-state Required and squash-merge.
-5. Archive Phase 7 separately before Phase 8 starts.
+1. Verify checks on this final task-record head.
+2. Review exact diff and zero review threads.
+3. Mark #322 ready, verify ready-state Required and squash-merge with expected-head guard.
+4. Archive Phase 7 in a separate lifecycle PR before Phase 8 starts.
 
 # Completion
 
-- Final status: active
-- PR: pending replacement for #320
+- Final status: ready-for-review
+- PR: #322
+- Final feature head: pending final readiness checks
 - Merge commit:
 - Program record updated: not applicable
-- Catalogue updated: pending clean branch restoration
-- Changelog updated: pending clean branch restoration
+- Catalogue updated: active delivery row
+- Changelog updated: Unreleased Phase 7 entry
 - Archived at:
