@@ -36,6 +36,14 @@ class UpstreamIntelligenceDecompositionTests(unittest.TestCase):
                 "data-otservbr-global/migrations/63.lua",
                 "schema.sql",
                 "CMakeLists.txt",
+                "src/account/account.cpp",
+                "src/security/login_session_manager.cpp",
+                "src/io/iologindata.cpp",
+                "src/creatures/players/player.cpp",
+                "src/creatures/players/vocations/vocation.cpp",
+                "src/creatures/players/components/weapon_proficiency.cpp",
+                "data/XML/vocations.xml",
+                "data/items/proficiencies.json",
             ],
             "module_ids": [],
             "mapped_paths": [],
@@ -49,7 +57,11 @@ class UpstreamIntelligenceDecompositionTests(unittest.TestCase):
         self.assertEqual(candidate["mapping_state"], "mapped")
         self.assertEqual(candidate["module_ids"], sorted(candidate["module_ids"]))
         for expected in (
+            "account-authentication",
+            "account-lifecycle",
             "build-system",
+            "character-lifecycle",
+            "character-progression",
             "configuration",
             "database-connection",
             "database-migrations",
@@ -59,6 +71,8 @@ class UpstreamIntelligenceDecompositionTests(unittest.TestCase):
             "lua-bindings",
             "lua-runtime",
             "player-persistence",
+            "vocations",
+            "weapon-proficiency",
             "world-persistence",
         ):
             self.assertIn(expected, candidate["module_ids"])

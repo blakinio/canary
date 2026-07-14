@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "module_id": "character-progression",
+  "name": "Character Progression Core",
+  "category": "character-progression",
+  "description": "Shared character level, experience, skill, magic-level, stamina, offline-training and death/loss progression state discovery.",
+  "lifecycle": {
+    "status": "inventory",
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"
+  },
+  "scope": {
+    "includes": [
+      "level and experience state and advancement",
+      "skill tries, skill levels and magic-level advancement",
+      "stamina and experience-boost state",
+      "offline-training state",
+      "death loss and blessing-related progression consequences",
+      "serialization touchpoints for shared progression state"
+    ],
+    "excludes": [
+      "vocation registry and promotion definitions",
+      "Wheel of Destiny",
+      "achievement definitions and awards",
+      "Weapon Proficiency definitions and perk lifecycle",
+      "combat damage and healing formula parity"
+    ]
+  },
+  "paths": {
+    "server": [
+      "src/creatures/players/player.*",
+      "src/io/functions/iologindata_load_player.cpp",
+      "src/io/functions/iologindata_save_player.cpp"
+    ],
+    "client": [],
+    "data": [],
+    "tests": [
+      "tests/unit/players/**"
+    ],
+    "docs": [
+      "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+      "docs/agents/real-tibia/TSD_003_ACCOUNT_CHARACTER_PROGRESSION_REPORT.md"
+    ]
+  },
+  "relationships": {
+    "depends_on": [
+      "character-lifecycle",
+      "player-persistence"
+    ],
+    "interacts_with": [
+      "achievements",
+      "combat",
+      "prey",
+      "vocations",
+      "weapon-proficiency",
+      "wheel-of-destiny"
+    ]
+  },
+  "documents": {
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+    "validation": [
+      "docs/agents/real-tibia/TSD_003_ACCOUNT_CHARACTER_PROGRESSION_REPORT.md"
+    ]
+  },
+  "source_requirements": [
+    {"source": "canary-current", "mode": "required"},
+    {"source": "tibia-official", "mode": "required-when-parity"},
+    {"source": "runtime-observation", "mode": "required-when-related"}
+  ],
+  "maturity": {
+    "implementation": "inventory",
+    "evidence": "inventory",
+    "persistence": "not-assessed",
+    "protocol": "not-assessed",
+    "automated_tests": "not-assessed",
+    "runtime_validation": "not-assessed",
+    "gameplay_e2e": "not-assessed"
+  },
+  "freshness": {
+    "class": "fast",
+    "last_inventory": "2026-07-14",
+    "warning_after_days": 30,
+    "invalid_after_days": 90,
+    "refresh_before_each_task": true
+  },
+  "notes": [
+    "This is a compatibility/discovery umbrella for progression state hosted in Player; individual fields or formulas are findings, not standalone modules.",
+    "Inventory paths do not prove experience, skill, stamina, training, death-loss or blessing correctness."
+  ]
+}

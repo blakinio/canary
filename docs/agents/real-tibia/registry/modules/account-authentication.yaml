@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "module_id": "account-authentication",
+  "name": "Account Authentication",
+  "category": "social-account",
+  "description": "Credential verification, account session validation and short-lived single-use login-token lifecycle discovery.",
+  "lifecycle": {
+    "status": "inventory",
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"
+  },
+  "scope": {
+    "includes": [
+      "password verification against stored account credentials",
+      "account session-expiry validation",
+      "login-session token issue, binding, expiry and single-use consumption",
+      "authenticated account and character-ownership handoff into world login"
+    ],
+    "excludes": [
+      "network packet framing and protocol-version negotiation",
+      "game-session disconnect and replacement-session cleanup",
+      "account entitlement and coin policy",
+      "production security assurance or penetration-test claims"
+    ]
+  },
+  "paths": {
+    "server": [
+      "src/account/account.*",
+      "src/io/iologindata.*",
+      "src/security/argon.*",
+      "src/security/login_session_manager.*"
+    ],
+    "client": [],
+    "data": [],
+    "tests": [
+      "tests/unit/security/login_session_manager_test.cpp"
+    ],
+    "docs": [
+      "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+      "docs/agents/real-tibia/TSD_003_ACCOUNT_CHARACTER_PROGRESSION_REPORT.md"
+    ]
+  },
+  "relationships": {
+    "depends_on": [
+      "account-lifecycle"
+    ],
+    "interacts_with": [
+      "character-lifecycle",
+      "protocol"
+    ]
+  },
+  "documents": {
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+    "validation": [
+      "docs/agents/real-tibia/TSD_003_ACCOUNT_CHARACTER_PROGRESSION_REPORT.md"
+    ]
+  },
+  "source_requirements": [
+    {"source": "canary-current", "mode": "required"},
+    {"source": "runtime-observation", "mode": "required-when-related"},
+    {"source": "maintained-otclient", "mode": "required-when-related"}
+  ],
+  "maturity": {
+    "implementation": "inventory",
+    "evidence": "inventory",
+    "persistence": "not-assessed",
+    "protocol": "not-assessed",
+    "automated_tests": "not-assessed",
+    "runtime_validation": "not-assessed",
+    "gameplay_e2e": "not-assessed"
+  },
+  "freshness": {
+    "class": "fast",
+    "last_inventory": "2026-07-14",
+    "warning_after_days": 30,
+    "invalid_after_days": 90,
+    "refresh_before_each_task": true
+  },
+  "notes": [
+    "Existing unit tests are inventory evidence only; this record does not claim complete authentication, replay-resistance or transport security proof.",
+    "PR #339 owns active gameplay-session cleanup work and remains outside this documentation-only package."
+  ]
+}
