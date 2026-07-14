@@ -11602,7 +11602,7 @@ void Player::forgeResourceConversion(ForgeAction_t actionType) {
 			return;
 		}
 		history.cost = cost;
-		history.gained = 3;
+		history.gained = itemCount;
 		setForgeDusts(dusts - cost);
 	} else if (actionType == ForgeAction_t::SLIVERSTOCORES) {
 		const auto player = static_self_cast<Player>();
@@ -11832,7 +11832,7 @@ void Player::registerForgeHistoryDescription(ForgeHistory history) {
 				"{:d} cores"
 				"</li>"
 				"<li>"
-				"100 dust"
+				"{:d} dust"
 				"</li>"
 				"<li>"
 				"{:s} gold"
@@ -11843,7 +11843,7 @@ void Player::registerForgeHistoryDescription(ForgeHistory history) {
 				itemType.article, itemType.name, std::to_string(history.tier),
 				itemType.article, itemType.name, std::to_string(history.tier),
 				history.bonus == 8 ? "unchanged" : historyTierString,
-				history.coresCost, price
+				history.coresCost, history.dustCost, price
 			);
 		}
 	} else if (history.actionType == ForgeAction_t::TRANSFER) {
@@ -11894,10 +11894,8 @@ void Player::registerForgeHistoryDescription(ForgeHistory history) {
 	} else if (history.actionType == ForgeAction_t::DUSTTOSLIVERS) {
 		detailsResponse << fmt::format("Converted {:d} dust to {:d} slivers.", history.cost, history.gained);
 	} else if (history.actionType == ForgeAction_t::SLIVERSTOCORES) {
-		history.actionType = ForgeAction_t::DUSTTOSLIVERS;
 		detailsResponse << fmt::format("Converted {:d} slivers to {:d} exalted core.", history.cost, history.gained);
 	} else if (history.actionType == ForgeAction_t::INCREASELIMIT) {
-		history.actionType = ForgeAction_t::DUSTTOSLIVERS;
 		detailsResponse << fmt::format("Spent {:d} dust to increase the dust limit to {:d}.", history.cost, history.gained + 1);
 	} else {
 		detailsResponse << "(unknown)";
