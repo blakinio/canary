@@ -81,6 +81,9 @@ protected:
 		rawMessages = value;
 	}
 
+	virtual bool queueClientLeaveGame();
+	virtual void dispatchClientLeaveGame(NetworkMessage &msg);
+	virtual void releaseFromConnection();
 	virtual void release() { }
 
 private:
