@@ -15,6 +15,7 @@
 | `character-progression` — Character Progression Core | `character-progression` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `charms` — Charms | `character-progression` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | — |
 | `combat` — Combat engine | `combat` | `mapped` | `mapped` | `inventory` | `not-assessed` | `not-assessed` | `unit` | `limited` | `not-assessed` | — |
+| `combat-conditions` — Combat Conditions | `combat` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `configuration` — Configuration | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `cyclopedia` — Cyclopedia, Bestiary and Bosstiary | `character-progression` | `mapped` | `mapped` | `audited` | `partial` | `not-assessed` | `integration` | `limited` | `missing` | — |
 | `cyclopedia-character` — Cyclopedia Character | `character-progression` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
@@ -42,7 +43,8 @@
 | `upstream-intelligence` — Upstream Intelligence and Drift Tracking | `platform-tooling` | `active` | `partial` | `mapped` | `not-applicable` | `not-applicable` | `integration` | `not-applicable` | `not-applicable` | `docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md` |
 | `vocations` — Vocations | `character-progression` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `weapon-proficiency` — Weapon Proficiency | `character-progression` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
+| `weapons` — Weapons | `combat` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `wheel-of-destiny` — Wheel of Destiny | `character-progression` | `active` | `partial` | `audited` | `partial` | `partial` | `integration` | `limited` | `missing` | `docs/agents/programs/WHEEL_OF_DESTINY_PARITY_PROGRAM.md` |
 | `world-persistence` — World Persistence | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 
-Total modules: **39**.
+Total modules: **41**.

@@ -17,6 +17,7 @@ Evaluated as of **2026-07-14**.
 | `character-progression` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `charms` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `combat` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `combat-conditions` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `configuration` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `cyclopedia` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `cyclopedia-character` | 2026-07-14 | 0 | `current` | 30 / 90 |
@@ -44,6 +45,7 @@ Evaluated as of **2026-07-14**.
 | `upstream-intelligence` | 2026-07-14 | 0 | `current` | 14 / 45 |
 | `vocations` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `weapon-proficiency` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `weapons` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `wheel-of-destiny` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `world-persistence` | 2026-07-14 | 0 | `current` | 30 / 90 |
 
