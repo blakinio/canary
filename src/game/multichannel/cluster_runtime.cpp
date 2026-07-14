@@ -166,9 +166,8 @@ void ClusterRuntime::releaseForLogout(int32_t accountId, int64_t /*nowMs*/) {
 
 std::vector<int32_t> ClusterRuntime::renewAllAndCollectExpired(int64_t nowMs) {
 	std::vector<int32_t> expired;
-	ChannelRuntimeStatus ownStatus;
-	int64_t runtimeTtlMs = 0;
 	const int64_t runtimeNowMs = multichannel::wallClockMs();
+	int32_t playersOnline = 0;
 
 	{
 		std::lock_guard lock(mutex);
@@ -234,11 +233,33 @@ std::vector<int32_t> ClusterRuntime::renewAllAndCollectExpired(int64_t nowMs) {
 			++it;
 		}
 
+		playersOnline = static_cast<int32_t>(tracked.size());
+	}
+
+	publishStatus(playersOnline, std::nullopt, runtimeNowMs);
+	return expired;
+}
+
+void ClusterRuntime::publishOfflineForShutdown(int64_t nowMs) {
+	if (!isEnabled()) {
+		return;
+	}
+	publishStatus(0, std::string("OFFLINE"), nowMs);
+}
+
+void ClusterRuntime::publishStatus(int32_t playersOnline, std::optional<std::string> forcedStatus, int64_t nowMs) {
+	ChannelRuntimeStatus ownStatus;
+	int64_t runtimeTtlMs = 0;
+	{
+		std::lock_guard lock(mutex);
+		if (!enabled) {
+			return;
+		}
 		ownStatus.channelId = channelId;
 		ownStatus.instanceId = instanceId;
 		ownStatus.startedAtMs = runtimeStartedAtMs;
-		ownStatus.lastHeartbeatMs = runtimeNowMs;
-		ownStatus.playersOnline = static_cast<int32_t>(tracked.size());
+		ownStatus.lastHeartbeatMs = nowMs;
+		ownStatus.playersOnline = playersOnline;
 		runtimeTtlMs = leaseTtlMs;
 	}
 
@@ -248,10 +269,17 @@ std::vector<int32_t> ClusterRuntime::renewAllAndCollectExpired(int64_t nowMs) {
 	for (const auto &channel : channels) {
 		channelIds.push_back(channel.id);
 		if (channel.id == ownStatus.channelId) {
-			ownStatus.status = channel.maintenance ? "MAINTENANCE" : "ONLINE";
+			ownStatus.status = forcedStatus.value_or(channel.maintenance ? "MAINTENANCE" : "ONLINE");
 			ownStatus.nodeId = environmentOr("CANARY_NODE_ID", channel.externalHost);
 			ownStatus.mapHash = environmentOr("CANARY_MAP_HASH", channel.mapHash.empty() ? "unknown" : channel.mapHash);
 		}
+	}
+	if (forcedStatus.has_value()) {
+		// A forced status (currently only "OFFLINE" for graceful shutdown)
+		// must apply even if this channel's own row was not found in the
+		// registry snapshot above - unlike the normal heartbeat path, this
+		// is a one-shot terminal publish, not a maintenance-flag read.
+		ownStatus.status = *forcedStatus;
 	}
 
 	if (ownStatus.nodeId.empty()) {
@@ -263,15 +291,14 @@ std::vector<int32_t> ClusterRuntime::renewAllAndCollectExpired(int64_t nowMs) {
 	ownStatus.buildSha = environmentOr("CANARY_BUILD_SHA", "unknown");
 	ownStatus.dataHash = environmentOr("CANARY_DATA_HASH", "unknown");
 
-	const bool heartbeatPublished = g_channelRuntimeRegistry().publishAndRefresh(ownStatus, runtimeTtlMs, channelIds, runtimeNowMs);
-	if (!heartbeatPublished) {
+	const bool published = g_channelRuntimeRegistry().publishAndRefresh(ownStatus, runtimeTtlMs, channelIds, nowMs);
+	if (!published) {
 		g_logger().error("[multichannel] Channel {} heartbeat publication/refresh failed; runtime availability cache was cleared (fail-closed).", ownStatus.channelId);
 	}
 
 #ifndef BUILD_TESTS
 	queueRuntimeStatusMirror(ownStatus);
 #endif
-	return expired;
 }
 
 std::size_t ClusterRuntime::trackedCount() const {

@@ -9,10 +9,15 @@
 
 #include "game/multichannel/channel_registry.hpp"
 
+#include "game/multichannel/channel_runtime_registry.hpp"
+#include "game/multichannel/wall_clock.hpp"
 #include "injection_fixture.hpp"
+
+#include "../../../shared/game/multichannel/fake_redis_client.hpp"
 
 #include <gtest/gtest.h>
 #include <fstream>
+#include <memory>
 
 namespace {
 	ChannelInfo makeChannel(int32_t id, const std::string &name, bool enabled = true, bool maintenance = false, int32_t sortOrder = 0) {
@@ -33,6 +38,10 @@ namespace {
 class ChannelRegistryTest : public ::testing::Test {
 protected:
 	InjectionFixture fixture_ {};
+
+	void TearDown() override {
+		g_channelRuntimeRegistry().resetForTesting();
+	}
 };
 
 TEST_F(ChannelRegistryTest, GetChannelReturnsNulloptWhenMissing) {
@@ -87,6 +96,69 @@ TEST_F(ChannelRegistryTest, SizeReflectsFullRegistryNotJustSelectable) {
 	});
 	EXPECT_EQ(2u, g_channelRegistry().size());
 	EXPECT_EQ(1u, g_channelRegistry().getLoginListChannels().size());
+}
+
+// --- ChannelRegistry::getLoginListChannels delegating to a live
+// ChannelRuntimeRegistry (docs/multichannel/ARCHITECTURE.md §3.4), not just
+// the static isSelectable() fallback tested above. ---
+
+TEST_F(ChannelRegistryTest, DelegatesToLiveRuntimeRegistryWhenEnabled) {
+	g_channelRegistry().setChannelsForTesting({
+		makeChannel(1, "Channel 1"),
+		makeChannel(2, "Channel 2"),
+	});
+
+	auto fake = std::make_shared<FakeRedisClient>();
+	g_channelRuntimeRegistry().configure(fake, 1000);
+
+	// ChannelRegistry::getLoginListChannels() reads multichannel::wallClockMs()
+	// internally (real wall-clock time), not a caller-suppliable logical
+	// clock, so the published heartbeat must be fresh relative to real time.
+	const auto nowMs = multichannel::wallClockMs();
+
+	// Only channel 1 has a fresh heartbeat; channel 2 is statically
+	// selectable but has never reported in, so it must not be offered -
+	// this is the exact behavior the static-only fallback (tested above)
+	// cannot express, since it only knows about the `channels` table.
+	ChannelRuntimeStatus onlineStatus;
+	onlineStatus.channelId = 1;
+	onlineStatus.instanceId = "instance-1";
+	onlineStatus.nodeId = "node-1";
+	onlineStatus.lastHeartbeatMs = nowMs;
+	onlineStatus.status = "ONLINE";
+	ASSERT_TRUE(g_channelRuntimeRegistry().publishAndRefresh(onlineStatus, 1000, { 1, 2 }, nowMs));
+
+	const auto liveList = g_channelRegistry().getLoginListChannels();
+	ASSERT_EQ(1u, liveList.size());
+	EXPECT_EQ(1, liveList.front().id);
+}
+
+TEST_F(ChannelRegistryTest, RedisOutageYieldsEmptyLoginListNotFailOpen) {
+	g_channelRegistry().setChannelsForTesting({
+		makeChannel(1, "Channel 1"),
+		makeChannel(2, "Channel 2"),
+	});
+
+	auto fake = std::make_shared<FakeRedisClient>();
+	g_channelRuntimeRegistry().configure(fake, 1000);
+
+	const auto nowMs = multichannel::wallClockMs();
+	ChannelRuntimeStatus onlineStatus;
+	onlineStatus.channelId = 1;
+	onlineStatus.instanceId = "instance-1";
+	onlineStatus.nodeId = "node-1";
+	onlineStatus.lastHeartbeatMs = nowMs;
+	onlineStatus.status = "ONLINE";
+	ASSERT_TRUE(g_channelRuntimeRegistry().publishAndRefresh(onlineStatus, 1000, { 1, 2 }, nowMs));
+	ASSERT_EQ(1u, g_channelRegistry().getLoginListChannels().size());
+
+	// A Redis outage must clear the fail-closed cache down to zero known
+	// channels, not silently fall back to the static/single-world list -
+	// the caller (ProtocolLogin) is responsible for rejecting the login
+	// cleanly on an empty list rather than fabricating an endpoint.
+	fake->setHealthyForTesting(false);
+	ASSERT_FALSE(g_channelRuntimeRegistry().publishAndRefresh(onlineStatus, 1000, { 1, 2 }, nowMs + 100));
+	EXPECT_TRUE(g_channelRegistry().getLoginListChannels().empty());
 }
 
 TEST(ChannelRegistryHashTest, SameContentProducesSameHash) {

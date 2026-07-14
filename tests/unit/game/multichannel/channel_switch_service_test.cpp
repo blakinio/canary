@@ -9,7 +9,15 @@
 
 #include "game/multichannel/channel_switch_service.hpp"
 
+#include "game/multichannel/channel_registry.hpp"
+#include "game/multichannel/channel_runtime_registry.hpp"
+#include "game/multichannel/wall_clock.hpp"
+#include "injection_fixture.hpp"
+
+#include "../../../shared/game/multichannel/fake_redis_client.hpp"
+
 #include <gtest/gtest.h>
+#include <memory>
 
 namespace {
 	ChannelSwitchRequest baseRequest() {
@@ -210,4 +218,76 @@ TEST(ChannelSwitchServiceTest, DescribeReturnsNonEmptyStringForEveryDenyReason) 
 	for (const auto &reason : allReasons) {
 		EXPECT_FALSE(describeChannelSwitchDenyReason(reason).empty());
 	}
+}
+
+// --- Live target-channel availability (docs/multichannel/ARCHITECTURE.md
+// §6): when ChannelRuntimeRegistry is enabled, evaluate() overrides the
+// request's static targetChannelOnline/targetChannelFull fields with a live
+// ChannelRuntimeRegistry::getAvailability() read, instead of trusting
+// whatever the caller pre-populated (which may be stale by the time the
+// switch is actually evaluated). Previously untested. ---
+
+class ChannelSwitchServiceLiveAvailabilityTest : public ::testing::Test {
+protected:
+	void TearDown() override {
+		g_channelRuntimeRegistry().resetForTesting();
+	}
+
+	InjectionFixture fixture_ {};
+};
+
+TEST_F(ChannelSwitchServiceLiveAvailabilityTest, LiveOnlineTargetOverridesStaleOfflineStaticFlag) {
+	auto fake = std::make_shared<FakeRedisClient>();
+	g_channelRuntimeRegistry().configure(fake, 1000);
+	// No ChannelRegistry entry needed for channel 2 here - the live branch
+	// only consults it for maxPlayers (defaults to 0, i.e. "no cap") when
+	// absent; only the published heartbeat status matters for online/offline.
+
+	const auto nowMs = multichannel::wallClockMs();
+	ChannelRuntimeStatus status;
+	status.channelId = 2;
+	status.status = "ONLINE";
+	status.lastHeartbeatMs = nowMs;
+	ASSERT_TRUE(g_channelRuntimeRegistry().publishAndRefresh(status, 1000, { 2 }, nowMs));
+
+	auto request = baseRequest();
+	request.targetChannelOnline = false; // stale/wrong static flag
+	const auto decision = ChannelSwitchService::evaluate(request);
+	EXPECT_TRUE(decision.allowed);
+}
+
+TEST_F(ChannelSwitchServiceLiveAvailabilityTest, NoLiveHeartbeatOverridesStaleOnlineStaticFlag) {
+	auto fake = std::make_shared<FakeRedisClient>();
+	g_channelRuntimeRegistry().configure(fake, 1000);
+	// Deliberately publish nothing for channel 2 - never reported in.
+
+	auto request = baseRequest();
+	request.targetChannelOnline = true; // stale/wrong static flag
+	const auto decision = ChannelSwitchService::evaluate(request);
+	EXPECT_FALSE(decision.allowed);
+	EXPECT_EQ(ChannelSwitchDenyReason::TargetOffline, decision.denyReason);
+}
+
+TEST_F(ChannelSwitchServiceLiveAvailabilityTest, LiveFullTargetOverridesStaleNotFullStaticFlag) {
+	auto fake = std::make_shared<FakeRedisClient>();
+	g_channelRuntimeRegistry().configure(fake, 1000);
+	ChannelInfo target;
+	target.id = 2;
+	target.maxPlayers = 5;
+	g_channelRegistry().setChannelsForTesting({ target });
+
+	const auto nowMs = multichannel::wallClockMs();
+	ChannelRuntimeStatus status;
+	status.channelId = 2;
+	status.status = "ONLINE";
+	status.playersOnline = 5;
+	status.lastHeartbeatMs = nowMs;
+	ASSERT_TRUE(g_channelRuntimeRegistry().publishAndRefresh(status, 1000, { 2 }, nowMs));
+
+	auto request = baseRequest();
+	request.targetChannelOnline = true;
+	request.targetChannelFull = false; // stale/wrong static flag
+	const auto decision = ChannelSwitchService::evaluate(request);
+	EXPECT_FALSE(decision.allowed);
+	EXPECT_EQ(ChannelSwitchDenyReason::TargetFull, decision.denyReason);
 }

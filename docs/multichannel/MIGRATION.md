@@ -416,6 +416,79 @@ comparing - strictly better than the total absence of this check before
 this phase, and self-correcting on either channel's next restart. See
 ARCHITECTURE.md §3.5 for the full reasoning.
 
+**Phase "Runtime liveness" (docs/agents/tasks/active/
+CAN-20260713-multichannel-runtime-liveness.md)** started as a request to
+build the runtime heartbeat, live login-gateway filtering, and a live Redis
+PING. Tracing the *actual current* `main` (not `docs/multichannel/
+AGENT_HANDOFF.md`'s account of it, which was audited against an older
+state and had gone stale) found that PR #136
+(`feat/multichannel-runtime-heartbeat`, already merged) had already
+delivered almost all of the first two: `ChannelRuntimeRegistry`'s
+Redis-backed fail-closed heartbeat cache, `ClusterRuntime::
+renewAllAndCollectExpired` publishing to it every cycle,
+`ChannelRegistry::getLoginListChannels()` and `ChannelSwitchService::
+evaluate()` both consulting it live, and both login protocol paths
+(legacy and modern) correctly rejecting an empty channel list instead of
+fabricating a fallback single-world endpoint. The phase's real
+contribution split into two independent pieces of work, delivered as two
+separate PRs:
+
+**Part A - heartbeat/login-filter completeness:**
+
+- **Graceful shutdown now publishes `OFFLINE`** - `ClusterRuntime::
+  publishOfflineForShutdown`, called from `Game::setGameState`'s
+  `GAME_STATE_SHUTDOWN` case before players are kicked. Previously a clean
+  shutdown was indistinguishable from a crash to every other channel/the
+  login gateway until the heartbeat TTL elapsed.
+- **New test coverage for previously-untested cross-cutting paths**: that
+  `ClusterRuntime::renewAllAndCollectExpired` actually reaches
+  `ChannelRuntimeRegistry` (not just each in isolation), reconnect-recovery
+  after a Redis outage through the real call chain, `ChannelRegistry::
+  getLoginListChannels()`'s live-delegation branch and the fully-empty-list
+  scenario, and `ChannelSwitchService`'s live-availability branch (0 prior
+  references to it in that test file).
+- **Documented, not fixed**: `DRAINING` status has no trigger (no drain
+  command exists - out of scope, would be dead code); both session-lease
+  renewal and heartbeat publish run as synchronous Redis I/O on the main
+  game dispatcher thread (pre-existing since Phase 2, bounded by
+  `connectTimeoutMs` but not redesigned here - too large/risky a change to
+  attempt blind against already-shipped session-safety code).
+- **`docs/multichannel/AGENT_HANDOFF.md`'s own P0.4 ("realny runtime
+  heartbeat kanałów") claim was stale** - it was audited against an older
+  `main` than the one PR #136 landed on. Corrected in that document
+  directly rather than left to mislead the next agent the same way.
+
+Verified: the heartbeat/login-filter/switch test additions touch
+`ChannelRegistry`/`ClusterRuntime` (both transitively require
+`database/database.hpp`, hitting this sandbox's established `mysql.h`
+wall) and so were reviewed by hand instead of compiled locally, per this
+project's established methodology for engine-glue multichannel code - see
+TEST_PLAN.md for the exact reasoning traced through.
+
+**Part B - live Redis `PING` in `ClusterConfigValidator`'s startup gate**
+(this one genuinely did not exist, unlike Part A's mostly-already-shipped
+scope): `IRedisClient::ping()` (new, implemented in both
+`HiredisRedisClient` and `FakeRedisClient`) performs a real synchronous
+round-trip and classifies the result into `Success`/`DnsFailure`/
+`ConnectionRefused`/`Timeout`/`AuthenticationFailed`/`UnexpectedResponse`/
+`Other`. `CanaryServer::initializeMultichannelCluster` now constructs the
+Redis client *before* validation (previously only after), pings it, feeds
+the outcome into `ClusterConfigValidator::validate` (which stays a pure
+function - the live I/O happens in the caller), and reuses the same
+connected client afterward rather than opening a second one. A
+`std::nullopt` outcome (never attempted) is treated as a failure, same as
+an explicit one.
+
+Verified: `HiredisRedisClient::ping()`/`classifyConnectError()` compiled
+standalone against the real system `hiredis` (clean with `-Wall -Wextra`)
+and exercised via a small harness against a real local `redis-server` -
+all 5 failure categories plus success confirmed against genuine conditions
+(see TEST_PLAN.md for the exact commands/output).
+`ClusterConfigValidator` (unchanged dependency-free design) was
+standalone-compiled, linked, and run with real gtest - all 25 tests
+(8 pre-existing + 9 new for the ping logic, `DescribeReturnsNonEmptyString`
+extended for the 6 new error values) passed.
+
 **Still not enforced**, and still the reason not to enable
 `multiChannelEnabled = true` in production yet: nothing yet *blocks* an
 account from bidding on or trading for a second house before an already-

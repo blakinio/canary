@@ -941,6 +941,13 @@ void Game::setGameState(GameState_t newState) {
 		}
 
 		case GAME_STATE_SHUTDOWN: {
+			// Publish OFFLINE immediately, before kicking players or saving,
+			// so other channels/the login gateway learn about a graceful
+			// shutdown right away instead of only finding out once the
+			// heartbeat TTL elapses (indistinguishable from a crash until
+			// then). No-op when multichannel clustering is disabled.
+			g_clusterRuntime().publishOfflineForShutdown(OTSYS_TIME());
+
 			g_globalEvents().save();
 			g_globalEvents().shutdown();
 
