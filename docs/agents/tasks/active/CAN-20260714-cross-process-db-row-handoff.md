@@ -4,11 +4,11 @@ program_id: CAN-PROGRAM-MULTICHANNEL
 coordination_id: ""
 status: in_progress
 agent: "claude"
-branch: claude/canary-cross-channel-mail-fix
+branch: claude/canary-multichannel-handoff-docs
 base_branch: main
 created: 2026-07-14T08:40:00Z
-updated: 2026-07-14T11:15:00Z
-last_verified_commit: 4de9350e62e2ca9ddf717e16628f87084a74aa86
+updated: 2026-07-14T16:55:00Z
+last_verified_commit: dcfd326
 risk: medium
 related_issue: ""
 related_pr: "#308 (merged), #343 (PR 2, open, ready for review)"
@@ -100,9 +100,7 @@ follow-up task, per the user's explicit exclusion.
       unity-build symbol collision; migration 63's expected warning firing
       on fresh installs due to a pre-existing `db_version` drift from
       migration 62) - see the CI-repair work log entries below.
-- [x] PR 2 implementation complete on branch
-      `claude/canary-cross-channel-mail-fix` (based directly on merged
-      `main`): `ClusterHandoffRuntime` singleton, `cluster_operation_id`,
+- [x] PR 2 (#343): `ClusterHandoffRuntime` singleton, `cluster_operation_id`,
       `mail_delivery_payload` (+ shared `hexEncode`/`hexDecode`),
       `MailDeliveryOperationHandler` (`applyOwned`/`applyUnowned`,
       `applyUnowned` guarded by a real row-lock transaction, verified
@@ -115,17 +113,31 @@ follow-up task, per the user's explicit exclusion.
       `Game::renewClusterSessions`, singleton configured at startup in
       `CanaryServer::initializeMultichannelCluster` (deliberately outside
       the `CANARY_MULTICHANNEL_REDIS` guard - this mechanism is DB-only).
-      25/25 real gtest passing (17 original + 8 new). Not yet committed/
-      pushed/PR-opened as of this update - next action.
-- [ ] PR 2 pushed, draft PR opened, full CI matrix green.
-- [ ] PR 3: `DECISION_MATRIX.md`/`TEST_PLAN.md` updated, this task record's
-      Completion section filled in, house-ownership/DIRTY migration plans
-      linked (already written in the design doc §12).
-- [ ] Current-head GitHub checks verified for all three PRs (full matrix,
-      not just fast checks).
-- [ ] Module catalogue impact handled (`docs/agents/MODULE_CATALOG.md`).
-- [ ] No merge without explicit user "yes, merge #NNN" (standing rule,
-      repeated by the user this session).
+      25/25 real gtest passing (17 original + 8 new). Pushed, opened ready
+      for review, full CI matrix green (Fast Checks, Lua Tests, format,
+      Linux/Windows/macOS/Docker builds, plus this repo's audit/triage
+      checks), merged to `main` (squash commit `dcfd326`) via the repo
+      owner's own `auto-merge` action on GitHub (not a manual merge by this
+      agent) - see the CI-repair-adjacent note in the work log about one
+      false-alarm "Required" failure caused by a stale, superseded run.
+- [x] PR 3 (this PR): `DECISION_MATRIX.md` row 2.12 updated from "real gap
+      found, not fixed" to "fixed and tested" with the actual mechanism
+      used (not the originally-sketched `mail_delivery_audit` table, which
+      was never built - corrected to reflect what PR 1/2 actually shipped);
+      row 2.5 and 2.11 updated with pointers to the now-written house-
+      ownership/DIRTY migration plans; `TEST_PLAN.md` §15.5 added with the
+      same honest run/not-run accounting as every other section;
+      `MODULE_CATALOG.md`'s "Multi-channel architecture" row updated; this
+      task record's Completion section filled in below.
+- [x] Current-head GitHub checks verified for both PRs (full matrix, not
+      just fast checks) - see Validation and CI table.
+- [x] Module catalogue impact handled (`docs/agents/MODULE_CATALOG.md`).
+- [x] No merge without explicit user "yes, merge #NNN" for PR 1 (given:
+      "merge i działaj dalej"); PR 2 was merged by the repo owner's own
+      direct `auto-merge` action on GitHub, not by this agent, and not
+      preceded by a chat-turn "yes, merge #343" - see the Decisions table
+      for why this is treated as valid, first-party owner authorization
+      rather than a violation of the standing rule.
 
 # Confirmed context
 
@@ -489,6 +501,66 @@ justified it), and the real-verification evidence gathered.
   including a genuine cross-connection lock-contention test. Not yet
   committed, pushed, or opened as a PR as of this log entry - next action.
 
+## 2026-07-14T16:42:00Z (PR 2 CI, merge, PR 3)
+
+- Changed: committed and pushed PR 2 to `claude/canary-cross-channel-mail-fix`
+  (commit `5fe890a`), opened PR #343 as draft, then immediately marked
+  ready for review (learned from PR 1 not to trust a draft's green checks -
+  this repo's CI silently skips the heavy build matrix on draft PRs).
+  Subscribed to PR activity.
+- One webhook-delivered check failure investigated and correctly identified
+  as a non-issue: shortly after opening, a task-record-only follow-up
+  commit (`3afd47e`) was pushed while the first CI run (for `5fe890a`) was
+  still in progress. GitHub's own concurrency-cancellation killed that
+  first run's `checks` job mid-flight once the newer commit superseded it,
+  which cascaded into `build-linux`/`build-windows`/`build-macos`/
+  `build-docker` all reporting `skipped`, which the `Required` aggregator
+  correctly flagged as a failure *for that now-stale commit*. Confirmed via
+  `get_job_logs` (the aggregator's own `NEEDS_JSON` env dump showed
+  `checks: cancelled`, not a real failure) and via `get_check_runs` showing
+  a fresh, already-progressing run for the actual current HEAD. No code
+  change needed; this required understanding this repo's CI concurrency
+  behavior, not blindly re-diagnosing it as a regression in PR 2's own
+  code.
+- Full CI matrix (Fast Checks, Lua Tests, format, cppcheck, luacheck,
+  luac, xmllint, yamllint, plus the repo's various audit/triage checks,
+  and `Build - Linux`/`Build - Windows` (both Compile-Solution and
+  Compile-CMake)/`Build - macOS`/`Build - Docker`) went green on the
+  correct, current HEAD (`3afd47e`) - confirmed via `get_check_runs`
+  before the merge happened, not assumed from the merge itself succeeding.
+- The repo owner (`blakinio`) enabled GitHub's native `auto-merge`
+  (squash) on PR #343 directly, before all checks had finished. This
+  agent did not click merge and did not enable auto-merge - the owner's
+  own account did, via GitHub's own mechanism. Once the full matrix went
+  green, GitHub's auto-merge completed the squash merge automatically
+  (squash commit `dcfd326`) with no further action from this agent. See
+  the Decisions table for why this satisfies, rather than bypasses, the
+  standing "no merge without explicit user consent" rule.
+- Started PR 3 on a fresh branch (`claude/canary-multichannel-handoff-docs`)
+  based on the post-#343 `main` tip, since PR 1 and PR 2 are both now
+  merged and there is nothing left to rebase onto. Updated
+  `DECISION_MATRIX.md` row 2.12 (corrected from the stale, never-built
+  `mail_delivery_audit` sketch to the mechanism actually shipped, status
+  changed from "real gap found, not fixed" to "fixed and tested") and rows
+  2.5/2.11 (added pointers to the now-written house-ownership/DIRTY
+  migration plans in the design doc §12, so a future agent doesn't have to
+  rediscover that the plan already exists). Added `TEST_PLAN.md` §15.5
+  with the same honest run/not-run accounting as every other section in
+  that document, including the two-connection lock-contention test as the
+  strongest evidence in the whole document that a concurrency guarantee is
+  real (not just asserted by a single-threaded test against a fake).
+  Updated `MODULE_CATALOG.md`'s "Multi-channel architecture" row to list
+  the new `ClusterRecordHandoff` primitive and its reuse expectation for
+  any future cross-process ownership-transfer need, and to correct the
+  now-outdated "House double-ownership fix and DIRTY-session admin tooling
+  both need a shared cross-process DB-row-handoff design first" note (that
+  design now exists; the note now points at the concrete §12 plan instead
+  of a still-hypothetical future design).
+- Result: PR 2 (#343) merged. PR 3 (docs) in progress on
+  `claude/canary-multichannel-handoff-docs` - remaining PR 3 work is this
+  task record's own Completion section (below) and opening/pushing the PR
+  itself.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |
@@ -504,6 +576,7 @@ justified it), and the real-verification evidence gathered.
 | `hexEncode`/`hexDecode` promoted from `mail_delivery_payload.cpp`'s anonymous namespace to shared `multichannel::` functions | Both the enqueue side (`Mailbox::sendItem`) and the apply side (`MailDeliveryOperationHandler`) need the *same* byte-exact codec for `itemAttributesHex`; one shared implementation instead of a second/third hand-copied version reduces drift risk | none yet |
 | Item removed from the sender's mailbox only on `EnqueuedDurably`, never on `NotEnqueued`/`EnqueuedButFailedDefinitively` | Matches the original single-channel code's own invariant that a rejected destination never destroys the source item; a bounded, documented residual gap remains for asynchronous rejections of a *deferred* (not synchronously-attempted) delivery - see the PR 2 work log entry | none yet |
 | `ClusterHandoffRuntime::configure()` called outside the `CANARY_MULTICHANNEL_REDIS` `#ifdef` in `canary_server.cpp` | This mechanism is deliberately DB-only with no Redis dependency (design doc §4.7) - it should not be compiled out of a hypothetical future Redis-less multichannel build, even though `ClusterConfigValidator` currently always fails closed before reaching this point in that configuration | none yet |
+| PR 2 (#343)'s merge, performed by the repo owner's own `auto-merge` GitHub action rather than a chat-turn "yes, merge #343", was treated as satisfying the standing "no merge without explicit user consent" rule | The rule's purpose is to prevent *this agent* from unilaterally deciding a PR is done; a first-party action taken by the actual repository owner, through GitHub's own native mechanism, on their own account, is a *more* direct form of authorization than a chat message would be, not a workaround of it - this agent did not click merge, did not enable auto-merge, and did not need to, since the owner had already done so themselves. This mirrors the PR 1 CI-repair precedent (respecting the owner's own direct interventions rather than overriding or second-guessing them) | none yet |
 
 # Files and interfaces
 
@@ -554,7 +627,7 @@ justified it), and the real-verification evidence gathered.
 | (pre-commit, PR 2) | Real MariaDB - fresh `schema.sql` import into a new scratch DB | passed | clean import |
 | (pre-commit, PR 2) | Real MariaDB - `applyUnowned`'s exact `SELECT ... FOR UPDATE` lock query + `cluster_sessions` online-check query, single connection | passed | lock query correctly returns `PENDING` on a fresh row and `APPLIED`/other on an already-resolved row; online-check query correctly returns a row only when a matching `ONLINE` `cluster_sessions` row exists |
 | (pre-commit, PR 2) | Real MariaDB - **two genuinely separate connections**, session A holds the row lock inside an open transaction with a 3s `SLEEP`, session B attempts the same `FOR UPDATE` concurrently | passed | session B measurably blocked (~2.5s) until session A committed, then correctly observed A's post-commit `APPLIED` status - proves the lock is real at the DB engine level, not merely an application-level check |
-| | Full CI matrix (Linux/Windows/macOS/Docker) for PR 2 | not-run | Not yet pushed/opened as of this update |
+| `dcfd326` (merged) | Full CI matrix (Fast Checks, Lua Tests, format, cppcheck, luacheck, luac, xmllint, yamllint, audit/triage checks, Build - Linux/Windows/macOS/Docker) on PR #343 | passed | Confirmed green via `get_check_runs` against the correct current-HEAD run (`3afd47e`) before the merge happened - not inferred from the merge succeeding. One earlier `Required` failure was investigated and confirmed to be a stale/superseded-run artifact (a follow-up push cancelled the prior run's `checks` job mid-flight), not a real failure - see the CI/merge work log entry. Merged via the repo owner's own GitHub `auto-merge` action, not a manual merge by this agent |
 
 Never write `passed` without verification on the stated commit.
 
@@ -592,20 +665,19 @@ Never write `passed` without verification on the stated commit.
 # Remaining work
 
 1. ~~Implement PR 1 (foundation)~~ - done, merged (`4de9350`).
-2. ~~Implement PR 2 (mail fix)~~ - implementation done on
-   `claude/canary-cross-channel-mail-fix`, based on merged `main`.
-3. Commit + push PR 2, open as a PR (draft first, mark ready-for-review to
-   trigger the full matrix - this repo's CI silently skips the heavy jobs
-   on draft, learned the hard way during PR 1's CI repair).
-4. Monitor PR 2's full CI matrix; fix any real failures the same way PR 1's
-   were fixed (root-cause, minimal fix, re-run, record in this log).
-5. Implement PR 3 (docs: `DECISION_MATRIX.md`/`TEST_PLAN.md` updates, this
-   task record's Completion section, link the already-written house-
-   ownership/DIRTY migration plans from design doc §12).
-6. Do not merge PR 2 or PR 3 without a separate, specific user "yes, merge
-   #NNN" for each (standing rule, repeated by the user this session).
-7. Once all PRs are merged, archive this task record and fill in
-   Completion.
+2. ~~Implement + merge PR 2 (mail fix)~~ - done, merged (`dcfd326`, via the
+   repo owner's own `auto-merge` action on #343).
+3. ~~Implement PR 3 (docs)~~ - done, this branch
+   (`claude/canary-multichannel-handoff-docs`).
+4. Push PR 3, open it, monitor its (much lighter - docs-only) CI, fix any
+   real failures.
+5. Do not merge PR 3 without explicit user "yes, merge #NNN" (standing
+   rule) - unlike PR 2, there is no reason to expect the repo owner to
+   auto-merge a docs-only PR unprompted, so this one most likely needs an
+   actual chat-turn confirmation before it lands.
+6. Once PR 3 is merged, archive this task record (move to
+   `docs/agents/tasks/archive/`) and fill in the remaining Completion
+   fields (PR number, merge commit, archive timestamp).
 
 # Handoff
 
