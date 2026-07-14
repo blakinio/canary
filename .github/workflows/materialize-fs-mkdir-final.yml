@@ -1,0 +1,59 @@
+name: Materialize FS mkdir final branch
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: materialize-fs-mkdir-final
+  cancel-in-progress: false
+
+jobs:
+  materialize:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'security/fs-mkdir-shell-free-final'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out final branch
+        uses: actions/checkout@v4
+        with:
+          ref: security/fs-mkdir-shell-free-final
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Materialize reviewed implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_sha='925602f6a85414caf1bbe59407a8318162aa3f53'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin "$source_sha"
+          paths=(
+            'artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT.md'
+            'artifacts/upstream/crystalserver/cs006_fs_mkdir_audit.json'
+            'data/libs/functions/fs.lua'
+            'docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md'
+            'docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md'
+            'docs/lua-api/lua_api.json'
+            'src/lua/functions/core/game/global_functions.cpp'
+            'src/lua/functions/core/game/global_functions.hpp'
+            'tests/lua/test_fs.lua'
+            'tests/unit/lua/CMakeLists.txt'
+            'tests/unit/lua/filesystem_functions_test.cpp'
+          )
+          for path in "${paths[@]}"; do
+            git checkout "$source_sha" -- "$path"
+          done
+          rm -f .github/workflows/materialize-fs-mkdir-final.yml
+          git add -A
+          actual="$(git diff --cached --name-only | sort)"
+          expected="$(printf '%s\n' "${paths[@]}" | sort)"
+          test "$actual" = "$expected"
+          git diff --cached --check
+          git commit -m 'security(lua): remove shell execution from FS mkdir'
+          git push origin HEAD:security/fs-mkdir-shell-free-final
