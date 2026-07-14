@@ -7,12 +7,12 @@ agent: "GPT-5.6 Thinking"
 branch: feat/otbm-geometry-consistency-audit-refresh
 base_branch: main
 created: 2026-07-14T10:35:00+02:00
-updated: 2026-07-14T11:40:00+02:00
+updated: 2026-07-14T11:45:00+02:00
 completed: 2026-07-14T11:40:00+02:00
 last_verified_commit: "67a7774a2cfba98613ea415802063218c951afba"
 risk: medium
 related_issue: ""
-related_pr: "#322"
+related_pr: "#322 / #323"
 depends_on:
   - "merged and archived Unified OTBM World Index #219/#223"
   - "merged and archived OTBM reachability validator #274/#277"
@@ -73,7 +73,7 @@ Phase 7 feature PR #322 was squash-merged into `main`.
 - Review threads on #322: zero.
 - Rollback: revert squash merge `0d1eb94c8e8e3033d95fd73f56711b830624540f`; no persistence, map or asset cleanup is required.
 - Lifecycle cleanup branch: `docs/archive-otbm-geometry-consistency-audit`.
-- Lifecycle cleanup PR: pending creation; update before merge.
+- Lifecycle cleanup PR: #323.
 
 # Delivered contracts and behavior
 
@@ -164,12 +164,12 @@ Green CI proves only the checks executed for this commit; it is not live gamepla
 - [x] Zero review threads.
 - [x] PR #322 squash-merged.
 - [x] Historical #320 closed without merge.
-- [x] Task moved from `tasks/active` to `tasks/archive` in a separate lifecycle branch.
+- [x] Task moved from `tasks/active` to `tasks/archive` in separate lifecycle PR #323.
 - [ ] Lifecycle PR merged and roadmap/catalogue marked archived.
 
 # Handoff
 
-Phase 7 is complete. Do not reopen #320/#322 or continue their historical branches. Phase 8 may start only after the lifecycle cleanup PR is merged and a fresh current-main/open-PR/active-task/ownership preflight confirms no overlap.
+Phase 7 is complete. Do not reopen #320/#322 or continue their historical branches. Phase 8 may start only after lifecycle cleanup PR #323 is merged and a fresh current-main/open-PR/active-task/ownership preflight confirms no overlap.
 
 # Completion
 
@@ -177,5 +177,5 @@ Phase 7 is complete. Do not reopen #320/#322 or continue their historical branch
 - Feature PR: #322
 - Final feature head: `67a7774a2cfba98613ea415802063218c951afba`
 - Feature merge commit: `0d1eb94c8e8e3033d95fd73f56711b830624540f`
-- Cleanup PR: pending
+- Cleanup PR: #323
 - Archived at: `docs/agents/tasks/archive/CAN-20260714-otbm-geometry-consistency-audit.md`
