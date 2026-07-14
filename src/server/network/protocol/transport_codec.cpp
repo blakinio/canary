@@ -174,14 +174,14 @@ InboundTransportStatus TransportCodec::decryptXtea(Protocol &protocol, NetworkMe
 	if (profile.encryptedPayload == EncryptedPayloadLayout::LegacyInnerLength) {
 		if (!msg.canRead(sizeof(uint16_t))) {
 			g_logger().error("[TransportCodec::decryptXtea] - missing legacy inner length");
-			return InboundTransportStatus::MalformedFrame;
+			return InboundTransportStatus::DecryptFailure;
 		}
 
 		const uint16_t innerLength = msg.get<uint16_t>();
 		const uint16_t decryptedLength = innerLength + sizeof(uint16_t);
 		if (decryptedLength > msgLength) {
 			g_logger().error("[TransportCodec::decryptXtea] - invalid legacy inner length: {} > {}", decryptedLength, msgLength);
-			return InboundTransportStatus::MalformedFrame;
+			return InboundTransportStatus::DecryptFailure;
 		}
 
 		msg.setLength(msg.getBufferPosition() + innerLength);
@@ -190,19 +190,19 @@ InboundTransportStatus TransportCodec::decryptXtea(Protocol &protocol, NetworkMe
 
 	if (!msg.canRead(sizeof(uint8_t))) {
 		g_logger().error("[TransportCodec::decryptXtea] - missing modern padding byte");
-		return InboundTransportStatus::MalformedFrame;
+		return InboundTransportStatus::DecryptFailure;
 	}
 
 	uint8_t paddingSize = msg.getByte();
 	if (paddingSize > messageLength) {
 		g_logger().error("[TransportCodec::decryptXtea] - invalid modern padding: {} > {}", paddingSize, messageLength);
-		return InboundTransportStatus::MalformedFrame;
+		return InboundTransportStatus::DecryptFailure;
 	}
 
 	uint16_t innerLength = messageLength - paddingSize;
 	if (innerLength + paddingSize > msgLength) {
 		g_logger().error("[TransportCodec::decryptXtea] - invalid modern inner length: {} + {} > {}", innerLength, paddingSize, msgLength);
-		return InboundTransportStatus::MalformedFrame;
+		return InboundTransportStatus::DecryptFailure;
 	}
 
 	msg.setLength(messageLength - paddingSize);
