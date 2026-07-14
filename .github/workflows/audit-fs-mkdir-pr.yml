@@ -32,6 +32,11 @@ jobs:
       - name: Generate deterministic report
         run: |
           python3 tools/ai-agent/audit_fs_mkdir.py
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT.md")
+          path.write_text("\n".join(line.rstrip() for line in path.read_text(encoding="utf-8").splitlines()) + "\n", encoding="utf-8")
+          PY
           python3 -m json.tool artifacts/upstream/crystalserver/cs006_fs_mkdir_audit.json >/dev/null
           test -s artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT.md
 
