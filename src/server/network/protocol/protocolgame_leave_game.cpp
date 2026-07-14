@@ -254,7 +254,7 @@ void ProtocolGame::releaseFromConnection() {
 #endif
 
 	const bool preserveExactOnlineSession = (state == ClientLeaveGameState::Denied || state == ClientLeaveGameState::Rejected)
-	                                     && player && player == exactPlayer && !exactPlayer->isRemoved() && exactPlayer->client == self;
+		&& player && player == exactPlayer && !exactPlayer->isRemoved() && exactPlayer->client == self;
 	if (preserveExactOnlineSession) {
 		// A denied or failed exact logout must not be converted into an online
 		// player with a null client. Break the ProtocolGame -> Player edge while
