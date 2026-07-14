@@ -46,8 +46,20 @@ jobs:
 
       - name: Run focused Phase 7 tests
         run: |
+          mkdir -p artifacts
+          set -o pipefail
           PYTHONPATH=tools/ai-agent \
-            python -m unittest -v tools/ai-agent/test_otbm_geometry_audit.py
+            python -m unittest -v tools/ai-agent/test_otbm_geometry_audit.py \
+            2>&1 | tee artifacts/geometry-tests.log
+
+      - name: Upload focused test diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: otbm-geometry-audit-test-diagnostics
+          path: artifacts/geometry-tests.log
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Compile Python modules
         run: |
