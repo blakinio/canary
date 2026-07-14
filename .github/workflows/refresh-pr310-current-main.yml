@@ -1,0 +1,98 @@
+name: Refresh PR 310 from current main
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    if: github.repository == 'blakinio/canary' && github.event.pull_request.head.repo.full_name == 'blakinio/canary' && github.head_ref == 'security/fs-mkdir-shell-free'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact security branch
+        uses: actions/checkout@v4
+        with:
+          ref: security/fs-mkdir-shell-free
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Merge current main and resolve only approved shared docs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          set +e
+          git merge --no-ff --no-commit origin/main
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ]; then
+            mapfile -t conflicts < <(git diff --name-only --diff-filter=U)
+            printf 'Conflicts:\n%s\n' "${conflicts[*]}"
+            for path in "${conflicts[@]}"; do
+              case "$path" in
+                docs/agents/CHANGELOG.md|docs/agents/MODULE_CATALOG.md)
+                  git checkout --theirs -- "$path"
+                  ;;
+                *)
+                  echo "Unexpected conflict: $path" >&2
+                  exit 1
+                  ;;
+              esac
+            done
+          fi
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          changelog_path = Path("docs/agents/CHANGELOG.md")
+          changelog = changelog_path.read_text(encoding="utf-8")
+          entry = "- PR #310 replaces `FS.mkdir`/`FS.mkdir_p` shell command construction with native `FileSystem.createDirectory`/`createDirectories` Lua bindings backed by `std::filesystem`, preserving success/error returns and adding Lua plus C++ regressions for literal shell metacharacters, recursive paths, spaces and existing directories."
+          if entry not in changelog:
+              marker = "## Unreleased\n"
+              if changelog.count(marker) != 1:
+                  raise SystemExit("unexpected Unreleased marker count")
+              changelog = changelog.replace(marker, marker + "\n" + entry + "\n", 1)
+          changelog_path.write_text(changelog, encoding="utf-8")
+
+          catalog_path = Path("docs/agents/MODULE_CATALOG.md")
+          catalog = catalog_path.read_text(encoding="utf-8")
+          entry = "| Lua FileSystem directory binding | active (#310) | Shell-free `FileSystem.createDirectory(path)` and `FileSystem.createDirectories(path)` operations used by the compatibility `FS.mkdir`/`FS.mkdir_p` wrappers | `src/lua/functions/core/game/global_functions.{hpp,cpp}`, `data/libs/functions/fs.lua`, focused Lua/C++ tests, `CS006_FS_MKDIR_AUDIT` | Reuse this binding for runtime directory creation; never reintroduce `os.execute` or a metacharacter denylist around a shell command. |"
+          if entry not in catalog:
+              marker = "| Forge history ID resolution |"
+              position = catalog.find(marker)
+              if position < 0:
+                  raise SystemExit("catalogue anchor not found")
+              catalog = catalog[:position] + entry + "\n" + catalog[position:]
+          catalog_path.write_text(catalog, encoding="utf-8")
+
+          Path(".github/workflows/refresh-pr310-on-main.yml").unlink(missing_ok=True)
+          Path(".github/workflows/refresh-pr310-current-main.yml").unlink(missing_ok=True)
+          PY
+
+          git add -A
+          if git diff --name-only --diff-filter=U | grep -q .; then
+            git diff --name-only --diff-filter=U
+            exit 1
+          fi
+          test ! -e .github/workflows/refresh-pr310-on-main.yml
+          test ! -e .github/workflows/refresh-pr310-current-main.yml
+          git diff --cached --check
+      - name: Run focused post-merge gates
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y luajit
+          luajit tests/lua/test_fs.lua
+          python3 tools/check_lua_api_quality.py
+          python3 tools/check_lua_api_binding_docs.py --base origin/main
+          ! grep -n 'os.execute' data/libs/functions/fs.lua
+      - name: Commit merge and self-removal
+        run: |
+          git commit -m "merge: refresh FS security fix on current main"
+          git push origin HEAD:security/fs-mkdir-shell-free
