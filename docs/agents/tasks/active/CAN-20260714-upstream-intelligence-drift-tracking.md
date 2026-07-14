@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/upstream-intelligence-drift-tracking
 base_branch: main
 created: 2026-07-14T13:20:00+02:00
-updated: 2026-07-14T15:12:00+02:00
-last_verified_commit: "7be3a8fc3c5e65f7b8a3def7ef6afa7b6884aed2"
+updated: 2026-07-14T15:18:00+02:00
+last_verified_commit: "3dd8d17509e87a52de337f029b16508ad3363c45"
 risk: medium
 related_issue: ""
 related_pr: "#331"
@@ -81,7 +81,7 @@ Deliver a conservative, read-only Upstream Intelligence and Drift Tracking syste
 - [x] Prevent auto-cherry-pick, auto-merge, gameplay modification and writes to watched repositories.
 - [x] Register the tooling in the module registry, module catalogue, startup docs and changelog.
 - [x] Refresh the long-lived branch onto current `main` without losing either side's changes.
-- [ ] Pass final-head focused tests, source/schema validation, generated-registry drift, ownership and repository `Required`.
+- [x] Pass focused tests, source/schema validation, generated-registry drift, ownership and repository `Required` on reviewed code head.
 - [x] Review the complete final path scope and current-main compatibility.
 - [ ] Merge feature PR and archive this task in a separate lifecycle PR.
 
@@ -94,7 +94,7 @@ Deliver a conservative, read-only Upstream Intelligence and Drift Tracking syste
 - The stable report issue may be created or updated only in `blakinio/canary`.
 - Rolling-window scans are bounded, idempotent and safe after missed scheduled runs.
 - Local-presence evidence indexes only target `HEAD` history; fetched donor refs cannot make a candidate look present locally.
-- Untrusted external titles/errors are escaped before Markdown rendering and only canonical GitHub URLs become links.
+- Untrusted external titles/errors are encoded before Markdown rendering and only canonical GitHub URLs become links.
 - `ACTIVE_WORK.md` remains unchanged.
 - The temporary refresh workflow was deleted before readiness and is not part of the final scope.
 
@@ -127,25 +127,29 @@ The first focused workflow failed because `unittest` launched from repository ro
 
 ## 2026-07-14T14:55:00+02:00
 
-Review found and fixed two proof-boundary defects: local reference search used `--all`, which could include fetched donor refs, and Markdown rendering insufficiently escaped untrusted upstream titles. Local history now uses target `HEAD` only; rendering escapes Markdown/HTML and links only canonical GitHub URLs. Deterministic regressions cover both boundaries.
+Review found and fixed two proof-boundary defects: local reference search used `--all`, which could include fetched donor refs, and Markdown rendering insufficiently escaped untrusted upstream titles. Local history now uses target `HEAD` only; rendering encodes Markdown/HTML delimiters and links only canonical GitHub URLs. Deterministic regressions cover both boundaries.
 
 ## 2026-07-14T15:12:00+02:00
 
-A bounded same-branch force-with-lease refresh rebuilt the feature as one commit on current main `9350f2fb7420f9af2ecf79ea7085ca4e094a3891`. PR #331 became mergeable. The temporary refresh workflow was then deleted. Final path review shows only agent docs, registry metadata/generated indexes, Python tooling/tests and the dedicated workflow; no gameplay, Lua runtime, protocol, database, map, OTBM, item, datapack, asset, binary, client or `ACTIVE_WORK.md` change.
+A bounded same-branch force-with-lease refresh rebuilt the feature on main `9350f2fb7420f9af2ecf79ea7085ca4e094a3891`. The temporary refresh workflow was deleted. Final path review shows only agent docs, registry metadata/generated indexes, Python tooling/tests and the dedicated workflow; no gameplay, Lua runtime, protocol, database, map, OTBM, item, datapack, asset, binary, client or `ACTIVE_WORK.md` change.
+
+## 2026-07-14T15:18:00+02:00
+
+A new security regression initially failed because a backslash-escaped closing bracket still left the literal substring `](javascript:...)` in report text. The renderer now uses HTML entities for brackets, pipes, backticks and backslashes. On code head `3dd8d17509e87a52de337f029b16508ad3363c45`, all 13 focused tests and validations passed.
 
 # Validation evidence
 
 | Head | Evidence | Result |
 |---|---|---|
-| `63044f3de0d23f4c47043af1c360d4f5e7e619eb` | Upstream Intelligence `29333063776` / `87085468560` | success |
-| same | Real Tibia Registry `29333063625` | success |
-| same | Agent Task Ownership `29333063777` | success |
-| same | CI `29333063994`; Required `87085532345` | success |
-| final refreshed head | all final workflows | pending |
+| `3dd8d17509e87a52de337f029b16508ad3363c45` | Upstream Intelligence `29334253473`, job `87089438607` | success |
+| same | Real Tibia Registry `29334253456` | success |
+| same | Agent Task Ownership `29334253425` | success |
+| same | CI `29334253750`; Required `87089491231` | success |
+| task-only final documentation head | required workflows | pending before readiness |
 
 # Remaining work
 
-1. Verify final-head workflows and review state.
+1. Verify workflows on the task-only final documentation head and review state.
 2. Mark PR #331 ready and squash-merge.
 3. Archive this task in a separate lifecycle PR.
 
