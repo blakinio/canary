@@ -7,7 +7,7 @@ agent: "GPT-5.6 Thinking"
 branch: docs/tibia-system-decomposition-account-character-progression
 base_branch: main
 created: 2026-07-14T19:10:00+02:00
-updated: 2026-07-14T20:02:00+02:00
+updated: 2026-07-14T20:04:00+02:00
 completed: 2026-07-14T20:02:00+02:00
 last_verified_commit: "d85f248a624fc01c0efa5f7970988fd6aa15e370"
 risk: low
@@ -44,7 +44,7 @@ cross_repo_tasks: []
 
 # Completed result
 
-TSD-003 was delivered and squash-merged through PR #355.
+TSD-003 was delivered and squash-merged through PR #355. The separate lifecycle archive is PR #358.
 
 - Feature head: `d85f248a624fc01c0efa5f7970988fd6aa15e370`.
 - Squash merge: `1098363a708a1f5f875850670a5aad411031e188`.
