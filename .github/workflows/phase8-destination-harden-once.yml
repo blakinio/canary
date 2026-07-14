@@ -1,0 +1,36 @@
+name: Phase 8 destination hardening
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  harden:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 1
+          show-progress: false
+      - name: Apply exact destination hardening
+        run: python3 tools/ai-agent/phase8_destination_harden_once.py
+      - name: Validate destination hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile tools/ai-agent/otbm_bounded_patch.py tools/ai-agent/test_otbm_bounded_patch.py
+          python -m unittest discover -s tools/ai-agent -p "test_otbm_bounded_patch.py" -v
+      - name: Commit hardened implementation
+        shell: bash
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "fix(ai-agent): defer bounded patch publication paths"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
