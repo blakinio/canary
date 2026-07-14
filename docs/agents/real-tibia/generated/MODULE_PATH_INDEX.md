@@ -178,6 +178,7 @@
 | `src/io/io_bosstiary.*` | `bosstiary` | `server` |
 | `src/io/io_wheel.*` | `wheel-of-destiny` | `server` |
 | `src/io/iobestiary.*` | `bestiary` | `server` |
+| `src/io/iobestiary.*` | `cyclopedia` | `server` |
 | `src/io/ioguild.*` | `world-persistence` | `server` |
 | `src/io/iohouse.*` | `houses` | `server` |
 | `src/io/iologindata.*` | `account-authentication` | `server` |
