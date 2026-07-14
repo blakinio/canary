@@ -5,6 +5,10 @@
 
 | Path pattern | Module | Bucket |
 |---|---|---|
+| `.github/workflows/ci.yml` | `build-system` | `tests` |
+| `CMakeLists.txt` | `build-system` | `server` |
+| `CMakePresets.json` | `build-system` | `server` |
+| `cmake/**` | `build-system` | `server` |
 | `config.lua.dist` | `configuration` | `data` |
 | `data-otservbr-global/**imbu**` | `imbuements` | `data` |
 | `data-otservbr-global/npc/**` | `npcs` | `data` |
@@ -21,13 +25,21 @@
 | `data/scripts/spells/**` | `spells` | `data` |
 | `data/world/**` | `spawns` | `data` |
 | `docs/agents/programs/E2E_AUTOMATION_PROGRAM.md` | `physical-client-e2e` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `build-system` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `configuration` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-runtime-lifecycle` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-scheduler` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-service-container` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `lua-bindings` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `lua-runtime` | `docs` |
 | `docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md` | `upstream-intelligence` | `docs` |
 | `docs/agents/real-tibia/TIBIA_SYSTEM_DECOMPOSITION_REPORT.md` | `configuration` | `docs` |
 | `docs/agents/real-tibia/TIBIA_SYSTEM_DECOMPOSITION_REPORT.md` | `engine-runtime-lifecycle` | `docs` |
 | `docs/agents/real-tibia/TIBIA_SYSTEM_DECOMPOSITION_REPORT.md` | `lua-runtime` | `docs` |
+| `docs/agents/real-tibia/TSD_002A_ENGINE_FOUNDATION_REPORT.md` | `build-system` | `docs` |
+| `docs/agents/real-tibia/TSD_002A_ENGINE_FOUNDATION_REPORT.md` | `engine-scheduler` | `docs` |
+| `docs/agents/real-tibia/TSD_002A_ENGINE_FOUNDATION_REPORT.md` | `engine-service-container` | `docs` |
+| `docs/agents/real-tibia/TSD_002A_ENGINE_FOUNDATION_REPORT.md` | `lua-bindings` | `docs` |
 | `docs/agents/upstream/**` | `upstream-intelligence` | `docs` |
 | `docs/ai-agent/ACHIEVEMENT_POINT_RECONCILIATION.md` | `achievements` | `docs` |
 | `docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json` | `imbuements` | `docs` |
@@ -35,6 +47,7 @@
 | `docs/ai-agent/OTS_AI_CYCLOPEDIA_VALIDATION_PROJECT.md` | `cyclopedia` | `docs` |
 | `docs/ai-agent/OTS_AI_WORLD_VALIDATION_PROJECT.md` | `quests` | `docs` |
 | `docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md` | `otbm-tooling` | `docs` |
+| `docs/lua-api/**` | `lua-bindings` | `docs` |
 | `modules/**` | `protocol` | `client` |
 | `modules/game_cyclopedia/**` | `charms` | `client` |
 | `modules/game_cyclopedia/**` | `cyclopedia` | `client` |
@@ -42,6 +55,7 @@
 | `modules/game_cyclopedia/**` | `wheel-of-destiny` | `client` |
 | `modules/game_market/**` | `market` | `client` |
 | `src/**` | `protocol` | `client` |
+| `src/CMakeLists.txt` | `build-system` | `server` |
 | `src/canary_server.*` | `engine-runtime-lifecycle` | `server` |
 | `src/client/**` | `wheel-of-destiny` | `client` |
 | `src/config/**` | `configuration` | `server` |
@@ -61,12 +75,17 @@
 | `src/game/functions/**` | `combat` | `server` |
 | `src/game/functions/forge_*` | `exaltation-forge` | `server` |
 | `src/game/game.*` | `engine-runtime-lifecycle` | `server` |
+| `src/game/scheduling/dispatcher.*` | `engine-scheduler` | `server` |
+| `src/game/scheduling/task.*` | `engine-scheduler` | `server` |
 | `src/io/**` | `player-persistence` | `server` |
 | `src/io/io_wheel.*` | `wheel-of-destiny` | `server` |
 | `src/io/iobestiary.*` | `cyclopedia` | `server` |
 | `src/io/iohouse.*` | `houses` | `server` |
 | `src/io/iomarket.*` | `market` | `server` |
+| `src/lib/di/**` | `engine-service-container` | `server` |
+| `src/lib/thread/thread_pool.*` | `engine-scheduler` | `server` |
 | `src/lua/**` | `lua-runtime` | `server` |
+| `src/lua/functions/**` | `lua-bindings` | `server` |
 | `src/map/house/**` | `houses` | `server` |
 | `src/server/network/protocol/**` | `charms` | `server` |
 | `src/server/network/protocol/**` | `cyclopedia` | `server` |
@@ -75,6 +94,7 @@
 | `src/server/network/protocol/**` | `prey` | `server` |
 | `src/server/network/protocol/**` | `protocol` | `server` |
 | `src/server/network/protocol/protocolgame.*` | `wheel-of-destiny` | `server` |
+| `tests/CMakeLists.txt` | `build-system` | `tests` |
 | `tests/e2e/**` | `physical-client-e2e` | `tests` |
 | `tests/integration/**` | `player-persistence` | `tests` |
 | `tests/integration/**` | `prey` | `tests` |
@@ -91,6 +111,8 @@
 | `tests/unit/creatures/combat/**` | `combat` | `tests` |
 | `tests/unit/game/**` | `combat` | `tests` |
 | `tests/unit/io/**` | `player-persistence` | `tests` |
+| `tests/unit/lib/di/**` | `engine-service-container` | `tests` |
+| `tests/unit/lua/*_functions_test.cpp` | `lua-bindings` | `tests` |
 | `tests/unit/players/**` | `achievements` | `tests` |
 | `tests/unit/players/**` | `wheel-of-destiny` | `tests` |
 | `tests/unit/players/**prey**` | `prey` | `tests` |
@@ -108,5 +130,7 @@
 | `tools/ai-agent/test_cyclopedia_validation.py` | `cyclopedia` | `tests` |
 | `tools/ai-agent/test_otbm_*.py` | `otbm-tooling` | `tests` |
 | `tools/e2e/**` | `physical-client-e2e` | `tests` |
+| `vcpkg.json` | `build-system` | `server` |
+| `vcproj/canary.vcxproj` | `build-system` | `server` |
 
 Path matches are discovery hints, not automatic edit authorization. Active task ownership remains authoritative.
