@@ -4,8 +4,8 @@ name: Tibia System Decomposition
 status: active
 owner: repository-wide
 created: 2026-07-14T15:43:00+02:00
-updated: 2026-07-14T23:55:00+02:00
-last_verified_commit: "ff38dc9ff4092a8a1c631f62cea6df1c41c4f6a6"
+updated: 2026-07-15T00:40:00+02:00
+last_verified_commit: "4932c48d5899ac246404f65e2017a86fc6a5324b"
 primary_paths:
   - docs/agents/real-tibia/**
   - docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md
@@ -55,7 +55,7 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | `TSD-004` | Cyclopedia family | completed | PR #359; registry 35 → 39 | preserve archive |
 | `TSD-005` | combat, weapons and vocations | completed | PR #362; registry 39 → 41 | preserve archive |
 | `TSD-006` | creatures, hunting, raids and bosses | completed | PR #364; registry 41 → 45 | preserve archive |
-| `TSD-007` | items and economy | active | PR #366; implementation head `ff38dc9ff4092a8a1c631f62cea6df1c41c4f6a6`; registry 45 → 49 | finish exact-head/ready CI, squash merge and lifecycle archive |
+| `TSD-007` | items and economy | completed | PR #366; merge `4932c48d5899ac246404f65e2017a86fc6a5324b`; registry 45 → 49 | preserve archive |
 | `TSD-008` | world content | next | quests/NPCs/houses/OTBM/raids and TSD-007 item boundaries | classify map, movement, quests, houses, travel and instances |
 | `TSD-009` | social, communication and trust | planned | social/account boundaries | separate communication, party/guild and sanctions/audit |
 | `TSD-010` | protocol and client | planned | protocol umbrella and maintained client | classify wire/session/client-feature domains |
@@ -75,46 +75,18 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | TSD-004 | `6d6df89b02fca525ef76011369d8c6243de231d8` | `f163ed8e3b3d51e65c7fef1bc03830b12b2e6bfa` | 35 → 39 |
 | TSD-005 | `68b9836cc8e6f55add9a6f3f8d7919e031defc50` | `f68f826915882b0b20081b8fca5ed975ce303f45` | 39 → 41 |
 | TSD-006 | `8dfec274b0f460c1f0d6bee6c8a4b95a3ecf8c12` | `821f213038770d68cd95b1b22afa78937b974210` | 41 → 45 |
+| TSD-007 | `4932c48d5899ac246404f65e2017a86fc6a5324b` | lifecycle PR #367 live metadata | 45 → 49 |
 
-# Current active package — TSD-007
+# TSD-007 completion evidence
 
-Task: `CAN-20260714-tibia-system-decomposition-items-economy`; draft PR #366.
-
-Registry 45 → 49. Added only:
-
-```text
-containers
-item-decay
-item-definitions
-item-instances
-```
-
-Existing records modified: 0. `market`, `imbuements`, `exaltation-forge`, `weapons`, `boss-encounters`, player/world persistence and protocol remain stable.
-
-Classification:
-
-- ItemType/Items registry and XML/appearance loading → `item-definitions`;
-- runtime factory, attributes, transforms and serialization → `item-instances`;
-- nested cylinder/container/depot/inbox/mailbox/reward-container lifecycle → `containers`;
-- scheduler-backed duration/transform lifecycle → `item-decay`;
-- movement, stacking, transfer, stash and managed-container behavior remain capabilities because orchestration spans Game/Cylinder/Container;
-- market, Forge, Imbuements, weapons and boss rewards remain already covered;
-- account coins and NPC trade remain deferred for a later bounded economy/source inventory.
-
-Implementation/focused-test head `ff38dc9ff4092a8a1c631f62cea6df1c41c4f6a6` passed:
-
-- Real Tibia Module Registry #300;
-- Upstream Intelligence #331;
-- Agent Task Ownership #1147;
-- repository CI #2263;
-- focused registry/source-role tests;
-- schema/dependency validation;
-- deterministic `generate --check`;
-- discovery and `affected` commands.
-
-Older TSD-005/TSD-006 tests now assert their package minimum rather than freezing the global total; TSD-007 owns the exact total 49 assertion.
-
-Detailed evidence: `docs/agents/real-tibia/TSD_007_ITEMS_ECONOMY_REPORT.md`.
+- Feature PR #366, final head `de7d24658749b11a5bb93debce33de3264c553cf`.
+- Squash merge `4932c48d5899ac246404f65e2017a86fc6a5324b` at `2026-07-14T22:36:16Z`.
+- Registry 45 → 49; added only `containers`, `item-decay`, `item-definitions` and `item-instances`.
+- Existing records modified 0; market, Forge, Imbuements, weapons, boss rewards, persistence and protocol remained stable.
+- Exact-head checks: Registry #302, Upstream Intelligence #333, Ownership #1149 and CI #2265 — success.
+- Ready-state CI #2266: Lua Tests, Fast Checks, Linux release and Required — success.
+- Older TSD-005/TSD-006 tests now assert their package minimum rather than freezing the global registry total; TSD-007 alone owned exact total 49.
+- Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-items-economy.md`.
 
 No completed package evidence establishes item metadata parity, movement/transfer atomicity, duplication/loss safety, container correctness, serializer completeness, decay timing/restart behavior, economy correctness, runtime behavior, protocol compatibility, physical-client E2E, Real Tibia parity or Oteryn readiness.
 
@@ -124,7 +96,7 @@ The legacy repository remains the evidence laboratory. No code is copied to Oter
 
 # Exact next operational task
 
-After PR #366 passes final exact-head review, ready-state Linux/Required, squash merge and a separate lifecycle archive, re-read then-current `main` and create only:
+After lifecycle PR #367 passes exact-head review, ready-state Linux/Required and squash merge, re-read then-current `main` and create only:
 
 ```text
 task: CAN-20260714-tibia-system-decomposition-world-content
