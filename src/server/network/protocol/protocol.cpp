@@ -61,11 +61,45 @@ void Protocol::onSendMessage(const OutputMessage_ptr &msg) {
 }
 
 bool Protocol::sendRecvMessageCallback(NetworkMessage &msg) {
+	const auto connection = getConnection();
+	const uint8_t opcode = msg.getBufferPosition() < msg.getLength() ? msg.getBuffer()[msg.getBufferPosition()] : 0;
+	const uint64_t connectionId = connection ? connection->getConnectionId() : 0;
+	const void* connectionAddress = connection.get();
+	const bool clientLeaveGame = opcode == 0x14;
+
+	if (clientLeaveGame) {
+		g_logger().debug(
+			"[ConnectionSessionLifecycle] event=client_leave_received connection_id={} connection={} protocol={} opcode=0x14 context=connection_io",
+			connectionId,
+			fmt::ptr(connectionAddress),
+			fmt::ptr(this)
+		);
+	}
+
 	g_dispatcher().addEvent(
-		[&msg, protocolWeak = std::weak_ptr<Protocol>(shared_from_this())]() {
+		[&msg, protocolWeak = std::weak_ptr<Protocol>(shared_from_this()), opcode, connectionId, connectionAddress, clientLeaveGame]() {
 			if (const auto &protocol = protocolWeak.lock()) {
 				if (const auto &protocolConnection = protocol->getConnection()) {
+					if (clientLeaveGame) {
+						g_logger().debug(
+							"[ConnectionSessionLifecycle] event=client_leave_dispatch connection_id={} connection={} protocol={} opcode=0x14 context=dispatcher",
+							connectionId,
+							fmt::ptr(connectionAddress),
+							fmt::ptr(protocol.get())
+						);
+					}
+
 					protocol->parsePacket(msg);
+
+					if (clientLeaveGame) {
+						g_logger().debug(
+							"[ConnectionSessionLifecycle] event=client_leave_dispatch_complete connection_id={} connection={} protocol={} opcode=0x14 context=dispatcher",
+							connectionId,
+							fmt::ptr(connectionAddress),
+							fmt::ptr(protocol.get())
+						);
+					}
+
 					protocolConnection->resumeWork();
 				}
 			}
