@@ -4,8 +4,8 @@ name: CrystalServer Comparison Program
 status: active
 owner: GPT-5.6 Thinking
 created: 2026-07-13T21:01:05Z
-updated: 2026-07-14T13:20:00+02:00
-last_verified_commit: "2276cd5f4713bd345e049f0d89085cd4eb7bffbc"
+updated: 2026-07-14T13:35:00+02:00
+last_verified_commit: "d991f38a2d99ce71db50e3c70b41a95b48b9c338"
 primary_paths:
   - docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md
   - artifacts/upstream/crystalserver/**
