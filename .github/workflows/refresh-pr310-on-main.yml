@@ -1,15 +1,23 @@
 name: Refresh FS security PR on current main
 
 on:
-  pull_request:
+  push:
+    branches:
+      - security/fs-mkdir-shell-free
     paths:
-      - ".github/workflows/refresh-pr310-on-main.yml"
+      - .github/workflows/refresh-pr310-on-main.yml
+  workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency:
+  group: refresh-pr310-on-main
+  cancel-in-progress: false
+
 jobs:
   refresh:
+    if: github.repository == 'blakinio/canary' && github.ref == 'refs/heads/security/fs-mkdir-shell-free'
     runs-on: ubuntu-latest
     steps:
       - name: Check out security branch
