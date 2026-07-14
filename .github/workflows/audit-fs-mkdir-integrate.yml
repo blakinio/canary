@@ -1,0 +1,125 @@
+name: Record FS mkdir integration evidence
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  record:
+    if: github.repository == 'blakinio/canary' && github.event.pull_request.head.repo.full_name == 'blakinio/canary' && github.head_ref == 'security/fs-mkdir-shell-free'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: security/fs-mkdir-shell-free
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Append compact integration evidence
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          import subprocess
+
+          root = Path('.')
+          md = root / 'artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT.md'
+          js = root / 'artifacts/upstream/crystalserver/cs006_fs_mkdir_audit.json'
+
+          def command(*args):
+              return subprocess.run(args, text=True, capture_output=True, check=False)
+
+          def grep(pattern, *paths):
+              result = command('git', 'grep', '-n', '-I', '-E', pattern, '--', *paths)
+              if result.returncode not in (0, 1):
+                  raise RuntimeError(result.stderr)
+              return result.stdout.splitlines()
+
+          def block(title, rows):
+              out = [f'### {title}', '']
+              if rows:
+                  out += ['```text', *rows[:250], '```', '']
+              else:
+                  out += ['_None found._', '']
+              return out
+
+          lua_tests = command('git', 'ls-files', 'tests/lua').stdout.splitlines()
+          name_validation = grep(
+              r'isValid(Name|PlayerName)|isNameValid|validate[A-Za-z]*Name|valid[A-Za-z]*Name|invalid[[:space:]_-]*name|name[[:space:]_-]*(validation|pattern|regex)',
+              'src', 'data', 'data-otservbr-global', 'tests', 'schema.sql'
+          )
+          core_registrations = grep(
+              r'CoreLibsFunctions|register(Table|Method|GlobalMethod|GlobalVariable)|create_director(y|ies)|std::filesystem',
+              'src/lua/functions/core/libs', 'src/lua/functions/core/core_functions.hpp'
+          )
+          lua_test_loading = grep(
+              r'dofile\(|loadfile\(|package.path|data/libs|fs\.lua|FS\.mkdir|os\.execute',
+              'tests/lua', '.github/workflows/reusable-tests-lua.yml'
+          )
+          build_anchors = grep(
+              r'core_libs_functions|logger_functions|metrics_functions|kv_functions|GLOB_RECURSE|target_sources',
+              'CMakeLists.txt', 'src', 'cmake', 'vcproj'
+          )
+
+          section = [
+              '',
+              '## Targeted integration evidence',
+              '',
+              'This section was generated on the exact PR head after the broad audit. Results are bounded to name validation, Lua core-library registration, Lua tests and build anchors.',
+              '',
+          ]
+          section += block('Server-side name-validation symbols', name_validation)
+          section += block('Tracked Lua tests', lua_tests)
+          section += block('Lua test loading and FS references', lua_test_loading)
+          section += block('Core library registration and filesystem candidates', core_registrations)
+          section += block('Build registration anchors', build_anchors)
+
+          original = md.read_text(encoding='utf-8').rstrip()
+          marker = '\n## Targeted integration evidence\n'
+          if marker in original:
+              original = original.split(marker, 1)[0].rstrip()
+          md.write_text(original + '\n' + '\n'.join(section).rstrip() + '\n', encoding='utf-8')
+
+          payload = json.loads(js.read_text(encoding='utf-8'))
+          payload['targeted_integration_evidence'] = {
+              'server_name_validation': name_validation,
+              'tracked_lua_tests': lua_tests,
+              'lua_test_loading': lua_test_loading,
+              'core_lib_registrations': core_registrations,
+              'build_anchors': build_anchors,
+          }
+          js.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          PY
+          python3 -m json.tool artifacts/upstream/crystalserver/cs006_fs_mkdir_audit.json >/dev/null
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT.md')
+          path.write_text('\n'.join(line.rstrip() for line in path.read_text(encoding='utf-8').splitlines()) + '\n', encoding='utf-8')
+          PY
+      - name: Remove temporary discovery workflows and stage exact reports
+        run: |
+          rm -f .github/workflows/audit-fs-mkdir-targeted.yml
+          rm -f .github/workflows/audit-fs-mkdir-integrate.yml
+          git add -f artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT.md
+          git add -f artifacts/upstream/crystalserver/cs006_fs_mkdir_audit.json
+          git add -A .github/workflows/audit-fs-mkdir-targeted.yml .github/workflows/audit-fs-mkdir-integrate.yml
+          git diff --cached --check
+          mapfile -t changed < <(git diff --cached --name-only)
+          allowed='^(artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT\.md|artifacts/upstream/crystalserver/cs006_fs_mkdir_audit\.json|\.github/workflows/audit-fs-mkdir-targeted\.yml|\.github/workflows/audit-fs-mkdir-integrate\.yml)$'
+          for path in "${changed[@]}"; do
+            [[ "$path" =~ $allowed ]] || { echo "Unexpected path: $path" >&2; exit 1; }
+          done
+          test ! -e .github/workflows/audit-fs-mkdir-targeted.yml
+          test ! -e .github/workflows/audit-fs-mkdir-integrate.yml
+      - name: Publish integration evidence
+        run: |
+          git commit -m "docs(security): add FS mkdir integration evidence"
+          git push origin HEAD:security/fs-mkdir-shell-free
