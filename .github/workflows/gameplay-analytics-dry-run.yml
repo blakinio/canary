@@ -13,6 +13,7 @@ on:
       - "tools/analytics/**"
       - "schema/gameplay_analytics*.sql"
       - "grafana/gameplay-analytics-dashboard.json"
+      - "docs/systems/gameplay-analytics-dry-run.md"
       - ".github/workflows/gameplay-analytics-dry-run.yml"
   push:
     branches: [main]
@@ -25,6 +26,7 @@ on:
       - "tools/analytics/**"
       - "schema/gameplay_analytics*.sql"
       - "grafana/gameplay-analytics-dashboard.json"
+      - "docs/systems/gameplay-analytics-dry-run.md"
       - ".github/workflows/gameplay-analytics-dry-run.yml"
 
 permissions:
@@ -78,6 +80,7 @@ jobs:
           luajit tools/analytics/test_gameplay_analytics_reliability.lua
           luajit tools/analytics/test_gameplay_analytics_correctness.lua
           luajit tools/analytics/test_gameplay_analytics_correctness_edge_cases.lua
+          luajit tools/analytics/test_gameplay_analytics_runtime_hooks.lua
           luajit tools/analytics/test_gameplay_analytics_schema.lua
           luajit tools/analytics/test_gameplay_analytics_supply_loot_prices.lua
           luajit tools/analytics/test_gameplay_analytics_supply_loot_integration.lua

@@ -22,6 +22,7 @@ on:
       - "docs/systems/gameplay-analytics-context.md"
       - "docs/systems/gameplay-analytics-context-rollout.md"
       - "docs/systems/gameplay-analytics-deployment.md"
+      - "docs/systems/gameplay-analytics-dry-run.md"
       - "tools/analytics/gameplay-analytics.env.example"
       - "tools/analytics/install_gameplay_analytics.sh"
       - "tools/analytics/test_install_gameplay_analytics_guards.sh"
@@ -29,6 +30,7 @@ on:
       - "tools/analytics/test_gameplay_analytics_batching.lua"
       - "tools/analytics/test_gameplay_analytics_context.lua"
       - "tools/analytics/test_gameplay_analytics_correctness.lua"
+      - "tools/analytics/test_gameplay_analytics_runtime_hooks.lua"
       - "tools/analytics/test_gameplay_analytics_reliability.lua"
       - "tools/analytics/test_gameplay_analytics_schema.lua"
       - "tools/analytics/test_mariadb_integration.sh"
@@ -69,6 +71,7 @@ on:
       - "docs/systems/gameplay-analytics-context.md"
       - "docs/systems/gameplay-analytics-context-rollout.md"
       - "docs/systems/gameplay-analytics-deployment.md"
+      - "docs/systems/gameplay-analytics-dry-run.md"
       - "tools/analytics/gameplay-analytics.env.example"
       - "tools/analytics/install_gameplay_analytics.sh"
       - "tools/analytics/test_install_gameplay_analytics_guards.sh"
@@ -76,6 +79,7 @@ on:
       - "tools/analytics/test_gameplay_analytics_batching.lua"
       - "tools/analytics/test_gameplay_analytics_context.lua"
       - "tools/analytics/test_gameplay_analytics_correctness.lua"
+      - "tools/analytics/test_gameplay_analytics_runtime_hooks.lua"
       - "tools/analytics/test_gameplay_analytics_reliability.lua"
       - "tools/analytics/test_gameplay_analytics_schema.lua"
       - "tools/analytics/test_mariadb_integration.sh"
@@ -151,6 +155,8 @@ jobs:
         run: luajit tools/analytics/test_gameplay_analytics_reliability.lua
       - name: Run gameplay analytics Lua correctness test
         run: luajit tools/analytics/test_gameplay_analytics_correctness.lua
+      - name: Run gameplay analytics runtime hook dry-run test
+        run: luajit tools/analytics/test_gameplay_analytics_runtime_hooks.lua
       - name: Run gameplay analytics Lua schema test
         run: luajit tools/analytics/test_gameplay_analytics_schema.lua
       - name: Parse SQL schema
