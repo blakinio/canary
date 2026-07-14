@@ -4,8 +4,8 @@ name: CrystalServer Comparison Program
 status: active
 owner: GPT-5.6 Thinking
 created: 2026-07-13T21:01:05Z
-updated: 2026-07-14T12:30:00+02:00
-last_verified_commit: "70f6930647d818edfdf0a30b745aabe8d4fdaa29"
+updated: 2026-07-14T13:20:00+02:00
+last_verified_commit: "2276cd5f4713bd345e049f0d89085cd4eb7bffbc"
 primary_paths:
   - docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md
   - artifacts/upstream/crystalserver/**
@@ -24,7 +24,7 @@ Stage 1 analysis date: 2026-07-13.
 
 | Role | Repository | Stage 1 baseline `main` SHA | Declared server version | Declared client protocol | Access |
 |---|---|---|---|---:|---|
-| target | `blakinio/canary` | `360d79ebad5802edd4d89e99d0f210ab19b36b60` | `3.6.1` | `1525` / 15.25 | task branches and PRs only |
+| target | `blakinio/canary` | `360d79ebad5802edd0d89e99d0f210ab19b36b60` | `3.6.1` | `1525` / 15.25 | task branches and PRs only |
 | comparison | `zimbadev/crystalserver` | `fc0d53b9f9965463b6082c07e6d3d482294541a7` | `4.1.9` | `1525` / 15.25 | read-only |
 | reference | `opentibiabr/canary` | `9365c1c4aa63529b9ff757f53737274894c02b8e` | verify per selected task | verify per selected task | read-only |
 
@@ -95,7 +95,7 @@ Text similarity, `patch-id`, symbol search, and commit messages are signals, not
 
 | Task/PR | Candidate | Status | Scope |
 |---|---|---|---|
-| _None._ | — | — | No CrystalServer comparison implementation task is active after CS-006 cleanup. |
+| `CAN-20260714-table-unserialize-security` / [#328](https://github.com/blakinio/canary/pull/328) | `CS-007` | active | Replace the dormant public `table.unserialize` dynamic-evaluation boundary with a strict bounded data parser and focused Lua regressions. |
 
 # Queue
 
@@ -107,19 +107,21 @@ Text similarity, `patch-id`, symbol search, and commit messages are signals, not
 | `CS-004` | `dcb4f00ffd55ede2399c979eee3b7fe6e7e0ee6e` | `ALREADY_PRESENT` | high | `Container::replaceThing` validation | Closed evidence; no implementation. |
 | `CS-005` | `fc0d53b9f9965463b6082c07e6d3d482294541a7` | `PARTIAL_VALUE` | medium | player GUID index | Benchmark only after `game.cpp`/`game.hpp` ownership clears. |
 | `CS-006` | `891685169745e46f665069edcc35847f0704aa21` | `VALID_FIX_MISSING` | high | `FS.mkdir` shell construction | Completed through task `CAN-20260714-fs-mkdir-shell-injection`, PR #326, merge `70f6930647d818edfdf0a30b745aabe8d4fdaa29`; preserve shell-free wrappers and focused regressions. |
-| `CS-007` | `891685169745e46f665069edcc35847f0704aa21` | `PARTIAL_VALUE` | high | `table.unserialize` execution | Independent compatibility/security task; do not copy bespoke parser. |
+| `CS-007` | `891685169745e46f665069edcc35847f0704aa21` | `VALID_FIX_MISSING` | high | `table.unserialize` execution | Active in task `CAN-20260714-table-unserialize-security` / PR #328; no tracked production call site, but the baseline exploit proves arbitrary evaluation at the public helper boundary. |
 | `CS-008` | `34cbec0c34325619ef23c5d12c940b7b1c276975` | `CLIENT_COUPLED` | high | Market limits | Establish maintained OTClient limits and integration tests. |
 | `CS-009` | `cfc0c5c496eae53f1f33a07f563068f44914ddbb` | `CLIENT_COUPLED` | high | disconnect reason byte | Exact 15.25 client contract task only. |
 | `CS-010` | `ffe4db548371c44ce01dfc280af0209318272292` | `DANGEROUS` | critical | creature-removal parent lifetime | Reproduce invariant; design cleanup ordering; never copy early return. |
 
 # Deferred screening backlog
 
-| CrystalServer commit | Preliminary state | Reason |
+| Candidate/finding | Preliminary state | Reason |
 |---|---|---|
-| `9e046413b965982745ca63559f68bd30264bfc9d` | `UNVERIFIED` | Requires current Canary item XML/identifier/asset-contract validation. |
-| `809633b1f9fc9a690bef70ac0ecb916d5a5aa5d6` | `UNVERIFIED` | Admin-command limit lacks justified resource bound. |
-| `55db69b7be12fa7b6a8865038033d953ae8cff18` | `UNVERIFIED` | Corpse/reward parent handling needs current state-transition tests. |
-| `6bda45e7d7b8f0e9a9c55b3b6b779b492504102f` | `UNVERIFIED` | Broad formula rewrite requires official behavior evidence and decomposition. |
+| Crystal `9e046413b965982745ca63559f68bd30264bfc9d` | `UNVERIFIED` | Requires current Canary item XML/identifier/asset-contract validation. |
+| Crystal `809633b1f9fc9a690bef70ac0ecb916d5a5aa5d6` | `UNVERIFIED` | Admin-command limit lacks justified resource bound. |
+| Crystal `55db69b7be12fa7b6a8865038033d953ae8cff18` | `UNVERIFIED` | Corpse/reward parent handling needs current state-transition tests. |
+| Crystal `6bda45e7d7b8f0e9a9c55b3b6b779b492504102f` | `UNVERIFIED` | Broad formula rewrite requires official behavior evidence and decomposition. |
+| Canary `table.serialize(false)` | `UNVERIFIED` | Deterministic false-to-true corruption found during CS-007 probing; requires independent persisted-data and compatibility review. |
+| Canary `unserializeTable` dynamic `load` | `UNVERIFIED` | Separate dormant public helper with a different serializer/output-copy contract; do not silently bundle into CS-007. |
 
 # Completed work
 
@@ -139,10 +141,11 @@ Text similarity, `patch-id`, symbol search, and commit messages are signals, not
 
 # Dependencies and blockers
 
-- Local Git/worktree inspection was unavailable during Stage 1 and CS-001 because shell DNS could not resolve GitHub; future tasks must record their own environment.
+- Local Git/worktree inspection was unavailable during Stage 1 and later tasks because shell DNS could not resolve GitHub; each task records GitHub API/Actions evidence instead of claiming local results.
 - Recheck all open PRs before touching `src/game/game.cpp` or `src/game/game.hpp`; Stage 1 found explicit overlap with PR #289.
 - PR #245 is the intended future reusable physical-client E2E base; client-coupled candidates must not duplicate it.
 - `CS-010` cannot use the CrystalServer patch because its return follows partial removal side effects.
+- `CS-007` must not absorb the serializer false-value defect or the separate `unserializeTable` helper without their own compatibility tasks.
 
 # Decisions and invariants
 
@@ -166,31 +169,4 @@ Text similarity, `patch-id`, symbol search, and commit messages are signals, not
 
 # Handoff
 
-## Start here
-
-Read `AGENTS.md`, `docs/agents/README.md`, this program, the Stage 1 Markdown/JSON reports, current active tasks, and open PRs. Re-fetch current heads before selecting work.
-
-## Task creation protocol
-
-1. Select one bounded candidate.
-2. Re-open its CrystalServer diff and discussion.
-3. Compare current Canary code/tests and revise status if evidence changed.
-4. Inspect ownership and overlapping PRs.
-5. Create one task, branch, worktree, and draft PR with exact path claims.
-6. Add failing evidence before the fix where practical.
-7. Implement the smallest architecture-native adaptation.
-8. Validate, review the complete diff, update provenance/program state, and merge only through the autonomous gate.
-
-## Do not repeat
-
-- Do not rescan from scratch before checking the last analyzed commit and JSON inventory.
-- Do not copy the `table.unserialize` parser or `removeCreature` early return.
-- Do not combine security candidates merely because one upstream commit bundled them.
-- Do not infer official client limits from CrystalServer constants.
-- Do not start overlapping `game.cpp`/`game.hpp` work without ownership resolution.
-
-## Open questions
-
-- Which inputs reach `table.unserialize`, and are any attacker-controlled?
-- What exact protocol 15.25 Market and disconnect contracts are implemented by the maintained OTClient?
-- What lifecycle invariant safely handles missing parents during creature removal?
+Start with the active task table. For CS-007, read PR #328, both audit reports, `tables.lua` and its standalone regression. Preserve full-input consumption, resource limits and the no-dynamic-loader invariant; keep the two excluded follow-up findings separate.
