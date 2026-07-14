@@ -12,6 +12,7 @@
 #ifndef USE_PRECOMPILED_HEADERS
 	#include <chrono>
 	#include <filesystem>
+	#include <fstream>
 #endif
 
 namespace {
