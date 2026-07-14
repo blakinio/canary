@@ -30,6 +30,7 @@ jobs:
         run: |
           set -euo pipefail
           source_sha='925602f6a85414caf1bbe59407a8318162aa3f53'
+          workflow_path='.github/workflows/materialize-fs-mkdir-final.yml'
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git fetch origin security/fs-mkdir-shell-free-current
@@ -50,10 +51,10 @@ jobs:
           for path in "${paths[@]}"; do
             git checkout "$source_sha" -- "$path"
           done
-          rm -f .github/workflows/materialize-fs-mkdir-final.yml
+          rm -f "$workflow_path"
           git add -A
           actual="$(git diff --cached --name-only | sort)"
-          expected="$(printf '%s\n' "${paths[@]}" | sort)"
+          expected="$(printf '%s\n' "${paths[@]}" "$workflow_path" | sort)"
           test "$actual" = "$expected"
           git diff --cached --check
           git commit -m 'security(lua): remove shell execution from FS mkdir'
