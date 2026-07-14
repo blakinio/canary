@@ -2,6 +2,7 @@
 
 > Status: bounded inventory for `blakinio/canary`.
 > Task-start main: `661d55085b6a2ad5e930ae3186aa63ba052b665e`.
+> Integration refresh main: `84fefca166af37c6995edccc50d2fc522aa219c6`.
 > This report is decision evidence for the canonical registry. It does not prove Real Tibia parity, runtime behavior, persistence safety, authentication security or client compatibility.
 
 ## Result
@@ -26,20 +27,19 @@ Records added:
 
 ## Preflight and concurrent work
 
-The task started from `main@661d55085b6a2ad5e930ae3186aa63ba052b665e`. During initial PR creation, `main` advanced by one unrelated Equipment Upgrade lifecycle commit to `f97c9fe0422718028c7ca50224e350ad846fd393`; that commit changed only Forge program/task/archive documentation and did not change any inventoried source or registry path.
+The task started from `main@661d55085b6a2ad5e930ae3186aa63ba052b665e`. Before final shared-document integration, `main` advanced through unrelated or read-only-reviewed work to `84fefca166af37c6995edccc50d2fc522aa219c6`.
 
-Open PRs inspected at task start:
-
-| PR | Active area | TSD-003 treatment |
+| PR / merge | Area | TSD-003 treatment |
 |---|---|---|
-| #352 | multichannel documentation and shared `MODULE_CATALOG.md` | do not overwrite; refresh catalogue from latest main during final integration |
-| #351 | The Beginning lifecycle archive | no overlapping Real Tibia registry path |
-| #350 | Equipment Upgrade lifecycle archive | merged after task branch creation; no overlapping source/registry path |
-| #339 | protocol/game-session disconnect cleanup | read-only; no runtime/session/protocol edit |
-| #316 | Targuna map/content evidence | read-only; no map/OTBM/content edit |
-| #245 | shared physical-client E2E platform | read-only; no scenario/orchestrator change |
+| #350 / `f97c9fe0422718028c7ca50224e350ad846fd393` | Equipment Upgrade lifecycle archive | no overlapping source or registry path |
+| #352 / `b0d7583fcfb443359feba3f0639e2c52e112ecf9` | multichannel documentation and `MODULE_CATALOG.md` | preserve the merged handoff/DB-row-handoff catalogue content during final integration |
+| #339 / `06286302ae429e6ba05a152e3b171b7a43046a0c` | exact game-session disconnect cleanup | implementation is current-main inventory evidence only; no runtime/session correctness claim and no source edit |
+| #351 / `2b9729a1bcfac4551456431cfc4f4ac9f2a63cfa` | The Beginning lifecycle archive | no overlapping Real Tibia registry path |
+| #357 / `84fefca166af37c6995edccc50d2fc522aa219c6` | cross-process DB-row-handoff lifecycle archive | no module/runtime edit; current catalogue contract preserved |
+| #316 | Targuna map/content evidence | read-only; no map, OTBM or content edit |
+| #245 | shared physical-client E2E platform | read-only; no scenario or orchestrator change |
 
-`ACTIVE_WORK.md` remains read-only.
+The six registry records, generated indexes and focused tests do not depend on the intervening lifecycle-document changes. The merged #339 implementation changed session/protocol runtime paths but did not alter the account repository, IOLoginData, Player progression, vocation or Weapon Proficiency discovery roots selected by this package. `ACTIVE_WORK.md` remains read-only.
 
 ## Current-main evidence inventory
 
@@ -60,7 +60,7 @@ Authentication has an independent security lifecycle spanning:
 - `LoginSessionManager` issuance and single-use consumption of short-lived tokens bound to account, allowed character names and protocol profile;
 - `IOLoginData::gameWorldAuthentication` ownership/deletion checks and authenticated account handoff.
 
-The record excludes wire framing, protocol-version negotiation and the active gameplay-session cleanup in PR #339. Existing token tests are evidence pointers only and do not prove complete production authentication security.
+The record excludes wire framing and protocol-version negotiation. PR #339 is now merged and its code is current-main inventory evidence for gameplay-session cleanup, but neither its PR claims nor passing tests prove the broader authentication/session safety dimensions excluded by TSD-003. Existing token tests are evidence pointers only and do not prove complete production authentication security.
 
 ### Character lifecycle
 
@@ -123,7 +123,7 @@ It therefore receives its own record. Existing tests and audits remain linked, b
 | `character-creation` | `MERGE_WITH_ANOTHER_MODULE` | lifecycle step; current server inventory does not prove a separate creation subsystem |
 | `character-login-load` | `MERGE_WITH_ANOTHER_MODULE` | character-lifecycle capability |
 | `character-save` | `MERGE_WITH_ANOTHER_MODULE` | character-lifecycle and player-persistence capability |
-| `character-logout` | `MERGE_WITH_ANOTHER_MODULE` | character-lifecycle capability; active session cleanup remains PR #339 |
+| `character-logout` | `MERGE_WITH_ANOTHER_MODULE` | character-lifecycle capability; merged #339 remains protocol/session implementation evidence, not a standalone module |
 | `character-reconnect` | `MERGE_WITH_ANOTHER_MODULE` | character/protocol lifecycle capability, not a standalone module |
 | `character-deletion` | `MERGE_WITH_ANOTHER_MODULE` | ownership/deletion-state check inside character lifecycle; no separate implementation root |
 | `character-progression` | `ADD_NOW` | compatibility umbrella for shared Player progression state |
@@ -188,18 +188,18 @@ This remains true even where existing unit tests, audits or merged feature work 
 
 - All new server paths are verified and narrower than broad `src/**`.
 - Overlap with `player-persistence` and `protocol` is expected and does not transfer ownership.
-- Server source-role mapping must include the new records.
-- Client-only source buckets must not receive server-only account/character/progression records.
+- Server source-role mapping includes the new records.
+- Client-only source buckets do not receive server-only account/character/progression records.
 - Unmapped paths remain explicit and reviewed decisions remain unchanged.
 - `affected` and `lookup-path` output stays deterministic.
 
-Representative expected lookups:
+Representative verified lookups:
 
 ```text
 src/account/account.cpp
   → account-lifecycle
   → account-authentication
-  → protocol only in client-source mapping, not as a server false-positive
+  → no server-side protocol false-positive
 
 src/security/login_session_manager.cpp
   → account-authentication
@@ -225,6 +225,21 @@ src/creatures/players/components/weapon_proficiency.cpp
   → player-persistence
 ```
 
+## Validation history
+
+Implementation/focused-test head `3eb7ae24bb1b918a0b040270e58c49037a873ee8`:
+
+- Real Tibia Module Registry #191: success;
+- Upstream Intelligence #219: success;
+- Agent Task Ownership #1058: success;
+- repository CI #2170: success;
+- focused registry and source-role mapping tests: success;
+- schema and dependency validation: success;
+- deterministic `generate --check`: success;
+- module, lookup-path, stale and exact PR-range affected commands: success.
+
+Later program, catalogue, changelog, report and task-record commits are documentation-only. Final exact-head and ready-state checks remain authoritative before merge.
+
 ## Evidence limits
 
 TSD-003 does **not** prove:
@@ -232,7 +247,7 @@ TSD-003 does **not** prove:
 - credential confidentiality or resistance to all authentication attacks;
 - token randomness, replay safety or concurrency correctness beyond existing source/tests;
 - protocol or maintained-client compatibility;
-- game-session cleanup or replacement-session safety;
+- game-session cleanup or replacement-session safety, including behavior beyond the bounded merged #339 regression;
 - player save atomicity, completeness, rollback or crash consistency;
 - account entitlement, premium or coin correctness;
 - experience, skill, stamina, offline-training, death-loss or blessing parity;
