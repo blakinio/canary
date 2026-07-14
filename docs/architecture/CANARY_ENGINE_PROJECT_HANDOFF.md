@@ -58,6 +58,19 @@ Harden and modularize Canary without breaking existing clients or datapacks. The
 - PR #163 — defines pointer-free summon inheritance and creature interaction policy on the stable-ID registry. Normal-world pairs remain compatible; same-instance inheritance is atomic/idempotent; invalid, cross-instance, owned/unowned and Closing/Destroyed interactions fail closed. Full Linux release/debug, Windows CMake/Solution, macOS, Docker, smoke and dedicated ownership-policy tests passed. Merge commit: `dbcc809bac57bb78425ca39c2523c723cef79bb0`.
 - PR #168 — adds `InstanceCreatureBinder`, a synchronous adapter from runtime objects exposing `getID()` to the authoritative stable-ID registry. It supports heterogeneous master/summon types, authoritative-owner unbind and lifetime-safe operations without retaining runtime pointers. The first Linux-debug compile exposed unconstrained templates selecting `int` as an object; the overloads were constrained to real `getID()` types and the full rerun passed. Linux debug completed 444/444 tests; Linux release, Canary/Global smoke, Windows CMake/Solution, macOS and Docker also passed. Merge commit: `2cd7ecacef872fe247833515602d670626a9ff18`.
 - PR #174 — adds `InstanceCreatureBinder::inheritAndApply(...)`, a compensating transaction for master/summon ownership. It validates and inherits before the link mutation, rolls back only ownership added by the current call after a false result or exception, preserves pre-existing ownership, and detects ownership changes during rollback rather than unregistering a newer foreign owner. Tests cover success, false/exception rollback, cross-instance rejection, existing ownership, normal-world behavior and a simulated ownership race. Autofix, Fast Checks, Lua, Linux debug/release, Canary smoke, Windows CMake/Solution, macOS and Docker all passed. Merge commit: `409685766e871859775d3286fb989d9d7b0e4533`.
+- PR #183 — adds `InstanceScopedEvent`, a lazy liveness check for scheduled/delayed callbacks so a callback for a Closing/Destroyed instance can detect and skip itself. Merge commit: `9441d984ecd127b16542622d6fdb72d4878b583b`.
+- PR #201 — gives `Game` ownership of the runtime `InstanceManager` via `Game::getInstanceManager()`, the single manager instance every later PR consumes. Merge commit: `fbaf1951d836894a24e83a31ec43f8cc7acb1f14`.
+- PR #231 — `Game::removeCreature()` automatically unregisters a removed creature's instance ownership, closing the loop the earlier registry/binder PRs opened. Merge commit: `756885fc70f30c81e5e68d53b078095f83ca64fe`.
+- PR #233 — gives `closeExpiredInstances()` a real periodic owner: `Game::start()` registers a dispatcher cycle event that calls it. Merge commit: `8a0889b18acf6aa384eb5081b90f707d4febfa95`.
+
+### Instanced Test Arena (real InstanceManager consumer)
+
+The Instanced Test Arena program (`docs/agents/programs/INSTANCED_TEST_ARENA_PROGRAM.md`) is the first genuine production consumer of the instance foundation above — a small administrator-only vertical slice, not a generic dungeon framework.
+
+- PR #287 — fixes a stale claim in this document's sibling `docs/architecture/instance-manager.md` and adds `docs/architecture/instanced-test-arena.md`, the OTBM-evidence-backed region plan (two disjoint 12x7 regions on `data-canary/world/canary.otbm`'s "Tps Room"). Merge commit: `47270c39f4e36568e8440cf6d2f421f5f09e6f67`.
+- PR #289 — adds `InstanceArenaService`, owning the two configured regions and the create/activate/close arena lifecycle, exposed via `Game::getInstanceArenaService()`. Merge commit: `7e8f298f126fae0e2d010e25d927eb5d00c92eaf`.
+- PR #295 — adds the admin-gated `/instancearena create|leave|close` talkaction and matching `Game.createInstanceArena`/`leaveInstanceArena`/`closeInstanceArena` Lua bindings, plus `InstanceArenaService`'s per-player enter/leave/close session API. Merge commit: `d9b10c322cd6bb9690c2a29fd3354082dde066f9`.
+- PR #304 — `InstanceArenaService::enterArena()` spawns and registers one real monster (Cave Rat) in the reserved region, rolling the whole arena back on any spawn/registration failure; a cleanup callback empties the instance's creature registry before `close()`. `Game::getInstanceCreatureBinder()` wires the engine's one production summon-creation call site (`Monster::onThinkDefense()`) to the already-tested instance-aware `Creature::setMaster(master, binder, reload)` overload, so summons made by an instance-owned monster inherit its owner; normal-world summons are unaffected. CI caught a real compile error (a `shared_ptr<Monster>` passed where `InstanceCreatureBinder::bind()`'s template needs a dereferenced value) which was fixed before merge. Merge commit: `cb22a5063bc10c306932c407f6c02c799dfc5ba3`.
 
 ### CI reliability
 
@@ -86,11 +99,13 @@ Every agent must query GitHub again before editing because this list changes qui
 
 ## Current engine workstream
 
-### Instance-aware `Creature::setMaster` call-site
+### Instance-aware `Creature::setMaster` call-site — done
 
-The manager registry, ownership policy, runtime-ID binder and rollback transaction are complete in PRs #159, #163, #168 and #174. The next focused PR must connect the tested transaction to the real `Creature::setMaster` mutation without storing an `InstanceManager` or binder pointer in `Creature`.
+`Creature::setMaster(newMaster, InstanceCreatureBinder&, reloadCreature)` (commit `f4e395565eb86bf4df52c4c277e3192cfd66e0b3`, `src/creatures/creature.cpp`) connects the tested `inheritAndApply(...)` transaction to the real mutation exactly as originally specified below: no `InstanceManager`/binder pointer stored in `Creature`, existing `setMaster(master, reload)` unchanged for normal-world callers, cross-instance/owned-unowned/Closing/Destroyed assignments rejected before any mutation. All the "required tests" below are covered by `instance_creature_binder_test.cpp`'s `InstanceAwareSetMaster*` cases.
 
-Preferred boundary:
+The one remaining piece — an actual production call site passing a real binder — is also done: PR #304 wires the engine's one summon-creation call site (`Monster::onThinkDefense()`) to this overload via `Game::getInstanceCreatureBinder()`. See "Instanced Test Arena" above for the full history.
+
+Original design boundary (preserved for reference; already satisfied):
 
 - forward-declare `InstanceCreatureBinder` in `creature.hpp`;
 - add an explicit overload accepting `InstanceCreatureBinder &`, while preserving the existing `setMaster(master, reload)` function unchanged for normal-world callers;
@@ -98,60 +113,60 @@ Preferred boundary:
 - the callback must execute the existing synchronous `setMaster(master, reload)` path and return its result;
 - cross-instance, owned/unowned and Closing/Destroyed assignments must be rejected before setting `summoned`, changing `m_master`, reloading the creature or editing summon lists;
 - clearing a master must preserve the summon's established instance ownership and may delegate to the existing null-master behavior;
-- do not add a global `InstanceManager`, a binder field, a raw pointer or a long-lived runtime reference;
-- do not yet mix spawn/NPC creation, automatic unregister, spectator filtering, combat, players or Lua into this PR.
+- do not add a global `InstanceManager`, a binder field, a raw pointer or a long-lived runtime reference.
 
-Required tests using real runtime creatures where practical:
+Follow-up requirements in the same phase — status:
 
-- normal-world assignment through the legacy overload remains unchanged;
-- owned master registers an unowned summon and commits only after successful linking;
-- same-instance assignment/reassignment remains valid and does not duplicate ownership;
-- cross-instance assignment leaves ownership, `m_master`, summon lists and `summoned` state unchanged;
-- an unowned master cannot take an owned summon;
-- clearing the master preserves the summon's instance boundary;
-- no binder or manager pointer is retained by `Creature`;
-- existing rollback-transaction tests remain green.
-
-Follow-up requirements in the same phase:
-
-- instance-aware monster and NPC spawn creation;
-- automatic unregister when owned creatures leave the runtime;
-- removal of all owned creatures during close;
-- spectator/target/combat call sites using the central relation policy;
-- proof that region reuse does not expose stale entities.
+- instance-aware monster spawn creation: done for the arena's own spawn (`InstanceArenaService::enterArena()`, PR #304); ordinary map `Spawn`/`SpawnNpc` instance-scoping remains open and out of the arena program's scope (the arena never touches ordinary spawns).
+- automatic unregister when owned creatures leave the runtime: done (`Game::removeCreature()`, PR #231).
+- removal of all owned creatures during close: done for the arena (`InstanceArenaService`'s cleanup callback, PR #304).
+- spectator/target/combat call sites using the central relation policy: open — tracked as Instanced Test Arena program queue item 6, to be driven by concrete leaks found running two real arenas, not speculative changes.
+- proof that region reuse does not expose stale entities: open — tracked as program queue item 7 (two-parallel-instances E2E).
 
 ## Remaining roadmap
 
 ### A. Creature and spawn ownership
 
-- wire the real `Creature::setMaster` mutation to the merged binder transaction;
-- wire monsters, NPCs and instance-created spawns;
-- automatically unregister removed owned creatures;
-- keep default/non-instanced entities unchanged;
-- prevent cross-instance visibility/targeting where required;
-- remove owned entities during close;
-- prove no entity leaks remain after region reuse.
+- ~~wire the real `Creature::setMaster` mutation to the merged binder transaction~~ done (see above);
+- ~~wire monsters~~ done for the arena's own spawn (PR #304); NPCs and general instance-created spawns remain open and out of the current program's scope;
+- ~~automatically unregister removed owned creatures~~ done (`Game::removeCreature()`, PR #231);
+- keep default/non-instanced entities unchanged — verified for every change so far (documented backward-compatibility argument per PR);
+- prevent cross-instance visibility/targeting where required — open, program queue item 6;
+- ~~remove owned entities during close~~ done for the arena (PR #304);
+- prove no entity leaks remain after region reuse — open, program queue item 7.
 
 ### B. Scheduler and event ownership
 
-- tag scheduled tasks/events with `InstanceId`;
-- cancel or invalidate callbacks during close;
-- callbacks must not run against destroyed/reused instance state;
-- test close racing a pending callback;
-- preserve current behavior for unowned global events.
+`InstanceScopedEvent` (PR #183) and `Game::start()`'s periodic
+`closeExpiredInstances()` sweep (PR #233) are merged and general-purpose.
+Still open, tracked as Instanced Test Arena program queue item 5: no arena
+call site actually wraps a scheduled/delayed callback with
+`InstanceScopedEvent` yet, since the arena has none today.
+
+- tag scheduled tasks/events with `InstanceId` — mechanism exists
+  (`InstanceScopedEvent`), no arena call site uses it yet (open, queue item 5);
+- cancel or invalidate callbacks during close — same status;
+- callbacks must not run against destroyed/reused instance state — same status;
+- test close racing a pending callback — open;
+- preserve current behavior for unowned global events — satisfied by
+  construction (`InstanceScopedEvent` is opt-in per call site).
 
 ### C. Player enter/leave API
 
-- validated entry into an active instance;
-- remember a safe return position;
-- reject unknown, closing or destroyed instances;
-- evacuate players before releasing the region;
-- define logout, reconnect, death and timeout behavior;
-- ensure no player is stranded in a reusable region.
+Done for the arena's own narrow scope (PR #295): `InstanceArenaService::enterArena/leaveArena/closeArenaForPlayer`, keyed by stable player id, one session per player.
+
+- validated entry into an active instance — done;
+- remember a safe return position — done;
+- reject unknown, closing or destroyed instances — done (`createArena()` fails cleanly when no region is free; a player can't enter a Closing/Destroyed arena because `enterArena()` only ever creates a fresh one);
+- evacuate players before releasing the region — done (`closeArenaForPlayer()` returns the saved position, then releases);
+- define logout, reconnect, death and timeout behavior — open, tracked as program queue item 5 (timeout) and item 6 (the rest, once concrete gaps are found);
+- ensure no player is stranded in a reusable region — proven only for the manual-close path so far; the two-parallel-instances E2E (queue item 7) is the full proof.
 
 ### D. Lua API
 
-Suggested minimal API:
+This generic `Instance.*` API below was never built, by deliberate choice: the Instanced Test Arena program (PR #295) exposes only the narrow, feature-specific `Game.createInstanceArena`/`leaveInstanceArena`/`closeInstanceArena` bindings the one admin talkaction needs, matching this codebase's existing narrow-Lua-surface convention (e.g. multichannel's `getPlayerClusterChannel`) rather than this suggested generic API. Documented bindings, stable multi-return errors, no raw pointer exposure and focused Lua tests are all satisfied for that narrower surface. Building the generic API below remains a separate, not-yet-requested later concern.
+
+Original suggested minimal API (kept for reference, not built):
 
 ```lua
 Instance.create(definition)
@@ -162,21 +177,16 @@ Instance.close(id)
 Instance.getState(id)
 ```
 
-Requirements:
-
-- documented bindings and stable errors;
-- no raw pointer exposure;
-- validation and permission rules;
-- focused Lua tests.
-
 ### E. Cleanup and recovery
 
-- remove temporary creatures, items, spawns and callbacks;
-- evacuate players before region release;
-- idempotent cleanup retries;
-- explicit behavior when cleanup fails;
-- metrics/logging for failed cleanup;
-- startup/recovery policy for referenced or interrupted instances.
+Done for the arena's own scope (PR #304): its cleanup callback removes the one monster it spawns (and any summons, once inherited) before the instance closes; a failed close is quarantined by `InstanceManager`'s existing invariant rather than releasing a dirty region.
+
+- remove temporary creatures, items, spawns and callbacks — done for the arena's own monster/summons; the arena creates no items, so item cleanup is out of scope;
+- evacuate players before region release — done;
+- idempotent cleanup retries — inherited from `InstanceManager`'s existing exactly-once cleanup guarantee, not re-implemented;
+- explicit behavior when cleanup fails — inherited from `InstanceManager`'s existing quarantine behavior;
+- metrics/logging for failed cleanup — open, not yet needed at this program's current scale;
+- startup/recovery policy for referenced or interrupted instances — open, out of the current program's scope (no persistence of instance state across a server restart exists or is planned here).
 
 ### F. Two-instance end-to-end test
 
