@@ -8,10 +8,13 @@
 | `achievements` — Achievements | `character-progression` | `mapped` | `mapped` | `audited` | `not-assessed` | `partial` | `integration` | `limited` | `not-assessed` | — |
 | `charms` — Charms | `character-progression` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | — |
 | `combat` — Combat engine | `combat` | `mapped` | `mapped` | `inventory` | `not-assessed` | `not-assessed` | `unit` | `limited` | `not-assessed` | — |
+| `configuration` — Configuration | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `cyclopedia` — Cyclopedia, Bestiary and Bosstiary | `character-progression` | `mapped` | `mapped` | `audited` | `partial` | `not-assessed` | `integration` | `limited` | `missing` | — |
+| `engine-runtime-lifecycle` — Engine Runtime Lifecycle | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `exaltation-forge` — Exaltation Forge | `items-economy` | `active` | `partial` | `audited` | `partial` | `partial` | `integration` | `limited` | `not-assessed` | — |
 | `houses` — Houses | `world-content` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | — |
 | `imbuements` — Imbuements | `items-economy` | `mapped` | `mapped` | `audited` | `not-assessed` | `partial` | `integration` | `limited` | `not-assessed` | — |
+| `lua-runtime` — Lua Runtime | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `market` — Market and trade economy | `items-economy` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | — |
 | `npcs` — NPCs | `world-content` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | — |
 | `otbm-tooling` — OTBM analysis tooling | `platform-tooling` | `active` | `mapped` | `audited` | `not-assessed` | `not-assessed` | `integration` | `not-applicable` | `not-applicable` | — |
@@ -25,4 +28,4 @@
 | `upstream-intelligence` — Upstream Intelligence and Drift Tracking | `platform-tooling` | `active` | `partial` | `mapped` | `not-applicable` | `not-applicable` | `integration` | `not-applicable` | `not-applicable` | `docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md` |
 | `wheel-of-destiny` — Wheel of Destiny | `character-progression` | `active` | `partial` | `audited` | `partial` | `partial` | `integration` | `limited` | `missing` | `docs/agents/programs/WHEEL_OF_DESTINY_PARITY_PROGRAM.md` |
 
-Total modules: **19**.
+Total modules: **22**.
