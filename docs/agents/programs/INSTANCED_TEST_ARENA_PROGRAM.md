@@ -4,8 +4,8 @@ name: Instanced Test Arena
 status: active
 owner: Claude
 created: 2026-07-13T20:00:00Z
-updated: 2026-07-13T23:40:00Z
-last_verified_commit: "cb22a5063bc10c306932c407f6c02c799dfc5ba3"
+updated: 2026-07-14T00:15:00Z
+last_verified_commit: "42c0afa8"
 primary_paths:
   - src/game/instance/
   - src/game/game.hpp
@@ -69,7 +69,7 @@ InstanceManager infrastructure PRs without a real consumer.
 
 | Task ID | Branch | PR | State | Exact next action |
 |---|---|---:|---|---|
-| (none yet) | | | | Start PR 5: instance-scoped delayed events + timeout/cleanup wiring. |
+| CAN-20260714-instance-arena-timeout-events | `feat/instance-arena-timeout-events` | #307 | in_progress | Merge once CI green. |
 
 # Queue
 
@@ -77,7 +77,7 @@ InstanceManager infrastructure PRs without a real consumer.
 2. ~~PR 2 - region config + `InstanceArenaService` + create/activate/close lifecycle, no player yet.~~ Done (#289).
 3. ~~PR 3 - admin talkaction: create/leave/close, return-position capture, evacuation.~~ Done (#295).
 4. ~~PR 4 - monster spawn + binder registration after nonzero runtime ID + summon inheritance.~~ Done (#304).
-5. PR 5 - instance-scoped delayed events + timeout/cleanup wiring.
+5. PR 5 - instance-scoped delayed events + timeout/cleanup wiring (this task).
 6. PR 6 - run two real arenas, fix concrete cross-instance leaks only.
 7. PR 7 - two-parallel-instances E2E, region reuse proof, final docs.
 
