@@ -4,8 +4,8 @@ name: Tibia System Decomposition
 status: active
 owner: repository-wide
 created: 2026-07-14T15:43:00+02:00
-updated: 2026-07-14T20:30:00+02:00
-last_verified_commit: "cc6a0352c3dfc88b2be5efd1164162c9e2870003"
+updated: 2026-07-14T20:42:00+02:00
+last_verified_commit: "6d6df89b02fca525ef76011369d8c6243de231d8"
 primary_paths:
   - docs/agents/real-tibia/**
   - docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md
@@ -61,7 +61,7 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | `TSD-002A` | scheduler, DI, Lua bindings and build foundation | completed | PR #340; merge `82f35c0147fdd33c8d4e70d98d003385daf61de6`; registry 22 → 26 | preserve archive |
 | `TSD-002B` | DB connection/migrations, transaction and world-persistence classification | completed | PR #342; merge `1410a8622aaca5e4afe1bd15aa2695e2dbb7bb94`; registry 26 → 29 | preserve archive |
 | `TSD-003` | account, character and progression | completed | PR #355; merge `1098363a708a1f5f875850670a5aad411031e188`; registry 29 → 35 | preserve archive |
-| `TSD-004` | Cyclopedia family | active | PR #359; implementation head `cc6a0352c3dfc88b2be5efd1164162c9e2870003`; registry 35 → 39 | finish shared docs, exact-head/ready CI, squash merge and lifecycle archive |
+| `TSD-004` | Cyclopedia family | completed | PR #359; merge `6d6df89b02fca525ef76011369d8c6243de231d8`; registry 35 → 39 | preserve archive |
 | `TSD-005` | combat, weapons and vocations | next | `combat`, `spells`, `vocations`, `weapon-proficiency` and completed TSD-004 boundaries | split only durable formula/state/weapon/combat domains |
 | `TSD-006` | creatures, hunting, raids and bosses | planned | `spawns`, `prey`, `bestiary`, `bosstiary`, `cyclopedia` | separate spawn, encounter, credit, reward and scheduling |
 | `TSD-007` | items and economy | planned | `market`, `imbuements`, `exaltation-forge` | classify item lifecycle, movement, trade, market and rewards |
@@ -102,8 +102,6 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 - Merge `1410a8622aaca5e4afe1bd15aa2695e2dbb7bb94`; lifecycle merge `d3dbca52ced28e747f1764167e1d479bd2568a6d`.
 - Registry 26 → 29; added only `database-connection`, `database-migrations`, `world-persistence`.
 - Existing records modified 0; `player-persistence` remained the compatibility umbrella.
-- `transaction-boundaries` and `save-restart-reload` were merged into existing boundaries; `database-reconciliation` was deferred.
-- Final feature checks: Real Tibia Module Registry #156, Upstream Intelligence #184, Agent Task Ownership #1013, CI #2128 and ready-state CI #2129 — success.
 - Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-persistence-transactions.md`.
 
 ## TSD-003
@@ -112,49 +110,19 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 - Merge `1098363a708a1f5f875850670a5aad411031e188`; lifecycle merge `9f82f93977e82784370961a72104efacd497c8e0`.
 - Registry 29 → 35; added only `account-authentication`, `account-lifecycle`, `character-lifecycle`, `character-progression`, `vocations`, `weapon-proficiency`.
 - Existing records modified 0; `player-persistence`, `protocol`, `achievements` and `wheel-of-destiny` remained stable.
-- Final feature checks: Real Tibia Module Registry #198, Upstream Intelligence #226, Agent Task Ownership #1064, CI #2176 and ready-state CI #2177 — success.
-- Account entitlements remain account-lifecycle capabilities; sanctions defer to TSD-009; progression fields remain one umbrella; individual vocation entries remain one registry lifecycle; titles and appearance unlocks were deferred to TSD-004/later packages.
 - Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-account-character-progression.md`.
 
-# Current active package — TSD-004
+## TSD-004
 
-Task: `CAN-20260714-tibia-system-decomposition-cyclopedia-family`; draft PR #359.
+- Feature PR #359, head `e4ce70fdb18d604b001edf8d577481e1c2aea762`.
+- Merge `6d6df89b02fca525ef76011369d8c6243de231d8`.
+- Registry 35 → 39; added only `bestiary`, `bosstiary`, `cyclopedia-character`, `titles`.
+- Existing records modified 0; `cyclopedia`, `charms`, `houses`, `achievements`, `protocol`, character lifecycle/progression and player persistence remained stable.
+- Final feature checks: Real Tibia Module Registry #226, Upstream Intelligence #254, Agent Task Ownership #1086, CI #2199 and ready-state CI #2200 — success.
+- Cyclopedia Items/Map remain umbrella/protocol/client surfaces; Cyclopedia Houses remains covered by `houses`; appearance unlocks remain deferred.
+- Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-cyclopedia-family.md`.
 
-Registry 35 → 39. Added only:
-
-```text
-bestiary
-bosstiary
-cyclopedia-character
-titles
-```
-
-Existing records modified: 0. `cyclopedia` remains the unchanged umbrella; `charms`, `houses`, `achievements`, `protocol`, character lifecycle/progression and player persistence remain stable.
-
-Key classification:
-
-- Bestiary receives a narrow kill/unlock/race/completion record while Charm ownership remains separate;
-- Bosstiary receives a narrow rarity/points/boosted-boss/slot/loot-bonus record while generic boss encounters remain later work;
-- Cyclopedia Character receives a summary/death/recent-kill/KV component record;
-- Titles receives a definition/unlock/current-selection/persistence record;
-- Cyclopedia Items and Map remain umbrella/protocol/client surfaces;
-- Cyclopedia Houses is already covered by `houses` plus presentation/protocol interaction;
-- outfits, mounts and familiars remain deferred.
-
-Implementation/focused-test head `cc6a0352c3dfc88b2be5efd1164162c9e2870003` passed:
-
-- Real Tibia Module Registry #222;
-- Upstream Intelligence #250;
-- Agent Task Ownership #1082;
-- repository CI #2195;
-- focused server/client source-role tests;
-- schema and dependency validation;
-- deterministic `generate --check`;
-- stale/module/lookup-path/exact PR-range `affected` commands.
-
-The package does not prove Bestiary/Bosstiary formulas or persistence, title unlock correctness, protocol compatibility, maintained-client rendering, runtime behavior, physical-client E2E, Real Tibia parity or Oteryn readiness.
-
-Detailed evidence: `docs/agents/real-tibia/TSD_004_CYCLOPEDIA_FAMILY_REPORT.md`.
+No completed package evidence automatically establishes authentication security, persistence/transaction safety, progression or combat formulas, Cyclopedia/Bestiary/Bosstiary/title correctness, protocol compatibility, maintained-client behavior, runtime behavior, physical-client E2E, Real Tibia parity or Oteryn readiness.
 
 # Oteryn migration policy
 
@@ -175,7 +143,7 @@ legacy inventory
 
 # Exact next operational task
 
-After PR #359 passes final exact-head review, ready-state Linux/Required, squash merge and a separate lifecycle archive, re-read then-current `main` and create only:
+After the TSD-004 lifecycle archive merges, re-read then-current `main`, open PRs, active tasks and ownership, then create only:
 
 ```text
 task: CAN-20260714-tibia-system-decomposition-combat-weapons-vocations
