@@ -1,0 +1,82 @@
+name: Add FileSystem Lua API index entries
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/add-fs-lua-api-doc-entry.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  document:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out implementation branch
+        uses: actions/checkout@v6
+        with:
+          ref: security/fs-mkdir-shell-free
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Add strongly typed Lua API entries
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("docs/lua-api/lua_api.json")
+          data = json.loads(path.read_text(encoding="utf-8"))
+          classes = data.setdefault("classes", {})
+          expected = [
+              {
+                  "name": "createDirectories",
+                  "params": ["path: string"],
+                  "return": "boolean, string?",
+                  "source": "src/lua/functions/core/game/global_functions.cpp",
+              },
+              {
+                  "name": "createDirectory",
+                  "params": ["path: string"],
+                  "return": "boolean, string?",
+                  "source": "src/lua/functions/core/game/global_functions.cpp",
+              },
+          ]
+          existing = classes.get("FileSystem")
+          if existing not in (None, expected):
+              raise SystemExit(f"unexpected existing FileSystem docs: {existing!r}")
+          classes["FileSystem"] = expected
+          data["classes"] = {key: classes[key] for key in sorted(classes)}
+          path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+          task_path = Path("docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md")
+          task = task_path.read_text(encoding="utf-8").rstrip()
+          note = """
+
+          ## 2026-07-14T10:05:00+02:00
+
+          - Validation repair: added strongly typed `FileSystem.createDirectory` and `FileSystem.createDirectories` entries to the committed Lua API index so the pre-build binding-documentation gate can validate the new public methods.
+          - The Linux release build remains authoritative for full generated `docs/lua-api` synchronization.
+          """
+          if "Validation repair: added strongly typed `FileSystem.createDirectory`" not in task:
+              task_path.write_text(task + note, encoding="utf-8")
+
+          Path(".github/workflows/add-fs-lua-api-doc-entry.yml").unlink()
+          PY
+
+      - name: Validate documentation gate locally
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check_lua_api_binding_docs.py
+          git diff --check
+
+      - name: Commit documentation index
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "docs(lua-api): document FileSystem directory methods"
+          git push origin HEAD:security/fs-mkdir-shell-free
