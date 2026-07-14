@@ -52,8 +52,23 @@ jobs:
 
       - name: Run focused Phase 6 tests
         run: |
+          mkdir -p artifacts
+          set +e
           PYTHONPATH=tools/ai-agent \
-            python -m unittest -v tools/ai-agent/test_otbm_semantic_diff.py
+            python -m unittest -v tools/ai-agent/test_otbm_semantic_diff.py \
+              > artifacts/focused-tests.log 2>&1
+          status=$?
+          cat artifacts/focused-tests.log
+          exit "$status"
+
+      - name: Upload focused test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: otbm-semantic-diff-focused-tests
+          path: artifacts/focused-tests.log
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Compile Python modules
         run: |
