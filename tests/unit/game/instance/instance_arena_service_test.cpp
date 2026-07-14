@@ -14,7 +14,10 @@
 
 #ifndef USE_PRECOMPILED_HEADERS
 	#include <algorithm>
+	#include <chrono>
 	#include <cstdint>
+	#include <string>
+	#include <utility>
 	#include <vector>
 #endif
 
@@ -32,15 +35,25 @@ namespace {
 		return monster;
 	}
 
-	// Wires InstanceArenaService's MonsterFactory/CreatureRemover DI seam to
-	// synthetic implementations so enterArena()/closeArenaForPlayer() are
-	// testable without a live Game. The remover mirrors the real
+	struct RecordedSchedule {
+		uint32_t delayMs = 0;
+		std::function<void()> callback;
+	};
+
+	// Wires InstanceArenaService's full DI seam to synthetic implementations
+	// so enterArena()/closeArenaForPlayer()/reapExpiredSessions() are testable
+	// without a live Game or dispatcher. The remover mirrors the real
 	// Game::removeCreature() hook (game.cpp, "getInstanceManager().
 	// unregisterCreature(...)") so a synthetic close() exercises the same
-	// registered-creature bookkeeping the production path relies on.
+	// registered-creature bookkeeping the production path relies on. The
+	// event scheduler records (delay, callback) pairs instead of running them
+	// on a real dispatcher, so tests can fire a closing warning on demand.
 	struct SyntheticArenaHarness {
 		InstanceManager manager;
 		std::vector<uint32_t> removedCreatureIds;
+		std::vector<RecordedSchedule> scheduledEvents;
+		std::vector<std::pair<uint32_t, std::string>> notifiedMessages;
+		std::vector<std::pair<uint32_t, Position>> evacuatedPlayers;
 		InstanceArenaService service;
 
 		explicit SyntheticArenaHarness(bool monsterFactorySucceeds = true) :
@@ -55,9 +68,24 @@ namespace {
 					if (const auto owner = manager.getCreatureOwner(creatureId)) {
 						manager.unregisterCreature(*owner, creatureId);
 					}
+				},
+				[this](uint32_t delayMs, std::function<void()> callback) {
+					scheduledEvents.push_back({ .delayMs = delayMs, .callback = std::move(callback) });
+				},
+				[this](uint32_t playerId, const std::string &message) {
+					notifiedMessages.emplace_back(playerId, message);
+				},
+				[this](uint32_t playerId, const Position &returnPosition) {
+					evacuatedPlayers.emplace_back(playerId, returnPosition);
 				}
 			) { }
 	};
+
+	// Far enough past ArenaTimeout that closeExpiredInstances() always treats
+	// every arena created "now" as expired, regardless of test execution time.
+	std::chrono::steady_clock::time_point farFutureExpiry() {
+		return std::chrono::steady_clock::now() + InstanceArenaService::ArenaTimeout + std::chrono::seconds(60);
+	}
 
 } // namespace
 
@@ -151,6 +179,21 @@ TEST(InstanceArenaServiceTest, GetBinderReturnsABinderBoundToTheSameManager) {
 	EXPECT_EQ(result.id, manager.getCreatureOwner(1234));
 }
 
+TEST(InstanceArenaServiceTest, CreateArenaUsesATimeoutSoIdleArenasExpireAutomatically) {
+	InstanceManager manager(InstanceArenaService::configuredRegions());
+	InstanceArenaService service(manager);
+
+	const auto result = service.createArena();
+	ASSERT_TRUE(result.ok);
+
+	// closeExpiredInstances() goes through the same idempotent close() path
+	// as a manual close - this proves the arena actually has a nonzero
+	// timeout, not just that InstanceManager supports one.
+	EXPECT_EQ(1u, manager.closeExpiredInstances(farFutureExpiry()));
+	EXPECT_EQ(InstanceState::Destroyed, *service.getState(result.id));
+	EXPECT_EQ(0u, service.activeArenaCount());
+}
+
 TEST(InstanceArenaServiceTest, EnterArenaReturnsAnEntryPositionInsideTheReservedRegion) {
 	SyntheticArenaHarness harness;
 	constexpr Position returnPosition { 100, 100, 7 };
@@ -220,6 +263,103 @@ TEST(InstanceArenaServiceTest, EnterArenaFailsWithoutASessionWhenNoRegionIsFree)
 	const auto third = harness.service.enterArena(3, returnPosition);
 	EXPECT_FALSE(third.ok);
 	EXPECT_FALSE(harness.service.hasActiveSession(3));
+}
+
+TEST(InstanceArenaServiceTest, EnterArenaSchedulesExactlyOneClosingWarningBeforeTheTimeout) {
+	SyntheticArenaHarness harness;
+	constexpr Position returnPosition { 100, 100, 7 };
+
+	ASSERT_TRUE(harness.service.enterArena(1, returnPosition).ok);
+
+	ASSERT_EQ(1u, harness.scheduledEvents.size());
+	const auto expectedDelayMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+									 InstanceArenaService::ArenaTimeout - InstanceArenaService::ArenaClosingWarningLeadTime
+	)
+									 .count();
+	EXPECT_EQ(static_cast<uint32_t>(expectedDelayMs), harness.scheduledEvents[0].delayMs);
+	EXPECT_TRUE(harness.notifiedMessages.empty()) << "the warning must not fire until the scheduler runs it";
+}
+
+TEST(InstanceArenaServiceTest, ClosingWarningFiresWhenTheArenaIsStillActiveAtDelayElapse) {
+	SyntheticArenaHarness harness;
+	constexpr Position returnPosition { 100, 100, 7 };
+	constexpr uint32_t playerId = 1;
+
+	ASSERT_TRUE(harness.service.enterArena(playerId, returnPosition).ok);
+	ASSERT_EQ(1u, harness.scheduledEvents.size());
+
+	harness.scheduledEvents[0].callback();
+
+	ASSERT_EQ(1u, harness.notifiedMessages.size());
+	EXPECT_EQ(playerId, harness.notifiedMessages[0].first);
+	EXPECT_FALSE(harness.notifiedMessages[0].second.empty());
+}
+
+TEST(InstanceArenaServiceTest, ClosingWarningIsANoOpAfterTheArenaAlreadyClosed) {
+	SyntheticArenaHarness harness;
+	constexpr Position returnPosition { 100, 100, 7 };
+	constexpr uint32_t playerId = 1;
+
+	ASSERT_TRUE(harness.service.enterArena(playerId, returnPosition).ok);
+	ASSERT_EQ(1u, harness.scheduledEvents.size());
+	ASSERT_TRUE(harness.service.closeArenaForPlayer(playerId).ok);
+
+	// Simulates the scheduler eventually running the callback it queued
+	// before the arena closed - InstanceScopedEvent must make this a no-op.
+	harness.scheduledEvents[0].callback();
+
+	EXPECT_TRUE(harness.notifiedMessages.empty()) << "a closed instance must not execute this gameplay callback";
+}
+
+TEST(InstanceArenaServiceTest, TimeoutExpiryUsesTheSameCleanupPathAsManualClose) {
+	SyntheticArenaHarness harness;
+	constexpr Position returnPosition { 100, 100, 7 };
+
+	const auto entered = harness.service.enterArena(1, returnPosition);
+	ASSERT_TRUE(entered.ok);
+	ASSERT_NE(0u, entered.monsterId);
+
+	EXPECT_EQ(1u, harness.manager.closeExpiredInstances(farFutureExpiry()));
+
+	EXPECT_NE(
+		harness.removedCreatureIds.end(),
+		std::find(harness.removedCreatureIds.begin(), harness.removedCreatureIds.end(), entered.monsterId)
+	) << "expiry must run the same cleanup callback a manual close does";
+	EXPECT_FALSE(harness.manager.getCreatureOwner(entered.monsterId).has_value());
+}
+
+TEST(InstanceArenaServiceTest, ReapExpiredSessionsEvacuatesAndForgetsATimedOutSession) {
+	SyntheticArenaHarness harness;
+	constexpr Position returnPosition { 321, 654, 7 };
+	constexpr uint32_t playerId = 1;
+
+	ASSERT_TRUE(harness.service.enterArena(playerId, returnPosition).ok);
+	ASSERT_EQ(1u, harness.manager.closeExpiredInstances(farFutureExpiry())) << "the instance must expire before reaping can find it";
+
+	harness.service.reapExpiredSessions();
+
+	ASSERT_EQ(1u, harness.evacuatedPlayers.size());
+	EXPECT_EQ(playerId, harness.evacuatedPlayers[0].first);
+	EXPECT_EQ(returnPosition, harness.evacuatedPlayers[0].second);
+	EXPECT_FALSE(harness.service.hasActiveSession(playerId));
+
+	// The stale session is gone - later calls must fail cleanly rather than
+	// operate on a Destroyed instance.
+	EXPECT_FALSE(harness.service.leaveArena(playerId).ok);
+	EXPECT_FALSE(harness.service.closeArenaForPlayer(playerId).ok);
+}
+
+TEST(InstanceArenaServiceTest, ReapExpiredSessionsIsANoOpWhileTheArenaIsStillActive) {
+	SyntheticArenaHarness harness;
+	constexpr Position returnPosition { 321, 654, 7 };
+	constexpr uint32_t playerId = 1;
+
+	ASSERT_TRUE(harness.service.enterArena(playerId, returnPosition).ok);
+
+	harness.service.reapExpiredSessions();
+
+	EXPECT_TRUE(harness.evacuatedPlayers.empty());
+	EXPECT_TRUE(harness.service.hasActiveSession(playerId));
 }
 
 TEST(InstanceArenaServiceTest, LeaveArenaReturnsSavedPositionWithoutReleasingTheRegion) {

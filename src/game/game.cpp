@@ -836,10 +836,17 @@ void Game::start(ServiceManager* manager) {
 		EVENT_CHECK_CREATURE_INTERVAL, [this] { checkCreatures(); }, "Game::checkCreatures"
 	);
 	// Gives closeExpiredInstances() a real periodic owner (docs/architecture/
-	// instance-manager.md). A safe no-op today: m_instanceManager has zero
-	// configured regions, so no instance can ever exist to expire.
+	// instance-manager.md): the Instanced Test Arena's instances (docs/
+	// architecture/instanced-test-arena.md) are the concrete instances this
+	// sweep closes. reapExpiredSessions() runs right after on the same tick
+	// so a player whose arena timed out (rather than being closed manually)
+	// still gets evacuated and their stale session forgotten.
 	[[maybe_unused]] auto eventIdInstanceSweep = g_dispatcher().cycleEvent(
-		EVENT_INSTANCE_TIMEOUT_SWEEP_MS, [this] { getInstanceManager().closeExpiredInstances(); }, "Game::sweepExpiredInstances"
+		EVENT_INSTANCE_TIMEOUT_SWEEP_MS, [this] {
+			getInstanceManager().closeExpiredInstances();
+			getInstanceArenaService().reapExpiredSessions();
+		},
+		"Game::sweepExpiredInstances"
 	);
 	[[maybe_unused]] auto eventId6 = g_dispatcher().cycleEvent(
 		EVENT_LUA_GARBAGE_COLLECTION, [this] { g_luaEnvironment().collectGarbage(); }, "Calling GC"

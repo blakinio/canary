@@ -169,9 +169,12 @@ Instead, `InstanceScopedEvent` wraps the *callback* side:
 This intentionally does not give scheduled tasks a way to keep an instance
 alive, and does not touch `src/game/scheduling/*`. `Game::start()` now gives
 `closeExpiredInstances()` a real periodic owner (see "Remaining integration
-sequence" item 4 below). Wiring an actual dispatcher/task call site through
-`InstanceScopedEvent` itself remains open - nothing schedules instance-scoped
-work at all today, since nothing creates a real instance in production.
+sequence" item 4 below). A real production call site now wraps a scheduled
+callback with `InstanceScopedEvent` (`InstanceArenaService::enterArena()`): a
+one-shot closing-warning message scheduled via the dispatcher, guarded so it
+is a no-op if the arena already closed by the time the scheduler runs it -
+proving "an event does not execute a gameplay callback after close begins"
+against a real call site, not just the isolated class-level tests below.
 
 ## Map region pool
 
@@ -236,12 +239,23 @@ creatures.
    callback a lazy liveness check (done - see above). `closeExpiredInstances()`
    now has a real periodic owner: `Game::start()` registers a
    `g_dispatcher().cycleEvent(EVENT_INSTANCE_TIMEOUT_SWEEP_MS, ...)` tick that
-   calls `getInstanceManager().closeExpiredInstances()` (done). Still open: no
-   actual dispatcher/task call site wraps its callback with
-   `InstanceScopedEvent` yet - nothing schedules instance-scoped work at all,
-   since nothing creates a real instance in production.
-5. **Player enter/leave**: validated entry, safe return position, closing,
-   logout, death and reconnect behavior.
+   calls `getInstanceManager().closeExpiredInstances()` (done). The arena now
+   gives every instance a real, nonzero timeout (`InstanceArenaService::
+   ArenaTimeout`, 15 minutes) instead of "never expires" (done), and a real
+   dispatcher call site wraps its scheduled closing-warning callback with
+   `InstanceScopedEvent` (done - see above). `InstanceArenaService::
+   reapExpiredSessions()` runs on the same periodic tick right after the
+   sweep, evacuating and forgetting any player session whose arena expired
+   via timeout rather than through `closeArenaForPlayer()` (done). Still open,
+   out of this program's scope: no *general* engine-wide mechanism ties
+   arbitrary scheduled dispatcher tasks to `InstanceScopedEvent` - only the
+   arena's own closing-warning call site does today.
+5. **Player enter/leave**: validated entry, safe return position and closing
+   are done (`InstanceArenaService::enterArena/leaveArena/
+   closeArenaForPlayer`, PRs #295/#304); automatic timeout-driven evacuation
+   is done (this PR). Still open: logout, death and reconnect behavior while
+   a player is inside an arena are unhandled - out of scope until a concrete
+   gap is found running two real arenas (program queue item 6).
 6. **Lua API**: create/get/enter/leave/close/state with stable errors and no raw
    pointer exposure.
 7. **Cleanup/recovery**: evacuate players, remove temporary creatures/items,

@@ -183,6 +183,42 @@ already-walkable floor tiles inside an existing walled hall, so the
 - is reachable only through an administrator-gated command; ordinary
   players cannot invoke it.
 
+## Current status (updated through PR 5)
+
+The plan above was written before implementation; this section tracks what
+actually exists on `main` so the two don't drift apart silently.
+
+- **PR #289**: `InstanceArenaService` exists, owns the two regions above,
+  and provides create/activate/close arena lifecycle via
+  `Game::getInstanceArenaService()`.
+- **PR #295**: `/instancearena create|leave|close` (admin-gated,
+  `groupType("gamemaster")`) and matching `Game.createInstanceArena/
+  leaveInstanceArena/closeInstanceArena` Lua bindings. `create` teleports to
+  the region's entry corner using the player's real position at command time
+  as the saved return position; `leave` returns there without releasing the
+  region; `close` evacuates to the same position and releases it.
+- **PR #304**: `create`/enter spawns and registers one real `Cave Rat`
+  (chosen for datapack consistency with `data-canary/world/canary.otbm`) a
+  few tiles from the entry corner, registered with `InstanceCreatureBinder`
+  only after it has a real runtime id; any spawn/registration failure rolls
+  the whole arena back. The engine's one production summon-creation call
+  site (`Monster::onThinkDefense()`) is wired to the instance-aware
+  `Creature::setMaster(..., binder, ...)` overload via
+  `Game::getInstanceCreatureBinder()`, so a summon inherits its master's
+  arena ownership.
+- **PR 5 (this one)**: every arena now has a real 15-minute timeout
+  (`InstanceArenaService::ArenaTimeout`) instead of running forever; a
+  one-shot closing-warning message is scheduled 2 minutes before that,
+  guarded by `InstanceScopedEvent` so it is a no-op if the arena already
+  closed; `InstanceArenaService::reapExpiredSessions()` runs on the same
+  periodic tick as `closeExpiredInstances()` (`Game::start()`) to evacuate
+  and forget any player session left behind by a timeout-driven close.
+
+Still open, tracked by the program queue in
+`docs/agents/programs/INSTANCED_TEST_ARENA_PROGRAM.md`: cross-instance
+isolation fixes for spectator/target/combat call sites (item 6) and the
+two-parallel-instances end-to-end proof plus region-reuse evidence (item 7).
+
 ## Non-goals
 
 - no generic dungeon/instance framework beyond this one vertical slice;
