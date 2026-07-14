@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: security/fs-mkdir-shell-free
 base_branch: main
 created: 2026-07-14T08:00:00+02:00
-updated: 2026-07-14T09:50:00+02:00
-last_verified_commit: "40c0831d97a3b7b711f40efa68c72b1d7a7588f1"
+updated: 2026-07-14T10:00:00+02:00
+last_verified_commit: "28e7c3638fb3a4b420d81cc0cda8f9fce797daa3"
 risk: high
 related_issue: ""
 related_pr: "#310"
@@ -23,6 +23,7 @@ owned_paths:
     - tests/lua/test_fs.lua
     - tests/unit/lua/filesystem_functions_test.cpp
     - tests/unit/lua/CMakeLists.txt
+    - docs/lua-api/lua_api.json
     - docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md
     - artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT.md
     - artifacts/upstream/crystalserver/cs006_fs_mkdir_audit.json
@@ -46,6 +47,7 @@ reuses:
   - existing `GlobalFunctions` Lua registration surface
   - engine-standard `std::filesystem` operations
   - existing standalone Lua and `canary_ut` test infrastructure
+  - existing Lua API catalogue and validators
   - existing bounded self-removing audit/patch workflow pattern
 public_interfaces:
   - "FS.mkdir(path) -> success[, errorMessage]"
@@ -68,7 +70,8 @@ Remove command-shell execution from `FS.mkdir` and `FS.mkdir_p` through the smal
 - [x] A C++ regression invokes the real Lua binding and covers directory creation, existing paths, files, empty input and a shell-metacharacter payload without creating a marker.
 - [x] `FS.mkdir` remains single-level and `FS.mkdir_p` remains recursive; success/error returns are preserved.
 - [x] The implementation performs no shell execution and uses `std::filesystem` with `std::error_code`.
-- [ ] Exact-current-head formatter, Lua API documentation, Lua tests and full runtime CI pass.
+- [x] New Lua methods are present in `docs/lua-api/lua_api.json`; both documentation validators pass.
+- [ ] Exact-current-head formatter, Lua tests and full runtime CI pass.
 - [x] No protocol, client, schema, migration, map, item, asset or production configuration changes.
 - [x] Program, changelog, module catalogue and handoff records are synchronized.
 - [ ] Autonomous merge gate is satisfied.
@@ -104,21 +107,25 @@ Remove command-shell execution from `FS.mkdir` and `FS.mkdir_p` through the smal
 ## 2026-07-14T09:15:00+02:00
 
 - Published deterministic Markdown/JSON evidence; all temporary audit runners removed themselves.
-- The first publication omitted ignored `artifacts/**`; the corrected run force-staged only the two reports.
-- A later report run exposed trailing whitespace; it was normalized without weakening `git diff --check`.
+- Corrected ignored-artifact staging and trailing whitespace without weakening `git diff --check`.
 - Classified `CS-006` as `VALID_FIX_MISSING`.
 
 ## 2026-07-14T09:30:00+02:00
 
 - Replaced shell-backed wrappers with native methods and added focused Lua/C++ tests.
-- Exact-anchor apply run `29314889189` passed `luajit tests/lua/test_fs.lua`, the no-`os.execute` check, the changed-file allowlist and `git diff --check` on implementation head `c07bb271f288eae53824437b102d37cafe9751dd`.
+- Exact-anchor apply run `29314889189` passed `luajit tests/lua/test_fs.lua`, the no-`os.execute` check, the changed-file allowlist and `git diff --check` on `c07bb271f288eae53824437b102d37cafe9751dd`.
 
 ## 2026-07-14T09:45:00+02:00
 
 - Consolidated competing implementation shapes and retained one `FileSystem` table in the already compiled `GlobalFunctions` module.
 - Strengthened native functions with non-string argument checks and changed the C++ regression to invoke the real Lua binding.
-- Removed failed temporary finalizer files; current PR diff contains exactly twelve intended files.
-- Draft CI `1674` was not accepted as runtime evidence because Fast Checks, Lua and all platform builds were skipped.
+- Removed all temporary finalizer files; final source diff contains only intended runtime, test, docs and evidence paths.
+
+## 2026-07-14T10:00:00+02:00
+
+- Ready-state CI `1691` passed formatting, Lua API quality and standalone Lua tests, then correctly stopped because the two new methods were absent from `docs/lua-api/lua_api.json`.
+- Added deterministic `FileSystem` class entries in alphabetical order and ran `tools/check_lua_api_quality.py` plus `tools/check_lua_api_binding_docs.py --base origin/main`; both passed in workflow `29315799252`.
+- The documentation updater removed itself; bot-authored head `28e7c3638fb3a4b420d81cc0cda8f9fce797daa3` reported `action_required` with no standard jobs, so no CI result is claimed for that head.
 
 # Decisions
 
@@ -129,6 +136,7 @@ Remove command-shell execution from `FS.mkdir` and `FS.mkdir_p` through the smal
 | Use existing `GlobalFunctions` | It avoids a second subsystem and new maintained build registrations while exposing only two narrow methods. |
 | Preserve `FS` wrappers | Existing datapack and custom scripts keep their public API. |
 | Use `std::error_code` | Directory failures remain visible to Lua without exceptions crossing the binding boundary. |
+| Catalogue the methods explicitly | Repository policy requires every new registration in the generated Lua API catalogue before build execution. |
 | Do not claim default-client RCE | Standard name validation blocks shell syntax; broader custom/DB/script input remains the relevant boundary. |
 
 # Validation
@@ -139,7 +147,8 @@ Remove command-shell execution from `FS.mkdir` and `FS.mkdir_p` through the smal
 | `4695d10158386da1af517a233bdb3e5cda0d2c23` / `29314149659` | deterministic audit publication | passed |
 | `c07bb271f288eae53824437b102d37cafe9751dd` / `29314889189` | exact implementation, focused Lua test, no-shell check, allowlist, `git diff --check` | passed |
 | `c9ca0e38ec73f5cac9c70be210be3835247d78bb` / CI `1674` | draft Required | insufficient; build/test jobs skipped |
-| `40c0831d97a3b7b711f40efa68c72b1d7a7588f1` | final twelve-file source review | completed; exact-head Ready CI pending |
+| `2f533d00ee0624ead7a13c05dfdc7d6ea60d496c` / CI `1691` | first Ready gate | Lua passed; Fast Checks failed only on missing Lua API catalogue entries; builds correctly skipped |
+| `28e7c3638fb3a4b420d81cc0cda8f9fce797daa3` / `29315799252` | catalogue update and both documentation validators | passed |
 
 Never record `passed` without verification on the stated commit.
 
@@ -154,22 +163,22 @@ Never record `passed` without verification on the stated commit.
 
 # Remaining work
 
-1. Verify ownership and draft formatter/Lua checks on the connector-authored current head.
-2. Mark PR #310 Ready and require full Linux C++ build/tests plus all selected platform gates and `Required`.
-3. Review all comments, reviews, threads and the final diff; enable auto-merge only on the unchanged validated SHA.
+1. Run exact-head ownership, formatter, Lua and full C++ CI from this connector-authored commit.
+2. Repair only concrete failures without weakening gates.
+3. Review comments, reviews, threads and final diff; enable auto-merge only on the unchanged validated SHA.
 4. Archive this task and close `CS-006` in a separate cleanup PR.
 
 # Handoff
 
-Read this task, PR #310, both audit reports, `data/libs/functions/fs.lua`, `global_functions.*` and both focused tests.
+Read this task, PR #310, both audit reports, `data/libs/functions/fs.lua`, `global_functions.*`, `docs/lua-api/lua_api.json` and both focused tests.
 
-Do not restore shell execution, do not replace it with a denylist, do not merge `table.unserialize` into this task, and do not treat a skipped draft build as C++ validation.
+Do not restore shell execution, do not replace it with a denylist, do not merge `table.unserialize` into this task, and do not treat a skipped or `action_required` run as C++ validation.
 
 # Completion
 
 - Final status: active
 - PR: #310
-- Current reviewed source head: `40c0831d97a3b7b711f40efa68c72b1d7a7588f1`
+- Current reviewed source/docs head: `28e7c3638fb3a4b420d81cc0cda8f9fce797daa3`
 - Merge commit:
 - Program record updated: yes, active task and `VALID_FIX_MISSING`
 - Catalogue updated: yes, active reusable binding
