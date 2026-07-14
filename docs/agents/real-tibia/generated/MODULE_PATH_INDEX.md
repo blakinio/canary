@@ -20,6 +20,8 @@
 | `data/scripts/spells/**` | `spells` | `data` |
 | `data/world/**` | `spawns` | `data` |
 | `docs/agents/programs/E2E_AUTOMATION_PROGRAM.md` | `physical-client-e2e` | `docs` |
+| `docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md` | `upstream-intelligence` | `docs` |
+| `docs/agents/upstream/**` | `upstream-intelligence` | `docs` |
 | `docs/ai-agent/ACHIEVEMENT_POINT_RECONCILIATION.md` | `achievements` | `docs` |
 | `docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json` | `imbuements` | `docs` |
 | `docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md` | `imbuements` | `docs` |
@@ -82,6 +84,7 @@
 | `tests/unit/players/**` | `wheel-of-destiny` | `tests` |
 | `tests/unit/players/**prey**` | `prey` | `tests` |
 | `tests/unit/server/network/**` | `protocol` | `tests` |
+| `tools/agents/test_upstream_intelligence.py` | `upstream-intelligence` | `tests` |
 | `tools/ai-agent/achievement_validation.py` | `achievements` | `tests` |
 | `tools/ai-agent/cyclopedia_validation.py` | `charms` | `tests` |
 | `tools/ai-agent/cyclopedia_validation.py` | `cyclopedia` | `tests` |

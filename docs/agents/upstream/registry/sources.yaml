@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "report": {
+    "repository": "blakinio/canary",
+    "issue_title": "[Upstream Intelligence] Current drift report",
+    "max_issue_body_chars": 60000,
+    "max_report_rows": 100
+  },
+  "sources": [
+    {
+      "id": "opentibiabr-canary",
+      "name": "OpenTibiaBR Canary",
+      "repository": "opentibiabr/canary",
+      "role": "upstream-server",
+      "writable": false,
+      "default_branch": "main",
+      "kinds": ["commits", "pulls", "issues", "releases"],
+      "max_items_per_kind": 40,
+      "max_pages": 2,
+      "daily_file_details": 12,
+      "deep_file_details": 40,
+      "initial_baseline": {
+        "sha": "a879c9312e34381e8eedf397b8ed44510698b689",
+        "observed_at": "2026-07-14T11:20:00Z"
+      }
+    },
+    {
+      "id": "opentibiabr-otclient",
+      "name": "OpenTibiaBR OTClient",
+      "repository": "opentibiabr/otclient",
+      "role": "upstream-client",
+      "writable": false,
+      "default_branch": "main",
+      "kinds": ["commits", "pulls", "issues", "releases"],
+      "max_items_per_kind": 35,
+      "max_pages": 2,
+      "daily_file_details": 10,
+      "deep_file_details": 35,
+      "initial_baseline": {
+        "sha": "bdea0b23b4a738809d698cb7e4f88a299dd6bffc",
+        "observed_at": "2026-07-14T11:20:00Z"
+      }
+    },
+    {
+      "id": "crystalserver",
+      "name": "CrystalServer",
+      "repository": "zimbadev/crystalserver",
+      "role": "donor-server",
+      "writable": false,
+      "default_branch": "main",
+      "kinds": ["commits", "pulls", "issues", "releases"],
+      "max_items_per_kind": 40,
+      "max_pages": 2,
+      "daily_file_details": 12,
+      "deep_file_details": 40,
+      "initial_baseline": {
+        "sha": "fc0d53b9f9965463b6082c07e6d3d482294541a7",
+        "observed_at": "2026-07-14T11:20:00Z"
+      }
+    },
+    {
+      "id": "opentibiabr-rme",
+      "name": "OpenTibiaBR Remere's Map Editor",
+      "repository": "opentibiabr/remeres-map-editor",
+      "role": "editor",
+      "writable": false,
+      "default_branch": "main",
+      "kinds": ["commits", "pulls", "issues", "releases"],
+      "max_items_per_kind": 25,
+      "max_pages": 2,
+      "daily_file_details": 8,
+      "deep_file_details": 25,
+      "initial_baseline": {
+        "sha": "57ee0e5b915909f207aa7a60968c8ed6e4f7f406",
+        "observed_at": "2026-07-14T11:20:00Z"
+      }
+    },
+    {
+      "id": "opentibiabr-client-editor",
+      "name": "OpenTibiaBR Client Editor",
+      "repository": "opentibiabr/client-editor",
+      "role": "editor",
+      "writable": false,
+      "default_branch": "main",
+      "kinds": ["commits", "pulls", "issues", "releases"],
+      "max_items_per_kind": 20,
+      "max_pages": 2,
+      "daily_file_details": 5,
+      "deep_file_details": 20,
+      "initial_baseline": {
+        "sha": "405f88343a33289ad06ba7749892ee91258925a2",
+        "observed_at": "2026-07-14T11:20:00Z"
+      }
+    }
+  ]
+}

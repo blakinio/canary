@@ -22,6 +22,7 @@
 | `quests` | `otbm-tooling`, `player-persistence` | `npcs`, `spawns`, `houses`, `achievements` |
 | `spawns` | `otbm-tooling` | `quests`, `npcs`, `cyclopedia` |
 | `spells` | `combat` | `wheel-of-destiny` |
+| `upstream-intelligence` | — | `combat`, `otbm-tooling`, `physical-client-e2e`, `protocol` |
 | `wheel-of-destiny` | `combat`, `player-persistence`, `protocol` | `spells` |
 
 Only `depends_on` must remain acyclic. `interacts_with` is descriptive and may be reciprocal.
