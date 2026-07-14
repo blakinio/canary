@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from real_tibia_registry_lib import Registry
-from upstream_intelligence_common import stable_fingerprint
+from upstream_intelligence_common import source_mapping_buckets, stable_fingerprint
 
 HIGH_FLAGS = {"security", "crash", "protocol", "database", "breaking"}
 URGENT_FLAGS = {"security", "crash"}
@@ -157,16 +157,27 @@ def release_candidate(source: Mapping[str, Any], row: Mapping[str, Any]) -> dict
     )
 
 
-def map_candidate(candidate: dict[str, Any], registry: Registry) -> None:
+def map_candidate(
+    candidate: dict[str, Any],
+    registry: Registry,
+    source: Mapping[str, Any] | None = None,
+) -> None:
+    """Map changed paths through source-policy-allowed registry buckets only."""
     paths = candidate.get("paths", [])
     if not paths:
         candidate["mapping_state"] = "not-applicable"
         return
+
+    allowed_buckets = frozenset(source_mapping_buckets(source))
     mapped: list[dict[str, str]] = []
     unmapped: list[str] = []
     modules: set[str] = set()
     for path in paths:
-        matches = registry.matched_modules(path)
+        matches = [
+            match
+            for match in registry.matched_modules(path)
+            if match[1] in allowed_buckets
+        ]
         if not matches:
             unmapped.append(path)
         for module_id, bucket, pattern in matches:
@@ -219,7 +230,6 @@ def build_local_history(root: Path) -> LocalHistory:
     Scheduled scans may fetch donor refs for bounded ancestry inspection. Those
     refs must never make a donor candidate look present in the maintained fork.
     """
-
     commits = _git(root, "rev-list", "HEAD")
     messages = _git(root, "log", "HEAD", "--format=%H%n%B%n")
     if commits.returncode != 0 or messages.returncode != 0:
