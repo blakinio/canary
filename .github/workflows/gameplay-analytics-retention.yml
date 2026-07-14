@@ -13,6 +13,7 @@ on:
       - "tools/analytics/validate_gameplay_analytics_retention_systemd.py"
       - "tools/analytics/systemd/**"
       - "docs/systems/gameplay-analytics-retention.md"
+      - "docs/systems/gameplay-analytics-dry-run.md"
       - ".github/workflows/gameplay-analytics-retention.yml"
   push:
     branches: [main]
@@ -26,6 +27,7 @@ on:
       - "tools/analytics/validate_gameplay_analytics_retention_systemd.py"
       - "tools/analytics/systemd/**"
       - "docs/systems/gameplay-analytics-retention.md"
+      - "docs/systems/gameplay-analytics-dry-run.md"
       - ".github/workflows/gameplay-analytics-retention.yml"
 
 permissions:
