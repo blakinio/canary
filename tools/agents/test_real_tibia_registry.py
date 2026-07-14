@@ -52,8 +52,7 @@ class RealTibiaRegistryTests(unittest.TestCase):
         return json.loads(self.module_path(module_id).read_text(encoding="utf-8"))
 
     def write_module(self, module: dict) -> None:
-        path = self.module_path(module["module_id"])
-        path.write_text(
+        self.module_path(module["module_id"]).write_text(
             json.dumps(module, indent=2, sort_keys=True) + "\n",
             encoding="utf-8",
         )
@@ -70,24 +69,16 @@ class RealTibiaRegistryTests(unittest.TestCase):
         self.assertIn(
             "Evaluated as of **2026-07-14**", first["STALE_MODULES.md"]
         )
-        self.assertEqual(
-            _write_generated(registry, check=False, as_of=None), 0
-        )
-        self.assertEqual(
-            _write_generated(registry, check=True, as_of=None), 0
-        )
+        self.assertEqual(_write_generated(registry, check=False, as_of=None), 0)
+        self.assertEqual(_write_generated(registry, check=True, as_of=None), 0)
 
     def test_generated_drift_is_detected(self) -> None:
         registry = self.load()
-        self.assertEqual(
-            _write_generated(registry, check=False, as_of=None), 0
-        )
+        self.assertEqual(_write_generated(registry, check=False, as_of=None), 0)
         path = self.root / "docs/agents/real-tibia/generated/MODULE_INDEX.md"
         path.write_text("manual edit\n", encoding="utf-8")
         with redirect_stderr(io.StringIO()):
-            self.assertEqual(
-                _write_generated(registry, check=True, as_of=None), 1
-            )
+            self.assertEqual(_write_generated(registry, check=True, as_of=None), 1)
 
     def test_unknown_dependency_is_rejected(self) -> None:
         module = self.read_module("wheel-of-destiny")
@@ -107,10 +98,7 @@ class RealTibiaRegistryTests(unittest.TestCase):
         self.write_module(combat)
         result = self.load().validate()
         self.assertTrue(
-            any(
-                error.startswith("dependency cycle:")
-                for error in result.errors
-            )
+            any(error.startswith("dependency cycle:") for error in result.errors)
         )
 
     def test_path_traversal_is_rejected(self) -> None:
@@ -119,10 +107,7 @@ class RealTibiaRegistryTests(unittest.TestCase):
         self.write_module(module)
         result = self.load().validate()
         self.assertTrue(
-            any(
-                "unsafe paths.server entry" in error
-                for error in result.errors
-            )
+            any("unsafe paths.server entry" in error for error in result.errors)
         )
 
     def test_path_lookup_returns_all_matching_modules(self) -> None:
@@ -135,7 +120,7 @@ class RealTibiaRegistryTests(unittest.TestCase):
 
     def test_decomposition_records_are_bounded(self) -> None:
         registry = self.load()
-        self.assertEqual(len(registry.modules), 29)
+        self.assertEqual(len(registry.modules), 35)
         self.assertIn("engine-foundation", registry.categories)
         tsd_001 = {
             "configuration",
@@ -153,28 +138,29 @@ class RealTibiaRegistryTests(unittest.TestCase):
             "database-migrations",
             "world-persistence",
         }
-        all_tsd = tsd_001 | tsd_002a | tsd_002b
+        engine_tsd = tsd_001 | tsd_002a | tsd_002b
         actual = {
             module_id
             for module_id, module in registry.modules.items()
             if module["category"] == "engine-foundation"
         }
-        self.assertEqual(actual, all_tsd)
-        for module_id in all_tsd:
-            module = registry.modules[module_id]
-            self.assertEqual(module["lifecycle"]["status"], "inventory")
-            self.assertEqual(module["maturity"]["implementation"], "inventory")
-            self.assertEqual(module["maturity"]["evidence"], "inventory")
-            self.assertEqual(module["maturity"]["persistence"], "not-assessed")
-            self.assertEqual(module["maturity"]["runtime_validation"], "not-assessed")
+        self.assertEqual(actual, engine_tsd)
         expected_dependencies = {
             "lua-bindings": ["lua-runtime"],
             "database-migrations": ["database-connection"],
             "world-persistence": ["database-connection"],
         }
-        for module_id in all_tsd:
+        for module_id in engine_tsd:
+            module = registry.modules[module_id]
+            self.assertEqual(module["lifecycle"]["status"], "inventory")
+            self.assertEqual(module["maturity"]["implementation"], "inventory")
+            self.assertEqual(module["maturity"]["evidence"], "inventory")
+            self.assertEqual(module["maturity"]["persistence"], "not-assessed")
             self.assertEqual(
-                registry.modules[module_id]["relationships"]["depends_on"],
+                module["maturity"]["runtime_validation"], "not-assessed"
+            )
+            self.assertEqual(
+                module["relationships"]["depends_on"],
                 expected_dependencies.get(module_id, []),
             )
         for rejected in (
@@ -185,6 +171,70 @@ class RealTibiaRegistryTests(unittest.TestCase):
             "save-restart-reload",
         ):
             self.assertNotIn(rejected, registry.modules)
+
+    def test_tsd_003_records_are_bounded(self) -> None:
+        registry = self.load()
+        tsd_003 = {
+            "account-authentication",
+            "account-lifecycle",
+            "character-lifecycle",
+            "character-progression",
+            "vocations",
+            "weapon-proficiency",
+        }
+        expected_dependencies = {
+            "account-authentication": ["account-lifecycle"],
+            "account-lifecycle": ["database-connection"],
+            "character-lifecycle": [
+                "account-authentication",
+                "player-persistence",
+            ],
+            "character-progression": [
+                "character-lifecycle",
+                "player-persistence",
+            ],
+            "vocations": [],
+            "weapon-proficiency": [
+                "character-progression",
+                "player-persistence",
+            ],
+        }
+        for module_id in tsd_003:
+            module = registry.modules[module_id]
+            self.assertEqual(module["lifecycle"]["status"], "inventory")
+            self.assertEqual(module["maturity"]["implementation"], "inventory")
+            self.assertEqual(module["maturity"]["evidence"], "inventory")
+            for dimension in (
+                "persistence",
+                "protocol",
+                "automated_tests",
+                "runtime_validation",
+                "gameplay_e2e",
+            ):
+                self.assertEqual(module["maturity"][dimension], "not-assessed")
+            self.assertEqual(
+                module["relationships"]["depends_on"],
+                expected_dependencies[module_id],
+            )
+            self.assertNotIn("src/**", module["paths"]["server"])
+
+        for merged_or_deferred in (
+            "account-entitlements",
+            "account-sanctions",
+            "account-wide-storage",
+            "levels-experience",
+            "skills-training",
+            "magic-level",
+            "stamina",
+            "offline-training",
+            "death-loss",
+            "blessings",
+            "titles",
+            "outfits",
+            "mounts",
+            "familiars",
+        ):
+            self.assertNotIn(merged_or_deferred, registry.modules)
 
     def test_persistence_umbrella_remains_unchanged(self) -> None:
         module = self.load().modules["player-persistence"]
@@ -201,21 +251,29 @@ class RealTibiaRegistryTests(unittest.TestCase):
         cases = {
             "CMakeLists.txt": "build-system",
             "schema.sql": "database-migrations",
+            "src/account/account.cpp": "account-lifecycle",
             "src/canary_server.cpp": "engine-runtime-lifecycle",
             "src/config/configmanager.cpp": "configuration",
+            "src/creatures/players/components/weapon_proficiency.cpp": "weapon-proficiency",
+            "src/creatures/players/player.cpp": "character-progression",
+            "src/creatures/players/vocations/vocation.cpp": "vocations",
             "src/database/database.cpp": "database-connection",
             "src/database/databasemanager.cpp": "database-migrations",
             "src/game/scheduling/dispatcher.cpp": "engine-scheduler",
             "src/game/scheduling/save_manager.cpp": "world-persistence",
+            "src/io/iologindata.cpp": "character-lifecycle",
             "src/io/iomapserialize.cpp": "world-persistence",
             "src/lib/di/container.hpp": "engine-service-container",
             "src/lua/functions/lua_functions_loader.cpp": "lua-bindings",
             "src/lua/scripts/lua_environment.hpp": "lua-runtime",
+            "src/security/login_session_manager.cpp": "account-authentication",
         }
         for path, expected in cases.items():
             with self.subTest(path=path):
-                matches = registry.matched_modules(path)
-                ids = [module_id for module_id, _, _ in matches]
+                ids = [
+                    module_id
+                    for module_id, _, _ in registry.matched_modules(path)
+                ]
                 self.assertIn(expected, ids)
                 self.assertEqual(ids, sorted(ids))
 
@@ -230,12 +288,44 @@ class RealTibiaRegistryTests(unittest.TestCase):
         self.assertIn("database-connection", ids)
         self.assertIn("player-persistence", ids)
 
+    def test_character_paths_keep_broad_and_narrow_discovery(self) -> None:
+        registry = self.load()
+        account_ids = [
+            module_id
+            for module_id, _, _ in registry.matched_modules(
+                "src/account/account.cpp"
+            )
+        ]
+        self.assertIn("account-authentication", account_ids)
+        self.assertIn("account-lifecycle", account_ids)
+
+        login_ids = [
+            module_id
+            for module_id, _, _ in registry.matched_modules(
+                "src/io/iologindata.cpp"
+            )
+        ]
+        self.assertIn("account-authentication", login_ids)
+        self.assertIn("character-lifecycle", login_ids)
+        self.assertIn("player-persistence", login_ids)
+
+        player_ids = [
+            module_id
+            for module_id, _, _ in registry.matched_modules(
+                "src/creatures/players/player.cpp"
+            )
+        ]
+        self.assertIn("character-lifecycle", player_ids)
+        self.assertIn("character-progression", player_ids)
+        self.assertIn("player-persistence", player_ids)
+
     def test_freshness_thresholds_are_explicit(self) -> None:
         rows = {
             row["module_id"]: row
             for row in self.load().stale_rows(dt.date(2026, 8, 15))
         }
         self.assertEqual(rows["wheel-of-destiny"]["state"], "warning")
+        self.assertEqual(rows["account-authentication"]["state"], "warning")
         self.assertEqual(rows["otbm-tooling"]["state"], "current")
 
     def test_unregistered_generated_file_is_rejected(self) -> None:
@@ -244,10 +334,7 @@ class RealTibiaRegistryTests(unittest.TestCase):
         path.write_text("manual\n", encoding="utf-8")
         result = self.load().validate()
         self.assertTrue(
-            any(
-                "unregistered files: manual.md" in error
-                for error in result.errors
-            )
+            any("unregistered files: manual.md" in error for error in result.errors)
         )
 
     def test_affected_modules_are_sorted_and_deduplicated(self) -> None:
@@ -267,6 +354,12 @@ class RealTibiaRegistryTests(unittest.TestCase):
             [
                 "CMakeLists.txt",
                 "schema.sql",
+                "src/account/account.cpp",
+                "src/security/login_session_manager.cpp",
+                "src/io/iologindata.cpp",
+                "src/creatures/players/player.cpp",
+                "src/creatures/players/vocations/vocation.cpp",
+                "src/creatures/players/components/weapon_proficiency.cpp",
                 "src/database/database.cpp",
                 "src/database/databasemanager.cpp",
                 "src/game/scheduling/save_manager.cpp",
@@ -282,7 +375,11 @@ class RealTibiaRegistryTests(unittest.TestCase):
         )
         self.assertEqual(affected, sorted(set(affected)))
         for expected in (
+            "account-authentication",
+            "account-lifecycle",
             "build-system",
+            "character-lifecycle",
+            "character-progression",
             "configuration",
             "database-connection",
             "database-migrations",
@@ -292,6 +389,8 @@ class RealTibiaRegistryTests(unittest.TestCase):
             "lua-bindings",
             "lua-runtime",
             "player-persistence",
+            "vocations",
+            "weapon-proficiency",
             "world-persistence",
         ):
             self.assertIn(expected, affected)
