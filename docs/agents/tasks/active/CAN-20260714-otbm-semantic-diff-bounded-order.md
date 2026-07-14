@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: fix/otbm-semantic-diff-bounded-order
 base_branch: main
 created: 2026-07-14T10:30:00+02:00
-updated: 2026-07-14T10:50:00+02:00
-last_verified_commit: "4463517efa5a9d902f4ee73d70b867e856d6e119"
+updated: 2026-07-14T11:00:00+02:00
+last_verified_commit: "e3332768619e80b4f7a49ef60921d52e4a96b33f"
 risk: low
 related_issue: ""
 related_pr: "#319"
@@ -21,7 +21,6 @@ owned_paths:
     - tools/ai-agent/test_otbm_semantic_diff.py
     - docs/agents/CHANGELOG.md
     - docs/agents/tasks/active/CAN-20260714-otbm-semantic-diff-bounded-order.md
-    - .github/workflows/refresh-otbm-semantic-diff-bounded-order.yml
   shared: []
   read_only:
     - AGENTS.md
@@ -48,8 +47,8 @@ Fix bounded Semantic OTBM Diff so a region spanning multiple 256x256 World Index
 - [x] Add a focused regression test using real synthetic OTBM indexes.
 - [x] Run the dedicated Semantic OTBM Diff workflow and repository CI on the validated head.
 - [x] Record changelog impact.
-- [ ] Refresh the branch from advanced `main` without losing the validated source/test change.
-- [ ] Remove the temporary refresh workflow before merge.
+- [x] Refresh the branch from advanced `main` without losing the validated source/test change.
+- [x] Remove all temporary patch/refresh workflows and scripts before merge.
 - [ ] Re-run final-head checks, merge autonomously and archive the task.
 
 # Confirmed context
@@ -64,19 +63,19 @@ Fix bounded Semantic OTBM Diff so a region spanning multiple 256x256 World Index
 - Temporary patch workflows/scripts self-removed from the branch.
 - Ready-state CI run `29319066210` passed Fast Checks, Lua Tests, Linux Release and aggregate `Required` on validated head `4463517efa5a9d902f4ee73d70b867e856d6e119`.
 - Merge was then blocked because `main` advanced with Real Tibia parity governance and changed the shared changelog.
-- A temporary self-removing refresh workflow will merge current `main`, favor current-main text only for conflicts, restore the PR #319 changelog entry, and push a new head for complete revalidation.
+- The branch was rebuilt from current `main` `8dd09bddbc7a492660472e29ef576578691f3d91` using the previously validated source/test blobs and a changelog that preserves both governance and PR #319 entries.
+- No temporary workflow remains in the refreshed branch.
 
 # Plan
 
-1. Refresh from current `main` and remove the temporary refresh workflow.
-2. Re-run focused and repository CI on the refreshed final head.
-3. Review final diff, reviews and unresolved threads.
-4. Satisfy `Required`, squash-merge and archive.
-5. Update/resume PR #316 on the merged fix.
+1. Re-run focused and repository CI on refreshed final head.
+2. Review final diff, reviews and unresolved threads.
+3. Satisfy `Required`, squash-merge and archive.
+4. Update/resume PR #316 on the merged fix.
 
 # Current state
 
-The validated fix is complete, but PR #319 has a changelog conflict with advanced `main`. This task-record update intentionally triggers the branch-local refresh workflow.
+The conflict-safe refreshed branch contains only the bounded-ordering source change, regression, changelog entry and task record on top of current `main`.
 
 # Validation and CI
 
@@ -89,7 +88,8 @@ The validated fix is complete, but PR #319 has a changelog conflict with advance
 | `4463517efa5a9d902f4ee73d70b867e856d6e119` / `29318967704` | OTBM Semantic Diff | passed | Full focused suite and new regression passed. |
 | `4463517efa5a9d902f4ee73d70b867e856d6e119` / `29318967705` | OTBM Map Tools | passed | Existing map-tool tests passed. |
 | `4463517efa5a9d902f4ee73d70b867e856d6e119` / `29319066210` | ready-state CI | passed | Fast Checks, Lua Tests, Linux Release and `Required` succeeded. |
-| refreshed final head | complete checks | pending | Required after conflict-safe refresh. |
+| `e3332768619e80b4f7a49ef60921d52e4a96b33f` | conflict-safe branch rebuild | applied | Current-main tree plus validated source/test/task blobs and combined changelog. |
+| refreshed final head | complete checks | pending | Required after this final task update. |
 
 # Safety and rollback
 
@@ -99,7 +99,7 @@ The validated fix is complete, but PR #319 has a changelog conflict with advance
 
 # Remaining work
 
-Refresh, revalidate, merge, archive and resume PR #316.
+Revalidate, merge, archive and resume PR #316.
 
 # Completion
 
