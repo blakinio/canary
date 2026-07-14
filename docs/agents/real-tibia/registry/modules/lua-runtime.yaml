@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "module_id": "lua-runtime",
+  "name": "Lua Runtime",
+  "category": "engine-foundation",
+  "description": "Shared Lua state, script-interface lifecycle, environment initialization, reload boundaries and runtime safety inventory across Canary.",
+  "lifecycle": {
+    "status": "inventory",
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"
+  },
+  "scope": {
+    "includes": [
+      "shared Lua state and environment lifecycle",
+      "script-interface initialization and teardown",
+      "runtime callback ownership boundaries",
+      "reload and shutdown safety inventory"
+    ],
+    "excludes": [
+      "individual gameplay scripts",
+      "feature-specific Lua registrations",
+      "a separate module for each binding family",
+      "arbitrary Lua execution by analytics or AI systems",
+      "claims of object-lifetime or serialization safety without focused evidence"
+    ]
+  },
+  "paths": {
+    "server": [
+      "src/lua/**"
+    ],
+    "client": [],
+    "data": [],
+    "tests": [],
+    "docs": [
+      "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+      "docs/agents/real-tibia/TIBIA_SYSTEM_DECOMPOSITION_REPORT.md"
+    ]
+  },
+  "relationships": {
+    "depends_on": [],
+    "interacts_with": [
+      "configuration",
+      "engine-runtime-lifecycle",
+      "npcs",
+      "quests",
+      "spells"
+    ]
+  },
+  "documents": {
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+    "validation": [
+      "docs/agents/real-tibia/TIBIA_SYSTEM_DECOMPOSITION_REPORT.md"
+    ]
+  },
+  "source_requirements": [
+    {"source": "canary-current", "mode": "required"},
+    {"source": "runtime-observation", "mode": "required-when-related"}
+  ],
+  "maturity": {
+    "implementation": "inventory",
+    "evidence": "inventory",
+    "persistence": "not-assessed",
+    "protocol": "not-assessed",
+    "automated_tests": "not-assessed",
+    "runtime_validation": "not-assessed",
+    "gameplay_e2e": "not-assessed"
+  },
+  "freshness": {
+    "class": "standard",
+    "last_inventory": "2026-07-14",
+    "warning_after_days": 30,
+    "invalid_after_days": 90,
+    "refresh_before_each_task": true
+  },
+  "notes": [
+    "This record inventories the shared runtime and does not claim safety of every binding or script.",
+    "Lua bindings remain a separate TSD-002 candidate because the current path inventory is too broad to define that boundary safely.",
+    "Event registration, object lifetime, serialization and runtime safety remain findings within this module unless later evidence proves independent lifecycles."
+  ]
+}
