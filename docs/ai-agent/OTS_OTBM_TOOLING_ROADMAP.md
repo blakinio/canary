@@ -9,7 +9,7 @@
 
 Maintain one deterministic, evidence-based OTBM analysis stack that agents can reuse for quests, teleportation, reachability, NPCs, spawns, storage progression, semantic diffs and—only after explicit safety gates—bounded map patching.
 
-The stack reuses the existing native OTBM scanner, World Index, script resolver, Quest Map Validator, appearances parser, Phase 3 reachability, Phase 4 spawn/NPC evidence and factual renderer. It must not create competing OTBM parsers/pathfinders or use AI-generated imagery as map evidence.
+The stack reuses the existing native OTBM scanner, World Index, script resolver, Quest Map Validator, appearances parser, Phase 3 reachability, Phase 4 spawn/NPC evidence, Phase 5 storage evidence and factual renderer. It must not create competing OTBM parsers/pathfinders/renderers or use AI-generated imagery as map evidence.
 
 ## Programme status
 
@@ -20,7 +20,7 @@ The stack reuses the existing native OTBM scanner, World Index, script resolver,
 | 3 | Teleports, floor transitions and reachability | merged and archived | #274 / #277 |
 | 4 | Spawns, bosses and NPCs | merged and archived | #286 / #290 |
 | 5 | Storage dependency graph | merged and archived | #299 / #309 |
-| 6 | Semantic OTBM diff and visual evidence | not started | separate future task |
+| 6 | Semantic OTBM diff and visual evidence | active draft | #311 |
 | 7 | Geometry and consistency audit | not started | separate future task |
 | 8 | Safe bounded OTBM patch writer | blocked by Phases 6–7 safety gates | separate future task |
 
@@ -36,7 +36,7 @@ Every phase is a separate bounded task, branch and PR. Do not combine phases.
 - A source/map match can still be blocked by doors, quest state, walkability, direction, account state, protocol or runtime conditions.
 - Green CI proves only the checks executed at that commit; it does not prove live gameplay.
 - Coordinates, item IDs, AID, UID, storage values, spawn radii/times and transition offsets must never be invented.
-- World Index, Quest Map Validator, reachability, spawn/NPC validation and storage dependency analysis are read-only.
+- World Index, Quest Map Validator, reachability, spawn/NPC validation, storage dependency analysis and semantic diff are read-only.
 - `.otbm`, `.widx`, `items.otb`, appearances binaries, client packages, generated large reports and renders stay outside Git.
 - Map images must come from the real OTBM, compatible client assets and the factual renderer.
 - Do not use AI image generation to visualize or modify the map.
@@ -230,7 +230,7 @@ Merged PR #299 delivered:
 
 Final feature head: `b1e19e179eb32199cc6e14e68becd9cc99c91fca`.  
 Squash merge: `c7ecb321681d6c4dd80b23b380bd211062f52c90`.  
-Lifecycle cleanup: #309 (merge pending).
+Lifecycle cleanup: #309, merge `f4e5371906d3b4a33229db2dce6b25d44fb813f0`.
 
 ### Source-selection and namespace policy
 
@@ -337,16 +337,62 @@ The renderer requires the real OTBM and compatible client assets, hashes its inp
 
 ## Phase 6 — Semantic OTBM diff
 
-Planned deliverables:
+### Active delivery
 
-- tiles and item stacks added/removed;
-- AID/UID/house/teleport changes;
-- walkability-relevant changes using Phase 3 semantics;
-- affected handlers, quest, spawn/NPC and storage evidence;
-- bounded factual before/after/context renders;
-- maps, indexes and generated images remain external artifacts.
+Draft PR #311 provides:
 
-Phase 6 must compare canonical World Index/scan evidence and must not add a competing OTBM parser.
+- report `canary-otbm-semantic-diff-v1`;
+- factual render manifest `canary-otbm-semantic-diff-render-v1`;
+- modular facade, analysis, types, render integration and CLI in `tools/ai-agent/otbm_semantic_diff*.py`;
+- schema `docs/ai-agent/OTBM_SEMANTIC_DIFF.schema.json`;
+- documentation `docs/ai-agent/OTBM_SEMANTIC_DIFF.md`;
+- evidence-boundary ADR;
+- 30 focused tests;
+- dedicated workflow `.github/workflows/otbm-semantic-diff.yml`.
+
+### Comparison contract
+
+Phase 6 consumes two compatible canonical World Index binaries and manifests. It does not parse OTBM. Optional source maps are hash-verified only.
+
+- tiles are matched only by exact `x,y,z`;
+- item base identity is exact `(itemId,itemDepth,source)`;
+- exact-multiset reorder is reported separately without false add/remove;
+- other stack edits use a deterministic minimum edit script with fixed `replace`, `remove`, `add` tie order;
+- AID, UID, house-door and teleport source/destination changes remain separate findings;
+- full-index and inclusive bounded 3D scopes preserve exact counts while samples are bounded and explicitly truncated;
+- stable finding IDs do not change when optional correlation is added.
+
+No fuzzy item matching, neighboring-position inference or gameplay-intent inference is allowed.
+
+### Walkability and correlation
+
+The implementation calls the existing Phase 3 `otbm_reachability_transition._classify_tile` classifier. It does not copy the ground/static-blocker/conditional-blocker/unknown-appearance/strict/optimistic rules.
+
+Optional format-validated Phase 2, script-resolution, Phase 3, Phase 4 and Phase 5 reports attach only exact selected-scope position/mechanic evidence. Absence from a supplied report never means global absence or non-use. `unresolved` is never promoted to handled.
+
+### Factual visual evidence and safety
+
+Before/after/context requests call `otbm_renderer.render_region` or record exact `otbm_render_tool.py` commands. No AI image generation, stylization, invented sprite or competing renderer is used. Private maps, indexes, assets and PNGs remain external.
+
+Inputs and outputs are artifact-root confined and size-bounded. Direct symlinks and accidental overwrite are rejected. JSON writes are atomic. Corrupt/incompatible indexes or mismatched provenance fail closed. Maps are never modified.
+
+### Current validation evidence
+
+Implementation head `f5d540b4d88955481909c76f9abcf7588e44559e`:
+
+- OTBM Semantic Diff run `29315508600`: success;
+- Validate semantic map evidence job `87028506652`: success;
+- all 30 focused tests: success;
+- existing native scanner compilation: success;
+- two deterministic synthetic maps/indexes built through the existing scanner/World Index: success;
+- repeat semantic diff byte equality: success;
+- Python compilation, schema syntax and representative `jsonschema` validation: success;
+- forbidden generated `.otbm`, `.widx` and `.png` removal before artifact publication: success;
+- OTBM Map Tools run `29315508420`: success;
+- Agent Task Ownership run `29315508487`: success;
+- repository CI run `29315508700`: success.
+
+The synthetic workflow validates the contract and safety checks; it is not real-map or gameplay proof. Only one private map was available historically, so no real two-map comparison was fabricated.
 
 ## Phase 7 — Geometry and consistency audit
 
@@ -382,12 +428,6 @@ Existing older patch surfaces do not authorize production-map edits. Phase 8 sho
 
 ## Programme handoff
 
-Phases 1–5 are merged and archived. Phase 6 may start only from the then-current `main` after a fresh open-PR, active-task, ownership and existing-tool search.
+Phases 1–5 are merged and archived. Phase 6 is active in task `CAN-20260714-otbm-semantic-diff`, branch `feat/otbm-semantic-diff` and draft PR #311.
 
-Phase 5 reuses:
-
-1. `canary-quest-map-evidence-v1` and `canary-quest-map-validation-v1` from Phase 2;
-2. `canary-otbm-reachability-v1` from Phase 3 where coordinate/geometry evidence is supplied;
-3. `canary-otbm-spawn-npc-evidence-v1` and `canary-otbm-spawn-npc-validation-v1` from Phase 4.
-
-Do not reopen #299 or continue `feat/otbm-storage-dependency-graph`. Do not combine Phase 6 with Harlow cleanup, `0,0,0` teleport repair, geometry audit or map writing.
+Do not reopen historical OTBM PRs or continue their branches. Do not combine Phase 6 with Harlow cleanup, `0,0,0` teleport repair, Bone Capsule repair, geometry audit, map writing, gameplay fixes, Phase 7 or Phase 8.
