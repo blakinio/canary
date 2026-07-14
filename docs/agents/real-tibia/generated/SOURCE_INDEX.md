@@ -9,6 +9,9 @@
 | `crystalserver` — CrystalServer | `implementation-donor` | no | yes | `architecture_candidate`: secondary; `candidate_fix`: secondary; `official_behavior`: none |
 | `maintained-otclient` — blakinio/otclient | `maintained-client` | no | yes | `official_behavior`: insufficient; `packet_interpretation`: primary-for-maintained-client; `ui_contract`: primary-for-maintained-client |
 | `opentibiabr-canary` — OpenTibiaBR Canary | `upstream-implementation` | no | yes | `candidate_fix`: secondary; `official_behavior`: insufficient; `upstream_conventions`: secondary |
+| `opentibiabr-client-editor` — OpenTibiaBR Client Editor | `upstream-editor` | no | yes | `binary_patch_behavior`: comparison-only; `client_tooling_conventions`: secondary; `official_behavior`: none |
+| `opentibiabr-otclient` — OpenTibiaBR OTClient | `upstream-client-implementation` | no | yes | `official_behavior`: insufficient; `packet_interpretation`: comparison-only; `upstream_client_conventions`: secondary |
+| `opentibiabr-rme` — OpenTibiaBR Remere's Map Editor | `upstream-editor` | no | yes | `editor_conventions`: secondary; `map_format_behavior`: comparison-only; `server_gameplay`: none |
 | `packet-capture` — Versioned packet capture or byte fixture | `protocol-evidence` | no | no | `gameplay_semantics`: insufficient; `wire_shape`: primary-when-proven |
 | `runtime-observation` — Controlled Canary runtime observation | `runtime-evidence` | no | no | `current_runtime_behavior`: primary; `official_intent`: insufficient |
 | `tibia-official` — Official Tibia publications and controlled client observation | `official` | no | no | `announced_behavior`: primary; `internal_formula`: insufficient; `release_existence`: primary |

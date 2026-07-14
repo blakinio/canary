@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/agents/upstream/schemas/snapshot.schema.json",
+  "title": "Upstream intelligence scan snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "generated_at", "mode", "window_days", "window_start",
+    "report_repository", "sources", "candidates", "summary"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "mode": {"enum": ["daily", "deep"]},
+    "window_days": {"type": "integer", "minimum": 1, "maximum": 180},
+    "window_start": {"type": "string", "format": "date-time"},
+    "report_repository": {"const": "blakinio/canary"},
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_id", "repository", "role", "default_branch", "initial_baseline_sha",
+          "observed_head_sha", "head_state", "pushed_at", "candidate_count", "error"
+        ],
+        "properties": {
+          "source_id": {"type": ["string", "null"]},
+          "repository": {"type": ["string", "null"]},
+          "role": {"type": ["string", "null"]},
+          "default_branch": {"type": ["string", "null"]},
+          "initial_baseline_sha": {"type": ["string", "null"]},
+          "observed_head_sha": {"type": ["string", "null"]},
+          "head_state": {"enum": ["unchanged", "different", "unknown"]},
+          "pushed_at": {"type": ["string", "null"]},
+          "candidate_count": {"type": "integer", "minimum": 0},
+          "error": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "candidates": {"type": "array", "items": {"type": "object"}},
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_count", "candidate_count", "by_status", "by_kind", "by_priority",
+        "by_module", "by_local_reference", "unmapped_candidates", "source_errors"
+      ],
+      "properties": {
+        "source_count": {"type": "integer", "minimum": 0},
+        "candidate_count": {"type": "integer", "minimum": 0},
+        "by_status": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "by_kind": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "by_priority": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "by_module": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "by_local_reference": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "unmapped_candidates": {"type": "integer", "minimum": 0},
+        "source_errors": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

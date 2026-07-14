@@ -22,6 +22,7 @@
 | `quests` — Quests and world semantics | `world-content` | `mapped` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | — |
 | `spawns` — Creature spawns and raids | `world-content` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | — |
 | `spells` — Spell system | `combat` | `mapped` | `mapped` | `inventory` | `not-assessed` | `not-assessed` | `unit` | `not-assessed` | `not-assessed` | — |
+| `upstream-intelligence` — Upstream Intelligence and Drift Tracking | `platform-tooling` | `active` | `partial` | `mapped` | `not-applicable` | `not-applicable` | `integration` | `not-applicable` | `not-applicable` | `docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md` |
 | `wheel-of-destiny` — Wheel of Destiny | `character-progression` | `active` | `partial` | `audited` | `partial` | `partial` | `integration` | `limited` | `missing` | `docs/agents/programs/WHEEL_OF_DESTINY_PARITY_PROGRAM.md` |
 
-Total modules: **18**.
+Total modules: **19**.

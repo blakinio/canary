@@ -62,6 +62,18 @@
       }
     },
     {
+      "id": "opentibiabr-otclient",
+      "name": "OpenTibiaBR OTClient",
+      "type": "upstream-client-implementation",
+      "writable": false,
+      "exact_sha_required": true,
+      "authority": {
+        "upstream_client_conventions": "secondary",
+        "packet_interpretation": "comparison-only",
+        "official_behavior": "insufficient"
+      }
+    },
+    {
       "id": "crystalserver",
       "name": "CrystalServer",
       "type": "implementation-donor",
@@ -71,6 +83,30 @@
         "architecture_candidate": "secondary",
         "official_behavior": "none",
         "candidate_fix": "secondary"
+      }
+    },
+    {
+      "id": "opentibiabr-rme",
+      "name": "OpenTibiaBR Remere's Map Editor",
+      "type": "upstream-editor",
+      "writable": false,
+      "exact_sha_required": true,
+      "authority": {
+        "editor_conventions": "secondary",
+        "map_format_behavior": "comparison-only",
+        "server_gameplay": "none"
+      }
+    },
+    {
+      "id": "opentibiabr-client-editor",
+      "name": "OpenTibiaBR Client Editor",
+      "type": "upstream-editor",
+      "writable": false,
+      "exact_sha_required": true,
+      "authority": {
+        "client_tooling_conventions": "secondary",
+        "binary_patch_behavior": "comparison-only",
+        "official_behavior": "none"
       }
     },
     {

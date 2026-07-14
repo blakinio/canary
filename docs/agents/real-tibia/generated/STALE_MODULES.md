@@ -24,6 +24,7 @@ Evaluated as of **2026-07-14**.
 | `quests` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `spawns` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `spells` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `upstream-intelligence` | 2026-07-14 | 0 | `current` | 14 / 45 |
 | `wheel-of-destiny` | 2026-07-14 | 0 | `current` | 30 / 90 |
 
 A stale inventory remains historical evidence, but it must not be presented as current-main proof.

@@ -14,15 +14,21 @@ This directory is the persistent operating memory for autonomous agents. The roo
    - `real-tibia/generated/MODULE_INDEX.md`
    - the relevant record under `real-tibia/registry/modules/`
    - the relevant module program under `programs/`, when one exists
-4. `ACTIVE_WORK.md` as a possibly stale snapshot
-5. all relevant records under `tasks/active/**` and live open PRs
-6. the relevant long-lived record under `programs/`, when the work belongs to an autonomous program
-7. `MODULE_CATALOG.md`
-8. `REPOSITORY_MAP.md`
-9. `KNOWN_RISKS.md`
-10. `BUILD_TEST_MATRIX.md`
-11. `CROSS_REPO_CONTRACTS.md` when OTClient may be affected
-12. relevant source, tests, system documentation, task records, and ADRs
+4. for upstream/donor monitoring, synchronization proposals or claims that this fork is behind:
+   - `programs/UPSTREAM_INTELLIGENCE_PROGRAM.md`
+   - `upstream/README.md`
+   - `upstream/SOURCE_WATCH_POLICY.md`
+   - `upstream/TRIAGE_POLICY.md`
+   - the latest stable Upstream Intelligence issue/artifact
+5. `ACTIVE_WORK.md` as a possibly stale snapshot
+6. all relevant records under `tasks/active/**` and live open PRs
+7. the relevant long-lived record under `programs/`, when the work belongs to an autonomous program
+8. `MODULE_CATALOG.md`
+9. `REPOSITORY_MAP.md`
+10. `KNOWN_RISKS.md`
+11. `BUILD_TEST_MATRIX.md`
+12. `CROSS_REPO_CONTRACTS.md` when OTClient may be affected
+13. relevant source, tests, system documentation, task records, and ADRs
 
 ## Sources of truth
 
@@ -36,6 +42,7 @@ This directory is the persistent operating memory for autonomous agents. The roo
 - ADRs record decisions that survive one task.
 - For Real Tibia parity work, the evidence registry, parity playbook, module registry, global parity program, relevant module program, active task, validation report and live PR state together form the durable handoff. Chat history is never the authoritative record.
 - Real Tibia module records are inventory and discovery metadata. They do not prove gameplay parity and do not override active task ownership.
+- Upstream Intelligence reports are recent candidate inventories. They do not prove a local defect, patch equivalence, official behavior or permission to import code.
 
 ## Real Tibia registry-as-code
 
@@ -50,6 +57,21 @@ Before creating a new parity task:
 - create a detailed module program only when several independent packages or long-lived blockers justify one.
 
 Registry path patterns are discovery hints only. Structured claims in the active task remain the edit authorization contract.
+
+## Upstream Intelligence
+
+`upstream/` and `programs/UPSTREAM_INTELLIGENCE_PROGRAM.md` define the read-only watch layer for OpenTibiaBR Canary, OpenTibiaBR OTClient, CrystalServer, Remere's Map Editor and Client Editor.
+
+Use it before claiming that this fork is behind or before proposing an upstream/donor import:
+
+- inspect the latest bounded scan artifact and stable report issue;
+- re-fetch the exact candidate and current local `main`;
+- confirm module mapping and active-task overlap;
+- treat issues as signals and exact ancestry as ancestry only;
+- record a reviewed decision pinned to the exact candidate revision;
+- create a normal bounded task only after proving a current local gap.
+
+The watcher never cherry-picks, creates implementation branches or writes to watched repositories.
 
 ## Autonomous programs
 
@@ -99,4 +121,4 @@ Legacy flat `owned_paths` lists remain readable during migration. They are shown
 
 ## Avoiding duplicate work
 
-Search by module ID, responsibility, paths, symbols, protocol fields, configuration keys, test suites, task IDs, and recent PRs. Reuse similar work or record why it cannot be reused. Resolve overlapping structured exclusive claims before editing.
+Search by module ID, responsibility, paths, symbols, protocol fields, configuration keys, test suites, task IDs, upstream candidate IDs and recent PRs. Reuse similar work or record why it cannot be reused. Resolve overlapping structured exclusive claims before editing.

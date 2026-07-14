@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/agents/upstream/schemas/decision.schema.json",
+  "title": "Reviewed upstream intelligence decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "candidate_id", "source_id", "candidate_revision", "status",
+    "reason", "evidence", "modules", "decided_at", "decided_by"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "candidate_id": {"type": "string", "minLength": 5},
+    "source_id": {"type": "string", "minLength": 1},
+    "candidate_revision": {"type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"},
+    "status": {
+      "enum": [
+        "already-present", "blocked-by-dependency", "blocked-by-version", "canary-superior",
+        "client-coupled", "conflicting", "dangerous", "donor-only", "equivalent-local",
+        "implemented-local", "needs-triage", "no-longer-applicable", "partial-value",
+        "rejected", "superseded", "valid-fix-missing"
+      ]
+    },
+    "reason": {"type": "string", "minLength": 1},
+    "evidence": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "modules": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "local_sha": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+    "decided_at": {"type": "string", "format": "date-time"},
+    "decided_by": {"type": "string", "minLength": 1},
+    "supersedes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+  }
+}

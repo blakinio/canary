@@ -1,0 +1,61 @@
+name: Refresh Upstream Intelligence Branch
+
+on:
+  push:
+    branches:
+      - feat/upstream-intelligence-drift-tracking
+    paths:
+      - .github/workflows/refresh-upstream-intelligence.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-upstream-intelligence-branch
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.repository == 'blakinio/canary'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v6
+        with:
+          ref: feat/upstream-intelligence-drift-tracking
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Rebuild feature diff on current main
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          branch='feat/upstream-intelligence-drift-tracking'
+          old_head="$(git rev-parse HEAD)"
+          test "$old_head" = "$GITHUB_SHA"
+
+          git fetch --no-tags origin main
+          merge_base="$(git merge-base "$old_head" origin/main)"
+          git diff --name-only -z "$merge_base" "$old_head" > /tmp/feature-files.zlist
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git reset --hard origin/main
+
+          while IFS= read -r -d '' path; do
+            if git cat-file -e "$old_head:$path" 2>/dev/null; then
+              git checkout "$old_head" -- "$path"
+            else
+              git rm -f --ignore-unmatch -- "$path"
+            fi
+          done < /tmp/feature-files.zlist
+
+          git add -A
+          git diff --cached --check
+          git commit -m 'feat(agents): refresh upstream intelligence on current main'
+          git push \
+            --force-with-lease="refs/heads/${branch}:${old_head}" \
+            origin "HEAD:refs/heads/${branch}"
