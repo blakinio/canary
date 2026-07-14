@@ -8,7 +8,7 @@ from pathlib import Path
 
 from otbm_geometry_audit import GeometryAuditError, analyze_index_paths, write_report
 from otbm_geometry_audit_render import build_render_manifest
-from otbm_geometry_audit_types import write_json_atomic
+from otbm_geometry_audit_types import resolve_artifact_path, write_json_atomic
 
 
 def position_from_text(value: str) -> tuple[int, int, int]:
@@ -80,9 +80,12 @@ def main() -> int:
                 radius=args.render_radius,
                 max_requests=args.max_render_requests,
             )
-            render_path = args.render_manifest
-            if not render_path.is_absolute():
-                render_path = args.artifact_root.expanduser().resolve() / render_path
+            render_path = resolve_artifact_path(
+                args.artifact_root,
+                args.render_manifest,
+                label="geometry render manifest output",
+                require_file=False,
+            )
             write_json_atomic(manifest, render_path, overwrite=args.overwrite)
             render_output = str(render_path)
     except (FileNotFoundError, OSError, ValueError, GeometryAuditError) as exc:
