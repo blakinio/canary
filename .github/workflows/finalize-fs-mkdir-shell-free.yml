@@ -1,0 +1,57 @@
+name: Finalize FS mkdir shell-free binding
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.repository == 'blakinio/canary' && github.event.pull_request.head.repo.full_name == 'blakinio/canary' && github.head_ref == 'security/fs-mkdir-shell-free'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact task branch
+        uses: actions/checkout@v4
+        with:
+          ref: security/fs-mkdir-shell-free
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Apply exact finalization
+        run: python3 tools/ai-agent/finalize_fs_mkdir_shell_free.py
+      - name: Run focused Lua contract
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y luajit
+          luajit tests/lua/test_fs.lua
+      - name: Validate one binding and no shell
+        run: |
+          ! grep -n 'os.execute' data/libs/functions/fs.lua
+          ! grep -n 'FileSystem.createDirectory' src/lua/functions/core/game/global_functions.cpp docs/agents/CHANGELOG.md docs/agents/MODULE_CATALOG.md
+          grep -n '@function fs.createDirectory' src/lua/functions/core/libs/filesystem_functions.cpp
+          grep -n '@function fs.createDirectories' src/lua/functions/core/libs/filesystem_functions.cpp
+          git diff --check
+      - name: Remove runner and enforce final paths
+        run: |
+          rm -f tools/ai-agent/finalize_fs_mkdir_shell_free.py
+          rm -f .github/workflows/finalize-fs-mkdir-shell-free.yml
+          git add -A
+          mapfile -t changed < <(git diff --cached --name-only)
+          printf '%s\n' "${changed[@]}"
+          allowed='^(src/lua/functions/core/game/global_functions\.(cpp|hpp)|src/lua/functions/core/libs/filesystem_functions\.cpp|docs/agents/(CHANGELOG|MODULE_CATALOG)\.md|docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection\.md|tools/ai-agent/finalize_fs_mkdir_shell_free\.py|\.github/workflows/finalize-fs-mkdir-shell-free\.yml)$'
+          for path in "${changed[@]}"; do
+            [[ "$path" =~ $allowed ]] || { echo "Unexpected path: $path" >&2; exit 1; }
+          done
+          test ! -e tools/ai-agent/finalize_fs_mkdir_shell_free.py
+          test ! -e .github/workflows/finalize-fs-mkdir-shell-free.yml
+          git diff --cached --check
+      - name: Commit final source shape
+        run: |
+          git commit -m "refactor(lua): keep one shell-free filesystem binding"
+          git push origin HEAD:security/fs-mkdir-shell-free
