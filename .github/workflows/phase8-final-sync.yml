@@ -1,0 +1,29 @@
+name: Phase 8 final sync
+
+on:
+  push:
+    branches:
+      - feat/otbm-bounded-attribute-patcher
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/otbm-bounded-attribute-patcher
+          fetch-depth: 0
+      - name: Merge exact latest main without conflict tolerance
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git merge --no-edit --no-ff origin/main
+          git rm .github/workflows/phase8-final-sync.yml
+          git commit -m "chore(ai-agent): remove Phase 8 final sync workflow"
+          git push origin HEAD:feat/otbm-bounded-attribute-patcher
