@@ -16,11 +16,15 @@ target_sources(
             signals.cpp
 )
 
-if(BUILD_TESTS AND UNIX AND DEFINED ENV{GITHUB_ACTIONS})
+if(BUILD_TESTS
+   AND UNIX
+   AND DEFINED ENV{GITHUB_ACTIONS}
+)
     set_property(
         TARGET ${CORE_TARGET_NAME}
-        PROPERTY CXX_COMPILER_LAUNCHER
-                 bash
-                 ${CMAKE_SOURCE_DIR}/tests/unit/server/network/protocol/capture_compiler_stderr.sh
+        PROPERTY
+            CXX_COMPILER_LAUNCHER
+            bash
+            ${CMAKE_SOURCE_DIR}/tests/unit/server/network/protocol/capture_compiler_stderr.sh
     )
 endif()
