@@ -14,6 +14,7 @@
 
 #include <atomic>
 #include <gtest/gtest.h>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -377,6 +378,173 @@ TEST_F(ClusterRecordHandoffTest, ConcurrentSweepOfNoLiveOwnerRecordHasExactlyOne
 	const auto row = repository.findByIdForTesting("op-1");
 	ASSERT_TRUE(row.has_value());
 	EXPECT_EQ(ClusterPendingOperationStatus::Applied, row->status);
+}
+
+// enqueueAndTryApplyNow: this process is already the confirmed owner ->
+// applies synchronously, in the same call, no sweep needed.
+TEST_F(ClusterRecordHandoffTest, EnqueueAndTryApplyNowAppliesImmediatelyWhenThisProcessOwns) {
+	resolver.setOwnedByChannelForTesting(TestKind, 100, 7);
+	RecordingHandler handler;
+
+	const auto outcome = handoff.enqueueAndTryApplyNow(makeRecord("op-1", 100, 1000), 7, 2000, handler);
+
+	EXPECT_EQ(ClusterRecordHandoffOutcome::EnqueuedDurably, outcome);
+	EXPECT_EQ(1, handler.applyOwnedCallCount);
+	EXPECT_EQ(0, handler.applyUnownedCallCount);
+	const auto row = repository.findByIdForTesting("op-1");
+	ASSERT_TRUE(row.has_value());
+	EXPECT_EQ(ClusterPendingOperationStatus::Applied, row->status);
+}
+
+// enqueueAndTryApplyNow: no live owner anywhere -> applies synchronously via
+// applyUnowned, same call, no sweep needed.
+TEST_F(ClusterRecordHandoffTest, EnqueueAndTryApplyNowAppliesImmediatelyWhenNoLiveOwner) {
+	resolver.setNoLiveOwnerForTesting(TestKind, 100);
+	RecordingHandler handler;
+
+	const auto outcome = handoff.enqueueAndTryApplyNow(makeRecord("op-1", 100, 1000), 7, 2000, handler);
+
+	EXPECT_EQ(ClusterRecordHandoffOutcome::EnqueuedDurably, outcome);
+	EXPECT_EQ(0, handler.applyOwnedCallCount);
+	EXPECT_EQ(1, handler.applyUnownedCallCount);
+	const auto row = repository.findByIdForTesting("op-1");
+	ASSERT_TRUE(row.has_value());
+	EXPECT_EQ(ClusterPendingOperationStatus::Applied, row->status);
+}
+
+// enqueueAndTryApplyNow: owned by another channel -> row is created and left
+// PENDING for that channel's own sweep; applyOwned is never called here
+// (only the confirmed owner may call it).
+TEST_F(ClusterRecordHandoffTest, EnqueueAndTryApplyNowDefersWhenAnotherChannelOwns) {
+	resolver.setOwnedByChannelForTesting(TestKind, 100, 9);
+	RecordingHandler handler;
+
+	const auto outcome = handoff.enqueueAndTryApplyNow(makeRecord("op-1", 100, 1000), 7, 2000, handler);
+
+	EXPECT_EQ(ClusterRecordHandoffOutcome::EnqueuedDurably, outcome);
+	EXPECT_EQ(0, handler.applyOwnedCallCount);
+	EXPECT_EQ(0, handler.applyUnownedCallCount);
+	const auto row = repository.findByIdForTesting("op-1");
+	ASSERT_TRUE(row.has_value());
+	EXPECT_EQ(ClusterPendingOperationStatus::Pending, row->status);
+}
+
+// enqueueAndTryApplyNow: ownership cannot currently be confirmed -> row is
+// created and left PENDING, fail-closed, nothing attempted.
+TEST_F(ClusterRecordHandoffTest, EnqueueAndTryApplyNowDefersWhenOwnershipUnknown) {
+	resolver.setUnknownForTesting(TestKind, 100);
+	RecordingHandler handler;
+
+	const auto outcome = handoff.enqueueAndTryApplyNow(makeRecord("op-1", 100, 1000), 7, 2000, handler);
+
+	EXPECT_EQ(ClusterRecordHandoffOutcome::EnqueuedDurably, outcome);
+	EXPECT_EQ(0, handler.applyOwnedCallCount);
+	EXPECT_EQ(0, handler.applyUnownedCallCount);
+	const auto row = repository.findByIdForTesting("op-1");
+	ASSERT_TRUE(row.has_value());
+	EXPECT_EQ(ClusterPendingOperationStatus::Pending, row->status);
+}
+
+// enqueueAndTryApplyNow: a real enqueue failure (e.g. DB unreachable) - no
+// row exists, caller must not treat the source state as consumed.
+TEST_F(ClusterRecordHandoffTest, EnqueueAndTryApplyNowReportsNotEnqueuedOnRepositoryFailure) {
+	repository.setNextEnqueueSucceedsForTesting(false);
+	RecordingHandler handler;
+
+	const auto outcome = handoff.enqueueAndTryApplyNow(makeRecord("op-1", 100, 1000), 7, 2000, handler);
+
+	EXPECT_EQ(ClusterRecordHandoffOutcome::NotEnqueued, outcome);
+	EXPECT_EQ(0, handler.applyOwnedCallCount);
+	EXPECT_EQ(0, handler.applyUnownedCallCount);
+	EXPECT_FALSE(repository.findByIdForTesting("op-1").has_value());
+}
+
+// enqueueAndTryApplyNow: a definitive business failure on the synchronous
+// attempt (e.g. mailbox full) - row is durably marked FAILED, but the
+// caller must be told not to treat the source state as consumed.
+TEST_F(ClusterRecordHandoffTest, EnqueueAndTryApplyNowReportsFailedDefinitivelyOnBusinessFailure) {
+	resolver.setNoLiveOwnerForTesting(TestKind, 100);
+	RecordingHandler handler;
+	handler.unownedResult = ClusterRecordApplyResult { ClusterRecordApplyOutcome::FailedDefinitively, "mailbox full" };
+
+	const auto outcome = handoff.enqueueAndTryApplyNow(makeRecord("op-1", 100, 1000), 7, 2000, handler);
+
+	EXPECT_EQ(ClusterRecordHandoffOutcome::EnqueuedButFailedDefinitively, outcome);
+	const auto row = repository.findByIdForTesting("op-1");
+	ASSERT_TRUE(row.has_value());
+	EXPECT_EQ(ClusterPendingOperationStatus::Failed, row->status);
+	EXPECT_EQ("mailbox full", row->lastError);
+}
+
+// enqueueAndTryApplyNow: duplicate operationId (idempotent replay) reports
+// NotEnqueued and does not invoke the handler a second time - the original
+// row (whatever state it's in) is left untouched.
+TEST_F(ClusterRecordHandoffTest, EnqueueAndTryApplyNowRejectsDuplicateOperationId) {
+	resolver.setNoLiveOwnerForTesting(TestKind, 100);
+	RecordingHandler handler;
+
+	const auto first = handoff.enqueueAndTryApplyNow(makeRecord("op-1", 100, 1000), 7, 2000, handler);
+	ASSERT_EQ(ClusterRecordHandoffOutcome::EnqueuedDurably, first);
+	ASSERT_EQ(1, handler.applyUnownedCallCount);
+
+	const auto second = handoff.enqueueAndTryApplyNow(makeRecord("op-1", 100, 1000), 7, 3000, handler);
+	EXPECT_EQ(ClusterRecordHandoffOutcome::NotEnqueued, second);
+	EXPECT_EQ(1, handler.applyUnownedCallCount);
+}
+
+// Mail-specific "concurrent deliveries" scenario: two *different* mail
+// operations (distinct operation_id, e.g. two separate senders on two
+// different channels mailing the same fully-offline recipient at close to
+// the same time) both go through enqueueAndTryApplyNow concurrently. This
+// is distinct from the earlier same-row sweep race test - here, both
+// operations are legitimate and *both* must be delivered; neither may be
+// lost, and neither may silently overwrite the other (design doc's "no
+// item loss / no item duplication" requirement for the mail consumer).
+namespace {
+	class CountingUnownedHandler : public IClusterRecordOperationHandler {
+	public:
+		ClusterRecordApplyResult applyOwned(const ClusterPendingOperationRecord &) override {
+			ADD_FAILURE() << "applyOwned should not be called for a NoLiveOwner record";
+			return { ClusterRecordApplyOutcome::FailedDefinitively, "unexpected" };
+		}
+
+		ClusterRecordApplyResult applyUnowned(const ClusterPendingOperationRecord &record) override {
+			std::lock_guard<std::mutex> lock(mutex);
+			deliveredOperationIds.push_back(record.operationId);
+			return { ClusterRecordApplyOutcome::Applied, "" };
+		}
+
+		std::mutex mutex;
+		std::vector<std::string> deliveredOperationIds;
+	};
+} // namespace
+
+TEST_F(ClusterRecordHandoffTest, TwoDistinctConcurrentDeliveriesToSameOfflineRecipientBothSucceed) {
+	resolver.setNoLiveOwnerForTesting(TestKind, 100);
+	CountingUnownedHandler handler;
+
+	std::thread senderA([&] {
+		const auto outcome = handoff.enqueueAndTryApplyNow(makeRecord("op-a", 100, 1000), 7, 2000, handler);
+		EXPECT_EQ(ClusterRecordHandoffOutcome::EnqueuedDurably, outcome);
+	});
+	std::thread senderB([&] {
+		const auto outcome = handoff.enqueueAndTryApplyNow(makeRecord("op-b", 100, 1000), 9, 2000, handler);
+		EXPECT_EQ(ClusterRecordHandoffOutcome::EnqueuedDurably, outcome);
+	});
+	senderA.join();
+	senderB.join();
+
+	// Both distinct mail items must have been delivered - neither lost,
+	// neither silently dropped in favor of the other.
+	ASSERT_EQ(2u, handler.deliveredOperationIds.size());
+	EXPECT_NE(handler.deliveredOperationIds[0], handler.deliveredOperationIds[1]);
+
+	const auto rowA = repository.findByIdForTesting("op-a");
+	const auto rowB = repository.findByIdForTesting("op-b");
+	ASSERT_TRUE(rowA.has_value());
+	ASSERT_TRUE(rowB.has_value());
+	EXPECT_EQ(ClusterPendingOperationStatus::Applied, rowA->status);
+	EXPECT_EQ(ClusterPendingOperationStatus::Applied, rowB->status);
 }
 
 // 19. Single-channel compatibility is enforced entirely at the call site

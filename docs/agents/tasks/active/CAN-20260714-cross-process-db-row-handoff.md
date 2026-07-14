@@ -4,14 +4,14 @@ program_id: CAN-PROGRAM-MULTICHANNEL
 coordination_id: ""
 status: in_progress
 agent: "claude"
-branch: claude/canary-cross-process-handoff
+branch: claude/canary-cross-channel-mail-fix
 base_branch: main
 created: 2026-07-14T08:40:00Z
-updated: 2026-07-14T09:20:00Z
-last_verified_commit: e94c9db085f25fbd9d76721fc86ca2d40119e676
+updated: 2026-07-14T11:15:00Z
+last_verified_commit: 4de9350e62e2ca9ddf717e16628f87084a74aa86
 risk: medium
 related_issue: ""
-related_pr: "#308"
+related_pr: "#308 (merged), PR 2 not yet opened"
 depends_on: []
 blocks:
   - "house double-ownership fix (deferred, needs this foundation)"
@@ -31,6 +31,15 @@ owned_paths:
     - tests/shared/game/multichannel/fake_cluster_pending_operation_repository.hpp
     - tests/shared/game/multichannel/fake_cluster_record_ownership_resolver.hpp
     - docs/multichannel/CROSS_PROCESS_DB_ROW_HANDOFF.md
+    - src/game/multichannel/cluster_handoff_runtime.hpp
+    - src/game/multichannel/cluster_operation_id.hpp
+    - src/game/multichannel/cluster_operation_id.cpp
+    - src/game/multichannel/mail_delivery_payload.hpp
+    - src/game/multichannel/mail_delivery_payload.cpp
+    - src/game/multichannel/mail_delivery_operation_handler.hpp
+    - src/game/multichannel/mail_delivery_operation_handler.cpp
+    - tests/unit/game/multichannel/cluster_operation_id_test.cpp
+    - tests/unit/game/multichannel/mail_delivery_payload_test.cpp
   shared:
     - schema.sql
     - src/items/containers/mailbox/mailbox.hpp
@@ -85,10 +94,30 @@ follow-up task, per the user's explicit exclusion.
       `IClusterPendingOperationRepository`/`DbClusterPendingOperationRepository` +
       `IClusterRecordOwnershipResolver`/`DbClusterRecordOwnershipResolver` +
       `ClusterRecordHandoff`, tests per design doc §14 (17/17 real gtest
-      passing), no existing call site changed. CI not yet verified on the
-      pushed commit (pending).
-- [ ] PR 2: `Mailbox::sendItem` cross-channel fix using PR 1's foundation,
-      tests per the design doc's mail-specific list.
+      passing), no existing call site changed. Merged to `main` (squash
+      commit `4de9350`) with explicit user consent ("merge i działaj
+      dalej"). Full CI matrix green after two real-CI-driven fixes (Windows
+      unity-build symbol collision; migration 63's expected warning firing
+      on fresh installs due to a pre-existing `db_version` drift from
+      migration 62) - see the CI-repair work log entries below.
+- [x] PR 2 implementation complete on branch
+      `claude/canary-cross-channel-mail-fix` (based directly on merged
+      `main`): `ClusterHandoffRuntime` singleton, `cluster_operation_id`,
+      `mail_delivery_payload` (+ shared `hexEncode`/`hexDecode`),
+      `MailDeliveryOperationHandler` (`applyOwned`/`applyUnowned`,
+      `applyUnowned` guarded by a real row-lock transaction, verified
+      against real MariaDB including a genuine two-connection lock-
+      contention test), `ClusterRecordHandoff::enqueueAndTryApplyNow` (new,
+      lets the enqueuing call site apply synchronously when safe, avoiding
+      sweep-interval latency for the common case), `Mailbox::sendItem`
+      rewired to resolve cross-channel ownership before ever falling back
+      to a local offline load, sweep wired into
+      `Game::renewClusterSessions`, singleton configured at startup in
+      `CanaryServer::initializeMultichannelCluster` (deliberately outside
+      the `CANARY_MULTICHANNEL_REDIS` guard - this mechanism is DB-only).
+      25/25 real gtest passing (17 original + 8 new). Not yet committed/
+      pushed/PR-opened as of this update - next action.
+- [ ] PR 2 pushed, draft PR opened, full CI matrix green.
 - [ ] PR 3: `DECISION_MATRIX.md`/`TEST_PLAN.md` updated, this task record's
       Completion section filled in, house-ownership/DIRTY migration plans
       linked (already written in the design doc §12).
@@ -181,18 +210,27 @@ follow-up task, per the user's explicit exclusion.
 
 # Current state
 
-PR 1 (foundation) implementation complete and verified. Design doc renamed
-a few pieces during implementation for clarity/consistency with the
-project's `IClusterSessionRepository`/`DbClusterSessionRepository` split
-(see Decisions table): `ClusterPendingOperationStore` became the interface
+PR 1 (foundation) is merged to `main` (squash commit `4de9350`, user
+consent given explicitly for this specific PR: "merge i działaj dalej").
+Design doc renamed a few pieces during implementation for clarity/
+consistency with the project's `IClusterSessionRepository`/
+`DbClusterSessionRepository` split (see Decisions table):
+`ClusterPendingOperationStore` became the interface
 `IClusterPendingOperationRepository` + impl `DbClusterPendingOperationRepository`;
 ownership resolution became its own `IClusterRecordOwnershipResolver` +
 `DbClusterRecordOwnershipResolver` pair, injected into `ClusterRecordHandoff`
 so the orchestration logic itself is fully unit-testable without a live
 database - the design doc's intent is unchanged, only the concrete
-interface split is more granular than originally sketched. Draft PR #308
-open with the design doc; foundation code not yet pushed to it as of this
-update - next action is to commit and push.
+interface split is more granular than originally sketched.
+
+PR 2 (mail-loss fix) implementation is complete on branch
+`claude/canary-cross-channel-mail-fix`, based directly on merged `main`.
+Not yet committed/pushed/opened as a PR - that is the immediate next step.
+See the 2026-07-14T11:15:00Z work log entry below for full detail on what
+was built, the design decisions made along the way (notably
+`enqueueAndTryApplyNow`, added to `ClusterRecordHandoff` itself rather than
+duplicated at the call site, and the item-removal-timing analysis that
+justified it), and the real-verification evidence gathered.
 
 # Plan
 
@@ -330,6 +368,127 @@ update - next action is to commit and push.
 - Result: pushed the Windows fix on top of the owner's own resolution;
   awaiting the next full CI run's result on the reconciled head.
 
+## 2026-07-14T11:15:00Z (PR 2 implementation)
+
+- Context: PR 1 (#308) subsequently went full-CI-green and was merged to
+  `main` with the user's explicit, PR-specific consent ("merge i działaj
+  dalej" in response to "to wszystko?"). Started PR 2 on a fresh branch
+  (`claude/canary-cross-channel-mail-fix`) based directly on the merged
+  `main` tip (`4de9350`), per the task's own branch-restart convention for
+  a just-merged predecessor.
+- Changed (all real-verified, see Validation and CI table below):
+  - `src/game/multichannel/cluster_operation_id.hpp/.cpp` - random
+    UUID-shaped `operation_id` generator (no natural deterministic key for
+    a mail send, unlike `economic_ledger`'s deterministic case).
+  - `src/game/multichannel/mail_delivery_payload.hpp/.cpp` - pipe-
+    delimited, hex-encoded (de)serialization of everything needed to
+    reconstruct a mailed item on another process. `hexEncode`/`hexDecode`
+    were initially private to this file; refactored to shared
+    `multichannel::` functions (still declared/defined here) once it
+    became clear the enqueue side (`Mailbox::sendItem`) and the apply side
+    (`MailDeliveryOperationHandler`) both need the *same* byte-exact codec
+    - one implementation, not three independent copies.
+  - `src/game/multichannel/cluster_handoff_runtime.hpp` - production
+    singleton wrapper (`getInstance()`/`configure()`), mirroring
+    `ChannelRuntimeRegistry`'s exact shape.
+  - `src/game/multichannel/mail_delivery_operation_handler.hpp/.cpp` - the
+    `PLAYER_INBOX`/`DELIVER_MAIL_ITEM` handler from design doc §6.1.
+    `applyOwned` inserts directly into the confirmed-live recipient's
+    `Inbox`. `applyUnowned` wraps the offline throwaway-copy-load-and-save
+    path in one explicit transaction that re-verifies (a) this pending-
+    operation row is still PENDING, via `SELECT ... FOR UPDATE`, and (b) no
+    login raced in since ownership resolved NoLiveOwner, via a plain
+    `cluster_sessions` re-check - both immediately before committing.
+    Found and fixed one real bug during hand-review before any commit:
+    `Mailbox::sendItem` unconditionally transforms *every* mailed item
+    (parcels too, not just letters - `ITEM_PARCEL`/`ITEM_PARCEL_STAMPED`
+    are a real id pair) to its stamped id after insertion; my first draft
+    only did this when a writer was present, which would have left every
+    mailed parcel at the wrong item id after a cross-channel delivery -
+    caught by re-reading `mailbox.cpp` line-by-line against my draft
+    instead of trusting my own summary of it.
+  - `src/game/multichannel/cluster_record_handoff.hpp/.cpp` - added
+    `enqueueAndTryApplyNow` (new public method) and refactored `sweep`'s
+    per-record dispatch into two shared private helpers (`tryApply`,
+    `transitionAfterApply`) so both entry points use identical dispatch
+    rules. This lets the enqueuing call site (`Mailbox::sendItem`) attempt
+    delivery synchronously when it's already safe to (this process is the
+    owner, or the record is confirmed NoLiveOwner), instead of always
+    waiting for the next periodic sweep - avoiding a real latency
+    regression for the common case, while still never calling
+    `applyOwned` unless `thisChannelId` is the freshly-resolved owner.
+    Returns a 3-state `ClusterRecordHandoffOutcome`
+    (`NotEnqueued`/`EnqueuedButFailedDefinitively`/`EnqueuedDurably`) so
+    the caller knows precisely when it's safe to treat the source item as
+    consumed - see the item-removal-timing analysis below.
+  - `src/items/containers/mailbox/mailbox.cpp/.hpp` - `sendItem` now tries
+    the local live-player lookup (`allowOffline=false`) first when
+    multichannel is enabled, and only falls back to today's
+    `allowOffline=true` DB-load behavior when multichannel is *disabled*
+    (byte-for-byte the original single-channel code path, otherwise
+    untouched). When multichannel is enabled and the recipient isn't found
+    locally, the new `sendItemAcrossCluster` resolves the recipient's guid,
+    serializes the item into a `MailDeliveryPayload`, and hands it to
+    `ClusterHandoffRuntime::enqueueAndTryApplyNow`.
+  - `src/game/game.cpp` - sweep call site added to the existing
+    `Game::renewClusterSessions` heartbeat cycle (piggybacked, no new
+    scheduler), per design doc §10.
+  - `src/canary_server.cpp` - `g_clusterHandoffRuntime().configure(...)`
+    called at startup, deliberately *outside* the
+    `#ifdef CANARY_MULTICHANNEL_REDIS` block (unlike `ClusterRuntime`) -
+    this mechanism has no Redis dependency by design, so it should not be
+    compiled out in a Redis-less build even though, in practice today,
+    `ClusterConfigValidator` already fails closed before reaching this
+    point whenever Redis isn't compiled in but multichannel is enabled.
+  - Build registration: `src/game/CMakeLists.txt`,
+    `tests/unit/game/CMakeLists.txt`, `vcproj/canary.vcxproj` (both
+    `ClInclude`/`ClCompile` entries) for all new files.
+  - 8 new unit tests added to `cluster_record_handoff_test.cpp` (6 for
+    `enqueueAndTryApplyNow`'s outcome contract + 1 for a genuinely new
+    concurrency scenario not covered by PR 1: two *distinct* mail
+    operations - different `operation_id`, same offline recipient -
+    applying concurrently must both succeed, neither lost, neither
+    silently overwriting the other).
+- Design decision requiring real analysis, not just implementation - **when
+  is it safe to remove the physical item from the sender's mailbox?**
+  Considered removing it immediately upon `enqueue()` succeeding, but
+  rejected: `Mailbox::sendItem`'s original single-channel code only ever
+  moves the item *after* `internalMoveItem`'s own capacity/validity check
+  passes, so a "destination rejected it" failure never destroys the
+  source item today. Removing it unconditionally on enqueue could destroy
+  it even when a later, asynchronous apply attempt (by a different
+  channel's own sweep) fails definitively - a real, if narrow, item-loss
+  regression. Resolved by having `enqueueAndTryApplyNow` report a 3-state
+  outcome and having `sendItemAcrossCluster` remove the item only for
+  `EnqueuedDurably` (delivered synchronously, or safely deferred to a
+  later owner-resolved sweep), never for `NotEnqueued` or
+  `EnqueuedButFailedDefinitively`. One residual, bounded gap remains and is
+  recorded here rather than hidden: if the *deferred* case (owned by
+  another channel, or ownership unresolvable at send time) is later
+  rejected asynchronously by that owner's own sweep (e.g. a structural
+  item-reconstruction failure), the item is already gone with no return-
+  to-sender path - this mirrors the *existing*, already-accepted risk
+  profile of `FLAG_NOLIMIT`-bypassed rejections in the original single-
+  channel code (capacity itself can never trigger this, since `FLAG_NOLIMIT`
+  is passed on both the original and new code paths - confirmed by reading
+  `items_definitions.hpp`), just newly reachable through an async path
+  with a `FAILED` audit row for diagnosis instead of a synchronous return
+  value. Return-to-sender is out of scope for this task (would require
+  serializing sender identity into the payload and a second delivery
+  path) - flagged as a real, small, follow-up-worthy gap, not silently
+  accepted.
+- Real-verification highlight: used two genuinely separate `mysql` client
+  connections (not simulated) to prove `applyUnowned`'s
+  `SELECT ... FOR UPDATE` lock query actually serializes at the database
+  level, not just in application logic - session B's lock request measurably
+  blocked (~2.5s, matching session A's `SLEEP(3)`) until session A
+  committed, and then correctly observed session A's `APPLIED` status
+  instead of the stale `PENDING` it saw before blocking.
+- Result: PR 2 implementation complete, format-clean, 25/25 real gtest
+  passing (17 original + 8 new), SQL hand-verified against real MariaDB
+  including a genuine cross-connection lock-contention test. Not yet
+  committed, pushed, or opened as a PR as of this log entry - next action.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |
@@ -341,6 +500,10 @@ update - next action is to commit and push.
 | House double-ownership fix and DIRTY session tooling deferred to a follow-up task | Explicit user instruction this session; migration plan written now (design doc §12) so the follow-up isn't starting from zero | none yet |
 | Split into `I*Repository`/`Db*` interface pairs (mirroring `IClusterSessionRepository`) instead of the design doc's original static-method sketch | Needed so `ClusterRecordHandoff`'s ownership/apply-or-defer logic is unit-testable against fakes, matching this project's own established testability pattern - decided during implementation, not a design change, just a more granular interface split | none yet |
 | Tri-state `ClusterRecordOwnershipOutcome` (OwnedByChannel/NoLiveOwner/Unknown) instead of `std::optional<int32_t>` | A bool+optional pair cannot represent "cannot currently confirm" distinctly from "confirmed no owner" in one atomic call - the distinction is load-bearing for fail-closed correctness (design doc §14 test 12) | none yet |
+| Added `ClusterRecordHandoff::enqueueAndTryApplyNow`, refactoring `sweep`'s dispatch into shared private helpers, instead of a sweep-only apply path | Waiting for the next periodic sweep tick for every mail send would be a real latency regression vs. today's synchronous delivery; the shared helpers guarantee both entry points use identical ownership/apply rules, so this isn't a second, divergent dispatch implementation | none yet |
+| `hexEncode`/`hexDecode` promoted from `mail_delivery_payload.cpp`'s anonymous namespace to shared `multichannel::` functions | Both the enqueue side (`Mailbox::sendItem`) and the apply side (`MailDeliveryOperationHandler`) need the *same* byte-exact codec for `itemAttributesHex`; one shared implementation instead of a second/third hand-copied version reduces drift risk | none yet |
+| Item removed from the sender's mailbox only on `EnqueuedDurably`, never on `NotEnqueued`/`EnqueuedButFailedDefinitively` | Matches the original single-channel code's own invariant that a rejected destination never destroys the source item; a bounded, documented residual gap remains for asynchronous rejections of a *deferred* (not synchronously-attempted) delivery - see the PR 2 work log entry | none yet |
+| `ClusterHandoffRuntime::configure()` called outside the `CANARY_MULTICHANNEL_REDIS` `#ifdef` in `canary_server.cpp` | This mechanism is deliberately DB-only with no Redis dependency (design doc §4.7) - it should not be compiled out of a hypothetical future Redis-less multichannel build, even though `ClusterConfigValidator` currently always fails closed before reaching this point in that configuration | none yet |
 
 # Files and interfaces
 
@@ -357,9 +520,17 @@ update - next action is to commit and push.
 | `tests/shared/game/multichannel/fake_cluster_pending_operation_repository.hpp` | exclusive | Test double | done |
 | `tests/shared/game/multichannel/fake_cluster_record_ownership_resolver.hpp` | exclusive | Test double | done |
 | `tests/unit/game/multichannel/cluster_record_handoff_test.cpp` | exclusive | Unit tests, 17 cases | done, **run with real gtest, 17/17 passed** |
-| `src/game/CMakeLists.txt`, `tests/unit/game/CMakeLists.txt`, `vcproj/canary.vcxproj` | shared | Build registration | done |
-| `src/items/containers/mailbox/mailbox.cpp` | shared | PR 2 fix | planned |
-| `src/game/game.cpp` | shared | PR 2 sweep call site | planned |
+| `src/game/CMakeLists.txt`, `tests/unit/game/CMakeLists.txt`, `vcproj/canary.vcxproj` | shared | Build registration (PR 1 + PR 2 files) | done |
+| `src/game/multichannel/cluster_operation_id.hpp/.cpp` | exclusive | Random operation_id generator | done, standalone-compiled + 3/3 real gtest |
+| `src/game/multichannel/mail_delivery_payload.hpp/.cpp` | exclusive | Payload (de)serialization + shared hex codec | done, standalone-compiled + 9/9 real gtest |
+| `src/game/multichannel/cluster_handoff_runtime.hpp` | exclusive | Production singleton wrapper | done, standalone-verified via `-fsyntax-only` (header-only) |
+| `src/game/multichannel/mail_delivery_operation_handler.hpp/.cpp` | exclusive | `PLAYER_INBOX`/`DELIVER_MAIL_ITEM` handler | done, hand-reviewed against exact API signatures + SQL hand-verified against real MariaDB (mysql/game.hpp wall - not standalone-compilable) |
+| `src/game/multichannel/cluster_record_handoff.hpp/.cpp` | exclusive | + `enqueueAndTryApplyNow`, dispatch refactor | done, standalone-compiled, 25/25 real gtest (17 original unchanged-behavior + 8 new) |
+| `src/items/containers/mailbox/mailbox.cpp/.hpp` | shared | Cross-channel `sendItem` rewrite | done, hand-reviewed against exact API signatures (not standalone-compilable) |
+| `src/game/game.cpp` | shared | PR 2 sweep call site in `renewClusterSessions` | done |
+| `src/canary_server.cpp` | shared | `ClusterHandoffRuntime::configure()` startup wiring | done |
+| `tests/unit/game/multichannel/cluster_operation_id_test.cpp` | exclusive | Unit tests, 3 cases | done, run with real gtest |
+| `tests/unit/game/multichannel/mail_delivery_payload_test.cpp` | exclusive | Unit tests, 9 cases | done, run with real gtest |
 
 # Validation and CI
 
@@ -376,7 +547,14 @@ update - next action is to commit and push.
 | (pre-commit) | Real MariaDB - `markFailed`/`markAbandoned` exact SQL | passed | both transition correctly and record the reason in `last_error` |
 | (pre-commit) | Real MariaDB - migration 63 idempotency, simulating `db.tableExists()`'s guard on a fresh pre-63 DB | passed | first run: table absent, CREATE executes; second simulated run: table present, guard would skip (matches every prior migration's convention) |
 | (pre-commit) | Real MariaDB - `DbClusterRecordOwnershipResolver`'s exact SQL (houses.channel_id lookup, cluster_sessions ONLINE lookup found/not-found, `SELECT 1` liveness probe) | passed | house lookup returns the seeded `channel_id=2`; online-elsewhere lookup returns `channel_id=5` for a seeded ONLINE row; not-online lookup correctly returns empty (the NoLiveOwner case); liveness probe returns `1` |
-| | Full CI matrix (Linux/Windows/macOS/Docker) | not-run | Not yet pushed to PR #308 as of this update |
+| `4de9350` (merged) | Full CI matrix (Linux/Windows/macOS/Docker) on PR #308 | passed | Green after the Windows unity-build rename and the repo owner's `db_version`-drift fix, both described in the CI-repair log entry above; merged by explicit user consent |
+| (pre-commit, PR 2) | `clang-format-18 --dry-run --Werror` on all PR 2 files (new + modified) | passed | exit 0, zero diffs |
+| (pre-commit, PR 2) | Standalone compile+link+run of `mail_delivery_payload_test.cpp`/`cluster_operation_id_test.cpp` against real gtest | passed | 9/9 and 3/3 respectively |
+| (pre-commit, PR 2) | Standalone compile+link+run of `cluster_record_handoff_test.cpp` (post-refactor) | passed | **25/25 tests passed** (17 original, confirming the `sweep` refactor is behavior-preserving, + 8 new for `enqueueAndTryApplyNow` and the two-distinct-concurrent-deliveries scenario); new concurrency test re-run 5x to confirm no flakiness |
+| (pre-commit, PR 2) | Real MariaDB - fresh `schema.sql` import into a new scratch DB | passed | clean import |
+| (pre-commit, PR 2) | Real MariaDB - `applyUnowned`'s exact `SELECT ... FOR UPDATE` lock query + `cluster_sessions` online-check query, single connection | passed | lock query correctly returns `PENDING` on a fresh row and `APPLIED`/other on an already-resolved row; online-check query correctly returns a row only when a matching `ONLINE` `cluster_sessions` row exists |
+| (pre-commit, PR 2) | Real MariaDB - **two genuinely separate connections**, session A holds the row lock inside an open transaction with a 3s `SLEEP`, session B attempts the same `FOR UPDATE` concurrently | passed | session B measurably blocked (~2.5s) until session A committed, then correctly observed A's post-commit `APPLIED` status - proves the lock is real at the DB engine level, not merely an application-level check |
+| | Full CI matrix (Linux/Windows/macOS/Docker) for PR 2 | not-run | Not yet pushed/opened as of this update |
 
 Never write `passed` without verification on the stated commit.
 
@@ -413,12 +591,20 @@ Never write `passed` without verification on the stated commit.
 
 # Remaining work
 
-1. Implement PR 1 (foundation) per the Plan section above.
-2. Implement PR 2 (mail fix).
-3. Implement PR 3 (docs).
-4. Monitor full CI matrix on all three; fix real failures.
-5. Do not merge without explicit user "yes, merge #NNN".
-6. Once all three are merged, archive this task record and fill in
+1. ~~Implement PR 1 (foundation)~~ - done, merged (`4de9350`).
+2. ~~Implement PR 2 (mail fix)~~ - implementation done on
+   `claude/canary-cross-channel-mail-fix`, based on merged `main`.
+3. Commit + push PR 2, open as a PR (draft first, mark ready-for-review to
+   trigger the full matrix - this repo's CI silently skips the heavy jobs
+   on draft, learned the hard way during PR 1's CI repair).
+4. Monitor PR 2's full CI matrix; fix any real failures the same way PR 1's
+   were fixed (root-cause, minimal fix, re-run, record in this log).
+5. Implement PR 3 (docs: `DECISION_MATRIX.md`/`TEST_PLAN.md` updates, this
+   task record's Completion section, link the already-written house-
+   ownership/DIRTY migration plans from design doc §12).
+6. Do not merge PR 2 or PR 3 without a separate, specific user "yes, merge
+   #NNN" for each (standing rule, repeated by the user this session).
+7. Once all PRs are merged, archive this task record and fill in
    Completion.
 
 # Handoff

@@ -14,10 +14,13 @@
 #include "game/multichannel/channel_registry.hpp"
 #include "game/multichannel/channel_switch_audit_store.hpp"
 #include "game/multichannel/channel_switch_service.hpp"
+#include "game/multichannel/cluster_handoff_runtime.hpp"
 #include "game/multichannel/cluster_job_leadership_registry.hpp"
+#include "game/multichannel/cluster_record_ownership.hpp"
 #include "game/multichannel/cluster_runtime.hpp"
 #include "game/multichannel/economic_ledger_store.hpp"
 #include "game/multichannel/engine_position_legality.hpp"
+#include "game/multichannel/mail_delivery_operation_handler.hpp"
 #include "game/multichannel/position_resolver.hpp"
 
 #include "config/configmanager.hpp"
@@ -12683,6 +12686,13 @@ void Game::renewClusterSessions() {
 	}
 
 	const auto nowMs = OTSYS_TIME();
+
+	// Cross-process DB-row handoff sweep - piggybacked on this existing
+	// heartbeat cycle rather than a new scheduler (design doc §10). A safe
+	// no-op internally if the handoff runtime was never configured.
+	static MailDeliveryOperationHandler mailDeliveryOperationHandler;
+	g_clusterHandoffRuntime().sweep(multichannel::RecordKindPlayerInbox, 100, nowMs, mailDeliveryOperationHandler);
+
 	const auto expiredAccountIds = g_clusterRuntime().renewAllAndCollectExpired(nowMs);
 
 	if (g_clusterJobLeadershipRegistry().isEnabled()) {

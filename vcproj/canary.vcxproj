@@ -95,6 +95,10 @@
     <ClInclude Include="..\src\game\multichannel\cluster_record_ownership.hpp" />
     <ClInclude Include="..\src\game\multichannel\db_cluster_record_ownership_resolver.hpp" />
     <ClInclude Include="..\src\game\multichannel\cluster_record_handoff.hpp" />
+    <ClInclude Include="..\src\game\multichannel\cluster_handoff_runtime.hpp" />
+    <ClInclude Include="..\src\game\multichannel\cluster_operation_id.hpp" />
+    <ClInclude Include="..\src\game\multichannel\mail_delivery_payload.hpp" />
+    <ClInclude Include="..\src\game\multichannel\mail_delivery_operation_handler.hpp" />
     <ClInclude Include="..\src\game\multichannel\db_cluster_session_repository.hpp" />
     <ClInclude Include="..\src\game\multichannel\economic_ledger_id.hpp" />
     <ClInclude Include="..\src\game\multichannel\economic_ledger_store.hpp" />
@@ -347,6 +351,9 @@
     <ClCompile Include="..\src\game\multichannel\db_cluster_pending_operation_repository.cpp" />
     <ClCompile Include="..\src\game\multichannel\db_cluster_record_ownership_resolver.cpp" />
     <ClCompile Include="..\src\game\multichannel\cluster_record_handoff.cpp" />
+    <ClCompile Include="..\src\game\multichannel\cluster_operation_id.cpp" />
+    <ClCompile Include="..\src\game\multichannel\mail_delivery_payload.cpp" />
+    <ClCompile Include="..\src\game\multichannel\mail_delivery_operation_handler.cpp" />
     <ClCompile Include="..\src\game\multichannel\economic_ledger_id.cpp" />
     <ClCompile Include="..\src\game\multichannel\economic_ledger_store.cpp" />
     <ClCompile Include="..\src\game\multichannel\engine_position_legality.cpp" />

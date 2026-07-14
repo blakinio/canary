@@ -44,6 +44,27 @@ struct ClusterRecordApplyResult {
 	std::string errorDetail;
 };
 
+// Outcome of ClusterRecordHandoff::enqueueAndTryApplyNow - tells the
+// enqueuing call site (e.g. Mailbox::sendItem) whether it is now safe to
+// treat the source state (the physical item) as consumed.
+enum class ClusterRecordHandoffOutcome : uint8_t {
+	// No durable row exists (a real enqueue failure, or a duplicate
+	// operationId) - the caller must not treat anything as consumed.
+	NotEnqueued,
+	// A row now exists durably, and a synchronous apply attempt came back
+	// with a definitive business failure (e.g. mailbox full). The row
+	// itself is a FAILED audit entry, not a pending retry - the caller
+	// must still not treat the source state as consumed (mirrors today's
+	// single-process "destination rejected the item, nothing moved"
+	// behavior).
+	EnqueuedButFailedDefinitively,
+	// A row now exists durably - either applied synchronously right here,
+	// or safely deferred to a later sweep because this process is not the
+	// record's confirmed owner right now. Either way, the source state's
+	// fate is now captured durably; the caller must treat it as consumed.
+	EnqueuedDurably,
+};
+
 // One handler per record kind (registered by whatever engine wiring code
 // calls ClusterRecordHandoff::sweep - PR 1 registers none; PR 2 registers
 // PLAYER_INBOX). A handler covering more than one operation_type under
@@ -106,7 +127,34 @@ public:
 	// cycle (design doc §10), not a new scheduler.
 	int32_t sweep(const std::string &recordKind, int32_t thisChannelId, int32_t limit, int64_t nowMs, IClusterRecordOperationHandler &handler);
 
+	// Enqueues a new operation and, when this process can safely do so
+	// right now (it already is the record's confirmed owner, or the record
+	// is confirmed to have no live owner anywhere), also attempts to apply
+	// it synchronously in the same call - avoiding the latency of waiting
+	// for the next sweep tick for the common case. handler.applyOwned() is
+	// only ever called when thisChannelId is the freshly-resolved owner
+	// (never assumed from the caller), matching applyOwned's own contract.
+	// When ownership resolves to another channel, or cannot currently be
+	// confirmed, no apply is attempted here at all - the row is left
+	// PENDING for that owner's own sweep (or a later retry) to resolve.
+	[[nodiscard]] ClusterRecordHandoffOutcome enqueueAndTryApplyNow(const ClusterPendingOperationRecord &record, int32_t thisChannelId, int64_t nowMs, IClusterRecordOperationHandler &handler);
+
 private:
+	// Resolves ownership fresh and dispatches to the matching handler verb;
+	// std::nullopt means "deferred, nothing attempted" (owner is another
+	// channel, or ownership cannot currently be confirmed). Shared by
+	// sweep() and enqueueAndTryApplyNow() so both use identical dispatch
+	// rules.
+	std::optional<ClusterRecordApplyResult> tryApply(const ClusterPendingOperationRecord &record, int32_t thisChannelId, IClusterRecordOperationHandler &handler);
+
+	// Transitions the row per result.outcome (Applied -> markApplied,
+	// FailedDefinitively -> markFailed, AlreadyHandled -> no-op). Returns
+	// whether a state transition actually happened (false for
+	// AlreadyHandled or if the underlying repository call itself reports
+	// no row was affected, e.g. a concurrent transition already moved it
+	// out of PENDING).
+	bool transitionAfterApply(const std::string &operationId, const ClusterRecordApplyResult &result, int64_t nowMs);
+
 	IClusterPendingOperationRepository &repository;
 	IClusterRecordOwnershipResolver &resolver;
 };
