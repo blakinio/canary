@@ -23,6 +23,28 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Narrow the duplicated ownership anchor
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("tools/ai-agent/finalize_fs_mkdir_shell_free.py")
+          content = path.read_text(encoding="utf-8")
+          old = '''    replace_once(task, '''\'''    - src/lua/functions/core/libs/core_libs_functions.hpp
+'''\''', "")
+'''
+          new = '''    replace_once(task, '''\'''    - src/utils/tools.cpp
+    - src/lua/functions/core/core_functions.hpp
+    - src/lua/functions/core/libs/core_libs_functions.hpp
+    - .github/workflows/reusable-tests-lua.yml
+'''\''', '''\'''    - src/utils/tools.cpp
+    - src/lua/functions/core/core_functions.hpp
+    - .github/workflows/reusable-tests-lua.yml
+'''\''')
+'''
+          if content.count(old) != 1:
+              raise SystemExit("expected one duplicated ownership anchor")
+          path.write_text(content.replace(old, new, 1), encoding="utf-8")
+          PY
       - name: Apply exact finalization
         run: python3 tools/ai-agent/finalize_fs_mkdir_shell_free.py
       - name: Run focused Lua contract
