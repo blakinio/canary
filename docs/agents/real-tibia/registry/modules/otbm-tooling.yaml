@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "module_id": "otbm-tooling",
+  "name": "OTBM analysis tooling",
+  "category": "platform-tooling",
+  "description": "Read-only map indexing, mechanic resolution, reachability, semantic diff, geometry evidence and factual rendering.",
+  "lifecycle": {"status": "active"},
+  "scope": {"includes": ["World Index", "item/mechanic audit", "script resolution", "reachability", "spawn/NPC evidence", "storage graph", "semantic diff", "geometry audit", "factual renderer"], "excludes": ["map mutation unless separately authorized and safety-gated", "AI-generated map evidence"]},
+  "paths": {"server": [], "client": [], "data": [], "tests": ["tools/ai-agent/test_otbm_*.py"], "docs": ["docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md"]},
+  "relationships": {"depends_on": [], "interacts_with": ["quests", "npcs", "spawns", "houses"]},
+  "documents": {"validation": []},
+  "source_requirements": [{"source": "canary-current", "mode": "required"}, {"source": "crystalserver", "mode": "comparison-only"}, {"source": "opentibiabr-canary", "mode": "comparison-only"}],
+  "maturity": {"implementation": "mapped", "evidence": "audited", "persistence": "not-assessed", "protocol": "not-assessed", "automated_tests": "integration", "runtime_validation": "not-applicable", "gameplay_e2e": "not-applicable"},
+  "freshness": {"class": "medium", "last_inventory": "2026-07-14", "warning_after_days": 60, "invalid_after_days": 180, "refresh_before_each_task": true},
+  "notes": []
+}
