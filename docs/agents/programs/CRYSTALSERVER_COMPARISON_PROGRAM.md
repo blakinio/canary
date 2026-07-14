@@ -24,7 +24,7 @@ Stage 1 analysis date: 2026-07-13.
 
 | Role | Repository | Stage 1 baseline `main` SHA | Declared server version | Declared client protocol | Access |
 |---|---|---|---|---:|---|
-| target | `blakinio/canary` | `360d79ebad5802edd0d89e99d0f210ab19b36b60` | `3.6.1` | `1525` / 15.25 | task branches and PRs only |
+| target | `blakinio/canary` | `360d79ebad5802edd4d89e99d0f210ab19b36b60` | `3.6.1` | `1525` / 15.25 | task branches and PRs only |
 | comparison | `zimbadev/crystalserver` | `fc0d53b9f9965463b6082c07e6d3d482294541a7` | `4.1.9` | `1525` / 15.25 | read-only |
 | reference | `opentibiabr/canary` | `9365c1c4aa63529b9ff757f53737274894c02b8e` | verify per selected task | verify per selected task | read-only |
 

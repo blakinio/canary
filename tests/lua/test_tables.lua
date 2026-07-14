@@ -177,6 +177,13 @@ test("enforces nesting depth", function()
 	assert_truthy(type(err) == "string" and err:find("depth", 1, true) ~= nil)
 end)
 
+test("enforces parsed value count", function()
+	local source = "{" .. string.rep("0,", 100001) .. "}"
+	local decoded, err = table.unserialize(source)
+	assert_equal(decoded, nil)
+	assert_truthy(type(err) == "string" and err:find("value count", 1, true) ~= nil)
+end)
+
 test("enforces input size", function()
 	local decoded, err = table.unserialize(string.rep(" ", 1024 * 1024 + 1))
 	assert_equal(decoded, nil)
