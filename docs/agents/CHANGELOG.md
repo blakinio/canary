@@ -4,6 +4,7 @@ Curated behavior/architecture log for discovery; not a replacement for Git histo
 
 ## Unreleased
 
+- PR #326 removes command-shell execution from `FS.mkdir` and `FS.mkdir_p`: compatibility wrappers now call native `FileSystem.createDirectory`/`createDirectories` bindings backed by `std::filesystem` and `std::error_code`; standalone Lua and real-binding C++ regressions cover existing paths, failures and literal shell metacharacters without marker creation.
 - PR #322 adds Phase 7 bounded read-only OTBM geometry and consistency analysis over canonical World Index and appearances evidence: exact missing-floor, duplicate-ground, component, house/PZ and low-confidence invisible-blocker candidates; reviewed manifest-backed wall/border adjacency; deterministic findings and factual render requests through the existing renderer; no OTBM parsing/writing, map modification, AI imagery or gameplay repair.
 - PR #319 fixes bounded Semantic OTBM Diff across multiple 256x256 World Index areas by heap-merging area-local iterators in strict `(z,y,x)` order; the fail-closed non-increasing-position check remains active and a two-area synthetic OTBM regression covers the real Targuna-audit failure.
 - Adds repository-wide Real Tibia parity governance: a mandatory evidence and delivery playbook, a global module-program registry, a durable Wheel of Destiny queue, exact source/proof-level requirements, bounded task/PR lifecycle, and archival of the historical broad Wheel #230 task as superseded rather than treating its title as proof of full 15.25 parity.
