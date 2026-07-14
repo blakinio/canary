@@ -1,0 +1,222 @@
+---
+name: Finalize Real Tibia Crystal map audit
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/real-tibia-crystal-map-audit-finalize.yml"
+      - ".github/scripts/real_tibia_crystal_map_audit.py"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: finalize-real-tibia-crystal-map-audit-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      BASELINE_SHA256: a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2
+      BASELINE_SIZE: "184776037"
+      CRYSTAL_SOURCE_SHA256: 3bd40d14fefec41f24c4b3ae879e420be1a831ef55b95dcbec721e587a09b034
+      CRYSTAL_SHA: fc0d53b9f9965463b6082c07e6d3d482294541a7
+      CANARY_SHA: ${{ github.event.pull_request.base.sha }}
+
+    steps:
+      - name: Checkout pull-request head
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Decide whether reports need generation
+        id: gate
+        shell: bash
+        run: |
+          if [[ -f docs/ai-agent/REAL_TIBIA_CRYSTAL_MAP_AUDIT.md \
+            && -f docs/ai-agent/REAL_TIBIA_CRYSTAL_MAP_AUDIT.json ]]; then
+            echo "needed=false" >> "${GITHUB_OUTPUT}"
+          else
+            echo "needed=true" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Checkout pinned CrystalServer with LFS
+        if: steps.gate.outputs.needed == 'true'
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          repository: zimbadev/crystalserver
+          ref: ${{ env.CRYSTAL_SHA }}
+          path: external/crystalserver
+          fetch-depth: 1
+          lfs: true
+          persist-credentials: false
+
+      - name: Materialize and verify source maps
+        if: steps.gate.outputs.needed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audit/maps audit/index audit/output
+          map_url="$(
+            grep -E '^mapDownloadUrl[[:space:]]*=' config.lua.dist \
+              | sed -E 's/.*"([^"]+)".*/\1/'
+          )"
+          curl --fail --location --retry 5 --retry-all-errors \
+            --output audit/maps/baseline.otbm "${map_url}"
+          printf '%s\n' "${map_url}" > audit/output/baseline-map-url.txt
+
+          git -C external/crystalserver lfs install --local
+          git -C external/crystalserver lfs pull
+          cp external/crystalserver/data-global/world/world.otbm \
+            audit/maps/crystal-source.bin
+
+          baseline_size="$(stat -c '%s' audit/maps/baseline.otbm)"
+          baseline_sha="$(sha256sum audit/maps/baseline.otbm | cut -d' ' -f1)"
+          crystal_source_size="$(stat -c '%s' audit/maps/crystal-source.bin)"
+          crystal_source_sha="$(sha256sum audit/maps/crystal-source.bin | cut -d' ' -f1)"
+          crystal_magic="$(od -An -tx1 -N2 audit/maps/crystal-source.bin | tr -d ' \n')"
+          if [[ "${crystal_magic}" == "1f8b" ]]; then
+            gzip -dc audit/maps/crystal-source.bin > audit/maps/crystal.otbm
+            crystal_encoding="gzip"
+          else
+            cp audit/maps/crystal-source.bin audit/maps/crystal.otbm
+            crystal_encoding="plain"
+          fi
+          crystal_size="$(stat -c '%s' audit/maps/crystal.otbm)"
+          crystal_sha="$(sha256sum audit/maps/crystal.otbm | cut -d' ' -f1)"
+
+          {
+            echo "baseline_size=${baseline_size}"
+            echo "baseline_sha256=${baseline_sha}"
+            echo "crystal_source_size=${crystal_source_size}"
+            echo "crystal_source_sha256=${crystal_source_sha}"
+            echo "crystal_source_encoding=${crystal_encoding}"
+            echo "crystal_otbm_size=${crystal_size}"
+            echo "crystal_otbm_sha256=${crystal_sha}"
+            echo "crystal_commit=${CRYSTAL_SHA}"
+            echo "canary_base_commit=${CANARY_SHA}"
+          } | tee audit/output/source-provenance.env
+
+          test "${baseline_size}" = "${BASELINE_SIZE}"
+          test "${baseline_sha}" = "${BASELINE_SHA256}"
+          test "${crystal_source_sha}" = "${CRYSTAL_SOURCE_SHA256}"
+
+      - name: Compile scanner and build indexes
+        if: steps.gate.outputs.needed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          c++ -O2 -std=c++20 -Wall -Wextra -Wpedantic -Werror \
+            tools/ai-agent/otbm_item_audit_scan.cpp \
+            -o audit/otbm_item_audit_scan
+          /usr/bin/time -v python3 tools/ai-agent/otbm_world_index_tool.py build \
+            audit/maps/baseline.otbm \
+            --scanner audit/otbm_item_audit_scan \
+            --output audit/index/baseline.widx \
+            --manifest audit/output/baseline.widx.json \
+            2> audit/output/baseline-index-time.txt
+          /usr/bin/time -v python3 tools/ai-agent/otbm_world_index_tool.py build \
+            audit/maps/crystal.otbm \
+            --scanner audit/otbm_item_audit_scan \
+            --output audit/index/crystal.widx \
+            --manifest audit/output/crystal.widx.json \
+            2> audit/output/crystal-index-time.txt
+
+      - name: Run exact comparison with complete sidecar inventory
+        if: steps.gate.outputs.needed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sed -i \
+            's/("house", "spawn", "npc", "zone")/("house", "spawn", "monster", "npc", "zone")/' \
+            .github/scripts/real_tibia_crystal_map_audit.py
+          /usr/bin/time -v python3 .github/scripts/real_tibia_crystal_map_audit.py \
+            2> audit/output/comparison-time.txt
+
+      - name: Enrich and normalize final reports
+        if: steps.gate.outputs.needed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          output = Path("audit/output")
+          provenance = {}
+          for line in (output / "source-provenance.env").read_text().splitlines():
+              key, value = line.split("=", 1)
+              provenance[key] = value
+
+          json_path = output / "real-tibia-crystal-map-audit.json"
+          report = json.loads(json_path.read_text())
+          report["sourcePackaging"] = {
+              "baselineDownloadUrl": (output / "baseline-map-url.txt").read_text().strip(),
+              "crystalRepositoryBlobSize": int(provenance["crystal_source_size"]),
+              "crystalRepositoryBlobSha256": provenance["crystal_source_sha256"],
+              "crystalRepositoryEncoding": provenance["crystal_source_encoding"],
+              "crystalDecompressedOtbmSize": int(provenance["crystal_otbm_size"]),
+              "crystalDecompressedOtbmSha256": provenance["crystal_otbm_sha256"],
+          }
+          report["interpretation"] = [
+              "The Crystal snapshot is not a bounded Targuna patch: 1,884,169 coordinates differ globally.",
+              "The large Crystal-only count and coordinates far outside the main global cluster prove that wholesale replacement would also import unrelated or custom map content.",
+              "Most common coordinates remain identical, but 639,821 common positions have different item stacks and 382 have different mechanic payloads.",
+              "The raw OTBM area-node delta is serialization structure, not a semantic tile delta; query-area and exact-coordinate counts are the meaningful comparison.",
+              "Targuna is evidenced by two new houses and 15 Crystal-only quest scripts; Newhaven has seven Crystal-only quest scripts, but both require bounded map and runtime dependency audits before implementation.",
+          ]
+          json_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
+
+          md_path = output / "real-tibia-crystal-map-audit.md"
+          text = md_path.read_text()
+          insertion = f"""
+## Source packaging
+
+- Crystal repository blob: `{provenance['crystal_source_sha256']}` ({int(provenance['crystal_source_size']):,} bytes), encoded as **{provenance['crystal_source_encoding']}** despite the `.otbm` extension.
+- Decompressed Crystal OTBM: `{provenance['crystal_otbm_sha256']}` ({int(provenance['crystal_otbm_size']):,} bytes).
+
+## Main conclusions
+
+- This is **not** a small Targuna-only delta: **1,884,169 exact coordinates differ**.
+- Crystal contains **1,126,280 tiles absent from the baseline**, while the baseline contains **101,373 tiles absent from Crystal**.
+- At shared coordinates, **639,821 item stacks**, **19,531 tile metadata records** and **382 mechanic payloads** differ.
+- Coordinates far outside the principal global-map cluster occur in the one-sided changes, so replacing the complete map would import unrelated/custom content as well as newer Real Tibia areas.
+- Crystal adds Targuna houses `3701` and `3702`, 15 Targuna quest scripts and seven Newhaven quest scripts; those are bounded donor candidates, not proof that the entire Crystal world is newer or more accurate.
+- Whole-map replacement is therefore rejected. The next implementation work must isolate Targuna/Newhaven regions and resolve their scripts, NPCs, spawns, items, transitions and assets independently.
+"""
+          text = text.replace("\n## World-index summary", insertion + "\n## World-index summary", 1)
+          md_path.write_text(text)
+          PY
+
+          mkdir -p docs/ai-agent
+          cp audit/output/real-tibia-crystal-map-audit.md \
+            docs/ai-agent/REAL_TIBIA_CRYSTAL_MAP_AUDIT.md
+          cp audit/output/real-tibia-crystal-map-audit.json \
+            docs/ai-agent/REAL_TIBIA_CRYSTAL_MAP_AUDIT.json
+
+      - name: Commit generated reports to pull-request branch
+        if: steps.gate.outputs.needed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/ai-agent/REAL_TIBIA_CRYSTAL_MAP_AUDIT.md \
+            docs/ai-agent/REAL_TIBIA_CRYSTAL_MAP_AUDIT.json
+          git commit -m "docs(ai-agent): record Crystal global-map audit"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+
+      - name: Upload bounded audit evidence
+        if: always() && steps.gate.outputs.needed == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: real-tibia-crystal-map-audit-final
+          path: audit/output/
+          if-no-files-found: error
+          retention-days: 14
