@@ -20,9 +20,9 @@ The stack reuses the existing native OTBM scanner, World Index, script resolver,
 | 3 | Teleports, floor transitions and reachability | merged and archived | #274 / #277 |
 | 4 | Spawns, bosses and NPCs | merged and archived | #286 / #290 |
 | 5 | Storage dependency graph | merged and archived | #299 / #309 |
-| 6 | Semantic OTBM diff and visual evidence | active draft | #311 |
+| 6 | Semantic OTBM diff and visual evidence | merged and archived | #311 / lifecycle PR pending |
 | 7 | Geometry and consistency audit | not started | separate future task |
-| 8 | Safe bounded OTBM patch writer | blocked by Phases 6–7 safety gates | separate future task |
+| 8 | Safe bounded OTBM patch writer | blocked by Phase 7 safety gates | separate future task |
 
 Every phase is a separate bounded task, branch and PR. Do not combine phases.
 
@@ -337,9 +337,9 @@ The renderer requires the real OTBM and compatible client assets, hashes its inp
 
 ## Phase 6 — Semantic OTBM diff
 
-### Active delivery
+### Delivery
 
-Draft PR #311 provides:
+Merged PR #311 delivered:
 
 - report `canary-otbm-semantic-diff-v1`;
 - factual render manifest `canary-otbm-semantic-diff-render-v1`;
@@ -349,6 +349,10 @@ Draft PR #311 provides:
 - evidence-boundary ADR;
 - 30 focused tests;
 - dedicated workflow `.github/workflows/otbm-semantic-diff.yml`.
+
+Final feature head: `5ae3141d6809b7a046b95922b304f905f7c636b2`.  
+Squash merge: `4ab2dd2d72e3f55badfd45d76dd9f59d65c22f5a`.  
+Lifecycle cleanup: pending this dedicated documentation PR.
 
 ### Comparison contract
 
@@ -376,23 +380,27 @@ Before/after/context requests call `otbm_renderer.render_region` or record exact
 
 Inputs and outputs are artifact-root confined and size-bounded. Direct symlinks and accidental overwrite are rejected. JSON writes are atomic. Corrupt/incompatible indexes or mismatched provenance fail closed. Maps are never modified.
 
-### Current validation evidence
+### Final validation evidence
 
-Implementation head `f5d540b4d88955481909c76f9abcf7588e44559e`:
+Final head `5ae3141d6809b7a046b95922b304f905f7c636b2`:
 
-- OTBM Semantic Diff run `29315508600`: success;
-- Validate semantic map evidence job `87028506652`: success;
+- OTBM Semantic Diff run `29316215755`: success;
+- Validate semantic map evidence job `87030733453`: success;
+- OTBM Map Tools run `29316215784`: success;
+- Agent Task Ownership run `29316215791`: success;
+- Agent Task Ownership job `87030730336`: success;
+- autofix.ci run `29316215749`: success;
+- AI Agent Tools run `29316215787`: success;
+- repository CI run `29316215995`: success;
+- Fast Checks job `87030777614`: success;
+- Lua Tests job `87030777654`: success;
+- Linux Release job `87031009052`: success;
+- Required job `87032170628`: success;
 - all 30 focused tests: success;
-- existing native scanner compilation: success;
-- two deterministic synthetic maps/indexes built through the existing scanner/World Index: success;
-- repeat semantic diff byte equality: success;
-- Python compilation, schema syntax and representative `jsonschema` validation: success;
-- forbidden generated `.otbm`, `.widx` and `.png` removal before artifact publication: success;
-- OTBM Map Tools run `29315508420`: success;
-- Agent Task Ownership run `29315508487`: success;
-- repository CI run `29315508700`: success.
+- review threads: zero;
+- auto-merge: enabled and completed the squash merge.
 
-The synthetic workflow validates the contract and safety checks; it is not real-map or gameplay proof. Only one private map was available historically, so no real two-map comparison was fabricated.
+The synthetic workflow validates the tested contract and safety checks; it is not real-map or gameplay proof. Only one private map was available historically, so no real two-map comparison was fabricated or produced.
 
 ## Phase 7 — Geometry and consistency audit
 
@@ -410,7 +418,7 @@ Visual-style rules remain warnings unless backed by deterministic item/appearanc
 
 ## Phase 8 — Safe bounded OTBM patch writer
 
-Phase 8 remains blocked until semantic-diff and geometry gates are complete. Every approved operation must:
+Phase 8 remains blocked until the geometry gate is complete. Every approved operation must:
 
 - work on a copy, never the source map in place;
 - require exact expected previous state;
@@ -428,6 +436,6 @@ Existing older patch surfaces do not authorize production-map edits. Phase 8 sho
 
 ## Programme handoff
 
-Phases 1–5 are merged and archived. Phase 6 is active in task `CAN-20260714-otbm-semantic-diff`, branch `feat/otbm-semantic-diff` and draft PR #311.
+Phases 1–6 are merged and archived. Phase 7 is the exact next planned programme phase, but it has not started. It requires a fresh current-main/open-PR/active-task/ownership/existing-tool preflight after this lifecycle PR is merged.
 
-Do not reopen historical OTBM PRs or continue their branches. Do not combine Phase 6 with Harlow cleanup, `0,0,0` teleport repair, Bone Capsule repair, geometry audit, map writing, gameplay fixes, Phase 7 or Phase 8.
+Do not reopen historical OTBM PRs or continue their branches. Do not combine Phase 7 with Harlow cleanup, `0,0,0` teleport repair, Bone Capsule repair, map writing, gameplay fixes or Phase 8.
