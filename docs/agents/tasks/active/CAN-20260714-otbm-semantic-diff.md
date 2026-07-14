@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: feat/otbm-semantic-diff
 base_branch: main
 created: 2026-07-14T09:10:00+02:00
-updated: 2026-07-14T09:10:00+02:00
-last_verified_commit: "f4e5371906d3b4a33229db2dce6b25d44fb813f0"
+updated: 2026-07-14T09:39:00+02:00
+last_verified_commit: "0705f8fa73e83ece14c83b3438648af1295256bd"
 risk: medium
 related_issue: ""
-related_pr: "pending"
+related_pr: "#311"
 depends_on:
   - "merged and archived Unified OTBM World Index #219/#223"
   - "merged and archived Quest Map Validator #225/#236"
@@ -50,6 +50,7 @@ owned_paths:
     - tools/ai-agent/otbm_script_resolution.py
     - tools/ai-agent/otbm_reachability.py
     - tools/ai-agent/otbm_reachability_types.py
+    - tools/ai-agent/otbm_reachability_transition.py
     - tools/ai-agent/otbm_spawn_npc.py
     - tools/ai-agent/otbm_spawn_npc_validation.py
     - tools/ai-agent/otbm_storage_graph.py
@@ -67,6 +68,7 @@ reuses:
   - existing factual OTBM renderer
 public_interfaces:
   - canary-otbm-semantic-diff-v1
+  - canary-otbm-semantic-diff-render-v1
   - OTBM semantic diff CLI
 cross_repo_tasks: []
 ---
@@ -77,84 +79,173 @@ Deliver Phase 6 as a deterministic read-only semantic diff between two canonical
 
 # Fresh preflight
 
-- Current `main`: `f4e5371906d3b4a33229db2dce6b25d44fb813f0`.
-- Phase 5 lifecycle PR #309: squash-merged and archived before this branch was created.
-- Open PR search: no OTBM or semantic-diff PR exists; current open PRs concern multichannel DB handoff, E2E, Forge, Wheel staging and a paused Cyclopedia experiment.
-- Branch search: no existing semantic-diff branch found.
-- Repository search: no existing `otbm_semantic_diff` implementation found.
-- Roadmap: Phase 5 is `merged and archived`; Phase 6 is `not started` at branch creation.
-- `ACTIVE_WORK.md`: read-only and not edited.
-- Upstream `opentibiabr/*`: read-only; no writes planned.
+- Branch base `main`: `f4e5371906d3b4a33229db2dce6b25d44fb813f0`.
+- Phase 5 lifecycle PR #309 was squash-merged and archived before this branch was created.
+- No open OTBM/Semantic Diff PR, active semantic-diff task, semantic-diff branch or existing `otbm_semantic_diff` implementation was found.
+- Current unrelated open PRs had no declared OTBM ownership overlap.
+- `ACTIVE_WORK.md` remains read-only and is not in owned paths.
+- Upstream `opentibiabr/*` remains read-only.
 
-# Contract under design
+# Fixed contract
 
-Preferred report contract: `canary-otbm-semantic-diff-v1`.
+Report contract: `canary-otbm-semantic-diff-v1`.
 
-Required evidence layers remain distinct:
+Render-manifest contract: `canary-otbm-semantic-diff-render-v1`.
 
-- structural;
-- static;
-- semantic;
-- correlated;
-- regression;
-- runtime;
-- gameplay;
-- factual visual evidence.
+Cross-index identities:
 
-A lower evidence layer does not prove a higher one. The diff may classify changed evidence but does not repair maps, gameplay, scripts, quests, spawns, NPCs or storage progression.
+- tile: exact `x,y,z`;
+- item base for aligned mechanic comparison: exact `(itemId,itemDepth,source)`;
+- exact item evidence: item base plus literal action ID, unique ID, house-door ID and teleport destination.
+
+Pure exact-multiset reorder is one `stack-order-changed` finding with no false add/remove. Other stack changes use a deterministic minimum edit script with fixed tie order `replace`, `remove`, `add`. No fuzzy item matching is performed.
+
+Walkability calls the existing Phase 3 `otbm_reachability_transition._classify_tile` implementation. Phase 6 does not copy or reinterpret Phase 3 ground/static/conditional/unknown/strict/optimistic rules.
+
+Optional correlation indexes only exact positions and literal mechanics in explicitly supplied format-validated Phase 2, script-resolution, Phase 3, Phase 4 and Phase 5 reports. Correlation remains selected-scope evidence.
+
+Factual visual evidence calls `otbm_renderer.render_region` or emits exact `otbm_render_tool.py` commands. No renderer, AI image, styled sprite or synthetic overlay is created.
+
+# Implemented files
+
+- `.github/workflows/otbm-semantic-diff.yml`
+- `docs/agents/decisions/ADR-20260714-otbm-semantic-diff-evidence-boundary.md`
+- `docs/agents/tasks/active/CAN-20260714-otbm-semantic-diff.md`
+- `docs/ai-agent/OTBM_SEMANTIC_DIFF.md`
+- `docs/ai-agent/OTBM_SEMANTIC_DIFF.schema.json`
+- `tools/ai-agent/otbm_semantic_diff.py`
+- `tools/ai-agent/otbm_semantic_diff_analysis.py`
+- `tools/ai-agent/otbm_semantic_diff_render.py`
+- `tools/ai-agent/otbm_semantic_diff_tool.py`
+- `tools/ai-agent/otbm_semantic_diff_types.py`
+- `tools/ai-agent/test_otbm_semantic_diff.py`
+
+Shared documentation remains to be updated after the focused workflow is green.
+
+# Implemented behavior
+
+- binary World Index validation through the existing reader;
+- manifest/index/source/scanner SHA-256 and size validation;
+- OTBM/index/scanner-build compatibility checks;
+- streaming full-index or inclusive bounded-region merge;
+- exact tile kind, flags, house ID and ground evidence;
+- item added/removed/replaced, exact reorder and stack indices;
+- separate AID, UID, house-door, teleport source/destination findings;
+- Phase 3 walkability regression/improvement classifications;
+- exact global selected-scope totals with bounded samples and explicit truncation;
+- stable IDs independent of optional correlation;
+- conservative optional correlation;
+- factual before/after/context render manifest through the existing renderer;
+- artifact-root confinement, direct symlink rejection, explicit overwrite, size limits and atomic JSON writes;
+- optional real-map hash verification only; map bytes remain unchanged.
+
+# Focused tests
+
+Thirty tests cover:
+
+1. identical indexes;
+2. tile added;
+3. tile removed;
+4. tile flags;
+5. house ID;
+6. ground;
+7. item added;
+8. item removed;
+9. exact stack reorder without false add/remove;
+10. action ID;
+11. unique ID;
+12. house-door ID;
+13. teleport destination;
+14. strict walkability regression;
+15. conditional walkability;
+16. unknown appearances retained;
+17. bounded-region exclusion;
+18. exact totals under truncation;
+19. deterministic output;
+20. corrupt index fail-closed;
+21. mismatched provenance fail-closed;
+22. overwrite protection;
+23. symlink output rejection;
+24–27. optional Phase 2–5 correlation;
+28. missing optional reports;
+29. existing renderer API/command manifest;
+30. source-map immutability.
+
+Local isolated checks available without a repository checkout:
+
+- `python -m py_compile` for the six Phase 6 Python files: passed before publication.
+- `python -m json.tool docs/ai-agent/OTBM_SEMANTIC_DIFF.schema.json`: passed before publication.
+
+These are isolated file checks, not a local repository test run.
+
+# CI history and fixes
+
+Initial Phase 6 run:
+
+- workflow run `29314876746`;
+- job `87026487592` (`Validate semantic map evidence`);
+- scanner compilation: success;
+- focused tests: failure.
+
+A diagnostic-log artifact was added because the original downloaded job log was truncated before the traceback.
+
+Diagnostic run:
+
+- workflow run `29315020741`;
+- artifact `otbm-semantic-diff-focused-tests`, artifact ID `8303572057`;
+- exact failure: the class-level `TemporaryDirectory` used the same `build` name as the fixture-building method, so 29 tests attempted to call a `TemporaryDirectory`; the render-manifest test supplied strings where the API declares `Path`.
+- fix at `0705f8fa73e83ece14c83b3438648af1295256bd`: rename the class resource to `compiler_temp` and pass `Path` values to the render API.
+
+No production contract changed for this fixture fix.
 
 # Acceptance criteria
 
-- [ ] Compare two compatible canonical World Index inputs without parsing OTBM independently.
-- [ ] Verify source-map/index/scanner provenance and SHA-256, fail closed on incompatible or corrupt inputs.
-- [ ] Report deterministic tile additions/removals, tile flags, house IDs and ground changes with exact positions/floors.
-- [ ] Report deterministic item additions/removals/replacements, stack-order changes and exact before/after stack indices.
-- [ ] Report AID, UID, house-door and teleport source/destination mechanic changes separately.
-- [ ] Reuse Phase 3 public walkability semantics; do not duplicate its engine.
-- [ ] Support full comparison and optional inclusive bounded 3D regions.
-- [ ] Preserve exact total counts with bounded samples and explicit truncation.
-- [ ] Provide stable finding IDs, deterministic ordering and exact before/after provenance.
-- [ ] Provide conservative optional Phase 2/3/4/5 correlation without expanding selected scope.
-- [ ] Integrate factual before/after/context render commands/manifests through the existing renderer API.
-- [ ] Add atomic output, explicit overwrite, symlink rejection, path confinement and input/output size limits.
-- [ ] Add schema, documentation, ADR, focused tests and dedicated CI/artifacts.
-- [ ] Keep `.otbm`, `.widx`, client assets, appearances and generated renders/reports outside Git.
-- [ ] Confirm source maps remain unchanged.
-- [ ] Update module catalogue, changelog, roadmap, task and PR body.
-- [ ] Verify exact changed files/diff, zero `ACTIVE_WORK.md`, zero forbidden binaries/assets.
-- [ ] Pass ready-state CI including `Required`, resolve review threads, auto-merge and squash-merge.
-- [ ] Archive this task in a separate lifecycle PR and mark Phase 6 merged/archived.
+- [x] Compare two compatible canonical World Index inputs without parsing OTBM independently.
+- [x] Verify source-map/index/scanner provenance and SHA-256 and fail closed on incompatible/corrupt inputs.
+- [x] Report deterministic tile, item-stack and separate mechanic changes with exact positions/indices.
+- [x] Reuse the exact Phase 3 walkability implementation without duplicating its engine.
+- [x] Support full comparison and optional inclusive bounded 3D regions.
+- [x] Preserve exact totals with bounded samples, stable IDs and explicit truncation.
+- [x] Provide conservative optional Phase 2/3/4/5 and script-resolution correlation.
+- [x] Integrate factual before/after/context evidence through the existing renderer API.
+- [x] Add atomic output, explicit overwrite, symlink rejection, path confinement and size limits.
+- [x] Add schema, documentation, ADR, 30 focused tests and dedicated CI/artifacts.
+- [x] Keep `.otbm`, `.widx`, assets, appearances and generated renders/reports outside Git.
+- [x] Confirm source maps remain unchanged by tests and policy.
+- [ ] Focused workflow green after the fixture fix.
+- [ ] Update MODULE_CATALOG, CHANGELOG, roadmap, task and PR body.
+- [ ] Verify exact diff/files and absence of `ACTIVE_WORK.md`/forbidden artifacts.
+- [ ] Ready-state CI including Required, zero review threads, auto-merge and squash merge.
+- [ ] Separate lifecycle/archive PR and Phase 6 `merged and archived` roadmap state.
 
 # Explicit exclusions
 
-- No new OTBM parser, World Index, script resolver, pathfinder or map renderer.
-- No dynamic Lua execution or guessing dynamic expressions.
-- No promotion of `unresolved` to handled without direct evidence.
-- No Harlow, `0,0,0` teleport, Bone Capsule, The Beginning, storage, NPC, spawn, AID/UID or map-geometry repair.
-- No map modification or production gameplay change.
-- No Phase 7 or Phase 8 implementation.
-- No OTClient change.
+No Harlow, `0,0,0` teleport, Bone Capsule, The Beginning, storage progression, NPC/spawn/AID/UID handler, geometry, gameplay or production-map repair. No Phase 7/8. No OTClient change.
 
 # Local checkout and DNS limitation
 
 - Local checkout: unavailable.
-- Command previously executed once: `git ls-remote https://github.com/blakinio/canary.git HEAD`.
+- Command executed once: `git ls-remote https://github.com/blakinio/canary.git HEAD`.
 - Exact result: `fatal: unable to access 'https://github.com/blakinio/canary.git/': Could not resolve host: github.com`.
-- Clone/fetch/pull/ls-remote will not be repeated after this confirmed DNS failure.
-- GitHub API will be used for repository, branch, file, PR, workflow, job, review and commit operations.
-- No local repository test result is claimed unless a checkout later becomes available independently.
+- Clone/fetch/pull/ls-remote were not repeated.
+- GitHub API and workflow artifacts are used for repository-level verification.
+- No local repository test result is claimed.
 
 # Work log
 
-- 2026-07-14 09:10 CEST: completed fresh post-Phase-5 preflight, created branch from current `main`, claimed the Phase 6 paths and recorded the evidence boundary.
+- 2026-07-14 09:10 CEST: fresh preflight, branch/task creation and draft PR #311.
+- 2026-07-14 09:12–09:32 CEST: fixed contracts, modular implementation, tests, schema, ADR, documentation and workflow published.
+- 2026-07-14 09:34 CEST: first workflow failure isolated to test harness lifecycle; diagnostic artifact added.
+- 2026-07-14 09:39 CEST: fixture-name and render-argument fixes published at `0705f8fa73e83ece14c83b3438648af1295256bd`.
 
 # Remaining work
 
-1. Read the canonical World Index, Phase 3 reachability, renderer and prior modular Phase patterns in detail.
-2. Fix the exact input/report API and data model in the ADR and task.
-3. Open a draft PR early.
-4. Implement the smallest complete modular diff, tests, schema, docs and workflow.
+1. Verify the post-fix focused workflow and inspect its artifact/logs if needed.
+2. Update shared documentation and PR body.
+3. Run exact diff/file/forbidden-path review.
+4. Mark Ready, verify ready-state CI/Required/review threads, enable auto-merge and merge.
+5. Create and merge the separate lifecycle/archive PR.
 
 # Handoff
 
-No implementation exists yet. The next safe action is to inspect the World Index reader/query API and Phase 3 public walkability API, then record the chosen reuse boundary before creating source modules. Do not parse `.otbm`, duplicate walkability logic or edit `ACTIVE_WORK.md`.
+Current implementation head: `0705f8fa73e83ece14c83b3438648af1295256bd`. The immediate next action is to inspect the `OTBM Semantic Diff` run for this head. Do not parse OTBM independently, duplicate Phase 3, edit `ACTIVE_WORK.md`, commit generated inputs or repair gameplay/map findings.
