@@ -218,14 +218,18 @@ creatures.
    `docs/architecture/instanced-test-arena.md`); every other planned
    integration below still runs entirely in the normal world.
 1. **Runtime call-site wiring**: `Creature::setMaster(master, binder)` exists
-   and is tested (done), but no production spawn/summon call site passes
-   `Game::getInstanceManager()`'s binder to it yet - only direct unit tests
-   exercise the overload today.
+   and is tested (done). The engine's one production summon-creation call
+   site, `Monster::onThinkDefense()` (`src/creatures/monsters/monster.cpp`),
+   now passes `Game::getInstanceCreatureBinder()` to it (done - PR #304), so
+   a summon made by an instance-owned monster inherits its owner. Verified
+   backward-compatible for every normal-world monster: an unregistered
+   master makes `InstanceManager::inheritCreatureOwnership()` a no-op.
 2. **Spawn and NPC ownership**: automatic unregistration on removal is done
-   (see above, `Game::removeCreature()`). Still open: spawn/NPC creation
-   itself has no concept of "which instance am I in", so nothing registers a
-   spawn product's id at creation time yet - that needs a design decision on
-   how a `Spawn`/`SpawnNpc` becomes instance-scoped in the first place.
+   (see above, `Game::removeCreature()`). `InstanceArenaService::enterArena()`
+   spawns and registers its one arena monster directly (done - PR #304), but
+   this is specific to the arena's own spawn call, not a general answer for
+   ordinary map `Spawn`/`SpawnNpc` instance-scoping, which remains open and
+   out of scope for this program (the arena never touches ordinary spawns).
 3. **Cross-instance isolation**: spectator, targeting and combat call sites use
    the central relation policy while normal-world behavior stays unchanged.
 4. **Scheduler/event ownership**: `InstanceScopedEvent` gives a scheduled
