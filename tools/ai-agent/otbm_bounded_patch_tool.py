@@ -15,19 +15,25 @@ def _path(value: str) -> Path:
     return Path(value)
 
 
+def _existing_scanner(candidate: Path, label: str) -> Path:
+    expanded = candidate.expanduser()
+    if not expanded.is_file():
+        raise BoundedPatchError(f"{label} was not found: {expanded}")
+    return expanded
+
+
 def _locate_scanner(explicit: Path | None) -> Path:
-    candidates: list[Path] = []
     if explicit is not None:
-        candidates.append(explicit)
+        return _existing_scanner(explicit, "explicit native OTBM scanner")
+
     environment = os.environ.get("OTBM_ITEM_AUDIT_SCANNER")
     if environment:
-        candidates.append(Path(environment))
+        return _existing_scanner(Path(environment), "OTBM_ITEM_AUDIT_SCANNER")
+
     module = Path(__file__).resolve().parent
-    candidates.extend((module / "otbm_item_audit_scan", module / "otbm_item_audit_scan.exe"))
-    for candidate in candidates:
-        resolved = candidate.expanduser().resolve(strict=False)
-        if resolved.is_file():
-            return resolved
+    for candidate in (module / "otbm_item_audit_scan", module / "otbm_item_audit_scan.exe"):
+        if candidate.is_file():
+            return candidate
     raise BoundedPatchError("native OTBM scanner was not found; compile otbm_item_audit_scan.cpp or pass --scanner")
 
 
