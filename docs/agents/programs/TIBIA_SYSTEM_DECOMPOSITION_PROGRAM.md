@@ -4,8 +4,8 @@ name: Tibia System Decomposition
 status: active
 owner: repository-wide
 created: 2026-07-14T15:43:00+02:00
-updated: 2026-07-14T22:40:00+02:00
-last_verified_commit: "68b9836cc8e6f55add9a6f3f8d7919e031defc50"
+updated: 2026-07-14T23:12:00+02:00
+last_verified_commit: "e4362168807c74eb66b17405cba06aa0d874c19f"
 primary_paths:
   - docs/agents/real-tibia/**
   - docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md
@@ -63,9 +63,9 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | `TSD-003` | account, character and progression | completed | PR #355; merge `1098363a708a1f5f875850670a5aad411031e188`; registry 29 → 35 | preserve archive |
 | `TSD-004` | Cyclopedia family | completed | PR #359; merge `6d6df89b02fca525ef76011369d8c6243de231d8`; registry 35 → 39 | preserve archive |
 | `TSD-005` | combat, weapons and vocations | completed | PR #362; merge `68b9836cc8e6f55add9a6f3f8d7919e031defc50`; registry 39 → 41 | preserve archive |
-| `TSD-006` | creatures, hunting, raids and bosses | next | `spawns`, `prey`, `bestiary`, `bosstiary`, `cyclopedia`, `combat-conditions`, `weapons` | separate creature definitions/AI, encounters, credit, rewards and scheduling |
-| `TSD-007` | items and economy | planned | `market`, `imbuements`, `exaltation-forge`, `weapons` | classify item lifecycle, movement, trade, market and rewards |
-| `TSD-008` | world content | planned | quests/NPCs/houses/OTBM records | classify map, movement, quests, houses, travel and instances |
+| `TSD-006` | creatures, hunting, raids and bosses | active | PR #364; implementation head `e4362168807c74eb66b17405cba06aa0d874c19f`; registry 41 → 45 | finish shared docs, exact-head/ready CI, squash merge and lifecycle archive |
+| `TSD-007` | items and economy | next | `market`, `imbuements`, `exaltation-forge`, `weapons`, `boss-encounters` | classify item lifecycle, movement, trade, market and rewards |
+| `TSD-008` | world content | planned | quests/NPCs/houses/OTBM/raids records | classify map, movement, quests, houses, travel and instances |
 | `TSD-009` | social, communication and trust | planned | social/account category and TSD-003 account boundaries | separate communication, party/guild and sanctions/audit |
 | `TSD-010` | protocol and client | planned | `protocol` umbrella, maintained client and account/Cyclopedia boundaries | classify wire/session/client-feature domains |
 | `TSD-011` | analytics, security and AI | planned | analytics/safety boundaries | register durable read-only/analysis domains only |
@@ -118,22 +118,58 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 - Merge `6d6df89b02fca525ef76011369d8c6243de231d8`; lifecycle merge `f163ed8e3b3d51e65c7fef1bc03830b12b2e6bfa`.
 - Registry 35 → 39; added only `bestiary`, `bosstiary`, `cyclopedia-character`, `titles`.
 - Existing records modified 0; `cyclopedia`, `charms`, `houses`, `achievements`, `protocol`, character lifecycle/progression and player persistence remained stable.
-- Final feature checks: Real Tibia Module Registry #226, Upstream Intelligence #254, Agent Task Ownership #1086, CI #2199 and ready-state CI #2200 — success.
-- Cyclopedia Items/Map remain umbrella/protocol/client surfaces; Cyclopedia Houses remains covered by `houses`; appearance unlocks remain deferred.
 - Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-cyclopedia-family.md`.
 
 ## TSD-005
 
 - Feature PR #362, head `af60fffe398ffcc5dcccd659133b7d4796690b19`.
-- Merge `68b9836cc8e6f55add9a6f3f8d7919e031defc50` at `2026-07-14T20:38:41Z`.
+- Merge `68b9836cc8e6f55add9a6f3f8d7919e031defc50`; lifecycle merge `f68f826915882b0b20081b8fca5ed975ce303f45`.
 - Registry 39 → 41; added only `combat-conditions` and `weapons`.
 - Existing records modified 0; `combat`, `spells`, `vocations`, `weapon-proficiency`, character progression, player persistence and protocol remained stable.
 - Final feature checks: Real Tibia Module Registry #250, Upstream Intelligence #279, Agent Task Ownership #1107, CI #2221 and ready-state CI #2222 — success.
-- Ready-state Lua Tests, Fast Checks, Linux release and Required all succeeded on the exact final head.
-- Review repairs preserved client-bucket `protocol` mapping while excluding server-only combat/weapon modules and removed stale global-count assumptions from older focused tests.
 - Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-combat-weapons-vocations.md`.
 
-No completed package evidence automatically establishes authentication security, persistence/transaction safety, progression or combat formulas, Cyclopedia/Bestiary/Bosstiary/title correctness, condition or weapon semantics, protocol compatibility, maintained-client behavior, runtime behavior, physical-client E2E, Real Tibia parity or Oteryn readiness.
+# Current active package — TSD-006
+
+Task: `CAN-20260714-tibia-system-decomposition-creatures-hunting-raids-bosses`; draft PR #364.
+
+Registry 41 → 45. Added only:
+
+```text
+boss-encounters
+creature-ai
+creature-definitions
+raids
+```
+
+Existing records modified: 0. `spawns`, `prey`, `bestiary`, `bosstiary`, `cyclopedia`, `combat`, `combat-conditions`, `weapons` and player persistence remain stable.
+
+Key classification:
+
+- `MonsterType`/`Monsters` registry and active monster data become `creature-definitions`;
+- runtime Monster think/target/follow/flee/movement/attack lifecycle becomes `creature-ai`;
+- reward-boss participation, scoring, reward generation and reward-container handoff become `boss-encounters`;
+- raid registry, probabilistic scheduling, ordered events, reset and reload become `raids`;
+- static placement and generic dynamic creation stay in `spawns`;
+- Prey/Hunting Tasks, Bestiary and Bosstiary credit remain in their existing records;
+- individual creature, boss and raid definitions remain data entries, not modules.
+
+Implementation/focused-test head `e4362168807c74eb66b17405cba06aa0d874c19f` passed:
+
+- Real Tibia Module Registry #275;
+- Upstream Intelligence #305;
+- Agent Task Ownership #1126;
+- repository CI #2241;
+- focused registry and source-role tests;
+- schema and dependency validation;
+- deterministic `generate --check`;
+- discovery and exact PR-range `affected` commands.
+
+The initial generated dependency mismatch was caused only by unsorted `interacts_with` arrays in `creature-ai` and `raids`; the records were normalized without changing module scope, paths, dependencies or runtime behavior.
+
+Detailed evidence: `docs/agents/real-tibia/TSD_006_CREATURES_HUNTING_RAIDS_BOSSES_REPORT.md`.
+
+No completed package evidence automatically establishes authentication security, persistence/transaction safety, progression/combat formulas, Cyclopedia credit, creature AI, boss rewards, raid timing, condition/weapon semantics, protocol compatibility, maintained-client behavior, runtime behavior, physical-client E2E, Real Tibia parity or Oteryn readiness.
 
 # Oteryn migration policy
 
@@ -154,15 +190,15 @@ legacy inventory
 
 # Exact next operational task
 
-After this lifecycle PR passes exact-head review, ready-state Linux/Required and squash merge, re-read then-current `main` and create only:
+After PR #364 passes final exact-head review, ready-state Linux/Required, squash merge and a separate lifecycle archive, re-read then-current `main` and create only:
 
 ```text
-task: CAN-20260714-tibia-system-decomposition-creatures-hunting-raids-bosses
-package: TSD-006
-branch: docs/tibia-system-decomposition-creatures-hunting-raids-bosses
+task: CAN-20260714-tibia-system-decomposition-items-economy
+package: TSD-007
+branch: docs/tibia-system-decomposition-items-economy
 ```
 
-Preserve `spawns`, `prey`, `bestiary`, `bosstiary`, `cyclopedia`, `combat`, `combat-conditions` and `weapons`; add only durable creature-definition/AI, encounter, hunting-credit/reward and raid-scheduling boundaries supported by independent current implementation roots.
+Preserve `market`, `imbuements`, `exaltation-forge`, `weapons`, `boss-encounters` and persistence/protocol boundaries; add only durable item lifecycle, movement, container, trade/store/economy or reward boundaries supported by independent current implementation roots.
 
 # Handoff
 
