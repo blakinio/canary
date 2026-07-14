@@ -1,0 +1,52 @@
+name: Apply CS-007 safe decoder v3
+
+on:
+  pull_request:
+    types: [synchronize]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-cs007-safe-decoder-v3
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    if: >-
+      github.event.pull_request.number == 328 &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'security/table-unserialize-safe'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: security/table-unserialize-safe
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install LuaJIT
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq luajit
+
+      - name: Extract and execute reviewed patch script
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          source = Path('.github/workflows/apply-cs007-safe-decoder.yml').read_text().splitlines()
+          marker = '      - name: Add failing regression, implement parser, and validate'
+          start = source.index(marker)
+          run_index = next(i for i in range(start + 1, len(source)) if source[i] == '        run: |')
+          script_lines = []
+          for line in source[run_index + 1:]:
+              if line and not line.startswith('          '):
+                  break
+              script_lines.append(line[10:] if line.startswith('          ') else '')
+          Path('/tmp/apply_cs007.sh').write_text('\n'.join(script_lines) + '\n')
+          PY
+          bash -x /tmp/apply_cs007.sh
