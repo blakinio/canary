@@ -2,6 +2,11 @@
   "schema_version": 1,
   "categories": [
     {
+      "id": "engine-foundation",
+      "name": "Engine foundation",
+      "description": "Server process lifecycle, configuration, Lua runtime, scheduling, services, build and platform contracts."
+    },
+    {
       "id": "character-progression",
       "name": "Character and progression",
       "description": "Player growth, unlocks, account-facing progression and vocation systems."
