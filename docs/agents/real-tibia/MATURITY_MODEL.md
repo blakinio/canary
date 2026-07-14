@@ -5,10 +5,12 @@ Maturity is multidimensional. A module with substantial code may still lack curr
 ## Lifecycle
 
 - `inventory`: registered for discovery; no claim of completeness;
+- `mapped`: implementation and evidence surfaces mapped, without verification;
 - `active`: currently maintained or governed by a program/queue;
 - `paused`: intentionally not progressing, with preserved state;
 - `historical`: retained for compatibility/history, not current parity work;
-- `deprecated`: being replaced or no longer recommended.
+- `deprecated`: being replaced or no longer recommended;
+- `archived`: completed lifecycle record retained for history.
 
 ## Maturity dimensions
 
@@ -16,6 +18,7 @@ Maturity is multidimensional. A module with substantial code may still lack curr
 
 - `not-assessed`: not inventoried;
 - `inventory`: implementation locations identified;
+- `mapped`: implementation surfaces and boundaries mapped;
 - `partial`: some required behavior exists, gaps remain or are unverified;
 - `verified`: implementation matches the currently established contract;
 - `not-applicable`: dimension does not apply.
@@ -60,11 +63,30 @@ Maturity is multidimensional. A module with substantial code may still lack curr
 
 - `not-assessed`;
 - `missing`;
-- `limited`;
+- `partial` — an end-to-end or physical-client proof covers only part of the contract;
 - `verified`;
 - `not-applicable`.
 
 Physical-client E2E is a separate proof level. CI compilation or unit tests do not satisfy it.
+
+## Decomposition baseline
+
+A newly decomposed module normally starts at:
+
+```text
+lifecycle: inventory
+implementation: inventory
+evidence: inventory
+persistence: not-assessed
+protocol: not-assessed
+automated_tests: not-assessed
+runtime_validation: not-assessed
+gameplay_e2e: not-assessed
+```
+
+Use `missing` only when the required boundary has been inventoried and proven absent. Use `not-applicable` only when the dimension genuinely does not belong to the module contract.
+
+A child module does not inherit the umbrella module's maturity. Every record must carry evidence for its own scope.
 
 ## Promotion rules
 
