@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.example/schemas/OTBM_GEOMETRY_RULES.schema.json",
+  "title": "Canary reviewed OTBM geometry adjacency rules",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "adjacencyRules"],
+  "properties": {
+    "format": {"const": "canary-otbm-geometry-rules-v1"},
+    "schemaVersion": {"const": 1},
+    "adjacencyRules": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "category",
+          "sourceItemIds",
+          "direction",
+          "requiredNeighborItemIds",
+          "severity",
+          "confidence",
+          "message"
+        ],
+        "properties": {
+          "id": {"type": "string", "minLength": 1, "maxLength": 160},
+          "category": {"enum": ["wall", "border"]},
+          "sourceItemIds": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"type": "integer", "minimum": 0, "maximum": 65535}
+          },
+          "direction": {"enum": ["north", "east", "south", "west"]},
+          "requiredNeighborItemIds": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"type": "integer", "minimum": 0, "maximum": 65535}
+          },
+          "severity": {"enum": ["error", "warning", "info"]},
+          "confidence": {"enum": ["high", "medium", "low"]},
+          "message": {"type": "string", "minLength": 1, "maxLength": 500}
+        }
+      }
+    }
+  }
+}

@@ -7,9 +7,9 @@
 
 ## Mission
 
-Maintain one deterministic, evidence-based OTBM analysis stack that agents can reuse for quests, teleportation, reachability, NPCs, spawns, storage progression, semantic diffs and—only after explicit safety gates—bounded map patching.
+Maintain one deterministic, evidence-based OTBM analysis stack that agents can reuse for quests, teleportation, reachability, NPCs, spawns, storage progression, semantic diffs, bounded geometry audits and—only after explicit safety gates—bounded map patching.
 
-The stack reuses the existing native OTBM scanner, World Index, script resolver, Quest Map Validator, appearances parser, Phase 3 reachability, Phase 4 spawn/NPC evidence, Phase 5 storage evidence and factual renderer. It must not create competing OTBM parsers/pathfinders/renderers or use AI-generated imagery as map evidence.
+The stack reuses the existing native OTBM scanner, World Index, script resolver, Quest Map Validator, appearances parser, Phase 3 reachability, Phase 4 spawn/NPC evidence, Phase 5 storage evidence, Phase 6 semantic diff and factual renderer. It must not create competing OTBM parsers/pathfinders/renderers or use AI-generated imagery as map evidence.
 
 ## Programme status
 
@@ -21,7 +21,7 @@ The stack reuses the existing native OTBM scanner, World Index, script resolver,
 | 4 | Spawns, bosses and NPCs | merged and archived | #286 / #290 |
 | 5 | Storage dependency graph | merged and archived | #299 / #309 |
 | 6 | Semantic OTBM diff and visual evidence | merged and archived | #311 / #315 |
-| 7 | Geometry and consistency audit | not started | separate future task |
+| 7 | Geometry and consistency audit | active draft | #322 |
 | 8 | Safe bounded OTBM patch writer | blocked by Phase 7 safety gates | separate future task |
 
 Every phase is a separate bounded task, branch and PR. Do not combine phases.
@@ -36,7 +36,7 @@ Every phase is a separate bounded task, branch and PR. Do not combine phases.
 - A source/map match can still be blocked by doors, quest state, walkability, direction, account state, protocol or runtime conditions.
 - Green CI proves only the checks executed at that commit; it does not prove live gameplay.
 - Coordinates, item IDs, AID, UID, storage values, spawn radii/times and transition offsets must never be invented.
-- World Index, Quest Map Validator, reachability, spawn/NPC validation, storage dependency analysis and semantic diff are read-only.
+- World Index, Quest Map Validator, reachability, spawn/NPC validation, storage dependency analysis, semantic diff and geometry audit are read-only.
 - `.otbm`, `.widx`, `items.otb`, appearances binaries, client packages, generated large reports and renders stay outside Git.
 - Map images must come from the real OTBM, compatible client assets and the factual renderer.
 - Do not use AI image generation to visualize or modify the map.
@@ -352,7 +352,7 @@ Merged PR #311 delivered:
 
 Final feature head: `5ae3141d6809b7a046b95922b304f905f7c636b2`.  
 Squash merge: `4ab2dd2d72e3f55badfd45d76dd9f59d65c22f5a`.  
-Lifecycle cleanup: #315 (merge pending).
+Lifecycle cleanup: #315, merge `e71630db609e03417ac61725fc5695dbe04d92b6`.
 
 ### Comparison contract
 
@@ -404,21 +404,68 @@ The synthetic workflow validates the tested contract and safety checks; it is no
 
 ## Phase 7 — Geometry and consistency audit
 
-Planned deliverables:
+### Active delivery
 
-- item without floor;
-- broken or inconsistent walls/borders;
-- invisible blockers;
-- isolated/orphan tiles;
-- suspicious duplicate ground;
-- house/PZ continuity issues;
-- exact positions, confidence levels and bounded factual renders.
+Draft PR #322 provides:
 
-Visual-style rules remain warnings unless backed by deterministic item/appearance/map contracts.
+- report `canary-otbm-geometry-audit-v1`;
+- reviewed adjacency rules `canary-otbm-geometry-rules-v1`;
+- factual render request manifest `canary-otbm-geometry-audit-render-v1`;
+- facade, bounded analysis, types, render integration and CLI in `tools/ai-agent/otbm_geometry_audit*.py`;
+- schemas `OTBM_GEOMETRY_AUDIT.schema.json` and `OTBM_GEOMETRY_RULES.schema.json`;
+- documentation `docs/ai-agent/OTBM_GEOMETRY_AUDIT.md`;
+- evidence-boundary ADR;
+- 21 focused tests;
+- dedicated workflow `.github/workflows/otbm-geometry-audit.yml`.
+
+### Bounded evidence contract
+
+Phase 7 requires one explicit inclusive 3D region containing at most 1,000,000 coordinates. It consumes the canonical World Index and its exact hash/size/OTBM/summary manifest, plus compatible appearances evidence. The implementation uses World Index area postings to enumerate only the selected scope and calls the existing Phase 3 tile classifier.
+
+The report preserves exact positions and classifies:
+
+- tile/item evidence without confirmed ground;
+- multiple confirmed ground placements as review warnings, not automatic defects;
+- unknown appearances;
+- small cardinal tile components with scope-boundary uncertainty;
+- disconnected exact house-ID components;
+- mixed PZ state inside one house component;
+- isolated PZ tiles and PZ-enclosed gaps;
+- low-confidence invisible-blocker candidates;
+- reviewed wall/border adjacency mismatches.
+
+### Evidence boundaries
+
+- Only verified OTBM protection-zone bit `0x0001` is interpreted; every other raw tile flag remains opaque.
+- Wall and border findings require an explicit reviewed rule manifest. Names, sprite shape, proximity and visual memory do not create rules.
+- An invisible-blocker candidate requires direct `unpassable` appearance evidence and absence of any nonzero decoded sprite ID. Sprite pixels and runtime state are not inspected, so confidence remains low.
+- Small or disconnected components are review candidates because scripts, reviewed floor transitions and runtime teleportation may provide connectivity.
+- Factual render requests use the existing renderer and real external map/client assets only. No map image is generated by AI.
+- Maps, indexes, appearances binaries, client assets, reports and renders remain external artifacts and are never modified by the audit.
+
+### Validation history
+
+Validated implementation head on the superseded draft branch `69658ddabf74b4202ef7ee896e2262c67d7224a8`:
+
+- OTBM Geometry Audit run `29319667799`: success;
+- Validate bounded geometry evidence job `87041720844`: success;
+- all 21 focused tests: success;
+- Python compilation: success;
+- schema syntax and representative `jsonschema`: success;
+- deterministic synthetic map/index/report and reviewed-rules validation: success;
+- forbidden generated `.otbm`, `.widx`, `.png` and appearances-binary publication check: success;
+- toolkit/report artifact publication: success;
+- Agent Task Ownership `29319667792`: success;
+- OTBM Map Tools `29319667803`: success;
+- AI Agent Tools `29319667808`: success;
+- repository CI `29319667975`: success;
+- Required job `87041773144`: success.
+
+The first dedicated runs exposed only the known synthetic fixture `maxItemDepth=-1` versus binary `0` edge for maps without node-items. Fixtures were repaired by retaining one neutral known nested item; no production validation was weakened. PR #322 starts directly from current `main` after #318/#319 and must pass its own complete current-head and ready-state checks; validation is not inherited merely because implementation blobs are identical.
 
 ## Phase 8 — Safe bounded OTBM patch writer
 
-Phase 8 remains blocked until the geometry gate is complete. Every approved operation must:
+Phase 8 remains blocked until the geometry gate is merged and archived. Every approved operation must:
 
 - work on a copy, never the source map in place;
 - require exact expected previous state;
@@ -436,6 +483,6 @@ Existing older patch surfaces do not authorize production-map edits. Phase 8 sho
 
 ## Programme handoff
 
-Phases 1–6 are merged and archived. Phase 7 is the exact next planned programme phase, but it has not started. It requires a fresh current-main/open-PR/active-task/ownership/existing-tool preflight after lifecycle PR #315 is merged.
+Phases 1–6 are merged and archived. Phase 7 is active in task `CAN-20260714-otbm-geometry-consistency-audit`, branch `feat/otbm-geometry-consistency-audit-refresh` and draft PR #322. Historical draft #320 is closed without merge and must not be continued.
 
-Do not reopen historical OTBM PRs or continue their branches. Do not combine Phase 7 with Harlow cleanup, `0,0,0` teleport repair, Bone Capsule repair, map writing, gameplay fixes or Phase 8.
+Do not reopen historical OTBM PRs or continue their branches. Do not combine Phase 7 with Harlow cleanup, `0,0,0` teleport repair, Bone Capsule repair, Targuna donor-map remediation, map writing, gameplay fixes or Phase 8. Phase 8 may start only after #322 and its separate lifecycle cleanup are merged and a fresh current-main/ownership preflight is complete.
