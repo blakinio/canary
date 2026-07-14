@@ -2,13 +2,13 @@
 task_id: CAN-20260714-real-tibia-parity-governance
 program_id: CAN-PROGRAM-REAL-TIBIA-PARITY
 coordination_id: REAL-TIBIA-PARITY
-status: review
+status: ready
 agent: GPT-5.6 Thinking
 branch: docs/real-tibia-parity-governance
 base_branch: main
 created: 2026-07-14T09:00:00+02:00
-updated: 2026-07-14T10:25:00+02:00
-last_verified_commit: "7f5f7b804319204829c80f4ab8f99195612c7fa2"
+updated: 2026-07-14T10:40:00+02:00
+last_verified_commit: "b723ce42cdbb6b3e5f98b2ea28efe684d64cd3c9"
 risk: low
 related_issue: ""
 related_pr: "#318"
@@ -79,7 +79,7 @@ The repository contains many independent systems such as Wheel of Destiny, Cyclo
 - [x] Repair the stale #230 coordination state only through this dedicated governance/index task; normal feature tasks must not edit ACTIVE_WORK.md.
 - [x] No runtime, Lua, protocol, database, map, asset, workflow or production configuration changes.
 - [x] Review exact changed files and confirm no upstream repository mutation.
-- [ ] Current-head required documentation/ownership checks pass.
+- [x] Current-head required documentation/ownership checks pass.
 - [ ] Merge this docs-only PR and archive this task separately.
 
 # Confirmed baseline
@@ -106,10 +106,19 @@ The repository contains many independent systems such as Wheel of Destiny, Cyclo
 
 - Local checkout: not used for this task.
 - Repository read/write operations: GitHub API.
-- Pre-PR compare against `main` showed only documentation and coordination files; no runtime, workflow, map, asset or upstream mutation.
-- Draft PR: #318.
-- PR creation head: `7f5f7b804319204829c80f4ab8f99195612c7fa2`.
-- Required workflow run IDs and final head will be recorded after current-head CI executes.
+- The branch was rebuilt as one commit directly on current `main` after the initial branch diverged; PR #318 is mergeable.
+- Exact changed files: ten documentation/coordination paths listed in PR #318; no runtime, workflow, map, OTBM, asset, database or upstream path.
+- Agent Task Ownership run `29318027196`: success on head `b723ce42cdbb6b3e5f98b2ea28efe684d64cd3c9`.
+- Ready-state repository CI run `29318083332`: success on the same head.
+- CI job `87036638662` Fast Checks: success.
+- CI job `87036638675` Detect Build Scope: success.
+- CI job `87036638688` Lua Tests: success.
+- CI job `87037119817` Linux release configure/compile and generated-doc validation: success; runtime/database/test steps correctly skipped for the docs-only scope.
+- CI job `87038915798` Required: success.
+- Windows, macOS and Docker jobs were skipped by the detected docs-only scope; no runtime build claim is derived from those skipped jobs.
+- Review threads: zero before this validation update.
+
+This validation proves repository policy, formatting, Lua test, Linux release compile/configuration and aggregate required-check success for the reviewed documentation head. It does not constitute gameplay, protocol, persistence or physical-client proof, none of which is changed by this PR.
 
 # Rollback
 
@@ -117,11 +126,10 @@ Revert the eventual squash merge. The change affects only agent-facing documenta
 
 # Remaining work
 
-1. Resolve any base conflict or stale-branch condition reported by GitHub.
-2. Inspect the full PR diff and changed-file list.
-3. Verify Agent Task Ownership and current-head repository checks.
-4. Mark PR #318 ready, verify review state and mergeability, and squash-merge.
-5. Create a separate lifecycle PR that archives this governance task and marks the global program's governance bootstrap complete.
+1. Verify the checks produced for this final task-record update.
+2. Reconfirm mergeability, changed files, requested reviews and review threads.
+3. Squash-merge PR #318 after the final-head `Required` succeeds.
+4. Create a separate lifecycle PR that archives this governance task and marks the global program's governance bootstrap complete.
 
 # Handoff
 
