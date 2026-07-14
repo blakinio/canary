@@ -7,14 +7,15 @@ agent: "GPT-5.6 Thinking"
 branch: docs/tibia-system-decomposition
 base_branch: main
 created: 2026-07-14T15:43:00+02:00
-updated: 2026-07-14T16:10:00+02:00
-last_verified_commit: "a8e6ae56b8b74e6b392a933f4e1d22ce63ff6a6d"
+updated: 2026-07-14T16:23:00+02:00
+last_verified_commit: "4e1493dee36eca1b413ad64077480b3f76fa4587"
 risk: low
 related_issue: ""
 related_pr: "335"
 depends_on: []
 blocks:
   - CAN-20260714-tibia-system-decomposition-engine-persistence
+  - CAN-20260714-upstream-intelligence-source-role-path-mapping
 owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260714-tibia-system-decomposition-bootstrap.md
@@ -70,121 +71,46 @@ cross_repo_tasks: []
 
 # Goal
 
-Bootstrap a durable logical Tibia/Canary system-decomposition program, classify the full requested candidate inventory, and add one bounded engine-foundation package to the existing Real Tibia registry without changing runtime behavior or creating a parallel registry, watcher, OTBM parser, renderer or E2E platform.
+Bootstrap a durable logical Tibia/Canary system-decomposition program, classify the requested candidate inventory, and add one bounded engine-foundation package to the existing Real Tibia registry without changing runtime behavior or creating a parallel registry, watcher, mapper, OTBM parser, renderer or E2E platform.
 
 # Acceptance criteria
 
-- [x] Work is based on current `main` containing PR #331 and lifecycle PR #334.
-- [x] One active task, one architecture program and one draft PR exist on a new branch.
+- [x] Work is based on `main@21c51174ded78b8f07ff07607a927b66de430246`, containing PR #331 and lifecycle PR #334.
 - [x] Existing registry-as-code remains the sole module source of truth.
-- [x] All 19 existing module records are reviewed and classified.
-- [x] Every requested candidate is classified before a record is selected for TSD-001.
-- [x] TSD-001 documents hierarchy, umbrella compatibility, path-discovery and maturity rules.
-- [x] The first package adds only `engine-runtime-lifecycle`, `configuration` and `lua-runtime`.
-- [x] No hierarchy schema field is added because no concrete generator/mapping need was proven.
-- [x] `depends_on` remains acyclic and relationships stay minimal.
-- [x] Generated indexes match deterministic generator output and `generate --check` passes.
-- [x] Registry and Upstream Intelligence focused tests cover deterministic multi-module mapping.
-- [x] `validate`, `generate --check`, `stale`, representative `module`, `lookup-path` and `affected` checks are recorded.
-- [x] Upstream Intelligence remains a discovery-only, revision-pinned, read-only system; UI-002 is not implemented.
-- [x] `ACTIVE_WORK.md` is unchanged.
-- [x] No C++, Lua gameplay, XML, database, protocol, client, map, datapack, assets or production configuration changes exist.
-- [x] Exact next bounded package and handoff are recorded.
-- [x] Current-head GitHub checks were reviewed before the draft was declared ready for human review.
+- [x] All 19 pre-existing module records were reviewed and all requested candidates classified.
+- [x] TSD-001 adds only `engine-runtime-lifecycle`, `configuration` and `lua-runtime`.
+- [x] No schema, generator, mapper or `protocol.yaml` change is included.
+- [x] Generated indexes match deterministic generator output.
+- [x] Upstream Intelligence focused coverage keeps deterministic ordering, required TSD-001 modules and `triage_status: needs-triage`.
+- [x] The focused test does not require server paths to map to `protocol` through the broad client `src/**` glob.
+- [x] The source-role-aware mapping defect is recorded as a separate planned follow-up task.
+- [x] `ACTIVE_WORK.md` remains unchanged.
+- [x] No gameplay/runtime, Lua gameplay, XML, database, protocol implementation, client, map, datapack, asset or production configuration change exists.
+- [x] TSD-002 is not started.
+- [ ] Exact current-head GitHub checks are green and PR #335 is marked ready for review.
 
-# Confirmed context
+# Commit and review heads
 
-- Writable repository: `blakinio/canary` only.
-- Base branch: `main`.
-- Exact task-start and current base: `21c51174ded78b8f07ff07607a927b66de430246`.
-- PR #331 merge: `73d1408176ef69abddde475cee5e0642ed4a69e9`.
-- PR #334 merge: `21c51174ded78b8f07ff07607a927b66de430246`.
-- Registry grew from 19 to 22 module records.
-- Current module schema has no parent/child field and already permits overlapping path matches.
-- `map_candidate()` sorts mapped paths and module IDs, and registry `affected_modules()` sorts/deduplicates results.
-- The decomposition is logical metadata and documentation; it is not a physical source-tree refactor.
-- The local environment could not resolve `github.com`; repository reads/writes used the approved GitHub connector and executable validation used repository CI.
+These commits have different roles and must not be conflated:
 
-# Existing work reused
-
-| Existing work | Reuse | Boundary |
+| Role | Commit | Meaning |
 |---|---|---|
-| Real Tibia registry-as-code | module IDs, categories, paths, relationships, maturity, generated indexes | no second registry or generator |
-| Upstream Intelligence | changed-path mapping and revision-pinned candidate triage | no watcher implementation change; focused compatibility test only |
-| Universal Physical-Client E2E | future module-owned scenarios | platform paths remained read-only |
-| OTBM tooling suite | future world-content discovery and validation | no parser, renderer or map changes |
-| Real Tibia Parity Program | evidence and proof-level contract | decomposition makes no parity claim |
-| PR #331/#334 lifecycle | current watcher implementation and archived task state | archived task remained archived; UI-002 excluded |
+| Original implementation-reviewed head | `a8e6ae56b8b74e6b392a933f4e1d22ce63ff6a6d` | First complete implementation review and CI evidence. |
+| Documentation-only consolidation head | `0b213fa306b2ad1f7569fc32b983f08a1f02f244` | Later documentation/evidence consolidation; no runtime or mapper change. |
+| Review-fix functional head | `4e1493dee36eca1b413ad64077480b3f76fa4587` | Removes the `protocol` expectation from the focused test and adds the configuration path assertion. |
+| Final reviewed PR head | Live PR #335 head after this task-record-only commit | GitHub PR metadata is authoritative for the exact self-referential final commit SHA; it must have green current-head CI before readiness. |
 
-# Ownership and overlap check
+The task record cannot embed the SHA of the commit that contains itself. Therefore `last_verified_commit` records the final functional/test head, while the exact final documentation-only PR head and its checks are recorded in live PR metadata and the final handoff.
 
-- Open PRs inspected at task start: #316, #308 and #245.
-- PR #316 does not claim registry/decomposition paths and treats `MODULE_CATALOG.md` as read-only.
-- PR #245 owns universal E2E paths, which remained read-only here.
-- PR #308 has a shared claim on `MODULE_CATALOG.md`; this task added one narrow independent catalogue row.
-- No open PR claimed `docs/agents/real-tibia/registry/**`, the new program/report paths or focused registry tests.
-- Agent Task Ownership run #926 passed on reviewed head `a8e6ae56b8b74e6b392a933f4e1d22ce63ff6a6d`.
-- `ACTIVE_WORK.md` was not modified.
+# Confirmed result
 
-# Delivered TSD-001
-
-1. Created program `CAN-PROGRAM-TIBIA-SYSTEM-DECOMPOSITION` and bounded package queue TSD-001 through TSD-013.
-2. Reviewed all 19 existing records and preserved every current ID.
-3. Classified 302 candidate mentions, consolidated into 294 unique candidates.
-4. Preserved `combat`, `cyclopedia`, `market`, `prey`, `protocol`, `quests` and `spawns` as umbrella/discovery compatibility modules.
-5. Added the `engine-foundation` category and three records: `engine-runtime-lifecycle`, `configuration`, `lua-runtime`.
-6. Kept schema version 1 unchanged and documented hierarchy as a convention, not a fake dependency graph.
-7. Regenerated the four affected generated indexes and preserved `SOURCE_INDEX.md` unchanged.
-8. Added focused registry and Upstream Intelligence multi-match tests.
-9. Extended the existing registry workflow to exercise the new modules, paths and PR-range `affected` command.
-10. Updated taxonomy, maturity guidance, module catalogue and changelog.
-
-# Decisions
-
-| Decision | Reason |
-|---|---|
-| Keep schema version 1 unchanged | Parent/child metadata has no proven consumer; scope/documentation conventions preserve hierarchy without generator churn. |
-| Add an `engine-foundation` category | Existing categories had no accurate navigation home for runtime lifecycle, configuration and Lua technical contracts. |
-| Add only three records in TSD-001 | This proves hierarchy and mapping behavior without a giant speculative registry expansion. |
-| Preserve broad IDs as umbrella modules | Existing tasks, path lookups and Upstream Intelligence depend on stable discovery identities. |
-| Do not encode parenthood through `depends_on` | Dependency semantics are architectural necessity, not taxonomy. |
-| Keep all maturity values conservative | File presence and static inventory do not prove runtime, persistence, protocol or E2E behavior. |
-
-# Validation and CI
-
-Reviewed head: `a8e6ae56b8b74e6b392a933f4e1d22ce63ff6a6d`.
-
-| Command/check | Result | Evidence |
-|---|---|---|
-| `python tools/agents/real_tibia_registry.py validate` | PASS | Real Tibia Module Registry run #103, step `Validate registry contracts` |
-| `python tools/agents/real_tibia_registry.py generate --check` | PASS | run #103, step `Verify generated indexes are current` |
-| `python tools/agents/real_tibia_registry.py stale --as-of 2026-08-15` | PASS | run #103, step `Exercise discovery commands` |
-| representative `module` commands for Wheel and all three TSD-001 records | PASS | run #103, step `Exercise discovery commands` |
-| representative `lookup-path` commands for protocol, lifecycle, configuration and Lua paths | PASS | run #103, step `Exercise discovery commands` |
-| `affected --base 21c51174ded78b8f07ff07607a927b66de430246 --head a8e6ae56b8b74e6b392a933f4e1d22ce63ff6a6d` | PASS | run #103, step `Exercise affected modules` |
-| `python -m unittest -v tools/agents/test_real_tibia_registry.py` | PASS | run #103, focused tests |
-| `PYTHONPATH=tools/agents python -m unittest discover -v -s tools/agents -p 'test_upstream_intelligence*.py'` | PASS | Upstream Intelligence run #92 |
-| Upstream registry/decision validation and Real Tibia registry integration | PASS | Upstream Intelligence run #92 |
-| Agent Task Ownership | PASS | run #926 |
-| repository CI | PASS | CI run #2035 |
-
-Representative deterministic lookup results:
-
-```text
-src/canary_server.cpp
-  engine-runtime-lifecycle  server  src/canary_server.*
-  protocol                  client  src/**
-
-src/config/configmanager.cpp
-  configuration  server  src/config/**
-  protocol       client  src/**
-
-src/lua/scripts/lua_environment.hpp
-  lua-runtime  server  src/lua/**
-  protocol     client  src/**
-```
-
-The PR-range `affected` result is the sorted set:
+- Registry grew from 19 to 22 records.
+- Added category: `engine-foundation`.
+- Added records: `engine-runtime-lifecycle`, `configuration`, `lua-runtime`.
+- Existing broad umbrella IDs remain intact.
+- Schema version 1 and generator behavior remain unchanged.
+- The decomposition is logical metadata and documentation, not a physical source-tree refactor.
+- The PR-range affected set remains:
 
 ```text
 configuration
@@ -192,55 +118,86 @@ engine-runtime-lifecycle
 lua-runtime
 ```
 
-# Failed approaches and repairs
+# Focused Upstream Intelligence test contract
 
-- Direct local `git clone` failed because the execution environment could not resolve `github.com`. Per the parity playbook, no repeated clone/fetch loop was attempted.
-- A schema-level `parent` field was considered and rejected because no current command, generator or watcher needs it.
-- A giant first PR containing every candidate was rejected because it would create speculative path hints, relationships and maturity claims.
-- Initial records used unsupported freshness class `standard`; schema CI rejected it. All three were corrected to the existing `medium` enum and validation then passed.
-- An initial standalone mixed test file was removed; coverage was consolidated into the existing registry test and an automatically discovered Upstream Intelligence focused test.
+`tools/agents/test_upstream_intelligence_decomposition.py` now proves:
+
+- `module_ids` are deterministically sorted;
+- `mapped_paths` are deterministically sorted by path, module, bucket and pattern;
+- `engine-runtime-lifecycle` is present for `src/canary_server.cpp`;
+- `configuration` is present for `src/config/configmanager.cpp`;
+- `lua-runtime` is present for `src/lua/scripts/lua_environment.hpp`;
+- `triage_status` remains `needs-triage`;
+- no assertion requires `protocol` to be present for server paths.
+
+The current mapper may still emit `protocol` for those paths because `protocol.yaml` contains a broad client `src/**` bucket. TSD-001 does not declare that output correct and does not change the mapper or record.
+
+# Separate follow-up finding/task
+
+## `CAN-20260714-upstream-intelligence-source-role-path-mapping`
+
+Status: **planned finding only; not started by PR #335**.
+
+Finding:
+
+- the existing path mapper is source-unaware;
+- server source candidates can incorrectly consume general client path buckets such as `src/**`;
+- client source candidates should use client path buckets;
+- server source candidates should not automatically use generic client buckets.
+
+Required boundaries for the future task:
+
+- reuse the existing Real Tibia registry and Upstream Intelligence mapper;
+- remain discovery-only;
+- do not change triage into a confirmed defect, parity claim or edit authorization;
+- add focused deterministic tests for server-only, client-only and mixed-source candidates;
+- preserve `triage_status: needs-triage`;
+- do not solve the problem by opportunistically restructuring `protocol.yaml` without separate evidence;
+- add no modules and make no runtime, protocol implementation, client, map, data, asset or E2E change.
+
+This finding is independent from TSD-002 and does not authorize starting either task.
+
+# Validation history
+
+Earlier complete evidence:
+
+| Head | Workflow | Result |
+|---|---|---|
+| `a8e6ae56b8b74e6b392a933f4e1d22ce63ff6a6d` | Real Tibia Module Registry #103 | PASS |
+| `a8e6ae56b8b74e6b392a933f4e1d22ce63ff6a6d` | Upstream Intelligence #92 | PASS |
+| `a8e6ae56b8b74e6b392a933f4e1d22ce63ff6a6d` | Agent Task Ownership #926 | PASS |
+| `a8e6ae56b8b74e6b392a933f4e1d22ce63ff6a6d` | repository CI #2035 | PASS |
+| `0b213fa306b2ad1f7569fc32b983f08a1f02f244` | Real Tibia Module Registry #104 | PASS |
+| `0b213fa306b2ad1f7569fc32b983f08a1f02f244` | Upstream Intelligence #93 | PASS |
+| `0b213fa306b2ad1f7569fc32b983f08a1f02f244` | Agent Task Ownership #927 | PASS |
+| `0b213fa306b2ad1f7569fc32b983f08a1f02f244` | repository CI #2036 | PASS |
+
+Readiness requires fresh successful runs of the same four required workflows on the exact live final PR head after this task-record-only update. Live GitHub check data is authoritative for those run IDs and conclusions.
 
 # Risks and compatibility
 
-- Runtime: none; runtime paths are read-only.
+- Runtime: none; runtime paths remain read-only.
 - Data/migration: none.
-- Protocol/client: none.
-- Upstream mapping: intentional increase in multi-match discovery for exact engine/config/Lua paths; sorted results remain hints only.
-- Ownership: narrow shared-file conflict risk in `MODULE_CATALOG.md` with PR #308; current main remained unchanged during final verification.
-- Backward compatibility: all 19 existing module IDs and broad path matches remain intact.
-- Rollback: revert the documentation/registry PR; no runtime state exists.
-- Evidence limitation: TSD-001 inventories implementation locations only and makes no Real Tibia parity claim.
+- Protocol/client implementation: none.
+- Mapping: the known source-role defect remains unresolved by design; it is no longer asserted as expected behavior.
+- Backward compatibility: all 19 pre-existing module IDs and records remain intact.
+- Rollback: revert this documentation/registry PR; no runtime state exists.
+- Evidence limitation: TSD-001 inventories implementation locations only and proves no parity, persistence safety, wire compatibility, runtime behavior or physical-client E2E behavior.
 
 # Remaining work
 
-1. Human review and merge of draft PR #335.
-2. Archive this active task only in a separate lifecycle-only change after merge.
-3. Start TSD-002 only after re-fetching the then-current main, PRs and task ownership.
-
-# Handoff
-
-## Start here
-
-Read this task, `TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md`, `TIBIA_SYSTEM_DECOMPOSITION_REPORT.md`, the generated module indexes and PR #335 diff.
-
-## Do not repeat
-
-- Do not create another registry, hierarchy graph, generator, watcher, OTBM parser/renderer or E2E orchestrator.
-- Do not reactivate `CAN-20260714-upstream-intelligence-drift-tracking`.
-- Do not implement UI-002.
-- Do not physically move `src/**`, `data/**` or `tests/**`.
-- Do not promote inventory evidence to parity or runtime proof.
-- Do not add every deferred candidate merely because it appears in the report.
-
-## Exact next bounded package
-
-`CAN-20260714-tibia-system-decomposition-engine-persistence` / `TSD-002`: classify and, only where real paths and long-lived boundaries are proven, add the remaining engine-foundation and persistence records. Start with `engine-scheduler`, `engine-service-container`, `lua-bindings`, `data-registries`, `build-system`, `platform-compatibility`, `database-connection`, `database-migrations`, `transaction-boundaries` and `save-restart-reload`.
+1. Verify Real Tibia Module Registry, Upstream Intelligence, Agent Task Ownership and required repository CI on the exact final PR head.
+2. Mark PR #335 ready for review only after all required current-head checks are green.
+3. Do not merge as part of this review-fix request.
+4. Archive this active task only in a separate lifecycle-only change after merge.
+5. Do not start TSD-002 or the source-role-aware mapping follow-up from this PR.
 
 # Completion
 
-- Final status: active; implementation complete, awaiting human review/merge.
-- PR: #335 (draft).
-- Final reviewed implementation head: `a8e6ae56b8b74e6b392a933f4e1d22ce63ff6a6d`.
+- Final status: active; implementation and requested review fix complete, awaiting exact current-head CI/readiness transition.
+- PR: #335; live PR metadata is authoritative for draft/ready state.
+- Final functional/test head: `4e1493dee36eca1b413ad64077480b3f76fa4587`.
+- Final documentation-only head: the commit containing this record; exact SHA must be taken from live PR #335 metadata.
 - Merge commit: none.
 - Program record updated: yes.
 - Catalogue updated: yes.
