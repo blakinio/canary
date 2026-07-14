@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: docs/tibia-system-decomposition-cyclopedia-family
 base_branch: main
 created: 2026-07-14T20:10:00+02:00
-updated: 2026-07-14T20:10:00+02:00
+updated: 2026-07-14T20:24:00+02:00
 last_verified_commit: "9f82f93977e82784370961a72104efacd497c8e0"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "359"
 depends_on:
   - completed and archived TSD-003
 blocks:
@@ -25,11 +25,11 @@ owned_paths:
     - docs/agents/real-tibia/registry/modules/bosstiary.yaml
     - docs/agents/real-tibia/registry/modules/cyclopedia-character.yaml
     - docs/agents/real-tibia/registry/modules/titles.yaml
+    - tools/agents/test_cyclopedia_registry.py
+    - tools/agents/test_upstream_intelligence_cyclopedia.py
   shared:
     - docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md
     - docs/agents/real-tibia/generated/**
-    - tools/agents/test_real_tibia_registry.py
-    - tools/agents/test_upstream_intelligence_decomposition.py
     - docs/agents/MODULE_CATALOG.md
     - docs/agents/CHANGELOG.md
   read_only:
