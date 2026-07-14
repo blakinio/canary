@@ -283,6 +283,38 @@ class BoundedPatchIntegrationTests(unittest.TestCase):
                 timeout_seconds=60,
             )
 
+    def test_rejects_overlapping_destinations_without_creating_collision_path(self) -> None:
+        self.write_map()
+        plan = self.make_plan([operation("action", "set-action-id", 0, 100, 1000, 1001)])
+        with self.assertRaisesRegex(BoundedPatchError, "must be separate"):
+            apply_bounded_patch(
+                plan=plan,
+                source_path=self.source,
+                scanner_path=self.scanner,
+                artifact_root=self.artifacts,
+                output_path=Path("collision"),
+                evidence_directory=Path("collision/evidence"),
+                result_path=Path("result-overlap.json"),
+                timeout_seconds=60,
+            )
+        self.assertFalse((self.artifacts / "collision").exists())
+
+    def test_output_name_may_match_internal_evidence_name(self) -> None:
+        self.write_map()
+        plan = self.make_plan([operation("action", "set-action-id", 0, 100, 1000, 1001)])
+        result = apply_bounded_patch(
+            plan=plan,
+            source_path=self.source,
+            scanner_path=self.scanner,
+            artifact_root=self.artifacts,
+            output_path=Path("before.widx"),
+            evidence_directory=Path("evidence-reserved-name"),
+            result_path=Path("result-reserved-name.json"),
+            timeout_seconds=60,
+        )
+        self.assertTrue((self.artifacts / "before.widx").is_file())
+        self.assertEqual(result["output"]["path"], "before.widx")  # type: ignore[index]
+
     def test_post_validation_failure_removes_all_published_artifacts(self) -> None:
         self.write_map()
         original = self.source.read_bytes()

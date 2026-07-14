@@ -93,10 +93,16 @@ def _new_confined_path(root: Path, path: Path, label: str) -> Path:
     _check_ancestors(root, resolved, label)
     if resolved.exists():
         raise BoundedPatchError(f"{label} already exists: {resolved}")
-    resolved.parent.mkdir(parents=True, exist_ok=True)
-    _check_ancestors(root, lexical, label)
-    _check_ancestors(root, resolved, label)
     return resolved
+
+
+def _prepare_new_destination(root: Path, path: Path, label: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    _check_ancestors(root, path, label)
+    if path.is_symlink():
+        raise BoundedPatchError(f"{label} must not be a symlink: {path}")
+    if path.exists():
+        raise BoundedPatchError(f"{label} already exists: {path}")
 
 
 def _relative(root: Path, path: Path) -> str:
@@ -622,7 +628,7 @@ def apply_bounded_patch(
         _validate_plan_source(plan, source, before_anchors)
         resolved_operations = _resolve_operations(plan=plan, source=source, anchor_document=before_anchors)
 
-        temporary_output = workspace / output.name
+        temporary_output = workspace / "patched-output.otbm"
         _copy_and_patch(source, temporary_output, resolved_operations)
         changed_offsets = _compare_outside_spans(source, temporary_output, resolved_operations)
 
@@ -779,6 +785,9 @@ def apply_bounded_patch(
             },
         }
 
+        _prepare_new_destination(root, output, "patched output")
+        _prepare_new_destination(root, evidence, "evidence directory")
+        _prepare_new_destination(root, result_destination, "result report")
         os.link(temporary_output, output)
         published_output = True
         temporary_output.unlink()
