@@ -1,0 +1,118 @@
+name: Materialize FS mkdir fix on current main
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: github.repository == 'blakinio/canary' && github.event.pull_request.head.repo.full_name == 'blakinio/canary' && github.head_ref == 'security/fs-mkdir-shell-free-current'
+    runs-on: ubuntu-latest
+    env:
+      SOURCE_COMMIT: 6196c95493171968f8f13530f009d0b03e9ee8ee
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Checkout exact current-main branch
+        uses: actions/checkout@v4
+        with:
+          ref: security/fs-mkdir-shell-free-current
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Import reviewed implementation and evidence
+        run: |
+          git fetch origin security/fs-mkdir-shell-free
+          git checkout "$SOURCE_COMMIT" -- \
+            artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT.md \
+            artifacts/upstream/crystalserver/cs006_fs_mkdir_audit.json \
+            data/libs/functions/fs.lua \
+            docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md \
+            docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md \
+            docs/lua-api/lua_api.json \
+            src/lua/functions/core/game/global_functions.cpp \
+            src/lua/functions/core/game/global_functions.hpp \
+            tests/lua/test_fs.lua \
+            tests/unit/lua/CMakeLists.txt \
+            tests/unit/lua/filesystem_functions_test.cpp
+
+      - name: Merge current shared documentation and task metadata
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+
+          pr = os.environ["PR_NUMBER"]
+          branch = "security/fs-mkdir-shell-free-current"
+
+          changelog_path = Path("docs/agents/CHANGELOG.md")
+          changelog = changelog_path.read_text(encoding="utf-8")
+          entry = f"- PR #{pr} replaces `FS.mkdir`/`FS.mkdir_p` shell command construction with native `FileSystem.createDirectory`/`createDirectories` Lua bindings backed by `std::filesystem`, preserving success/error returns and adding Lua plus C++ regressions for literal shell metacharacters, recursive paths, spaces and existing directories."
+          if entry not in changelog:
+              marker = "## Unreleased\n"
+              if changelog.count(marker) != 1:
+                  raise SystemExit("unexpected Unreleased marker count")
+              changelog = changelog.replace(marker, marker + "\n" + entry + "\n", 1)
+          changelog_path.write_text(changelog, encoding="utf-8")
+
+          catalog_path = Path("docs/agents/MODULE_CATALOG.md")
+          catalog = catalog_path.read_text(encoding="utf-8")
+          entry = f"| Lua FileSystem directory binding | active (#{pr}) | Shell-free `FileSystem.createDirectory(path)` and `FileSystem.createDirectories(path)` operations used by the compatibility `FS.mkdir`/`FS.mkdir_p` wrappers | `src/lua/functions/core/game/global_functions.{{hpp,cpp}}`, `data/libs/functions/fs.lua`, focused Lua/C++ tests, `CS006_FS_MKDIR_AUDIT` | Reuse this binding for runtime directory creation; never reintroduce `os.execute` or a metacharacter denylist around a shell command. |"
+          if entry not in catalog:
+              marker = "| Forge history ID resolution |"
+              index = catalog.find(marker)
+              if index < 0:
+                  raise SystemExit("catalogue anchor not found")
+              catalog = catalog[:index] + entry + "\n" + catalog[index:]
+          catalog_path.write_text(catalog, encoding="utf-8")
+
+          program_path = Path("docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md")
+          program = program_path.read_text(encoding="utf-8")
+          program = program.replace("https://github.com/blakinio/canary/pull/310", f"https://github.com/blakinio/canary/pull/{pr}")
+          program = program.replace(" / PR #310", f" / PR #{pr}")
+          program_path.write_text(program, encoding="utf-8")
+
+          task_path = Path("docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md")
+          task = task_path.read_text(encoding="utf-8")
+          task = task.replace("branch: security/fs-mkdir-shell-free\n", f"branch: {branch}\n", 1)
+          task = task.replace('related_pr: "#310"', f'related_pr: "#{pr}"', 1)
+          task = task.replace("- PR: #310\n", f"- PR: #{pr}\n", 1)
+          task += f"\n## 2026-07-14 current-main transfer\n\n- Changed: transferred the already reviewed implementation/evidence from predecessor PR #310 to PR #{pr} on exact current main `d88e7f354eb5b33068cdded7696e9cdb89b05268`.\n- Learned: main advancement overlapped only shared changelog/catalogue paths; runtime, tests, Lua API catalogue and evidence paths had no overlap.\n- Result: predecessor PR #310 is superseded and must remain closed without merge; all final checks belong to PR #{pr}.\n"
+          task_path.write_text(task, encoding="utf-8")
+          PY
+
+      - name: Run focused security and documentation gates
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y luajit
+          luajit tests/lua/test_fs.lua
+          python3 tools/check_lua_api_quality.py
+          python3 tools/check_lua_api_binding_docs.py --base origin/main
+          ! grep -n 'os.execute' data/libs/functions/fs.lua
+          git diff --check
+
+      - name: Remove temporary workflow and enforce exact final diff
+        run: |
+          rm -f .github/workflows/materialize-fs-mkdir-current.yml
+          git add -A
+          mapfile -t changed < <(git diff --cached --name-only)
+          printf '%s\n' "${changed[@]}"
+          allowed='^(artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT\.md|artifacts/upstream/crystalserver/cs006_fs_mkdir_audit\.json|data/libs/functions/fs\.lua|docs/agents/CHANGELOG\.md|docs/agents/MODULE_CATALOG\.md|docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM\.md|docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection\.md|docs/lua-api/lua_api\.json|src/lua/functions/core/game/global_functions\.(cpp|hpp)|tests/lua/test_fs\.lua|tests/unit/lua/CMakeLists\.txt|tests/unit/lua/filesystem_functions_test\.cpp|\.github/workflows/materialize-fs-mkdir-current\.yml)$'
+          for path in "${changed[@]}"; do
+            [[ "$path" =~ $allowed ]] || { echo "Unexpected path: $path" >&2; exit 1; }
+          done
+          test ! -e .github/workflows/materialize-fs-mkdir-current.yml
+          git diff --cached --check
+
+      - name: Commit current-main implementation
+        run: |
+          git commit -m "security(lua): remove shell execution from FS mkdir"
+          git push origin HEAD:security/fs-mkdir-shell-free-current
