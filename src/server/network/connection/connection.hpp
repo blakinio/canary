@@ -15,6 +15,7 @@
 
 #ifndef USE_PRECOMPILED_HEADERS
 	#include <atomic>
+	#include <utility>
 #endif
 
 static constexpr int32_t CONNECTION_WRITE_TIMEOUT = 30;
