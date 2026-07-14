@@ -253,10 +253,18 @@ void ProtocolGame::releaseFromConnection() {
 	++clientLeaveReleaseCountForTest;
 #endif
 
-	if (state == ClientLeaveGameState::Denied && player && player == exactPlayer && exactPlayer->client == self) {
-		// A denied logout must not be converted into a detached online player.
-		// Break the ProtocolGame -> Player edge while preserving Player -> exact
-		// ProtocolGame so replacement-login logic can identify this exact session.
+	const bool preserveExactOnlineSession = (state == ClientLeaveGameState::Denied || state == ClientLeaveGameState::Rejected)
+	                                     && player && player == exactPlayer && !exactPlayer->isRemoved() && exactPlayer->client == self;
+	if (preserveExactOnlineSession) {
+		// A denied or failed exact logout must not be converted into an online
+		// player with a null client. Break the ProtocolGame -> Player edge while
+		// preserving Player -> exact ProtocolGame for replacement-login handling.
+		g_logger().info(
+			"[ProtocolGameLeaveGame] event=release_preserve_exact_session state={} protocol={} player={}",
+			getClientLeaveGameStateName(state),
+			fmt::ptr(this),
+			fmt::ptr(exactPlayer.get())
+		);
 		clearReusableSessionHints();
 		player = nullptr;
 		clientLeaveGamePlayer = nullptr;
@@ -264,9 +272,6 @@ void ProtocolGame::releaseFromConnection() {
 		Protocol::release();
 	} else {
 		release();
-		if (state == ClientLeaveGameState::Rejected) {
-			player = nullptr;
-		}
 		clientLeaveGamePlayer = nullptr;
 	}
 
