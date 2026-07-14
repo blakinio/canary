@@ -5,8 +5,12 @@
 
 | Module | Depends on | Interacts with |
 |---|---|---|
+| `account-authentication` | `account-lifecycle` | `character-lifecycle`, `protocol` |
+| `account-lifecycle` | `database-connection` | `account-authentication`, `character-lifecycle`, `player-persistence` |
 | `achievements` | `player-persistence` | `combat`, `quests`, `spells` |
 | `build-system` | — | `configuration`, `engine-runtime-lifecycle`, `engine-scheduler`, `engine-service-container`, `lua-bindings`, `lua-runtime` |
+| `character-lifecycle` | `account-authentication`, `player-persistence` | `account-lifecycle`, `character-progression`, `protocol`, `world-persistence` |
+| `character-progression` | `character-lifecycle`, `player-persistence` | `achievements`, `combat`, `prey`, `vocations`, `weapon-proficiency`, `wheel-of-destiny` |
 | `charms` | `combat`, `cyclopedia`, `player-persistence`, `protocol` | — |
 | `combat` | `player-persistence` | `spells`, `wheel-of-destiny`, `exaltation-forge` |
 | `configuration` | — | `engine-runtime-lifecycle`, `lua-runtime`, `protocol` |
@@ -32,6 +36,8 @@
 | `spawns` | `otbm-tooling` | `quests`, `npcs`, `cyclopedia` |
 | `spells` | `combat` | `wheel-of-destiny` |
 | `upstream-intelligence` | — | `combat`, `otbm-tooling`, `physical-client-e2e`, `protocol` |
+| `vocations` | — | `character-progression`, `combat`, `spells`, `weapon-proficiency`, `wheel-of-destiny` |
+| `weapon-proficiency` | `character-progression`, `player-persistence` | `achievements`, `combat`, `vocations` |
 | `wheel-of-destiny` | `combat`, `player-persistence`, `protocol` | `spells` |
 | `world-persistence` | `database-connection` | `engine-runtime-lifecycle`, `engine-scheduler`, `player-persistence` |
 
