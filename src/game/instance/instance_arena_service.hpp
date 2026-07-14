@@ -14,6 +14,7 @@
 #include "game/movement/position.hpp"
 
 #ifndef USE_PRECOMPILED_HEADERS
+	#include <chrono>
 	#include <cstddef>
 	#include <cstdint>
 	#include <functional>
@@ -56,8 +57,33 @@ public:
 	// synthetic remover for the same reason as MonsterFactory above.
 	using CreatureRemover = std::function<void(uint32_t creatureId)>;
 
+	// Schedules callback to run once, delayMs from now. Defaults to
+	// Game's dispatcher (g_dispatcher().scheduleEvent(...)); tests inject a
+	// synthetic scheduler that records the callback instead of running it on
+	// a real dispatcher, so the closing-warning behavior below can be driven
+	// deterministically.
+	using DelayedEventScheduler = std::function<void(uint32_t delayMs, std::function<void()> callback)>;
+
+	// Sends playerId a text message if they are still online. Defaults to
+	// Game::getPlayerByID() + Player::sendTextMessage(); tests inject a
+	// synthetic notifier for the same reason as MonsterFactory above.
+	using MessageNotifier = std::function<void(uint32_t playerId, const std::string &message)>;
+
+	// Teleports playerId back to returnPosition if they are still online.
+	// Defaults to Game::getPlayerByID() + Game::internalTeleport(), the same
+	// mechanism Creature:teleportTo() uses in Lua; tests inject a synthetic
+	// evacuator for the same reason as MonsterFactory above.
+	using PlayerEvacuator = std::function<void(uint32_t playerId, const Position &returnPosition)>;
+
 	explicit InstanceArenaService(InstanceManager &manager);
-	InstanceArenaService(InstanceManager &manager, MonsterFactory monsterFactory, CreatureRemover creatureRemover);
+	InstanceArenaService(
+		InstanceManager &manager,
+		MonsterFactory monsterFactory,
+		CreatureRemover creatureRemover,
+		DelayedEventScheduler eventScheduler,
+		MessageNotifier messageNotifier,
+		PlayerEvacuator playerEvacuator
+	);
 
 	InstanceArenaService(const InstanceArenaService &) = delete;
 	InstanceArenaService &operator=(const InstanceArenaService &) = delete;
@@ -109,6 +135,15 @@ public:
 	// from the same datapack the region coordinates were verified against.
 	static constexpr const char* MonsterName = "Cave Rat";
 
+	// An idle arena (nobody ever called close) closes itself automatically
+	// through the existing InstanceManager::closeExpiredInstances() sweep
+	// (Game::start() already calls it periodically - docs/architecture/
+	// instance-manager.md). A one-shot warning is scheduled this long before
+	// that happens; see enterArena().
+	static constexpr std::chrono::seconds ArenaTimeout { 15 * 60 };
+	static constexpr std::chrono::seconds ArenaClosingWarningLeadTime { 2 * 60 };
+	static_assert(ArenaClosingWarningLeadTime < ArenaTimeout, "the closing warning must fire before the arena times out");
+
 	// One stable player id owns at most one active arena session at a time.
 	// Fails if playerId already has one (close it first) or if no region is
 	// free. Remembers returnPosition for the later leaveArena()/
@@ -117,6 +152,12 @@ public:
 	// real monster in the reserved region; if the monster cannot be
 	// created or placed, the whole arena is rolled back (instance closed)
 	// and this fails - a session is never created without its monster.
+	//
+	// Also schedules a one-shot closing warning ArenaClosingWarningLeadTime
+	// before ArenaTimeout elapses, guarded by an InstanceScopedEvent: if the
+	// arena is no longer Active by the time the scheduler runs the callback
+	// (closed manually, or already reaped), the callback is a no-op and no
+	// message is sent - it never fires against a player who already left.
 	[[nodiscard]] EnterResult enterArena(uint32_t playerId, const Position &returnPosition);
 
 	struct LeaveResult {
@@ -146,6 +187,14 @@ public:
 
 	[[nodiscard]] bool hasActiveSession(uint32_t playerId) const;
 
+	// Evacuates and forgets any tracked session whose arena is no longer
+	// Active (or has become unknown) - i.e. it expired via
+	// InstanceManager::closeExpiredInstances() rather than through
+	// closeArenaForPlayer(). Intended to run right after that sweep on the
+	// same periodic tick (Game::start()); does not itself close anything -
+	// the sweep already did. A no-op for sessions still Active.
+	void reapExpiredSessions();
+
 private:
 	struct PlayerSession {
 		InstanceId instanceId = InstanceId::Invalid;
@@ -156,6 +205,9 @@ private:
 	InstanceCreatureBinder binder;
 	MonsterFactory monsterFactory;
 	CreatureRemover creatureRemover;
+	DelayedEventScheduler eventScheduler;
+	MessageNotifier messageNotifier;
+	PlayerEvacuator playerEvacuator;
 
 	mutable std::mutex sessionMutex;
 	std::unordered_map<uint32_t, PlayerSession> sessions;

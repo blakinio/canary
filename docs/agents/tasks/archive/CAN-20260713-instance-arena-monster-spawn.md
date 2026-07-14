@@ -2,13 +2,13 @@
 task_id: CAN-20260713-instance-arena-monster-spawn
 program_id: CAN-PROGRAM-INSTANCED-TEST-ARENA
 coordination_id: ""
-status: ready_for_pr
+status: merged
 agent: "Claude"
 branch: feat/instance-arena-monster-spawn
 base_branch: main
 created: 2026-07-13T22:00:00Z
-updated: 2026-07-13T22:35:00Z
-last_verified_commit: "d9b10c322cd6bb9690c2a29fd3354082dde066f9"
+updated: 2026-07-13T23:40:00Z
+last_verified_commit: "cb22a5063bc10c306932c407f6c02c799dfc5ba3"
 risk: medium
 related_issue: ""
 related_pr: "#304"
@@ -93,10 +93,14 @@ inherits its owner through the existing binder.
       the whole arena back; `closeArenaForPlayer()` drives the injected
       remover and empties the registry so `manager.close()` succeeds without
       throwing.
-- [ ] Current-head GitHub checks verified (pending PR open + CI).
-- [ ] Module catalogue and architecture docs updated with the merge SHA
-      (pending merge).
-- [ ] Autonomous merge gate satisfied (pending CI).
+- [x] Current-head GitHub checks verified: CI caught a real compile error
+      (`binder.bind(created.id, monster)` passed a `shared_ptr<Monster>`
+      where the templated overload needs a dereferenced value); fixed in
+      commit `be7bd8cc`, and the full Linux/Windows/macOS/Docker matrix plus
+      Fast Checks/Lua Tests/smoke all passed afterward. PR #304 merged
+      (commit `cb22a5063bc10c306932c407f6c02c799dfc5ba3`).
+- [x] Module catalogue and architecture docs updated with the merge SHA.
+- [x] Autonomous merge gate satisfied.
 
 # Confirmed context
 
@@ -208,7 +212,8 @@ inherits its owner through the existing binder.
 
 # Remaining work
 
-1. PR #304 open; get CI green, merge.
+1. ~~PR #304 open; get CI green, merge.~~ Done: merged, commit
+   `cb22a5063bc10c306932c407f6c02c799dfc5ba3`.
 2. Proceed to program queue item 5: instance-scoped delayed events +
    timeout/cleanup wiring (`InstanceScopedEvent`).
 
@@ -227,6 +232,6 @@ inherits its owner through the existing binder.
 
 # Completion
 
-- Final status: pending CI.
+- Final status: merged.
 - PR: #304.
-- Merge commit: (to be filled after merge).
+- Merge commit: `cb22a5063bc10c306932c407f6c02c799dfc5ba3`.

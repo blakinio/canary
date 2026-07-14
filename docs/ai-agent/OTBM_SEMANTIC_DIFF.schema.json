@@ -1,0 +1,276 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/ai-agent/OTBM_SEMANTIC_DIFF.schema.json",
+  "title": "Canary Semantic OTBM Diff v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "ok",
+    "provenance",
+    "compatibility",
+    "policy",
+    "scope",
+    "summary",
+    "findings",
+    "correlation"
+  ],
+  "properties": {
+    "format": {"const": "canary-otbm-semantic-diff-v1"},
+    "schemaVersion": {"const": 1},
+    "ok": {"type": "boolean"},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["before", "after", "appearances", "correlationReports"],
+      "properties": {
+        "before": {"$ref": "#/$defs/indexProvenance"},
+        "after": {"$ref": "#/$defs/indexProvenance"},
+        "appearances": {"type": ["object", "null"]},
+        "correlationReports": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/fileProvenance"}
+        }
+      }
+    },
+    "compatibility": {
+      "type": "object",
+      "required": ["compatible", "worldIndexFormatEqual", "worldIndexSchemaVersionEqual", "scannerBuildFormatEqual", "scannerBinaryEqual", "otbmVersionEqual", "itemsVersionEqual", "sourceMapEqual", "worldIndexEqual"],
+      "properties": {
+        "compatible": {"const": true},
+        "worldIndexFormatEqual": {"type": "boolean"},
+        "worldIndexSchemaVersionEqual": {"type": "boolean"},
+        "scannerBuildFormatEqual": {"type": "boolean"},
+        "scannerBinaryEqual": {"type": "boolean"},
+        "otbmVersionEqual": {"type": "boolean"},
+        "itemsVersionEqual": {"type": "boolean"},
+        "sourceMapEqual": {"type": "boolean"},
+        "worldIndexEqual": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "policy": {
+      "type": "object",
+      "required": [
+        "dynamicLuaExecuted",
+        "mapModified",
+        "worldIndexReused",
+        "nativeScannerReused",
+        "walkabilityImplementation",
+        "newParserCreated",
+        "newPathfinderCreated",
+        "newRendererCreated",
+        "heuristicItemMatching",
+        "itemAlignment",
+        "sampleLimit",
+        "exactCountsPreserved",
+        "correlationIsSelectedScopeOnly",
+        "missingCorrelationMeansGloballyUnused"
+      ],
+      "properties": {
+        "dynamicLuaExecuted": {"const": false},
+        "mapModified": {"const": false},
+        "worldIndexReused": {"const": true},
+        "nativeScannerReused": {"const": true},
+        "walkabilityImplementation": {"type": "string"},
+        "newParserCreated": {"const": false},
+        "newPathfinderCreated": {"const": false},
+        "newRendererCreated": {"const": false},
+        "heuristicItemMatching": {"const": false},
+        "itemAlignment": {"type": "string"},
+        "sampleLimit": {"type": "integer", "minimum": 1, "maximum": 10000},
+        "exactCountsPreserved": {"const": true},
+        "correlationIsSelectedScopeOnly": {"const": true},
+        "missingCorrelationMeansGloballyUnused": {"const": false}
+      },
+      "additionalProperties": false
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "from", "to"],
+      "properties": {
+        "type": {"enum": ["full-index", "bounded-region"]},
+        "from": {"anyOf": [{"$ref": "#/$defs/position"}, {"type": "null"}]},
+        "to": {"anyOf": [{"$ref": "#/$defs/position"}, {"type": "null"}]}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["beforeTiles", "afterTiles", "beforePlacements", "afterPlacements", "unchangedTiles", "changedPositions", "findings"],
+      "properties": {
+        "beforeTiles": {"type": "integer", "minimum": 0},
+        "afterTiles": {"type": "integer", "minimum": 0},
+        "beforePlacements": {"type": "integer", "minimum": 0},
+        "afterPlacements": {"type": "integer", "minimum": 0},
+        "unchangedTiles": {"type": "integer", "minimum": 0},
+        "changedPositions": {"type": "integer", "minimum": 0},
+        "findings": {"$ref": "#/$defs/findingSummary"}
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/finding"}
+    },
+    "correlation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "reports", "indexedNodes"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "reports": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["role", "format"],
+            "properties": {
+              "role": {"type": "string"},
+              "format": {"type": "string"}
+            },
+            "additionalProperties": false
+          }
+        },
+        "indexedNodes": {"type": "integer", "minimum": 0}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "fileProvenance": {
+      "type": "object",
+      "required": ["path", "size", "sha256", "format"],
+      "properties": {
+        "role": {"type": "string"},
+        "path": {"type": "string", "minLength": 1},
+        "size": {"type": "integer", "minimum": 0},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "format": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "indexProvenance": {
+      "type": "object",
+      "required": ["role", "worldIndex", "sourceMap", "scanner", "otbm", "summary", "manifest", "verifiedSourceMap"],
+      "properties": {
+        "role": {"enum": ["before", "after"]},
+        "worldIndex": {
+          "type": "object",
+          "required": ["path", "size", "sha256", "format", "schemaVersion"],
+          "properties": {
+            "path": {"type": "string"},
+            "size": {"type": "integer", "minimum": 0},
+            "sha256": {"$ref": "#/$defs/sha256"},
+            "format": {"const": "canary-otbm-world-index-v1"},
+            "schemaVersion": {"const": 1}
+          },
+          "additionalProperties": false
+        },
+        "sourceMap": {
+          "type": "object",
+          "required": ["path", "size", "sha256"],
+          "properties": {
+            "path": {"type": "string"},
+            "size": {"type": "integer", "minimum": 0},
+            "sha256": {"$ref": "#/$defs/sha256"}
+          },
+          "additionalProperties": false
+        },
+        "scanner": {
+          "type": "object",
+          "required": ["path", "sha256", "buildFormat"],
+          "properties": {
+            "path": {"type": "string"},
+            "sha256": {"$ref": "#/$defs/sha256"},
+            "buildFormat": {"const": "canary-otbm-world-index-build-v1"}
+          },
+          "additionalProperties": false
+        },
+        "otbm": {"type": "object"},
+        "summary": {"type": "object"},
+        "manifest": {"$ref": "#/$defs/fileProvenance"},
+        "verifiedSourceMap": {
+          "anyOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "required": ["path", "size", "sha256", "verifiedUnchangedDuringRead"],
+              "properties": {
+                "path": {"type": "string"},
+                "size": {"type": "integer", "minimum": 0},
+                "sha256": {"$ref": "#/$defs/sha256"},
+                "verifiedUnchangedDuringRead": {"const": true}
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "findingSummary": {
+      "type": "object",
+      "required": ["total", "byKind", "byClassification", "byEvidenceLevel", "sampleCount", "truncated"],
+      "properties": {
+        "total": {"type": "integer", "minimum": 0},
+        "byKind": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "byClassification": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "byEvidenceLevel": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "sampleCount": {"type": "integer", "minimum": 0},
+        "truncated": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "finding": {
+      "type": "object",
+      "required": ["id", "kind", "classifications", "evidenceLevel", "position", "before", "after", "details", "message", "correlations"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^otbm-diff:[0-9a-f]{24}$"},
+        "kind": {"type": "string", "minLength": 1},
+        "classifications": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "added",
+              "removed",
+              "changed",
+              "unchanged",
+              "walkability-regression",
+              "walkability-improvement",
+              "handler-affected",
+              "quest-evidence-affected",
+              "spawn-npc-evidence-affected",
+              "storage-evidence-affected",
+              "unresolved",
+              "conflicting",
+              "truncated",
+              "invalid-input"
+            ]
+          }
+        },
+        "evidenceLevel": {
+          "enum": ["structural", "static", "semantic", "correlated", "regression", "runtime", "gameplay", "factual-visual-evidence"]
+        },
+        "position": {"anyOf": [{"$ref": "#/$defs/position"}, {"type": "null"}]},
+        "before": {},
+        "after": {},
+        "details": {"type": "object"},
+        "message": {"type": "string", "minLength": 1},
+        "correlations": {"type": "array", "items": {"type": "object"}}
+      },
+      "additionalProperties": false
+    }
+  }
+}
