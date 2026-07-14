@@ -2,13 +2,13 @@
 task_id: CAN-20260714-instance-arena-timeout-events
 program_id: CAN-PROGRAM-INSTANCED-TEST-ARENA
 coordination_id: ""
-status: ready_for_pr
+status: merged
 agent: "Claude"
 branch: feat/instance-arena-timeout-events
 base_branch: main
 created: 2026-07-14T00:00:00Z
-updated: 2026-07-14T00:15:00Z
-last_verified_commit: "42c0afa8"
+updated: 2026-07-14T00:45:00Z
+last_verified_commit: "6a0cfcff5004c22bea649c8937357dc747e0619e"
 risk: medium
 related_issue: ""
 related_pr: "#307"
@@ -88,10 +88,16 @@ must not fire against a player who already left.
       is still active; it is a no-op after the arena already closed;
       `reapExpiredSessions()` evacuates+forgets a timed-out session and is
       a no-op for an active one.
-- [ ] Current-head GitHub checks verified (pending PR open + CI).
-- [ ] Module catalogue and architecture docs updated with the merge SHA
-      (pending merge).
-- [ ] Autonomous merge gate satisfied (pending CI).
+- [x] Current-head GitHub checks verified: CI caught a real clang-format
+      version mismatch (local v18 vs. CI's pinned v17 disagreeing on how to
+      wrap the 6-parameter constructor's initializer list) - the autofix-ci
+      bot pushed the correction directly to the branch, and clang-format-17
+      was installed locally to match CI exactly going forward. Full
+      Linux/Windows/macOS/Docker matrix, Fast Checks, Lua Tests all passed
+      afterward. PR #307 merged (commit
+      `6a0cfcff5004c22bea649c8937357dc747e0619e`).
+- [x] Module catalogue and architecture docs updated with the merge SHA.
+- [x] Autonomous merge gate satisfied.
 
 # Confirmed context
 
@@ -207,7 +213,8 @@ must not fire against a player who already left.
 
 # Remaining work
 
-1. Open PR, get CI green, merge.
+1. ~~Open PR, get CI green, merge.~~ Done: PR #307, merge commit
+   `6a0cfcff5004c22bea649c8937357dc747e0619e`.
 2. Proceed to program queue item 6: run two real arenas and fix concrete
    cross-instance leaks in spectator/target/combat call sites.
 
@@ -226,6 +233,6 @@ must not fire against a player who already left.
 
 # Completion
 
-- Final status: pending PR/CI.
-- PR: (to be filled after opening).
-- Merge commit: (to be filled after merge).
+- Final status: merged.
+- PR: #307.
+- Merge commit: `6a0cfcff5004c22bea649c8937357dc747e0619e`.

@@ -206,7 +206,7 @@ actually exists on `main` so the two don't drift apart silently.
   `Creature::setMaster(..., binder, ...)` overload via
   `Game::getInstanceCreatureBinder()`, so a summon inherits its master's
   arena ownership.
-- **PR 5 (this one)**: every arena now has a real 15-minute timeout
+- **PR #307**: every arena now has a real 15-minute timeout
   (`InstanceArenaService::ArenaTimeout`) instead of running forever; a
   one-shot closing-warning message is scheduled 2 minutes before that,
   guarded by `InstanceScopedEvent` so it is a no-op if the arena already
