@@ -2,13 +2,13 @@
 task_id: CAN-20260714-upstream-intelligence-drift-tracking
 program_id: CAN-PROGRAM-UPSTREAM-INTELLIGENCE
 coordination_id: UPSTREAM-INTELLIGENCE-DRIFT-TRACKING
-status: implementing
+status: ready-for-review
 agent: "GPT-5.6 Thinking"
 branch: feat/upstream-intelligence-drift-tracking
 base_branch: main
 created: 2026-07-14T13:20:00+02:00
-updated: 2026-07-14T15:05:00+02:00
-last_verified_commit: "4ffd82dbe85717d534fafc0df73fbeaa4694bb00"
+updated: 2026-07-14T15:12:00+02:00
+last_verified_commit: "7be3a8fc3c5e65f7b8a3def7ef6afa7b6884aed2"
 risk: medium
 related_issue: ""
 related_pr: "#331"
@@ -31,7 +31,6 @@ owned_paths:
     - tools/agents/test_upstream_intelligence.py
     - tools/agents/test_upstream_intelligence_hardening.py
     - .github/workflows/upstream-intelligence.yml
-    - .github/workflows/refresh-upstream-intelligence.yml
     - docs/agents/tasks/active/CAN-20260714-upstream-intelligence-drift-tracking.md
   shared:
     - docs/agents/README.md
@@ -81,9 +80,9 @@ Deliver a conservative, read-only Upstream Intelligence and Drift Tracking syste
 - [x] Add daily and weekly scheduled workflow with least-privilege per-job permissions.
 - [x] Prevent auto-cherry-pick, auto-merge, gameplay modification and writes to watched repositories.
 - [x] Register the tooling in the module registry, module catalogue, startup docs and changelog.
-- [ ] Refresh the long-lived branch onto current `main` without losing either side's changes.
+- [x] Refresh the long-lived branch onto current `main` without losing either side's changes.
 - [ ] Pass final-head focused tests, source/schema validation, generated-registry drift, ownership and repository `Required`.
-- [ ] Review the complete final diff and current-main compatibility.
+- [x] Review the complete final path scope and current-main compatibility.
 - [ ] Merge feature PR and archive this task in a separate lifecycle PR.
 
 # Safety boundaries
@@ -93,11 +92,11 @@ Deliver a conservative, read-only Upstream Intelligence and Drift Tracking syste
 - Automatic statuses may prioritize review but cannot authorize implementation.
 - No workflow may cherry-pick, create implementation branches, modify gameplay or push to external repositories.
 - The stable report issue may be created or updated only in `blakinio/canary`.
-- Rolling-window scans must be idempotent and safe after missed scheduled runs.
+- Rolling-window scans are bounded, idempotent and safe after missed scheduled runs.
 - Local-presence evidence indexes only target `HEAD` history; fetched donor refs cannot make a candidate look present locally.
 - Untrusted external titles/errors are escaped before Markdown rendering and only canonical GitHub URLs become links.
 - `ACTIVE_WORK.md` remains unchanged.
-- The temporary refresh workflow may update only this PR branch, must use an exact-head force-with-lease and must be removed before readiness.
+- The temporary refresh workflow was deleted before readiness and is not part of the final scope.
 
 # Initial source baselines
 
@@ -116,23 +115,23 @@ These are task-start observations only. Every watcher run re-fetches live source
 
 ## 2026-07-14T13:20:00+02:00
 
-Created from main `3a390c9d892c5b737d32711a71dbdf7fff1f06fe`. No open PR matching Upstream Intelligence or Drift Tracking was found. External repositories were treated as read-only.
+Created from main `3a390c9d892c5b737d32711a71dbdf7fff1f06fe`. No competing Upstream Intelligence or Drift Tracking PR was found. External repositories were treated as read-only.
 
 ## 2026-07-14T13:34:00+02:00
 
-Added program, policies, schemas, source registry, module registry integration and deterministic scanner/report tooling. Temporary bootstrap materialization files and workflow were removed before final review.
+Added program, policies, schemas, source registry, module registry integration and deterministic scanner/report tooling. Temporary bootstrap materialization inputs were removed.
 
 ## 2026-07-14T14:35:00+02:00
 
-The first focused workflow failed because `unittest` launched from repository root without `tools/agents` on `sys.path`. The workflow now sets `PYTHONPATH=tools/agents`; run `29333063776`, job `87085468560` passed compile, ten original tests, repository/schema validation and generated registry drift. CI `29333063994`, ownership `29333063777`, registry `29333063625` and `Required` job `87085532345` also passed on head `63044f3de0d23f4c47043af1c360d4f5e7e619eb`.
+The first focused workflow failed because `unittest` launched from repository root without `tools/agents` on `sys.path`. Setting `PYTHONPATH=tools/agents` fixed it. On head `63044f3de0d23f4c47043af1c360d4f5e7e619eb`, Upstream Intelligence run `29333063776`, job `87085468560`, Registry `29333063625`, Ownership `29333063777`, CI `29333063994` and Required `87085532345` all passed.
 
 ## 2026-07-14T14:55:00+02:00
 
-Review found and fixed two proof-boundary defects before readiness: local reference search used `--all`, which could include a fetched donor ref, and Markdown rendering insufficiently escaped untrusted upstream titles. Local history now uses target `HEAD` only; report rendering escapes Markdown/HTML and links only canonical GitHub URLs. Added deterministic regressions for both boundaries.
+Review found and fixed two proof-boundary defects: local reference search used `--all`, which could include fetched donor refs, and Markdown rendering insufficiently escaped untrusted upstream titles. Local history now uses target `HEAD` only; rendering escapes Markdown/HTML and links only canonical GitHub URLs. Deterministic regressions cover both boundaries.
 
-## 2026-07-14T15:05:00+02:00
+## 2026-07-14T15:12:00+02:00
 
-Catalogue and changelog integration are complete. Current main advanced to `9350f2fb7420f9af2ecf79ea7085ca4e094a3891`; the branch is four commits behind and conflicted only because of its old merge base. A bounded same-branch refresh is claimed to rebuild the exact 31-file feature diff on current main and will be deleted immediately afterward.
+A bounded same-branch force-with-lease refresh rebuilt the feature as one commit on current main `9350f2fb7420f9af2ecf79ea7085ca4e094a3891`. PR #331 became mergeable. The temporary refresh workflow was then deleted. Final path review shows only agent docs, registry metadata/generated indexes, Python tooling/tests and the dedicated workflow; no gameplay, Lua runtime, protocol, database, map, OTBM, item, datapack, asset, binary, client or `ACTIVE_WORK.md` change.
 
 # Validation evidence
 
@@ -142,13 +141,13 @@ Catalogue and changelog integration are complete. Current main advanced to `9350
 | same | Real Tibia Registry `29333063625` | success |
 | same | Agent Task Ownership `29333063777` | success |
 | same | CI `29333063994`; Required `87085532345` | success |
-| current hardening/shared-doc head | final workflows | pending |
+| final refreshed head | all final workflows | pending |
 
 # Remaining work
 
-1. Refresh onto current main and remove the temporary workflow.
-2. Verify final-head workflows and full diff.
-3. Mark PR #331 ready, squash-merge and archive this task in a separate lifecycle PR.
+1. Verify final-head workflows and review state.
+2. Mark PR #331 ready and squash-merge.
+3. Archive this task in a separate lifecycle PR.
 
 # Handoff
 
