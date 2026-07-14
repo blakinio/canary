@@ -1,0 +1,143 @@
+{
+  "changedBoundsByFloor": {
+    "0": {"anyChanged": {"count": 1072, "maxX": 33883, "maxY": 32771, "minX": 31971, "minY": 31412}},
+    "1": {"anyChanged": {"count": 2052, "maxX": 33890, "maxY": 32950, "minX": 31954, "minY": 31411}},
+    "2": {"anyChanged": {"count": 2626, "maxX": 33932, "maxY": 32950, "minX": 31943, "minY": 31046}},
+    "3": {"anyChanged": {"count": 3200, "maxX": 33932, "maxY": 32952, "minX": 31942, "minY": 31270}},
+    "4": {"anyChanged": {"count": 10845, "maxX": 33958, "maxY": 32952, "minX": 1783, "minY": 3595}},
+    "5": {"anyChanged": {"count": 14398, "maxX": 33932, "maxY": 32952, "minX": 1027, "minY": 1033}},
+    "6": {"anyChanged": {"count": 24860, "maxX": 33945, "maxY": 32952, "minX": 1023, "minY": 1032}},
+    "7": {"anyChanged": {"count": 1333788, "maxX": 34020, "maxY": 33049, "minX": 1006, "minY": 1013}},
+    "8": {"anyChanged": {"count": 99146, "maxX": 34018, "maxY": 33022, "minX": 2014, "minY": 3576}},
+    "9": {"anyChanged": {"count": 81769, "maxX": 34075, "maxY": 33010, "minX": 31893, "minY": 30972}},
+    "10": {"anyChanged": {"count": 73214, "maxX": 33982, "maxY": 32988, "minX": 31910, "minY": 31016}},
+    "11": {"anyChanged": {"count": 91185, "maxX": 33955, "maxY": 32920, "minX": 31920, "minY": 30998}},
+    "12": {"anyChanged": {"count": 24044, "maxX": 33948, "maxY": 32979, "minX": 31923, "minY": 31037}},
+    "13": {"anyChanged": {"count": 52381, "maxX": 34119, "maxY": 32920, "minX": 31938, "minY": 31053}},
+    "14": {"anyChanged": {"count": 39215, "maxX": 34107, "maxY": 32997, "minX": 31991, "minY": 30991}},
+    "15": {"anyChanged": {"count": 30374, "maxX": 33985, "maxY": 32940, "minX": 32148, "minY": 31071}}
+  },
+  "comparison": {
+    "anyChangedPositions": 1884169,
+    "baselineOnlyTiles": 101373,
+    "changedShareOfUnion": 0.09865254,
+    "commonChangedPositions": 656516,
+    "commonTiles": 17871388,
+    "crystalOnlyTiles": 1126280,
+    "identicalCommonTiles": 17214872,
+    "identicalShareOfUnion": 0.90134746,
+    "itemStackChanged": 639821,
+    "mechanicChanged": 382,
+    "tileMetadataChanged": 19531,
+    "unionCoordinates": 19099041
+  },
+  "conclusions": [
+    "The snapshots share 17,871,388 coordinates, but 1,884,169 coordinates differ across the union.",
+    "Crystal is not a bounded Targuna patch: it has 1,126,280 Crystal-only tiles and changes 656,516 shared coordinates.",
+    "Coordinates far outside the principal global-map cluster occur in one-sided changes; whole-map replacement would import unrelated/custom content.",
+    "Crystal adds Targuna houses 3701 and 3702, 15 Targuna quest scripts and seven Newhaven quest scripts.",
+    "Whole-map replacement is rejected; Targuna and Newhaven require independent bounded extraction and dependency validation."
+  ],
+  "format": "canary-real-tibia-crystal-map-audit-v1",
+  "generatedAt": "2026-07-14T07:40:14.640948+00:00",
+  "houses": {
+    "added": [
+      {"beds": "3", "clientid": "101", "entryx": "31962", "entryy": "31911", "entryz": "7", "houseid": "3701", "name": "Targuna Cottage 1", "rent": "300000", "size": "118", "townid": "8"},
+      {"beds": "2", "clientid": "102", "entryx": "31940", "entryy": "31890", "entryz": "7", "houseid": "3702", "name": "Targuna Cottage 2", "rent": "250000", "size": "89", "townid": "8"}
+    ],
+    "canaryCount": 993,
+    "changedIds": [2819, 3205, 3654, 3660],
+    "crystalCount": 995,
+    "removed": []
+  },
+  "limitations": [
+    "Static OTBM and source-sidecar evidence is not live gameplay proof.",
+    "Monster sidecars are recorded by Git blob SHA; their spawn semantics were not runtime-resolved in this audit.",
+    "The raw OTBM area-node count is serialization structure and must not be interpreted as a semantic tile delta.",
+    "The audit authorizes no direct map, item-catalogue, asset or datapack import.",
+    "Reusable semantic-diff implementation remains owned by PR #311."
+  ],
+  "otbm": {
+    "canary": {"areas": 1171, "itemsMajor": 4, "itemsMinor": 4, "mapHeight": 34812, "mapWidth": 35143, "maxItemDepth": 2, "mechanics": 9339, "otbmVersion": 4, "placements": 23359571, "rawAreas": 1175983, "tiles": 17972761, "unknownAttributeTails": 0},
+    "crystal": {"areas": 1197, "itemsMajor": 4, "itemsMinor": 4, "mapHeight": 34812, "mapWidth": 35143, "maxItemDepth": 2, "mechanics": 9323, "otbmVersion": 4, "placements": 24504223, "rawAreas": 167838, "tiles": 18997668, "unknownAttributeTails": 0}
+  },
+  "questInventory": {
+    "newhaven": {
+      "canaryCount": 0,
+      "crystalCount": 7,
+      "onlyInCanary": [],
+      "onlyInCrystal": ["#ondroploot_the_corruptor.lua", "movement_init_newhaven.lua", "movement_select_vocation.lua", "movement_update_tutorial_hunting.lua", "on_death_newhaven.lua", "on_login_newhaven.lua", "on_use_newhaven.lua"],
+      "sameRelativePathChanged": []
+    },
+    "targuna": {
+      "canaryCount": 0,
+      "crystalCount": 15,
+      "onlyInCanary": [],
+      "onlyInCrystal": ["actions_herald_lever.lua", "actions_reliable_ram.lua", "actions_three_fold_path_shrine_targuna.lua", "actions_tortoise_eggs.lua", "actions_treasure_chest.lua", "creaturescripts_herald_of_fire.lua", "creaturescripts_lizard_commander.lua", "creaturescripts_pirates.lua", "eventcallbacks_secondary_tasks.lua", "movements_aragonia.lua", "movements_crimson_court.lua", "movements_herald_red_floors.lua", "movements_main_continent_hint.lua", "movements_sandcastles.lua", "movements_temple_teleport.lua"],
+      "sameRelativePathChanged": []
+    }
+  },
+  "sidecars": {
+    "canary": [
+      {"directChildren": 993, "name": "otservbr-house.xml", "rootTag": "houses", "sha256": "904439f60fa1619f52ed17dad8ae1163a9801c07add7851b867bdf19e29350c4", "size": 153184},
+      {"directChildren": 1007, "name": "otservbr-npc.xml", "rootTag": "npcs", "sha256": "a02d95945d73c1f5c24f9b0446d3f63102d2bfa2d4c2d4a59bb40c1ea3fd2fe9", "size": 131308},
+      {"directChildren": 1, "name": "otservbr-zones.xml", "rootTag": "zones", "sha256": "137c6d87018f03eb0dc83b9be7f0f80955bccbeee1184c56f3d1b00e097c34a5", "size": 83},
+      {"gitBlobSha": "65e87a4134a320d28b2270fa5a17917fc7b513a1", "hashType": "git-blob-sha1", "name": "otservbr-monster.xml"}
+    ],
+    "crystal": [
+      {"directChildren": 995, "name": "world-house.xml", "rootTag": "houses", "sha256": "36044bf9636c5a84cac7dda6582965fba05378822fdce4a5c1f84d0dd7e6e90b", "size": 153487},
+      {"directChildren": 1043, "name": "world-npc.xml", "rootTag": "npcs", "sha256": "78960cfd793ca65b1311985861de18806f3d9f2381821c9ec2a920f1188c762f", "size": 136335},
+      {"directChildren": 1, "name": "world-zones.xml", "rootTag": "zones", "sha256": "137c6d87018f03eb0dc83b9be7f0f80955bccbeee1184c56f3d1b00e097c34a5", "size": 83},
+      {"gitBlobSha": "3829f7dcd9091ace8549bfb36a00186726076898", "hashType": "git-blob-sha1", "name": "world-monster.xml"}
+    ]
+  },
+  "sources": {
+    "canary": {
+      "commit": "bd5c7bee5a0524dedcd786ef52152f475dd424a6",
+      "indexSha256": "6c22cd26d4414aa094af1d00be7f62190a441e270ee7a478b55449bf92e55e7a",
+      "indexSize": 842280592,
+      "mapDownloadUrl": "https://github.com/opentibiabr/canary/releases/download/v3.6.1/otservbr.otbm",
+      "mapSha256": "a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2",
+      "mapSize": 184776037,
+      "repository": "blakinio/canary"
+    },
+    "crystal": {
+      "commit": "fc0d53b9f9965463b6082c07e6d3d482294541a7",
+      "decompressedMapSha256": "4b2099f38df05d4be68d1ba1265754e9fd6da09742025d92644fa4b1a12eb120",
+      "decompressedMapSize": 186660172,
+      "indexSha256": "c2bc741ad023f9bd7cad64a7b3b60adb1143243c8def37d2f3ab64e07d6b9ed3",
+      "indexSize": 887242734,
+      "repository": "zimbadev/crystalserver",
+      "repositoryBlobEncoding": "gzip",
+      "repositoryBlobSha256": "3bd40d14fefec41f24c4b3ae879e420be1a831ef55b95dcbec721e587a09b034",
+      "repositoryBlobSize": 52836960
+    }
+  },
+  "topChangedAreas": [
+    {"baseX": 33280, "baseY": 32768, "changedPositions": 59637, "z": 7},
+    {"baseX": 33792, "baseY": 32000, "changedPositions": 55247, "z": 7},
+    {"baseX": 33536, "baseY": 32768, "changedPositions": 47595, "z": 7},
+    {"baseX": 33792, "baseY": 32256, "changedPositions": 46792, "z": 7},
+    {"baseX": 33792, "baseY": 32768, "changedPositions": 44699, "z": 7},
+    {"baseX": 33536, "baseY": 30976, "changedPositions": 43739, "z": 7},
+    {"baseX": 33792, "baseY": 32512, "changedPositions": 34751, "z": 7},
+    {"baseX": 31744, "baseY": 32256, "changedPositions": 32533, "z": 7},
+    {"baseX": 33792, "baseY": 31744, "changedPositions": 31309, "z": 7},
+    {"baseX": 33792, "baseY": 30976, "changedPositions": 29740, "z": 7},
+    {"baseX": 31744, "baseY": 31744, "changedPositions": 29579, "z": 7},
+    {"baseX": 31744, "baseY": 32000, "changedPositions": 28946, "z": 7},
+    {"baseX": 33536, "baseY": 32000, "changedPositions": 25328, "z": 7},
+    {"baseX": 33280, "baseY": 32512, "changedPositions": 23853, "z": 7},
+    {"baseX": 31744, "baseY": 30976, "changedPositions": 23626, "z": 7},
+    {"baseX": 32512, "baseY": 30976, "changedPositions": 22730, "z": 7},
+    {"baseX": 32768, "baseY": 31488, "changedPositions": 22118, "z": 11},
+    {"baseX": 33536, "baseY": 32512, "changedPositions": 22092, "z": 7},
+    {"baseX": 32512, "baseY": 32256, "changedPositions": 21455, "z": 7},
+    {"baseX": 33280, "baseY": 30976, "changedPositions": 20950, "z": 7},
+    {"baseX": 32512, "baseY": 32512, "changedPositions": 20577, "z": 11},
+    {"baseX": 33024, "baseY": 32768, "changedPositions": 20139, "z": 7},
+    {"baseX": 31744, "baseY": 31488, "changedPositions": 19187, "z": 7},
+    {"baseX": 31744, "baseY": 32768, "changedPositions": 19074, "z": 7},
+    {"baseX": 32768, "baseY": 31232, "changedPositions": 18744, "z": 9}
+  ]
+}
