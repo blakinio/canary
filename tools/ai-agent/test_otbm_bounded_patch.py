@@ -318,6 +318,26 @@ class BoundedPatchIntegrationTests(unittest.TestCase):
         self.assertFalse((self.artifacts / "result.json").exists())
 
     @unittest.skipUnless(hasattr(os, "symlink"), "symlinks are unavailable")
+    def test_rejects_symlink_parent_inside_artifact_root(self) -> None:
+        self.write_map()
+        plan = self.make_plan([operation("action", "set-action-id", 0, 100, 1000, 1001)])
+        self.artifacts.mkdir()
+        real_parent = self.artifacts / "real-parent"
+        real_parent.mkdir()
+        os.symlink(real_parent, self.artifacts / "redirect", target_is_directory=True)
+        with self.assertRaisesRegex(BoundedPatchError, "symlink"):
+            apply_bounded_patch(
+                plan=plan,
+                source_path=self.source,
+                scanner_path=self.scanner,
+                artifact_root=self.artifacts,
+                output_path=Path("redirect/patched.otbm"),
+                evidence_directory=Path("evidence-symlink-parent"),
+                result_path=Path("result-symlink-parent.json"),
+                timeout_seconds=60,
+            )
+
+    @unittest.skipUnless(hasattr(os, "symlink"), "symlinks are unavailable")
     def test_rejects_symlink_output(self) -> None:
         self.write_map()
         plan = self.make_plan([operation("action", "set-action-id", 0, 100, 1000, 1001)])
@@ -326,6 +346,26 @@ class BoundedPatchIntegrationTests(unittest.TestCase):
         os.symlink(target, self.artifacts / "patched.otbm")
         with self.assertRaisesRegex(BoundedPatchError, "symlink"):
             self.apply(plan)
+
+
+class BoundedPatchPrimitiveTests(unittest.TestCase):
+    def test_escape_prefix_is_not_an_allowed_changed_payload_byte(self) -> None:
+        temporary = Path(tempfile.mkdtemp(prefix="otbm-payload-offset-test-"))
+        try:
+            source = temporary / "source.bin"
+            output = temporary / "output.bin"
+            source.write_bytes(bytes((NODE_ESCAPE, NODE_ESCAPE)))
+            output.write_bytes(bytes((0xFC, NODE_ESCAPE)))
+            operations = [
+                {
+                    "bytes": [{"offset": 0, "encodedSize": 2, "value": NODE_ESCAPE}],
+                    "spans": [{"offset": 0, "size": 2}],
+                }
+            ]
+            with self.assertRaisesRegex(BoundedPatchError, "unplanned physical byte change at offset 0"):
+                otbm_bounded_patch._compare_outside_spans(source, output, operations)
+        finally:
+            shutil.rmtree(temporary, ignore_errors=True)
 
 
 class BoundedPatchPlanTests(unittest.TestCase):
@@ -344,6 +384,23 @@ class BoundedPatchPlanTests(unittest.TestCase):
             "operations": [operation("action", "set-action-id", 0, 100, 1, 2)],
         }
         with self.assertRaisesRegex(BoundedPatchError, "outside the bounded region"):
+            PatchPlan.from_raw(raw)
+
+    def test_rejects_uppercase_source_hash(self) -> None:
+        raw = {
+            "format": "canary-otbm-bounded-patch-plan-v1",
+            "source": {
+                "fileName": "map.otbm",
+                "sha256": "A" * 64,
+                "size": 10,
+                "otbmVersion": 4,
+                "itemsMajor": 3,
+                "itemsMinor": 57,
+            },
+            "region": {"from": [1000, 2000, 7], "to": [1100, 2200, 7]},
+            "operations": [operation("action", "set-action-id", 0, 100, 1, 2)],
+        }
+        with self.assertRaisesRegex(BoundedPatchError, "lowercase SHA-256"):
             PatchPlan.from_raw(raw)
 
     def test_rejects_duplicate_target(self) -> None:

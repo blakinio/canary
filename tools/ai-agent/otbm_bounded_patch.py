@@ -77,9 +77,15 @@ def _check_ancestors(root: Path, path: Path, label: str) -> None:
 def _new_confined_path(root: Path, path: Path, label: str) -> Path:
     candidate = path.expanduser()
     candidate = candidate if candidate.is_absolute() else root / candidate
-    if candidate.is_symlink():
-        raise BoundedPatchError(f"{label} must not be a symlink: {candidate}")
-    resolved = candidate.resolve(strict=False)
+    lexical = Path(os.path.abspath(candidate))
+    try:
+        lexical.relative_to(root)
+    except ValueError as exc:
+        raise BoundedPatchError(f"{label} escapes artifact root {root}: {lexical}") from exc
+    if lexical.is_symlink():
+        raise BoundedPatchError(f"{label} must not be a symlink: {lexical}")
+    _check_ancestors(root, lexical, label)
+    resolved = lexical.resolve(strict=False)
     try:
         resolved.relative_to(root)
     except ValueError as exc:
@@ -88,6 +94,7 @@ def _new_confined_path(root: Path, path: Path, label: str) -> Path:
     if resolved.exists():
         raise BoundedPatchError(f"{label} already exists: {resolved}")
     resolved.parent.mkdir(parents=True, exist_ok=True)
+    _check_ancestors(root, lexical, label)
     _check_ancestors(root, resolved, label)
     return resolved
 
@@ -438,9 +445,10 @@ def _compare_outside_spans(
         raise BoundedPatchError("patched output length differs from source length")
     allowed: set[int] = set()
     for operation in operations:
-        for span in operation["spans"]:
-            start = int(span["offset"])
-            allowed.update(range(start, start + int(span["size"])))
+        for byte in operation["bytes"]:
+            offset = int(byte["offset"])
+            encoded_size = int(byte["encodedSize"])
+            allowed.add(offset + (1 if encoded_size == 2 else 0))
     changed: list[int] = []
     position = 0
     with source.open("rb") as before, output.open("rb") as after:
