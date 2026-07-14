@@ -4,8 +4,8 @@ name: Tibia System Decomposition
 status: active
 owner: repository-wide
 created: 2026-07-14T15:43:00+02:00
-updated: 2026-07-14T18:46:00+02:00
-last_verified_commit: "8c24598067c7d3791800342622dbd4d37c9d647b"
+updated: 2026-07-14T18:57:00+02:00
+last_verified_commit: "1410a8622aaca5e4afe1bd15aa2695e2dbb7bb94"
 primary_paths:
   - docs/agents/real-tibia/**
   - docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md
@@ -27,106 +27,52 @@ Maintain one durable logical decomposition of Tibia and Canary through the exist
 
 This program is architecture, registry metadata, documentation and coordination only. It never authorizes runtime changes.
 
-# Source-of-truth contract
+# Source-of-truth and safety contract
 
-The only canonical module inventory is:
+The only canonical module inventory is `docs/agents/real-tibia/registry/**`. Generated indexes are derived artifacts; package reports explain decisions but are not a second registry.
 
-```text
-docs/agents/real-tibia/registry/**
-```
+The program reuses Real Tibia Parity governance, the source-role-aware Upstream Intelligence mapper, the shared physical-client E2E platform, the existing OTBM analysis pipeline and task ownership.
 
-Generated indexes are derived artifacts. Program and package reports explain sequencing and decisions; they are not a second registry.
+Permanent rules:
 
-The program reuses:
+- path hints are discovery, not ownership or edit authorization;
+- broad existing IDs remain stable umbrellas;
+- narrow records use verified current paths and never broad server `src/**`;
+- `depends_on` means a fundamental dependency and must remain acyclic;
+- file/schema/helper/migration/test presence supports at most inventory;
+- no TSD package claims gameplay/runtime, persistence, protocol, parity, E2E or Oteryn readiness;
+- no second registry, generator, watcher, mapper, parser, renderer or E2E orchestrator;
+- no physical source-tree refactor or normal-task edit to `ACTIVE_WORK.md`.
 
-- Real Tibia Parity governance;
-- Upstream Intelligence and its source-role-aware mapper;
-- the shared physical-client E2E platform;
-- the existing OTBM analysis pipeline;
-- task ownership and module catalogue discovery.
-
-# Module boundary rules
-
-A module needs a durable responsibility plus several of: coherent vocabulary, lifecycle/state machine, persistence/protocol boundary, stable contract, multiple independent findings, a long-lived validation queue, repeated agent context or meaningful dependencies.
-
-A formula, packet field, boss, spell, NPC, storage, map coordinate, bug, helper class or PR is normally a finding inside a module.
-
-Broad existing IDs remain stable umbrellas. Child records may overlap verified path hints. `depends_on` is never used as hierarchy.
-
-# Discovery, relationship and maturity rules
-
-Path hints:
-
-- use only verified current paths grouped into server/client/data/tests/docs;
-- are discovery, not ownership or edit authorization;
-- may overlap;
-- do not prove completeness, parity or runtime behavior;
-- must not assign broad `src/**` to a narrow server module.
-
-Relationships:
-
-- `depends_on` means a fundamental implementation/validation dependency and must be acyclic;
-- `interacts_with` is descriptive;
-- shared use of Player, Game, Lua, DB or protocol classes is insufficient by itself.
-
-New decomposition records start at:
-
-```text
-lifecycle: inventory
-implementation: inventory
-evidence: inventory
-persistence: not-assessed
-protocol: not-assessed
-automated_tests: not-assessed
-runtime_validation: not-assessed
-gameplay_e2e: not-assessed
-```
-
-File, schema, helper, migration or test presence does not justify a higher proof level.
+New decomposition records start at lifecycle/implementation/evidence `inventory`; persistence, protocol, automated tests, runtime validation and gameplay E2E stay `not-assessed` unless a later narrow proof task establishes otherwise.
 
 # Program integrations
 
-## Real Tibia Parity
-
-Decomposition cannot claim Real Tibia parity, formula correctness, persistence safety, wire compatibility, runtime behavior or physical-client success. Those require normal parity findings and proof.
-
-## Upstream Intelligence
-
-Registry matches remain source-policy-filtered discovery hints. Outputs stay deterministic, unmapped paths explicit, triage unchanged and reviewed decisions revision-pinned. UI-001A was merged in PR #337 and archived; no second mapper or watcher exists.
-
-## Physical-client E2E
-
-There is one shared orchestrator. TSD packages do not add gameplay scenarios or duplicate orchestration.
-
-# TSD-002 split
-
-The original package combined stable engine infrastructure with DB/persistence boundaries, so it was delivered sequentially:
-
-- `TSD-002A` — scheduler, DI, Lua binding and build boundaries;
-- `TSD-002B` — DB connection, migrations, transaction capability, world/player persistence and save/restart/reload classification.
-
-PR #308 was merged before TSD-002B task start. Its code is current-main inventory evidence; its PR claims and tests are not proof of atomicity, idempotency or runtime safety.
+- **Real Tibia Parity:** owns evidence precedence and behavioral conclusions.
+- **Upstream Intelligence:** uses only source-policy-allowed buckets; mapping remains deterministic, discovery-only and does not change triage or reviewed decisions.
+- **Physical-client E2E:** remains one shared orchestrator; TSD packages do not duplicate it.
+- **OTBM tooling:** existing parser/index/resolution/renderer pipelines remain canonical; TSD creates no competing tooling.
 
 # Bounded package queue
 
-| ID | Scope | Status | Evidence baseline | Dependencies | Exact next action |
-|---|---|---|---|---|---|
-| `TSD-001` | taxonomy/hierarchy foundation and three-record pilot | completed | PR #335; merge `44fe3af9f29b3ae0164ac5d60fc1f14137b5cea5`; registry 19 → 22 | registry/UI tests | preserve archive |
-| `TSD-002A` | engine foundation | completed | PR #340; merge `82f35c0147fdd33c8d4e70d98d003385daf61de6`; registry 22 → 26 | TSD-001 and UI-001A | preserve archive |
-| `TSD-002B` | DB connection/migrations, transaction and world persistence classification | active | task-start `main@709693b4cca42214c52e63ea15a1a22b93f9a113`; merged PR #308 | archived TSD-002A | finish PR #342, exact-head/ready CI, squash merge, lifecycle archive |
-| `TSD-003` | account, character and progression | planned | TSD-001 classification plus TSD-002 persistence boundaries | completed TSD-002B | separate durable account/character/progression domains |
-| `TSD-004` | Cyclopedia family | planned | `cyclopedia` and `charms` umbrellas | persistence/client inventory | preserve umbrella and evaluate durable children |
-| `TSD-005` | combat, weapons and vocations | planned | `combat` and `spells` umbrellas | engine/progression boundaries | split only durable formula/state/weapon/vocation domains |
-| `TSD-006` | creatures, hunting, raids and bosses | planned | `spawns`, `prey`, `cyclopedia` | OTBM/spawn/combat boundaries | separate spawn, encounter, credit, reward and scheduling |
-| `TSD-007` | items and economy | planned | `market`, `imbuements`, `exaltation-forge` | persistence/transaction boundaries | classify item lifecycle, movement, trade, market and rewards |
-| `TSD-008` | world content | planned | quests/NPCs/houses/OTBM records | OTBM toolchain | classify map, movement, quest, house, travel and instances |
-| `TSD-009` | social, communication and trust | planned | social/account category | account/character boundaries | separate communication, party/guild and sanctions/audit |
-| `TSD-010` | protocol and client | planned | `protocol` umbrella and maintained client | cross-repo contract | classify wire/session/client-feature domains |
-| `TSD-011` | analytics, security and AI | planned | analytics/safety boundaries | persistence/telemetry policy | register durable read-only/analysis domains only |
-| `TSD-012` | validation and live-operations tooling | planned | OTBM/E2E/UI modules | prior decomposition | register only non-duplicative long-lived tooling |
-| `TSD-013` | Oteryn migration classification | planned | completed inventories/proof packages | runtime/E2E evidence | classify modules; do not copy code or create another registry |
+| ID | Scope | Status | Evidence baseline | Exact next action |
+|---|---|---|---|---|
+| `TSD-001` | taxonomy/hierarchy foundation and three-record pilot | completed | PR #335; merge `44fe3af9f29b3ae0164ac5d60fc1f14137b5cea5`; registry 19 → 22 | preserve archive |
+| `TSD-002A` | scheduler, DI, Lua bindings and build foundation | completed | PR #340; merge `82f35c0147fdd33c8d4e70d98d003385daf61de6`; registry 22 → 26 | preserve archive |
+| `TSD-002B` | DB connection/migrations, transaction and world-persistence classification | completed | PR #342; merge `1410a8622aaca5e4afe1bd15aa2695e2dbb7bb94`; registry 26 → 29 | preserve archive |
+| `TSD-003` | account, character and progression | next | TSD-001 classification plus TSD-002 persistence boundaries | create one bounded account/character/progression task from current main |
+| `TSD-004` | Cyclopedia family | planned | `cyclopedia` and `charms` umbrellas | preserve umbrella; evaluate durable children |
+| `TSD-005` | combat, weapons and vocations | planned | `combat` and `spells` umbrellas | split only durable formula/state/weapon/vocation domains |
+| `TSD-006` | creatures, hunting, raids and bosses | planned | `spawns`, `prey`, `cyclopedia` | separate spawn, encounter, credit, reward and scheduling |
+| `TSD-007` | items and economy | planned | `market`, `imbuements`, `exaltation-forge` | classify item lifecycle, movement, trade, market and rewards |
+| `TSD-008` | world content | planned | quests/NPCs/houses/OTBM records | classify map, movement, quests, houses, travel and instances |
+| `TSD-009` | social, communication and trust | planned | social/account category | separate communication, party/guild and sanctions/audit |
+| `TSD-010` | protocol and client | planned | `protocol` umbrella and maintained client | classify wire/session/client-feature domains |
+| `TSD-011` | analytics, security and AI | planned | analytics/safety boundaries | register durable read-only/analysis domains only |
+| `TSD-012` | validation and live-operations tooling | planned | OTBM/E2E/UI modules | register only non-duplicative long-lived tooling |
+| `TSD-013` | Oteryn migration classification | planned | completed inventories and proof packages | classify modules; do not copy code or create another registry |
 
-# Completed packages and prerequisites
+# Completed delivery evidence
 
 ## TSD-001
 
@@ -147,41 +93,26 @@ PR #308 was merged before TSD-002B task start. Its code is current-main inventor
 - Feature PR #340, head `4a044a0f93a23aa7c610c41d1003d5f83d7fc62c`.
 - Merge `82f35c0147fdd33c8d4e70d98d003385daf61de6`; lifecycle merge `709693b4cca42214c52e63ea15a1a22b93f9a113`.
 - Registry 22 → 26; added only `build-system`, `engine-scheduler`, `engine-service-container`, `lua-bindings`.
-- Existing records modified 0; `data-registries` and `platform-compatibility` merged into existing boundaries.
+- Existing records modified 0; `data-registries` and `platform-compatibility` were merged into existing boundaries.
 - Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-engine-foundation.md`.
 
-# Current active package — TSD-002B
+## TSD-002B
 
-Task: `CAN-20260714-tibia-system-decomposition-persistence-transactions`; PR #342.
+- Feature PR #342, head `4ec6fa8df83f80cde17219251a3e50aa9788ab23`.
+- Merge `1410a8622aaca5e4afe1bd15aa2695e2dbb7bb94`; merged at `2026-07-14T16:54:43Z`.
+- Registry 26 → 29; added only `database-connection`, `database-migrations`, `world-persistence`.
+- Existing records modified 0; `player-persistence` remained the compatibility umbrella.
+- `transaction-boundaries` and `save-restart-reload` were merged into existing boundaries; `database-reconciliation` was deferred.
+- Final checks: Real Tibia Module Registry #156, Upstream Intelligence #184, Agent Task Ownership #1013, CI #2128 and ready-state CI #2129 — success.
+- Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-persistence-transactions.md`.
 
-| Candidate | Decision |
-|---|---|
-| `database-connection` | `ADD_NOW` |
-| `database-migrations` | `ADD_NOW` |
-| `transaction-boundaries` | `MERGE_WITH_ANOTHER_MODULE` |
-| `world-persistence` | `ADD_NOW` |
-| `database-reconciliation` | `DEFER` |
-| `save-restart-reload` | `MERGE_WITH_ANOTHER_MODULE` |
-
-`player-persistence` remains the unchanged compatibility umbrella.
-
-The package increases the registry 26 → 29 and adds only:
-
-```text
-database-connection
-database-migrations
-world-persistence
-```
-
-Detailed evidence and limits: `docs/agents/real-tibia/TSD_002B_PERSISTENCE_TRANSACTIONS_REPORT.md`.
-
-No record or code claims transaction isolation, rollback completeness, retry safety, migration reversibility, idempotency, crash consistency, restart/reload safety or production MariaDB compatibility.
+No TSD-002B evidence establishes ACID semantics, rollback completeness, retry/reconnect safety, migration reversibility, idempotency, crash consistency, restart/reload safety or production MariaDB compatibility.
 
 # Oteryn migration policy
 
 The legacy repository remains the evidence laboratory. No code is copied to Oteryn by this program.
 
-Future classifications are `REUSE`, `ADAPT`, `REVALIDATE`, `REWRITE`, `DO_NOT_MIGRATE` and `EXPERIMENTAL_ONLY`. Default is undecided or `REVALIDATE`; code presence is insufficient.
+Future classifications are `REUSE`, `ADAPT`, `REVALIDATE`, `REWRITE`, `DO_NOT_MIGRATE` and `EXPERIMENTAL_ONLY`. Code presence is insufficient; the default is undecided or `REVALIDATE`.
 
 Required flow:
 
@@ -194,24 +125,9 @@ legacy inventory
 → bounded Oteryn package
 ```
 
-# Safety invariants
+# Exact next operational task
 
-- no gameplay/runtime or physical source-tree refactor;
-- no DB schema/migration implementation changes;
-- no protocol/client/map/OTBM/datapack/asset changes;
-- no second registry/generator/watcher/mapper/parser/renderer/E2E platform;
-- no automatic parity or upstream-adoption claims;
-- no unrestricted AI runtime authority;
-- no normal-task edits to `ACTIVE_WORK.md`.
-
-# Exact next operational steps
-
-1. Complete PR #342 from its exact live head.
-2. Verify registry/UI/ownership/repository CI, review threads, mergeability and changed-file scope.
-3. Mark ready only after exact-head checks pass.
-4. Pass ready-state Linux/Required and squash merge.
-5. Archive TSD-002B in a separate lifecycle-only PR.
-6. Re-read current main before creating:
+After this lifecycle archive merges, re-read current `main`, open PRs, active tasks, ownership and all current account/character/progression records. Then create only:
 
 ```text
 task: CAN-20260714-tibia-system-decomposition-account-character-progression
@@ -219,6 +135,8 @@ package: TSD-003
 branch: docs/tibia-system-decomposition-account-character-progression
 ```
 
+Classify durable account lifecycle, authentication/entitlement, character lifecycle, vocation, skills/levels, account-wide state and progression boundaries without duplicating `player-persistence`, protocol or gameplay feature modules.
+
 # Handoff
 
-Read this program, TSD-001/UI-001A/TSD-002A archives, the TSD-002B report, generated indexes, current records, open PRs and active ownership. Continue only one task/branch/PR at a time. Never infer persistence, transaction, restart/reload, runtime or E2E safety from inventory paths or passing tests.
+Continue one task, branch and PR at a time. Before every package re-read current main, open PRs, active tasks and ownership. Preserve all proof limits and never infer behavioral correctness from inventory paths or passing CI.
