@@ -46,6 +46,22 @@ jobs:
           set -euo pipefail
           python -m json.tool docs/ai-agent/OTBM_BOUNDED_PATCH_PLAN.schema.json > /dev/null
           python -m json.tool docs/ai-agent/OTBM_BOUNDED_PATCH_RESULT.schema.json > /dev/null
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          for name in (
+              "OTBM_BOUNDED_PATCH_PLAN.schema.json",
+              "OTBM_BOUNDED_PATCH_RESULT.schema.json",
+          ):
+              path = Path("docs/ai-agent") / name
+              schema = json.loads(path.read_text(encoding="utf-8"))
+              position = schema["$defs"]["position"]
+              assert position["minItems"] == 3, f"{name}: position.minItems must be 3"
+              assert position["maxItems"] == 3, f"{name}: position.maxItems must be 3"
+              assert len(position["prefixItems"]) == 3, f"{name}: position.prefixItems must have 3 entries"
+              assert position["items"] is False, f"{name}: position must reject extra entries"
+          PY
 
       - name: Compile native scanner with warnings as errors
         shell: bash
