@@ -13,6 +13,7 @@ target_sources(
             libs/logger_functions.cpp
             libs/metrics_functions.cpp
             libs/kv_functions.cpp
+            libs/filesystem_functions.cpp
             network/network_message_functions.cpp
             network/webhook_functions.cpp
 )

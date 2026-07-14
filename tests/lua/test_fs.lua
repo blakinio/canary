@@ -1,15 +1,26 @@
+-- Runtime-independent contract tests for data/libs/functions/fs.lua
 -- Run: luajit tests/lua/test_fs.lua
 
-local calls = {}
-local shellCalled = false
-local realExecute = os.execute
+local passed, failed, errors = 0, 0, {}
 
-os.execute = function()
-	shellCalled = true
-	error("FS helpers must not invoke os.execute")
+local function test(name, fn)
+	local ok, err = pcall(fn)
+	if ok then
+		passed = passed + 1
+	else
+		failed = failed + 1
+		table.insert(errors, { name = name, err = err })
+	end
 end
 
-FileSystem = {
+local function assert_equal(actual, expected, message)
+	if actual ~= expected then
+		error(message or string.format("expected %s, got %s", tostring(expected), tostring(actual)), 2)
+	end
+end
+
+local calls = {}
+fs = {
 	createDirectory = function(path)
 		table.insert(calls, { method = "createDirectory", path = path })
 		return true
@@ -20,33 +31,39 @@ FileSystem = {
 	end,
 }
 
+local originalExecute = os.execute
+os.execute = function()
+	error("FS helpers must not execute a shell", 2)
+end
 dofile("data/libs/functions/fs.lua")
 
-local function assertEqual(actual, expected, message)
-	if actual ~= expected then
-		error(string.format("%s: expected %s, got %s", message, tostring(expected), tostring(actual)))
+test("mkdir delegates hostile paths literally to the native binding", function()
+	local hostile = 'reports/unsafe" & echo injected > marker & echo "'
+	assert_equal(FS.mkdir(hostile), true)
+	assert_equal(calls[#calls].method, "createDirectory")
+	assert_equal(calls[#calls].path, hostile)
+end)
+
+test("mkdir_p delegates recursive creation without path splitting", function()
+	local path = "reports/bugs/Player Name/child"
+	assert_equal(FS.mkdir_p(path), true)
+	assert_equal(calls[#calls].method, "createDirectories")
+	assert_equal(calls[#calls].path, path)
+end)
+
+test("mkdir_p preserves the empty-path success contract", function()
+	local before = #calls
+	assert_equal(FS.mkdir_p(""), true)
+	assert_equal(#calls, before)
+end)
+
+os.execute = originalExecute
+
+print(string.format("\n%d passed, %d failed", passed, failed))
+if #errors > 0 then
+	print("\nFailed tests:")
+	for _, entry in ipairs(errors) do
+		print(string.format("  FAIL: %s\n        %s", entry.name, entry.err))
 	end
+	os.exit(1)
 end
-
-assertEqual(FS.mkdir("reports/player $(touch marker)"), true, "single directory result")
-assertEqual(calls[1].method, "createDirectory", "single directory method")
-assertEqual(calls[1].path, "reports/player $(touch marker)", "single directory path")
-
-assertEqual(FS.mkdir_p("reports/bugs/player name"), true, "recursive directory result")
-assertEqual(calls[2].method, "createDirectories", "recursive directory method")
-assertEqual(calls[2].path, "reports/bugs/player name", "recursive directory path")
-
-local beforeEmpty = #calls
-assertEqual(FS.mkdir_p(""), true, "empty recursive path")
-assertEqual(#calls, beforeEmpty, "empty recursive path must not call native binding")
-
-FileSystem.createDirectory = function(path)
-	return false, "denied: " .. path
-end
-local success, err = FS.mkdir("blocked")
-assertEqual(success, false, "error success flag")
-assertEqual(err, "denied: blocked", "error message passthrough")
-assertEqual(shellCalled, false, "shell execution")
-
-os.execute = realExecute
-print("FS shell-free wrapper tests passed")

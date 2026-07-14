@@ -15,6 +15,7 @@
 #include "lua/functions/core/libs/logger_functions.hpp"
 #include "lua/functions/core/libs/metrics_functions.hpp"
 #include "lua/functions/core/libs/kv_functions.hpp"
+#include "lua/functions/core/libs/filesystem_functions.hpp"
 
 class CoreLibsFunctions final : LuaScriptInterface {
 public:
@@ -30,6 +31,7 @@ public:
 		LoggerFunctions::init(L);
 		MetricsFunctions::init(L);
 		KVFunctions::init(L);
+		FilesystemFunctions::init(L);
 	}
 
 private:

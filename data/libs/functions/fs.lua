@@ -1,4 +1,4 @@
-FS = {}
+FS = FS or {}
 
 function FS.exists(path)
 	local file = io.open(path, "r")
@@ -10,12 +10,13 @@ function FS.exists(path)
 end
 
 function FS.mkdir(path)
-	return FileSystem.createDirectory(path)
+	return fs.createDirectory(path)
 end
 
 function FS.mkdir_p(path)
 	if path == "" then
 		return true
 	end
-	return FileSystem.createDirectories(path)
+
+	return fs.createDirectories(path)
 end
