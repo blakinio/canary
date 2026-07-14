@@ -38,7 +38,7 @@ ALLOWED_CORRELATION_FORMATS = {
 
 def _resolve_confined(root: Path, path: Path, label: str, *, must_exist: bool = True) -> Path:
     root = root.expanduser().resolve()
-    candidate = path.expanduser()
+    candidate = Path(path).expanduser()
     candidate = candidate if candidate.is_absolute() else root / candidate
     if candidate.is_symlink():
         raise SemanticDiffError(f"{label} must not be a symlink: {candidate}")
@@ -360,7 +360,7 @@ def analyze_index_paths(
 
 def write_report(path: Path, report: Mapping[str, Any], *, artifact_root: Path, overwrite: bool = False) -> None:
     root = artifact_root.expanduser().resolve()
-    candidate = path.expanduser()
+    candidate = Path(path).expanduser()
     candidate = candidate if candidate.is_absolute() else root / candidate
     if candidate.is_symlink():
         raise SemanticDiffError(f"Output must not be a symlink: {candidate}")
