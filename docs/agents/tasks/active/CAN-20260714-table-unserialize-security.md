@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: security/table-unserialize-safe
 base_branch: main
 created: 2026-07-14T12:45:00+02:00
-updated: 2026-07-14T13:30:00+02:00
-last_verified_commit: "7c9bfef3cd1177a9beb4624c7dfb16f8337ec474"
+updated: 2026-07-14T13:40:00+02:00
+last_verified_commit: "d11b25e69b463780390a9a33254121f10e2b3d0e"
 risk: high
 related_issue: ""
 related_pr: "#328"
@@ -119,6 +119,12 @@ Remove arbitrary Lua evaluation from `table.unserialize` with the smallest stric
 - Refreshed the branch through current main `3a390c9d892c5b737d32711a71dbdf7fff1f06fe` after registry cleanup #329; merge was clean and preserved both module-catalogue entries.
 - Final implementation diff remains exactly eight intended runtime, test, report and governance paths.
 
+## 2026-07-14T13:40:00+02:00
+
+- Reviewed the final parser and regression patches for scalar distinction, escape handling, complete-input consumption, malformed input and all resource limits.
+- Marked PR #328 Ready on `d11b25e69b463780390a9a33254121f10e2b3d0e`.
+- Recorded this connector-authored task commit so ownership, Achievement Validation, autofix and full CI execute on one unambiguous current head; earlier bot-authored `action_required` results are not treated as validation.
+
 # Decisions
 
 | Decision | Reason |
@@ -151,7 +157,7 @@ Never record `passed` without verification on the stated commit.
 
 # Remaining work
 
-1. Mark PR #328 Ready and run exact-head ownership, autofix, Fast Checks, standalone Lua and selected full CI.
+1. Require exact-head ownership, autofix, Fast Checks, standalone Lua and selected full CI.
 2. Review final diff, comments, reviews, threads and current main; merge only the unchanged validated SHA.
 3. Archive the task and close CS-007 in a separate lifecycle PR.
 
