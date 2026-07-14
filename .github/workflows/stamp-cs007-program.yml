@@ -1,0 +1,49 @@
+name: Stamp CS-007 program verification
+
+on:
+  pull_request:
+    types: [synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  stamp:
+    if: >-
+      github.event.pull_request.number == 328 &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'security/table-unserialize-safe'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: security/table-unserialize-safe
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md')
+          text = path.read_text()
+          replacements = {
+              'updated: 2026-07-14T13:20:00+02:00': 'updated: 2026-07-14T13:35:00+02:00',
+              'last_verified_commit: "2276cd5f4713bd345e049f0d89085cd4eb7bffbc"': 'last_verified_commit: "d991f38a2d99ce71db50e3c70b41a95b48b9c338"',
+          }
+          for old, new in replacements.items():
+              if text.count(old) != 1:
+                  raise SystemExit(f'program anchor mismatch: {old!r} -> {text.count(old)}')
+              text = text.replace(old, new)
+          path.write_text(text)
+          PY
+          workflow='.github/workflows/stamp-cs007-program.yml'
+          rm -f "$workflow"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          actual="$(git diff --cached --name-only | sort)"
+          expected="$(printf '%s\n' "$workflow" 'docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md' | sort)"
+          test "$actual" = "$expected"
+          git diff --cached --check
+          git commit -m 'docs(agents): stamp CS-007 program state'
+          git push origin HEAD:security/table-unserialize-safe
