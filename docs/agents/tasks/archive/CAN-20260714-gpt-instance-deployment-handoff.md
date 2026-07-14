@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: docs/archive-gpt-instance-deployment-work
 base_branch: main
 created: 2026-07-14T18:54:20+02:00
-updated: 2026-07-14T18:54:20+02:00
-last_verified_commit: "709693b4cca42214c52e63ea15a1a22b93f9a113"
+updated: 2026-07-14T18:57:48+02:00
+last_verified_commit: "d7b80266e45e3d99496de0da3c92d4922d4d6f40"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "#349"
 depends_on: []
 blocks: []
 owned_paths:
@@ -55,8 +55,9 @@ This record also releases all path ownership and prevents a future agent from re
 # Archive baseline
 
 - Repository: `blakinio/canary`.
-- Verified `main` when this archive branch was created: `709693b4cca42214c52e63ea15a1a22b93f9a113`.
-- Archive timestamp: `2026-07-14T18:54:20+02:00`.
+- Verified `main` for the final archive head: `d7b80266e45e3d99496de0da3c92d4922d4d6f40`.
+- Archive PR: #349.
+- Archive timestamp: `2026-07-14T18:57:48+02:00`.
 - No local checkout, local build, or local working-tree state is claimed by this archive operation. Repository state was verified through GitHub metadata and current repository files.
 
 # Work completed in this conversation
