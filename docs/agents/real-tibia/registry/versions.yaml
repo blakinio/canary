@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "baselines": [
+    {
+      "id": "canary-2026-07-14-registry-bootstrap",
+      "captured_at": "2026-07-14T11:40:00+02:00",
+      "server": {
+        "repository": "blakinio/canary",
+        "sha": "0d1eb94c8e8e3033d95fd73f56711b830624540f"
+      },
+      "protocol": 1525,
+      "notes": [
+        "Task-start snapshot for the registry foundation; future tasks must re-fetch live heads."
+      ]
+    }
+  ]
+}

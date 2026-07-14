@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "module_id": "spells",
+  "name": "Spell system",
+  "category": "combat",
+  "description": "Spell registration, vocation restrictions, cooldowns, areas and runtime execution.",
+  "lifecycle": {"status": "mapped"},
+  "scope": {"includes": ["spell registration", "runes and instant spells", "cooldowns and vocation restrictions", "deterministic area contracts"], "excludes": ["generic combat modifier engine", "client hotkey UI"]},
+  "paths": {"server": ["src/creatures/combat/spells/**"], "client": [], "data": ["data/scripts/spells/**", "data-otservbr-global/scripts/spells/**"], "tests": ["tests/unit/**spell**", "tests/lua/**"], "docs": []},
+  "relationships": {"depends_on": ["combat"], "interacts_with": ["wheel-of-destiny"]},
+  "documents": {"validation": []},
+  "source_requirements": [{"source": "canary-current", "mode": "required"}, {"source": "tibia-official", "mode": "required-when-parity"}, {"source": "tibiawiki", "mode": "secondary"}],
+  "maturity": {"implementation": "mapped", "evidence": "inventory", "persistence": "not-assessed", "protocol": "not-assessed", "automated_tests": "unit", "runtime_validation": "not-assessed", "gameplay_e2e": "not-assessed"},
+  "freshness": {"class": "fast", "last_inventory": "2026-07-14", "warning_after_days": 30, "invalid_after_days": 90, "refresh_before_each_task": true},
+  "notes": []
+}
