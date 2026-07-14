@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import heapq
 from collections import Counter
 from dataclasses import asdict
 from typing import Any, Iterable, Iterator, Mapping
@@ -28,6 +29,54 @@ CORRELATION_CLASSIFICATIONS = {
 
 def _position_key(position: Position) -> tuple[int, int, int]:
     return position[2], position[1], position[0]
+
+
+def _iter_area_region_tiles(
+    index: Any,
+    area: Any,
+    lower: Position,
+    upper: Position,
+) -> Iterator[tuple[int, Any]]:
+    for posting_index in range(area.postings_start, area.postings_start + area.tile_count):
+        tile_index = index.area_posting(posting_index)
+        tile = index.tile(tile_index)
+        if lower[0] <= tile.x <= upper[0] and lower[1] <= tile.y <= upper[1]:
+            yield tile_index, tile
+
+
+def _iter_region_tiles_ordered(
+    index: Any,
+    lower: Position,
+    upper: Position,
+) -> Iterator[tuple[int, Any]]:
+    heap: list[tuple[tuple[int, int, int], int, int, Any, Iterator[tuple[int, Any]]]] = []
+    serial = 0
+    for area in index.areas:
+        if not lower[2] <= area.z <= upper[2]:
+            continue
+        if area.base_x > upper[0] or area.base_x + 255 < lower[0]:
+            continue
+        if area.base_y > upper[1] or area.base_y + 255 < lower[1]:
+            continue
+        iterator = _iter_area_region_tiles(index, area, lower, upper)
+        first = next(iterator, None)
+        if first is None:
+            continue
+        tile_index, tile = first
+        key = (int(tile.z), int(tile.y), int(tile.x))
+        heapq.heappush(heap, (key, serial, tile_index, tile, iterator))
+        serial += 1
+
+    while heap:
+        _key, _serial, tile_index, tile, iterator = heapq.heappop(heap)
+        yield tile_index, tile
+        following = next(iterator, None)
+        if following is None:
+            continue
+        next_tile_index, next_tile = following
+        next_key = (int(next_tile.z), int(next_tile.y), int(next_tile.x))
+        heapq.heappush(heap, (next_key, serial, next_tile_index, next_tile, iterator))
+        serial += 1
 
 
 def _semantic_placement(raw: Mapping[str, Any]) -> dict[str, Any]:
@@ -95,7 +144,7 @@ def iter_snapshots(index: Any, appearances: Mapping[int, Any] | None, bounds: tu
     if bounds is None:
         iterator: Iterable[tuple[int, Any]] = ((tile_index, index.tile(tile_index)) for tile_index in range(index.header.tile_count))
     else:
-        iterator = index.iter_region_tiles(bounds[0], bounds[1])
+        iterator = _iter_region_tiles_ordered(index, bounds[0], bounds[1])
     previous: tuple[int, int, int] | None = None
     for tile_index, tile in iterator:
         snapshot = snapshot_tile(index, tile_index, tile, appearances)
