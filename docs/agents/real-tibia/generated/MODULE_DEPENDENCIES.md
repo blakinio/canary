@@ -8,10 +8,13 @@
 | `achievements` | `player-persistence` | `combat`, `quests`, `spells` |
 | `charms` | `combat`, `cyclopedia`, `player-persistence`, `protocol` | — |
 | `combat` | `player-persistence` | `spells`, `wheel-of-destiny`, `exaltation-forge` |
+| `configuration` | — | `engine-runtime-lifecycle`, `lua-runtime`, `protocol` |
 | `cyclopedia` | `protocol`, `player-persistence` | `charms`, `physical-client-e2e` |
+| `engine-runtime-lifecycle` | — | `configuration`, `lua-runtime` |
 | `exaltation-forge` | `player-persistence`, `protocol` | `combat`, `market` |
 | `houses` | `otbm-tooling`, `player-persistence` | `cyclopedia`, `protocol` |
 | `imbuements` | `combat`, `player-persistence` | `protocol` |
+| `lua-runtime` | — | `configuration`, `engine-runtime-lifecycle`, `npcs`, `quests`, `spells` |
 | `market` | `player-persistence`, `protocol` | `exaltation-forge` |
 | `npcs` | `otbm-tooling` | `quests`, `market`, `spawns` |
 | `otbm-tooling` | — | `quests`, `npcs`, `spawns`, `houses` |

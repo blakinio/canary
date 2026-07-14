@@ -133,6 +133,42 @@ class RealTibiaRegistryTests(unittest.TestCase):
         self.assertIn("protocol", ids)
         self.assertIn("wheel-of-destiny", ids)
 
+    def test_decomposition_bootstrap_records_are_bounded(self) -> None:
+        registry = self.load()
+        self.assertEqual(len(registry.modules), 22)
+        self.assertIn("engine-foundation", registry.categories)
+        expected = {
+            "configuration",
+            "engine-runtime-lifecycle",
+            "lua-runtime",
+        }
+        actual = {
+            module_id
+            for module_id, module in registry.modules.items()
+            if module["category"] == "engine-foundation"
+        }
+        self.assertEqual(actual, expected)
+        for module_id in expected:
+            module = registry.modules[module_id]
+            self.assertEqual(module["lifecycle"]["status"], "inventory")
+            self.assertEqual(module["maturity"]["implementation"], "inventory")
+            self.assertEqual(module["maturity"]["evidence"], "inventory")
+            self.assertEqual(module["relationships"]["depends_on"], [])
+
+    def test_decomposition_paths_map_to_narrow_modules(self) -> None:
+        registry = self.load()
+        cases = {
+            "src/canary_server.cpp": "engine-runtime-lifecycle",
+            "src/config/configmanager.cpp": "configuration",
+            "src/lua/scripts/lua_environment.hpp": "lua-runtime",
+        }
+        for path, expected in cases.items():
+            with self.subTest(path=path):
+                matches = registry.matched_modules(path)
+                ids = [module_id for module_id, _, _ in matches]
+                self.assertIn(expected, ids)
+                self.assertEqual(ids, sorted(ids))
+
     def test_freshness_thresholds_are_explicit(self) -> None:
         rows = {
             row["module_id"]: row
@@ -163,6 +199,21 @@ class RealTibiaRegistryTests(unittest.TestCase):
         )
         self.assertEqual(affected, sorted(set(affected)))
         self.assertIn("wheel-of-destiny", affected)
+        self.assertIn("protocol", affected)
+
+    def test_decomposition_affected_keeps_sorted_overlapping_hints(self) -> None:
+        affected = self.load().affected_modules(
+            [
+                "src/lua/scripts/lua_environment.hpp",
+                "src/canary_server.cpp",
+                "src/config/configmanager.cpp",
+                "src/canary_server.cpp",
+            ]
+        )
+        self.assertEqual(affected, sorted(set(affected)))
+        self.assertIn("configuration", affected)
+        self.assertIn("engine-runtime-lifecycle", affected)
+        self.assertIn("lua-runtime", affected)
         self.assertIn("protocol", affected)
 
 

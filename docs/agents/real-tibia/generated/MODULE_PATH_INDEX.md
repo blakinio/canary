@@ -5,6 +5,7 @@
 
 | Path pattern | Module | Bucket |
 |---|---|---|
+| `config.lua.dist` | `configuration` | `data` |
 | `data-otservbr-global/**imbu**` | `imbuements` | `data` |
 | `data-otservbr-global/npc/**` | `npcs` | `data` |
 | `data-otservbr-global/scripts/achievements/**` | `achievements` | `data` |
@@ -20,7 +21,13 @@
 | `data/scripts/spells/**` | `spells` | `data` |
 | `data/world/**` | `spawns` | `data` |
 | `docs/agents/programs/E2E_AUTOMATION_PROGRAM.md` | `physical-client-e2e` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `configuration` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-runtime-lifecycle` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `lua-runtime` | `docs` |
 | `docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md` | `upstream-intelligence` | `docs` |
+| `docs/agents/real-tibia/TIBIA_SYSTEM_DECOMPOSITION_REPORT.md` | `configuration` | `docs` |
+| `docs/agents/real-tibia/TIBIA_SYSTEM_DECOMPOSITION_REPORT.md` | `engine-runtime-lifecycle` | `docs` |
+| `docs/agents/real-tibia/TIBIA_SYSTEM_DECOMPOSITION_REPORT.md` | `lua-runtime` | `docs` |
 | `docs/agents/upstream/**` | `upstream-intelligence` | `docs` |
 | `docs/ai-agent/ACHIEVEMENT_POINT_RECONCILIATION.md` | `achievements` | `docs` |
 | `docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json` | `imbuements` | `docs` |
@@ -35,7 +42,9 @@
 | `modules/game_cyclopedia/**` | `wheel-of-destiny` | `client` |
 | `modules/game_market/**` | `market` | `client` |
 | `src/**` | `protocol` | `client` |
+| `src/canary_server.*` | `engine-runtime-lifecycle` | `server` |
 | `src/client/**` | `wheel-of-destiny` | `client` |
+| `src/config/**` | `configuration` | `server` |
 | `src/creatures/combat/**` | `combat` | `server` |
 | `src/creatures/combat/spells/**` | `spells` | `server` |
 | `src/creatures/players/**` | `charms` | `server` |
@@ -51,11 +60,13 @@
 | `src/game/**imbu**` | `imbuements` | `server` |
 | `src/game/functions/**` | `combat` | `server` |
 | `src/game/functions/forge_*` | `exaltation-forge` | `server` |
+| `src/game/game.*` | `engine-runtime-lifecycle` | `server` |
 | `src/io/**` | `player-persistence` | `server` |
 | `src/io/io_wheel.*` | `wheel-of-destiny` | `server` |
 | `src/io/iobestiary.*` | `cyclopedia` | `server` |
 | `src/io/iohouse.*` | `houses` | `server` |
 | `src/io/iomarket.*` | `market` | `server` |
+| `src/lua/**` | `lua-runtime` | `server` |
 | `src/map/house/**` | `houses` | `server` |
 | `src/server/network/protocol/**` | `charms` | `server` |
 | `src/server/network/protocol/**` | `cyclopedia` | `server` |
