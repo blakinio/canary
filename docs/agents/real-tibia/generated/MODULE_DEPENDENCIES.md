@@ -9,6 +9,7 @@
 | `account-lifecycle` | `database-connection` | `account-authentication`, `character-lifecycle`, `player-persistence` |
 | `achievements` | `player-persistence` | `combat`, `quests`, `spells` |
 | `bestiary` | `cyclopedia`, `player-persistence` | `charms`, `combat`, `protocol`, `spawns`, `titles` |
+| `boss-encounters` | `creature-definitions`, `player-persistence` | `bosstiary`, `combat`, `creature-ai`, `spawns` |
 | `bosstiary` | `cyclopedia`, `player-persistence` | `protocol`, `spawns`, `titles` |
 | `build-system` | — | `configuration`, `engine-runtime-lifecycle`, `engine-scheduler`, `engine-service-container`, `lua-bindings`, `lua-runtime` |
 | `character-lifecycle` | `account-authentication`, `player-persistence` | `account-lifecycle`, `character-progression`, `protocol`, `world-persistence` |
@@ -17,6 +18,8 @@
 | `combat` | `player-persistence` | `spells`, `wheel-of-destiny`, `exaltation-forge` |
 | `combat-conditions` | `combat` | `character-progression`, `player-persistence`, `spells`, `vocations`, `weapons` |
 | `configuration` | — | `engine-runtime-lifecycle`, `lua-runtime`, `protocol` |
+| `creature-ai` | `creature-definitions` | `boss-encounters`, `combat`, `combat-conditions`, `raids`, `spawns` |
+| `creature-definitions` | — | `bestiary`, `bosstiary`, `combat`, `combat-conditions`, `creature-ai`, `prey`, `raids`, `spawns` |
 | `cyclopedia` | `protocol`, `player-persistence` | `charms`, `physical-client-e2e` |
 | `cyclopedia-character` | `cyclopedia`, `player-persistence` | `character-lifecycle`, `character-progression`, `protocol`, `titles` |
 | `database-connection` | — | `configuration`, `engine-runtime-lifecycle`, `engine-service-container` |
@@ -37,6 +40,7 @@
 | `prey` | `player-persistence`, `protocol` | `wheel-of-destiny` |
 | `protocol` | `player-persistence` | `physical-client-e2e` |
 | `quests` | `otbm-tooling`, `player-persistence` | `npcs`, `spawns`, `houses`, `achievements` |
+| `raids` | `creature-definitions`, `engine-scheduler` | `boss-encounters`, `creature-ai`, `quests`, `spawns` |
 | `spawns` | `otbm-tooling` | `quests`, `npcs`, `cyclopedia` |
 | `spells` | `combat` | `wheel-of-destiny` |
 | `titles` | `cyclopedia-character`, `player-persistence` | `achievements`, `bestiary`, `bosstiary`, `character-progression`, `houses`, `protocol` |
