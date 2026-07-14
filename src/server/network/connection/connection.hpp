@@ -128,6 +128,18 @@ public:
 	[[nodiscard]] const TransportCodec &getTransportCodec() const;
 	[[nodiscard]] InitialTransportState getInitialTransportState() const;
 
+#ifdef BUILD_TESTS
+	void attachProtocolForTest(Protocol_ptr protocolPtr) {
+		std::scoped_lock lock(connectionLock);
+		protocol = std::move(protocolPtr);
+	}
+
+	void beginProtocolCallbackForTest() {
+		std::scoped_lock lock(connectionLock);
+		protocolReleaseGate.beginCallback();
+	}
+#endif
+
 private:
 	void parseProxyIdentification(const std::error_code &error);
 	void parseHeader(const std::error_code &error);
