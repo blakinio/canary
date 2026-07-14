@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: security/table-unserialize-safe
 base_branch: main
 created: 2026-07-14T12:45:00+02:00
-updated: 2026-07-14T13:20:00+02:00
-last_verified_commit: "79f9e327da4e4a4b2ba7e5f896cbe4df69139cc5"
+updated: 2026-07-14T13:30:00+02:00
+last_verified_commit: "7c9bfef3cd1177a9beb4624c7dfb16f8337ec474"
 risk: high
 related_issue: ""
 related_pr: "#328"
@@ -71,9 +71,10 @@ Remove arbitrary Lua evaluation from `table.unserialize` with the smallest stric
 - [x] Reject arbitrary Lua expressions, globals, function calls, statements, comments, trailing code and malformed input without executing them.
 - [x] Preserve evidence-backed valid output from `table.serialize`; record the pre-existing false-value corruption separately.
 - [x] Do not copy CrystalServer's whitespace-stripping parser or weaken tests.
-- [x] Enforce 1 MiB input, depth 64 and 100,000 parsed-value limits.
-- [x] Focused validator run `29327491822` passes all 14 standalone tests and confirms no `load`/`loadstring` in `tables.lua`.
-- [ ] Refresh onto exact current main, integrate shared documentation and pass Ready-state repository CI.
+- [x] Enforce and directly test 1 MiB input, depth 64 and 100,000 parsed-value limits.
+- [x] Focused validators pass fifteen standalone tests and confirm no `load`/`loadstring` in `tables.lua`.
+- [x] Refresh onto exact current main `3a390c9d892c5b737d32711a71dbdf7fff1f06fe` and integrate shared documentation.
+- [ ] Pass Ready-state repository CI on the unchanged final head.
 - [x] No client, protocol, database schema, map, item, asset or production-config changes.
 - [ ] Archive in a separate cleanup PR after merge.
 
@@ -108,8 +109,15 @@ Remove arbitrary Lua evaluation from `table.unserialize` with the smallest stric
 
 - Added the regression first. Diagnostic run captured the expected baseline result: zero passed, fourteen failed because the old helper reached `loadstring`; non-string input also preserved the old concatenation failure.
 - Added the independent strict parser without modifying `table.serialize`, `serializeTable` or `unserializeTable`.
-- Focused validator run `29327491822` passed all fourteen cases and the no-dynamic-loader scan.
+- Focused validator run `29327491822` passed all fourteen original cases and the no-dynamic-loader scan.
 - Removed every temporary validator/runner and the diagnostic failure log from the intended final diff.
+
+## 2026-07-14T13:30:00+02:00
+
+- Added a fifteenth regression that constructs 100,001 values below the byte limit and proves `maximum value count exceeded`.
+- Finalization run `29327978559` passed all fifteen cases, corrected the recorded Stage 1 target SHA and self-removed.
+- Refreshed the branch through current main `3a390c9d892c5b737d32711a71dbdf7fff1f06fe` after registry cleanup #329; merge was clean and preserved both module-catalogue entries.
+- Final implementation diff remains exactly eight intended runtime, test, report and governance paths.
 
 # Decisions
 
@@ -136,16 +144,16 @@ Remove arbitrary Lua evaluation from `table.unserialize` with the smallest stric
 | focused inventory / `29326629631` | post-workflow identifier/call-site classification | passed |
 | pre-patch diagnostic | new regression against old helper | expected failure: 0 passed, 14 failed via `loadstring` |
 | `5322a404d11214d89e03f7291c052d387c700afc` / `29327491822` | fourteen standalone parser/security cases and no-loader grep | passed |
+| finalization / `29327978559` | fifteen standalone cases, direct value-limit coverage, corrected baseline and no-loader grep | passed |
+| refresh / `29328065113` | clean merge of current main and self-removal | passed |
 
 Never record `passed` without verification on the stated commit.
 
 # Remaining work
 
-1. Refresh branch from current main after the merged Real Tibia registry work.
-2. Add the public boundary to current changelog/module catalogue without overwriting newer shared content.
-3. Run exact-head ownership, autofix, Fast Checks, standalone Lua and selected full CI in Ready state.
-4. Review final diff, comments, reviews, threads and current main; merge only the unchanged validated SHA.
-5. Archive the task and close CS-007 in a separate lifecycle PR.
+1. Mark PR #328 Ready and run exact-head ownership, autofix, Fast Checks, standalone Lua and selected full CI.
+2. Review final diff, comments, reviews, threads and current main; merge only the unchanged validated SHA.
+3. Archive the task and close CS-007 in a separate lifecycle PR.
 
 # Handoff
 
