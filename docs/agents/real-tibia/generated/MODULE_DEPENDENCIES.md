@@ -18,6 +18,7 @@
 | `combat` | `player-persistence` | `spells`, `wheel-of-destiny`, `exaltation-forge` |
 | `combat-conditions` | `combat` | `character-progression`, `player-persistence`, `spells`, `vocations`, `weapons` |
 | `configuration` | — | `engine-runtime-lifecycle`, `lua-runtime`, `protocol` |
+| `containers` | `item-instances` | `boss-encounters`, `item-decay`, `market`, `player-persistence`, `world-persistence` |
 | `creature-ai` | `creature-definitions` | `boss-encounters`, `combat`, `combat-conditions`, `raids`, `spawns` |
 | `creature-definitions` | — | `bestiary`, `bosstiary`, `combat`, `combat-conditions`, `creature-ai`, `prey`, `raids`, `spawns` |
 | `cyclopedia` | `protocol`, `player-persistence` | `charms`, `physical-client-e2e` |
@@ -30,6 +31,9 @@
 | `exaltation-forge` | `player-persistence`, `protocol` | `combat`, `market` |
 | `houses` | `otbm-tooling`, `player-persistence` | `cyclopedia`, `protocol` |
 | `imbuements` | `combat`, `player-persistence` | `protocol` |
+| `item-decay` | `engine-scheduler`, `item-instances` | `containers`, `item-definitions`, `world-persistence` |
+| `item-definitions` | — | `containers`, `exaltation-forge`, `imbuements`, `item-instances`, `market`, `weapons` |
+| `item-instances` | `item-definitions` | `boss-encounters`, `containers`, `exaltation-forge`, `imbuements`, `item-decay`, `market`, `player-persistence`, `weapons` |
 | `lua-bindings` | `lua-runtime` | `engine-service-container` |
 | `lua-runtime` | — | `configuration`, `engine-runtime-lifecycle`, `npcs`, `quests`, `spells` |
 | `market` | `player-persistence`, `protocol` | `exaltation-forge` |

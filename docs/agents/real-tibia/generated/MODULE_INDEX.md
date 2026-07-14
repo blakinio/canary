@@ -18,6 +18,7 @@
 | `combat` — Combat engine | `combat` | `mapped` | `mapped` | `inventory` | `not-assessed` | `not-assessed` | `unit` | `limited` | `not-assessed` | — |
 | `combat-conditions` — Combat Conditions | `combat` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `configuration` — Configuration | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
+| `containers` — Containers | `items-economy` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `creature-ai` — Creature AI | `world-content` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `creature-definitions` — Creature Definitions | `world-content` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `cyclopedia` — Cyclopedia, Bestiary and Bosstiary | `character-progression` | `mapped` | `mapped` | `audited` | `partial` | `not-assessed` | `integration` | `limited` | `missing` | — |
@@ -30,6 +31,9 @@
 | `exaltation-forge` — Exaltation Forge | `items-economy` | `active` | `partial` | `audited` | `partial` | `partial` | `integration` | `limited` | `not-assessed` | — |
 | `houses` — Houses | `world-content` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | — |
 | `imbuements` — Imbuements | `items-economy` | `mapped` | `mapped` | `audited` | `not-assessed` | `partial` | `integration` | `limited` | `not-assessed` | — |
+| `item-decay` — Item Decay | `items-economy` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
+| `item-definitions` — Item Definitions | `items-economy` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
+| `item-instances` — Item Instances | `items-economy` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `lua-bindings` — Lua Bindings | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `lua-runtime` — Lua Runtime | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `market` — Market and trade economy | `items-economy` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | — |
@@ -51,4 +55,4 @@
 | `wheel-of-destiny` — Wheel of Destiny | `character-progression` | `active` | `partial` | `audited` | `partial` | `partial` | `integration` | `limited` | `missing` | `docs/agents/programs/WHEEL_OF_DESTINY_PARITY_PROGRAM.md` |
 | `world-persistence` — World Persistence | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 
-Total modules: **45**.
+Total modules: **49**.
