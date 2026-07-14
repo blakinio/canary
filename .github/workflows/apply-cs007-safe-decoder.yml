@@ -1,0 +1,613 @@
+name: Apply CS-007 safe decoder
+
+on:
+  pull_request:
+    types: [synchronize]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-cs007-safe-decoder
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    if: >-
+      github.event.pull_request.number == 328 &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'security/table-unserialize-safe'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: security/table-unserialize-safe
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install LuaJIT
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq luajit
+
+      - name: Add failing regression, implement parser, and validate
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cat > tests/lua/test_tables.lua <<'LUA'
+          -- Runtime-independent security and compatibility tests for table.unserialize.
+          -- Run: luajit tests/lua/test_tables.lua
+
+          local passed, failed, errors = 0, 0, {}
+
+          local function test(name, fn)
+          	local ok, err = pcall(fn)
+          	if ok then
+          		passed = passed + 1
+          	else
+          		failed = failed + 1
+          		table.insert(errors, { name = name, err = err })
+          	end
+          end
+
+          local function assert_equal(actual, expected, message)
+          	if actual ~= expected then
+          		error(message or string.format("expected %s, got %s", tostring(expected), tostring(actual)), 2)
+          	end
+          end
+
+          local function assert_truthy(value, message)
+          	if not value then
+          		error(message or "expected a truthy value", 2)
+          	end
+          end
+
+          local function deep_equal(actual, expected, seen)
+          	if type(actual) ~= type(expected) then
+          		return false
+          	end
+          	if type(actual) ~= "table" then
+          		return actual == expected
+          	end
+          	seen = seen or {}
+          	if seen[actual] then
+          		return seen[actual] == expected
+          	end
+          	seen[actual] = expected
+          	for key, value in pairs(actual) do
+          		if not deep_equal(value, expected[key], seen) then
+          			return false
+          		end
+          	end
+          	for key in pairs(expected) do
+          		if actual[key] == nil then
+          			return false
+          		end
+          	end
+          	return true
+          end
+
+          dofile("data/libs/functions/tables.lua")
+
+          local originalLoad = load
+          local originalLoadstring = loadstring
+          load = function()
+          	error("table.unserialize must not call load", 2)
+          end
+          loadstring = function()
+          	error("table.unserialize must not call loadstring", 2)
+          end
+
+          test("round-trips canonical strings without removing whitespace", function()
+          	local values = {
+          		"plain text",
+          		"spaces and\ttabs\nnewlines",
+          		"quotes: 'single' and \"double\" and \\ slash",
+          		string.char(0, 1, 7, 9, 10, 13, 31, 127, 255),
+          	}
+          	for _, value in ipairs(values) do
+          		local decoded, err = table.unserialize(table.serialize(value))
+          		assert_equal(err, nil)
+          		assert_equal(decoded, value)
+          	end
+          end)
+
+          test("round-trips canonical numbers and true", function()
+          	for _, value in ipairs({ 0, -12.5, 1250000, true }) do
+          		local decoded, err = table.unserialize(table.serialize(value))
+          		assert_equal(err, nil)
+          		assert_equal(decoded, value)
+          	end
+          end)
+
+          test("decodes false independently of the known serializer defect", function()
+          	local decoded, err = table.unserialize("false")
+          	assert_equal(err, nil)
+          	assert_equal(decoded, false)
+          end)
+
+          test("decodes nested tables with mixed key types", function()
+          	local source = [[
+          		{
+          			[1] = "array",
+          			[3] = false,
+          			["name"] = "value with spaces",
+          			[true] = { ["nested"] = "ok", ["number"] = -4.5, },
+          			[7.25] = "numeric-key",
+          		}
+          	]]
+          	local decoded, err = table.unserialize(source)
+          	assert_equal(err, nil)
+          	assert_equal(decoded[1], "array")
+          	assert_equal(decoded[3], false)
+          	assert_equal(decoded.name, "value with spaces")
+          	assert_equal(decoded[true].nested, "ok")
+          	assert_equal(decoded[true].number, -4.5)
+          	assert_equal(decoded[7.25], "numeric-key")
+          end)
+
+          test("round-trips a canonical nested table without false values", function()
+          	local value = {
+          		[1] = "array",
+          		name = "value",
+          		[true] = { nested = "ok", number = -4.5 },
+          		[7.25] = "numeric-key",
+          	}
+          	local decoded, err = table.unserialize(table.serialize(value))
+          	assert_equal(err, nil)
+          	assert_truthy(deep_equal(decoded, value))
+          end)
+
+          test("supports bounded implicit array entries", function()
+          	local decoded, err = table.unserialize('{"one", "two", [4] = "four",}')
+          	assert_equal(err, nil)
+          	assert_equal(decoded[1], "one")
+          	assert_equal(decoded[2], "two")
+          	assert_equal(decoded[4], "four")
+          end)
+
+          test("returns nil without an error for serialized nil", function()
+          	local decoded, err = table.unserialize("nil")
+          	assert_equal(decoded, nil)
+          	assert_equal(err, nil)
+          end)
+
+          test("rejects arbitrary function execution", function()
+          	_G.__cs007_executed = false
+          	local decoded, err = table.unserialize('(function() _G.__cs007_executed = true return { executed = true } end)()')
+          	assert_equal(decoded, nil)
+          	assert_truthy(type(err) == "string" and err ~= "")
+          	assert_equal(_G.__cs007_executed, false)
+          end)
+
+          test("rejects global access and function calls", function()
+          	for _, source in ipairs({ "os", "os.execute('id')", "setmetatable({}, {})", "function() end" }) do
+          		local decoded, err = table.unserialize(source)
+          		assert_equal(decoded, nil)
+          		assert_truthy(type(err) == "string" and err ~= "")
+          	end
+          end)
+
+          test("rejects trailing code and comments", function()
+          	for _, source in ipairs({ "{}; error('boom')", "{} return 1", "{} -- comment", "true false" }) do
+          		local decoded, err = table.unserialize(source)
+          		assert_equal(decoded, nil)
+          		assert_truthy(type(err) == "string" and err ~= "")
+          	end
+          end)
+
+          test("rejects malformed data without executing anything", function()
+          	for _, source in ipairs({ "", "{", "{[1]}", "{[nil] = 1}", "{[1] = }", '"unterminated', '"bad\\qescape"' }) do
+          		local decoded, err = table.unserialize(source)
+          		assert_equal(decoded, nil)
+          		assert_truthy(type(err) == "string" and err ~= "")
+          	end
+          end)
+
+          test("enforces nesting depth", function()
+          	local source = "0"
+          	for _ = 1, 65 do
+          		source = "{[1]=" .. source .. "}"
+          	end
+          	local decoded, err = table.unserialize(source)
+          	assert_equal(decoded, nil)
+          	assert_truthy(type(err) == "string" and err:find("depth", 1, true) ~= nil)
+          end)
+
+          test("enforces input size", function()
+          	local decoded, err = table.unserialize(string.rep(" ", 1024 * 1024 + 1))
+          	assert_equal(decoded, nil)
+          	assert_truthy(type(err) == "string" and err:find("large", 1, true) ~= nil)
+          end)
+
+          test("rejects non-string input", function()
+          	local decoded, err = table.unserialize({})
+          	assert_equal(decoded, nil)
+          	assert_truthy(type(err) == "string" and err ~= "")
+          end)
+
+          load = originalLoad
+          loadstring = originalLoadstring
+
+          print(string.format("\n%d passed, %d failed", passed, failed))
+          if #errors > 0 then
+          	print("\nFailed tests:")
+          	for _, entry in ipairs(errors) do
+          		print(string.format("  FAIL: %s\n        %s", entry.name, entry.err))
+          	end
+          	os.exit(1)
+          end
+          LUA
+
+          if luajit tests/lua/test_tables.lua > /tmp/cs007-before.txt 2>&1; then
+          	echo 'old table.unserialize unexpectedly passed the security regression' >&2
+          	cat /tmp/cs007-before.txt >&2
+          	exit 1
+          fi
+          cat /tmp/cs007-before.txt
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("data/libs/functions/tables.lua")
+          text = path.read_text()
+          old = '''function table.unserialize(str)
+          \treturn loadstring("return " .. str)()
+          end
+          '''
+          new = r'''local TABLE_UNSERIALIZE_MAX_BYTES = 1024 * 1024
+          local TABLE_UNSERIALIZE_MAX_DEPTH = 64
+          local TABLE_UNSERIALIZE_MAX_VALUES = 100000
+
+          local TABLE_UNSERIALIZE_ESCAPES = {
+          	a = string.char(7),
+          	b = string.char(8),
+          	f = string.char(12),
+          	n = "\n",
+          	r = "\r",
+          	t = "\t",
+          	v = string.char(11),
+          	["\\"] = "\\",
+          	['"'] = '"',
+          	["'"] = "'",
+          }
+
+          local function tableUnserializeError(parser, message)
+          	return false, nil, string.format("%s at byte %d", message, parser.index)
+          end
+
+          local function tableUnserializeSkipWhitespace(parser)
+          	while parser.index <= parser.length and parser.source:sub(parser.index, parser.index):match("%s") do
+          		parser.index = parser.index + 1
+          	end
+          end
+
+          local function tableUnserializeIsDigit(char)
+          	return char ~= "" and char >= "0" and char <= "9"
+          end
+
+          local function tableUnserializeParseString(parser)
+          	local quote = parser.source:sub(parser.index, parser.index)
+          	parser.index = parser.index + 1
+          	local output = {}
+
+          	while parser.index <= parser.length do
+          		local char = parser.source:sub(parser.index, parser.index)
+          		if char == quote then
+          			parser.index = parser.index + 1
+          			return true, table.concat(output)
+          		elseif char == "\\" then
+          			parser.index = parser.index + 1
+          			if parser.index > parser.length then
+          				return tableUnserializeError(parser, "unterminated escape sequence")
+          			end
+
+          			local escaped = parser.source:sub(parser.index, parser.index)
+          			local replacement = TABLE_UNSERIALIZE_ESCAPES[escaped]
+          			if replacement ~= nil then
+          				output[#output + 1] = replacement
+          				parser.index = parser.index + 1
+          			elseif tableUnserializeIsDigit(escaped) then
+          				local value = 0
+          				local digits = 0
+          				while digits < 3 and tableUnserializeIsDigit(parser.source:sub(parser.index, parser.index)) do
+          					value = value * 10 + tonumber(parser.source:sub(parser.index, parser.index))
+          					parser.index = parser.index + 1
+          					digits = digits + 1
+          				end
+          				if value > 255 then
+          					return tableUnserializeError(parser, "decimal escape exceeds one byte")
+          				end
+          				output[#output + 1] = string.char(value)
+          			elseif escaped == "x" then
+          				local hexadecimal = parser.source:sub(parser.index + 1, parser.index + 2)
+          				if not hexadecimal:match("^%x%x$") then
+          					return tableUnserializeError(parser, "invalid hexadecimal escape")
+          				end
+          				output[#output + 1] = string.char(tonumber(hexadecimal, 16))
+          				parser.index = parser.index + 3
+          			elseif escaped == "\n" then
+          				output[#output + 1] = "\n"
+          				parser.index = parser.index + 1
+          			elseif escaped == "\r" then
+          				if parser.source:sub(parser.index + 1, parser.index + 1) == "\n" then
+          					parser.index = parser.index + 1
+          				end
+          				output[#output + 1] = "\n"
+          				parser.index = parser.index + 1
+          			else
+          				return tableUnserializeError(parser, "unsupported escape sequence")
+          			end
+          		elseif char == "\n" or char == "\r" then
+          			return tableUnserializeError(parser, "unescaped newline in string")
+          		else
+          			output[#output + 1] = char
+          			parser.index = parser.index + 1
+          		end
+          	end
+
+          	return tableUnserializeError(parser, "unterminated string")
+          end
+
+          local function tableUnserializeParseNumber(parser)
+          	local start = parser.index
+          	local char = parser.source:sub(parser.index, parser.index)
+          	if char == "+" or char == "-" then
+          		parser.index = parser.index + 1
+          	end
+
+          	local digits = 0
+          	while tableUnserializeIsDigit(parser.source:sub(parser.index, parser.index)) do
+          		parser.index = parser.index + 1
+          		digits = digits + 1
+          	end
+
+          	if parser.source:sub(parser.index, parser.index) == "." then
+          		parser.index = parser.index + 1
+          		while tableUnserializeIsDigit(parser.source:sub(parser.index, parser.index)) do
+          			parser.index = parser.index + 1
+          			digits = digits + 1
+          		end
+          	end
+
+          	if digits == 0 then
+          		return tableUnserializeError(parser, "invalid number")
+          	end
+
+          	char = parser.source:sub(parser.index, parser.index)
+          	if char == "e" or char == "E" then
+          		parser.index = parser.index + 1
+          		char = parser.source:sub(parser.index, parser.index)
+          		if char == "+" or char == "-" then
+          			parser.index = parser.index + 1
+          		end
+          		local exponentDigits = 0
+          		while tableUnserializeIsDigit(parser.source:sub(parser.index, parser.index)) do
+          			parser.index = parser.index + 1
+          			exponentDigits = exponentDigits + 1
+          		end
+          		if exponentDigits == 0 then
+          			return tableUnserializeError(parser, "invalid number exponent")
+          		end
+          	end
+
+          	local value = tonumber(parser.source:sub(start, parser.index - 1))
+          	if value == nil or value ~= value or value == math.huge or value == -math.huge then
+          		return tableUnserializeError(parser, "invalid finite number")
+          	end
+          	return true, value
+          end
+
+          local tableUnserializeParseValue
+
+          local function tableUnserializeParseTable(parser, depth)
+          	if depth > TABLE_UNSERIALIZE_MAX_DEPTH then
+          		return tableUnserializeError(parser, "maximum table depth exceeded")
+          	end
+
+          	parser.index = parser.index + 1
+          	local result = {}
+          	local implicitIndex = 1
+          	tableUnserializeSkipWhitespace(parser)
+          	if parser.source:sub(parser.index, parser.index) == "}" then
+          		parser.index = parser.index + 1
+          		return true, result
+          	end
+
+          	while parser.index <= parser.length do
+          		tableUnserializeSkipWhitespace(parser)
+          		local key
+          		local value
+          		local ok
+          		local err
+
+          		if parser.source:sub(parser.index, parser.index) == "[" then
+          			parser.index = parser.index + 1
+          			ok, key, err = tableUnserializeParseValue(parser, depth)
+          			if not ok then
+          				return false, nil, err
+          			end
+          			if key == nil then
+          				return tableUnserializeError(parser, "nil table key")
+          			end
+          			tableUnserializeSkipWhitespace(parser)
+          			if parser.source:sub(parser.index, parser.index) ~= "]" then
+          				return tableUnserializeError(parser, "expected closing key bracket")
+          			end
+          			parser.index = parser.index + 1
+          			tableUnserializeSkipWhitespace(parser)
+          			if parser.source:sub(parser.index, parser.index) ~= "=" then
+          				return tableUnserializeError(parser, "expected key assignment")
+          			end
+          			parser.index = parser.index + 1
+          		else
+          			key = implicitIndex
+          			implicitIndex = implicitIndex + 1
+          		end
+
+          		ok, value, err = tableUnserializeParseValue(parser, depth)
+          		if not ok then
+          			return false, nil, err
+          		end
+          		result[key] = value
+
+          		tableUnserializeSkipWhitespace(parser)
+          		local separator = parser.source:sub(parser.index, parser.index)
+          		if separator == "," or separator == ";" then
+          			parser.index = parser.index + 1
+          			tableUnserializeSkipWhitespace(parser)
+          			if parser.source:sub(parser.index, parser.index) == "}" then
+          				parser.index = parser.index + 1
+          				return true, result
+          			end
+          		elseif separator == "}" then
+          			parser.index = parser.index + 1
+          			return true, result
+          		else
+          			return tableUnserializeError(parser, "expected table separator or closing brace")
+          		end
+          	end
+
+          	return tableUnserializeError(parser, "unterminated table")
+          end
+
+          tableUnserializeParseValue = function(parser, depth)
+          	tableUnserializeSkipWhitespace(parser)
+          	parser.values = parser.values + 1
+          	if parser.values > TABLE_UNSERIALIZE_MAX_VALUES then
+          		return tableUnserializeError(parser, "maximum value count exceeded")
+          	end
+
+          	local char = parser.source:sub(parser.index, parser.index)
+          	if char == "" then
+          		return tableUnserializeError(parser, "expected a value")
+          	elseif char == '"' or char == "'" then
+          		return tableUnserializeParseString(parser)
+          	elseif char == "{" then
+          		return tableUnserializeParseTable(parser, depth + 1)
+          	elseif tableUnserializeIsDigit(char) or char == "+" or char == "-" or char == "." then
+          		return tableUnserializeParseNumber(parser)
+          	end
+
+          	local keywords = {
+          		["nil"] = nil,
+          		["true"] = true,
+          		["false"] = false,
+          	}
+          	for _, keyword in ipairs({ "nil", "true", "false" }) do
+          		if parser.source:sub(parser.index, parser.index + #keyword - 1) == keyword then
+          			local following = parser.source:sub(parser.index + #keyword, parser.index + #keyword)
+          			if following == "" or not following:match("[%w_]") then
+          				parser.index = parser.index + #keyword
+          				return true, keywords[keyword]
+          			end
+          		end
+          	end
+
+          	return tableUnserializeError(parser, "unsupported value")
+          end
+
+          function table.unserialize(str)
+          	if type(str) ~= "string" then
+          		return nil, "serialized value must be a string"
+          	end
+          	if #str > TABLE_UNSERIALIZE_MAX_BYTES then
+          		return nil, "serialized value is too large"
+          	end
+
+          	local parser = {
+          		source = str,
+          		length = #str,
+          		index = 1,
+          		values = 0,
+          	}
+          	local ok, value, err = tableUnserializeParseValue(parser, 0)
+          	if not ok then
+          		return nil, err
+          	end
+          	tableUnserializeSkipWhitespace(parser)
+          	if parser.index <= parser.length then
+          		return nil, string.format("trailing data at byte %d", parser.index)
+          	end
+          	return value
+          end
+          '''
+          if text.count(old) != 1:
+              raise SystemExit(f"table.unserialize anchor count: {text.count(old)}")
+          path.write_text(text.replace(old, new))
+
+          task_path = Path("docs/agents/tasks/active/CAN-20260714-table-unserialize-security.md")
+          task = task_path.read_text()
+          replacements = {
+              'related_pr: "pending"': 'related_pr: "#328"',
+              'last_verified_commit: "06f8ba4464d6a18ad48445737444bab5b3a2efcb"': 'last_verified_commit: "fd130bc67e12147b3c268113a451383612a5aa6c"',
+              '- [ ] Inventory every tracked `table.serialize`, `table.unserialize`, direct `loadstring` and persisted-string call site with exact paths and lines.': '- [x] Inventory every tracked `table.serialize`, `table.unserialize`, direct `loadstring` and persisted-string call site with exact paths and lines.',
+              '- [ ] Classify every unserialize input by provenance and attacker control; absence of indexed search results is not evidence.': '- [x] Classify every unserialize input by provenance and attacker control; no tracked production call site exists for either public decoder.',
+              '- [ ] Define the exact serialization grammar and round-trip corpus for strings, numbers, booleans, nil, mixed/nested tables and key types.': '- [x] Define the exact supported data grammar and compatibility corpus for strings, finite numbers, booleans, nil, mixed/nested tables and key types.',
+              '- [ ] Add a deterministic exploit regression proving the current helper can execute code.': '- [x] Add a deterministic exploit regression proving the baseline helper executes code and the replacement does not.',
+              '- [ ] Reject arbitrary Lua expressions, function calls, statements, trailing code and malformed input without executing them.': '- [x] Reject arbitrary Lua expressions, function calls, statements, trailing code and malformed input without executing them.',
+              '- [ ] Preserve all evidence-backed outputs produced by current `table.serialize` or document a concrete compatibility hold.': '- [x] Preserve evidence-backed valid outputs while recording the pre-existing `table.serialize(false)` corruption as a separate follow-up.',
+              '- [ ] Do not copy CrystalServer\'s whitespace-stripping parser or weaken errors/tests to obtain green CI.': '- [x] Do not copy CrystalServer\'s whitespace-stripping parser or weaken errors/tests to obtain green CI.',
+          }
+          for old_text, new_text in replacements.items():
+              if task.count(old_text) != 1:
+                  raise SystemExit(f"task anchor count for {old_text!r}: {task.count(old_text)}")
+              task = task.replace(old_text, new_text)
+          task += '''
+
+## 2026-07-14T13:05:00+02:00
+
+- Audit v3 run `29326420697` passed after two earlier probes correctly exposed the pre-existing `table.serialize(false)` corruption instead of a decoder failure.
+- Focused inventory run `29326629631` passed after excluding temporary workflows/reports: `table.unserialize` and `unserializeTable` each have only a definition, with no tracked production call site.
+- The baseline exploit executed successfully, proving a dynamic-evaluation primitive at the public helper boundary but not remote exploitability.
+- Selected a strict recursive-descent data parser with full-input consumption, 1 MiB input, depth 64 and 100,000-value limits.
+- `unserializeTable` and `table.serialize(false)` remain separate findings because they have different serializers/contracts and no call sites.
+
+# Final design decision
+
+- Accept `nil`, booleans, finite decimal/exponent numbers, quoted strings with canonical Lua escapes, bracketed table keys and bounded implicit array entries.
+- Preserve whitespace inside strings and ignore whitespace only between tokens.
+- Reject globals, calls, functions, statements, comments, malformed escapes, trailing input, non-string input and resource-limit violations with `nil, errorMessage`.
+- Never invoke `load`, `loadstring`, `setfenv`, bytecode or the Lua environment.
+
+# Follow-up findings excluded from CS-007
+
+1. `table.serialize(false)` and false values nested in tables are written as `true`; this requires an independent serializer-correctness task and persisted-data compatibility review.
+2. `unserializeTable` in `data/libs/functions/functions.lua` also uses dynamic `load`, but has a separate serializer/output-copy contract and no tracked call sites.
+'''
+          task_path.write_text(task)
+
+          program_path = Path("docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md")
+          program = program_path.read_text()
+          program = program.replace(
+              "| _None._ | — | — | No CrystalServer comparison implementation task is active after CS-006 cleanup. |",
+              "| `CAN-20260714-table-unserialize-security` / [#328](https://github.com/blakinio/canary/pull/328) | `CS-007` | active | Replace the dormant public `table.unserialize` dynamic-evaluation boundary with a strict bounded data parser and focused Lua regressions. |",
+          )
+          program = program.replace(
+              "| `CS-007` | `891685169745e46f665069edcc35847f0704aa21` | `PARTIAL_VALUE` | high | `table.unserialize` execution | Independent compatibility/security task; do not copy bespoke parser. |",
+              "| `CS-007` | `891685169745e46f665069edcc35847f0704aa21` | `VALID_FIX_MISSING` | high | `table.unserialize` execution | Active in task `CAN-20260714-table-unserialize-security` / PR #328; no tracked production call site, but baseline exploit proves arbitrary evaluation at the public helper boundary. |",
+          )
+          program_path.write_text(program)
+          PY
+
+          luajit tests/lua/test_tables.lua | tee /tmp/cs007-after.txt
+          ! grep -Eq '\bloadstring?\s*\(' data/libs/functions/tables.lua
+
+          workflow='.github/workflows/apply-cs007-safe-decoder.yml'
+          rm -f "$workflow"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          actual="$(git diff --cached --name-only | sort)"
+          expected="$(printf '%s\n' \
+            "$workflow" \
+            'data/libs/functions/tables.lua' \
+            'docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md' \
+            'docs/agents/tasks/active/CAN-20260714-table-unserialize-security.md' \
+            'tests/lua/test_tables.lua' | sort)"
+          test "$actual" = "$expected"
+          git diff --cached --check
+          git commit -m 'security(lua): replace table unserialize evaluation'
+          git push origin HEAD:security/table-unserialize-safe
