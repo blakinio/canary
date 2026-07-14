@@ -18,6 +18,25 @@
 	#include <limits>
 #endif
 
+std::string_view getInboundTransportStatusName(InboundTransportStatus status) {
+	switch (status) {
+		case InboundTransportStatus::Accepted:
+			return "accepted";
+		case InboundTransportStatus::ZeroSequence:
+			return "zero-sequence";
+		case InboundTransportStatus::SequenceMismatch:
+			return "sequence-mismatch";
+		case InboundTransportStatus::ChecksumMismatch:
+			return "checksum-mismatch";
+		case InboundTransportStatus::DecryptFailure:
+			return "decrypt-failure";
+		case InboundTransportStatus::MalformedFrame:
+			return "malformed-frame";
+	}
+
+	return "unknown";
+}
+
 std::optional<uint16_t> TransportCodec::decodeBodySize(uint16_t rawLengthHeader) const {
 	uint32_t size = rawLengthHeader;
 	if (profile.outerLength == OuterLengthEncoding::ModernBlockCount) {
@@ -73,22 +92,33 @@ void TransportCodec::encodeOutbound(Protocol &protocol, OutputMessage &msg) cons
 	}
 }
 
-bool TransportCodec::prepareInbound(Protocol &protocol, NetworkMessage &msg) const {
+InboundTransportResult TransportCodec::prepareInbound(Protocol &protocol, NetworkMessage &msg) const {
+	InboundTransportResult result;
+	std::optional<uint32_t> acceptedSequence;
+
 	if (profile.inboundChecksum != CHECKSUM_METHOD_NONE) {
+		if (!msg.canRead(CHECKSUM_LENGTH)) {
+			result.status = InboundTransportStatus::MalformedFrame;
+			return result;
+		}
+
 		const auto recvChecksum = msg.get<uint32_t>();
 		if (profile.inboundChecksum == CHECKSUM_METHOD_SEQUENCE) {
+			const uint32_t expectedSequence = nextInboundSequence(protocol.clientSequenceNumber);
+			result.receivedSequence = recvChecksum;
+			result.expectedSequence = expectedSequence;
+
 			if (recvChecksum == 0) {
-				return false;
+				result.status = InboundTransportStatus::ZeroSequence;
+				return result;
 			}
 
-			const uint32_t checksum = ++protocol.clientSequenceNumber;
-			if (protocol.clientSequenceNumber >= 0x7FFFFFFF) {
-				protocol.clientSequenceNumber = 0;
+			if (recvChecksum != expectedSequence) {
+				result.status = InboundTransportStatus::SequenceMismatch;
+				return result;
 			}
 
-			if (recvChecksum != checksum) {
-				return false;
-			}
+			acceptedSequence = expectedSequence;
 		} else {
 			uint32_t checksum;
 			if (const int32_t len = msg.getLength() - msg.getBufferPosition();
@@ -99,62 +129,84 @@ bool TransportCodec::prepareInbound(Protocol &protocol, NetworkMessage &msg) con
 			}
 
 			if (recvChecksum != checksum) {
-				return false;
+				result.status = InboundTransportStatus::ChecksumMismatch;
+				return result;
 			}
 		}
 	}
 
-	if (protocol.encryptionEnabled && !decryptXtea(protocol, msg)) {
-		g_logger().error("[TransportCodec::prepareInbound] - XTEA decrypt failed");
-		return false;
+	if (protocol.encryptionEnabled) {
+		result.status = decryptXtea(protocol, msg);
+		if (!result.accepted()) {
+			g_logger().error(
+				"[TransportCodec::prepareInbound] - XTEA decrypt rejected frame: {}",
+				getInboundTransportStatusName(result.status)
+			);
+			return result;
+		}
 	}
 
-	return true;
+	if (acceptedSequence.has_value()) {
+		protocol.clientSequenceNumber = storedInboundSequence(*acceptedSequence);
+	}
+
+	result.status = InboundTransportStatus::Accepted;
+	return result;
 }
 
-bool TransportCodec::decryptXtea(Protocol &protocol, NetworkMessage &msg) const {
+InboundTransportStatus TransportCodec::decryptXtea(Protocol &protocol, NetworkMessage &msg) const {
 	const auto checksumLength = profile.inboundChecksum == CHECKSUM_METHOD_NONE ? HEADER_LENGTH : HEADER_LENGTH + CHECKSUM_LENGTH;
 	if (msg.getLength() < checksumLength) {
 		g_logger().error("[TransportCodec::decryptXtea] - message shorter than transport header: {} < {}", msg.getLength(), checksumLength);
-		return false;
+		return InboundTransportStatus::MalformedFrame;
 	}
 
 	uint16_t msgLength = msg.getLength() - checksumLength;
 	uint8_t* buffer = msg.getBuffer() + msg.getBufferPosition();
 	if ((msgLength % XTEA_MULTIPLE) != 0) {
 		g_logger().error("[TransportCodec::decryptXtea] - invalid block size: {}", msgLength);
-		return false;
+		return InboundTransportStatus::MalformedFrame;
 	}
 
 	size_t messageLength = msgLength;
 	protocol.XTEA_transform(buffer, messageLength, false);
 
 	if (profile.encryptedPayload == EncryptedPayloadLayout::LegacyInnerLength) {
+		if (!msg.canRead(sizeof(uint16_t))) {
+			g_logger().error("[TransportCodec::decryptXtea] - missing legacy inner length");
+			return InboundTransportStatus::MalformedFrame;
+		}
+
 		const uint16_t innerLength = msg.get<uint16_t>();
 		const uint16_t decryptedLength = innerLength + sizeof(uint16_t);
 		if (decryptedLength > msgLength) {
 			g_logger().error("[TransportCodec::decryptXtea] - invalid legacy inner length: {} > {}", decryptedLength, msgLength);
-			return false;
+			return InboundTransportStatus::MalformedFrame;
 		}
 
 		msg.setLength(msg.getBufferPosition() + innerLength);
-		return true;
+		return InboundTransportStatus::Accepted;
+	}
+
+	if (!msg.canRead(sizeof(uint8_t))) {
+		g_logger().error("[TransportCodec::decryptXtea] - missing modern padding byte");
+		return InboundTransportStatus::MalformedFrame;
 	}
 
 	uint8_t paddingSize = msg.getByte();
 	if (paddingSize > messageLength) {
 		g_logger().error("[TransportCodec::decryptXtea] - invalid modern padding: {} > {}", paddingSize, messageLength);
-		return false;
+		return InboundTransportStatus::MalformedFrame;
 	}
 
 	uint16_t innerLength = messageLength - paddingSize;
 	if (innerLength + paddingSize > msgLength) {
 		g_logger().error("[TransportCodec::decryptXtea] - invalid modern inner length: {} + {} > {}", innerLength, paddingSize, msgLength);
-		return false;
+		return InboundTransportStatus::MalformedFrame;
 	}
 
 	msg.setLength(messageLength - paddingSize);
-	return true;
+	return InboundTransportStatus::Accepted;
 }
 
 void TransportCodec::encryptXtea(Protocol &protocol, OutputMessage &msg) const {
