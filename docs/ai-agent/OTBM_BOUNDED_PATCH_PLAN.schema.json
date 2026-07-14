@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.example/schemas/OTBM_BOUNDED_PATCH_PLAN.schema.json",
+  "title": "Canary bounded OTBM fixed-width patch plan",
+  "$defs": {
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "items": false
+    },
+    "baseOperation": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "position",
+        "tilePlacementIndex",
+        "itemId",
+        "itemDepth",
+        "expected",
+        "replacement"
+      ],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 200},
+        "kind": {
+          "enum": [
+            "set-action-id",
+            "set-unique-id",
+            "set-house-door-id",
+            "set-teleport-destination"
+          ]
+        },
+        "position": {"$ref": "#/$defs/position"},
+        "tilePlacementIndex": {"type": "integer", "minimum": 0, "maximum": 4294967295},
+        "itemId": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "itemDepth": {"type": "integer", "minimum": 0, "maximum": 32767},
+        "expected": {},
+        "replacement": {}
+      },
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "source", "region", "operations"],
+  "properties": {
+    "format": {"const": "canary-otbm-bounded-patch-plan-v1"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fileName", "sha256", "size", "otbmVersion", "itemsMajor", "itemsMinor"],
+      "properties": {
+        "fileName": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^/\\\\]+$"
+        },
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "size": {"type": "integer", "minimum": 1},
+        "otbmVersion": {"type": "integer", "minimum": 0, "maximum": 4294967295},
+        "itemsMajor": {"type": "integer", "minimum": 0, "maximum": 4294967295},
+        "itemsMinor": {"type": "integer", "minimum": 0, "maximum": 4294967295}
+      }
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {
+        "from": {"$ref": "#/$defs/position"},
+        "to": {"$ref": "#/$defs/position"}
+      }
+    },
+    "operations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10000,
+      "items": {
+        "allOf": [
+          {"$ref": "#/$defs/baseOperation"},
+          {
+            "oneOf": [
+              {
+                "properties": {
+                  "kind": {"const": "set-action-id"},
+                  "expected": {"type": "integer", "minimum": 0, "maximum": 65535},
+                  "replacement": {"type": "integer", "minimum": 0, "maximum": 65535}
+                }
+              },
+              {
+                "properties": {
+                  "kind": {"const": "set-unique-id"},
+                  "expected": {"type": "integer", "minimum": 0, "maximum": 65535},
+                  "replacement": {"type": "integer", "minimum": 0, "maximum": 65535}
+                }
+              },
+              {
+                "properties": {
+                  "kind": {"const": "set-house-door-id"},
+                  "expected": {"type": "integer", "minimum": 0, "maximum": 255},
+                  "replacement": {"type": "integer", "minimum": 0, "maximum": 255}
+                }
+              },
+              {
+                "properties": {
+                  "kind": {"const": "set-teleport-destination"},
+                  "expected": {"$ref": "#/$defs/position"},
+                  "replacement": {"$ref": "#/$defs/position"}
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
