@@ -2,13 +2,13 @@
 task_id: CAN-20260714-real-tibia-module-registry
 program_id: CAN-PROGRAM-REAL-TIBIA-PARITY
 coordination_id: REAL-TIBIA-MODULE-REGISTRY
-status: implementing
+status: ready-for-review
 agent: "GPT-5.6 Thinking"
 branch: feat/real-tibia-module-registry
 base_branch: main
 created: 2026-07-14T11:40:00+02:00
-updated: 2026-07-14T12:46:00+02:00
-last_verified_commit: "1ab96d0aefff396e7c1be8992b8a1e6f1d2b7130"
+updated: 2026-07-14T12:50:00+02:00
+last_verified_commit: "3485b73b81464706629415be74088187d63f375d"
 risk: medium
 related_issue: ""
 related_pr: "#324"
@@ -24,7 +24,6 @@ owned_paths:
     - tools/agents/real_tibia_registry_lib.py
     - tools/agents/test_real_tibia_registry.py
     - .github/workflows/real-tibia-registry.yml
-    - .github/workflows/refresh-real-tibia-registry.yml
     - docs/agents/decisions/ADR-20260714-real-tibia-registry-as-code.md
     - docs/agents/tasks/active/CAN-20260714-real-tibia-module-registry.md
   shared:
@@ -77,8 +76,9 @@ Deliver a professional registry-as-code foundation for Real Tibia modules: one i
 - [x] Bootstrap 18 major modules without copying gameplay content or claiming parity.
 - [x] Integrate startup docs, module catalogue, changelog and global parity program.
 - [x] Keep `ACTIVE_WORK.md` and gameplay/runtime/protocol/database/map/item/asset code unchanged.
+- [x] Refresh the published branch onto current main `06f8ba4464d6a18ad48445737444bab5b3a2efcb` without losing current-main or registry changes.
+- [x] Remove the temporary same-branch refresh workflow before readiness.
 - [x] Review the exact intended 49-file scope and forbidden-path boundary.
-- [ ] Refresh the published branch onto current `main` without losing either current-main or registry changes.
 - [ ] Verify final-head ownership, focused registry workflow, repository `Required` and review state.
 - [ ] Mark PR #324 ready, squash-merge and archive this task separately.
 
@@ -109,7 +109,6 @@ Registry files use the YAML 1.2 JSON-compatible subset. Runtime validation uses 
 - Path patterns may overlap and only help discovery; active task ownership remains authoritative.
 - Generated Markdown is derived and CI-checked.
 - No production behavior, persistence schema, protocol, map, item, asset or client code is changed.
-- The temporary refresh workflow may rewrite only its own PR branch, must use force-with-lease against the exact observed head, and must be removed before readiness.
 
 # Work log
 
@@ -119,15 +118,15 @@ Created the task, branch and draft PR from main `0d1eb94c8e8e3033d95fd73f56711b8
 
 ## 2026-07-14T12:25:00+02:00
 
-Implemented policy docs, source/category/version/module records, four schemas, five generated indexes, five templates, the accepted ADR, validator/generator CLI/library, focused tests and dedicated workflow. Integrated README, changelog and the global parity program.
+Implemented policy docs, source/category/version/module records, four schemas, five generated indexes, five templates, the ADR, validator/generator CLI/library, focused tests and dedicated workflow. Integrated README, changelog, catalogue and the global parity program.
 
 ## 2026-07-14T12:38:00+02:00
 
-Reviewed current-main drift through `06f8ba4464d6a18ad48445737444bab5b3a2efcb`. Restored the complete current changelog inventory after detecting an unintended historical-section deletion. Refreshed catalogue/changelog content to preserve merged #323/#326/#327 work.
+Full comparison exposed an unintended historical changelog deletion; the complete current-main inventory was restored. Main #326/#327 additions were preserved in shared files.
 
-## 2026-07-14T12:46:00+02:00
+## 2026-07-14T12:47:00+02:00
 
-GitHub still reports the long-lived contents-API branch as conflicted because its merge base predates shared-file advances, despite the final file contents preserving both sides. A bounded same-branch refresh workflow is claimed to rebuild the PR as one commit on current `main`, using an exact old-head force-with-lease. It may not modify another branch or repository and will be removed immediately after success.
+A bounded temporary workflow rebuilt the branch as one commit on exact current main using force-with-lease against its own observed head. PR #324 became mergeable with base `06f8ba4464d6a18ad48445737444bab5b3a2efcb`. The workflow was then deleted; it is not part of the final scope.
 
 # Validation and CI
 
@@ -137,7 +136,7 @@ GitHub still reports the long-lived contents-API branch as conflicted because it
 | `935896606a81cceaa75934417fd33affaca54f32` | Real Tibia Module Registry `29324972108`, job `87059002227` | success | Compile, tests, formal schemas, domain validation, generated drift and CLI smoke. |
 | `81b10f1737731d924cd2ad419df5b7c6ec64da34` | Registry `29325074733`; ownership `29325074722` | success | Exact-head focused validation and structured ownership. |
 | `c9cf5251dc4c322fa06f152570d1a8cfc4abbb5b` | Registry `29325202821`; ownership `29325202682`; CI `29325202898`; Required `87059800947` | success | Full PR-triggered proof for implementation plus shared-doc integration. Build/Lua jobs were correctly path-skipped. |
-| refreshed final branch | all required workflows | pending | Required before readiness and merge. |
+| final refreshed head | all required workflows | pending | Must be green before readiness and merge. |
 
 # Decisions
 
@@ -151,18 +150,16 @@ GitHub still reports the long-lived contents-API branch as conflicted because it
 
 # Failed approaches and dead ends
 
-- A large Git tree batch was not assumed successful after no usable result; files were created through verified API writes instead.
 - A guessed tree SHA commit failed with HTTP 422 and created no commit.
-- The first shared changelog update accidentally omitted the historical bootstrap section; full current-main comparison exposed it and the complete section was restored.
-- Content alignment alone did not clear GitHub's three-way merge conflict because the branch merge base remained older than shared-file lifecycle PRs.
+- The first shared changelog update accidentally omitted the bootstrap inventory; comparison caught it and it was restored.
+- Content alignment alone did not clear GitHub's three-way merge conflict because the branch merge base remained older than shared lifecycle PRs; the bounded refresh solved this without editing another branch.
 - Direct local GitHub DNS resolution was unavailable; no local repository fetch/build claim is made.
 
 # Remaining work
 
-1. Run the bounded same-branch refresh and remove its temporary workflow.
-2. Verify the exact refreshed diff, workflows and review state.
-3. Mark #324 ready and squash-merge.
-4. Archive this task and clear the global-program active row in a separate lifecycle PR.
+1. Verify all final-head workflows and review state.
+2. Mark #324 ready and squash-merge.
+3. Archive this task and clear the global-program active row in a separate lifecycle PR.
 
 # Handoff
 
@@ -170,7 +167,7 @@ Read this task, PR #324, the registry README/ADR, current open PRs and current m
 
 # Completion
 
-- Final status: branch refresh required before final CI
+- Final status: ready-for-review pending final-head CI
 - Feature PR: #324
 - Feature merge: pending
 - Archived at: pending
