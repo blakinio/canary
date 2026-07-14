@@ -12348,6 +12348,10 @@ const InstanceArenaService &Game::getInstanceArenaService() const {
 	return m_instanceArenaService;
 }
 
+InstanceCreatureBinder &Game::getInstanceCreatureBinder() noexcept {
+	return m_instanceArenaService.getBinder();
+}
+
 void Game::transferHouseItemsToDepot() {
 	if (!g_configManager().getBoolean(TOGGLE_HOUSE_TRANSFER_ON_SERVER_RESTART)) {
 		return;

@@ -9,6 +9,31 @@
 
 #include "game/instance/instance_arena_service.hpp"
 
+#include "creatures/monsters/monster.hpp"
+#include "game/game.hpp"
+
+namespace {
+	std::shared_ptr<Monster> createAndPlaceArenaMonster(const Position &position) {
+		const auto &monster = Monster::createMonster(InstanceArenaService::MonsterName);
+		if (!monster || !g_game().placeCreature(monster, position, false, true)) {
+			return nullptr;
+		}
+		return monster;
+	}
+
+	void removeArenaCreature(uint32_t creatureId) {
+		if (const auto &creature = g_game().getCreatureByID(creatureId)) {
+			g_game().removeCreature(creature);
+		}
+	}
+} // namespace
+
+InstanceArenaService::InstanceArenaService(InstanceManager &manager) :
+	InstanceArenaService(manager, &createAndPlaceArenaMonster, &removeArenaCreature) { }
+
+InstanceArenaService::InstanceArenaService(InstanceManager &manager, MonsterFactory monsterFactory, CreatureRemover creatureRemover) :
+	manager(manager), binder(manager), monsterFactory(std::move(monsterFactory)), creatureRemover(std::move(creatureRemover)) { }
+
 std::vector<InstanceMapRegion> InstanceArenaService::configuredRegions() {
 	// Coordinates verified in docs/architecture/instanced-test-arena.md:
 	// both regions sit inside the existing "Tps Room" GM/test hall on
@@ -85,6 +110,17 @@ InstanceArenaService::EnterResult InstanceArenaService::enterArena(uint32_t play
 		return { .ok = false, .entryPosition = {}, .error = created.error };
 	}
 
+	// InstanceManager::close() refuses to release a region while any
+	// creature id remains registered (it quarantines the instance instead)
+	// - this cleanup callback is what actually removes the arena's
+	// creatures so a normal close() can succeed. Runs outside
+	// InstanceManager's own lock and never touches sessionMutex.
+	manager.setCleanupCallback(created.id, [this](InstanceId instanceId, const InstanceMapRegion &) {
+		for (const auto creatureId : manager.getRegisteredCreatureIds(instanceId)) {
+			creatureRemover(creatureId);
+		}
+	});
+
 	const auto region = manager.getRegion(created.id);
 	if (!region) {
 		manager.close(created.id);
@@ -92,8 +128,31 @@ InstanceArenaService::EnterResult InstanceArenaService::enterArena(uint32_t play
 	}
 
 	const Position entryPosition { region->minX, region->minY, region->minZ };
+
+	// A few tiles in from the entry corner, still well inside the 12x7
+	// region - never on top of where the player is about to be teleported.
+	const Position monsterPosition {
+		static_cast<uint16_t>(region->minX + 4),
+		static_cast<uint16_t>(region->minY + 3),
+		region->minZ,
+	};
+
+	const auto &monster = monsterFactory(monsterPosition);
+	if (!monster) {
+		manager.close(created.id);
+		return { .ok = false, .entryPosition = {}, .error = "failed to spawn the arena monster" };
+	}
+
+	// Only after the factory assigned a real, nonzero runtime id (the
+	// production factory does this via Game::placeCreature()).
+	if (!binder.bind(created.id, *monster)) {
+		creatureRemover(monster->getID());
+		manager.close(created.id);
+		return { .ok = false, .entryPosition = {}, .error = "failed to register the arena monster" };
+	}
+
 	sessions.emplace(playerId, PlayerSession { .instanceId = created.id, .returnPosition = returnPosition });
-	return { .ok = true, .entryPosition = entryPosition, .error = {} };
+	return { .ok = true, .entryPosition = entryPosition, .monsterId = monster->getID(), .error = {} };
 }
 
 InstanceArenaService::LeaveResult InstanceArenaService::leaveArena(uint32_t playerId) {
@@ -115,11 +174,10 @@ InstanceArenaService::CloseResult InstanceArenaService::closeArenaForPlayer(uint
 		return { .ok = false, .evacuationPosition = {}, .error = "You do not have an active instance arena." };
 	}
 
-	// NOTE for the cleanup/timeout PR: InstanceManager::close() runs the
-	// cleanup callback outside InstanceManager's own lock, but this call
-	// happens while sessionMutex is held. A future cleanup callback must
-	// not try to re-acquire sessionMutex synchronously here, or it will
-	// deadlock - hand it the session data it needs instead.
+	// manager.close() runs the cleanup callback registered in enterArena()
+	// outside InstanceManager's own lock, but this call happens while
+	// sessionMutex is held - that callback must never try to re-acquire
+	// sessionMutex (it doesn't: it only touches InstanceManager and Game).
 	const auto session = it->second;
 	manager.close(session.instanceId);
 	sessions.erase(it);

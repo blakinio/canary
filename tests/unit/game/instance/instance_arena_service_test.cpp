@@ -9,6 +9,58 @@
 
 #include "game/instance/instance_arena_service.hpp"
 
+#include "creatures/monsters/monster.hpp"
+#include "creatures/monsters/monsters.hpp"
+
+#ifndef USE_PRECOMPILED_HEADERS
+	#include <algorithm>
+	#include <cstdint>
+	#include <vector>
+#endif
+
+namespace {
+
+	// Mirrors instance_creature_binder_test.cpp's makeRuntimeMonster(): builds
+	// a real Monster with a real runtime id, bypassing Monster::createMonster()
+	// and Game::placeCreature() (both need a fully bootstrapped server this
+	// unit-test harness doesn't provide - see docs/architecture/
+	// instanced-test-arena.md).
+	std::shared_ptr<Monster> makeRuntimeMonster(const std::string &name) {
+		const auto monsterType = std::make_shared<MonsterType>(name);
+		const auto monster = std::make_shared<Monster>(monsterType);
+		monster->setID();
+		return monster;
+	}
+
+	// Wires InstanceArenaService's MonsterFactory/CreatureRemover DI seam to
+	// synthetic implementations so enterArena()/closeArenaForPlayer() are
+	// testable without a live Game. The remover mirrors the real
+	// Game::removeCreature() hook (game.cpp, "getInstanceManager().
+	// unregisterCreature(...)") so a synthetic close() exercises the same
+	// registered-creature bookkeeping the production path relies on.
+	struct SyntheticArenaHarness {
+		InstanceManager manager;
+		std::vector<uint32_t> removedCreatureIds;
+		InstanceArenaService service;
+
+		explicit SyntheticArenaHarness(bool monsterFactorySucceeds = true) :
+			manager(InstanceArenaService::configuredRegions()),
+			service(
+				manager,
+				[monsterFactorySucceeds](const Position &) -> std::shared_ptr<Monster> {
+					return monsterFactorySucceeds ? makeRuntimeMonster("test-arena-monster") : nullptr;
+				},
+				[this](uint32_t creatureId) {
+					removedCreatureIds.push_back(creatureId);
+					if (const auto owner = manager.getCreatureOwner(creatureId)) {
+						manager.unregisterCreature(*owner, creatureId);
+					}
+				}
+			) { }
+	};
+
+} // namespace
+
 TEST(InstanceArenaServiceTest, ConfiguredRegionsAreTwoNonOverlappingSameSizeRegions) {
 	const auto regions = InstanceArenaService::configuredRegions();
 	ASSERT_EQ(2u, regions.size());
@@ -100,14 +152,14 @@ TEST(InstanceArenaServiceTest, GetBinderReturnsABinderBoundToTheSameManager) {
 }
 
 TEST(InstanceArenaServiceTest, EnterArenaReturnsAnEntryPositionInsideTheReservedRegion) {
-	InstanceManager manager(InstanceArenaService::configuredRegions());
-	InstanceArenaService service(manager);
+	SyntheticArenaHarness harness;
 	constexpr Position returnPosition { 100, 100, 7 };
 
-	const auto entered = service.enterArena(1, returnPosition);
+	const auto entered = harness.service.enterArena(1, returnPosition);
 
 	ASSERT_TRUE(entered.ok);
-	EXPECT_TRUE(service.hasActiveSession(1));
+	EXPECT_TRUE(harness.service.hasActiveSession(1));
+	EXPECT_NE(0u, entered.monsterId);
 	// Entry position must be one configured region's minX/minY/minZ corner.
 	bool matchedARegion = false;
 	for (const auto &configured : InstanceArenaService::configuredRegions()) {
@@ -118,44 +170,69 @@ TEST(InstanceArenaServiceTest, EnterArenaReturnsAnEntryPositionInsideTheReserved
 	EXPECT_TRUE(matchedARegion);
 }
 
-TEST(InstanceArenaServiceTest, EnterArenaFailsWhenPlayerAlreadyHasASession) {
-	InstanceManager manager(InstanceArenaService::configuredRegions());
-	InstanceArenaService service(manager);
+TEST(InstanceArenaServiceTest, EnterArenaRegistersTheSpawnedMonsterWithTheBinder) {
+	SyntheticArenaHarness harness;
 	constexpr Position returnPosition { 100, 100, 7 };
 
-	ASSERT_TRUE(service.enterArena(1, returnPosition).ok);
-	const auto second = service.enterArena(1, returnPosition);
+	const auto entered = harness.service.enterArena(1, returnPosition);
+
+	ASSERT_TRUE(entered.ok);
+	ASSERT_NE(0u, entered.monsterId);
+	const auto owner = harness.manager.getCreatureOwner(entered.monsterId);
+	ASSERT_TRUE(owner.has_value());
+	EXPECT_EQ(
+		(std::vector<InstanceCreatureId> { static_cast<InstanceCreatureId>(entered.monsterId) }),
+		harness.manager.getRegisteredCreatureIds(*owner)
+	);
+}
+
+TEST(InstanceArenaServiceTest, EnterArenaRollsBackTheWholeArenaWhenTheMonsterFactoryFails) {
+	SyntheticArenaHarness harness(/* monsterFactorySucceeds */ false);
+	constexpr Position returnPosition { 100, 100, 7 };
+
+	const auto entered = harness.service.enterArena(1, returnPosition);
+
+	EXPECT_FALSE(entered.ok);
+	EXPECT_FALSE(entered.error.empty());
+	EXPECT_FALSE(harness.service.hasActiveSession(1));
+	EXPECT_EQ(0u, harness.service.activeArenaCount()) << "a failed monster spawn must free the reserved region again";
+}
+
+TEST(InstanceArenaServiceTest, EnterArenaFailsWhenPlayerAlreadyHasASession) {
+	SyntheticArenaHarness harness;
+	constexpr Position returnPosition { 100, 100, 7 };
+
+	ASSERT_TRUE(harness.service.enterArena(1, returnPosition).ok);
+	const auto second = harness.service.enterArena(1, returnPosition);
 
 	EXPECT_FALSE(second.ok);
 	EXPECT_FALSE(second.error.empty());
-	EXPECT_EQ(1u, service.activeArenaCount()) << "the failed second enter must not create a stray instance";
+	EXPECT_EQ(1u, harness.service.activeArenaCount()) << "the failed second enter must not create a stray instance";
 }
 
 TEST(InstanceArenaServiceTest, EnterArenaFailsWithoutASessionWhenNoRegionIsFree) {
-	InstanceManager manager(InstanceArenaService::configuredRegions());
-	InstanceArenaService service(manager);
+	SyntheticArenaHarness harness;
 	constexpr Position returnPosition { 100, 100, 7 };
 
-	ASSERT_TRUE(service.enterArena(1, returnPosition).ok);
-	ASSERT_TRUE(service.enterArena(2, returnPosition).ok);
+	ASSERT_TRUE(harness.service.enterArena(1, returnPosition).ok);
+	ASSERT_TRUE(harness.service.enterArena(2, returnPosition).ok);
 
-	const auto third = service.enterArena(3, returnPosition);
+	const auto third = harness.service.enterArena(3, returnPosition);
 	EXPECT_FALSE(third.ok);
-	EXPECT_FALSE(service.hasActiveSession(3));
+	EXPECT_FALSE(harness.service.hasActiveSession(3));
 }
 
 TEST(InstanceArenaServiceTest, LeaveArenaReturnsSavedPositionWithoutReleasingTheRegion) {
-	InstanceManager manager(InstanceArenaService::configuredRegions());
-	InstanceArenaService service(manager);
+	SyntheticArenaHarness harness;
 	constexpr Position returnPosition { 123, 456, 7 };
 
-	ASSERT_TRUE(service.enterArena(1, returnPosition).ok);
-	const auto left = service.leaveArena(1);
+	ASSERT_TRUE(harness.service.enterArena(1, returnPosition).ok);
+	const auto left = harness.service.leaveArena(1);
 
 	ASSERT_TRUE(left.ok);
 	EXPECT_EQ(returnPosition, left.returnPosition);
-	EXPECT_TRUE(service.hasActiveSession(1)) << "leaving must not close the arena";
-	EXPECT_EQ(1u, service.activeArenaCount());
+	EXPECT_TRUE(harness.service.hasActiveSession(1)) << "leaving must not close the arena";
+	EXPECT_EQ(1u, harness.service.activeArenaCount());
 }
 
 TEST(InstanceArenaServiceTest, LeaveArenaFailsWithoutAnActiveSession) {
@@ -168,35 +245,52 @@ TEST(InstanceArenaServiceTest, LeaveArenaFailsWithoutAnActiveSession) {
 }
 
 TEST(InstanceArenaServiceTest, CloseArenaForPlayerEvacuatesAndReleasesTheRegion) {
-	InstanceManager manager(InstanceArenaService::configuredRegions());
-	InstanceArenaService service(manager);
+	SyntheticArenaHarness harness;
 	constexpr Position returnPosition { 321, 654, 7 };
 
-	ASSERT_TRUE(service.enterArena(1, returnPosition).ok);
-	const auto closed = service.closeArenaForPlayer(1);
+	const auto entered = harness.service.enterArena(1, returnPosition);
+	ASSERT_TRUE(entered.ok);
+	const auto closed = harness.service.closeArenaForPlayer(1);
 
 	ASSERT_TRUE(closed.ok);
 	EXPECT_EQ(returnPosition, closed.evacuationPosition);
-	EXPECT_FALSE(service.hasActiveSession(1));
-	EXPECT_EQ(0u, service.activeArenaCount());
+	EXPECT_FALSE(harness.service.hasActiveSession(1));
+	EXPECT_EQ(0u, harness.service.activeArenaCount());
 
 	// The region must be reusable immediately after a clean close.
-	const auto reentered = service.enterArena(1, returnPosition);
+	const auto reentered = harness.service.enterArena(1, returnPosition);
 	EXPECT_TRUE(reentered.ok);
 }
 
-TEST(InstanceArenaServiceTest, CloseArenaForPlayerWorksAfterLeaveArenaToo) {
-	InstanceManager manager(InstanceArenaService::configuredRegions());
-	InstanceArenaService service(manager);
+TEST(InstanceArenaServiceTest, CloseArenaForPlayerRemovesTheRegisteredMonsterViaTheInjectedRemover) {
+	SyntheticArenaHarness harness;
 	constexpr Position returnPosition { 321, 654, 7 };
 
-	ASSERT_TRUE(service.enterArena(1, returnPosition).ok);
-	ASSERT_TRUE(service.leaveArena(1).ok);
+	const auto entered = harness.service.enterArena(1, returnPosition);
+	ASSERT_TRUE(entered.ok);
+	ASSERT_NE(0u, entered.monsterId);
 
-	const auto closed = service.closeArenaForPlayer(1);
+	const auto closed = harness.service.closeArenaForPlayer(1);
+
+	ASSERT_TRUE(closed.ok) << "InstanceManager::close() must not throw: the cleanup callback has to empty the registry first";
+	EXPECT_NE(
+		harness.removedCreatureIds.end(),
+		std::find(harness.removedCreatureIds.begin(), harness.removedCreatureIds.end(), entered.monsterId)
+	);
+	EXPECT_FALSE(harness.manager.getCreatureOwner(entered.monsterId).has_value());
+}
+
+TEST(InstanceArenaServiceTest, CloseArenaForPlayerWorksAfterLeaveArenaToo) {
+	SyntheticArenaHarness harness;
+	constexpr Position returnPosition { 321, 654, 7 };
+
+	ASSERT_TRUE(harness.service.enterArena(1, returnPosition).ok);
+	ASSERT_TRUE(harness.service.leaveArena(1).ok);
+
+	const auto closed = harness.service.closeArenaForPlayer(1);
 	ASSERT_TRUE(closed.ok);
 	EXPECT_EQ(returnPosition, closed.evacuationPosition);
-	EXPECT_FALSE(service.hasActiveSession(1));
+	EXPECT_FALSE(harness.service.hasActiveSession(1));
 }
 
 TEST(InstanceArenaServiceTest, CloseArenaForPlayerFailsWithoutAnActiveSession) {
@@ -209,19 +303,19 @@ TEST(InstanceArenaServiceTest, CloseArenaForPlayerFailsWithoutAnActiveSession) {
 }
 
 TEST(InstanceArenaServiceTest, TwoPlayersGetIndependentSessionsAndRegions) {
-	InstanceManager manager(InstanceArenaService::configuredRegions());
-	InstanceArenaService service(manager);
+	SyntheticArenaHarness harness;
 	constexpr Position returnPositionOne { 100, 100, 7 };
 	constexpr Position returnPositionTwo { 200, 200, 7 };
 
-	const auto enteredOne = service.enterArena(1, returnPositionOne);
-	const auto enteredTwo = service.enterArena(2, returnPositionTwo);
+	const auto enteredOne = harness.service.enterArena(1, returnPositionOne);
+	const auto enteredTwo = harness.service.enterArena(2, returnPositionTwo);
 
 	ASSERT_TRUE(enteredOne.ok);
 	ASSERT_TRUE(enteredTwo.ok);
 	EXPECT_NE(enteredOne.entryPosition, enteredTwo.entryPosition);
+	EXPECT_NE(enteredOne.monsterId, enteredTwo.monsterId);
 
-	ASSERT_TRUE(service.closeArenaForPlayer(1).ok);
-	EXPECT_TRUE(service.hasActiveSession(2)) << "closing one player's arena must not affect the other";
-	EXPECT_EQ(1u, service.activeArenaCount());
+	ASSERT_TRUE(harness.service.closeArenaForPlayer(1).ok);
+	EXPECT_TRUE(harness.service.hasActiveSession(2)) << "closing one player's arena must not affect the other";
+	EXPECT_EQ(1u, harness.service.activeArenaCount());
 }

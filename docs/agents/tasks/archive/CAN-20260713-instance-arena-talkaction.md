@@ -2,16 +2,16 @@
 task_id: CAN-20260713-instance-arena-talkaction
 program_id: CAN-PROGRAM-INSTANCED-TEST-ARENA
 coordination_id: ""
-status: ready_for_pr
+status: merged
 agent: "Claude"
 branch: feat/instance-arena-talkaction
 base_branch: main
 created: 2026-07-13T21:30:00Z
-updated: 2026-07-13T21:50:00Z
-last_verified_commit: "7e8f298f"
+updated: 2026-07-13T22:30:00Z
+last_verified_commit: "d9b10c322cd6bb9690c2a29fd3354082dde066f9"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "#295"
 depends_on:
   - CAN-20260713-instance-arena-service (InstanceArenaService, PR #289)
 blocks:
@@ -70,11 +70,13 @@ matching existing repository conventions exactly.
 - [x] Focused C++ unit tests for the new `InstanceArenaService` methods
       (independent sessions, region exhaustion, close-then-reuse, leave
       does not release).
-- [ ] Current-head GitHub checks verified (pending PR open + CI, including
-      `luac`/`luacheck` for the new Lua file and the Lua-API-binding-docs
-      check).
+- [x] Current-head GitHub checks verified: PR #295 merged after a transient
+      reviewdog 504 was diagnosed (real Lua/format/compile jobs all passed;
+      only the PATCH-result post to GitHub timed out) and a small legitimate
+      follow-up commit forced a fresh, fully green run (head `f546c110`, 21/21
+      checks).
 - [x] Module catalogue updated.
-- [ ] Autonomous merge gate satisfied (pending CI).
+- [x] Autonomous merge gate satisfied.
 
 # Confirmed context
 
@@ -172,10 +174,12 @@ matching existing repository conventions exactly.
 
 # Remaining work
 
-1. Open PR, get CI green (first real Lua syntax check via `luac`/
-   `luacheck`), merge.
+1. ~~Open PR, get CI green (first real Lua syntax check via `luac`/
+   `luacheck`), merge.~~ Done: PR #295, merge commit
+   `d9b10c322cd6bb9690c2a29fd3354082dde066f9`.
 2. Proceed to program queue item 4: monster spawn + binder registration
-   after nonzero runtime ID + summon inheritance.
+   after nonzero runtime ID + summon inheritance (tracked in
+   `CAN-20260713-instance-arena-monster-spawn`).
 
 # Handoff
 
@@ -190,6 +194,8 @@ matching existing repository conventions exactly.
 
 # Completion
 
-- Final status: pending PR/CI.
-- PR: (to be filled after opening).
-- Merge commit: (to be filled after merge).
+- Final status: merged.
+- PR: #295.
+- Merge commit: `d9b10c322cd6bb9690c2a29fd3354082dde066f9`.
+- CI: green (21/21 checks after a transient reviewdog 504 was diagnosed and
+  a fresh run triggered).
