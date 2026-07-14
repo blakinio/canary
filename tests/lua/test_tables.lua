@@ -137,7 +137,7 @@ end)
 
 test("rejects arbitrary function execution", function()
 	_G.__cs007_executed = false
-	local decoded, err = table.unserialize('(function() _G.__cs007_executed = true return { executed = true } end)()')
+	local decoded, err = table.unserialize("(function() _G.__cs007_executed = true return { executed = true } end)()")
 	assert_equal(decoded, nil)
 	assert_truthy(type(err) == "string" and err ~= "")
 	assert_equal(_G.__cs007_executed, false)
