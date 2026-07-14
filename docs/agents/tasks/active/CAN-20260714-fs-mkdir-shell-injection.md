@@ -184,3 +184,8 @@ Do not restore shell execution, do not replace it with a denylist, do not merge 
 - Catalogue updated: yes, active reusable binding
 - Changelog updated: yes
 - Archived at: pending
+
+## 2026-07-14T10:05:00+02:00
+
+- Validation repair: added strongly typed `FileSystem.createDirectory` and `FileSystem.createDirectories` entries to the committed Lua API index so the pre-build binding-documentation gate can validate the new public methods.
+- The Linux release build remains authoritative for full generated `docs/lua-api` synchronization.
