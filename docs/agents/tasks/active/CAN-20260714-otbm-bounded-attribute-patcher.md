@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/otbm-bounded-attribute-patcher
 base_branch: main
 created: 2026-07-14T12:00:00+02:00
-updated: 2026-07-14T13:38:00+02:00
-last_verified_commit: "3a390c9d892c5b737d32711a71dbdf7fff1f06fe"
+updated: 2026-07-14T13:52:00+02:00
+last_verified_commit: "b0d3e6d1854e7ab6d7a24e083bb6ac2468867055"
 risk: high
 related_issue: ""
 related_pr: "#325"
@@ -64,7 +64,7 @@ cross_repo_tasks: []
 
 # Goal
 
-Deliver the first Phase 8 safety surface: deterministic, manifest-driven mutation of an **existing fixed-width mechanic attribute only** on a new OTBM copy, with exact expected state, source hash/version, bounded region, byte-level outside-change equality proof, full reparse, canonical World Index/Semantic Diff validation and factual render instructions.
+Deliver the first Phase 8 safety surface: deterministic, manifest-driven mutation of an **existing fixed-width mechanic attribute only** on a new OTBM copy, with exact expected state, source hash/version, bounded region, payload-byte equality proof, full reparse, canonical World Index/Semantic Diff validation and factual render instructions.
 
 # Initial supported operations
 
@@ -80,41 +80,44 @@ No attribute may be inserted or removed. Item IDs, counts, stack order, tile kin
 # Acceptance criteria
 
 - [x] Extend the existing native scanner rather than adding a second OTBM parser.
-- [x] Add `canary-otbm-patch-anchors-v1` with exact source hash/size/OTBM version and supported attribute byte spans.
+- [x] Add `canary-otbm-patch-anchors-v1` with exact source hash/size/OTBM version and supported attribute byte metadata.
 - [x] Identify every target by exact `x,y,z`, tile-local placement index, item ID, item depth, attribute kind and expected value.
 - [x] Require an explicit inclusive region capped at 1,000,000 coordinates and reject operations outside it.
 - [x] Require exact source SHA-256/size and compatible OTBM/items versions in the plan.
+- [x] Reject more than 10,000 operations before parsing entries and cap operation IDs at 200 characters.
 - [x] Reject missing, duplicate, ambiguous or dynamically unsupported targets.
 - [x] Preserve file length and OTBM escaping width; fail closed when replacement bytes would change encoded width.
 - [x] Write only to a distinct output path below an explicit artifact root; never modify source in place.
-- [x] Refuse target/parent symlinks, path escape and overwrite; publish atomically/no-overwrite.
-- [x] Prove byte equality outside the exact planned payload offsets and report every changed physical offset.
+- [x] Refuse target/parent/broken symlinks, path escape and overwrite; publish atomically/no-overwrite.
+- [x] Prove byte equality outside exact planned payload offsets; escape prefixes remain immutable.
 - [x] Fully reparse the patched copy with the existing scanner and regenerate canonical World Index evidence.
-- [x] Run bounded Semantic OTBM Diff and require that only the planned mechanic changes appear.
+- [x] Run bounded Semantic OTBM Diff and require only the planned mechanic changes.
 - [x] Emit rollback instructions that retain the untouched source and identify the patched copy by hash.
 - [x] Emit factual render requests through the existing renderer only; no AI-generated imagery.
-- [x] Add schemas, ADR, documentation, focused synthetic round-trip/tamper/escape-width tests and dedicated CI artifacts.
+- [x] Add strict schemas, ADR, documentation, focused synthetic tests and dedicated CI artifacts.
 - [x] Keep source/target `.otbm`, `.widx`, appearances, client assets, generated reports and renders outside Git.
 - [x] Confirm no active datapack, gameplay, item definition, protocol, database or OTClient change.
 - [ ] Update catalogue/changelog/roadmap in the separate lifecycle PR after current shared owner #331 releases those paths.
-- [ ] Review exact final diff, all required current-head checks and zero review threads.
+- [ ] Confirm exact final 11-file diff, all required current-head checks and zero review threads.
 - [ ] Squash-merge and archive separately.
 
 # Delivered implementation
 
-- Existing `otbm_item_audit_scan.cpp` exposes `--patch-anchors` without replacing the legacy JSON or World Index modes.
-- Every supported payload byte includes its physical offset, decoded value and encoded width.
-- Tile-local placement indices preserve source placement order and disambiguate duplicate item IDs.
-- Strict plan/result schemas and runtime validation reject unknown fields, oversized regions, duplicate operations and stale source pins.
-- The Python layer validates scanner evidence; it does not parse the OTBM tree independently.
-- Patching is copy-only, streaming and restricted to exact scanner-proven payload byte offsets; escape prefixes are never allowed to differ.
-- OTBM marker escape-width changes and non-canonical source spans are rejected.
-- Source/output global byte comparison rejects every unplanned physical change.
-- Post-write validation performs anchor reparse, legacy full scan, before/after World Index and bounded Semantic Diff.
-- Output paths reject symlink components before and after parent creation.
-- Output, evidence and result use confined no-overwrite publication; any late failure removes partial artifacts.
-- Result evidence includes hashes, physical offsets, rollback instructions and a non-executing real-assets render request.
-- Dedicated tests construct only a small synthetic OTBM; no real or user-supplied map is patched by CI.
+- Existing `otbm_item_audit_scan.cpp` exposes `--patch-anchors` without replacing legacy JSON or World Index modes.
+- Every supported logical payload byte includes physical offset, decoded value and encoded width.
+- Tile-local placement indices preserve source order and disambiguate duplicate item IDs.
+- Strict plan/result schemas require exact three-integer positions and reject unknown fields.
+- Runtime validation rejects oversized regions, stale source pins, duplicate targets, excessive operation counts and long operation IDs.
+- Python validates native scanner evidence; it does not parse the OTBM tree independently.
+- Patching is copy-only, streaming and restricted to exact scanner-proven payload locations.
+- OTBM marker escape-width changes, non-canonical spans and escape-prefix changes are rejected.
+- Direct source/output comparison rejects every unplanned physical change.
+- Post-write validation performs anchor reparse, legacy full scan, before/after World Index and exact bounded Semantic Diff.
+- Output paths reject lexical/resolved symlink traversal including broken parent symlinks.
+- Destination parents are created only after overlap validation; arbitrary output names cannot collide with internal evidence filenames.
+- Output, evidence and result use confined no-overwrite publication; late failures remove partial artifacts.
+- Result evidence includes hashes, changed payload offsets, rollback instructions and a non-executing real-assets render request.
+- Dedicated tests construct only a tiny synthetic OTBM; no real or user-supplied map is patched by CI.
 
 # Safety invariants
 
@@ -122,8 +125,8 @@ No attribute may be inserted or removed. Item IDs, counts, stack order, tile kin
 - Output path differs from source and resides below `artifact_root` without symlink traversal.
 - Plan pins source SHA-256, byte size, OTBM version, items major/minor and one bounded region.
 - Every operation pins exact target identity and expected old value.
-- Only the scanner-proven logical payload location may change; an escape prefix remains immutable.
-- Logical replacement bytes retain the same physical OTBM escape width byte-by-byte.
+- Only the scanner-proven logical payload location may change; escape framing is immutable.
+- Replacement bytes retain identical physical OTBM escape width.
 - Changed physical offsets are pairwise disjoint.
 - Output byte size equals source byte size.
 - Direct comparison proves equality outside declared payload offsets.
@@ -134,9 +137,9 @@ No attribute may be inserted or removed. Item IDs, counts, stack order, tile kin
 # Confirmed context
 
 - Task-start `main`: `9b04ab3ef3dfbc9440274d63e15e6102c5501d85`, after Phase 7 lifecycle merge #323.
-- Feature branch was merged forward without conflicts to current `main` `3a390c9d892c5b737d32711a71dbdf7fff1f06fe` on 2026-07-14.
+- Feature branch was merged forward without conflicts to current `main` `b0d3e6d1854e7ab6d7a24e083bb6ac2468867055` on 2026-07-14.
 - PR #325 owns the scanner and new Phase 8 paths; no other open PR owns those implementation paths.
-- Shared catalogue/changelog/roadmap remain read-only because open PR #331 currently declares shared registry/catalogue/changelog integration.
+- Shared catalogue/changelog/roadmap remain read-only because draft PR #331 owns shared registry/catalogue/changelog integration.
 - Upstream `opentibiabr/*` and Remere's Map Editor remain read-only evidence sources.
 - User-supplied `/mnt/data/otservbr(4).otbm` and `/mnt/data/assets(1).zip` remain external evidence only. No real-map patch has been executed.
 - Local checkout execution is unavailable after recorded DNS failures; repository validation is GitHub Actions evidence only.
@@ -146,46 +149,49 @@ No attribute may be inserted or removed. Item IDs, counts, stack order, tile kin
 | Decision | Reason/evidence | ADR |
 |---|---|---|
 | Patch existing fixed-width attributes only | Preserves node structure and confines mutation to scanner-proven payloads. | `ADR-20260714-otbm-fixed-width-patch-boundary.md` |
-| Preserve encoded width per logical byte | OTBM escaping can otherwise change file length and invalidate offsets/tree structure. | same ADR |
-| Require tile-local placement index plus redundant identity | Disambiguates duplicate item IDs on one tile without inferred intent. | same ADR |
-| Prove outside-payload byte equality | Stronger than allowing the complete encoded span, because the escape prefix is framing. | implementation hardening |
+| Preserve encoded width per logical byte | OTBM escaping can otherwise shift the node stream. | same ADR |
+| Require tile-local placement index plus redundant identity | Disambiguates duplicate item IDs without inferred intent. | same ADR |
+| Prove outside-payload byte equality | Escape prefix is framing and cannot be an allowed changed byte. | implementation hardening |
 | Source map is never an output | Makes rollback immediate and prevents in-place corruption. | same ADR |
-| Publish output/evidence/result no-overwrite | Prevents destination races from replacing reviewed artifacts. | implementation hardening |
-| Reject lexical and resolved symlink ancestry | Prevents an apparently confined output path from traversing a symlink component. | implementation hardening |
+| Publish output/evidence/result no-overwrite | Prevents destination races and accidental replacement. | implementation hardening |
+| Reject lexical/resolved/broken symlink ancestry | Prevents confined-looking paths from being redirected. | implementation hardening |
+| Parse no more than 10,000 operations | Bounds plan allocation and validation cost before entry parsing. | implementation hardening |
 
 # Validation and CI
 
 | Commit | Check | Result | Evidence |
 |---|---|---|---|
-| `8895ce2b785fff6dcd303736283080f23ee73423` | repository OTBM workflows including synthetic full round trip | success | OTBM Map Tools run `29328519105`; CI run `29328519126` |
-| `db213fb7055f054b99dfeb3125953be165b61994` | dedicated schema, Werror scanner, Python compile and focused patch tests | success | OTBM Bounded Patch run `29328671997`, job `87071048163` |
-| `aaf2818172ff2cbd7f693275dc88ef192e20ea9f` | deterministic publication hardening and new late-failure cleanup test | success | one-shot job `87072103215` before self-deletion |
-| `bc57e7a295c6a332aa2c48293a3fd44745ac0d61` | conflict-intolerant merge from current main | success | one-shot sync job `87072495453` before self-deletion |
-| `dcae5ce0ac4a09fc484a47ee442fc33610dd269e` | payload-only diff allowlist, symlink-parent rejection and strict lowercase hash regression tests | success | one-shot run `29329458294`, job `87073625155` before self-deletion |
-| pending current direct head | all required final checks | pending | final merge gate |
+| `8895ce2b785fff6dcd303736283080f23ee73423` | repository OTBM workflows including synthetic full round trip | success | OTBM Map Tools `29328246908`; CI `29328247215`; bounded patch `29328246853` |
+| `db213fb7055f054b99dfeb3125953be165b61994` | schema, Werror scanner, Python compile and focused tests | success | run `29328671997`, job `87071048163` |
+| `aaf2818172ff2cbd7f693275dc88ef192e20ea9f` | publication hardening and late-result cleanup test | success | job `87072103215` |
+| `bc57e7a295c6a332aa2c48293a3fd44745ac0d61` | first conflict-intolerant current-main merge | success | job `87072495453` |
+| `dcae5ce0ac4a09fc484a47ee442fc33610dd269e` | payload-only allowlist and symlink-parent tests | success | run `29329458294`, job `87073625155` |
+| `f20f81952ca5e25ab809da6eab7bd71e3efc87ae` | deferred destination publication and collision tests | success | run `29329940427`, job `87075200703` |
+| `6c6b788484bed8268d4db3714d6c8a33af84199a` | pre-parse plan limits and broken-symlink test | success | run `29330123167`, job `87075797473` |
+| `09468bd3f8d10fd58c02fcc7aa890e35179e9ff8` | final conflict-intolerant merge from `b0d3e6d1...` | success | run `29330170831`, job `87075954046` |
+| pending direct head | complete current-head merge gate | pending | required final workflow set |
 
 # Risks and compatibility
 
-- Risk remains high because binary map mutation is introduced, even though the first scope is fixed-width and copy-only.
+- Risk remains high because binary map mutation is introduced, although v1 is fixed-width and copy-only.
 - Runtime impact: none; offline tooling only.
 - Data migration: none; no active map is modified.
-- Compatibility: existing scanner JSON and World Index modes remain in place and are exercised by repository tests.
-- Rollback: delete the patched external copy and retain the pinned untouched source; repository rollback is a squash revert.
+- Existing scanner JSON and World Index modes remain and are covered by repository tests.
+- Rollback: delete the external patched copy and retain the pinned untouched source; repository rollback is a squash revert.
 - The tool proves structural and semantic confinement, not gameplay intent. A reviewed plan remains mandatory.
 
 # Remaining work
 
-1. Review the exact 11-file final diff on the synchronized branch.
-2. Require successful current-head OTBM Bounded Patch, OTBM tool suites, ownership and repository Required checks.
-3. Confirm zero blocking comments/reviews/threads.
-4. Mark PR #325 ready and squash-merge with the exact reviewed head.
-5. Open a separate lifecycle PR to archive this task and update shared documentation when #331 releases it.
+1. Require successful current-head bounded patch, OTBM suites, ownership and repository Required checks.
+2. Confirm exact 11-file diff and zero blocking comments/reviews/threads.
+3. Mark PR #325 ready and squash-merge with the exact reviewed head.
+4. Open a separate lifecycle PR to archive this task and update shared documentation after #331 releases it.
 
 # Handoff
 
 ## Start here
 
-Read this task, `OTBM_BOUNDED_PATCH.md`, the fixed-width ADR, scanner source, plan/result schemas and existing World Index/Semantic Diff contracts.
+Read this task, `OTBM_BOUNDED_PATCH.md`, the fixed-width ADR, scanner source, schemas and existing World Index/Semantic Diff contracts.
 
 ## Do not repeat
 
@@ -193,13 +199,13 @@ Do not create another OTBM parser, add/remove attributes, serialize the whole ma
 
 ## Open questions
 
-- None for the initial fixed-width existing-attribute scope. Broader operations require a later explicit safety review and ADR.
+- None for the v1 fixed-width existing-attribute scope. Broader operations require a later ADR and task.
 
 # Completion
 
 - Final status: active; implementation complete, final merge gate pending
 - PR: #325
-- Final feature head: pending final direct-head CI
+- Final feature head: pending direct-head CI
 - Merge commit:
 - Cleanup PR:
 - Archived at:
