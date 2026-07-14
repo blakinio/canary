@@ -4,8 +4,8 @@ name: Tibia System Decomposition
 status: active
 owner: repository-wide
 created: 2026-07-14T15:43:00+02:00
-updated: 2026-07-14T18:05:00+02:00
-last_verified_commit: "d9c860048dc755291b97fead4c12398f72e17e53"
+updated: 2026-07-14T18:19:00+02:00
+last_verified_commit: "82f35c0147fdd33c8d4e70d98d003385daf61de6"
 primary_paths:
   - docs/agents/real-tibia/**
   - docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md
@@ -155,20 +155,20 @@ Decomposition may document expected scenario roots, but TSD packages do not add 
 
 # TSD-002 split decision
 
-The original TSD-002 set combined stable engine infrastructure with database and persistence boundaries. It is split sequentially because current open PR #308 changes schema, migrations and multichannel database/runtime paths.
+The original TSD-002 set combined stable engine infrastructure with database and persistence boundaries. It is split sequentially because task-start open PR #308 changed schema, migrations and multichannel database/runtime paths.
 
 - `TSD-002A` — engine scheduling, dependency injection, Lua binding surface and build contracts;
 - `TSD-002B` — database connection, migrations, transaction boundaries, world/player persistence, reconciliation and save/restart/reload.
 
-TSD-002B cannot start until TSD-002A feature and lifecycle PRs are merged and current `main` is re-read. The two feature PRs may not be open concurrently.
+TSD-002B starts only after the TSD-002A feature and lifecycle PRs are merged and current `main` and PR #308 are re-read.
 
 # Bounded package queue
 
 | ID | Scope | Status | Evidence baseline | Dependencies | Exact next action |
 |---|---|---|---|---|---|
 | `TSD-001` | taxonomy and hierarchy foundation; full candidate classification; three-record engine pilot | completed | PR #335; merge `44fe3af9f29b3ae0164ac5d60fc1f14137b5cea5`; registry 19 → 22 | registry and Upstream Intelligence focused tests | preserve completed archive |
-| `TSD-002A` | scheduler, service container, Lua bindings, data-registry decision, build and platform decision | active | task-start `main@6d368766cc47794ec0145b4b32613edaf7588adb`; source-aware mapping | TSD-001 and archived UI-001A | finish PR #340, exact-head/ready CI, squash merge, lifecycle archive |
-| `TSD-002B` | database connection, migrations, transaction boundaries, player/world persistence, reconciliation and save/restart/reload | planned | current `player-persistence` umbrella plus then-current DB/runtime inventory | merged and archived TSD-002A; re-check PR #308 state | create one bounded persistence task from current main |
+| `TSD-002A` | scheduler, service container, Lua bindings, data-registry decision, build and platform decision | completed | PR #340; merge `82f35c0147fdd33c8d4e70d98d003385daf61de6`; registry 22 → 26 | TSD-001 and archived UI-001A | preserve records and archived evidence |
+| `TSD-002B` | database connection, migrations, transaction boundaries, player/world persistence, reconciliation and save/restart/reload | next | current `player-persistence` umbrella plus then-current DB/runtime inventory | archived TSD-002A; re-check PR #308 state | create one bounded persistence task from current main |
 | `TSD-003` | account, character and progression | planned | TSD-001 classification | completed TSD-002B persistence boundaries | separate account, entitlement, character lifecycle and progression without duplicating records |
 | `TSD-004` | Cyclopedia family | planned | current `cyclopedia` and `charms` records | maintained-client and persistence inventory | preserve `cyclopedia` umbrella; evaluate durable children |
 | `TSD-005` | combat, weapons and vocations | planned | current `combat` and `spells` records | engine and progression boundaries | split only durable formula, state, weapon and vocation domains |
@@ -188,11 +188,9 @@ TSD-002B cannot start until TSD-002A feature and lifecycle PRs are merged and cu
 - Feature PR: #335.
 - Final head: `f8524a7a51d6c5b84bcd847da9a2a7923af34dfb`.
 - Squash merge: `44fe3af9f29b3ae0164ac5d60fc1f14137b5cea5`.
-- Merged at: `2026-07-14T14:35:43Z`.
 - Lifecycle merge: `cc8b3bdc9b34fb8e6802bd1a0fc0d535de2dd9ba`.
 - Registry: 19 → 22 records.
 - Added only `engine-runtime-lifecycle`, `configuration` and `lua-runtime`.
-- No runtime, schema, generator, mapper or `protocol.yaml` change.
 - Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-bootstrap.md`.
 
 ## Source-role mapping prerequisite
@@ -203,36 +201,23 @@ TSD-002B cannot start until TSD-002A feature and lifecycle PRs are merged and cu
 - Squash merge: `09f7049401253dd38c8f34506946c2fbe287d220`.
 - Lifecycle merge: `6d368766cc47794ec0145b4b32613edaf7588adb`.
 - Source registry schema: v1 → v2.
-- Modules added/modified: 0/0.
 - Archive: `docs/agents/tasks/archive/CAN-20260714-upstream-intelligence-source-role-path-mapping.md`.
 
-# Current active package — TSD-002A
+## TSD-002A — engine foundation
 
-Task: `CAN-20260714-tibia-system-decomposition-engine-foundation`.
-
-Candidate decisions:
-
-| Candidate | Decision |
-|---|---|
-| `engine-scheduler` | `ADD_NOW` |
-| `engine-service-container` | `ADD_NOW` |
-| `lua-bindings` | `ADD_NOW` |
-| `data-registries` | `MERGE_WITH_ANOTHER_MODULE` |
-| `build-system` | `ADD_NOW` |
-| `platform-compatibility` | `MERGE_WITH_ANOTHER_MODULE` |
-
-Detailed evidence and exclusions are in `docs/agents/real-tibia/TSD_002A_ENGINE_FOUNDATION_REPORT.md`.
-
-The package increases the registry from 22 to 26 records and adds only:
-
-```text
-build-system
-engine-scheduler
-engine-service-container
-lua-bindings
-```
-
-It does not modify `player-persistence`, database paths, runtime code, workflow behavior or source-role mapping implementation.
+- Task: `CAN-20260714-tibia-system-decomposition-engine-foundation`.
+- Feature PR: #340.
+- Task-start base: `6d368766cc47794ec0145b4b32613edaf7588adb`.
+- Final head: `4a044a0f93a23aa7c610c41d1003d5f83d7fc62c`.
+- Squash merge: `82f35c0147fdd33c8d4e70d98d003385daf61de6`.
+- Merged at: `2026-07-14T16:16:47Z`.
+- Changed files: 15.
+- Registry: 22 → 26 records.
+- Added only `build-system`, `engine-scheduler`, `engine-service-container` and `lua-bindings`.
+- Existing module records modified: 0.
+- `data-registries` and `platform-compatibility` were merged into existing boundaries rather than registered separately.
+- Final checks: Real Tibia Module Registry #132, Upstream Intelligence #160, Agent Task Ownership #986, CI #2098 and ready-state CI #2099 — success.
+- Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-engine-foundation.md`.
 
 # Oteryn migration policy
 
@@ -277,14 +262,9 @@ Migration classification belongs to TSD-013 or a later approved bounded task; it
 - no AI model with direct unrestricted runtime, Lua, economy or sanction authority;
 - no `ACTIVE_WORK.md` edits from normal TSD tasks.
 
-# Exact next operational steps
+# Exact next operational task
 
-1. Complete PR #340 from its exact live head.
-2. Verify registry, Upstream Intelligence, ownership, repository CI, review threads, mergeability and changed-file scope.
-3. Mark ready only after exact-head checks are green.
-4. Pass the ready-state Linux/Required gate and squash merge.
-5. Archive TSD-002A in a separate lifecycle-only PR.
-6. Re-read then-current main and open PR #308 before creating:
+After this lifecycle archive merges, re-read current `main`, open PRs, active tasks and ownership, especially the live state and changed paths of PR #308. Then create only:
 
 ```text
 task: CAN-20260714-tibia-system-decomposition-persistence-transactions
@@ -292,6 +272,8 @@ package: TSD-002B
 branch: docs/tibia-system-decomposition-persistence-transactions
 ```
 
+Classify `database-connection`, `database-migrations`, `transaction-boundaries`, `world-persistence`, `database-reconciliation` and `save-restart-reload` while preserving the existing `player-persistence` umbrella unless a narrower boundary is independently proven.
+
 # Handoff
 
-A new agent must read this program, TSD-001 archive/report, UI-001A archive, `TSD_002A_ENGINE_FOUNDATION_REPORT.md`, generated indexes, current registry records, active tasks and open PRs. Continue only one task/branch/PR at a time. Never infer runtime, transaction, platform or Lua safety from inventory paths or passing builds.
+A new agent must read this program, TSD-001 archive/report, UI-001A archive, the TSD-002A report/archive, generated indexes, current registry records, active tasks and open PRs. Continue only one task/branch/PR at a time. Never infer runtime, transaction, platform or Lua safety from inventory paths or passing builds.
