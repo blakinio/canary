@@ -29,8 +29,6 @@ function onUpdateDatabase()
 			logger.error("Failed to create cluster_pending_operations table.")
 			return false
 		end
-	else
-		logger.warn("Table cluster_pending_operations already exists, skipping creation")
 	end
 
 	return true
