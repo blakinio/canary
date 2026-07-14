@@ -17,6 +17,52 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
+      - name: Disambiguate first-pass transform
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("tools/ai-agent/phase8_patch_scanner_once.py")
+          text = path.read_text(encoding="utf-8")
+          old = '''replace_once(
+              """    std::vector<Context> stack;
+              stack.reserve(64);
+
+              size_t position = 4;
+          """,
+              """    std::vector<Context> stack;
+              stack.reserve(64);
+              std::optional<uint32_t> nextTilePlacementIndex;
+
+              size_t position = 4;
+          """,
+          )'''
+          new = '''replace_once(
+              """ScanData scanMap(const std::vector<uint8_t>& data) {
+              ScanData result;
+              result.header = parseMapHeader(data);
+              result.mechanics.reserve(4096);
+              std::vector<Context> stack;
+              stack.reserve(64);
+
+              size_t position = 4;
+          """,
+              """ScanData scanMap(const std::vector<uint8_t>& data) {
+              ScanData result;
+              result.header = parseMapHeader(data);
+              result.mechanics.reserve(4096);
+              std::vector<Context> stack;
+              stack.reserve(64);
+              std::optional<uint32_t> nextTilePlacementIndex;
+
+              size_t position = 4;
+          """,
+          )'''
+          if text.count(old) != 1:
+              raise SystemExit(f"transform script pattern count is {text.count(old)}, expected 1")
+          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
       - name: Apply exact scanner transform
         run: python3 tools/ai-agent/phase8_patch_scanner_once.py
       - name: Commit transformed scanner
