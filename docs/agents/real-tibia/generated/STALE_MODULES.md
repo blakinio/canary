@@ -11,6 +11,7 @@ Evaluated as of **2026-07-14**.
 | `account-lifecycle` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `achievements` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `bestiary` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `boss-encounters` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `bosstiary` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `build-system` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `character-lifecycle` | 2026-07-14 | 0 | `current` | 30 / 90 |
@@ -19,6 +20,8 @@ Evaluated as of **2026-07-14**.
 | `combat` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `combat-conditions` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `configuration` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `creature-ai` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `creature-definitions` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `cyclopedia` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `cyclopedia-character` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `database-connection` | 2026-07-14 | 0 | `current` | 30 / 90 |
@@ -39,6 +42,7 @@ Evaluated as of **2026-07-14**.
 | `prey` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `protocol` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `quests` | 2026-07-14 | 0 | `current` | 60 / 180 |
+| `raids` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `spawns` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `spells` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `titles` | 2026-07-14 | 0 | `current` | 30 / 90 |
