@@ -18,7 +18,6 @@ from otbm_geometry_audit_types import (
     Position,
     appearance_sprite_evidence,
     component_bounds,
-    in_bounds,
     load_json,
     load_rules,
     normalize_bounds,
@@ -205,11 +204,8 @@ def analyze_geometry(
 
     with WorldIndex(index_file) as index:
         index_provenance = _validate_index_manifest(index_file, manifest_file, index)
-        for tile_index in range(index.header.tile_count):
-            tile = index.tile(tile_index)
+        for tile_index, tile in index.iter_region_tiles(lower, upper):
             position: Position = (tile.x, tile.y, tile.z)
-            if not in_bounds(position, lower, upper):
-                continue
             if position in tiles:
                 raise GeometryAuditError(f"world index exposes duplicate tile position in selected scope: {position}")
             placements = [
