@@ -19,7 +19,7 @@ The stack reuses the existing native OTBM scanner, World Index, script resolver,
 | 2 | Quest Map Validator | merged and archived | #225 / #236 |
 | 3 | Teleports, floor transitions and reachability | merged and archived | #274 / #277 |
 | 4 | Spawns, bosses and NPCs | merged and archived | #286 / #290 |
-| 5 | Storage dependency graph | active draft | #299 |
+| 5 | Storage dependency graph | merged and archived | #299 / #309 |
 | 6 | Semantic OTBM diff and visual evidence | not started | separate future task |
 | 7 | Geometry and consistency audit | not started | separate future task |
 | 8 | Safe bounded OTBM patch writer | blocked by Phases 6–7 safety gates | separate future task |
@@ -216,9 +216,9 @@ Head `40ce55b791e11b2344a7c9662675ab4e3e15f31f`:
 
 ## Phase 5 — Storage dependency graph
 
-### Active delivery
+### Delivery
 
-Draft PR #299 adds:
+Merged PR #299 delivered:
 
 - report `canary-otbm-storage-graph-v1`;
 - public facade and focused internal modules `tools/ai-agent/otbm_storage_graph*.py`;
@@ -227,6 +227,10 @@ Draft PR #299 adds:
 - documentation `docs/ai-agent/OTBM_STORAGE_GRAPH.md`;
 - evidence-boundary ADR;
 - dedicated workflow `.github/workflows/otbm-storage-graph.yml`.
+
+Final feature head: `b1e19e179eb32199cc6e14e68becd9cc99c91fca`.  
+Squash merge: `c7ecb321681d6c4dd80b23b380bd211062f52c90`.  
+Lifecycle cleanup: #309 (merge pending).
 
 ### Source-selection and namespace policy
 
@@ -270,9 +274,9 @@ Nested explicit branches may retain exact outer prerequisites. Source proximity 
 
 Output is bounded and deterministic. Core graph limits fail closed; sampled findings/unresolved lists retain exact totals. Writes are atomic, existing output requires explicit overwrite and symlink outputs are rejected.
 
-### Initial workflow smoke
+### Final workflow smoke
 
-The first dedicated-workflow smoke on The Beginning/Zirella selected source evidence produced:
+The dedicated-workflow smoke on The Beginning/Zirella selected source evidence produced:
 
 ```text
 files: 1
@@ -378,7 +382,7 @@ Existing older patch surfaces do not authorize production-map edits. Phase 8 sho
 
 ## Programme handoff
 
-Phases 1–4 are merged and archived. Phase 5 is isolated in draft PR #299 and must be merged and archived before Phase 6 starts.
+Phases 1–5 are merged and archived. Phase 6 may start only from the then-current `main` after a fresh open-PR, active-task, ownership and existing-tool search.
 
 Phase 5 reuses:
 
@@ -386,4 +390,4 @@ Phase 5 reuses:
 2. `canary-otbm-reachability-v1` from Phase 3 where coordinate/geometry evidence is supplied;
 3. `canary-otbm-spawn-npc-evidence-v1` and `canary-otbm-spawn-npc-validation-v1` from Phase 4.
 
-Do not combine Phase 5 with Harlow cleanup, `0,0,0` teleport repair, semantic map diff, geometry audit or map writing. After #299 is merged and archived, start Phase 6 only from then-current `main` after a fresh ownership and PR search.
+Do not reopen #299 or continue `feat/otbm-storage-dependency-graph`. Do not combine Phase 6 with Harlow cleanup, `0,0,0` teleport repair, geometry audit or map writing.
