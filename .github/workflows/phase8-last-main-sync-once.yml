@@ -1,0 +1,33 @@
+name: Phase 8 latest main sync
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          show-progress: false
+      - name: Merge exact latest main without conflict tolerance
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = "d061dbe72265c89df9ab683717b18b598a106964"
+          git merge --no-edit --no-ff origin/main
+          rm .github/workflows/phase8-last-main-sync-once.yml
+          git add -A
+          git commit --amend --no-edit
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
