@@ -2,13 +2,16 @@
 task_id: CAN-20260713-imbuement-direct-access-guard
 status: completed
 agent: "GPT-5.6 Thinking"
+agent_archive_status: archived
 branch: fix/imbuement-direct-access-guard
 cleanup_branch: docs/archive-imbuement-direct-access-guard
 base_branch: main
 created: 2026-07-13T15:55:00+02:00
 completed: 2026-07-13
+archived: 2026-07-14
 last_verified_commit: "cf93781d2f9c0bdfcf89bb96490d15f79a51feee"
 merge_commit: "6e92ca68dbabd76acef6331ba8b77b1843dc2bc3"
+cleanup_merge_commit: "6fb9c65d3e8b9105e65515dc2b03827a06753eb0"
 risk: medium
 related_pr: "#282"
 cleanup_pr: "#285"
@@ -29,9 +32,11 @@ PR #282 added a deterministic server-side guard before any direct-application or
 - Feature PR: #282.
 - Feature branch: `fix/imbuement-direct-access-guard`.
 - Final feature head: `cf93781d2f9c0bdfcf89bb96490d15f79a51feee`.
-- Squash merge: `6e92ca68dbabd76acef6331ba8b77b1843dc2bc3`.
+- Feature squash merge: `6e92ca68dbabd76acef6331ba8b77b1843dc2bc3`.
 - Cleanup PR: #285.
-- Final changed-file count: 7.
+- Cleanup squash merge: `6fb9c65d3e8b9105e65515dc2b03827a06753eb0`.
+- Final changed-file count for the feature PR: 7.
+- Cleanup moved the completed task from `docs/agents/tasks/active/` to this archive path.
 - No XML value, map, asset, item binary, protocol shape, database schema, client, production configuration, workflow or `docs/agents/ACTIVE_WORK.md` change remained in the feature diff.
 - PR conversation/review threads: none.
 
@@ -70,7 +75,7 @@ PR #282 added a deterministic server-side guard before any direct-application or
 
 # Final validation
 
-Final head: `cf93781d2f9c0bdfcf89bb96490d15f79a51feee`.
+Final feature head: `cf93781d2f9c0bdfcf89bb96490d15f79a51feee`.
 
 ## Focused workflows
 
@@ -105,6 +110,17 @@ Artifact `linux-debug-test-logs` ID `8290937317` recorded:
 - `ImbuementsUnitTest.DirectAccessPolicyEnforcesPremiumAndStorageWithoutChangingScrollEntitlement`: passed;
 - the existing fees, Strike, Punch, Vibrancy scroll resolution and scroll atomicity tests remained green.
 
+## Cleanup validation
+
+Cleanup PR #285 final head `df1d1b187c4f6ebb19e77d991c3b8113934cac16` passed:
+
+- Imbuement Validation run `29280448800`: success;
+- Agent Task Ownership run `29280448132`: success;
+- post-ready CI run `29280492122`: success;
+- Detect Build Scope, Fast Checks, Lua Tests and Linux Release: success;
+- `Required`: success;
+- unrelated macOS, Windows and Docker jobs were correctly skipped for the documentation-only scope.
+
 # Evidence boundary
 
 This task proves deterministic policy behavior, authoritative server-side guard placement, compilation, Canary startup smoke, schema import and automated C++ regression coverage. Physical-client crafted-packet E2E and production database persistence remain separate runtime evidence; no known defect remains in the audited direct-access path.
@@ -116,13 +132,24 @@ The execution environment could not resolve `github.com`, so no local checkout/b
 # Failed approaches and operational notes
 
 - Initial implementation/report commits created by `github-actions[bot]` produced `action_required` PR workflow states; a subsequent authorized GitHub API commit established the final verifiable head.
-- Autofix produced one formatting-only commit for the new policy header; final authenticated task metadata commit moved the final head to `cf93781d...`.
-- Auto-merge could not be enabled because GitHub reported the PR as already `clean`; the PR was squash-merged with expected-head SHA protection.
+- Autofix produced one formatting-only commit for the new policy header; final authenticated task metadata commit moved the final feature head to `cf93781d...`.
+- Auto-merge could not be enabled because GitHub reported both PRs as already `clean`; the PRs were squash-merged with expected-head SHA protection.
 
 # Remaining work
 
-None for this bounded dry-test finding after cleanup PR #285 is merged.
+None for this bounded dry-test finding.
+
+A physical-client crafted-packet test or production-database persistence test may be opened only as a new, separately owned runtime task. It is not an unfinished part of this archived task.
 
 # Handoff
 
-Use `docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md` and `docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json` as the current handoff. Do not remove the server-side premium/storage guard, and keep already-created scroll use as the separate entitlement path unless real Tibia evidence requires a different model.
+Use `docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md` and `docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json` as the current technical handoff. Do not remove the server-side premium/storage guard, and keep already-created scroll use as the separate entitlement path unless real Tibia evidence requires a different model.
+
+# Agent self-archive
+
+- The complete work record is saved in this file.
+- `agent_archive_status` is `archived`.
+- `owned_paths` is empty.
+- No active task file remains for `CAN-20260713-imbuement-direct-access-guard`.
+- No background or deferred work is running.
+- Any continuation must start as a new task with a fresh ownership declaration and current-`main` preflight.
