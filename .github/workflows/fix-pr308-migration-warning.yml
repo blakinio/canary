@@ -1,0 +1,75 @@
+name: Fix PR308 migration idempotency warning
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/fix-pr308-migration-warning.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out handoff branch
+        uses: actions/checkout@v6
+        with:
+          ref: claude/canary-cross-process-handoff
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Remove false-positive migration warning
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          migration_path = Path("data-otservbr-global/migrations/63.lua")
+          migration = migration_path.read_text(encoding="utf-8")
+          old = '''\telse
+\t\tlogger.warn("Table cluster_pending_operations already exists, skipping creation")
+\tend
+'''
+          new = '''\tend
+'''
+          if migration.count(old) != 1:
+              raise SystemExit("expected one idempotency warning branch")
+          migration_path.write_text(migration.replace(old, new, 1), encoding="utf-8")
+
+          task_path = Path("docs/agents/tasks/active/CAN-20260714-cross-process-db-row-handoff.md")
+          task = task_path.read_text(encoding="utf-8")
+          task = task.replace("updated: 2026-07-14T09:20:00Z", "updated: 2026-07-14T10:20:00Z")
+          note = '''
+
+## 2026-07-14T10:20:00Z
+
+- CI repair: removed the warning emitted when migration 63 finds `cluster_pending_operations` already present. A fresh installation imports the table from `schema.sql` before migrations run, so the existing-table branch is expected idempotent behavior rather than an operational warning.
+- Evidence: Linux release global smoke on run `29314068802` started Canary successfully but `--fail-on-warnings` rejected exactly `Table cluster_pending_operations already exists, skipping creation`.
+- Safety: the migration still creates the table when absent and still fails on a real `CREATE TABLE` error; only the false-positive severity/output was removed.
+- Validation pending: current-head schema check and full CI matrix. The explicit no-merge-without-`yes, merge #308` hold remains unchanged.
+'''
+          if "CI repair: removed the warning emitted when migration 63" not in task:
+              task = task.rstrip() + note + "\n"
+          task_path.write_text(task, encoding="utf-8")
+
+          Path(".github/workflows/fix-pr308-migration-warning.yml").unlink()
+          PY
+
+      - name: Validate focused change
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y luajit
+          luajit -b data-otservbr-global/migrations/63.lua /tmp/migration63.luac
+          git diff --check
+          ! grep -n 'already exists, skipping creation' data-otservbr-global/migrations/63.lua
+
+      - name: Commit migration repair
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(db): keep handoff migration idempotency warning-free"
+          git push origin HEAD:claude/canary-cross-process-handoff
