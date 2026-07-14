@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: fix/upstream-intelligence-source-role-path-mapping
 base_branch: main
 created: 2026-07-14T16:42:00+02:00
-updated: 2026-07-14T16:57:00+02:00
-last_verified_commit: "e8a86d1b95c0ca88b6ebc992a5f99a38679eac60"
+updated: 2026-07-14T17:10:00+02:00
+last_verified_commit: "21e54186cef2825b91222fcf420ec4689fbf10d5"
 risk: low
 related_issue: ""
 related_pr: "337"
@@ -33,6 +33,7 @@ owned_paths:
     - docs/agents/upstream/TRIAGE_POLICY.md
     - tools/agents/test_upstream_intelligence.py
     - tools/agents/test_upstream_intelligence_decomposition.py
+    - docs/agents/MODULE_CATALOG.md
     - docs/agents/CHANGELOG.md
   read_only:
     - AGENTS.md
@@ -58,7 +59,7 @@ reuses:
   - existing Upstream Intelligence mapper
   - existing Real Tibia registry path buckets
 public_interfaces:
-  - source registry module_mapping.path_buckets policy
+  - source registry v2 module_mapping.path_buckets policy
   - source-aware map_candidate contract
 cross_repo_tasks: []
 ---
@@ -82,22 +83,22 @@ Make the existing Upstream Intelligence module mapper source-role-aware so exter
 
 PR #335 removed the incorrect test expectation but intentionally did not change the mapper or `protocol.yaml`.
 
-# Selected design
+# Delivered design
 
-The existing Upstream Intelligence source registry now carries one explicit policy per watched source:
+The existing Upstream Intelligence source registry was upgraded atomically to schema version 2 and now carries one explicit policy per watched source:
 
 ```text
 module_mapping.path_buckets
 ```
 
-The existing mapper receives the source record and keeps only matches from those buckets. No repository-name checks are hardcoded in mapping code.
+The existing mapper receives the configured source record and keeps only matches from those buckets. No repository-name checks are hardcoded in mapping code, no second registry or mapper exists, and the Real Tibia registry API remains unchanged.
 
 Policy constraints:
 
-- `upstream-server` and `donor-server`: may use `server`, `data`, `tests`, `docs`; never `client`;
-- `upstream-client`: may use `client`, `data`, `tests`, `docs`; never `server`;
-- `editor`: requires an explicit per-source subset; never `server`;
-- unknown role, absent source record or invalid/empty policy: map no buckets and leave changed paths explicitly unmapped;
+- `upstream-server` and `donor-server`: `server`, `data`, `tests`, `docs`; never `client`;
+- `upstream-client`: `client`, `data`, `tests`, `docs`; never `server`;
+- `editor`: explicit per-source subset of `client`, `data`, `tests`, `docs`; never `server`;
+- unknown role, absent source record or invalid/empty policy: no allowed buckets and explicit unmapped paths;
 - no fallback to every bucket.
 
 Editor evidence:
@@ -109,23 +110,23 @@ Editor evidence:
 
 - [x] Existing source registry is the only mapping-policy registry.
 - [x] Every configured source declares allowed path buckets explicitly.
+- [x] Source registry format is versioned as schema v2.
 - [x] Server roles cannot consume client buckets.
 - [x] Client role cannot consume server buckets.
 - [x] Remere's Map Editor and Client Editor have separately justified policies.
 - [x] Unknown/unsupported role maps conservatively to no modules and explicit unmapped paths.
-- [x] Existing mapper remains discovery-only and deterministic by construction.
+- [x] Existing mapper remains discovery-only and deterministic.
 - [x] `triage_status: needs-triage` and `decision_state` remain unchanged by mapping.
 - [x] One path can still map to several modules inside allowed buckets.
 - [x] Focused tests assert both valid matches and absence of invalid matches.
 - [x] Source schema and domain validation reject unsafe role/bucket combinations.
-- [ ] Upstream Intelligence validation and all focused tests pass.
-- [ ] Real Tibia registry validation/generation remain unchanged and pass.
-- [ ] Required current-head CI, ownership and review gates pass.
+- [x] Upstream Intelligence focused tests, source validation and Real Tibia registry integration passed on implementation head `9820615f76d9892f645b21748feaa610cafe78f1` in run #122.
+- [ ] Required current-head CI, ownership and review gates pass on the final live PR head.
 - [x] No module, `protocol.yaml`, gameplay, runtime, protocol implementation, client, DB, map, OTBM, datapack, asset, watcher or E2E change.
 
-# Required focused cases
+# Focused test matrix
 
-Covered by `test_upstream_intelligence_source_roles.py` and the actual-registry decomposition regression:
+Covered by `test_upstream_intelligence_source_roles.py`, the actual-registry decomposition regression and existing scan tests:
 
 1. `upstream-server`;
 2. `donor-server`;
@@ -140,12 +141,45 @@ Covered by `test_upstream_intelligence_source_roles.py` and the actual-registry 
 11. preserved `triage_status: needs-triage`;
 12. preserved `decision_state`;
 13. no server match solely through client `src/**`;
-14. no client match solely through a server pattern.
+14. no client match solely through a server pattern;
+15. source validation rejects a server role configured with the client bucket;
+16. full scan passes the exact configured source record into the mapper.
 
-# Safety boundary
+# Validation history
 
-This task changes discovery policy only. It does not confirm any upstream candidate, alter reviewed decision semantics, create implementation branches, write external repositories, modify Real Tibia module records, or change runtime behavior.
+- First complete functional/docs head `9820615f76d9892f645b21748feaa610cafe78f1`:
+  - Upstream Intelligence #122: success;
+  - focused tests: success;
+  - source registry and decisions validation: success;
+  - Real Tibia registry `validate` and `generate --check`: success;
+  - Agent Task Ownership #949: success.
+- Source registry was then explicitly versioned from v1 to v2 because the required `module_mapping` field changes the source-format contract.
+- Exact final task-record commit cannot be embedded in itself; live PR #337 metadata and current-head workflows are authoritative for readiness and merge.
+
+# Scope review
+
+Allowed implementation/configuration paths:
+
+- existing source registry and its source schema;
+- existing mapper/common/scan modules;
+- focused Upstream Intelligence tests;
+- source watch, triage, program, catalogue, changelog and task documentation.
+
+Explicitly unchanged:
+
+- Real Tibia module records, categories, schemas, generator and generated indexes;
+- `protocol.yaml`;
+- Upstream Intelligence workflow and watcher collection behavior;
+- candidate and snapshot schemas;
+- gameplay/runtime/C++/Lua/protocol implementation/client/DB/map/OTBM/datapack/assets/E2E;
+- external repositories and `ACTIVE_WORK.md`.
+
+# Known limitations
+
+- Bucket policy assumes external paths are meaningfully comparable to the corresponding local server/client/data/test/doc namespace; non-corresponding editor paths remain unmapped rather than guessed.
+- Mapping remains path-based discovery and cannot establish semantic equivalence, a local defect, compatibility, ownership or parity.
+- Source policy changes require an explicit source-registry update and validation; there is no heuristic repository-name fallback.
 
 # Handoff
 
-After this feature PR is merged, create a separate lifecycle-only archive PR. Only after that archive merges may TSD-002 start from then-current `main`.
+After PR #337 passes exact current-head checks, review threads and changed-file scope, mark ready and squash merge. Then create a separate lifecycle-only archive PR for this task. Only after that archive merges may TSD-002 start from then-current `main`.
