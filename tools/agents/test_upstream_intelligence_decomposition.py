@@ -26,6 +26,10 @@ class UpstreamIntelligenceDecompositionTests(unittest.TestCase):
                 "src/lua/scripts/lua_environment.hpp",
                 "src/canary_server.cpp",
                 "src/config/configmanager.cpp",
+                "src/lua/functions/lua_functions_loader.cpp",
+                "src/game/scheduling/dispatcher.cpp",
+                "src/lib/di/container.hpp",
+                "CMakeLists.txt",
             ],
             "module_ids": [],
             "mapped_paths": [],
@@ -38,9 +42,16 @@ class UpstreamIntelligenceDecompositionTests(unittest.TestCase):
 
         self.assertEqual(candidate["mapping_state"], "mapped")
         self.assertEqual(candidate["module_ids"], sorted(candidate["module_ids"]))
-        self.assertIn("engine-runtime-lifecycle", candidate["module_ids"])
-        self.assertIn("configuration", candidate["module_ids"])
-        self.assertIn("lua-runtime", candidate["module_ids"])
+        for expected in (
+            "build-system",
+            "configuration",
+            "engine-runtime-lifecycle",
+            "engine-scheduler",
+            "engine-service-container",
+            "lua-bindings",
+            "lua-runtime",
+        ):
+            self.assertIn(expected, candidate["module_ids"])
         self.assertNotIn("protocol", candidate["module_ids"])
         self.assertFalse(
             any(row["bucket"] == "client" for row in candidate["mapped_paths"])
@@ -57,6 +68,7 @@ class UpstreamIntelligenceDecompositionTests(unittest.TestCase):
                 ),
             ),
         )
+        self.assertEqual(candidate["unmapped_paths"], [])
         self.assertEqual(candidate["triage_status"], "needs-triage")
         self.assertEqual(candidate["decision_state"], "none")
 
