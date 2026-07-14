@@ -1,0 +1,151 @@
+---
+name: Targuna donor isolation audit
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/targuna-donor-isolation-audit.yml"
+      - ".github/scripts/targuna_donor_isolation_audit.py"
+      - "docs/agents/tasks/active/CAN-20260714-targuna-donor-isolation.md"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: targuna-donor-isolation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Isolate bounded Targuna donor clusters
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      BASELINE_SHA256: a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2
+      BASELINE_SIZE: "184776037"
+      CRYSTAL_SOURCE_SHA256: 3bd40d14fefec41f24c4b3ae879e420be1a831ef55b95dcbec721e587a09b034
+      CRYSTAL_LOGICAL_SHA256: 4b2099f38df05d4be68d1ba1265754e9fd6da09742025d92644fa4b1a12eb120
+      CRYSTAL_SHA: fc0d53b9f9965463b6082c07e6d3d482294541a7
+      CANARY_SHA: d88e7f354eb5b33068cdded7696e9cdb89b05268
+
+    steps:
+      - name: Checkout Canary audit branch
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout pinned CrystalServer with LFS
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          repository: zimbadev/crystalserver
+          ref: ${{ env.CRYSTAL_SHA }}
+          path: external/crystalserver
+          fetch-depth: 1
+          lfs: true
+          persist-credentials: false
+
+      - name: Materialize and verify exact source maps
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audit/maps audit/index audit/output
+
+          map_url="$(
+            grep -E '^mapDownloadUrl[[:space:]]*=' config.lua.dist \
+              | sed -E 's/.*"([^"]+)".*/\1/'
+          )"
+          test -n "${map_url}"
+          printf '%s\n' "${map_url}" > audit/output/baseline-map-url.txt
+          curl --fail --location --retry 5 --retry-all-errors \
+            --output audit/maps/baseline.otbm "${map_url}"
+
+          git -C external/crystalserver lfs install --local
+          git -C external/crystalserver lfs pull
+          cp external/crystalserver/data-global/world/world.otbm \
+            audit/maps/crystal-source.bin
+
+          baseline_size="$(stat -c '%s' audit/maps/baseline.otbm)"
+          baseline_sha="$(sha256sum audit/maps/baseline.otbm | cut -d' ' -f1)"
+          crystal_source_sha="$(sha256sum audit/maps/crystal-source.bin | cut -d' ' -f1)"
+          crystal_magic="$(od -An -tx1 -N2 audit/maps/crystal-source.bin | tr -d ' \n')"
+
+          test "${baseline_size}" = "${BASELINE_SIZE}"
+          test "${baseline_sha}" = "${BASELINE_SHA256}"
+          test "${crystal_source_sha}" = "${CRYSTAL_SOURCE_SHA256}"
+          test "${crystal_magic}" = "1f8b"
+
+          gzip --decompress --stdout audit/maps/crystal-source.bin \
+            > audit/maps/crystal.otbm
+          crystal_size="$(stat -c '%s' audit/maps/crystal.otbm)"
+          crystal_sha="$(sha256sum audit/maps/crystal.otbm | cut -d' ' -f1)"
+          test "${crystal_sha}" = "${CRYSTAL_LOGICAL_SHA256}"
+
+          {
+            echo "canary_commit=${CANARY_SHA}"
+            echo "crystal_commit=${CRYSTAL_SHA}"
+            echo "baseline_size=${baseline_size}"
+            echo "baseline_sha256=${baseline_sha}"
+            echo "crystal_source_sha256=${crystal_source_sha}"
+            echo "crystal_logical_size=${crystal_size}"
+            echo "crystal_logical_sha256=${crystal_sha}"
+          } | tee audit/output/source-provenance.env
+
+      - name: Compile existing native scanner
+        shell: bash
+        run: |
+          set -euo pipefail
+          c++ -O2 -std=c++20 -Wall -Wextra -Wpedantic -Werror \
+            tools/ai-agent/otbm_item_audit_scan.cpp \
+            -o audit/otbm_item_audit_scan
+
+      - name: Build both canonical World Indexes
+        shell: bash
+        run: |
+          set -euo pipefail
+          /usr/bin/time -v python3 tools/ai-agent/otbm_world_index_tool.py build \
+            audit/maps/baseline.otbm \
+            --scanner audit/otbm_item_audit_scan \
+            --output audit/index/baseline.widx \
+            --manifest audit/output/baseline.widx.json \
+            2> audit/output/baseline-index-time.txt
+
+          /usr/bin/time -v python3 tools/ai-agent/otbm_world_index_tool.py build \
+            audit/maps/crystal.otbm \
+            --scanner audit/otbm_item_audit_scan \
+            --output audit/index/crystal.widx \
+            --manifest audit/output/crystal.widx.json \
+            2> audit/output/crystal-index-time.txt
+
+      - name: Scan pinned Crystal actor and spawn evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=tools/ai-agent \
+          python3 tools/ai-agent/otbm_spawn_npc_tool.py scan \
+            --datapack-root external/crystalserver/data-global \
+            --monster-spawn world/world-monster.xml \
+            --npc-spawn world/world-npc.xml \
+            --monster-definition-glob 'monster/**/*.lua' \
+            --npc-definition-glob 'npc/**/*.lua' \
+            --dynamic-glob 'scripts/**/*.lua' \
+            --sample-limit 10000 \
+            --output audit/output/crystal-spawn-npc-evidence.json
+
+      - name: Derive clusters and run bounded semantic diffs
+        shell: bash
+        run: |
+          set -euo pipefail
+          /usr/bin/time -v \
+            python3 .github/scripts/targuna_donor_isolation_audit.py \
+            2> audit/output/targuna-audit-time.txt
+
+      - name: Upload bounded evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: targuna-donor-isolation-audit
+          path: audit/output/
+          if-no-files-found: error
+          retention-days: 14
