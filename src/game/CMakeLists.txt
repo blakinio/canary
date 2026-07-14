@@ -28,6 +28,9 @@ target_sources(
             multichannel/economic_ledger_store.cpp
             multichannel/engine_position_legality.cpp
             multichannel/position_serialization.cpp
+            multichannel/db_cluster_pending_operation_repository.cpp
+            multichannel/db_cluster_record_ownership_resolver.cpp
+            multichannel/cluster_record_handoff.cpp
 )
 
 if(FEATURE_MULTICHANNEL_REDIS)

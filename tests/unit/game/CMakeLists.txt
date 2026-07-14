@@ -29,4 +29,5 @@ target_sources(
             multichannel/idempotency_test.cpp
             multichannel/economic_ledger_id_test.cpp
             multichannel/cluster_job_leadership_registry_test.cpp
+            multichannel/cluster_record_handoff_test.cpp
 )
