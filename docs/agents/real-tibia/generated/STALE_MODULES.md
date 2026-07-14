@@ -13,6 +13,8 @@ Evaluated as of **2026-07-14**.
 | `combat` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `configuration` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `cyclopedia` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `database-connection` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `database-migrations` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `engine-runtime-lifecycle` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `engine-scheduler` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `engine-service-container` | 2026-07-14 | 0 | `current` | 30 / 90 |
@@ -33,5 +35,6 @@ Evaluated as of **2026-07-14**.
 | `spells` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `upstream-intelligence` | 2026-07-14 | 0 | `current` | 14 / 45 |
 | `wheel-of-destiny` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `world-persistence` | 2026-07-14 | 0 | `current` | 30 / 90 |
 
 A stale inventory remains historical evidence, but it must not be presented as current-main proof.
