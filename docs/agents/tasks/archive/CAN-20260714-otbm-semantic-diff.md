@@ -12,7 +12,7 @@ completed: 2026-07-14T10:17:03+02:00
 last_verified_commit: "5ae3141d6809b7a046b95922b304f905f7c636b2"
 risk: medium
 related_issue: ""
-related_pr: "#311 / lifecycle PR pending"
+related_pr: "#311 / #315"
 depends_on:
   - "merged and archived Unified OTBM World Index #219/#223"
   - "merged and archived Quest Map Validator #225/#236"
@@ -88,7 +88,7 @@ Phase 6 feature PR #311 was squash-merged into `main`.
 - Auto-merge: enabled after the final Required check succeeded; GitHub completed the squash merge.
 - Rollback: revert `4ab2dd2d72e3f55badfd45d76dd9f59d65c22f5a`; no map, persistence, asset or generated-artifact cleanup is required.
 - Lifecycle branch: `docs/archive-otbm-semantic-diff`.
-- Lifecycle cleanup PR: pending creation; update this record before merge.
+- Lifecycle cleanup PR: #315.
 
 # Delivered contracts and evidence boundary
 
@@ -196,7 +196,7 @@ No private map, WIDX, appearances binary, client asset, generated report or rend
 - [x] Verify the exact 14-file feature diff.
 - [x] Pass final ready-state CI and Required.
 - [x] Confirm zero review threads, enable auto-merge and squash-merge PR #311.
-- [x] Move this record from `tasks/active` to `tasks/archive` in a separate lifecycle branch.
+- [x] Move this record from `tasks/active` to `tasks/archive` in separate lifecycle PR #315.
 
 # Work log
 
@@ -205,8 +205,8 @@ No private map, WIDX, appearances binary, client asset, generated report or rend
 - 2026-07-14: diagnosed and fixed workflow-discovered fixture/API issues without weakening the production evidence boundary.
 - 2026-07-14: synchronized with advancing `main`, preserved the exact 14-file scope and verified all final checks.
 - 2026-07-14: enabled auto-merge after Required and completed squash merge `4ab2dd2d72e3f55badfd45d76dd9f59d65c22f5a`.
-- 2026-07-14: created the separate lifecycle branch and moved the task record to archive.
+- 2026-07-14: created separate lifecycle PR #315 and moved the task record to archive.
 
 # Handoff
 
-Phase 6 implementation is complete. Do not reopen #311 or continue `feat/otbm-semantic-diff`. Do not create another parser, World Index, resolver, pathfinder or renderer. Phase 7 is the exact next planned programme phase, but it must not start until this lifecycle PR is merged and a fresh main/open-PR/active-task/ownership preflight is complete.
+Phase 6 implementation is complete. Do not reopen #311 or continue `feat/otbm-semantic-diff`. Do not create another parser, World Index, resolver, pathfinder or renderer. Phase 7 is the exact next planned programme phase, but it must not start until lifecycle PR #315 is merged and a fresh main/open-PR/active-task/ownership preflight is complete.
