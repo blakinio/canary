@@ -4,8 +4,8 @@ name: Upstream Intelligence and Drift Tracking
 status: active
 owner: repository-wide
 created: 2026-07-14T13:20:00+02:00
-updated: 2026-07-14T17:02:00+02:00
-last_verified_commit: "cc8b3bdc9b34fb8e6802bd1a0fc0d535de2dd9ba"
+updated: 2026-07-14T17:22:00+02:00
+last_verified_commit: "09f7049401253dd38c8f34506946c2fbe287d220"
 primary_paths:
   - docs/agents/upstream/**
   - tools/agents/upstream_intelligence*.py
@@ -80,7 +80,7 @@ optional bounded local task and PR
 | ID | Scope | Status | Evidence baseline | Exact next action |
 |---|---|---|---|---|
 | UI-001 | Read-only source registry, schemas, scanner, reports, workflow and policies | merged | PR #331; feature head `f9a159a0ba55aca047160c77dea017549c69512f`; merge `73d1408176ef69abddde475cee5e0642ed4a69e9` | preserve contracts; do not reopen the feature branch |
-| UI-001A | Source-role-aware module path mapping | active | TSD-001 finding; `main@cc8b3bdc9b34fb8e6802bd1a0fc0d535de2dd9ba`; PR #337 | finish focused positive/negative tests, current-head CI, squash merge and lifecycle archive |
+| UI-001A | Source-role-aware module path mapping | completed | PR #337; feature head `f8a501a3362ae42079e899b03848a606f7224626`; merge `09f7049401253dd38c8f34506946c2fbe287d220` | archived by lifecycle-only PR; preserve source registry v2 and focused negative regressions |
 | UI-002 | First production scan and report-issue verification | planned | merged UI-001 plus UI-001A mapping policy | verify the next scheduled or manually dispatched `main` scan, immutable artifact and stable report issue |
 | UI-003 | Reviewed candidate bootstrap | blocked-by-UI-002 | first valid deep snapshot | triage only high/urgent candidates into revision-pinned decisions |
 | UI-004 | Patch-equivalence research | planned | proven need after several scans | design separately; do not infer equivalence from commit count |
@@ -88,30 +88,50 @@ optional bounded local task and PR
 
 # Delivery evidence
 
-UI-001 was delivered by task `CAN-20260714-upstream-intelligence-drift-tracking` and PR #331.
+## UI-001 — drift tracking foundation
 
+- task: `CAN-20260714-upstream-intelligence-drift-tracking`;
+- feature PR: #331;
 - final feature head: `f9a159a0ba55aca047160c77dea017549c69512f`;
 - squash merge: `73d1408176ef69abddde475cee5e0642ed4a69e9`;
 - Upstream Intelligence run `29334363187`, job `87089794471`: success;
 - ready-state CI run `29334504937`: success;
-- Lua Tests `87090270716`, Fast Checks `87090270745`, Linux release `87090597075`, Required `87092023511`: success;
 - archived task: `docs/agents/tasks/archive/CAN-20260714-upstream-intelligence-drift-tracking.md`.
 
-# Current active task
+## UI-001A — source-role-aware module mapping
 
-`CAN-20260714-upstream-intelligence-source-role-path-mapping` / PR #337.
+- task: `CAN-20260714-upstream-intelligence-source-role-path-mapping`;
+- feature PR: #337;
+- task-start base: `cc8b3bdc9b34fb8e6802bd1a0fc0d535de2dd9ba`;
+- final feature head: `f8a501a3362ae42079e899b03848a606f7224626`;
+- squash merge: `09f7049401253dd38c8f34506946c2fbe287d220`;
+- merged at: `2026-07-14T15:19:27Z`;
+- changed files: 15;
+- modules added/modified: 0/0;
+- source registry schema: v1 → v2;
+- Upstream Intelligence #129: success;
+- Agent Task Ownership #954: success;
+- repository CI #2064: success;
+- ready-state repository CI #2065: success;
+- ready-state Lua Tests, Fast Checks, Linux release and Required: success;
+- PR comments, reviews requesting changes and unresolved review threads: none;
+- archive: `docs/agents/tasks/archive/CAN-20260714-upstream-intelligence-source-role-path-mapping.md`.
 
-The task repairs only discovery mapping:
+# Completed UI-001A contract
 
-- keep one source registry and one mapper;
-- configure explicit bucket policies per source;
-- reject role-incompatible policies;
-- keep unsupported or missing source context explicitly unmapped;
-- preserve deterministic output, `needs-triage`, decision state and external read-only boundaries;
-- add no modules and do not change `protocol.yaml` or runtime.
+The existing source registry is the only source-policy registry and the existing mapper is the only mapper.
 
-The task blocks TSD-002 until both its feature and lifecycle PRs are merged.
+- upstream/donor server sources cannot consume client buckets;
+- upstream client sources cannot consume server buckets;
+- editor sources use explicit per-source policies;
+- missing, invalid or unsupported source context maps no modules and leaves explicit unmapped paths;
+- output remains deterministic;
+- `triage_status` and `decision_state` remain unchanged by mapping;
+- reviewed decisions remain revision-pinned;
+- external repositories remain read-only.
+
+The task changed no Real Tibia module records, `protocol.yaml`, runtime, gameplay, protocol implementation, client, DB, map, OTBM, datapack, assets, E2E or workflow collection behavior.
 
 # Handoff
 
-Finish PR #337 from its exact live head. Validate all Upstream Intelligence tests, source schema, Real Tibia registry integration, ownership and required repository CI. After squash merge, archive the task in a separate lifecycle-only PR. Do not start TSD-002 before that archive is merged.
+UI-001A is completed and archived. The Tibia System Decomposition program may now begin TSD-002 from then-current `main` after this lifecycle PR merges. UI-002 remains a separate planned Upstream Intelligence task and is not part of TSD-002.
