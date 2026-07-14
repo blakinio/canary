@@ -56,7 +56,7 @@
   "source_requirements": [
     {"source": "canary-current", "mode": "required"},
     {"source": "tibia-official", "mode": "required-when-parity"},
-    {"source": "maintained-client", "mode": "required-when-protocol"}
+    {"source": "maintained-otclient", "mode": "required-when-related"}
   ],
   "maturity": {
     "implementation": "inventory",
