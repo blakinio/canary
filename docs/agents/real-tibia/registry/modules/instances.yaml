@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "module_id": "instances",
+  "name": "World Instances",
+  "category": "world-content",
+  "description": "Configured map-region allocation, instance state, creature ownership isolation, cleanup and expiration discovery.",
+  "lifecycle": {"status": "inventory", "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"},
+  "scope": {
+    "includes": ["instance id and configured map-region pool", "Creating, Active, Closing and Destroyed state transitions", "region reservation and release", "stable creature-id registration and ownership isolation", "summon ownership inheritance", "cleanup callback, quarantine and expiration lifecycle", "bounded arena service consumer"],
+    "excludes": ["generic map loading and movement", "quest or boss encounter design", "dynamic map generation", "physical-client scenario orchestration", "proof of complete visibility, targeting, combat or persistence isolation"]
+  },
+  "paths": {
+    "server": ["src/game/instance/**"],
+    "client": [],
+    "data": [],
+    "tests": ["tests/unit/game/instance/**"],
+    "docs": ["docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md", "docs/agents/real-tibia/TSD_008_WORLD_CONTENT_REPORT.md"]
+  },
+  "relationships": {
+    "depends_on": ["world-map-runtime"],
+    "interacts_with": ["combat", "creature-ai", "engine-scheduler", "physical-client-e2e", "quests", "spawns", "world-zones"]
+  },
+  "documents": {"program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md", "validation": ["docs/agents/real-tibia/TSD_008_WORLD_CONTENT_REPORT.md"]},
+  "source_requirements": [{"source": "canary-current", "mode": "required"}, {"source": "runtime-observation", "mode": "required-when-related"}],
+  "maturity": {"implementation": "inventory", "evidence": "inventory", "persistence": "not-assessed", "protocol": "not-assessed", "automated_tests": "not-assessed", "runtime_validation": "not-assessed", "gameplay_e2e": "not-assessed"},
+  "freshness": {"class": "fast", "last_inventory": "2026-07-14", "warning_after_days": 30, "invalid_after_days": 90, "refresh_before_each_task": true},
+  "notes": ["Unit coverage supports inventory of state transitions and region ownership, not production isolation or physical-client E2E.", "This record reuses the existing InstanceManager foundation and does not introduce a second orchestrator or runtime implementation."]
+}

@@ -33,6 +33,7 @@ Evaluated as of **2026-07-14**.
 | `exaltation-forge` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `houses` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `imbuements` | 2026-07-14 | 0 | `current` | 60 / 180 |
+| `instances` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `item-decay` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `item-definitions` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `item-instances` | 2026-07-14 | 0 | `current` | 30 / 90 |
@@ -55,6 +56,8 @@ Evaluated as of **2026-07-14**.
 | `weapon-proficiency` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `weapons` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `wheel-of-destiny` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `world-map-runtime` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `world-persistence` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `world-zones` | 2026-07-14 | 0 | `current` | 30 / 90 |
 
 A stale inventory remains historical evidence, but it must not be presented as current-main proof.

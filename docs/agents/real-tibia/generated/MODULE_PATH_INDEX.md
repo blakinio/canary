@@ -55,6 +55,7 @@
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-runtime-lifecycle` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-scheduler` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-service-container` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `instances` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `item-decay` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `item-definitions` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `item-instances` | `docs` |
@@ -65,7 +66,9 @@
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `vocations` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `weapon-proficiency` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `weapons` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `world-map-runtime` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `world-persistence` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `world-zones` | `docs` |
 | `docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md` | `upstream-intelligence` | `docs` |
 | `docs/agents/real-tibia/TIBIA_SYSTEM_DECOMPOSITION_REPORT.md` | `configuration` | `docs` |
 | `docs/agents/real-tibia/TIBIA_SYSTEM_DECOMPOSITION_REPORT.md` | `engine-runtime-lifecycle` | `docs` |
@@ -97,6 +100,9 @@
 | `docs/agents/real-tibia/TSD_007_ITEMS_ECONOMY_REPORT.md` | `item-decay` | `docs` |
 | `docs/agents/real-tibia/TSD_007_ITEMS_ECONOMY_REPORT.md` | `item-definitions` | `docs` |
 | `docs/agents/real-tibia/TSD_007_ITEMS_ECONOMY_REPORT.md` | `item-instances` | `docs` |
+| `docs/agents/real-tibia/TSD_008_WORLD_CONTENT_REPORT.md` | `instances` | `docs` |
+| `docs/agents/real-tibia/TSD_008_WORLD_CONTENT_REPORT.md` | `world-map-runtime` | `docs` |
+| `docs/agents/real-tibia/TSD_008_WORLD_CONTENT_REPORT.md` | `world-zones` | `docs` |
 | `docs/agents/upstream/**` | `upstream-intelligence` | `docs` |
 | `docs/ai-agent/ACHIEVEMENT_POINT_RECONCILIATION.md` | `achievements` | `docs` |
 | `docs/ai-agent/CYCLOPEDIA_VALIDATION_REPORT.md` | `bestiary` | `docs` |
@@ -159,9 +165,11 @@
 | `src/game/functions/**` | `combat` | `server` |
 | `src/game/functions/forge_*` | `exaltation-forge` | `server` |
 | `src/game/game.*` | `engine-runtime-lifecycle` | `server` |
+| `src/game/instance/**` | `instances` | `server` |
 | `src/game/scheduling/dispatcher.*` | `engine-scheduler` | `server` |
 | `src/game/scheduling/save_manager.*` | `world-persistence` | `server` |
 | `src/game/scheduling/task.*` | `engine-scheduler` | `server` |
+| `src/game/zones/**` | `world-zones` | `server` |
 | `src/io/**` | `player-persistence` | `server` |
 | `src/io/functions/iologindata_load_player.cpp` | `character-lifecycle` | `server` |
 | `src/io/functions/iologindata_load_player.cpp` | `character-progression` | `server` |
@@ -175,6 +183,7 @@
 | `src/io/iohouse.*` | `houses` | `server` |
 | `src/io/iologindata.*` | `account-authentication` | `server` |
 | `src/io/iologindata.*` | `character-lifecycle` | `server` |
+| `src/io/iomap.*` | `world-map-runtime` | `server` |
 | `src/io/iomapserialize.*` | `world-persistence` | `server` |
 | `src/io/iomarket.*` | `market` | `server` |
 | `src/items/containers/**` | `containers` | `server` |
@@ -185,6 +194,7 @@
 | `src/items/functions/item/item_parse.*` | `item-definitions` | `server` |
 | `src/items/item.*` | `item-instances` | `server` |
 | `src/items/items.*` | `item-definitions` | `server` |
+| `src/items/tile.*` | `world-map-runtime` | `server` |
 | `src/items/weapons/**` | `weapons` | `server` |
 | `src/kv/**` | `world-persistence` | `server` |
 | `src/lib/di/**` | `engine-service-container` | `server` |
@@ -193,6 +203,10 @@
 | `src/lua/creature/raids.*` | `raids` | `server` |
 | `src/lua/functions/**` | `lua-bindings` | `server` |
 | `src/map/house/**` | `houses` | `server` |
+| `src/map/map.*` | `world-map-runtime` | `server` |
+| `src/map/mapcache.*` | `world-map-runtime` | `server` |
+| `src/map/spectators.*` | `world-map-runtime` | `server` |
+| `src/map/utils/**` | `world-map-runtime` | `server` |
 | `src/security/argon.*` | `account-authentication` | `server` |
 | `src/security/login_session_manager.*` | `account-authentication` | `server` |
 | `src/server/network/protocol/**` | `charms` | `server` |
@@ -218,6 +232,7 @@
 | `tests/unit/**spell**` | `spells` | `tests` |
 | `tests/unit/creatures/combat/**` | `combat` | `tests` |
 | `tests/unit/game/**` | `combat` | `tests` |
+| `tests/unit/game/instance/**` | `instances` | `tests` |
 | `tests/unit/io/**` | `character-lifecycle` | `tests` |
 | `tests/unit/io/**` | `player-persistence` | `tests` |
 | `tests/unit/lib/di/**` | `engine-service-container` | `tests` |
