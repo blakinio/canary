@@ -860,3 +860,140 @@ Lexical signals: **filesystem-derived**; manual provenance required.
 - Verify whether an existing shell-free native binding can preserve maintained-platform behavior.
 - Select a regression that proves no unintended marker command executes.
 - Do not copy CrystalServer's denylist-plus-shell construction as the final design.
+
+## Targeted integration evidence
+
+This section was generated on the exact PR head after the broad audit. Results are bounded to name validation, Lua core-library registration, Lua tests and build anchors.
+
+### Server-side name-validation symbols
+
+```text
+data/scripts/lib/register_migrations.lua:47:	if not self:_validateName() then
+data/scripts/lib/register_migrations.lua:54:function Migration:_validateName()
+src/utils/tools.cpp:1714:NameEval_t validateName(const std::string &name) {
+src/utils/tools.hpp:167:NameEval_t validateName(const std::string &name);
+tests/unit/security/login_session_manager_test.cpp:69:TEST(LoginSessionManagerTest, InvalidCharacterNameIsRejectedAndStillBurnsToken) {
+```
+
+### Tracked Lua tests
+
+```text
+tests/lua/test_achievement_helpers.lua
+tests/lua/test_exaltation_forge_premium.lua
+tests/lua/test_npc_messaging.lua
+tests/lua/test_oasis_lever_door.lua
+```
+
+### Lua test loading and FS references
+
+```text
+tests/lua/test_achievement_helpers.lua:66:dofile("data/scripts/lib/register_achievements.lua")
+tests/lua/test_exaltation_forge_premium.lua:54:dofile("data/libs/systems/exaltation_forge.lua")
+tests/lua/test_npc_messaging.lua:55:dofile("data/npclib/npc.lua")
+tests/lua/test_oasis_lever_door.lua:94:dofile("data-otservbr-global/scripts/quests/the_ancient_tombs/actions_oasis_lever_door.lua")
+```
+
+### Core library registration and filesystem candidates
+
+```text
+src/lua/functions/core/core_functions.hpp:27:		CoreLibsFunctions::init(L);
+src/lua/functions/core/libs/core_libs_functions.hpp:19:class CoreLibsFunctions final : LuaScriptInterface {
+src/lua/functions/core/libs/core_libs_functions.hpp:21:	explicit CoreLibsFunctions(lua_State* L) :
+src/lua/functions/core/libs/core_libs_functions.hpp:22:		LuaScriptInterface("CoreLibsFunctions") {
+src/lua/functions/core/libs/core_libs_functions.hpp:25:	~CoreLibsFunctions() override = default;
+src/lua/functions/core/libs/db_functions.cpp:18:	Lua::registerTable(L, "db");
+src/lua/functions/core/libs/db_functions.cpp:19:	Lua::registerMethod(L, "db", "query", DBFunctions::luaDatabaseExecute);
+src/lua/functions/core/libs/db_functions.cpp:20:	Lua::registerMethod(L, "db", "queryAffectedRows", DBFunctions::luaDatabaseExecuteAffectedRows);
+src/lua/functions/core/libs/db_functions.cpp:21:	Lua::registerMethod(L, "db", "asyncQuery", DBFunctions::luaDatabaseAsyncExecute);
+src/lua/functions/core/libs/db_functions.cpp:22:	Lua::registerMethod(L, "db", "storeQuery", DBFunctions::luaDatabaseStoreQuery);
+src/lua/functions/core/libs/db_functions.cpp:23:	Lua::registerMethod(L, "db", "asyncStoreQuery", DBFunctions::luaDatabaseAsyncStoreQuery);
+src/lua/functions/core/libs/db_functions.cpp:24:	Lua::registerMethod(L, "db", "escapeString", DBFunctions::luaDatabaseEscapeString);
+src/lua/functions/core/libs/db_functions.cpp:25:	Lua::registerMethod(L, "db", "escapeBlob", DBFunctions::luaDatabaseEscapeBlob);
+src/lua/functions/core/libs/db_functions.cpp:26:	Lua::registerMethod(L, "db", "lastInsertId", DBFunctions::luaDatabaseLastInsertId);
+src/lua/functions/core/libs/db_functions.cpp:27:	Lua::registerMethod(L, "db", "tableExists", DBFunctions::luaDatabaseTableExists);
+src/lua/functions/core/libs/kv_functions.cpp:19:	Lua::registerTable(L, "kv");
+src/lua/functions/core/libs/kv_functions.cpp:20:	Lua::registerMethod(L, "kv", "scoped", KVFunctions::luaKVScoped);
+src/lua/functions/core/libs/kv_functions.cpp:21:	Lua::registerMethod(L, "kv", "set", KVFunctions::luaKVSet);
+src/lua/functions/core/libs/kv_functions.cpp:22:	Lua::registerMethod(L, "kv", "get", KVFunctions::luaKVGet);
+src/lua/functions/core/libs/kv_functions.cpp:23:	Lua::registerMethod(L, "kv", "keys", KVFunctions::luaKVKeys);
+src/lua/functions/core/libs/kv_functions.cpp:24:	Lua::registerMethod(L, "kv", "remove", KVFunctions::luaKVRemove);
+src/lua/functions/core/libs/kv_functions.cpp:27:	Lua::registerMethod(L, "KV", "scoped", KVFunctions::luaKVScoped);
+src/lua/functions/core/libs/kv_functions.cpp:28:	Lua::registerMethod(L, "KV", "set", KVFunctions::luaKVSet);
+src/lua/functions/core/libs/kv_functions.cpp:29:	Lua::registerMethod(L, "KV", "get", KVFunctions::luaKVGet);
+src/lua/functions/core/libs/kv_functions.cpp:30:	Lua::registerMethod(L, "KV", "keys", KVFunctions::luaKVKeys);
+src/lua/functions/core/libs/kv_functions.cpp:31:	Lua::registerMethod(L, "KV", "remove", KVFunctions::luaKVRemove);
+src/lua/functions/core/libs/logger_functions.cpp:15:	Lua::registerTable(L, "Spdlog");
+src/lua/functions/core/libs/logger_functions.cpp:16:	Lua::registerMethod(L, "Spdlog", "info", LoggerFunctions::luaSpdlogInfo);
+src/lua/functions/core/libs/logger_functions.cpp:17:	Lua::registerMethod(L, "Spdlog", "warn", LoggerFunctions::luaSpdlogWarn);
+src/lua/functions/core/libs/logger_functions.cpp:18:	Lua::registerMethod(L, "Spdlog", "error", LoggerFunctions::luaSpdlogError);
+src/lua/functions/core/libs/logger_functions.cpp:19:	Lua::registerMethod(L, "Spdlog", "debug", LoggerFunctions::luaSpdlogDebug);
+src/lua/functions/core/libs/logger_functions.cpp:21:	Lua::registerTable(L, "logger");
+src/lua/functions/core/libs/logger_functions.cpp:22:	Lua::registerMethod(L, "logger", "info", LoggerFunctions::luaLoggerInfo);
+src/lua/functions/core/libs/logger_functions.cpp:23:	Lua::registerMethod(L, "logger", "warn", LoggerFunctions::luaLoggerWarn);
+src/lua/functions/core/libs/logger_functions.cpp:24:	Lua::registerMethod(L, "logger", "error", LoggerFunctions::luaLoggerError);
+src/lua/functions/core/libs/logger_functions.cpp:25:	Lua::registerMethod(L, "logger", "debug", LoggerFunctions::luaLoggerDebug);
+src/lua/functions/core/libs/logger_functions.cpp:26:	Lua::registerMethod(L, "logger", "trace", LoggerFunctions::luaLoggerTrace);
+src/lua/functions/core/libs/metrics_functions.cpp:16:	Lua::registerTable(L, "metrics");
+src/lua/functions/core/libs/metrics_functions.cpp:17:	Lua::registerMethod(L, "metrics", "addCounter", MetricsFunctions::luaMetricsAddCounter);
+src/lua/functions/core/libs/result_functions.cpp:14:	Lua::registerTable(L, "Result");
+src/lua/functions/core/libs/result_functions.cpp:15:	Lua::registerMethod(L, "Result", "getNumber", ResultFunctions::luaResultGetNumber);
+src/lua/functions/core/libs/result_functions.cpp:16:	Lua::registerMethod(L, "Result", "getString", ResultFunctions::luaResultGetString);
+src/lua/functions/core/libs/result_functions.cpp:17:	Lua::registerMethod(L, "Result", "getStream", ResultFunctions::luaResultGetStream);
+src/lua/functions/core/libs/result_functions.cpp:18:	Lua::registerMethod(L, "Result", "next", ResultFunctions::luaResultNext);
+src/lua/functions/core/libs/result_functions.cpp:19:	Lua::registerMethod(L, "Result", "free", ResultFunctions::luaResultFree);
+```
+
+### Build registration anchors
+
+```text
+cmake/modules/CanaryLib.cmake:21:# Add more global sources Note: target_sources works on a specific target, we
+cmake/modules/CanaryLib.cmake:23:target_sources(
+src/CMakeLists.txt:47:            target_sources(
+src/CMakeLists.txt:75:        target_sources(
+src/account/CMakeLists.txt:1:target_sources(
+src/config/CMakeLists.txt:1:target_sources(
+src/creatures/CMakeLists.txt:1:target_sources(
+src/database/CMakeLists.txt:1:target_sources(
+src/database/databasemanager.cpp:13:#include "lua/functions/core/libs/core_libs_functions.hpp"
+src/game/CMakeLists.txt:1:target_sources(
+src/game/CMakeLists.txt:34:    target_sources(
+src/io/CMakeLists.txt:1:target_sources(
+src/items/CMakeLists.txt:1:target_sources(
+src/kv/CMakeLists.txt:1:target_sources(
+src/lib/CMakeLists.txt:1:target_sources(
+src/lib/CMakeLists.txt:10:    target_sources(
+src/lua/callbacks/CMakeLists.txt:1:target_sources(
+src/lua/creature/CMakeLists.txt:1:target_sources(
+src/lua/docgen/CMakeLists.txt:1:target_sources(
+src/lua/functions/CMakeLists.txt:1:target_sources(
+src/lua/functions/CMakeLists.txt:6:# Note: No target_sources here, just subdirectories
+src/lua/functions/core/CMakeLists.txt:1:target_sources(
+src/lua/functions/core/CMakeLists.txt:13:            libs/logger_functions.cpp
+src/lua/functions/core/CMakeLists.txt:14:            libs/metrics_functions.cpp
+src/lua/functions/core/CMakeLists.txt:15:            libs/kv_functions.cpp
+src/lua/functions/core/core_functions.hpp:14:#include "lua/functions/core/libs/core_libs_functions.hpp"
+src/lua/functions/core/libs/core_libs_functions.hpp:15:#include "lua/functions/core/libs/logger_functions.hpp"
+src/lua/functions/core/libs/core_libs_functions.hpp:16:#include "lua/functions/core/libs/metrics_functions.hpp"
+src/lua/functions/core/libs/core_libs_functions.hpp:17:#include "lua/functions/core/libs/kv_functions.hpp"
+src/lua/functions/core/libs/kv_functions.cpp:10:#include "lua/functions/core/libs/kv_functions.hpp"
+src/lua/functions/core/libs/logger_functions.cpp:10:#include "lua/functions/core/libs/logger_functions.hpp"
+src/lua/functions/core/libs/metrics_functions.cpp:10:#include "lua/functions/core/libs/metrics_functions.hpp"
+src/lua/functions/creatures/CMakeLists.txt:1:target_sources(
+src/lua/functions/events/CMakeLists.txt:1:target_sources(
+src/lua/functions/items/CMakeLists.txt:1:target_sources(
+src/lua/functions/map/CMakeLists.txt:1:target_sources(
+src/lua/global/CMakeLists.txt:1:target_sources(
+src/lua/modules/CMakeLists.txt:1:target_sources(
+src/lua/scripts/CMakeLists.txt:1:target_sources(
+src/map/CMakeLists.txt:1:target_sources(
+src/security/CMakeLists.txt:1:target_sources(
+src/server/CMakeLists.txt:1:target_sources(
+src/utils/CMakeLists.txt:1:target_sources(
+vcproj/canary.vcxproj:175:    <ClInclude Include="..\src\lua\functions\core\libs\core_libs_functions.hpp" />
+vcproj/canary.vcxproj:176:    <ClInclude Include="..\src\lua\functions\core\libs\kv_functions.hpp" />
+vcproj/canary.vcxproj:179:    <ClInclude Include="..\src\lua\functions\core\libs\logger_functions.hpp" />
+vcproj/canary.vcxproj:180:    <ClInclude Include="..\src\lua\functions\core\libs\metrics_functions.hpp" />
+vcproj/canary.vcxproj:408:    <ClCompile Include="..\src\lua\functions\core\libs\kv_functions.cpp" />
+vcproj/canary.vcxproj:411:    <ClCompile Include="..\src\lua\functions\core\libs\logger_functions.cpp" />
+vcproj/canary.vcxproj:412:    <ClCompile Include="..\src\lua\functions\core\libs\metrics_functions.cpp" />
+```
