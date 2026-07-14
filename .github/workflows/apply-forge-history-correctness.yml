@@ -1,7 +1,7 @@
 name: Apply Forge history correctness patch
 
 on:
-  pull_request:
+  push:
     branches:
       - fix/forge-history-correctness
     paths:
