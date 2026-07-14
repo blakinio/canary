@@ -1,0 +1,43 @@
+exit_status=1
++ set -euo pipefail
++ cat
++ luajit tests/lua/test_tables.lua
++ cat /tmp/cs007-before.txt
+
+0 passed, 14 failed
+
+Failed tests:
+  FAIL: round-trips canonical strings without removing whitespace
+        data/libs/functions/tables.lua:102: table.unserialize must not call loadstring
+  FAIL: round-trips canonical numbers and true
+        data/libs/functions/tables.lua:102: table.unserialize must not call loadstring
+  FAIL: decodes false independently of the known serializer defect
+        data/libs/functions/tables.lua:102: table.unserialize must not call loadstring
+  FAIL: decodes nested tables with mixed key types
+        data/libs/functions/tables.lua:102: table.unserialize must not call loadstring
+  FAIL: round-trips a canonical nested table without false values
+        data/libs/functions/tables.lua:102: table.unserialize must not call loadstring
+  FAIL: supports bounded implicit array entries
+        data/libs/functions/tables.lua:102: table.unserialize must not call loadstring
+  FAIL: returns nil without an error for serialized nil
+        data/libs/functions/tables.lua:102: table.unserialize must not call loadstring
+  FAIL: rejects arbitrary function execution
+        data/libs/functions/tables.lua:102: table.unserialize must not call loadstring
+  FAIL: rejects global access and function calls
+        data/libs/functions/tables.lua:102: table.unserialize must not call loadstring
+  FAIL: rejects trailing code and comments
+        data/libs/functions/tables.lua:102: table.unserialize must not call loadstring
+  FAIL: rejects malformed data without executing anything
+        data/libs/functions/tables.lua:102: table.unserialize must not call loadstring
+  FAIL: enforces nesting depth
+        data/libs/functions/tables.lua:102: table.unserialize must not call loadstring
+  FAIL: enforces input size
+        data/libs/functions/tables.lua:102: table.unserialize must not call loadstring
+  FAIL: rejects non-string input
+        data/libs/functions/tables.lua:102: attempt to concatenate local 'str' (a table value)
+/tmp/apply_cs007.sh: line 523: warning: here-document at line 215 delimited by end-of-file (wanted `PY')
++ python3 -
+  File "<stdin>", line 307
+    task += '''
+            ^
+SyntaxError: unterminated triple-quoted string literal (detected at line 308)
