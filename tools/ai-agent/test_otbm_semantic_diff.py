@@ -98,8 +98,8 @@ class SemanticDiffTests(unittest.TestCase):
         compiler = shutil.which("c++") or shutil.which("g++")
         if compiler is None:
             raise unittest.SkipTest("A C++ compiler is required")
-        cls.build = tempfile.TemporaryDirectory()
-        cls.scanner = Path(cls.build.name) / "otbm_item_audit_scan"
+        cls.compiler_temp = tempfile.TemporaryDirectory()
+        cls.scanner = Path(cls.compiler_temp.name) / "otbm_item_audit_scan"
         source = Path(__file__).with_name("otbm_item_audit_scan.cpp")
         completed = subprocess.run(
             [
@@ -123,7 +123,7 @@ class SemanticDiffTests(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls) -> None:
-        cls.build.cleanup()
+        cls.compiler_temp.cleanup()
 
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
@@ -402,9 +402,9 @@ class SemanticDiffTests(unittest.TestCase):
         assets.mkdir()
         manifest = build_render_manifest(
             artifact_root=self.root,
-            before_map_path=self.before_map.name,
-            after_map_path=self.after_map.name,
-            assets_root=assets.name,
+            before_map_path=Path(self.before_map.name),
+            after_map_path=Path(self.after_map.name),
+            assets_root=Path(assets.name),
             lower=(300, 600, 7),
             upper=(301, 600, 7),
             output_directory=Path("renders"),
