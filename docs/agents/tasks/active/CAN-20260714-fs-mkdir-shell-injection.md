@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: security/fs-mkdir-shell-free-current
 base_branch: main
 created: 2026-07-14T08:00:00+02:00
-updated: 2026-07-14T10:00:00+02:00
-last_verified_commit: "28e7c3638fb3a4b420d81cc0cda8f9fce797daa3"
+updated: 2026-07-14T10:20:00+02:00
+last_verified_commit: "bac8c5d6fdb7deb3d7e0e1e51bcd541fe11af8e2"
 risk: high
 related_issue: ""
 related_pr: "#317"
@@ -48,7 +48,7 @@ reuses:
   - engine-standard `std::filesystem` operations
   - existing standalone Lua and `canary_ut` test infrastructure
   - existing Lua API catalogue and validators
-  - existing bounded self-removing audit/patch workflow pattern
+  - existing bounded self-removing audit/materialization workflow pattern
 public_interfaces:
   - "FS.mkdir(path) -> success[, errorMessage]"
   - "FS.mkdir_p(path) -> success[, errorMessage]"
@@ -71,14 +71,15 @@ Remove command-shell execution from `FS.mkdir` and `FS.mkdir_p` through the smal
 - [x] `FS.mkdir` remains single-level and `FS.mkdir_p` remains recursive; success/error returns are preserved.
 - [x] The implementation performs no shell execution and uses `std::filesystem` with `std::error_code`.
 - [x] New Lua methods are present in `docs/lua-api/lua_api.json`; both documentation validators pass.
-- [ ] Exact-current-head formatter, Lua tests and full runtime CI pass.
+- [ ] Exact-current-head formatter, Lua tests and full runtime CI pass on PR #317.
 - [x] No protocol, client, schema, migration, map, item, asset or production configuration changes.
 - [x] Program, changelog, module catalogue and handoff records are synchronized.
 - [ ] Autonomous merge gate is satisfied.
 
 # Evidence and threat classification
 
-- Baseline task commit: `42c0afa817b60f3b888c46b690b286cd224a3062`.
+- Initial baseline: `42c0afa817b60f3b888c46b690b286cd224a3062`.
+- Current-main transfer baseline: `d88e7f354eb5b33068cdded7696e9cdb89b05268`.
 - Baseline `data/libs/functions/fs.lua` constructed `mkdir` through `os.execute`.
 - Audit reports:
   - `artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT.md`;
@@ -100,7 +101,7 @@ Remove command-shell execution from `FS.mkdir` and `FS.mkdir_p` through the smal
 
 ## 2026-07-14T08:00:00+02:00
 
-- Created the dedicated branch, task and draft PR #310 after refreshing main, open PRs and ownership.
+- Created the dedicated task and predecessor draft PR #310 after refreshing main, open PRs and ownership.
 - Confirmed direct shell construction and rejected the upstream denylist design.
 - Local Git/build remained unavailable because DNS could not resolve `github.com`.
 
@@ -115,17 +116,24 @@ Remove command-shell execution from `FS.mkdir` and `FS.mkdir_p` through the smal
 - Replaced shell-backed wrappers with native methods and added focused Lua/C++ tests.
 - Exact-anchor apply run `29314889189` passed `luajit tests/lua/test_fs.lua`, the no-`os.execute` check, the changed-file allowlist and `git diff --check` on `c07bb271f288eae53824437b102d37cafe9751dd`.
 
-## 2026-07-14T09:45:00+02:00
-
-- Consolidated competing implementation shapes and retained one `FileSystem` table in the already compiled `GlobalFunctions` module.
-- Strengthened native functions with non-string argument checks and changed the C++ regression to invoke the real Lua binding.
-- Removed all temporary finalizer files; final source diff contains only intended runtime, test, docs and evidence paths.
-
 ## 2026-07-14T10:00:00+02:00
 
-- Ready-state CI `1691` passed formatting, Lua API quality and standalone Lua tests, then correctly stopped because the two new methods were absent from `docs/lua-api/lua_api.json`.
-- Added deterministic `FileSystem` class entries in alphabetical order and ran `tools/check_lua_api_quality.py` plus `tools/check_lua_api_binding_docs.py --base origin/main`; both passed in workflow `29315799252`.
-- The documentation updater removed itself; bot-authored head `28e7c3638fb3a4b420d81cc0cda8f9fce797daa3` reported `action_required` with no standard jobs, so no CI result is claimed for that head.
+- Ready-state CI `1691` correctly stopped on missing committed Lua API catalogue entries after formatting and standalone Lua tests passed.
+- Added deterministic `FileSystem` entries and verified `tools/check_lua_api_quality.py` plus `tools/check_lua_api_binding_docs.py --base origin/main` in workflow `29315799252`.
+
+## 2026-07-14T10:10:00+02:00
+
+- Full CI `1714` (`29316118599`) passed on reviewed source commit `6196c95493171968f8f13530f009d0b03e9ee8ee`.
+- Passed surfaces included Fast Checks, standalone Lua tests, Linux release/debug builds, generated Lua API synchronization, Canary/global smoke tests, schema import, Linux `Run Tests`, Windows CMake/Solution, macOS and Docker.
+- The C++ regression invoking the real binding therefore compiled and executed successfully.
+
+## 2026-07-14T10:20:00+02:00
+
+- `main` advanced after the green run and overlapped only shared changelog/catalogue paths.
+- Closed predecessor PR #310 without merge and created current-main PR #317 from exact main `d88e7f354eb5b33068cdded7696e9cdb89b05268`.
+- A bounded materializer imported the reviewed runtime/tests/API/evidence, merged the current shared documentation, ran focused Lua/documentation/no-shell gates and removed itself.
+- PR #317 now contains exactly thirteen intended files and no temporary workflow.
+- Result: all final checks and merge ownership belong exclusively to PR #317.
 
 # Decisions
 
@@ -136,7 +144,8 @@ Remove command-shell execution from `FS.mkdir` and `FS.mkdir_p` through the smal
 | Use existing `GlobalFunctions` | It avoids a second subsystem and new maintained build registrations while exposing only two narrow methods. |
 | Preserve `FS` wrappers | Existing datapack and custom scripts keep their public API. |
 | Use `std::error_code` | Directory failures remain visible to Lua without exceptions crossing the binding boundary. |
-| Catalogue the methods explicitly | Repository policy requires every new registration in the generated Lua API catalogue before build execution. |
+| Catalogue the methods explicitly | Repository policy requires every new registration in the committed Lua API catalogue. |
+| Transfer to fresh current-main PR #317 | Avoid merging a conflicted historical branch; preserve current shared docs and revalidate the exact final tree. |
 | Do not claim default-client RCE | Standard name validation blocks shell syntax; broader custom/DB/script input remains the relevant boundary. |
 
 # Validation
@@ -146,9 +155,10 @@ Remove command-shell execution from `FS.mkdir` and `FS.mkdir_p` through the smal
 | `42c0afa817b60f3b888c46b690b286cd224a3062` | local Git/worktree/build preflight | unavailable; DNS failure, no pass claimed |
 | `4695d10158386da1af517a233bdb3e5cda0d2c23` / `29314149659` | deterministic audit publication | passed |
 | `c07bb271f288eae53824437b102d37cafe9751dd` / `29314889189` | exact implementation, focused Lua test, no-shell check, allowlist, `git diff --check` | passed |
-| `c9ca0e38ec73f5cac9c70be210be3835247d78bb` / CI `1674` | draft Required | insufficient; build/test jobs skipped |
-| `2f533d00ee0624ead7a13c05dfdc7d6ea60d496c` / CI `1691` | first Ready gate | Lua passed; Fast Checks failed only on missing Lua API catalogue entries; builds correctly skipped |
+| `2f533d00ee0624ead7a13c05dfdc7d6ea60d496c` / CI `1691` | first Ready gate | expected documentation failure only; builds skipped |
 | `28e7c3638fb3a4b420d81cc0cda8f9fce797daa3` / `29315799252` | catalogue update and both documentation validators | passed |
+| `6196c95493171968f8f13530f009d0b03e9ee8ee` / CI `1714` (`29316118599`) | complete affected matrix and `Run Tests` | passed |
+| `bac8c5d6fdb7deb3d7e0e1e51bcd541fe11af8e2` | current-main materialization for PR #317 | focused gates passed; full exact-head CI pending |
 
 Never record `passed` without verification on the stated commit.
 
@@ -159,18 +169,18 @@ Never record `passed` without verification on the stated commit.
 - Existing-directory behavior remains successful.
 - Invalid input and filesystem errors remain explicit boolean/error returns.
 - Cross-repository impact: none.
-- Rollback: revert PR #310; no migration or irreversible state exists.
+- Rollback: revert the eventual PR #317 merge; predecessor PR #310 remains closed and unmerged.
 
 # Remaining work
 
-1. Run exact-head ownership, formatter, Lua and full C++ CI from this connector-authored commit.
-2. Repair only concrete failures without weakening gates.
+1. Verify ownership and draft checks on the connector-authored PR #317 head.
+2. Mark PR #317 Ready and require fresh full Linux C++ build/tests plus all selected platform gates and `Required`.
 3. Review comments, reviews, threads and final diff; enable auto-merge only on the unchanged validated SHA.
 4. Archive this task and close `CS-006` in a separate cleanup PR.
 
 # Handoff
 
-Read this task, PR #310, both audit reports, `data/libs/functions/fs.lua`, `global_functions.*`, `docs/lua-api/lua_api.json` and both focused tests.
+Read this task, PR #317, predecessor PR #310 only for historical evidence, both audit reports, `data/libs/functions/fs.lua`, `global_functions.*`, `docs/lua-api/lua_api.json` and both focused tests.
 
 Do not restore shell execution, do not replace it with a denylist, do not merge `table.unserialize` into this task, and do not treat a skipped or `action_required` run as C++ validation.
 
@@ -178,20 +188,10 @@ Do not restore shell execution, do not replace it with a denylist, do not merge 
 
 - Final status: active
 - PR: #317
-- Current reviewed source/docs head: `28e7c3638fb3a4b420d81cc0cda8f9fce797daa3`
+- Current reviewed current-main head: `bac8c5d6fdb7deb3d7e0e1e51bcd541fe11af8e2`
+- Predecessor PR: #310, closed without merge
 - Merge commit:
 - Program record updated: yes, active task and `VALID_FIX_MISSING`
 - Catalogue updated: yes, active reusable binding
 - Changelog updated: yes
 - Archived at: pending
-
-## 2026-07-14T10:05:00+02:00
-
-- Validation repair: added strongly typed `FileSystem.createDirectory` and `FileSystem.createDirectories` entries to the committed Lua API index so the pre-build binding-documentation gate can validate the new public methods.
-- The Linux release build remains authoritative for full generated `docs/lua-api` synchronization.
-
-## 2026-07-14 current-main transfer
-
-- Changed: transferred the already reviewed implementation/evidence from predecessor PR #310 to PR #317 on exact current main `d88e7f354eb5b33068cdded7696e9cdb89b05268`.
-- Learned: main advancement overlapped only shared changelog/catalogue paths; runtime, tests, Lua API catalogue and evidence paths had no overlap.
-- Result: predecessor PR #310 is superseded and must remain closed without merge; all final checks belong to PR #317.
