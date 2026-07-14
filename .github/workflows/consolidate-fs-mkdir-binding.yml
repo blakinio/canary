@@ -1,0 +1,334 @@
+name: Consolidate filesystem Lua binding
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/consolidate-fs-mkdir-binding.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  consolidate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out implementation branch
+        uses: actions/checkout@v6
+        with:
+          ref: security/fs-mkdir-shell-free
+          fetch-depth: 0
+
+      - name: Remove duplicate binding and adapt tests
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              file_path = Path(path)
+              text = file_path.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"expected one anchor in {path}, found {count}: {old!r}")
+              file_path.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          for path in (
+              "src/lua/functions/core/libs/filesystem_functions.cpp",
+              "src/lua/functions/core/libs/filesystem_functions.hpp",
+          ):
+              Path(path).unlink()
+
+          replace_once(
+              "src/lua/functions/core/libs/core_libs_functions.hpp",
+              '#include "lua/functions/core/libs/filesystem_functions.hpp"\n',
+              "",
+          )
+          replace_once(
+              "src/lua/functions/core/libs/core_libs_functions.hpp",
+              '\t\tFilesystemFunctions::init(L);\n',
+              "",
+          )
+          replace_once(
+              "src/lua/functions/core/CMakeLists.txt",
+              '            libs/filesystem_functions.cpp\n',
+              "",
+          )
+          replace_once(
+              "vcproj/canary.vcxproj",
+              '    <ClInclude Include="..\\src\\lua\\functions\\core\\libs\\filesystem_functions.hpp" />\n',
+              "",
+          )
+          replace_once(
+              "vcproj/canary.vcxproj",
+              '    <ClCompile Include="..\\src\\lua\\functions\\core\\libs\\filesystem_functions.cpp" />\n',
+              "",
+          )
+
+          Path("data/libs/functions/fs.lua").write_text('''FS = FS or {}
+
+          function FS.exists(path)
+          \tlocal file = io.open(path, "r")
+          \tif file then
+          \t\tfile:close()
+          \t\treturn true
+          \tend
+          \treturn false
+          end
+
+          function FS.mkdir(path)
+          \treturn FileSystem.createDirectory(path)
+          end
+
+          function FS.mkdir_p(path)
+          \tif path == "" then
+          \t\treturn true
+          \tend
+
+          \treturn FileSystem.createDirectories(path)
+          end
+          '''.replace("          ", ""), encoding="utf-8")
+
+          Path("tests/lua/test_fs.lua").write_text(r'''-- Runtime-independent contract tests for data/libs/functions/fs.lua
+          -- Run: luajit tests/lua/test_fs.lua
+
+          local passed, failed, errors = 0, 0, {}
+
+          local function test(name, fn)
+          	local ok, err = pcall(fn)
+          	if ok then
+          		passed = passed + 1
+          	else
+          		failed = failed + 1
+          		table.insert(errors, { name = name, err = err })
+          	end
+          end
+
+          local function assert_equal(actual, expected, message)
+          	if actual ~= expected then
+          		error(message or string.format("expected %s, got %s", tostring(expected), tostring(actual)), 2)
+          	end
+          end
+
+          local calls = {}
+          FileSystem = {
+          	createDirectory = function(path)
+          		table.insert(calls, { method = "createDirectory", path = path })
+          		return true
+          	end,
+          	createDirectories = function(path)
+          		table.insert(calls, { method = "createDirectories", path = path })
+          		return true
+          	end,
+          }
+
+          local originalExecute = os.execute
+          os.execute = function()
+          	error("FS helpers must not execute a shell", 2)
+          end
+          dofile("data/libs/functions/fs.lua")
+
+          test("mkdir delegates hostile paths literally to the native binding", function()
+          	local hostile = 'reports/unsafe" & echo injected > marker & echo "'
+          	assert_equal(FS.mkdir(hostile), true)
+          	assert_equal(calls[#calls].method, "createDirectory")
+          	assert_equal(calls[#calls].path, hostile)
+          end)
+
+          test("mkdir_p delegates recursive creation without path splitting", function()
+          	local path = "reports/bugs/Player Name/child"
+          	assert_equal(FS.mkdir_p(path), true)
+          	assert_equal(calls[#calls].method, "createDirectories")
+          	assert_equal(calls[#calls].path, path)
+          end)
+
+          test("mkdir_p preserves the empty-path success contract", function()
+          	local before = #calls
+          	assert_equal(FS.mkdir_p(""), true)
+          	assert_equal(#calls, before)
+          end)
+
+          os.execute = originalExecute
+
+          print(string.format("\n%d passed, %d failed", passed, failed))
+          if #errors > 0 then
+          	print("\nFailed tests:")
+          	for _, entry in ipairs(errors) do
+          		print(string.format("  FAIL: %s\n        %s", entry.name, entry.err))
+          	end
+          	os.exit(1)
+          end
+          '''.replace("          ", ""), encoding="utf-8")
+
+          Path("tests/unit/lua/filesystem_functions_test.cpp").write_text(r'''/**
+           * Canary - A free and open-source MMORPG server emulator
+           * Copyright (©) 2019–present OpenTibiaBR <opentibiabr@outlook.com>
+           * Repository: https://github.com/opentibiabr/canary
+           * License: https://github.com/opentibiabr/canary/blob/main/LICENSE
+           * Contributors: https://github.com/opentibiabr/canary/graphs/contributors
+           * Website: https://docs.opentibiabr.com/
+           */
+
+          #include "lua/functions/core/game/global_functions.hpp"
+          #include "lua/functions/lua_functions_loader.hpp"
+
+          #ifndef USE_PRECOMPILED_HEADERS
+          	#include <chrono>
+          	#include <filesystem>
+          	#include <fstream>
+          	#include <memory>
+          	#include <string>
+          	#include <utility>
+          #endif
+
+          namespace {
+          	class TemporaryDirectory {
+          	public:
+          		TemporaryDirectory() {
+          			const auto unique = std::chrono::steady_clock::now().time_since_epoch().count();
+          			path = std::filesystem::temp_directory_path() / ("canary-fs-functions-" + std::to_string(unique));
+          			std::filesystem::create_directories(path);
+          		}
+
+          		~TemporaryDirectory() {
+          			std::error_code error;
+          			std::filesystem::remove_all(path, error);
+          		}
+
+          		std::filesystem::path path;
+          	};
+
+          	class LuaFilesystemState {
+          	public:
+          		LuaFilesystemState() :
+          			state(luaL_newstate(), &lua_close) {
+          			GlobalFunctions::init(state.get());
+          		}
+
+          		std::pair<bool, std::string> call(const char* method, const std::string &path) {
+          			lua_getglobal(state.get(), "FileSystem");
+          			lua_getfield(state.get(), -1, method);
+          			lua_remove(state.get(), -2);
+          			Lua::pushString(state.get(), path);
+          			if (lua_pcall(state.get(), 1, LUA_MULTRET, 0) != LUA_OK) {
+          				const std::string error = lua_tostring(state.get(), -1);
+          				lua_settop(state.get(), 0);
+          				return { false, error };
+          			}
+
+          			const int resultCount = lua_gettop(state.get());
+          			const bool success = resultCount >= 1 && lua_toboolean(state.get(), 1) != 0;
+          			const std::string error = resultCount >= 2 && lua_isstring(state.get(), 2) ? lua_tostring(state.get(), 2) : "";
+          			lua_settop(state.get(), 0);
+          			return { success, error };
+          		}
+
+          	private:
+          		std::unique_ptr<lua_State, decltype(&lua_close)> state;
+          	};
+          } // namespace
+
+          TEST(FilesystemFunctionsTest, CreatesSingleAndRecursiveDirectories) {
+          	TemporaryDirectory temporary;
+          	LuaFilesystemState lua;
+
+          	const auto single = temporary.path / "single directory";
+          	const auto [singleSuccess, singleError] = lua.call("createDirectory", single.string());
+          	EXPECT_TRUE(singleSuccess) << singleError;
+          	EXPECT_TRUE(std::filesystem::is_directory(single));
+
+          	const auto [existingSuccess, existingError] = lua.call("createDirectory", single.string());
+          	EXPECT_TRUE(existingSuccess) << existingError;
+
+          	const auto nested = temporary.path / "nested directory" / "child";
+          	const auto [recursiveSuccess, recursiveError] = lua.call("createDirectories", nested.string());
+          	EXPECT_TRUE(recursiveSuccess) << recursiveError;
+          	EXPECT_TRUE(std::filesystem::is_directory(nested));
+          }
+
+          TEST(FilesystemFunctionsTest, RejectsEmptyPathAndExistingFile) {
+          	LuaFilesystemState lua;
+          	const auto [emptySuccess, emptyError] = lua.call("createDirectory", "");
+          	EXPECT_FALSE(emptySuccess);
+          	EXPECT_FALSE(emptyError.empty());
+
+          	TemporaryDirectory temporary;
+          	const auto file = temporary.path / "existing-file";
+          	{
+          		std::ofstream output(file);
+          		output << "content";
+          	}
+
+          	const auto [fileSuccess, fileError] = lua.call("createDirectory", file.string());
+          	EXPECT_FALSE(fileSuccess);
+          	EXPECT_FALSE(fileError.empty());
+          }
+
+          TEST(FilesystemFunctionsTest, DoesNotInterpretShellMetacharacters) {
+          	TemporaryDirectory temporary;
+          	LuaFilesystemState lua;
+          	const auto unique = std::chrono::steady_clock::now().time_since_epoch().count();
+          	const auto marker = std::filesystem::current_path() / ("canary-fs-shell-marker-" + std::to_string(unique));
+          	std::error_code error;
+          	std::filesystem::remove(marker, error);
+
+          	const auto hostileName = "unsafe\" & echo injected > " + marker.filename().string() + " & echo \"";
+          	const auto hostilePath = temporary.path / hostileName;
+          	const auto [success, creationError] = lua.call("createDirectories", hostilePath.string());
+
+          	EXPECT_FALSE(std::filesystem::exists(marker));
+          #ifndef _WIN32
+          	EXPECT_TRUE(success) << creationError;
+          	EXPECT_TRUE(std::filesystem::is_directory(hostilePath));
+          #endif
+          	std::filesystem::remove(marker, error);
+          }
+          '''.replace("          ", ""), encoding="utf-8")
+
+          cpp_path = Path("src/lua/functions/core/game/global_functions.cpp")
+          cpp = cpp_path.read_text(encoding="utf-8")
+          cpp = cpp.replace(
+              'int GlobalFunctions::luaFileSystemCreateDirectory(lua_State* L) {\n\treturn pushDirectoryCreationResult(L, std::filesystem::path(Lua::getString(L, 1)), false);\n}',
+              'int GlobalFunctions::luaFileSystemCreateDirectory(lua_State* L) {\n\tif (!Lua::isString(L, 1)) {\n\t\tLua::pushBoolean(L, false);\n\t\tLua::pushString(L, "Directory path must be a string");\n\t\treturn 2;\n\t}\n\n\treturn pushDirectoryCreationResult(L, std::filesystem::path(Lua::getString(L, 1)), false);\n}',
+          )
+          cpp = cpp.replace(
+              'int GlobalFunctions::luaFileSystemCreateDirectories(lua_State* L) {\n\treturn pushDirectoryCreationResult(L, std::filesystem::path(Lua::getString(L, 1)), true);\n}',
+              'int GlobalFunctions::luaFileSystemCreateDirectories(lua_State* L) {\n\tif (!Lua::isString(L, 1)) {\n\t\tLua::pushBoolean(L, false);\n\t\tLua::pushString(L, "Directory path must be a string");\n\t\treturn 2;\n\t}\n\n\treturn pushDirectoryCreationResult(L, std::filesystem::path(Lua::getString(L, 1)), true);\n}',
+          )
+          if "Directory path must be a string" not in cpp:
+              raise SystemExit("failed to add FileSystem argument validation")
+          cpp_path.write_text(cpp, encoding="utf-8")
+
+          task_path = Path("docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md")
+          task = task_path.read_text(encoding="utf-8").replace("`fs.createDirectory`/`fs.createDirectories`", "`FileSystem.createDirectory`/`FileSystem.createDirectories`")
+          task += """
+
+          ## 2026-07-14T09:45:00+02:00
+
+          - Consolidated: removed a duplicate dedicated filesystem binding and retained the existing `GlobalFunctions`-registered `FileSystem` table.
+          - Strengthened: the C++ test now calls the actual Lua binding and verifies directory creation, existing paths, files, empty paths and shell-metacharacter payloads.
+          - Strengthened: both native methods reject non-string arguments before constructing a filesystem path.
+          """
+          task_path.write_text(task, encoding="utf-8")
+
+          Path(".github/workflows/consolidate-fs-mkdir-binding.yml").unlink()
+          PY
+
+      - name: Run focused validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          if ! command -v luajit >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y luajit
+          fi
+          luajit tests/lua/test_fs.lua
+
+      - name: Commit consolidated implementation
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "refactor(lua): consolidate shell-free filesystem binding"
+          git push origin HEAD:security/fs-mkdir-shell-free
