@@ -18,7 +18,7 @@
   },
   "relationships": {
     "depends_on": ["creature-definitions"],
-    "interacts_with": ["combat", "combat-conditions", "spawns", "boss-encounters", "raids"]
+    "interacts_with": ["boss-encounters", "combat", "combat-conditions", "raids", "spawns"]
   },
   "documents": {"program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md", "validation": ["docs/agents/real-tibia/TSD_006_CREATURES_HUNTING_RAIDS_BOSSES_REPORT.md"]},
   "source_requirements": [{"source": "canary-current", "mode": "required"}, {"source": "runtime-observation", "mode": "required-when-related"}, {"source": "tibia-official", "mode": "required-when-parity"}],
