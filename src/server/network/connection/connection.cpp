@@ -80,7 +80,7 @@ void Connection::scheduleProtocolRelease() {
 				fmt::ptr(connectionAddress),
 				fmt::ptr(protocol.get())
 			);
-			protocol->release();
+			protocol->releaseFromConnection();
 		},
 		__FUNCTION__,
 		std::chrono::milliseconds(CONNECTION_WRITE_TIMEOUT * 1000).count()
