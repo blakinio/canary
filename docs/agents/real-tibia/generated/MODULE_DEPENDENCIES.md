@@ -15,6 +15,7 @@
 | `character-progression` | `character-lifecycle`, `player-persistence` | `achievements`, `combat`, `prey`, `vocations`, `weapon-proficiency`, `wheel-of-destiny` |
 | `charms` | `combat`, `cyclopedia`, `player-persistence`, `protocol` | — |
 | `combat` | `player-persistence` | `spells`, `wheel-of-destiny`, `exaltation-forge` |
+| `combat-conditions` | `combat` | `character-progression`, `player-persistence`, `spells`, `vocations`, `weapons` |
 | `configuration` | — | `engine-runtime-lifecycle`, `lua-runtime`, `protocol` |
 | `cyclopedia` | `protocol`, `player-persistence` | `charms`, `physical-client-e2e` |
 | `cyclopedia-character` | `cyclopedia`, `player-persistence` | `character-lifecycle`, `character-progression`, `protocol`, `titles` |
@@ -42,6 +43,7 @@
 | `upstream-intelligence` | — | `combat`, `otbm-tooling`, `physical-client-e2e`, `protocol` |
 | `vocations` | — | `character-progression`, `combat`, `spells`, `weapon-proficiency`, `wheel-of-destiny` |
 | `weapon-proficiency` | `character-progression`, `player-persistence` | `achievements`, `combat`, `vocations` |
+| `weapons` | `combat` | `character-progression`, `combat-conditions`, `spells`, `vocations`, `weapon-proficiency` |
 | `wheel-of-destiny` | `combat`, `player-persistence`, `protocol` | `spells` |
 | `world-persistence` | `database-connection` | `engine-runtime-lifecycle`, `engine-scheduler`, `player-persistence` |
 
