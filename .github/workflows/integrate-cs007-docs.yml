@@ -1,0 +1,59 @@
+name: Integrate CS-007 shared documentation
+
+on:
+  pull_request:
+    types: [synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: >-
+      github.event.pull_request.number == 328 &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'security/table-unserialize-safe'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: security/table-unserialize-safe
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          changelog_path = Path('docs/agents/CHANGELOG.md')
+          changelog = changelog_path.read_text()
+          entry = '- PR #328 replaces the dormant public `table.unserialize` arbitrary-Lua evaluation boundary with a strict bounded data parser: full-input consumption, canonical string/number/boolean/nil/table support, 1 MiB/depth/value limits and fourteen standalone malicious-input/compatibility regressions; the separate `table.serialize(false)` and `unserializeTable` findings remain deferred.\n'
+          anchor = '## Unreleased\n\n'
+          if changelog.count(anchor) != 1:
+              raise SystemExit('changelog anchor mismatch')
+          if entry not in changelog:
+              changelog = changelog.replace(anchor, anchor + entry)
+          changelog_path.write_text(changelog)
+
+          catalog_path = Path('docs/agents/MODULE_CATALOG.md')
+          catalog = catalog_path.read_text()
+          anchor = '| Lua filesystem directory helpers | merged (#326) | Shell-free `FileSystem.createDirectory`/`createDirectories` bindings plus compatibility `FS.mkdir`/`FS.mkdir_p` wrappers with boolean/error returns | `src/lua/functions/core/game/global_functions.{hpp,cpp}`, `data/libs/functions/fs.lua`, standalone Lua and C++ binding tests, `docs/lua-api/lua_api.json` | Reuse these methods for Lua directory creation; never reconstruct shell commands or replace the boundary with a character denylist. |\n'
+          row = '| Lua table data decoder | active (#328) | Strict non-evaluating `table.unserialize(serialized) -> value[, errorMessage]` parser for bounded nil/boolean/finite-number/string/table data with complete-input validation | `data/libs/functions/tables.lua`, `tests/lua/test_tables.lua`, CS-007 Markdown/JSON audit reports | Reuse for trusted or untrusted serialized data instead of `load`/`loadstring`; preserve the 1 MiB, depth-64 and 100,000-value limits. Do not assume this fixes `table.serialize(false)` or the separate `unserializeTable` helper. |\n'
+          if catalog.count(anchor) != 1:
+              raise SystemExit('module catalogue anchor mismatch')
+          if row not in catalog:
+              catalog = catalog.replace(anchor, anchor + row)
+          catalog_path.write_text(catalog)
+          PY
+
+          workflow='.github/workflows/integrate-cs007-docs.yml'
+          rm -f "$workflow"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          actual="$(git diff --cached --name-only | sort)"
+          expected="$(printf '%s\n' "$workflow" 'docs/agents/CHANGELOG.md' 'docs/agents/MODULE_CATALOG.md' | sort)"
+          test "$actual" = "$expected"
+          git diff --cached --check
+          git commit -m 'docs(agents): register CS-007 data decoder'
+          git push origin HEAD:security/table-unserialize-safe
