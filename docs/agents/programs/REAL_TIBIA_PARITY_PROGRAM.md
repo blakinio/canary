@@ -4,8 +4,8 @@ name: Real Tibia Parity Program
 status: active
 owner: repository-wide
 created: 2026-07-14T09:00:00+02:00
-updated: 2026-07-14T12:20:00+02:00
-last_verified_commit: "9b04ab3ef3dfbc9440274d63e15e6102c5501d85"
+updated: 2026-07-14T13:02:00+02:00
+last_verified_commit: "dddf8e453512547c979ebd7ed6cb60e8fcac2d65"
 primary_paths:
   - docs/agents/REAL_TIBIA_EVIDENCE_SOURCES.md
   - docs/agents/REAL_TIBIA_PARITY_PLAYBOOK.md
@@ -230,13 +230,16 @@ The repository-wide parity governance bootstrap was completed by task `CAN-20260
 - delivered playbook, global program, Wheel program, startup routing, catalogue/changelog entries and stale Wheel task/index repair;
 - archived task: `docs/agents/tasks/archive/CAN-20260714-real-tibia-parity-governance.md`.
 
-The registry-as-code foundation is being delivered by task `CAN-20260714-real-tibia-module-registry` and PR #324. Its final head, CI evidence and merge SHA must be recorded here by the separate lifecycle/archive PR.
+The registry-as-code foundation was completed by task `CAN-20260714-real-tibia-module-registry` and PR #324.
+
+- final feature head: `9710dddfd370fe32ed940c676279dbb77ccbd996`;
+- squash merge: `dddf8e453512547c979ebd7ed6cb60e8fcac2d65`;
+- delivered 18 module records, schemas, deterministic tooling/tests, five generated indexes, templates, ADR and required CI;
+- archived task: `docs/agents/tasks/archive/CAN-20260714-real-tibia-module-registry.md`.
 
 # Active tasks
 
-| Task | PR | Scope | Exact next action |
-|---|---:|---|---|
-| `CAN-20260714-real-tibia-module-registry` | #324 | Registry schemas, tooling, generated indexes, templates and initial module inventory | Complete exact-head CI, merge, then archive and replace this row with final delivery evidence. |
+None at program level. Module work belongs in the relevant module program and its own bounded task. Upstream monitoring must use a separate program and must not turn observations directly into implementation.
 
 # Handoff
 
