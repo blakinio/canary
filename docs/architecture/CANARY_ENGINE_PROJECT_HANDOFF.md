@@ -71,6 +71,7 @@ The Instanced Test Arena program (`docs/agents/programs/INSTANCED_TEST_ARENA_PRO
 - PR #289 — adds `InstanceArenaService`, owning the two configured regions and the create/activate/close arena lifecycle, exposed via `Game::getInstanceArenaService()`. Merge commit: `7e8f298f126fae0e2d010e25d927eb5d00c92eaf`.
 - PR #295 — adds the admin-gated `/instancearena create|leave|close` talkaction and matching `Game.createInstanceArena`/`leaveInstanceArena`/`closeInstanceArena` Lua bindings, plus `InstanceArenaService`'s per-player enter/leave/close session API. Merge commit: `d9b10c322cd6bb9690c2a29fd3354082dde066f9`.
 - PR #304 — `InstanceArenaService::enterArena()` spawns and registers one real monster (Cave Rat) in the reserved region, rolling the whole arena back on any spawn/registration failure; a cleanup callback empties the instance's creature registry before `close()`. `Game::getInstanceCreatureBinder()` wires the engine's one production summon-creation call site (`Monster::onThinkDefense()`) to the already-tested instance-aware `Creature::setMaster(master, binder, reload)` overload, so summons made by an instance-owned monster inherit its owner; normal-world summons are unaffected. CI caught a real compile error (a `shared_ptr<Monster>` passed where `InstanceCreatureBinder::bind()`'s template needs a dereferenced value) which was fixed before merge. Merge commit: `cb22a5063bc10c306932c407f6c02c799dfc5ba3`.
+- PR #307 — every arena instance now gets a real 15-minute `InstanceDefinition::timeout` instead of running forever, so the existing periodic `closeExpiredInstances()` sweep (`Game::start()`, PR #233) actually closes idle arenas. `InstanceArenaService::reapExpiredSessions()` runs on that same tick to evacuate and forget any player session left behind by a timeout-driven close (the only prior forgetting path was the manual `closeArenaForPlayer()`). `enterArena()` schedules a one-shot closing-warning message two minutes before the timeout, guarded by `InstanceScopedEvent` (its first real production call site) so it is a no-op if the arena already closed. CI caught a real clang-format-version mismatch (local v18 vs. CI's pinned v17 disagreeing on how to wrap a 6-parameter constructor's initializer list); clang-format-17 was installed locally to match CI exactly going forward. Merge commit: `6a0cfcff5004c22bea649c8937357dc747e0619e`.
 
 ### CI reliability
 
@@ -139,27 +140,34 @@ Follow-up requirements in the same phase — status:
 
 `InstanceScopedEvent` (PR #183) and `Game::start()`'s periodic
 `closeExpiredInstances()` sweep (PR #233) are merged and general-purpose.
-Still open, tracked as Instanced Test Arena program queue item 5: no arena
-call site actually wraps a scheduled/delayed callback with
-`InstanceScopedEvent` yet, since the arena has none today.
+PR #307 supplies `InstanceScopedEvent`'s first real production call site: a
+one-shot closing-warning message `InstanceArenaService::enterArena()`
+schedules via the dispatcher, guarded so it is a no-op if the arena already
+closed by the time it fires.
 
-- tag scheduled tasks/events with `InstanceId` — mechanism exists
-  (`InstanceScopedEvent`), no arena call site uses it yet (open, queue item 5);
-- cancel or invalidate callbacks during close — same status;
-- callbacks must not run against destroyed/reused instance state — same status;
-- test close racing a pending callback — open;
+- tag scheduled tasks/events with `InstanceId` — done for the arena's own
+  closing-warning callback (PR #307); no *general* engine-wide mechanism
+  exists for arbitrary scheduled tasks, and none is planned by this program;
+- cancel or invalidate callbacks during close — done for that same callback
+  (a lazy liveness check via `InstanceScopedEvent::isLive()`, not active
+  cancellation - by design, see `instance_scoped_event.hpp`);
+- callbacks must not run against destroyed/reused instance state — done,
+  proven by a real unit test (`ClosingWarningIsANoOpAfterTheArenaAlreadyClosed`,
+  `instance_arena_service_test.cpp`);
+- test close racing a pending callback — done for the arena's own callback;
+  a general engine-wide race test remains open and out of scope;
 - preserve current behavior for unowned global events — satisfied by
   construction (`InstanceScopedEvent` is opt-in per call site).
 
 ### C. Player enter/leave API
 
-Done for the arena's own narrow scope (PR #295): `InstanceArenaService::enterArena/leaveArena/closeArenaForPlayer`, keyed by stable player id, one session per player.
+Done for the arena's own narrow scope (PR #295/#307): `InstanceArenaService::enterArena/leaveArena/closeArenaForPlayer`, keyed by stable player id, one session per player.
 
 - validated entry into an active instance — done;
 - remember a safe return position — done;
 - reject unknown, closing or destroyed instances — done (`createArena()` fails cleanly when no region is free; a player can't enter a Closing/Destroyed arena because `enterArena()` only ever creates a fresh one);
-- evacuate players before releasing the region — done (`closeArenaForPlayer()` returns the saved position, then releases);
-- define logout, reconnect, death and timeout behavior — open, tracked as program queue item 5 (timeout) and item 6 (the rest, once concrete gaps are found);
+- evacuate players before releasing the region — done (`closeArenaForPlayer()` returns the saved position, then releases; `reapExpiredSessions()`, PR #307, does the same for a timeout-driven close);
+- define logout, reconnect, death and timeout behavior — timeout is done (PR #307, 15-minute `InstanceArenaService::ArenaTimeout`); logout/reconnect/death remain open, tracked as program queue item 6 (once concrete gaps are found running two real arenas);
 - ensure no player is stranded in a reusable region — proven only for the manual-close path so far; the two-parallel-instances E2E (queue item 7) is the full proof.
 
 ### D. Lua API
