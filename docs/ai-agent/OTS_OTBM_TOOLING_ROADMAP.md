@@ -19,7 +19,7 @@ The stack reuses the existing native OTBM scanner, World Index, script resolver,
 | 2 | Quest Map Validator | merged and archived | #225 / #236 |
 | 3 | Teleports, floor transitions and reachability | merged and archived | #274 / #277 |
 | 4 | Spawns, bosses and NPCs | merged and archived | #286 / #290 |
-| 5 | Storage dependency graph | merged and archived | #299 / lifecycle PR pending |
+| 5 | Storage dependency graph | merged and archived | #299 / #309 |
 | 6 | Semantic OTBM diff and visual evidence | not started | separate future task |
 | 7 | Geometry and consistency audit | not started | separate future task |
 | 8 | Safe bounded OTBM patch writer | blocked by Phases 6–7 safety gates | separate future task |
@@ -230,7 +230,7 @@ Merged PR #299 delivered:
 
 Final feature head: `b1e19e179eb32199cc6e14e68becd9cc99c91fca`.  
 Squash merge: `c7ecb321681d6c4dd80b23b380bd211062f52c90`.  
-Lifecycle cleanup: pending this dedicated documentation PR.
+Lifecycle cleanup: #309 (merge pending).
 
 ### Source-selection and namespace policy
 
