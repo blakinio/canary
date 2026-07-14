@@ -123,6 +123,12 @@ void GlobalFunctions::init(lua_State* L) {
  * @return string? errorMessage
  */
 int GlobalFunctions::luaFileSystemCreateDirectory(lua_State* L) {
+	if (!Lua::isString(L, 1)) {
+		Lua::pushBoolean(L, false);
+		Lua::pushString(L, "Directory path must be a string");
+		return 2;
+	}
+
 	return pushDirectoryCreationResult(L, std::filesystem::path(Lua::getString(L, 1)), false);
 }
 
@@ -134,6 +140,12 @@ int GlobalFunctions::luaFileSystemCreateDirectory(lua_State* L) {
  * @return string? errorMessage
  */
 int GlobalFunctions::luaFileSystemCreateDirectories(lua_State* L) {
+	if (!Lua::isString(L, 1)) {
+		Lua::pushBoolean(L, false);
+		Lua::pushString(L, "Directory path must be a string");
+		return 2;
+	}
+
 	return pushDirectoryCreationResult(L, std::filesystem::path(Lua::getString(L, 1)), true);
 }
 

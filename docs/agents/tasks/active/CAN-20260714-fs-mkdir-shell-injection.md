@@ -193,8 +193,15 @@ Read this task, the comparison program, `data/libs/functions/fs.lua`, CrystalSer
 
 ## 2026-07-14T09:30:00+02:00
 
-- Changed: replaced shell-backed `FS.mkdir`/`FS.mkdir_p` with a narrow native `fs.createDirectory`/`fs.createDirectories` binding backed by `std::filesystem`.
+- Changed: replaced shell-backed `FS.mkdir`/`FS.mkdir_p` with a narrow native `FileSystem.createDirectory`/`FileSystem.createDirectories` binding backed by `std::filesystem`.
 - Changed: added C++ filesystem behavior tests and a runtime-independent Lua contract test that fails if `os.execute` is called.
 - Learned: the only runtime call sites are report paths derived from validated player names, but the public helper accepted arbitrary strings; removing the shell closes the boundary instead of relying on name validation or a denylist.
 - Compatibility: existing public `FS` function names and empty recursive-path behavior are preserved; recursive creation now delegates directly to `std::filesystem::create_directories` and correctly preserves absolute/drive roots.
 - Validation pending: exact-head full CI, generated Lua API docs, Windows solution registration and runtime smoke.
+
+
+## 2026-07-14T09:45:00+02:00
+
+- Consolidated: removed a duplicate dedicated filesystem binding and retained the existing `GlobalFunctions`-registered `FileSystem` table.
+- Strengthened: the C++ test now calls the actual Lua binding and verifies directory creation, existing paths, files, empty paths and shell-metacharacter payloads.
+- Strengthened: both native methods reject non-string arguments before constructing a filesystem path.

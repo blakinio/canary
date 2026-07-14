@@ -20,7 +20,7 @@ local function assert_equal(actual, expected, message)
 end
 
 local calls = {}
-fs = {
+FileSystem = {
 	createDirectory = function(path)
 		table.insert(calls, { method = "createDirectory", path = path })
 		return true

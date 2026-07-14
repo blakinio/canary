@@ -10,7 +10,7 @@ function FS.exists(path)
 end
 
 function FS.mkdir(path)
-	return fs.createDirectory(path)
+	return FileSystem.createDirectory(path)
 end
 
 function FS.mkdir_p(path)
@@ -18,5 +18,5 @@ function FS.mkdir_p(path)
 		return true
 	end
 
-	return fs.createDirectories(path)
+	return FileSystem.createDirectories(path)
 end
