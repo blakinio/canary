@@ -7,7 +7,7 @@ agent: "GPT-5.6 Thinking"
 branch: feat/otbm-bounded-attribute-patcher
 base_branch: main
 created: 2026-07-14T12:00:00+02:00
-updated: 2026-07-14T13:30:00+02:00
+updated: 2026-07-14T13:38:00+02:00
 last_verified_commit: "3a390c9d892c5b737d32711a71dbdf7fff1f06fe"
 risk: high
 related_issue: ""
@@ -87,8 +87,8 @@ No attribute may be inserted or removed. Item IDs, counts, stack order, tile kin
 - [x] Reject missing, duplicate, ambiguous or dynamically unsupported targets.
 - [x] Preserve file length and OTBM escaping width; fail closed when replacement bytes would change encoded width.
 - [x] Write only to a distinct output path below an explicit artifact root; never modify source in place.
-- [x] Refuse symlink/path escape/overwrite by default and publish atomically/no-overwrite.
-- [x] Prove byte equality outside the exact planned encoded spans and report every changed physical offset.
+- [x] Refuse target/parent symlinks, path escape and overwrite; publish atomically/no-overwrite.
+- [x] Prove byte equality outside the exact planned payload offsets and report every changed physical offset.
 - [x] Fully reparse the patched copy with the existing scanner and regenerate canonical World Index evidence.
 - [x] Run bounded Semantic OTBM Diff and require that only the planned mechanic changes appear.
 - [x] Emit rollback instructions that retain the untouched source and identify the patched copy by hash.
@@ -102,15 +102,16 @@ No attribute may be inserted or removed. Item IDs, counts, stack order, tile kin
 
 # Delivered implementation
 
-- Existing `otbm_item_audit_scan.cpp` now exposes `--patch-anchors` without changing the legacy JSON or World Index modes.
+- Existing `otbm_item_audit_scan.cpp` exposes `--patch-anchors` without replacing the legacy JSON or World Index modes.
 - Every supported payload byte includes its physical offset, decoded value and encoded width.
 - Tile-local placement indices preserve source placement order and disambiguate duplicate item IDs.
 - Strict plan/result schemas and runtime validation reject unknown fields, oversized regions, duplicate operations and stale source pins.
 - The Python layer validates scanner evidence; it does not parse the OTBM tree independently.
-- Patching is copy-only, streaming and restricted to scanner-proven payload bytes.
+- Patching is copy-only, streaming and restricted to exact scanner-proven payload byte offsets; escape prefixes are never allowed to differ.
 - OTBM marker escape-width changes and non-canonical source spans are rejected.
 - Source/output global byte comparison rejects every unplanned physical change.
 - Post-write validation performs anchor reparse, legacy full scan, before/after World Index and bounded Semantic Diff.
+- Output paths reject symlink components before and after parent creation.
 - Output, evidence and result use confined no-overwrite publication; any late failure removes partial artifacts.
 - Result evidence includes hashes, physical offsets, rollback instructions and a non-executing real-assets render request.
 - Dedicated tests construct only a small synthetic OTBM; no real or user-supplied map is patched by CI.
@@ -118,14 +119,14 @@ No attribute may be inserted or removed. Item IDs, counts, stack order, tile kin
 # Safety invariants
 
 - Source map remains byte-for-byte untouched.
-- Output path differs from source and resides below `artifact_root`.
+- Output path differs from source and resides below `artifact_root` without symlink traversal.
 - Plan pins source SHA-256, byte size, OTBM version, items major/minor and one bounded region.
 - Every operation pins exact target identity and expected old value.
-- Only scanner-proven payload bytes may change.
+- Only the scanner-proven logical payload location may change; an escape prefix remains immutable.
 - Logical replacement bytes retain the same physical OTBM escape width byte-by-byte.
 - Changed physical offsets are pairwise disjoint.
 - Output byte size equals source byte size.
-- Direct comparison proves equality outside declared spans.
+- Direct comparison proves equality outside declared payload offsets.
 - Full scanner parse and World Index build succeed after mutation.
 - Semantic validation finds exactly the planned mechanic changes and no tile/placement count changes.
 - No generated binary, map, index, report or render is committed.
@@ -147,9 +148,10 @@ No attribute may be inserted or removed. Item IDs, counts, stack order, tile kin
 | Patch existing fixed-width attributes only | Preserves node structure and confines mutation to scanner-proven payloads. | `ADR-20260714-otbm-fixed-width-patch-boundary.md` |
 | Preserve encoded width per logical byte | OTBM escaping can otherwise change file length and invalidate offsets/tree structure. | same ADR |
 | Require tile-local placement index plus redundant identity | Disambiguates duplicate item IDs on one tile without inferred intent. | same ADR |
-| Prove outside-span byte equality | Stronger than relying only on semantic reports. | same ADR |
+| Prove outside-payload byte equality | Stronger than allowing the complete encoded span, because the escape prefix is framing. | implementation hardening |
 | Source map is never an output | Makes rollback immediate and prevents in-place corruption. | same ADR |
 | Publish output/evidence/result no-overwrite | Prevents destination races from replacing reviewed artifacts. | implementation hardening |
+| Reject lexical and resolved symlink ancestry | Prevents an apparently confined output path from traversing a symlink component. | implementation hardening |
 
 # Validation and CI
 
@@ -159,6 +161,7 @@ No attribute may be inserted or removed. Item IDs, counts, stack order, tile kin
 | `db213fb7055f054b99dfeb3125953be165b61994` | dedicated schema, Werror scanner, Python compile and focused patch tests | success | OTBM Bounded Patch run `29328671997`, job `87071048163` |
 | `aaf2818172ff2cbd7f693275dc88ef192e20ea9f` | deterministic publication hardening and new late-failure cleanup test | success | one-shot job `87072103215` before self-deletion |
 | `bc57e7a295c6a332aa2c48293a3fd44745ac0d61` | conflict-intolerant merge from current main | success | one-shot sync job `87072495453` before self-deletion |
+| `dcae5ce0ac4a09fc484a47ee442fc33610dd269e` | payload-only diff allowlist, symlink-parent rejection and strict lowercase hash regression tests | success | one-shot run `29329458294`, job `87073625155` before self-deletion |
 | pending current direct head | all required final checks | pending | final merge gate |
 
 # Risks and compatibility
