@@ -1,0 +1,35 @@
+name: Refresh CS-007 from main
+
+on:
+  pull_request:
+    types: [synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    if: >-
+      github.event.pull_request.number == 328 &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'security/table-unserialize-safe'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: security/table-unserialize-safe
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main
+          git merge --no-edit origin/main
+          rm -f .github/workflows/refresh-cs007-main.yml
+          git add -A
+          git diff --cached --check
+          if ! git diff --cached --quiet; then
+            git commit -m 'ci: remove CS-007 refresh workflow'
+          fi
+          git push origin HEAD:security/table-unserialize-safe
