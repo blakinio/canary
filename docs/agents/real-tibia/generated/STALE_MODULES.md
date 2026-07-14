@@ -20,6 +20,7 @@ Evaluated as of **2026-07-14**.
 | `combat` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `combat-conditions` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `configuration` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `containers` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `creature-ai` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `creature-definitions` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `cyclopedia` | 2026-07-14 | 0 | `current` | 30 / 90 |
@@ -32,6 +33,9 @@ Evaluated as of **2026-07-14**.
 | `exaltation-forge` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `houses` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `imbuements` | 2026-07-14 | 0 | `current` | 60 / 180 |
+| `item-decay` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `item-definitions` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `item-instances` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `lua-bindings` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `lua-runtime` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `market` | 2026-07-14 | 0 | `current` | 30 / 90 |
