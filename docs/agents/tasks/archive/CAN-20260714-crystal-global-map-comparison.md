@@ -2,13 +2,13 @@
 task_id: CAN-20260714-crystal-global-map-comparison
 program_id: CAN-PROGRAM-CRYSTALSERVER-COMPARISON
 coordination_id: REAL-TIBIA-MAP-AUDIT
-status: active
+status: merged
 agent: "GPT-5.6 Thinking"
 branch: audit/crystal-global-map-comparison
 base_branch: main
 created: 2026-07-14T08:00:00+02:00
-updated: 2026-07-14T09:55:00+02:00
-last_verified_commit: "f6d9cc5c62170864e494806bdbf57aefa5b465cd"
+updated: 2026-07-14T10:05:00+02:00
+last_verified_commit: "7a825e7ba25e359f30c3f51627a658d729ca7ac7"
 risk: low
 related_issue: ""
 related_pr: "#313"
@@ -61,15 +61,7 @@ Perform a deterministic, read-only comparison between the exact supplied OTServB
 - [x] Publish concise Markdown and machine-readable JSON reports.
 - [x] Remove every temporary workflow and audit script before merge.
 - [x] Keep `.otbm`, `.widx`, archives, client assets and large raw reports outside Git.
-- [ ] Verify final-head CI, review state and autonomous merge gate.
-
-# Confirmed context
-
-- Writable repository: `blakinio/canary` only.
-- Canary comparison base: `bd5c7bee5a0524dedcd786ef52152f475dd424a6`.
-- CrystalServer is read-only and pinned to `fc0d53b9f9965463b6082c07e6d3d482294541a7`.
-- PR #311 owns reusable Semantic OTBM Diff implementation; this PR adds reports only.
-- No map-writing, item substitution, datapack mixing or whole-map replacement is authorized.
+- [x] Verify final-head CI, review state and autonomous merge gate.
 
 # Exact source provenance
 
@@ -79,7 +71,9 @@ Perform a deterministic, read-only comparison between the exact supplied OTServB
 | Crystal repository blob | gzip despite `.otbm` extension | 52,836,960 | `3bd40d14fefec41f24c4b3ae879e420be1a831ef55b95dcbec721e587a09b034` |
 | Crystal logical OTBM | decompressed | 186,660,172 | `4b2099f38df05d4be68d1ba1265754e9fd6da09742025d92644fa4b1a12eb120` |
 
-Both logical OTBMs use version 4, item major/minor 4/4, dimensions 35143x34812, maximum item depth 2 and zero unknown attribute tails.
+- Canary comparison base: `bd5c7bee5a0524dedcd786ef52152f475dd424a6`.
+- CrystalServer pin: `fc0d53b9f9965463b6082c07e6d3d482294541a7`.
+- Both logical OTBMs use version 4, item major/minor 4/4, dimensions 35143x34812, maximum item depth 2 and zero unknown attribute tails.
 
 # Delivered findings
 
@@ -93,11 +87,11 @@ The exact merge-scan covered 19,099,041 coordinates present in either snapshot:
 - shared item-stack changes: 639,821;
 - shared metadata changes: 19,531;
 - shared mechanic changes: 382;
-- any changed coordinate: 1,884,169 (9.87% of the union).
+- any changed coordinate: 1,884,169, or 9.87% of the coordinate union.
 
 Crystal has 18,997,668 tiles and 24,504,223 placements versus 17,972,761 tiles and 23,359,571 placements in the baseline. It has 9,323 mechanic placements versus 9,339 in the baseline.
 
-The evidence rejects complete-map replacement. Differences are global, and one-sided bounds reach coordinates near 1000/1000, far outside the principal global-map cluster. Crystal is a donor for bounded newer regions, not a clean successor snapshot.
+The evidence rejects complete-map replacement. Differences are global and one-sided bounds reach coordinates near 1000/1000, far outside the principal global-map cluster. Crystal is a donor for bounded newer regions, not a clean successor snapshot.
 
 # Targuna and Newhaven evidence
 
@@ -115,7 +109,7 @@ The evidence rejects complete-map replacement. Differences are global, and one-s
 - `docs/ai-agent/REAL_TIBIA_CRYSTAL_MAP_AUDIT.md`
 - `docs/ai-agent/REAL_TIBIA_CRYSTAL_MAP_AUDIT.json`
 
-The JSON includes exact source/index hashes, OTBM summaries, comparison counts, per-floor changed bounds, top changed regions, houses, sidecar identifiers and Targuna/Newhaven file inventories.
+The JSON records exact source/index hashes, OTBM summaries, comparison counts, per-floor changed bounds, top changed regions, houses, sidecar identifiers and Targuna/Newhaven file inventories.
 
 # Existing work reused
 
@@ -127,30 +121,23 @@ The JSON includes exact source/index hashes, OTBM summaries, comparison counts, 
 | Real Tibia evidence registry | Provenance, source ranking and intake rules | External inputs remained pinned/read-only. |
 | CrystalServer comparison program | Separates implementation evidence from parity proof | Crystal remained read-only. |
 
-# Ownership and overlap check
-
-- Open PRs inspected, including PR #311.
-- Final owned paths are only the two reports and this task record.
-- No shared paths and no edits to `ACTIVE_WORK.md`, roadmap, module catalogue or program record.
-- Temporary workflows and the temporary Python comparison script were deleted after evidence capture.
-
 # Work log
 
-## 2026-07-14 initial setup
+## Initial setup
 
 - Created branch and draft PR #313.
-- Added a temporary PR-only audit workflow using the existing scanner/index.
+- Added a temporary PR-only audit workflow using the existing scanner and World Index.
 - First run failed before indexing because it imposed an unjustified `>100 MB` Crystal blob-size assumption.
 
-## 2026-07-14 source-format diagnosis
+## Source-format diagnosis
 
 - Verified baseline download, size and hash.
 - Verified Crystal Git LFS checkout.
 - Captured Crystal stored blob as 52,836,960 bytes with gzip magic `1f8b`.
-- The native scanner correctly rejected the compressed bytes with `Missing OTBM root node`.
+- The native scanner correctly rejected compressed bytes with `Missing OTBM root node`.
 - Added explicit gzip decompression while preserving stored and logical hashes separately.
 
-## 2026-07-14 successful exact audit
+## Successful exact audit
 
 - Workflow run `29315216124` succeeded on head `f6d9cc5c62170864e494806bdbf57aefa5b465cd`.
 - Baseline index: 842,280,592 bytes, SHA-256 `6c22cd26d4414aa094af1d00be7f62190a441e270ee7a478b55449bf92e55e7a`.
@@ -158,35 +145,45 @@ The JSON includes exact source/index hashes, OTBM summaries, comparison counts, 
 - Exact coordinate comparison completed in 88.71 seconds with about 1.58 GB peak RSS.
 - Bounded evidence artifact `8303695620` was retained for 14 days.
 
-## 2026-07-14 report publication and cleanup
+## Publication and cleanup
 
 - Added Markdown and compact machine-readable JSON reports.
 - Added verified monster sidecar Git blob identifiers.
-- Removed all temporary audit workflows and scripts.
-- No binary map/index/archive or large generated artifact remains in the PR.
+- Removed every temporary audit workflow and script.
+- Final PR diff contained only the two reports and the task record.
+- No binary map, index, archive, client asset or large generated artifact remained.
+
+## Merge
+
+- Final reviewed head: `7a825e7ba25e359f30c3f51627a658d729ca7ac7`.
+- No requested changes and no unresolved review threads.
+- PR #313 was squash-merged as `6bc54ad4796dbc04c3334e8596d3a229146781ce`.
 
 # Validation and CI
 
 | Commit/run | Check | Result | Notes |
 |---|---|---|---|
 | `f6d9cc5c62170864e494806bdbf57aefa5b465cd` / run `29315216124` | exact two-map audit | passed | Source verification, decompression, both indexes, coordinate comparison and artifact upload succeeded. |
-| `f6d9cc5c62170864e494806bdbf57aefa5b465cd` | baseline hash gate | passed | Exact expected size/hash. |
-| `f6d9cc5c62170864e494806bdbf57aefa5b465cd` | Crystal source/logical hash gate | passed | Stored gzip and decompressed OTBM hashes recorded. |
-| final head | Agent Task Ownership and repository CI | pending | Run after this task update and cleanup. |
+| `7a825e7ba25e359f30c3f51627a658d729ca7ac7` / run `29315907343` | Agent Task Ownership | passed | Final owned paths were valid and non-overlapping. |
+| `7a825e7ba25e359f30c3f51627a658d729ca7ac7` / run `29315907339` | AI Agent Tools | passed | Agent documentation/tooling validation succeeded. |
+| `7a825e7ba25e359f30c3f51627a658d729ca7ac7` / run `29315995982` | ready-state CI | passed | Fast Checks, Lua Tests, Linux Release and aggregate `Required` succeeded. |
+| PR #313 | reviews and threads | passed | No reviews requesting changes and zero unresolved threads. |
 
 # Safety and rollback
 
 - Runtime impact: none; reports only.
 - Data impact: none; no map/datapack modification.
 - External input: pinned, read-only and kept outside Git.
-- Rollback: revert the report commit(s).
+- Rollback: revert merge commit `6bc54ad4796dbc04c3334e8596d3a229146781ce`.
 
 # Remaining work
 
-1. Verify final changed-file scope and final-head CI.
-2. Mark PR #313 ready, review threads/reviews and squash-merge.
-3. Archive this task record in a separate lifecycle cleanup PR.
-4. Start separate bounded Targuna and Newhaven dependency audits; do not write an OTBM in this task.
+None for this global comparison task. Future work must be separate and bounded:
+
+1. isolate Targuna coordinates and dependencies;
+2. resolve Targuna NPCs, spawns, scripts, storages, transitions, items and assets;
+3. repeat independently for Newhaven;
+4. prepare a region patch plan without writing an OTBM until map-writing safety is explicitly authorized.
 
 # Handoff
 
@@ -194,8 +191,11 @@ Read `docs/ai-agent/REAL_TIBIA_CRYSTAL_MAP_AUDIT.md` and its JSON companion. The
 
 # Completion
 
-- Final status: active
+- Final status: merged
 - PR: #313
-- Final reviewed head:
-- Merge commit:
-- Archived at:
+- Final reviewed head: `7a825e7ba25e359f30c3f51627a658d729ca7ac7`
+- Merge commit: `6bc54ad4796dbc04c3334e8596d3a229146781ce`
+- Program record updated: not required; no active queue mutation was authorized
+- Module catalogue updated: not required; no reusable interface was added
+- Changelog updated: not required; no runtime behavior changed
+- Archived at: `docs/agents/tasks/archive/CAN-20260714-crystal-global-map-comparison.md`
