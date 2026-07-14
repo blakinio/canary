@@ -11,7 +11,7 @@ updated: 2026-07-14T11:15:00Z
 last_verified_commit: 4de9350e62e2ca9ddf717e16628f87084a74aa86
 risk: medium
 related_issue: ""
-related_pr: "#308 (merged), PR 2 not yet opened"
+related_pr: "#308 (merged), #343 (PR 2, open, ready for review)"
 depends_on: []
 blocks:
   - "house double-ownership fix (deferred, needs this foundation)"
