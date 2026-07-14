@@ -6,15 +6,20 @@ This directory is the persistent operating memory for autonomous agents. The roo
 
 1. `../../AGENTS.md`
 2. this file
-3. `ACTIVE_WORK.md` as a possibly stale snapshot
-4. all relevant records under `tasks/active/**` and live open PRs
-5. the relevant long-lived record under `programs/`, when the work belongs to an autonomous program
-6. `MODULE_CATALOG.md`
-7. `REPOSITORY_MAP.md`
-8. `KNOWN_RISKS.md`
-9. `BUILD_TEST_MATRIX.md`
-10. `CROSS_REPO_CONTRACTS.md` when OTClient may be affected
-11. relevant source, tests, system documentation, task records, and ADRs
+3. for any task that compares or changes behavior against Real Tibia, TibiaWiki/Fandom, CrystalServer, OpenTibiaBR, another donor server, a packet capture, a map, a video or an official-client observation:
+   - `REAL_TIBIA_EVIDENCE_SOURCES.md`
+   - `REAL_TIBIA_PARITY_PLAYBOOK.md`
+   - `programs/REAL_TIBIA_PARITY_PROGRAM.md`
+   - the relevant module program under `programs/`, when one exists
+4. `ACTIVE_WORK.md` as a possibly stale snapshot
+5. all relevant records under `tasks/active/**` and live open PRs
+6. the relevant long-lived record under `programs/`, when the work belongs to an autonomous program
+7. `MODULE_CATALOG.md`
+8. `REPOSITORY_MAP.md`
+9. `KNOWN_RISKS.md`
+10. `BUILD_TEST_MATRIX.md`
+11. `CROSS_REPO_CONTRACTS.md` when OTClient may be affected
+12. relevant source, tests, system documentation, task records, and ADRs
 
 ## Sources of truth
 
@@ -26,12 +31,15 @@ This directory is the persistent operating memory for autonomous agents. The roo
 - `MODULE_CATALOG.md` is the discovery index for reusable systems, not a substitute for source and tests.
 - `CHANGELOG.md` records completed behavior or architecture changes, not every commit.
 - ADRs record decisions that survive one task.
+- For Real Tibia parity work, the evidence registry, parity playbook, global parity program, relevant module program, active task, validation report and live PR state together form the durable handoff. Chat history is never the authoritative record.
 
 ## Autonomous programs
 
 Create a record from `templates/PROGRAM.md` under `programs/` when one autonomous agent or ChatGPT chat will deliver many related tasks or PRs over time. Examples include quest audits, Cyclopedia, Wheel of Destiny, OTBM tooling, upstream maintenance, runtime architecture, and the universal E2E platform.
 
 A program may own a long-lived area, but exact edit rights always belong to individual active task records. One active task still means one branch, one worktree, and one PR.
+
+For modules with multiple Real Tibia parity findings, use `programs/REAL_TIBIA_PARITY_PROGRAM.md` and `REAL_TIBIA_PARITY_PLAYBOOK.md`. Do not create one broad task such as “complete the whole module”; create one independently testable task and PR per bounded package.
 
 ## Required lifecycle
 
