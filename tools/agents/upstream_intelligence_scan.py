@@ -111,6 +111,11 @@ def scan(*, root: Path = ROOT, token: str | None, days: int, mode: str,
     window_start, api = current - dt.timedelta(days=days), client or GitHubClient(token)
     source_rows: list[dict[str, Any]] = []
     candidates: list[dict[str, Any]] = []
+    configured_sources = {
+        str(source["id"]): source
+        for source in config["sources"]
+        if isinstance(source, dict) and isinstance(source.get("id"), str)
+    }
     for source in config["sources"]:
         try:
             summary, rows = collect_source(api, source, window_start=window_start, mode=mode)
@@ -130,7 +135,8 @@ def scan(*, root: Path = ROOT, token: str | None, days: int, mode: str,
     candidates = list({row["candidate_id"]: row for row in candidates}.values())
     history = build_local_history(root)
     for candidate in candidates:
-        map_candidate(candidate, registry)
+        source = configured_sources.get(str(candidate.get("source_id") or ""))
+        map_candidate(candidate, registry, source)
         apply_flags(candidate)
         candidate["local_reference"] = local_reference(candidate, root, history)
         apply_decision(candidate, decisions)
