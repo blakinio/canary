@@ -7,12 +7,12 @@ agent: "GPT-5.6 Thinking"
 branch: security/fs-mkdir-shell-free-final
 base_branch: main
 created: 2026-07-14T08:00:00+02:00
-updated: 2026-07-14T12:30:00+02:00
+updated: 2026-07-14T12:35:00+02:00
 completed: 2026-07-14T12:20:00+02:00
 last_verified_commit: "70f6930647d818edfdf0a30b745aabe8d4fdaa29"
 risk: high
 related_issue: ""
-related_pr: "#326"
+related_pr: "#326 / #327"
 depends_on:
   - "CAN-PROGRAM-CRYSTALSERVER-COMPARISON Stage 1 / PR #291"
 blocks: []
@@ -61,6 +61,7 @@ CS-006 is complete and merged.
 - Historical PRs #310 and #317: closed without merge; do not reopen.
 - Final implementation scope: exactly eleven runtime, test, API, program/task and audit-evidence paths.
 - Cleanup branch: `docs/archive-cs006-fs-mkdir`.
+- Lifecycle cleanup PR: #327.
 - Rollback: revert `70f6930647d818edfdf0a30b745aabe8d4fdaa29`; no migration, database, map, item, asset, protocol or client cleanup is required.
 
 # Delivered behavior
@@ -95,7 +96,8 @@ CS-006 is complete and merged.
 - [x] Full exact-head CI passed.
 - [x] PR #326 squash-merged.
 - [x] Historical PRs closed without merge.
-- [x] Task moved from `tasks/active` to `tasks/archive` in a separate lifecycle PR.
+- [x] Task moved from `tasks/active` to `tasks/archive` in separate lifecycle PR #327.
+- [ ] Lifecycle cleanup PR #327 merged.
 
 # Handoff
 
@@ -106,5 +108,5 @@ CS-006 requires no further implementation. Preserve the native filesystem bounda
 - Final status: completed
 - Feature PR: #326
 - Feature merge commit: `70f6930647d818edfdf0a30b745aabe8d4fdaa29`
-- Cleanup PR: pending
+- Cleanup PR: #327
 - Archived at: `docs/agents/tasks/archive/CAN-20260714-fs-mkdir-shell-injection.md`
