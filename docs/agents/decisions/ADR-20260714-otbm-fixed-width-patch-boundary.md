@@ -22,9 +22,10 @@ Phase 8 may replace only a payload that satisfies every condition below:
 5. The reviewed plan pins source hash, size, OTBM/items versions, bounded region, exact target identity, expected old value and replacement value.
 6. Every replacement logical byte retains the same physical escape width as the source byte.
 7. The source is never an output and remains byte-for-byte untouched.
-8. The output has identical byte length and differs only inside scanner-proven spans.
+8. The output has identical byte length and differs only at the exact scanner-proven logical payload locations; an escape prefix inside an encoded span remains immutable.
 9. Full native reparse, before/after World Index and bounded Semantic Diff prove exactly the planned mechanic changes.
-10. Publication is external, no-overwrite and atomic; rollback is deletion of the patched copy.
+10. Target paths reject destination and parent symlinks, path escape and overwrite.
+11. Publication is external, no-overwrite and atomic; rollback is deletion of the patched copy.
 
 The Python layer orchestrates and validates scanner evidence. It does not parse the OTBM tree independently.
 
@@ -49,19 +50,21 @@ For every payload position:
 ```text
 encoded_width(old_logical_byte) == recorded_physical_size
 encoded_width(new_logical_byte) == recorded_physical_size
+changed_physical_offset == recorded_offset + (recorded_physical_size == 2 ? 1 : 0)
 ```
 
-A replacement such as `0xFC -> 0xFD` is rejected because it would increase the physical width and shift the remaining node stream. Non-canonical source escape encodings are also rejected in v1.
+A replacement such as `0xFC -> 0xFD` is rejected because it would increase the physical width and shift the remaining node stream. Non-canonical source escape encodings are also rejected in v1. The escape prefix is structural framing and cannot be part of the permitted changed-byte set.
 
 ## Consequences
 
 ### Positive
 
 - No second OTBM parser or complete-map serializer is introduced.
-- The changed byte set is explicit and independently comparable.
-- File length and all following offsets remain stable.
+- The changed payload-byte set is explicit and independently comparable.
+- File length, escape framing and all following offsets remain stable.
 - Plans are version- and state-pinned and cannot silently apply to another map revision.
 - Semantic validation uses the already reviewed World Index and Semantic Diff contracts.
+- Destination and parent symlinks cannot redirect published artifacts.
 - The untouched source provides immediate rollback.
 
 ### Negative
@@ -92,7 +95,7 @@ Rejected. That becomes a structural writer and requires a separate architecture 
 
 ### Treat a successful reparse as sufficient
 
-Rejected. A structurally valid map can still contain unintended mechanic, stack or tile changes. Outside-span equality and exact Semantic Diff are both required.
+Rejected. A structurally valid map can still contain unintended mechanic, stack or tile changes. Exact outside-payload equality and exact Semantic Diff are both required.
 
 ## Follow-up boundary
 
