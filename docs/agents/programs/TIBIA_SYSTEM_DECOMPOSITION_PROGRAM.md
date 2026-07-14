@@ -4,8 +4,8 @@ name: Tibia System Decomposition
 status: active
 owner: repository-wide
 created: 2026-07-14T15:43:00+02:00
-updated: 2026-07-14T16:37:00+02:00
-last_verified_commit: "44fe3af9f29b3ae0164ac5d60fc1f14137b5cea5"
+updated: 2026-07-14T17:24:00+02:00
+last_verified_commit: "09f7049401253dd38c8f34506946c2fbe287d220"
 primary_paths:
   - docs/agents/real-tibia/**
   - docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md
@@ -141,7 +141,7 @@ New child records may cause one external path to map to both an umbrella and a n
 - no mapping changes triage into a confirmed defect;
 - reviewed decisions remain pinned to the exact candidate revision.
 
-TSD-001 identified a separate source-role mapping defect: the current mapper can apply client buckets to server candidates. The planned task `CAN-20260714-upstream-intelligence-source-role-path-mapping` must repair that behavior in the existing mapper and source registry before TSD-002 relies on focused source-aware mapping tests.
+The source-role mapping prerequisite was completed by UI-001A / PR #337 and merge `09f7049401253dd38c8f34506946c2fbe287d220`. Server, client and editor sources now use explicit path-bucket policies in the existing source registry; unsupported context maps conservatively to no modules.
 
 This program does not implement UI-002, does not create another watcher or mapper and does not create implementation branches from candidates.
 
@@ -155,8 +155,8 @@ The decomposition may document expected scenario roots, but TSD packages do not 
 
 | ID | Scope | Status | Evidence baseline | Dependencies | Exact next action |
 |---|---|---|---|---|---|
-| `TSD-001` | taxonomy and hierarchy foundation; full candidate classification; three-record engine pilot | completed | PR #335; merge `44fe3af9f29b3ae0164ac5d60fc1f14137b5cea5`; registry 19 → 22 | registry and Upstream Intelligence focused tests | archived by lifecycle-only PR after exact-head CI and review verification |
-| `TSD-002` | remaining engine foundation and persistence | planned | TSD-001 hierarchy/path policy | archived source-role-aware mapping task; current source inventory and DB/runtime evidence boundaries | add only proven long-lived records for scheduler/services/Lua bindings/build/platform and core DB/transaction lifecycle |
+| `TSD-001` | taxonomy and hierarchy foundation; full candidate classification; three-record engine pilot | completed | PR #335; merge `44fe3af9f29b3ae0164ac5d60fc1f14137b5cea5`; registry 19 → 22 | registry and Upstream Intelligence focused tests | archived by lifecycle-only PR #336 |
+| `TSD-002` | remaining engine foundation and persistence | next | TSD-001 hierarchy/path policy; source-aware mapping PR #337 | current source inventory and DB/runtime evidence boundaries | create `CAN-20260714-tibia-system-decomposition-engine-persistence` from current main and add only proven long-lived records |
 | `TSD-003` | account, character and progression | planned | TSD-001 classification | TSD-002 persistence boundaries | separate account, entitlement, character lifecycle and progression state without duplicating current records |
 | `TSD-004` | Cyclopedia family | planned | current `cyclopedia` and `charms` records | maintained-client and persistence inventory | preserve `cyclopedia` umbrella; evaluate Bestiary/Bosstiary/items/map/character/houses children |
 | `TSD-005` | combat, weapons and vocations | planned | current `combat` and `spells` records | engine/runtime and progression boundaries | split only durable formula, state, weapon and vocation domains |
@@ -184,6 +184,19 @@ The decomposition may document expected scenario roots, but TSD packages do not 
 - Final current-head checks: Real Tibia Module Registry #106, Upstream Intelligence #96, Agent Task Ownership #930, repository CI #2039/#2040 — success.
 - No PR comments, requested-change reviews or unresolved review threads.
 - Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-bootstrap.md`.
+
+## Source-role mapping prerequisite
+
+- Program/package: `CAN-PROGRAM-UPSTREAM-INTELLIGENCE` / UI-001A.
+- Feature PR: #337.
+- Final head: `f8a501a3362ae42079e899b03848a606f7224626`.
+- Squash merge: `09f7049401253dd38c8f34506946c2fbe287d220`.
+- Merged at: `2026-07-14T15:19:27Z`.
+- Changed files: 15.
+- Modules added/modified: 0/0.
+- Source registry schema: v1 → v2.
+- Final checks: Upstream Intelligence #129, Agent Task Ownership #954, CI #2064 and ready-state CI #2065 — success.
+- Archive: `docs/agents/tasks/archive/CAN-20260714-upstream-intelligence-source-role-path-mapping.md`.
 
 # Oteryn migration policy
 
@@ -230,22 +243,9 @@ Migration classification belongs to TSD-013 or a later approved bounded task; it
 
 # Exact next operational task
 
-Before TSD-002, complete and archive:
-
-```text
-task: CAN-20260714-upstream-intelligence-source-role-path-mapping
-program: CAN-PROGRAM-UPSTREAM-INTELLIGENCE
-branch: fix/upstream-intelligence-source-role-path-mapping
-```
-
-The task must make the existing mapper source-role-aware, remain discovery-only and add focused tests for server, client, editor/data and unsupported roles without adding modules or changing `protocol.yaml` opportunistically.
-
-# Next decomposition package
-
-After the source-role mapping feature and lifecycle PRs are merged, create:
-
 ```text
 task: CAN-20260714-tibia-system-decomposition-engine-persistence
+program: CAN-PROGRAM-TIBIA-SYSTEM-DECOMPOSITION
 package: TSD-002
 branch: docs/tibia-system-decomposition-engine-persistence
 ```
@@ -269,4 +269,4 @@ Do not add a record when the candidate is only a class/file grouping, duplicates
 
 # Handoff
 
-A new agent must read this program, the completed TSD-001 archive, the classification report, generated module indexes, all current registry records, current open PRs and Upstream Intelligence policies. Continue only one task, branch and PR at a time. Complete and archive the source-role-aware mapping task before starting TSD-002. Preserve current umbrella IDs and proof boundaries.
+After the lifecycle-only archive for UI-001A merges, re-read current `main`, open PRs, active tasks, ownership, all current registry records and source-aware mapping tests. Start only `CAN-20260714-tibia-system-decomposition-engine-persistence` on a new branch from current main. Preserve current umbrella IDs and proof boundaries; do not modify runtime.
