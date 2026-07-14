@@ -253,7 +253,7 @@ creatures.
 5. **Player enter/leave**: validated entry, safe return position and closing
    are done (`InstanceArenaService::enterArena/leaveArena/
    closeArenaForPlayer`, PRs #295/#304); automatic timeout-driven evacuation
-   is done (this PR). Still open: logout, death and reconnect behavior while
+   is done (PR #307). Still open: logout, death and reconnect behavior while
    a player is inside an arena are unhandled - out of scope until a concrete
    gap is found running two real arenas (program queue item 6).
 6. **Lua API**: create/get/enter/leave/close/state with stable errors and no raw
