@@ -18,7 +18,7 @@
   },
   "relationships": {
     "depends_on": ["creature-definitions", "engine-scheduler"],
-    "interacts_with": ["creature-ai", "spawns", "boss-encounters", "quests"]
+    "interacts_with": ["boss-encounters", "creature-ai", "quests", "spawns"]
   },
   "documents": {"program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md", "validation": ["docs/agents/real-tibia/TSD_006_CREATURES_HUNTING_RAIDS_BOSSES_REPORT.md"]},
   "source_requirements": [{"source": "canary-current", "mode": "required"}, {"source": "tibiawiki", "mode": "secondary"}, {"source": "runtime-observation", "mode": "required-when-related"}],
