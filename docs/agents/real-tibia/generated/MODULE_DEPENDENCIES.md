@@ -8,6 +8,8 @@
 | `account-authentication` | `account-lifecycle` | `character-lifecycle`, `protocol` |
 | `account-lifecycle` | `database-connection` | `account-authentication`, `character-lifecycle`, `player-persistence` |
 | `achievements` | `player-persistence` | `combat`, `quests`, `spells` |
+| `bestiary` | `cyclopedia`, `player-persistence` | `charms`, `combat`, `protocol`, `spawns`, `titles` |
+| `bosstiary` | `cyclopedia`, `player-persistence` | `protocol`, `spawns`, `titles` |
 | `build-system` | — | `configuration`, `engine-runtime-lifecycle`, `engine-scheduler`, `engine-service-container`, `lua-bindings`, `lua-runtime` |
 | `character-lifecycle` | `account-authentication`, `player-persistence` | `account-lifecycle`, `character-progression`, `protocol`, `world-persistence` |
 | `character-progression` | `character-lifecycle`, `player-persistence` | `achievements`, `combat`, `prey`, `vocations`, `weapon-proficiency`, `wheel-of-destiny` |
@@ -15,6 +17,7 @@
 | `combat` | `player-persistence` | `spells`, `wheel-of-destiny`, `exaltation-forge` |
 | `configuration` | — | `engine-runtime-lifecycle`, `lua-runtime`, `protocol` |
 | `cyclopedia` | `protocol`, `player-persistence` | `charms`, `physical-client-e2e` |
+| `cyclopedia-character` | `cyclopedia`, `player-persistence` | `character-lifecycle`, `character-progression`, `protocol`, `titles` |
 | `database-connection` | — | `configuration`, `engine-runtime-lifecycle`, `engine-service-container` |
 | `database-migrations` | `database-connection` | `configuration`, `engine-runtime-lifecycle`, `lua-runtime` |
 | `engine-runtime-lifecycle` | — | `configuration`, `lua-runtime` |
@@ -35,6 +38,7 @@
 | `quests` | `otbm-tooling`, `player-persistence` | `npcs`, `spawns`, `houses`, `achievements` |
 | `spawns` | `otbm-tooling` | `quests`, `npcs`, `cyclopedia` |
 | `spells` | `combat` | `wheel-of-destiny` |
+| `titles` | `cyclopedia-character`, `player-persistence` | `achievements`, `bestiary`, `bosstiary`, `character-progression`, `houses`, `protocol` |
 | `upstream-intelligence` | — | `combat`, `otbm-tooling`, `physical-client-e2e`, `protocol` |
 | `vocations` | — | `character-progression`, `combat`, `spells`, `weapon-proficiency`, `wheel-of-destiny` |
 | `weapon-proficiency` | `character-progression`, `player-persistence` | `achievements`, `combat`, `vocations` |

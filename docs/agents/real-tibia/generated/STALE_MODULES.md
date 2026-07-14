@@ -10,6 +10,8 @@ Evaluated as of **2026-07-14**.
 | `account-authentication` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `account-lifecycle` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `achievements` | 2026-07-14 | 0 | `current` | 60 / 180 |
+| `bestiary` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `bosstiary` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `build-system` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `character-lifecycle` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `character-progression` | 2026-07-14 | 0 | `current` | 30 / 90 |
@@ -17,6 +19,7 @@ Evaluated as of **2026-07-14**.
 | `combat` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `configuration` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `cyclopedia` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `cyclopedia-character` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `database-connection` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `database-migrations` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `engine-runtime-lifecycle` | 2026-07-14 | 0 | `current` | 30 / 90 |
@@ -37,6 +40,7 @@ Evaluated as of **2026-07-14**.
 | `quests` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `spawns` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `spells` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `titles` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `upstream-intelligence` | 2026-07-14 | 0 | `current` | 14 / 45 |
 | `vocations` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `weapon-proficiency` | 2026-07-14 | 0 | `current` | 30 / 90 |

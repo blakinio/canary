@@ -120,7 +120,7 @@ class RealTibiaRegistryTests(unittest.TestCase):
 
     def test_decomposition_records_are_bounded(self) -> None:
         registry = self.load()
-        self.assertEqual(len(registry.modules), 35)
+        self.assertEqual(len(registry.modules), 39)
         self.assertIn("engine-foundation", registry.categories)
         tsd_001 = {
             "configuration",
@@ -229,7 +229,6 @@ class RealTibiaRegistryTests(unittest.TestCase):
             "offline-training",
             "death-loss",
             "blessings",
-            "titles",
             "outfits",
             "mounts",
             "familiars",
