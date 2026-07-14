@@ -10,11 +10,13 @@ Automation may:
 
 - record exact provenance;
 - fetch bounded metadata and changed paths;
-- map paths to current registry modules;
+- map paths to current registry modules only through source-policy-allowed path buckets;
 - flag security, crash, protocol, database, performance, breaking, draft, release and client-source terms;
 - detect exact local ancestry or history references;
 - prioritize review;
 - apply an existing reviewed decision only when the pinned revision still matches.
+
+Source-aware bucket filtering may include or exclude discovery matches. It must not change `triage_status`, `decision_state`, priority, reviewed-decision freshness or local-reference semantics. Paths with no match in an allowed bucket remain explicit in `unmapped_paths`.
 
 Automation may not:
 
@@ -50,7 +52,7 @@ Automation may not:
 ## Required review sequence
 
 1. Re-fetch the candidate and current `blakinio/canary:main`.
-2. Confirm affected modules, current local behavior and existing PR/task overlap.
+2. Confirm affected modules, source mapping policy, current local behavior and existing PR/task overlap.
 3. Check official Tibia evidence when gameplay behavior is involved.
 4. Check maintained `blakinio/otclient` when protocol or UI matters.
 5. Compare OpenTibiaBR and CrystalServer only as implementation evidence.

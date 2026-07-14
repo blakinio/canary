@@ -15,6 +15,32 @@ Detect recent changes that may matter to `blakinio/canary` without treating exte
 
 Every watched source is configured with `writable: false`. The workflow token has no permission to push to those repositories.
 
+## Source-aware module path policy
+
+Every source record must explicitly define:
+
+```text
+module_mapping.path_buckets
+```
+
+These values select which Real Tibia registry path buckets may participate in changed-file discovery for that source.
+
+| Source role | Permitted buckets | Forbidden automatic cross-role match |
+|---|---|---|
+| `upstream-server` | `server`, `data`, `tests`, `docs` | `client` |
+| `donor-server` | `server`, `data`, `tests`, `docs` | `client` |
+| `upstream-client` | `client`, `data`, `tests`, `docs` | `server` |
+| `editor` | explicit per-source subset of `client`, `data`, `tests`, `docs` | `server` |
+
+Editor policy is not inferred from the generic `editor` role alone:
+
+- `opentibiabr-rme` uses `data`, `tests`, `docs`; its `source/**` implementation is map tooling, not maintained-client source;
+- `opentibiabr-client-editor` uses `client`, `data`, `tests`, `docs` because it patches/repackages Tibia client artifacts and appearances data.
+
+The mapper never hardcodes repository names. Repository-specific choices live only in the existing source registry. A missing source record, unsupported role, empty policy, duplicate bucket, unknown bucket or role-incompatible bucket is invalid. Repository validation blocks scans; direct mapping remains conservative and maps no modules instead of falling back to all buckets.
+
+Bucket filtering is discovery-only. It does not prove ownership, defects, semantic equivalence, parity, client/server compatibility or permission to import code.
+
 ## Watched object types
 
 - commits on the configured default branch;

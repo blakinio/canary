@@ -31,12 +31,21 @@ def write_json(path: Path, value: object) -> None:
     path.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
 
 
-def source_row(source_id: str = "opentibiabr-canary", repository: str = "opentibiabr/canary") -> dict:
+def source_row(
+    source_id: str = "opentibiabr-canary",
+    repository: str = "opentibiabr/canary",
+    *,
+    role: str = "upstream-server",
+    path_buckets: list[str] | None = None,
+) -> dict:
     return {
         "id": source_id,
         "name": source_id,
         "repository": repository,
-        "role": "upstream-server",
+        "role": role,
+        "module_mapping": {
+            "path_buckets": path_buckets or ["server", "data", "tests", "docs"]
+        },
         "writable": False,
         "default_branch": "main",
         "kinds": ["commits", "pulls", "issues", "releases"],
@@ -102,6 +111,7 @@ class FakeClient:
         self.calls: list[str] = []
 
     def get(self, path: str, params: dict | None = None):
+        del params
         self.calls.append(path)
         if self.fail:
             raise UpstreamError("synthetic source failure")
@@ -173,13 +183,19 @@ class FakeClient:
                 }
             ]
         if path == f"{prefix}/pulls/9/files":
-            return [{"filename": "src/server/network/protocol/protocolgame.cpp"}, {"filename": "unknown/file.txt"}]
+            return [
+                {"filename": "src/server/network/protocol/protocolgame.cpp"},
+                {"filename": "unknown/file.txt"},
+            ]
         raise AssertionError(f"unexpected paged {path}")
 
 
 class UpstreamIntelligenceTests(unittest.TestCase):
     def test_stable_fingerprint_ignores_mapping_order(self) -> None:
-        self.assertEqual(stable_fingerprint({"a": 1, "b": 2}), stable_fingerprint({"b": 2, "a": 1}))
+        self.assertEqual(
+            stable_fingerprint({"a": 1, "b": 2}),
+            stable_fingerprint({"b": 2, "a": 1}),
+        )
 
     def test_issue_candidate_excludes_pull_objects(self) -> None:
         source = source_row()
@@ -189,8 +205,13 @@ class UpstreamIntelligenceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = make_root(Path(tmp))
             registry = Registry.load(root)
-            candidate = {"paths": ["src/game.cpp", "unknown/file"], "module_ids": [], "mapped_paths": [], "unmapped_paths": []}
-            map_candidate(candidate, registry)
+            candidate = {
+                "paths": ["src/game.cpp", "unknown/file"],
+                "module_ids": [],
+                "mapped_paths": [],
+                "unmapped_paths": [],
+            }
+            map_candidate(candidate, registry, source_row())
             self.assertEqual(candidate["mapping_state"], "partial")
             self.assertEqual(candidate["module_ids"], ["upstream-intelligence"])
             self.assertEqual(candidate["unmapped_paths"], ["unknown/file"])
@@ -231,7 +252,14 @@ class UpstreamIntelligenceTests(unittest.TestCase):
     def test_full_scan_collects_all_kinds_and_maps_pr_paths(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = make_root(Path(tmp))
-            snapshot = scan(root=root, token=None, days=30, mode="daily", now=NOW, client=FakeClient())
+            snapshot = scan(
+                root=root,
+                token=None,
+                days=30,
+                mode="daily",
+                now=NOW,
+                client=FakeClient(),
+            )
             self.assertEqual(snapshot["summary"]["candidate_count"], 4)
             pull = next(row for row in snapshot["candidates"] if row["kind"] == "pull")
             self.assertEqual(pull["mapping_state"], "partial")
@@ -244,7 +272,14 @@ class UpstreamIntelligenceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = make_root(Path(tmp))
             with self.assertRaisesRegex(UpstreamError, "all watched sources failed"):
-                scan(root=root, token=None, days=30, mode="daily", now=NOW, client=FakeClient(fail=True))
+                scan(
+                    root=root,
+                    token=None,
+                    days=30,
+                    mode="daily",
+                    now=NOW,
+                    client=FakeClient(fail=True),
+                )
 
     def test_repository_validation_rejects_writable_source(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -254,6 +289,16 @@ class UpstreamIntelligenceTests(unittest.TestCase):
             result = validate_repository(root)
             self.assertFalse(result.ok)
             self.assertTrue(any("writable must be false" in error for error in result.errors))
+
+    def test_repository_validation_rejects_role_incompatible_bucket(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            source = source_row(path_buckets=["server", "client"])
+            root = make_root(Path(tmp), [source])
+            result = validate_repository(root)
+            self.assertFalse(result.ok)
+            self.assertTrue(
+                any("cannot use path buckets: client" in error for error in result.errors)
+            )
 
     def test_issue_report_truncates_rows_to_bound(self) -> None:
         snapshot = {
@@ -296,13 +341,25 @@ class UpstreamIntelligenceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             subprocess.run(["git", "init", "-q", str(root)], check=True)
-            subprocess.run(["git", "-C", str(root), "config", "user.email", "test@example.invalid"], check=True)
-            subprocess.run(["git", "-C", str(root), "config", "user.name", "Test"], check=True)
+            subprocess.run(
+                ["git", "-C", str(root), "config", "user.email", "test@example.invalid"],
+                check=True,
+            )
+            subprocess.run(
+                ["git", "-C", str(root), "config", "user.name", "Test"],
+                check=True,
+            )
             (root / "a.txt").write_text("a", encoding="utf-8")
             subprocess.run(["git", "-C", str(root), "add", "a.txt"], check=True)
             subprocess.run(["git", "-C", str(root), "commit", "-qm", "initial"], check=True)
-            sha = subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
-            result = local_reference({"object_sha": sha, "candidate_revision": sha, "url": ""}, root)
+            sha = subprocess.check_output(
+                ["git", "-C", str(root), "rev-parse", "HEAD"],
+                text=True,
+            ).strip()
+            result = local_reference(
+                {"object_sha": sha, "candidate_revision": sha, "url": ""},
+                root,
+            )
             self.assertEqual(result["state"], "exact-ancestor")
 
 
