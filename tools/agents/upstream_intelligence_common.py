@@ -20,6 +20,13 @@ CONFIG_ROOT = Path("docs/agents/upstream")
 SOURCE_CONFIG = CONFIG_ROOT / "registry/sources.yaml"
 DECISION_DIR = CONFIG_ROOT / "registry/decisions"
 SCHEMA_DIR = CONFIG_ROOT / "schemas"
+PATH_BUCKETS = ("server", "client", "data", "tests", "docs")
+SOURCE_ROLE_PATH_BUCKETS = {
+    "upstream-server": frozenset({"server", "data", "tests", "docs"}),
+    "donor-server": frozenset({"server", "data", "tests", "docs"}),
+    "upstream-client": frozenset({"client", "data", "tests", "docs"}),
+    "editor": frozenset({"client", "data", "tests", "docs"}),
+}
 
 REVIEWED_STATUSES = {
     "already-present", "blocked-by-dependency", "blocked-by-version", "canary-superior",
@@ -64,6 +71,28 @@ def parse_time(value: object) -> dt.datetime | None:
 def stable_fingerprint(value: Mapping[str, Any]) -> str:
     payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def source_mapping_buckets(source: Mapping[str, Any] | None) -> tuple[str, ...]:
+    """Return a deterministic, conservative bucket policy for one source.
+
+    Invalid, incomplete, or unsupported source records map to no buckets. Repository
+    validation reports the configuration error; the mapper never falls back to all
+    buckets when called directly or with stale data.
+    """
+    if not isinstance(source, Mapping):
+        return ()
+    allowed = SOURCE_ROLE_PATH_BUCKETS.get(source.get("role"))
+    mapping = source.get("module_mapping")
+    buckets = mapping.get("path_buckets") if isinstance(mapping, Mapping) else None
+    if allowed is None or not isinstance(buckets, list) or not buckets:
+        return ()
+    if len(set(buckets)) != len(buckets):
+        return ()
+    if any(not isinstance(bucket, str) or bucket not in allowed for bucket in buckets):
+        return ()
+    selected = set(buckets)
+    return tuple(bucket for bucket in PATH_BUCKETS if bucket in selected)
 
 
 def _json_request(url: str, token: str | None, *, opener: Any, timeout: int = 30) -> Any:
@@ -162,6 +191,36 @@ def _domain_validate_sources(config: Any) -> list[str]:
         deep = source.get("deep_file_details")
         if isinstance(daily, int) and isinstance(deep, int) and daily > deep:
             errors.append(f"{label}: daily_file_details must not exceed deep_file_details")
+
+        role = source.get("role")
+        allowed = SOURCE_ROLE_PATH_BUCKETS.get(role)
+        if allowed is None:
+            errors.append(f"{label}: unsupported role {role!r}")
+        mapping = source.get("module_mapping")
+        buckets = mapping.get("path_buckets") if isinstance(mapping, dict) else None
+        if not isinstance(mapping, dict):
+            errors.append(f"{label}: module_mapping must be an object")
+        if not isinstance(buckets, list) or not buckets:
+            errors.append(f"{label}: module_mapping.path_buckets must be a non-empty array")
+        else:
+            if len(set(str(bucket) for bucket in buckets)) != len(buckets):
+                errors.append(f"{label}: module_mapping.path_buckets must be unique")
+            invalid = sorted(
+                str(bucket)
+                for bucket in buckets
+                if not isinstance(bucket, str) or bucket not in PATH_BUCKETS
+            )
+            if invalid:
+                errors.append(
+                    f"{label}: unsupported module mapping buckets: {', '.join(invalid)}"
+                )
+            elif allowed is not None:
+                forbidden = sorted(set(buckets) - allowed)
+                if forbidden:
+                    errors.append(
+                        f"{label}: role {role!r} cannot use path buckets: "
+                        + ", ".join(forbidden)
+                    )
     return errors
 
 
