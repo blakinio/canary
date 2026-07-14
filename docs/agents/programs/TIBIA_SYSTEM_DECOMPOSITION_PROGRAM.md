@@ -4,8 +4,8 @@ name: Tibia System Decomposition
 status: active
 owner: repository-wide
 created: 2026-07-14T15:43:00+02:00
-updated: 2026-07-14T19:45:00+02:00
-last_verified_commit: "3eb7ae24bb1b918a0b040270e58c49037a873ee8"
+updated: 2026-07-14T20:02:00+02:00
+last_verified_commit: "1098363a708a1f5f875850670a5aad411031e188"
 primary_paths:
   - docs/agents/real-tibia/**
   - docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md
@@ -60,7 +60,7 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | `TSD-001` | taxonomy/hierarchy foundation and three-record pilot | completed | PR #335; merge `44fe3af9f29b3ae0164ac5d60fc1f14137b5cea5`; registry 19 → 22 | preserve archive |
 | `TSD-002A` | scheduler, DI, Lua bindings and build foundation | completed | PR #340; merge `82f35c0147fdd33c8d4e70d98d003385daf61de6`; registry 22 → 26 | preserve archive |
 | `TSD-002B` | DB connection/migrations, transaction and world-persistence classification | completed | PR #342; merge `1410a8622aaca5e4afe1bd15aa2695e2dbb7bb94`; registry 26 → 29 | preserve archive |
-| `TSD-003` | account, character and progression | active | PR #355; implementation head `3eb7ae24bb1b918a0b040270e58c49037a873ee8`; registry 29 → 35 | finish current-main integration, exact-head/ready CI, squash merge and lifecycle archive |
+| `TSD-003` | account, character and progression | completed | PR #355; merge `1098363a708a1f5f875850670a5aad411031e188`; registry 29 → 35 | preserve archive |
 | `TSD-004` | Cyclopedia family | next | `cyclopedia` and `charms` umbrellas plus completed TSD-003 boundaries | preserve umbrella; evaluate durable children |
 | `TSD-005` | combat, weapons and vocations | planned | `combat`, `spells`, `vocations` and progression boundaries | split only durable formula/state/weapon domains |
 | `TSD-006` | creatures, hunting, raids and bosses | planned | `spawns`, `prey`, `cyclopedia` | separate spawn, encounter, credit, reward and scheduling |
@@ -106,45 +106,17 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 - Final feature checks: Real Tibia Module Registry #156, Upstream Intelligence #184, Agent Task Ownership #1013, CI #2128 and ready-state CI #2129 — success.
 - Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-persistence-transactions.md`.
 
-No TSD-002B evidence establishes ACID semantics, rollback completeness, retry/reconnect safety, migration reversibility, idempotency, crash consistency, restart/reload safety or production MariaDB compatibility.
+## TSD-003
 
-# Current active package — TSD-003
+- Feature PR #355, head `d85f248a624fc01c0efa5f7970988fd6aa15e370`.
+- Merge `1098363a708a1f5f875850670a5aad411031e188`.
+- Registry 29 → 35; added only `account-authentication`, `account-lifecycle`, `character-lifecycle`, `character-progression`, `vocations`, `weapon-proficiency`.
+- Existing records modified 0; `player-persistence`, `protocol`, `achievements` and `wheel-of-destiny` remained stable.
+- Final feature checks: Real Tibia Module Registry #198, Upstream Intelligence #226, Agent Task Ownership #1064, CI #2176 and ready-state CI #2177 — success.
+- Account entitlements remain account-lifecycle capabilities; sanctions defer to TSD-009; progression fields remain one umbrella; individual vocation entries remain one registry lifecycle; titles and appearance unlocks defer to later packages.
+- Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-account-character-progression.md`.
 
-Task: `CAN-20260714-tibia-system-decomposition-account-character-progression`; draft PR #355.
-
-Registry 29 → 35. Added only:
-
-```text
-account-authentication
-account-lifecycle
-character-lifecycle
-character-progression
-vocations
-weapon-proficiency
-```
-
-Existing module records changed: 0. `player-persistence`, `protocol`, `achievements` and `wheel-of-destiny` remain stable existing boundaries.
-
-Key classification:
-
-- account entitlements and premium state remain account-lifecycle capabilities;
-- account sanctions are deferred to TSD-009;
-- generic account-wide storage is not claimed from quest-specific evidence;
-- level, skill, magic-level, stamina, offline-training, death-loss and blessing state remain findings inside `character-progression`;
-- individual vocation entries remain inside one `vocations` registry lifecycle;
-- titles, outfits, mounts and familiars are deferred to later Cyclopedia/client inventory;
-- Weapon Proficiency receives a durable independent record.
-
-Implementation/focused-test head `3eb7ae24bb1b918a0b040270e58c49037a873ee8` passed:
-
-- Real Tibia Module Registry #191;
-- Upstream Intelligence #219;
-- Agent Task Ownership #1058;
-- repository CI #2170.
-
-The package does not prove authentication security, token replay safety, save atomicity, progression formulas, vocation parity, Weapon Proficiency parity, runtime behavior, physical-client E2E or Oteryn readiness.
-
-Detailed evidence: `docs/agents/real-tibia/TSD_003_ACCOUNT_CHARACTER_PROGRESSION_REPORT.md`.
+No completed package evidence automatically establishes authentication security, ACID/save safety, progression formulas, vocation or Weapon Proficiency parity, runtime behavior, maintained-client compatibility, physical-client E2E or Oteryn readiness.
 
 # Oteryn migration policy
 
@@ -165,7 +137,7 @@ legacy inventory
 
 # Exact next operational task
 
-After PR #355 passes final exact-head review, ready-state Linux/Required, squash merge and a separate lifecycle archive, re-read then-current `main` and create only:
+After the TSD-003 lifecycle archive merges, re-read then-current `main`, open PRs, active tasks and ownership, then create only:
 
 ```text
 task: CAN-20260714-tibia-system-decomposition-cyclopedia-family
