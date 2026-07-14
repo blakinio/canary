@@ -7,12 +7,12 @@ agent: "GPT-5.6 Thinking"
 branch: feat/otbm-storage-dependency-graph
 base_branch: main
 created: 2026-07-13T23:55:00+02:00
-updated: 2026-07-14T08:54:00+02:00
+updated: 2026-07-14T08:57:00+02:00
 completed: 2026-07-14T08:54:00+02:00
-last_verified_commit: "b1e19e179eb32199cc6e14e68becd9cc99c91fca"
+last_verified_commit: "a251af92de5e8e42d17aabf61655c8d867ef41b2"
 risk: medium
 related_issue: ""
-related_pr: "#299"
+related_pr: "#299 / #309"
 depends_on:
   - "merged Quest Map Validator #225/#236"
   - "merged OTBM reachability validator #274/#277"
@@ -74,7 +74,7 @@ Phase 5 feature PR #299 was squash-merged into `main`.
 - Review threads on #299: zero.
 - Rollback: revert squash merge `c7ecb321681d6c4dd80b23b380bd211062f52c90`; no persistence or map cleanup is required.
 - Lifecycle cleanup branch: `docs/archive-otbm-storage-dependency-graph`.
-- Lifecycle cleanup PR: pending creation in this branch; update before merge.
+- Lifecycle cleanup PR: #309.
 
 # Delivered behavior
 
@@ -154,15 +154,15 @@ Green CI proves only the checks executed for this commit; it is not live gamepla
 - [x] Confirm no map, WIDX, asset, active datapack, gameplay, protocol, database schema or production configuration change.
 - [x] PR #299 squash-merged.
 - [x] Feature review threads resolved (zero).
-- [x] Task moved from `tasks/active` to `tasks/archive` in a separate lifecycle branch.
+- [x] Task moved from `tasks/active` to `tasks/archive` in separate lifecycle PR #309.
 
 # Work log
 
 - 2026-07-13: claimed Phase 5 after overlap searches and opened draft #299.
 - 2026-07-14: implemented the graph, tests, schema, docs, ADR and workflow; verified the 15-file scope; refreshed against advancing `main`; preserved unrelated work.
 - 2026-07-14: verified #299 merged, its final head and merge commit, final workflows/jobs, zero review threads, exact changed files and presence on current `main`.
-- 2026-07-14: moved this record to archive and prepared the lifecycle-only cleanup branch.
+- 2026-07-14: moved this record to archive and opened lifecycle-only cleanup PR #309.
 
 # Handoff
 
-Phase 5 is complete. Do not reopen #299 or continue its historical branch. Phase 6 may start only after the lifecycle cleanup PR is merged and a fresh current-main/open-PR/active-task/ownership preflight is complete.
+Phase 5 is complete. Do not reopen #299 or continue its historical branch. Phase 6 may start only after cleanup PR #309 is merged and a fresh current-main/open-PR/active-task/ownership preflight is complete.
