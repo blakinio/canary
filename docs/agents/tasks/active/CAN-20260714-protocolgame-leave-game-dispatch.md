@@ -7,8 +7,8 @@ agent: GPT-5.6-Thinking
 branch: fix/protocolgame-leave-game-dispatch
 base_branch: main
 created: 2026-07-14T20:30:00+02:00
-updated: 2026-07-14T22:05:00+02:00
-last_verified_commit: "b3aa436be2a88deb20179e15dd56fa9049a5dfda"
+updated: 2026-07-15T00:43:00+02:00
+last_verified_commit: "8368fce0c89054b78e7cac48ecfc137000f5b7f0"
 risk: high
 related_issue: ""
 related_pr: "blakinio/canary#360"
@@ -21,6 +21,7 @@ owned_paths:
     - src/server/network/connection/connection.cpp
     - src/server/network/connection/connection.hpp
     - src/server/network/protocol/protocol.cpp
+    - src/server/network/protocol/protocol.hpp
     - src/server/network/protocol/protocolgame.cpp
     - src/server/network/protocol/protocolgame.hpp
     - src/server/network/protocol/transport_codec.cpp
@@ -90,7 +91,8 @@ An already-received packet callback owns its exact message, `Connection`, and `P
 - [ ] The exact player session is removed or fully detached immediately after an accepted leave-game dispatch.
 - [ ] A denied logout is reported explicitly and cannot silently degrade into a detached ghost player.
 - [ ] Delayed A release/ping/logout callbacks cannot affect active B.
-- [ ] Transport mismatch diagnostics distinguish received sequence, expected sequence, connection, and protocol without relaxing validation.
+- [x] Transport mismatch diagnostics distinguish received sequence, expected sequence, connection, and protocol without relaxing validation.
+- [x] Sequence rejection does not advance the last accepted client sequence.
 - [ ] No timers, sleeps, retry windows, relog-delay increases, callback suppression, two-process substitution, packet-validation relaxation, or OTClient change.
 - [ ] Full current-head C++ CI passes.
 - [ ] After merge, unchanged same-process PR #245 E2E passes both complete sessions.
@@ -104,6 +106,16 @@ An already-received packet callback owns its exact message, `Connection`, and `P
 - Re-read run #34 artifacts and corrected the packet-sequence hypothesis: wire sequence ordering is monotonic, so OTClient PR #11 is not the evidence-backed fix for #245.
 - Expanded the owned transport paths narrowly to permit non-relaxing mismatch diagnostics required to locate the production close.
 - The next commit must add production-path diagnostics and deterministic coverage before another physical run.
+
+## 2026-07-15T00:43:00+02:00 — transport correctness and exact leave dispatch seam
+
+- Re-verified PR #360 before writes at head `ecb735b0b8d56350ef4b0815e381513b8a5a3694`; it still contained no production implementation and no newer third-party work.
+- Added typed inbound transport outcomes: accepted, zero sequence, sequence mismatch, checksum mismatch, decrypt failure and malformed frame.
+- Changed current-game sequence handling to calculate and compare the expected sequence before mutation, and to persist it only after the entire frame passes checksum and decrypt validation.
+- Added stable lifecycle diagnostics for transport rejection, accepted `0x14`, queue publication, dispatcher begin and dispatcher completion with exact connection/protocol identity.
+- Added deterministic production-class tests proving that zero, mismatch, duplicate and malformed frames do not consume the next accepted sequence.
+- Added a narrow virtual leave-game dispatch/release seam in `Protocol`; it reuses the #339 strong callback ownership instead of introducing a parallel lifetime mechanism.
+- Current implementation head verified as `8368fce0c89054b78e7cac48ecfc137000f5b7f0`; ownership and current-head CI were green at that point, but ProtocolGame exact-player completion work remains in progress.
 
 # Do not repeat
 
