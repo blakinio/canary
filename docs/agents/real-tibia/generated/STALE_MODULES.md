@@ -8,14 +8,18 @@ Evaluated as of **2026-07-14**.
 | Module | Last inventory | Age (days) | State | Warning / invalid thresholds |
 |---|---:|---:|---|---|
 | `achievements` | 2026-07-14 | 0 | `current` | 60 / 180 |
+| `build-system` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `charms` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `combat` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `configuration` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `cyclopedia` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `engine-runtime-lifecycle` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `engine-scheduler` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `engine-service-container` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `exaltation-forge` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `houses` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `imbuements` | 2026-07-14 | 0 | `current` | 60 / 180 |
+| `lua-bindings` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `lua-runtime` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `market` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `npcs` | 2026-07-14 | 0 | `current` | 60 / 180 |

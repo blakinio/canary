@@ -133,33 +133,62 @@ class RealTibiaRegistryTests(unittest.TestCase):
         self.assertIn("protocol", ids)
         self.assertIn("wheel-of-destiny", ids)
 
-    def test_decomposition_bootstrap_records_are_bounded(self) -> None:
+    def test_decomposition_records_are_bounded(self) -> None:
         registry = self.load()
-        self.assertEqual(len(registry.modules), 22)
+        self.assertEqual(len(registry.modules), 26)
         self.assertIn("engine-foundation", registry.categories)
-        expected = {
+        tsd_001 = {
             "configuration",
             "engine-runtime-lifecycle",
             "lua-runtime",
+        }
+        tsd_002a = {
+            "build-system",
+            "engine-scheduler",
+            "engine-service-container",
+            "lua-bindings",
         }
         actual = {
             module_id
             for module_id, module in registry.modules.items()
             if module["category"] == "engine-foundation"
         }
-        self.assertEqual(actual, expected)
-        for module_id in expected:
+        self.assertEqual(actual, tsd_001 | tsd_002a)
+        for module_id in tsd_001 | tsd_002a:
             module = registry.modules[module_id]
             self.assertEqual(module["lifecycle"]["status"], "inventory")
             self.assertEqual(module["maturity"]["implementation"], "inventory")
             self.assertEqual(module["maturity"]["evidence"], "inventory")
-            self.assertEqual(module["relationships"]["depends_on"], [])
+            self.assertEqual(module["maturity"]["persistence"], "not-assessed")
+            self.assertEqual(module["maturity"]["runtime_validation"], "not-assessed")
+        self.assertEqual(
+            registry.modules["lua-bindings"]["relationships"]["depends_on"],
+            ["lua-runtime"],
+        )
+        for module_id in (tsd_001 | tsd_002a) - {"lua-bindings"}:
+            self.assertEqual(
+                registry.modules[module_id]["relationships"]["depends_on"], []
+            )
+        self.assertNotIn("data-registries", registry.modules)
+        self.assertNotIn("platform-compatibility", registry.modules)
+
+    def test_tsd_002a_does_not_redefine_player_persistence(self) -> None:
+        module = self.load().modules["player-persistence"]
+        self.assertEqual(
+            module["paths"]["server"],
+            ["src/io/**", "src/database/**", "src/creatures/players/**"],
+        )
+        self.assertEqual(module["lifecycle"]["status"], "mapped")
 
     def test_decomposition_paths_map_to_narrow_modules(self) -> None:
         registry = self.load()
         cases = {
+            "CMakeLists.txt": "build-system",
             "src/canary_server.cpp": "engine-runtime-lifecycle",
             "src/config/configmanager.cpp": "configuration",
+            "src/game/scheduling/dispatcher.cpp": "engine-scheduler",
+            "src/lib/di/container.hpp": "engine-service-container",
+            "src/lua/functions/lua_functions_loader.cpp": "lua-bindings",
             "src/lua/scripts/lua_environment.hpp": "lua-runtime",
         }
         for path, expected in cases.items():
@@ -204,6 +233,10 @@ class RealTibiaRegistryTests(unittest.TestCase):
     def test_decomposition_affected_keeps_sorted_overlapping_hints(self) -> None:
         affected = self.load().affected_modules(
             [
+                "CMakeLists.txt",
+                "src/lua/functions/lua_functions_loader.cpp",
+                "src/game/scheduling/dispatcher.cpp",
+                "src/lib/di/container.hpp",
                 "src/lua/scripts/lua_environment.hpp",
                 "src/canary_server.cpp",
                 "src/config/configmanager.cpp",
@@ -211,9 +244,16 @@ class RealTibiaRegistryTests(unittest.TestCase):
             ]
         )
         self.assertEqual(affected, sorted(set(affected)))
-        self.assertIn("configuration", affected)
-        self.assertIn("engine-runtime-lifecycle", affected)
-        self.assertIn("lua-runtime", affected)
+        for expected in (
+            "build-system",
+            "configuration",
+            "engine-runtime-lifecycle",
+            "engine-scheduler",
+            "engine-service-container",
+            "lua-bindings",
+            "lua-runtime",
+        ):
+            self.assertIn(expected, affected)
         self.assertIn("protocol", affected)
 
 

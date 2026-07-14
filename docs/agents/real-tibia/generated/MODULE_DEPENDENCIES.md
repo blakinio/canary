@@ -6,14 +6,18 @@
 | Module | Depends on | Interacts with |
 |---|---|---|
 | `achievements` | `player-persistence` | `combat`, `quests`, `spells` |
+| `build-system` | — | `configuration`, `engine-runtime-lifecycle`, `engine-scheduler`, `engine-service-container`, `lua-bindings`, `lua-runtime` |
 | `charms` | `combat`, `cyclopedia`, `player-persistence`, `protocol` | — |
 | `combat` | `player-persistence` | `spells`, `wheel-of-destiny`, `exaltation-forge` |
 | `configuration` | — | `engine-runtime-lifecycle`, `lua-runtime`, `protocol` |
 | `cyclopedia` | `protocol`, `player-persistence` | `charms`, `physical-client-e2e` |
 | `engine-runtime-lifecycle` | — | `configuration`, `lua-runtime` |
+| `engine-scheduler` | — | `engine-runtime-lifecycle`, `engine-service-container` |
+| `engine-service-container` | — | `configuration`, `engine-runtime-lifecycle`, `engine-scheduler`, `lua-runtime` |
 | `exaltation-forge` | `player-persistence`, `protocol` | `combat`, `market` |
 | `houses` | `otbm-tooling`, `player-persistence` | `cyclopedia`, `protocol` |
 | `imbuements` | `combat`, `player-persistence` | `protocol` |
+| `lua-bindings` | `lua-runtime` | `engine-service-container` |
 | `lua-runtime` | — | `configuration`, `engine-runtime-lifecycle`, `npcs`, `quests`, `spells` |
 | `market` | `player-persistence`, `protocol` | `exaltation-forge` |
 | `npcs` | `otbm-tooling` | `quests`, `market`, `spawns` |
