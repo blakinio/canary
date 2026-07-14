@@ -11,7 +11,7 @@ updated: 2026-07-14T00:15:00Z
 last_verified_commit: "42c0afa8"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "#307"
 depends_on:
   - CAN-20260713-instance-arena-monster-spawn (InstanceArenaService monster spawn, PR #304)
 blocks:

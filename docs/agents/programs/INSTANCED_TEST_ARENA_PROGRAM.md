@@ -69,7 +69,7 @@ InstanceManager infrastructure PRs without a real consumer.
 
 | Task ID | Branch | PR | State | Exact next action |
 |---|---|---:|---|---|
-| CAN-20260714-instance-arena-timeout-events | `feat/instance-arena-timeout-events` | (pending) | in_progress | Open PR 5; merge once CI green. |
+| CAN-20260714-instance-arena-timeout-events | `feat/instance-arena-timeout-events` | #307 | in_progress | Merge once CI green. |
 
 # Queue
 
