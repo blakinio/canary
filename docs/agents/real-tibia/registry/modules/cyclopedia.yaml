@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "module_id": "cyclopedia",
+  "name": "Cyclopedia, Bestiary and Bosstiary",
+  "category": "character-progression",
+  "description": "Cyclopedia surfaces and related Bestiary, Bosstiary, Charms, map, items and character data.",
+  "lifecycle": {
+    "status": "mapped"
+  },
+  "scope": {
+    "includes": [
+      "Bestiary and Bosstiary",
+      "Charms registry",
+      "Cyclopedia items/map/character/houses surfaces",
+      "server-client packets"
+    ],
+    "excludes": [
+      "generic monster AI",
+      "unrelated map editing"
+    ]
+  },
+  "paths": {
+    "server": [
+      "src/io/iobestiary.*",
+      "src/creatures/players/**",
+      "src/server/network/protocol/**"
+    ],
+    "client": [
+      "modules/game_cyclopedia/**"
+    ],
+    "data": [],
+    "tests": [
+      "tools/ai-agent/cyclopedia_validation.py",
+      "tools/ai-agent/test_cyclopedia_validation.py"
+    ],
+    "docs": [
+      "docs/ai-agent/OTS_AI_CYCLOPEDIA_VALIDATION_PROJECT.md"
+    ]
+  },
+  "relationships": {
+    "depends_on": [
+      "protocol",
+      "player-persistence"
+    ],
+    "interacts_with": [
+      "charms",
+      "physical-client-e2e"
+    ]
+  },
+  "documents": {
+    "validation": [
+      "docs/ai-agent/OTS_AI_CYCLOPEDIA_VALIDATION_PROJECT.md"
+    ]
+  },
+  "source_requirements": [
+    {
+      "source": "canary-current",
+      "mode": "required"
+    },
+    {
+      "source": "maintained-otclient",
+      "mode": "required"
+    },
+    {
+      "source": "tibia-official",
+      "mode": "required-when-parity"
+    },
+    {
+      "source": "tibiawiki",
+      "mode": "secondary"
+    }
+  ],
+  "maturity": {
+    "implementation": "mapped",
+    "evidence": "audited",
+    "persistence": "not-assessed",
+    "protocol": "partial",
+    "automated_tests": "integration",
+    "runtime_validation": "limited",
+    "gameplay_e2e": "missing"
+  },
+  "freshness": {
+    "class": "fast",
+    "last_inventory": "2026-07-14",
+    "warning_after_days": 30,
+    "invalid_after_days": 90,
+    "refresh_before_each_task": true
+  },
+  "notes": []
+}

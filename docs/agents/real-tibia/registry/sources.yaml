@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "id": "canary-current",
+      "name": "Current blakinio/canary",
+      "type": "implementation-target",
+      "writable": true,
+      "exact_sha_required": true,
+      "authority": {
+        "current_server_behavior": "primary",
+        "official_intent": "insufficient",
+        "architecture": "primary"
+      }
+    },
+    {
+      "id": "tibia-official",
+      "name": "Official Tibia publications and controlled client observation",
+      "type": "official",
+      "writable": false,
+      "exact_sha_required": false,
+      "authority": {
+        "release_existence": "primary",
+        "announced_behavior": "primary",
+        "internal_formula": "insufficient"
+      }
+    },
+    {
+      "id": "tibiawiki",
+      "name": "Maintained TibiaWiki/Fandom",
+      "type": "community-wiki",
+      "writable": false,
+      "exact_sha_required": false,
+      "authority": {
+        "terminology": "secondary",
+        "values": "secondary",
+        "implementation": "none"
+      }
+    },
+    {
+      "id": "maintained-otclient",
+      "name": "blakinio/otclient",
+      "type": "maintained-client",
+      "writable": false,
+      "exact_sha_required": true,
+      "authority": {
+        "packet_interpretation": "primary-for-maintained-client",
+        "official_behavior": "insufficient",
+        "ui_contract": "primary-for-maintained-client"
+      }
+    },
+    {
+      "id": "opentibiabr-canary",
+      "name": "OpenTibiaBR Canary",
+      "type": "upstream-implementation",
+      "writable": false,
+      "exact_sha_required": true,
+      "authority": {
+        "upstream_conventions": "secondary",
+        "official_behavior": "insufficient",
+        "candidate_fix": "secondary"
+      }
+    },
+    {
+      "id": "crystalserver",
+      "name": "CrystalServer",
+      "type": "implementation-donor",
+      "writable": false,
+      "exact_sha_required": true,
+      "authority": {
+        "architecture_candidate": "secondary",
+        "official_behavior": "none",
+        "candidate_fix": "secondary"
+      }
+    },
+    {
+      "id": "runtime-observation",
+      "name": "Controlled Canary runtime observation",
+      "type": "runtime-evidence",
+      "writable": false,
+      "exact_sha_required": false,
+      "authority": {
+        "current_runtime_behavior": "primary",
+        "official_intent": "insufficient"
+      }
+    },
+    {
+      "id": "packet-capture",
+      "name": "Versioned packet capture or byte fixture",
+      "type": "protocol-evidence",
+      "writable": false,
+      "exact_sha_required": false,
+      "authority": {
+        "wire_shape": "primary-when-proven",
+        "gameplay_semantics": "insufficient"
+      }
+    }
+  ]
+}
