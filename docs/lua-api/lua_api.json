@@ -1275,6 +1275,24 @@
         "source": "src/lua/functions/events/events_scheduler_functions.cpp"
       }
     ],
+    "FileSystem": [
+      {
+        "name": "createDirectories",
+        "params": [
+          "path: string"
+        ],
+        "return": "boolean, string?",
+        "source": "src/lua/functions/core/game/global_functions.cpp"
+      },
+      {
+        "name": "createDirectory",
+        "params": [
+          "path: string"
+        ],
+        "return": "boolean, string?",
+        "source": "src/lua/functions/core/game/global_functions.cpp"
+      }
+    ],
     "Game": [
       {
         "name": "addInfluencedMonster",
