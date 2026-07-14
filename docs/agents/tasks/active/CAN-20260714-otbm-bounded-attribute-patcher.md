@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/otbm-bounded-attribute-patcher
 base_branch: main
 created: 2026-07-14T12:00:00+02:00
-updated: 2026-07-14T13:52:00+02:00
-last_verified_commit: "b0d3e6d1854e7ab6d7a24e083bb6ac2468867055"
+updated: 2026-07-14T14:03:00+02:00
+last_verified_commit: "d061dbe72265c89df9ab683717b18b598a106964"
 risk: high
 related_issue: ""
 related_pr: "#325"
@@ -137,7 +137,7 @@ No attribute may be inserted or removed. Item IDs, counts, stack order, tile kin
 # Confirmed context
 
 - Task-start `main`: `9b04ab3ef3dfbc9440274d63e15e6102c5501d85`, after Phase 7 lifecycle merge #323.
-- Feature branch was merged forward without conflicts to current `main` `b0d3e6d1854e7ab6d7a24e083bb6ac2468867055` on 2026-07-14.
+- Feature branch was merged forward without conflicts to current `main` `d061dbe72265c89df9ab683717b18b598a106964` on 2026-07-14.
 - PR #325 owns the scanner and new Phase 8 paths; no other open PR owns those implementation paths.
 - Shared catalogue/changelog/roadmap remain read-only because draft PR #331 owns shared registry/catalogue/changelog integration.
 - Upstream `opentibiabr/*` and Remere's Map Editor remain read-only evidence sources.
@@ -168,7 +168,8 @@ No attribute may be inserted or removed. Item IDs, counts, stack order, tile kin
 | `dcae5ce0ac4a09fc484a47ee442fc33610dd269e` | payload-only allowlist and symlink-parent tests | success | run `29329458294`, job `87073625155` |
 | `f20f81952ca5e25ab809da6eab7bd71e3efc87ae` | deferred destination publication and collision tests | success | run `29329940427`, job `87075200703` |
 | `6c6b788484bed8268d4db3714d6c8a33af84199a` | pre-parse plan limits and broken-symlink test | success | run `29330123167`, job `87075797473` |
-| `09468bd3f8d10fd58c02fcc7aa890e35179e9ff8` | final conflict-intolerant merge from `b0d3e6d1...` | success | run `29330170831`, job `87075954046` |
+| `09468bd3f8d10fd58c02fcc7aa890e35179e9ff8` | conflict-intolerant merge from `b0d3e6d1...` | success | run `29330170831`, job `87075954046` |
+| `be08a03edbfdaa04683354c32dc2d370828e7488` | conflict-intolerant merge from latest `d061dbe7...` | success | run `29330901451`, job `87078326768` |
 | pending direct head | complete current-head merge gate | pending | required final workflow set |
 
 # Risks and compatibility
@@ -184,7 +185,7 @@ No attribute may be inserted or removed. Item IDs, counts, stack order, tile kin
 
 1. Require successful current-head bounded patch, OTBM suites, ownership and repository Required checks.
 2. Confirm exact 11-file diff and zero blocking comments/reviews/threads.
-3. Mark PR #325 ready and squash-merge with the exact reviewed head.
+3. Squash-merge PR #325 with the exact reviewed head.
 4. Open a separate lifecycle PR to archive this task and update shared documentation after #331 releases it.
 
 # Handoff
