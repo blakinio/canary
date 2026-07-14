@@ -63,7 +63,7 @@
     "gameplay_e2e": "not-assessed"
   },
   "freshness": {
-    "class": "standard",
+    "class": "medium",
     "last_inventory": "2026-07-14",
     "warning_after_days": 30,
     "invalid_after_days": 90,
