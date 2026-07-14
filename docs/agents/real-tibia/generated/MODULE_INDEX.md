@@ -11,6 +11,8 @@
 | `combat` — Combat engine | `combat` | `mapped` | `mapped` | `inventory` | `not-assessed` | `not-assessed` | `unit` | `limited` | `not-assessed` | — |
 | `configuration` — Configuration | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `cyclopedia` — Cyclopedia, Bestiary and Bosstiary | `character-progression` | `mapped` | `mapped` | `audited` | `partial` | `not-assessed` | `integration` | `limited` | `missing` | — |
+| `database-connection` — Database Connection | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
+| `database-migrations` — Database Migrations | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `engine-runtime-lifecycle` — Engine Runtime Lifecycle | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `engine-scheduler` — Engine Scheduler | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `engine-service-container` — Engine Service Container | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
@@ -31,5 +33,6 @@
 | `spells` — Spell system | `combat` | `mapped` | `mapped` | `inventory` | `not-assessed` | `not-assessed` | `unit` | `not-assessed` | `not-assessed` | — |
 | `upstream-intelligence` — Upstream Intelligence and Drift Tracking | `platform-tooling` | `active` | `partial` | `mapped` | `not-applicable` | `not-applicable` | `integration` | `not-applicable` | `not-applicable` | `docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md` |
 | `wheel-of-destiny` — Wheel of Destiny | `character-progression` | `active` | `partial` | `audited` | `partial` | `partial` | `integration` | `limited` | `missing` | `docs/agents/programs/WHEEL_OF_DESTINY_PARITY_PROGRAM.md` |
+| `world-persistence` — World Persistence | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 
-Total modules: **26**.
+Total modules: **29**.

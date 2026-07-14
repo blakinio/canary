@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "module_id": "database-migrations",
+  "name": "Database Migrations",
+  "category": "engine-foundation",
+  "description": "Fresh-install schema, persisted database version and ordered Lua migration lifecycle discovery during server startup.",
+  "lifecycle": {
+    "status": "inventory",
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"
+  },
+  "scope": {
+    "includes": [
+      "fresh-install schema entry point",
+      "server_config database version state",
+      "numeric migration discovery and ordering",
+      "Lua onUpdateDatabase execution",
+      "startup database setup and migration invocation"
+    ],
+    "excludes": [
+      "feature ownership of migrated tables",
+      "migration reversibility or rollback proof",
+      "partial-failure recovery and production deployment operations",
+      "destructive migration execution by agents",
+      "runtime compatibility claims for every MariaDB deployment"
+    ]
+  },
+  "paths": {
+    "server": [
+      "src/database/databasemanager.*",
+      "schema.sql"
+    ],
+    "client": [],
+    "data": [
+      "data-otservbr-global/migrations/**"
+    ],
+    "tests": [],
+    "docs": [
+      "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+      "docs/agents/real-tibia/TSD_002B_PERSISTENCE_TRANSACTIONS_REPORT.md"
+    ]
+  },
+  "relationships": {
+    "depends_on": [
+      "database-connection"
+    ],
+    "interacts_with": [
+      "configuration",
+      "engine-runtime-lifecycle",
+      "lua-runtime"
+    ]
+  },
+  "documents": {
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+    "validation": [
+      "docs/agents/real-tibia/TSD_002B_PERSISTENCE_TRANSACTIONS_REPORT.md"
+    ]
+  },
+  "source_requirements": [
+    {"source": "canary-current", "mode": "required"},
+    {"source": "runtime-observation", "mode": "required-when-related"}
+  ],
+  "maturity": {
+    "implementation": "inventory",
+    "evidence": "inventory",
+    "persistence": "not-assessed",
+    "protocol": "not-assessed",
+    "automated_tests": "not-assessed",
+    "runtime_validation": "not-assessed",
+    "gameplay_e2e": "not-assessed"
+  },
+  "freshness": {
+    "class": "fast",
+    "last_inventory": "2026-07-14",
+    "warning_after_days": 30,
+    "invalid_after_days": 90,
+    "refresh_before_each_task": true
+  },
+  "notes": [
+    "Migration file presence and a monotonically recorded version do not prove reversibility, atomicity or partial-failure recovery.",
+    "Migration 63 is current-main evidence for one feature-specific table only, not a generic reconciliation guarantee.",
+    "This task does not execute or modify schema or migration scripts."
+  ]
+}

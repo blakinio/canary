@@ -11,6 +11,8 @@
 | `combat` | `player-persistence` | `spells`, `wheel-of-destiny`, `exaltation-forge` |
 | `configuration` | — | `engine-runtime-lifecycle`, `lua-runtime`, `protocol` |
 | `cyclopedia` | `protocol`, `player-persistence` | `charms`, `physical-client-e2e` |
+| `database-connection` | — | `configuration`, `engine-runtime-lifecycle`, `engine-service-container` |
+| `database-migrations` | `database-connection` | `configuration`, `engine-runtime-lifecycle`, `lua-runtime` |
 | `engine-runtime-lifecycle` | — | `configuration`, `lua-runtime` |
 | `engine-scheduler` | — | `engine-runtime-lifecycle`, `engine-service-container` |
 | `engine-service-container` | — | `configuration`, `engine-runtime-lifecycle`, `engine-scheduler`, `lua-runtime` |
@@ -31,5 +33,6 @@
 | `spells` | `combat` | `wheel-of-destiny` |
 | `upstream-intelligence` | — | `combat`, `otbm-tooling`, `physical-client-e2e`, `protocol` |
 | `wheel-of-destiny` | `combat`, `player-persistence`, `protocol` | `spells` |
+| `world-persistence` | `database-connection` | `engine-runtime-lifecycle`, `engine-scheduler`, `player-persistence` |
 
 Only `depends_on` must remain acyclic. `interacts_with` is descriptive and may be reciprocal.
