@@ -345,12 +345,20 @@ void parseItemAttributes(
 )
 
 replace_once(
-    """    std::vector<Context> stack;
+    """ScanData scanMap(const std::vector<uint8_t>& data) {
+    ScanData result;
+    result.header = parseMapHeader(data);
+    result.mechanics.reserve(4096);
+    std::vector<Context> stack;
     stack.reserve(64);
 
     size_t position = 4;
 """,
-    """    std::vector<Context> stack;
+    """ScanData scanMap(const std::vector<uint8_t>& data) {
+    ScanData result;
+    result.header = parseMapHeader(data);
+    result.mechanics.reserve(4096);
+    std::vector<Context> stack;
     stack.reserve(64);
     std::optional<uint32_t> nextTilePlacementIndex;
 
