@@ -69,7 +69,13 @@ bool ProtocolGame::queueClientLeaveGame() {
 		return false;
 	}
 
-	setClientLeaveGameState(ClientLeaveGameState::Queued, "validated-opcode");
+	const auto connection = getConnection();
+	g_logger().info(
+		"[ProtocolGameLeaveGame] event=client_leave_state state=queued reason=validated-opcode connection_id={} connection={} protocol={} player=unbound",
+		connection ? connection->getConnectionId() : 0,
+		fmt::ptr(connection.get()),
+		fmt::ptr(this)
+	);
 	return true;
 }
 
