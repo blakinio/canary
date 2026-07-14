@@ -233,6 +233,7 @@ void Protocol::XTEA_transform(uint8_t* buffer, size_t messageLength, bool encryp
 			return;
 		}
 
+		// Convert bytes to uint32_t considering little-endian order
 		std::array<uint8_t, 4> bytes0;
 		std::array<uint8_t, 4> bytes1;
 		std::copy_n(tempBuffer.begin(), 4, bytes0.begin());
@@ -253,9 +254,11 @@ void Protocol::XTEA_transform(uint8_t* buffer, size_t messageLength, bool encryp
 			}
 		}
 
+		// Convert vData back to bytes
 		bytes0 = std::bit_cast<std::array<uint8_t, 4>>(vData0);
 		bytes1 = std::bit_cast<std::array<uint8_t, 4>>(vData1);
 
+		// Copy transformed bytes back to buffer
 		std::copy_n(bytes0.begin(), 4, buffer + readPos);
 		std::copy_n(bytes1.begin(), 4, buffer + readPos + 4);
 
@@ -269,6 +272,7 @@ bool Protocol::RSA_decrypt(NetworkMessage &msg) {
 	}
 
 	const auto charData = static_cast<char*>(static_cast<void*>(msg.getBuffer()));
+	// Does not break strict aliasing
 	g_RSA().decrypt(charData + msg.getBufferPosition());
 	return (msg.getByte() == 0);
 }
