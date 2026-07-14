@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: security/fs-mkdir-shell-free
 base_branch: main
 created: 2026-07-14T08:00:00+02:00
-updated: 2026-07-14T09:30:00+02:00
-last_verified_commit: "a5cd00cc9af507f3281defb38e9f427377ef6b2f"
+updated: 2026-07-14T09:50:00+02:00
+last_verified_commit: "40c0831d97a3b7b711f40efa68c72b1d7a7588f1"
 risk: high
 related_issue: ""
 related_pr: "#310"
@@ -26,8 +26,6 @@ owned_paths:
     - docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md
     - artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT.md
     - artifacts/upstream/crystalserver/cs006_fs_mkdir_audit.json
-    - tools/ai-agent/apply_fs_mkdir_shell_free.py
-    - .github/workflows/apply-fs-mkdir-shell-free.yml
   shared:
     - docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md
     - docs/agents/CHANGELOG.md
@@ -41,15 +39,14 @@ owned_paths:
     - docs/agents/CROSS_REPO_CONTRACTS.md
     - data/events/scripts/player.lua
     - src/utils/tools.cpp
-    - src/lua/functions/core/core_functions.hpp
-    - src/lua/functions/core/libs/core_libs_functions.hpp
     - .github/workflows/reusable-tests-lua.yml
 modules_touched:
   - Lua filesystem helper boundary
 reuses:
-  - existing Lua test and CI infrastructure after discovery
-  - existing filesystem/Lua bindings if current source proves one exists
-  - existing bounded self-removing audit workflow pattern
+  - existing `GlobalFunctions` Lua registration surface
+  - engine-standard `std::filesystem` operations
+  - existing standalone Lua and `canary_ut` test infrastructure
+  - existing bounded self-removing audit/patch workflow pattern
 public_interfaces:
   - "FS.mkdir(path) -> success[, errorMessage]"
   - "FS.mkdir_p(path) -> success[, errorMessage]"
@@ -60,148 +57,121 @@ cross_repo_tasks: []
 
 # Goal
 
-Determine whether `FS.mkdir` can execute shell metacharacters from any reachable Canary call site, then remove shell execution through the smallest architecture-native solution if the risk is confirmed, while preserving valid directory-creation behavior on maintained platforms.
+Remove command-shell execution from `FS.mkdir` and `FS.mkdir_p` through the smallest architecture-native implementation while preserving the existing Lua compatibility contract.
 
 # Acceptance criteria
 
-- [x] Full current-repository inventory of `FS.mkdir`, `FS.mkdir_p`, their call sites, and path provenance is recorded with exact files and lines.
-- [x] Existing shell-free filesystem facilities and Lua bindings are inventoried before adding any new helper.
-- [x] CrystalServer commit `891685169745e46f665069edcc35847f0704aa21` is treated as evidence only; its denylist-plus-shell patch is not copied blindly.
-- [ ] A deterministic regression demonstrates that shell metacharacters cannot execute an additional command or create an unintended marker.
-- [ ] Valid single-level and recursive directory creation, existing-directory behavior, spaces, separators, and error returns remain covered.
-- [ ] The implementation is shell-free, or the task is closed without a runtime change if no safe architecture-native implementation is justified.
-- [ ] Required Lua/runtime checks pass on the current PR head.
-- [ ] No protocol, client, schema, migration, map, item, asset, or production configuration changes.
-- [ ] Program, changelog, and handoff records are current.
+- [x] Full current-repository inventory of definitions, call sites and path provenance is recorded with exact files and lines.
+- [x] Existing native filesystem facilities and Lua registration surfaces were inspected before implementation.
+- [x] CrystalServer commit `891685169745e46f665069edcc35847f0704aa21` is evidence only; its denylist-plus-shell patch was not copied.
+- [x] A standalone Lua regression fails if the wrapper invokes `os.execute`.
+- [x] A C++ regression invokes the real Lua binding and covers directory creation, existing paths, files, empty input and a shell-metacharacter payload without creating a marker.
+- [x] `FS.mkdir` remains single-level and `FS.mkdir_p` remains recursive; success/error returns are preserved.
+- [x] The implementation performs no shell execution and uses `std::filesystem` with `std::error_code`.
+- [ ] Exact-current-head formatter, Lua API documentation, Lua tests and full runtime CI pass.
+- [x] No protocol, client, schema, migration, map, item, asset or production configuration changes.
+- [x] Program, changelog, module catalogue and handoff records are synchronized.
 - [ ] Autonomous merge gate is satisfied.
 
-# Confirmed context
+# Evidence and threat classification
 
-- Target repository: `blakinio/canary`; no other repository is writable.
-- Task baseline: `42c0afa817b60f3b888c46b690b286cd224a3062`.
-- Current implementation uses `os.execute('mkdir "' .. path .. '"')` in `data/libs/functions/fs.lua`.
-- The same file exposes `FS.mkdir_p`, which delegates each path component to `FS.mkdir`.
-- CrystalServer commit `891685169745e46f665069edcc35847f0704aa21` adds a metacharacter denylist but still invokes a shell; the comparison program explicitly requires an independent security design.
-- Open PR search for `FS.mkdir`, `fs.lua`, and `mkdir_p` returned no overlap at task start.
-- Open runtime work exists in instance/multichannel/game areas; this task avoids those paths.
-- Local Git/worktree/build access is unavailable: `git ls-remote` fails with `Could not resolve host: github.com`.
+- Baseline task commit: `42c0afa817b60f3b888c46b690b286cd224a3062`.
+- Baseline `data/libs/functions/fs.lua` constructed `mkdir` through `os.execute`.
+- Audit reports:
+  - `artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT.md`;
+  - `artifacts/upstream/crystalserver/cs006_fs_mkdir_audit.json`.
+- Audit scanned 6,857 tracked files and found the two production uses in player-rule and bug-report paths.
+- Default `validateName` accepts only letters, apostrophes and spaces, so default character creation does not directly supply shell syntax.
+- The general Lua helper still accepted arbitrary custom/DB/script-derived paths; the verified defect is an unsafe command-execution primitive, not a claim of default-client remote RCE.
+- No existing shell-free Lua directory binding was present; `std::filesystem` was already used throughout maintained server code.
 
-# Existing work to reuse
+# Final source design
 
-| System | Intended reuse | Evidence status |
-|---|---|---|
-| Lua/Fast Checks workflow | Syntax, formatting and Lua regression execution | verify after audit |
-| Existing filesystem APIs/bindings | Reuse engine-standard `std::filesystem`; no directory binding existed | broad and targeted audit complete |
-| Bounded self-removing workflow | Full-checkout discovery while local clone is unavailable | approved repository precedent; temporary files must leave final diff |
-| CrystalServer comparison program | Candidate provenance, risk and sequencing | current program record |
-
-# Ownership and overlap check
-
-- Open PRs and current main were refreshed on 2026-07-14.
-- No open PR matched `FS.mkdir`, `fs.lua`, or `mkdir_p`.
-- `data/libs/functions/fs.lua` is exclusively claimed by this task.
-- Shared program/changelog edits must remain narrow.
-- The temporary audit workflow/script must remove themselves after producing the evidence report.
-
-# Plan
-
-1. Publish this task and a draft PR for visibility.
-2. Run a self-removing full-checkout audit to enumerate call sites, path provenance, tests, `os.execute`, and native filesystem facilities.
-3. Classify reachability and revise `CS-006` from `PARTIAL_VALUE` to an evidence-backed final status.
-4. Add regression coverage before the fix where practical.
-5. Implement the smallest shell-free solution using an existing binding when available; otherwise add the narrowest justified native binding with all maintained build/test entries.
-6. Run current-head CI, review the complete diff, and merge only through the autonomous gate.
-7. Archive the task in a separate cleanup PR.
+- `FileSystem.createDirectory(path)` is registered in existing `GlobalFunctions` and calls `std::filesystem::create_directory`.
+- `FileSystem.createDirectories(path)` calls `std::filesystem::create_directories`.
+- Both reject non-string inputs, avoid exceptions through `std::error_code`, accept existing directories and return `false, errorMessage` for failures.
+- `FS.mkdir` and `FS.mkdir_p` are compatibility wrappers; `FS.mkdir_p("")` remains a no-op success.
+- No new C++ source unit or Visual Studio/CMake registration is required.
 
 # Work log
 
 ## 2026-07-14T08:00:00+02:00
 
-- Changed: created a dedicated branch and claimed the exact Lua/security/report paths.
-- Learned: current Canary still invokes the shell directly; upstream's denylist continues to use a shell and is not sufficient as the design.
-- Failed/blocked: local clone/fetch/build unavailable because DNS cannot resolve GitHub.
-- Result: proceed with a bounded GitHub Actions audit on the exact task branch.
+- Created the dedicated branch, task and draft PR #310 after refreshing main, open PRs and ownership.
+- Confirmed direct shell construction and rejected the upstream denylist design.
+- Local Git/build remained unavailable because DNS could not resolve `github.com`.
 
 ## 2026-07-14T09:15:00+02:00
 
-- Changed: published deterministic Markdown/JSON evidence after scanning 6,857 tracked files; temporary audit runners removed themselves.
-- Learned: production uses are player-report paths in `data/events/scripts/player.lua`; the default validator permits only letters, apostrophes and spaces, but `FS.mkdir` remains a general Lua shell primitive for DB/custom-script paths.
-- Failed/blocked: the first report commit omitted ignored `artifacts/**`; a second run exposed trailing whitespace. Both publication issues were fixed without weakening `git diff --check`.
-- Result: `CS-006` is `VALID_FIX_MISSING`; use existing `GlobalFunctions` plus `std::filesystem`, with focused Lua and C++ tests.
+- Published deterministic Markdown/JSON evidence; all temporary audit runners removed themselves.
+- The first publication omitted ignored `artifacts/**`; the corrected run force-staged only the two reports.
+- A later report run exposed trailing whitespace; it was normalized without weakening `git diff --check`.
+- Classified `CS-006` as `VALID_FIX_MISSING`.
+
+## 2026-07-14T09:30:00+02:00
+
+- Replaced shell-backed wrappers with native methods and added focused Lua/C++ tests.
+- Exact-anchor apply run `29314889189` passed `luajit tests/lua/test_fs.lua`, the no-`os.execute` check, the changed-file allowlist and `git diff --check` on implementation head `c07bb271f288eae53824437b102d37cafe9751dd`.
+
+## 2026-07-14T09:45:00+02:00
+
+- Consolidated competing implementation shapes and retained one `FileSystem` table in the already compiled `GlobalFunctions` module.
+- Strengthened native functions with non-string argument checks and changed the C++ regression to invoke the real Lua binding.
+- Removed failed temporary finalizer files; current PR diff contains exactly twelve intended files.
+- Draft CI `1674` was not accepted as runtime evidence because Fast Checks, Lua and all platform builds were skipped.
 
 # Decisions
 
-| Decision | Reason/evidence | ADR |
+| Decision | Reason |
+|---|---|
+| Keep `CS-006` separate from `CS-007` | Filesystem shell execution and deserialization have different threat models and compatibility gates. |
+| Remove the shell instead of filtering characters | A denylist is incomplete and retains command interpretation. |
+| Use existing `GlobalFunctions` | It avoids a second subsystem and new maintained build registrations while exposing only two narrow methods. |
+| Preserve `FS` wrappers | Existing datapack and custom scripts keep their public API. |
+| Use `std::error_code` | Directory failures remain visible to Lua without exceptions crossing the binding boundary. |
+| Do not claim default-client RCE | Standard name validation blocks shell syntax; broader custom/DB/script input remains the relevant boundary. |
+
+# Validation
+
+| Commit/run | Check | Result |
 |---|---|---|
-| Separate `CS-006` from `CS-007` | Shell/path handling and deserialization compatibility have different threat models and test contracts. | none |
-| Do not copy the CrystalServer denylist | Denylists are incomplete by construction and leave shell interpretation in the execution path. | none |
-| Audit call sites before changing the API | Security severity and compatibility depend on actual path sources and existing uses. | none |
-| Add two narrow methods to existing `GlobalFunctions` | No directory binding exists; this avoids a new subsystem/build unit while reusing established Lua registration and `std::filesystem`. | none |
-| Preserve `FS` as a compatibility wrapper | Existing datapack/custom scripts keep their API while shell execution disappears. | none |
-
-# Validation and CI
-
-| Commit | Check | Result | Evidence |
-|---|---|---|---|
-| `42c0afa817b60f3b888c46b690b286cd224a3062` | local Git/worktree/build preflight | unavailable | DNS failure recorded; no pass claimed |
+| `42c0afa817b60f3b888c46b690b286cd224a3062` | local Git/worktree/build preflight | unavailable; DNS failure, no pass claimed |
+| `4695d10158386da1af517a233bdb3e5cda0d2c23` / `29314149659` | deterministic audit publication | passed |
+| `c07bb271f288eae53824437b102d37cafe9751dd` / `29314889189` | exact implementation, focused Lua test, no-shell check, allowlist, `git diff --check` | passed |
+| `c9ca0e38ec73f5cac9c70be210be3835247d78bb` / CI `1674` | draft Required | insufficient; build/test jobs skipped |
+| `40c0831d97a3b7b711f40efa68c72b1d7a7588f1` | final twelve-file source review | completed; exact-head Ready CI pending |
 
 Never record `passed` without verification on the stated commit.
 
 # Risks and compatibility
 
-- Security: direct command construction can become command injection if any path contains shell metacharacters and reaches `FS.mkdir`.
-- Compatibility: path quoting, Windows drive/UNC paths, relative roots, separators, spaces and existing return conventions must be preserved deliberately.
-- Runtime: directory creation may happen during startup or tooling; failures must remain visible and must not silently change locations.
-- Cross-repository: none expected.
-- Rollback: revert the implementation PR; no persisted schema or data migration is planned.
+- Security: shell interpretation is removed from the filesystem helper boundary.
+- Compatibility: spaces, native separators, absolute/drive roots and recursive creation are delegated to `std::filesystem` rather than reconstructed manually.
+- Existing-directory behavior remains successful.
+- Invalid input and filesystem errors remain explicit boolean/error returns.
+- Cross-repository impact: none.
+- Rollback: revert PR #310; no migration or irreversible state exists.
 
 # Remaining work
 
-1. Apply and review the bounded implementation/test diff.
-2. Run Lua tests, full Ready-state C++ CI and generated Lua API documentation checks.
-3. Merge only after reviews, threads, ownership and Required pass; archive separately.
+1. Verify ownership and draft formatter/Lua checks on the connector-authored current head.
+2. Mark PR #310 Ready and require full Linux C++ build/tests plus all selected platform gates and `Required`.
+3. Review all comments, reviews, threads and the final diff; enable auto-merge only on the unchanged validated SHA.
+4. Archive this task and close `CS-006` in a separate cleanup PR.
 
 # Handoff
 
-## Start here
+Read this task, PR #310, both audit reports, `data/libs/functions/fs.lua`, `global_functions.*` and both focused tests.
 
-Read this task, the comparison program, `data/libs/functions/fs.lua`, CrystalServer commit `891685169745e46f665069edcc35847f0704aa21`, and the generated `CS006_FS_MKDIR_AUDIT` report.
-
-## Do not repeat
-
-- Do not combine this with `table.unserialize`.
-- Do not copy the upstream denylist and continue invoking a shell.
-- Do not introduce a second general filesystem framework without checking current Lua/native facilities.
-- Do not infer that a path is trusted without tracing its call site.
-
-## Open questions
-
-- Which current call sites exist, and can any path contain configuration, network, player, database, or script-derived data?
-- Does Canary already expose shell-free directory creation to Lua?
-- Which maintained test harness can safely prove no marker command is executed?
+Do not restore shell execution, do not replace it with a denylist, do not merge `table.unserialize` into this task, and do not treat a skipped draft build as C++ validation.
 
 # Completion
 
 - Final status: active
-- PR: pending
+- PR: #310
+- Current reviewed source head: `40c0831d97a3b7b711f40efa68c72b1d7a7588f1`
 - Merge commit:
-- Program record updated: pending
-- Catalogue updated: pending applicability review
-- Changelog updated: pending
+- Program record updated: yes, active task and `VALID_FIX_MISSING`
+- Catalogue updated: yes, active reusable binding
+- Changelog updated: yes
 - Archived at: pending
-
-
-## 2026-07-14T09:30:00+02:00
-
-- Changed: replaced shell-backed `FS.mkdir`/`FS.mkdir_p` with a narrow native `FileSystem.createDirectory`/`FileSystem.createDirectories` binding backed by `std::filesystem`.
-- Changed: added C++ filesystem behavior tests and a runtime-independent Lua contract test that fails if `os.execute` is called.
-- Learned: the only runtime call sites are report paths derived from validated player names, but the public helper accepted arbitrary strings; removing the shell closes the boundary instead of relying on name validation or a denylist.
-- Compatibility: existing public `FS` function names and empty recursive-path behavior are preserved; recursive creation now delegates directly to `std::filesystem::create_directories` and correctly preserves absolute/drive roots.
-- Validation pending: exact-head full CI, generated Lua API docs, Windows solution registration and runtime smoke.
-
-
-## 2026-07-14T09:45:00+02:00
-
-- Consolidated: removed a duplicate dedicated filesystem binding and retained the existing `GlobalFunctions`-registered `FileSystem` table.
-- Strengthened: the C++ test now calls the actual Lua binding and verifies directory creation, existing paths, files, empty paths and shell-metacharacter payloads.
-- Strengthened: both native methods reject non-string arguments before constructing a filesystem path.
