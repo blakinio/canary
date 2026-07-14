@@ -1,0 +1,32 @@
+name: Sync Equipment Upgrade archive
+
+on:
+  pull_request:
+    branches:
+      - docs/archive-equipment-upgrade-parity-cycle
+    paths:
+      - docs/ai-agent/.sync-equipment-upgrade-archive
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout archive branch
+        uses: actions/checkout@v4
+        with:
+          ref: docs/archive-equipment-upgrade-parity-cycle
+          fetch-depth: 0
+          show-progress: false
+
+      - name: Merge current main and push
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git merge --no-edit origin/main
+          git push origin HEAD:docs/archive-equipment-upgrade-parity-cycle
