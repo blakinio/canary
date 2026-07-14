@@ -8,6 +8,7 @@
  */
 
 #pragma once
+
 #include "server/network/protocol/protocol.hpp"
 #include "server/network/protocol/protocol_profile.hpp"
 #include "server/network/protocol/protocol_session_hint.hpp"
@@ -20,6 +21,7 @@
 	#include <functional>
 	#include <optional>
 	#include <string>
+	#include <string_view>
 #endif
 
 enum class PlayerIcon : uint8_t;
@@ -369,7 +371,7 @@ private:
 	void parseSendBosstiary();
 	void parseSendBosstiarySlots();
 	void parseBosstiarySlot(NetworkMessage &msg);
-	void sendPodiumDetails(NetworkMessage &msg, const std::vector<uint16_t> &toSendMonsters, uint32_t bossRaceId = 0);
+	void sendPodiumDetails(NetworkMessage &msg, const std::vector<uint16_t> &toSendMonsters, bool isBoss) const;
 	void sendMonsterPodiumWindow(const std::shared_ptr<Item> &podium, const Position &position, uint16_t itemId, uint8_t stackPos);
 	void parseSetMonsterPodium(NetworkMessage &msg) const;
 	void sendBosstiaryCooldownTimer();
@@ -446,7 +448,7 @@ private:
 	void sendResourcesBalance(uint64_t money = 0, uint64_t bank = 0, uint64_t preyCards = 0, uint64_t taskHunting = 0, uint64_t forgeDust = 0, uint64_t forgeSliver = 0, uint64_t forgeCores = 0);
 	void sendResourceBalance(Resource_t resourceType, uint64_t value);
 	void sendCharmResourcesBalance(uint32_t charm = 0, uint32_t minorCharm = 0, uint32_t maxCharm = 0, uint32_t maxMinorCharm = 0);
-	void sendCharmResourceBalance(CharmResource_t resourceType, uint64_t value);
+	void sendCharmResourceBalance(CharmResource_t resourceType, uint32_t value);
 	void sendSaleItemList(const std::vector<ShopBlock> &shopVector, const std::map<uint16_t, uint16_t> &inventoryMap);
 	void sendMarketEnter(uint32_t depotId);
 	void updateCoinBalance();
@@ -516,7 +518,7 @@ private:
 
 	// quickloot
 	void sendLootContainers();
-	void sendLootStats(const std::shared_ptr<Item> &item);
+	void sendLootStats(const std::shared_ptr<Item> &item, uint8_t count);
 
 	// inventory
 	void sendInventoryItem(Slots_t slot, const std::shared_ptr<Item> &item);
