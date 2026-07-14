@@ -257,6 +257,79 @@ update - next action is to commit and push.
 - Result: PR 1 foundation complete and verified (see Validation and CI
   table below). Not yet pushed to PR #308 as of this log entry.
 
+## 2026-07-14T10:35:00Z (CI repair)
+
+- Changed: pushed PR 1 foundation to #308, marked ready for review (it had
+  been left draft, which this repo's workflow gates the full build matrix
+  behind - `Build - Linux/Windows/macOS/Docker` had all been silently
+  `skipped`, not actually run, on the first push; marking ready triggered
+  the real matrix).
+- **Two real, independent CI failures surfaced, both root-caused:**
+  1. `Build - Windows / Compile (Solution)` failed with MSVC C2084:
+     `optionalIntToSql` "already has a body". Root cause: Windows' unity/
+     jumbo build (MSBuild groups multiple `.cpp` files into one translation
+     unit) put `db_cluster_pending_operation_repository.cpp` and the
+     pre-existing `economic_ledger_store.cpp` in the same unit; both
+     defined an identically-named, identically-signed anonymous-namespace
+     helper `optionalIntToSql(const std::optional<int32_t>&)` - harmless
+     per-file, a hard collision once unified. Linux/CMake never surfaced
+     it (confirmed - only Windows failed on this). **Fixed** by renaming
+     mine to `optionalChannelIdToSql`; grepped this PR's other new files
+     for any other anonymous-namespace free function to rule out a second
+     instance (none - `rowToRecord`/`runPendingQuery` take/return
+     `ClusterPendingOperationRecord`, a type unique to this PR's own
+     header).
+  2. The Linux runtime smoke test failed with "Canary runtime log contains
+     warning/error lines" - not a compile error, its log-scanner catching
+     migration 63's own expected `logger.warn("...already exists, skipping
+     creation")` idempotency-guard line on a fresh-install DB (where
+     `schema.sql` already includes the table, so the migration always hits
+     the "already exists" branch on first boot). **The repo owner
+     (blakinio) intervened directly on this branch** while I was mid-diagnosis
+     of the same issue (see below) - pushed `2d1a2b6` removing the
+     `logger.warn(...)` call from `63.lua` entirely (silencing the log line
+     at its source), after a first attempt (`e5c12a9`, a temporary
+     `fix-pr308-migration-warning.yml` workflow) had a YAML syntax error
+     (caught by `yamllint`) and was cleaned up (`d1283ef`). A merge commit
+     (`84a2278`) then folded in ~10 unrelated commits that had landed on
+     `main` in the meantime.
+  - I had independently reached a different (also valid, more complete)
+    diagnosis for the same symptom: `schema.sql`'s `server_config.
+    db_version` seed was still `'61'` even though migration 62's tables
+    were already present in `schema.sql` (migration 62 uses a raw `CREATE
+    TABLE IF NOT EXISTS` with no explicit check, so it silently never
+    triggered this; my migration follows the more explicit,
+    established-since-59 `db.tableExists()` + `logger.warn(...)` style,
+    which correctly, audibly surfaced the drift). I had a local, uncommitted
+    fix bumping `db_version` to `'63'` prepared before discovering the
+    owner had already pushed their own resolution.
+  - **Reconciliation**: fetched the remote branch, found it 11 commits
+    ahead of my last push (the owner's fixes plus the `main` merge).
+    Stashed my uncommitted local changes for safety
+    (`git stash push -u`), hard-reset my local branch to match the
+    remote tip exactly (`git reset --hard origin/claude/canary-cross-process-handoff`
+    - safe, since the only local state was the already-stashed diff, no
+    commits were discarded), then re-applied *only* the still-unaddressed
+    Windows rename fix on top of the owner's own state, **without**
+    reverting or fighting their `logger.warn` removal or reintroducing my
+    own `db_version` bump - the owner's fix is simpler, already live, and
+    a legitimate resolution; overriding it with a competing approach after
+    the fact would have been presumptuous. The stash (containing my
+    superseded `db_version`/`63.lua` edits) is left untouched as a record,
+    not reapplied.
+  - Verified after reconciliation: `clang-format-18 --dry-run --Werror`
+    clean on the renamed file; `cluster_record_handoff_test.cpp` still
+    17/17 passing with real gtest after the rebase.
+- Learned: (1) a draft PR on this repo's CI silently skips the full build
+  matrix - green-on-draft must never be read as "CI passed," exactly the
+  user's own standing instruction; (2) this repo has the owner actively
+  monitoring and directly intervening on agent branches for real CI
+  failures - always re-fetch before assuming local state is current when
+  investigating a failure, never blindly force-push over unfetched remote
+  state.
+- Result: pushed the Windows fix on top of the owner's own resolution;
+  awaiting the next full CI run's result on the reconciled head.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |

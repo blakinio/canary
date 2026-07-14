@@ -31,7 +31,7 @@ std::string describeClusterPendingOperationStatus(ClusterPendingOperationStatus 
 }
 
 namespace {
-	std::string optionalIntToSql(const std::optional<int32_t> &value) {
+	std::string optionalChannelIdToSql(const std::optional<int32_t> &value) {
 		return value.has_value() ? std::to_string(*value) : "NULL";
 	}
 
@@ -96,7 +96,7 @@ bool DbClusterPendingOperationRepository::enqueue(const ClusterPendingOperationR
 		  << db.escapeString(record.operationId) << ", "
 		  << db.escapeString(record.recordKind) << ", "
 		  << record.recordId << ", "
-		  << optionalIntToSql(record.recordChannelId) << ", "
+		  << optionalChannelIdToSql(record.recordChannelId) << ", "
 		  << db.escapeString(record.operationType) << ", "
 		  << db.escapeString(record.payload) << ", "
 		  << "'PENDING', "
