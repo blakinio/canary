@@ -122,7 +122,7 @@ class SourcePin:
             optional=set(),
             label="source",
         )
-        sha256 = _text(value["sha256"], "source.sha256").lower()
+        sha256 = _text(value["sha256"], "source.sha256")
         if len(sha256) != 64 or any(character not in "0123456789abcdef" for character in sha256):
             raise BoundedPatchError("source.sha256 must be a lowercase SHA-256 hex digest")
         file_name = _text(value["fileName"], "source.fileName")

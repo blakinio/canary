@@ -10,6 +10,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+import otbm_bounded_patch
 from otbm_bounded_patch import apply_bounded_patch
 from otbm_bounded_patch_types import BoundedPatchError, PatchPlan, sha256_file
 
@@ -291,6 +292,25 @@ class BoundedPatchIntegrationTests(unittest.TestCase):
             return_value={"format": "canary-otbm-semantic-diff-v1", "ok": True},
         ):
             with self.assertRaisesRegex(BoundedPatchError, "incomplete"):
+                self.apply(plan)
+        self.assertEqual(self.source.read_bytes(), original)
+        self.assertFalse((self.artifacts / "patched.otbm").exists())
+        self.assertFalse((self.artifacts / "evidence").exists())
+        self.assertFalse((self.artifacts / "result.json").exists())
+
+    def test_result_publication_failure_removes_output_and_evidence(self) -> None:
+        self.write_map()
+        original = self.source.read_bytes()
+        plan = self.make_plan([operation("action", "set-action-id", 0, 100, 1000, 1001)])
+        original_write_json = otbm_bounded_patch._write_json
+
+        def fail_result(path: Path, value: object) -> None:
+            if path.name == "result.json":
+                raise OSError("simulated result publication failure")
+            original_write_json(path, value)  # type: ignore[arg-type]
+
+        with mock.patch("otbm_bounded_patch._write_json", side_effect=fail_result):
+            with self.assertRaisesRegex(OSError, "simulated result publication failure"):
                 self.apply(plan)
         self.assertEqual(self.source.read_bytes(), original)
         self.assertFalse((self.artifacts / "patched.otbm").exists())

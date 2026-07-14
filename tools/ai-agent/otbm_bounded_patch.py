@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 from collections import Counter
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Mapping, Sequence
 
 from otbm_semantic_diff import analyze_index_paths, write_report
 from otbm_semantic_diff_types import SemanticDiffError
@@ -31,7 +31,6 @@ from otbm_bounded_patch_types import (
 MAX_OPERATIONS = 10_000
 MAX_NATIVE_ANCHOR_BYTES = 512 * 1024 * 1024
 BUFFER_SIZE = 8 * 1024 * 1024
-MARKER_BYTES = {0xFD, 0xFE, 0xFF}
 DIFF_KIND = {
     "set-action-id": "action-id-changed",
     "set-unique-id": "unique-id-changed",
@@ -109,16 +108,37 @@ def _write_json(path: Path, value: Mapping[str, Any]) -> None:
     encoded = (json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8")
     descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
     temporary = Path(temporary_name)
+    linked = False
     try:
         with os.fdopen(descriptor, "wb") as stream:
             stream.write(encoded)
             stream.flush()
             os.fsync(stream.fileno())
         os.link(temporary, path)
+        linked = True
         temporary.unlink()
         _fsync_directory(path.parent)
     except Exception:
+        if linked:
+            path.unlink(missing_ok=True)
         temporary.unlink(missing_ok=True)
+        raise
+
+
+def _publish_directory_no_overwrite(source: Path, destination: Path) -> None:
+    destination.mkdir(mode=0o700)
+    try:
+        for child in sorted(source.iterdir(), key=lambda candidate: candidate.name):
+            if child.is_symlink() or not child.is_file():
+                raise BoundedPatchError(f"evidence workspace contains a non-regular entry: {child}")
+            published = destination / child.name
+            os.link(child, published)
+            child.unlink()
+        source.rmdir()
+        _fsync_directory(destination)
+        _fsync_directory(destination.parent)
+    except Exception:
+        shutil.rmtree(destination, ignore_errors=True)
         raise
 
 
@@ -580,6 +600,7 @@ def apply_bounded_patch(
     workspace = Path(tempfile.mkdtemp(prefix=".otbm-bounded-patch-", dir=root))
     published_output = False
     published_evidence = False
+    published_result = False
     try:
         before_native = workspace / "before-anchors.native.json"
         before_public = workspace / "before-anchors.json"
@@ -754,10 +775,10 @@ def apply_bounded_patch(
         published_output = True
         temporary_output.unlink()
         _fsync_directory(output.parent)
-        os.rename(workspace, evidence)
+        _publish_directory_no_overwrite(workspace, evidence)
         published_evidence = True
-        _fsync_directory(evidence.parent)
         _write_json(result_destination, result)
+        published_result = True
         return result
     except (WorldIndexError, SemanticDiffError) as exc:
         raise BoundedPatchError(str(exc)) from exc
@@ -766,7 +787,7 @@ def apply_bounded_patch(
     finally:
         if workspace.exists():
             shutil.rmtree(workspace, ignore_errors=True)
-        if not result_destination.exists():
+        if not published_result:
             if published_output:
                 output.unlink(missing_ok=True)
             if published_evidence:
