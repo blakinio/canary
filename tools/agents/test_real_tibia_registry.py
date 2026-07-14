@@ -135,7 +135,7 @@ class RealTibiaRegistryTests(unittest.TestCase):
 
     def test_decomposition_records_are_bounded(self) -> None:
         registry = self.load()
-        self.assertEqual(len(registry.modules), 26)
+        self.assertEqual(len(registry.modules), 29)
         self.assertIn("engine-foundation", registry.categories)
         tsd_001 = {
             "configuration",
@@ -148,45 +148,66 @@ class RealTibiaRegistryTests(unittest.TestCase):
             "engine-service-container",
             "lua-bindings",
         }
+        tsd_002b = {
+            "database-connection",
+            "database-migrations",
+            "world-persistence",
+        }
+        all_tsd = tsd_001 | tsd_002a | tsd_002b
         actual = {
             module_id
             for module_id, module in registry.modules.items()
             if module["category"] == "engine-foundation"
         }
-        self.assertEqual(actual, tsd_001 | tsd_002a)
-        for module_id in tsd_001 | tsd_002a:
+        self.assertEqual(actual, all_tsd)
+        for module_id in all_tsd:
             module = registry.modules[module_id]
             self.assertEqual(module["lifecycle"]["status"], "inventory")
             self.assertEqual(module["maturity"]["implementation"], "inventory")
             self.assertEqual(module["maturity"]["evidence"], "inventory")
             self.assertEqual(module["maturity"]["persistence"], "not-assessed")
             self.assertEqual(module["maturity"]["runtime_validation"], "not-assessed")
-        self.assertEqual(
-            registry.modules["lua-bindings"]["relationships"]["depends_on"],
-            ["lua-runtime"],
-        )
-        for module_id in (tsd_001 | tsd_002a) - {"lua-bindings"}:
+        expected_dependencies = {
+            "lua-bindings": ["lua-runtime"],
+            "database-migrations": ["database-connection"],
+            "world-persistence": ["database-connection"],
+        }
+        for module_id in all_tsd:
             self.assertEqual(
-                registry.modules[module_id]["relationships"]["depends_on"], []
+                registry.modules[module_id]["relationships"]["depends_on"],
+                expected_dependencies.get(module_id, []),
             )
-        self.assertNotIn("data-registries", registry.modules)
-        self.assertNotIn("platform-compatibility", registry.modules)
+        for rejected in (
+            "data-registries",
+            "platform-compatibility",
+            "transaction-boundaries",
+            "database-reconciliation",
+            "save-restart-reload",
+        ):
+            self.assertNotIn(rejected, registry.modules)
 
-    def test_tsd_002a_does_not_redefine_player_persistence(self) -> None:
+    def test_persistence_umbrella_remains_unchanged(self) -> None:
         module = self.load().modules["player-persistence"]
         self.assertEqual(
             module["paths"]["server"],
             ["src/io/**", "src/database/**", "src/creatures/players/**"],
         )
         self.assertEqual(module["lifecycle"]["status"], "mapped")
+        self.assertEqual(module["maturity"]["implementation"], "mapped")
+        self.assertEqual(module["maturity"]["persistence"], "not-assessed")
 
     def test_decomposition_paths_map_to_narrow_modules(self) -> None:
         registry = self.load()
         cases = {
             "CMakeLists.txt": "build-system",
+            "schema.sql": "database-migrations",
             "src/canary_server.cpp": "engine-runtime-lifecycle",
             "src/config/configmanager.cpp": "configuration",
+            "src/database/database.cpp": "database-connection",
+            "src/database/databasemanager.cpp": "database-migrations",
             "src/game/scheduling/dispatcher.cpp": "engine-scheduler",
+            "src/game/scheduling/save_manager.cpp": "world-persistence",
+            "src/io/iomapserialize.cpp": "world-persistence",
             "src/lib/di/container.hpp": "engine-service-container",
             "src/lua/functions/lua_functions_loader.cpp": "lua-bindings",
             "src/lua/scripts/lua_environment.hpp": "lua-runtime",
@@ -197,6 +218,17 @@ class RealTibiaRegistryTests(unittest.TestCase):
                 ids = [module_id for module_id, _, _ in matches]
                 self.assertIn(expected, ids)
                 self.assertEqual(ids, sorted(ids))
+
+    def test_database_paths_keep_broad_and_narrow_discovery(self) -> None:
+        ids = [
+            module_id
+            for module_id, _, _ in self.load().matched_modules(
+                "src/database/database.cpp"
+            )
+        ]
+        self.assertEqual(ids, sorted(ids))
+        self.assertIn("database-connection", ids)
+        self.assertIn("player-persistence", ids)
 
     def test_freshness_thresholds_are_explicit(self) -> None:
         rows = {
@@ -234,24 +266,33 @@ class RealTibiaRegistryTests(unittest.TestCase):
         affected = self.load().affected_modules(
             [
                 "CMakeLists.txt",
+                "schema.sql",
+                "src/database/database.cpp",
+                "src/database/databasemanager.cpp",
+                "src/game/scheduling/save_manager.cpp",
+                "src/io/iomapserialize.cpp",
                 "src/lua/functions/lua_functions_loader.cpp",
                 "src/game/scheduling/dispatcher.cpp",
                 "src/lib/di/container.hpp",
                 "src/lua/scripts/lua_environment.hpp",
                 "src/canary_server.cpp",
                 "src/config/configmanager.cpp",
-                "src/canary_server.cpp",
+                "src/database/database.cpp",
             ]
         )
         self.assertEqual(affected, sorted(set(affected)))
         for expected in (
             "build-system",
             "configuration",
+            "database-connection",
+            "database-migrations",
             "engine-runtime-lifecycle",
             "engine-scheduler",
             "engine-service-container",
             "lua-bindings",
             "lua-runtime",
+            "player-persistence",
+            "world-persistence",
         ):
             self.assertIn(expected, affected)
         self.assertIn("protocol", affected)

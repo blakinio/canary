@@ -29,6 +29,12 @@ class UpstreamIntelligenceDecompositionTests(unittest.TestCase):
                 "src/lua/functions/lua_functions_loader.cpp",
                 "src/game/scheduling/dispatcher.cpp",
                 "src/lib/di/container.hpp",
+                "src/database/database.cpp",
+                "src/database/databasemanager.cpp",
+                "src/game/scheduling/save_manager.cpp",
+                "src/io/iomapserialize.cpp",
+                "data-otservbr-global/migrations/63.lua",
+                "schema.sql",
                 "CMakeLists.txt",
             ],
             "module_ids": [],
@@ -45,11 +51,15 @@ class UpstreamIntelligenceDecompositionTests(unittest.TestCase):
         for expected in (
             "build-system",
             "configuration",
+            "database-connection",
+            "database-migrations",
             "engine-runtime-lifecycle",
             "engine-scheduler",
             "engine-service-container",
             "lua-bindings",
             "lua-runtime",
+            "player-persistence",
+            "world-persistence",
         ):
             self.assertIn(expected, candidate["module_ids"])
         self.assertNotIn("protocol", candidate["module_ids"])
