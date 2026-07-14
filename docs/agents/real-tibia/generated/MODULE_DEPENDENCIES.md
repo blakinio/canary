@@ -31,6 +31,7 @@
 | `exaltation-forge` | `player-persistence`, `protocol` | `combat`, `market` |
 | `houses` | `otbm-tooling`, `player-persistence` | `cyclopedia`, `protocol` |
 | `imbuements` | `combat`, `player-persistence` | `protocol` |
+| `instances` | `world-map-runtime` | `combat`, `creature-ai`, `engine-scheduler`, `physical-client-e2e`, `quests`, `spawns`, `world-zones` |
 | `item-decay` | `engine-scheduler`, `item-instances` | `containers`, `item-definitions`, `world-persistence` |
 | `item-definitions` | — | `containers`, `exaltation-forge`, `imbuements`, `item-instances`, `market`, `weapons` |
 | `item-instances` | `item-definitions` | `boss-encounters`, `containers`, `exaltation-forge`, `imbuements`, `item-decay`, `market`, `player-persistence`, `weapons` |
@@ -53,6 +54,8 @@
 | `weapon-proficiency` | `character-progression`, `player-persistence` | `achievements`, `combat`, `vocations` |
 | `weapons` | `combat` | `character-progression`, `combat-conditions`, `spells`, `vocations`, `weapon-proficiency` |
 | `wheel-of-destiny` | `combat`, `player-persistence`, `protocol` | `spells` |
+| `world-map-runtime` | `item-definitions`, `item-instances` | `containers`, `creature-ai`, `houses`, `instances`, `npcs`, `otbm-tooling`, `quests`, `raids`, `spawns`, `world-persistence`, `world-zones` |
 | `world-persistence` | `database-connection` | `engine-runtime-lifecycle`, `engine-scheduler`, `player-persistence` |
+| `world-zones` | `world-map-runtime` | `combat`, `creature-ai`, `instances`, `quests`, `spawns` |
 
 Only `depends_on` must remain acyclic. `interacts_with` is descriptive and may be reciprocal.
