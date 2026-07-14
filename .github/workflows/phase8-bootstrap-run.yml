@@ -16,7 +16,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 0
+          fetch-depth: 1
+          show-progress: false
       - name: Disambiguate first-pass transform
         shell: bash
         run: |
@@ -64,7 +65,13 @@ jobs:
           path.write_text(text.replace(old, new, 1), encoding="utf-8")
           PY
       - name: Apply exact scanner transform
-        run: python3 tools/ai-agent/phase8_patch_scanner_once.py
+        shell: bash
+        run: |
+          set +e
+          output=$(python3 tools/ai-agent/phase8_patch_scanner_once.py 2>&1)
+          status=$?
+          printf '%s\n' "$output"
+          exit "$status"
       - name: Commit transformed scanner
         run: |
           git config user.name github-actions[bot]
