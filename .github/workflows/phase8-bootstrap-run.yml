@@ -18,7 +18,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 1
           show-progress: false
-      - name: Disambiguate first-pass transform
+      - name: Normalize exact transform matching
         shell: bash
         run: |
           python3 - <<'PY'
@@ -26,7 +26,44 @@ jobs:
 
           path = Path("tools/ai-agent/phase8_patch_scanner_once.py")
           text = path.read_text(encoding="utf-8")
-          old = '''replace_once(
+
+          old_function = '''def replace_once(old: str, new: str) -> None:
+              global text
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"exact replacement count {count}, expected 1 for: {old[:100]!r}")
+              text = text.replace(old, new, 1)
+          '''
+          new_function = '''def _shift_block(block: str, spaces: int) -> str:
+              prefix = " " * spaces
+              return "".join(prefix + line if line.strip() else line for line in block.splitlines(keepends=True))
+
+
+          def replace_once(old: str, new: str) -> None:
+              global text
+              count = text.count(old)
+              if count == 1:
+                  text = text.replace(old, new, 1)
+                  return
+              candidates: list[tuple[str, str, int]] = []
+              for spaces in (4, 8, 12, 16):
+                  shifted_old = _shift_block(old, spaces)
+                  shifted_count = text.count(shifted_old)
+                  if shifted_count == 1:
+                      candidates.append((shifted_old, _shift_block(new, spaces), spaces))
+              if len(candidates) != 1:
+                  shifts = ", ".join(str(spaces) for _old, _new, spaces in candidates) or "none"
+                  raise SystemExit(
+                      f"exact replacement count {count}, unique shifted matches {shifts}, expected 1 for: {old[:100]!r}"
+                  )
+              shifted_old, shifted_new, _spaces = candidates[0]
+              text = text.replace(shifted_old, shifted_new, 1)
+          '''
+          if text.count(old_function) != 1:
+              raise SystemExit(f"replace_once implementation count is {text.count(old_function)}, expected 1")
+          text = text.replace(old_function, new_function, 1)
+
+          old_stack = '''replace_once(
               """    std::vector<Context> stack;
               stack.reserve(64);
 
@@ -39,7 +76,7 @@ jobs:
               size_t position = 4;
           """,
           )'''
-          new = '''replace_once(
+          new_stack = '''replace_once(
               """ScanData scanMap(const std::vector<uint8_t>& data) {
               ScanData result;
               result.header = parseMapHeader(data);
@@ -60,9 +97,9 @@ jobs:
               size_t position = 4;
           """,
           )'''
-          if text.count(old) != 1:
-              raise SystemExit(f"transform script pattern count is {text.count(old)}, expected 1")
-          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          if text.count(old_stack) != 1:
+              raise SystemExit(f"transform script stack pattern count is {text.count(old_stack)}, expected 1")
+          path.write_text(text.replace(old_stack, new_stack, 1), encoding="utf-8")
           PY
       - name: Apply exact scanner transform
         id: transform
