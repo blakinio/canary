@@ -180,11 +180,11 @@ class SemanticDiffTests(unittest.TestCase):
     def analyze(self, **kwargs: object) -> dict[str, object]:
         return analyze_index_paths(
             artifact_root=self.root,
-            before_index_path=self.before_index.name,
-            before_manifest_path=self.before_manifest.name,
-            after_index_path=self.after_index.name,
-            after_manifest_path=self.after_manifest.name,
-            appearances_path=self.appearances.name,
+            before_index_path=Path(self.before_index.name),
+            before_manifest_path=Path(self.before_manifest.name),
+            after_index_path=Path(self.after_index.name),
+            after_manifest_path=Path(self.after_manifest.name),
+            appearances_path=Path(self.appearances.name),
             **kwargs,
         )
 
@@ -273,16 +273,16 @@ class SemanticDiffTests(unittest.TestCase):
         self.assertIn("teleport-destination-changed", self.kinds(self.analyze()))
 
     def test_14_strict_walkability_regression(self) -> None:
-        before = [{"x": 300, "ground": 100, "items": []}]
-        after = [{"x": 300, "ground": 100, "items": [{"id": 300}]}]
+        before = [{"x": 300, "ground": 100, "items": [{"id": 204}]}]
+        after = [{"x": 300, "ground": 100, "items": [{"id": 204}, {"id": 300}]}]
         self.build(before, after)
         kinds = self.kinds(self.analyze())
         self.assertIn("strict-walkable-to-blocked", kinds)
         self.assertIn("static-blocker-added", kinds)
 
     def test_15_conditional_walkability_change(self) -> None:
-        before = [{"x": 300, "ground": 100, "items": []}]
-        after = [{"x": 300, "ground": 100, "items": [{"id": 301}]}]
+        before = [{"x": 300, "ground": 100, "items": [{"id": 204}]}]
+        after = [{"x": 300, "ground": 100, "items": [{"id": 204}, {"id": 301}]}]
         self.build(before, after)
         self.assertIn("strict-to-conditional", self.kinds(self.analyze()))
 
@@ -339,10 +339,10 @@ class SemanticDiffTests(unittest.TestCase):
         self.build(base_tiles(), base_tiles())
         report = self.analyze()
         output = self.root / "report.json"
-        write_report(output.name, report, artifact_root=self.root)
+        write_report(Path(output.name), report, artifact_root=self.root)
         with self.assertRaises(SemanticDiffError):
-            write_report(output.name, report, artifact_root=self.root)
-        write_report(output.name, report, artifact_root=self.root, overwrite=True)
+            write_report(Path(output.name), report, artifact_root=self.root)
+        write_report(Path(output.name), report, artifact_root=self.root, overwrite=True)
 
     @unittest.skipIf(os.name == "nt", "symlink creation often requires elevated privileges on Windows")
     def test_23_symlink_output_is_rejected(self) -> None:
@@ -353,7 +353,7 @@ class SemanticDiffTests(unittest.TestCase):
         link = self.root / "report.json"
         link.symlink_to(target)
         with self.assertRaises(SemanticDiffError):
-            write_report(link.name, report, artifact_root=self.root)
+            write_report(Path(link.name), report, artifact_root=self.root)
 
     def _correlated_change(self, role: str, format_name: str, expected_classification: str | None) -> dict[str, object]:
         after = copy_tiles()
@@ -370,7 +370,7 @@ class SemanticDiffTests(unittest.TestCase):
             "spawn-npc": "spawn_npc_path",
             "storage-graph": "storage_graph_path",
         }[role]
-        result = self.analyze(**{keyword: report_path.name})
+        result = self.analyze(**{keyword: Path(report_path.name)})
         finding = next(entry for entry in result["findings"] if entry["kind"] == "action-id-changed")  # type: ignore[index]
         self.assertTrue(finding["correlations"])
         if expected_classification is not None:
@@ -419,7 +419,7 @@ class SemanticDiffTests(unittest.TestCase):
         self.build(base_tiles(), base_tiles())
         before_hash = hashlib.sha256(self.before_map.read_bytes()).hexdigest()
         after_hash = hashlib.sha256(self.after_map.read_bytes()).hexdigest()
-        report = self.analyze(before_map_path=self.before_map.name, after_map_path=self.after_map.name)
+        report = self.analyze(before_map_path=Path(self.before_map.name), after_map_path=Path(self.after_map.name))
         self.assertFalse(report["policy"]["mapModified"])
         self.assertEqual(before_hash, hashlib.sha256(self.before_map.read_bytes()).hexdigest())
         self.assertEqual(after_hash, hashlib.sha256(self.after_map.read_bytes()).hexdigest())
