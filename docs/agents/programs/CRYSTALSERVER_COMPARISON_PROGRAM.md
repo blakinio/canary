@@ -93,7 +93,9 @@ Text similarity, `patch-id`, symbol search, and commit messages are signals, not
 
 # Active tasks
 
-None. Select exactly one bounded queue item and create a new task before implementation.
+| Task/PR | Candidate | Status | Scope |
+|---|---|---|---|
+| `CAN-20260714-fs-mkdir-shell-injection` / [#310](https://github.com/blakinio/canary/pull/310) | `CS-006` | active | Replace Lua shell-based directory creation with native `std::filesystem` operations and focused Lua/C++ regressions. |
 
 # Queue
 
@@ -104,7 +106,7 @@ None. Select exactly one bounded queue item and create a new task before impleme
 | `CS-003` | `90ac0eb7d2ba0a88476881c972d9de83fbbcb3e8` | `CANARY_SUPERIOR` | high | KV shared Lua userdata GC | Preserve typed shared-class registration. |
 | `CS-004` | `dcb4f00ffd55ede2399c979eee3b7fe6e7e0ee6e` | `ALREADY_PRESENT` | high | `Container::replaceThing` validation | Closed evidence; no implementation. |
 | `CS-005` | `fc0d53b9f9965463b6082c07e6d3d482294541a7` | `PARTIAL_VALUE` | medium | player GUID index | Benchmark only after `game.cpp`/`game.hpp` ownership clears. |
-| `CS-006` | `891685169745e46f665069edcc35847f0704aa21` | `PARTIAL_VALUE` | high | `FS.mkdir` shell construction | Independent security task; do not copy upstream denylist. |
+| `CS-006` | `891685169745e46f665069edcc35847f0704aa21` | `VALID_FIX_MISSING` | high | `FS.mkdir` shell construction | Active in task `CAN-20260714-fs-mkdir-shell-injection` / PR #310; preserve API behavior while removing all shell execution. |
 | `CS-007` | `891685169745e46f665069edcc35847f0704aa21` | `PARTIAL_VALUE` | high | `table.unserialize` execution | Independent compatibility/security task; do not copy bespoke parser. |
 | `CS-008` | `34cbec0c34325619ef23c5d12c940b7b1c276975` | `CLIENT_COUPLED` | high | Market limits | Establish maintained OTClient limits and integration tests. |
 | `CS-009` | `cfc0c5c496eae53f1f33a07f563068f44914ddbb` | `CLIENT_COUPLED` | high | disconnect reason byte | Exact 15.25 client contract task only. |

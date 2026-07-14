@@ -7,37 +7,43 @@ agent: "GPT-5.6 Thinking"
 branch: security/fs-mkdir-shell-free
 base_branch: main
 created: 2026-07-14T08:00:00+02:00
-updated: 2026-07-14T08:00:00+02:00
-last_verified_commit: "42c0afa817b60f3b888c46b690b286cd224a3062"
+updated: 2026-07-14T09:30:00+02:00
+last_verified_commit: "a5cd00cc9af507f3281defb38e9f427377ef6b2f"
 risk: high
 related_issue: ""
-related_pr: "pending"
+related_pr: "#310"
 depends_on:
   - "CAN-PROGRAM-CRYSTALSERVER-COMPARISON Stage 1 / PR #291"
 blocks: []
 owned_paths:
   exclusive:
     - data/libs/functions/fs.lua
+    - src/lua/functions/core/game/global_functions.cpp
+    - src/lua/functions/core/game/global_functions.hpp
+    - tests/lua/test_fs.lua
+    - tests/unit/lua/filesystem_functions_test.cpp
+    - tests/unit/lua/CMakeLists.txt
     - docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md
     - artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT.md
     - artifacts/upstream/crystalserver/cs006_fs_mkdir_audit.json
-    - tools/ai-agent/audit_fs_mkdir.py
-    - .github/workflows/audit-fs-mkdir.yml
+    - tools/ai-agent/apply_fs_mkdir_shell_free.py
+    - .github/workflows/apply-fs-mkdir-shell-free.yml
   shared:
     - docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md
     - docs/agents/CHANGELOG.md
+    - docs/agents/MODULE_CATALOG.md
   read_only:
     - AGENTS.md
     - docs/agents/README.md
-    - docs/agents/MODULE_CATALOG.md
     - docs/agents/REPOSITORY_MAP.md
     - docs/agents/KNOWN_RISKS.md
     - docs/agents/BUILD_TEST_MATRIX.md
     - docs/agents/CROSS_REPO_CONTRACTS.md
-    - data/**
-    - data-otservbr-global/**
-    - src/**
-    - tests/**
+    - data/events/scripts/player.lua
+    - src/utils/tools.cpp
+    - src/lua/functions/core/core_functions.hpp
+    - src/lua/functions/core/libs/core_libs_functions.hpp
+    - .github/workflows/reusable-tests-lua.yml
 modules_touched:
   - Lua filesystem helper boundary
 reuses:
@@ -45,8 +51,10 @@ reuses:
   - existing filesystem/Lua bindings if current source proves one exists
   - existing bounded self-removing audit workflow pattern
 public_interfaces:
-  - "FS.mkdir(path) return contract (preserve unless evidence requires a compatible extension)"
-  - "FS.mkdir_p(path) behavior through FS.mkdir"
+  - "FS.mkdir(path) -> success[, errorMessage]"
+  - "FS.mkdir_p(path) -> success[, errorMessage]"
+  - "FileSystem.createDirectory(path) -> success[, errorMessage]"
+  - "FileSystem.createDirectories(path) -> success[, errorMessage]"
 cross_repo_tasks: []
 ---
 
@@ -56,9 +64,9 @@ Determine whether `FS.mkdir` can execute shell metacharacters from any reachable
 
 # Acceptance criteria
 
-- [ ] Full current-repository inventory of `FS.mkdir`, `FS.mkdir_p`, their call sites, and path provenance is recorded with exact files and lines.
-- [ ] Existing shell-free filesystem facilities and Lua bindings are inventoried before adding any new helper.
-- [ ] CrystalServer commit `891685169745e46f665069edcc35847f0704aa21` is treated as evidence only; its denylist-plus-shell patch is not copied blindly.
+- [x] Full current-repository inventory of `FS.mkdir`, `FS.mkdir_p`, their call sites, and path provenance is recorded with exact files and lines.
+- [x] Existing shell-free filesystem facilities and Lua bindings are inventoried before adding any new helper.
+- [x] CrystalServer commit `891685169745e46f665069edcc35847f0704aa21` is treated as evidence only; its denylist-plus-shell patch is not copied blindly.
 - [ ] A deterministic regression demonstrates that shell metacharacters cannot execute an additional command or create an unintended marker.
 - [ ] Valid single-level and recursive directory creation, existing-directory behavior, spaces, separators, and error returns remain covered.
 - [ ] The implementation is shell-free, or the task is closed without a runtime change if no safe architecture-native implementation is justified.
@@ -83,7 +91,7 @@ Determine whether `FS.mkdir` can execute shell metacharacters from any reachable
 | System | Intended reuse | Evidence status |
 |---|---|---|
 | Lua/Fast Checks workflow | Syntax, formatting and Lua regression execution | verify after audit |
-| Existing filesystem APIs/bindings | Prefer shell-free native directory creation | audit pending |
+| Existing filesystem APIs/bindings | Reuse engine-standard `std::filesystem`; no directory binding existed | broad and targeted audit complete |
 | Bounded self-removing workflow | Full-checkout discovery while local clone is unavailable | approved repository precedent; temporary files must leave final diff |
 | CrystalServer comparison program | Candidate provenance, risk and sequencing | current program record |
 
@@ -114,6 +122,13 @@ Determine whether `FS.mkdir` can execute shell metacharacters from any reachable
 - Failed/blocked: local clone/fetch/build unavailable because DNS cannot resolve GitHub.
 - Result: proceed with a bounded GitHub Actions audit on the exact task branch.
 
+## 2026-07-14T09:15:00+02:00
+
+- Changed: published deterministic Markdown/JSON evidence after scanning 6,857 tracked files; temporary audit runners removed themselves.
+- Learned: production uses are player-report paths in `data/events/scripts/player.lua`; the default validator permits only letters, apostrophes and spaces, but `FS.mkdir` remains a general Lua shell primitive for DB/custom-script paths.
+- Failed/blocked: the first report commit omitted ignored `artifacts/**`; a second run exposed trailing whitespace. Both publication issues were fixed without weakening `git diff --check`.
+- Result: `CS-006` is `VALID_FIX_MISSING`; use existing `GlobalFunctions` plus `std::filesystem`, with focused Lua and C++ tests.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |
@@ -121,7 +136,8 @@ Determine whether `FS.mkdir` can execute shell metacharacters from any reachable
 | Separate `CS-006` from `CS-007` | Shell/path handling and deserialization compatibility have different threat models and test contracts. | none |
 | Do not copy the CrystalServer denylist | Denylists are incomplete by construction and leave shell interpretation in the execution path. | none |
 | Audit call sites before changing the API | Security severity and compatibility depend on actual path sources and existing uses. | none |
-| Prefer an existing native filesystem binding | Avoid a parallel helper or a new public surface unless current architecture requires it. | none |
+| Add two narrow methods to existing `GlobalFunctions` | No directory binding exists; this avoids a new subsystem/build unit while reusing established Lua registration and `std::filesystem`. | none |
+| Preserve `FS` as a compatibility wrapper | Existing datapack/custom scripts keep their API while shell execution disappears. | none |
 
 # Validation and CI
 
@@ -141,9 +157,9 @@ Never record `passed` without verification on the stated commit.
 
 # Remaining work
 
-1. Open the draft PR.
-2. Produce the exact full-checkout call-site/native-facility audit.
-3. Select tests and implementation from evidence.
+1. Apply and review the bounded implementation/test diff.
+2. Run Lua tests, full Ready-state C++ CI and generated Lua API documentation checks.
+3. Merge only after reviews, threads, ownership and Required pass; archive separately.
 
 # Handoff
 
