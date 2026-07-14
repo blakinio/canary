@@ -4,8 +4,8 @@ name: Tibia System Decomposition
 status: active
 owner: repository-wide
 created: 2026-07-14T15:43:00+02:00
-updated: 2026-07-14T15:43:00+02:00
-last_verified_commit: "21c51174ded78b8f07ff07607a927b66de430246"
+updated: 2026-07-14T16:37:00+02:00
+last_verified_commit: "44fe3af9f29b3ae0164ac5d60fc1f14137b5cea5"
 primary_paths:
   - docs/agents/real-tibia/**
   - docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md
@@ -62,7 +62,7 @@ A formula, packet field, boss, spell, NPC, quest, storage, map coordinate, bug o
 
 # Umbrella and child policy
 
-Broad existing IDs remain stable umbrella/discovery modules when agents and Upstream Intelligence already rely on them. TSD-001 preserves at least:
+Broad existing IDs remain stable umbrella/discovery modules when agents and Upstream Intelligence already rely on them. TSD-001 preserved at least:
 
 ```text
 combat
@@ -76,7 +76,7 @@ spawns
 
 Child modules may overlap umbrella path hints. A path can map to several correct modules, and output must remain deterministic.
 
-The current schema has no parent/child field. TSD-001 therefore records hierarchy through:
+The current schema has no parent/child field. TSD-001 records hierarchy through:
 
 - the module description and scope boundaries;
 - this program;
@@ -135,13 +135,15 @@ Upstream Intelligence continues to use registry path matches as conservative dis
 
 New child records may cause one external path to map to both an umbrella and a narrower module. This is expected when:
 
-- every match comes from a registered path pattern;
+- every match comes from a registered path pattern in a source-policy-allowed bucket;
 - mapped paths and module IDs remain stably sorted;
 - unmapped paths remain explicit;
 - no mapping changes triage into a confirmed defect;
 - reviewed decisions remain pinned to the exact candidate revision.
 
-This program does not implement UI-002, does not change source watchers and does not create implementation branches from candidates.
+TSD-001 identified a separate source-role mapping defect: the current mapper can apply client buckets to server candidates. The planned task `CAN-20260714-upstream-intelligence-source-role-path-mapping` must repair that behavior in the existing mapper and source registry before TSD-002 relies on focused source-aware mapping tests.
+
+This program does not implement UI-002, does not create another watcher or mapper and does not create implementation branches from candidates.
 
 # Relationship with Universal Physical-Client E2E
 
@@ -153,8 +155,8 @@ The decomposition may document expected scenario roots, but TSD packages do not 
 
 | ID | Scope | Status | Evidence baseline | Dependencies | Exact next action |
 |---|---|---|---|---|---|
-| `TSD-001` | taxonomy and hierarchy foundation; full candidate classification; three-record engine pilot | active | main `21c51174ded78b8f07ff07607a927b66de430246`; registry schema v1; 19 records | registry and Upstream Intelligence focused tests | finish draft PR, validate deterministic mapping and preserve runtime read-only boundary |
-| `TSD-002` | remaining engine foundation and persistence | planned | TSD-001 hierarchy/path policy | current source inventory and DB/runtime evidence boundaries | add only proven long-lived records for scheduler/services/Lua bindings/build/platform and core DB/transaction lifecycle |
+| `TSD-001` | taxonomy and hierarchy foundation; full candidate classification; three-record engine pilot | completed | PR #335; merge `44fe3af9f29b3ae0164ac5d60fc1f14137b5cea5`; registry 19 → 22 | registry and Upstream Intelligence focused tests | archived by lifecycle-only PR after exact-head CI and review verification |
+| `TSD-002` | remaining engine foundation and persistence | planned | TSD-001 hierarchy/path policy | archived source-role-aware mapping task; current source inventory and DB/runtime evidence boundaries | add only proven long-lived records for scheduler/services/Lua bindings/build/platform and core DB/transaction lifecycle |
 | `TSD-003` | account, character and progression | planned | TSD-001 classification | TSD-002 persistence boundaries | separate account, entitlement, character lifecycle and progression state without duplicating current records |
 | `TSD-004` | Cyclopedia family | planned | current `cyclopedia` and `charms` records | maintained-client and persistence inventory | preserve `cyclopedia` umbrella; evaluate Bestiary/Bosstiary/items/map/character/houses children |
 | `TSD-005` | combat, weapons and vocations | planned | current `combat` and `spells` records | engine/runtime and progression boundaries | split only durable formula, state, weapon and vocation domains |
@@ -169,7 +171,19 @@ The decomposition may document expected scenario roots, but TSD packages do not 
 
 # Completed packages
 
-None. TSD-001 is a bootstrap in progress and must not be described as full Tibia decomposition.
+## TSD-001 — taxonomy and hierarchy foundation
+
+- Feature PR: #335.
+- Final head: `f8524a7a51d6c5b84bcd847da9a2a7923af34dfb`.
+- Squash merge: `44fe3af9f29b3ae0164ac5d60fc1f14137b5cea5`.
+- Merged at: `2026-07-14T14:35:43Z`.
+- Changed files: 18.
+- Registry: 19 → 22 records.
+- Added only `engine-runtime-lifecycle`, `configuration` and `lua-runtime`.
+- No runtime, schema, generator, mapper or `protocol.yaml` change.
+- Final current-head checks: Real Tibia Module Registry #106, Upstream Intelligence #96, Agent Task Ownership #930, repository CI #2039/#2040 — success.
+- No PR comments, requested-change reviews or unresolved review threads.
+- Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-bootstrap.md`.
 
 # Oteryn migration policy
 
@@ -208,15 +222,27 @@ Migration classification belongs to TSD-013 or a later approved bounded task; it
 - no DB schema or migration changes;
 - no protocol/client changes;
 - no map, OTBM, datapack or asset changes;
-- no second registry, generator, watcher, OTBM parser/renderer or E2E platform;
+- no second registry, generator, watcher, mapper, OTBM parser/renderer or E2E platform;
 - no automatic parity claims;
 - no automatic upstream adoption;
 - no AI model with direct unrestricted runtime, Lua, economy or sanction authority;
 - no `ACTIVE_WORK.md` edits from normal TSD tasks.
 
-# Exact next bounded task
+# Exact next operational task
 
-After TSD-001, create:
+Before TSD-002, complete and archive:
+
+```text
+task: CAN-20260714-upstream-intelligence-source-role-path-mapping
+program: CAN-PROGRAM-UPSTREAM-INTELLIGENCE
+branch: fix/upstream-intelligence-source-role-path-mapping
+```
+
+The task must make the existing mapper source-role-aware, remain discovery-only and add focused tests for server, client, editor/data and unsupported roles without adding modules or changing `protocol.yaml` opportunistically.
+
+# Next decomposition package
+
+After the source-role mapping feature and lifecycle PRs are merged, create:
 
 ```text
 task: CAN-20260714-tibia-system-decomposition-engine-persistence
@@ -224,7 +250,7 @@ package: TSD-002
 branch: docs/tibia-system-decomposition-engine-persistence
 ```
 
-Start by re-fetching current `main`, open PRs and active tasks. Inventory exact paths and boundaries for:
+Inventory exact paths and boundaries for:
 
 ```text
 engine-scheduler
@@ -243,4 +269,4 @@ Do not add a record when the candidate is only a class/file grouping, duplicates
 
 # Handoff
 
-A new agent must read the active task, this program, the classification report, generated module indexes, all current registry records, current open PRs and Upstream Intelligence policies. Continue only one package and one task/PR at a time. Preserve current umbrella IDs and proof boundaries.
+A new agent must read this program, the completed TSD-001 archive, the classification report, generated module indexes, all current registry records, current open PRs and Upstream Intelligence policies. Continue only one task, branch and PR at a time. Complete and archive the source-role-aware mapping task before starting TSD-002. Preserve current umbrella IDs and proof boundaries.
