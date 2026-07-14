@@ -4,8 +4,8 @@ name: CrystalServer Comparison Program
 status: active
 owner: GPT-5.6 Thinking
 created: 2026-07-13T21:01:05Z
-updated: 2026-07-14T00:42:00+02:00
-last_verified_commit: "b06079f9bc75f0c108720e2674438a2f539c8631"
+updated: 2026-07-14T12:30:00+02:00
+last_verified_commit: "70f6930647d818edfdf0a30b745aabe8d4fdaa29"
 primary_paths:
   - docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md
   - artifacts/upstream/crystalserver/**
@@ -93,7 +93,9 @@ Text similarity, `patch-id`, symbol search, and commit messages are signals, not
 
 # Active tasks
 
-None. Select exactly one bounded queue item and create a new task before implementation.
+| Task/PR | Candidate | Status | Scope |
+|---|---|---|---|
+| _None._ | — | — | No CrystalServer comparison implementation task is active after CS-006 cleanup. |
 
 # Queue
 
@@ -104,7 +106,7 @@ None. Select exactly one bounded queue item and create a new task before impleme
 | `CS-003` | `90ac0eb7d2ba0a88476881c972d9de83fbbcb3e8` | `CANARY_SUPERIOR` | high | KV shared Lua userdata GC | Preserve typed shared-class registration. |
 | `CS-004` | `dcb4f00ffd55ede2399c979eee3b7fe6e7e0ee6e` | `ALREADY_PRESENT` | high | `Container::replaceThing` validation | Closed evidence; no implementation. |
 | `CS-005` | `fc0d53b9f9965463b6082c07e6d3d482294541a7` | `PARTIAL_VALUE` | medium | player GUID index | Benchmark only after `game.cpp`/`game.hpp` ownership clears. |
-| `CS-006` | `891685169745e46f665069edcc35847f0704aa21` | `PARTIAL_VALUE` | high | `FS.mkdir` shell construction | Independent security task; do not copy upstream denylist. |
+| `CS-006` | `891685169745e46f665069edcc35847f0704aa21` | `VALID_FIX_MISSING` | high | `FS.mkdir` shell construction | Completed through task `CAN-20260714-fs-mkdir-shell-injection`, PR #326, merge `70f6930647d818edfdf0a30b745aabe8d4fdaa29`; preserve shell-free wrappers and focused regressions. |
 | `CS-007` | `891685169745e46f665069edcc35847f0704aa21` | `PARTIAL_VALUE` | high | `table.unserialize` execution | Independent compatibility/security task; do not copy bespoke parser. |
 | `CS-008` | `34cbec0c34325619ef23c5d12c940b7b1c276975` | `CLIENT_COUPLED` | high | Market limits | Establish maintained OTClient limits and integration tests. |
 | `CS-009` | `cfc0c5c496eae53f1f33a07f563068f44914ddbb` | `CLIENT_COUPLED` | high | disconnect reason byte | Exact 15.25 client contract task only. |
@@ -125,6 +127,7 @@ None. Select exactly one bounded queue item and create a new task before impleme
 |---|---|---|---|
 | `CAN-20260713-crystalserver-comparison-inventory` / [#291](https://github.com/blakinio/canary/pull/291) | Stage 1 program, ten-candidate Markdown report, and machine-readable JSON; no functional changes | `bceccba9349d35a1d84f446757e53ac3adb602e1` | Select candidates only through new bounded tasks after fresh checks. |
 | `CAN-20260713-conditionlight-zero-level` / [#297](https://github.com/blakinio/canary/pull/297) | Normalized zero-level `ConditionLight` state at start/deserialization boundaries and added three focused C++ regressions | `b06079f9bc75f0c108720e2674438a2f539c8631` | Preserve the two-boundary invariant and regression tests; no further CS-001 work is open. |
+| `CAN-20260714-fs-mkdir-shell-injection` / [#326](https://github.com/blakinio/canary/pull/326) | Replaced shell-backed `FS.mkdir`/`FS.mkdir_p` with native `std::filesystem` bindings and added standalone Lua plus real-binding C++ security regressions | `70f6930647d818edfdf0a30b745aabe8d4fdaa29` | Preserve compatibility wrappers, error returns and the no-shell invariant; CS-007 remains independent. |
 
 # Closed candidates
 
@@ -132,6 +135,7 @@ None. Select exactly one bounded queue item and create a new task before impleme
 - `CS-002` — equivalent safe iteration already exists.
 - `CS-003` — Canary already uses a safer typed shared-userdata pattern.
 - `CS-004` — required null and bounds validation already exists.
+- `CS-006` — implemented with native `std::filesystem` bindings and regression-covered through PR #326.
 
 # Dependencies and blockers
 
@@ -187,6 +191,6 @@ Read `AGENTS.md`, `docs/agents/README.md`, this program, the Stage 1 Markdown/JS
 
 ## Open questions
 
-- Which inputs reach `FS.mkdir` and `table.unserialize`, and are any attacker-controlled?
+- Which inputs reach `table.unserialize`, and are any attacker-controlled?
 - What exact protocol 15.25 Market and disconnect contracts are implemented by the maintained OTClient?
 - What lifecycle invariant safely handles missing parents during creature removal?

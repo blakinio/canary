@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "module_id": "wheel-of-destiny",
+  "name": "Wheel of Destiny",
+  "category": "character-progression",
+  "description": "Wheel allocation, gems, Revelation perks, related combat effects and protocol.",
+  "lifecycle": {"status": "active", "program": "docs/agents/programs/WHEEL_OF_DESTINY_PARITY_PROGRAM.md"},
+  "scope": {"includes": ["allocation and point accounting", "Gem Atelier", "Revelation perks", "Wheel protocol", "Wheel-related combat effects"], "excludes": ["generic spell engine", "generic critical-hit engine"]},
+  "paths": {"server": ["src/creatures/players/components/wheel/**", "src/io/io_wheel.*", "src/server/network/protocol/protocolgame.*"], "client": ["modules/game_cyclopedia/**", "src/client/**"], "data": ["data/modules/scripts/taskboard/**"], "tests": ["tests/unit/players/**", "tests/integration/**"], "docs": []},
+  "relationships": {"depends_on": ["combat", "player-persistence", "protocol"], "interacts_with": ["spells"]},
+  "documents": {"validation": ["docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION.md", "docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION_PROJECT.md"], "program": "docs/agents/programs/WHEEL_OF_DESTINY_PARITY_PROGRAM.md"},
+  "source_requirements": [{"source": "canary-current", "mode": "required"}, {"source": "tibia-official", "mode": "required"}, {"source": "tibiawiki", "mode": "secondary"}, {"source": "maintained-otclient", "mode": "required-when-related"}, {"source": "crystalserver", "mode": "comparison-only"}, {"source": "opentibiabr-canary", "mode": "comparison-only"}],
+  "maturity": {"implementation": "partial", "evidence": "audited", "persistence": "partial", "protocol": "partial", "automated_tests": "integration", "runtime_validation": "limited", "gameplay_e2e": "missing"},
+  "freshness": {"class": "fast", "last_inventory": "2026-07-14", "warning_after_days": 30, "invalid_after_days": 90, "refresh_before_each_task": true},
+  "notes": ["Broad PR titles are not proof that all Wheel packages are complete."]
+}

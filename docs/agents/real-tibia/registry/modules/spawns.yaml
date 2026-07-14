@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "module_id": "spawns",
+  "name": "Creature spawns and raids",
+  "category": "world-content",
+  "description": "Static spawns, dynamic creation, raids, bosses and exact placement evidence.",
+  "lifecycle": {"status": "inventory"},
+  "scope": {"includes": ["spawn definitions", "dynamic creation inventory", "raids", "boss placement", "definition-to-placement correlation"], "excludes": ["monster combat AI", "Bosstiary award logic"]},
+  "paths": {"server": [], "client": [], "data": ["data-otservbr-global/world/**", "data/world/**", "data-otservbr-global/scripts/raids/**"], "tests": ["tools/ai-agent/otbm_spawn_npc*.py"], "docs": []},
+  "relationships": {"depends_on": ["otbm-tooling"], "interacts_with": ["quests", "npcs", "cyclopedia"]},
+  "documents": {"validation": []},
+  "source_requirements": [{"source": "canary-current", "mode": "required"}, {"source": "tibiawiki", "mode": "secondary"}, {"source": "crystalserver", "mode": "comparison-only"}],
+  "maturity": {"implementation": "inventory", "evidence": "inventory", "persistence": "not-assessed", "protocol": "not-assessed", "automated_tests": "not-assessed", "runtime_validation": "not-assessed", "gameplay_e2e": "not-assessed"},
+  "freshness": {"class": "medium", "last_inventory": "2026-07-14", "warning_after_days": 60, "invalid_after_days": 180, "refresh_before_each_task": true},
+  "notes": []
+}

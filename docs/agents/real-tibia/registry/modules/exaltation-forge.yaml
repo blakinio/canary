@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "module_id": "exaltation-forge",
+  "name": "Exaltation Forge",
+  "category": "items-economy",
+  "description": "Fusion, Transfer, tiers, convergence, history, dust/slivers and related protocol.",
+  "lifecycle": {
+    "status": "active"
+  },
+  "scope": {
+    "includes": [
+      "Fusion and Transfer policy",
+      "tier state",
+      "dust and slivers",
+      "history",
+      "convergence",
+      "protocol"
+    ],
+    "excludes": [
+      "generic item serialization",
+      "store products"
+    ]
+  },
+  "paths": {
+    "server": [
+      "src/game/functions/forge_*",
+      "src/creatures/players/**",
+      "src/server/network/protocol/**"
+    ],
+    "client": [
+      "modules/game_cyclopedia/**"
+    ],
+    "data": [],
+    "tests": [
+      "tests/unit/**forge**",
+      "tests/integration/**forge**"
+    ],
+    "docs": []
+  },
+  "relationships": {
+    "depends_on": [
+      "player-persistence",
+      "protocol"
+    ],
+    "interacts_with": [
+      "combat",
+      "market"
+    ]
+  },
+  "documents": {
+    "validation": [
+      "docs/ai-agent/OTS_AI_EQUIPMENT_UPGRADE_VALIDATION.md"
+    ]
+  },
+  "source_requirements": [
+    {
+      "source": "canary-current",
+      "mode": "required"
+    },
+    {
+      "source": "tibia-official",
+      "mode": "required"
+    },
+    {
+      "source": "tibiawiki",
+      "mode": "secondary"
+    },
+    {
+      "source": "maintained-otclient",
+      "mode": "required-when-related"
+    },
+    {
+      "source": "crystalserver",
+      "mode": "comparison-only"
+    },
+    {
+      "source": "opentibiabr-canary",
+      "mode": "comparison-only"
+    }
+  ],
+  "maturity": {
+    "implementation": "partial",
+    "evidence": "audited",
+    "persistence": "partial",
+    "protocol": "partial",
+    "automated_tests": "integration",
+    "runtime_validation": "limited",
+    "gameplay_e2e": "not-assessed"
+  },
+  "freshness": {
+    "class": "fast",
+    "last_inventory": "2026-07-14",
+    "warning_after_days": 30,
+    "invalid_after_days": 90,
+    "refresh_before_each_task": true
+  },
+  "notes": []
+}

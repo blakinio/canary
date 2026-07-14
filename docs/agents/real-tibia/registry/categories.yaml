@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "categories": [
+    {
+      "id": "character-progression",
+      "name": "Character and progression",
+      "description": "Player growth, unlocks, account-facing progression and vocation systems."
+    },
+    {
+      "id": "combat",
+      "name": "Combat and spells",
+      "description": "Damage, healing, conditions, weapons, spells, monsters and combat state."
+    },
+    {
+      "id": "items-economy",
+      "name": "Items and economy",
+      "description": "Items, equipment, upgrades, markets, shops, loot and economic state."
+    },
+    {
+      "id": "world-content",
+      "name": "World and content",
+      "description": "Map semantics, quests, NPCs, spawns, houses, raids and world mechanics."
+    },
+    {
+      "id": "social-account",
+      "name": "Social and account",
+      "description": "Parties, guilds, communication, permissions, accounts and character lifecycle."
+    },
+    {
+      "id": "client-protocol",
+      "name": "Client and protocol",
+      "description": "Wire contracts, feature gates, login/game protocol and maintained-client interpretation."
+    },
+    {
+      "id": "platform-tooling",
+      "name": "Platform and tooling",
+      "description": "Persistence infrastructure, validation platforms, OTBM tooling and agent-facing systems."
+    }
+  ]
+}
