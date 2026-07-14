@@ -42,7 +42,10 @@ def make_map(path: Path, tiles: list[dict[str, object]]) -> None:
         ground = spec.get("ground", 100)
         if ground is not None:
             properties += bytes((ATTR_ITEM,)) + struct.pack("<H", int(ground))
-        children = [item(int(item_id)) for item_id in spec.get("items", [])]  # type: ignore[arg-type]
+        raw_items = list(spec.get("items", []))  # type: ignore[arg-type]
+        if not raw_items:
+            raw_items.append(200)
+        children = [item(int(item_id)) for item_id in raw_items]
         tile_nodes.append(node(tile_type, properties, children))
     area = node(OTBM_TILE_AREA, struct.pack("<HHB", base_x, base_y, floor), tile_nodes)
     map_data = node(OTBM_MAP_DATA, b"", [area])
