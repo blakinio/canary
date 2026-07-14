@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: fix/upstream-intelligence-source-role-path-mapping
 base_branch: main
 created: 2026-07-14T16:42:00+02:00
-updated: 2026-07-14T17:10:00+02:00
-last_verified_commit: "21e54186cef2825b91222fcf420ec4689fbf10d5"
+updated: 2026-07-14T17:15:00+02:00
+last_verified_commit: "2ddf83161a358a72bf4a9f37d2747fd2acd4f31b"
 risk: low
 related_issue: ""
 related_pr: "337"
@@ -120,9 +120,12 @@ Editor evidence:
 - [x] One path can still map to several modules inside allowed buckets.
 - [x] Focused tests assert both valid matches and absence of invalid matches.
 - [x] Source schema and domain validation reject unsafe role/bucket combinations.
-- [x] Upstream Intelligence focused tests, source validation and Real Tibia registry integration passed on implementation head `9820615f76d9892f645b21748feaa610cafe78f1` in run #122.
-- [ ] Required current-head CI, ownership and review gates pass on the final live PR head.
+- [x] Upstream Intelligence focused tests, source validation and Real Tibia registry integration pass.
+- [x] Agent Task Ownership and required repository CI pass on reviewed head `2ddf83161a358a72bf4a9f37d2747fd2acd4f31b`.
+- [x] Full changed-file list and code/config/test patches were reviewed.
+- [x] No review comments, submitted reviews or unresolved review threads existed at the reviewed checkpoint.
 - [x] No module, `protocol.yaml`, gameplay, runtime, protocol implementation, client, DB, map, OTBM, datapack, asset, watcher or E2E change.
+- [ ] Verify the final task-record-only live head and ready-state checks before squash merge.
 
 # Focused test matrix
 
@@ -147,14 +150,24 @@ Covered by `test_upstream_intelligence_source_roles.py`, the actual-registry dec
 
 # Validation history
 
-- First complete functional/docs head `9820615f76d9892f645b21748feaa610cafe78f1`:
-  - Upstream Intelligence #122: success;
-  - focused tests: success;
-  - source registry and decisions validation: success;
-  - Real Tibia registry `validate` and `generate --check`: success;
-  - Agent Task Ownership #949: success.
-- Source registry was then explicitly versioned from v1 to v2 because the required `module_mapping` field changes the source-format contract.
-- Exact final task-record commit cannot be embedded in itself; live PR #337 metadata and current-head workflows are authoritative for readiness and merge.
+First complete functional/docs head `9820615f76d9892f645b21748feaa610cafe78f1`:
+
+- Upstream Intelligence #122: success;
+- focused tests: success;
+- source registry and decisions validation: success;
+- Real Tibia registry `validate` and `generate --check`: success;
+- Agent Task Ownership #949: success.
+
+Reviewed implementation and documentation head `2ddf83161a358a72bf4a9f37d2747fd2acd4f31b`:
+
+- Upstream Intelligence #128: success;
+- focused tests, source validation and Real Tibia registry integration: success;
+- Agent Task Ownership #953: success;
+- repository CI #2063: success;
+- changed files: 15, all inside the declared task scope;
+- no runtime or external-repository paths changed.
+
+The source registry was explicitly versioned from v1 to v2 because the required `module_mapping` field changes the source-format contract. The final task-record-only commit cannot embed its own SHA; live PR #337 metadata and exact-head workflows are authoritative for the final readiness gate.
 
 # Scope review
 
@@ -182,4 +195,4 @@ Explicitly unchanged:
 
 # Handoff
 
-After PR #337 passes exact current-head checks, review threads and changed-file scope, mark ready and squash merge. Then create a separate lifecycle-only archive PR for this task. Only after that archive merges may TSD-002 start from then-current `main`.
+After the final task-record-only head passes exact-head checks, verify review threads and mergeability, mark PR #337 ready, pass the ready-state gate and squash merge. Then create a separate lifecycle-only archive PR for this task. Only after that archive merges may TSD-002 start from then-current `main`.
