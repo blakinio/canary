@@ -36,10 +36,10 @@ namespace {
 			protocol->attachPlayerForLeaveGameTest(player);
 		}
 
-		void queueValidatedLeave() {
+		bool queueValidatedLeave() {
 			connection->beginProtocolCallbackForTest();
 			auto message = makeLeaveGameFrame();
-			ASSERT_TRUE(protocol->onRecvMessage(message));
+			return protocol->onRecvMessage(message);
 		}
 	};
 }
@@ -47,7 +47,7 @@ namespace {
 TEST(ProtocolGameLeaveGameTest, ReceivedLeaveOwnsExactObjectsUntilOneParseRemoveAndRelease) {
 	LeaveGameFixture fixture;
 	fixture.protocol->setLeaveGameRemoveCreatureForTest([](const std::shared_ptr<Player> &) { return true; });
-	fixture.queueValidatedLeave();
+	ASSERT_TRUE(fixture.queueValidatedLeave());
 
 	std::weak_ptr<Connection> connectionWeak = fixture.connection;
 	std::weak_ptr<ProtocolGame> protocolWeak = fixture.protocol;
@@ -106,7 +106,7 @@ TEST(ProtocolGameLeaveGameTest, DuplicateCompletionDoesNotParseRemoveOrReleaseTw
 TEST(ProtocolGameLeaveGameTest, StaleSessionACannotDetachOrRemoveActiveSessionB) {
 	LeaveGameFixture sessionA;
 	sessionA.protocol->setLeaveGameRemoveCreatureForTest([](const std::shared_ptr<Player> &) { return true; });
-	sessionA.queueValidatedLeave();
+	ASSERT_TRUE(sessionA.queueValidatedLeave());
 
 	std::weak_ptr<ProtocolGame> sessionAWeak = sessionA.protocol;
 	sessionA.connection->close(true);
@@ -148,7 +148,7 @@ TEST(ProtocolGameLeaveGameTest, StaleSessionACannotDetachOrRemoveActiveSessionB)
 TEST(ProtocolGameLeaveGameTest, DeniedLogoutRemainsExplicitAndDoesNotCreateDetachedGhost) {
 	LeaveGameFixture fixture;
 	fixture.protocol->setLeaveGameDeniedForTest(true);
-	fixture.queueValidatedLeave();
+	ASSERT_TRUE(fixture.queueValidatedLeave());
 
 	std::weak_ptr<ProtocolGame> protocolWeak = fixture.protocol;
 	fixture.connection->close(true);
@@ -170,4 +170,31 @@ TEST(ProtocolGameLeaveGameTest, DeniedLogoutRemainsExplicitAndDoesNotCreateDetac
 
 	g_dispatcher().executeSerialEventsForTest();
 	EXPECT_EQ(1, deniedProtocol->getClientLeaveReleaseCountForTest());
+}
+
+TEST(ProtocolGameLeaveGameTest, RemoveFailureIsRejectedWithoutCreatingDetachedGhost) {
+	LeaveGameFixture fixture;
+	fixture.protocol->setLeaveGameRemoveCreatureForTest([](const std::shared_ptr<Player> &) { return false; });
+	ASSERT_TRUE(fixture.queueValidatedLeave());
+
+	std::weak_ptr<ProtocolGame> protocolWeak = fixture.protocol;
+	fixture.connection->close(true);
+	fixture.connection.reset();
+	fixture.protocol.reset();
+
+	g_dispatcher().executeSerialEventsForTest();
+	const auto rejectedProtocol = protocolWeak.lock();
+	ASSERT_TRUE(rejectedProtocol);
+	EXPECT_EQ(ClientLeaveGameState::Rejected, rejectedProtocol->getClientLeaveGameStateForTest());
+	EXPECT_EQ(1, rejectedProtocol->getClientLeaveParseCountForTest());
+	EXPECT_EQ(1, rejectedProtocol->getClientLeaveRemoveCountForTest());
+	EXPECT_EQ(0, rejectedProtocol->getClientLeaveReleaseCountForTest());
+
+	g_dispatcher().executeSerialEventsForTest();
+	EXPECT_EQ(ClientLeaveGameState::Rejected, rejectedProtocol->getClientLeaveGameStateForTest());
+	EXPECT_EQ(1, rejectedProtocol->getClientLeaveReleaseCountForTest());
+	EXPECT_FALSE(protocolWeak.expired());
+
+	g_dispatcher().executeSerialEventsForTest();
+	EXPECT_EQ(1, rejectedProtocol->getClientLeaveReleaseCountForTest());
 }
