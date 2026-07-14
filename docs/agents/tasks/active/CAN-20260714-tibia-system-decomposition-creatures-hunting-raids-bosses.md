@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: docs/tibia-system-decomposition-creatures-hunting-raids-bosses
 base_branch: main
 created: 2026-07-14T22:50:00+02:00
-updated: 2026-07-14T22:50:00+02:00
-last_verified_commit: "f68f826915882b0b20081b8fca5ed975ce303f45"
+updated: 2026-07-14T23:18:00+02:00
+last_verified_commit: "e4362168807c74eb66b17405cba06aa0d874c19f"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "364"
 depends_on:
   - completed and archived TSD-005
 blocks:
@@ -81,32 +81,68 @@ Complete TSD-006 as a bounded creatures, hunting, raids and bosses inventory. Pr
 - #360 protocol/session runtime, #316 donor map/content audit and #245 physical-client E2E remain read-only and non-overlapping.
 - `ACTIVE_WORK.md` remains read-only.
 
-# Boundary decision
+# Delivered result
 
-Current source inventory supports four independent records:
+Registry records: 41 → 45. Added only:
 
-- `creature-definitions` — MonsterType/Monsters registry, spells, loot, summons, immunities and metadata definitions;
-- `creature-ai` — Monster runtime think/target/follow/movement/attack/flee lifecycle;
-- `boss-encounters` — reward-boss participation, scoring, reward-container and reward-chest lifecycle;
-- `raids` — raid registry/load/start/check/event/reset/reload state machine and raid data.
+- `boss-encounters`;
+- `creature-ai`;
+- `creature-definitions`;
+- `raids`.
 
-Static spawn placement and generic dynamic creation remain in `spawns`; Bestiary/Bosstiary kill progression remains in their records; Prey/Hunting Tasks remains in `prey`. Individual monster/boss/raid definitions are data entries, not standalone modules.
+Existing records modified: 0. `spawns`, `prey`, `bestiary`, `bosstiary`, `cyclopedia`, `combat`, `combat-conditions`, `weapons` and player persistence remain stable.
+
+# Classification summary
+
+- MonsterType/Monsters registry and active monster data receive `creature-definitions`.
+- Runtime Monster think/target/follow/flee/movement/attack lifecycle receives `creature-ai`.
+- Reward-boss participation, contribution scoring, reward generation and reward-container handoff receive `boss-encounters`.
+- Raid registry, probabilistic scheduling, ordered events, reset and reload receive `raids`.
+- Static placement and generic dynamic creation remain in `spawns`.
+- Prey/Hunting Tasks, Bestiary and Bosstiary credit remain already covered.
+- Individual monster, boss and raid definitions remain data entries rather than modules.
+
+Detailed evidence: `docs/agents/real-tibia/TSD_006_CREATURES_HUNTING_RAIDS_BOSSES_REPORT.md`.
+
+# Validation and repair history
+
+Implementation/focused-test head `e4362168807c74eb66b17405cba06aa0d874c19f`:
+
+- Real Tibia Module Registry #275: success;
+- Upstream Intelligence #305: success;
+- Agent Task Ownership #1126: success;
+- repository CI #2241: success;
+- focused registry/source-role tests: success;
+- schema and dependency validation: success;
+- deterministic `generate --check`: success;
+- discovery and exact PR-range `affected`: success.
+
+The initial generated dependency mismatch was caused solely by unsorted `interacts_with` arrays in `creature-ai` and `raids`. Their relation order was normalized without changing scope, paths, dependencies, mapper behavior or runtime code.
+
+Later program and task-record commits are documentation-only. This record cannot embed its own final SHA; live PR #364 metadata and exact-head workflows remain authoritative before merge.
 
 # Acceptance criteria
 
-- [ ] Add only the four confirmed records.
-- [ ] Preserve all existing records unchanged.
-- [ ] Classify all TSD-006 candidates explicitly.
-- [ ] Use verified narrow paths and conservative maturity.
-- [ ] Regenerate deterministic indexes through the existing generator.
-- [ ] Add focused registry and source-role mapping tests.
-- [ ] Pass exact-head registry/UI/ownership/repository CI and ready-state Linux/Required.
-- [ ] Make no runtime, gameplay, protocol, client, DB, map, OTBM, datapack, asset, workflow or E2E implementation change.
+- [x] Added only the four confirmed records.
+- [x] Preserved all existing records unchanged.
+- [x] Classified all TSD-006 candidates explicitly.
+- [x] Used verified narrow paths and conservative maturity.
+- [x] Regenerated deterministic indexes through the existing generator.
+- [x] Added focused registry and source-role mapping tests.
+- [x] Passed registry/UI/ownership/repository CI at the implementation head.
+- [ ] Exact final-head and ready-state Linux/Required must pass before merge.
+- [x] Made no runtime, gameplay, protocol, client, DB, map, OTBM, datapack, asset, workflow or E2E implementation change.
 
 # Safety limits
 
-Inventory does not prove creature AI correctness, pathfinding, target choice, spawn timing, boss participation/scoring/reward formulas, raid probability/order, Bestiary/Bosstiary/Prey credit, runtime behavior or parity.
+Inventory does not prove creature AI correctness, pathfinding, target choice, spawn timing, boss participation/scoring/reward formulas, raid probability/order, Bestiary/Bosstiary/Prey credit, persistence safety, runtime behavior or parity.
 
 # Handoff
 
-After feature merge, archive this task in a separate lifecycle-only PR. Only after that archive merges may TSD-007 start from then-current `main`.
+After PR #364 passes exact final-head review and ready-state CI, squash merge it and archive this task in a separate lifecycle-only PR. Only after that archive merges may TSD-007 start from then-current `main`:
+
+```text
+task: CAN-20260714-tibia-system-decomposition-items-economy
+package: TSD-007
+branch: docs/tibia-system-decomposition-items-economy
+```
