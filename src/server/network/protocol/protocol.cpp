@@ -60,6 +60,18 @@ void Protocol::onSendMessage(const OutputMessage_ptr &msg) {
 	}
 }
 
+bool Protocol::queueClientLeaveGame() {
+	return true;
+}
+
+void Protocol::dispatchClientLeaveGame(NetworkMessage &msg) {
+	parsePacket(msg);
+}
+
+void Protocol::releaseFromConnection() {
+	release();
+}
+
 bool Protocol::sendRecvMessageCallback(NetworkMessage &msg) {
 	const auto connection = getConnection();
 	if (!connection) {
@@ -67,12 +79,22 @@ bool Protocol::sendRecvMessageCallback(NetworkMessage &msg) {
 	}
 
 	auto queuedMessage = std::make_shared<NetworkMessage>(msg);
-	auto protocol = shared_from_this();
 	const uint8_t opcode = queuedMessage->canRead(sizeof(uint8_t)) ? queuedMessage->getBuffer()[queuedMessage->getBufferPosition()] : 0;
 	const uint64_t connectionId = connection->getConnectionId();
 	const void* connectionAddress = connection.get();
 	const bool clientLeaveGame = opcode == 0x14;
 
+	if (clientLeaveGame && !queueClientLeaveGame()) {
+		g_logger().warn(
+			"[ConnectionSessionLifecycle] event=client_leave_duplicate_rejected connection_id={} connection={} protocol={} opcode=0x14 context=connection_io",
+			connectionId,
+			fmt::ptr(connectionAddress),
+			fmt::ptr(this)
+		);
+		return false;
+	}
+
+	auto protocol = shared_from_this();
 	if (clientLeaveGame) {
 		g_logger().info(
 			"[ConnectionSessionLifecycle] event=client_leave_queued connection_id={} connection={} protocol={} opcode=0x14 context=connection_io",
@@ -91,9 +113,10 @@ bool Protocol::sendRecvMessageCallback(NetworkMessage &msg) {
 					fmt::ptr(connectionAddress),
 					fmt::ptr(protocol.get())
 				);
+				protocol->dispatchClientLeaveGame(*queuedMessage);
+			} else {
+				protocol->parsePacket(*queuedMessage);
 			}
-
-			protocol->parsePacket(*queuedMessage);
 
 			if (clientLeaveGame) {
 				g_logger().info(
@@ -210,7 +233,6 @@ void Protocol::XTEA_transform(uint8_t* buffer, size_t messageLength, bool encryp
 			return;
 		}
 
-		// Convert bytes to uint32_t considering little-endian order
 		std::array<uint8_t, 4> bytes0;
 		std::array<uint8_t, 4> bytes1;
 		std::copy_n(tempBuffer.begin(), 4, bytes0.begin());
@@ -231,11 +253,9 @@ void Protocol::XTEA_transform(uint8_t* buffer, size_t messageLength, bool encryp
 			}
 		}
 
-		// Convert vData back to bytes
 		bytes0 = std::bit_cast<std::array<uint8_t, 4>>(vData0);
 		bytes1 = std::bit_cast<std::array<uint8_t, 4>>(vData1);
 
-		// Copy transformed bytes back to buffer
 		std::copy_n(bytes0.begin(), 4, buffer + readPos);
 		std::copy_n(bytes1.begin(), 4, buffer + readPos + 4);
 
@@ -249,7 +269,6 @@ bool Protocol::RSA_decrypt(NetworkMessage &msg) {
 	}
 
 	const auto charData = static_cast<char*>(static_cast<void*>(msg.getBuffer()));
-	// Does not break strict aliasing
 	g_RSA().decrypt(charData + msg.getBufferPosition());
 	return (msg.getByte() == 0);
 }
