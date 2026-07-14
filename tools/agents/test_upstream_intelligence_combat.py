@@ -82,7 +82,7 @@ class UpstreamIntelligenceCombatTests(unittest.TestCase):
             ),
         )
 
-    def test_client_source_does_not_consume_server_combat_paths(self) -> None:
+    def test_client_source_uses_client_bucket_without_server_modules(self) -> None:
         candidate = self.candidate(
             [
                 "src/creatures/combat/condition.cpp",
@@ -92,16 +92,16 @@ class UpstreamIntelligenceCombatTests(unittest.TestCase):
 
         map_candidate(candidate, self.registry, self.client_source)
 
-        self.assertEqual(candidate["mapping_state"], "unmapped")
-        self.assertEqual(candidate["module_ids"], [])
-        self.assertEqual(candidate["mapped_paths"], [])
-        self.assertEqual(
-            candidate["unmapped_paths"],
-            [
-                "src/creatures/combat/condition.cpp",
-                "src/items/weapons/weapons.cpp",
-            ],
+        self.assertEqual(candidate["mapping_state"], "mapped")
+        self.assertEqual(candidate["module_ids"], ["protocol"])
+        self.assertTrue(candidate["mapped_paths"])
+        self.assertTrue(
+            all(row["bucket"] == "client" for row in candidate["mapped_paths"])
         )
+        self.assertNotIn("combat", candidate["module_ids"])
+        self.assertNotIn("combat-conditions", candidate["module_ids"])
+        self.assertNotIn("weapons", candidate["module_ids"])
+        self.assertEqual(candidate["unmapped_paths"], [])
         self.assertEqual(candidate["triage_status"], "needs-triage")
         self.assertEqual(candidate["decision_state"], "none")
 
