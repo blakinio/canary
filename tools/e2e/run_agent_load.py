@@ -19,6 +19,8 @@ STATUS_REQUEST_BODY = b"\xff\xffinfo"
 STATUS_REQUEST = struct.pack("<H", len(STATUS_REQUEST_BODY)) + STATUS_REQUEST_BODY
 MAX_STATUS_RESPONSE_BYTES = 1024 * 1024
 LOOPBACK_HOSTS = {"127.0.0.1", "::1"}
+SOURCE_IP_STRATEGIES = {"single", "unique-loopback-v4"}
+MAX_UNIQUE_LOOPBACK_SOURCES = (1 << 24) - 2
 
 
 class LoadConfigError(ValueError):
@@ -50,6 +52,7 @@ class Profile:
     port: int
     gate: bool
     sample_interval_ms: int
+    source_ip_strategy: str
     stages: tuple[Stage, ...]
     source: Path
 
@@ -108,11 +111,7 @@ def _parse_thresholds(value: Any, path: str, requests: int) -> Thresholds:
         raise LoadConfigError(f"{path}.min_successes must be a non-negative integer")
     if min_successes > requests:
         raise LoadConfigError(f"{path}.min_successes cannot exceed stage requests")
-    return Thresholds(
-        max_error_rate=max_error_rate,
-        max_p95_ms=max_p95_ms,
-        min_successes=min_successes,
-    )
+    return Thresholds(max_error_rate, max_p95_ms, min_successes)
 
 
 def load_profile(path: Path) -> Profile:
@@ -150,10 +149,18 @@ def load_profile(path: Path) -> Profile:
     if not isinstance(gate, bool):
         raise LoadConfigError("profile.policy.gate must be a boolean")
     sample_interval_ms = _require_positive_int(policy, "sample_interval_ms", "profile.policy")
+    source_ip_strategy = policy.get("source_ip_strategy", "single")
+    if source_ip_strategy not in SOURCE_IP_STRATEGIES:
+        raise LoadConfigError(
+            f"profile.policy.source_ip_strategy must be one of {sorted(SOURCE_IP_STRATEGIES)}"
+        )
+    if source_ip_strategy == "unique-loopback-v4" and host != "127.0.0.1":
+        raise LoadConfigError("unique-loopback-v4 requires target host 127.0.0.1")
 
     raw_stages = _require_list(data.get("stages"), "profile.stages")
     stages: list[Stage] = []
     seen_names: set[str] = set()
+    total_requests = 0
     for index, raw_stage in enumerate(raw_stages):
         stage_path = f"profile.stages[{index}]"
         stage_data = _require_mapping(raw_stage, stage_path)
@@ -167,31 +174,29 @@ def load_profile(path: Path) -> Profile:
             raise LoadConfigError(f"{stage_path}.concurrency cannot exceed requests")
         timeout = _require_positive_number(stage_data, "request_timeout_seconds", stage_path)
         thresholds = _parse_thresholds(stage_data.get("thresholds"), f"{stage_path}.thresholds", requests)
-        stages.append(
-            Stage(
-                name=name,
-                requests=requests,
-                concurrency=concurrency,
-                request_timeout_seconds=timeout,
-                thresholds=thresholds,
-            )
-        )
+        stages.append(Stage(name, requests, concurrency, timeout, thresholds))
+        total_requests += requests
 
     if mode == "load" and len(stages) != 1:
         raise LoadConfigError("load profiles must define exactly one stage")
     if mode == "stress" and len(stages) < 2:
         raise LoadConfigError("stress profiles must define at least two stages")
+    if source_ip_strategy == "unique-loopback-v4" and total_requests > MAX_UNIQUE_LOOPBACK_SOURCES:
+        raise LoadConfigError(
+            f"unique-loopback-v4 supports at most {MAX_UNIQUE_LOOPBACK_SOURCES} requests per profile"
+        )
 
     return Profile(
-        profile_id=profile_id,
-        mode=mode,
-        protocol=protocol,
-        host=host,
-        port=port,
-        gate=gate,
-        sample_interval_ms=sample_interval_ms,
-        stages=tuple(stages),
-        source=path,
+        profile_id,
+        mode,
+        protocol,
+        host,
+        port,
+        gate,
+        sample_interval_ms,
+        source_ip_strategy,
+        tuple(stages),
+        path,
     )
 
 
@@ -203,9 +208,23 @@ def _percentile(values: list[float], percentile: float) -> float:
     return round(ordered[index], 3)
 
 
-async def _status_exchange(host: str, port: int) -> tuple[float, float, int]:
+def _unique_loopback_source(request_index: int) -> str:
+    if request_index < 0 or request_index >= MAX_UNIQUE_LOOPBACK_SOURCES:
+        raise LoadConfigError("unique loopback source index is out of range")
+    value = request_index + 1
+    return f"127.{(value >> 16) & 0xFF}.{(value >> 8) & 0xFF}.{value & 0xFF}"
+
+
+def _source_ip(profile: Profile, request_index: int) -> str | None:
+    if profile.source_ip_strategy == "single":
+        return None
+    return _unique_loopback_source(request_index)
+
+
+async def _status_exchange(host: str, port: int, source_ip: str | None) -> tuple[float, float, int]:
     started = time.perf_counter()
-    reader, writer = await asyncio.open_connection(host, port)
+    local_addr = (source_ip, 0) if source_ip is not None else None
+    reader, writer = await asyncio.open_connection(host, port, local_addr=local_addr)
     connected = time.perf_counter()
     try:
         writer.write(STATUS_REQUEST)
@@ -240,12 +259,16 @@ async def _status_exchange(host: str, port: int) -> tuple[float, float, int]:
     )
 
 
-async def _one_request(host: str, port: int, timeout: float) -> dict[str, Any]:
+async def _one_request(
+    host: str,
+    port: int,
+    timeout: float,
+    source_ip: str | None,
+) -> dict[str, Any]:
     started = time.perf_counter()
     try:
         connect_ms, total_ms, bytes_received = await asyncio.wait_for(
-            _status_exchange(host, port),
-            timeout=timeout,
+            _status_exchange(host, port, source_ip), timeout=timeout
         )
         return {
             "ok": True,
@@ -255,21 +278,16 @@ async def _one_request(host: str, port: int, timeout: float) -> dict[str, Any]:
             "error": None,
         }
     except asyncio.TimeoutError:
-        return {
-            "ok": False,
-            "connect_ms": None,
-            "total_ms": (time.perf_counter() - started) * 1000.0,
-            "bytes_received": 0,
-            "error": "timeout",
-        }
+        error = "timeout"
     except (ConnectionError, OSError, RuntimeError) as exc:
-        return {
-            "ok": False,
-            "connect_ms": None,
-            "total_ms": (time.perf_counter() - started) * 1000.0,
-            "bytes_received": 0,
-            "error": f"{type(exc).__name__}: {exc}",
-        }
+        error = f"{type(exc).__name__}: {exc}"
+    return {
+        "ok": False,
+        "connect_ms": None,
+        "total_ms": (time.perf_counter() - started) * 1000.0,
+        "bytes_received": 0,
+        "error": error,
+    }
 
 
 def _read_process_sample(pid: int) -> tuple[int, int] | None:
@@ -277,11 +295,10 @@ def _read_process_sample(pid: int) -> tuple[int, int] | None:
         stat_fields = Path(f"/proc/{pid}/stat").read_text(encoding="utf-8").split()
         status_lines = Path(f"/proc/{pid}/status").read_text(encoding="utf-8").splitlines()
         cpu_ticks = int(stat_fields[13]) + int(stat_fields[14])
-        rss_kb = 0
-        for line in status_lines:
-            if line.startswith("VmRSS:"):
-                rss_kb = int(line.split()[1])
-                break
+        rss_kb = next(
+            (int(line.split()[1]) for line in status_lines if line.startswith("VmRSS:")),
+            0,
+        )
         return cpu_ticks, rss_kb
     except (OSError, ValueError, IndexError):
         return None
@@ -299,32 +316,31 @@ class ProcessSampler:
         self.ended_at: float | None = None
         self._stop = asyncio.Event()
 
+    def _record(self) -> None:
+        if self.pid is None:
+            return
+        sample = _read_process_sample(self.pid)
+        if sample is None:
+            return
+        ticks, rss_kb = sample
+        if self.start_ticks is None:
+            self.start_ticks = ticks
+        self.end_ticks = ticks
+        self.peak_rss_kb = max(self.peak_rss_kb, rss_kb)
+        self.samples += 1
+
     async def run(self) -> None:
         if self.pid is None:
             return
         self.started_at = time.perf_counter()
         while not self._stop.is_set():
-            sample = _read_process_sample(self.pid)
-            if sample is not None:
-                ticks, rss_kb = sample
-                if self.start_ticks is None:
-                    self.start_ticks = ticks
-                self.end_ticks = ticks
-                self.peak_rss_kb = max(self.peak_rss_kb, rss_kb)
-                self.samples += 1
+            self._record()
             try:
                 await asyncio.wait_for(self._stop.wait(), timeout=self.interval)
             except asyncio.TimeoutError:
                 pass
         self.ended_at = time.perf_counter()
-        sample = _read_process_sample(self.pid)
-        if sample is not None:
-            ticks, rss_kb = sample
-            if self.start_ticks is None:
-                self.start_ticks = ticks
-            self.end_ticks = ticks
-            self.peak_rss_kb = max(self.peak_rss_kb, rss_kb)
-            self.samples += 1
+        self._record()
 
     def stop(self) -> None:
         self._stop.set()
@@ -359,13 +375,11 @@ def _summarize(results: list[dict[str, Any]], duration_seconds: float) -> dict[s
     attempts = len(results)
     success_count = len(successes)
     failure_count = len(failures)
-    error_rate = (failure_count / attempts) if attempts else 1.0
-    errors = Counter(str(item["error"]) for item in failures)
     return {
         "attempts": attempts,
         "successes": success_count,
         "failures": failure_count,
-        "error_rate": round(error_rate, 6),
+        "error_rate": round(failure_count / attempts, 6) if attempts else 1.0,
         "throughput_rps": round(success_count / duration_seconds, 3) if duration_seconds > 0 else 0.0,
         "bytes_received": sum(int(item["bytes_received"]) for item in successes),
         "connect_ms": {
@@ -380,7 +394,7 @@ def _summarize(results: list[dict[str, Any]], duration_seconds: float) -> dict[s
             "p99": _percentile(total_latencies, 99),
             "max": round(max(total_latencies), 3) if total_latencies else 0.0,
         },
-        "errors": dict(sorted(errors.items())),
+        "errors": dict(sorted(Counter(str(item["error"]) for item in failures).items())),
     }
 
 
@@ -401,7 +415,11 @@ def _threshold_result(summary: dict[str, Any], thresholds: Thresholds) -> dict[s
     }
 
 
-async def _run_stage(profile: Profile, stage: Stage) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+async def _run_stage(
+    profile: Profile,
+    stage: Stage,
+    source_offset: int,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     counter = 0
     counter_lock = asyncio.Lock()
     results: list[dict[str, Any]] = []
@@ -412,12 +430,14 @@ async def _run_stage(profile: Profile, stage: Stage) -> tuple[dict[str, Any], li
             async with counter_lock:
                 if counter >= stage.requests:
                     return
+                request_index = source_offset + counter
                 counter += 1
             results.append(
                 await _one_request(
                     profile.host,
                     profile.port,
                     stage.request_timeout_seconds,
+                    _source_ip(profile, request_index),
                 )
             )
 
@@ -425,7 +445,6 @@ async def _run_stage(profile: Profile, stage: Stage) -> tuple[dict[str, Any], li
     await asyncio.gather(*(worker() for _ in range(stage.concurrency)))
     duration = time.perf_counter() - started
     summary = _summarize(results, duration)
-    threshold = _threshold_result(summary, stage.thresholds)
     return (
         {
             "name": stage.name,
@@ -434,7 +453,7 @@ async def _run_stage(profile: Profile, stage: Stage) -> tuple[dict[str, Any], li
             "request_timeout_seconds": stage.request_timeout_seconds,
             "duration_seconds": round(duration, 6),
             "metrics": summary,
-            "thresholds": threshold,
+            "thresholds": _threshold_result(summary, stage.thresholds),
         },
         results,
     )
@@ -445,12 +464,14 @@ async def run_profile(profile: Profile, server_pid: int | None = None) -> dict[s
     sampler_task = asyncio.create_task(sampler.run())
     all_results: list[dict[str, Any]] = []
     stages: list[dict[str, Any]] = []
+    source_offset = 0
     started = time.perf_counter()
     try:
         for stage in profile.stages:
-            stage_result, request_results = await _run_stage(profile, stage)
+            stage_result, request_results = await _run_stage(profile, stage, source_offset)
             stages.append(stage_result)
             all_results.extend(request_results)
+            source_offset += stage.requests
     finally:
         sampler.stop()
         await sampler_task
@@ -460,7 +481,6 @@ async def run_profile(profile: Profile, server_pid: int | None = None) -> dict[s
     thresholds_passed = all(stage["thresholds"]["passed"] for stage in stages)
     gate_passed = thresholds_passed or not profile.gate
     status = "success" if thresholds_passed else ("threshold-failure" if profile.gate else "completed")
-
     return {
         "schema_version": SCHEMA_VERSION,
         "profile": profile.profile_id,
@@ -471,6 +491,7 @@ async def run_profile(profile: Profile, server_pid: int | None = None) -> dict[s
         "policy": {
             "gate": profile.gate,
             "sample_interval_ms": profile.sample_interval_ms,
+            "source_ip_strategy": profile.source_ip_strategy,
         },
         "status": status,
         "thresholds_passed": thresholds_passed,
@@ -480,6 +501,21 @@ async def run_profile(profile: Profile, server_pid: int | None = None) -> dict[s
         "aggregate": aggregate,
         "server_process": sampler.result(),
     }
+
+
+def _replace_profile(profile: Profile, *, host: str | None = None, port: int | None = None) -> Profile:
+    return Profile(
+        profile.profile_id,
+        profile.mode,
+        profile.protocol,
+        host if host is not None else profile.host,
+        port if port is not None else profile.port,
+        profile.gate,
+        profile.sample_interval_ms,
+        profile.source_ip_strategy,
+        profile.stages,
+        profile.source,
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -500,31 +536,13 @@ def main(argv: list[str] | None = None) -> int:
         profile = load_profile(args.profile.resolve())
         if args.host is not None:
             _validate_loopback(args.host)
-            profile = Profile(
-                profile_id=profile.profile_id,
-                mode=profile.mode,
-                protocol=profile.protocol,
-                host=args.host,
-                port=profile.port,
-                gate=profile.gate,
-                sample_interval_ms=profile.sample_interval_ms,
-                stages=profile.stages,
-                source=profile.source,
-            )
+            if profile.source_ip_strategy == "unique-loopback-v4" and args.host != "127.0.0.1":
+                raise LoadConfigError("unique-loopback-v4 requires target host 127.0.0.1")
+            profile = _replace_profile(profile, host=args.host)
         if args.port is not None:
             if not 1 <= args.port <= 65535:
                 raise LoadConfigError("--port must be between 1 and 65535")
-            profile = Profile(
-                profile_id=profile.profile_id,
-                mode=profile.mode,
-                protocol=profile.protocol,
-                host=profile.host,
-                port=args.port,
-                gate=profile.gate,
-                sample_interval_ms=profile.sample_interval_ms,
-                stages=profile.stages,
-                source=profile.source,
-            )
+            profile = _replace_profile(profile, port=args.port)
         if args.server_pid is not None and args.server_pid <= 0:
             raise LoadConfigError("--server-pid must be a positive integer")
 
