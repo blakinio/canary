@@ -4,8 +4,8 @@ name: Tibia System Decomposition
 status: active
 owner: repository-wide
 created: 2026-07-14T15:43:00+02:00
-updated: 2026-07-15T10:39:00+02:00
-last_verified_commit: "83be98f8cb8a4d907d5c5eb8cd9c2c93b55ef978"
+updated: 2026-07-15T10:44:00+02:00
+last_verified_commit: "2d04246f583406711b01cdf0468510d72623ade0"
 primary_paths:
   - docs/agents/real-tibia/**
   - docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md
@@ -57,7 +57,7 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | `TSD-006` | creatures, hunting, raids and bosses | completed | PR #364; registry 41 → 45 | preserve archive |
 | `TSD-007` | items and economy | completed | PR #366/#367; registry 45 → 49 | preserve archive |
 | `TSD-008` | world content | completed | PR #368/#369; registry 49 → 52 | preserve archive |
-| `TSD-009` | social, communication and trust | active | PR #370; implementation head `83be98f8cb8a4d907d5c5eb8cd9c2c93b55ef978`; registry 52 → 56 | finish exact-head/ready CI, squash merge and lifecycle archive |
+| `TSD-009` | social, communication and trust | active | PR #370; implementation head `2d04246f583406711b01cdf0468510d72623ade0`; registry 52 → 56 | finish exact-head/ready CI, squash merge and lifecycle archive |
 | `TSD-010` | protocol and client | next | protocol umbrella and maintained client | classify wire/session/client-feature domains |
 | `TSD-011` | analytics, security and AI | planned | analytics/safety boundaries | register durable read-only/analysis domains only |
 | `TSD-012` | validation and live operations | planned | OTBM/E2E/UI modules | register only non-duplicative tooling |
@@ -105,7 +105,18 @@ Classification:
 - account/authentication, NPC, protocol and persistence remain already covered;
 - planned `chat-safety-intelligence`, `security-analytics` and `ai-investigation` remain explicitly deferred and unimplemented.
 
-Implementation head `83be98f8cb8a4d907d5c5eb8cd9c2c93b55ef978` includes registry records, deterministic generated navigation, focused registry/source-role tests and the bounded package report. Exact-head workflow validation is pending.
+Implementation/focused-test head `2d04246f583406711b01cdf0468510d72623ade0` passed:
+
+- Real Tibia Module Registry #363;
+- Upstream Intelligence #397;
+- Agent Task Ownership #1231;
+- repository CI #2350;
+- focused registry/source-role tests;
+- schema and dependency graph validation;
+- deterministic `generate --check`;
+- registry discovery integration.
+
+The only repair after the first workflow pass was generator ordering: `charms` sorts before `chat-communication`. No registry scope, dependency or runtime behavior changed.
 
 Detailed evidence: `docs/agents/real-tibia/TSD_009_SOCIAL_COMMUNICATION_TRUST_REPORT.md`.
 
