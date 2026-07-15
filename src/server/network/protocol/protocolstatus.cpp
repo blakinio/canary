@@ -16,6 +16,10 @@
 #include "game/scheduling/dispatcher.hpp"
 #include "server/network/message/outputmessage.hpp"
 
+#ifndef USE_PRECOMPILED_HEADERS
+	#include <mutex>
+#endif
+
 std::string ProtocolStatus::SERVER_NAME = "Canary";
 std::string ProtocolStatus::SERVER_VERSION = "3.0";
 std::string ProtocolStatus::SERVER_DEVELOPERS = "OpenTibiaBR Organization";
@@ -24,19 +28,28 @@ std::map<uint32_t, int64_t> ProtocolStatus::ipConnectMap;
 const uint64_t ProtocolStatus::start = OTSYS_TIME(true);
 
 void ProtocolStatus::onRecvFirstMessage(NetworkMessage &msg) {
+	static std::mutex ipConnectMapMutex;
 	const uint32_t ip = getIP();
-	if (ip != 0x0100007F) {
-		const std::string ipStr = convertIPToString(ip);
-		if (ipStr != g_configManager().getString(IP)) {
-			const auto it = ipConnectMap.find(ip);
-			if (it != ipConnectMap.end() && (OTSYS_TIME() < (it->second + g_configManager().getNumber(STATUSQUERY_TIMEOUT)))) {
-				disconnect();
-				return;
+	bool throttled = false;
+	{
+		std::scoped_lock lock(ipConnectMapMutex);
+		if (ip != 0x0100007F) {
+			const std::string ipStr = convertIPToString(ip);
+			if (ipStr != g_configManager().getString(IP)) {
+				const auto it = ipConnectMap.find(ip);
+				throttled = it != ipConnectMap.end() && (OTSYS_TIME() < (it->second + g_configManager().getNumber(STATUSQUERY_TIMEOUT)));
 			}
+		}
+
+		if (!throttled) {
+			ipConnectMap[ip] = OTSYS_TIME();
 		}
 	}
 
-	ipConnectMap[ip] = OTSYS_TIME();
+	if (throttled) {
+		disconnect();
+		return;
+	}
 
 	switch (msg.getByte()) {
 		// XML info protocol
