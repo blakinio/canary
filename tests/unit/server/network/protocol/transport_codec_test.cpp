@@ -46,6 +46,27 @@ namespace {
 	}
 }
 
+TEST(TransportCodecTest, DefaultModernInitialTransportConsumesCapturedLoginBody) {
+	constexpr uint16_t capturedOuterBlockCount = 0x0015;
+	constexpr uint16_t capturedPhysicalBodySize = 172;
+
+	const auto initialBehavior = ProtocolProfileRegistry::defaultModernInitialBehavior();
+	EXPECT_EQ(TransportProfileId::CurrentGameSequence, initialBehavior.transport);
+
+	const auto decodedBodySize = TransportCodecs::get(initialBehavior.transport).decodeBodySize(capturedOuterBlockCount);
+	ASSERT_TRUE(decodedBodySize.has_value());
+	EXPECT_EQ(capturedPhysicalBodySize, *decodedBodySize);
+}
+
+TEST(TransportCodecTest, CurrentGamePlainKeepsChecksumFreeBlockCountContract) {
+	constexpr uint16_t capturedOuterBlockCount = 0x0015;
+	constexpr uint16_t checksumFreeBodySize = 168;
+
+	const auto decodedBodySize = TransportCodecs::currentGamePlain().decodeBodySize(capturedOuterBlockCount);
+	ASSERT_TRUE(decodedBodySize.has_value());
+	EXPECT_EQ(checksumFreeBodySize, *decodedBodySize);
+}
+
 TEST(TransportCodecTest, SequenceMismatchDoesNotAdvanceAcceptedSequence) {
 	asio::io_service ioService;
 	auto connection = ConnectionManager::getInstance().createConnection(ioService, nullptr);
