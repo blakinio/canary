@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: docs/tibia-system-decomposition-protocol-client
 base_branch: main
 created: 2026-07-15T11:11:00+02:00
-updated: 2026-07-15T11:23:00+02:00
-last_verified_commit: "f0c92d68cd3025d66214de4b5108cd8c0e5fcbba"
+updated: 2026-07-15T11:25:00+02:00
+last_verified_commit: "68380151a80ceb66b7f06bbc1d39afb487ad553f"
 risk: low
 related_issue: ""
 related_pr: "372"
@@ -100,16 +100,18 @@ Detailed evidence: `docs/agents/real-tibia/TSD_010_PROTOCOL_CLIENT_REPORT.md`.
 
 # Validation state
 
-Implementation/focused-test head `f0c92d68cd3025d66214de4b5108cd8c0e5fcbba` includes:
+Implementation/focused-test head `68380151a80ceb66b7f06bbc1d39afb487ad553f` passed:
 
-- four new inventory-only registry records;
-- deterministic module/dependency/path/freshness generated indexes;
-- exact TSD-010 registry total assertion and TSD-009 minimum-total regression adjustment;
-- focused server/client path discovery tests;
-- focused Upstream Intelligence source-role isolation tests;
-- unchanged broad `protocol` maturity assertions.
+- Real Tibia Module Registry #391: success;
+- Upstream Intelligence #426: success;
+- Agent Task Ownership #1253: success;
+- repository CI #2373: success;
+- focused registry/source-role tests: success;
+- registry schema/contracts and dependency graph validation: success;
+- deterministic `generate --check`: success;
+- discovery and affected-module commands: success.
 
-Exact-head Real Tibia Module Registry, Upstream Intelligence, Agent Task Ownership and repository CI are authoritative and still pending for the current docs-only head. `generate --check` must pass before readiness. Ready-state Linux/Required remains mandatory before squash merge.
+This task-record and program update are documentation-only after the validated implementation head. Final current-head checks and ready-state Linux/Required remain mandatory before squash merge.
 
 # Acceptance criteria
 
@@ -118,9 +120,9 @@ Exact-head Real Tibia Module Registry, Upstream Intelligence, Agent Task Ownersh
 - [x] Preserve physical-client E2E and account-authentication ownership unchanged.
 - [x] Classify wire, session and client-feature candidates explicitly.
 - [x] Use verified narrow server/client paths and conservative maturity.
-- [x] Materialize deterministic indexes through the existing generator contract; `generate --check` remains authoritative.
+- [x] Regenerate deterministic indexes through the existing generator contract.
 - [x] Add focused registry and source-role mapping tests.
-- [ ] Pass exact-head registry/UI/ownership/repository CI and ready-state Linux/Required.
+- [ ] Pass final exact-head registry/UI/ownership/repository CI and ready-state Linux/Required.
 - [x] Make no runtime, gameplay, protocol implementation, client, DB, map, OTBM, datapack, asset, workflow or E2E implementation change.
 
 # Safety limits
