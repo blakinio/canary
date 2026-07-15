@@ -3,7 +3,7 @@ program_id: CAN-PROGRAM-AGENT-ORCHESTRATION
 status: active
 owner: "GPT-5.5 Thinking"
 created: 2026-07-15T16:00:00Z
-updated: 2026-07-15T16:49:00Z
+updated: 2026-07-15T17:04:00Z
 ---
 
 # Agent Context Orchestration Program
@@ -54,7 +54,7 @@ Rules:
 | Package | Scope | Status |
 |---|---|---|
 | ACO-001 | Machine routing, checkpoint validation, resume bundles and CHAT/CODEX/WORK budget-aware advisor | completed by PR #389 |
-| ACO-002 | Changed-task-aware CI checkpoint enforcement and lifecycle automation | ready in PR #391 |
+| ACO-002 | Changed-task-aware CI checkpoint enforcement and lifecycle automation | completed by PR #391; bot-cleanup check dispatch repair in PR #394 |
 | ACO-003 | Agent efficiency evals: files read, repeated reads, tool calls, time-to-first-action, handoff success | queued |
 | ACO-004 | Optional multi-agent supervisor queue for higher-license Codex/worktree execution | queued |
 
@@ -71,11 +71,15 @@ The package did not:
 - infer exact token counts that are not exposed by the platform;
 - claim that CHAT/CODEX/WORK pricing or limits are stable repository facts.
 
-## ACO-002 boundary
+## ACO-002 result and repair boundary
 
-ACO-002 adds deterministic changed-task validation, task archive tooling and a post-merge workflow that operates only on trusted default-branch code and exact `related_pr` matches.
+ACO-002 merged in PR #391 as `0d47a18e2cf1e4d81a3c16f85947299bda4afc0e` and added deterministic changed-task validation, exact-`related_pr` task archival, and trusted post-merge cleanup PR creation.
 
-ACO-002 does not:
+The first production cleanup PR #392 proved that PRs created by the repository `GITHUB_TOKEN` did not receive usable recursive PR-triggered CI in this repository: both Agent Task Ownership #1389 and CI #2516 concluded `action_required` on cleanup head `e61f6691e5bdd4440f3a00b3ca26493658ba5511`.
+
+Repair PR #394 keeps the protected cleanup-PR model and adds explicit `workflow_dispatch` calls for the existing trusted Agent Task Ownership and CI workflows on the exact cleanup branch before enabling auto-merge. The repair must be proven by a real post-merge cleanup before ACO-003 starts.
+
+ACO-002 and its repair do not:
 
 - checkout or execute an untrusted contributor head from `pull_request_target`;
 - push lifecycle cleanup directly to protected `main`;
@@ -117,11 +121,11 @@ The generated bundle is intentionally bounded. The worker verifies live head/PR/
 
 ## Current task
 
-- ACO-002: `CAN-20260715-agent-task-lifecycle-automation`
-- PR: #391
-- State: ready; final current-head and ready-state branch-protection checks remain before merge.
-- ACO-003 and ACO-004 remain queued until ACO-002 is merged and its lifecycle state is clean.
+- Repair task: `CAN-20260715-agent-task-lifecycle-bot-pr-checks`
+- PR: #394
+- State: implementing explicit required-workflow dispatch for bot-created lifecycle cleanup PRs.
+- ACO-003 and ACO-004 remain queued until PR #394 merges and its own generated cleanup PR proves the repaired lifecycle end to end.
 
 ## Handoff
 
-Complete PR #391 through branch protection. After ACO-002 merges, verify whether the newly introduced post-merge lifecycle workflow produced its own cleanup PR; if not, archive the first ACO-002 task manually once. Then start ACO-003 as a separate bounded task/branch/PR.
+Complete PR #394 through normal CI and branch protection. Then verify the generated cleanup PR for #394 receives explicitly dispatched required checks on its exact head and auto-merges. Only after the repair task disappears from `tasks/active` on `main` should ACO-003 start as a separate bounded task/branch/PR.

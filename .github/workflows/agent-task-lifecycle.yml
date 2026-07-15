@@ -7,6 +7,7 @@ on:
       - closed
 
 permissions:
+  actions: write
   contents: write
   pull-requests: write
 
@@ -65,8 +66,9 @@ jobs:
           git push origin "HEAD:${branch}"
           echo "branch=$branch" >> "$GITHUB_OUTPUT"
 
-      - name: Open cleanup PR and enable auto-merge
+      - name: Open cleanup PR
         if: steps.lifecycle.outputs.changed == 'true'
+        id: cleanup_pr
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -85,6 +87,7 @@ jobs:
           - Generated from trusted \`${DEFAULT_BRANCH}\` after merge.
           - The workflow did not checkout or execute the feature PR head.
           - Scope is limited to the exact active task record whose parsed \`related_pr\` equals ${PR_NUMBER}.
+          - Required workflows are explicitly dispatched on this exact cleanup branch because PRs created with the repository automation token do not reliably trigger usable recursive PR checks.
           - Normal CI, branch protection and auto-merge remain in force.
           EOF
 
@@ -94,8 +97,30 @@ jobs:
             --head "$LIFECYCLE_BRANCH" \
             --title "docs(agents): archive merged PR #${PR_NUMBER} task" \
             --body-file "$body_file")"
+          echo "url=$pr_url" >> "$GITHUB_OUTPUT"
 
-          gh pr merge "$pr_url" \
+      - name: Dispatch required cleanup checks
+        if: steps.lifecycle.outputs.changed == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LIFECYCLE_BRANCH: ${{ steps.commit.outputs.branch }}
+        run: |
+          gh workflow run agent-task-ownership.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref "$LIFECYCLE_BRANCH"
+          gh workflow run ci.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref "$LIFECYCLE_BRANCH"
+
+      - name: Enable cleanup auto-merge
+        if: steps.lifecycle.outputs.changed == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLEANUP_PR_URL: ${{ steps.cleanup_pr.outputs.url }}
+        run: |
+          gh pr merge "$CLEANUP_PR_URL" \
             --repo "$GITHUB_REPOSITORY" \
             --auto \
             --squash \
