@@ -99,6 +99,7 @@ def resolution():
                 "index": 0,
                 "itemId": 100,
                 "position": [1025, 2050, 7],
+                "depth": 0,
                 "status": "handled-directly",
                 "resolutions": {"actionId": {"status": "handled-directly", "handlers": []}},
             },
@@ -106,6 +107,7 @@ def resolution():
                 "index": 1,
                 "itemId": 101,
                 "position": [1026, 2050, 7],
+                "depth": 1,
                 "status": "partially-resolved",
                 "resolutions": {
                     "actionId": {"status": "handled-directly", "handlers": []},
@@ -174,6 +176,50 @@ class CorrelationTests(unittest.TestCase):
         )
         self.assertEqual(candidates[0]["anchorStatus"], "ambiguous")
         self.assertIsNone(candidates[0]["tilePlacementIndex"])
+
+    def test_duplicate_attribute_in_one_tile_placement_is_ambiguous(self):
+        duplicate = anchors()
+        duplicate["anchors"].append(
+            {
+                "position": [1025, 2050, 7],
+                "tilePlacementIndex": 3,
+                "itemId": 100,
+                "itemDepth": 0,
+                "attribute": "actionId",
+                "value": 1000,
+                "bytes": [],
+            }
+        )
+        candidates = correlate_candidates(
+            item_audit=item_audit(),
+            anchor_report=duplicate,
+            script_resolution=resolution(),
+            selector={"actionId": 1000},
+        )
+        self.assertEqual(candidates[0]["anchorStatus"], "ambiguous")
+        self.assertIsNone(candidates[0]["tilePlacementIndex"])
+
+    def test_incomplete_script_resolution_is_rejected(self):
+        script = resolution()
+        script["placements"].pop()
+        with self.assertRaisesRegex(PreflightError, "do not exactly cover"):
+            correlate_candidates(
+                item_audit=item_audit(),
+                anchor_report=anchors(),
+                script_resolution=script,
+                selector={"actionId": 1000},
+            )
+
+    def test_mismatched_script_resolution_identity_is_rejected(self):
+        script = resolution()
+        script["placements"][0]["itemId"] = 999
+        with self.assertRaisesRegex(PreflightError, "identity does not match"):
+            correlate_candidates(
+                item_audit=item_audit(),
+                anchor_report=anchors(),
+                script_resolution=script,
+                selector={"actionId": 1000},
+            )
 
 
 class DraftPlanTests(unittest.TestCase):
@@ -252,6 +298,7 @@ class DraftPlanTests(unittest.TestCase):
                 "index": 2,
                 "itemId": 100,
                 "position": [1027, 2050, 7],
+                "depth": 0,
                 "status": "handled-directly",
                 "resolutions": {},
             }
