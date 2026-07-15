@@ -1,6 +1,6 @@
 # Canary Module and System Catalogue
 
-Last reviewed: 2026-07-14
+Last reviewed: 2026-07-15
 
 This catalogue makes reusable work visible across agents. Verify current source, tests, and PR state before use.
 
@@ -55,6 +55,8 @@ Update this file in the same PR that adds a reusable module/service/manager/pars
 
 | Module/system | Status | Purpose | Paths | Reuse notes |
 |---|---|---|---|---|
+| Universal Physical-Client E2E | merged (#245) | Exact-head Canary plus one controlled pinned OTClient process, reusable scenario runner and real `login/relog` baseline with protocol/database/log evidence | `tools/e2e/run_agent_e2e.py`, `tools/e2e/run_physical_e2e.sh`, `tools/e2e/client/**`, `tests/e2e/scenarios/**`, `.github/workflows/universal-agent-e2e.yml`, `docs/agents/programs/E2E_AUTOMATION_PROGRAM.md` | Canonical real-client correctness layer. Reuse it instead of building a second physical orchestrator; preserve one-process relog and never add timing/retry workarounds or modify OTClient to make Canary pass. |
+| Universal Agent Load/Stress | active (#384) | Loopback-only real-TCP `status-xml` load/stress profiles with explicit gates, latency percentiles, throughput/errors and optional Canary CPU/RSS evidence against an exact-head disposable runtime | `tools/e2e/run_agent_load.py`, `tools/e2e/run_agent_load_runtime.py`, `tests/e2e/load/**`, `tests/e2e/test_load_runner.py`, `.github/workflows/universal-agent-load.yml` | Reuse for server transport/status regression and bounded capacity exploration. `unique-loopback-v4` preserves normal per-IP anti-abuse/status throttles by giving each synthetic client a distinct `127/8` identity. This is not authenticated gameplay-player capacity proof; keep physical E2E as the correctness sentinel. |
 | Gameplay Analytics dry-run audit | merged (#140) | Deterministic Analytics logic/configuration tests without Canary or MariaDB | `.github/workflows/gameplay-analytics-dry-run.yml`, `tools/analytics/test_gameplay_analytics_correctness_edge_cases.lua`, `tools/analytics/test_gameplay_analytics_maintenance_config_dry_run.sh` | Run before staging; it complements rather than replaces real engine/database integration. |
 | Required Linux check emission | merged (#132) | Ensures branch protection receives the nested Linux release check | `.github/workflows/ci.yml` | Preserve the unconditional required Linux release check when editing path filters. |
 | CMake preset matrix | maintained | Canonical configure/build/test entry points | `CMakePresets.json`, CMake, `vcproj/canary.vcxproj` | Update every maintained build entry point for new C++ files. |
