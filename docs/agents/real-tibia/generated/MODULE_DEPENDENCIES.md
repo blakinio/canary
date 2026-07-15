@@ -26,6 +26,7 @@
 | `cyclopedia-character` | `cyclopedia`, `player-persistence` | `character-lifecycle`, `character-progression`, `protocol`, `titles` |
 | `database-connection` | — | `configuration`, `engine-runtime-lifecycle`, `engine-service-container` |
 | `database-migrations` | `database-connection` | `configuration`, `engine-runtime-lifecycle`, `lua-runtime` |
+| `deployment-operations` | `build-system` | `configuration`, `engine-runtime-lifecycle` |
 | `engine-runtime-lifecycle` | — | `configuration`, `lua-runtime` |
 | `engine-scheduler` | — | `engine-runtime-lifecycle`, `engine-service-container` |
 | `engine-service-container` | — | `configuration`, `engine-runtime-lifecycle`, `engine-scheduler`, `lua-runtime` |
