@@ -83,10 +83,20 @@ def _require_documents(
     resolution_by_index: dict[int, dict[str, Any]] = {}
     for row in resolutions:
         index = row.get("index")
-        if isinstance(index, int) and not isinstance(index, bool):
-            if index in resolution_by_index:
-                raise PreflightError(f"duplicate script-resolution placement index {index}")
-            resolution_by_index[index] = row
+        if not isinstance(index, int) or isinstance(index, bool):
+            raise PreflightError("script-resolution placement index must be an integer")
+        if index in resolution_by_index:
+            raise PreflightError(f"duplicate script-resolution placement index {index}")
+        resolution_by_index[index] = row
+    expected_indexes = set(range(len(mechanics)))
+    actual_indexes = set(resolution_by_index)
+    if actual_indexes != expected_indexes:
+        missing = sorted(expected_indexes - actual_indexes)
+        extra = sorted(actual_indexes - expected_indexes)
+        raise PreflightError(
+            f"script-resolution placement indexes do not exactly cover item-audit mechanics; "
+            f"missing={missing}, extra={extra}"
+        )
     return list(mechanics), list(anchors), resolution_by_index
 
 
@@ -105,37 +115,45 @@ def _placement_expected_attributes(placement: Mapping[str, Any]) -> dict[str, An
     return {key: placement[key] for key in MECHANIC_ATTRIBUTES if key in placement}
 
 
-def _anchor_groups(placement: Mapping[str, Any], anchors: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _anchor_groups(
+    placement: Mapping[str, Any],
+    anchors: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     position = placement.get("position")
     item_id = placement.get("itemId")
     item_depth = placement.get("itemDepth", placement.get("depth"))
     expected = _placement_expected_attributes(placement)
     grouped: dict[int, list[dict[str, Any]]] = defaultdict(list)
     for anchor in anchors:
-        if anchor.get("position") != position or anchor.get("itemId") != item_id or anchor.get("itemDepth") != item_depth:
+        if (
+            anchor.get("position") != position
+            or anchor.get("itemId") != item_id
+            or anchor.get("itemDepth") != item_depth
+        ):
             continue
         placement_index = anchor.get("tilePlacementIndex")
         if isinstance(placement_index, int) and not isinstance(placement_index, bool):
             grouped[placement_index].append(anchor)
     matches: list[dict[str, Any]] = []
+    ambiguous: list[dict[str, Any]] = []
     for placement_index, rows in sorted(grouped.items()):
-        values: dict[str, Any] = {}
-        duplicate_attributes: set[str] = set()
+        by_attribute: dict[str, list[dict[str, Any]]] = defaultdict(list)
         for row in rows:
-            attribute = row.get("attribute")
-            if attribute in values:
-                duplicate_attributes.add(str(attribute))
-            values[str(attribute)] = row.get("value")
-        if duplicate_attributes:
+            by_attribute[str(row.get("attribute"))].append(row)
+        if not all(
+            any(row.get("value") == value for row in by_attribute.get(attribute, []))
+            for attribute, value in expected.items()
+        ):
             continue
-        if all(values.get(attribute) == value for attribute, value in expected.items()):
-            matches.append(
-                {
-                    "tilePlacementIndex": placement_index,
-                    "anchors": sorted(rows, key=lambda row: str(row.get("attribute", ""))),
-                }
-            )
-    return matches
+        group = {
+            "tilePlacementIndex": placement_index,
+            "anchors": sorted(rows, key=lambda row: str(row.get("attribute", ""))),
+        }
+        if any(len(by_attribute.get(attribute, [])) != 1 for attribute in expected):
+            ambiguous.append(group)
+        else:
+            matches.append(group)
+    return matches, ambiguous
 
 
 def correlate_candidates(
@@ -151,24 +169,33 @@ def correlate_candidates(
     for audit_index, placement in enumerate(mechanics):
         if not _matches_selector(placement, normalized_selector):
             continue
-        groups = _anchor_groups(placement, anchors)
-        if len(groups) == 1:
+        groups, ambiguous_groups = _anchor_groups(placement, anchors)
+        if len(groups) == 1 and not ambiguous_groups:
             anchor_status = "exact"
             tile_placement_index = groups[0]["tilePlacementIndex"]
             exact_anchors = groups[0]["anchors"]
-        elif not groups:
+        elif groups or ambiguous_groups:
+            anchor_status = "ambiguous"
+            tile_placement_index = None
+            exact_anchors = [
+                anchor
+                for group in [*groups, *ambiguous_groups]
+                for anchor in group["anchors"]
+            ]
+        else:
             anchor_status = "missing"
             tile_placement_index = None
             exact_anchors = []
-        else:
-            anchor_status = "ambiguous"
-            tile_placement_index = None
-            exact_anchors = [anchor for group in groups for anchor in group["anchors"]]
-        script = resolution_by_index.get(audit_index)
-        if script is None:
-            script_evidence: dict[str, Any] = {"status": "missing-resolution-evidence"}
-        else:
-            script_evidence = dict(script)
+        script = resolution_by_index[audit_index]
+        expected_depth = placement.get("itemDepth", placement.get("depth", 0))
+        if (
+            script.get("itemId") != placement.get("itemId")
+            or script.get("position") != placement.get("position")
+            or script.get("depth", 0) != expected_depth
+        ):
+            raise PreflightError(
+                f"script-resolution placement {audit_index} identity does not match item-audit mechanic"
+            )
         candidates.append(
             {
                 "auditIndex": audit_index,
@@ -176,7 +203,7 @@ def correlate_candidates(
                 "anchorStatus": anchor_status,
                 "tilePlacementIndex": tile_placement_index,
                 "anchors": exact_anchors,
-                "scriptResolution": script_evidence,
+                "scriptResolution": dict(script),
             }
         )
     return candidates
@@ -247,7 +274,12 @@ def build_draft_plan(
         "id": operation_id,
         "kind": operation_kind,
         "position": list(position),
-        "tilePlacementIndex": _integer(candidate.get("tilePlacementIndex"), "candidate.tilePlacementIndex", 0, 0xFFFFFFFF),
+        "tilePlacementIndex": _integer(
+            candidate.get("tilePlacementIndex"),
+            "candidate.tilePlacementIndex",
+            0,
+            0xFFFFFFFF,
+        ),
         "itemId": _integer(candidate.get("placement", {}).get("itemId"), "candidate.itemId", 0, 0xFFFF),
         "itemDepth": _integer(
             candidate.get("placement", {}).get("itemDepth", candidate.get("placement", {}).get("depth")),
@@ -324,9 +356,13 @@ def build_preflight_report(
     if anchor_counts.get("missing"):
         warnings.append("At least one matched mechanic placement has no exact Phase 8 patch-anchor correlation.")
     if anchor_counts.get("ambiguous"):
-        warnings.append("At least one matched mechanic placement correlates to multiple exact-looking tile placements; do not guess.")
+        warnings.append(
+            "At least one matched mechanic placement has ambiguous Phase 8 patch-anchor correlation; do not guess."
+        )
     if unresolved:
-        warnings.append("At least one matched placement remains runtime-unresolved or partially resolved; unresolved evidence is preserved.")
+        warnings.append(
+            "At least one matched placement remains runtime-unresolved or partially resolved; unresolved evidence is preserved."
+        )
     if conflicts:
         warnings.append("At least one matched placement has conflicting runtime handlers.")
 
