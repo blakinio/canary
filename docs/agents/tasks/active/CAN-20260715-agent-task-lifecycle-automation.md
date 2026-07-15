@@ -2,13 +2,13 @@
 task_id: CAN-20260715-agent-task-lifecycle-automation
 program_id: CAN-PROGRAM-AGENT-ORCHESTRATION
 coordination_id: ""
-status: implementing
+status: ready
 agent: "GPT-5.5 Thinking"
 branch: feat/agent-task-lifecycle-automation
 base_branch: main
 created: 2026-07-15T16:30:00Z
-updated: 2026-07-15T16:44:00Z
-last_verified_commit: "54665ab2eacb2bc37450721f5a9b41ceb10aeeef"
+updated: 2026-07-15T16:48:00Z
+last_verified_commit: "31ccd23641fced92d9a54c06da82deac7a6bc9d3"
 risk: medium
 related_issue: ""
 related_pr: "391"
@@ -61,8 +61,8 @@ Implement ACO-002: enforce checkpoint quality only for active task records chang
 - [x] Archive operation updates lifecycle metadata while preserving task evidence and never touches paths outside task roots.
 - [x] A post-merge workflow checks out trusted `main`, never the untrusted PR head, archives matching same-repository tasks, opens a cleanup PR, and enables normal auto-merge rather than bypassing branch protection.
 - [x] Focused tests cover changed-task validation, current-PR binding, exact PR matching, archive metadata, no-match behavior, and path confinement.
-- [ ] Existing ownership and orchestration tests remain green on current-head CI.
-- [ ] Current-head CI and review gates pass before merge.
+- [x] Existing ownership and orchestration tests remain green on current-head CI.
+- [ ] Ready-state branch-protection checks pass and PR merges.
 
 # Safety boundary
 
@@ -85,18 +85,18 @@ Implement ACO-002: enforce checkpoint quality only for active task records chang
 2. Add focused tests. — completed.
 3. Integrate changed-task checkpoint validation into Agent Task Ownership CI. — completed.
 4. Add trusted post-merge lifecycle workflow that opens a cleanup PR and enables auto-merge. — completed.
-5. Document lifecycle contract and update ACO program status. — completed except final merge result.
-6. Fix CI, review exact diff, mark ready and merge only on current-head green gates. — in progress.
+5. Document lifecycle contract, changelog and ACO program state. — completed.
+6. Complete final ready-state CI and merge. — in progress.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-15T16:44:00Z
-head: 54665ab2eacb2bc37450721f5a9b41ceb10aeeef
+updated_at: 2026-07-15T16:48:00Z
+head: 31ccd23641fced92d9a54c06da82deac7a6bc9d3
 branch: feat/agent-task-lifecycle-automation
 pr: 391
-status: implementing
+status: ready
 context_routes:
   - agent-governance
   - ci-repair
@@ -115,19 +115,19 @@ proven:
   - lifecycle archive selection uses exact parsed related_pr equality
   - post-merge workflow checks out trusted default branch and never the feature head
   - cleanup is delivered through a normal PR with auto-merge instead of direct main push
-  - focused lifecycle unit tests pass in Agent Task Ownership CI before the changed-task gate
-  - first changed-task gate failure was caused only by the task heading using one hash instead of the required two-hash Context checkpoint heading
+  - Agent Task Ownership 1385 passes on head 31ccd23641fced92d9a54c06da82deac7a6bc9d3
+  - repository CI 2511 passes on head 31ccd23641fced92d9a54c06da82deac7a6bc9d3
   - open PR 384 and PR 316 do not own the ACO-002 paths
 derived:
-  - changed-task-only checkpoint enforcement can improve new work without forcing immediate migration of every historical active record
+  - changed-task-only checkpoint enforcement improves new work without forcing immediate migration of every historical active record
   - exact related_pr matching plus path confinement limits automated archive scope
 unknown:
-  - current-head CI result after correcting the checkpoint heading
+  - ready-state branch-protection result after final task and program checkpoint updates
   - whether the new post-merge workflow will trigger for its own first feature merge because it is introduced by that merge
 conflicts: []
 first_failure:
-  marker: Validate changed active task checkpoints
-  evidence: Agent Task Ownership 1383 diagnostic artifact reported missing double-hash Context checkpoint heading
+  marker: none
+  evidence: earlier changed-task heading failure is resolved and Agent Task Ownership 1385 passes
 rejected_hypotheses:
   - lifecycle unit tests caused the ownership failure: rejected because the focused unit-test step passed
   - validate every historical active task checkpoint immediately: rejected because it would create an unrelated migration blast radius
@@ -136,31 +136,32 @@ rejected_hypotheses:
 changed_paths:
   - .github/workflows/agent-task-lifecycle.yml
   - .github/workflows/agent-task-ownership.yml
+  - docs/agents/CHANGELOG.md
   - docs/agents/TASK_LIFECYCLE.md
   - docs/agents/programs/AGENT_CONTEXT_ORCHESTRATION_PROGRAM.md
   - docs/agents/tasks/active/CAN-20260715-agent-task-lifecycle-automation.md
   - tools/agents/task_lifecycle.py
   - tools/agents/test_task_lifecycle.py
 validation:
-  - command: repository preflight and overlap review
+  - command: Agent Task Ownership 1385
     result: PASS
-    evidence: ACO program plus open PR 384 and 316 scopes reviewed
-  - command: Agent Task Ownership 1383 focused unit tests
+    evidence: compile, focused tests, changed-task validation and ownership index all passed
+  - command: repository CI 2511
     result: PASS
-    evidence: compile and focused test steps completed successfully
-  - command: Agent Task Ownership 1383 changed-task validation
-    result: FAIL
-    evidence: diagnostic artifact identified missing double-hash Context checkpoint heading
+    evidence: Required gate passed on 31ccd23641fced92d9a54c06da82deac7a6bc9d3
+  - command: changed-task diagnostic artifact
+    result: PASS
+    evidence: canonical double-hash Context checkpoint heading now validates
 blockers:
-  - current-head CI and review gates pending after deterministic heading fix
-next_action: Verify PR 391 current-head Agent Task Ownership and repository CI after the checkpoint-heading correction, then complete merge gates.
+  - final ready-state branch-protection checks pending
+next_action: Update the ACO program to ready, review PR 391 exact diff and review threads, then mark ready and merge only after current-head required checks pass.
 ```
 
 # Completion
 
-- Final status: implementing
+- Final status: ready
 - PR: #391
 - Merge commit: pending
 - Program record updated: yes
-- Changelog updated: pending
+- Changelog updated: yes
 - Archived at: expected from post-merge lifecycle automation or one-time manual fallback
