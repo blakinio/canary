@@ -2,13 +2,13 @@
 task_id: CAN-20260716-oteryn-target-baseline-pinning
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: "OAM-002"
-status: ready
+status: completed
 agent: oteryn-architecture-migration-agent
 branch: docs/oam-002-target-baseline-pinning
 base_branch: main
 created: 2026-07-16T00:17:55+02:00
-updated: 2026-07-16T01:40:00+02:00
-last_verified_commit: "0c0972526814f099b51fd3481f28331b9434446d"
+updated: 2026-07-15T23:48:43Z
+last_verified_commit: "0a311d6cda6a80e31aa3a5ca9406aea7aeadd58c"
 risk: medium
 related_issue: ""
 related_pr: "407"
@@ -38,6 +38,7 @@ cross_repo_tasks:
   - blakinio/Otheryn#1
   - blakinio/Otheryn#2
   - blakinio/Otheryn#3
+completed: 2026-07-15T23:48:43Z
 ---
 
 # Goal
@@ -192,3 +193,11 @@ next_action: Verify exact-current-head Canary PR #407 ownership, CI, changed fil
 - Catalogue updated: not applicable
 - Changelog updated: not applicable
 - Archived at: not archived
+
+## Automated lifecycle completion
+
+- Feature PR: #407.
+- Feature head: `e55f78b6d708f5910907db3ce1c722d2c159a1e6`.
+- Merge commit: `0a311d6cda6a80e31aa3a5ca9406aea7aeadd58c`.
+- Merged at: `2026-07-15T23:48:43Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
