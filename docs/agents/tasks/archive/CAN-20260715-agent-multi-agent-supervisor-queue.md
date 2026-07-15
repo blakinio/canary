@@ -2,13 +2,13 @@
 task_id: CAN-20260715-agent-multi-agent-supervisor-queue
 program_id: CAN-PROGRAM-AGENT-ORCHESTRATION
 coordination_id: ""
-status: review
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/agent-multi-agent-supervisor-queue
 base_branch: main
 created: 2026-07-15T18:43:00Z
-updated: 2026-07-15T18:48:00Z
-last_verified_commit: "47ae4c7ec716567b9f68cc13ca6940b83756a8a1"
+updated: 2026-07-15T18:56:04Z
+last_verified_commit: "f170d604e1657e3d81c38363c59027d20423e39d"
 risk: low
 related_issue: ""
 related_pr: "402"
@@ -45,6 +45,7 @@ public_interfaces:
   - deterministic supervisor queue schema
   - bounded CHAT CODEX WORK batch plan
 cross_repo_tasks: []
+completed: 2026-07-15T18:56:04Z
 ---
 
 # Goal
@@ -139,3 +140,11 @@ next_action: Verify the new current head, exact PR diff, comments and review thr
 - Program record updated: yes; final completed state pending feature merge/lifecycle cleanup
 - Changelog updated: not required; dedicated supervisor contract and ACO program record are authoritative
 - Archived at: pending via lifecycle automation
+
+## Automated lifecycle completion
+
+- Feature PR: #402.
+- Feature head: `3d4eb75ca69f25f2d86301df1023eb9e50a9d158`.
+- Merge commit: `f170d604e1657e3d81c38363c59027d20423e39d`.
+- Merged at: `2026-07-15T18:56:04Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
