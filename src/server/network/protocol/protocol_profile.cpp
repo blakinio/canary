@@ -132,7 +132,7 @@ namespace {
 	};
 
 	constexpr InitialConnectionBehavior currentInitialBehavior {
-		.transport = TransportProfileId::CurrentGamePlain,
+		.transport = TransportProfileId::CurrentGameSequence,
 		.challenge = {
 			.flow = GameHandshakeFlow::ServerChallengeBeforeLogin,
 			.layout = ChallengeLayout::CurrentLoginChallenge,
