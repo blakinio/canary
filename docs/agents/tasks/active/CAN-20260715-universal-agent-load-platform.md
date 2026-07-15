@@ -2,13 +2,13 @@
 task_id: CAN-20260715-universal-agent-load-platform
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: ""
-status: review
+status: ready
 agent: chatgpt-e2e-platform
 branch: feat/universal-agent-load-platform-v2
 base_branch: main
 created: 2026-07-15T15:40:00+02:00
-updated: 2026-07-16T01:20:00+02:00
-last_verified_commit: 1a37302613e63f09391420b6d67b48db6e9f626a
+updated: 2026-07-16T01:42:00+02:00
+last_verified_commit: 049989273ab883eadc70f05828d25274a8a335e7
 risk: medium
 related_issue: ""
 related_pr: "393"
@@ -63,60 +63,39 @@ Add a reusable loopback-only load/stress layer beside the merged physical-client
 - [x] Runtime adapter reuses existing Canary smoke lifecycle helpers.
 - [x] Focused runner tests exist.
 - [x] No OTClient source change or upstream write.
-- [ ] Current-main CI, ownership, load workflow and physical E2E pass on the final branch head.
-- [x] Module catalogue/documentation/changelog impact is current on the final branch head.
-- [ ] Autonomous merge gate satisfied.
+- [x] Current-main CI, ownership, load workflow and physical E2E pass on the last verified branch head.
+- [x] Module catalogue/documentation/changelog impact is current.
+- [ ] Autonomous merge gate satisfied on the readiness-checkpoint head.
 
 # Confirmed context
 
 - Repository write target is exactly `blakinio/canary`; upstream repositories remain read-only.
-- PR #393 remains the existing PR for branch `feat/universal-agent-load-platform-v2`; no competing task, branch or PR was created.
+- PR #393 remains the existing same-repository PR for branch `feat/universal-agent-load-platform-v2`; no competing task, branch or PR was created.
 - Handed-off head `e0f8f957bf1c7b24c98f594eff86cf6674ab5191` matched the live pre-sync PR head.
-- First synchronization integrated `main@264a86b1eddf5f68666281c47489166f343c3e84` through GitHub merge result `669c840950049d782cd56932d92ddb606eba030c` using a non-force fast-forward ref update.
-- Exact head `d3802687b414dc148eb1d2eeebad8a5dd77453da` passed Wheel #226, Agent Task Ownership #1473, autofix #1484, Universal Agent Load #27, CI #2608 and Universal Agent E2E #69.
-- While those checks ran, `main` advanced to `0c0972526814f099b51fd3481f28331b9434446d` through PR #406 and overlapped only shared docs `CHANGELOG.md` and `MODULE_CATALOG.md`.
-- Shared-doc conflicts were resolved conservatively by aligning both files exactly to current main, obtaining mergeable result `b5d894ac58c2c66013cbba6296ebf7fc855a2547`, verifying `behind_by: 0` and exactly the nine implementation/task paths, then fast-forwarding the existing branch to that merge result with `force: false`.
-- The Universal Agent Load changelog entry and module catalogue row were then re-applied on top of the synchronized branch in commits `01d94790d2fce7bbfe0beaee2ca22e39e2e1f168` and `1a37302613e63f09391420b6d67b48db6e9f626a`.
-- `docs/agents/programs/E2E_AUTOMATION_PROGRAM.md` was reviewed; its existing platform responsibility and physical-client correctness-sentinel contract already cover this work, so no edit is required.
-- This execution environment still has no mounted local Git checkout; local `git status --short --branch`, `git branch -vv`, `git remote -v`, and `git worktree list` remain unavailable and no clean-working-tree claim is made.
+- Main was integrated twice as it advanced: first through merge result `669c840950049d782cd56932d92ddb606eba030c` for `main@264a86b1eddf5f68666281c47489166f343c3e84`, then through merge result `b5d894ac58c2c66013cbba6296ebf7fc855a2547` for current `main@0c0972526814f099b51fd3481f28331b9434446d`; both branch updates used `force: false`.
+- The second synchronization overlapped only shared `CHANGELOG.md` and `MODULE_CATALOG.md`; current-main PR #406 content was preserved first, then only this task's two documentation entries were reapplied.
+- `E2E_AUTOMATION_PROGRAM.md` was reviewed and requires no contract change.
+- On exact head `049989273ab883eadc70f05828d25274a8a335e7`, Wheel #233, Ownership #1488, autofix #1492, CI #2623, Universal Agent Load #34 and Universal Agent E2E #76 all completed successfully.
+- Universal Agent Load #34 initially observed one Canary `SIGSEGV`/exit `-11` during concurrent status requests; the runtime code was unchanged from an earlier fully green head, so one failed-jobs rerun was used under policy and passed on the same SHA. There was no second identical failure and no speculative runtime patch was made.
+- Live verification after those checks showed `main` still exactly `0c0972526814f099b51fd3481f28331b9434446d`, PR #393 mergeable, 11 intended changed paths, and no unresolved review threads.
+- This environment still has no mounted local Git checkout, so local `git status --short --branch`, `git branch -vv`, `git remote -v`, and `git worktree list` remain unavailable; no clean-working-tree claim is made.
 
 # Current state
 
-The implementation and required documentation are synchronized to `main@0c0972526814f099b51fd3481f28331b9434446d`. Historical exact-head evidence on `d3802687b414dc148eb1d2eeebad8a5dd77453da` is fully green, but the documentation and checkpoint commits after the second main synchronization require a fresh exact-current-head gate before readiness and squash merge.
-
-# Work log
-
-## 2026-07-16T01:20:00+02:00
-
-- Reverified that current main advanced during CI and did not silently merge stale state.
-- Classified the only overlap as shared documentation from PR #406; no load implementation path overlapped.
-- Resolved the shared-doc conflict without rewriting history, preserving current-main OTBM preflight documentation exactly.
-- Verified merge result `b5d894ac58c2c66013cbba6296ebf7fc855a2547` is current-main based, `behind_by: 0`, and has exactly the nine implementation/task paths before re-applying this task's two documentation entries.
-- Fast-forwarded the existing task branch to `b5d894ac58c2c66013cbba6296ebf7fc855a2547` with `force: false`.
-- Re-applied only the Universal Agent Load entries to `CHANGELOG.md` and `MODULE_CATALOG.md`.
-- Corrected an accidental temporary catalogue typo during conflict handling before the synchronized result; no unrelated content regression remains.
-
-# Decisions
-
-| Decision | Reason/evidence | ADR |
-|---|---|---|
-| Preserve PR #393 and existing branch. | They own the active task and implementation. | none |
-| Synchronize only through non-force merge-result fast-forwards. | Preserves published branch history and integrates current main ancestry. | none |
-| Resolve PR #406 overlap by taking current-main shared docs first, then re-applying only this task's entries. | Prevents overwriting concurrent shared-index work. | none |
-| Keep `E2E_AUTOMATION_PROGRAM.md` unchanged. | Existing platform/sentinel contract already covers the load layer relationship. | none |
-| Require a fresh exact-head gate after current-main synchronization and documentation updates. | Earlier full-green evidence is historical after the branch head changed. | none |
+The task is ready. Implementation, current-main synchronization, documentation, exact-head CI/load/E2E evidence and live review state are satisfied on last verified head `049989273ab883eadc70f05828d25274a8a335e7`. This readiness checkpoint is the final task-record update; its resulting commit must receive the same required exact-head checks and remain current with `main` before squash merge.
 
 # Validation and CI
 
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
-| `d3802687b414dc148eb1d2eeebad8a5dd77453da` | Wheel of Destiny Validation #226 | passed | exact-head historical evidence |
-| `d3802687b414dc148eb1d2eeebad8a5dd77453da` | Agent Task Ownership #1473 | passed | exact-head historical evidence |
-| `d3802687b414dc148eb1d2eeebad8a5dd77453da` | autofix.ci #1484 | passed | exact-head historical evidence |
-| `d3802687b414dc148eb1d2eeebad8a5dd77453da` | Universal Agent Load #27 | passed | exact-head historical evidence |
-| `d3802687b414dc148eb1d2eeebad8a5dd77453da` | CI #2608 | passed | exact-head historical evidence |
-| `d3802687b414dc148eb1d2eeebad8a5dd77453da` | Universal Agent E2E #69 | passed | exact-head historical evidence |
-| `b5d894ac58c2c66013cbba6296ebf7fc855a2547` | current-main ancestry/diff verification | passed | `behind_by: 0`; exactly nine implementation/task paths before docs re-apply |
+| `049989273ab883eadc70f05828d25274a8a335e7` | Wheel of Destiny Validation #233 | passed | exact-head |
+| `049989273ab883eadc70f05828d25274a8a335e7` | Agent Task Ownership #1488 | passed | exact-head |
+| `049989273ab883eadc70f05828d25274a8a335e7` | autofix.ci #1492 | passed | exact-head |
+| `049989273ab883eadc70f05828d25274a8a335e7` | Universal Agent Load #34 | passed | first load attempt crashed Canary with exit `-11`; one policy-allowed failed-job rerun passed on the same SHA |
+| `049989273ab883eadc70f05828d25274a8a335e7` | CI #2623 | passed | exact-head |
+| `049989273ab883eadc70f05828d25274a8a335e7` | Universal Agent E2E #76 | passed | exact-head physical client login/relog |
+| `049989273ab883eadc70f05828d25274a8a335e7` | current-main ancestry | passed | `main` remained `0c0972526814f099b51fd3481f28331b9434446d` |
+| `049989273ab883eadc70f05828d25274a8a335e7` | live PR/review gate | passed | mergeable; 11 intended paths; no unresolved review threads |
 
 # Risks and compatibility
 
@@ -125,17 +104,17 @@ The implementation and required documentation are synchronized to `main@0c097252
 - Security: load targets remain literal loopback only; do not expand to production or third-party hosts.
 - Backward compatibility: status throttle semantics must not be weakened.
 - Cross-repo rollout: none; OTClient remains read-only and unchanged.
-- Rollback: PR is unmerged; normal branch/PR rollback remains available.
+- Rollback: PR is unmerged until the final readiness-head gate succeeds.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T01:20:00+02:00
-head: 1a37302613e63f09391420b6d67b48db6e9f626a
+updated_at: 2026-07-16T01:42:00+02:00
+head: 049989273ab883eadc70f05828d25274a8a335e7
 branch: feat/universal-agent-load-platform-v2
 pr: 393
-status: validating
+status: ready
 context_routes:
   - agent-governance
   - universal-e2e
@@ -155,28 +134,27 @@ owned_paths:
 proven:
   - Repository write target is exactly blakinio/canary.
   - Live task branch is feat/universal-agent-load-platform-v2 and PR is 393.
-  - Handed-off head e0f8f957bf1c7b24c98f594eff86cf6674ab5191 matched the live pre-sync PR head.
-  - Main 264a86b1eddf5f68666281c47489166f343c3e84 was integrated through merge result 669c840950049d782cd56932d92ddb606eba030c with force false.
-  - All six required workflows passed on exact historical head d3802687b414dc148eb1d2eeebad8a5dd77453da.
-  - Main later advanced to 0c0972526814f099b51fd3481f28331b9434446d and overlapped only shared docs.
-  - Shared-doc conflict resolution preserved current-main PR 406 content and produced mergeable result b5d894ac58c2c66013cbba6296ebf7fc855a2547.
-  - Merge result b5d894ac58c2c66013cbba6296ebf7fc855a2547 is behind_by 0 relative to main 0c0972526814f099b51fd3481f28331b9434446d and contains exactly nine implementation/task paths before this task's two docs entries were re-applied.
-  - Branch ref was fast-forwarded to b5d894ac58c2c66013cbba6296ebf7fc855a2547 with force false.
+  - Current main is 0c0972526814f099b51fd3481f28331b9434446d and was integrated without force through merge result b5d894ac58c2c66013cbba6296ebf7fc855a2547.
+  - Current-main PR 406 shared documentation was preserved during conflict resolution.
   - CHANGELOG and MODULE_CATALOG contain the Universal Agent Load entries on top of current-main content.
+  - Wheel 233, Ownership 1488, autofix 1492, Universal Agent Load 34, CI 2623 and Universal Agent E2E 76 all passed on exact head 049989273ab883eadc70f05828d25274a8a335e7.
+  - Load 34 required one failed-job rerun after a single Canary SIGSEGV exit -11; the rerun passed on the same SHA and no second identical failure occurred.
+  - Main remained 0c0972526814f099b51fd3481f28331b9434446d after the exact-head gate.
+  - PR 393 was mergeable with 11 intended changed paths and no unresolved review threads after the exact-head gate.
 derived:
-  - Branch freshness and shared-document conflict are resolved for main 0c0972526814f099b51fd3481f28331b9434446d.
-  - Earlier green workflow results are regression evidence but cannot substitute for exact-current-head checks after the final documentation/checkpoint commits.
+  - Implementation, documentation, branch freshness and review requirements are satisfied on the last verified head.
+  - The readiness checkpoint commit itself requires exact-current-head workflow verification before squash merge because it changes the PR head.
 unknown:
   - Local working-tree status and every uncommitted path in any checkout not mounted in this execution environment.
-  - Final conclusions of exact-current-head CI, ownership, Universal Agent Load, Universal Agent E2E, Wheel and autofix after this checkpoint update.
+  - Final workflow conclusions on the readiness-checkpoint commit until GitHub Actions completes.
 conflicts: []
 first_failure:
-  marker: Exact-current-head merge gate pending
-  evidence: Branch head changed after current-main synchronization and documentation re-application, so required workflows must be reverified on the resulting head.
+  marker: Universal Agent Load 34 first attempt / Run exact-head loopback load profile
+  evidence: Canary exited -11 during concurrent status requests; one failed-job rerun passed on the same SHA, with no second identical failure.
 rejected_hypotheses:
-  - PR 406 conflicts with load implementation paths: overlap was limited to shared CHANGELOG and MODULE_CATALOG entries.
-  - Current-main OTBM preflight documentation must be overwritten to preserve PR 393: shared docs were aligned to main first and only PR 393 entries were re-applied afterward.
-  - Historical green checks on d3802687b414dc148eb1d2eeebad8a5dd77453da satisfy the final exact-head gate: the branch head changed afterward.
+  - The first Load 34 SIGSEGV proves a deterministic regression requiring an immediate speculative patch: one policy-allowed rerun passed on the same unchanged SHA and there was no second identical failure.
+  - PR 406 conflicts with load implementation paths: overlap was limited to shared CHANGELOG and MODULE_CATALOG entries and was resolved by preserving current-main content first.
+  - Historical green checks alone satisfy the readiness-checkpoint head gate: this final task-record commit changes the head and must be reverified.
 changed_paths:
   - .github/workflows/universal-agent-load.yml
   - docs/agents/CHANGELOG.md
@@ -190,15 +168,14 @@ changed_paths:
   - tools/e2e/run_agent_load.py
   - tools/e2e/run_agent_load_runtime.py
 validation:
-  - command: Required workflow set on d3802687b414dc148eb1d2eeebad8a5dd77453da
+  - command: Required workflow set on 049989273ab883eadc70f05828d25274a8a335e7
     result: PASS
-    evidence: Wheel 226, Ownership 1473, autofix 1484, Universal Agent Load 27, CI 2608 and Universal Agent E2E 69 all completed successfully on that exact head.
-  - command: Current-main synchronization to 0c0972526814f099b51fd3481f28331b9434446d
+    evidence: Wheel 233, Ownership 1488, autofix 1492, Universal Agent Load 34, CI 2623 and Universal Agent E2E 76 completed successfully.
+  - command: Current-main and live PR gate on 049989273ab883eadc70f05828d25274a8a335e7
     result: PASS
-    evidence: Merge result b5d894ac58c2c66013cbba6296ebf7fc855a2547 is behind_by 0 and branch ref fast-forward succeeded with force false.
-blockers:
-  - Exact-current-head required workflows and live review/mergeability state must be verified after this checkpoint update.
-next_action: Inspect exact-head CI, Agent Task Ownership, Universal Agent Load, Universal Agent E2E, Wheel, autofix, review threads and current-main ancestry on the checkpoint-update head; repair any task-owned failure before marking the task ready.
+    evidence: Main remained 0c0972526814f099b51fd3481f28331b9434446d; PR was mergeable with 11 intended paths and no unresolved review threads.
+blockers: []
+next_action: Verify all required workflows, current-main ancestry, intended changed-file list, mergeability and review state on this readiness-checkpoint commit; if all pass, squash-merge PR 393 with expected_head_sha and verify the merged PR state.
 ```
 
 # Handoff
