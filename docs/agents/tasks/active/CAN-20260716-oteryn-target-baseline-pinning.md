@@ -2,13 +2,13 @@
 task_id: CAN-20260716-oteryn-target-baseline-pinning
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: "OAM-002"
-status: active
+status: blocked
 agent: oteryn-architecture-migration-agent
 branch: docs/oam-002-target-baseline-pinning
 base_branch: main
 created: 2026-07-16T00:17:55+02:00
-updated: 2026-07-16T00:21:56+02:00
-last_verified_commit: "a5600e0139dd1fb10662e5580624b3507c60b025"
+updated: 2026-07-16T00:24:43+02:00
+last_verified_commit: "0b2a2ec9baabc65c34ec5138656926400b13cced"
 risk: medium
 related_issue: ""
 related_pr: "407"
@@ -69,6 +69,8 @@ PROVEN:
 - Exact then-current upstream Canary head observed for OAM-002 task start: `opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689`.
 - A target branch creation attempt using exact upstream commit `a879c931...` failed with `Object does not exist`; therefore that exact upstream commit object is not available in `blakinio/Otheryn` and cannot be a reachable direct ancestor of the current target history.
 - Draft PR `#407` is open from `docs/oam-002-target-baseline-pinning` to `blakinio/canary:main`.
+- PR `#407` changed-file list contains only this active task record.
+- Current-head CI on `0b2a2ec9...`: main `CI` workflow passed; `Agent Task Ownership` failed because frontmatter used unsupported `status: active` for a record under `tasks/active`.
 - OAM-001 is complete; OAM-003 remains dependent on OAM-002.
 
 DERIVED:
@@ -97,12 +99,12 @@ CONFLICT:
 - Program record: `CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION` inspected.
 - Open PRs inspected before task creation: `#406`, `#393`, `#316`; none claims OAM/Oteryn target identity or the OAM contract/program paths.
 - Active OAM task search: no existing active OAM implementation task found before this task was created.
-- Ownership checker result: local checker unavailable in connector-only execution; overlap was checked against live open PR changed-file lists and narrow repository searches.
+- Ownership checker result: first current-head run failed only because the frontmatter status token was invalid for `tasks/active`; no path-overlap failure was reported before that validation stopped.
 - Exclusive claims: this task record only.
 - Shared claims: Oteryn target architecture contract and OAM program record.
 - Read-only dependencies: target architecture blueprint; pinned target and upstream repository states.
 - Overlaps: none proven.
-- Resolution: proceed with governance-only OAM-002 evidence work; no OAM-003/runtime implementation.
+- Resolution: use repository-valid `status: blocked`; proceed with governance-only OAM-002 evidence work; no OAM-003/runtime implementation.
 
 # Current state
 
@@ -130,6 +132,13 @@ The target repository, authorization, default branch, target task-start SHA and 
 - Failed/blocked: full cross-repository tree equality is still not exposed by the available connector and local network access is unavailable.
 - Result: target identity and exact task-start SHAs are pinned; exact snapshot equivalence remains the first blocker.
 
+## 2026-07-16T00:24:43+02:00
+
+- Changed: corrected task frontmatter from invalid `status: active` to repository-valid `status: blocked`.
+- Learned: current-head `CI` passed; `Agent Task Ownership` failed specifically at changed-task validation with `record under tasks/active has non-active status 'active'`.
+- Failed/blocked: ownership workflow must rerun on the corrected head; snapshot equivalence remains independently blocked.
+- Result: CI root cause is corrected without weakening validation.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |
@@ -142,7 +151,7 @@ The target repository, authorization, default branch, target task-start SHA and 
 
 | Path/interface/config/schema | Ownership mode | Purpose | Status |
 |---|---|---|---|
-| `docs/agents/tasks/active/CAN-20260716-oteryn-target-baseline-pinning.md` | exclusive | OAM-002 continuation state | active |
+| `docs/agents/tasks/active/CAN-20260716-oteryn-target-baseline-pinning.md` | exclusive | OAM-002 continuation state | blocked |
 | `docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md` | shared | durable target identity/baseline contract | update pending |
 | `docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md` | shared | live OAM queue/status | update pending |
 
@@ -155,6 +164,8 @@ The target repository, authorization, default branch, target task-start SHA and 
 | `a879c9312e34381e8eedf397b8ed44510698b689` | then-current upstream head verification | PASS | GitHub commit search |
 | target exact-upstream-object probe | create target ref at `a879c931...` | PASS (negative proof) | GitHub returned `Object does not exist`; no branch was created |
 | target vs upstream full-tree comparison | local `git diff` attempt | BLOCKED | sandbox DNS could not resolve `github.com` |
+| `0b2a2ec9baabc65c34ec5138656926400b13cced` | CI | PASS | workflow run `29455210598` |
+| `0b2a2ec9baabc65c34ec5138656926400b13cced` | Agent Task Ownership | FAIL | invalid frontmatter `status: active`; corrected on next head |
 
 Never write `passed` without verification on the stated commit.
 
@@ -183,8 +194,8 @@ Never write `passed` without verification on the stated commit.
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T00:21:56+02:00
-head: a5600e0139dd1fb10662e5580624b3507c60b025
+updated_at: 2026-07-16T00:24:43+02:00
+head: 0b2a2ec9baabc65c34ec5138656926400b13cced
 branch: docs/oam-002-target-baseline-pinning
 pr: 407
 status: blocked
@@ -202,6 +213,7 @@ proven:
   - exact upstream commit object a879c931... is absent from target, so direct exact-commit ancestry is rejected
   - blakinio/canary task base is 264a86b1eddf5f68666281c47489166f343c3e84
   - draft PR 407 is open for OAM-002
+  - CI passed on 0b2a2ec9...
 derived:
   - current target history is not a direct Git-ancestry bootstrap from the pinned exact upstream commit
   - OAM-002 completion requires exact snapshot equivalence proof or a new safe exact pinned-upstream bootstrap
@@ -227,6 +239,12 @@ validation:
   - command: local cross-repository git diff
     result: BLOCKED
     evidence: sandbox DNS could not resolve github.com
+  - command: CI on 0b2a2ec9...
+    result: PASS
+    evidence: workflow run 29455210598
+  - command: Agent Task Ownership on 0b2a2ec9...
+    result: FAIL
+    evidence: invalid frontmatter status active; corrected on subsequent head
 blockers:
   - exact target snapshot/bootstrap equivalence is unresolved
 next_action: Prove or reject exact target tree/snapshot equivalence against opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689.
@@ -258,7 +276,7 @@ Do not rediscover target identity. It is `blakinio/Otheryn`, default branch `mai
 
 # Completion
 
-- Final status: active
+- Final status: blocked
 - PR: 407
 - Merge commit: none
 - Program record updated: pending
