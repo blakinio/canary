@@ -4,8 +4,8 @@ name: Tibia System Decomposition
 status: active
 owner: repository-wide
 created: 2026-07-14T15:43:00+02:00
-updated: 2026-07-15T11:23:00+02:00
-last_verified_commit: "f0c92d68cd3025d66214de4b5108cd8c0e5fcbba"
+updated: 2026-07-15T11:25:00+02:00
+last_verified_commit: "68380151a80ceb66b7f06bbc1d39afb487ad553f"
 primary_paths:
   - docs/agents/real-tibia/**
   - docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md
@@ -58,7 +58,7 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | `TSD-007` | items and economy | completed | PR #366/#367; registry 45 → 49 | preserve archive |
 | `TSD-008` | world content | completed | PR #368/#369; registry 49 → 52 | preserve archive |
 | `TSD-009` | social, communication and trust | completed | PR #370/#371; registry 52 → 56 | preserve archive |
-| `TSD-010` | protocol and client | active | PR #372; implementation head `f0c92d68cd3025d66214de4b5108cd8c0e5fcbba`; registry 56 → 60 | finish exact-head/ready CI, squash merge and lifecycle archive |
+| `TSD-010` | protocol and client | active | PR #372; implementation head `68380151a80ceb66b7f06bbc1d39afb487ad553f`; registry 56 → 60 | finish final exact-head/ready CI, squash merge and lifecycle archive |
 | `TSD-011` | analytics, security and AI | next | analytics/safety boundaries | register durable read-only/analysis domains only |
 | `TSD-012` | validation and live operations | planned | OTBM/E2E/UI modules | register only non-duplicative tooling |
 | `TSD-013` | Oteryn migration classification | planned | completed inventories/proof packages | classify modules; do not copy code or create another registry |
@@ -106,7 +106,16 @@ Classification:
 - account authentication and physical-client runtime remain existing boundaries;
 - individual opcodes, feature flags and client modules remain too granular unless already owned by gameplay modules.
 
-Implementation/focused-test head `f0c92d68cd3025d66214de4b5108cd8c0e5fcbba` includes four new inventory records, deterministic generated navigation, focused registry/source-role tests and the bounded package report. Exact-head workflow validation is pending.
+Implementation/focused-test head `68380151a80ceb66b7f06bbc1d39afb487ad553f` passed:
+
+- Real Tibia Module Registry #391;
+- Upstream Intelligence #426;
+- Agent Task Ownership #1253;
+- repository CI #2373;
+- focused registry/source-role tests;
+- registry schema/contracts and dependency graph validation;
+- deterministic `generate --check`;
+- discovery and affected-module commands.
 
 Detailed evidence: `docs/agents/real-tibia/TSD_010_PROTOCOL_CLIENT_REPORT.md`.
 
