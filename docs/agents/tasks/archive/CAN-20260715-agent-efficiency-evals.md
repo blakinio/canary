@@ -2,13 +2,13 @@
 task_id: CAN-20260715-agent-efficiency-evals
 program_id: CAN-PROGRAM-AGENT-ORCHESTRATION
 coordination_id: ""
-status: review
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/agent-efficiency-evals
 base_branch: main
 created: 2026-07-15T17:35:00Z
-updated: 2026-07-15T18:12:00Z
-last_verified_commit: "f06b333e9a1b3d8a8716671e0cc0afdb92c0b7f5"
+updated: 2026-07-15T18:18:03Z
+last_verified_commit: "62acba66e9025c00be399fabd38adccb45b9404f"
 risk: low
 related_issue: ""
 related_pr: "400"
@@ -44,6 +44,7 @@ public_interfaces:
   - deterministic agent efficiency trace schema
   - baseline versus routed-run comparison report
 cross_repo_tasks: []
+completed: 2026-07-15T18:18:03Z
 ---
 
 # Goal
@@ -143,3 +144,11 @@ next_action: Verify PR 400 current-head ownership and CI, fix any failure, revie
 - Program record updated: yes
 - Changelog updated: not required; program and dedicated evaluation contract are authoritative for ACO-003
 - Archived at: pending via lifecycle automation
+
+## Automated lifecycle completion
+
+- Feature PR: #400.
+- Feature head: `ee67e9e16734a3fac8891ecb9a5130fda14b2e26`.
+- Merge commit: `62acba66e9025c00be399fabd38adccb45b9404f`.
+- Merged at: `2026-07-15T18:18:03Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
