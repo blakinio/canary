@@ -3,7 +3,7 @@ program_id: CAN-PROGRAM-AGENT-ORCHESTRATION
 status: active
 owner: "GPT-5.5 Thinking"
 created: 2026-07-15T16:00:00Z
-updated: 2026-07-15T18:05:00Z
+updated: 2026-07-15T18:45:00Z
 ---
 
 # Agent Context Orchestration Program
@@ -28,6 +28,7 @@ CHAT supervisor
   -> keep GitHub/PR/CI/architecture/triage work in CHAT when sufficient
   -> hand a bounded evidence bundle to CODEX only for local edit/build/test/runtime execution
   -> hand a bounded evidence bundle to WORK only for broad multi-source research or a large deliverable
+  -> optionally plan non-overlapping external workers through the deterministic supervisor queue
   -> receive checkpoint/result back in CHAT
   -> coordinate PR, CI, review and merge
 ```
@@ -55,8 +56,8 @@ Rules:
 |---|---|---|
 | ACO-001 | Machine routing, checkpoint validation, resume bundles and CHAT/CODEX/WORK budget-aware advisor | completed by PR #389 |
 | ACO-002 | Changed-task-aware CI checkpoint enforcement and lifecycle automation | completed by PR #391; repair #394; production cleanup proof #397 |
-| ACO-003 | Agent efficiency evals: files read, repeated reads, tool calls, time-to-first-action, handoff success | implementing in PR #400 |
-| ACO-004 | Optional multi-agent supervisor queue for higher-license Codex/worktree execution | queued |
+| ACO-003 | Agent efficiency evals: files read, repeated reads, tool calls, time-to-first-action, handoff success | completed by PR #400; lifecycle cleanup #401 |
+| ACO-004 | Optional multi-agent supervisor queue for higher-license Codex/worktree execution | implementing in PR #402 |
 
 ## ACO-001 result
 
@@ -87,17 +88,41 @@ ACO-002 does not:
 - force all untouched historical task records to migrate checkpoints at once;
 - weaken ownership conflict detection or branch protection.
 
-## ACO-003 evaluation boundary
+## ACO-003 result
 
-ACO-003 measures observable efficiency proxies only:
+ACO-003 merged in PR #400 as `62acba66e9025c00be399fabd38adccb45b9404f` and its lifecycle cleanup merged in PR #401 as `554a34aaa328a10ed351f62406550f127dbd3092`.
+
+The evaluator measures observable efficiency proxies only:
 
 - file reads and repeated reads;
 - tool calls;
 - time to first concrete action;
 - context expansions and optional-context loads;
-- handoff success.
+- handoff success;
+- baseline-versus-routed cohort deltas.
 
 It does not store full prompts, full chat history, source contents, logs or secrets, and it does not invent exact platform token or credit usage when those values are unavailable.
+
+## ACO-004 supervisor boundary
+
+ACO-004 adds an optional deterministic planning surface for an explicitly capable external or higher-license orchestrator.
+
+The repository planner may:
+
+- validate bounded queue manifests;
+- reuse ACO-001 resume bundles and execution-mode routing;
+- keep CHAT work coordinator-side;
+- emit CODEX/WORK worker candidates with bounded prompts;
+- serialize dependency, branch and ownership overlaps;
+- suggest CODEX worktree paths as metadata.
+
+It must not:
+
+- spawn chats or agents;
+- create unrestricted processes or worktrees;
+- claim a worker started or completed without external evidence;
+- parallelize overlapping non-read-only ownership claims;
+- bypass task ownership, CI, review or branch protection.
 
 ## Context pressure policy
 
@@ -112,32 +137,39 @@ When an agent slows down, repeats searches, rereads the same files, loses earlie
 
 ## Multi-agent policy
 
-For future higher-license operation:
+For higher-license or external orchestrator operation:
 
 - one worker = one task branch/worktree/PR;
 - supervisor creates bounded tasks and ownership claims before dispatch;
 - workers receive only their routed evidence bundle;
+- CHAT-only items remain with the coordinator;
 - workers checkpoint before handoff;
 - supervisor resolves ownership conflicts and merge ordering;
-- independent workers may run in parallel only when owned paths and contracts do not overlap.
+- independent workers may run in parallel only when non-read-only paths/contracts and branches do not overlap;
+- the deterministic queue plan is advisory and does not replace live repository verification.
 
 ## Exact handoff
 
-A continuation or worker starts with:
+A continuation or individual worker starts with:
 
 ```text
 python tools/agents/resume.py --task <active-task-path> [task capability flags]
 ```
 
-The generated bundle is intentionally bounded. The worker verifies live head/PR/CI before acting, loads only required routed context, and does not reconstruct state from previous chat history.
+An optional external multi-agent supervisor plans a bounded queue with:
+
+```text
+python tools/agents/supervisor_queue.py <queue.json> [--json]
+```
+
+The generated bundles are intentionally bounded. Workers verify live head/PR/CI before acting, load only required routed context, and do not reconstruct state from previous chat history.
 
 ## Current task
 
-- ACO-003 task: `CAN-20260715-agent-efficiency-evals`
-- PR: #400
-- State: implementing deterministic baseline-versus-routed efficiency evaluation.
-- ACO-004 remains queued until ACO-003 merges and its lifecycle cleanup completes.
+- ACO-004 task: `CAN-20260715-agent-multi-agent-supervisor-queue`
+- PR: #402
+- State: implementing deterministic fail-closed queue planning and bounded external-worker handoff.
 
 ## Handoff
 
-Complete PR #400 through focused tests, current-head CI and branch protection. After its automated lifecycle cleanup removes the ACO-003 task from `tasks/active`, start ACO-004 as a separate bounded task/branch/PR.
+Complete PR #402 through focused tests, current-head ownership/CI, review-state checks and branch protection. After merge, allow ACO-002 lifecycle automation to archive the ACO-004 task. When that cleanup merges, all planned ACO-001 through ACO-004 packages are complete and no ACO task should remain active.
