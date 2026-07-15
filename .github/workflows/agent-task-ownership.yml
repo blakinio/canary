@@ -50,9 +50,11 @@ jobs:
           tools/agents/resume.py
           tools/agents/task_lifecycle.py
           tools/agents/efficiency_eval.py
+          tools/agents/supervisor_queue.py
           tools/agents/test_context_orchestration.py
           tools/agents/test_task_lifecycle.py
           tools/agents/test_efficiency_eval.py
+          tools/agents/test_supervisor_queue.py
 
       - name: Run focused unit tests
         working-directory: tools/agents
@@ -62,6 +64,7 @@ jobs:
           test_context_orchestration.py
           test_task_lifecycle.py
           test_efficiency_eval.py
+          test_supervisor_queue.py
 
       - name: Collect changed files
         shell: bash
