@@ -1,0 +1,4 @@
+https://github.com/opentibiabr/otclient
+https://github.com/opentibiabr/canary
+https://github.com/opentibiabr/remeres-map-editor
+https://github.com/opentibiabr/client-editor
