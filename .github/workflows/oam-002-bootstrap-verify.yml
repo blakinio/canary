@@ -1,0 +1,79 @@
+name: OAM-002 Bootstrap Verify
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/oam-002-bootstrap-verify.yml
+      - docs/agents/tasks/active/CAN-20260716-oteryn-target-baseline-pinning.md
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-pinned-trees:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout pinned Oteryn target
+        uses: actions/checkout@v6
+        with:
+          repository: blakinio/Otheryn
+          ref: 7d1e9cc5b4e799d31ae481b9a65e3f1442ca985e
+          path: target
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Checkout pinned upstream Canary
+        uses: actions/checkout@v6
+        with:
+          repository: opentibiabr/canary
+          ref: a879c9312e34381e8eedf397b8ed44510698b689
+          path: upstream
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Compare exact Git trees
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          target_commit="$(git -C target rev-parse HEAD)"
+          upstream_commit="$(git -C upstream rev-parse HEAD)"
+          target_tree="$(git -C target rev-parse 'HEAD^{tree}')"
+          upstream_tree="$(git -C upstream rev-parse 'HEAD^{tree}')"
+
+          printf 'target_commit=%s\n' "$target_commit"
+          printf 'upstream_commit=%s\n' "$upstream_commit"
+          printf 'target_tree=%s\n' "$target_tree"
+          printf 'upstream_tree=%s\n' "$upstream_tree"
+
+          test "$target_commit" = "7d1e9cc5b4e799d31ae481b9a65e3f1442ca985e"
+          test "$upstream_commit" = "a879c9312e34381e8eedf397b8ed44510698b689"
+
+          git -C target ls-tree -r --full-tree HEAD > target-tree.txt
+          git -C upstream ls-tree -r --full-tree HEAD > upstream-tree.txt
+
+          sha256sum target-tree.txt upstream-tree.txt
+
+          if test "$target_tree" = "$upstream_tree" && cmp -s target-tree.txt upstream-tree.txt; then
+            echo "OAM002_TREE_EQUIVALENCE=PASS"
+            exit 0
+          fi
+
+          echo "OAM002_TREE_EQUIVALENCE=FAIL"
+          echo "First manifest differences:"
+          diff -u upstream-tree.txt target-tree.txt | head -n 200 || true
+          exit 1
+
+      - name: Upload tree manifests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oam-002-tree-manifests
+          path: |
+            target-tree.txt
+            upstream-tree.txt
+          if-no-files-found: error
+          retention-days: 7
