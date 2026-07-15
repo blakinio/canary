@@ -6,11 +6,11 @@ agent: chatgpt-e2e-platform
 branch: feat/universal-agent-load-platform-v2
 base_branch: main
 created: 2026-07-15T15:40:00+02:00
-updated: 2026-07-15T18:50:00+02:00
-last_verified_commit: 6b613b886092b7face057507d4dd903c39cd5e1b
+updated: 2026-07-15T19:21:26+02:00
+last_verified_commit: f5cff58fa01d70cd7b67ac403f3d1eea3a78829a
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "393"
 depends_on:
   - CAN-20260713-universal-agent-e2e-platform
 blocks: []
@@ -120,3 +120,52 @@ Historical metrics are regression evidence only. They are not production capacit
 # Handoff
 
 Start with this task and the replacement PR. PR #384 is historical evidence only after replacement. Reuse the merged physical E2E platform; do not create a second physical-client orchestrator, modify OTClient for load generation, weaken server throttles to make a benchmark green, or describe status-protocol throughput as logged-in gameplay-player capacity.
+
+## Context checkpoint
+
+```yaml
+checkpoint_version: 1
+updated_at: 2026-07-15T17:21:26Z
+head: f5cff58fa01d70cd7b67ac403f3d1eea3a78829a
+branch: feat/universal-agent-load-platform-v2
+pr: 393
+status: implementing
+context_routes:
+  - docs/agents/TASK_LIFECYCLE.md
+  - docs/agents/CONTEXT_HANDOFF.md
+owned_paths:
+  - tools/e2e/run_agent_load_runtime.py
+  - docs/agents/tasks/active/CAN-20260715-universal-agent-load-platform.md
+proven:
+  - PR 393 CI run 2517 passed on head 1820a6ef97f4ec00c5a3ac9523d517b00f2f5f52.
+  - Universal Agent Load run 17 failed because initialize_database received an argparse Namespace without skip_database_init.
+  - Agent Task Ownership run 1390 failed because this changed active task lacked a Context checkpoint section.
+  - tools/e2e/run_agent_load_runtime.py now declares --skip-database-init with the smoke helper compatible default false behavior.
+derived:
+  - The two observed current-head blockers can be repaired without changing the physical E2E orchestrator or ProtocolStatus throttle semantics.
+unknown:
+  - Current-head results after the two blocker repairs.
+  - Final result of Universal Agent E2E run 59 or its replacement run on the repaired head.
+conflicts: []
+first_failure:
+  marker: Universal Agent Load / Run exact-head loopback load profile
+  evidence: run 29434516961 job 87419272626 reported Namespace object has no attribute skip_database_init
+rejected_hypotheses:
+  - Load runner unit tests are broken: Validate load platform passed in Universal Agent Load run 17.
+changed_paths:
+  - tools/e2e/run_agent_load_runtime.py
+  - docs/agents/tasks/active/CAN-20260715-universal-agent-load-platform.md
+validation:
+  - command: CI run 2517
+    result: PASS
+    evidence: GitHub Actions run 29434517022 on previous PR head 1820a6ef97f4ec00c5a3ac9523d517b00f2f5f52
+  - command: Universal Agent Load run 17
+    result: FAIL
+    evidence: runtime adapter missing skip_database_init argument
+  - command: Agent Task Ownership run 1390
+    result: FAIL
+    evidence: changed active task missing required Context checkpoint
+blockers:
+  - Re-run current-head PR checks after checkpoint commit and inspect any remaining evidence-backed failures.
+next_action: Verify PR 393 current head checks and repair only the next first failing gate if one remains.
+```
