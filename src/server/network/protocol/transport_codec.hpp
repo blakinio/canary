@@ -38,6 +38,10 @@ struct InboundTransportResult {
 	[[nodiscard]] bool accepted() const {
 		return status == InboundTransportStatus::Accepted;
 	}
+
+	[[nodiscard]] explicit operator bool() const {
+		return accepted();
+	}
 };
 
 [[nodiscard]] constexpr uint32_t nextInboundSequence(uint32_t acceptedSequence) {
