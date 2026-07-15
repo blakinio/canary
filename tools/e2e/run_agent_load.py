@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA_VERSION = 1
-STATUS_REQUEST_BODY = b"\xff\xffinfo"
+STATUS_REQUEST_BODY = b"\xffinfo"
 STATUS_REQUEST = struct.pack("<H", len(STATUS_REQUEST_BODY)) + STATUS_REQUEST_BODY
 MAX_STATUS_RESPONSE_BYTES = 1024 * 1024
 LOOPBACK_HOSTS = {"127.0.0.1", "::1"}
