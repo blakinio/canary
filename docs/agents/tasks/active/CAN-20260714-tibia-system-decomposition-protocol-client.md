@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: docs/tibia-system-decomposition-protocol-client
 base_branch: main
 created: 2026-07-15T11:11:00+02:00
-updated: 2026-07-15T11:12:00+02:00
-last_verified_commit: "381cc076fa35e138292197f751f26c2e7b89dd08"
+updated: 2026-07-15T11:23:00+02:00
+last_verified_commit: "f0c92d68cd3025d66214de4b5108cd8c0e5fcbba"
 risk: low
 related_issue: ""
 related_pr: "372"
@@ -74,48 +74,60 @@ Complete bounded TSD-010 protocol and client inventory. Preserve the current bro
 - Read-only upstream server baseline: `opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689`.
 - Read-only maintained-client baseline: `opentibiabr/otclient@bdea0b23b4a738809d698cb7e4f88a299dd6bffc`.
 
-# Evidence baseline
+# Delivered implementation inventory
 
-Current Canary separates:
+Registry records: 56 → 60. Added only:
 
-- `Connection`, base `Protocol` and `TransportCodec` framing/connection/crypto/checksum/compression and release lifecycle;
-- `ProtocolLogin` account-login request/response, profile resolution, session-key handoff and character-list phase;
-- `ProtocolProfileRegistry` version/assets/wire-family/transport/layout/feature compatibility metadata;
-- `ProtocolSessionHintStore` bounded register → lease → consume/resolve → expire/clear state bridging account-login profile knowledge into the game connection without owning authentication.
+- `login-protocol`;
+- `network-transport`;
+- `protocol-compatibility`;
+- `protocol-session-handoff`.
 
-Maintained OTClient separately exposes:
+Existing records modified: 0. The broad `protocol` record and its existing maturity remain unchanged. Physical-client E2E, account authentication/lifecycle, character lifecycle, player persistence and all gameplay records remain stable.
 
-- base `framework/net/Protocol` connection, checksum, sequence, XTEA and compression state;
-- `modules/gamelib/ProtocolLogin` account-login packet/character-list/session-key phase;
-- `modules/game_features` version-gated client feature matrix.
+# Boundary decision
 
-The monolithic server/client `ProtocolGame` packet router and game state remain under the existing broad `protocol` umbrella unless a narrower independent lifecycle root is proven. A parser implementation or matching class name is not wire-compatibility proof.
+- `network-transport`: connection/socket/framing/checksum/sequence/XTEA/compression and connection-scoped protocol release lifecycle.
+- `login-protocol`: account-login wire request/response, client/profile selection, session-key and character/world-list phase around the existing authentication boundary.
+- `protocol-compatibility`: server version/wire/assets/layout/feature profiles plus maintained-client version-gated feature matrix.
+- `protocol-session-handoff`: bounded login-to-game protocol-profile hint register/lease/consume/expiry state.
+- `game-protocol`: already covered by the broad `protocol` umbrella.
+- `game-session`: merged/deferred because server/client roots remain intertwined with `ProtocolGame`, transport and client `Game` state.
+- connection/session release coordination remains `network-transport`; leave-game semantics remain `protocol`.
+- individual opcodes, feature flags and client modules remain capabilities or too granular unless already owned by gameplay modules.
 
-# Candidate classification under review
+Detailed evidence: `docs/agents/real-tibia/TSD_010_PROTOCOL_CLIENT_REPORT.md`.
 
-- `network-transport` — candidate `ADD_NOW`;
-- `login-protocol` — candidate `ADD_NOW`;
-- `protocol-compatibility` — candidate `ADD_NOW`;
-- `protocol-session-handoff` — candidate `ADD_NOW` based on independent TTL/lease/consume lifecycle;
-- `game-protocol` — preserve existing `protocol` umbrella;
-- `game-session` — merge/defer because current server/client roots are intertwined with the monolithic `ProtocolGame` packet router and client `Game` state;
-- individual opcodes/features/client modules — reject as too granular unless already covered by existing gameplay modules.
+# Validation state
+
+Implementation/focused-test head `f0c92d68cd3025d66214de4b5108cd8c0e5fcbba` includes:
+
+- four new inventory-only registry records;
+- deterministic module/dependency/path/freshness generated indexes;
+- exact TSD-010 registry total assertion and TSD-009 minimum-total regression adjustment;
+- focused server/client path discovery tests;
+- focused Upstream Intelligence source-role isolation tests;
+- unchanged broad `protocol` maturity assertions.
+
+Exact-head Real Tibia Module Registry, Upstream Intelligence, Agent Task Ownership and repository CI are authoritative and still pending for the current docs-only head. `generate --check` must pass before readiness. Ready-state Linux/Required remains mandatory before squash merge.
 
 # Acceptance criteria
 
-- [ ] Add only independently supported protocol/client records.
-- [ ] Preserve the existing `protocol` record unchanged.
-- [ ] Preserve physical-client E2E and account-authentication ownership unchanged.
-- [ ] Classify wire, session and client-feature candidates explicitly.
-- [ ] Use verified narrow server/client paths and conservative maturity.
-- [ ] Regenerate deterministic indexes through the existing generator contract.
-- [ ] Add focused registry and source-role mapping tests.
+- [x] Add only four independently supported protocol/client records.
+- [x] Preserve the existing `protocol` record unchanged.
+- [x] Preserve physical-client E2E and account-authentication ownership unchanged.
+- [x] Classify wire, session and client-feature candidates explicitly.
+- [x] Use verified narrow server/client paths and conservative maturity.
+- [x] Materialize deterministic indexes through the existing generator contract; `generate --check` remains authoritative.
+- [x] Add focused registry and source-role mapping tests.
 - [ ] Pass exact-head registry/UI/ownership/repository CI and ready-state Linux/Required.
-- [ ] Make no runtime, gameplay, protocol implementation, client, DB, map, OTBM, datapack, asset, workflow or E2E implementation change.
+- [x] Make no runtime, gameplay, protocol implementation, client, DB, map, OTBM, datapack, asset, workflow or E2E implementation change.
 
 # Safety limits
 
 Inventory does not prove packet layout equivalence, handshake correctness, encryption/checksum/sequence compatibility, session handoff correctness, malformed-input safety, maintained-client interoperability, physical-client E2E, Real Tibia parity or Oteryn readiness.
+
+A matching parser, serializer, class name, compile result or unit test is not wire compatibility evidence.
 
 # Handoff
 
