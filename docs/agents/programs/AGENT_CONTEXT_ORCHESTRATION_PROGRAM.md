@@ -3,7 +3,7 @@ program_id: CAN-PROGRAM-AGENT-ORCHESTRATION
 status: active
 owner: "GPT-5.5 Thinking"
 created: 2026-07-15T16:00:00Z
-updated: 2026-07-15T16:35:00Z
+updated: 2026-07-15T16:49:00Z
 ---
 
 # Agent Context Orchestration Program
@@ -54,7 +54,7 @@ Rules:
 | Package | Scope | Status |
 |---|---|---|
 | ACO-001 | Machine routing, checkpoint validation, resume bundles and CHAT/CODEX/WORK budget-aware advisor | completed by PR #389 |
-| ACO-002 | Changed-task-aware CI checkpoint enforcement and lifecycle automation | implementing in PR #391 |
+| ACO-002 | Changed-task-aware CI checkpoint enforcement and lifecycle automation | ready in PR #391 |
 | ACO-003 | Agent efficiency evals: files read, repeated reads, tool calls, time-to-first-action, handoff success | queued |
 | ACO-004 | Optional multi-agent supervisor queue for higher-license Codex/worktree execution | queued |
 
@@ -73,9 +73,9 @@ The package did not:
 
 ## ACO-002 boundary
 
-ACO-002 may add deterministic changed-task validation, task archive tooling and a post-merge workflow that operates only on trusted default-branch code and exact `related_pr` matches.
+ACO-002 adds deterministic changed-task validation, task archive tooling and a post-merge workflow that operates only on trusted default-branch code and exact `related_pr` matches.
 
-ACO-002 must not:
+ACO-002 does not:
 
 - checkout or execute an untrusted contributor head from `pull_request_target`;
 - push lifecycle cleanup directly to protected `main`;
@@ -119,8 +119,9 @@ The generated bundle is intentionally bounded. The worker verifies live head/PR/
 
 - ACO-002: `CAN-20260715-agent-task-lifecycle-automation`
 - PR: #391
+- State: ready; final current-head and ready-state branch-protection checks remain before merge.
 - ACO-003 and ACO-004 remain queued until ACO-002 is merged and its lifecycle state is clean.
 
 ## Handoff
 
-Continue ACO-002 from its active task checkpoint and PR #391. After ACO-002 merges, verify whether the newly introduced post-merge lifecycle workflow produced its own cleanup PR; if not, archive the first ACO-002 task manually once. Then start ACO-003 as a separate bounded task/branch/PR.
+Complete PR #391 through branch protection. After ACO-002 merges, verify whether the newly introduced post-merge lifecycle workflow produced its own cleanup PR; if not, archive the first ACO-002 task manually once. Then start ACO-003 as a separate bounded task/branch/PR.
