@@ -1,6 +1,6 @@
 # Canary Module and System Catalogue
 
-Last reviewed: 2026-07-14
+Last reviewed: 2026-07-16
 
 This catalogue makes reusable work visible across agents. Verify current source, tests, and PR state before use.
 
@@ -55,6 +55,7 @@ Update this file in the same PR that adds a reusable module/service/manager/pars
 
 | Module/system | Status | Purpose | Paths | Reuse notes |
 |---|---|---|---|---|
+| Universal Agent Load | active (#393) | Reusable literal-loopback-only Canary status-protocol load/stress runner with bounded JSON profiles, latency/throughput/error metrics, exact-head runtime adapter and dispatch/PR workflow; does not claim authenticated gameplay-player capacity | `tools/e2e/run_agent_load.py`, `tools/e2e/run_agent_load_runtime.py`, `tests/e2e/load/**`, `tests/e2e/test_load_runner.py`, `.github/workflows/universal-agent-load.yml` | Reuse this layer for bounded Canary control-plane load evidence. Keep physical real-OTClient login/relog E2E as the correctness sentinel; never target production or third-party hosts and never disable normal per-IP status throttles. |
 | Gameplay Analytics dry-run audit | merged (#140) | Deterministic Analytics logic/configuration tests without Canary or MariaDB | `.github/workflows/gameplay-analytics-dry-run.yml`, `tools/analytics/test_gameplay_analytics_correctness_edge_cases.lua`, `tools/analytics/test_gameplay_analytics_maintenance_config_dry_run.sh` | Run before staging; it complements rather than replaces real engine/database integration. |
 | Required Linux check emission | merged (#132) | Ensures branch protection receives the nested Linux release check | `.github/workflows/ci.yml` | Preserve the unconditional required Linux release check when editing path filters. |
 | CMake preset matrix | maintained | Canonical configure/build/test entry points | `CMakePresets.json`, CMake, `vcproj/canary.vcxproj` | Update every maintained build entry point for new C++ files. |
