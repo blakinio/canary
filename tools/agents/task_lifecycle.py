@@ -94,7 +94,7 @@ def _all_claim_paths(front: dict[str, object]) -> set[str]:
     return {item for item in result if item}
 
 
-def validate_changed_task(path: Path) -> list[str]:
+def validate_changed_task(path: Path, *, current_pr: int | None = None) -> list[str]:
     errors = checkpoint.validate_task(path, require_checkpoint=True)
     if errors:
         return errors
@@ -134,6 +134,11 @@ def validate_changed_task(path: Path) -> list[str]:
             f"{path}: checkpoint branch {cp_branch!r} does not match frontmatter branch {task_branch!r}"
         )
 
+    if current_pr is not None and related_pr != str(current_pr):
+        errors.append(
+            f"{path}: changed active task related_pr {related_pr!r} must match current PR {current_pr}"
+        )
+
     if related_pr and cp_pr != related_pr:
         errors.append(
             f"{path}: checkpoint pr {cp_pr!r} does not match frontmatter related_pr {related_pr!r}"
@@ -167,6 +172,7 @@ def validate_changed_tasks(
     *,
     repo_root: Path = Path("."),
     active_root: Path = DEFAULT_ACTIVE_ROOT,
+    current_pr: int | None = None,
 ) -> tuple[list[Path], list[str]]:
     selected = changed_active_task_paths(
         changed_paths,
@@ -175,7 +181,7 @@ def validate_changed_tasks(
     )
     errors: list[str] = []
     for path in selected:
-        errors.extend(validate_changed_task(path))
+        errors.extend(validate_changed_task(path, current_pr=current_pr))
     return selected, errors
 
 
@@ -347,6 +353,7 @@ def main(argv: list[str] | None = None) -> int:
     validate.add_argument("--changed-files-file", type=Path, required=True)
     validate.add_argument("--repo-root", type=Path, default=Path("."))
     validate.add_argument("--active-root", type=Path, default=DEFAULT_ACTIVE_ROOT)
+    validate.add_argument("--current-pr", type=int)
 
     archive = subparsers.add_parser("archive-pr")
     archive.add_argument("--active-root", type=Path, default=DEFAULT_ACTIVE_ROOT)
@@ -365,6 +372,7 @@ def main(argv: list[str] | None = None) -> int:
             changed,
             repo_root=args.repo_root,
             active_root=args.active_root,
+            current_pr=args.current_pr,
         )
         if errors:
             for error in errors:
