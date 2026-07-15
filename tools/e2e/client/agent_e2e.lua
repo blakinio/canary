@@ -194,7 +194,10 @@ local function waitForServerPersistence()
     if serverPersistenceReady() then
         waitingForServerPersistence = false
         appendEvent('server_persistence_1', 'confirmed')
-        startLogin()
+        -- Game::processGameEnd emits onGameEnd before Game::processDisconnect
+        -- clears m_protocolGame. Hand control back to the dispatcher so the
+        -- replacement login cannot re-enter loginWorld from inside onGameEnd.
+        addEvent(startLogin)
         return
     end
     scheduleEvent(waitForServerPersistence, 250)
@@ -300,7 +303,7 @@ end
 g_logger.setLogFile(INTERNAL_LOG_PATH)
 appendEvent('scenario', SCENARIO_KEY)
 appendEvent('client_version', CLIENT_VERSION)
-appendEvent('driver', 'generic-login-relog-v8')
+appendEvent('driver', 'generic-login-relog-v9')
 installStartupProfile()
 
 if not finished then
