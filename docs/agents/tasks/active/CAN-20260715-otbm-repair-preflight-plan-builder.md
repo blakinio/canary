@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-repair-preflight-plan-builder
 base_branch: main
 created: 2026-07-15T23:34:13+02:00
-updated: 2026-07-15T23:34:13+02:00
-last_verified_commit: "264a86b1eddf5f68666281c47489166f343c3e84"
+updated: 2026-07-15T23:50:12+02:00
+last_verified_commit: "5e197326c51df8dc1a201089804f50f9ba5f6eb9"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "#406"
 depends_on:
   - "OTBM Phase 8 bounded attribute patcher #325/#333"
   - "Unified OTBM World Index #219"
@@ -64,15 +64,15 @@ Add one deterministic, read-only real-map repair preflight that orchestrates the
 
 # Acceptance criteria
 
-- [ ] Reuse the existing native scanner, item audit and script-resolution implementations; add no OTBM parser, renderer or writer.
-- [ ] Accept explicit bounded selectors for position, item ID, action ID, unique ID, house-door ID and teleport destination.
-- [ ] Correlate matched mechanic placements with exact patch anchors including `tilePlacementIndex`, `itemId`, `itemDepth`, attribute and current value.
-- [ ] Correlate each candidate with the existing script-resolution placement evidence and preserve `unresolved`, `referenced-only`, `partially-resolved` and `conflicting` statuses exactly.
-- [ ] Optionally build a draft existing-attribute Phase 8 plan only when one exact anchor is selected and the requested operation targets an already-existing supported attribute.
-- [ ] Never execute `otbm_bounded_patch_tool.py` or write/modify an OTBM.
-- [ ] Emit deterministic JSON report `canary-otbm-repair-preflight-v1` and validate focused unit/integration behavior.
-- [ ] Document CLI, safety boundary and review workflow.
-- [ ] Update module catalogue/changelog narrowly.
+- [x] Reuse the existing native scanner, item audit and script-resolution implementations; add no OTBM parser, renderer or writer.
+- [x] Accept explicit bounded selectors for position, item ID, action ID, unique ID, house-door ID and teleport destination.
+- [x] Correlate matched mechanic placements with exact patch anchors including `tilePlacementIndex`, `itemId`, `itemDepth`, attribute and current value.
+- [x] Correlate each candidate with the existing script-resolution placement evidence and preserve `unresolved`, `referenced-only`, `partially-resolved` and `conflicting` statuses exactly.
+- [x] Optionally build a draft existing-attribute Phase 8 plan only when one exact anchor is selected and the requested operation targets an already-existing supported attribute.
+- [x] Never execute `otbm_bounded_patch_tool.py` or write/modify an OTBM.
+- [x] Emit deterministic JSON report `canary-otbm-repair-preflight-v1` and add focused unit/integration coverage.
+- [x] Document CLI, safety boundary and review workflow.
+- [x] Update module catalogue/changelog narrowly.
 - [ ] Verify current-head GitHub checks and autonomous merge gate before merge.
 
 # Confirmed context
@@ -84,7 +84,7 @@ Add one deterministic, read-only real-map repair preflight that orchestrates the
 - The new task is preflight/plan preparation only and does not broaden the Phase 8 write boundary.
 - Open PR #316 owns Targuna-specific temporary audit/report paths and lists core OTBM scanner/index/diff tooling as read-only; no exclusive overlap exists with this task.
 - Open PR #393 is unrelated E2E/load work; `MODULE_CATALOG.md` and `CHANGELOG.md` are shared coordination paths only.
-- No local checkout is available through this connector session, so local `git status`, branch/worktree inspection and `task_ownership.py` cannot be run here; GitHub repository/branch/PR state is used instead and this limitation is recorded rather than guessed.
+- No local checkout is available through this connector session, so local `git status`, branch/worktree inspection and `task_ownership.py` cannot be run here; GitHub repository/branch/PR state and GitHub Actions evidence are used instead and this limitation is recorded rather than guessed.
 
 # Existing work to reuse
 
@@ -100,24 +100,22 @@ Add one deterministic, read-only real-map repair preflight that orchestrates the
 - Program record: none; this is a bounded continuation task under `OTS-OTBM-VALIDATION`.
 - Open PRs inspected: #316 and #393.
 - Active task overlap: PR #316 Targuna donor isolation; no exclusive path overlap. PR #393 is unrelated.
-- Ownership checker result: NOT_RUN because no local checkout is exposed in this session.
+- Ownership checker result: first PR run reached changed-task checkpoint validation and failed because `related_pr` was still empty after early draft PR #406 was created; metadata is corrected in this commit before the ownership overlap stage reruns.
 - Exclusive claims: five new preflight implementation/docs/test/schema paths plus this task record.
 - Shared claims: `MODULE_CATALOG.md`, `CHANGELOG.md` only.
 - Read-only dependencies: all Phase 8 patcher/scanner/resolver contracts and implementation paths.
-- Overlaps: shared documentation only with PR #393; preserve current `main` entries and edit narrowly.
-- Resolution: proceed on a dedicated branch; do not edit PR #316 paths or Phase 8 implementation files.
+- Overlaps: shared documentation only with PR #393; current `main` was rechecked at `264a86b1eddf5f68666281c47489166f343c3e84` before shared-file edits.
+- Resolution: proceed on dedicated PR #406; do not edit PR #316 paths or Phase 8 implementation files.
 
 # Current state
 
-Task branch created from exact current `main`. No implementation file exists yet and no OTBM/map/client asset has been written or committed.
+PR #406 contains the read-only correlation core, orchestration CLI, report schema, operator documentation, focused tests and native-scanner integration coverage. The CLI rejects source-map/symlink/hard-link output collisions, rechecks source and scanner identity after analysis, and never imports or executes the Phase 8 patcher. No OTBM, `.widx`, client asset, generated report or render is committed.
 
 # Plan
 
-1. Implement a pure preflight correlation module over existing item-audit, patch-anchor and script-resolution JSON contracts.
-2. Implement a CLI that runs the existing item audit, native patch-anchor mode and script resolution into a temporary workspace, then emits only the final preflight report and optional review-only draft plan.
-3. Add focused tests with synthetic reports plus a native-scanner integration case where available.
-4. Document the workflow and add the narrow catalogue/changelog entries.
-5. Verify changed paths/diff and current-head CI; repair only evidence-backed failures.
+1. Re-run current-head Agent Task Ownership after binding this task to PR #406.
+2. Inspect AI Agent Tools and OTBM Map Tools results on the resulting head and repair only evidence-backed failures.
+3. Review the full changed-file list/diff, remove any unrelated shared-index drift, update this checkpoint and PR body, then apply the autonomous merge gate.
 
 # Work log
 
@@ -128,6 +126,13 @@ Task branch created from exact current `main`. No implementation file exists yet
 - Failed/blocked: local ownership script unavailable because no local checkout is exposed.
 - Result: bounded implementation scope established with no Phase 8 contract expansion.
 
+## 2026-07-15T23:50:12+02:00
+
+- Changed: added correlation core, read-only CLI, report schema, documentation, unit tests, a native-scanner/item-audit/script-resolution integration test, and narrow catalogue/changelog entries.
+- Learned: report/draft output paths require an explicit source-map collision guard even though the tool itself never calls a writer; source and scanner are both pinned and rechecked after analysis.
+- Failed/blocked: Agent Task Ownership run `29453314900` failed at `Validate changed active task checkpoints` because this task still had `related_pr: ""` after PR #406 was created.
+- Result: task metadata is now bound to `#406`; the implementation failure state remains unproven until current-head CI reruns.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |
@@ -135,54 +140,58 @@ Task branch created from exact current `main`. No implementation file exists yet
 | Reuse `canary-otbm-bounded-patch-plan-v1` for optional draft output. | Avoids a second writer/plan contract and preserves Phase 8 boundary. | Existing ADR-20260714-otbm-fixed-width-patch-boundary.md |
 | Run native `--patch-anchors` alongside item audit. | Item audit gives mechanic inventory; patch anchors give exact placement identity required by the Phase 8 plan. | Existing Phase 8 contract |
 | Keep gameplay correctness outside preflight success. | Structural/script evidence cannot prove player intent or runtime gameplay correctness. | Existing Phase 8 handoff |
+| Rerun the existing script resolver against an in-memory hypothetical item-audit copy when a draft is ready. | Shows before/after static handler resolution without modifying OTBM or inventing a second resolver. | Existing script-resolution contract |
+| Require new report/draft output paths distinct from the source map. | Prevents a read-only analysis command from overwriting the source through user-supplied output paths. | Task-local safety hardening; no writer-boundary change |
 
 # Files and interfaces
 
 | Path/interface/config/schema | Ownership mode | Purpose | Status |
 |---|---|---|---|
-| `tools/ai-agent/otbm_repair_preflight.py` | exclusive | Correlation and draft-plan logic | planned |
-| `tools/ai-agent/otbm_repair_preflight_tool.py` | exclusive | Read-only orchestration CLI | planned |
-| `tools/ai-agent/test_otbm_repair_preflight.py` | exclusive | Focused regression tests | planned |
-| `docs/ai-agent/OTBM_REPAIR_PREFLIGHT.md` | exclusive | Operator/review contract | planned |
-| `docs/ai-agent/OTBM_REPAIR_PREFLIGHT_REPORT.schema.json` | exclusive | Machine-readable report contract | planned |
+| `tools/ai-agent/otbm_repair_preflight.py` | exclusive | Correlation, exact-anchor and existing-plan draft logic | implemented |
+| `tools/ai-agent/otbm_repair_preflight_tool.py` | exclusive | Read-only audit/anchor/resolver orchestration CLI | implemented |
+| `tools/ai-agent/test_otbm_repair_preflight.py` | exclusive | Focused regressions and real native-scanner integration | implemented |
+| `docs/ai-agent/OTBM_REPAIR_PREFLIGHT.md` | exclusive | Operator/review contract | implemented |
+| `docs/ai-agent/OTBM_REPAIR_PREFLIGHT_REPORT.schema.json` | exclusive | `canary-otbm-repair-preflight-v1` report contract | implemented |
 | `canary-otbm-bounded-patch-plan-v1` | read_only/reused | Existing reviewed patch plan | unchanged |
 
 # Validation and CI
 
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
-| pending | focused Python tests | not-run | Implementation not committed yet. |
-| pending | Agent Task Ownership | not-run | Will run on draft PR. |
-| pending | repository CI | not-run | Will verify current feature head. |
+| `5e197326c51df8dc1a201089804f50f9ba5f6eb9` | repository CI | passed | GitHub Actions run `29453315139`. |
+| `5e197326c51df8dc1a201089804f50f9ba5f6eb9` | Agent Task Ownership | failed | Run `29453314900`; changed-task validation: `related_pr '' must match current PR 406`. |
+| `5e197326c51df8dc1a201089804f50f9ba5f6eb9` | AI Agent Tools | in-progress-at-checkpoint | Run `29453314982`; no result claimed yet. |
+| `5e197326c51df8dc1a201089804f50f9ba5f6eb9` | OTBM Map Tools | in-progress-at-checkpoint | Run `29453314939`; no result claimed yet. |
 
 Never write `passed` without verification on the stated commit.
 
 # Failed approaches and dead ends
 
 - Do not add `tilePlacementIndex` to the legacy item-audit contract: exact Phase 8 anchor identity already exists in native `--patch-anchors` output.
+- Do not let a preflight report path reuse the source map: an early CLI review identified that an unconstrained `--output` could otherwise overwrite the source despite the analysis itself being read-only; explicit new-output collision checks were added before publishing the CLI.
 
 # Risks and compatibility
 
 - Runtime: none; tool runs offline and read-only.
 - Data/migration: none; no OTBM modification and no schema/database migration.
-- Security: subprocesses remain argument-vector calls to repository tools; no shell execution is required.
+- Security: subprocesses remain argument-vector calls to repository tools with `shell=False`; report/draft destinations reject source-map, hard-link and symlink collisions.
 - Backward compatibility: existing item-audit, script-resolution and Phase 8 plan contracts remain unchanged.
 - Cross-repo rollout: none.
 - Rollback: revert this task's text/Python/schema additions; no map rollback is needed because this task never writes maps.
 
 # Remaining work
 
-1. Implement the read-only correlation core and CLI on the task branch.
+1. Verify current-head ownership and focused AI/OTBM checks after the `related_pr` metadata repair.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-15T21:34:13Z
-head: 264a86b1eddf5f68666281c47489166f343c3e84
+updated_at: 2026-07-15T21:50:12Z
+head: 5e197326c51df8dc1a201089804f50f9ba5f6eb9
 branch: feat/otbm-repair-preflight-plan-builder
-pr: none
-status: implementing
+pr: 406
+status: validating
 context_routes:
   - otbm
   - agent-governance
@@ -196,44 +205,61 @@ owned_paths:
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
 proven:
-  - Phase 8 is complete and its writer boundary must not be broadened by this task.
-  - Existing item audit exposes mechanicPlacements and existing native patch-anchor mode exposes exact tilePlacementIndex/itemDepth/attribute/value identity.
-  - Existing script resolution preserves unresolved and conflicting states and already correlates active Lua/XML handlers.
-  - Open PR 316 has no exclusive overlap with the new preflight paths; core OTBM tooling is read-only there.
+  - Phase 8 is complete and its writer boundary is not broadened by this task.
+  - The implementation imports existing item audit, native patch-anchor scanning, script resolution and Phase 8 PatchPlan validation rather than adding a parser, writer or resolver.
+  - The CLI never invokes the bounded patcher and rejects report/draft paths that collide with the source map.
+  - Open PR 316 has no exclusive overlap with the new preflight paths; core OTBM tooling remains read-only there.
+  - PR 406 changed-file list contains only the claimed new preflight paths, task record and two declared shared documentation paths.
 derived:
-  - A read-only orchestration/correlation layer can close the repair-investigation gap without a new parser, renderer, writer or ADR.
+  - A read-only orchestration/correlation layer closes the repair-investigation gap without a new ADR because the Phase 8 mutation contract is unchanged.
 unknown:
-  - Focused test and CI results after implementation.
+  - Current-head AI Agent Tools result after the metadata repair commit.
+  - Current-head OTBM Map Tools result after the metadata repair commit.
+  - Current-head Agent Task Ownership result after `related_pr` is corrected to 406.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: implementation has not started
+  marker: Agent Task Ownership changed active task checkpoint validation
+  evidence: run 29453314900 artifact CHANGED_TASK_VALIDATION.txt reports related_pr mismatch with PR 406
 rejected_hypotheses:
   - Extend the legacy item-audit format with patch identity: rejected because native patch-anchor mode already provides the required identity.
+  - Add another script resolver for replacement impact: rejected because the existing resolver can run against a hypothetical in-memory item-audit copy.
 changed_paths:
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260715-otbm-repair-preflight-plan-builder.md
+  - docs/ai-agent/OTBM_REPAIR_PREFLIGHT.md
+  - docs/ai-agent/OTBM_REPAIR_PREFLIGHT_REPORT.schema.json
+  - tools/ai-agent/otbm_repair_preflight.py
+  - tools/ai-agent/otbm_repair_preflight_tool.py
+  - tools/ai-agent/test_otbm_repair_preflight.py
 validation:
   - command: GitHub open-PR and ownership overlap inspection
     result: PASS
     evidence: PR 316 and PR 393 inspected; no exclusive path overlap found
+  - command: CI run 29453315139
+    result: PASS
+    evidence: repository CI completed successfully on 5e197326c51df8dc1a201089804f50f9ba5f6eb9
+  - command: Agent Task Ownership run 29453314900
+    result: FAIL
+    evidence: related_pr was empty while current PR is 406; corrected by this task-record update
   - command: local task_ownership.py
     result: BLOCKED
     evidence: no local checkout is exposed in this connector session
 blockers:
   - none
-next_action: Implement the read-only preflight correlation core and orchestration CLI using the existing item audit, patch-anchor and script-resolution contracts.
+next_action: Verify the new PR head and inspect current-head Agent Task Ownership, AI Agent Tools and OTBM Map Tools results.
 ```
 
 # Handoff
 
-Start from this task record and current live PR/branch. Do not reconstruct Phase 8 from chat history and do not edit any Phase 8 implementation path unless a separately reviewed bounded task explicitly authorizes it.
+Start from this task record and live PR #406. Do not reconstruct Phase 8 from chat history and do not edit any Phase 8 implementation path unless a separately reviewed bounded task explicitly authorizes it.
 
 # Completion
 
 - Final status: active
-- PR:
+- PR: #406
 - Merge commit:
 - Program record updated: n/a
-- Catalogue updated: pending
-- Changelog updated: pending
+- Catalogue updated: yes
+- Changelog updated: yes
 - Archived at:
