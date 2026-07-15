@@ -7,8 +7,8 @@ agent: GPT-5.6-Thinking
 branch: fix/protocolgame-leave-game-dispatch
 base_branch: main
 created: 2026-07-14T20:30:00+02:00
-updated: 2026-07-15T00:43:00+02:00
-last_verified_commit: "8368fce0c89054b78e7cac48ecfc137000f5b7f0"
+updated: 2026-07-15T09:05:00+02:00
+last_verified_commit: "0352a5a15f5688c8b8e3cd7c38543f0ccc402901"
 risk: high
 related_issue: ""
 related_pr: "blakinio/canary#360"
@@ -80,21 +80,21 @@ An already-received packet callback owns its exact message, `Connection`, and `P
 1. Trace transport acceptance/rejection with received and expected sequence values without mutating the accepted sequence on rejection.
 2. Trace `Protocol::sendRecvMessageCallback` publication and completion.
 3. Trace `Connection::close`, `resumeWork`, and `ProtocolReleaseGate` state transitions.
-4. Trace `ProtocolGame::parsePacket` opcode `0x14` and `ProtocolGame::logout` including every denial path.
-5. Trace exact player removal, persistence, client detachment, and ping task cancellation.
-6. Determine whether session B closes in transport validation, packet dispatch, or channel handling.
-7. Add identity diagnostics for connection ID, protocol address, player GUID/runtime ID, callback begin/dispatch/complete, logout result, release, removal, and stale-session rejection.
+4. Trace the validated `ProtocolGame` opcode `0x14` dispatch and exact-player logout path including every denial path.
+5. Trace exact player removal, release and player-client identity.
+6. Determine whether session B closes in transport validation, packet dispatch, or stale session cleanup using the post-merge physical E2E evidence.
+7. Keep stable identity diagnostics for connection ID, protocol address, player GUID/runtime ID, callback begin/dispatch/complete, logout result, release, removal, and stale-session rejection.
 
 # Acceptance criteria
 
-- [ ] Deterministic no-sleep test queues a real leave-game packet, closes/removes manager ownership, drains the dispatcher, and observes exactly one parse and exactly one release.
-- [ ] The exact player session is removed or fully detached immediately after an accepted leave-game dispatch.
-- [ ] A denied logout is reported explicitly and cannot silently degrade into a detached ghost player.
-- [ ] Delayed A release/ping/logout callbacks cannot affect active B.
+- [x] Deterministic no-sleep test queues a real leave-game packet, closes/removes external connection/protocol ownership, drains the dispatcher, and observes exactly one parse, removal and release.
+- [x] The exact player session is removed or fully detached immediately after an accepted leave-game dispatch.
+- [x] A denied logout is reported explicitly and cannot silently degrade into a detached ghost player.
+- [x] Delayed A release/logout work cannot detach or remove active B.
 - [x] Transport mismatch diagnostics distinguish received sequence, expected sequence, connection, and protocol without relaxing validation.
 - [x] Sequence rejection does not advance the last accepted client sequence.
-- [ ] No timers, sleeps, retry windows, relog-delay increases, callback suppression, two-process substitution, packet-validation relaxation, or OTClient change.
-- [ ] Full current-head C++ CI passes.
+- [x] No timers, sleeps, retry windows, relog-delay increases, callback suppression, two-process substitution, packet-validation relaxation, or OTClient change.
+- [x] Full implementation-head C++ CI passes on Linux debug/tests, Linux release including Global smoke, Windows CMake, Windows Solution, macOS and Docker (CI #2329, run `29395955944`, head `0352a5a15f5688c8b8e3cd7c38543f0ccc402901`).
 - [ ] After merge, unchanged same-process PR #245 E2E passes both complete sessions.
 
 # Work log
@@ -115,11 +115,22 @@ An already-received packet callback owns its exact message, `Connection`, and `P
 - Added stable lifecycle diagnostics for transport rejection, accepted `0x14`, queue publication, dispatcher begin and dispatcher completion with exact connection/protocol identity.
 - Added deterministic production-class tests proving that zero, mismatch, duplicate and malformed frames do not consume the next accepted sequence.
 - Added a narrow virtual leave-game dispatch/release seam in `Protocol`; it reuses the #339 strong callback ownership instead of introducing a parallel lifetime mechanism.
-- Current implementation head verified as `8368fce0c89054b78e7cac48ecfc137000f5b7f0`; ownership and current-head CI were green at that point, but ProtocolGame exact-player completion work remains in progress.
+
+## 2026-07-15T09:05:00+02:00 — exact-session completion and current-head validation
+
+- Added explicit `ClientLeaveGameState` transitions: none, queued, dispatching, completed, denied and rejected.
+- The validated `0x14` path captures the exact player on the dispatcher and requires both `player == expectedPlayer` and `expectedPlayer->client == self` before mutation; identity is checked again after production logout callbacks.
+- `g_game().removeCreature(expectedPlayer, true)` is now observed instead of silently ignored; remove failure becomes explicit `Rejected` state.
+- Connection release is scoped through `releaseFromConnection()` so a validated leave cannot release before dispatch completion, duplicate completion is ignored, and stale A cannot clear B.
+- Denied/rejected exact sessions preserve the live `Player -> ProtocolGame` edge while dropping the reverse edge during connection release, preventing a detached online ghost.
+- Added no-sleep coverage for accepted leave with close-before-dispatch, duplicate completion, stale A vs active B, explicit denial, remove failure and inbound transport rejection without sequence advance.
+- Corrected the unit fixture to use Canary's dedicated unit-test `Player()` constructor and isolated only runtime map/Lua/output side effects when the `BUILD_TESTS` remove callback seam is active; production behavior is unchanged.
+- CI #2329 (`29395955944`) passed the full implementation head `0352a5a15f5688c8b8e3cd7c38543f0ccc402901`: Linux debug including all tests, Linux release including Canary and Global runtime smoke, Windows CMake, Windows Solution, macOS and Docker. The prior one-off Global smoke load-order failure did not reproduce on the unchanged datapack in #2329.
+- PR #360 is ready for final docs-only-head validation and squash merge; the remaining program-level criterion is the unchanged one-process physical E2E on #245 after #360 lands on `main`.
 
 # Do not repeat
 
-- Do not rerun PR #245 on unchanged server code.
+- Do not rerun PR #245 on server code that does not contain the merged #360 fix.
 - Do not modify OTClient without new packet evidence that it failed to send leave-game or close TCP.
 - Do not use player GUID alone as a session generation token.
 - Do not treat delayed ping-timeout persistence as successful safe logout.
