@@ -60,7 +60,7 @@ Deliver ACO-003: deterministic, repository-local efficiency evaluation for agent
 - [x] Focused tests cover validation, metrics, repeated reads, time-to-first-action, handoff success and cohort comparison.
 - [x] Agent Task Ownership CI compiles and runs the evaluator tests.
 - [x] Program record marks ACO-002 production proof complete and ACO-003 as the current bounded package.
-- [ ] Current-head CI and merge gates pass.
+- [x] Current-head CI and merge gates passed on feature PR #400 before merge.
 
 # Confirmed context
 
@@ -76,14 +76,13 @@ Deliver ACO-003: deterministic, repository-local efficiency evaluation for agent
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-15T18:12:00Z
-head: f06b333e9a1b3d8a8716671e0cc0afdb92c0b7f5
+updated_at: 2026-07-15T18:18:03Z
+head: ee67e9e16734a3fac8891ecb9a5130fda14b2e26
 branch: feat/agent-efficiency-evals
 pr: 400
-status: validating
+status: ready
 context_routes:
   - agent-governance
-  - ci-repair
 owned_paths:
   - tools/agents/efficiency_eval.py
   - tools/agents/test_efficiency_eval.py
@@ -91,59 +90,45 @@ owned_paths:
   - docs/agents/schemas/agent-efficiency-trace.schema.json
 proven:
   - ACO 002 repair production cleanup PR 397 merged successfully
-  - task-start main is ec7c767cf93e00f3631441193fbef34da302882a
-  - open PR 393 concerns Universal E2E load stress and PR 316 concerns Targuna OTBM audit
+  - ACO 003 feature PR 400 merged successfully as 62acba66e9025c00be399fabd38adccb45b9404f
   - exact platform token counts are not exposed to repository tooling and are not inferred by the evaluator
   - evaluator and tests are integrated into Agent Task Ownership workflow
-  - focused efficiency evaluator unit tests passed in ownership runs 1413 and 1414 before task contract validation
-  - program record now treats ACO 002 production proof as complete and ACO 003 as current
 derived:
   - repository-local trace metrics can measure context efficiency without collecting full conversations
-  - repeated reads and time-to-first-action are useful observable proxies for agent overhead
-unknown:
-  - current-head CI and ownership result after frontmatter status repair
+unknown: []
 conflicts: []
 first_failure:
   marker: none
-  evidence: implementation tests pass; changed-task frontmatter status is repaired to review with checkpoint status validating
+  evidence: none
 rejected_hypotheses:
-  - evaluator implementation caused ownership failures 1413 or 1414: disproven because compile and focused tests passed before changed-task validation
   - store full prompts or chat transcripts for evaluation: rejected because durable metrics do not require sensitive or bloated conversation content
-  - invent exact token savings: rejected because repository tooling has no authoritative exact token or credit source
 changed_paths:
   - .github/workflows/agent-task-ownership.yml
   - docs/agents/AGENT_EFFICIENCY_EVAL.md
   - docs/agents/programs/AGENT_CONTEXT_ORCHESTRATION_PROGRAM.md
   - docs/agents/schemas/agent-efficiency-trace.schema.json
-  - docs/agents/tasks/active/CAN-20260715-agent-efficiency-evals.md
   - tools/agents/efficiency_eval.py
   - tools/agents/test_efficiency_eval.py
 validation:
-  - command: production lifecycle proof PR 397
+  - command: Agent Task Ownership 1415
     result: PASS
-    evidence: merged as 075949166ca2af66cea468a4edd55f8ef7d66697
-  - command: Agent Task Ownership 1414 focused unit tests
+    evidence: current feature head before merge
+  - command: repository CI 2547
     result: PASS
-    evidence: compile and focused unit tests completed before frontmatter status validation failed
-  - command: Agent Task Ownership current head
-    result: NOT_RUN
-    evidence: pending after frontmatter status repair
-  - command: repository CI current head
-    result: NOT_RUN
-    evidence: pending after frontmatter status repair
+    evidence: ready-state required gate before merge
 blockers:
-  - current-head CI and merge gate pending
-next_action: Verify PR 400 current-head ownership and CI, fix any failure, review exact diff and threads, then mark ready and merge only on green required gates.
+  - none
+next_action: Start ACO-004 as a new bounded task only after this lifecycle cleanup PR merges.
 ```
 
 # Completion
 
-- Final status: review
+- Final status: completed
 - PR: #400
-- Merge commit: pending
+- Merge commit: `62acba66e9025c00be399fabd38adccb45b9404f`
 - Program record updated: yes
 - Changelog updated: not required; program and dedicated evaluation contract are authoritative for ACO-003
-- Archived at: pending via lifecycle automation
+- Archived at: `docs/agents/tasks/archive/CAN-20260715-agent-efficiency-evals.md`
 
 ## Automated lifecycle completion
 
@@ -152,3 +137,4 @@ next_action: Verify PR 400 current-head ownership and CI, fix any failure, revie
 - Merge commit: `62acba66e9025c00be399fabd38adccb45b9404f`.
 - Merged at: `2026-07-15T18:18:03Z`.
 - This record was moved from `tasks/active` by the post-merge lifecycle automation.
+- Lifecycle PR #401 was manually refreshed on its exact archive-only path to trigger normal PR checks after the bot-created dispatch did not publish the required branch-protection check.
