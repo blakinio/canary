@@ -2,13 +2,13 @@
 task_id: CAN-20260715-agent-task-lifecycle-bot-pr-checks
 program_id: CAN-PROGRAM-AGENT-ORCHESTRATION
 coordination_id: ""
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: fix/agent-task-lifecycle-bot-pr-checks
 base_branch: main
 created: 2026-07-15T17:00:00Z
-updated: 2026-07-15T17:06:00Z
-last_verified_commit: "c8135fade0581f12b860cef8b2637b019bd07665"
+updated: 2026-07-15T17:15:57Z
+last_verified_commit: "2a8105760fe56c9d470b8b762f93711803e96633"
 risk: medium
 related_issue: ""
 related_pr: "394"
@@ -41,6 +41,7 @@ reuses:
 public_interfaces:
   - automated lifecycle cleanup check dispatch
 cross_repo_tasks: []
+completed: 2026-07-15T17:15:57Z
 ---
 
 # Goal
@@ -132,3 +133,11 @@ next_action: Verify PR 394 current-head ownership and CI, review exact diff and 
 - Merge commit: pending
 - Program record updated: yes
 - Archived at: pending via repaired lifecycle automation
+
+## Automated lifecycle completion
+
+- Feature PR: #394.
+- Feature head: `86d8100f8c90b5fa52ec8cba6000b9015fa0c99c`.
+- Merge commit: `2a8105760fe56c9d470b8b762f93711803e96633`.
+- Merged at: `2026-07-15T17:15:57Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
