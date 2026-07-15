@@ -16,6 +16,7 @@ Evaluated as of **2026-07-14**.
 | `build-system` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `character-lifecycle` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `character-progression` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `chat-communication` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `charms` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `combat` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `combat-conditions` | 2026-07-14 | 0 | `current` | 30 / 90 |
@@ -31,6 +32,7 @@ Evaluated as of **2026-07-14**.
 | `engine-scheduler` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `engine-service-container` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `exaltation-forge` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `guilds` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `houses` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `imbuements` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `instances` | 2026-07-14 | 0 | `current` | 30 / 90 |
@@ -42,12 +44,14 @@ Evaluated as of **2026-07-14**.
 | `market` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `npcs` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `otbm-tooling` | 2026-07-14 | 0 | `current` | 60 / 180 |
+| `parties` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `physical-client-e2e` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `player-persistence` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `prey` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `protocol` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `quests` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `raids` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `sanctions` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `spawns` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `spells` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `titles` | 2026-07-14 | 0 | `current` | 30 / 90 |
