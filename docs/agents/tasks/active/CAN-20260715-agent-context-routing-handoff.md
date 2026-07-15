@@ -36,11 +36,11 @@ Reduce mandatory agent context loading and define deterministic continuation whe
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-15T00:00:00Z
-head: UNKNOWN
+updated_at: 2026-07-15T15:00:00Z
+head: 818d62eb68b9e11a9915e48301a6680d4c120090
 branch: docs/agent-context-routing-handoff
 pr: none
-status: implementing
+status: validating
 context_routes:
   - agent-governance
 owned_paths:
@@ -50,24 +50,33 @@ owned_paths:
   - docs/agents/CONTEXT_HANDOFF.md
   - docs/agents/tasks/active/CAN-20260715-agent-context-routing-handoff.md
 proven:
-  - Root AGENTS.md currently mandates broad startup reads including README, ACTIVE_WORK/task/PR state, MODULE_CATALOG, REPOSITORY_MAP, KNOWN_RISKS, BUILD_TEST_MATRIX and cross-repo contracts.
-  - docs/agents/README.md defines another broad read order and already states that chat history is not authoritative.
+  - Previous root AGENTS.md mandated broad startup reads including README, ACTIVE_WORK/task/PR state, MODULE_CATALOG, REPOSITORY_MAP, KNOWN_RISKS, BUILD_TEST_MATRIX and cross-repo contracts.
+  - Previous docs/agents/README.md defined a second broad read order while also stating that chat history is not authoritative.
+  - Root AGENTS.md now uses a lean startup protocol and targeted context routes.
+  - docs/agents/README.md now tells agents to search large indexes before full-file reads.
+  - CONTEXT_HANDOFF.md defines checkpoint timing, a compact evidence schema and a continuation-agent startup contract.
+  - Compared with current main, the branch changes only five agent-governance documentation/task files.
 derived:
-  - Mandatory broad startup loading creates avoidable context pressure for narrow tasks.
-unknown: []
+  - Narrow tasks can start with materially less unrelated context while preserving existing safety gates.
+  - A slowing or near-exhausted agent can terminate cleanly after persisting one deterministic next_action instead of carrying chat history forward.
+unknown:
+  - CI result after draft PR creation.
 conflicts: []
 first_failure:
   marker: none
   evidence: documentation optimization task
 rejected_hypotheses: []
 changed_paths:
+  - AGENTS.md
+  - docs/agents/README.md
   - docs/agents/CONTEXT_ROUTING.md
   - docs/agents/CONTEXT_HANDOFF.md
   - docs/agents/tasks/active/CAN-20260715-agent-context-routing-handoff.md
 validation:
-  - command: documentation review
-    result: NOT_RUN
-    evidence: pending final diff review
-blockers: []
-next_action: Update root AGENTS.md and docs/agents/README.md to route context instead of preloading broad documentation.
+  - command: GitHub compare main...docs/agent-context-routing-handoff
+    result: PASS
+    evidence: five expected documentation/task files only; no binary/map/datapack/runtime paths changed
+blockers:
+  - Branch is one commit behind current main and must be brought current before merge if required by repository policy/CI.
+next_action: Open a draft PR, inspect required CI on the PR head, and update/rebase the branch before merge if necessary.
 ```
