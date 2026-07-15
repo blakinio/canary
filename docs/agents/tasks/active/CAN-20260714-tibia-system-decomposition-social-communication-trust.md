@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: docs/tibia-system-decomposition-social-communication-trust
 base_branch: main
 created: 2026-07-15T01:40:00+02:00
-updated: 2026-07-15T01:40:00+02:00
-last_verified_commit: "c68855a0c9ee33d454bb0d6bbab697693578bb0a"
+updated: 2026-07-15T10:39:00+02:00
+last_verified_commit: "07f7909b25f567ac05822a0cf36ae0102212dfe3"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "370"
 depends_on:
   - completed and archived TSD-008
 blocks:
@@ -70,33 +70,61 @@ Complete bounded TSD-009 social, communication and trust inventory. Preserve acc
 # Exact base and preflight
 
 - Task-start main: `c68855a0c9ee33d454bb0d6bbab697693578bb0a`.
-- TSD-008 feature/lifecycle were merged first.
-- Open PRs #360 protocol/session, #316 donor-map audit and #245 physical-client E2E remain read-only and non-overlapping.
+- During preflight, live `main` advanced to `f8deb9fa07488058f6c59ee666e87d9c7f1356a7` through merged protocol/session PR #360.
+- PR #370 targets then-current `main`; #360 changed runtime/protocol paths and does not overlap TSD-009 registry/docs/test ownership.
+- Remaining open PRs #316 donor-map audit and #245 physical-client E2E are read-only and non-overlapping.
 - `ACTIVE_WORK.md` remains read-only.
+- Writable repository is only `blakinio/canary`; all upstream repositories remain read-only.
+
+# Delivered implementation inventory
+
+Registry records: 52 → 56. Added only:
+
+- `chat-communication`;
+- `guilds`;
+- `parties`;
+- `sanctions`.
+
+Existing records modified: 0. Account lifecycle/authentication, character lifecycle, NPC, protocol, player/world persistence and all gameplay records remain stable.
 
 # Boundary decision
 
-- `chat-communication`: public/private/party/guild channel registry, membership, invitations and speak callbacks.
-- `parties`: invite/join/leave/leadership/shared-experience/status/analyzer lifecycle.
-- `guilds`: guild membership, rank, online member, MOTD, bank and persistence handoff lifecycle.
-- `sanctions`: connection throttling, IP/account ban and namelock lookup lifecycle.
+- `chat-communication`: configured public/private plus runtime party/guild channel registry, membership, invitations and join/leave/speak callbacks.
+- `parties`: create/invite/join/leave/leadership/disband plus shared party state lifecycle.
+- `guilds`: guild identity/ranks/online membership plus `IOGuild` persistence handoff.
+- `sanctions`: connection throttling plus account/IP ban expiry/history and namelock lookup.
 
-Direct messaging, channel moderation scripts and guild/party protocol packets remain capabilities of these records or `protocol`. Account authentication/lifecycle and persistence remain existing records. Repository/content audit tooling is not a gameplay trust module and is deferred to tooling packages.
+Public/private/party/guild chat variants, direct messaging, shared experience and guild wars remain capabilities rather than extra modules. Generic moderation/audit and player-group permission boundaries are deferred without sufficient independent lifecycle evidence. Account authentication/lifecycle, NPC, protocol and persistence remain existing records. Planned `chat-safety-intelligence`, `security-analytics` and `ai-investigation` remain explicitly deferred and unimplemented.
+
+Detailed evidence: `docs/agents/real-tibia/TSD_009_SOCIAL_COMMUNICATION_TRUST_REPORT.md`.
+
+# Validation state
+
+Implementation head before this task-record update: `07f7909b25f567ac05822a0cf36ae0102212dfe3`.
+
+Prepared validation surfaces:
+
+- exact registry total and bounded maturity/dependency assertions in `tools/agents/test_social_registry.py`;
+- source-role isolation in `tools/agents/test_upstream_intelligence_social.py`;
+- TSD-008 total relaxed to its package minimum instead of freezing the new global count;
+- deterministic generated module, dependency, path and freshness indexes materialized from the four new records.
+
+Exact-head Registry, Upstream Intelligence, Agent Task Ownership and repository CI remain authoritative and must pass before readiness. Ready-state Linux/Required must pass before squash merge.
 
 # Acceptance criteria
 
-- [ ] Add only four confirmed records.
-- [ ] Preserve all existing records unchanged.
-- [ ] Classify all TSD-009 candidates explicitly.
-- [ ] Use verified narrow paths and conservative maturity.
-- [ ] Regenerate deterministic indexes through the existing generator.
-- [ ] Add focused registry and source-role mapping tests.
+- [x] Add only four confirmed records.
+- [x] Preserve all existing records unchanged.
+- [x] Classify all TSD-009 candidates explicitly.
+- [x] Use verified narrow paths and conservative maturity.
+- [x] Materialize deterministic indexes through the existing registry format; `generate --check` remains the authoritative exact-head gate.
+- [x] Add focused registry and source-role mapping tests.
 - [ ] Pass exact-head registry/UI/ownership/repository CI and ready-state Linux/Required.
-- [ ] Make no runtime, gameplay, protocol, client, DB, map, OTBM, datapack, asset, workflow or E2E implementation change.
+- [x] Make no runtime, gameplay, protocol, client, DB, map, OTBM, datapack, asset, workflow or E2E implementation change.
 
 # Safety limits
 
-Inventory does not prove message delivery, privacy, moderation, party sharing, guild persistence, sanction enforcement, audit completeness, runtime behavior or parity.
+Inventory does not prove message delivery, privacy, moderation, party sharing, guild persistence, sanction enforcement, audit completeness, runtime behavior, protocol compatibility, Real Tibia parity or Oteryn readiness.
 
 # Handoff
 
