@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/agent-task-lifecycle-automation
 base_branch: main
 created: 2026-07-15T16:30:00Z
-updated: 2026-07-15T16:30:00Z
-last_verified_commit: "UNKNOWN"
+updated: 2026-07-15T16:42:00Z
+last_verified_commit: "587728a811e94b311ead5be9b4147a9423e0b38d"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "391"
 depends_on:
   - CAN-20260715-agent-context-orchestration-foundation
 blocks:
@@ -55,21 +55,22 @@ Implement ACO-002: enforce checkpoint quality only for active task records chang
 
 # Acceptance criteria
 
-- [ ] Changed active task records are checkpoint-validated in Agent Task Ownership CI without forcing a repository-wide migration of untouched legacy tasks.
-- [ ] Changed-task validation checks frontmatter/checkpoint consistency for branch, related PR when known, active status, and checkpoint validity.
-- [ ] A deterministic lifecycle tool discovers active tasks by `related_pr` and archives only exact matches.
-- [ ] Archive operation updates lifecycle metadata while preserving task evidence and never touches paths outside task roots.
-- [ ] A post-merge workflow checks out trusted `main`, never the untrusted PR head, archives matching same-repository tasks, opens a cleanup PR, and enables normal auto-merge rather than bypassing branch protection.
-- [ ] Focused tests cover changed-task validation, exact PR matching, archive metadata, no-match behavior, and path confinement.
-- [ ] Existing ownership and orchestration tests remain green.
+- [x] Changed active task records are checkpoint-validated in Agent Task Ownership CI without forcing a repository-wide migration of untouched legacy tasks.
+- [x] Changed-task validation checks frontmatter/checkpoint consistency for branch, current/related PR, active status, ownership and checkpoint validity.
+- [x] A deterministic lifecycle tool discovers active tasks by `related_pr` and archives only exact matches.
+- [x] Archive operation updates lifecycle metadata while preserving task evidence and never touches paths outside task roots.
+- [x] A post-merge workflow checks out trusted `main`, never the untrusted PR head, archives matching same-repository tasks, opens a cleanup PR, and enables normal auto-merge rather than bypassing branch protection.
+- [x] Focused tests cover changed-task validation, current-PR binding, exact PR matching, archive metadata, no-match behavior, and path confinement.
+- [ ] Existing ownership and orchestration tests remain green on current-head CI.
 - [ ] Current-head CI and review gates pass before merge.
 
 # Safety boundary
 
 - Workflow writes only to `blakinio/canary` via the repository-scoped GitHub token.
-- `pull_request_target` workflow must never checkout or execute the contributor PR head.
+- `pull_request_target` workflow never checks out or executes the contributor PR head.
 - Automation operates only on `docs/agents/tasks/active/*.md` records whose parsed `related_pr` exactly equals the merged PR number.
 - Cleanup is delivered through a normal PR with CI/branch protection and auto-merge; no direct protected-branch push.
+- Generic automation does not rewrite free-form program records.
 - No gameplay, runtime, datapack, map, OTBM, asset, production configuration, or cross-repository behavior changes.
 
 # Overlap check
@@ -80,21 +81,21 @@ Implement ACO-002: enforce checkpoint quality only for active task records chang
 
 # Plan
 
-1. Add deterministic `task_lifecycle.py` with changed-task validation and exact-PR archive support.
-2. Add focused tests.
-3. Integrate changed-task checkpoint validation into Agent Task Ownership CI.
-4. Add trusted post-merge lifecycle workflow that opens a cleanup PR and enables auto-merge.
-5. Document lifecycle contract and update ACO program status.
-6. Open draft PR early, fix CI, review exact diff, mark ready and merge only on current-head green gates.
+1. Add deterministic `task_lifecycle.py` with changed-task validation and exact-PR archive support. — completed.
+2. Add focused tests. — completed.
+3. Integrate changed-task checkpoint validation into Agent Task Ownership CI. — completed.
+4. Add trusted post-merge lifecycle workflow that opens a cleanup PR and enables auto-merge. — completed.
+5. Document lifecycle contract and update ACO program status. — completed except final merge result.
+6. Fix CI, review exact diff, mark ready and merge only on current-head green gates. — in progress.
 
 # Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-15T16:30:00Z
-head: UNKNOWN
+updated_at: 2026-07-15T16:42:00Z
+head: 587728a811e94b311ead5be9b4147a9423e0b38d
 branch: feat/agent-task-lifecycle-automation
-pr: none
+pr: 391
 status: implementing
 context_routes:
   - agent-governance
@@ -107,15 +108,19 @@ owned_paths:
   - .github/workflows/agent-task-ownership.yml
 proven:
   - ACO-001 merged in PR 389 and lifecycle cleanup merged in PR 390
-  - ACO-002 is the next queued package in CAN-PROGRAM-AGENT-ORCHESTRATION
+  - PR 391 is the ACO-002 feature PR
   - stale active task records previously caused real ownership conflicts in PR 389
-  - task_ownership.py and checkpoint.py provide reusable deterministic parsers and validators
-  - open PR 384 and PR 316 do not own the planned ACO-002 paths
+  - task_lifecycle.py reuses task_ownership.py and checkpoint.py rather than introducing duplicate parsers
+  - changed active tasks are bound to the current PR in pull request CI
+  - lifecycle archive selection uses exact parsed related_pr equality
+  - post-merge workflow checks out trusted default branch and never the feature head
+  - cleanup is delivered through a normal PR with auto-merge instead of direct main push
+  - open PR 384 and PR 316 do not own the ACO-002 paths
 derived:
   - changed-task-only checkpoint enforcement can improve new work without forcing immediate migration of every historical active record
-  - post-merge cleanup should use a normal PR and branch protection rather than direct writes to main
+  - exact related_pr matching plus path confinement limits automated archive scope
 unknown:
-  - exact CI behavior after workflow integration
+  - current-head CI result for PR 391
   - whether the new post-merge workflow will trigger for its own first feature merge because it is introduced by that merge
 conflicts: []
 first_failure:
@@ -124,22 +129,32 @@ first_failure:
 rejected_hypotheses:
   - validate every historical active task checkpoint immediately: rejected because it would create an unrelated migration blast radius
   - push archive changes directly to protected main: rejected because it bypasses normal review and CI gates
+  - auto-edit free-form program records after every merge: rejected because generic semantics cannot be inferred safely
 changed_paths:
+  - .github/workflows/agent-task-lifecycle.yml
+  - .github/workflows/agent-task-ownership.yml
+  - docs/agents/TASK_LIFECYCLE.md
+  - docs/agents/programs/AGENT_CONTEXT_ORCHESTRATION_PROGRAM.md
   - docs/agents/tasks/active/CAN-20260715-agent-task-lifecycle-automation.md
+  - tools/agents/task_lifecycle.py
+  - tools/agents/test_task_lifecycle.py
 validation:
   - command: repository preflight and overlap review
     result: PASS
     evidence: ACO program plus open PR 384 and 316 scopes reviewed
+  - command: focused lifecycle unit tests
+    result: NOT_RUN
+    evidence: pending Agent Task Ownership CI on current head
 blockers:
-  - none
-next_action: Open draft PR, then implement deterministic lifecycle validation and archive tooling with focused tests.
+  - current-head CI and review gates pending
+next_action: Inspect PR 391 current-head workflow results, fix any deterministic test or workflow failure, then complete merge gates.
 ```
 
 # Completion
 
 - Final status: implementing
-- PR: pending
+- PR: #391
 - Merge commit: pending
-- Program record updated: pending
+- Program record updated: yes
 - Changelog updated: pending
-- Archived at: pending after merge
+- Archived at: expected from post-merge lifecycle automation or one-time manual fallback
