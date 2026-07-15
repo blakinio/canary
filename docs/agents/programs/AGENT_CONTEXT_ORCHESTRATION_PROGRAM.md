@@ -1,9 +1,9 @@
 ---
 program_id: CAN-PROGRAM-AGENT-ORCHESTRATION
-status: active
+status: completed
 owner: "GPT-5.5 Thinking"
 created: 2026-07-15T16:00:00Z
-updated: 2026-07-15T18:45:00Z
+updated: 2026-07-15T18:56:04Z
 ---
 
 # Agent Context Orchestration Program
@@ -57,7 +57,7 @@ Rules:
 | ACO-001 | Machine routing, checkpoint validation, resume bundles and CHAT/CODEX/WORK budget-aware advisor | completed by PR #389 |
 | ACO-002 | Changed-task-aware CI checkpoint enforcement and lifecycle automation | completed by PR #391; repair #394; production cleanup proof #397 |
 | ACO-003 | Agent efficiency evals: files read, repeated reads, tool calls, time-to-first-action, handoff success | completed by PR #400; lifecycle cleanup #401 |
-| ACO-004 | Optional multi-agent supervisor queue for higher-license Codex/worktree execution | implementing in PR #402 |
+| ACO-004 | Optional multi-agent supervisor queue for higher-license Codex/worktree execution | completed by PR #402; lifecycle cleanup #403 |
 
 ## ACO-001 result
 
@@ -103,20 +103,20 @@ The evaluator measures observable efficiency proxies only:
 
 It does not store full prompts, full chat history, source contents, logs or secrets, and it does not invent exact platform token or credit usage when those values are unavailable.
 
-## ACO-004 supervisor boundary
+## ACO-004 result
 
-ACO-004 adds an optional deterministic planning surface for an explicitly capable external or higher-license orchestrator.
+ACO-004 merged in PR #402 as `f170d604e1657e3d81c38363c59027d20423e39d` and is finalized by lifecycle cleanup PR #403.
 
-The repository planner may:
+The supervisor queue adds an optional deterministic planning surface for an explicitly capable external or higher-license orchestrator. It can:
 
 - validate bounded queue manifests;
 - reuse ACO-001 resume bundles and execution-mode routing;
 - keep CHAT work coordinator-side;
 - emit CODEX/WORK worker candidates with bounded prompts;
-- serialize dependency, branch and ownership overlaps;
+- serialize dependencies, same-branch work and overlapping non-read-only ownership claims;
 - suggest CODEX worktree paths as metadata.
 
-It must not:
+It does not:
 
 - spawn chats or agents;
 - create unrestricted processes or worktrees;
@@ -166,10 +166,8 @@ The generated bundles are intentionally bounded. Workers verify live head/PR/CI 
 
 ## Current task
 
-- ACO-004 task: `CAN-20260715-agent-multi-agent-supervisor-queue`
-- PR: #402
-- State: implementing deterministic fail-closed queue planning and bounded external-worker handoff.
+No ACO task remains active after lifecycle cleanup PR #403. ACO-001 through ACO-004 are complete.
 
 ## Handoff
 
-Complete PR #402 through focused tests, current-head ownership/CI, review-state checks and branch protection. After merge, allow ACO-002 lifecycle automation to archive the ACO-004 task. When that cleanup merges, all planned ACO-001 through ACO-004 packages are complete and no ACO task should remain active.
+Use the merged ACO tooling as the stable foundation for future bounded work. New orchestration improvements must start as new, separately owned tasks; do not reopen completed ACO-001 through ACO-004 records. Ordinary Chat remains the default coordinator, and external multi-agent execution stays optional and capability-gated.
