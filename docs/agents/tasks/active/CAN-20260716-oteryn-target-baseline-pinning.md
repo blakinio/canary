@@ -168,7 +168,7 @@ updated_at: 2026-07-16T01:28:00+02:00
 head: 0c0972526814f099b51fd3481f28331b9434446d
 branch: docs/oam-002-target-baseline-pinning
 pr: 407
-status: finalizing
+status: validating
 context_routes:
   - agent-governance
 owned_paths:
