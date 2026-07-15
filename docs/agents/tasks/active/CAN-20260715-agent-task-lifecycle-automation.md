@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/agent-task-lifecycle-automation
 base_branch: main
 created: 2026-07-15T16:30:00Z
-updated: 2026-07-15T16:42:00Z
-last_verified_commit: "587728a811e94b311ead5be9b4147a9423e0b38d"
+updated: 2026-07-15T16:44:00Z
+last_verified_commit: "54665ab2eacb2bc37450721f5a9b41ceb10aeeef"
 risk: medium
 related_issue: ""
 related_pr: "391"
@@ -88,12 +88,12 @@ Implement ACO-002: enforce checkpoint quality only for active task records chang
 5. Document lifecycle contract and update ACO program status. — completed except final merge result.
 6. Fix CI, review exact diff, mark ready and merge only on current-head green gates. — in progress.
 
-# Context checkpoint
+## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-15T16:42:00Z
-head: 587728a811e94b311ead5be9b4147a9423e0b38d
+updated_at: 2026-07-15T16:44:00Z
+head: 54665ab2eacb2bc37450721f5a9b41ceb10aeeef
 branch: feat/agent-task-lifecycle-automation
 pr: 391
 status: implementing
@@ -115,18 +115,21 @@ proven:
   - lifecycle archive selection uses exact parsed related_pr equality
   - post-merge workflow checks out trusted default branch and never the feature head
   - cleanup is delivered through a normal PR with auto-merge instead of direct main push
+  - focused lifecycle unit tests pass in Agent Task Ownership CI before the changed-task gate
+  - first changed-task gate failure was caused only by the task heading using one hash instead of the required two-hash Context checkpoint heading
   - open PR 384 and PR 316 do not own the ACO-002 paths
 derived:
   - changed-task-only checkpoint enforcement can improve new work without forcing immediate migration of every historical active record
   - exact related_pr matching plus path confinement limits automated archive scope
 unknown:
-  - current-head CI result for PR 391
+  - current-head CI result after correcting the checkpoint heading
   - whether the new post-merge workflow will trigger for its own first feature merge because it is introduced by that merge
 conflicts: []
 first_failure:
-  marker: none
-  evidence: none
+  marker: Validate changed active task checkpoints
+  evidence: Agent Task Ownership 1383 diagnostic artifact reported missing double-hash Context checkpoint heading
 rejected_hypotheses:
+  - lifecycle unit tests caused the ownership failure: rejected because the focused unit-test step passed
   - validate every historical active task checkpoint immediately: rejected because it would create an unrelated migration blast radius
   - push archive changes directly to protected main: rejected because it bypasses normal review and CI gates
   - auto-edit free-form program records after every merge: rejected because generic semantics cannot be inferred safely
@@ -142,12 +145,15 @@ validation:
   - command: repository preflight and overlap review
     result: PASS
     evidence: ACO program plus open PR 384 and 316 scopes reviewed
-  - command: focused lifecycle unit tests
-    result: NOT_RUN
-    evidence: pending Agent Task Ownership CI on current head
+  - command: Agent Task Ownership 1383 focused unit tests
+    result: PASS
+    evidence: compile and focused test steps completed successfully
+  - command: Agent Task Ownership 1383 changed-task validation
+    result: FAIL
+    evidence: diagnostic artifact identified missing double-hash Context checkpoint heading
 blockers:
-  - current-head CI and review gates pending
-next_action: Inspect PR 391 current-head workflow results, fix any deterministic test or workflow failure, then complete merge gates.
+  - current-head CI and review gates pending after deterministic heading fix
+next_action: Verify PR 391 current-head Agent Task Ownership and repository CI after the checkpoint-heading correction, then complete merge gates.
 ```
 
 # Completion
