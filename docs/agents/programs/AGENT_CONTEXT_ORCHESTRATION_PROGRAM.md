@@ -3,7 +3,7 @@ program_id: CAN-PROGRAM-AGENT-ORCHESTRATION
 status: active
 owner: "GPT-5.5 Thinking"
 created: 2026-07-15T16:00:00Z
-updated: 2026-07-15T16:10:53Z
+updated: 2026-07-15T16:49:00Z
 ---
 
 # Agent Context Orchestration Program
@@ -54,7 +54,7 @@ Rules:
 | Package | Scope | Status |
 |---|---|---|
 | ACO-001 | Machine routing, checkpoint validation, resume bundles and CHAT/CODEX/WORK budget-aware advisor | completed by PR #389 |
-| ACO-002 | Changed-task-aware CI checkpoint enforcement and lifecycle automation | queued |
+| ACO-002 | Changed-task-aware CI checkpoint enforcement and lifecycle automation | ready in PR #391 |
 | ACO-003 | Agent efficiency evals: files read, repeated reads, tool calls, time-to-first-action, handoff success | queued |
 | ACO-004 | Optional multi-agent supervisor queue for higher-license Codex/worktree execution | queued |
 
@@ -70,6 +70,18 @@ The package did not:
 - bypass repository ownership, CI or merge gates;
 - infer exact token counts that are not exposed by the platform;
 - claim that CHAT/CODEX/WORK pricing or limits are stable repository facts.
+
+## ACO-002 boundary
+
+ACO-002 adds deterministic changed-task validation, task archive tooling and a post-merge workflow that operates only on trusted default-branch code and exact `related_pr` matches.
+
+ACO-002 does not:
+
+- checkout or execute an untrusted contributor head from `pull_request_target`;
+- push lifecycle cleanup directly to protected `main`;
+- auto-edit free-form program records based on guessed semantics;
+- force all untouched historical task records to migrate checkpoints at once;
+- weaken ownership conflict detection or branch protection.
 
 ## Context pressure policy
 
@@ -105,8 +117,11 @@ The generated bundle is intentionally bounded. The worker verifies live head/PR/
 
 ## Current task
 
-No ACO task is active. ACO-002 through ACO-004 remain queued and must each start as a separate bounded task with fresh ownership and overlap checks.
+- ACO-002: `CAN-20260715-agent-task-lifecycle-automation`
+- PR: #391
+- State: ready; final current-head and ready-state branch-protection checks remain before merge.
+- ACO-003 and ACO-004 remain queued until ACO-002 is merged and its lifecycle state is clean.
 
 ## Handoff
 
-Use the merged ACO-001 tooling as the foundation for future agent work. Do not reopen ACO-001. Start ACO-002 only when explicitly assigned, create a new active task/branch/PR, and keep ACO-003/ACO-004 queued behind separate bounded decisions.
+Complete PR #391 through branch protection. After ACO-002 merges, verify whether the newly introduced post-merge lifecycle workflow produced its own cleanup PR; if not, archive the first ACO-002 task manually once. Then start ACO-003 as a separate bounded task/branch/PR.
