@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: docs/tibia-system-decomposition-validation-live-operations
 base_branch: main
 created: 2026-07-15T13:10:00+02:00
-updated: 2026-07-15T13:10:00+02:00
-last_verified_commit: "145929ec7f438dc492d4b618a386a4418953d7ec"
+updated: 2026-07-15T13:25:00+02:00
+last_verified_commit: "da7a609b35dd25beb86c8a03eda2344daefb77f3"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "377"
 depends_on:
   - completed and archived TSD-011
 blocks:
@@ -65,22 +65,48 @@ Complete bounded TSD-012 validation and live-operations decomposition without du
 - `ACTIVE_WORK.md` remains read-only.
 - Writable repository is only `blakinio/canary`; upstream repositories remain read-only.
 
-# Candidate baseline
+# Delivered implementation inventory
 
-- `otbm-tooling`: already canonical; no second parser/indexer/renderer/resolver.
-- `physical-client-e2e`: already canonical; no second E2E orchestrator.
-- `upstream-intelligence`: already canonical; no second watcher/mapper.
-- quest-map/reachability/spawn/NPC/storage/diff/geometry validators: capabilities of existing OTBM/gameplay boundaries, not new umbrella modules.
-- Canary staging/deployment pipeline: independent existing release/switch/rollback/manifest/smoke lifecycle; candidate `deployment-operations`.
+Registry records: 61 → 62. Added only:
+
+- `deployment-operations`.
+
+Existing records modified: 0. `otbm-tooling`, `physical-client-e2e`, `upstream-intelligence`, Real Tibia registry/generator/mapper and all existing gameplay/validation records remain unchanged.
+
+# Boundary decision
+
+- `deployment-operations`: existing trusted-base/overlay staging, real Canary preflight, atomic release publication, active/previous switch, post-switch smoke, rollback, release manifest and dry-run/production-confirmation lifecycle.
+- `otbm-tooling`: already canonical for World Index, mechanic audit, script resolution, reachability, spawn/NPC, storage graph, semantic diff, geometry audit and factual rendering.
+- `physical-client-e2e`: already canonical; open PR #245 remains independently owned and read-only.
+- `upstream-intelligence`: already canonical; UI-001A is source-role-aware Upstream Intelligence mapping, not a separate UI module.
+- quest-map/reachability/spawn/NPC/storage/diff/geometry validators remain capabilities, not new umbrella records.
+- generic validation platform and second deployment/E2E/watcher/parser/renderer systems are rejected as duplicates.
+
+Detailed evidence: `docs/agents/real-tibia/TSD_012_VALIDATION_LIVE_OPERATIONS_REPORT.md`.
+
+# Validation state
+
+Implementation/generated-index head `da7a609b35dd25beb86c8a03eda2344daefb77f3` passed:
+
+- Real Tibia Module Registry #428: success;
+- Upstream Intelligence #464: success;
+- Agent Task Ownership #1289: success;
+- repository CI #2412: success;
+- focused registry regression tests: success;
+- registry schema/contracts and dependency graph validation: success;
+- deterministic `generate --check`: success;
+- discovery and affected-module commands: success.
+
+This task-record and program update are documentation-only after the validated implementation head. Final current-head checks and ready-state Linux/Required remain mandatory before squash merge.
 
 # Acceptance criteria
 
-- [ ] Add only independently supported live-operations records.
-- [ ] Preserve existing OTBM/E2E/UI records unchanged.
-- [ ] Do not create duplicate validators, parsers, renderers, mappers, generators, watchers or E2E orchestration.
-- [ ] Regenerate deterministic registry indexes through the existing generator contract.
-- [ ] Add focused registry regression tests.
-- [ ] Pass exact-head registry/UI/ownership/repository CI and ready-state Linux/Required.
+- [x] Add only independently supported live-operations records.
+- [x] Preserve existing OTBM/E2E/UI records unchanged.
+- [x] Do not create duplicate validators, parsers, renderers, mappers, generators, watchers or E2E orchestration.
+- [x] Regenerate deterministic registry indexes through the existing generator contract.
+- [x] Add focused registry regression tests.
+- [ ] Pass final exact-head registry/UI/ownership/repository CI and ready-state Linux/Required.
 - [x] Make no runtime, gameplay, deployment implementation, client, DB, map, OTBM, datapack, asset, workflow or E2E implementation change.
 
 # Safety limits
