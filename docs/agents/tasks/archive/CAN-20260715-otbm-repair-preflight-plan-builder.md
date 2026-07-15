@@ -2,13 +2,13 @@
 task_id: CAN-20260715-otbm-repair-preflight-plan-builder
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-repair-preflight-plan-builder
 base_branch: main
 created: 2026-07-15T23:34:13+02:00
-updated: 2026-07-16T00:12:00+02:00
-last_verified_commit: "48411ffecca7e46eca2375fbc05646af19d9e03b"
+updated: 2026-07-15T22:28:38Z
+last_verified_commit: "0c0972526814f099b51fd3481f28331b9434446d"
 risk: medium
 related_issue: ""
 related_pr: "406"
@@ -56,6 +56,7 @@ public_interfaces:
   - canary-otbm-repair-preflight-v1
   - OTBM repair preflight CLI
 cross_repo_tasks: []
+completed: 2026-07-15T22:28:38Z
 ---
 
 # Goal
@@ -302,3 +303,11 @@ Start from this task record and live PR #406. Do not reconstruct Phase 8 from ch
 - Catalogue updated: yes
 - Changelog updated: yes
 - Archived at:
+
+## Automated lifecycle completion
+
+- Feature PR: #406.
+- Feature head: `51a3d7da3676e9bb35ea2fddb195ae067b599b33`.
+- Merge commit: `0c0972526814f099b51fd3481f28331b9434446d`.
+- Merged at: `2026-07-15T22:28:38Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
