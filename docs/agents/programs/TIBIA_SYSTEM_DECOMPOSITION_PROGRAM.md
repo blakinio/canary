@@ -4,8 +4,8 @@ name: Tibia System Decomposition
 status: active
 owner: repository-wide
 created: 2026-07-14T15:43:00+02:00
-updated: 2026-07-15T13:55:00+02:00
-last_verified_commit: "10d4bf63cf356a3cf912cbc8717854e6a6fd2895"
+updated: 2026-07-15T14:00:00+02:00
+last_verified_commit: "c41123eaab787ddc22ce2d4d6ee32d07dd57beb9"
 primary_paths:
   - docs/agents/real-tibia/**
   - docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md
@@ -61,7 +61,7 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | `TSD-010` | protocol and client | completed | PR #372/#373; registry 56 → 60 | preserve archive |
 | `TSD-011` | analytics, security and AI | completed | PR #374/#376; registry 60 → 61 | preserve archive |
 | `TSD-012` | validation and live operations | completed | PR #377/#378; registry 61 → 62 | preserve archive |
-| `TSD-013` | Oteryn migration classification | active | PR #379; registry remains 62 | validate global REVALIDATE disposition, exact-head/ready CI, merge and archive |
+| `TSD-013` | Oteryn migration classification | active | PR #379; classification head `c41123eaab787ddc22ce2d4d6ee32d07dd57beb9`; registry remains 62 | finish final exact-head/ready CI, squash merge and lifecycle archive |
 
 # Completed delivery evidence
 
@@ -105,6 +105,17 @@ Rationale:
 - no module receives a rewrite/drop disposition without a target architecture decision;
 - any future stronger disposition must re-read the then-current canonical registry and compare it with an explicit Oteryn target contract.
 
+Classification head `c41123eaab787ddc22ce2d4d6ee32d07dd57beb9` passed:
+
+- Real Tibia Module Registry #436;
+- Upstream Intelligence #472;
+- Agent Task Ownership #1300;
+- repository CI #2424;
+- focused live-registry classification test;
+- registry contracts and dependency graph validation;
+- deterministic `generate --check` with registry/generated indexes unchanged;
+- discovery and affected-module commands.
+
 Detailed evidence: `docs/agents/real-tibia/TSD_013_OTERYN_MIGRATION_CLASSIFICATION_REPORT.md`.
 
 # Oteryn migration policy
@@ -113,7 +124,7 @@ The legacy repository remains the evidence laboratory. No code is copied to Oter
 
 # Program close condition
 
-After PR #379 passes exact-head review, ready-state Linux/Required, squash merge and a separate lifecycle archive:
+After PR #379 passes final exact-head review, ready-state Linux/Required, squash merge and a separate lifecycle archive:
 
 - TSD-001 through TSD-013 are completed;
 - the canonical registry remains at 62 records;
