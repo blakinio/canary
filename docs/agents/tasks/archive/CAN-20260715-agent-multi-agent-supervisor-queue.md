@@ -63,8 +63,8 @@ Deliver ACO-004: a deterministic optional supervisor queue that allows an extern
 - [x] Worker prompts remain bounded and exclude full chat/log/source/repository dumps.
 - [x] Focused tests cover parallel batching, overlap serialization, dependencies, CHAT placement, cycles, same-branch safety and bounded prompts.
 - [x] Agent Task Ownership CI compiles and runs supervisor queue tests.
-- [ ] Program record marks ACO-001 through ACO-004 complete after feature merge.
-- [ ] Final ready-state CI and merge gates pass.
+- [x] Program record marks ACO-001 through ACO-004 complete in lifecycle PR #403.
+- [x] Final ready-state CI and merge gates passed before feature merge.
 
 # Confirmed context
 
@@ -73,7 +73,7 @@ Deliver ACO-004: a deterministic optional supervisor queue that allows an extern
 - ACO-001 merged via PR #389.
 - ACO-002 merged via PR #391 with repair PR #394 and production proof cleanup PR #397.
 - ACO-003 merged via PR #400 and lifecycle cleanup PR #401.
-- Open PR #393 concerns Universal E2E load/stress runtime paths; open PR #316 concerns Targuna OTBM audit paths. No ACO-004 exclusive-path overlap was identified.
+- ACO-004 feature PR #402 merged as `f170d604e1657e3d81c38363c59027d20423e39d` after final ready-state CI #2558 passed.
 - Ordinary Chat cannot be assumed to spawn external workers; ACO-004 is an advisory/planning interface for an explicitly capable orchestrator.
 - The bootstrap marker used only to obtain PR #402 was removed before validation.
 
@@ -81,11 +81,11 @@ Deliver ACO-004: a deterministic optional supervisor queue that allows an extern
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-15T18:48:00Z
-head: 47ae4c7ec716567b9f68cc13ca6940b83756a8a1
+updated_at: 2026-07-15T18:56:04Z
+head: 3d4eb75ca69f25f2d86301df1023eb9e50a9d158
 branch: feat/agent-multi-agent-supervisor-queue
 pr: 402
-status: validating
+status: ready
 context_routes:
   - agent-governance
 owned_paths:
@@ -95,17 +95,17 @@ owned_paths:
   - docs/agents/schemas/agent-supervisor-queue.schema.json
 proven:
   - ACO 001 through ACO 003 feature packages and ACO 003 lifecycle cleanup are merged
+  - ACO 004 feature PR 402 merged as f170d604e1657e3d81c38363c59027d20423e39d
   - ordinary Chat cannot be assumed to spawn external agents
-  - supervisor queue implementation compiles and focused tests pass in Agent Task Ownership run 1424
-  - changed-task checkpoint and ownership index validation pass in Agent Task Ownership run 1424
-  - repository CI run 2556 Required passes on implementation head 47ae4c7ec716567b9f68cc13ca6940b83756a8a1
+  - supervisor queue implementation compiles and focused tests pass in Agent Task Ownership run 1425
+  - changed-task checkpoint and ownership index validation pass in Agent Task Ownership run 1425
+  - ready-state repository CI run 2558 Required passed before merge
   - planner reuses bounded resume bundles and existing execution mode routing
   - planner serializes same-branch and overlapping non-read-only ownership claims
 derived:
   - a repository-local queue planner can prepare safe bounded worker batches without becoming an execution engine
   - shared ownership surfaces should serialize for autonomous parallel workers even though coordinated shared edits are permitted
-unknown:
-  - final ready-state checks after this checkpoint update
+unknown: []
 conflicts: []
 first_failure:
   marker: none
@@ -121,25 +121,28 @@ changed_paths:
   - tools/agents/supervisor_queue.py
   - tools/agents/test_supervisor_queue.py
 validation:
-  - command: Agent Task Ownership 1424
+  - command: Agent Task Ownership 1425
     result: PASS
-    evidence: implementation head 47ae4c7ec716567b9f68cc13ca6940b83756a8a1
-  - command: repository CI 2556 Required
+    evidence: feature head 3d4eb75ca69f25f2d86301df1023eb9e50a9d158
+  - command: repository CI 2558 Required
     result: PASS
-    evidence: implementation head 47ae4c7ec716567b9f68cc13ca6940b83756a8a1
+    evidence: feature head 3d4eb75ca69f25f2d86301df1023eb9e50a9d158
+  - command: feature PR 402 auto merge
+    result: PASS
+    evidence: merged as f170d604e1657e3d81c38363c59027d20423e39d
 blockers:
   - none
-next_action: Verify the new current head, exact PR diff, comments and review threads; then mark PR 402 ready and merge only after final required checks pass.
+next_action: Merge lifecycle PR 403 after its current-head required checks pass; then verify no ACO task remains active.
 ```
 
 # Completion
 
-- Final status: review
+- Final status: completed
 - PR: #402
-- Merge commit: pending
-- Program record updated: yes; final completed state pending feature merge/lifecycle cleanup
+- Merge commit: `f170d604e1657e3d81c38363c59027d20423e39d`
+- Program record updated: yes; final ACO-001 through ACO-004 completion state is included in lifecycle PR #403
 - Changelog updated: not required; dedicated supervisor contract and ACO program record are authoritative
-- Archived at: pending via lifecycle automation
+- Archived at: `docs/agents/tasks/archive/CAN-20260715-agent-multi-agent-supervisor-queue.md`
 
 ## Automated lifecycle completion
 
@@ -148,3 +151,4 @@ next_action: Verify the new current head, exact PR diff, comments and review thr
 - Merge commit: `f170d604e1657e3d81c38363c59027d20423e39d`.
 - Merged at: `2026-07-15T18:56:04Z`.
 - This record was moved from `tasks/active` by the post-merge lifecycle automation.
+- Lifecycle PR #403 also atomically records final ACO program completion.
