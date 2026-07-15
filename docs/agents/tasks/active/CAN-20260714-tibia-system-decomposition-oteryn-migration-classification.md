@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: docs/tibia-system-decomposition-oteryn-migration-classification
 base_branch: main
 created: 2026-07-15T13:50:52+02:00
-updated: 2026-07-15T13:50:52+02:00
+updated: 2026-07-15T13:55:00+02:00
 last_verified_commit: "10d4bf63cf356a3cf912cbc8717854e6a6fd2895"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "379"
 depends_on:
   - completed and archived TSD-012
 blocks: []
@@ -72,12 +72,14 @@ This is a disposition rule over the live canonical registry, not a duplicated pe
 - higher Canary evidence maturity remains useful source evidence but is not target compatibility proof;
 - any future migration decision must re-read the then-current canonical registry and an explicit Oteryn architecture/contract.
 
+Detailed evidence: `docs/agents/real-tibia/TSD_013_OTERYN_MIGRATION_CLASSIFICATION_REPORT.md`.
+
 # Acceptance criteria
 
 - [x] Preserve registry records and generated indexes unchanged.
-- [ ] Document one conservative disposition that applies to all 62 canonical records without duplicating the registry.
-- [ ] Add a focused regression test that reads the live registry rather than hard-coding module IDs.
-- [ ] Record the unresolved Oteryn architecture contract as a blocker for any stronger migration disposition.
+- [x] Document one conservative disposition that applies to all 62 canonical records without duplicating the registry.
+- [x] Add a focused regression test that reads the live registry rather than hard-coding module IDs.
+- [x] Record the unresolved Oteryn architecture contract as a blocker for any stronger migration disposition.
 - [ ] Pass exact-head ownership/repository CI and ready-state Linux/Required.
 - [x] Copy no code to Oteryn and make no runtime/gameplay/protocol/client/DB/map/OTBM/datapack/asset/workflow/E2E implementation change.
 
