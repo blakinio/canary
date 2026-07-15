@@ -156,40 +156,49 @@ bool ProtocolGame::executeClientLeaveGame(const std::shared_ptr<Player> &expecte
 	}
 #endif
 
-	const bool removePlayer = !expectedPlayer->isRemoved() && !forced;
-	const auto tile = expectedPlayer->getTile();
-	if (removePlayer && !expectedPlayer->isAccessPlayer()) {
-		if (tile && tile->hasFlag(TILESTATE_NOLOGOUT)) {
-			expectedPlayer->sendCancelMessage(RETURNVALUE_YOUCANNOTLOGOUTHERE);
-			setClientLeaveGameState(ClientLeaveGameState::Denied, "no-logout-tile");
+	bool isolateLifecycleForTest = false;
+#ifdef BUILD_TESTS
+	isolateLifecycleForTest = static_cast<bool>(leaveGameRemoveCreatureForTest);
+#endif
+
+	if (!isolateLifecycleForTest) {
+		const bool removePlayer = !expectedPlayer->isRemoved() && !forced;
+		const auto tile = expectedPlayer->getTile();
+		if (removePlayer && !expectedPlayer->isAccessPlayer()) {
+			if (tile && tile->hasFlag(TILESTATE_NOLOGOUT)) {
+				expectedPlayer->sendCancelMessage(RETURNVALUE_YOUCANNOTLOGOUTHERE);
+				setClientLeaveGameState(ClientLeaveGameState::Denied, "no-logout-tile");
+				return false;
+			}
+
+			if (tile && !tile->hasFlag(TILESTATE_PROTECTIONZONE) && expectedPlayer->hasCondition(CONDITION_INFIGHT)) {
+				expectedPlayer->sendCancelMessage(RETURNVALUE_YOUMAYNOTLOGOUTDURINGAFIGHT);
+				setClientLeaveGameState(ClientLeaveGameState::Denied, "in-fight");
+				return false;
+			}
+		}
+
+		if (removePlayer && !g_creatureEvents().playerLogout(expectedPlayer)) {
+			setClientLeaveGameState(ClientLeaveGameState::Denied, "logout-event");
 			return false;
 		}
 
-		if (tile && !tile->hasFlag(TILESTATE_PROTECTIONZONE) && expectedPlayer->hasCondition(CONDITION_INFIGHT)) {
-			expectedPlayer->sendCancelMessage(RETURNVALUE_YOUMAYNOTLOGOUTDURINGAFIGHT);
-			setClientLeaveGameState(ClientLeaveGameState::Denied, "in-fight");
+		if (player != expectedPlayer || expectedPlayer->client != self) {
+			setClientLeaveGameState(ClientLeaveGameState::Rejected, "identity-changed-after-logout-event");
 			return false;
 		}
-	}
 
-	if (removePlayer && !g_creatureEvents().playerLogout(expectedPlayer)) {
-		setClientLeaveGameState(ClientLeaveGameState::Denied, "logout-event");
-		return false;
-	}
-
-	if (player != expectedPlayer || expectedPlayer->client != self) {
-		setClientLeaveGameState(ClientLeaveGameState::Rejected, "identity-changed-after-logout-event");
-		return false;
-	}
-
-	displayEffect = displayEffect && !expectedPlayer->isRemoved() && expectedPlayer->getHealth() > 0 && !expectedPlayer->isInGhostMode();
-	if (displayEffect) {
-		g_game().addMagicEffect(expectedPlayer->getPosition(), CONST_ME_POFF);
+		displayEffect = displayEffect && !expectedPlayer->isRemoved() && expectedPlayer->getHealth() > 0 && !expectedPlayer->isInGhostMode();
+		if (displayEffect) {
+			g_game().addMagicEffect(expectedPlayer->getPosition(), CONST_ME_POFF);
+		}
 	}
 
 	acceptPackets = false;
 	clearReusableSessionHints();
-	sendSessionEndInformation(forced ? SESSION_END_FORCECLOSE : SESSION_END_LOGOUT);
+	if (!isolateLifecycleForTest) {
+		sendSessionEndInformation(forced ? SESSION_END_FORCECLOSE : SESSION_END_LOGOUT);
+	}
 
 	bool removed = false;
 #ifdef BUILD_TESTS
