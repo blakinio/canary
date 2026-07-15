@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: docs/tibia-system-decomposition-oteryn-migration-classification
 base_branch: main
 created: 2026-07-15T13:50:52+02:00
-updated: 2026-07-15T13:55:00+02:00
-last_verified_commit: "10d4bf63cf356a3cf912cbc8717854e6a6fd2895"
+updated: 2026-07-15T14:00:00+02:00
+last_verified_commit: "c41123eaab787ddc22ce2d4d6ee32d07dd57beb9"
 risk: low
 related_issue: ""
 related_pr: "379"
@@ -74,13 +74,28 @@ This is a disposition rule over the live canonical registry, not a duplicated pe
 
 Detailed evidence: `docs/agents/real-tibia/TSD_013_OTERYN_MIGRATION_CLASSIFICATION_REPORT.md`.
 
+# Validation state
+
+Implementation/classification head `c41123eaab787ddc22ce2d4d6ee32d07dd57beb9` passed:
+
+- Real Tibia Module Registry #436: success;
+- Upstream Intelligence #472: success;
+- Agent Task Ownership #1300: success;
+- repository CI #2424: success;
+- focused live-registry classification test: success;
+- registry contracts and dependency graph validation: success;
+- deterministic `generate --check`: success with registry/generated indexes unchanged;
+- discovery and affected-module commands: success.
+
+This task-record and program update are documentation-only after the validated classification head. Final current-head checks and ready-state Linux/Required remain mandatory before squash merge.
+
 # Acceptance criteria
 
 - [x] Preserve registry records and generated indexes unchanged.
 - [x] Document one conservative disposition that applies to all 62 canonical records without duplicating the registry.
 - [x] Add a focused regression test that reads the live registry rather than hard-coding module IDs.
 - [x] Record the unresolved Oteryn architecture contract as a blocker for any stronger migration disposition.
-- [ ] Pass exact-head ownership/repository CI and ready-state Linux/Required.
+- [ ] Pass final exact-head ownership/repository CI and ready-state Linux/Required.
 - [x] Copy no code to Oteryn and make no runtime/gameplay/protocol/client/DB/map/OTBM/datapack/asset/workflow/E2E implementation change.
 
 # Safety limits
