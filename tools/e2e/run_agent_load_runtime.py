@@ -43,6 +43,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--db-user", default="root")
     parser.add_argument("--db-password", default="root")
     parser.add_argument("--db-name", default="canary_agent_load")
+    parser.add_argument("--skip-database-init", action="store_true")
     parser.add_argument("--login-port", type=int, default=7471)
     parser.add_argument("--game-port", type=int, default=7472)
     parser.add_argument("--status-port", type=int, default=7473)
