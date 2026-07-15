@@ -27,9 +27,9 @@ def write_task(
     path = active / name
     cp_branch = checkpoint_branch if checkpoint_branch is not None else branch
     cp_pr = checkpoint_pr if checkpoint_pr is not None else (related_pr or "none")
-    checkpoint = ""
+    checkpoint_text = ""
     if include_checkpoint:
-        checkpoint = f"""
+        checkpoint_text = f"""
 ## Context checkpoint
 
 ```yaml
@@ -86,7 +86,7 @@ owned_paths:
 # Goal
 
 Test lifecycle.
-{checkpoint}
+{checkpoint_text}
 """,
         encoding="utf-8",
     )
@@ -138,6 +138,17 @@ class ChangedTaskValidationTests(unittest.TestCase):
                 repo_root=root,
             )
             self.assertTrue(any("does not match frontmatter related_pr" in error for error in errors))
+
+    def test_pull_request_changed_task_must_claim_current_pr(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            task = write_task(root, related_pr="390")
+            _, errors = task_lifecycle.validate_changed_tasks(
+                [task.relative_to(root).as_posix()],
+                repo_root=root,
+                current_pr=391,
+            )
+            self.assertTrue(any("must match current PR 391" in error for error in errors))
 
     def test_known_related_pr_requires_concrete_head(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
