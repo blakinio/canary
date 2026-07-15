@@ -1,6 +1,6 @@
 # Oteryn Target Architecture and Migration Contract
 
-Status: **design contract; target repository and target baseline unavailable**
+Status: **active design contract; OAM-002 target identity and pinned baseline established**
 
 Program: `CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION`
 
@@ -12,7 +12,7 @@ Task-start legacy baseline:
 blakinio/canary@d60d63dc37689ccc9ff7e9c37cfa2ebe71cbdc51
 ```
 
-This document defines the entry conditions and proof contract for future Oteryn work. It does not authorize Oteryn implementation, create a repository, choose a target SHA, migrate a module or change Canary runtime behavior.
+This document defines the entry conditions and proof contract for Oteryn work. OAM-002 established the authorized target identity and pinned bootstrap baseline recorded below. That result does not authorize bulk migration, promote any canonical module beyond `REVALIDATE`, or start a later implementation package without its own bounded task and evidence.
 
 # 1. Target identity contract
 
@@ -20,14 +20,24 @@ Every migration implementation package must pin all target identity fields befor
 
 | Field | Current value | Requirement |
 |---|---|---|
-| target repository | unavailable | exact `owner/repository` required |
-| target default branch | unavailable | exact branch required |
-| target task-start SHA | unavailable | exact immutable SHA required |
-| upstream parent repository | `opentibiabr/canary` | read-only |
-| upstream baseline SHA | unavailable | exact then-current SHA required when target is established |
-| legacy evidence repository | `blakinio/canary` | writable laboratory only; exact package SHA required |
+| target repository | `blakinio/Otheryn` | established by OAM-002 |
+| target default branch | `main` | verified by OAM-002 |
+| target task-start SHA | `7d1e9cc5b4e799d31ae481b9a65e3f1442ca985e` | immutable OAM-002 input |
+| target OAM-002 baseline SHA | `3cc7c1dfea747bb380f3761ee7ff7ac30141a115` | immutable OAM-002 bootstrap output; later tasks re-fetch current target head at task start |
+| upstream parent/source repository | `opentibiabr/canary` | read-only source; final squash baseline does not claim direct Git ancestry |
+| upstream baseline SHA | `a879c9312e34381e8eedf397b8ed44510698b689` | exact OAM-002 bootstrap source |
+| legacy evidence repository | `blakinio/canary` | writable laboratory/governance repository; exact package SHA required |
 | maintained client repository | resolve per package | exact controlled client SHA required when protocol/UI applies |
-| target write authorization | unavailable | explicit ownership/authorization required |
+| target write authorization | explicitly granted by the user for autonomous OAM writes to `blakinio/Otheryn` | authorization is repository-specific |
+
+OAM-002 post-merge tree evidence proves that `blakinio/Otheryn@3cc7c1dfea747bb380f3761ee7ff7ac30141a115` matches the pinned upstream content everywhere except two explicit target CI/governance paths:
+
+```text
+.github/workflows/required.yml
+.github/workflows/reusable-docker-quickstart-smoke.yml
+```
+
+The second path only normalizes the mixed-case target repository name for the PR Docker image tag. Neither path is a runtime/gameplay migration. Because target delivery used repository-required squash merges, this contract records exact content/tree provenance rather than claiming that the final target commit SHA equals or directly descends from the upstream SHA.
 
 Rules:
 
@@ -52,9 +62,9 @@ migration-source candidate
 
 It is not the Oteryn image to copy.
 
-## Future Oteryn target
+## Oteryn target
 
-Required role:
+Established role:
 
 ```text
 clean target
@@ -430,37 +440,30 @@ Before any migration PR merges:
 
 Historical green CI on an older SHA is not sufficient.
 
-# 17. Missing entry conditions
+# 17. Resolved OAM-002 entry conditions
 
-The following conditions are intentionally unresolved at OAM-001 completion:
+OAM-002 resolved the target identity and baseline gate with exact immutable evidence:
 
 ```text
-Oteryn target repository
-Oteryn default branch
-Oteryn target task-start SHA
-Oteryn write authorization
-exact then-current opentibiabr/canary target baseline SHA
+target repository: blakinio/Otheryn
+target default branch: main
+target task-start SHA: 7d1e9cc5b4e799d31ae481b9a65e3f1442ca985e
+target OAM-002 baseline SHA: 3cc7c1dfea747bb380f3761ee7ff7ac30141a115
+target write authorization: explicit user authorization for autonomous OAM writes
+upstream bootstrap source: opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689
+bootstrap relationship: exact pinned-upstream content plus the two documented target CI/governance paths
 ```
 
-These are blockers, not placeholders to fill with assumptions.
+No canonical module migration disposition changed during OAM-002. All 62 canonical modules remain `REVALIDATE`.
 
 # 18. Exact next bounded task
 
-After OAM-001 merges and its lifecycle task is archived, the exact next package is:
+After the OAM-002 Canary governance feature PR is merged and its task is archived through the required separate lifecycle PR, the next eligible package is:
 
 ```text
-OAM-002 — Oteryn target repository and baseline pinning
+OAM-003 — engine/build/runtime foundation revalidation
 ```
 
-OAM-002 may start only after an authorized Oteryn repository is explicitly designated or created. It must record:
+OAM-003 is not started by OAM-002. It requires a new bounded task, fresh live-state/ownership checks, the exact then-current target task-start SHA, and revalidation of the planned foundation modules against the pinned architecture contract and relevant then-current upstream evidence.
 
-```text
-target repository
-target default branch
-target task-start SHA
-write ownership
-then-current upstream Canary baseline SHA
-target ancestry/bootstrap relationship
-```
-
-Until then, no Oteryn implementation or module migration task may begin.
+No later package may infer migration authorization merely because OAM-002 established the target repository and bootstrap baseline.
