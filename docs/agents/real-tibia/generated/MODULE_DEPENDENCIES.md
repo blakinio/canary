@@ -37,9 +37,11 @@
 | `item-decay` | `engine-scheduler`, `item-instances` | `containers`, `item-definitions`, `world-persistence` |
 | `item-definitions` | — | `containers`, `exaltation-forge`, `imbuements`, `item-instances`, `market`, `weapons` |
 | `item-instances` | `item-definitions` | `boss-encounters`, `containers`, `exaltation-forge`, `imbuements`, `item-decay`, `market`, `player-persistence`, `weapons` |
+| `login-protocol` | `account-authentication`, `network-transport` | `protocol`, `protocol-compatibility`, `protocol-session-handoff` |
 | `lua-bindings` | `lua-runtime` | `engine-service-container` |
 | `lua-runtime` | — | `configuration`, `engine-runtime-lifecycle`, `npcs`, `quests`, `spells` |
 | `market` | `player-persistence`, `protocol` | `exaltation-forge` |
+| `network-transport` | — | `login-protocol`, `physical-client-e2e`, `protocol`, `protocol-compatibility`, `protocol-session-handoff` |
 | `npcs` | `otbm-tooling` | `quests`, `market`, `spawns` |
 | `otbm-tooling` | — | `quests`, `npcs`, `spawns`, `houses` |
 | `parties` | `character-lifecycle` | `chat-communication`, `combat`, `protocol`, `vocations` |
@@ -47,6 +49,8 @@
 | `player-persistence` | — | — |
 | `prey` | `player-persistence`, `protocol` | `wheel-of-destiny` |
 | `protocol` | `player-persistence` | `physical-client-e2e` |
+| `protocol-compatibility` | — | `login-protocol`, `network-transport`, `protocol`, `protocol-session-handoff` |
+| `protocol-session-handoff` | `protocol-compatibility` | `login-protocol`, `network-transport`, `protocol` |
 | `quests` | `otbm-tooling`, `player-persistence` | `npcs`, `spawns`, `houses`, `achievements` |
 | `raids` | `creature-definitions`, `engine-scheduler` | `boss-encounters`, `creature-ai`, `quests`, `spawns` |
 | `sanctions` | `database-connection` | `account-authentication`, `account-lifecycle`, `protocol` |

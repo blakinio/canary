@@ -4,8 +4,8 @@ name: Tibia System Decomposition
 status: active
 owner: repository-wide
 created: 2026-07-14T15:43:00+02:00
-updated: 2026-07-15T10:55:00+02:00
-last_verified_commit: "8425845f79d161cb2cd6aab2276aeb39c3616c3e"
+updated: 2026-07-15T11:25:00+02:00
+last_verified_commit: "68380151a80ceb66b7f06bbc1d39afb487ad553f"
 primary_paths:
   - docs/agents/real-tibia/**
   - docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md
@@ -57,9 +57,9 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | `TSD-006` | creatures, hunting, raids and bosses | completed | PR #364; registry 41 → 45 | preserve archive |
 | `TSD-007` | items and economy | completed | PR #366/#367; registry 45 → 49 | preserve archive |
 | `TSD-008` | world content | completed | PR #368/#369; registry 49 → 52 | preserve archive |
-| `TSD-009` | social, communication and trust | completed | PR #370; merge `8425845f79d161cb2cd6aab2276aeb39c3616c3e`; registry 52 → 56 | preserve archive |
-| `TSD-010` | protocol and client | next | protocol umbrella and maintained client | classify wire/session/client-feature domains |
-| `TSD-011` | analytics, security and AI | planned | analytics/safety boundaries | register durable read-only/analysis domains only |
+| `TSD-009` | social, communication and trust | completed | PR #370/#371; registry 52 → 56 | preserve archive |
+| `TSD-010` | protocol and client | active | PR #372; implementation head `68380151a80ceb66b7f06bbc1d39afb487ad553f`; registry 56 → 60 | finish final exact-head/ready CI, squash merge and lifecycle archive |
+| `TSD-011` | analytics, security and AI | next | analytics/safety boundaries | register durable read-only/analysis domains only |
 | `TSD-012` | validation and live operations | planned | OTBM/E2E/UI modules | register only non-duplicative tooling |
 | `TSD-013` | Oteryn migration classification | planned | completed inventories/proof packages | classify modules; do not copy code or create another registry |
 
@@ -77,20 +77,49 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | TSD-006 | `8dfec274b0f460c1f0d6bee6c8a4b95a3ecf8c12` | `821f213038770d68cd95b1b22afa78937b974210` | 41 → 45 |
 | TSD-007 | `4932c48d5899ac246404f65e2017a86fc6a5324b` | `350739e5df12db5f3c749540a36bb7c3922cc5ee` | 45 → 49 |
 | TSD-008 | `8692347930d86c5411dede46cb90251e5c677d96` | `c68855a0c9ee33d454bb0d6bbab697693578bb0a` | 49 → 52 |
-| TSD-009 | `8425845f79d161cb2cd6aab2276aeb39c3616c3e` | lifecycle PR live metadata | 52 → 56 |
+| TSD-009 | `8425845f79d161cb2cd6aab2276aeb39c3616c3e` | `381cc076fa35e138292197f751f26c2e7b89dd08` | 52 → 56 |
 
-# TSD-009 completion evidence
+# Current active package — TSD-010
 
-- Feature PR #370, final head `fc91bc24f84f9c2fcdb81962804c45843fe455dd`.
-- Squash merge `8425845f79d161cb2cd6aab2276aeb39c3616c3e` at `2026-07-15T08:54:56Z`.
-- Registry 52 → 56; added only `chat-communication`, `guilds`, `parties` and `sanctions`.
-- Existing records modified 0; account/authentication, NPC, protocol, player/world persistence and gameplay records remained stable.
-- Exact-head checks: Registry #365, Upstream Intelligence #399, Ownership #1233 and CI #2352 — success.
-- Ready-state CI #2353: Fast Checks, Lua Tests, Linux release and Required — success.
-- Repair history preserved: generated lexical ordering aligned so `charms` precedes `chat-communication`; no module scope or runtime behavior changed.
-- Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-social-communication-trust.md`.
+Task: `CAN-20260714-tibia-system-decomposition-protocol-client`; draft PR #372.
 
-No completed package evidence establishes message delivery/privacy/moderation, party sharing correctness, guild persistence/transactionality, guild-war behavior, sanction enforcement completeness, audit integrity, protocol compatibility, physical-client E2E, Real Tibia parity or Oteryn readiness.
+Registry 56 → 60. Added only:
+
+```text
+login-protocol
+network-transport
+protocol-compatibility
+protocol-session-handoff
+```
+
+Existing records modified: 0. The broad `protocol` umbrella, physical-client E2E platform, account authentication/lifecycle, character lifecycle, player persistence and every gameplay record remain stable.
+
+Classification:
+
+- connection/socket/framing/checksum/sequence/XTEA/compression/release lifecycle → `network-transport`;
+- account-login wire request/response, profile selection, session-key and character/world-list phase → `login-protocol`;
+- server version/wire/assets/layout/feature profiles plus maintained-client version feature gates → `protocol-compatibility`;
+- bounded login-to-game protocol-profile hint register/lease/consume/expiry state → `protocol-session-handoff`;
+- monolithic server/client game packet router remains the existing `protocol` umbrella;
+- game session remains merged/deferred because current server/client roots are intertwined with `ProtocolGame`, transport and client `Game` state;
+- connection/session release coordination stays inside `network-transport`, while leave-game semantics remain `protocol`;
+- account authentication and physical-client runtime remain existing boundaries;
+- individual opcodes, feature flags and client modules remain too granular unless already owned by gameplay modules.
+
+Implementation/focused-test head `68380151a80ceb66b7f06bbc1d39afb487ad553f` passed:
+
+- Real Tibia Module Registry #391;
+- Upstream Intelligence #426;
+- Agent Task Ownership #1253;
+- repository CI #2373;
+- focused registry/source-role tests;
+- registry schema/contracts and dependency graph validation;
+- deterministic `generate --check`;
+- discovery and affected-module commands.
+
+Detailed evidence: `docs/agents/real-tibia/TSD_010_PROTOCOL_CLIENT_REPORT.md`.
+
+No completed package evidence establishes packet layout equivalence, login/game handshake correctness, checksum/sequence compatibility, encryption/compression compatibility, feature-gate equivalence, session-handoff safety, malformed-input handling, maintained-client interoperability, physical-client E2E, Real Tibia parity or Oteryn readiness.
 
 # Oteryn migration policy
 
@@ -98,15 +127,15 @@ The legacy repository remains the evidence laboratory. No code is copied to Oter
 
 # Exact next operational task
 
-After the separate lifecycle PR for TSD-009 passes exact-head review, ready-state Linux/Required and squash merge, re-read then-current `main` and create only:
+After PR #372 passes final exact-head review, ready-state Linux/Required, squash merge and a separate lifecycle archive, re-read then-current `main` and create only:
 
 ```text
-task: CAN-20260714-tibia-system-decomposition-protocol-client
-package: TSD-010
-branch: docs/tibia-system-decomposition-protocol-client
+task: CAN-20260714-tibia-system-decomposition-analytics-security-ai
+package: TSD-011
+branch: docs/tibia-system-decomposition-analytics-security-ai
 ```
 
-Preserve the current protocol umbrella, physical-client E2E platform, account authentication/session cleanup and all existing gameplay modules. Add only durable wire/session/client-feature boundaries supported by verified current server and maintained-client roots; inventory does not prove wire compatibility.
+Preserve existing analytics, safety, protocol and platform-tooling boundaries. Register only durable read-only or analysis domains with independent current roots. Do not implement `security-analytics`, `chat-safety-intelligence` or `ai-investigation`.
 
 # Handoff
 

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "module_id": "protocol-compatibility",
+  "name": "Protocol Compatibility Profiles",
+  "category": "client-protocol",
+  "description": "Version, wire-family, asset-signature, transport-layout and feature-gate profile discovery across Canary and the maintained client.",
+  "lifecycle": {"status": "inventory", "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"},
+  "scope": {
+    "includes": ["server protocol profile registry and support states", "client version and asset-signature profile resolution", "account/game login layout metadata", "transport/challenge profile selection metadata", "server protocol feature masks", "maintained-client version-gated feature matrix"],
+    "excludes": ["proof that server and client feature gates are equivalent", "individual gameplay feature correctness", "packet byte-layout proof", "client UI implementation", "runtime interoperability claims"]
+  },
+  "paths": {
+    "server": ["src/server/network/protocol/protocol_profile.*"],
+    "client": ["modules/game_features/**"],
+    "data": [],
+    "tests": [],
+    "docs": ["docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md", "docs/agents/real-tibia/TSD_010_PROTOCOL_CLIENT_REPORT.md"]
+  },
+  "relationships": {
+    "depends_on": [],
+    "interacts_with": ["login-protocol", "network-transport", "protocol", "protocol-session-handoff"]
+  },
+  "documents": {"program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md", "validation": ["docs/agents/real-tibia/TSD_010_PROTOCOL_CLIENT_REPORT.md"]},
+  "source_requirements": [{"source": "canary-current", "mode": "required"}, {"source": "maintained-otclient", "mode": "required"}, {"source": "packet-capture", "mode": "conditional"}, {"source": "tibia-official", "mode": "conditional"}],
+  "maturity": {"implementation": "inventory", "evidence": "inventory", "persistence": "not-assessed", "protocol": "not-assessed", "automated_tests": "not-assessed", "runtime_validation": "not-assessed", "gameplay_e2e": "not-assessed"},
+  "freshness": {"class": "fast", "last_inventory": "2026-07-14", "warning_after_days": 30, "invalid_after_days": 90, "refresh_before_each_task": true},
+  "notes": ["A server profile bit and a maintained-client feature gate are inventory candidates for compatibility review, not proof of the same semantic or byte contract.", "The broad protocol record remains the umbrella for actual game/login packet contracts and existing protocol maturity claims."]
+}

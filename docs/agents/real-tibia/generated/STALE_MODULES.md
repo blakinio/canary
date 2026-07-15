@@ -39,9 +39,11 @@ Evaluated as of **2026-07-14**.
 | `item-decay` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `item-definitions` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `item-instances` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `login-protocol` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `lua-bindings` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `lua-runtime` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `market` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `network-transport` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `npcs` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `otbm-tooling` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `parties` | 2026-07-14 | 0 | `current` | 30 / 90 |
@@ -49,6 +51,8 @@ Evaluated as of **2026-07-14**.
 | `player-persistence` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `prey` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `protocol` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `protocol-compatibility` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `protocol-session-handoff` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `quests` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `raids` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `sanctions` | 2026-07-14 | 0 | `current` | 30 / 90 |
