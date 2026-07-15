@@ -107,8 +107,36 @@ def _prepare_new_output(path: Path, source: Path, label: str) -> Path:
 
 
 def _write_json(path: Path, value: Any) -> None:
+    encoded = (json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8")
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    descriptor: int | None = None
+    created = False
+    try:
+        descriptor = os.open(path, flags, 0o600)
+        created = True
+        with os.fdopen(descriptor, "wb") as stream:
+            descriptor = None
+            stream.write(encoded)
+            stream.flush()
+            os.fsync(stream.fileno())
+    except Exception:
+        if descriptor is not None:
+            os.close(descriptor)
+        if created:
+            path.unlink(missing_ok=True)
+        raise
+
+
+def _source_unchanged(path: Path, expected_stat: os.stat_result, expected_hash: str) -> bool:
+    current = path.stat()
+    return (
+        current.st_size == expected_stat.st_size
+        and current.st_mtime_ns == expected_stat.st_mtime_ns
+        and sha256_file(path) == expected_hash
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -206,13 +234,7 @@ def main(argv: list[str] | None = None) -> int:
                 review_rules_path=args.review_rules,
             )
 
-        source_stat_after = map_path.stat()
-        source_hash_after = sha256_file(map_path)
-        if (
-            source_stat_before.st_size != source_stat_after.st_size
-            or source_stat_before.st_mtime_ns != source_stat_after.st_mtime_ns
-            or source_hash_before != source_hash_after
-        ):
+        if not _source_unchanged(map_path, source_stat_before, source_hash_before):
             raise PreflightError("source map changed while repair preflight was running")
         scanner_stat_after = scanner.stat()
         if (
@@ -302,13 +324,23 @@ def main(argv: list[str] | None = None) -> int:
                 "scriptRoots": script_resolution.get("sources", {}).get("scriptRoots"),
             },
         }
-        _write_json(output_path, report)
-        if args.draft_plan is not None:
-            if report["draftPlan"] is None:
-                raise PreflightError(report.get("draftPlanError") or "draft plan is not ready")
-            if draft_plan_path is None:
-                raise AssertionError("draft plan path was not prepared")
-            _write_json(draft_plan_path, report["draftPlan"])
+
+        if args.draft_plan is not None and report["draftPlan"] is None:
+            raise PreflightError(report.get("draftPlanError") or "draft plan is not ready")
+        if not _source_unchanged(map_path, source_stat_before, source_hash_before):
+            raise PreflightError("source map changed before repair preflight evidence publication")
+
+        published: list[Path] = []
+        try:
+            if draft_plan_path is not None:
+                _write_json(draft_plan_path, report["draftPlan"])
+                published.append(draft_plan_path)
+            _write_json(output_path, report)
+            published.append(output_path)
+        except Exception:
+            for path in reversed(published):
+                path.unlink(missing_ok=True)
+            raise
 
         summary = report["summary"]
         json.dump(
