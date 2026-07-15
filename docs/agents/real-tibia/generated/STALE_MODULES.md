@@ -16,8 +16,8 @@ Evaluated as of **2026-07-14**.
 | `build-system` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `character-lifecycle` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `character-progression` | 2026-07-14 | 0 | `current` | 30 / 90 |
-| `chat-communication` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `charms` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `chat-communication` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `combat` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `combat-conditions` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `configuration` | 2026-07-14 | 0 | `current` | 30 / 90 |
