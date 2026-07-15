@@ -1,0 +1,1 @@
+{"schema_version":1,"id":"status-load","mode":"load","protocol":"status-xml","target":{"host":"127.0.0.1","port":7473},"policy":{"gate":false,"sample_interval_ms":50,"source_ip_strategy":"unique-loopback-v4"},"stages":[{"name":"sustained","requests":2000,"concurrency":100,"request_timeout_seconds":5,"thresholds":{"max_error_rate":0.01,"max_p95_ms":3000,"min_successes":1980}}]}
