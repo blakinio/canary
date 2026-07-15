@@ -325,14 +325,12 @@ def main(argv: list[str] | None = None) -> int:
             },
         }
 
-        if args.draft_plan is not None and report["draftPlan"] is None:
-            raise PreflightError(report.get("draftPlanError") or "draft plan is not ready")
         if not _source_unchanged(map_path, source_stat_before, source_hash_before):
             raise PreflightError("source map changed before repair preflight evidence publication")
 
         published: list[Path] = []
         try:
-            if draft_plan_path is not None:
+            if draft_plan_path is not None and report["draftPlan"] is not None:
                 _write_json(draft_plan_path, report["draftPlan"])
                 published.append(draft_plan_path)
             _write_json(output_path, report)
