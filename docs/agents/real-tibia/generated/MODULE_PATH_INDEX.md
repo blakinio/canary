@@ -58,6 +58,7 @@
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `cyclopedia-character` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `database-connection` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `database-migrations` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `deployment-operations` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-runtime-lifecycle` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-scheduler` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-service-container` | `docs` |
@@ -126,6 +127,7 @@
 | `docs/agents/real-tibia/TSD_010_PROTOCOL_CLIENT_REPORT.md` | `protocol-compatibility` | `docs` |
 | `docs/agents/real-tibia/TSD_010_PROTOCOL_CLIENT_REPORT.md` | `protocol-session-handoff` | `docs` |
 | `docs/agents/real-tibia/TSD_011_ANALYTICS_SECURITY_AI_REPORT.md` | `gameplay-analytics` | `docs` |
+| `docs/agents/real-tibia/TSD_012_VALIDATION_LIVE_OPERATIONS_REPORT.md` | `deployment-operations` | `docs` |
 | `docs/agents/upstream/**` | `upstream-intelligence` | `docs` |
 | `docs/ai-agent/ACHIEVEMENT_POINT_RECONCILIATION.md` | `achievements` | `docs` |
 | `docs/ai-agent/CYCLOPEDIA_VALIDATION_REPORT.md` | `bestiary` | `docs` |
@@ -143,6 +145,7 @@
 | `docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md` | `otbm-tooling` | `docs` |
 | `docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md` | `weapon-proficiency` | `docs` |
 | `docs/lua-api/**` | `lua-bindings` | `docs` |
+| `docs/systems/ai-content-deployment.md` | `deployment-operations` | `docs` |
 | `docs/systems/gameplay-analytics-dry-run.md` | `gameplay-analytics` | `docs` |
 | `modules/**` | `protocol` | `client` |
 | `modules/game_cyclopedia/**` | `charms` | `client` |
@@ -309,6 +312,7 @@
 | `tools/ai-agent/test_weapon_proficiency_achievement_audit.py` | `weapon-proficiency` | `tests` |
 | `tools/ai-agent/weapon_proficiency_achievement_audit.py` | `weapon-proficiency` | `tests` |
 | `tools/analytics/**` | `gameplay-analytics` | `tests` |
+| `tools/deploy/**` | `deployment-operations` | `tests` |
 | `tools/e2e/**` | `physical-client-e2e` | `tests` |
 | `vcpkg.json` | `build-system` | `server` |
 | `vcproj/canary.vcxproj` | `build-system` | `server` |
