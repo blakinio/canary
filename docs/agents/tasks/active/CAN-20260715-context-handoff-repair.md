@@ -2,13 +2,13 @@
 task_id: CAN-20260715-context-handoff-repair
 program_id: CAN-PROGRAM-AGENT-ORCHESTRATION
 coordination_id: ""
-status: implementing
+status: review
 agent: "GPT-5.5 Thinking"
 branch: fix/context-handoff-repair
 base_branch: main
 created: 2026-07-15T19:32:23Z
-updated: 2026-07-15T19:42:00Z
-last_verified_commit: "d121ff9bf5065806c983c25d37bd1f3bc5c9da60"
+updated: 2026-07-15T19:44:36Z
+last_verified_commit: "24115d4dd51845a41306eefda7fbd1066a91739a"
 risk: low
 related_issue: ""
 related_pr: "404"
@@ -63,8 +63,9 @@ Repair the context-handoff pipeline so newly created tasks are checkpoint-compli
 - [x] Checkpoint-less fallback uses a safe checkpoint-reconstruction `next_action` without inventing project evidence.
 - [x] Strict missing-checkpoint validation remains unchanged.
 - [x] Focused tests cover template compliance, fallback, PR normalization and non-root CWD invocation.
-- [x] Focused tests pass on implementation head `d121ff9bf5065806c983c25d37bd1f3bc5c9da60` in Agent Task Ownership #1438.
-- [ ] Current-head GitHub checks pass and autonomous merge gate is satisfied.
+- [x] Focused tests pass on implementation head `24115d4dd51845a41306eefda7fbd1066a91739a` in Agent Task Ownership #1440.
+- [x] Documentation/changelog impact handled.
+- [ ] Final ready-state GitHub checks pass and autonomous merge gate is satisfied.
 
 # Confirmed context
 
@@ -87,7 +88,7 @@ Verified from `main` before implementation:
 - A task without a checkpoint receives `CHECKPOINT_MISSING`, frontmatter-derived head/branch/PR/status, empty evidence-state lists, and a safe recovery next action.
 - `resume.py` renders warnings explicitly.
 - Focused tests cover template checkpoint validity, fallback semantics, normalization, and CLI execution from both repo root and `tools/agents/`.
-- Handoff and coordination docs document the recovery contract without declaring legacy tasks compliant.
+- Handoff/README/changelog document the recovery contract without declaring legacy tasks compliant.
 
 # Follow-up candidates — out of scope
 
@@ -106,17 +107,17 @@ Verified from `main` before implementation:
 - PR: #404 in `blakinio/canary`, draft, base `main`, head `fix/context-handoff-repair`.
 - Exclusive claims: template, context/resume implementation, focused tests and this task record.
 - Shared claims: handoff/README/changelog only.
-- Overlaps: none proven at task start.
-- Resolution: keep changes within declared agent-governance paths.
+- Ownership: Agent Task Ownership #1440 passed on `24115d4dd51845a41306eefda7fbd1066a91739a`.
+- Overlaps: none reported by current ownership validation.
 
 # Validation and CI
 
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
-| `d121ff9bf5065806c983c25d37bd1f3bc5c9da60` | Agent Task Ownership focused unit tests | passed | compile, focused tests and changed checkpoint validation all passed in run #1438 before ownership index step |
-| `d121ff9bf5065806c983c25d37bd1f3bc5c9da60` | Agent Task Ownership #1438 | failed | task ownership index rejected the active structured task because `program_id` was blank; implementation tests were green |
-| `d121ff9bf5065806c983c25d37bd1f3bc5c9da60` | repository CI #2571 | passed | current implementation head before metadata-only task fix |
-| current head | Agent Task Ownership | not-run | rerun triggered by metadata fix |
+| `d121ff9bf5065806c983c25d37bd1f3bc5c9da60` | Agent Task Ownership #1438 | failed | compile/tests/checkpoint validation passed; ownership index rejected blank `program_id` |
+| `24115d4dd51845a41306eefda7fbd1066a91739a` | Agent Task Ownership #1440 | passed | compile, all focused tests, changed checkpoint validation and ownership index passed |
+| `24115d4dd51845a41306eefda7fbd1066a91739a` | repository CI #2573 | passed | draft-state current-head CI passed |
+| current head | ready-state required checks | not-run | final task checkpoint commit must be validated before merge |
 
 # Risks and compatibility
 
@@ -129,17 +130,17 @@ Verified from `main` before implementation:
 
 # Remaining work
 
-1. Verify current-head ownership and repository checks after the task metadata fix, update changelog/final checkpoint, review exact diff, then mark ready and merge through the normal gate.
+1. Verify the final task-checkpoint head checks, full diff and review state; then mark PR #404 ready, verify ready-state required checks, and squash-merge only if every gate remains green.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-15T19:42:00Z
-head: d121ff9bf5065806c983c25d37bd1f3bc5c9da60
+updated_at: 2026-07-15T19:44:36Z
+head: 24115d4dd51845a41306eefda7fbd1066a91739a
 branch: fix/context-handoff-repair
 pr: 404
-status: validating
+status: ready
 context_routes:
   - agent-governance
 owned_paths:
@@ -149,6 +150,7 @@ owned_paths:
   - tools/agents/test_context_orchestration.py
   - docs/agents/CONTEXT_HANDOFF.md
   - docs/agents/README.md
+  - docs/agents/CHANGELOG.md
 proven:
   - task template now contains the authoritative Context checkpoint skeleton
   - prose Handoff is explicitly non-authoritative human context
@@ -156,43 +158,41 @@ proven:
   - checkpoint-less fallback preserves strict validation failure while producing an explicit recovery warning
   - fallback derives only head branch PR status from task frontmatter and leaves evidence lists empty
   - required reads and evidence use one normalized PR reference
-  - focused orchestration tests passed in Agent Task Ownership run 1438
-  - repository CI run 2571 passed on d121ff9bf5065806c983c25d37bd1f3bc5c9da60
+  - focused orchestration tests and ownership validation passed in Agent Task Ownership run 1440
+  - repository CI run 2573 passed on 24115d4dd51845a41306eefda7fbd1066a91739a
+  - changelog and behavior documentation are updated
 derived:
   - newly created tasks can start compliant with the checkpoint contract
   - legacy tasks can produce a usable recovery prompt without being silently treated as compliant
 unknown:
-  - current-head Agent Task Ownership result after program_id metadata fix
-  - final ready-state required check result
+  - final ready-state required check result after marking PR 404 ready
 conflicts: []
 first_failure:
-  marker: Agent Task Ownership Validate tasks and render ownership index
-  evidence: run 1438 failed after compile tests and changed checkpoint validation passed because active structured task program_id was blank
+  marker: none
+  evidence: initial ownership metadata failure in run 1438 was repaired; run 1440 passes
 rejected_hypotheses:
   - implementation tests caused run 1438 failure: disproven because focused unit tests passed
   - migrate all legacy tasks in this repair: rejected because lifecycle disposition is per-task and out of scope
   - infer PROVEN facts from legacy prose: rejected because prose is not deterministic evidence
 changed_paths:
+  - docs/agents/CHANGELOG.md
+  - docs/agents/CONTEXT_HANDOFF.md
+  - docs/agents/README.md
   - docs/agents/templates/TASK.md
   - tools/agents/context.py
   - tools/agents/resume.py
   - tools/agents/test_context_orchestration.py
-  - docs/agents/CONTEXT_HANDOFF.md
-  - docs/agents/README.md
   - docs/agents/tasks/active/CAN-20260715-context-handoff-repair.md
 validation:
-  - command: Agent Task Ownership 1438 focused tests
+  - command: Agent Task Ownership 1440
     result: PASS
-    evidence: compile focused unit tests and changed checkpoint validation passed
-  - command: Agent Task Ownership 1438 ownership index
-    result: FAIL
-    evidence: active structured task requires nonempty program_id; fixed by binding this repair to CAN-PROGRAM-AGENT-ORCHESTRATION
-  - command: repository CI 2571
+    evidence: compile focused tests changed checkpoint validation and ownership index all passed on 24115d4dd51845a41306eefda7fbd1066a91739a
+  - command: repository CI 2573
     result: PASS
-    evidence: implementation head d121ff9bf5065806c983c25d37bd1f3bc5c9da60
+    evidence: draft-state CI passed on 24115d4dd51845a41306eefda7fbd1066a91739a
 blockers:
-  - none
-next_action: Verify current-head Agent Task Ownership and CI after the program_id fix, then update changelog and final readiness state.
+  - ready-state required checks not yet triggered
+next_action: Verify final current-head checks and review state, mark PR 404 ready, then squash-merge only after ready-state required checks pass.
 ```
 
 # Handoff
@@ -222,10 +222,10 @@ Do not migrate legacy tasks or broaden all-task CI validation in this repair.
 
 # Completion
 
-- Final status: validating
+- Final status: review
 - PR: #404
 - Merge commit: pending
 - Program record updated: not applicable; existing completed foundation referenced only
 - Catalogue updated: not applicable; no gameplay/runtime module interface
-- Changelog updated: pending
+- Changelog updated: yes
 - Archived at: pending lifecycle cleanup after merge
