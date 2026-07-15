@@ -28,6 +28,7 @@ Evaluated as of **2026-07-14**.
 | `cyclopedia-character` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `database-connection` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `database-migrations` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `deployment-operations` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `engine-runtime-lifecycle` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `engine-scheduler` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `engine-service-container` | 2026-07-14 | 0 | `current` | 30 / 90 |
