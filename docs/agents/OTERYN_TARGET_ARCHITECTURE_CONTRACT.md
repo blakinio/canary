@@ -459,7 +459,7 @@ target repository
 target default branch
 target task-start SHA
 write ownership
-ten-current upstream Canary baseline SHA
+then-current upstream Canary baseline SHA
 target ancestry/bootstrap relationship
 ```
 
