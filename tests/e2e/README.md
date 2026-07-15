@@ -19,6 +19,8 @@ python tools/e2e/run_agent_e2e.py resolve \
 
 The first physical proof is the feature-neutral `login/relog` scenario. It starts a disposable database, exact-head Canary and a real OTClient, then verifies login, clean logout, relog and final offline database state.
 
+Current validation must run from the pull-request merge ref against the latest `main`, so server-side transport fixes already merged into Canary are included without changing the pinned OTClient revision or the physical-client scenario contract.
+
 ## Adding a scenario
 
 1. Create `tests/e2e/scenarios/<suite>/<name>.json`.
