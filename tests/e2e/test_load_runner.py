@@ -64,8 +64,8 @@ class ProfileValidationTests(unittest.TestCase):
         path.write_text(json.dumps(payload), encoding="utf-8")
         return path
 
-    def test_status_request_contains_service_identifier_and_xml_command(self) -> None:
-        self.assertEqual(load.STATUS_REQUEST, b"\x06\x00\xff\xffinfo")
+    def test_status_request_contains_opcode_and_fixed_xml_command(self) -> None:
+        self.assertEqual(load.STATUS_REQUEST, b"\x05\x00\xffinfo")
 
     def test_unique_loopback_sources_are_deterministic_and_distinct(self) -> None:
         self.assertEqual(load._unique_loopback_source(0), "127.0.0.1")
@@ -117,7 +117,7 @@ class RunnerTests(unittest.IsolatedAsyncioTestCase):
                 header = await reader.readexactly(2)
                 body_size = int.from_bytes(header, "little")
                 body = await reader.readexactly(body_size)
-                if body == b"\xff\xffinfo":
+                if body == b"\xffinfo":
                     writer.write(self.response)
                     await writer.drain()
             finally:
