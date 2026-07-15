@@ -1,46 +1,55 @@
 # Agent Coordination Documentation
 
-This directory is the persistent operating memory for autonomous agents. The root `AGENTS.md` requires every agent to read this file before implementation, so the coordination rules here apply repository-wide.
+This directory is the persistent operating memory for autonomous agents. Chat history is never authoritative; Git, task records, live PR state, deterministic evidence, and durable program/ADR records are.
 
-## Read order
+## Lean startup order
 
-1. `../../AGENTS.md`
-2. this file
-3. for any task that compares or changes behavior against Real Tibia, TibiaWiki/Fandom, CrystalServer, OpenTibiaBR, another donor server, a packet capture, a map, a video or an official-client observation:
-   - `REAL_TIBIA_EVIDENCE_SOURCES.md`
-   - `REAL_TIBIA_PARITY_PLAYBOOK.md`
-   - `programs/REAL_TIBIA_PARITY_PROGRAM.md`
-   - `real-tibia/README.md`
-   - `real-tibia/generated/MODULE_INDEX.md`
-   - the relevant record under `real-tibia/registry/modules/`
-   - the relevant module program under `programs/`, when one exists
-4. for upstream/donor monitoring, synchronization proposals or claims that this fork is behind:
-   - `programs/UPSTREAM_INTELLIGENCE_PROGRAM.md`
-   - `upstream/README.md`
-   - `upstream/SOURCE_WATCH_POLICY.md`
-   - `upstream/TRIAGE_POLICY.md`
-   - the latest stable Upstream Intelligence issue/artifact
-5. `ACTIVE_WORK.md` as a possibly stale snapshot
-6. all relevant records under `tasks/active/**` and live open PRs
-7. the relevant long-lived record under `programs/`, when the work belongs to an autonomous program
-8. `MODULE_CATALOG.md`
-9. `REPOSITORY_MAP.md`
-10. `KNOWN_RISKS.md`
-11. `BUILD_TEST_MATRIX.md`
-12. `CROSS_REPO_CONTRACTS.md` when OTClient may be affected
-13. relevant source, tests, system documentation, task records, and ADRs
+Before implementation, load only:
+
+1. root `../../AGENTS.md`;
+2. `REPOSITORY_MAP.md`;
+3. `CONTEXT_ROUTING.md`;
+4. the existing active task record and live PR for the current task, when present;
+5. the nearest nested `AGENTS.md`, when the affected paths are covered by one.
+
+Then classify the task using `CONTEXT_ROUTING.md` and load only the matching routed context.
+
+Do not preload all of `ACTIVE_WORK.md`, `MODULE_CATALOG.md`, `KNOWN_RISKS.md`, `BUILD_TEST_MATRIX.md`, `CROSS_REPO_CONTRACTS.md`, all active tasks, all programs, or all open PRs. Search them narrowly by module, path, symbol, task ID, protocol field, responsibility, workflow, or ownership overlap and open only matching records/sections.
+
+Use `CONTEXT_HANDOFF.md` whenever context pressure grows, the session becomes slow, the model starts rereading/repeating work, or a new agent must continue the task.
+
+## Route-specific context
+
+For work that compares or changes behavior against Real Tibia, TibiaWiki/Fandom, CrystalServer, OpenTibiaBR, another donor server, a packet capture, a map, a video or an official-client observation, use the `real-tibia-parity` route and load:
+
+- `REAL_TIBIA_EVIDENCE_SOURCES.md`;
+- `REAL_TIBIA_PARITY_PLAYBOOK.md`;
+- `programs/REAL_TIBIA_PARITY_PROGRAM.md`;
+- `real-tibia/README.md`;
+- the relevant record under `real-tibia/registry/modules/`;
+- the relevant module program under `programs/`, when one exists.
+
+For upstream/donor monitoring, synchronization proposals, or claims that this fork is behind, use the `upstream-intelligence` route and load:
+
+- `programs/UPSTREAM_INTELLIGENCE_PROGRAM.md`;
+- `upstream/README.md`;
+- `upstream/SOURCE_WATCH_POLICY.md`;
+- `upstream/TRIAGE_POLICY.md`;
+- the latest stable Upstream Intelligence issue/artifact.
+
+For physical-client/login/scenario E2E work, use the `universal-e2e` route and load `programs/E2E_AUTOMATION_PROGRAM.md`, the current task/PR, the relevant workflow and runner/scenario files only.
 
 ## Sources of truth
 
 - Git and open PRs are authoritative for branches, commits, checks, changed files, and merge state.
-- Active task records are authoritative for exact path ownership, detailed progress, failures, decisions, and handoff.
+- Active task records are authoritative for exact path ownership, detailed progress, failures, decisions, checkpoint state, and handoff.
 - Program records are authoritative for long-lived scope, exclusions, task queue, sequencing, and chat-to-chat continuity.
 - `ACTIVE_WORK.md` is a convenience index and can become stale; normal task branches must not use it as a writable lock.
 - Generated ownership indexes are derived artifacts and must not be edited manually.
-- `MODULE_CATALOG.md` is the discovery index for reusable systems, not a substitute for source and tests.
+- `MODULE_CATALOG.md` is the discovery index for reusable systems, not a substitute for source and tests. Search it before designing a reusable abstraction; do not read it in full by default.
 - `CHANGELOG.md` records completed behavior or architecture changes, not every commit.
 - ADRs record decisions that survive one task.
-- For Real Tibia parity work, the evidence registry, parity playbook, module registry, global parity program, relevant module program, active task, validation report and live PR state together form the durable handoff. Chat history is never the authoritative record.
+- For Real Tibia parity work, the evidence registry, parity playbook, module registry, global parity program, relevant module program, active task, validation report and live PR state together form the durable handoff.
 - Real Tibia module records are inventory and discovery metadata. They do not prove gameplay parity and do not override active task ownership.
 - Upstream Intelligence reports are recent candidate inventories. They do not prove a local defect, patch equivalence, official behavior or permission to import code.
 
@@ -62,51 +71,39 @@ Registry path patterns are discovery hints only. Structured claims in the active
 
 `upstream/` and `programs/UPSTREAM_INTELLIGENCE_PROGRAM.md` define the read-only watch layer for OpenTibiaBR Canary, OpenTibiaBR OTClient, CrystalServer, Remere's Map Editor and Client Editor.
 
-Use it before claiming that this fork is behind or before proposing an upstream/donor import:
-
-- inspect the latest bounded scan artifact and stable report issue;
-- re-fetch the exact candidate and current local `main`;
-- confirm module mapping and active-task overlap;
-- treat issues as signals and exact ancestry as ancestry only;
-- record a reviewed decision pinned to the exact candidate revision;
-- create a normal bounded task only after proving a current local gap.
-
-The watcher never cherry-picks, creates implementation branches or writes to watched repositories.
+Use it before claiming that this fork is behind or before proposing an upstream/donor import. Confirm the exact candidate and current local `main`, module mapping and active-task overlap. The watcher never cherry-picks, creates implementation branches or writes to watched repositories.
 
 ## Autonomous programs
 
-Create a record from `templates/PROGRAM.md` under `programs/` when one autonomous agent or ChatGPT chat will deliver many related tasks or PRs over time. Examples include quest audits, Cyclopedia, Wheel of Destiny, OTBM tooling, upstream maintenance, runtime architecture, and the universal E2E platform.
+Create a record from `templates/PROGRAM.md` under `programs/` when one autonomous agent or ChatGPT chat will deliver many related tasks or PRs over time. A program may own a long-lived area, but exact edit rights always belong to individual active task records. One active task still means one branch, one worktree, and one PR.
 
-A program may own a long-lived area, but exact edit rights always belong to individual active task records. One active task still means one branch, one worktree, and one PR.
-
-For modules with multiple Real Tibia parity findings, use `programs/REAL_TIBIA_PARITY_PROGRAM.md`, `REAL_TIBIA_PARITY_PLAYBOOK.md`, and the registry record. Do not create one broad task such as “complete the whole module”; create one independently testable task and PR per bounded package.
+For modules with multiple Real Tibia parity findings, use the global parity program/playbook/registry and create one independently testable task and PR per bounded package.
 
 ## Required lifecycle
 
 ### Start
 
-- inspect open PRs, all active task records, and the relevant program record;
-- search the Real Tibia module registry, module catalogue and repository for reusable work;
-- run `python tools/agents/task_ownership.py` and `python tools/agents/real_tibia_registry.py validate` when a local checkout is available;
+- load the lean startup context and select routes;
+- search active task records and open PRs only for overlapping paths/modules/identifiers/contracts;
+- search the module catalogue and repository for reusable work;
+- run `python tools/agents/task_ownership.py` and `python tools/agents/real_tibia_registry.py validate` when applicable and a local checkout is available;
 - create a task record from `templates/TASK.md` or the bounded parity task template;
-- use structured ownership claims for new tasks:
-  - `exclusive` for paths this task may edit;
-  - `shared` for narrow coordinated edits;
-  - `read_only` for dependencies the task must not edit;
+- use structured ownership claims for new tasks: `exclusive`, `shared`, and `read_only`;
 - publish the branch and draft PR early.
 
 Legacy flat `owned_paths` lists remain readable during migration. They are shown as `legacy_exclusive` and produce overlap warnings, but only new structured `exclusive` claims are hard-blocked by default. Use `--strict-legacy` for a full migration audit.
 
 ### During work
 
-- update the task after discoveries, failures, decisions, tests, and review feedback;
+- maintain the compact `## Context checkpoint` defined by `CONTEXT_HANDOFF.md` after material discoveries, failures, decisions, patches, validation changes, review feedback, head changes, and before context exhaustion;
 - keep the program queue and handoff current when the result changes the long-lived plan;
 - keep module registry metadata current when scope, relationships, linked documents, maturity or freshness conclusions change;
 - regenerate derived Real Tibia indexes instead of editing them manually;
-- keep the PR body current;
+- keep the PR body current when externally visible status changes;
 - rerun ownership validation before claiming additional files;
 - update the module catalogue with new or changed reusable interfaces;
-- link dependencies and cross-repository tasks.
+- link dependencies and cross-repository tasks;
+- when context pressure appears, stop broad exploration and follow `CONTEXT_HANDOFF.md` instead of trying to carry the entire conversation forward.
 
 ### Finish
 
