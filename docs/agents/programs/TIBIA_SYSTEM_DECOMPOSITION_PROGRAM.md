@@ -4,8 +4,8 @@ name: Tibia System Decomposition
 status: active
 owner: repository-wide
 created: 2026-07-14T15:43:00+02:00
-updated: 2026-07-15T13:36:22+02:00
-last_verified_commit: "81fe5417345c64098e8bb4fd25b27ba234a8406e"
+updated: 2026-07-15T13:55:00+02:00
+last_verified_commit: "10d4bf63cf356a3cf912cbc8717854e6a6fd2895"
 primary_paths:
   - docs/agents/real-tibia/**
   - docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md
@@ -60,8 +60,8 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | `TSD-009` | social, communication and trust | completed | PR #370/#371; registry 52 → 56 | preserve archive |
 | `TSD-010` | protocol and client | completed | PR #372/#373; registry 56 → 60 | preserve archive |
 | `TSD-011` | analytics, security and AI | completed | PR #374/#376; registry 60 → 61 | preserve archive |
-| `TSD-012` | validation and live operations | completed | PR #377; merge `81fe5417345c64098e8bb4fd25b27ba234a8406e`; registry 61 → 62 | preserve archive |
-| `TSD-013` | Oteryn migration classification | next | completed inventories/proof packages | classify modules; do not copy code or create another registry |
+| `TSD-012` | validation and live operations | completed | PR #377/#378; registry 61 → 62 | preserve archive |
+| `TSD-013` | Oteryn migration classification | active | PR #379; registry remains 62 | validate global REVALIDATE disposition, exact-head/ready CI, merge and archive |
 
 # Completed delivery evidence
 
@@ -80,37 +80,47 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | TSD-009 | `8425845f79d161cb2cd6aab2276aeb39c3616c3e` | `381cc076fa35e138292197f751f26c2e7b89dd08` | 52 → 56 |
 | TSD-010 | `9a5f2ee0f1ed95c306876e868109f28848f0ae66` | `c67c84749ffd1de04983be9ae9841b6ca5756aed` | 56 → 60 |
 | TSD-011 | `dd85d8f886b3e76ec9cc3d3e24c3cb0f7607181c` | `145929ec7f438dc492d4b618a386a4418953d7ec` | 60 → 61 |
-| TSD-012 | `81fe5417345c64098e8bb4fd25b27ba234a8406e` | lifecycle PR live metadata | 61 → 62 |
+| TSD-012 | `81fe5417345c64098e8bb4fd25b27ba234a8406e` | `10d4bf63cf356a3cf912cbc8717854e6a6fd2895` | 61 → 62 |
 
-# TSD-012 completion evidence
+# Current active package — TSD-013
 
-- Feature PR #377, final head `54617c8d1bdbfe61dc7404269ba79332e169c6ca`.
-- Squash merge `81fe5417345c64098e8bb4fd25b27ba234a8406e` at `2026-07-15T11:36:22Z`.
-- Registry 61 → 62; added only `deployment-operations`; existing records modified 0.
-- Implementation/generated-index head checks: Registry #428, Upstream #464, Ownership #1289 and CI #2412 — success.
-- Final-head checks: Registry #430, Upstream #466, Ownership #1291 and CI #2414 — success.
-- Ready-state CI #2415: Fast Checks, Lua Tests, Linux release and Required — success.
-- Canonical `otbm-tooling`, `physical-client-e2e` and `upstream-intelligence` records remained unchanged.
-- Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-validation-live-operations.md`.
+Task: `CAN-20260714-tibia-system-decomposition-oteryn-migration-classification`; draft PR #379.
 
-No completed package evidence establishes production deployment safety, operator correctness, rollback availability, supervisor integration, validator correctness, physical-client E2E completeness, upstream semantic equivalence, Real Tibia parity or Oteryn readiness.
+Registry remains **62 → 62**. No records or generated indexes are changed.
+
+Classification checkpoint:
+
+```text
+ALL_CANONICAL_MODULES -> REVALIDATE
+```
+
+This is one rule over the canonical registry, not a duplicated per-module migration registry.
+
+Rationale:
+
+- `cross_repo_contracts` remains empty; no explicit Oteryn target architecture contract is registered in this program;
+- Canary implementation/evidence maturity is source-side evidence, not target compatibility proof;
+- no module is approved for direct copy or port-as-is;
+- no module is declared Oteryn-ready;
+- no module receives a rewrite/drop disposition without a target architecture decision;
+- any future stronger disposition must re-read the then-current canonical registry and compare it with an explicit Oteryn target contract.
+
+Detailed evidence: `docs/agents/real-tibia/TSD_013_OTERYN_MIGRATION_CLASSIFICATION_REPORT.md`.
 
 # Oteryn migration policy
 
-The legacy repository remains the evidence laboratory. No code is copied to Oteryn by this program. Classification defaults to undecided or `REVALIDATE` until inventory, evidence, runtime proof and E2E proof exist.
+The legacy repository remains the evidence laboratory. No code is copied to Oteryn by this program. At this checkpoint every canonical module remains `REVALIDATE` until a future bounded task has an explicit Oteryn architecture contract plus module-appropriate target evidence.
 
-# Exact next operational task
+# Program close condition
 
-After the separate lifecycle PR for TSD-012 passes exact-head review, ready-state Linux/Required and squash merge, re-read then-current `main` and create only:
+After PR #379 passes exact-head review, ready-state Linux/Required, squash merge and a separate lifecycle archive:
 
-```text
-task: CAN-20260714-tibia-system-decomposition-oteryn-migration-classification
-package: TSD-013
-branch: docs/tibia-system-decomposition-oteryn-migration-classification
-```
-
-Classify the completed registry inventory for Oteryn migration using existing proof metadata and explicit conservative outcomes. Do not copy code, create another registry or claim readiness from inventory alone.
+- TSD-001 through TSD-013 are completed;
+- the canonical registry remains at 62 records;
+- no code has been copied to Oteryn;
+- no Oteryn readiness claim has been made;
+- any future Oteryn migration work requires a new bounded task/program with explicit target architecture and contracts.
 
 # Handoff
 
-Continue one task, branch and PR at a time. Re-read current main, open PRs, active tasks and ownership before every package. Preserve all proof limits and never infer behavioral correctness from inventory paths or passing CI.
+Continue one task, branch and PR at a time. Re-read current main, open PRs, active tasks and ownership before every package. Preserve all proof limits and never infer behavioral correctness or migration readiness from inventory paths or passing CI.
