@@ -4,8 +4,8 @@ name: Tibia System Decomposition
 status: active
 owner: repository-wide
 created: 2026-07-14T15:43:00+02:00
-updated: 2026-07-15T13:25:00+02:00
-last_verified_commit: "da7a609b35dd25beb86c8a03eda2344daefb77f3"
+updated: 2026-07-15T13:36:22+02:00
+last_verified_commit: "81fe5417345c64098e8bb4fd25b27ba234a8406e"
 primary_paths:
   - docs/agents/real-tibia/**
   - docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md
@@ -60,7 +60,7 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | `TSD-009` | social, communication and trust | completed | PR #370/#371; registry 52 → 56 | preserve archive |
 | `TSD-010` | protocol and client | completed | PR #372/#373; registry 56 → 60 | preserve archive |
 | `TSD-011` | analytics, security and AI | completed | PR #374/#376; registry 60 → 61 | preserve archive |
-| `TSD-012` | validation and live operations | active | PR #377; implementation head `da7a609b35dd25beb86c8a03eda2344daefb77f3`; registry 61 → 62 | finish final exact-head/ready CI, squash merge and lifecycle archive |
+| `TSD-012` | validation and live operations | completed | PR #377; merge `81fe5417345c64098e8bb4fd25b27ba234a8406e`; registry 61 → 62 | preserve archive |
 | `TSD-013` | Oteryn migration classification | next | completed inventories/proof packages | classify modules; do not copy code or create another registry |
 
 # Completed delivery evidence
@@ -80,40 +80,18 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | TSD-009 | `8425845f79d161cb2cd6aab2276aeb39c3616c3e` | `381cc076fa35e138292197f751f26c2e7b89dd08` | 52 → 56 |
 | TSD-010 | `9a5f2ee0f1ed95c306876e868109f28848f0ae66` | `c67c84749ffd1de04983be9ae9841b6ca5756aed` | 56 → 60 |
 | TSD-011 | `dd85d8f886b3e76ec9cc3d3e24c3cb0f7607181c` | `145929ec7f438dc492d4b618a386a4418953d7ec` | 60 → 61 |
+| TSD-012 | `81fe5417345c64098e8bb4fd25b27ba234a8406e` | lifecycle PR live metadata | 61 → 62 |
 
-# Current active package — TSD-012
+# TSD-012 completion evidence
 
-Task: `CAN-20260714-tibia-system-decomposition-validation-live-operations`; draft PR #377.
-
-Registry 61 → 62. Added only:
-
-```text
-deployment-operations
-```
-
-Existing records modified: 0. Canonical `otbm-tooling`, `physical-client-e2e`, `upstream-intelligence`, the Real Tibia registry/generator/mapper and all existing gameplay/validation records remain stable.
-
-Classification:
-
-- existing Canary staging/deployment release/switch/rollback/manifest/smoke lifecycle → `deployment-operations`;
-- World Index, mechanic audit, script resolution, reachability, spawn/NPC, storage graph, semantic diff, geometry audit and factual rendering remain `otbm-tooling` capabilities;
-- universal physical-client execution remains `physical-client-e2e`;
-- source watching and source-role-aware mapping remain `upstream-intelligence`;
-- UI-001A remains an Upstream Intelligence prerequisite, not a separate UI module;
-- generic validation platform and duplicate deployment/E2E/watcher/parser/renderer systems remain rejected.
-
-Implementation/generated-index head `da7a609b35dd25beb86c8a03eda2344daefb77f3` passed:
-
-- Real Tibia Module Registry #428;
-- Upstream Intelligence #464;
-- Agent Task Ownership #1289;
-- repository CI #2412;
-- focused registry regression tests;
-- registry schema/contracts and dependency graph validation;
-- deterministic `generate --check`;
-- discovery and affected-module commands.
-
-Detailed evidence: `docs/agents/real-tibia/TSD_012_VALIDATION_LIVE_OPERATIONS_REPORT.md`.
+- Feature PR #377, final head `54617c8d1bdbfe61dc7404269ba79332e169c6ca`.
+- Squash merge `81fe5417345c64098e8bb4fd25b27ba234a8406e` at `2026-07-15T11:36:22Z`.
+- Registry 61 → 62; added only `deployment-operations`; existing records modified 0.
+- Implementation/generated-index head checks: Registry #428, Upstream #464, Ownership #1289 and CI #2412 — success.
+- Final-head checks: Registry #430, Upstream #466, Ownership #1291 and CI #2414 — success.
+- Ready-state CI #2415: Fast Checks, Lua Tests, Linux release and Required — success.
+- Canonical `otbm-tooling`, `physical-client-e2e` and `upstream-intelligence` records remained unchanged.
+- Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-validation-live-operations.md`.
 
 No completed package evidence establishes production deployment safety, operator correctness, rollback availability, supervisor integration, validator correctness, physical-client E2E completeness, upstream semantic equivalence, Real Tibia parity or Oteryn readiness.
 
@@ -123,7 +101,7 @@ The legacy repository remains the evidence laboratory. No code is copied to Oter
 
 # Exact next operational task
 
-After PR #377 passes final exact-head review, ready-state Linux/Required, squash merge and a separate lifecycle archive, re-read then-current `main` and create only:
+After the separate lifecycle PR for TSD-012 passes exact-head review, ready-state Linux/Required and squash merge, re-read then-current `main` and create only:
 
 ```text
 task: CAN-20260714-tibia-system-decomposition-oteryn-migration-classification
