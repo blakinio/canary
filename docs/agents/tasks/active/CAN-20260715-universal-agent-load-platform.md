@@ -1,13 +1,14 @@
 ---
 task_id: CAN-20260715-universal-agent-load-platform
 program_id: CAN-PROGRAM-E2E-PLATFORM
-status: implementing
+coordination_id: ""
+status: blocked
 agent: chatgpt-e2e-platform
 branch: feat/universal-agent-load-platform-v2
 base_branch: main
 created: 2026-07-15T15:40:00+02:00
-updated: 2026-07-15T19:21:26+02:00
-last_verified_commit: f5cff58fa01d70cd7b67ac403f3d1eea3a78829a
+updated: 2026-07-15T21:37:34Z
+last_verified_commit: d6b9073017bf40dde21ed43242b96a73d1f1bb95
 risk: medium
 related_issue: ""
 related_pr: "393"
@@ -54,118 +55,158 @@ cross_repo_tasks: []
 
 # Goal
 
-Add one reusable, deterministic and loopback-only load/stress layer beside the merged physical-client E2E platform. The first bounded capability exercises Canary's real TCP status protocol at controlled concurrency, collects latency/throughput/error and Canary CPU/RSS evidence, and preserves the existing real-OTClient `login/relog` scenario as the correctness sentinel.
-
-This task does **not** claim to simulate authenticated gameplay players. It provides status/transport/control-plane regression and bounded capacity evidence without spawning hundreds of graphical OTClient processes.
+Add a reusable loopback-only load/stress layer beside the merged physical-client E2E platform, while preserving the existing real-OTClient login/relog scenario as the correctness sentinel.
 
 # Acceptance criteria
 
-- [x] Standard-library Python load runner sends the structurally correct Canary `status-xml` request over real TCP.
-- [x] Targets are restricted to literal loopback addresses.
-- [x] JSON profiles support bounded `load` and multi-stage `stress` modes.
-- [x] Results include attempts, successes, failures, error rate, throughput, connect/round-trip P50/P95/P99/max, bytes and error breakdown.
-- [x] Optional local Canary PID sampling reports peak RSS and process CPU percentage.
-- [x] Gating `status-smoke` plus larger load/stress profiles exist.
-- [x] Runtime adapter reuses `.github/scripts/smoke_test_canary.py` lifecycle helpers.
-- [ ] Dedicated exact-head GitHub Actions load workflow passes on the replacement PR current head.
-- [ ] Concurrent `ProtocolStatus` status queries remain crash-free on the replacement PR current head.
-- [ ] Existing Universal Agent E2E `login/relog` passes unchanged on the replacement PR current head.
-- [ ] Focused Python tests, bytecode compilation, repository CI and ownership pass on the current head.
-- [x] No OTClient source change, upstream write, production target, binary map/client asset or gameplay behavior change.
+- [x] Loopback-only status protocol runner and bounded profiles exist.
+- [x] Runtime adapter reuses existing Canary smoke lifecycle helpers.
+- [x] Focused runner tests exist.
+- [x] No OTClient source change or upstream write.
+- [ ] Current-main CI, ownership, load workflow and physical E2E pass.
+- [ ] Autonomous merge gate satisfied.
 
-# Proven protocol contract
+# Confirmed context
 
-`ServicePort::make_protocol()` consumes the first body byte as the service `PROTOCOL_IDENTIFIER`. `ProtocolStatus::onRecvFirstMessage()` then consumes the protocol opcode and reads four raw bytes `info`.
+- Repository write target: `blakinio/canary` only.
+- Active PR: #393.
+- Active branch: `feat/universal-agent-load-platform-v2`.
+- Verified PR head before this checkpoint-only update: `d6b9073017bf40dde21ed43242b96a73d1f1bb95`.
+- Current main: `264a86b1eddf5f68666281c47489166f343c3e84`.
+- The branch is 11 commits ahead and 11 commits behind current main; merge base is `6b613b886092b7face057507d4dd903c39cd5e1b`.
+- PR #384 is closed without merge and is historical evidence only.
+- This execution environment has no local Git worktree. Local `git status`, local branch/HEAD, and uncommitted paths outside GitHub are therefore not inspectable here.
 
-Canonical framed request:
+# Ownership and overlap check
 
-```text
-06 00 FF FF 69 6E 66 6F
-```
+- Agent Task Ownership #1403 passed on `d6b9073017bf40dde21ed43242b96a73d1f1bb95`.
+- Narrow open-PR search for `ProtocolStatus` returned only PR #393.
+- No ownership overlap is proven on the verified PR head.
+- Ownership against current main is not yet revalidated because the branch is 11 commits behind.
 
-The first `FF` selects `ProtocolStatus`; the second `FF` selects XML info inside `ProtocolStatus`.
+# Current state
 
-# Evidence-backed runtime repair
+PR #393 is open and mergeable. The latest CI associated with the verified PR head is red: CI #2536 failed in the Linux release global datapack smoke. Artifact evidence shows Gameplay Analytics load-order errors in global datapack startup. Those files are not part of PR #393's changed-file list. Earlier Universal Agent Load #19, Universal Agent E2E #61, Agent Task Ownership #1403 and CI #2534 succeeded on the verified PR head, but those results do not establish the current-main merge gate.
 
-Historical implementation work in superseded PR #384 produced a valid concurrent status run that exposed a real Canary `SIGSEGV`. The concrete shared state was process-wide `ProtocolStatus::ipConnectMap`, reached from network I/O callbacks without synchronization. The bounded repair serializes the existing throttle lookup/update critical section. It does not disable, relax or change throttle semantics.
+# Plan
 
-Synthetic load profiles use distinct `127/8` source addresses so normal per-IP status throttles remain active. This is a loopback-only test technique and is not exposed as a production-target load tool.
+1. Merge current `main@264a86b1eddf5f68666281c47489166f343c3e84` into `feat/universal-agent-load-platform-v2` with a normal non-force update.
 
-# Replacement history
+# Validation and CI
 
-- Original implementation PR #384 accumulated 29 commits while `main` advanced through unrelated agent-context work.
-- `main` reached `6b613b886092b7face057507d4dd903c39cd5e1b`; the only overlapping content path was `docs/agents/CHANGELOG.md`, producing a merge conflict and preventing a current merge-ref gate cycle.
-- Published history was not force-rewritten because repository policy forbids plain force push.
-- This replacement branch starts exactly from `main@6b613b886092b7face057507d4dd903c39cd5e1b` and reapplies only the bounded verified implementation.
+| Commit | Check | Result | Evidence |
+|---|---|---|---|
+| `d6b9073017bf40dde21ed43242b96a73d1f1bb95` | Agent Task Ownership #1403 | passed | run `29436191279` |
+| `d6b9073017bf40dde21ed43242b96a73d1f1bb95` | Universal Agent Load #19 | passed | run `29436191575` |
+| `d6b9073017bf40dde21ed43242b96a73d1f1bb95` | Universal Agent E2E #61 | passed | run `29436191526` |
+| `d6b9073017bf40dde21ed43242b96a73d1f1bb95` | CI #2534 | passed | run `29436191580` |
+| `d6b9073017bf40dde21ed43242b96a73d1f1bb95` | CI #2536 | failed | run `29438916481`; Linux release job `87432830073`, global datapack smoke |
 
-# Historical evidence retained from PR #384
+# Failed approaches and dead ends
 
-Verified old feature head `e6d59275201f746453c3db8943e09a2703a741e5`:
+- Do not reopen or merge superseded PR #384.
+- Do not force-rewrite published history to refresh the branch.
+- Do not weaken status throttles or physical E2E checks to obtain green CI.
+- Rejected: load workflow is failing on the verified PR head; Universal Agent Load #19 passed.
+- Rejected: physical login/relog is failing on the verified PR head; Universal Agent E2E #61 passed.
+- Rejected: ownership conflict already existed on the verified PR head; Agent Task Ownership #1403 passed.
 
-- CI #2495: pass.
-- Agent Task Ownership #1369: pass.
-- Universal Agent Load #16 (`29430993797`): pass; 100/100 requests, 0 failures, error rate `0.0`, P95 round trip `2.046 ms`, aggregate `5425.422` req/s on that GitHub-hosted runner, no fatal/crash evidence.
-- Universal Agent E2E #58 (`29430996846`): pass with controlled OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`; two real logins, two safe logouts, two packet records, persistence confirmation, final online count `0`, client exit `0`, no fatal runtime logs.
+# Remaining work
 
-Historical metrics are regression evidence only. They are not production capacity claims and do not replace current replacement-PR validation.
-
-# Current plan
-
-1. Reapply the bounded runner, runtime, profiles, focused tests, status-map synchronization, workflow and durable docs on current `main`.
-2. Close PR #384 as superseded and open one clean replacement draft PR.
-3. Set `related_pr` to the replacement PR and perform one final test-only update so current-head CI/load/physical E2E all run on the same head.
-4. Repair only evidence-backed failures.
-5. Review complete diff, comments/reviews/threads and current `main` delta; mark ready and squash-merge only after all gates are green.
-
-# Handoff
-
-Start with this task and the replacement PR. PR #384 is historical evidence only after replacement. Reuse the merged physical E2E platform; do not create a second physical-client orchestrator, modify OTClient for load generation, weaken server throttles to make a benchmark green, or describe status-protocol throughput as logged-in gameplay-player capacity.
+1. Merge current `main@264a86b1eddf5f68666281c47489166f343c3e84` into `feat/universal-agent-load-platform-v2` with a normal non-force update.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-15T17:21:26Z
-head: f5cff58fa01d70cd7b67ac403f3d1eea3a78829a
+updated_at: 2026-07-15T21:37:34Z
+head: d6b9073017bf40dde21ed43242b96a73d1f1bb95
 branch: feat/universal-agent-load-platform-v2
 pr: 393
-status: implementing
+status: blocked
 context_routes:
-  - docs/agents/TASK_LIFECYCLE.md
-  - docs/agents/CONTEXT_HANDOFF.md
+  - agent-governance
+  - universal-e2e
+  - cpp-runtime
+  - ci-repair
 owned_paths:
+  - .github/workflows/universal-agent-load.yml
+  - tools/e2e/run_agent_load.py
   - tools/e2e/run_agent_load_runtime.py
+  - tests/e2e/load/**
+  - tests/e2e/test_load_runner.py
+  - src/server/network/protocol/protocolstatus.cpp
   - docs/agents/tasks/active/CAN-20260715-universal-agent-load-platform.md
+  - docs/agents/programs/E2E_AUTOMATION_PROGRAM.md
+  - docs/agents/MODULE_CATALOG.md
+  - docs/agents/CHANGELOG.md
 proven:
-  - PR 393 CI run 2517 passed on head 1820a6ef97f4ec00c5a3ac9523d517b00f2f5f52.
-  - Universal Agent Load run 17 failed because initialize_database received an argparse Namespace without skip_database_init.
-  - Agent Task Ownership run 1390 failed because this changed active task lacked a Context checkpoint section.
-  - tools/e2e/run_agent_load_runtime.py now declares --skip-database-init with the smoke helper compatible default false behavior.
+  - Repository write target is exactly blakinio/canary.
+  - Live PR 393 is open and mergeable with branch feat/universal-agent-load-platform-v2 at d6b9073017bf40dde21ed43242b96a73d1f1bb95 before this checkpoint-only update.
+  - Current main is 264a86b1eddf5f68666281c47489166f343c3e84.
+  - Comparing main to d6b9073017bf40dde21ed43242b96a73d1f1bb95 reports ahead_by 11, behind_by 11 and merge base 6b613b886092b7face057507d4dd903c39cd5e1b.
+  - PR 393 has exactly nine changed paths.
+  - Agent Task Ownership run 1403 passed on d6b9073017bf40dde21ed43242b96a73d1f1bb95.
+  - Universal Agent Load run 19 and Universal Agent E2E run 61 passed with d6b9073017bf40dde21ed43242b96a73d1f1bb95 associated with those runs.
+  - Latest CI run 2536 associated with d6b9073017bf40dde21ed43242b96a73d1f1bb95 failed in Linux release global datapack smoke.
+  - CI 2536 runtime-smoke artifact shows GameplayAnalytics load-order errors; those Gameplay Analytics files are not in PR 393 changed paths.
+  - Narrow open-PR search for ProtocolStatus returned only PR 393.
+  - This execution environment has no local Git worktree; local git status and uncommitted paths outside GitHub are not inspectable here.
 derived:
-  - The two observed current-head blockers can be repaired without changing the physical E2E orchestrator or ProtocolStatus throttle semantics.
+  - The latest CI failure is not yet proven to be caused by PR 393 implementation because it occurs outside the PR changed paths and the branch is 11 commits behind current main.
+  - Earlier green load, E2E and ownership results do not satisfy a current-main merge gate after main advanced.
 unknown:
-  - Current-head results after the two blocker repairs.
-  - Final result of Universal Agent E2E run 59 or its replacement run on the repaired head.
+  - Local working-tree status and any uncommitted paths in a checkout unavailable to this session.
+  - Whether integrating current main resolves, preserves or changes the global datapack smoke failure.
+  - Whether ownership remains conflict-free after integrating current main.
+  - Current-main merge-ref results for CI, Universal Agent Load and Universal Agent E2E.
 conflicts: []
 first_failure:
-  marker: Universal Agent Load / Run exact-head loopback load profile
-  evidence: run 29434516961 job 87419272626 reported Namespace object has no attribute skip_database_init
+  marker: CI 2536 / Build - Linux / Compile (linux-release) / Smoke test Global datapack runtime
+  evidence: Run 29438916481 job 87432830073; artifact linux-linux-release-runtime-smoke-logs id 8352824026 contains GameplayAnalytics must be loaded before gameplay_analytics_* errors.
 rejected_hypotheses:
-  - Load runner unit tests are broken: Validate load platform passed in Universal Agent Load run 17.
+  - Load workflow is failing on d6b9073017bf40dde21ed43242b96a73d1f1bb95: Universal Agent Load run 19 passed.
+  - Physical login/relog is failing on d6b9073017bf40dde21ed43242b96a73d1f1bb95: Universal Agent E2E run 61 passed.
+  - Ownership conflict was present on d6b9073017bf40dde21ed43242b96a73d1f1bb95: Agent Task Ownership run 1403 passed.
+  - Current CI is fully green: latest CI run 2536 failed.
 changed_paths:
-  - tools/e2e/run_agent_load_runtime.py
+  - .github/workflows/universal-agent-load.yml
   - docs/agents/tasks/active/CAN-20260715-universal-agent-load-platform.md
+  - src/server/network/protocol/protocolstatus.cpp
+  - tests/e2e/load/status-load.json
+  - tests/e2e/load/status-smoke.json
+  - tests/e2e/load/status-stress.json
+  - tests/e2e/test_load_runner.py
+  - tools/e2e/run_agent_load.py
+  - tools/e2e/run_agent_load_runtime.py
 validation:
-  - command: CI run 2517
+  - command: Agent Task Ownership run 1403
     result: PASS
-    evidence: GitHub Actions run 29434517022 on previous PR head 1820a6ef97f4ec00c5a3ac9523d517b00f2f5f52
-  - command: Universal Agent Load run 17
+    evidence: GitHub Actions run 29436191279 on head d6b9073017bf40dde21ed43242b96a73d1f1bb95.
+  - command: Universal Agent Load run 19
+    result: PASS
+    evidence: GitHub Actions run 29436191575 associated with head d6b9073017bf40dde21ed43242b96a73d1f1bb95.
+  - command: Universal Agent E2E run 61
+    result: PASS
+    evidence: GitHub Actions run 29436191526 associated with head d6b9073017bf40dde21ed43242b96a73d1f1bb95.
+  - command: CI run 2536
     result: FAIL
-    evidence: runtime adapter missing skip_database_init argument
-  - command: Agent Task Ownership run 1390
-    result: FAIL
-    evidence: changed active task missing required Context checkpoint
+    evidence: GitHub Actions run 29438916481; Linux release global datapack smoke failed.
 blockers:
-  - Re-run current-head PR checks after checkpoint commit and inspect any remaining evidence-backed failures.
-next_action: Verify PR 393 current head checks and repair only the next first failing gate if one remains.
+  - Branch is 11 commits behind current main and latest CI is red; current-main gates have not been re-established.
+next_action: Merge current main@264a86b1eddf5f68666281c47489166f343c3e84 into feat/universal-agent-load-platform-v2 with a normal non-force update so PR 393 gets a current-main merge ref.
 ```
+
+# Handoff
+
+## Start here
+
+Read root `AGENTS.md`, `docs/agents/CONTEXT_HANDOFF.md`, `docs/agents/CONTEXT_ROUTING.md`, this checkpoint, and live PR #393. Verify live branch/head/main before changing state.
+
+## Do not repeat
+
+- Do not create a competing task, branch, or PR.
+- Do not reopen PR #384.
+- Do not use old chat history as evidence.
+- Do not modify OTClient or create a second physical E2E orchestrator.
+- Do not repair unrelated Gameplay Analytics code before refreshing the PR against current main and re-running gates.
