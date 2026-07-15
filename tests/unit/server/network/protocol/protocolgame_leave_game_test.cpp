@@ -28,7 +28,7 @@ namespace {
 		asio::io_service ioService;
 		Connection_ptr connection = ConnectionManager::getInstance().createConnection(ioService, nullptr);
 		ProtocolGame_ptr protocol = std::make_shared<ProtocolGame>(connection);
-		std::shared_ptr<Player> player = std::make_shared<Player>(protocol);
+		std::shared_ptr<Player> player = std::make_shared<Player>();
 
 		LeaveGameFixture() {
 			connection->attachProtocolForTest(protocol);
