@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: docs/tibia-system-decomposition-analytics-security-ai
 base_branch: main
 created: 2026-07-15T11:45:00+02:00
-updated: 2026-07-15T11:45:00+02:00
-last_verified_commit: "c67c84749ffd1de04983be9ae9841b6ca5756aed"
+updated: 2026-07-15T11:55:00+02:00
+last_verified_commit: "99928c9a0c9bfce9d4fe873ad44f5a5c296995d0"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "374"
 depends_on:
   - completed and archived TSD-010
 blocks:
@@ -69,43 +69,55 @@ Complete bounded TSD-011 analytics, security and AI inventory without implementi
 - `ACTIVE_WORK.md` remains read-only.
 - Writable repository is only `blakinio/canary`; upstream repositories remain read-only.
 
-# Evidence baseline
+# Delivered implementation inventory
 
-Current source/documentation establishes one independent durable analytics root:
+Registry records: 60 → 61. Added only:
 
-- optional Gameplay Analytics runtime under `data-otservbr-global/scripts/**`;
-- bounded session telemetry lifecycle with queues, retry/dead-letter behavior and optional persistence;
-- deterministic dry-run validators/test harnesses under `tools/analytics/**`;
-- dedicated dry-run workflow and reporting/maintenance documentation.
+- `gameplay-analytics`.
 
-Existing security roots remain already covered:
+Existing records modified: 0. `account-authentication`, `sanctions`, `protocol`, `upstream-intelligence`, `otbm-tooling`, `physical-client-e2e`, validation/audit tooling and all gameplay records remain unchanged.
 
-- password verification, login session tokens and cryptographic password handling → `account-authentication`;
-- connection throttling plus account/IP/namelock sanctions → `sanctions`.
+# Boundary decision
 
-AI/validation roots under `tools/ai-agent/**` remain reusable validation tooling for TSD-012. This task must not create a generic AI platform module or duplicate OTBM/validation tooling.
+- optional Gameplay Analytics telemetry session/queue/retry/dead-letter/dry-run/reporting lifecycle → `gameplay-analytics`;
+- password/session-token security remains `account-authentication`;
+- throttling and account/IP/namelock restrictions remain `sanctions`;
+- `security-analytics` remains deferred and unimplemented;
+- `chat-safety-intelligence` remains deferred and unimplemented;
+- `ai-investigation` remains deferred and unimplemented;
+- generic `ai-agent-tooling` remains deferred because it would duplicate heterogeneous validators/OTBM tooling and preempt TSD-012;
+- existing `otbm-tooling`, `upstream-intelligence` and `physical-client-e2e` remain unchanged.
 
-# Candidate classification under review
+Detailed evidence: `docs/agents/real-tibia/TSD_011_ANALYTICS_SECURITY_AI_REPORT.md`.
 
-- `gameplay-analytics` — candidate `ADD_NOW`;
-- `authentication-security` — `ALREADY_COVERED` by `account-authentication`;
-- `sanction-security` — `ALREADY_COVERED` by `sanctions`;
-- `security-analytics` — `DEFER`, planned system explicitly forbidden;
-- `chat-safety-intelligence` — `DEFER`, planned system explicitly forbidden;
-- `ai-investigation` — `DEFER`, planned system explicitly forbidden;
-- generic `ai-agent-tooling` / validator family — defer to TSD-012 and reuse existing tooling rather than creating a duplicate umbrella.
+# Validation state
+
+Implementation/generated-index head `99928c9a0c9bfce9d4fe873ad44f5a5c296995d0` passed:
+
+- Real Tibia Module Registry #409: success;
+- Upstream Intelligence #445: success;
+- Agent Task Ownership #1273: success;
+- repository CI #2395: success;
+- focused registry/source-role tests: success;
+- registry schema/contracts and dependency graph validation: success;
+- deterministic `generate --check`: success;
+- discovery and affected-module commands: success.
+
+The earlier final-doc attempt on `27194fc95a5034705a8667fa1bb148c43955c730` exposed missing generated `MODULE_PATH_INDEX.md` and `STALE_MODULES.md`; both were repaired without changing module scope or runtime behavior.
+
+This task-record and program update are documentation-only after the validated implementation head. Final current-head checks and ready-state Linux/Required remain mandatory before squash merge.
 
 # Acceptance criteria
 
-- [ ] Add only independently supported analysis records.
-- [ ] Preserve authentication, sanctions and existing platform-tooling records unchanged.
-- [ ] Explicitly defer all forbidden planned security/AI systems.
-- [ ] Keep generic validation/OTBM/E2E tooling for TSD-012 rather than duplicating it here.
-- [ ] Use verified narrow paths and conservative maturity.
-- [ ] Regenerate deterministic indexes through the existing generator contract.
-- [ ] Add focused registry and source-role mapping tests.
-- [ ] Pass exact-head registry/UI/ownership/repository CI and ready-state Linux/Required.
-- [ ] Make no runtime, gameplay, analytics implementation, security implementation, AI implementation, client, DB, map, OTBM, datapack, asset, workflow or E2E implementation change.
+- [x] Add only independently supported analysis records.
+- [x] Preserve authentication, sanctions and existing platform-tooling records unchanged.
+- [x] Explicitly defer all forbidden planned security/AI systems.
+- [x] Keep generic validation/OTBM/E2E tooling for TSD-012 rather than duplicating it here.
+- [x] Use verified narrow paths and conservative maturity.
+- [x] Regenerate deterministic indexes through the existing generator contract.
+- [x] Add focused registry and source-role mapping tests.
+- [ ] Pass final exact-head registry/UI/ownership/repository CI and ready-state Linux/Required.
+- [x] Make no runtime, gameplay, analytics implementation, security implementation, AI implementation, client, DB, map, OTBM, datapack, asset, workflow or E2E implementation change.
 
 # Safety limits
 
