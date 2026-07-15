@@ -17,8 +17,11 @@
 #include "creatures/players/stash_definitions.hpp"
 
 #ifndef USE_PRECOMPILED_HEADERS
+	#include <atomic>
+	#include <functional>
 	#include <optional>
 	#include <string>
+	#include <string_view>
 #endif
 
 enum class PlayerIcon : uint8_t;
@@ -84,6 +87,15 @@ using HistoryMarketOfferList = std::list<HistoryMarketOffer>;
 using StashItemList = std::map<uint16_t, uint32_t>;
 using HouseMap = std::map<uint32_t, std::shared_ptr<House>>;
 
+enum class ClientLeaveGameState : uint8_t {
+	None,
+	Queued,
+	Dispatching,
+	Completed,
+	Denied,
+	Rejected,
+};
+
 struct TextMessage {
 	TextMessage() = default;
 	TextMessage(MessageClasses initType, std::string initText) :
@@ -128,6 +140,16 @@ public:
 		return protocolProfile;
 	}
 
+#ifdef BUILD_TESTS
+	void attachPlayerForLeaveGameTest(const std::shared_ptr<Player> &testPlayer);
+	void setLeaveGameRemoveCreatureForTest(std::function<bool(const std::shared_ptr<Player> &)> callback);
+	void setLeaveGameDeniedForTest(bool denied);
+	[[nodiscard]] ClientLeaveGameState getClientLeaveGameStateForTest() const;
+	[[nodiscard]] uint32_t getClientLeaveParseCountForTest() const;
+	[[nodiscard]] uint32_t getClientLeaveRemoveCountForTest() const;
+	[[nodiscard]] uint32_t getClientLeaveReleaseCountForTest() const;
+#endif
+
 private:
 	ProtocolGame_ptr getThis() {
 		return std::static_pointer_cast<ProtocolGame>(shared_from_this());
@@ -139,7 +161,12 @@ private:
 	[[nodiscard]] bool isSessionEnding() const;
 	void clearReusableSessionHints();
 
+	bool queueClientLeaveGame() override;
+	void dispatchClientLeaveGame(NetworkMessage &msg) override;
+	void releaseFromConnection() override;
 	void release() override;
+	void setClientLeaveGameState(ClientLeaveGameState state, std::string_view reason);
+	[[nodiscard]] bool executeClientLeaveGame(const std::shared_ptr<Player> &expectedPlayer, bool displayEffect, bool forced);
 
 	void checkCreatureAsKnown(uint32_t id, bool &known, uint32_t &removedKnown);
 
@@ -612,6 +639,17 @@ private:
 
 	std::unordered_set<uint32_t> knownCreatureSet;
 	std::shared_ptr<Player> player = nullptr;
+	std::shared_ptr<Player> clientLeaveGamePlayer = nullptr;
+	std::atomic<ClientLeaveGameState> clientLeaveGameState = ClientLeaveGameState::None;
+	std::atomic_bool clientLeaveReleaseCompleted = false;
+
+#ifdef BUILD_TESTS
+	std::function<bool(const std::shared_ptr<Player> &)> leaveGameRemoveCreatureForTest;
+	bool leaveGameDeniedForTest = false;
+	std::atomic_uint32_t clientLeaveParseCountForTest = 0;
+	std::atomic_uint32_t clientLeaveRemoveCountForTest = 0;
+	std::atomic_uint32_t clientLeaveReleaseCountForTest = 0;
+#endif
 
 	uint32_t eventConnect = 0;
 	uint32_t challengeTimestamp = 0;
