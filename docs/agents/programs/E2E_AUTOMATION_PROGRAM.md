@@ -4,15 +4,14 @@ name: Universal OTS E2E automation
 status: active
 owner: e2e-platform-agent
 created: 2026-07-13T00:00:00+02:00
-updated: 2026-07-13T00:30:00+02:00
-last_verified_commit: 97639776bb37c4f9aa1fa301cf43e7693a03a735
+updated: 2026-07-15T16:50:00+02:00
+last_verified_commit: 3eeb3a77f9be9dc6b509ba286c37c4381a793c3b
 primary_paths:
   - tools/e2e/**
-  - tests/e2e/runtime/**
-  - tests/e2e/client/**
+  - tests/e2e/**
 shared_integration_paths:
-  - .github/workflows/*e2e*.yml
-  - tests/e2e/scenario_registry.*
+  - .github/workflows/universal-agent-e2e.yml
+  - .github/workflows/universal-agent-load.yml
 related_programs:
   - CAN-PROGRAM-CYCLOPEDIA
   - CAN-PROGRAM-QUEST-AUDIT
@@ -24,177 +23,149 @@ cross_repo_contracts:
 
 # Mission
 
-Build one reusable, disposable environment in which autonomous agents can run real Canary and a real OTClient, execute feature-specific scenarios, verify protocol and database effects, collect evidence, and clean up without touching production systems.
+Maintain one reusable, disposable validation platform in which autonomous agents can run real Canary, a controlled real OTClient when correctness requires it, and bounded lightweight load generators when capacity/regression evidence requires scale.
 
-Cyclopedia is the first prototype consumer. It is not the owner of the common platform.
+The platform must collect machine-readable evidence and clean up without touching production systems. Feature programs consume the common platform; they do not own or duplicate it.
 
-# Confirmed existing foundations
+# Current platform state
+
+The physical-client foundation is merged through PR #245 and provides:
+
+- validated JSON scenario discovery and resolution;
+- exact-head Canary execution against a disposable database;
+- one controlled pinned OTClient process;
+- real login, stable world entry, safe logout and same-process relog;
+- packet records, SQL state, screenshots, client/server logs and machine-readable result artifacts;
+- a `login/relog` compatibility baseline that every generic platform change must preserve.
+
+PR #384 adds a separate load/stress layer for inexpensive concurrency evidence without spawning hundreds of graphical clients. The first supported protocol is Canary `status-xml` over real TCP.
+
+These layers have different proof scopes:
+
+- **Physical E2E** proves real maintained-client compatibility and end-to-end lifecycle behavior.
+- **Load/stress** proves bounded server transport/status-path behavior and performance under synthetic concurrent requests.
+- A load result is **not** evidence for authenticated gameplay-player capacity unless the profile actually implements and proves the full authenticated gameplay lifecycle.
+
+# Reusable foundations
 
 The repository already contains reusable pieces that must be extended rather than replaced:
 
-- `docker/docker-compose.yml` starts the database, Canary, MyAAC, and login server with the global datapack contract;
-- `.github/scripts/docker-quickstart-smoke.sh` already performs startup, health, login-server, diagnostics, and cleanup checks;
-- `docker/data/01-test_account.sql` and `docker/data/02-test_account_players.sql` provide deterministic test accounts and characters;
-- the main CI publishes Canary build artifacts and runs global datapack smoke checks;
-- `blakinio/otclient` is the maintained user-owned client repository and must be the controlled client source for permanent cross-repository work;
-- draft PR #224 is the first live Canary + MySQL + OTClient/Xvfb experiment and must be treated as prototype evidence, not copied into every feature suite.
+- `.github/scripts/smoke_test_canary.py` owns the reusable disposable database/config/map/server lifecycle used by the load runtime adapter;
+- `tools/e2e/run_agent_e2e.py` resolves physical E2E scenarios;
+- `tools/e2e/run_physical_e2e.sh` owns the real Canary + OTClient physical orchestration;
+- `tools/e2e/run_agent_load.py` owns bounded loopback load/stress profile execution and metrics;
+- `tools/e2e/run_agent_load_runtime.py` starts exact-head Canary through the existing smoke lifecycle and executes one load profile;
+- `.github/workflows/universal-agent-e2e.yml` is the canonical physical-client workflow;
+- `.github/workflows/universal-agent-load.yml` is the canonical exact-head load workflow;
+- deterministic test accounts/characters remain under `docker/data/**`;
+- controlled OTClient source remains user-owned and revision-pinned; upstream OpenTibiaBR repositories stay read-only.
 
 # Platform responsibility
 
 The E2E platform owns reusable infrastructure for:
 
-- disposable MariaDB/MySQL bootstrap, schema import, fixture loading, snapshots, and teardown;
-- Canary artifact resolution or local build, isolated configuration, startup, readiness, and shutdown;
-- global datapack and map acquisition with hashes and no committed binary assets;
-- OTClient artifact resolution or build from a pinned user-owned revision;
-- temporary client assets installation with integrity evidence;
-- Xvfb or another approved virtual display;
-- deterministic account, character, world, host, port, and version configuration;
-- login, logout, relog, timeout, crash, and cleanup handling;
-- a stable Lua scenario API and generic scenario runner;
-- SQL assertions, protocol-event assertions, screenshots, logs, traces, and machine-readable results;
-- one-command local execution and reusable GitHub Actions execution.
+- disposable MariaDB/MySQL bootstrap, schema import, fixture loading and teardown;
+- Canary artifact resolution or local build, isolated configuration, startup, readiness and shutdown;
+- map/client asset acquisition with hashes and no committed binary assets;
+- controlled OTClient artifact resolution or build from a pinned user-owned revision;
+- deterministic account, character, host, port and version configuration;
+- login, logout, relog, timeout, crash and cleanup handling;
+- stable scenario/profile APIs and generic runners;
+- SQL assertions, protocol-event assertions, screenshots, logs, traces and machine-readable results;
+- bounded load/stress profiles with explicit gate policy and latency/throughput/error metrics;
+- optional exact-process CPU/RSS sampling for local Canary;
+- local-safe execution and reusable GitHub Actions execution.
 
-The platform must not encode feature-specific expected gameplay values.
+The platform must not encode feature-specific gameplay values or call a transport/status benchmark a gameplay-player benchmark.
 
-# Feature-suite responsibility
+# Physical scenario contract
 
-Feature programs own only their own scenario definitions, fixtures, and assertions. Planned suite roots include:
-
-- `tests/e2e/scenarios/login/**`
-- `tests/e2e/scenarios/cyclopedia/**`
-- `tests/e2e/scenarios/quests/**`
-- `tests/e2e/scenarios/wheel/**`
-- `tests/e2e/scenarios/forge/**`
-- `tests/e2e/scenarios/market/**`
-- `tests/e2e/scenarios/npc/**`
-- `tests/e2e/scenarios/combat/**`
-- `tests/e2e/scenarios/instances/**`
-- `tests/e2e/scenarios/protocol/**`
-
-A feature task consumes platform code as read-only unless a separate platform task explicitly owns a required common-interface change.
-
-# Ownership examples
-
-## Platform task
-
-```yaml
-program_id: CAN-PROGRAM-E2E-PLATFORM
-owned_paths:
-  exclusive:
-    - tools/e2e/**
-    - tests/e2e/runtime/**
-    - tests/e2e/client/**
-  shared:
-    - .github/workflows/universal-e2e.yml
-    - tests/e2e/scenario_registry.*
-  read_only:
-    - tests/e2e/scenarios/**
-```
-
-## Feature scenario task
-
-```yaml
-program_id: CAN-PROGRAM-QUEST-AUDIT
-owned_paths:
-  exclusive:
-    - tests/e2e/scenarios/quests/**
-  shared:
-    - tests/e2e/scenario_registry.*
-  read_only:
-    - tools/e2e/**
-    - tests/e2e/runtime/**
-    - tests/e2e/client/**
-depends_on:
-  - CAN-E2E-PLATFORM-BOOTSTRAP
-```
-
-# Stable scenario contract
-
-Each scenario must define:
+Each physical scenario must define:
 
 - unique scenario ID and owning program;
 - required server/client versions and capabilities;
 - database and character fixture requirements;
-- setup steps that are safe to repeat;
+- repeat-safe setup steps;
 - client actions or protocol requests;
-- observable server, client, UI, and SQL assertions;
+- observable server, client, UI and SQL assertions;
 - relog or persistence checks when relevant;
 - timeout and failure markers;
 - artifacts to retain;
 - cleanup requirements;
 - paths the feature task may and may not edit.
 
-Use `docs/agents/templates/E2E_SCENARIO.md` when adding a suite.
+Feature programs own their scenario definitions, fixtures and assertions. Generic orchestration changes require a separate platform task.
+
+# Load/stress contract
+
+The canonical load runner is `tools/e2e/run_agent_load.py`.
+
+A load profile must declare:
+
+- schema version, stable profile ID and `load` or `stress` mode;
+- supported protocol (`status-xml` in the current implementation);
+- a literal loopback target only;
+- gate policy and process-sampling interval;
+- source-IP strategy;
+- one or more bounded stages with request count, concurrency, timeout and explicit thresholds.
+
+Current bundled profiles use `source_ip_strategy: unique-loopback-v4`. Each logical client binds to a distinct address in `127/8`. This keeps traffic local while allowing the server's normal per-IP anti-abuse and status-query throttles to remain unchanged. The harness must never disable or weaken those production policies merely to make a benchmark green.
+
+The result contract includes:
+
+- attempts, successes, failures and error rate;
+- throughput;
+- bytes received;
+- connect and round-trip P50/P95/P99/max latency;
+- error breakdown;
+- per-stage threshold evaluation;
+- optional Canary PID, sampled peak RSS and CPU percentage.
+
+CI runner numbers are regression evidence for the exact runner/environment and are not absolute capacity claims.
+
+# Evidence-backed runtime repair
+
+The first concurrent real `status-xml` run exposed a Canary `SIGSEGV` in the status path. `ProtocolStatus::ipConnectMap` is process-wide mutable state reached from multiple network I/O threads. PR #384 serializes the existing throttle check/update critical section without changing throttle policy.
+
+The follow-up real run then proved that the server's separate `Ban::acceptConnection()` anti-flood rule intentionally admits only a small rapid burst per source IP. The load harness therefore uses distinct loopback source identities instead of modifying the server limiter.
 
 # Interface-change rule
 
 When a feature needs a new generic capability:
 
-1. the feature task records the missing capability and proposed interface;
-2. a separate E2E-platform task claims and implements the reusable capability;
-3. the platform PR adds generic focused tests;
-4. the feature PR consumes the stable interface without copying orchestration;
-5. `depends_on` and `blocks` record merge order;
-6. Canary/OTClient changes use a shared coordination ID and the cross-repository contract rules.
-
-# Execution target
-
-The eventual user-facing interface should support commands equivalent to:
-
-```text
-run-e2e --suite login
-run-e2e --suite cyclopedia
-run-e2e --suite quests
-run-e2e --suite wheel
-run-e2e --suite forge
-run-e2e --all
-```
-
-The exact executable name and implementation language remain implementation decisions for the platform task. Agents must derive them from verified repository conventions rather than inventing a second runner.
-
-# Current active prototype
-
-| Task/PR | State | Reusable evidence | Required treatment |
-|---|---|---|---|
-| PR #224 `test/cyclopedia-live-e2e` | draft; live workflow currently under repair | MySQL service, Canary/global-map setup, OTClient/Xvfb automation, relog, protocol assertions, SQL checks, evidence artifacts | Extract common orchestration into the platform; keep Cyclopedia requests and assertions in its suite; do not merge copied feature-specific infrastructure as the final architecture. |
-
-# Ordered queue
-
-1. Merge the coordination and ownership contract in PR #222.
-2. Repair the live prototype sufficiently to record the first complete physical-client run.
-3. Extract common setup, artifact resolution, lifecycle, diagnostics, and result format into one platform task.
-4. Convert Cyclopedia logic into the first feature suite.
-5. Add a minimal login/relog baseline suite that every platform change must pass.
-6. Add quest, Wheel, Forge, and other suites through separate feature-owned tasks.
-7. Add local one-command execution after the CI contract is stable.
+1. record the missing capability and proposed interface in the feature task;
+2. create a bounded E2E-platform task with explicit ownership;
+3. extend the existing runner/orchestrator rather than copying it;
+4. add focused tests and real workflow evidence;
+5. keep feature-specific expected values in the feature suite;
+6. preserve the physical `login/relog` sentinel for generic platform/runtime changes;
+7. use the cross-repository coordination contract for any controlled-client change.
 
 # Safety invariants
 
-- no production credentials, database, host, or irreversible external action;
-- no committed Tibia assets, downloaded OTBM files, database dumps, or secrets;
-- every run uses a unique disposable environment and always attempts cleanup;
-- external binaries and assets are pinned or hash-recorded;
-- failures retain enough evidence to diagnose the exact phase;
+- no production credentials, database, host or irreversible external action;
+- load targets are literal loopback addresses only;
+- no committed Tibia assets, downloaded OTBM files, database dumps or secrets;
+- every run uses a disposable environment and attempts cleanup;
+- external binaries/assets are pinned or hash-recorded;
+- failures retain phase-specific machine-readable evidence;
 - feature PRs never silently modify shared platform lifecycle behavior;
-- platform PRs treat all registered feature suites as compatibility inputs;
-- no E2E success claim without a verified real workflow result on the current commit.
+- no OTClient source modification to make a Canary test pass;
+- no artificial relog delays, retries or multi-process workaround for the physical baseline;
+- no E2E/load success claim without a verified real workflow result on the relevant head.
 
 # Handoff
 
 ## Start here
 
-Read `AGENTS.md`, `docs/agents/README.md`, this program record, active E2E task records, PR #224, Docker quickstart smoke, and the current Canary/OTClient artifact contracts.
+Read `AGENTS.md`, `docs/agents/README.md`, this program record, the current active E2E task, archived `CAN-20260713-universal-agent-e2e-platform`, `tools/e2e/run_agent_e2e.py`, `tools/e2e/run_physical_e2e.sh`, `tools/e2e/run_agent_load.py`, `tools/e2e/run_agent_load_runtime.py`, and the two universal E2E/load workflows.
 
 ## Do not repeat
 
+- Do not create a second physical-client E2E orchestrator.
 - Do not create one complete workflow per feature.
-- Do not use `opentibiabr/otclient` as a writable target.
+- Do not use upstream OpenTibiaBR repositories as writable targets.
 - Do not commit client assets or map binaries.
-- Do not replace existing quickstart lifecycle logic without recording why it cannot be reused.
-
-## Open questions
-
-- Whether the first canonical database target should reuse MariaDB 11.4 quickstart or introduce a deliberate MariaDB/MySQL matrix.
-- Which exact OTClient artifact layout is stable enough to become the resolver contract.
-- Whether scenario automation should remain injected through `otclientrc.lua` or use a dedicated test module in `blakinio/otclient`.
+- Do not replace the existing smoke lifecycle without evidence it cannot be reused.
+- Do not weaken server anti-abuse limits to make a local load test pass.
+- Do not describe status-protocol concurrency as logged-in gameplay-player capacity.
