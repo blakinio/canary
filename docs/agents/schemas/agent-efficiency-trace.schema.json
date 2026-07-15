@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/agents/schemas/agent-efficiency-trace.schema.json",
+  "title": "Canary Agent Efficiency Trace",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "cohort",
+    "mode",
+    "started_at",
+    "ended_at",
+    "handoff_attempted",
+    "handoff_success",
+    "events"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "cohort": {
+      "type": "string",
+      "enum": ["baseline", "routed", "custom"]
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["CHAT", "CODEX", "WORK"]
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ended_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "handoff_attempted": {
+      "type": "boolean"
+    },
+    "handoff_success": {
+      "type": ["boolean", "null"]
+    },
+    "events": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ts", "type"],
+        "properties": {
+          "ts": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "file_read",
+              "tool_call",
+              "action",
+              "context_expand",
+              "optional_context_load",
+              "handoff"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "tool": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "result": {
+            "type": "string",
+            "enum": ["success", "failure", "blocked", "unknown"]
+          }
+        }
+      }
+    }
+  }
+}
