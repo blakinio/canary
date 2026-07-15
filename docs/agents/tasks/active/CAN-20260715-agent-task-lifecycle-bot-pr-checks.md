@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: fix/agent-task-lifecycle-bot-pr-checks
 base_branch: main
 created: 2026-07-15T17:00:00Z
-updated: 2026-07-15T17:00:00Z
-last_verified_commit: "783481f84aaaa24c683bdfeb43ff617a57a3a6e3"
+updated: 2026-07-15T17:02:00Z
+last_verified_commit: "c20be06509503a4ba895b15c82368e781bdec4ce"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "394"
 depends_on:
   - CAN-20260715-agent-task-lifecycle-automation
 blocks:
@@ -53,25 +53,26 @@ Repair the first production ACO-002 lifecycle cleanup so PRs created by the repo
 - The new post-merge workflow created cleanup PR #392 from trusted `main` with one changed task record.
 - On cleanup head `e61f6691e5bdd4440f3a00b3ca26493658ba5511`, both `Agent Task Ownership` #1389 and `CI` #2516 concluded `action_required`.
 - Therefore ordinary PR-triggered checks are not sufficient for cleanup PRs created by the repository automation token.
+- PR #392 is closed without merge and replaced by repair PR #394.
 
 # Acceptance criteria
 
-- [ ] ACO-002 task is archived and removed from active ownership in this repair PR.
+- [x] ACO-002 task is archived and removed from active ownership in this repair PR.
 - [ ] Bot-generated cleanup PRs explicitly dispatch Agent Task Ownership and CI against their exact cleanup branch after creation.
 - [ ] Auto-merge remains enabled only after dispatch; branch protection remains authoritative.
 - [ ] Workflow still checks out trusted default branch and never the merged feature head.
 - [ ] Cleanup dispatch is bounded to the newly created cleanup branch/PR.
 - [ ] Documentation records the `GITHUB_TOKEN` recursion/check-trigger limitation and explicit dispatch behavior.
-- [ ] Focused/current repository checks pass and repair PR merges.
+- [ ] Current-head and ready-state checks pass and repair PR merges.
 
 # Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-15T17:00:00Z
-head: UNKNOWN
+updated_at: 2026-07-15T17:02:00Z
+head: c20be06509503a4ba895b15c82368e781bdec4ce
 branch: fix/agent-task-lifecycle-bot-pr-checks
-pr: none
+pr: 394
 status: implementing
 context_routes:
   - agent-governance
@@ -87,6 +88,7 @@ proven:
   - PR 392 changes exactly one lifecycle task record
   - PR 392 head workflows Agent Task Ownership 1389 and CI 2516 concluded action_required
   - ACO-002 active task has been archived on this repair branch
+  - PR 392 was closed without merge and repair continues in PR 394
 derived:
   - cleanup automation must explicitly request trusted workflow_dispatch runs for its own bot-created PR head
 unknown:
@@ -108,13 +110,13 @@ validation:
     evidence: both required workflow runs concluded action_required
 blockers:
   - explicit-dispatch repair not implemented yet
-next_action: Open the repair PR, bind this task to it, update the lifecycle workflow to dispatch required workflows on the cleanup branch, and verify current-head CI.
+next_action: Update the lifecycle workflow to dispatch Agent Task Ownership and CI on the exact cleanup branch before enabling auto-merge, then verify PR 394 current-head CI.
 ```
 
 # Completion
 
 - Final status: implementing
-- PR: pending
+- PR: #394
 - Merge commit: pending
 - Program record updated: pending
 - Archived at: pending via repaired lifecycle automation
