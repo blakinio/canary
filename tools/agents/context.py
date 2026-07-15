@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import fnmatch
 import json
+import re
 from dataclasses import asdict
 from pathlib import Path
 from typing import Iterable
@@ -12,7 +13,16 @@ import checkpoint
 import execution_mode
 import task_ownership
 
-DEFAULT_CONFIG = Path("docs/agents/CONTEXT_ROUTES.json")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_CONFIG = REPO_ROOT / "docs/agents/CONTEXT_ROUTES.json"
+CHECKPOINT_MISSING_WARNING = (
+    "CHECKPOINT_MISSING — evidence bundle partially derived from task frontmatter; "
+    "verify live Git/PR state before continuing."
+)
+RECOVERY_NEXT_ACTION = (
+    "Reconstruct and write a valid ## Context checkpoint from current Git, PR and task "
+    "evidence before substantive implementation."
+)
 
 
 def _dedupe(values: Iterable[str]) -> list[str]:
@@ -23,19 +33,62 @@ def _bounded(values: Iterable[str], limit: int) -> list[str]:
     return _dedupe(values)[: max(0, limit)]
 
 
+def _resolve_repo_path(path: Path) -> Path:
+    if path.is_absolute():
+        return path
+    return REPO_ROOT / path
+
+
+def _display_path(path: Path) -> str:
+    try:
+        return path.resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def normalize_pr_reference(value: object) -> str:
+    raw = str(value or "").strip()
+    if not raw or raw.casefold() in {"none", "unknown", "n/a"}:
+        return ""
+
+    if raw.isdigit():
+        return raw
+    if raw.startswith("#") and raw[1:].isdigit():
+        return raw[1:]
+
+    url_match = re.search(r"/pull/(\d+)/?$", raw)
+    if url_match:
+        return url_match.group(1)
+
+    repo_match = re.search(r"#(\d+)$", raw)
+    if repo_match:
+        return repo_match.group(1)
+
+    return raw
+
+
+def _format_pr_required_read(pr_reference: str) -> str:
+    if pr_reference.isdigit():
+        return f"PR #{pr_reference}"
+    return f"PR {pr_reference}"
+
+
 def _matches_path(path: str, pattern: str) -> bool:
     normalized = path.replace("\\", "/").lstrip("./")
     return fnmatch.fnmatchcase(normalized, pattern)
 
 
 def load_config(path: Path = DEFAULT_CONFIG) -> dict[str, object]:
-    data = json.loads(path.read_text(encoding="utf-8"))
+    resolved = _resolve_repo_path(path)
+    data = json.loads(resolved.read_text(encoding="utf-8"))
     if data.get("schema_version") != 1:
-        raise ValueError(f"{path}: unsupported schema_version {data.get('schema_version')!r}")
+        raise ValueError(
+            f"{resolved}: unsupported schema_version {data.get('schema_version')!r}"
+        )
     if not isinstance(data.get("routes"), dict):
-        raise ValueError(f"{path}: routes must be an object")
+        raise ValueError(f"{resolved}: routes must be an object")
     if not isinstance(data.get("core_reads"), list):
-        raise ValueError(f"{path}: core_reads must be a list")
+        raise ValueError(f"{resolved}: core_reads must be a list")
     return data
 
 
@@ -79,11 +132,6 @@ def infer_routes(
             selected.append(route_name)
 
     return _dedupe(selected), _dedupe(unknown_explicit)
-
-
-def _checkpoint_data(task_path: Path) -> dict[str, object]:
-    parsed = checkpoint.parse_task_checkpoint(task_path)
-    return parsed.data if parsed is not None else {}
 
 
 def _front_matter(task_path: Path) -> dict[str, object]:
@@ -152,7 +200,7 @@ def build_evidence_bundle(
     return {
         "head": str(checkpoint_data.get("head", "UNKNOWN")),
         "branch": str(checkpoint_data.get("branch", "UNKNOWN")),
-        "pr": str(checkpoint_data.get("pr", "none")),
+        "pr": normalize_pr_reference(checkpoint_data.get("pr", "")) or "none",
         "status": str(checkpoint_data.get("status", "UNKNOWN")),
         "proven": list_value("proven", "max_proven", 12),
         "unknown": list_value("unknown", "max_unknown", 8),
@@ -163,6 +211,19 @@ def build_evidence_bundle(
         "blockers": list_value("blockers", "max_blockers", 6),
         "next_action": str(checkpoint_data.get("next_action", "UNKNOWN")),
     }
+
+
+def _legacy_evidence_fallback(
+    evidence: dict[str, object],
+    *,
+    front_matter: dict[str, object],
+    pr_reference: str,
+) -> None:
+    evidence["head"] = str(front_matter.get("last_verified_commit", "")).strip() or "UNKNOWN"
+    evidence["branch"] = str(front_matter.get("branch", "")).strip() or "UNKNOWN"
+    evidence["pr"] = pr_reference or "none"
+    evidence["status"] = str(front_matter.get("status", "")).strip() or "UNKNOWN"
+    evidence["next_action"] = RECOVERY_NEXT_ACTION
 
 
 def resolve_context(
@@ -179,9 +240,14 @@ def resolve_context(
     github_only: bool = False,
     budget_policy: str | None = None,
 ) -> dict[str, object]:
-    config = load_config(config_path)
-    cp = _checkpoint_data(task_path)
-    front = _front_matter(task_path)
+    resolved_task_path = _resolve_repo_path(task_path)
+    resolved_config_path = _resolve_repo_path(config_path)
+    config = load_config(resolved_config_path)
+
+    parsed_checkpoint = checkpoint.parse_task_checkpoint(resolved_task_path)
+    checkpoint_present = parsed_checkpoint is not None
+    cp = parsed_checkpoint.data if parsed_checkpoint is not None else {}
+    front = _front_matter(resolved_task_path)
 
     cp_routes = cp.get("context_routes", [])
     if not isinstance(cp_routes, list):
@@ -210,11 +276,14 @@ def resolve_context(
     required, search_first, optional = _route_context(config, selected_routes)
     limits = _limits(config)
 
+    checkpoint_pr = normalize_pr_reference(cp.get("pr", ""))
+    frontmatter_pr = normalize_pr_reference(front.get("related_pr", ""))
+    pr_reference = checkpoint_pr or frontmatter_pr
+
     core_reads = [str(value) for value in config.get("core_reads", [])]
-    core_reads.append(task_path.as_posix())
-    related_pr = str(front.get("related_pr", "")).strip()
-    if related_pr:
-        core_reads.append(f"PR #{related_pr}")
+    core_reads.append(_display_path(resolved_task_path))
+    if pr_reference:
+        core_reads.append(_format_pr_required_read(pr_reference))
 
     required_reads = _bounded(
         core_reads + required,
@@ -244,17 +313,30 @@ def resolve_context(
         budget_policy=selected_budget_policy,
     )
 
+    evidence_bundle = build_evidence_bundle(cp, limits=limits)
+    evidence_bundle["pr"] = pr_reference or "none"
+    warnings: list[str] = []
+    if not checkpoint_present:
+        _legacy_evidence_fallback(
+            evidence_bundle,
+            front_matter=front,
+            pr_reference=pr_reference,
+        )
+        warnings.append(CHECKPOINT_MISSING_WARNING)
+
     return {
         "task_id": str(front.get("task_id", "")),
         "program_id": str(front.get("program_id", "")),
-        "task_path": task_path.as_posix(),
+        "task_path": _display_path(resolved_task_path),
+        "checkpoint_present": checkpoint_present,
+        "warnings": warnings,
         "routes": selected_routes,
         "unknown_explicit_routes": unknown_routes,
         "required_reads": required_reads,
         "search_first": search_first_reads,
         "optional_reads": optional_reads,
         "execution_mode": asdict(recommendation),
-        "evidence_bundle": build_evidence_bundle(cp, limits=limits),
+        "evidence_bundle": evidence_bundle,
         "anti_bloat": [
             "Do not load full chat history.",
             "Do not rediscover PROVEN facts unless current Git/PR evidence changed.",
@@ -269,6 +351,8 @@ def _render_text(result: dict[str, object]) -> str:
     lines: list[str] = []
     lines.append(f"TASK: {result.get('task_id', '')}")
     lines.append(f"PROGRAM: {result.get('program_id', '')}")
+    for warning in result.get("warnings", []):
+        lines.append(f"WARNING: {warning}")
     lines.append(f"ROUTES: {', '.join(result.get('routes', [])) or 'none'}")
 
     mode = result.get("execution_mode", {})
