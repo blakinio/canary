@@ -47,7 +47,7 @@ Curated behavior/architecture log for discovery; not a replacement for Git histo
 - PR #145 was closed without merge after historical tutorial MoveEvents were judged broader than the proven current-game contract; no gameplay from that PR landed, while PR #144's evidence classification remains available for semantic review.
 - Gameplay Analytics dry-run audit merged in PR #140: a no-server/no-database workflow now tests lifecycle boundaries and maintenance configuration; it fixed false short-session persistence counters, undercounted non-combat discards, and overflowing `LEVEL_BRACKETS` input.
 - Gameplay Analytics correctness hardening merged in PR #135: UTC day rollover, combat/death persistence eligibility, retention of short death sessions, truthful dead-letter reporting, rune-charge-aware supply costs, configurable maintenance `LEVEL_BRACKETS`, dimension-safe Grafana series, and focused Lua/Python/shell/MariaDB regression coverage.
-- Added persistent multi-agent coordination, autonomous PR/CI/merge rules, active-work discovery, module catalogue, task/handoff templates, ADRs, changelog, and cross-repository contracts.
+- Added persistent multi-agent coordination, autonomous PR/CI/merge rules, active-work discovery, module catalogue, task/handoff templates, ADRs, and cross-repository contracts.
 
 ## 2026-07-12 bootstrap inventory
 
