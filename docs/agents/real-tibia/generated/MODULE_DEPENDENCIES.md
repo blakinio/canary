@@ -14,8 +14,8 @@
 | `build-system` | — | `configuration`, `engine-runtime-lifecycle`, `engine-scheduler`, `engine-service-container`, `lua-bindings`, `lua-runtime` |
 | `character-lifecycle` | `account-authentication`, `player-persistence` | `account-lifecycle`, `character-progression`, `protocol`, `world-persistence` |
 | `character-progression` | `character-lifecycle`, `player-persistence` | `achievements`, `combat`, `prey`, `vocations`, `weapon-proficiency`, `wheel-of-destiny` |
-| `chat-communication` | `character-lifecycle` | `guilds`, `parties`, `protocol` |
 | `charms` | `combat`, `cyclopedia`, `player-persistence`, `protocol` | — |
+| `chat-communication` | `character-lifecycle` | `guilds`, `parties`, `protocol` |
 | `combat` | `player-persistence` | `spells`, `wheel-of-destiny`, `exaltation-forge` |
 | `combat-conditions` | `combat` | `character-progression`, `player-persistence`, `spells`, `vocations`, `weapons` |
 | `configuration` | — | `engine-runtime-lifecycle`, `lua-runtime`, `protocol` |
