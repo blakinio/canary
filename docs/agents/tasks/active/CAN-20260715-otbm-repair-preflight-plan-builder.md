@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-repair-preflight-plan-builder
 base_branch: main
 created: 2026-07-15T23:34:13+02:00
-updated: 2026-07-15T23:50:12+02:00
-last_verified_commit: "5e197326c51df8dc1a201089804f50f9ba5f6eb9"
+updated: 2026-07-15T23:52:24+02:00
+last_verified_commit: "3a117ae7dfc706a1aa9a00971c12f0a391e3afb8"
 risk: medium
 related_issue: ""
-related_pr: "#406"
+related_pr: "406"
 depends_on:
   - "OTBM Phase 8 bounded attribute patcher #325/#333"
   - "Unified OTBM World Index #219"
@@ -100,7 +100,7 @@ Add one deterministic, read-only real-map repair preflight that orchestrates the
 - Program record: none; this is a bounded continuation task under `OTS-OTBM-VALIDATION`.
 - Open PRs inspected: #316 and #393.
 - Active task overlap: PR #316 Targuna donor isolation; no exclusive path overlap. PR #393 is unrelated.
-- Ownership checker result: first PR run reached changed-task checkpoint validation and failed because `related_pr` was still empty after early draft PR #406 was created; metadata is corrected in this commit before the ownership overlap stage reruns.
+- Ownership checker result: first PR run failed because `related_pr` was empty; the next run proved the repository validator expects the normalized value `406` without a `#` prefix. This metadata now matches checkpoint `pr: 406`.
 - Exclusive claims: five new preflight implementation/docs/test/schema paths plus this task record.
 - Shared claims: `MODULE_CATALOG.md`, `CHANGELOG.md` only.
 - Read-only dependencies: all Phase 8 patcher/scanner/resolver contracts and implementation paths.
@@ -113,7 +113,7 @@ PR #406 contains the read-only correlation core, orchestration CLI, report schem
 
 # Plan
 
-1. Re-run current-head Agent Task Ownership after binding this task to PR #406.
+1. Re-run current-head Agent Task Ownership with normalized `related_pr: "406"`.
 2. Inspect AI Agent Tools and OTBM Map Tools results on the resulting head and repair only evidence-backed failures.
 3. Review the full changed-file list/diff, remove any unrelated shared-index drift, update this checkpoint and PR body, then apply the autonomous merge gate.
 
@@ -130,8 +130,15 @@ PR #406 contains the read-only correlation core, orchestration CLI, report schem
 
 - Changed: added correlation core, read-only CLI, report schema, documentation, unit tests, a native-scanner/item-audit/script-resolution integration test, and narrow catalogue/changelog entries.
 - Learned: report/draft output paths require an explicit source-map collision guard even though the tool itself never calls a writer; source and scanner are both pinned and rechecked after analysis.
-- Failed/blocked: Agent Task Ownership run `29453314900` failed at `Validate changed active task checkpoints` because this task still had `related_pr: ""` after PR #406 was created.
-- Result: task metadata is now bound to `#406`; the implementation failure state remains unproven until current-head CI reruns.
+- Failed/blocked: Agent Task Ownership run `29453314900` failed at `Validate changed active task checkpoints` because this task still had an empty `related_pr` after PR #406 was created.
+- Result: task metadata was bound to PR 406 for the next validation run.
+
+## 2026-07-15T23:52:24+02:00
+
+- Changed: normalized frontmatter `related_pr` from `#406` to repository-required value `406`.
+- Learned: Agent Task Ownership run `29453442383` normalizes the checkpoint PR to `406` and requires exact equality with frontmatter, so a leading `#` is invalid.
+- Failed/blocked: run `29453442383` failed only changed-task checkpoint validation on the `#406` versus `406` mismatch; overlap validation did not run.
+- Result: metadata format is corrected for the next current-head ownership run.
 
 # Decisions
 
@@ -159,9 +166,13 @@ PR #406 contains the read-only correlation core, orchestration CLI, report schem
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
 | `5e197326c51df8dc1a201089804f50f9ba5f6eb9` | repository CI | passed | GitHub Actions run `29453315139`. |
-| `5e197326c51df8dc1a201089804f50f9ba5f6eb9` | Agent Task Ownership | failed | Run `29453314900`; changed-task validation: `related_pr '' must match current PR 406`. |
-| `5e197326c51df8dc1a201089804f50f9ba5f6eb9` | AI Agent Tools | in-progress-at-checkpoint | Run `29453314982`; no result claimed yet. |
-| `5e197326c51df8dc1a201089804f50f9ba5f6eb9` | OTBM Map Tools | in-progress-at-checkpoint | Run `29453314939`; no result claimed yet. |
+| `5e197326c51df8dc1a201089804f50f9ba5f6eb9` | AI Agent Tools | passed | Run `29453314982`; `Run unit tests` and all subsequent audit steps succeeded, including the new preflight tests on that code head. |
+| `5e197326c51df8dc1a201089804f50f9ba5f6eb9` | OTBM Map Tools | passed | Run `29453314939`. |
+| `5e197326c51df8dc1a201089804f50f9ba5f6eb9` | Agent Task Ownership | failed | Run `29453314900`; `related_pr` was empty while current PR is 406. |
+| `3a117ae7dfc706a1aa9a00971c12f0a391e3afb8` | repository CI | passed | Run `29453442535`. |
+| `3a117ae7dfc706a1aa9a00971c12f0a391e3afb8` | Agent Task Ownership | failed | Run `29453442383`; frontmatter used `#406` while normalized checkpoint/current PR value is `406`. |
+| `3a117ae7dfc706a1aa9a00971c12f0a391e3afb8` | AI Agent Tools | in-progress-at-checkpoint | Run `29453442414`; no current-head result claimed yet. |
+| `3a117ae7dfc706a1aa9a00971c12f0a391e3afb8` | OTBM Map Tools | in-progress-at-checkpoint | Run `29453442349`; no current-head result claimed yet. |
 
 Never write `passed` without verification on the stated commit.
 
@@ -169,6 +180,7 @@ Never write `passed` without verification on the stated commit.
 
 - Do not add `tilePlacementIndex` to the legacy item-audit contract: exact Phase 8 anchor identity already exists in native `--patch-anchors` output.
 - Do not let a preflight report path reuse the source map: an early CLI review identified that an unconstrained `--output` could otherwise overwrite the source despite the analysis itself being read-only; explicit new-output collision checks were added before publishing the CLI.
+- Do not prefix numeric `related_pr` with `#`: the changed-task validator requires the normalized PR identifier `406` to match checkpoint/current PR identity exactly.
 
 # Risks and compatibility
 
@@ -181,14 +193,14 @@ Never write `passed` without verification on the stated commit.
 
 # Remaining work
 
-1. Verify current-head ownership and focused AI/OTBM checks after the `related_pr` metadata repair.
+1. Verify current-head ownership and focused AI/OTBM checks after the normalized `related_pr` metadata repair.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-15T21:50:12Z
-head: 5e197326c51df8dc1a201089804f50f9ba5f6eb9
+updated_at: 2026-07-15T21:52:24Z
+head: 3a117ae7dfc706a1aa9a00971c12f0a391e3afb8
 branch: feat/otbm-repair-preflight-plan-builder
 pr: 406
 status: validating
@@ -210,16 +222,17 @@ proven:
   - The CLI never invokes the bounded patcher and rejects report/draft paths that collide with the source map.
   - Open PR 316 has no exclusive overlap with the new preflight paths; core OTBM tooling remains read-only there.
   - PR 406 changed-file list contains only the claimed new preflight paths, task record and two declared shared documentation paths.
+  - AI Agent Tools and OTBM Map Tools passed on implementation head 5e197326c51df8dc1a201089804f50f9ba5f6eb9.
 derived:
   - A read-only orchestration/correlation layer closes the repair-investigation gap without a new ADR because the Phase 8 mutation contract is unchanged.
 unknown:
   - Current-head AI Agent Tools result after the metadata repair commit.
   - Current-head OTBM Map Tools result after the metadata repair commit.
-  - Current-head Agent Task Ownership result after `related_pr` is corrected to 406.
+  - Current-head Agent Task Ownership result after related_pr is normalized to 406.
 conflicts: []
 first_failure:
   marker: Agent Task Ownership changed active task checkpoint validation
-  evidence: run 29453314900 artifact CHANGED_TASK_VALIDATION.txt reports related_pr mismatch with PR 406
+  evidence: run 29453314900 artifact CHANGED_TASK_VALIDATION.txt reports initial empty related_pr mismatch with PR 406
 rejected_hypotheses:
   - Extend the legacy item-audit format with patch identity: rejected because native patch-anchor mode already provides the required identity.
   - Add another script resolver for replacement impact: rejected because the existing resolver can run against a hypothetical in-memory item-audit copy.
@@ -236,12 +249,18 @@ validation:
   - command: GitHub open-PR and ownership overlap inspection
     result: PASS
     evidence: PR 316 and PR 393 inspected; no exclusive path overlap found
-  - command: CI run 29453315139
+  - command: AI Agent Tools run 29453314982
     result: PASS
-    evidence: repository CI completed successfully on 5e197326c51df8dc1a201089804f50f9ba5f6eb9
-  - command: Agent Task Ownership run 29453314900
+    evidence: unit tests and all AI Agent Tools steps completed successfully on implementation head 5e197326c51df8dc1a201089804f50f9ba5f6eb9
+  - command: OTBM Map Tools run 29453314939
+    result: PASS
+    evidence: completed successfully on implementation head 5e197326c51df8dc1a201089804f50f9ba5f6eb9
+  - command: CI run 29453442535
+    result: PASS
+    evidence: repository CI completed successfully on 3a117ae7dfc706a1aa9a00971c12f0a391e3afb8
+  - command: Agent Task Ownership run 29453442383
     result: FAIL
-    evidence: related_pr was empty while current PR is 406; corrected by this task-record update
+    evidence: frontmatter related_pr used #406 while checkpoint/current PR normalize to 406; corrected by this update
   - command: local task_ownership.py
     result: BLOCKED
     evidence: no local checkout is exposed in this connector session
