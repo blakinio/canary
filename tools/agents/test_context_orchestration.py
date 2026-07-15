@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -64,6 +66,29 @@ next_action: Run focused unit tests.
 ```
 """
 
+LEGACY_TASK = """---
+task_id: CAN-LEGACY
+program_id: CAN-PROGRAM-E2E-PLATFORM
+status: ready_for_merge
+agent: legacy-agent
+branch: fix/protocolgame-player-session-cleanup
+base_branch: main
+last_verified_commit: "41f8be155c80c29bc51c4c1ead6ad91e7e2159dc"
+related_pr: "blakinio/canary#339"
+owned_paths:
+  exclusive:
+    - src/server/network/protocol/protocolgame.cpp
+---
+
+# Goal
+
+Legacy task without a context checkpoint.
+
+# Handoff
+
+Continue from old prose only.
+"""
+
 
 def write_config(path: Path) -> None:
     path.write_text(
@@ -120,6 +145,24 @@ class CheckpointTests(unittest.TestCase):
             task = Path(tmp) / "task.md"
             task.write_text(VALID_TASK, encoding="utf-8")
             self.assertEqual([], checkpoint.validate_task(task, require_checkpoint=True))
+
+    def test_task_template_checkpoint_skeleton_can_be_filled_and_validated(self) -> None:
+        template_path = context.REPO_ROOT / "docs/agents/templates/TASK.md"
+        block = checkpoint.extract_checkpoint_block(
+            template_path.read_text(encoding="utf-8"),
+            source=template_path,
+        )
+        self.assertIsNotNone(block)
+        assert block is not None
+        filled = block.replace(
+            "status: investigating|implementing|validating|blocked|ready",
+            "status: implementing",
+        ).replace(
+            "result: PASS|FAIL|BLOCKED|NOT_RUN",
+            "result: NOT_RUN",
+        )
+        data = checkpoint.parse_checkpoint_block(filled, source=template_path)
+        self.assertEqual([], checkpoint.validate_checkpoint(data, source=template_path))
 
     def test_duplicate_next_action_is_rejected(self) -> None:
         block = """
@@ -223,6 +266,86 @@ class ContextAndResumeTests(unittest.TestCase):
                 ["ownership tooling exists"],
                 result["evidence_bundle"]["proven"],
             )
+            self.assertEqual("123", result["evidence_bundle"]["pr"])
+            self.assertIn("PR #123", result["required_reads"])
+            self.assertEqual([], result["warnings"])
+
+    def test_checkpointless_legacy_task_uses_explicit_frontmatter_fallback(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            task = root / "legacy-task.md"
+            config = root / "routes.json"
+            task.write_text(LEGACY_TASK, encoding="utf-8")
+            write_config(config)
+
+            result = context.resolve_context(
+                task_path=task,
+                config_path=config,
+                task_text="Continue legacy task",
+                github_only=True,
+            )
+            evidence = result["evidence_bundle"]
+
+            self.assertFalse(result["checkpoint_present"])
+            self.assertEqual(
+                [context.CHECKPOINT_MISSING_WARNING],
+                result["warnings"],
+            )
+            self.assertEqual(
+                "41f8be155c80c29bc51c4c1ead6ad91e7e2159dc",
+                evidence["head"],
+            )
+            self.assertEqual("fix/protocolgame-player-session-cleanup", evidence["branch"])
+            self.assertEqual("339", evidence["pr"])
+            self.assertEqual("ready_for_merge", evidence["status"])
+            self.assertEqual([], evidence["proven"])
+            self.assertEqual([], evidence["unknown"])
+            self.assertEqual([], evidence["conflicts"])
+            self.assertEqual(context.RECOVERY_NEXT_ACTION, evidence["next_action"])
+            self.assertIn("PR #339", result["required_reads"])
+            self.assertNotIn("PR #blakinio/canary#339", result["required_reads"])
+
+            prompt = resume.render_prompt(result)
+            self.assertIn(f"WARNING: {context.CHECKPOINT_MISSING_WARNING}", prompt)
+            self.assertIn("PR: 339", prompt)
+            self.assertIn(f"NEXT_ACTION: {context.RECOVERY_NEXT_ACTION}", prompt)
+
+    def test_pr_reference_normalization(self) -> None:
+        self.assertEqual("339", context.normalize_pr_reference("339"))
+        self.assertEqual("339", context.normalize_pr_reference("#339"))
+        self.assertEqual("339", context.normalize_pr_reference("blakinio/canary#339"))
+        self.assertEqual(
+            "339",
+            context.normalize_pr_reference("https://github.com/blakinio/canary/pull/339"),
+        )
+
+    def test_resume_cli_resolves_repo_relative_paths_from_root_and_tools_directory(self) -> None:
+        script = context.REPO_ROOT / "tools/agents/resume.py"
+        args = [
+            sys.executable,
+            str(script),
+            "--task",
+            "docs/agents/templates/TASK.md",
+            "--task-text",
+            "Review context handoff",
+            "--json",
+        ]
+
+        for cwd in (context.REPO_ROOT, context.REPO_ROOT / "tools/agents"):
+            with self.subTest(cwd=cwd):
+                completed = subprocess.run(
+                    args,
+                    cwd=cwd,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(0, completed.returncode, completed.stderr)
+                payload = json.loads(completed.stdout)
+                self.assertEqual(
+                    "docs/agents/templates/TASK.md",
+                    payload["task_path"],
+                )
 
     def test_resume_prompt_contains_compact_execution_handoff(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
