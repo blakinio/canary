@@ -2,13 +2,13 @@
 task_id: CAN-20260715-context-handoff-repair
 program_id: CAN-PROGRAM-AGENT-ORCHESTRATION
 coordination_id: ""
-status: review
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: fix/context-handoff-repair
 base_branch: main
 created: 2026-07-15T19:32:23Z
-updated: 2026-07-15T19:44:36Z
-last_verified_commit: "24115d4dd51845a41306eefda7fbd1066a91739a"
+updated: 2026-07-15T19:54:17Z
+last_verified_commit: "7dc33c1e51b056f5b64d628f6efe859e4e5a7e69"
 risk: low
 related_issue: ""
 related_pr: "404"
@@ -47,6 +47,7 @@ public_interfaces:
   - repository-root-relative context resolution
   - legacy checkpoint-less resume fallback
 cross_repo_tasks: []
+completed: 2026-07-15T19:54:17Z
 ---
 
 # Goal
@@ -229,3 +230,11 @@ Do not migrate legacy tasks or broaden all-task CI validation in this repair.
 - Catalogue updated: not applicable; no gameplay/runtime module interface
 - Changelog updated: yes
 - Archived at: pending lifecycle cleanup after merge
+
+## Automated lifecycle completion
+
+- Feature PR: #404.
+- Feature head: `b922d19aeb083f55081bf5b06c6cd6af6e2c13df`.
+- Merge commit: `7dc33c1e51b056f5b64d628f6efe859e4e5a7e69`.
+- Merged at: `2026-07-15T19:54:17Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
