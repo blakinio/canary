@@ -32,6 +32,7 @@ Evaluated as of **2026-07-14**.
 | `engine-scheduler` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `engine-service-container` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `exaltation-forge` | 2026-07-14 | 0 | `current` | 30 / 90 |
+| `gameplay-analytics` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `guilds` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `houses` | 2026-07-14 | 0 | `current` | 60 / 180 |
 | `imbuements` | 2026-07-14 | 0 | `current` | 60 / 180 |

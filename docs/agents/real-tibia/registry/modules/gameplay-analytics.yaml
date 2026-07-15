@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "module_id": "gameplay-analytics",
+  "name": "Gameplay Analytics",
+  "category": "platform-tooling",
+  "description": "Optional gameplay telemetry session lifecycle with bounded buffering, optional persistence, deterministic dry-run validation and aggregate reporting discovery.",
+  "lifecycle": {"status": "inventory", "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"},
+  "scope": {
+    "includes": ["optional gameplay analytics runtime configuration and session lifecycle", "combat/context metric collection boundaries", "bounded completed-session queue, retry scheduling and dead-letter handling", "optional database-backed analytics persistence surfaces", "deterministic no-server/no-database dry-run validation", "analytics maintenance and aggregate reporting support"],
+    "excludes": ["gameplay formula correctness", "complete telemetry coverage", "production runtime stability", "privacy or retention policy assurance", "security analytics", "chat safety intelligence", "AI investigation"]
+  },
+  "paths": {
+    "server": [],
+    "client": [],
+    "data": ["data-otservbr-global/scripts/config/gameplay_analytics.lua", "data-otservbr-global/scripts/lib/gameplay_analytics*.lua", "data-otservbr-global/scripts/systems/gameplay_analytics.lua"],
+    "tests": ["tools/analytics/**", ".github/workflows/gameplay-analytics-dry-run.yml"],
+    "docs": ["docs/systems/gameplay-analytics-dry-run.md", "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md", "docs/agents/real-tibia/TSD_011_ANALYTICS_SECURITY_AI_REPORT.md"]
+  },
+  "relationships": {
+    "depends_on": ["lua-runtime"],
+    "interacts_with": ["combat", "database-connection", "parties", "player-persistence", "world-map-runtime"]
+  },
+  "documents": {"program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md", "validation": ["docs/systems/gameplay-analytics-dry-run.md", "docs/agents/real-tibia/TSD_011_ANALYTICS_SECURITY_AI_REPORT.md"]},
+  "source_requirements": [{"source": "canary-current", "mode": "required"}, {"source": "runtime-observation", "mode": "required-when-related"}],
+  "maturity": {"implementation": "inventory", "evidence": "inventory", "persistence": "not-assessed", "protocol": "not-assessed", "automated_tests": "not-assessed", "runtime_validation": "not-assessed", "gameplay_e2e": "not-assessed"},
+  "freshness": {"class": "fast", "last_inventory": "2026-07-14", "warning_after_days": 30, "invalid_after_days": 90, "refresh_before_each_task": true},
+  "notes": ["Existing dry-run and MariaDB-backed tests are inventory evidence only; this decomposition record does not upgrade automated-test, persistence or runtime maturity.", "Gameplay Analytics is disabled by default and its current raw relational model may retain player identifiers; privacy, retention and production-readiness remain separate decisions.", "Planned security-analytics, chat-safety-intelligence and ai-investigation systems remain explicitly outside this module and TSD-011 implementation scope."]
+}

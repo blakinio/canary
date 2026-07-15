@@ -6,6 +6,7 @@
 | Path pattern | Module | Bucket |
 |---|---|---|
 | `.github/workflows/ci.yml` | `build-system` | `tests` |
+| `.github/workflows/gameplay-analytics-dry-run.yml` | `gameplay-analytics` | `tests` |
 | `CMakeLists.txt` | `build-system` | `server` |
 | `CMakePresets.json` | `build-system` | `server` |
 | `cmake/**` | `build-system` | `server` |
@@ -16,10 +17,13 @@
 | `data-otservbr-global/monster/**` | `creature-definitions` | `data` |
 | `data-otservbr-global/npc/**` | `npcs` | `data` |
 | `data-otservbr-global/scripts/achievements/**` | `achievements` | `data` |
+| `data-otservbr-global/scripts/config/gameplay_analytics.lua` | `gameplay-analytics` | `data` |
+| `data-otservbr-global/scripts/lib/gameplay_analytics*.lua` | `gameplay-analytics` | `data` |
 | `data-otservbr-global/scripts/quests/**` | `quests` | `data` |
 | `data-otservbr-global/scripts/raids/**` | `raids` | `data` |
 | `data-otservbr-global/scripts/raids/**` | `spawns` | `data` |
 | `data-otservbr-global/scripts/spells/**` | `spells` | `data` |
+| `data-otservbr-global/scripts/systems/gameplay_analytics.lua` | `gameplay-analytics` | `data` |
 | `data-otservbr-global/world/**` | `spawns` | `data` |
 | `data/**imbu**` | `imbuements` | `data` |
 | `data/XML/vocations.xml` | `vocations` | `data` |
@@ -57,6 +61,7 @@
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-runtime-lifecycle` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-scheduler` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-service-container` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `gameplay-analytics` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `guilds` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `instances` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `item-decay` | `docs` |
@@ -120,6 +125,7 @@
 | `docs/agents/real-tibia/TSD_010_PROTOCOL_CLIENT_REPORT.md` | `network-transport` | `docs` |
 | `docs/agents/real-tibia/TSD_010_PROTOCOL_CLIENT_REPORT.md` | `protocol-compatibility` | `docs` |
 | `docs/agents/real-tibia/TSD_010_PROTOCOL_CLIENT_REPORT.md` | `protocol-session-handoff` | `docs` |
+| `docs/agents/real-tibia/TSD_011_ANALYTICS_SECURITY_AI_REPORT.md` | `gameplay-analytics` | `docs` |
 | `docs/agents/upstream/**` | `upstream-intelligence` | `docs` |
 | `docs/ai-agent/ACHIEVEMENT_POINT_RECONCILIATION.md` | `achievements` | `docs` |
 | `docs/ai-agent/CYCLOPEDIA_VALIDATION_REPORT.md` | `bestiary` | `docs` |
@@ -137,6 +143,7 @@
 | `docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md` | `otbm-tooling` | `docs` |
 | `docs/ai-agent/WEAPON_PROFICIENCY_ACHIEVEMENT_REPORT.md` | `weapon-proficiency` | `docs` |
 | `docs/lua-api/**` | `lua-bindings` | `docs` |
+| `docs/systems/gameplay-analytics-dry-run.md` | `gameplay-analytics` | `docs` |
 | `modules/**` | `protocol` | `client` |
 | `modules/game_cyclopedia/**` | `charms` | `client` |
 | `modules/game_cyclopedia/**` | `cyclopedia` | `client` |
@@ -301,6 +308,7 @@
 | `tools/ai-agent/test_otbm_*.py` | `otbm-tooling` | `tests` |
 | `tools/ai-agent/test_weapon_proficiency_achievement_audit.py` | `weapon-proficiency` | `tests` |
 | `tools/ai-agent/weapon_proficiency_achievement_audit.py` | `weapon-proficiency` | `tests` |
+| `tools/analytics/**` | `gameplay-analytics` | `tests` |
 | `tools/e2e/**` | `physical-client-e2e` | `tests` |
 | `vcpkg.json` | `build-system` | `server` |
 | `vcproj/canary.vcxproj` | `build-system` | `server` |

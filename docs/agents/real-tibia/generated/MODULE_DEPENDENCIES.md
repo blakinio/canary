@@ -30,6 +30,7 @@
 | `engine-scheduler` | — | `engine-runtime-lifecycle`, `engine-service-container` |
 | `engine-service-container` | — | `configuration`, `engine-runtime-lifecycle`, `engine-scheduler`, `lua-runtime` |
 | `exaltation-forge` | `player-persistence`, `protocol` | `combat`, `market` |
+| `gameplay-analytics` | `lua-runtime` | `combat`, `database-connection`, `parties`, `player-persistence`, `world-map-runtime` |
 | `guilds` | `character-lifecycle`, `database-connection` | `chat-communication`, `protocol`, `world-persistence` |
 | `houses` | `otbm-tooling`, `player-persistence` | `cyclopedia`, `protocol` |
 | `imbuements` | `combat`, `player-persistence` | `protocol` |
