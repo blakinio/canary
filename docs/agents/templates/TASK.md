@@ -120,7 +120,48 @@ Never write `passed` without verification on the stated commit.
 
 1. Exact next action.
 
+## Context checkpoint
+
+```yaml
+checkpoint_version: 1
+updated_at: YYYY-MM-DDTHH:MM:SSZ
+head: <commit-sha-or-UNKNOWN>
+branch: <branch>
+pr: <number-or-none>
+status: investigating|implementing|validating|blocked|ready
+context_routes:
+  - <route>
+owned_paths:
+  - <path/glob>
+proven:
+  - <fact backed by source/tool/test evidence>
+derived:
+  - <explicitly derived conclusion>
+unknown:
+  - <unresolved fact>
+conflicts:
+  - <conflicting evidence that still needs resolution>
+first_failure:
+  marker: <first unmet invariant/check or none>
+  evidence: <artifact/log/test reference>
+rejected_hypotheses:
+  - <hypothesis>: <disproving evidence>
+changed_paths:
+  - <path>
+validation:
+  - command: <command/workflow/job>
+    result: PASS|FAIL|BLOCKED|NOT_RUN
+    evidence: <short reference>
+blockers:
+  - <blocker or none>
+next_action: <one concrete next step>
+```
+
+This `## Context checkpoint` is the authoritative machine-readable continuation state. Keep exactly one concrete top-level `next_action` and update the checkpoint after material state changes.
+
 # Handoff
+
+This section is optional human-readable context only. It does not replace or override the authoritative `## Context checkpoint` above.
 
 ## Start here
 
