@@ -64,6 +64,9 @@ class ProfileValidationTests(unittest.TestCase):
         path.write_text(json.dumps(payload), encoding="utf-8")
         return path
 
+    def test_status_request_contains_service_identifier_and_xml_command(self) -> None:
+        self.assertEqual(load.STATUS_REQUEST, b"\x06\x00\xff\xffinfo")
+
     def test_rejects_non_loopback_target(self) -> None:
         payload = profile_payload(7173)
         payload["target"]["host"] = "example.com"
@@ -100,7 +103,7 @@ class RunnerTests(unittest.IsolatedAsyncioTestCase):
                 header = await reader.readexactly(2)
                 body_size = int.from_bytes(header, "little")
                 body = await reader.readexactly(body_size)
-                if body == b"\xffinfo":
+                if body == b"\xff\xffinfo":
                     writer.write(self.response)
                     await writer.drain()
             finally:
