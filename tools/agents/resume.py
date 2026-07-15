@@ -66,6 +66,7 @@ def render_prompt(result: dict[str, object]) -> str:
     required_reads = result.get("required_reads", [])
     search_first = result.get("search_first", [])
     optional_reads = result.get("optional_reads", [])
+    warnings = result.get("warnings", [])
     mode = result.get("execution_mode", {})
     evidence = result.get("evidence_bundle", {})
 
@@ -78,12 +79,18 @@ def render_prompt(result: dict[str, object]) -> str:
         f"Continue task {task_id} from repository state.",
         "Repository writes are allowed only in blakinio/canary.",
         "Do not rely on previous chat history.",
-        "",
-        f"PROGRAM: {program_id or 'none'}",
-        f"RECOMMENDED_MODE: {mode.get('mode', 'CHAT')}",
-        f"BUDGET_POLICY: {mode.get('budget_policy', execution_mode.DEFAULT_BUDGET_POLICY)}",
-        f"MODE_CONFIDENCE: {mode.get('confidence', '')}",
     ]
+    for warning in warnings:
+        lines.append(f"WARNING: {warning}")
+    lines.extend(
+        [
+            "",
+            f"PROGRAM: {program_id or 'none'}",
+            f"RECOMMENDED_MODE: {mode.get('mode', 'CHAT')}",
+            f"BUDGET_POLICY: {mode.get('budget_policy', execution_mode.DEFAULT_BUDGET_POLICY)}",
+            f"MODE_CONFIDENCE: {mode.get('confidence', '')}",
+        ]
+    )
 
     for reason in mode.get("reasons", []):
         lines.append(f"MODE_REASON: {reason}")
