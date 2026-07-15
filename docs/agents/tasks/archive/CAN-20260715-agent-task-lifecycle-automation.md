@@ -2,13 +2,13 @@
 task_id: CAN-20260715-agent-task-lifecycle-automation
 program_id: CAN-PROGRAM-AGENT-ORCHESTRATION
 coordination_id: ""
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/agent-task-lifecycle-automation
 base_branch: main
 created: 2026-07-15T16:30:00Z
-updated: 2026-07-15T16:48:00Z
-last_verified_commit: "31ccd23641fced92d9a54c06da82deac7a6bc9d3"
+updated: 2026-07-15T16:56:37Z
+last_verified_commit: "0d47a18e2cf1e4d81a3c16f85947299bda4afc0e"
 risk: medium
 related_issue: ""
 related_pr: "391"
@@ -47,6 +47,7 @@ public_interfaces:
   - deterministic active-to-archive task lifecycle command
   - post-merge lifecycle automation PR workflow
 cross_repo_tasks: []
+completed: 2026-07-15T16:56:37Z
 ---
 
 # Goal
@@ -165,3 +166,11 @@ next_action: Update the ACO program to ready, review PR 391 exact diff and revie
 - Program record updated: yes
 - Changelog updated: yes
 - Archived at: expected from post-merge lifecycle automation or one-time manual fallback
+
+## Automated lifecycle completion
+
+- Feature PR: #391.
+- Feature head: `2e3271d62b99d1dddbc919ccc7041966a14eb587`.
+- Merge commit: `0d47a18e2cf1e4d81a3c16f85947299bda4afc0e`.
+- Merged at: `2026-07-15T16:56:37Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
