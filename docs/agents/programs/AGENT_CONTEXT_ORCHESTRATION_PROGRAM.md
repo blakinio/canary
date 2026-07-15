@@ -3,7 +3,7 @@ program_id: CAN-PROGRAM-AGENT-ORCHESTRATION
 status: active
 owner: "GPT-5.5 Thinking"
 created: 2026-07-15T16:00:00Z
-updated: 2026-07-15T16:00:00Z
+updated: 2026-07-15T16:10:53Z
 ---
 
 # Agent Context Orchestration Program
@@ -53,16 +53,16 @@ Rules:
 
 | Package | Scope | Status |
 |---|---|---|
-| ACO-001 | Machine routing, checkpoint validation, resume bundles and CHAT/CODEX/WORK budget-aware advisor | implementing |
+| ACO-001 | Machine routing, checkpoint validation, resume bundles and CHAT/CODEX/WORK budget-aware advisor | completed by PR #389 |
 | ACO-002 | Changed-task-aware CI checkpoint enforcement and lifecycle automation | queued |
 | ACO-003 | Agent efficiency evals: files read, repeated reads, tool calls, time-to-first-action, handoff success | queued |
 | ACO-004 | Optional multi-agent supervisor queue for higher-license Codex/worktree execution | queued |
 
-## ACO-001 acceptance boundary
+## ACO-001 result
 
-ACO-001 may add deterministic Python 3.12 standard-library tools under `tools/agents/**`, machine-readable routing configuration, focused tests and narrow agent-governance documentation/CI integration.
+ACO-001 merged in PR #389 as `7d50b58dad10c81d7e414172e965158781f11ce1` and delivered deterministic Python 3.12 standard-library tools under `tools/agents/**`, machine-readable routing configuration, focused tests, and narrow agent-governance documentation/CI integration.
 
-ACO-001 must not:
+The package did not:
 
 - create an unrestricted shell executor;
 - assume access to Codex or Work when unavailable;
@@ -105,9 +105,8 @@ The generated bundle is intentionally bounded. The worker verifies live head/PR/
 
 ## Current task
 
-- ACO-001: `CAN-20260715-agent-context-orchestration-foundation`
-- PR: #389
+No ACO task is active. ACO-002 through ACO-004 remain queued and must each start as a separate bounded task with fresh ownership and overlap checks.
 
 ## Handoff
 
-Continue ACO-001 from its active task checkpoint and PR #389. After ACO-001 merges, archive the task through the normal lifecycle and keep ACO-002+ queued until explicitly started as bounded tasks.
+Use the merged ACO-001 tooling as the foundation for future agent work. Do not reopen ACO-001. Start ACO-002 only when explicitly assigned, create a new active task/branch/PR, and keep ACO-003/ACO-004 queued behind separate bounded decisions.
