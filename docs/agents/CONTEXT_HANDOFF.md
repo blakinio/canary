@@ -80,6 +80,8 @@ next_action: <one concrete next step>
 
 Omit empty historical detail; preserve only what a new agent needs to continue correctly.
 
+The `## Context checkpoint` section is the authoritative machine-readable continuation state. Any additional prose `# Handoff` section is optional human-readable context and must not replace or override the checkpoint.
+
 Validate a checkpoint with:
 
 ```sh
@@ -109,6 +111,8 @@ The continuation prompt should be short. Prefer generating it from repository st
 python tools/agents/resume.py --task <active-task-path> --task-text "<bounded next task>"
 ```
 
+Repository-relative `--task` and `--config` paths are resolved from the repository root, not the caller's current working directory. Absolute paths remain unchanged. The same command therefore works from the repository root and from subdirectories such as `tools/agents/`.
+
 Add capability flags only when they are true, for example:
 
 ```sh
@@ -136,6 +140,20 @@ The new agent must first verify:
 3. PR state and required CI are current;
 4. ownership has not developed a new conflict;
 5. `next_action` is still valid against current evidence.
+
+## Legacy checkpoint-less recovery
+
+Legacy active task records may predate the checkpoint contract. They remain invalid under strict checkpoint validation; `resume.py` does not silently make them compliant.
+
+When no `## Context checkpoint` exists, the context/resume tooling instead provides a bounded recovery prompt:
+
+- emits an explicit `WARNING: CHECKPOINT_MISSING` line;
+- derives only `head`, `branch`, `pr`, and `status` from explicit task frontmatter (`last_verified_commit`, `branch`, normalized `related_pr`, `status`);
+- leaves PROVEN/UNKNOWN/CONFLICT evidence lists empty rather than reconstructing claims from prose;
+- uses one safe recovery `next_action`: reconstruct and write a valid checkpoint from current Git, PR, and task evidence before substantive implementation;
+- normalizes the PR reference once so REQUIRED_READS and EVIDENCE_BUNDLE use the same PR identity.
+
+This fallback is a recovery mechanism, not evidence that the legacy task is current. The continuation agent must verify live Git/PR state before relying on the frontmatter values and should write a compliant checkpoint before substantive implementation.
 
 ## Mode-aware handoff
 
