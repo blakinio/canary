@@ -1,0 +1,249 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "canary-otbm-repair-preflight-v1",
+  "title": "Canary OTBM real-map repair preflight report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "ok",
+    "selector",
+    "source",
+    "summary",
+    "candidates",
+    "draftPlan",
+    "draftPlanError",
+    "warnings",
+    "review",
+    "replacementScriptResolution",
+    "evidence"
+  ],
+  "properties": {
+    "format": {
+      "const": "canary-otbm-repair-preflight-v1"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "selector": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "position": { "$ref": "#/$defs/position" },
+        "itemId": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "actionId": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "uniqueId": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "houseDoorId": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "teleportDestination": { "$ref": "#/$defs/position" }
+      }
+    },
+    "source": {
+      "$ref": "#/$defs/sourcePin"
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "matchedCandidates",
+        "anchorStatusCounts",
+        "scriptStatusCounts",
+        "runtimeUnresolvedCandidates",
+        "conflictingCandidates",
+        "draftPlanReady"
+      ],
+      "properties": {
+        "matchedCandidates": { "type": "integer", "minimum": 0 },
+        "anchorStatusCounts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "scriptStatusCounts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "runtimeUnresolvedCandidates": { "type": "integer", "minimum": 0 },
+        "conflictingCandidates": { "type": "integer", "minimum": 0 },
+        "draftPlanReady": { "type": "boolean" }
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "auditIndex",
+          "placement",
+          "anchorStatus",
+          "tilePlacementIndex",
+          "anchors",
+          "scriptResolution"
+        ],
+        "properties": {
+          "auditIndex": { "type": "integer", "minimum": 0 },
+          "placement": { "type": "object" },
+          "anchorStatus": { "enum": ["exact", "missing", "ambiguous"] },
+          "tilePlacementIndex": {
+            "oneOf": [
+              { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+              { "type": "null" }
+            ]
+          },
+          "anchors": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/anchor" }
+          },
+          "scriptResolution": { "type": "object" }
+        }
+      }
+    },
+    "draftPlan": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["format", "source", "region", "operations"],
+          "properties": {
+            "format": { "const": "canary-otbm-bounded-patch-plan-v1" }
+          }
+        },
+        { "type": "null" }
+      ]
+    },
+    "draftPlanError": {
+      "type": ["string", "null"]
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requiresHumanReview",
+        "gameplayCorrectnessProven",
+        "playerIntentProven",
+        "unresolvedEvidencePreserved",
+        "mapModified"
+      ],
+      "properties": {
+        "requiresHumanReview": { "const": true },
+        "gameplayCorrectnessProven": { "const": false },
+        "playerIntentProven": { "const": false },
+        "unresolvedEvidencePreserved": { "const": true },
+        "mapModified": { "const": false }
+      }
+    },
+    "replacementScriptResolution": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "hypothetical",
+            "beforeStatus",
+            "afterStatus",
+            "runtimeResolutionChanged",
+            "placement",
+            "summary",
+            "note"
+          ],
+          "properties": {
+            "hypothetical": { "const": true },
+            "beforeStatus": { "type": "string" },
+            "afterStatus": { "type": "string" },
+            "runtimeResolutionChanged": { "type": "boolean" },
+            "placement": { "type": "object" },
+            "summary": { "type": "object" },
+            "note": { "type": "string" }
+          }
+        },
+        { "type": "null" }
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["itemAudit", "patchAnchors", "scriptResolution"],
+      "properties": {
+        "itemAudit": {
+          "type": "object",
+          "required": ["format", "summary"]
+        },
+        "patchAnchors": {
+          "type": "object",
+          "required": ["format", "anchors", "scannerSha256"],
+          "properties": {
+            "format": { "const": "canary-otbm-patch-anchors-native-v1" },
+            "anchors": { "type": "integer", "minimum": 0 },
+            "scannerSha256": { "$ref": "#/$defs/sha256" }
+          }
+        },
+        "scriptResolution": {
+          "type": "object",
+          "required": ["format", "summary", "scriptRoots"]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "integer", "minimum": 0, "maximum": 65535 },
+        { "type": "integer", "minimum": 0, "maximum": 65535 },
+        { "type": "integer", "minimum": 0, "maximum": 15 }
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "sourcePin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fileName", "sha256", "size", "otbmVersion", "itemsMajor", "itemsMinor"],
+      "properties": {
+        "fileName": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "size": { "type": "integer", "minimum": 1 },
+        "otbmVersion": { "type": "integer", "minimum": 0 },
+        "itemsMajor": { "type": "integer", "minimum": 0 },
+        "itemsMinor": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["position", "tilePlacementIndex", "itemId", "itemDepth", "attribute", "value", "bytes"],
+      "properties": {
+        "position": { "$ref": "#/$defs/position" },
+        "tilePlacementIndex": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+        "itemId": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "itemDepth": { "type": "integer", "minimum": 0, "maximum": 32767 },
+        "attribute": { "enum": ["actionId", "uniqueId", "houseDoorId", "teleportDestination"] },
+        "value": {
+          "oneOf": [
+            { "type": "integer", "minimum": 0, "maximum": 65535 },
+            { "$ref": "#/$defs/position" }
+          ]
+        },
+        "bytes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["offset", "encodedSize", "value"],
+            "properties": {
+              "offset": { "type": "integer", "minimum": 0 },
+              "encodedSize": { "enum": [1, 2] },
+              "value": { "type": "integer", "minimum": 0, "maximum": 255 }
+            }
+          }
+        }
+      }
+    }
+  }
+}
