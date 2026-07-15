@@ -7,11 +7,11 @@ agent: oteryn-architecture-migration-agent
 branch: docs/oam-002-target-baseline-pinning
 base_branch: main
 created: 2026-07-16T00:17:55+02:00
-updated: 2026-07-16T00:17:55+02:00
-last_verified_commit: "264a86b1eddf5f68666281c47489166f343c3e84"
+updated: 2026-07-16T00:21:56+02:00
+last_verified_commit: "a5600e0139dd1fb10662e5580624b3507c60b025"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "407"
 depends_on:
   - OAM-001
 blocks:
@@ -47,8 +47,8 @@ Pin the exact Oteryn target identity and task-start baselines for OAM-002, and e
 - [x] Target default branch is verified.
 - [x] Exact target task-start SHA is pinned.
 - [x] Exact then-current upstream Canary SHA is pinned.
-- [ ] Target ancestry/bootstrap relationship to the pinned upstream SHA is proven with deterministic evidence.
-- [ ] Existing target contents are either proven to be the exact approved upstream bootstrap or replaced through an explicitly safe bootstrap procedure.
+- [x] Direct Git ancestry to the exact pinned upstream commit is tested and rejected: the upstream commit object is absent from the target repository.
+- [ ] Existing target contents are either proven to be the exact approved upstream snapshot bootstrap or replaced through an explicitly safe exact bootstrap procedure.
 - [ ] Current-head GitHub checks verified.
 - [x] Module catalogue impact handled: none; no canonical module disposition changes are in scope.
 - [ ] Documentation/program contract reflects the verified OAM-002 state.
@@ -67,16 +67,22 @@ PROVEN:
 - Target history search returned two commits, both titled `Add files via upload`: `e9bc0a4e02c08c68a629dc52b6c8bc610da6844d` and `7d1e9cc5b4e799d31ae481b9a65e3f1442ca985e`.
 - GitHub compare reports `7d1e9cc...` one commit ahead of `e9bc0a4...` with no changed files listed between those two commits.
 - Exact then-current upstream Canary head observed for OAM-002 task start: `opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689`.
+- A target branch creation attempt using exact upstream commit `a879c931...` failed with `Object does not exist`; therefore that exact upstream commit object is not available in `blakinio/Otheryn` and cannot be a reachable direct ancestor of the current target history.
+- Draft PR `#407` is open from `docs/oam-002-target-baseline-pinning` to `blakinio/canary:main`.
 - OAM-001 is complete; OAM-003 remains dependent on OAM-002.
+
+DERIVED:
+
+- The current target bootstrap is not a direct Git-ancestry bootstrap from `opentibiabr/canary@a879c931...`.
+- The remaining acceptable possibilities are: prove the manually uploaded target tree is an exact snapshot of the pinned upstream tree, or establish a new safe exact pinned-upstream bootstrap before OAM-003.
 
 UNKNOWN:
 
 - Whether the tree at `blakinio/Otheryn@7d1e9cc5b4e799d31ae481b9a65e3f1442ca985e` is byte/tree-equivalent to `opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689`.
-- Whether the existing manual upload history has any Git ancestry relationship to the pinned upstream commit.
 
 CONFLICT:
 
-- The durable architecture contract requires a clean exact pinned upstream bootstrap, while the target currently exposes manual `Add files via upload` commits whose exact relationship to the pinned upstream revision is not yet proven.
+- The durable architecture contract requires a clean exact pinned upstream bootstrap, while the target currently exposes manual `Add files via upload` commits whose content equivalence to the pinned upstream revision is not yet proven and whose direct exact-commit ancestry has been rejected.
 
 # Existing work to reuse
 
@@ -89,7 +95,7 @@ CONFLICT:
 # Ownership and overlap check
 
 - Program record: `CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION` inspected.
-- Open PRs inspected: `#406`, `#393`, `#316`; none claims OAM/Oteryn target identity or the OAM contract/program paths.
+- Open PRs inspected before task creation: `#406`, `#393`, `#316`; none claims OAM/Oteryn target identity or the OAM contract/program paths.
 - Active OAM task search: no existing active OAM implementation task found before this task was created.
 - Ownership checker result: local checker unavailable in connector-only execution; overlap was checked against live open PR changed-file lists and narrow repository searches.
 - Exclusive claims: this task record only.
@@ -100,13 +106,13 @@ CONFLICT:
 
 # Current state
 
-OAM-002 has moved from `target identity unavailable` to `target identity established, bootstrap relationship unresolved`.
+OAM-002 has moved from `target identity unavailable` to `target identity established, direct ancestry rejected, snapshot equivalence unresolved`.
 
-The target repository, authorization, default branch, target task-start SHA and upstream task-start SHA are pinned. The existing target was populated through manual upload commits, so its exact relationship to the pinned upstream baseline must be proven before OAM-002 can complete.
+The target repository, authorization, default branch, target task-start SHA and upstream task-start SHA are pinned. The exact upstream commit object is not present in the target repository, so the current target cannot be treated as a direct ancestry bootstrap from that pinned revision. The manually uploaded tree still requires deterministic whole-tree equivalence proof or safe replacement before OAM-002 can complete.
 
 # Plan
 
-1. Prove or reject exact target tree/bootstrap equivalence against `opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689` without modifying target runtime contents.
+1. Prove or reject exact target tree/snapshot equivalence against `opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689` without starting OAM-003.
 
 # Work log
 
@@ -117,12 +123,19 @@ The target repository, authorization, default branch, target task-start SHA and 
 - Failed/blocked: local deterministic cross-repository `git diff` could not run because the execution sandbox could not resolve `github.com`; GitHub connector evidence is used instead and the full-tree equivalence remains unresolved.
 - Result: OAM-002 is active and partially unblocked; OAM-003 remains blocked.
 
+## 2026-07-16T00:21:56+02:00
+
+- Changed: opened draft PR `#407` and refreshed the checkpoint.
+- Learned: attempting to create a target branch at exact upstream SHA `a879c931...` returns `Object does not exist`, rejecting direct exact-commit ancestry/bootstrap.
+- Failed/blocked: full cross-repository tree equality is still not exposed by the available connector and local network access is unavailable.
+- Result: target identity and exact task-start SHAs are pinned; exact snapshot equivalence remains the first blocker.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |
 |---|---|---|
-| Do not treat the manual upload as an exact upstream bootstrap yet. | Exact target/upstream tree equivalence and ancestry are not proven. | none |
-| Do not modify Otheryn runtime/source contents during this evidence step. | Baseline identity must be established before target implementation. | none |
+| Do not treat the manual upload as an exact upstream bootstrap yet. | Exact target/upstream tree equivalence is not proven; exact upstream commit object is absent from target. | none |
+| Do not start OAM-003. | OAM-002 acceptance criteria are not complete. | none |
 | Keep all canonical modules at `REVALIDATE`. | OAM-002 does not provide module-level migration evidence. | none |
 
 # Files and interfaces
@@ -140,6 +153,7 @@ The target repository, authorization, default branch, target task-start SHA and 
 | `264a86b1eddf5f68666281c47489166f343c3e84` | live `blakinio/canary:main` verification | PASS | GitHub commit search |
 | `7d1e9cc5b4e799d31ae481b9a65e3f1442ca985e` | target `main` task-start head verification | PASS | GitHub commit search |
 | `a879c9312e34381e8eedf397b8ed44510698b689` | then-current upstream head verification | PASS | GitHub commit search |
+| target exact-upstream-object probe | create target ref at `a879c931...` | PASS (negative proof) | GitHub returned `Object does not exist`; no branch was created |
 | target vs upstream full-tree comparison | local `git diff` attempt | BLOCKED | sandbox DNS could not resolve `github.com` |
 
 Never write `passed` without verification on the stated commit.
@@ -147,6 +161,9 @@ Never write `passed` without verification on the stated commit.
 # Failed approaches and dead ends
 
 - Local shallow clone plus exact cross-repository tree comparison was attempted and rejected as unavailable in this execution environment because the sandbox could not resolve `github.com`.
+- Creating a target ref at the exact upstream SHA was attempted as a non-destructive ancestry/object-presence probe; GitHub rejected it with `Object does not exist`, so no target branch was created.
+- An accidental temporary marker file was created and immediately removed on the task branch; it has no net changed-file effect in PR `#407`.
+- Two mistaken existing-file `create_file` calls were rejected by GitHub because an existing blob SHA was not supplied; neither changed repository contents.
 - The manual upload commit messages are not accepted as provenance proof for the upstream baseline.
 
 # Risks and compatibility
@@ -155,22 +172,22 @@ Never write `passed` without verification on the stated commit.
 - Data/migration: no data, map, datapack or module migration permitted.
 - Security: no secrets or credentials involved.
 - Backward compatibility: not applicable; no behavior change.
-- Cross-repo rollout: `blakinio/Otheryn` must not begin OAM-003 until the bootstrap relationship is proven.
-- Rollback: documentation-only task changes can be reverted; no target runtime mutation has been made by this task.
+- Cross-repo rollout: `blakinio/Otheryn` must not begin OAM-003 until exact snapshot/bootstrap evidence is resolved.
+- Rollback: documentation-only task changes can be reverted; no target runtime/source mutation has been made by this task.
 
 # Remaining work
 
-1. Prove or reject exact target tree/bootstrap equivalence against the pinned upstream SHA.
+1. Prove or reject exact target tree/snapshot equivalence against the pinned upstream SHA.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T00:17:55+02:00
-head: 264a86b1eddf5f68666281c47489166f343c3e84
+updated_at: 2026-07-16T00:21:56+02:00
+head: a5600e0139dd1fb10662e5580624b3507c60b025
 branch: docs/oam-002-target-baseline-pinning
-pr: none
-status: investigating
+pr: 407
+status: blocked
 context_routes:
   - agent-governance
 owned_paths:
@@ -182,42 +199,48 @@ proven:
   - target default branch is main
   - target task-start head is 7d1e9cc5b4e799d31ae481b9a65e3f1442ca985e
   - then-current upstream Canary head is a879c9312e34381e8eedf397b8ed44510698b689
+  - exact upstream commit object a879c931... is absent from target, so direct exact-commit ancestry is rejected
   - blakinio/canary task base is 264a86b1eddf5f68666281c47489166f343c3e84
+  - draft PR 407 is open for OAM-002
 derived:
-  - OAM-002 identity fields are partially resolved but completion is blocked on bootstrap provenance/equivalence
+  - current target history is not a direct Git-ancestry bootstrap from the pinned exact upstream commit
+  - OAM-002 completion requires exact snapshot equivalence proof or a new safe exact pinned-upstream bootstrap
 unknown:
   - exact tree equivalence between target task-start head and pinned upstream SHA
-  - exact Git ancestry/bootstrap relationship between target history and pinned upstream SHA
 conflicts:
-  - clean exact pinned upstream bootstrap requirement versus unproven manual upload provenance
+  - clean exact pinned upstream bootstrap requirement versus unproven manual upload snapshot equivalence
 first_failure:
-  marker: exact upstream bootstrap relationship not proven
-  evidence: target history shows manual upload commits; local cross-repository git comparison unavailable due sandbox DNS
+  marker: exact upstream snapshot/bootstrap equivalence not proven
+  evidence: target exact upstream object probe failed; full-tree comparison unavailable in current execution environment
 rejected_hypotheses:
   - manual upload commit title proves upstream provenance: commit message alone is insufficient evidence
+  - target directly contains pinned upstream commit ancestry: GitHub target ref creation at exact upstream SHA failed with Object does not exist
 changed_paths:
   - docs/agents/tasks/active/CAN-20260716-oteryn-target-baseline-pinning.md
 validation:
   - command: GitHub live repository/commit verification
     result: PASS
     evidence: target 7d1e9cc..., upstream a879c931..., canary 264a86b1...
+  - command: target exact-upstream-object ref probe
+    result: PASS
+    evidence: expected negative result Object does not exist; no branch created
   - command: local cross-repository git diff
     result: BLOCKED
     evidence: sandbox DNS could not resolve github.com
 blockers:
-  - exact target bootstrap provenance/equivalence is unresolved
-next_action: Prove or reject exact target tree/bootstrap equivalence against opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689.
+  - exact target snapshot/bootstrap equivalence is unresolved
+next_action: Prove or reject exact target tree/snapshot equivalence against opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689.
 ```
 
 # Handoff
 
 ## Start here
 
-Read the root `AGENTS.md`, repository/context routing docs, this task checkpoint, the live PR, the Oteryn target architecture contract and OAM program record.
+Read the root `AGENTS.md`, repository/context routing docs, this task checkpoint, live PR `#407`, the Oteryn target architecture contract and OAM program record.
 
 ## Do not repeat
 
-Do not rediscover target identity. It is `blakinio/Otheryn`, default branch `main`, task-start head `7d1e9cc5b4e799d31ae481b9a65e3f1442ca985e`, with explicit user write authorization recorded by this task.
+Do not rediscover target identity. It is `blakinio/Otheryn`, default branch `main`, task-start head `7d1e9cc5b4e799d31ae481b9a65e3f1442ca985e`, with explicit user write authorization recorded by this task. The exact pinned upstream commit object is not present in the target repository.
 
 ## Required reads
 
@@ -231,12 +254,12 @@ Do not rediscover target identity. It is `blakinio/Otheryn`, default branch `mai
 ## Open questions
 
 - Is the target tree exactly equivalent to the pinned upstream Canary tree?
-- What exact ancestry/bootstrap relationship should be durably recorded once deterministic evidence is available?
+- If not, what safe exact bootstrap procedure will establish the required baseline without importing legacy-fork history?
 
 # Completion
 
 - Final status: active
-- PR: pending
+- PR: 407
 - Merge commit: none
 - Program record updated: pending
 - Catalogue updated: not applicable
