@@ -88,6 +88,7 @@ For modules with multiple Real Tibia parity findings, use the global parity prog
 - search the module catalogue and repository for reusable work;
 - run `python tools/agents/task_ownership.py` and `python tools/agents/real_tibia_registry.py validate` when applicable and a local checkout is available;
 - create a task record from `templates/TASK.md` or the bounded parity task template;
+- fill and maintain the template's authoritative `## Context checkpoint` immediately; the optional prose `# Handoff` section is human-readable context only;
 - use structured ownership claims for new tasks: `exclusive`, `shared`, and `read_only`;
 - publish the branch and draft PR early.
 
@@ -96,6 +97,8 @@ Legacy flat `owned_paths` lists remain readable during migration. They are shown
 ### During work
 
 - maintain the compact `## Context checkpoint` defined by `CONTEXT_HANDOFF.md` after material discoveries, failures, decisions, patches, validation changes, review feedback, head changes, and before context exhaustion;
+- use `python tools/agents/resume.py --task <repo-relative-task-path>` for continuation; repository-relative task/config paths resolve from the repository root even when invoked from a subdirectory;
+- treat `WARNING: CHECKPOINT_MISSING` as a recovery condition: verify live Git/PR state and write a valid checkpoint before substantive implementation; the fallback does not make a legacy task compliant;
 - keep the program queue and handoff current when the result changes the long-lived plan;
 - keep module registry metadata current when scope, relationships, linked documents, maturity or freshness conclusions change;
 - regenerate derived Real Tibia indexes instead of editing them manually;
