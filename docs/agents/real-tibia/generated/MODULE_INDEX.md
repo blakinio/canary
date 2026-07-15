@@ -15,6 +15,7 @@
 | `character-lifecycle` — Character Lifecycle | `social-account` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `character-progression` — Character Progression Core | `character-progression` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `charms` — Charms | `character-progression` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | — |
+| `chat-communication` — Chat Communication | `social-account` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `combat` — Combat engine | `combat` | `mapped` | `mapped` | `inventory` | `not-assessed` | `not-assessed` | `unit` | `limited` | `not-assessed` | — |
 | `combat-conditions` — Combat Conditions | `combat` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `configuration` — Configuration | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
@@ -29,6 +30,7 @@
 | `engine-scheduler` — Engine Scheduler | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `engine-service-container` — Engine Service Container | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `exaltation-forge` — Exaltation Forge | `items-economy` | `active` | `partial` | `audited` | `partial` | `partial` | `integration` | `limited` | `not-assessed` | — |
+| `guilds` — Guilds | `social-account` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `houses` — Houses | `world-content` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | — |
 | `imbuements` — Imbuements | `items-economy` | `mapped` | `mapped` | `audited` | `not-assessed` | `partial` | `integration` | `limited` | `not-assessed` | — |
 | `instances` — World Instances | `world-content` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
@@ -40,12 +42,14 @@
 | `market` — Market and trade economy | `items-economy` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | — |
 | `npcs` — NPCs | `world-content` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | — |
 | `otbm-tooling` — OTBM analysis tooling | `platform-tooling` | `active` | `mapped` | `audited` | `not-assessed` | `not-assessed` | `integration` | `not-applicable` | `not-applicable` | — |
+| `parties` — Parties | `social-account` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `physical-client-e2e` — Universal physical-client E2E | `platform-tooling` | `active` | `partial` | `mapped` | `not-assessed` | `not-assessed` | `integration` | `limited` | `partial` | `docs/agents/programs/E2E_AUTOMATION_PROGRAM.md` |
 | `player-persistence` — Player persistence | `platform-tooling` | `mapped` | `mapped` | `inventory` | `not-assessed` | `not-assessed` | `unit` | `not-assessed` | `not-assessed` | — |
 | `prey` — Prey and Hunting Tasks | `character-progression` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | — |
 | `protocol` — Game and login protocol | `client-protocol` | `mapped` | `mapped` | `inventory` | `partial` | `not-assessed` | `unit` | `not-assessed` | `not-assessed` | — |
 | `quests` — Quests and world semantics | `world-content` | `mapped` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | — |
 | `raids` — Raids | `world-content` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
+| `sanctions` — Sanctions | `social-account` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `spawns` — Creature spawns and raids | `world-content` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | — |
 | `spells` — Spell system | `combat` | `mapped` | `mapped` | `inventory` | `not-assessed` | `not-assessed` | `unit` | `not-assessed` | `not-assessed` | — |
 | `titles` — Titles | `character-progression` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
@@ -58,4 +62,4 @@
 | `world-persistence` — World Persistence | `engine-foundation` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 | `world-zones` — World Zones | `world-content` | `inventory` | `inventory` | `inventory` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `not-assessed` | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` |
 
-Total modules: **52**.
+Total modules: **56**.

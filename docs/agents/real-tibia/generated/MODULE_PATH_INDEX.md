@@ -23,6 +23,7 @@
 | `data-otservbr-global/world/**` | `spawns` | `data` |
 | `data/**imbu**` | `imbuements` | `data` |
 | `data/XML/vocations.xml` | `vocations` | `data` |
+| `data/chatchannels/**` | `chat-communication` | `data` |
 | `data/items/items.xml` | `item-definitions` | `data` |
 | `data/items/proficiencies.json` | `weapon-proficiency` | `data` |
 | `data/libs/systems/reward_boss.lua` | `boss-encounters` | `data` |
@@ -44,6 +45,7 @@
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `build-system` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `character-lifecycle` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `character-progression` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `chat-communication` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `combat-conditions` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `configuration` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `containers` | `docs` |
@@ -55,13 +57,16 @@
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-runtime-lifecycle` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-scheduler` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `engine-service-container` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `guilds` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `instances` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `item-decay` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `item-definitions` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `item-instances` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `lua-bindings` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `lua-runtime` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `parties` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `raids` | `docs` |
+| `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `sanctions` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `titles` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `vocations` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `weapon-proficiency` | `docs` |
@@ -103,6 +108,10 @@
 | `docs/agents/real-tibia/TSD_008_WORLD_CONTENT_REPORT.md` | `instances` | `docs` |
 | `docs/agents/real-tibia/TSD_008_WORLD_CONTENT_REPORT.md` | `world-map-runtime` | `docs` |
 | `docs/agents/real-tibia/TSD_008_WORLD_CONTENT_REPORT.md` | `world-zones` | `docs` |
+| `docs/agents/real-tibia/TSD_009_SOCIAL_COMMUNICATION_TRUST_REPORT.md` | `chat-communication` | `docs` |
+| `docs/agents/real-tibia/TSD_009_SOCIAL_COMMUNICATION_TRUST_REPORT.md` | `guilds` | `docs` |
+| `docs/agents/real-tibia/TSD_009_SOCIAL_COMMUNICATION_TRUST_REPORT.md` | `parties` | `docs` |
+| `docs/agents/real-tibia/TSD_009_SOCIAL_COMMUNICATION_TRUST_REPORT.md` | `sanctions` | `docs` |
 | `docs/agents/upstream/**` | `upstream-intelligence` | `docs` |
 | `docs/ai-agent/ACHIEVEMENT_POINT_RECONCILIATION.md` | `achievements` | `docs` |
 | `docs/ai-agent/CYCLOPEDIA_VALIDATION_REPORT.md` | `bestiary` | `docs` |
@@ -141,6 +150,7 @@
 | `src/creatures/combat/**` | `combat` | `server` |
 | `src/creatures/combat/condition.*` | `combat-conditions` | `server` |
 | `src/creatures/combat/spells/**` | `spells` | `server` |
+| `src/creatures/interactions/chat.*` | `chat-communication` | `server` |
 | `src/creatures/monsters/monster.*` | `creature-ai` | `server` |
 | `src/creatures/monsters/monsters.*` | `creature-definitions` | `server` |
 | `src/creatures/players/**` | `charms` | `server` |
@@ -155,6 +165,9 @@
 | `src/creatures/players/components/prey/**` | `prey` | `server` |
 | `src/creatures/players/components/weapon_proficiency.*` | `weapon-proficiency` | `server` |
 | `src/creatures/players/components/wheel/**` | `wheel-of-destiny` | `server` |
+| `src/creatures/players/grouping/guild.*` | `guilds` | `server` |
+| `src/creatures/players/grouping/party.*` | `parties` | `server` |
+| `src/creatures/players/management/ban.*` | `sanctions` | `server` |
 | `src/creatures/players/player.*` | `character-lifecycle` | `server` |
 | `src/creatures/players/player.*` | `character-progression` | `server` |
 | `src/creatures/players/vocations/vocation.*` | `vocations` | `server` |
@@ -173,12 +186,14 @@
 | `src/io/**` | `player-persistence` | `server` |
 | `src/io/functions/iologindata_load_player.cpp` | `character-lifecycle` | `server` |
 | `src/io/functions/iologindata_load_player.cpp` | `character-progression` | `server` |
+| `src/io/functions/iologindata_load_player.cpp` | `guilds` | `server` |
 | `src/io/functions/iologindata_save_player.cpp` | `character-lifecycle` | `server` |
 | `src/io/functions/iologindata_save_player.cpp` | `character-progression` | `server` |
 | `src/io/io_bosstiary.*` | `bosstiary` | `server` |
 | `src/io/io_wheel.*` | `wheel-of-destiny` | `server` |
 | `src/io/iobestiary.*` | `bestiary` | `server` |
 | `src/io/iobestiary.*` | `cyclopedia` | `server` |
+| `src/io/ioguild.*` | `guilds` | `server` |
 | `src/io/ioguild.*` | `world-persistence` | `server` |
 | `src/io/iohouse.*` | `houses` | `server` |
 | `src/io/iologindata.*` | `account-authentication` | `server` |

@@ -15,6 +15,7 @@
 | `character-lifecycle` | `account-authentication`, `player-persistence` | `account-lifecycle`, `character-progression`, `protocol`, `world-persistence` |
 | `character-progression` | `character-lifecycle`, `player-persistence` | `achievements`, `combat`, `prey`, `vocations`, `weapon-proficiency`, `wheel-of-destiny` |
 | `charms` | `combat`, `cyclopedia`, `player-persistence`, `protocol` | — |
+| `chat-communication` | `character-lifecycle` | `guilds`, `parties`, `protocol` |
 | `combat` | `player-persistence` | `spells`, `wheel-of-destiny`, `exaltation-forge` |
 | `combat-conditions` | `combat` | `character-progression`, `player-persistence`, `spells`, `vocations`, `weapons` |
 | `configuration` | — | `engine-runtime-lifecycle`, `lua-runtime`, `protocol` |
@@ -29,6 +30,7 @@
 | `engine-scheduler` | — | `engine-runtime-lifecycle`, `engine-service-container` |
 | `engine-service-container` | — | `configuration`, `engine-runtime-lifecycle`, `engine-scheduler`, `lua-runtime` |
 | `exaltation-forge` | `player-persistence`, `protocol` | `combat`, `market` |
+| `guilds` | `character-lifecycle`, `database-connection` | `chat-communication`, `protocol`, `world-persistence` |
 | `houses` | `otbm-tooling`, `player-persistence` | `cyclopedia`, `protocol` |
 | `imbuements` | `combat`, `player-persistence` | `protocol` |
 | `instances` | `world-map-runtime` | `combat`, `creature-ai`, `engine-scheduler`, `physical-client-e2e`, `quests`, `spawns`, `world-zones` |
@@ -40,12 +42,14 @@
 | `market` | `player-persistence`, `protocol` | `exaltation-forge` |
 | `npcs` | `otbm-tooling` | `quests`, `market`, `spawns` |
 | `otbm-tooling` | — | `quests`, `npcs`, `spawns`, `houses` |
+| `parties` | `character-lifecycle` | `chat-communication`, `combat`, `protocol`, `vocations` |
 | `physical-client-e2e` | `protocol`, `player-persistence` | `cyclopedia`, `wheel-of-destiny` |
 | `player-persistence` | — | — |
 | `prey` | `player-persistence`, `protocol` | `wheel-of-destiny` |
 | `protocol` | `player-persistence` | `physical-client-e2e` |
 | `quests` | `otbm-tooling`, `player-persistence` | `npcs`, `spawns`, `houses`, `achievements` |
 | `raids` | `creature-definitions`, `engine-scheduler` | `boss-encounters`, `creature-ai`, `quests`, `spawns` |
+| `sanctions` | `database-connection` | `account-authentication`, `account-lifecycle`, `protocol` |
 | `spawns` | `otbm-tooling` | `quests`, `npcs`, `cyclopedia` |
 | `spells` | `combat` | `wheel-of-destiny` |
 | `titles` | `cyclopedia-character`, `player-persistence` | `achievements`, `bestiary`, `bosstiary`, `character-progression`, `houses`, `protocol` |
