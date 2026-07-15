@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "id": "status-smoke",
+  "mode": "load",
+  "protocol": "status-xml",
+  "target": {
+    "host": "127.0.0.1",
+    "port": 7473
+  },
+  "policy": {
+    "gate": true,
+    "sample_interval_ms": 50
+  },
+  "stages": [
+    {
+      "name": "smoke",
+      "requests": 100,
+      "concurrency": 10,
+      "request_timeout_seconds": 5,
+      "thresholds": {
+        "max_error_rate": 0.0,
+        "max_p95_ms": 2000,
+        "min_successes": 100
+      }
+    }
+  ]
+}
