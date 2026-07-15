@@ -4,8 +4,8 @@ name: Tibia System Decomposition
 status: active
 owner: repository-wide
 created: 2026-07-14T15:43:00+02:00
-updated: 2026-07-15T10:44:00+02:00
-last_verified_commit: "2d04246f583406711b01cdf0468510d72623ade0"
+updated: 2026-07-15T10:55:00+02:00
+last_verified_commit: "8425845f79d161cb2cd6aab2276aeb39c3616c3e"
 primary_paths:
   - docs/agents/real-tibia/**
   - docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md
@@ -57,7 +57,7 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | `TSD-006` | creatures, hunting, raids and bosses | completed | PR #364; registry 41 → 45 | preserve archive |
 | `TSD-007` | items and economy | completed | PR #366/#367; registry 45 → 49 | preserve archive |
 | `TSD-008` | world content | completed | PR #368/#369; registry 49 → 52 | preserve archive |
-| `TSD-009` | social, communication and trust | active | PR #370; implementation head `2d04246f583406711b01cdf0468510d72623ade0`; registry 52 → 56 | finish exact-head/ready CI, squash merge and lifecycle archive |
+| `TSD-009` | social, communication and trust | completed | PR #370; merge `8425845f79d161cb2cd6aab2276aeb39c3616c3e`; registry 52 → 56 | preserve archive |
 | `TSD-010` | protocol and client | next | protocol umbrella and maintained client | classify wire/session/client-feature domains |
 | `TSD-011` | analytics, security and AI | planned | analytics/safety boundaries | register durable read-only/analysis domains only |
 | `TSD-012` | validation and live operations | planned | OTBM/E2E/UI modules | register only non-duplicative tooling |
@@ -77,48 +77,18 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | TSD-006 | `8dfec274b0f460c1f0d6bee6c8a4b95a3ecf8c12` | `821f213038770d68cd95b1b22afa78937b974210` | 41 → 45 |
 | TSD-007 | `4932c48d5899ac246404f65e2017a86fc6a5324b` | `350739e5df12db5f3c749540a36bb7c3922cc5ee` | 45 → 49 |
 | TSD-008 | `8692347930d86c5411dede46cb90251e5c677d96` | `c68855a0c9ee33d454bb0d6bbab697693578bb0a` | 49 → 52 |
+| TSD-009 | `8425845f79d161cb2cd6aab2276aeb39c3616c3e` | lifecycle PR live metadata | 52 → 56 |
 
-# Current active package — TSD-009
+# TSD-009 completion evidence
 
-Task: `CAN-20260714-tibia-system-decomposition-social-communication-trust`; draft PR #370.
-
-Registry 52 → 56. Added only:
-
-```text
-chat-communication
-guilds
-parties
-sanctions
-```
-
-Existing records modified: 0. Account lifecycle/authentication, character lifecycle, NPC, protocol, player/world persistence and gameplay records remain stable.
-
-Classification:
-
-- public/private/scripted plus party/guild channel registry and membership → `chat-communication`;
-- party create/invite/join/leadership/leave/disband state → `parties`;
-- guild identity/ranks/online membership plus IOGuild persistence handoff → `guilds`;
-- connection throttling and account/IP/namelock sanction lookup/expiry → `sanctions`;
-- public/private/party/guild chat variants and direct messaging remain communication capabilities;
-- shared experience and guild wars remain capabilities inside party/guild boundaries;
-- generic moderation/audit and player-group permission boundaries remain deferred without an independent durable lifecycle;
-- account/authentication, NPC, protocol and persistence remain already covered;
-- planned `chat-safety-intelligence`, `security-analytics` and `ai-investigation` remain explicitly deferred and unimplemented.
-
-Implementation/focused-test head `2d04246f583406711b01cdf0468510d72623ade0` passed:
-
-- Real Tibia Module Registry #363;
-- Upstream Intelligence #397;
-- Agent Task Ownership #1231;
-- repository CI #2350;
-- focused registry/source-role tests;
-- schema and dependency graph validation;
-- deterministic `generate --check`;
-- registry discovery integration.
-
-The only repair after the first workflow pass was generator ordering: `charms` sorts before `chat-communication`. No registry scope, dependency or runtime behavior changed.
-
-Detailed evidence: `docs/agents/real-tibia/TSD_009_SOCIAL_COMMUNICATION_TRUST_REPORT.md`.
+- Feature PR #370, final head `fc91bc24f84f9c2fcdb81962804c45843fe455dd`.
+- Squash merge `8425845f79d161cb2cd6aab2276aeb39c3616c3e` at `2026-07-15T08:54:56Z`.
+- Registry 52 → 56; added only `chat-communication`, `guilds`, `parties` and `sanctions`.
+- Existing records modified 0; account/authentication, NPC, protocol, player/world persistence and gameplay records remained stable.
+- Exact-head checks: Registry #365, Upstream Intelligence #399, Ownership #1233 and CI #2352 — success.
+- Ready-state CI #2353: Fast Checks, Lua Tests, Linux release and Required — success.
+- Repair history preserved: generated lexical ordering aligned so `charms` precedes `chat-communication`; no module scope or runtime behavior changed.
+- Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-social-communication-trust.md`.
 
 No completed package evidence establishes message delivery/privacy/moderation, party sharing correctness, guild persistence/transactionality, guild-war behavior, sanction enforcement completeness, audit integrity, protocol compatibility, physical-client E2E, Real Tibia parity or Oteryn readiness.
 
@@ -128,7 +98,7 @@ The legacy repository remains the evidence laboratory. No code is copied to Oter
 
 # Exact next operational task
 
-After PR #370 passes final exact-head review, ready-state Linux/Required, squash merge and a separate lifecycle archive, re-read then-current `main` and create only:
+After the separate lifecycle PR for TSD-009 passes exact-head review, ready-state Linux/Required and squash merge, re-read then-current `main` and create only:
 
 ```text
 task: CAN-20260714-tibia-system-decomposition-protocol-client
