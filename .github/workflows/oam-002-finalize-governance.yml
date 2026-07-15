@@ -1,342 +1,41 @@
 name: OAM-002 Finalize Governance
 
 on:
-  pull_request:
+  push:
     branches:
-      - main
+      - docs/oam-002-target-baseline-pinning
     paths:
       - .github/workflows/oam-002-finalize-governance.yml
       - docs/agents/tasks/active/CAN-20260716-oteryn-target-baseline-pinning.md
-  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   finalize:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'docs/oam-002-target-baseline-pinning'
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout OAM-002 branch
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
+          ref: docs/oam-002-target-baseline-pinning
+          fetch-depth: 2
           persist-credentials: true
 
-      - name: Patch durable OAM-002 governance state
+      - name: Execute pinned governance patch from parent workflow
         shell: bash
         run: |
           set -euo pipefail
+          git show HEAD^:.github/workflows/oam-002-finalize-governance.yml > /tmp/oam-002-finalizer-parent.yml
           python3 - <<'PY'
           from pathlib import Path
-          from datetime import datetime
-          from zoneinfo import ZoneInfo
-
-          contract_path = Path('docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md')
-          program_path = Path('docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md')
-
-          contract = contract_path.read_text(encoding='utf-8')
-          program = program_path.read_text(encoding='utf-8')
-
-          def replace_once(text: str, old: str, new: str, label: str) -> str:
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f'{label}: expected exactly one match, found {count}')
-              return text.replace(old, new, 1)
-
-          contract = replace_once(
-              contract,
-              'Status: **design contract; target repository and target baseline unavailable**',
-              'Status: **active design contract; OAM-002 target identity and pinned baseline established**',
-              'contract status',
-          )
-
-          contract = replace_once(
-              contract,
-              'This document defines the entry conditions and proof contract for future Oteryn work. It does not authorize Oteryn implementation, create a repository, choose a target SHA, migrate a module or change Canary runtime behavior.',
-              'This document defines the entry conditions and proof contract for Oteryn work. OAM-002 established the authorized target identity and pinned bootstrap baseline recorded below. That result does not authorize bulk migration, promote any canonical module beyond `REVALIDATE`, or start a later implementation package without its own bounded task and evidence.',
-              'contract intro',
-          )
-
-          old_table = '''| Field | Current value | Requirement |
-|---|---|---|
-| target repository | unavailable | exact `owner/repository` required |
-| target default branch | unavailable | exact branch required |
-| target task-start SHA | unavailable | exact immutable SHA required |
-| upstream parent repository | `opentibiabr/canary` | read-only |
-| upstream baseline SHA | unavailable | exact then-current SHA required when target is established |
-| legacy evidence repository | `blakinio/canary` | writable laboratory only; exact package SHA required |
-| maintained client repository | resolve per package | exact controlled client SHA required when protocol/UI applies |
-| target write authorization | unavailable | explicit ownership/authorization required |'''
-          new_table = '''| Field | Current value | Requirement |
-|---|---|---|
-| target repository | `blakinio/Otheryn` | established by OAM-002 |
-| target default branch | `main` | verified by OAM-002 |
-| target task-start SHA | `7d1e9cc5b4e799d31ae481b9a65e3f1442ca985e` | immutable OAM-002 input |
-| target OAM-002 baseline SHA | `3cc7c1dfea747bb380f3761ee7ff7ac30141a115` | immutable OAM-002 bootstrap output; later tasks re-fetch current target head at task start |
-| upstream parent/source repository | `opentibiabr/canary` | read-only source; final squash baseline does not claim direct Git ancestry |
-| upstream baseline SHA | `a879c9312e34381e8eedf397b8ed44510698b689` | exact OAM-002 bootstrap source |
-| legacy evidence repository | `blakinio/canary` | writable laboratory/governance repository; exact package SHA required |
-| maintained client repository | resolve per package | exact controlled client SHA required when protocol/UI applies |
-| target write authorization | explicitly granted by the user for autonomous OAM writes to `blakinio/Otheryn` | authorization is repository-specific |
-
-OAM-002 post-merge tree evidence proves that `blakinio/Otheryn@3cc7c1dfea747bb380f3761ee7ff7ac30141a115` matches the pinned upstream content everywhere except two explicit target CI/governance paths:
-
-```text
-.github/workflows/required.yml
-.github/workflows/reusable-docker-quickstart-smoke.yml
-```
-
-The second path only normalizes the mixed-case target repository name for the PR Docker image tag. Neither path is a runtime/gameplay migration. Because target delivery used repository-required squash merges, this contract records exact content/tree provenance rather than claiming that the final target commit SHA equals or directly descends from the upstream SHA.'''
-          contract = replace_once(contract, old_table, new_table, 'contract identity table')
-
-          contract = replace_once(
-              contract,
-              '## Future Oteryn target\n\nRequired role:',
-              '## Oteryn target\n\nEstablished role:',
-              'contract target role heading',
-          )
-
-          old_tail = '''# 17. Missing entry conditions
-
-The following conditions are intentionally unresolved at OAM-001 completion:
-
-```text
-Oteryn target repository
-Oteryn default branch
-Oteryn target task-start SHA
-Oteryn write authorization
-exact then-current opentibiabr/canary target baseline SHA
-```
-
-These are blockers, not placeholders to fill with assumptions.
-
-# 18. Exact next bounded task
-
-After OAM-001 merges and its lifecycle task is archived, the exact next package is:
-
-```text
-OAM-002 — Oteryn target repository and baseline pinning
-```
-
-OAM-002 may start only after an authorized Oteryn repository is explicitly designated or created. It must record:
-
-```text
-target repository
-target default branch
-target task-start SHA
-write ownership
-then-current upstream Canary baseline SHA
-target ancestry/bootstrap relationship
-```
-
-Until then, no Oteryn implementation or module migration task may begin.'''
-          new_tail = '''# 17. Resolved OAM-002 entry conditions
-
-OAM-002 resolved the target identity and baseline gate with exact immutable evidence:
-
-```text
-target repository: blakinio/Otheryn
-target default branch: main
-target task-start SHA: 7d1e9cc5b4e799d31ae481b9a65e3f1442ca985e
-target OAM-002 baseline SHA: 3cc7c1dfea747bb380f3761ee7ff7ac30141a115
-target write authorization: explicit user authorization for autonomous OAM writes
-upstream bootstrap source: opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689
-bootstrap relationship: exact pinned-upstream content plus the two documented target CI/governance paths
-```
-
-No canonical module migration disposition changed during OAM-002. All 62 canonical modules remain `REVALIDATE`.
-
-# 18. Exact next bounded task
-
-After the OAM-002 Canary governance feature PR is merged and its task is archived through the required separate lifecycle PR, the next eligible package is:
-
-```text
-OAM-003 — engine/build/runtime foundation revalidation
-```
-
-OAM-003 is not started by OAM-002. It requires a new bounded task, fresh live-state/ownership checks, the exact then-current target task-start SHA, and revalidation of the planned foundation modules against the pinned architecture contract and relevant then-current upstream evidence.
-
-No later package may infer migration authorization merely because OAM-002 established the target repository and bootstrap baseline.'''
-          contract = replace_once(contract, old_tail, new_tail, 'contract sections 17-18')
-
-          now = datetime.now(ZoneInfo('Europe/Warsaw')).isoformat(timespec='seconds')
-          program = replace_once(program, 'updated: 2026-07-15T15:53:27+02:00', f'updated: {now}', 'program updated timestamp')
-          program = replace_once(program, 'last_verified_commit: "9c28e52db81eb6b99a54e7700ad00288e6dbfd94"', 'last_verified_commit: "0c0972526814f099b51fd3481f28331b9434446d"', 'program last verified')
-
-          old_preflight = '''# Current live preflight
-
-Verified at program bootstrap from live GitHub:
-
-```text
-writable repository: blakinio/canary
-main SHA: d60d63dc37689ccc9ff7e9c37cfa2ebe71cbdc51
-open PRs: #316 only
-canonical module count: 62
-TSD status: completed
-TSD migration disposition baseline: ALL_CANONICAL_MODULES -> REVALIDATE
-Upstream Intelligence: active; UI-001/UI-001A completed; UI-002 planned
-Universal Physical-Client E2E: PR #245 merged as 9fc11e04dc5040d1ea18d02e15dac1df47f3fe64
-Oteryn repository availability: unavailable
-Oteryn target default branch: unavailable
-Oteryn target baseline SHA: unavailable
-```
-
-PR #316 is an independent Targuna donor-cluster audit. Its paths and ownership are read-only to this program and its evidence cannot become final migration proof without merge and fresh revalidation.
-
-The merged E2E platform remains the single reusable physical-client orchestration. Its stale active task record was archived by independent lifecycle-only PR #382, merged as `63fbacc9ab2d31b480de9d756194e22ce22b7d35`.
-
-OAM-001 feature PR #383 was squash-merged as `9c28e52db81eb6b99a54e7700ad00288e6dbfd94` after current-head ownership and required CI passed. The target repository identity, default branch, baseline SHA and write authorization remain unavailable.'''
-          new_preflight = '''# Current live preflight
-
-Re-verified during OAM-002 finalization from live GitHub:
-
-```text
-governance/legacy repository: blakinio/canary
-latest re-fetched Canary main: 0c0972526814f099b51fd3481f28331b9434446d
-canonical module count: 62
-TSD status: completed
-TSD migration disposition baseline: ALL_CANONICAL_MODULES -> REVALIDATE
-Universal Physical-Client E2E: PR #245 merged as 9fc11e04dc5040d1ea18d02e15dac1df47f3fe64
-Oteryn target repository: blakinio/Otheryn
-Oteryn target default branch: main
-Oteryn target task-start SHA: 7d1e9cc5b4e799d31ae481b9a65e3f1442ca985e
-Oteryn final OAM-002 baseline SHA: 3cc7c1dfea747bb380f3761ee7ff7ac30141a115
-OAM-002 upstream baseline: opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689
-target write authorization: explicitly granted by the user for autonomous OAM writes
-```
-
-OAM-001 feature PR #383 remains completed as `9c28e52db81eb6b99a54e7700ad00288e6dbfd94` with lifecycle archived separately.
-
-OAM-002 target PR #1 established the pinned-upstream content baseline and target CI gates; target PR #2 removed the one-time bootstrap comparison exception. Final target `main@3cc7c1dfea747bb380f3761ee7ff7ac30141a115` was then verified by a closed, unmerged read-only evidence PR #3. The final target matches pinned upstream content except exactly `.github/workflows/required.yml` and `.github/workflows/reusable-docker-quickstart-smoke.yml`.
-
-The merged E2E platform remains the single reusable physical-client orchestration. OAM-002 changed no canonical module disposition and started no OAM-003 implementation.'''
-          program = replace_once(program, old_preflight, new_preflight, 'program preflight')
-
-          old_status = '''# Target repository status
-
-The program does not invent a target repository.
-
-Current state:
-
-| Field | Value | Status |
-|---|---|---|
-| target repository | unavailable | BLOCKED |
-| target default branch | unavailable | BLOCKED |
-| exact target baseline SHA | unavailable | BLOCKED |
-| upstream parent/baseline | must be then-current `opentibiabr/canary` pinned by exact SHA when OAM-002 starts | UNPINNED |
-| target write authorization | unavailable | BLOCKED |
-
-Until these fields are resolved, Oteryn work is architecture/governance only.'''
-          new_status = '''# Target repository status
-
-The program uses the exact OAM-002 target identity below and does not infer authorization for any other repository.
-
-Current state:
-
-| Field | Value | Status |
-|---|---|---|
-| target repository | `blakinio/Otheryn` | ESTABLISHED |
-| target default branch | `main` | ESTABLISHED |
-| target task-start SHA | `7d1e9cc5b4e799d31ae481b9a65e3f1442ca985e` | PINNED |
-| exact target OAM-002 baseline SHA | `3cc7c1dfea747bb380f3761ee7ff7ac30141a115` | PINNED |
-| upstream bootstrap source | `opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689` | PINNED |
-| bootstrap relationship | pinned upstream content plus two explicit target CI/governance paths | VERIFIED |
-| target write authorization | explicit user authorization for autonomous OAM writes to `blakinio/Otheryn` | ESTABLISHED |
-
-The target identity/baseline gate is satisfied at the repository level. OAM-003 remains blocked until OAM-002 governance PR #407 is merged and its task is archived through the required lifecycle-only PR.'''
-          program = replace_once(program, old_status, new_status, 'program target status')
-
-          program = replace_once(
-              program,
-              'No OAM implementation task is active after OAM-001 lifecycle completion. `OAM-002` remains blocked and must not be opened until an authorized Oteryn target repository is explicitly designated or created and exact baseline inputs can be pinned.',
-              '`OAM-002` is the active bounded governance task in Canary PR #407. Its target-repository bootstrap and evidence work are complete; the task is finalizing the durable contract/program update and normal Canary merge/lifecycle gates. No OAM-003 implementation task is active.',
-              'program active tasks',
-          )
-
-          program = replace_once(
-              program,
-              '| `OAM-002` | target repository identity, authorization, default branch and exact upstream/target baseline pinning | blocked | completed OAM-001; Oteryn repository must exist | designate/create authorized Oteryn target outside this program\'s current write scope, then pin exact SHA |\n| `OAM-003` | engine/build/runtime foundation revalidation | blocked | OAM-002 | evaluate `build-system`, `configuration`, `engine-runtime-lifecycle`, `engine-scheduler`, `engine-service-container`, `lua-runtime`, `lua-bindings` against target |',
-              '| `OAM-002` | target repository identity, authorization, default branch and exact upstream/target baseline pinning | ready | completed OAM-001 | merge Canary governance PR #407 after exact-head gates, then archive the task through a separate lifecycle PR |\n| `OAM-003` | engine/build/runtime foundation revalidation | blocked | completed OAM-002 governance + lifecycle | after OAM-002 lifecycle completion, create a separate bounded task and re-fetch exact live target/upstream baselines before evaluating `build-system`, `configuration`, `engine-runtime-lifecycle`, `engine-scheduler`, `engine-service-container`, `lua-runtime`, `lua-bindings` |',
-              'program queue OAM-002/003',
-          )
-
-          program = replace_once(
-              program,
-              '- `blakinio/canary` is the only writable repository in the current program context.\n- `opentibiabr/canary`, `opentibiabr/otclient`, `opentibiabr/remeres-map-editor` and `opentibiabr/client-editor` are read-only references.',
-              '- `blakinio/canary` is the writable legacy laboratory and governance repository for this program.\n- `blakinio/Otheryn` is the separately and explicitly authorized writable Oteryn target; that authorization does not extend to any other repository.\n- `opentibiabr/canary`, `opentibiabr/otclient`, `opentibiabr/remeres-map-editor` and `opentibiabr/client-editor` are read-only references.',
-              'program source roles',
-          )
-
-          old_blockers = '''# Dependencies and blockers
-
-- Blocker: no accessible Oteryn repository identity.
-- Blocker: no Oteryn default branch.
-- Blocker: no exact Oteryn target baseline SHA.
-- Blocker: no write authorization for an Oteryn repository in the current repository allowlist.
-- Dependency: current Real Tibia registry and generated dependency graph.
-- Dependency: then-current upstream Canary when OAM-002 begins.
-- Dependency: merged Universal Physical-Client E2E for target proof.
-- Dependency: Upstream Intelligence for discovery, not authorization.'''
-          new_blockers = '''# Dependencies and blockers
-
-- OAM-002 target identity, default branch, write authorization, target baseline and exact upstream bootstrap source are resolved.
-- OAM-002 remaining gate: merge Canary governance PR #407 with exact-head checks, then archive its task through the required separate lifecycle PR.
-- OAM-003 blocker: OAM-002 governance/lifecycle completion; do not start it mechanically from this feature PR.
-- Dependency: current Real Tibia registry and generated dependency graph.
-- Dependency: fresh then-current target/upstream baselines for each later bounded package.
-- Dependency: merged Universal Physical-Client E2E for applicable target proof.
-- Dependency: Upstream Intelligence for discovery, not authorization.'''
-          program = replace_once(program, old_blockers, new_blockers, 'program blockers')
-
-          validation_anchor = '''- squash merge with exact-head guard to `9c28e52db81eb6b99a54e7700ad00288e6dbfd94`.
-
-For later migration packages:'''
-          validation_new = '''- squash merge with exact-head guard to `9c28e52db81eb6b99a54e7700ad00288e6dbfd94`.
-
-OAM-002 target-side validation completed with:
-
-- deterministic recursive Git-tree proof rejecting the original 32-entry manual upload against the 6326-entry pinned upstream tree;
-- exact upstream bootstrap source `opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689`;
-- target bootstrap PR #1 exact-head CI, Repository Audit and Required gate success before squash merge;
-- target cleanup PR #2 exact-head CI and Required gate success before squash merge;
-- final target baseline `blakinio/Otheryn@3cc7c1dfea747bb380f3761ee7ff7ac30141a115`;
-- post-merge recursive tree proof showing only `required.yml` and mixed-case Docker quickstart normalization differ from pinned upstream content;
-- no canonical module disposition change and no OAM-003 implementation.
-
-For later migration packages:'''
-          program = replace_once(program, validation_anchor, validation_new, 'program validation')
-
-          program = replace_once(
-              program,
-              '3. Resolve target repository identity and exact baseline before any target implementation.',
-              '3. Re-verify the established target repository and pin exact current target/upstream task-start SHAs before any later target implementation.',
-              'program task protocol',
-          )
-
-          old_open = '''## Open questions
-
-- Which repository is the authorized Oteryn target?
-- What is its default branch?
-- What exact then-current `opentibiabr/canary` SHA will seed the target baseline?
-- What exact Oteryn target SHA will OAM-002 pin after the repository exists?
-
-# Exact next task
-
-`OAM-002` is the next bounded task after OAM-001 lifecycle completion, but it is blocked until an authorized Oteryn repository exists or an existing target is explicitly designated. The next task must not be opened by guessing repository identity or creating a repository outside explicit ownership.'''
-          new_open = '''## Open questions
-
-- No OAM-002 target identity or baseline fields remain unresolved.
-- OAM-003 must freshly re-fetch the exact target task-start head and then-current upstream evidence before making engine/build/runtime migration decisions.
-
-# Exact next task
-
-OAM-002 remains the active task until Canary PR #407 is merged and the task is archived through its separate lifecycle PR. Only after that lifecycle completion does `OAM-003` become the next eligible bounded task. OAM-003 must be opened separately and must not be started mechanically by this OAM-002 feature branch.'''
-          program = replace_once(program, old_open, new_open, 'program handoff open/next')
-
-          contract_path.write_text(contract, encoding='utf-8')
-          program_path.write_text(program, encoding='utf-8')
+          import textwrap
+
+          lines = Path('/tmp/oam-002-finalizer-parent.yml').read_text(encoding='utf-8').splitlines()
+          start = next(i for i, line in enumerate(lines) if line.strip() == "python3 - <<'PY'") + 1
+          end = next(i for i in range(start, len(lines)) if lines[i].strip() == 'PY')
+          script = textwrap.dedent('\n'.join(lines[start:end]))
+          exec(compile(script, '<oam-002-governance-finalizer>', 'exec'), {})
           PY
 
           git diff --check
@@ -346,4 +45,4 @@ OAM-002 remains the active task until Canary PR #407 is merged and the task is a
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
           git commit -m "docs(agents): record completed OAM-002 target baseline"
-          git push origin "HEAD:${GITHUB_HEAD_REF}"
+          git push origin HEAD:docs/oam-002-target-baseline-pinning
