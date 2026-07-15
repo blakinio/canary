@@ -2,13 +2,13 @@
 task_id: CAN-20260715-otbm-repair-preflight-plan-builder
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: implementing
+status: ready
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-repair-preflight-plan-builder
 base_branch: main
 created: 2026-07-15T23:34:13+02:00
-updated: 2026-07-16T00:09:00+02:00
-last_verified_commit: "e19d1ed1f9a0fef80a5ef9ee6b1e14f69dd5c214"
+updated: 2026-07-16T00:12:00+02:00
+last_verified_commit: "48411ffecca7e46eca2375fbc05646af19d9e03b"
 risk: medium
 related_issue: ""
 related_pr: "406"
@@ -76,7 +76,7 @@ Add one deterministic, read-only real-map repair preflight that reuses the exist
 - [x] Emit deterministic `canary-otbm-repair-preflight-v1` JSON and focused/native-scanner integration coverage.
 - [x] Document the CLI, safety boundary and review workflow.
 - [x] Update module catalogue/changelog narrowly.
-- [ ] Verify all current-head required checks and autonomous merge gate.
+- [x] Verify current-head GitHub checks and autonomous merge gate inputs before readiness.
 
 # Confirmed context
 
@@ -99,30 +99,46 @@ Add one deterministic, read-only real-map repair preflight that reuses the exist
 
 # Ownership and overlap check
 
-- PR: #406, same repository, base `main`, dedicated head branch.
+- PR #406 is in `blakinio/canary`, targets `main`, and uses the dedicated head `feat/otbm-repair-preflight-plan-builder` in the same repository.
 - Exclusive claims are limited to the new preflight core/CLI/test/docs/schema and this task record.
 - Shared claims are only `MODULE_CATALOG.md` and `CHANGELOG.md`.
 - Phase 8 implementation and existing scanner/resolver paths remain read-only dependencies.
 - Initial changed-task failures were metadata-only (`related_pr` empty, then `#406` instead of normalized `406`) and were corrected.
-- Run `29454290592` passed changed-task checkpoint validation and then failed the global ownership step while this active structured task still had empty `program_id`; `tools/agents/task_ownership.py` requires non-empty `program_id`, `agent`, and `branch` for every active structured task. This update reuses `OTS-OTBM-VALIDATION` as the non-empty program identifier and leaves ownership scope unchanged.
+- Global ownership then exposed the active-structured-task requirement for non-empty `program_id`; durable `OTS-OTBM-VALIDATION` was reused and current-head ownership passed.
+- Current PR changed-file inventory contains exactly eight claimed paths and no `.otbm`, `.widx`, client assets, generated reports or renders.
+- PR #406 has no review submissions and no inline review threads at readiness checkpoint.
 
 # Current state
 
-PR #406 contains the complete read-only preflight implementation, focused tests, native-scanner integration coverage, report schema, operator documentation and narrow catalogue/changelog integration. Final hardening now also requires exact script-resolution placement coverage/identity, treats repeated matching anchors as ambiguous, rechecks source immutability before publication, and publishes JSON artifacts with exclusive create-new semantics.
+PR #406 contains the complete read-only preflight implementation, focused tests, native-scanner integration coverage, report schema, operator documentation and narrow catalogue/changelog integration.
+
+The final implementation:
+
+- correlates item-audit placements with exact native Phase 8 patch anchors;
+- requires complete, identity-matching script-resolution placement evidence;
+- keeps unresolved/conflicting states explicit;
+- never guesses ambiguous or repeated anchors;
+- validates optional draft plans through the existing Phase 8 `PatchPlan` contract;
+- checks OTBM escape-width compatibility before a draft is ready;
+- reruns the existing resolver on a hypothetical in-memory replacement without modifying OTBM;
+- rechecks source/scanner identity;
+- publishes JSON artifacts with exclusive create-new semantics;
+- preserves the diagnostic report when a requested draft plan is blocked;
+- never invokes the bounded patcher.
 
 No OTBM, `.widx`, client asset, generated report or render is committed.
 
 # Plan
 
-1. Re-run current-head ownership, AI Agent Tools, OTBM Map Tools and repository CI after the program metadata normalization.
-2. Repair only evidence-backed failures on the same PR.
-3. Review final changed files/diff, update this checkpoint and PR body, mark ready, and squash-merge only if the autonomous merge gate is fully satisfied.
+1. Let required workflows rerun on this readiness-only task-record head.
+2. If all current-head checks pass, mark PR #406 ready, verify final diff/reviews/mergeability, and squash-merge.
+3. After merge, inspect the lifecycle cleanup created for the active task and complete archival if repository automation does not finish it autonomously.
 
 # Work log
 
 ## 2026-07-15T23:34:13+02:00
 
-- Created the dedicated branch/task and bounded ownership scope.
+- Created dedicated branch/task and bounded ownership scope.
 - Reused native patch-anchor identity instead of extending the legacy item-audit contract.
 
 ## 2026-07-15T23:50:12+02:00
@@ -132,14 +148,20 @@ No OTBM, `.widx`, client asset, generated report or render is committed.
 
 ## 2026-07-15T23:52:24+02:00
 
-- Normalized `related_pr` to repository-required numeric text `406` after two changed-task validation failures exposed the exact metadata contract.
+- Normalized `related_pr` to repository-required numeric text `406` after changed-task validation exposed the exact metadata contract.
 
 ## 2026-07-16T00:09:00+02:00
 
 - Hardened evidence correlation to fail closed on incomplete/mismatched script-resolution placements and repeated matching anchors.
 - Hardened artifact publication to exclusive create-new writes with cleanup on multi-artifact publication failure and a final source immutability recheck.
-- Removed all accidental neighboring `MODULE_CATALOG.md` drift; its PR diff is now only the review date and the new OTBM preflight row.
-- Identified the global ownership violation: active structured tasks require a non-empty `program_id`; reused durable `OTS-OTBM-VALIDATION` instead of inventing a new identifier.
+- Removed accidental neighboring `MODULE_CATALOG.md` drift; its diff is only the review date and new preflight row.
+- Reused durable `OTS-OTBM-VALIDATION` as non-empty program metadata required by the global ownership validator.
+
+## 2026-07-16T00:12:00+02:00
+
+- Verified implementation head `48411ffecca7e46eca2375fbc05646af19d9e03b` with all four task-relevant workflows green.
+- Verified exact eight-file changed inventory, no forbidden artifacts, mergeable PR state, zero review submissions and zero inline review threads.
+- Promoted the task to `ready`; this task-record-only commit must still pass current-head checks before merge.
 
 # Decisions
 
@@ -167,12 +189,11 @@ No OTBM, `.widx`, client asset, generated report or render is committed.
 | Commit | Check | Result | Evidence |
 |---|---|---|---|
 | `5e197326c51df8dc1a201089804f50f9ba5f6eb9` | AI Agent Tools | passed | run `29453314982`, including preflight integration tests |
-| `5e197326c51df8dc1a201089804f50f9ba5f6eb9` | OTBM Map Tools | passed | run `29453314939` |
-| `5e197326c51df8dc1a201089804f50f9ba5f6eb9` | repository CI | passed | run `29453315139` |
-| `e19d1ed1f9a0fef80a5ef9ee6b1e14f69dd5c214` | repository CI | passed | run `29454290830` |
-| `e19d1ed1f9a0fef80a5ef9ee6b1e14f69dd5c214` | OTBM Map Tools | passed | run `29454290602` |
-| `e19d1ed1f9a0fef80a5ef9ee6b1e14f69dd5c214` | Agent Task Ownership | failed | run `29454290592`: changed-task checkpoint passed; global ownership step failed while active structured task had empty `program_id`; source contract requires non-empty program ID |
-| `e19d1ed1f9a0fef80a5ef9ee6b1e14f69dd5c214` | AI Agent Tools | in progress at checkpoint | run `29454290579`; no success claim yet |
+| `e19d1ed1f9a0fef80a5ef9ee6b1e14f69dd5c214` | AI Agent Tools | passed | run `29454290579`, including fail-closed hardening tests |
+| `48411ffecca7e46eca2375fbc05646af19d9e03b` | AI Agent Tools | passed | run `29454580316`; unit tests and all workflow steps succeeded |
+| `48411ffecca7e46eca2375fbc05646af19d9e03b` | OTBM Map Tools | passed | run `29454580263` |
+| `48411ffecca7e46eca2375fbc05646af19d9e03b` | Agent Task Ownership | passed | run `29454580206` |
+| `48411ffecca7e46eca2375fbc05646af19d9e03b` | repository CI | passed | run `29454580586` |
 
 Never write `passed` without verification on the stated commit.
 
@@ -181,6 +202,7 @@ Never write `passed` without verification on the stated commit.
 - Do not add `tilePlacementIndex` to legacy item-audit output; native patch anchors already provide it.
 - Do not build a replacement-impact resolver; rerun the existing resolver against a hypothetical in-memory item-audit copy.
 - Do not allow ordinary overwrite writes for final evidence; long-running preflight creates a TOCTOU window unless publication itself is exclusive.
+- Do not discard the diagnostic report merely because an explicitly requested draft cannot be proven safe.
 - Do not prefix numeric `related_pr` with `#`; changed-task validation requires normalized identity.
 - Do not leave `program_id` empty on an active structured task; global ownership validation rejects it.
 
@@ -196,17 +218,17 @@ Never write `passed` without verification on the stated commit.
 
 # Remaining work
 
-1. Verify all current-head required checks after the `program_id` normalization.
+1. Pass current-head readiness checks and merge PR #406 if the autonomous merge gate remains satisfied.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-15T22:09:00Z
-head: e19d1ed1f9a0fef80a5ef9ee6b1e14f69dd5c214
+updated_at: 2026-07-15T22:12:00Z
+head: 48411ffecca7e46eca2375fbc05646af19d9e03b
 branch: feat/otbm-repair-preflight-plan-builder
 pr: 406
-status: validating
+status: ready
 context_routes:
   - otbm
   - agent-governance
@@ -222,20 +244,21 @@ owned_paths:
 proven:
   - Phase 8 writer boundary is unchanged and no new parser, renderer, writer or script resolver was introduced.
   - The CLI never invokes the bounded patcher and final artifact publication uses exclusive create-new semantics.
-  - Incomplete or identity-mismatched script-resolution evidence now fails closed.
+  - Incomplete or identity-mismatched script-resolution evidence fails closed.
   - Ambiguous or repeated matching anchors never produce a draft plan.
+  - A blocked requested draft still leaves a diagnostic preflight report and no draft-plan file.
   - PR 406 changed files contain only claimed preflight paths, the task record and two declared shared documentation paths.
   - MODULE_CATALOG diff contains only the review date and the new OTBM preflight row.
-  - Repository CI and OTBM Map Tools passed on e19d1ed1f9a0fef80a5ef9ee6b1e14f69dd5c214.
+  - AI Agent Tools, OTBM Map Tools, Agent Task Ownership and repository CI passed on 48411ffecca7e46eca2375fbc05646af19d9e03b.
+  - PR 406 has no review submissions or inline review threads at readiness checkpoint.
 derived:
   - This orchestration layer closes the investigation-to-plan gap without a new ADR because mutation semantics are unchanged.
 unknown:
-  - Current-head Agent Task Ownership after non-empty program_id normalization.
-  - Current-head AI Agent Tools result after final fail-closed and publication hardening.
+  - Current-head workflow results for this readiness-only task-record commit.
 conflicts: []
 first_failure:
-  marker: Agent Task Ownership global task validation
-  evidence: run 29454290592 passed changed-task checkpoint validation then failed global ownership; task_ownership.py requires non-empty program_id for active structured tasks and this task had program_id empty
+  marker: none
+  evidence: prior metadata failures are resolved; implementation head 48411ffecca7e46eca2375fbc05646af19d9e03b is green on all task-relevant workflows
 rejected_hypotheses:
   - Extend legacy item audit with patch identity.
   - Build a second script resolver.
@@ -250,21 +273,20 @@ changed_paths:
   - tools/ai-agent/otbm_repair_preflight_tool.py
   - tools/ai-agent/test_otbm_repair_preflight.py
 validation:
-  - command: AI Agent Tools run 29453314982
+  - command: AI Agent Tools run 29454580316
     result: PASS
-    evidence: unit/integration tests and all workflow steps succeeded on implementation head 5e197326c51df8dc1a201089804f50f9ba5f6eb9
-  - command: OTBM Map Tools run 29454290602
+    evidence: all workflow steps succeeded on 48411ffecca7e46eca2375fbc05646af19d9e03b
+  - command: OTBM Map Tools run 29454580263
     result: PASS
-    evidence: completed successfully on e19d1ed1f9a0fef80a5ef9ee6b1e14f69dd5c214
-  - command: CI run 29454290830
+    evidence: completed successfully on 48411ffecca7e46eca2375fbc05646af19d9e03b
+  - command: Agent Task Ownership run 29454580206
     result: PASS
-    evidence: completed successfully on e19d1ed1f9a0fef80a5ef9ee6b1e14f69dd5c214
-  - command: Agent Task Ownership run 29454290592
-    result: FAIL
-    evidence: changed-task checkpoint passed; active structured task program_id was empty contrary to global validator contract and is corrected by this update
-blockers:
-  - none
-next_action: Verify the new PR head and inspect current-head Agent Task Ownership, AI Agent Tools, OTBM Map Tools and repository CI.
+    evidence: completed successfully on 48411ffecca7e46eca2375fbc05646af19d9e03b
+  - command: CI run 29454580586
+    result: PASS
+    evidence: completed successfully on 48411ffecca7e46eca2375fbc05646af19d9e03b
+blockers: []
+next_action: Verify current-head checks for this readiness-only commit, then mark PR 406 ready and squash-merge if mergeability and review state remain clean.
 ```
 
 # Handoff
@@ -273,7 +295,7 @@ Start from this task record and live PR #406. Do not reconstruct Phase 8 from ch
 
 # Completion
 
-- Final status: active
+- Final status: ready
 - PR: #406
 - Merge commit:
 - Program record updated: n/a; durable identifier reused, no separate program document exists
