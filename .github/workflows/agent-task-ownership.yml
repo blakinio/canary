@@ -7,8 +7,7 @@ on:
     paths:
       - "AGENTS.md"
       - "docs/agents/**"
-      - "tools/agents/task_ownership.py"
-      - "tools/agents/test_task_ownership.py"
+      - "tools/agents/*.py"
       - ".github/workflows/agent-task-ownership.yml"
   push:
     branches:
@@ -16,8 +15,7 @@ on:
     paths:
       - "AGENTS.md"
       - "docs/agents/**"
-      - "tools/agents/task_ownership.py"
-      - "tools/agents/test_task_ownership.py"
+      - "tools/agents/*.py"
       - ".github/workflows/agent-task-ownership.yml"
 
 permissions:
@@ -35,11 +33,22 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Compile ownership tooling
-        run: python -m py_compile tools/agents/task_ownership.py tools/agents/test_task_ownership.py
+      - name: Compile agent tooling
+        run: >-
+          python -m py_compile
+          tools/agents/task_ownership.py
+          tools/agents/test_task_ownership.py
+          tools/agents/checkpoint.py
+          tools/agents/execution_mode.py
+          tools/agents/context.py
+          tools/agents/resume.py
+          tools/agents/test_context_orchestration.py
       - name: Run focused unit tests
         working-directory: tools/agents
-        run: python -m unittest -v test_task_ownership.py
+        run: >-
+          python -m unittest -v
+          test_task_ownership.py
+          test_context_orchestration.py
       - name: Validate tasks and render ownership index
         run: >-
           python tools/agents/task_ownership.py

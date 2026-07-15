@@ -6,6 +6,13 @@ This document defines the default context-loading strategy for autonomous agents
 
 Load the smallest authoritative context required to complete the current task. Do not preload broad repository documentation when targeted search can identify the relevant records.
 
+## Human and machine contracts
+
+- This Markdown file is the human-readable routing contract.
+- `docs/agents/CONTEXT_ROUTES.json` is the machine-readable routing profile used by `tools/agents/context.py` and `tools/agents/resume.py`.
+- The machine profile may narrow or automate context selection but must not weaken repository safety or ownership rules.
+- When a machine route and a more restrictive human safety rule disagree, follow the more restrictive human rule and record the conflict.
+
 ## Core startup context
 
 Every agent reads only:
@@ -18,10 +25,19 @@ Every agent reads only:
 
 Then classify the task and load only the matching routed context below.
 
+When the task record already has a `## Context checkpoint`, the deterministic resolver is preferred:
+
+```sh
+python tools/agents/context.py --task <active-task-path> --task-text "<bounded task>"
+```
+
+The output is a bounded working set, not permission to skip required evidence or validation.
+
 ## Routing table
 
 | Route | Trigger | Load/search |
 |---|---|---|
+| `agent-governance` | `AGENTS.md`, `docs/agents/**`, `tools/agents/**`, ownership/context/handoff tooling | Read the context/handoff/execution-mode contracts relevant to the task. Search shared indexes before full reads. |
 | `cpp-runtime` | `src/**`, runtime, protocol, ownership, concurrency | Search `MODULE_CATALOG.md`; read matching entries only. Read `BUILD_TEST_MATRIX.md` sections relevant to affected targets. Read system/architecture docs only when referenced by matching code or catalogue entries. |
 | `lua-data` | `data/**`, `data-otservbr-global/**`, Lua/XML gameplay behavior | Search catalogue, identifier registries, and relevant script paths. Load identifier/storage policy only when IDs or storages are involved. |
 | `otbm` | OTBM, map mechanics, AID/UID, teleport, house door, reachability | Read the relevant `docs/ai-agent/OTBM_*` contract(s) and reuse the unified world index/script-resolution tooling. Never preload unrelated AI validation docs. |
@@ -32,6 +48,25 @@ Then classify the task and load only the matching routed context below.
 | `ci-repair` | required GitHub check fails | Read the failing workflow/job/step and relevant task record. Do not load the entire build matrix unless failure classification requires it. |
 
 Multiple routes may apply, but each route must be justified by the task scope or observed evidence.
+
+## Execution-mode routing
+
+Context routing and execution-mode routing are separate decisions.
+
+Use `docs/agents/EXECUTION_MODE_ROUTING.md` and the deterministic advisor:
+
+```sh
+python tools/agents/execution_mode.py --task-text "<bounded task>"
+```
+
+Default budget policy is `minimize_agentic_usage`:
+
+- prefer CHAT for analysis, planning, connector-based repository/GitHub/PR/CI work and coordination;
+- use CODEX only when a bounded local edit/build/test/runtime loop or isolated coding worker materially helps;
+- use WORK only for broad multi-source research or a large deliverable;
+- return coordination to CHAT after the bounded CODEX or WORK package finishes.
+
+Do not infer exact remaining platform tokens/credits when they are not exposed. Optimize through context bounds and capability-based escalation instead.
 
 ## Search before read
 
@@ -69,6 +104,14 @@ Keep the active working set limited to:
 - next concrete action.
 
 Move historical discoveries, rejected hypotheses, and completed substeps into the task checkpoint instead of keeping full chat history active.
+
+For CODEX or WORK escalation, generate the bounded handoff instead of copying the conversation:
+
+```sh
+python tools/agents/resume.py --task <active-task-path> [capability flags]
+```
+
+The bundle must not include full logs, full diffs, whole source trees or unrelated optional documentation.
 
 ## Reuse discovery
 
