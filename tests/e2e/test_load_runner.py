@@ -67,9 +67,22 @@ class ProfileValidationTests(unittest.TestCase):
     def test_status_request_contains_service_identifier_and_xml_command(self) -> None:
         self.assertEqual(load.STATUS_REQUEST, b"\x06\x00\xff\xffinfo")
 
+    def test_unique_loopback_sources_are_deterministic_and_distinct(self) -> None:
+        self.assertEqual(load._unique_loopback_source(0), "127.0.0.1")
+        self.assertEqual(load._unique_loopback_source(1), "127.0.0.2")
+        self.assertEqual(load._unique_loopback_source(255), "127.0.1.0")
+        self.assertEqual(len({load._unique_loopback_source(index) for index in range(1000)}), 1000)
+
     def test_rejects_non_loopback_target(self) -> None:
         payload = profile_payload(7173)
         payload["target"]["host"] = "example.com"
+        with self.assertRaises(load.LoadConfigError):
+            load.load_profile(self.write_profile(payload))
+
+    def test_unique_loopback_strategy_requires_ipv4_loopback_target(self) -> None:
+        payload = profile_payload(7173)
+        payload["target"]["host"] = "::1"
+        payload["policy"]["source_ip_strategy"] = "unique-loopback-v4"
         with self.assertRaises(load.LoadConfigError):
             load.load_profile(self.write_profile(payload))
 
@@ -87,6 +100,7 @@ class ProfileValidationTests(unittest.TestCase):
             ["status-load", "status-smoke", "status-stress"],
         )
         self.assertTrue(all(profile.host in load.LOOPBACK_HOSTS for profile in profiles))
+        self.assertTrue(all(profile.source_ip_strategy == "unique-loopback-v4" for profile in profiles))
         self.assertTrue(next(profile for profile in profiles if profile.profile_id == "status-smoke").gate)
         self.assertFalse(next(profile for profile in profiles if profile.profile_id == "status-stress").gate)
 
