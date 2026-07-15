@@ -4,8 +4,8 @@ name: Tibia System Decomposition
 status: active
 owner: repository-wide
 created: 2026-07-14T15:43:00+02:00
-updated: 2026-07-15T11:55:00+02:00
-last_verified_commit: "99928c9a0c9bfce9d4fe873ad44f5a5c296995d0"
+updated: 2026-07-15T13:03:34+02:00
+last_verified_commit: "dd85d8f886b3e76ec9cc3d3e24c3cb0f7607181c"
 primary_paths:
   - docs/agents/real-tibia/**
   - docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md
@@ -59,7 +59,7 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | `TSD-008` | world content | completed | PR #368/#369; registry 49 → 52 | preserve archive |
 | `TSD-009` | social, communication and trust | completed | PR #370/#371; registry 52 → 56 | preserve archive |
 | `TSD-010` | protocol and client | completed | PR #372/#373; registry 56 → 60 | preserve archive |
-| `TSD-011` | analytics, security and AI | active | PR #374; implementation head `99928c9a0c9bfce9d4fe873ad44f5a5c296995d0`; registry 60 → 61 | finish final exact-head/ready CI, squash merge and lifecycle archive |
+| `TSD-011` | analytics, security and AI | completed | PR #374; merge `dd85d8f886b3e76ec9cc3d3e24c3cb0f7607181c`; registry 60 → 61 | preserve archive |
 | `TSD-012` | validation and live operations | next | OTBM/E2E/UI modules | register only non-duplicative tooling |
 | `TSD-013` | Oteryn migration classification | planned | completed inventories/proof packages | classify modules; do not copy code or create another registry |
 
@@ -79,43 +79,20 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | TSD-008 | `8692347930d86c5411dede46cb90251e5c677d96` | `c68855a0c9ee33d454bb0d6bbab697693578bb0a` | 49 → 52 |
 | TSD-009 | `8425845f79d161cb2cd6aab2276aeb39c3616c3e` | `381cc076fa35e138292197f751f26c2e7b89dd08` | 52 → 56 |
 | TSD-010 | `9a5f2ee0f1ed95c306876e868109f28848f0ae66` | `c67c84749ffd1de04983be9ae9841b6ca5756aed` | 56 → 60 |
+| TSD-011 | `dd85d8f886b3e76ec9cc3d3e24c3cb0f7607181c` | lifecycle PR live metadata | 60 → 61 |
 
-# Current active package — TSD-011
+# TSD-011 completion evidence
 
-Task: `CAN-20260714-tibia-system-decomposition-analytics-security-ai`; draft PR #374.
+- Feature PR #374, final head `9177e82c7f6b4a6f66646199cf38a17d162e7461`.
+- Squash merge `dd85d8f886b3e76ec9cc3d3e24c3cb0f7607181c` at `2026-07-15T11:03:34Z`.
+- Registry 60 → 61; added only `gameplay-analytics`; existing records modified 0.
+- Implementation/generated-index head checks: Registry #409, Upstream #445, Ownership #1273 and CI #2395 — success.
+- Final-head checks: Registry #411, Upstream #447, Ownership #1275 and CI #2397 — success.
+- Ready-state CI #2398: Fast Checks, Lua Tests, Linux release and Required — success.
+- Generated-index repair preserved: missing `MODULE_PATH_INDEX.md` and `STALE_MODULES.md` updates were corrected without runtime or scope changes.
+- Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-analytics-security-ai.md`.
 
-Registry 60 → 61. Added only:
-
-```text
-gameplay-analytics
-```
-
-Existing records modified: 0. Authentication remains `account-authentication`; throttling and account/IP/namelock restrictions remain `sanctions`; `protocol`, `upstream-intelligence`, `otbm-tooling`, `physical-client-e2e`, validation/audit tooling and gameplay records remain stable.
-
-Classification:
-
-- optional Gameplay Analytics telemetry session/queue/retry/dead-letter/dry-run/reporting lifecycle → `gameplay-analytics`;
-- password/session-token security remains `account-authentication`;
-- throttling and account/IP/namelock restrictions remain `sanctions`;
-- `security-analytics`, `chat-safety-intelligence` and `ai-investigation` remain explicitly deferred and unimplemented;
-- generic `ai-agent-tooling` remains deferred because it would duplicate heterogeneous validators/OTBM tooling and preempt TSD-012.
-
-Implementation/generated-index head `99928c9a0c9bfce9d4fe873ad44f5a5c296995d0` passed:
-
-- Real Tibia Module Registry #409;
-- Upstream Intelligence #445;
-- Agent Task Ownership #1273;
-- repository CI #2395;
-- focused registry/source-role tests;
-- registry schema/contracts and dependency graph validation;
-- deterministic `generate --check`;
-- discovery and affected-module commands.
-
-The earlier `27194fc95a5034705a8667fa1bb148c43955c730` docs attempt exposed generated drift in `MODULE_PATH_INDEX.md` and `STALE_MODULES.md`; both were repaired without changing scope or runtime behavior.
-
-Detailed evidence: `docs/agents/real-tibia/TSD_011_ANALYTICS_SECURITY_AI_REPORT.md`.
-
-No completed package evidence establishes telemetry completeness, metric semantics, queue durability, database transactionality, privacy, retention, production runtime stability, security posture, abuse/anomaly detection, AI investigation capability, physical-client E2E, Real Tibia parity or Oteryn readiness.
+No completed package evidence establishes telemetry completeness, privacy, persistence correctness, security posture, abuse/anomaly detection, AI investigation capability, physical-client E2E, Real Tibia parity or Oteryn readiness.
 
 # Oteryn migration policy
 
@@ -123,7 +100,7 @@ The legacy repository remains the evidence laboratory. No code is copied to Oter
 
 # Exact next operational task
 
-After PR #374 passes final exact-head review, ready-state Linux/Required, squash merge and a separate lifecycle archive, re-read then-current `main` and create only:
+After the separate lifecycle PR for TSD-011 passes exact-head review, ready-state Linux/Required and squash merge, re-read then-current `main` and create only:
 
 ```text
 task: CAN-20260714-tibia-system-decomposition-validation-live-operations
