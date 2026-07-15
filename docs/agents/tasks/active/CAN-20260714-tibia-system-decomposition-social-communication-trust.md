@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: docs/tibia-system-decomposition-social-communication-trust
 base_branch: main
 created: 2026-07-15T01:40:00+02:00
-updated: 2026-07-15T10:39:00+02:00
-last_verified_commit: "07f7909b25f567ac05822a0cf36ae0102212dfe3"
+updated: 2026-07-15T10:44:00+02:00
+last_verified_commit: "2d04246f583406711b01cdf0468510d72623ade0"
 risk: low
 related_issue: ""
 related_pr: "370"
@@ -100,16 +100,20 @@ Detailed evidence: `docs/agents/real-tibia/TSD_009_SOCIAL_COMMUNICATION_TRUST_RE
 
 # Validation state
 
-Implementation head before this task-record update: `07f7909b25f567ac05822a0cf36ae0102212dfe3`.
+Implementation/focused-test head `2d04246f583406711b01cdf0468510d72623ade0` passed:
 
-Prepared validation surfaces:
+- Real Tibia Module Registry #363: success;
+- Upstream Intelligence #397: success;
+- Agent Task Ownership #1231: success;
+- repository CI #2350: success;
+- focused registry/source-role tests: success;
+- schema and dependency graph validation: success;
+- deterministic `generate --check`: success;
+- registry discovery integration: success.
 
-- exact registry total and bounded maturity/dependency assertions in `tools/agents/test_social_registry.py`;
-- source-role isolation in `tools/agents/test_upstream_intelligence_social.py`;
-- TSD-008 total relaxed to its package minimum instead of freezing the new global count;
-- deterministic generated module, dependency, path and freshness indexes materialized from the four new records.
+The first exact-head registry/UI pass failed only because generated module/dependency/freshness rows placed `chat-communication` before `charms`. The generator's lexical order requires `charms` first. The three indexes were corrected; no module record, dependency, path scope or runtime behavior changed.
 
-Exact-head Registry, Upstream Intelligence, Agent Task Ownership and repository CI remain authoritative and must pass before readiness. Ready-state Linux/Required must pass before squash merge.
+This task-record and program update are documentation-only after the validated implementation head. Final current-head checks and ready-state Linux/Required remain mandatory before squash merge.
 
 # Acceptance criteria
 
@@ -117,9 +121,9 @@ Exact-head Registry, Upstream Intelligence, Agent Task Ownership and repository 
 - [x] Preserve all existing records unchanged.
 - [x] Classify all TSD-009 candidates explicitly.
 - [x] Use verified narrow paths and conservative maturity.
-- [x] Materialize deterministic indexes through the existing registry format; `generate --check` remains the authoritative exact-head gate.
+- [x] Regenerate deterministic indexes through the existing generator contract.
 - [x] Add focused registry and source-role mapping tests.
-- [ ] Pass exact-head registry/UI/ownership/repository CI and ready-state Linux/Required.
+- [ ] Pass final exact-head registry/UI/ownership/repository CI and ready-state Linux/Required.
 - [x] Make no runtime, gameplay, protocol, client, DB, map, OTBM, datapack, asset, workflow or E2E implementation change.
 
 # Safety limits
