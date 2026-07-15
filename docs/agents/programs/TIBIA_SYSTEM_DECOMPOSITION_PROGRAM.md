@@ -1,11 +1,11 @@
 ---
 program_id: CAN-PROGRAM-TIBIA-SYSTEM-DECOMPOSITION
 name: Tibia System Decomposition
-status: active
+status: completed
 owner: repository-wide
 created: 2026-07-14T15:43:00+02:00
-updated: 2026-07-15T14:00:00+02:00
-last_verified_commit: "c41123eaab787ddc22ce2d4d6ee32d07dd57beb9"
+updated: 2026-07-15T14:06:39+02:00
+last_verified_commit: "e3b08e36c503a36b0eb47696e50567155050c757"
 primary_paths:
   - docs/agents/real-tibia/**
   - docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md
@@ -61,7 +61,7 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | `TSD-010` | protocol and client | completed | PR #372/#373; registry 56 → 60 | preserve archive |
 | `TSD-011` | analytics, security and AI | completed | PR #374/#376; registry 60 → 61 | preserve archive |
 | `TSD-012` | validation and live operations | completed | PR #377/#378; registry 61 → 62 | preserve archive |
-| `TSD-013` | Oteryn migration classification | active | PR #379; classification head `c41123eaab787ddc22ce2d4d6ee32d07dd57beb9`; registry remains 62 | finish final exact-head/ready CI, squash merge and lifecycle archive |
+| `TSD-013` | Oteryn migration classification | completed | PR #379; merge `e3b08e36c503a36b0eb47696e50567155050c757`; registry remains 62 | preserve archive |
 
 # Completed delivery evidence
 
@@ -81,57 +81,36 @@ New decomposition records start at lifecycle/implementation/evidence `inventory`
 | TSD-010 | `9a5f2ee0f1ed95c306876e868109f28848f0ae66` | `c67c84749ffd1de04983be9ae9841b6ca5756aed` | 56 → 60 |
 | TSD-011 | `dd85d8f886b3e76ec9cc3d3e24c3cb0f7607181c` | `145929ec7f438dc492d4b618a386a4418953d7ec` | 60 → 61 |
 | TSD-012 | `81fe5417345c64098e8bb4fd25b27ba234a8406e` | `10d4bf63cf356a3cf912cbc8717854e6a6fd2895` | 61 → 62 |
+| TSD-013 | `e3b08e36c503a36b0eb47696e50567155050c757` | lifecycle PR live metadata | 62 → 62 |
 
-# Current active package — TSD-013
+# TSD-013 completion evidence
 
-Task: `CAN-20260714-tibia-system-decomposition-oteryn-migration-classification`; draft PR #379.
+- Feature PR #379, final head `6afa9320385ba8f21660031071d9675bc3c77e94`.
+- Squash merge `e3b08e36c503a36b0eb47696e50567155050c757` at `2026-07-15T12:06:39Z`.
+- Changed files: 4.
+- Registry 62 → 62; records added 0; existing records modified 0; generated indexes modified 0.
+- Classification: `ALL_CANONICAL_MODULES -> REVALIDATE`.
+- Implementation/classification-head checks: Registry #436, Upstream #472, Ownership #1300 and CI #2424 — success.
+- Final-head checks: Registry #438, Upstream #474, Ownership #1302 and CI #2426 — success.
+- Ready-state CI #2427: Fast Checks, Lua Tests, Linux release and Required — success.
+- Archive: `docs/agents/tasks/archive/CAN-20260714-tibia-system-decomposition-oteryn-migration-classification.md`.
 
-Registry remains **62 → 62**. No records or generated indexes are changed.
+# Final program state
 
-Classification checkpoint:
+The bounded TSD-001 through TSD-013 queue is complete.
 
-```text
-ALL_CANONICAL_MODULES -> REVALIDATE
-```
-
-This is one rule over the canonical registry, not a duplicated per-module migration registry.
-
-Rationale:
-
-- `cross_repo_contracts` remains empty; no explicit Oteryn target architecture contract is registered in this program;
-- Canary implementation/evidence maturity is source-side evidence, not target compatibility proof;
-- no module is approved for direct copy or port-as-is;
-- no module is declared Oteryn-ready;
-- no module receives a rewrite/drop disposition without a target architecture decision;
-- any future stronger disposition must re-read the then-current canonical registry and compare it with an explicit Oteryn target contract.
-
-Classification head `c41123eaab787ddc22ce2d4d6ee32d07dd57beb9` passed:
-
-- Real Tibia Module Registry #436;
-- Upstream Intelligence #472;
-- Agent Task Ownership #1300;
-- repository CI #2424;
-- focused live-registry classification test;
-- registry contracts and dependency graph validation;
-- deterministic `generate --check` with registry/generated indexes unchanged;
-- discovery and affected-module commands.
-
-Detailed evidence: `docs/agents/real-tibia/TSD_013_OTERYN_MIGRATION_CLASSIFICATION_REPORT.md`.
+- Canonical registry total: 62 records.
+- The registry remains the only module source-of-truth; no second migration registry was created.
+- No code was copied to Oteryn.
+- No module is declared Oteryn-ready.
+- Every canonical module remains `REVALIDATE` for future Oteryn migration decisions.
+- `REVALIDATE` is not copy/port/rewrite/drop authorization.
+- `cross_repo_contracts` remains empty; a stronger migration disposition requires a new bounded task/program with an explicit Oteryn repository/architecture contract, exact target baseline and module-appropriate target evidence.
 
 # Oteryn migration policy
 
-The legacy repository remains the evidence laboratory. No code is copied to Oteryn by this program. At this checkpoint every canonical module remains `REVALIDATE` until a future bounded task has an explicit Oteryn architecture contract plus module-appropriate target evidence.
-
-# Program close condition
-
-After PR #379 passes final exact-head review, ready-state Linux/Required, squash merge and a separate lifecycle archive:
-
-- TSD-001 through TSD-013 are completed;
-- the canonical registry remains at 62 records;
-- no code has been copied to Oteryn;
-- no Oteryn readiness claim has been made;
-- any future Oteryn migration work requires a new bounded task/program with explicit target architecture and contracts.
+The legacy repository remains the evidence laboratory. Future Oteryn work must re-read the then-current canonical registry and compare each affected boundary with an explicit target architecture contract. Inventory paths, source-side maturity, compilation and passing CI are not target compatibility or migration-readiness proof.
 
 # Handoff
 
-Continue one task, branch and PR at a time. Re-read current main, open PRs, active tasks and ownership before every package. Preserve all proof limits and never infer behavioral correctness or migration readiness from inventory paths or passing CI.
+No further package remains in `CAN-PROGRAM-TIBIA-SYSTEM-DECOMPOSITION`. Preserve all archives and the canonical registry. Any future decomposition extension or Oteryn migration decision must start as a new bounded task/program after fresh live preflight and ownership review.
