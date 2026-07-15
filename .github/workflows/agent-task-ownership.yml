@@ -86,6 +86,7 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
+          set -o pipefail
           args=(
             validate-changed
             --changed-files-file artifacts/agent-coordination/CHANGED_FILES.txt
@@ -93,17 +94,22 @@ jobs:
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
             args+=(--current-pr "$PR_NUMBER")
           fi
-          python tools/agents/task_lifecycle.py "${args[@]}"
+          python tools/agents/task_lifecycle.py "${args[@]}" 2>&1 \
+            | tee artifacts/agent-coordination/CHANGED_TASK_VALIDATION.txt
 
       - name: Validate tasks and render ownership index
         run: >-
           python tools/agents/task_ownership.py
           --write-index artifacts/agent-coordination/OWNERSHIP_INDEX.md
 
-      - name: Upload ownership index
+      - name: Upload ownership diagnostics
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: active-task-ownership
-          path: artifacts/agent-coordination/OWNERSHIP_INDEX.md
-          if-no-files-found: error
+          path: |
+            artifacts/agent-coordination/CHANGED_FILES.txt
+            artifacts/agent-coordination/CHANGED_TASK_VALIDATION.txt
+            artifacts/agent-coordination/OWNERSHIP_INDEX.md
+          if-no-files-found: warn
           retention-days: 14
