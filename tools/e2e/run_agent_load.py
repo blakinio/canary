@@ -15,7 +15,9 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA_VERSION = 1
-STATUS_REQUEST = struct.pack("<H", 5) + b"\xffinfo"
+STATUS_REQUEST_BODY = b"\xff\xffinfo"
+STATUS_REQUEST = struct.pack("<H", len(STATUS_REQUEST_BODY)) + STATUS_REQUEST_BODY
+MAX_STATUS_RESPONSE_BYTES = 1024 * 1024
 LOOPBACK_HOSTS = {"127.0.0.1", "::1"}
 
 
@@ -208,7 +210,17 @@ async def _status_exchange(host: str, port: int) -> tuple[float, float, int]:
     try:
         writer.write(STATUS_REQUEST)
         await writer.drain()
-        payload = await reader.read(1024 * 1024)
+        chunks: list[bytes] = []
+        total_bytes = 0
+        while True:
+            chunk = await reader.read(65536)
+            if not chunk:
+                break
+            total_bytes += len(chunk)
+            if total_bytes > MAX_STATUS_RESPONSE_BYTES:
+                raise RuntimeError("status endpoint response exceeded the bounded 1 MiB limit")
+            chunks.append(chunk)
+        payload = b"".join(chunks)
     finally:
         writer.close()
         try:
@@ -217,7 +229,10 @@ async def _status_exchange(host: str, port: int) -> tuple[float, float, int]:
             pass
     finished = time.perf_counter()
     if b"<tsqp" not in payload or b"<serverinfo" not in payload:
-        raise RuntimeError("status endpoint returned an invalid XML info response")
+        preview = payload[:80].hex()
+        raise RuntimeError(
+            f"status endpoint returned an invalid XML info response (bytes={len(payload)}, preview_hex={preview})"
+        )
     return (
         (connected - started) * 1000.0,
         (finished - started) * 1000.0,
