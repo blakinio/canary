@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: docs/tibia-system-decomposition-protocol-client
 base_branch: main
 created: 2026-07-15T11:11:00+02:00
-updated: 2026-07-15T11:11:00+02:00
+updated: 2026-07-15T11:12:00+02:00
 last_verified_commit: "381cc076fa35e138292197f751f26c2e7b89dd08"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "372"
 depends_on:
   - completed and archived TSD-009
 blocks:
@@ -23,6 +23,7 @@ owned_paths:
     - docs/agents/real-tibia/registry/modules/network-transport.yaml
     - docs/agents/real-tibia/registry/modules/login-protocol.yaml
     - docs/agents/real-tibia/registry/modules/protocol-compatibility.yaml
+    - docs/agents/real-tibia/registry/modules/protocol-session-handoff.yaml
     - tools/agents/test_protocol_client_registry.py
     - tools/agents/test_upstream_intelligence_protocol_client.py
   shared:
@@ -49,18 +50,19 @@ modules_touched:
   - network transport
   - login protocol
   - protocol compatibility profiles
+  - protocol session handoff
 reuses:
   - existing registry/generator/mapper
   - existing protocol umbrella
   - existing physical-client E2E platform
 public_interfaces:
-  - bounded transport/login/compatibility discovery records
+  - bounded transport/login/compatibility/session-handoff discovery records
 cross_repo_tasks: []
 ---
 
 # Goal
 
-Complete bounded TSD-010 protocol and client inventory. Preserve the current broad `protocol` umbrella, physical-client E2E platform, account authentication/session cleanup and all gameplay records. Add only durable transport, login-protocol and compatibility-profile boundaries supported by verified current Canary and maintained OTClient roots.
+Complete bounded TSD-010 protocol and client inventory. Preserve the current broad `protocol` umbrella, physical-client E2E platform, account authentication/session cleanup and all gameplay records. Add only durable transport, login-protocol, compatibility-profile and protocol-session-handoff boundaries supported by verified current Canary and maintained OTClient roots.
 
 # Exact base and preflight
 
@@ -78,7 +80,8 @@ Current Canary separates:
 
 - `Connection`, base `Protocol` and `TransportCodec` framing/connection/crypto/checksum/compression and release lifecycle;
 - `ProtocolLogin` account-login request/response, profile resolution, session-key handoff and character-list phase;
-- `ProtocolProfileRegistry` version/assets/wire-family/transport/layout/feature compatibility metadata.
+- `ProtocolProfileRegistry` version/assets/wire-family/transport/layout/feature compatibility metadata;
+- `ProtocolSessionHintStore` bounded register → lease → consume/resolve → expire/clear state bridging account-login profile knowledge into the game connection without owning authentication.
 
 Maintained OTClient separately exposes:
 
@@ -93,8 +96,9 @@ The monolithic server/client `ProtocolGame` packet router and game state remain 
 - `network-transport` — candidate `ADD_NOW`;
 - `login-protocol` — candidate `ADD_NOW`;
 - `protocol-compatibility` — candidate `ADD_NOW`;
+- `protocol-session-handoff` — candidate `ADD_NOW` based on independent TTL/lease/consume lifecycle;
 - `game-protocol` — preserve existing `protocol` umbrella;
-- `game-session` — defer/merge unless a durable independent root can be isolated without claiming the whole `ProtocolGame` router;
+- `game-session` — merge/defer because current server/client roots are intertwined with the monolithic `ProtocolGame` packet router and client `Game` state;
 - individual opcodes/features/client modules — reject as too granular unless already covered by existing gameplay modules.
 
 # Acceptance criteria
