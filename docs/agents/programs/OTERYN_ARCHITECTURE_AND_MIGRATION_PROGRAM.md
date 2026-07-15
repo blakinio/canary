@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-15T15:28:18+02:00
-last_verified_commit: "d60d63dc37689ccc9ff7e9c37cfa2ebe71cbdc51"
+updated: 2026-07-15T15:53:27+02:00
+last_verified_commit: "9c28e52db81eb6b99a54e7700ad00288e6dbfd94"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -87,7 +87,9 @@ Oteryn target baseline SHA: unavailable
 
 PR #316 is an independent Targuna donor-cluster audit. Its paths and ownership are read-only to this program and its evidence cannot become final migration proof without merge and fresh revalidation.
 
-The merged E2E platform remains the single reusable physical-client orchestration. Its stale `tasks/active` record does not authorize parallel platform work.
+The merged E2E platform remains the single reusable physical-client orchestration. Its stale active task record was archived by independent lifecycle-only PR #382, merged as `63fbacc9ab2d31b480de9d756194e22ce22b7d35`.
+
+OAM-001 feature PR #383 was squash-merged as `9c28e52db81eb6b99a54e7700ad00288e6dbfd94` after current-head ownership and required CI passed. The target repository identity, default branch, baseline SHA and write authorization remain unavailable.
 
 # Target architecture contract
 
@@ -172,9 +174,7 @@ The program uses these evidence-backed outcomes:
 
 # Active tasks
 
-| Task ID | Branch | PR | State | Exact next action |
-|---|---|---:|---|---|
-| `CAN-20260715-oteryn-target-architecture-contract` | `docs/oteryn-target-architecture-contract` | pending | active | Deliver OAM-001 docs-only target architecture/evidence contract and merge through normal gates. |
+No OAM implementation task is active after OAM-001 lifecycle completion. `OAM-002` remains blocked and must not be opened until an authorized Oteryn target repository is explicitly designated or created and exact baseline inputs can be pinned.
 
 # Dependency-aware queue
 
@@ -182,8 +182,8 @@ The current canonical dependency graph requires foundation and persistence contr
 
 | Package | Scope | Status | Dependencies | Exact next action |
 |---|---|---|---|---|
-| `OAM-001` | target architecture and migration evidence contract | active | completed TSD + current registry | merge docs-only contract; no implementation |
-| `OAM-002` | target repository identity, authorization, default branch and exact upstream/target baseline pinning | blocked | OAM-001; Oteryn repository must exist | designate/create authorized Oteryn target outside this program's current write scope, then pin exact SHA |
+| `OAM-001` | target architecture and migration evidence contract | completed | completed TSD + current registry | feature PR #383 merged as `9c28e52db81eb6b99a54e7700ad00288e6dbfd94`; lifecycle archived separately |
+| `OAM-002` | target repository identity, authorization, default branch and exact upstream/target baseline pinning | blocked | completed OAM-001; Oteryn repository must exist | designate/create authorized Oteryn target outside this program's current write scope, then pin exact SHA |
 | `OAM-003` | engine/build/runtime foundation revalidation | blocked | OAM-002 | evaluate `build-system`, `configuration`, `engine-runtime-lifecycle`, `engine-scheduler`, `engine-service-container`, `lua-runtime`, `lua-bindings` against target |
 | `OAM-004` | database and persistence foundation revalidation | blocked | OAM-002, OAM-003 | evaluate `database-connection`, `database-migrations`, `player-persistence`, `world-persistence` and transaction/restart evidence |
 | `OAM-005` | account and character lifecycle revalidation | blocked | OAM-004 | evaluate account/auth/character lifecycle and progression boundaries |
@@ -255,13 +255,15 @@ Deterministic systems remain authoritative for gameplay, sanctions, economy muta
 
 # Validation strategy
 
-For OAM-001:
+OAM-001 completed with:
 
-- review Markdown and exact changed paths;
-- run Agent Task Ownership CI;
-- run repository docs/fast checks required by the current branch protection;
-- inspect comments, reviews and unresolved review threads on the current PR head;
-- merge only through the autonomous merge gate.
+- exact four-file documentation/governance diff review;
+- Agent Task Ownership #1313: success on final feature head `30d2a65a3c7a104f6b6204eb4c74f88f200eaf75`;
+- repository CI #2440: success;
+- Fast Checks, Lua Tests, Linux release and Required: success;
+- comments, reviews and unresolved review threads: none;
+- mergeable immediately before merge: true;
+- squash merge with exact-head guard to `9c28e52db81eb6b99a54e7700ad00288e6dbfd94`.
 
 For later migration packages:
 
