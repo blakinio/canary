@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-16T20:20:00+02:00
-last_verified_commit: "e7f7b9601d41436a105308efa933f16917bc1b39"
+updated: 2026-07-16T20:25:00+02:00
+last_verified_commit: "6374230a40b70d3e0cffe8d93a3171393ece7cd7"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -69,11 +69,11 @@ bounded Oteryn migration package
 
 # Current live preflight
 
-Re-verified through OAM-005 target delivery and current Canary governance integration state:
+Re-verified through OAM-005 target and Canary feature-governance delivery:
 
 ```text
 governance/legacy repository: blakinio/canary
-latest re-fetched Canary main: e7f7b9601d41436a105308efa933f16917bc1b39
+latest re-fetched Canary main: 6374230a40b70d3e0cffe8d93a3171393ece7cd7
 canonical module count: 62
 TSD status: completed
 TSD migration disposition baseline outside bounded OAM decisions: REVALIDATE
@@ -87,12 +87,12 @@ OAM-004 final target head: 67212530b03c10175da2c0d9eabcee8991a05924
 OAM-004 Canary feature merge: 0507fc5de8049d712345f43db0b05a23a6577a8a
 OAM-004 lifecycle merge: 91d2b64ae914ef5d53d52dae873bcd2a71633371
 OAM-005 Canary task-start: c2ffe09dc8753734be00c3433fab6f2ebe25d2e8
-OAM-005 Canary integration base: 0f25e7fd4d41e90f17fc95d13dba84b7e81d1681
 OAM-005 upstream evidence: opentibiabr/canary@e0ac98e399d0f7e483f3668f57b78fcc45b6e53f
 OAM-005 target task-start: 67212530b03c10175da2c0d9eabcee8991a05924
-OAM-005 target PR #19 head: 2a2e1e5e22df697435e705d8a19d69dcbc46bbfd
 OAM-005 final target head: a6d42f6cec024f81a7541084425ec1d43d66d2b8
-OAM-005 Canary governance PR: #432
+OAM-005 Canary feature head: 75a3cdf20ecbcde8d69a1e2c93f5fd9da6acdf0f
+OAM-005 Canary feature merge: 6374230a40b70d3e0cffe8d93a3171393ece7cd7
+OAM-005 lifecycle branch: docs/oam-005-lifecycle-archive
 target write authorization: explicitly granted by the user for autonomous OAM writes
 ```
 
@@ -100,7 +100,7 @@ OAM-001 completed the durable target architecture contract and was lifecycle arc
 
 OAM-002 established the authorized target identity/baseline and completed feature + lifecycle governance.
 
-OAM-003 revalidated seven engine-foundation modules, delivered two bounded target adaptation slices, merged Canary feature PR #411 as `780704f3b77c459f852319a249425614b21246fd`, and completed its separate lifecycle archival before OAM-004 started.
+OAM-003 revalidated seven engine-foundation modules and completed target, feature-governance and lifecycle delivery.
 
 OAM-003 dispositions are:
 
@@ -114,7 +114,7 @@ lua-runtime              ADAPT
 lua-bindings             ADAPT
 ```
 
-OAM-004 revalidated four database/persistence foundation modules, completed target delivery at `blakinio/Otheryn@67212530b03c10175da2c0d9eabcee8991a05924`, merged Canary feature-governance PR #420 as `0507fc5de8049d712345f43db0b05a23a6577a8a`, and completed separate lifecycle archival as `91d2b64ae914ef5d53d52dae873bcd2a71633371`.
+OAM-004 revalidated four database/persistence foundation modules and completed target, feature-governance and lifecycle delivery.
 
 OAM-004 dispositions are:
 
@@ -125,7 +125,7 @@ player-persistence  ADAPT
 world-persistence   ADAPT
 ```
 
-OAM-005 revalidated the bounded account/character lifecycle foundation. Target delivery is complete at `blakinio/Otheryn@a6d42f6cec024f81a7541084425ec1d43d66d2b8`; Canary feature governance and a separate lifecycle archive remain required before OAM-006 becomes eligible.
+OAM-005 revalidated the bounded account/character lifecycle foundation. Target delivery completed at `blakinio/Otheryn@a6d42f6cec024f81a7541084425ec1d43d66d2b8`; Canary feature-governance PR #432 passed final gates and squash-merged as `6374230a40b70d3e0cffe8d93a3171393ece7cd7`. This lifecycle-only package archives the task and records OAM-005 as completed.
 
 OAM-005 dispositions are:
 
@@ -158,6 +158,7 @@ No later migration implementation may infer authorization from an earlier packag
 | OAM-004 final target head | `67212530b03c10175da2c0d9eabcee8991a05924` | TARGET + LIFECYCLE COMPLETE |
 | OAM-005 target task-start | `67212530b03c10175da2c0d9eabcee8991a05924` | PINNED |
 | OAM-005 final target head | `a6d42f6cec024f81a7541084425ec1d43d66d2b8` | TARGET DELIVERY COMPLETE |
+| OAM-005 Canary feature merge | `6374230a40b70d3e0cffe8d93a3171393ece7cd7` | FEATURE GOVERNANCE COMPLETE |
 | OAM-005 upstream evidence | `opentibiabr/canary@e0ac98e399d0f7e483f3668f57b78fcc45b6e53f` | PINNED FOR OAM-005 |
 | target write authorization | explicit user authorization for autonomous OAM writes to `blakinio/Otheryn` | ESTABLISHED |
 
@@ -203,9 +204,9 @@ Generated indexes are discovery artifacts and must not become a second registry.
 
 # Active tasks
 
-`OAM-005 — account and character lifecycle revalidation` is the only active OAM package. Its target delivery is complete at `a6d42f6cec024f81a7541084425ec1d43d66d2b8`; its active task is `ready`, and Canary PR #432 is the feature-governance merge vehicle.
+No OAM implementation task is active in this lifecycle package. OAM-005 is archived by this package.
 
-OAM-006 is not active and must not be created or started until PR #432 merges and a separate OAM-005 lifecycle-only archive PR also merges.
+OAM-006 is not active and is not created or started here. After this lifecycle package merges, OAM-006 is merely the next eligible bounded package and still requires fresh live-state, ownership/overlap and exact target/upstream/legacy/client baseline verification before a new task is created.
 
 # Dependency-aware queue
 
@@ -213,16 +214,16 @@ OAM-006 is not active and must not be created or started until PR #432 merges an
 |---|---|---|---|---|
 | `OAM-001` | target architecture and migration evidence contract | completed | completed TSD + current registry | merged and lifecycle archived |
 | `OAM-002` | target repository identity, authorization and exact baseline pinning | completed | OAM-001 | feature + lifecycle completed |
-| `OAM-003` | engine/build/runtime foundation revalidation | completed | OAM-002 | feature PR #411 merged as `780704f3b77c459f852319a249425614b21246fd`; lifecycle archived separately |
+| `OAM-003` | engine/build/runtime foundation revalidation | completed | OAM-002 | feature + lifecycle completed |
 | `OAM-004` | database and persistence foundation revalidation | completed | completed OAM-003 lifecycle | target, feature governance and lifecycle complete |
-| `OAM-005` | account and character lifecycle revalidation | ready | completed OAM-004 feature + lifecycle | target delivery complete at `a6d42f6cec024f81a7541084425ec1d43d66d2b8`; merge Canary feature PR #432, then complete a separate lifecycle-only archive PR |
-| `OAM-006` | network/login/protocol contract revalidation | blocked | completed OAM-005 feature + lifecycle | after OAM-005 lifecycle merge only, become the next eligible bounded package; do not auto-start |
+| `OAM-005` | account and character lifecycle revalidation | completed | completed OAM-004 feature + lifecycle | target delivery `a6d42f6cec024f81a7541084425ec1d43d66d2b8`; Canary feature merge `6374230a40b70d3e0cffe8d93a3171393ece7cd7`; lifecycle archived by this package |
+| `OAM-006` | network/login/protocol contract revalidation | planned | completed OAM-005 feature + lifecycle | next eligible bounded package after this lifecycle merge; create only after fresh live-state, ownership/overlap and exact server/client baseline verification; do not auto-start |
 | `OAM-007` | item/world runtime foundation revalidation | blocked | OAM-003, OAM-004 | evaluate item definitions/instances and world-map/runtime boundaries before content migration |
 | `OAM-008` | first low-risk canonical module migration package | blocked | affected foundation packages | select exactly one module after dependencies and evidence gates are complete |
 | `OAM-009` | target physical-client E2E proof for first migrated module | blocked | OAM-008 plus target/client compatibility | extend existing E2E platform with one bounded target scenario |
 | `OAM-010+` | dependency-ordered domain migrations | planned | proven foundation and prior package dependencies | advance one bounded package at a time |
 
-OAM-005 target delivery is complete, but OAM-005 is not lifecycle-complete. OAM-006 remains blocked until both the OAM-005 Canary feature merge and the separate lifecycle archive merge complete.
+OAM-005 is lifecycle-complete when this lifecycle-only package merges. At that point OAM-006 is next eligible but remains not started.
 
 # Migration package evidence gate
 
@@ -260,18 +261,16 @@ AI may correlate evidence, summarize findings, suggest reproduction steps and as
 
 - OAM-001 and OAM-002 are completed and lifecycle archived.
 - OAM-003 feature and lifecycle work are complete.
-- OAM-004 feature and lifecycle work are complete; final target `67212530b03c10175da2c0d9eabcee8991a05924` remains the OAM-005 task-start target.
-- OAM-005 `account-lifecycle` is `REUSE` based on exact task-start cross-repository blob evidence for the checked account core.
-- OAM-005 `account-authentication` is `ADAPT`; Otheryn PR #19 merged as `a6d42f6cec024f81a7541084425ec1d43d66d2b8` after exact-head CI #76, Required #75 and autofix.ci #68 passed.
-- OAM-005 `character-lifecycle` is `ADAPT`; OAM-004D persistence semantics remain authoritative and must not be replaced by a wholesale legacy `IOLoginData` copy.
+- OAM-004 feature and lifecycle work are complete.
+- OAM-005 `account-lifecycle` is `REUSE`; `account-authentication` and `character-lifecycle` are `ADAPT`.
+- Otheryn PR #19 merged as `a6d42f6cec024f81a7541084425ec1d43d66d2b8` after exact-head CI #76, Required #75 and autofix.ci #68 passed.
 - `Otheryn:main` is pinned and verified at `a6d42f6cec024f81a7541084425ec1d43d66d2b8` for final OAM-005 target delivery.
-- Otheryn issue #17 is closed as completed; parent issue #15 remains open until OAM-005 governance/lifecycle completion.
-- Canary PR #432 must complete its final exact-head ownership/CI/review gate and feature merge.
-- A separate lifecycle-only PR must then archive the OAM-005 task and mark OAM-005 completed in this queue.
-- OAM-006 remains blocked until that lifecycle PR merges.
+- Otheryn issue #17 is closed as completed; parent issue #15 closes only after this lifecycle completion.
+- Canary PR #432 exact head `75a3cdf20ecbcde8d69a1e2c93f5fd9da6acdf0f` passed Agent Task Ownership #1705 and ready-triggered CI #2845 with `Required=success`, had a clean review gate, and squash-merged as `6374230a40b70d3e0cffe8d93a3171393ece7cd7`.
+- This lifecycle-only package is the remaining OAM-005 completion boundary and does not contain OAM-006 implementation.
+- OAM-006 may become next eligible only when this lifecycle package merges; it remains not started.
 - The secure login-session primitive is not live on the wire until OAM-006 integrates and proves exact protocol/session/client compatibility.
 - OAM-004 residual gaps remain explicit: player SQL commit and later KV flush are non-atomic; generic KV eviction persistence failure handling is outside OAM-004D; untouched crash/restart recovery and generic DDL reversibility remain unproven.
-- OAM-003 known residual evidence gaps remain explicit: child Lua interface reload semantics, untouched polymorphic userdata safety, arbitrary-consumer concurrent config reload correctness, and broader incremental DI/global-access convergence.
 
 # Decisions and invariants
 
@@ -292,44 +291,26 @@ AI may correlate evidence, summarize findings, suggest reproduction steps and as
 
 OAM-001 and OAM-002 completed their exact-head feature and lifecycle gates.
 
-OAM-003 completed with:
+OAM-003 completed its target, feature-governance and lifecycle gates.
 
-- semantic revalidation of seven canonical modules against exact legacy, target, upstream and donor SHAs;
-- `build-system` and `engine-scheduler` → `REUSE`;
-- `configuration`, `engine-runtime-lifecycle`, `engine-service-container`, `lua-runtime`, `lua-bindings` → `ADAPT`;
-- OAM-003A target PR #4 full exact-head CI/Required/review gates before merge `9b5805aaeef50774e9db5225c05529a06cec507e`;
-- OAM-003B target PR #6 exact head `49e9e4960d89476016c50d81523715b7551c1bf9` with CI #21, Required #18 and clean review gate before merge `a9c7fabc9f4b9bbeca9fed4ab73c36309cd04e2d`;
-- Canary PR #411 final head `9a08fb2d65fa0cd82a9893bf58f69488a68adac0` with Agent Task Ownership #1537 and ready-triggered CI #2671 success;
-- zero PR comments, submitted reviews or unresolved review threads before feature merge;
-- feature PR #411 squash-merged with exact-head guard as `780704f3b77c459f852319a249425614b21246fd`;
-- separate lifecycle archival before OAM-004 start.
+OAM-004 completed with target PRs #11/#12/#13/#14, Canary feature PR #420 and separate lifecycle PR #428, all using exact-head gates.
 
-OAM-004 completed with:
-
-- four canonical modules revalidated as `ADAPT`;
-- OAM-004A transaction-integrity PR #11 merged as `45ffe6afb915746c69125c9e74f5513c0cecdec4`;
-- OAM-004B fail-closed migration PR #12 merged as `1fe44d165fd8637e29ece62b261b7caa33895c65`;
-- OAM-004C world-save propagation PR #13 merged as `4b5b94eced0f3c5d88b9a4293e849d888333e0cb`;
-- OAM-004D PR #14 merged as `67212530b03c10175da2c0d9eabcee8991a05924` after exact-head CI/Required/autofix and clean review gates;
-- Canary PR #420 merged as `0507fc5de8049d712345f43db0b05a23a6577a8a` after exact-head ownership/CI/review gates;
-- separate lifecycle PR #428 merged as `91d2b64ae914ef5d53d52dae873bcd2a71633371`;
-- no claim of player SQL + KV atomicity and no generic KV subsystem redesign.
-
-OAM-005 target delivery completed with:
+OAM-005 completed target and feature-governance delivery with:
 
 - `account-lifecycle` → `REUSE`;
 - `account-authentication` → `ADAPT`;
 - `character-lifecycle` → `ADAPT`;
 - exact account core blob evidence across task-start legacy/target/upstream revisions;
-- bounded login-session primitive target PR #19 exact head `2a2e1e5e22df697435e705d8a19d69dcbc46bbfd`;
-- ready-triggered CI #76, Required #75 and autofix.ci #68 success;
-- Linux release, Linux debug tests, macOS and Windows gates success;
-- zero PR comments, submitted reviews or unresolved review threads at final target merge gate;
+- target PR #19 exact head `2a2e1e5e22df697435e705d8a19d69dcbc46bbfd` with ready-triggered CI #76, Required #75 and autofix.ci #68 success;
+- zero target PR comments, submitted reviews or unresolved review threads at final merge gate;
 - PR #19 squash-merged with exact-head guard as `a6d42f6cec024f81a7541084425ec1d43d66d2b8`;
 - `Otheryn:main` verified identical to `a6d42f6cec024f81a7541084425ec1d43d66d2b8`;
+- Canary PR #432 exact head `75a3cdf20ecbcde8d69a1e2c93f5fd9da6acdf0f` with Agent Task Ownership #1705 and ready-triggered CI #2845 `Required=success`;
+- zero Canary PR comments, submitted reviews or unresolved review threads at final feature merge gate;
+- Canary PR #432 squash-merged with exact-head guard as `6374230a40b70d3e0cffe8d93a3171393ece7cd7`;
 - no ProtocolLogin/ProtocolGame/packet-layout integration and no rollback of OAM-004D persistence semantics.
 
-Canary PR #432 must now pass its own refreshed exact-head ownership, ready-triggered final CI and clean review gates before feature merge. A separate lifecycle-only archive must pass its own gate afterward.
+This lifecycle-only package must pass its own exact-head ownership/CI/review gates before merge. It archives OAM-005 and does not start OAM-006.
 
 # Handoff
 
@@ -356,13 +337,12 @@ Read `AGENTS.md`, `docs/agents/README.md`, this program, `docs/agents/OTERYN_TAR
 - Do not infer `REUSE` from code presence.
 - Do not bulk-copy legacy Canary.
 - Do not invent target repository/baselines.
-- Do not reopen OAM-003A/B merely to solve explicitly deferred gaps without a new bounded task.
 - Do not re-enable MySQL automatic reconnect or arbitrary SQL statement replay.
 - Do not infer persistence safety from `DBTransaction` existence.
 - Do not claim player SQL + KV atomicity.
 - Do not restore whole legacy `IOLoginData` over OAM-004D target persistence changes.
 - Do not claim `LoginSessionManager` is live authentication before OAM-006 wire integration.
-- Do not start OAM-006 before OAM-005 feature and lifecycle completion.
+- Do not start OAM-006 inside OAM-005 lifecycle archival.
 
 ## Known gaps carried forward
 
@@ -379,4 +359,4 @@ Read `AGENTS.md`, `docs/agents/README.md`, this program, `docs/agents/OTERYN_TAR
 
 # Exact next task
 
-Finalize Canary PR #432: verify exact changed files and ownership, use the refreshed exact-head ownership/CI state, mark it ready, require the latest ready-triggered final-head gate plus clean comments/reviews/unresolved-thread state, and squash-merge with exact-head guard. Then create and merge a separate lifecycle-only PR that moves the OAM-005 task from `tasks/active` to `tasks/archive` and marks OAM-005 completed in this queue. Only after that lifecycle merge may OAM-006 become the next eligible bounded package; it must not be auto-created or started by the OAM-005 feature PR.
+After this lifecycle-only package merges, `OAM-006 — network/login/protocol contract revalidation` is the next eligible bounded package. It is not active and must not be auto-created or started by this lifecycle package. Before OAM-006 starts, re-fetch live `main`, open PRs, active tasks, ownership/overlap state, exact Otheryn target head, current upstream Canary, maintained client repositories/contracts and rollout evidence; then create a separate bounded task/branch/PR only if the package remains eligible.
