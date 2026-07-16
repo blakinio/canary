@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/security-runtime-adapter
 base_branch: main
 created: 2026-07-16T21:05:00+02:00
-updated: 2026-07-16T21:05:00+02:00
-last_verified_commit: "6503f5312dbf13d0fddcc1da98a10343ed30525c"
+updated: 2026-07-16T22:25:00+02:00
+last_verified_commit: "a9edc1f81f22298dabd0aaa43932b8daf004c4b1"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "440"
 depends_on:
   - "OTS-SEC-001 / PR #433"
   - "Universal OTS E2E automation / CAN-PROGRAM-E2E-PLATFORM"
@@ -54,17 +54,17 @@ Add the first code-owned runtime security adapter for Canary without creating a 
 
 # Acceptance criteria
 
-- [ ] Add a strict versioned `ots-security-runtime-adapter-v1` manifest contract with no arbitrary command, executable, credential or free-form network-target fields.
-- [ ] Add a Python 3.12 standard-library runtime-adapter CLI with `list`, `validate` and deterministic `resolve` operations.
-- [ ] Reuse `tools/e2e/run_agent_e2e.py` to resolve the delegated E2E scenario instead of duplicating E2E scenario parsing.
-- [ ] Fail closed unless the caller-provided repository exactly matches adapter authorization.
-- [ ] Fail closed unless the resolved E2E fixture host is a literal loopback IP address.
-- [ ] Pin the canonical Universal E2E workflow, resolver and physical runner as code-owned provider paths and include their SHA-256 evidence in the delegation report.
-- [ ] Emit deterministic `ots-security-runtime-delegation-v1` evidence identifying the adapter, repository authorization, selected E2E scenario, confined host/port and provider file hashes.
-- [ ] Seed `canary-universal-e2e` as the first adapter delegating to the existing `login/relog` E2E baseline.
-- [ ] Add focused tests covering exact-field rejection, unsupported provider, repository mismatch, non-literal/non-loopback host rejection, missing scenario, deterministic evidence and provider hashing.
-- [ ] Extend Security Validation CI to compile/test/validate/resolve the runtime adapter and upload its report.
-- [ ] Update security docs, program queue, module catalogue and changelog narrowly.
+- [x] Add a strict versioned `ots-security-runtime-adapter-v1` manifest contract with no arbitrary command, executable, credential or free-form network-target fields.
+- [x] Add a Python 3.12 standard-library runtime-adapter CLI with `list`, `validate` and deterministic `resolve` operations.
+- [x] Reuse `tools/e2e/run_agent_e2e.py` to resolve the delegated E2E scenario instead of duplicating E2E scenario parsing.
+- [x] Fail closed unless the caller-provided repository exactly matches adapter authorization.
+- [x] Fail closed unless the resolved E2E fixture host is a literal loopback IP address.
+- [x] Pin the canonical Universal E2E workflow, resolver and physical runner as code-owned provider paths and include their SHA-256 evidence in the delegation report.
+- [x] Emit deterministic `ots-security-runtime-delegation-v1` evidence identifying the adapter, repository authorization, selected E2E scenario, confined host/port and provider file hashes.
+- [x] Seed `canary-universal-e2e` as the first adapter delegating to the existing `login/relog` E2E baseline.
+- [x] Add focused tests covering exact-field rejection, unsupported provider, repository mismatch, non-literal/non-loopback host rejection, missing scenario, deterministic evidence and provider hashing.
+- [x] Extend Security Validation CI to compile/test/validate/resolve the runtime adapter and upload its report.
+- [ ] Update module catalogue and changelog narrowly.
 - [ ] Review the exact diff and pass current-head plus exact-final-head required CI before squash merge.
 
 # Evidence and constraints
@@ -73,7 +73,8 @@ Add the first code-owned runtime security adapter for Canary without creating a 
 - `PROVEN`: the accepted security-platform ADR requires code-owned runtime adapters and forbids a second security-specific full-stack launcher.
 - `PROVEN`: Universal E2E owns disposable MariaDB/Canary/OTClient lifecycle, evidence and cleanup.
 - `PROVEN`: `.github/workflows/universal-agent-e2e.yml` delegates physical execution to `tools/e2e/run_physical_e2e.sh` and scenario resolution to `tools/e2e/run_agent_e2e.py`.
-- `PROVEN`: open lifecycle PR #437 changes only the archived SEC-001 task record and does not overlap SEC-002 owned implementation paths.
+- `PROVEN`: lifecycle PR #437 merged as `819efef130c0f498ba958956ec9964f7c79fa144`; SEC-002 no longer overlaps an open SEC-001 lifecycle task.
+- `PROVEN`: Security Validation run `29531473776` and normal CI run `29531474508` passed on `a9edc1f81f22298dabd0aaa43932b8daf004c4b1`.
 - `UNKNOWN`: the generic E2E interface required for malformed-packet execution; deliberately deferred to OTS-SEC-003 rather than changing E2E platform ownership in this task.
 
 # Validation plan
@@ -89,10 +90,10 @@ Add the first code-owned runtime security adapter for Canary without creating a 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T21:05:00+02:00
-head: 6503f5312dbf13d0fddcc1da98a10343ed30525c
+updated_at: 2026-07-16T22:25:00+02:00
+head: a9edc1f81f22298dabd0aaa43932b8daf004c4b1
 branch: feat/security-runtime-adapter
-pr: null
+pr: 440
 status: implementing
 context_routes:
   - agent-governance
@@ -109,22 +110,44 @@ owned_paths:
   - docs/agents/CHANGELOG.md
 proven:
   - OTS-SEC-001 merged through PR 433 at 6503f5312dbf13d0fddcc1da98a10343ed30525c
+  - SEC-001 lifecycle PR 437 merged at 819efef130c0f498ba958956ec9964f7c79fa144
   - accepted ADR requires explicit code-owned adapters and reuse of Universal OTS E2E
-  - Universal Agent E2E owns scenario resolution disposable MariaDB exact-head Canary controlled OTClient physical execution evidence and cleanup
-  - open lifecycle PR 437 changes only the archived SEC-001 task record
-  - no open runtime-security adapter PR was found before task creation
+  - runtime adapter imports the existing E2E scenario resolver and keeps tools/e2e plus the Universal Agent E2E workflow read-only
+  - canary-universal-e2e resolves login/relog through a strict repository-authorized literal-loopback-only contract
+  - provider workflow resolver runner and selected scenario are represented by deterministic SHA-256 evidence
+  - Security Validation run 29531473776 passed on a9edc1f81f22298dabd0aaa43932b8daf004c4b1
+  - CI run 29531474508 passed on a9edc1f81f22298dabd0aaa43932b8daf004c4b1
 derived:
-  - SEC-002 can remain read-only over tools/e2e and still provide a safe delegation boundary by importing the existing scenario resolver and pinning canonical provider paths
+  - SEC-002 establishes the safe delegation boundary required before adding security-specific runtime attack drivers
 unknown:
   - generic attack-driver execution hook for OTS-SEC-003
 conflicts: []
-first_failure: null
+first_failure:
+  marker: active-task-checkpoint-first-failure-type
+  evidence: Agent Task Ownership run 29531473822 rejected first_failure null because the checkpoint contract requires a YAML mapping; this commit supplies the mapping
 rejected_hypotheses:
+  - security adapter implementation failure: rejected because Security Validation and normal CI both passed on the same head
   - build a second security E2E launcher: rejected by the accepted platform ADR and existing Universal E2E ownership
-  - allow adapter manifests to provide runner commands or arbitrary hosts: rejected because it would reopen an unbounded execution/target boundary
+  - allow adapter manifests to provide runner commands or arbitrary hosts: rejected because it would reopen an unbounded execution and target boundary
 changed_paths:
+  - .github/workflows/security-validation.yml
+  - docs/agents/programs/SECURITY_VALIDATION_PROGRAM.md
   - docs/agents/tasks/active/CAN-20260716-security-runtime-adapter.md
-validation: []
+  - docs/security/SECURITY_VALIDATION_PLATFORM.md
+  - tests/security/runtime_adapters/.gitkeep
+  - tests/security/runtime_adapters/canary-universal-e2e.json
+  - tests/security/test_runtime_adapter.py
+  - tools/security/runtime_adapter.py
+validation:
+  - command: Security Validation run 29531473776
+    result: PASS
+    evidence: runtime adapter compile focused unit discovery registry validation authorized delegation resolution and source-regression execution passed
+  - command: CI run 29531474508
+    result: PASS
+    evidence: repository CI passed on a9edc1f81f22298dabd0aaa43932b8daf004c4b1
+  - command: Agent Task Ownership run 29531473822
+    result: FAIL
+    evidence: governance-only checkpoint schema error first_failure must be a YAML mapping; corrected by this commit
 blockers: []
-next_action: Open the draft PR, then implement the strict adapter resolver and focused tests without modifying Universal E2E lifecycle code.
+next_action: Remove the unnecessary runtime-adapter .gitkeep, update MODULE_CATALOG and CHANGELOG from current main, then revalidate ownership and CI before final-head gate.
 ```
