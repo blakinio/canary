@@ -7,9 +7,9 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = ROOT / "data-otservbr-global/scripts/config/gameplay_analytics.lua"
-CONTEXT = ROOT / "data-otservbr-global/scripts/lib/gameplay_analytics_context.lua"
-BATCHING = ROOT / "data-otservbr-global/scripts/lib/gameplay_analytics_batching.lua"
-SCHEMA_GUARD = ROOT / "data-otservbr-global/scripts/lib/gameplay_analytics_schema.lua"
+CONTEXT = ROOT / "data-otservbr-global/scripts/lib/#gameplay_analytics_context_impl.lua"
+BATCHING = ROOT / "data-otservbr-global/scripts/lib/#gameplay_analytics_batching_impl.lua"
+SCHEMA_GUARD = ROOT / "data-otservbr-global/scripts/lib/#gameplay_analytics_schema_impl.lua"
 RUNTIME = ROOT / "data-otservbr-global/scripts/systems/gameplay_analytics.lua"
 MIGRATION = ROOT / "schema/gameplay_analytics_migrations/003_hunt_context.sql"
 DOCS = ROOT / "docs/systems/gameplay-analytics-context.md"

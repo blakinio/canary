@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
-CORRECTNESS = ROOT / "data-otservbr-global/scripts/lib/gameplay_analytics_correctness.lua"
+CORRECTNESS = ROOT / "data-otservbr-global/scripts/lib/#gameplay_analytics_correctness_impl.lua"
 RUNTIME = ROOT / "data-otservbr-global/scripts/systems/gameplay_analytics.lua"
 CONFIG = ROOT / "data-otservbr-global/scripts/config/gameplay_analytics.lua"
 FIREBALL = ROOT / "data/scripts/runes/fireball.lua"

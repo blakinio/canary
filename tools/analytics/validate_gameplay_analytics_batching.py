@@ -7,7 +7,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = ROOT / "data-otservbr-global/scripts/config/gameplay_analytics.lua"
-BATCHING = ROOT / "data-otservbr-global/scripts/lib/gameplay_analytics_batching.lua"
+BATCHING = ROOT / "data-otservbr-global/scripts/lib/#gameplay_analytics_batching_impl.lua"
 RUNTIME = ROOT / "data-otservbr-global/scripts/systems/gameplay_analytics.lua"
 DOCS = ROOT / "docs/systems/gameplay-analytics-persistence.md"
 
