@@ -175,3 +175,4 @@ next_action: Verify the corrected full exact-head workflows triggered by this fi
 - Merge commit: `0f25e7fd4d41e90f17fc95d13dba84b7e81d1681`.
 - Merged at: `2026-07-16T17:59:36Z`.
 - This record was moved from `tasks/active` by the post-merge lifecycle automation.
+- Lifecycle validation was retriggered on the cleanup branch after GitHub marked the bot-created `pull_request` runs as approval-required; no feature code changed.
