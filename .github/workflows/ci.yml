@@ -41,14 +41,16 @@ jobs:
     outputs:
       # Pull requests build only when the cumulative PR scope requires it and
       # the newest single-commit delta cannot reuse successful immediate-parent
-      # CI evidence. workflow_dispatch and main pushes retain full validation.
+      # CI evidence. workflow_dispatch, main pushes, and ci:final-gate retain
+      # full validation.
       reuse_parent: ${{ steps.incremental.outputs.reuse_parent || 'false' }}
-      linux: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (steps.incremental.outputs.reuse_parent != 'true' && steps.filter.outputs.linux == 'true') }}
-      full_matrix: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (steps.incremental.outputs.reuse_parent != 'true' && steps.filter.outputs.engine == 'true') }}
-      run_canary_smoke: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (steps.incremental.outputs.reuse_parent != 'true' && (steps.filter.outputs.engine == 'true' || steps.filter.outputs.shared_datapack == 'true' || steps.filter.outputs.canary_datapack == 'true')) }}
-      run_global_smoke: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (steps.incremental.outputs.reuse_parent != 'true' && (steps.filter.outputs.engine == 'true' || steps.filter.outputs.shared_datapack == 'true' || steps.filter.outputs.global_datapack == 'true')) }}
-      docker: ${{ github.event_name == 'workflow_dispatch' && 'true' || (steps.incremental.outputs.reuse_parent != 'true' && steps.filter.outputs.docker) }}
-      docker_quickstart: ${{ github.event_name == 'workflow_dispatch' && 'true' || (steps.incremental.outputs.reuse_parent != 'true' && steps.filter.outputs.docker_quickstart) }}
+      final_gate: ${{ steps.final_gate.outputs.active || 'false' }}
+      linux: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || steps.final_gate.outputs.active == 'true' || (steps.incremental.outputs.reuse_parent != 'true' && steps.filter.outputs.linux == 'true') }}
+      full_matrix: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || steps.final_gate.outputs.active == 'true' || (steps.incremental.outputs.reuse_parent != 'true' && steps.filter.outputs.engine == 'true') }}
+      run_canary_smoke: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || steps.final_gate.outputs.active == 'true' || (steps.incremental.outputs.reuse_parent != 'true' && (steps.filter.outputs.engine == 'true' || steps.filter.outputs.shared_datapack == 'true' || steps.filter.outputs.canary_datapack == 'true')) }}
+      run_global_smoke: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || steps.final_gate.outputs.active == 'true' || (steps.incremental.outputs.reuse_parent != 'true' && (steps.filter.outputs.engine == 'true' || steps.filter.outputs.shared_datapack == 'true' || steps.filter.outputs.global_datapack == 'true')) }}
+      docker: ${{ (github.event_name == 'workflow_dispatch' || steps.final_gate.outputs.active == 'true') && 'true' || (steps.incremental.outputs.reuse_parent != 'true' && steps.filter.outputs.docker) }}
+      docker_quickstart: ${{ (github.event_name == 'workflow_dispatch' || steps.final_gate.outputs.active == 'true') && 'true' || (steps.incremental.outputs.reuse_parent != 'true' && steps.filter.outputs.docker_quickstart) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -56,6 +58,11 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+      - name: Detect final gate label
+        id: final_gate
+        if: github.event_name == 'pull_request'
+        run: echo "active=${{ contains(github.event.pull_request.labels.*.name, 'ci:final-gate') }}" >> "$GITHUB_OUTPUT"
 
       - name: Evaluate immediate-parent CI reuse
         id: incremental
@@ -136,6 +143,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           echo "reuse_parent=${{ steps.incremental.outputs.reuse_parent || 'false' }}"
+          echo "final_gate=${{ steps.final_gate.outputs.active || 'false' }}"
           echo "reason=${{ steps.incremental.outputs.reason }}"
 
   # --- Fast Checks ---
