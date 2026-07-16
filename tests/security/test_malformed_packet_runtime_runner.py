@@ -53,6 +53,14 @@ class MalformedPacketRuntimeRunnerTests(unittest.TestCase):
         }
         self.plan_path.write_text(json.dumps(self.plan, indent=2) + "\n", encoding="utf-8")
 
+    def test_case_sources_are_deterministic_distinct_loopback_addresses(self) -> None:
+        sources = [runner.source_ip_for_case(index) for index in range(runner.core.MAX_CASES)]
+        self.assertEqual(sources[0], "127.0.0.2")
+        self.assertEqual(sources[-1], "127.0.0.17")
+        self.assertEqual(len(set(sources)), runner.core.MAX_CASES)
+        with self.assertRaisesRegex(runner.core.ProbeFailure, "source-index-out-of-range"):
+            runner.source_ip_for_case(runner.core.MAX_CASES)
+
     def test_control_probe_recovers_after_transient_failures(self) -> None:
         failures = [
             runner.core.ProbeFailure("control-invalid-response"),
@@ -60,54 +68,80 @@ class MalformedPacketRuntimeRunnerTests(unittest.TestCase):
             None,
         ]
 
-        def probe(host: str, port: int, timeout: float) -> None:
-            self.assertEqual((host, port, timeout), ("127.0.0.1", 7473, 0.2))
+        def probe(host: str, port: int, timeout: float, source_ip: str) -> None:
+            self.assertEqual((host, port, timeout, source_ip), ("127.0.0.1", 7473, 0.2, "127.0.0.2"))
             outcome = failures.pop(0)
             if outcome is not None:
                 raise outcome
 
-        with mock.patch.object(runner.core, "probe_status_control", side_effect=probe), mock.patch.object(
+        with mock.patch.object(runner, "probe_status_control_from_source", side_effect=probe), mock.patch.object(
             runner.time, "sleep"
         ) as sleep:
-            runner.probe_status_control_with_retries("127.0.0.1", 7473, 0.2)
+            runner.probe_status_control_with_retries("127.0.0.1", 7473, 0.2, "127.0.0.2")
         self.assertEqual(sleep.call_count, 2)
 
     def test_control_probe_exhaustion_fails_closed_with_normalized_code(self) -> None:
         with mock.patch.object(
-            runner.core,
-            "probe_status_control",
+            runner,
+            "probe_status_control_from_source",
             side_effect=runner.core.ProbeFailure("control-invalid-response"),
         ), mock.patch.object(runner.time, "sleep"):
             with self.assertRaisesRegex(runner.core.ProbeFailure, "control-unresponsive") as raised:
-                runner.probe_status_control_with_retries("127.0.0.1", 7473, 0.2)
+                runner.probe_status_control_with_retries("127.0.0.1", 7473, 0.2, "127.0.0.2")
         self.assertEqual(raised.exception.code, "control-unresponsive")
+
+    def test_execute_plan_uses_one_deterministic_source_per_case(self) -> None:
+        malformed_calls: list[tuple[str, int, float, str]] = []
+        control_calls: list[tuple[str, int, float, str]] = []
+
+        def malformed(case, host: str, port: int, timeout: float, source_ip: str) -> None:
+            del case
+            malformed_calls.append((host, port, timeout, source_ip))
+
+        def control(host: str, port: int, timeout: float, source_ip: str) -> None:
+            control_calls.append((host, port, timeout, source_ip))
+
+        with mock.patch.object(runner, "probe_malformed_case_from_source", side_effect=malformed), mock.patch.object(
+            runner, "probe_status_control_with_retries", side_effect=control
+        ):
+            result = runner.execute_plan(self.plan_path, self.plan, self.context, timeout_seconds=0.2)
+
+        self.assertEqual(result, 0)
+        self.assertEqual(malformed_calls, [("127.0.0.1", 7473, 0.2, "127.0.0.2")])
+        self.assertEqual(control_calls, [("127.0.0.1", 7473, 0.2, "127.0.0.2")])
+        report = json.loads((self.artifact_dir / "malformed-packet-report.json").read_text(encoding="utf-8"))
+        self.assertEqual(report["status"], "success")
+        self.assertEqual(report["cases"][0]["source_ip"], "127.0.0.2")
+        self.assertEqual(report["cases"][0]["control_probe"], "pass")
+        self.assertNotIn("attempts", report["cases"][0])
+        self.assertIn("tools/security/malformed_packet_runtime_runner.py", report["evidence"]["provider_sha256"])
 
     def test_execute_plan_normalizes_transient_recovery_without_attempt_count(self) -> None:
         calls = 0
 
-        def control(host: str, port: int, timeout: float) -> None:
+        def control(host: str, port: int, timeout: float, source_ip: str) -> None:
             nonlocal calls
-            del host, port, timeout
+            del host, port, timeout, source_ip
             calls += 1
             if calls == 1:
                 raise runner.core.ProbeFailure("control-invalid-response")
 
-        with mock.patch.object(runner.core, "probe_malformed_case", return_value=None), mock.patch.object(
-            runner.core, "probe_status_control", side_effect=control
+        with mock.patch.object(runner, "probe_malformed_case_from_source", return_value=None), mock.patch.object(
+            runner, "probe_status_control_from_source", side_effect=control
         ), mock.patch.object(runner.time, "sleep"):
             result = runner.execute_plan(self.plan_path, self.plan, self.context, timeout_seconds=0.2)
 
         self.assertEqual(result, 0)
         report = json.loads((self.artifact_dir / "malformed-packet-report.json").read_text(encoding="utf-8"))
         self.assertEqual(report["status"], "success")
+        self.assertEqual(report["cases"][0]["source_ip"], "127.0.0.2")
         self.assertEqual(report["cases"][0]["control_probe"], "pass")
         self.assertNotIn("attempts", report["cases"][0])
-        self.assertIn("tools/security/malformed_packet_runtime_runner.py", report["evidence"]["provider_sha256"])
 
     def test_execute_plan_fails_closed_when_control_never_recovers(self) -> None:
-        with mock.patch.object(runner.core, "probe_malformed_case", return_value=None), mock.patch.object(
-            runner.core,
-            "probe_status_control",
+        with mock.patch.object(runner, "probe_malformed_case_from_source", return_value=None), mock.patch.object(
+            runner,
+            "probe_status_control_from_source",
             side_effect=runner.core.ProbeFailure("control-invalid-response"),
         ), mock.patch.object(runner.time, "sleep"):
             result = runner.execute_plan(self.plan_path, self.plan, self.context, timeout_seconds=0.2)
