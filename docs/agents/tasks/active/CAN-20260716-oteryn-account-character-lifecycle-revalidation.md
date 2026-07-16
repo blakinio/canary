@@ -7,7 +7,7 @@ agent: oteryn-architecture-migration-agent
 branch: docs/oam-005-account-character-lifecycle-revalidation
 base_branch: main
 created: 2026-07-16T19:58:30+02:00
-updated: 2026-07-16T20:04:00+02:00
+updated: 2026-07-16T20:05:30+02:00
 last_verified_commit: "0f25e7fd4d41e90f17fc95d13dba84b7e81d1681"
 risk: high
 related_issue: ""
@@ -95,8 +95,8 @@ Revalidate the canonical account and character lifecycle foundation against exac
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T20:04:00+02:00
-head: 0f25e7fd4d41e90f17fc95d13dba84b7e81d1681
+updated_at: 2026-07-16T20:05:30+02:00
+head: 799b3959eedb8b3da1f7f25024e385befa84ad91
 branch: docs/oam-005-account-character-lifecycle-revalidation
 pr: 432
 status: implementing
