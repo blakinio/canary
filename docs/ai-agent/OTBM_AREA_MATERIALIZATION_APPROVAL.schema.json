@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "canary-otbm-area-materialization-approval-v1",
+  "title": "Canary OTBM area materialization approval v1",
+  "type": "object",
+  "required": ["format", "schemaVersion", "decision", "rationale", "plan", "approvedAreaKeys", "approvedConflictIds"],
+  "properties": {
+    "format": {"const": "canary-otbm-area-materialization-approval-v1"},
+    "schemaVersion": {"const": 1},
+    "decision": {"const": "approved"},
+    "rationale": {"type": "string", "minLength": 1},
+    "plan": {
+      "type": "object",
+      "required": ["format", "sha256"],
+      "properties": {
+        "format": {"const": "canary-otbm-region-merge-plan-v1"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "approvedAreaKeys": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["baseX", "baseY", "z"],
+        "properties": {
+          "baseX": {"type": "integer", "minimum": 0, "maximum": 65535, "multipleOf": 256},
+          "baseY": {"type": "integer", "minimum": 0, "maximum": 65535, "multipleOf": 256},
+          "z": {"type": "integer", "minimum": 0, "maximum": 15}
+        },
+        "additionalProperties": false
+      }
+    },
+    "approvedConflictIds": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^otbm-region-merge:conflict:[0-9a-f]{24}$"},
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": false
+}

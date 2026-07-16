@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "id": "canary-universal-e2e",
+  "target_adapter": "canary-runtime",
+  "component": "server",
+  "authorization": {
+    "scope": "repository",
+    "repository": "blakinio/canary"
+  },
+  "delegate": {
+    "provider": "universal-e2e",
+    "suite": "login",
+    "scenario": "relog"
+  },
+  "confinement": {
+    "network": "literal-loopback-only"
+  }
+}
