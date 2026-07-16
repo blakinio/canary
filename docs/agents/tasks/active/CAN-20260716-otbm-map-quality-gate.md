@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-map-quality-gate
 base_branch: main
 created: 2026-07-16T10:12:00+02:00
-updated: 2026-07-16T10:12:00+02:00
-last_verified_commit: "870fc9acb31d8ec19f7466be9b5f4fa99567eb21"
+updated: 2026-07-16T10:15:00+02:00
+last_verified_commit: "7ff56defc2b4368bb70a500de225ea2f84c22a55"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "419"
 depends_on:
   - "OTBM World Index #219"
   - "OTBM script-resolution audit #104"
@@ -80,6 +80,7 @@ Add a deterministic read-only OTBM Map Quality Gate that combines already-genera
 
 - Writable repository is exactly `blakinio/canary`; upstream/donor repositories remain read-only.
 - Task-start `main` is `870fc9acb31d8ec19f7466be9b5f4fa99567eb21`, the squash merge of PR #413.
+- Draft PR #419 targets `blakinio/canary:main` from `blakinio/canary:feat/otbm-map-quality-gate`.
 - PR #316 remains a separate bounded Targuna donor-isolation audit; this task does not own donor extraction or import paths.
 - No open PR or repository search result was found for an existing OTBM Map Quality Gate or sandbox verifier.
 - Existing geometry and reachability reports expose versioned findings with severity/position evidence and World Index provenance.
@@ -94,10 +95,10 @@ Version 1 is a thin report aggregator over exactly three canonical inputs: Geome
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T10:12:00+02:00
-head: 870fc9acb31d8ec19f7466be9b5f4fa99567eb21
+updated_at: 2026-07-16T10:15:00+02:00
+head: 7ff56defc2b4368bb70a500de225ea2f84c22a55
 branch: feat/otbm-map-quality-gate
-pr: null
+pr: 419
 status: implementing
 context_routes:
   - otbm
@@ -113,6 +114,7 @@ owned_paths:
   - docs/agents/CHANGELOG.md
 proven:
   - task-start main is 870fc9acb31d8ec19f7466be9b5f4fa99567eb21
+  - draft PR 419 is open in blakinio/canary with base main and dedicated head branch
   - geometry reachability and script-resolution tooling already exist and are reusable
   - PR 316 donor Targuna work does not own the planned quality-gate implementation paths
   - no existing map-quality-gate or sandbox-verifier implementation was found by targeted repository and PR search
@@ -133,13 +135,13 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260716-otbm-map-quality-gate.md
 validation: []
 blockers: []
-next_action: Open an early draft PR, bind related_pr, then implement deterministic source-identity extraction and the three component adapters.
+next_action: Implement deterministic source-identity extraction and the geometry reachability and script-resolution adapters, then add focused tests before shared index edits.
 ```
 
 # Completion
 
 - Final status: implementing
-- Canary PR: pending
+- Canary PR: #419
 - Catalogue updated: pending
 - Changelog updated: pending
 - Archived at: not archived
