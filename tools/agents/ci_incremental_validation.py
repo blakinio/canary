@@ -231,6 +231,29 @@ def decide_reuse(
     )
 
 
+def event_has_final_gate_label(payload: Mapping[str, object]) -> bool:
+    pull_request = payload.get("pull_request")
+    if not isinstance(pull_request, Mapping):
+        return False
+    labels = pull_request.get("labels", [])
+    if not isinstance(labels, Sequence) or isinstance(labels, (str, bytes)):
+        return False
+    return any(
+        isinstance(label, Mapping) and str(label.get("name") or "") == FINAL_GATE_LABEL
+        for label in labels
+    )
+
+
+def event_requests_final_gate(event_path: str) -> bool:
+    if not event_path:
+        return False
+    try:
+        payload = json.loads(Path(event_path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    return isinstance(payload, Mapping) and event_has_final_gate_label(payload)
+
+
 def _git_lines(*args: str) -> list[str]:
     completed = subprocess.run(
         ["git", *args],
@@ -305,13 +328,16 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parse_args(argv)
+    force_full = args.force_full or event_requests_final_gate(
+        os.environ.get("GITHUB_EVENT_PATH", "")
+    )
 
     try:
         parent_sha, changed_paths = immediate_parent_and_paths()
     except (OSError, RuntimeError, subprocess.CalledProcessError) as exc:
         decision = Decision(False, True, f"fail closed: cannot resolve single-commit delta: {exc}")
     else:
-        if args.force_full or args.event_name != "pull_request" or args.event_action != "synchronize":
+        if force_full or args.event_name != "pull_request" or args.event_action != "synchronize":
             parent_runs: list[Mapping[str, object]] = []
         else:
             try:
@@ -337,7 +363,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             workflow_name=args.workflow_name,
             event_name=args.event_name,
             event_action=args.event_action,
-            force_full=args.force_full,
+            force_full=force_full,
             changed_paths=changed_paths,
             parent_sha=parent_sha,
             parent_runs=parent_runs,
