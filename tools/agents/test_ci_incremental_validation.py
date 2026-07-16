@@ -17,6 +17,10 @@ class PathProfileTests(unittest.TestCase):
         self.assertTrue(civ.path_impacts_profile("src/game/game.cpp", "ci"))
         self.assertTrue(civ.path_impacts_profile(".github/workflows/ci.yml", "ci"))
 
+    def test_normalize_path_preserves_dotfile_prefix(self) -> None:
+        self.assertEqual(civ.normalize_path("./.github/workflows/ci.yml"), ".github/workflows/ci.yml")
+        self.assertTrue(civ.path_impacts_profile("./.github/workflows/ci.yml", "ci"))
+
     def test_e2e_excludes_load_only_tests(self) -> None:
         self.assertFalse(
             civ.path_impacts_profile("tests/e2e/load/status-smoke.json", "universal-e2e")
@@ -32,6 +36,11 @@ class PathProfileTests(unittest.TestCase):
         self.assertTrue(
             civ.path_impacts_profile("tests/e2e/scenarios/login/relog.yaml", "universal-e2e")
         )
+
+    def test_helper_change_forces_e2e_and_load_validation(self) -> None:
+        helper = "tools/agents/ci_incremental_validation.py"
+        self.assertTrue(civ.path_impacts_profile(helper, "universal-e2e"))
+        self.assertTrue(civ.path_impacts_profile(helper, "universal-load"))
 
     def test_load_keeps_runtime_and_load_paths_impacting(self) -> None:
         self.assertTrue(
