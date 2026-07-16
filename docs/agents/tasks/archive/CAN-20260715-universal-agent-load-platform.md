@@ -2,13 +2,13 @@
 task_id: CAN-20260715-universal-agent-load-platform
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: ""
-status: ready
+status: completed
 agent: chatgpt-e2e-platform
 branch: feat/universal-agent-load-platform-v2
 base_branch: main
 created: 2026-07-15T15:40:00+02:00
-updated: 2026-07-16T09:27:00+02:00
-last_verified_commit: 79d81a276d9e597420b13a76126ce232087dc3b2
+updated: 2026-07-16T08:01:34Z
+last_verified_commit: "2f828672df010ff577c8e6076524b37c6dedd987"
 risk: medium
 related_issue: ""
 related_pr: "393"
@@ -51,6 +51,7 @@ public_interfaces:
   - run_agent_load_runtime.py exact-head Canary load runtime
   - universal-agent-load workflow_dispatch profile interface
 cross_repo_tasks: []
+completed: 2026-07-16T08:01:34Z
 ---
 
 # Goal
@@ -185,3 +186,11 @@ next_action: Verify all required workflows on this final checkpoint head, then a
 # Handoff
 
 The authoritative continuation state is the `## Context checkpoint` above. Do not reconstruct from chat history, create a competing task/branch/PR, modify OTClient, weaken throttles or load assertions, or bypass exact-current-head CI and review gates.
+
+## Automated lifecycle completion
+
+- Feature PR: #393.
+- Feature head: `b84e721446da4638a3e77877c78d092d6a767c25`.
+- Merge commit: `2f828672df010ff577c8e6076524b37c6dedd987`.
+- Merged at: `2026-07-16T08:01:34Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
