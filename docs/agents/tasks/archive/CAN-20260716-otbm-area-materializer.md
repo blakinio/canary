@@ -2,13 +2,13 @@
 task_id: CAN-20260716-otbm-area-materializer
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-area-materializer
 base_branch: main
 created: 2026-07-16T13:20:00+02:00
-updated: 2026-07-16T19:46:28+02:00
-last_verified_commit: "74ce7f097137b55fdb65ff0254c9e72090cb80cb"
+updated: 2026-07-16T19:43:01Z
+last_verified_commit: "851ae2fff3f371bcbc6b42f5f2b476300a7585ca"
 risk: high
 related_issue: ""
 related_pr: "426"
@@ -52,6 +52,7 @@ public_interfaces:
   - canary-otbm-area-materialization-approval-v1
   - canary-otbm-area-materialization-result-v1
 cross_repo_tasks: []
+completed: 2026-07-16T19:43:01Z
 ---
 
 # Goal
@@ -172,3 +173,11 @@ next_action: Let required checks run on the task-record readiness commit, then r
 - Catalogue updated: complete
 - Changelog updated: complete
 - Archived at: not archived
+
+## Automated lifecycle completion
+
+- Feature PR: #426.
+- Feature head: `aa650000935862b4de748829768356a83d93f6c3`.
+- Merge commit: `851ae2fff3f371bcbc6b42f5f2b476300a7585ca`.
+- Merged at: `2026-07-16T19:43:01Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
