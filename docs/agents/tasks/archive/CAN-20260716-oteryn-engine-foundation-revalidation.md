@@ -2,13 +2,13 @@
 task_id: CAN-20260716-oteryn-engine-foundation-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: "OAM-003"
-status: ready
+status: completed
 agent: oteryn-architecture-migration-agent
 branch: docs/oam-003-engine-foundation-revalidation
 base_branch: main
 created: 2026-07-16T08:53:00+02:00
-updated: 2026-07-16T09:55:00+02:00
-last_verified_commit: "8950a275e258ccc0f1a6781c9ff9c8ea089210a0"
+updated: 2026-07-16T08:08:44Z
+last_verified_commit: "780704f3b77c459f852319a249425614b21246fd"
 risk: high
 related_issue: ""
 related_pr: "411"
@@ -58,6 +58,7 @@ cross_repo_tasks:
   - blakinio/Otheryn#4
   - blakinio/Otheryn#5
   - blakinio/Otheryn#6
+completed: 2026-07-16T08:08:44Z
 ---
 
 # Goal
@@ -268,3 +269,11 @@ next_action: Update the OAM program record with completed OAM-003 target adaptat
 - Catalogue updated: not applicable
 - Changelog updated: not applicable
 - Archived at: not archived
+
+## Automated lifecycle completion
+
+- Feature PR: #411.
+- Feature head: `9a08fb2d65fa0cd82a9893bf58f69488a68adac0`.
+- Merge commit: `780704f3b77c459f852319a249425614b21246fd`.
+- Merged at: `2026-07-16T08:08:44Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
