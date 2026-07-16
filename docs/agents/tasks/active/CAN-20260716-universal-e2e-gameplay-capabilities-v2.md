@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/universal-e2e-gameplay-capabilities-v3
 base_branch: main
 created: 2026-07-16T22:30:00+02:00
-updated: 2026-07-16T23:47:48+02:00
-last_verified_commit: "207a89455e0ce8f2b60631c5678074d6bf19c705"
+updated: 2026-07-16T23:51:53+02:00
+last_verified_commit: "a0d0b09a876d544044edd6fa747e0727f26250cf"
 risk: high
 related_issue: ""
 related_pr: "446"
@@ -69,14 +69,15 @@ Add bounded declarative physical-client gameplay actions to the existing Univers
 - Agent Task Ownership #1803: PASS on `9a847007576efc0ca9c1b32be67624d12c483012`.
 - CI #2946: PASS on `9a847007576efc0ca9c1b32be67624d12c483012`.
 - Universal Agent E2E #131 selected the full heavy path, passed scenario resolution and database bootstrap, and started exact Canary plus controlled OTClient builds before the final-head transition.
-- `ci:final-gate` is applied to PR #446.
+- Final-gate Ownership #1805 identified only missing checkpoint evidence fields; this task-record-only correction addresses that exact failure.
+- `ci:final-gate` remains applied to PR #446.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T23:47:48+02:00
-head: 207a89455e0ce8f2b60631c5678074d6bf19c705
+updated_at: 2026-07-16T23:51:53+02:00
+head: a0d0b09a876d544044edd6fa747e0727f26250cf
 branch: feat/universal-e2e-gameplay-capabilities-v3
 pr: 446
 status: ready
@@ -98,12 +99,15 @@ proven:
   - CHANGELOG and MODULE_CATALOG each contain only one intended E2E addition
   - pre-final Ownership 1803 and CI 2946 passed
   - pre-final Universal Agent E2E 131 selected the full heavy path
+derived:
+  - the generic bounded action-plan layer is the reusable platform boundary; concrete gameplay fixtures remain separate feature-owned scenarios
+  - preserving the existing physical lifecycle avoids a second E2E orchestrator
 unknown:
   - exact-final-head gate conclusion
 conflicts: []
 first_failure:
-  marker: superseded-pr-439-mergeability
-  evidence: replacement PR 446 was created from current main instead of rewriting published history
+  marker: final-gate-ownership-checkpoint-evidence
+  evidence: Ownership 1805 required derived plus evidence fields; no code or ownership-path conflict was reported
 rejected_hypotheses:
   - create a second E2E orchestrator
   - invent feature-specific fixture identifiers in the platform contract
@@ -119,8 +123,10 @@ changed_paths:
 validation:
   - command: Agent Task Ownership 1803
     result: PASS
+    evidence: pre-final head 9a847007576efc0ca9c1b32be67624d12c483012 completed successfully
   - command: CI 2946
     result: PASS
+    evidence: pre-final head 9a847007576efc0ca9c1b32be67624d12c483012 completed successfully
 blockers: []
-next_action: Let all ci:final-gate workflows finish on this exact final head. If they succeed, make no further commit; audit reviews, threads, changed paths and mergeability, mark PR 446 ready, then squash-merge with the exact expected head SHA.
+next_action: Let all ci:final-gate workflows finish on this exact final head. If they succeed, make no further commit; audit reviews, threads, changed paths and mergeability, then squash-merge PR 446 with the exact expected head SHA.
 ```
