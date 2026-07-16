@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-repair-evidence-hardening
 base_branch: main
 created: 2026-07-16T09:20:00+02:00
-updated: 2026-07-16T09:20:00+02:00
-last_verified_commit: "8950a275e258ccc0f1a6781c9ff9c8ea089210a0"
+updated: 2026-07-16T09:25:00+02:00
+last_verified_commit: "0f2fa4d74d0d2a416c57cc4e33275520010d01ba"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "413"
 depends_on:
   - "OTBM real-map repair preflight #406"
   - "OTBM Phase 8 bounded attribute patcher #325/#333"
@@ -71,6 +71,7 @@ Harden the merged read-only OTBM real-map repair preflight so a reviewer can dis
 
 - Writable repository is exactly `blakinio/canary`; upstream/donor repositories remain read-only.
 - Task-start `main` is `8950a275e258ccc0f1a6781c9ff9c8ea089210a0` based on live repository commit search.
+- Draft PR #413 targets `blakinio/canary:main` from `blakinio/canary:feat/otbm-repair-evidence-hardening`.
 - Phase 8 is complete and remains closed; this task does not add map geometry/item/tile insertion or another writer.
 - Open PR #316 owns Targuna donor-isolation evidence and temporary audit paths; no exclusive overlap with this task.
 - Open PR #393 touches shared catalogue/test-infrastructure documentation; shared index edits must be rebased narrowly from current `main`.
@@ -91,6 +92,7 @@ This task hardens evidence and readiness only. It does not execute the bounded p
 - PROVEN: current preflight `ok` is `bool(candidates)`, while draft readiness is tracked separately.
 - PROVEN: current hypothetical runtime change flag compares only top-level before/after status strings.
 - PROVEN: current report pins source map and scanner but does not fully pin appearances/items/rules/script corpus inputs.
+- PROVEN: draft PR #413 is open on the dedicated branch.
 - UNKNOWN: local Git worktree state; no local checkout is exposed.
 
 ### Current implementation plan
@@ -103,4 +105,4 @@ This task hardens evidence and readiness only. It does not execute the bounded p
 
 ### Next action
 
-Open the early draft PR, bind `related_pr`, then implement the evidence/readiness/runtime-diff changes on this branch.
+Implement the evidence/readiness/runtime-diff changes and focused tests on PR #413.
