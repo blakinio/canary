@@ -59,9 +59,16 @@ class RegionMergePlannerTests(unittest.TestCase):
     def tearDown(self) -> None:
         self.temp.cleanup()
 
+    @staticmethod
+    def _valid_variant(tiles: list[dict[str, object]]) -> list[dict[str, object]]:
+        prepared: list[dict[str, object]] = json.loads(json.dumps(tiles))
+        if not any(isinstance(tile.get("items"), list) and tile["items"] for tile in prepared):
+            prepared.append({"x": 499, "ground": 100, "items": [{"id": 200}]})
+        return prepared
+
     def build(self, current_tiles: list[dict[str, object]], donor_tiles: list[dict[str, object]]) -> None:
-        make_variant(self.current_map, current_tiles)
-        make_variant(self.donor_map, donor_tiles)
+        make_variant(self.current_map, self._valid_variant(current_tiles))
+        make_variant(self.donor_map, self._valid_variant(donor_tiles))
         build_world_index(
             map_path=self.current_map,
             scanner=self.scanner,
