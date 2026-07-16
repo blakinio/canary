@@ -2,7 +2,7 @@
 task_id: CAN-20260716-oteryn-engine-foundation-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: "OAM-003"
-status: in_progress
+status: blocked
 agent: oteryn-architecture-migration-agent
 branch: docs/oam-003-engine-foundation-revalidation
 base_branch: main
