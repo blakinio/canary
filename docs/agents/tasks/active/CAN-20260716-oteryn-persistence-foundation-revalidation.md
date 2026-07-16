@@ -154,7 +154,7 @@ Required sequence:
 - Do not trust negative GitHub code-search results as absence proof.
 - Do not start OAM-005 before the OAM-004 feature merge and lifecycle archive both complete.
 
-# Context checkpoint
+## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
