@@ -1,0 +1,68 @@
+---
+name: Security Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/security-validation.yml"
+      - "tools/security/**"
+      - "tests/security/**"
+      - "docs/security/**"
+      - "docs/agents/programs/SECURITY_VALIDATION_PROGRAM.md"
+      - "docs/agents/decisions/ADR-20260716-security-validation-platform-boundary.md"
+      - "data/libs/functions/fs.lua"
+      - "data/libs/functions/tables.lua"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/security-validation.yml"
+      - "tools/security/**"
+      - "tests/security/**"
+      - "data/libs/functions/fs.lua"
+      - "data/libs/functions/tables.lua"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate security scenarios
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile and test security platform
+        run: |
+          set -euo pipefail
+          python -m py_compile \
+            tools/security/security_validation.py \
+            tests/security/test_security_validation.py
+          python -m unittest discover -v -s tests/security -p 'test_*.py'
+      - name: Validate security scenario registry
+        run: python tools/security/security_validation.py validate
+      - name: Run registered security scenarios
+        run: >-
+          python tools/security/security_validation.py run-all
+          --authorized-repository blakinio/canary
+          --report-dir artifacts/security-validation
+      - name: Upload security validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-validation
+          path: artifacts/security-validation/
+          if-no-files-found: warn
+          retention-days: 14
