@@ -2,13 +2,13 @@
 task_id: CAN-20260716-oteryn-account-character-lifecycle-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: "OAM-005"
-status: ready
+status: completed
 agent: oteryn-architecture-migration-agent
 branch: docs/oam-005-account-character-lifecycle-revalidation
 base_branch: main
 created: 2026-07-16T19:58:30+02:00
-updated: 2026-07-16T20:20:00+02:00
-last_verified_commit: "0f25e7fd4d41e90f17fc95d13dba84b7e81d1681"
+updated: 2026-07-16T18:24:21Z
+last_verified_commit: "6374230a40b70d3e0cffe8d93a3171393ece7cd7"
 risk: high
 related_issue: ""
 related_pr: "432"
@@ -48,6 +48,7 @@ cross_repo_tasks:
   - blakinio/Otheryn#15
   - blakinio/Otheryn#17
   - blakinio/Otheryn#19
+completed: 2026-07-16T18:24:21Z
 ---
 
 # Goal
@@ -159,3 +160,11 @@ validation:
 blockers: []
 next_action: Update the authoritative program record, verify PR 432 exact scope and ownership, mark it ready, use the latest ready-triggered exact-head final gate, then squash-merge with exact-head guard and complete a separate lifecycle archive before starting OAM-006.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #432.
+- Feature head: `75a3cdf20ecbcde8d69a1e2c93f5fd9da6acdf0f`.
+- Merge commit: `6374230a40b70d3e0cffe8d93a3171393ece7cd7`.
+- Merged at: `2026-07-16T18:24:21Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
