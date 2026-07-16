@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-repair-evidence-hardening
 base_branch: main
 created: 2026-07-16T09:20:00+02:00
-updated: 2026-07-16T09:35:00+02:00
-last_verified_commit: "32b2909097b2d3f474e0cc959a4f2666fb4ccf15"
+updated: 2026-07-16T09:42:00+02:00
+last_verified_commit: "5f50c30ac8a643e5f8ff5f56c22bdae63f85df9d"
 risk: medium
 related_issue: ""
 related_pr: "413"
@@ -65,7 +65,7 @@ Harden the merged read-only OTBM real-map repair preflight so a reviewer can dis
 - [x] Preserve unresolved, referenced-only, partially-resolved and conflicting evidence without promotion to handled.
 - [x] Keep the source map immutable and retain existing source/scanner rechecks and create-new output safety.
 - [x] Add focused unit/integration regression coverage and update the report schema/docs.
-- [ ] Update catalogue/changelog narrowly only if the reusable interface description materially changes.
+- [ ] Update catalogue/changelog narrowly because the public report schema gained reusable evidence/readiness fields.
 - [ ] Verify current-head required checks before readiness/merge.
 
 # Confirmed context
@@ -75,9 +75,9 @@ Harden the merged read-only OTBM real-map repair preflight so a reviewer can dis
 - Draft PR #413 targets `blakinio/canary:main` from `blakinio/canary:feat/otbm-repair-evidence-hardening`.
 - Phase 8 is complete and remains closed; this task does not add map geometry/item/tile insertion or another writer.
 - Open PR #316 owns Targuna donor-isolation evidence and temporary audit paths; no exclusive overlap with this task.
-- Open PR #393 touches shared catalogue/test-infrastructure documentation; shared index edits must be rebased narrowly from current `main`.
+- Open PR #393 touches shared catalogue/test-infrastructure documentation; shared index edits must remain narrow.
 - Open PR #411 is OAM engine/build/runtime governance and does not overlap these OTBM preflight implementation paths.
-- No local checkout is available through the current GitHub connector session, so local `git status`/worktree cleanliness is UNKNOWN and must not be invented.
+- No local checkout is available through the current connector session, so local worktree state is not used as proof.
 
 # Design boundary
 
@@ -85,27 +85,78 @@ This task hardens evidence and readiness only. It does not execute the bounded p
 
 ## Context checkpoint
 
-### State
+```yaml
+checkpoint_version: 1
+updated_at: 2026-07-16T09:42:00+02:00
+head: 5f50c30ac8a643e5f8ff5f56c22bdae63f85df9d
+branch: feat/otbm-repair-evidence-hardening
+pr: 413
+status: active
+context_routes:
+  - otbm
+  - agent-governance
+owned_paths:
+  - tools/ai-agent/otbm_repair_preflight.py
+  - tools/ai-agent/otbm_repair_preflight_tool.py
+  - tools/ai-agent/test_otbm_repair_preflight.py
+  - tools/ai-agent/test_otbm_repair_preflight_hardening.py
+  - docs/ai-agent/OTBM_REPAIR_PREFLIGHT.md
+  - docs/ai-agent/OTBM_REPAIR_PREFLIGHT_REPORT.schema.json
+  - docs/agents/tasks/active/CAN-20260716-otbm-repair-evidence-hardening.md
+  - docs/agents/MODULE_CATALOG.md
+  - docs/agents/CHANGELOG.md
+proven:
+  - Phase 8 remains closed and its supported mutation kinds are unchanged
+  - PR 413 adds deterministic appearances items rules and script-corpus evidence pins
+  - PR 413 adds explicit matched correlated runtimeResolved patchable and reviewReady evidence
+  - hypothetical resolver comparison now detects structural evidence changes even when the top-level status string is unchanged
+  - source-map and native-scanner immutability checks remain in place
+  - AI Agent Tools passed on head 5f50c30ac8a643e5f8ff5f56c22bdae63f85df9d
+  - OTBM Map Tools passed on head 5f50c30ac8a643e5f8ff5f56c22bdae63f85df9d
+  - repository CI passed on head 5f50c30ac8a643e5f8ff5f56c22bdae63f85df9d
+derived:
+  - the implementation is functionally green at the first validation head and the remaining observed failure is task-checkpoint metadata only
+unknown:
+  - final exact-head validation after checkpoint and shared-index updates
+  - final review and branch-protection state
+conflicts: []
+first_failure:
+  marker: Agent Task Ownership checkpoint encoding
+  evidence: run 29480336073 reported context checkpoint heading has no fenced YAML block
+rejected_hypotheses:
+  - broaden Phase 8 to implement map geometry or region writing in this task
+  - treat top-level ok as proof of patch safety or gameplay correctness
+  - treat unavailable Git metadata as a clean worktree
+changed_paths:
+  - docs/agents/tasks/active/CAN-20260716-otbm-repair-evidence-hardening.md
+  - docs/ai-agent/OTBM_REPAIR_PREFLIGHT.md
+  - docs/ai-agent/OTBM_REPAIR_PREFLIGHT_REPORT.schema.json
+  - tools/ai-agent/otbm_repair_preflight.py
+  - tools/ai-agent/otbm_repair_preflight_tool.py
+  - tools/ai-agent/test_otbm_repair_preflight_hardening.py
+validation:
+  - command: GitHub Actions AI Agent Tools run 29480335140
+    result: PASS
+    evidence: completed success on head 5f50c30ac8a643e5f8ff5f56c22bdae63f85df9d
+  - command: GitHub Actions OTBM Map Tools run 29480335166
+    result: PASS
+    evidence: completed success on head 5f50c30ac8a643e5f8ff5f56c22bdae63f85df9d
+  - command: GitHub Actions CI run 29480335414
+    result: PASS
+    evidence: completed success on head 5f50c30ac8a643e5f8ff5f56c22bdae63f85df9d
+  - command: GitHub Actions Agent Task Ownership run 29480336073
+    result: FAIL
+    evidence: checkpoint heading lacked the required fenced YAML block; corrected in the next task-record commit
+blockers:
+  - exact-head validation after metadata repair
+  - narrow module catalogue and changelog integration
+next_action: Re-run exact-head ownership and repository checks after this checkpoint fix, then update only the OTBM repair-preflight catalogue row and Unreleased changelog entry before final readiness.
+```
 
-- PROVEN: root `AGENTS.md`, repository map, context routing and Phase 8 final handoff were re-read from current `main`.
-- PROVEN: current reusable OTBM catalogue already contains World Index, Quest Map Validator, Reachability, Spawn/NPC, Storage Graph, Semantic Diff, Geometry Audit, Script Resolution and Repair Preflight.
-- PROVEN: open PR #316 is donor/Targuna evidence only and explicitly does not introduce map writing.
-- PROVEN: draft PR #413 is open and mergeable on the dedicated branch.
-- PROVEN: the current branch adds deterministic appearances/items/rules/script-corpus pins, explicit readiness and structural hypothetical resolver diffing.
-- PROVEN: a new focused hardening test module covers readiness, same-status handler changes, order normalization and evidence pins.
-- PROVEN: the report schema remains `canary-otbm-repair-preflight-v1`; new hardening fields are described without making old v1 reports invalid.
-- PROVEN: changed files currently contain only the task record, preflight core/CLI/docs/schema and the dedicated hardening test.
-- UNKNOWN: local Git worktree state; no local checkout is exposed.
-- UNKNOWN: current-head CI result; validation has not yet completed.
+# Completion
 
-### Current implementation plan
-
-1. inspect the complete PR diff for correctness and accidental scope expansion;
-2. apply only the narrow catalogue/changelog description updates justified by the public evidence contract change;
-3. run/inspect current-head GitHub checks;
-4. repair any failing validation without weakening tests or safety gates;
-5. update this checkpoint and PR body, then mark ready/merge only when the autonomous merge gate is satisfied.
-
-### Next action
-
-Review the complete PR #413 diff, then make narrow shared-document updates from current branch/main state before CI readiness.
+- Final status: implementing
+- Canary PR: #413
+- Catalogue updated: pending narrow integration
+- Changelog updated: pending narrow integration
+- Archived at: not archived
