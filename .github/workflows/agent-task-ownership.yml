@@ -51,10 +51,12 @@ jobs:
           tools/agents/task_lifecycle.py
           tools/agents/efficiency_eval.py
           tools/agents/supervisor_queue.py
+          tools/agents/ci_incremental_validation.py
           tools/agents/test_context_orchestration.py
           tools/agents/test_task_lifecycle.py
           tools/agents/test_efficiency_eval.py
           tools/agents/test_supervisor_queue.py
+          tools/agents/test_ci_incremental_validation.py
 
       - name: Run focused unit tests
         working-directory: tools/agents
@@ -65,6 +67,7 @@ jobs:
           test_task_lifecycle.py
           test_efficiency_eval.py
           test_supervisor_queue.py
+          test_ci_incremental_validation.py
 
       - name: Collect changed files
         shell: bash
