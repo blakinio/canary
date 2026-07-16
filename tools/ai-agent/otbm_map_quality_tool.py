@@ -102,19 +102,55 @@ def _prepare_output(path: Path, inputs: list[Path], overwrite: bool) -> Path:
     return resolved
 
 
-def _write_json_atomic(path: Path, value: Any) -> None:
+def _encoded_json(value: Any) -> bytes:
+    return (json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8")
+
+
+def _write_json_create_new(path: Path, value: Any) -> None:
+    encoded = _encoded_json(value)
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    descriptor: int | None = None
+    created = False
+    try:
+        descriptor = os.open(path, flags, 0o600)
+        created = True
+        with os.fdopen(descriptor, "wb") as stream:
+            descriptor = None
+            stream.write(encoded)
+            stream.flush()
+            os.fsync(stream.fileno())
+    except FileExistsError as exc:
+        raise MapQualityError(f"output already exists: {path}; pass --overwrite to replace it") from exc
+    except Exception:
+        if descriptor is not None:
+            os.close(descriptor)
+        if created:
+            path.unlink(missing_ok=True)
+        raise
+
+
+def _write_json_overwrite_atomic(path: Path, value: Any) -> None:
+    encoded = _encoded_json(value)
     descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
     temporary = Path(temporary_name)
     try:
-        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as stream:
-            json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
-            stream.write("\n")
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(encoded)
             stream.flush()
             os.fsync(stream.fileno())
         os.replace(temporary, path)
     except Exception:
         temporary.unlink(missing_ok=True)
         raise
+
+
+def _write_json(path: Path, value: Any, *, overwrite: bool) -> None:
+    if overwrite:
+        _write_json_overwrite_atomic(path, value)
+    else:
+        _write_json_create_new(path, value)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -170,7 +206,7 @@ def main(argv: list[str] | None = None) -> int:
             fail_on_severity=args.fail_on_severity,
             fail_on_unresolved=args.fail_on_unresolved,
         )
-        _write_json_atomic(output, report)
+        _write_json(output, report, overwrite=args.overwrite)
         summary = report["summary"]
         json.dump(
             {
