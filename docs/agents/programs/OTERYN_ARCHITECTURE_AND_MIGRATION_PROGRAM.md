@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-16T01:37:27+02:00
-last_verified_commit: "0c0972526814f099b51fd3481f28331b9434446d"
+updated: 2026-07-16T01:50:09+02:00
+last_verified_commit: "0a311d6cda6a80e31aa3a5ca9406aea7aeadd58c"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -69,11 +69,11 @@ bounded Oteryn migration package
 
 # Current live preflight
 
-Re-verified during OAM-002 finalization from live GitHub:
+Re-verified through OAM-002 feature merge and lifecycle start:
 
 ```text
 governance/legacy repository: blakinio/canary
-latest re-fetched Canary main: 0c0972526814f099b51fd3481f28331b9434446d
+OAM-002 feature merge / lifecycle base: 0a311d6cda6a80e31aa3a5ca9406aea7aeadd58c
 canonical module count: 62
 TSD status: completed
 TSD migration disposition baseline: ALL_CANONICAL_MODULES -> REVALIDATE
@@ -90,7 +90,7 @@ OAM-001 feature PR #383 remains completed as `9c28e52db81eb6b99a54e7700ad00288e6
 
 OAM-002 target PR #1 established the pinned-upstream content baseline and target CI gates; target PR #2 removed the one-time bootstrap comparison exception. Final target `main@3cc7c1dfea747bb380f3761ee7ff7ac30141a115` was then verified by a closed, unmerged read-only evidence PR #3. The final target matches pinned upstream content except exactly `.github/workflows/required.yml` and `.github/workflows/reusable-docker-quickstart-smoke.yml`.
 
-The merged E2E platform remains the single reusable physical-client orchestration. OAM-002 changed no canonical module disposition and started no OAM-003 implementation.
+OAM-002 Canary feature PR #407 passed exact-head ownership and ready-triggered CI gates and squash-merged as `0a311d6cda6a80e31aa3a5ca9406aea7aeadd58c`. Lifecycle-only PR #410 archives the completed task. The merged E2E platform remains the single reusable physical-client orchestration. OAM-002 changed no canonical module disposition and started no OAM-003 implementation.
 
 # Target architecture contract
 
@@ -118,7 +118,7 @@ Current state:
 | bootstrap relationship | pinned upstream content plus two explicit target CI/governance paths | VERIFIED |
 | target write authorization | explicit user authorization for autonomous OAM writes to `blakinio/Otheryn` | ESTABLISHED |
 
-The target identity/baseline gate is satisfied at the repository level. OAM-003 remains blocked until OAM-002 governance PR #407 is merged and its task is archived through the required lifecycle-only PR.
+The target identity/baseline gate is satisfied. OAM-003 is not started by OAM-002 or by lifecycle PR #410; after this lifecycle PR merges, OAM-003 is merely the next eligible separate bounded task and must begin with fresh live-state, ownership and exact baseline verification.
 
 # Canonical migration unit
 
@@ -177,7 +177,7 @@ The program uses these evidence-backed outcomes:
 
 # Active tasks
 
-`OAM-002` is the active bounded governance task in Canary PR #407. Its target-repository bootstrap and evidence work are complete; the task is finalizing the durable contract/program update and normal Canary merge/lifecycle gates. No OAM-003 implementation task is active.
+No OAM implementation task is active after OAM-002 feature completion. Lifecycle-only PR #410 archives OAM-002 and does not create OAM-003.
 
 # Dependency-aware queue
 
@@ -186,8 +186,8 @@ The current canonical dependency graph requires foundation and persistence contr
 | Package | Scope | Status | Dependencies | Exact next action |
 |---|---|---|---|---|
 | `OAM-001` | target architecture and migration evidence contract | completed | completed TSD + current registry | feature PR #383 merged as `9c28e52db81eb6b99a54e7700ad00288e6dbfd94`; lifecycle archived separately |
-| `OAM-002` | target repository identity, authorization, default branch and exact upstream/target baseline pinning | ready | completed OAM-001 | merge Canary governance PR #407 after exact-head gates, then archive the task through a separate lifecycle PR |
-| `OAM-003` | engine/build/runtime foundation revalidation | blocked | completed OAM-002 governance + lifecycle | after OAM-002 lifecycle completion, create a separate bounded task and re-fetch exact live target/upstream baselines before evaluating `build-system`, `configuration`, `engine-runtime-lifecycle`, `engine-scheduler`, `engine-service-container`, `lua-runtime`, `lua-bindings` |
+| `OAM-002` | target repository identity, authorization, default branch and exact upstream/target baseline pinning | completed | completed OAM-001 | feature PR #407 merged as `0a311d6cda6a80e31aa3a5ca9406aea7aeadd58c`; lifecycle archived by PR #410 |
+| `OAM-003` | engine/build/runtime foundation revalidation | planned | completed OAM-002 | after OAM-002 lifecycle PR #410 merges, create a separate bounded task only after fresh live target/upstream baseline, ownership and overlap verification; then evaluate `build-system`, `configuration`, `engine-runtime-lifecycle`, `engine-scheduler`, `engine-service-container`, `lua-runtime`, `lua-bindings` |
 | `OAM-004` | database and persistence foundation revalidation | blocked | OAM-002, OAM-003 | evaluate `database-connection`, `database-migrations`, `player-persistence`, `world-persistence` and transaction/restart evidence |
 | `OAM-005` | account and character lifecycle revalidation | blocked | OAM-004 | evaluate account/auth/character lifecycle and progression boundaries |
 | `OAM-006` | network/login/protocol contract revalidation | blocked | OAM-002, OAM-003, OAM-005 | pin target protocol/client compatibility and cross-repo rollout contract |
@@ -236,9 +236,9 @@ Deterministic systems remain authoritative for gameplay, sanctions, economy muta
 
 # Dependencies and blockers
 
-- OAM-002 target identity, default branch, write authorization, target baseline and exact upstream bootstrap source are resolved.
-- OAM-002 remaining gate: merge Canary governance PR #407 with exact-head checks, then archive its task through the required separate lifecycle PR.
-- OAM-003 blocker: OAM-002 governance/lifecycle completion; do not start it mechanically from this feature PR.
+- OAM-002 target identity, default branch, write authorization, target baseline and exact upstream bootstrap source are resolved and its feature PR is merged.
+- Lifecycle-only PR #410 is the final archival step for OAM-002 and contains no implementation work.
+- OAM-003 is not active. After lifecycle PR #410 merges it becomes the next eligible package, but still requires a new bounded task and fresh exact live-state/ownership/baseline verification before any implementation.
 - Dependency: current Real Tibia registry and generated dependency graph.
 - Dependency: fresh then-current target/upstream baselines for each later bounded package.
 - Dependency: merged Universal Physical-Client E2E for applicable target proof.
@@ -268,7 +268,7 @@ OAM-001 completed with:
 - mergeable immediately before merge: true;
 - squash merge with exact-head guard to `9c28e52db81eb6b99a54e7700ad00288e6dbfd94`.
 
-OAM-002 target-side validation completed with:
+OAM-002 completed with:
 
 - deterministic recursive Git-tree proof rejecting the original 32-entry manual upload against the 6326-entry pinned upstream tree;
 - exact upstream bootstrap source `opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689`;
@@ -276,6 +276,11 @@ OAM-002 target-side validation completed with:
 - target cleanup PR #2 exact-head CI and Required gate success before squash merge;
 - final target baseline `blakinio/Otheryn@3cc7c1dfea747bb380f3761ee7ff7ac30141a115`;
 - post-merge recursive tree proof showing only `required.yml` and mixed-case Docker quickstart normalization differ from pinned upstream content;
+- Canary feature head `e55f78b6d708f5910907db3ce1c722d2c159a1e6` with Agent Task Ownership run 1497 success;
+- latest ready-triggered Canary CI run 2633 success, including Fast Checks, Lua Tests, Linux release and Required;
+- no comments, submitted reviews or unresolved review threads;
+- exact three-file governance/task diff and mergeable state immediately before merge;
+- feature PR #407 squash-merged with exact-head guard as `0a311d6cda6a80e31aa3a5ca9406aea7aeadd58c`;
 - no canonical module disposition change and no OAM-003 implementation.
 
 For later migration packages:
@@ -318,4 +323,4 @@ Read `AGENTS.md`, `docs/agents/README.md`, this program, `docs/agents/OTERYN_TAR
 
 # Exact next task
 
-OAM-002 remains the active task until Canary PR #407 is merged and the task is archived through its separate lifecycle PR. Only after that lifecycle completion does `OAM-003` become the next eligible bounded task. OAM-003 must be opened separately and must not be started mechanically by this OAM-002 feature branch.
+After lifecycle-only PR #410 merges, `OAM-003` is the next eligible bounded task. It must be opened separately after fresh live-state, ownership/overlap and exact target/upstream baseline verification. This lifecycle PR does not create, claim or start OAM-003.
