@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-runtime-callback
 base_branch: main
 created: 2026-07-16T23:12:00+02:00
-updated: 2026-07-16T23:17:00+02:00
-last_verified_commit: "bf3ebd8c320f10c6012aaaf9ff8e3862cf110022"
+updated: 2026-07-16T23:20:00+02:00
+last_verified_commit: "4b3adbd0e22ff55f5620890344da3eb45a2a6007"
 risk: medium
 related_issue: ""
 related_pr: "444"
@@ -62,14 +62,14 @@ Expose the already-existing Universal Agent Load local Canary lifecycle as a sma
 - Open PR #436 owns `.github/workflows/universal-agent-e2e.yml`; this task keeps that workflow read-only.
 - `run_agent_load_runtime.py` already owns exact-head Canary startup, map/database/config preparation, online readiness, process-liveness verification and cleanup for Universal Agent Load.
 - The accepted security-platform ADR requires runtime security work to reuse existing E2E/load lifecycle instead of creating a second security-specific launcher.
-- PR #444 contains the callback implementation and focused isolated tests on implementation head `bf3ebd8c320f10c6012aaaf9ff8e3862cf110022`.
+- PR #444 contains the callback implementation and focused isolated tests; Universal Agent Load validation passed on the implementation head before a checkpoint-only commit cancelled the heavy parent run.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T23:17:00+02:00
-head: bf3ebd8c320f10c6012aaaf9ff8e3862cf110022
+updated_at: 2026-07-16T23:20:00+02:00
+head: 4b3adbd0e22ff55f5620890344da3eb45a2a6007
 branch: feat/e2e-runtime-callback
 pr: 444
 status: implementing
@@ -91,12 +91,16 @@ proven:
   - run_runtime now exposes the existing lifecycle to a code-owned in-process callback after Canary reports online
   - RuntimeContext exposes resolved loopback runtime metadata and server evidence paths without manifest-provided commands or targets
   - focused tests cover callback context, nonzero callback failure, post-callback Canary exit detection, cleanup/config restoration and the existing load command contract
+  - Universal Agent Load Validate load platform passed on implementation head bf3ebd8c320f10c6012aaaf9ff8e3862cf110022
+derived:
+  - the callback is the smallest reusable interface that lets SEC-003 execute a security-owned driver while Universal Agent Load remains the owner of disposable server lifecycle
+  - checkpoint-only follow-up commits may reuse heavy parent evidence only when the canonical incremental validator proves the delta non-impacting
 unknown:
-  - exact Universal Agent Load and repository CI result on the repaired checkpoint head
+  - exact Universal Agent Load and repository CI result on the corrected checkpoint head
 conflicts: []
 first_failure:
-  marker: Agent Task Ownership 1788 / Validate changed active task checkpoints
-  evidence: initial checkpoint encoded first_failure as an empty inline mapping; ownership validation requires the explicit marker/evidence mapping contract and the task record was corrected in this commit
+  marker: Agent Task Ownership 1788 and 1789 / Validate changed active task checkpoints
+  evidence: the initial checkpoint used an invalid empty first_failure mapping and the next revision omitted mandatory derived; both failures are governance-record schema errors and not implementation test failures
 rejected_hypotheses:
   - duplicate the Universal E2E or Agent Load lifecycle inside tools/security
   - allow a scenario manifest to provide an arbitrary command or executable
@@ -105,9 +109,15 @@ changed_paths:
   - tools/e2e/run_agent_load_runtime.py
   - tests/e2e/test_load_runner.py
 validation:
+  - command: Universal Agent Load run 29535277426 / Validate load platform
+    result: PASS
+    evidence: Python compile and the complete tests/e2e/test_load_runner.py suite passed on implementation head bf3ebd8c320f10c6012aaaf9ff8e3862cf110022
   - command: Agent Task Ownership run 29535275811
     result: FAIL
-    evidence: implementation tests completed but checkpoint validation rejected the initial first_failure shape before ownership indexing
+    evidence: checkpoint validation rejected the initial first_failure shape before ownership indexing
+  - command: Agent Task Ownership run 29535448721
+    result: FAIL
+    evidence: checkpoint validation required the mandatory derived field; implementation files were unchanged
 blockers: []
-next_action: Inspect Universal Agent Load and CI on the repaired checkpoint head, then update shared module/changelog documentation from current main and complete exact-final-head validation.
+next_action: Verify Ownership, CI and Universal Agent Load on this corrected checkpoint head, then update shared module/changelog documentation from current main and complete exact-final-head validation.
 ```
