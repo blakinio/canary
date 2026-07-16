@@ -7,8 +7,8 @@ agent: chatgpt-ci-governance
 branch: ci/incremental-validation-final-gate
 base_branch: main
 created: 2026-07-16T10:10:00+02:00
-updated: 2026-07-16T11:02:00+02:00
-last_verified_commit: 83269793447bd3ba5313c2b95f35f591242d53b7
+updated: 2026-07-16T11:40:00+02:00
+last_verified_commit: bc0a3b72148ff3719c51292af36b7635f5267140
 risk: medium
 related_issue: ""
 related_pr: "415"
@@ -55,14 +55,14 @@ Reduce repeated heavy CI after non-impacting follow-up commits without reducing 
 
 - [x] A tested standard-library helper classifies whether the current single-commit delta affects CI, physical E2E, or load validation.
 - [x] Parent reuse is allowed only when the latest same-workflow pull-request run on `HEAD^` completed successfully.
-- [x] Missing parent evidence, a failed/in-progress latest parent run, workflow changes, or an impacting delta fail closed to heavy validation.
+- [x] Missing parent evidence, a failed/in-progress latest parent run, workflow changes, helper changes, or an impacting delta fail closed to heavy validation.
 - [ ] An empty final-gate commit forces the full applicable workflow set on the final head because empty single-commit path evidence fails closed.
 - [x] CI no longer performs Linux compilation for documentation-only PR scope.
 - [x] Universal Agent E2E no longer triggers for load-only `tests/e2e/load/**` or `tests/e2e/test_load_runner.py` changes by path definition.
 - [x] Load and physical E2E can reuse proven parent success for non-impacting follow-up commits and still run fully on the empty final-gate commit.
 - [ ] Agent policy batches checkpoint/docs mutations before final-gate validation and forbids a post-green checkpoint commit that would invalidate the final head.
-- [ ] Focused helper tests and exact workflow checks pass.
-- [ ] No branch-protection, test, assertion, throttle, or safety gate is weakened.
+- [x] Focused helper tests and exact implementation workflow checks pass.
+- [x] No branch-protection, test, assertion, throttle, or safety gate is weakened.
 
 # Confirmed context
 
@@ -74,12 +74,11 @@ Reduce repeated heavy CI after non-impacting follow-up commits without reducing 
 - Baseline CI forced Linux release for every pull request; the branch now computes Linux scope from affected paths and suppresses heavy scopes only when the helper proves immediate-parent reuse.
 - Universal Agent E2E now has a fail-closed scope job, excludes load-only E2E paths, and has a `Required physical E2E` aggregator that accepts heavy skips only with proven immediate-parent reuse.
 - Universal Agent Load now has the same fail-closed scope/required pattern while keeping focused runner validation on every applicable head.
-- Agent tooling tests live beside helpers under `tools/agents` and are executed by `.github/workflows/agent-task-ownership.yml`.
-- Agent Task Ownership #1555, #1561 and #1570 compiled the helper and ran all focused unit tests successfully; their failures were task-record lifecycle schema issues, not helper/test failures.
-- CI #2705, Universal Agent Load #39 and Universal Agent E2E #83 all completed successfully on implementation head `95c51e6032d3027032d130bebdc6cab3faca20fe`.
-- Docs-only head `83269793447bd3ba5313c2b95f35f591242d53b7` proved incremental reuse: CI #2723 skipped all heavy build jobs with `Required` success; Load #40 skipped Canary build/status-smoke with the focused runner validation retained; E2E #84 skipped DB/Canary/OTClient/physical-client with `Required physical E2E` success.
-- Ownership #1588 passed changed-task checkpoint validation after the lifecycle status repair and failed only at global active ownership validation; the active structured task had no `program_id`, which this commit repairs by binding it to `CAN-PROGRAM-AGENT-ORCHESTRATION`.
-- Current `main` advanced after branch creation through unrelated OTBM/Oteryn work and shared agent docs; synchronization remains required before final shared-doc edits.
+- The helper itself is explicitly impacting for both physical E2E and Load profiles, and focused regressions preserve `.github/**` dotfile path matching.
+- Agent Task Ownership #1591 and #1594 are green after task lifecycle/program metadata fixes.
+- Full implementation head `bc0a3b72148ff3719c51292af36b7635f5267140` passed CI #2729, Universal Agent Load #43 and Universal Agent E2E #87 after helper self-change hardening; the heavy Canary/OTClient paths ran rather than being reused.
+- Docs-only head `83269793447bd3ba5313c2b95f35f591242d53b7` proved incremental reuse: CI #2723 skipped all heavy build jobs with `Required` success; Load #40 skipped Canary build/status-smoke with focused runner validation retained; E2E #84 skipped DB/Canary/OTClient/physical-client with `Required physical E2E` success.
+- Current `main@44cd23bec185a5e0a6167d6180008eddd47ac594` is six commits ahead of the task-start base and changes unrelated OTBM/Oteryn paths plus shared agent docs; synchronization is the next step before final shared-doc edits.
 
 # Safety design
 
@@ -96,14 +95,14 @@ The optimization is evidence-preserving, not skip-by-assumption:
 
 # Current state
 
-The helper, focused tests, main CI incremental scope, Universal Agent E2E scope/required aggregation, and Universal Agent Load scope/required aggregation are implemented. Full implementation validation is green, and the first docs-only follow-up proved immediate-parent reuse without running heavy Canary/OTClient/load/E2E work. This commit fixes the final task-record schema issue by adding the required program identity. The remaining implementation work is to remove the unnecessary Agent Task Ownership workflow modification, run the helper tests from lightweight CI instead, harden helper self-change classification, synchronize current main, write final shared docs, and execute the empty exact-head final gate.
+Implementation and focused tests are complete and green. The process has been proven in both directions: a docs-only child reused successful immediate-parent CI/Load/E2E evidence and skipped expensive jobs, while the helper self-change forced full Load and physical E2E validation. The remaining work is current-main synchronization, one frozen shared-doc/policy batch, PR readiness, an empty exact-head final-gate commit, and squash merge if the final gate and live merge checks pass.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T11:02:00+02:00
-head: 83269793447bd3ba5313c2b95f35f591242d53b7
+updated_at: 2026-07-16T11:40:00+02:00
+head: bc0a3b72148ff3719c51292af36b7635f5267140
 branch: ci/incremental-validation-final-gate
 pr: 415
 status: implementing
@@ -127,28 +126,26 @@ proven:
   - Repository write target is exactly blakinio/canary.
   - PR 393 merged as 2f828672df010ff577c8e6076524b37c6dedd987 before task creation.
   - Draft PR 415 is the live PR for this task.
-  - The helper and focused tests are implemented under tools/agents.
-  - Ownership runs 1555, 1561, 1570 and 1588 compiled the helper and all focused unit tests passed.
-  - Ownership 1588 passed changed-task checkpoint validation; its later global ownership step failed while this active structured task still had an empty program_id.
-  - CI 2705, Universal Agent Load 39 and Universal Agent E2E 83 passed full validation on 95c51e6032d3027032d130bebdc6cab3faca20fe.
-  - CI 2723 proved docs-only heavy-build suppression with Required success on 83269793447bd3ba5313c2b95f35f591242d53b7.
-  - Universal Agent Load 40 proved immediate-parent reuse with Canary build and status-smoke skipped while focused runner validation and Required load validation succeeded.
-  - Universal Agent E2E 84 proved immediate-parent reuse with DB, Canary, OTClient and physical-client jobs skipped while Required physical E2E succeeded.
+  - Ownership 1591 and 1594 passed after task program/lifecycle metadata repair.
+  - CI 2705, Load 39 and E2E 83 passed the first full implementation head 95c51e6032d3027032d130bebdc6cab3faca20fe.
+  - CI 2723, Load 40 and E2E 84 proved immediate-parent reuse on docs-only head 83269793447bd3ba5313c2b95f35f591242d53b7.
+  - The helper profile now treats tools/agents/ci_incremental_validation.py as impacting for CI, physical E2E and Load.
+  - Focused tests cover helper self-change and preservation of leading .github dotfile paths.
+  - CI 2729, Load 43 and E2E 87 passed full validation on bc0a3b72148ff3719c51292af36b7635f5267140 after helper hardening.
 derived:
-  - Parent-success plus non-impacting HEAD^..HEAD evidence can safely avoid repeated heavy work while an empty final-gate commit preserves exact-final-head quality.
-  - The remaining Ownership 1588 failure is consistent with the active structured-task requirement for a non-empty program_id; this commit repairs that field.
+  - Parent-success plus non-impacting HEAD^..HEAD evidence safely avoids repeated heavy work while an empty final-gate commit preserves exact-final-head quality.
 unknown:
-  - Whether global ownership validation is fully green after adding program_id until the new Ownership run completes.
-  - Final behavior after current main synchronization and helper self-change hardening until validated.
+  - Final current-main merge-result and shared-doc contents until synchronization is completed.
+  - Empty final-gate Git-object delivery behavior until exercised on the frozen content head.
 conflicts: []
 first_failure:
   marker: Agent Task Ownership 1555 / Validate changed active task checkpoints
-  evidence: Task-record schema issues were exposed sequentially: first_failure null, unsupported active status, then empty program_id at global active ownership validation. Helper compilation and focused unit tests passed throughout.
+  evidence: Task-record schema issues were exposed sequentially and repaired; helper compilation/tests remained green, and Ownership is now green on 1591 and 1594.
 rejected_hypotheses:
   - Path filters alone solve docs-only follow-up reruns: pull_request path filters use the cumulative PR change set, so relevant earlier files continue to match on later synchronize events.
   - A successful workflow on any older SHA is sufficient: reuse is bounded to the immediate parent chain and the latest same-workflow parent run must be successful.
-  - A label-triggered final gate is necessary: an empty final commit is safer because it creates a new exact PR head, triggers normal synchronize semantics, and the helper fails closed on empty changed-path evidence without introducing same-name no-op checks.
-  - Ownership failures prove the incremental helper failed: compile and focused unit tests passed; failures were task-record lifecycle/ownership metadata validation.
+  - A label-triggered final gate is necessary: an empty final commit creates a new exact PR head, triggers normal synchronize semantics, and the helper fails closed on empty changed-path evidence without introducing same-name no-op checks.
+  - Helper changes may reuse older E2E/Load evidence: helper self-change is now an explicit impacting path and full Load 43/E2E 87 validation proved the heavy paths run.
 changed_paths:
   - .github/workflows/agent-task-ownership.yml
   - .github/workflows/ci.yml
@@ -158,18 +155,18 @@ changed_paths:
   - tools/agents/ci_incremental_validation.py
   - tools/agents/test_ci_incremental_validation.py
 validation:
-  - command: Agent Task Ownership 1555, 1561, 1570 and 1588 / Compile agent tooling + Run focused unit tests
+  - command: Agent Task Ownership 1594
     result: PASS
-    evidence: Compile and focused test steps completed successfully in all runs.
-  - command: CI 2705
+    evidence: Task ownership, helper compilation and focused unit tests succeeded on bc0a3b72148ff3719c51292af36b7635f5267140.
+  - command: CI 2729
     result: PASS
-    evidence: Full implementation workflow completed successfully on 95c51e6032d3027032d130bebdc6cab3faca20fe.
-  - command: Universal Agent Load 39
+    evidence: Exact implementation head bc0a3b72148ff3719c51292af36b7635f5267140.
+  - command: Universal Agent Load 43
     result: PASS
-    evidence: Full load path and Required load validation completed successfully on 95c51e6032d3027032d130bebdc6cab3faca20fe.
-  - command: Universal Agent E2E 83
+    evidence: Helper-hardening head ran full Canary build, status-smoke and Required load validation successfully.
+  - command: Universal Agent E2E 87
     result: PASS
-    evidence: Full physical-client workflow completed successfully on 95c51e6032d3027032d130bebdc6cab3faca20fe.
+    evidence: Helper-hardening head ran DB preflight, Canary build, controlled OTClient build, physical login/relog scenario and Required physical E2E successfully.
   - command: CI 2723 / docs-only reuse
     result: PASS
     evidence: All heavy build jobs were skipped and Required succeeded on 83269793447bd3ba5313c2b95f35f591242d53b7.
@@ -180,5 +177,5 @@ validation:
     result: PASS
     evidence: DB, Canary, OTClient and physical-client jobs were skipped; Required physical E2E succeeded.
 blockers: []
-next_action: Verify global Agent Task Ownership after adding program_id, then revert the unnecessary Agent Task Ownership workflow edit, move focused helper tests into lightweight CI, harden helper self-change classification, and validate the resulting implementation head before synchronizing current main.
+next_action: Synchronize the branch conservatively with current main@44cd23bec185a5e0a6167d6180008eddd47ac594, verify the merge result preserves only intended PR paths, then write one frozen shared-doc/policy batch before the empty final validation gate.
 ```
