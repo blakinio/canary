@@ -2,13 +2,13 @@
 task_id: CAN-20260716-e2e-runtime-callback
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: OTS-SEC-003-RUNTIME-HOOK
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/e2e-runtime-callback
 base_branch: main
 created: 2026-07-16T23:12:00+02:00
-updated: 2026-07-16T23:31:00+02:00
-last_verified_commit: "3c64b33be097f97f1694a5ee13bafa4eaed1c5c6"
+updated: 2026-07-16T21:49:56Z
+last_verified_commit: "44d8c97bdf1add97acba719a7342b712de5be1fb"
 risk: medium
 related_issue: ""
 related_pr: "444"
@@ -36,6 +36,7 @@ reuses:
 public_interfaces:
   - code-owned Python callback API for running one bounded executor inside the existing local Canary runtime lifecycle
 cross_repo_tasks: []
+completed: 2026-07-16T21:49:56Z
 ---
 
 # Goal
@@ -129,3 +130,11 @@ validation:
 blockers: []
 next_action: Run ci:final-gate workflows on this exact readiness head; if all required checks pass and PR 444 remains mergeable with the same four-file diff and no review blockers, mark it ready and squash-merge without any further commit.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #444.
+- Feature head: `a8ae4b5c9563e8e620a1bc466c4096d588c11fbd`.
+- Merge commit: `44d8c97bdf1add97acba719a7342b712de5be1fb`.
+- Merged at: `2026-07-16T21:49:56Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
