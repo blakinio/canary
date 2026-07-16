@@ -7,7 +7,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = ROOT / "data-otservbr-global/scripts/config/gameplay_analytics.lua"
-RELIABILITY = ROOT / "data-otservbr-global/scripts/lib/gameplay_analytics_reliability.lua"
+RELIABILITY = ROOT / "data-otservbr-global/scripts/lib/#gameplay_analytics_reliability_impl.lua"
 RUNTIME = ROOT / "data-otservbr-global/scripts/systems/gameplay_analytics.lua"
 SCHEMA = ROOT / "schema/gameplay_analytics.sql"
 DOCS = ROOT / "docs/systems/gameplay-analytics.md"
