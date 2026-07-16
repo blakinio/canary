@@ -11,7 +11,7 @@ It does not parse OTBM independently and it never writes an OTBM. It orchestrate
 3. the existing OTBM script-resolution audit;
 4. the existing `canary-otbm-bounded-patch-plan-v1` contract when a review-only draft plan is requested.
 
-The tool exists to answer the pre-patch questions precisely: which mechanic placement is being discussed, which exact Phase 8 anchor identifies it, what the current attribute value is, and what active Lua/XML or engine evidence resolves the mechanic.
+The tool exists to answer the pre-patch questions precisely: which mechanic placement is being discussed, which exact Phase 8 anchor identifies it, what the current attribute value is, what active Lua/XML or engine evidence resolves the mechanic, and which exact evidence inputs produced that conclusion.
 
 A successful preflight is not approval to patch. It does not prove gameplay correctness, player intent, Real Tibia parity or runtime behavior.
 
@@ -23,6 +23,9 @@ The preflight:
 - rejects a symlink source map;
 - hashes and stats the source before analysis and requires the same hash, size and modification timestamp afterward;
 - hashes and stats the native scanner before analysis and rejects a scanner that changes during the run;
+- pins the appearances index, `items.xml`, optional runtime/review rules and the exact selected Lua/XML script corpus by SHA-256 evidence;
+- regenerates the evidence-input pins after analysis and fails closed if any pinned input changed during the run;
+- records Git commit/branch/dirty evidence when the repository root is a usable Git checkout, and records explicit unknown values rather than claiming cleanliness when Git evidence is unavailable;
 - refuses to use the source map, a source-map hard link or a symlink as the report/draft-plan destination;
 - requires report and draft-plan outputs to be new paths;
 - runs subprocesses as argument vectors with `shell=False`;
@@ -48,6 +51,8 @@ The same real assets used by the existing OTBM audit are required:
 - explicit active script roots when the defaults are not appropriate.
 
 By default, script resolution uses its existing active-root policy (`data` and `data-otservbr-global`). Alternative datapacks are not mixed implicitly.
+
+The report records compact deterministic input pins rather than embedding the full script corpus. The script-corpus pin contains the requested roots, existence/file counts and one SHA-256 fingerprint derived from the exact deduplicated Lua/XML file set and each file's content hash. The resolver's `filesScanned` count must match the pinned corpus count.
 
 ## Inspect an exact mechanic
 
@@ -92,6 +97,21 @@ The correlation state is one of:
 - `ambiguous` — more than one tile-local placement group matches and the tool refuses to guess.
 
 An exact candidate exposes the scanner-proven `tilePlacementIndex` and existing attribute anchors required by Phase 8.
+
+## Match status versus readiness
+
+The v1 top-level `ok` field keeps its original compatibility meaning: at least one mechanic placement matched all supplied selectors. It must not be interpreted as proof that a candidate is safe to patch or correct in gameplay.
+
+The report therefore also exposes `summary.readiness`:
+
+- `matched` — one or more placements matched the selector;
+- `correlated` — exactly one placement matched and its native patch-anchor correlation is `exact`;
+- `runtimeResolved` — the uniquely correlated placement currently has a resolver status beginning with `handled-`;
+- `runtimeStatus` — the uniquely selected placement's current resolver status, otherwise `unknown`;
+- `patchable` — an operation was requested and the existing Phase 8 contract could produce a valid review-only draft plan;
+- `reviewReady` — the same bounded draft exists and is ready for human review.
+
+`reviewReady` is deliberately not an auto-approval flag. A candidate may be structurally patchable while runtime evidence remains unresolved. In that case `runtimeResolved` remains false, unresolved evidence remains visible, and human review is still mandatory.
 
 ## Script-resolution evidence
 
@@ -156,8 +176,15 @@ The report records:
 
 - current placement status;
 - hypothetical replacement placement status;
-- whether the static runtime-resolution status changed;
+- whether the complete normalized static runtime-resolution evidence changed;
+- whether the replacement remains runtime-resolved;
+- SHA-256 fingerprints of the normalized before/after runtime evidence;
+- a deterministic structural diff of changed resolver fields;
 - the full hypothetical placement resolution evidence.
+
+The diff covers resolver status, per-namespace resolutions, selected handlers by event, handlers, shadowed handlers and references. List ordering is normalized so a handler-order-only change does not create a false difference.
+
+This is stronger than comparing only status strings. For example, `handled-directly -> handled-directly` can still produce `runtimeResolutionChanged: true` when the actual handler, source, registration mode, confidence or resolution evidence changes.
 
 This does not modify the map. It is static resolver evidence only.
 
@@ -169,6 +196,21 @@ handled-directly -> unresolved
 
 is surfaced exactly as unresolved evidence. It is not silently approved or reclassified.
 
+## Reproducibility evidence
+
+`evidence.inputs` records:
+
+- appearances-index file name, size and SHA-256;
+- `items.xml` file name, size and SHA-256;
+- optional runtime-rules file pin;
+- optional review-rules file pin;
+- selected script roots, per-root file counts, total deduplicated Lua/XML file count and corpus SHA-256;
+- repository Git commit, branch and dirty state when available.
+
+Git metadata is supporting evidence only. When the repository root is not a Git checkout or Git cannot be queried safely, `available` is false and `commit`, `branch` and `dirty` remain `null`. The tool never converts unavailable Git evidence into a claim that the tree is clean.
+
+The input pins are recomputed after the audit/resolver run. Any difference aborts publication, preventing a report from combining evidence from inputs that changed during analysis.
+
 ## Report contract
 
 The final CLI report uses:
@@ -179,16 +221,20 @@ canary-otbm-repair-preflight-v1
 
 The normative schema is `docs/ai-agent/OTBM_REPAIR_PREFLIGHT_REPORT.schema.json`.
 
+The v1 schema retains compatibility with previously emitted v1 reports while describing the new optional hardening fields. Newly generated reports include the readiness and input-pin evidence.
+
 The report includes:
 
 - exact source pin and scanner hash evidence;
 - normalized selectors;
 - matched mechanic placements;
 - exact/missing/ambiguous anchor correlation;
+- explicit match/correlation/runtime/patch/review readiness;
 - existing script-resolution evidence;
 - unresolved/conflict counts;
+- deterministic appearances/items/rules/script-corpus/Git evidence pins;
 - optional existing Phase 8 draft plan;
-- optional hypothetical replacement script resolution;
+- optional structural hypothetical replacement script-resolution diff;
 - explicit statements that human review is required and that gameplay correctness/player intent are not proven.
 
 ## Required next step after review
@@ -215,6 +261,9 @@ Focused tests are part of the normal AI Agent Tools suite:
 
 ```bash
 python -m unittest tools/ai-agent/test_otbm_repair_preflight.py -v
+python -m unittest tools/ai-agent/test_otbm_repair_preflight_hardening.py -v
 ```
 
-The integration test compiles the existing native scanner, builds a tiny synthetic map, runs the real item audit and script resolver, creates a review-only Phase 8 draft plan, proves that a replacement can change static resolution from handled to unresolved, and verifies byte-for-byte source map immutability.
+The original integration test compiles the existing native scanner, builds a tiny synthetic map, runs the real item audit and script resolver, creates a review-only Phase 8 draft plan, proves that a replacement can change static resolution from handled to unresolved, and verifies byte-for-byte source map immutability.
+
+The hardening tests additionally cover explicit readiness states, same-status handler changes, handler-order normalization, deterministic/content-sensitive script-corpus fingerprints and explicit unknown Git evidence.
