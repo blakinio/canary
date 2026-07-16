@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-repair-sandbox-verifier
 base_branch: main
 created: 2026-07-16T10:42:00+02:00
-updated: 2026-07-16T10:42:00+02:00
-last_verified_commit: "8660f7cb81978616df804ee6d4b0516e9c0af38f"
+updated: 2026-07-16T10:46:00+02:00
+last_verified_commit: "d58ecb066d53f762f920e894516244a8b9ea10e5"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "422"
 depends_on:
   - "OTBM Phase 8 bounded patcher #325/#333"
   - "OTBM repair preflight #406/#413"
@@ -73,7 +73,9 @@ Verify an already-reviewed Phase 8 patch on its distinct artifact copy using rea
 # Confirmed context
 
 - Writable repository is exactly `blakinio/canary`.
-- Task-start `main` is `8660f7cb81978616df804ee6d4b0516e9c0af38f` (PR #419 merge).
+- Task-start `main` was `8660f7cb81978616df804ee6d4b0516e9c0af38f` (PR #419 merge).
+- `main` advanced to `44cd23bec185a5e0a6167d6180008eddd47ac594` after branch creation through later lifecycle governance; no sandbox implementation-path conflict is known.
+- Draft PR #422 targets `blakinio/canary:main` from `feat/otbm-repair-sandbox-verifier`.
 - No overlapping repair-sandbox PR/implementation was found by targeted search.
 - Phase 8 already owns copy-only mutation, byte confinement, full reparse, World Index and exact Semantic Diff proof.
 - #413 provides exact correlation and structural runtime diff helpers.
@@ -83,10 +85,10 @@ Verify an already-reviewed Phase 8 patch on its distinct artifact copy using rea
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T10:42:00+02:00
-head: 8660f7cb81978616df804ee6d4b0516e9c0af38f
+updated_at: 2026-07-16T10:46:00+02:00
+head: d58ecb066d53f762f920e894516244a8b9ea10e5
 branch: feat/otbm-repair-sandbox-verifier
-pr: null
+pr: 422
 status: implementing
 context_routes:
   - otbm
@@ -105,10 +107,10 @@ proven:
   - item audit and script resolution can run on both source and patched output
   - repair preflight exposes reusable exact correlation and runtime-diff helpers
   - no overlapping sandbox implementation was found
+  - draft PR 422 is open on the dedicated branch
 derived:
   - new responsibility is real before/after mechanic and resolver verification over the Phase 8 copy
 unknown:
-  - exact Phase 8 evidence filename adapter details until implemented against live result contract
   - current-head CI after implementation
 conflicts: []
 first_failure:
@@ -122,13 +124,13 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260716-otbm-repair-sandbox-verifier.md
 validation: []
 blockers: []
-next_action: Open an early draft PR and implement a thin verifier around apply_bounded_patch plus real before/after item-audit and script-resolution evidence.
+next_action: Implement a thin verifier around apply_bounded_patch plus real before/after item-audit and script-resolution evidence.
 ```
 
 # Completion
 
 - Final status: implementing
-- Canary PR: pending
+- Canary PR: #422
 - Catalogue updated: pending
 - Changelog updated: pending
 - Archived at: not archived
