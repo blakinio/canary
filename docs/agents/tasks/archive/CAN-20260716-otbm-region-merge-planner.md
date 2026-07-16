@@ -147,7 +147,7 @@ next_action: Mark PR 424 ready for review, verify ready-state Required and revie
 - Canary PR: #424
 - Catalogue updated: yes
 - Changelog updated: yes
-- Archived at: not archived
+- Archived at: PR #425
 
 ## Automated lifecycle completion
 
