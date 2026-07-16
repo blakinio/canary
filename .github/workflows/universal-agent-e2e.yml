@@ -1,4 +1,3 @@
----
 name: Universal Agent E2E
 
 on:
@@ -13,6 +12,16 @@ on:
         description: Scenario id within the selected suite
         required: true
         default: relog
+        type: string
+      server_repository:
+        description: Optional controlled server repository; empty uses this Canary repository
+        required: false
+        default: ""
+        type: string
+      server_ref:
+        description: Exact controlled server ref or SHA; required when server_repository is set
+        required: false
+        default: ""
         type: string
   pull_request:
     branches: [main]
@@ -96,6 +105,16 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Validate controlled server inputs
+        if: github.event_name == 'workflow_dispatch' && inputs.server_repository != ''
+        env:
+          SERVER_REF: ${{ inputs.server_ref }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${SERVER_REF}" ]]; then
+            echo "server_ref is required when server_repository is set" >&2
+            exit 1
+          fi
       - name: Validate and resolve scenario
         run: |
           set -euo pipefail
@@ -361,7 +380,7 @@ jobs:
     needs: [scope, resolve, database-preflight, build-canary, build-otclient]
     if: needs.scope.outputs.run_heavy == 'true' && needs.resolve.result == 'success' && needs.database-preflight.result == 'success' && needs.build-canary.result == 'success' && needs.build-otclient.result == 'success'
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 75
     permissions:
       contents: read
       actions: read
@@ -379,6 +398,10 @@ jobs:
       DB_PASSWORD: root
       DB_NAME: agent_e2e
       MYSQL_PWD: root
+      CC: gcc-13
+      CXX: g++-13
+      VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json,read;nugettimeout,600"
+      VCPKG_NUGET_API_KEY: ${{ github.token }}
     services:
       database:
         image: mariadb:11.4
@@ -401,6 +424,82 @@ jobs:
 
       - name: Prepare evidence directory
         run: mkdir -p artifacts
+
+      - name: Checkout controlled server source
+        if: github.event_name == 'workflow_dispatch' && inputs.server_repository != ''
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ inputs.server_repository }}
+          ref: ${{ inputs.server_ref }}
+          path: controlled-server
+          persist-credentials: false
+
+      - name: Record controlled server revision
+        if: github.event_name == 'workflow_dispatch' && inputs.server_repository != ''
+        run: |
+          set -euo pipefail
+          git -C controlled-server rev-parse HEAD | tee artifacts/server-source-commit.txt
+          printf 'repository=%s\nref=%s\n' "${{ inputs.server_repository }}" "${{ inputs.server_ref }}" > artifacts/server-source-request.txt
+
+      - name: Install controlled server build dependencies
+        if: github.event_name == 'workflow_dispatch' && inputs.server_repository != ''
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ccache ninja-build gcc-13 g++-13 mono-complete
+          sudo ln -sf /usr/bin/ninja /usr/bin/ninja-build
+          ninja --version
+
+      - name: Read controlled server vcpkg baseline
+        if: github.event_name == 'workflow_dispatch' && inputs.server_repository != ''
+        run: |
+          set -euo pipefail
+          vcpkg_commit_id="$(grep '.builtin-baseline' controlled-server/vcpkg.json | awk -F: '{print $2}' | tr -d ',\" ')"
+          test -n "${vcpkg_commit_id}"
+          echo "VCPKG_GIT_COMMIT_ID=${vcpkg_commit_id}" >> "${GITHUB_ENV}"
+
+      - name: Set up controlled server vcpkg
+        if: github.event_name == 'workflow_dispatch' && inputs.server_repository != ''
+        uses: lukka/run-vcpkg@b1a0dd252f06b9e25b3c022a9a03bd7a427fb6a2
+        with:
+          vcpkgGitURL: "https://github.com/microsoft/vcpkg.git"
+          vcpkgGitCommitId: ${{ env.VCPKG_GIT_COMMIT_ID }}
+
+      - name: Configure controlled server NuGet package cache
+        if: github.event_name == 'workflow_dispatch' && inputs.server_repository != ''
+        env:
+          NUGET_AUTH_TOKEN: ${{ env.VCPKG_NUGET_API_KEY }}
+        run: |
+          set -euo pipefail
+          unset VCPKG_FORCE_SYSTEM_BINARIES
+          nuget_path="$(vcpkg fetch nuget 2>&1 | grep -E '^/' | tail -n 1)"
+          if [[ -z "${nuget_path}" || ! -f "${nuget_path}" ]]; then
+            vcpkg fetch nuget 2>&1 || true
+            exit 1
+          fi
+          mono "${nuget_path}" sources remove -name "GitHubPackages" >/dev/null 2>&1 || true
+          mono "${nuget_path}" sources add \
+            -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+            -storepasswordincleartext \
+            -name "GitHubPackages" \
+            -username "${{ github.repository_owner }}" \
+            -password "${NUGET_AUTH_TOKEN}"
+          mono "${nuget_path}" setapikey "${NUGET_AUTH_TOKEN}" \
+            -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+
+      - name: Build controlled server release
+        if: github.event_name == 'workflow_dispatch' && inputs.server_repository != ''
+        working-directory: controlled-server
+        run: |
+          set -euo pipefail
+          cmake --preset linux-release \
+            -DTOGGLE_BIN_FOLDER=ON \
+            -DOPTIONS_ENABLE_CCACHE=ON \
+            -DOPTIONS_ENABLE_SCCACHE=OFF
+          cmake --build --preset linux-release --parallel 2
+          controlled_server_bin="${GITHUB_WORKSPACE}/controlled-server/build/linux-release/bin/canary"
+          test -x "${controlled_server_bin}"
+          echo "CONTROLLED_SERVER_BIN=${controlled_server_bin}" >> "${GITHUB_ENV}"
+          sha256sum "${controlled_server_bin}" | tee "${GITHUB_WORKSPACE}/artifacts/server-binary-sha256.txt"
 
       - name: Checkout controlled OTClient source
         uses: actions/checkout@v6
@@ -453,14 +552,20 @@ jobs:
         run: |
           set -euo pipefail
           find canary-bin otclient-bin -maxdepth 6 -type f -print | tee artifacts/downloaded-files.txt
-          CANARY_PATH="$(find canary-bin -type f -name 'canary' | head -n 1)"
+          if [[ -n "${CONTROLLED_SERVER_BIN:-}" ]]; then
+            CANARY_PATH="${CONTROLLED_SERVER_BIN}"
+          else
+            CANARY_PATH="$(find canary-bin -type f -name 'canary' | head -n 1)"
+            git rev-parse HEAD | tee artifacts/server-source-commit.txt
+            printf 'repository=%s\nref=%s\n' "${GITHUB_REPOSITORY}" "${GITHUB_SHA}" > artifacts/server-source-request.txt
+          fi
           OTCLIENT_PATH="$(find otclient-bin -type f -name 'otclient' | head -n 1)"
           test -n "${CANARY_PATH}"
           test -n "${OTCLIENT_PATH}"
           chmod +x "${CANARY_PATH}" "${OTCLIENT_PATH}"
           test -x "${CANARY_PATH}"
           test -x "${OTCLIENT_PATH}"
-          echo "CANARY_BIN=${GITHUB_WORKSPACE}/${CANARY_PATH}" >> "${GITHUB_ENV}"
+          echo "CANARY_BIN=${CANARY_PATH}" >> "${GITHUB_ENV}"
           echo "OTCLIENT_BIN=${GITHUB_WORKSPACE}/${OTCLIENT_PATH}" >> "${GITHUB_ENV}"
           sha256sum "${CANARY_PATH}" "${OTCLIENT_PATH}" | tee artifacts/executable-sha256.txt
           git -C otclient rev-parse HEAD | tee artifacts/otclient-source-commit.txt
