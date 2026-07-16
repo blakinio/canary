@@ -7,8 +7,8 @@ agent: chatgpt-ci-governance
 branch: ci/incremental-validation-final-gate
 base_branch: main
 created: 2026-07-16T10:10:00+02:00
-updated: 2026-07-16T11:47:00+02:00
-last_verified_commit: de091c58b28e898d3aace294f96bcf5306c613f0
+updated: 2026-07-16T11:48:00+02:00
+last_verified_commit: f78023d63e69b41de7ac81fa659d21cdefbfcedc
 risk: medium
 related_issue: ""
 related_pr: "415"
@@ -76,7 +76,7 @@ Reduce repeated heavy CI after non-impacting follow-up commits without reducing 
 - Universal Agent Load now has the same fail-closed scope/required pattern while keeping focused runner validation on every applicable head.
 - The helper itself is explicitly impacting for both physical E2E and Load profiles, and focused regressions preserve `.github/**` dotfile path matching.
 - Full implementation head `bc0a3b72148ff3719c51292af36b7635f5267140` passed Ownership #1594, CI #2729, Universal Agent Load #43 and Universal Agent E2E #87 after helper self-change hardening; the heavy Canary/OTClient paths ran rather than being reused.
-- Consecutive docs-only checkpoint heads through `de091c58b28e898d3aace294f96bcf5306c613f0` passed current-head Ownership/CI/Load/E2E via immediate-parent reuse; latest evidence is Ownership #1603, CI #2739, Load #46 and E2E #90.
+- Consecutive docs-only checkpoint heads through `f78023d63e69b41de7ac81fa659d21cdefbfcedc` passed current-head Ownership/CI/Load/E2E via immediate-parent reuse; latest evidence is Ownership #1604, CI #2740, Load #47 and E2E #91.
 - Current `main@44cd23bec185a5e0a6167d6180008eddd47ac594` is six commits ahead of the task-start base and changes unrelated OTBM/Oteryn paths plus shared agent docs; synchronization is the next step before final shared-doc edits.
 
 # Safety design
@@ -94,14 +94,14 @@ The optimization is evidence-preserving, not skip-by-assumption:
 
 # Current state
 
-Implementation and focused tests are complete and green. The process has been proven in both directions: docs-only children reused successful immediate-parent CI/Load/E2E evidence and skipped expensive jobs, while the helper self-change forced full Load and physical E2E validation. This is the sealed pre-sync checkpoint. No further standalone checkpoint commits will be made: after synchronization, the task record and all shared policy/catalogue/changelog changes will be written once as the final content batch before the empty validation-gate commit.
+Implementation and focused tests are complete and green. The process has been proven in both directions: docs-only children reused successful immediate-parent CI/Load/E2E evidence and skipped expensive jobs, while the helper self-change forced full Load and physical E2E validation. This is the locked pre-sync state. The next operation is branch synchronization; after that, all policy/catalogue/changelog/task updates are one frozen final content batch, followed only by the empty final-gate commit.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T11:47:00+02:00
-head: de091c58b28e898d3aace294f96bcf5306c613f0
+updated_at: 2026-07-16T11:48:00+02:00
+head: f78023d63e69b41de7ac81fa659d21cdefbfcedc
 branch: ci/incremental-validation-final-gate
 pr: 415
 status: implementing
@@ -126,7 +126,7 @@ proven:
   - PR 393 merged as 2f828672df010ff577c8e6076524b37c6dedd987 before task creation.
   - Draft PR 415 is the live PR for this task.
   - Full implementation head bc0a3b72148ff3719c51292af36b7635f5267140 passed Ownership 1594, CI 2729, Load 43 and E2E 87 with heavy paths executed.
-  - Latest docs-only head de091c58b28e898d3aace294f96bcf5306c613f0 passed Ownership 1603, CI 2739, Load 46 and E2E 90 using immediate-parent reuse.
+  - Latest docs-only head f78023d63e69b41de7ac81fa659d21cdefbfcedc passed Ownership 1604, CI 2740, Load 47 and E2E 91 using immediate-parent reuse.
   - The helper profile treats tools/agents/ci_incremental_validation.py as impacting for CI, physical E2E and Load.
   - Focused tests cover helper self-change and preservation of leading .github dotfile paths.
 derived:
@@ -164,13 +164,13 @@ validation:
   - command: Universal Agent E2E 87
     result: PASS
     evidence: Helper-hardening head ran DB preflight, Canary build, controlled OTClient build, physical login/relog scenario and Required physical E2E successfully.
-  - command: CI 2739 / docs-only reuse
+  - command: CI 2740 / docs-only reuse
     result: PASS
-    evidence: Heavy build jobs were suppressed by proven immediate-parent reuse and Required succeeded on de091c58b28e898d3aace294f96bcf5306c613f0.
-  - command: Universal Agent Load 46 / docs-only reuse
+    evidence: Heavy build jobs were suppressed by proven immediate-parent reuse and Required succeeded on f78023d63e69b41de7ac81fa659d21cdefbfcedc.
+  - command: Universal Agent Load 47 / docs-only reuse
     result: PASS
     evidence: Focused load validation remained current-head while heavy Canary/load jobs were reused from the successful parent.
-  - command: Universal Agent E2E 90 / docs-only reuse
+  - command: Universal Agent E2E 91 / docs-only reuse
     result: PASS
     evidence: Resolve/current-head gate remained while DB, Canary, OTClient and physical-client heavy jobs were reused from the successful parent.
 blockers: []
