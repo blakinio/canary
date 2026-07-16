@@ -18,10 +18,15 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/universal-agent-e2e.yml"
+      - ".github/workflows/reusable-build-linux.yml"
+      - ".github/scripts/smoke_test_canary.py"
+      - "tools/agents/ci_incremental_validation.py"
       - "tools/e2e/run_agent_e2e.py"
       - "tools/e2e/run_physical_e2e.sh"
       - "tools/e2e/client/**"
       - "tests/e2e/**"
+      - "!tests/e2e/load/**"
+      - "!tests/e2e/test_load_runner.py"
 
 permissions:
   contents: write
@@ -33,8 +38,43 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  scope:
+    name: Decide physical E2E validation scope
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      reuse_parent: ${{ steps.incremental.outputs.reuse_parent || 'false' }}
+      run_heavy: ${{ steps.incremental.outputs.run_heavy || 'true' }}
+      reason: ${{ steps.incremental.outputs.reason }}
+    steps:
+      - name: Checkout exact test head
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - name: Evaluate immediate-parent physical E2E reuse
+        id: incremental
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >-
+          python tools/agents/ci_incremental_validation.py
+          --profile universal-e2e
+          --workflow-name "Universal Agent E2E"
+          --event-name "${{ github.event_name }}"
+          --event-action "${{ github.event.action }}"
+      - name: Summarize validation decision
+        run: |
+          echo "reuse_parent=${{ steps.incremental.outputs.reuse_parent || 'false' }}"
+          echo "run_heavy=${{ steps.incremental.outputs.run_heavy || 'true' }}"
+          echo "reason=${{ steps.incremental.outputs.reason }}"
+
   resolve:
     name: Resolve scenario
+    needs: [scope]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
@@ -78,6 +118,8 @@ jobs:
 
   database-preflight:
     name: Validate database bootstrap
+    needs: [scope]
+    if: needs.scope.outputs.run_heavy == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -175,7 +217,8 @@ jobs:
 
   build-canary:
     name: Build exact Canary head
-    needs: [database-preflight]
+    needs: [scope, database-preflight]
+    if: needs.scope.outputs.run_heavy == 'true' && needs.database-preflight.result == 'success'
     permissions:
       contents: write
       packages: write
@@ -187,7 +230,8 @@ jobs:
 
   build-otclient:
     name: Build controlled OTClient
-    needs: [resolve, database-preflight]
+    needs: [scope, resolve, database-preflight]
+    if: needs.scope.outputs.run_heavy == 'true' && needs.resolve.result == 'success' && needs.database-preflight.result == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     permissions:
@@ -314,7 +358,8 @@ jobs:
 
   physical-client:
     name: Physical client / ${{ needs.resolve.outputs.suite }}/${{ needs.resolve.outputs.scenario }}
-    needs: [resolve, database-preflight, build-canary, build-otclient]
+    needs: [scope, resolve, database-preflight, build-canary, build-otclient]
+    if: needs.scope.outputs.run_heavy == 'true' && needs.resolve.result == 'success' && needs.database-preflight.result == 'success' && needs.build-canary.result == 'success' && needs.build-otclient.result == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     permissions:
@@ -432,3 +477,62 @@ jobs:
           path: artifacts/
           if-no-files-found: warn
           retention-days: 14
+
+  required:
+    name: Required physical E2E
+    if: always()
+    needs: [scope, resolve, database-preflight, build-canary, build-otclient, physical-client]
+    runs-on: ubuntu-24.04
+    permissions: {}
+    steps:
+      - name: Evaluate physical E2E evidence
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+
+          jobs = json.loads(os.environ["NEEDS_JSON"])
+          scope = jobs["scope"]
+          if scope.get("result") != "success":
+              raise SystemExit(f"scope must succeed, got {scope.get('result')}")
+          if jobs["resolve"].get("result") != "success":
+              raise SystemExit(f"resolve must succeed, got {jobs['resolve'].get('result')}")
+
+          outputs = scope.get("outputs", {})
+          run_heavy = outputs.get("run_heavy") == "true"
+          reuse_parent = outputs.get("reuse_parent") == "true"
+          heavy_jobs = (
+              "database-preflight",
+              "build-canary",
+              "build-otclient",
+              "physical-client",
+          )
+
+          if run_heavy:
+              failed = {
+                  name: jobs[name].get("result")
+                  for name in heavy_jobs
+                  if jobs[name].get("result") != "success"
+              }
+              if failed:
+                  raise SystemExit(f"required physical E2E jobs did not pass: {failed}")
+          else:
+              if not reuse_parent:
+                  raise SystemExit("heavy E2E skip requires proven immediate-parent reuse")
+              unexpected = {
+                  name: jobs[name].get("result")
+                  for name in heavy_jobs
+                  if jobs[name].get("result") != "skipped"
+              }
+              if unexpected:
+                  raise SystemExit(f"reused E2E jobs must be skipped: {unexpected}")
+
+          print(
+              "physical E2E gate passed: "
+              f"run_heavy={run_heavy} reuse_parent={reuse_parent}"
+          )
+          PY
