@@ -7,8 +7,8 @@ agent: chatgpt-ci-repair
 branch: fix/gameplay-analytics-load-order
 base_branch: main
 created: 2026-07-16T18:29:36+02:00
-updated: 2026-07-16T18:34:13+02:00
-last_verified_commit: "39cdd8fa6f17d8d586fc17bfb35672b1d35b160a"
+updated: 2026-07-16T18:38:03+02:00
+last_verified_commit: "c6ddd4b979da10ded23948f0bffec62ad877501d"
 risk: medium
 related_issue: ""
 related_pr: "429"
@@ -29,12 +29,14 @@ owned_paths:
     - data-otservbr-global/scripts/lib/#gameplay_analytics_correctness_impl.lua
     - data-otservbr-global/scripts/lib/gameplay_analytics_context.lua
     - data-otservbr-global/scripts/lib/#gameplay_analytics_context_impl.lua
+    - tests/lua/test_gameplay_analytics_load_order.lua
     - docs/agents/tasks/active/CAN-20260716-gameplay-analytics-load-order.md
   shared:
     - docs/agents/CHANGELOG.md
   read_only:
     - .github/scripts/smoke_test_canary.py
     - .github/workflows/reusable-build-linux.yml
+    - .github/workflows/reusable-tests-lua.yml
     - src/lua/scripts/scripts.cpp
 modules_touched:
   - Global datapack gameplay analytics bootstrap
@@ -42,6 +44,7 @@ reuses:
   - existing GameplayAnalytics core implementation blob
   - existing extension implementation blobs
   - existing disabled-script `#` loader convention
+  - existing Lua test workflow
   - existing Global datapack runtime smoke
 public_interfaces: []
 cross_repo_tasks: []
@@ -54,11 +57,12 @@ Make gameplay analytics library loading deterministic and order-independent so t
 # Acceptance criteria
 
 - [ ] Core gameplay analytics loading is idempotent.
-- [ ] Each gameplay analytics extension can bootstrap the core when it is loaded first.
-- [ ] Loading the core again after an extension does not overwrite installed extension wrappers.
+- [ ] Any public gameplay analytics entrypoint can bootstrap the complete analytics stack.
+- [ ] Extension implementations load in one explicit canonical order.
+- [ ] Loading public entrypoints repeatedly does not overwrite installed extension wrappers.
 - [ ] Preserved implementation files are skipped by automatic script discovery and loaded only through explicit `dofile` entrypoints.
 - [ ] No runtime smoke warning/error filter is weakened.
-- [ ] Focused validation covers extension-before-core and repeated-core loading.
+- [ ] Focused Lua validation covers extension-before-core and repeated entrypoint loading.
 - [ ] Global datapack runtime smoke passes in CI on the exact PR head.
 
 # Confirmed context
@@ -67,17 +71,18 @@ Make gameplay analytics library loading deterministic and order-independent so t
 - Both failures logged `GameplayAnalytics must be loaded before ...` from five extension libraries.
 - The affected runtime files are outside PR #415 and require a separate narrow CI-repair PR.
 - Current `main` is `0507fc5de8049d712345f43db0b05a23a6577a8a`.
-- Draft repair PR #429 targets only the gameplay analytics bootstrap plus task/changelog governance.
+- Draft repair PR #429 targets only the gameplay analytics bootstrap plus focused regression/governance.
 - `Scripts::loadScripts` enumerates Lua files with `std::filesystem::recursive_directory_iterator` without sorting, so filesystem enumeration order is not a valid dependency.
 - The same loader deliberately skips files whose filename starts with `#`; explicit `dofile` remains available to public loader entrypoints.
+- The canonical Lua test workflow executes every `tests/lua/test_*.lua` with LuaJIT.
 - No open PR or issue matching gameplay analytics load-order repair was found through available GitHub search; negative code-search results are not treated as proof of absence.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T18:34:13+02:00
-head: 39cdd8fa6f17d8d586fc17bfb35672b1d35b160a
+updated_at: 2026-07-16T18:38:03+02:00
+head: c6ddd4b979da10ded23948f0bffec62ad877501d
 branch: fix/gameplay-analytics-load-order
 pr: 429
 status: active
@@ -97,19 +102,20 @@ owned_paths:
   - data-otservbr-global/scripts/lib/#gameplay_analytics_correctness_impl.lua
   - data-otservbr-global/scripts/lib/gameplay_analytics_context.lua
   - data-otservbr-global/scripts/lib/#gameplay_analytics_context_impl.lua
+  - tests/lua/test_gameplay_analytics_load_order.lua
   - docs/agents/tasks/active/CAN-20260716-gameplay-analytics-load-order.md
   - docs/agents/CHANGELOG.md
 proven:
   - PR 415 exact-head Linux release build succeeds before the Global datapack smoke step.
   - The Global datapack smoke fails on gameplay analytics extension load-order errors.
   - Five extension files fail closed when GameplayAnalytics is nil.
-  - Existing implementation blobs can be preserved byte-for-byte behind small deterministic loader files.
+  - Existing implementation blobs are preserved byte-for-byte behind deterministic public loader files.
   - Automatic script discovery skips filenames beginning with `#`.
+  - Lua Tests runs `tests/lua/test_*.lua` through LuaJIT.
 derived:
-  - Public entrypoints can safely delegate to preserved `#` implementation files without those implementation files being auto-executed out of order.
-unknown:
-  - Whether an existing focused Lua test harness covers direct library load order.
+  - A single master loader can make both core and extension composition order deterministic regardless of which public entrypoint is enumerated first.
+unknown: []
 conflicts: []
 blockers: []
-next_action: Commit deterministic public loaders plus preserved `#` implementation blobs, then validate PR 429.
+next_action: Add the focused Lua regression for arbitrary-first and repeated public entrypoint loading, then inspect PR 429 CI.
 ```
