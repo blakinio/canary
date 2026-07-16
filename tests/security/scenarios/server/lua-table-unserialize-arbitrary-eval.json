@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "lua-table-unserialize-arbitrary-eval",
+  "name": "table.unserialize remains non-evaluating",
+  "description": "Rejects reintroduction of load/loadstring evaluation into data/libs/functions/tables.lua while requiring the bounded parser delivered by PR #328.",
+  "component": "server",
+  "target_adapter": "canary-source",
+  "mode": "source-regex",
+  "severity": "critical",
+  "authorization": {
+    "scope": "repository",
+    "repository": "blakinio/canary"
+  },
+  "source": {
+    "files": [
+      "data/libs/functions/tables.lua"
+    ],
+    "forbidden_regex": [
+      "\\bloadstring\\s*\\(",
+      "\\bload\\s*\\("
+    ],
+    "required_regex": [
+      "TABLE_UNSERIALIZE_MAX_BYTES",
+      "tableUnserializeParseValue"
+    ]
+  },
+  "evidence": {
+    "regression_tests": [
+      "tests/lua/test_tables.lua"
+    ],
+    "related_prs": [
+      328
+    ]
+  }
+}

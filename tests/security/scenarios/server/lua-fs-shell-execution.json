@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "lua-fs-shell-execution",
+  "name": "Lua filesystem helpers remain shell-free",
+  "description": "Rejects reintroduction of shell execution into FS.mkdir and FS.mkdir_p while requiring the native filesystem bindings delivered by PR #326.",
+  "component": "server",
+  "target_adapter": "canary-source",
+  "mode": "source-regex",
+  "severity": "critical",
+  "authorization": {
+    "scope": "repository",
+    "repository": "blakinio/canary"
+  },
+  "source": {
+    "files": [
+      "data/libs/functions/fs.lua"
+    ],
+    "forbidden_regex": [
+      "\\bos\\.execute\\s*\\("
+    ],
+    "required_regex": [
+      "FileSystem\\.createDirectory\\s*\\(",
+      "FileSystem\\.createDirectories\\s*\\("
+    ]
+  },
+  "evidence": {
+    "regression_tests": [
+      "tests/lua/test_fs.lua",
+      "tests/unit/lua/filesystem_functions_test.cpp"
+    ],
+    "related_prs": [
+      326
+    ]
+  }
+}
