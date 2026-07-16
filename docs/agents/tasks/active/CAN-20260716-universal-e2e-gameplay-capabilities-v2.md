@@ -2,24 +2,22 @@
 task_id: CAN-20260716-universal-e2e-gameplay-capabilities-v2
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: "OTS-E2E-GAMEPLAY-V1"
-status: implementing
+status: ready
 agent: "GPT-5.5 Thinking"
 branch: feat/universal-e2e-gameplay-capabilities-v3
 base_branch: main
 created: 2026-07-16T22:30:00+02:00
-updated: 2026-07-16T23:30:00+02:00
-last_verified_commit: "8da6f04823f72b0c2994e5f516b6355564f7c98d"
+updated: 2026-07-16T23:47:48+02:00
+last_verified_commit: "207a89455e0ce8f2b60631c5678074d6bf19c705"
 risk: high
 related_issue: ""
 related_pr: "446"
 depends_on:
   - CAN-PROGRAM-E2E-PLATFORM
 blocks:
-  - future physical movement scenario tasks
-  - future physical combat scenario tasks
-  - future physical item/inventory/container scenario tasks
-  - future physical quest/NPC/depot/bank/trade scenario tasks
-  - future multi-client and runtime-fault scenario tasks
+  - future physical gameplay fixture scenarios
+  - future multi-client scenarios
+  - future runtime-fault scenarios
 owned_paths:
   exclusive:
     - tools/e2e/run_agent_e2e.py
@@ -40,56 +38,48 @@ modules_touched:
   - Universal OTS E2E automation
 reuses:
   - existing scenario discovery and validation
-  - existing physical Canary + MariaDB + controlled OTClient lifecycle
-  - existing two-session login/logout/relog correctness sentinel
-  - maintained OTClient g_game/g_map/LocalPlayer Lua bindings
+  - existing physical Canary MariaDB controlled-OTClient lifecycle
+  - existing two-session login logout relog sentinel
 public_interfaces:
-  - optional scenario.steps declarative client action plan
-  - generated scenario-plan.lua artifact
-  - generic agent_e2e_scenario.lua physical client driver
+  - optional scenario.steps action plan
+  - generated scenario-plan.lua
+  - generic agent_e2e_scenario.lua driver
 cross_repo_tasks: []
 ---
 
 # Goal
 
-Extend the existing Universal OTS E2E platform with a reusable, declarative physical-client gameplay action plan without creating another orchestrator and without overwriting the active OAM-006 shared workflow contract. Preserve the exact-head Canary/MariaDB/controlled-OTClient lifecycle and the two-session login/logout/relog persistence sentinel while adding bounded client actions and observations reusable by feature-owned physical scenarios.
+Add bounded declarative physical-client gameplay actions to the existing Universal OTS E2E platform without creating another orchestrator or modifying the shared OAM-006 workflow contract.
 
-# Acceptance criteria
+# Delivered
 
-- [x] Preserve schema-v1 login/relog behavior when `steps` is absent.
-- [x] Add strict optional declarative `steps` validation with bounded action types and exact fields.
-- [x] Reject unknown actions/fields, unsafe text, invalid directions, invalid IDs and unbounded plans.
-- [x] Resolve a validated plan into deterministic `scenario-plan.lua` beside the scenario manifest.
-- [x] Add a generic OTClient Lua driver using verified maintained-client bindings.
-- [x] Support bounded wait, walk, talk/spell text, visible-target attack, inventory-item use, quest-log request and channel-list request.
-- [x] Support online, position, floor, health, inventory, visible-creature and attack-state observations.
-- [x] Record deterministic action start/result markers for existing required-marker assertions.
-- [x] Fail closed on timeout, missing player/target/item, unexpected disconnect, login/connection error or unknown runtime action.
-- [x] Add focused Python regressions including declared-action ↔ runtime-driver parity.
-- [x] Register a platform-owned action-plan contract scenario with no guessed map coordinates, item IDs, NPCs or monsters.
-- [x] Document safety and feature-owned follow-up boundaries.
-- [x] Keep `.github/workflows/universal-agent-e2e.yml` and `run_physical_e2e.sh` read-only in this task.
-- [ ] Update catalogue/changelog narrowly.
-- [ ] Pass exact-final-head CI, ownership and full physical E2E gate before merge.
+- Backward-compatible scenarios with no `steps` remain supported.
+- Strict bounded step validation and deterministic `scenario-plan.lua` generation are implemented.
+- The controlled OTClient driver supports bounded wait, movement, text, visible-target combat selection, inventory-item use, quest/channel requests and state observations.
+- Unknown or invalid actions fail closed.
+- Focused regressions include declared-action to runtime-driver parity.
+- The platform contract scenario contains no invented map coordinates, item IDs, NPC names or monster names.
+- Existing MariaDB, exact Canary, controlled OTClient and two-session relog lifecycle remains authoritative.
+- Shared workflow and legacy physical runner paths remain read-only in this task.
+- PR #446 contains exactly eight intended changed files; CHANGELOG and MODULE_CATALOG each add one E2E entry.
+- The branch is synchronized through Canary main `b0ea0ba9508cc78d5580f44181115e9b304eb7da`.
 
-# Confirmed context
+# Validation before final gate
 
-- Repository writes are limited to `blakinio/canary`.
-- Replacement PR #446 supersedes closed unmerged draft #439; published history was not force-pushed.
-- The five implementation/test/documentation files were copied byte-for-byte from the audited #439 head using their Git blob SHAs.
-- The existing Universal Agent E2E lifecycle already owns MariaDB, exact server builds, controlled OTClient builds, matching assets, Xvfb, packet/session evidence and cleanup.
-- OAM-006 shares `.github/workflows/universal-agent-e2e.yml`; this task does not edit that path.
-- Maintained OTClient bindings required by the generic actions were previously verified at pinned ref `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`.
+- Agent Task Ownership #1803: PASS on `9a847007576efc0ca9c1b32be67624d12c483012`.
+- CI #2946: PASS on `9a847007576efc0ca9c1b32be67624d12c483012`.
+- Universal Agent E2E #131 selected the full heavy path, passed scenario resolution and database bootstrap, and started exact Canary plus controlled OTClient builds before the final-head transition.
+- `ci:final-gate` is applied to PR #446.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T23:30:00+02:00
-head: 8da6f04823f72b0c2994e5f516b6355564f7c98d
+updated_at: 2026-07-16T23:47:48+02:00
+head: 207a89455e0ce8f2b60631c5678074d6bf19c705
 branch: feat/universal-e2e-gameplay-capabilities-v3
 pr: 446
-status: implementing
+status: ready
 context_routes:
   - agent-governance
   - universal-e2e
@@ -101,33 +91,36 @@ owned_paths:
   - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
   - docs/agents/tasks/active/CAN-20260716-universal-e2e-gameplay-capabilities-v2.md
 proven:
-  - replacement PR 446 is based on a clean current-main branch rather than rewritten PR 439 history
-  - old PR 439 was closed without merge rather than force-pushed
-  - five audited implementation blobs were copied byte-for-byte from the superseded branch
-  - existing physical E2E lifecycle and maintained-client API evidence are reused
-  - prior draft implementation passed focused plan tests and repeated repository CI/ownership checks before replacement
-  - no concrete map coordinates item IDs NPC names or monster names are invented by the platform contract
-derived:
-  - generic declarative actions are the safest reusable platform layer before feature-owned fixture scenarios
+  - PR 446 supersedes closed unmerged PR 439 without rewriting published history
+  - implementation blobs were transferred byte-for-byte from the audited draft
+  - branch is synchronized with main b0ea0ba9508cc78d5580f44181115e9b304eb7da
+  - changed-path scope is exactly eight intended files
+  - CHANGELOG and MODULE_CATALOG each contain only one intended E2E addition
+  - pre-final Ownership 1803 and CI 2946 passed
+  - pre-final Universal Agent E2E 131 selected the full heavy path
 unknown:
-  - exact final-head physical E2E result
-conflicts:
-  - OAM-006 owns shared workflow .github/workflows/universal-agent-e2e.yml; this task keeps it read-only
+  - exact-final-head gate conclusion
+conflicts: []
 first_failure:
-  marker: superseded draft PR 439 / behind-main strict mergeability
-  evidence: work moved to clean PR 446 instead of force-pushing published history
+  marker: superseded-pr-439-mergeability
+  evidence: replacement PR 446 was created from current main instead of rewriting published history
 rejected_hypotheses:
-  - force-pushing published history is acceptable for synchronization
-  - one giant scenario should invent feature-specific fixture identifiers
-  - a second physical E2E orchestrator is required
+  - create a second E2E orchestrator
+  - invent feature-specific fixture identifiers in the platform contract
 changed_paths:
-  - tools/e2e/run_agent_e2e.py
-  - tools/e2e/client/agent_e2e_scenario.lua
-  - tests/e2e/test_agent_e2e_scenario_plan.py
-  - tests/e2e/scenarios/platform/action-plan-contract.json
-  - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260716-universal-e2e-gameplay-capabilities-v2.md
-validation: []
+  - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
+  - tests/e2e/scenarios/platform/action-plan-contract.json
+  - tests/e2e/test_agent_e2e_scenario_plan.py
+  - tools/e2e/client/agent_e2e_scenario.lua
+  - tools/e2e/run_agent_e2e.py
+validation:
+  - command: Agent Task Ownership 1803
+    result: PASS
+  - command: CI 2946
+    result: PASS
 blockers: []
-next_action: Synchronize PR 446 once with latest main, add only the narrow MODULE_CATALOG and CHANGELOG entries on that synchronized tree, then run focused and exact-final-head repository/physical E2E validation without further feature commits.
+next_action: Let all ci:final-gate workflows finish on this exact final head. If they succeed, make no further commit; audit reviews, threads, changed paths and mergeability, mark PR 446 ready, then squash-merge with the exact expected head SHA.
 ```
