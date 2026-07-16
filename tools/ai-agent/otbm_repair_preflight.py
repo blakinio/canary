@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import copy
+import hashlib
+import json
 from collections import Counter, defaultdict
 from typing import Any, Mapping, Sequence
 
@@ -13,6 +15,14 @@ ITEM_AUDIT_FORMAT = "canary-otbm-item-audit-v1"
 SCRIPT_RESOLUTION_FORMAT = "canary-otbm-script-resolution-v1"
 MECHANIC_ATTRIBUTES = ("actionId", "uniqueId", "houseDoorId", "teleportDestination")
 UNRESOLVED_STATUSES = {"unresolved", "referenced-only", "partially-resolved"}
+RUNTIME_EVIDENCE_FIELDS = (
+    "status",
+    "resolutions",
+    "selectedByEvent",
+    "handlers",
+    "shadowedHandlers",
+    "references",
+)
 
 
 class PreflightError(ValueError):
@@ -328,6 +338,74 @@ def build_hypothetical_item_audit(
     return updated
 
 
+def is_runtime_resolved_status(status: Any) -> bool:
+    return isinstance(status, str) and status.startswith("handled-")
+
+
+def _normalized_runtime_value(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {str(key): _normalized_runtime_value(value[key]) for key in sorted(value, key=str)}
+    if isinstance(value, list):
+        normalized = [_normalized_runtime_value(entry) for entry in value]
+        return sorted(
+            normalized,
+            key=lambda entry: json.dumps(entry, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+        )
+    return value
+
+
+def _runtime_projection(placement: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        field: placement[field]
+        for field in RUNTIME_EVIDENCE_FIELDS
+        if field in placement
+    }
+
+
+def _runtime_changes(before: Any, after: Any, path: str = "") -> list[dict[str, Any]]:
+    if isinstance(before, Mapping) and isinstance(after, Mapping):
+        changes: list[dict[str, Any]] = []
+        for key in sorted(set(before) | set(after), key=str):
+            child_path = f"{path}.{key}" if path else str(key)
+            if key not in before:
+                changes.append({"path": child_path, "kind": "added", "before": None, "after": after[key]})
+            elif key not in after:
+                changes.append({"path": child_path, "kind": "removed", "before": before[key], "after": None})
+            else:
+                changes.extend(_runtime_changes(before[key], after[key], child_path))
+        return changes
+    if before != after:
+        return [{"path": path or "$", "kind": "changed", "before": before, "after": after}]
+    return []
+
+
+def diff_script_resolution_placements(
+    before: Mapping[str, Any],
+    after: Mapping[str, Any],
+) -> dict[str, Any]:
+    before_projection = _normalized_runtime_value(_runtime_projection(before))
+    after_projection = _normalized_runtime_value(_runtime_projection(after))
+    before_encoded = json.dumps(
+        before_projection,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    after_encoded = json.dumps(
+        after_projection,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    changes = _runtime_changes(before_projection, after_projection)
+    return {
+        "changed": bool(changes),
+        "beforeFingerprint": hashlib.sha256(before_encoded).hexdigest(),
+        "afterFingerprint": hashlib.sha256(after_encoded).hexdigest(),
+        "changes": changes,
+    }
+
+
 def build_preflight_report(
     *,
     item_audit: Mapping[str, Any],
@@ -385,9 +463,27 @@ def build_preflight_report(
         if draft_error:
             warnings.append(f"Draft plan not ready: {draft_error}")
 
+    matched = bool(candidates)
+    correlated = len(candidates) == 1 and candidates[0].get("anchorStatus") == "exact"
+    runtime_status = (
+        str(candidates[0]["scriptResolution"].get("status", "unknown"))
+        if len(candidates) == 1
+        else "unknown"
+    )
+    runtime_resolved = correlated and is_runtime_resolved_status(runtime_status)
+    patchable = operation_kind is not None and draft_plan is not None
+    readiness = {
+        "matched": matched,
+        "correlated": correlated,
+        "runtimeResolved": runtime_resolved,
+        "runtimeStatus": runtime_status,
+        "patchable": patchable,
+        "reviewReady": patchable,
+    }
+
     return {
         "format": REPORT_FORMAT,
-        "ok": bool(candidates),
+        "ok": matched,
         "selector": normalized_selector,
         "source": dict(source),
         "summary": {
@@ -397,6 +493,7 @@ def build_preflight_report(
             "runtimeUnresolvedCandidates": unresolved,
             "conflictingCandidates": conflicts,
             "draftPlanReady": draft_plan is not None,
+            "readiness": readiness,
         },
         "candidates": candidates,
         "draftPlan": draft_plan,
