@@ -83,6 +83,7 @@ class RegionMergePlannerTests(unittest.TestCase):
         )
 
     def analyze(self, **kwargs: object) -> dict[str, object]:
+        target_origin = kwargs.pop("target_origin", (400, 600, 7))
         return analyze_region_merge_plan(
             artifact_root=self.root,
             current_index_path=Path(self.current_index.name),
@@ -91,7 +92,7 @@ class RegionMergePlannerTests(unittest.TestCase):
             donor_manifest_path=Path(self.donor_manifest.name),
             donor_from=(300, 600, 7),
             donor_to=(301, 600, 7),
-            target_origin=(400, 600, 7),
+            target_origin=target_origin,  # type: ignore[arg-type]
             **kwargs,
         )
 
