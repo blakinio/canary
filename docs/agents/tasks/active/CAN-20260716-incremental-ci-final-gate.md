@@ -7,11 +7,11 @@ agent: chatgpt-ci-governance
 branch: ci/incremental-validation-final-gate
 base_branch: main
 created: 2026-07-16T10:10:00+02:00
-updated: 2026-07-16T10:10:00+02:00
-last_verified_commit: 2f828672df010ff577c8e6076524b37c6dedd987
+updated: 2026-07-16T10:15:00+02:00
+last_verified_commit: 03a595829f0316f81145332a4fec9a6adc05c112
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "415"
 depends_on:
   - CAN-20260715-universal-agent-load-platform
 blocks: []
@@ -20,8 +20,9 @@ owned_paths:
     - .github/workflows/ci.yml
     - .github/workflows/universal-agent-e2e.yml
     - .github/workflows/universal-agent-load.yml
+    - .github/workflows/agent-task-ownership.yml
     - tools/agents/ci_incremental_validation.py
-    - tests/agents/test_ci_incremental_validation.py
+    - tools/agents/test_ci_incremental_validation.py
     - docs/agents/tasks/active/CAN-20260716-incremental-ci-final-gate.md
   shared:
     - AGENTS.md
@@ -31,11 +32,13 @@ modules_touched:
   - CI validation orchestration
   - Universal Agent E2E workflow gating
   - Universal Agent Load workflow gating
+  - Agent tooling focused validation
 reuses:
   - existing CI Detect Build Scope and Required aggregation
   - existing workflow_dispatch full validation paths
   - existing Universal Agent E2E physical login/relog sentinel
   - existing Universal Agent Load exact-head status-smoke sentinel
+  - existing Agent Task Ownership Python compile/unit-test job
 public_interfaces:
   - ci:final-gate pull-request label convention
   - ci_incremental_validation.py decision contract
@@ -64,10 +67,12 @@ Reduce repeated heavy CI after non-impacting follow-up commits without reducing 
 - Repository write target is exactly `blakinio/canary`.
 - PR #393 merged successfully as squash commit `2f828672df010ff577c8e6076524b37c6dedd987` before this task branch was created.
 - Current `main` equaled `2f828672df010ff577c8e6076524b37c6dedd987` when this branch was created.
+- Draft PR #415 targets `blakinio/canary:main` from `blakinio/canary:ci/incremental-validation-final-gate`.
 - The motivating waste was observed directly: docs/shared-index commits after green runtime heads repeatedly rebuilt Canary and the unchanged controlled OTClient before merge.
 - Existing root policy already says to avoid wasteful builds for clearly non-build-affecting docs/scripts; this task makes workflow behavior match that policy.
 - Current CI uses cumulative PR path filtering and forces Linux release for every pull request, so a docs-only follow-up on a code PR repeats heavy work.
 - Current Universal Agent E2E uses broad `tests/e2e/**`, causing load-only test paths to trigger physical-client E2E.
+- Agent tooling tests live beside helpers under `tools/agents` and are executed by `.github/workflows/agent-task-ownership.yml`.
 
 # Safety design
 
@@ -83,16 +88,16 @@ The optimization is evidence-preserving, not skip-by-assumption:
 
 # Current state
 
-Task claimed; no implementation files changed yet.
+Task claimed and draft PR #415 opened; implementation has not started.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T10:10:00+02:00
-head: 2f828672df010ff577c8e6076524b37c6dedd987
+updated_at: 2026-07-16T10:15:00+02:00
+head: 03a595829f0316f81145332a4fec9a6adc05c112
 branch: ci/incremental-validation-final-gate
-pr: null
+pr: 415
 status: active
 context_routes:
   - agent-governance
@@ -102,8 +107,9 @@ owned_paths:
   - .github/workflows/ci.yml
   - .github/workflows/universal-agent-e2e.yml
   - .github/workflows/universal-agent-load.yml
+  - .github/workflows/agent-task-ownership.yml
   - tools/agents/ci_incremental_validation.py
-  - tests/agents/test_ci_incremental_validation.py
+  - tools/agents/test_ci_incremental_validation.py
   - docs/agents/tasks/active/CAN-20260716-incremental-ci-final-gate.md
   - AGENTS.md
   - docs/agents/BUILD_TEST_MATRIX.md
@@ -111,8 +117,10 @@ proven:
   - Repository write target is exactly blakinio/canary.
   - PR 393 merged as 2f828672df010ff577c8e6076524b37c6dedd987 before task creation.
   - Branch ci/incremental-validation-final-gate was created from that exact main head.
+  - Draft PR 415 is the live PR for this task.
   - Current CI forces Linux validation for every pull request.
   - Universal Agent E2E broadly matches tests/e2e/** including load-only tests.
+  - Agent tooling focused tests are maintained under tools/agents and run by Agent Task Ownership.
 derived:
   - Parent-success plus non-impacting HEAD^..HEAD evidence can safely avoid repeated heavy work while a final forced gate preserves merge quality.
 unknown:
@@ -126,5 +134,5 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260716-incremental-ci-final-gate.md
 validation: []
 blockers: []
-next_action: Open the draft PR for this claimed task, then implement and test the parent-success incremental validation helper before wiring it into CI, E2E and Load workflows.
+next_action: Implement and test the parent-success incremental validation helper before wiring it into CI, E2E and Load workflows.
 ```
