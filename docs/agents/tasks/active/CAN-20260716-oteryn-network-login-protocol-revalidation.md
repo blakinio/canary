@@ -2,13 +2,13 @@
 task_id: CAN-20260716-oteryn-network-login-protocol-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: "OAM-006"
-status: implementing
+status: ready
 agent: oteryn-architecture-migration-agent
 branch: docs/oam-006-network-login-protocol-revalidation
 base_branch: main
 created: 2026-07-16T20:50:00+02:00
-updated: 2026-07-16T21:20:00+02:00
-last_verified_commit: "a1d82a5989fe9e3b7ac6c495804cb1cd83c59090"
+updated: 2026-07-16T22:52:00+02:00
+last_verified_commit: "02d1b08162a3ad17d6283af16ad481f29c4ec213"
 risk: high
 related_issue: ""
 related_pr: "436"
@@ -25,7 +25,6 @@ owned_paths:
     - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
     - docs/agents/CROSS_REPO_CONTRACTS.md
     - .github/workflows/universal-agent-e2e.yml
-    - .github/e2e-controlled-server.env
   read_only:
     - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
     - docs/agents/real-tibia/registry/modules/protocol.yaml
@@ -33,7 +32,9 @@ owned_paths:
     - docs/agents/real-tibia/registry/modules/platform-compatibility.yaml
     - tests/e2e/scenarios/login/scenario.json
     - blakinio/Otheryn@a6d42f6cec024f81a7541084425ec1d43d66d2b8
+    - blakinio/Otheryn@c547d8ad70ef1252624c255476e6cb83fa125e14
     - blakinio/canary@a1d82a5989fe9e3b7ac6c495804cb1cd83c59090
+    - blakinio/canary@02d1b08162a3ad17d6283af16ad481f29c4ec213
     - opentibiabr/canary@e0ac98e399d0f7e483f3668f57b78fcc45b6e53f
     - blakinio/otclient@2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
 modules_touched:
@@ -64,25 +65,30 @@ Revalidate the canonical `protocol` module across exact target, legacy, upstream
 - upstream evidence: `opentibiabr/canary@e0ac98e399d0f7e483f3668f57b78fcc45b6e53f`
 - maintained client: `blakinio/otclient@2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`
 - Universal Agent E2E baseline proof: run #37 (`29412296047`)
+- final target: `blakinio/Otheryn@c547d8ad70ef1252624c255476e6cb83fa125e14`
+- latest re-fetched Canary main for overlap: `02d1b08162a3ad17d6283af16ad481f29c4ec213`
 
-# Current evidence
+# Final evidence
 
-- Target and upstream `ProtocolLogin` are content-identical at task start; target rejected every non-old protocol before authentication.
-- Target and upstream `ProtocolGame` are content-identical at task start; they did not consume the OAM-005 login-session token.
-- Legacy Canary PR #80 removed the unconditional modern login rejection without weakening old-protocol gating.
-- Legacy Canary PR #82 issues the OAM-005 token in the existing modern session-key field and consumes it during game login, preserving password/DB-session fallbacks and character ownership/deletion checks.
-- Maintained OTClient stores the login `sessionKey` opaquely and forwards `G.sessionKey` to `loginWorld` unchanged.
-- Universal Agent E2E #37 passed two stable sessions, two safe logouts and persistence using maintained client `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`.
-- OTClient PR #11 was closed without merge after packet evidence correction; no client transport hardening is part of the OAM-006 baseline.
-- Otheryn PR #21 was squash-merged as `c547d8ad70ef1252624c255476e6cb83fa125e14` after exact-head CI #80 and Required #78 passed.
-- Universal Agent E2E is extended in-place with optional exact `server_repository`/`server_ref` inputs so the existing physical runner can build and execute a controlled Otheryn revision without creating a second orchestrator.
-- The temporary controlled-server pin selects `blakinio/Otheryn@c547d8ad70ef1252624c255476e6cb83fa125e14` for the exact physical proof and must be removed before governance merge.
+- Target and upstream `ProtocolLogin`/`ProtocolGame` blobs matched at task start while legacy PRs #80/#82 supplied bounded modern-login and secure-session integration evidence.
+- Maintained OTClient stores the login `sessionKey` opaquely and forwards `G.sessionKey` into `loginWorld` unchanged.
+- OTClient PR #11 was closed without merge after packet-evidence correction; no client transport hardening is part of OAM-006.
+- Otheryn PR #21 final exact head `5342b374306abb44b6b5e201c85f6a0182c99286` passed ready-triggered CI #80, Required #78 and autofix.ci #71, then squash-merged as `c547d8ad70ef1252624c255476e6cb83fa125e14`.
+- Universal Agent E2E was extended in-place with optional exact controlled-server inputs; no second physical-client orchestrator was created.
+- Full heavy Universal Agent E2E #118 (`29531221365`) passed against exact controlled server `blakinio/Otheryn@c547d8ad70ef1252624c255476e6cb83fa125e14` and exact maintained client `blakinio/otclient@2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`.
+- Run #118 `Required physical E2E` passed; two login/world-entry sessions, two safe logouts, persistence checks, zero client exit code and zero fatal runtime hits were proven.
+- Exact run #118 controlled server binary SHA-256: `a69674e53911f4c529fe62d4dee0209633a73a14903c61f8e5fbca1bdbd8097d`.
+- Exact run #118 OTClient binary SHA-256: `b562247f8a0499738bf89eb9f8132146a26b2be57d9fb45e9586a0e0659d97ed`.
+- Exact run #118 evidence artifact digest: `sha256:0db430d258e6048b826af5c46a453e00647c7b30a2a700d8f0245a43fd6145cc`.
+- Earlier run #114 is not used as target proof because incremental reuse skipped heavy jobs.
+- The temporary exact-server pin was removed before governance completion.
+- Live-main drift through `02d1b08162a3ad17d6283af16ad481f29c4ec213` was rechecked and does not overlap OAM-006 owned paths; the newest drift is confined to bounded Targuna donor-audit files.
 
-# Working disposition
+# Final disposition
 
 | Module | Disposition | Rationale |
 |---|---|---|
-| `protocol` | `ADAPT` | target/upstream lacked bounded modern login compatibility and secure session-token wire integration already evidenced in legacy; maintained client can carry the opaque token without source mutation |
+| `protocol` | `ADAPT` | task-start target/upstream retained a usable protocol substrate but lacked bounded modern login compatibility and OAM-005 secure session-token wire integration; exact final target + unchanged maintained client passed full physical login/relog proof |
 
 # Safety boundary
 
@@ -90,19 +96,19 @@ Revalidate the canonical `protocol` module across exact target, legacy, upstream
 - Do not remove old-protocol compatibility or existing password/DB-backed session fallbacks.
 - Do not bypass character ownership or deletion-state checks.
 - Do not wholesale replace `IOLoginData`; preserve OAM-004D save semantics.
-- Do not mutate maintained-client source unless exact E2E proves it necessary.
+- Do not mutate maintained-client source without separate evidence and authorization.
 - Reuse the existing Universal Agent E2E rather than create a second physical-client orchestrator.
-- Require exact-head target CI and exact cross-repository physical E2E before feature governance completion.
+- Do not claim exhaustive old-profile or hostile replay coverage from the maintained-current-profile physical scenario.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T21:20:00+02:00
-head: 6eef5c955da1ecdf396ce2339e89ad18fd153e23
+updated_at: 2026-07-16T22:52:00+02:00
+head: d97cf2e1e919f8dad4710f8cda631ee7ec5d7f30
 branch: docs/oam-006-network-login-protocol-revalidation
 pr: 436
-status: implementing
+status: ready
 context_routes:
   - agent-governance
   - protocol
@@ -113,52 +119,57 @@ owned_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/CROSS_REPO_CONTRACTS.md
   - .github/workflows/universal-agent-e2e.yml
-  - .github/e2e-controlled-server.env
 proven:
   - OAM-005 feature and lifecycle are complete
   - Canary task-start main is a1d82a5989fe9e3b7ac6c495804cb1cd83c59090
   - Otheryn task-start main is a6d42f6cec024f81a7541084425ec1d43d66d2b8
   - upstream evidence head is e0ac98e399d0f7e483f3668f57b78fcc45b6e53f
-  - maintained client main is 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
-  - Universal Agent E2E 37 passed on the maintained client baseline
-  - target and upstream ProtocolLogin and ProtocolGame blobs matched at task start while legacy differed
+  - maintained client is 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
   - OTClient PR 11 is closed without merge after evidence correction
-  - Otheryn PR 21 merged as c547d8ad70ef1252624c255476e6cb83fa125e14 after exact-head gates passed
+  - Otheryn PR 21 merged as c547d8ad70ef1252624c255476e6cb83fa125e14 after exact-head CI 80 and Required 78 passed
   - Universal Agent E2E retains one orchestrator and accepts an optional controlled server repository and exact SHA
-  - exact controlled-server pin is blakinio/Otheryn@c547d8ad70ef1252624c255476e6cb83fa125e14
+  - full heavy Universal Agent E2E 118 passed with Required physical E2E success
+  - run 118 recorded controlled server c547d8ad70ef1252624c255476e6cb83fa125e14 and maintained client 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
+  - temporary controlled-server pin is absent from final governance scope
+  - live main 02d1b08162a3ad17d6283af16ad481f29c4ec213 has no OAM-006 owned-path overlap
 derived:
-  - protocol requires ADAPT
-  - maintained client source mutation is not currently justified
+  - protocol disposition is ADAPT
+  - maintained client source mutation is not justified for this contract
   - target adaptation preserves existing fallback and ownership checks
-  - final physical proof must run the exact merged Otheryn SHA through the existing physical-client scenario
+  - OAM-006 feature governance is ready for exact-head final gates
 unknown:
-  - exact physical E2E result on final Otheryn target
-  - final Canary governance and lifecycle merge SHAs
+  - final Canary feature-governance merge SHA
+  - final Canary lifecycle merge SHA
 conflicts: []
 first_failure:
   marker: none active
-  evidence: exact controlled-target physical E2E is running
+  evidence: target and exact cross-repository physical proof are complete
 rejected_hypotheses:
   - LoginSessionManager presence alone completes live authentication
   - client PR 11 is required for baseline login/relog correctness
   - modern login support requires disabling strict protocol validation
   - whole legacy IOLoginData can replace the OAM-004D target file
   - target physical proof can be substituted by a Canary-only binary run
+  - Universal Agent E2E run 114 is sufficient exact-target proof
 changed_paths:
   - .github/workflows/universal-agent-e2e.yml
-  - .github/e2e-controlled-server.env
   - docs/agents/tasks/active/CAN-20260716-oteryn-network-login-protocol-revalidation.md
   - docs/agents/OTERYN_OAM_006_NETWORK_LOGIN_PROTOCOL_REVALIDATION.md
+  - docs/agents/CROSS_REPO_CONTRACTS.md
+  - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
 validation:
   - command: exact cross-repository protocol blob comparison
     result: PASS
-    evidence: target and upstream matched at task start; legacy contains later bounded integration
-  - command: Universal Agent E2E run 37
-    result: PASS
-    evidence: maintained client 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f completed two stable sessions and safe logouts
+    evidence: target and upstream matched at task start; legacy contained later bounded integration evidence
   - command: Otheryn PR 21 exact-head CI 80 and Required 78
     result: PASS
-    evidence: completed success on head 5342b374306abb44b6b5e201c85f6a0182c99286; squash merge c547d8ad70ef1252624c255476e6cb83fa125e14
+    evidence: head 5342b374306abb44b6b5e201c85f6a0182c99286; squash merge c547d8ad70ef1252624c255476e6cb83fa125e14
+  - command: Universal Agent E2E run 118 / Required physical E2E
+    result: PASS
+    evidence: exact Otheryn c547d8ad70ef1252624c255476e6cb83fa125e14 plus OTClient 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f completed login/relog and persistence checks
+  - command: live-main overlap recheck through 02d1b08162a3ad17d6283af16ad481f29c4ec213
+    result: PASS
+    evidence: no OAM-006 owned path changed by intervening main commits
 blockers: []
-next_action: Wait for the PR-triggered Universal Agent E2E to run login/relog against pinned blakinio/Otheryn@c547d8ad70ef1252624c255476e6cb83fa125e14, then remove the temporary pin, record evidence, and complete governance gates.
+next_action: Update the shared program record, validate exact final PR 436 scope/ownership/CI/review state, mark ready, require ready-triggered final-head gates, then squash-merge and archive through a separate lifecycle-only PR.
 ```
