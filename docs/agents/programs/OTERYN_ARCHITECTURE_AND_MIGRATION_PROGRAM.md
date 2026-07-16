@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-16T09:58:00+02:00
-last_verified_commit: "8950a275e258ccc0f1a6781c9ff9c8ea089210a0"
+updated: 2026-07-16T10:12:00+02:00
+last_verified_commit: "870fc9acb31d8ec19f7466be9b5f4fa99567eb21"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -69,11 +69,11 @@ bounded Oteryn migration package
 
 # Current live preflight
 
-Re-verified during OAM-003 governance finalization:
+Re-verified through OAM-003 feature merge and lifecycle start:
 
 ```text
 governance/legacy repository: blakinio/canary
-latest re-fetched Canary main: 8950a275e258ccc0f1a6781c9ff9c8ea089210a0
+latest re-fetched Canary main: 870fc9acb31d8ec19f7466be9b5f4fa99567eb21
 canonical module count: 62
 TSD status: completed
 TSD migration disposition baseline outside bounded OAM decisions: REVALIDATE
@@ -82,19 +82,19 @@ Oteryn target repository: blakinio/Otheryn
 Oteryn target default branch: main
 OAM-002 clean target baseline: 3cc7c1dfea747bb380f3761ee7ff7ac30141a115
 OAM-003 target task-start: 3cc7c1dfea747bb380f3761ee7ff7ac30141a115
-OAM-003 legacy task-start: c32e42469f302ab108dea08d9b90164458696328
 OAM-003 upstream evidence: opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689
-OAM-003 donor comparison: zimbadev/crystalserver@fdd2b1f13f53894c584346ef3de43658045c42a7
 OAM-003A target merge: 9b5805aaeef50774e9db5225c05529a06cec507e
 OAM-003B final target merge: a9c7fabc9f4b9bbeca9fed4ab73c36309cd04e2d
+OAM-003 Canary feature merge: 780704f3b77c459f852319a249425614b21246fd
+OAM-003 lifecycle PR: #418
 target write authorization: explicitly granted by the user for autonomous OAM writes
 ```
 
-OAM-001 feature PR #383 completed the durable target architecture contract and was archived separately.
+OAM-001 completed the durable target architecture contract and was lifecycle archived separately.
 
-OAM-002 feature PR #407 established the authorized target identity/baseline and merged as `0a311d6cda6a80e31aa3a5ca9406aea7aeadd58c`; lifecycle PR #410 completed and archived OAM-002 as `c32e42469f302ab108dea08d9b90164458696328`.
+OAM-002 established the authorized target identity/baseline and completed feature + lifecycle governance.
 
-OAM-003 revalidated seven engine-foundation modules and delivered two bounded target adaptation slices. OAM-003A PR `blakinio/Otheryn#4` merged as `9b5805aaeef50774e9db5225c05529a06cec507e`. OAM-003B PR `blakinio/Otheryn#6` merged as `a9c7fabc9f4b9bbeca9fed4ab73c36309cd04e2d`; issue #5 is completed. No OAM-004 task is active.
+OAM-003 revalidated seven engine-foundation modules, delivered two bounded target adaptation slices and merged Canary feature PR #411 as `780704f3b77c459f852319a249425614b21246fd`. Lifecycle-only PR #418 archives OAM-003. No OAM-004 task, branch or implementation is active in this lifecycle package.
 
 OAM-003 dispositions are:
 
@@ -110,17 +110,15 @@ lua-bindings             ADAPT
 
 # Target architecture contract
 
-The authoritative contract for this program is:
+The authoritative contract is:
 
 ```text
 docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
 ```
 
-No later migration implementation may infer authorization from an earlier package. Each package must re-pin its exact task-start target/upstream evidence and satisfy the contract for its affected boundaries.
+No later migration implementation may infer authorization from an earlier package. Each package must re-pin exact task-start target/upstream/legacy evidence and satisfy the contract for its affected boundaries.
 
 # Target repository status
-
-The program uses the exact authorized target below and does not infer authorization for any other repository.
 
 | Field | Value | Status |
 |---|---|---|
@@ -128,10 +126,10 @@ The program uses the exact authorized target below and does not infer authorizat
 | target default branch | `main` | ESTABLISHED |
 | OAM-002 target baseline | `3cc7c1dfea747bb380f3761ee7ff7ac30141a115` | PINNED |
 | OAM-003 final target head | `a9c7fabc9f4b9bbeca9fed4ab73c36309cd04e2d` | PINNED |
-| upstream bootstrap/evidence source | `opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689` | PINNED FOR OAM-002/OAM-003 EVIDENCE |
+| upstream OAM-002/OAM-003 evidence | `opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689` | PINNED FOR COMPLETED PACKAGES |
 | target write authorization | explicit user authorization for autonomous OAM writes to `blakinio/Otheryn` | ESTABLISHED |
 
-The target identity gate is satisfied. The current OAM-003 target adaptation chain is complete, but OAM-004 remains blocked until Canary PR #411 merges and OAM-003 is archived through a separate lifecycle-only PR.
+OAM-004 must not reuse the OAM-003 target/upstream SHAs as moving current-state assumptions. It must re-fetch and pin fresh task-start baselines after lifecycle PR #418 merges.
 
 # Canonical migration unit
 
@@ -141,36 +139,16 @@ The only migration decision unit is a canonical module from:
 docs/agents/real-tibia/registry/modules/*.yaml
 ```
 
-A migration package must name at least:
-
-```text
-module_id
-legacy source paths
-target paths
-depends_on
-interacts_with
-source/evidence set
-runtime proof
-physical-client E2E proof when applicable
-migration disposition
-disposition rationale
-known gaps
-rollback/provenance notes
-exact legacy SHA
-exact target SHA
-exact upstream/donor SHAs when used
-```
+Every migration package must record exact module identity, dependencies/interactions, source/evidence roles, exact SHAs, applicable architecture boundaries, tests/runtime proof, disposition rationale, known gaps and rollback/provenance notes.
 
 Generated indexes are discovery artifacts and must not become a second registry.
 
 # Migration dispositions
 
-The program uses these evidence-backed outcomes:
-
-- `REUSE` — implementation can remain/move with minimal change only after target compatibility and applicable tests/boundaries are proven.
+- `REUSE` — implementation can remain/move with minimal change only after target compatibility and applicable boundaries/tests are proven.
 - `ADAPT` — useful implementation substrate remains, but target architecture requires bounded deliberate changes.
 - `REVALIDATE` — evidence is insufficient for a stronger decision; this remains the default outside modules explicitly decided by a bounded package.
-- `REWRITE` — the responsibility is required, but the legacy implementation should not transfer.
+- `REWRITE` — the responsibility is required but the legacy implementation should not transfer.
 - `DO_NOT_MIGRATE` — the responsibility does not belong in target architecture/product.
 - `EXPERIMENTAL_ONLY` — useful only in isolated laboratory/experimental scope.
 
@@ -183,134 +161,118 @@ The program uses these evidence-backed outcomes:
 | Real Tibia module registry | `docs/agents/real-tibia/registry/**` | Sole module identity/dependency/source-of-truth. Never duplicate it. |
 | Real Tibia parity governance | `docs/agents/programs/REAL_TIBIA_PARITY_PROGRAM.md` | Preserve source roles, proof layers and bounded evidence. |
 | Completed TSD program | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | Preserve inventory; do not reopen its queue. |
-| Upstream Intelligence | `docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md` | Reuse source registry and source-role-aware mapping for discovery only. |
+| Upstream Intelligence | `docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md` | Reuse source-role-aware discovery only. |
 | Universal Physical-Client E2E | PR #245; `tools/e2e/**`; `tests/e2e/**` | Add bounded scenarios; never build a second generic orchestrator. |
-| OTBM analysis pipeline | existing `tools/ai-agent/**` / `docs/ai-agent/**` | Reuse canonical world/map evidence tools; no duplicate parser/renderer/index. |
-| Canary ↔ OTClient contract registry | `docs/agents/CROSS_REPO_CONTRACTS.md` | Use explicit compatibility/version/rollout contracts whenever client coupling exists. |
-| OAM-003 engine-foundation report | `docs/agents/OTERYN_OAM_003_ENGINE_FOUNDATION_REVALIDATION.md` | Durable evidence for the seven OAM-003 module decisions and delivered target seams. |
+| OTBM analysis pipeline | existing `tools/ai-agent/**` / `docs/ai-agent/**` | Reuse canonical world/map evidence tools. |
+| Canary ↔ OTClient contract registry | `docs/agents/CROSS_REPO_CONTRACTS.md` | Use explicit compatibility/version/rollout contracts when client coupling exists. |
+| OAM-003 engine-foundation report | `docs/agents/OTERYN_OAM_003_ENGINE_FOUNDATION_REVALIDATION.md` | Durable evidence for seven OAM-003 decisions and delivered target seams. |
 
 # Active tasks
 
-`OAM-003` is the active bounded governance task in Canary PR #411. Its evidence matrix and target adaptation chain are complete. The remaining work is Canary feature merge and separate lifecycle archival. No OAM-004 implementation task is active.
+No OAM implementation task is active in this lifecycle branch. PR #418 is lifecycle-only archival for completed OAM-003 and does not create OAM-004.
 
 # Dependency-aware queue
-
-The canonical dependency graph requires foundation and persistence contracts before higher-level migrations. This queue is a program plan, not migration authorization.
 
 | Package | Scope | Status | Dependencies | Exact next action |
 |---|---|---|---|---|
 | `OAM-001` | target architecture and migration evidence contract | completed | completed TSD + current registry | merged and lifecycle archived |
-| `OAM-002` | target repository identity, authorization and exact baseline pinning | completed | OAM-001 | feature PR #407 and lifecycle PR #410 completed |
-| `OAM-003` | engine/build/runtime foundation revalidation | ready | OAM-002 | merge Canary PR #411 after fresh exact-head gates, then archive OAM-003 through a separate lifecycle-only PR |
-| `OAM-004` | database and persistence foundation revalidation | blocked | completed OAM-003 governance + lifecycle | only after OAM-003 lifecycle completion, create a separate bounded task with fresh live target/upstream/legacy baselines and ownership/overlap checks |
+| `OAM-002` | target repository identity, authorization and exact baseline pinning | completed | OAM-001 | feature + lifecycle completed |
+| `OAM-003` | engine/build/runtime foundation revalidation | completed | OAM-002 | feature PR #411 merged as `780704f3b77c459f852319a249425614b21246fd`; lifecycle archived by PR #418 |
+| `OAM-004` | database and persistence foundation revalidation | planned | completed OAM-003 lifecycle | after PR #418 merges, create a separate bounded task only after fresh live target/upstream/legacy baseline, ownership and overlap verification |
 | `OAM-005` | account and character lifecycle revalidation | blocked | OAM-004 | evaluate account/auth/character lifecycle and progression boundaries |
 | `OAM-006` | network/login/protocol contract revalidation | blocked | OAM-003, OAM-005 | pin target protocol/client compatibility and cross-repo rollout contract |
 | `OAM-007` | item/world runtime foundation revalidation | blocked | OAM-003, OAM-004 | evaluate item definitions/instances and world-map/runtime boundaries before content migration |
-| `OAM-008` | first low-risk canonical module migration package | blocked | affected foundation packages | select exactly one module only after evidence proves an appropriate disposition and dependencies are complete |
-| `OAM-009` | target physical-client E2E proof for first migrated module | blocked | OAM-008 plus target/client compatibility | extend the existing E2E platform with one bounded target scenario |
-| `OAM-010+` | dependency-ordered domain migrations | planned | proven foundation and prior package dependencies | advance one bounded canonical module/package at a time |
+| `OAM-008` | first low-risk canonical module migration package | blocked | affected foundation packages | select exactly one module after dependencies and evidence gates are complete |
+| `OAM-009` | target physical-client E2E proof for first migrated module | blocked | OAM-008 plus target/client compatibility | extend existing E2E platform with one bounded target scenario |
+| `OAM-010+` | dependency-ordered domain migrations | planned | proven foundation and prior package dependencies | advance one bounded package at a time |
 
-After foundation packages, later domain ordering is determined from the live canonical dependency graph. No wave is copied mechanically when exact dependencies indicate a different order.
+OAM-004 is only **next eligible after lifecycle merge**. This PR does not start it.
 
 # Migration package evidence gate
 
 Every implementation package must prove, where applicable:
 
 1. exact legacy and target SHAs;
-2. exact then-current upstream Canary SHA used as evidence/baseline;
-3. canonical `module_id` and current registry dependency/path records;
+2. exact then-current upstream Canary evidence SHA;
+3. canonical module/dependency/path records;
 4. target API/lifecycle/ownership compatibility;
 5. persistence/schema/migration compatibility;
 6. protocol/client compatibility and rollout policy;
 7. deterministic focused tests;
 8. integration/runtime proof;
-9. physical-client E2E for user-visible/session/protocol behavior;
-10. source provenance and conflicts;
-11. known gaps and explicit unresolved evidence;
+9. physical-client E2E where applicable;
+10. source provenance/conflicts;
+11. explicit known gaps;
 12. rollback strategy;
-13. one evidence-backed migration disposition.
+13. one evidence-backed disposition.
 
 Compilation, directory similarity, passing legacy CI or donor similarity is insufficient by itself.
 
 # Source and cross-repository rules
 
-- `blakinio/canary` is the writable legacy laboratory and governance repository for this program.
-- `blakinio/Otheryn` is the separately and explicitly authorized writable Oteryn target; that authorization does not extend to any other repository.
-- `opentibiabr/canary`, `opentibiabr/otclient`, `opentibiabr/remeres-map-editor` and `opentibiabr/client-editor` are read-only references.
-- Donor repositories are read-only comparison sources and are not official Real Tibia authorities.
-- Oteryn writes require explicit repository identity and authorization before a task may claim target paths.
-- Every external code baseline used for evidence must be pinned by exact SHA.
-- Upstream Intelligence mapping remains a discovery hint only.
+- `blakinio/canary` is the writable legacy laboratory and governance repository.
+- `blakinio/Otheryn` is the separately authorized writable target; authorization does not extend to another repository.
+- Upstream/client/editor/donor repositories are read-only unless separately authorized.
+- Every external baseline used for evidence must be pinned by exact SHA.
+- Upstream Intelligence mapping is discovery only.
 
 # AI and deterministic enforcement boundary
 
-AI may correlate evidence, summarize findings, suggest reproduction steps and assist triage. AI must not automatically ban, mutate balances/items, deploy code, execute arbitrary Lua, modify production or invoke unrestricted game APIs.
-
-Deterministic systems remain authoritative for gameplay, sanctions, economy mutation, migration execution and deployment safety.
+AI may correlate evidence, summarize findings, suggest reproduction steps and assist triage. Deterministic systems remain authoritative for gameplay, sanctions, economy mutation, migration execution and deployment safety.
 
 # Dependencies and blockers
 
-- OAM-002 is completed and lifecycle archived.
-- OAM-003 evidence and target delivery are complete at `blakinio/Otheryn@a9c7fabc9f4b9bbeca9fed4ab73c36309cd04e2d`.
-- OAM-003 remaining gate: Canary feature PR #411 exact-head ownership/CI/review merge gate, followed by a separate lifecycle-only archive PR.
-- OAM-004 is not active and remains blocked until OAM-003 lifecycle completion.
-- Known OAM-003 residual evidence gaps remain explicit: complete child Lua interface reload semantics, untouched polymorphic userdata safety, and concurrent config reload correctness under arbitrary future consumers.
-- Dependency: current canonical registry and generated dependency graph.
-- Dependency: fresh then-current target/upstream baselines for every later bounded package.
-- Dependency: merged Universal Physical-Client E2E for applicable target proof.
-- Dependency: Upstream Intelligence for discovery, not authorization.
+- OAM-001 and OAM-002 are completed and lifecycle archived.
+- OAM-003 feature work is complete; PR #411 merged as `780704f3b77c459f852319a249425614b21246fd`.
+- PR #418 is the required lifecycle-only archival step for OAM-003.
+- OAM-004 is not active. It becomes eligible only after PR #418 merges and still requires a new bounded task with fresh exact baselines and ownership checks.
+- OAM-003 known residual evidence gaps remain explicit: child Lua interface reload semantics, untouched polymorphic userdata safety, arbitrary-consumer concurrent config reload correctness, and broader incremental DI/global-access convergence.
 
 # Decisions and invariants
 
 - The canonical registry is the migration inventory; no parallel registry will be created.
-- A module remains `REVALIDATE` unless a bounded package records and proves a stronger/different disposition.
-- Legacy Canary remains an evidence laboratory, not the target image to clone.
-- Target baseline is pinned per task/package by exact SHA and never inferred from a moving branch.
-- Migration decisions are module-scoped and evidence-scoped, not directory-scoped or PR-history-scoped.
+- A module remains `REVALIDATE` unless a bounded package records/proves another disposition.
+- Legacy Canary remains evidence, not a target image to clone.
+- Baselines are pinned per task/package by exact SHA.
+- Migration decisions are module/evidence scoped, not directory/PR-history scoped.
 - Migration sequencing follows dependency evidence.
-- Physical-client E2E complements focused/integration/runtime proof; it does not replace them.
-- World-content work reuses existing OTBM tooling and never treats donor evidence as automatic map-import permission.
-- A feature merge is followed by a separate lifecycle-only archive PR.
+- Physical-client E2E complements, not replaces, focused/integration/runtime proof.
+- World-content work reuses existing OTBM tooling.
+- Every feature merge is followed by separate lifecycle-only archival.
 
 # Validation strategy
 
-OAM-001 completed with exact-head governance/CI/review gates and separate lifecycle archival.
+OAM-001 and OAM-002 completed their exact-head feature and lifecycle gates.
 
-OAM-002 completed with deterministic target bootstrap/tree evidence, exact-head target/Canary gates, feature merge and separate lifecycle archival.
-
-OAM-003 target-side validation completed with:
+OAM-003 completed with:
 
 - semantic revalidation of seven canonical modules against exact legacy, target, upstream and donor SHAs;
-- `build-system` and `engine-scheduler` decided `REUSE`;
-- `configuration`, `engine-runtime-lifecycle`, `engine-service-container`, `lua-runtime` and `lua-bindings` decided `ADAPT`;
-- OAM-003A target PR #4 full exact-head CI/Required/autofix success and clean review state before squash merge `9b5805aaeef50774e9db5225c05529a06cec507e`;
-- OAM-003B target PR #6 exact head `49e9e4960d89476016c50d81523715b7551c1bf9` with CI #21 success, `Required` #18 success, autofix success and no comments/reviews/unresolved threads before squash merge `a9c7fabc9f4b9bbeca9fed4ab73c36309cd04e2d`;
-- no persistence, protocol/client, map/content or domain-feature binding migration.
+- `build-system` and `engine-scheduler` → `REUSE`;
+- `configuration`, `engine-runtime-lifecycle`, `engine-service-container`, `lua-runtime`, `lua-bindings` → `ADAPT`;
+- OAM-003A target PR #4 full exact-head CI/Required/review gates before merge `9b5805aaeef50774e9db5225c05529a06cec507e`;
+- OAM-003B target PR #6 exact head `49e9e4960d89476016c50d81523715b7551c1bf9` with CI #21, Required #18 and clean review gate before merge `a9c7fabc9f4b9bbeca9fed4ab73c36309cd04e2d`;
+- Canary PR #411 final head `9a08fb2d65fa0cd82a9893bf58f69488a68adac0` with Agent Task Ownership #1537 and ready-triggered CI #2671 success;
+- zero PR comments, submitted reviews or unresolved review threads before feature merge;
+- feature PR #411 squash-merged with exact-head guard as `780704f3b77c459f852319a249425614b21246fd`;
+- no OAM-004 implementation.
 
-OAM-003 Canary governance validation must still be repeated on the final PR #411 head after this program update before merge.
-
-For later migration packages:
-
-- select focused tests from `BUILD_TEST_MATRIX.md`;
-- require target build/integration/runtime evidence;
-- add physical-client E2E only through the existing platform where applicable;
-- require cross-repository compatibility proof when client/protocol behavior is coupled.
+Lifecycle PR #418 must pass its own exact-head ownership/CI/review gates before merge.
 
 # Handoff
 
 ## Start here
 
-Read `AGENTS.md`, `docs/agents/README.md`, this program, `docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md`, `docs/agents/OTERYN_OAM_003_ENGINE_FOUNDATION_REVALIDATION.md`, the current canonical registry/generated indexes, all active task records and all live open PRs.
+Read `AGENTS.md`, `docs/agents/README.md`, this program, `docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md`, `docs/agents/OTERYN_OAM_003_ENGINE_FOUNDATION_REVALIDATION.md`, the current canonical registry/generated indexes, all active task records and live open PRs.
 
 ## Task creation protocol
 
 1. Select exactly one still-valid bounded package from this queue.
-2. Re-fetch live `main`, open PRs, active tasks, ownership and relevant external heads.
-3. Pin exact current target/upstream/legacy task-start SHAs before implementation.
-4. Create one task, branch and draft PR with explicit exclusive/shared/read-only paths.
-5. Record canonical `module_id` and dependency/evidence requirements.
-6. Implement and validate only the bounded scope.
-7. Review exact current-head diff, CI, comments, reviews and unresolved threads.
+2. Re-fetch live `main`, open PRs, active tasks, ownership and external heads.
+3. Pin exact current target/upstream/legacy task-start SHAs.
+4. Create one task, branch and draft PR with explicit ownership.
+5. Record canonical module and dependency/evidence requirements.
+6. Implement only bounded scope.
+7. Review exact-head diff, CI and review state.
 8. Squash-merge only after all gates pass.
 9. Archive through a separate lifecycle-only PR.
 
@@ -320,15 +282,16 @@ Read `AGENTS.md`, `docs/agents/README.md`, this program, `docs/agents/OTERYN_TAR
 - Do not create a second registry, taxonomy, watcher, mapper, E2E platform or OTBM pipeline.
 - Do not infer `REUSE` from code presence.
 - Do not bulk-copy legacy Canary.
-- Do not invent a target repository or baseline.
-- Do not reopen OAM-003A/B merely to solve the explicitly deferred Lua child-interface or broad DI/config concerns; those require separately bounded evidence when they become relevant.
+- Do not invent target repository/baselines.
+- Do not reopen OAM-003A/B merely to solve explicitly deferred gaps without a new bounded task.
 
-## Open questions / known gaps
+## Known gaps carried forward
 
-- Complete child `LuaScriptInterface` reconstruction/reload semantics remain unresolved.
-- Safety of untouched polymorphic Lua userdata families remains unproven outside future touched packages.
-- Concurrent configuration reload correctness under arbitrary future target consumers remains unproven.
+- Complete child `LuaScriptInterface` reconstruction/reload semantics.
+- Untouched polymorphic Lua userdata safety.
+- Concurrent configuration reload correctness under arbitrary future target consumers.
+- Broader incremental removal of contextual/global DI access.
 
 # Exact next task
 
-OAM-003 remains the active package until Canary PR #411 merges and its task is archived through a separate lifecycle-only PR. Only after that lifecycle completion does `OAM-004 — database and persistence foundation revalidation` become the next eligible bounded task. OAM-004 must start separately with fresh live-state, ownership/overlap and exact target/upstream/legacy baseline verification.
+After lifecycle-only PR #418 merges, `OAM-004 — database and persistence foundation revalidation` becomes the next eligible bounded package. It must be opened separately after fresh live-state, ownership/overlap and exact target/upstream/legacy baseline verification. This lifecycle PR does not create, claim or start OAM-004.
