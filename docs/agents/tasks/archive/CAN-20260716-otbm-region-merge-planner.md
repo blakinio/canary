@@ -2,13 +2,13 @@
 task_id: CAN-20260716-otbm-region-merge-planner
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-region-merge-planner
 base_branch: main
 created: 2026-07-16T11:20:00+02:00
-updated: 2026-07-16T12:55:00+02:00
-last_verified_commit: "fc02b03296ff24693ced35c9cb60310a2e1f4ca9"
+updated: 2026-07-16T10:57:10Z
+last_verified_commit: "f4271d15d57950edf1c05d978b56e2338c16940a"
 risk: high
 related_issue: ""
 related_pr: "424"
@@ -44,6 +44,7 @@ public_interfaces:
   - canary-otbm-region-merge-plan-v1
   - OTBM region merge planner CLI
 cross_repo_tasks: []
+completed: 2026-07-16T10:57:10Z
 ---
 
 # Goal
@@ -147,3 +148,11 @@ next_action: Mark PR 424 ready for review, verify ready-state Required and revie
 - Catalogue updated: yes
 - Changelog updated: yes
 - Archived at: not archived
+
+## Automated lifecycle completion
+
+- Feature PR: #424.
+- Feature head: `7af159d4b08cdc017787fc31cb3c4cbe107d6853`.
+- Merge commit: `f4271d15d57950edf1c05d978b56e2338c16940a`.
+- Merged at: `2026-07-16T10:57:10Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
