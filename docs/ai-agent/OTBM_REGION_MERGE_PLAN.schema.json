@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "canary-otbm-region-merge-plan-v1",
+  "title": "Canary OTBM Region Merge Plan v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "ok", "analysisComplete", "writerReady", "requiresHumanReview", "policy", "translation", "summary", "actions", "conflicts", "provenance", "safety", "notes"],
+  "properties": {
+    "format": {"const": "canary-otbm-region-merge-plan-v1"},
+    "schemaVersion": {"const": 1},
+    "ok": {"type": "boolean"},
+    "analysisComplete": {"const": true},
+    "writerReady": {"const": false},
+    "requiresHumanReview": {"type": "boolean"},
+    "policy": {"enum": ["overlay", "replace-region"]},
+    "translation": {
+      "type": "object",
+      "required": ["donorRegion", "targetRegion", "delta"],
+      "properties": {
+        "donorRegion": {"$ref": "#/$defs/region"},
+        "targetRegion": {"$ref": "#/$defs/region"},
+        "delta": {"$ref": "#/$defs/signedPosition"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["donorTiles", "currentTargetTiles", "actions", "conflicts", "blockingConflicts"],
+      "properties": {
+        "donorTiles": {"type": "integer", "minimum": 0},
+        "currentTargetTiles": {"type": "integer", "minimum": 0},
+        "actions": {"$ref": "#/$defs/counterSummary"},
+        "conflicts": {"$ref": "#/$defs/counterSummary"},
+        "blockingConflicts": {"type": "integer", "minimum": 0}
+      }
+    },
+    "actions": {"type": "array", "items": {"$ref": "#/$defs/action"}},
+    "conflicts": {"type": "array", "items": {"$ref": "#/$defs/conflict"}},
+    "provenance": {
+      "type": "object",
+      "required": ["compatibility", "current", "donor", "manifests", "scriptResolution"]
+    },
+    "safety": {
+      "type": "object",
+      "required": ["readOnly", "writesOtbm", "heuristicAlignment", "phase8Expanded", "executableWriterInstructions", "unknownAttributeTailsAccepted"],
+      "properties": {
+        "readOnly": {"const": true},
+        "writesOtbm": {"const": false},
+        "heuristicAlignment": {"const": false},
+        "phase8Expanded": {"const": false},
+        "executableWriterInstructions": {"const": false},
+        "unknownAttributeTailsAccepted": {"const": false}
+      }
+    },
+    "notes": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "signedPosition": {
+      "type": "array",
+      "prefixItems": [{"type": "integer"}, {"type": "integer"}, {"type": "integer"}],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "region": {
+      "type": "object",
+      "required": ["from", "to"],
+      "properties": {
+        "from": {"$ref": "#/$defs/position"},
+        "to": {"$ref": "#/$defs/position"}
+      }
+    },
+    "counterSummary": {
+      "type": "object",
+      "required": ["total", "byKind", "sampled", "truncated"],
+      "properties": {
+        "total": {"type": "integer", "minimum": 0},
+        "byKind": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "bySeverity": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "sampled": {"type": "integer", "minimum": 0},
+        "truncated": {"type": "boolean"}
+      }
+    },
+    "action": {
+      "type": "object",
+      "required": ["id", "kind", "position", "donorPosition", "current", "donor", "proposed"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^otbm-region-merge:action:"},
+        "kind": {"enum": ["unchanged", "add", "replace", "delete-candidate", "preserve-current-only"]},
+        "position": {"$ref": "#/$defs/position"}
+      }
+    },
+    "conflict": {
+      "type": "object",
+      "required": ["id", "kind", "severity", "position", "details", "message"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^otbm-region-merge:conflict:"},
+        "kind": {"type": "string", "minLength": 1},
+        "severity": {"enum": ["review", "unresolved", "error"]},
+        "position": {"$ref": "#/$defs/position"},
+        "details": {"type": "object"},
+        "message": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

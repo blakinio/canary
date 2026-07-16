@@ -1,0 +1,158 @@
+---
+task_id: CAN-20260716-otbm-region-merge-planner
+program_id: "OTS-OTBM-VALIDATION"
+coordination_id: "OTS-OTBM-VALIDATION"
+status: completed
+agent: "GPT-5.5 Thinking"
+branch: feat/otbm-region-merge-planner
+base_branch: main
+created: 2026-07-16T11:20:00+02:00
+updated: 2026-07-16T10:57:10Z
+last_verified_commit: "f4271d15d57950edf1c05d978b56e2338c16940a"
+risk: high
+related_issue: ""
+related_pr: "424"
+depends_on:
+  - "OTBM World Index #219"
+  - "Semantic OTBM Diff #311"
+  - "OTBM script resolution #104"
+  - "OTBM repair sandbox verifier #422"
+blocks:
+  - "future structural OTBM region import writer"
+owned_paths:
+  exclusive:
+    - tools/ai-agent/otbm_region_merge_planner.py
+    - tools/ai-agent/otbm_region_merge_planner_tool.py
+    - tools/ai-agent/test_otbm_region_merge_planner.py
+    - docs/ai-agent/OTBM_REGION_MERGE_PLANNER.md
+    - docs/ai-agent/OTBM_REGION_MERGE_PLAN.schema.json
+    - docs/agents/tasks/active/CAN-20260716-otbm-region-merge-planner.md
+  shared:
+    - docs/agents/MODULE_CATALOG.md
+    - docs/agents/CHANGELOG.md
+  read_only:
+    - tools/ai-agent/otbm_world_index.py
+    - tools/ai-agent/otbm_semantic_diff.py
+    - tools/ai-agent/otbm_script_resolution.py
+modules_touched:
+  - OTBM donor/region merge planner
+reuses:
+  - canonical OTBM World Index
+  - Semantic Diff provenance validation
+  - script-resolution report format
+public_interfaces:
+  - canary-otbm-region-merge-plan-v1
+  - OTBM region merge planner CLI
+cross_repo_tasks: []
+completed: 2026-07-16T10:57:10Z
+---
+
+# Goal
+
+Add a deterministic read-only review planner for an explicit donor World Index region translated to an explicit target region. No OTBM writing, heuristic alignment or Phase 8 expansion.
+
+# Acceptance criteria
+
+- [x] Consume canonical current/donor `.widx` plus manifests without parsing OTBM.
+- [x] Require explicit donor bounds and target origin; fail closed on coordinate overflow.
+- [x] Support review-only `overlay` and `replace-region` policies.
+- [x] Emit deterministic unchanged/add/replace/delete-candidate/preserve-current-only actions with exact snapshots.
+- [x] Detect global retained-map UID/AID and house-door conflicts.
+- [x] Compare optional current/donor script-resolution evidence without promoting unresolved to handled.
+- [x] Translate only internal donor-region teleport destinations; preserve external destinations for explicit review.
+- [x] Emit `canary-otbm-region-merge-plan-v1` with `writerReady: false`, exact totals and bounded samples.
+- [x] Pin indexes, manifests and optional resolver inputs.
+- [x] Add focused tests, schema/docs and narrow catalogue/changelog updates.
+- [x] Verify final exact-head required checks before readiness/merge.
+
+# Confirmed context
+
+- Writes are authorized only in `blakinio/canary`.
+- Task-start main: `52eb5932d94feeec8a1ba81ece7de7958ed06eea` (#422 merge).
+- Current observed main during shared-doc updates: `c36e8548f195843254f16963adc7cb1d497084aa`.
+- PR #316 owns only Targuna-specific audit paths and does not overlap this planner.
+- Future structural region writing remains a separate ADR/bounded task.
+
+## Context checkpoint
+
+```yaml
+checkpoint_version: 1
+updated_at: 2026-07-16T12:55:00+02:00
+head: fc02b03296ff24693ced35c9cb60310a2e1f4ca9
+branch: feat/otbm-region-merge-planner
+pr: 424
+status: ready
+context_routes:
+  - otbm
+  - agent-governance
+owned_paths:
+  - tools/ai-agent/otbm_region_merge_planner.py
+  - tools/ai-agent/otbm_region_merge_planner_tool.py
+  - tools/ai-agent/test_otbm_region_merge_planner.py
+  - docs/ai-agent/OTBM_REGION_MERGE_PLANNER.md
+  - docs/ai-agent/OTBM_REGION_MERGE_PLAN.schema.json
+  - docs/agents/tasks/active/CAN-20260716-otbm-region-merge-planner.md
+  - docs/agents/MODULE_CATALOG.md
+  - docs/agents/CHANGELOG.md
+proven:
+  - planner reuses WorldIndex and Semantic Diff provenance validation instead of adding an OTBM parser or duplicate index validator
+  - overlay and replace-region are review-only and writerReady remains false
+  - global retained-map UID AID and house-door conflicts are checked beyond the target region
+  - internal donor teleports are translated only inside selected donor bounds and external destinations are never guessed
+  - same-handler AID reuse requires explicit compatible resolver evidence while UID collisions remain blocking
+  - output without overwrite uses exclusive create-new publication
+  - shared catalogue and changelog patches each contain exactly one intended addition and no unrelated drift
+  - exact-head CI Ownership OTBM Map Tools and AI Agent Tools passed on fc02b03296ff24693ced35c9cb60310a2e1f4ca9
+derived:
+  - a structural writer requires a separate contract ADR and bounded task
+unknown: []
+conflicts: []
+first_failure:
+  marker: initial-ownership-metadata
+  evidence: initial PR binding and later validation-list formatting were corrected; two focused-test failures were fixture/helper defects and production validation was not weakened
+rejected_hypotheses:
+  - heuristic donor-to-target alignment
+  - direct OTBM region writing
+  - silent overwrite of current-only content
+  - actionId compatibility without explicit resolver evidence
+changed_paths:
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
+  - docs/agents/tasks/active/CAN-20260716-otbm-region-merge-planner.md
+  - docs/ai-agent/OTBM_REGION_MERGE_PLAN.schema.json
+  - docs/ai-agent/OTBM_REGION_MERGE_PLANNER.md
+  - tools/ai-agent/otbm_region_merge_planner.py
+  - tools/ai-agent/otbm_region_merge_planner_tool.py
+  - tools/ai-agent/test_otbm_region_merge_planner.py
+validation:
+  - command: CI run 29492078956
+    result: PASS
+    evidence: Required passed on fc02b03296ff24693ced35c9cb60310a2e1f4ca9
+  - command: Agent Task Ownership run 29492078686
+    result: PASS
+    evidence: changed checkpoint and ownership index validation passed on fc02b03296ff24693ced35c9cb60310a2e1f4ca9
+  - command: OTBM Map Tools run 29492078728
+    result: PASS
+    evidence: focused planner and map-tool validation passed on fc02b03296ff24693ced35c9cb60310a2e1f4ca9
+  - command: AI Agent Tools run 29492078783
+    result: PASS
+    evidence: unit and schema/content validation passed on fc02b03296ff24693ced35c9cb60310a2e1f4ca9
+blockers: []
+next_action: Mark PR 424 ready for review, verify ready-state Required and review threads, then squash-merge under branch protection.
+```
+
+# Completion
+
+- Final status: ready
+- Canary PR: #424
+- Catalogue updated: yes
+- Changelog updated: yes
+- Archived at: PR #425
+
+## Automated lifecycle completion
+
+- Feature PR: #424.
+- Feature head: `7af159d4b08cdc017787fc31cb3c4cbe107d6853`.
+- Merge commit: `f4271d15d57950edf1c05d978b56e2338c16940a`.
+- Merged at: `2026-07-16T10:57:10Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
