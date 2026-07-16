@@ -6,15 +6,12 @@ import importlib.util
 import ipaddress
 import socket
 import sys
-import time
 from pathlib import Path
 from types import ModuleType
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CORE_PATH = REPO_ROOT / "tools" / "security" / "malformed_packet_runtime.py"
-CONTROL_PROBE_ATTEMPTS = 4
-CONTROL_PROBE_RETRY_DELAY_SECONDS = 0.05
 FIRST_CASE_SOURCE_HOST = 2
 
 
@@ -41,6 +38,15 @@ def source_ip_for_case(case_index: int) -> str:
     return source_ip
 
 
+def _require_loopback_source(source_ip: str) -> None:
+    try:
+        address = ipaddress.ip_address(source_ip)
+    except ValueError as exc:
+        raise core.ProbeFailure("source-not-literal-ip") from exc
+    if address.version != 4 or not address.is_loopback:
+        raise core.ProbeFailure("source-not-loopback")
+
+
 def probe_malformed_case_from_source(
     case: Any,
     host: str,
@@ -49,8 +55,7 @@ def probe_malformed_case_from_source(
     source_ip: str,
 ) -> None:
     core._require_loopback_target(host, port)
-    if not ipaddress.ip_address(source_ip).is_loopback:
-        raise core.ProbeFailure("source-not-loopback")
+    _require_loopback_source(source_ip)
     try:
         connection = socket.create_connection(
             (host, port),
@@ -83,8 +88,7 @@ def probe_status_control_from_source(
     source_ip: str,
 ) -> None:
     core._require_loopback_target(host, port)
-    if not ipaddress.ip_address(source_ip).is_loopback:
-        raise core.ProbeFailure("source-not-loopback")
+    _require_loopback_source(source_ip)
     try:
         connection = socket.create_connection(
             (host, port),
@@ -112,32 +116,6 @@ def probe_status_control_from_source(
     raw = bytes(response)
     if b"<tsqp" not in raw or b"<serverinfo" not in raw:
         raise core.ProbeFailure("control-invalid-response")
-
-
-def probe_status_control_with_retries(
-    host: str,
-    port: int,
-    timeout_seconds: float,
-    source_ip: str,
-) -> None:
-    """Require canonical status recovery within a fixed code-owned retry window.
-
-    Each parser case gets its own deterministic loopback source address. This keeps the
-    malformed/control pair below Canary's normal per-IP connection-admission threshold
-    without disabling or modifying that protection. Retries remain bounded so a genuinely
-    unresponsive status service still fails closed.
-    """
-
-    last_failure: Exception | None = None
-    for attempt in range(CONTROL_PROBE_ATTEMPTS):
-        try:
-            probe_status_control_from_source(host, port, timeout_seconds, source_ip)
-            return
-        except core.ProbeFailure as exc:
-            last_failure = exc
-            if attempt + 1 < CONTROL_PROBE_ATTEMPTS:
-                time.sleep(CONTROL_PROBE_RETRY_DELAY_SECONDS)
-    raise core.ProbeFailure("control-unresponsive") from last_failure
 
 
 def build_report(**kwargs: Any) -> dict[str, Any]:
@@ -184,7 +162,7 @@ def execute_plan(
                 source_ip,
             )
             result["malformed_probe"] = "connection-terminated"
-            probe_status_control_with_retries(
+            probe_status_control_from_source(
                 context.host,
                 int(context.status_port),
                 timeout_seconds,
