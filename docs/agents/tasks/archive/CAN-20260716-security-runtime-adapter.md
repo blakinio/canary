@@ -2,13 +2,13 @@
 task_id: CAN-20260716-security-runtime-adapter
 program_id: CAN-PROGRAM-SECURITY-VALIDATION
 coordination_id: OTS-SEC-002
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/security-runtime-adapter
 base_branch: main
 created: 2026-07-16T21:05:00+02:00
-updated: 2026-07-16T22:45:00+02:00
-last_verified_commit: "6faa23141a833e4a7f94c82065245bb343711126"
+updated: 2026-07-16T20:55:27Z
+last_verified_commit: "597011f0ea0673c005a5a513806df9f65a3d28e6"
 risk: medium
 related_issue: ""
 related_pr: "440"
@@ -46,6 +46,7 @@ public_interfaces:
   - ots-security-runtime-delegation-v1
   - tools/security/runtime_adapter.py CLI
 cross_repo_tasks: []
+completed: 2026-07-16T20:55:27Z
 ---
 
 # Goal
@@ -166,3 +167,11 @@ validation:
 blockers: []
 next_action: Let the ci:final-gate workflows run on this readiness commit; if every required current-head check passes and PR 440 remains mergeable with the same intended diff and no review blockers, mark it ready and squash-merge without any further commit.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #440.
+- Feature head: `e7c5562d0d63b813cc4b5951c628465ca800c595`.
+- Merge commit: `597011f0ea0673c005a5a513806df9f65a3d28e6`.
+- Merged at: `2026-07-16T20:55:27Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
