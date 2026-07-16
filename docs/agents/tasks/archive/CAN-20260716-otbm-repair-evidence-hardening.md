@@ -2,13 +2,13 @@
 task_id: CAN-20260716-otbm-repair-evidence-hardening
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-repair-evidence-hardening
 base_branch: main
 created: 2026-07-16T09:20:00+02:00
-updated: 2026-07-16T10:01:00+02:00
-last_verified_commit: "f6f954aac89bfea26cbd564deaa4b4909bddb91e"
+updated: 2026-07-16T08:09:20Z
+last_verified_commit: "870fc9acb31d8ec19f7466be9b5f4fa99567eb21"
 risk: medium
 related_issue: ""
 related_pr: "413"
@@ -48,6 +48,7 @@ public_interfaces:
   - canary-otbm-repair-preflight-v1
   - OTBM repair preflight CLI
 cross_repo_tasks: []
+completed: 2026-07-16T08:09:20Z
 ---
 
 # Goal
@@ -164,3 +165,11 @@ next_action: Mark PR 413 ready for review, verify exact-head ready-state checks 
 - Catalogue updated: yes; OTBM preflight row only
 - Changelog updated: yes; OTBM preflight Unreleased entry only
 - Archived at: pending post-merge lifecycle automation
+
+## Automated lifecycle completion
+
+- Feature PR: #413.
+- Feature head: `38f4799a1694201616a3c0b8731bf3eac530ba7c`.
+- Merge commit: `870fc9acb31d8ec19f7466be9b5f4fa99567eb21`.
+- Merged at: `2026-07-16T08:09:20Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
