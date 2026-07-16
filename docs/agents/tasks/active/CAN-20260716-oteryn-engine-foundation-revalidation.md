@@ -194,7 +194,7 @@ updated_at: 2026-07-16T09:10:00+02:00
 head: 875444d54056e06008050da66b92ff024763e18e
 branch: docs/oam-003-engine-foundation-revalidation
 pr: 411
-status: investigating
+status: blocked
 context_routes:
   - agent-governance
   - cpp-runtime
