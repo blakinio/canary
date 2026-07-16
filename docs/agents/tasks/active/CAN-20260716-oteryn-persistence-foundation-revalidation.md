@@ -7,7 +7,7 @@ agent: oteryn-architecture-migration-agent
 branch: docs/oam-004-persistence-foundation-revalidation
 base_branch: main
 created: 2026-07-16T10:20:00+02:00
-updated: 2026-07-16T18:06:17+02:00
+updated: 2026-07-16T18:12:40+02:00
 last_verified_commit: "63e45afe684e5f923bc004a59687a5adcaac6f01"
 risk: high
 related_issue: ""
@@ -158,13 +158,18 @@ Required sequence:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T18:06:17+02:00
+updated_at: 2026-07-16T18:12:40+02:00
+head: 0a32cd20971b9f4bcd7abc6f4c48e6bada679ec0
 branch: docs/oam-004-persistence-foundation-revalidation
 pr: 420
 status: ready
 context_routes:
   - agent-governance
   - database-persistence
+owned_paths:
+  - docs/agents/OTERYN_OAM_004_PERSISTENCE_FOUNDATION_REVALIDATION.md
+  - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
+  - docs/agents/tasks/active/CAN-20260716-oteryn-persistence-foundation-revalidation.md
 proven:
   - OAM-004A PR 11 merged as 45ffe6afb915746c69125c9e74f5513c0cecdec4
   - OAM-004B PR 12 merged as 1fe44d165fd8637e29ece62b261b7caa33895c65
@@ -174,21 +179,42 @@ proven:
   - Otheryn main is identical to 67212530b03c10175da2c0d9eabcee8991a05924
   - Otheryn issue 10 is closed as completed
   - all four OAM-004 canonical modules have disposition ADAPT
+  - Canary PR 420 changed paths are exactly the two task-exclusive files plus the one declared shared program file
+  - Canary PR 420 comments submitted reviews and unresolved review threads were empty at head 0a32cd20971b9f4bcd7abc6f4c48e6bada679ec0
   - OAM-005 remains blocked until OAM-004 feature and lifecycle completion
 derived:
   - target delivery for OAM-004 is complete
   - remaining work is Canary governance feature merge followed by separate lifecycle archive
 unknown:
+  - exact-head ready-state CI and Agent Task Ownership results after this checkpoint commit
   - final Canary OAM-004 feature merge SHA
   - OAM-004 lifecycle merge SHA
 conflicts: []
 first_failure:
-  marker: none active
-  evidence: all target slices are merged; Canary PR 420 still requires final exact-head ready-triggered gate
+  marker: Agent Task Ownership checkpoint schema
+  evidence: runs 1657 and 1658 failed only because the active task checkpoint lacked the required heading or required checkpoint fields; this checkpoint supplies the required schema fields
 rejected_hypotheses:
   - DBTransaction presence proves persistence safety
   - legacy or upstream baseline can be reused without adaptation
   - world persistence needs one giant cross-domain transaction
   - player SQL and KV persistence are fully atomic after OAM-004D
-next_action: Verify Canary PR 420 changed files and ownership, mark it ready, use the latest ready-triggered exact-head CI and clean review gate, then squash-merge with exact-head guard.
+changed_paths:
+  - docs/agents/OTERYN_OAM_004_PERSISTENCE_FOUNDATION_REVALIDATION.md
+  - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
+  - docs/agents/tasks/active/CAN-20260716-oteryn-persistence-foundation-revalidation.md
+validation:
+  - command: Otheryn PR 14 exact-head CI 73
+    result: PASS
+    evidence: completed success on head 079a69e606896040739103638bc1f87aa07607a7
+  - command: Otheryn PR 14 Required 73
+    result: PASS
+    evidence: completed success on head 079a69e606896040739103638bc1f87aa07607a7
+  - command: Otheryn PR 14 autofix.ci 66
+    result: PASS
+    evidence: completed success on head 079a69e606896040739103638bc1f87aa07607a7
+  - command: Canary PR 420 changed-path and ownership-scope review
+    result: PASS
+    evidence: exact changed paths match the task declared exclusive and shared ownership set
+blockers: []
+next_action: Verify exact-head ready-state Agent Task Ownership and CI after this checkpoint commit plus a clean review gate, then squash-merge PR 420 with exact-head guard.
 ```
