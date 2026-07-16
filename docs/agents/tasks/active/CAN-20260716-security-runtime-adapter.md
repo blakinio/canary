@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/security-runtime-adapter
 base_branch: main
 created: 2026-07-16T21:05:00+02:00
-updated: 2026-07-16T22:35:00+02:00
-last_verified_commit: "8d7a434532c842adb2cce8df33cd3c2bb8cec527"
+updated: 2026-07-16T22:40:00+02:00
+last_verified_commit: "f78b51bd90e61650e5c79c0f5a86395ef70554ca"
 risk: medium
 related_issue: ""
 related_pr: "440"
@@ -77,7 +77,7 @@ Add the first code-owned runtime security adapter for Canary without creating a 
 - `PROVEN`: branch was synchronized with `main@819efef130c0f498ba958956ec9964f7c79fa144` before shared-index finalization and is zero commits behind that base.
 - `PROVEN`: exact PR diff review found nine intended paths and no `tools/e2e/**`, `tests/e2e/**` or Universal E2E workflow modification.
 - `PROVEN`: shared-index patch review shows exactly one added CHANGELOG entry and one replaced Security Platform catalogue row.
-- `PROVEN`: Security Validation run `29532557782`, Agent Task Ownership run `29532557789` and CI run `29532558117` passed on `8d7a434532c842adb2cce8df33cd3c2bb8cec527`.
+- `PROVEN`: Security Validation run `29532696205` and CI run `29532696463` passed on `f78b51bd90e61650e5c79c0f5a86395ef70554ca`.
 - `UNKNOWN`: final exact-head gate result after readiness checkpoint.
 - `UNKNOWN`: the generic E2E interface required for malformed-packet execution; deliberately deferred to OTS-SEC-003 rather than changing E2E platform ownership in this task.
 
@@ -94,11 +94,11 @@ Add the first code-owned runtime security adapter for Canary without creating a 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T22:35:00+02:00
-head: 8d7a434532c842adb2cce8df33cd3c2bb8cec527
+updated_at: 2026-07-16T22:40:00+02:00
+head: f78b51bd90e61650e5c79c0f5a86395ef70554ca
 branch: feat/security-runtime-adapter
 pr: 440
-status: review
+status: validating
 context_routes:
   - agent-governance
   - universal-e2e
@@ -122,9 +122,8 @@ proven:
   - exact diff contains nine intended paths and no Universal E2E lifecycle code changes
   - CHANGELOG diff is exactly one new SEC-002 entry
   - MODULE_CATALOG diff is exactly one Security Platform row replacement
-  - Security Validation run 29532557782 passed on 8d7a434532c842adb2cce8df33cd3c2bb8cec527
-  - Agent Task Ownership run 29532557789 passed on 8d7a434532c842adb2cce8df33cd3c2bb8cec527
-  - CI run 29532558117 passed on 8d7a434532c842adb2cce8df33cd3c2bb8cec527
+  - Security Validation run 29532696205 passed on f78b51bd90e61650e5c79c0f5a86395ef70554ca
+  - CI run 29532696463 passed on f78b51bd90e61650e5c79c0f5a86395ef70554ca
 derived:
   - SEC-002 establishes the safe delegation boundary required before adding security-specific runtime attack drivers
 unknown:
@@ -132,10 +131,10 @@ unknown:
   - generic attack-driver execution hook for OTS-SEC-003
 conflicts: []
 first_failure:
-  marker: active-task-checkpoint-first-failure-type
-  evidence: Agent Task Ownership run 29531473822 rejected first_failure null because the checkpoint contract requires a YAML mapping; later ownership run 29532557789 passed after correction
+  marker: active-task-checkpoint-status-enum
+  evidence: Agent Task Ownership run 29532696213 rejected checkpoint status review because checkpoint status accepts blocked implementing investigating ready or validating; this commit uses validating while frontmatter remains review
 rejected_hypotheses:
-  - security adapter implementation failure: rejected because Security Validation and normal CI pass on the reviewed head
+  - security adapter implementation failure: rejected because Security Validation and normal CI pass on the same reviewed head
   - build a second security E2E launcher: rejected by the accepted platform ADR and existing Universal E2E ownership
   - allow adapter manifests to provide runner commands or arbitrary hosts: rejected because it would reopen an unbounded execution and target boundary
   - shared-index overwrite: rejected by exact per-file patch review against current main
@@ -150,15 +149,15 @@ changed_paths:
   - tests/security/test_runtime_adapter.py
   - tools/security/runtime_adapter.py
 validation:
-  - command: Security Validation run 29532557782
+  - command: Security Validation run 29532696205
     result: PASS
     evidence: runtime adapter compile focused unit discovery registry validation authorized delegation resolution and source-regression execution passed
-  - command: Agent Task Ownership run 29532557789
-    result: PASS
-    evidence: changed-task checkpoint validation and ownership index passed
-  - command: CI run 29532558117
+  - command: CI run 29532696463
     result: PASS
     evidence: repository CI passed on the reviewed current head
+  - command: Agent Task Ownership run 29532696213
+    result: FAIL
+    evidence: governance-only checkpoint status enum mismatch; corrected by this commit
 blockers: []
-next_action: Verify review-status head checks and review blockers, apply ci:final-gate, then make one final ready checkpoint commit and no post-green commit.
+next_action: Verify validating checkpoint ownership and all current-head checks, then apply ci:final-gate and make one final ready checkpoint commit with no post-green commit.
 ```
