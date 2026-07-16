@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "budget_policy": "minimize_agentic_usage",
+  "limits": {
+    "max_required_reads": 12,
+    "max_search_first": 10,
+    "max_optional_reads": 8,
+    "max_proven": 12,
+    "max_unknown": 8,
+    "max_conflicts": 6,
+    "max_changed_paths": 12,
+    "max_validation": 8,
+    "max_blockers": 6
+  },
+  "core_reads": [
+    "AGENTS.md",
+    "docs/agents/REPOSITORY_MAP.md",
+    "docs/agents/CONTEXT_ROUTING.md"
+  ],
+  "routes": {
+    "agent-governance": {
+      "path_globs": [
+        "AGENTS.md",
+        "docs/agents/**",
+        "tools/agents/**",
+        ".github/workflows/agent-task-ownership.yml"
+      ],
+      "keywords": [
+        "agent",
+        "context",
+        "handoff",
+        "checkpoint",
+        "orchestration",
+        "task ownership"
+      ],
+      "required_reads": [
+        "docs/agents/CONTEXT_ROUTING.md",
+        "docs/agents/CONTEXT_HANDOFF.md",
+        "docs/agents/EXECUTION_MODE_ROUTING.md"
+      ],
+      "search_first": [
+        "docs/agents/MODULE_CATALOG.md",
+        "docs/agents/KNOWN_RISKS.md",
+        "docs/agents/BUILD_TEST_MATRIX.md"
+      ],
+      "optional_reads": [
+        "docs/agents/programs/AGENT_CONTEXT_ORCHESTRATION_PROGRAM.md"
+      ]
+    },
+    "cpp-runtime": {
+      "path_globs": [
+        "src/**",
+        "tests/**",
+        "CMakeLists.txt",
+        "CMakePresets.json",
+        "cmake/**",
+        "vcproj/**"
+      ],
+      "keywords": [
+        "c++",
+        "runtime",
+        "protocol",
+        "concurrency",
+        "compile",
+        "cmake"
+      ],
+      "required_reads": [],
+      "search_first": [
+        "docs/agents/MODULE_CATALOG.md",
+        "docs/agents/BUILD_TEST_MATRIX.md",
+        "docs/agents/KNOWN_RISKS.md"
+      ],
+      "optional_reads": [
+        "docs/systems/**",
+        "docs/architecture/**"
+      ]
+    },
+    "lua-data": {
+      "path_globs": [
+        "data/**",
+        "data-otservbr-global/**"
+      ],
+      "keywords": [
+        "lua",
+        "xml",
+        "storage",
+        "actionid",
+        "uniqueid",
+        "gameplay script"
+      ],
+      "required_reads": [],
+      "search_first": [
+        "docs/agents/MODULE_CATALOG.md",
+        "docs/agents/KNOWN_RISKS.md"
+      ],
+      "optional_reads": []
+    },
+    "otbm": {
+      "path_globs": [
+        "tools/ai-agent/**",
+        "docs/ai-agent/OTBM_*",
+        "**/*.otbm"
+      ],
+      "keywords": [
+        "otbm",
+        "map mechanic",
+        "actionid",
+        "uniqueid",
+        "teleport",
+        "house door",
+        "reachability"
+      ],
+      "required_reads": [
+        "docs/ai-agent/OTBM_HD_PIPELINE.md",
+        "docs/ai-agent/OTBM_SCRIPT_RESOLUTION.md"
+      ],
+      "search_first": [
+        "docs/agents/MODULE_CATALOG.md"
+      ],
+      "optional_reads": []
+    },
+    "universal-e2e": {
+      "path_globs": [
+        "tools/e2e/**",
+        "tests/e2e/**",
+        ".github/workflows/universal-agent-e2e.yml"
+      ],
+      "keywords": [
+        "physical client",
+        "login/relog",
+        "universal e2e",
+        "scenario execution",
+        "e2e artifact"
+      ],
+      "required_reads": [
+        "docs/agents/programs/E2E_AUTOMATION_PROGRAM.md"
+      ],
+      "search_first": [
+        "docs/agents/BUILD_TEST_MATRIX.md"
+      ],
+      "optional_reads": []
+    },
+    "real-tibia-parity": {
+      "path_globs": [
+        "docs/agents/real-tibia/**"
+      ],
+      "keywords": [
+        "real tibia",
+        "tibiawiki",
+        "fandom",
+        "official client",
+        "packet capture",
+        "parity"
+      ],
+      "required_reads": [
+        "docs/agents/REAL_TIBIA_EVIDENCE_SOURCES.md",
+        "docs/agents/REAL_TIBIA_PARITY_PLAYBOOK.md"
+      ],
+      "search_first": [],
+      "optional_reads": [
+        "docs/agents/programs/REAL_TIBIA_PARITY_PROGRAM.md"
+      ]
+    },
+    "upstream-intelligence": {
+      "path_globs": [
+        "docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md"
+      ],
+      "keywords": [
+        "upstream intelligence",
+        "donor triage",
+        "fork is behind",
+        "upstream candidate"
+      ],
+      "required_reads": [
+        "docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md"
+      ],
+      "search_first": [],
+      "optional_reads": []
+    },
+    "cross-repo": {
+      "path_globs": [],
+      "keywords": [
+        "cross repo",
+        "cross-repo",
+        "otclient compatibility",
+        "client payload",
+        "protocol compatibility"
+      ],
+      "required_reads": [],
+      "search_first": [
+        "docs/agents/CROSS_REPO_CONTRACTS.md"
+      ],
+      "optional_reads": []
+    },
+    "ci-repair": {
+      "path_globs": [
+        ".github/workflows/**"
+      ],
+      "keywords": [
+        "ci failure",
+        "workflow failure",
+        "required check",
+        "github actions",
+        "failing job"
+      ],
+      "required_reads": [],
+      "search_first": [
+        "docs/agents/BUILD_TEST_MATRIX.md"
+      ],
+      "optional_reads": []
+    }
+  }
+}

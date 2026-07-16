@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "module_id": "engine-runtime-lifecycle",
+  "name": "Engine Runtime Lifecycle",
+  "category": "engine-foundation",
+  "description": "Server process startup, initialization ordering, game-state transitions, service start and controlled shutdown as one technical lifecycle contract.",
+  "lifecycle": {
+    "status": "inventory",
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"
+  },
+  "scope": {
+    "includes": [
+      "server startup and shutdown orchestration",
+      "initialization order and failure boundaries",
+      "top-level game-state transitions",
+      "service-manager start and stop integration"
+    ],
+    "excludes": [
+      "dispatcher and scheduler internals",
+      "dependency-injection container design",
+      "feature-specific gameplay lifecycle",
+      "database transaction semantics",
+      "production configuration changes"
+    ]
+  },
+  "paths": {
+    "server": [
+      "src/canary_server.*",
+      "src/game/game.*"
+    ],
+    "client": [],
+    "data": [],
+    "tests": [],
+    "docs": [
+      "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+      "docs/agents/real-tibia/TIBIA_SYSTEM_DECOMPOSITION_REPORT.md"
+    ]
+  },
+  "relationships": {
+    "depends_on": [],
+    "interacts_with": [
+      "configuration",
+      "lua-runtime"
+    ]
+  },
+  "documents": {
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+    "validation": [
+      "docs/agents/real-tibia/TIBIA_SYSTEM_DECOMPOSITION_REPORT.md"
+    ]
+  },
+  "source_requirements": [
+    {"source": "canary-current", "mode": "required"},
+    {"source": "runtime-observation", "mode": "required-when-related"}
+  ],
+  "maturity": {
+    "implementation": "inventory",
+    "evidence": "inventory",
+    "persistence": "not-assessed",
+    "protocol": "not-assessed",
+    "automated_tests": "not-assessed",
+    "runtime_validation": "not-assessed",
+    "gameplay_e2e": "not-assessed"
+  },
+  "freshness": {
+    "class": "medium",
+    "last_inventory": "2026-07-14",
+    "warning_after_days": 30,
+    "invalid_after_days": 90,
+    "refresh_before_each_task": true
+  },
+  "notes": [
+    "This is a logical technical module, not a proposal to move runtime source files.",
+    "File presence and startup code inventory do not prove restart safety or runtime correctness.",
+    "Scheduler and service-container candidates remain deferred to TSD-002."
+  ]
+}

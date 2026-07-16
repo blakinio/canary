@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "module_id": "world-map-runtime",
+  "name": "World Map Runtime",
+  "category": "world-content",
+  "description": "Runtime map loading, tile materialization, spatial lookup, placement, movement, visibility and pathfinding discovery.",
+  "lifecycle": {"status": "inventory", "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"},
+  "scope": {
+    "includes": ["Map and IOMap runtime load lifecycle", "tile creation, flags, stack ordering and cylinder queries", "creature placement and movement between tiles", "spectator lookup, sight and throw-line checks", "pathfinding and walkability queries", "town and waypoint registries embedded in loaded map state"],
+    "excludes": ["house ownership and persistence", "spawn and raid scheduling", "offline map analysis and rendering", "world save serialization", "quest, teleport or NPC travel semantics", "proof of map completeness, movement or pathfinding correctness"]
+  },
+  "paths": {
+    "server": ["src/io/iomap.*", "src/items/tile.*", "src/map/map.*", "src/map/mapcache.*", "src/map/spectators.*", "src/map/utils/**"],
+    "client": [],
+    "data": [],
+    "tests": [],
+    "docs": ["docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md", "docs/agents/real-tibia/TSD_008_WORLD_CONTENT_REPORT.md"]
+  },
+  "relationships": {
+    "depends_on": ["item-definitions", "item-instances"],
+    "interacts_with": ["containers", "creature-ai", "houses", "instances", "npcs", "otbm-tooling", "quests", "raids", "spawns", "world-persistence", "world-zones"]
+  },
+  "documents": {"program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md", "validation": ["docs/agents/real-tibia/TSD_008_WORLD_CONTENT_REPORT.md"]},
+  "source_requirements": [{"source": "canary-current", "mode": "required"}, {"source": "runtime-observation", "mode": "required-when-related"}, {"source": "tibia-official", "mode": "required-when-parity"}],
+  "maturity": {"implementation": "inventory", "evidence": "inventory", "persistence": "not-assessed", "protocol": "not-assessed", "automated_tests": "not-assessed", "runtime_validation": "not-assessed", "gameplay_e2e": "not-assessed"},
+  "freshness": {"class": "fast", "last_inventory": "2026-07-14", "warning_after_days": 30, "invalid_after_days": 90, "refresh_before_each_task": true},
+  "notes": ["Runtime IOMap loading is distinct from the read-only OTBM analysis pipeline and from IOMapSerialize world persistence.", "Map, Tile, movement and pathfinding stay one runtime boundary because their implementation and state are inseparable in the current tree."]
+}

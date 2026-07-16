@@ -18,6 +18,7 @@ on:
       - "tools/analytics/validate_gameplay_analytics_supply_loot_integration.py"
       - "tools/analytics/test_mariadb_integration.sh"
       - "docs/systems/gameplay-analytics-supply-loot.md"
+      - "docs/systems/gameplay-analytics-dry-run.md"
       - ".github/workflows/gameplay-analytics-supply-loot.yml"
   push:
     branches: [main]
@@ -36,6 +37,7 @@ on:
       - "tools/analytics/validate_gameplay_analytics_supply_loot_integration.py"
       - "tools/analytics/test_mariadb_integration.sh"
       - "docs/systems/gameplay-analytics-supply-loot.md"
+      - "docs/systems/gameplay-analytics-dry-run.md"
       - ".github/workflows/gameplay-analytics-supply-loot.yml"
 
 permissions:

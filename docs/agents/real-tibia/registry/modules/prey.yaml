@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "module_id": "prey",
+  "name": "Prey and Hunting Tasks",
+  "category": "character-progression",
+  "description": "Prey slots, rerolls, bonuses, Hunting Tasks and related point/packet state.",
+  "lifecycle": {"status": "inventory"},
+  "scope": {"includes": ["Prey state and rerolls", "bonuses", "Hunting Tasks", "related persistence and packets"], "excludes": ["Wheel allocation except explicit Task Shop integration"]},
+  "paths": {"server": ["src/creatures/players/components/prey/**", "src/server/network/protocol/**"], "client": [], "data": ["data/modules/scripts/taskboard/**"], "tests": ["tests/unit/players/**prey**", "tests/integration/**"], "docs": []},
+  "relationships": {"depends_on": ["player-persistence", "protocol"], "interacts_with": ["wheel-of-destiny"]},
+  "documents": {"validation": []},
+  "source_requirements": [{"source": "canary-current", "mode": "required"}, {"source": "tibia-official", "mode": "required-when-parity"}, {"source": "tibiawiki", "mode": "secondary"}, {"source": "maintained-otclient", "mode": "required-when-related"}],
+  "maturity": {"implementation": "inventory", "evidence": "inventory", "persistence": "not-assessed", "protocol": "not-assessed", "automated_tests": "not-assessed", "runtime_validation": "not-assessed", "gameplay_e2e": "not-assessed"},
+  "freshness": {"class": "fast", "last_inventory": "2026-07-14", "warning_after_days": 30, "invalid_after_days": 90, "refresh_before_each_task": true},
+  "notes": []
+}

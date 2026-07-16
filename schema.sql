@@ -1066,6 +1066,33 @@ CREATE TABLE IF NOT EXISTS `account_house_ownership` (
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- Table structure `cluster_pending_operations`
+-- Durable, typed, addressed command inbox for cross-process DB-row handoff
+-- (docs/multichannel/CROSS_PROCESS_DB_ROW_HANDOFF.md): lets one channel
+-- enqueue an operation targeting a record it does not currently own, and
+-- lets whichever channel currently does own that record apply it safely
+-- through its own live in-memory state. No FK to players/houses:
+-- record_id's meaning depends on record_kind (a polymorphic reference),
+-- the same reasoning `channels.temple_town_id` already documents above
+-- for omitting an FK.
+CREATE TABLE IF NOT EXISTS `cluster_pending_operations` (
+    `operation_id` char(36) NOT NULL,
+    `record_kind` varchar(32) NOT NULL,
+    `record_id` int(11) NOT NULL,
+    `record_channel_id` int(11) DEFAULT NULL,
+    `operation_type` varchar(64) NOT NULL,
+    `payload` mediumtext NOT NULL,
+    `status` enum('PENDING','APPLIED','FAILED','ABANDONED') NOT NULL DEFAULT 'PENDING',
+    `attempts` int(11) NOT NULL DEFAULT '0',
+    `last_error` varchar(255) NOT NULL DEFAULT '',
+    `enqueued_by_channel_id` int(11) NOT NULL,
+    `created_at` bigint(20) NOT NULL,
+    `applied_at` bigint(20) DEFAULT NULL,
+    CONSTRAINT `cluster_pending_operations_pk` PRIMARY KEY (`operation_id`),
+    INDEX `record_lookup` (`record_kind`, `record_id`, `status`),
+    INDEX `status_created_at` (`status`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Create Account god/god
 INSERT INTO `accounts`
 (`id`, `name`, `email`, `password`, `type`) VALUES

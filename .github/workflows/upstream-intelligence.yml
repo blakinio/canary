@@ -1,0 +1,209 @@
+name: Upstream Intelligence
+
+on:
+  pull_request:
+    paths:
+      - "docs/agents/upstream/**"
+      - "docs/agents/real-tibia/**"
+      - "docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md"
+      - "docs/agents/decisions/ADR-20260714-upstream-intelligence-read-only.md"
+      - "tools/agents/upstream_intelligence*.py"
+      - "tools/agents/test_upstream_intelligence*.py"
+      - ".github/workflows/upstream-intelligence.yml"
+  push:
+    branches:
+      - main
+      - "feat/**"
+      - "fix/**"
+      - "docs/**"
+      - "ci/**"
+    paths:
+      - "docs/agents/upstream/**"
+      - "docs/agents/real-tibia/**"
+      - "docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md"
+      - "docs/agents/decisions/ADR-20260714-upstream-intelligence-read-only.md"
+      - "tools/agents/upstream_intelligence*.py"
+      - "tools/agents/test_upstream_intelligence*.py"
+      - ".github/workflows/upstream-intelligence.yml"
+  schedule:
+    - cron: "17 3 * * *"
+    - cron: "47 4 * * 1"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Scan depth
+        required: true
+        default: daily
+        type: choice
+        options:
+          - daily
+          - deep
+      days:
+        description: Rolling window in days
+        required: true
+        default: "30"
+        type: string
+
+concurrency:
+  group: upstream-intelligence-${{ github.event_name == 'schedule' && 'scheduled' || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate upstream intelligence contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install schema validator
+        run: python -m pip install --disable-pip-version-check jsonschema
+
+      - name: Compile tooling
+        run: |
+          python -m py_compile \
+            tools/agents/upstream_intelligence.py \
+            tools/agents/upstream_intelligence_common.py \
+            tools/agents/upstream_intelligence_candidates.py \
+            tools/agents/upstream_intelligence_scan.py \
+            tools/agents/upstream_intelligence_render.py \
+            tools/agents/upstream_intelligence_lib.py \
+            tools/agents/test_upstream_intelligence.py \
+            tools/agents/test_upstream_intelligence_hardening.py
+
+      - name: Run focused tests
+        run: PYTHONPATH=tools/agents python -m unittest discover -v -s tools/agents -p 'test_upstream_intelligence*.py'
+
+      - name: Validate upstream registry and decisions
+        run: python tools/agents/upstream_intelligence.py validate
+
+      - name: Validate Real Tibia registry integration
+        run: |
+          python tools/agents/real_tibia_registry.py validate
+          python tools/agents/real_tibia_registry.py generate --check
+
+  scan:
+    name: Scan watched repositories
+    if: >-
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: write
+    steps:
+      - name: Checkout main with local history
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install schema validator
+        run: python -m pip install --disable-pip-version-check jsonschema
+
+      - name: Fetch bounded OpenTibiaBR ancestry evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=500 \
+            https://github.com/opentibiabr/canary.git \
+            main:refs/remotes/upstream-intelligence/opentibiabr-canary || true
+
+      - name: Resolve scan mode and window
+        id: mode
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+          INPUT_MODE: ${{ inputs.mode }}
+          INPUT_DAYS: ${{ inputs.days }}
+        run: |
+          set -euo pipefail
+          mode='daily'
+          days='30'
+          if [[ "$EVENT_NAME" == 'workflow_dispatch' ]]; then
+            mode="${INPUT_MODE:-daily}"
+            days="${INPUT_DAYS:-30}"
+          elif [[ "$EVENT_SCHEDULE" == '47 4 * * 1' ]]; then
+            mode='deep'
+            days='90'
+          fi
+          [[ "$mode" == 'daily' || "$mode" == 'deep' ]]
+          [[ "$days" =~ ^[0-9]+$ ]]
+          (( days >= 1 && days <= 180 ))
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "days=$days" >> "$GITHUB_OUTPUT"
+
+      - name: Scan and render bounded reports
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          OUTPUT_DIR: ${{ runner.temp }}/upstream-intelligence
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUTPUT_DIR"
+          python tools/agents/upstream_intelligence.py scan \
+            --mode "${{ steps.mode.outputs.mode }}" \
+            --days "${{ steps.mode.outputs.days }}" \
+            --output-json "$OUTPUT_DIR/snapshot.json" \
+            --output-markdown "$OUTPUT_DIR/report.md" \
+            --issue-body "$OUTPUT_DIR/issue.md"
+          python tools/agents/upstream_intelligence.py validate-snapshot \
+            --input "$OUTPUT_DIR/snapshot.json"
+
+      - name: Upload immutable scan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: upstream-intelligence-${{ github.run_id }}
+          path: ${{ runner.temp }}/upstream-intelligence
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Create or update stable local report issue
+        uses: actions/github-script@v9
+        env:
+          REPORT_TITLE: "[Upstream Intelligence] Current drift report"
+          REPORT_BODY_PATH: ${{ runner.temp }}/upstream-intelligence/issue.md
+        with:
+          script: |
+            const fs = require('fs');
+            const title = process.env.REPORT_TITLE;
+            const body = fs.readFileSync(process.env.REPORT_BODY_PATH, 'utf8');
+            const { owner, repo } = context.repo;
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              state: 'open',
+              per_page: 100,
+            });
+            const existing = issues.find((issue) => !issue.pull_request && issue.title === title);
+            if (existing) {
+              await github.rest.issues.update({
+                owner,
+                repo,
+                issue_number: existing.number,
+                title,
+                body,
+              });
+              core.info(`Updated issue #${existing.number}`);
+            } else {
+              const created = await github.rest.issues.create({ owner, repo, title, body });
+              core.info(`Created issue #${created.data.number}`);
+            }

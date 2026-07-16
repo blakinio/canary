@@ -7,18 +7,18 @@ on:
     paths:
       - "AGENTS.md"
       - "docs/agents/**"
-      - "tools/agents/task_ownership.py"
-      - "tools/agents/test_task_ownership.py"
+      - "tools/agents/*.py"
       - ".github/workflows/agent-task-ownership.yml"
+      - ".github/workflows/agent-task-lifecycle.yml"
   push:
     branches:
       - main
     paths:
       - "AGENTS.md"
       - "docs/agents/**"
-      - "tools/agents/task_ownership.py"
-      - "tools/agents/test_task_ownership.py"
+      - "tools/agents/*.py"
       - ".github/workflows/agent-task-ownership.yml"
+      - ".github/workflows/agent-task-lifecycle.yml"
 
 permissions:
   contents: read
@@ -31,23 +31,94 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Compile ownership tooling
-        run: python -m py_compile tools/agents/task_ownership.py tools/agents/test_task_ownership.py
+
+      - name: Compile agent tooling
+        run: >-
+          python -m py_compile
+          tools/agents/task_ownership.py
+          tools/agents/test_task_ownership.py
+          tools/agents/checkpoint.py
+          tools/agents/execution_mode.py
+          tools/agents/context.py
+          tools/agents/resume.py
+          tools/agents/task_lifecycle.py
+          tools/agents/efficiency_eval.py
+          tools/agents/supervisor_queue.py
+          tools/agents/ci_incremental_validation.py
+          tools/agents/test_context_orchestration.py
+          tools/agents/test_task_lifecycle.py
+          tools/agents/test_efficiency_eval.py
+          tools/agents/test_supervisor_queue.py
+          tools/agents/test_ci_incremental_validation.py
+
       - name: Run focused unit tests
         working-directory: tools/agents
-        run: python -m unittest -v test_task_ownership.py
+        run: >-
+          python -m unittest -v
+          test_task_ownership.py
+          test_context_orchestration.py
+          test_task_lifecycle.py
+          test_efficiency_eval.py
+          test_supervisor_queue.py
+          test_ci_incremental_validation.py
+
+      - name: Collect changed files
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          mkdir -p artifacts/agent-coordination
+          output="artifacts/agent-coordination/CHANGED_FILES.txt"
+
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            git diff --name-only "origin/${BASE_REF}...HEAD" > "$output"
+          elif [[ "$EVENT_NAME" == "push" && -n "$BEFORE_SHA" && ! "$BEFORE_SHA" =~ ^0+$ ]]; then
+            git diff --name-only "$BEFORE_SHA...HEAD" > "$output"
+          else
+            : > "$output"
+          fi
+
+          cat "$output"
+
+      - name: Validate changed active task checkpoints
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -o pipefail
+          args=(
+            validate-changed
+            --changed-files-file artifacts/agent-coordination/CHANGED_FILES.txt
+          )
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            args+=(--current-pr "$PR_NUMBER")
+          fi
+          python tools/agents/task_lifecycle.py "${args[@]}" 2>&1 \
+            | tee artifacts/agent-coordination/CHANGED_TASK_VALIDATION.txt
+
       - name: Validate tasks and render ownership index
         run: >-
           python tools/agents/task_ownership.py
           --write-index artifacts/agent-coordination/OWNERSHIP_INDEX.md
-      - name: Upload ownership index
+
+      - name: Upload ownership diagnostics
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: active-task-ownership
-          path: artifacts/agent-coordination/OWNERSHIP_INDEX.md
-          if-no-files-found: error
+          path: |
+            artifacts/agent-coordination/CHANGED_FILES.txt
+            artifacts/agent-coordination/CHANGED_TASK_VALIDATION.txt
+            artifacts/agent-coordination/OWNERSHIP_INDEX.md
+          if-no-files-found: warn
           retention-days: 14

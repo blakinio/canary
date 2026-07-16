@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.example/schemas/OTBM_BOUNDED_PATCH_RESULT.schema.json",
+  "title": "Canary bounded OTBM fixed-width patch result",
+  "$defs": {
+    "position": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "items": false
+    },
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "byte": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["offset", "encodedSize", "value"],
+      "properties": {
+        "offset": {"type": "integer", "minimum": 0},
+        "encodedSize": {"enum": [1, 2]},
+        "value": {"type": "integer", "minimum": 0, "maximum": 255}
+      }
+    },
+    "span": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["offset", "size"],
+      "properties": {
+        "offset": {"type": "integer", "minimum": 0},
+        "size": {"enum": [1, 2]}
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "ok",
+    "plan",
+    "source",
+    "output",
+    "region",
+    "operations",
+    "proof",
+    "evidence",
+    "renderRequest",
+    "rollback",
+    "policy"
+  ],
+  "properties": {
+    "format": {"const": "canary-otbm-bounded-patch-result-v1"},
+    "ok": {"const": true},
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "sha256"],
+      "properties": {
+        "format": {"const": "canary-otbm-bounded-patch-plan-v1"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "size", "sha256", "unchanged"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "size": {"type": "integer", "minimum": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "unchanged": {"const": true}
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "size", "sha256", "atomicCopyOnly"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "size": {"type": "integer", "minimum": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "atomicCopyOnly": {"const": true}
+      }
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {
+        "from": {"$ref": "#/$defs/position"},
+        "to": {"$ref": "#/$defs/position"}
+      }
+    },
+    "operations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "position",
+          "tilePlacementIndex",
+          "itemId",
+          "itemDepth",
+          "attribute",
+          "expected",
+          "replacement",
+          "bytes",
+          "replacementBytes",
+          "spans"
+        ],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "kind": {
+            "enum": [
+              "set-action-id",
+              "set-unique-id",
+              "set-house-door-id",
+              "set-teleport-destination"
+            ]
+          },
+          "position": {"$ref": "#/$defs/position"},
+          "tilePlacementIndex": {"type": "integer", "minimum": 0, "maximum": 4294967295},
+          "itemId": {"type": "integer", "minimum": 0, "maximum": 65535},
+          "itemDepth": {"type": "integer", "minimum": 0, "maximum": 32767},
+          "attribute": {
+            "enum": ["actionId", "uniqueId", "houseDoorId", "teleportDestination"]
+          },
+          "expected": {},
+          "replacement": {},
+          "bytes": {"type": "array", "minItems": 1, "maxItems": 5, "items": {"$ref": "#/$defs/byte"}},
+          "replacementBytes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "items": {"type": "integer", "minimum": 0, "maximum": 255}
+          },
+          "spans": {"type": "array", "minItems": 1, "maxItems": 5, "items": {"$ref": "#/$defs/span"}}
+        }
+      }
+    },
+    "proof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fileLengthPreserved",
+        "outsideScannerSpansEqual",
+        "changedPhysicalOffsets",
+        "fullScannerReparse",
+        "worldIndexBeforeAfterBuilt",
+        "boundedSemanticDiffExact"
+      ],
+      "properties": {
+        "fileLengthPreserved": {"const": true},
+        "outsideScannerSpansEqual": {"const": true},
+        "changedPhysicalOffsets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "integer", "minimum": 0},
+          "uniqueItems": true
+        },
+        "fullScannerReparse": {"const": true},
+        "worldIndexBeforeAfterBuilt": {"const": true},
+        "boundedSemanticDiffExact": {"const": true}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["directory", "manifest", "semanticDiff"],
+      "properties": {
+        "directory": {"type": "string", "minLength": 1},
+        "manifest": {"type": "string", "minLength": 1},
+        "semanticDiff": {"type": "string", "minLength": 1}
+      }
+    },
+    "renderRequest": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["format", "execute", "renderer", "beforeMap", "afterMap", "region", "policy"],
+      "properties": {
+        "format": {"const": "canary-otbm-bounded-patch-render-request-v1"},
+        "execute": {"const": false}
+      }
+    },
+    "rollback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "path", "sourceRetained", "sourceSha256"],
+      "properties": {
+        "action": {"const": "delete-patched-copy"},
+        "path": {"type": "string", "minLength": 1},
+        "sourceRetained": {"type": "string", "minLength": 1},
+        "sourceSha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceModifiedInPlace",
+        "attributesInsertedOrRemoved",
+        "itemsOrTilesInsertedOrRemoved",
+        "newOtbmParserCreated",
+        "existingNativeScannerReused",
+        "existingWorldIndexReused",
+        "existingSemanticDiffReused",
+        "aiGeneratedImagery"
+      ],
+      "properties": {
+        "sourceModifiedInPlace": {"const": false},
+        "attributesInsertedOrRemoved": {"const": false},
+        "itemsOrTilesInsertedOrRemoved": {"const": false},
+        "newOtbmParserCreated": {"const": false},
+        "existingNativeScannerReused": {"const": true},
+        "existingWorldIndexReused": {"const": true},
+        "existingSemanticDiffReused": {"const": true},
+        "aiGeneratedImagery": {"const": false}
+      }
+    }
+  }
+}

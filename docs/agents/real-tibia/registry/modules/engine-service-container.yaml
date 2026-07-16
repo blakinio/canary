@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "module_id": "engine-service-container",
+  "name": "Engine Service Container",
+  "category": "engine-foundation",
+  "description": "Dependency-injection construction, singleton scope, test-container substitution and contextual legacy injection as one engine service-lifetime contract.",
+  "lifecycle": {
+    "status": "inventory",
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"
+  },
+  "scope": {
+    "includes": [
+      "default dependency bindings",
+      "singleton and unique instance construction",
+      "test-container substitution",
+      "contextual inject compatibility helper",
+      "soft-singleton lifetime diagnostics"
+    ],
+    "excludes": [
+      "network ServiceManager and listening-port lifecycle",
+      "feature-specific service implementations",
+      "physical source-tree dependency-injection refactors",
+      "claims that legacy global or singleton lifetimes are safe"
+    ]
+  },
+  "paths": {
+    "server": [
+      "src/lib/di/**"
+    ],
+    "client": [],
+    "data": [],
+    "tests": [
+      "tests/unit/lib/di/**"
+    ],
+    "docs": [
+      "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+      "docs/agents/real-tibia/TSD_002A_ENGINE_FOUNDATION_REPORT.md"
+    ]
+  },
+  "relationships": {
+    "depends_on": [],
+    "interacts_with": [
+      "configuration",
+      "engine-runtime-lifecycle",
+      "engine-scheduler",
+      "lua-runtime"
+    ]
+  },
+  "documents": {
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+    "validation": [
+      "docs/agents/real-tibia/TSD_002A_ENGINE_FOUNDATION_REPORT.md"
+    ]
+  },
+  "source_requirements": [
+    {"source": "canary-current", "mode": "required"},
+    {"source": "runtime-observation", "mode": "required-when-related"}
+  ],
+  "maturity": {
+    "implementation": "inventory",
+    "evidence": "inventory",
+    "persistence": "not-assessed",
+    "protocol": "not-assessed",
+    "automated_tests": "not-assessed",
+    "runtime_validation": "not-assessed",
+    "gameplay_e2e": "not-assessed"
+  },
+  "freshness": {
+    "class": "medium",
+    "last_inventory": "2026-07-14",
+    "warning_after_days": 30,
+    "invalid_after_days": 90,
+    "refresh_before_each_task": true
+  },
+  "notes": [
+    "The network ServiceManager is not part of this record; it remains a runtime/protocol-facing service lifecycle.",
+    "The test-container seam and soft-singleton test are inventory evidence, not proof of complete lifetime safety.",
+    "This record does not authorize broad dependency-injection migration."
+  ]
+}

@@ -14,6 +14,7 @@ on:
       - "tools/analytics/test_validate_gameplay_analytics_spell_integration.py"
       - "tools/analytics/validate_gameplay_analytics_spell_integration.py"
       - "docs/systems/gameplay-analytics-spells.md"
+      - "docs/systems/gameplay-analytics-dry-run.md"
       - ".github/workflows/gameplay-analytics-spells.yml"
   push:
     branches: [main]
@@ -28,6 +29,7 @@ on:
       - "tools/analytics/test_validate_gameplay_analytics_spell_integration.py"
       - "tools/analytics/validate_gameplay_analytics_spell_integration.py"
       - "docs/systems/gameplay-analytics-spells.md"
+      - "docs/systems/gameplay-analytics-dry-run.md"
       - ".github/workflows/gameplay-analytics-spells.yml"
 
 permissions:

@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "module_id": "engine-scheduler",
+  "name": "Engine Scheduler",
+  "category": "engine-foundation",
+  "description": "Generic engine task dispatch, delayed and cyclic scheduling, execution grouping, worker-pool integration, cancellation and scheduler shutdown discovery.",
+  "lifecycle": {
+    "status": "inventory",
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"
+  },
+  "scope": {
+    "includes": [
+      "dispatcher task queues and execution groups",
+      "delayed and cyclic task scheduling",
+      "task cancellation and dispatcher context",
+      "thread-pool execution substrate",
+      "scheduler shutdown signaling and queue-latency inventory"
+    ],
+    "excludes": [
+      "gameplay event-rate schedules",
+      "save and persistence scheduling",
+      "feature-specific timers and callbacks",
+      "claims of ordering, fairness, race freedom or shutdown correctness"
+    ]
+  },
+  "paths": {
+    "server": [
+      "src/game/scheduling/dispatcher.*",
+      "src/game/scheduling/task.*",
+      "src/lib/thread/thread_pool.*"
+    ],
+    "client": [],
+    "data": [],
+    "tests": [],
+    "docs": [
+      "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+      "docs/agents/real-tibia/TSD_002A_ENGINE_FOUNDATION_REPORT.md"
+    ]
+  },
+  "relationships": {
+    "depends_on": [],
+    "interacts_with": [
+      "engine-runtime-lifecycle",
+      "engine-service-container"
+    ]
+  },
+  "documents": {
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+    "validation": [
+      "docs/agents/real-tibia/TSD_002A_ENGINE_FOUNDATION_REPORT.md"
+    ]
+  },
+  "source_requirements": [
+    {"source": "canary-current", "mode": "required"},
+    {"source": "runtime-observation", "mode": "required-when-related"}
+  ],
+  "maturity": {
+    "implementation": "inventory",
+    "evidence": "inventory",
+    "persistence": "not-assessed",
+    "protocol": "not-assessed",
+    "automated_tests": "not-assessed",
+    "runtime_validation": "not-assessed",
+    "gameplay_e2e": "not-assessed"
+  },
+  "freshness": {
+    "class": "fast",
+    "last_inventory": "2026-07-14",
+    "warning_after_days": 30,
+    "invalid_after_days": 90,
+    "refresh_before_each_task": true
+  },
+  "notes": [
+    "EventsScheduler gameplay-rate state and SaveManager persistence orchestration are intentionally excluded.",
+    "Queue and API presence do not prove deterministic execution, starvation freedom or race safety.",
+    "This is a logical discovery boundary and does not propose moving scheduling source files."
+  ]
+}

@@ -1,0 +1,102 @@
+---
+name: OTBM Bounded Patch
+
+on:
+  push:
+    branches:
+      - "feat/otbm-bounded-*"
+      - "fix/otbm-bounded-*"
+    paths:
+      - "tools/ai-agent/otbm_bounded_patch*.py"
+      - "tools/ai-agent/otbm_item_audit_scan.cpp"
+      - "tools/ai-agent/test_otbm_bounded_patch.py"
+      - "docs/ai-agent/OTBM_BOUNDED_PATCH*"
+      - "docs/agents/decisions/ADR-*-otbm-fixed-width-patch-boundary.md"
+      - ".github/workflows/otbm-bounded-patch.yml"
+  pull_request:
+    paths:
+      - "tools/ai-agent/otbm_bounded_patch*.py"
+      - "tools/ai-agent/otbm_item_audit_scan.cpp"
+      - "tools/ai-agent/test_otbm_bounded_patch.py"
+      - "docs/ai-agent/OTBM_BOUNDED_PATCH*"
+      - "docs/agents/decisions/ADR-*-otbm-fixed-width-patch-boundary.md"
+      - ".github/workflows/otbm-bounded-patch.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-bounded-patcher:
+    name: Validate bounded OTBM patcher
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate JSON schemas
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m json.tool docs/ai-agent/OTBM_BOUNDED_PATCH_PLAN.schema.json > /dev/null
+          python -m json.tool docs/ai-agent/OTBM_BOUNDED_PATCH_RESULT.schema.json > /dev/null
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          for name in (
+              "OTBM_BOUNDED_PATCH_PLAN.schema.json",
+              "OTBM_BOUNDED_PATCH_RESULT.schema.json",
+          ):
+              path = Path("docs/ai-agent") / name
+              schema = json.loads(path.read_text(encoding="utf-8"))
+              position = schema["$defs"]["position"]
+              assert position["minItems"] == 3, f"{name}: position.minItems must be 3"
+              assert position["maxItems"] == 3, f"{name}: position.maxItems must be 3"
+              assert len(position["prefixItems"]) == 3, f"{name}: position.prefixItems must have 3 entries"
+              assert position["items"] is False, f"{name}: position must reject extra entries"
+          PY
+
+      - name: Compile native scanner with warnings as errors
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          g++ -std=c++20 -O2 -Wall -Wextra -Wpedantic -Werror \
+            tools/ai-agent/otbm_item_audit_scan.cpp \
+            -o artifacts/otbm_item_audit_scan
+
+      - name: Compile Python modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile \
+            tools/ai-agent/otbm_bounded_patch_types.py \
+            tools/ai-agent/otbm_bounded_patch.py \
+            tools/ai-agent/otbm_bounded_patch_tool.py \
+            tools/ai-agent/test_otbm_bounded_patch.py
+
+      - name: Run focused synthetic round-trip and rejection tests
+        id: bounded-patch-tests
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m unittest discover \
+            -s tools/ai-agent \
+            -p "test_otbm_bounded_patch.py" \
+            -v 2>&1 | tee artifacts/OTBM_BOUNDED_PATCH_TESTS.log
+
+      - name: Upload validation log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: otbm-bounded-patch-tests
+          path: artifacts/OTBM_BOUNDED_PATCH_TESTS.log
+          if-no-files-found: warn
+          retention-days: 14

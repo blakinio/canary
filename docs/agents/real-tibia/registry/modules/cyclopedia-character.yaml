@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "module_id": "cyclopedia-character",
+  "name": "Cyclopedia Character",
+  "category": "character-progression",
+  "description": "Character Cyclopedia summary, death-history, recent-kill pagination and KV-backed account/store summary discovery.",
+  "lifecycle": {
+    "status": "inventory",
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"
+  },
+  "scope": {
+    "includes": [
+      "character Cyclopedia summary values",
+      "death-history pagination",
+      "recent-kill history pagination",
+      "KV-backed store-summary counters and results",
+      "character-tab maintained-client presentation boundary"
+    ],
+    "excludes": [
+      "generic character lifecycle, load and save ownership",
+      "title definition and unlock lifecycle",
+      "experience, skill and vocation progression",
+      "packet correctness and maintained-client rendering proof"
+    ]
+  },
+  "paths": {
+    "server": [
+      "src/creatures/players/components/player_cyclopedia.*"
+    ],
+    "client": [
+      "modules/game_cyclopedia/tab/character/**"
+    ],
+    "data": [],
+    "tests": [
+      "tools/ai-agent/cyclopedia_validation.py",
+      "tools/ai-agent/test_cyclopedia_validation.py"
+    ],
+    "docs": [
+      "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+      "docs/agents/real-tibia/TSD_004_CYCLOPEDIA_FAMILY_REPORT.md",
+      "docs/ai-agent/OTS_AI_CYCLOPEDIA_VALIDATION_PROJECT.md",
+      "docs/ai-agent/CYCLOPEDIA_VALIDATION_REPORT.md"
+    ]
+  },
+  "relationships": {
+    "depends_on": [
+      "cyclopedia",
+      "player-persistence"
+    ],
+    "interacts_with": [
+      "character-lifecycle",
+      "character-progression",
+      "protocol",
+      "titles"
+    ]
+  },
+  "documents": {
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+    "validation": [
+      "docs/agents/real-tibia/TSD_004_CYCLOPEDIA_FAMILY_REPORT.md",
+      "docs/ai-agent/OTS_AI_CYCLOPEDIA_VALIDATION_PROJECT.md",
+      "docs/ai-agent/CYCLOPEDIA_VALIDATION_REPORT.md"
+    ]
+  },
+  "source_requirements": [
+    {"source": "canary-current", "mode": "required"},
+    {"source": "maintained-otclient", "mode": "required-when-related"},
+    {"source": "tibia-official", "mode": "required-when-parity"},
+    {"source": "runtime-observation", "mode": "required-when-related"}
+  ],
+  "maturity": {
+    "implementation": "inventory",
+    "evidence": "inventory",
+    "persistence": "not-assessed",
+    "protocol": "not-assessed",
+    "automated_tests": "not-assessed",
+    "runtime_validation": "not-assessed",
+    "gameplay_e2e": "not-assessed"
+  },
+  "freshness": {
+    "class": "fast",
+    "last_inventory": "2026-07-14",
+    "warning_after_days": 30,
+    "invalid_after_days": 90,
+    "refresh_before_each_task": true
+  },
+  "notes": [
+    "The component's summary fields include values supplied by other systems; this record owns only the Cyclopedia character-summary/history surface.",
+    "The shared character client directory intentionally overlaps the narrower `titles` record."
+  ]
+}

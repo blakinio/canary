@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/agents/upstream/schemas/candidate.schema.json",
+  "title": "Canary upstream intelligence candidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "candidate_id", "source_id", "source_repository", "kind", "external_id", "title", "url",
+    "state", "updated_at", "candidate_revision", "object_sha", "author", "labels", "paths",
+    "module_ids", "mapping_state", "mapped_paths", "unmapped_paths", "triage_status",
+    "priority", "automation_flags", "decision_state", "local_reference"
+  ],
+  "properties": {
+    "candidate_id": {"type": "string", "minLength": 5},
+    "source_id": {"type": "string", "minLength": 1},
+    "source_repository": {"type": "string", "pattern": "^[^/]+/[^/]+$"},
+    "kind": {"enum": ["commit", "pull", "issue", "release"]},
+    "external_id": {"type": "string", "minLength": 1},
+    "title": {"type": "string", "maxLength": 300},
+    "url": {"type": "string"},
+    "state": {"type": "string"},
+    "updated_at": {"type": "string"},
+    "candidate_revision": {"type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"},
+    "object_sha": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+    "author": {"type": "string"},
+    "labels": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "paths": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "module_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "mapping_state": {"enum": ["mapped", "partial", "unmapped", "not-applicable"]},
+    "mapped_paths": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "module_id", "bucket", "pattern"],
+        "properties": {
+          "path": {"type": "string"},
+          "module_id": {"type": "string"},
+          "bucket": {"enum": ["server", "client", "data", "tests", "docs"]},
+          "pattern": {"type": "string"}
+        }
+      }
+    },
+    "unmapped_paths": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "triage_status": {"type": "string", "minLength": 1},
+    "priority": {"enum": ["urgent", "high", "normal"]},
+    "automation_flags": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "decision_state": {"enum": ["none", "current", "stale"]},
+    "local_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "evidence"],
+      "properties": {
+        "state": {"enum": ["not-checked", "exact-ancestor", "reference-found", "not-found"]},
+        "evidence": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "reviewed_decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason", "decided_at", "decided_by", "local_sha"],
+      "properties": {
+        "status": {"type": "string"},
+        "reason": {"type": "string"},
+        "decided_at": {"type": "string"},
+        "decided_by": {"type": "string"},
+        "local_sha": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

@@ -26,6 +26,50 @@
 #include "lua/functions/lua_functions_loader.hpp"
 #include "creatures/players/player.hpp"
 
+#ifndef USE_PRECOMPILED_HEADERS
+	#include <filesystem>
+#endif
+
+namespace {
+	int pushDirectoryCreationResult(lua_State* L, const std::filesystem::path &path, bool recursive) {
+		if (path.empty()) {
+			Lua::pushBoolean(L, false);
+			Lua::pushString(L, "Directory path must not be empty");
+			return 2;
+		}
+
+		std::error_code error;
+		if (std::filesystem::is_directory(path, error) && !error) {
+			Lua::pushBoolean(L, true);
+			return 1;
+		}
+
+		error.clear();
+		const bool created = recursive
+			? std::filesystem::create_directories(path, error)
+			: std::filesystem::create_directory(path, error);
+		if (created) {
+			Lua::pushBoolean(L, true);
+			return 1;
+		}
+
+		if (!error) {
+			std::error_code statusError;
+			if (std::filesystem::is_directory(path, statusError) && !statusError) {
+				Lua::pushBoolean(L, true);
+				return 1;
+			}
+			if (statusError) {
+				error = statusError;
+			}
+		}
+
+		Lua::pushBoolean(L, false);
+		Lua::pushString(L, error ? error.message() : "Directory could not be created");
+		return 2;
+	}
+} // namespace
+
 void GlobalFunctions::init(lua_State* L) {
 	lua_register(L, "addEvent", GlobalFunctions::luaAddEvent);
 	lua_register(L, "cleanMap", GlobalFunctions::luaCleanMap);
@@ -63,7 +107,46 @@ void GlobalFunctions::init(lua_State* L) {
 	Lua::registerGlobalMethod(L, "createTable", GlobalFunctions::luaCreateTable);
 	Lua::registerGlobalMethod(L, "systemTime", GlobalFunctions::luaSystemTime);
 	Lua::registerGlobalMethod(L, "getFormattedTimeRemaining", GlobalFunctions::luaGetFormattedTimeRemaining);
+
+	Lua::registerTable(L, "FileSystem");
+	Lua::registerMethod(L, "FileSystem", "createDirectory", GlobalFunctions::luaFileSystemCreateDirectory);
+	Lua::registerMethod(L, "FileSystem", "createDirectories", GlobalFunctions::luaFileSystemCreateDirectories);
+
 	Lua::registerGlobalMethod(L, "reportError", GlobalFunctions::luaReportError);
+}
+
+/***
+ * Creates one directory without invoking a command shell.
+ * @function FileSystem.createDirectory
+ * @param path string
+ * @return boolean success
+ * @return string? errorMessage
+ */
+int GlobalFunctions::luaFileSystemCreateDirectory(lua_State* L) {
+	if (!Lua::isString(L, 1)) {
+		Lua::pushBoolean(L, false);
+		Lua::pushString(L, "Directory path must be a string");
+		return 2;
+	}
+
+	return pushDirectoryCreationResult(L, std::filesystem::path(Lua::getString(L, 1)), false);
+}
+
+/***
+ * Creates a directory and every missing parent without invoking a command shell.
+ * @function FileSystem.createDirectories
+ * @param path string
+ * @return boolean success
+ * @return string? errorMessage
+ */
+int GlobalFunctions::luaFileSystemCreateDirectories(lua_State* L) {
+	if (!Lua::isString(L, 1)) {
+		Lua::pushBoolean(L, false);
+		Lua::pushString(L, "Directory path must be a string");
+		return 2;
+	}
+
+	return pushDirectoryCreationResult(L, std::filesystem::path(Lua::getString(L, 1)), true);
 }
 
 int GlobalFunctions::luaDoPlayerAddItem(lua_State* L) {

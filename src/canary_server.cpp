@@ -21,6 +21,7 @@
 #include "game/multichannel/channel_context.hpp"
 #include "game/multichannel/channel_registry.hpp"
 #include "game/multichannel/cluster_config_validator.hpp"
+#include "game/multichannel/cluster_handoff_runtime.hpp"
 #include "game/multichannel/cluster_job_leadership_registry.hpp"
 #include "game/multichannel/cluster_runtime.hpp"
 #include "game/multichannel/db_cluster_session_repository.hpp"
@@ -565,6 +566,12 @@ void CanaryServer::initializeMultichannelCluster() {
 	}
 
 	logger.info("[multichannel] Channel {} validated OK ({} channel(s) known to the registry).", g_channelContext().getChannelId(), g_channelRegistry().size());
+
+	// Cross-process DB-row handoff (docs/multichannel/
+	// CROSS_PROCESS_DB_ROW_HANDOFF.md) - deliberately DB-only, no Redis
+	// dependency, so configured unconditionally here rather than inside the
+	// CANARY_MULTICHANNEL_REDIS block below.
+	g_clusterHandoffRuntime().configure(g_channelContext().getChannelId());
 
 	// Map/datapack compatibility (docs/multichannel/ARCHITECTURE.md §3.5):
 	// house/tile identity is positionally derived from the OTBM file, so

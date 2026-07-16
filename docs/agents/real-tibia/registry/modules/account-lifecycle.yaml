@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "module_id": "account-lifecycle",
+  "name": "Account Lifecycle",
+  "category": "social-account",
+  "description": "Account identity, repository load/save, character roster and account-level status lifecycle discovery.",
+  "lifecycle": {
+    "status": "inventory",
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"
+  },
+  "scope": {
+    "includes": [
+      "account identity and descriptor state",
+      "account repository load, reload and save lifecycle",
+      "account character roster and ownership lookup",
+      "premium-day and account-type state as account lifecycle capabilities"
+    ],
+    "excludes": [
+      "password/session-token verification internals",
+      "account coin balances and transaction economy",
+      "feature-specific account-wide quest access",
+      "sanctions, moderation and audit policy",
+      "login/game wire protocol"
+    ]
+  },
+  "paths": {
+    "server": [
+      "src/account/**"
+    ],
+    "client": [],
+    "data": [],
+    "tests": [],
+    "docs": [
+      "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+      "docs/agents/real-tibia/TSD_003_ACCOUNT_CHARACTER_PROGRESSION_REPORT.md"
+    ]
+  },
+  "relationships": {
+    "depends_on": [
+      "database-connection"
+    ],
+    "interacts_with": [
+      "account-authentication",
+      "character-lifecycle",
+      "player-persistence"
+    ]
+  },
+  "documents": {
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+    "validation": [
+      "docs/agents/real-tibia/TSD_003_ACCOUNT_CHARACTER_PROGRESSION_REPORT.md"
+    ]
+  },
+  "source_requirements": [
+    {"source": "canary-current", "mode": "required"},
+    {"source": "runtime-observation", "mode": "required-when-related"}
+  ],
+  "maturity": {
+    "implementation": "inventory",
+    "evidence": "inventory",
+    "persistence": "not-assessed",
+    "protocol": "not-assessed",
+    "automated_tests": "not-assessed",
+    "runtime_validation": "not-assessed",
+    "gameplay_e2e": "not-assessed"
+  },
+  "freshness": {
+    "class": "fast",
+    "last_inventory": "2026-07-14",
+    "warning_after_days": 30,
+    "invalid_after_days": 90,
+    "refresh_before_each_task": true
+  },
+  "notes": [
+    "The account directory also contains coin operations; those remain outside this module and are reserved for the items/economy package.",
+    "Account entitlements are recorded as account-lifecycle capability until a separate stable implementation boundary is demonstrated."
+  ]
+}

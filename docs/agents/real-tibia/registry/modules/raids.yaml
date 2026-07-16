@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "module_id": "raids",
+  "name": "Raids",
+  "category": "world-content",
+  "description": "Raid registry, probabilistic scheduling, event ordering, spawn/announce/script execution, reset and reload lifecycle discovery.",
+  "lifecycle": {"status": "inventory", "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"},
+  "scope": {
+    "includes": ["raid XML registry load and reload", "raid interval, margin, repeat and running-state lifecycle", "periodic raid selection and scheduling", "ordered announce, single-spawn, area-spawn and script events", "raid stop, reset and last-end state"],
+    "excludes": ["generic static spawn placement", "individual raid and monster definitions as standalone modules", "boss reward scoring", "proof of probability, timing, event ordering or runtime correctness"]
+  },
+  "paths": {
+    "server": ["src/lua/creature/raids.*"],
+    "client": [],
+    "data": ["data/raids/**", "data-otservbr-global/scripts/raids/**"],
+    "tests": [],
+    "docs": ["docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md", "docs/agents/real-tibia/TSD_006_CREATURES_HUNTING_RAIDS_BOSSES_REPORT.md"]
+  },
+  "relationships": {
+    "depends_on": ["creature-definitions", "engine-scheduler"],
+    "interacts_with": ["boss-encounters", "creature-ai", "quests", "spawns"]
+  },
+  "documents": {"program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md", "validation": ["docs/agents/real-tibia/TSD_006_CREATURES_HUNTING_RAIDS_BOSSES_REPORT.md"]},
+  "source_requirements": [{"source": "canary-current", "mode": "required"}, {"source": "tibiawiki", "mode": "secondary"}, {"source": "runtime-observation", "mode": "required-when-related"}],
+  "maturity": {"implementation": "inventory", "evidence": "inventory", "persistence": "not-assessed", "protocol": "not-assessed", "automated_tests": "not-assessed", "runtime_validation": "not-assessed", "gameplay_e2e": "not-assessed"},
+  "freshness": {"class": "fast", "last_inventory": "2026-07-14", "warning_after_days": 30, "invalid_after_days": 90, "refresh_before_each_task": true},
+  "notes": ["Legacy raid scheduling is an independent state machine even though its events create monsters through shared spawn/game APIs.", "Passing compile or XML load does not prove real raid probability, timing, event order or server-restart behavior."]
+}

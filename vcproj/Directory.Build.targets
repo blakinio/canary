@@ -1,0 +1,5 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'canary'">
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\server\network\protocol\protocolgame_leave_game.cpp" />
+  </ItemGroup>
+</Project>

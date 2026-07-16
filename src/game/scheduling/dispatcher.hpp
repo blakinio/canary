@@ -152,6 +152,13 @@ public:
 		return dispacherContext;
 	}
 
+#ifdef BUILD_TESTS
+	void executeSerialEventsForTest() {
+		mergeEvents();
+		executeSerialEvents(static_cast<uint8_t>(TaskGroup::Serial));
+	}
+#endif
+
 private:
 	thread_local static DispatcherContext dispacherContext;
 
@@ -214,7 +221,6 @@ private:
 		for (uint_fast64_t i = 0; i < size; i += size_per_block) {
 			list.emplace_back(i, std::min<uint64_t>(size, i + size_per_block));
 		}
-
 		return list;
 	}
 

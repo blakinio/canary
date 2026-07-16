@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "module_id": "upstream-intelligence",
+  "name": "Upstream Intelligence and Drift Tracking",
+  "category": "platform-tooling",
+  "description": "Read-only discovery, provenance, module mapping and reviewed triage for OpenTibiaBR and CrystalServer repository drift.",
+  "lifecycle": {
+    "status": "active",
+    "program": "docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md"
+  },
+  "scope": {
+    "includes": [
+      "bounded GitHub commit, pull request, issue and release inventory",
+      "rolling-window source drift reports",
+      "Real Tibia module path mapping",
+      "exact local ancestry and history-reference probes",
+      "reviewed candidate decisions",
+      "stable local report issue and immutable workflow artifacts"
+    ],
+    "excludes": [
+      "automatic cherry-picks or implementation branches",
+      "automatic gameplay or protocol conclusions",
+      "writes to watched repositories",
+      "semantic patch-equivalence claims"
+    ]
+  },
+  "paths": {
+    "server": [],
+    "client": [],
+    "data": [],
+    "tests": ["tools/agents/test_upstream_intelligence.py"],
+    "docs": [
+      "docs/agents/upstream/**",
+      "docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md"
+    ]
+  },
+  "relationships": {
+    "depends_on": [],
+    "interacts_with": [
+      "combat",
+      "otbm-tooling",
+      "physical-client-e2e",
+      "protocol"
+    ]
+  },
+  "documents": {
+    "program": "docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md",
+    "validation": [
+      "docs/agents/upstream/SOURCE_WATCH_POLICY.md",
+      "docs/agents/upstream/TRIAGE_POLICY.md"
+    ]
+  },
+  "source_requirements": [
+    {"source": "canary-current", "mode": "required"},
+    {"source": "opentibiabr-canary", "mode": "required"},
+    {"source": "opentibiabr-otclient", "mode": "required-when-related"},
+    {"source": "crystalserver", "mode": "required"},
+    {"source": "opentibiabr-rme", "mode": "conditional"},
+    {"source": "opentibiabr-client-editor", "mode": "conditional"}
+  ],
+  "maturity": {
+    "implementation": "partial",
+    "evidence": "mapped",
+    "persistence": "not-applicable",
+    "protocol": "not-applicable",
+    "automated_tests": "integration",
+    "runtime_validation": "not-applicable",
+    "gameplay_e2e": "not-applicable"
+  },
+  "freshness": {
+    "class": "fast",
+    "last_inventory": "2026-07-14",
+    "warning_after_days": 14,
+    "invalid_after_days": 45,
+    "refresh_before_each_task": true
+  },
+  "notes": [
+    "Automatic candidate signals never authorize implementation.",
+    "Generated scan reports are workflow artifacts and a stable issue, not committed registry state."
+  ]
+}

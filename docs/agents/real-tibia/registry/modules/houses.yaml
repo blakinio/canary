@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "module_id": "houses",
+  "name": "Houses",
+  "category": "world-content",
+  "description": "House definitions, doors, ownership, beds, rent, persistence and client/world surfaces.",
+  "lifecycle": {
+    "status": "inventory"
+  },
+  "scope": {
+    "includes": [
+      "house definitions and doors",
+      "ownership and rent",
+      "beds",
+      "persistence",
+      "Cyclopedia and protocol surfaces"
+    ],
+    "excludes": [
+      "generic map geometry outside house boundaries"
+    ]
+  },
+  "paths": {
+    "server": [
+      "src/map/house/**",
+      "src/io/iohouse.*"
+    ],
+    "client": [],
+    "data": [],
+    "tests": [
+      "tests/unit/**house**",
+      "tests/integration/**house**"
+    ],
+    "docs": []
+  },
+  "relationships": {
+    "depends_on": [
+      "otbm-tooling",
+      "player-persistence"
+    ],
+    "interacts_with": [
+      "cyclopedia",
+      "protocol"
+    ]
+  },
+  "documents": {
+    "validation": []
+  },
+  "source_requirements": [
+    {
+      "source": "canary-current",
+      "mode": "required"
+    },
+    {
+      "source": "tibia-official",
+      "mode": "required-when-parity"
+    },
+    {
+      "source": "tibiawiki",
+      "mode": "secondary"
+    },
+    {
+      "source": "maintained-otclient",
+      "mode": "required-when-related"
+    }
+  ],
+  "maturity": {
+    "implementation": "inventory",
+    "evidence": "inventory",
+    "persistence": "not-assessed",
+    "protocol": "not-assessed",
+    "automated_tests": "not-assessed",
+    "runtime_validation": "not-assessed",
+    "gameplay_e2e": "not-assessed"
+  },
+  "freshness": {
+    "class": "medium",
+    "last_inventory": "2026-07-14",
+    "warning_after_days": 60,
+    "invalid_after_days": 180,
+    "refresh_before_each_task": true
+  },
+  "notes": []
+}

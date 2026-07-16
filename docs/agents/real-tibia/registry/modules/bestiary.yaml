@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "module_id": "bestiary",
+  "name": "Bestiary",
+  "category": "character-progression",
+  "description": "Bestiary kill tracking, unlock stages, race discovery, Charm-point rewards and completed-creature progression discovery.",
+  "lifecycle": {
+    "status": "inventory",
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"
+  },
+  "scope": {
+    "includes": [
+      "monster Bestiary kill tracking",
+      "kill status and unlock-stage progression",
+      "Bestiary race lookup and unlocked-race counts",
+      "finished and stage-two creature lists",
+      "Charm-point and minor-echo reward handoff"
+    ],
+    "excludes": [
+      "Charm registry, purchase, assignment and combat-effect ownership",
+      "generic monster AI, spawn scheduling and loot generation",
+      "all monster definition files as a module ownership root",
+      "Bestiary packet correctness and maintained-client rendering proof"
+    ]
+  },
+  "paths": {
+    "server": [
+      "src/io/iobestiary.*"
+    ],
+    "client": [
+      "modules/game_cyclopedia/tab/bestiary/**"
+    ],
+    "data": [],
+    "tests": [
+      "tools/ai-agent/cyclopedia_validation.py",
+      "tools/ai-agent/test_cyclopedia_validation.py"
+    ],
+    "docs": [
+      "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+      "docs/agents/real-tibia/TSD_004_CYCLOPEDIA_FAMILY_REPORT.md",
+      "docs/ai-agent/OTS_AI_CYCLOPEDIA_VALIDATION_PROJECT.md",
+      "docs/ai-agent/CYCLOPEDIA_VALIDATION_REPORT.md"
+    ]
+  },
+  "relationships": {
+    "depends_on": [
+      "cyclopedia",
+      "player-persistence"
+    ],
+    "interacts_with": [
+      "charms",
+      "combat",
+      "protocol",
+      "spawns",
+      "titles"
+    ]
+  },
+  "documents": {
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+    "validation": [
+      "docs/agents/real-tibia/TSD_004_CYCLOPEDIA_FAMILY_REPORT.md",
+      "docs/ai-agent/OTS_AI_CYCLOPEDIA_VALIDATION_PROJECT.md",
+      "docs/ai-agent/CYCLOPEDIA_VALIDATION_REPORT.md"
+    ]
+  },
+  "source_requirements": [
+    {"source": "canary-current", "mode": "required"},
+    {"source": "maintained-otclient", "mode": "required-when-related"},
+    {"source": "tibia-official", "mode": "required-when-parity"},
+    {"source": "runtime-observation", "mode": "required-when-related"}
+  ],
+  "maturity": {
+    "implementation": "inventory",
+    "evidence": "inventory",
+    "persistence": "not-assessed",
+    "protocol": "not-assessed",
+    "automated_tests": "not-assessed",
+    "runtime_validation": "not-assessed",
+    "gameplay_e2e": "not-assessed"
+  },
+  "freshness": {
+    "class": "fast",
+    "last_inventory": "2026-07-14",
+    "warning_after_days": 30,
+    "invalid_after_days": 90,
+    "refresh_before_each_task": true
+  },
+  "notes": [
+    "IOBestiary also hosts Charm helper methods; the existing `charms` record retains ownership of Charm definitions, unlocks, assignment and combat effects.",
+    "The existing Cyclopedia validator scans active monster definitions as evidence, but those files are not claimed as Bestiary ownership paths."
+  ]
+}

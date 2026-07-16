@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "module_id": "chat-communication",
+  "name": "Chat Communication",
+  "category": "social-account",
+  "description": "Public, private, party and guild chat-channel registry, membership and invitation lifecycle discovery.",
+  "lifecycle": {"status": "inventory", "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"},
+  "scope": {
+    "includes": ["configured public and scripted chat channels", "channel join, leave and speak callback dispatch", "runtime party and guild channel creation and deletion", "premium private-channel ownership, invitation and exclusion", "channel user membership and close notifications"],
+    "excludes": ["wire packet framing and opcode compatibility", "NPC conversation state", "party and guild membership lifecycle", "message privacy, delivery or moderation correctness", "planned chat-safety-intelligence"]
+  },
+  "paths": {
+    "server": ["src/creatures/interactions/chat.*"],
+    "client": [],
+    "data": ["data/chatchannels/**"],
+    "tests": [],
+    "docs": ["docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md", "docs/agents/real-tibia/TSD_009_SOCIAL_COMMUNICATION_TRUST_REPORT.md"]
+  },
+  "relationships": {
+    "depends_on": ["character-lifecycle"],
+    "interacts_with": ["guilds", "parties", "protocol"]
+  },
+  "documents": {"program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md", "validation": ["docs/agents/real-tibia/TSD_009_SOCIAL_COMMUNICATION_TRUST_REPORT.md"]},
+  "source_requirements": [{"source": "canary-current", "mode": "required"}, {"source": "runtime-observation", "mode": "required-when-related"}, {"source": "maintained-otclient", "mode": "required-when-related"}],
+  "maturity": {"implementation": "inventory", "evidence": "inventory", "persistence": "not-assessed", "protocol": "not-assessed", "automated_tests": "not-assessed", "runtime_validation": "not-assessed", "gameplay_e2e": "not-assessed"},
+  "freshness": {"class": "fast", "last_inventory": "2026-07-14", "warning_after_days": 30, "invalid_after_days": 90, "refresh_before_each_task": true},
+  "notes": ["Chat::load and the runtime channel maps establish an implementation boundary only; they do not prove delivery, privacy, moderation or client compatibility.", "Party and guild channels are communication projections over separate party and guild lifecycles rather than ownership of those social groups."]
+}

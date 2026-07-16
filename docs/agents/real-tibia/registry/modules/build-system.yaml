@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "module_id": "build-system",
+  "name": "Build System",
+  "category": "engine-foundation",
+  "description": "Configure, dependency, target, compiler-option, platform-build and required build-gate metadata for maintained Canary build entry points.",
+  "lifecycle": {
+    "status": "inventory",
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"
+  },
+  "scope": {
+    "includes": [
+      "CMake project and target composition",
+      "CMake presets and vcpkg dependency manifest",
+      "compiler, CPU and optimization options",
+      "maintained Visual Studio project metadata",
+      "test-build activation and required CI build gate",
+      "platform compatibility as a build capability"
+    ],
+    "excludes": [
+      "deployment and production configuration",
+      "runtime operating-system behavior",
+      "container orchestration and release operations as independent domains",
+      "claims that every compiler, CPU or operating-system combination builds or runs correctly"
+    ]
+  },
+  "paths": {
+    "server": [
+      "CMakeLists.txt",
+      "CMakePresets.json",
+      "cmake/**",
+      "src/CMakeLists.txt",
+      "vcpkg.json",
+      "vcproj/canary.vcxproj"
+    ],
+    "client": [],
+    "data": [],
+    "tests": [
+      ".github/workflows/ci.yml",
+      "tests/CMakeLists.txt"
+    ],
+    "docs": [
+      "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+      "docs/agents/real-tibia/TSD_002A_ENGINE_FOUNDATION_REPORT.md"
+    ]
+  },
+  "relationships": {
+    "depends_on": [],
+    "interacts_with": [
+      "configuration",
+      "engine-runtime-lifecycle",
+      "engine-scheduler",
+      "engine-service-container",
+      "lua-bindings",
+      "lua-runtime"
+    ]
+  },
+  "documents": {
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+    "validation": [
+      "docs/agents/real-tibia/TSD_002A_ENGINE_FOUNDATION_REPORT.md"
+    ]
+  },
+  "source_requirements": [
+    {"source": "canary-current", "mode": "required"}
+  ],
+  "maturity": {
+    "implementation": "inventory",
+    "evidence": "inventory",
+    "persistence": "not-assessed",
+    "protocol": "not-assessed",
+    "automated_tests": "not-assessed",
+    "runtime_validation": "not-assessed",
+    "gameplay_e2e": "not-assessed"
+  },
+  "freshness": {
+    "class": "fast",
+    "last_inventory": "2026-07-14",
+    "warning_after_days": 30,
+    "invalid_after_days": 90,
+    "refresh_before_each_task": true
+  },
+  "notes": [
+    "Platform compatibility is currently a capability of this build contract, not an independent runtime subsystem.",
+    "A successful build does not prove runtime, gameplay, persistence, protocol or physical-client behavior.",
+    "The registered CI path is discovery metadata; this task does not modify workflow behavior."
+  ]
+}

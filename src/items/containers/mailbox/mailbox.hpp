@@ -46,5 +46,13 @@ private:
 	bool getReceiver(const std::shared_ptr<Item> &item, std::string &name) const;
 	bool sendItem(const std::shared_ptr<Item> &item) const;
 
+	// Recipient not found in this process's own live state and multichannel
+	// clustering is enabled - durably hands delivery off via
+	// ClusterHandoffRuntime instead of writing to a possibly-stale local
+	// offline copy (docs/multichannel/CROSS_PROCESS_DB_ROW_HANDOFF.md §6.1).
+	// Only ever reached when multichannel is enabled; single-channel mode
+	// never calls this (see sendItem).
+	bool sendItemAcrossCluster(const std::shared_ptr<Item> &item, const std::string &receiver, const std::string &writer, time_t date, const std::string &text) const;
+
 	static bool canSend(const std::shared_ptr<Item> &item);
 };

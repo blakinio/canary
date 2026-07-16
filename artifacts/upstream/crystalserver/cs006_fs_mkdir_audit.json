@@ -1,0 +1,3840 @@
+{
+  "calls": [
+    {
+      "context": [
+        "436: \tlocal player = Player(playerGuid)",
+        "437: \tif not player then",
+        "438: \t\treturn false",
+        "439: \tend",
+        "440: \tlocal name = player:getName():gsub(\"%s+\", \"_\")",
+        "441: \tFS.mkdir_p(string.format(\"%s/reports/players/%s\", CORE_DIRECTORY, name))",
+        "442: \tlocal file = io.open(string.format(\"%s/reports/players/%s-%s-%d.txt\", CORE_DIRECTORY, name, targetName, reportType), \"r\")",
+        "443: \tif file then",
+        "444: \t\tio.close(file)",
+        "445: \t\treturn true",
+        "446: \tend"
+      ],
+      "lexical_signals": [
+        "player-user",
+        "filesystem-derived"
+      ],
+      "line": 441,
+      "manual_provenance_required": true,
+      "path": "data/events/scripts/player.lua",
+      "text": "FS.mkdir_p(string.format(\"%s/reports/players/%s\", CORE_DIRECTORY, name))"
+    },
+    {
+      "context": [
+        "484: \treturn",
+        "485: end",
+        "486: ",
+        "487: function Player:onReportBug(message, position, category)",
+        "488: \tlocal name = self:getName():gsub(\"%s+\", \"_\")",
+        "489: \tFS.mkdir_p(string.format(\"%s/reports/bugs/%s\", CORE_DIRECTORY, name))",
+        "490: \tlocal file = io.open(string.format(\"%s/reports/bugs/%s/report.txt\", CORE_DIRECTORY, name), \"a\")",
+        "491: ",
+        "492: \tif not file then",
+        "493: \t\tself:sendTextMessage(MESSAGE_EVENT_ADVANCE, \"There was an error when processing your report, please contact a gamemaster.\")",
+        "494: \t\treturn true"
+      ],
+      "lexical_signals": [
+        "player-user",
+        "filesystem-derived"
+      ],
+      "line": 489,
+      "manual_provenance_required": true,
+      "path": "data/events/scripts/player.lua",
+      "text": "FS.mkdir_p(string.format(\"%s/reports/bugs/%s\", CORE_DIRECTORY, name))"
+    },
+    {
+      "context": [
+        "33: \tlocal currentPath = \"\"",
+        "34: \tfor i, component in ipairs(components) do",
+        "35: \t\tcurrentPath = currentPath .. component",
+        "36: ",
+        "37: \t\tif not FS.exists(currentPath) then",
+        "38: \t\t\tlocal success, err = FS.mkdir(currentPath)",
+        "39: \t\t\tif not success then",
+        "40: \t\t\t\treturn false, err",
+        "41: \t\t\tend",
+        "42: \t\tend",
+        "43: "
+      ],
+      "lexical_signals": [
+        "filesystem-derived"
+      ],
+      "line": 38,
+      "manual_provenance_required": true,
+      "path": "data/libs/functions/fs.lua",
+      "text": "local success, err = FS.mkdir(currentPath)"
+    },
+    {
+      "context": [
+        "43: reuses:",
+        "44:   - existing Lua test and CI infrastructure after discovery",
+        "45:   - existing filesystem/Lua bindings if current source proves one exists",
+        "46:   - existing bounded self-removing audit workflow pattern",
+        "47: public_interfaces:",
+        "48:   - \"FS.mkdir(path) return contract (preserve unless evidence requires a compatible extension)\"",
+        "49:   - \"FS.mkdir_p(path) behavior through FS.mkdir\"",
+        "50: cross_repo_tasks: []",
+        "51: ---",
+        "52: ",
+        "53: # Goal"
+      ],
+      "lexical_signals": [
+        "filesystem-derived"
+      ],
+      "line": 48,
+      "manual_provenance_required": true,
+      "path": "docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md",
+      "text": "- \"FS.mkdir(path) return contract (preserve unless evidence requires a compatible extension)\""
+    },
+    {
+      "context": [
+        "44:   - existing Lua test and CI infrastructure after discovery",
+        "45:   - existing filesystem/Lua bindings if current source proves one exists",
+        "46:   - existing bounded self-removing audit workflow pattern",
+        "47: public_interfaces:",
+        "48:   - \"FS.mkdir(path) return contract (preserve unless evidence requires a compatible extension)\"",
+        "49:   - \"FS.mkdir_p(path) behavior through FS.mkdir\"",
+        "50: cross_repo_tasks: []",
+        "51: ---",
+        "52: ",
+        "53: # Goal",
+        "54: "
+      ],
+      "lexical_signals": [
+        "filesystem-derived"
+      ],
+      "line": 49,
+      "manual_provenance_required": true,
+      "path": "docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md",
+      "text": "- \"FS.mkdir_p(path) behavior through FS.mkdir\""
+    }
+  ],
+  "commit": "4695d10158386da1af517a233bdb3e5cda0d2c23",
+  "definitions": [
+    {
+      "line": 12,
+      "path": "data/libs/functions/fs.lua",
+      "text": "function FS.mkdir(path)"
+    },
+    {
+      "line": 23,
+      "path": "data/libs/functions/fs.lua",
+      "text": "function FS.mkdir_p(path)"
+    }
+  ],
+  "limitations": [
+    "Lexical signals are not reachability or exploitability proof.",
+    "Dynamic aliases may require manual tracing.",
+    "The temporary runner and generated reports are excluded from matching."
+  ],
+  "lua_test_harness_signals": [
+    {
+      "line": 76,
+      "path": ".github/workflows/gameplay-analytics-dry-run.yml",
+      "text": "luajit tools/analytics/test_gameplay_analytics_context.lua"
+    },
+    {
+      "line": 77,
+      "path": ".github/workflows/gameplay-analytics-dry-run.yml",
+      "text": "luajit tools/analytics/test_gameplay_analytics_batching.lua"
+    },
+    {
+      "line": 78,
+      "path": ".github/workflows/gameplay-analytics-dry-run.yml",
+      "text": "luajit tools/analytics/test_gameplay_analytics_reliability.lua"
+    },
+    {
+      "line": 79,
+      "path": ".github/workflows/gameplay-analytics-dry-run.yml",
+      "text": "luajit tools/analytics/test_gameplay_analytics_correctness.lua"
+    },
+    {
+      "line": 80,
+      "path": ".github/workflows/gameplay-analytics-dry-run.yml",
+      "text": "luajit tools/analytics/test_gameplay_analytics_correctness_edge_cases.lua"
+    },
+    {
+      "line": 81,
+      "path": ".github/workflows/gameplay-analytics-dry-run.yml",
+      "text": "luajit tools/analytics/test_gameplay_analytics_schema.lua"
+    },
+    {
+      "line": 82,
+      "path": ".github/workflows/gameplay-analytics-dry-run.yml",
+      "text": "luajit tools/analytics/test_gameplay_analytics_supply_loot_prices.lua"
+    },
+    {
+      "line": 83,
+      "path": ".github/workflows/gameplay-analytics-dry-run.yml",
+      "text": "luajit tools/analytics/test_gameplay_analytics_supply_loot_integration.lua"
+    },
+    {
+      "line": 13,
+      "path": ".github/workflows/gameplay-analytics-spells.yml",
+      "text": "- \"tools/analytics/test_gameplay_analytics_spell_integration.lua\""
+    },
+    {
+      "line": 27,
+      "path": ".github/workflows/gameplay-analytics-spells.yml",
+      "text": "- \"tools/analytics/test_gameplay_analytics_spell_integration.lua\""
+    },
+    {
+      "line": 53,
+      "path": ".github/workflows/gameplay-analytics-spells.yml",
+      "text": "run: luajit tools/analytics/test_gameplay_analytics_spell_integration.lua"
+    },
+    {
+      "line": 14,
+      "path": ".github/workflows/gameplay-analytics-supply-loot.yml",
+      "text": "- \"tools/analytics/test_gameplay_analytics_supply_loot_prices.lua\""
+    },
+    {
+      "line": 15,
+      "path": ".github/workflows/gameplay-analytics-supply-loot.yml",
+      "text": "- \"tools/analytics/test_gameplay_analytics_supply_loot_integration.lua\""
+    },
+    {
+      "line": 32,
+      "path": ".github/workflows/gameplay-analytics-supply-loot.yml",
+      "text": "- \"tools/analytics/test_gameplay_analytics_supply_loot_prices.lua\""
+    },
+    {
+      "line": 33,
+      "path": ".github/workflows/gameplay-analytics-supply-loot.yml",
+      "text": "- \"tools/analytics/test_gameplay_analytics_supply_loot_integration.lua\""
+    },
+    {
+      "line": 61,
+      "path": ".github/workflows/gameplay-analytics-supply-loot.yml",
+      "text": "run: luajit tools/analytics/test_gameplay_analytics_supply_loot_prices.lua"
+    },
+    {
+      "line": 63,
+      "path": ".github/workflows/gameplay-analytics-supply-loot.yml",
+      "text": "run: luajit tools/analytics/test_gameplay_analytics_supply_loot_integration.lua"
+    },
+    {
+      "line": 29,
+      "path": ".github/workflows/gameplay-analytics.yml",
+      "text": "- \"tools/analytics/test_gameplay_analytics_batching.lua\""
+    },
+    {
+      "line": 30,
+      "path": ".github/workflows/gameplay-analytics.yml",
+      "text": "- \"tools/analytics/test_gameplay_analytics_context.lua\""
+    },
+    {
+      "line": 31,
+      "path": ".github/workflows/gameplay-analytics.yml",
+      "text": "- \"tools/analytics/test_gameplay_analytics_correctness.lua\""
+    },
+    {
+      "line": 32,
+      "path": ".github/workflows/gameplay-analytics.yml",
+      "text": "- \"tools/analytics/test_gameplay_analytics_reliability.lua\""
+    },
+    {
+      "line": 33,
+      "path": ".github/workflows/gameplay-analytics.yml",
+      "text": "- \"tools/analytics/test_gameplay_analytics_schema.lua\""
+    },
+    {
+      "line": 76,
+      "path": ".github/workflows/gameplay-analytics.yml",
+      "text": "- \"tools/analytics/test_gameplay_analytics_batching.lua\""
+    },
+    {
+      "line": 77,
+      "path": ".github/workflows/gameplay-analytics.yml",
+      "text": "- \"tools/analytics/test_gameplay_analytics_context.lua\""
+    },
+    {
+      "line": 78,
+      "path": ".github/workflows/gameplay-analytics.yml",
+      "text": "- \"tools/analytics/test_gameplay_analytics_correctness.lua\""
+    },
+    {
+      "line": 79,
+      "path": ".github/workflows/gameplay-analytics.yml",
+      "text": "- \"tools/analytics/test_gameplay_analytics_reliability.lua\""
+    },
+    {
+      "line": 80,
+      "path": ".github/workflows/gameplay-analytics.yml",
+      "text": "- \"tools/analytics/test_gameplay_analytics_schema.lua\""
+    },
+    {
+      "line": 147,
+      "path": ".github/workflows/gameplay-analytics.yml",
+      "text": "run: luajit tools/analytics/test_gameplay_analytics_context.lua"
+    },
+    {
+      "line": 149,
+      "path": ".github/workflows/gameplay-analytics.yml",
+      "text": "run: luajit tools/analytics/test_gameplay_analytics_batching.lua"
+    },
+    {
+      "line": 151,
+      "path": ".github/workflows/gameplay-analytics.yml",
+      "text": "run: luajit tools/analytics/test_gameplay_analytics_reliability.lua"
+    },
+    {
+      "line": 153,
+      "path": ".github/workflows/gameplay-analytics.yml",
+      "text": "run: luajit tools/analytics/test_gameplay_analytics_correctness.lua"
+    },
+    {
+      "line": 155,
+      "path": ".github/workflows/gameplay-analytics.yml",
+      "text": "run: luajit tools/analytics/test_gameplay_analytics_schema.lua"
+    },
+    {
+      "line": 15,
+      "path": ".github/workflows/reusable-tests-lua.yml",
+      "text": "name: Run Lua Tests"
+    },
+    {
+      "line": 36,
+      "path": ".github/workflows/reusable-tests-lua.yml",
+      "text": "for f in tests/lua/test_*.lua; do"
+    },
+    {
+      "line": 1,
+      "path": "data-canary/lib/core/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/core/storages.lua\")"
+    },
+    {
+      "line": 5,
+      "path": "data-canary/lib/core/quests/catalog/init.lua",
+      "text": "local catalog = dofile(CORE_DIRECTORY .. \"/lib/core/quests/catalog.lua\")"
+    },
+    {
+      "line": 2,
+      "path": "data-canary/lib/lib.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/core/load.lua\")"
+    },
+    {
+      "line": 1,
+      "path": "data-otservbr-global/lib/core/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/core/storages.lua\")"
+    },
+    {
+      "line": 2,
+      "path": "data-otservbr-global/lib/core/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/core/constants.lua\")"
+    },
+    {
+      "line": 55,
+      "path": "data-otservbr-global/lib/core/quests/catalog/init.lua",
+      "text": "local catalog = dofile(CORE_DIRECTORY .. \"/lib/core/quests/catalog.lua\")"
+    },
+    {
+      "line": 1,
+      "path": "data-otservbr-global/lib/functions/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/functions/players.lua\")"
+    },
+    {
+      "line": 2,
+      "path": "data-otservbr-global/lib/lib.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/core/load.lua\")"
+    },
+    {
+      "line": 5,
+      "path": "data-otservbr-global/lib/lib.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/others/load.lua\")"
+    },
+    {
+      "line": 8,
+      "path": "data-otservbr-global/lib/lib.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/quests/quest.lua\")"
+    },
+    {
+      "line": 11,
+      "path": "data-otservbr-global/lib/lib.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/tables/load.lua\")"
+    },
+    {
+      "line": 14,
+      "path": "data-otservbr-global/lib/lib.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/functions/load.lua\")"
+    },
+    {
+      "line": 1,
+      "path": "data-otservbr-global/lib/others/dawnport.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/vocation.lua\")"
+    },
+    {
+      "line": 1,
+      "path": "data-otservbr-global/lib/others/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/others/dawnport.lua\")"
+    },
+    {
+      "line": 2,
+      "path": "data-otservbr-global/lib/others/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/others/soulpit.lua\")"
+    },
+    {
+      "line": 1,
+      "path": "data-otservbr-global/lib/quests/quest.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/quests/bigfoot_burden.lua\")"
+    },
+    {
+      "line": 2,
+      "path": "data-otservbr-global/lib/quests/quest.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/quests/demon_oak.lua\")"
+    },
+    {
+      "line": 3,
+      "path": "data-otservbr-global/lib/quests/quest.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/quests/grimvale.lua\")"
+    },
+    {
+      "line": 4,
+      "path": "data-otservbr-global/lib/quests/quest.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/quests/killing_in_the_name_of.lua\")"
+    },
+    {
+      "line": 5,
+      "path": "data-otservbr-global/lib/quests/quest.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/quests/svargrond_arena.lua\")"
+    },
+    {
+      "line": 6,
+      "path": "data-otservbr-global/lib/quests/quest.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/quests/the_cursed_crystal.lua\")"
+    },
+    {
+      "line": 7,
+      "path": "data-otservbr-global/lib/quests/quest.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/quests/the_queen_of_the_banshees.lua\")"
+    },
+    {
+      "line": 8,
+      "path": "data-otservbr-global/lib/quests/quest.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/quests/soul_war.lua\")"
+    },
+    {
+      "line": 9,
+      "path": "data-otservbr-global/lib/quests/quest.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/quests/their_masters_voice.lua\")"
+    },
+    {
+      "line": 10,
+      "path": "data-otservbr-global/lib/quests/quest.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/quests/the_primal_ordeal.lua\")"
+    },
+    {
+      "line": 1,
+      "path": "data-otservbr-global/lib/tables/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/tables/teleport_item_destinations.lua\")"
+    },
+    {
+      "line": 2,
+      "path": "data-otservbr-global/lib/tables/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/tables/town.lua\")"
+    },
+    {
+      "line": 1,
+      "path": "data-otservbr-global/npc/alesar.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/npc/alesar_functions.lua\")"
+    },
+    {
+      "line": 1,
+      "path": "data-otservbr-global/scripts/creaturescripts/others/droploot.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/blessing.lua\")"
+    },
+    {
+      "line": 2,
+      "path": "data-otservbr-global/scripts/globalevents/update.lua",
+      "text": "dofile(fileToUpdate)"
+    },
+    {
+      "line": 1,
+      "path": "data-otservbr-global/scripts/spells/monster/gaz'haragoth_summon.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/scripts/spells/monster/gaz_functions.lua\")"
+    },
+    {
+      "line": 1,
+      "path": "data-otservbr-global/scripts/systems/gameplay_analytics.lua",
+      "text": "local Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics.lua\")"
+    },
+    {
+      "line": 2,
+      "path": "data-otservbr-global/scripts/systems/gameplay_analytics.lua",
+      "text": "Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_context.lua\")"
+    },
+    {
+      "line": 3,
+      "path": "data-otservbr-global/scripts/systems/gameplay_analytics.lua",
+      "text": "Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_schema.lua\")"
+    },
+    {
+      "line": 4,
+      "path": "data-otservbr-global/scripts/systems/gameplay_analytics.lua",
+      "text": "Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_batching.lua\")"
+    },
+    {
+      "line": 5,
+      "path": "data-otservbr-global/scripts/systems/gameplay_analytics.lua",
+      "text": "Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_reliability.lua\")"
+    },
+    {
+      "line": 6,
+      "path": "data-otservbr-global/scripts/systems/gameplay_analytics.lua",
+      "text": "Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_correctness.lua\")"
+    },
+    {
+      "line": 1,
+      "path": "data-otservbr-global/startup/others/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/others/functions.lua\")"
+    },
+    {
+      "line": 1,
+      "path": "data-otservbr-global/startup/startup.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/tables/load.lua\")"
+    },
+    {
+      "line": 2,
+      "path": "data-otservbr-global/startup/startup.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/others/load.lua\")"
+    },
+    {
+      "line": 1,
+      "path": "data-otservbr-global/startup/tables/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/tables/chest.lua\")"
+    },
+    {
+      "line": 2,
+      "path": "data-otservbr-global/startup/tables/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/tables/corpse.lua\")"
+    },
+    {
+      "line": 3,
+      "path": "data-otservbr-global/startup/tables/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/tables/create_item.lua\")"
+    },
+    {
+      "line": 4,
+      "path": "data-otservbr-global/startup/tables/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/tables/door_key.lua\")"
+    },
+    {
+      "line": 5,
+      "path": "data-otservbr-global/startup/tables/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/tables/door_level.lua\")"
+    },
+    {
+      "line": 6,
+      "path": "data-otservbr-global/startup/tables/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/tables/door_quest.lua\")"
+    },
+    {
+      "line": 7,
+      "path": "data-otservbr-global/startup/tables/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/tables/item.lua\")"
+    },
+    {
+      "line": 8,
+      "path": "data-otservbr-global/startup/tables/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/tables/item_daily_reward.lua\")"
+    },
+    {
+      "line": 9,
+      "path": "data-otservbr-global/startup/tables/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/tables/item_unmovable.lua\")"
+    },
+    {
+      "line": 10,
+      "path": "data-otservbr-global/startup/tables/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/tables/lever.lua\")"
+    },
+    {
+      "line": 11,
+      "path": "data-otservbr-global/startup/tables/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/tables/teleport.lua\")"
+    },
+    {
+      "line": 12,
+      "path": "data-otservbr-global/startup/tables/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/tables/teleport_item.lua\")"
+    },
+    {
+      "line": 13,
+      "path": "data-otservbr-global/startup/tables/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/tables/tile.lua\")"
+    },
+    {
+      "line": 14,
+      "path": "data-otservbr-global/startup/tables/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/tables/tile_pick.lua\")"
+    },
+    {
+      "line": 15,
+      "path": "data-otservbr-global/startup/tables/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/tables/writeable.lua\")"
+    },
+    {
+      "line": 16,
+      "path": "data-otservbr-global/startup/tables/load.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/tables/storage_keys_update.lua\")"
+    },
+    {
+      "line": 4,
+      "path": "data/core.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/global.lua\")"
+    },
+    {
+      "line": 5,
+      "path": "data/core.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/libs.lua\")"
+    },
+    {
+      "line": 6,
+      "path": "data/core.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/stages.lua\")"
+    },
+    {
+      "line": 3,
+      "path": "data/global.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/lib/lib.lua\")"
+    },
+    {
+      "line": 7,
+      "path": "data/global.lua",
+      "text": "dofile(DATA_DIRECTORY .. \"/startup/startup.lua\")"
+    },
+    {
+      "line": 24,
+      "path": "data/lib/core/quests/loader.lua",
+      "text": "local loader, errorMessage = loadfile(filePath)"
+    },
+    {
+      "line": 1427,
+      "path": "data/libs/compat/compat.lua",
+      "text": "dofile(\"config.lua\")"
+    },
+    {
+      "line": 2,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/bit.lua\")"
+    },
+    {
+      "line": 3,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/bitwise_flags.lua\")"
+    },
+    {
+      "line": 4,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/bank.lua\")"
+    },
+    {
+      "line": 5,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/boss_lever.lua\")"
+    },
+    {
+      "line": 6,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/combat.lua\")"
+    },
+    {
+      "line": 7,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/constants.lua\")"
+    },
+    {
+      "line": 8,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/container.lua\")"
+    },
+    {
+      "line": 9,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/creature.lua\")"
+    },
+    {
+      "line": 10,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/fs.lua\")"
+    },
+    {
+      "line": 11,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/functions.lua\")"
+    },
+    {
+      "line": 12,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/game.lua\")"
+    },
+    {
+      "line": 13,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/gematelier.lua\")"
+    },
+    {
+      "line": 14,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/item.lua\")"
+    },
+    {
+      "line": 15,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/itemtype.lua\")"
+    },
+    {
+      "line": 16,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/lever.lua\")"
+    },
+    {
+      "line": 17,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/modal_window_helper.lua\")"
+    },
+    {
+      "line": 18,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/monster.lua\")"
+    },
+    {
+      "line": 19,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/monstertype.lua\")"
+    },
+    {
+      "line": 20,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/party.lua\")"
+    },
+    {
+      "line": 21,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/player.lua\")"
+    },
+    {
+      "line": 22,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/position.lua\")"
+    },
+    {
+      "line": 23,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/pronouns.lua\")"
+    },
+    {
+      "line": 24,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/quests.lua\")"
+    },
+    {
+      "line": 25,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/queue.lua\")"
+    },
+    {
+      "line": 26,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/revscriptsys.lua\")"
+    },
+    {
+      "line": 27,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/set.lua\")"
+    },
+    {
+      "line": 28,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/spawn.lua\")"
+    },
+    {
+      "line": 29,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/spectators.lua\")"
+    },
+    {
+      "line": 30,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/string.lua\")"
+    },
+    {
+      "line": 31,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/tables.lua\")"
+    },
+    {
+      "line": 32,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/teleport.lua\")"
+    },
+    {
+      "line": 33,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/tile.lua\")"
+    },
+    {
+      "line": 34,
+      "path": "data/libs/functions/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/vocation.lua\")"
+    },
+    {
+      "line": 2,
+      "path": "data/libs/libs.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/functions/load.lua\")"
+    },
+    {
+      "line": 5,
+      "path": "data/libs/libs.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/core/global_storage.lua\")"
+    },
+    {
+      "line": 8,
+      "path": "data/libs/libs.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/compat/compat.lua\")"
+    },
+    {
+      "line": 11,
+      "path": "data/libs/libs.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/debugging/dump.lua\")"
+    },
+    {
+      "line": 14,
+      "path": "data/libs/libs.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/load.lua\")"
+    },
+    {
+      "line": 17,
+      "path": "data/libs/libs.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/tables/load.lua\")"
+    },
+    {
+      "line": 2,
+      "path": "data/libs/systems/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/blessing.lua\")"
+    },
+    {
+      "line": 3,
+      "path": "data/libs/systems/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/concoctions.lua\")"
+    },
+    {
+      "line": 4,
+      "path": "data/libs/systems/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/daily_reward.lua\")"
+    },
+    {
+      "line": 5,
+      "path": "data/libs/systems/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/encounters.lua\")"
+    },
+    {
+      "line": 6,
+      "path": "data/libs/systems/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/exaltation_forge.lua\")"
+    },
+    {
+      "line": 7,
+      "path": "data/libs/systems/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/familiar.lua\")"
+    },
+    {
+      "line": 8,
+      "path": "data/libs/systems/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/features.lua\")"
+    },
+    {
+      "line": 9,
+      "path": "data/libs/systems/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/hazard.lua\")"
+    },
+    {
+      "line": 10,
+      "path": "data/libs/systems/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/hireling.lua\")"
+    },
+    {
+      "line": 11,
+      "path": "data/libs/systems/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/raids.lua\")"
+    },
+    {
+      "line": 12,
+      "path": "data/libs/systems/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/reward_boss.lua\")"
+    },
+    {
+      "line": 13,
+      "path": "data/libs/systems/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/vip.lua\")"
+    },
+    {
+      "line": 14,
+      "path": "data/libs/systems/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/zones.lua\")"
+    },
+    {
+      "line": 2,
+      "path": "data/libs/tables/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/tables/doors.lua\")"
+    },
+    {
+      "line": 3,
+      "path": "data/libs/tables/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/tables/windows.lua\")"
+    },
+    {
+      "line": 30,
+      "path": "data/modules/scripts/gamestore/catalog/init.lua",
+      "text": "local inlineCategories = dofile(basePath .. \"parent_categories.lua\")"
+    },
+    {
+      "line": 36,
+      "path": "data/modules/scripts/gamestore/catalog/init.lua",
+      "text": "category = dofile(basePath .. moduleName .. \".lua\")"
+    },
+    {
+      "line": 9,
+      "path": "data/modules/scripts/gamestore/gamestore.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/modules/scripts/gamestore/init.lua\")"
+    },
+    {
+      "line": 27,
+      "path": "data/modules/scripts/gamestore/gamestore.lua",
+      "text": "local catalogLoader = dofile(CORE_DIRECTORY .. \"/modules/scripts/gamestore/catalog_loader.lua\")"
+    },
+    {
+      "line": 28,
+      "path": "data/modules/scripts/gamestore/gamestore.lua",
+      "text": "local catalogModules = dofile(CORE_DIRECTORY .. \"/modules/scripts/gamestore/catalog/init.lua\")"
+    },
+    {
+      "line": 38,
+      "path": "data/modules/scripts/gamestore/gamestore.lua",
+      "text": "category = dofile(catalogBasePath .. moduleName .. \".lua\")"
+    },
+    {
+      "line": 43,
+      "path": "data/modules/scripts/gamestore/gamestore.lua",
+      "text": "category = dofile(catalogBasePath .. moduleName .. \".lua\")"
+    },
+    {
+      "line": 4,
+      "path": "data/modules/scripts/gamestore/init.lua",
+      "text": "return dofile(gamestoreLibPath .. \"/\" .. name .. \".lua\")"
+    },
+    {
+      "line": 1,
+      "path": "data/npclib/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/npclib/npc.lua\")"
+    },
+    {
+      "line": 2,
+      "path": "data/npclib/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/modules/scripts/npc/npc_dialog.lua\")"
+    },
+    {
+      "line": 3,
+      "path": "data/npclib/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/npclib/npc_system/npc_handler.lua\")"
+    },
+    {
+      "line": 4,
+      "path": "data/npclib/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/npclib/npc_system/keyword_handler.lua\")"
+    },
+    {
+      "line": 5,
+      "path": "data/npclib/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/npclib/npc_system/modules.lua\")"
+    },
+    {
+      "line": 6,
+      "path": "data/npclib/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/npclib/npc_system/custom_modules.lua\")"
+    },
+    {
+      "line": 7,
+      "path": "data/npclib/load.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/npclib/npc_system/bank_system.lua\")"
+    },
+    {
+      "line": 1,
+      "path": "data/scripts/actions/items/blessing_charms.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/blessing.lua\")"
+    },
+    {
+      "line": 1,
+      "path": "data/scripts/actions/items/check_bless.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/blessing.lua\")"
+    },
+    {
+      "line": 27,
+      "path": "data/scripts/actions/items/potions.lua",
+      "text": "local AnalyticsPrices = dofile(\"data/scripts/lib/gameplay_analytics_prices.lua\")"
+    },
+    {
+      "line": 1,
+      "path": "data/scripts/creaturescripts/player/adventure_blessing.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/blessing.lua\")"
+    },
+    {
+      "line": 9,
+      "path": "data/scripts/eventcallbacks/monster/postdroploot_gameplay_analytics.lua",
+      "text": "local AnalyticsLoot = dofile(\"data/scripts/lib/gameplay_analytics_loot.lua\")"
+    },
+    {
+      "line": 10,
+      "path": "data/scripts/eventcallbacks/monster/postdroploot_gameplay_analytics.lua",
+      "text": "local AnalyticsPrices = dofile(\"data/scripts/lib/gameplay_analytics_prices.lua\")"
+    },
+    {
+      "line": 14,
+      "path": "data/scripts/runes/fireball.lua",
+      "text": "local AnalyticsSpell = dofile(\"data/scripts/lib/gameplay_analytics_spell.lua\")"
+    },
+    {
+      "line": 15,
+      "path": "data/scripts/runes/fireball.lua",
+      "text": "local AnalyticsPrices = dofile(\"data/scripts/lib/gameplay_analytics_prices.lua\")"
+    },
+    {
+      "line": 16,
+      "path": "data/scripts/runes/intense_healing_rune.lua",
+      "text": "local AnalyticsSpell = dofile(\"data/scripts/lib/gameplay_analytics_spell.lua\")"
+    },
+    {
+      "line": 17,
+      "path": "data/scripts/runes/intense_healing_rune.lua",
+      "text": "local AnalyticsPrices = dofile(\"data/scripts/lib/gameplay_analytics_prices.lua\")"
+    },
+    {
+      "line": 18,
+      "path": "data/scripts/spells/attack/ethereal_spear.lua",
+      "text": "local AnalyticsSpell = dofile(\"data/scripts/lib/gameplay_analytics_spell.lua\")"
+    },
+    {
+      "line": 15,
+      "path": "data/scripts/spells/healing/ultimate_healing.lua",
+      "text": "local AnalyticsSpell = dofile(\"data/scripts/lib/gameplay_analytics_spell.lua\")"
+    },
+    {
+      "line": 1,
+      "path": "data/scripts/talkactions/gm/bless_status.lua",
+      "text": "dofile(CORE_DIRECTORY .. \"/libs/systems/blessing.lua\")"
+    },
+    {
+      "line": 50,
+      "path": "docs/agents/MODULE_CATALOG.md",
+      "text": "| Gameplay Analytics dry-run audit | merged (#140) | Deterministic Analytics logic/configuration tests without Canary or MariaDB | `.github/workflows/gameplay-analytics-dry-run.yml`, `tools/analytics/test_gameplay_analytics_correctness_edge_cases.lua`, `tools/analytics/test_gameplay_analytics_maintenance_config_dry_run.sh` | Run before staging; it complements rather than replaces real engine/database integration. |"
+    },
+    {
+      "line": 24,
+      "path": "docs/agents/tasks/active/CAN-20260713-forge-premium-dust.md",
+      "text": "- tests/lua/test_exaltation_forge_premium.lua"
+    },
+    {
+      "line": 15,
+      "path": "docs/agents/tasks/archive/CAN-20260712-achievement-helper-fix.md",
+      "text": "- tests/lua/test_achievement_helpers.lua"
+    },
+    {
+      "line": 101,
+      "path": "docs/agents/tasks/archive/CAN-20260713-equipment-upgrade-handoff-refresh.md",
+      "text": "- `Lua Tests / Run Lua Tests` job `86793054420`: success; `Run Tests` succeeded."
+    },
+    {
+      "line": 63,
+      "path": "docs/ai-agent/ACHIEVEMENT_HELPER_FIX.md",
+      "text": "tests/lua/test_achievement_helpers.lua"
+    },
+    {
+      "line": 22,
+      "path": "docs/systems/gameplay-analytics-dry-run.md",
+      "text": "`tools/analytics/test_gameplay_analytics_correctness_edge_cases.lua` uses a deterministic clock and mocked players to cover:"
+    },
+    {
+      "line": 73,
+      "path": "docs/systems/gameplay-analytics-spells.md",
+      "text": "local AnalyticsSpell = dofile(\"data/scripts/lib/gameplay_analytics_spell.lua\")"
+    },
+    {
+      "line": 35,
+      "path": "src/config/configmanager.cpp",
+      "text": "if (luaL_dofile(L, configFileLua.c_str())) {"
+    },
+    {
+      "line": 119,
+      "path": "src/database/databasemanager.cpp",
+      "text": "if (luaL_dofile(L, scriptPath.c_str()) != 0) {"
+    },
+    {
+      "line": 558,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "ret = sourceLoadResult ? sourceLoadResult->status : luaL_loadfile(luaState, file.c_str());"
+    },
+    {
+      "line": 2,
+      "path": "tests/lua/test_achievement_helpers.lua",
+      "text": "-- Run: luajit tests/lua/test_achievement_helpers.lua"
+    },
+    {
+      "line": 66,
+      "path": "tests/lua/test_achievement_helpers.lua",
+      "text": "dofile(\"data/scripts/lib/register_achievements.lua\")"
+    },
+    {
+      "line": 54,
+      "path": "tests/lua/test_exaltation_forge_premium.lua",
+      "text": "dofile(\"data/libs/systems/exaltation_forge.lua\")"
+    },
+    {
+      "line": 2,
+      "path": "tests/lua/test_npc_messaging.lua",
+      "text": "-- Run: luajit tests/lua/test_npc_messaging.lua"
+    },
+    {
+      "line": 55,
+      "path": "tests/lua/test_npc_messaging.lua",
+      "text": "dofile(\"data/npclib/npc.lua\")"
+    },
+    {
+      "line": 94,
+      "path": "tests/lua/test_oasis_lever_door.lua",
+      "text": "dofile(\"data-otservbr-global/scripts/quests/the_ancient_tombs/actions_oasis_lever_door.lua\")"
+    },
+    {
+      "line": 70,
+      "path": "tools/analytics/test_gameplay_analytics_batching.lua",
+      "text": "local Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_batching.lua\")"
+    },
+    {
+      "line": 137,
+      "path": "tools/analytics/test_gameplay_analytics_context.lua",
+      "text": "local Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_context.lua\")"
+    },
+    {
+      "line": 86,
+      "path": "tools/analytics/test_gameplay_analytics_correctness.lua",
+      "text": "local Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_correctness.lua\")"
+    },
+    {
+      "line": 105,
+      "path": "tools/analytics/test_gameplay_analytics_correctness_edge_cases.lua",
+      "text": "local Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_correctness.lua\")"
+    },
+    {
+      "line": 128,
+      "path": "tools/analytics/test_gameplay_analytics_correctness_edge_cases.lua",
+      "text": "local secondLoad = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_correctness.lua\")"
+    },
+    {
+      "line": 83,
+      "path": "tools/analytics/test_gameplay_analytics_reliability.lua",
+      "text": "local Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_reliability.lua\")"
+    },
+    {
+      "line": 57,
+      "path": "tools/analytics/test_gameplay_analytics_schema.lua",
+      "text": "local Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_schema.lua\")"
+    },
+    {
+      "line": 7,
+      "path": "tools/analytics/test_gameplay_analytics_spell_integration.lua",
+      "text": "local AnalyticsSpell = dofile(\"data/scripts/lib/gameplay_analytics_spell.lua\")"
+    },
+    {
+      "line": 7,
+      "path": "tools/analytics/test_gameplay_analytics_supply_loot_integration.lua",
+      "text": "local AnalyticsLoot = dofile(\"data/scripts/lib/gameplay_analytics_loot.lua\")"
+    },
+    {
+      "line": 7,
+      "path": "tools/analytics/test_gameplay_analytics_supply_loot_prices.lua",
+      "text": "local AnalyticsPrices = dofile(\"data/scripts/lib/gameplay_analytics_prices.lua\")"
+    },
+    {
+      "line": 37,
+      "path": "tools/analytics/test_validate_gameplay_analytics_batching.py",
+      "text": "batching = 'Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_batching.lua\")'"
+    },
+    {
+      "line": 38,
+      "path": "tools/analytics/test_validate_gameplay_analytics_batching.py",
+      "text": "reliability = 'Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_reliability.lua\")'"
+    },
+    {
+      "line": 62,
+      "path": "tools/analytics/test_validate_gameplay_analytics_context.py",
+      "text": "core = 'local Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics.lua\")'"
+    },
+    {
+      "line": 63,
+      "path": "tools/analytics/test_validate_gameplay_analytics_context.py",
+      "text": "context = 'Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_context.lua\")'"
+    },
+    {
+      "line": 64,
+      "path": "tools/analytics/test_validate_gameplay_analytics_context.py",
+      "text": "schema = 'Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_schema.lua\")'"
+    },
+    {
+      "line": 33,
+      "path": "tools/analytics/test_validate_gameplay_analytics_correctness.py",
+      "text": "reliability = 'Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_reliability.lua\")'"
+    },
+    {
+      "line": 34,
+      "path": "tools/analytics/test_validate_gameplay_analytics_correctness.py",
+      "text": "correctness = 'Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_correctness.lua\")'"
+    },
+    {
+      "line": 46,
+      "path": "tools/analytics/test_validate_gameplay_analytics_migrations.py",
+      "text": "context = 'Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_context.lua\")'"
+    },
+    {
+      "line": 47,
+      "path": "tools/analytics/test_validate_gameplay_analytics_migrations.py",
+      "text": "schema = 'Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_schema.lua\")'"
+    },
+    {
+      "line": 49,
+      "path": "tools/analytics/test_validate_gameplay_analytics_reliability.py",
+      "text": "'Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_reliability.lua\")',"
+    },
+    {
+      "line": 34,
+      "path": "tools/analytics/test_validate_gameplay_analytics_spell_integration.py",
+      "text": "broken = self.integrated[path].replace('dofile(\"data/scripts/lib/gameplay_analytics_spell.lua\")', \"\")"
+    },
+    {
+      "line": 40,
+      "path": "tools/analytics/test_validate_gameplay_analytics_spell_integration.py",
+      "text": "broken = self.integrated[path] + f'\\nlocal Analytics = dofile(\"{validator.CORE_PATH}\")\\n'"
+    },
+    {
+      "line": 51,
+      "path": "tools/analytics/test_validate_gameplay_analytics_supply_loot_integration.py",
+      "text": "broken = self.loot_callback + f'\\nlocal Analytics = dofile(\"{validator.CORE_PATH}\")\\n'"
+    },
+    {
+      "line": 57,
+      "path": "tools/analytics/test_validate_gameplay_analytics_supply_loot_integration.py",
+      "text": "broken = self.supply_files[path].replace('dofile(\"data/scripts/lib/gameplay_analytics_prices.lua\")', \"\")"
+    },
+    {
+      "line": 63,
+      "path": "tools/analytics/test_validate_gameplay_analytics_supply_loot_integration.py",
+      "text": "broken = self.supply_files[path] + f'\\nlocal Analytics = dofile(\"{validator.CORE_PATH}\")\\n'"
+    },
+    {
+      "line": 55,
+      "path": "tools/analytics/validate_gameplay_analytics_batching.py",
+      "text": "core = 'dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics.lua\")'"
+    },
+    {
+      "line": 56,
+      "path": "tools/analytics/validate_gameplay_analytics_batching.py",
+      "text": "batching = 'dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_batching.lua\")'"
+    },
+    {
+      "line": 57,
+      "path": "tools/analytics/validate_gameplay_analytics_batching.py",
+      "text": "reliability = 'dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_reliability.lua\")'"
+    },
+    {
+      "line": 122,
+      "path": "tools/analytics/validate_gameplay_analytics_context.py",
+      "text": "'dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics.lua\")',"
+    },
+    {
+      "line": 123,
+      "path": "tools/analytics/validate_gameplay_analytics_context.py",
+      "text": "'dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_context.lua\")',"
+    },
+    {
+      "line": 124,
+      "path": "tools/analytics/validate_gameplay_analytics_context.py",
+      "text": "'dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_schema.lua\")',"
+    },
+    {
+      "line": 125,
+      "path": "tools/analytics/validate_gameplay_analytics_context.py",
+      "text": "'dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_batching.lua\")',"
+    },
+    {
+      "line": 126,
+      "path": "tools/analytics/validate_gameplay_analytics_context.py",
+      "text": "'dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_reliability.lua\")',"
+    },
+    {
+      "line": 57,
+      "path": "tools/analytics/validate_gameplay_analytics_correctness.py",
+      "text": "reliability = 'Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_reliability.lua\")'"
+    },
+    {
+      "line": 58,
+      "path": "tools/analytics/validate_gameplay_analytics_correctness.py",
+      "text": "correctness = 'Analytics = dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_correctness.lua\")'"
+    },
+    {
+      "line": 89,
+      "path": "tools/analytics/validate_gameplay_analytics_migrations.py",
+      "text": "'dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics.lua\")',"
+    },
+    {
+      "line": 90,
+      "path": "tools/analytics/validate_gameplay_analytics_migrations.py",
+      "text": "'dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_context.lua\")',"
+    },
+    {
+      "line": 91,
+      "path": "tools/analytics/validate_gameplay_analytics_migrations.py",
+      "text": "'dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_schema.lua\")',"
+    },
+    {
+      "line": 92,
+      "path": "tools/analytics/validate_gameplay_analytics_migrations.py",
+      "text": "'dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_batching.lua\")',"
+    },
+    {
+      "line": 93,
+      "path": "tools/analytics/validate_gameplay_analytics_migrations.py",
+      "text": "'dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_reliability.lua\")',"
+    },
+    {
+      "line": 110,
+      "path": "tools/analytics/validate_gameplay_analytics_reliability.py",
+      "text": "'dofile(\"data-otservbr-global/scripts/lib/gameplay_analytics_reliability.lua\")' in text,"
+    },
+    {
+      "line": 62,
+      "path": "tools/analytics/validate_gameplay_analytics_spell_integration.py",
+      "text": "'dofile(\"data/scripts/lib/gameplay_analytics_spell.lua\")' in text,"
+    },
+    {
+      "line": 54,
+      "path": "tools/analytics/validate_gameplay_analytics_supply_loot_integration.py",
+      "text": "require('dofile(\"data/scripts/lib/gameplay_analytics_loot.lua\")' in text, \"loot callback must use the shared loot helper\")"
+    },
+    {
+      "line": 66,
+      "path": "tools/analytics/validate_gameplay_analytics_supply_loot_integration.py",
+      "text": "require('dofile(\"data/scripts/lib/gameplay_analytics_prices.lua\")' in text, f\"{label} must load the shared price table\")"
+    }
+  ],
+  "mkdir_mentions": [
+    {
+      "line": 179,
+      "path": ".github/scripts/smoke_test_canary.py",
+      "text": "map_path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 202,
+      "path": ".github/scripts/smoke_test_canary.py",
+      "text": "download_target.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 278,
+      "path": ".github/scripts/smoke_test_canary.py",
+      "text": "log_dir.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 77,
+      "path": ".github/workflows/achievement-validation.yml",
+      "text": "mkdir -p artifacts"
+    },
+    {
+      "line": 1,
+      "path": ".github/workflows/audit-fs-mkdir-pr.yml",
+      "text": "name: Audit FS mkdir PR"
+    },
+    {
+      "line": 17,
+      "path": ".github/workflows/audit-fs-mkdir-pr.yml",
+      "text": "if: github.repository == 'blakinio/canary' && github.event.pull_request.head.repo.full_name == 'blakinio/canary' && github.head_ref == 'security/fs-mkdir-shell-free'"
+    },
+    {
+      "line": 23,
+      "path": ".github/workflows/audit-fs-mkdir-pr.yml",
+      "text": "ref: security/fs-mkdir-shell-free"
+    },
+    {
+      "line": 34,
+      "path": ".github/workflows/audit-fs-mkdir-pr.yml",
+      "text": "python3 tools/ai-agent/audit_fs_mkdir.py"
+    },
+    {
+      "line": 40,
+      "path": ".github/workflows/audit-fs-mkdir-pr.yml",
+      "text": "python3 -m json.tool artifacts/upstream/crystalserver/cs006_fs_mkdir_audit.json >/dev/null"
+    },
+    {
+      "line": 45,
+      "path": ".github/workflows/audit-fs-mkdir-pr.yml",
+      "text": "rm -f tools/ai-agent/audit_fs_mkdir.py"
+    },
+    {
+      "line": 46,
+      "path": ".github/workflows/audit-fs-mkdir-pr.yml",
+      "text": "rm -f .github/workflows/audit-fs-mkdir.yml"
+    },
+    {
+      "line": 47,
+      "path": ".github/workflows/audit-fs-mkdir-pr.yml",
+      "text": "rm -f .github/workflows/audit-fs-mkdir-publish.yml"
+    },
+    {
+      "line": 48,
+      "path": ".github/workflows/audit-fs-mkdir-pr.yml",
+      "text": "rm -f .github/workflows/audit-fs-mkdir-pr.yml"
+    },
+    {
+      "line": 50,
+      "path": ".github/workflows/audit-fs-mkdir-pr.yml",
+      "text": "git add -f artifacts/upstream/crystalserver/cs006_fs_mkdir_audit.json"
+    },
+    {
+      "line": 51,
+      "path": ".github/workflows/audit-fs-mkdir-pr.yml",
+      "text": "git add -A tools/ai-agent/audit_fs_mkdir.py .github/workflows/audit-fs-mkdir.yml .github/workflows/audit-fs-mkdir-publish.yml .github/workflows/audit-fs-mkdir-pr.yml"
+    },
+    {
+      "line": 57,
+      "path": ".github/workflows/audit-fs-mkdir-pr.yml",
+      "text": "allowed='^(artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT\\.md|artifacts/upstream/crystalserver/cs006_fs_mkdir_audit\\.json|tools/ai-agent/audit_fs_mkdir\\.py|\\.github/workflows/audit-fs-mkdir\\.yml|\\.github/workflows/audit-fs-mkdir-publish\\.yml|\\.github/workflows/audit-fs-mkdir-pr\\.yml)$'"
+    },
+    {
+      "line": 62,
+      "path": ".github/workflows/audit-fs-mkdir-pr.yml",
+      "text": "test ! -e tools/ai-agent/audit_fs_mkdir.py"
+    },
+    {
+      "line": 63,
+      "path": ".github/workflows/audit-fs-mkdir-pr.yml",
+      "text": "test ! -e .github/workflows/audit-fs-mkdir.yml"
+    },
+    {
+      "line": 64,
+      "path": ".github/workflows/audit-fs-mkdir-pr.yml",
+      "text": "test ! -e .github/workflows/audit-fs-mkdir-publish.yml"
+    },
+    {
+      "line": 65,
+      "path": ".github/workflows/audit-fs-mkdir-pr.yml",
+      "text": "test ! -e .github/workflows/audit-fs-mkdir-pr.yml"
+    },
+    {
+      "line": 70,
+      "path": ".github/workflows/audit-fs-mkdir-pr.yml",
+      "text": "git commit -m \"docs(security): publish FS mkdir call-site audit\""
+    },
+    {
+      "line": 71,
+      "path": ".github/workflows/audit-fs-mkdir-pr.yml",
+      "text": "git push origin HEAD:security/fs-mkdir-shell-free"
+    },
+    {
+      "line": 1,
+      "path": ".github/workflows/audit-fs-mkdir-publish.yml",
+      "text": "name: Publish FS mkdir audit"
+    },
+    {
+      "line": 6,
+      "path": ".github/workflows/audit-fs-mkdir-publish.yml",
+      "text": "- security/fs-mkdir-shell-free"
+    },
+    {
+      "line": 8,
+      "path": ".github/workflows/audit-fs-mkdir-publish.yml",
+      "text": "- .github/workflows/audit-fs-mkdir-publish.yml"
+    },
+    {
+      "line": 16,
+      "path": ".github/workflows/audit-fs-mkdir-publish.yml",
+      "text": "if: github.repository == 'blakinio/canary' && github.ref == 'refs/heads/security/fs-mkdir-shell-free'"
+    },
+    {
+      "line": 22,
+      "path": ".github/workflows/audit-fs-mkdir-publish.yml",
+      "text": "ref: security/fs-mkdir-shell-free"
+    },
+    {
+      "line": 33,
+      "path": ".github/workflows/audit-fs-mkdir-publish.yml",
+      "text": "python3 tools/ai-agent/audit_fs_mkdir.py"
+    },
+    {
+      "line": 34,
+      "path": ".github/workflows/audit-fs-mkdir-publish.yml",
+      "text": "python3 -m json.tool artifacts/upstream/crystalserver/cs006_fs_mkdir_audit.json >/dev/null"
+    },
+    {
+      "line": 39,
+      "path": ".github/workflows/audit-fs-mkdir-publish.yml",
+      "text": "rm -f tools/ai-agent/audit_fs_mkdir.py"
+    },
+    {
+      "line": 40,
+      "path": ".github/workflows/audit-fs-mkdir-publish.yml",
+      "text": "rm -f .github/workflows/audit-fs-mkdir.yml"
+    },
+    {
+      "line": 41,
+      "path": ".github/workflows/audit-fs-mkdir-publish.yml",
+      "text": "rm -f .github/workflows/audit-fs-mkdir-publish.yml"
+    },
+    {
+      "line": 43,
+      "path": ".github/workflows/audit-fs-mkdir-publish.yml",
+      "text": "git add -f artifacts/upstream/crystalserver/cs006_fs_mkdir_audit.json"
+    },
+    {
+      "line": 44,
+      "path": ".github/workflows/audit-fs-mkdir-publish.yml",
+      "text": "git add -A tools/ai-agent/audit_fs_mkdir.py .github/workflows/audit-fs-mkdir.yml .github/workflows/audit-fs-mkdir-publish.yml"
+    },
+    {
+      "line": 50,
+      "path": ".github/workflows/audit-fs-mkdir-publish.yml",
+      "text": "allowed='^(artifacts/upstream/crystalserver/CS006_FS_MKDIR_AUDIT\\.md|artifacts/upstream/crystalserver/cs006_fs_mkdir_audit\\.json|tools/ai-agent/audit_fs_mkdir\\.py|\\.github/workflows/audit-fs-mkdir\\.yml|\\.github/workflows/audit-fs-mkdir-publish\\.yml)$'"
+    },
+    {
+      "line": 55,
+      "path": ".github/workflows/audit-fs-mkdir-publish.yml",
+      "text": "test ! -e tools/ai-agent/audit_fs_mkdir.py"
+    },
+    {
+      "line": 56,
+      "path": ".github/workflows/audit-fs-mkdir-publish.yml",
+      "text": "test ! -e .github/workflows/audit-fs-mkdir.yml"
+    },
+    {
+      "line": 57,
+      "path": ".github/workflows/audit-fs-mkdir-publish.yml",
+      "text": "test ! -e .github/workflows/audit-fs-mkdir-publish.yml"
+    },
+    {
+      "line": 62,
+      "path": ".github/workflows/audit-fs-mkdir-publish.yml",
+      "text": "git commit -m \"docs(security): publish FS mkdir call-site audit\""
+    },
+    {
+      "line": 63,
+      "path": ".github/workflows/audit-fs-mkdir-publish.yml",
+      "text": "git push origin HEAD:security/fs-mkdir-shell-free"
+    },
+    {
+      "line": 68,
+      "path": ".github/workflows/deploy-canary-staging.yml",
+      "text": "mkdir -p build/deployment-smoke-logs"
+    },
+    {
+      "line": 79,
+      "path": ".github/workflows/deploy-canary-staging.yml",
+      "text": "mkdir -p \"${work}/overlay\" \"${work}/deploy-root\""
+    },
+    {
+      "line": 87,
+      "path": ".github/workflows/deploy-canary-staging.yml",
+      "text": "mkdir -p \"${work}/overlay/$(dirname \"${relative_file}\")\""
+    },
+    {
+      "line": 40,
+      "path": ".github/workflows/deploy-pipeline.yml",
+      "text": "mkdir -p build/deployment-test-logs"
+    },
+    {
+      "line": 49,
+      "path": ".github/workflows/deploy-pipeline.yml",
+      "text": "mkdir -p \"$work/deploy-root\" \"$work/content-v1/npc\""
+    },
+    {
+      "line": 83,
+      "path": ".github/workflows/deploy-pipeline.yml",
+      "text": "mkdir -p \"$work/content-v2\""
+    },
+    {
+      "line": 78,
+      "path": ".github/workflows/imbuement-validation.yml",
+      "text": "mkdir -p artifacts"
+    },
+    {
+      "line": 61,
+      "path": ".github/workflows/otbm-map-tools.yml",
+      "text": "mkdir -p artifacts"
+    },
+    {
+      "line": 73,
+      "path": ".github/workflows/otbm-reachability.yml",
+      "text": "mkdir -p artifacts/toolkit"
+    },
+    {
+      "line": 74,
+      "path": ".github/workflows/otbm-spawn-npc-validation.yml",
+      "text": "mkdir -p artifacts"
+    },
+    {
+      "line": 111,
+      "path": ".github/workflows/otbm-spawn-npc-validation.yml",
+      "text": "mkdir -p artifacts/toolkit"
+    },
+    {
+      "line": 64,
+      "path": ".github/workflows/otbm-storage-graph.yml",
+      "text": "mkdir -p artifacts"
+    },
+    {
+      "line": 117,
+      "path": ".github/workflows/otbm-storage-graph.yml",
+      "text": "mkdir -p artifacts/toolkit"
+    },
+    {
+      "line": 74,
+      "path": ".github/workflows/quest-map-validation.yml",
+      "text": "mkdir -p artifacts/toolkit"
+    },
+    {
+      "line": 87,
+      "path": ".github/workflows/quest-map-validation.yml",
+      "text": "mkdir -p artifacts"
+    },
+    {
+      "line": 335,
+      "path": ".github/workflows/release.yml",
+      "text": "mkdir -p dist"
+    },
+    {
+      "line": 368,
+      "path": ".github/workflows/release.yml",
+      "text": "mkdir -p dist"
+    },
+    {
+      "line": 69,
+      "path": ".github/workflows/reusable-build-docker.yml",
+      "text": "run: mkdir -p artifacts/docker-image artifacts/docker-rootfs/bin"
+    },
+    {
+      "line": 269,
+      "path": ".github/workflows/reusable-build-linux.yml",
+      "text": "mkdir -p build/${{ matrix.buildtype }}/test-logs"
+    },
+    {
+      "line": 146,
+      "path": "artifacts/upstream/crystalserver/CRYSTALSERVER_COMPARISON_STAGE1.md",
+      "text": "### CS-006 \u2014 shell construction in `FS.mkdir`"
+    },
+    {
+      "line": 151,
+      "path": "artifacts/upstream/crystalserver/CRYSTALSERVER_COMPARISON_STAGE1.md",
+      "text": "- Files/symbols: `data/libs/functions/fs.lua`; `FS.mkdir`"
+    },
+    {
+      "line": 153,
+      "path": "artifacts/upstream/crystalserver/CRYSTALSERVER_COMPARISON_STAGE1.md",
+      "text": "- Current Canary evidence: Canary concatenates the path into `os.execute('mkdir \"' .. path .. '\"')` without validation."
+    },
+    {
+      "line": 251,
+      "path": "artifacts/upstream/crystalserver/CRYSTALSERVER_COMPARISON_STAGE1.md",
+      "text": "2. **CS-006 \u2014 FS.mkdir security boundary**"
+    },
+    {
+      "line": 271,
+      "path": "artifacts/upstream/crystalserver/CRYSTALSERVER_COMPARISON_STAGE1.md",
+      "text": "- `FS.mkdir` and `table.unserialize` reachability from untrusted input remains unknown."
+    },
+    {
+      "line": 1,
+      "path": "artifacts/upstream/crystalserver/crystalserver_comparison_stage1.json",
+      "text": "{\"schema\":\"canary-crystalserver-comparison-v1\",\"generated_at\":\"2026-07-13T21:01:05Z\",\"analysis_date\":\"2026-07-13\",\"stage\":1,\"functional_changes\":false,\"program_id\":\"CAN-PROGRAM-CRYSTALSERVER-COMPARISON\",\"task_id\":\"CAN-20260713-crystalserver-comparison-inventory\",\"baselines\":{\"target\":{\"repository\":\"blakinio/canary\",\"branch\":\"main\",\"sha\":\"360d79ebad5802edd4d89e99d0f210ab19b36b60\",\"server_version\":\"3.6.1\",\"client_protocol\":1525,\"access\":\"write-via-task-branch-and-pr\"},\"comparison\":{\"repository\":\"zimbadev/crystalserver\",\"branch\":\"main\",\"sha\":\"fc0d53b9f9965463b6082c07e6d3d482294541a7\",\"server_version\":\"4.1.9\",\"client_protocol\":1525,\"access\":\"read-only\"},\"reference\":{\"repository\":\"opentibiabr/canary\",\"branch\":\"main\",\"sha\":\"9365c1c4aa63529b9ff757f53737274894c02b8e\",\"server_version\":null,\"client_protocol\":null,\"access\":\"read-only\"}},\"last_analyzed_crystal_commit\":\"fc0d53b9f9965463b6082c07e6d3d482294541a7\",\"screening\":{\"queries\":[{\"term\":\"fix\",\"hits_returned\":50},{\"term\":\"crash\",\"hits_returned\":30}],\"overlap_not_fully_deduplicated\":true,\"deep_reviewed_unique\":10,\"deferred_unverified\":4,\"method\":\"Open CrystalServer diff, inspect corresponding current Canary source, then classify behaviorally.\"},\"status_counts\":{\"ALREADY_PRESENT\":2,\"CANARY_SUPERIOR\":1,\"VALID_FIX_MISSING\":1,\"PARTIAL_VALUE\":3,\"CLIENT_COUPLED\":2,\"CONTENT_ONLY\":0,\"UNVERIFIED\":0,\"DANGEROUS\":1,\"REJECTED\":0},\"candidates\":[{\"id\":\"CS-001\",\"repository\":\"zimbadev/crystalserver\",\"crystal_commit\":\"a7350014528002fb27ed64d260a96d28a580d41a\",\"author\":\"jprzimba\",\"date\":\"2026-07-12\",\"related_pr\":822,\"files\":[\"src/creatures/combat/condition.cpp\"],\"symbols\":[\"ConditionLight::startCondition\",\"ConditionLight::unserializeProp\"],\"problem\":\"A zero light level reaches ticks / lightInfo.level and can cause integer division by zero.\",\"evidence\":[\"CrystalServer clamps the divisor and deserialized level to at least one.\",\"Current Canary startCondition divides directly by lightInfo.level.\",\"Current Canary deserialization assigns a persisted zero without normalization.\",\"Other Canary mutation paths already clamp, showing a partial invariant.\"],\"canary_locations\":[\"src/creatures/combat/condition.cpp:ConditionLight::startCondition\",\"src/creatures/combat/condition.cpp:ConditionLight::addCondition\",\"src/creatures/combat/condition.cpp:ConditionLight::setParam\",\"src/creatures/combat/condition.cpp:ConditionLight::unserializeProp\"],\"status\":\"VALID_FIX_MISSING\",\"risk\":\"high\",\"dependencies\":[\"fresh ownership check\",\"focused C++ regression test\",\"required C++ build and CI\"],\"proposed_tests\":[\"Deserialize CONDITIONATTR_LIGHTLEVEL=0 and start the condition without a division fault.\",\"Verify normalized level and a valid lightChangeInterval.\",\"Cover any reachable constructor or script path that can supply zero.\"],\"decision\":\"Create a separate test-first implementation task after Stage 1 merges.\",\"rationale\":\"The fault is deterministic from current source and the bounded guard is absent.\",\"provenance_used\":\"Behavioral idea only: normalize invalid light level at persistence and division boundaries.\"},{\"id\":\"CS-002\",\"repository\":\"zimbadev/crystalserver\",\"crystal_commit\":\"0c0f1acafd77a86fb5ce56fe768ff6d98d100c35\",\"author\":\"jprzimba\",\"date\":\"2026-07-11\",\"related_pr\":821,\"files\":[\"src/creatures/npcs/npc.cpp\"],\"symbols\":[\"Npc::closeAllShopWindows\"],\"problem\":\"Callbacks while closing NPC shops can erase entries and invalidate iteration.\",\"evidence\":[\"CrystalServer snapshots GUIDs before callbacks.\",\"Current Canary increments the iterator before calling closeShopWindow, then clears leftovers.\"],\"canary_locations\":[\"src/creatures/npcs/npc.cpp:Npc::closeAllShopWindows\"],\"status\":\"ALREADY_PRESENT\",\"risk\":\"medium\",\"dependencies\":[],\"proposed_tests\":[\"Callbacks erase current entries while every shop player is visited exactly once and the map ends empty.\"],\"decision\":\"No implementation.\",\"rationale\":\"Current Canary already avoids using an iterator after the mutating callback.\",\"provenance_used\":\"No code adapted.\"},{\"id\":\"CS-003\",\"repository\":\"zimbadev/crystalserver\",\"crystal_commit\":\"90ac0eb7d2ba0a88476881c972d9de83fbbcb3e8\",\"author\":\"matzinhozz\",\"date\":\"2026-06-26\",\"related_pr\":799,\"files\":[\"src/lua/functions/core/libs/kv_functions.cpp\"],\"symbols\":[\"KVFunctions::init\",\"Lua::registerSharedClass\",\"Lua::pushSharedUserdata\"],\"problem\":\"Shared KV userdata leaks if the metatable lacks shared-pointer garbage collection.\",\"evidence\":[\"CrystalServer changed non-shared class registration to shared registration.\",\"Current Canary already uses typed registerSharedClass<KV> and pushSharedUserdata<KV>.\"],\"canary_locations\":[\"src/lua/functions/core/libs/kv_functions.cpp:KVFunctions::init\",\"src/lua/functions/core/libs/kv_functions.cpp:KVFunctions::luaKVScoped\"],\"status\":\"CANARY_SUPERIOR\",\"risk\":\"high\",\"dependencies\":[],\"proposed_tests\":[\"Repeated scoped KV creation and Lua GC releases all Lua-held strong references.\"],\"decision\":\"Preserve current Canary implementation.\",\"rationale\":\"Canary already applies the safe typed shared-userdata pattern.\",\"provenance_used\":\"No code adapted.\"},{\"id\":\"CS-004\",\"repository\":\"zimbadev/crystalserver\",\"crystal_commit\":\"dcb4f00ffd55ede2399c979eee3b7fe6e7e0ee6e\",\"author\":\"jprzimba\",\"date\":\"2025-07-17\",\"related_pr\":292,\"files\":[\"src/items/containers/container.cpp\"],\"symbols\":[\"Container::replaceThing\"],\"problem\":\"Null input or an out-of-range replacement index can cause invalid access.\",\"evidence\":[\"CrystalServer adds null and bounds guards.\",\"Current Canary already performs both guards before item conversion and replacement.\"],\"canary_locations\":[\"src/items/containers/container.cpp:Container::replaceThing\"],\"status\":\"ALREADY_PRESENT\",\"risk\":\"high\",\"dependencies\":[],\"proposed_tests\":[\"Null thing and index equal to size are no-ops with unchanged cache, weight, and parents.\"],\"decision\":\"No implementation.\",\"rationale\":\"Equivalent validation is already present.\",\"provenance_used\":\"No code adapted.\"},{\"id\":\"CS-005\",\"repository\":\"zimbadev/crystalserver\",\"crystal_commit\":\"fc0d53b9f9965463b6082c07e6d3d482294541a7\",\"author\":\"jprzimba\",\"date\":\"2026-07-12\",\"related_pr\":819,\"files\":[\"src/game/game.cpp\",\"src/game/game.hpp\"],\"symbols\":[\"Game::getPlayerByGUID\",\"Game::addPlayer\",\"Game::removePlayer\"],\"problem\":\"Online player GUID lookup is linear in the number of players.\",\"evidence\":[\"CrystalServer adds a GUID index maintained on add/remove.\",\"Current Canary still scans the online player map.\",\"No current Canary performance regression or benchmark was provided.\"],\"canary_locations\":[\"src/game/game.cpp:Game::getPlayerByGUID\"],\"status\":\"PARTIAL_VALUE\",\"risk\":\"medium\",\"dependencies\":[\"benchmark\",\"index lifecycle tests\",\"concurrency review\",\"resolve overlap with open PR #289\"],\"proposed_tests\":[\"Add/remove/relogin consistency and duplicate GUID behavior.\",\"Offline fallback remains unchanged.\",\"Benchmark representative online-player counts.\"],\"decision\":\"Defer until path ownership clears and measurements justify the index.\",\"rationale\":\"The optimization is plausible but not a proven bug fix and adds synchronized state.\",\"provenance_used\":\"Candidate design signal only.\"},{\"id\":\"CS-006\",\"repository\":\"zimbadev/crystalserver\",\"crystal_commit\":\"891685169745e46f665069edcc35847f0704aa21\",\"author\":\"jprzimba\",\"date\":\"2026-07-10\",\"related_pr\":816,\"files\":[\"data/libs/functions/fs.lua\"],\"symbols\":[\"FS.mkdir\"],\"problem\":\"A path is concatenated into a shell command without validation.\",\"evidence\":[\"Current Canary uses os.execute with a quoted but unsanitized path.\",\"CrystalServer adds a denylist but still invokes a shell.\",\"Call-site attacker control is not yet established.\"],\"canary_locations\":[\"data/libs/functions/fs.lua:FS.mkdir\",\"data/libs/functions/fs.lua:FS.mkdir_p\"],\"status\":\"PARTIAL_VALUE\",\"risk\":\"high\",\"dependencies\":[\"complete call-site inventory\",\"supported path semantics\",\"cross-platform safe filesystem API\"],\"proposed_tests\":[\"Reject quotes, separators, substitutions, control characters, and other command syntax.\",\"Preserve valid Windows, POSIX, relative, absolute, and Unicode paths as required.\",\"Prove no shell interpretation occurs.\"],\"decision\":\"Create a separate security task; do not copy the CrystalServer denylist.\",\"rationale\":\"The dangerous construction exists, but the upstream patch is not a sufficient security design.\",\"provenance_used\":\"Problem signal only; no parser or sanitizer code approved.\"},{\"id\":\"CS-007\",\"repository\":\"zimbadev/crystalserver\",\"crystal_commit\":\"891685169745e46f665069edcc35847f0704aa21\",\"author\":\"jprzimba\",\"date\":\"2026-07-10\",\"related_pr\":816,\"files\":[\"data/libs/functions/tables.lua\"],\"symbols\":[\"table.unserialize\",\"table.serialize\"],\"problem\":\"Deserialization executes loadstring over the supplied serialized text.\",\"evidence\":[\"Current Canary evaluates loadstring('return ' .. str)().\",\"CrystalServer replaces it with a bespoke parser.\",\"Call-site trust and full serializer compatibility are not yet established.\"],\"canary_locations\":[\"data/libs/functions/tables.lua:table.serialize\",\"data/libs/functions/tables.lua:table.unserialize\"],\"status\":\"PARTIAL_VALUE\",\"risk\":\"high\",\"dependencies\":[\"complete call-site inventory\",\"compatibility corpus\",\"input size/depth policy\",\"security review\"],\"proposed_tests\":[\"Round-trip every value emitted by table.serialize.\",\"Reject function calls, environment access, trailing code, malformed input, and resource-exhaustion payloads.\"],\"decision\":\"Create a separate compatibility/security task; do not transplant the upstream parser.\",\"rationale\":\"Dynamic execution is confirmed, but a replacement must preserve legitimate data and resist hostile input.\",\"provenance_used\":\"Problem signal only; bespoke parser code not approved.\"},{\"id\":\"CS-008\",\"repository\":\"zimbadev/crystalserver\",\"crystal_commit\":\"34cbec0c34325619ef23c5d12c940b7b1c276975\",\"author\":\"jprzimba\",\"date\":\"2026-07-01\",\"related_pr\":808,\"files\":[\"src/game/game.cpp\",\"src/io/iomarket.cpp\",\"src/io/iomarket.hpp\"],\"symbols\":[\"Game::playerCreateMarketOffer\",\"IOMarket::getActiveOffers\",\"IOMarket::getPlayerOfferCountPerSide\",\"IOMarket::getItemOfferCountPerSide\"],\"problem\":\"Large Market offer sets are claimed to crash the client.\",\"evidence\":[\"CrystalServer adds limits 1000, 700, and 1500 plus SQL LIMIT clauses.\",\"Current Canary IOMarket lacks equivalent constants and count helpers.\",\"No authoritative client capacity or exact protocol contract was established.\"],\"canary_locations\":[\"src/io/iomarket.hpp:IOMarket\",\"src/io/iomarket.cpp\",\"src/game/game.cpp:Game::playerCreateMarketOffer\"],\"status\":\"CLIENT_COUPLED\",\"risk\":\"high\",\"dependencies\":[\"maintained OTClient source and tests\",\"protocol 15.25 contract\",\"DB concurrency test\",\"physical-client E2E\"],\"proposed_tests\":[\"Byte/payload boundary tests for oversized Market responses.\",\"Concurrent offer creation does not bypass limits.\",\"Exact ordering, pagination, per-player, and per-item behavior.\"],\"decision\":\"No automatic implementation.\",\"rationale\":\"The constants and behavior cannot be validated server-only.\",\"provenance_used\":\"Candidate concept only.\"},{\"id\":\"CS-009\",\"repository\":\"zimbadev/crystalserver\",\"crystal_commit\":\"cfc0c5c496eae53f1f33a07f563068f44914ddbb\",\"author\":\"jprzimba\",\"date\":\"2026-06-15\",\"related_pr\":766,\"files\":[\"src/enums/disconnect_client.hpp\",\"src/server/network/protocol/protocolgame.cpp\",\"src/server/network/protocol/protocolgame.hpp\"],\"symbols\":[\"DisconnectClient_t\",\"ProtocolGame::disconnectClient\",\"ProtocolGame::onRecvFirstMessage\"],\"problem\":\"Disconnect packets without an expected reason byte are claimed to crash clients.\",\"evidence\":[\"CrystalServer appends a reason byte and classifies several rejection flows.\",\"Current Canary disconnectClient accepts only a message.\",\"Expected field presence/order and supported-profile behavior are unverified.\"],\"canary_locations\":[\"src/server/network/protocol/protocolgame.hpp:ProtocolGame::disconnectClient\",\"src/server/network/protocol/protocolgame.cpp\"],\"status\":\"CLIENT_COUPLED\",\"risk\":\"high\",\"dependencies\":[\"protocol-profile matrix\",\"maintained OTClient parser\",\"cross-repo contract\",\"real-client integration\"],\"proposed_tests\":[\"Byte-exact disconnect packets for each supported profile and reason.\",\"Invalid credentials, outdated protocol, and duplicate-session real-client flows.\"],\"decision\":\"No automatic implementation.\",\"rationale\":\"Adding a byte is a protocol contract change even when both projects declare 15.25.\",\"provenance_used\":\"Candidate packet shape only.\"},{\"id\":\"CS-010\",\"repository\":\"zimbadev/crystalserver\",\"crystal_commit\":\"ffe4db548371c44ce01dfc280af0209318272292\",\"author\":\"jprzimba\",\"date\":\"2025-11-27\",\"related_pr\":513,\"files\":[\"src/game/game.cpp\"],\"symbols\":[\"Game::removeCreature\"],\"problem\":\"Dereferencing a missing creature parent can crash removal.\",\"evidence\":[\"Current Canary dereferences creature->getParent() after optional tile removal.\",\"CrystalServer returns false if parent is null.\",\"The upstream return occurs after tile removal and notifications but before lifecycle cleanup.\"],\"canary_locations\":[\"src/game/game.cpp:Game::removeCreature\"],\"status\":\"DANGEROUS\",\"risk\":\"critical\",\"dependencies\":[\"parent-null reproduction\",\"lifecycle invariant\",\"instance and multichannel review\",\"focused integration tests\"],\"proposed_tests\":[\"Parent null before removal and parent reset during tile removal.\",\"Repeated removal for player, monster, NPC, and summon.\",\"List, ID index, instance ownership, zone, summon, and logout cleanup remains complete.\"],\"decision\":\"Investigate the defect signal but reject direct transplantation.\",\"rationale\":\"The upstream early return can leave a creature partially removed and corrupt runtime state.\",\"provenance_used\":\"Problem signal only; early-return implementation explicitly rejected.\"}],\"deferred_backlog\":[{\"crystal_commit\":\"9e046413b965982745ca63559f68bd30264bfc9d\",\"preliminary_status\":\"UNVERIFIED\",\"reason\":\"Duplicate item-definition claim needs current Canary XML, identifier, and asset-contract validation.\"},{\"crystal_commit\":\"809633b1f9fc9a690bef70ac0ecb916d5a5aa5d6\",\"preliminary_status\":\"UNVERIFIED\",\"reason\":\"God-command item limit is arbitrary without current parsing and resource-bound evidence.\"},{\"crystal_commit\":\"55db69b7be12fa7b6a8865038033d953ae8cff18\",\"preliminary_status\":\"UNVERIFIED\",\"reason\":\"Corpse and reward-parent handling needs current symbol and state-transition tests.\"},{\"crystal_commit\":\"6bda45e7d7b8f0e9a9c55b3b6b779b492504102f\",\"preliminary_status\":\"UNVERIFIED\",\"reason\":\"Broad spell-formula rewrite requires official behavior evidence and bounded decomposition.\"}],\"proposed_tasks\":[{\"order\":1,\"candidate_ids\":[\"CS-001\"],\"scope\":\"ConditionLight zero-level regression test and minimal fix.\"},{\"order\":2,\"candidate_ids\":[\"CS-006\"],\"scope\":\"FS.mkdir trust-boundary and safe filesystem-operation audit.\"},{\"order\":3,\"candidate_ids\":[\"CS-007\"],\"scope\":\"Serialized-table call-site inventory, compatibility corpus, and safe decoder design.\"},{\"order\":4,\"candidate_ids\":[\"CS-010\"],\"scope\":\"Creature-removal parent invariant reproduction and lifecycle-safe design.\"},{\"order\":5,\"candidate_ids\":[\"CS-008\",\"CS-009\"],\"scope\":\"Separate maintained-OTClient protocol contract investigations.\"},{\"order\":6,\"candidate_ids\":[\"CS-005\"],\"scope\":\"GUID lookup benchmark and index-lifecycle proof after path ownership clears.\"}],\"constraints\":[\"All writes only to blakinio/canary.\",\"No direct push to main.\",\"No mass copying or broad cherry-picks.\",\"No .otbm, items.otb, binary assets, sprites, secrets, private dumps, or production configuration.\",\"One candidate implementation per task, branch, worktree, and draft PR.\",\"Protocol, client, schema, migration, multichannel, instance, shared userdata, map, identifier, and asset candidates require extended analysis.\"],\"limitations\":[\"No local checkout or worktree was available.\",\"Shell DNS could not resolve github.com, so local git status, branch, remote, worktree, ownership checker, diff-check, build, and tests were not run.\",\"The 50 fix and 30 crash search hits overlap and are not a unique commit count.\",\"Only ten unique candidate diffs were deeply reviewed.\",\"No runtime reproduction or maintained-client integration was executed in Stage 1.\",\"FS.mkdir and table.unserialize untrusted-input reachability is unknown.\",\"Exact maintained OTClient Market and disconnect contracts are unknown.\"]}"
+    },
+    {
+      "line": 441,
+      "path": "data/events/scripts/player.lua",
+      "text": "FS.mkdir_p(string.format(\"%s/reports/players/%s\", CORE_DIRECTORY, name))"
+    },
+    {
+      "line": 489,
+      "path": "data/events/scripts/player.lua",
+      "text": "FS.mkdir_p(string.format(\"%s/reports/bugs/%s\", CORE_DIRECTORY, name))"
+    },
+    {
+      "line": 12,
+      "path": "data/libs/functions/fs.lua",
+      "text": "function FS.mkdir(path)"
+    },
+    {
+      "line": 16,
+      "path": "data/libs/functions/fs.lua",
+      "text": "local success, err = os.execute('mkdir \"' .. path .. '\"')"
+    },
+    {
+      "line": 23,
+      "path": "data/libs/functions/fs.lua",
+      "text": "function FS.mkdir_p(path)"
+    },
+    {
+      "line": 38,
+      "path": "data/libs/functions/fs.lua",
+      "text": "local success, err = FS.mkdir(currentPath)"
+    },
+    {
+      "line": 23,
+      "path": "docker/quickstart/myaac/Dockerfile",
+      "text": "mkdir -p /tmp/myaac-src; \\"
+    },
+    {
+      "line": 31,
+      "path": "docker/quickstart/myaac/Dockerfile",
+      "text": "mkdir -p system/cache system/cache/twig system/logs system/php_sessions; \\"
+    },
+    {
+      "line": 37,
+      "path": "docker/quickstart/myaac/entrypoint.sh",
+      "text": "mkdir -p /canary/data/XML"
+    },
+    {
+      "line": 107,
+      "path": "docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md",
+      "text": "| `CS-006` | `891685169745e46f665069edcc35847f0704aa21` | `PARTIAL_VALUE` | high | `FS.mkdir` shell construction | Independent security task; do not copy upstream denylist. |"
+    },
+    {
+      "line": 190,
+      "path": "docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md",
+      "text": "- Which inputs reach `FS.mkdir` and `table.unserialize`, and are any attacker-controlled?"
+    },
+    {
+      "line": 2,
+      "path": "docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md",
+      "text": "task_id: CAN-20260714-fs-mkdir-shell-injection"
+    },
+    {
+      "line": 7,
+      "path": "docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md",
+      "text": "branch: security/fs-mkdir-shell-free"
+    },
+    {
+      "line": 21,
+      "path": "docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md",
+      "text": "- docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md"
+    },
+    {
+      "line": 23,
+      "path": "docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md",
+      "text": "- artifacts/upstream/crystalserver/cs006_fs_mkdir_audit.json"
+    },
+    {
+      "line": 24,
+      "path": "docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md",
+      "text": "- tools/ai-agent/audit_fs_mkdir.py"
+    },
+    {
+      "line": 25,
+      "path": "docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md",
+      "text": "- .github/workflows/audit-fs-mkdir.yml"
+    },
+    {
+      "line": 48,
+      "path": "docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md",
+      "text": "- \"FS.mkdir(path) return contract (preserve unless evidence requires a compatible extension)\""
+    },
+    {
+      "line": 49,
+      "path": "docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md",
+      "text": "- \"FS.mkdir_p(path) behavior through FS.mkdir\""
+    },
+    {
+      "line": 55,
+      "path": "docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md",
+      "text": "Determine whether `FS.mkdir` can execute shell metacharacters from any reachable Canary call site, then remove shell execution through the smallest architecture-native solution if the risk is confirmed, while preserving valid directory-creation behavior on maintained platforms."
+    },
+    {
+      "line": 59,
+      "path": "docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md",
+      "text": "- [ ] Full current-repository inventory of `FS.mkdir`, `FS.mkdir_p`, their call sites, and path provenance is recorded with exact files and lines."
+    },
+    {
+      "line": 74,
+      "path": "docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md",
+      "text": "- Current implementation uses `os.execute('mkdir \"' .. path .. '\"')` in `data/libs/functions/fs.lua`."
+    },
+    {
+      "line": 75,
+      "path": "docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md",
+      "text": "- The same file exposes `FS.mkdir_p`, which delegates each path component to `FS.mkdir`."
+    },
+    {
+      "line": 77,
+      "path": "docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md",
+      "text": "- Open PR search for `FS.mkdir`, `fs.lua`, and `mkdir_p` returned no overlap at task start."
+    },
+    {
+      "line": 93,
+      "path": "docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md",
+      "text": "- No open PR matched `FS.mkdir`, `fs.lua`, or `mkdir_p`."
+    },
+    {
+      "line": 136,
+      "path": "docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md",
+      "text": "- Security: direct command construction can become command injection if any path contains shell metacharacters and reaches `FS.mkdir`."
+    },
+    {
+      "line": 103,
+      "path": "docs/agents/tasks/archive/CAN-20260713-crystalserver-comparison-inventory.md",
+      "text": "2. Independently investigate `CS-006` (`FS.mkdir`) and `CS-007` (`table.unserialize`) without copying the upstream denylist/parser."
+    },
+    {
+      "line": 32,
+      "path": "docs/building/wsl-debian.md",
+      "text": "mkdir -p ~/.config/environment.d"
+    },
+    {
+      "line": 43,
+      "path": "docs/building/wsl-ubuntu-24.04.md",
+      "text": "mkdir -p ~/.config/environment.d"
+    },
+    {
+      "line": 91,
+      "path": "docs/systems/ai-content-deployment.md",
+      "text": "mkdir -p /srv/canary-content"
+    },
+    {
+      "line": 144,
+      "path": "recompile.sh",
+      "text": "mkdir -p build && cd build"
+    },
+    {
+      "line": 8,
+      "path": "start.sh",
+      "text": "mkdir -p logs"
+    },
+    {
+      "line": 7,
+      "path": "start_gdb.sh",
+      "text": "mkdir -p logs"
+    },
+    {
+      "line": 10,
+      "path": "tests/build_and_run.sh",
+      "text": "mkdir build"
+    },
+    {
+      "line": 121,
+      "path": "tests/fixture/generate_otbm_loader_fixture.py",
+      "text": "output_dir.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 354,
+      "path": "tools/agents/task_ownership.py",
+      "text": "args.write_index.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 1013,
+      "path": "tools/ai-agent/achievement_validation.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 1064,
+      "path": "tools/ai-agent/achievement_validation.py",
+      "text": "args.markdown.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 143,
+      "path": "tools/ai-agent/build_promotion_handoff.py",
+      "text": "args.json_output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 144,
+      "path": "tools/ai-agent/build_promotion_handoff.py",
+      "text": "args.markdown_output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 419,
+      "path": "tools/ai-agent/cyclopedia_validation.py",
+      "text": "output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 112,
+      "path": "tools/ai-agent/evaluate_promotion_readiness.py",
+      "text": "args.json_output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 113,
+      "path": "tools/ai-agent/evaluate_promotion_readiness.py",
+      "text": "args.markdown_output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 85,
+      "path": "tools/ai-agent/examples/otbm_hd_tibiasr2x_backend.py",
+      "text": "args.output_dir.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 110,
+      "path": "tools/ai-agent/generate_risk_report.py",
+      "text": "args.output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 153,
+      "path": "tools/ai-agent/generate_staging_patch.py",
+      "text": "args.json_output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 154,
+      "path": "tools/ai-agent/generate_staging_patch.py",
+      "text": "args.patch_output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 307,
+      "path": "tools/ai-agent/imbuement_storage_validation.py",
+      "text": "args.output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 700,
+      "path": "tools/ai-agent/imbuement_validation.py",
+      "text": "args.output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 706,
+      "path": "tools/ai-agent/imbuement_validation.py",
+      "text": "args.runtime_plan.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 13,
+      "path": "tools/ai-agent/lib/io_utils.py",
+      "text": "p=Path(path); p.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 97,
+      "path": "tools/ai-agent/materialize_promotion_overlay.py",
+      "text": "output_dir.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 137,
+      "path": "tools/ai-agent/materialize_promotion_overlay.py",
+      "text": "destination.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 165,
+      "path": "tools/ai-agent/materialize_promotion_overlay.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 91,
+      "path": "tools/ai-agent/normalize_research.py",
+      "text": "args.output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 37,
+      "path": "tools/ai-agent/otbm_appearances_tool.py",
+      "text": "args.output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 17,
+      "path": "tools/ai-agent/otbm_asset_tool.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 342,
+      "path": "tools/ai-agent/otbm_catalog.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 56,
+      "path": "tools/ai-agent/otbm_hd.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 178,
+      "path": "tools/ai-agent/otbm_hd.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 442,
+      "path": "tools/ai-agent/otbm_hd.py",
+      "text": "output_sprites.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 447,
+      "path": "tools/ai-agent/otbm_hd.py",
+      "text": "work_parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 878,
+      "path": "tools/ai-agent/otbm_hd.py",
+      "text": "output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 50,
+      "path": "tools/ai-agent/otbm_hd_batch.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 73,
+      "path": "tools/ai-agent/otbm_hd_batch.py",
+      "text": "output_root.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 147,
+      "path": "tools/ai-agent/otbm_hd_batch.py",
+      "text": "output_sprites.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 152,
+      "path": "tools/ai-agent/otbm_hd_batch.py",
+      "text": "work_root.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 158,
+      "path": "tools/ai-agent/otbm_hd_batch.py",
+      "text": "input_dir.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 159,
+      "path": "tools/ai-agent/otbm_hd_batch.py",
+      "text": "raw_output_dir.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 80,
+      "path": "tools/ai-agent/otbm_hd_tool.py",
+      "text": "report_path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 283,
+      "path": "tools/ai-agent/otbm_item_audit.py",
+      "text": "scan_output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 292,
+      "path": "tools/ai-agent/otbm_item_audit.py",
+      "text": "output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 260,
+      "path": "tools/ai-agent/otbm_patch.py",
+      "text": "output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 116,
+      "path": "tools/ai-agent/otbm_reachability.py",
+      "text": "destination.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 221,
+      "path": "tools/ai-agent/otbm_reference.py",
+      "text": "destination.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 262,
+      "path": "tools/ai-agent/otbm_reference.py",
+      "text": "destination.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 642,
+      "path": "tools/ai-agent/otbm_reference.py",
+      "text": "write_diff_to.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 695,
+      "path": "tools/ai-agent/otbm_reference.py",
+      "text": "output_directory.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 45,
+      "path": "tools/ai-agent/otbm_render_tool.py",
+      "text": "args.report.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 414,
+      "path": "tools/ai-agent/otbm_renderer.py",
+      "text": "output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 178,
+      "path": "tools/ai-agent/otbm_scan.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 214,
+      "path": "tools/ai-agent/otbm_scan.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 1450,
+      "path": "tools/ai-agent/otbm_script_resolution.py",
+      "text": "output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 1233,
+      "path": "tools/ai-agent/otbm_spawn_npc_validation.py",
+      "text": "destination.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 34,
+      "path": "tools/ai-agent/otbm_sprite_tool.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 56,
+      "path": "tools/ai-agent/otbm_sprite_tool.py",
+      "text": "args.output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 467,
+      "path": "tools/ai-agent/otbm_storage_graph_analysis.py",
+      "text": "destination.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 655,
+      "path": "tools/ai-agent/otbm_world_index.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 552,
+      "path": "tools/ai-agent/otbm_world_patch.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 564,
+      "path": "tools/ai-agent/otbm_world_patch.py",
+      "text": "destination.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 620,
+      "path": "tools/ai-agent/otbm_world_patch.py",
+      "text": "destination.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 60,
+      "path": "tools/ai-agent/quest_map_validation.py",
+      "text": "target.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 124,
+      "path": "tools/ai-agent/render_content.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 143,
+      "path": "tools/ai-agent/render_content.py",
+      "text": "base.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 82,
+      "path": "tools/ai-agent/research_provenance.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 144,
+      "path": "tools/ai-agent/research_to_task.py",
+      "text": "args.task_output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 145,
+      "path": "tools/ai-agent/research_to_task.py",
+      "text": "args.report_output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 49,
+      "path": "tools/ai-agent/run_content_pipeline.py",
+      "text": "output.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 63,
+      "path": "tools/ai-agent/run_research_pipeline.py",
+      "text": "output.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 176,
+      "path": "tools/ai-agent/scan_content.py",
+      "text": "output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 215,
+      "path": "tools/ai-agent/scan_ids.py",
+      "text": "output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 135,
+      "path": "tools/ai-agent/scan_project.py",
+      "text": "output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 131,
+      "path": "tools/ai-agent/test_achievement_validation.py",
+      "text": "registry.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 134,
+      "path": "tools/ai-agent/test_achievement_validation.py",
+      "text": "(root / \"data-otservbr-global\").mkdir()"
+    },
+    {
+      "line": 112,
+      "path": "tools/ai-agent/test_content_pipeline.py",
+      "text": "(ROOT / \"artifacts\").mkdir(exist_ok=True)"
+    },
+    {
+      "line": 121,
+      "path": "tools/ai-agent/test_content_pipeline.py",
+      "text": "(ROOT / \"artifacts\").mkdir(exist_ok=True)"
+    },
+    {
+      "line": 143,
+      "path": "tools/ai-agent/test_content_pipeline.py",
+      "text": "(ROOT / \"artifacts\").mkdir(exist_ok=True)"
+    },
+    {
+      "line": 182,
+      "path": "tools/ai-agent/test_cyclopedia_validation.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 194,
+      "path": "tools/ai-agent/test_cyclopedia_validation.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 41,
+      "path": "tools/ai-agent/test_imbuement_storage_validation.py",
+      "text": "(root / \"data/XML\").mkdir(parents=True)"
+    },
+    {
+      "line": 42,
+      "path": "tools/ai-agent/test_imbuement_storage_validation.py",
+      "text": "(root / validation.STORAGE_REGISTRY_PATH).parent.mkdir(parents=True)"
+    },
+    {
+      "line": 43,
+      "path": "tools/ai-agent/test_imbuement_storage_validation.py",
+      "text": "(root / validation.BOSS_UNLOCK_PATH).parent.mkdir(parents=True)"
+    },
+    {
+      "line": 18,
+      "path": "tools/ai-agent/test_materialize_promotion_overlay.py",
+      "text": "preview.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 20,
+      "path": "tools/ai-agent/test_otbm_assets.py",
+      "text": "self.assets.mkdir()"
+    },
+    {
+      "line": 98,
+      "path": "tools/ai-agent/test_otbm_hd.py",
+      "text": "export_root.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 132,
+      "path": "tools/ai-agent/test_otbm_hd.py",
+      "text": "export_root.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 180,
+      "path": "tools/ai-agent/test_otbm_hd.py",
+      "text": "export_root.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 184,
+      "path": "tools/ai-agent/test_otbm_hd.py",
+      "text": "override_root.mkdir()"
+    },
+    {
+      "line": 70,
+      "path": "tools/ai-agent/test_otbm_hd_batch.py",
+      "text": "root.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 87,
+      "path": "tools/ai-agent/test_otbm_hd_batch.py",
+      "text": "\"out=Path(a.output_dir);out.mkdir(parents=True,exist_ok=True)\\n\""
+    },
+    {
+      "line": 217,
+      "path": "tools/ai-agent/test_otbm_hd_batch.py",
+      "text": "output_root.mkdir()"
+    },
+    {
+      "line": 276,
+      "path": "tools/ai-agent/test_otbm_hd_batch.py",
+      "text": "\"import argparse\\nfrom pathlib import Path\\np=argparse.ArgumentParser();p.add_argument('--input-dir');p.add_argument('--output-dir');p.add_argument('--manifest');a=p.parse_args()\\nout=Path(a.output_dir);out.mkdir(parents=True,exist_ok=True);(out/'1.png').symlink_to(Path(a.input_dir)/'1.png')\\n\","
+    },
+    {
+      "line": 184,
+      "path": "tools/ai-agent/test_otbm_reference.py",
+      "text": "reference.mkdir()"
+    },
+    {
+      "line": 107,
+      "path": "tools/ai-agent/test_otbm_renderer.py",
+      "text": "assets.mkdir(parents=True)"
+    },
+    {
+      "line": 21,
+      "path": "tools/ai-agent/test_otbm_script_resolution.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 25,
+      "path": "tools/ai-agent/test_otbm_spawn_npc_runtime_semantics.py",
+      "text": "(self.root / \"world\").mkdir(parents=True)"
+    },
+    {
+      "line": 26,
+      "path": "tools/ai-agent/test_otbm_spawn_npc_runtime_semantics.py",
+      "text": "(self.root / \"monster\").mkdir(parents=True)"
+    },
+    {
+      "line": 27,
+      "path": "tools/ai-agent/test_otbm_spawn_npc_runtime_semantics.py",
+      "text": "(self.root / \"npc\").mkdir(parents=True)"
+    },
+    {
+      "line": 28,
+      "path": "tools/ai-agent/test_otbm_spawn_npc_runtime_semantics.py",
+      "text": "(self.root / \"scripts\").mkdir(parents=True)"
+    },
+    {
+      "line": 55,
+      "path": "tools/ai-agent/test_otbm_spawn_npc_validation.py",
+      "text": "(self.root / \"world\").mkdir(parents=True)"
+    },
+    {
+      "line": 56,
+      "path": "tools/ai-agent/test_otbm_spawn_npc_validation.py",
+      "text": "(self.root / \"monster\" / \"demons\").mkdir(parents=True)"
+    },
+    {
+      "line": 57,
+      "path": "tools/ai-agent/test_otbm_spawn_npc_validation.py",
+      "text": "(self.root / \"npc\").mkdir(parents=True)"
+    },
+    {
+      "line": 58,
+      "path": "tools/ai-agent/test_otbm_spawn_npc_validation.py",
+      "text": "(self.root / \"scripts\" / \"quests\" / \"sample\").mkdir(parents=True)"
+    },
+    {
+      "line": 35,
+      "path": "tools/ai-agent/test_otbm_storage_graph.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 211,
+      "path": "tools/ai-agent/test_otbm_storage_graph.py",
+      "text": "link.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 240,
+      "path": "tools/ai-agent/test_otbm_world_patch.py",
+      "text": "output.mkdir()"
+    },
+    {
+      "line": 50,
+      "path": "tools/ai-agent/test_promotion_handoff.py",
+      "text": "path.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 71,
+      "path": "tools/ai-agent/test_promotion_handoff.py",
+      "text": "path.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 85,
+      "path": "tools/ai-agent/test_promotion_handoff.py",
+      "text": "path.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 21,
+      "path": "tools/ai-agent/test_promotion_readiness.py",
+      "text": "preview.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 48,
+      "path": "tools/ai-agent/test_promotion_readiness.py",
+      "text": "preview.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 141,
+      "path": "tools/ai-agent/test_quest_map_validation.py",
+      "text": "(self.root / \"data/quests\").mkdir(parents=True)"
+    },
+    {
+      "line": 41,
+      "path": "tools/ai-agent/test_research_pipeline.py",
+      "text": "(ROOT / \"artifacts\").mkdir(exist_ok=True)"
+    },
+    {
+      "line": 78,
+      "path": "tools/ai-agent/test_research_pipeline.py",
+      "text": "(ROOT / \"artifacts\").mkdir(exist_ok=True)"
+    },
+    {
+      "line": 135,
+      "path": "tools/ai-agent/test_research_pipeline.py",
+      "text": "(ROOT / \"artifacts\").mkdir(exist_ok=True)"
+    },
+    {
+      "line": 21,
+      "path": "tools/ai-agent/test_scan_content.py",
+      "text": "monster_dir.mkdir(parents=True)"
+    },
+    {
+      "line": 22,
+      "path": "tools/ai-agent/test_scan_content.py",
+      "text": "quest_dir.mkdir(parents=True)"
+    },
+    {
+      "line": 51,
+      "path": "tools/ai-agent/test_scan_content.py",
+      "text": "npc_dir.mkdir(parents=True)"
+    },
+    {
+      "line": 19,
+      "path": "tools/ai-agent/test_scan_project.py",
+      "text": "(root / \"src\").mkdir()"
+    },
+    {
+      "line": 21,
+      "path": "tools/ai-agent/test_scan_project.py",
+      "text": "(root / \"data\" / \"monsters\").mkdir(parents=True)"
+    },
+    {
+      "line": 36,
+      "path": "tools/ai-agent/test_scan_project.py",
+      "text": "(root / \"build\").mkdir()"
+    },
+    {
+      "line": 36,
+      "path": "tools/ai-agent/test_staging_patch.py",
+      "text": "source.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 50,
+      "path": "tools/ai-agent/test_staging_patch.py",
+      "text": "source.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 53,
+      "path": "tools/ai-agent/test_staging_patch.py",
+      "text": "target.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 67,
+      "path": "tools/ai-agent/test_staging_patch.py",
+      "text": "source.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 84,
+      "path": "tools/ai-agent/test_staging_patch.py",
+      "text": "source.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 70,
+      "path": "tools/ai-agent/test_weapon_proficiency_achievement_audit.py",
+      "text": "registry.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 81,
+      "path": "tools/ai-agent/test_weapon_proficiency_achievement_audit.py",
+      "text": "cpp.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 108,
+      "path": "tools/ai-agent/test_weapon_proficiency_achievement_audit.py",
+      "text": "proficiencies.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 112,
+      "path": "tools/ai-agent/test_weapon_proficiency_achievement_audit.py",
+      "text": "(root / \"data-otservbr-global\").mkdir()"
+    },
+    {
+      "line": 14,
+      "path": "tools/ai-agent/test_weapon_proficiency_forbidden_build_validation.py",
+      "text": "baseline.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 36,
+      "path": "tools/ai-agent/test_weapon_proficiency_forbidden_build_validation.py",
+      "text": "items.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 296,
+      "path": "tools/ai-agent/test_wheel_of_destiny_validation.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 93,
+      "path": "tools/ai-agent/validate_references.py",
+      "text": "args.output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 197,
+      "path": "tools/ai-agent/verify_staging_patch.py",
+      "text": "args.output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 505,
+      "path": "tools/ai-agent/weapon_proficiency_achievement_audit.py",
+      "text": "args.output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 510,
+      "path": "tools/ai-agent/weapon_proficiency_achievement_audit.py",
+      "text": "args.markdown.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 208,
+      "path": "tools/ai-agent/weapon_proficiency_forbidden_build_validation.py",
+      "text": "args.output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 213,
+      "path": "tools/ai-agent/weapon_proficiency_forbidden_build_validation.py",
+      "text": "args.markdown.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 610,
+      "path": "tools/ai-agent/wheel_of_destiny_validation.py",
+      "text": "args.output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 613,
+      "path": "tools/ai-agent/wheel_of_destiny_validation.py",
+      "text": "args.markdown.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 200,
+      "path": "tools/ai-agent/wheel_protocol_validation.py",
+      "text": "args.output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 203,
+      "path": "tools/ai-agent/wheel_protocol_validation.py",
+      "text": "args.markdown.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 139,
+      "path": "tools/ai-agent/wheel_task_shop_validation.py",
+      "text": "args.output.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 142,
+      "path": "tools/ai-agent/wheel_task_shop_validation.py",
+      "text": "args.markdown.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 9,
+      "path": "tools/analytics/test_install_gameplay_analytics_guards.sh",
+      "text": "mkdir -p \"${TMP_DIR}/bin\""
+    },
+    {
+      "line": 70,
+      "path": "tools/deploy/canary_staging.py",
+      "text": "target.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 78,
+      "path": "tools/deploy/canary_staging.py",
+      "text": "destination_file.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 80,
+      "path": "tools/deploy/manifest.py",
+      "text": "path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 110,
+      "path": "tools/deploy/release_manager.py",
+      "text": "releases_dir.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 112,
+      "path": "tools/deploy/release_manager.py",
+      "text": "tmp_dir.mkdir(parents=True, exist_ok=False)"
+    },
+    {
+      "line": 117,
+      "path": "tools/deploy/release_manager.py",
+      "text": "dest_path.parent.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 101,
+      "path": "tools/deploy/run_canary_deployment.py",
+      "text": "workspace_root.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "line": 25,
+      "path": "tools/deploy/test_canary_staging.py",
+      "text": "(base / \"scripts\").mkdir(parents=True)"
+    },
+    {
+      "line": 26,
+      "path": "tools/deploy/test_canary_staging.py",
+      "text": "(base / \"world\").mkdir(parents=True)"
+    },
+    {
+      "line": 27,
+      "path": "tools/deploy/test_canary_staging.py",
+      "text": "(overlay / \"scripts\").mkdir(parents=True)"
+    },
+    {
+      "line": 28,
+      "path": "tools/deploy/test_canary_staging.py",
+      "text": "(overlay / \"new\").mkdir(parents=True)"
+    },
+    {
+      "line": 47,
+      "path": "tools/deploy/test_canary_staging.py",
+      "text": "base.mkdir()"
+    },
+    {
+      "line": 48,
+      "path": "tools/deploy/test_canary_staging.py",
+      "text": "overlay.mkdir()"
+    },
+    {
+      "line": 49,
+      "path": "tools/deploy/test_canary_staging.py",
+      "text": "destination.mkdir()"
+    },
+    {
+      "line": 59,
+      "path": "tools/deploy/test_canary_staging.py",
+      "text": "base.mkdir()"
+    },
+    {
+      "line": 60,
+      "path": "tools/deploy/test_canary_staging.py",
+      "text": "overlay.mkdir()"
+    },
+    {
+      "line": 78,
+      "path": "tools/deploy/test_canary_staging.py",
+      "text": "base.mkdir()"
+    },
+    {
+      "line": 79,
+      "path": "tools/deploy/test_canary_staging.py",
+      "text": "overlay.mkdir()"
+    },
+    {
+      "line": 83,
+      "path": "tools/deploy/test_canary_staging.py",
+      "text": "target_path.mkdir(parents=True)"
+    },
+    {
+      "line": 99,
+      "path": "tools/deploy/test_canary_staging.py",
+      "text": "(base / \"conflict.lua\").mkdir(parents=True)"
+    },
+    {
+      "line": 100,
+      "path": "tools/deploy/test_canary_staging.py",
+      "text": "overlay.mkdir()"
+    },
+    {
+      "line": 112,
+      "path": "tools/deploy/test_canary_staging.py",
+      "text": "repo.mkdir()"
+    },
+    {
+      "line": 113,
+      "path": "tools/deploy/test_canary_staging.py",
+      "text": "datapack.mkdir()"
+    },
+    {
+      "line": 114,
+      "path": "tools/deploy/test_canary_staging.py",
+      "text": "binary.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 25,
+      "path": "tools/deploy/test_manifest.py",
+      "text": "(root / \"npc\").mkdir()"
+    },
+    {
+      "line": 17,
+      "path": "tools/deploy/test_path_policy.py",
+      "text": "(root / \"sub\").mkdir()"
+    },
+    {
+      "line": 24,
+      "path": "tools/deploy/test_path_policy.py",
+      "text": "root.mkdir()"
+    },
+    {
+      "line": 31,
+      "path": "tools/deploy/test_path_policy.py",
+      "text": "root.mkdir()"
+    },
+    {
+      "line": 38,
+      "path": "tools/deploy/test_path_policy.py",
+      "text": "root.mkdir()"
+    },
+    {
+      "line": 40,
+      "path": "tools/deploy/test_path_policy.py",
+      "text": "outside.mkdir()"
+    },
+    {
+      "line": 51,
+      "path": "tools/deploy/test_path_policy.py",
+      "text": "root.mkdir()"
+    },
+    {
+      "line": 38,
+      "path": "tools/deploy/test_release_manager.py",
+      "text": "self.root.mkdir()"
+    },
+    {
+      "line": 40,
+      "path": "tools/deploy/test_release_manager.py",
+      "text": "self.source.mkdir()"
+    },
+    {
+      "line": 41,
+      "path": "tools/deploy/test_release_manager.py",
+      "text": "(self.source / \"npc\").mkdir()"
+    },
+    {
+      "line": 46,
+      "path": "tools/deploy/test_release_manager.py",
+      "text": "source.mkdir()"
+    },
+    {
+      "line": 83,
+      "path": "tools/deploy/test_release_manager.py",
+      "text": "outside.mkdir()"
+    },
+    {
+      "line": 26,
+      "path": "tools/deploy/test_run_canary_deployment.py",
+      "text": "repo.mkdir()"
+    },
+    {
+      "line": 27,
+      "path": "tools/deploy/test_run_canary_deployment.py",
+      "text": "source.mkdir()"
+    },
+    {
+      "line": 28,
+      "path": "tools/deploy/test_run_canary_deployment.py",
+      "text": "base.mkdir()"
+    },
+    {
+      "line": 29,
+      "path": "tools/deploy/test_run_canary_deployment.py",
+      "text": "binary.parent.mkdir(parents=True)"
+    },
+    {
+      "line": 31,
+      "path": "tools/deploy/test_run_canary_deployment.py",
+      "text": "releases.mkdir()"
+    },
+    {
+      "line": 98,
+      "path": "tools/deploy/test_run_canary_deployment.py",
+      "text": "assembled.mkdir()"
+    },
+    {
+      "line": 123,
+      "path": "tools/deploy/test_run_canary_deployment.py",
+      "text": "assembled.mkdir()"
+    }
+  ],
+  "native_or_binding_candidates": [
+    {
+      "line": 148,
+      "path": "src/canary_server.cpp",
+      "text": "LuaApiDocGenerator apiDocGenerator(std::filesystem::current_path(), g_configManager().getString(LUA_API_DOCS_OUTPUT_DIRECTORY), logger);"
+    },
+    {
+      "line": 94,
+      "path": "src/database/database.cpp",
+      "text": "std::filesystem::create_directories(backupDir);"
+    },
+    {
+      "line": 119,
+      "path": "src/database/database.cpp",
+      "text": "std::filesystem::remove(tempConfigFile);"
+    },
+    {
+      "line": 149,
+      "path": "src/database/database.cpp",
+      "text": "std::filesystem::remove(backupFileName);"
+    },
+    {
+      "line": 156,
+      "path": "src/database/database.cpp",
+      "text": "for (const auto &entry : std::filesystem::directory_iterator(\"database_backup\")) {"
+    },
+    {
+      "line": 159,
+      "path": "src/database/database.cpp",
+      "text": "for (const auto &file : std::filesystem::directory_iterator(entry)) {"
+    },
+    {
+      "line": 161,
+      "path": "src/database/database.cpp",
+      "text": "auto fileTime = std::filesystem::last_write_time(file);"
+    },
+    {
+      "line": 162,
+      "path": "src/database/database.cpp",
+      "text": "auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(fileTime - std::filesystem::file_time_type::clock::now() + std::chrono::system_clock::now());"
+    },
+    {
+      "line": 166,
+      "path": "src/database/database.cpp",
+      "text": "std::filesystem::remove(file);"
+    },
+    {
+      "line": 171,
+      "path": "src/database/database.cpp",
+      "text": "} catch (const std::filesystem::filesystem_error &e) {"
+    },
+    {
+      "line": 103,
+      "path": "src/database/databasemanager.cpp",
+      "text": "for (const auto &entry : std::filesystem::directory_iterator(migrationDirectory)) {"
+    },
+    {
+      "line": 1019,
+      "path": "src/game/game.cpp",
+      "text": "void Game::loadCustomMaps(const std::filesystem::path &customMapPath) {"
+    },
+    {
+      "line": 1023,
+      "path": "src/game/game.cpp",
+      "text": "namespace fs = std::filesystem;"
+    },
+    {
+      "line": 1025,
+      "path": "src/game/game.cpp",
+      "text": "if (!fs::exists(customMapPath) && !fs::create_directory(customMapPath)) {"
+    },
+    {
+      "line": 130,
+      "path": "src/game/game.hpp",
+      "text": "void loadCustomMaps(const std::filesystem::path &customMapPath);"
+    },
+    {
+      "line": 58,
+      "path": "src/game/scheduling/events_scheduler.cpp",
+      "text": "const std::filesystem::path jsonEventSchedulerScriptsDir = \"json/eventscheduler/scripts\";"
+    },
+    {
+      "line": 61,
+      "path": "src/game/scheduling/events_scheduler.cpp",
+      "text": "std::filesystem::path coreFolder;"
+    },
+    {
+      "line": 62,
+      "path": "src/game/scheduling/events_scheduler.cpp",
+      "text": "std::filesystem::path primaryDir;"
+    },
+    {
+      "line": 66,
+      "path": "src/game/scheduling/events_scheduler.cpp",
+      "text": "std::filesystem::path path { std::string(script) };"
+    },
+    {
+      "line": 82,
+      "path": "src/game/scheduling/events_scheduler.cpp",
+      "text": "std::filesystem::path normalizedPath = path.lexically_normal();"
+    },
+    {
+      "line": 96,
+      "path": "src/game/scheduling/events_scheduler.cpp",
+      "text": "std::optional<std::filesystem::path> resolveEventSchedulerScriptFilePath("
+    },
+    {
+      "line": 98,
+      "path": "src/game/scheduling/events_scheduler.cpp",
+      "text": "const std::filesystem::path &normalizedScript"
+    },
+    {
+      "line": 100,
+      "path": "src/game/scheduling/events_scheduler.cpp",
+      "text": "const std::filesystem::path basePath = std::filesystem::current_path() / scriptSearchPaths.coreFolder;"
+    },
+    {
+      "line": 101,
+      "path": "src/game/scheduling/events_scheduler.cpp",
+      "text": "std::filesystem::path primaryPath = basePath / scriptSearchPaths.primaryDir / normalizedScript;"
+    },
+    {
+      "line": 102,
+      "path": "src/game/scheduling/events_scheduler.cpp",
+      "text": "if (std::filesystem::exists(primaryPath) && std::filesystem::is_regular_file(primaryPath)) {"
+    },
+    {
+      "line": 126,
+      "path": "src/game/scheduling/events_scheduler.cpp",
+      "text": "const std::filesystem::path normalizedScript { *normalizedScriptOpt };"
+    },
+    {
+      "line": 203,
+      "path": "src/game/scheduling/events_scheduler.cpp",
+      "text": "std::filesystem::path(coreFolder),"
+    },
+    {
+      "line": 79,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "void incrementIterator(std::filesystem::recursive_directory_iterator &it, std::error_code &ec) {"
+    },
+    {
+      "line": 1672,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "bool writeFileAtomically(const std::filesystem::path &path, const std::string &content, std::string &errorMessage) {"
+    },
+    {
+      "line": 1674,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "const auto createdDirectory = std::filesystem::create_directories(path.parent_path(), ec);"
+    },
+    {
+      "line": 1681,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "if (std::filesystem::exists(path, ec) && !ec) {"
+    },
+    {
+      "line": 1708,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "std::filesystem::rename(tempPath, path, ec);"
+    },
+    {
+      "line": 1710,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "const auto removedTarget = std::filesystem::remove(path, ec);"
+    },
+    {
+      "line": 1713,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "std::filesystem::rename(tempPath, path, ec);"
+    },
+    {
+      "line": 1723,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "LuaBindingScanner::LuaBindingScanner(std::filesystem::path rootPath) :"
+    },
+    {
+      "line": 1730,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "if (!std::filesystem::exists(sourceRoot, ec) || ec) {"
+    },
+    {
+      "line": 1734,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "std::filesystem::recursive_directory_iterator it(sourceRoot, std::filesystem::directory_options::skip_permission_denied, ec);"
+    },
+    {
+      "line": 1735,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "const std::filesystem::recursive_directory_iterator end;"
+    },
+    {
+      "line": 1763,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "void LuaBindingScanner::scanFile(const std::filesystem::path &filePath, LuaScanResult &result) const {"
+    },
+    {
+      "line": 1776,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "void LuaBindingScanner::parseLuaReg(const std::string &content, const std::filesystem::path &filePath, LuaScanResult &result) const {"
+    },
+    {
+      "line": 1811,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "void LuaBindingScanner::parseRegistrations(const std::string &content, const std::filesystem::path &filePath, LuaScanResult &result) const {"
+    },
+    {
+      "line": 2062,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "std::string LuaBindingScanner::relativePath(const std::filesystem::path &path) const {"
+    },
+    {
+      "line": 2070,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "LuaApiDocGenerator::LuaApiDocGenerator(const std::filesystem::path &initialProjectRoot, std::filesystem::path outputDirectory, Logger &logger) :"
+    },
+    {
+      "line": 2078,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "const auto createdDirectory = std::filesystem::create_directories(docsDirectory, ec);"
+    },
+    {
+      "line": 2097,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "} catch (const std::filesystem::filesystem_error &e) {"
+    },
+    {
+      "line": 2121,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "std::filesystem::path LuaApiDocGenerator::findProjectRoot(const std::filesystem::path &start) const {"
+    },
+    {
+      "line": 2123,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "const auto existsWithoutError = [](const std::filesystem::path &path) {"
+    },
+    {
+      "line": 2125,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "return std::filesystem::exists(path, ec) && !ec;"
+    },
+    {
+      "line": 2141,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "std::filesystem::path LuaApiDocGenerator::resolveDocsDirectory(const std::filesystem::path &outputDirectory) const {"
+    },
+    {
+      "line": 2142,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "const auto output = outputDirectory.empty() ? std::filesystem::path(\"docs/lua-api\") : outputDirectory;"
+    },
+    {
+      "line": 2242,
+      "path": "src/lua/docgen/lua_api_doc_generator.cpp",
+      "text": "return (std::filesystem::path(docsDirectoryPath) / fileName).generic_string();"
+    },
+    {
+      "line": 75,
+      "path": "src/lua/docgen/lua_api_doc_generator.hpp",
+      "text": "explicit LuaBindingScanner(std::filesystem::path rootPath);"
+    },
+    {
+      "line": 79,
+      "path": "src/lua/docgen/lua_api_doc_generator.hpp",
+      "text": "void scanFile(const std::filesystem::path &filePath, LuaScanResult &result) const;"
+    },
+    {
+      "line": 80,
+      "path": "src/lua/docgen/lua_api_doc_generator.hpp",
+      "text": "void parseLuaReg(const std::string &content, const std::filesystem::path &filePath, LuaScanResult &result) const;"
+    },
+    {
+      "line": 81,
+      "path": "src/lua/docgen/lua_api_doc_generator.hpp",
+      "text": "void parseRegistrations(const std::string &content, const std::filesystem::path &filePath, LuaScanResult &result) const;"
+    },
+    {
+      "line": 87,
+      "path": "src/lua/docgen/lua_api_doc_generator.hpp",
+      "text": "std::string relativePath(const std::filesystem::path &path) const;"
+    },
+    {
+      "line": 89,
+      "path": "src/lua/docgen/lua_api_doc_generator.hpp",
+      "text": "std::filesystem::path root;"
+    },
+    {
+      "line": 94,
+      "path": "src/lua/docgen/lua_api_doc_generator.hpp",
+      "text": "LuaApiDocGenerator(const std::filesystem::path &initialProjectRoot, std::filesystem::path outputDirectory, Logger &logger);"
+    },
+    {
+      "line": 98,
+      "path": "src/lua/docgen/lua_api_doc_generator.hpp",
+      "text": "std::filesystem::path findProjectRoot(const std::filesystem::path &start) const;"
+    },
+    {
+      "line": 99,
+      "path": "src/lua/docgen/lua_api_doc_generator.hpp",
+      "text": "std::filesystem::path resolveDocsDirectory(const std::filesystem::path &outputDirectory) const;"
+    },
+    {
+      "line": 106,
+      "path": "src/lua/docgen/lua_api_doc_generator.hpp",
+      "text": "std::filesystem::path projectRoot;"
+    },
+    {
+      "line": 107,
+      "path": "src/lua/docgen/lua_api_doc_generator.hpp",
+      "text": "std::filesystem::path docsDirectory;"
+    },
+    {
+      "line": 59,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "std::filesystem::path file;"
+    },
+    {
+      "line": 60,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "std::filesystem::path packFile;"
+    },
+    {
+      "line": 87,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "std::filesystem::path g_luaBytecodeCacheDirectory;"
+    },
+    {
+      "line": 89,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "std::filesystem::path g_luaStartupWorkingDirectory;"
+    },
+    {
+      "line": 119,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "std::optional<std::string> readLuaFileBuffer(const std::filesystem::path &file) {"
+    },
+    {
+      "line": 145,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "std::optional<LuaFileBufferLoadResult> loadLuaChunkFromFileBuffer(lua_State* luaState, const std::filesystem::path &file, const std::string &chunkName) {"
+    },
+    {
+      "line": 158,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "bool ensureLuaBytecodeCacheDirectory(const std::filesystem::path &cacheDirectory) {"
+    },
+    {
+      "line": 166,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "const auto createdDirectory = std::filesystem::create_directories(cacheDirectory, error);"
+    },
+    {
+      "line": 173,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "if (!std::filesystem::is_directory(cacheDirectory, statusError)) {"
+    },
+    {
+      "line": 184,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "[[nodiscard]] const std::filesystem::path &getLuaBytecodeCacheDirectory() {"
+    },
+    {
+      "line": 191,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "std::filesystem::path directory(configuredPath);"
+    },
+    {
+      "line": 194,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "const auto currentPath = std::filesystem::current_path(error);"
+    },
+    {
+      "line": 206,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "[[nodiscard]] const std::filesystem::path &getLuaStartupWorkingDirectory() {"
+    },
+    {
+      "line": 209,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "auto directory = std::filesystem::current_path(error);"
+    },
+    {
+      "line": 222,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "std::filesystem::path sourcePath(file);"
+    },
+    {
+      "line": 230,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "[[nodiscard]] std::filesystem::path getLuaBytecodePackFile(const std::string &sourceIdentity) {"
+    },
+    {
+      "line": 231,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "const auto sourceFolder = std::filesystem::path(sourceIdentity).parent_path().generic_string();"
+    },
+    {
+      "line": 257,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "[[nodiscard]] LuaBytecodePack readLuaBytecodePack(const std::filesystem::path &packFile) {"
+    },
+    {
+      "line": 300,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "[[nodiscard]] bool luaBytecodePackHasValidMagic(const std::filesystem::path &packFile) {"
+    },
+    {
+      "line": 335,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "void invalidateLuaBytecodePack(const std::filesystem::path &packFile) {"
+    },
+    {
+      "line": 338,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "static_cast<void>(std::filesystem::remove(packFile, error));"
+    },
+    {
+      "line": 353,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "const auto packSize = std::filesystem::file_size(cacheEntry.packFile, error);"
+    },
+    {
+      "line": 357,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "static_cast<void>(std::filesystem::remove(cacheEntry.packFile, error));"
+    },
+    {
+      "line": 399,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "const std::filesystem::directory_entry sourceEntry(file, error);"
+    },
+    {
+      "line": 461,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "static_cast<void>(std::filesystem::remove(temporaryFile, error));"
+    },
+    {
+      "line": 468,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "static_cast<void>(std::filesystem::remove(temporaryFile, error));"
+    },
+    {
+      "line": 474,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "static_cast<void>(std::filesystem::remove(cacheEntry.file, error));"
+    },
+    {
+      "line": 477,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "std::filesystem::rename(temporaryFile, cacheEntry.file, error);"
+    },
+    {
+      "line": 480,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "static_cast<void>(std::filesystem::remove(temporaryFile, error));"
+    },
+    {
+      "line": 545,
+      "path": "src/lua/scripts/luascript.cpp",
+      "text": "static_cast<void>(std::filesystem::remove(bytecodeCacheEntry->file, error));"
+    },
+    {
+      "line": 22,
+      "path": "src/lua/scripts/luascript.hpp",
+      "text": "std::filesystem::file_time_type lastWriteTime {};"
+    },
+    {
+      "line": 61,
+      "path": "src/lua/scripts/scripts.cpp",
+      "text": "bool Scripts::loadEventSchedulerScripts(const std::filesystem::path &filePath) {"
+    },
+    {
+      "line": 62,
+      "path": "src/lua/scripts/scripts.cpp",
+      "text": "if (!std::filesystem::exists(filePath) || !std::filesystem::is_regular_file(filePath)) {"
+    },
+    {
+      "line": 81,
+      "path": "src/lua/scripts/scripts.cpp",
+      "text": "const auto dir = std::filesystem::current_path() / folderName;"
+    },
+    {
+      "line": 88,
+      "path": "src/lua/scripts/scripts.cpp",
+      "text": "if (!std::filesystem::exists(dir) || !std::filesystem::is_directory(dir)) {"
+    },
+    {
+      "line": 104,
+      "path": "src/lua/scripts/scripts.cpp",
+      "text": "for (const auto &entry : std::filesystem::recursive_directory_iterator(dir)) {"
+    },
+    {
+      "line": 26,
+      "path": "src/lua/scripts/scripts.hpp",
+      "text": "bool loadEventSchedulerScripts(const std::filesystem::path &filePath);"
+    },
+    {
+      "line": 56,
+      "path": "src/map/map.cpp",
+      "text": "if (mainMap && g_configManager().getBoolean(TOGGLE_DOWNLOAD_MAP) && !std::filesystem::exists(identifier)) {"
+    },
+    {
+      "line": 36,
+      "path": "src/map/map.hpp",
+      "text": "std::filesystem::path getPath() const {"
+    },
+    {
+      "line": 175,
+      "path": "src/map/map.hpp",
+      "text": "std::filesystem::path path;"
+    },
+    {
+      "line": 15,
+      "path": "tests/integration/game/money_it.cpp",
+      "text": "previousPath_ = std::filesystem::current_path();"
+    },
+    {
+      "line": 18,
+      "path": "tests/integration/game/money_it.cpp",
+      "text": "std::filesystem::current_path(repoRoot_);"
+    },
+    {
+      "line": 28,
+      "path": "tests/integration/game/money_it.cpp",
+      "text": "std::filesystem::current_path(previousPath_);"
+    },
+    {
+      "line": 32,
+      "path": "tests/integration/game/money_it.cpp",
+      "text": "std::filesystem::path repoRoot_ {};"
+    },
+    {
+      "line": 33,
+      "path": "tests/integration/game/money_it.cpp",
+      "text": "std::filesystem::path previousPath_ {};"
+    },
+    {
+      "line": 36,
+      "path": "tests/integration/game/money_it.cpp",
+      "text": "[[nodiscard]] static std::filesystem::path detectRepoRoot(std::filesystem::path start) {"
+    },
+    {
+      "line": 37,
+      "path": "tests/integration/game/money_it.cpp",
+      "text": "const auto configPath = std::filesystem::path(\"tests/fixture/config/imbuements_test.lua\");"
+    },
+    {
+      "line": 40,
+      "path": "tests/integration/game/money_it.cpp",
+      "text": "const auto configExists = std::filesystem::exists(start / configPath, configEc);"
+    },
+    {
+      "line": 21,
+      "path": "tests/integration/game/otbm_loader_it.cpp",
+      "text": "path = std::filesystem::temp_directory_path() / (\"canary-otbm-loader-\" + std::to_string(suffix));"
+    },
+    {
+      "line": 22,
+      "path": "tests/integration/game/otbm_loader_it.cpp",
+      "text": "std::filesystem::create_directories(path);"
+    },
+    {
+      "line": 27,
+      "path": "tests/integration/game/otbm_loader_it.cpp",
+      "text": "std::filesystem::remove_all(path, error);"
+    },
+    {
+      "line": 33,
+      "path": "tests/integration/game/otbm_loader_it.cpp",
+      "text": "std::filesystem::path path;"
+    },
+    {
+      "line": 36,
+      "path": "tests/integration/game/otbm_loader_it.cpp",
+      "text": "std::string shellQuote(const std::filesystem::path &value) {"
+    },
+    {
+      "line": 65,
+      "path": "tests/integration/game/otbm_loader_it.cpp",
+      "text": "const auto fixtureScript = std::filesystem::path(TESTS_SOURCE_DIR) / \"tests/fixture/generate_otbm_loader_fixture.py\";"
+    },
+    {
+      "line": 66,
+      "path": "tests/integration/game/otbm_loader_it.cpp",
+      "text": "const auto pythonExecutable = std::filesystem::path(CANARY_TEST_PYTHON_EXECUTABLE);"
+    },
+    {
+      "line": 72,
+      "path": "tests/integration/game/otbm_loader_it.cpp",
+      "text": "ASSERT_TRUE(std::filesystem::is_regular_file(editedMap));"
+    },
+    {
+      "line": 73,
+      "path": "tests/integration/game/otbm_loader_it.cpp",
+      "text": "ASSERT_TRUE(std::filesystem::is_regular_file(temporaryDirectory.path / \"manifest.json\"));"
+    },
+    {
+      "line": 16,
+      "path": "tests/integration/main.cpp",
+      "text": "bool fileExists(const std::filesystem::path &path) {"
+    },
+    {
+      "line": 18,
+      "path": "tests/integration/main.cpp",
+      "text": "return std::filesystem::exists(path, ec) && !ec;"
+    },
+    {
+      "line": 21,
+      "path": "tests/integration/main.cpp",
+      "text": "std::filesystem::path detectRepoRoot(std::filesystem::path start) {"
+    },
+    {
+      "line": 68,
+      "path": "tests/integration/main.cpp",
+      "text": "std::string detectConfigFile(const std::filesystem::path &repoRoot) {"
+    },
+    {
+      "line": 108,
+      "path": "tests/integration/main.cpp",
+      "text": "const auto previousPath = std::filesystem::current_path();"
+    },
+    {
+      "line": 115,
+      "path": "tests/integration/main.cpp",
+      "text": "std::filesystem::current_path(repoRoot);"
+    },
+    {
+      "line": 116,
+      "path": "tests/integration/main.cpp",
+      "text": "std::fprintf(stderr, \"[integration main] repoRoot=%s\\n\", std::filesystem::current_path().string().c_str());"
+    },
+    {
+      "line": 120,
+      "path": "tests/integration/main.cpp",
+      "text": "const auto configFile = detectConfigFile(std::filesystem::current_path());"
+    },
+    {
+      "line": 145,
+      "path": "tests/integration/main.cpp",
+      "text": "const auto appearancePath = (std::filesystem::path(config.getString(CORE_DIRECTORY)) / \"items/appearances.dat\").lexically_normal().string();"
+    },
+    {
+      "line": 176,
+      "path": "tests/integration/main.cpp",
+      "text": "std::filesystem::current_path(previousPath);"
+    },
+    {
+      "line": 84,
+      "path": "tests/integration/test_database.hpp",
+      "text": "if (std::filesystem::exists(TESTS_ENV_DEFAULT)) {"
+    },
+    {
+      "line": 89,
+      "path": "tests/integration/test_database.hpp",
+      "text": "namespace fs = std::filesystem;"
+    },
+    {
+      "line": 147,
+      "path": "tests/integration/test_database.hpp",
+      "text": "const auto candidate = std::filesystem::path(directory) / name;"
+    },
+    {
+      "line": 148,
+      "path": "tests/integration/test_database.hpp",
+      "text": "if (std::filesystem::exists(candidate)) {"
+    },
+    {
+      "line": 230,
+      "path": "tests/integration/test_database.hpp",
+      "text": "static std::filesystem::path writeMysqlDefaultsFile(const DbConfig &config) {"
+    },
+    {
+      "line": 231,
+      "path": "tests/integration/test_database.hpp",
+      "text": "auto path = std::filesystem::current_path() / fmt::format(\".canary-test-mysql-{}.cnf\", std::chrono::steady_clock::now().time_since_epoch().count());"
+    },
+    {
+      "line": 246,
+      "path": "tests/integration/test_database.hpp",
+      "text": "std::filesystem::permissions("
+    },
+    {
+      "line": 248,
+      "path": "tests/integration/test_database.hpp",
+      "text": "std::filesystem::perms::owner_read | std::filesystem::perms::owner_write,"
+    },
+    {
+      "line": 249,
+      "path": "tests/integration/test_database.hpp",
+      "text": "std::filesystem::perm_options::replace"
+    },
+    {
+      "line": 268,
+      "path": "tests/integration/test_database.hpp",
+      "text": "if (!std::filesystem::exists(config.schemaPath)) {"
+    },
+    {
+      "line": 272,
+      "path": "tests/integration/test_database.hpp",
+      "text": "std::filesystem::path defaultsFile;"
+    },
+    {
+      "line": 284,
+      "path": "tests/integration/test_database.hpp",
+      "text": "std::filesystem::remove(defaultsFile);"
+    },
+    {
+      "line": 289,
+      "path": "tests/integration/test_database.hpp",
+      "text": "std::filesystem::remove(defaultsFile);"
+    },
+    {
+      "line": 13,
+      "path": "tests/shared/game/events_scheduler_test_fixture.hpp",
+      "text": "previousPath_ = std::filesystem::current_path();"
+    },
+    {
+      "line": 14,
+      "path": "tests/shared/game/events_scheduler_test_fixture.hpp",
+      "text": "repoRoot_ = detectRepoRoot(std::filesystem::current_path());"
+    },
+    {
+      "line": 16,
+      "path": "tests/shared/game/events_scheduler_test_fixture.hpp",
+      "text": "std::filesystem::current_path(repoRoot_);"
+    },
+    {
+      "line": 23,
+      "path": "tests/shared/game/events_scheduler_test_fixture.hpp",
+      "text": "tempCoreDir_ = std::filesystem::temp_directory_path() / (\"canary-events-scheduler-\" + std::to_string(nowTicks));"
+    },
+    {
+      "line": 24,
+      "path": "tests/shared/game/events_scheduler_test_fixture.hpp",
+      "text": "std::filesystem::create_directories(tempCoreDir_ / \"json/eventscheduler\");"
+    },
+    {
+      "line": 49,
+      "path": "tests/shared/game/events_scheduler_test_fixture.hpp",
+      "text": "std::filesystem::remove_all(tempCoreDir_, ec);"
+    },
+    {
+      "line": 50,
+      "path": "tests/shared/game/events_scheduler_test_fixture.hpp",
+      "text": "std::filesystem::current_path(previousPath_);"
+    },
+    {
+      "line": 89,
+      "path": "tests/shared/game/events_scheduler_test_fixture.hpp",
+      "text": "std::filesystem::path repoRoot_ {};"
+    },
+    {
+      "line": 90,
+      "path": "tests/shared/game/events_scheduler_test_fixture.hpp",
+      "text": "std::filesystem::path previousPath_ {};"
+    },
+    {
+      "line": 91,
+      "path": "tests/shared/game/events_scheduler_test_fixture.hpp",
+      "text": "std::filesystem::path fixtureEventsJsonPath_ {};"
+    },
+    {
+      "line": 92,
+      "path": "tests/shared/game/events_scheduler_test_fixture.hpp",
+      "text": "std::filesystem::path eventsJsonPath_ {};"
+    },
+    {
+      "line": 93,
+      "path": "tests/shared/game/events_scheduler_test_fixture.hpp",
+      "text": "std::filesystem::path tempCoreDir_ {};"
+    },
+    {
+      "line": 94,
+      "path": "tests/shared/game/events_scheduler_test_fixture.hpp",
+      "text": "std::filesystem::path tempConfigFilePath_ {};"
+    },
+    {
+      "line": 99,
+      "path": "tests/shared/game/events_scheduler_test_fixture.hpp",
+      "text": "[[nodiscard]] static std::filesystem::path detectRepoRoot(std::filesystem::path start) {"
+    },
+    {
+      "line": 100,
+      "path": "tests/shared/game/events_scheduler_test_fixture.hpp",
+      "text": "const auto eventsRelative = std::filesystem::path(\"tests/fixture/core/json/eventscheduler/events.json\");"
+    },
+    {
+      "line": 101,
+      "path": "tests/shared/game/events_scheduler_test_fixture.hpp",
+      "text": "const auto configRelative = std::filesystem::path(\"tests/fixture/config/events_scheduler_test.lua\");"
+    },
+    {
+      "line": 105,
+      "path": "tests/shared/game/events_scheduler_test_fixture.hpp",
+      "text": "const auto eventsExists = std::filesystem::exists(start / eventsRelative, eventsEc);"
+    },
+    {
+      "line": 108,
+      "path": "tests/shared/game/events_scheduler_test_fixture.hpp",
+      "text": "const auto configExists = std::filesystem::exists(start / configRelative, configEc);"
+    },
+    {
+      "line": 33,
+      "path": "tests/shared/imbuements/imbuements_test_fixture.hpp",
+      "text": "previousPath_ = std::filesystem::current_path();"
+    },
+    {
+      "line": 36,
+      "path": "tests/shared/imbuements/imbuements_test_fixture.hpp",
+      "text": "std::filesystem::current_path(repoRoot_);"
+    },
+    {
+      "line": 50,
+      "path": "tests/shared/imbuements/imbuements_test_fixture.hpp",
+      "text": "std::filesystem::current_path(previousPath_);"
+    },
+    {
+      "line": 54,
+      "path": "tests/shared/imbuements/imbuements_test_fixture.hpp",
+      "text": "std::filesystem::path repoRoot_ {};"
+    },
+    {
+      "line": 55,
+      "path": "tests/shared/imbuements/imbuements_test_fixture.hpp",
+      "text": "std::filesystem::path previousPath_ {};"
+    },
+    {
+      "line": 61,
+      "path": "tests/shared/imbuements/imbuements_test_fixture.hpp",
+      "text": "[[nodiscard]] static std::filesystem::path detectRepoRoot(std::filesystem::path start) {"
+    },
+    {
+      "line": 62,
+      "path": "tests/shared/imbuements/imbuements_test_fixture.hpp",
+      "text": "const auto configPath = std::filesystem::path(\"tests/fixture/config/imbuements_test.lua\");"
+    },
+    {
+      "line": 63,
+      "path": "tests/shared/imbuements/imbuements_test_fixture.hpp",
+      "text": "const auto imbuementsPath = std::filesystem::path(\"tests/fixture/core/XML/imbuements.xml\");"
+    },
+    {
+      "line": 64,
+      "path": "tests/shared/imbuements/imbuements_test_fixture.hpp",
+      "text": "const auto vocationsPath = std::filesystem::path(\"tests/fixture/core/XML/vocations.xml\");"
+    },
+    {
+      "line": 68,
+      "path": "tests/shared/imbuements/imbuements_test_fixture.hpp",
+      "text": "const auto configExists = std::filesystem::exists(start / configPath, configEc);"
+    },
+    {
+      "line": 71,
+      "path": "tests/shared/imbuements/imbuements_test_fixture.hpp",
+      "text": "const auto imbuementsExists = std::filesystem::exists(start / imbuementsPath, xmlEc);"
+    },
+    {
+      "line": 72,
+      "path": "tests/shared/imbuements/imbuements_test_fixture.hpp",
+      "text": "const auto vocationsExists = std::filesystem::exists(start / vocationsPath, xmlEc);"
+    },
+    {
+      "line": 252,
+      "path": "tools/ai-agent/otbm_item_audit_scan.cpp",
+      "text": "std::vector<uint8_t> readFile(const std::filesystem::path& path) {"
+    },
+    {
+      "line": 526,
+      "path": "tools/ai-agent/otbm_item_audit_scan.cpp",
+      "text": "const std::filesystem::path& mapPath,"
+    },
+    {
+      "line": 527,
+      "path": "tools/ai-agent/otbm_item_audit_scan.cpp",
+      "text": "const std::filesystem::path& outputPath,"
+    },
+    {
+      "line": 531,
+      "path": "tools/ai-agent/otbm_item_audit_scan.cpp",
+      "text": "std::filesystem::create_directories(outputPath.parent_path().empty() ? std::filesystem::path(\".\") : outputPath.parent_path());"
+    },
+    {
+      "line": 739,
+      "path": "tools/ai-agent/otbm_item_audit_scan.cpp",
+      "text": "const std::filesystem::path& outputPath,"
+    },
+    {
+      "line": 757,
+      "path": "tools/ai-agent/otbm_item_audit_scan.cpp",
+      "text": "if (std::filesystem::is_symlink(outputPath)) {"
+    },
+    {
+      "line": 760,
+      "path": "tools/ai-agent/otbm_item_audit_scan.cpp",
+      "text": "if (std::filesystem::exists(outputPath)) {"
+    },
+    {
+      "line": 763,
+      "path": "tools/ai-agent/otbm_item_audit_scan.cpp",
+      "text": "std::filesystem::create_directories(outputPath.parent_path().empty() ? std::filesystem::path(\".\") : outputPath.parent_path());"
+    },
+    {
+      "line": 765,
+      "path": "tools/ai-agent/otbm_item_audit_scan.cpp",
+      "text": "if (std::filesystem::is_symlink(temporaryPath)) {"
+    },
+    {
+      "line": 768,
+      "path": "tools/ai-agent/otbm_item_audit_scan.cpp",
+      "text": "std::filesystem::remove(temporaryPath);"
+    },
+    {
+      "line": 1104,
+      "path": "tools/ai-agent/otbm_item_audit_scan.cpp",
+      "text": "std::filesystem::rename(temporaryPath, outputPath);"
+    },
+    {
+      "line": 1128,
+      "path": "tools/ai-agent/otbm_item_audit_scan.cpp",
+      "text": "const std::filesystem::path mapPath = worldIndex ? argv[2] : argv[1];"
+    },
+    {
+      "line": 1129,
+      "path": "tools/ai-agent/otbm_item_audit_scan.cpp",
+      "text": "const std::filesystem::path outputPath = worldIndex ? argv[3] : argv[2];"
+    },
+    {
+      "line": 31,
+      "path": "tools/ai-agent/otbm_reference_scan.cpp",
+      "text": "std::filesystem::path mapPath;"
+    },
+    {
+      "line": 32,
+      "path": "tools/ai-agent/otbm_reference_scan.cpp",
+      "text": "std::filesystem::path outputDirectory;"
+    },
+    {
+      "line": 85,
+      "path": "tools/ai-agent/otbm_reference_scan.cpp",
+      "text": "std::vector<uint8_t> readFile(const std::filesystem::path& path) {"
+    },
+    {
+      "line": 192,
+      "path": "tools/ai-agent/otbm_reference_scan.cpp",
+      "text": "std::filesystem::create_directories(options.outputDirectory);"
+    }
+  ],
+  "os_execute": [
+    {
+      "line": 153,
+      "path": "artifacts/upstream/crystalserver/CRYSTALSERVER_COMPARISON_STAGE1.md",
+      "text": "- Current Canary evidence: Canary concatenates the path into `os.execute('mkdir \"' .. path .. '\"')` without validation."
+    },
+    {
+      "line": 16,
+      "path": "data/libs/functions/fs.lua",
+      "text": "local success, err = os.execute('mkdir \"' .. path .. '\"')"
+    },
+    {
+      "line": 74,
+      "path": "docs/agents/tasks/active/CAN-20260714-fs-mkdir-shell-injection.md",
+      "text": "- Current implementation uses `os.execute('mkdir \"' .. path .. '\"')` in `data/libs/functions/fs.lua`."
+    }
+  ],
+  "repository": "blakinio/canary",
+  "schema": "canary-cs006-fs-mkdir-audit-v1",
+  "targeted_integration_evidence": {
+    "build_anchors": [
+      "cmake/modules/CanaryLib.cmake:21:# Add more global sources Note: target_sources works on a specific target, we",
+      "cmake/modules/CanaryLib.cmake:23:target_sources(",
+      "src/CMakeLists.txt:47:            target_sources(",
+      "src/CMakeLists.txt:75:        target_sources(",
+      "src/account/CMakeLists.txt:1:target_sources(",
+      "src/config/CMakeLists.txt:1:target_sources(",
+      "src/creatures/CMakeLists.txt:1:target_sources(",
+      "src/database/CMakeLists.txt:1:target_sources(",
+      "src/database/databasemanager.cpp:13:#include \"lua/functions/core/libs/core_libs_functions.hpp\"",
+      "src/game/CMakeLists.txt:1:target_sources(",
+      "src/game/CMakeLists.txt:34:    target_sources(",
+      "src/io/CMakeLists.txt:1:target_sources(",
+      "src/items/CMakeLists.txt:1:target_sources(",
+      "src/kv/CMakeLists.txt:1:target_sources(",
+      "src/lib/CMakeLists.txt:1:target_sources(",
+      "src/lib/CMakeLists.txt:10:    target_sources(",
+      "src/lua/callbacks/CMakeLists.txt:1:target_sources(",
+      "src/lua/creature/CMakeLists.txt:1:target_sources(",
+      "src/lua/docgen/CMakeLists.txt:1:target_sources(",
+      "src/lua/functions/CMakeLists.txt:1:target_sources(",
+      "src/lua/functions/CMakeLists.txt:6:# Note: No target_sources here, just subdirectories",
+      "src/lua/functions/core/CMakeLists.txt:1:target_sources(",
+      "src/lua/functions/core/CMakeLists.txt:13:            libs/logger_functions.cpp",
+      "src/lua/functions/core/CMakeLists.txt:14:            libs/metrics_functions.cpp",
+      "src/lua/functions/core/CMakeLists.txt:15:            libs/kv_functions.cpp",
+      "src/lua/functions/core/core_functions.hpp:14:#include \"lua/functions/core/libs/core_libs_functions.hpp\"",
+      "src/lua/functions/core/libs/core_libs_functions.hpp:15:#include \"lua/functions/core/libs/logger_functions.hpp\"",
+      "src/lua/functions/core/libs/core_libs_functions.hpp:16:#include \"lua/functions/core/libs/metrics_functions.hpp\"",
+      "src/lua/functions/core/libs/core_libs_functions.hpp:17:#include \"lua/functions/core/libs/kv_functions.hpp\"",
+      "src/lua/functions/core/libs/kv_functions.cpp:10:#include \"lua/functions/core/libs/kv_functions.hpp\"",
+      "src/lua/functions/core/libs/logger_functions.cpp:10:#include \"lua/functions/core/libs/logger_functions.hpp\"",
+      "src/lua/functions/core/libs/metrics_functions.cpp:10:#include \"lua/functions/core/libs/metrics_functions.hpp\"",
+      "src/lua/functions/creatures/CMakeLists.txt:1:target_sources(",
+      "src/lua/functions/events/CMakeLists.txt:1:target_sources(",
+      "src/lua/functions/items/CMakeLists.txt:1:target_sources(",
+      "src/lua/functions/map/CMakeLists.txt:1:target_sources(",
+      "src/lua/global/CMakeLists.txt:1:target_sources(",
+      "src/lua/modules/CMakeLists.txt:1:target_sources(",
+      "src/lua/scripts/CMakeLists.txt:1:target_sources(",
+      "src/map/CMakeLists.txt:1:target_sources(",
+      "src/security/CMakeLists.txt:1:target_sources(",
+      "src/server/CMakeLists.txt:1:target_sources(",
+      "src/utils/CMakeLists.txt:1:target_sources(",
+      "vcproj/canary.vcxproj:175:    <ClInclude Include=\"..\\src\\lua\\functions\\core\\libs\\core_libs_functions.hpp\" />",
+      "vcproj/canary.vcxproj:176:    <ClInclude Include=\"..\\src\\lua\\functions\\core\\libs\\kv_functions.hpp\" />",
+      "vcproj/canary.vcxproj:179:    <ClInclude Include=\"..\\src\\lua\\functions\\core\\libs\\logger_functions.hpp\" />",
+      "vcproj/canary.vcxproj:180:    <ClInclude Include=\"..\\src\\lua\\functions\\core\\libs\\metrics_functions.hpp\" />",
+      "vcproj/canary.vcxproj:408:    <ClCompile Include=\"..\\src\\lua\\functions\\core\\libs\\kv_functions.cpp\" />",
+      "vcproj/canary.vcxproj:411:    <ClCompile Include=\"..\\src\\lua\\functions\\core\\libs\\logger_functions.cpp\" />",
+      "vcproj/canary.vcxproj:412:    <ClCompile Include=\"..\\src\\lua\\functions\\core\\libs\\metrics_functions.cpp\" />"
+    ],
+    "core_lib_registrations": [
+      "src/lua/functions/core/core_functions.hpp:27:\t\tCoreLibsFunctions::init(L);",
+      "src/lua/functions/core/libs/core_libs_functions.hpp:19:class CoreLibsFunctions final : LuaScriptInterface {",
+      "src/lua/functions/core/libs/core_libs_functions.hpp:21:\texplicit CoreLibsFunctions(lua_State* L) :",
+      "src/lua/functions/core/libs/core_libs_functions.hpp:22:\t\tLuaScriptInterface(\"CoreLibsFunctions\") {",
+      "src/lua/functions/core/libs/core_libs_functions.hpp:25:\t~CoreLibsFunctions() override = default;",
+      "src/lua/functions/core/libs/db_functions.cpp:18:\tLua::registerTable(L, \"db\");",
+      "src/lua/functions/core/libs/db_functions.cpp:19:\tLua::registerMethod(L, \"db\", \"query\", DBFunctions::luaDatabaseExecute);",
+      "src/lua/functions/core/libs/db_functions.cpp:20:\tLua::registerMethod(L, \"db\", \"queryAffectedRows\", DBFunctions::luaDatabaseExecuteAffectedRows);",
+      "src/lua/functions/core/libs/db_functions.cpp:21:\tLua::registerMethod(L, \"db\", \"asyncQuery\", DBFunctions::luaDatabaseAsyncExecute);",
+      "src/lua/functions/core/libs/db_functions.cpp:22:\tLua::registerMethod(L, \"db\", \"storeQuery\", DBFunctions::luaDatabaseStoreQuery);",
+      "src/lua/functions/core/libs/db_functions.cpp:23:\tLua::registerMethod(L, \"db\", \"asyncStoreQuery\", DBFunctions::luaDatabaseAsyncStoreQuery);",
+      "src/lua/functions/core/libs/db_functions.cpp:24:\tLua::registerMethod(L, \"db\", \"escapeString\", DBFunctions::luaDatabaseEscapeString);",
+      "src/lua/functions/core/libs/db_functions.cpp:25:\tLua::registerMethod(L, \"db\", \"escapeBlob\", DBFunctions::luaDatabaseEscapeBlob);",
+      "src/lua/functions/core/libs/db_functions.cpp:26:\tLua::registerMethod(L, \"db\", \"lastInsertId\", DBFunctions::luaDatabaseLastInsertId);",
+      "src/lua/functions/core/libs/db_functions.cpp:27:\tLua::registerMethod(L, \"db\", \"tableExists\", DBFunctions::luaDatabaseTableExists);",
+      "src/lua/functions/core/libs/kv_functions.cpp:19:\tLua::registerTable(L, \"kv\");",
+      "src/lua/functions/core/libs/kv_functions.cpp:20:\tLua::registerMethod(L, \"kv\", \"scoped\", KVFunctions::luaKVScoped);",
+      "src/lua/functions/core/libs/kv_functions.cpp:21:\tLua::registerMethod(L, \"kv\", \"set\", KVFunctions::luaKVSet);",
+      "src/lua/functions/core/libs/kv_functions.cpp:22:\tLua::registerMethod(L, \"kv\", \"get\", KVFunctions::luaKVGet);",
+      "src/lua/functions/core/libs/kv_functions.cpp:23:\tLua::registerMethod(L, \"kv\", \"keys\", KVFunctions::luaKVKeys);",
+      "src/lua/functions/core/libs/kv_functions.cpp:24:\tLua::registerMethod(L, \"kv\", \"remove\", KVFunctions::luaKVRemove);",
+      "src/lua/functions/core/libs/kv_functions.cpp:27:\tLua::registerMethod(L, \"KV\", \"scoped\", KVFunctions::luaKVScoped);",
+      "src/lua/functions/core/libs/kv_functions.cpp:28:\tLua::registerMethod(L, \"KV\", \"set\", KVFunctions::luaKVSet);",
+      "src/lua/functions/core/libs/kv_functions.cpp:29:\tLua::registerMethod(L, \"KV\", \"get\", KVFunctions::luaKVGet);",
+      "src/lua/functions/core/libs/kv_functions.cpp:30:\tLua::registerMethod(L, \"KV\", \"keys\", KVFunctions::luaKVKeys);",
+      "src/lua/functions/core/libs/kv_functions.cpp:31:\tLua::registerMethod(L, \"KV\", \"remove\", KVFunctions::luaKVRemove);",
+      "src/lua/functions/core/libs/logger_functions.cpp:15:\tLua::registerTable(L, \"Spdlog\");",
+      "src/lua/functions/core/libs/logger_functions.cpp:16:\tLua::registerMethod(L, \"Spdlog\", \"info\", LoggerFunctions::luaSpdlogInfo);",
+      "src/lua/functions/core/libs/logger_functions.cpp:17:\tLua::registerMethod(L, \"Spdlog\", \"warn\", LoggerFunctions::luaSpdlogWarn);",
+      "src/lua/functions/core/libs/logger_functions.cpp:18:\tLua::registerMethod(L, \"Spdlog\", \"error\", LoggerFunctions::luaSpdlogError);",
+      "src/lua/functions/core/libs/logger_functions.cpp:19:\tLua::registerMethod(L, \"Spdlog\", \"debug\", LoggerFunctions::luaSpdlogDebug);",
+      "src/lua/functions/core/libs/logger_functions.cpp:21:\tLua::registerTable(L, \"logger\");",
+      "src/lua/functions/core/libs/logger_functions.cpp:22:\tLua::registerMethod(L, \"logger\", \"info\", LoggerFunctions::luaLoggerInfo);",
+      "src/lua/functions/core/libs/logger_functions.cpp:23:\tLua::registerMethod(L, \"logger\", \"warn\", LoggerFunctions::luaLoggerWarn);",
+      "src/lua/functions/core/libs/logger_functions.cpp:24:\tLua::registerMethod(L, \"logger\", \"error\", LoggerFunctions::luaLoggerError);",
+      "src/lua/functions/core/libs/logger_functions.cpp:25:\tLua::registerMethod(L, \"logger\", \"debug\", LoggerFunctions::luaLoggerDebug);",
+      "src/lua/functions/core/libs/logger_functions.cpp:26:\tLua::registerMethod(L, \"logger\", \"trace\", LoggerFunctions::luaLoggerTrace);",
+      "src/lua/functions/core/libs/metrics_functions.cpp:16:\tLua::registerTable(L, \"metrics\");",
+      "src/lua/functions/core/libs/metrics_functions.cpp:17:\tLua::registerMethod(L, \"metrics\", \"addCounter\", MetricsFunctions::luaMetricsAddCounter);",
+      "src/lua/functions/core/libs/result_functions.cpp:14:\tLua::registerTable(L, \"Result\");",
+      "src/lua/functions/core/libs/result_functions.cpp:15:\tLua::registerMethod(L, \"Result\", \"getNumber\", ResultFunctions::luaResultGetNumber);",
+      "src/lua/functions/core/libs/result_functions.cpp:16:\tLua::registerMethod(L, \"Result\", \"getString\", ResultFunctions::luaResultGetString);",
+      "src/lua/functions/core/libs/result_functions.cpp:17:\tLua::registerMethod(L, \"Result\", \"getStream\", ResultFunctions::luaResultGetStream);",
+      "src/lua/functions/core/libs/result_functions.cpp:18:\tLua::registerMethod(L, \"Result\", \"next\", ResultFunctions::luaResultNext);",
+      "src/lua/functions/core/libs/result_functions.cpp:19:\tLua::registerMethod(L, \"Result\", \"free\", ResultFunctions::luaResultFree);"
+    ],
+    "lua_test_loading": [
+      "tests/lua/test_achievement_helpers.lua:66:dofile(\"data/scripts/lib/register_achievements.lua\")",
+      "tests/lua/test_exaltation_forge_premium.lua:54:dofile(\"data/libs/systems/exaltation_forge.lua\")",
+      "tests/lua/test_npc_messaging.lua:55:dofile(\"data/npclib/npc.lua\")",
+      "tests/lua/test_oasis_lever_door.lua:94:dofile(\"data-otservbr-global/scripts/quests/the_ancient_tombs/actions_oasis_lever_door.lua\")"
+    ],
+    "server_name_validation": [
+      "data/scripts/lib/register_migrations.lua:47:\tif not self:_validateName() then",
+      "data/scripts/lib/register_migrations.lua:54:function Migration:_validateName()",
+      "src/utils/tools.cpp:1714:NameEval_t validateName(const std::string &name) {",
+      "src/utils/tools.hpp:167:NameEval_t validateName(const std::string &name);",
+      "tests/unit/security/login_session_manager_test.cpp:69:TEST(LoginSessionManagerTest, InvalidCharacterNameIsRejectedAndStillBurnsToken) {"
+    ],
+    "tracked_lua_tests": [
+      "tests/lua/test_achievement_helpers.lua",
+      "tests/lua/test_exaltation_forge_premium.lua",
+      "tests/lua/test_npc_messaging.lua",
+      "tests/lua/test_oasis_lever_door.lua"
+    ]
+  },
+  "tracked_files": 6857
+}

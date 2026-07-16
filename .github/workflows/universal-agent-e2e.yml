@@ -1,0 +1,538 @@
+---
+name: Universal Agent E2E
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Scenario suite under tests/e2e/scenarios
+        required: true
+        default: login
+        type: string
+      scenario:
+        description: Scenario id within the selected suite
+        required: true
+        default: relog
+        type: string
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/universal-agent-e2e.yml"
+      - ".github/workflows/reusable-build-linux.yml"
+      - ".github/scripts/smoke_test_canary.py"
+      - "tools/agents/ci_incremental_validation.py"
+      - "tools/e2e/run_agent_e2e.py"
+      - "tools/e2e/run_physical_e2e.sh"
+      - "tools/e2e/client/**"
+      - "tests/e2e/**"
+      - "!tests/e2e/load/**"
+      - "!tests/e2e/test_load_runner.py"
+
+permissions:
+  contents: write
+  actions: read
+  packages: write
+
+concurrency:
+  group: universal-agent-e2e-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scope:
+    name: Decide physical E2E validation scope
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      reuse_parent: ${{ steps.incremental.outputs.reuse_parent || 'false' }}
+      run_heavy: ${{ steps.incremental.outputs.run_heavy || 'true' }}
+      reason: ${{ steps.incremental.outputs.reason }}
+    steps:
+      - name: Checkout exact test head
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - name: Evaluate immediate-parent physical E2E reuse
+        id: incremental
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >-
+          python tools/agents/ci_incremental_validation.py
+          --profile universal-e2e
+          --workflow-name "Universal Agent E2E"
+          --event-name "${{ github.event_name }}"
+          --event-action "${{ github.event.action }}"
+      - name: Summarize validation decision
+        run: |
+          echo "reuse_parent=${{ steps.incremental.outputs.reuse_parent || 'false' }}"
+          echo "run_heavy=${{ steps.incremental.outputs.run_heavy || 'true' }}"
+          echo "reason=${{ steps.incremental.outputs.reason }}"
+
+  resolve:
+    name: Resolve scenario
+    needs: [scope]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      client_repository: ${{ steps.metadata.outputs.client_repository }}
+      client_ref: ${{ steps.metadata.outputs.client_ref }}
+      suite: ${{ steps.metadata.outputs.suite }}
+      scenario: ${{ steps.metadata.outputs.scenario }}
+    env:
+      REQUESTED_SUITE: ${{ inputs.suite || 'login' }}
+      REQUESTED_SCENARIO: ${{ inputs.scenario || 'relog' }}
+    steps:
+      - name: Checkout exact test head
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate and resolve scenario
+        run: |
+          set -euo pipefail
+          python -m py_compile tools/e2e/run_agent_e2e.py
+          python tools/e2e/run_agent_e2e.py list
+          python tools/e2e/run_agent_e2e.py validate
+          python tools/e2e/run_agent_e2e.py resolve \
+            --suite "${REQUESTED_SUITE}" \
+            --scenario "${REQUESTED_SCENARIO}" \
+            --manifest scenario-manifest.json \
+            --github-env "${GITHUB_ENV}"
+      - name: Export scenario metadata
+        id: metadata
+        run: |
+          set -euo pipefail
+          echo "client_repository=${AGENT_E2E_CLIENT_REPOSITORY}" >> "${GITHUB_OUTPUT}"
+          echo "client_ref=${AGENT_E2E_CLIENT_REF}" >> "${GITHUB_OUTPUT}"
+          echo "suite=${AGENT_E2E_SUITE}" >> "${GITHUB_OUTPUT}"
+          echo "scenario=${AGENT_E2E_SCENARIO_ID}" >> "${GITHUB_OUTPUT}"
+
+  database-preflight:
+    name: Validate database bootstrap
+    needs: [scope]
+    if: needs.scope.outputs.run_heavy == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3306"
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: agent_e2e
+      MYSQL_PWD: root
+    services:
+      database:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: agent_e2e
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mariadb-admin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=18
+    steps:
+      - name: Checkout exact test head
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install database client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mariadb-client
+
+      - name: Import schema and deterministic fixtures
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p artifacts/database-preflight
+
+          db=(mariadb --protocol=TCP -h "${DB_HOST}" -P "${DB_PORT}" -u "${DB_USER}" "${DB_NAME}")
+          admin=(mariadb-admin --protocol=TCP -h "${DB_HOST}" -P "${DB_PORT}" -u "${DB_USER}")
+
+          for attempt in $(seq 1 90); do
+            if "${admin[@]}" ping >/dev/null 2>&1; then
+              break
+            fi
+            if [[ "${attempt}" -eq 90 ]]; then
+              echo "database did not become ready" | tee artifacts/database-preflight/readiness.stderr
+              exit 1
+            fi
+            sleep 2
+          done
+
+          run_file() {
+            local label="$1"
+            local source="$2"
+            echo "${label}" > artifacts/database-preflight/current-phase.txt
+            if ! "${db[@]}" --show-warnings --verbose \
+              >"artifacts/database-preflight/${label}.stdout" \
+              2>"artifacts/database-preflight/${label}.stderr" < "${source}"; then
+              cat "artifacts/database-preflight/${label}.stderr" >&2
+              return 1
+            fi
+          }
+
+          run_query() {
+            local label="$1"
+            local query="$2"
+            echo "${label}" > artifacts/database-preflight/current-phase.txt
+            if ! "${db[@]}" --show-warnings --verbose -e "${query}" \
+              >"artifacts/database-preflight/${label}.stdout" \
+              2>"artifacts/database-preflight/${label}.stderr"; then
+              cat "artifacts/database-preflight/${label}.stderr" >&2
+              return 1
+            fi
+          }
+
+          run_file schema schema.sql
+          run_file accounts docker/data/01-test_account.sql
+          run_file players docker/data/02-test_account_players.sql
+          run_query cleanup 'DELETE FROM players_online; DELETE FROM boosted_boss;'
+          run_query verify "SELECT id,name,email FROM accounts WHERE id=101; SELECT id,name,account_id,level FROM players WHERE name='Knight 1';"
+          rm -f artifacts/database-preflight/current-phase.txt
+
+      - name: Upload database bootstrap evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: universal-agent-e2e-database-preflight
+          path: artifacts/database-preflight/
+          if-no-files-found: error
+          retention-days: 14
+
+  build-canary:
+    name: Build exact Canary head
+    needs: [scope, database-preflight]
+    if: needs.scope.outputs.run_heavy == 'true' && needs.database-preflight.result == 'success'
+    permissions:
+      contents: write
+      packages: write
+    uses: ./.github/workflows/reusable-build-linux.yml
+    with:
+      buildtypes: '["linux-release"]'
+      run_canary_smoke: false
+      run_global_smoke: false
+
+  build-otclient:
+    name: Build controlled OTClient
+    needs: [scope, resolve, database-preflight]
+    if: needs.scope.outputs.run_heavy == 'true' && needs.resolve.result == 'success' && needs.database-preflight.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: read
+    env:
+      CC: gcc-14
+      CXX: g++-14
+      VCPKG_BINARY_CACHE_ACCESS: read
+      VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json,read;nugettimeout,600"
+      VCPKG_NUGET_REPOSITORY: https://github.com/${{ needs.resolve.outputs.client_repository }}.git
+      VCPKG_NUGET_API_KEY: ${{ github.token }}
+    steps:
+      - name: Checkout controlled OTClient source
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ needs.resolve.outputs.client_repository }}
+          ref: ${{ needs.resolve.outputs.client_ref }}
+          persist-credentials: false
+
+      - name: Record controlled client revision
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD | tee otclient-commit.txt
+
+      - name: Read vcpkg baseline
+        run: |
+          set -euo pipefail
+          vcpkg_commit_id="$(grep '.builtin-baseline' vcpkg.json | awk -F: '{print $2}' | tr -d ',\" ')"
+          test -n "${vcpkg_commit_id}"
+          echo "VCPKG_GIT_COMMIT_ID=${vcpkg_commit_id}" >> "${GITHUB_ENV}"
+
+      - name: Install OTClient build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            autoconf \
+            autoconf-archive \
+            automake \
+            ccache \
+            gcc-14 \
+            g++-14 \
+            libgl1-mesa-dev \
+            libglu1-mesa-dev \
+            libltdl-dev \
+            libtool \
+            libtool-bin \
+            libx11-dev \
+            libxcursor-dev \
+            libxi-dev \
+            libxinerama-dev \
+            libxrandr-dev \
+            linux-libc-dev \
+            make \
+            mono-complete \
+            ninja-build \
+            perl \
+            pkg-config
+          sudo ln -sf /usr/bin/ninja /usr/bin/ninja-build
+          ninja --version
+
+      - name: CCache
+        uses: hendrikmuhs/ccache-action@d62db5f07c26379fc4b4e0916f098a92573c3b03
+        with:
+          max-size: "1G"
+          key: universal-e2e-otclient-linux-release
+          restore-keys: |
+            ccache-linux-release
+            ccache-linux
+
+      - name: Set up vcpkg
+        uses: lukka/run-vcpkg@b1a0dd252f06b9e25b3c022a9a03bd7a427fb6a2
+        with:
+          vcpkgGitURL: "https://github.com/microsoft/vcpkg.git"
+          vcpkgGitCommitId: ${{ env.VCPKG_GIT_COMMIT_ID }}
+
+      - name: Configure NuGet package cache
+        env:
+          NUGET_AUTH_TOKEN: ${{ env.VCPKG_NUGET_API_KEY }}
+        run: |
+          set -euo pipefail
+          unset VCPKG_FORCE_SYSTEM_BINARIES
+          nuget_path="$(vcpkg fetch nuget 2>&1 | grep -E '^/' | tail -n 1)"
+          if [[ -z "${nuget_path}" || ! -f "${nuget_path}" ]]; then
+            vcpkg fetch nuget 2>&1 || true
+            exit 1
+          fi
+          mono "${nuget_path}" sources remove -name "GitHubPackages" >/dev/null 2>&1 || true
+          mono "${nuget_path}" sources add \
+            -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+            -storepasswordincleartext \
+            -name "GitHubPackages" \
+            -username "${{ github.repository_owner }}" \
+            -password "${NUGET_AUTH_TOKEN}"
+          mono "${nuget_path}" setapikey "${NUGET_AUTH_TOKEN}" \
+            -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+
+      - name: Build OTClient release
+        uses: lukka/run-cmake@5d55ea7949e25f69f0ecb516d8d572297e03a956
+        with:
+          configurePreset: linux-release
+          buildPreset: linux-release
+          configurePresetAdditionalArgs: "['-DTOGGLE_BIN_FOLDER=ON', '-DOPTIONS_ENABLE_IPO=OFF']"
+
+      - name: Verify OTClient executable
+        run: |
+          set -euo pipefail
+          OTCLIENT_PATH="$(find build/linux-release/bin -maxdepth 2 -type f -name 'otclient' -perm -111 | head -n 1)"
+          test -n "${OTCLIENT_PATH}"
+          test -x "${OTCLIENT_PATH}"
+          printf 'path=%s\nsha256=' "${OTCLIENT_PATH}" > otclient-build.txt
+          sha256sum "${OTCLIENT_PATH}" | awk '{print $1}' >> otclient-build.txt
+
+      - name: Upload controlled OTClient artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: otclient-linux-release
+          path: |
+            build/linux-release/bin/
+            otclient-commit.txt
+            otclient-build.txt
+          if-no-files-found: error
+          retention-days: 14
+
+  physical-client:
+    name: Physical client / ${{ needs.resolve.outputs.suite }}/${{ needs.resolve.outputs.scenario }}
+    needs: [scope, resolve, database-preflight, build-canary, build-otclient]
+    if: needs.scope.outputs.run_heavy == 'true' && needs.resolve.result == 'success' && needs.database-preflight.result == 'success' && needs.build-canary.result == 'success' && needs.build-otclient.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
+      packages: read
+    env:
+      AGENT_E2E_SUITE: ${{ needs.resolve.outputs.suite }}
+      AGENT_E2E_SCENARIO_ID: ${{ needs.resolve.outputs.scenario }}
+      AGENT_E2E_TEST_PASSWORD: test
+      AGENT_E2E_ARTIFACT_DIR: ${{ github.workspace }}/artifacts
+      AGENT_E2E_OTCLIENT_ROOT: ${{ github.workspace }}/otclient
+      AGENT_E2E_ASSET_SOURCE: ${{ github.workspace }}/tibia-client-assets/assets
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3306"
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: agent_e2e
+      MYSQL_PWD: root
+    services:
+      database:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: agent_e2e
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mariadb-admin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=18
+
+    steps:
+      - name: Checkout exact Canary test head
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Prepare evidence directory
+        run: mkdir -p artifacts
+
+      - name: Checkout controlled OTClient source
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ needs.resolve.outputs.client_repository }}
+          ref: ${{ needs.resolve.outputs.client_ref }}
+          path: otclient
+          persist-credentials: false
+
+      - name: Checkout matching client assets
+        uses: actions/checkout@v6
+        with:
+          repository: dudantas/tibia-client
+          path: tibia-client-assets
+          lfs: true
+          persist-credentials: false
+
+      - name: Download exact-head Canary binary
+        uses: actions/download-artifact@v4
+        with:
+          name: canary-linux-release
+          path: canary-bin
+
+      - name: Download controlled OTClient binary
+        uses: actions/download-artifact@v4
+        with:
+          name: otclient-linux-release
+          path: otclient-bin
+
+      - name: Install runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            imagemagick \
+            libgl1 \
+            libglu1-mesa \
+            libopenal1 \
+            libpulse0 \
+            libx11-6 \
+            libxcursor1 \
+            libxi6 \
+            libxinerama1 \
+            libxrandr2 \
+            mariadb-client \
+            x11-utils \
+            xvfb
+
+      - name: Resolve executable artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          find canary-bin otclient-bin -maxdepth 6 -type f -print | tee artifacts/downloaded-files.txt
+          CANARY_PATH="$(find canary-bin -type f -name 'canary' | head -n 1)"
+          OTCLIENT_PATH="$(find otclient-bin -type f -name 'otclient' | head -n 1)"
+          test -n "${CANARY_PATH}"
+          test -n "${OTCLIENT_PATH}"
+          chmod +x "${CANARY_PATH}" "${OTCLIENT_PATH}"
+          test -x "${CANARY_PATH}"
+          test -x "${OTCLIENT_PATH}"
+          echo "CANARY_BIN=${GITHUB_WORKSPACE}/${CANARY_PATH}" >> "${GITHUB_ENV}"
+          echo "OTCLIENT_BIN=${GITHUB_WORKSPACE}/${OTCLIENT_PATH}" >> "${GITHUB_ENV}"
+          sha256sum "${CANARY_PATH}" "${OTCLIENT_PATH}" | tee artifacts/executable-sha256.txt
+          git -C otclient rev-parse HEAD | tee artifacts/otclient-source-commit.txt
+
+      - name: Run selected physical-client scenario
+        shell: bash
+        run: bash tools/e2e/run_physical_e2e.sh
+
+      - name: Upload universal E2E evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: universal-agent-e2e-${{ needs.resolve.outputs.suite }}-${{ needs.resolve.outputs.scenario }}
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 14
+
+  required:
+    name: Required physical E2E
+    if: always()
+    needs: [scope, resolve, database-preflight, build-canary, build-otclient, physical-client]
+    runs-on: ubuntu-24.04
+    permissions: {}
+    steps:
+      - name: Evaluate physical E2E evidence
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+
+          jobs = json.loads(os.environ["NEEDS_JSON"])
+          scope = jobs["scope"]
+          if scope.get("result") != "success":
+              raise SystemExit(f"scope must succeed, got {scope.get('result')}")
+          if jobs["resolve"].get("result") != "success":
+              raise SystemExit(f"resolve must succeed, got {jobs['resolve'].get('result')}")
+
+          outputs = scope.get("outputs", {})
+          run_heavy = outputs.get("run_heavy") == "true"
+          reuse_parent = outputs.get("reuse_parent") == "true"
+          heavy_jobs = (
+              "database-preflight",
+              "build-canary",
+              "build-otclient",
+              "physical-client",
+          )
+
+          if run_heavy:
+              failed = {
+                  name: jobs[name].get("result")
+                  for name in heavy_jobs
+                  if jobs[name].get("result") != "success"
+              }
+              if failed:
+                  raise SystemExit(f"required physical E2E jobs did not pass: {failed}")
+          else:
+              if not reuse_parent:
+                  raise SystemExit("heavy E2E skip requires proven immediate-parent reuse")
+              unexpected = {
+                  name: jobs[name].get("result")
+                  for name in heavy_jobs
+                  if jobs[name].get("result") != "skipped"
+              }
+              if unexpected:
+                  raise SystemExit(f"reused E2E jobs must be skipped: {unexpected}")
+
+          print(
+              "physical E2E gate passed: "
+              f"run_heavy={run_heavy} reuse_parent={reuse_parent}"
+          )
+          PY

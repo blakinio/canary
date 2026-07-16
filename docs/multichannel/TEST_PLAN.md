@@ -892,3 +892,88 @@ PR does not hold `actions:write` (re-running a specific failed job via
 the API returns `403 Resource not accessible by integration`), so the
 only retry lever available here is a new commit, which starts a fresh
 workflow run and gives the same job a new attempt.
+
+## 15.5 Cross-process DB-row handoff + cross-channel mail-loss fix (#308, #343)
+
+Full design in `CROSS_PROCESS_DB_ROW_HANDOFF.md`; this section is the same
+honest run/not-run accounting as 15.1-15.4, for that mechanism and its
+first real consumer (the mail-loss fix from row 2.12 of
+`DECISION_MATRIX.md`, which this same sandbox setup — real MariaDB 10.11 +
+real gtest, no vcpkg toolchain — made possible to fix and verify for real
+in a later session, not just design).
+
+- **`ClusterRecordHandoff` orchestration (ownership resolution, apply-or-
+  defer dispatch, `enqueueAndTryApplyNow`): ✅ run**, real gtest, **25/25**
+  passing (17 cases from the design doc §14 matrix + 8 covering
+  `enqueueAndTryApplyNow`'s outcome contract and a genuinely new
+  concurrency scenario). Includes two real concurrent-race tests: 16
+  threads racing `sweep()` against the same `NoLiveOwner` row (exactly one
+  `Applied`, matching `ClusterLeaderElectionTest`'s own 16-thread pattern),
+  and two threads calling `enqueueAndTryApplyNow` with *different*
+  `operation_id`s against the same offline recipient (both must succeed,
+  neither lost) - both re-run 5x with no flakiness observed.
+- **`IClusterPendingOperationRepository`/`IClusterRecordOwnershipResolver`
+  DB-backed implementations (SQL, not standalone-compilable - same
+  mysql/game.hpp wall as `DbClusterSessionRepository`): ✅ run** against a
+  real MariaDB 10.11 instance - `enqueue` idempotency (duplicate
+  `operation_id` correctly rejected via `PRIMARY KEY`), `markApplied`/
+  `markFailed` double-transition guard (`WHERE status='PENDING'`),
+  `findPendingForKind`/`findPendingForRecord` index-bound query correctness
+  across multiple record kinds and statuses, ownership resolution for both
+  `PLAYER_INBOX` (`cluster_sessions` lookup + the `SELECT 1;` liveness
+  probe for the DB-outage-vs-genuinely-offline distinction) and `HOUSE`
+  (`houses.channel_id` lookup).
+- **`MailDeliveryOperationHandler` (engine-glue - not standalone-
+  compilable): hand-reviewed** against the exact API signatures of
+  `Item::CreateItem`/`serializeAttr`/`unserializeAttr`,
+  `IOLoginData::loadPlayerById`/`getGuidByName`, `Game::internalAddItem`/
+  `internalRemoveItem`/`transformItem`, `Player`'s offline-load
+  constructor pattern (mirrors `Game::getPlayerByGUID`'s own
+  `allowOffline` branch exactly) - each cross-checked by reading the real
+  declaration, not assumed. One real bug was caught this way before any
+  commit: the first draft only re-stamped a mailed item's ID
+  (`ITEM_LETTER`→`ITEM_LETTER_STAMPED`) when a writer was present, but
+  `Mailbox::sendItem` transforms *every* mailed item unconditionally
+  (parcels too - `ITEM_PARCEL`/`ITEM_PARCEL_STAMPED` is a real pair in
+  `utils_definitions.hpp`), which would have left every cross-channel
+  parcel at the wrong item id.
+  - The one piece of new SQL in this handler (`applyUnowned`'s row-lock
+    transaction) got the same real-MariaDB treatment as the repository
+    layer: ✅ **run**, including a genuine **two-separate-connection**
+    test - session A holds `SELECT ... FOR UPDATE` open across a 3-second
+    `SLEEP` inside a transaction, session B issues the identical lock
+    query concurrently and is observed to actually block (~2.5s) at the
+    database engine level, then correctly reads session A's post-commit
+    state instead of the stale value it saw before blocking. This is the
+    strongest evidence in this whole test plan that a concurrency
+    guarantee is real and not just asserted by a single-threaded unit test
+    against a fake.
+- **`Mailbox::sendItem` cross-channel rewrite (engine-glue): hand-reviewed**
+  against `Game::getPlayerByName`'s exact `allowOffline` semantics (a pure
+  local-map lookup when `false`, confirmed by reading `Game::getPlayerByName`
+  directly - not assumed from its name) and `internalRemoveItem`'s
+  signature. Not run against a real compiled 3-process cluster (same gap
+  as every other engine-glue file in this whole document - no vcpkg
+  toolchain in this sandbox).
+- **Mail-specific scenarios from the task's own list**: offline→offline,
+  same-channel-online, and invalid-recipient are exercised indirectly
+  through the *unchanged* original code path (verified by diff review, not
+  a new test - these paths are byte-for-byte what they were before this
+  PR). Cross-channel-online, ownership-unresolvable-defer, retry/duplicate-
+  `operation_id`, and the two-distinct-concurrent-deliveries race are
+  covered by the `ClusterRecordHandoff`/`enqueueAndTryApplyNow` real gtest
+  suite above, using a recording/claiming fake handler in place of the real
+  engine (the same substitution this whole document uses everywhere the
+  mysql/game.hpp wall blocks a real compile). **Not covered by an
+  automated test**: full-mailbox rejection and mid-flight channel-
+  switch/logout timing - both analyzed by hand in the PR 2 work log
+  (`docs/agents/tasks/active/CAN-20260714-cross-process-db-row-handoff.md`)
+  rather than exercised live, for the same "no compiled 3-process cluster"
+  reason as everything else in this section.
+- **Single-channel compatibility**: verified by inspection (the new cross-
+  cluster branch in `sendItem` is only reachable when
+  `ClusterHandoffRuntime::isEnabled()` is true, which is only ever set by
+  `configure()`, only ever called when `multiChannelEnabled` is true) plus
+  one explicit unit test (`WorksCorrectlyForSingleChannelShapedIds`) that
+  the orchestration layer itself has no implicit multichannel assumption.
+  Not run against an actual single-channel compiled boot.

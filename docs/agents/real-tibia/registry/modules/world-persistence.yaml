@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "module_id": "world-persistence",
+  "name": "World Persistence",
+  "category": "engine-foundation",
+  "description": "Non-player server-state save orchestration for guild, house/map serialization and key-value state, with explicit separation from player persistence.",
+  "lifecycle": {
+    "status": "inventory",
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"
+  },
+  "scope": {
+    "includes": [
+      "save-all and asynchronous save orchestration",
+      "guild persistence dispatch",
+      "house information and house-item serialization",
+      "key-value store save orchestration",
+      "non-player save failure and retry inventory"
+    ],
+    "excludes": [
+      "player and account serialization details",
+      "static OTBM map content",
+      "feature-specific table ownership",
+      "cross-domain atomicity and crash-consistency proof",
+      "backup restoration, restart/reload safety and reconciliation"
+    ]
+  },
+  "paths": {
+    "server": [
+      "src/game/scheduling/save_manager.*",
+      "src/io/iomapserialize.*",
+      "src/io/ioguild.*",
+      "src/kv/**"
+    ],
+    "client": [],
+    "data": [],
+    "tests": [],
+    "docs": [
+      "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+      "docs/agents/real-tibia/TSD_002B_PERSISTENCE_TRANSACTIONS_REPORT.md"
+    ]
+  },
+  "relationships": {
+    "depends_on": [
+      "database-connection"
+    ],
+    "interacts_with": [
+      "engine-runtime-lifecycle",
+      "engine-scheduler",
+      "player-persistence"
+    ]
+  },
+  "documents": {
+    "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md",
+    "validation": [
+      "docs/agents/real-tibia/TSD_002B_PERSISTENCE_TRANSACTIONS_REPORT.md"
+    ]
+  },
+  "source_requirements": [
+    {"source": "canary-current", "mode": "required"},
+    {"source": "runtime-observation", "mode": "required-when-related"}
+  ],
+  "maturity": {
+    "implementation": "inventory",
+    "evidence": "inventory",
+    "persistence": "not-assessed",
+    "protocol": "not-assessed",
+    "automated_tests": "not-assessed",
+    "runtime_validation": "not-assessed",
+    "gameplay_e2e": "not-assessed"
+  },
+  "freshness": {
+    "class": "fast",
+    "last_inventory": "2026-07-14",
+    "warning_after_days": 30,
+    "invalid_after_days": 90,
+    "refresh_before_each_task": true
+  },
+  "notes": [
+    "SaveManager also dispatches player saves, but player serialization remains owned by the player-persistence umbrella.",
+    "Selected DBTransaction call sites do not prove atomicity across guild, house, map, KV and player state.",
+    "This record inventories non-player save boundaries and does not claim restart or crash safety."
+  ]
+}

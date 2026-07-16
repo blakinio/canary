@@ -13,6 +13,11 @@
 // TODO: Remove circular includes (maybe shared_ptr?)
 #include "server/network/message/networkmessage.hpp"
 
+#ifndef USE_PRECOMPILED_HEADERS
+	#include <atomic>
+	#include <utility>
+#endif
+
 static constexpr int32_t CONNECTION_WRITE_TIMEOUT = 30;
 static constexpr int32_t CONNECTION_READ_TIMEOUT = 30;
 
@@ -39,6 +44,36 @@ enum class InitialTransportState : uint8_t {
 	ResolvedFromPrelude,
 	ResolvedFromHint,
 	Rejected,
+};
+
+enum class ProtocolReleaseAction : uint8_t {
+	ReleaseNow,
+	DeferUntilCallbackCompletes,
+};
+
+class ProtocolReleaseGate final {
+public:
+	void beginCallback() {
+		callbackPending = true;
+	}
+
+	ProtocolReleaseAction requestRelease() {
+		releaseRequested = true;
+		return callbackPending ? ProtocolReleaseAction::DeferUntilCallbackCompletes : ProtocolReleaseAction::ReleaseNow;
+	}
+
+	bool completeCallback() {
+		callbackPending = false;
+		return std::exchange(releaseRequested, false);
+	}
+
+	[[nodiscard]] bool hasPendingCallback() const {
+		return callbackPending;
+	}
+
+private:
+	bool callbackPending = false;
+	bool releaseRequested = false;
 };
 
 class ConnectionManager {
@@ -84,10 +119,26 @@ public:
 		return error ? 0 : endpoint.port();
 	}
 
+	[[nodiscard]] uint64_t getConnectionId() const {
+		return connectionId;
+	}
+
 	void setTransportCodec(const TransportCodec &codec, InitialTransportState state = InitialTransportState::ResolvedModernDefault);
 	void setInitialTransportState(InitialTransportState state);
 	[[nodiscard]] const TransportCodec &getTransportCodec() const;
 	[[nodiscard]] InitialTransportState getInitialTransportState() const;
+
+#ifdef BUILD_TESTS
+	void attachProtocolForTest(Protocol_ptr protocolPtr) {
+		std::scoped_lock lock(connectionLock);
+		protocol = std::move(protocolPtr);
+	}
+
+	void beginProtocolCallbackForTest() {
+		std::scoped_lock lock(connectionLock);
+		protocolReleaseGate.beginCallback();
+	}
+#endif
 
 private:
 	void parseProxyIdentification(const std::error_code &error);
@@ -101,6 +152,7 @@ private:
 	void closeSocket();
 	void internalWorker();
 	void internalSend(const OutputMessage_ptr &outputMessage);
+	void scheduleProtocolRelease();
 
 	asio::ip::tcp::socket &getSocket() {
 		return socket;
@@ -117,17 +169,21 @@ private:
 	Protocol_ptr protocol;
 	const TransportCodec* transportCodec = nullptr;
 	InitialTransportState initialTransportState = InitialTransportState::Pending;
+	ProtocolReleaseGate protocolReleaseGate;
 
 	asio::ip::tcp::socket socket;
 
 	NetworkMessage m_msg;
 
+	inline static std::atomic_uint64_t nextConnectionId = 0;
+	const uint64_t connectionId = ++nextConnectionId;
 	std::time_t timeConnected = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	uint32_t packetsSent = 0;
 	uint32_t ip = 1;
 
 	std::underlying_type_t<ConnectionState_t> connectionState = CONNECTION_STATE_OPEN;
 	bool receivedFirst = false;
+	bool protocolReleaseScheduled = false;
 
 	friend class ServicePort;
 	friend class ConnectionManager;

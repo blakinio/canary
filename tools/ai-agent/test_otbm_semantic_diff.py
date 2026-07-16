@@ -72,6 +72,22 @@ def make_variant(path: Path, tiles: list[dict[str, object]]) -> None:
     path.write_bytes(b"\0\0\0\0" + root)
 
 
+def make_multi_area_variant(path: Path) -> None:
+    floor = 7
+    areas: list[bytes] = []
+    for base_x, base_y, x, y in (
+        (256, 512, 500, 700),
+        (512, 512, 512, 600),
+    ):
+        properties = bytes((x - base_x, y - base_y))
+        properties += bytes((ATTR_ITEM,)) + struct.pack("<H", 100)
+        tile_node = node(OTBM_TILE, properties, [item(200)])
+        areas.append(node(OTBM_TILE_AREA, struct.pack("<HHB", base_x, base_y, floor), [tile_node]))
+    map_data = node(OTBM_MAP_DATA, b"", areas)
+    root = node(0, struct.pack("<IHHII", 4, 1024, 1024, 4, 4), [map_data])
+    path.write_bytes(b"\0\0\0\0" + root)
+
+
 def base_tiles() -> list[dict[str, object]]:
     return [
         {
@@ -423,6 +439,25 @@ class SemanticDiffTests(unittest.TestCase):
         self.assertFalse(report["policy"]["mapModified"])
         self.assertEqual(before_hash, hashlib.sha256(self.before_map.read_bytes()).hexdigest())
         self.assertEqual(after_hash, hashlib.sha256(self.after_map.read_bytes()).hexdigest())
+
+    def test_31_bounded_region_merges_adjacent_areas_in_position_order(self) -> None:
+        make_multi_area_variant(self.before_map)
+        make_multi_area_variant(self.after_map)
+        build_world_index(
+            map_path=self.before_map,
+            scanner=self.scanner,
+            output=self.before_index,
+            manifest_output=self.before_manifest,
+        )
+        build_world_index(
+            map_path=self.after_map,
+            scanner=self.scanner,
+            output=self.after_index,
+            manifest_output=self.after_manifest,
+        )
+        report = self.analyze(lower=(256, 512, 7), upper=(767, 767, 7))
+        self.assertEqual(report["summary"]["findings"]["total"], 0)  # type: ignore[index]
+        self.assertEqual(report["summary"]["unchangedTiles"], 2)  # type: ignore[index]
 
 
 if __name__ == "__main__":

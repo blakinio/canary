@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "module_id": "boss-encounters",
+  "name": "Boss Encounters",
+  "category": "world-content",
+  "description": "Reward-boss participation, contribution scoring, reward generation, reward-container persistence and encounter lifecycle discovery.",
+  "lifecycle": {"status": "inventory", "program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md"},
+  "scope": {
+    "includes": ["reward-boss encounter participation state", "damage dealt, damage received and healing contribution tracking", "active participant and target-list reconciliation", "boss death scoring and reward generation", "reward container and offline reward persistence handoff"],
+    "excludes": ["Bosstiary points, slots and rarity progression", "generic boss definitions and combat AI", "spawn placement and raid scheduling", "boss cooldown/access quest logic", "proof of eligibility, scoring, loot or persistence correctness"]
+  },
+  "paths": {
+    "server": [],
+    "client": [],
+    "data": ["data/libs/systems/reward_boss.lua", "data/scripts/systems/reward_chest.lua"],
+    "tests": [],
+    "docs": ["docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md", "docs/agents/real-tibia/TSD_006_CREATURES_HUNTING_RAIDS_BOSSES_REPORT.md"]
+  },
+  "relationships": {
+    "depends_on": ["creature-definitions", "player-persistence"],
+    "interacts_with": ["bosstiary", "combat", "creature-ai", "spawns"]
+  },
+  "documents": {"program": "docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md", "validation": ["docs/agents/real-tibia/TSD_006_CREATURES_HUNTING_RAIDS_BOSSES_REPORT.md"]},
+  "source_requirements": [{"source": "canary-current", "mode": "required"}, {"source": "tibia-official", "mode": "required-when-parity"}, {"source": "runtime-observation", "mode": "required-when-related"}],
+  "maturity": {"implementation": "inventory", "evidence": "inventory", "persistence": "not-assessed", "protocol": "not-assessed", "automated_tests": "not-assessed", "runtime_validation": "not-assessed", "gameplay_e2e": "not-assessed"},
+  "freshness": {"class": "fast", "last_inventory": "2026-07-14", "warning_after_days": 30, "invalid_after_days": 90, "refresh_before_each_task": true},
+  "notes": ["The current reward scripts divide contribution and persist reward containers, but inventory does not validate arithmetic, participation eligibility or transactional safety.", "Boss access, lever, cooldown and quest scripts remain encounter-specific findings rather than one generic owned root."]
+}

@@ -13,6 +13,7 @@ on:
       - "tools/analytics/test_validate_gameplay_analytics_dashboard.py"
       - "tools/analytics/validate_gameplay_analytics_dashboard.py"
       - "docs/systems/gameplay-analytics-dashboards.md"
+      - "docs/systems/gameplay-analytics-dry-run.md"
       - ".github/workflows/gameplay-analytics-dashboards.yml"
   push:
     branches: [main]
@@ -26,6 +27,7 @@ on:
       - "tools/analytics/test_validate_gameplay_analytics_dashboard.py"
       - "tools/analytics/validate_gameplay_analytics_dashboard.py"
       - "docs/systems/gameplay-analytics-dashboards.md"
+      - "docs/systems/gameplay-analytics-dry-run.md"
       - ".github/workflows/gameplay-analytics-dashboards.yml"
 
 permissions:
