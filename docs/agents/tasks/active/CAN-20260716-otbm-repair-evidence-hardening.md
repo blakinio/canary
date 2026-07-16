@@ -2,13 +2,13 @@
 task_id: CAN-20260716-otbm-repair-evidence-hardening
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: active
+status: implementing
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-repair-evidence-hardening
 base_branch: main
 created: 2026-07-16T09:20:00+02:00
-updated: 2026-07-16T09:50:00+02:00
-last_verified_commit: "ba8d3195e22fbcc2a2a7060a683feef889e5d9b9"
+updated: 2026-07-16T09:56:00+02:00
+last_verified_commit: "b46aa080b22bb41026002f48b25770a202f5673a"
 risk: medium
 related_issue: ""
 related_pr: "413"
@@ -65,7 +65,7 @@ Harden the merged read-only OTBM real-map repair preflight so a reviewer can dis
 - [x] Preserve unresolved, referenced-only, partially-resolved and conflicting evidence without promotion to handled.
 - [x] Keep the source map immutable and retain source/scanner rechecks and create-new output safety.
 - [x] Add focused regression coverage and update report schema/docs.
-- [ ] Finish narrow catalogue/changelog integration without unrelated shared-index drift.
+- [x] Keep the module-catalogue change narrow and free of unrelated shared-index drift.
 - [ ] Verify current-head required checks before readiness/merge.
 
 # Confirmed context
@@ -77,6 +77,7 @@ Harden the merged read-only OTBM real-map repair preflight so a reviewer can dis
 - PR #316 owns separate Targuna donor-isolation evidence and does not overlap exclusive paths here.
 - PR #393 touches shared catalogue/test-infrastructure documentation; shared-index edits must remain narrow.
 - No local checkout is exposed in this connector session, so local worktree state is not used as proof.
+- The changelog was restored exactly to `main` after detecting unrelated drift from a partial-file edit; dedicated docs and the module catalogue carry this task's reusable-interface description.
 
 # Design boundary
 
@@ -86,8 +87,8 @@ This task hardens evidence and readiness only. It does not execute the bounded p
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T09:50:00+02:00
-head: ba8d3195e22fbcc2a2a7060a683feef889e5d9b9
+updated_at: 2026-07-16T09:56:00+02:00
+head: b46aa080b22bb41026002f48b25770a202f5673a
 branch: feat/otbm-repair-evidence-hardening
 pr: 413
 status: implementing
@@ -103,27 +104,30 @@ owned_paths:
   - docs/ai-agent/OTBM_REPAIR_PREFLIGHT_REPORT.schema.json
   - docs/agents/tasks/active/CAN-20260716-otbm-repair-evidence-hardening.md
   - docs/agents/MODULE_CATALOG.md
-  - docs/agents/CHANGELOG.md
 proven:
   - Phase 8 remains closed and its supported mutation kinds are unchanged
   - PR 413 adds deterministic appearances items rules and script-corpus evidence pins
   - PR 413 adds explicit matched correlated runtimeResolved patchable and reviewReady evidence
   - hypothetical resolver comparison detects structural evidence changes even when status text is unchanged
   - source-map and native-scanner immutability checks remain in place
-  - AI Agent Tools OTBM Map Tools and repository CI passed on prior implementation heads
+  - MODULE_CATALOG diff is limited to the OTBM repair-preflight row
+  - CHANGELOG was restored to the exact main blob after unrelated drift was detected
+  - CI passed on head b46aa080b22bb41026002f48b25770a202f5673a
 derived:
-  - the implementation is functionally green and observed failures so far are task-checkpoint metadata only
+  - implementation failures observed so far are task-metadata issues rather than OTBM test failures
 unknown:
-  - final exact-head validation after checkpoint and shared-index cleanup
+  - exact-head Agent Task Ownership result after frontmatter status correction
+  - exact-head AI Agent Tools and OTBM Map Tools completion
   - final review and branch-protection state
 conflicts: []
 first_failure:
-  marker: Agent Task Ownership checkpoint metadata
-  evidence: latest run rejected checkpoint status active; checkpoint status is now implementing
+  marker: Agent Task Ownership task status
+  evidence: run 29481490468 rejected frontmatter status active; both frontmatter and checkpoint now use implementing
 rejected_hypotheses:
   - broaden Phase 8 to implement map geometry or region writing in this task
   - treat top-level ok as proof of patch safety or gameplay correctness
   - treat unavailable Git metadata as a clean worktree
+  - retain unrelated changelog or catalogue drift
 changed_paths:
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260716-otbm-repair-evidence-hardening.md
@@ -133,28 +137,21 @@ changed_paths:
   - tools/ai-agent/otbm_repair_preflight_tool.py
   - tools/ai-agent/test_otbm_repair_preflight_hardening.py
 validation:
-  - command: GitHub Actions AI Agent Tools
+  - command: GitHub Actions CI run 29481490575
     result: PASS
-    evidence: successful on implementation heads before metadata-only fixes
-  - command: GitHub Actions OTBM Map Tools
-    result: PASS
-    evidence: successful on implementation heads before metadata-only fixes
-  - command: GitHub Actions CI
-    result: PASS
-    evidence: successful on implementation heads before metadata-only fixes
-  - command: GitHub Actions Agent Task Ownership
+    evidence: completed success on head b46aa080b22bb41026002f48b25770a202f5673a
+  - command: GitHub Actions Agent Task Ownership run 29481490468
     result: FAIL
-    evidence: latest failure was unsupported checkpoint status active; corrected to implementing
+    evidence: frontmatter status active was invalid for tasks/active; corrected to implementing
 blockers:
-  - exact-head validation after metadata repair
-  - remove unrelated MODULE_CATALOG drift and add narrow changelog entry
-next_action: Remove unrelated shared-index drift, add only the OTBM preflight changelog/catalogue updates, then verify exact-head ownership and repository checks.
+  - exact-head validation after frontmatter status repair
+next_action: Verify exact-head ownership and OTBM/AI/repository checks, then update task to ready and merge only if the autonomous merge gate is satisfied.
 ```
 
 # Completion
 
 - Final status: implementing
 - Canary PR: #413
-- Catalogue updated: pending narrow cleanup
-- Changelog updated: pending narrow integration
+- Catalogue updated: narrow OTBM row only
+- Changelog updated: no; restored to exact main after unrelated drift
 - Archived at: not archived
