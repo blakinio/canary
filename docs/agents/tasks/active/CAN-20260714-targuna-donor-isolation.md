@@ -2,12 +2,12 @@
 task_id: CAN-20260714-targuna-donor-isolation
 program_id: CAN-PROGRAM-CRYSTALSERVER-COMPARISON
 coordination_id: REAL-TIBIA-TARGUNA-DONOR
-status: validating
+status: active
 agent: "GPT-5.5 Thinking"
 branch: audit/targuna-donor-isolation
 base_branch: main
 created: 2026-07-14T10:15:00+02:00
-updated: 2026-07-16T21:00:00+02:00
+updated: 2026-07-16T20:57:00+02:00
 last_verified_commit: "d88e7f354eb5b33068cdded7696e9cdb89b05268"
 risk: low
 related_issue: ""
@@ -140,7 +140,7 @@ Read the exact global audit first. Do not expand this task into whole-map replac
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T21:00:00+02:00
+updated_at: 2026-07-16T20:57:00+02:00
 head: 8307dafb4b3a92564ef5eba56c4f91d7776bf0d4
 branch: audit/targuna-donor-isolation
 pr: 316
