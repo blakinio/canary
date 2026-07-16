@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
@@ -17,9 +18,15 @@ from otbm_repair_preflight import (
     PreflightError,
     build_hypothetical_item_audit,
     build_preflight_report,
+    diff_script_resolution_placements,
+    is_runtime_resolved_status,
     parse_position,
 )
-from otbm_script_resolution import ScriptAuditError, audit_from_files as run_script_resolution
+from otbm_script_resolution import (
+    ScriptAuditError,
+    audit_from_files as run_script_resolution,
+    iter_script_files,
+)
 
 
 def _path(value: str) -> Path:
@@ -139,6 +146,124 @@ def _source_unchanged(path: Path, expected_stat: os.stat_result, expected_hash: 
     )
 
 
+def _resolve_input_file(path: Path, label: str) -> Path:
+    resolved = path.expanduser().resolve(strict=True)
+    if not resolved.is_file():
+        raise PreflightError(f"{label} must be an existing regular file")
+    return resolved
+
+
+def _file_pin(path: Path) -> dict[str, Any]:
+    stat = path.stat()
+    return {
+        "fileName": path.name,
+        "size": stat.st_size,
+        "sha256": sha256_file(path),
+    }
+
+
+def _optional_file_pin(path: Path | None) -> dict[str, Any] | None:
+    return _file_pin(path) if path is not None else None
+
+
+def _repository_git_pin(repository_root: Path) -> dict[str, Any]:
+    def run(*arguments: str) -> subprocess.CompletedProcess[str] | None:
+        try:
+            return subprocess.run(
+                ["git", "-C", str(repository_root), *arguments],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=15,
+                check=False,
+                shell=False,
+            )
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            return None
+
+    commit = run("rev-parse", "HEAD")
+    if commit is None or commit.returncode != 0:
+        return {"available": False, "commit": None, "branch": None, "dirty": None}
+    branch = run("rev-parse", "--abbrev-ref", "HEAD")
+    status = run("status", "--porcelain=v1", "--untracked-files=normal")
+    if branch is None or branch.returncode != 0 or status is None or status.returncode != 0:
+        return {
+            "available": True,
+            "commit": commit.stdout.strip(),
+            "branch": None,
+            "dirty": None,
+        }
+    return {
+        "available": True,
+        "commit": commit.stdout.strip(),
+        "branch": branch.stdout.strip(),
+        "dirty": bool(status.stdout.strip()),
+    }
+
+
+def _script_corpus_pin(repository_root: Path, script_roots: list[str] | None) -> dict[str, Any]:
+    requested = tuple(script_roots or ("data", "data-otservbr-global"))
+    visited: set[Path] = set()
+    records: list[dict[str, Any]] = []
+    roots: list[dict[str, Any]] = []
+
+    for root_index, entry in enumerate(requested):
+        candidate = Path(entry)
+        candidate = candidate if candidate.is_absolute() else repository_root / candidate
+        try:
+            resolved = candidate.resolve(strict=True)
+        except FileNotFoundError:
+            roots.append({"requested": str(entry), "exists": False, "files": 0})
+            continue
+
+        paths = [resolved] if resolved.is_file() else sorted(iter_script_files(resolved), key=lambda path: path.as_posix())
+        files_in_root = 0
+        for path in paths:
+            file_path = path.resolve()
+            if file_path in visited:
+                continue
+            visited.add(file_path)
+            relative = file_path.name if resolved.is_file() else file_path.relative_to(resolved).as_posix()
+            records.append(
+                {
+                    "rootIndex": root_index,
+                    "path": relative,
+                    "size": file_path.stat().st_size,
+                    "sha256": sha256_file(file_path),
+                }
+            )
+            files_in_root += 1
+        roots.append({"requested": str(entry), "exists": True, "files": files_in_root})
+
+    encoded = json.dumps(records, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return {
+        "requestedRoots": list(requested),
+        "roots": roots,
+        "files": len(records),
+        "sha256": hashlib.sha256(encoded).hexdigest(),
+    }
+
+
+def _build_input_pins(
+    *,
+    appearances_index: Path,
+    items_xml: Path,
+    repository_root: Path,
+    script_roots: list[str] | None,
+    rules: Path | None,
+    review_rules: Path | None,
+) -> dict[str, Any]:
+    return {
+        "appearancesIndex": _file_pin(appearances_index),
+        "itemsXml": _file_pin(items_xml),
+        "rules": _optional_file_pin(rules),
+        "reviewRules": _optional_file_pin(review_rules),
+        "scriptCorpus": _script_corpus_pin(repository_root, script_roots),
+        "repositoryGit": _repository_git_pin(repository_root),
+    }
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
@@ -197,6 +322,12 @@ def main(argv: list[str] | None = None) -> int:
             raise PreflightError("map must be an existing regular file")
         scanner = locate_scanner(args.scanner).resolve(strict=True)
         repository_root = args.repository_root.expanduser().resolve(strict=True)
+        if not repository_root.is_dir():
+            raise PreflightError("repository root must be an existing directory")
+        appearances_index = _resolve_input_file(args.appearances_index, "appearances index")
+        items_xml = _resolve_input_file(args.items_xml, "items.xml")
+        rules = _resolve_input_file(args.rules, "runtime rules") if args.rules is not None else None
+        review_rules = _resolve_input_file(args.review_rules, "review rules") if args.review_rules is not None else None
         output_path = _prepare_new_output(args.output, map_path, "preflight output")
         draft_plan_path = (
             _prepare_new_output(args.draft_plan, map_path, "draft plan") if args.draft_plan is not None else None
@@ -207,6 +338,14 @@ def main(argv: list[str] | None = None) -> int:
         source_hash_before = sha256_file(map_path)
         scanner_stat_before = scanner.stat()
         scanner_hash = sha256_file(scanner)
+        input_pins_before = _build_input_pins(
+            appearances_index=appearances_index,
+            items_xml=items_xml,
+            repository_root=repository_root,
+            script_roots=args.script_roots,
+            rules=rules,
+            review_rules=review_rules,
+        )
 
         with tempfile.TemporaryDirectory(prefix="otbm-repair-preflight-") as temporary:
             workspace = Path(temporary)
@@ -218,8 +357,8 @@ def main(argv: list[str] | None = None) -> int:
             item_audit = run_item_audit(
                 map_path=map_path,
                 scanner=scanner,
-                appearances_index_path=args.appearances_index,
-                items_xml=args.items_xml,
+                appearances_index_path=appearances_index,
+                items_xml=items_xml,
                 output=item_audit_path,
                 scan_output=item_scan_path,
                 include_map_hash=True,
@@ -230,8 +369,8 @@ def main(argv: list[str] | None = None) -> int:
                 repository_root=repository_root,
                 script_roots=args.script_roots,
                 output=script_resolution_path,
-                rules_path=args.rules,
-                review_rules_path=args.review_rules,
+                rules_path=rules,
+                review_rules_path=review_rules,
             )
 
         if not _source_unchanged(map_path, source_stat_before, source_hash_before):
@@ -243,6 +382,19 @@ def main(argv: list[str] | None = None) -> int:
             or sha256_file(scanner) != scanner_hash
         ):
             raise PreflightError("native scanner changed while repair preflight was running")
+        input_pins_after = _build_input_pins(
+            appearances_index=appearances_index,
+            items_xml=items_xml,
+            repository_root=repository_root,
+            script_roots=args.script_roots,
+            rules=rules,
+            review_rules=review_rules,
+        )
+        if input_pins_after != input_pins_before:
+            raise PreflightError("preflight evidence inputs changed while repair preflight was running")
+        resolver_files = script_resolution.get("summary", {}).get("filesScanned")
+        if resolver_files != input_pins_before["scriptCorpus"]["files"]:
+            raise PreflightError("script-resolution file count does not match the pinned script corpus")
         audit_map = item_audit.get("sources", {}).get("map", {})
         if audit_map.get("sha256") != source_hash_before or audit_map.get("size") != source_stat_before.st_size:
             raise PreflightError("item-audit source identity does not match the preflight source pin")
@@ -288,8 +440,8 @@ def main(argv: list[str] | None = None) -> int:
                     repository_root=repository_root,
                     script_roots=args.script_roots,
                     output=hypothetical_resolution_path,
-                    rules_path=args.rules,
-                    review_rules_path=args.review_rules,
+                    rules_path=rules,
+                    review_rules_path=review_rules,
                 )
             after_placements = [
                 row
@@ -298,20 +450,26 @@ def main(argv: list[str] | None = None) -> int:
             ]
             if len(after_placements) != 1:
                 raise PreflightError("hypothetical replacement script resolution did not preserve the selected placement index")
-            before_status = str(report["candidates"][0]["scriptResolution"].get("status", "unknown"))
-            after_status = str(after_placements[0].get("status", "unknown"))
+            before_placement = report["candidates"][0]["scriptResolution"]
+            after_placement = after_placements[0]
+            before_status = str(before_placement.get("status", "unknown"))
+            after_status = str(after_placement.get("status", "unknown"))
+            runtime_diff = diff_script_resolution_placements(before_placement, after_placement)
             report["replacementScriptResolution"] = {
                 "hypothetical": True,
                 "beforeStatus": before_status,
                 "afterStatus": after_status,
-                "runtimeResolutionChanged": before_status != after_status,
-                "placement": after_placements[0],
+                "runtimeResolutionChanged": runtime_diff["changed"],
+                "replacementRuntimeResolved": is_runtime_resolved_status(after_status),
+                "diff": runtime_diff,
+                "placement": after_placement,
                 "summary": hypothetical_resolution.get("summary"),
                 "note": "This is static hypothetical resolver evidence only; no OTBM was modified and gameplay correctness is not proven.",
             }
         else:
             report["replacementScriptResolution"] = None
         report["evidence"] = {
+            "inputs": input_pins_before,
             "itemAudit": {"format": item_audit.get("format"), "summary": item_audit.get("summary")},
             "patchAnchors": {
                 "format": anchor_report.get("format"),
@@ -341,11 +499,15 @@ def main(argv: list[str] | None = None) -> int:
             raise
 
         summary = report["summary"]
+        readiness = summary["readiness"]
         json.dump(
             {
                 "ok": report["ok"],
                 "matchedCandidates": summary["matchedCandidates"],
+                "correlated": readiness["correlated"],
+                "runtimeResolved": readiness["runtimeResolved"],
                 "draftPlanReady": summary["draftPlanReady"],
+                "reviewReady": readiness["reviewReady"],
                 "runtimeUnresolvedCandidates": summary["runtimeUnresolvedCandidates"],
                 "conflictingCandidates": summary["conflictingCandidates"],
                 "output": str(output_path),
