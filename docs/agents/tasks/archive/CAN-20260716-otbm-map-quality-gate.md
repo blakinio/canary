@@ -2,13 +2,13 @@
 task_id: CAN-20260716-otbm-map-quality-gate
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-map-quality-gate
 base_branch: main
 created: 2026-07-16T10:12:00+02:00
-updated: 2026-07-16T10:31:00+02:00
-last_verified_commit: "7d1989a3fa20632bc79994eb719d37cb8d3c679a"
+updated: 2026-07-16T08:39:51Z
+last_verified_commit: "8660f7cb81978616df804ee6d4b0516e9c0af38f"
 risk: medium
 related_issue: ""
 related_pr: "419"
@@ -54,6 +54,7 @@ public_interfaces:
   - canary-otbm-map-quality-v1
   - OTBM map quality gate CLI
 cross_repo_tasks: []
+completed: 2026-07-16T08:39:51Z
 ---
 
 # Goal
@@ -182,3 +183,11 @@ next_action: Mark PR 419 ready for review, verify ready-state exact-head checks 
 - Catalogue updated: yes; one OTBM quality-gate row only
 - Changelog updated: yes; one OTBM quality-gate Unreleased entry only
 - Archived at: pending post-merge lifecycle automation
+
+## Automated lifecycle completion
+
+- Feature PR: #419.
+- Feature head: `8ec91261ff9cd30d70289d9dc7fd4fb130dd92c4`.
+- Merge commit: `8660f7cb81978616df804ee6d4b0516e9c0af38f`.
+- Merged at: `2026-07-16T08:39:51Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
