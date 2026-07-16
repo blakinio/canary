@@ -49,10 +49,20 @@ jobs:
           set -euo pipefail
           python -m py_compile \
             tools/security/security_validation.py \
-            tests/security/test_security_validation.py
+            tools/security/runtime_adapter.py \
+            tests/security/test_security_validation.py \
+            tests/security/test_runtime_adapter.py
           python -m unittest discover -v -s tests/security -p 'test_*.py'
       - name: Validate security scenario registry
         run: python tools/security/security_validation.py validate
+      - name: Validate runtime adapter registry
+        run: python tools/security/runtime_adapter.py validate
+      - name: Resolve authorized runtime delegation
+        run: >-
+          python tools/security/runtime_adapter.py resolve
+          --adapter canary-universal-e2e
+          --authorized-repository blakinio/canary
+          --report artifacts/security-validation/runtime-delegation.json
       - name: Run registered security scenarios
         run: >-
           python tools/security/security_validation.py run-all
