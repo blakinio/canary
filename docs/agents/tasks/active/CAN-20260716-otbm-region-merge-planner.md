@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-region-merge-planner
 base_branch: main
 created: 2026-07-16T11:20:00+02:00
-updated: 2026-07-16T11:20:00+02:00
-last_verified_commit: "52eb5932d94feeec8a1ba81ece7de7958ed06eea"
+updated: 2026-07-16T11:31:00+02:00
+last_verified_commit: "0b058a70cffc515d49ba22d40fee3b0492b92c25"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "424"
 depends_on:
   - "OTBM World Index #219"
   - "Semantic OTBM Diff #311"
@@ -82,10 +82,10 @@ Create a deterministic read-only review planner for importing an explicit donor 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T11:20:00+02:00
-head: 52eb5932d94feeec8a1ba81ece7de7958ed06eea
+updated_at: 2026-07-16T11:31:00+02:00
+head: 0b058a70cffc515d49ba22d40fee3b0492b92c25
 branch: feat/otbm-region-merge-planner
-pr: null
+pr: 424
 status: implementing
 context_routes:
   - otbm
@@ -103,6 +103,9 @@ proven:
   - current World Index API supports bounded region iteration exact tile lookup and global mechanic postings
   - PR 316 Targuna-specific paths do not overlap this generic planner
   - Phase 8 remains fixed-width existing-attribute only and cannot be reused as a structural region writer
+  - draft PR 424 targets blakinio/canary main from feat/otbm-region-merge-planner
+  - initial CI passed and initial ownership failure is task-checkpoint metadata only
+  - current and donor World Index access will use public WorldIndex APIs rather than reading binary records independently
 derived:
   - explicit translation-aware planning is the smallest safe step before any future structural writer ADR
 unknown:
@@ -110,23 +113,25 @@ unknown:
   - current-head CI after implementation
 conflicts: []
 first_failure:
-  marker: none
-  evidence: implementation has not run yet
+  marker: initial-ownership-metadata
+  evidence: initial task checkpoint still had pr null and head at the #422 merge commit
 rejected_hypotheses:
   - heuristic donor-to-target city matching
   - direct OTBM region writing in this task
   - silent overwrite of current-only custom content
 changed_paths:
   - docs/agents/tasks/active/CAN-20260716-otbm-region-merge-planner.md
-validation: []
+validation:
+  - CI run 29486717150 passed on 0b058a70cffc515d49ba22d40fee3b0492b92c25
+  - Ownership run 29486716648 failed only at changed active task checkpoint validation before PR/head binding
 blockers: []
-next_action: Open an early draft PR, bind related_pr, then implement canonical translated tile snapshots and deterministic review actions.
+next_action: Implement canonical translated tile snapshots, deterministic review actions, and exact mechanic conflict detection over public WorldIndex APIs.
 ```
 
 # Completion
 
 - Final status: implementing
-- Canary PR: pending
+- Canary PR: #424
 - Catalogue updated: pending
 - Changelog updated: pending
 - Archived at: not archived
