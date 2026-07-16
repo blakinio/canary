@@ -7,7 +7,7 @@ agent: chatgpt-ci-governance
 branch: ci/incremental-validation-final-gate
 base_branch: main
 created: 2026-07-16T10:10:00+02:00
-updated: 2026-07-16T14:22:41+02:00
+updated: 2026-07-16T14:31:43+02:00
 last_verified_commit: f529e34dc6b7c7c7a4e8c8fbfb820aff91705660
 risk: medium
 related_issue: ""
@@ -48,7 +48,7 @@ cross_repo_tasks: []
 
 # Goal
 
-Reduce repeated heavy PR validation for proven non-impacting follow-up commits without reducing merge quality. Reuse is limited to successful immediate-parent workflow evidence and every uncertain case fails closed. The exact final head must still pass full applicable validation.
+Reduce repeated heavy PR validation for proven non-impacting follow-up commits without reducing merge quality. Reuse is limited to successful immediate-parent workflow evidence and uncertainty fails closed. The exact final head must pass full applicable CI, Load and physical E2E validation.
 
 # Acceptance criteria
 
@@ -57,8 +57,9 @@ Reduce repeated heavy PR validation for proven non-impacting follow-up commits w
 - [x] Missing/non-success evidence, empty or unresolvable deltas, impacting paths and workflow/helper changes fail closed.
 - [x] Current-head focused validation and stable Required aggregators remain active when expensive jobs are reused.
 - [x] Load-only E2E paths do not affect the physical-client profile.
-- [x] Helper self-change and `.github/**` path handling have focused regressions.
-- [x] Exact `ci:final-gate` label detection from the GitHub event payload forces full applicable validation.
+- [x] Helper self-change, `.github/**` path handling and exact `ci:final-gate` label detection have focused regressions.
+- [x] `ci:final-gate` forces full Load/E2E and explicitly selects all main-CI scopes: Linux matrix, Windows, macOS, Docker, quickstart and runtime smokes.
+- [x] PR is ready-for-review before the corrected final synchronize event, so Fast Checks and Lua checks cannot be draft-skipped.
 - [x] Root policy and build matrix require batched docs/checkpoints and forbid a post-green final-gate commit.
 - [x] No test, assertion, throttle, branch-protection gate or physical-client sentinel is weakened.
 
@@ -66,15 +67,17 @@ Reduce repeated heavy PR validation for proven non-impacting follow-up commits w
 
 - Repository writes are limited to `blakinio/canary`; upstream/donor repositories remain read-only.
 - PR #393 merged as `2f828672df010ff577c8e6076524b37c6dedd987` before this task.
-- PR #415 is the live task PR from `ci/incremental-validation-final-gate` to `main`.
+- PR #415 is the live task PR from `ci/incremental-validation-final-gate` to `main` and is no longer draft.
 - Full code head `2c6370418d0bd8d966289d5a1cf7c075ed75459f` passed Ownership #1626, CI #2763, Load #52 and physical E2E #96.
 - Docs-only heads `9c02a95a6c7deb0d65c2c8a3956031c8ff2d9044`, `27163653e43454df9d51ee465143e5f3ab94ccf9` and `fe618730149d4a7d2c5d5ffa997f3935f4f08bc9` proved immediate-parent reuse while current-head Required gates remained green.
 - E2E #94 had one transient failure in the unchanged pinned OTClient build; one allowed failed-job rerun on the same SHA passed without a code patch.
-- Current main `368319e6e20672339a6409504d1a9f69c15ea077` was merged conservatively into the branch through verified Git objects because the connector has no native update-branch action.
+- Current main `368319e6e20672339a6409504d1a9f69c15ea077` was conservatively synchronized into the branch through verified Git objects because the connector has no native update-branch action.
 - Merge commit `f529e34dc6b7c7c7a4e8c8fbfb820aff91705660` was verified before branch update: relative to current main it contains exactly the eleven intended PR paths; relative to the previous branch head it adds only the six new OTBM planner/archive files from main.
 - Sync head `f529e34dc6b7c7c7a4e8c8fbfb820aff91705660` passed Ownership #1650, CI #2787, Load #56 including real status-smoke, and physical E2E #100 including DB, Canary, pinned OTClient and physical-client validation.
-- Main remained `368319e6e20672339a6409504d1a9f69c15ea077` immediately before the final commit.
-- PR #415 carries `ci:final-gate` before this final task commit.
+- The first labeled final head `59ed0e233250ef66a61aad548e803cf397a4598d` correctly forced full Load/E2E, but job-level inspection showed main CI heavy jobs were still skipped because the PR was draft and CI scopes still depended on path filters. That head was explicitly rejected as final merge evidence.
+- PR #415 was marked ready before the corrective commit.
+- Corrective head `4d4005958dd442dabaa4e992f020fd84c054abe4` makes `ci:final-gate` explicitly select all main-CI heavy scopes in addition to the helper's fail-closed decision.
+- PR #415 still carries `ci:final-gate`, so this final task commit must trigger the corrected full gate on its exact SHA.
 
 # Safety design
 
@@ -83,19 +86,19 @@ Reduce repeated heavy PR validation for proven non-impacting follow-up commits w
 3. Missing, non-success, empty or unresolvable evidence fails closed.
 4. Relevant workflow/helper changes force full validation.
 5. Focused current-head checks and stable Required aggregators remain active during reuse.
-6. `ci:final-gate` is applied before the last content commit; the final synchronize event therefore sets `force_full` for CI, Load and physical E2E on that exact SHA.
-7. No commit is allowed after the final gate turns green; a later commit invalidates that evidence and must pass the full gate again.
+6. `ci:final-gate` forces full Load/E2E and all main-CI scopes; the PR must be non-draft so Fast Checks/Lua/heavy jobs execute.
+7. No commit is allowed after the corrected final gate turns green; a later commit invalidates that evidence and must pass the full gate again.
 
 # Current state
 
-Implementation, tests, policy, catalogue, changelog, synchronization with current main and pre-final full runtime evidence are complete. This task file is the final content commit. Exact final-head workflows under `ci:final-gate` are the remaining merge evidence.
+Implementation, tests, policy, catalogue, changelog and current-main synchronization are complete. A job-level final-gate audit found and repaired the last CI-scope/draft gap before merge. This task file is the final content commit. Exact final-head workflows under `ci:final-gate` are the remaining merge evidence.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T14:22:41+02:00
-head: f529e34dc6b7c7c7a4e8c8fbfb820aff91705660
+updated_at: 2026-07-16T14:31:43+02:00
+head: 4d4005958dd442dabaa4e992f020fd84c054abe4
 branch: ci/incremental-validation-final-gate
 pr: 415
 status: ready
@@ -123,20 +126,21 @@ proven:
   - Exact ci:final-gate label detection is regression-tested.
   - Sync merge f529e34dc6b7c7c7a4e8c8fbfb820aff91705660 contains current main 368319e6e20672339a6409504d1a9f69c15ea077 and exactly eleven PR paths relative to main.
   - Sync head f529e34dc6b7c7c7a4e8c8fbfb820aff91705660 passed Ownership 1650, CI 2787, Load 56 and E2E 100 with full heavy validation.
-  - PR 415 carries ci:final-gate before this final task commit.
+  - Job-level inspection rejected 59ed0e233250ef66a61aad548e803cf397a4598d as final evidence because main CI heavy jobs were draft/path-filter skipped even though Load/E2E ran fully.
+  - PR 415 is ready-for-review and still carries ci:final-gate before this corrected final commit.
 derived:
-  - Proven non-impacting immediate-parent reuse avoids repeated heavy work while the labeled final synchronize preserves exact-final-head full validation.
+  - Proven non-impacting immediate-parent reuse avoids repeated heavy work while the corrected labeled final synchronize preserves a full exact-final-head gate.
 unknown:
-  - Exact final-head workflow results are pending on this final task commit under ci:final-gate.
+  - Exact corrected final-head workflow results are pending on this final task commit under ci:final-gate.
 conflicts: []
 first_failure:
   marker: Agent Task Ownership 1555 / changed active task checkpoint validation
   evidence: Early task-record schema defects were repaired without weakening validation; helper compilation and focused tests remained green.
 rejected_hypotheses:
-  - Path filters alone solve docs-only reruns; pull_request path filters use cumulative PR scope.
+  - Path filters alone solve docs-only reruns; pull_request path filters use cumulative PR scope inconsistently with the desired final-gate semantics.
   - Any older successful SHA is sufficient; reuse is immediate-parent only.
-  - A separate no-op final check is required; the labeled final synchronize forces the existing workflow families on the final content SHA.
-  - Helper changes may reuse older runtime evidence; the helper is explicitly impacting.
+  - Helper force_full alone makes every main-CI scope execute; job-level evidence on 59ed0e23 disproved this and ci.yml now explicitly selects all scopes for ci:final-gate.
+  - A draft PR can prove the full final main-CI gate; draft conditions skip Fast Checks/Lua/heavy jobs, so PR 415 was marked ready before the corrected final synchronize.
 changed_paths:
   - .github/workflows/agent-task-ownership.yml
   - .github/workflows/ci.yml
@@ -160,5 +164,5 @@ validation:
     result: PASS
     evidence: Exact synchronized head f529e34dc6b7c7c7a4e8c8fbfb820aff91705660 ran full applicable validation.
 blockers: []
-next_action: Verify the full exact-head workflows triggered by this final task commit under ci:final-gate; if all are green, perform the live merge gate and squash-merge PR 415 without further commits.
+next_action: Verify the corrected full exact-head workflows triggered by this final task commit under ci:final-gate; if all are green, perform the live merge gate and squash-merge PR 415 without further commits.
 ```
