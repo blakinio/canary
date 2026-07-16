@@ -2,7 +2,7 @@
 task_id: CAN-20260716-security-validation-foundation
 program_id: CAN-PROGRAM-SECURITY-VALIDATION
 coordination_id: OTS-SEC-001
-status: validating
+status: review
 agent: "GPT-5.5 Thinking"
 branch: feat/security-validation-foundation
 base_branch: main
@@ -121,12 +121,12 @@ proven:
 derived:
   - ownership failures to date are governance-format-only and do not indicate a security runner or scenario test failure
 unknown:
-  - Agent Task Ownership result after setting frontmatter status to validating
+  - Agent Task Ownership result after setting frontmatter status to review
   - final exact-head merge-gate result
 conflicts: []
 first_failure:
   marker: active-task-checkpoint-format-and-lifecycle-status
-  evidence: Agent Task Ownership runs 29523380316 29523950595 and 29524091683 plus active-task-ownership CHANGED_TASK_VALIDATION artifacts
+  evidence: Agent Task Ownership runs 29523380316 29523950595 29524091683 and 29524200347 plus active-task-ownership CHANGED_TASK_VALIDATION artifacts
 rejected_hypotheses:
   - security runner failure: dedicated Security Validation runs passed while ownership failed only in changed-task validation
   - main CI implementation failure: repository CI passed on validated implementation heads
@@ -152,9 +152,9 @@ validation:
   - command: CI run 29523950758
     result: PASS
     evidence: repository CI passed on 5794db9740cc3525ffd2b53186530d2f57e71ede
-  - command: Agent Task Ownership run 29524091683
+  - command: Agent Task Ownership run 29524200347
     result: FAIL
-    evidence: changed-task validator rejected frontmatter status active for a tasks/active record; this commit changes it to validating
+    evidence: changed-task validator requires frontmatter status from planned implementing blocked review ready and this commit changes validating to review
 blockers: []
-next_action: Verify Agent Task Ownership and normal CI on the validating-status head, then apply the ci:final-gate label before one final readiness checkpoint commit and make no post-green commit.
+next_action: Verify Agent Task Ownership and normal CI on the review-status head, then apply the ci:final-gate label before one final readiness checkpoint commit and make no post-green commit.
 ```
