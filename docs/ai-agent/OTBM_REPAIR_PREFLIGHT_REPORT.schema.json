@@ -64,7 +64,8 @@
         },
         "runtimeUnresolvedCandidates": { "type": "integer", "minimum": 0 },
         "conflictingCandidates": { "type": "integer", "minimum": 0 },
-        "draftPlanReady": { "type": "boolean" }
+        "draftPlanReady": { "type": "boolean" },
+        "readiness": { "$ref": "#/$defs/readiness" }
       }
     },
     "candidates": {
@@ -154,6 +155,8 @@
             "beforeStatus": { "type": "string" },
             "afterStatus": { "type": "string" },
             "runtimeResolutionChanged": { "type": "boolean" },
+            "replacementRuntimeResolved": { "type": "boolean" },
+            "diff": { "$ref": "#/$defs/runtimeDiff" },
             "placement": { "type": "object" },
             "summary": { "type": "object" },
             "note": { "type": "string" }
@@ -167,6 +170,7 @@
       "additionalProperties": false,
       "required": ["itemAudit", "patchAnchors", "scriptResolution"],
       "properties": {
+        "inputs": { "$ref": "#/$defs/inputPins" },
         "itemAudit": {
           "type": "object",
           "required": ["format", "summary"]
@@ -243,6 +247,114 @@
             }
           }
         }
+      }
+    },
+    "readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["matched", "correlated", "runtimeResolved", "runtimeStatus", "patchable", "reviewReady"],
+      "properties": {
+        "matched": { "type": "boolean" },
+        "correlated": { "type": "boolean" },
+        "runtimeResolved": { "type": "boolean" },
+        "runtimeStatus": { "type": "string" },
+        "patchable": { "type": "boolean" },
+        "reviewReady": { "type": "boolean" }
+      }
+    },
+    "filePin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fileName", "size", "sha256"],
+      "properties": {
+        "fileName": { "type": "string", "minLength": 1 },
+        "size": { "type": "integer", "minimum": 0 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "scriptCorpusPin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requestedRoots", "roots", "files", "sha256"],
+      "properties": {
+        "requestedRoots": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "roots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["requested", "exists", "files"],
+            "properties": {
+              "requested": { "type": "string" },
+              "exists": { "type": "boolean" },
+              "files": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "files": { "type": "integer", "minimum": 0 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "repositoryGitPin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["available", "commit", "branch", "dirty"],
+      "properties": {
+        "available": { "type": "boolean" },
+        "commit": { "type": ["string", "null"] },
+        "branch": { "type": ["string", "null"] },
+        "dirty": { "type": ["boolean", "null"] }
+      }
+    },
+    "inputPins": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["appearancesIndex", "itemsXml", "rules", "reviewRules", "scriptCorpus", "repositoryGit"],
+      "properties": {
+        "appearancesIndex": { "$ref": "#/$defs/filePin" },
+        "itemsXml": { "$ref": "#/$defs/filePin" },
+        "rules": {
+          "oneOf": [
+            { "$ref": "#/$defs/filePin" },
+            { "type": "null" }
+          ]
+        },
+        "reviewRules": {
+          "oneOf": [
+            { "$ref": "#/$defs/filePin" },
+            { "type": "null" }
+          ]
+        },
+        "scriptCorpus": { "$ref": "#/$defs/scriptCorpusPin" },
+        "repositoryGit": { "$ref": "#/$defs/repositoryGitPin" }
+      }
+    },
+    "runtimeDiff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["changed", "beforeFingerprint", "afterFingerprint", "changes"],
+      "properties": {
+        "changed": { "type": "boolean" },
+        "beforeFingerprint": { "$ref": "#/$defs/sha256" },
+        "afterFingerprint": { "$ref": "#/$defs/sha256" },
+        "changes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/runtimeChange" }
+        }
+      }
+    },
+    "runtimeChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "kind", "before", "after"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["added", "removed", "changed"] },
+        "before": true,
+        "after": true
       }
     }
   }
