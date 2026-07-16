@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/security-validation-foundation
 base_branch: main
 created: 2026-07-16T20:10:00+02:00
-updated: 2026-07-16T20:25:00+02:00
-last_verified_commit: "89fbf6c8097fefcad14a5dca5b195aa4672bbb14"
+updated: 2026-07-16T20:35:00+02:00
+last_verified_commit: "5794db9740cc3525ffd2b53186530d2f57e71ede"
 risk: medium
 related_issue: ""
 related_pr: "433"
@@ -65,14 +65,14 @@ Create the smallest reusable foundation for an OTS-wide security validation plat
 - [x] Add focused unit tests for schema rejection, path confinement, regex validation, pass/fail behavior and report determinism.
 - [x] Add a dedicated security-validation workflow that runs registry validation, focused tests, bytecode compilation and all seeded scenarios.
 - [x] Document the future adapter boundary for Canary/Otheryn server, maintained client, MyAAC, MariaDB and Redis; runtime execution must reuse Universal E2E and remain isolated/authorized.
-- [ ] Update module catalogue and changelog narrowly.
+- [x] Update module catalogue and changelog narrowly.
 - [ ] Review exact changed-file scope and pass required exact-head CI before merge.
 
 # Evidence and constraints
 
 - `PROVEN`: task-start `main` was `0f25e7fd4d41e90f17fc95d13dba84b7e81d1681`; current `main` advanced through lifecycle cleanup `e7f7b9601d41436a105308efa933f16917bc1b39`.
 - `PROVEN`: open PR #432 owns only OAM-005 documentation/task paths and does not overlap this task.
-- `PROVEN`: open PR #426 marks `MODULE_CATALOG.md` and `CHANGELOG.md` as shared, not exclusive; this task will edit them narrowly from current main content.
+- `PROVEN`: open PR #426 marks `MODULE_CATALOG.md` and `CHANGELOG.md` as shared, not exclusive; this task edited them from current-main content with one additive line each.
 - `PROVEN`: Universal E2E already owns disposable MariaDB, Canary, controlled OTClient, evidence and cleanup lifecycle; this task does not create a second runtime orchestrator.
 - `PROVEN`: Universal Agent Load already enforces literal-loopback-only targets for its status-protocol load runner; this task does not duplicate that runner.
 - `PROVEN`: PR #326 removed shell execution from `FS.mkdir`/`FS.mkdir_p`; PR #328 removed `loadstring` evaluation from `table.unserialize`.
@@ -89,28 +89,71 @@ Create the smallest reusable foundation for an OTS-wide security validation plat
 
 ## Context checkpoint
 
-### Current state
-
-- Draft PR #433 targets `blakinio/canary:main` from `blakinio/canary:feat/security-validation-foundation`.
-- Current implementation head before this checkpoint commit: `89fbf6c8097fefcad14a5dca5b195aa4672bbb14`.
-- Foundation scope is complete except shared catalogue/changelog finalization and final-head merge-gate validation.
-- No runtime packets, fuzzing, database mutation, MyAAC probing, client attack driver or external target is included in this PR.
-
-### Proven evidence
-
-- `AGENTS.md`, `REPOSITORY_MAP.md`, `CONTEXT_ROUTING.md`, `BUILD_TEST_MATRIX.md`, matching `MODULE_CATALOG.md` entries and `E2E_AUTOMATION_PROGRAM.md` were read.
-- No open security-platform PR was found before task creation.
-- Open PRs #432 and #426 were checked for path overlap; only the two shared agent indexes overlap #426.
-- Local scratch validation passed: Python bytecode compilation, 11 focused unit tests, registry validation and both seeded scenarios.
-- GitHub `Security Validation` run `29523380220` passed on `89fbf6c8097fefcad14a5dca5b195aa4672bbb14`.
-- GitHub main `CI` run `29523381029` passed on the same head.
-- Agent Task Ownership run `29523380316` failed only because this task used `# Context checkpoint` instead of the required `## Context checkpoint`; artifact `CHANGED_TASK_VALIDATION.txt` proved the exact error. This commit corrects the heading and binds `related_pr` to `433`.
-
-### Blockers
-
-- Shared `MODULE_CATALOG.md` and `CHANGELOG.md` still require narrow current-main-preserving edits.
-- Final exact-head validation has not yet run.
-
-### Next action
-
-Update the two shared indexes from current main without overwriting PR #426 work, re-check ownership/CI, then apply the `ci:final-gate` label before the final checkpoint commit and perform no post-green commit.
+```yaml
+checkpoint_version: 1
+updated_at: 2026-07-16T20:35:00+02:00
+head: 5794db9740cc3525ffd2b53186530d2f57e71ede
+branch: feat/security-validation-foundation
+pr: 433
+status: validating
+context_routes:
+  - agent-governance
+owned_paths:
+  - tools/security/**
+  - tests/security/**
+  - docs/security/**
+  - docs/agents/programs/SECURITY_VALIDATION_PROGRAM.md
+  - docs/agents/decisions/ADR-20260716-security-validation-platform-boundary.md
+  - docs/agents/tasks/active/CAN-20260716-security-validation-foundation.md
+  - .github/workflows/security-validation.yml
+  - docs/agents/MODULE_CATALOG.md
+  - docs/agents/CHANGELOG.md
+proven:
+  - draft PR 433 targets blakinio/canary main from feat/security-validation-foundation
+  - Universal OTS E2E remains the owned disposable runtime lifecycle and this PR introduces no competing runtime orchestrator
+  - the foundation implements strict source-regex manifests with explicit repository authorization and deterministic SHA-256 reports
+  - two critical source regressions cover the merged PR 326 shell-execution boundary and PR 328 arbitrary-evaluation boundary
+  - local scratch bytecode compilation 11 focused unit tests registry validation and both seeded scenarios passed
+  - Security Validation run 29523950436 passed on 5794db9740cc3525ffd2b53186530d2f57e71ede
+  - CI run 29523950758 passed on 5794db9740cc3525ffd2b53186530d2f57e71ede
+  - compared with current main e7f7b9601d41436a105308efa933f16917bc1b39 MODULE_CATALOG and CHANGELOG each contain exactly one additive line from this task
+  - first ownership artifact proved the checkpoint heading level was invalid and the second proved the required fenced YAML block was missing
+derived:
+  - the remaining ownership failure is governance-format-only and does not indicate a security runner or scenario test failure
+unknown:
+  - final exact-head merge-gate result after the corrected checkpoint
+conflicts: []
+first_failure:
+  marker: active-task-checkpoint-format
+  evidence: Agent Task Ownership runs 29523380316 and 29523950595 plus active-task-ownership CHANGED_TASK_VALIDATION artifacts
+rejected_hypotheses:
+  - security runner failure: Security Validation runs passed while ownership failed only in changed-task checkpoint validation
+  - main CI implementation failure: CI runs 29523381029 and 29523950758 passed
+changed_paths:
+  - .github/workflows/security-validation.yml
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
+  - docs/agents/decisions/ADR-20260716-security-validation-platform-boundary.md
+  - docs/agents/programs/SECURITY_VALIDATION_PROGRAM.md
+  - docs/agents/tasks/active/CAN-20260716-security-validation-foundation.md
+  - docs/security/SECURITY_VALIDATION_PLATFORM.md
+  - tests/security/scenarios/server/lua-fs-shell-execution.json
+  - tests/security/scenarios/server/lua-table-unserialize-arbitrary-eval.json
+  - tests/security/test_security_validation.py
+  - tools/security/security_validation.py
+validation:
+  - command: local Python security foundation validation
+    result: PASS
+    evidence: py_compile 11 focused unittests registry validation and two seeded source scenarios passed in scratch reconstruction
+  - command: Security Validation run 29523950436
+    result: PASS
+    evidence: dedicated security workflow passed on 5794db9740cc3525ffd2b53186530d2f57e71ede
+  - command: CI run 29523950758
+    result: PASS
+    evidence: repository CI passed on 5794db9740cc3525ffd2b53186530d2f57e71ede
+  - command: Agent Task Ownership run 29523950595
+    result: FAIL
+    evidence: changed-task validator required a fenced YAML block under the Context checkpoint heading; this commit supplies it
+blockers: []
+next_action: Verify Agent Task Ownership and normal CI on the corrected checkpoint head, then apply the ci:final-gate label before one final readiness checkpoint commit and make no post-green commit.
+```
