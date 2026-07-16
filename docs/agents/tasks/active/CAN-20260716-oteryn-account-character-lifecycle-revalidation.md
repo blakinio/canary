@@ -2,12 +2,12 @@
 task_id: CAN-20260716-oteryn-account-character-lifecycle-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: "OAM-005"
-status: active
+status: implementing
 agent: oteryn-architecture-migration-agent
 branch: docs/oam-005-account-character-lifecycle-revalidation
 base_branch: main
 created: 2026-07-16T19:58:30+02:00
-updated: 2026-07-16T20:05:30+02:00
+updated: 2026-07-16T20:07:00+02:00
 last_verified_commit: "0f25e7fd4d41e90f17fc95d13dba84b7e81d1681"
 risk: high
 related_issue: ""
@@ -95,8 +95,8 @@ Revalidate the canonical account and character lifecycle foundation against exac
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T20:05:30+02:00
-head: 799b3959eedb8b3da1f7f25024e385befa84ad91
+updated_at: 2026-07-16T20:07:00+02:00
+head: 8756fead8917e1341628c8b75a474315c95dc2d1
 branch: docs/oam-005-account-character-lifecycle-revalidation
 pr: 432
 status: implementing
@@ -130,7 +130,7 @@ unknown:
 conflicts: []
 first_failure:
   marker: none active
-  evidence: earlier checkpoint status and stale pre-CI-415 branch-base failures were corrected by rebuilding this branch from current main
+  evidence: earlier checkpoint status and stale pre-CI-415 branch-base failures were corrected; active task now uses repository-valid implementing status
 rejected_hypotheses:
   - all TSD-003 progression modules belong to OAM-005
   - protocol packet wiring can be merged into OAM-005
