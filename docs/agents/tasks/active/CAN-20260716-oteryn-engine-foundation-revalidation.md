@@ -163,7 +163,7 @@ Revalidate the seven canonical Oteryn engine-foundation modules against exact ta
 | `a879c9312e34381e8eedf397b8ed44510698b689` | upstream task-start SHA | PASS |
 | `fdd2b1f13f53894c584346ef3de43658045c42a7` | donor comparison SHA | PASS |
 | legacy vs upstream compare | divergence discovery | PASS; 726 ahead / 3 behind |
-| Otheryn PR #4 draft head `d6e7d0a599c0b2938999504f363e27c7b1bf3857` | draft-cycle CI | PASS but build jobs skipped because draft; not merge evidence |
+| Otheryn PR #4 draft head `d6e7d0a599c0b2938999504f363e27c7b1bf3857` | draft-cycle CI | PASS; build jobs skipped because draft, therefore not merge evidence |
 | Otheryn PR #4 ready-cycle | full CI / Required | IN PROGRESS |
 
 # Failed approaches and dead ends
@@ -228,8 +228,8 @@ validation:
     result: PASS
     evidence: durable OAM-003 report
   - command: Otheryn PR 4 draft-cycle CI
-    result: PARTIAL
-    evidence: CI success with build jobs skipped; not merge evidence
+    result: PASS
+    evidence: CI success with build jobs skipped; full ready-cycle remains the merge gate
 blockers:
   - Otheryn PR 4 full ready-cycle exact-head validation
 next_action: Verify the latest exact-head ready-cycle CI and Required status for blakinio/Otheryn PR #4 and merge only if all required gates and review state are clean.
