@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SCHEMA = ROOT / "schema/gameplay_analytics.sql"
 MIGRATIONS = ROOT / "schema/gameplay_analytics_migrations"
 RUNNER = ROOT / "tools/analytics/migrate_gameplay_analytics.sh"
-SCHEMA_GUARD = ROOT / "data-otservbr-global/scripts/lib/gameplay_analytics_schema.lua"
+SCHEMA_GUARD = ROOT / "data-otservbr-global/scripts/lib/#gameplay_analytics_schema_impl.lua"
 RUNTIME = ROOT / "data-otservbr-global/scripts/systems/gameplay_analytics.lua"
 DOCS = ROOT / "docs/systems/gameplay-analytics-migrations.md"
 
