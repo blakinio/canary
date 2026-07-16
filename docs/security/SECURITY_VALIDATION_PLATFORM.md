@@ -117,7 +117,7 @@ The first offensive runtime plan lives under `tests/security/runtime_scenarios/*
 
 Unknown fields are rejected. A plan cannot provide packet bytes or hex strings, shell commands, executable paths, credentials, hostnames, target IPs or ports. The reviewed packet corpus remains in code. The canonical `canary-status-parser-baseline` selects eight fixed cases covering zero and oversized frame lengths, truncated declared bodies, unknown service selection and truncated/unknown status payloads.
 
-`tools/security/malformed_packet_runtime.py` owns the strict plan contract, fixed case registry, individual transport/control probes and deterministic report primitives. `tools/security/malformed_packet_runtime_runner.py` is the canonical runtime entry point: it consumes the merged Universal Agent Load `run_runtime` callback and adds only the bounded service-recovery semantics required after asynchronous connection cleanup.
+`tools/security/malformed_packet_runtime.py` owns the strict plan contract, fixed case registry, individual transport/control probes and deterministic report primitives. `tools/security/malformed_packet_runtime_runner.py` is the canonical runtime entry point: it consumes the merged Universal Agent Load `run_runtime` callback and adds code-owned per-case loopback source isolation plus bounded service-recovery semantics.
 
 ## `ots-security-malformed-packet-report-v1`
 
@@ -126,16 +126,20 @@ A malformed-parser execution records deterministic evidence for the exact run:
 - plan identity and SHA-256;
 - exact repository authorization;
 - driver/service identity;
-- confined callback-provided loopback host and status port;
+- confined callback-provided loopback target host and status port;
 - exact Canary binary SHA-256;
-- SHA-256 pins for the packet core, canonical recovery runner and reused runtime provider;
-- ordered per-case packet SHA-256/size plus normalized malformed and control outcomes;
+- SHA-256 pins for the packet core, canonical runner and reused runtime provider;
+- ordered per-case code-owned loopback source IP, packet SHA-256/size and normalized malformed/control outcomes;
 - fatal/sanitizer log findings;
 - one stable failure code or success.
 
-No timestamps or scheduler-dependent recovery-attempt counts are recorded. After each malformed connection terminates, the canonical runner requires the normal XML status service to recover within four code-owned attempts spaced by 50 ms. A successful report normalizes that bounded recovery to `control_probe=pass`; exhausting the window fails closed as `control-unresponsive`.
+No timestamps or scheduler-dependent recovery-attempt counts are recorded.
 
-The runtime also fails closed on malformed-case read timeout, unexpected malformed response, target-confinement failure, Canary process exit and fatal/sanitizer signatures. The outer `run_runtime` callback remains responsible for exact-head Canary startup, database/config/map preparation and cleanup.
+Canary's normal connection admission protection rejects more than five rapid connections from one client IP and temporarily blocks that source. The runtime pack does not disable or modify this protection. Instead, each bounded parser case receives one deterministic source address from `127.0.0.2` through `127.0.0.17`, while every target connection still goes only to callback-provided `127.0.0.1`. One malformed probe plus at most four bounded control attempts therefore never exceeds five connections for a case source. This isolates parser assertions from the independent admission-throttle contract without granting plans any source or target address control.
+
+After each malformed connection terminates, the runner requires a normal XML status response from the same per-case loopback source. It allows at most four code-owned attempts separated by 50 ms and normalizes successful bounded recovery to `control_probe=pass`; exhausting the window fails closed as `control-unresponsive`.
+
+The runtime also fails closed on malformed-case read timeout, unexpected malformed response, target/source confinement failure, Canary process exit and fatal/sanitizer signatures. The outer `run_runtime` callback remains responsible for exact-head Canary startup, database/config/map preparation and cleanup.
 
 ## OTS-SEC-003 evidence boundary
 
@@ -148,7 +152,8 @@ It does **not** prove complete protocol exploit resistance and specifically does
 - XTEA-encrypted message handling;
 - checksum/sequence-number combinations;
 - maintained-client hostile-server parsing;
-- packet flood or sustained DoS capacity.
+- packet flood or sustained DoS capacity;
+- correctness or strength of the independent per-IP connection admission policy itself.
 
 Those require separate bounded tasks and protocol-aware fixtures. Future confirmed parser vulnerabilities should become permanent fixed-case regressions after remediation rather than broadening this plan with arbitrary packet input.
 
@@ -161,7 +166,7 @@ Every runtime adapter or runtime security driver must satisfy all of the followi
 - fail closed on ambiguous target identity or missing authorization;
 - never discover arbitrary public targets;
 - never embed production credentials or secrets in scenario/adapter manifests;
-- keep packet bytes and executable behavior code-owned rather than manifest-supplied;
+- keep packet bytes, source-address strategy and executable behavior code-owned rather than manifest-supplied;
 - retain enough server/client/database/network evidence to reproduce a failure;
 - convert a confirmed vulnerability into a permanent regression scenario after remediation.
 
