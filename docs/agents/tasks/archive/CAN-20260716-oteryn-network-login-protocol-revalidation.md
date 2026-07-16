@@ -2,13 +2,13 @@
 task_id: CAN-20260716-oteryn-network-login-protocol-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: "OAM-006"
-status: ready
+status: completed
 agent: oteryn-architecture-migration-agent
 branch: docs/oam-006-network-login-protocol-revalidation
 base_branch: main
 created: 2026-07-16T20:50:00+02:00
-updated: 2026-07-16T22:52:00+02:00
-last_verified_commit: "02d1b08162a3ad17d6283af16ad481f29c4ec213"
+updated: 2026-07-16T21:19:45Z
+last_verified_commit: "c40b26ee9481ec99931347ba26897a785a7a38ca"
 risk: high
 related_issue: ""
 related_pr: "436"
@@ -52,6 +52,7 @@ public_interfaces:
 cross_repo_tasks:
   - blakinio/Otheryn#20
   - blakinio/Otheryn#21
+completed: 2026-07-16T21:19:45Z
 ---
 
 # Goal
@@ -173,3 +174,11 @@ validation:
 blockers: []
 next_action: Update the shared program record, validate exact final PR 436 scope/ownership/CI/review state, mark ready, require ready-triggered final-head gates, then squash-merge and archive through a separate lifecycle-only PR.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #436.
+- Feature head: `85309726f8db2619c611421ea0f2598396f1fa2c`.
+- Merge commit: `c40b26ee9481ec99931347ba26897a785a7a38ca`.
+- Merged at: `2026-07-16T21:19:45Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
