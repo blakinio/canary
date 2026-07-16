@@ -2,13 +2,13 @@
 task_id: CAN-20260716-gameplay-analytics-load-order
 program_id: "CAN-PROGRAM-CI-REPAIR"
 coordination_id: "CAN-20260716-incremental-ci-final-gate"
-status: review
+status: completed
 agent: chatgpt-ci-repair
 branch: fix/gameplay-analytics-load-order
 base_branch: main
 created: 2026-07-16T18:29:36+02:00
-updated: 2026-07-16T19:02:20+02:00
-last_verified_commit: "7da5fed6b69c14a3142bdb2f0f605cd54338286d"
+updated: 2026-07-16T17:24:26Z
+last_verified_commit: "18e2163d39afebd27eeac83977bc084ab3f37f8e"
 risk: medium
 related_issue: ""
 related_pr: "429"
@@ -53,6 +53,7 @@ reuses:
   - existing Global datapack runtime smoke
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-16T17:24:26Z
 ---
 
 # Goal
@@ -184,3 +185,11 @@ validation:
 blockers: []
 next_action: Mark PR 429 ready and verify the unchanged exact final head runs real Lua Tests and Linux release Global datapack smoke plus all required analytics/ownership/review gates; if clean, squash-merge PR 429 without any further checkpoint or changelog commit.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #429.
+- Feature head: `4aad6c5013c12be257e318723c357e38d0e56405`.
+- Merge commit: `18e2163d39afebd27eeac83977bc084ab3f37f8e`.
+- Merged at: `2026-07-16T17:24:26Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
