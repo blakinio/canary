@@ -2,13 +2,13 @@
 task_id: CAN-20260714-targuna-donor-isolation
 program_id: CAN-PROGRAM-CRYSTALSERVER-COMPARISON
 coordination_id: REAL-TIBIA-TARGUNA-DONOR
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: audit/targuna-donor-isolation
 base_branch: main
 created: 2026-07-14T10:15:00+02:00
-updated: 2026-07-16T22:25:30+02:00
-last_verified_commit: "b1a8b70748d6ad6bfa82c8798646ed93c3813c85"
+updated: 2026-07-16T20:45:22Z
+last_verified_commit: "02d1b08162a3ad17d6283af16ad481f29c4ec213"
 risk: low
 related_issue: ""
 related_pr: "316"
@@ -43,6 +43,7 @@ cross_repo_tasks:
   - repository: zimbadev/crystalserver
     mode: read-only
     ref: fc0d53b9f9965463b6082c07e6d3d482294541a7
+completed: 2026-07-16T20:45:22Z
 ---
 
 # Goal
@@ -152,3 +153,11 @@ next_action: Apply ci:final-gate, synchronize the branch with current main in on
 - Final reviewed head: pending exact-final-head gate
 - Merge commit: pending
 - Archived at: pending lifecycle automation
+
+## Automated lifecycle completion
+
+- Feature PR: #316.
+- Feature head: `daba026813729ae527a047808e6f28b32a0cd5b8`.
+- Merge commit: `02d1b08162a3ad17d6283af16ad481f29c4ec213`.
+- Merged at: `2026-07-16T20:45:22Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
