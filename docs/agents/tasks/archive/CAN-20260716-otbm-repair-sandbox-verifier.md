@@ -2,13 +2,13 @@
 task_id: CAN-20260716-otbm-repair-sandbox-verifier
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-repair-sandbox-verifier
 base_branch: main
 created: 2026-07-16T10:42:00+02:00
-updated: 2026-07-16T11:10:00+02:00
-last_verified_commit: "080b69cd20bbc05b1c1f21cf05f66c031e6a1817"
+updated: 2026-07-16T09:12:28Z
+last_verified_commit: "52eb5932d94feeec8a1ba81ece7de7958ed06eea"
 risk: high
 related_issue: ""
 related_pr: "422"
@@ -49,6 +49,7 @@ public_interfaces:
   - canary-otbm-repair-sandbox-verification-v1
   - OTBM repair sandbox verifier CLI
 cross_repo_tasks: []
+completed: 2026-07-16T09:12:28Z
 ---
 
 # Goal
@@ -168,3 +169,11 @@ next_action: Mark PR 422 ready for review, verify exact-head ready-state checks,
 - Catalogue updated: yes; one sandbox row only
 - Changelog updated: yes; one sandbox bullet only
 - Archived at: pending post-merge lifecycle automation
+
+## Automated lifecycle completion
+
+- Feature PR: #422.
+- Feature head: `f3128dd3133b0b2590321f485726b9b789f050a9`.
+- Merge commit: `52eb5932d94feeec8a1ba81ece7de7958ed06eea`.
+- Merged at: `2026-07-16T09:12:28Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
