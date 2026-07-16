@@ -1,6 +1,6 @@
 # OAM-004 Database and Persistence Foundation Revalidation
 
-Status: **active evidence revalidation; target implementation not authorized**
+Status: **evidence matrix complete; bounded target adaptation chain active**
 
 Program: `CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION`
 
@@ -16,16 +16,16 @@ upstream evidence: opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689
 
 This report is the durable evidence surface for OAM-004. It does not authorize schema execution, destructive migration, production-data mutation or bulk legacy persistence import.
 
-# 1. Canonical modules
+# 1. Canonical modules and OAM-004 dispositions
 
-| Module | Initial state | OAM-004 question |
+| Module | Disposition | OAM-004 result |
 |---|---|---|
-| `database-connection` | `REVALIDATE` | Is the target/upstream low-level DB core safe to retain, and what retry/transaction guarantees are actually proven? |
-| `database-migrations` | `REVALIDATE` | Is ordered migration discovery/version advancement sufficiently safe, or does Oteryn require adaptation for failure/rollback semantics? |
-| `player-persistence` | `REVALIDATE` | Are player save/load boundaries transactionally complete and restart/crash-safe for the target architecture? |
-| `world-persistence` | `REVALIDATE` | Are guild/house/map/KV save flows and orchestration sufficiently consistent, or is bounded adaptation required? |
+| `database-connection` | `ADAPT` | Retain the target/upstream DB substrate, but make connection loss and transaction failure fail closed. OAM-004A target issue #7 / PR #11 owns this adaptation. |
+| `database-migrations` | `ADAPT` | Retain ordered Lua migration infrastructure, but stop on first failed migration and advance `db_version` only for accepted successful steps. OAM-004B issue #8 owns this adaptation. |
+| `player-persistence` | `ADAPT` | Retain the broad player transaction/save architecture, but audit and close unobservable sub-save failures and rely on the hardened OAM-004A DB transaction contract. OAM-004D issue #10 owns this adaptation. |
+| `world-persistence` | `ADAPT` | Retain existing save owners, but fix false-callback house rollback and propagate guild/global save failures. OAM-004C issue #9 owns this adaptation. |
 
-No disposition is assigned until exact source and runtime/test evidence is refreshed.
+No module is approved for wholesale legacy import or unconditional `REUSE`.
 
 # 2. Evidence contract
 
@@ -49,7 +49,7 @@ server starts in CI
 persistence restart/recovery correctness
 ```
 
-Evidence must classify, where applicable:
+Evidence classification includes:
 
 - connection ownership and reconnect behavior;
 - transaction begin/commit/rollback boundaries;
@@ -67,80 +67,215 @@ Evidence must classify, where applicable:
 
 ## Target `blakinio/Otheryn`
 
-Authoritative implementation candidate for OAM-004. Task-start SHA is pinned above. No target source change is permitted until dispositions and a separate bounded target task/PR exist.
+Authoritative implementation candidate for OAM-004. Task-start SHA is pinned above. Every source adaptation is isolated in its own target issue/branch/PR and exact-head gate.
 
 ## Upstream `opentibiabr/canary`
 
-Read-only implementation/evidence source. Target began from upstream, but exact persistence-path equality must be verified rather than assumed after OAM-003 target adaptations.
+Read-only implementation/evidence source. OAM-004 found the target DB/migration/player/world foundation materially inherited from the pinned upstream baseline; inherited behavior is not assumed correct merely because it is upstream-native.
 
 ## Legacy `blakinio/canary`
 
-Evidence-only source for persistence changes, tests and possible candidate fixes. A newer or larger legacy diff does not authorize migration.
+Evidence-only source. Legacy has the same migration-manager fail-open behavior, the same generic transaction callback-false commit semantics, the same house-save transaction helper misuse and materially the same player save transaction boundary at the pinned OAM-004 baseline. It does not provide a ready persistence fix source.
 
-# 4. Initial canonical-record constraints
+# 4. Database connection and transaction findings
 
-PROVEN from canonical records:
+PROVEN at target task-start:
 
-- `database-connection` inventories low-level transaction capability but explicitly does not prove isolation, retry safety or rollback completeness.
-- `database-migrations` inventories ordered migration execution and version state but explicitly does not prove reversibility or partial-failure recovery.
-- `player-persistence` is a broad mapped umbrella over player save/load and DB-backed state; path inventory alone is insufficient for reuse.
-- `world-persistence` inventories non-player save orchestration but explicitly does not prove cross-domain atomicity, crash consistency or restart/reconciliation safety.
+- `Database::connect()` enabled `MYSQL_OPT_RECONNECT`.
+- `executeQuery()` retried selected recoverable errors by resending the SQL statement.
+- `storeQuery()` retried recoverable errors indefinitely with a retry loop.
+- MySQL automatic reconnect can reset connection/session state and roll back an active server-side transaction, so silent statement replay is incompatible with a fail-closed local transaction contract.
+- `Database::beginTransaction()` executed `BEGIN` before acquiring the long-lived recursive database lock, leaving an inter-thread window where another statement on the shared `MYSQL*` handle could enter the just-opened transaction.
+- `DBTransaction::executeWithinTransaction()` committed even when its callback returned `false`.
+- `DBTransaction::begin()` set local transaction state before database begin succeeded and did not restore local state on a false return.
+- Legacy contains the same generic `DBTransaction` callback-false semantics and is not a ready fix source.
 
-# 5. Evidence matrix
+Decision: `database-connection` → `ADAPT`.
 
-| Module | Target/upstream comparison | Legacy comparison | Tests/runtime evidence | Transaction/recovery assessment | Disposition |
+Bounded target package:
+
+```text
+OAM-004A / blakinio/Otheryn#7
+implementation PR: blakinio/Otheryn#11
+```
+
+OAM-004A final intended contract:
+
+- disable silent MySQL automatic reconnect;
+- do not automatically resend arbitrary failed SQL statements;
+- acquire transaction ownership lock before `BEGIN`;
+- propagate statement failure to the owning operation;
+- roll back a transaction when its callback returns `false`;
+- preserve serialized shared-connection access;
+- permit higher-level retries only when operation idempotence is explicitly proven.
+
+# 5. Database migration findings
+
+PROVEN at target/upstream and legacy task-start baselines:
+
+`DatabaseManager::updateDatabase()`:
+
+- loads ordered migration files;
+- logs and continues after a migration file load failure;
+- logs and continues after a Lua migration call failure;
+- requests a return value from `onUpdateDatabase` but does not enforce a semantic success result;
+- can run a later migration and persist a higher `db_version` after an earlier migration failed;
+- provides no generic DDL reversibility or partial-failure recovery guarantee.
+
+Legacy has the same migration-manager implementation and provides no stronger baseline.
+
+Decision: `database-migrations` → `ADAPT`.
+
+Bounded target package:
+
+```text
+OAM-004B / blakinio/Otheryn#8
+```
+
+Required contract:
+
+- fail closed on the first migration load/runtime/explicit failure;
+- define and inspect the `onUpdateDatabase` result contract;
+- advance `db_version` only after the corresponding migration is successfully accepted;
+- test first-failure stop and version advancement against temporary MariaDB;
+- keep DDL rollback/reversibility explicitly unproven unless separately demonstrated.
+
+# 6. Player persistence findings
+
+PROVEN:
+
+- `IOLoginData::savePlayer()` wraps the broad player save guard in `DBTransaction`.
+- Many boolean sub-save failures are converted to exceptions, which causes the outer transaction to roll back.
+- Target/upstream and legacy use materially the same outer player save transaction boundary.
+- Some online-player sub-save calls expose no boolean/error result to the outer guard, so the transaction wrapper alone does not prove uniformly observable failure across every player-owned state write.
+- The player transaction inherits OAM-004A DB connection/retry/transaction semantics.
+- Current CI/runtime smoke does not prove complete player crash/restart recovery across every owned table and KV-backed state.
+
+Decision: `player-persistence` → `ADAPT`.
+
+Bounded target package:
+
+```text
+OAM-004D / blakinio/Otheryn#10
+```
+
+Required contract:
+
+- enumerate exact player sub-save operations inside the outer transaction;
+- classify whether each can fail and how failure is propagated;
+- make database-backed failure observable where required without broad feature refactors;
+- preserve one player-owned transaction boundary rather than inventing global cross-domain atomicity;
+- retain untested crash/restart scenarios as explicit unresolved evidence.
+
+# 7. World persistence findings
+
+PROVEN:
+
+- `IOMapSerialize::saveHouseItems()` uses `DBTransaction::executeWithinTransaction()`.
+- `SaveHouseItemsGuard()` reports `DELETE`, batch-building and insert failures by returning `false`.
+- At OAM-004 task-start, the generic transaction helper committed after a false callback. Therefore a successful `DELETE FROM tile_store` followed by a failed insert could commit the deletion instead of rolling back.
+- Legacy has the same house-save transaction/helper behavior.
+- `IOGuild::saveGuild()` returns `void` and ignores the database update result.
+- `SaveManager::saveAll()` returns `void`; it logs player/map/KV failures and continues through later save domains without exposing an aggregate success result.
+- `SaveManager::scheduleAll()` may run the global save as a detached thread-pool task.
+- Existing orchestration does not prove one cross-domain transaction, crash consistency or reconciliation after partial save completion.
+
+Decision: `world-persistence` → `ADAPT`.
+
+Bounded target package:
+
+```text
+OAM-004C / blakinio/Otheryn#9
+```
+
+Required contract:
+
+- house-item replacement must roll back on callback/insert failure;
+- guild save failure must be observable;
+- global save orchestration must expose enough aggregate status for shutdown/operations decisions;
+- do not create one giant transaction across players, guilds, houses and KV;
+- keep static OTBM migration and backup/restore redesign out of scope.
+
+# 8. Evidence matrix
+
+| Module | Target/upstream comparison | Legacy comparison | Runtime/test evidence | Transaction/recovery assessment | Disposition |
 |---|---|---|---|---|---|
-| `database-connection` | pending | pending | pending | pending | `REVALIDATE` |
-| `database-migrations` | pending | pending | pending | pending | `REVALIDATE` |
-| `player-persistence` | pending | pending | pending | pending | `REVALIDATE` |
-| `world-persistence` | pending | pending | pending | pending | `REVALIDATE` |
+| `database-connection` | inherited shared connection, auto-reconnect, query replay and transaction helper behavior | no ready fix; generic transaction semantics materially same | full target CI/runtime/MariaDB gates required for OAM-004A | silent reconnect/replay and false-callback commit are incompatible with fail-closed transactions | `ADAPT` |
+| `database-migrations` | ordered Lua migration manager is fail-open across failed steps | same manager behavior | clean schema import + focused migration-chain tests required | version can advance past an earlier failed step; no generic rollback proof | `ADAPT` |
+| `player-persistence` | broad outer transaction exists and many failures throw/rollback | materially same outer transaction model | targeted MariaDB/player save tests required for changed paths | outer transaction is valuable but not every sub-save failure is uniformly observable; crash recovery unproven | `ADAPT` |
+| `world-persistence` | existing owners and SaveManager orchestration | same house transaction misuse found | focused house/guild/save-result tests + runtime DB smoke required | known false-callback commit risk and unobservable guild/global save failure | `ADAPT` |
 
-# 6. Boundary classification
+# 9. Boundary classification
 
 | Boundary | State | Current evidence |
 |---|---|---|
-| ownership/lifecycle | unresolved | exact DB/save ownership review pending |
-| build/toolchain | not-applicable unless DB dependency changes are found | no target change planned |
-| configuration | applicable | DB configuration/reconnect inputs pending review |
-| service/API | applicable | DB core and persistence interfaces pending review |
-| scheduling/concurrency | applicable | async save/shutdown ordering pending review |
+| ownership/lifecycle | applicable | shared DB connection + player/world save owners identified; adaptation split into A/B/C/D |
+| build/toolchain | applicable to validation only | no DB dependency change currently required; full C++/DB matrix applies |
+| configuration | applicable | auto-reconnect behavior is DB connection configuration at API level; silent reconnect rejected |
+| service/API | applicable | transaction helper, migration manager and save result contracts require bounded adaptation |
+| scheduling/concurrency | applicable | shared MYSQL handle transaction-lock ordering and detached save scheduling are material |
 | persistence | applicable | primary OAM-004 boundary |
-| protocol/session | not-applicable unless player login/session persistence coupling is found | no protocol change planned |
+| protocol/session | not-applicable for current slices | no protocol/client change planned |
 | identifiers/assets | not-applicable | no asset migration |
-| world/map | applicable only to persisted house/map state | static OTBM migration excluded |
-| runtime | applicable | startup/save/restart evidence pending |
-| tests | applicable | targeted DB/IO/integration matrix pending |
-| physical-client E2E | likely not-applicable for foundation package | revisit only if session-visible behavior changes |
-| operations | applicable | migration/recovery/rollback boundaries pending |
-| security/privacy | applicable | no sensitive DB/player data may enter evidence artifacts |
+| world/map | applicable only to persisted house/world state | static OTBM migration excluded |
+| runtime | applicable | exact-head temporary MariaDB/runtime smoke required for each source slice |
+| tests | applicable | focused transaction, migration and failure-propagation tests plus clean schema import |
+| physical-client E2E | not-applicable for foundation package unless later session-visible behavior changes | no client contract change |
+| operations | applicable | migration failure, save aggregate result, restart/crash assumptions and rollback boundaries remain explicit |
+| security/privacy | applicable | no credentials or sensitive player data in evidence artifacts |
 
-# 7. Required comparison slices
+# 10. Bounded target adaptation chain
 
-1. `src/database/database.*` — connection, query/result lifetime, retry and transaction primitives.
-2. `src/database/databasemanager.*`, `schema.sql`, migration directories — schema version and migration lifecycle.
-3. Player persistence owner paths discovered from `src/io/**` and relevant player/database call sites — save/load and multi-table transaction boundaries.
-4. `src/game/scheduling/save_manager.*`, `src/io/iomapserialize.*`, `src/io/ioguild.*`, `src/kv/**` — non-player persistence and save orchestration.
+Created before relevant source mutations:
 
-Repository-wide diff is discovery only and cannot decide a disposition.
+```text
+OAM-004A #7 — harden database transaction failure semantics
+  active implementation PR #11
 
-# 8. Explicit exclusions
+OAM-004B #8 — make database migration chain fail closed
+  depends on final OAM-004A DB-core contract where applicable
+
+OAM-004C #9 — make world save failures rollback and propagate
+  depends on final OAM-004A transaction semantics
+
+OAM-004D #10 — close player save failure-propagation gaps
+  depends on final OAM-004A transaction semantics
+```
+
+OAM-004A PR #11 was opened before DB-core source changes. OAM-004B/C/D source work must not start before their dependency baselines are freshly re-pinned after OAM-004A merge.
+
+# 11. Validation requirements
+
+Shared `BUILD_TEST_MATRIX.md` requires DB/schema/migration work to include:
+
+- clean schema import/parser validation;
+- migration tests where migration behavior changes;
+- rollback review;
+- temporary MariaDB integration;
+- exact-head C++ build and affected runtime smoke.
+
+No historical green run substitutes for the final exact-head gate.
+
+# 12. Explicit exclusions
 
 - no production or user database access;
 - no migration execution against real data;
-- no destructive schema changes;
-- no automatic rollback claims;
+- no destructive unrelated schema changes;
+- no automatic generic DDL rollback claims;
 - no bulk import of legacy DB/schema/migration files;
+- no giant cross-domain transaction;
 - no OAM-005 work;
 - no protocol/client migration;
 - no static map/datapack migration.
 
-# 9. Completion gate
+# 13. Completion gate
 
-OAM-004 may advance only when:
+OAM-004 may complete only when:
 
-1. all four canonical modules have exact evidence-backed dispositions;
-2. transaction/retry/migration-failure/restart boundaries are explicitly classified;
-3. unresolved remains unresolved rather than inferred safe;
-4. any required target adaptation is split into separate bounded Otheryn work before source mutation;
-5. Canary governance PR passes exact-head ownership, CI and review gates;
-6. feature merge is followed by separate lifecycle-only archival before OAM-005 becomes eligible.
+1. all four dispositions remain backed by exact evidence;
+2. OAM-004A/B/C/D required source adaptations are either merged with exact-head evidence or explicitly retained as blockers;
+3. transaction/retry/migration-failure/restart boundaries remain explicit;
+4. unresolved remains unresolved rather than inferred safe;
+5. the authoritative OAM program queue records the final dependency state;
+6. Canary governance PR #420 passes exact-head ownership, CI and review gates;
+7. feature merge is followed by separate lifecycle-only archival before OAM-005 becomes eligible.
