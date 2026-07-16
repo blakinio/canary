@@ -106,6 +106,15 @@ Merge only when all are true:
 
 Use squash merge unless repository policy requires another method. Never bypass branch protection, dismiss valid failures, weaken tests, remove safety checks, or mark failing checks successful.
 
+### Incremental validation and final-head gate
+
+- Heavy PR validation may reuse evidence only when the canonical incremental-validation helper proves the newest single-commit delta is non-impacting for that workflow and the immediate parent's latest same-workflow pull-request run completed successfully.
+- Missing, failed, cancelled or in-progress parent evidence; an unresolved or empty delta; an impacting path; or a validation workflow/helper change fails closed to full applicable validation.
+- Reuse may skip expensive build/runtime jobs, but current-head focused validation and stable required-check aggregators must remain active and fail closed.
+- Batch task checkpoint and shared-document mutations instead of committing after every evidence update.
+- Before the final task/checkpoint commit, apply the PR label `ci:final-gate`. The final commit's normal `pull_request synchronize` event must force the full applicable validation set on that exact final head.
+- Do not create a commit after a green final-head gate. Any later commit invalidates the final evidence and must pass the final gate again before merge.
+
 ### CI repair loop
 
 When CI fails:
