@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "canary-otbm-area-materialization-result-v1",
+  "title": "Canary OTBM area materialization result v1",
+  "type": "object",
+  "required": ["format", "schemaVersion", "ok", "structuralVerificationComplete", "source", "plan", "approval", "selection", "rawConfinement", "selectedWorldIndex", "verification", "rollback", "safety"],
+  "properties": {
+    "format": {"const": "canary-otbm-area-materialization-result-v1"},
+    "schemaVersion": {"const": 1},
+    "ok": {"const": true},
+    "structuralVerificationComplete": {"const": true},
+    "source": {"type": "object"},
+    "plan": {
+      "type": "object",
+      "required": ["path", "sha256", "format", "policy", "writerReadyFromPlanner"],
+      "properties": {
+        "path": {"type": "string"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "format": {"const": "canary-otbm-region-merge-plan-v1"},
+        "policy": {"const": "replace-region"},
+        "writerReadyFromPlanner": {"const": false}
+      },
+      "additionalProperties": false
+    },
+    "approval": {"type": "object"},
+    "selection": {
+      "type": "object",
+      "required": ["from", "to", "areaKeys", "areaCount", "translation"],
+      "properties": {
+        "from": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "integer"}},
+        "to": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "integer"}},
+        "areaKeys": {"type": "array", "minItems": 1},
+        "areaCount": {"type": "integer", "minimum": 1},
+        "translation": {"const": [0, 0, 0]}
+      }
+    },
+    "rawConfinement": {"type": "object"},
+    "selectedWorldIndex": {"type": "array"},
+    "verification": {
+      "type": "object",
+      "required": ["nativeReparse", "worldIndexRebuilt", "selectedAreasEqualDonor", "nonSelectedCurrentBytesExact", "semanticDiff"],
+      "properties": {
+        "nativeReparse": {"const": true},
+        "worldIndexRebuilt": {"const": true},
+        "selectedAreasEqualDonor": {"const": true},
+        "nonSelectedCurrentBytesExact": {"const": true},
+        "semanticDiff": {"type": "object"}
+      }
+    },
+    "rollback": {"type": "object"},
+    "safety": {
+      "type": "object",
+      "required": ["sourceInPlaceWrite", "fullMapSerializer", "phase8Expanded", "translatedImport", "tileLevelOverlay", "rawCompleteTileAreaSubtreesOnly", "plannerReportExecutedDirectly", "separateApprovalRequired", "gameplayCorrectnessProven"],
+      "properties": {
+        "sourceInPlaceWrite": {"const": false},
+        "fullMapSerializer": {"const": false},
+        "phase8Expanded": {"const": false},
+        "translatedImport": {"const": false},
+        "tileLevelOverlay": {"const": false},
+        "rawCompleteTileAreaSubtreesOnly": {"const": true},
+        "plannerReportExecutedDirectly": {"const": false},
+        "separateApprovalRequired": {"const": true},
+        "gameplayCorrectnessProven": {"const": false}
+      },
+      "additionalProperties": false
+    }
+  }
+}
