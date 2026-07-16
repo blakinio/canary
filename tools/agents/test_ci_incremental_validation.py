@@ -54,6 +54,28 @@ class PathProfileTests(unittest.TestCase):
         )
 
 
+class FinalGateLabelTests(unittest.TestCase):
+    def test_exact_final_gate_label_is_detected(self) -> None:
+        payload = {
+            "pull_request": {
+                "labels": [
+                    {"name": "documentation"},
+                    {"name": civ.FINAL_GATE_LABEL},
+                ]
+            }
+        }
+        self.assertTrue(civ.event_has_final_gate_label(payload))
+
+    def test_other_or_malformed_labels_do_not_force_final_gate(self) -> None:
+        self.assertFalse(
+            civ.event_has_final_gate_label(
+                {"pull_request": {"labels": [{"name": "documentation"}]}}
+            )
+        )
+        self.assertFalse(civ.event_has_final_gate_label({}))
+        self.assertFalse(civ.event_has_final_gate_label({"pull_request": {"labels": "bad"}}))
+
+
 class ParentWorkflowEvidenceTests(unittest.TestCase):
     def test_latest_same_workflow_run_wins(self) -> None:
         runs = [
