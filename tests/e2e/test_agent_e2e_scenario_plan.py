@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import sys
 import tempfile
 import unittest
@@ -9,6 +10,7 @@ from pathlib import Path
 
 
 MODULE_PATH = Path(__file__).resolve().parents[2] / "tools" / "e2e" / "run_agent_e2e.py"
+DRIVER_PATH = Path(__file__).resolve().parents[2] / "tools" / "e2e" / "client" / "agent_e2e_scenario.lua"
 SPEC = importlib.util.spec_from_file_location("run_agent_e2e", MODULE_PATH)
 assert SPEC and SPEC.loader
 run_agent_e2e = importlib.util.module_from_spec(SPEC)
@@ -129,6 +131,45 @@ class ScenarioPlanTests(unittest.TestCase):
         ]
         with self.assertRaisesRegex(run_agent_e2e.ScenarioError, "at most"):
             run_agent_e2e.validate_scenario(self.write_scenario(data), self.root)
+
+    def test_invalid_direction_is_rejected(self) -> None:
+        data = self.scenario_data()
+        data["steps"] = [{"id": "move", "action": "walk", "direction": "up", "count": 1}]
+        with self.assertRaisesRegex(run_agent_e2e.ScenarioError, "direction unsupported"):
+            run_agent_e2e.validate_scenario(self.write_scenario(data), self.root)
+
+    def test_wait_timeout_is_bounded(self) -> None:
+        data = self.scenario_data()
+        data["steps"] = [{"id": "wait", "action": "wait", "ms": run_agent_e2e.MAX_STEP_DELAY_MS + 1}]
+        with self.assertRaisesRegex(run_agent_e2e.ScenarioError, "must be <="):
+            run_agent_e2e.validate_scenario(self.write_scenario(data), self.root)
+
+    def test_item_id_is_uint16_bounded(self) -> None:
+        data = self.scenario_data()
+        data["steps"] = [{"id": "item", "action": "use_inventory_item", "item_id": 65536}]
+        with self.assertRaisesRegex(run_agent_e2e.ScenarioError, "must be <= 65535"):
+            run_agent_e2e.validate_scenario(self.write_scenario(data), self.root)
+
+    def test_floor_delta_must_be_nonzero_and_bounded(self) -> None:
+        data = self.scenario_data()
+        data["steps"] = [{"id": "floor", "action": "observe_floor_delta", "delta": 0}]
+        with self.assertRaisesRegex(run_agent_e2e.ScenarioError, "non-zero integer"):
+            run_agent_e2e.validate_scenario(self.write_scenario(data), self.root)
+
+    def test_walk_defaults_render_without_mutating_source(self) -> None:
+        data = self.scenario_data()
+        data["steps"] = [{"id": "move", "action": "walk", "direction": "north"}]
+        scenario = run_agent_e2e.validate_scenario(self.write_scenario(data), self.root)
+        rendered = run_agent_e2e.render_lua_plan(scenario)
+        self.assertIn('direction = "north"', rendered)
+        self.assertNotIn("count =", rendered)
+        self.assertNotIn("interval_ms =", rendered)
+        self.assertEqual(data["steps"][0], {"id": "move", "action": "walk", "direction": "north"})
+
+    def test_runtime_driver_implements_every_declared_action(self) -> None:
+        driver = DRIVER_PATH.read_text(encoding="utf-8")
+        implemented = set(re.findall(r'step\.action == "([a-z0-9_]+)"', driver))
+        self.assertEqual(set(run_agent_e2e.ACTION_FIELDS), implemented)
 
     def test_resolve_writes_sibling_plan_for_step_scenario(self) -> None:
         data = self.scenario_data()
