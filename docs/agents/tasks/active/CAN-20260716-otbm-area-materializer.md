@@ -2,13 +2,13 @@
 task_id: CAN-20260716-otbm-area-materializer
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: implementing
+status: ready
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-area-materializer
 base_branch: main
 created: 2026-07-16T13:20:00+02:00
-updated: 2026-07-16T13:45:00+02:00
-last_verified_commit: "b6592dd4adc50ad649968fce117ef0055e049698"
+updated: 2026-07-16T19:46:28+02:00
+last_verified_commit: "74ce7f097137b55fdb65ff0254c9e72090cb80cb"
 risk: high
 related_issue: ""
 related_pr: "426"
@@ -74,7 +74,7 @@ Implement the smallest safe structural OTBM materialization boundary: copy, repl
 - [x] Emit versioned span, approval, and materialization-result contracts with rollback/source/output evidence.
 - [x] Add real native-scanner integration tests on synthetic OTBM fixtures; no `.otbm`, `.widx`, reports, or assets committed.
 - [x] Keep translated fragment import, tile-level overlay merging, and arbitrary node serialization outside v1.
-- [ ] Update catalogue/changelog narrowly and pass exact-head required checks before merge.
+- [x] Update catalogue/changelog narrowly and pass exact-head required checks before merge.
 
 # Confirmed context
 
@@ -88,11 +88,11 @@ Implement the smallest safe structural OTBM materialization boundary: copy, repl
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T13:45:00+02:00
-head: b6592dd4adc50ad649968fce117ef0055e049698
+updated_at: 2026-07-16T19:46:28+02:00
+head: 74ce7f097137b55fdb65ff0254c9e72090cb80cb
 branch: feat/otbm-area-materializer
 pr: 426
-status: implementing
+status: ready
 context_routes:
   - otbm
   - agent-governance
@@ -116,10 +116,12 @@ proven:
   - selected donor raw subtrees are copied byte-for-byte and retained current byte streams are proven identical after excluding selected output spans
   - temporary output must pass native reparse, output span validation, selected-area World Index equality with donor, and bounded Semantic Diff before publication
   - real synthetic integration tests cover replacement insertion deletion source immutability nonzero-translation rejection incomplete approval rejection and partial-area rejection
-  - CI run 29494762874 passed on b6592dd4adc50ad649968fce117ef0055e049698
-  - Agent Task Ownership run 29494762376 passed on b6592dd4adc50ad649968fce117ef0055e049698
-  - OTBM Map Tools run 29494762666 passed on b6592dd4adc50ad649968fce117ef0055e049698
-  - AI Agent Tools run 29494762544 passed on b6592dd4adc50ad649968fce117ef0055e049698
+  - MODULE_CATALOG patch contains exactly one new row for OTBM bounded tile-area materializer and no unrelated shared-file drift
+  - CHANGELOG patch contains exactly one new Unreleased bullet for this feature
+  - CI run 29495414284 passed on 74ce7f097137b55fdb65ff0254c9e72090cb80cb
+  - Agent Task Ownership run 29495414189 passed on 74ce7f097137b55fdb65ff0254c9e72090cb80cb
+  - OTBM Map Tools run 29495414037 passed on 74ce7f097137b55fdb65ff0254c9e72090cb80cb
+  - AI Agent Tools run 29495414055 passed on 74ce7f097137b55fdb65ff0254c9e72090cb80cb
 derived:
   - complete same-coordinate tile-area raw subtree materialization is the smallest structural write boundary that avoids a full serializer
 unknown: []
@@ -134,6 +136,8 @@ rejected_hypotheses:
   - in-place source-map mutation
   - executing writerReady false planner output without a separate approval
 changed_paths:
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/decisions/ADR-20260716-otbm-raw-tile-area-materialization-boundary.md
   - docs/agents/tasks/active/CAN-20260716-otbm-area-materializer.md
   - docs/ai-agent/OTBM_AREA_MATERIALIZER.md
@@ -145,26 +149,26 @@ changed_paths:
   - tools/ai-agent/otbm_area_materializer_tool.py
   - tools/ai-agent/test_otbm_area_materializer.py
 validation:
-  - command: CI run 29494762874
+  - command: CI run 29495414284
     result: PASS
-    evidence: repository CI passed on b6592dd4adc50ad649968fce117ef0055e049698
-  - command: Agent Task Ownership run 29494762376
+    evidence: repository CI passed on 74ce7f097137b55fdb65ff0254c9e72090cb80cb
+  - command: Agent Task Ownership run 29495414189
     result: PASS
-    evidence: task ownership validation passed on b6592dd4adc50ad649968fce117ef0055e049698
-  - command: OTBM Map Tools run 29494762666
+    evidence: task ownership validation passed on 74ce7f097137b55fdb65ff0254c9e72090cb80cb
+  - command: OTBM Map Tools run 29495414037
     result: PASS
-    evidence: schema validation and real native-scanner focused integration tests passed on b6592dd4adc50ad649968fce117ef0055e049698
-  - command: AI Agent Tools run 29494762544
+    evidence: schema validation and real native-scanner focused integration tests passed on 74ce7f097137b55fdb65ff0254c9e72090cb80cb
+  - command: AI Agent Tools run 29495414055
     result: PASS
-    evidence: repository AI-agent unit and content validation passed on b6592dd4adc50ad649968fce117ef0055e049698
+    evidence: repository AI-agent unit and content validation passed on 74ce7f097137b55fdb65ff0254c9e72090cb80cb
 blockers: []
-next_action: Add one narrow MODULE_CATALOG row and one Unreleased CHANGELOG bullet from current main, verify their patches contain no unrelated drift, then run exact-head checks and move PR 426 to ready.
+next_action: Let required checks run on the task-record readiness commit, then re-inspect the full PR changed-file list and diff and mark PR #426 ready only if the new exact head is green.
 ```
 
 # Completion
 
-- Final status: implementing
+- Final status: ready
 - Canary PR: #426
-- Catalogue updated: pending
-- Changelog updated: pending
+- Catalogue updated: complete
+- Changelog updated: complete
 - Archived at: not archived
