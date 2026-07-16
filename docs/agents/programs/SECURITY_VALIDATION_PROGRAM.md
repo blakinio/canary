@@ -4,8 +4,8 @@ name: OTS Security Validation Platform
 status: active
 owner: security-validation-agent
 created: 2026-07-16T20:10:00+02:00
-updated: 2026-07-16T20:10:00+02:00
-last_verified_commit: "0f25e7fd4d41e90f17fc95d13dba84b7e81d1681"
+updated: 2026-07-16T22:20:00+02:00
+last_verified_commit: "6503f5312dbf13d0fddcc1da98a10343ed30525c"
 primary_paths:
   - tools/security/**
   - tests/security/**
@@ -48,7 +48,7 @@ It does not own generic server/database/client bootstrap already provided by Uni
 
 # Phase 1 — foundation (`OTS-SEC-001`)
 
-The first bounded slice supports only `source-regex` scenarios:
+Merged in PR #433. The foundation supports `source-regex` scenarios with:
 
 - strict exact-field JSON validation;
 - repository-relative regular-file confinement;
@@ -61,11 +61,26 @@ The first bounded slice supports only `source-regex` scenarios:
 
 No network or runtime offensive action is part of Phase 1.
 
+# Phase 2 — runtime delegation adapter (`OTS-SEC-002`)
+
+Active in PR #440. This bounded phase adds the code-owned `canary-universal-e2e` adapter and must:
+
+- keep Universal OTS E2E lifecycle code read-only;
+- resolve delegated suite/scenario metadata through the existing E2E resolver;
+- require an exact authorized repository match;
+- enforce a literal-loopback-only resolved fixture host;
+- restrict the controlled client to the approved user-owned client repository for the provider;
+- pin the canonical Universal E2E workflow, resolver, physical runner and selected scenario by SHA-256;
+- emit deterministic `ots-security-runtime-delegation-v1` evidence;
+- keep arbitrary commands, executable paths, credentials and free-form network targets out of adapter manifests.
+
+This phase proves the runtime delegation boundary. It does not yet send malformed packets or add a generic attack-driver hook to Universal E2E.
+
 # Ordered queue
 
-1. Merge `OTS-SEC-001` foundation and preserve the two seeded critical regressions.
-2. Add a runtime security adapter that delegates disposable lifecycle to Universal OTS E2E and proves exact target authorization/confinement.
-3. Add bounded malformed-packet/parser scenarios against the disposable server with crash/hang diagnostics and sanitizer-compatible evidence.
+1. `DONE` — OTS-SEC-001 foundation merged in PR #433.
+2. `ACTIVE` — OTS-SEC-002 runtime delegation adapter in PR #440.
+3. Add bounded malformed-packet/parser scenarios against the disposable server with crash/hang diagnostics and sanitizer-compatible evidence (`OTS-SEC-003`).
 4. Add authenticated session, race, economy and transaction-abuse scenarios with disposable MariaDB state assertions.
 5. Add Redis/multichannel failure and ownership scenarios without targeting shared or production infrastructure.
 6. Add maintained-client hostile-server scenarios through an explicit cross-repository contract.
@@ -78,11 +93,11 @@ No network or runtime offensive action is part of Phase 1.
 - No arbitrary public-target discovery or scanning.
 - Runtime attack scenarios use disposable/isolated infrastructure unless an exact alternative target is explicitly authorized.
 - No production credentials, database dumps, private data or secrets in manifests/reports.
-- Scenario manifests never contain arbitrary shell commands.
+- Scenario and adapter manifests never contain arbitrary shell commands.
 - Generic E2E lifecycle and load infrastructure are reused rather than forked.
-- A green static scenario is evidence for that exact assertion only; it never proves complete exploit resistance.
+- A green static scenario or runtime-delegation proof is evidence for that exact assertion only; it never proves complete exploit resistance.
 - Confirmed vulnerabilities become permanent regressions after the fix is merged.
 
 # Handoff
 
-Start from `AGENTS.md`, `docs/agents/CONTEXT_ROUTING.md`, this program, `docs/security/SECURITY_VALIDATION_PLATFORM.md`, the active security task and live PR. Load the Universal E2E route only when a task actually introduces or consumes runtime execution.
+Start from `AGENTS.md`, `docs/agents/CONTEXT_ROUTING.md`, this program, `docs/security/SECURITY_VALIDATION_PLATFORM.md`, the active security task and live PR. Load the Universal E2E route only when a task actually introduces or consumes runtime execution/delegation.
