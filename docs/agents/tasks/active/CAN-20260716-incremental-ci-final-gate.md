@@ -2,13 +2,13 @@
 task_id: CAN-20260716-incremental-ci-final-gate
 program_id: "CAN-PROGRAM-AGENT-ORCHESTRATION"
 coordination_id: ""
-status: implementing
+status: ready
 agent: chatgpt-ci-governance
 branch: ci/incremental-validation-final-gate
 base_branch: main
 created: 2026-07-16T10:10:00+02:00
-updated: 2026-07-16T11:48:00+02:00
-last_verified_commit: f78023d63e69b41de7ac81fa659d21cdefbfcedc
+updated: 2026-07-16T14:22:41+02:00
+last_verified_commit: f529e34dc6b7c7c7a4e8c8fbfb820aff91705660
 risk: medium
 related_issue: ""
 related_pr: "415"
@@ -37,142 +37,128 @@ modules_touched:
   - Agent tooling focused validation
 reuses:
   - existing CI Detect Build Scope and Required aggregation
-  - existing workflow_dispatch full validation paths
   - existing Universal Agent E2E physical login/relog sentinel
   - existing Universal Agent Load exact-head status-smoke sentinel
-  - existing Agent Task Ownership Python compile/unit-test job
+  - existing Agent Task Ownership focused validation
 public_interfaces:
   - ci_incremental_validation.py decision contract
-  - empty final-gate commit convention
+  - ci:final-gate PR-label final-head convention
 cross_repo_tasks: []
 ---
 
 # Goal
 
-Reduce repeated heavy CI after non-impacting follow-up commits without reducing merge quality: reuse a successful parent workflow only for a proven non-impacting single-commit delta, fail closed otherwise, and force the full applicable validation set once on the final PR head before merge.
+Reduce repeated heavy PR validation for proven non-impacting follow-up commits without reducing merge quality. Reuse is limited to successful immediate-parent workflow evidence and every uncertain case fails closed. The exact final head must still pass full applicable validation.
 
 # Acceptance criteria
 
-- [x] A tested standard-library helper classifies whether the current single-commit delta affects CI, physical E2E, or load validation.
-- [x] Parent reuse is allowed only when the latest same-workflow pull-request run on `HEAD^` completed successfully.
-- [x] Missing parent evidence, a failed/in-progress latest parent run, workflow changes, helper changes, or an impacting delta fail closed to heavy validation.
-- [ ] An empty final-gate commit forces the full applicable workflow set on the final head because empty single-commit path evidence fails closed.
-- [x] CI no longer performs Linux compilation for documentation-only PR scope.
-- [x] Universal Agent E2E no longer triggers for load-only `tests/e2e/load/**` or `tests/e2e/test_load_runner.py` changes by path definition.
-- [x] Load and physical E2E can reuse proven parent success for non-impacting follow-up commits and still run fully on the empty final-gate commit.
-- [ ] Agent policy batches checkpoint/docs mutations before final-gate validation and forbids a post-green checkpoint commit that would invalidate the final head.
-- [x] Focused helper tests and exact implementation workflow checks pass.
-- [x] No branch-protection, test, assertion, throttle, or safety gate is weakened.
+- [x] Standard-library helper classifies CI, physical E2E and load impact.
+- [x] Reuse requires the immediate parent's latest same-workflow PR run to be completed successfully.
+- [x] Missing/non-success evidence, empty or unresolvable deltas, impacting paths and workflow/helper changes fail closed.
+- [x] Current-head focused validation and stable Required aggregators remain active when expensive jobs are reused.
+- [x] Load-only E2E paths do not affect the physical-client profile.
+- [x] Helper self-change and `.github/**` path handling have focused regressions.
+- [x] Exact `ci:final-gate` label detection from the GitHub event payload forces full applicable validation.
+- [x] Root policy and build matrix require batched docs/checkpoints and forbid a post-green final-gate commit.
+- [x] No test, assertion, throttle, branch-protection gate or physical-client sentinel is weakened.
 
 # Confirmed context
 
-- Repository write target is exactly `blakinio/canary`.
-- PR #393 merged successfully as squash commit `2f828672df010ff577c8e6076524b37c6dedd987` before this task branch was created.
-- Draft PR #415 targets `blakinio/canary:main` from `blakinio/canary:ci/incremental-validation-final-gate`.
-- The motivating waste was observed directly: docs/shared-index commits after green runtime heads repeatedly rebuilt Canary and the unchanged controlled OTClient before merge.
-- Existing root policy already says to avoid wasteful builds for clearly non-build-affecting docs/scripts; this task makes workflow behavior match that policy.
-- Baseline CI forced Linux release for every pull request; the branch now computes Linux scope from affected paths and suppresses heavy scopes only when the helper proves immediate-parent reuse.
-- Universal Agent E2E now has a fail-closed scope job, excludes load-only E2E paths, and has a `Required physical E2E` aggregator that accepts heavy skips only with proven immediate-parent reuse.
-- Universal Agent Load now has the same fail-closed scope/required pattern while keeping focused runner validation on every applicable head.
-- The helper itself is explicitly impacting for both physical E2E and Load profiles, and focused regressions preserve `.github/**` dotfile path matching.
-- Full implementation head `bc0a3b72148ff3719c51292af36b7635f5267140` passed Ownership #1594, CI #2729, Universal Agent Load #43 and Universal Agent E2E #87 after helper self-change hardening; the heavy Canary/OTClient paths ran rather than being reused.
-- Latest docs-only head `967ba1fcf483fe41541f95775d4c19fedf657afa` passed Ownership #1605, CI #2741, Load #48 and E2E #92 via immediate-parent reuse.
-- Current `main@44cd23bec185a5e0a6167d6180008eddd47ac594` is six commits ahead of the task-start base and changes unrelated OTBM/Oteryn paths plus shared agent docs; synchronization is the next step before final shared-doc edits.
+- Repository writes are limited to `blakinio/canary`; upstream/donor repositories remain read-only.
+- PR #393 merged as `2f828672df010ff577c8e6076524b37c6dedd987` before this task.
+- PR #415 is the live task PR from `ci/incremental-validation-final-gate` to `main`.
+- Full code head `2c6370418d0bd8d966289d5a1cf7c075ed75459f` passed Ownership #1626, CI #2763, Load #52 and physical E2E #96.
+- Docs-only heads `9c02a95a6c7deb0d65c2c8a3956031c8ff2d9044`, `27163653e43454df9d51ee465143e5f3ab94ccf9` and `fe618730149d4a7d2c5d5ffa997f3935f4f08bc9` proved immediate-parent reuse while current-head Required gates remained green.
+- E2E #94 had one transient failure in the unchanged pinned OTClient build; one allowed failed-job rerun on the same SHA passed without a code patch.
+- Current main `368319e6e20672339a6409504d1a9f69c15ea077` was merged conservatively into the branch through verified Git objects because the connector has no native update-branch action.
+- Merge commit `f529e34dc6b7c7c7a4e8c8fbfb820aff91705660` was verified before branch update: relative to current main it contains exactly the eleven intended PR paths; relative to the previous branch head it adds only the six new OTBM planner/archive files from main.
+- Sync head `f529e34dc6b7c7c7a4e8c8fbfb820aff91705660` passed Ownership #1650, CI #2787, Load #56 including real status-smoke, and physical E2E #100 including DB, Canary, pinned OTClient and physical-client validation.
+- Main remained `368319e6e20672339a6409504d1a9f69c15ea077` immediately before the final commit.
+- PR #415 carries `ci:final-gate` before this final task commit.
 
 # Safety design
 
-The optimization is evidence-preserving, not skip-by-assumption:
-
-1. On a `synchronize` event, inspect only `HEAD^..HEAD`.
-2. Reuse is possible only if that delta is non-impacting for the workflow.
-3. Query the parent SHA's latest same-name `pull_request` workflow run; require `completed/success`.
-4. If multiple commits were pushed at once, `HEAD^` normally has no workflow evidence, so the decision fails closed and heavy validation runs.
-5. Any relevant workflow/helper path change is itself impacting and forces heavy validation.
-6. Before merge, freeze implementation, task checkpoint and shared docs, then create exactly one empty commit with conventional message `chore(ci): run final validation gate`.
-7. Empty single-commit path evidence fails closed, so every workflow family already applicable to the PR performs its full heavy validation on that exact final head.
-8. Any later commit invalidates the final gate and requires another empty final-gate commit; no checkpoint/docs commit is allowed after the green final gate.
+1. Normal synchronize decisions inspect only `HEAD^..HEAD`.
+2. Reuse requires a non-impacting delta and successful latest same-workflow immediate-parent PR run.
+3. Missing, non-success, empty or unresolvable evidence fails closed.
+4. Relevant workflow/helper changes force full validation.
+5. Focused current-head checks and stable Required aggregators remain active during reuse.
+6. `ci:final-gate` is applied before the last content commit; the final synchronize event therefore sets `force_full` for CI, Load and physical E2E on that exact SHA.
+7. No commit is allowed after the final gate turns green; a later commit invalidates that evidence and must pass the full gate again.
 
 # Current state
 
-Implementation and focused tests are complete and green. The process has been proven in both directions: docs-only children reused successful immediate-parent CI/Load/E2E evidence and skipped expensive jobs, while the helper self-change forced full Load and physical E2E validation. This is the locked pre-sync state. The next operation is branch synchronization; after that, all policy/catalogue/changelog/task updates are one frozen final content batch, followed only by the empty final-gate commit.
+Implementation, tests, policy, catalogue, changelog, synchronization with current main and pre-final full runtime evidence are complete. This task file is the final content commit. Exact final-head workflows under `ci:final-gate` are the remaining merge evidence.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T11:48:00+02:00
-head: f78023d63e69b41de7ac81fa659d21cdefbfcedc
+updated_at: 2026-07-16T14:22:41+02:00
+head: f529e34dc6b7c7c7a4e8c8fbfb820aff91705660
 branch: ci/incremental-validation-final-gate
 pr: 415
-status: implementing
+status: ready
 context_routes:
   - agent-governance
   - universal-e2e
   - ci-repair
 owned_paths:
+  - .github/workflows/agent-task-ownership.yml
   - .github/workflows/ci.yml
   - .github/workflows/universal-agent-e2e.yml
   - .github/workflows/universal-agent-load.yml
-  - .github/workflows/agent-task-ownership.yml
-  - tools/agents/ci_incremental_validation.py
-  - tools/agents/test_ci_incremental_validation.py
-  - docs/agents/tasks/active/CAN-20260716-incremental-ci-final-gate.md
   - AGENTS.md
   - docs/agents/BUILD_TEST_MATRIX.md
-  - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
+  - docs/agents/tasks/active/CAN-20260716-incremental-ci-final-gate.md
+  - tools/agents/ci_incremental_validation.py
+  - tools/agents/test_ci_incremental_validation.py
 proven:
   - Repository write target is exactly blakinio/canary.
   - PR 393 merged as 2f828672df010ff577c8e6076524b37c6dedd987 before task creation.
-  - Draft PR 415 is the live PR for this task.
-  - Full implementation head bc0a3b72148ff3719c51292af36b7635f5267140 passed Ownership 1594, CI 2729, Load 43 and E2E 87 with heavy paths executed.
-  - Latest docs-only head f78023d63e69b41de7ac81fa659d21cdefbfcedc passed Ownership 1604, CI 2740, Load 47 and E2E 91 using immediate-parent reuse.
-  - The helper profile treats tools/agents/ci_incremental_validation.py as impacting for CI, physical E2E and Load.
-  - Focused tests cover helper self-change and preservation of leading .github dotfile paths.
+  - Full code head 2c6370418d0bd8d966289d5a1cf7c075ed75459f passed Ownership 1626, CI 2763, Load 52 and E2E 96 with heavy paths executed.
+  - Documentation-only follow-up heads proved immediate-parent reuse while Required gates remained green.
+  - Exact ci:final-gate label detection is regression-tested.
+  - Sync merge f529e34dc6b7c7c7a4e8c8fbfb820aff91705660 contains current main 368319e6e20672339a6409504d1a9f69c15ea077 and exactly eleven PR paths relative to main.
+  - Sync head f529e34dc6b7c7c7a4e8c8fbfb820aff91705660 passed Ownership 1650, CI 2787, Load 56 and E2E 100 with full heavy validation.
+  - PR 415 carries ci:final-gate before this final task commit.
 derived:
-  - Parent-success plus non-impacting HEAD^..HEAD evidence safely avoids repeated heavy work while an empty final-gate commit preserves exact-final-head quality.
+  - Proven non-impacting immediate-parent reuse avoids repeated heavy work while the labeled final synchronize preserves exact-final-head full validation.
 unknown:
-  - Final current-main merge-result and shared-doc contents until synchronization is completed.
-  - Empty final-gate Git-object delivery behavior until exercised on the frozen content head.
+  - Exact final-head workflow results are pending on this final task commit under ci:final-gate.
 conflicts: []
 first_failure:
-  marker: Agent Task Ownership 1555 / Validate changed active task checkpoints
-  evidence: Task-record schema issues were exposed sequentially and repaired; helper compilation/tests remained green, and Ownership is now consistently green.
+  marker: Agent Task Ownership 1555 / changed active task checkpoint validation
+  evidence: Early task-record schema defects were repaired without weakening validation; helper compilation and focused tests remained green.
 rejected_hypotheses:
-  - Path filters alone solve docs-only follow-up reruns: pull_request path filters use the cumulative PR change set, so relevant earlier files continue to match on later synchronize events.
-  - A successful workflow on any older SHA is sufficient: reuse is bounded to the immediate parent chain and the latest same-workflow parent run must be successful.
-  - A label-triggered final gate is necessary: an empty final commit creates a new exact PR head, triggers normal synchronize semantics, and the helper fails closed on empty changed-path evidence without introducing same-name no-op checks.
-  - Helper changes may reuse older E2E/Load evidence: helper self-change is an explicit impacting path and full Load 43/E2E 87 validation proved the heavy paths run.
+  - Path filters alone solve docs-only reruns; pull_request path filters use cumulative PR scope.
+  - Any older successful SHA is sufficient; reuse is immediate-parent only.
+  - A separate no-op final check is required; the labeled final synchronize forces the existing workflow families on the final content SHA.
+  - Helper changes may reuse older runtime evidence; the helper is explicitly impacting.
 changed_paths:
   - .github/workflows/agent-task-ownership.yml
   - .github/workflows/ci.yml
   - .github/workflows/universal-agent-e2e.yml
   - .github/workflows/universal-agent-load.yml
+  - AGENTS.md
+  - docs/agents/BUILD_TEST_MATRIX.md
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260716-incremental-ci-final-gate.md
   - tools/agents/ci_incremental_validation.py
   - tools/agents/test_ci_incremental_validation.py
 validation:
-  - command: Agent Task Ownership 1594
+  - command: Full code gate / Ownership 1626, CI 2763, Load 52, E2E 96
     result: PASS
-    evidence: Task ownership, helper compilation and focused unit tests succeeded on bc0a3b72148ff3719c51292af36b7635f5267140.
-  - command: CI 2729
+    evidence: Exact code/test head 2c6370418d0bd8d966289d5a1cf7c075ed75459f ran full applicable validation.
+  - command: Documentation-only immediate-parent reuse
     result: PASS
-    evidence: Exact implementation head bc0a3b72148ff3719c51292af36b7635f5267140.
-  - command: Universal Agent Load 43
+    evidence: Multiple docs-only heads kept current-head gates green while expensive jobs were reused.
+  - command: Full synchronized gate / Ownership 1650, CI 2787, Load 56, E2E 100
     result: PASS
-    evidence: Helper-hardening head ran full Canary build, status-smoke and Required load validation successfully.
-  - command: Universal Agent E2E 87
-    result: PASS
-    evidence: Helper-hardening head ran DB preflight, Canary build, controlled OTClient build, physical login/relog scenario and Required physical E2E successfully.
-  - command: CI 2740 / docs-only reuse
-    result: PASS
-    evidence: Heavy build jobs were suppressed by proven immediate-parent reuse and Required succeeded on f78023d63e69b41de7ac81fa659d21cdefbfcedc.
-  - command: Universal Agent Load 47 / docs-only reuse
-    result: PASS
-    evidence: Focused load validation remained current-head while heavy Canary/load jobs were reused from the successful parent.
-  - command: Universal Agent E2E 91 / docs-only reuse
-    result: PASS
-    evidence: Resolve/current-head gate remained while DB, Canary, OTClient and physical-client heavy jobs were reused from the successful parent.
+    evidence: Exact synchronized head f529e34dc6b7c7c7a4e8c8fbfb820aff91705660 ran full applicable validation.
 blockers: []
-next_action: Synchronize the branch conservatively with current main@44cd23bec185a5e0a6167d6180008eddd47ac594, verify the merge result preserves only intended PR paths, then write one frozen shared-doc/policy batch before the empty final validation gate.
+next_action: Verify the full exact-head workflows triggered by this final task commit under ci:final-gate; if all are green, perform the live merge gate and squash-merge PR 415 without further commits.
 ```
