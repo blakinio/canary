@@ -7,8 +7,8 @@ agent: chatgpt-ci-repair
 branch: fix/gameplay-analytics-load-order
 base_branch: main
 created: 2026-07-16T18:29:36+02:00
-updated: 2026-07-16T18:32:41+02:00
-last_verified_commit: "f2405c074551811cebe2c25774eb01e0e65a976b"
+updated: 2026-07-16T18:34:13+02:00
+last_verified_commit: "39cdd8fa6f17d8d586fc17bfb35672b1d35b160a"
 risk: medium
 related_issue: ""
 related_pr: "429"
@@ -18,28 +18,30 @@ blocks:
 owned_paths:
   exclusive:
     - data-otservbr-global/scripts/lib/gameplay_analytics.lua
-    - data-otservbr-global/scripts/lib/gameplay_analytics_core.lua
+    - data-otservbr-global/scripts/lib/#gameplay_analytics_core.lua
     - data-otservbr-global/scripts/lib/gameplay_analytics_batching.lua
-    - data-otservbr-global/scripts/lib/gameplay_analytics_batching_impl.lua
+    - data-otservbr-global/scripts/lib/#gameplay_analytics_batching_impl.lua
     - data-otservbr-global/scripts/lib/gameplay_analytics_schema.lua
-    - data-otservbr-global/scripts/lib/gameplay_analytics_schema_impl.lua
+    - data-otservbr-global/scripts/lib/#gameplay_analytics_schema_impl.lua
     - data-otservbr-global/scripts/lib/gameplay_analytics_reliability.lua
-    - data-otservbr-global/scripts/lib/gameplay_analytics_reliability_impl.lua
+    - data-otservbr-global/scripts/lib/#gameplay_analytics_reliability_impl.lua
     - data-otservbr-global/scripts/lib/gameplay_analytics_correctness.lua
-    - data-otservbr-global/scripts/lib/gameplay_analytics_correctness_impl.lua
+    - data-otservbr-global/scripts/lib/#gameplay_analytics_correctness_impl.lua
     - data-otservbr-global/scripts/lib/gameplay_analytics_context.lua
-    - data-otservbr-global/scripts/lib/gameplay_analytics_context_impl.lua
+    - data-otservbr-global/scripts/lib/#gameplay_analytics_context_impl.lua
     - docs/agents/tasks/active/CAN-20260716-gameplay-analytics-load-order.md
   shared:
     - docs/agents/CHANGELOG.md
   read_only:
     - .github/scripts/smoke_test_canary.py
     - .github/workflows/reusable-build-linux.yml
+    - src/lua/scripts/scripts.cpp
 modules_touched:
   - Global datapack gameplay analytics bootstrap
 reuses:
   - existing GameplayAnalytics core implementation blob
   - existing extension implementation blobs
+  - existing disabled-script `#` loader convention
   - existing Global datapack runtime smoke
 public_interfaces: []
 cross_repo_tasks: []
@@ -54,6 +56,7 @@ Make gameplay analytics library loading deterministic and order-independent so t
 - [ ] Core gameplay analytics loading is idempotent.
 - [ ] Each gameplay analytics extension can bootstrap the core when it is loaded first.
 - [ ] Loading the core again after an extension does not overwrite installed extension wrappers.
+- [ ] Preserved implementation files are skipped by automatic script discovery and loaded only through explicit `dofile` entrypoints.
 - [ ] No runtime smoke warning/error filter is weakened.
 - [ ] Focused validation covers extension-before-core and repeated-core loading.
 - [ ] Global datapack runtime smoke passes in CI on the exact PR head.
@@ -65,14 +68,16 @@ Make gameplay analytics library loading deterministic and order-independent so t
 - The affected runtime files are outside PR #415 and require a separate narrow CI-repair PR.
 - Current `main` is `0507fc5de8049d712345f43db0b05a23a6577a8a`.
 - Draft repair PR #429 targets only the gameplay analytics bootstrap plus task/changelog governance.
+- `Scripts::loadScripts` enumerates Lua files with `std::filesystem::recursive_directory_iterator` without sorting, so filesystem enumeration order is not a valid dependency.
+- The same loader deliberately skips files whose filename starts with `#`; explicit `dofile` remains available to public loader entrypoints.
 - No open PR or issue matching gameplay analytics load-order repair was found through available GitHub search; negative code-search results are not treated as proof of absence.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T18:32:41+02:00
-head: f2405c074551811cebe2c25774eb01e0e65a976b
+updated_at: 2026-07-16T18:34:13+02:00
+head: 39cdd8fa6f17d8d586fc17bfb35672b1d35b160a
 branch: fix/gameplay-analytics-load-order
 pr: 429
 status: active
@@ -81,17 +86,17 @@ context_routes:
   - ci-repair
 owned_paths:
   - data-otservbr-global/scripts/lib/gameplay_analytics.lua
-  - data-otservbr-global/scripts/lib/gameplay_analytics_core.lua
+  - data-otservbr-global/scripts/lib/#gameplay_analytics_core.lua
   - data-otservbr-global/scripts/lib/gameplay_analytics_batching.lua
-  - data-otservbr-global/scripts/lib/gameplay_analytics_batching_impl.lua
+  - data-otservbr-global/scripts/lib/#gameplay_analytics_batching_impl.lua
   - data-otservbr-global/scripts/lib/gameplay_analytics_schema.lua
-  - data-otservbr-global/scripts/lib/gameplay_analytics_schema_impl.lua
+  - data-otservbr-global/scripts/lib/#gameplay_analytics_schema_impl.lua
   - data-otservbr-global/scripts/lib/gameplay_analytics_reliability.lua
-  - data-otservbr-global/scripts/lib/gameplay_analytics_reliability_impl.lua
+  - data-otservbr-global/scripts/lib/#gameplay_analytics_reliability_impl.lua
   - data-otservbr-global/scripts/lib/gameplay_analytics_correctness.lua
-  - data-otservbr-global/scripts/lib/gameplay_analytics_correctness_impl.lua
+  - data-otservbr-global/scripts/lib/#gameplay_analytics_correctness_impl.lua
   - data-otservbr-global/scripts/lib/gameplay_analytics_context.lua
-  - data-otservbr-global/scripts/lib/gameplay_analytics_context_impl.lua
+  - data-otservbr-global/scripts/lib/#gameplay_analytics_context_impl.lua
   - docs/agents/tasks/active/CAN-20260716-gameplay-analytics-load-order.md
   - docs/agents/CHANGELOG.md
 proven:
@@ -99,11 +104,12 @@ proven:
   - The Global datapack smoke fails on gameplay analytics extension load-order errors.
   - Five extension files fail closed when GameplayAnalytics is nil.
   - Existing implementation blobs can be preserved byte-for-byte behind small deterministic loader files.
+  - Automatic script discovery skips filenames beginning with `#`.
 derived:
-  - Extension loading must not depend on filesystem enumeration order.
+  - Public entrypoints can safely delegate to preserved `#` implementation files without those implementation files being auto-executed out of order.
 unknown:
   - Whether an existing focused Lua test harness covers direct library load order.
 conflicts: []
 blockers: []
-next_action: Replace the six public library entrypoints with deterministic loaders backed by the preserved implementation blobs, then validate PR 429.
+next_action: Commit deterministic public loaders plus preserved `#` implementation blobs, then validate PR 429.
 ```
