@@ -2,13 +2,13 @@
 task_id: CAN-20260716-oteryn-persistence-foundation-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: "OAM-004"
-status: ready
+status: completed
 agent: oteryn-architecture-migration-agent
 branch: docs/oam-004-persistence-foundation-revalidation
 base_branch: main
 created: 2026-07-16T10:20:00+02:00
-updated: 2026-07-16T18:12:40+02:00
-last_verified_commit: "63e45afe684e5f923bc004a59687a5adcaac6f01"
+updated: 2026-07-16T16:21:46Z
+last_verified_commit: "0507fc5de8049d712345f43db0b05a23a6577a8a"
 risk: high
 related_issue: ""
 related_pr: "420"
@@ -56,6 +56,7 @@ cross_repo_tasks:
   - blakinio/Otheryn#12
   - blakinio/Otheryn#13
   - blakinio/Otheryn#14
+completed: 2026-07-16T16:21:46Z
 ---
 
 # Goal
@@ -218,3 +219,11 @@ validation:
 blockers: []
 next_action: Verify exact-head ready-state Agent Task Ownership and CI after this checkpoint commit plus a clean review gate, then squash-merge PR 420 with exact-head guard.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #420.
+- Feature head: `c83517b66e5a51951445e8303fdc050a58917a52`.
+- Merge commit: `0507fc5de8049d712345f43db0b05a23a6577a8a`.
+- Merged at: `2026-07-16T16:21:46Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
