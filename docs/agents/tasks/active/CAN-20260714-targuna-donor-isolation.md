@@ -2,7 +2,7 @@
 task_id: CAN-20260714-targuna-donor-isolation
 program_id: CAN-PROGRAM-CRYSTALSERVER-COMPARISON
 coordination_id: REAL-TIBIA-TARGUNA-DONOR
-status: active
+status: implementing
 agent: "GPT-5.5 Thinking"
 branch: audit/targuna-donor-isolation
 base_branch: main
