@@ -19,7 +19,7 @@ on:
         default: ""
         type: string
       server_ref:
-        description: Exact controlled server ref or SHA; required when server_repository is set
+        description: Exact controlled server SHA; required when server_repository is set
         required: false
         default: ""
         type: string
@@ -29,6 +29,7 @@ on:
       - ".github/workflows/universal-agent-e2e.yml"
       - ".github/workflows/reusable-build-linux.yml"
       - ".github/scripts/smoke_test_canary.py"
+      - ".github/e2e-controlled-server.env"
       - "tools/agents/ci_incremental_validation.py"
       - "tools/e2e/run_agent_e2e.py"
       - "tools/e2e/run_physical_e2e.sh"
@@ -93,9 +94,13 @@ jobs:
       client_ref: ${{ steps.metadata.outputs.client_ref }}
       suite: ${{ steps.metadata.outputs.suite }}
       scenario: ${{ steps.metadata.outputs.scenario }}
+      server_repository: ${{ steps.server.outputs.server_repository }}
+      server_ref: ${{ steps.server.outputs.server_ref }}
     env:
       REQUESTED_SUITE: ${{ inputs.suite || 'login' }}
       REQUESTED_SCENARIO: ${{ inputs.scenario || 'relog' }}
+      REQUESTED_SERVER_REPOSITORY: ${{ inputs.server_repository }}
+      REQUESTED_SERVER_REF: ${{ inputs.server_ref }}
     steps:
       - name: Checkout exact test head
         uses: actions/checkout@v6
@@ -105,16 +110,52 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Validate controlled server inputs
-        if: github.event_name == 'workflow_dispatch' && inputs.server_repository != ''
+      - name: Resolve controlled server source
+        id: server
         env:
-          SERVER_REF: ${{ inputs.server_ref }}
+          EVENT_NAME: ${{ github.event_name }}
+          CURRENT_REPOSITORY: ${{ github.repository }}
+          PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
         run: |
           set -euo pipefail
-          if [[ -z "${SERVER_REF}" ]]; then
-            echo "server_ref is required when server_repository is set" >&2
+          server_repository="${REQUESTED_SERVER_REPOSITORY:-}"
+          server_ref="${REQUESTED_SERVER_REF:-}"
+          pin_file=".github/e2e-controlled-server.env"
+
+          if [[ -f "${pin_file}" ]]; then
+            if [[ "${EVENT_NAME}" != "pull_request" || "${PR_HEAD_REPOSITORY}" != "${CURRENT_REPOSITORY}" ]]; then
+              echo "controlled-server pin files are accepted only from same-repository pull requests" >&2
+              exit 1
+            fi
+            pinned_repository="$(grep -E '^SERVER_REPOSITORY=' "${pin_file}" | head -n 1 | cut -d= -f2- || true)"
+            pinned_ref="$(grep -E '^SERVER_REF=' "${pin_file}" | head -n 1 | cut -d= -f2- || true)"
+            if [[ -n "${pinned_repository}" ]]; then
+              server_repository="${pinned_repository}"
+            fi
+            if [[ -n "${pinned_ref}" ]]; then
+              server_ref="${pinned_ref}"
+            fi
+          fi
+
+          if [[ -n "${server_repository}" ]]; then
+            case "${server_repository}" in
+              "${CURRENT_REPOSITORY}"|"blakinio/Otheryn") ;;
+              *)
+                echo "unsupported controlled server repository: ${server_repository}" >&2
+                exit 1
+                ;;
+            esac
+            if [[ ! "${server_ref}" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "controlled server ref must be an exact 40-character lowercase SHA" >&2
+              exit 1
+            fi
+          elif [[ -n "${server_ref}" ]]; then
+            echo "server_repository is required when server_ref is set" >&2
             exit 1
           fi
+
+          echo "server_repository=${server_repository}" >> "${GITHUB_OUTPUT}"
+          echo "server_ref=${server_ref}" >> "${GITHUB_OUTPUT}"
       - name: Validate and resolve scenario
         run: |
           set -euo pipefail
@@ -426,23 +467,23 @@ jobs:
         run: mkdir -p artifacts
 
       - name: Checkout controlled server source
-        if: github.event_name == 'workflow_dispatch' && inputs.server_repository != ''
+        if: needs.resolve.outputs.server_repository != ''
         uses: actions/checkout@v6
         with:
-          repository: ${{ inputs.server_repository }}
-          ref: ${{ inputs.server_ref }}
+          repository: ${{ needs.resolve.outputs.server_repository }}
+          ref: ${{ needs.resolve.outputs.server_ref }}
           path: controlled-server
           persist-credentials: false
 
       - name: Record controlled server revision
-        if: github.event_name == 'workflow_dispatch' && inputs.server_repository != ''
+        if: needs.resolve.outputs.server_repository != ''
         run: |
           set -euo pipefail
           git -C controlled-server rev-parse HEAD | tee artifacts/server-source-commit.txt
-          printf 'repository=%s\nref=%s\n' "${{ inputs.server_repository }}" "${{ inputs.server_ref }}" > artifacts/server-source-request.txt
+          printf 'repository=%s\nref=%s\n' "${{ needs.resolve.outputs.server_repository }}" "${{ needs.resolve.outputs.server_ref }}" > artifacts/server-source-request.txt
 
       - name: Install controlled server build dependencies
-        if: github.event_name == 'workflow_dispatch' && inputs.server_repository != ''
+        if: needs.resolve.outputs.server_repository != ''
         run: |
           sudo apt-get update
           sudo apt-get install -y ccache ninja-build gcc-13 g++-13 mono-complete
@@ -450,7 +491,7 @@ jobs:
           ninja --version
 
       - name: Read controlled server vcpkg baseline
-        if: github.event_name == 'workflow_dispatch' && inputs.server_repository != ''
+        if: needs.resolve.outputs.server_repository != ''
         run: |
           set -euo pipefail
           vcpkg_commit_id="$(grep '.builtin-baseline' controlled-server/vcpkg.json | awk -F: '{print $2}' | tr -d ',\" ')"
@@ -458,14 +499,14 @@ jobs:
           echo "VCPKG_GIT_COMMIT_ID=${vcpkg_commit_id}" >> "${GITHUB_ENV}"
 
       - name: Set up controlled server vcpkg
-        if: github.event_name == 'workflow_dispatch' && inputs.server_repository != ''
+        if: needs.resolve.outputs.server_repository != ''
         uses: lukka/run-vcpkg@b1a0dd252f06b9e25b3c022a9a03bd7a427fb6a2
         with:
           vcpkgGitURL: "https://github.com/microsoft/vcpkg.git"
           vcpkgGitCommitId: ${{ env.VCPKG_GIT_COMMIT_ID }}
 
       - name: Configure controlled server NuGet package cache
-        if: github.event_name == 'workflow_dispatch' && inputs.server_repository != ''
+        if: needs.resolve.outputs.server_repository != ''
         env:
           NUGET_AUTH_TOKEN: ${{ env.VCPKG_NUGET_API_KEY }}
         run: |
@@ -487,7 +528,7 @@ jobs:
             -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
 
       - name: Build controlled server release
-        if: github.event_name == 'workflow_dispatch' && inputs.server_repository != ''
+        if: needs.resolve.outputs.server_repository != ''
         working-directory: controlled-server
         run: |
           set -euo pipefail
