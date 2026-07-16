@@ -11,6 +11,9 @@ on:
       - "tools/security/**"
       - "tests/security/**"
       - "tools/e2e/run_agent_load_runtime.py"
+      - "src/server/network/connection/connection.cpp"
+      - "src/server/network/protocol/protocolstatus.cpp"
+      - "src/server/network/message/**"
       - "docs/security/**"
       - "docs/agents/programs/SECURITY_VALIDATION_PROGRAM.md"
       - "docs/agents/decisions/ADR-20260716-security-validation-platform-boundary.md"
@@ -25,6 +28,9 @@ on:
       - "tools/security/**"
       - "tests/security/**"
       - "tools/e2e/run_agent_load_runtime.py"
+      - "src/server/network/connection/connection.cpp"
+      - "src/server/network/protocol/protocolstatus.cpp"
+      - "src/server/network/message/**"
       - "data/libs/functions/fs.lua"
       - "data/libs/functions/tables.lua"
   workflow_dispatch:
@@ -57,9 +63,11 @@ jobs:
             tools/security/security_validation.py \
             tools/security/runtime_adapter.py \
             tools/security/malformed_packet_runtime.py \
+            tools/security/malformed_packet_runtime_runner.py \
             tests/security/test_security_validation.py \
             tests/security/test_runtime_adapter.py \
-            tests/security/test_malformed_packet_runtime.py
+            tests/security/test_malformed_packet_runtime.py \
+            tests/security/test_malformed_packet_runtime_runner.py
           python -m unittest discover -v -s tests/security -p 'test_*.py'
       - name: Validate security scenario registry
         run: python tools/security/security_validation.py validate
@@ -150,7 +158,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "${ARTIFACT_DIR}"
-          python tools/security/malformed_packet_runtime.py \
+          python tools/security/malformed_packet_runtime_runner.py \
             --binary-path "${CANARY_BIN}" \
             --plan tests/security/runtime_scenarios/canary-status-parser.json \
             --authorized-repository blakinio/canary \
