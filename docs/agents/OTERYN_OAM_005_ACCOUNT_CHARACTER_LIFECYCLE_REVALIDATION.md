@@ -1,35 +1,36 @@
 # OAM-005 — Account and Character Lifecycle Revalidation
 
-Status: **active**
+Status: **ready**
 
 ## Pinned baselines
 
 - legacy/governance task-start: `blakinio/canary@c2ffe09dc8753734be00c3433fab6f2ebe25d2e8`
 - governance integration base after CI #415: `blakinio/canary@0f25e7fd4d41e90f17fc95d13dba84b7e81d1681`
 - target task-start: `blakinio/Otheryn@67212530b03c10175da2c0d9eabcee8991a05924`
+- final target: `blakinio/Otheryn@a6d42f6cec024f81a7541084425ec1d43d66d2b8`
 - upstream evidence: `opentibiabr/canary@e0ac98e399d0f7e483f3668f57b78fcc45b6e53f`
 
-## Canonical modules
+## Final dispositions
 
-| Module | Working disposition | Current evidence |
+| Module | Disposition | Result |
 |---|---|---|
-| `account-lifecycle` | `REUSE` | checked account implementation/repository blobs are identical across legacy, target and upstream |
-| `account-authentication` | `ADAPT` | legacy secure single-use login-token primitive is absent from target/upstream; bounded target PR #19 ports the primitive and its tests |
-| `character-lifecycle` | `ADAPT` | target character save lifecycle already contains OAM-004D adaptation; future pre-authenticated-account handoff must preserve ownership/deletion checks and is integrated with protocol work only after OAM-005 |
+| `account-lifecycle` | `REUSE` | checked account implementation/repository blobs are identical across legacy, target task-start and upstream; no bounded account repository adaptation was justified |
+| `account-authentication` | `ADAPT` | bounded secure single-use login-session primitive delivered by Otheryn PR #19; live wire integration remains OAM-006 work |
+| `character-lifecycle` | `ADAPT` | existing OAM-004D player save boundary remains authoritative; authenticated account handoff must preserve character ownership/deletion checks and is deferred to OAM-006 protocol integration |
 
 ## Account lifecycle evidence
 
-The OAM-005 registry boundary is `src/account/**`. The following exact blob comparisons are identical across all three pinned revisions:
+The OAM-005 registry boundary is `src/account/**`. The following exact blob comparisons are identical across all three pinned task-start/evidence revisions:
 
 - `src/account/account.cpp` → `c48a2884570b98c47e8f39253ff2bc634f6c2712`
 - `src/account/account_repository.cpp` → `a3237b8e1a43fef3e1207443176a3423fb421563`
 - `src/account/account_repository_db.cpp` → `4b4089848c35a7dde7bd04b474d643c47ca7034e`
 
-No account schema or account-repository target adaptation is justified by the evidence currently found. Economy/coin ownership remains outside this module.
+No account schema or account-repository target adaptation is justified by this evidence. Economy/coin ownership remains outside this module.
 
-## Account authentication evidence
+## Account authentication target delivery
 
-Legacy Canary contains `LoginSessionManager` while the pinned target and upstream do not.
+Legacy Canary contains `LoginSessionManager` while the pinned target task-start and upstream do not.
 
 Legacy PR #77 (`3c5268fe86fd9785e3feea192d70c8bd3d51ef87`) added the primitive in isolation with these properties:
 
@@ -41,13 +42,29 @@ Legacy PR #77 (`3c5268fe86fd9785e3feea192d70c8bd3d51ef87`) added the primitive i
 - constant-time hash comparison;
 - focused tests for replay, expiry, invalid bindings, eviction, uniqueness and concurrent redemption.
 
-Otheryn PR #19 ports only this primitive plus CMake registration, focused tests and a target boundary document. It deliberately does not modify `ProtocolLogin`, `ProtocolGame`, `IOLoginData` or packet layouts.
+Otheryn PR #19 ported only this bounded primitive plus CMake registration, focused tests and a target boundary document. It deliberately did not modify `ProtocolLogin`, `ProtocolGame`, `IOLoginData` or packet layouts.
 
-Legacy PR #82 (`9cafe7e945391a6f170f5b96bf68713d91d758be`) is retained as later integration evidence, not copied wholesale in OAM-005.
+Final PR #19 gate on exact head `2a2e1e5e22df697435e705d8a19d69dcbc46bbfd`:
+
+- ready-triggered CI #76: PASS;
+- Required #75: PASS;
+- autofix.ci #68: PASS;
+- Linux release: PASS;
+- Linux debug compile/runtime/database/tests: PASS;
+- macOS build/runtime smoke: PASS;
+- Windows CMake build/runtime smoke: PASS;
+- comments: none;
+- submitted reviews: none;
+- unresolved review threads: none;
+- mergeable: true.
+
+PR #19 was squash-merged with exact-head guard as `a6d42f6cec024f81a7541084425ec1d43d66d2b8`. `Otheryn:main` was verified identical to that commit immediately after merge. Otheryn issue #17 was closed as completed.
+
+Legacy PR #82 (`9cafe7e945391a6f170f5b96bf68713d91d758be`) and compatibility follow-up PR #80 (`d2e02a3d533bfdfdedc3a81a8f4e4801bc828f22`) remain integration evidence for OAM-006; they are not copied wholesale in OAM-005.
 
 ## Character lifecycle evidence
 
-`character-lifecycle` overlaps `player-persistence` by design. The target `IOLoginData` save path is already deliberately different from upstream/legacy because OAM-004D separated player SQL transaction work from later wheel KV staging.
+`character-lifecycle` overlaps `player-persistence` by design. The target `IOLoginData` save path is deliberately different from upstream/legacy because OAM-004D separated player SQL transaction work from later wheel KV staging.
 
 OAM-005 therefore does not restore a legacy whole-file version of `IOLoginData` and does not treat file equality as the correctness criterion. The existing OAM-004D save boundary remains authoritative.
 
@@ -60,24 +77,21 @@ Legacy PR #82 demonstrates a future optional pre-authenticated-account-id seam t
 - Password authentication and DB-backed `account_sessions` fallback remain unchanged by target PR #19.
 - The secure token primitive is not effective on the live wire until OAM-006 integration is completed and proven.
 - Old-protocol compatibility and modern protocol/session-key behavior require exact OAM-006 server/client evidence.
-- Visual Studio project-file synchronization is not part of the current CMake-driven target slice and remains a build-tooling gap to verify against target CI/support policy.
+- No claim is made that a token primitive alone completes authentication hardening.
+- OAM-004D player SQL / wheel KV persistence semantics remain unchanged.
 
-## Current target work
+## OAM-005 governance completion sequence
 
-- Otheryn issue #15 — OAM-005 parent tracking.
-- Otheryn issue #17 — bounded primitive implementation tracking.
-- Otheryn PR #19 — `feat(auth): add bounded login session primitive`.
-- PR #19 task-start: `67212530b03c10175da2c0d9eabcee8991a05924`.
-- PR #19 exact implementation head before ready gate: `2a2e1e5e22df697435e705d8a19d69dcbc46bbfd`.
+Target delivery is complete at `blakinio/Otheryn@a6d42f6cec024f81a7541084425ec1d43d66d2b8`.
 
-## Required completion sequence
+Remaining sequence:
 
-1. Complete PR #19 ready-triggered exact-head CI/autofix/review gate.
-2. Merge PR #19 only with exact-head guard.
-3. Pin final Otheryn `main`.
-4. Finalize the three module dispositions in this report.
-5. Update OAM program state while keeping OAM-006 inactive.
-6. Pass Canary governance exact-head ownership/CI/review gate.
-7. Merge Canary OAM-005 feature governance.
-8. Complete a separate lifecycle-only archive PR.
-9. Only after lifecycle merge may OAM-006 become the next eligible bounded package.
+1. Update the OAM-005 active task and authoritative program record with final target delivery and dispositions.
+2. Keep OAM-006 inactive.
+3. Verify Canary PR #432 exact changed files and ownership.
+4. Verify exact-head ownership/CI, comments, submitted reviews and unresolved review threads.
+5. Mark PR #432 ready.
+6. Use the latest ready-triggered exact-head final gate.
+7. Squash-merge PR #432 with exact-head guard.
+8. Complete a separate lifecycle-only PR moving OAM-005 `active → archive` and marking OAM-005 completed in the program queue.
+9. Only after that lifecycle merge may OAM-006 become the next eligible bounded package.
