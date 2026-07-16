@@ -2,16 +2,16 @@
 task_id: CAN-20260716-oteryn-engine-foundation-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: "OAM-003"
-status: planned
+status: investigating
 agent: oteryn-architecture-migration-agent
 branch: docs/oam-003-engine-foundation-revalidation
 base_branch: main
 created: 2026-07-16T08:53:00+02:00
-updated: 2026-07-16T08:53:00+02:00
-last_verified_commit: "c32e42469f302ab108dea08d9b90164458696328"
+updated: 2026-07-16T09:10:00+02:00
+last_verified_commit: "875444d54056e06008050da66b92ff024763e18e"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "411"
 depends_on:
   - OAM-002
 blocks:
@@ -37,6 +37,7 @@ owned_paths:
     - blakinio/Otheryn@3cc7c1dfea747bb380f3761ee7ff7ac30141a115
     - blakinio/canary@c32e42469f302ab108dea08d9b90164458696328
     - opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689
+    - zimbadev/crystalserver@fdd2b1f13f53894c584346ef3de43658045c42a7
 modules_touched:
   - build-system
   - configuration
@@ -53,166 +54,146 @@ reuses:
   - docs/agents/MODULE_CATALOG.md
 public_interfaces:
   - OAM-003 engine foundation migration dispositions
-cross_repo_tasks: []
+cross_repo_tasks:
+  - blakinio/Otheryn#4
+  - blakinio/Otheryn#5
 ---
 
 # Goal
 
-Revalidate the seven canonical Oteryn engine-foundation modules against exact live target, legacy and upstream baselines; produce evidence-backed per-module migration dispositions and identify the minimum target implementation work, if any, without starting persistence or higher-level domain migration.
+Revalidate the seven canonical Oteryn engine-foundation modules against exact target, legacy, upstream and relevant donor baselines; produce evidence-backed dispositions; and split required target adaptation into bounded target work before any broader migration proceeds.
 
 # Acceptance criteria
 
 - [x] Exact OAM-003 task-start SHAs pinned for Canary, Otheryn and upstream Canary.
+- [x] Relevant Crystal donor SHA pinned as comparison-only evidence.
 - [x] Seven canonical module records pinned and refreshed as task inputs.
-- [ ] Target-relevant boundaries classified for every module as applicable, not-applicable or unresolved with evidence.
-- [ ] Target/upstream/legacy source differences relevant to each module inventoried semantically, not by repository-wide bulk diff alone.
-- [ ] Existing reusable foundation implementations/tests identified before proposing new abstractions.
-- [ ] Each module receives one evidence-backed disposition: `REUSE`, `ADAPT`, `REVALIDATE`, `REWRITE`, `DO_NOT_MIGRATE` or `EXPERIMENTAL_ONLY`.
-- [ ] Runtime-sensitive lifecycle/scheduler/Lua claims have controlled runtime evidence or remain explicitly unresolved.
-- [ ] Any required Otheryn implementation is split into an explicitly linked bounded target task/PR before target source changes; no bulk legacy import.
-- [ ] OAM program queue/handoff updated from the proven OAM-003 result.
-- [ ] Current-head GitHub checks verified.
-- [ ] Module catalogue/changelog impact handled or explicitly none.
-- [ ] Cross-repository impact handled; no protocol/client contract is inferred without evidence.
+- [x] Target-relevant boundaries classified for every module.
+- [x] Target/upstream/legacy/donor differences inventoried semantically for the bounded foundation scope.
+- [x] Existing reusable foundation implementations/tests identified before proposing new abstractions.
+- [x] Each module receives one evidence-backed disposition.
+- [x] Runtime-sensitive claims use target bootstrap/runtime evidence where available; unresolved lifecycle/reload concerns produce `ADAPT`, not false `REUSE`.
+- [x] Required target work split into linked bounded target artifacts before source changes: Otheryn PR #4 and issue #5.
+- [ ] OAM-003A target PR #4 exact-head full ready-cycle CI/Required gates verified and merged or left as an explicit blocker.
+- [ ] OAM program queue/handoff updated from the proven OAM-003 result and target follow-up dependencies.
+- [ ] Current-head Canary PR #411 ownership/CI/review gates verified.
+- [x] Module catalogue/changelog impact currently none; no new reusable platform or cross-cutting helper introduced by governance work.
+- [x] Cross-repository impact handled; no protocol/client contract inferred.
 - [ ] Autonomous merge gate satisfied.
 
-# Confirmed context
+# PROVEN
 
-PROVEN:
+- OAM-002 lifecycle completed before OAM-003 start on `blakinio/canary@c32e42469f302ab108dea08d9b90164458696328`.
+- OAM-003 target task-start baseline: `blakinio/Otheryn@3cc7c1dfea747bb380f3761ee7ff7ac30141a115`.
+- OAM-003 upstream baseline: `opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689`.
+- OAM-003 legacy baseline: `blakinio/canary@c32e42469f302ab108dea08d9b90164458696328`.
+- Donor comparison baseline: `zimbadev/crystalserver@fdd2b1f13f53894c584346ef3de43658045c42a7`.
+- Target foundation runtime/source begins from the pinned upstream content baseline; OAM-002 proved the only final target-vs-upstream differences are two CI/governance files.
+- Legacy and upstream histories diverged: legacy 726 commits ahead and 3 behind with merge base `e8237cef...`; legacy is not a monotonic successor.
+- Legacy scheduler uses the older `TaskGroup` model; Crystal donor also uses an older `TaskGroup` model.
+- Upstream/target scheduler uses lane/WDRR/barrier-parallel policy with focused WDRR/policy tests and explicit compute-service/dispatcher/thread-pool shutdown ordering.
+- Legacy and Crystal config use a plain `bool loaded`; upstream/target uses atomic load state plus deferred callbacks under a mutex.
+- Legacy lifecycle includes multichannel cluster/Redis/handoff/leadership bootstrap explicitly excluded from initial Oteryn.
+- Core DI files are materially identical between legacy and upstream; Crystal retains the same general static/contextual pattern and provides no cleaner composition root.
+- Target/upstream and legacy Lua runtime plus typed shared-userdata foundation are materially identical; Crystal's pinned loader lacks the typed `LuaUserdataTraits` layer visible in target/upstream.
+- OAM-003 dispositions are:
+  - `build-system` → `REUSE`;
+  - `configuration` → `ADAPT`;
+  - `engine-runtime-lifecycle` → `ADAPT`;
+  - `engine-scheduler` → `REUSE`;
+  - `engine-service-container` → `ADAPT`;
+  - `lua-runtime` → `ADAPT`;
+  - `lua-bindings` → `ADAPT`.
+- Otheryn PR #4 (`OAM-003A`) was opened before C++ source changes and implements the first minimal composition seam by constructing `CanaryServer` explicitly in `main()` from existing DI-provided dependencies.
+- Otheryn issue #5 (`OAM-003B`) records the bounded Lua runtime/bindings adaptation and depends on OAM-003A.
 
-- OAM-002 lifecycle completed on `blakinio/canary@c32e42469f302ab108dea08d9b90164458696328`.
-- OAM-003 target task-start baseline is `blakinio/Otheryn@3cc7c1dfea747bb380f3761ee7ff7ac30141a115`.
-- OAM-003 upstream task-start baseline is `opentibiabr/canary@a879c9312e34381e8eedf397b8ed44510698b689`.
-- OAM-003 legacy evidence baseline is `blakinio/canary@c32e42469f302ab108dea08d9b90164458696328`.
-- Otheryn has no open PR at task start.
-- Canary open PR #393 changes status-protocol load tooling, `src/server/network/protocol/protocolstatus.cpp`, catalogue/changelog and E2E paths; it does not claim the seven OAM-003 canonical foundation paths.
-- Canary open PR #316 is OTBM/Targuna evidence work and does not claim the seven OAM-003 foundation paths.
-- No `OAM-003` branch or repository search result existed before this task branch was created.
-- The target baseline is pinned-upstream content except the two OAM-002 target CI/governance paths; therefore target runtime/foundation source begins OAM-003 from the pinned upstream implementation.
-- Comparing pinned upstream `a879c931...` with legacy Canary `c32e4246...` shows the histories diverged: legacy is 726 commits ahead and 3 behind with merge base `e8237cef...`.
-- Relevant visible legacy divergence already includes build/configuration surfaces such as `CMakeLists.txt`, `cmake/modules/BaseConfig.cmake`, `cmake/modules/CanaryLib.cmake` and `config.lua.dist`; this does not by itself authorize reuse.
+# DERIVED
 
-DERIVED:
+- No legacy or Crystal foundation module should replace the pinned upstream scheduler/build foundation.
+- OAM-003A and OAM-003B are required convergence work resulting from `ADAPT` dispositions; they are not permission to bulk-refactor the target.
+- OAM-004 must remain blocked until the program explicitly records the OAM-003 adaptation dependency state.
 
-- OAM-003 must evaluate legacy foundation changes selectively; repository-wide legacy adoption is invalid.
-- Because target foundation source currently matches pinned upstream, any stronger-than-`REUSE upstream` decision must be justified by specific legacy/donor evidence and target architecture fit.
-- OAM-003 is evidence-first. Target source changes, if justified, require a linked bounded `blakinio/Otheryn` task/PR rather than edits from this Canary governance branch.
+# UNKNOWN
 
-UNKNOWN:
+- Whether Otheryn PR #4 passes the full ready-triggered build/runtime matrix on its exact current head.
+- The exact implementation scope of OAM-003B beyond the issue's bounded lifecycle/adapter contract; it must be revalidated after OAM-003A lands.
 
-- Which of the seven foundation modules can remain upstream-native without adaptation.
-- Which legacy foundation deltas are still relevant, correct and architecturally compatible with Oteryn.
-- Whether runtime/lifecycle/scheduler/Lua evidence is sufficient for dispositions stronger than `REVALIDATE`.
+# CONFLICT
 
-CONFLICT:
-
-- The durable blueprint's status line still says implementation is blocked by the OAM-002 target identity gate, while OAM-002 is now completed. The blueprint remains authoritative for architecture content, but its status line is stale metadata and is not edited casually by OAM-003 unless required by a reviewed architecture-doc update.
+- The durable blueprint status line still references the completed OAM-002 identity blocker. Architecture content remains authoritative; OAM-003 does not casually rewrite the blueprint for stale status metadata.
 
 # Existing work to reuse
 
-| Module/task/PR | Reuse | Evidence/path | Why it fits |
-|---|---|---|---|
-| Oteryn target blueprint | architecture invariants and foundation target zones | `docs/architecture/oteryn-target-server-architecture.md` | Defines composition root, explicit lifecycle, scheduling, services and Lua adapter direction. |
-| Oteryn architecture contract | package evidence/disposition gate | `docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md` | Governs exact SHA provenance, boundary classification and migration dispositions. |
-| TSD engine foundation report | prior inventory evidence | `docs/agents/real-tibia/TSD_002A_ENGINE_FOUNDATION_REPORT.md` | Reuse inventory only; OAM-003 must refresh against live pinned SHAs. |
-| DI service access | existing reusable DI surface | `src/lib/di/**`, catalogue entry | Reuse before proposing another service container. |
-| Build/test matrix | validation selection | `docs/agents/BUILD_TEST_MATRIX.md` | Defines build/runtime validation expectations. |
+| Evidence/system | Reuse decision |
+|---|---|
+| Oteryn target blueprint | architecture invariants and target boundaries |
+| Oteryn architecture contract | exact SHA/boundary/disposition gate |
+| TSD engine foundation report | inventory only; refreshed by OAM-003 |
+| upstream lane/WDRR scheduler | direct `REUSE` |
+| upstream build foundation | direct `REUSE` |
+| Boost.DI primitives/current bindings | substrate for `ADAPT`; no second DI container |
+| typed Lua shared-userdata helpers | substrate for `ADAPT`; preserve ownership contract |
+| OAM-002 target CI evidence | baseline runtime/build evidence |
 
 # Ownership and overlap check
 
-- Program record: `CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION` inspected after OAM-002 lifecycle merge.
-- Open PRs inspected: Canary #393 and #316; Otheryn has none.
-- Active OAM task/branch search: no pre-existing OAM-003 task or branch found.
-- Ownership checker result: pending PR/CI validation.
-- Exclusive claims: this task record and the OAM-003 revalidation report only.
-- Shared claims: OAM program record only.
-- Read-only dependencies: blueprint, architecture contract, seven canonical module records and pinned repository states.
-- Overlaps: no proven path ownership conflict. PR #393 is runtime-adjacent but its concrete source edit is `ProtocolStatus`, outside the seven canonical foundation path records.
-- Resolution: proceed evidence-first; do not edit target runtime source until per-module evidence justifies a linked target task.
-
-# Current state
-
-OAM-003 is active as a bounded engine-foundation revalidation package. No target implementation has started.
-
-Canonical task modules:
-
-```text
-build-system
-configuration
-engine-runtime-lifecycle
-engine-scheduler
-engine-service-container
-lua-runtime
-lua-bindings
-```
-
-# Plan
-
-1. Refresh the prior TSD engine-foundation inventory against the exact OAM-003 target/upstream/legacy SHAs and build a per-module evidence/disposition matrix.
-
-# Work log
-
-## 2026-07-16T08:53:00+02:00
-
-- Changed: created OAM-003 task branch and bounded task record.
-- Learned: target foundation source begins from pinned upstream; legacy history has substantial divergence and cannot be adopted wholesale.
-- Failed/blocked: targeted GitHub code search did not reliably return shared-index/module hits, so the small authoritative shared indexes and exact canonical records were read directly after targeted searches returned no results.
-- Result: OAM-003 evidence phase started; no target code changes.
+- Open Canary PRs at task start: #393 and #316; neither claimed the seven canonical OAM-003 foundation path records.
+- Otheryn had no open PR at task start.
+- No pre-existing OAM-003 branch/task was found before creation.
+- Target implementation is isolated in Otheryn PR #4; OAM-003B is isolated as issue #5 and has no source branch yet.
+- No protocol/client contract or persistence path is claimed.
+- Ownership checker for Canary PR #411 remains pending exact-head validation.
 
 # Decisions
 
-| Decision | Reason/evidence | ADR |
-|---|---|---|
-| Start OAM-003 as evidence-first governance work in `blakinio/canary`. | Canonical dispositions must be proven before target implementation; Canary is the governance/evidence repository. | none |
-| Require a separate linked target task/PR for any Otheryn source changes. | Preserves repository-specific ownership and prevents bulk legacy migration. | none |
-| Keep all seven modules `REVALIDATE` until OAM-003 evidence closes their boundaries. | Existing registry state is inventory-only and target architecture requires runtime proof for runtime-sensitive modules. | none |
-
-# Files and interfaces
-
-| Path/interface/config/schema | Ownership mode | Purpose | Status |
-|---|---|---|---|
-| `docs/agents/tasks/active/CAN-20260716-oteryn-engine-foundation-revalidation.md` | exclusive | authoritative OAM-003 checkpoint | active |
-| `docs/agents/OTERYN_OAM_003_ENGINE_FOUNDATION_REVALIDATION.md` | exclusive | durable per-module evidence/disposition report | planned |
-| `docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md` | shared | queue and handoff after proven result | pending |
-| seven canonical module records | read_only | canonical identity/scope/dependencies | pinned inputs |
+| Decision | Reason/evidence |
+|---|---|
+| Keep target/upstream build system | already target baseline and validated; legacy build adds excluded multichannel-specific dependency/config surfaces |
+| Keep upstream scheduler implementation | newer lane/WDRR model with focused tests; legacy/Crystal are older TaskGroup designs |
+| Adapt lifecycle/config/DI ownership | current runtime still uses global/contextual access; blueprint requires explicit composition and lifecycle ownership |
+| Adapt Lua runtime/bindings incrementally | typed ownership helpers are valuable, but reload lifecycle and domain adapter boundaries are not architecture-complete |
+| Split target work | prevents one broad refactor and preserves evidence/rollback boundaries |
 
 # Validation and CI
 
-| Commit | Command/check/workflow | Result | Evidence/notes |
-|---|---|---|---|
-| `c32e42469f302ab108dea08d9b90164458696328` | live Canary main pin | PASS | GitHub commit search |
-| `3cc7c1dfea747bb380f3761ee7ff7ac30141a115` | live Otheryn main pin | PASS | GitHub commit search |
-| `a879c9312e34381e8eedf397b8ed44510698b689` | live upstream main pin | PASS | GitHub commit search |
-| legacy vs upstream repository compare | GitHub compare | PASS as discovery evidence | diverged; 726 ahead / 3 behind; semantic module review still required |
-
-Never write `passed` without verification on the stated commit.
+| Commit/ref | Check | Result |
+|---|---|---|
+| `c32e42469f302ab108dea08d9b90164458696328` | Canary task-start SHA | PASS |
+| `3cc7c1dfea747bb380f3761ee7ff7ac30141a115` | Otheryn task-start SHA | PASS |
+| `a879c9312e34381e8eedf397b8ed44510698b689` | upstream task-start SHA | PASS |
+| `fdd2b1f13f53894c584346ef3de43658045c42a7` | donor comparison SHA | PASS |
+| legacy vs upstream compare | divergence discovery | PASS; 726 ahead / 3 behind |
+| Otheryn PR #4 draft head `d6e7d0a599c0b2938999504f363e27c7b1bf3857` | draft-cycle CI | PASS but build jobs skipped because draft; not merge evidence |
+| Otheryn PR #4 ready-cycle | full CI / Required | IN PROGRESS |
 
 # Failed approaches and dead ends
 
-- Targeted GitHub repository code search returned no reliable hits for several exact canonical module IDs/shared-index terms; this negative result is not treated as proof of absence.
-- Repository-wide compare is retained only as discovery evidence; its size and mixed scope make it invalid as a migration decision by itself.
+- Targeted GitHub code search was unreliable for several canonical IDs/shared-index terms; negative search results were not treated as absence proof.
+- Repository-wide compare was used only for discovery, never as a migration decision.
+- Legacy recency was rejected as a reason for reuse because its history diverges and includes excluded architecture.
+- Crystal was evaluated as comparison-only evidence and did not provide a stronger foundation implementation for any of the seven modules.
 
 # Risks and compatibility
 
-- Runtime: lifecycle/scheduler/Lua modules require runtime proof before strong dispositions.
-- Data/migration: no data migration in OAM-003.
-- Security: Lua userdata lifetime remains an explicit known risk; no binding change is authorized from inventory alone.
-- Backward compatibility: target currently matches pinned upstream runtime behavior; any adaptation must prove compatibility and rollback.
-- Cross-repo rollout: no protocol/client coupling proven in current scope; cross-repo remains not-applicable unless evidence changes this.
-- Rollback: governance/report changes are revertible; target source remains untouched until a separately reviewed target PR.
+- Runtime: OAM-003A must preserve startup/shutdown behavior; OAM-003B must preserve Lua ownership safety.
+- Data/migration: no data migration.
+- Protocol/client: no contract change.
+- Security: typed shared-userdata contract remains mandatory; polymorphic userdata is not bulk-audited here.
+- Backward compatibility: target adaptations must remain behavior-preserving unless a later bounded task proves otherwise.
+- Rollback: PR #4 is a small isolated target seam; issue #5 has no source changes yet.
 
 # Remaining work
 
-1. Refresh the TSD engine-foundation inventory and write the per-module OAM-003 evidence/disposition matrix.
+1. Complete exact-head ready-cycle validation and merge decision for Otheryn PR #4, then update the OAM program queue and Canary PR #411 checkpoint from the result.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T08:53:00+02:00
-head: c32e42469f302ab108dea08d9b90164458696328
+updated_at: 2026-07-16T09:10:00+02:00
+head: 875444d54056e06008050da66b92ff024763e18e
 branch: docs/oam-003-engine-foundation-revalidation
-pr: none
+pr: 411
 status: investigating
 context_routes:
   - agent-governance
@@ -222,72 +203,45 @@ owned_paths:
   - docs/agents/OTERYN_OAM_003_ENGINE_FOUNDATION_REVALIDATION.md
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
 proven:
-  - OAM-002 lifecycle completed before OAM-003 start
-  - Canary task-start SHA is c32e42469f302ab108dea08d9b90164458696328
-  - Otheryn task-start SHA is 3cc7c1dfea747bb380f3761ee7ff7ac30141a115
-  - upstream task-start SHA is a879c9312e34381e8eedf397b8ed44510698b689
-  - target foundation source starts from pinned upstream content
-  - no open Otheryn PR and no pre-existing OAM-003 branch were found
-  - legacy Canary and upstream histories diverged substantially
+  - OAM-003 seven-module evidence matrix is complete
+  - build-system and engine-scheduler are REUSE
+  - configuration lifecycle service-container lua-runtime and lua-bindings are ADAPT
+  - Otheryn PR 4 exists for OAM-003A and contains the first explicit server composition seam
+  - Otheryn issue 5 exists for OAM-003B and depends on OAM-003A
 derived:
-  - legacy foundation changes require selective semantic review
-  - target implementation, if required, needs a separate linked Otheryn task/PR
+  - OAM-004 remains blocked behind the recorded OAM-003 adaptation dependency chain
 unknown:
-  - per-module OAM-003 migration dispositions
-  - sufficiency of runtime evidence for lifecycle scheduler and Lua boundaries
+  - final exact-head ready-cycle result for Otheryn PR 4
 conflicts:
-  - blueprint status metadata still references the completed OAM-002 gate
+  - blueprint status metadata still references completed OAM-002 gate
 first_failure:
-  marker: per-module evidence matrix not yet refreshed against exact OAM-003 SHAs
-  evidence: canonical records remain inventory-only with runtime validation not assessed
+  marker: OAM-003A target validation incomplete
+  evidence: draft-cycle CI passed but build jobs were skipped; ready-cycle is running
 rejected_hypotheses:
-  - legacy Canary can be adopted wholesale because it is newer: histories diverged and the contract forbids bulk legacy import
+  - legacy Canary is the preferred foundation because it is newer
+  - Crystal provides a stronger scheduler/config/Lua ownership foundation
 changed_paths:
   - docs/agents/tasks/active/CAN-20260716-oteryn-engine-foundation-revalidation.md
+  - docs/agents/OTERYN_OAM_003_ENGINE_FOUNDATION_REVALIDATION.md
 validation:
-  - command: live SHA and open-PR/branch verification
+  - command: semantic cross-source foundation review
     result: PASS
-    evidence: GitHub connector live state
-  - command: legacy vs upstream compare
-    result: PASS
-    evidence: 726 ahead, 3 behind, merge base e8237cef...
-blockers: []
-next_action: Refresh TSD_002A engine-foundation evidence against the exact OAM-003 target, legacy and upstream SHAs and write the per-module evidence/disposition matrix.
+    evidence: durable OAM-003 report
+  - command: Otheryn PR 4 draft-cycle CI
+    result: PARTIAL
+    evidence: CI success with build jobs skipped; not merge evidence
+blockers:
+  - Otheryn PR 4 full ready-cycle exact-head validation
+next_action: Verify the latest exact-head ready-cycle CI and Required status for blakinio/Otheryn PR #4 and merge only if all required gates and review state are clean.
 ```
-
-# Handoff
-
-## Start here
-
-Read root `AGENTS.md`, repository/context routing docs, this checkpoint, live OAM-003 PR, Oteryn architecture blueprint/contract, OAM program record and the seven pinned canonical module records.
-
-## Do not repeat
-
-Do not rediscover OAM-002 target identity. For OAM-003 task start use exactly target `3cc7c1df...`, legacy `c32e4246...`, upstream `a879c931...` until a material head change requires explicit revalidation.
-
-## Required reads
-
-- `AGENTS.md`
-- `docs/agents/REPOSITORY_MAP.md`
-- `docs/agents/CONTEXT_ROUTING.md`
-- `docs/architecture/oteryn-target-server-architecture.md`
-- `docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md`
-- `docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md`
-- `docs/agents/real-tibia/TSD_002A_ENGINE_FOUNDATION_REPORT.md`
-- seven canonical module records listed in frontmatter
-
-## Open questions
-
-- Which foundation modules are safe to keep upstream-native?
-- Which legacy deltas are worth adapting to target architecture?
-- Which runtime boundaries need new controlled evidence before OAM-003 can complete?
 
 # Completion
 
 - Final status: investigating
-- PR: pending
-- Merge commit: none
+- Canary PR: #411
+- Otheryn OAM-003A PR: #4
+- Otheryn OAM-003B task: issue #5
 - Program record updated: pending
-- Catalogue updated: not applicable yet
-- Changelog updated: not applicable yet
+- Catalogue updated: no change required so far
+- Changelog updated: no change required so far
 - Archived at: not archived
