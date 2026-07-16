@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-area-materializer
 base_branch: main
 created: 2026-07-16T13:20:00+02:00
-updated: 2026-07-16T13:20:00+02:00
-last_verified_commit: "368319e6e20672339a6409504d1a9f69c15ea077"
+updated: 2026-07-16T13:25:00+02:00
+last_verified_commit: "2c8e2c0593b7f9ae8d6314121e322bf69575aaa2"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "426"
 depends_on:
   - "OTBM World Index #219"
   - "Semantic OTBM Diff #311"
@@ -87,10 +87,10 @@ Implement the smallest safe structural OTBM materialization boundary: copy or re
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T13:20:00+02:00
-head: 368319e6e20672339a6409504d1a9f69c15ea077
+updated_at: 2026-07-16T13:25:00+02:00
+head: 2c8e2c0593b7f9ae8d6314121e322bf69575aaa2
 branch: feat/otbm-area-materializer
-pr: UNKNOWN
+pr: 426
 status: implementing
 context_routes:
   - otbm
@@ -115,6 +115,7 @@ proven:
   - task-start main includes merged region planner and archived lifecycle record
   - no open PR was found for a generic structural OTBM region writer or materializer
   - PR 316 remains separate Targuna-specific audit work
+  - draft PR 426 targets blakinio/canary main from feat/otbm-area-materializer
 derived:
   - complete same-coordinate tile-area replacement is the smallest structural materialization boundary that can avoid a full serializer
 unknown:
@@ -136,13 +137,13 @@ validation:
     result: PASS
     evidence: main 368319e6e20672339a6409504d1a9f69c15ea077 includes merged PR 424 and lifecycle PR 425
 blockers: []
-next_action: Open an early draft PR, then implement native direct-child tile-area span evidence and prove raw subtree splice invariants with synthetic integration tests.
+next_action: Implement native direct-child tile-area span evidence, then prove raw subtree replacement and insertion invariants with synthetic integration tests.
 ```
 
 # Completion
 
 - Final status: implementing
-- Canary PR: pending
+- Canary PR: #426
 - Catalogue updated: pending
 - Changelog updated: pending
 - Archived at: not archived
