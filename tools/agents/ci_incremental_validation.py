@@ -110,7 +110,10 @@ class Decision:
 
 
 def normalize_path(path: str) -> str:
-    return path.replace("\\", "/").lstrip("./")
+    normalized = path.replace("\\", "/")
+    while normalized.startswith("./"):
+        normalized = normalized[2:]
+    return normalized.lstrip("/")
 
 
 def _matches(path: str, pattern: str) -> bool:
