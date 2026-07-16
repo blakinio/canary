@@ -7,7 +7,7 @@ agent: oteryn-architecture-migration-agent
 branch: docs/oam-004-persistence-foundation-revalidation
 base_branch: main
 created: 2026-07-16T10:20:00+02:00
-updated: 2026-07-16T18:22:26+02:00
+updated: 2026-07-16T18:25:07+02:00
 completed: 2026-07-16T18:22:26+02:00
 last_verified_commit: "0507fc5de8049d712345f43db0b05a23a6577a8a"
 risk: high
@@ -131,8 +131,8 @@ Revalidate the four canonical Oteryn database/persistence foundation modules aga
 - PR #420 had no comments, submitted reviews or unresolved review threads at the final merge gate.
 - PR #420 was squash-merged with exact-head guard as `0507fc5de8049d712345f43db0b05a23a6577a8a`.
 - `canary:main` was verified identical to `0507fc5de8049d712345f43db0b05a23a6577a8a` immediately after the feature merge.
-- This lifecycle package archives OAM-004 and marks it completed in the authoritative program queue.
-- OAM-005 becomes only the next eligible bounded package after this lifecycle package merges; it is not created or started here.
+- Lifecycle-only PR `blakinio/canary#428` archives OAM-004 and marks it completed in the authoritative program queue.
+- OAM-005 becomes only the next eligible bounded package after PR #428 merges; it is not created or started here.
 
 # Do not repeat / rejected hypotheses
 
@@ -150,10 +150,10 @@ Revalidate the four canonical Oteryn database/persistence foundation modules aga
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T18:22:26+02:00
-head: 0507fc5de8049d712345f43db0b05a23a6577a8a
+updated_at: 2026-07-16T18:25:07+02:00
+head: e42abd04f947610ce83cc60316145a1bffb7d707
 branch: docs/oam-004-lifecycle-archive
-pr: pending
+pr: 428
 status: completed
 context_routes:
   - agent-governance
@@ -172,12 +172,12 @@ proven:
   - Canary PR 420 exact head c83517b66e5a51951445e8303fdc050a58917a52 passed Agent Task Ownership 1659 and CI 2798
   - Canary PR 420 merged as 0507fc5de8049d712345f43db0b05a23a6577a8a
   - Canary main is identical to 0507fc5de8049d712345f43db0b05a23a6577a8a after feature merge
+  - lifecycle-only PR 428 contains only the OAM-004 active-to-archive move and authoritative program queue update
 derived:
   - OAM-004 feature delivery and feature governance are complete
-  - this lifecycle-only package is the remaining completion boundary
-  - OAM-005 may become next eligible only after this lifecycle package merges
+  - PR 428 is the remaining lifecycle completion boundary
+  - OAM-005 may become next eligible only after PR 428 merges
 unknown:
-  - final lifecycle PR number
   - final lifecycle merge SHA
 conflicts: []
 first_failure:
@@ -203,7 +203,7 @@ validation:
     result: PASS
     evidence: completed success on head c83517b66e5a51951445e8303fdc050a58917a52
 blockers: []
-next_action: Merge this lifecycle-only package after its exact-head ownership CI and clean review gates pass; then OAM-005 is merely the next eligible bounded task and remains not started.
+next_action: Merge lifecycle-only PR 428 after its exact-head ownership CI and clean review gates pass; then OAM-005 is merely the next eligible bounded task and remains not started.
 ```
 
 # Completion
@@ -213,5 +213,5 @@ next_action: Merge this lifecycle-only package after its exact-head ownership CI
 - Canary feature PR: #420.
 - Canary feature head: `c83517b66e5a51951445e8303fdc050a58917a52`.
 - Canary feature merge: `0507fc5de8049d712345f43db0b05a23a6577a8a`.
-- Lifecycle archive: this separate lifecycle-only package.
+- Lifecycle archive PR: #428.
 - OAM-005 implementation: not started.
