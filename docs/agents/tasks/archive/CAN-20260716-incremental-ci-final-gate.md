@@ -2,13 +2,13 @@
 task_id: CAN-20260716-incremental-ci-final-gate
 program_id: "CAN-PROGRAM-AGENT-ORCHESTRATION"
 coordination_id: ""
-status: ready
+status: completed
 agent: chatgpt-ci-governance
 branch: ci/incremental-validation-final-gate
 base_branch: main
 created: 2026-07-16T10:10:00+02:00
-updated: 2026-07-16T14:31:43+02:00
-last_verified_commit: f529e34dc6b7c7c7a4e8c8fbfb820aff91705660
+updated: 2026-07-16T17:59:36Z
+last_verified_commit: "0f25e7fd4d41e90f17fc95d13dba84b7e81d1681"
 risk: medium
 related_issue: ""
 related_pr: "415"
@@ -44,6 +44,7 @@ public_interfaces:
   - ci_incremental_validation.py decision contract
   - ci:final-gate PR-label final-head convention
 cross_repo_tasks: []
+completed: 2026-07-16T17:59:36Z
 ---
 
 # Goal
@@ -166,3 +167,12 @@ validation:
 blockers: []
 next_action: Verify the corrected full exact-head workflows triggered by this final task commit under ci:final-gate; if all are green, perform the live merge gate and squash-merge PR 415 without further commits.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #415.
+- Feature head: `67664c1fea87ae1010dad0e120476e5eec78d91c`.
+- Merge commit: `0f25e7fd4d41e90f17fc95d13dba84b7e81d1681`.
+- Merged at: `2026-07-16T17:59:36Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
+- Lifecycle validation was retriggered on the cleanup branch after GitHub marked the bot-created `pull_request` runs as approval-required; no feature code changed.
