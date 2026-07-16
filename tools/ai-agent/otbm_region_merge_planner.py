@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -18,7 +17,6 @@ from otbm_semantic_diff import (
 from otbm_semantic_diff_types import (
     MAX_INDEX_BYTES,
     MAX_REPORT_INPUT_BYTES,
-    SemanticDiffError,
     canonical_json,
     normalize_bounds,
     normalize_position,
@@ -31,7 +29,6 @@ SCHEMA_VERSION = 1
 DEFAULT_SAMPLE_LIMIT = 500
 MAX_SAMPLE_LIMIT = 10_000
 POLICIES = {"overlay", "replace-region"}
-MECHANIC_FIELDS = ("actionId", "uniqueId", "houseDoorId", "teleportDestination")
 UNRESOLVED_STATUSES = {"unresolved", "referenced-only", "partially-resolved"}
 
 Position = tuple[int, int, int]
@@ -201,13 +198,26 @@ def _translated_donor_snapshots(
     return source, proposed, target_to_donor
 
 
+def _canonical_placement(placement: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        key: value
+        for key, value in placement.items()
+        if key not in {"donorTeleportDestination", "teleportRemap"}
+    }
+
+
 def _canonical_tile(snapshot: Mapping[str, Any]) -> dict[str, Any]:
+    placements = snapshot.get("placements", [])
     return {
         "position": snapshot.get("position"),
         "kind": snapshot.get("kind"),
         "houseId": snapshot.get("houseId"),
         "flags": snapshot.get("flags"),
-        "placements": snapshot.get("placements", []),
+        "placements": [
+            _canonical_placement(entry)
+            for entry in placements
+            if isinstance(entry, dict)
+        ],
     }
 
 
@@ -278,14 +288,8 @@ def _compare_resolution(
         comparison = "different-handler"
     return {
         "comparison": comparison,
-        "current": {
-            "status": current_status,
-            "handlers": current_handlers,
-        },
-        "donor": {
-            "status": donor_status,
-            "handlers": donor_handlers,
-        },
+        "current": {"status": current_status, "handlers": current_handlers},
+        "donor": {"status": donor_status, "handlers": donor_handlers},
     }
 
 
@@ -354,11 +358,7 @@ def _conflict_entry(
         "position": list(position),
         "details": dict(details),
     }
-    return {
-        "id": _stable_id("conflict", payload),
-        **payload,
-        "message": message,
-    }
+    return {"id": _stable_id("conflict", payload), **payload, "message": message}
 
 
 def _action_entry(
@@ -378,18 +378,7 @@ def _action_entry(
         "donor": donor,
         "proposed": proposed,
     }
-    return {
-        "id": _stable_id("action", payload),
-        **payload,
-    }
-
-
-def _retained_current_positions(actions: Mapping[Position, str]) -> set[Position]:
-    return {
-        position
-        for position, kind in actions.items()
-        if kind not in {"replace", "delete-candidate"}
-    }
+    return {"id": _stable_id("action", payload), **payload}
 
 
 def analyze_region_merge_plan(
@@ -465,8 +454,10 @@ def analyze_region_merge_plan(
             donor_index, donor_bounds, delta
         )
 
-        all_positions = sorted(set(current_region) | set(donor_proposed), key=lambda value: (value[2], value[1], value[0]))
-        actions_by_position: dict[Position, dict[str, Any]] = {}
+        all_positions = sorted(
+            set(current_region) | set(donor_proposed),
+            key=lambda value: (value[2], value[1], value[0]),
+        )
         for position in all_positions:
             current_snapshot = current_region.get(position)
             proposed_snapshot = donor_proposed.get(position)
@@ -493,7 +484,6 @@ def analyze_region_merge_plan(
                 donor=donor_snapshot,
                 proposed=proposed_snapshot,
             )
-            actions_by_position[position] = action
             action_collector.add(action, kind=kind)
             if kind == "replace":
                 conflict = _conflict_entry(
@@ -514,7 +504,11 @@ def analyze_region_merge_plan(
                 )
                 conflict_collector.add(conflict, kind=conflict["kind"], severity=conflict["severity"])
 
-        retained_positions = _retained_current_positions(action_kinds)
+        removed_current_positions = {
+            position
+            for position, kind in action_kinds.items()
+            if kind in {"replace", "delete-candidate"}
+        }
         global_mechanics = _global_mechanics(current_index)
 
         for target_position, proposed_snapshot in sorted(
@@ -536,7 +530,8 @@ def analyze_region_merge_plan(
                     collisions = [
                         entry
                         for entry in global_mechanics[namespace].get(value, [])
-                        if normalize_position(entry["position"], "mechanic collision position") in retained_positions
+                        if normalize_position(entry["position"], "mechanic collision position")
+                        not in removed_current_positions
                     ]
                     if not collisions:
                         continue
@@ -596,7 +591,8 @@ def analyze_region_merge_plan(
                         collisions = [
                             entry
                             for entry in global_mechanics["houseDoor"].get((house_id, house_door_id), [])
-                            if normalize_position(entry["position"], "house-door collision position") in retained_positions
+                            if normalize_position(entry["position"], "house-door collision position")
+                            not in removed_current_positions
                         ]
                         if collisions:
                             conflict = _conflict_entry(
@@ -686,7 +682,6 @@ def analyze_region_merge_plan(
         conflict_collector.samples.sort(
             key=lambda entry: (tuple(entry["position"]), entry["kind"], entry["id"])
         )
-
         action_summary = action_collector.summary()
         conflict_summary = conflict_collector.summary()
         blocking = sum(
@@ -709,14 +704,8 @@ def analyze_region_merge_plan(
             "requiresHumanReview": requires_review,
             "policy": policy,
             "translation": {
-                "donorRegion": {
-                    "from": list(donor_bounds[0]),
-                    "to": list(donor_bounds[1]),
-                },
-                "targetRegion": {
-                    "from": list(target_region[0]),
-                    "to": list(target_region[1]),
-                },
+                "donorRegion": {"from": list(donor_bounds[0]), "to": list(donor_bounds[1])},
+                "targetRegion": {"from": list(target_region[0]), "to": list(target_region[1])},
                 "delta": list(delta),
             },
             "summary": {
