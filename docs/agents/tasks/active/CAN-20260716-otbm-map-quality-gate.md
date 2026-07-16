@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-map-quality-gate
 base_branch: main
 created: 2026-07-16T10:12:00+02:00
-updated: 2026-07-16T10:15:00+02:00
-last_verified_commit: "7ff56defc2b4368bb70a500de225ea2f84c22a55"
+updated: 2026-07-16T10:24:00+02:00
+last_verified_commit: "1e01eb60e38de92e099342d9d3008b87ece87e7a"
 risk: medium
 related_issue: ""
 related_pr: "419"
@@ -26,6 +26,7 @@ owned_paths:
     - tools/ai-agent/otbm_map_quality.py
     - tools/ai-agent/otbm_map_quality_tool.py
     - tools/ai-agent/test_otbm_map_quality.py
+    - tools/ai-agent/test_otbm_map_quality_output_safety.py
     - docs/ai-agent/OTBM_MAP_QUALITY_GATE.md
     - docs/ai-agent/OTBM_MAP_QUALITY_GATE.schema.json
     - docs/agents/tasks/active/CAN-20260716-otbm-map-quality-gate.md
@@ -61,18 +62,19 @@ Add a deterministic read-only OTBM Map Quality Gate that combines already-genera
 
 # Acceptance criteria
 
-- [ ] Reuse existing reports; do not parse or write OTBM and do not rescan the map independently.
-- [ ] Require one geometry report, one reachability report and one script-resolution report in their existing versioned formats.
-- [ ] Prove all three reports refer to the same map SHA-256; fail closed when source identity cannot be extracted or differs.
-- [ ] Hash and pin every input report and record the exact supported format consumed.
-- [ ] Preserve original component findings/statuses and normalize them deterministically without inventing gameplay intent.
-- [ ] Keep `error`, `warning`, `unresolved` and `info` separate in summary and samples.
-- [ ] Treat script-resolution conflicts as errors; preserve runtime unresolved/referenced-only/partially-resolved evidence as unresolved rather than handled.
-- [ ] Do not promote geometry orphan candidates, conditional reachability or reviewed unresolved identifiers into proven gameplay defects.
-- [ ] Expose a configurable fail threshold without changing underlying evidence classification.
-- [ ] Bound and deterministically sample normalized findings while retaining exact totals.
-- [ ] Emit only a report artifact; never modify source maps, `.widx`, datapacks, scripts or assets.
-- [ ] Add focused tests for source mismatch, severity aggregation, unresolved preservation, deterministic ordering/truncation and CLI exit policy.
+- [x] Reuse existing reports; do not parse or write OTBM and do not rescan the map independently.
+- [x] Require one geometry report, one reachability report and one script-resolution report in their existing versioned formats.
+- [x] Prove all three reports refer to the same map SHA-256; fail closed when source identity cannot be extracted or differs.
+- [x] Hash and pin every input report and record the exact supported format consumed.
+- [x] Preserve original component findings/statuses and normalize them deterministically without inventing gameplay intent.
+- [x] Keep `error`, `warning`, `unresolved` and `info` separate in summary and samples.
+- [x] Treat script-resolution conflicts as errors; preserve runtime unresolved/referenced-only/partially-resolved evidence as unresolved rather than handled.
+- [x] Do not promote geometry orphan candidates, conditional reachability or reviewed unresolved identifiers into proven gameplay defects.
+- [x] Expose a configurable fail threshold without changing underlying evidence classification.
+- [x] Bound and deterministically sample normalized findings while retaining exact totals.
+- [x] Emit only a report artifact; never modify source maps, `.widx`, datapacks, scripts or assets.
+- [x] Make create-new report publication fail closed against late output races; explicit overwrite remains separate.
+- [x] Add focused tests for source mismatch, severity aggregation, unresolved preservation, deterministic ordering/truncation, CLI exit policy and output publication safety.
 - [ ] Add schema/docs and narrow catalogue/changelog updates.
 - [ ] Verify current-head required checks before readiness/merge.
 
@@ -83,8 +85,8 @@ Add a deterministic read-only OTBM Map Quality Gate that combines already-genera
 - Draft PR #419 targets `blakinio/canary:main` from `blakinio/canary:feat/otbm-map-quality-gate`.
 - PR #316 remains a separate bounded Targuna donor-isolation audit; this task does not own donor extraction or import paths.
 - No open PR or repository search result was found for an existing OTBM Map Quality Gate or sandbox verifier.
-- Existing geometry and reachability reports expose versioned findings with severity/position evidence and World Index provenance.
-- Existing script resolution keeps runtime resolution separate from review disposition; reviewed unresolved evidence must stay unresolved.
+- Geometry source identity is `provenance.source.sha256`; reachability is `provenance.worldIndexManifest.source.sha256`; script resolution is `sources.itemAudit.map.sha256`.
+- Existing script resolution keeps runtime resolution separate from review disposition; reviewed unresolved evidence remains unresolved.
 - No local checkout is exposed in this connector session, so local Git/worktree state is UNKNOWN and is not claimed as clean.
 
 # Design boundary
@@ -95,8 +97,8 @@ Version 1 is a thin report aggregator over exactly three canonical inputs: Geome
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T10:15:00+02:00
-head: 7ff56defc2b4368bb70a500de225ea2f84c22a55
+updated_at: 2026-07-16T10:24:00+02:00
+head: 1e01eb60e38de92e099342d9d3008b87ece87e7a
 branch: feat/otbm-map-quality-gate
 pr: 419
 status: implementing
@@ -107,6 +109,7 @@ owned_paths:
   - tools/ai-agent/otbm_map_quality.py
   - tools/ai-agent/otbm_map_quality_tool.py
   - tools/ai-agent/test_otbm_map_quality.py
+  - tools/ai-agent/test_otbm_map_quality_output_safety.py
   - docs/ai-agent/OTBM_MAP_QUALITY_GATE.md
   - docs/ai-agent/OTBM_MAP_QUALITY_GATE.schema.json
   - docs/agents/tasks/active/CAN-20260716-otbm-map-quality-gate.md
@@ -115,27 +118,35 @@ owned_paths:
 proven:
   - task-start main is 870fc9acb31d8ec19f7466be9b5f4fa99567eb21
   - draft PR 419 is open in blakinio/canary with base main and dedicated head branch
-  - geometry reachability and script-resolution tooling already exist and are reusable
-  - PR 316 donor Targuna work does not own the planned quality-gate implementation paths
-  - no existing map-quality-gate or sandbox-verifier implementation was found by targeted repository and PR search
+  - core aggregation reuses geometry reachability and script-resolution reports only
+  - all three adapters require exact same-map SHA-256 evidence and fail closed on mismatch or missing provenance
+  - exact totals come from component summaries while bounded samples preserve original evidence
+  - script conflicts normalize to error and unresolved statuses remain unresolved
+  - default severity gate fails on errors while unresolved failure is an independent opt-in policy
+  - create-new output publication uses exclusive creation and cannot clobber a late-created output path
+  - PR 316 donor Targuna work does not own the quality-gate implementation paths
 derived:
-  - a report aggregator is the smallest complete first static map-test layer and avoids creating another parser
+  - this report aggregator is the smallest complete static map-test layer and avoids creating another parser
 unknown:
-  - exact source-pin field paths for every supported component report until adapters are implemented and tested against fixtures
-  - current-head CI after implementation
+  - current-head CI and focused test results after implementation
 conflicts: []
 first_failure:
   marker: none
-  evidence: no implementation validation has run yet
+  evidence: implementation validation has not been inspected yet
 rejected_hypotheses:
   - rescan or reparse OTBM inside the quality gate
   - infer stairs ladders holes or gameplay intent from sprites or names
   - combine quest and spawn selected-scope semantics into v1 without an explicit compatibility contract
+  - use atomic replace for create-new publication without exclusive no-clobber semantics
 changed_paths:
   - docs/agents/tasks/active/CAN-20260716-otbm-map-quality-gate.md
+  - tools/ai-agent/otbm_map_quality.py
+  - tools/ai-agent/otbm_map_quality_tool.py
+  - tools/ai-agent/test_otbm_map_quality.py
+  - tools/ai-agent/test_otbm_map_quality_output_safety.py
 validation: []
 blockers: []
-next_action: Implement deterministic source-identity extraction and the geometry reachability and script-resolution adapters, then add focused tests before shared index edits.
+next_action: Add the v1 JSON schema and durable documentation, inspect CI/focused-test results, then make only narrow shared catalogue and changelog edits.
 ```
 
 # Completion
