@@ -2,13 +2,13 @@
 task_id: CAN-20260716-otbm-region-merge-planner
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: implementing
+status: ready
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-region-merge-planner
 base_branch: main
 created: 2026-07-16T11:20:00+02:00
-updated: 2026-07-16T12:50:00+02:00
-last_verified_commit: "5614f2bcfd6146b6c0b0efed5b14b01919bb01a9"
+updated: 2026-07-16T12:55:00+02:00
+last_verified_commit: "fc02b03296ff24693ced35c9cb60310a2e1f4ca9"
 risk: high
 related_issue: ""
 related_pr: "424"
@@ -62,7 +62,7 @@ Add a deterministic read-only review planner for an explicit donor World Index r
 - [x] Emit `canary-otbm-region-merge-plan-v1` with `writerReady: false`, exact totals and bounded samples.
 - [x] Pin indexes, manifests and optional resolver inputs.
 - [x] Add focused tests, schema/docs and narrow catalogue/changelog updates.
-- [ ] Verify final exact-head required checks before readiness/merge.
+- [x] Verify final exact-head required checks before readiness/merge.
 
 # Confirmed context
 
@@ -76,11 +76,11 @@ Add a deterministic read-only review planner for an explicit donor World Index r
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-16T12:50:00+02:00
-head: 5614f2bcfd6146b6c0b0efed5b14b01919bb01a9
+updated_at: 2026-07-16T12:55:00+02:00
+head: fc02b03296ff24693ced35c9cb60310a2e1f4ca9
 branch: feat/otbm-region-merge-planner
 pr: 424
-status: implementing
+status: ready
 context_routes:
   - otbm
   - agent-governance
@@ -100,17 +100,15 @@ proven:
   - internal donor teleports are translated only inside selected donor bounds and external destinations are never guessed
   - same-handler AID reuse requires explicit compatible resolver evidence while UID collisions remain blocking
   - output without overwrite uses exclusive create-new publication
-  - functional CI OTBM Map Tools and AI Agent Tools passed on c3ed48f3b80700309178a7348dfd675ce7f88b2e
-  - MODULE_CATALOG patch is one added planner row with no unrelated drift
-  - CHANGELOG patch is one added Unreleased planner bullet with no unrelated drift
+  - shared catalogue and changelog patches each contain exactly one intended addition and no unrelated drift
+  - exact-head CI Ownership OTBM Map Tools and AI Agent Tools passed on fc02b03296ff24693ced35c9cb60310a2e1f4ca9
 derived:
   - a structural writer requires a separate contract ADR and bounded task
-unknown:
-  - final exact-head gate after checkpoint-format repair
+unknown: []
 conflicts: []
 first_failure:
   marker: initial-ownership-metadata
-  evidence: initial task checkpoint lacked PR binding; later ownership run 29491809836 exposed invalid string validation entries and this update converts them to required mappings
+  evidence: initial PR binding and later validation-list formatting were corrected; two focused-test failures were fixture/helper defects and production validation was not weakened
 rejected_hypotheses:
   - heuristic donor-to-target alignment
   - direct OTBM region writing
@@ -126,25 +124,25 @@ changed_paths:
   - tools/ai-agent/otbm_region_merge_planner_tool.py
   - tools/ai-agent/test_otbm_region_merge_planner.py
 validation:
-  - command: CI run 29490967322
+  - command: CI run 29492078956
     result: PASS
-    evidence: functional head c3ed48f3b80700309178a7348dfd675ce7f88b2e passed
-  - command: OTBM Map Tools run 29490967134
+    evidence: Required passed on fc02b03296ff24693ced35c9cb60310a2e1f4ca9
+  - command: Agent Task Ownership run 29492078686
     result: PASS
-    evidence: focused planner and map-tool validation passed on c3ed48f3b80700309178a7348dfd675ce7f88b2e
-  - command: AI Agent Tools run 29490967167
+    evidence: changed checkpoint and ownership index validation passed on fc02b03296ff24693ced35c9cb60310a2e1f4ca9
+  - command: OTBM Map Tools run 29492078728
     result: PASS
-    evidence: unit and schema/content validation passed on c3ed48f3b80700309178a7348dfd675ce7f88b2e
-  - command: Agent Task Ownership run 29491809836
-    result: FAIL
-    evidence: validation entries were strings instead of command result evidence mappings; fixed by this update
+    evidence: focused planner and map-tool validation passed on fc02b03296ff24693ced35c9cb60310a2e1f4ca9
+  - command: AI Agent Tools run 29492078783
+    result: PASS
+    evidence: unit and schema/content validation passed on fc02b03296ff24693ced35c9cb60310a2e1f4ca9
 blockers: []
-next_action: Run all required checks on the new exact head then set task ready and mark PR 424 ready only if the diff remains clean.
+next_action: Mark PR 424 ready for review, verify ready-state Required and review threads, then squash-merge under branch protection.
 ```
 
 # Completion
 
-- Final status: implementing
+- Final status: ready
 - Canary PR: #424
 - Catalogue updated: yes
 - Changelog updated: yes
