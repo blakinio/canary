@@ -2,13 +2,13 @@
 task_id: CAN-20260716-security-validation-foundation
 program_id: CAN-PROGRAM-SECURITY-VALIDATION
 coordination_id: OTS-SEC-001
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/security-validation-foundation
 base_branch: main
 created: 2026-07-16T20:10:00+02:00
-updated: 2026-07-16T20:45:00+02:00
-last_verified_commit: "68ffab1e1b279d9af29e54f2406c7c932de2c722"
+updated: 2026-07-16T18:51:22Z
+last_verified_commit: "6503f5312dbf13d0fddcc1da98a10343ed30525c"
 risk: medium
 related_issue: ""
 related_pr: "433"
@@ -48,6 +48,7 @@ public_interfaces:
   - ots-security-validation-report-v1
   - tools/security/security_validation.py CLI
 cross_repo_tasks: []
+completed: 2026-07-16T18:51:22Z
 ---
 
 # Goal
@@ -161,3 +162,11 @@ validation:
 blockers: []
 next_action: Let the ci:final-gate workflows run on this readiness commit; if every required current-head check passes and PR 433 remains mergeable with the same intended diff and no review blockers, mark it ready and squash-merge without any further commit.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #433.
+- Feature head: `b2ceed93b4b9d4cd64d2a59757f583cf25648845`.
+- Merge commit: `6503f5312dbf13d0fddcc1da98a10343ed30525c`.
+- Merged at: `2026-07-16T18:51:22Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
