@@ -25,6 +25,7 @@ owned_paths:
     - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
     - docs/agents/CROSS_REPO_CONTRACTS.md
     - .github/workflows/universal-agent-e2e.yml
+    - .github/e2e-controlled-server.env
   read_only:
     - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
     - docs/agents/real-tibia/registry/modules/protocol.yaml
@@ -73,8 +74,9 @@ Revalidate the canonical `protocol` module across exact target, legacy, upstream
 - Maintained OTClient stores the login `sessionKey` opaquely and forwards `G.sessionKey` to `loginWorld` unchanged.
 - Universal Agent E2E #37 passed two stable sessions, two safe logouts and persistence using maintained client `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`.
 - OTClient PR #11 was closed without merge after packet evidence correction; no client transport hardening is part of the OAM-006 baseline.
-- Otheryn PR #21 changes exactly `ProtocolLogin` and `IOLoginData`; `ProtocolGame` and the public `IOLoginData` signature remain unchanged.
+- Otheryn PR #21 was squash-merged as `c547d8ad70ef1252624c255476e6cb83fa125e14` after exact-head CI #80 and Required #78 passed.
 - Universal Agent E2E is extended in-place with optional exact `server_repository`/`server_ref` inputs so the existing physical runner can build and execute a controlled Otheryn revision without creating a second orchestrator.
+- The temporary controlled-server pin selects `blakinio/Otheryn@c547d8ad70ef1252624c255476e6cb83fa125e14` for the exact physical proof and must be removed before governance merge.
 
 # Working disposition
 
@@ -97,7 +99,7 @@ Revalidate the canonical `protocol` module across exact target, legacy, upstream
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-16T21:20:00+02:00
-head: 912754ee61aadf4813b1be03c547457aa003f933
+head: 6eef5c955da1ecdf396ce2339e89ad18fd153e23
 branch: docs/oam-006-network-login-protocol-revalidation
 pr: 436
 status: implementing
@@ -111,6 +113,7 @@ owned_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/CROSS_REPO_CONTRACTS.md
   - .github/workflows/universal-agent-e2e.yml
+  - .github/e2e-controlled-server.env
 proven:
   - OAM-005 feature and lifecycle are complete
   - Canary task-start main is a1d82a5989fe9e3b7ac6c495804cb1cd83c59090
@@ -120,21 +123,21 @@ proven:
   - Universal Agent E2E 37 passed on the maintained client baseline
   - target and upstream ProtocolLogin and ProtocolGame blobs matched at task start while legacy differed
   - OTClient PR 11 is closed without merge after evidence correction
-  - Otheryn PR 21 exact initial head is 4fa4001d4e59aeba952fcae28b9df204c8d997be and changes only ProtocolLogin plus IOLoginData
-  - Universal Agent E2E retains one orchestrator and now accepts an optional controlled server repository and exact ref
+  - Otheryn PR 21 merged as c547d8ad70ef1252624c255476e6cb83fa125e14 after exact-head gates passed
+  - Universal Agent E2E retains one orchestrator and accepts an optional controlled server repository and exact SHA
+  - exact controlled-server pin is blakinio/Otheryn@c547d8ad70ef1252624c255476e6cb83fa125e14
 derived:
   - protocol requires ADAPT
   - maintained client source mutation is not currently justified
-  - target adaptation must preserve all existing fallback and ownership checks
+  - target adaptation preserves existing fallback and ownership checks
   - final physical proof must run the exact merged Otheryn SHA through the existing physical-client scenario
 unknown:
-  - final target PR 21 merge SHA
   - exact physical E2E result on final Otheryn target
   - final Canary governance and lifecycle merge SHAs
 conflicts: []
 first_failure:
   marker: none active
-  evidence: target PR 21 ready-triggered CI and controlled-target physical E2E remain
+  evidence: exact controlled-target physical E2E is running
 rejected_hypotheses:
   - LoginSessionManager presence alone completes live authentication
   - client PR 11 is required for baseline login/relog correctness
@@ -143,6 +146,7 @@ rejected_hypotheses:
   - target physical proof can be substituted by a Canary-only binary run
 changed_paths:
   - .github/workflows/universal-agent-e2e.yml
+  - .github/e2e-controlled-server.env
   - docs/agents/tasks/active/CAN-20260716-oteryn-network-login-protocol-revalidation.md
   - docs/agents/OTERYN_OAM_006_NETWORK_LOGIN_PROTOCOL_REVALIDATION.md
 validation:
@@ -152,9 +156,9 @@ validation:
   - command: Universal Agent E2E run 37
     result: PASS
     evidence: maintained client 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f completed two stable sessions and safe logouts
-  - command: Otheryn PR 21 draft CI 78 and Required 76
+  - command: Otheryn PR 21 exact-head CI 80 and Required 78
     result: PASS
-    evidence: completed success on head 4fa4001d4e59aeba952fcae28b9df204c8d997be
+    evidence: completed success on head 5342b374306abb44b6b5e201c85f6a0182c99286; squash merge c547d8ad70ef1252624c255476e6cb83fa125e14
 blockers: []
-next_action: Complete Otheryn PR 21 ready-triggered exact-head gate and merge, then dispatch Universal Agent E2E login/relog with server_repository blakinio/Otheryn and server_ref pinned to the final target SHA.
+next_action: Wait for the PR-triggered Universal Agent E2E to run login/relog against pinned blakinio/Otheryn@c547d8ad70ef1252624c255476e6cb83fa125e14, then remove the temporary pin, record evidence, and complete governance gates.
 ```
