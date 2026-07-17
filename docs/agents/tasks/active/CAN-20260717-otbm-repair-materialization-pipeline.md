@@ -2,13 +2,13 @@
 task_id: CAN-20260717-otbm-repair-materialization-pipeline
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: implementing
+status: validating
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-repair-materialization-pipeline
 base_branch: main
 created: 2026-07-17T08:15:22+02:00
-updated: 2026-07-17T08:45:00+02:00
-last_verified_commit: "c2e181f892ce2f094e887f1da5c6c7df207629c9"
+updated: 2026-07-17T09:05:55+02:00
+last_verified_commit: "648b95f67893f528c7f5b8fba85e497ff2755c5a"
 risk: high
 related_issue: ""
 related_pr: "456"
@@ -72,7 +72,7 @@ Add the smallest reusable fail-closed orchestration boundary that composes the a
 - Reuse unchanged: real-map repair preflight, Phase 8 bounded patcher, repair sandbox verifier, donor/region merge planner, complete TILE_AREA materializer, Map Quality Gate, canonical World Index and Semantic Diff.
 - Missing boundary: one deterministic controller that selects exactly one existing mutation path, pins every explicit direct file input, invokes only the matching existing mutation/verification contract into an internal candidate, reruns the existing Map Quality Gate over explicit compatible component reports, proves exact candidate/output identity and source immutability, then publishes a create-new final artifact.
 - Configuration alone is insufficient because the existing CLIs intentionally remain separate: no current contract binds mutation-mode exclusivity, exact input pins, reviewed mutation evidence, post-write quality source identity and final create-new publication into one fail-closed result.
-- Map Quality component reports remain explicit inputs because Reachability origins/routes/transitions cannot be invented by orchestration. They are expected to come from a previously reviewed deterministic candidate; finalization replays the exact mutation and requires the newly produced candidate SHA-256 to match those reports.
+- Map Quality component reports remain explicit inputs because Reachability origins/routes/transitions cannot be invented by orchestration. They come from a previously reviewed deterministic candidate; finalization replays the exact mutation and requires the newly produced candidate SHA-256 to match those reports.
 - No new writer or approval semantics are introduced. The Phase 8 reviewed plan remains the attribute authorization boundary; TILE_AREA mode retains the separate existing approval contract. No new ADR is required.
 
 # Acceptance criteria
@@ -90,34 +90,33 @@ Add the smallest reusable fail-closed orchestration boundary that composes the a
 - [x] Publish the final map only after mutation verification and Map Quality success, as a byte-identical create-new copy of the internal verified candidate.
 - [x] Keep generated maps, `.widx`, assets, reports and renders outside Git.
 - [x] Add focused fail-closed tests plus a real synthetic TILE_AREA integration round trip without private/user maps or client assets.
-- [ ] Update catalogue/changelog narrowly after resolving current shared-path overlap with PR #451.
+- [x] Update catalogue/changelog narrowly after the shared-path overlap with PR #451 was resolved by merging current `main` ancestry and retaining only the OTBM additions in PR #456.
 - [ ] Pass the repository exact-final-head gate before squash merge; archive lifecycle in a separate PR.
 
 # Confirmed context
 
 - Writable repository is exactly `blakinio/canary`; all `opentibiabr/*` repositories are read-only.
-- Task-start `main` is `c2e181f892ce2f094e887f1da5c6c7df207629c9`.
-- No open OTBM-specific PR was found by live PR search at task start.
-- Open PRs #451, #453 and #455 were unrelated at task start. PR #451 also touched shared `MODULE_CATALOG.md` and `CHANGELOG.md`; exclusive implementation paths do not overlap.
+- Task-start `main` was `c2e181f892ce2f094e887f1da5c6c7df207629c9`.
+- Current verified base `main` is `9382d1f5320e8ee465b4e813c4b85cd028feeb9f`.
+- No open OTBM-specific PR existed at task start.
+- PR #451 was unrelated security work with shared catalogue/changelog paths; after it merged, current `main` was incorporated into the feature branch through merge commit `6d1147b6417e76361519f5517dcc81ed2bdfe698` without force-push or direct write to `main`.
+- PR #456 now has exactly eight intended changed paths: the task record, catalogue, changelog, pipeline docs/schema, core, CLI and focused tests.
 - Existing writer boundaries remain closed: fixed-width existing attributes only for Phase 8 and complete same-coordinate zero-translation TILE_AREA replacement/insertion/deletion only for the area materializer.
 - Physical-client E2E is deferred from this slice and must reuse the existing Universal OTS E2E platform when deterministic feature-owned runtime scenarios exist.
 
 # CI repair note
 
-- Head `5900bae465719f81a5afb61944dc26681b8513d3` passed repository CI, OTBM Map Tools and AI Agent Tools; Ownership rejected unsupported checkpoint `status: active`.
-- Head `dfec4b0233ff5085e5e2be2f3fd866ac0713a98a` again passed repository CI, OTBM Map Tools and AI Agent Tools; Ownership then exposed a second checkpoint-only defect: validation rows lacked mandatory `evidence` fields and one `result` value was not the required enum.
-- Head `a5c5fd49d339bd18918ca902b46a5d0f7465bccc` passed repository CI while Ownership exposed the remaining record-level status requirement: an active task record itself must use a lifecycle status such as `implementing`, not literal `active`.
-- This record and checkpoint now both use `implementing`. No OTBM implementation change is attributed to these governance repairs.
+Earlier Agent Task Ownership failures were task/checkpoint-schema defects only (`status`, validation `evidence`, validation result enum). They were corrected without changing the OTBM implementation. No implementation workflow identified a corresponding OTBM defect.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T08:45:00+02:00
-head: a5c5fd49d339bd18918ca902b46a5d0f7465bccc
+updated_at: 2026-07-17T09:05:55+02:00
+head: 648b95f67893f528c7f5b8fba85e497ff2755c5a
 branch: feat/otbm-repair-materialization-pipeline
 pr: 456
-status: implementing
+status: validating
 context_routes:
   - agent-governance
   - otbm
@@ -132,8 +131,11 @@ owned_paths:
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
 proven:
-  - current task-start main is c2e181f892ce2f094e887f1da5c6c7df207629c9
-  - no open OTBM-specific PR existed at task start
+  - current verified base main is 9382d1f5320e8ee465b4e813c4b85cd028feeb9f
+  - current main is a true parent of feature history through merge commit 6d1147b6417e76361519f5517dcc81ed2bdfe698
+  - PR 456 effective diff contains exactly eight intended OTBM task documentation implementation and test paths
+  - MODULE_CATALOG differs from current main only by the review date and the new OTBM pipeline row
+  - CHANGELOG differs from current main only by the new OTBM pipeline entry
   - existing Phase 8 and TILE_AREA writer boundaries are reused unchanged
   - existing sandbox and materializer own mutation confinement reparse World Index and Semantic Diff proof
   - existing Map Quality Gate is reused directly and retains exact same-map SHA identity plus unresolved evidence
@@ -141,20 +143,16 @@ proven:
   - explicit quality component reports bind deterministic reviewed-candidate evidence to the replayed finalization candidate hash
   - no new approval contract or ADR is introduced
   - synthetic TILE_AREA integration coverage reuses native scanner World Index planner and materializer
-  - repository CI OTBM Map Tools and AI Agent Tools passed on 5900bae465719f81a5afb61944dc26681b8513d3
-  - repository CI OTBM Map Tools and AI Agent Tools passed again on dfec4b0233ff5085e5e2be2f3fd866ac0713a98a
-  - repository CI passed on a5c5fd49d339bd18918ca902b46a5d0f7465bccc before this record-status-only repair
-  - ownership failures so far are checkpoint/task-schema defects only and have not identified an OTBM implementation failure
-  - PR 451 overlap is limited to shared catalogue/changelog paths and must be rechecked before editing those shared files
+  - normal current-head Agent Task Ownership CI AI Agent Tools and OTBM Map Tools all passed on 648b95f67893f528c7f5b8fba85e497ff2755c5a
+  - ci:final-gate label was applied before this final checkpoint commit
 derived:
   - deterministic mutation replay plus exact quality-source hash binding closes the orchestration boundary without inventing reachability policy
 unknown:
-  - current-head ownership validation after correcting the active-record lifecycle status
-  - whether PR 451 shared-path ownership is still active
+  - exact-final-head required-check result for the commit created by this checkpoint update
 conflicts: []
 first_failure:
-  marker: task ownership metadata
-  evidence: Agent Task Ownership runs 29560033886, 29560198747 and 29560429143 rejected task/checkpoint schema fields while implementation workflows passed on the corresponding heads
+  marker: none
+  evidence: no unresolved implementation or merge conflict remains; historical ownership metadata failures are resolved
 rejected_hypotheses:
   - another OTBM parser World Index Semantic Diff script resolver renderer or full-map writer
   - broadening Phase 8 or TILE_AREA materializer writer boundaries
@@ -162,6 +160,8 @@ rejected_hypotheses:
   - introducing a second approval format
   - publishing the final map before quality verification
 changed_paths:
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260717-otbm-repair-materialization-pipeline.md
   - docs/ai-agent/OTBM_REPAIR_MATERIALIZATION_PIPELINE.md
   - docs/ai-agent/OTBM_REPAIR_MATERIALIZATION_PIPELINE.schema.json
@@ -169,18 +169,18 @@ changed_paths:
   - tools/ai-agent/otbm_repair_materialization_pipeline_tool.py
   - tools/ai-agent/test_otbm_repair_materialization_pipeline.py
 validation:
-  - command: GitHub Actions CI run 29560198886 on head dfec4b0233ff5085e5e2be2f3fd866ac0713a98a
+  - command: GitHub Actions Agent Task Ownership run 29561940728 on head 648b95f67893f528c7f5b8fba85e497ff2755c5a
     result: PASS
-    evidence: repository CI completed successfully on the implementation head before checkpoint-only repairs
-  - command: GitHub Actions OTBM Map Tools run 29560198811 on head dfec4b0233ff5085e5e2be2f3fd866ac0713a98a
+    evidence: current-head task ownership validation completed successfully after current-main synchronization and clean-diff repair
+  - command: GitHub Actions CI run 29561940808 on head 648b95f67893f528c7f5b8fba85e497ff2755c5a
     result: PASS
-    evidence: OTBM Map Tools completed successfully on the implementation head before checkpoint-only repairs
-  - command: GitHub Actions AI Agent Tools run 29560198788 on head dfec4b0233ff5085e5e2be2f3fd866ac0713a98a
+    evidence: repository CI completed successfully on the clean synchronized implementation head
+  - command: GitHub Actions AI Agent Tools run 29561940672 on head 648b95f67893f528c7f5b8fba85e497ff2755c5a
     result: PASS
-    evidence: AI Agent Tools completed successfully on the implementation head before checkpoint-only repairs
-  - command: GitHub Actions Agent Task Ownership run 29560429143 on head a5c5fd49d339bd18918ca902b46a5d0f7465bccc
-    result: FAIL
-    evidence: active-task-ownership artifact reports only that the record under tasks/active used literal status active instead of the required lifecycle status
+    evidence: AI Agent Tools completed successfully including unit tests and generated-content validations on the clean synchronized implementation head
+  - command: GitHub Actions OTBM Map Tools run 29561940756 on head 648b95f67893f528c7f5b8fba85e497ff2755c5a
+    result: PASS
+    evidence: OTBM schema validation and focused OTBM tests completed successfully on the clean synchronized implementation head
 blockers: []
-next_action: Verify current-head ownership and implementation workflows, then recheck PR 451 shared-path ownership before narrow catalogue/changelog integration.
+next_action: Run the exact-final-head required checks for this checkpoint commit under ci:final-gate. Make no further feature-branch commits; if green and the PR remains mergeable with no unresolved review threads, mark ready and squash merge, then archive this task in a separate lifecycle PR.
 ```
