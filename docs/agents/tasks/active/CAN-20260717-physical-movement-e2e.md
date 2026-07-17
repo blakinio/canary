@@ -2,13 +2,13 @@
 task_id: CAN-20260717-physical-movement-e2e
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: OTS-E2E-MOVEMENT-001
-status: investigating
+status: implementing
 agent: "GPT-5.5 Thinking"
 branch: test/e2e-physical-movement
 base_branch: main
 created: 2026-07-17T08:19:00+02:00
-updated: 2026-07-17T08:26:16+02:00
-last_verified_commit: "f216cb25b0fd1c7e1f54381a6aba53f95ec46f29"
+updated: 2026-07-17T08:28:10+02:00
+last_verified_commit: "cee9bbfd72a9dfdb715fdefbc3d5c821c9409055"
 risk: medium
 related_issue: ""
 related_pr: "457"
@@ -68,8 +68,8 @@ Add the first deterministic physical movement scenario on top of the merged Univ
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T08:26:16+02:00
-head: f216cb25b0fd1c7e1f54381a6aba53f95ec46f29
+updated_at: 2026-07-17T08:28:10+02:00
+head: cee9bbfd72a9dfdb715fdefbc3d5c821c9409055
 branch: test/e2e-physical-movement
 pr: 457
 status: investigating
@@ -94,7 +94,9 @@ proven:
   - Agent Task Ownership run 29559754880 / number 1858 failed only in changed active task checkpoint validation
   - ownership diagnostics for run 1858 reported missing checkpoint fields derived and first_failure plus unsupported checkpoint status active
   - Agent Task Ownership run 29559882710 / number 1860 then rejected only the top-level task status active for a record under tasks/active
-  - CI run 29559882800 / number 3001 passed on head f216cb25b0fd1c7e1f54381a6aba53f95ec46f29
+  - Agent Task Ownership run 29560056402 / number 1864 then rejected only the top-level task status investigating; tools/agents/task_ownership.py defines active frontmatter statuses as planned implementing blocked review ready
+  - tools/agents/task_lifecycle.py explicitly permits frontmatter implementing with checkpoint investigating
+  - CI runs 29559882800 / number 3001 and 29560056553 / number 3005 passed on their respective exact heads
   - PR pull_request Universal Agent E2E resolves login/relog by default; selecting movement/physical-movement requires the existing workflow_dispatch inputs rather than changing the shared workflow
   - the available GitHub connector exposes no workflow-dispatch mutation
   - the supplied otservbr OTBM SHA-256 a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2 exactly matches the map hash retained by successful Universal Agent E2E run 29538215647
@@ -118,6 +120,7 @@ rejected_hypotheses:
   - invent map coordinates from town id or chat history
   - change shared workflow before a concrete platform blocker is proven
   - rerun Agent Task Ownership without repairing the reported task/checkpoint schema failures
+  - guess top-level lifecycle status values instead of reading tools/agents/task_ownership.py and tools/agents/task_lifecycle.py
 changed_paths:
   - docs/agents/tasks/active/CAN-20260717-physical-movement-e2e.md
   - tests/e2e/scenarios/movement/physical-movement.json
@@ -128,9 +131,15 @@ validation:
   - command: Agent Task Ownership run 29559882710 / number 1860
     result: FAIL
     evidence: changed active task validation rejected top-level status active for a record under tasks/active
+  - command: Agent Task Ownership run 29560056402 / number 1864
+    result: FAIL
+    evidence: changed active task validation rejected top-level status investigating; validator source confirms implementing is the compatible active frontmatter status for checkpoint investigating
   - command: CI run 29559882800 / number 3001
     result: PASS
     evidence: repository CI passed on head f216cb25b0fd1c7e1f54381a6aba53f95ec46f29
+  - command: CI run 29560056553 / number 3005
+    result: PASS
+    evidence: repository CI passed on head cee9bbfd72a9dfdb715fdefbc3d5c821c9409055
 blockers: []
-next_action: Validate the corrected top-level task status on the next exact head, inspect the pull-request login/relog E2E as a platform sentinel only, and obtain a selected movement/physical-movement physical run through the existing workflow_dispatch surface if an authorized trigger becomes available; use only that selected artifact to pin exact position markers.
+next_action: Validate frontmatter status implementing with checkpoint investigating on the next exact head, inspect the pull-request login/relog E2E as a platform sentinel only, and obtain a selected movement/physical-movement physical run through the existing workflow_dispatch surface if an authorized trigger becomes available; use only that selected artifact to pin exact position markers.
 ```
