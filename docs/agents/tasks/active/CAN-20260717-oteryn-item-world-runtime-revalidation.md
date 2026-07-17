@@ -7,11 +7,11 @@ agent: oteryn-architecture-migration-agent
 branch: docs/oam-007-item-world-runtime-revalidation
 base_branch: main
 created: 2026-07-17T06:45:00+02:00
-updated: 2026-07-17T06:45:00+02:00
+updated: 2026-07-17T07:32:00+02:00
 last_verified_commit: "c2e181f892ce2f094e887f1da5c6c7df207629c9"
 risk: high
-related_issue: ""
-related_pr: ""
+related_issue: "22"
+related_pr: "455"
 depends_on:
   - OAM-003
   - OAM-004
@@ -48,7 +48,8 @@ public_interfaces:
   - static item definition loading and lookup
   - runtime item construction and serialization boundary
   - map and tile runtime loading, spatial lookup, movement, visibility and pathfinding
-cross_repo_tasks: []
+cross_repo_tasks:
+  - blakinio/Otheryn#22
 ---
 
 # Goal
@@ -78,6 +79,7 @@ Revalidate exactly three dependency-ordered canonical foundation modules — `it
 - Open Canary PRs #451 and #453 are security-scoped and do not claim item/map runtime implementation ownership.
 - Core exact-blob checks already show Otheryn equals upstream for `src/items/items.cpp`, `src/items/item.cpp`, `src/io/iomap.cpp`, `src/map/map.cpp`, `src/map/map.hpp`, `src/items/tile.cpp`, `src/items/tile.hpp`, `src/map/mapcache.cpp`, `src/map/mapcache.hpp` and `src/map/spectators.cpp`.
 - Legacy Canary contains local deltas in at least `src/items/functions/item/item_parse.cpp`, `src/map/map.cpp`, `src/map/map.hpp`, `src/items/tile.cpp`, `src/items/tile.hpp` and `src/map/mapcache.cpp`; these are evidence candidates only and are not migration authorization.
+- Otheryn issue #22 is the bounded target-side tracking issue; Canary draft PR #455 is the governance boundary.
 
 # Investigation rules
 
@@ -101,10 +103,10 @@ Revalidate exactly three dependency-ordered canonical foundation modules — `it
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T06:45:00+02:00
-head: c2e181f892ce2f094e887f1da5c6c7df207629c9
+updated_at: 2026-07-17T07:32:00+02:00
+head: 205f0e8dd95cf19a52ea2e9250584b696db18868
 branch: docs/oam-007-item-world-runtime-revalidation
-pr: pending
+pr: 455
 status: investigating
 context_routes:
   - agent-governance
@@ -124,6 +126,7 @@ proven:
   - canonical dependency order is item-definitions -> item-instances -> world-map-runtime
   - Otheryn principal checked item/map runtime blobs are upstream-aligned
   - legacy contains bounded local item/map deltas that are not automatically authorized for target
+  - Otheryn issue 22 and Canary PR 455 bind the bounded cross-repository work
 unknown:
   - final disposition for each of the three modules
   - whether any legacy delta has proven target value
@@ -140,10 +143,11 @@ rejected_hypotheses:
   - world-zones or instances belong in OAM-007
 changed_paths:
   - docs/agents/tasks/active/CAN-20260717-oteryn-item-world-runtime-revalidation.md
+  - docs/agents/OTERYN_OAM_007_ITEM_WORLD_RUNTIME_REVALIDATION.md
 validation:
   - command: exact principal blob matrix
     result: IN_PROGRESS
     evidence: target/upstream alignment established for principal checked item/map files; remaining module paths and legacy-delta necessity review pending
 blockers: []
-next_action: Complete the exact module-path matrix and legacy-delta necessity review, then open the bounded governance PR and create a target issue/PR only if adaptation is proven necessary.
+next_action: Complete the exact module-path matrix and legacy-delta necessity review; create a target PR only if adaptation is proven necessary.
 ```
