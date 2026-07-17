@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: test/e2e-physical-movement
 base_branch: main
 created: 2026-07-17T08:19:00+02:00
-updated: 2026-07-17T08:19:00+02:00
-last_verified_commit: "c2e181f892ce2f094e887f1da5c6c7df207629c9"
+updated: 2026-07-17T08:25:00+02:00
+last_verified_commit: "b62efb510a44c5f052dade611633a14af84c7a9e"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "457"
 depends_on:
   - CAN-20260716-universal-e2e-gameplay-capabilities-v2
 blocks:
@@ -46,13 +46,13 @@ Add the first deterministic physical movement scenario on top of the merged Univ
 
 # Acceptance criteria
 
-- [ ] Use the existing `scenario.steps` contract and generic controlled-OTClient scenario driver.
+- [x] Use the existing `scenario.steps` contract and generic controlled-OTClient scenario driver.
 - [ ] Use an existing disposable test account/character and evidence-backed map fixture; do not invent coordinates.
 - [ ] Prove the exact first-session starting position from physical-client evidence.
 - [ ] Perform bounded controlled movement through a physically proven passable route.
 - [ ] Assert the exact expected post-movement position using deterministic client evidence markers.
-- [ ] Preserve the canonical first safe logout, persistence wait, relog with the same character, and second safe logout sentinel.
-- [ ] Keep `tools/e2e/**` and `.github/workflows/universal-agent-e2e.yml` unchanged unless a separately owned platform blocker is proven.
+- [x] Preserve the canonical first safe logout, persistence wait, relog with the same character, and second safe logout sentinel in the scenario contract.
+- [x] Keep `tools/e2e/**` and `.github/workflows/universal-agent-e2e.yml` unchanged unless a separately owned platform blocker is proven.
 - [ ] Pass focused scenario validation and applicable exact-head Universal Agent E2E/CI gates.
 - [ ] Audit the final changed-file list and merge only after the exact-final-head gate is green.
 
@@ -68,10 +68,10 @@ Add the first deterministic physical movement scenario on top of the merged Univ
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T08:19:00+02:00
-head: c2e181f892ce2f094e887f1da5c6c7df207629c9
+updated_at: 2026-07-17T08:25:00+02:00
+head: b62efb510a44c5f052dade611633a14af84c7a9e
 branch: test/e2e-physical-movement
-pr: null
+pr: 457
 status: active
 context_routes:
   - agent-governance
@@ -87,9 +87,12 @@ proven:
   - generic gameplay driver emits initial_position and exact post-movement position details
   - required_markers can assert exact event key/value pairs without changing the shared runner
   - canonical login/relog scenario remains available and unchanged
+  - draft PR 457 targets blakinio/canary main from blakinio/canary branch test/e2e-physical-movement
+  - exploratory scenario uses only the existing bounded actions observe_online walk wait and observe_position_changed
+  - shared tools/e2e and universal-agent-e2e workflow are unchanged
 unknown:
   - exact physical initial position for Knight 1 on the current downloaded otservbr map
-  - first proven passable bounded movement direction/path from that position
+  - whether the exploratory single east step is passable from that position
   - exact expected post-movement position
 conflicts: []
 rejected_hypotheses:
@@ -98,7 +101,8 @@ rejected_hypotheses:
   - change shared workflow before a concrete platform blocker is proven
 changed_paths:
   - docs/agents/tasks/active/CAN-20260717-physical-movement-e2e.md
+  - tests/e2e/scenarios/movement/physical-movement.json
 validation: []
 blockers: []
-next_action: Open the draft PR, add the smallest exploratory movement scenario using the existing action-plan driver, run physical E2E to capture exact initial/final position evidence, then pin the proven deterministic fixture and final assertions.
+next_action: Inspect PR 457 checks. Use the first full physical E2E result only as fixture-discovery evidence: capture initial_position and the exact position-changed detail if movement succeeds; if it fails, inspect the physical artifact rather than inventing a replacement coordinate.
 ```
