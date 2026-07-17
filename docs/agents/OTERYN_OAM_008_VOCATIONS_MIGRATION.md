@@ -1,6 +1,6 @@
 # OAM-008 — Vocations First Low-Risk Canonical Module Migration
 
-Status: implementing
+Status: ready
 
 ## Bounded scope
 
@@ -42,38 +42,57 @@ Rejected alternatives for this first package:
 | `src/creatures/players/vocations/vocation.hpp` | `537fc0c5b61f1e0026a96288d7da355d7c7c06e9` | same | same | identical |
 | `data/XML/vocations.xml` | `57c014e720bbe8d7f83501970c2b89976598cc3d` | same | same | identical |
 
-No vocation implementation or XML transfer is required because the exact task-start target already contains the same canonical module content.
+No vocation implementation or XML transfer was required because the exact task-start target already contained the same canonical module content.
 
-## Working disposition
+## Final disposition
 
-`vocations` → `REUSE` candidate.
+`vocations` → `REUSE`.
 
-This means OAM-008 accepts the already-present target implementation only after target compatibility and focused proof; it does not infer parity from file presence alone.
+The decision is based on exact canonical content identity plus target compatibility proof; it is not inferred from file presence alone.
 
-## Target proof package
+## Target proof and delivery
 
 Otheryn issue #24 tracks OAM-008.
 
-Otheryn draft PR #25, branch `test/oam-008-vocations-reuse-proof`, is proof-only:
+Otheryn PR #25 was proof-only and changed exactly:
 
-- adds focused unit coverage for case-insensitive vocation lookup;
-- adds focused unit coverage for promotion lookup semantics;
-- registers the test in the existing `canary_ut` target;
-- changes no `vocation.cpp`, `vocation.hpp` or `vocations.xml` content.
+- `tests/unit/players/vocation_test.cpp`;
+- `tests/unit/players/CMakeLists.txt`.
 
-The existing full target runtime path loads the same vocation XML during server startup, but OAM-008 does not substitute generic startup evidence for focused tests. OAM-009 remains the separate package for bounded target physical-client E2E proof.
+It changed no `vocation.cpp`, `vocation.hpp` or `vocations.xml` content.
 
-## Validation plan
+Final target PR head: `9453a1754501ce183e20d294df1064a5ccbad54c`.
 
-1. exact canonical registry/dependency/path refresh;
-2. exact target/legacy/upstream blob matrix;
-3. live open-PR ownership/overlap audit;
-4. target PR #25 focused unit tests and full exact-head CI;
-5. clean target comments/reviews/unresolved-thread gate;
-6. exact-head target merge if all gates pass;
-7. final Canary governance ownership/CI/review gates;
-8. separate lifecycle-only archive;
-9. only then OAM-009 may start.
+Exact-head target gates:
+
+- autofix.ci #77: PASS;
+- CI #88: PASS;
+- Required #84: PASS;
+- Linux debug `Run Tests`: PASS;
+- macOS build/runtime smoke: PASS;
+- Windows CMake build/runtime smoke: PASS;
+- Linux release build/runtime smokes: PASS;
+- clean final review state: zero comments, zero submitted reviews and zero unresolved review threads.
+
+The Linux debug test artifact `linux-debug-test-logs` recorded both focused tests as executed and passed among 325 CTest cases:
+
+1. `VocationsTest.LookupIsCaseInsensitiveAndUnknownFallsBackToNone` — PASS;
+2. `VocationsTest.PromotionLookupReturnsDistinctVocationWithMatchingBase` — PASS.
+
+Otheryn PR #25 squash-merged with exact-head guard as `f59a58426b4d3910ba0cdc0d2332c24f31a1db4f`.
+
+The target merge adds only durable focused acceptance coverage for an unchanged reused module.
+
+## Validation boundary
+
+OAM-008 acceptance proves:
+
+- exact target/legacy/upstream identity for the three canonical paths;
+- case-insensitive registry lookup and unknown-name fallback behavior;
+- promoted-vocation lookup behavior for a distinct vocation sharing the base relation;
+- clean full target CI/build/runtime smoke compatibility after adding the focused tests.
+
+The existing full target runtime path loads vocation configuration during server startup, but OAM-008 does not claim physical-client proof. OAM-009 remains the separate package for bounded target physical-client E2E.
 
 ## Known limits
 
@@ -81,4 +100,9 @@ The existing full target runtime path loads the same vocation XML during server 
 - No combat damage, spell/weapon eligibility or Wheel behavior is proven by this package.
 - No maintained-client source mutation is authorized or required.
 - No physical-client E2E is claimed by OAM-008; that proof is deliberately reserved for OAM-009.
-- Exact blob identity is provenance evidence, not sufficient by itself for `REUSE`; target tests and gates remain required.
+- This package does not broaden persistence or protocol claims.
+- The target test-only merge does not imply migration authorization for any other canonical module.
+
+## Next gate
+
+Finalize Canary governance PR #469 with the exact target merge evidence, shared program update, ownership/CI/review gates and separate lifecycle-only archival. Only after OAM-008 feature and lifecycle completion may OAM-009 begin.
