@@ -2,13 +2,13 @@
 task_id: CAN-20260716-security-malformed-status-parser
 program_id: CAN-PROGRAM-SECURITY-VALIDATION
 coordination_id: OTS-SEC-003
-status: review
+status: ready
 agent: "GPT-5.5 Thinking"
 branch: feat/security-malformed-status-parser
 base_branch: main
 created: 2026-07-16T23:57:00+02:00
-updated: 2026-07-17T07:15:00+02:00
-last_verified_commit: "979e69be26b3d383e6fe7971e1797f6fbd9eea4c"
+updated: 2026-07-17T08:21:00+02:00
+last_verified_commit: "dc8a01db3554cd79de51b1ee672d02048f062ab8"
 risk: high
 related_issue: ""
 related_pr: "451"
@@ -80,17 +80,19 @@ Deliver the first bounded runtime parser-resilience pack for common TCP framing 
 - Exact head `979e69be26b3d383e6fe7971e1797f6fbd9eea4c` passed repository CI, Agent Task Ownership, focused Security Validation, exact-head Linux release build and the real eight-case runtime pack.
 - Branch was synchronized with current `main` at merge head `e68d7f6c4c95f30204f09665984b0d9342b9ef15`; the exact diff is 11 intended files and PR #451 is mergeable.
 - Shared indexes preserve current-main content with only the SEC-003 changelog entry and Security Platform row update.
+- Review head `dc8a01db3554cd79de51b1ee672d02048f062ab8` passed repository CI, Security Validation including the real eight-case runtime, and Agent Task Ownership.
 - No review comments or unresolved review threads are present.
+- The `ci:final-gate` label was applied before this final readiness checkpoint commit.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T07:15:00+02:00
-head: e68d7f6c4c95f30204f09665984b0d9342b9ef15
+updated_at: 2026-07-17T08:21:00+02:00
+head: dc8a01db3554cd79de51b1ee672d02048f062ab8
 branch: feat/security-malformed-status-parser
 pr: 451
-status: validating
+status: ready
 context_routes:
   - agent-governance
   - universal-e2e
@@ -112,13 +114,16 @@ proven:
   - the reusable disposable Canary runtime callback is reused without a second lifecycle implementation
   - manifests cannot choose packet bytes commands credentials or network targets
   - distinct code-owned loopback sources isolate malformed and control checks while production throttles remain enabled
-  - CI and Agent Task Ownership passed on 979e69be26b3d383e6fe7971e1797f6fbd9eea4c
-  - Security Validation run 29557681411 passed focused checks exact-head Linux build and all eight runtime cases
-  - synchronized merge head e68d7f6c4c95f30204f09665984b0d9342b9ef15 is based on current main and contains exactly the 11 intended changed files
+  - Security Validation run 29557681411 passed focused checks exact-head Linux build and all eight runtime cases on the corrected implementation
+  - synchronized branch is based on current main and contains exactly the 11 intended changed files
+  - Agent Task Ownership run 29559128753 passed on review head dc8a01db3554cd79de51b1ee672d02048f062ab8
+  - Security Validation run 29559128897 passed on review head dc8a01db3554cd79de51b1ee672d02048f062ab8
+  - CI run 29559128815 passed on review head dc8a01db3554cd79de51b1ee672d02048f062ab8
+  - ci:final-gate label was applied before this final readiness checkpoint commit
 derived:
-  - the bounded SEC-003 implementation is ready for review-head validation and final-head merge gating
+  - the bounded SEC-003 implementation is ready for exact-final-head merge gating
 unknown:
-  - exact-final-head gate result after the final readiness checkpoint
+  - exact-final-head CI Security Validation and Agent Task Ownership results for the readiness commit
 conflicts: []
 first_failure:
   marker: runtime-harness-source-isolation
@@ -141,18 +146,18 @@ changed_paths:
   - tools/security/malformed_packet_runtime.py
   - tools/security/malformed_packet_runtime_runner.py
 validation:
-  - command: repository CI on 979e69be26b3d383e6fe7971e1797f6fbd9eea4c
-    result: PASS
-    evidence: CI completed successfully
-  - command: Agent Task Ownership on 979e69be26b3d383e6fe7971e1797f6fbd9eea4c
-    result: PASS
-    evidence: ownership validation completed successfully
   - command: Security Validation run 29557681411
     result: PASS
-    evidence: focused validation exact-head build and eight-case runtime completed successfully
-  - command: Agent Task Ownership on e68d7f6c4c95f30204f09665984b0d9342b9ef15
-    result: FAIL
-    evidence: checkpoint used two broad globs not declared by frontmatter; this commit replaces them with exact declared paths
+    evidence: focused validation exact-head build and eight-case runtime completed successfully on the corrected implementation
+  - command: Agent Task Ownership run 29559128753
+    result: PASS
+    evidence: ownership validation passed on review head dc8a01db3554cd79de51b1ee672d02048f062ab8
+  - command: Security Validation run 29559128897
+    result: PASS
+    evidence: focused validation exact-head Linux build and eight-case runtime passed on review head dc8a01db3554cd79de51b1ee672d02048f062ab8
+  - command: CI run 29559128815
+    result: PASS
+    evidence: full review-head CI matrix passed on dc8a01db3554cd79de51b1ee672d02048f062ab8
 blockers: []
-next_action: Verify CI Security Validation and Agent Task Ownership on this corrected review head. If all pass, apply ci:final-gate before one final ready checkpoint commit, make no post-green commit, and squash-merge PR 451 only after exact-head checks are green.
+next_action: Let exact-final-head workflows run on this readiness commit. Make no further commits. If CI Security Validation and Agent Task Ownership all pass on the same head and PR 451 remains mergeable with no review blockers, squash merge and complete lifecycle archival.
 ```
