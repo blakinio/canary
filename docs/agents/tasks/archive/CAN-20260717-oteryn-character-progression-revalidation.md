@@ -2,13 +2,13 @@
 task_id: CAN-20260717-oteryn-character-progression-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-010
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: docs/oam-010-character-progression-revalidation
 base_branch: main
 created: 2026-07-17T22:03:00+02:00
-updated: 2026-07-17T23:21:00+02:00
-last_verified_commit: "f4889ab38cc3d39f1cf82d5eddea84c1442f0fe4"
+updated: 2026-07-17T23:25:01Z
+last_verified_commit: "f140a0e62cdcd1eaac39ab9b721d83e528ac3dae"
 risk: medium
 related_issue: ""
 related_pr: "509"
@@ -53,6 +53,7 @@ public_interfaces:
   - offline-training state
   - death-loss and blessing-related progression consequences
 cross_repo_tasks: []
+completed: 2026-07-17T23:25:01Z
 ---
 
 # Goal
@@ -175,3 +176,11 @@ validation:
 blockers: []
 next_action: Require exact-head Ownership and CI on this ready checkpoint head; if green, mark PR 509 ready, require ready-state gates, audit comments reviews threads and current main, then squash merge with expected_head_sha and complete separate lifecycle/archive plus durable program reconciliation before OAM-011.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #509.
+- Feature head: `3d39b70ec5ae1271c3d1063c6d332b219adef338`.
+- Merge commit: `f140a0e62cdcd1eaac39ab9b721d83e528ac3dae`.
+- Merged at: `2026-07-17T23:25:01Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
