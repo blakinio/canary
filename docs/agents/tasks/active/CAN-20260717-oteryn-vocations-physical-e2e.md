@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: test/oam-009-vocations-physical-e2e
 base_branch: main
 created: 2026-07-17T16:50:00+02:00
-updated: 2026-07-17T16:52:00+02:00
-last_verified_commit: "dc2d273534eca39517f43cddb74c6f798458e6e4"
+updated: 2026-07-17T16:54:00+02:00
+last_verified_commit: "a177e6cca5c0db6dc15a6f56ea059fd8dfe59260"
 risk: low
 related_issue: ""
 related_pr: "489"
@@ -71,8 +71,8 @@ The claim is intentionally bounded to successful physical login resolving vocati
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T16:52:00+02:00
-head: dc2d273534eca39517f43cddb74c6f798458e6e4
+updated_at: 2026-07-17T16:54:00+02:00
+head: a177e6cca5c0db6dc15a6f56ea059fd8dfe59260
 branch: test/oam-009-vocations-physical-e2e
 pr: 489
 status: implementing
@@ -103,7 +103,9 @@ unknown:
   - exact physical workflow run id
   - exact artifact digest and executable hashes
 conflicts: []
-first_failure: null
+first_failure:
+  marker: none active
+  evidence: no OAM-009 runtime validation failure has been observed; the initial ownership failure was task-checkpoint formatting only
 rejected_hypotheses:
   - successful aggregate CI without physical client evidence proves target vocation resolution
   - SQL assertion alone proves runtime registry resolution
