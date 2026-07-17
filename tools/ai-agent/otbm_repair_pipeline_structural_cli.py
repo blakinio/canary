@@ -40,8 +40,8 @@ def add_structural_parsers(
         (TILE_DELETION_MODE, False, False, "Approved complete raw tile deletion."),
         (TILE_TYPE_CONVERSION_MODE, True, False, "Approved same-coordinate TILE/HOUSETILE conversion."),
     )
-    for mode, donor, plan in specs:
-        parser = subparsers.add_parser(mode, help=specs[0][3] if mode == TILE_AREA_MODE else specs[[s[0] for s in specs].index(mode)][3])
+    for mode, donor, plan, help_text in specs:
+        parser = subparsers.add_parser(mode, help=help_text)
         add_common(parser)
         parser.add_argument("--current-map", type=path_type, required=True)
         if donor:
