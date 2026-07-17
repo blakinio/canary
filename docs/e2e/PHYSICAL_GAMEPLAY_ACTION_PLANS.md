@@ -46,7 +46,7 @@ Server selection changes only which repository-owned datapack/map the canonical 
 | `observe_floor_delta` | `id`, `action`, `delta` | — | Assert a bounded z-floor delta relative to the initial first-session position. |
 | `observe_health_percent_below` | `id`, `action`, `percent` | — | Assert current health percentage is below the declared threshold. |
 | `observe_inventory_count_at_least` | `id`, `action`, `item_id`, `count` | `tier` | Assert a minimum local-player inventory count. |
-| `wait_creature` | `id`, `action`, `creature`, `present`, `timeout_ms` | — | Poll bounded visible-creature presence or absence. |
+| `wait_creature` | `id`, `action`, `creature`, `present` | `timeout_ms` | Poll bounded visible-creature presence or absence. |
 | `observe_attacking` | `id`, `action`, `expected` | — | Assert whether the client currently has an attacking target. |
 
 Directions accepted by `walk` are `north`, `east`, `south`, `west`, `northeast`, `southeast`, `southwest` and `northwest`.
