@@ -2,13 +2,13 @@
 task_id: CAN-20260717-otbm-tile-deletion
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-tile-deletion
 base_branch: main
 created: 2026-07-17T16:15:00+02:00
-updated: 2026-07-17T16:55:00+02:00
-last_verified_commit: "349e453fc8107418c439eeda447dfb78aced7919"
+updated: 2026-07-17T15:36:01Z
+last_verified_commit: "59fd2eed488e365d2759bffc69526fc87838dd77"
 risk: high
 related_issue: ""
 related_pr: "488"
@@ -52,6 +52,7 @@ public_interfaces:
   - canary-otbm-tile-deletion-approval-v1
   - canary-otbm-tile-deletion-result-v1
 cross_repo_tasks: []
+completed: 2026-07-17T15:36:01Z
 ---
 
 # Goal
@@ -162,3 +163,11 @@ validation:
 blockers: []
 next_action: Treat this checkpoint-only commit as the exact final feature head; make no further feature commits, require exact-final-head ownership, OTBM Map Tools, AI Agent Tools and Ready-triggered full final-gate CI success, then squash merge and archive the task in a separate lifecycle PR.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #488.
+- Feature head: `ab97944bd1e3b6dc4272d19ef14f9b33d8b30a2e`.
+- Merge commit: `59fd2eed488e365d2759bffc69526fc87838dd77`.
+- Merged at: `2026-07-17T15:36:01Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
