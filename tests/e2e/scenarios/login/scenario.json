@@ -44,7 +44,8 @@
     ],
     "sql": [
       "SELECT lastlogin > 0 FROM players WHERE name = 'Knight 1'",
-      "SELECT lastlogout > 0 FROM players WHERE name = 'Knight 1'"
+      "SELECT lastlogout > 0 FROM players WHERE name = 'Knight 1'",
+      "SELECT vocation = 4 FROM players WHERE name = 'Knight 1'"
     ]
   },
   "artifacts": [
