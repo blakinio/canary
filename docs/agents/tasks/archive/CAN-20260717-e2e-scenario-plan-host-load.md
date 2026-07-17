@@ -2,13 +2,13 @@
 task_id: CAN-20260717-e2e-scenario-plan-host-load
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: OTS-E2E-PLAN-LOAD-001
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: fix/e2e-scenario-plan-host-load
 base_branch: main
 created: 2026-07-17T15:42:00+02:00
-updated: 2026-07-17T16:04:00+02:00
-last_verified_commit: "ddf231b96b3cac1ae0903974f80f8d9e9ae0ad4e"
+updated: 2026-07-17T15:12:30Z
+last_verified_commit: "07cbcfd92ceaeb5b22edb0eee7c586f3aa6f4854"
 risk: medium
 related_issue: ""
 related_pr: "483"
@@ -34,6 +34,7 @@ reuses:
   - existing Universal Agent E2E workflow and physical runner
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-17T15:12:30Z
 ---
 
 # Goal
@@ -122,3 +123,11 @@ validation:
 blockers: []
 next_action: Make no further feature-branch changes. Require exact-final-head Ownership, CI and Universal Agent E2E success, then mark ready and squash merge PR 483; after lifecycle cleanup, retrigger PR 481 on the new main and inspect the physical movement artifact.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #483.
+- Feature head: `e84872ad3feaf158c22dfd4c1ad2859b0e5f5c4b`.
+- Merge commit: `07cbcfd92ceaeb5b22edb0eee7c586f3aa6f4854`.
+- Merged at: `2026-07-17T15:12:30Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.

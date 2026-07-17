@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "canary-otbm-tile-deletion-result-v1",
+  "title": "Canary OTBM tile deletion result v1",
+  "type": "object",
+  "required": ["format", "schemaVersion", "ok", "structuralVerificationComplete", "source", "approval", "selection", "rawConfinement", "deletedWorldIndex", "verification", "rollback", "safety"],
+  "properties": {
+    "format": {"const": "canary-otbm-tile-deletion-result-v1"},
+    "schemaVersion": {"const": 1},
+    "ok": {"const": true},
+    "structuralVerificationComplete": {"const": true},
+    "source": {"type": "object"},
+    "approval": {
+      "type": "object",
+      "required": ["path", "sha256", "format"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "format": {"const": "canary-otbm-tile-deletion-approval-v1"}
+      },
+      "additionalProperties": false
+    },
+    "selection": {
+      "type": "object",
+      "required": ["positions", "count", "translation", "operation"],
+      "properties": {
+        "positions": {"type": "array", "minItems": 1, "maxItems": 4096},
+        "count": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "translation": {"const": [0, 0, 0]},
+        "operation": {"const": "delete-existing-same-coordinate-tile"}
+      },
+      "additionalProperties": false
+    },
+    "rawConfinement": {"type": "object"},
+    "deletedWorldIndex": {"type": "array", "minItems": 1, "maxItems": 4096},
+    "verification": {
+      "type": "object",
+      "required": ["nativeReparse", "worldIndexRebuilt", "deletedTilesAbsent", "retainedCurrentByteSequenceExact", "parentTileAreasPreserved", "semanticDiff"],
+      "properties": {
+        "nativeReparse": {"const": true},
+        "worldIndexRebuilt": {"const": true},
+        "deletedTilesAbsent": {"const": true},
+        "retainedCurrentByteSequenceExact": {"const": true},
+        "parentTileAreasPreserved": {"const": true},
+        "semanticDiff": {"type": "object"}
+      }
+    },
+    "rollback": {"type": "object"},
+    "safety": {
+      "type": "object",
+      "required": ["sourceInPlaceWrite", "fullMapSerializer", "translatedImport", "tileInsertion", "tileReplacement", "tileDeletion", "tileAreaDeletion", "itemStackEditing", "arbitraryNodeSerialization", "rawCompleteTileSubtreesOnly", "sameCoordinateOnly", "parentTileAreaPreserved", "separateApprovalRequired", "gameplayCorrectnessProven", "physicalClientE2EProven"],
+      "properties": {
+        "sourceInPlaceWrite": {"const": false},
+        "fullMapSerializer": {"const": false},
+        "translatedImport": {"const": false},
+        "tileInsertion": {"const": false},
+        "tileReplacement": {"const": false},
+        "tileDeletion": {"const": true},
+        "tileAreaDeletion": {"const": false},
+        "itemStackEditing": {"const": false},
+        "arbitraryNodeSerialization": {"const": false},
+        "rawCompleteTileSubtreesOnly": {"const": true},
+        "sameCoordinateOnly": {"const": true},
+        "parentTileAreaPreserved": {"const": true},
+        "separateApprovalRequired": {"const": true},
+        "gameplayCorrectnessProven": {"const": false},
+        "physicalClientE2EProven": {"const": false}
+      },
+      "additionalProperties": false
+    }
+  }
+}
