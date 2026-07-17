@@ -2,13 +2,13 @@
 task_id: CAN-20260717-oteryn-vocations-migration
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: "OAM-008"
-status: ready
+status: completed
 agent: oteryn-architecture-migration-agent
 branch: docs/oam-008-vocations-migration
 base_branch: main
 created: 2026-07-17T10:10:00+02:00
-updated: 2026-07-17T10:38:00+02:00
-last_verified_commit: "317c1c4235377c388883aa2fd425d324f8ce4d2e"
+updated: 2026-07-17T08:53:06Z
+last_verified_commit: "acdddd924fed170da51a8a54114607842f0cbb68"
 risk: low
 related_issue: "24"
 related_pr: "469"
@@ -48,6 +48,7 @@ public_interfaces:
 cross_repo_tasks:
   - blakinio/Otheryn#24
   - blakinio/Otheryn#25
+completed: 2026-07-17T08:53:06Z
 ---
 
 # Final disposition
@@ -136,3 +137,11 @@ validation:
 blockers: []
 next_action: Update the shared Oteryn migration program with OAM-008 REUSE and final target merge, then pass Canary PR 469 exact-head draft and ready ownership/CI/review gates, squash-merge, and archive OAM-008 in a separate lifecycle-only PR. Keep OAM-009 blocked until lifecycle completion.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #469.
+- Feature head: `c5c53dcbacabe48c08ebaf70f0a0622f70784aa6`.
+- Merge commit: `acdddd924fed170da51a8a54114607842f0cbb68`.
+- Merged at: `2026-07-17T08:53:06Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
