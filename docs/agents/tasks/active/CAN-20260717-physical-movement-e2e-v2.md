@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: test/e2e-physical-movement-v2
 base_branch: main
 created: 2026-07-17T15:03:00+02:00
-updated: 2026-07-17T15:03:00+02:00
-last_verified_commit: "9bb6ffe2941a447eff4166cecc714992db166d93"
+updated: 2026-07-17T15:07:00+02:00
+last_verified_commit: "034cc170640a660735b9bb1f03e86f9eae4af3e8"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "481"
 depends_on:
   - CAN-20260717-e2e-pr-scenario-selection
 blocks:
@@ -57,10 +57,10 @@ Retry the bounded physical movement scenario now that merged PR #477 can automat
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T15:03:00+02:00
-head: 9bb6ffe2941a447eff4166cecc714992db166d93
+updated_at: 2026-07-17T15:07:00+02:00
+head: 034cc170640a660735b9bb1f03e86f9eae4af3e8
 branch: test/e2e-physical-movement-v2
-pr: null
+pr: 481
 status: implementing
 context_routes:
   - universal-e2e
@@ -71,7 +71,8 @@ owned_paths:
 proven:
   - original PR 457 was closed without merge because selected workflow dispatch was unavailable at that time
   - archived task CAN-20260717-physical-movement-e2e explicitly permits a future retry when an authorized selected-run surface exists
-  - PR 477 is now merged and adds deterministic same-repository PR selection when exactly one existing scenario manifest is changed
+  - PR 477 is merged and adds deterministic same-repository PR selection when exactly one existing scenario manifest is changed
+  - PR 481 changes exactly one scenario manifest plus this task record
   - physical packet evidence from the prior task proves first-session start at 32369,32241,7
   - exact-map static evidence identifies east neighbor 32370,32241,7 only as a candidate, not movement proof
 unknown:
@@ -88,5 +89,5 @@ changed_paths:
   - tests/e2e/scenarios/movement/physical-movement.json
 validation: []
 blockers: []
-next_action: Open a draft PR and let the merged same-repository selector run movement/physical-movement; inspect only the resulting physical artifact before pinning the final position.
+next_action: Let the PR synchronize event run movement/physical-movement through the merged selector; inspect only the resulting physical artifact before pinning the final position.
 ```
