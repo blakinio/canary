@@ -151,15 +151,21 @@ class GameSessionRuntimeTests(unittest.TestCase):
         with self.assertRaisesRegex(runtime.ProbeFailure, "challenge-checksum-mismatch"):
             runtime.decode_game_challenge(bytes(corrupted))
 
-    def test_game_login_packet_is_deterministic_for_fixed_challenge_and_uses_sequence_one(self) -> None:
+    def test_game_login_packet_matches_current_pre_xtea_adler_envelope(self) -> None:
         challenge = runtime.GameChallenge(0x12345678, 0x5A, "fixed")
         packet = runtime.build_game_login_packet("@test1", "test", "Knight 1", challenge)
-        self.assertEqual(len(packet), 166)
-        self.assertEqual(int.from_bytes(packet[:2], "little"), 20)
-        self.assertEqual(int.from_bytes(packet[2:6], "little"), 1)
+        self.assertEqual(len(packet), 158)
+        self.assertEqual(int.from_bytes(packet[:2], "little"), 19)
+        self.assertEqual(
+            int.from_bytes(packet[2:6], "little"),
+            zlib.adler32(packet[6:]) & 0xFFFFFFFF,
+        )
+        self.assertEqual(packet[6], 5)
+        self.assertEqual(packet[7], runtime.CLIENT_PENDING_GAME_OPCODE)
+        self.assertEqual(int.from_bytes(packet[8:10], "little"), runtime.CLIENT_OS_WINDOWS)
         self.assertEqual(
             hashlib.sha256(packet).hexdigest(),
-            "5d8b421a401e1580bb4ea2535529093de8956a4b72385ee50f68f5c0a18c1bd6",
+            "5f0d262b97422747790831b6bf1d2becb95424df6dcce0bc5e2951b715717145",
         )
 
     def test_xtea_round_trip_and_client_frame_shape(self) -> None:
