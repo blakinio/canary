@@ -2,13 +2,13 @@
 task_id: CAN-20260717-otbm-tile-insertion
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-tile-insertion
 base_branch: main
 created: 2026-07-17T15:15:00+02:00
-updated: 2026-07-17T15:47:00+02:00
-last_verified_commit: "00f4d4878943981b6ebdc9fc5372d142669bbd1e"
+updated: 2026-07-17T14:09:05Z
+last_verified_commit: "fd9630037a66044dd6dbc72beeb8571e74d4d431"
 risk: high
 related_issue: ""
 related_pr: "482"
@@ -51,6 +51,7 @@ public_interfaces:
   - canary-otbm-tile-insertion-approval-v1
   - canary-otbm-tile-insertion-result-v1
 cross_repo_tasks: []
+completed: 2026-07-17T14:09:05Z
 ---
 
 # Goal
@@ -154,3 +155,11 @@ validation:
 blockers: []
 next_action: Treat this checkpoint-only commit as the exact final feature head; make no further feature commits, require exact-final-head ownership, OTBM Map Tools, AI Agent Tools and ci:final-gate full CI success, then squash merge.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #482.
+- Feature head: `65a285220657d3de01c8cc1c8fd54941467d7a1c`.
+- Merge commit: `fd9630037a66044dd6dbc72beeb8571e74d4d431`.
+- Merged at: `2026-07-17T14:09:05Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
