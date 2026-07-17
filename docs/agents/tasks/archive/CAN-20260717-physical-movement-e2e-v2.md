@@ -2,13 +2,13 @@
 task_id: CAN-20260717-physical-movement-e2e-v2
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: OTS-E2E-MOVEMENT-002
-status: review
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: test/e2e-physical-movement-v2
 base_branch: main
 created: 2026-07-17T15:03:00+02:00
-updated: 2026-07-17T21:12:29+02:00
-last_verified_commit: "95a5c67296d479a22274bf5f4b588071ecbacacb"
+updated: 2026-07-17T19:47:09Z
+last_verified_commit: "bbf5aaace311e59e3b46e3dbd0707de87bd6e9f4"
 risk: medium
 related_issue: ""
 related_pr: "481"
@@ -38,6 +38,7 @@ reuses:
   - canonical two-session login/logout/relog persistence sentinel
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-17T19:47:09Z
 ---
 
 # Goal
@@ -141,3 +142,11 @@ validation:
 blockers: []
 next_action: Require exact-final-head Agent Task Ownership, CI, Physical client / movement/physical-movement and Required physical E2E success on this new final checkpoint head; if current main remains unchanged, squash merge PR 481 with expected_head_sha and then complete lifecycle archive.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #481.
+- Feature head: `43dfb22b2546a06eca6ebfc48e0fe66491369d46`.
+- Merge commit: `bbf5aaace311e59e3b46e3dbd0707de87bd6e9f4`.
+- Merged at: `2026-07-17T19:47:09Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
