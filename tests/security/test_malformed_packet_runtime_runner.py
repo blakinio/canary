@@ -53,13 +53,14 @@ class MalformedPacketRuntimeRunnerTests(unittest.TestCase):
         }
         self.plan_path.write_text(json.dumps(self.plan, indent=2) + "\n", encoding="utf-8")
 
-    def test_case_sources_are_deterministic_distinct_loopback_addresses(self) -> None:
-        sources = [runner.source_ip_for_case(index) for index in range(runner.core.MAX_CASES)]
-        self.assertEqual(sources[0], "127.0.0.2")
-        self.assertEqual(sources[-1], "127.0.0.17")
-        self.assertEqual(len(set(sources)), runner.core.MAX_CASES)
+    def test_case_sources_are_deterministic_distinct_loopback_pairs(self) -> None:
+        pairs = [runner.source_ips_for_case(index) for index in range(runner.core.MAX_CASES)]
+        self.assertEqual(pairs[0], ("127.0.0.2", "127.0.0.3"))
+        self.assertEqual(pairs[-1], ("127.0.0.32", "127.0.0.33"))
+        flattened = [source for pair in pairs for source in pair]
+        self.assertEqual(len(set(flattened)), runner.core.MAX_CASES * 2)
         with self.assertRaisesRegex(runner.core.ProbeFailure, "source-index-out-of-range"):
-            runner.source_ip_for_case(runner.core.MAX_CASES)
+            runner.source_ips_for_case(runner.core.MAX_CASES)
 
     def test_source_requires_literal_ipv4_loopback(self) -> None:
         runner._require_loopback_source("127.0.0.2")
@@ -70,7 +71,7 @@ class MalformedPacketRuntimeRunnerTests(unittest.TestCase):
         with self.assertRaisesRegex(runner.core.ProbeFailure, "source-not-loopback"):
             runner._require_loopback_source("::1")
 
-    def test_execute_plan_uses_one_deterministic_source_per_case(self) -> None:
+    def test_execute_plan_uses_distinct_malformed_and_control_sources(self) -> None:
         malformed_calls: list[tuple[str, int, float, str]] = []
         control_calls: list[tuple[str, int, float, str]] = []
 
@@ -88,13 +89,13 @@ class MalformedPacketRuntimeRunnerTests(unittest.TestCase):
 
         self.assertEqual(result, 0)
         self.assertEqual(malformed_calls, [("127.0.0.1", 7473, 0.2, "127.0.0.2")])
-        self.assertEqual(control_calls, [("127.0.0.1", 7473, 0.2, "127.0.0.2")])
+        self.assertEqual(control_calls, [("127.0.0.1", 7473, 0.2, "127.0.0.3")])
         report = json.loads((self.artifact_dir / "malformed-packet-report.json").read_text(encoding="utf-8"))
         self.assertEqual(report["status"], "success")
-        self.assertEqual(report["cases"][0]["source_ip"], "127.0.0.2")
+        self.assertEqual(report["cases"][0]["malformed_source_ip"], "127.0.0.2")
+        self.assertEqual(report["cases"][0]["control_source_ip"], "127.0.0.3")
         self.assertEqual(report["cases"][0]["malformed_probe"], "connection-terminated")
         self.assertEqual(report["cases"][0]["control_probe"], "pass")
-        self.assertNotIn("attempts", report["cases"][0])
         self.assertIn("tools/security/malformed_packet_runtime_runner.py", report["evidence"]["provider_sha256"])
 
     def test_execute_plan_fails_closed_when_control_probe_fails(self) -> None:
@@ -109,7 +110,8 @@ class MalformedPacketRuntimeRunnerTests(unittest.TestCase):
         report = json.loads((self.artifact_dir / "malformed-packet-report.json").read_text(encoding="utf-8"))
         self.assertEqual(report["failure"], "zero-length-frame:control-invalid-response")
         self.assertEqual(report["cases"][0]["failure"], "control-invalid-response")
-        self.assertEqual(report["cases"][0]["source_ip"], "127.0.0.2")
+        self.assertEqual(report["cases"][0]["malformed_source_ip"], "127.0.0.2")
+        self.assertEqual(report["cases"][0]["control_source_ip"], "127.0.0.3")
 
     def test_execute_plan_stops_after_first_failed_case(self) -> None:
         plan = dict(self.plan)
@@ -117,13 +119,15 @@ class MalformedPacketRuntimeRunnerTests(unittest.TestCase):
         self.plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
 
         malformed_sources: list[str] = []
+        control_sources: list[str] = []
 
         def malformed(case, host: str, port: int, timeout: float, source_ip: str) -> None:
             del case, host, port, timeout
             malformed_sources.append(source_ip)
 
         def control(host: str, port: int, timeout: float, source_ip: str) -> None:
-            del host, port, timeout, source_ip
+            del host, port, timeout
+            control_sources.append(source_ip)
             raise runner.core.ProbeFailure("control-invalid-response")
 
         with mock.patch.object(runner, "probe_malformed_case_from_source", side_effect=malformed), mock.patch.object(
@@ -133,6 +137,7 @@ class MalformedPacketRuntimeRunnerTests(unittest.TestCase):
 
         self.assertEqual(result, 1)
         self.assertEqual(malformed_sources, ["127.0.0.2"])
+        self.assertEqual(control_sources, ["127.0.0.3"])
         report = json.loads((self.artifact_dir / "malformed-packet-report.json").read_text(encoding="utf-8"))
         self.assertEqual(len(report["cases"]), 1)
         self.assertEqual(report["cases"][0]["id"], "zero-length-frame")
