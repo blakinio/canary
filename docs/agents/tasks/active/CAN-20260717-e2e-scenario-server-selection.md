@@ -2,13 +2,13 @@
 task_id: CAN-20260717-e2e-scenario-server-selection
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: OTS-E2E-SERVER-SELECTION-001
-status: implementing
+status: ready
 agent: "GPT-5.5 Thinking"
 branch: feat/e2e-scenario-server-selection
 base_branch: main
 created: 2026-07-17T09:55:00+02:00
 updated: 2026-07-17T10:42:00+02:00
-last_verified_commit: "8ea5e5164ac77bc822dad527897d8a87e1c55c7b"
+last_verified_commit: "5628b2bb69bd5291b21d01d996ee744d5a96a1cc"
 risk: medium
 related_issue: ""
 related_pr: "468"
@@ -62,8 +62,8 @@ Make the already-declared `scenario.server.datapack` and `scenario.server.map` f
 - [x] Keep the controlled OTClient driver unchanged and preserve the single existing Universal Agent E2E workflow.
 - [x] Ensure changes to the server-selection helper trigger that existing physical E2E workflow.
 - [x] Add focused regression coverage for safe-name rejection, repository confinement, default global selection, repository-local non-default selection, nested symlink escape and environment materialization.
-- [ ] Pass exact-head applicable CI and Universal Agent E2E while preserving canonical login/relog behavior.
-- [ ] Audit final changed paths and merge only after the exact-final-head gate is green.
+- [ ] Pass exact-final-head applicable CI and Universal Agent E2E while preserving canonical login/relog behavior.
+- [x] Audit final changed paths, synchronize with current main, clear reviews/threads and apply the exact-final-head gate before the final checkpoint commit.
 
 # Proven blocker
 
@@ -77,10 +77,10 @@ Make the already-declared `scenario.server.datapack` and `scenario.server.map` f
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-17T10:42:00+02:00
-head: 8ea5e5164ac77bc822dad527897d8a87e1c55c7b
+head: 5628b2bb69bd5291b21d01d996ee744d5a96a1cc
 branch: feat/e2e-scenario-server-selection
 pr: 468
-status: implementing
+status: ready
 context_routes:
   - agent-governance
   - universal-e2e
@@ -94,15 +94,14 @@ owned_paths:
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
 proven:
-  - current task base is blakinio/canary main 317c1c4235377c388883aa2fd425d324f8ce4d2e
-  - draft PR 468 is the authoritative delivery branch for this task
+  - draft PR 468 was opened early and is now marked ready for review
   - Universal OTS E2E action-plan platform from PR 446 is merged and is extended rather than replaced
   - scenario validation already requires non-empty server.datapack and server.map strings
   - canonical login/relog scenario declares data-otservbr-global and otservbr
   - InstanceArenaService configured regions are backed by data-canary/world/canary.otbm rather than the downloaded otservbr map
   - exact-hash physical otservbr map contains zero tiles in both configured Instance Arena region boxes
   - open PR 457 owns only its movement scenario/task record and explicitly keeps shared tools/e2e and the workflow read-only absent a separately owned platform blocker
-  - no other live open PR found in the latest overlap audit owns this task's server-selection helper or workflow path
+  - latest overlap audits found no competing owner for this task's server-selection helper or workflow path
   - tools/e2e/server_selection.py resolves only safe single-segment datapack/map names inside the repository and rejects datapack, world and map symlink/path escape
   - only the canonical data-otservbr-global/otservbr pair retains the existing configured map-download fallback
   - non-default selected maps must already exist and be non-empty under the selected datapack world directory
@@ -112,17 +111,22 @@ proven:
   - controlled OTClient driver and canonical login/relog scenario remain unchanged
   - workflow change is limited to adding tools/e2e/server_selection.py to the existing pull_request path filter so helper-only changes cannot bypass physical E2E
   - workflow patch audit shows exactly that one added path and no other workflow drift
-  - module-catalog patch audit is confined to the existing Universal OTS E2E row
-  - changelog patch audit is confined to one new server-selection bullet after restoring two accidental unrelated text drifts
-  - focused local validation of the current helper/test contents passed py_compile and 8 of 8 unittests
-  - PR diff contains only the bounded server-selection implementation, focused tests, one existing workflow path-filter line, task and discovery documentation
+  - module-catalog patch audit is confined to the existing Universal OTS E2E row while preserving newer main entries
+  - changelog patch audit is confined to one new server-selection bullet while preserving newer main entries
+  - focused local validation passed py_compile and 8 of 8 server-selection unittests
+  - final changed-file audit contains exactly eight bounded server-selection/task/discovery paths
+  - pull-request review-thread audit found no unresolved review threads and review audit found no submitted reviews requiring action
+  - branch was synchronized with current main through a normal non-force merge commit before final-gate preparation
+  - ci:final-gate label was applied before this final checkpoint commit
+  - this checkpoint commit is intended to be the final feature-branch commit; no post-green feature commit is permitted
+
 derived:
   - honoring the existing manifest server fields is the smallest reusable change that can let future physical scenarios select the already-reviewed data-canary arena map without duplicating lifecycle code
   - arbitrary map download support is unnecessary and remains disallowed for non-default selections
-  - adding the helper to the existing workflow path filter is safer and smaller than refactoring the 500-line scenario resolver solely to inherit an existing trigger
+  - adding the helper to the existing workflow path filter is safer and smaller than refactoring the large scenario resolver solely to inherit an existing trigger
   - a later combat task can own its privileged account/player fixture separately without broadening this platform prerequisite
 unknown:
-  - exact-head CI and Universal Agent E2E conclusion after the final implementation/workflow batch
+  - exact-final-head CI and Universal Agent E2E conclusions after this final checkpoint commit
   - whether data-canary physical login succeeds with a later dedicated combat fixture; this task does not claim that runtime proof
 conflicts: []
 first_failure:
@@ -157,6 +161,15 @@ validation:
   - command: PR diff audit for .github/workflows/universal-agent-e2e.yml
     result: PASS
     evidence: exactly one pull_request path-filter entry was added for tools/e2e/server_selection.py
+  - command: final changed-file and shared-document diff audit
+    result: PASS
+    evidence: exactly eight expected paths; changelog and module catalogue preserve newer main entries and contain only the bounded #468 discovery changes
+  - command: review and overlap audit
+    result: PASS
+    evidence: no unresolved review threads, no submitted reviews requiring action and no competing live owner for the server-selection paths
+  - command: final-gate preparation
+    result: PASS
+    evidence: PR marked ready and ci:final-gate applied before this final checkpoint commit
 blockers: []
-next_action: Wait for current exact-head ownership/CI/physical-E2E results, synchronize with current main if it advanced, then mark the PR ready, apply ci:final-gate before the final checkpoint commit, make the final checkpoint the last commit, and require exact-final-head green evidence before squash merge.
+next_action: Make no further feature-branch changes. Require Agent Task Ownership, CI and full Universal Agent E2E success on the exact final checkpoint head; recheck current main/reviews before merge; squash merge only if all exact-head evidence is green, otherwise repair the concrete failure and repeat final-gate preparation.
 ```
