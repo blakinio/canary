@@ -4,7 +4,7 @@
   "suite": "movement",
   "name": "Physical client movement fixture discovery probe",
   "program_id": "CAN-PROGRAM-E2E-PLATFORM",
-  "description": "Probe one bounded real-client movement request on the disposable Canary world while preserving the canonical logout, persistence, and relog sentinel. This is fixture-discovery input until a selected physical run proves the exact start and resulting position markers.",
+  "description": "Probe one bounded real-client movement request on the disposable Canary world while preserving the canonical logout, persistence, and relog sentinel. The exact first-session start is pinned from physical login evidence; the route remains fixture-discovery input until a selected physical movement run proves the resulting position.",
   "client": {
     "repository": "blakinio/otclient",
     "ref": "2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f",
@@ -55,6 +55,7 @@
     "required_markers": [
       "ping_features_1=disabled",
       "login_1=success",
+      "initial_position=32369,32241,7",
       "online_stable_1=confirmed",
       "step_online=success",
       "step_east-one=success",
