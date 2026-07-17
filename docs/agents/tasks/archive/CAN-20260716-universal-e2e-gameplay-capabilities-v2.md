@@ -2,13 +2,13 @@
 task_id: CAN-20260716-universal-e2e-gameplay-capabilities-v2
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: "OTS-E2E-GAMEPLAY-V1"
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/universal-e2e-gameplay-capabilities-v3
 base_branch: main
 created: 2026-07-16T22:30:00+02:00
-updated: 2026-07-16T23:51:53+02:00
-last_verified_commit: "a0d0b09a876d544044edd6fa747e0727f26250cf"
+updated: 2026-07-17T04:31:53Z
+last_verified_commit: "16f4d4ca83ff172baf135067087be81f938f2c5b"
 risk: high
 related_issue: ""
 related_pr: "446"
@@ -45,6 +45,7 @@ public_interfaces:
   - generated scenario-plan.lua
   - generic agent_e2e_scenario.lua driver
 cross_repo_tasks: []
+completed: 2026-07-17T04:31:53Z
 ---
 
 # Goal
@@ -130,3 +131,19 @@ validation:
 blockers: []
 next_action: Let all ci:final-gate workflows finish on this exact final head. If they succeed, make no further commit; audit reviews, threads, changed paths and mergeability, then squash-merge PR 446 with the exact expected head SHA.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #446.
+- Feature head: `2df017d2cbf4a98a810adad6fc0ad396bdb4a379`.
+- Merge commit: `16f4d4ca83ff172baf135067087be81f938f2c5b`.
+- Merged at: `2026-07-17T04:31:53Z`.
+- This record was moved from `tasks/active` after the feature merge.
+
+## Final exact-head validation evidence
+
+- Agent Task Ownership run `29538215299` / #1814: PASS on feature head `2df017d2cbf4a98a810adad6fc0ad396bdb4a379`.
+- CI run `29538215415` / #2956: PASS on the same feature head, including full final-gate multi-platform validation.
+- Universal Agent E2E run `29538215647` / #135: PASS on the same feature head, including database bootstrap, exact Canary build, controlled OTClient build, physical login/relog execution and Required physical E2E.
+- autofix.ci run `29538215317` / #1618: PASS on the same feature head.
+- PR #446 had exactly eight intended changed files, was mergeable, non-draft, and had no review submissions or review threads at merge readiness.
