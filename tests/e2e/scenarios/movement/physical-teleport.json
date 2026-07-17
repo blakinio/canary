@@ -4,7 +4,7 @@
   "suite": "movement",
   "name": "Physical client bounded teleport traversal",
   "program_id": "CAN-PROGRAM-E2E-PLATFORM",
-  "description": "Walk the controlled real client from the physically proven Knight 1 start to an OTBM-audited teleport candidate, require a real floor delta, and preserve the canonical logout, persistence, and relog sentinel. Exact post-teleport position is pinned only after physical artifact evidence.",
+  "description": "Walk the controlled real client from the physically proven Knight 1 start to an OTBM-audited teleport candidate, record the real route endpoint, require a real floor delta, and preserve the canonical logout, persistence, and relog sentinel. Exact post-teleport position is pinned only after physical artifact evidence.",
   "client": {
     "repository": "blakinio/otclient",
     "ref": "2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f",
@@ -39,6 +39,7 @@
     {"id": "route-west-4", "action": "walk", "direction": "west", "count": 5, "interval_ms": 350},
     {"id": "route-south-1", "action": "walk", "direction": "south", "count": 7, "interval_ms": 350},
     {"id": "teleport-settle", "action": "wait", "ms": 1500},
+    {"id": "endpoint-position", "action": "observe_position_changed"},
     {"id": "floor-delta", "action": "observe_floor_delta", "delta": 1},
     {"id": "position-changed", "action": "observe_position_changed"}
   ],
@@ -58,6 +59,7 @@
       "step_route-west-4=success",
       "step_route-south-1=success",
       "step_teleport-settle=success",
+      "step_endpoint-position=success",
       "step_floor-delta=success",
       "step_floor-delta_detail=1",
       "step_position-changed=success",
