@@ -2,13 +2,13 @@
 task_id: CAN-20260717-otbm-tile-materializer
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-tile-materializer
 base_branch: main
 created: 2026-07-17T09:50:00+02:00
-updated: 2026-07-17T10:22:00+02:00
-last_verified_commit: "d5a24159a798e51eb14e6421c1c55d1e6c99eccc"
+updated: 2026-07-17T08:38:00Z
+last_verified_commit: "aca748b59a74dbacd2c8f56a6cdeea0dc35f66cc"
 risk: high
 related_issue: ""
 related_pr: "467"
@@ -54,6 +54,7 @@ public_interfaces:
   - canary-otbm-tile-materialization-approval-v1
   - canary-otbm-tile-materialization-result-v1
 cross_repo_tasks: []
+completed: 2026-07-17T08:38:00Z
 ---
 
 # Goal
@@ -181,3 +182,11 @@ validation:
 blockers: []
 next_action: Run and verify all required exact-final-head checks on the checkpoint commit created after ci:final-gate, make no further commits, then mark PR #467 ready and squash-merge only if the exact head remains unchanged and green.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #467.
+- Feature head: `b172aba88a52c883a791ff4e423a3e210a61d4f7`.
+- Merge commit: `aca748b59a74dbacd2c8f56a6cdeea0dc35f66cc`.
+- Merged at: `2026-07-17T08:38:00Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
