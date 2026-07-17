@@ -12,12 +12,13 @@ from typing import Any, Callable, Mapping, Sequence
 
 from otbm_area_materializer import materialize_area_plan
 from otbm_map_quality import MapQualityError, REPORT_FORMAT as MAP_QUALITY_FORMAT, build_quality_report
+from otbm_repair_pipeline_raw_tile_contracts import RAW_TILE_MODES, validate_raw_tile_report
 
 PIPELINE_FORMAT = "canary-otbm-repair-materialization-pipeline-v1"
 SCHEMA_VERSION = 1
 ATTRIBUTE_MODE = "fixed-width-attribute"
 TILE_AREA_MODE = "tile-area"
-SUPPORTED_MODES = {ATTRIBUTE_MODE, TILE_AREA_MODE}
+SUPPORTED_MODES = {ATTRIBUTE_MODE, TILE_AREA_MODE, *RAW_TILE_MODES}
 ATTRIBUTE_REPORT_FORMAT = "canary-otbm-repair-sandbox-verification-v1"
 AREA_REPORT_FORMAT = "canary-otbm-area-materialization-result-v1"
 
@@ -34,11 +35,7 @@ class StableFile:
     sha256: str
 
     def evidence(self, *, include_format: str | None = None) -> dict[str, Any]:
-        result: dict[str, Any] = {
-            "fileName": self.path.name,
-            "size": self.size,
-            "sha256": self.sha256,
-        }
+        result: dict[str, Any] = {"fileName": self.path.name, "size": self.size, "sha256": self.sha256}
         if include_format is not None:
             result["format"] = include_format
         return result
@@ -75,16 +72,12 @@ def observe_stable_file(path: Path, label: str, *, executable: bool = False) -> 
     after = resolved.stat()
     if before.st_size != after.st_size or before.st_mtime_ns != after.st_mtime_ns:
         raise RepairMaterializationPipelineError(f"{label} changed while it was being pinned")
-    return StableFile(path=resolved, size=before.st_size, mtime_ns=before.st_mtime_ns, sha256=digest)
+    return StableFile(resolved, before.st_size, before.st_mtime_ns, digest)
 
 
 def assert_stable_file(observed: StableFile, label: str) -> None:
     current = observed.path.stat()
-    if (
-        current.st_size != observed.size
-        or current.st_mtime_ns != observed.mtime_ns
-        or _sha256_file(observed.path) != observed.sha256
-    ):
+    if current.st_size != observed.size or current.st_mtime_ns != observed.mtime_ns or _sha256_file(observed.path) != observed.sha256:
         raise RepairMaterializationPipelineError(f"{label} changed during pipeline execution")
 
 
@@ -133,9 +126,8 @@ def _new_confined_path(root: Path, relative: Path, label: str) -> Path:
 
 
 def _artifact_relative(root: Path, path: Path, label: str) -> Path:
-    resolved = path.resolve(strict=False)
     try:
-        return resolved.relative_to(root)
+        return path.resolve(strict=False).relative_to(root)
     except ValueError as exc:
         raise RepairMaterializationPipelineError(f"{label} is outside the artifact root") from exc
 
@@ -208,13 +200,19 @@ def _require_mapping(value: Any, label: str) -> Mapping[str, Any]:
     return value
 
 
-def _validate_mutation_report(
-    *,
-    mode: str,
-    report: Mapping[str, Any],
-    source: StableFile,
-    candidate: StableFile,
-) -> dict[str, Any]:
+def _validate_mutation_report(*, mode: str, report: Mapping[str, Any], source: StableFile, candidate: StableFile) -> dict[str, Any]:
+    if mode in RAW_TILE_MODES:
+        try:
+            return validate_raw_tile_report(
+                mode=mode,
+                report=report,
+                source_sha256=source.sha256,
+                candidate_sha256=candidate.sha256,
+                candidate_size=candidate.size,
+            )
+        except ValueError as exc:
+            raise RepairMaterializationPipelineError(str(exc)) from exc
+
     if mode == ATTRIBUTE_MODE:
         if report.get("format") != ATTRIBUTE_REPORT_FORMAT or report.get("ok") is not True:
             raise RepairMaterializationPipelineError("attribute mutation did not produce a successful repair sandbox report")
@@ -228,17 +226,9 @@ def _validate_mutation_report(
         policy = _require_mapping(report.get("policy"), "sandbox policy")
         if review.get("unresolvedEvidencePreserved") is not True:
             raise RepairMaterializationPipelineError("repair sandbox did not preserve unresolved runtime evidence")
-        if (
-            policy.get("phase8BoundedPatcherReused") is not True
-            or policy.get("phase8WorldIndexProofReused") is not True
-            or policy.get("phase8SemanticDiffProofReused") is not True
-            or policy.get("sourceModifiedInPlace") is not False
-        ):
+        if policy.get("phase8BoundedPatcherReused") is not True or policy.get("phase8WorldIndexProofReused") is not True or policy.get("phase8SemanticDiffProofReused") is not True or policy.get("sourceModifiedInPlace") is not False:
             raise RepairMaterializationPipelineError("repair sandbox proof boundary is incomplete")
-        return {
-            "summary": dict(_require_mapping(report.get("summary"), "sandbox summary")),
-            "runtimeEvidencePreserved": True,
-        }
+        return {"summary": dict(_require_mapping(report.get("summary"), "sandbox summary")), "runtimeEvidencePreserved": True}
 
     if mode == TILE_AREA_MODE:
         if report.get("format") != AREA_REPORT_FORMAT or report.get("ok") is not True:
@@ -256,46 +246,21 @@ def _validate_mutation_report(
         required = ("nativeReparse", "worldIndexRebuilt", "selectedAreasEqualDonor", "nonSelectedCurrentBytesExact")
         missing = [name for name in required if verification.get(name) is not True]
         if missing:
-            raise RepairMaterializationPipelineError(
-                "area materialization verification is incomplete: " + ", ".join(missing)
-            )
+            raise RepairMaterializationPipelineError("area materialization verification is incomplete: " + ", ".join(missing))
         safety = _require_mapping(report.get("safety"), "area materialization safety")
-        if (
-            safety.get("sourceInPlaceWrite") is not False
-            or safety.get("fullMapSerializer") is not False
-            or safety.get("phase8Expanded") is not False
-            or safety.get("separateApprovalRequired") is not True
-        ):
+        if safety.get("sourceInPlaceWrite") is not False or safety.get("fullMapSerializer") is not False or safety.get("phase8Expanded") is not False or safety.get("separateApprovalRequired") is not True:
             raise RepairMaterializationPipelineError("area materialization safety boundary is incomplete")
         selection = _require_mapping(report.get("selection"), "area materialization selection")
-        return {
-            "selection": {
-                "from": selection.get("from"),
-                "to": selection.get("to"),
-                "areaCount": selection.get("areaCount"),
-                "translation": selection.get("translation"),
-            },
-            "structuralVerificationComplete": True,
-        }
+        return {"selection": {"from": selection.get("from"), "to": selection.get("to"), "areaCount": selection.get("areaCount"), "translation": selection.get("translation")}, "structuralVerificationComplete": True}
 
     raise RepairMaterializationPipelineError(f"unsupported mutation mode: {mode}")
 
 
 def execute_attribute_mutation(
-    *,
-    artifact_root: Path,
-    source_map: Path,
-    plan: Path,
-    scanner: Path,
-    appearances_index: Path,
-    items_xml: Path,
-    repository_root: Path,
-    script_roots: Sequence[str],
-    candidate_path: Path,
-    pipeline_evidence_dir: Path,
-    rules: Path | None = None,
-    review_rules: Path | None = None,
-    timeout_seconds: int = 3600,
+    *, artifact_root: Path, source_map: Path, plan: Path, scanner: Path,
+    appearances_index: Path, items_xml: Path, repository_root: Path,
+    script_roots: Sequence[str], candidate_path: Path, pipeline_evidence_dir: Path,
+    rules: Path | None = None, review_rules: Path | None = None, timeout_seconds: int = 3600,
 ) -> MutationExecution:
     if timeout_seconds <= 0:
         raise RepairMaterializationPipelineError("timeout_seconds must be positive")
@@ -305,32 +270,12 @@ def execute_attribute_mutation(
     phase8_evidence = evidence_relative / "phase8-evidence"
     phase8_result = evidence_relative / "phase8-result.json"
     sandbox_report = evidence_relative / "sandbox-verification.json"
-    tool = Path(__file__).with_name("otbm_repair_sandbox_tool.py")
     command = [
-        sys.executable,
-        str(tool),
-        str(source_map),
-        str(plan),
-        "--scanner",
-        str(scanner),
-        "--artifact-root",
-        str(root),
-        "--appearances-index",
-        str(appearances_index),
-        "--items-xml",
-        str(items_xml),
-        "--repository-root",
-        str(repository_root),
-        "--patched-output",
-        str(candidate_relative),
-        "--phase8-evidence",
-        str(phase8_evidence),
-        "--phase8-result",
-        str(phase8_result),
-        "--output",
-        str(sandbox_report),
-        "--timeout",
-        str(timeout_seconds),
+        sys.executable, str(Path(__file__).with_name("otbm_repair_sandbox_tool.py")), str(source_map), str(plan),
+        "--scanner", str(scanner), "--artifact-root", str(root), "--appearances-index", str(appearances_index),
+        "--items-xml", str(items_xml), "--repository-root", str(repository_root), "--patched-output", str(candidate_relative),
+        "--phase8-evidence", str(phase8_evidence), "--phase8-result", str(phase8_result), "--output", str(sandbox_report),
+        "--timeout", str(timeout_seconds),
     ]
     for script_root in script_roots:
         command.extend(("--script-root", script_root))
@@ -339,85 +284,38 @@ def execute_attribute_mutation(
     if review_rules is not None:
         command.extend(("--review-rules", str(review_rules)))
     try:
-        completed = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            check=False,
-            shell=False,
-            timeout=timeout_seconds,
-        )
+        completed = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False, shell=False, timeout=timeout_seconds)
     except subprocess.TimeoutExpired as exc:
-        raise RepairMaterializationPipelineError(
-            f"repair sandbox execution timed out after {timeout_seconds} seconds"
-        ) from exc
+        raise RepairMaterializationPipelineError(f"repair sandbox execution timed out after {timeout_seconds} seconds") from exc
     if completed.returncode != 0:
         detail = completed.stderr.strip() or completed.stdout.strip() or f"exit code {completed.returncode}"
         raise RepairMaterializationPipelineError(f"repair sandbox execution failed: {detail}")
-    return MutationExecution(candidate_path=candidate_path, report_path=root / sandbox_report)
+    return MutationExecution(candidate_path, root / sandbox_report)
 
 
 def execute_area_mutation(
-    *,
-    artifact_root: Path,
-    current_map: Path,
-    donor_map: Path,
-    scanner: Path,
-    plan: Path,
-    approval: Path,
-    current_index: Path,
-    current_manifest: Path,
-    donor_index: Path,
-    donor_manifest: Path,
-    candidate_path: Path,
-    pipeline_evidence_dir: Path,
+    *, artifact_root: Path, current_map: Path, donor_map: Path, scanner: Path, plan: Path,
+    approval: Path, current_index: Path, current_manifest: Path, donor_index: Path,
+    donor_manifest: Path, candidate_path: Path, pipeline_evidence_dir: Path,
     timeout_seconds: int = 3600,
 ) -> MutationExecution:
     root = artifact_root.resolve(strict=True)
     candidate_relative = _artifact_relative(root, candidate_path, "tile-area candidate")
-    materialization_evidence = _artifact_relative(
-        root,
-        pipeline_evidence_dir / "area-materialization",
-        "area materialization evidence",
-    )
+    evidence = _artifact_relative(root, pipeline_evidence_dir / "area-materialization", "area materialization evidence")
     materialize_area_plan(
-        artifact_root=root,
-        current_map_path=current_map,
-        donor_map_path=donor_map,
-        scanner_path=scanner,
-        plan_path=plan,
-        approval_path=approval,
-        current_index_path=current_index,
-        current_manifest_path=current_manifest,
-        donor_index_path=donor_index,
-        donor_manifest_path=donor_manifest,
-        output_map_path=candidate_relative,
-        evidence_dir=materialization_evidence,
-        timeout_seconds=timeout_seconds,
+        artifact_root=root, current_map_path=current_map, donor_map_path=donor_map, scanner_path=scanner,
+        plan_path=plan, approval_path=approval, current_index_path=current_index, current_manifest_path=current_manifest,
+        donor_index_path=donor_index, donor_manifest_path=donor_manifest, output_map_path=candidate_relative,
+        evidence_dir=evidence, timeout_seconds=timeout_seconds,
     )
-    return MutationExecution(
-        candidate_path=candidate_path,
-        report_path=root / materialization_evidence / "materialization-result.json",
-    )
+    return MutationExecution(candidate_path, root / evidence / "materialization-result.json")
 
 
 def run_pipeline(
-    *,
-    mode: str,
-    artifact_root: Path,
-    source_map: Path,
-    output_map: Path,
-    evidence_dir: Path,
-    geometry_report: Path,
-    reachability_report: Path,
-    script_resolution_report: Path,
-    direct_inputs: Mapping[str, Path],
-    mutation_executor: MutationExecutor,
-    fail_on_severity: str = "error",
-    fail_on_unresolved: bool = False,
-    sample_limit: int = 500,
+    *, mode: str, artifact_root: Path, source_map: Path, output_map: Path, evidence_dir: Path,
+    geometry_report: Path, reachability_report: Path, script_resolution_report: Path,
+    direct_inputs: Mapping[str, Path], mutation_executor: MutationExecutor,
+    fail_on_severity: str = "error", fail_on_unresolved: bool = False, sample_limit: int = 500,
 ) -> dict[str, Any]:
     if mode not in SUPPORTED_MODES:
         raise RepairMaterializationPipelineError(f"unsupported mutation mode: {mode}")
@@ -431,19 +329,9 @@ def run_pipeline(
         raise RepairMaterializationPipelineError("final output map must be outside the pipeline evidence directory")
 
     all_inputs = dict(direct_inputs)
-    all_inputs.update(
-        {
-            "geometryReport": geometry_report,
-            "reachabilityReport": reachability_report,
-            "scriptResolutionReport": script_resolution_report,
-        }
-    )
-    if "sourceMap" not in all_inputs:
-        all_inputs["sourceMap"] = source_map
-    observed_inputs = {
-        name: observe_stable_file(path, name)
-        for name, path in sorted(all_inputs.items())
-    }
+    all_inputs.update({"geometryReport": geometry_report, "reachabilityReport": reachability_report, "scriptResolutionReport": script_resolution_report})
+    all_inputs.setdefault("sourceMap", source_map)
+    observed_inputs = {name: observe_stable_file(path, name) for name, path in sorted(all_inputs.items())}
     source = observe_stable_file(source_map, "source map")
     if observed_inputs["sourceMap"].path != source.path:
         raise RepairMaterializationPipelineError("direct sourceMap input does not match the explicit source map")
@@ -456,22 +344,13 @@ def run_pipeline(
     candidate = observe_stable_file(candidate_path, "mutation candidate")
     mutation_report_file = observe_stable_file(execution.report_path, "mutation verification report")
     mutation_report = _load_json_from_observed(mutation_report_file, "mutation verification report")
-    mutation_summary = _validate_mutation_report(
-        mode=mode,
-        report=mutation_report,
-        source=source,
-        candidate=candidate,
-    )
+    mutation_summary = _validate_mutation_report(mode=mode, report=mutation_report, source=source, candidate=candidate)
 
     assert_stable_file(source, "source map")
     for name, observed in observed_inputs.items():
         assert_stable_file(observed, name)
 
-    component_specs = (
-        ("geometry", observed_inputs["geometryReport"]),
-        ("reachability", observed_inputs["reachabilityReport"]),
-        ("scriptResolution", observed_inputs["scriptResolutionReport"]),
-    )
+    component_specs = (("geometry", observed_inputs["geometryReport"]), ("reachability", observed_inputs["reachabilityReport"]), ("scriptResolution", observed_inputs["scriptResolutionReport"]))
     component_reports: dict[str, dict[str, Any]] = {}
     component_pins: dict[str, dict[str, Any]] = {}
     for component, observed in component_specs:
@@ -484,13 +363,9 @@ def run_pipeline(
 
     try:
         quality_report = build_quality_report(
-            geometry=component_reports["geometry"],
-            reachability=component_reports["reachability"],
-            script_resolution=component_reports["scriptResolution"],
-            input_pins=component_pins,
-            sample_limit=sample_limit,
-            fail_on_severity=fail_on_severity,
-            fail_on_unresolved=fail_on_unresolved,
+            geometry=component_reports["geometry"], reachability=component_reports["reachability"],
+            script_resolution=component_reports["scriptResolution"], input_pins=component_pins,
+            sample_limit=sample_limit, fail_on_severity=fail_on_severity, fail_on_unresolved=fail_on_unresolved,
         )
     except MapQualityError as exc:
         raise RepairMaterializationPipelineError(f"Map Quality Gate input failed: {exc}") from exc
@@ -502,9 +377,7 @@ def run_pipeline(
         raise RepairMaterializationPipelineError("Map Quality Gate returned an unsupported report format")
     quality_source = _require_mapping(quality_report.get("source"), "Map Quality Gate source")
     if quality_source.get("sha256") != candidate.sha256:
-        raise RepairMaterializationPipelineError(
-            "Map Quality Gate component evidence does not prove the exact materialized candidate SHA-256"
-        )
+        raise RepairMaterializationPipelineError("Map Quality Gate component evidence does not prove the exact materialized candidate SHA-256")
     if quality_report.get("ok") is not True:
         raise RepairMaterializationPipelineError("Map Quality Gate rejected the materialized candidate")
 
@@ -528,71 +401,22 @@ def run_pipeline(
         mutation_report_pin["path"] = _artifact_relative(root, mutation_report_file.path, "mutation report").as_posix()
         quality_pin = quality_file.evidence(include_format=MAP_QUALITY_FORMAT)
         quality_pin["path"] = _artifact_relative(root, quality_file.path, "quality report").as_posix()
-        input_evidence = {
-            name: observed.evidence()
-            for name, observed in sorted(observed_inputs.items())
-        }
+        input_evidence = {name: observed.evidence() for name, observed in sorted(observed_inputs.items())}
         quality_summary = _require_mapping(quality_report.get("summary"), "Map Quality Gate summary")
         quality_policy = _require_mapping(quality_report.get("policy"), "Map Quality Gate policy")
         quality_coverage = _require_mapping(quality_report.get("coverage"), "Map Quality Gate coverage")
         result = {
-            "format": PIPELINE_FORMAT,
-            "schemaVersion": SCHEMA_VERSION,
-            "ok": True,
-            "mode": mode,
-            "source": {
-                **source.evidence(),
-                "unchanged": True,
-            },
-            "output": {
-                "path": _artifact_relative(root, final.path, "final output map").as_posix(),
-                "size": final.size,
-                "sha256": final.sha256,
-                "createNew": True,
-                "byteIdenticalToVerifiedCandidate": True,
-            },
+            "format": PIPELINE_FORMAT, "schemaVersion": SCHEMA_VERSION, "ok": True, "mode": mode,
+            "source": {**source.evidence(), "unchanged": True},
+            "output": {"path": _artifact_relative(root, final.path, "final output map").as_posix(), "size": final.size, "sha256": final.sha256, "createNew": True, "byteIdenticalToVerifiedCandidate": True},
             "inputs": input_evidence,
-            "mutation": {
-                "format": mutation_report.get("format"),
-                "report": mutation_report_pin,
-                "summary": mutation_summary,
-            },
-            "quality": {
-                "format": MAP_QUALITY_FORMAT,
-                "report": quality_pin,
-                "sourceSha256": candidate.sha256,
-                "ok": True,
-                "policy": dict(quality_policy),
-                "outcomeCounts": dict(_require_mapping(quality_summary.get("outcomeCounts"), "quality outcome counts")),
-                "coverage": dict(quality_coverage),
-                "components": component_pins,
-            },
-            "evidence": {
-                "directory": _artifact_relative(root, pipeline_evidence, "pipeline evidence directory").as_posix(),
-                "candidateRetained": True,
-            },
-            "rollback": {
-                "action": "delete-final-output",
-                "path": _artifact_relative(root, final.path, "final output map").as_posix(),
-                "sourceRetained": source.path.name,
-                "sourceSha256": source.sha256,
-            },
-            "safety": {
-                "sourceModifiedInPlace": False,
-                "silentOverwrite": False,
-                "newOtbmParserCreated": False,
-                "newOtbmWriterCreated": False,
-                "existingMutationBoundaryReused": True,
-                "existingMapQualityGateReused": True,
-                "allDirectFileInputsPinned": True,
-                "unresolvedEvidencePreserved": True,
-                "gameplayCorrectnessProven": False,
-                "physicalClientE2EProven": False,
-                "productionMapExecutionAuthorized": False,
-            },
+            "mutation": {"format": mutation_report.get("format"), "report": mutation_report_pin, "summary": mutation_summary},
+            "quality": {"format": MAP_QUALITY_FORMAT, "report": quality_pin, "sourceSha256": candidate.sha256, "ok": True, "policy": dict(quality_policy), "outcomeCounts": dict(_require_mapping(quality_summary.get("outcomeCounts"), "quality outcome counts")), "coverage": dict(quality_coverage), "components": component_pins},
+            "evidence": {"directory": _artifact_relative(root, pipeline_evidence, "pipeline evidence directory").as_posix(), "candidateRetained": True},
+            "rollback": {"action": "delete-final-output", "path": _artifact_relative(root, final.path, "final output map").as_posix(), "sourceRetained": source.path.name, "sourceSha256": source.sha256},
+            "safety": {"sourceModifiedInPlace": False, "silentOverwrite": False, "newOtbmParserCreated": False, "newOtbmWriterCreated": False, "existingMutationBoundaryReused": True, "existingMapQualityGateReused": True, "allDirectFileInputsPinned": True, "unresolvedEvidencePreserved": True, "gameplayCorrectnessProven": False, "physicalClientE2EProven": False, "productionMapExecutionAuthorized": False},
         }
-        result_path = pipeline_evidence / "pipeline-result.json"
-        _write_json_create_new(result_path, result)
+        _write_json_create_new(pipeline_evidence / "pipeline-result.json", result)
         return result
     except Exception:
         if published:
