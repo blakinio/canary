@@ -118,8 +118,8 @@ validation:
     result: PASS
     evidence: no open Canary PR touches canonical vocation paths; no open Otheryn PR existed before PR 25
   - command: Otheryn draft CI 86 and Required 82
-    result: REJECTED_AS_FOCUSED_PROOF
-    evidence: scope detection skipped build and test jobs; full ci:final-gate run remains required
+    result: FAIL
+    evidence: aggregate was green but scope detection skipped all C++ build and focused test jobs; full exact-head final-gate run remains required before acceptance
 blockers: []
-next_action: Run Otheryn PR 25 with ci:final-gate through a real exact-head test path, then finalize REUSE and Canary governance. Keep OAM-009 blocked until OAM-008 feature and lifecycle complete.
+next_action: Run Otheryn PR 25 exact-head final gate through a real Linux debug test path, then finalize REUSE and Canary governance. Keep OAM-009 blocked until OAM-008 feature and lifecycle complete.
 ```
