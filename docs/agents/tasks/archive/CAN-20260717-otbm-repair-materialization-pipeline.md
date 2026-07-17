@@ -2,13 +2,13 @@
 task_id: CAN-20260717-otbm-repair-materialization-pipeline
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-repair-materialization-pipeline
 base_branch: main
 created: 2026-07-17T08:15:22+02:00
-updated: 2026-07-17T09:05:55+02:00
-last_verified_commit: "648b95f67893f528c7f5b8fba85e497ff2755c5a"
+updated: 2026-07-17T07:29:30Z
+last_verified_commit: "1e0b114d95a2a1b9706d1ac0d90006b3e60012fe"
 risk: high
 related_issue: ""
 related_pr: "456"
@@ -61,6 +61,7 @@ public_interfaces:
   - canary-otbm-repair-materialization-pipeline-v1
   - OTBM repair/materialization pipeline CLI
 cross_repo_tasks: []
+completed: 2026-07-17T07:29:30Z
 ---
 
 # Goal
@@ -184,3 +185,11 @@ validation:
 blockers: []
 next_action: Run the exact-final-head required checks for this checkpoint commit under ci:final-gate. Make no further feature-branch commits; if green and the PR remains mergeable with no unresolved review threads, mark ready and squash merge, then archive this task in a separate lifecycle PR.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #456.
+- Feature head: `209509031bf650ffcbe181b3bc08b296e4ee198f`.
+- Merge commit: `1e0b114d95a2a1b9706d1ac0d90006b3e60012fe`.
+- Merged at: `2026-07-17T07:29:30Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
