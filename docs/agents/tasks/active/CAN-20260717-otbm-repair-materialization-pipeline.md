@@ -2,12 +2,12 @@
 task_id: CAN-20260717-otbm-repair-materialization-pipeline
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: active
+status: implementing
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-repair-materialization-pipeline
 base_branch: main
 created: 2026-07-17T08:15:22+02:00
-updated: 2026-07-17T08:41:00+02:00
+updated: 2026-07-17T08:45:00+02:00
 last_verified_commit: "c2e181f892ce2f094e887f1da5c6c7df207629c9"
 risk: high
 related_issue: ""
@@ -106,14 +106,15 @@ Add the smallest reusable fail-closed orchestration boundary that composes the a
 
 - Head `5900bae465719f81a5afb61944dc26681b8513d3` passed repository CI, OTBM Map Tools and AI Agent Tools; Ownership rejected unsupported checkpoint `status: active`.
 - Head `dfec4b0233ff5085e5e2be2f3fd866ac0713a98a` again passed repository CI, OTBM Map Tools and AI Agent Tools; Ownership then exposed a second checkpoint-only defect: validation rows lacked mandatory `evidence` fields and one `result` value was not the required enum.
-- This checkpoint uses accepted `PASS`/`FAIL` result values and explicit evidence for every validation item. No OTBM implementation change is attributed to these governance repairs.
+- Head `a5c5fd49d339bd18918ca902b46a5d0f7465bccc` passed repository CI while Ownership exposed the remaining record-level status requirement: an active task record itself must use a lifecycle status such as `implementing`, not literal `active`.
+- This record and checkpoint now both use `implementing`. No OTBM implementation change is attributed to these governance repairs.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T08:41:00+02:00
-head: dfec4b0233ff5085e5e2be2f3fd866ac0713a98a
+updated_at: 2026-07-17T08:45:00+02:00
+head: a5c5fd49d339bd18918ca902b46a5d0f7465bccc
 branch: feat/otbm-repair-materialization-pipeline
 pr: 456
 status: implementing
@@ -142,17 +143,18 @@ proven:
   - synthetic TILE_AREA integration coverage reuses native scanner World Index planner and materializer
   - repository CI OTBM Map Tools and AI Agent Tools passed on 5900bae465719f81a5afb61944dc26681b8513d3
   - repository CI OTBM Map Tools and AI Agent Tools passed again on dfec4b0233ff5085e5e2be2f3fd866ac0713a98a
-  - ownership failures so far are checkpoint-schema defects only and have not identified an OTBM implementation failure
+  - repository CI passed on a5c5fd49d339bd18918ca902b46a5d0f7465bccc before this record-status-only repair
+  - ownership failures so far are checkpoint/task-schema defects only and have not identified an OTBM implementation failure
   - PR 451 overlap is limited to shared catalogue/changelog paths and must be rechecked before editing those shared files
 derived:
   - deterministic mutation replay plus exact quality-source hash binding closes the orchestration boundary without inventing reachability policy
 unknown:
-  - current-head ownership validation after correcting validation evidence/result fields
+  - current-head ownership validation after correcting the active-record lifecycle status
   - whether PR 451 shared-path ownership is still active
 conflicts: []
 first_failure:
-  marker: checkpoint validation metadata
-  evidence: Agent Task Ownership runs 29560033886 and 29560198747 rejected checkpoint schema fields while CI, OTBM Map Tools and AI Agent Tools passed on the corresponding implementation heads
+  marker: task ownership metadata
+  evidence: Agent Task Ownership runs 29560033886, 29560198747 and 29560429143 rejected task/checkpoint schema fields while implementation workflows passed on the corresponding heads
 rejected_hypotheses:
   - another OTBM parser World Index Semantic Diff script resolver renderer or full-map writer
   - broadening Phase 8 or TILE_AREA materializer writer boundaries
@@ -169,16 +171,16 @@ changed_paths:
 validation:
   - command: GitHub Actions CI run 29560198886 on head dfec4b0233ff5085e5e2be2f3fd866ac0713a98a
     result: PASS
-    evidence: repository CI completed successfully on the current implementation head before this checkpoint-only repair
+    evidence: repository CI completed successfully on the implementation head before checkpoint-only repairs
   - command: GitHub Actions OTBM Map Tools run 29560198811 on head dfec4b0233ff5085e5e2be2f3fd866ac0713a98a
     result: PASS
-    evidence: OTBM Map Tools completed successfully on the current implementation head before this checkpoint-only repair
+    evidence: OTBM Map Tools completed successfully on the implementation head before checkpoint-only repairs
   - command: GitHub Actions AI Agent Tools run 29560198788 on head dfec4b0233ff5085e5e2be2f3fd866ac0713a98a
     result: PASS
-    evidence: AI Agent Tools completed successfully on the current implementation head before this checkpoint-only repair
-  - command: GitHub Actions Agent Task Ownership run 29560198747 on head dfec4b0233ff5085e5e2be2f3fd866ac0713a98a
+    evidence: AI Agent Tools completed successfully on the implementation head before checkpoint-only repairs
+  - command: GitHub Actions Agent Task Ownership run 29560429143 on head a5c5fd49d339bd18918ca902b46a5d0f7465bccc
     result: FAIL
-    evidence: active-task-ownership artifact reports only missing validation evidence fields and one unsupported non-enum result value in this task checkpoint
+    evidence: active-task-ownership artifact reports only that the record under tasks/active used literal status active instead of the required lifecycle status
 blockers: []
 next_action: Verify current-head ownership and implementation workflows, then recheck PR 451 shared-path ownership before narrow catalogue/changelog integration.
 ```
