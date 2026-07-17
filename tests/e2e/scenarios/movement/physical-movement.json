@@ -2,9 +2,9 @@
   "schema_version": 1,
   "id": "physical-movement",
   "suite": "movement",
-  "name": "Deterministic physical client movement",
+  "name": "Physical client movement fixture discovery probe",
   "program_id": "CAN-PROGRAM-E2E-PLATFORM",
-  "description": "Prove bounded real-client movement on the disposable Canary world while preserving the canonical logout, persistence, and relog sentinel.",
+  "description": "Probe one bounded real-client movement request on the disposable Canary world while preserving the canonical logout, persistence, and relog sentinel. This is fixture-discovery input until a selected physical run proves the exact start and resulting position markers.",
   "client": {
     "repository": "blakinio/otclient",
     "ref": "2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f",
