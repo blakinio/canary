@@ -2,12 +2,12 @@
 task_id: CAN-20260717-oteryn-item-world-runtime-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: "OAM-007"
-status: investigating
+status: implementing
 agent: oteryn-architecture-migration-agent
 branch: docs/oam-007-item-world-runtime-revalidation
 base_branch: main
 created: 2026-07-17T06:45:00+02:00
-updated: 2026-07-17T07:32:00+02:00
+updated: 2026-07-17T08:05:00+02:00
 last_verified_commit: "c2e181f892ce2f094e887f1da5c6c7df207629c9"
 risk: high
 related_issue: "22"
@@ -50,11 +50,12 @@ public_interfaces:
   - map and tile runtime loading, spatial lookup, movement, visibility and pathfinding
 cross_repo_tasks:
   - blakinio/Otheryn#22
+  - blakinio/Otheryn#23
 ---
 
 # Goal
 
-Revalidate exactly three dependency-ordered canonical foundation modules — `item-definitions`, `item-instances`, and `world-map-runtime` — against fresh exact target, legacy and upstream baselines. Select one evidence-backed disposition per module, change Otheryn only when target adaptation is proven necessary, and stop before `world-zones`, `instances`, OAM-008 or any broad world-content migration.
+Revalidate exactly three dependency-ordered canonical foundation modules — `item-definitions`, `item-instances`, and `world-map-runtime` — against fresh exact target, legacy and upstream baselines. Select one evidence-backed disposition per module, change Otheryn only where target adaptation is proven necessary, and stop before `world-zones`, `instances`, OAM-008 or any broad world-content migration.
 
 # Pinned task-start baselines
 
@@ -71,43 +72,46 @@ Revalidate exactly three dependency-ordered canonical foundation modules — `it
 
 `world-zones` and `instances` are downstream and explicitly out of scope.
 
-# Preflight evidence
+# Evidence and current dispositions
 
-- OAM-006 feature and lifecycle are complete; lifecycle merge is `b0ea0ba9508cc78d5580f44181115e9b304eb7da`.
-- Fresh OAM-007 Canary task-start is `c2e181f892ce2f094e887f1da5c6c7df207629c9`.
-- Otheryn has no open PR at task start.
-- Open Canary PRs #451 and #453 are security-scoped and do not claim item/map runtime implementation ownership.
-- Core exact-blob checks already show Otheryn equals upstream for `src/items/items.cpp`, `src/items/item.cpp`, `src/io/iomap.cpp`, `src/map/map.cpp`, `src/map/map.hpp`, `src/items/tile.cpp`, `src/items/tile.hpp`, `src/map/mapcache.cpp`, `src/map/mapcache.hpp` and `src/map/spectators.cpp`.
-- Legacy Canary contains local deltas in at least `src/items/functions/item/item_parse.cpp`, `src/map/map.cpp`, `src/map/map.hpp`, `src/items/tile.cpp`, `src/items/tile.hpp` and `src/map/mapcache.cpp`; these are evidence candidates only and are not migration authorization.
-- Otheryn issue #22 is the bounded target-side tracking issue; Canary draft PR #455 is the governance boundary.
+| Module | Working disposition | Evidence |
+|---|---|---|
+| `item-definitions` | `ADAPT` | target/upstream parser lacks the PR #81 magic-field add-item handler; merged PR #81 fixed verified upstream issue #3584 with focused policy coverage; Otheryn PR #23 is the bounded adaptation |
+| `item-instances` | `REUSE` | checked `item.cpp/.hpp`, `attribute.cpp` and `custom_attribute.cpp` are identical across target, legacy and upstream; no required legacy-only behavior identified |
+| `world-map-runtime` | `REUSE` | target/upstream align across checked IOMap/Spectators/Map/Tile/MapCache/MapSector/A* paths and include `navigation_snapshot`; legacy is a distinct Map/Tile/MapCache fork without proven target necessity |
 
-# Investigation rules
+# Target adaptation boundary
 
-- Do not infer `REUSE` from file presence alone.
-- Do not port legacy map/item deltas without a concrete requirement, focused test or runtime proof that the upstream-aligned target lacks required behavior.
+Otheryn draft PR #23 is based on exact task-start target `c547d8ad70ef1252624c255476e6cb83fa125e14`.
+
+It only:
+
+- adds the PR #81 pure magic-field registration policy and three-case unit test;
+- routes the parser's existing three-argument event registration through a bounded overload;
+- preserves the four-argument weapon registration path;
+- adds the existing add-item-on-tile handler only for `MOVE_EVENT_STEP_IN + magic field`;
+- registers the new translation unit in CMake and the existing Windows MSBuild bridge.
+
+It does not import the unrelated manual healing-rune portion of PR #81 and does not modify legacy Map/Tile/MapCache code, datapacks, protocol or client code.
+
+# Safety rules
+
 - Do not bulk-copy item/map directories or datapacks.
 - Preserve OAM-004 persistence boundaries; item serialization evidence does not imply SQL/KV atomicity.
 - Preserve OAM-006 protocol/client contract; no protocol or maintained-client mutation belongs here without separate exact evidence.
-- Reuse existing Universal Agent E2E capabilities if physical runtime proof is applicable; do not create another orchestrator.
-- Do not claim map completeness, Real Tibia parity, exhaustive movement/pathfinding correctness or item-value parity from foundation validation.
-
-# Working hypotheses
-
-| Module | Working disposition | Current reason |
-|---|---|---|
-| `item-definitions` | `REUSE` candidate | target core registry matches upstream; legacy parser delta still requires provenance/necessity review |
-| `item-instances` | `REUSE` candidate | target runtime item core matches both legacy and upstream on the checked principal implementation; remaining attribute/serialization paths still require exact matrix completion |
-| `world-map-runtime` | `REUSE` candidate | target matches upstream across checked principal runtime files; legacy Map/Tile/MapCache deltas require explicit proof before any port |
+- Reuse existing Universal Agent E2E for exact final-target runtime proof; do not create another orchestrator.
+- Do not claim map completeness, Real Tibia parity, exhaustive movement/pathfinding correctness or item-value parity.
+- Do not start `world-zones`, `instances` or OAM-008 inside this package.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T07:32:00+02:00
-head: 205f0e8dd95cf19a52ea2e9250584b696db18868
+updated_at: 2026-07-17T08:05:00+02:00
+head: de826aa4b448b2f2e3ba6062a412adb5cb14ccd0
 branch: docs/oam-007-item-world-runtime-revalidation
 pr: 455
-status: investigating
+status: implementing
 context_routes:
   - agent-governance
   - item-definitions
@@ -124,30 +128,35 @@ proven:
   - upstream evidence head is e0ac98e399d0f7e483f3668f57b78fcc45b6e53f
   - maintained client evidence head is 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
   - canonical dependency order is item-definitions -> item-instances -> world-map-runtime
-  - Otheryn principal checked item/map runtime blobs are upstream-aligned
-  - legacy contains bounded local item/map deltas that are not automatically authorized for target
-  - Otheryn issue 22 and Canary PR 455 bind the bounded cross-repository work
+  - item-definitions requires bounded ADAPT for verified magic-field add-item behavior from Canary PR 81
+  - item-instances remains a REUSE candidate with principal checked paths identical across baselines
+  - world-map-runtime remains a REUSE candidate; legacy map fork lacks proven target necessity
+  - Otheryn issue 22 Canary PR 455 and Otheryn PR 23 bind the bounded cross-repository work
 unknown:
-  - final disposition for each of the three modules
-  - whether any legacy delta has proven target value
-  - whether a target code PR is required
-  - exact focused/runtime/physical validation package
+  - final Otheryn PR 23 merge SHA
+  - exact final-target runtime and physical evidence
+  - final Canary feature-governance merge SHA
+  - final Canary lifecycle merge SHA
 conflicts: []
 first_failure:
   marker: none active
-  evidence: preflight and ownership scope are clean
+  evidence: target PR 23 exact-head CI is running
 rejected_hypotheses:
   - legacy Canary is the target image
-  - any Map/Tile/MapCache difference must be ported
+  - every Map Tile or MapCache difference must be ported
+  - the unrelated manual healing-rune part of PR 81 belongs in OAM-007
   - item serializer presence proves persistence atomicity
   - world-zones or instances belong in OAM-007
 changed_paths:
   - docs/agents/tasks/active/CAN-20260717-oteryn-item-world-runtime-revalidation.md
   - docs/agents/OTERYN_OAM_007_ITEM_WORLD_RUNTIME_REVALIDATION.md
 validation:
-  - command: exact principal blob matrix
+  - command: exact canonical blob matrix and legacy-delta provenance review
+    result: PASS
+    evidence: one required item-definition adaptation isolated to PR 81 behavior; item-instance and world-map runtime legacy-only deltas do not meet the target-adaptation gate
+  - command: Otheryn PR 23 exact-head CI
     result: IN_PROGRESS
-    evidence: target/upstream alignment established for principal checked item/map files; remaining module paths and legacy-delta necessity review pending
+    evidence: head cd6fae153ebe495ec9030c9c729f2ceef06872ef
 blockers: []
-next_action: Complete the exact module-path matrix and legacy-delta necessity review; create a target PR only if adaptation is proven necessary.
+next_action: Require Otheryn PR 23 exact-head draft and ready gates, merge with exact-head guard, then run exact controlled-server runtime/physical proof against the final target before finalizing Canary PR 455.
 ```
