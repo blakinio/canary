@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: test/e2e-physical-teleport
 base_branch: main
 created: 2026-07-17T21:35:00+02:00
-updated: 2026-07-17T21:35:00+02:00
-last_verified_commit: "dbe0346d84d4aef695490515ea7106c1a940aba7"
+updated: 2026-07-17T22:15:00+02:00
+last_verified_commit: "5131f954ac069737eb574c356a45f24f92439916"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "511"
 depends_on:
   - CAN-20260717-physical-movement-e2e-v2
   - CAN-PROGRAM-E2E-PLATFORM
@@ -55,10 +55,10 @@ Prove one deterministic real-client teleport traversal on the exact Canary map u
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T21:35:00+02:00
-head: dbe0346d84d4aef695490515ea7106c1a940aba7
+updated_at: 2026-07-17T22:15:00+02:00
+head: 5131f954ac069737eb574c356a45f24f92439916
 branch: test/e2e-physical-teleport
-pr: null
+pr: 511
 status: implementing
 context_routes:
   - universal-e2e
@@ -72,6 +72,7 @@ proven:
   - existing repository scanner reports 17972761 tiles 23359571 placements 23852 unique item IDs and 9339 mechanic placements on that exact map, matching the documented real-map validation counts
   - nearest nonzero OTBM teleport destination candidate to the proven start is source 32353,32223,7 item 1959 destination 32255,32204,8
   - controlled client minimap data yields a bounded candidate route from 32369,32241,7 to the audited source without using generated imagery
+  - PR 511 changes only the feature-owned task and physical-teleport scenario
   - scenario preserves canonical two-session safe logout persistence and relog markers
   - exact post-teleport destination is deliberately not asserted before real physical artifact evidence
   - no shared E2E platform file is modified
@@ -83,11 +84,11 @@ derived:
 unknown:
   - whether the candidate minimap route is accepted step-for-step by the physical server runtime
   - exact real post-teleport position until the physical artifact is produced
-  - first selected physical workflow conclusion on this branch
+  - first selected physical workflow conclusion on PR 511
 conflicts: []
 first_failure:
   marker: physical-teleport-discovery-pending
-  evidence: no selected physical-client run has executed this new scenario yet
+  evidence: PR 511 is open as a draft and its selected physical-client run has not yet produced artifact evidence
 rejected_hypotheses:
   - treating OTBM teleportDestination as runtime proof
   - guessing a destination from sprites or item names
@@ -101,5 +102,5 @@ validation:
     result: PASS
     evidence: 17972761 tiles, 23359571 placements, 23852 unique item IDs, 9339 mechanics; source 32353,32223,7 -> destination 32255,32204,8
 blockers: []
-next_action: Open a same-repository draft PR so automatic scenario selection runs movement/physical-teleport through the existing Universal Agent E2E physical lifecycle; inspect the first physical artifact and fix only the first concrete runtime blocker.
+next_action: Inspect PR 511 automatic scenario selection and first Universal Agent E2E physical artifact; fix only the first concrete runtime blocker, then pin the exact post-teleport position from that artifact.
 ```
