@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "canary-otbm-tile-spans-v1",
+  "title": "Canary OTBM tile spans v1",
+  "type": "object",
+  "required": ["format", "schemaVersion", "source", "scanner", "tiles"],
+  "properties": {
+    "format": {"const": "canary-otbm-tile-spans-v1"},
+    "schemaVersion": {"const": 1},
+    "source": {
+      "type": "object",
+      "required": ["path", "size", "sha256", "otbmVersion", "width", "height", "itemsMajor", "itemsMinor", "unknownAttributeTails"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "size": {"type": "integer", "minimum": 0},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "otbmVersion": {"type": "integer", "minimum": 0},
+        "width": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "height": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "itemsMajor": {"type": "integer", "minimum": 0},
+        "itemsMinor": {"type": "integer", "minimum": 0},
+        "unknownAttributeTails": {"const": 0}
+      },
+      "additionalProperties": false
+    },
+    "scanner": {
+      "type": "object",
+      "required": ["path", "sha256", "nativeFormat"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "nativeFormat": {"const": "canary-otbm-native-tile-spans-v1"}
+      },
+      "additionalProperties": false
+    },
+    "tiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["areaBaseX", "areaBaseY", "areaZ", "x", "y", "z", "nodeType", "kind", "startOffset", "endOffsetExclusive", "byteLength", "sha256"],
+        "properties": {
+          "areaBaseX": {"type": "integer", "minimum": 0, "maximum": 65535, "multipleOf": 256},
+          "areaBaseY": {"type": "integer", "minimum": 0, "maximum": 65535, "multipleOf": 256},
+          "areaZ": {"type": "integer", "minimum": 0, "maximum": 15},
+          "x": {"type": "integer", "minimum": 0, "maximum": 65535},
+          "y": {"type": "integer", "minimum": 0, "maximum": 65535},
+          "z": {"type": "integer", "minimum": 0, "maximum": 15},
+          "nodeType": {"enum": [5, 14]},
+          "kind": {"enum": ["tile", "house"]},
+          "startOffset": {"type": "integer", "minimum": 0},
+          "endOffsetExclusive": {"type": "integer", "minimum": 1},
+          "byteLength": {"type": "integer", "minimum": 1},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
