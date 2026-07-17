@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/security-login-parser-boundaries
 base_branch: main
 created: 2026-07-17T09:00:00+02:00
-updated: 2026-07-17T09:00:00+02:00
-last_verified_commit: "9382d1f5320e8ee465b4e813c4b85cd028feeb9f"
+updated: 2026-07-17T09:04:00+02:00
+last_verified_commit: "cc2d9990346ad6d2d903d66ff7af4a450a1922d0"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "462"
 depends_on:
   - "OTS-SEC-003 / PR #451"
   - "OTS-SEC-003-RUNTIME-HOOK / PR #444"
@@ -79,15 +79,16 @@ The task is intentionally limited to the login service before successful account
 - `ProtocolLogin::onRecvFirstMessage` resolves a login layout, performs raw 128-byte RSA decryption, reads four XTEA key words, enables XTEA and Adler32 response transport, then reads account descriptor and password.
 - The default RSA fallback key is repository-defined and uses exponent 65537; the test driver may derive the public modulus from those code-owned factors but must not accept key material from a manifest.
 - Open-PR overlap search found no runtime login/game parser security implementation. PR #453 is documentation-only MyAAC/login-stack audit work and does not own these runtime paths.
+- Draft PR: #462.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T09:00:00+02:00
-head: UNKNOWN
+updated_at: 2026-07-17T09:04:00+02:00
+head: cc2d9990346ad6d2d903d66ff7af4a450a1922d0
 branch: feat/security-login-parser-boundaries
-pr: UNKNOWN
+pr: 462
 status: implementing
 context_routes:
   - agent-governance
@@ -109,7 +110,9 @@ proven:
   - SEC-003 and its lifecycle cleanup are merged
   - run_agent_load_runtime RuntimeContext exposes literal-loopback login game and status ports
   - ProtocolLogin reads a raw RSA block before enabling XTEA and Adler32 login responses
+  - default fallback RSA uses repository-defined factors and exponent 65537
   - no open runtime login parser security PR overlap was found
+  - draft PR 462 owns this bounded task
 unknown:
   - exact current-client prelude bytes needed for a deterministic valid login control exchange
   - minimal response decoder needed to prove login-service responsiveness after RSA handoff
@@ -119,5 +122,5 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260717-security-login-parser-boundaries.md
 validation: []
 blockers: []
-next_action: Open the draft PR, bind related_pr/head in this task, then implement and unit-test the smallest code-owned current-profile login packet builder and control exchange before registering runtime cases.
+next_action: Implement and unit-test the smallest code-owned current-profile login packet builder and deterministic control exchange, then register only cases proven by those fixtures.
 ```
