@@ -171,6 +171,16 @@ class ScenarioPlanTests(unittest.TestCase):
         implemented = set(re.findall(r'step\.action == "([a-z0-9_]+)"', driver))
         self.assertEqual(set(run_agent_e2e.ACTION_FIELDS), implemented)
 
+    def test_runtime_driver_loads_plan_through_host_filesystem(self) -> None:
+        driver = DRIVER_PATH.read_text(encoding="utf-8")
+        self.assertIn('io.open(PLAN_PATH, "r")', driver)
+        self.assertIn('load(source, "@" .. PLAN_PATH)', driver)
+        self.assertIn("pcall(chunk)", driver)
+        self.assertIn("failed to open scenario plan", driver)
+        self.assertIn("failed to compile scenario plan", driver)
+        self.assertIn("failed to execute scenario plan", driver)
+        self.assertNotIn("pcall(dofile, PLAN_PATH)", driver)
+
     def test_resolve_writes_sibling_plan_for_step_scenario(self) -> None:
         data = self.scenario_data()
         data["steps"] = [{"id": "channels", "action": "request_channels"}]
