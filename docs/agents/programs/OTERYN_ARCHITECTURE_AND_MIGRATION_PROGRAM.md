@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-17T10:42:00+02:00
-last_verified_commit: "317c1c4235377c388883aa2fd425d324f8ce4d2e"
+updated: 2026-07-17T10:58:00+02:00
+last_verified_commit: "acdddd924fed170da51a8a54114607842f0cbb68"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -70,11 +70,11 @@ bounded Oteryn migration package
 
 # Current live preflight
 
-Re-verified through OAM-008 target delivery and current feature-governance boundary:
+Re-verified through OAM-008 target delivery, feature governance and lifecycle archival boundary:
 
 ```text
 governance/legacy repository: blakinio/canary
-latest re-fetched Canary main: 317c1c4235377c388883aa2fd425d324f8ce4d2e
+latest re-fetched Canary main: acdddd924fed170da51a8a54114607842f0cbb68
 canonical module count: 62
 TSD status: completed
 TSD migration disposition baseline outside bounded OAM decisions: REVALIDATE
@@ -87,25 +87,15 @@ OAM-003 Canary feature merge: 780704f3b77c459f852319a249425614b21246fd
 OAM-004 final target head: 67212530b03c10175da2c0d9eabcee8991a05924
 OAM-004 Canary feature merge: 0507fc5de8049d712345f43db0b05a23a6577a8a
 OAM-004 lifecycle merge: 91d2b64ae914ef5d53d52dae873bcd2a71633371
-OAM-005 target task-start: 67212530b03c10175da2c0d9eabcee8991a05924
 OAM-005 final target head: a6d42f6cec024f81a7541084425ec1d43d66d2b8
 OAM-005 Canary feature merge: 6374230a40b70d3e0cffe8d93a3171393ece7cd7
 OAM-005 lifecycle merge: a1d82a5989fe9e3b7ac6c495804cb1cd83c59090
-OAM-006 Canary task-start: a1d82a5989fe9e3b7ac6c495804cb1cd83c59090
-OAM-006 upstream evidence: opentibiabr/canary@e0ac98e399d0f7e483f3668f57b78fcc45b6e53f
-OAM-006 target task-start: a6d42f6cec024f81a7541084425ec1d43d66d2b8
 OAM-006 final target head: c547d8ad70ef1252624c255476e6cb83fa125e14
-OAM-006 maintained client: blakinio/otclient@2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
 OAM-006 exact physical proof: Universal Agent E2E #118 / run 29531221365 / Required physical E2E PASS
-OAM-006 cross-repo contract: OTS-001
 OAM-006 Canary feature merge: c40b26ee9481ec99931347ba26897a785a7a38ca
 OAM-006 lifecycle merge: b0ea0ba9508cc78d5580f44181115e9b304eb7da
-OAM-007 Canary task-start: c2e181f892ce2f094e887f1da5c6c7df207629c9
 OAM-007 target task-start: c547d8ad70ef1252624c255476e6cb83fa125e14
-OAM-007 upstream evidence: opentibiabr/canary@e0ac98e399d0f7e483f3668f57b78fcc45b6e53f
-OAM-007 target PR final head: cd6fae153ebe495ec9030c9c729f2ceef06872ef
 OAM-007 final target head: 68c4f39f7b1b45f880543c258627b4ccf73dbc86
-OAM-007 maintained client: blakinio/otclient@2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
 OAM-007 exact physical proof: Universal Agent E2E #136 / run 29559180590 / Required physical E2E PASS
 OAM-007 Canary feature merge: be9760a88d0c714dfd3e1b6a659e373380d03d65
 OAM-007 lifecycle merge: 317c1c4235377c388883aa2fd425d324f8ce4d2e
@@ -116,8 +106,8 @@ OAM-008 canonical module: vocations
 OAM-008 target PR final head: 9453a1754501ce183e20d294df1064a5ccbad54c
 OAM-008 final target head: f59a58426b4d3910ba0cdc0d2332c24f31a1db4f
 OAM-008 target focused proof: CI #88 / Required #84 / autofix #77 PASS; both VocationsTest cases executed and passed
-OAM-008 Canary feature governance: PR #469 current
-OAM-008 lifecycle archival: not started
+OAM-008 Canary feature merge: acdddd924fed170da51a8a54114607842f0cbb68
+OAM-008 lifecycle archival: current lifecycle-only package
 OAM-009 implementation: not created and not started
 target write authorization: explicitly granted by the user for autonomous OAM writes
 ```
@@ -151,9 +141,7 @@ player-persistence  ADAPT
 world-persistence   ADAPT
 ```
 
-OAM-005 revalidated the bounded account/character lifecycle foundation and completed target, feature-governance and lifecycle delivery.
-
-OAM-005 dispositions are:
+OAM-005 completed the bounded account/character lifecycle foundation with:
 
 ```text
 account-lifecycle       REUSE
@@ -161,17 +149,9 @@ account-authentication  ADAPT
 character-lifecycle     ADAPT
 ```
 
-OAM-006 revalidated the bounded `protocol` module and selected `ADAPT`. Target PR #21 wired the OAM-005 secure login-session primitive into the supported modern login/game handoff without replacing `IOLoginData`, removing fallbacks or mutating the maintained client. The target squash-merged as `c547d8ad70ef1252624c255476e6cb83fa125e14` after exact-head gates, Universal Agent E2E #118 proved the exact final target against maintained OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`, Canary feature-governance PR #436 merged as `c40b26ee9481ec99931347ba26897a785a7a38ca`, and lifecycle PR #448 merged as `b0ea0ba9508cc78d5580f44181115e9b304eb7da`.
+OAM-006 completed the bounded `protocol` package with `ADAPT`, final target `c547d8ad70ef1252624c255476e6cb83fa125e14`, exact heavy E2E #118, feature merge `c40b26ee9481ec99931347ba26897a785a7a38ca` and lifecycle merge `b0ea0ba9508cc78d5580f44181115e9b304eb7da`.
 
-OAM-006 disposition is:
-
-```text
-protocol ADAPT
-```
-
-OAM-007 revalidated the dependency-ordered item/world runtime foundation. `item-definitions` selected `ADAPT` because Canary PR #81 supplied concrete provenance and focused coverage for the missing magic-field add-item-on-occupied-tile registration behavior. Bounded Otheryn PR #23 delivered only that adaptation and squash-merged as `68c4f39f7b1b45f880543c258627b4ccf73dbc86` after exact-head gates. `item-instances` selected `REUSE` after checked principal runtime paths matched task-start target, legacy and upstream. `world-map-runtime` selected `REUSE`: target/upstream aligned across the checked runtime boundary while the divergent legacy Map/Tile/MapCache/MapSector fork lacked a proven target requirement and was not migrated. Full heavy Universal Agent E2E #136 proved the exact final target against maintained OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f` with `Required physical E2E` success. Canary feature-governance PR #455 final head `003cbd7dc177cc6c95c277b0fe149123a36dbdf4` passed Ownership #1893 and ready-triggered CI #3034 with clean review state and squash-merged as `be9760a88d0c714dfd3e1b6a659e373380d03d65`; lifecycle PR #466 merged as `317c1c4235377c388883aa2fd425d324f8ce4d2e`.
-
-OAM-007 dispositions are:
+OAM-007 completed the item/world runtime foundation with:
 
 ```text
 item-definitions  ADAPT
@@ -179,7 +159,9 @@ item-instances    REUSE
 world-map-runtime REUSE
 ```
 
-OAM-008 selected exactly one evidence-backed low-risk canonical module: `vocations`. Its canonical `vocation.cpp`, `vocation.hpp` and `data/XML/vocations.xml` blobs were identical across exact task-start target, legacy and upstream baselines, and the module has no canonical `depends_on` dependencies. `world-zones` was rejected as a first transfer because target/upstream already carried the cleaner runtime cache design while the legacy fork lacked a proven target requirement; `instances` and `containers` were rejected as broader stateful first slices. Otheryn PR #25 added only focused acceptance tests and unit-test registration, leaving all canonical vocation implementation/data unchanged. Final head `9453a1754501ce183e20d294df1064a5ccbad54c` passed autofix #77, full CI #88 and Required #84. Linux debug `Run Tests` passed, and the uploaded CTest log recorded both focused `VocationsTest` cases as executed and passed. The PR had zero comments, zero submitted reviews and zero unresolved review threads and squash-merged as `f59a58426b4d3910ba0cdc0d2332c24f31a1db4f`.
+Its final target is `68c4f39f7b1b45f880543c258627b4ccf73dbc86`, exact heavy E2E #136 passed, feature governance merged as `be9760a88d0c714dfd3e1b6a659e373380d03d65`, and lifecycle merged as `317c1c4235377c388883aa2fd425d324f8ce4d2e`.
+
+OAM-008 selected exactly one low-risk canonical module: `vocations`. Canonical `vocation.cpp`, `vocation.hpp` and `data/XML/vocations.xml` were exact-blob identical across task-start target, legacy and upstream. Exact blob identity alone was not accepted as authorization: proof-only Otheryn PR #25 added focused acceptance tests, final head `9453a1754501ce183e20d294df1064a5ccbad54c` passed autofix #77, CI #88 and Required #84, Linux debug `Run Tests` passed, and both `VocationsTest` cases were observed as executed and passed. The target PR had zero comments, zero submitted reviews and zero unresolved review threads and squash-merged as `f59a58426b4d3910ba0cdc0d2332c24f31a1db4f`. Canary feature-governance PR #469 exact head `c5c53dcbacabe48c08ebaf70f0a0622f70784aa6` passed Ownership #1970, draft CI #3111 and ready CI #3112 with clean review state and squash-merged as `acdddd924fed170da51a8a54114607842f0cbb68`.
 
 OAM-008 disposition is:
 
@@ -208,23 +190,20 @@ No later migration implementation may infer authorization from an earlier packag
 | OAM-004 final target head | `67212530b03c10175da2c0d9eabcee8991a05924` | TARGET + LIFECYCLE COMPLETE |
 | OAM-005 final target head | `a6d42f6cec024f81a7541084425ec1d43d66d2b8` | TARGET + FEATURE + LIFECYCLE COMPLETE |
 | OAM-006 final target head | `c547d8ad70ef1252624c255476e6cb83fa125e14` | TARGET + FEATURE + LIFECYCLE COMPLETE |
-| OAM-006 maintained client | `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f` | PINNED + UNCHANGED |
 | OAM-006 exact physical proof | Universal Agent E2E #118 (`29531221365`) | REQUIRED PHYSICAL E2E PASS |
-| OAM-006 cross-repo contract | `OTS-001` | VERIFIED |
-| OAM-006 Canary feature governance | PR #436 → `c40b26ee9481ec99931347ba26897a785a7a38ca` | MERGED |
 | OAM-006 lifecycle merge | `b0ea0ba9508cc78d5580f44181115e9b304eb7da` | COMPLETE |
 | OAM-007 final target head | `68c4f39f7b1b45f880543c258627b4ccf73dbc86` | TARGET DELIVERY COMPLETE |
 | OAM-007 exact physical proof | Universal Agent E2E #136 (`29559180590`) | REQUIRED PHYSICAL E2E PASS |
-| OAM-007 Canary feature governance | PR #455 → `be9760a88d0c714dfd3e1b6a659e373380d03d65` | MERGED |
 | OAM-007 lifecycle merge | `317c1c4235377c388883aa2fd425d324f8ce4d2e` | COMPLETE |
 | OAM-008 target task-start | `68c4f39f7b1b45f880543c258627b4ccf73dbc86` | PINNED |
-| OAM-008 canonical module | `vocations` | SELECTED + REUSE |
+| OAM-008 canonical module | `vocations` | REUSE |
 | OAM-008 final target head | `f59a58426b4d3910ba0cdc0d2332c24f31a1db4f` | TARGET PROOF DELIVERY COMPLETE |
 | OAM-008 focused target proof | CI #88 / Required #84 / autofix #77 | PASS |
-| OAM-008 Canary feature governance | PR #469 | CURRENT FEATURE PACKAGE |
+| OAM-008 Canary feature governance | PR #469 → `acdddd924fed170da51a8a54114607842f0cbb68` | MERGED |
+| OAM-008 lifecycle archival | `docs/oam-008-lifecycle-archive` | CURRENT LIFECYCLE-ONLY PACKAGE |
 | target write authorization | explicit user authorization for autonomous OAM writes to `blakinio/Otheryn` | ESTABLISHED |
 
-Every future package must re-fetch and pin fresh task-start baselines. OAM-009 must not treat OAM-008 target delivery or any current main as an unverified moving-state assumption.
+Every future package must re-fetch and pin fresh task-start baselines. OAM-009 must not treat OAM-008 delivery or any current main as an unverified moving-state assumption.
 
 # Canonical migration unit
 
@@ -257,21 +236,21 @@ Generated indexes are discovery artifacts and must not become a second registry.
 | Real Tibia parity governance | `docs/agents/programs/REAL_TIBIA_PARITY_PROGRAM.md` | Preserve source roles, proof layers and bounded evidence. |
 | Completed TSD program | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | Preserve inventory; do not reopen its queue. |
 | Upstream Intelligence | `docs/agents/programs/UPSTREAM_INTELLIGENCE_PROGRAM.md` | Reuse source-role-aware discovery only. |
-| Universal Physical-Client E2E | PR #245; `tools/e2e/**`; `tests/e2e/**`; OAM-006 controlled-server extension | Add bounded scenarios/exact controlled server revisions; never build a second generic orchestrator. |
+| Universal Physical-Client E2E | PR #245; `tools/e2e/**`; `tests/e2e/**`; OAM-006 controlled-server extension | Reuse in-place; never build a second generic orchestrator. |
 | OTBM analysis pipeline | existing `tools/ai-agent/**` / `docs/ai-agent/**` | Reuse canonical world/map evidence tools. |
 | Canary ↔ OTClient contract registry | `docs/agents/CROSS_REPO_CONTRACTS.md` | Use explicit compatibility/version/rollout contracts when client coupling exists. |
-| OAM-003 engine-foundation report | `docs/agents/OTERYN_OAM_003_ENGINE_FOUNDATION_REVALIDATION.md` | Durable evidence for seven OAM-003 decisions and delivered target seams. |
-| OAM-004 persistence-foundation report | `docs/agents/OTERYN_OAM_004_PERSISTENCE_FOUNDATION_REVALIDATION.md` | Durable evidence for four OAM-004 `ADAPT` decisions and delivered target persistence seams. |
-| OAM-005 account/character lifecycle report | `docs/agents/OTERYN_OAM_005_ACCOUNT_CHARACTER_LIFECYCLE_REVALIDATION.md` | Durable evidence for OAM-005 `REUSE`/`ADAPT` decisions and the bounded login-session primitive. |
-| OAM-006 network/login/protocol report | `docs/agents/OTERYN_OAM_006_NETWORK_LOGIN_PROTOCOL_REVALIDATION.md` | Durable evidence for the `protocol` `ADAPT` decision, exact target delivery and exact controlled-server physical-client proof. |
-| OAM-007 item/world runtime report | `docs/agents/OTERYN_OAM_007_ITEM_WORLD_RUNTIME_REVALIDATION.md` | Durable evidence for `item-definitions` `ADAPT`, `item-instances` `REUSE`, `world-map-runtime` `REUSE`, bounded target delivery and exact controlled-server runtime proof. |
-| OAM-008 vocations migration report | `docs/agents/OTERYN_OAM_008_VOCATIONS_MIGRATION.md` | Durable evidence for the first low-risk module selection, exact canonical blob identity, focused target proof and `vocations` `REUSE`. |
+| OAM-003 engine-foundation report | `docs/agents/OTERYN_OAM_003_ENGINE_FOUNDATION_REVALIDATION.md` | Durable OAM-003 evidence. |
+| OAM-004 persistence-foundation report | `docs/agents/OTERYN_OAM_004_PERSISTENCE_FOUNDATION_REVALIDATION.md` | Durable OAM-004 evidence. |
+| OAM-005 account/character lifecycle report | `docs/agents/OTERYN_OAM_005_ACCOUNT_CHARACTER_LIFECYCLE_REVALIDATION.md` | Durable OAM-005 evidence. |
+| OAM-006 network/login/protocol report | `docs/agents/OTERYN_OAM_006_NETWORK_LOGIN_PROTOCOL_REVALIDATION.md` | Durable OAM-006 evidence. |
+| OAM-007 item/world runtime report | `docs/agents/OTERYN_OAM_007_ITEM_WORLD_RUNTIME_REVALIDATION.md` | Durable OAM-007 evidence. |
+| OAM-008 vocations migration report | `docs/agents/OTERYN_OAM_008_VOCATIONS_MIGRATION.md` | Durable evidence for first low-risk module selection, exact canonical identity, focused target proof and `vocations` `REUSE`. |
 
 # Active tasks
 
-`OAM-008` is the only active OAM implementation package. It owns exactly the canonical `vocations` module. Target proof delivery is complete as `f59a58426b4d3910ba0cdc0d2332c24f31a1db4f`; Canary feature-governance PR #469 is the current boundary.
+No OAM implementation task is active in the lifecycle result represented by this package. `OAM-008` is archived under `docs/agents/tasks/archive/` and this lifecycle-only merge is the final completion boundary.
 
-`OAM-009` is not active and is not created or started here. It remains blocked until OAM-008 feature governance and separate lifecycle archival are both complete.
+`OAM-009` is not active and is not created or started here. After this lifecycle merge it becomes only the next eligible bounded package and still requires fresh live-state, exact target/client baselines and one bounded physical-client scenario definition before task creation.
 
 # Dependency-aware queue
 
@@ -283,12 +262,12 @@ Generated indexes are discovery artifacts and must not become a second registry.
 | `OAM-004` | database and persistence foundation revalidation | completed | completed OAM-003 lifecycle | target, feature governance and lifecycle complete |
 | `OAM-005` | account and character lifecycle revalidation | completed | completed OAM-004 feature + lifecycle | target, feature governance and lifecycle complete |
 | `OAM-006` | network/login/protocol contract revalidation | completed | completed OAM-005 feature + lifecycle | target, exact E2E, feature governance and lifecycle complete |
-| `OAM-007` | item/world runtime foundation revalidation | completed | OAM-003, OAM-004, completed OAM-006 lifecycle | target, exact E2E, feature governance and lifecycle complete |
-| `OAM-008` | first low-risk canonical module migration package: `vocations` | active | completed OAM-007 lifecycle | target proof `f59a58426b4d3910ba0cdc0d2332c24f31a1db4f` complete; finish Canary PR #469 and separate lifecycle archive |
-| `OAM-009` | target physical-client E2E proof for first migrated module | blocked | OAM-008 feature + lifecycle plus target/client compatibility | only after OAM-008 lifecycle, re-fetch exact target/client state and reuse the existing E2E platform with one bounded scenario |
+| `OAM-007` | item/world runtime foundation revalidation | completed | completed OAM-006 lifecycle | target, exact E2E, feature governance and lifecycle complete |
+| `OAM-008` | first low-risk canonical module migration package: `vocations` | completed | completed OAM-007 lifecycle | target proof and feature merge `acdddd924fed170da51a8a54114607842f0cbb68` complete; this lifecycle-only archival merge is the final boundary |
+| `OAM-009` | target physical-client E2E proof for first migrated module | planned | completed OAM-008 lifecycle plus target/client compatibility | next eligible only after this lifecycle merge; re-fetch exact target/client state and define one bounded scenario using existing Universal Agent E2E |
 | `OAM-010+` | dependency-ordered domain migrations | planned | proven foundation and prior package dependencies | advance one bounded package at a time |
 
-OAM-008 target delivery is complete but the package is not lifecycle-complete. OAM-009 remains blocked and must not start before OAM-008 feature and lifecycle merges.
+OAM-008 is lifecycle-complete in the state produced by this package. OAM-009 is merely next eligible after the lifecycle merge and remains not created and not started.
 
 # Migration package evidence gate
 
@@ -325,21 +304,16 @@ AI may correlate evidence, summarize findings, suggest reproduction steps and as
 
 # Dependencies and blockers
 
-- OAM-001 and OAM-002 are completed and lifecycle archived.
-- OAM-003 feature and lifecycle work are complete.
-- OAM-004 feature and lifecycle work are complete.
-- OAM-005 feature and lifecycle work are complete; final target is `a6d42f6cec024f81a7541084425ec1d43d66d2b8` and lifecycle merge is `a1d82a5989fe9e3b7ac6c495804cb1cd83c59090`.
-- OAM-006 `protocol` disposition is `ADAPT`; final target is `c547d8ad70ef1252624c255476e6cb83fa125e14`, feature merge is `c40b26ee9481ec99931347ba26897a785a7a38ca`, and lifecycle merge is `b0ea0ba9508cc78d5580f44181115e9b304eb7da`.
-- OAM-007 dispositions are `item-definitions` → `ADAPT`, `item-instances` → `REUSE`, `world-map-runtime` → `REUSE`; lifecycle merge is `317c1c4235377c388883aa2fd425d324f8ce4d2e`.
+- OAM-001 through OAM-007 are feature and lifecycle complete.
 - OAM-008 selected exactly one canonical module, `vocations`, with final disposition `REUSE`.
 - OAM-008 exact task-start baselines are Canary `317c1c4235377c388883aa2fd425d324f8ce4d2e`, Otheryn `68c4f39f7b1b45f880543c258627b4ccf73dbc86` and upstream `e0ac98e399d0f7e483f3668f57b78fcc45b6e53f`.
 - The three canonical vocation paths were exact-blob identical across task-start target, legacy and upstream.
 - Otheryn PR #25 changed only test registration and focused vocation tests; no canonical vocation implementation or XML changed.
-- Otheryn PR #25 final head `9453a1754501ce183e20d294df1064a5ccbad54c` passed autofix #77, CI #88 and Required #84.
-- Linux debug `Run Tests` passed; the test artifact recorded `VocationsTest.LookupIsCaseInsensitiveAndUnknownFallsBackToNone` and `VocationsTest.PromotionLookupReturnsDistinctVocationWithMatchingBase` as executed and passed among 325 CTest cases.
-- Otheryn PR #25 had zero comments, zero submitted reviews and zero unresolved review threads at the final gate and squash-merged as `f59a58426b4d3910ba0cdc0d2332c24f31a1db4f`.
-- Canary PR #469 is the current OAM-008 feature-governance package.
-- No physical-client E2E is claimed inside OAM-008; OAM-009 owns that separate proof package and remains blocked until OAM-008 feature and lifecycle completion.
+- Otheryn PR #25 final head `9453a1754501ce183e20d294df1064a5ccbad54c` passed autofix #77, CI #88 and Required #84; both focused vocation tests executed and passed.
+- Otheryn PR #25 squash-merged as `f59a58426b4d3910ba0cdc0d2332c24f31a1db4f`.
+- Canary PR #469 final head `c5c53dcbacabe48c08ebaf70f0a0622f70784aa6` passed Ownership #1970, draft CI #3111 and ready CI #3112 with clean review state and squash-merged as `acdddd924fed170da51a8a54114607842f0cbb68`.
+- This lifecycle-only package archives OAM-008; no OAM-009 implementation is included.
+- OAM-009 becomes next eligible only after this lifecycle merge and still requires fresh exact target/client preflight.
 - OAM-004 residual gaps remain explicit: player SQL commit and later KV flush are non-atomic; generic KV eviction persistence failure handling is outside OAM-004D; untouched crash/restart recovery and generic DDL reversibility remain unproven.
 
 # Decisions and invariants
@@ -352,8 +326,6 @@ AI may correlate evidence, summarize findings, suggest reproduction steps and as
 - Migration sequencing follows dependency evidence.
 - Physical-client E2E complements, not replaces, focused/integration/runtime proof.
 - Exact controlled-server E2E must record the actual producer revision; a Canary-only or incrementally reused run cannot substitute for an exact-target proof.
-- An unchanged maintained client may remain read-only when its exact commit is compatible and physical proof verifies the pair.
-- World-content work reuses existing OTBM tooling.
 - Every feature merge is followed by separate lifecycle-only archival.
 - Target delivery completion does not by itself authorize the next package; lifecycle completion remains required.
 - A next-eligible package is not an active package; it still requires a new bounded task and fresh exact evidence.
@@ -362,40 +334,31 @@ AI may correlate evidence, summarize findings, suggest reproduction steps and as
 
 # Validation strategy
 
-OAM-001 and OAM-002 completed their exact-head feature and lifecycle gates.
+OAM-001 and OAM-002 completed exact-head feature and lifecycle gates.
 
-OAM-003 completed its target, feature-governance and lifecycle gates.
+OAM-003 through OAM-007 completed their bounded target/feature/lifecycle packages under the same sequencing contract.
 
-OAM-004 completed with target PRs #11/#12/#13/#14, Canary feature PR #420 and separate lifecycle PR #428, all using exact-head gates.
-
-OAM-005 completed target, feature-governance and lifecycle delivery with `account-lifecycle` → `REUSE`, `account-authentication` → `ADAPT` and `character-lifecycle` → `ADAPT`.
-
-OAM-006 completed target, feature-governance and lifecycle delivery with `protocol` → `ADAPT`, exact target `c547d8ad70ef1252624c255476e6cb83fa125e14`, full heavy E2E #118 and lifecycle merge `b0ea0ba9508cc78d5580f44181115e9b304eb7da`.
-
-OAM-007 completed target, exact runtime proof, feature governance and lifecycle delivery with `item-definitions` → `ADAPT`, `item-instances` → `REUSE`, `world-map-runtime` → `REUSE`, exact target `68c4f39f7b1b45f880543c258627b4ccf73dbc86`, full heavy E2E #136 and lifecycle merge `317c1c4235377c388883aa2fd425d324f8ce4d2e`.
-
-OAM-008 target proof delivery completed with:
+OAM-008 completed target proof and feature governance with:
 
 - exactly one canonical module: `vocations`;
 - final disposition `REUSE`;
 - task-start target `68c4f39f7b1b45f880543c258627b4ccf73dbc86`, governance `317c1c4235377c388883aa2fd425d324f8ce4d2e` and upstream `e0ac98e399d0f7e483f3668f57b78fcc45b6e53f`;
-- identical canonical blobs for `vocation.cpp`, `vocation.hpp` and `data/XML/vocations.xml` across all three task-start baselines;
-- target PR #25 final head `9453a1754501ce183e20d294df1064a5ccbad54c`;
+- identical canonical blobs across all three task-start baselines;
+- target PR #25 exact final head `9453a1754501ce183e20d294df1064a5ccbad54c`;
 - autofix #77, full CI #88 and Required #84 success;
-- Linux debug `Run Tests` success;
-- both focused `VocationsTest` cases executed and passed in the CTest artifact;
-- zero target PR comments, submitted reviews and unresolved review threads at final merge gate;
-- target proof-only squash merge `f59a58426b4d3910ba0cdc0d2332c24f31a1db4f`;
-- no canonical vocation code/data mutation and no maintained-client mutation;
-- no physical-client proof claim inside OAM-008.
+- both focused `VocationsTest` cases executed and passed;
+- target proof-only merge `f59a58426b4d3910ba0cdc0d2332c24f31a1db4f`;
+- Canary feature PR #469 exact head `c5c53dcbacabe48c08ebaf70f0a0622f70784aa6` with Ownership #1970, draft CI #3111 and ready CI #3112 success;
+- Canary feature merge `acdddd924fed170da51a8a54114607842f0cbb68`;
+- no canonical vocation code/data mutation, no maintained-client mutation and no physical-client proof claim inside OAM-008.
 
-Canary feature-governance PR #469 must now pass its own exact-head ownership/CI/review gates and merge, followed by a separate lifecycle-only archive. OAM-009 remains blocked until both boundaries complete.
+This separate lifecycle-only package archives OAM-008 and must pass its own exact-head ownership/CI/review gates before merge. Only after that merge may OAM-009 become next eligible.
 
 # Handoff
 
 ## Start here
 
-Read `AGENTS.md`, `docs/agents/README.md`, this program, `docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md`, `docs/agents/OTERYN_OAM_008_VOCATIONS_MIGRATION.md`, `docs/agents/OTERYN_OAM_007_ITEM_WORLD_RUNTIME_REVALIDATION.md`, `docs/agents/CROSS_REPO_CONTRACTS.md`, the current canonical registry/generated indexes, archived OAM task records, all active task records and live open PRs.
+Read `AGENTS.md`, `docs/agents/README.md`, this program, `docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md`, `docs/agents/OTERYN_OAM_008_VOCATIONS_MIGRATION.md`, `docs/agents/CROSS_REPO_CONTRACTS.md`, the current canonical registry/generated indexes, archived OAM task records, all active task records and live open PRs.
 
 ## Task creation protocol
 
@@ -420,14 +383,10 @@ Read `AGENTS.md`, `docs/agents/README.md`, this program, `docs/agents/OTERYN_TAR
 - Do not infer persistence safety from `DBTransaction` existence.
 - Do not claim player SQL + KV atomicity.
 - Do not restore whole legacy `IOLoginData` over OAM-004D target persistence changes.
-- Do not treat `LoginSessionManager` presence alone as live authentication proof.
 - Do not merge speculative OTClient transport hardening from closed PR #11.
-- Do not use incrementally reused E2E #114 as the exact-target OAM-006 proof; use full heavy E2E #118.
-- Do not infer that every legacy Map/Tile/MapCache divergence must migrate to Otheryn.
-- Do not claim physical login/relog alone proves the occupied-tile magic-field behavior; use the focused OAM-007 policy test for that behavior.
 - Do not mutate canonical vocation implementation/data merely to force a migration diff when exact target content is already reusable.
 - Do not accept scope-skipped CI as focused OAM-008 behavior proof.
-- Do not start OAM-009 inside OAM-008 feature governance or lifecycle archival.
+- Do not start OAM-009 inside OAM-008 lifecycle archival.
 
 ## Known gaps carried forward
 
@@ -439,15 +398,11 @@ Read `AGENTS.md`, `docs/agents/README.md`, this program, `docs/agents/OTERYN_TAR
 - Generic KV eviction persistence failure handling remains outside OAM-004D.
 - Complete crash/restart recovery semantics for untouched persistence paths remain unproven.
 - Generic DDL reversibility remains unproven.
-- OAM-006 exact physical proof covers the maintained `current` profile at protocol 1525 and does not claim exhaustive physical coverage of every old-protocol profile.
-- OAM-006 physical proof establishes successful live token handoff but is not an adversarial replay matrix; primitive single-use/lifetime evidence remains in OAM-005 focused tests.
-- DB-session/password fallbacks remain preserved and CI-covered but were not the exact controlled-server physical path exercised by E2E #118.
+- OAM-006 exact physical proof does not claim exhaustive physical coverage of every old-protocol profile.
 - OAM-007 does not claim Real Tibia item value/appearance parity, map completeness or exhaustive movement/pathfinding correctness.
-- OAM-007 exact physical proof is a runtime regression smoke and does not directly exercise damage from a field placed under an already occupied tile; the focused policy test is the behavior-specific proof.
-- The divergent legacy map runtime fork remains non-migrated evidence unless a future bounded task proves a concrete target requirement.
 - OAM-008 does not claim Real Tibia vocation value parity, combat formula parity, spell/weapon eligibility or Wheel behavior.
 - OAM-008 does not include physical-client E2E; OAM-009 remains the separate proof boundary.
 
 # Exact next task
 
-Pass Canary PR #469 through exact-head ownership/CI/review gates and squash-merge it. Then archive OAM-008 through a separate lifecycle-only PR with its own exact-head gates. Only after that lifecycle merge may `OAM-009 — target physical-client E2E proof for first migrated module` become next eligible; before creating OAM-009, re-fetch live Canary/Otheryn/client state and define exactly one bounded physical-client scenario using the existing Universal Agent E2E platform.
+Merge this separate lifecycle-only OAM-008 archival package only after exact-head ownership/CI/review gates pass. After that merge, `OAM-009 — target physical-client E2E proof for first migrated module` is merely the next eligible bounded package and remains not created or started. Before creating OAM-009, re-fetch live Canary/Otheryn/client state and define exactly one bounded physical-client scenario using the existing Universal Agent E2E platform.
