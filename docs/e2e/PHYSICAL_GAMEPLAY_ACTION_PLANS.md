@@ -30,6 +30,14 @@ The canonical `data-otservbr-global` / `otservbr` pair preserves the existing co
 
 Server selection changes only which repository-owned datapack/map the canonical lifecycle starts. It does not create a second runner, alter the controlled OTClient contract, or make a static map fixture itself proof of gameplay correctness.
 
+## Pull-request scenario selection
+
+The existing `run_agent_e2e.py resolve` boundary keeps `login/relog` as the canonical pull-request fallback. For a same-repository `pull_request` that reaches the resolver with exactly that fallback pair, it may replace the fallback only when the exact base/head delta proves exactly one existing `tests/e2e/scenarios/<suite>/*.json` manifest changed. The selected scenario ID comes from the validated manifest, not from its filename.
+
+The selector first attempts an exact local Git diff and, for the shallow checkout used by the existing workflow, can fall back to GitHub's immutable exact-SHA compare API. Fork pull requests, zero or multiple candidate manifests, and deleted-only manifests retain `login/relog`. Invalid or unavailable exact-delta evidence fails closed rather than silently claiming a feature scenario was validated. GitHub compare evidence at the 300-file response boundary is rejected as potentially truncated.
+
+Explicit non-canonical `workflow_dispatch` suite/scenario inputs are never replaced by PR selection. Scenario discovery and validation, controlled server/client selection, physical execution, evidence and the Required gate remain owned by the same Universal Agent E2E workflow and runner; this adds no second workflow or lifecycle.
+
 ## Supported actions
 
 | Action | Required fields | Optional fields | Physical intent |
