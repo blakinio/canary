@@ -2,13 +2,13 @@
 task_id: CAN-20260717-e2e-scenario-server-selection
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: OTS-E2E-SERVER-SELECTION-001
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/e2e-scenario-server-selection
 base_branch: main
 created: 2026-07-17T09:55:00+02:00
-updated: 2026-07-17T12:45:00+02:00
-last_verified_commit: "9d6133fe51cdb8cfa127fe7431b2ea6a8c2ba2ab"
+updated: 2026-07-17T11:02:17Z
+last_verified_commit: "616f2ddcc2108b941077c3608b122801400b0a9a"
 risk: medium
 related_issue: ""
 related_pr: "468"
@@ -45,6 +45,7 @@ public_interfaces:
   - scenario.server.datapack materialized as the physical runtime datapack directory
   - scenario.server.map materialized as the physical runtime map basename
 cross_repo_tasks: []
+completed: 2026-07-17T11:02:17Z
 ---
 
 # Goal
@@ -170,3 +171,11 @@ validation:
 blockers: []
 next_action: Make no further feature-branch changes. Require Agent Task Ownership, CI and full Universal Agent E2E success on the exact final checkpoint head; recheck current main/reviews before merge; squash merge only if all exact-head evidence is green, otherwise repair the concrete failure and repeat final-gate preparation.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #468.
+- Feature head: `e81a8ebf4ed78816c1b1b28364d0c1d2127175b1`.
+- Merge commit: `616f2ddcc2108b941077c3608b122801400b0a9a`.
+- Merged at: `2026-07-17T11:02:17Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
