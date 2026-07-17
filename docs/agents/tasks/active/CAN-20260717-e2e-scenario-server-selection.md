@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-scenario-server-selection
 base_branch: main
 created: 2026-07-17T09:55:00+02:00
-updated: 2026-07-17T10:42:00+02:00
-last_verified_commit: "5628b2bb69bd5291b21d01d996ee744d5a96a1cc"
+updated: 2026-07-17T12:45:00+02:00
+last_verified_commit: "9d6133fe51cdb8cfa127fe7431b2ea6a8c2ba2ab"
 risk: medium
 related_issue: ""
 related_pr: "468"
@@ -63,7 +63,7 @@ Make the already-declared `scenario.server.datapack` and `scenario.server.map` f
 - [x] Ensure changes to the server-selection helper trigger that existing physical E2E workflow.
 - [x] Add focused regression coverage for safe-name rejection, repository confinement, default global selection, repository-local non-default selection, nested symlink escape and environment materialization.
 - [ ] Pass exact-final-head applicable CI and Universal Agent E2E while preserving canonical login/relog behavior.
-- [x] Audit final changed paths, synchronize with current main, clear reviews/threads and apply the exact-final-head gate before the final checkpoint commit.
+- [x] Audit final changed paths, synchronize with current main, clear reviews/threads and preserve the exact-final-head gate before the final checkpoint commit.
 
 # Proven blocker
 
@@ -76,8 +76,8 @@ Make the already-declared `scenario.server.datapack` and `scenario.server.map` f
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T10:42:00+02:00
-head: 5628b2bb69bd5291b21d01d996ee744d5a96a1cc
+updated_at: 2026-07-17T12:45:00+02:00
+head: 9d6133fe51cdb8cfa127fe7431b2ea6a8c2ba2ab
 branch: feat/e2e-scenario-server-selection
 pr: 468
 status: ready
@@ -94,7 +94,7 @@ owned_paths:
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
 proven:
-  - draft PR 468 was opened early and is now marked ready for review
+  - PR 468 is ready for review
   - Universal OTS E2E action-plan platform from PR 446 is merged and is extended rather than replaced
   - scenario validation already requires non-empty server.datapack and server.map strings
   - canonical login/relog scenario declares data-otservbr-global and otservbr
@@ -111,13 +111,12 @@ proven:
   - controlled OTClient driver and canonical login/relog scenario remain unchanged
   - workflow change is limited to adding tools/e2e/server_selection.py to the existing pull_request path filter so helper-only changes cannot bypass physical E2E
   - workflow patch audit shows exactly that one added path and no other workflow drift
-  - module-catalog patch audit is confined to the existing Universal OTS E2E row while preserving newer main entries
-  - changelog patch audit is confined to one new server-selection bullet while preserving newer main entries
+  - shared CHANGELOG.md and MODULE_CATALOG.md were normalized byte-for-byte to current main and are no longer part of the net PR diff
   - focused local validation passed py_compile and 8 of 8 server-selection unittests
-  - final changed-file audit contains exactly eight bounded server-selection/task/discovery paths
+  - final net changed-file audit contains exactly six bounded server-selection/task paths
   - pull-request review-thread audit found no unresolved review threads and review audit found no submitted reviews requiring action
-  - branch was synchronized with current main through a normal non-force merge commit before final-gate preparation
-  - ci:final-gate label was applied before this final checkpoint commit
+  - branch was synchronized to current main by a non-force fast-forward to GitHub's generated merge result 9d6133fe51cdb8cfa127fe7431b2ea6a8c2ba2ab
+  - ci:final-gate label remains applied before this final checkpoint commit
   - this checkpoint commit is intended to be the final feature-branch commit; no post-green feature commit is permitted
 
 derived:
@@ -141,8 +140,6 @@ rejected_hypotheses:
   - refactor the large scenario resolver only to make the new helper inherit its workflow path trigger
 changed_paths:
   - .github/workflows/universal-agent-e2e.yml
-  - docs/agents/CHANGELOG.md
-  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260717-e2e-scenario-server-selection.md
   - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
   - tests/e2e/test_agent_e2e_server_selection.py
@@ -161,15 +158,15 @@ validation:
   - command: PR diff audit for .github/workflows/universal-agent-e2e.yml
     result: PASS
     evidence: exactly one pull_request path-filter entry was added for tools/e2e/server_selection.py
-  - command: final changed-file and shared-document diff audit
+  - command: final net changed-file and shared-document diff audit
     result: PASS
-    evidence: exactly eight expected paths; changelog and module catalogue preserve newer main entries and contain only the bounded #468 discovery changes
+    evidence: exactly six expected paths; CHANGELOG.md and MODULE_CATALOG.md are byte-for-byte identical to current main
   - command: review and overlap audit
     result: PASS
     evidence: no unresolved review threads, no submitted reviews requiring action and no competing live owner for the server-selection paths
   - command: final-gate preparation
     result: PASS
-    evidence: PR marked ready and ci:final-gate applied before this final checkpoint commit
+    evidence: PR is ready and ci:final-gate remains applied before this checkpoint commit
 blockers: []
 next_action: Make no further feature-branch changes. Require Agent Task Ownership, CI and full Universal Agent E2E success on the exact final checkpoint head; recheck current main/reviews before merge; squash merge only if all exact-head evidence is green, otherwise repair the concrete failure and repeat final-gate preparation.
 ```
