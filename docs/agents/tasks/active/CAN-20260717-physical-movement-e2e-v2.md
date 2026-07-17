@@ -7,13 +7,14 @@ agent: "GPT-5.5 Thinking"
 branch: test/e2e-physical-movement-v2
 base_branch: main
 created: 2026-07-17T15:03:00+02:00
-updated: 2026-07-17T20:14:00+02:00
-last_verified_commit: "2212b3e2838ddf86b1a7810533788f7617e911c5"
+updated: 2026-07-17T20:22:00+02:00
+last_verified_commit: "70648ed319c2ca60d190bc13134162de0fddc6ce"
 risk: medium
 related_issue: ""
 related_pr: "481"
 depends_on:
   - CAN-20260717-e2e-pr-scenario-selection
+  - CAN-20260717-e2e-initial-position-readiness
 blocks:
   - future physical floor-change and teleport scenarios
 owned_paths:
@@ -58,8 +59,8 @@ Prove one bounded physical east movement with the existing Universal Agent E2E s
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T20:14:00+02:00
-head: 2212b3e2838ddf86b1a7810533788f7617e911c5
+updated_at: 2026-07-17T20:22:00+02:00
+head: 70648ed319c2ca60d190bc13134162de0fddc6ce
 branch: test/e2e-physical-movement-v2
 pr: 481
 status: validating
@@ -72,21 +73,27 @@ owned_paths:
 proven:
   - PR 477 is merged and deterministically selects one changed existing scenario manifest on same-repository PRs
   - PR 494 is merged and gates first-session plan execution on a real local-player position before recording initial_position and starting the plan
-  - PR 481 discovery head 2212b3e2838ddf86b1a7810533788f7617e911c5 changes only this task record and the movement scenario relative to main
+  - PR 481 changes only this task record and the movement scenario relative to its feature base
   - Universal Agent E2E run 29601141589 selected the exact job Physical client / movement/physical-movement on discovery head 2212b3e2838ddf86b1a7810533788f7617e911c5
   - physical artifact 8415740677 has digest sha256:2fa6c83d16b114c2ecf8a451a29d092eca0154f1bbdc192fa7c76486a5152212
   - client-events.tsv records initial_position=32369,32241,7 before the movement plan
   - client-events.tsv records step_east-one=success and step_position-changed=success
   - client-events.tsv records exact physical post-movement position step_position-changed_detail=32370,32241,7
   - the same physical artifact records plan=success, logout_request_1=safe, server_persistence_1=confirmed, login_2=success, logout_request_2=safe and e2e=success
-  - static OTBM evidence identified 32370,32241,7 only as a candidate; the exact final-position assertion is now authorized by physical artifact 8415740677 rather than static map data
+  - static OTBM evidence identified 32370,32241,7 only as a candidate; the exact final-position assertion is authorized by physical artifact 8415740677 rather than static map data
+  - the scenario assertion now pins step_position-changed_detail=32370,32241,7
+  - CI run 29603164518 passed on post-evidence head 70648ed319c2ca60d190bc13134162de0fddc6ce
+derived:
+  - because the physical artifact records the initial position before any plan step and then records one successful east walk followed by exact changed position 32370,32241,7, the scenario may safely require that exact post-movement marker for this deterministic fixture
+  - the successful second login and final e2e marker prove the movement assertion did not replace or bypass the canonical logout persistence and relog sentinel
+  - the remaining Ownership failure is checkpoint-schema-only because artifact 8415795050 reports the sole error as missing checkpoint field derived
 unknown:
-  - post-assertion exact-head Ownership, CI and selected physical E2E conclusions
-  - whether current main advances again before final-gate preparation
+  - exact-final-head Ownership CI and selected physical E2E conclusions after final-gate preparation
+  - whether current main advances again before final merge
 conflicts: []
 first_failure:
   marker: active-task-checkpoint-schema
-  evidence: Agent Task Ownership run 29601141261 artifact 8415041033 reports first_failure must be a YAML mapping on discovery head 2212b3e2838ddf86b1a7810533788f7617e911c5
+  evidence: Agent Task Ownership run 29603164416 artifact 8415795050 reports missing checkpoint field derived on post-evidence head 70648ed319c2ca60d190bc13134162de0fddc6ce
 rejected_hypotheses:
   - treating static OTBM evidence as movement proof
   - treating the earlier run 29591841409 as movement proof
@@ -103,9 +110,12 @@ validation:
   - command: physical artifact 8415740677 client-events.tsv inspection
     result: PASS
     evidence: initial 32369,32241,7; one east step; exact changed position 32370,32241,7; canonical persistence/relog lifecycle ends e2e=success
-  - command: Agent Task Ownership run 29601141261
+  - command: CI run 29603164518
+    result: PASS
+    evidence: post-evidence scenario assertion and task state passed repository CI on 70648ed319c2ca60d190bc13134162de0fddc6ce
+  - command: Agent Task Ownership run 29603164416
     result: FAIL
-    evidence: artifact 8415041033 identified the now-corrected first_failure checkpoint schema violation
+    evidence: artifact 8415795050 identified missing derived checkpoint field; corrected in this commit
 blockers: []
-next_action: Validate the post-evidence head, synchronize with current main if needed, then audit scope/reviews and prepare the repository final gate without changing the physically proven assertion.
+next_action: Require the corrected checkpoint head to pass Ownership and physical E2E, synchronize with current main if needed, audit scope/reviews, then apply ci:final-gate before the final checkpoint commit.
 ```
