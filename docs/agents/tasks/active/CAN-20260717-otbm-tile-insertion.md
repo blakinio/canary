@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-tile-insertion
 base_branch: main
 created: 2026-07-17T15:15:00+02:00
-updated: 2026-07-17T15:31:00+02:00
-last_verified_commit: "48c8a0bea9f1b05fb0d1e409297e90400660c299"
+updated: 2026-07-17T15:47:00+02:00
+last_verified_commit: "00f4d4878943981b6ebdc9fc5372d142669bbd1e"
 risk: high
 related_issue: ""
 related_pr: "482"
@@ -76,8 +76,8 @@ Implement the next smallest structural OTBM write boundary: insert one or more c
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T15:31:00+02:00
-head: 48c8a0bea9f1b05fb0d1e409297e90400660c299
+updated_at: 2026-07-17T15:47:00+02:00
+head: 00f4d4878943981b6ebdc9fc5372d142669bbd1e
 branch: feat/otbm-tile-insertion
 pr: 482
 status: implementing
@@ -107,13 +107,16 @@ proven:
   - OTBM Map Tools run 29583988676 passed on 48c8a0bea9f1b05fb0d1e409297e90400660c299
   - AI Agent Tools run 29583988723 passed on 48c8a0bea9f1b05fb0d1e409297e90400660c299
   - CI run 29583989208 passed on 48c8a0bea9f1b05fb0d1e409297e90400660c299
+  - MODULE_CATALOG diff is exactly one additive bounded tile insertion row
+  - CHANGELOG diff is exactly one additive Unreleased tile insertion bullet
+  - no OTBM WIDX generated evidence render client asset or private map/asset is in the PR changed-file list
   - open PR 481 is Universal E2E movement work and does not overlap OTBM paths
   - open PR 453 is unrelated security documentation and was not touched
 derived:
   - deterministic grouping by parent area and position avoids reordering any existing current child
   - a missing tile may be inserted as ordinary or house type without constituting type conversion because no current tile exists at that position
 unknown:
-  - exact final-head gate results after shared catalogue/changelog and final checkpoint integration
+  - exact final-head gate results for the final checkpoint commit
 conflicts: []
 first_failure:
   marker: world-index-empty-map-fixture-depth
@@ -125,6 +128,8 @@ rejected_hypotheses:
   - serialize a tile from canonical World Index data instead of copying reviewed donor raw bytes
   - combine insertion with deletion, translation, type conversion, or item-stack editing in one writer version
 changed_paths:
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/decisions/ADR-20260717-otbm-raw-tile-insertion-boundary.md
   - docs/agents/tasks/active/CAN-20260717-otbm-tile-insertion.md
   - docs/ai-agent/OTBM_TILE_INSERTION_APPROVAL.schema.json
@@ -147,5 +152,5 @@ validation:
     result: PASS
     evidence: repository CI passed on head 48c8a0bea9f1b05fb0d1e409297e90400660c299
 blockers: []
-next_action: Integrate the reusable module catalogue and changelog narrowly, apply ci:final-gate, write the final checkpoint commit, then require exact-final-head ownership, OTBM Map Tools, AI Agent Tools and full CI before squash merge.
+next_action: Treat this checkpoint-only commit as the exact final feature head; make no further feature commits, require exact-final-head ownership, OTBM Map Tools, AI Agent Tools and ci:final-gate full CI success, then squash merge.
 ```
