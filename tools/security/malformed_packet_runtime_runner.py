@@ -28,16 +28,6 @@ def _load_core() -> ModuleType:
 core = _load_core()
 
 
-def source_ip_for_case(case_index: int) -> str:
-    if not 0 <= case_index < core.MAX_CASES:
-        raise core.ProbeFailure("source-index-out-of-range")
-    source_ip = f"127.0.0.{FIRST_CASE_SOURCE_HOST + case_index}"
-    address = ipaddress.ip_address(source_ip)
-    if not address.is_loopback:
-        raise core.ProbeFailure("source-not-loopback")
-    return source_ip
-
-
 def _require_loopback_source(source_ip: str) -> None:
     try:
         address = ipaddress.ip_address(source_ip)
@@ -45,6 +35,17 @@ def _require_loopback_source(source_ip: str) -> None:
         raise core.ProbeFailure("source-not-literal-ip") from exc
     if address.version != 4 or not address.is_loopback:
         raise core.ProbeFailure("source-not-loopback")
+
+
+def source_ips_for_case(case_index: int) -> tuple[str, str]:
+    if not 0 <= case_index < core.MAX_CASES:
+        raise core.ProbeFailure("source-index-out-of-range")
+    malformed_host = FIRST_CASE_SOURCE_HOST + (case_index * 2)
+    malformed_source_ip = f"127.0.0.{malformed_host}"
+    control_source_ip = f"127.0.0.{malformed_host + 1}"
+    _require_loopback_source(malformed_source_ip)
+    _require_loopback_source(control_source_ip)
+    return malformed_source_ip, control_source_ip
 
 
 def probe_malformed_case_from_source(
@@ -143,10 +144,11 @@ def execute_plan(
 
     for case_index, case_id in enumerate(plan["cases"]):
         case = core.CASES[case_id]
-        source_ip = source_ip_for_case(case_index)
+        malformed_source_ip, control_source_ip = source_ips_for_case(case_index)
         result: dict[str, Any] = {
             "id": case.case_id,
-            "source_ip": source_ip,
+            "malformed_source_ip": malformed_source_ip,
+            "control_source_ip": control_source_ip,
             "payload_sha256": core._sha256_bytes(case.payload),
             "payload_size": len(case.payload),
             "malformed_probe": "pending",
@@ -159,14 +161,14 @@ def execute_plan(
                 context.host,
                 int(context.status_port),
                 timeout_seconds,
-                source_ip,
+                malformed_source_ip,
             )
             result["malformed_probe"] = "connection-terminated"
             probe_status_control_from_source(
                 context.host,
                 int(context.status_port),
                 timeout_seconds,
-                source_ip,
+                control_source_ip,
             )
             result["control_probe"] = "pass"
         except core.ProbeFailure as exc:
