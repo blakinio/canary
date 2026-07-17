@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: test/e2e-physical-movement
 base_branch: main
 created: 2026-07-17T08:19:00+02:00
-updated: 2026-07-17T08:28:10+02:00
-last_verified_commit: "cee9bbfd72a9dfdb715fdefbc3d5c821c9409055"
+updated: 2026-07-17T09:05:35+02:00
+last_verified_commit: "4b959674a4d70a6a51d5f3b67ed595028d4d185e"
 risk: medium
 related_issue: ""
 related_pr: "457"
@@ -47,8 +47,8 @@ Add the first deterministic physical movement scenario on top of the merged Univ
 # Acceptance criteria
 
 - [x] Use the existing `scenario.steps` contract and generic controlled-OTClient scenario driver.
-- [ ] Use an existing disposable test account/character and evidence-backed map fixture; do not invent coordinates.
-- [ ] Prove the exact first-session starting position from physical-client evidence.
+- [x] Use an existing disposable test account/character and evidence-backed map fixture; do not invent coordinates.
+- [x] Prove the exact first-session starting position from physical-client evidence.
 - [ ] Perform bounded controlled movement through a physically proven passable route.
 - [ ] Assert the exact expected post-movement position using deterministic client evidence markers.
 - [x] Preserve the canonical first safe logout, persistence wait, relog with the same character, and second safe logout sentinel in the scenario contract.
@@ -68,8 +68,8 @@ Add the first deterministic physical movement scenario on top of the merged Univ
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T08:28:10+02:00
-head: cee9bbfd72a9dfdb715fdefbc3d5c821c9409055
+updated_at: 2026-07-17T09:05:35+02:00
+head: 4b959674a4d70a6a51d5f3b67ed595028d4d185e
 branch: test/e2e-physical-movement
 pr: 457
 status: investigating
@@ -91,24 +91,22 @@ proven:
   - draft PR 457 targets blakinio/canary main from blakinio/canary branch test/e2e-physical-movement
   - exploratory scenario uses only the existing bounded actions observe_online walk wait and observe_position_changed
   - shared tools/e2e and universal-agent-e2e workflow are unchanged
-  - Agent Task Ownership run 29559754880 / number 1858 failed only in changed active task checkpoint validation
-  - ownership diagnostics for run 1858 reported missing checkpoint fields derived and first_failure plus unsupported checkpoint status active
-  - Agent Task Ownership run 29559882710 / number 1860 then rejected only the top-level task status active for a record under tasks/active
-  - Agent Task Ownership run 29560056402 / number 1864 then rejected only the top-level task status investigating; tools/agents/task_ownership.py defines active frontmatter statuses as planned implementing blocked review ready
-  - tools/agents/task_lifecycle.py explicitly permits frontmatter implementing with checkpoint investigating
-  - CI runs 29559882800 / number 3001 and 29560056553 / number 3005 passed on their respective exact heads
+  - Agent Task Ownership run 29560247366 / number 1870 passed on head b4b26f91a7778c1478420079e8b7fa42576cd4cd
+  - CI run 29560247452 / number 3011 passed on the same head
+  - Universal Agent E2E run 29560247505 / number 142 passed the canonical pull-request login/relog sentinel on the same PR state; it did not execute movement/physical-movement
+  - run 142 retained the canonical otservbr map SHA-256 a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2, matching the supplied map snapshot and earlier successful physical E2E evidence
+  - run 142 session-1 packet evidence contains server map-description opcode 0x64 immediately followed by little-endian position bytes 71 7e f1 7d 07, proving first-session position 32369,32241,7 for Knight 1
+  - the matching map snapshot town table records town id 8 Thais with temple position 32369,32241,7, independently agreeing with the physical packet evidence
+  - scenario required_markers now pins initial_position=32369,32241,7 from that evidence
   - PR pull_request Universal Agent E2E resolves login/relog by default; selecting movement/physical-movement requires the existing workflow_dispatch inputs rather than changing the shared workflow
   - the available GitHub connector exposes no workflow-dispatch mutation
-  - the supplied otservbr OTBM SHA-256 a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2 exactly matches the map hash retained by successful Universal Agent E2E run 29538215647
 
 derived:
-  - exact initial and post-movement position markers can be pinned in the feature scenario after physical workflow evidence without changing the generic action-plan contract
-  - an exploratory movement success is fixture-discovery evidence until the exact start and resulting position are pinned as deterministic required markers
+  - the exact initial-position assertion is now evidence-backed without inventing coordinates or changing the generic action-plan contract
+  - the exploratory east step remains fixture-discovery input until a selected physical movement run proves that route and emits the resulting position
   - lack of a connector workflow-dispatch action is an execution-environment limitation, not evidence that the repository needs a second runner or workflow change
-  - the locally supplied OTBM is exact map-provenance evidence for the canonical E2E snapshot but does not by itself prove Knight 1 runtime spawn or a physically successful movement action
 unknown:
-  - exact physical initial position for Knight 1 on the current downloaded otservbr map
-  - whether the exploratory single east step is passable from that position
+  - whether the exploratory single east step is passable from 32369,32241,7
   - exact expected post-movement position
   - whether a selected movement workflow_dispatch run can be triggered through another already-authorized execution surface in this session
 conflicts: []
@@ -119,27 +117,21 @@ rejected_hypotheses:
   - create a second E2E orchestrator
   - invent map coordinates from town id or chat history
   - change shared workflow before a concrete platform blocker is proven
-  - rerun Agent Task Ownership without repairing the reported task/checkpoint schema failures
-  - guess top-level lifecycle status values instead of reading tools/agents/task_ownership.py and tools/agents/task_lifecycle.py
+  - treat the successful pull-request login/relog run as movement coverage
+  - infer the east-step result from static coordinates without selected physical-client evidence
 changed_paths:
   - docs/agents/tasks/active/CAN-20260717-physical-movement-e2e.md
   - tests/e2e/scenarios/movement/physical-movement.json
 validation:
-  - command: Agent Task Ownership run 29559754880 / number 1858
-    result: FAIL
-    evidence: changed active task checkpoint validation rejected missing derived and first_failure fields and unsupported checkpoint status active
-  - command: Agent Task Ownership run 29559882710 / number 1860
-    result: FAIL
-    evidence: changed active task validation rejected top-level status active for a record under tasks/active
-  - command: Agent Task Ownership run 29560056402 / number 1864
-    result: FAIL
-    evidence: changed active task validation rejected top-level status investigating; validator source confirms implementing is the compatible active frontmatter status for checkpoint investigating
-  - command: CI run 29559882800 / number 3001
+  - command: Agent Task Ownership run 29560247366 / number 1870
     result: PASS
-    evidence: repository CI passed on head f216cb25b0fd1c7e1f54381a6aba53f95ec46f29
-  - command: CI run 29560056553 / number 3005
+    evidence: ownership validation passed on head b4b26f91a7778c1478420079e8b7fa42576cd4cd
+  - command: CI run 29560247452 / number 3011
     result: PASS
-    evidence: repository CI passed on head cee9bbfd72a9dfdb715fdefbc3d5c821c9409055
+    evidence: repository CI passed on head b4b26f91a7778c1478420079e8b7fa42576cd4cd
+  - command: Universal Agent E2E run 29560247505 / number 142
+    result: PASS
+    evidence: canonical login/relog sentinel passed and retained packet/map evidence proving initial position 32369,32241,7; movement scenario was not selected
 blockers: []
-next_action: Validate frontmatter status implementing with checkpoint investigating on the next exact head, inspect the pull-request login/relog E2E as a platform sentinel only, and obtain a selected movement/physical-movement physical run through the existing workflow_dispatch surface if an authorized trigger becomes available; use only that selected artifact to pin exact position markers.
+next_action: Let validation finish for the pinned-start commit, then obtain a selected movement/physical-movement run through the existing workflow_dispatch surface; use only that selected physical artifact to prove route passability and pin the exact post-movement position before final-gate work.
 ```
