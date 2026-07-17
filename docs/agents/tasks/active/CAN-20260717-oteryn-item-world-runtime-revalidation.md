@@ -7,8 +7,8 @@ agent: oteryn-architecture-migration-agent
 branch: docs/oam-007-item-world-runtime-revalidation
 base_branch: main
 created: 2026-07-17T06:45:00+02:00
-updated: 2026-07-17T08:47:00+02:00
-last_verified_commit: "c2e181f892ce2f094e887f1da5c6c7df207629c9"
+updated: 2026-07-17T09:00:00+02:00
+last_verified_commit: "9382d1f5320e8ee465b4e813c4b85cd028feeb9f"
 risk: high
 related_issue: "22"
 related_pr: "455"
@@ -27,6 +27,7 @@ owned_paths:
     - docs/agents/real-tibia/registry/modules/item-instances.yaml
     - docs/agents/real-tibia/registry/modules/world-map-runtime.yaml
     - blakinio/canary@c2e181f892ce2f094e887f1da5c6c7df207629c9
+    - blakinio/canary@9382d1f5320e8ee465b4e813c4b85cd028feeb9f
     - blakinio/Otheryn@c547d8ad70ef1252624c255476e6cb83fa125e14
     - blakinio/Otheryn@68c4f39f7b1b45f880543c258627b4ccf73dbc86
     - opentibiabr/canary@e0ac98e399d0f7e483f3668f57b78fcc45b6e53f
@@ -65,14 +66,15 @@ cross_repo_tasks:
 - Runtime proof recorded two successful logins, two safe logouts, persistence checks, client exit code zero and no fatal runtime log hits.
 - The exact physical run is a runtime regression smoke; the specific occupied-tile magic-field behavior is proven by the focused policy test plus PR #81 provenance.
 - Temporary controlled-server pin and `ci:final-gate` label were removed before final governance scope.
+- Canary `main` was re-fetched through `9382d1f5320e8ee465b4e813c4b85cd028feeb9f`; the two intervening commits affect only security validation/lifecycle paths and do not overlap the three OAM-007 governance files.
 - `world-zones`, `instances` and OAM-008 were not started.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T08:47:00+02:00
-head: 51a9d29a694c5801d1538ed72c0cfb81206048b0
+updated_at: 2026-07-17T09:00:00+02:00
+head: 7a420e46607e60220eca347790f62a12e0b33c8b
 branch: docs/oam-007-item-world-runtime-revalidation
 pr: 455
 status: ready
@@ -88,6 +90,7 @@ proven:
   - Otheryn PR 23 merged as 68c4f39f7b1b45f880543c258627b4ccf73dbc86 after exact-head ready gates passed
   - Universal Agent E2E 136 passed exact final-target runtime proof with Required physical E2E success
   - temporary controlled-server pin is absent from final governance scope
+  - live Canary main 9382d1f5320e8ee465b4e813c4b85cd028feeb9f has no OAM-007 governance-path overlap
 derived:
   - only item-definitions required target code adaptation
   - legacy-only map runtime divergence is insufficient migration authorization
@@ -98,7 +101,7 @@ unknown:
 conflicts: []
 first_failure:
   marker: none active
-  evidence: target delivery and exact final-target runtime proof are complete
+  evidence: target delivery, exact final-target runtime proof and final live-main overlap check are complete
 rejected_hypotheses:
   - legacy Canary is the target image
   - every Map Tile or MapCache difference must be ported
@@ -119,6 +122,9 @@ validation:
   - command: Universal Agent E2E 136 / Required physical E2E
     result: PASS
     evidence: exact Otheryn 68c4f39f7b1b45f880543c258627b4ccf73dbc86 plus OTClient 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f passed login/relog and persistence checks
+  - command: live-main overlap through 9382d1f5320e8ee465b4e813c4b85cd028feeb9f
+    result: PASS
+    evidence: intervening security-only drift does not touch OAM-007 report, task or program
 blockers: []
-next_action: Update the shared program, validate final PR 455 scope/live-main overlap, pass exact-head draft gates, mark ready, require ready-triggered final-head gates, squash-merge, then archive in a separate lifecycle-only PR.
+next_action: Pass exact-head draft ownership/CI, mark PR 455 ready, require ready-triggered final-head gates, squash-merge, then archive in a separate lifecycle-only PR.
 ```
