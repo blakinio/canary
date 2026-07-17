@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: fix/e2e-scenario-plan-host-load
 base_branch: main
 created: 2026-07-17T15:42:00+02:00
-updated: 2026-07-17T15:52:00+02:00
-last_verified_commit: "6619598b43b0c9b0bb0062dfba904e22003127b3"
+updated: 2026-07-17T15:58:00+02:00
+last_verified_commit: "5c635e5ca15b85b0854b53aa33b8d4cd8de39f50"
 risk: medium
 related_issue: ""
 related_pr: "483"
@@ -59,8 +59,8 @@ Universal Agent E2E run `29582792694` selected `movement/physical-movement` on e
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T15:52:00+02:00
-head: 6619598b43b0c9b0bb0062dfba904e22003127b3
+updated_at: 2026-07-17T15:58:00+02:00
+head: 5c635e5ca15b85b0854b53aa33b8d4cd8de39f50
 branch: fix/e2e-scenario-plan-host-load
 pr: 483
 status: implementing
@@ -80,8 +80,13 @@ proven:
   - PR 483 changes exactly the generic client driver, its focused regression test and this task record
   - driver now reads PLAN_PATH through io.open and loads the same generated plan content through the OTClient Lua runtime
   - PR patch audit shows no workflow, physical-runner or resolver changes
+  - CI run 29585803633 passed on the previous task-checkpoint head
+  - ownership run 29585800882 failed only because this checkpoint omitted the required derived field
+derived:
+  - replacing only the host-file loading boundary is the smallest fix because plan generation and artifact publication were already proven correct
+  - successful canonical E2E on this platform PR will protect login/relog compatibility, while the blocked movement PR remains the runtime proof for non-empty scenario steps
 unknown:
-  - exact-head CI and physical E2E conclusions for PR 483
+  - exact-head Ownership, CI and physical E2E conclusions after this checkpoint repair
   - whether movement succeeds after PR 483 is merged and PR 481 is retriggered
 conflicts: []
 first_failure:
@@ -99,6 +104,12 @@ validation:
   - command: PR changed-file and patch audit
     result: PASS
     evidence: exactly three expected paths and no workflow or runner changes
+  - command: CI run 29585803633
+    result: PASS
+    evidence: repository CI passed before the checkpoint-only repair
+  - command: Agent Task Ownership run 29585800882
+    result: FAIL
+    evidence: checkpoint validator reported only missing field derived; implementation validation steps before it passed
 blockers: []
-next_action: Require PR 483 Ownership, CI and Universal Agent E2E success, then prepare exact-final-head validation and squash merge before retrying PR 481.
+next_action: Require current-head Ownership, CI and Universal Agent E2E success, then prepare exact-final-head validation and squash merge before retrying PR 481.
 ```
