@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: test/oam-009-vocations-physical-e2e
 base_branch: main
 created: 2026-07-17T16:50:00+02:00
-updated: 2026-07-17T16:54:00+02:00
-last_verified_commit: "a177e6cca5c0db6dc15a6f56ea059fd8dfe59260"
+updated: 2026-07-17T16:55:00+02:00
+last_verified_commit: "ced93c246245ebeee05020ef6bf9b3dcc83ea6aa"
 risk: low
 related_issue: ""
 related_pr: "489"
@@ -71,8 +71,8 @@ The claim is intentionally bounded to successful physical login resolving vocati
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T16:54:00+02:00
-head: a177e6cca5c0db6dc15a6f56ea059fd8dfe59260
+updated_at: 2026-07-17T16:55:00+02:00
+head: ced93c246245ebeee05020ef6bf9b3dcc83ea6aa
 branch: test/oam-009-vocations-physical-e2e
 pr: 489
 status: implementing
@@ -99,6 +99,7 @@ proven:
   - PR 489 is open as the bounded OAM-009 draft
   - login/relog scenario now asserts SELECT vocation = 4 for Knight 1
   - temporary same-repository controlled-server pin selects exact Otheryn target f59a58426b4d3910ba0cdc0d2332c24f31a1db4f
+derived: []
 unknown:
   - exact physical workflow run id
   - exact artifact digest and executable hashes
