@@ -42,7 +42,7 @@ Exact target `data/XML/vocations.xml` defines vocation ID `4` as `Knight`.
 
 ## Existing physical scenario reused
 
-`tests/e2e/scenarios/login/scenario.json` already uses:
+`tests/e2e/scenarios/login/scenario.json` uses:
 
 - maintained OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`;
 - fixture character `Knight 1`;
@@ -52,39 +52,102 @@ Exact target `data/XML/vocations.xml` defines vocation ID `4` as `Knight`.
 - second safe logout;
 - `lastlogin > 0` and `lastlogout > 0` SQL assertions.
 
-OAM-009 adds exactly one bounded SQL assertion:
+OAM-009 adds exactly one bounded scenario SQL assertion:
 
 ```sql
 SELECT vocation = 4 FROM players WHERE name = 'Knight 1'
 ```
 
+## SQL assertion runner gap and bounded fix
+
+The first physical run, Universal Agent E2E run `29589941229`, physically passed `login/relog` on the exact Otheryn target, but inspection showed that `tools/e2e/run_physical_e2e.sh` did not execute `scenario.assertions.sql`; it only evaluated the existing hardcoded `lastlogin` and `lastlogout` checks. That run is retained as preliminary evidence only and is not accepted as OAM-009 proof.
+
+The existing generic physical runner was then extended without adding a second orchestrator. It now:
+
+- reads every canonical `scenario.assertions.sql` entry;
+- accepts only one semicolon-free `SELECT` statement per assertion;
+- executes each assertion independently through the existing MariaDB client;
+- requires return code `0` and scalar stdout exactly `1`;
+- records per-assertion evidence in `sql-assertions.json`;
+- fails the physical scenario unless every canonical SQL assertion passes.
+
+The existing hardcoded `lastlogin` and `lastlogout` evidence remains in place.
+
 ## Controlled target execution
 
-The package reuses the existing Universal Agent E2E controlled-server contract. During proof collection only, the same-repository PR may carry `.github/e2e-controlled-server.env` pinned to:
+The package reuses the existing Universal Agent E2E controlled-server contract. During proof collection only, the same-repository PR carried `.github/e2e-controlled-server.env` pinned to:
 
 ```text
 SERVER_REPOSITORY=blakinio/Otheryn
 SERVER_REF=f59a58426b4d3910ba0cdc0d2332c24f31a1db4f
 ```
 
-The temporary pin must be removed before final merge. No second workflow, runner, orchestrator, client fork, or arbitrary target source is introduced.
+No second workflow, runner, orchestrator, client fork, or arbitrary target source was introduced. The temporary controlled-server pin is removed before final merge; the accepted physical evidence below remains durable.
 
-## Required final evidence
+## Accepted physical evidence
 
-Before completion, record:
+Universal Agent E2E:
 
-- exact Universal Agent E2E workflow/run;
-- successful physical login/logout/relog/logout markers;
-- successful SQL assertion `vocation = 4`;
-- exact controlled-server source SHA;
-- maintained OTClient source SHA;
-- artifact digest;
-- server executable SHA256;
-- client executable SHA256;
-- clean final PR comments/reviews/unresolved-thread state;
-- final feature merge SHA;
-- separate lifecycle/archive merge SHA.
+- workflow run: `29593102547` / run number `191`
+- PR test head: `97ee305ae8960d2df2edb16f3051fbd8b702c2a0`
+- GitHub pull-request merge test SHA reported by runtime `GITHUB_SHA`: `3ab27bebaa980272c3ee0f5bc15b98d810de0d5e`
+- physical job: `Physical client / login/relog` — SUCCESS
+- required physical E2E gate — SUCCESS
+- controlled server repository: `blakinio/Otheryn`
+- controlled server requested ref: `f59a58426b4d3910ba0cdc0d2332c24f31a1db4f`
+- controlled server resolved commit: `f59a58426b4d3910ba0cdc0d2332c24f31a1db4f`
+- maintained OTClient resolved commit: `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`
+- physical artifact: `universal-agent-e2e-login-relog`
+- physical artifact digest: `sha256:f880b2fb58c53d8e53aad4cc30725a26a050c352bd5412a10c56b8a61f327f3f`
+- exact controlled-server executable SHA256: `3a191e398ea22818a9e71cd3ce0fe60486e1e0592cddb379295504a77dc62925`
+- controlled-client executable SHA256: `5dcaed6cdfcaecf2de4b9de80183a28fe8e0722e21b4df588cc627c558da5ee9`
+
+Physical markers:
+
+- first physical login — SUCCESS
+- first stable online state — confirmed
+- first safe logout — complete
+- second physical login / relog — SUCCESS
+- second stable online state — confirmed
+- second safe logout — complete
+- two server logins observed
+- two packet records present
+- client exit code `0`
+- no fatal runtime log hits
+- final `players_online` count `0`
+
+Canonical SQL assertion evidence from `sql-assertions.json`:
+
+1. `SELECT lastlogin > 0 FROM players WHERE name = 'Knight 1'` — executed, stdout `1`, PASS
+2. `SELECT lastlogout > 0 FROM players WHERE name = 'Knight 1'` — executed, stdout `1`, PASS
+3. `SELECT vocation = 4 FROM players WHERE name = 'Knight 1'` — executed, stdout `1`, PASS
+
+`result.json` records:
+
+- `status: success`
+- `checks.required_markers: true`
+- `checks.scenario_sql_assertions: true`
+- `checks.two_server_logins_observed: true`
+- `checks.two_packet_records_present: true`
+- `checks.lastlogin_persisted: true`
+- `checks.lastlogout_persisted: true`
+- `checks.no_fatal_runtime_log: true`
+
+This is accepted as the bounded OAM-009 physical proof that exact target Otheryn resolves persisted vocation ID `4` sufficiently for `Knight 1` to complete the canonical physical login/logout/relog/logout flow. It does not expand the claim beyond that boundary.
+
+## Remaining lifecycle work
+
+Before OAM-009 is fully complete:
+
+- remove the temporary controlled-server pin from the feature PR;
+- synchronize with the latest non-overlapping `main` baseline without cherry-picking;
+- require final exact-head ownership/CI/review gates with zero unresolved review threads;
+- merge the feature PR;
+- complete the separate lifecycle/archive PR;
+- reconcile the durable program record in a separate program-only PR.
+
+OAM-010 must not start before those steps are complete.
 
 ## Status
 
-Implementation started. Physical evidence not yet collected.
+Physical proof accepted. Feature finalization and lifecycle/archive remain pending.
