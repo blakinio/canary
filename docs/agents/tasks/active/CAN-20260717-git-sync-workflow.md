@@ -25,6 +25,11 @@ Add an explicit, safe synchronization contract for local agent work so a local c
 
 - PROVEN: `blakinio/canary` is the only writable repository for this task.
 - PROVEN: root `AGENTS.md` already defines autonomous delivery, pull-request safety, and Git safety rules.
-- PROVEN: no open PR was found matching the requested AGENTS.md Git synchronization change.
+- PROVEN: no open PR was found matching the requested AGENTS.md Git synchronization change before task creation.
 - PROVEN: task route is `agent-governance`.
-- next_action: open a draft PR, add the final-gate label before the final checkpoint commit, update `AGENTS.md`, refresh this checkpoint, validate the final diff/checks, then squash-merge only when the merge gate is satisfied.
+- PROVEN: draft PR #490 targets `blakinio/canary:main` from `blakinio/canary:docs/git-synchronization-workflow`.
+- PROVEN: PR #490 has the `ci:final-gate` label before this final checkpoint commit.
+- PROVEN: `AGENTS.md` now requires fast-forward-only synchronization of local `main`, exact local/remote state verification, safe handling of dirty worktrees, dedicated task branches, and post-merge local resynchronization without weakening autonomous delivery.
+- PROVEN: the change is documentation/agent-governance only; no runtime, build, map, datapack, binary, secret, or production configuration paths are changed.
+- Validation: inspect the final changed-file list/full diff, required GitHub checks on the exact final head, mergeability, and unresolved review threads. No local compile is required for this documentation-only change.
+- next_action: verify PR #490 on its exact final head, mark ready, and squash-merge only after every required check passes and the merge gate is satisfied.
