@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: test/oam-009-vocations-physical-e2e
 base_branch: main
 created: 2026-07-17T16:50:00+02:00
-updated: 2026-07-17T16:55:00+02:00
-last_verified_commit: "ced93c246245ebeee05020ef6bf9b3dcc83ea6aa"
+updated: 2026-07-17T17:36:00+02:00
+last_verified_commit: "1c6cc217c956ffb9d050917612f6c52b1f8086d5"
 risk: low
 related_issue: ""
 related_pr: "489"
@@ -22,6 +22,7 @@ owned_paths:
     - docs/agents/OTERYN_OAM_009_VOCATIONS_PHYSICAL_E2E.md
     - tests/e2e/scenarios/login/scenario.json
     - .github/e2e-controlled-server.env
+    - tools/e2e/run_physical_e2e.sh
   shared: []
   read_only:
     - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
@@ -31,7 +32,6 @@ owned_paths:
     - data/XML/vocations.xml
     - .github/workflows/universal-agent-e2e.yml
     - tools/e2e/run_agent_e2e.py
-    - tools/e2e/run_physical_e2e.sh
     - blakinio/canary@4154d43a5b89ddc067569fde6d70f3d2c1e1e320
     - blakinio/Otheryn@f59a58426b4d3910ba0cdc0d2332c24f31a1db4f
     - blakinio/otclient@2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
@@ -60,9 +60,10 @@ The claim is intentionally bounded to successful physical login resolving vocati
 - [x] Verify exact target load path is fail-closed when `player->setVocation(vocationId)` returns false.
 - [x] Verify exact target `vocations.xml` contains vocation ID `4` as Knight.
 - [x] Add only the bounded SQL assertion `SELECT vocation = 4 FROM players WHERE name = 'Knight 1'` to the existing login/relog scenario.
-- [ ] Run the existing Universal Agent E2E against exact controlled server `blakinio/Otheryn@f59a58426b4d3910ba0cdc0d2332c24f31a1db4f` and maintained OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`.
+- [ ] Make the existing generic physical E2E runner execute every canonical `scenario.assertions.sql` entry as a scalar boolean assertion and fail closed unless each returns exactly `1`.
+- [ ] Run the existing Universal Agent E2E against exact controlled server `blakinio/Otheryn@f59a58426b4d3910ba0cdc0d2332c24f31a1db4f` and maintained OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f` after the SQL-assertion runner fix.
 - [ ] Require physical login, safe logout, relog, second safe logout, existing persistence assertions, and the new bounded vocation assertion to pass.
-- [ ] Record exact workflow run, exact controlled server SHA, artifact digest and executable hashes from the physical evidence.
+- [ ] Record exact final workflow run, exact controlled server SHA, artifact digest and executable hashes from the accepted physical evidence.
 - [ ] Remove any temporary controlled-server pin before merge while preserving the physical evidence record.
 - [ ] Require final PR head ownership/CI/review gates with zero unresolved review threads before squash merge.
 - [ ] Complete lifecycle/archive before starting OAM-010.
@@ -71,8 +72,8 @@ The claim is intentionally bounded to successful physical login resolving vocati
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T16:55:00+02:00
-head: ced93c246245ebeee05020ef6bf9b3dcc83ea6aa
+updated_at: 2026-07-17T17:36:00+02:00
+head: 1c6cc217c956ffb9d050917612f6c52b1f8086d5
 branch: test/oam-009-vocations-physical-e2e
 pr: 489
 status: implementing
@@ -85,6 +86,7 @@ owned_paths:
   - docs/agents/OTERYN_OAM_009_VOCATIONS_PHYSICAL_E2E.md
   - tests/e2e/scenarios/login/scenario.json
   - .github/e2e-controlled-server.env
+  - tools/e2e/run_physical_e2e.sh
 proven:
   - Canary task-start is 4154d43a5b89ddc067569fde6d70f3d2c1e1e320
   - Otheryn target is f59a58426b4d3910ba0cdc0d2332c24f31a1db4f
@@ -97,18 +99,24 @@ proven:
   - existing login/relog scenario already proves two physical sessions and lastlogin/lastlogout persistence
   - current open PRs inspected do not touch tests/e2e/scenarios/login/scenario.json or this OAM task path
   - PR 489 is open as the bounded OAM-009 draft
-  - login/relog scenario now asserts SELECT vocation = 4 for Knight 1
+  - login/relog scenario now declares SELECT vocation = 4 for Knight 1
   - temporary same-repository controlled-server pin selects exact Otheryn target f59a58426b4d3910ba0cdc0d2332c24f31a1db4f
+  - Universal Agent E2E run 29589941229 physically passed login/relog on exact Otheryn target and maintained OTClient
+  - run 29589941229 is not accepted as final OAM-009 proof because the runner did not execute manifest assertions.sql
+  - run 29589941229 physical artifact digest is sha256:cd8a31ded88f89badf0361f07a4222fc681ecdbc6d197d59139fe3dad125400f
+  - run 29589941229 exact server binary SHA256 is e23f4dc0ee0f3252f6285d7635e37d699ea2634ff539107a258a002f53ed0341
+  - run 29589941229 controlled client binary SHA256 is 778fa8c59142a0b15f4b2c1c49dbd2c6e457b0e35595a9949bd4132361baebbb
 derived: []
 unknown:
-  - exact physical workflow run id
-  - exact artifact digest and executable hashes
+  - exact accepted physical workflow run id after the SQL assertion runner fix
+  - exact accepted artifact digest and executable hashes after the SQL assertion runner fix
 conflicts: []
 first_failure:
-  marker: none active
-  evidence: no OAM-009 runtime validation failure has been observed; the initial ownership failure was task-checkpoint formatting only
+  marker: manifest SQL assertions are not executed by the existing physical runner
+  evidence: Universal Agent E2E run 29589941229 succeeded while tools/e2e/run_physical_e2e.sh evaluated only hardcoded lastlogin and lastlogout queries, so the declared vocation = 4 SQL assertion was not proven
 rejected_hypotheses:
   - successful aggregate CI without physical client evidence proves target vocation resolution
+  - SQL assertion presence in scenario-manifest.json means the assertion was executed
   - SQL assertion alone proves runtime registry resolution
   - a Canary-server physical run can substitute for exact Otheryn target proof
   - creating a second E2E workflow or runner is necessary
@@ -117,7 +125,10 @@ changed_paths:
   - docs/agents/OTERYN_OAM_009_VOCATIONS_PHYSICAL_E2E.md
   - tests/e2e/scenarios/login/scenario.json
   - .github/e2e-controlled-server.env
-validation: []
-blockers: []
-next_action: Inspect the automatically triggered PR 489 Universal Agent E2E on the exact pinned Otheryn target; if the physical proof passes, record the evidence and remove only the temporary controlled-server pin before final merge gates.
+  - tools/e2e/run_physical_e2e.sh
+validation:
+  - run 29589941229 physical login/relog flow SUCCESS on exact target, retained as diagnostic/preliminary evidence only
+blockers:
+  - existing physical runner must execute canonical manifest SQL assertions before OAM-009 proof can be accepted
+next_action: Patch the existing generic tools/e2e/run_physical_e2e.sh to execute every scenario.assertions.sql query as a scalar boolean assertion, rerun PR 489 on the exact pinned Otheryn target, and accept proof only if all physical markers plus all three SQL assertions pass.
 ```
