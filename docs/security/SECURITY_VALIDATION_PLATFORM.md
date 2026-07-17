@@ -4,7 +4,7 @@
 
 The OTS Security Validation Platform is the repository-owned security regression layer for the evolving server, client, web, database and cache stack. Its core contract is intentionally product-neutral so the same scenario and report model can be adapted from Canary to Otheryn and later to the maintained client and MyAAC.
 
-The foundation shipped by `OTS-SEC-001` validates and executes deterministic source-regex scenarios. `OTS-SEC-002` adds the first code-owned runtime delegation adapter: it proves exact repository authorization, resolves an existing Universal OTS E2E scenario, enforces literal-loopback confinement, and pins the delegated provider files by SHA-256. `OTS-SEC-003` adds the first bounded offensive runtime pack for common TCP framing and unauthenticated Canary `ProtocolStatus` parser resilience. Authenticated login/game abuse, XTEA/checksum parser coverage, database mutation, client-hostile-server cases and web security probes remain later bounded scenarios/adapters.
+The foundation shipped by `OTS-SEC-001` validates and executes deterministic source-regex scenarios. `OTS-SEC-002` adds the first code-owned runtime delegation adapter: it proves exact repository authorization, resolves an existing Universal OTS E2E scenario, enforces literal-loopback confinement, and pins the delegated provider files by SHA-256. `OTS-SEC-003` adds the first bounded offensive runtime pack for common TCP framing and unauthenticated Canary `ProtocolStatus` parser resilience. `OTS-SEC-004` adds a separate bounded login first-message/RSA parser pack that proves fixed prelude/RSA rejection cases and code-owned raw-RSA-to-XTEA handoff into deterministic encrypted login-error responses. Successful account authentication, game-session parsing, post-login XTEA/checksum/sequence coverage, database mutation, client-hostile-server cases and web security probes remain later bounded scenarios/adapters.
 
 ## Reuse boundary
 
@@ -30,9 +30,14 @@ python tools/security/malformed_packet_runtime_runner.py \
   --binary-path <exact-head-canary> \
   --plan tests/security/runtime_scenarios/canary-status-parser.json \
   --authorized-repository blakinio/canary
+
+python tools/security/login_packet_runtime_runner.py \
+  --binary-path <exact-head-canary> \
+  --plan tests/security/runtime_scenarios/canary-login-parser.json \
+  --authorized-repository blakinio/canary
 ```
 
-Security scenario execution and runtime-adapter resolution fail closed unless the caller supplies an authorized repository that exactly matches the corresponding registry record. The malformed-packet plan does not accept a host, port, command, executable, credential or packet payload; network coordinates come only from the disposable runtime context.
+Security scenario execution and runtime-adapter resolution fail closed unless the caller supplies an authorized repository that exactly matches the corresponding registry record. The malformed-status and login-parser plans do not accept hosts, ports, commands, executables, credentials, packet payloads or RSA key material; network coordinates and disposable runtime details come only from code-owned drivers and the runtime context.
 
 ## `ots-security-scenario-v1`
 
@@ -157,6 +162,59 @@ It does **not** prove complete protocol exploit resistance and specifically does
 
 Those require separate bounded tasks and protocol-aware fixtures. Future confirmed parser vulnerabilities should become permanent fixed-case regressions after remediation rather than broadening this plan with arbitrary packet input.
 
+## `ots-security-login-packet-plan-v1`
+
+The bounded login-parser plan reuses the same exact-field data shape as the malformed-status plan: schema, stable id, exact repository authorization, code-owned driver/service and a bounded unique ordered list of built-in case identifiers. It likewise rejects unknown fields and never accepts packet bytes, RSA key material, credentials, source addresses, destinations or ports from JSON.
+
+`canary-login-parser-baseline` selects six fixed code-owned cases:
+
+- an unsupported version with a valid login-service frame;
+- the current login prelude without an RSA block;
+- the current prelude with a 127-byte truncated RSA block;
+- a valid raw-RSA block whose decrypted marker is intentionally invalid;
+- a valid raw-RSA handoff with an empty account descriptor;
+- a valid raw-RSA handoff with the code-owned non-user account marker and an empty password.
+
+`tools/security/login_packet_runtime.py` owns the framing, public-RSA fixture generation, code-owned XTEA key, fixed cases, response policies and CurrentLogin response decoder. It stores only the public modulus corresponding to Canary's repository-owned default OpenTibia RSA key; scenario manifests cannot supply or replace RSA material. `tools/security/login_packet_runtime_runner.py` reuses `run_runtime` and gives every case and its control exchange distinct deterministic IPv4 loopback source addresses while keeping server admission protections enabled.
+
+The deterministic control is stronger than process liveness or a generic non-empty reply. It sends the code-owned valid-RSA empty-account request, then requires a correctly framed CurrentLogin response whose Adler32 validates, whose XTEA payload decrypts with the code-owned key, whose padding and opcode are valid, and whose decoded error is exactly `Invalid email.`. A plain unsupported-version response therefore cannot satisfy the control oracle.
+
+## `ots-security-login-packet-report-v1`
+
+A login-parser execution records:
+
+- plan identity and SHA-256;
+- exact repository authorization and login driver/service identity;
+- callback-provided literal-loopback login target;
+- exact Canary binary SHA-256 plus provider/core/runner SHA-256 pins;
+- the code-owned control-packet SHA-256;
+- ordered per-case case/control source IPs, packet SHA-256/size and response policy;
+- normalized case outcome plus response SHA-256/size when a bounded response exists;
+- decoded CurrentLogin error text only for code-owned encrypted-error cases;
+- the validated control error and control-response hash/size after every case;
+- fatal/sanitizer findings and one stable failure code or success.
+
+The report contains no arbitrary response body, credential or timestamp. It fails closed on target/source confinement errors, transport timeout/error, unexpected response policy, malformed CurrentLogin framing/checksum/XTEA/padding/opcode/string evidence, wrong control error, Canary process exit or fatal/sanitizer signatures.
+
+## OTS-SEC-004 evidence boundary
+
+A green `canary-login-parser-baseline` proves only that the tested exact Canary binary survived the six registered login first-message/RSA cases and that, after every case, the login service still completed the code-owned RSA-to-XTEA handoff sufficiently to return the expected encrypted `Invalid email.` control response.
+
+The initial real exact-head run also proves the two successful-RSA negative-authentication fixtures reached deterministic encrypted `Invalid email.` and `Invalid password.` responses respectively, while the prelude-only, truncated-RSA and invalid-marker cases terminated without a response. This is bounded parser/handoff evidence, not successful authentication evidence.
+
+It does **not** cover:
+
+- successful account authentication or authorization;
+- character-list contents or account entitlement correctness;
+- game-session establishment;
+- post-login game-protocol packet parsing;
+- post-login game XTEA/checksum/sequence-number handling;
+- session races, replay or reconnect abuse;
+- maintained-client hostile-server parsing;
+- packet flood or sustained DoS capacity.
+
+Those remain separate bounded tasks. In particular, authenticated game-session and post-login transport coverage must not be inferred from a successful SEC-004 login-service control exchange.
+
 ## Runtime adapter safety contract
 
 Every runtime adapter or runtime security driver must satisfy all of the following before it can be registered:
@@ -174,8 +232,8 @@ Every runtime adapter or runtime security driver must satisfy all of the followi
 
 Planned bounded additions, each through a separate task/PR, are:
 
-- authenticated login/game parser and session scenarios;
-- MariaDB transaction, concurrency and persistence-abuse scenarios;
+- authenticated game-session parser and post-login checksum/sequence/XTEA transport scenarios;
+- authenticated session, race, economy and transaction-abuse scenarios with disposable MariaDB state assertions;
 - Redis/multichannel ownership and fail-closed scenarios;
 - maintained-client hostile-server payload scenarios;
 - MyAAC authentication, session and web-input scenarios;
