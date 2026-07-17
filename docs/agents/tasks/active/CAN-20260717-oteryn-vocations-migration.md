@@ -2,12 +2,12 @@
 task_id: CAN-20260717-oteryn-vocations-migration
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: "OAM-008"
-status: implementing
+status: ready
 agent: oteryn-architecture-migration-agent
 branch: docs/oam-008-vocations-migration
 base_branch: main
 created: 2026-07-17T10:10:00+02:00
-updated: 2026-07-17T10:14:00+02:00
+updated: 2026-07-17T10:38:00+02:00
 last_verified_commit: "317c1c4235377c388883aa2fd425d324f8ce4d2e"
 risk: low
 related_issue: "24"
@@ -31,6 +31,7 @@ owned_paths:
     - data/XML/vocations.xml
     - blakinio/canary@317c1c4235377c388883aa2fd425d324f8ce4d2e
     - blakinio/Otheryn@68c4f39f7b1b45f880543c258627b4ccf73dbc86
+    - blakinio/Otheryn@f59a58426b4d3910ba0cdc0d2332c24f31a1db4f
     - opentibiabr/canary@e0ac98e399d0f7e483f3668f57b78fcc45b6e53f
 modules_touched:
   - vocations
@@ -49,27 +50,28 @@ cross_repo_tasks:
   - blakinio/Otheryn#25
 ---
 
-# Goal
+# Final disposition
 
-Migrate exactly the canonical `vocations` module as the first evidence-selected low-risk Oteryn module package, with `REUSE` as the working disposition and proof-only target changes.
+`vocations` → `REUSE`.
+
+The exact canonical implementation/data was already present in the target, so OAM-008 migrated the module by accepting that target implementation after exact provenance, focused tests and full target compatibility gates. The target merge adds proof only, not vocation behavior changes.
 
 # Scope
 
-- Keep `vocation.cpp`, `vocation.hpp` and `vocations.xml` unchanged.
-- Prove exact target/legacy/upstream identity.
-- Add focused target tests for registry lookup and promotion semantics.
-- Do not include combat, spells, weapons, Wheel, persistence, protocol/client or another canonical module.
-- Keep OAM-009 separate for physical-client E2E.
+- `vocation.cpp`, `vocation.hpp` and `vocations.xml` remain unchanged.
+- Otheryn PR #25 adds only focused target tests and unit-test registration.
+- Combat, spells, weapons, Wheel, persistence, protocol/client and every other canonical module remain out of scope.
+- OAM-009 remains separate for physical-client E2E.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T10:14:00+02:00
-head: 69dfcdadf1517bbbb54bd1fb6822ec0680489e46
+updated_at: 2026-07-17T10:38:00+02:00
+head: 9d4300e79dc59180e6c352776bf38d6c96798493
 branch: docs/oam-008-vocations-migration
 pr: 469
-status: implementing
+status: ready
 context_routes:
   - agent-governance
   - vocations
@@ -86,21 +88,25 @@ proven:
   - vocation.cpp, vocation.hpp and vocations.xml are exact-blob identical across target legacy and upstream
   - no open Canary PR overlaps canonical vocation paths
   - no open Otheryn PR existed at task-start
-  - Otheryn issue 24 and proof-only PR 25 were created
+  - final disposition is REUSE
+  - Otheryn PR 25 final head is 9453a1754501ce183e20d294df1064a5ccbad54c
+  - Otheryn CI 88 Required 84 and autofix 77 passed
+  - Linux debug Run Tests passed
+  - both focused VocationsTest cases were executed and passed as CTest cases 78 and 79 of 325
+  - Otheryn PR 25 had zero comments reviews and unresolved review threads at final merge gate
+  - Otheryn PR 25 squash-merged as f59a58426b4d3910ba0cdc0d2332c24f31a1db4f
   - Canary governance PR is 469
 derived:
-  - vocations is the strongest current low-risk first-module candidate
-  - implementation transfer is unnecessary because target already contains exact canonical content
-  - focused target proof is still required before REUSE can be finalized
+  - exact blob identity plus focused target proof and full compatibility gates satisfy the bounded REUSE acceptance rule
+  - target delivery is test-only because implementation transfer was unnecessary
+  - OAM-009 remains the separate physical-client proof boundary
 unknown:
-  - Otheryn PR 25 exact-head focused test result
-  - final Otheryn PR 25 merge SHA
   - final Canary feature-governance merge SHA
   - final Canary lifecycle merge SHA
 conflicts: []
 first_failure:
-  marker: target draft CI scope-skip
-  evidence: CI 86 and Required 82 were green but all build/test jobs were skipped; ci:final-gate was added and a real test run remains required
+  marker: none active
+  evidence: the earlier scope-skipped CI 86 was rejected as focused proof; full exact-head CI 88 supplied the required real test execution
 rejected_hypotheses:
   - exact blob identity alone authorizes REUSE
   - green aggregate CI with skipped tests proves focused vocation behavior
@@ -110,6 +116,7 @@ rejected_hypotheses:
 changed_paths:
   - docs/agents/tasks/active/CAN-20260717-oteryn-vocations-migration.md
   - docs/agents/OTERYN_OAM_008_VOCATIONS_MIGRATION.md
+  - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
 validation:
   - command: exact canonical vocations blob matrix
     result: PASS
@@ -119,7 +126,13 @@ validation:
     evidence: no open Canary PR touches canonical vocation paths; no open Otheryn PR existed before PR 25
   - command: Otheryn draft CI 86 and Required 82
     result: FAIL
-    evidence: aggregate was green but scope detection skipped all C++ build and focused test jobs; full exact-head final-gate run remains required before acceptance
+    evidence: aggregate was green but C++ build and focused test jobs were skipped; this run was not accepted as focused proof
+  - command: Otheryn exact-head CI 88 Required 84 and autofix 77
+    result: PASS
+    evidence: exact head 9453a1754501ce183e20d294df1064a5ccbad54c completed the full matrix and Linux debug Run Tests
+  - command: focused vocation CTest artifact review
+    result: PASS
+    evidence: both VocationsTest cases executed and passed as tests 78 and 79 of 325
 blockers: []
-next_action: Run Otheryn PR 25 exact-head final gate through a real Linux debug test path, then finalize REUSE and Canary governance. Keep OAM-009 blocked until OAM-008 feature and lifecycle complete.
+next_action: Update the shared Oteryn migration program with OAM-008 REUSE and final target merge, then pass Canary PR 469 exact-head draft and ready ownership/CI/review gates, squash-merge, and archive OAM-008 in a separate lifecycle-only PR. Keep OAM-009 blocked until lifecycle completion.
 ```
