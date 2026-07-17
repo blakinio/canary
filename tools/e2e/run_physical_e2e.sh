@@ -202,6 +202,7 @@ sha256sum \
   "${CANARY_BIN}" \
   "${OTCLIENT_BIN}" \
   "${REPO_ROOT}/tools/e2e/run_agent_e2e.py" \
+  "${REPO_ROOT}/tools/e2e/server_selection.py" \
   "${REPO_ROOT}/tools/e2e/run_physical_e2e.sh" \
   "${REPO_ROOT}/tools/e2e/client/agent_e2e.lua" \
   > "${ARTIFACT_DIR}/runtime-hashes.txt"
