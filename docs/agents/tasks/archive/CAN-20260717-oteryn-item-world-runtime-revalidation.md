@@ -2,13 +2,13 @@
 task_id: CAN-20260717-oteryn-item-world-runtime-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: "OAM-007"
-status: ready
+status: completed
 agent: oteryn-architecture-migration-agent
 branch: docs/oam-007-item-world-runtime-revalidation
 base_branch: main
 created: 2026-07-17T06:45:00+02:00
-updated: 2026-07-17T09:00:00+02:00
-last_verified_commit: "9382d1f5320e8ee465b4e813c4b85cd028feeb9f"
+updated: 2026-07-17T07:37:31Z
+last_verified_commit: "be9760a88d0c714dfd3e1b6a659e373380d03d65"
 risk: high
 related_issue: "22"
 related_pr: "455"
@@ -45,6 +45,7 @@ public_interfaces:
 cross_repo_tasks:
   - blakinio/Otheryn#22
   - blakinio/Otheryn#23
+completed: 2026-07-17T07:37:31Z
 ---
 
 # Final dispositions
@@ -132,3 +133,11 @@ validation:
 blockers: []
 next_action: Pass exact-head draft ownership/CI, mark PR 455 ready, require ready-triggered final-head gates, squash-merge, then archive in a separate lifecycle-only PR.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #455.
+- Feature head: `003cbd7dc177cc6c95c277b0fe149123a36dbdf4`.
+- Merge commit: `be9760a88d0c714dfd3e1b6a659e373380d03d65`.
+- Merged at: `2026-07-17T07:37:31Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
