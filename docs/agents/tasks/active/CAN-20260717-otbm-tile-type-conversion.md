@@ -2,13 +2,13 @@
 task_id: CAN-20260717-otbm-tile-type-conversion
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: validating
+status: implementing
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-tile-type-conversion
 base_branch: main
 created: 2026-07-17T19:53:00+02:00
-updated: 2026-07-17T20:30:00+02:00
-last_verified_commit: "54d4cd9ad4be73083a74dffbcafb23d87ce1c92a"
+updated: 2026-07-17T20:34:00+02:00
+last_verified_commit: "276959383e739b697c72f5ed5394baba4750151b"
 risk: high
 related_issue: ""
 related_pr: "498"
@@ -76,11 +76,11 @@ Implement the next smallest structural OTBM write boundary: convert an already-e
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T20:30:00+02:00
-head: 54d4cd9ad4be73083a74dffbcafb23d87ce1c92a
+updated_at: 2026-07-17T20:34:00+02:00
+head: 276959383e739b697c72f5ed5394baba4750151b
 branch: feat/otbm-tile-type-conversion
 pr: 498
-status: validating
+status: implementing
 context_routes:
   - otbm
   - agent-governance
@@ -115,24 +115,29 @@ proven:
   - PR 498 has no conversation comments and no inline review threads before final-gate preparation
   - current main 2edc59f59c417f82efb0547f3ff87b426f8bbe5a is one non-overlapping lifecycle rename ahead of the feature base, limited to the completed initial-position task record
   - PR 498 remains mergeable against current main and pull-request CI validates the current GitHub merge ref
-  - ci:final-gate label was applied before this immutable final checkpoint commit
+  - ci:final-gate label was applied before the final checkpoint sequence
+  - final-gate candidate 276959383e739b697c72f5ed5394baba4750151b passed CI run 29603556309 but Agent Task Ownership run 29603556851 failed solely because a record under tasks/active used non-active status validating
+  - ownership artifact 8415947948 identifies exactly one checkpoint error: the active task record had non-active status validating
+  - this commit changes only the task frontmatter/checkpoint status back to implementing while preserving the already-reviewed OTBM implementation and final-gate label
 derived:
   - the smallest safe conversion boundary is a constrained complete-subtree replacement with the inverse node-type predicate from replacement v1
   - copying a complete approved house donor subtree is safer than changing a raw node-type byte because house metadata layout differs
   - the single main advancement since the feature base cannot overlap this OTBM feature because it only renames the unrelated initial-position E2E task record
+  - the failed final-gate candidate does not indicate an OTBM implementation defect because the diagnostic contains only the active-record status violation
 unknown:
-  - exact final checkpoint commit SHA until this commit is created
-  - exact-final-head gate conclusions triggered by this checkpoint commit
+  - exact new final checkpoint commit SHA until this commit is created
+  - exact-final-head gate conclusions triggered by this corrected active-status commit
 conflicts: []
 first_failure:
-  marker: stale-active-task-checkpoint
-  evidence: Agent Task Ownership run 29602457086 failed changed active task checkpoint validation on an earlier head; the corrected checkpoint subsequently passed run 29603081771
+  marker: active-task-status
+  evidence: Agent Task Ownership run 29603556851 artifact 8415947948 reports record under tasks/active has non-active status validating on 276959383e739b697c72f5ed5394baba4750151b
 rejected_hypotheses:
   - editing the node-type byte in place
   - synthesizing house identifiers or house metadata
   - item-level conversion
   - generic OTBM serialization
   - treating the unrelated lifecycle-only main advancement as a reason to duplicate or recreate the feature branch
+  - merging after CI success while exact-final-head Ownership is red
 changed_paths:
   - docs/agents/CHANGELOG.md
   - docs/agents/MODULE_CATALOG.md
@@ -160,6 +165,12 @@ validation:
   - command: compare main advancement 250640758bec48946f31f34c85995632d194fbd0..2edc59f59c417f82efb0547f3ff87b426f8bbe5a
     result: PASS
     evidence: exactly one unrelated lifecycle rename under docs/agents/tasks for the completed initial-position E2E task
+  - command: CI final-gate candidate run 29603556309
+    result: PASS
+    evidence: repository CI passed on 276959383e739b697c72f5ed5394baba4750151b
+  - command: Agent Task Ownership final-gate candidate run 29603556851
+    result: FAIL
+    evidence: artifact 8415947948 reports only non-active status validating for the active task record; corrected in this commit
 blockers: []
-next_action: Freeze the checkpoint commit as the exact final feature head, require Ownership, OTBM Map Tools, AI Agent Tools and full ci:final-gate CI on that head, then squash merge with expected-head protection and archive the task in a separate lifecycle PR.
+next_action: Freeze this corrected checkpoint commit as the exact final feature head, require Ownership, OTBM Map Tools, AI Agent Tools and full ci:final-gate CI on that head, then squash merge with expected-head protection and archive the task in a separate lifecycle PR.
 ```
