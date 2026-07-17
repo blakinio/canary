@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: test/e2e-physical-floor-change
 base_branch: main
 created: 2026-07-17T22:20:00+02:00
-updated: 2026-07-18T00:00:00+02:00
-last_verified_commit: "6fd17b0791b088850e83b452c8e03113bbd481c2"
+updated: 2026-07-18T00:02:00+02:00
+last_verified_commit: "2d7c7d6080ba4d2c3fff7ed8ba40f1851875e988"
 risk: high
 related_issue: ""
 related_pr: "512"
@@ -55,8 +55,8 @@ Prove one bounded real-client non-teleport floor transition on the exact Canary 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T00:00:00+02:00
-head: 6fd17b0791b088850e83b452c8e03113bbd481c2
+updated_at: 2026-07-18T00:02:00+02:00
+head: 2d7c7d6080ba4d2c3fff7ed8ba40f1851875e988
 branch: test/e2e-physical-floor-change
 pr: 512
 status: validating
@@ -78,7 +78,8 @@ proven:
   - discovery artifact 8420651936 has digest sha256:f709b85e253218dd999398af8c99f569fd20ae5825994659852ffa3c0e0079ae
   - artifact client-events.tsv records step_endpoint-position_detail=32375,32243,6 followed by plan=success safe logout server persistence relog second safe logout and e2e=success
   - exact endpoint 32375,32243,6 and floor delta -1 were pinned into the scenario only after physical artifact evidence
-  - PR 512 changes only the feature-owned task and physical-floor-change scenario
+  - branch was synchronized without force push to main 676add3be5626e5f0dbe1a22783d26f423d8a095 through merge head 2d7c7d6080ba4d2c3fff7ed8ba40f1851875e988
+  - after synchronization PR 512 remains mergeable and changes exactly the feature-owned task plus physical-floor-change scenario
   - scenario preserves canonical two-session safe logout persistence and relog markers
   - no shared E2E platform file is modified
   - no OTBM World Index or client asset is committed
@@ -86,14 +87,13 @@ proven:
 derived:
   - the transition is physically proven as a non-teleport floor change because the real maintained client changed from z=7 to z=6 on the bounded route while the scenario contains no teleportDestination dependency
   - the exact post-transition position assertion is evidence-backed rather than inferred from static map or minimap data
+  - the next task-only checkpoint commit is the final feature head and must not be modified unless current main advances again or a proven final-gate blocker requires a fix
 unknown:
-  - whether current main has advanced since the discovery head was created
-  - exact final head after required main synchronization and final checkpoint update
-  - final-gate workflow run identifiers
+  - exact final-gate workflow run identifiers until the final checkpoint commit triggers them
 conflicts: []
 first_failure:
   marker: final-gate-pending
-  evidence: physical discovery is proven and pinned; the branch still requires synchronization to current main and exact-final-head validation before merge
+  evidence: physical discovery is proven and pinned and the branch is synchronized to current main; exact-final-head validation is the remaining pre-merge gate
 rejected_hypotheses:
   - treating item ID or minimap color as runtime proof of a floor transition
   - treating teleport mechanics as the separate non-teleport floor-change proof
@@ -111,6 +111,9 @@ validation:
   - command: Required physical E2E
     result: PASS
     evidence: run 29614865219
+  - command: synchronize feature-owned tree to current main
+    result: PASS
+    evidence: main 676add3be5626e5f0dbe1a22783d26f423d8a095; merge head 2d7c7d6080ba4d2c3fff7ed8ba40f1851875e988; non-force ref update; PR remains two files and mergeable
 blockers: []
-next_action: Synchronize PR 512 to current main without force push if needed, create the exact final checkpoint, apply the final gate, and require Ownership CI selected physical E2E and Required physical E2E on that exact head before squash merge.
+next_action: Apply ci:final-gate to the resulting task-only final head and require Ownership CI selected physical E2E and Required physical E2E on that exact head before marking ready and squash merging.
 ```
