@@ -117,7 +117,7 @@ The first offensive runtime plan lives under `tests/security/runtime_scenarios/*
 
 Unknown fields are rejected. A plan cannot provide packet bytes or hex strings, shell commands, executable paths, credentials, hostnames, target IPs or ports. The reviewed packet corpus remains in code. The canonical `canary-status-parser-baseline` selects eight fixed cases covering zero and oversized frame lengths, truncated declared bodies, unknown service selection and truncated/unknown status payloads.
 
-`tools/security/malformed_packet_runtime.py` owns the strict plan contract, fixed case registry, individual transport/control probes and deterministic report primitives. `tools/security/malformed_packet_runtime_runner.py` is the canonical runtime entry point: it consumes the merged Universal Agent Load `run_runtime` callback and adds code-owned per-case loopback source isolation plus bounded service-recovery semantics.
+`tools/security/malformed_packet_runtime.py` owns the strict plan contract, fixed case registry, individual transport/control probes and deterministic report primitives. `tools/security/malformed_packet_runtime_runner.py` is the canonical runtime entry point: it consumes the merged Universal Agent Load `run_runtime` callback and adds code-owned loopback source isolation for malformed and control probes.
 
 ## `ots-security-malformed-packet-report-v1`
 
@@ -129,15 +129,15 @@ A malformed-parser execution records deterministic evidence for the exact run:
 - confined callback-provided loopback target host and status port;
 - exact Canary binary SHA-256;
 - SHA-256 pins for the packet core, canonical runner and reused runtime provider;
-- ordered per-case code-owned loopback source IP, packet SHA-256/size and normalized malformed/control outcomes;
+- ordered per-case code-owned malformed/control source IPs, packet SHA-256/size and normalized malformed/control outcomes;
 - fatal/sanitizer log findings;
 - one stable failure code or success.
 
-No timestamps or scheduler-dependent recovery-attempt counts are recorded.
+No timestamps or scheduler-dependent retry counts are recorded.
 
-Canary's normal connection admission protection rejects more than five rapid connections from one client IP and temporarily blocks that source. The runtime pack does not disable or modify this protection. Instead, each bounded parser case receives one deterministic source address from `127.0.0.2` through `127.0.0.17`, while every target connection still goes only to callback-provided `127.0.0.1`. One malformed probe plus at most four bounded control attempts therefore never exceeds five connections for a case source. This isolates parser assertions from the independent admission-throttle contract without granting plans any source or target address control.
+Canary has two independent source-IP protections relevant to this pack. `Ban::acceptConnection` rejects excessive rapid accepted connections per source IP, while `ProtocolStatus::ipConnectMap` rate-limits repeated status queries for non-exempt source addresses. The runtime pack does not disable or modify either protection. Instead, every bounded parser case gets two deterministic code-owned IPv4 loopback sources: one for the malformed probe and a distinct one for the valid control probe. Across the maximum 16-case contract those addresses occupy `127.0.0.2` through `127.0.0.33`, while every destination remains the callback-provided `127.0.0.1` status port. Plans cannot choose either source or destination addresses.
 
-After each malformed connection terminates, the runner requires a normal XML status response from the same per-case loopback source. It allows at most four code-owned attempts separated by 50 ms and normalizes successful bounded recovery to `control_probe=pass`; exhausting the window fails closed as `control-unresponsive`.
+After each malformed connection terminates, exactly one valid XML status request is sent from that case's distinct control source and must return `<tsqp` plus `<serverinfo`. This isolates parser-resilience evidence from the independent admission/status-query throttles without weakening those production protections. A failed control request remains fail-closed as its exact stable control failure code.
 
 The runtime also fails closed on malformed-case read timeout, unexpected malformed response, target/source confinement failure, Canary process exit and fatal/sanitizer signatures. The outer `run_runtime` callback remains responsible for exact-head Canary startup, database/config/map preparation and cleanup.
 
@@ -153,7 +153,7 @@ It does **not** prove complete protocol exploit resistance and specifically does
 - checksum/sequence-number combinations;
 - maintained-client hostile-server parsing;
 - packet flood or sustained DoS capacity;
-- correctness or strength of the independent per-IP connection admission policy itself.
+- correctness or strength of either independent per-IP admission/status-query policy.
 
 Those require separate bounded tasks and protocol-aware fixtures. Future confirmed parser vulnerabilities should become permanent fixed-case regressions after remediation rather than broadening this plan with arbitrary packet input.
 
