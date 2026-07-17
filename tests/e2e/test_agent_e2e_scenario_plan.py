@@ -181,6 +181,20 @@ class ScenarioPlanTests(unittest.TestCase):
         self.assertIn("failed to execute scenario plan", driver)
         self.assertNotIn("pcall(dofile, PLAN_PATH)", driver)
 
+    def test_runtime_driver_waits_for_initial_position_before_plan(self) -> None:
+        driver = DRIVER_PATH.read_text(encoding="utf-8")
+        start = driver.index("local function waitForInitialPositionAndStartPlan()")
+        end = driver.index("\nend\n\nlocal function loadPlan()", start)
+        readiness_gate = driver[start:end]
+        self.assertIn("local remainingChecks = 50", readiness_gate)
+        self.assertIn("g_game.getLocalPlayer()", readiness_gate)
+        self.assertIn('appendEvent("initial_position"', readiness_gate)
+        self.assertIn('scheduleEvent(check, 100)', readiness_gate)
+        self.assertIn('fail("local player position unavailable after game start")', readiness_gate)
+        self.assertLess(readiness_gate.index('appendEvent("initial_position"'), readiness_gate.index("runNextStep()"))
+        self.assertIn("if phase == 1 then\n\t\t\twaitForInitialPositionAndStartPlan()", driver)
+        self.assertNotIn('appendEvent("login_" .. phase, "success")\n\t\tlocal player = g_game.getLocalPlayer()', driver)
+
     def test_resolve_writes_sibling_plan_for_step_scenario(self) -> None:
         data = self.scenario_data()
         data["steps"] = [{"id": "channels", "action": "request_channels"}]
