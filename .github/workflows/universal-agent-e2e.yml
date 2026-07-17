@@ -33,6 +33,7 @@ on:
       - "tools/agents/ci_incremental_validation.py"
       - "tools/e2e/run_agent_e2e.py"
       - "tools/e2e/run_physical_e2e.sh"
+      - "tools/e2e/server_selection.py"
       - "tools/e2e/client/**"
       - "tests/e2e/**"
       - "!tests/e2e/load/**"
