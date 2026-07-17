@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: test/e2e-physical-teleport
 base_branch: main
 created: 2026-07-17T21:35:00+02:00
-updated: 2026-07-18T01:22:00+02:00
-last_verified_commit: "07d985a3f390a5145bdad1fccb5beac627f8911c"
+updated: 2026-07-18T01:24:00+02:00
+last_verified_commit: "f76a8a09dcc4d400a473d5235744b859bdd74a99"
 risk: high
 related_issue: ""
 related_pr: "511"
@@ -55,8 +55,8 @@ Prove one deterministic real-client teleport traversal on the exact Canary map u
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T01:22:00+02:00
-head: 07d985a3f390a5145bdad1fccb5beac627f8911c
+updated_at: 2026-07-18T01:24:00+02:00
+head: f76a8a09dcc4d400a473d5235744b859bdd74a99
 branch: test/e2e-physical-teleport
 pr: 511
 status: validating
@@ -73,30 +73,30 @@ proven:
   - audited teleport source is 32353,32223,7 item 1959 with teleportDestination 32255,32204,8
   - initial 350 ms and 800 ms route attempts did not reach the teleport and were rejected as runtime proof
   - a 1500 ms attempt exceeded the server ping timeout and was rejected without changing shared transport infrastructure
-  - segmented 1000 ms discovery run 29618756104 physically reached the teleport and passed Physical client movement/physical-teleport plus Required physical E2E
+  - segmented 1000 ms discovery run 29618756104 passed Physical client movement/physical-teleport and Required physical E2E
   - discovery artifact 8421982161 has digest sha256:fef57aea0b47df739bce2636b68f996915c84cdb01c5241cf12518d8b9cea2fe
   - client-events.tsv proves initial_position=32369,32241,7
   - segment probes prove route positions 32367,32241,7 then 32367,32218,7 then 32365,32218,7 then 32365,32217,7 then 32358,32217,7 then 32358,32216,7 then 32353,32216,7
-  - the final south segment physically triggered the teleport and step_probe-south-1_detail became 32255,32204,8
+  - final south segment physically triggered the teleport and step_probe-south-1_detail became 32255,32204,8
   - step_endpoint-position_detail and step_position-changed_detail both equal 32255,32204,8
   - step_floor-delta_detail equals 1
   - plan success was followed by safe logout server persistence relog second safe logout and e2e success
   - exact destination 32255,32204,8 was pinned into required markers only after physical artifact evidence
-  - PR 511 changes only the feature-owned task and physical-teleport scenario
+  - branch was synchronized without force push to main 354abbbeeff7f7c3470987b32e873527fc6e1a2f through merge head f76a8a09dcc4d400a473d5235744b859bdd74a99
+  - after synchronization PR 511 is mergeable and changes exactly the feature-owned task plus physical-teleport scenario
   - no shared E2E platform file is modified
   - no OTBM or client asset is committed
   - no external reference repository is modified
 derived:
   - runtime evidence independently matches the OTBM-audited teleportDestination and therefore proves actual teleport traversal rather than merely approaching the source
   - segmented probes are deterministic route evidence and keep total runtime below the server ping timeout without changing canonical transport settings
+  - the task-only commit produced from this checkpoint is the exact final feature head unless main advances again or a proven final-gate blocker requires a fix
 unknown:
-  - current main SHA after floor-change lifecycle completion
-  - exact final head after required non-force synchronization and final checkpoint
-  - exact-final workflow run identifiers
+  - exact final-gate workflow run identifiers until the task-only final checkpoint commit triggers them
 conflicts: []
 first_failure:
   marker: final-gate-pending
-  evidence: physical teleport discovery is proven and pinned; synchronization to current main and exact-final-head validation remain before merge
+  evidence: physical teleport discovery is proven and pinned and the branch is synchronized to current main; exact-final-head validation remains before merge
 rejected_hypotheses:
   - treating OTBM teleportDestination as runtime proof
   - guessing a destination from sprites or item names
@@ -117,6 +117,9 @@ validation:
   - command: Required physical E2E
     result: PASS
     evidence: run 29618756104
+  - command: synchronize feature-owned tree to current main
+    result: PASS
+    evidence: main 354abbbeeff7f7c3470987b32e873527fc6e1a2f; merge head f76a8a09dcc4d400a473d5235744b859bdd74a99; non-force ref update; PR remains two files and mergeable
 blockers: []
-next_action: Synchronize PR 511 to current main without force push, create one task-only exact final checkpoint, apply ci:final-gate, and require Ownership CI selected physical teleport and Required physical E2E on that exact head before ready and squash merge.
+next_action: Apply ci:final-gate to the resulting task-only exact final head and require Ownership CI selected physical teleport and Required physical E2E before ready and squash merge.
 ```
