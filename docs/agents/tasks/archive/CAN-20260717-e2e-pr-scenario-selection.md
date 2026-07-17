@@ -2,13 +2,13 @@
 task_id: CAN-20260717-e2e-pr-scenario-selection
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: OTS-E2E-PR-SCENARIO-SELECTION-001
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/e2e-pr-scenario-selection
 base_branch: main
 created: 2026-07-17T13:15:00+02:00
-updated: 2026-07-17T13:55:00+02:00
-last_verified_commit: "0ce740075699a2bc7cf007a847e5567b33284467"
+updated: 2026-07-17T12:59:53Z
+last_verified_commit: "9ff0e5b7dbcb2c1e9ebab8c2960d2c9d6c88f58c"
 risk: medium
 related_issue: ""
 related_pr: "477"
@@ -39,6 +39,7 @@ reuses:
 public_interfaces:
   - deterministic same-repository PR selection of exactly one changed scenario manifest
 cross_repo_tasks: []
+completed: 2026-07-17T12:59:53Z
 ---
 
 # Goal
@@ -119,3 +120,11 @@ validation:
 blockers: []
 next_action: Treat this checkpoint-only commit as the new exact final head; require green ownership, full CI and Universal Agent E2E before squash merge.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #477.
+- Feature head: `7867621e94876f571738c7d1a09ebbdc7ddb52fd`.
+- Merge commit: `9ff0e5b7dbcb2c1e9ebab8c2960d2c9d6c88f58c`.
+- Merged at: `2026-07-17T12:59:53Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
