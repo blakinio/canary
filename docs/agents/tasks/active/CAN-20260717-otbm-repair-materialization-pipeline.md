@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-repair-materialization-pipeline
 base_branch: main
 created: 2026-07-17T08:15:22+02:00
-updated: 2026-07-17T08:15:22+02:00
+updated: 2026-07-17T08:16:03+02:00
 last_verified_commit: "c2e181f892ce2f094e887f1da5c6c7df207629c9"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "456"
 depends_on:
   - "OTBM Phase 8 bounded attribute patcher #325"
   - "OTBM real-map repair preflight #406/#413"
@@ -104,10 +104,10 @@ Add the smallest reusable fail-closed orchestration boundary that composes the a
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T08:15:22+02:00
-head: c2e181f892ce2f094e887f1da5c6c7df207629c9
+updated_at: 2026-07-17T08:16:03+02:00
+head: 6020033f0b48d3b114ece29fd8f90882a6cdf1d5
 branch: feat/otbm-repair-materialization-pipeline
-pr: null
+pr: 456
 status: active
 context_routes:
   - agent-governance
@@ -148,5 +148,5 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260717-otbm-repair-materialization-pipeline.md
 validation: []
 blockers: []
-next_action: Open a draft PR, inspect the exact callable APIs of the existing sandbox, area materializer and map-quality gate, then implement the smallest composition layer on new paths only.
+next_action: Inspect the exact callable APIs of the existing sandbox, area materializer and map-quality gate, then implement the smallest composition layer on new paths only.
 ```
