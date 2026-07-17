@@ -7,7 +7,7 @@ agent: oteryn-architecture-migration-agent
 branch: docs/oam-007-item-world-runtime-revalidation
 base_branch: main
 created: 2026-07-17T06:45:00+02:00
-updated: 2026-07-17T08:15:00+02:00
+updated: 2026-07-17T08:20:00+02:00
 last_verified_commit: "c2e181f892ce2f094e887f1da5c6c7df207629c9"
 risk: high
 related_issue: "22"
@@ -24,7 +24,9 @@ owned_paths:
     - docs/agents/OTERYN_OAM_007_ITEM_WORLD_RUNTIME_REVALIDATION.md
   shared:
     - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
+    - .github/e2e-controlled-server.env
   read_only:
+    - .github/workflows/universal-agent-e2e.yml
     - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
     - docs/agents/real-tibia/registry/modules/item-definitions.yaml
     - docs/agents/real-tibia/registry/modules/item-instances.yaml
@@ -71,13 +73,14 @@ Revalidate exactly `item-definitions`, `item-instances`, and `world-map-runtime`
 - Preserve OAM-004 persistence boundaries and OAM-006 protocol/client boundaries.
 - Do not start `world-zones`, `instances`, or OAM-008 here.
 - Reuse the existing Universal Agent E2E for exact final-target runtime proof.
+- The controlled-server pin is temporary evidence input and must be removed before final governance merge.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T08:15:00+02:00
-head: de826aa4b448b2f2e3ba6062a412adb5cb14ccd0
+updated_at: 2026-07-17T08:20:00+02:00
+head: 55cac36e836bc6b7eff182c91162a3cfccbdb129
 branch: docs/oam-007-item-world-runtime-revalidation
 pr: 455
 status: implementing
@@ -90,6 +93,7 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260717-oteryn-item-world-runtime-revalidation.md
   - docs/agents/OTERYN_OAM_007_ITEM_WORLD_RUNTIME_REVALIDATION.md
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
+  - .github/e2e-controlled-server.env
 proven:
   - OAM-006 feature and lifecycle are complete
   - Canary task-start is c2e181f892ce2f094e887f1da5c6c7df207629c9
@@ -126,5 +130,5 @@ validation:
     result: PASS
     evidence: one required item-definition adaptation was isolated; item-instance and world-map runtime legacy-only deltas do not meet the adaptation gate
 blockers: []
-next_action: Require Otheryn PR 23 exact-head ready gates, merge with exact-head guard, then run exact controlled-server runtime proof before finalizing Canary PR 455.
+next_action: Require Otheryn PR 23 exact-head ready gates, merge with exact-head guard, then create the temporary controlled-server pin and run exact final-target E2E before finalizing Canary PR 455.
 ```
