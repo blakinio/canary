@@ -2,13 +2,13 @@
 task_id: CAN-20260717-security-login-parser-boundaries
 program_id: CAN-PROGRAM-SECURITY-VALIDATION
 coordination_id: OTS-SEC-004
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/security-login-parser-boundaries
 base_branch: main
 created: 2026-07-17T09:00:00+02:00
-updated: 2026-07-17T10:10:00+02:00
-last_verified_commit: "334ff426eb8bcaa892a8d78131bd7455bb7b9f15"
+updated: 2026-07-17T08:55:41Z
+last_verified_commit: "e5d85703ea464220569a36384de8c71ad40c69b8"
 risk: high
 related_issue: ""
 related_pr: "462"
@@ -51,6 +51,7 @@ public_interfaces:
   - ots-security-login-packet-report-v1
   - canary-login-parser-v1 built-in runtime driver
 cross_repo_tasks: []
+completed: 2026-07-17T08:55:41Z
 ---
 
 # Goal
@@ -176,3 +177,11 @@ validation:
 blockers: []
 next_action: Let exact-final-head workflows run on this readiness commit. Make no further commits. If CI Security Validation and Agent Task Ownership all pass on the same head and PR 462 remains mergeable with no review blockers, squash merge using the exact final head SHA and then complete lifecycle archival.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #462.
+- Feature head: `729bea5910086ca7b90bb3132f92e55c7cda6e17`.
+- Merge commit: `e5d85703ea464220569a36384de8c71ad40c69b8`.
+- Merged at: `2026-07-17T08:55:41Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
