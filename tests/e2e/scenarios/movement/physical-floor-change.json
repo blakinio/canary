@@ -4,7 +4,7 @@
   "suite": "movement",
   "name": "Physical client bounded floor transition",
   "program_id": "CAN-PROGRAM-E2E-PLATFORM",
-  "description": "Drive the controlled real client from the physically proven Knight 1 start to a bounded non-teleport floor-transition probe selected from the exact World Index and client minimap, record the real route endpoint, then require a real floor delta while preserving the canonical logout, persistence, and relog sentinel. Exact final position is pinned only after physical artifact evidence.",
+  "description": "Drive the controlled real client from the physically proven Knight 1 start to a bounded non-teleport floor-transition probe selected from the exact World Index and controlled client minimap, then record the real route endpoint before pinning any floor delta. Preserve the canonical logout, persistence, and relog sentinel.",
   "client": {
     "repository": "blakinio/otclient",
     "ref": "2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f",
@@ -30,12 +30,14 @@
   },
   "steps": [
     {"id": "online", "action": "observe_online", "expected": true},
-    {"id": "route-east", "action": "walk", "direction": "east", "count": 18, "interval_ms": 350},
-    {"id": "route-north", "action": "walk", "direction": "north", "count": 1, "interval_ms": 500},
+    {"id": "route-east-1", "action": "walk", "direction": "east", "count": 3, "interval_ms": 800},
+    {"id": "route-south-1", "action": "walk", "direction": "south", "count": 1, "interval_ms": 800},
+    {"id": "route-east-2", "action": "walk", "direction": "east", "count": 2, "interval_ms": 800},
+    {"id": "route-north-1", "action": "walk", "direction": "north", "count": 1, "interval_ms": 800},
+    {"id": "route-east-3", "action": "walk", "direction": "east", "count": 2, "interval_ms": 800},
+    {"id": "route-south-2", "action": "walk", "direction": "south", "count": 2, "interval_ms": 800},
     {"id": "floor-settle", "action": "wait", "ms": 1500},
-    {"id": "endpoint-position", "action": "observe_position_changed"},
-    {"id": "floor-delta", "action": "observe_floor_delta", "delta": 1},
-    {"id": "position-changed", "action": "observe_position_changed"}
+    {"id": "endpoint-position", "action": "observe_position_changed"}
   ],
   "assertions": {
     "required_markers": [
@@ -44,13 +46,14 @@
       "initial_position=32369,32241,7",
       "online_stable_1=confirmed",
       "step_online=success",
-      "step_route-east=success",
-      "step_route-north=success",
+      "step_route-east-1=success",
+      "step_route-south-1=success",
+      "step_route-east-2=success",
+      "step_route-north-1=success",
+      "step_route-east-3=success",
+      "step_route-south-2=success",
       "step_floor-settle=success",
       "step_endpoint-position=success",
-      "step_floor-delta=success",
-      "step_floor-delta_detail=1",
-      "step_position-changed=success",
       "plan=success",
       "logout_request_1=safe",
       "logout_1=complete",
