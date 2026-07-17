@@ -15,7 +15,7 @@ from otbm_tile_deletion_materializer import (
     TileDeletionMaterializerError,
     materialize_tile_deletions,
 )
-from otbm_tile_materializer import _canonical_tile, scan_tile_spans
+from otbm_tile_materializer import TileMaterializerError, _canonical_tile, scan_tile_spans
 from otbm_world_index import WorldIndex, build_world_index
 from test_otbm_area_materializer import make_area_map
 
@@ -192,7 +192,7 @@ class TileDeletionMaterializerTests(unittest.TestCase):
         approval = self.write_approval([(300, 600, 7)])
         approval["selections"][0]["current"]["rawSha256"] = "0" * 64
         self.approval.write_text(json.dumps(approval, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        with self.assertRaisesRegex(TileDeletionMaterializerError, "raw tile SHA-256"):
+        with self.assertRaisesRegex(TileMaterializerError, "raw tile SHA-256"):
             self.run_materializer()
 
 
