@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: test/e2e-physical-floor-change
 base_branch: main
 created: 2026-07-17T22:20:00+02:00
-updated: 2026-07-17T22:20:00+02:00
-last_verified_commit: "503ebf54a9d2dbf236bee679958b1219d44326f5"
+updated: 2026-07-17T22:25:00+02:00
+last_verified_commit: "606224482e03f8dd137d477acea0909b1105fbbb"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "512"
 depends_on:
   - CAN-20260717-physical-movement-e2e-v2
   - CAN-PROGRAM-E2E-PLATFORM
@@ -55,10 +55,10 @@ Prove one bounded real-client non-teleport floor transition on the exact Canary 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T22:20:00+02:00
-head: 503ebf54a9d2dbf236bee679958b1219d44326f5
+updated_at: 2026-07-17T22:25:00+02:00
+head: 606224482e03f8dd137d477acea0909b1105fbbb
 branch: test/e2e-physical-floor-change
-pr: null
+pr: 512
 status: implementing
 context_routes:
   - universal-e2e
@@ -72,6 +72,7 @@ proven:
   - existing repository scanner produced the canonical World Index for that exact map with 17972761 tiles 23359571 placements and 9339 mechanic placements
   - World Index places item 1947 at candidate 32387,32240,7 and the controlled client minimap yields a bounded direct route of 18 east then 1 north from the proven start
   - candidate is not an OTBM teleport mechanic placement and the scenario does not rely on teleportDestination
+  - PR 512 changes only the feature-owned task and physical-floor-change scenario
   - exact transition semantics and final position are deliberately treated as unknown until the physical probe runs
   - scenario preserves canonical two-session safe logout persistence and relog markers
   - no shared E2E platform file is modified
@@ -84,10 +85,11 @@ unknown:
   - whether entering 32387,32240,7 triggers a walk-driven floor transition in the physical runtime
   - whether the first observed floor delta is +1 or another value
   - exact real post-transition position until the physical artifact is produced
+  - first selected physical workflow conclusion on PR 512
 conflicts: []
 first_failure:
   marker: physical-floor-change-discovery-pending
-  evidence: no selected physical-client run has executed this new scenario yet
+  evidence: PR 512 is open as a draft and its selected physical-client run has not yet produced artifact evidence
 rejected_hypotheses:
   - treating item ID or minimap color as runtime proof of a floor transition
   - treating teleport mechanics as the separate non-teleport floor-change proof
@@ -101,5 +103,5 @@ validation:
     result: PASS
     evidence: item 1947 at 32387,32240,7; candidate has no mechanic record; bounded client minimap route is 18 east then 1 north
 blockers: []
-next_action: Open a same-repository draft PR so automatic scenario selection runs movement/physical-floor-change through the existing Universal Agent E2E physical lifecycle; inspect the first physical artifact and fix only the first concrete runtime blocker.
+next_action: Inspect PR 512 automatic scenario selection and first Universal Agent E2E physical artifact; if the expected +1 floor delta is wrong, use the emitted real delta as the first concrete runtime evidence rather than guessing.
 ```
