@@ -1,0 +1,17 @@
+{
+  "schema": "ots-security-malformed-packet-plan-v1",
+  "id": "canary-status-parser-baseline",
+  "authorized_repository": "blakinio/canary",
+  "driver": "canary-status-parser-v1",
+  "service": "status",
+  "cases": [
+    "zero-length-frame",
+    "oversized-length-frame",
+    "truncated-declared-body",
+    "unknown-service-identifier",
+    "status-service-only",
+    "status-opcode-only",
+    "status-truncated-info",
+    "status-unknown-opcode"
+  ]
+}

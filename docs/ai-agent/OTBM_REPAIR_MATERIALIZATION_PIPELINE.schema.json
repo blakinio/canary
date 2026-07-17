@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "canary-otbm-repair-materialization-pipeline-v1",
+  "title": "Canary OTBM repair/materialization pipeline result v1",
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "filePin": {
+      "type": "object",
+      "required": ["fileName", "size", "sha256"],
+      "properties": {
+        "fileName": {"type": "string", "minLength": 1},
+        "size": {"type": "integer", "minimum": 0},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "format": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "required": [
+    "format",
+    "schemaVersion",
+    "ok",
+    "mode",
+    "source",
+    "output",
+    "inputs",
+    "mutation",
+    "quality",
+    "evidence",
+    "rollback",
+    "safety"
+  ],
+  "properties": {
+    "format": {"const": "canary-otbm-repair-materialization-pipeline-v1"},
+    "schemaVersion": {"const": 1},
+    "ok": {"const": true},
+    "mode": {"enum": ["fixed-width-attribute", "tile-area"]},
+    "source": {
+      "type": "object",
+      "required": ["fileName", "size", "sha256", "unchanged"],
+      "properties": {
+        "fileName": {"type": "string", "minLength": 1},
+        "size": {"type": "integer", "minimum": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "unchanged": {"const": true}
+      },
+      "additionalProperties": false
+    },
+    "output": {
+      "type": "object",
+      "required": ["path", "size", "sha256", "createNew", "byteIdenticalToVerifiedCandidate"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "size": {"type": "integer", "minimum": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "createNew": {"const": true},
+        "byteIdenticalToVerifiedCandidate": {"const": true}
+      },
+      "additionalProperties": false
+    },
+    "inputs": {
+      "type": "object",
+      "minProperties": 4,
+      "additionalProperties": {"$ref": "#/$defs/filePin"}
+    },
+    "mutation": {
+      "type": "object",
+      "required": ["format", "report", "summary"],
+      "properties": {
+        "format": {
+          "enum": [
+            "canary-otbm-repair-sandbox-verification-v1",
+            "canary-otbm-area-materialization-result-v1"
+          ]
+        },
+        "report": {"$ref": "#/$defs/filePin"},
+        "summary": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "quality": {
+      "type": "object",
+      "required": ["format", "report", "sourceSha256", "ok", "policy", "outcomeCounts", "coverage", "components"],
+      "properties": {
+        "format": {"const": "canary-otbm-map-quality-v1"},
+        "report": {"$ref": "#/$defs/filePin"},
+        "sourceSha256": {"$ref": "#/$defs/sha256"},
+        "ok": {"const": true},
+        "policy": {"type": "object"},
+        "outcomeCounts": {
+          "type": "object",
+          "required": ["error", "warning", "unresolved", "info"],
+          "properties": {
+            "error": {"type": "integer", "minimum": 0},
+            "warning": {"type": "integer", "minimum": 0},
+            "unresolved": {"type": "integer", "minimum": 0},
+            "info": {"type": "integer", "minimum": 0}
+          },
+          "additionalProperties": false
+        },
+        "coverage": {"type": "object"},
+        "components": {
+          "type": "object",
+          "required": ["geometry", "reachability", "scriptResolution"],
+          "properties": {
+            "geometry": {"$ref": "#/$defs/filePin"},
+            "reachability": {"$ref": "#/$defs/filePin"},
+            "scriptResolution": {"$ref": "#/$defs/filePin"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["directory", "candidateRetained"],
+      "properties": {
+        "directory": {"type": "string", "minLength": 1},
+        "candidateRetained": {"const": true}
+      },
+      "additionalProperties": false
+    },
+    "rollback": {
+      "type": "object",
+      "required": ["action", "path", "sourceRetained", "sourceSha256"],
+      "properties": {
+        "action": {"const": "delete-final-output"},
+        "path": {"type": "string", "minLength": 1},
+        "sourceRetained": {"type": "string", "minLength": 1},
+        "sourceSha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "safety": {
+      "type": "object",
+      "required": [
+        "sourceModifiedInPlace",
+        "silentOverwrite",
+        "newOtbmParserCreated",
+        "newOtbmWriterCreated",
+        "existingMutationBoundaryReused",
+        "existingMapQualityGateReused",
+        "allDirectFileInputsPinned",
+        "unresolvedEvidencePreserved",
+        "gameplayCorrectnessProven",
+        "physicalClientE2EProven",
+        "productionMapExecutionAuthorized"
+      ],
+      "properties": {
+        "sourceModifiedInPlace": {"const": false},
+        "silentOverwrite": {"const": false},
+        "newOtbmParserCreated": {"const": false},
+        "newOtbmWriterCreated": {"const": false},
+        "existingMutationBoundaryReused": {"const": true},
+        "existingMapQualityGateReused": {"const": true},
+        "allDirectFileInputsPinned": {"const": true},
+        "unresolvedEvidencePreserved": {"const": true},
+        "gameplayCorrectnessProven": {"const": false},
+        "physicalClientE2EProven": {"const": false},
+        "productionMapExecutionAuthorized": {"const": false}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
