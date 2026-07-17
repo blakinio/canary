@@ -7,11 +7,11 @@ agent: oteryn-architecture-migration-agent
 branch: docs/oam-008-vocations-migration
 base_branch: main
 created: 2026-07-17T10:10:00+02:00
-updated: 2026-07-17T10:10:00+02:00
+updated: 2026-07-17T10:14:00+02:00
 last_verified_commit: "317c1c4235377c388883aa2fd425d324f8ce4d2e"
 risk: low
 related_issue: "24"
-related_pr: "pending"
+related_pr: "469"
 depends_on:
   - OAM-007
 blocks:
@@ -65,10 +65,10 @@ Migrate exactly the canonical `vocations` module as the first evidence-selected 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T10:10:00+02:00
-head: 1bc2cda302d1732ebb7d953e8cede7b5e83d6eb3
+updated_at: 2026-07-17T10:14:00+02:00
+head: 69dfcdadf1517bbbb54bd1fb6822ec0680489e46
 branch: docs/oam-008-vocations-migration
-pr: pending
+pr: 469
 status: implementing
 context_routes:
   - agent-governance
@@ -87,21 +87,23 @@ proven:
   - no open Canary PR overlaps canonical vocation paths
   - no open Otheryn PR existed at task-start
   - Otheryn issue 24 and proof-only PR 25 were created
+  - Canary governance PR is 469
 derived:
   - vocations is the strongest current low-risk first-module candidate
   - implementation transfer is unnecessary because target already contains exact canonical content
   - focused target proof is still required before REUSE can be finalized
 unknown:
-  - Otheryn PR 25 exact-head test and CI result
+  - Otheryn PR 25 exact-head focused test result
   - final Otheryn PR 25 merge SHA
   - final Canary feature-governance merge SHA
   - final Canary lifecycle merge SHA
 conflicts: []
 first_failure:
-  marker: none active
-  evidence: target draft CI has not completed yet
+  marker: target draft CI scope-skip
+  evidence: CI 86 and Required 82 were green but all build/test jobs were skipped; ci:final-gate was added and a real test run remains required
 rejected_hypotheses:
   - exact blob identity alone authorizes REUSE
+  - green aggregate CI with skipped tests proves focused vocation behavior
   - world-zones legacy cache divergence should be copied into the cleaner target
   - instances is a low-risk first migration slice
   - OAM-009 physical-client proof belongs inside OAM-008
@@ -115,6 +117,9 @@ validation:
   - command: live open PR overlap audit
     result: PASS
     evidence: no open Canary PR touches canonical vocation paths; no open Otheryn PR existed before PR 25
+  - command: Otheryn draft CI 86 and Required 82
+    result: REJECTED_AS_FOCUSED_PROOF
+    evidence: scope detection skipped build and test jobs; full ci:final-gate run remains required
 blockers: []
-next_action: Require Otheryn PR 25 focused tests and exact-head draft/ready CI, then finalize the REUSE disposition and Canary governance package. Keep OAM-009 blocked until OAM-008 feature and lifecycle complete.
+next_action: Run Otheryn PR 25 with ci:final-gate through a real exact-head test path, then finalize REUSE and Canary governance. Keep OAM-009 blocked until OAM-008 feature and lifecycle complete.
 ```
