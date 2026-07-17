@@ -2,13 +2,13 @@
 task_id: CAN-20260717-oteryn-character-progression-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-010
-status: review
+status: ready
 agent: "GPT-5.5 Thinking"
 branch: docs/oam-010-character-progression-revalidation
 base_branch: main
 created: 2026-07-17T22:03:00+02:00
-updated: 2026-07-17T23:17:00+02:00
-last_verified_commit: "c3f63cee7543268a2bd34c02c68148a1f8e19088"
+updated: 2026-07-17T23:21:00+02:00
+last_verified_commit: "f4889ab38cc3d39f1cf82d5eddea84c1442f0fe4"
 risk: medium
 related_issue: ""
 related_pr: "509"
@@ -83,7 +83,8 @@ Revalidate exactly one canonical Oteryn migration unit, `character-progression`,
 - [x] Reject non-isolated test-harness failures rather than treating them as target defects.
 - [x] Determine final disposition `character-progression → ADAPT` from bounded evidence.
 - [x] Merge Otheryn proof PR #27 as `a4d095e3880787233bd194616dc6d19e6b94faaf` after exact-head target gates and clean review audit.
-- [ ] Synchronize Canary PR #509 cleanly to latest `main` and pass exact-head Ownership/CI plus ready-state gates.
+- [x] Synchronize Canary PR #509 cleanly to current `main@354abbbeeff7f7c3470987b32e873527fc6e1a2f` with exactly two OAM-010 files and pass clean-head Ownership/CI.
+- [ ] Pass exact-head gates on this ready checkpoint head, mark PR #509 ready, pass ready-state gates, and complete final review audit.
 - [ ] Squash-merge Canary PR #509 after clean final audit.
 - [ ] Complete separate lifecycle/archive and durable program reconciliation before OAM-011.
 
@@ -91,11 +92,11 @@ Revalidate exactly one canonical Oteryn migration unit, `character-progression`,
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T23:17:00+02:00
-head: c3f63cee7543268a2bd34c02c68148a1f8e19088
+updated_at: 2026-07-17T23:21:00+02:00
+head: f4889ab38cc3d39f1cf82d5eddea84c1442f0fe4
 branch: docs/oam-010-character-progression-revalidation
 pr: 509
-status: validating
+status: ready
 context_routes:
   - agent-governance
   - oteryn-migration
@@ -124,15 +125,17 @@ proven:
   - final migration disposition is character-progression ADAPT
   - legacy disconnect-death protection remains deliberately unadopted and requires separate session/protocol/runtime evidence if reconsidered
   - physical-client E2E is not required for this bounded compatibility disposition because no client protocol or UI mutation is made
-  - Canary PR 509 remains limited to the active task and OAM-010 evidence report
+  - Canary main advanced after task start only through non-overlapping security documentation and movement/floor-change E2E lifecycle/scenario work
+  - PR 509 was reconstructed directly on current main 354abbbeeff7f7c3470987b32e873527fc6e1a2f with exactly the OAM-010 evidence report and active task
+  - clean synchronized head f4889ab38cc3d39f1cf82d5eddea84c1442f0fe4 passed Agent Task Ownership run 29620401456 and CI run 29620401573
 
 derived:
   - the clean target progression core is retained while the legacy module is classified ADAPT because a session-coupled death-loss policy is deliberately excluded rather than wholesale reused
   - target proof-only tests are sufficient for the selected core compatibility claims without production mutation
   - OAM-004D and OAM-005 remain authoritative for persistence and character lifecycle
 unknown:
-  - whether Canary main advances again before PR 509 final synchronization and merge
-  - exact final Canary PR 509 head and final gate run ids after synchronization
+  - exact-head Ownership and CI conclusions after this ready checkpoint commit
+  - ready-state final gate conclusions and whether main advances before merge
   - lifecycle and durable program reconciliation merge SHAs
 conflicts: []
 first_failure:
@@ -166,6 +169,9 @@ validation:
   - command: Otheryn PR 27 final review audit and squash merge
     result: PASS
     evidence: zero comments reviews and review threads; merged as a4d095e3880787233bd194616dc6d19e6b94faaf
+  - command: Canary PR 509 clean synchronization and pre-ready gates
+    result: PASS
+    evidence: head f4889ab38cc3d39f1cf82d5eddea84c1442f0fe4 is directly based on main 354abbbeeff7f7c3470987b32e873527fc6e1a2f with exactly two OAM-010 files; Ownership 29620401456 and CI 29620401573 passed
 blockers: []
-next_action: Synchronize PR 509 cleanly to the latest Canary main without unrelated paths, require exact-head Ownership and CI, then ready-state gates, final audit and squash merge; afterwards complete separate lifecycle archive and durable program reconciliation before OAM-011.
+next_action: Require exact-head Ownership and CI on this ready checkpoint head; if green, mark PR 509 ready, require ready-state gates, audit comments reviews threads and current main, then squash merge with expected_head_sha and complete separate lifecycle/archive plus durable program reconciliation before OAM-011.
 ```
