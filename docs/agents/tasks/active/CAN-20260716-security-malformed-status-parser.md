@@ -7,7 +7,7 @@ agent: "GPT-5.5 Thinking"
 branch: feat/security-malformed-status-parser
 base_branch: main
 created: 2026-07-16T23:57:00+02:00
-updated: 2026-07-17T07:10:00+02:00
+updated: 2026-07-17T07:15:00+02:00
 last_verified_commit: "979e69be26b3d383e6fe7971e1797f6fbd9eea4c"
 risk: high
 related_issue: ""
@@ -68,7 +68,7 @@ Deliver the first bounded runtime parser-resilience pack for common TCP framing 
 - [x] Emit deterministic SHA-256-pinned machine-readable evidence.
 - [x] Cover the driver with focused Python tests and exact-head disposable runtime CI.
 - [x] Document the explicit non-coverage boundary for authenticated login/game, encryption, sequence/checksum and sustained load scenarios.
-- [ ] Update shared catalogue and changelog from current main.
+- [x] Update shared catalogue and changelog from current main.
 - [ ] Pass exact-final-head merge gate and squash merge.
 
 # Evidence summary
@@ -78,14 +78,16 @@ Deliver the first bounded runtime parser-resilience pack for common TCP framing 
 - Early runtime failures were traced to interactions with existing per-source admission and status-query throttles rather than a demonstrated Canary crash.
 - The final harness keeps those protections enabled and uses separate deterministic loopback sources for malformed and control checks.
 - Exact head `979e69be26b3d383e6fe7971e1797f6fbd9eea4c` passed repository CI, Agent Task Ownership, focused Security Validation, exact-head Linux release build and the real eight-case runtime pack.
-- No review comments are currently present on PR #451.
+- Branch was synchronized with current `main` at merge head `e68d7f6c4c95f30204f09665984b0d9342b9ef15`; the exact diff is 11 intended files and PR #451 is mergeable.
+- Shared indexes preserve current-main content with only the SEC-003 changelog entry and Security Platform row update.
+- No review comments or unresolved review threads are present.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T07:10:00+02:00
-head: 3cded3286882603e90760ea6e1a8aa223b28a295
+updated_at: 2026-07-17T07:15:00+02:00
+head: e68d7f6c4c95f30204f09665984b0d9342b9ef15
 branch: feat/security-malformed-status-parser
 pr: 451
 status: validating
@@ -94,12 +96,15 @@ context_routes:
   - universal-e2e
   - ci-repair
 owned_paths:
-  - tools/security/**
-  - tests/security/**
+  - tools/security/malformed_packet_runtime.py
+  - tools/security/malformed_packet_runtime_runner.py
+  - tests/security/test_malformed_packet_runtime.py
+  - tests/security/test_malformed_packet_runtime_runner.py
+  - tests/security/runtime_scenarios/canary-status-parser.json
+  - docs/agents/tasks/active/CAN-20260716-security-malformed-status-parser.md
   - .github/workflows/security-validation.yml
   - docs/security/SECURITY_VALIDATION_PLATFORM.md
   - docs/agents/programs/SECURITY_VALIDATION_PROGRAM.md
-  - docs/agents/tasks/active/CAN-20260716-security-malformed-status-parser.md
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
 proven:
@@ -109,10 +114,11 @@ proven:
   - distinct code-owned loopback sources isolate malformed and control checks while production throttles remain enabled
   - CI and Agent Task Ownership passed on 979e69be26b3d383e6fe7971e1797f6fbd9eea4c
   - Security Validation run 29557681411 passed focused checks exact-head Linux build and all eight runtime cases
+  - synchronized merge head e68d7f6c4c95f30204f09665984b0d9342b9ef15 is based on current main and contains exactly the 11 intended changed files
 derived:
-  - the bounded SEC-003 implementation is ready for shared-index finalization and final-head validation
+  - the bounded SEC-003 implementation is ready for review-head validation and final-head merge gating
 unknown:
-  - exact-final-head gate result after the final documentation and readiness checkpoint
+  - exact-final-head gate result after the final readiness checkpoint
 conflicts: []
 first_failure:
   marker: runtime-harness-source-isolation
@@ -124,6 +130,8 @@ rejected_hypotheses:
   - replacing service-responsiveness checks with process-liveness-only checks
 changed_paths:
   - .github/workflows/security-validation.yml
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/programs/SECURITY_VALIDATION_PROGRAM.md
   - docs/agents/tasks/active/CAN-20260716-security-malformed-status-parser.md
   - docs/security/SECURITY_VALIDATION_PLATFORM.md
@@ -142,6 +150,9 @@ validation:
   - command: Security Validation run 29557681411
     result: PASS
     evidence: focused validation exact-head build and eight-case runtime completed successfully
+  - command: Agent Task Ownership on e68d7f6c4c95f30204f09665984b0d9342b9ef15
+    result: FAIL
+    evidence: checkpoint used two broad globs not declared by frontmatter; this commit replaces them with exact declared paths
 blockers: []
-next_action: Update shared indexes from current main, review the exact diff, apply ci:final-gate before one final ready checkpoint commit, then make no post-green commit and merge only if all exact-head checks pass.
+next_action: Verify CI Security Validation and Agent Task Ownership on this corrected review head. If all pass, apply ci:final-gate before one final ready checkpoint commit, make no post-green commit, and squash-merge PR 451 only after exact-head checks are green.
 ```
