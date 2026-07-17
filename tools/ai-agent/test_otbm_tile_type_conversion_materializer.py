@@ -212,8 +212,9 @@ class TileTypeConversionMaterializerTests(unittest.TestCase):
             )
             found = output_index.find_tile(self.position)
             self.assertIsNotNone(found)
-            self.assertEqual(found[1].kind, 14)  # type: ignore[index,union-attr]
-            self.assertEqual(found[1].house_id, 42)  # type: ignore[index,union-attr]
+            assert found is not None
+            self.assertEqual(found[1].kind, "house")
+            self.assertEqual(found[1].house_id, 42)
 
     def test_converts_house_tile_to_tile_with_exact_donor_subtree(self) -> None:
         make_house_map(self.current, x=300, y=600, house_id=77, ground=100)
@@ -234,8 +235,9 @@ class TileTypeConversionMaterializerTests(unittest.TestCase):
             )
             found = output_index.find_tile(self.position)
             self.assertIsNotNone(found)
-            self.assertEqual(found[1].kind, 5)  # type: ignore[index,union-attr]
-            self.assertIsNone(found[1].house_id)  # type: ignore[index,union-attr]
+            assert found is not None
+            self.assertEqual(found[1].kind, "tile")
+            self.assertIsNone(found[1].house_id)
 
     def test_rejects_same_node_type(self) -> None:
         make_tile_map(self.current, x=300, y=600, ground=100, item_id=200)
