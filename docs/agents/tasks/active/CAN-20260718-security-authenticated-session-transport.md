@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/security-authenticated-session-transport
 base_branch: main
 created: 2026-07-18T00:06:00+02:00
-updated: 2026-07-18T00:24:00+02:00
-last_verified_commit: "d58c7514ddfe6c26ab8e32675d95257bc8616822"
+updated: 2026-07-18T00:40:00+02:00
+last_verified_commit: "aaaba4ce17c64494fe514335beab0b9fcc0dabf1"
 risk: high
 related_issue: ""
 related_pr: "514"
@@ -72,9 +72,9 @@ Deliver one bounded authenticated Canary game-session and post-login transport s
 - [x] Add bounded fixed post-login transport cases covering zero sequence, sequence gap, sequence replay and invalid XTEA padding/decrypt handling.
 - [x] Use deterministic distinct loopback source addresses for each case and control session while leaving normal server admission protections enabled.
 - [x] Require a fresh successful authenticated control session after every rejection case.
-- [x] Fail closed on timeout, malformed challenge, authentication failure, process exit or fatal/sanitizer evidence.
+- [x] Fail closed on timeout, malformed challenge, authentication failure, unexpected accepted malformed transport, process exit or fatal/sanitizer evidence.
 - [x] Emit normalized SHA-256-pinned machine-readable evidence without arbitrary response bodies, credentials or timestamps.
-- [ ] Add focused Python tests and exact-head disposable runtime execution in Security Validation CI.
+- [x] Add focused Python tests and exact-head disposable runtime execution in Security Validation CI.
 - [ ] Update durable platform/program/catalogue/changelog documentation with explicit evidence boundaries and non-claims.
 - [ ] Pass exact-final-head merge gate and squash merge.
 
@@ -82,8 +82,8 @@ Deliver one bounded authenticated Canary game-session and post-login transport s
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T00:24:00+02:00
-head: d58c7514ddfe6c26ab8e32675d95257bc8616822
+updated_at: 2026-07-18T00:40:00+02:00
+head: aaaba4ce17c64494fe514335beab0b9fcc0dabf1
 branch: feat/security-authenticated-session-transport
 pr: 514
 status: implementing
@@ -110,8 +110,8 @@ proven:
   - open PR 509 is OAM character-progression documentation and does not overlap this task
   - open PRs 485 and 487 are Windows build/test fixes and do not overlap this task
   - run_agent_load_runtime initializes schema plus repository-owned disposable test account/player fixtures before starting exact-head Canary
-  - current ProtocolGame uses server challenge before login, sequence transport, RSA first-message handoff and XTEA after first-message acceptance
-  - current game-login layout uses session-key wire shape, challenge response and current protocol version 1525
+  - current ProtocolGame uses server challenge before login and switches to sequence/XTEA transport only after first-message acceptance
+  - current GameLoginLayout uses session-key authentication challenge response and current protocol version 1525
   - default password-auth compatibility splits the session-key field at newline before IOLoginData game-world authentication
   - rejected post-login transport frames return false without advancing accepted sequence and the connection loop reads the next packet
   - strict game-session plan contains only code-owned case identifiers and repository authorization
@@ -119,14 +119,21 @@ proven:
   - fixed case logic covers authenticated control zero sequence sequence gap sequence replay and invalid XTEA padding with same-session recovery
   - every case is followed by a distinct-source distinct-fixture authenticated control session
   - CI run 29617554553 passed on head d58c7514ddfe6c26ab8e32675d95257bc8616822
+  - corrected Agent Task Ownership run 29617798771 passed on head 83ad76a88d1f449d8da327048780ec1d71aa01a0
+  - CI run 29617798897 passed on head 83ad76a88d1f449d8da327048780ec1d71aa01a0
+  - Security Validation run 29617798990 completed exact-head build and SEC-003 malformed-status runtime successfully before the new SEC-005 runtime failed
+  - first SEC-005 runtime artifact reported authenticated-control probe-connection-closed with no fatal log findings
+  - first SEC-005 server log proved the first packet reached ProtocolGame but misaligned version/asset strings and failed RSA decryption
+  - maintained OTClient source proves current first game packet is pre-XTEA and pre-sequence: modern padding byte then ClientPendingGame and login payload protected by Adler32 outer framing
+  - current server CurrentGameSequence first-packet handling skips checksum plus padding plus ClientPendingGame before onRecvFirstMessage reads operatingSystem
+  - corrected first packet now mirrors that wire shape and post-login client sequence starts at one
   - no external/public target is authorized by this task
 derived:
   - direct game-port authentication can exercise the current protocol without depending on MyAAC or external login-server behavior
   - same-session recovery with the still-expected sequence directly tests that rejected transport input did not consume accepted sequence state
 unknown:
-  - real exact-head authenticated game-login outcome until the new runtime job is wired and executed
-  - exact first successful post-login server opcode/compression shape until real runtime evidence exists
-  - current Security Validation outcome for focused tests on head d58c7514ddfe6c26ab8e32675d95257bc8616822
+  - real exact-head authenticated game-login outcome after the corrected pre-XTEA Adler32 first-packet framing
+  - exact first successful post-login server opcode/compression shape until corrected runtime evidence exists
 conflicts: []
 first_failure:
   marker: ownership-related-pr
@@ -137,7 +144,9 @@ rejected_hypotheses:
   - modifying maintained OTClient or external repositories for SEC-005
   - treating SEC-004 encrypted negative-auth responses as proof of a game session
   - treating process liveness alone as proof that rejected post-login sequence state recovered
+  - treating the current game first packet as a sequenced XTEA frame; runtime logs and maintained-client source proved it uses a pre-XTEA Adler32 envelope
 changed_paths:
+  - .github/workflows/security-validation.yml
   - docs/agents/tasks/active/CAN-20260718-security-authenticated-session-transport.md
   - tests/security/runtime_scenarios/canary-game-session.json
   - tests/security/test_game_session_runtime.py
@@ -150,13 +159,16 @@ validation:
     evidence: no active SEC-005 before task creation; open PR scopes inspected and no exclusive-path overlap found
   - command: local isolated Python py_compile and XTEA/frame sanity checks
     result: PASS
-    evidence: core and runner compiled; XTEA encrypt/decrypt round-tripped 8 16 and 24 byte fixtures; login and post-login frame lengths matched current transport block semantics
+    evidence: core and runner compiled; XTEA encrypt/decrypt round-tripped 8 16 and 24 byte fixtures
   - command: CI run 29617554553
     result: PASS
     evidence: repository CI passed on implementation head d58c7514ddfe6c26ab8e32675d95257bc8616822
   - command: Agent Task Ownership run 29617554455
     result: FAIL
-    evidence: changed active task related_pr did not match PR 514; metadata corrected in the next commit
+    evidence: changed active task related_pr did not match PR 514; metadata corrected
+  - command: Security Validation run 29617798990
+    result: FAIL
+    evidence: exact-head build and SEC-003 runtime passed; SEC-005 failed authenticated-control with probe-connection-closed because first game packet framing incorrectly used sequence instead of the current pre-XTEA Adler32 envelope; no fatal log findings
 blockers: []
-next_action: Verify corrected Agent Task Ownership and focused Security Validation on the new head, repair any focused test failures, then wire the authenticated game-session runtime job into Security Validation.
+next_action: Let the corrected current head run focused tests, exact-head build and the SEC-003/004/005 runtimes; inspect the new SEC-005 artifact before any further implementation or durable documentation changes.
 ```
