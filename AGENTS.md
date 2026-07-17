@@ -185,6 +185,23 @@ Stop automatic merge and document the blocker for:
 - If sensitive data is discovered, stop and report it without reproducing the secret.
 - Do not post repository comments/reviews containing local paths, credentials, internal URLs, or private diagnostic data.
 
+## Git Synchronization Workflow
+
+- Never assume a local checkout is synchronized with GitHub. Verify the current branch, working-tree state, remotes, and exact local/remote SHAs before starting work.
+- Before starting a new task from local `main`, when a local checkout is available:
+  1. run `git status --short --branch`, `git branch -vv`, `git remote -v`, and `git worktree list`;
+  2. if the working tree is dirty or contains uncommitted/untracked task work, do not automatically reset, stash, clean, or discard it; stop and reconcile ownership/task state first;
+  3. run `git fetch origin`;
+  4. switch to `main`;
+  5. update only with `git pull --ff-only origin main`;
+  6. verify local `HEAD` equals `origin/main` before creating a new task branch.
+- If an existing task branch is already published, fetch first and inspect ahead/behind/divergence before integrating remote changes. Do not blindly pull, merge, rebase, reset, or force-update it.
+- Create or use one dedicated branch per task and keep its upstream on the same-named `origin` branch. Never push task commits directly to `main`.
+- Publish commits, branches, and PRs according to the existing Autonomous delivery policy and Pull Request Safety rules; this synchronization section does not add a separate user-confirmation gate.
+- After a task PR is merged, before starting the next task in that local checkout: switch to `main`, run `git fetch origin`, then `git pull --ff-only origin main`, and verify `HEAD` equals `origin/main`.
+- Treat `upstream` as fetch-only and never use it as a push target.
+- Never resolve synchronization by weakening branch protection or using plain `--force`.
+
 ## Git Safety
 
 - Before committing or pushing, check `git status --short --branch` and `git branch -vv`.
