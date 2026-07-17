@@ -67,8 +67,8 @@ Add bounded declarative physical-client gameplay actions to the existing Univers
 
 # Validation before final gate
 
-- Agent Task Ownership #1803: PASS on `9a847007576efc0ca468c8f4198cdcbcf057a041`.
-- CI #2946: PASS on `9a847007576efc0ca468c8f4198cdcbcf057a041`.
+- Agent Task Ownership #1803: PASS on `9a847007576efc0ca9c1b32be67624d12c483012`.
+- CI #2946: PASS on `9a847007576efc0ca9c1b32be67624d12c483012`.
 - Universal Agent E2E #131 selected the full heavy path, passed scenario resolution and database bootstrap, and started exact Canary plus controlled OTClient builds before the final-head transition.
 - Final-gate Ownership #1805 identified only missing checkpoint evidence fields; this task-record-only correction addresses that exact failure.
 - `ci:final-gate` remains applied to PR #446.
@@ -124,10 +124,10 @@ changed_paths:
 validation:
   - command: Agent Task Ownership 1803
     result: PASS
-    evidence: pre-final head 9a847007576efc0ca468c8f4198cdcbcf057a041 completed successfully
+    evidence: pre-final head 9a847007576efc0ca9c1b32be67624d12c483012 completed successfully
   - command: CI 2946
     result: PASS
-    evidence: pre-final head 9a847007576efc0ca468c8f4198cdcbcf057a041 completed successfully
+    evidence: pre-final head 9a847007576efc0ca9c1b32be67624d12c483012 completed successfully
 blockers: []
 next_action: Let all ci:final-gate workflows finish on this exact final head. If they succeed, make no further commit; audit reviews, threads, changed paths and mergeability, then squash-merge PR 446 with the exact expected head SHA.
 ```
