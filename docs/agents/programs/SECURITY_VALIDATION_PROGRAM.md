@@ -4,8 +4,8 @@ name: OTS Security Validation Platform
 status: active
 owner: security-validation-agent
 created: 2026-07-16T20:10:00+02:00
-updated: 2026-07-17T07:00:00+02:00
-last_verified_commit: "979e69be26b3d383e6fe7971e1797f6fbd9eea4c"
+updated: 2026-07-17T09:35:00+02:00
+last_verified_commit: "8d10da7677b63685312281784c747bed117d6134"
 primary_paths:
   - tools/security/**
   - tests/security/**
@@ -21,14 +21,14 @@ cross_repo_contracts: []
 
 # Mission
 
-Build one reusable security-validation layer for the OTS ecosystem that preserves confirmed security fixes as deterministic regressions and drives authorized offensive tests against disposable server, client, web, database and cache targets.
+Build one reusable security-validation layer for the OTS ecosystem that preserves confirmed security fixes as deterministic regressions and drives authorized security tests against disposable server, client, web, database and cache targets.
 
 The platform is not permanently tied to Canary. Canary is the first source/runtime adapter because it is the currently authorized implementation repository. Otheryn and the maintained client are future target adapters, not reasons to duplicate the core scenario/report contracts.
 
 # Existing foundations to reuse
 
 - Universal OTS E2E owns disposable database/server/client lifecycle, controlled OTClient execution, SQL/protocol assertions, artifacts and cleanup.
-- Universal Agent Load owns literal-loopback-only bounded status-protocol load/stress evidence and exposes the code-owned server-only `RuntimeContext` / `run_runtime` callback used by OTS-SEC-003.
+- Universal Agent Load owns literal-loopback-only bounded status-protocol load/stress evidence and exposes the code-owned server-only `RuntimeContext` / `run_runtime` callback used by OTS-SEC-003 and OTS-SEC-004.
 - Existing focused regressions remain authoritative implementation-level evidence and should be referenced by security scenarios rather than rewritten.
 - Repository CI and exact-final-head merge gates remain the delivery boundary.
 
@@ -40,10 +40,10 @@ The security platform owns:
 - explicit target authorization metadata;
 - target-adapter selection contracts;
 - security-specific static and runtime executors;
-- code-owned bounded packet/probe corpora for approved runtime attack scenarios;
+- code-owned bounded probe corpora for approved runtime scenarios;
 - deterministic machine-readable findings and source/runtime evidence references;
 - permanent regression registration after confirmed remediation;
-- orchestration of approved security adapters without granting manifests arbitrary command or packet execution.
+- orchestration of approved security adapters without granting manifests arbitrary execution.
 
 It does not own generic server/database/client bootstrap already provided by Universal OTS E2E / Universal Agent Load.
 
@@ -65,51 +65,47 @@ The callback is intentionally code-owned: manifests cannot provide commands, exe
 
 # Phase 3 — malformed framing/status parser runtime (`OTS-SEC-003`)
 
-Active in PR #451. This first offensive runtime phase is intentionally bounded to common TCP framing and unauthenticated Canary `ProtocolStatus` parsing.
+Merged in PR #451 with lifecycle completed in PR #459. This first bounded runtime phase covers common TCP framing and unauthenticated Canary `ProtocolStatus` resilience through a fixed code-owned case registry, literal-loopback confinement, deterministic source isolation, exact-head runtime execution and machine-readable evidence.
 
-The phase introduces:
+The final feature head passed focused security validation, repository CI, Agent Task Ownership, exact-head Linux release build and the real eight-case runtime before squash merge.
 
-- strict `ots-security-malformed-packet-plan-v1` data with exact repository authorization and a bounded ordered list of code-owned built-in case identifiers;
-- no manifest-provided packet bytes/hex, commands, executables, credentials, hosts, source IPs, target IPs or ports;
-- fixed cases for zero/oversized frame lengths, truncated declared bodies, unknown service selection and truncated/unknown status payloads;
-- a canonical security-owned runtime runner that reuses `run_runtime` instead of duplicating Canary lifecycle;
-- destination confinement to callback-provided literal `127.0.0.1`;
-- distinct deterministic code-owned loopback sources for each malformed probe and its control probe, preventing independent production admission/status-query throttles from invalidating parser-resilience assertions without disabling those protections;
-- malformed-connection termination checks plus exactly one normal XML status control probe after every case;
-- fatal/sanitizer log diagnostics and outer process-liveness enforcement;
-- deterministic `ots-security-malformed-packet-report-v1` evidence with plan, provider and exact Canary binary SHA-256 pins;
-- dedicated exact-head Security Validation runtime execution on disposable MySQL + Canary infrastructure.
+OTS-SEC-003 does not claim authenticated login/game, encrypted post-login transport, maintained-client hostile-server, packet-flood or sustained-DoS coverage.
 
-Initial runtime attempts failed without a Canary crash because the harness reused source IPs across unrelated checks. Source review proved two independent protections: `Ban::acceptConnection` can reject excessive rapid accepted connections per IP, and `ProtocolStatus::ipConnectMap` rate-limits repeated status queries for non-exempt source addresses. The corrected runner assigns separate malformed/control source addresses per case and preserves both production protections.
+# Phase 4 — login protocol boundary runtime (`OTS-SEC-004`)
 
-Exact-head head `979e69be26b3d383e6fe7971e1797f6fbd9eea4c` passed focused security validation, repository CI, Agent Task Ownership, exact-head Linux release build and the real eight-case malformed status-parser runtime.
+Active in draft PR #462. This phase is intentionally limited to the Canary login service before successful account authentication or game-session establishment.
 
-OTS-SEC-003 does not claim authenticated login/game, XTEA, checksum/sequence, maintained-client hostile-server, packet-flood or sustained-DoS coverage.
+It adds a strict code-owned runtime plan and report contract, fixed bounded login-boundary cases, literal-loopback confinement, distinct deterministic case/control sources, a protocol-aware control oracle, deterministic evidence and a dedicated exact-head Security Validation runtime job. Manifests cannot supply arbitrary payloads, credentials, key material or network coordinates.
+
+Implementation head `8d10da7677b63685312281784c747bed117d6134` passed repository CI run 29562937900, Agent Task Ownership run 29562937739 and Security Validation run 29562937865. The exact-head Linux release build passed; the existing SEC-003 runtime regression passed; and the new six-case login-boundary runtime passed with no fatal/sanitizer findings.
+
+The green run proves only the registered login-boundary assertions and the service control check after every case. It does not claim successful account authentication, character-list correctness, game-session establishment, post-login game transport coverage, session-race/replay resistance, maintained-client hostile-server handling or flood/sustained-DoS capacity.
 
 # Ordered queue
 
 1. `DONE` — OTS-SEC-001 foundation merged in PR #433.
 2. `DONE` — OTS-SEC-002 runtime delegation adapter merged in PR #440.
-3. `ACTIVE` — OTS-SEC-003 bounded common-framing + unauthenticated `ProtocolStatus` runtime scenarios in PR #451.
-4. Add authenticated login/game parser and session scenarios, including protocol-aware checksum/sequence/XTEA boundaries, through separate bounded tasks.
-5. Add authenticated session, race, economy and transaction-abuse scenarios with disposable MariaDB state assertions.
-6. Add Redis/multichannel failure and ownership scenarios without targeting shared or production infrastructure.
-7. Add maintained-client hostile-server scenarios through an explicit cross-repository contract.
-8. Add MyAAC web/auth/session scenarios against a pinned disposable MyAAC build.
-9. Register Otheryn as a target adapter and require migrated security regressions to pass before declaring a security-sensitive migration preserved.
+3. `DONE` — OTS-SEC-003 bounded common-framing + unauthenticated `ProtocolStatus` runtime scenarios merged in PR #451; lifecycle completed in PR #459.
+4. `ACTIVE` — OTS-SEC-004 bounded login protocol boundary scenarios in PR #462.
+5. Add authenticated game-session parser and post-login transport scenarios through a separate bounded task.
+6. Add authenticated session, race, economy and transaction-abuse scenarios with disposable MariaDB state assertions.
+7. Add Redis/multichannel failure and ownership scenarios without targeting shared or production infrastructure.
+8. Add maintained-client hostile-server scenarios through an explicit cross-repository contract.
+9. Add MyAAC web/auth/session scenarios against a pinned disposable MyAAC build.
+10. Register Otheryn as a target adapter and require migrated security regressions to pass before declaring a security-sensitive migration preserved.
 
 # Safety invariants
 
 - Only repository-owner-authorized targets may be executed.
 - No arbitrary public-target discovery or scanning.
-- Runtime attack scenarios use disposable/isolated infrastructure unless an exact alternative target is explicitly authorized.
+- Runtime security scenarios use disposable/isolated infrastructure unless an exact alternative target is explicitly authorized.
 - No production credentials, database dumps, private data or secrets in manifests/reports.
 - Scenario and adapter manifests never contain arbitrary shell commands or arbitrary packet payloads.
 - Generic E2E/load lifecycle infrastructure is reused rather than forked.
-- Runtime packet corpora and source-address strategies are code-owned and reviewable.
+- Runtime probe corpora and source-address strategies are code-owned and reviewable.
 - A green static scenario, delegation proof or bounded runtime pack is evidence for that exact assertion only; it never proves complete exploit resistance.
 - Confirmed vulnerabilities become permanent regressions after the fix is merged.
 
 # Handoff
 
-Start from `AGENTS.md`, `docs/agents/CONTEXT_ROUTING.md`, this program, `docs/security/SECURITY_VALIDATION_PLATFORM.md`, the active security task and live PR. Load the Universal E2E route only when a task actually introduces or consumes runtime execution/delegation. For OTS-SEC-003 specifically, treat `tools/e2e/run_agent_load_runtime.py` as the reused lifecycle boundary and keep authenticated login/game protocol coverage in separate tasks.
+Start from `AGENTS.md`, `docs/agents/CONTEXT_ROUTING.md`, this program, `docs/security/SECURITY_VALIDATION_PLATFORM.md`, the active security task and live PR. Load the Universal E2E route only when a task actually introduces or consumes runtime execution/delegation. For OTS-SEC-004 specifically, treat `tools/e2e/run_agent_load_runtime.py` as the reused server-only lifecycle boundary and keep successful authentication plus game-session/post-login transport coverage in separate tasks.
