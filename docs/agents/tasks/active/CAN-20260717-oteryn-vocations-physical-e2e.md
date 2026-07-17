@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: test/oam-009-vocations-physical-e2e
 base_branch: main
 created: 2026-07-17T16:50:00+02:00
-updated: 2026-07-17T18:17:00+02:00
-last_verified_commit: "3b2d3d54914c32824af5a9cab53c8ec323350ec9"
+updated: 2026-07-17T18:21:00+02:00
+last_verified_commit: "24e6c6f7733990f305123b696461d800e6b1a4d7"
 risk: low
 related_issue: ""
 related_pr: "489"
@@ -64,7 +64,7 @@ The claim is intentionally bounded to successful physical login resolving vocati
 - [x] Run the existing Universal Agent E2E against exact controlled server `blakinio/Otheryn@f59a58426b4d3910ba0cdc0d2332c24f31a1db4f` and maintained OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f` after the SQL-assertion runner fix.
 - [x] Require physical login, safe logout, relog, second safe logout, existing persistence assertions, and the new bounded vocation assertion to pass.
 - [x] Record exact final workflow run, exact controlled server SHA, artifact digest and executable hashes from the accepted physical evidence.
-- [ ] Remove any temporary controlled-server pin before merge while preserving the physical evidence record.
+- [x] Remove any temporary controlled-server pin before merge while preserving the physical evidence record.
 - [ ] Require final PR head ownership/CI/review gates with zero unresolved review threads before squash merge.
 - [ ] Complete lifecycle/archive before starting OAM-010.
 
@@ -72,8 +72,8 @@ The claim is intentionally bounded to successful physical login resolving vocati
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T18:17:00+02:00
-head: 3b2d3d54914c32824af5a9cab53c8ec323350ec9
+updated_at: 2026-07-17T18:21:00+02:00
+head: 24e6c6f7733990f305123b696461d800e6b1a4d7
 branch: test/oam-009-vocations-physical-e2e
 pr: 489
 status: implementing
@@ -109,6 +109,9 @@ proven:
   - accepted physical artifact digest is sha256:f880b2fb58c53d8e53aad4cc30725a26a050c352bd5412a10c56b8a61f327f3f
   - accepted exact controlled-server executable SHA256 is 3a191e398ea22818a9e71cd3ce0fe60486e1e0592cddb379295504a77dc62925
   - accepted controlled-client executable SHA256 is 5dcaed6cdfcaecf2de4b9de80183a28fe8e0722e21b4df588cc627c558da5ee9
+  - proof-only controlled-server pin was removed before final merge gates
+  - latest non-overlapping main 8aa4d7def083c3701b9c81119ec2aa8ea26a68af was synchronized into the feature branch through PR 495 without cherry-picking
+  - synchronization commit on the OAM-009 branch is 24e6c6f7733990f305123b696461d800e6b1a4d7
 derived: []
 unknown: []
 conflicts: []
@@ -135,5 +138,5 @@ validation:
     result: PASS
     evidence: Physical login/logout/relog/logout passed on exact Otheryn f59a58426b4d3910ba0cdc0d2332c24f31a1db4f; scenario_sql_assertions=true and all three canonical SQL assertions returned 1, including vocation = 4.
 blockers: []
-next_action: Remove the temporary controlled-server pin, synchronize the feature branch with the latest non-overlapping main without cherry-picking, then require final exact-head ownership, CI, physical-E2E/reuse and review-thread gates before merging PR 489 and completing separate lifecycle/archive.
+next_action: Require final exact-head ownership, CI, physical-E2E/reuse and review-thread gates on PR 489; if clean, mark ready and squash merge, then complete the separate lifecycle/archive before any OAM-010 work.
 ```
