@@ -13,6 +13,38 @@ SCHEMA_VERSION = 1
 SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 SECRET_KEY_RE = re.compile(r"(?:password|secret|token|private[_-]?key)$", re.IGNORECASE)
 ALLOWED_SECRET_REFERENCES = {"password_env"}
+MAX_STEPS = 64
+MAX_STEP_TEXT = 512
+MAX_STEP_DELAY_MS = 120_000
+MAX_STEP_COUNT = 64
+
+DIRECTIONS = {
+    "north",
+    "east",
+    "south",
+    "west",
+    "northeast",
+    "southeast",
+    "southwest",
+    "northwest",
+}
+
+ACTION_FIELDS: dict[str, set[str]] = {
+    "wait": {"id", "action", "ms"},
+    "walk": {"id", "action", "direction", "count", "interval_ms"},
+    "talk": {"id", "action", "text"},
+    "attack_visible": {"id", "action", "creature", "timeout_ms"},
+    "use_inventory_item": {"id", "action", "item_id"},
+    "request_quest_log": {"id", "action"},
+    "request_channels": {"id", "action"},
+    "observe_online": {"id", "action", "expected"},
+    "observe_position_changed": {"id", "action"},
+    "observe_floor_delta": {"id", "action", "delta"},
+    "observe_health_percent_below": {"id", "action", "percent"},
+    "observe_inventory_count_at_least": {"id", "action", "item_id", "count", "tier"},
+    "wait_creature": {"id", "action", "creature", "present", "timeout_ms"},
+    "observe_attacking": {"id", "action", "expected"},
+}
 
 
 class ScenarioError(ValueError):
@@ -71,6 +103,51 @@ def _require_positive_int(mapping: dict[str, Any], key: str, path: str) -> int:
     return value
 
 
+def _require_bounded_positive_int(
+    mapping: dict[str, Any],
+    key: str,
+    path: str,
+    maximum: int,
+    *,
+    default: int | None = None,
+) -> int:
+    if key not in mapping and default is not None:
+        return default
+    value = _require_positive_int(mapping, key, path)
+    if value > maximum:
+        raise ScenarioError(f"{path}.{key} must be <= {maximum}")
+    return value
+
+
+def _require_bool(mapping: dict[str, Any], key: str, path: str) -> bool:
+    value = mapping.get(key)
+    if not isinstance(value, bool):
+        raise ScenarioError(f"{path}.{key} must be a boolean")
+    return value
+
+
+def _require_uint16(mapping: dict[str, Any], key: str, path: str) -> int:
+    value = _require_positive_int(mapping, key, path)
+    if value > 65535:
+        raise ScenarioError(f"{path}.{key} must be <= 65535")
+    return value
+
+
+def _reject_unknown_fields(mapping: dict[str, Any], allowed: set[str], path: str) -> None:
+    unknown = sorted(set(mapping) - allowed)
+    if unknown:
+        raise ScenarioError(f"{path} contains unknown field(s): {', '.join(unknown)}")
+
+
+def _require_safe_text(mapping: dict[str, Any], key: str, path: str) -> str:
+    value = _require_string(mapping, key, path)
+    if "\n" in value or "\r" in value or "\x00" in value:
+        raise ScenarioError(f"{path}.{key} must not contain control newlines or NUL")
+    if len(value) > MAX_STEP_TEXT:
+        raise ScenarioError(f"{path}.{key} must be <= {MAX_STEP_TEXT} characters")
+    return value
+
+
 def _walk_for_embedded_secrets(value: Any, path: str = "scenario") -> Iterable[str]:
     if isinstance(value, dict):
         for key, child in value.items():
@@ -82,6 +159,86 @@ def _walk_for_embedded_secrets(value: Any, path: str = "scenario") -> Iterable[s
     elif isinstance(value, list):
         for index, child in enumerate(value):
             yield from _walk_for_embedded_secrets(child, f"{path}[{index}]")
+
+
+def _validate_step(step: Any, index: int) -> dict[str, Any]:
+    path = f"scenario.steps[{index}]"
+    mapping = _require_mapping(step, path)
+    step_id = _require_string(mapping, "id", path)
+    if not SLUG_RE.fullmatch(step_id):
+        raise ScenarioError(f"{path}.id must match {SLUG_RE.pattern}")
+    action = _require_string(mapping, "action", path)
+    allowed = ACTION_FIELDS.get(action)
+    if allowed is None:
+        raise ScenarioError(
+            f"{path}.action unsupported: {action!r}; allowed: {', '.join(sorted(ACTION_FIELDS))}"
+        )
+    _reject_unknown_fields(mapping, allowed, path)
+
+    if action == "wait":
+        _require_bounded_positive_int(mapping, "ms", path, MAX_STEP_DELAY_MS)
+    elif action == "walk":
+        direction = _require_string(mapping, "direction", path).lower()
+        if direction not in DIRECTIONS:
+            raise ScenarioError(f"{path}.direction unsupported: {direction!r}")
+        _require_bounded_positive_int(mapping, "count", path, MAX_STEP_COUNT, default=1)
+        _require_bounded_positive_int(mapping, "interval_ms", path, 10_000, default=250)
+    elif action == "talk":
+        _require_safe_text(mapping, "text", path)
+    elif action == "attack_visible":
+        _require_safe_text(mapping, "creature", path)
+        _require_bounded_positive_int(mapping, "timeout_ms", path, MAX_STEP_DELAY_MS, default=10_000)
+    elif action == "use_inventory_item":
+        _require_uint16(mapping, "item_id", path)
+    elif action in {"request_quest_log", "request_channels", "observe_position_changed"}:
+        pass
+    elif action == "observe_online":
+        _require_bool(mapping, "expected", path)
+    elif action == "observe_floor_delta":
+        delta = mapping.get("delta")
+        if not isinstance(delta, int) or isinstance(delta, bool) or delta == 0 or abs(delta) > 15:
+            raise ScenarioError(f"{path}.delta must be a non-zero integer between -15 and 15")
+    elif action == "observe_health_percent_below":
+        percent = mapping.get("percent")
+        if not isinstance(percent, int) or isinstance(percent, bool) or not 0 <= percent <= 100:
+            raise ScenarioError(f"{path}.percent must be an integer between 0 and 100")
+    elif action == "observe_inventory_count_at_least":
+        _require_uint16(mapping, "item_id", path)
+        _require_bounded_positive_int(mapping, "count", path, 1_000_000)
+        if "tier" in mapping:
+            tier = mapping["tier"]
+            if not isinstance(tier, int) or isinstance(tier, bool) or not 0 <= tier <= 255:
+                raise ScenarioError(f"{path}.tier must be an integer between 0 and 255")
+    elif action == "wait_creature":
+        _require_safe_text(mapping, "creature", path)
+        _require_bool(mapping, "present", path)
+        _require_bounded_positive_int(mapping, "timeout_ms", path, MAX_STEP_DELAY_MS, default=10_000)
+    elif action == "observe_attacking":
+        _require_bool(mapping, "expected", path)
+
+    return mapping
+
+
+def validate_steps(data: dict[str, Any]) -> list[dict[str, Any]]:
+    raw_steps = data.get("steps")
+    if raw_steps is None:
+        return []
+    steps = _require_list(raw_steps, "scenario.steps")
+    if not steps:
+        raise ScenarioError("scenario.steps must not be empty when present")
+    if len(steps) > MAX_STEPS:
+        raise ScenarioError(f"scenario.steps must contain at most {MAX_STEPS} actions")
+
+    validated: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    for index, step in enumerate(steps):
+        mapping = _validate_step(step, index)
+        step_id = str(mapping["id"])
+        if step_id in seen_ids:
+            raise ScenarioError(f"scenario.steps contains duplicate id {step_id!r}")
+        seen_ids.add(step_id)
+        validated.append(mapping)
+    return validated
 
 
 def validate_scenario(path: Path, root: Path) -> Scenario:
@@ -158,6 +315,8 @@ def validate_scenario(path: Path, root: Path) -> Scenario:
         artifact_path = Path(artifact)
         if artifact_path.is_absolute() or ".." in artifact_path.parts:
             raise ScenarioError(f"{path}: unsafe artifact path {artifact!r}")
+
+    validate_steps(data)
 
     secret_errors = list(_walk_for_embedded_secrets(data))
     if secret_errors:
@@ -243,11 +402,58 @@ def write_github_env(path: Path, values: dict[str, str]) -> None:
             handle.write(f"{key}={value}\n")
 
 
+def _lua_string(value: str) -> str:
+    escaped = (
+        value.replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
+    )
+    return f'"{escaped}"'
+
+
+def _lua_value(value: Any) -> str:
+    if value is None:
+        return "nil"
+    if value is True:
+        return "true"
+    if value is False:
+        return "false"
+    if isinstance(value, str):
+        return _lua_string(value)
+    if isinstance(value, int):
+        return str(value)
+    raise ScenarioError(f"unsupported Lua plan value type: {type(value).__name__}")
+
+
+def render_lua_plan(scenario: Scenario) -> str:
+    steps = validate_steps(scenario.data)
+    lines = [
+        "-- Generated by tools/e2e/run_agent_e2e.py; do not edit.",
+        "return {",
+        f"  schema_version = {SCHEMA_VERSION},",
+        f"  scenario = {_lua_string(scenario.key)},",
+        "  steps = {",
+    ]
+    for step in steps:
+        fields = []
+        for key in sorted(step):
+            fields.append(f"{key} = {_lua_value(step[key])}")
+        lines.append("    { " + ", ".join(fields) + " },")
+    lines.extend(["  },", "}", ""])
+    return "\n".join(lines)
+
+
+def write_lua_plan(path: Path, scenario: Scenario) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(render_lua_plan(scenario), encoding="utf-8")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Discover and validate universal Canary agent E2E scenarios.")
     parser.add_argument("--root", type=Path, default=repository_root())
     subparsers = parser.add_subparsers(dest="command", required=True)
-
     subparsers.add_parser("list", help="List validated scenarios.")
     subparsers.add_parser("validate", help="Validate every scenario.")
 
@@ -256,6 +462,7 @@ def build_parser() -> argparse.ArgumentParser:
     resolve.add_argument("--scenario", required=True)
     resolve.add_argument("--manifest", type=Path)
     resolve.add_argument("--github-env", type=Path)
+    resolve.add_argument("--plan-lua", type=Path)
     return parser
 
 
@@ -279,6 +486,11 @@ def main(argv: list[str] | None = None) -> int:
                 args.manifest.write_text(rendered, encoding="utf-8")
             else:
                 sys.stdout.write(rendered)
+            plan_path = args.plan_lua
+            if plan_path is None and args.manifest is not None and scenario.data.get("steps") is not None:
+                plan_path = args.manifest.with_name("scenario-plan.lua")
+            if plan_path is not None:
+                write_lua_plan(plan_path, scenario)
             if args.github_env:
                 write_github_env(args.github_env, github_environment(scenario))
         else:  # pragma: no cover
