@@ -4,7 +4,7 @@
   "suite": "movement",
   "name": "Physical client bounded floor transition",
   "program_id": "CAN-PROGRAM-E2E-PLATFORM",
-  "description": "Drive the controlled real client from the physically proven Knight 1 start to a bounded non-teleport floor-transition probe selected from the exact World Index and controlled client minimap, then record the real route endpoint before pinning any floor delta. Preserve the canonical logout, persistence, and relog sentinel.",
+  "description": "Drive the controlled real client from the physically proven Knight 1 start through the bounded non-teleport floor transition proven by physical artifact evidence, require the observed -1 floor delta and exact post-transition position, and preserve the canonical logout, persistence, and relog sentinel.",
   "client": {
     "repository": "blakinio/otclient",
     "ref": "2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f",
@@ -37,7 +37,8 @@
     {"id": "route-east-3", "action": "walk", "direction": "east", "count": 2, "interval_ms": 800},
     {"id": "route-south-2", "action": "walk", "direction": "south", "count": 2, "interval_ms": 800},
     {"id": "floor-settle", "action": "wait", "ms": 1500},
-    {"id": "endpoint-position", "action": "observe_position_changed"}
+    {"id": "endpoint-position", "action": "observe_position_changed"},
+    {"id": "floor-delta", "action": "observe_floor_delta", "delta": -1}
   ],
   "assertions": {
     "required_markers": [
@@ -54,8 +55,12 @@
       "step_route-south-2=success",
       "step_floor-settle=success",
       "step_endpoint-position=success",
+      "step_endpoint-position_detail=32375,32243,6",
+      "step_floor-delta=success",
+      "step_floor-delta_detail=-1",
       "plan=success",
       "logout_request_1=safe",
+      "server_persistence_1=confirmed",
       "logout_1=complete",
       "ping_features_2=disabled",
       "login_2=success",
