@@ -78,7 +78,11 @@ head: 7a420e46607e60220eca347790f62a12e0b33c8b
 branch: docs/oam-007-item-world-runtime-revalidation
 pr: 455
 status: ready
-context_routes: [agent-governance, item-definitions, item-instances, world-map-runtime]
+context_routes:
+  - agent-governance
+  - item-definitions
+  - item-instances
+  - world-map-runtime
 owned_paths:
   - docs/agents/tasks/active/CAN-20260717-oteryn-item-world-runtime-revalidation.md
   - docs/agents/OTERYN_OAM_007_ITEM_WORLD_RUNTIME_REVALIDATION.md
