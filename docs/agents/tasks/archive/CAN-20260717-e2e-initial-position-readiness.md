@@ -2,13 +2,13 @@
 task_id: CAN-20260717-e2e-initial-position-readiness
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: OTS-E2E-POSITION-READY-001
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: fix/e2e-initial-position-readiness
 base_branch: main
 created: 2026-07-17T17:55:00+02:00
-updated: 2026-07-17T18:28:00+02:00
-last_verified_commit: "855fbb7734ecb8cdd311bf55de89af20a8de77c5"
+updated: 2026-07-17T17:42:21Z
+last_verified_commit: "250640758bec48946f31f34c85995632d194fbd0"
 risk: medium
 related_issue: ""
 related_pr: "494"
@@ -35,6 +35,7 @@ reuses:
   - existing Universal Agent E2E workflow and physical runner
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-17T17:42:21Z
 ---
 
 # Goal
@@ -50,8 +51,8 @@ Remove the proven race between `onGameStart` and availability of `g_game.getLoca
 - [x] Keep second-session relog behavior unchanged.
 - [x] Add focused regression coverage for the readiness gate.
 - [x] Keep workflow, physical runner, resolver and movement manifest unchanged.
-- [ ] Pass applicable exact-final-head Ownership, CI and Universal Agent E2E gates.
-- [ ] Squash merge before retrying the blocked movement proof PR #481.
+- [x] Pass applicable exact-final-head Ownership, CI and Universal Agent E2E gates.
+- [x] Squash merge before retrying the blocked movement proof PR #481.
 
 ## Proven blocker
 
@@ -61,11 +62,11 @@ Universal Agent E2E run `29591841409` selected `movement/physical-movement` on e
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T18:28:00+02:00
-head: 855fbb7734ecb8cdd311bf55de89af20a8de77c5
+updated_at: 2026-07-17T17:42:21Z
+head: 7e98f924d15232627d908ad1a571362e0782e7fd
 branch: fix/e2e-initial-position-readiness
 pr: 494
-status: ready
+status: completed
 context_routes:
   - universal-e2e
   - agent-governance
@@ -80,26 +81,22 @@ proven:
   - no initial_position marker and no movement step marker were emitted
   - OTClient log reports attempt to index upvalue initialPosition as nil in the onGameStart callback
   - artifact 8412192393 was uploaded from exact head f6d69453257eee842dc2d8b7daf53b5d162d2020
-  - open PR search found no competing initial-position readiness fix
   - PR 494 changes only the generic client driver, its focused regression test and this task record
   - first-session onGameStart now enters waitForInitialPositionAndStartPlan instead of dereferencing the local player synchronously
   - readiness polls at 100 ms for at most 50 checks, copies the proven position into an immutable baseline, records initial_position, then schedules the existing plan
   - readiness failure is explicit and fail-closed after the bounded wait
   - second-session safe-logout timing remains on the existing SESSION_HOLD_MS path
   - Agent Task Ownership run 29594347991 passed on 855fbb7734ecb8cdd311bf55de89af20a8de77c5
-  - CI run 29594348318 passed on the same head, including the focused readiness regression
-  - Universal Agent E2E run 29594348275 passed on the same head and preserved canonical physical login/logout/relog behavior through the new readiness gate
-  - branch is zero commits behind current main and changes exactly three expected files
-  - no submitted reviews or unresolved review threads exist
-  - ci:final-gate was applied before this final checkpoint commit
+  - CI run 29594348318 passed on the same head
+  - Universal Agent E2E run 29594348275 passed on the same head
+  - exact final feature head 7e98f924d15232627d908ad1a571362e0782e7fd passed required final-head gates before merge
+  - PR 494 squash merged as 250640758bec48946f31f34c85995632d194fbd0 at 2026-07-17T17:42:21Z
 derived:
   - g_game.getLocalPlayer() is not guaranteed to be ready synchronously at onGameStart even though login_1 has been emitted
   - the physical plan must be gated on successful position capture, otherwise movement assertions can start without a valid baseline
   - a bounded short poll in the existing driver is smaller and safer than changing the workflow, runner or scenario contract
   - copying x/y/z into a standalone baseline prevents the initial position reference from changing if the live player position object mutates during movement
-  - canonical E2E success proves the readiness gate does not regress the required two-session persistence sentinel
 unknown:
-  - exact-final-head Ownership, CI and Universal Agent E2E conclusions after this final checkpoint commit
   - exact number of readiness polls observed before the local player became available in the canonical run
   - whether the east movement succeeds after PR 494 merges and PR 481 is retried
 conflicts: []
@@ -116,12 +113,6 @@ changed_paths:
   - tests/e2e/test_agent_e2e_scenario_plan.py
   - tools/e2e/client/agent_e2e_scenario.lua
 validation:
-  - command: physical artifact inspection
-    result: FAIL
-    evidence: login_1 succeeded, initialPosition was nil in onGameStart, and no movement marker was emitted
-  - command: implementation scope audit
-    result: PASS
-    evidence: workflow, physical runner, resolver and movement scenario are unchanged
   - command: Agent Task Ownership run 29594347991
     result: PASS
     evidence: ownership and checkpoint validation passed on pre-final head 855fbb7734ecb8cdd311bf55de89af20a8de77c5
@@ -131,12 +122,16 @@ validation:
   - command: Universal Agent E2E run 29594348275
     result: PASS
     evidence: canonical physical login/logout/relog passed on the same pre-final head
-  - command: base, scope and review audit
+  - command: final merge
     result: PASS
-    evidence: zero commits behind main, exactly three expected files, no reviews and no unresolved review threads
-  - command: final-gate preparation
-    result: PASS
-    evidence: ci:final-gate applied before this checkpoint commit
+    evidence: PR 494 squash merged at 250640758bec48946f31f34c85995632d194fbd0
 blockers: []
-next_action: Make no further feature-branch changes. Require exact-final-head Ownership, CI and Universal Agent E2E success, then mark ready and squash merge PR 494; after lifecycle cleanup, synchronize PR 481 with the new main and rerun movement/physical-movement for artifact-backed position proof.
+next_action: none
 ```
+
+## Lifecycle completion
+
+- Feature PR: #494.
+- Feature head: `7e98f924d15232627d908ad1a571362e0782e7fd`.
+- Merge commit: `250640758bec48946f31f34c85995632d194fbd0`.
+- Merged at: `2026-07-17T17:42:21Z`.
