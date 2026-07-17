@@ -2,13 +2,13 @@
 task_id: CAN-20260717-e2e-scenario-plan-host-load
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: OTS-E2E-PLAN-LOAD-001
-status: implementing
+status: ready
 agent: "GPT-5.5 Thinking"
 branch: fix/e2e-scenario-plan-host-load
 base_branch: main
 created: 2026-07-17T15:42:00+02:00
-updated: 2026-07-17T15:58:00+02:00
-last_verified_commit: "5c635e5ca15b85b0854b53aa33b8d4cd8de39f50"
+updated: 2026-07-17T16:04:00+02:00
+last_verified_commit: "ddf231b96b3cac1ae0903974f80f8d9e9ae0ad4e"
 risk: medium
 related_issue: ""
 related_pr: "483"
@@ -48,7 +48,7 @@ Make the existing generic physical OTClient driver read the already-generated `s
 - [x] Fail closed with distinct read/load/runtime errors.
 - [x] Add a focused regression that prevents returning to `dofile(PLAN_PATH)` for the host artifact path.
 - [x] Keep workflow, physical runner and scenario resolver unchanged.
-- [ ] Pass focused tests and applicable exact-final-head gates.
+- [ ] Pass exact-final-head Ownership, CI and applicable Universal Agent E2E gates.
 - [ ] Squash merge before retrying the blocked movement PR.
 
 ## Proven blocker
@@ -59,11 +59,11 @@ Universal Agent E2E run `29582792694` selected `movement/physical-movement` on e
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T15:58:00+02:00
-head: 5c635e5ca15b85b0854b53aa33b8d4cd8de39f50
+updated_at: 2026-07-17T16:04:00+02:00
+head: ddf231b96b3cac1ae0903974f80f8d9e9ae0ad4e
 branch: fix/e2e-scenario-plan-host-load
 pr: 483
-status: implementing
+status: ready
 context_routes:
   - universal-e2e
   - agent-governance
@@ -80,13 +80,16 @@ proven:
   - PR 483 changes exactly the generic client driver, its focused regression test and this task record
   - driver now reads PLAN_PATH through io.open and loads the same generated plan content through the OTClient Lua runtime
   - PR patch audit shows no workflow, physical-runner or resolver changes
-  - CI run 29585803633 passed on the previous task-checkpoint head
-  - ownership run 29585800882 failed only because this checkpoint omitted the required derived field
+  - Ownership run 29585973799 passed on ddf231b96b3cac1ae0903974f80f8d9e9ae0ad4e
+  - CI run 29585977055 passed on the same head
+  - branch is zero commits behind current main and changes exactly three expected files
+  - no submitted reviews or unresolved review threads exist
+  - ci:final-gate was applied before this final checkpoint commit
 derived:
   - replacing only the host-file loading boundary is the smallest fix because plan generation and artifact publication were already proven correct
-  - successful canonical E2E on this platform PR will protect login/relog compatibility, while the blocked movement PR remains the runtime proof for non-empty scenario steps
+  - canonical E2E protects the existing login/relog sentinel, while PR 481 remains the physical runtime proof for non-empty scenario steps after this blocker merges
 unknown:
-  - exact-head Ownership, CI and physical E2E conclusions after this checkpoint repair
+  - exact-final-head Ownership, CI and Universal Agent E2E conclusions after this final checkpoint commit
   - whether movement succeeds after PR 483 is merged and PR 481 is retriggered
 conflicts: []
 first_failure:
@@ -104,12 +107,18 @@ validation:
   - command: PR changed-file and patch audit
     result: PASS
     evidence: exactly three expected paths and no workflow or runner changes
-  - command: CI run 29585803633
+  - command: CI run 29585977055
     result: PASS
-    evidence: repository CI passed before the checkpoint-only repair
-  - command: Agent Task Ownership run 29585800882
-    result: FAIL
-    evidence: checkpoint validator reported only missing field derived; implementation validation steps before it passed
+    evidence: repository CI passed on ddf231b96b3cac1ae0903974f80f8d9e9ae0ad4e
+  - command: Agent Task Ownership run 29585973799
+    result: PASS
+    evidence: active ownership and checkpoint validation passed on the same head
+  - command: base and review audit
+    result: PASS
+    evidence: zero commits behind main, no reviews, no unresolved review threads
+  - command: final-gate preparation
+    result: PASS
+    evidence: ci:final-gate applied before this checkpoint commit
 blockers: []
-next_action: Require current-head Ownership, CI and Universal Agent E2E success, then prepare exact-final-head validation and squash merge before retrying PR 481.
+next_action: Make no further feature-branch changes. Require exact-final-head Ownership, CI and Universal Agent E2E success, then mark ready and squash merge PR 483; after lifecycle cleanup, retrigger PR 481 on the new main and inspect the physical movement artifact.
 ```
