@@ -2,7 +2,7 @@
 task_id: CAN-20260717-otbm-repair-materialization-pipeline
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: validating
+status: implementing
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-repair-materialization-pipeline
 base_branch: main
