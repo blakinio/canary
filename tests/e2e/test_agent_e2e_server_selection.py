@@ -78,6 +78,37 @@ class ServerSelectionTests(unittest.TestCase):
                 link.unlink()
             outside.rmdir()
 
+    def test_symlinked_world_cannot_escape_selected_datapack(self) -> None:
+        outside = Path(self.tempdir.name).parent / f"{self.root.name}-world-outside"
+        outside.mkdir(exist_ok=True)
+        (outside / "canary.otbm").write_bytes(b"outside")
+        world = self.root / "data-canary" / "world"
+        (world / "canary.otbm").unlink()
+        world.rmdir()
+        try:
+            world.symlink_to(outside, target_is_directory=True)
+            with self.assertRaisesRegex(server_selection.ServerSelectionError, "outside"):
+                server_selection.resolve_server_selection(self.write_manifest("data-canary", "canary"), self.root)
+        finally:
+            if world.is_symlink():
+                world.unlink()
+            (outside / "canary.otbm").unlink()
+            outside.rmdir()
+
+    def test_symlinked_map_cannot_escape_selected_world(self) -> None:
+        outside = Path(self.tempdir.name).parent / f"{self.root.name}-outside-map.otbm"
+        outside.write_bytes(b"outside")
+        map_path = self.root / "data-canary" / "world" / "canary.otbm"
+        map_path.unlink()
+        try:
+            map_path.symlink_to(outside)
+            with self.assertRaisesRegex(server_selection.ServerSelectionError, "outside"):
+                server_selection.resolve_server_selection(self.write_manifest("data-canary", "canary"), self.root)
+        finally:
+            if map_path.is_symlink():
+                map_path.unlink()
+            outside.unlink()
+
     def test_environment_contains_only_resolved_server_selection(self) -> None:
         selection = server_selection.resolve_server_selection(self.write_manifest("data-canary", "canary"), self.root)
         values = server_selection.github_environment(selection)
