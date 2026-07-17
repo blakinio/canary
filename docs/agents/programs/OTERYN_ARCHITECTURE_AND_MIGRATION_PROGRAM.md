@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-17T08:49:00+02:00
-last_verified_commit: "c2e181f892ce2f094e887f1da5c6c7df207629c9"
+updated: 2026-07-17T09:01:00+02:00
+last_verified_commit: "9382d1f5320e8ee465b4e813c4b85cd028feeb9f"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -74,7 +74,7 @@ Re-verified through OAM-007 target delivery and exact controlled-server runtime 
 
 ```text
 governance/legacy repository: blakinio/canary
-latest re-fetched Canary main at OAM-007 task-start/final overlap checkpoint: c2e181f892ce2f094e887f1da5c6c7df207629c9
+latest re-fetched Canary main for OAM-007 final overlap: 9382d1f5320e8ee465b4e813c4b85cd028feeb9f
 canonical module count: 62
 TSD status: completed
 TSD migration disposition baseline outside bounded OAM decisions: REVALIDATE
@@ -313,6 +313,7 @@ AI may correlate evidence, summarize findings, suggest reproduction steps and as
 - Full heavy Universal Agent E2E #136 (`29559180590`) completed with `Required physical E2E` success for exact Otheryn `68c4f39f7b1b45f880543c258627b4ccf73dbc86` and OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`.
 - Run #136 server binary SHA-256 is `dde78689009209901ca01bcffa94b8aa35267976d1c66037b63d756aff3c8a7a`; OTClient binary SHA-256 is `ceb606775390296d2ce98c7f47e87a35ec457287123246119272e6f3eb6ad72a`; evidence digest is `sha256:3d3386341791470d78ae6e4140f4009f5191998d08ca23e8a967f91feb932a6f`.
 - The physical login/relog run is a runtime regression smoke and does not substitute for the focused magic-field behavior test.
+- Canary `main` was re-fetched through `9382d1f5320e8ee465b4e813c4b85cd028feeb9f`; intervening security-only drift has no overlap with the three OAM-007 governance paths.
 - Canary PR #455 remains the OAM-007 feature-governance boundary; its exact final-head ownership/CI/review gate and separate lifecycle archival are still required before OAM-007 is complete.
 - OAM-008 remains not started until OAM-007 lifecycle completion.
 - OAM-004 residual gaps remain explicit: player SQL commit and later KV flush are non-atomic; generic KV eviction persistence failure handling is outside OAM-004D; untouched crash/restart recovery and generic DDL reversibility remain unproven.
