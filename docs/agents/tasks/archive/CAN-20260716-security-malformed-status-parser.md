@@ -2,13 +2,13 @@
 task_id: CAN-20260716-security-malformed-status-parser
 program_id: CAN-PROGRAM-SECURITY-VALIDATION
 coordination_id: OTS-SEC-003
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/security-malformed-status-parser
 base_branch: main
 created: 2026-07-16T23:57:00+02:00
-updated: 2026-07-17T08:21:00+02:00
-last_verified_commit: "dc8a01db3554cd79de51b1ee672d02048f062ab8"
+updated: 2026-07-17T06:39:08Z
+last_verified_commit: "b5962f7ae78545f84f46201670d80c99b59b1015"
 risk: high
 related_issue: ""
 related_pr: "451"
@@ -50,6 +50,7 @@ public_interfaces:
   - ots-security-malformed-packet-report-v1
   - canary-status-parser-v1 built-in runtime driver
 cross_repo_tasks: []
+completed: 2026-07-17T06:39:08Z
 ---
 
 # Goal
@@ -161,3 +162,11 @@ validation:
 blockers: []
 next_action: Let exact-final-head workflows run on this readiness commit. Make no further commits. If CI Security Validation and Agent Task Ownership all pass on the same head and PR 451 remains mergeable with no review blockers, squash merge and complete lifecycle archival.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #451.
+- Feature head: `f1cb8a27671ee715b3d85fd3fad759cef7258421`.
+- Merge commit: `b5962f7ae78545f84f46201670d80c99b59b1015`.
+- Merged at: `2026-07-17T06:39:08Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
