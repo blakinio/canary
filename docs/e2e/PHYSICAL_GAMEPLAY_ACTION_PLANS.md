@@ -22,6 +22,14 @@ A scenario may add an optional `steps` array. When present, `tools/e2e/run_agent
 - A successful action plan proves only the declared physical assertions. It does not prove full gameplay parity.
 - The existing physical E2E lifecycle, exact-head provenance, MariaDB assertions, packet records and fatal-runtime-log checks remain authoritative.
 
+## Server runtime selection
+
+The existing `scenario.server.datapack` and `scenario.server.map` fields select the datapack directory and map basename used by the same physical server lifecycle. Both values are restricted to single repository-local path segments; traversal, nested paths and symlink escapes are rejected before Canary starts.
+
+The canonical `data-otservbr-global` / `otservbr` pair preserves the existing configured map-download fallback when its map file is absent. Any non-default selection must already exist as a non-empty `<datapack>/world/<map>.otbm` file inside the repository checkout; the scenario cannot supply a map URL, arbitrary filesystem path or external target. The selected datapack/map and runtime helper are included in physical-run provenance evidence.
+
+Server selection changes only which repository-owned datapack/map the canonical lifecycle starts. It does not create a second runner, alter the controlled OTClient contract, or make a static map fixture itself proof of gameplay correctness.
+
 ## Supported actions
 
 | Action | Required fields | Optional fields | Physical intent |

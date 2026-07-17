@@ -18,6 +18,7 @@ DISPLAY_NUMBER="${AGENT_E2E_DISPLAY:-:99}"
 CURRENT_PHASE="bootstrap"
 BACKUP_DIR=""
 CREATED_MAP=false
+CREATED_MAP_PATH=""
 CREATED_ASSET_TARGET=false
 HAD_CONFIG=false
 HAD_OTCLIENTRC=false
@@ -81,8 +82,8 @@ restore_workspace() {
     fi
   fi
 
-  if [[ "${CREATED_MAP}" == true ]]; then
-    rm -f "${REPO_ROOT}/data-otservbr-global/world/otservbr.otbm"
+  if [[ "${CREATED_MAP}" == true && -n "${CREATED_MAP_PATH}" ]]; then
+    rm -f "${CREATED_MAP_PATH}"
   fi
   if [[ "${CREATED_ASSET_TARGET}" == true && -n "${AGENT_E2E_CLIENT_VERSION:-}" ]]; then
     rm -rf "${OTCLIENT_ROOT}/data/things/${AGENT_E2E_CLIENT_VERSION}"
@@ -128,6 +129,10 @@ python3 "${REPO_ROOT}/tools/e2e/run_agent_e2e.py" resolve \
   --suite "${SUITE}" \
   --scenario "${SCENARIO}" \
   --manifest "${SCENARIO_MANIFEST}" \
+  --github-env "${SCENARIO_ENV}"
+python3 "${REPO_ROOT}/tools/e2e/server_selection.py" \
+  --manifest "${SCENARIO_MANIFEST}" \
+  --root "${REPO_ROOT}" \
   --github-env "${SCENARIO_ENV}"
 
 while IFS='=' read -r key value; do
@@ -197,10 +202,11 @@ sha256sum \
   "${CANARY_BIN}" \
   "${OTCLIENT_BIN}" \
   "${REPO_ROOT}/tools/e2e/run_agent_e2e.py" \
+  "${REPO_ROOT}/tools/e2e/server_selection.py" \
   "${REPO_ROOT}/tools/e2e/run_physical_e2e.sh" \
   "${REPO_ROOT}/tools/e2e/client/agent_e2e.lua" \
   > "${ARTIFACT_DIR}/runtime-hashes.txt"
-printf 'scenario=%s\ncanary_head=%s\notclient_repository=%s\notclient_ref=%s\nclient_version=%s\nasset_version=%s\nping_profile=%s\n' \
+printf 'scenario=%s\ncanary_head=%s\notclient_repository=%s\notclient_ref=%s\nclient_version=%s\nasset_version=%s\nping_profile=%s\nserver_datapack=%s\nserver_map=%s\n' \
   "${AGENT_E2E_SCENARIO_KEY}" \
   "${GITHUB_SHA:-local}" \
   "${AGENT_E2E_CLIENT_REPOSITORY}" \
@@ -208,6 +214,8 @@ printf 'scenario=%s\ncanary_head=%s\notclient_repository=%s\notclient_ref=%s\ncl
   "${AGENT_E2E_CLIENT_VERSION}" \
   "${ASSET_VERSION}" \
   "${AGENT_E2E_PING_PROFILE}" \
+  "${AGENT_E2E_SERVER_DATAPACK}" \
+  "${AGENT_E2E_SERVER_MAP}" \
   > "${ARTIFACT_DIR}/runtime-contract.txt"
 ldd "${CANARY_BIN}" > "${ARTIFACT_DIR}/canary-ldd.txt" 2>&1 || true
 ldd "${OTCLIENT_BIN}" > "${ARTIFACT_DIR}/otclient-ldd.txt" 2>&1 || true
@@ -234,26 +242,31 @@ mariadb -h "${DB_HOST}" -P "${DB_PORT}" -u "${DB_USER}" "${DB_NAME}" \
   > "${ARTIFACT_DIR}/database-fixture.tsv"
 
 CURRENT_PHASE="server-configuration"
-MAP_PATH="${REPO_ROOT}/data-otservbr-global/world/otservbr.otbm"
-mkdir -p "$(dirname "${MAP_PATH}")"
+MAP_PATH="${AGENT_E2E_SERVER_MAP_PATH}"
 if [[ ! -s "${MAP_PATH}" ]]; then
+  if [[ "${AGENT_E2E_SERVER_ALLOW_MAP_DOWNLOAD}" != "true" ]]; then
+    echo "selected non-default map is missing or empty: ${MAP_PATH}" >&2
+    exit 1
+  fi
+  mkdir -p "$(dirname "${MAP_PATH}")"
   MAP_URL="$(grep -E '^mapDownloadUrl[[:space:]]*=' "${REPO_ROOT}/config.lua.dist" | sed -E 's/.*"([^"]+)".*/\1/')"
   test -n "${MAP_URL}"
   curl --fail --location --retry 5 --retry-delay 5 "${MAP_URL}" --output "${MAP_PATH}"
   CREATED_MAP=true
+  CREATED_MAP_PATH="${MAP_PATH}"
 fi
 sha256sum "${MAP_PATH}" > "${ARTIFACT_DIR}/map.sha256"
 
-python3 - "${REPO_ROOT}/config.lua.dist" "${REPO_ROOT}/config.lua" "${DB_HOST}" "${DB_USER}" "${DB_PASSWORD}" "${DB_NAME}" "${DB_PORT}" <<'PY'
+python3 - "${REPO_ROOT}/config.lua.dist" "${REPO_ROOT}/config.lua" "${DB_HOST}" "${DB_USER}" "${DB_PASSWORD}" "${DB_NAME}" "${DB_PORT}" "${AGENT_E2E_SERVER_DATAPACK}" "${AGENT_E2E_SERVER_MAP}" <<'PY'
 import re
 import sys
 from pathlib import Path
 
-source, target, db_host, db_user, db_password, db_name, db_port = sys.argv[1:]
+source, target, db_host, db_user, db_password, db_name, db_port, server_datapack, server_map = sys.argv[1:]
 config = Path(source).read_text(encoding="utf-8")
 values = {
-    "dataPackDirectory": '"data-otservbr-global"',
-    "mapName": '"otservbr"',
+    "dataPackDirectory": repr(server_datapack).replace("'", '"'),
+    "mapName": repr(server_map).replace("'", '"'),
     "mapDownloadUrl": '""',
     "toggleDownloadMap": "false",
     "toggleMapCustom": "false",
