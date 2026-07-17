@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: fix/e2e-initial-position-readiness
 base_branch: main
 created: 2026-07-17T17:55:00+02:00
-updated: 2026-07-17T17:55:00+02:00
-last_verified_commit: "07cbcfd92ceaeb5b22edb0eee7c586f3aa6f4854"
+updated: 2026-07-17T18:02:00+02:00
+last_verified_commit: "10b19021682b131f430039d1f3bee1099de2d2b0"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "494"
 depends_on:
   - CAN-20260717-e2e-scenario-plan-host-load
 blocks:
@@ -44,12 +44,12 @@ Remove the proven race between `onGameStart` and availability of `g_game.getLoca
 # Acceptance criteria
 
 - [x] Preserve the existing login/relog lifecycle and scenario-plan contract.
-- [ ] First-session plan execution waits for a real local player and position instead of assuming they exist synchronously inside `onGameStart`.
-- [ ] Record `initial_position` exactly once before `runNextStep()` can execute.
-- [ ] Bound the readiness wait and fail closed if the local player position never becomes available.
-- [ ] Keep second-session relog behavior unchanged.
-- [ ] Add focused regression coverage for the readiness gate.
-- [ ] Keep workflow, physical runner, resolver and movement manifest unchanged.
+- [x] First-session plan execution waits for a real local player and position instead of assuming they exist synchronously inside `onGameStart`.
+- [x] Record `initial_position` exactly once before `runNextStep()` can execute.
+- [x] Bound the readiness wait and fail closed if the local player position never becomes available.
+- [x] Keep second-session relog behavior unchanged.
+- [x] Add focused regression coverage for the readiness gate.
+- [x] Keep workflow, physical runner, resolver and movement manifest unchanged.
 - [ ] Pass applicable exact-final-head Ownership, CI and Universal Agent E2E gates.
 - [ ] Squash merge before retrying the blocked movement proof PR #481.
 
@@ -61,10 +61,10 @@ Universal Agent E2E run `29591841409` selected `movement/physical-movement` on e
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T17:55:00+02:00
-head: 07cbcfd92ceaeb5b22edb0eee7c586f3aa6f4854
+updated_at: 2026-07-17T18:02:00+02:00
+head: 10b19021682b131f430039d1f3bee1099de2d2b0
 branch: fix/e2e-initial-position-readiness
-pr: null
+pr: 494
 status: implementing
 context_routes:
   - universal-e2e
@@ -81,13 +81,20 @@ proven:
   - OTClient log reports attempt to index upvalue initialPosition as nil in the onGameStart callback
   - artifact 8412192393 was uploaded from exact head f6d69453257eee842dc2d8b7daf53b5d162d2020
   - open PR search found no competing initial-position readiness fix
+  - PR 494 changes only the generic client driver, its focused regression test and this task record
+  - first-session onGameStart now enters waitForInitialPositionAndStartPlan instead of dereferencing the local player synchronously
+  - readiness polls at 100 ms for at most 50 checks, copies the proven position into an immutable baseline, records initial_position, then schedules the existing plan
+  - readiness failure is explicit and fail-closed after the bounded wait
+  - second-session safe-logout timing remains on the existing SESSION_HOLD_MS path
 derived:
   - g_game.getLocalPlayer() is not guaranteed to be ready synchronously at onGameStart even though login_1 has been emitted
   - the physical plan must be gated on successful position capture, otherwise movement assertions can start without a valid baseline
   - a bounded short poll in the existing driver is smaller and safer than changing the workflow, runner or scenario contract
+  - copying x/y/z into a standalone baseline prevents the initial position reference from changing if the live player position object mutates during movement
 unknown:
+  - exact-head Ownership, CI and Universal Agent E2E conclusions for PR 494
   - how many readiness polls are needed on a typical runner before the local player becomes available
-  - whether the east movement succeeds after the readiness race is repaired
+  - whether the east movement succeeds after PR 494 merges and PR 481 is retried
 conflicts: []
 first_failure:
   marker: initial-position-readiness
@@ -99,10 +106,15 @@ rejected_hypotheses:
   - creating another workflow or physical runner
 changed_paths:
   - docs/agents/tasks/active/CAN-20260717-e2e-initial-position-readiness.md
+  - tests/e2e/test_agent_e2e_scenario_plan.py
+  - tools/e2e/client/agent_e2e_scenario.lua
 validation:
   - command: physical artifact inspection
     result: FAIL
     evidence: login_1 succeeded, initialPosition was nil in onGameStart, and no movement marker was emitted
+  - command: implementation scope audit
+    result: PASS
+    evidence: workflow, physical runner, resolver and movement scenario are unchanged
 blockers: []
-next_action: Add a bounded local-player position readiness gate in the existing generic driver, add focused regression coverage, open a draft PR, and require exact-head validation before merging and retrying PR 481.
+next_action: Require current-head Ownership, CI and Universal Agent E2E success for PR 494, then synchronize with main, apply ci:final-gate before the final checkpoint commit, make no post-green implementation changes, and squash merge before retrying PR 481.
 ```
