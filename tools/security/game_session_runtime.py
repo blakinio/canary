@@ -21,8 +21,9 @@ REPORT_SCHEMA = "ots-security-game-session-report-v1"
 DRIVER_ID = "canary-game-session-v1"
 SERVICE_ID = "game"
 CURRENT_CLIENT_VERSION = 1525
-CURRENT_CLIENT_VERSION_STRING = "15.25.794c2e"
+CURRENT_CLIENT_VERSION_STRING = "1525"
 CLIENT_OS_WINDOWS = 2
+CLIENT_PENDING_GAME_OPCODE = 0x0A
 RSA_BLOCK_SIZE = 128
 RSA_PUBLIC_EXPONENT = 65537
 RSA_PUBLIC_MODULUS = int(
@@ -257,20 +258,31 @@ def build_game_login_packet(
     character_name: str,
     challenge: GameChallenge,
 ) -> bytes:
+    """Build the current OTClient-compatible first game packet.
+
+    The first game message is intentionally different from post-login transport:
+    it is sent before XTEA and before sequenced packets are enabled. Current
+    clients prepend a modern padding byte, include ClientPendingGame before the
+    OS/version fields, protect that padded plaintext with Adler32, and encode the
+    outer size as an 8-byte block count. Connection then skips checksum, padding
+    and ClientPendingGame before ProtocolGame::onRecvFirstMessage reads the OS.
+    """
     rsa_block = _raw_rsa_encrypt(
         _rsa_game_plaintext(account_descriptor, password, character_name, challenge)
     )
-    payload = bytearray()
-    payload.extend(_u16(CLIENT_OS_WINDOWS))
-    payload.extend(_u16(CURRENT_CLIENT_VERSION))
-    payload.extend(_u32(CURRENT_CLIENT_VERSION))
-    payload.extend(_add_string(CURRENT_CLIENT_VERSION_STRING))
-    payload.extend(_add_string(""))
-    payload.append(0)
-    payload.extend(rsa_block)
-    padding = (-len(payload)) % 8
-    payload.extend(b"\x00" * padding)
-    return _u16(len(payload) // 8) + _u32(1) + bytes(payload)
+    message = bytearray([CLIENT_PENDING_GAME_OPCODE])
+    message.extend(_u16(CLIENT_OS_WINDOWS))
+    message.extend(_u16(CURRENT_CLIENT_VERSION))
+    message.extend(_u32(CURRENT_CLIENT_VERSION))
+    message.extend(_add_string(CURRENT_CLIENT_VERSION_STRING))
+    message.extend(_add_string(""))
+    message.append(0)
+    message.extend(rsa_block)
+
+    padding_size = 8 - (len(message) % 8) - 1
+    padded_message = bytes([padding_size]) + bytes(message) + (b"\x00" * padding_size)
+    checksum = zlib.adler32(padded_message) & 0xFFFFFFFF
+    return _u16(len(padded_message) // 8) + _u32(checksum) + padded_message
 
 
 def build_client_game_frame(
