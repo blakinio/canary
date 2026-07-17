@@ -86,6 +86,7 @@ proven:
   - proof-only server pin is absent from final scope
   - latest inspected Canary main is 2edc59f59c417f82efb0547f3ff87b426f8bbe5a
   - PR 489 was reconstructed directly on that main with exactly four durable OAM-009 paths
+derived: []
 unknown:
   - final synchronized feature head gate results
   - feature merge SHA
