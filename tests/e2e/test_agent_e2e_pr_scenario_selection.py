@@ -2,19 +2,29 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
-MODULE_PATH = Path(__file__).resolve().parents[2] / "tools" / "e2e" / "pr_scenario_selection.py"
+ROOT = Path(__file__).resolve().parents[2]
+MODULE_PATH = ROOT / "tools" / "e2e" / "pr_scenario_selection.py"
 SPEC = importlib.util.spec_from_file_location("pr_scenario_selection", MODULE_PATH)
 assert SPEC and SPEC.loader
 pr_scenario_selection = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = pr_scenario_selection
 SPEC.loader.exec_module(pr_scenario_selection)
+
+RUNNER_PATH = ROOT / "tools" / "e2e" / "run_agent_e2e.py"
+RUNNER_SPEC = importlib.util.spec_from_file_location("run_agent_e2e_pr_selection_test", RUNNER_PATH)
+assert RUNNER_SPEC and RUNNER_SPEC.loader
+run_agent_e2e = importlib.util.module_from_spec(RUNNER_SPEC)
+sys.modules[RUNNER_SPEC.name] = run_agent_e2e
+RUNNER_SPEC.loader.exec_module(run_agent_e2e)
 
 
 class PullRequestScenarioSelectionTests(unittest.TestCase):
@@ -45,6 +55,20 @@ class PullRequestScenarioSelectionTests(unittest.TestCase):
         }
         values.update(overrides)
         return pr_scenario_selection.select_from_changed_paths(**values)
+
+    def init_git_pair(self) -> tuple[str, str]:
+        subprocess.run(["git", "init", "-q", str(self.root)], check=True)
+        subprocess.run(["git", "-C", str(self.root), "config", "user.email", "e2e@example.invalid"], check=True)
+        subprocess.run(["git", "-C", str(self.root), "config", "user.name", "E2E Test"], check=True)
+        subprocess.run(["git", "-C", str(self.root), "add", "."], check=True)
+        subprocess.run(["git", "-C", str(self.root), "commit", "-qm", "base"], check=True)
+        base = subprocess.check_output(["git", "-C", str(self.root), "rev-parse", "HEAD"], text=True).strip()
+
+        self.write_manifest("movement", "physical-movement.json", "physical-movement")
+        subprocess.run(["git", "-C", str(self.root), "add", "."], check=True)
+        subprocess.run(["git", "-C", str(self.root), "commit", "-qm", "head"], check=True)
+        head = subprocess.check_output(["git", "-C", str(self.root), "rev-parse", "HEAD"], text=True).strip()
+        return base, head
 
     def test_selects_exactly_one_existing_changed_manifest_and_declared_id(self) -> None:
         self.write_manifest("movement", "physical-movement.json", "physical-movement")
@@ -116,18 +140,7 @@ class PullRequestScenarioSelectionTests(unittest.TestCase):
             self.select(["tests/e2e/scenarios/movement/bad-id.json"])
 
     def test_git_changed_paths_uses_exact_base_and_head(self) -> None:
-        subprocess.run(["git", "init", "-q", str(self.root)], check=True)
-        subprocess.run(["git", "-C", str(self.root), "config", "user.email", "e2e@example.invalid"], check=True)
-        subprocess.run(["git", "-C", str(self.root), "config", "user.name", "E2E Test"], check=True)
-        subprocess.run(["git", "-C", str(self.root), "add", "."], check=True)
-        subprocess.run(["git", "-C", str(self.root), "commit", "-qm", "base"], check=True)
-        base = subprocess.check_output(["git", "-C", str(self.root), "rev-parse", "HEAD"], text=True).strip()
-
-        self.write_manifest("movement", "physical-movement.json", "physical-movement")
-        subprocess.run(["git", "-C", str(self.root), "add", "."], check=True)
-        subprocess.run(["git", "-C", str(self.root), "commit", "-qm", "head"], check=True)
-        head = subprocess.check_output(["git", "-C", str(self.root), "rev-parse", "HEAD"], text=True).strip()
-
+        base, head = self.init_git_pair()
         changed = pr_scenario_selection.git_changed_paths(self.root, base, head)
         self.assertEqual(changed, ["tests/e2e/scenarios/movement/physical-movement.json"])
         selection = pr_scenario_selection.select_for_event(
@@ -141,6 +154,73 @@ class PullRequestScenarioSelectionTests(unittest.TestCase):
             repo_root=self.root,
         )
         self.assertEqual((selection.suite, selection.scenario), ("movement", "physical-movement"))
+
+    def test_compare_api_fallback_is_used_when_shallow_git_cannot_prove_delta(self) -> None:
+        self.write_manifest("movement", "physical-movement.json", "physical-movement")
+        base = "a" * 40
+        head = "b" * 40
+        with mock.patch.object(
+            pr_scenario_selection,
+            "git_changed_paths",
+            side_effect=pr_scenario_selection.SelectionError("shallow clone"),
+        ), mock.patch.object(
+            pr_scenario_selection,
+            "github_compare_changed_paths",
+            return_value=["tests/e2e/scenarios/movement/physical-movement.json"],
+        ) as compare:
+            selection = pr_scenario_selection.select_for_event(
+                event_name="pull_request",
+                current_repository="blakinio/canary",
+                pr_head_repository="blakinio/canary",
+                requested_suite="login",
+                requested_scenario="relog",
+                base_sha=base,
+                head_sha=head,
+                repo_root=self.root,
+                api_repository="blakinio/canary",
+            )
+        compare.assert_called_once()
+        self.assertEqual((selection.suite, selection.scenario), ("movement", "physical-movement"))
+
+    def test_runner_replaces_only_canonical_same_repo_pr_fallback(self) -> None:
+        base, head = self.init_git_pair()
+        event_path = self.root / "event.json"
+        event_path.write_text(
+            json.dumps(
+                {
+                    "repository": {"full_name": "blakinio/canary"},
+                    "pull_request": {
+                        "base": {"sha": base},
+                        "head": {"sha": head, "repo": {"full_name": "blakinio/canary"}},
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+        with mock.patch.dict(
+            os.environ,
+            {
+                "GITHUB_EVENT_NAME": "pull_request",
+                "GITHUB_EVENT_PATH": str(event_path),
+                "GITHUB_REPOSITORY": "blakinio/canary",
+            },
+            clear=False,
+        ):
+            selected = run_agent_e2e._resolve_pr_fallback_selection(self.root, "login", "relog")
+        self.assertEqual(selected, ("movement", "physical-movement"))
+
+    def test_runner_preserves_explicit_noncanonical_selection_without_pr_inspection(self) -> None:
+        with mock.patch.dict(
+            os.environ,
+            {"GITHUB_EVENT_NAME": "pull_request"},
+            clear=False,
+        ):
+            selected = run_agent_e2e._resolve_pr_fallback_selection(
+                self.root,
+                "movement",
+                "physical-movement",
+            )
+        self.assertEqual(selected, ("movement", "physical-movement"))
 
     def test_invalid_exact_sha_fails_closed(self) -> None:
         with self.assertRaisesRegex(pr_scenario_selection.SelectionError, "exact lowercase 40-character SHAs"):
