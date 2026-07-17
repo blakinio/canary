@@ -41,14 +41,15 @@
     "ok": {"const": true},
     "mode": {"enum": ["fixed-width-attribute", "tile-area"]},
     "source": {
-      "allOf": [
-        {"$ref": "#/$defs/filePin"},
-        {
-          "type": "object",
-          "required": ["unchanged"],
-          "properties": {"unchanged": {"const": true}}
-        }
-      ]
+      "type": "object",
+      "required": ["fileName", "size", "sha256", "unchanged"],
+      "properties": {
+        "fileName": {"type": "string", "minLength": 1},
+        "size": {"type": "integer", "minimum": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "unchanged": {"const": true}
+      },
+      "additionalProperties": false
     },
     "output": {
       "type": "object",
