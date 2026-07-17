@@ -7,7 +7,7 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-repair-materialization-pipeline
 base_branch: main
 created: 2026-07-17T08:15:22+02:00
-updated: 2026-07-17T08:16:03+02:00
+updated: 2026-07-17T08:36:00+02:00
 last_verified_commit: "c2e181f892ce2f094e887f1da5c6c7df207629c9"
 risk: high
 related_issue: ""
@@ -65,29 +65,31 @@ cross_repo_tasks: []
 
 # Goal
 
-Add the smallest reusable fail-closed orchestration boundary that composes the already-merged OTBM repair/materialization tools into one create-new artifact workflow without introducing another OTBM parser, writer, World Index, Semantic Diff, script resolver, renderer, E2E orchestrator or deployment system.
+Add the smallest reusable fail-closed orchestration boundary that composes the already-merged OTBM repair/materialization tools into one create-new finalization workflow without introducing another OTBM parser, writer, World Index, Semantic Diff, script resolver, renderer, E2E orchestrator or deployment system.
 
 # Lean reuse decision
 
 - Reuse unchanged: real-map repair preflight, Phase 8 bounded patcher, repair sandbox verifier, donor/region merge planner, complete TILE_AREA materializer, Map Quality Gate, canonical World Index and Semantic Diff.
-- Missing boundary: one deterministic controller that selects exactly one existing mutation path, pins every explicit input/plan/approval, invokes only the matching existing mutation/verification contract, requires an explicit post-write Map Quality report for the exact produced output map, proves the original source remains unchanged, and publishes a machine-readable pipeline result.
-- Configuration alone is insufficient because the existing CLIs intentionally remain separate: no current contract binds mutation-mode exclusivity, exact input pins, produced-output identity, post-write quality-gate identity and final create-new artifact evidence into one fail-closed result.
-- No new writer or approval semantics are introduced. Therefore no new ADR is planned unless implementation discovery proves a genuinely new safety/approval boundary is unavoidable.
+- Missing boundary: one deterministic controller that selects exactly one existing mutation path, pins every explicit direct file input, invokes only the matching existing mutation/verification contract into an internal candidate, reruns the existing Map Quality Gate over explicit compatible component reports, proves exact candidate/output identity and source immutability, then publishes a create-new final artifact.
+- Configuration alone is insufficient because the existing CLIs intentionally remain separate: no current contract binds mutation-mode exclusivity, exact input pins, reviewed mutation evidence, post-write quality source identity and final create-new publication into one fail-closed result.
+- Map Quality component reports remain explicit inputs because Reachability origins/routes/transitions cannot be invented by orchestration. They are expected to come from a previously reviewed deterministic candidate; finalization replays the exact mutation and requires the newly produced candidate SHA-256 to match those reports.
+- No new writer or approval semantics are introduced. The Phase 8 reviewed plan remains the attribute authorization boundary; TILE_AREA mode retains the separate existing approval contract. No new ADR is required.
 
 # Acceptance criteria
 
-- [ ] Accept explicit source inputs only; no implicit production map or asset discovery.
-- [ ] Support exactly two mutation modes: reviewed Phase 8 fixed-width attribute repair through the existing repair sandbox, or approved zero-translation complete-TILE_AREA materialization through the existing materializer.
-- [ ] Require the existing reviewed Phase 8 plan for attribute mode and the existing region plan plus separate area-materialization approval for TILE_AREA mode.
-- [ ] SHA-256 pin every supplied file input, plan, approval and post-write evidence input used by the orchestration result.
-- [ ] Reject mode ambiguity, symlinks, path escape, output/source collision and overwrite of an existing final artifact/result.
-- [ ] Never mutate a source map in place and prove source SHA-256/size/stat identity unchanged before final publication.
-- [ ] Reuse existing mutation/post-write proof rather than duplicating Phase 8 or materializer reparse/World Index/Semantic Diff logic.
-- [ ] Require an explicit existing `canary-otbm-map-quality-v1` report whose source-map SHA-256 exactly matches the produced output map; preserve error/warning/unresolved/info and fail closed when configured policy is not satisfied.
-- [ ] Preserve unresolved/conflicting runtime evidence; never promote it to handled.
-- [ ] Publish deterministic `canary-otbm-repair-materialization-pipeline-v1` evidence with exact source/output hashes, mutation result pins, quality-report pin and explicit non-claims for gameplay correctness/physical E2E.
-- [ ] Keep generated maps, `.widx`, assets, reports and renders outside Git.
-- [ ] Add focused synthetic/integration tests without private/user maps or client assets.
+- [x] Accept explicit source inputs only; no implicit production map or asset discovery.
+- [x] Support exactly two mutation modes: reviewed Phase 8 fixed-width attribute repair through the existing repair sandbox, or approved zero-translation complete-TILE_AREA materialization through the existing materializer.
+- [x] Require the existing reviewed Phase 8 plan for attribute mode and the existing region plan plus separate area-materialization approval for TILE_AREA mode.
+- [x] SHA-256 pin every supplied direct file input, plan, approval and quality-component report used by finalization.
+- [x] Reject mode ambiguity, symlinks, path escape and overwrite of existing final/evidence destinations.
+- [x] Never mutate a source map in place and prove source SHA-256/size/stat identity unchanged before final publication.
+- [x] Reuse existing mutation/post-write proof rather than duplicating Phase 8 or materializer reparse/World Index/Semantic Diff logic.
+- [x] Rebuild the existing `canary-otbm-map-quality-v1` gate from explicit Geometry, Reachability and Script Resolution reports; require their common source SHA-256 to equal the newly materialized candidate; preserve error/warning/unresolved/info separately.
+- [x] Fail closed on quality errors; optionally fail on warnings or unresolved evidence; never promote unresolved evidence to handled.
+- [x] Publish deterministic `canary-otbm-repair-materialization-pipeline-v1` evidence with exact source/output hashes, direct input pins, mutation result pin, quality-report pin and explicit non-claims for gameplay correctness/physical E2E.
+- [x] Publish the final map only after mutation verification and Map Quality success, as a byte-identical create-new copy of the internal verified candidate.
+- [x] Keep generated maps, `.widx`, assets, reports and renders outside Git.
+- [x] Add focused fail-closed tests plus a real synthetic TILE_AREA integration round trip without private/user maps or client assets.
 - [ ] Update catalogue/changelog narrowly after resolving current shared-path overlap with PR #451.
 - [ ] Pass the repository exact-final-head gate before squash merge; archive lifecycle in a separate PR.
 
@@ -96,22 +98,29 @@ Add the smallest reusable fail-closed orchestration boundary that composes the a
 - Writable repository is exactly `blakinio/canary`; all `opentibiabr/*` repositories are read-only.
 - Task-start `main` is `c2e181f892ce2f094e887f1da5c6c7df207629c9`.
 - No open OTBM-specific PR was found by live PR search at task start.
-- Open PRs #451, #453 and #455 are unrelated. PR #451 currently also touches shared `MODULE_CATALOG.md` and `CHANGELOG.md`; exclusive implementation paths do not overlap.
+- Open PRs #451, #453 and #455 were unrelated at task start. PR #451 also touched shared `MODULE_CATALOG.md` and `CHANGELOG.md`; exclusive implementation paths do not overlap.
 - Existing writer boundaries remain closed: fixed-width existing attributes only for Phase 8 and complete same-coordinate zero-translation TILE_AREA replacement/insertion/deletion only for the area materializer.
 - Physical-client E2E is deferred from this slice and must reuse the existing Universal OTS E2E platform when deterministic feature-owned runtime scenarios exist.
+
+# CI repair note
+
+- Head `5900bae465719f81a5afb61944dc26681b8513d3` passed repository CI, OTBM Map Tools and AI Agent Tools.
+- Agent Task Ownership failed only because the checkpoint used unsupported `status: active`; the validator accepts `blocked`, `implementing`, `investigating`, `ready`, or `validating`.
+- This checkpoint corrects that metadata defect to `implementing`; no implementation change is attributed to the ownership repair.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T08:16:03+02:00
-head: 6020033f0b48d3b114ece29fd8f90882a6cdf1d5
+updated_at: 2026-07-17T08:36:00+02:00
+head: 78b22088e15a022a5f063f7c7f3ec182ff6cc271
 branch: feat/otbm-repair-materialization-pipeline
 pr: 456
-status: active
+status: implementing
 context_routes:
   - agent-governance
   - otbm
+  - ci-repair
 owned_paths:
   - tools/ai-agent/otbm_repair_materialization_pipeline.py
   - tools/ai-agent/otbm_repair_materialization_pipeline_tool.py
@@ -122,31 +131,49 @@ owned_paths:
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
 proven:
-  - current main is c2e181f892ce2f094e887f1da5c6c7df207629c9
-  - no open OTBM-specific PR was found at task start
-  - existing Phase 8 and TILE_AREA writer boundaries are sufficient and must remain unchanged
-  - existing sandbox and materializer already own mutation confinement reparse World Index and Semantic Diff proof
-  - existing Map Quality Gate requires exact same-map SHA identity and preserves unresolved evidence
-  - missing reusable boundary is orchestration and evidence binding only
-  - PR 451 overlap is limited to shared catalogue/changelog paths and must be resolved before editing those shared files
+  - current task-start main is c2e181f892ce2f094e887f1da5c6c7df207629c9
+  - no open OTBM-specific PR existed at task start
+  - existing Phase 8 and TILE_AREA writer boundaries are reused unchanged
+  - existing sandbox and materializer own mutation confinement reparse World Index and Semantic Diff proof
+  - existing Map Quality Gate is reused directly and retains exact same-map SHA identity plus unresolved evidence
+  - final publication occurs only after mutation verification and quality success
+  - explicit quality component reports bind deterministic reviewed-candidate evidence to the replayed finalization candidate hash
+  - no new approval contract or ADR is introduced
+  - synthetic TILE_AREA integration coverage reuses native scanner World Index planner and materializer
+  - repository CI OTBM Map Tools and AI Agent Tools passed on 5900bae465719f81a5afb61944dc26681b8513d3
+  - ownership failure on 5900bae465719f81a5afb61944dc26681b8513d3 is metadata-only unsupported checkpoint status
+  - PR 451 overlap is limited to shared catalogue/changelog paths and must be rechecked before editing those shared files
 derived:
-  - one mode-exclusive orchestration result can compose existing contracts without a new structural writer ADR
+  - deterministic mutation replay plus exact quality-source hash binding closes the orchestration boundary without inventing reachability policy
 unknown:
-  - exact minimal live callable surface for area materializer and map-quality CLI until source inspection completes
+  - current-head validation after checkpoint metadata repair and documentation/schema commits
+  - whether PR 451 shared-path ownership is still active
 conflicts: []
 first_failure:
-  marker: none
-  evidence: no implementation attempted yet
+  marker: checkpoint status
+  evidence: Agent Task Ownership run 29560033886 rejected unsupported checkpoint status active; implementation workflows passed
 rejected_hypotheses:
-  - another OTBM parser
-  - another World Index or Semantic Diff
-  - another script resolver or renderer
-  - another full-map writer
+  - another OTBM parser World Index Semantic Diff script resolver renderer or full-map writer
   - broadening Phase 8 or TILE_AREA materializer writer boundaries
   - inventing reachability origins routes transitions coordinates or gameplay evidence
+  - introducing a second approval format
+  - publishing the final map before quality verification
 changed_paths:
   - docs/agents/tasks/active/CAN-20260717-otbm-repair-materialization-pipeline.md
-validation: []
+  - docs/ai-agent/OTBM_REPAIR_MATERIALIZATION_PIPELINE.md
+  - docs/ai-agent/OTBM_REPAIR_MATERIALIZATION_PIPELINE.schema.json
+  - tools/ai-agent/otbm_repair_materialization_pipeline.py
+  - tools/ai-agent/otbm_repair_materialization_pipeline_tool.py
+  - tools/ai-agent/test_otbm_repair_materialization_pipeline.py
+validation:
+  - command: GitHub Actions CI run 29560034004 on head 5900bae465719f81a5afb61944dc26681b8513d3
+    result: PASS
+  - command: GitHub Actions OTBM Map Tools run 29560033822 on head 5900bae465719f81a5afb61944dc26681b8513d3
+    result: PASS
+  - command: GitHub Actions AI Agent Tools run 29560033854 on head 5900bae465719f81a5afb61944dc26681b8513d3
+    result: PASS
+  - command: GitHub Actions Agent Task Ownership run 29560033886 on head 5900bae465719f81a5afb61944dc26681b8513d3
+    result: FAIL metadata-only; unsupported checkpoint status active
 blockers: []
-next_action: Inspect the exact callable APIs of the existing sandbox, area materializer and map-quality gate, then implement the smallest composition layer on new paths only.
+next_action: Verify current-head ownership and implementation workflows, inspect any concrete failures, then recheck PR 451 shared-path ownership before narrow catalogue/changelog integration.
 ```
