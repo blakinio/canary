@@ -436,9 +436,22 @@ function runNextStep()
 end
 
 local function loadPlan()
-	local ok, loaded = pcall(dofile, PLAN_PATH)
+	local file, openError = io.open(PLAN_PATH, "r")
+	if not file then
+		fail("failed to open scenario plan: " .. tostring(openError))
+		return false
+	end
+	local source = file:read("*a") or ""
+	file:close()
+
+	local chunk, compileError = load(source, "@" .. PLAN_PATH)
+	if not chunk then
+		fail("failed to compile scenario plan: " .. tostring(compileError))
+		return false
+	end
+	local ok, loaded = pcall(chunk)
 	if not ok then
-		fail("failed to load scenario plan: " .. tostring(loaded))
+		fail("failed to execute scenario plan: " .. tostring(loaded))
 		return false
 	end
 	if type(loaded) ~= "table" or loaded.schema_version ~= 1 or type(loaded.steps) ~= "table" then
