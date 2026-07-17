@@ -2,13 +2,13 @@
 task_id: CAN-20260717-e2e-pr-scenario-selection
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: OTS-E2E-PR-SCENARIO-SELECTION-001
-status: validating
+status: implementing
 agent: "GPT-5.5 Thinking"
 branch: feat/e2e-pr-scenario-selection
 base_branch: main
 created: 2026-07-17T13:15:00+02:00
-updated: 2026-07-17T13:48:00+02:00
-last_verified_commit: "6ab0252424aa48580dda13c4f6bb4b4d5a97f918"
+updated: 2026-07-17T13:55:00+02:00
+last_verified_commit: "0ce740075699a2bc7cf007a847e5567b33284467"
 risk: medium
 related_issue: ""
 related_pr: "477"
@@ -43,33 +43,28 @@ cross_repo_tasks: []
 
 # Goal
 
-Let a same-repository pull request changing exactly one existing E2E scenario manifest select that scenario through the existing Universal Agent E2E resolver. Preserve explicit workflow-dispatch inputs and canonical `login/relog` fallback. No second workflow or runner.
+Select exactly one changed existing E2E scenario for same-repository pull requests through the existing Universal Agent E2E resolver, preserving explicit dispatch inputs and canonical `login/relog` fallback.
 
 # Acceptance criteria
 
-- [x] Deterministic Python 3.12 standard-library selector.
-- [x] Same-repo PR with exactly one existing changed scenario selects its suite and declared scenario ID.
-- [x] Zero, multiple, deleted-only or fork-PR candidates fall back to `login/relog`.
-- [x] Explicit workflow-dispatch suite/scenario inputs remain unchanged.
-- [x] Existing `run_agent_e2e.py resolve` remains the validation boundary and integrates the selector only for the canonical PR fallback pair.
-- [x] Focused selector tests cover success, shallow-checkout API fallback and fail-closed/fallback cases.
-- [x] Existing Universal Agent E2E workflow and physical runner remain unchanged.
-- [x] Durable E2E interface documentation is updated in `docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md`; full-file writes to shared catalogue/changelog were rejected by the repository write guard and were not forced or bypassed. The existing Universal E2E module catalogue entry remains present on `main`.
-- [ ] Exact-final-head ownership, CI and Universal Agent E2E pass before squash merge.
-
-# Proven blocker
-
-PR #457 owns only its movement scenario and cannot modify shared E2E platform paths. PR-triggered Universal Agent E2E passes canonical `login/relog` to the resolver; the current connector exposes no workflow-dispatch mutation. The E2E program requires a separate platform task for a reusable common-interface change. The workflow itself remains read-only after the repository write guard rejected that shared-workflow mutation; the stable resolver is the narrower approved integration point.
+- [x] Standard-library deterministic selector and focused tests.
+- [x] Exactly one existing changed scenario selects its suite and declared manifest ID.
+- [x] Zero, multiple, deleted-only and fork candidates preserve `login/relog`.
+- [x] Explicit noncanonical dispatch inputs are never replaced.
+- [x] `run_agent_e2e.py resolve` remains the validation boundary.
+- [x] Existing workflow and physical runner remain unchanged.
+- [x] Durable interface documentation updated in `PHYSICAL_GAMEPLAY_ACTION_PLANS.md`.
+- [ ] Exact-final-head ownership, CI and Universal Agent E2E pass before merge.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T13:48:00+02:00
-head: 6ab0252424aa48580dda13c4f6bb4b4d5a97f918
+updated_at: 2026-07-17T13:55:00+02:00
+head: 0ce740075699a2bc7cf007a847e5567b33284467
 branch: feat/e2e-pr-scenario-selection
 pr: 477
-status: validating
+status: implementing
 context_routes:
   - universal-e2e
   - agent-governance
@@ -81,31 +76,27 @@ owned_paths:
   - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
 proven:
   - PR 468 merged and its lifecycle record is archived
-  - PR 457 is owned by GPT-5.5 Thinking and is blocked on selected physical movement execution
-  - E2E program requires shared platform changes to use a separate platform task
-  - selector uses exact local git delta first and GitHub exact-SHA compare fallback for shallow PR checkout
-  - resolver integration runs only for canonical login/relog on pull_request and preserves explicit noncanonical selections
-  - zero multiple deleted-only and fork candidates preserve canonical fallback
-  - invalid unique manifest or unverifiable exact same-repo delta fails closed
+  - PR 457 is owned by GPT-5.5 Thinking and awaits selected physical movement execution
+  - selector uses exact local git delta with exact-SHA GitHub compare fallback for shallow PR checkout
+  - resolver integration applies only to canonical login/relog on pull_request
   - current Universal Agent E2E workflow and physical runner have no diff in PR 477
-  - CI run 29577724300 passed on implementation/documentation head 6ab0252424aa48580dda13c4f6bb4b4d5a97f918
-  - Agent Task Ownership run 29577724191 passed on implementation/documentation head 6ab0252424aa48580dda13c4f6bb4b4d5a97f918
-  - Universal Agent E2E run 29577724327 resolved the scenario successfully on the unchanged workflow and is the pre-final physical validation run
-  - repository write guard rejected direct Universal Agent E2E workflow mutation and later shared MODULE_CATALOG full-file mutation; neither was forced or bypassed
+  - CI run 29577724300 passed on 6ab0252424aa48580dda13c4f6bb4b4d5a97f918
+  - Agent Task Ownership run 29577724191 passed on 6ab0252424aa48580dda13c4f6bb4b4d5a97f918
+  - Universal Agent E2E run 29577724327 resolved successfully on the unchanged workflow
+  - ownership run 29578116436 failed only because active task status was validating instead of implementing
 derived:
-  - integrating selection inside the existing resolver only when it receives canonical PR fallback values is narrower than changing shared workflow behavior and preserves workflow-dispatch inputs
-  - PR 477 itself changes no scenario manifest so its physical E2E remains the canonical login/relog sentinel
+  - resolver integration is narrower than changing the shared workflow and preserves explicit dispatch behavior
+  - PR 477 changes no scenario manifest so its own physical E2E remains the canonical sentinel
 unknown: []
 conflicts: []
 first_failure:
-  marker: shared-file-write-guard-rejected
-  evidence: direct full-file Universal Agent E2E workflow update and later full-file MODULE_CATALOG update were rejected by the repository write safety guard; no rejected mutation was committed or bypassed
+  marker: active-task-status-must-remain-implementing
+  evidence: Agent Task Ownership run 29578116436 rejected non-active status validating under tasks/active; corrected here without implementation changes
 rejected_hypotheses:
   - second E2E workflow
   - second physical runner
   - movement-specific branch special case
-  - modifying canonical login/relog scenario
-  - bypassing repository write guard with low-level Git object mutation
+  - bypassing repository write guard
 changed_paths:
   - docs/agents/tasks/active/CAN-20260717-e2e-pr-scenario-selection.md
   - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
@@ -115,13 +106,16 @@ changed_paths:
 validation:
   - command: CI run 29577724300
     result: PASS
-    evidence: required CI passed on implementation/documentation head 6ab0252424aa48580dda13c4f6bb4b4d5a97f918
+    evidence: required CI passed on implementation/documentation head
   - command: Agent Task Ownership run 29577724191
     result: PASS
-    evidence: task ownership and checkpoint validation passed on implementation/documentation head 6ab0252424aa48580dda13c4f6bb4b4d5a97f918
+    evidence: ownership passed before final checkpoint
   - command: Universal Agent E2E run 29577724327 resolve job
     result: PASS
-    evidence: existing unchanged workflow resolved canonical PR fallback successfully through the new resolver integration
+    evidence: unchanged workflow resolved through new resolver integration
+  - command: Agent Task Ownership run 29578116436
+    result: FAIL
+    evidence: checkpoint status only; corrected in this commit
 blockers: []
-next_action: Freeze this checkpoint commit as the exact final head, run all ci:final-gate checks including full Universal Agent E2E, make no post-green commits, then mark PR 477 ready and squash merge only if the exact head remains unchanged and green.
+next_action: Treat this checkpoint-only commit as the new exact final head; require green ownership, full CI and Universal Agent E2E before squash merge.
 ```
