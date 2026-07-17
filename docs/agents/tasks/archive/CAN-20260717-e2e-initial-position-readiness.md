@@ -2,13 +2,13 @@
 task_id: CAN-20260717-e2e-initial-position-readiness
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: OTS-E2E-POSITION-READY-001
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: fix/e2e-initial-position-readiness
 base_branch: main
 created: 2026-07-17T17:55:00+02:00
-updated: 2026-07-17T18:28:00+02:00
-last_verified_commit: "855fbb7734ecb8cdd311bf55de89af20a8de77c5"
+updated: 2026-07-17T17:42:21Z
+last_verified_commit: "250640758bec48946f31f34c85995632d194fbd0"
 risk: medium
 related_issue: ""
 related_pr: "494"
@@ -35,6 +35,7 @@ reuses:
   - existing Universal Agent E2E workflow and physical runner
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-17T17:42:21Z
 ---
 
 # Goal
@@ -140,3 +141,11 @@ validation:
 blockers: []
 next_action: Make no further feature-branch changes. Require exact-final-head Ownership, CI and Universal Agent E2E success, then mark ready and squash merge PR 494; after lifecycle cleanup, synchronize PR 481 with the new main and rerun movement/physical-movement for artifact-backed position proof.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #494.
+- Feature head: `7e98f924d15232627d908ad1a571362e0782e7fd`.
+- Merge commit: `250640758bec48946f31f34c85995632d194fbd0`.
+- Merged at: `2026-07-17T17:42:21Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
