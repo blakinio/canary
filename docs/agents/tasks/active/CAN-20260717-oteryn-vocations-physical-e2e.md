@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: test/oam-009-vocations-physical-e2e
 base_branch: main
 created: 2026-07-17T16:50:00+02:00
-updated: 2026-07-17T16:50:00+02:00
-last_verified_commit: "4154d43a5b89ddc067569fde6d70f3d2c1e1e320"
+updated: 2026-07-17T16:52:00+02:00
+last_verified_commit: "dc2d273534eca39517f43cddb74c6f798458e6e4"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "489"
 depends_on:
   - OAM-008
 blocks:
@@ -59,7 +59,7 @@ The claim is intentionally bounded to successful physical login resolving vocati
 - [x] Verify deterministic fixture `Knight 1` has `vocation = 4`.
 - [x] Verify exact target load path is fail-closed when `player->setVocation(vocationId)` returns false.
 - [x] Verify exact target `vocations.xml` contains vocation ID `4` as Knight.
-- [ ] Add only the bounded SQL assertion `SELECT vocation = 4 FROM players WHERE name = 'Knight 1'` to the existing login/relog scenario.
+- [x] Add only the bounded SQL assertion `SELECT vocation = 4 FROM players WHERE name = 'Knight 1'` to the existing login/relog scenario.
 - [ ] Run the existing Universal Agent E2E against exact controlled server `blakinio/Otheryn@f59a58426b4d3910ba0cdc0d2332c24f31a1db4f` and maintained OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`.
 - [ ] Require physical login, safe logout, relog, second safe logout, existing persistence assertions, and the new bounded vocation assertion to pass.
 - [ ] Record exact workflow run, exact controlled server SHA, artifact digest and executable hashes from the physical evidence.
@@ -71,10 +71,10 @@ The claim is intentionally bounded to successful physical login resolving vocati
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T16:50:00+02:00
-head: 4154d43a5b89ddc067569fde6d70f3d2c1e1e320
+updated_at: 2026-07-17T16:52:00+02:00
+head: dc2d273534eca39517f43cddb74c6f798458e6e4
 branch: test/oam-009-vocations-physical-e2e
-pr: null
+pr: 489
 status: implementing
 context_routes:
   - agent-governance
@@ -96,6 +96,9 @@ proven:
   - exact target vocations.xml defines vocation id 4 as Knight
   - existing login/relog scenario already proves two physical sessions and lastlogin/lastlogout persistence
   - current open PRs inspected do not touch tests/e2e/scenarios/login/scenario.json or this OAM task path
+  - PR 489 is open as the bounded OAM-009 draft
+  - login/relog scenario now asserts SELECT vocation = 4 for Knight 1
+  - temporary same-repository controlled-server pin selects exact Otheryn target f59a58426b4d3910ba0cdc0d2332c24f31a1db4f
 unknown:
   - exact physical workflow run id
   - exact artifact digest and executable hashes
@@ -108,7 +111,10 @@ rejected_hypotheses:
   - creating a second E2E workflow or runner is necessary
 changed_paths:
   - docs/agents/tasks/active/CAN-20260717-oteryn-vocations-physical-e2e.md
+  - docs/agents/OTERYN_OAM_009_VOCATIONS_PHYSICAL_E2E.md
+  - tests/e2e/scenarios/login/scenario.json
+  - .github/e2e-controlled-server.env
 validation: []
 blockers: []
-next_action: Add the bounded scenario assertion, pin the existing Universal Agent E2E to the exact Otheryn target on this same-repository PR, collect physical evidence, then remove the temporary pin before final merge and archive OAM-009 separately.
+next_action: Inspect the automatically triggered PR 489 Universal Agent E2E on the exact pinned Otheryn target; if the physical proof passes, record the evidence and remove only the temporary controlled-server pin before final merge gates.
 ```
