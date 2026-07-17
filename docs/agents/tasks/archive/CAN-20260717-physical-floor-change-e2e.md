@@ -2,13 +2,13 @@
 task_id: CAN-20260717-physical-floor-change-e2e
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: "OTS-E2E-PHYSICAL-FLOOR-CHANGE"
-status: review
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: test/e2e-physical-floor-change
 base_branch: main
 created: 2026-07-17T22:20:00+02:00
-updated: 2026-07-18T00:02:00+02:00
-last_verified_commit: "2d7c7d6080ba4d2c3fff7ed8ba40f1851875e988"
+updated: 2026-07-17T22:46:55Z
+last_verified_commit: "219d17b192ee40b2c08faf1d413676190f6b2392"
 risk: high
 related_issue: ""
 related_pr: "512"
@@ -35,6 +35,7 @@ reuses:
   - existing two-session login logout persistence relog sentinel
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-17T22:46:55Z
 ---
 
 # Goal
@@ -117,3 +118,11 @@ validation:
 blockers: []
 next_action: Apply ci:final-gate to the resulting task-only final head and require Ownership CI selected physical E2E and Required physical E2E on that exact head before marking ready and squash merging.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #512.
+- Feature head: `bd0e736c53913ec8b08a6e8a12d0df8738558ee4`.
+- Merge commit: `219d17b192ee40b2c08faf1d413676190f6b2392`.
+- Merged at: `2026-07-17T22:46:55Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
