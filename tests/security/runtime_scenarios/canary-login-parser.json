@@ -1,0 +1,15 @@
+{
+  "schema": "ots-security-login-packet-plan-v1",
+  "id": "canary-login-parser-baseline",
+  "authorized_repository": "blakinio/canary",
+  "driver": "canary-login-parser-v1",
+  "service": "login",
+  "cases": [
+    "unsupported-version",
+    "current-prelude-only",
+    "current-truncated-rsa",
+    "current-invalid-rsa-marker",
+    "current-rsa-empty-account",
+    "current-rsa-empty-password"
+  ]
+}
