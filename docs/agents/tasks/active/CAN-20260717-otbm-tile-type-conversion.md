@@ -2,13 +2,13 @@
 task_id: CAN-20260717-otbm-tile-type-conversion
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: implementing
+status: validating
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-tile-type-conversion
 base_branch: main
 created: 2026-07-17T19:53:00+02:00
-updated: 2026-07-17T20:08:00+02:00
-last_verified_commit: "4fdb6638746fb86b1f3063480c697d79da386b7e"
+updated: 2026-07-17T20:30:00+02:00
+last_verified_commit: "54d4cd9ad4be73083a74dffbcafb23d87ce1c92a"
 risk: high
 related_issue: ""
 related_pr: "498"
@@ -76,11 +76,11 @@ Implement the next smallest structural OTBM write boundary: convert an already-e
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T20:08:00+02:00
-head: 4fdb6638746fb86b1f3063480c697d79da386b7e
+updated_at: 2026-07-17T20:30:00+02:00
+head: 54d4cd9ad4be73083a74dffbcafb23d87ce1c92a
 branch: feat/otbm-tile-type-conversion
 pr: 498
-status: implementing
+status: validating
 context_routes:
   - otbm
   - agent-governance
@@ -107,27 +107,37 @@ proven:
   - conversion validator requires exact same position and canonical parent TILE_AREA and rejects equal current donor node types
   - materialization reuses the complete raw tile replacement writer and then requires native reparse rebuilt World Index selected donor equality and bounded Semantic Diff
   - focused tests cover TILE to HOUSETILE HOUSETILE to TILE same-type rejection and stale-current-raw rejection
-  - OTBM Map Tools run 29602457118 passed on implementation head 4fdb6638746fb86b1f3063480c697d79da386b7e
-  - AI Agent Tools run 29602457036 passed on the same implementation head
-  - CI run 29602457276 passed on the same implementation head
-  - Agent Task Ownership run 29602457086 failed only at changed active task checkpoint validation because the initial checkpoint still referenced task-start main and pending PR before this checkpoint update
+  - exact pre-final head 54d4cd9ad4be73083a74dffbcafb23d87ce1c92a passed Agent Task Ownership run 29603081771
+  - exact pre-final head 54d4cd9ad4be73083a74dffbcafb23d87ce1c92a passed OTBM Map Tools run 29603082046
+  - exact pre-final head 54d4cd9ad4be73083a74dffbcafb23d87ce1c92a passed AI Agent Tools run 29603081805
+  - exact pre-final head 54d4cd9ad4be73083a74dffbcafb23d87ce1c92a passed CI run 29603082126
+  - MODULE_CATALOG diff is one additive conversion-materializer row and CHANGELOG diff is one additive conversion bullet
+  - PR 498 has no conversation comments and no inline review threads before final-gate preparation
+  - current main 2edc59f59c417f82efb0547f3ff87b426f8bbe5a is one non-overlapping lifecycle rename ahead of the feature base, limited to the completed initial-position task record
+  - PR 498 remains mergeable against current main and pull-request CI validates the current GitHub merge ref
+  - ci:final-gate label was applied before this immutable final checkpoint commit
 derived:
   - the smallest safe conversion boundary is a constrained complete-subtree replacement with the inverse node-type predicate from replacement v1
   - copying a complete approved house donor subtree is safer than changing a raw node-type byte because house metadata layout differs
+  - the single main advancement since the feature base cannot overlap this OTBM feature because it only renames the unrelated initial-position E2E task record
 unknown:
-  - exact final-head gate results after catalog changelog and final checkpoint updates
+  - exact final checkpoint commit SHA until this commit is created
+  - exact-final-head gate conclusions triggered by this checkpoint commit
 conflicts: []
 first_failure:
   marker: stale-active-task-checkpoint
-  evidence: Agent Task Ownership run 29602457086 failed changed active task checkpoint validation while OTBM Map Tools AI Agent Tools and CI all passed on the same feature implementation head
+  evidence: Agent Task Ownership run 29602457086 failed changed active task checkpoint validation on an earlier head; the corrected checkpoint subsequently passed run 29603081771
 rejected_hypotheses:
   - editing the node-type byte in place
   - synthesizing house identifiers or house metadata
   - item-level conversion
   - generic OTBM serialization
+  - treating the unrelated lifecycle-only main advancement as a reason to duplicate or recreate the feature branch
 changed_paths:
-  - docs/agents/tasks/active/CAN-20260717-otbm-tile-type-conversion.md
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/decisions/ADR-20260717-otbm-raw-tile-type-conversion-boundary.md
+  - docs/agents/tasks/active/CAN-20260717-otbm-tile-type-conversion.md
   - docs/ai-agent/OTBM_TILE_TYPE_CONVERSION_APPROVAL.schema.json
   - docs/ai-agent/OTBM_TILE_TYPE_CONVERSION_MATERIALIZER.md
   - docs/ai-agent/OTBM_TILE_TYPE_CONVERSION_RESULT.schema.json
@@ -135,18 +145,21 @@ changed_paths:
   - tools/ai-agent/otbm_tile_type_conversion_materializer_tool.py
   - tools/ai-agent/test_otbm_tile_type_conversion_materializer.py
 validation:
-  - command: OTBM Map Tools run 29602457118
+  - command: Agent Task Ownership run 29603081771
     result: PASS
-    evidence: focused OTBM validation including conversion tests passed on 4fdb6638746fb86b1f3063480c697d79da386b7e
-  - command: AI Agent Tools run 29602457036
+    evidence: corrected active-task ownership and checkpoint validation passed on 54d4cd9ad4be73083a74dffbcafb23d87ce1c92a
+  - command: OTBM Map Tools run 29603082046
     result: PASS
-    evidence: AI agent tool suite passed on 4fdb6638746fb86b1f3063480c697d79da386b7e
-  - command: CI run 29602457276
+    evidence: focused OTBM validation including tile type conversion tests passed on 54d4cd9ad4be73083a74dffbcafb23d87ce1c92a
+  - command: AI Agent Tools run 29603081805
     result: PASS
-    evidence: repository CI passed on 4fdb6638746fb86b1f3063480c697d79da386b7e
-  - command: Agent Task Ownership run 29602457086
-    result: FAIL
-    evidence: initial active-task checkpoint was stale; corrected in this commit
+    evidence: AI agent tool suite passed on 54d4cd9ad4be73083a74dffbcafb23d87ce1c92a
+  - command: CI run 29603082126
+    result: PASS
+    evidence: repository CI passed on 54d4cd9ad4be73083a74dffbcafb23d87ce1c92a
+  - command: compare main advancement 250640758bec48946f31f34c85995632d194fbd0..2edc59f59c417f82efb0547f3ff87b426f8bbe5a
+    result: PASS
+    evidence: exactly one unrelated lifecycle rename under docs/agents/tasks for the completed initial-position E2E task
 blockers: []
-next_action: Update the shared module catalog and changelog, synchronize with latest non-overlapping main, then apply ci:final-gate before the immutable final checkpoint commit and require all exact-final-head gates.
+next_action: Freeze the checkpoint commit as the exact final feature head, require Ownership, OTBM Map Tools, AI Agent Tools and full ci:final-gate CI on that head, then squash merge with expected-head protection and archive the task in a separate lifecycle PR.
 ```
