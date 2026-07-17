@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: test/e2e-physical-movement
 base_branch: main
 created: 2026-07-17T08:19:00+02:00
-updated: 2026-07-17T08:25:00+02:00
-last_verified_commit: "b62efb510a44c5f052dade611633a14af84c7a9e"
+updated: 2026-07-17T08:22:29+02:00
+last_verified_commit: "f09be949e3504eefa6b45f2b1ad8d6b267daa47c"
 risk: medium
 related_issue: ""
 related_pr: "457"
@@ -68,14 +68,15 @@ Add the first deterministic physical movement scenario on top of the merged Univ
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T08:25:00+02:00
-head: b62efb510a44c5f052dade611633a14af84c7a9e
+updated_at: 2026-07-17T08:22:29+02:00
+head: f09be949e3504eefa6b45f2b1ad8d6b267daa47c
 branch: test/e2e-physical-movement
 pr: 457
-status: active
+status: investigating
 context_routes:
   - agent-governance
   - universal-e2e
+  - ci-repair
 owned_paths:
   - tests/e2e/scenarios/movement/physical-movement.json
   - docs/agents/tasks/active/CAN-20260717-physical-movement-e2e.md
@@ -90,19 +91,36 @@ proven:
   - draft PR 457 targets blakinio/canary main from blakinio/canary branch test/e2e-physical-movement
   - exploratory scenario uses only the existing bounded actions observe_online walk wait and observe_position_changed
   - shared tools/e2e and universal-agent-e2e workflow are unchanged
+  - Agent Task Ownership run 29559754880 / number 1858 failed only in changed active task checkpoint validation
+  - ownership diagnostics report missing checkpoint fields derived and first_failure plus unsupported checkpoint status active
+  - PR pull_request Universal Agent E2E resolves login/relog by default; selecting movement/physical-movement requires the existing workflow_dispatch inputs rather than changing the shared workflow
+  - the available GitHub connector exposes no workflow-dispatch mutation
+
+derived:
+  - exact initial and post-movement position markers can be pinned in the feature scenario after physical workflow evidence without changing the generic action-plan contract
+  - an exploratory movement success is fixture-discovery evidence until the exact start and resulting position are pinned as deterministic required markers
+  - lack of a connector workflow-dispatch action is an execution-environment limitation, not evidence that the repository needs a second runner or workflow change
 unknown:
   - exact physical initial position for Knight 1 on the current downloaded otservbr map
   - whether the exploratory single east step is passable from that position
   - exact expected post-movement position
+  - whether a selected movement workflow_dispatch run can be triggered through another already-authorized execution surface in this session
 conflicts: []
+first_failure:
+  marker: agent-task-ownership-checkpoint-schema
+  evidence: Agent Task Ownership run 29559754880 / number 1858 rejected the changed checkpoint because derived and first_failure were missing and status active was unsupported
 rejected_hypotheses:
   - create a second E2E orchestrator
   - invent map coordinates from town id or chat history
   - change shared workflow before a concrete platform blocker is proven
+  - rerun Agent Task Ownership without repairing the checkpoint schema
 changed_paths:
   - docs/agents/tasks/active/CAN-20260717-physical-movement-e2e.md
   - tests/e2e/scenarios/movement/physical-movement.json
-validation: []
+validation:
+  - command: Agent Task Ownership run 29559754880 / number 1858
+    result: FAIL
+    evidence: changed active task checkpoint validation rejected missing derived and first_failure fields and unsupported checkpoint status active
 blockers: []
-next_action: Inspect PR 457 checks. Use the first full physical E2E result only as fixture-discovery evidence: capture initial_position and the exact position-changed detail if movement succeeds; if it fails, inspect the physical artifact rather than inventing a replacement coordinate.
+next_action: Commit this checkpoint schema repair, inspect the new exact-head ownership/CI/E2E runs, and obtain a selected movement/physical-movement physical run through the existing workflow_dispatch surface if available; use only that artifact to pin exact position markers.
 ```
