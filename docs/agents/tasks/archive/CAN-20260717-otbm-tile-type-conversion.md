@@ -2,13 +2,13 @@
 task_id: CAN-20260717-otbm-tile-type-conversion
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-tile-type-conversion
 base_branch: main
 created: 2026-07-17T19:53:00+02:00
-updated: 2026-07-17T20:34:00+02:00
-last_verified_commit: "276959383e739b697c72f5ed5394baba4750151b"
+updated: 2026-07-17T18:42:54Z
+last_verified_commit: "008fe64b1f6494a1ba87cac8d4bb86581dec6456"
 risk: high
 related_issue: ""
 related_pr: "498"
@@ -52,6 +52,7 @@ public_interfaces:
   - canary-otbm-tile-type-conversion-approval-v1
   - canary-otbm-tile-type-conversion-result-v1
 cross_repo_tasks: []
+completed: 2026-07-17T18:42:54Z
 ---
 
 # Goal
@@ -174,3 +175,11 @@ validation:
 blockers: []
 next_action: Freeze this corrected checkpoint commit as the exact final feature head, require Ownership, OTBM Map Tools, AI Agent Tools and full ci:final-gate CI on that head, then squash merge with expected-head protection and archive the task in a separate lifecycle PR.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #498.
+- Feature head: `49a344f2cdb3d8dc72f6607f72ab091b311d12eb`.
+- Merge commit: `008fe64b1f6494a1ba87cac8d4bb86581dec6456`.
+- Merged at: `2026-07-17T18:42:54Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
