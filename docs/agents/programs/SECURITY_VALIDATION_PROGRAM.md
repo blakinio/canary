@@ -4,8 +4,8 @@ name: OTS Security Validation Platform
 status: active
 owner: security-validation-agent
 created: 2026-07-16T20:10:00+02:00
-updated: 2026-07-17T00:25:00+02:00
-last_verified_commit: "35b9f7d734add288c7c3b9f6be733807d8329c4a"
+updated: 2026-07-17T07:00:00+02:00
+last_verified_commit: "979e69be26b3d383e6fe7971e1797f6fbd9eea4c"
 primary_paths:
   - tools/security/**
   - tests/security/**
@@ -49,31 +49,11 @@ It does not own generic server/database/client bootstrap already provided by Uni
 
 # Phase 1 — foundation (`OTS-SEC-001`)
 
-Merged in PR #433. The foundation supports `source-regex` scenarios with:
-
-- strict exact-field JSON validation;
-- repository-relative regular-file confinement;
-- symlink/path-escape and size rejection;
-- forbidden/required regex assertions;
-- explicit repository authorization checked at execution time;
-- deterministic `ots-security-validation-report-v1` output with SHA-256 source evidence;
-- seeded regressions for merged PRs #326 and #328;
-- focused tests and dedicated workflow.
-
-No network or runtime offensive action is part of Phase 1.
+Merged in PR #433. The foundation supports `source-regex` scenarios with strict exact-field JSON validation, repository-relative file confinement, explicit repository authorization, deterministic `ots-security-validation-report-v1` evidence, seeded regressions for PRs #326/#328, focused tests and a dedicated workflow.
 
 # Phase 2 — runtime delegation adapter (`OTS-SEC-002`)
 
-Merged in PR #440. This phase added the code-owned `canary-universal-e2e` adapter and:
-
-- kept Universal OTS E2E lifecycle code read-only;
-- resolved delegated suite/scenario metadata through the existing E2E resolver;
-- required an exact authorized repository match;
-- enforced a literal-loopback-only resolved fixture host;
-- restricted the controlled client to the approved user-owned client repository for the provider;
-- pinned the canonical Universal E2E workflow, resolver, physical runner and selected scenario by SHA-256;
-- emitted deterministic `ots-security-runtime-delegation-v1` evidence;
-- kept arbitrary commands, executable paths, credentials and free-form network targets out of adapter manifests.
+Merged in PR #440. This phase added the code-owned `canary-universal-e2e` adapter with exact repository authorization, literal-loopback confinement, controlled-client restriction and deterministic SHA-256 delegation evidence while keeping arbitrary commands, credentials and free-form network targets out of manifests.
 
 Its lifecycle record was archived before OTS-SEC-003 began.
 
@@ -90,17 +70,19 @@ Active in PR #451. This first offensive runtime phase is intentionally bounded t
 The phase introduces:
 
 - strict `ots-security-malformed-packet-plan-v1` data with exact repository authorization and a bounded ordered list of code-owned built-in case identifiers;
-- no manifest-provided packet bytes/hex, commands, executables, credentials, hosts, IP targets or ports;
+- no manifest-provided packet bytes/hex, commands, executables, credentials, hosts, source IPs, target IPs or ports;
 - fixed cases for zero/oversized frame lengths, truncated declared bodies, unknown service selection and truncated/unknown status payloads;
 - a canonical security-owned runtime runner that reuses `run_runtime` instead of duplicating Canary lifecycle;
-- literal `127.0.0.1` confinement inherited from the runtime callback context;
-- malformed-connection termination checks plus a normal XML status control probe after every case;
-- bounded service-recovery semantics after asynchronous connection cleanup: four code-owned attempts separated by 50 ms, normalized to deterministic `pass`/`control-unresponsive` report outcomes;
+- destination confinement to callback-provided literal `127.0.0.1`;
+- distinct deterministic code-owned loopback sources for each malformed probe and its control probe, preventing independent production admission/status-query throttles from invalidating parser-resilience assertions without disabling those protections;
+- malformed-connection termination checks plus exactly one normal XML status control probe after every case;
 - fatal/sanitizer log diagnostics and outer process-liveness enforcement;
 - deterministic `ots-security-malformed-packet-report-v1` evidence with plan, provider and exact Canary binary SHA-256 pins;
 - dedicated exact-head Security Validation runtime execution on disposable MySQL + Canary infrastructure.
 
-The first implementation runtime proved zero-length and oversized framing cases and reproduced a scheduler-immediate control failure after the truncated-body EOF path without a Canary crash or fatal/sanitizer finding. The canonical runner was then narrowed to bounded recovery semantics rather than dropping the case or weakening the gate to process liveness only. Exact-head validation of that repair remains the current delivery boundary.
+Initial runtime attempts failed without a Canary crash because the harness reused source IPs across unrelated checks. Source review proved two independent protections: `Ban::acceptConnection` can reject excessive rapid accepted connections per IP, and `ProtocolStatus::ipConnectMap` rate-limits repeated status queries for non-exempt source addresses. The corrected runner assigns separate malformed/control source addresses per case and preserves both production protections.
+
+Exact-head head `979e69be26b3d383e6fe7971e1797f6fbd9eea4c` passed focused security validation, repository CI, Agent Task Ownership, exact-head Linux release build and the real eight-case malformed status-parser runtime.
 
 OTS-SEC-003 does not claim authenticated login/game, XTEA, checksum/sequence, maintained-client hostile-server, packet-flood or sustained-DoS coverage.
 
@@ -124,7 +106,7 @@ OTS-SEC-003 does not claim authenticated login/game, XTEA, checksum/sequence, ma
 - No production credentials, database dumps, private data or secrets in manifests/reports.
 - Scenario and adapter manifests never contain arbitrary shell commands or arbitrary packet payloads.
 - Generic E2E/load lifecycle infrastructure is reused rather than forked.
-- Runtime packet corpora and recovery limits are code-owned and reviewable.
+- Runtime packet corpora and source-address strategies are code-owned and reviewable.
 - A green static scenario, delegation proof or bounded runtime pack is evidence for that exact assertion only; it never proves complete exploit resistance.
 - Confirmed vulnerabilities become permanent regressions after the fix is merged.
 
