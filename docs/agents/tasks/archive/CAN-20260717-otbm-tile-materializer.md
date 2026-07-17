@@ -2,13 +2,13 @@
 task_id: CAN-20260717-otbm-tile-materializer
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-tile-materializer
 base_branch: main
 created: 2026-07-17T09:50:00+02:00
-updated: 2026-07-17T10:22:00+02:00
-last_verified_commit: "d5a24159a798e51eb14e6421c1c55d1e6c99eccc"
+updated: 2026-07-17T10:38:00+02:00
+last_verified_commit: "b172aba88a52c883a791ff4e423a3e210a61d4f7"
 risk: high
 related_issue: ""
 related_pr: "467"
@@ -78,21 +78,34 @@ Implement the smallest safe tile-level structural OTBM write boundary: replace o
 
 # Confirmed context
 
-- Writable repository is exactly `blakinio/canary`; all `opentibiabr/*` repositories remain read-only.
-- Existing Phase 8 fixed-width attribute patching is not expanded.
-- Existing TILE_AREA materialization remains unchanged and is reused as the scanner-extension foundation.
-- Open PR audit found no OTBM implementation-path overlap. PR #462 overlaps only the shared `docs/agents/MODULE_CATALOG.md` and `docs/agents/CHANGELOG.md` paths; this PR's final shared diffs were separately verified to be exactly one additive catalogue row and one additive changelog entry against current `main`.
-- Physical-client E2E is not required for this structural-confinement slice and no gameplay-correctness claim will be made.
+- Writable repository was exactly `blakinio/canary`; all `opentibiabr/*` repositories remained read-only.
+- Existing Phase 8 fixed-width attribute patching was not expanded.
+- Existing TILE_AREA materialization remained unchanged and was reused as the scanner-extension foundation.
+- Final shared diffs were verified as exactly one additive `MODULE_CATALOG.md` row and one additive `CHANGELOG.md` entry for this tool.
+- Physical-client E2E was not required for this structural-confinement slice and no gameplay-correctness claim is made.
+- No `.otbm`, `.widx`, generated report, render, client asset, or private map/asset was committed.
+
+# Completion evidence
+
+- Feature PR: #467 `feat(otbm): add bounded raw tile materializer`.
+- Exact final feature head: `b172aba88a52c883a791ff4e423a3e210a61d4f7`.
+- Exact-head Agent Task Ownership run `29566007664`: success.
+- Exact-head OTBM Map Tools run `29566007708`: success.
+- Exact-head AI Agent Tools run `29566007735`: success.
+- Ready-triggered full final-gate CI run `29566118019`: success on the unchanged exact final head.
+- Squash merge commit: `aca748b59a74dbacd2c8f56a6cdeea0dc35f66cc`.
+- Merged at: `2026-07-17T08:38:00Z`.
+- Physical-client E2E: deferred/not required for this structural-confinement-only change.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T10:22:00+02:00
-head: d5a24159a798e51eb14e6421c1c55d1e6c99eccc
+updated_at: 2026-07-17T10:38:00+02:00
+head: b172aba88a52c883a791ff4e423a3e210a61d4f7
 branch: feat/otbm-tile-materializer
 pr: 467
-status: implementing
+status: completed
 context_routes:
   - otbm
   - agent-governance
@@ -106,27 +119,21 @@ owned_paths:
   - docs/ai-agent/OTBM_TILE_MATERIALIZATION_APPROVAL.schema.json
   - docs/ai-agent/OTBM_TILE_MATERIALIZATION_RESULT.schema.json
   - docs/agents/decisions/ADR-20260717-otbm-raw-tile-replacement-boundary.md
-  - docs/agents/tasks/active/CAN-20260717-otbm-tile-materializer.md
+  - docs/agents/tasks/archive/CAN-20260717-otbm-tile-materializer.md
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
 proven:
-  - existing TILE_AREA materializer is raw-subtree based and does not serialize arbitrary OTBM nodes
-  - existing native scanner already validates tile structure and exposes absolute tile positions through canonical scan semantics
-  - current continuation boundary explicitly defers partial-area/tile-level structural merge to a future ADR and bounded task
-  - no open PR owns the planned OTBM implementation paths
-  - scanner wrapper now adds only physical direct-child tile span evidence after the existing full scanner accepts the map and delegates all existing scanner modes unchanged
-  - materializer v1 is replacement-only and requires exact same absolute position canonical parent TILE_AREA and node type on current and donor
-  - approval pins current and donor map World Index manifest plus exact raw and canonical state for every selected tile
+  - bounded raw complete-tile replacement was implemented without a second OTBM parser or full-map serializer
+  - v1 requires exact same absolute position canonical parent TILE_AREA and node type on current and donor
+  - approval pins current and donor maps World Indexes manifests and exact raw plus canonical state for every selected tile
   - candidate publication is blocked until retained-byte equality donor raw equality native reparse output World Index selected canonical equality and bounded Semantic Diff complete
-  - synthetic integration tests cover scanner span evidence single replacement multiple shifted-length replacements missing donor stale expected state and tile/house type mismatch
-  - the one failing house-tile synthetic fixture was corrected by adding a normal child item so the existing World Index maxItemDepth contract is internally consistent; the materializer code itself did not require a workaround
-  - Agent Task Ownership run 29565357330 passed after checkpoint metadata repair
-  - CI run 29565357468 OTBM Map Tools run 29565357336 and AI Agent Tools run 29565357280 all passed on implementation head 63e9533c8bbcccfd3c8daddd3d777a6fe93297be
-  - after shared documentation integration CI run 29565879698 Agent Task Ownership run 29565879491 and OTBM Map Tools run 29565879454 passed on pre-final head d5a24159a798e51eb14e6421c1c55d1e6c99eccc
-  - MODULE_CATALOG diff is exactly one additive materializer row and CHANGELOG diff is exactly one additive entry; the accidentally truncated bootstrap history was restored before final gate
-  - main remained at 317c1c4235377c388883aa2fd425d324f8ce4d2e through the pre-final checkpoint so no branch synchronization was required
-  - ci:final-gate label was applied before this final checkpoint commit
-
+  - exact-final-head Agent Task Ownership run 29566007664 passed
+  - exact-final-head OTBM Map Tools run 29566007708 passed
+  - exact-final-head AI Agent Tools run 29566007735 passed
+  - Ready-triggered full final-gate CI run 29566118019 passed on b172aba88a52c883a791ff4e423a3e210a61d4f7
+  - PR 467 was squash merged as aca748b59a74dbacd2c8f56a6cdeea0dc35f66cc
+  - no private maps assets generated OTBM files World Index files reports or renders were committed
+  - physical-client E2E was not required and no gameplay-correctness claim was made
 derived:
   - complete same-coordinate raw tile replacement is the smallest structural boundary below TILE_AREA replacement that avoids tile insertion deletion item-stack editing and arbitrary serialization
   - pinning both raw subtree state and canonical World Index state makes stale reviewed approvals fail closed before mutation
@@ -147,7 +154,7 @@ changed_paths:
   - docs/agents/CHANGELOG.md
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/decisions/ADR-20260717-otbm-raw-tile-replacement-boundary.md
-  - docs/agents/tasks/active/CAN-20260717-otbm-tile-materializer.md
+  - docs/agents/tasks/archive/CAN-20260717-otbm-tile-materializer.md
   - docs/ai-agent/OTBM_TILE_MATERIALIZATION_APPROVAL.schema.json
   - docs/ai-agent/OTBM_TILE_MATERIALIZATION_RESULT.schema.json
   - docs/ai-agent/OTBM_TILE_MATERIALIZER.md
@@ -157,27 +164,21 @@ changed_paths:
   - tools/ai-agent/otbm_tile_materializer_tool.py
   - tools/ai-agent/test_otbm_tile_materializer.py
 validation:
-  - command: Agent Task Ownership run 29565357330
+  - command: Agent Task Ownership run 29566007664
     result: PASS
-    evidence: checkpoint metadata and owned/shared path validation passed on implementation head 63e9533c8bbcccfd3c8daddd3d777a6fe93297be
-  - command: CI run 29565357468
+    evidence: exact-final-head ownership and changed-task checkpoint validation passed on b172aba88a52c883a791ff4e423a3e210a61d4f7
+  - command: OTBM Map Tools run 29566007708
     result: PASS
-    evidence: required incremental CI passed on implementation head 63e9533c8bbcccfd3c8daddd3d777a6fe93297be
-  - command: OTBM Map Tools run 29565357336
+    evidence: exact-final-head OTBM schema and focused tests passed on b172aba88a52c883a791ff4e423a3e210a61d4f7
+  - command: AI Agent Tools run 29566007735
     result: PASS
-    evidence: all OTBM schemas and focused test_otbm_*.py tests passed on implementation head 63e9533c8bbcccfd3c8daddd3d777a6fe93297be
-  - command: AI Agent Tools run 29565357280
+    evidence: exact-final-head AI agent tool tests passed on b172aba88a52c883a791ff4e423a3e210a61d4f7
+  - command: CI run 29566118019
     result: PASS
-    evidence: AI agent tool unit-test suite passed on implementation head 63e9533c8bbcccfd3c8daddd3d777a6fe93297be
-  - command: CI run 29565879698
+    evidence: Ready-triggered full final-gate CI passed on unchanged exact final head b172aba88a52c883a791ff4e423a3e210a61d4f7
+  - command: squash merge PR 467
     result: PASS
-    evidence: CI passed after final shared catalogue/changelog integration on pre-final head d5a24159a798e51eb14e6421c1c55d1e6c99eccc
-  - command: Agent Task Ownership run 29565879491
-    result: PASS
-    evidence: ownership and changed-task checkpoint validation passed after final shared documentation integration
-  - command: OTBM Map Tools run 29565879454
-    result: PASS
-    evidence: OTBM schema and focused tests passed after final shared documentation integration
+    evidence: merged as aca748b59a74dbacd2c8f56a6cdeea0dc35f66cc at 2026-07-17T08:38:00Z
 blockers: []
-next_action: Run and verify all required exact-final-head checks on the checkpoint commit created after ci:final-gate, make no further commits, then mark PR #467 ready and squash-merge only if the exact head remains unchanged and green.
+next_action: none; task completed and archived after feature merge.
 ```
