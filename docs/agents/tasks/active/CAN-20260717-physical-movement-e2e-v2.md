@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: test/e2e-physical-movement-v2
 base_branch: main
 created: 2026-07-17T15:03:00+02:00
-updated: 2026-07-17T20:22:02+02:00
-last_verified_commit: "bb77e327ceeedfe5556d10da857f18296663b3e8"
+updated: 2026-07-17T21:12:29+02:00
+last_verified_commit: "95a5c67296d479a22274bf5f4b588071ecbacacb"
 risk: medium
 related_issue: ""
 related_pr: "481"
@@ -59,8 +59,8 @@ Prove one bounded physical east movement with the existing Universal Agent E2E s
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T20:22:02+02:00
-head: bb77e327ceeedfe5556d10da857f18296663b3e8
+updated_at: 2026-07-17T21:12:29+02:00
+head: 95a5c67296d479a22274bf5f4b588071ecbacacb
 branch: test/e2e-physical-movement-v2
 pr: 481
 status: validating
@@ -73,64 +73,71 @@ owned_paths:
 proven:
   - PR 477 is merged and deterministically selects one changed existing scenario manifest on same-repository PRs
   - PR 494 is merged and gates first-session plan execution on a real local-player position before recording initial_position and starting the plan
-  - Universal Agent E2E run 29601141589 selected the exact job Physical client / movement/physical-movement on discovery head 2212b3e2838ddf86b1a7810533788f7617e911c5
+  - Universal Agent E2E discovery run 29601141589 selected Physical client / movement/physical-movement on head 2212b3e2838ddf86b1a7810533788f7617e911c5
   - physical artifact 8415740677 has digest sha256:2fa6c83d16b114c2ecf8a451a29d092eca0154f1bbdc192fa7c76486a5152212
-  - client-events.tsv records initial_position=32369,32241,7 before the movement plan
-  - client-events.tsv records step_east-one=success and step_position-changed=success
-  - client-events.tsv records exact physical post-movement position step_position-changed_detail=32370,32241,7
+  - client-events.tsv records initial_position=32369,32241,7, step_east-one=success, step_position-changed=success and exact step_position-changed_detail=32370,32241,7
   - the same physical artifact records plan=success, logout_request_1=safe, server_persistence_1=confirmed, login_2=success, logout_request_2=safe and e2e=success
-  - static OTBM evidence identified 32370,32241,7 only as a candidate; the exact final-position assertion is authorized by physical artifact 8415740677 rather than static map data
-  - the scenario assertion pins step_position-changed_detail=32370,32241,7
-  - pre-final head bb77e327ceeedfe5556d10da857f18296663b3e8 passed Agent Task Ownership run 29603399552 and CI run 29603399751
-  - final pre-gate scope audit found exactly the movement scenario and this task record as changed paths
-  - final pre-gate review audit found zero review threads and zero submitted reviews requiring action
-  - PR 481 remained based on main commit 250640758bec48946f31f34c85995632d194fbd0 and mergeable before final checkpoint creation
-  - ci:final-gate was applied to PR 481 before this final checkpoint commit
+  - static OTBM evidence identified 32370,32241,7 only as a candidate; the exact assertion is authorized by real physical-client evidence
+  - the scenario pins step_position-changed_detail=32370,32241,7 and preserves the canonical persistence/relog sentinel
+  - prior exact-final head dfacf2792b8461f6c8b5d15430acffe2f755fda6 passed Agent Task Ownership run 29603582504, CI run 29603582664 and Universal Agent E2E run 29603582750
+  - exact-final physical artifact 8416670164 on dfacf2792b8461f6c8b5d15430acffe2f755fda6 independently records initial_position=32369,32241,7, step_position-changed_detail=32370,32241,7 and e2e=success
+  - Required physical E2E in run 29603582750 passed on dfacf2792b8461f6c8b5d15430acffe2f755fda6
+  - ready_for_review triggered CI run 29605554215 and autofix.ci run 29605554033 on the same head; both completed successfully
+  - main advanced during final validation to f864a9e4d928e2bccfa7a13141362a044e069b27, so merge was correctly withheld
+  - PR 481 was synchronized again without force-push by merge commit 95a5c67296d479a22274bf5f4b588071ecbacacb using current main plus only the movement task and movement scenario
+  - after resync PR 481 is mergeable against main f864a9e4d928e2bccfa7a13141362a044e069b27
+  - post-resync changed-path audit contains exactly the movement task and movement scenario
+  - post-resync review audit found zero review threads and zero submitted reviews
+  - ci:final-gate was applied again after the resync and before this final checkpoint commit
 derived:
-  - because the physical artifact records the initial position before any plan step and then records one successful east walk followed by exact changed position 32370,32241,7, the scenario may safely require that exact post-movement marker for this deterministic fixture
-  - the successful second login and final e2e marker prove the movement assertion did not replace or bypass the canonical logout persistence and relog sentinel
-  - checkpoint schema blockers discovered by Ownership were corrected before final-gate preparation and the corrected pre-final head passed Ownership
-  - no shared E2E workflow runner resolver or client-driver changes are required for this movement scenario
+  - the bounded one-step east movement is physically proven for the deterministic fixture because a real controlled OTClient changed position from 32369,32241,7 to 32370,32241,7 after exactly one east walk step
+  - the exact final-position assertion remains evidence-backed after the main resync because the movement scenario blob is preserved unchanged from the physically validated head
+  - the canonical logout persistence relog sentinel remains intact because both discovery and exact-final physical artifacts end with successful persistence relog second safe logout and e2e=success
+  - the main advance was a synchronization condition rather than a movement or runtime failure; no feature change was required
 unknown:
-  - exact-final-head Agent Task Ownership conclusion
-  - exact-final-head CI conclusion
-  - exact-final-head Universal Agent E2E conclusion and selected physical job conclusion
-  - whether ready_for_review triggers a fresh required check on the same exact final head
+  - exact-final-head Agent Task Ownership conclusion after this resync checkpoint
+  - exact-final-head CI conclusion after this resync checkpoint
+  - exact-final-head Universal Agent E2E and Required physical E2E conclusions after this resync checkpoint
+  - whether main advances again before squash merge
 conflicts: []
 first_failure:
   marker: none
-  evidence: no unresolved pre-final failure; Agent Task Ownership run 29603399552 and CI run 29603399751 passed on bb77e327ceeedfe5556d10da857f18296663b3e8
+  evidence: no unresolved runtime or validation failure; the only post-validation blocker was main advancing, resolved by non-force synchronization to f864a9e4d928e2bccfa7a13141362a044e069b27
 rejected_hypotheses:
   - treating static OTBM evidence as movement proof
-  - treating the earlier run 29591841409 as movement proof
+  - treating run 29591841409 as movement proof
   - altering the canonical login/relog scenario
   - creating a second workflow or physical runner
   - inventing the final position before artifact evidence
+  - forcing merge while PR 481 was behind current main
 changed_paths:
   - docs/agents/tasks/active/CAN-20260717-physical-movement-e2e-v2.md
   - tests/e2e/scenarios/movement/physical-movement.json
 validation:
   - command: Universal Agent E2E run 29601141589
     result: PASS
-    evidence: exact discovery head 2212b3e2838ddf86b1a7810533788f7617e911c5 selected Physical client / movement/physical-movement and completed the physical scenario successfully
+    evidence: discovery head selected Physical client / movement/physical-movement and real client artifact proved one east step to 32370,32241,7
   - command: physical artifact 8415740677 client-events.tsv inspection
     result: PASS
     evidence: initial 32369,32241,7; one east step; exact changed position 32370,32241,7; canonical persistence/relog lifecycle ends e2e=success
-  - command: Agent Task Ownership run 29603399552
+  - command: Universal Agent E2E run 29603582750
     result: PASS
-    evidence: corrected pre-final checkpoint head bb77e327ceeedfe5556d10da857f18296663b3e8 passed active-task ownership validation
-  - command: CI run 29603399751
+    evidence: prior exact-final head dfacf2792b8461f6c8b5d15430acffe2f755fda6 passed Physical client / movement/physical-movement and Required physical E2E
+  - command: exact-final physical artifact 8416670164 client-events.tsv inspection
     result: PASS
-    evidence: corrected pre-final checkpoint head bb77e327ceeedfe5556d10da857f18296663b3e8 passed repository CI
-  - command: PR 481 changed-path audit
+    evidence: exact-final head again recorded start 32369,32241,7, post-step 32370,32241,7 and e2e=success
+  - command: ready_for_review CI run 29605554215
+    result: PASS
+    evidence: full ready-triggered final-gate CI passed including Windows, macOS, Linux release/debug and Docker jobs
+  - command: post-resync PR 481 scope audit
     result: PASS
     evidence: exactly docs/agents/tasks/active/CAN-20260717-physical-movement-e2e-v2.md and tests/e2e/scenarios/movement/physical-movement.json
-  - command: PR 481 review-thread audit
+  - command: post-resync PR 481 review audit
     result: PASS
-    evidence: zero review threads and zero submitted reviews requiring action before final checkpoint creation
-  - command: ci:final-gate application
+    evidence: zero review threads and zero submitted reviews
+  - command: post-resync ci:final-gate application
     result: PASS
-    evidence: label applied to PR 481 before this final checkpoint commit
+    evidence: label applied after synchronization with main f864a9e4d928e2bccfa7a13141362a044e069b27 and before this checkpoint commit
 blockers: []
-next_action: Require exact-final-head Agent Task Ownership CI and Physical client / movement/physical-movement success; then mark PR ready, accept any fresh required ready_for_review check on the same head, and squash merge with expected_head_sha before lifecycle archive.
+next_action: Require exact-final-head Agent Task Ownership, CI, Physical client / movement/physical-movement and Required physical E2E success on this new final checkpoint head; if current main remains unchanged, squash merge PR 481 with expected_head_sha and then complete lifecycle archive.
 ```
