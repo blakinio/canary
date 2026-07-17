@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-16T23:27:00+02:00
-last_verified_commit: "c40b26ee9481ec99931347ba26897a785a7a38ca"
+updated: 2026-07-17T08:49:00+02:00
+last_verified_commit: "c2e181f892ce2f094e887f1da5c6c7df207629c9"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -70,11 +70,11 @@ bounded Oteryn migration package
 
 # Current live preflight
 
-Re-verified through OAM-006 target delivery, feature governance and lifecycle archival boundary:
+Re-verified through OAM-007 target delivery and exact controlled-server runtime proof:
 
 ```text
 governance/legacy repository: blakinio/canary
-latest re-fetched Canary main: c40b26ee9481ec99931347ba26897a785a7a38ca
+latest re-fetched Canary main at OAM-007 task-start/final overlap checkpoint: c2e181f892ce2f094e887f1da5c6c7df207629c9
 canonical module count: 62
 TSD status: completed
 TSD migration disposition baseline outside bounded OAM decisions: REVALIDATE
@@ -94,14 +94,21 @@ OAM-005 lifecycle merge: a1d82a5989fe9e3b7ac6c495804cb1cd83c59090
 OAM-006 Canary task-start: a1d82a5989fe9e3b7ac6c495804cb1cd83c59090
 OAM-006 upstream evidence: opentibiabr/canary@e0ac98e399d0f7e483f3668f57b78fcc45b6e53f
 OAM-006 target task-start: a6d42f6cec024f81a7541084425ec1d43d66d2b8
-OAM-006 target PR final head: 5342b374306abb44b6b5e201c85f6a0182c99286
 OAM-006 final target head: c547d8ad70ef1252624c255476e6cb83fa125e14
 OAM-006 maintained client: blakinio/otclient@2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
 OAM-006 exact physical proof: Universal Agent E2E #118 / run 29531221365 / Required physical E2E PASS
 OAM-006 cross-repo contract: OTS-001
 OAM-006 Canary feature merge: c40b26ee9481ec99931347ba26897a785a7a38ca
-OAM-006 lifecycle archival: current lifecycle-only package
-OAM-007 implementation: not created and not started
+OAM-006 lifecycle merge: b0ea0ba9508cc78d5580f44181115e9b304eb7da
+OAM-007 Canary task-start: c2e181f892ce2f094e887f1da5c6c7df207629c9
+OAM-007 target task-start: c547d8ad70ef1252624c255476e6cb83fa125e14
+OAM-007 upstream evidence: opentibiabr/canary@e0ac98e399d0f7e483f3668f57b78fcc45b6e53f
+OAM-007 target PR final head: cd6fae153ebe495ec9030c9c729f2ceef06872ef
+OAM-007 final target head: 68c4f39f7b1b45f880543c258627b4ccf73dbc86
+OAM-007 maintained client: blakinio/otclient@2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
+OAM-007 exact physical proof: Universal Agent E2E #136 / run 29559180590 / Required physical E2E PASS
+OAM-007 Canary feature governance: PR #455 ready for final governance gates
+OAM-008 implementation: blocked until separate OAM-007 lifecycle completion
 target write authorization: explicitly granted by the user for autonomous OAM writes
 ```
 
@@ -144,12 +151,22 @@ account-authentication  ADAPT
 character-lifecycle     ADAPT
 ```
 
-OAM-006 revalidated the bounded `protocol` module and selected `ADAPT`. Target PR #21 wired the OAM-005 secure login-session primitive into the supported modern login/game handoff without replacing `IOLoginData`, removing fallbacks or mutating the maintained client. The target squash-merged as `c547d8ad70ef1252624c255476e6cb83fa125e14` after exact-head gates, Universal Agent E2E #118 proved the exact final target against maintained OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`, and Canary feature-governance PR #436 merged as `c40b26ee9481ec99931347ba26897a785a7a38ca` after final head `85309726f8db2619c611421ea0f2598396f1fa2c` passed Ownership #1783, CI #2926 and Universal Agent E2E #126.
+OAM-006 revalidated the bounded `protocol` module and selected `ADAPT`. Target PR #21 wired the OAM-005 secure login-session primitive into the supported modern login/game handoff without replacing `IOLoginData`, removing fallbacks or mutating the maintained client. The target squash-merged as `c547d8ad70ef1252624c255476e6cb83fa125e14` after exact-head gates, Universal Agent E2E #118 proved the exact final target against maintained OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`, Canary feature-governance PR #436 merged as `c40b26ee9481ec99931347ba26897a785a7a38ca`, and lifecycle PR #448 merged as `b0ea0ba9508cc78d5580f44181115e9b304eb7da`.
 
 OAM-006 disposition is:
 
 ```text
 protocol ADAPT
+```
+
+OAM-007 revalidated the dependency-ordered item/world runtime foundation. `item-definitions` selected `ADAPT` because Canary PR #81 supplied concrete provenance and focused coverage for the missing magic-field add-item-on-occupied-tile registration behavior. Bounded Otheryn PR #23 delivered only that adaptation and squash-merged as `68c4f39f7b1b45f880543c258627b4ccf73dbc86` after exact-head gates. `item-instances` selected `REUSE` after checked principal runtime paths matched task-start target, legacy and upstream. `world-map-runtime` selected `REUSE`: target/upstream aligned across the checked runtime boundary while the divergent legacy Map/Tile/MapCache/MapSector fork lacked a proven target requirement and was not migrated. Full heavy Universal Agent E2E #136 proved the exact final target against maintained OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f` with `Required physical E2E` success.
+
+OAM-007 dispositions are:
+
+```text
+item-definitions  ADAPT
+item-instances    REUSE
+world-map-runtime REUSE
 ```
 
 # Target architecture contract
@@ -172,15 +189,20 @@ No later migration implementation may infer authorization from an earlier packag
 | OAM-003 final target head | `a9c7fabc9f4b9bbeca9fed4ab73c36309cd04e2d` | PINNED |
 | OAM-004 final target head | `67212530b03c10175da2c0d9eabcee8991a05924` | TARGET + LIFECYCLE COMPLETE |
 | OAM-005 final target head | `a6d42f6cec024f81a7541084425ec1d43d66d2b8` | TARGET + FEATURE + LIFECYCLE COMPLETE |
-| OAM-006 final target head | `c547d8ad70ef1252624c255476e6cb83fa125e14` | TARGET + FEATURE COMPLETE |
+| OAM-006 final target head | `c547d8ad70ef1252624c255476e6cb83fa125e14` | TARGET + FEATURE + LIFECYCLE COMPLETE |
 | OAM-006 maintained client | `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f` | PINNED + UNCHANGED |
 | OAM-006 exact physical proof | Universal Agent E2E #118 (`29531221365`) | REQUIRED PHYSICAL E2E PASS |
 | OAM-006 cross-repo contract | `OTS-001` | VERIFIED |
 | OAM-006 Canary feature governance | PR #436 → `c40b26ee9481ec99931347ba26897a785a7a38ca` | MERGED |
-| OAM-006 lifecycle archival | `docs/oam-006-lifecycle-archive` | CURRENT LIFECYCLE-ONLY PACKAGE |
+| OAM-006 lifecycle merge | `b0ea0ba9508cc78d5580f44181115e9b304eb7da` | COMPLETE |
+| OAM-007 target task-start | `c547d8ad70ef1252624c255476e6cb83fa125e14` | PINNED |
+| OAM-007 final target head | `68c4f39f7b1b45f880543c258627b4ccf73dbc86` | TARGET DELIVERY COMPLETE |
+| OAM-007 maintained client | `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f` | PINNED + UNCHANGED |
+| OAM-007 exact physical proof | Universal Agent E2E #136 (`29559180590`) | REQUIRED PHYSICAL E2E PASS |
+| OAM-007 Canary feature governance | PR #455 | READY FOR FINAL GATES |
 | target write authorization | explicit user authorization for autonomous OAM writes to `blakinio/Otheryn` | ESTABLISHED |
 
-Every future package must re-fetch and pin fresh task-start baselines. OAM-007 must not treat OAM-006 delivery or any current main as an unverified moving-state assumption.
+Every future package must re-fetch and pin fresh task-start baselines. OAM-008 must not treat OAM-007 delivery or any current main as an unverified moving-state assumption.
 
 # Canonical migration unit
 
@@ -220,12 +242,13 @@ Generated indexes are discovery artifacts and must not become a second registry.
 | OAM-004 persistence-foundation report | `docs/agents/OTERYN_OAM_004_PERSISTENCE_FOUNDATION_REVALIDATION.md` | Durable evidence for four OAM-004 `ADAPT` decisions and delivered target persistence seams. |
 | OAM-005 account/character lifecycle report | `docs/agents/OTERYN_OAM_005_ACCOUNT_CHARACTER_LIFECYCLE_REVALIDATION.md` | Durable evidence for OAM-005 `REUSE`/`ADAPT` decisions and the bounded login-session primitive. |
 | OAM-006 network/login/protocol report | `docs/agents/OTERYN_OAM_006_NETWORK_LOGIN_PROTOCOL_REVALIDATION.md` | Durable evidence for the `protocol` `ADAPT` decision, exact target delivery and exact controlled-server physical-client proof. |
+| OAM-007 item/world runtime report | `docs/agents/OTERYN_OAM_007_ITEM_WORLD_RUNTIME_REVALIDATION.md` | Durable evidence for `item-definitions` `ADAPT`, `item-instances` `REUSE`, `world-map-runtime` `REUSE`, bounded target delivery and exact controlled-server runtime proof. |
 
 # Active tasks
 
-No OAM implementation task is active in the lifecycle result represented by this package. `OAM-006` is archived under `docs/agents/tasks/archive/` and this lifecycle-only merge is the final completion boundary.
+`OAM-007` is the only active OAM implementation task in this feature-governance package. Target delivery and exact final-target runtime proof are complete; Canary PR #455 is ready for its exact-head governance gates.
 
-`OAM-007` is not active and is not created or started here. After this lifecycle merge it becomes only the next eligible bounded package and still requires a fresh live-state, ownership/overlap and exact-baseline preflight before task creation.
+`OAM-008` is not active and is not created or started here. It may become next eligible only after OAM-007 feature governance and the required separate lifecycle-only archival merge.
 
 # Dependency-aware queue
 
@@ -236,13 +259,13 @@ No OAM implementation task is active in the lifecycle result represented by this
 | `OAM-003` | engine/build/runtime foundation revalidation | completed | OAM-002 | feature + lifecycle completed |
 | `OAM-004` | database and persistence foundation revalidation | completed | completed OAM-003 lifecycle | target, feature governance and lifecycle complete |
 | `OAM-005` | account and character lifecycle revalidation | completed | completed OAM-004 feature + lifecycle | target, feature governance and lifecycle complete |
-| `OAM-006` | network/login/protocol contract revalidation | completed | completed OAM-005 feature + lifecycle | target `c547d8ad70ef1252624c255476e6cb83fa125e14`, exact E2E #118 and feature merge `c40b26ee9481ec99931347ba26897a785a7a38ca` complete; this lifecycle-only archival merge is the final boundary |
-| `OAM-007` | item/world runtime foundation revalidation | planned | OAM-003, OAM-004, completed OAM-006 lifecycle | next eligible only after this lifecycle merge; re-fetch live state and evaluate canonical item definitions/instances plus world-map/runtime boundaries before creating any task |
-| `OAM-008` | first low-risk canonical module migration package | blocked | affected foundation packages | select exactly one module after dependencies and evidence gates are complete |
+| `OAM-006` | network/login/protocol contract revalidation | completed | completed OAM-005 feature + lifecycle | target, exact E2E, feature governance and lifecycle complete |
+| `OAM-007` | item/world runtime foundation revalidation | ready | OAM-003, OAM-004, completed OAM-006 lifecycle | target `68c4f39f7b1b45f880543c258627b4ccf73dbc86` and exact E2E #136 complete; pass final PR #455 gates, squash-merge, then archive in a separate lifecycle PR |
+| `OAM-008` | first low-risk canonical module migration package | blocked | affected foundation packages plus completed OAM-007 lifecycle sequencing gate | do not start in this package; after OAM-007 lifecycle, re-fetch live state and select exactly one low-risk canonical module with completed dependencies |
 | `OAM-009` | target physical-client E2E proof for first migrated module | blocked | OAM-008 plus target/client compatibility | reuse the existing E2E platform with one bounded target scenario |
 | `OAM-010+` | dependency-ordered domain migrations | planned | proven foundation and prior package dependencies | advance one bounded package at a time |
 
-OAM-006 is lifecycle-complete in the state produced by this package. OAM-007 is merely next eligible after the lifecycle merge and remains not created and not started.
+OAM-007 is feature-ready, not lifecycle-complete. OAM-008 remains not started until a separate OAM-007 lifecycle package merges.
 
 # Migration package evidence gate
 
@@ -283,15 +306,15 @@ AI may correlate evidence, summarize findings, suggest reproduction steps and as
 - OAM-003 feature and lifecycle work are complete.
 - OAM-004 feature and lifecycle work are complete.
 - OAM-005 feature and lifecycle work are complete; final target is `a6d42f6cec024f81a7541084425ec1d43d66d2b8` and lifecycle merge is `a1d82a5989fe9e3b7ac6c495804cb1cd83c59090`.
-- OAM-006 `protocol` disposition is `ADAPT`.
-- Otheryn PR #21 exact head `5342b374306abb44b6b5e201c85f6a0182c99286` passed CI #80, Required #78 and autofix.ci #71 and squash-merged as `c547d8ad70ef1252624c255476e6cb83fa125e14`.
-- `Otheryn:main` was verified at `c547d8ad70ef1252624c255476e6cb83fa125e14` for final OAM-006 target delivery.
-- Universal Agent E2E #118 (`29531221365`) completed the full heavy path with `Required physical E2E` success for exact Otheryn `c547d8ad70ef1252624c255476e6cb83fa125e14` and OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`.
-- Run #114 is explicitly rejected as final target evidence because immediate-parent reuse skipped heavy physical jobs.
-- Cross-repository contract `OTS-001` records the server-first-safe opaque session-key handoff for the exact maintained-client pair.
-- Canary PR #436 final head `85309726f8db2619c611421ea0f2598396f1fa2c` passed Agent Task Ownership #1783, autofix.ci #1603, CI #2926 and Universal Agent E2E #126 and merged as `c40b26ee9481ec99931347ba26897a785a7a38ca`.
-- This lifecycle-only package archives OAM-006; no OAM-007 implementation is included.
-- OAM-007 becomes next eligible only after this lifecycle merge and still requires fresh exact preflight before task creation.
+- OAM-006 `protocol` disposition is `ADAPT`; final target is `c547d8ad70ef1252624c255476e6cb83fa125e14`, feature merge is `c40b26ee9481ec99931347ba26897a785a7a38ca`, and lifecycle merge is `b0ea0ba9508cc78d5580f44181115e9b304eb7da`.
+- OAM-007 dispositions are `item-definitions` → `ADAPT`, `item-instances` → `REUSE`, `world-map-runtime` → `REUSE`.
+- Otheryn PR #23 exact head `cd6fae153ebe495ec9030c9c729f2ceef06872ef` passed ready CI #84 and Required #81 and squash-merged as `68c4f39f7b1b45f880543c258627b4ccf73dbc86`.
+- Otheryn PR #23 Windows Solution and Linux debug tests passed, including focused `ItemParsePolicyTest` coverage.
+- Full heavy Universal Agent E2E #136 (`29559180590`) completed with `Required physical E2E` success for exact Otheryn `68c4f39f7b1b45f880543c258627b4ccf73dbc86` and OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`.
+- Run #136 server binary SHA-256 is `dde78689009209901ca01bcffa94b8aa35267976d1c66037b63d756aff3c8a7a`; OTClient binary SHA-256 is `ceb606775390296d2ce98c7f47e87a35ec457287123246119272e6f3eb6ad72a`; evidence digest is `sha256:3d3386341791470d78ae6e4140f4009f5191998d08ca23e8a967f91feb932a6f`.
+- The physical login/relog run is a runtime regression smoke and does not substitute for the focused magic-field behavior test.
+- Canary PR #455 remains the OAM-007 feature-governance boundary; its exact final-head ownership/CI/review gate and separate lifecycle archival are still required before OAM-007 is complete.
+- OAM-008 remains not started until OAM-007 lifecycle completion.
 - OAM-004 residual gaps remain explicit: player SQL commit and later KV flush are non-atomic; generic KV eviction persistence failure handling is outside OAM-004D; untouched crash/restart recovery and generic DDL reversibility remain unproven.
 
 # Decisions and invariants
@@ -304,7 +327,7 @@ AI may correlate evidence, summarize findings, suggest reproduction steps and as
 - Migration sequencing follows dependency evidence.
 - Physical-client E2E complements, not replaces, focused/integration/runtime proof.
 - Exact controlled-server E2E must record the actual producer revision; a Canary-only or incrementally reused run cannot substitute for an exact-target proof.
-- An unchanged maintained client may remain read-only when its exact commit treats the changed field opaquely and physical proof verifies the pair.
+- An unchanged maintained client may remain read-only when its exact commit is compatible and physical proof verifies the pair.
 - World-content work reuses existing OTBM tooling.
 - Every feature merge is followed by separate lifecycle-only archival.
 - Target delivery completion does not by itself authorize the next package; lifecycle completion remains required.
@@ -320,27 +343,31 @@ OAM-004 completed with target PRs #11/#12/#13/#14, Canary feature PR #420 and se
 
 OAM-005 completed target, feature-governance and lifecycle delivery with `account-lifecycle` → `REUSE`, `account-authentication` → `ADAPT` and `character-lifecycle` → `ADAPT`.
 
-OAM-006 target and cross-repository proof completed with:
+OAM-006 completed target, feature-governance and lifecycle delivery with `protocol` → `ADAPT`, exact target `c547d8ad70ef1252624c255476e6cb83fa125e14`, full heavy E2E #118 and lifecycle merge `b0ea0ba9508cc78d5580f44181115e9b304eb7da`.
 
-- `protocol` → `ADAPT`;
-- task-start target `a6d42f6cec024f81a7541084425ec1d43d66d2b8`, upstream `e0ac98e399d0f7e483f3668f57b78fcc45b6e53f` and maintained client `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`;
-- target PR #21 exact final head `5342b374306abb44b6b5e201c85f6a0182c99286` with ready-triggered CI #80 and Required #78 success;
-- zero target PR comments, submitted reviews or unresolved review threads at final merge gate;
-- target PR #21 squash-merged with exact-head guard as `c547d8ad70ef1252624c255476e6cb83fa125e14`;
-- existing Universal Agent E2E extended in-place with optional controlled server repository/exact SHA inputs;
-- full heavy Universal Agent E2E #118 / run `29531221365` with `Required physical E2E` success;
-- artifact-recorded server commit `c547d8ad70ef1252624c255476e6cb83fa125e14` and client commit `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`;
-- controlled server binary SHA-256 `a69674e53911f4c529fe62d4dee0209633a73a14903c61f8e5fbca1bdbd8097d` and OTClient binary SHA-256 `b562247f8a0499738bf89eb9f8132146a26b2be57d9fb45e9586a0e0659d97ed`;
-- cross-repository contract `OTS-001`;
-- no maintained-client source mutation, no packet-validation relaxation and no rollback of OAM-004D persistence semantics.
+OAM-007 target and exact runtime proof completed with:
 
-Canary feature-governance PR #436 final head `85309726f8db2619c611421ea0f2598396f1fa2c` passed Ownership #1783, autofix.ci #1603, full CI #2926 and Universal Agent E2E #126 and merged as `c40b26ee9481ec99931347ba26897a785a7a38ca`. This separate lifecycle-only package archives OAM-006 and must pass its own exact-head ownership/CI/review gates before merge.
+- `item-definitions` → `ADAPT`;
+- `item-instances` → `REUSE`;
+- `world-map-runtime` → `REUSE`;
+- task-start target `c547d8ad70ef1252624c255476e6cb83fa125e14`, governance `c2e181f892ce2f094e887f1da5c6c7df207629c9`, upstream `e0ac98e399d0f7e483f3668f57b78fcc45b6e53f` and maintained client `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`;
+- target PR #23 exact final head `cd6fae153ebe495ec9030c9c729f2ceef06872ef` with ready CI #84 and Required #81 success;
+- target PR #23 squash-merged with exact-head guard as `68c4f39f7b1b45f880543c258627b4ccf73dbc86`;
+- focused `ItemParsePolicyTest` coverage for the bounded magic-field registration behavior;
+- full heavy Universal Agent E2E #136 / run `29559180590` with `Required physical E2E` success;
+- artifact-recorded server commit `68c4f39f7b1b45f880543c258627b4ccf73dbc86` and client commit `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`;
+- controlled server binary SHA-256 `dde78689009209901ca01bcffa94b8aa35267976d1c66037b63d756aff3c8a7a` and OTClient binary SHA-256 `ceb606775390296d2ce98c7f47e87a35ec457287123246119272e6f3eb6ad72a`;
+- two successful current-profile protocol-1525 logins, two safe logouts, persistence checks, client exit code zero and no fatal runtime log hits;
+- temporary controlled-server pin removed before final governance scope;
+- no legacy Map/Tile/MapCache fork migration, no client source mutation and no OAM-008 implementation.
+
+Canary feature-governance PR #455 must now pass its exact final-head ownership/CI/review gates before squash merge. A separate lifecycle-only package must then archive OAM-007 before OAM-008 can start.
 
 # Handoff
 
 ## Start here
 
-Read `AGENTS.md`, `docs/agents/README.md`, this program, `docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md`, `docs/agents/OTERYN_OAM_006_NETWORK_LOGIN_PROTOCOL_REVALIDATION.md`, `docs/agents/CROSS_REPO_CONTRACTS.md`, the current canonical registry/generated indexes, archived OAM task records, all active task records and live open PRs.
+Read `AGENTS.md`, `docs/agents/README.md`, this program, `docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md`, `docs/agents/OTERYN_OAM_007_ITEM_WORLD_RUNTIME_REVALIDATION.md`, `docs/agents/OTERYN_OAM_006_NETWORK_LOGIN_PROTOCOL_REVALIDATION.md`, `docs/agents/CROSS_REPO_CONTRACTS.md`, the current canonical registry/generated indexes, all active task records and live open PRs.
 
 ## Task creation protocol
 
@@ -368,7 +395,9 @@ Read `AGENTS.md`, `docs/agents/README.md`, this program, `docs/agents/OTERYN_TAR
 - Do not treat `LoginSessionManager` presence alone as live authentication proof.
 - Do not merge speculative OTClient transport hardening from closed PR #11.
 - Do not use incrementally reused E2E #114 as the exact-target OAM-006 proof; use full heavy E2E #118.
-- Do not start OAM-007 inside OAM-006 lifecycle archival.
+- Do not infer that every legacy Map/Tile/MapCache divergence must migrate to Otheryn.
+- Do not claim physical login/relog alone proves the occupied-tile magic-field behavior; use the focused OAM-007 policy test for that behavior.
+- Do not start OAM-008 inside OAM-007 feature governance or lifecycle archival.
 
 ## Known gaps carried forward
 
@@ -383,7 +412,10 @@ Read `AGENTS.md`, `docs/agents/README.md`, this program, `docs/agents/OTERYN_TAR
 - OAM-006 exact physical proof covers the maintained `current` profile at protocol 1525 and does not claim exhaustive physical coverage of every old-protocol profile.
 - OAM-006 physical proof establishes successful live token handoff but is not an adversarial replay matrix; primitive single-use/lifetime evidence remains in OAM-005 focused tests.
 - DB-session/password fallbacks remain preserved and CI-covered but were not the exact controlled-server physical path exercised by E2E #118.
+- OAM-007 does not claim Real Tibia item value/appearance parity, map completeness or exhaustive movement/pathfinding correctness.
+- OAM-007 exact physical proof is a runtime regression smoke and does not directly exercise damage from a field placed under an already occupied tile; the focused policy test is the behavior-specific proof.
+- The divergent legacy map runtime fork remains non-migrated evidence unless a future bounded task proves a concrete target requirement.
 
 # Exact next task
 
-Merge this separate lifecycle-only OAM-006 archival package only after exact-head ownership/CI/review gates pass. After that merge, `OAM-007 — item/world runtime foundation revalidation` is merely the next eligible bounded package and remains not created or started. Before creating OAM-007, re-fetch live `main`, open PRs, active tasks, ownership/overlap state and exact target/upstream/legacy baselines, identify the exact canonical modules from the existing registry, and create one separate bounded task/branch/draft PR only if the package remains eligible.
+First complete Canary feature-governance PR #455 with exact final-head ownership/CI/review gates, then create and merge a separate lifecycle-only OAM-007 archival PR. Only after that lifecycle merge may `OAM-008 — first low-risk canonical module migration package` become the next eligible bounded package. Before OAM-008 starts, re-fetch live `main`, open PRs, active tasks, ownership/overlap state and exact target/upstream/legacy baselines; then select exactly one low-risk canonical module whose foundation dependencies are complete and create one separate bounded task/branch/PR only if it remains eligible.
