@@ -2,45 +2,36 @@
 task_id: CAN-20260717-oteryn-item-world-runtime-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: "OAM-007"
-status: implementing
+status: ready
 agent: oteryn-architecture-migration-agent
 branch: docs/oam-007-item-world-runtime-revalidation
 base_branch: main
 created: 2026-07-17T06:45:00+02:00
-updated: 2026-07-17T08:20:00+02:00
+updated: 2026-07-17T08:47:00+02:00
 last_verified_commit: "c2e181f892ce2f094e887f1da5c6c7df207629c9"
 risk: high
 related_issue: "22"
 related_pr: "455"
-depends_on:
-  - OAM-003
-  - OAM-004
-  - OAM-006
-blocks:
-  - OAM-008
+depends_on: [OAM-003, OAM-004, OAM-006]
+blocks: [OAM-008]
 owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260717-oteryn-item-world-runtime-revalidation.md
     - docs/agents/OTERYN_OAM_007_ITEM_WORLD_RUNTIME_REVALIDATION.md
   shared:
     - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
-    - .github/e2e-controlled-server.env
   read_only:
     - .github/workflows/universal-agent-e2e.yml
     - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
     - docs/agents/real-tibia/registry/modules/item-definitions.yaml
     - docs/agents/real-tibia/registry/modules/item-instances.yaml
     - docs/agents/real-tibia/registry/modules/world-map-runtime.yaml
-    - docs/agents/real-tibia/TSD_007_ITEMS_ECONOMY_REPORT.md
-    - docs/agents/real-tibia/TSD_008_WORLD_CONTENT_REPORT.md
     - blakinio/canary@c2e181f892ce2f094e887f1da5c6c7df207629c9
     - blakinio/Otheryn@c547d8ad70ef1252624c255476e6cb83fa125e14
+    - blakinio/Otheryn@68c4f39f7b1b45f880543c258627b4ccf73dbc86
     - opentibiabr/canary@e0ac98e399d0f7e483f3668f57b78fcc45b6e53f
     - blakinio/otclient@2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
-modules_touched:
-  - item-definitions
-  - item-instances
-  - world-map-runtime
+modules_touched: [item-definitions, item-instances, world-map-runtime]
 reuses:
   - docs/agents/OTERYN_OAM_003_ENGINE_FOUNDATION_REVALIDATION.md
   - docs/agents/OTERYN_OAM_004_PERSISTENCE_FOUNDATION_REVALIDATION.md
@@ -55,80 +46,79 @@ cross_repo_tasks:
   - blakinio/Otheryn#23
 ---
 
-# Goal
+# Final dispositions
 
-Revalidate exactly `item-definitions`, `item-instances`, and `world-map-runtime`, adapt Otheryn only where evidence proves necessity, and stop before downstream world modules or OAM-008.
-
-# Current dispositions
-
-| Module | Disposition candidate | Evidence |
+| Module | Disposition | Evidence |
 |---|---|---|
-| `item-definitions` | `ADAPT` | Canary PR #81 proves the missing magic-field add-item handler; Otheryn PR #23 is the bounded adaptation |
-| `item-instances` | `REUSE` | checked principal runtime paths are identical across task-start target, legacy, and upstream |
-| `world-map-runtime` | `REUSE` | target/upstream align on checked runtime paths; legacy map fork has no proven target necessity |
+| `item-definitions` | `ADAPT` | bounded Otheryn PR #23 delivered the verified Canary PR #81 magic-field add-item registration behavior |
+| `item-instances` | `REUSE` | checked principal runtime paths matched task-start target, legacy and upstream |
+| `world-map-runtime` | `REUSE` | target/upstream aligned; the divergent legacy map fork lacked proven target necessity |
 
-# Safety
+# Completion evidence
 
-- Do not bulk-copy legacy item/map code or datapacks.
-- Preserve OAM-004 persistence boundaries and OAM-006 protocol/client boundaries.
-- Do not start `world-zones`, `instances`, or OAM-008 here.
-- Reuse the existing Universal Agent E2E for exact final-target runtime proof.
-- The controlled-server pin is temporary evidence input and must be removed before final governance merge.
+- Otheryn PR #23 exact head `cd6fae153ebe495ec9030c9c729f2ceef06872ef` passed ready CI #84, Required #81 and autofix.ci #74 and squash-merged as `68c4f39f7b1b45f880543c258627b4ccf73dbc86`.
+- Windows Solution and Linux debug tests passed, including focused `ItemParsePolicyTest` coverage.
+- Full heavy Universal Agent E2E #136 (`29559180590`) passed `Required physical E2E` against exact Otheryn `68c4f39f7b1b45f880543c258627b4ccf73dbc86` and OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`.
+- Run #136 server binary SHA-256: `dde78689009209901ca01bcffa94b8aa35267976d1c66037b63d756aff3c8a7a`.
+- Run #136 OTClient binary SHA-256: `ceb606775390296d2ce98c7f47e87a35ec457287123246119272e6f3eb6ad72a`.
+- Run #136 evidence digest: `sha256:3d3386341791470d78ae6e4140f4009f5191998d08ca23e8a967f91feb932a6f`.
+- Runtime proof recorded two successful logins, two safe logouts, persistence checks, client exit code zero and no fatal runtime log hits.
+- The exact physical run is a runtime regression smoke; the specific occupied-tile magic-field behavior is proven by the focused policy test plus PR #81 provenance.
+- Temporary controlled-server pin and `ci:final-gate` label were removed before final governance scope.
+- `world-zones`, `instances` and OAM-008 were not started.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T08:20:00+02:00
-head: 55cac36e836bc6b7eff182c91162a3cfccbdb129
+updated_at: 2026-07-17T08:47:00+02:00
+head: 51a9d29a694c5801d1538ed72c0cfb81206048b0
 branch: docs/oam-007-item-world-runtime-revalidation
 pr: 455
-status: implementing
-context_routes:
-  - agent-governance
-  - item-definitions
-  - item-instances
-  - world-map-runtime
+status: ready
+context_routes: [agent-governance, item-definitions, item-instances, world-map-runtime]
 owned_paths:
   - docs/agents/tasks/active/CAN-20260717-oteryn-item-world-runtime-revalidation.md
   - docs/agents/OTERYN_OAM_007_ITEM_WORLD_RUNTIME_REVALIDATION.md
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
-  - .github/e2e-controlled-server.env
 proven:
-  - OAM-006 feature and lifecycle are complete
-  - Canary task-start is c2e181f892ce2f094e887f1da5c6c7df207629c9
-  - Otheryn task-start is c547d8ad70ef1252624c255476e6cb83fa125e14
-  - upstream evidence head is e0ac98e399d0f7e483f3668f57b78fcc45b6e53f
-  - maintained client evidence head is 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
-  - item-definitions requires bounded ADAPT for verified Canary PR 81 behavior
-  - item-instances is a REUSE candidate
-  - world-map-runtime is a REUSE candidate
+  - item-definitions disposition is ADAPT
+  - item-instances disposition is REUSE
+  - world-map-runtime disposition is REUSE
+  - Otheryn PR 23 merged as 68c4f39f7b1b45f880543c258627b4ccf73dbc86 after exact-head ready gates passed
+  - Universal Agent E2E 136 passed exact final-target runtime proof with Required physical E2E success
+  - temporary controlled-server pin is absent from final governance scope
 derived:
-  - only item-definitions currently requires target code adaptation
+  - only item-definitions required target code adaptation
   - legacy-only map runtime divergence is insufficient migration authorization
-  - final runtime proof must pin the exact post-merge Otheryn revision
+  - focused behavior proof and physical runtime smoke are complementary
 unknown:
-  - final Otheryn PR 23 merge SHA
-  - exact final-target runtime and physical evidence
   - final Canary feature-governance merge SHA
   - final Canary lifecycle merge SHA
 conflicts: []
 first_failure:
   marker: none active
-  evidence: Otheryn PR 23 ready-triggered exact-head CI is running
+  evidence: target delivery and exact final-target runtime proof are complete
 rejected_hypotheses:
   - legacy Canary is the target image
   - every Map Tile or MapCache difference must be ported
   - the unrelated manual healing-rune part of PR 81 belongs in OAM-007
-  - item serializer presence proves persistence atomicity
+  - physical login/relog alone proves occupied-tile magic-field damage
   - downstream world modules belong in OAM-007
 changed_paths:
   - docs/agents/tasks/active/CAN-20260717-oteryn-item-world-runtime-revalidation.md
   - docs/agents/OTERYN_OAM_007_ITEM_WORLD_RUNTIME_REVALIDATION.md
+  - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
 validation:
   - command: exact canonical blob matrix and legacy-delta provenance review
     result: PASS
-    evidence: one required item-definition adaptation was isolated; item-instance and world-map runtime legacy-only deltas do not meet the adaptation gate
+    evidence: one required item-definition adaptation isolated; other legacy deltas failed the adaptation gate
+  - command: Otheryn PR 23 ready CI 84 and Required 81
+    result: PASS
+    evidence: exact head cd6fae153ebe495ec9030c9c729f2ceef06872ef; merge 68c4f39f7b1b45f880543c258627b4ccf73dbc86
+  - command: Universal Agent E2E 136 / Required physical E2E
+    result: PASS
+    evidence: exact Otheryn 68c4f39f7b1b45f880543c258627b4ccf73dbc86 plus OTClient 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f passed login/relog and persistence checks
 blockers: []
-next_action: Require Otheryn PR 23 exact-head ready gates, merge with exact-head guard, then create the temporary controlled-server pin and run exact final-target E2E before finalizing Canary PR 455.
+next_action: Update the shared program, validate final PR 455 scope/live-main overlap, pass exact-head draft gates, mark ready, require ready-triggered final-head gates, squash-merge, then archive in a separate lifecycle-only PR.
 ```
