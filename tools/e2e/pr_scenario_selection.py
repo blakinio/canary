@@ -12,14 +12,18 @@ import json
 import re
 import subprocess
 import sys
+import urllib.error
+import urllib.request
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Iterable, Sequence
+from urllib.parse import quote, urlsplit
 
 CANONICAL_SUITE = "login"
 CANONICAL_SCENARIO = "relog"
 SCENARIO_ROOT = PurePosixPath("tests/e2e/scenarios")
 _SAFE_COMPONENT = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+_REPOSITORY = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 _SHA40 = re.compile(r"^[0-9a-f]{40}$")
 
 
@@ -45,6 +49,11 @@ class ScenarioSelection:
 
 def _canonical(reason: str) -> ScenarioSelection:
     return ScenarioSelection(CANONICAL_SUITE, CANONICAL_SCENARIO, reason)
+
+
+def _validate_exact_shas(base_sha: str, head_sha: str) -> None:
+    if not _SHA40.fullmatch(base_sha) or not _SHA40.fullmatch(head_sha):
+        raise SelectionError("pull-request base/head SHAs must be exact lowercase 40-character SHAs")
 
 
 def _scenario_candidate(raw_path: str, repo_root: Path) -> PurePosixPath | None:
@@ -125,9 +134,7 @@ def select_from_changed_paths(
 def git_changed_paths(repo_root: Path, base_sha: str, head_sha: str) -> list[str]:
     """Return destination paths changed between exact pull-request SHAs."""
 
-    if not _SHA40.fullmatch(base_sha) or not _SHA40.fullmatch(head_sha):
-        raise SelectionError("pull-request base/head SHAs must be exact lowercase 40-character SHAs")
-
+    _validate_exact_shas(base_sha, head_sha)
     try:
         completed = subprocess.run(
             [
@@ -146,7 +153,7 @@ def git_changed_paths(repo_root: Path, base_sha: str, head_sha: str) -> list[str
         )
     except (OSError, subprocess.CalledProcessError) as exc:
         detail = getattr(exc, "stderr", "") or str(exc)
-        raise SelectionError(f"cannot inspect exact PR delta: {detail.strip()}") from exc
+        raise SelectionError(f"cannot inspect exact PR delta with git: {detail.strip()}") from exc
 
     paths: list[str] = []
     for line in completed.stdout.splitlines():
@@ -165,6 +172,65 @@ def git_changed_paths(repo_root: Path, base_sha: str, head_sha: str) -> list[str
     return paths
 
 
+def github_compare_changed_paths(
+    repository: str,
+    base_sha: str,
+    head_sha: str,
+    *,
+    api_url: str = "https://api.github.com",
+    token: str = "",
+) -> list[str]:
+    """Read exact changed filenames from GitHub's immutable compare endpoint.
+
+    GitHub compare responses expose at most 300 file entries. Exactly 300 is
+    therefore treated as incomplete evidence and fails closed.
+    """
+
+    _validate_exact_shas(base_sha, head_sha)
+    if not _REPOSITORY.fullmatch(repository):
+        raise SelectionError("repository must be an exact owner/name pair")
+
+    parsed = urlsplit(api_url)
+    if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password:
+        raise SelectionError("GitHub API URL must be an absolute HTTPS URL without credentials")
+    if parsed.query or parsed.fragment:
+        raise SelectionError("GitHub API URL must not contain query or fragment components")
+
+    owner, name = repository.split("/", 1)
+    endpoint = (
+        f"{api_url.rstrip('/')}/repos/{quote(owner, safe='')}/{quote(name, safe='')}"
+        f"/compare/{base_sha}...{head_sha}"
+    )
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "canary-universal-agent-e2e-pr-scenario-selector",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    request = urllib.request.Request(endpoint, headers=headers, method="GET")
+    try:
+        with urllib.request.urlopen(request, timeout=20) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (OSError, urllib.error.URLError, json.JSONDecodeError) as exc:
+        raise SelectionError(f"cannot inspect exact PR delta with GitHub compare API: {exc}") from exc
+
+    files = payload.get("files") if isinstance(payload, dict) else None
+    if not isinstance(files, list):
+        raise SelectionError("GitHub compare response does not contain a files array")
+    if len(files) >= 300:
+        raise SelectionError("GitHub compare file evidence may be truncated at 300 entries")
+
+    paths: list[str] = []
+    for entry in files:
+        filename = entry.get("filename") if isinstance(entry, dict) else None
+        if not isinstance(filename, str) or not filename:
+            raise SelectionError("GitHub compare response contains an invalid filename entry")
+        paths.append(filename)
+    return paths
+
+
 def select_for_event(
     *,
     event_name: str,
@@ -175,10 +241,25 @@ def select_for_event(
     base_sha: str,
     head_sha: str,
     repo_root: Path,
+    api_repository: str = "",
+    api_url: str = "https://api.github.com",
+    api_token: str = "",
 ) -> ScenarioSelection:
     changed_paths: list[str] = []
     if event_name == "pull_request" and current_repository and pr_head_repository == current_repository:
-        changed_paths = git_changed_paths(repo_root, base_sha, head_sha)
+        _validate_exact_shas(base_sha, head_sha)
+        try:
+            changed_paths = git_changed_paths(repo_root, base_sha, head_sha)
+        except SelectionError as git_error:
+            if not api_repository:
+                raise git_error
+            changed_paths = github_compare_changed_paths(
+                api_repository,
+                base_sha,
+                head_sha,
+                api_url=api_url,
+                token=api_token,
+            )
 
     return select_from_changed_paths(
         event_name=event_name,
@@ -207,6 +288,9 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--base-sha", default="")
     parser.add_argument("--head-sha", default="")
     parser.add_argument("--repo-root", type=Path, default=Path("."))
+    parser.add_argument("--api-repository", default="")
+    parser.add_argument("--api-url", default="https://api.github.com")
+    parser.add_argument("--api-token", default="")
     parser.add_argument("--github-output", type=Path)
     return parser
 
@@ -223,6 +307,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             base_sha=args.base_sha,
             head_sha=args.head_sha,
             repo_root=args.repo_root.resolve(),
+            api_repository=args.api_repository,
+            api_url=args.api_url,
+            api_token=args.api_token,
         )
     except SelectionError as exc:
         print(f"error: {exc}", file=sys.stderr)
