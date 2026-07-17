@@ -23,6 +23,7 @@ from test_otbm_area_materializer import make_area_map
 from test_otbm_world_index import ATTR_ITEM, OTBM_MAP_DATA, OTBM_TILE_AREA, node
 
 OTBM_HOUSETILE = 14
+OTBM_ITEM = 6
 
 
 def pin(path: Path) -> dict[str, object]:
@@ -34,7 +35,8 @@ def make_house_map(path: Path, *, x: int, y: int, z: int = 7, house_id: int = 42
     base_y = y & 0xFF00
     properties = bytes((x - base_x, y - base_y)) + struct.pack("<I", house_id)
     properties += bytes((ATTR_ITEM,)) + struct.pack("<H", ground)
-    tile = node(OTBM_HOUSETILE, properties, [])
+    child = node(OTBM_ITEM, struct.pack("<H", 200), [])
+    tile = node(OTBM_HOUSETILE, properties, [child])
     area = node(OTBM_TILE_AREA, struct.pack("<HHB", base_x, base_y, z), [tile])
     map_data = node(OTBM_MAP_DATA, b"", [area])
     root = node(0, struct.pack("<IHHII", 4, 2048, 2048, 4, 4), [map_data])
