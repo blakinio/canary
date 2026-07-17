@@ -2,7 +2,7 @@
 
 ## Status
 
-Active documentation task.
+Documentation captured; draft PR open.
 
 ## Goal
 
@@ -43,21 +43,30 @@ The report consolidates:
 
 ## Acceptance criteria
 
-- [ ] Consolidated report committed under `docs/security/`.
-- [ ] Report distinguishes proven, derived, configuration-dependent, and unverified findings.
-- [ ] Report contains no private secrets, private logs, local absolute paths, or production-target instructions.
-- [ ] Current Canary quickstart observations are revalidated against the branch base.
-- [ ] Draft PR targets `blakinio/canary:main` from the dedicated task branch.
-- [ ] Documentation-only diff reviewed for unrelated or forbidden files.
+- [x] Consolidated report committed under `docs/security/`.
+- [x] Report distinguishes proven, derived, configuration-dependent, and unverified findings.
+- [x] Report contains no private secrets, private logs, local absolute paths, or production-target instructions.
+- [x] Current Canary quickstart observations are revalidated against the branch base.
+- [x] Draft PR targets `blakinio/canary:main` from the dedicated task branch.
+- [x] Documentation-only diff reviewed for unrelated or forbidden files.
+
+## Validation
+
+- PR changed-file list contains only the task record and the security report.
+- No `.otbm`, `items.otb`, datapack, runtime, workflow, secret, credential, or production configuration file is changed.
+- No build/runtime validation is required for this documentation-only change.
+- `ci:final-gate` was applied before this final checkpoint commit.
 
 ## Context checkpoint
 
 ### Current state
 
 - Branch: `docs/myaac-canary-security-audit-20260717`.
-- Base commit: `35b9f7d734add288c7c3b9f6be733807d8329c4a`.
+- Branch creation base commit: `35b9f7d734add288c7c3b9f6be733807d8329c4a`.
+- Draft PR: `https://github.com/blakinio/canary/pull/453`.
+- Durable report: `docs/security/MYAAC_CANARY_SECURITY_AUDIT_2026-07-17.md`.
 - No overlapping open PR was found by a narrow search for MyAAC, login-server, security-audit, or Docker-quickstart work.
-- Current fork `docker/docker-compose.yml`, `docker/quickstart/myaac/bootstrap.php`, and `docker/quickstart/myaac/entrypoint.sh` were re-read at the base commit and still contain the integration surfaces referenced by the audit.
+- Current fork `docker/docker-compose.yml`, `docker/quickstart/myaac/bootstrap.php`, and `docker/quickstart/myaac/entrypoint.sh` were re-read at the branch-creation base and still contain the integration surfaces referenced by the audit.
 
 ### Key evidence
 
@@ -79,4 +88,4 @@ The report consolidates:
 
 ### next_action
 
-Commit the consolidated security report, review the branch diff, and keep the PR as documentation/evidence unless a separate bounded remediation task is opened.
+Keep PR #453 as the durable documentation/evidence PR. Open separate bounded remediation tasks for Canary-owned fixes; do not modify read-only upstream repositories without explicit authorization.
