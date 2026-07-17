@@ -2,13 +2,13 @@
 task_id: CAN-20260717-git-sync-workflow
 program_id: agent-governance
 coordination_id: ""
-status: review
+status: completed
 agent: ChatGPT
 branch: docs/git-synchronization-workflow
 base_branch: main
 created: 2026-07-17T15:01:11Z
-updated: 2026-07-17T15:05:37Z
-last_verified_commit: "0063474f6653d6f9983edabbf2ee8497e3be9030"
+updated: 2026-07-17T15:23:32Z
+last_verified_commit: "87908e0fe8a39c767332c44f6ed99bcb18246641"
 risk: low
 related_issue: ""
 related_pr: "490"
@@ -26,6 +26,7 @@ modules_touched: []
 reuses: []
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-17T15:23:32Z
 ---
 
 # Goal
@@ -199,3 +200,11 @@ Do not recreate the synchronization policy or task branch. Continue from the cur
 - Catalogue updated: not applicable
 - Changelog updated: not required for agent-governance documentation only
 - Archived at:
+
+## Automated lifecycle completion
+
+- Feature PR: #490.
+- Feature head: `c56b763a8ae492f08bd4b9175c0f95dd79738b05`.
+- Merge commit: `87908e0fe8a39c767332c44f6ed99bcb18246641`.
+- Merged at: `2026-07-17T15:23:32Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
