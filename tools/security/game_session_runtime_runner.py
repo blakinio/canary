@@ -124,7 +124,11 @@ def _establish_authenticated_session(
         initial_frame = _read_server_frame(connection)
         time.sleep(0.25)
         drained = _drain_available_frames(connection)
-        baseline_packet, baseline_response = _send_ping_and_require_response(connection, 2)
+
+        # The first game-login packet uses the pre-XTEA Adler32 envelope and is
+        # not part of the post-login client sequence. ProtocolGame therefore
+        # expects sequence 1 for the first XTEA-protected client packet.
+        baseline_packet, baseline_response = _send_ping_and_require_response(connection, 1)
         evidence = {
             "fixture_id": fixture_id,
             "source_ip": source_ip,
@@ -134,13 +138,13 @@ def _establish_authenticated_session(
             "initial_server_frame": _frame_evidence(initial_frame),
             "drained_login_frame_count": len(drained),
             "baseline_ping": {
-                "sequence": 2,
+                "sequence": 1,
                 "packet_sha256": core._sha256_bytes(baseline_packet),
                 "packet_size": len(baseline_packet),
                 "response": _frame_evidence(baseline_response),
             },
         }
-        return connection, evidence, 3
+        return connection, evidence, 2
     except Exception:
         connection.close()
         raise
