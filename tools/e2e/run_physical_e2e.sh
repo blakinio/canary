@@ -429,6 +429,98 @@ mariadb -N -s -h "${DB_HOST}" -P "${DB_PORT}" -u "${DB_USER}" "${DB_NAME}" \
 mariadb -N -s -h "${DB_HOST}" -P "${DB_PORT}" -u "${DB_USER}" "${DB_NAME}" \
   -e "SELECT lastlogout > 0 FROM players WHERE name='${AGENT_E2E_CHARACTER}';" > "${ARTIFACT_DIR}/database-lastlogout-set.txt"
 
+python3 - \
+  "${SCENARIO_MANIFEST}" \
+  "${ARTIFACT_DIR}/sql-assertions.json" \
+  "${ARTIFACT_DIR}/database-sql-assertions-passed.txt" \
+  "${DB_HOST}" \
+  "${DB_PORT}" \
+  "${DB_USER}" \
+  "${DB_NAME}" <<'PY'
+from __future__ import annotations
+
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+manifest_path, evidence_path, status_path, db_host, db_port, db_user, db_name = sys.argv[1:]
+manifest = json.loads(Path(manifest_path).read_text(encoding="utf-8"))
+queries = manifest["scenario"]["assertions"]["sql"]
+results = []
+all_passed = True
+
+for index, raw_query in enumerate(queries, start=1):
+    query = raw_query.strip()
+    allowed = bool(re.match(r"(?is)^SELECT\b", query)) and ";" not in query and "\x00" not in query
+    if not allowed:
+        results.append(
+            {
+                "index": index,
+                "query": query,
+                "executed": False,
+                "returncode": None,
+                "stdout": "",
+                "stderr": "rejected: assertion must be one semicolon-free SELECT statement",
+                "passed": False,
+            }
+        )
+        all_passed = False
+        continue
+
+    completed = subprocess.run(
+        [
+            "mariadb",
+            "-N",
+            "-s",
+            "-h",
+            db_host,
+            "-P",
+            db_port,
+            "-u",
+            db_user,
+            db_name,
+            "-e",
+            query,
+        ],
+        env=os.environ.copy(),
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    stdout = completed.stdout.strip()
+    passed = completed.returncode == 0 and stdout == "1"
+    results.append(
+        {
+            "index": index,
+            "query": query,
+            "executed": True,
+            "returncode": completed.returncode,
+            "stdout": stdout,
+            "stderr": completed.stderr.strip(),
+            "passed": passed,
+        }
+    )
+    all_passed = all_passed and passed
+
+Path(evidence_path).write_text(
+    json.dumps(
+        {
+            "schema_version": 1,
+            "all_passed": all_passed,
+            "assertions": results,
+        },
+        indent=2,
+        sort_keys=True,
+    )
+    + "\n",
+    encoding="utf-8",
+)
+Path(status_path).write_text("1\n" if all_passed else "0\n", encoding="utf-8")
+PY
+
 grep -F "${AGENT_E2E_CHARACTER} has logged in." "${ARTIFACT_DIR}/canary.stdout.log" \
   > "${ARTIFACT_DIR}/server-login-matches.txt" || true
 grep -Ei 'disconnect|write error|read error|connection|session end|logged out' \
@@ -483,6 +575,12 @@ players_online_snapshot = integer("database-online-count.txt")
 after_online_count = integer("database-after-online-count.txt")
 lastlogin_set = integer("database-lastlogin-set.txt")
 lastlogout_set = integer("database-lastlogout-set.txt")
+sql_assertions_passed = integer("database-sql-assertions-passed.txt")
+sql_assertions_path = artifacts / "sql-assertions.json"
+try:
+    sql_assertions = json.loads(sql_assertions_path.read_text(encoding="utf-8"))
+except (OSError, json.JSONDecodeError):
+    sql_assertions = {"schema_version": 1, "all_passed": False, "assertions": []}
 server_login_count = line_count("server-login-matches.txt")
 session_record_count = sum(
     1 for phase in (1, 2)
@@ -516,6 +614,7 @@ checks = {
     "two_packet_records_present": session_record_count == 2,
     "lastlogin_persisted": lastlogin_set == 1,
     "lastlogout_persisted": lastlogout_set == 1,
+    "scenario_sql_assertions": sql_assertions_passed == 1,
     "no_fatal_runtime_log": not fatal_log_hits,
 }
 success = all(checks.values())
@@ -533,6 +632,8 @@ result = {
     "session_record_count": session_record_count,
     "lastlogin_set": lastlogin_set,
     "lastlogout_set": lastlogout_set,
+    "sql_assertions_passed": sql_assertions_passed,
+    "sql_assertions": sql_assertions,
     "players_online_snapshot": players_online_snapshot,
     "players_online_snapshot_is_diagnostic_only": True,
     "after_online_count": after_online_count,
