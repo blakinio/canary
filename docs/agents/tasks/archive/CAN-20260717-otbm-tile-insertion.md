@@ -2,13 +2,13 @@
 task_id: CAN-20260717-otbm-tile-insertion
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-tile-insertion
 base_branch: main
 created: 2026-07-17T15:15:00+02:00
-updated: 2026-07-17T15:47:00+02:00
-last_verified_commit: "00f4d4878943981b6ebdc9fc5372d142669bbd1e"
+updated: 2026-07-17T14:09:05Z
+last_verified_commit: "fd9630037a66044dd6dbc72beeb8571e74d4d431"
 risk: high
 related_issue: ""
 related_pr: "482"
@@ -51,6 +51,7 @@ public_interfaces:
   - canary-otbm-tile-insertion-approval-v1
   - canary-otbm-tile-insertion-result-v1
 cross_repo_tasks: []
+completed: 2026-07-17T14:09:05Z
 ---
 
 # Goal
@@ -70,17 +71,32 @@ Implement the next smallest structural OTBM write boundary: insert one or more c
 - [x] Reparse output, rebuild World Index, prove inserted canonical tiles equal donor, and run bounded Semantic OTBM Diff.
 - [x] Keep source maps/scanner immutable and publish output/evidence create-new under artifact root.
 - [x] Add deterministic synthetic integration tests, schemas and documentation; commit no maps, World Index files, generated evidence, renders, or private assets.
-- [ ] Pass exact-final-head ownership, OTBM Map Tools, AI Agent Tools and full final-gate CI before squash merge.
+- [x] Pass exact-final-head ownership, OTBM Map Tools, AI Agent Tools and full final-gate CI before squash merge.
+
+# Completion evidence
+
+- Feature PR: #482 `feat(otbm): add bounded same-coordinate tile insertion`.
+- Exact final feature head: `65a285220657d3de01c8cc1c8fd54941467d7a1c`.
+- Exact-head Agent Task Ownership run `29585330202`: success.
+- Exact-head OTBM Map Tools run `29585330337`: success.
+- Exact-head AI Agent Tools run `29585330400`: success.
+- Exact-head pre-Ready CI run `29585330948`: success.
+- Ready-triggered full final-gate CI run `29585446400`: success on the unchanged exact final head.
+- Squash merge commit: `fd9630037a66044dd6dbc72beeb8571e74d4d431`.
+- Merged at: `2026-07-17T14:09:05Z`.
+- Automated lifecycle PR #484 was closed without merge because token-created recursive workflow runs were `action_required`; branch protection was not bypassed.
+- No `.otbm`, `.widx`, generated evidence, render, client asset, or private map/asset was committed.
+- Physical-client E2E was not required and no gameplay-correctness claim was made.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T15:47:00+02:00
-head: 00f4d4878943981b6ebdc9fc5372d142669bbd1e
+updated_at: 2026-07-17T14:09:05Z
+head: 65a285220657d3de01c8cc1c8fd54941467d7a1c
 branch: feat/otbm-tile-insertion
 pr: 482
-status: implementing
+status: completed
 context_routes:
   - otbm
   - agent-governance
@@ -92,46 +108,38 @@ owned_paths:
   - docs/ai-agent/OTBM_TILE_INSERTION_APPROVAL.schema.json
   - docs/ai-agent/OTBM_TILE_INSERTION_RESULT.schema.json
   - docs/agents/decisions/ADR-20260717-otbm-raw-tile-insertion-boundary.md
-  - docs/agents/tasks/active/CAN-20260717-otbm-tile-insertion.md
+  - docs/agents/tasks/archive/CAN-20260717-otbm-tile-insertion.md
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
 proven:
-  - PR 467 completed exact same-coordinate complete raw tile replacement and deliberately deferred insertion/deletion
-  - existing native scanner already exposes both TILE_AREA spans and tile spans after the canonical parser accepts the full map
-  - no open OTBM PR overlapped this scope when PR 482 was opened
-  - insertion v1 copies complete donor raw tile subtrees before the existing scanner-proven parent TILE_AREA NODE_END and never serializes a tile independently
-  - selected positions must be absent in current tile spans and current World Index and exist exactly once in donor
-  - selected current parent TILE_AREA raw hash/length and donor raw/canonical tile state are approval-pinned
-  - output retained-byte proof removes only inserted spans and requires the remaining byte sequence to equal the complete current map SHA-256 and byte count
-  - candidate publication requires native reparse rebuilt World Index inserted canonical donor equality and bounded Semantic Diff
-  - OTBM Map Tools run 29583988676 passed on 48c8a0bea9f1b05fb0d1e409297e90400660c299
-  - AI Agent Tools run 29583988723 passed on 48c8a0bea9f1b05fb0d1e409297e90400660c299
-  - CI run 29583989208 passed on 48c8a0bea9f1b05fb0d1e409297e90400660c299
-  - MODULE_CATALOG diff is exactly one additive bounded tile insertion row
-  - CHANGELOG diff is exactly one additive Unreleased tile insertion bullet
-  - no OTBM WIDX generated evidence render client asset or private map/asset is in the PR changed-file list
-  - open PR 481 is Universal E2E movement work and does not overlap OTBM paths
-  - open PR 453 is unrelated security documentation and was not touched
+  - bounded same-coordinate raw tile insertion was implemented without a second OTBM parser scanner mode or serializer
+  - selected positions are required absent in current and unique in donor under an already-existing exact current parent TILE_AREA
+  - approval pins current parent area raw state plus donor raw and canonical tile state and both source World Index bundles
+  - output retained-byte proof excludes only inserted spans and requires equality with the complete current byte sequence
+  - publication requires native reparse output World Index inserted canonical donor equality and bounded Semantic Diff
+  - exact-final-head Agent Task Ownership run 29585330202 passed
+  - exact-final-head OTBM Map Tools run 29585330337 passed
+  - exact-final-head AI Agent Tools run 29585330400 passed
+  - Ready-triggered full final-gate CI run 29585446400 passed on 65a285220657d3de01c8cc1c8fd54941467d7a1c
+  - PR 482 was squash merged as fd9630037a66044dd6dbc72beeb8571e74d4d431
+  - no private maps assets generated OTBM files World Index files reports or renders were committed
 derived:
-  - deterministic grouping by parent area and position avoids reordering any existing current child
-  - a missing tile may be inserted as ordinary or house type without constituting type conversion because no current tile exists at that position
-unknown:
-  - exact final-head gate results for the final checkpoint commit
+  - deterministic insertion ordering avoids reordering existing current children
+unknown: []
 conflicts: []
 first_failure:
   marker: world-index-empty-map-fixture-depth
-  evidence: OTBM Map Tools run 29583718767 failed three new tests because synthetic current fixtures had no child-item depth anywhere, exposing the existing scanner maxItemDepth=-1 versus binary-index 0 fixture edge; tests were corrected by adding an unrelated support TILE_AREA with a child item, without changing materializer logic
+  evidence: initial synthetic empty-area fixtures exposed an existing World Index maxItemDepth normalization edge; fixtures were corrected without changing materializer logic
 rejected_hypotheses:
-  - build a second OTBM parser
-  - modify the native scanner when existing area/tile span modes already provide required boundaries
-  - create missing TILE_AREA parents in insertion v1
-  - serialize a tile from canonical World Index data instead of copying reviewed donor raw bytes
-  - combine insertion with deletion, translation, type conversion, or item-stack editing in one writer version
+  - second OTBM parser or scanner mode
+  - creating missing TILE_AREA parents in v1
+  - translating coordinates
+  - item-level structural editing
 changed_paths:
   - docs/agents/CHANGELOG.md
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/decisions/ADR-20260717-otbm-raw-tile-insertion-boundary.md
-  - docs/agents/tasks/active/CAN-20260717-otbm-tile-insertion.md
+  - docs/agents/tasks/archive/CAN-20260717-otbm-tile-insertion.md
   - docs/ai-agent/OTBM_TILE_INSERTION_APPROVAL.schema.json
   - docs/ai-agent/OTBM_TILE_INSERTION_MATERIALIZER.md
   - docs/ai-agent/OTBM_TILE_INSERTION_RESULT.schema.json
@@ -139,18 +147,21 @@ changed_paths:
   - tools/ai-agent/otbm_tile_insertion_materializer_tool.py
   - tools/ai-agent/test_otbm_tile_insertion_materializer.py
 validation:
-  - command: OTBM Map Tools run 29583718767
-    result: FAIL
-    evidence: initial synthetic empty-area fixtures exposed existing World Index maxItemDepth normalization edge; no production writer path failed
-  - command: OTBM Map Tools run 29583988676
+  - command: Agent Task Ownership run 29585330202
     result: PASS
-    evidence: all focused OTBM tests and schema validation passed after fixture correction on head 48c8a0bea9f1b05fb0d1e409297e90400660c299
-  - command: AI Agent Tools run 29583988723
+    evidence: exact-final-head ownership passed
+  - command: OTBM Map Tools run 29585330337
     result: PASS
-    evidence: AI agent tool suite passed on head 48c8a0bea9f1b05fb0d1e409297e90400660c299
-  - command: CI run 29583989208
+    evidence: exact-final-head OTBM schema and focused tests passed
+  - command: AI Agent Tools run 29585330400
     result: PASS
-    evidence: repository CI passed on head 48c8a0bea9f1b05fb0d1e409297e90400660c299
+    evidence: exact-final-head AI agent tool suite passed
+  - command: CI run 29585446400
+    result: PASS
+    evidence: Ready-triggered full final-gate CI passed on unchanged exact final head
+  - command: squash merge PR 482
+    result: PASS
+    evidence: merged as fd9630037a66044dd6dbc72beeb8571e74d4d431
 blockers: []
-next_action: Treat this checkpoint-only commit as the exact final feature head; make no further feature commits, require exact-final-head ownership, OTBM Map Tools, AI Agent Tools and ci:final-gate full CI success, then squash merge.
+next_action: none; task completed and archived after feature merge.
 ```
