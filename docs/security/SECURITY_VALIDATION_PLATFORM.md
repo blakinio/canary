@@ -4,13 +4,13 @@
 
 The OTS Security Validation Platform is the repository-owned security regression layer for the evolving server, client, web, database and cache stack. Its core contract is intentionally product-neutral so the same scenario and report model can be adapted from Canary to Otheryn and later to the maintained client and MyAAC.
 
-The foundation shipped by `OTS-SEC-001` validates and executes deterministic source-regex scenarios. `OTS-SEC-002` adds the first code-owned runtime delegation adapter: it proves exact repository authorization, resolves an existing Universal OTS E2E scenario, enforces literal-loopback confinement, and pins the delegated provider files by SHA-256. Malformed-packet execution, authenticated abuse cases, database mutation, client-hostile-server cases and web security probes remain later bounded scenarios/adapters.
+The foundation shipped by `OTS-SEC-001` validates and executes deterministic source-regex scenarios. `OTS-SEC-002` adds the first code-owned runtime delegation adapter: it proves exact repository authorization, resolves an existing Universal OTS E2E scenario, enforces literal-loopback confinement, and pins the delegated provider files by SHA-256. `OTS-SEC-003` adds the first bounded offensive runtime pack for common TCP framing and unauthenticated Canary `ProtocolStatus` parser resilience. Authenticated login/game abuse, XTEA/checksum parser coverage, database mutation, client-hostile-server cases and web security probes remain later bounded scenarios/adapters.
 
 ## Reuse boundary
 
-Runtime security scenarios must reuse the existing Universal OTS E2E platform for disposable MariaDB/MySQL bootstrap, Canary lifecycle, controlled OTClient execution, evidence collection and cleanup. Security work may add security-specific drivers and assertions, but it must not create a second general runtime orchestrator.
+Runtime security scenarios must reuse existing OTS runtime lifecycle ownership. Universal OTS E2E remains authoritative for disposable MariaDB/MySQL bootstrap, exact Canary plus controlled OTClient execution, evidence collection and cleanup. Universal Agent Load owns the lighter server-only disposable Canary lifecycle now exposed through its code-owned `RuntimeContext` / `run_runtime` callback seam. Security work may add security-specific drivers and assertions, but it must not create a second general runtime orchestrator.
 
-The Universal Agent Load runner remains the canonical bounded status-protocol load/stress implementation. Security scenarios that need load evidence should consume or extend that layer through a separate owned task instead of copying it.
+The Universal Agent Load runner remains the canonical bounded status-protocol load/stress implementation. Security scenarios consume its local runtime callback for server-only probes instead of copying map/database/config/process lifecycle.
 
 ## Current CLI
 
@@ -25,9 +25,14 @@ python tools/security/security_validation.py run-all --authorized-repository bla
 python tools/security/runtime_adapter.py list
 python tools/security/runtime_adapter.py validate
 python tools/security/runtime_adapter.py resolve --adapter canary-universal-e2e --authorized-repository blakinio/canary
+
+python tools/security/malformed_packet_runtime_runner.py \
+  --binary-path <exact-head-canary> \
+  --plan tests/security/runtime_scenarios/canary-status-parser.json \
+  --authorized-repository blakinio/canary
 ```
 
-Security scenario execution and runtime-adapter resolution fail closed unless the caller supplies an authorized repository that exactly matches the corresponding registry record.
+Security scenario execution and runtime-adapter resolution fail closed unless the caller supplies an authorized repository that exactly matches the corresponding registry record. The malformed-packet plan does not accept a host, port, command, executable, credential or packet payload; network coordinates come only from the disposable runtime context.
 
 ## `ots-security-scenario-v1`
 
@@ -97,17 +102,71 @@ A successful runtime-adapter resolution emits deterministic JSON with:
 - SHA-256 and byte size for the canonical Universal E2E workflow, resolver, physical runner and selected E2E scenario manifest;
 - `result=pass` only after all authorization and confinement checks succeed.
 
-The report is a **delegation proof**, not an offensive-test success claim. OTS-SEC-003 and later scenarios consume this boundary when they add security-specific runtime drivers and assertions.
+The report is a **delegation proof**, not an offensive-test success claim.
+
+## `ots-security-malformed-packet-plan-v1`
+
+The first offensive runtime plan lives under `tests/security/runtime_scenarios/**`. Its strict top-level contract is limited to:
+
+- `schema`;
+- stable `id`;
+- exact `authorized_repository`;
+- code-owned `driver`;
+- code-owned `service`;
+- a bounded, unique ordered list of built-in `cases` identifiers.
+
+Unknown fields are rejected. A plan cannot provide packet bytes or hex strings, shell commands, executable paths, credentials, hostnames, target IPs or ports. The reviewed packet corpus remains in code. The canonical `canary-status-parser-baseline` selects eight fixed cases covering zero and oversized frame lengths, truncated declared bodies, unknown service selection and truncated/unknown status payloads.
+
+`tools/security/malformed_packet_runtime.py` owns the strict plan contract, fixed case registry, individual transport/control probes and deterministic report primitives. `tools/security/malformed_packet_runtime_runner.py` is the canonical runtime entry point: it consumes the merged Universal Agent Load `run_runtime` callback and adds code-owned loopback source isolation for malformed and control probes.
+
+## `ots-security-malformed-packet-report-v1`
+
+A malformed-parser execution records deterministic evidence for the exact run:
+
+- plan identity and SHA-256;
+- exact repository authorization;
+- driver/service identity;
+- confined callback-provided loopback target host and status port;
+- exact Canary binary SHA-256;
+- SHA-256 pins for the packet core, canonical runner and reused runtime provider;
+- ordered per-case code-owned malformed/control source IPs, packet SHA-256/size and normalized malformed/control outcomes;
+- fatal/sanitizer log findings;
+- one stable failure code or success.
+
+No timestamps or scheduler-dependent retry counts are recorded.
+
+Canary has two independent source-IP protections relevant to this pack. `Ban::acceptConnection` rejects excessive rapid accepted connections per source IP, while `ProtocolStatus::ipConnectMap` rate-limits repeated status queries for non-exempt source addresses. The runtime pack does not disable or modify either protection. Instead, every bounded parser case gets two deterministic code-owned IPv4 loopback sources: one for the malformed probe and a distinct one for the valid control probe. Across the maximum 16-case contract those addresses occupy `127.0.0.2` through `127.0.0.33`, while every destination remains the callback-provided `127.0.0.1` status port. Plans cannot choose either source or destination addresses.
+
+After each malformed connection terminates, exactly one valid XML status request is sent from that case's distinct control source and must return `<tsqp` plus `<serverinfo`. This isolates parser-resilience evidence from the independent admission/status-query throttles without weakening those production protections. A failed control request remains fail-closed as its exact stable control failure code.
+
+The runtime also fails closed on malformed-case read timeout, unexpected malformed response, target/source confinement failure, Canary process exit and fatal/sanitizer signatures. The outer `run_runtime` callback remains responsible for exact-head Canary startup, database/config/map preparation and cleanup.
+
+## OTS-SEC-003 evidence boundary
+
+A green `canary-status-parser-baseline` proves only that the tested exact Canary binary survived and remained responsive across the registered common framing and unauthenticated `ProtocolStatus` cases under the bounded disposable-loopback runtime.
+
+It does **not** prove complete protocol exploit resistance and specifically does not cover:
+
+- authenticated login protocol parsing;
+- game protocol parsing after session establishment;
+- XTEA-encrypted message handling;
+- checksum/sequence-number combinations;
+- maintained-client hostile-server parsing;
+- packet flood or sustained DoS capacity;
+- correctness or strength of either independent per-IP admission/status-query policy.
+
+Those require separate bounded tasks and protocol-aware fixtures. Future confirmed parser vulnerabilities should become permanent fixed-case regressions after remediation rather than broadening this plan with arbitrary packet input.
 
 ## Runtime adapter safety contract
 
-Every runtime adapter must satisfy all of the following before it can be registered:
+Every runtime adapter or runtime security driver must satisfy all of the following before it can be registered:
 
 - execute only against a disposable environment explicitly created for the test or another target explicitly authorized by the repository owner;
-- reuse Universal OTS E2E lifecycle and evidence contracts where that platform already owns the capability;
+- reuse Universal OTS E2E / Universal Agent Load lifecycle contracts where those platforms already own the capability;
 - fail closed on ambiguous target identity or missing authorization;
 - never discover arbitrary public targets;
 - never embed production credentials or secrets in scenario/adapter manifests;
+- keep packet bytes, source-address strategy and executable behavior code-owned rather than manifest-supplied;
 - retain enough server/client/database/network evidence to reproduce a failure;
 - convert a confirmed vulnerability into a permanent regression scenario after remediation.
 
@@ -115,7 +174,7 @@ Every runtime adapter must satisfy all of the following before it can be registe
 
 Planned bounded additions, each through a separate task/PR, are:
 
-- malformed-packet and parser scenarios through the Canary/Otheryn runtime adapter;
+- authenticated login/game parser and session scenarios;
 - MariaDB transaction, concurrency and persistence-abuse scenarios;
 - Redis/multichannel ownership and fail-closed scenarios;
 - maintained-client hostile-server payload scenarios;
