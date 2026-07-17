@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-scenario-server-selection
 base_branch: main
 created: 2026-07-17T09:55:00+02:00
-updated: 2026-07-17T10:16:00+02:00
-last_verified_commit: "a1b12772df5945ce44af1f73a6da7f74e10f0fc7"
+updated: 2026-07-17T10:42:00+02:00
+last_verified_commit: "8ea5e5164ac77bc822dad527897d8a87e1c55c7b"
 risk: medium
 related_issue: ""
 related_pr: "468"
@@ -24,12 +24,12 @@ owned_paths:
     - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
     - docs/agents/tasks/active/CAN-20260717-e2e-scenario-server-selection.md
   shared:
+    - .github/workflows/universal-agent-e2e.yml
     - docs/agents/MODULE_CATALOG.md
     - docs/agents/CHANGELOG.md
   read_only:
     - tools/e2e/run_agent_e2e.py
     - tests/e2e/test_agent_e2e_scenario_plan.py
-    - .github/workflows/universal-agent-e2e.yml
     - tools/e2e/client/agent_e2e_scenario.lua
     - tests/e2e/scenarios/login/scenario.json
     - tests/e2e/scenarios/movement/physical-movement.json
@@ -59,8 +59,9 @@ Make the already-declared `scenario.server.datapack` and `scenario.server.map` f
 - [x] Preserve the existing downloaded `data-otservbr-global/world/otservbr.otbm` behavior for the canonical default scenario.
 - [x] Fail closed when a non-default selected map is absent instead of downloading an arbitrary manifest-selected target.
 - [x] Write the selected datapack and map into generated `config.lua` and runtime provenance evidence.
-- [x] Keep `.github/workflows/universal-agent-e2e.yml` and the controlled OTClient driver unchanged.
-- [x] Add focused regression coverage for safe-name rejection, repository confinement, default global selection, repository-local non-default selection and environment materialization.
+- [x] Keep the controlled OTClient driver unchanged and preserve the single existing Universal Agent E2E workflow.
+- [x] Ensure changes to the server-selection helper trigger that existing physical E2E workflow.
+- [x] Add focused regression coverage for safe-name rejection, repository confinement, default global selection, repository-local non-default selection, nested symlink escape and environment materialization.
 - [ ] Pass exact-head applicable CI and Universal Agent E2E while preserving canonical login/relog behavior.
 - [ ] Audit final changed paths and merge only after the exact-final-head gate is green.
 
@@ -75,8 +76,8 @@ Make the already-declared `scenario.server.datapack` and `scenario.server.map` f
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-17T10:16:00+02:00
-head: a1b12772df5945ce44af1f73a6da7f74e10f0fc7
+updated_at: 2026-07-17T10:42:00+02:00
+head: 8ea5e5164ac77bc822dad527897d8a87e1c55c7b
 branch: feat/e2e-scenario-server-selection
 pr: 468
 status: implementing
@@ -84,6 +85,7 @@ context_routes:
   - agent-governance
   - universal-e2e
 owned_paths:
+  - .github/workflows/universal-agent-e2e.yml
   - tools/e2e/server_selection.py
   - tools/e2e/run_physical_e2e.sh
   - tests/e2e/test_agent_e2e_server_selection.py
@@ -99,23 +101,28 @@ proven:
   - canonical login/relog scenario declares data-otservbr-global and otservbr
   - InstanceArenaService configured regions are backed by data-canary/world/canary.otbm rather than the downloaded otservbr map
   - exact-hash physical otservbr map contains zero tiles in both configured Instance Arena region boxes
-  - open PR 457 owns only its movement scenario/task record and keeps tools/e2e read-only
-  - open PR 462 is confined to Security Validation paths
-  - open PR 453 is documentation-only and does not own tools/e2e
-  - no open PR owns this task's server-selection implementation paths
-  - tools/e2e/server_selection.py resolves only safe single-segment datapack/map names inside the repository and rejects symlink/path escape
+  - open PR 457 owns only its movement scenario/task record and explicitly keeps shared tools/e2e and the workflow read-only absent a separately owned platform blocker
+  - no other live open PR found in the latest overlap audit owns this task's server-selection helper or workflow path
+  - tools/e2e/server_selection.py resolves only safe single-segment datapack/map names inside the repository and rejects datapack, world and map symlink/path escape
   - only the canonical data-otservbr-global/otservbr pair retains the existing configured map-download fallback
   - non-default selected maps must already exist and be non-empty under the selected datapack world directory
   - run_physical_e2e.sh invokes the resolver after canonical scenario resolution and before runtime startup
-  - generated config.lua now receives the selected datapack and map while preserving all other physical lifecycle configuration
+  - generated config.lua receives the selected datapack and map while preserving the existing physical lifecycle
   - runtime-contract.txt records selected datapack/map and runtime-hashes.txt includes the server-selection helper
-  - workflow and controlled OTClient driver remain unchanged
+  - controlled OTClient driver and canonical login/relog scenario remain unchanged
+  - workflow change is limited to adding tools/e2e/server_selection.py to the existing pull_request path filter so helper-only changes cannot bypass physical E2E
+  - workflow patch audit shows exactly that one added path and no other workflow drift
+  - module-catalog patch audit is confined to the existing Universal OTS E2E row
+  - changelog patch audit is confined to one new server-selection bullet after restoring two accidental unrelated text drifts
+  - focused local validation of the current helper/test contents passed py_compile and 8 of 8 unittests
+  - PR diff contains only the bounded server-selection implementation, focused tests, one existing workflow path-filter line, task and discovery documentation
 derived:
   - honoring the existing manifest server fields is the smallest reusable change that can let future physical scenarios select the already-reviewed data-canary arena map without duplicating lifecycle code
   - arbitrary map download support is unnecessary and remains disallowed for non-default selections
+  - adding the helper to the existing workflow path filter is safer and smaller than refactoring the 500-line scenario resolver solely to inherit an existing trigger
   - a later combat task can own its privileged account/player fixture separately without broadening this platform prerequisite
 unknown:
-  - exact-head CI and Universal Agent E2E conclusion after the implementation/docs batch
+  - exact-head CI and Universal Agent E2E conclusion after the final implementation/workflow batch
   - whether data-canary physical login succeeds with a later dedicated combat fixture; this task does not claim that runtime proof
 conflicts: []
 first_failure:
@@ -127,16 +134,29 @@ rejected_hypotheses:
   - add arbitrary manifest-provided map URLs or filesystem paths
   - alter the canonical login/relog scenario
   - add privileged combat fixtures to this platform prerequisite
+  - refactor the large scenario resolver only to make the new helper inherit its workflow path trigger
 changed_paths:
+  - .github/workflows/universal-agent-e2e.yml
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260717-e2e-scenario-server-selection.md
   - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
   - tests/e2e/test_agent_e2e_server_selection.py
   - tools/e2e/run_physical_e2e.sh
   - tools/e2e/server_selection.py
 validation:
+  - command: focused local py_compile of server_selection.py and test_agent_e2e_server_selection.py
+    result: PASS
+    evidence: both files compiled with exit code 0
+  - command: focused local test_agent_e2e_server_selection.py
+    result: PASS
+    evidence: 8 tests ran successfully with exit code 0; unrelated sandbox artifact_tool warmup stderr did not affect the test process result
   - command: PR diff audit for tools/e2e/run_physical_e2e.sh
     result: PASS
     evidence: diff is confined to server selection resolution, selected map materialization/config, dynamic cleanup and provenance hashing
+  - command: PR diff audit for .github/workflows/universal-agent-e2e.yml
+    result: PASS
+    evidence: exactly one pull_request path-filter entry was added for tools/e2e/server_selection.py
 blockers: []
-next_action: Fix the documentation table typo for wait_creature, add the required module-catalog/changelog discovery entries, inspect exact-head CI/ownership/E2E results and repair only real failures before final-gate synchronization.
+next_action: Wait for current exact-head ownership/CI/physical-E2E results, synchronize with current main if it advanced, then mark the PR ready, apply ci:final-gate before the final checkpoint commit, make the final checkpoint the last commit, and require exact-final-head green evidence before squash merge.
 ```
