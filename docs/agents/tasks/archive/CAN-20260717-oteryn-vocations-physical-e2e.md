@@ -2,13 +2,13 @@
 task_id: CAN-20260717-oteryn-vocations-physical-e2e
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-009
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: test/oam-009-vocations-physical-e2e
 base_branch: main
 created: 2026-07-17T16:50:00+02:00
-updated: 2026-07-17T20:10:48+02:00
-last_verified_commit: "fe7ad44e607217bd89425c96ab8afdb1e11d3842"
+updated: 2026-07-17T18:45:39Z
+last_verified_commit: "533a1063ab2d25199fb39239e28dace6a064d395"
 risk: low
 related_issue: ""
 related_pr: "489"
@@ -38,6 +38,7 @@ reuses:
 public_interfaces:
   - physical login resolution of persisted player vocation id
 cross_repo_tasks: []
+completed: 2026-07-17T18:45:39Z
 ---
 
 # Goal
@@ -116,3 +117,11 @@ validation:
 blockers: []
 next_action: Pass final exact-head gates on the feature head synchronized to main 2edc59f59c417f82efb0547f3ff87b426f8bbe5a, squash-merge PR 489, then complete lifecycle/archive and program reconciliation before any OAM-010 work.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #489.
+- Feature head: `d90866eeb30b8e1f6fbd3b45f452d68fc0f6185c`.
+- Merge commit: `533a1063ab2d25199fb39239e28dace6a064d395`.
+- Merged at: `2026-07-17T18:45:39Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
