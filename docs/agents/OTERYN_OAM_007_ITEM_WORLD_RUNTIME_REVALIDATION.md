@@ -1,6 +1,6 @@
 # OAM-007 — Item and World Runtime Foundation Revalidation
 
-Status: investigating
+Status: implementing
 
 ## Bounded scope
 
@@ -33,50 +33,89 @@ Runtime item factory/subtypes, instance attributes, clone/transform state and it
 
 Runtime `Map`/`MapCache`/`Tile`/`Spectators`/`IOMap` boundary for map loading, tile materialization, spatial lookup, placement/movement, visibility and pathfinding. `world-zones` and `instances` remain separate downstream modules.
 
-## Principal exact-blob matrix — current findings
+## Exact-blob matrix and disposition evidence
 
-| Path | Otheryn vs upstream | Legacy relation | Interpretation |
-|---|---|---|---|
-| `src/items/items.cpp` | identical | identical | strong reusable core registry evidence |
-| `src/items/item.cpp` | identical | identical | strong reusable runtime item core evidence |
-| `src/io/iomap.cpp` | identical | identical | reusable runtime map loader core evidence |
-| `src/map/spectators.cpp` | identical | identical | reusable spectator lookup core evidence |
-| `src/map/map.cpp` | identical | legacy differs | legacy delta requires necessity/provenance proof; no automatic port |
-| `src/map/map.hpp` | identical | legacy differs | same bounded legacy map-runtime divergence |
-| `src/items/tile.cpp` | identical | legacy differs | legacy tile delta requires proof before target adaptation |
-| `src/items/tile.hpp` | identical | legacy differs | same bounded legacy tile divergence |
-| `src/map/mapcache.cpp` | identical | legacy differs | legacy cache implementation delta requires proof |
-| `src/map/mapcache.hpp` | identical | identical | public cache header remains aligned |
-| `src/items/functions/item/item_parse.cpp` | identical | legacy differs | legacy parser delta requires proof; static registry core itself is aligned |
+### item-definitions
 
-Exact remaining attribute/parser/header/util paths are still being checked before final disposition.
+- `src/items/items.cpp` and `src/items/items.hpp` are identical across target, legacy and upstream.
+- `src/items/functions/item/item_parse.hpp` was identical at task start.
+- `src/items/functions/item/item_parse.cpp` was target/upstream-identical, while legacy differed.
+- The legacy difference has concrete provenance: merged Canary PR #81 (`a3406fe3d0cb1df32406c9e1292f43b5d90462a7`) fixed verified upstream issue #3584, where a newly placed magic field failed to affect a creature already standing on the target tile.
+- The bounded fix registers the existing add-item-on-tile handler in addition to the existing step-in handler only for magic-field step-in definitions; non-field events remain unchanged.
+- PR #81 provided a pure three-case policy test. Its unrelated manual healing-rune fix is excluded from OAM-007.
+- Otheryn PR #23 implements only this item-definition adaptation on top of exact task-start target `c547d8ad70ef1252624c255476e6cb83fa125e14`.
+
+Disposition candidate: `ADAPT`.
+
+### item-instances
+
+Checked principal runtime instance paths are content-identical across target, legacy and upstream:
+
+- `src/items/item.cpp`
+- `src/items/item.hpp`
+- `src/items/functions/item/attribute.cpp`
+- `src/items/functions/item/custom_attribute.cpp`
+
+No target incompatibility or required legacy-only behavior was identified in the bounded runtime item instance boundary.
+
+Disposition candidate: `REUSE`.
+
+### world-map-runtime
+
+Target and upstream are aligned across the checked principal runtime boundary, including:
+
+- `src/io/iomap.cpp/.hpp`
+- `src/map/spectators.cpp/.hpp`
+- `src/map/map.cpp/.hpp`
+- `src/items/tile.cpp/.hpp`
+- `src/map/mapcache.cpp/.hpp`
+- `src/map/utils/astarnodes.cpp`
+- `src/map/utils/mapsector.cpp`
+- `src/map/navigation_snapshot.cpp`
+
+Legacy Canary diverges in `Map`, `Tile`, `MapCache` and `MapSector`, while the upstream-aligned target contains the separately built `navigation_snapshot` runtime source that is absent from the legacy tree. This is evidence of a different legacy runtime fork, not evidence that the target is missing a required fix. No focused failing target test or target requirement was found that justifies importing the legacy fork.
+
+Disposition candidate: `REUSE`.
 
 ## Legacy-delta decision rule
 
-Otheryn and the pinned upstream are aligned across every principal path checked so far. Therefore a legacy-only delta is not a target defect by definition. It may enter OAM-007 only when all of the following are established:
+A legacy-only delta enters OAM-007 only when all of the following are established:
 
 1. a concrete target requirement falls inside one of the three canonical modules;
 2. target/upstream behavior demonstrably fails that requirement or lacks the necessary invariant;
 3. the legacy delta actually addresses that requirement;
 4. focused tests and applicable runtime proof can be attached to the bounded target change.
 
-Absent that evidence, preserve the upstream-aligned target and record the legacy delta as non-migrated evidence.
+PR #81 satisfies this rule for the magic-field item-definition behavior. The legacy Map/Tile/MapCache/MapSector fork does not currently satisfy it and is not migrated.
+
+## Current target delivery
+
+Otheryn draft PR #23, branch `fix/oam-007-magic-field-add-item-event`:
+
+- adds the PR #81 policy helper and focused unit test;
+- routes existing three-argument parser script registration through a bounded overload;
+- preserves the four-argument weapon-registration path;
+- registers `MOVE_EVENT_ADD_ITEM_ITEMTILE` only for `MOVE_EVENT_STEP_IN + magic field`;
+- registers the new translation unit in both CMake and the existing Windows MSBuild bridge;
+- does not modify Map/Tile/MapCache, datapacks, protocol or client code.
+
+Exact-head CI and review gates are still pending before target merge.
 
 ## Working dispositions
 
-| Module | Working disposition | Gate still open |
+| Module | Working disposition | Remaining gate |
 |---|---|---|
-| `item-definitions` | `REUSE` candidate | complete parser/header matrix and review legacy parser delta necessity |
-| `item-instances` | `REUSE` candidate | complete attribute/custom-attribute/serialization matrix |
-| `world-map-runtime` | `REUSE` candidate | complete remaining map runtime matrix and establish that legacy Map/Tile/MapCache deltas are not required target fixes |
+| `item-definitions` | `ADAPT` | Otheryn PR #23 exact-head CI/review/merge plus exact final-target runtime proof |
+| `item-instances` | `REUSE` | final bounded validation and governance gate |
+| `world-map-runtime` | `REUSE` | final bounded validation and exact final-target runtime proof; no legacy fork port |
 
 ## Validation plan
 
 - exact SHA/blob matrix over canonical registry paths;
 - focused review of every legacy-only divergence that intersects the bounded modules;
-- target build/test evidence at exact target head if no code changes are required;
-- use existing Universal Agent E2E/runtime capabilities for a bounded exact-target proof when the scenario can exercise the foundation without inventing unverified fixtures;
-- if adaptation becomes necessary, implement one bounded Otheryn PR and require exact-head CI before governance completion.
+- Otheryn PR #23 focused policy unit test and full exact-head target CI;
+- exact controlled-server runtime/physical proof against the final Otheryn merge using the existing Universal Agent E2E platform;
+- final Canary ownership/CI/review gates after recording exact target evidence.
 
 ## Safety and known limits
 
