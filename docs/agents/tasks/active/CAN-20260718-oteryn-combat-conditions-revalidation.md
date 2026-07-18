@@ -7,9 +7,10 @@ agent: "GPT-5.5 Thinking"
 branch: docs/oam-014-combat-conditions-revalidation
 base_branch: main
 created: 2026-07-18
-updated: 2026-07-18T13:36:54+02:00
-last_verified_commit: "7ed093cd71e75221b7c256a07b8f37704a6d06fc"
+updated: 2026-07-18T13:59:30+02:00
+last_verified_commit: "9d797b547c3f85f6d210c6123202c7cae32d5133"
 risk: high
+related_issue: "blakinio/Otheryn#34"
 related_pr: "539"
 depends_on:
   - OAM-013
@@ -51,13 +52,7 @@ Revalidate exactly one canonical Oteryn migration unit, `combat-conditions`, aga
 - upstream evidence: `opentibiabr/canary@e0ac98e399d0f7e483f3668f57b78fcc45b6e53f`
 - maintained OTClient: `blakinio/otclient@2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`
 
-# Initial disposition
-
-```text
-combat-conditions → REVALIDATE
-```
-
-Working candidate after initial semantic evidence:
+# Final disposition
 
 ```text
 combat-conditions → ADAPT
@@ -74,19 +69,41 @@ combat-conditions → ADAPT
 - [x] Publish draft governance PR #539 and bind this task to it.
 - [x] Confirm task-start Otheryn and pinned upstream `condition.cpp` share blob `5b15ed00c7e92eef6d8c719aec423443efae8b7a`.
 - [x] Confirm reviewed PR #297/current legacy corrected runtime blob is `26a1cf0c9e01f4ab162438e8284f5cc73d129d11`.
-- [ ] Verify exact donor test/CMake provenance from PR #297.
-- [ ] Audit reviewed legacy history for any additional coupled `combat-conditions` runtime fixes.
-- [ ] Determine final disposition.
-- [ ] Materialize smallest coherent target runtime/test boundary if `ADAPT`.
-- [ ] Pass exact-head Otheryn CI/Required/autofix and actual CTest.
-- [ ] Audit target comments/reviews/threads and race-safe target-main drift before merge.
-- [ ] Merge target PR and close target issue.
-- [ ] Finalize Canary evidence report/task with exact target proof.
+- [x] Verify exact donor test blob `ee2f185042cdb359aac1a752dce971ec76c38f8d` and CMake blob `b224d4eb1eb15eb92ca4a26f214c0764b82b03c3`.
+- [x] Audit reviewed legacy history for additional coupled `condition.cpp` runtime fixes; none identified.
+- [x] Determine final disposition `ADAPT`.
+- [x] Materialize exact 3-path target runtime/test boundary with fail-closed donor verification.
+- [x] Pass exact-head Otheryn CI #117, Required #108 and autofix #101.
+- [x] Pass Linux debug build, Canary runtime smoke, DB schema import and actual CTest.
+- [x] Pass 3/3 `ConditionLightTest` and 351/351 full target suite.
+- [x] Record primary artifact `8429300008` and digest.
+- [x] Audit target comments/reviews/threads and race-safe target-main drift before merge.
+- [x] Squash-merge target PR #35 with expected-head protection as `9d797b547c3f85f6d210c6123202c7cae32d5133`.
+- [x] Close target issue #34 completed.
+- [x] Finalize Canary evidence report/task with exact target proof.
 - [ ] Pass exact-head Canary Ownership and CI/Required.
 - [ ] Audit/merge Canary governance PR #539.
 - [ ] Archive task in separate lifecycle-only PR.
 - [ ] Reconcile durable migration program in separate program-only PR.
 - [ ] Mark OAM-014 COMPLETE and keep OAM-015 NOT STARTED until durable reconciliation merges.
+
+# Exact target proof
+
+```text
+Otheryn PR #35 final head: f4044811f2b930318ec6541a51e73a9a1b6fdce0
+CI #117: 29642976283 SUCCESS
+Required #108: 29642976213 SUCCESS
+autofix.ci #101: 29642976219 SUCCESS
+Linux debug build: PASS
+Canary runtime smoke: PASS
+database schema import: PASS
+full CTest: 351/351 PASS
+ConditionLightTest: 3/3 PASS
+primary test artifact: 8429300008
+artifact digest: sha256:328f60045be1d42e4fba0c6b80aa64a3b8e767553808d7c47119750922cc2e36
+target squash merge: 9d797b547c3f85f6d210c6123202c7cae32d5133
+issue #34: CLOSED / completed
+```
 
 # Explicit exclusions
 
@@ -96,14 +113,16 @@ combat-conditions → ADAPT
 - no protocol/client/map/asset changes;
 - no broad persistence redesign;
 - no SQL/KV atomicity claim;
-- no exhaustive condition timing/stacking/persistence parity claim unless separately proven.
+- no automatic persisted-data rewrite;
+- no exhaustive condition timing/stacking/persistence correctness claim;
+- no full Real Tibia condition formula/value parity claim.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T13:36:54+02:00
-head: 7ed093cd71e75221b7c256a07b8f37704a6d06fc
+updated_at: 2026-07-18T13:59:30+02:00
+head: 861e93e1aca66491c3c2489a0e61394db97e4267
 branch: docs/oam-014-combat-conditions-revalidation
 pr: 539
 status: ready
@@ -115,40 +134,54 @@ owned_paths:
   - docs/agents/OTERYN_OAM_014_COMBAT_CONDITIONS_REVALIDATION.md
   - docs/agents/tasks/active/CAN-20260718-oteryn-combat-conditions-revalidation.md
 proven:
+  - final disposition is combat-conditions ADAPT
   - immutable task-start baselines are Canary 0253b712cd4275e8ad72d5bca7020d1f4a2246b7 Otheryn 3628effc5f22e7edbdc66dc5f514e4df5c9f0cda upstream e0ac98e399d0f7e483f3668f57b78fcc45b6e53f OTClient 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
-  - canonical module combat-conditions depends on completed combat
-  - open PR audit found no overlap with src/creatures/combat/condition.*
-  - target and pinned upstream condition cpp share blob 5b15ed00c7e92eef6d8c719aec423443efae8b7a
-  - reviewed PR 297 and task-start legacy condition cpp share corrected blob 26a1cf0c9e01f4ab162438e8284f5cc73d129d11
+  - target and pinned upstream condition cpp share task-start blob 5b15ed00c7e92eef6d8c719aec423443efae8b7a
+  - reviewed PR 297 runtime donor blob is 26a1cf0c9e01f4ab162438e8284f5cc73d129d11
+  - exact donor test blob is ee2f185042cdb359aac1a752dce971ec76c38f8d
+  - exact donor CMake blob is b224d4eb1eb15eb92ca4a26f214c0764b82b03c3
+  - reviewed history found no second coupled delivered condition cpp runtime fix
+  - target PR 35 final scope is exactly three accepted paths and contains no materializer helpers
+  - exact-head CI Required and autofix gates passed
+  - Linux debug build Canary runtime smoke DB import and actual CTest passed
+  - full target suite passed 351 of 351
+  - ConditionLightTest focused surface passed 3 of 3
+  - target PR audit was clean and target main had no task-start drift immediately before merge
+  - target PR 35 squash-merged with expected-head protection as 9d797b547c3f85f6d210c6123202c7cae32d5133
+  - target issue 34 is closed completed
 derived:
-  - PR 297 is a dependency-valid bounded adaptation candidate for OAM-014
-  - no physical-client E2E is expected unless protocol/client ownership changes
+  - exact reviewed zero-level ConditionLight correctness boundary is dependency-valid after completed combat
+  - persisted zero light values are normalized in memory without claiming broad persistence completeness
+  - no physical-client E2E is required because no protocol or client boundary changed
 unknown:
-  - exact donor test and CMake blobs remain to be verified
-  - additional coupled reviewed condition-lifecycle fixes remain to be audited
-  - final disposition and target merge SHA remain pending
-  - Canary governance lifecycle and durable reconciliation merge SHAs remain pending
+  - Canary governance feature merge SHA remains pending
+  - lifecycle archive merge SHA remains pending
+  - durable program reconciliation merge SHA remains pending
 conflicts: []
 first_failure:
   marker: none
-  evidence: preflight complete; donor provenance and bounded semantic audit remain
+  evidence: target adaptation completed successfully; only Canary governance lifecycle and durable program closeout remain
 rejected_hypotheses:
+  - file identity alone proves whole-module condition correctness
   - condition lifecycle belongs to generic combat OAM-013
-  - file identity alone proves whole-module correctness
-  - spells belong inside combat-conditions ownership
+  - individual spells belong inside combat-conditions ownership
+  - zero-level normalization proves exhaustive condition timing stacking or persistence parity
 changed_paths:
   - docs/agents/OTERYN_OAM_014_COMBAT_CONDITIONS_REVALIDATION.md
   - docs/agents/tasks/active/CAN-20260718-oteryn-combat-conditions-revalidation.md
 validation:
-  - command: fresh live-state and open-PR overlap preflight
+  - command: exact target upstream condition core comparison
     result: PASS
-    evidence: no Otheryn open PR and no Canary open PR owns condition runtime paths
-  - command: exact task-start target upstream condition core comparison
+    evidence: task-start target and upstream condition cpp blob 5b15ed00c7e92eef6d8c719aec423443efae8b7a
+  - command: exact reviewed donor provenance verification
     result: PASS
-    evidence: target and upstream condition cpp blob 5b15ed00c7e92eef6d8c719aec423443efae8b7a
-  - command: reviewed PR 297 runtime provenance check
+    evidence: runtime test and CMake donor blobs matched PR 297 exactly
+  - command: exact-head Otheryn adaptation CI and runtime proof
     result: PASS
-    evidence: donor and task-start legacy condition cpp blob 26a1cf0c9e01f4ab162438e8284f5cc73d129d11
+    evidence: CI 29642976283 Required 29642976213 full CTest 351 of 351 ConditionLightTest 3 of 3
+  - command: target merge race-safe audit
+    result: PASS
+    evidence: zero comments reviews and review threads; target main identical to immutable baseline before expected-head squash merge
 blockers: []
-next_action: Verify exact PR 297 donor test/CMake provenance and audit additional reviewed combat-conditions history before any target write; do not start OAM-015.
+next_action: Run exact-head Canary governance gates for PR 539, audit comments reviews and review threads, then squash-merge; do not start OAM-015.
 ```
