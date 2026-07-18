@@ -4,8 +4,8 @@ name: Universal OTS E2E automation
 status: active
 owner: e2e-platform-agent
 created: 2026-07-13T00:00:00+02:00
-updated: 2026-07-13T00:30:00+02:00
-last_verified_commit: 97639776bb37c4f9aa1fa301cf43e7693a03a735
+updated: 2026-07-18T23:08:00+02:00
+last_verified_commit: be7842412beb5d240e76ffd4cd18aacdc3a2dcca
 primary_paths:
   - tools/e2e/**
   - tests/e2e/runtime/**
@@ -18,108 +18,99 @@ related_programs:
   - CAN-PROGRAM-QUEST-AUDIT
   - CAN-PROGRAM-WHEEL-OF-DESTINY
   - CAN-PROGRAM-OTBM
+  - CAN-PROGRAM-OTBM-E2E-ROUTING
 cross_repo_contracts:
   - OTS-E2E-CANARY-OTCLIENT
 ---
 
 # Mission
 
-Build one reusable, disposable environment in which autonomous agents can run real Canary and a real OTClient, execute feature-specific scenarios, verify protocol and database effects, collect evidence, and clean up without touching production systems.
+Maintain one reusable, disposable environment in which autonomous agents run real Canary and a real controlled OTClient, execute feature-specific scenarios, verify runtime/protocol/database effects, collect deterministic evidence, and clean up without touching production systems.
 
-Cyclopedia is the first prototype consumer. It is not the owner of the common platform.
+The current programme phase is no longer platform bootstrap. The reusable physical platform is merged and has proven login/relog, movement, floor change and teleport. The next phase is broad gameplay validation through feature-owned vertical slices, evidence-backed navigation, reusable persistence assertions, justified multi-client orchestration and controlled recovery testing.
 
-# Confirmed existing foundations
+Durable architecture: `docs/architecture/universal-e2e-gameplay-validation.md`.
 
-The repository already contains reusable pieces that must be extended rather than replaced:
+# Authoritative responsibility boundary
 
-- `docker/docker-compose.yml` starts the database, Canary, MyAAC, and login server with the global datapack contract;
-- `.github/scripts/docker-quickstart-smoke.sh` already performs startup, health, login-server, diagnostics, and cleanup checks;
-- `docker/data/01-test_account.sql` and `docker/data/02-test_account_players.sql` provide deterministic test accounts and characters;
-- the main CI publishes Canary build artifacts and runs global datapack smoke checks;
-- `blakinio/otclient` is the maintained user-owned client repository and must be the controlled client source for permanent cross-repository work;
-- draft PR #224 is the first live Canary + MySQL + OTClient/Xvfb experiment and must be treated as prototype evidence, not copied into every feature suite.
+## Universal E2E platform owns
 
-# Platform responsibility
+- disposable MariaDB/MySQL bootstrap, schema import, fixtures and teardown;
+- exact Canary artifact resolution or local build, isolated configuration, startup, readiness and shutdown;
+- controlled pinned `blakinio/otclient` artifact resolution/build;
+- transient map/client assets with integrity evidence and no committed binaries;
+- virtual display and physical client automation;
+- deterministic account, character, world, host, port and version configuration;
+- login, safe logout, relog, timeout, crash handling and cleanup;
+- stable scenario validation and generic physical action execution;
+- shared SQL/protocol/evidence assertion surfaces;
+- screenshots, logs, traces and machine-readable results;
+- generic multi-client or fault/recovery capabilities when implemented through separate platform tasks.
 
-The E2E platform owns reusable infrastructure for:
+The platform must remain feature-neutral. It must not encode feature-specific quest storages, rewards, NPCs, monsters, map landmarks or expected gameplay values.
 
-- disposable MariaDB/MySQL bootstrap, schema import, fixture loading, snapshots, and teardown;
-- Canary artifact resolution or local build, isolated configuration, startup, readiness, and shutdown;
-- global datapack and map acquisition with hashes and no committed binary assets;
-- OTClient artifact resolution or build from a pinned user-owned revision;
-- temporary client assets installation with integrity evidence;
-- Xvfb or another approved virtual display;
-- deterministic account, character, world, host, port, and version configuration;
-- login, logout, relog, timeout, crash, and cleanup handling;
-- a stable Lua scenario API and generic scenario runner;
-- SQL assertions, protocol-event assertions, screenshots, logs, traces, and machine-readable results;
-- one-command local execution and reusable GitHub Actions execution.
+## OTBM/static programmes own
 
-The platform must not encode feature-specific expected gameplay values.
+- canonical static map evidence through the Unified OTBM World Index;
+- walkability and route graph evidence through Reachability;
+- AID/UID/item/position runtime-handler correlation through Script Resolution;
+- reviewed floor-transition and other static mechanic evidence;
+- static route/landmark/interaction planning through `CAN-PROGRAM-OTBM-E2E-ROUTING`.
 
-# Feature-suite responsibility
+Static evidence is preflight evidence, not physical gameplay success.
 
-Feature programs own only their own scenario definitions, fixtures, and assertions. Planned suite roots include:
+## Feature programmes own
 
-- `tests/e2e/scenarios/login/**`
-- `tests/e2e/scenarios/cyclopedia/**`
-- `tests/e2e/scenarios/quests/**`
-- `tests/e2e/scenarios/wheel/**`
-- `tests/e2e/scenarios/forge/**`
-- `tests/e2e/scenarios/market/**`
-- `tests/e2e/scenarios/npc/**`
-- `tests/e2e/scenarios/combat/**`
-- `tests/e2e/scenarios/instances/**`
-- `tests/e2e/scenarios/protocol/**`
+- feature-specific scenario definitions;
+- deterministic fixtures;
+- feature actions and expected values;
+- feature SQL/server/client/UI assertions;
+- persistence expectations;
+- feature cleanup requirements.
 
-A feature task consumes platform code as read-only unless a separate platform task explicitly owns a required common-interface change.
+A feature task consumes platform implementation paths read-only unless a separate platform task explicitly owns a required generic interface change.
 
-# Ownership examples
+# Confirmed merged foundation
 
-## Platform task
+| Capability | State | Evidence | Reuse rule |
+|---|---|---|---|
+| Universal disposable physical E2E platform | merged | PR #245 | canonical lifecycle; never create a second orchestrator |
+| Declarative bounded physical gameplay actions | merged | PR #446 | extend generic action interfaces only through platform tasks |
+| Changed-scenario selection on same-repository PRs | merged | PR #477 | feature scenarios use the existing workflow/resolver |
+| Physical movement | merged and runtime-proven | PR #481 | baseline for position-aware execution |
+| Physical non-teleport floor change | merged and runtime-proven | PR #512 | baseline for cross-floor execution |
+| Physical teleport | merged and runtime-proven | PR #525 | baseline for mechanic + persistence/relog execution |
+| Cyclopedia-specific prototype | closed and superseded | PR #224 | historical evidence only; do not revive or copy its infrastructure |
 
-```yaml
-program_id: CAN-PROGRAM-E2E-PLATFORM
-owned_paths:
-  exclusive:
-    - tools/e2e/**
-    - tests/e2e/runtime/**
-    - tests/e2e/client/**
-  shared:
-    - .github/workflows/universal-e2e.yml
-    - tests/e2e/scenario_registry.*
-  read_only:
-    - tests/e2e/scenarios/**
-```
+# Current active integration work
 
-## Feature scenario task
+## OTBM-aware physical routing
 
-```yaml
-program_id: CAN-PROGRAM-QUEST-AUDIT
-owned_paths:
-  exclusive:
-    - tests/e2e/scenarios/quests/**
-  shared:
-    - tests/e2e/scenario_registry.*
-  read_only:
-    - tools/e2e/**
-    - tests/e2e/runtime/**
-    - tests/e2e/client/**
-depends_on:
-  - CAN-E2E-PLATFORM-BOOTSTRAP
-```
+Draft PR #562 introduces `CAN-PROGRAM-OTBM-E2E-ROUTING` and owns the detailed bridge between static OTBM evidence and physical E2E.
+
+Its programme boundary covers:
+
+- executable route export from existing Reachability data;
+- semantic landmark resolution;
+- route interaction semantics;
+- route preflight against exact provenance;
+- Universal route-following integration;
+- first landmark-to-landmark physical reference scenario.
+
+This E2E programme must consume that bridge when stable and must not duplicate its parser, World Index, pathfinder or route-planning contracts.
 
 # Stable scenario contract
 
-Each scenario must define:
+Each scenario must define or resolve:
 
-- unique scenario ID and owning program;
+- unique scenario ID and owning programme;
 - required server/client versions and capabilities;
 - database and character fixture requirements;
-- setup steps that are safe to repeat;
+- setup steps safe to repeat;
 - client actions or protocol requests;
-- observable server, client, UI, and SQL assertions;
-- relog or persistence checks when relevant;
+- static preflight requirements when relevant;
+- observable server, client, UI and SQL assertions;
+- persistence/relog checks when relevant;
 - timeout and failure markers;
 - artifacts to retain;
 - cleanup requirements;
@@ -127,74 +118,194 @@ Each scenario must define:
 
 Use `docs/agents/templates/E2E_SCENARIO.md` when adding a suite.
 
+# Evidence maturity
+
+Scenarios and programme claims must state the strongest level actually proven:
+
+- `M0 static`: map/source/handler evidence only;
+- `M1 physical-action`: real controlled OTClient performs the bounded action;
+- `M2 feature-outcome`: feature-specific runtime assertions pass;
+- `M3 persistence`: M2 plus safe logout, persisted state and relog verification;
+- `M4 cross-actor/system`: multiple clients/processes or major systems interact successfully;
+- `M5 recovery`: controlled failure plus expected recovery/rollback/idempotency/cleanup proof.
+
+Never promote a lower evidence level to a higher one without the corresponding physical/runtime proof.
+
 # Interface-change rule
 
 When a feature needs a new generic capability:
 
 1. the feature task records the missing capability and proposed interface;
-2. a separate E2E-platform task claims and implements the reusable capability;
-3. the platform PR adds generic focused tests;
+2. a separate Universal E2E platform task claims and implements the generic capability;
+3. the platform PR adds focused tests and preserves existing registered scenarios;
 4. the feature PR consumes the stable interface without copying orchestration;
 5. `depends_on` and `blocks` record merge order;
 6. Canary/OTClient changes use a shared coordination ID and the cross-repository contract rules.
 
+The same rule applies to generic route following, map-item interaction, persistence assertions, multi-client orchestration and fault injection.
+
+# Ordered next-phase queue
+
+The detailed implementation plan and acceptance gates live in `docs/architecture/universal-e2e-gameplay-validation.md`.
+
+## E2E-GAMEPLAY-001 — programme reconciliation and architecture
+
+Purpose: replace stale pre-bootstrap programme state with the current architecture and ordered queue.
+
+Owner: documentation/agent-governance task.
+
+Status: active through task `CAN-20260718-universal-e2e-gameplay-roadmap` / PR #563.
+
+## E2E-GAMEPLAY-002 — OTBM-aware route consumption
+
+Purpose: execute evidence-backed route plans through the existing physical OTClient runner with exact-position synchronization and fail-closed divergence evidence.
+
+Depends on: stable required outputs from `CAN-PROGRAM-OTBM-E2E-ROUTING`.
+
+Hard boundary: E2E consumes route plans; it does not implement an independent pathfinder.
+
+## E2E-GAMEPLAY-003 — quest and NPC vertical slices
+
+Purpose: add one deterministic real-client quest/NPC flow, including navigation when required and M3 persistence proof for durable quest state.
+
+Start narrow. Do not attempt broad quest coverage in one PR.
+
+## E2E-GAMEPLAY-004 — combat vertical slice
+
+Purpose: prove one deterministic bounded combat lifecycle with a real client and retained first-failure evidence.
+
+Use a controlled fixture; never depend on random public-world occupancy.
+
+## E2E-GAMEPLAY-005 — persistence assertion matrix
+
+Purpose: add reusable assertion surfaces for storages/quest state, inventory/depot/inbox, bank/economy, vocation/progression and other durable feature rows.
+
+This package may proceed independently of route planning because it reuses the already-proven two-session login/logout/relog lifecycle.
+
+## E2E-GAMEPLAY-006 — multi-client orchestration
+
+Purpose: extend the single canonical orchestrator to multiple controlled OTClients only when a concrete feature requires it.
+
+Candidate first consumers: trade, party, PvP or direct player-to-player interaction.
+
+## E2E-GAMEPLAY-007 — runtime fault and recovery validation
+
+Purpose: introduce bounded explicit fault-injection seams only after a stable baseline scenario exists, then prove expected recovery, rollback, idempotency or cleanup.
+
+Never target production or third-party systems.
+
+## E2E-GAMEPLAY-008 — cross-system gameplay journeys
+
+Purpose: compose already-proven capabilities into representative player journeys such as temple -> depot -> NPC -> quest/combat -> reward -> relog/persistence.
+
+Journey tests are integration sentinels and never replace focused feature tests.
+
+# Dependency guidance
+
+```text
+E2E-GAMEPLAY-001 architecture
+        |
+        +------------------------------+
+        |                              |
+        v                              v
+OTBM-E2E routing programme        E2E-GAMEPLAY-005 persistence
+        |
+        v
+E2E-GAMEPLAY-002 route consumption
+        |
+        +----------------------+
+        |                      |
+        v                      v
+E2E-GAMEPLAY-003 quests/NPC    E2E-GAMEPLAY-004 combat
+        |                      |
+        +-----------+----------+
+                    |
+                    v
+           E2E-GAMEPLAY-008 journeys
+
+E2E-GAMEPLAY-006 multi-client: start from concrete feature demand.
+E2E-GAMEPLAY-007 recovery: start only after a stable baseline exists.
+```
+
+# Suite roots
+
+Feature-owned suites may live under roots including:
+
+- `tests/e2e/scenarios/login/**`;
+- `tests/e2e/scenarios/cyclopedia/**`;
+- `tests/e2e/scenarios/quests/**`;
+- `tests/e2e/scenarios/wheel/**`;
+- `tests/e2e/scenarios/forge/**`;
+- `tests/e2e/scenarios/market/**`;
+- `tests/e2e/scenarios/npc/**`;
+- `tests/e2e/scenarios/combat/**`;
+- `tests/e2e/scenarios/instances/**`;
+- `tests/e2e/scenarios/protocol/**`.
+
+Additional roots require normal programme/task ownership and registry integration; do not create complete parallel workflows per suite.
+
 # Execution target
 
-The eventual user-facing interface should support commands equivalent to:
+The user-facing interface should continue to converge on commands equivalent to:
 
 ```text
 run-e2e --suite login
-run-e2e --suite cyclopedia
 run-e2e --suite quests
-run-e2e --suite wheel
+run-e2e --suite combat
 run-e2e --suite forge
 run-e2e --all
 ```
 
-The exact executable name and implementation language remain implementation decisions for the platform task. Agents must derive them from verified repository conventions rather than inventing a second runner.
-
-# Current active prototype
-
-| Task/PR | State | Reusable evidence | Required treatment |
-|---|---|---|---|
-| PR #224 `test/cyclopedia-live-e2e` | draft; live workflow currently under repair | MySQL service, Canary/global-map setup, OTClient/Xvfb automation, relog, protocol assertions, SQL checks, evidence artifacts | Extract common orchestration into the platform; keep Cyclopedia requests and assertions in its suite; do not merge copied feature-specific infrastructure as the final architecture. |
-
-# Ordered queue
-
-1. Merge the coordination and ownership contract in PR #222.
-2. Repair the live prototype sufficiently to record the first complete physical-client run.
-3. Extract common setup, artifact resolution, lifecycle, diagnostics, and result format into one platform task.
-4. Convert Cyclopedia logic into the first feature suite.
-5. Add a minimal login/relog baseline suite that every platform change must pass.
-6. Add quest, Wheel, Forge, and other suites through separate feature-owned tasks.
-7. Add local one-command execution after the CI contract is stable.
+The exact executable remains an implementation detail of the existing platform. Agents must extend verified repository conventions rather than inventing another runner.
 
 # Safety invariants
 
-- no production credentials, database, host, or irreversible external action;
-- no committed Tibia assets, downloaded OTBM files, database dumps, or secrets;
-- every run uses a unique disposable environment and always attempts cleanup;
+- no production credentials, database, host or irreversible external action;
+- no committed Tibia assets, downloaded OTBM files, database dumps or secrets;
+- every run uses an isolated disposable environment and always attempts cleanup;
 - external binaries and assets are pinned or hash-recorded;
-- failures retain enough evidence to diagnose the exact phase;
+- failures retain enough evidence to identify the exact first failed layer;
 - feature PRs never silently modify shared platform lifecycle behavior;
-- platform PRs treat all registered feature suites as compatibility inputs;
-- no E2E success claim without a verified real workflow result on the current commit.
+- platform PRs treat registered feature suites as compatibility inputs;
+- no E2E success claim without a verified real workflow result on the exact relevant commit;
+- no static OTBM success claim may be presented as physical gameplay proof;
+- no independent E2E pathfinder after the OTBM route integration boundary exists;
+- no blind nontrivial navigation once evidence-backed route consumption is available.
 
 # Handoff
 
 ## Start here
 
-Read `AGENTS.md`, `docs/agents/README.md`, this program record, active E2E task records, PR #224, Docker quickstart smoke, and the current Canary/OTClient artifact contracts.
+Future agents should read, in order:
+
+1. root `AGENTS.md`;
+2. `docs/agents/REPOSITORY_MAP.md`;
+3. `docs/agents/CONTEXT_ROUTING.md`;
+4. this programme record;
+5. `docs/architecture/universal-e2e-gameplay-validation.md`;
+6. the selected active task and live PR;
+7. for route work, the current merged/draft `OTBM_E2E_ROUTE_INTEGRATION_PROGRAM.md` and its technical contract.
 
 ## Do not repeat
 
-- Do not create one complete workflow per feature.
-- Do not use `opentibiabr/otclient` as a writable target.
-- Do not commit client assets or map binaries.
-- Do not replace existing quickstart lifecycle logic without recording why it cannot be reused.
+- do not reopen or copy superseded PR #224 infrastructure;
+- do not create one complete workflow per feature;
+- do not create a second physical E2E orchestrator;
+- do not implement an independent OTBM parser, World Index or route pathfinder inside E2E;
+- do not use `opentibiabr/otclient` as a writable target;
+- do not commit client assets or map binaries;
+- do not invent coordinates, item IDs, NPCs, monsters, storages or dynamic Lua behavior;
+- do not weaken login/logout/relog or physical evidence requirements to make a scenario pass.
 
-## Open questions
+## Next action selection
 
-- Whether the first canonical database target should reuse MariaDB 11.4 quickstart or introduce a deliberate MariaDB/MySQL matrix.
-- Which exact OTClient artifact layout is stable enough to become the resolver contract.
-- Whether scenario automation should remain injected through `otclientrc.lua` or use a dedicated test module in `blakinio/otclient`.
+Choose the first queue item whose dependencies are already satisfied on current `main`.
+
+At the time of this reconciliation:
+
+- E2E-GAMEPLAY-001 is the active documentation package;
+- E2E-GAMEPLAY-002 is gated by the required stable outputs of the OTBM-aware routing programme;
+- E2E-GAMEPLAY-005 may be started independently if no conflicting owner exists;
+- feature vertical slices should start only one deterministic scenario at a time.
+
+Never infer dependency completion from this document alone. Verify current task/PR/merge state before claiming the next package.
