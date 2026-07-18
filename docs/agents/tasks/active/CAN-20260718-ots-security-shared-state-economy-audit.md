@@ -6,8 +6,8 @@ agent: "GPT-5.5 Thinking"
 branch: docs/ots-security-shared-state-economy-audit-20260718
 base_branch: main
 created: 2026-07-18T09:58:00+02:00
-updated: 2026-07-18T10:40:00+02:00
-last_verified_commit: "7b268a3f536eb211392afdc3337c4bff757c9b80"
+updated: 2026-07-18T10:47:00+02:00
+last_verified_commit: "2e55ea3d70b37d5ac451b1f14d63ce88d1470a9a"
 risk: high
 related_issue: ""
 related_pr: "526"
@@ -78,7 +78,7 @@ Continue the existing OTS security assessment from the durable PR #453 handover 
 - [x] Open-PR overlap checked; no exclusive-path overlap with this task identified.
 - [x] Dedicated task branch and draft PR #526 created without mixing scope into PR #522.
 - [ ] Mechanical global/shared-state inventory completed for the highest-risk remaining writers.
-- [ ] Exactly-once/economy continuation completed for remaining depot/inbox/stash, house settlement and paid-operation flows.
+- [ ] Exactly-once/economy continuation completed for remaining depot/inbox/stash, final house settlement and paid-operation flows.
 - [x] Qualified findings, revalidations and rejected candidates preserved in `docs/security/OTS_SECURITY_SHARED_STATE_ECONOMY_AUDIT_2026-07-18.md`.
 - [x] Changed-file scope remains documentation-only and limited to this task record plus its evidence document.
 - [ ] Required GitHub checks pass on the exact final head before readiness/merge.
@@ -87,8 +87,8 @@ Continue the existing OTS security assessment from the durable PR #453 handover 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T10:40:00+02:00
-head: 7b268a3f536eb211392afdc3337c4bff757c9b80
+updated_at: 2026-07-18T10:47:00+02:00
+head: 2e55ea3d70b37d5ac451b1f14d63ce88d1470a9a
 branch: docs/ots-security-shared-state-economy-audit-20260718
 pr: 526
 status: implementing
@@ -108,6 +108,7 @@ proven:
   - OTS-ECO-GUILD-001: process-local guild balances plus absolute saves permit cross-channel stale-snapshot double spend
   - OTS-ECO-HOUSE-001: a house-auction refund applied directly to a bidder online on another channel can be erased by that bidder's later stale full save
   - OTS-ECO-HOUSE-002: house-auction money/refund effects precede durable bid-state persistence, leaving a crash-time duplicate-refund or unbacked-state window
+  - OTS-ECO-HOUSE-003: house-transfer debit/refund effects and transfer-state persistence are separate, creating crash-time repeated debit, stranded payment or duplicate refund windows
   - OTS-ECO-TRADE-001: completed bilateral trade is persisted as two independently committing player snapshots, permitting crash-time duplication or loss
   - existing house-isolation finding remains current: channel-scoped schema intent conflicts with UNIQUE(id), unpartitioned load/save/list paths and global cleanup behavior
   - existing single-type account-coin RMW finding remains current; single-type add/remove use SELECT then absolute UPDATE
@@ -117,11 +118,11 @@ proven:
 derived:
   - a fresh audit-continuation task avoids mixing new findings into lifecycle-only PR 522
 unknown:
-  - CANDIDATE OTS-MC-SS-C01: global server record writer behavior pending exact Game::loadPlayersRecord/checkPlayersRecord implementation trace
+  - CANDIDATE OTS-MC-SS-C01: global server record writer behavior pending exact Game::loadPlayersRecord/updatePlayersRecord implementation trace
   - CANDIDATE OTS-MC-SS-C02: raid daily-counter KV reset pending exact raid.kv persistence/namespace proof
   - CANDIDATE OTS-MC-SS-C03: individual global-event, cleanup, highscore and DB-optimization jobs pending concrete call-site classification
   - exhaustive current-source shared-state inventory
-  - remaining depot/inbox/stash and house transfer/settlement exactly-once flows
+  - remaining depot/inbox/stash and final house settlement exactly-once flows
   - exact-final-head Agent Task Ownership, CI and Security Validation results for the latest checkpoint commit
 conflicts: []
 first_failure:
@@ -146,7 +147,7 @@ validation:
     evidence: PR 526 is same-repository branch -> blakinio/canary:main
   - command: current-source audit continuation
     result: PASS
-    evidence: durable evidence report is preserved in the task-owned security document
+    evidence: durable evidence report is preserved in the task-owned security document through report commit 2e55ea3d70b37d5ac451b1f14d63ce88d1470a9a
   - command: PR 526 changed-file scope
     result: PASS
     evidence: only the task record and audit evidence document are changed
@@ -158,5 +159,5 @@ validation:
     evidence: diagnostics required first_failure and rejected validation result tokens UNAVAILABLE and FIXED_IN_HEAD
 blockers:
   - disposable shell cannot currently fetch/clone GitHub, so physical two-process race/crash proofs are unavailable in this environment
-next_action: Finish concrete shared-state writer inventory (global record, raid KV, cleanup/highscore/DB optimization), then continue depot/inbox/stash and house transfer/settlement exactly-once review before opening any remediation task.
+next_action: Finish concrete shared-state writer inventory (global record, raid KV, cleanup/highscore/DB optimization), then continue depot/inbox/stash and final house settlement exactly-once review before opening any remediation task.
 ```
