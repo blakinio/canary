@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-001-route-plan-export
 base_branch: main
 created: 2026-07-18T23:45:00+02:00
-updated: 2026-07-18T23:45:00+02:00
-last_verified_commit: "c1c0d10ed1e758cb72728be5fe22458cd9d9e61a"
+updated: 2026-07-18T23:46:00+02:00
+last_verified_commit: "a55c107513d92fe2a8e1304cf2906f891f278d66"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "567"
 depends_on:
   - CAN-PROGRAM-OTBM-E2E-ROUTING merged planning programme PR #562
 blocks:
@@ -77,10 +77,10 @@ Implement `OTBM-E2E-001 — Reachability executable route export` as a bounded e
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T23:45:00+02:00
-head: c1c0d10ed1e758cb72728be5fe22458cd9d9e61a
+updated_at: 2026-07-18T23:46:00+02:00
+head: a55c107513d92fe2a8e1304cf2906f891f278d66
 branch: feat/otbm-e2e-001-route-plan-export
-pr: null
+pr: 567
 status: implementing
 context_routes:
   - agent-governance
@@ -99,6 +99,7 @@ owned_paths:
   - docs/agents/CHANGELOG.md
 proven:
   - task branch was created from live main at c1c0d10ed1e758cb72728be5fe22458cd9d9e61a
+  - draft PR 567 is the early same-repository PR for this task with base main and head feat/otbm-e2e-001-route-plan-export
   - merged programme PR #562 defines OTBM-E2E-001 and requires reuse of the existing Reachability BFS/predecessor graph
   - existing _bfs stores previous[destination] = (parent, transition_id)
   - existing _reconstruct_path truncates long public-report paths and therefore cannot itself be used as an executable full-route contract
@@ -111,7 +112,6 @@ proven:
   - direct git clone is unavailable because the sandbox cannot resolve github.com
   - OTBM World Index map source SHA-256 is available through worldIndexManifest.source.sha256 when a validated world manifest is supplied
   - executable route provenance must fail closed when required map or World Index identity is unavailable
-
 derived:
   - a full edge-aware reconstruction helper can walk the same predecessor map without running any new search
   - pure confirmed movement can be executable when required provenance is present; conditional geometry and unresolved physical transition activation remain blocked
@@ -131,5 +131,5 @@ validation:
   - command: live repository, programme, routed OTBM docs, open PR and ownership preflight
     result: PASS
     evidence: main c1c0d10ed1e758cb72728be5fe22458cd9d9e61a; PR #562 merged; PR #563 merged; open PRs reviewed; no overlapping Reachability route-plan owner found
-next_action: Open the early draft PR, bind the task record to its PR number, then implement full predecessor-derived route reconstruction and deterministic route-plan export with focused tests.
+next_action: Implement full predecessor-derived route reconstruction and deterministic route-plan export, then add focused contract tests and documentation without touching tools/e2e.
 ```
