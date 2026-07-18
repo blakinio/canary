@@ -19,6 +19,10 @@
 #include <fstream>
 #include <memory>
 
+#ifndef USE_PRECOMPILED_HEADERS
+	#include <filesystem>
+#endif
+
 namespace {
 	ChannelInfo makeChannel(int32_t id, const std::string &name, bool enabled = true, bool maintenance = false, int32_t sortOrder = 0) {
 		ChannelInfo info;
@@ -179,21 +183,23 @@ TEST(ChannelRegistryHashTest, DifferentContentProducesDifferentHash) {
 }
 
 TEST(ChannelRegistryHashTest, ComputeFileHashMatchesInMemoryHashOfSameBytes) {
-	const std::string path = "/tmp/channel_registry_hash_test_fixture.bin";
+	const auto path = std::filesystem::temp_directory_path() / "channel_registry_hash_test_fixture.bin";
 	const std::string contents = "otbm-fixture-bytes-for-hash-test";
 	{
 		std::ofstream file(path, std::ios::binary | std::ios::trunc);
 		file << contents;
 	}
 
-	const auto fileHash = ChannelRegistry::computeFileHash(path);
+	const auto fileHash = ChannelRegistry::computeFileHash(path.string());
 	const auto memoryHash = ChannelRegistry::hashBytes(reinterpret_cast<const unsigned char*>(contents.data()), contents.size());
 	EXPECT_EQ(memoryHash, fileHash);
 	EXPECT_FALSE(fileHash.empty());
 
-	std::remove(path.c_str());
+	std::filesystem::remove(path);
 }
 
 TEST(ChannelRegistryHashTest, MissingFileReturnsEmptyHash) {
-	EXPECT_TRUE(ChannelRegistry::computeFileHash("/tmp/does-not-exist-channel-registry-fixture.bin").empty());
+	const auto path = std::filesystem::temp_directory_path() / "does-not-exist-channel-registry-fixture.bin";
+	std::filesystem::remove(path);
+	EXPECT_TRUE(ChannelRegistry::computeFileHash(path.string()).empty());
 }
