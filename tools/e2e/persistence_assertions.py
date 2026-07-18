@@ -6,7 +6,7 @@ from typing import Any
 
 MAX_ASSERTIONS = 32
 ASSERTION_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
-PLAYER_FIELDS = frozenset({"level", "vocation", "experience"})
+PLAYER_FIELDS = frozenset({"level", "experience"})
 
 
 class PersistenceAssertionError(ValueError):
