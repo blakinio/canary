@@ -3,11 +3,11 @@ task_id: CAN-20260718-myaac-security-audit-continuation
 program_id: CAN-PROGRAM-SECURITY-VALIDATION
 status: implementing
 agent: "GPT-5.5 Thinking"
-branch: docs/myaac-security-audit-continuation-20260718
+branch: docs/myaac-security-audit-closeout-20260718
 base_branch: main
 created: 2026-07-18T20:56:00+02:00
-updated: 2026-07-18T21:12:00+02:00
-last_verified_commit: "9e6ff37e1dfeecd78004448c6a62d82a2fe83b94"
+updated: 2026-07-18T21:40:00+02:00
+last_verified_commit: "382fbd0c2f8e0d9978b05582198d8ad3be1a92d0"
 risk: high
 related_issue: ""
 related_pr: "556"
@@ -37,7 +37,7 @@ cross_repo_tasks: []
 
 ## Status
 
-MyAAC-only continuation evidence is complete and preserved in the dedicated handover. The `ci:final-gate` label was applied before the final documentation/checkpoint commits. This is the final checkpoint commit; no further content changes are planned.
+The audit documentation feature PR #556 passed the exact-final-head gate and was squash-merged. This narrow closeout only synchronizes the durable handover/task state with the completed merge; it introduces no new finding and changes no runtime source.
 
 ## Goal
 
@@ -60,65 +60,51 @@ Continue the MyAAC and MyAAC → login-server → Canary security audit, preserv
 - [x] Check open PRs narrowly for overlapping MyAAC/login-stack audit ownership.
 - [x] Revalidate material source chains against the pinned MyAAC baseline and current rolling `develop` where available.
 - [x] Preserve one new rate-limit bypass finding and material extensions without duplicating existing findings.
-- [x] Write a MyAAC-only handover with exact evidence states, limitations, branch/PR/task/head/CI/merge state, and one `next_action`.
-- [x] Keep changed-file scope documentation-only and limited to owned paths.
-- [x] Inspect PR changed-file list and full documentation diff.
-- [x] Pre-final documentation head passed CI, Agent Task Ownership, and Security Validation.
-- [ ] Exact final checkpoint head passes all required `ci:final-gate` workflows.
-- [ ] PR is marked ready and squash-merged only after the exact final head is fully green and review-clean.
+- [x] Write a MyAAC-only handover with exact evidence states and validation limitations.
+- [x] Feature PR #556 exact final head passed CI, Agent Task Ownership, Security Validation, and the required CI aggregator.
+- [x] Feature PR #556 was marked ready and squash-merged.
+- [ ] Synchronize the durable handover with final head/CI/merge state and one post-merge `next_action`.
+- [ ] Merge the closeout PR after its own exact-final-head gate; then allow post-merge lifecycle automation to archive this task record.
 
 ## Validation
 
 - Full MyAAC + MariaDB + login-server + Canary E2E is unavailable in the current sandbox.
-- PHP CLI is available; Docker/MariaDB and PHP GD/ZipArchive are unavailable.
+- PHP CLI is available; Docker/MariaDB and PHP GD/ZipArchive were unavailable for requested full-stack/image/archive E2E.
 - An isolated exact-logic `RateLimit` harness confirmed the reset bypass but is not represented as full-stack E2E.
-- PR #556 changed-file scope is limited to this active task and the MyAAC-only handover.
-- On pre-final head `9e6ff37e1dfeecd78004448c6a62d82a2fe83b94`: CI PASS, Agent Task Ownership PASS, Security Validation PASS.
+- Feature PR #556 final head `cb127ee3d144bab1b5b50ecb91c3b880a96a4b8d` passed CI run 3495, Agent Task Ownership run 2358, and Security Validation run 124 before merge.
+- Feature PR #556 squash merge commit: `382fbd0c2f8e0d9978b05582198d8ad3be1a92d0`.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T21:12:00+02:00
-head: 9e6ff37e1dfeecd78004448c6a62d82a2fe83b94
-branch: docs/myaac-security-audit-continuation-20260718
-pr: 556
-status: validating
+updated_at: 2026-07-18T21:40:00+02:00
+head: 382fbd0c2f8e0d9978b05582198d8ad3be1a92d0
+branch: docs/myaac-security-audit-closeout-20260718
+pr: null
+status: implementing
 context_routes:
   - agent-governance
 owned_paths:
   - docs/agents/tasks/active/CAN-20260718-myaac-security-audit-continuation.md
   - docs/security/MYAAC_SECURITY_AUDIT_HANDOVER_2026-07-18.md
 proven:
-  - merged PR 453 and its archived task were read; PR 453 final head f1961e9ce6a1f231a0ed8900519a9f4634fe4ea8 merged as 6b42890347338a13daca5fd6291b56b8dc6aa091
-  - no open PR found with the same MyAAC/login-stack audit documentation scope before PR 556 was opened
-  - MyAAC web and native game login rate limiting uses a shared per-IP bucket and resets that bucket after valid credentials
-  - valid credentials for an attacker-controlled account can reset the IP bucket before the threshold, enabling repeated victim guesses without reaching lockout
-  - the reset behavior remains present on current rolling MyAAC develop source
-  - ordinary FLAG_ADMIN can directly edit arbitrary account password, TOTP secret, web_flags and game privilege fields; this materially extends the existing broken-access-control finding
-  - FLAG_ADMIN can reach PHP execution through custom database PHP pages after self-granting page content permission and enabling PHP pages; this is an alternate RCE path under the existing broken-access-control finding
-  - Gallery URL ingestion can fetch remote images through GD URL wrappers and persist a re-encoded copy, making the existing SSRF response-revealing for valid image resources when URL fopen wrappers are enabled
-  - existing SEC-28 already records the global forum cooldown; this continuation only adds the non-atomic concurrent bypass aspect
-  - paid-operation scan reconfirmed change-name/change-sex read-check-mutate-write races already covered by existing findings; no distinct new core paid-operation finding was promoted
-  - no current ZIP Slip claim is proven
-  - normal character-comment and guild-description update paths escape HTML before later raw rendering
-  - MyAAC derives browser real IP from REMOTE_ADDR in the reviewed compatibility path; external login-server XFF spoofing does not transfer to this MyAAC path
-  - isolated exact-logic RateLimit harness completed 80 victim guesses with max_attempts 5 by resetting after every 4 guesses; final bucket remained zero and unblocked
-  - PR 556 changed-file list contains only the active task record and MyAAC-only handover
-  - pre-final head 9e6ff37e1dfeecd78004448c6a62d82a2fe83b94 passed CI run 3493, Agent Task Ownership run 2357, and Security Validation run 123
-  - Security Validation run 123 completed security scenarios, exact-head Canary build, login parser runtime, and malformed status parser runtime successfully
+  - PR 556 feature head cb127ee3d144bab1b5b50ecb91c3b880a96a4b8d passed the exact-final-head CI gate
+  - CI run 3495 completed successfully after the PR was marked ready and emitted the required branch-protection check
+  - Agent Task Ownership run 2358 completed successfully on the feature final head
+  - Security Validation run 124 completed successfully on the feature final head
+  - PR 556 had no review submissions, review threads, or PR comments before merge
+  - PR 556 was squash-merged as 382fbd0c2f8e0d9978b05582198d8ad3be1a92d0
+  - durable handover currently contains correct findings but its repository-state section still reflects the pre-merge checkpoint and requires synchronization
+  - MyAAC-036 remains the only new finding promoted by this continuation; other discoveries were extensions or rejected/not promoted
 derived:
-  - the new rate-limit reset finding provides a deterministic brute-force throttle bypass to an attacker holding any valid account credential, including an unverified account on paths that reset before email verification rejection
-  - the same reset primitive applies to admin-login attempts because a valid non-admin account is rejected only after password verification while the shared IP bucket is still reset
-  - forum cooldown precheck and insert are not atomic, so concurrent requests can pass the same precheck
+  - no further source audit change is required for this closeout; only durable post-merge state synchronization is needed
 unknown:
-  - full integrated behavior in a disposable MyAAC + MariaDB + login-server + Canary stack
-  - current exact SHA of slawkens/myaac develop as built by an arbitrary future quickstart invocation
-  - current PHP ZipArchive/libzip traversal behavior in the unavailable target runtime
+  - post-merge lifecycle automation completion time for moving this task record from tasks/active to tasks/archive
 conflicts: []
 first_failure:
-  marker: Agent Task Ownership / Validate changed active task checkpoints
-  evidence: active task frontmatter used non-active status validating on head 4de7775fa024b4a754f4844045ea31422b3a30ba; corrected to implementing and subsequent ownership checks passed
+  marker: direct squash merge attempt before ready-triggered Required check completed
+  evidence: GitHub rejected the first merge attempt with required status check Required expected; after ready-triggered CI run 3495 completed successfully, the same exact head merged without bypassing branch protection
 rejected_hypotheses:
   - forum global cooldown as a new finding; already preserved as SEC-28
   - current ZIP Slip arbitrary overwrite without target-runtime proof
@@ -129,32 +115,17 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260718-myaac-security-audit-continuation.md
   - docs/security/MYAAC_SECURITY_AUDIT_HANDOVER_2026-07-18.md
 validation:
-  - command: narrow open-PR/task ownership review
-    result: PASS
-    evidence: no overlapping open MyAAC/login-stack audit documentation PR identified before PR 556
   - command: isolated exact-logic RateLimit harness
     result: PASS
     evidence: victim_guesses=80 remaining_attempts=0 blocked=no with max_attempts=5
-  - command: predecessor durable report duplicate check
+  - command: feature PR 556 exact-final-head CI
     result: PASS
-    evidence: global forum cooldown was detected as existing SEC-28 and was not assigned a duplicate MYAAC number
-  - command: PR 556 changed-file list and documentation diff inspection
+    evidence: CI run 3495, Agent Task Ownership run 2358, and Security Validation run 124 completed successfully on head cb127ee3d144bab1b5b50ecb91c3b880a96a4b8d
+  - command: feature PR 556 merge
     result: PASS
-    evidence: only the active task and MyAAC-only handover changed; no runtime, binary, map, workflow, production configuration, or upstream repository path changed
-  - command: Agent Task Ownership on head 4de7775fa024b4a754f4844045ea31422b3a30ba
-    result: FAIL
-    evidence: active task frontmatter status validating is not permitted under tasks/active; corrected to implementing
-  - command: CI on pre-final head 9e6ff37e1dfeecd78004448c6a62d82a2fe83b94
-    result: PASS
-    evidence: workflow run 3493 completed successfully
-  - command: Agent Task Ownership on pre-final head 9e6ff37e1dfeecd78004448c6a62d82a2fe83b94
-    result: PASS
-    evidence: workflow run 2357 completed successfully
-  - command: Security Validation on pre-final head 9e6ff37e1dfeecd78004448c6a62d82a2fe83b94
-    result: PASS
-    evidence: workflow run 123 completed successfully, including exact-head build and bounded runtime jobs
+    evidence: squash merge commit 382fbd0c2f8e0d9978b05582198d8ad3be1a92d0
 blockers:
-  - full integrated E2E unavailable in current sandbox; this is a documented validation limitation, not a merge blocker for the documentation-only PR
-  - exact final checkpoint head must pass the forced final gate before merge
-next_action: Verify all required workflows on the exact final checkpoint head. If every required check passes and PR 556 remains mergeable and review-clean, mark it ready and squash-merge. Make no further commits.
+  - full integrated MyAAC + MariaDB + login-server + Canary E2E remains unavailable and explicitly unclaimed
+  - closeout handover synchronization and its own final-head CI gate are pending
+next_action: Open the narrow closeout PR, update only the handover repository/task/PR state and exact next action, apply ci:final-gate before its final checkpoint commit, then merge only after all exact-head checks pass; make no audit/source changes.
 ```
