@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: docs/oam-015-weapons-revalidation
 base_branch: main
 created: 2026-07-18
-updated: 2026-07-18T15:18:00+02:00
-last_verified_commit: "051f4101cac5250dd41d8aa0914fcc8761b08d64"
+updated: 2026-07-18T15:38:00+02:00
+last_verified_commit: "9d797b547c3f85f6d210c6123202c7cae32d5133"
 risk: high
 related_issue: "blakinio/Otheryn#36"
-related_pr: "pending"
+related_pr: "blakinio/Otheryn#37"
 depends_on:
   - OAM-013
 blocks:
@@ -39,18 +39,22 @@ The virtual MMORPG gameplay module owns `src/items/weapons/**` and `data/scripts
 
 `weapons → REUSE`, pending exact-target proof.
 
-Otheryn and latest upstream share exact `weapons.cpp` blob `4094a124e42263047b81a459d93b187aeca25c7f` and `weapons.hpp` blob `093c58aef02b4f2ea44b21796ba697ca0a2e7add`. Legacy Canary has the same header but runtime blob `ba3bc8f564601993780c15ac532b52b433f33944`; reviewed legacy difference omits current upstream/target wand metadata publication and is not a stronger donor.
+OAM-002 whole-tree evidence establishes the target weapons server/data boundary from exact pinned upstream content, and no later target or upstream production change through the task-start pins touches that canonical boundary. Representative target/upstream blobs are `weapons.cpp` `4094a124e42263047b81a459d93b187aeca25c7f` and `weapons.hpp` `093c58aef02b4f2ea44b21796ba697ca0a2e7add`.
+
+Merged legacy PR #78 is explicitly reviewed rather than ignored. Its wand/Cyclopedia display fix is a coordinated cross-module change across item parsing, `weapons.cpp` and protocol serialization; it removes the wand `const_cast` only after moving metadata publication into item parsing and changing displayed attack totals, and it explicitly does not alter the actual wand damage roll. Importing only the `weapons.cpp` deletion would split the fix. OAM-015 therefore records the unresolved upstream #3645 wand-display/client-crash risk but does not partially migrate or claim closure of that cross-module gap.
 
 # Target proof
 
-Otheryn issue #36 owns a tests-only proof package. Add focused unit coverage under `tests/unit/items/` and mutate no production gameplay module file unless new isolated evidence proves a target defect.
+Otheryn issue #36 and PR #37 own a tests-only runtime proof package. Accepted target scope is limited to `tests/unit/items/CMakeLists.txt` and `tests/unit/items/weapon_reuse_test.cpp`; no production gameplay module file is mutated.
+
+Focused proof covers deterministic core damage helpers and deterministic wand maximum damage only. An earlier metadata-display assertion was removed after PR #78 provenance review so the test does not freeze the unresolved display implementation as a correctness invariant.
 
 Required gates: exact-head CI/Required/autofix, standard Linux debug build/runtime/database/test proof, full CTest with zero failures, focused test pass, exact accepted diff, clean comments/reviews/threads, target-main drift check and exact-head merge.
 
 # Exclusions
 
-No exhaustive gameplay formula, hit-chance, resource-consumption or individual script parity claim. No generic combat, spell/rune, vocation, proficiency, protocol, client, map, asset or persistence redesign. Preserve OAM-004 SQL/KV non-atomicity.
+No exhaustive gameplay formula, hit-chance, resource-consumption or individual script parity claim. No wand/Cyclopedia display compatibility or upstream #3645 closure claim. No partial PR #78 migration. No generic combat, spell/rune, vocation, proficiency, protocol, client, map, asset or persistence redesign. Preserve OAM-004 SQL/KV non-atomicity and completed OAM-006/OAM-007 ownership.
 
 # Lifecycle
 
-OAM-016 remains blocked until target proof, Canary governance feature, separate lifecycle archive and separate durable program reconciliation all merge.
+OAM-016 remains blocked until target proof, Canary governance feature, separate lifecycle archive and separate durable program reconciliation all merge. Any self-owned automatically opened `docs(agents): archive merged PR` must also be closed after it has served its lifecycle purpose.
