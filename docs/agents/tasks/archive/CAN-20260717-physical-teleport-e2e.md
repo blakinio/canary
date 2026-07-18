@@ -2,13 +2,13 @@
 task_id: CAN-20260717-physical-teleport-e2e
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: "OTS-E2E-PHYSICAL-TELEPORT"
-status: implementing
+status: completed
 agent: "Codex GPT-5"
 branch: test/e2e-physical-teleport-final-v2
 base_branch: main
 created: 2026-07-17T21:35:00+02:00
-updated: 2026-07-18T20:47:39+02:00
-last_verified_commit: "2b186bfc3f152887047986931cc61b709b17e3b8"
+updated: 2026-07-18T19:40:14Z
+last_verified_commit: "6df7f906ed6f8fef0aa326439a5494bd1e3d523c"
 risk: high
 related_issue: ""
 related_pr: "525"
@@ -35,6 +35,7 @@ reuses:
   - existing two-session login logout persistence relog sentinel
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-18T19:40:14Z
 ---
 
 # Goal
@@ -181,3 +182,11 @@ validation:
 blockers: []
 next_action: Validate, commit, and push the corrected target-tile wall route with ci:final-gate still applied, then require exact-head Ownership, CI, selected physical teleport, and Required physical E2E success before readiness or merge.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #525.
+- Feature head: `f3fc1346a82da7b086a416f30c4e4eb5b135a365`.
+- Merge commit: `6df7f906ed6f8fef0aa326439a5494bd1e3d523c`.
+- Merged at: `2026-07-18T19:40:14Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
