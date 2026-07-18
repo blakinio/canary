@@ -1,12 +1,13 @@
 ---
 task_id: CAN-20260717-myaac-canary-security-audit
+program_id: CAN-PROGRAM-SECURITY-VALIDATION
 status: implementing
 agent: "GPT-5.5 Thinking"
 branch: docs/myaac-canary-security-audit-20260717
 base_branch: main
 created: 2026-07-17T06:32:00+02:00
-updated: 2026-07-18T08:47:00+02:00
-last_verified_commit: "808cc734a1144ddaecb7c6c8367b42bf64830749"
+updated: 2026-07-18T08:50:00+02:00
+last_verified_commit: "ea1798229d309151091918c3c5d30375a52ca11a"
 risk: high
 related_issue: ""
 related_pr: "453"
@@ -103,8 +104,8 @@ The durable documentation consolidates:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T08:47:00+02:00
-head: 808cc734a1144ddaecb7c6c8367b42bf64830749
+updated_at: 2026-07-18T08:50:00+02:00
+head: ea1798229d309151091918c3c5d30375a52ca11a
 branch: docs/myaac-canary-security-audit-20260717
 pr: 453
 status: validating
@@ -120,6 +121,7 @@ proven:
   - PR 453 targets blakinio/canary main from a dedicated same-repository task branch
   - changed-file scope is documentation-only and limited to the three owned paths
   - durable report and continuation handover preserve the current audit state
+  - task is attached to the existing CAN-PROGRAM-SECURITY-VALIDATION program
   - no public or third-party deployment was tested
   - no private secrets or production credentials are committed by this PR
   - general CI passed on all prior final-head attempts
@@ -131,8 +133,8 @@ unknown:
   - final review-thread and branch-protection state after the corrected head is published
 conflicts: []
 first_failure:
-  marker: Agent Task Ownership / Validate changed active task checkpoints
-  evidence: task record governance structure was incomplete; corrected front matter and checkpoint schema are now present
+  marker: Agent Task Ownership / Validate tasks and render ownership index
+  evidence: active structured task required a nonempty program_id; attached to existing CAN-PROGRAM-SECURITY-VALIDATION in this commit
 rejected_hypotheses:
   - previously documented rejected hypotheses remain closed unless new evidence appears
 changed_paths:
