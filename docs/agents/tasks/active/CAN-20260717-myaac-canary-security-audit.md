@@ -53,7 +53,7 @@ The durable documentation consolidates:
 - [x] Documentation contains no private secrets or production-target instructions.
 - [x] Draft PR targets `blakinio/canary:main` from the dedicated task branch.
 - [x] Changed-file scope is documentation only.
-- [x] `ci:final-gate` applied before the final checkpoint correction.
+- [x] `ci:final-gate` applied before the final checkpoint corrections.
 - [ ] Required GitHub checks pass on the exact final head.
 - [ ] PR is marked ready and squash-merged after the autonomous merge gate is satisfied.
 
@@ -68,11 +68,11 @@ The durable documentation consolidates:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T08:40:00+02:00
-head: f46c0235cdea55bfebacdde1daa6fe40cd29a075
+updated_at: 2026-07-18T08:43:00+02:00
+head: fd92c2c4945a951f920d4be7c3afce5f4e67cd1c
 branch: docs/myaac-canary-security-audit-20260717
 pr: 453
-status: finalizing
+status: validating
 context_routes:
   - agent-governance
   - cross-repo
@@ -87,8 +87,8 @@ proven:
   - durable report and continuation handover preserve the current audit state
   - no public or third-party deployment was tested
   - no private secrets or production credentials are committed by this PR
-  - general CI passed on the previous final-head attempt
-  - ownership diagnostics identified a missing fenced YAML checkpoint block as the task-format failure
+  - general CI passed on both prior final-head attempts
+  - ownership diagnostics identified checkpoint schema defects only and those defects are corrected in this commit
 derived:
   - full integrated authentication and multichannel runtime validation remains incomplete
 unknown:
@@ -97,7 +97,7 @@ unknown:
 conflicts: []
 first_failure:
   marker: Agent Task Ownership / Validate changed active task checkpoints
-  evidence: checkpoint heading lacked the required fenced YAML block; corrected in this commit
+  evidence: first missing fenced YAML, then unsupported checkpoint status/result values; corrected to supported schema in this commit
 rejected_hypotheses:
   - previously documented rejected hypotheses remain closed unless new evidence appears
 changed_paths:
@@ -108,12 +108,9 @@ validation:
   - command: PR changed-file list and full diff inspection
     result: PASS
     evidence: only the three owned documentation paths changed
-  - command: CI workflow on previous final-head attempt
+  - command: CI workflow on prior final-head attempts
     result: PASS
     evidence: general CI completed successfully
-  - command: Agent Task Ownership on previous final-head attempt
-    result: FAIL_FIXED
-    evidence: missing structured checkpoint block identified and corrected here
 blockers:
   - merge blocked until all required checks pass on the corrected exact head
 next_action: Re-check PR 453 changed-file scope, current-head workflow runs, review threads and mergeability. If fully green and review-clean, mark ready and squash-merge without another commit.
