@@ -2,13 +2,13 @@
 task_id: CAN-20260718-windows-channel-registry-temp-path
 program_id: CAN-PROGRAM-MULTICHANNEL
 coordination_id: ""
-status: implementing
+status: completed
 agent: codex
 branch: fix/windows-channel-registry-temp-path
 base_branch: main
 created: 2026-07-18T09:54:23+02:00
-updated: 2026-07-18T10:00:39+02:00
-last_verified_commit: "e6e661511ba2c9e1869612168cfeedfb9f8bb859"
+updated: 2026-07-18T08:21:23Z
+last_verified_commit: "8f91d8667b93db08969d04579059f77343194ac6"
 risk: low
 related_issue: ""
 related_pr: "487"
@@ -29,6 +29,7 @@ reuses:
   - existing ChannelRegistryHashTest fixtures
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-18T08:21:23Z
 ---
 
 # Goal
@@ -194,3 +195,11 @@ next_action: Validate and push this final checkpoint commit, then require green 
 - Catalogue updated: not applicable; no reusable interface change
 - Changelog updated: not applicable; test-only portability correction
 - Archived at: pending
+
+## Automated lifecycle completion
+
+- Feature PR: #487.
+- Feature head: `49e3de6825dc42f97ee0be8f735c7a33e868328c`.
+- Merge commit: `8f91d8667b93db08969d04579059f77343194ac6`.
+- Merged at: `2026-07-18T08:21:23Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
