@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-18T16:15:00+02:00
-last_verified_commit: "ef553ef12e1a5b167dff6032b5b44b686dbf4675"
+updated: 2026-07-18T18:52:00+02:00
+last_verified_commit: "c1925725f05fffb2b57971fa929e4af5dd06d6b0"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -51,6 +51,7 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 | OAM-013 | `combat → REUSE` | target proof `3628effc5f22e7edbdc66dc5f514e4df5c9f0cda`; feature `e4596861d8e8497645815d8eefb6cee3166b91d0`; lifecycle `102ee803308b94faa21b328ff47cd2b06edd2a93` |
 | OAM-014 | `combat-conditions → ADAPT` | target `9d797b547c3f85f6d210c6123202c7cae32d5133`; feature `c9ba742731ebea2ccaf73b8b7ae78ee855ad9109`; lifecycle `9d492db84ee50d78c368b818b2ee9a7e297e8748` |
 | OAM-015 | `weapons → REUSE` | target proof `1dd21117ce06cc4463e6185f4ff74546031b55e6`; feature `5b9a0a4c23e5114e59e36ad71fb20087473cd9d3`; lifecycle `ef553ef12e1a5b167dff6032b5b44b686dbf4675` |
+| OAM-016 | `spells → REUSE` | target proof `46cc7458d644da356371aabf3ff18c0e51d228a8`; feature `a646f0bba6e1a168c9e190abaf483cff817a5e9b`; lifecycle `c1925725f05fffb2b57971fa929e4af5dd06d6b0` |
 
 # OAM-009 durable boundary
 
@@ -172,15 +173,37 @@ The post-merge automation also opened duplicate archive PR #545 for governance P
 
 OAM-015 preserves OAM-004 SQL/KV non-atomicity and completed OAM-006/OAM-007/OAM-013/OAM-014 ownership. It does not claim exhaustive weapon formula/hit-rate correctness, exhaustive resource consumption, full individual script parity, wand/Cyclopedia display compatibility, upstream #3645 closure, protocol/client/map/asset parity, or persistence redesign.
 
+# OAM-016 durable completion
+
+Final disposition:
+
+```text
+spells REUSE
+```
+
+Task-start baselines were Canary `93296bbf0c349a6589af51a311d12f7dfaf6c001`, Otheryn `1dd21117ce06cc4463e6185f4ff74546031b55e6`, upstream `691614c1a302aee776002ca3851eca399be1a82c`, and OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`. The canonical registry record `spells` depends only on completed OAM-013 `combat` and interacts with separately owned `wheel-of-destiny`.
+
+OAM-002 whole-tree bootstrap evidence established that the canonical spell production boundary started from exact pinned upstream content. Target history from the verified bootstrap through the OAM-016 task-start head and upstream history through the OAM-016 pinned upstream head contained no production mutation in `src/creatures/combat/spells/**`, `data/scripts/spells/**`, or `data-otservbr-global/scripts/spells/**`. Representative exact task-start core blobs were `src/creatures/combat/spells.cpp` `4afc2bafdcd3d122097b973931845b0fec7f32fb` and `src/creatures/combat/spells.hpp` `d419f509853b3eb45658c2e8f5d6fbaec1f8d611`. This bounded whole-history provenance, not blob identity alone, supports `REUSE`.
+
+Reviewed legacy history found two real but cross-module difference classes that were deliberately not partially migrated. Canary PR #76/#108 adds and hardens Gameplay Analytics instrumentation in representative spell/rune scripts; Analytics ownership is outside OAM-016. Canary PR #216/#220 changes `flurry_of_blows.lua` and `front_sweep.lua` as part of a coordinated Wheel of Destiny 15.25 package; OAM-016 did not import only the spell-side fragments or reopen unresolved Wheel ownership. These remain separately recorded Analytics and Wheel/spells gaps rather than hidden evidence against the selected core.
+
+Proof-only Otheryn PR #39 final head `62a61725c66a2c394327cb665f08d076c2b7d791` changed exactly `tests/unit/game/CMakeLists.txt` and `tests/unit/game/spell_reuse_test.cpp`, with no production runtime/data mutation. It passed CI #123 run `29651516932`, Required #112 run `29651516827`, autofix.ci #105 run `29651516800`, platform builds, runtime smoke and database schema import. The full target suite completed 355/355 with zero failures and `SpellReuseTest` passed 2/2. Primary test artifact `8431734928` has digest `sha256:e98fc12c4e8c4f661d96ebb39a7b7fe44d58c2e7c7dc53beb27c14773f0db5f8`. Target proof merge is `46cc7458d644da356371aabf3ff18c0e51d228a8`.
+
+Canary governance PR #549 final head `c9f6335f0c3361f47d154af00d123e8cf6ca238c` passed Agent Task Ownership #2338 run `29652474874` and CI #3476 run `29652474962` with Required PASS. It had zero comments/reviews/threads, exactly two governance paths, no Canary-main drift, and merged by expected-head squash as `a646f0bba6e1a168c9e190abaf483cff817a5e9b`. Earlier draft governance PR #548 was closed after final evidence was moved to non-draft PR #549 under a neutral branch label required by the tooling classifier.
+
+Lifecycle PR #551 final head `823e52fd02798514b5421e27552685a60cfdc5fc` passed Agent Task Ownership #2342 run `29652592820` and CI #3479 run `29652592881` with Required PASS. It had zero comments/reviews/threads, exactly the active-delete/archive-add lifecycle paths, no Canary-main drift, and merged by expected-head squash as `c1925725f05fffb2b57971fa929e4af5dd06d6b0`. The post-merge automation also opened duplicate archive PR #550 for governance PR #549; it was explicitly closed after authoritative lifecycle PR #551 was established.
+
+OAM-016 preserves OAM-004 SQL/KV non-atomicity and completed OAM-006/OAM-007/OAM-013/OAM-014/OAM-015 ownership. It does not claim exhaustive spell formula or hit/heal value correctness, exhaustive cooldown enforcement, exhaustive mana/soul/resource/rune consumption, full individual spell-script parity, Gameplay Analytics parity, Wheel spell-augmentation parity, protocol/client/map/asset parity, or persistence redesign.
+
 # Current state
 
 ```text
-Canary reconciliation base: ef553ef12e1a5b167dff6032b5b44b686dbf4675
-Otheryn target head after OAM-015: 1dd21117ce06cc4463e6185f4ff74546031b55e6
+Canary reconciliation base: c1925725f05fffb2b57971fa929e4af5dd06d6b0
+Otheryn target head after OAM-016: 46cc7458d644da356371aabf3ff18c0e51d228a8
 maintained OTClient: 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
-OAM-001..OAM-015: feature/lifecycle complete
-OAM-015 task: archived
-OAM-016: NOT STARTED
+OAM-001..OAM-016: feature/lifecycle complete
+OAM-016 task: archived
+OAM-017: NOT STARTED
 ```
 
 No OAM implementation task is active in this reconciliation record.
@@ -189,8 +212,8 @@ No OAM implementation task is active in this reconciliation record.
 
 | Package | Status | Next action |
 |---|---|---|
-| OAM-001..OAM-015 | completed | preserve durable evidence |
-| OAM-016+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
+| OAM-001..OAM-016 | completed | preserve durable evidence |
+| OAM-017+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
 
 # Invariants and known gaps
 
@@ -209,7 +232,8 @@ No OAM implementation task is active in this reconciliation record.
 - OAM-014 does not claim exhaustive condition timing, stacking or persistence correctness, nor full Real Tibia condition formula/value parity.
 - OAM-014 normalizes invalid zero light state in memory but does not claim automatic persisted-data repair or broader persistence completeness.
 - OAM-015 does not claim exhaustive weapon correctness, full Real Tibia weapon formula/value parity, exhaustive resource/script parity, or closure of the separate upstream #3645 cross-module display compatibility gap.
+- OAM-016 does not claim exhaustive spell correctness, full Real Tibia spell formula/value parity, exhaustive cooldown/resource/script parity, Gameplay Analytics parity, or closure of the separate Wheel/spells cross-module gap.
 
 # Exact next task
 
-Merge this program-only OAM-015 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-016 preflight begin. OAM-016 is NOT STARTED by this record.
+Merge this program-only OAM-016 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-017 preflight begin. OAM-017 is NOT STARTED by this record.
