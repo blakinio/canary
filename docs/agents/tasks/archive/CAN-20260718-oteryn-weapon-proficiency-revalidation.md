@@ -2,13 +2,13 @@
 task_id: CAN-20260718-oteryn-weapon-proficiency-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-011
-status: review
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: docs/oam-011-weapon-proficiency-revalidation
 base_branch: main
 created: 2026-07-18T08:17:00+02:00
-updated: 2026-07-18T08:55:00+02:00
-last_verified_commit: "a52b054533a6005cdbafd2d01b3cf722b4273f27"
+updated: 2026-07-18T07:00:25Z
+last_verified_commit: "8df917cf34771e1388533915a6fa4e50aa91e1bb"
 risk: medium
 related_issue: ""
 related_pr: "519"
@@ -48,6 +48,7 @@ public_interfaces:
   - mastery achievement reconciliation
   - combat and skill bonus integration points
 cross_repo_tasks: []
+completed: 2026-07-18T07:00:25Z
 ---
 
 # Goal
@@ -172,3 +173,11 @@ validation:
 blockers: []
 next_action: Synchronize Canary PR 519 cleanly onto latest main with exactly the two OAM-011 governance files; require exact-head Ownership and CI, ready-state final gates and clean audit, then squash merge and complete separate lifecycle/archive plus durable program reconciliation before OAM-012.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #519.
+- Feature head: `35a0320c63fefe06789a928edef5bdcd4cc0fe33`.
+- Merge commit: `8df917cf34771e1388533915a6fa4e50aa91e1bb`.
+- Merged at: `2026-07-18T07:00:25Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
