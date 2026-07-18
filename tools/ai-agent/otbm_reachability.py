@@ -6,7 +6,11 @@ import tempfile
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from otbm_reachability_analysis import analyze_world
+from otbm_reachability_analysis import (
+    DEFAULT_EXECUTABLE_ROUTE_POSITIONS,
+    ROUTE_PLAN_FORMAT,
+    analyze_world,
+)
 from otbm_reachability_types import (
     APPEARANCES_FORMAT,
     DEFAULT_PATH_LIMIT,
@@ -58,6 +62,7 @@ def analyze_index_path(
     allow_diagonal: bool = False,
     sample_limit: int = DEFAULT_SAMPLE_LIMIT,
     path_limit: int = DEFAULT_PATH_LIMIT,
+    route_plan_max_positions: int | None = None,
 ) -> dict[str, Any]:
     index_path = index_path.expanduser().resolve()
     if not index_path.is_file():
@@ -101,7 +106,47 @@ def analyze_index_path(
             sample_limit=sample_limit,
             path_limit=path_limit,
             provenance=provenance,
+            route_plan_max_positions=route_plan_max_positions,
         )
+
+
+def export_route_plan_index_path(
+    *,
+    index_path: Path,
+    appearances_path: Path,
+    lower: Position,
+    upper: Position,
+    origin: Position,
+    destination: Position,
+    transitions_path: Path | None = None,
+    script_resolution_path: Path | None = None,
+    world_manifest_path: Path | None = None,
+    allow_diagonal: bool = False,
+    max_positions: int = DEFAULT_EXECUTABLE_ROUTE_POSITIONS,
+) -> dict[str, Any]:
+    """Export one edge-aware route plan from the canonical Reachability analysis."""
+    report = analyze_index_path(
+        index_path=index_path,
+        appearances_path=appearances_path,
+        lower=lower,
+        upper=upper,
+        routes=[(origin, destination)],
+        origins=(),
+        transitions_path=transitions_path,
+        script_resolution_path=script_resolution_path,
+        world_manifest_path=world_manifest_path,
+        allow_diagonal=allow_diagonal,
+        sample_limit=DEFAULT_SAMPLE_LIMIT,
+        path_limit=DEFAULT_PATH_LIMIT,
+        route_plan_max_positions=max_positions,
+    )
+    routes = report.get("routes")
+    if not isinstance(routes, list) or len(routes) != 1 or not isinstance(routes[0], dict):
+        raise ReachabilityError("Reachability route-plan export did not produce exactly one route")
+    plan = routes[0].get("routePlan")
+    if not isinstance(plan, dict) or plan.get("format") != ROUTE_PLAN_FORMAT:
+        raise ReachabilityError("Reachability route-plan export did not produce the expected contract")
+    return plan
 
 
 def write_report(path: Path, report: Mapping[str, Any], *, overwrite: bool = False) -> None:
