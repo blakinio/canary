@@ -1,13 +1,13 @@
 ---
 task_id: CAN-20260717-myaac-canary-security-audit
 program_id: CAN-PROGRAM-SECURITY-VALIDATION
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: docs/myaac-canary-security-audit-20260717
 base_branch: main
 created: 2026-07-17T06:32:00+02:00
-updated: 2026-07-18T08:50:00+02:00
-last_verified_commit: "ea1798229d309151091918c3c5d30375a52ca11a"
+updated: 2026-07-18T07:04:25Z
+last_verified_commit: "6b42890347338a13daca5fd6291b56b8dc6aa091"
 risk: high
 related_issue: ""
 related_pr: "453"
@@ -32,6 +32,7 @@ reuses:
   - existing agent task governance and context checkpoint contracts
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-18T07:04:25Z
 ---
 
 # CAN-20260717 — MyAAC / Canary security audit record
@@ -152,3 +153,11 @@ blockers:
   - merge blocked until all required checks pass on the corrected exact head
 next_action: Re-check PR 453 changed-file scope, current-head workflow runs, review threads and mergeability. If fully green and review-clean, mark ready and squash-merge without another commit.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #453.
+- Feature head: `f1961e9ce6a1f231a0ed8900519a9f4634fe4ea8`.
+- Merge commit: `6b42890347338a13daca5fd6291b56b8dc6aa091`.
+- Merged at: `2026-07-18T07:04:25Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
