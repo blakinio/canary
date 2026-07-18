@@ -6,8 +6,8 @@ agent: "GPT-5.5 Thinking"
 branch: docs/ots-security-shared-state-economy-audit-20260718
 base_branch: main
 created: 2026-07-18T09:58:00+02:00
-updated: 2026-07-18T10:12:00+02:00
-last_verified_commit: "fad383bd15f58e99b086e5ca82ed5039eab34d06"
+updated: 2026-07-18T10:14:00+02:00
+last_verified_commit: "848d81bc3d0c81b5483b55bc887c338ac65a242f"
 risk: high
 related_issue: ""
 related_pr: "526"
@@ -80,15 +80,15 @@ Continue the existing OTS security assessment from the durable PR #453 handover 
 - [ ] Mechanical global/shared-state inventory completed for the highest-risk multichannel writers.
 - [ ] Exactly-once/economy continuation completed for the highest-risk remaining flows with concrete failure timelines.
 - [x] New findings and rejected candidates preserved in `docs/security/OTS_SECURITY_SHARED_STATE_ECONOMY_AUDIT_2026-07-18.md`.
-- [ ] Changed-file scope remains documentation-only and limited to this task record plus its evidence document.
+- [x] Changed-file scope remains documentation-only and limited to this task record plus its evidence document.
 - [ ] Required GitHub checks pass on the exact final head before readiness/merge.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T10:12:00+02:00
-head: fad383bd15f58e99b086e5ca82ed5039eab34d06
+updated_at: 2026-07-18T10:14:00+02:00
+head: 848d81bc3d0c81b5483b55bc887c338ac65a242f
 branch: docs/ots-security-shared-state-economy-audit-20260718
 pr: 526
 status: implementing
@@ -145,6 +145,9 @@ validation:
   - command: current-source audit continuation
     result: PASS
     evidence: durable evidence report added at fad383bd15f58e99b086e5ca82ed5039eab34d06
+  - command: PR 526 changed-file scope
+    result: PASS
+    evidence: exactly two changed files; both are the task-owned documentation paths
 blockers:
   - disposable shell currently cannot fetch/clone GitHub, so physical two-process dynamic race proofs are not available in this environment
 next_action: Trace Game::loadPlayersRecord/checkPlayersRecord, raid.kv persistence, concrete cleanup/highscore/DB-optimization writers, then continue bank/trade/depot-inbox-stash/house-payment exactly-once review before creating any remediation tasks.
