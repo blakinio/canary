@@ -2,13 +2,13 @@
 task_id: CAN-20260717-physical-teleport-e2e
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: "OTS-E2E-PHYSICAL-TELEPORT"
-status: review
+status: implementing
 agent: "GPT-5.5 Thinking"
 branch: test/e2e-physical-teleport
 base_branch: main
 created: 2026-07-17T21:35:00+02:00
-updated: 2026-07-18T01:24:00+02:00
-last_verified_commit: "f76a8a09dcc4d400a473d5235744b859bdd74a99"
+updated: 2026-07-18T08:17:00+02:00
+last_verified_commit: "7a25fbe19b0c1ee974634eb1222a063d70f0f354"
 risk: high
 related_issue: ""
 related_pr: "511"
@@ -55,8 +55,8 @@ Prove one deterministic real-client teleport traversal on the exact Canary map u
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T01:24:00+02:00
-head: f76a8a09dcc4d400a473d5235744b859bdd74a99
+updated_at: 2026-07-18T08:17:00+02:00
+head: 7a25fbe19b0c1ee974634eb1222a063d70f0f354
 branch: test/e2e-physical-teleport
 pr: 511
 status: validating
@@ -82,21 +82,23 @@ proven:
   - step_floor-delta_detail equals 1
   - plan success was followed by safe logout server persistence relog second safe logout and e2e success
   - exact destination 32255,32204,8 was pinned into required markers only after physical artifact evidence
-  - branch was synchronized without force push to main 354abbbeeff7f7c3470987b32e873527fc6e1a2f through merge head f76a8a09dcc4d400a473d5235744b859bdd74a99
-  - after synchronization PR 511 is mergeable and changes exactly the feature-owned task plus physical-teleport scenario
+  - exact-final attempt on head 50239329663623a60035c282d78837ec19c21f6e passed Ownership and CI but physical run 29620535521 failed at the first intermediate probe after route-west-1
+  - failure artifact 8422447484 shows route-west-1 action success followed immediately by probe-west-1 failure because the observed position had not updated yet
+  - intermediate segment probes were diagnostic discovery instrumentation and are not required to prove the final teleport destination
+  - final scenario now removes only the asynchronous intermediate probes while retaining all bounded walk segments exact endpoint 32255,32204,8 floor delta 1 canonical safe logout persistence relog and e2e markers
   - no shared E2E platform file is modified
   - no OTBM or client asset is committed
   - no external reference repository is modified
 derived:
   - runtime evidence independently matches the OTBM-audited teleportDestination and therefore proves actual teleport traversal rather than merely approaching the source
-  - segmented probes are deterministic route evidence and keep total runtime below the server ping timeout without changing canonical transport settings
-  - the task-only commit produced from this checkpoint is the exact final feature head unless main advances again or a proven final-gate blocker requires a fix
+  - exact endpoint and floor-delta assertions are the authoritative final teleport proof; intermediate observe_position_changed probes can race server position propagation and create false negatives
+  - removing diagnostic probes reduces flakiness and runtime without weakening the final teleport assertion or canonical lifecycle proof
 unknown:
-  - exact final-gate workflow run identifiers until the task-only final checkpoint commit triggers them
+  - whether current main advanced after the previous synchronization and therefore requires another non-force feature-tree sync before the next exact-final checkpoint
 conflicts: []
 first_failure:
-  marker: final-gate-pending
-  evidence: physical teleport discovery is proven and pinned and the branch is synchronized to current main; exact-final-head validation remains before merge
+  marker: exact-final-intermediate-probe-race
+  evidence: run 29620535521 artifact 8422447484 failed at probe-west-1 immediately after route-west-1 action success with error position did not change; the earlier discovery run proved the complete identical bounded route and exact teleport destination
 rejected_hypotheses:
   - treating OTBM teleportDestination as runtime proof
   - guessing a destination from sprites or item names
@@ -104,6 +106,7 @@ rejected_hypotheses:
   - pinning an exact destination marker before physical artifact evidence
   - assuming walk action success means every server step completed
   - solving the long-route ping timeout by modifying shared E2E transport infrastructure
+  - retaining asynchronous intermediate position probes as mandatory final-gate assertions after discovery evidence showed they can false-negative
 changed_paths:
   - tests/e2e/scenarios/movement/physical-teleport.json
   - docs/agents/tasks/active/CAN-20260717-physical-teleport-e2e.md
@@ -117,9 +120,12 @@ validation:
   - command: Required physical E2E
     result: PASS
     evidence: run 29618756104
-  - command: synchronize feature-owned tree to current main
+  - command: exact-final Universal Agent E2E on head 50239329663623a60035c282d78837ec19c21f6e
+    result: FAIL
+    evidence: run 29620535521; artifact 8422447484; first failure probe-west-1 observe_position_changed position did not change immediately after route-west-1
+  - command: evidence-backed scenario correction
     result: PASS
-    evidence: main 354abbbeeff7f7c3470987b32e873527fc6e1a2f; merge head f76a8a09dcc4d400a473d5235744b859bdd74a99; non-force ref update; PR remains two files and mergeable
+    evidence: commit 7a25fbe19b0c1ee974634eb1222a063d70f0f354 removes only intermediate diagnostic probes and their required markers; exact endpoint floor delta persistence and relog assertions remain
 blockers: []
-next_action: Apply ci:final-gate to the resulting task-only exact final head and require Ownership CI selected physical teleport and Required physical E2E before ready and squash merge.
+next_action: Synchronize the two feature-owned files to current main without force push, create one task-only exact-final checkpoint, require green Ownership CI selected physical teleport and Required physical E2E on that exact head, then ready, fresh ready-state CI, squash merge, and lifecycle archive.
 ```
