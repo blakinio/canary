@@ -2,16 +2,16 @@
 task_id: CAN-20260718-refresh-lua-api-docs
 program_id: agent-governance
 coordination_id: ""
-status: implementing
+status: review
 agent: codex
 branch: ci/refresh-lua-api-docs
 base_branch: main
 created: 2026-07-18T08:51:23Z
-updated: 2026-07-18T08:51:23Z
-last_verified_commit: 8f91d8667b93db08969d04579059f77343194ac6
+updated: 2026-07-18T08:58:00Z
+last_verified_commit: 167e8d4b127416467015da9e7d4ffd600e6d874f
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "528"
 depends_on: []
 blocks:
   - "PR #527 task archival cleanup"
@@ -42,10 +42,11 @@ Refresh the generated Lua API documentation artifacts and their quality baseline
 
 - [x] The canonical generator updates only `docs/lua-api/lua_api.d.lua`, `lua_api.json`, and `lua_api.md`.
 - [x] The quality baseline records the single pre-existing undocumented variadic API exposed by regeneration.
-- [ ] Lua API quality, binding-doc, governance, and lifecycle checks pass.
+- [x] Lua API quality, binding-doc, governance, and lifecycle checks pass.
 - [ ] Required GitHub checks pass on the exact final head.
 - [ ] The narrow repair is squash-merged before retrying PR #527.
-- [ ] No module catalogue, changelog, public-interface, or cross-repository update is required because this task only refreshes generated documentation.
+- [x] No module catalogue, changelog, public-interface, or cross-repository update is required because this task only refreshes generated documentation.
+- [x] Apply `ci:final-gate` before this final checkpoint commit.
 
 # Confirmed context
 
@@ -97,6 +98,13 @@ The generated Lua API documentation committed on `main` was stale relative to th
 - Failed/blocked: the first quality check correctly rejected the stale baseline.
 - Result: a second generator run was byte-identical; quality, binding-doc, ownership, and diff checks pass locally.
 
+## 2026-07-18T08:58:00Z
+
+- Changed: published draft PR #528 and applied `ci:final-gate` before the final checkpoint commit.
+- Learned: PR base/head repositories are both exactly `blakinio/canary` and the base is `main`.
+- Failed/blocked: none in the repair scope; exact-final-head GitHub validation is pending.
+- Result: the generated content commit `167e8d4b127416467015da9e7d4ffd600e6d874f` is ready for final lifecycle validation.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |
@@ -121,6 +129,7 @@ The generated Lua API documentation committed on `main` was stale relative to th
 | working tree | `python tools/check_lua_api_quality.py` | passed | Metrics 167/114/49/0/22. |
 | working tree | `python tools/check_lua_api_binding_docs.py` | passed | 0 new registrations inspected. |
 | working tree | `python tools/agents/task_ownership.py` | passed | 14 active records validated. |
+| working tree | `python tools/agents/task_lifecycle.py validate-changed --changed-files-file build/pr528-changed-files.txt --current-pr 528` | passed | 1 changed active checkpoint validated. |
 
 # Failed approaches and dead ends
 
@@ -137,17 +146,17 @@ The generated Lua API documentation committed on `main` was stale relative to th
 
 # Remaining work
 
-1. Review the complete diff, commit, and open the dedicated draft PR.
+1. Push this final checkpoint commit and require full exact-final-head CI.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T08:51:23Z
-head: 8f91d8667b93db08969d04579059f77343194ac6
+updated_at: 2026-07-18T08:58:00Z
+head: 167e8d4b127416467015da9e7d4ffd600e6d874f
 branch: ci/refresh-lua-api-docs
-pr: none
-status: implementing
+pr: 528
+status: validating
 context_routes:
   - agent-governance
   - ci-repair
@@ -163,11 +172,11 @@ proven:
 derived:
   - The stale generated documentation requires a separate narrow repair before PR #527 can pass.
 unknown:
-  - Whether Linux CI produces byte-identical canonical output.
+  - Exact-final-head GitHub check results.
 conflicts: []
 first_failure:
-  marker: generated Lua API documentation differs from canonical generator output
-  evidence: GitHub Actions run 29637326197, Linux Release, attempts 1 and 2
+  marker: none
+  evidence: local repair checks pass; GitHub final gate pending
 rejected_hypotheses:
   - transient CI failure: the failed-job rerun reproduced the same diff
 changed_paths:
@@ -183,9 +192,12 @@ validation:
   - command: python tools/check_lua_api_quality.py
     result: PASS
     evidence: metrics 167/114/49/0/22 match the refreshed baseline
+  - command: python tools/agents/task_lifecycle.py validate-changed --changed-files-file build/pr528-changed-files.txt --current-pr 528
+    result: PASS
+    evidence: one changed active checkpoint validated for PR 528
 blockers:
-  - PR #527 remains blocked until this repair is merged
-next_action: Review and publish the narrow generated-documentation repair PR.
+  - none
+next_action: Commit and push this final checkpoint, then verify full CI on the resulting exact head.
 ```
 
 # Completion
