@@ -2,13 +2,13 @@
 task_id: CAN-20260718-oteryn-achievements-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-012
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: docs/oam-012-achievements-revalidation
 base_branch: main
 created: 2026-07-18T09:20:00+02:00
-updated: 2026-07-18T11:26:00+02:00
-last_verified_commit: "93064fda744b41d3dc96f231847f89cbe2f64f50"
+updated: 2026-07-18T09:30:48Z
+last_verified_commit: "92b704415ffb53165647c0623d1ab273fc7b723f"
 risk: medium
 related_issue: "blakinio/Otheryn#30"
 related_pr: "524"
@@ -48,6 +48,7 @@ public_interfaces:
   - aggregate achievement points KV
   - achievement attainability evidence and bounded award hooks
 cross_repo_tasks: []
+completed: 2026-07-18T09:30:48Z
 ---
 
 # Goal
@@ -254,3 +255,11 @@ validation:
 blockers: []
 next_action: Pass exact-head Canary Agent Task Ownership and CI for PR 524 then audit comments reviews and review threads and squash-merge; do not start OAM-013.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #524.
+- Feature head: `46e3d4c07146ac8c0eb034ea4b40259d042d6cbe`.
+- Merge commit: `92b704415ffb53165647c0623d1ab273fc7b723f`.
+- Merged at: `2026-07-18T09:30:48Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
