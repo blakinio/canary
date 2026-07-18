@@ -2,13 +2,13 @@
 task_id: CAN-20260717-physical-teleport-e2e
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: "OTS-E2E-PHYSICAL-TELEPORT"
-status: implementing
+status: review
 agent: "GPT-5.5 Thinking"
 branch: test/e2e-physical-teleport
 base_branch: main
 created: 2026-07-17T21:35:00+02:00
-updated: 2026-07-18T08:17:00+02:00
-last_verified_commit: "7a25fbe19b0c1ee974634eb1222a063d70f0f354"
+updated: 2026-07-18T08:19:00+02:00
+last_verified_commit: "d8508652225a8d94a16596619030dc0c1c71061f"
 risk: high
 related_issue: ""
 related_pr: "511"
@@ -55,8 +55,8 @@ Prove one deterministic real-client teleport traversal on the exact Canary map u
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T08:17:00+02:00
-head: 7a25fbe19b0c1ee974634eb1222a063d70f0f354
+updated_at: 2026-07-18T08:19:00+02:00
+head: d8508652225a8d94a16596619030dc0c1c71061f
 branch: test/e2e-physical-teleport
 pr: 511
 status: validating
@@ -85,7 +85,8 @@ proven:
   - exact-final attempt on head 50239329663623a60035c282d78837ec19c21f6e passed Ownership and CI but physical run 29620535521 failed at the first intermediate probe after route-west-1
   - failure artifact 8422447484 shows route-west-1 action success followed immediately by probe-west-1 failure because the observed position had not updated yet
   - intermediate segment probes were diagnostic discovery instrumentation and are not required to prove the final teleport destination
-  - final scenario now removes only the asynchronous intermediate probes while retaining all bounded walk segments exact endpoint 32255,32204,8 floor delta 1 canonical safe logout persistence relog and e2e markers
+  - final scenario removes only the asynchronous intermediate probes while retaining all bounded walk segments exact endpoint 32255,32204,8 floor delta 1 canonical safe logout persistence relog and e2e markers
+  - feature-owned tree was synchronized without force push to main 9586530202eb3e40569bf4f97d21c63c9d99b6cb through merge head d8508652225a8d94a16596619030dc0c1c71061f
   - no shared E2E platform file is modified
   - no OTBM or client asset is committed
   - no external reference repository is modified
@@ -93,8 +94,9 @@ derived:
   - runtime evidence independently matches the OTBM-audited teleportDestination and therefore proves actual teleport traversal rather than merely approaching the source
   - exact endpoint and floor-delta assertions are the authoritative final teleport proof; intermediate observe_position_changed probes can race server position propagation and create false negatives
   - removing diagnostic probes reduces flakiness and runtime without weakening the final teleport assertion or canonical lifecycle proof
+  - the task-only commit produced from this checkpoint is the exact final feature head unless main advances again or a proven final-gate blocker requires another fix
 unknown:
-  - whether current main advanced after the previous synchronization and therefore requires another non-force feature-tree sync before the next exact-final checkpoint
+  - exact final-gate workflow run identifiers until this task-only checkpoint commit triggers them
 conflicts: []
 first_failure:
   marker: exact-final-intermediate-probe-race
@@ -126,6 +128,9 @@ validation:
   - command: evidence-backed scenario correction
     result: PASS
     evidence: commit 7a25fbe19b0c1ee974634eb1222a063d70f0f354 removes only intermediate diagnostic probes and their required markers; exact endpoint floor delta persistence and relog assertions remain
+  - command: synchronize feature-owned tree to current main
+    result: PASS
+    evidence: main 9586530202eb3e40569bf4f97d21c63c9d99b6cb; merge head d8508652225a8d94a16596619030dc0c1c71061f; non-force ref update
 blockers: []
-next_action: Synchronize the two feature-owned files to current main without force push, create one task-only exact-final checkpoint, require green Ownership CI selected physical teleport and Required physical E2E on that exact head, then ready, fresh ready-state CI, squash merge, and lifecycle archive.
+next_action: Apply ci:final-gate to this task-only exact final head and require Ownership CI selected physical teleport and Required physical E2E before ready, fresh ready-state CI, squash merge, and lifecycle archive.
 ```
