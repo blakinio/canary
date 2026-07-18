@@ -2,13 +2,13 @@
 task_id: CAN-20260718-oteryn-spells-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-016
-status: review
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: docs/oam-016-module-revalidation
 base_branch: main
 created: 2026-07-18
-updated: 2026-07-18T18:37:00+02:00
-last_verified_commit: "46cc7458d644da356371aabf3ff18c0e51d228a8"
+updated: 2026-07-18T16:44:16Z
+last_verified_commit: "a646f0bba6e1a168c9e190abaf483cff817a5e9b"
 risk: high
 related_issue: "blakinio/Otheryn#38"
 related_pr: "549"
@@ -22,6 +22,7 @@ owned_paths:
   exclusive:
     - docs/agents/OTERYN_OAM_016_SPELLS_REVALIDATION.md
     - docs/agents/tasks/active/CAN-20260718-oteryn-spells-revalidation.md
+completed: 2026-07-18T16:44:16Z
 ---
 
 # Goal
@@ -128,3 +129,11 @@ validation:
     result: PASS
     evidence: Both focused SpellReuseTest cases passed on exact head 62a61725c66a2c394327cb665f08d076c2b7d791.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #549.
+- Feature head: `c9f6335f0c3361f47d154af00d123e8cf6ca238c`.
+- Merge commit: `a646f0bba6e1a168c9e190abaf483cff817a5e9b`.
+- Merged at: `2026-07-18T16:44:16Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
