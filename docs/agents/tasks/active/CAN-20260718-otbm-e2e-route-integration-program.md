@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: docs/otbm-e2e-route-integration-program-20260718
 base_branch: main
 created: 2026-07-18T22:55:00+02:00
-updated: 2026-07-18T22:55:00+02:00
-last_verified_commit: ""
+updated: 2026-07-18T23:15:00+02:00
+last_verified_commit: "6a106f215adefe451904303d402d0d7411b6f9a1"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "562"
 depends_on:
   - "CAN-PROGRAM-OTBM completed bounded tooling programme"
   - "CAN-PROGRAM-E2E-PLATFORM Universal Physical E2E"
@@ -71,25 +71,26 @@ This task is planning/documentation only. It must not implement a second OTBM pa
 
 # Acceptance criteria
 
-- [ ] Record the existing reusable OTBM and E2E components and their exact responsibility boundaries.
-- [ ] Define the minimal `canary-otbm-e2e-route-plan-v1` contract with edge-aware movement and transition semantics.
-- [ ] Define the semantic landmark and route-interaction registry responsibilities without guessing coordinates or runtime mechanics.
-- [ ] Define how `walk`, `door/use`, `teleport`, `stairs/ladder/hole/rope/floor-change` map to physical client execution.
-- [ ] Define fail-closed route-preflight rules including exact provenance and `pathTruncated == false`.
-- [ ] Define the ordered implementation work packages with owned paths, dependencies, deliverables and acceptance gates so multiple agents can start safely in sequence.
-- [ ] Define the first end-to-end reference scenario `thais.temple -> thais.depot` without inventing unverified Thais coordinates.
-- [ ] Preserve explicit non-goals: no new parser, no second World Index, no independent pathfinder, no parallel E2E orchestrator, no AI map imagery, no committed OTBM/assets, no guessed dynamic Lua behavior.
-- [ ] Keep implementation paths read-only in this planning PR.
-- [ ] Open a draft PR containing only this task record and the two durable planning documents.
+- [x] Record the existing reusable OTBM and E2E components and their exact responsibility boundaries.
+- [x] Define the minimal `canary-otbm-e2e-route-plan-v1` contract with edge-aware movement and transition semantics.
+- [x] Define the semantic landmark and route-interaction registry responsibilities without guessing coordinates or runtime mechanics.
+- [x] Define how `walk`, `door/use`, `teleport`, `stairs/ladder/hole/rope/floor-change` map to physical client execution.
+- [x] Define fail-closed route-preflight rules including exact provenance and a prohibition on truncated executable routes.
+- [x] Define the ordered implementation work packages with owned paths, dependencies, deliverables and acceptance gates so multiple agents can start safely in sequence.
+- [x] Define the first end-to-end reference scenario `thais.temple -> thais.depot` without inventing unverified Thais coordinates.
+- [x] Preserve explicit non-goals: no new parser, no second World Index, no independent pathfinder, no parallel E2E orchestrator, no AI map imagery, no committed OTBM/assets, no guessed dynamic Lua behavior.
+- [x] Keep implementation paths read-only in this planning PR.
+- [x] Open draft PR #562 containing only this task record and the two durable planning documents.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T22:55:00+02:00
+updated_at: 2026-07-18T23:15:00+02:00
+head: 6a106f215adefe451904303d402d0d7411b6f9a1
 branch: docs/otbm-e2e-route-integration-program-20260718
-pr: null
-status: implementing
+pr: 562
+status: validating
 context_routes:
   - agent-governance
   - otbm
@@ -104,11 +105,14 @@ proven:
   - Reachability public route reports can truncate paths and expose transition IDs only as a separate list, so the existing report contract is not yet a sufficient executable E2E route contract.
   - Script Resolution is the canonical static runtime-handler correlation layer and preserves unresolved/conflicting evidence instead of guessing.
   - Universal Physical E2E already owns disposable MariaDB, exact Canary, pinned controlled OTClient, physical login/logout/relog, evidence and cleanup.
-  - The declarative physical action layer currently supports bounded blind directional walk commands but not a route-plan follower, exact-position step synchronization, generic map-item use or inventory-item-on-map use.
+  - The declarative physical action layer currently supports bounded direction/count walk commands but not a route-plan follower, exact-position step synchronization, generic map-item use or inventory-item-on-map use.
   - Current open Canary PRs observed during planning own security, OAM and MyAAC scopes; no planned exclusive document path overlap was identified.
+  - Draft PR 562 was created against blakinio/canary:main and the programme/architecture documents were added on the dedicated planning branch.
+  - The durable programme defines OTBM-E2E-001, OTBM-E2E-002, OTBM-E2E-003, optional split OTBM-E2E-001B, E2E-ROUTE-001, OTBM-E2E-004 and OTBM-E2E-005 with dependency ordering and acceptance gates.
 derived:
   - The smallest architecture is a bridge layer that exports the existing Reachability predecessor graph into an edge-aware executable route plan and lets the existing Universal E2E runner execute that plan.
   - Semantic place names and physical interaction activation semantics should be separate evidence-backed registries because neither is safely inferable from raw map geometry alone.
+  - Plain optimistic Reachability cannot equal physical executability; interaction-aware routing must reuse the same BFS with an executable predicate that admits only explicitly resolved conditional crossings.
 unknown:
   - Exact evidence-backed coordinates/anchors for `thais.temple` and `thais.depot` on the runtime-selected map snapshot.
   - Exact final generic OTClient APIs for map-item use and inventory-item-on-map use; implementation agents must verify maintained-client APIs before coding.
@@ -118,9 +122,17 @@ first_failure:
   evidence: Planning preflight found no exclusive-path overlap for the three new documentation files.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260718-otbm-e2e-route-integration-program.md
+  - docs/agents/programs/OTBM_E2E_ROUTE_INTEGRATION_PROGRAM.md
+  - docs/ai-agent/OTBM_E2E_ROUTE_INTEGRATION.md
 validation:
   - command: repository instruction and routed-context review
     result: PASS
     evidence: AGENTS.md, REPOSITORY_MAP.md, CONTEXT_ROUTING.md, E2E_AUTOMATION_PROGRAM.md, OTBM World Index/Reachability/Script Resolution contracts and Physical Gameplay Action Plans reviewed.
-next_action: Create the draft planning PR, then add the durable programme record and technical architecture/contract document without modifying implementation paths.
+  - command: architecture reuse review
+    result: PASS
+    evidence: programme explicitly reuses existing Reachability _bfs/predecessor graph and Universal E2E lifecycle and forbids parallel parser/pathfinder/orchestrator implementations.
+  - command: planning scope review
+    result: PASS
+    evidence: implementation paths remain read-only; intended changed paths are the active task plus two new durable docs only.
+next_action: Verify PR 562 exact changed-file list and current-head checks. If scope remains exactly three documentation files, apply final-gate discipline, complete required CI, mark ready and squash-merge. After lifecycle archive, start OTBM-E2E-001 and optionally OTBM-E2E-002 on separate fresh branches.
 ```
