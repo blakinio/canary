@@ -6,8 +6,8 @@ agent: "GPT-5.5 Thinking"
 branch: docs/ots-security-shared-state-economy-audit-20260718
 base_branch: main
 created: 2026-07-18T09:58:00+02:00
-updated: 2026-07-18T10:47:00+02:00
-last_verified_commit: "42b96ba79b7cccc9b02ad6a693035dedb96b08b8"
+updated: 2026-07-18T15:59:00+02:00
+last_verified_commit: "bad2694f1723528b6d65a676ca44d0f67f0723aa"
 risk: high
 related_issue: ""
 related_pr: "526"
@@ -20,6 +20,7 @@ owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260718-ots-security-shared-state-economy-audit.md
     - docs/security/OTS_SECURITY_SHARED_STATE_ECONOMY_AUDIT_2026-07-18.md
+    - docs/security/OTS_SECURITY_SHARED_STATE_ECONOMY_AUDIT_2026-07-18_ADDENDUM.md
   shared: []
   read_only:
     - src/**
@@ -80,15 +81,16 @@ Continue the existing OTS security assessment from the durable PR #453 handover 
 - [ ] Mechanical global/shared-state inventory completed for the highest-risk remaining writers.
 - [ ] Exactly-once/economy continuation completed for remaining depot/inbox/stash, final house settlement and paid-operation flows.
 - [x] Qualified findings, revalidations and rejected candidates preserved in `docs/security/OTS_SECURITY_SHARED_STATE_ECONOMY_AUDIT_2026-07-18.md`.
-- [x] Changed-file scope remains documentation-only and limited to this task record plus its evidence document.
+- [ ] July 18 continuation addendum with raid/XP-boost findings and handover committed on the task branch.
+- [x] Changed-file scope remains documentation-only and limited to task-owned evidence paths.
 - [ ] Required GitHub checks pass on the exact final head before readiness/merge.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T10:47:00+02:00
-head: 42b96ba79b7cccc9b02ad6a693035dedb96b08b8
+updated_at: 2026-07-18T15:59:00+02:00
+head: bad2694f1723528b6d65a676ca44d0f67f0723aa
 branch: docs/ots-security-shared-state-economy-audit-20260718
 pr: 526
 status: implementing
@@ -99,11 +101,14 @@ context_routes:
 owned_paths:
   - docs/agents/tasks/active/CAN-20260718-ots-security-shared-state-economy-audit.md
   - docs/security/OTS_SECURITY_SHARED_STATE_ECONOMY_AUDIT_2026-07-18.md
+  - docs/security/OTS_SECURITY_SHARED_STATE_ECONOMY_AUDIT_2026-07-18_ADDENDUM.md
 proven:
   - PR 453 is squash-merged with merge SHA 6b42890347338a13daca5fd6291b56b8dc6aa091
   - PR 522 remains lifecycle-only and is not part of this write scope
   - task-start main is d9c967d6e9b778da11a206d134d559f38ec1b8c8
   - OTS-MC-SS-001: every channel periodically rebuilds global players_online from process-local state and can prune other channels
+  - OTS-MC-SS-002: every channel executes the raid scheduler against process-local cached KV and process-local encounter state without leader/fencing coordination, so one intended global raid can start independently on multiple channels and later KV saves can overwrite each other's counters/state
+  - OTS-ECO-STORE-001: direct C_BuyStoreOffer processing does not enforce the XP Boost daily-limit or already-active guards used by offer presentation; repeated direct purchases can stack boost time and the count path wraps values above five back to first-tier pricing
   - OTS-ECO-MKT-001: concurrent partial market fills can both pass a stale amount check and perform value effects before final offer decrement
   - OTS-ECO-MKT-002: market acceptance can load, mutate and full-save a stale DB copy of a counterparty who is online on another channel, risking lost delivery/credit and unrelated stale overwrite
   - OTS-ECO-GUILD-001: process-local guild balances plus absolute saves permit cross-channel stale-snapshot double spend
@@ -118,11 +123,11 @@ proven:
   - no public or third-party deployment is authorized for testing
   - shell environment cannot resolve github.com, so local git fetch/worktree preflight is unavailable and live GitHub connector evidence is used instead
 derived:
-  - a fresh audit-continuation task avoids mixing new findings into lifecycle-only PR 522
+  - raid duplication creates duplicated encounter opportunities per channel; exact reward/economy amplification remains unclassified until a concrete raid reward path is traced
 unknown:
-  - CANDIDATE OTS-MC-SS-C01: global server record writer behavior pending exact Game::loadPlayersRecord/checkPlayersRecord/updatePlayersRecord implementation trace
-  - CANDIDATE OTS-MC-SS-C02: raid daily-counter KV reset pending exact raid.kv persistence/namespace proof
-  - CANDIDATE OTS-MC-SS-C03: individual global-event, cleanup, highscore and DB-optimization jobs pending concrete call-site classification
+  - HIGH-CONFIDENCE CANDIDATE OTS-MC-SS-C01: global players_record writer implementation is now traced and uses an unconditional absolute UPDATE from a process-local record, but the exact current invocation point of checkPlayersRecord remains unresolved
+  - CANDIDATE OTS-MC-SS-C03: updateDatabase and optional optimizeTables execute before multichannel cluster initialization; migration scripts contain non-idempotent DDL and returned failure values can be ignored, but no isolated concurrent-start failure was dynamically reproduced
+  - CANDIDATE: no persistent/shared highscore rebuild writer was proven in the searched current-source paths
   - exhaustive current-source shared-state inventory
   - remaining depot/inbox/stash paths beyond revalidated mail and market call-sites, plus final house settlement exactly-once flows
   - exact-final-head Agent Task Ownership, CI and Security Validation results for the latest checkpoint commit
@@ -137,22 +142,26 @@ rejected_hypotheses:
 changed_paths:
   - docs/agents/tasks/active/CAN-20260718-ots-security-shared-state-economy-audit.md
   - docs/security/OTS_SECURITY_SHARED_STATE_ECONOMY_AUDIT_2026-07-18.md
+  - docs/security/OTS_SECURITY_SHARED_STATE_ECONOMY_AUDIT_2026-07-18_ADDENDUM.md
 validation:
   - command: live GitHub main comparison
     result: PASS
     evidence: task-start main matched d9c967d6e9b778da11a206d134d559f38ec1b8c8
   - command: live open-PR/path overlap review
     result: PASS
-    evidence: no exclusive-path overlap identified for the two task-owned documentation paths
+    evidence: no exclusive-path overlap identified for the task-owned evidence paths
   - command: draft PR creation safety check
     result: PASS
     evidence: PR 526 is same-repository branch -> blakinio/canary:main
   - command: current-source audit continuation
     result: PASS
-    evidence: durable evidence report is preserved in the task-owned security document through report commit 42b96ba79b7cccc9b02ad6a693035dedb96b08b8
-  - command: PR 526 changed-file scope
+    evidence: raid scheduling/KV and direct XP Boost purchase paths were traced source-to-side-effect without relying on public deployment testing
+  - command: dynamic two-process or packet E2E validation
+    result: SKIPPED
+    evidence: disposable shell cannot fetch/clone GitHub and no local multichannel runtime is available; no public or third-party server was tested
+  - command: PR 526 changed-file scope before addendum commit
     result: PASS
-    evidence: only the task record and audit evidence document are changed
+    evidence: only the task record and audit evidence document were changed before this checkpoint expansion
   - command: Agent Task Ownership on head 421fbe5a21ee49f7b797bab3f56ee864dd6545fb
     result: PASS
     evidence: workflow run 29637804392 completed successfully after checkpoint schema normalization
@@ -167,5 +176,5 @@ validation:
     evidence: diagnostics required first_failure and rejected validation result tokens UNAVAILABLE and FIXED_IN_HEAD
 blockers:
   - disposable shell cannot currently fetch/clone GitHub, so physical two-process race/crash proofs are unavailable in this environment
-next_action: Finish concrete shared-state writer inventory (global record, raid KV, cleanup/highscore/DB optimization), then continue remaining depot/inbox/stash and final house settlement exactly-once review before opening any remediation task.
+next_action: Commit the task-owned July 18 audit addendum with OTS-MC-SS-002 and OTS-ECO-STORE-001 evidence plus the current handover, then continue remaining depot/inbox/stash and final house-settlement exactly-once review before opening any remediation task.
 ```
