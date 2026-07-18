@@ -2,13 +2,13 @@
 task_id: CAN-20260717-physical-teleport-e2e
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: "OTS-E2E-PHYSICAL-TELEPORT"
-status: validating
+status: implementing
 agent: "Codex GPT-5"
 branch: test/e2e-physical-teleport-final-v2
 base_branch: main
 created: 2026-07-17T21:35:00+02:00
-updated: 2026-07-18T15:28:44+02:00
-last_verified_commit: "68c590a4fa671f678f087063b9e43278443569cf"
+updated: 2026-07-18T15:32:10+02:00
+last_verified_commit: "f021b79959ae0a88e396e869bc6cc3bdfc9cb13d"
 risk: high
 related_issue: ""
 related_pr: "525"
@@ -55,8 +55,8 @@ Prove one deterministic real-client teleport traversal on the exact Canary map u
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T15:28:44+02:00
-head: 68c590a4fa671f678f087063b9e43278443569cf
+updated_at: 2026-07-18T15:32:10+02:00
+head: f021b79959ae0a88e396e869bc6cc3bdfc9cb13d
 branch: test/e2e-physical-teleport-final-v2
 pr: 525
 status: validating
@@ -85,6 +85,7 @@ proven:
   - the action driver treats a walk step as successful after accepted requests and its configured delays; it does not confirm arrival at each intermediate tile
   - branch merged current origin/main 051f4101cdd90b36c7f550d7f9f73c31db2a6575 before repair commit 68c590a4fa671f678f087063b9e43278443569cf
   - repair commit 68c590a4fa671f678f087063b9e43278443569cf preserves the proven 48-tile route and uses 2500 ms pacing for a 121500 ms action plan inside the unchanged 180000 ms global timeout
+  - exact-head ownership run 29646243455 failed because active task frontmatter used lifecycle-incompatible status validating; the checkpoint status itself remains valid
   - original PR 511 accumulated stale merge-base history while main advanced and was never force-pushed
   - replacement PR 525 starts directly from main d9c967d6e9b778da11a206d134d559f38ec1b8c8 and changes exactly the two feature-owned files
   - no shared E2E platform file is modified
@@ -146,6 +147,12 @@ validation:
   - command: deterministic route and timing calculation
     result: PASS
     evidence: route endpoint equals audited source 32353,32223,7 and planned action time 121500 ms is below global timeout 180000 ms
+  - command: Agent Task Ownership
+    result: FAIL
+    evidence: run 29646243455 on f021b7995 rejected active task frontmatter status validating
+  - command: python tools/agents/task_lifecycle.py validate-changed --current-pr 525
+    result: PASS
+    evidence: corrected implementing frontmatter status validated with the same changed-task lifecycle command used by CI
 blockers: []
-next_action: Commit and push this final checkpoint with ci:final-gate already applied, then require exact-head Ownership, CI, selected physical teleport, and Required physical E2E success before readiness or merge.
+next_action: Commit and push the lifecycle-status correction with ci:final-gate still applied, then require exact-head Ownership, CI, selected physical teleport, and Required physical E2E success before readiness or merge.
 ```
