@@ -7,6 +7,3 @@ set(VCPKG_CRT_LINKAGE
 set(VCPKG_LIBRARY_LINKAGE
     dynamic
 )
-set(VCPKG_BUILD_TYPE
-    debug
-)
