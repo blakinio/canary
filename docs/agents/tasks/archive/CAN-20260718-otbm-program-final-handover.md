@@ -13,8 +13,8 @@ risk: low
 related_issue: ""
 related_pr: "560"
 depends_on:
-  - "merged OTBM roadmap reconciliation PR #534 and lifecycle #535"
-  - "merged physical teleport E2E PR #525"
+  - "merged OTBM roadmap reconciliation PR #534 and lifecycle PR #535"
+  - "merged physical teleport E2E PR #525 and lifecycle PR #558"
 blocks: []
 owned_paths:
   exclusive:
@@ -49,90 +49,87 @@ Publish one durable final handover for the completed OTBM tooling programme so a
 
 - [x] Record the final functional state of OTBM Phases 1–8 and the bounded post-Phase-8 materialization chain through PR #506.
 - [x] Record the merged roadmap reconciliation #534/#535 and merged physical teleport proof #525.
-- [x] Record PR #558 as the only currently open OTBM-related lifecycle cleanup at final content verification.
 - [x] Preserve exact non-goals and safety boundaries; do not create or modify parser, renderer, resolver, pathfinder, map, WIDX, assets, datapack or runtime code.
-- [x] Keep `MODULE_CATALOG.md` and `CHANGELOG.md` read-only while unrelated PR #514 remains open.
-- [x] Verify exact changed-file scope before readiness.
-- [ ] Verify current-head GitHub checks and satisfy the autonomous merge gate.
+- [x] Keep `MODULE_CATALOG.md` and `CHANGELOG.md` read-only while unrelated PR #514 owns overlapping shared paths.
+- [x] Verify exact changed-file scope.
+- [x] Verify current-head GitHub checks and satisfy the autonomous merge gate for feature PR #560.
+- [x] Confirm physical teleport lifecycle PR #558 merged normally without bypassing branch protection.
 
-# Confirmed context
+# Final state
 
-- Task branch started from `main` at `6df7f906ed6f8fef0aa326439a5494bd1e3d523c`, the squash merge of PR #525.
-- PR #534 merged the OTBM roadmap reconciliation as `abbeb51433d33af7398a82f0cd2ab776d01e710f`.
-- PR #535 merged the lifecycle cleanup for #534 as `3215a57d85bc83f982f489a764a9275e51447621`.
-- PR #525 merged the deterministic physical teleport E2E proof as `6df7f906ed6f8fef0aa326439a5494bd1e3d523c`; final feature head `f3fc1346a82da7b086a416f30c4e4eb5b135a365` passed required physical E2E.
-- PR #558 is the automated lifecycle cleanup for #525. It is mergeable and auto-merge is enabled, but direct merge is blocked by branch protection because required check `Required` is still expected. Existing dispatched workflow runs concluded `action_required`.
-- Adding `ci:final-gate` to #558 did not immediately produce a new usable workflow run.
-- PR #514 remains open and previously owned `docs/agents/MODULE_CATALOG.md` and `docs/agents/CHANGELOG.md`; both remain read-only for this task.
-- PR #560 is the dedicated final-handover PR and changes exactly the handover plus this task record.
+The OTBM programme is functionally complete in its ratified bounded scope.
+
+Durable handover:
+
+- `docs/agents/OTBM_PROGRAM_FINAL_HANDOVER.md`
+
+Feature handover PR #560:
+
+- final head: `c9c816fc2b698c433486c33583ecfa96aaca355a`;
+- squash merge: `096f6445b29f69a62f03d391a2c02c4dcee74feb`;
+- final ready-state CI run `29659056428`: success;
+- Agent Task Ownership run `29659036735`: success;
+- pre-ready CI run `29659036809`: success;
+- exact changed-file scope: final handover plus this task record only.
+
+Physical teleport E2E:
+
+- feature PR #525 merged as `6df7f906ed6f8fef0aa326439a5494bd1e3d523c`;
+- lifecycle PR #558 merged as `f2cc64ebca955b711879a5c9d56e538e2978823a`;
+- runtime-proven destination remains `32255,32204,8` from initial `32369,32241,7`, floor delta `1`.
+
+Roadmap reconciliation:
+
+- feature PR #534 merged as `abbeb51433d33af7398a82f0cd2ab776d01e710f`;
+- lifecycle PR #535 merged as `3215a57d85bc83f982f489a764a9275e51447621`.
 
 # Existing work to reuse
 
 | Source | Reuse |
 |---|---|
-| `docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md` | authoritative programme phase history and final supported scope |
+| `docs/agents/OTBM_PROGRAM_FINAL_HANDOVER.md` | final programme continuation entrypoint |
+| `docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md` | authoritative phase history and supported scope |
 | `docs/agents/OTBM_PHASE8_FINAL_HANDOFF.md` | Phase 8 completion and safety contracts |
 | `docs/ai-agent/OTBM_REPAIR_MATERIALIZATION_PIPELINE.md` | canonical mutation/finalization boundary |
-| PR #525 | runtime-proven physical teleport E2E evidence |
-| PR #558 | final administrative lifecycle state for the teleport task |
+| PR #525 / #558 | completed physical teleport proof and lifecycle |
 
 # Ownership and overlap check
 
-- Exclusive claims: final handover file and this task record only.
-- Shared claims: none.
-- Read-only dependencies: roadmap, Phase 8 handoff, repair/materialization pipeline docs, module catalogue and changelog.
-- Known overlap: unrelated PR #514 changes shared catalogue/changelog; this task does not edit them.
-- PR #558 changes only the lifecycle record for #525 and does not overlap this task.
-
-# Current state
-
-The OTBM programme is functionally complete. The final durable handover is published in PR #560. The only remaining OTBM-related item outside this task is administrative lifecycle PR #558 for already-merged PR #525.
-
-# Plan
-
-1. Run exact-head checks for PR #560.
-2. Mark ready and enable normal auto-merge when the autonomous merge gate is satisfied.
-3. Leave #558 to its required branch-protected lifecycle gate; do not bypass it.
+- Exclusive feature claims were limited to the final handover and its task record.
+- No shared catalogue/changelog edits were made.
+- Unrelated PR #514 owned overlapping shared `MODULE_CATALOG.md` / `CHANGELOG.md` paths during this task, so they remained read-only.
+- No OTBM/map/WIDX/assets/runtime/tooling implementation paths were changed.
 
 # Work log
 
 ## 2026-07-18T21:50:00+02:00
 
-- Changed: created a dedicated final-handover task from current `main`.
-- Learned: #525 is merged with successful physical teleport proof; #558 remains administrative-only and branch-protected.
-- Failed/blocked: direct squash merge attempt for #558 was rejected with `Required status check "Required" is expected`; no protection was bypassed.
-- Result: final programme handover can proceed independently.
+- Created the dedicated final-handover task from then-current `main`.
+- Verified #525 was merged with successful physical teleport proof.
+- Initial direct lifecycle merge attempt for #558 was correctly blocked by required branch protection; no protection was bypassed.
 
 ## 2026-07-18T22:05:00+02:00
 
-- Changed: added `docs/agents/OTBM_PROGRAM_FINAL_HANDOVER.md` and opened draft PR #560.
-- Changed: applied `ci:final-gate` before this final checkpoint commit.
-- Learned: PR #558 remains open/mergeable; no new usable workflow run appeared immediately after its final-gate label.
-- Result: PR #560 has an exact two-file documentation-only scope and is ready for current-head validation.
+- Added `docs/agents/OTBM_PROGRAM_FINAL_HANDOVER.md`.
+- Opened draft PR #560 with exactly two documentation files.
+- Applied `ci:final-gate` before the final checkpoint commit.
+
+## Final validation
+
+- Agent Task Ownership: success.
+- Pre-ready CI Required: success.
+- Ready-state full final gate `29659056428`: success across required checks, including Fast Checks, Lua Tests and platform/build jobs.
+- Auto-merge completed PR #560 as `096f6445b29f69a62f03d391a2c02c4dcee74feb`.
+- PR #558 auto-merge completed normally as `f2cc64ebca955b711879a5c9d56e538e2978823a`.
 
 # Decisions
 
 | Decision | Reason/evidence | ADR |
 |---|---|---|
-| Treat #558 as administrative lifecycle only | #525 functionality and physical proof are already merged | none |
-| Do not edit catalogue/changelog | unrelated open PR #514 has overlapping shared-path ownership | none |
-| Do not expand programme scope | generic/full-map serialization, non-zero translation and arbitrary stack editing are explicit non-goals, not unfinished acceptance criteria | none |
-| Publish a standalone final handover | chat history is disposable; AGENTS/CONTEXT_HANDOFF require repository-durable continuation state | none |
-
-# Files and interfaces
-
-| Path | Ownership | Purpose | Status |
-|---|---|---|---|
-| `docs/agents/OTBM_PROGRAM_FINAL_HANDOVER.md` | exclusive | durable final programme handover | complete |
-| `docs/agents/tasks/active/CAN-20260718-otbm-program-final-handover.md` | exclusive | task/checkpoint state | validating |
-
-# Validation and CI
-
-| Commit | Check | Result | Evidence |
-|---|---|---|---|
-| `6df7f906ed6f8fef0aa326439a5494bd1e3d523c` | task branch base equals current main at task start | PASS | branch compare returned identical |
-| `3a415ba0878b79ed638ef23926337b324004854a` | direct merge of PR #558 | BLOCKED | GitHub 405: required status check `Required` expected |
-| `a0d2b5516e97de9185a8c04ac54b377021990059` | PR #560 pre-final-checkpoint changed-file scope | PASS | exactly two documentation files; no forbidden artifacts/runtime paths |
+| Do not invent another OTBM implementation phase | the ratified bounded programme is complete | none |
+| Keep generic/full-map serialization, non-zero translation and arbitrary stack editing as explicit non-goals | these are architecture boundaries, not unfinished Phase 8 acceptance criteria | none |
+| Publish a standalone final handover | continuation state must survive without chat history | none |
+| Preserve normal branch protection | lifecycle and handover merges completed through required gates/auto-merge | none |
 
 # Risks and compatibility
 
@@ -140,68 +137,62 @@ The OTBM programme is functionally complete. The final durable handover is publi
 - Data/migration: none.
 - Backward compatibility: no implementation or contract change.
 - Cross-repo rollout: none.
-- Rollback: revert the documentation squash merge.
+- Rollback: revert the documentation merge if ever required.
 
-# Remaining work
+# Completion
 
-1. Verify PR #560 current-head checks, mark it ready and allow normal auto-merge; separately re-check #558 only if its required lifecycle status changes.
+- Final status: completed.
+- Feature PR: #560.
+- Feature merge: `096f6445b29f69a62f03d391a2c02c4dcee74feb`.
+- Physical teleport lifecycle #558: merged `f2cc64ebca955b711879a5c9d56e538e2978823a`.
+- Durable handover: `docs/agents/OTBM_PROGRAM_FINAL_HANDOVER.md`.
+- Remaining automatic OTBM implementation work: none.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T22:05:00+02:00
-head: a0d2b5516e97de9185a8c04ac54b377021990059
+updated_at: 2026-07-18T20:22:41Z
+head: c9c816fc2b698c433486c33583ecfa96aaca355a
 branch: docs/otbm-program-final-handover-20260718
 pr: 560
-status: validating
+status: ready
 context_routes:
   - otbm
   - agent-governance
 owned_paths:
   - docs/agents/OTBM_PROGRAM_FINAL_HANDOVER.md
-  - docs/agents/tasks/active/CAN-20260718-otbm-program-final-handover.md
+  - docs/agents/tasks/archive/CAN-20260718-otbm-program-final-handover.md
 proven:
   - OTBM phases 1 through 8 are merged and archived
   - bounded post-Phase-8 materialization integration through PR 506 is merged
   - roadmap reconciliation PR 534 and lifecycle PR 535 are merged
-  - physical teleport E2E PR 525 is merged and runtime-proven
-  - PR 558 is mergeable with auto-merge enabled but required check Required is still expected
-  - direct merge of PR 558 was blocked by branch protection
-  - open PR 514 owns shared MODULE_CATALOG.md and CHANGELOG.md paths
-  - PR 560 changes exactly the final handover and this task record
+  - physical teleport E2E PR 525 and lifecycle PR 558 are merged
+  - final handover PR 560 is merged as 096f6445b29f69a62f03d391a2c02c4dcee74feb
+  - final ready-state CI run 29659056428 succeeded
+  - durable handover exists at docs/agents/OTBM_PROGRAM_FINAL_HANDOVER.md
 derived:
-  - the OTBM programme is functionally complete and only administrative lifecycle cleanup remains outside this handover task
-unknown:
-  - when PR 558 required workflow approval will be granted
+  - the OTBM programme is complete in its ratified bounded scope
+unknown: []
 conflicts: []
 first_failure:
-  marker: PR 558 required check Required is expected
-  evidence: GitHub merge API returned repository rule violation on exact head 3a415ba0878b79ed638ef23926337b324004854a
+  marker: none
+  evidence: all final feature gates succeeded
 rejected_hypotheses:
-  - merge PR 558 immediately: rejected because branch protection requires Required check
+  - bypass branch protection for lifecycle cleanup: rejected; normal gate/auto-merge used
 changed_paths:
   - docs/agents/OTBM_PROGRAM_FINAL_HANDOVER.md
-  - docs/agents/tasks/active/CAN-20260718-otbm-program-final-handover.md
+  - docs/agents/tasks/archive/CAN-20260718-otbm-program-final-handover.md
 validation:
-  - command: compare 6df7f906ed6f8fef0aa326439a5494bd1e3d523c to task branch base
+  - command: Agent Task Ownership run 29659036735
     result: PASS
-    evidence: identical
-  - command: squash merge PR 558 at exact head
-    result: BLOCKED
-    evidence: required status check Required is expected
-  - command: compare main to PR 560 pre-final-checkpoint head
+    evidence: completed success
+  - command: CI run 29659036809
     result: PASS
-    evidence: exactly two documentation files
-blockers:
-  - PR 558 awaits required status check approval; do not bypass branch protection
-next_action: Verify PR 560 current-head checks, mark it ready and allow normal auto-merge.
+    evidence: Required success
+  - command: ready-state CI run 29659056428
+    result: PASS
+    evidence: completed success
+blockers: []
+next_action: None; start any future OTBM work only as a fresh bounded task from live main after ownership preflight.
 ```
-
-## Automated lifecycle completion
-
-- Feature PR: #560.
-- Feature head: `c9c816fc2b698c433486c33583ecfa96aaca355a`.
-- Merge commit: `096f6445b29f69a62f03d391a2c02c4dcee74feb`.
-- Merged at: `2026-07-18T20:22:41Z`.
-- This record was moved from `tasks/active` by the post-merge lifecycle automation.
