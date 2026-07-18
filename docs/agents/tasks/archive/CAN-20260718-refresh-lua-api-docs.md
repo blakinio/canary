@@ -2,13 +2,13 @@
 task_id: CAN-20260718-refresh-lua-api-docs
 program_id: agent-governance
 coordination_id: ""
-status: review
+status: completed
 agent: codex
 branch: ci/refresh-lua-api-docs
 base_branch: main
 created: 2026-07-18T08:51:23Z
-updated: 2026-07-18T08:58:00Z
-last_verified_commit: 167e8d4b127416467015da9e7d4ffd600e6d874f
+updated: 2026-07-18T09:18:29Z
+last_verified_commit: "417571a0a3990ed406d894211f8f0d78b190eb33"
 risk: low
 related_issue: ""
 related_pr: "528"
@@ -32,6 +32,7 @@ reuses:
   - canary --generate-lua-api-docs-only
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-18T09:18:29Z
 ---
 
 # Goal
@@ -209,3 +210,11 @@ next_action: Commit and push this final checkpoint, then verify full CI on the r
 - Catalogue updated: not required
 - Changelog updated: not required
 - Archived at:
+
+## Automated lifecycle completion
+
+- Feature PR: #528.
+- Feature head: `b51e54046b075fe6c1e6ca866b188dd690ff1dd5`.
+- Merge commit: `417571a0a3990ed406d894211f8f0d78b190eb33`.
+- Merged at: `2026-07-18T09:18:29Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
