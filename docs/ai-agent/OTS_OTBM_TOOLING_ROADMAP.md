@@ -2,7 +2,7 @@
 
 > Repository: `blakinio/canary`  
 > Coordination: `OTS-OTBM-VALIDATION`  
-> Last refreshed: 2026-07-14  
+> Last refreshed: 2026-07-18  
 > Evidence rule: static source/map evidence is not live gameplay proof
 
 ## Mission
@@ -22,9 +22,9 @@ The stack reuses the existing native OTBM scanner, World Index, script resolver,
 | 5 | Storage dependency graph | merged and archived | #299 / #309 |
 | 6 | Semantic OTBM diff and visual evidence | merged and archived | #311 / #315 |
 | 7 | Geometry and consistency audit | merged and archived | #322 / #323 |
-| 8 | Safe bounded OTBM patch writer | not started; Phases 6–7 safety gates complete | separate future task |
+| 8 | Safe bounded OTBM patch writer | merged and archived | #325 / #333 |
 
-Every phase is a separate bounded task, branch and PR. Do not combine phases.
+Every numbered phase is a separate bounded task, branch and PR. Later structural materialization and finalization work extends the completed Phase 8 safety architecture without inventing a new numbered phase.
 
 ## Shared evidence boundaries
 
@@ -420,7 +420,7 @@ Merged PR #322 delivered:
 
 Final feature head: `67a7774a2cfba98613ea415802063218c951afba`.  
 Squash merge: `0d1eb94c8e8e3033d95fd73f56711b830624540f`.  
-Lifecycle cleanup: #323 (this lifecycle PR; merge pending until its current-head checks pass).
+Lifecycle cleanup: #323, merge `9b04ab3ef3dfbc9440274d63e15e6102c5501d85`.
 
 ### Bounded evidence contract
 
@@ -472,26 +472,61 @@ The first dedicated runs exposed only the known synthetic fixture `maxItemDepth=
 
 ## Phase 8 — Safe bounded OTBM patch writer
 
-Phases 6–7 safety gates are complete, but Phase 8 remains not started. Completion of earlier phases does not itself authorize map writing. A fresh dedicated task must first inspect current ownership, existing patch surfaces and format safety, then begin with the narrowest reviewed attribute-only operations.
+### Delivery
 
-Every approved operation must:
+Phase 8 is complete, merged, validated and archived.
 
-- work on a copy, never the source map in place;
-- require exact expected previous state;
-- pin source hash and format/version;
-- use a bounded region and operation allowlist;
-- create a machine-readable manifest;
-- generate a semantic diff;
-- reparse and fully validate the result;
-- prove equality outside the intended change;
-- render the affected region using real map/client assets;
-- write atomically;
-- provide backup and rollback instructions.
+Bounded existing-attribute patcher:
 
-Existing older patch surfaces do not authorize production-map edits. Phase 8 should begin with narrow attribute edits only; arbitrary tile/item-stack writes require a later explicit safety review.
+- feature PR: #325;
+- final reviewed feature head: `132fa913bbd1607928d9bd70a080c6b27f5ce669`;
+- squash merge: `9350f2fb7420f9af2ecf79ea7085ca4e094a3891`;
+- lifecycle PR: #333;
+- lifecycle squash merge: `85c706ce79baa63e9cd4d8d2622b026c6a4826a7`.
+
+Public contracts:
+
+- `canary-otbm-patch-anchors-v1`;
+- `canary-otbm-bounded-patch-plan-v1`;
+- `canary-otbm-bounded-patch-result-v1`.
+
+Phase 8 intentionally supports only already-existing fixed-width mechanic attributes:
+
+- action ID;
+- unique ID;
+- house-door ID;
+- teleport destination.
+
+Every reviewed operation must pin exact source identity and expected prior state, operate only on a distinct copy, preserve file length and escape framing, prove byte equality outside declared payload offsets, fully reparse the candidate, rebuild canonical World Index evidence, require an exact bounded Semantic OTBM Diff, and retain rollback evidence. Factual render requests use the existing renderer and real map/client assets only.
+
+Phase 8 does not insert or remove attributes, items, tiles or nodes; change item IDs, counts, stack order, tile type, ground, geometry, house ID or tile flags; serialize a full map; write a source map in place; execute a production-map deployment; or treat structural success as proof of player intent or gameplay correctness.
+
+The durable completion handoff is `docs/agents/OTBM_PHASE8_FINAL_HANDOFF.md`.
+
+## Post-Phase-8 bounded repair and materialization extensions
+
+After Phase 8 completed, later bounded tasks extended the existing safety architecture without creating a new numbered roadmap phase or a generic/full-map serializer:
+
+- #406 — read-only real-map repair preflight over existing item/mechanic audit, Phase 8 patch anchors and script resolution;
+- #419 — static Map Quality Gate over compatible Geometry, Reachability and Script Resolution evidence;
+- #422 — repair sandbox verifier that reuses the existing Phase 8 patcher on a distinct artifact copy;
+- #424 — read-only donor/region merge planner with explicit translation and `writerReady: false`;
+- #426 — approved zero-translation complete `OTBM_TILE_AREA` materialization;
+- #456 — canonical repair/materialization finalization pipeline over the existing attribute and TILE_AREA paths;
+- #467 — bounded same-coordinate complete raw tile replacement;
+- #482 — bounded same-coordinate complete raw tile insertion into an already-existing parent `TILE_AREA`;
+- #488 — bounded complete raw tile deletion while retaining the parent `TILE_AREA`;
+- #498 — bounded same-coordinate complete `OTBM_TILE ↔ OTBM_HOUSETILE` donor-subtree conversion;
+- #506 — integration of replacement, insertion, deletion and tile-type conversion into the canonical repair/materialization pipeline; lifecycle cleanup #508 is merged.
+
+The canonical finalization pipeline now supports exactly one mutation mode per run: `attribute`, `tile-area`, `tile-replacement`, `tile-insertion`, `tile-deletion`, or `tile-type-conversion`. It reuses existing materializers and Map Quality evidence and publishes only a verified create-new final map. It does not add a second parser, scanner, World Index, Semantic Diff, script resolver, renderer, E2E runner or deployment path.
+
+Still explicitly out of scope are non-zero coordinate translation in the finalizer, automatic teleport-destination rewriting caused by translation, partial `TILE_AREA` import, arbitrary independent item insertion/deletion or stack reordering, generic OTBM node serialization, a full-map serializer, in-place writes and direct production-map execution.
 
 ## Programme handoff
 
-Phases 1–7 are merged and archived after lifecycle PR #323 is merged. Phase 8 is not started and is not automatically authorized by this roadmap update.
+Phases 1–8 are merged and archived. The bounded Phase 8 writer itself has no remaining implementation work, and the later bounded structural materializers plus canonical repair/materialization integration through PR #506 are merged.
 
-Do not reopen historical OTBM PRs or continue their branches. Do not combine Phase 8 with Harlow cleanup, `0,0,0` teleport repair, Bone Capsule repair, Targuna donor-map remediation or unrelated gameplay fixes. Start Phase 8 only from then-current `main` after a fresh open-PR/active-task/ownership preflight and create a separate bounded task, branch and draft PR before implementation.
+Do not reopen historical OTBM PRs or continue their branches. Future real-map repair work must start as a new bounded task from then-current `main`, reuse the existing item/mechanic audit and script resolution first, prove the exact target and expected old state, use the already-merged reviewed patch/materialization contracts, create a new copy only, and require full reparse, World Index, Semantic Diff, confinement evidence and rollback instructions. Physical-client E2E remains a separate proof layer when runtime behavior must be demonstrated.
+
+Do not combine future real-map repair with Harlow cleanup, `0,0,0` teleport repair, Bone Capsule repair, Targuna donor-map remediation or unrelated gameplay fixes unless a separately reviewed task explicitly owns that scope. Non-zero translation, generic serialization and broader item-stack editing remain separate architecture boundaries rather than unfinished acceptance criteria for the completed roadmap.
