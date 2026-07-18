@@ -2,13 +2,13 @@
 task_id: CAN-20260717-otbm-pipeline-raw-tile-modes
 program_id: "OTS-OTBM-VALIDATION"
 coordination_id: "OTS-OTBM-VALIDATION"
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-pipeline-raw-tile-modes
 base_branch: main
 created: 2026-07-17T21:05:00+02:00
-updated: 2026-07-17T21:22:00+02:00
-last_verified_commit: "7c00702e5cdbc3bff1b831cf46c67b788e90f191"
+updated: 2026-07-17T20:02:51Z
+last_verified_commit: "cb149d427e6a954ee3ab163758465627bc1e643c"
 risk: high
 related_issue: ""
 related_pr: "506"
@@ -52,6 +52,7 @@ reuses:
 public_interfaces:
   - canary-otbm-repair-materialization-pipeline-v1
 cross_repo_tasks: []
+completed: 2026-07-17T20:02:51Z
 ---
 
 # Goal
@@ -141,3 +142,11 @@ validation:
 blockers: []
 next_action: Inspect current OTBM Map Tools AI Agent Tools and CI results, fix any implementation regressions, then update Module Catalog and Changelog before final-gate preparation.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #506.
+- Feature head: `cd3585d154a0e0768e456925cacc3c701732a774`.
+- Merge commit: `cb149d427e6a954ee3ab163758465627bc1e643c`.
+- Merged at: `2026-07-17T20:02:51Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
