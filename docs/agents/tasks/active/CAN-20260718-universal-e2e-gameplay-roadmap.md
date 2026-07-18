@@ -2,13 +2,13 @@
 task_id: CAN-20260718-universal-e2e-gameplay-roadmap
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: OTS-E2E-GAMEPLAY-ROADMAP-V1
-status: validating
+status: implementing
 agent: "GPT-5.5 Thinking"
 branch: docs/e2e-gameplay-validation-roadmap-20260718
 base_branch: main
 created: 2026-07-18T23:08:00+02:00
-updated: 2026-07-18T23:25:00+02:00
-last_verified_commit: "0c45f468cdf8c3a1e6f2425686d59db9120076d7"
+updated: 2026-07-18T23:29:00+02:00
+last_verified_commit: "21731fe7199f187eeb1a923c5d8a183cd4c464f6"
 risk: low
 related_issue: ""
 related_pr: "563"
@@ -54,86 +54,67 @@ cross_repo_tasks: []
 
 # Goal
 
-Publish one durable architecture and ordered implementation roadmap for the next phase of Universal Physical E2E: move from isolated physical proofs to reusable evidence-backed gameplay validation covering OTBM-aware navigation, quests/NPCs, combat, persistence, multi-client behavior, runtime recovery and cross-system journeys while preserving the single existing E2E platform.
+Publish one durable architecture and ordered implementation roadmap for the next phase of Universal Physical E2E, covering OTBM-aware navigation, quests/NPCs, combat, persistence, multi-client behavior, runtime recovery and cross-system journeys while preserving the single existing E2E platform.
 
 # Acceptance criteria
 
-- [x] Reconcile the stale E2E programme record with merged platform and physical-proof work.
-- [x] Define durable architecture layers and responsibility boundaries between static evidence, route planning, physical execution, assertions and retained evidence.
-- [x] Reference PR #562 as owner of OTBM route planning/landmarks/route-plan work without duplicating its scope.
-- [x] Define an ordered work-package queue with dependencies, ownership boundaries, deliverables and acceptance gates.
-- [x] Cover OTBM-aware navigation, quests, NPCs, combat, persistence, multi-client, runtime fault/recovery and cross-system journeys.
-- [x] Define evidence maturity levels from static evidence through recovery proof.
-- [x] Record durable architectural decisions in an ADR.
-- [x] Keep implementation/runtime/workflow paths read-only in this planning task.
-- [x] Update the programme handoff so future agents start from current architecture rather than superseded PR #224.
-- [x] Open draft PR #563 and keep changes documentation-only.
-- [x] Verify exact changed-file scope contains only the five intended documentation paths.
+- [x] Reconcile stale E2E programme state with merged platform and physical-proof work.
+- [x] Define durable responsibility layers for static evidence, route planning, physical execution, assertions and evidence.
+- [x] Keep PR #562 authoritative for detailed OTBM routing contracts without duplicating its scope.
+- [x] Define ordered work packages `E2E-GAMEPLAY-001` through `E2E-GAMEPLAY-008` with dependencies and acceptance gates.
+- [x] Cover navigation, quests/NPCs, combat, persistence, multi-client, recovery and cross-system journeys.
+- [x] Define M0-M5 evidence maturity levels.
+- [x] Record the durable decision in an ADR.
+- [x] Keep E2E runtime/workflow and OTBM implementation paths read-only.
+- [x] Update programme handoff away from superseded PR #224.
+- [x] Open draft PR #563.
+- [x] Verify changed-file scope is exactly five intended documentation paths.
 - [ ] Verify required current-head GitHub checks before readiness/merge.
-
-# Confirmed context
-
-- Task-start `main`: `be7842412beb5d240e76ffd4cd18aacdc3a2dcca`.
-- PR #245 is the merged reusable Universal E2E platform baseline.
-- PRs #446, #477, #481, #512 and #525 establish merged generic gameplay actions, scenario selection, movement, floor change and teleport proof.
-- Draft PR #562 owns the detailed OTBM-to-E2E route-integration programme.
-- PR #563 is this umbrella E2E architecture/roadmap task and does not edit PR #562 exclusive paths.
 
 # Delivered
 
-- `docs/architecture/universal-e2e-gameplay-validation.md`
-  - eight architecture layers;
-  - M0-M5 evidence maturity model;
-  - work packages `E2E-GAMEPLAY-001` through `E2E-GAMEPLAY-008`;
-  - dependency graph and per-package acceptance gates;
-  - future-agent startup and non-duplication rules.
-- `docs/agents/decisions/ADR-20260718-universal-e2e-gameplay-validation-layers.md`
-  - durable separation of static world intelligence, route planning and physical runtime proof;
-  - one Universal E2E orchestrator remains authoritative.
-- `docs/agents/programs/E2E_AUTOMATION_PROGRAM.md`
-  - stale PR #224 prototype state replaced by current merged baseline and next-phase queue;
-  - PR #562 recorded as the separate OTBM routing owner.
-- `docs/agents/CHANGELOG.md`
-  - architecture-level discovery entry added.
+- `docs/architecture/universal-e2e-gameplay-validation.md`: target architecture, evidence maturity model, dependency graph, eight work packages and future-agent rules.
+- `docs/agents/decisions/ADR-20260718-universal-e2e-gameplay-validation-layers.md`: static-world/route-planning/physical-runtime separation and single-orchestrator decision.
+- `docs/agents/programs/E2E_AUTOMATION_PROGRAM.md`: current merged baseline and ordered next-phase queue.
+- `docs/agents/CHANGELOG.md`: architecture-level discovery entry.
 
 # Ordered implementation plan
 
-1. `E2E-GAMEPLAY-002`: consume stable OTBM route plans in Universal Physical E2E; no independent E2E pathfinder.
+1. `E2E-GAMEPLAY-002`: consume stable OTBM route plans; no independent E2E pathfinder.
 2. `E2E-GAMEPLAY-005`: reusable persistence assertion matrix; may proceed independently of route work.
-3. `E2E-GAMEPLAY-003`: one deterministic quest/NPC vertical slice with M3 persistence where durable state is expected.
+3. `E2E-GAMEPLAY-003`: one deterministic quest/NPC vertical slice with M3 persistence where applicable.
 4. `E2E-GAMEPLAY-004`: one deterministic bounded combat vertical slice.
-5. `E2E-GAMEPLAY-006`: multi-client orchestration only when a concrete feature requires it.
-6. `E2E-GAMEPLAY-007`: controlled runtime fault/recovery validation after a stable baseline exists.
-7. `E2E-GAMEPLAY-008`: cross-system journeys composed only from already-proven lower-level capabilities.
+5. `E2E-GAMEPLAY-006`: multi-client orchestration only from concrete feature demand.
+6. `E2E-GAMEPLAY-007`: controlled fault/recovery proof after a stable baseline exists.
+7. `E2E-GAMEPLAY-008`: cross-system journeys composed from already-proven capabilities.
 
 # Decisions
 
 | Decision | Reason/evidence | ADR |
 |---|---|---|
-| Keep one Universal Physical E2E platform | merged PR #245 and existing platform contract | `ADR-20260718-universal-e2e-gameplay-validation-layers.md` |
-| OTBM owns static map truth/route planning; E2E owns physical execution/runtime truth | avoids duplicate parser/pathfinder/orchestrator and matches PR #562 boundary | same ADR |
-| Feature suites own expected gameplay values | keeps shared platform feature-neutral | same ADR |
-| Generic capabilities are separate platform tasks | preserves ownership and reuse | same ADR |
+| Keep one Universal Physical E2E platform | merged PR #245 | `ADR-20260718-universal-e2e-gameplay-validation-layers.md` |
+| OTBM owns static map truth/route planning; E2E owns physical execution/runtime truth | avoids duplicate parser/pathfinder/orchestrator; aligns with PR #562 | same ADR |
+| Feature suites own expected gameplay values | keeps platform feature-neutral | same ADR |
+| Generic capabilities use separate platform tasks | preserves ownership and reuse | same ADR |
 
-# Risks and compatibility
+# Validation and CI
 
-- Runtime: none; documentation-only task.
-- Data/migration: none.
-- Security: no production targets, credentials, maps, dumps or assets introduced.
-- Backward compatibility: no existing scenario/runtime/workflow changed.
-- Cross-repo rollout: future OTClient changes require separate coordinated tasks; none here.
-- Rollback: revert PR #563.
+- Exact PR #563 changed-file list: PASS; only five intended documentation paths.
+- Final-gate CI run `29661291970`: PASS on head `21731fe7199f187eeb1a923c5d8a183cd4c464f6`.
+- Final-gate Agent Task Ownership run `29661291928`: FAIL because this task used frontmatter `status: validating`, which is not an active status for a record under `tasks/active`.
+- Root cause repair in this commit: frontmatter restored to active `status: implementing`; checkpoint execution state may remain `validating`.
+- `ci:final-gate` remains applied, so this synchronize commit must receive a new exact-head validation set.
 
 # Remaining work
 
-1. Verify required current-head checks on the final-gate commit; fix only task-scoped failures.
+1. Verify CI and Agent Task Ownership on the new final head; merge only if all required checks are green and no review blocker exists.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T23:25:00+02:00
-head: 0c45f468cdf8c3a1e6f2425686d59db9120076d7
+updated_at: 2026-07-18T23:29:00+02:00
+head: 21731fe7199f187eeb1a923c5d8a183cd4c464f6
 branch: docs/e2e-gameplay-validation-roadmap-20260718
 pr: 563
 status: validating
@@ -150,22 +131,23 @@ owned_paths:
 proven:
   - main task-start SHA is be7842412beb5d240e76ffd4cd18aacdc3a2dcca
   - PR 245 is the merged Universal E2E platform baseline
-  - PRs 446, 477, 481, 512 and 525 provide merged gameplay-action, scenario-selection, movement, floor-change and teleport foundations
-  - draft PR 562 owns the OTBM-aware route integration programme and has no exclusive-path overlap with PR 563
+  - PRs 446, 477, 481, 512 and 525 provide merged E2E foundations used by this roadmap
+  - draft PR 562 owns OTBM-aware routing and has no exclusive-path overlap with PR 563
   - PR 563 changed-file list is exactly five intended documentation paths
-  - ci:final-gate label was applied before this final checkpoint commit
+  - CI 29661291970 passed on 21731fe7199f187eeb1a923c5d8a183cd4c464f6
+  - Ownership 29661291928 failed only because active task frontmatter used non-active status validating
 derived:
-  - future gameplay E2E work should be delivered as bounded vertical slices on the existing platform
-  - nontrivial navigation should consume the OTBM route bridge once stable rather than embed blind directional scripts
+  - future gameplay E2E should use bounded vertical slices on the existing platform
+  - nontrivial navigation should consume the OTBM route bridge once stable
 unknown:
   - final merged field-level contracts from draft PR 562
-  - current-head GitHub check conclusions after this final-gate commit
+  - current-head checks after the active-status repair commit
 conflicts: []
 first_failure:
-  marker: none
-  evidence: implementation paths remain read-only and no exclusive-path overlap was found
+  marker: active-task-frontmatter-status
+  evidence: run 29661291928 rejected status validating under tasks/active; repaired to implementing in this commit
 rejected_hypotheses:
-  - duplicate OTBM routing design in PR 563: PR 562 already owns that scope
+  - ownership-path overlap: exact changed-file review and PR 562 task ownership show no exclusive overlap
 changed_paths:
   - docs/agents/tasks/active/CAN-20260718-universal-e2e-gameplay-roadmap.md
   - docs/architecture/universal-e2e-gameplay-validation.md
@@ -173,13 +155,16 @@ changed_paths:
   - docs/agents/programs/E2E_AUTOMATION_PROGRAM.md
   - docs/agents/CHANGELOG.md
 validation:
-  - command: repository instruction and routed-context review
-    result: PASS
-    evidence: AGENTS.md, REPOSITORY_MAP.md, CONTEXT_ROUTING.md, E2E_AUTOMATION_PROGRAM.md and PR 562 inspected
   - command: exact PR 563 changed-file list review
     result: PASS
-    evidence: exactly five intended documentation paths; no runtime/workflow/OTBM binary/asset path
+    evidence: exactly five intended documentation paths
+  - command: CI 29661291970
+    result: PASS
+    evidence: exact head 21731fe7199f187eeb1a923c5d8a183cd4c464f6
+  - command: Agent Task Ownership 29661291928
+    result: FAIL
+    evidence: non-active frontmatter status validating; root cause repaired to implementing
 blockers:
-  - none
-next_action: Verify required GitHub checks on the final PR 563 head and merge only if the autonomous merge gate is satisfied.
+  - none after active-status repair; awaiting exact-head checks
+next_action: Verify required GitHub checks on the repaired final PR 563 head and merge only if the autonomous merge gate is satisfied.
 ```
