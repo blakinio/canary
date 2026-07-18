@@ -2,13 +2,13 @@
 task_id: CAN-20260718-universal-e2e-gameplay-roadmap
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: OTS-E2E-GAMEPLAY-ROADMAP-V1
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: docs/e2e-gameplay-validation-roadmap-20260718
 base_branch: main
 created: 2026-07-18T23:08:00+02:00
-updated: 2026-07-18T23:29:00+02:00
-last_verified_commit: "21731fe7199f187eeb1a923c5d8a183cd4c464f6"
+updated: 2026-07-18T21:35:35Z
+last_verified_commit: "c1c0d10ed1e758cb72728be5fe22458cd9d9e61a"
 risk: low
 related_issue: ""
 related_pr: "563"
@@ -50,6 +50,7 @@ reuses:
 public_interfaces:
   - programme work-package IDs E2E-GAMEPLAY-001 through E2E-GAMEPLAY-008
 cross_repo_tasks: []
+completed: 2026-07-18T21:35:35Z
 ---
 
 # Goal
@@ -168,3 +169,11 @@ blockers:
   - none after active-status repair; awaiting exact-head checks
 next_action: Verify required GitHub checks on the repaired final PR 563 head and merge only if the autonomous merge gate is satisfied.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #563.
+- Feature head: `3043cd5ba28e4801c160e2d19da1de64346a8868`.
+- Merge commit: `c1c0d10ed1e758cb72728be5fe22458cd9d9e61a`.
+- Merged at: `2026-07-18T21:35:35Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
