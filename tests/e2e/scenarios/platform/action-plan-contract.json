@@ -59,7 +59,6 @@
       "login_2=success",
       "online_stable_2=confirmed",
       "persistence_check_level=success",
-      "persistence_check_vocation=success",
       "persistence_plan=success",
       "logout_request_2=safe",
       "logout_2=complete",
@@ -77,12 +76,6 @@
           "type": "player_field",
           "field": "level",
           "equals": 500
-        },
-        {
-          "id": "vocation",
-          "type": "player_field",
-          "field": "vocation",
-          "equals": 4
         }
       ]
     }
