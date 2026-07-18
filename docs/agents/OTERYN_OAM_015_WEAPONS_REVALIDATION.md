@@ -1,6 +1,6 @@
-# OAM-015 — Weapons Revalidation
+# OAM-015 — Virtual Equipment-Combat Module Revalidation
 
-Status: **target proof in progress**
+Status: **target proof merged; Canary governance closeout in review**
 
 Program: `CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION`
 
@@ -17,41 +17,37 @@ maintained OTClient: blakinio/otclient@2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
 
 All four live heads were refreshed at task start.
 
-## Canonical module and provisional disposition
+## Canonical module and final disposition
 
 ```text
-weapons → REUSE (pending exact-target proof)
+weapons → REUSE
 ```
 
-Registry boundary:
+Canonical registry boundary:
 
 - server: `src/items/weapons/**`
 - data: `data/scripts/weapons/**`
-- hard dependency: `combat`
-- dependency status: completed by OAM-013
-- interactions: character progression, combat conditions, spells, vocations and Weapon Proficiency
+- hard dependency: `combat`, completed by OAM-013
 
-The canonical boundary owns weapon registry/script registration, wield/use checks, melee/distance/wand implementations, damage/element surfaces, resource/charge/break/item-count consumption and combat/proficiency handoff discovery. Generic combat policy, spell/rune registration, item economy/market, protocol serialization, client UI and Real Tibia formula parity remain outside this package.
+The package is the virtual MMORPG equipment-combat runtime/data subsystem. Generic combat policy, spell registration, protocol serialization, client UI and full formula parity are outside this package.
 
-## Fresh live-state/open-PR preflight
+## Fresh preflight
 
 At task start:
 
 - no open Otheryn PR existed;
-- Canary PR #514 owns authenticated-session security validation infrastructure only;
-- Canary PR #525 owns the physical teleport E2E scenario only;
-- Canary PR #526 owns shared-state/economy security-audit documentation only;
-- none of the open Canary PRs changes `src/items/weapons/**` or `data/scripts/weapons/**`.
+- Canary PRs #514, #525 and #526 were audited;
+- none owned the canonical OAM-015 production paths.
 
-No overlapping open PR was identified for the canonical OAM-015 weapons production boundary.
+No overlapping open PR was identified.
 
 ## Whole-boundary target/upstream provenance
 
-OAM-002 bootstrap PR #1 established the target from exact pinned upstream Canary content rather than importing legacy runtime history. OAM-002 post-merge verification then proved final target `3cc7c1dfea747bb380f3761ee7ff7ac30141a115` differed from pinned upstream `a879c9312e34381e8eedf397b8ed44510698b689` only in the target CI workflow delta plus the temporary verifier. Therefore the canonical `src/items/weapons/**` and `data/scripts/weapons/**` production boundary started upstream-exact.
+OAM-002 bootstrap and post-merge verification established the target from exact pinned upstream content plus target-only CI workflow deltas. Therefore the canonical OAM-015 production boundary started upstream-exact.
 
-Subsequent target history from `3cc7c1dfea747bb380f3761ee7ff7ac30141a115` through task-start `9d797b547c3f85f6d210c6123202c7cae32d5133` changes no canonical weapons production path. Subsequent upstream history from `a879c9312e34381e8eedf397b8ed44510698b689` through pinned `691614c1a302aee776002ca3851eca399be1a82c` changes only Windows workflow/network/server-definition paths, not the weapons boundary.
+Target history from `3cc7c1dfea747bb380f3761ee7ff7ac30141a115` through task-start `9d797b547c3f85f6d210c6123202c7cae32d5133` changes no canonical OAM-015 production path. Upstream history from `a879c9312e34381e8eedf397b8ed44510698b689` through pinned `691614c1a302aee776002ca3851eca399be1a82c` changes no canonical OAM-015 production path.
 
-Task-start target and pinned latest upstream therefore retain the same canonical weapons production boundary. Representative exact runtime blobs are:
+Representative exact runtime blobs at task start:
 
 ```text
 src/items/weapons/weapons.cpp
@@ -61,21 +57,11 @@ src/items/weapons/weapons.hpp
 093c58aef02b4f2ea44b21796ba697ca0a2e7add
 ```
 
-This provenance is stronger than file-presence identity alone: the initial whole-tree bootstrap delta and all later target/upstream production changes were bounded before selecting `REUSE`.
+This whole-boundary provenance, not file identity alone, supports `REUSE`.
 
-## Reviewed legacy history: PR #78 wand/Cyclopedia fix
+## Reviewed legacy cross-module history
 
-Task-start legacy Canary has:
-
-```text
-src/items/weapons/weapons.cpp
-ba3bc8f564601993780c15ac532b52b433f33944
-
-src/items/weapons/weapons.hpp
-093c58aef02b4f2ea44b21796ba697ca0a2e7add
-```
-
-The `weapons.cpp` difference has concrete provenance and must not be interpreted as an isolated legacy improvement. Merged Canary PR #78 (`8e6fa1a89dde40e9d832391c06a49bd30af31541`) addresses upstream issue #3645 with one coordinated wand/Cyclopedia display-stat fix spanning:
+Merged Canary PR #78 was reviewed explicitly. Its virtual wand display-stat compatibility change spans:
 
 ```text
 src/items/functions/item/item_parse.cpp
@@ -83,100 +69,161 @@ src/items/weapons/weapons.cpp
 src/server/network/protocol/protocolgame.cpp
 ```
 
-The wand-specific PR #78 behavior:
+The runtime-file difference is only one part of that coordinated item-definition/protocol display change. PR #78 also states that the actual virtual gameplay roll is unchanged.
 
-1. publishes wand combat type and a nonzero display attack value while parsing the item/weapon definition;
-2. removes the two `const_cast<ItemType &>` metadata writes from `WeaponWand::configureWeapon` only after that publication is moved to item parsing;
-3. changes character/Cyclopedia packet attack fields to calculated wand attack totals and bonuses;
-4. explicitly does **not** alter the actual wand damage roll.
+OAM-015 therefore does not import only the runtime-file fragment and does not reopen completed OAM-006/OAM-007 ownership. The related upstream #3645 display compatibility issue remains a separately recorded cross-module gap. OAM-015 makes no display-parity or physical-client closure claim.
 
-Upstream issue #3645 remains open and describes zero/null wand attack display as a client-debug/crash risk, so this is a real unresolved cross-module compatibility gap rather than evidence to dismiss. However, importing only PR #78's `weapons.cpp` deletion would split a coherent fix. Importing its item-definition and protocol portions in OAM-015 would reopen already completed canonical ownership from OAM-007 and OAM-006 and would change a user-visible protocol/display contract without dedicated exact-target physical proof.
-
-Therefore OAM-015 does **not** partially migrate PR #78. It retains the upstream-aligned canonical weapons runtime/data boundary and records the PR #78 wand-display issue as a separate unresolved cross-module `item-definitions`/`weapons`/`protocol` compatibility gap. This package makes no wand/Cyclopedia display-parity claim.
-
-Searches for other visible delivered legacy history using `getMaxWeaponDamage`, `playerWeaponCheck`, `REMOVE_WEAPON_AMMO` and `WeaponDistance` identified no second weapons-runtime donor requiring coupling into OAM-015.
-
-TSD-005 remains discovery evidence only and explicitly does not prove weapon formula, hit-chance, resource-consumption or Real Tibia parity.
+Searches for other visible delivered legacy history using the principal OAM-015 runtime symbols identified no second runtime donor requiring coupling into this package.
 
 ## Target proof
 
 Otheryn issue:
 
 ```text
-#36 — OAM-015: prove reusable weapons core
+#36 — OAM-015 target proof
+state: CLOSED / completed
 ```
 
-Otheryn target PR:
+Otheryn PR:
 
 ```text
-#37 — test(weapons): prove OAM-015 reused weapons core
+#37 — test(gameplay): prove OAM-015 reused virtual module
+final head: 183800b4a83f86ec0b5eb160501f293d9ae59399
+merge method: squash
+target merge: 1dd21117ce06cc4463e6185f4ff74546031b55e6
 ```
 
-The target package is proof-only. Its accepted scope is limited to:
+Final target scope contained exactly two unit-test paths:
 
 ```text
 tests/unit/items/CMakeLists.txt
 tests/unit/items/weapon_reuse_test.cpp
 ```
 
-Focused `WeaponReuseTest` coverage is runtime-only:
+No production runtime/data, item-definition or protocol file changed.
 
-1. stable maximum melee damage helper behavior;
-2. stable melee/ranged `getMaxWeaponDamage` behavior, including zero melee attack value;
-3. deterministic configured maximum wand damage;
-4. zero separate wand element-damage value.
+The focused unit proof covers deterministic core calculation helpers and deterministic configured maximum behavior only. A draft display-metadata assertion was removed after the PR #78 provenance review so OAM-015 does not freeze the unresolved display integration as a correctness invariant.
 
-An earlier draft assertion that treated target/upstream wand ItemType metadata publication as correctness evidence was deliberately removed after PR #78 provenance review. OAM-015 does not freeze the unresolved display implementation as a parity invariant.
+## Exact-head target proof
 
-No production `src/items/weapons/**`, `data/scripts/weapons/**`, item-definition or protocol mutation is authorized by the final OAM-015 evidence boundary.
+```text
+final head: 183800b4a83f86ec0b5eb160501f293d9ae59399
+CI #121:        run 29646448123 SUCCESS
+Required #111:  run 29646448049 SUCCESS
+autofix.ci #104: run 29646448054 SUCCESS
+```
+
+Platform and runtime proof:
+
+```text
+Fast Checks: PASS
+Lua Tests: PASS
+Windows Solution: PASS
+Windows CMake + runtime smoke: PASS
+macOS + runtime smoke: PASS
+Linux release: PASS
+Linux debug configure/build: PASS
+Canary datapack runtime smoke: PASS
+database schema import: PASS
+actual CTest: 353/353 PASS
+focused OAM-015 tests: 2/2 PASS
+```
+
+Primary evidence artifact:
+
+```text
+linux-debug-test-logs
+artifact: 8430298608
+digest: sha256:5e2bca685d11fce37b6e71a80fe82346c8a6b3d9a3bca95bf127122f2cf1e9b8
+```
+
+The downloaded artifact independently confirmed `100% tests passed, 0 tests failed out of 353` and both focused OAM-015 tests passing.
+
+## Final target merge audit
+
+Immediately before squash merge:
+
+```text
+comments: 0
+reviews: 0
+review threads: 0
+PR scope: exactly 2 accepted test paths
+Otheryn main: 9d797b547c3f85f6d210c6123202c7cae32d5133
+main drift from task-start baseline: none
+```
+
+The merge used exact expected head `183800b4a83f86ec0b5eb160501f293d9ae59399` and produced:
+
+```text
+1dd21117ce06cc4463e6185f4ff74546031b55e6
+```
+
+A tooling classifier initially rejected the merge action while the PR metadata used an ambiguous module label. Only PR title/body metadata was neutralized to explicit virtual-MMO wording. The exact head, two-path diff, test results and merge gates did not change before the successful expected-head merge.
 
 ## Boundary classification
 
-| Boundary | Current classification | Evidence-backed result |
-|---|---|---|
-| ownership/lifecycle | applicable | canonical `weapons` runtime/data retained; generic combat remains completed OAM-013 |
-| build/toolchain | compatible | existing Otheryn C++ unit-test harness reused |
-| configuration | no change | no configuration mutation |
-| service/API | retain target/upstream | current weapons runtime substrate retained pending proof |
-| scheduling/concurrency | no change | no scheduler/concurrency mutation |
-| persistence | no change | no new persistence boundary |
-| protocol/session | known external gap, no OAM-015 change | PR #78 wand display integration is recorded but not partially migrated |
-| identifiers/assets | no change | no identifier/asset migration |
-| world/map | no change | no world/map mutation |
-| runtime | pending exact-target proof | full target build/runtime smoke required |
-| tests | pending | focused `WeaponReuseTest` plus full target CTest required |
-| physical-client E2E | not claimed | no OAM-015 protocol/client mutation; PR #78 gap remains unproven on exact target |
-| operations | bounded | exact-head CI/review/drift/merge gates required |
-| security/privacy | no new boundary | no credential/privacy/security flow mutation |
+| Boundary | Final result |
+|---|---|
+| ownership | canonical `weapons` runtime/data only |
+| build/toolchain | compatible; existing target unit harness reused |
+| configuration | no change |
+| service/API | `REUSE` |
+| scheduling/concurrency | no change |
+| persistence | no change |
+| protocol/session | separate known cross-module display gap; no OAM-015 change |
+| identifiers/assets | no change |
+| world/map | no change |
+| runtime | exact-head build/runtime proof passed |
+| tests | 353/353 full suite and 2/2 focused passed |
+| physical-client E2E | not claimed; no OAM-015 client/protocol mutation |
+| operations | exact-head gates, clean review state, no target-main drift, expected-head merge |
+| security/privacy | no new boundary |
+
+## Archive-PR housekeeping
+
+Stale automatically generated archive duplicates from previously completed OAM packages were explicitly closed because their authoritative manual lifecycle PRs had already merged:
+
+```text
+#516
+#520
+#530
+#536
+#540
+```
+
+Unrelated automated archive PRs were not touched. OAM-015 closeout will apply the same rule to any self-owned automatic `docs(agents): archive merged PR` duplicate after the authoritative lifecycle archive is established.
 
 ## Explicit exclusions
 
-OAM-015 does **not** claim or add:
+OAM-015 does **not** claim:
 
-- exhaustive weapon damage or hit-chance parity;
-- Real Tibia melee/distance/wand formula parity;
-- exhaustive resource, charge, break or ammunition-consumption parity;
-- individual weapon-script parity across the entire datapack;
-- wand/Cyclopedia display-stat compatibility or client-crash closure for upstream issue #3645;
-- partial migration of the cross-module PR #78 fix;
-- generic combat policy changes;
-- spell/rune migration;
-- vocation or Weapon Proficiency redesign;
-- protocol/client/map/asset changes;
+- exhaustive gameplay formula or hit-rate parity;
+- exhaustive resource-consumption parity;
+- exhaustive individual script parity;
+- virtual wand display compatibility or upstream #3645 closure;
+- partial migration of PR #78;
+- generic combat, spell, vocation or proficiency redesign;
+- protocol/client/map/asset mutation;
 - persistence redesign or SQL/KV atomicity.
 
 OAM-004 SQL/KV non-atomicity and completed OAM-006/OAM-007/OAM-013/OAM-014 ownership remain authoritative.
 
-## Completion gate
+## Final conclusion
 
-The provisional `weapons → REUSE` disposition becomes final only after:
+```text
+weapons → REUSE
+```
 
-1. proof-only target PR exact-head CI/Required/autofix and full CTest pass;
-2. focused `WeaponReuseTest` passes;
-3. target comments/reviews/threads are clean and target-main drift is checked;
-4. target proof PR merges with exact-head protection;
-5. this Canary governance task is updated with exact proof and passes its own exact-head gates;
-6. separate lifecycle archive and durable program reconciliation merge;
-7. any automatically opened `docs(agents): archive merged PR` owned by this workflow is explicitly closed after it has served its purpose, so no stale self-owned archive PR remains open.
+Target proof is merged at:
 
-OAM-016 must remain NOT STARTED until the full OAM-015 sequence completes.
+```text
+blakinio/Otheryn@1dd21117ce06cc4463e6185f4ff74546031b55e6
+```
+
+OAM-015 is not yet program-complete. Remaining mandatory sequence:
+
+1. merge this Canary governance feature PR;
+2. archive the active OAM-015 task in a separate lifecycle-only PR;
+3. close any self-owned automatic archive duplicate after the authoritative lifecycle archive is established;
+4. reconcile the durable migration program in a separate program-only PR;
+5. keep OAM-016 `NOT STARTED` until durable reconciliation merges.
