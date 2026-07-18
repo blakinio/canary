@@ -48,11 +48,12 @@ Local shell Git preflight could not be completed because the disposable shell ha
 | `economic_ledger` | global idempotency/audit | wired for selected market paths | overlap-leader duplicate rejected; prior crash wedge remains |
 | `guilds.balance` | global per-guild balance | copied into process-local Guild and saved absolutely | `PROVEN` — OTS-ECO-GUILD-001 |
 | `players.balance` | global per-player bank balance | direct SQL increments coexist with process-local absolute full saves | `PROVEN` house-refund lost update — OTS-ECO-HOUSE-001 |
+| house auction bid state | per-channel world object persisted in `houses` | value effects happen before later `Map::save()` persistence | `PROVEN` crash window — OTS-ECO-HOUSE-002 |
 | `accounts.coins*` | global per-account balances | multiple RMW paths | prior race findings revalidated |
 | `global_storage` | global key/value | daily reward individually leader-gated | wider writers still open |
 | `kv_store` | global `key_name` PK | namespace/call-site dependent | raid-reset candidate open |
 | boosted creature/boss | global rows | leader gates wired | no new finding in this slice |
-| house rows | intended per-channel world state | rent/auction jobs per-channel | prior house-isolation findings preserved |
+| house rows generally | intended per-channel world state | rent/auction jobs per-channel | prior house-isolation findings preserved |
 | global event framework | starts in every process | only selected jobs individually gated | candidate by concrete event |
 | cleanup/highscores/DB optimization/global record | intended singleton where truly global | current runbook still marks wiring incomplete | concrete call-site proof pending |
 
@@ -221,45 +222,96 @@ Existing handover finding revalidated with exact current load/debit/save chain.
   - `src/io/functions/iologindata_save_player.cpp` — `IOLoginDataSave::savePlayerFirst`
 - Status: open; concrete house-payment specialization of prior cross-process stale-save class
 
-### Source -> validation -> authorization -> state transition -> persistence -> retry/crash -> impact
+### Trace
 
-1. A previous house bidder may later be online on a different channel process.
-2. When another player outbids them, the house-owning channel calls `Game::processBankAuction()`.
-3. Refund routing checks only `g_game().getPlayerByName(house->getBidderName())`, which sees players local to the current process.
-4. A bidder online on another channel is therefore treated as non-local/offline.
-5. The current channel refunds them through `IOLoginData::increaseBankBalance()`, which executes a durable relative SQL increment: `balance = balance + refund`.
-6. The bidder's real owning channel still holds the pre-refund process-local `Player::bankBalance` snapshot.
-7. A later normal full player save executes `IOLoginDataSave::savePlayerFirst()` and writes `players.balance = player->bankBalance` as an absolute value.
-8. There is no CAS/fencing/version check protecting that bank column from the stale writer.
-9. The stale full save can overwrite and permanently erase the cross-channel auction refund.
+1. A previous house bidder may be online on a different channel process.
+2. On a new bid, `Game::processBankAuction()` checks only the current process with `g_game().getPlayerByName()` when routing the previous bidder's refund.
+3. A bidder online on another channel is treated as non-local/offline.
+4. The current channel calls `IOLoginData::increaseBankBalance()`, executing durable `balance = balance + refund`.
+5. The bidder's owning channel still holds its pre-refund process-local bank balance.
+6. A later full save writes `players.balance = player->bankBalance` as an absolute value.
+7. No CAS/version/fencing check protects that column from the stale writer.
 
 ### Deterministic failure timeline
 
-Assume bidder V has durable/local bank balance `100` while online on channel B.
+V has durable/local bank balance `100` while online on channel B.
 
-1. V previously placed a bid for a house on channel A, then is online on B.
-2. Another bidder on A triggers a refund of `50` to V.
-3. A cannot find V in its local player map and executes `UPDATE players SET balance = balance + 50`, making durable balance `150`.
+1. V had previously bid on a house handled by channel A.
+2. Another bidder on A triggers refund `50` to V.
+3. A misses V in its local player map and directly increments DB balance to `150`.
 4. V's in-memory balance on B remains `100`.
-5. B later saves V for an unrelated normal lifecycle event.
-6. `savePlayerFirst()` writes absolute `balance = 100`.
-7. The `50` refund is lost.
-
-### Qualification / limitations
-
-The stale-write sequence is directly proven. It requires the prior bidder to be online in another channel while the refund is issued and then to perform a later full save from that stale in-memory state. No runtime E2E was executed in this pass.
+5. B later performs a normal full player save.
+6. The absolute save writes `100`, erasing the `50` refund.
 
 ### Impact
 
-Normal cross-channel house-auction activity can destroy refunded bank value. The same routing pattern is relevant anywhere a process treats a remotely online player as offline and directly mutates DB state later covered by an absolute player save.
+Normal cross-channel house-auction activity can destroy refunded bank value. The same routing pattern is relevant anywhere a process directly mutates DB state for a player currently owned by another process and that field is later covered by an absolute full save.
 
 ### Remediation direction
 
-Do not apply bank mutations directly to a row that may be owned by another live process and later overwritten by a full save. Route the mutation to the current record owner through a durable addressed operation (`cluster_pending_operations`-style handoff), or make bank balance itself a DB-authoritative atomic value excluded from stale full-save overwrite. Require idempotent operation identity and ownership/fencing checks.
+Route bank mutation to the current record owner through a durable addressed operation, or make bank balance DB-authoritative and exclude it from stale full-save overwrite. Require idempotent operation identity and ownership/fencing checks.
 
 ### Overlap
 
-This is a concrete house-auction/payment call-site for the prior cross-process offline-player/stale-full-save class. It adds a specific normal-economy failure timeline and affected functions; it does not duplicate the generic finding mechanically.
+Concrete house-auction/payment call-site for the prior cross-process stale-full-save class.
+
+---
+
+## OTS-ECO-HOUSE-002 — bidder/refund effects precede durable house bid-state persistence, allowing crash-time double-refund or unbacked auction state
+
+- Severity: **HIGH**
+- Repository/component: `blakinio/canary` / house auction crash consistency
+- Evidence state: **PROVEN**
+- Source baseline: `d9c967d6e9b778da11a206d134d559f38ec1b8c8`
+- Paths/functions:
+  - `src/game/game.cpp` — `Game::playerCyclopediaHouseBid`, `Game::processBankAuction`
+  - `src/map/house/house.hpp` — bidder/bid/state setters
+  - `src/io/iomapserialize.cpp` — `IOMapSerialize::loadHouseInfo`, `saveHouseInfo`, `SaveHouseInfoGuard`
+  - `src/map/map.cpp` — `Map::save`
+  - `src/io/iologindata.cpp` — `IOLoginData::increaseBankBalance`
+- Status: open; distinct crash-consistency specialization of house economy
+
+### Source -> validation -> authorization -> state transition -> persistence -> retry/crash -> impact
+
+1. `playerCyclopediaHouseBid()` calls `processBankAuction()` before updating the house's new bidder/bid fields.
+2. `processBankAuction()` immediately changes the new bidder's process-local bank balance and may immediately persist the previous bidder's refund through `IOLoginData::increaseBankBalance()` when that bidder is non-local.
+3. Only after those value effects does the caller invoke `House::setHighestBid`, `setInternalBid`, `setBidHolderLimit`, `setBidderName`, `setBidder`, and `calculateBidEndDate`.
+4. Those setters update only the in-memory House object.
+5. `playerCyclopediaHouseBid()` does not synchronously call `Map::save()` or `IOMapSerialize::saveHouseInfo()` after accepting the bid.
+6. Durable house bidder/bid state is written later by `IOMapSerialize::SaveHouseInfoGuard()` when `Map::save()` runs.
+7. A process crash after a durable previous-bidder refund but before that later house save leaves the DB house row on the old bidder while the old bidder has already received the refund.
+8. On restart `loadHouseInfo()` reconstructs the old durable bidder/bid state.
+9. A later outbid can refund that same old hold again; alternatively, if the old durable auction reaches settlement, the old bidder can remain the recorded winning bidder despite the previously persisted refund.
+
+### Deterministic failure timeline
+
+Assume DB house state records previous bidder P with held bid state.
+
+1. New bidder N submits a higher bid.
+2. `processBankAuction()` refunds P through a durable relative DB bank increment because P is offline or online on another channel.
+3. The process updates the House object in memory to N.
+4. Crash occurs before the next successful `Map::save()` persists N as bidder.
+5. Restart reloads DB house state showing P as bidder again, while P's refund from step 2 remains durable.
+6. If P is outbid again, the same old hold can be refunded a second time; if the auction settles from the stale DB state, P can retain winning-bid semantics without the original hold still being economically reserved.
+
+### Qualification / limitations
+
+- The effect-before-house-persistence crash window is directly proven.
+- A duplicate refund or unbacked settlement requires a crash in that window and subsequent auction continuation/settlement.
+- The exact new bidder loss/refund outcome also depends on whether that bidder's process-local bank debit was separately saved before the crash; this finding does not require assuming it was.
+- No crash-injection runtime proof was executed in this pass.
+
+### Impact
+
+Crash-time auction state can diverge from already persisted money effects, enabling duplicate refunds, unbacked winning-bid state, or inconsistent bidder balances.
+
+### Remediation direction
+
+Treat house bid transition, new-bidder reserve/debit, previous-bidder refund, and durable bidder state as one recoverable operation. Use a durable operation/ledger identity and either one transactional state machine or a PENDING/COMMITTED workflow with idempotent replay. Do not persist refunds before durable ownership of the corresponding house-state transition is established.
+
+### Overlap
+
+Related to prior house and exactly-once findings, but this is a distinct concrete crash window between monetary effects and `Map::save()` house-state persistence.
 
 ---
 
@@ -344,7 +396,7 @@ The runbook warning is not sufficient to manufacture findings. Each concrete sch
 - remaining bank transfer combinations;
 - depot/inbox/stash handoff beyond already preserved mail findings;
 - trade completion persistence ordering;
-- additional house auction/payment transitions, including bid debit/state crash windows;
+- remaining house auction/payment transitions, especially transfer/settlement ordering;
 - remaining account-coin mutation call sites;
 - MyAAC premium-point paid-operation races not yet re-traced in this slice.
 
@@ -358,6 +410,7 @@ The runbook warning is not sufficient to manufacture findings. Each concrete sch
 - `OTS-ECO-MKT-001` — concurrent partial market over-consumption from stale offer snapshots.
 - `OTS-ECO-GUILD-001` — guild-bank stale snapshot/absolute-save double spend; existing class revalidated.
 - `OTS-ECO-HOUSE-001` — cross-channel house-auction refund can be erased by remote bidder's stale full save.
+- `OTS-ECO-HOUSE-002` — auction money/refund effects precede durable house bid-state persistence, creating a crash-time duplicate-refund/unbacked-state window.
 - Existing GameStore effect-before-debit path revalidated.
 - Existing transferable-coin receiver-credit-before-sender-debit path revalidated.
 - Existing market-expiry PENDING crash-recovery wedge revalidated.
@@ -411,9 +464,10 @@ Priority isolated harness scenarios:
 4. stale persistent save after ownership loss;
 5. guild-bank double spend;
 6. cross-channel house-auction refund lost update;
-7. broader cross-channel house persistence corruption.
+7. crash after persisted previous-bidder refund but before house `Map::save()`;
+8. broader cross-channel house persistence corruption.
 
-Target harness: minimum two Canary processes, shared MariaDB, Redis, deterministic synchronization, disposable local/container environment.
+Target harness: minimum two Canary processes, shared MariaDB, Redis, deterministic synchronization/crash injection, disposable local/container environment.
 
 # Remediation workflow
 
@@ -435,6 +489,6 @@ Continue in this order unless stronger evidence changes priority:
    - bank transfer combinations;
    - trade completion;
    - depot/inbox/stash persistence;
-   - remaining house auction/payment transitions;
+   - house transfer/settlement transitions;
    - remaining account coin mutations;
-3. build isolated two-process race proofs when a local disposable runtime is available.
+3. build isolated two-process race/crash proofs when a local disposable runtime is available.
