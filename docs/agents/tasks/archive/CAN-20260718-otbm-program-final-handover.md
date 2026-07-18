@@ -2,13 +2,13 @@
 task_id: CAN-20260718-otbm-program-final-handover
 program_id: OTS-OTBM-VALIDATION
 coordination_id: OTS-OTBM-VALIDATION
-status: implementing
+status: completed
 agent: GPT-5.5 Thinking
 branch: docs/otbm-program-final-handover-20260718
 base_branch: main
 created: 2026-07-18T21:50:00+02:00
-updated: 2026-07-18T22:05:00+02:00
-last_verified_commit: "a0d2b5516e97de9185a8c04ac54b377021990059"
+updated: 2026-07-18T20:22:41Z
+last_verified_commit: "096f6445b29f69a62f03d391a2c02c4dcee74feb"
 risk: low
 related_issue: ""
 related_pr: "560"
@@ -38,6 +38,7 @@ reuses:
   - merged PR and workflow evidence
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-18T20:22:41Z
 ---
 
 # Goal
@@ -196,3 +197,11 @@ blockers:
   - PR 558 awaits required status check approval; do not bypass branch protection
 next_action: Verify PR 560 current-head checks, mark it ready and allow normal auto-merge.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #560.
+- Feature head: `c9c816fc2b698c433486c33583ecfa96aaca355a`.
+- Merge commit: `096f6445b29f69a62f03d391a2c02c4dcee74feb`.
+- Merged at: `2026-07-18T20:22:41Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
