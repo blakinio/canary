@@ -1,3 +1,38 @@
+---
+task_id: CAN-20260717-myaac-canary-security-audit
+status: validating
+agent: "GPT-5.5 Thinking"
+branch: docs/myaac-canary-security-audit-20260717
+base_branch: main
+created: 2026-07-17T06:32:00+02:00
+updated: 2026-07-18T08:45:00+02:00
+last_verified_commit: "f64314d1e03a6f04fc4edd06b86fc8f608f8e1b9"
+risk: high
+related_issue: ""
+related_pr: "453"
+depends_on: []
+blocks: []
+owned_paths:
+  exclusive:
+    - docs/agents/tasks/active/CAN-20260717-myaac-canary-security-audit.md
+    - docs/security/MYAAC_CANARY_SECURITY_AUDIT_2026-07-17.md
+    - docs/security/OTS_SECURITY_AUDIT_HANDOVER_2026-07-18.md
+  shared: []
+  read_only:
+    - opentibiabr/canary
+    - opentibiabr/login-server
+    - slawkens/myaac
+    - opentibiabr/otclient
+    - opentibiabr/remeres-map-editor
+    - opentibiabr/client-editor
+modules_touched:
+  - security-audit
+reuses:
+  - existing agent task governance and context checkpoint contracts
+public_interfaces: []
+cross_repo_tasks: []
+---
+
 # CAN-20260717 — MyAAC / Canary security audit record
 
 ## Status
@@ -68,8 +103,8 @@ The durable documentation consolidates:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T08:43:00+02:00
-head: fd92c2c4945a951f920d4be7c3afce5f4e67cd1c
+updated_at: 2026-07-18T08:45:00+02:00
+head: f64314d1e03a6f04fc4edd06b86fc8f608f8e1b9
 branch: docs/myaac-canary-security-audit-20260717
 pr: 453
 status: validating
@@ -87,8 +122,8 @@ proven:
   - durable report and continuation handover preserve the current audit state
   - no public or third-party deployment was tested
   - no private secrets or production credentials are committed by this PR
-  - general CI passed on both prior final-head attempts
-  - ownership diagnostics identified checkpoint schema defects only and those defects are corrected in this commit
+  - general CI passed on all prior final-head attempts
+  - ownership diagnostics identified task-record schema defects only and each reported defect is corrected in this commit
 derived:
   - full integrated authentication and multichannel runtime validation remains incomplete
 unknown:
@@ -97,7 +132,7 @@ unknown:
 conflicts: []
 first_failure:
   marker: Agent Task Ownership / Validate changed active task checkpoints
-  evidence: first missing fenced YAML, then unsupported checkpoint status/result values; corrected to supported schema in this commit
+  evidence: task lacked current structured governance metadata; front matter and checkpoint schema are corrected in this commit
 rejected_hypotheses:
   - previously documented rejected hypotheses remain closed unless new evidence appears
 changed_paths:
