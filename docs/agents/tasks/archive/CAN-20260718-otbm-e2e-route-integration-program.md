@@ -2,13 +2,13 @@
 task_id: CAN-20260718-otbm-e2e-route-integration-program
 program_id: CAN-PROGRAM-OTBM-E2E-ROUTING
 coordination_id: OTBM-E2E-ROUTE-V1
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: docs/otbm-e2e-route-integration-program-20260718
 base_branch: main
 created: 2026-07-18T22:55:00+02:00
-updated: 2026-07-18T23:22:00+02:00
-last_verified_commit: "00b1b4ec2f63b5a938e0acb0dd3f72f91a174f8c"
+updated: 2026-07-18T21:31:50Z
+last_verified_commit: "59916930b08bafb87dcddec89230d16b8e1f0712"
 risk: medium
 related_issue: ""
 related_pr: "562"
@@ -55,6 +55,7 @@ public_interfaces:
   - proposed canary-otbm-semantic-landmarks-v1
   - proposed canary-otbm-route-interactions-v1
 cross_repo_tasks: []
+completed: 2026-07-18T21:31:50Z
 ---
 
 # Goal
@@ -150,3 +151,16 @@ validation:
     evidence: ci:final-gate remains applied; this correction creates a new exact final head and no further content commits are planned.
 next_action: Require exact-final-head Agent Task Ownership, CI, AI Agent Tools and OTBM Map Tools success for PR 562. Then mark ready and squash-merge if review-clean; allow lifecycle automation to archive this planning task. Start OTBM-E2E-001 and optionally OTBM-E2E-002 only from fresh current-main branches after this programme is merged.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #562.
+- Feature head: `fc46c9e014bfbca9d1bd5f86b6cac4e98430d2d9`.
+- Merge commit: `59916930b08bafb87dcddec89230d16b8e1f0712`.
+- Merged at: `2026-07-18T21:31:50Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
+
+## Lifecycle validation dispatch
+
+- The automation-token-created lifecycle PR initially produced `action_required` workflow states.
+- This documentation-only commit was made on the lifecycle branch to trigger the normal repository Ownership/CI checks; branch protection and the normal merge gate remain authoritative.
