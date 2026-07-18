@@ -4,14 +4,14 @@ program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-016
 status: review
 agent: "GPT-5.5 Thinking"
-branch: docs/oam-016-spells-revalidation
+branch: docs/oam-016-module-revalidation
 base_branch: main
 created: 2026-07-18
-updated: 2026-07-18T18:30:00+02:00
+updated: 2026-07-18T18:37:00+02:00
 last_verified_commit: "46cc7458d644da356371aabf3ff18c0e51d228a8"
 risk: high
 related_issue: "blakinio/Otheryn#38"
-related_pr: "548"
+related_pr: "549"
 depends_on:
   - OAM-013
 blocks:
@@ -83,12 +83,12 @@ Final target diff contained exactly two test paths and no production runtime/dat
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T18:30:00+02:00
-head: ab1d4cb99fe388459c2fb384d5e03bc41b6dc7c5
-branch: docs/oam-016-spells-revalidation
-pr: 548
+updated_at: 2026-07-18T18:37:00+02:00
+head: 37145838d96190af0022681d819643be8bb32410
+branch: docs/oam-016-module-revalidation
+pr: 549
 status: validating
-next_action: Pass final exact-head Agent Task Ownership and CI for Canary PR #548, then perform clean review and main-drift audit before expected-head merge.
+next_action: Pass final exact-head Agent Task Ownership and CI for Canary PR #549, then perform clean review and main-drift audit before expected-head merge.
 context_routes:
   - docs/agents/OTERYN_OAM_016_SPELLS_REVALIDATION.md
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
@@ -104,7 +104,7 @@ proven:
 derived:
   - Canonical OAM-016 disposition is REUSE while Analytics instrumentation and coordinated Wheel spell-area changes remain excluded cross-module gaps.
 unknown:
-  - Canary governance merge SHA is unavailable until PR #548 merges.
+  - Canary governance merge SHA is unavailable until PR #549 merges.
 conflicts: []
 rejected_hypotheses:
   - Treating Gameplay Analytics instrumentation as an independent spell-core donor.
