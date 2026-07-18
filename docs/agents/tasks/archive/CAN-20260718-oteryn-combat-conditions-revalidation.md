@@ -2,13 +2,13 @@
 task_id: CAN-20260718-oteryn-combat-conditions-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-014
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: docs/oam-014-combat-conditions-revalidation
 base_branch: main
 created: 2026-07-18
-updated: 2026-07-18T13:59:30+02:00
-last_verified_commit: "9d797b547c3f85f6d210c6123202c7cae32d5133"
+updated: 2026-07-18T12:03:57Z
+last_verified_commit: "c9ba742731ebea2ccaf73b8b7ae78ee855ad9109"
 risk: high
 related_issue: "blakinio/Otheryn#34"
 related_pr: "539"
@@ -39,6 +39,7 @@ public_interfaces:
   - condition serialization and deserialization
   - ConditionLight start and restore safety
 cross_repo_tasks: []
+completed: 2026-07-18T12:03:57Z
 ---
 
 # Goal
@@ -185,3 +186,11 @@ validation:
 blockers: []
 next_action: Run exact-head Canary governance gates for PR 539, audit comments reviews and review threads, then squash-merge; do not start OAM-015.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #539.
+- Feature head: `9c806ec8524d59430395173d8187ef90d8b2e64d`.
+- Merge commit: `c9ba742731ebea2ccaf73b8b7ae78ee855ad9109`.
+- Merged at: `2026-07-18T12:03:57Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
