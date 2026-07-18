@@ -6,8 +6,8 @@ agent: "GPT-5.5 Thinking"
 branch: docs/ots-security-shared-state-economy-audit-20260718
 base_branch: main
 created: 2026-07-18T09:58:00+02:00
-updated: 2026-07-18T10:00:00+02:00
-last_verified_commit: "b150a2bec7760a2180465ba5034ab9f57ce5eb16"
+updated: 2026-07-18T10:12:00+02:00
+last_verified_commit: "fad383bd15f58e99b086e5ca82ed5039eab34d06"
 risk: high
 related_issue: ""
 related_pr: "526"
@@ -79,7 +79,7 @@ Continue the existing OTS security assessment from the durable PR #453 handover 
 - [x] Dedicated task branch and draft PR #526 created without mixing scope into PR #522.
 - [ ] Mechanical global/shared-state inventory completed for the highest-risk multichannel writers.
 - [ ] Exactly-once/economy continuation completed for the highest-risk remaining flows with concrete failure timelines.
-- [ ] New findings and rejected candidates preserved in `docs/security/OTS_SECURITY_SHARED_STATE_ECONOMY_AUDIT_2026-07-18.md`.
+- [x] New findings and rejected candidates preserved in `docs/security/OTS_SECURITY_SHARED_STATE_ECONOMY_AUDIT_2026-07-18.md`.
 - [ ] Changed-file scope remains documentation-only and limited to this task record plus its evidence document.
 - [ ] Required GitHub checks pass on the exact final head before readiness/merge.
 
@@ -87,8 +87,8 @@ Continue the existing OTS security assessment from the durable PR #453 handover 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T10:00:00+02:00
-head: b150a2bec7760a2180465ba5034ab9f57ce5eb16
+updated_at: 2026-07-18T10:12:00+02:00
+head: fad383bd15f58e99b086e5ca82ed5039eab34d06
 branch: docs/ots-security-shared-state-economy-audit-20260718
 pr: 526
 status: implementing
@@ -106,31 +106,46 @@ proven:
   - open PR 514 owns security runtime validation paths and does not overlap this task's exclusive documentation paths
   - open PR 487 changes only tests/unit/game/multichannel/channel_registry_test.cpp
   - draft PR 526 targets blakinio/canary:main from the dedicated same-repository task branch
+  - OTS-MC-SS-001: every channel periodically rebuilds global players_online from process-local player state and can prune other channels
+  - OTS-ECO-MKT-001: concurrent partial market fills can both pass a stale offer-amount check and perform value effects before final offer decrement
+  - OTS-ECO-GUILD-001: guild balance is loaded into process-local state and later saved as an absolute value, permitting multichannel stale-snapshot double-spend/lost update
+  - existing GameStore effect-before-debit and transferable-coin credit-before-debit findings remain current at this baseline
+  - existing market-expiry PENDING crash-recovery wedge remains current
   - no public or third-party deployment is authorized for testing
   - shell environment cannot resolve github.com, so local git fetch/worktree preflight is unavailable and live GitHub connector evidence is used instead
 derived:
   - a fresh audit-continuation task avoids mixing new findings into lifecycle-only PR 522
+candidates:
+  - global server record writer race pending Game::loadPlayersRecord/checkPlayersRecord implementation trace
+  - raid daily-counter KV reset pending exact raid.kv persistence/namespace proof
+  - individual global-event, cleanup, highscore and DB-optimization jobs pending concrete call-site classification
 unknown:
   - complete current-source shared-state inventory
-  - exact classification of remaining economy crash/race hypotheses after source tracing
+  - remaining bank/trade/stash/house-payment exactly-once flows
 conflicts: []
 rejected_hypotheses:
+  - OTS-MC-JOB-RJ-001: overlapping market.expire leaders alone cannot both apply the same expiry effect because deterministic economic_ledger transaction_uuid primary-key insertion fails closed for the second worker
   - previously documented rejected hypotheses remain closed unless new evidence appears
 changed_paths:
   - docs/agents/tasks/active/CAN-20260718-ots-security-shared-state-economy-audit.md
+  - docs/security/OTS_SECURITY_SHARED_STATE_ECONOMY_AUDIT_2026-07-18.md
 validation:
   - command: local disposable git clone/preflight
     result: UNAVAILABLE
     evidence: shell DNS could not resolve github.com; no existing checkout was present
   - command: live GitHub main comparison
     result: PASS
-    evidence: main is identical to d9c967d6e9b778da11a206d134d559f38ec1b8c8
+    evidence: main is identical to d9c967d6e9b778da11a206d134d559f38ec1b8c8 at task start
   - command: live open-PR/path overlap review
     result: PASS
     evidence: no exclusive-path overlap identified for the new task/evidence paths
   - command: draft PR creation safety check
     result: PASS
     evidence: PR 526 base/head repositories are blakinio/canary and base is main
-blockers: []
-next_action: Continue mechanical multichannel global/shared-state and exactly-once economy source review from the durable handover; preserve only newly qualified evidence and rejected candidates.
+  - command: current-source audit continuation
+    result: PASS
+    evidence: durable evidence report added at fad383bd15f58e99b086e5ca82ed5039eab34d06
+blockers:
+  - disposable shell currently cannot fetch/clone GitHub, so physical two-process dynamic race proofs are not available in this environment
+next_action: Trace Game::loadPlayersRecord/checkPlayersRecord, raid.kv persistence, concrete cleanup/highscore/DB-optimization writers, then continue bank/trade/depot-inbox-stash/house-payment exactly-once review before creating any remediation tasks.
 ```
