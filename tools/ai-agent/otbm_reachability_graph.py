@@ -88,6 +88,28 @@ def _bfs(
     return distances, previous
 
 
+def _reconstruct_route(
+    start: Position,
+    goal: Position,
+    previous: Mapping[Position, tuple[Position, str | None]],
+) -> tuple[list[Position], list[tuple[Position, Position, str | None]]]:
+    """Reconstruct one complete ordered route from the existing BFS predecessor map."""
+    points: list[Position] = [goal]
+    reverse_edges: list[tuple[Position, Position, str | None]] = []
+    current = goal
+    while current != start:
+        parent = previous.get(current)
+        if parent is None:
+            return [], []
+        parent_position, transition_id = parent
+        reverse_edges.append((parent_position, current, transition_id))
+        current = parent_position
+        points.append(current)
+    points.reverse()
+    reverse_edges.reverse()
+    return points, reverse_edges
+
+
 def _reconstruct_path(
     start: Position,
     goal: Position,
@@ -95,19 +117,10 @@ def _reconstruct_path(
     *,
     limit: int,
 ) -> tuple[list[list[int]], list[str], bool]:
-    points: list[Position] = [goal]
-    transition_ids: list[str] = []
-    current = goal
-    while current != start:
-        parent = previous.get(current)
-        if parent is None:
-            return [], [], False
-        current, transition_id = parent
-        points.append(current)
-        if transition_id is not None:
-            transition_ids.append(transition_id)
-    points.reverse()
-    transition_ids.reverse()
+    points, edges = _reconstruct_route(start, goal, previous)
+    if not points:
+        return [], [], False
+    transition_ids = [transition_id for _, _, transition_id in edges if transition_id is not None]
     truncated = len(points) > limit
     if truncated:
         head = max(1, limit // 2)
