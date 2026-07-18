@@ -862,11 +862,28 @@ C++ Lua binding handlers and registration lines can override inferred signatures
 - Returns: `number`
 - Source: `src/lua/functions/events/events_scheduler_functions.cpp`
 
+### FileSystem
+
+#### `FileSystem.createDirectories(path: string)`
+
+- Returns: `boolean success, string? errorMessage`
+- Source: `src/lua/functions/core/game/global_functions.cpp`
+
+#### `FileSystem.createDirectory(path: string)`
+
+- Returns: `boolean success, string? errorMessage`
+- Source: `src/lua/functions/core/game/global_functions.cpp`
+
 ### Game
 
 #### `Game.addInfluencedMonster(monster: Monster, stack?: number)`
 
 - Returns: `boolean`
+- Source: `src/lua/functions/core/game/game_functions.cpp`
+
+#### `Game.closeInstanceArena(player: Player)`
+
+- Returns: `Position|nil, string|nil`
 - Source: `src/lua/functions/core/game/game_functions.cpp`
 
 #### `Game.createBestiaryCharm(id: number)`
@@ -877,6 +894,11 @@ C++ Lua binding handlers and registration lines can override inferred signatures
 #### `Game.createContainer(itemIdOrName: number|string, size: number, position?: Position)`
 
 - Returns: `Container|nil`
+- Source: `src/lua/functions/core/game/game_functions.cpp`
+
+#### `Game.createInstanceArena(player: Player)`
+
+- Returns: `Position|nil, string|nil`
 - Source: `src/lua/functions/core/game/game_functions.cpp`
 
 #### `Game.createItem(itemIdOrName: number|string, count?: number, position?: Position)`
@@ -966,6 +988,11 @@ C++ Lua binding handlers and registration lines can override inferred signatures
 - Returns: `table`
 - Source: `src/lua/functions/core/game/game_functions.cpp`
 
+#### `Game.getClusterOnlinePlayers(...: any)`
+
+- Returns: `table[]`
+- Source: `src/lua/functions/core/game/game_functions.cpp`
+
 #### `Game.getDummies(...: any)`
 
 - Returns: `table`
@@ -1051,9 +1078,24 @@ C++ Lua binding handlers and registration lines can override inferred signatures
 - Returns: `nil|Player`
 - Source: `src/lua/functions/core/game/game_functions.cpp`
 
+#### `Game.getPlayerChannelSwitchHistory(name: string, limit: number)`
+
+- Returns: `table[]`
+- Source: `src/lua/functions/core/game/game_functions.cpp`
+
+#### `Game.getPlayerClusterChannel(name: string)`
+
+- Returns: `number|nil`
+- Source: `src/lua/functions/core/game/game_functions.cpp`
+
 #### `Game.getPlayerCount(...: any)`
 
 - Returns: `number`
+- Source: `src/lua/functions/core/game/game_functions.cpp`
+
+#### `Game.getPlayerSessionLockInfo(name: string)`
+
+- Returns: `table|nil`
 - Source: `src/lua/functions/core/game/game_functions.cpp`
 
 #### `Game.getPlayers(...: any)`
@@ -1111,6 +1153,11 @@ C++ Lua binding handlers and registration lines can override inferred signatures
 - Returns: `boolean`
 - Source: `src/lua/functions/core/game/game_functions.cpp`
 
+#### `Game.leaveInstanceArena(player: Player)`
+
+- Returns: `Position|nil, string|nil`
+- Source: `src/lua/functions/core/game/game_functions.cpp`
+
 #### `Game.loadMap(path: string)`
 
 - Returns: `nil`
@@ -1159,6 +1206,11 @@ C++ Lua binding handlers and registration lines can override inferred signatures
 #### `Game.startRaid(raidName: string)`
 
 - Returns: `number`
+- Source: `src/lua/functions/core/game/game_functions.cpp`
+
+#### `Game.tryClaimClusterJobLeadership(jobName: string)`
+
+- Returns: `boolean`
 - Source: `src/lua/functions/core/game/game_functions.cpp`
 
 ### GlobalEvent
@@ -4655,6 +4707,11 @@ C++ Lua binding handlers and registration lines can override inferred signatures
 - Returns: `boolean`
 - Source: `src/lua/functions/creatures/player/player_functions.cpp`
 
+#### `Player:isPremium()`
+
+- Returns: `boolean|nil`
+- Source: `src/lua/functions/creatures/player/player_functions.cpp`
+
 #### `Player:isPromoted()`
 
 - Returns: `boolean|nil`
@@ -4856,6 +4913,11 @@ C++ Lua binding handlers and registration lines can override inferred signatures
 - Source: `src/lua/functions/creatures/player/player_functions.cpp`
 
 #### `Player:removeTransferableCoins(coins: number)`
+
+- Returns: `boolean|nil`
+- Source: `src/lua/functions/creatures/player/player_functions.cpp`
+
+#### `Player:requestChannelSwitch(targetChannelId: number)`
 
 - Returns: `boolean|nil`
 - Source: `src/lua/functions/creatures/player/player_functions.cpp`
@@ -5198,6 +5260,11 @@ C++ Lua binding handlers and registration lines can override inferred signatures
 #### `Player:setVoucherXpBoost(value: number)`
 
 - Returns: `boolean|nil`
+- Source: `src/lua/functions/creatures/player/player_functions.cpp`
+
+#### `Player:setWheelHuntingTaskShopPoints(points: number)`
+
+- Returns: `boolean`
 - Source: `src/lua/functions/creatures/player/player_functions.cpp`
 
 #### `Player:setXpBoostPercent(value: number)`
@@ -6287,7 +6354,7 @@ C++ Lua binding handlers and registration lines can override inferred signatures
 
 #### `db.queryAffectedRows(query: string)`
 
-- Returns: `number|false`
+- Returns: `boolean|number`
 - Source: `src/lua/functions/core/libs/db_functions.cpp`
 
 #### `db.storeQuery(query: string)`
