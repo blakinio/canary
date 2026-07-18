@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
-  "id": "relog",
-  "suite": "login",
-  "name": "Physical client login, logout, and relog",
+  "id": "physical-movement",
+  "suite": "movement",
+  "name": "Physical client bounded east movement",
   "program_id": "CAN-PROGRAM-E2E-PLATFORM",
-  "description": "Prove that a real OTClient can remain in an exact-head Canary world, perform a clean logout, relog, and persist both sessions.",
+  "description": "Perform one bounded real-client east movement on the disposable Canary world while preserving the canonical logout, persistence, and relog sentinel. The exact first-session start and post-movement position are pinned from real physical-client artifact evidence.",
   "client": {
     "repository": "blakinio/otclient",
     "ref": "2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f",
-    "automation": "tools/e2e/client/agent_e2e.lua"
+    "automation": "tools/e2e/client/agent_e2e_scenario.lua"
   },
   "server": {
     "database_image": "mariadb:11.4",
@@ -28,11 +28,41 @@
     "session_hold_ms": 7000,
     "relog_delay_ms": 1500
   },
+  "steps": [
+    {
+      "id": "online",
+      "action": "observe_online",
+      "expected": true
+    },
+    {
+      "id": "east-one",
+      "action": "walk",
+      "direction": "east",
+      "count": 1,
+      "interval_ms": 500
+    },
+    {
+      "id": "movement-settle",
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "id": "position-changed",
+      "action": "observe_position_changed"
+    }
+  ],
   "assertions": {
     "required_markers": [
       "ping_features_1=disabled",
       "login_1=success",
+      "initial_position=32369,32241,7",
       "online_stable_1=confirmed",
+      "step_online=success",
+      "step_east-one=success",
+      "step_movement-settle=success",
+      "step_position-changed=success",
+      "step_position-changed_detail=32370,32241,7",
+      "plan=success",
       "logout_request_1=safe",
       "logout_1=complete",
       "ping_features_2=disabled",
@@ -44,14 +74,15 @@
     ],
     "sql": [
       "SELECT lastlogin > 0 FROM players WHERE name = 'Knight 1'",
-      "SELECT lastlogout > 0 FROM players WHERE name = 'Knight 1'",
-      "SELECT vocation = 4 FROM players WHERE name = 'Knight 1'"
+      "SELECT lastlogout > 0 FROM players WHERE name = 'Knight 1'"
     ]
   },
   "artifacts": [
     "scenario-manifest.json",
+    "scenario-plan.lua",
     "result.json",
     "client-events.tsv",
+    "map.sha256",
     "canary.stdout.log",
     "canary.stderr.log",
     "otclient.stdout.log",

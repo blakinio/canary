@@ -4,8 +4,8 @@ name: OTS Security Validation Platform
 status: active
 owner: security-validation-agent
 created: 2026-07-16T20:10:00+02:00
-updated: 2026-07-17T09:35:00+02:00
-last_verified_commit: "8d10da7677b63685312281784c747bed117d6134"
+updated: 2026-07-17T22:07:49+02:00
+last_verified_commit: "cb149d427e6a954ee3ab163758465627bc1e643c"
 primary_paths:
   - tools/security/**
   - tests/security/**
@@ -51,11 +51,13 @@ It does not own generic server/database/client bootstrap already provided by Uni
 
 Merged in PR #433. The foundation supports `source-regex` scenarios with strict exact-field JSON validation, repository-relative file confinement, explicit repository authorization, deterministic `ots-security-validation-report-v1` evidence, seeded regressions for PRs #326/#328, focused tests and a dedicated workflow.
 
+Final feature head: `b2ceed93b4b9d4cd64d2a59757f583cf25648845`. Squash merge: `6503f5312dbf13d0fddcc1da98a10343ed30525c`.
+
 # Phase 2 — runtime delegation adapter (`OTS-SEC-002`)
 
 Merged in PR #440. This phase added the code-owned `canary-universal-e2e` adapter with exact repository authorization, literal-loopback confinement, controlled-client restriction and deterministic SHA-256 delegation evidence while keeping arbitrary commands, credentials and free-form network targets out of manifests.
 
-Its lifecycle record was archived before OTS-SEC-003 began.
+Final feature head: `e7c5562d0d63b813cc4b5951c628465ca800c595`. Squash merge: `597011f0ea0673c005a5a513806df9f65a3d28e6`. Lifecycle completed in PR #443 before OTS-SEC-003 began.
 
 # Runtime-hook dependency (`OTS-SEC-003-RUNTIME-HOOK`)
 
@@ -63,36 +65,47 @@ Merged in PR #444 with lifecycle completed in PR #450. This narrow E2E-platform 
 
 The callback is intentionally code-owned: manifests cannot provide commands, executables or target hosts. It owns map/database/config/server startup and cleanup, invokes one caller-supplied in-process executor only after Canary reports online, and verifies the process remains alive afterward.
 
+Final feature head: `a8ae4b5c9563e8e620a1bc466c4096d588c11fbd`. Squash merge: `44d8c97bdf1add97acba719a7342b712de5be1fb`.
+
 # Phase 3 — malformed framing/status parser runtime (`OTS-SEC-003`)
 
 Merged in PR #451 with lifecycle completed in PR #459. This first bounded runtime phase covers common TCP framing and unauthenticated Canary `ProtocolStatus` resilience through a fixed code-owned case registry, literal-loopback confinement, deterministic source isolation, exact-head runtime execution and machine-readable evidence.
 
-The final feature head passed focused security validation, repository CI, Agent Task Ownership, exact-head Linux release build and the real eight-case runtime before squash merge.
+Final feature head: `f1cb8a27671ee715b3d85fd3fad759cef7258421`. Squash merge: `b5962f7ae78545f84f46201670d80c99b59b1015`.
 
 OTS-SEC-003 does not claim authenticated login/game, encrypted post-login transport, maintained-client hostile-server, packet-flood or sustained-DoS coverage.
 
 # Phase 4 — login protocol boundary runtime (`OTS-SEC-004`)
 
-Active in draft PR #462. This phase is intentionally limited to the Canary login service before successful account authentication or game-session establishment.
+Merged in PR #462 and lifecycle-completed by the post-merge task archival automation. The completed task record is `docs/agents/tasks/archive/CAN-20260717-security-login-parser-boundaries.md`.
 
-It adds a strict code-owned runtime plan and report contract, fixed bounded login-boundary cases, literal-loopback confinement, distinct deterministic case/control sources, a protocol-aware control oracle, deterministic evidence and a dedicated exact-head Security Validation runtime job. Manifests cannot supply arbitrary payloads, credentials, key material or network coordinates.
+This phase is intentionally limited to the Canary login service before successful account authentication or game-session establishment. It adds a strict code-owned runtime plan and report contract, fixed bounded login-boundary cases, literal-loopback confinement, distinct deterministic case/control sources, a protocol-aware control oracle, deterministic evidence and a dedicated exact-head Security Validation runtime job. Manifests cannot supply arbitrary payloads, credentials, key material or network coordinates.
 
-Implementation head `8d10da7677b63685312281784c747bed117d6134` passed repository CI run 29562937900, Agent Task Ownership run 29562937739 and Security Validation run 29562937865. The exact-head Linux release build passed; the existing SEC-003 runtime regression passed; and the new six-case login-boundary runtime passed with no fatal/sanitizer findings.
+Final feature head: `729bea5910086ca7b90bb3132f92e55c7cda6e17`. Squash merge: `e5d85703ea464220569a36384de8c71ad40c69b8`.
+
+Exact-final-head validation on the feature head:
+
+- Agent Task Ownership run `29565606950`: PASS;
+- Security Validation run `29565607073`: PASS;
+- repository CI run `29565607123`: PASS.
+
+The final Security Validation run included the exact-head Canary build, the existing SEC-003 runtime regression and the six-case SEC-004 runtime; both runtime suites passed.
 
 The green run proves only the registered login-boundary assertions and the service control check after every case. It does not claim successful account authentication, character-list correctness, game-session establishment, post-login game transport coverage, session-race/replay resistance, maintained-client hostile-server handling or flood/sustained-DoS capacity.
 
 # Ordered queue
 
 1. `DONE` — OTS-SEC-001 foundation merged in PR #433.
-2. `DONE` — OTS-SEC-002 runtime delegation adapter merged in PR #440.
-3. `DONE` — OTS-SEC-003 bounded common-framing + unauthenticated `ProtocolStatus` runtime scenarios merged in PR #451; lifecycle completed in PR #459.
-4. `ACTIVE` — OTS-SEC-004 bounded login protocol boundary scenarios in PR #462.
-5. Add authenticated game-session parser and post-login transport scenarios through a separate bounded task.
-6. Add authenticated session, race, economy and transaction-abuse scenarios with disposable MariaDB state assertions.
-7. Add Redis/multichannel failure and ownership scenarios without targeting shared or production infrastructure.
-8. Add maintained-client hostile-server scenarios through an explicit cross-repository contract.
-9. Add MyAAC web/auth/session scenarios against a pinned disposable MyAAC build.
-10. Register Otheryn as a target adapter and require migrated security regressions to pass before declaring a security-sensitive migration preserved.
+2. `DONE` — OTS-SEC-002 runtime delegation adapter merged in PR #440; lifecycle completed in PR #443.
+3. `DONE` — OTS-SEC-003 runtime hook merged in PR #444; lifecycle completed in PR #450.
+4. `DONE` — OTS-SEC-003 bounded common-framing + unauthenticated `ProtocolStatus` runtime scenarios merged in PR #451; lifecycle completed in PR #459.
+5. `DONE` — OTS-SEC-004 bounded login protocol boundary scenarios merged in PR #462; lifecycle task archived automatically.
+6. `NEXT — NOT STARTED` — add authenticated game-session parser and post-login transport scenarios through a fresh bounded task after live ownership/overlap preflight. No task, branch or PR is created by this handoff.
+7. `QUEUED` — add authenticated session, race, economy and transaction-abuse scenarios with disposable MariaDB state assertions.
+8. `QUEUED` — add Redis/multichannel failure and ownership scenarios without targeting shared or production infrastructure.
+9. `QUEUED` — add maintained-client hostile-server scenarios through an explicit cross-repository contract.
+10. `QUEUED` — add MyAAC web/auth/session scenarios against a pinned disposable MyAAC build.
+11. `QUEUED` — register Otheryn as a target adapter and require migrated security regressions to pass before declaring a security-sensitive migration preserved.
 
 # Safety invariants
 
@@ -108,4 +121,12 @@ The green run proves only the registered login-boundary assertions and the servi
 
 # Handoff
 
-Start from `AGENTS.md`, `docs/agents/CONTEXT_ROUTING.md`, this program, `docs/security/SECURITY_VALIDATION_PLATFORM.md`, the active security task and live PR. Load the Universal E2E route only when a task actually introduces or consumes runtime execution/delegation. For OTS-SEC-004 specifically, treat `tools/e2e/run_agent_load_runtime.py` as the reused server-only lifecycle boundary and keep successful authentication plus game-session/post-login transport coverage in separate tasks.
+There is no active OTS-SEC implementation task after OTS-SEC-004 lifecycle completion. `OTS-SEC-005` is not created and not started.
+
+Durable workstream handoff:
+
+`docs/agents/tasks/archive/CAN-20260717-security-validation-conversation-handoff.md`
+
+A continuation agent must start from current `AGENTS.md`, `docs/agents/REPOSITORY_MAP.md`, `docs/agents/CONTEXT_ROUTING.md`, this program, the archived workstream handoff and live repository/PR/task state. It must not reconstruct completed SEC-001 through SEC-004 from chat history.
+
+Before creating OTS-SEC-005, repeat the live ownership and overlap preflight and create one fresh active task, branch and draft PR. The separate open PR #453 is an independent MyAAC/login-stack audit and must not be absorbed or modified by the next runtime-security package without a fresh overlap review. Load the Universal E2E route only when the new bounded task actually introduces or consumes runtime execution/delegation.

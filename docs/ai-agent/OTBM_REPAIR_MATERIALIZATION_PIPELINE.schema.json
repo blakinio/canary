@@ -3,10 +3,7 @@
   "$id": "canary-otbm-repair-materialization-pipeline-v1",
   "title": "Canary OTBM repair/materialization pipeline result v1",
   "$defs": {
-    "sha256": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    },
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "filePin": {
       "type": "object",
       "required": ["fileName", "size", "sha256"],
@@ -21,25 +18,21 @@
     }
   },
   "type": "object",
-  "required": [
-    "format",
-    "schemaVersion",
-    "ok",
-    "mode",
-    "source",
-    "output",
-    "inputs",
-    "mutation",
-    "quality",
-    "evidence",
-    "rollback",
-    "safety"
-  ],
+  "required": ["format", "schemaVersion", "ok", "mode", "source", "output", "inputs", "mutation", "quality", "evidence", "rollback", "safety"],
   "properties": {
     "format": {"const": "canary-otbm-repair-materialization-pipeline-v1"},
     "schemaVersion": {"const": 1},
     "ok": {"const": true},
-    "mode": {"enum": ["fixed-width-attribute", "tile-area"]},
+    "mode": {
+      "enum": [
+        "fixed-width-attribute",
+        "tile-area",
+        "tile-replacement",
+        "tile-insertion",
+        "tile-deletion",
+        "tile-type-conversion"
+      ]
+    },
     "source": {
       "type": "object",
       "required": ["fileName", "size", "sha256", "unchanged"],
@@ -63,11 +56,7 @@
       },
       "additionalProperties": false
     },
-    "inputs": {
-      "type": "object",
-      "minProperties": 4,
-      "additionalProperties": {"$ref": "#/$defs/filePin"}
-    },
+    "inputs": {"type": "object", "minProperties": 4, "additionalProperties": {"$ref": "#/$defs/filePin"}},
     "mutation": {
       "type": "object",
       "required": ["format", "report", "summary"],
@@ -75,7 +64,11 @@
         "format": {
           "enum": [
             "canary-otbm-repair-sandbox-verification-v1",
-            "canary-otbm-area-materialization-result-v1"
+            "canary-otbm-area-materialization-result-v1",
+            "canary-otbm-tile-materialization-result-v1",
+            "canary-otbm-tile-insertion-result-v1",
+            "canary-otbm-tile-deletion-result-v1",
+            "canary-otbm-tile-type-conversion-result-v1"
           ]
         },
         "report": {"$ref": "#/$defs/filePin"},
@@ -139,19 +132,7 @@
     },
     "safety": {
       "type": "object",
-      "required": [
-        "sourceModifiedInPlace",
-        "silentOverwrite",
-        "newOtbmParserCreated",
-        "newOtbmWriterCreated",
-        "existingMutationBoundaryReused",
-        "existingMapQualityGateReused",
-        "allDirectFileInputsPinned",
-        "unresolvedEvidencePreserved",
-        "gameplayCorrectnessProven",
-        "physicalClientE2EProven",
-        "productionMapExecutionAuthorized"
-      ],
+      "required": ["sourceModifiedInPlace", "silentOverwrite", "newOtbmParserCreated", "newOtbmWriterCreated", "existingMutationBoundaryReused", "existingMapQualityGateReused", "allDirectFileInputsPinned", "unresolvedEvidencePreserved", "gameplayCorrectnessProven", "physicalClientE2EProven", "productionMapExecutionAuthorized"],
       "properties": {
         "sourceModifiedInPlace": {"const": false},
         "silentOverwrite": {"const": false},

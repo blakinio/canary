@@ -435,10 +435,51 @@ function runNextStep()
 	failStep(step, "unsupported runtime action")
 end
 
+local function waitForInitialPositionAndStartPlan()
+	local remainingChecks = 50
+	local function check()
+		if finished or phase ~= 1 or not phaseStarted then
+			return
+		end
+		local player = g_game.getLocalPlayer()
+		local position = player and player:getPosition() or nil
+		if position and position.x and position.y and position.z then
+			initialPosition = { x = position.x, y = position.y, z = position.z }
+			appendEvent("initial_position", string.format("%d,%d,%d", initialPosition.x, initialPosition.y, initialPosition.z))
+			scheduleEvent(function()
+				if not finished and phase == 1 and phaseStarted then
+					runNextStep()
+				end
+			end, 1800)
+			return
+		end
+		remainingChecks = remainingChecks - 1
+		if remainingChecks <= 0 then
+			fail("local player position unavailable after game start")
+			return
+		end
+		scheduleEvent(check, 100)
+	end
+	check()
+end
+
 local function loadPlan()
-	local ok, loaded = pcall(dofile, PLAN_PATH)
+	local file, openError = io.open(PLAN_PATH, "r")
+	if not file then
+		fail("failed to open scenario plan: " .. tostring(openError))
+		return false
+	end
+	local source = file:read("*a") or ""
+	file:close()
+
+	local chunk, compileError = load(source, "@" .. PLAN_PATH)
+	if not chunk then
+		fail("failed to compile scenario plan: " .. tostring(compileError))
+		return false
+	end
+	local ok, loaded = pcall(chunk)
 	if not ok then
-		fail("failed to load scenario plan: " .. tostring(loaded))
+		fail("failed to execute scenario plan: " .. tostring(loaded))
 		return false
 	end
 	if type(loaded) ~= "table" or loaded.schema_version ~= 1 or type(loaded.steps) ~= "table" then
@@ -468,11 +509,6 @@ connect(g_game, {
 		enteringWorld = false
 		phaseStarted = true
 		appendEvent("login_" .. phase, "success")
-		local player = g_game.getLocalPlayer()
-		if phase == 1 and player then
-			initialPosition = player:getPosition()
-			appendEvent("initial_position", string.format("%d,%d,%d", initialPosition.x, initialPosition.y, initialPosition.z))
-		end
 		local expectedPhase = phase
 		scheduleEvent(function()
 			if not finished and expectedPhase == phase and phaseStarted and g_game.isOnline() then
@@ -480,11 +516,7 @@ connect(g_game, {
 			end
 		end, 1500)
 		if phase == 1 then
-			scheduleEvent(function()
-				if not finished and phase == 1 and phaseStarted then
-					runNextStep()
-				end
-			end, 1800)
+			waitForInitialPositionAndStartPlan()
 		else
 			scheduleEvent(function()
 				requestLogout(expectedPhase)

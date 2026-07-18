@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
+import os
 import re
 import sys
 from dataclasses import dataclass
@@ -17,6 +19,8 @@ MAX_STEPS = 64
 MAX_STEP_TEXT = 512
 MAX_STEP_DELAY_MS = 120_000
 MAX_STEP_COUNT = 64
+CANONICAL_PR_SUITE = "login"
+CANONICAL_PR_SCENARIO = "relog"
 
 DIRECTIONS = {
     "north",
@@ -75,6 +79,82 @@ def repository_root() -> Path:
 
 def scenario_root(root: Path) -> Path:
     return root / "tests" / "e2e" / "scenarios"
+
+
+def _load_pr_scenario_selector():
+    module_path = Path(__file__).resolve().with_name("pr_scenario_selection.py")
+    spec = importlib.util.spec_from_file_location("canary_e2e_pr_scenario_selection", module_path)
+    if spec is None or spec.loader is None:
+        raise ScenarioError(f"cannot load PR scenario selector: {module_path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def _resolve_pr_fallback_selection(root: Path, suite: str, scenario_id: str) -> tuple[str, str]:
+    """Replace only the canonical PR fallback with one exact changed scenario."""
+
+    if (suite, scenario_id) != (CANONICAL_PR_SUITE, CANONICAL_PR_SCENARIO):
+        return suite, scenario_id
+    if os.environ.get("GITHUB_EVENT_NAME") != "pull_request":
+        return suite, scenario_id
+
+    event_path_raw = os.environ.get("GITHUB_EVENT_PATH", "")
+    if not event_path_raw:
+        raise ScenarioError("GITHUB_EVENT_PATH is required for pull-request scenario selection")
+    event_path = Path(event_path_raw)
+    try:
+        payload = json.loads(event_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ScenarioError(f"cannot read pull-request event payload: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise ScenarioError("pull-request event payload must be a JSON object")
+
+    pull_request = payload.get("pull_request")
+    repository = payload.get("repository")
+    if not isinstance(pull_request, dict) or not isinstance(repository, dict):
+        raise ScenarioError("pull-request event payload is missing repository or pull_request evidence")
+
+    current_repository = os.environ.get("GITHUB_REPOSITORY") or repository.get("full_name")
+    head = pull_request.get("head")
+    base = pull_request.get("base")
+    if not isinstance(head, dict) or not isinstance(base, dict):
+        raise ScenarioError("pull-request event payload is missing exact head/base evidence")
+    head_repository = head.get("repo")
+    if not isinstance(head_repository, dict):
+        raise ScenarioError("pull-request event payload is missing head repository evidence")
+
+    pr_head_repository = head_repository.get("full_name")
+    base_sha = base.get("sha")
+    head_sha = head.get("sha")
+    if not all(isinstance(value, str) for value in (current_repository, pr_head_repository, base_sha, head_sha)):
+        raise ScenarioError("pull-request event payload contains invalid repository or SHA evidence")
+
+    selector = _load_pr_scenario_selector()
+    try:
+        selection = selector.select_for_event(
+            event_name="pull_request",
+            current_repository=current_repository,
+            pr_head_repository=pr_head_repository,
+            requested_suite=suite,
+            requested_scenario=scenario_id,
+            base_sha=base_sha,
+            head_sha=head_sha,
+            repo_root=root,
+            api_repository=current_repository,
+            api_url=os.environ.get("GITHUB_API_URL", "https://api.github.com"),
+            api_token=os.environ.get("GITHUB_TOKEN", ""),
+        )
+    except selector.SelectionError as exc:
+        raise ScenarioError(f"cannot prove pull-request scenario selection: {exc}") from exc
+
+    print(
+        "Pull-request scenario selection: "
+        f"{selection.suite}/{selection.scenario} reason={selection.reason}"
+        + (f" manifest={selection.manifest}" if selection.manifest else "")
+    )
+    return selection.suite, selection.scenario
 
 
 def _require_mapping(value: Any, path: str) -> dict[str, Any]:
@@ -478,7 +558,8 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "validate":
             print(f"Validated {len(scenarios)} E2E scenario(s).")
         elif args.command == "resolve":
-            scenario = select(scenarios, args.suite, args.scenario)
+            selected_suite, selected_scenario = _resolve_pr_fallback_selection(root, args.suite, args.scenario)
+            scenario = select(scenarios, selected_suite, selected_scenario)
             manifest = normalized_manifest(scenario)
             rendered = json.dumps(manifest, indent=2, sort_keys=True) + "\n"
             if args.manifest:
