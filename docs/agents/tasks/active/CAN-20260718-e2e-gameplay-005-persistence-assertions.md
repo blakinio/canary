@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-gameplay-005-persistence-assertions
 base_branch: main
 created: 2026-07-18T23:32:00+02:00
-updated: 2026-07-18T23:32:00+02:00
-last_verified_commit: "be7842412beb5d240e76ffd4cd18aacdc3a2dcca"
+updated: 2026-07-18T23:39:00+02:00
+last_verified_commit: "8a67f22bf9bcd4035e1977d595e3b219a3940b78"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "565"
 depends_on:
   - CAN-PROGRAM-E2E-PLATFORM existing Universal Physical E2E two-session lifecycle
   - PR #563 Universal E2E gameplay validation architecture/roadmap (read-only planning dependency; unmerged at task start)
@@ -24,12 +24,12 @@ owned_paths:
     - tests/e2e/test_persistence_assertions.py
   shared:
     - tools/e2e/run_agent_e2e.py
+    - tools/e2e/client/agent_e2e_scenario.lua
     - tests/e2e/scenarios/platform/action-plan-contract.json
     - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
     - docs/agents/MODULE_CATALOG.md
     - docs/agents/CHANGELOG.md
   read_only:
-    - tools/e2e/client/**
     - tools/e2e/run_physical_e2e.sh
     - .github/workflows/**
     - docs/agents/programs/OTBM_E2E_ROUTE_INTEGRATION_PROGRAM.md
@@ -41,22 +41,25 @@ modules_touched:
 reuses:
   - existing scenario assertions.sql execution after the canonical two-session client lifecycle
   - existing run_agent_e2e.py scenario validation and manifest normalization
+  - existing generic gameplay driver and phase-2 relog lifecycle
   - existing action-plan-contract platform scenario
 public_interfaces:
-  - optional scenario.assertions.persistence list
+  - optional scenario.assertions.persistence object
   - persistence assertion type player_field
+  - generated scenario-plan.lua persistence_checks
 cross_repo_tasks: []
 ---
 
 # Goal
 
-Implement the smallest complete reusable slice of `E2E-GAMEPLAY-005`: a feature-neutral typed persistence assertion surface for durable player fields, compiled into the existing Universal Physical E2E SQL assertion path and evaluated only after the canonical `login -> physical actions -> safe logout -> persisted state -> relog -> verification window -> safe logout` cycle completes.
+Implement the smallest complete reusable slice of `E2E-GAMEPLAY-005`: a feature-neutral typed persistence assertion surface for durable player fields, verified through the existing Universal Physical E2E lifecycle as `login -> physical actions -> safe logout -> persisted state -> relog -> runtime verification -> safe logout -> final persisted SQL verification`.
 
-The first slice deliberately covers one natural persistence type only: exact integer assertions over a conservative whitelist of durable `players` fields (`level`, `vocation`, `experience`, `balance`). Feature-specific expected values remain in scenario manifests.
+The first slice deliberately covers one natural persistence type only: exact integer assertions over a conservative whitelist of durable player progression/vocation fields (`level`, `vocation`, `experience`). Feature-specific expected values remain in scenario manifests.
 
 # Why this slice
 
-- Current Universal E2E already executes scenario-owned read-only scalar SQL after the second safe logout, so the smallest reusable extension is typed compilation into that proven path rather than a second runner or workflow.
+- Current Universal E2E already owns the two-session lifecycle and post-cycle read-only scalar SQL evaluator, so persistence assertions can extend those proven surfaces rather than creating a second runner or workflow.
+- The controlled OTClient exposes read-only `LocalPlayer:getLevel()`, `Player:getVocation()` and `LocalPlayer:getExperience()`, allowing the same typed checks to be re-verified after relog before the second safe logout.
 - The disposable fixture already provides deterministic `level` and `vocation` values for `Knight 1`, allowing one real platform scenario to consume the contract without inventing item IDs, storages, quest values or map data.
 - No deterministic inventory mutation fixture or stable generic storage assertion contract was identified in the current physical platform baseline, so inventory/storage are deferred rather than guessed.
 
@@ -65,10 +68,11 @@ The first slice deliberately covers one natural persistence type only: exact int
 - [ ] Create a reusable, deterministic persistence assertion compiler with strict field/type validation and no arbitrary SQL surface.
 - [ ] Extend existing scenario validation to accept optional `assertions.persistence` without creating a new runner/workflow.
 - [ ] Compile typed persistence assertions into the existing post-cycle SQL assertion list in normalized manifests.
+- [ ] Emit the same typed checks into the existing scenario plan and re-verify them through the controlled OTClient after relog before the second safe logout.
 - [ ] Keep raw scenario-owned `assertions.sql` behavior backward compatible.
-- [ ] Add focused tests for valid compilation, invalid types/fields/values, SQL literal safety and manifest integration.
+- [ ] Add focused tests for valid compilation, invalid types/fields/values, SQL literal safety, plan rendering and manifest integration.
 - [ ] Update at least one real existing physical scenario to use the new typed persistence assertion mechanism.
-- [ ] Preserve the current login/logout/relog sentinel and leave client/OTBM routing paths untouched.
+- [ ] Preserve the current login/logout/relog sentinel and leave OTBM routing paths untouched.
 - [ ] Update reusable-interface documentation/catalogue and changelog.
 - [ ] Run focused validation and required GitHub checks on the exact final head.
 
@@ -76,10 +80,10 @@ The first slice deliberately covers one natural persistence type only: exact int
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T23:32:00+02:00
-head: be7842412beb5d240e76ffd4cd18aacdc3a2dcca
+updated_at: 2026-07-18T23:39:00+02:00
+head: 8a67f22bf9bcd4035e1977d595e3b219a3940b78
 branch: feat/e2e-gameplay-005-persistence-assertions
-pr: null
+pr: 565
 status: implementing
 context_routes:
   - agent-governance
@@ -89,25 +93,27 @@ owned_paths:
   - tools/e2e/persistence_assertions.py
   - tests/e2e/test_persistence_assertions.py
   - tools/e2e/run_agent_e2e.py
+  - tools/e2e/client/agent_e2e_scenario.lua
   - tests/e2e/scenarios/platform/action-plan-contract.json
   - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
 proven:
   - main task-start SHA is be7842412beb5d240e76ffd4cd18aacdc3a2dcca
-  - PR 563 is open and unmerged at task start; its architecture defines E2E-GAMEPLAY-005 and explicitly allows persistence work independently of OTBM route integration
-  - PR 562 is open and owns OTBM-to-E2E routing programme paths; this task has no path overlap and keeps those paths read-only
+  - PR 565 is the early draft PR for this task in blakinio/canary
+  - PR 562 merged to main as 59916930b08bafb87dcddec89230d16b8e1f0712; its programme still requires route-export and bridge implementation contracts before E2E route consumption, so E2E-GAMEPLAY-002 is not a higher-priority unblocked replacement for this task
+  - PR 563 was open and unmerged at task start; its architecture defines E2E-GAMEPLAY-005 and explicitly allows persistence work independently of OTBM route integration
   - current generic gameplay driver executes physical action steps in phase 1 and preserves a phase-2 relog plus second safe logout
   - run_physical_e2e.sh evaluates scenario assertions.sql only after the physical client exits following the second session
+  - controlled blakinio/otclient exposes LocalPlayer getLevel/getExperience and Player getVocation read APIs without client changes
   - current platform fixture defines Knight 1 with level 500 and vocation 4
   - MODULE_CATALOG identifies the existing Universal OTS E2E physical gameplay action-plan layer as the reusable platform surface
-  - no open PR was found by targeted search for tools/e2e overlap
+  - targeted open-PR search found no agent_e2e_scenario.lua owner overlap
   - no local Git checkout is available in the execution sandbox; GitHub connector state is authoritative for branch/PR operations
   - repository writes are restricted to blakinio/canary
-
 derived:
-  - typed player_field assertions can prove durable progression/vocation/economy fields after the canonical relog cycle while reusing the existing SQL evaluator
-  - compiling typed assertions during scenario resolution avoids adding a second runtime orchestrator or client driver
+  - typed player_field assertions should be checked twice: through the real client after relog and through the existing scalar SQL evaluator after the second safe logout
+  - compiling typed assertions during scenario resolution and executing them in the existing phase-2 driver preserves the single orchestrator and lifecycle
 unknown:
   - whether a later storage assertion should target a dedicated table or another persistence abstraction; do not guess in this task
   - deterministic inventory mutation fixture suitable for a reusable first-slice physical scenario
@@ -116,13 +122,20 @@ blockers: []
 first_failure: null
 rejected_hypotheses:
   - create a second persistence runner or workflow
-  - execute feature-specific persistence checks in tools/e2e client code
+  - treat a pre-logout static SQL check as persistence proof
   - add storage or inventory semantics without a proven deterministic fixture/contract
 changed_paths:
   - docs/agents/tasks/active/CAN-20260718-e2e-gameplay-005-persistence-assertions.md
+  - tools/e2e/persistence_assertions.py
+  - tools/e2e/run_agent_e2e.py
+  - tests/e2e/test_persistence_assertions.py
+  - tests/e2e/scenarios/platform/action-plan-contract.json
 validation:
   - command: lean startup repository/PR/path ownership review
     result: PASS
-    evidence: AGENTS.md, REPOSITORY_MAP.md, CONTEXT_ROUTING.md, MODULE_CATALOG targeted entry, PR 562 task, PR 563 task/architecture diff, current Universal E2E runner/client lifecycle reviewed
-next_action: Open an early draft PR, then implement the typed player_field persistence compiler and integrate it into run_agent_e2e.py manifest normalization with focused tests.
+    evidence: AGENTS.md, REPOSITORY_MAP.md, CONTEXT_ROUTING.md, MODULE_CATALOG targeted entry, PR 562 programme, PR 563 task/architecture diff and current Universal E2E lifecycle reviewed
+  - command: exact PR 565 runner diff review
+    result: PASS_WITH_REPAIR_PENDING
+    evidence: intended persistence integration only plus one accidental suite-validation error-message change; repair before final gate
+next_action: Add phase-2 runtime persistence-check execution to the existing generic gameplay driver, update plan rendering/tests, repair the accidental suite-validation message, then run focused and PR validation.
 ```
