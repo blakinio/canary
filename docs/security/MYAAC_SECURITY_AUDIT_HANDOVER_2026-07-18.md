@@ -39,7 +39,9 @@ Full call chain:
 
 The web-login path resets the bucket after the valid-password branch even when the account is rejected for failed email verification. The native MyAAC game-login path resets the bucket before checking `email_verified`. Therefore the reset primitive does not require the attacker-controlled account to become a successfully authenticated web/game session; possession of valid credentials for an account that reaches the valid-credential branch is sufficient. Registration availability may lower the practical barrier, but is not required by the finding.
 
-The limiter is not keyed by target account. A successful login to account A therefore clears failed guesses previously accumulated from the same IP against account B.
+The same web-login handler is also used for administrator login. A valid non-admin account is rejected only after password verification by the `admin()` privilege check, but the limiter reset still executes afterward. A low-privilege attacker-controlled account can therefore reset the shared source-IP bucket between password guesses directed at an administrator account.
+
+The limiter is not keyed by target account. A successful credential check for account A therefore clears failed guesses previously accumulated from the same IP against account B.
 
 Isolated exact-logic harness result with `max_attempts=5`:
 
@@ -58,6 +60,7 @@ Current rolling `develop` revalidation:
 Impact:
 
 - an attacker with any usable valid account credential can repeatedly reset their own source-IP bucket and perform unbounded sequences of password guesses against other accounts, limited by request throughput rather than the configured attempt threshold;
+- the same primitive can preserve brute-force attempts against administrator accounts because a valid low-privilege account can clear the shared bucket on the admin-login form;
 - the bypass is independent of the already known cache-disabled fail-open behavior and the already known non-atomic lost-update race.
 
 Recommended remediation:
@@ -65,8 +68,9 @@ Recommended remediation:
 1. Do not clear a source-wide failure bucket merely because one account authenticates successfully.
 2. Track failures atomically by at least a tuple such as trusted source IP + normalized target account identifier, with a separate bounded source-wide abuse control.
 3. Reset only the bucket corresponding to the account that actually authenticated, not unrelated target-account failures.
-4. Apply the same policy consistently to web login and native MyAAC game login.
+4. Apply the same policy consistently to web login, admin login, and native MyAAC game login.
 5. Add regression tests that interleave `N-1` failures against account B with a valid login to account A and assert that account B's throttling state is preserved.
+6. Add an admin-login regression in which valid credentials for a non-admin account must not clear failed attempts accumulated against an administrator target.
 
 ## Extended existing findings
 
@@ -201,10 +205,11 @@ No public or third-party deployment was tested.
 - PR: `#556` — draft
 - base: `main`
 - base SHA at branch creation: `6c2ed7fd5d7e0f51bf7bfc75ebcc30b840315e41`
-- current documented head at first task commit: `a804ad8c774b299e49b57067770f01f6db9051b5`
-- CI status: not yet validated on final head
+- pre-final validation head: `8bf33f50ff075fa3bdaf14caf570af5c51090714`
+- CI status at handover-content update: general CI PASS; Agent Task Ownership PASS; Security Validation still running on the pre-final head
 - merge status: not merged
+- `ci:final-gate`: applied before this final handover-content commit
 
 ## Exact next_action
 
-Update the active task checkpoint to PR #556 and the latest documentation head, inspect the complete changed-file list and diff, run the repository task/checkpoint validation available through CI, then apply `ci:final-gate`; do not merge until the exact final head is fully green and review-clean. Full MyAAC/login-server/Canary E2E remains a separate unavailable validation item and must not be represented as completed.
+Wait only on repository automation already running for PR #556: verify Security Validation and all required checks on the post-handover exact head. If they pass, update the active task checkpoint once with the exact validation state, require the resulting final checkpoint head to pass the forced `ci:final-gate`, then mark the PR ready and squash-merge only if it remains mergeable and review-clean. Full MyAAC/login-server/Canary E2E remains unavailable and must not be represented as completed.
