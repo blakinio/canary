@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: docs/otbm-e2e-route-integration-program-20260718
 base_branch: main
 created: 2026-07-18T22:55:00+02:00
-updated: 2026-07-18T23:18:00+02:00
-last_verified_commit: "bb32478b3e834320f1d0b19ea42c3ed6ce9558d8"
+updated: 2026-07-18T23:22:00+02:00
+last_verified_commit: "00b1b4ec2f63b5a938e0acb0dd3f72f91a174f8c"
 risk: medium
 related_issue: ""
 related_pr: "562"
@@ -86,8 +86,8 @@ This task is planning/documentation only. It must not implement a second OTBM pa
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T23:18:00+02:00
-head: bb32478b3e834320f1d0b19ea42c3ed6ce9558d8
+updated_at: 2026-07-18T23:22:00+02:00
+head: 00b1b4ec2f63b5a938e0acb0dd3f72f91a174f8c
 branch: docs/otbm-e2e-route-integration-program-20260718
 pr: 562
 status: validating
@@ -109,7 +109,7 @@ proven:
   - Current open Canary PRs observed during planning own security, OAM and MyAAC scopes; no planned exclusive document path overlap was identified.
   - Draft PR 562 targets blakinio/canary:main and changed-file scope is exactly the task record plus two new durable planning documents.
   - The durable programme defines OTBM-E2E-001, OTBM-E2E-002, OTBM-E2E-003, optional split OTBM-E2E-001B, E2E-ROUTE-001, OTBM-E2E-004 and OTBM-E2E-005 with dependency ordering and acceptance gates.
-  - ci:final-gate was applied to PR 562 before this final checkpoint commit.
+  - ci:final-gate was applied before the final checkpoint sequence and remains applied for this corrected exact head.
 derived:
   - The smallest architecture is a bridge layer that exports the existing Reachability predecessor graph into an edge-aware executable route plan and lets the existing Universal E2E runner execute that plan.
   - Semantic place names and physical interaction activation semantics should be separate evidence-backed registries because neither is safely inferable from raw map geometry alone.
@@ -118,9 +118,16 @@ unknown:
   - Exact evidence-backed coordinates/anchors for `thais.temple` and `thais.depot` on the runtime-selected map snapshot.
   - Exact final generic OTClient APIs for map-item use and inventory-item-on-map use; implementation agents must verify maintained-client APIs before coding.
 conflicts: []
+blockers: []
 first_failure:
-  marker: none
-  evidence: Planning preflight found no exclusive-path overlap for the three new documentation files.
+  marker: agent-task-ownership-checkpoint-schema
+  evidence: Agent Task Ownership run 29661161207 on head 00b1b4ec2f63b5a938e0acb0dd3f72f91a174f8c required checkpoint fields blockers and rejected_hypotheses; both are added in this correction.
+rejected_hypotheses:
+  - Build a new OTBM parser for E2E routing.
+  - Build an independent E2E pathfinder instead of reusing Reachability BFS.
+  - Treat optimistic Reachability as equivalent to physical executability.
+  - Put semantic landmark names and physical activation semantics into one guessed registry.
+  - Encode long physical routes as blind direction/count timing sequences.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260718-otbm-e2e-route-integration-program.md
   - docs/agents/programs/OTBM_E2E_ROUTE_INTEGRATION_PROGRAM.md
@@ -135,8 +142,11 @@ validation:
   - command: planning scope review
     result: PASS
     evidence: PR 562 changed-file list is exactly the active task plus two new durable docs; implementation paths remain read-only.
+  - command: Agent Task Ownership on head 00b1b4ec2f63b5a938e0acb0dd3f72f91a174f8c
+    result: FAIL
+    evidence: missing required checkpoint fields blockers and rejected_hypotheses; corrected in this task-record-only commit.
   - command: final-gate preparation
     result: PASS
-    evidence: ci:final-gate applied before this final checkpoint commit; no further content commits are planned.
-next_action: Require exact-final-head Agent Task Ownership and CI success for PR 562. Then mark ready and squash-merge if review-clean; allow lifecycle automation to archive this planning task. Start OTBM-E2E-001 and optionally OTBM-E2E-002 only from fresh current-main branches after this programme is merged.
+    evidence: ci:final-gate remains applied; this correction creates a new exact final head and no further content commits are planned.
+next_action: Require exact-final-head Agent Task Ownership, CI, AI Agent Tools and OTBM Map Tools success for PR 562. Then mark ready and squash-merge if review-clean; allow lifecycle automation to archive this planning task. Start OTBM-E2E-001 and optionally OTBM-E2E-002 only from fresh current-main branches after this programme is merged.
 ```
