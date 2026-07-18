@@ -7,7 +7,7 @@ branch: docs/ots-security-shared-state-economy-audit-20260718
 base_branch: main
 created: 2026-07-18T09:58:00+02:00
 updated: 2026-07-18T10:47:00+02:00
-last_verified_commit: "2e55ea3d70b37d5ac451b1f14d63ce88d1470a9a"
+last_verified_commit: "42b96ba79b7cccc9b02ad6a693035dedb96b08b8"
 risk: high
 related_issue: ""
 related_pr: "526"
@@ -88,7 +88,7 @@ Continue the existing OTS security assessment from the durable PR #453 handover 
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-18T10:47:00+02:00
-head: 2e55ea3d70b37d5ac451b1f14d63ce88d1470a9a
+head: 42b96ba79b7cccc9b02ad6a693035dedb96b08b8
 branch: docs/ots-security-shared-state-economy-audit-20260718
 pr: 526
 status: implementing
@@ -105,11 +105,13 @@ proven:
   - task-start main is d9c967d6e9b778da11a206d134d559f38ec1b8c8
   - OTS-MC-SS-001: every channel periodically rebuilds global players_online from process-local state and can prune other channels
   - OTS-ECO-MKT-001: concurrent partial market fills can both pass a stale amount check and perform value effects before final offer decrement
+  - OTS-ECO-MKT-002: market acceptance can load, mutate and full-save a stale DB copy of a counterparty who is online on another channel, risking lost delivery/credit and unrelated stale overwrite
   - OTS-ECO-GUILD-001: process-local guild balances plus absolute saves permit cross-channel stale-snapshot double spend
   - OTS-ECO-HOUSE-001: a house-auction refund applied directly to a bidder online on another channel can be erased by that bidder's later stale full save
   - OTS-ECO-HOUSE-002: house-auction money/refund effects precede durable bid-state persistence, leaving a crash-time duplicate-refund or unbacked-state window
   - OTS-ECO-HOUSE-003: house-transfer debit/refund effects and transfer-state persistence are separate, creating crash-time repeated debit, stranded payment or duplicate refund windows
   - OTS-ECO-TRADE-001: completed bilateral trade is persisted as two independently committing player snapshots, permitting crash-time duplication or loss
+  - existing mail-handoff exactly-once class remains current: durable enqueue can precede source-removal persistence, owned apply can be marked APPLIED before recipient save, and offline recipient save can commit before operation APPLIED
   - existing house-isolation finding remains current: channel-scoped schema intent conflicts with UNIQUE(id), unpartitioned load/save/list paths and global cleanup behavior
   - existing single-type account-coin RMW finding remains current; single-type add/remove use SELECT then absolute UPDATE
   - existing bank-transfer crash-consistency, GameStore effect-before-debit, transferable-coin credit-before-debit and market-expiry PENDING findings remain current
@@ -118,11 +120,11 @@ proven:
 derived:
   - a fresh audit-continuation task avoids mixing new findings into lifecycle-only PR 522
 unknown:
-  - CANDIDATE OTS-MC-SS-C01: global server record writer behavior pending exact Game::loadPlayersRecord/updatePlayersRecord implementation trace
+  - CANDIDATE OTS-MC-SS-C01: global server record writer behavior pending exact Game::loadPlayersRecord/checkPlayersRecord/updatePlayersRecord implementation trace
   - CANDIDATE OTS-MC-SS-C02: raid daily-counter KV reset pending exact raid.kv persistence/namespace proof
   - CANDIDATE OTS-MC-SS-C03: individual global-event, cleanup, highscore and DB-optimization jobs pending concrete call-site classification
   - exhaustive current-source shared-state inventory
-  - remaining depot/inbox/stash and final house settlement exactly-once flows
+  - remaining depot/inbox/stash paths beyond revalidated mail and market call-sites, plus final house settlement exactly-once flows
   - exact-final-head Agent Task Ownership, CI and Security Validation results for the latest checkpoint commit
 conflicts: []
 first_failure:
@@ -147,10 +149,16 @@ validation:
     evidence: PR 526 is same-repository branch -> blakinio/canary:main
   - command: current-source audit continuation
     result: PASS
-    evidence: durable evidence report is preserved in the task-owned security document through report commit 2e55ea3d70b37d5ac451b1f14d63ce88d1470a9a
+    evidence: durable evidence report is preserved in the task-owned security document through report commit 42b96ba79b7cccc9b02ad6a693035dedb96b08b8
   - command: PR 526 changed-file scope
     result: PASS
     evidence: only the task record and audit evidence document are changed
+  - command: Agent Task Ownership on head 421fbe5a21ee49f7b797bab3f56ee864dd6545fb
+    result: PASS
+    evidence: workflow run 29637804392 completed successfully after checkpoint schema normalization
+  - command: CI on head 421fbe5a21ee49f7b797bab3f56ee864dd6545fb
+    result: PASS
+    evidence: workflow run 29637804516 completed successfully
   - command: Agent Task Ownership run 29637494686
     result: FAIL
     evidence: checkpoint used an unsupported nested candidates mapping
@@ -159,5 +167,5 @@ validation:
     evidence: diagnostics required first_failure and rejected validation result tokens UNAVAILABLE and FIXED_IN_HEAD
 blockers:
   - disposable shell cannot currently fetch/clone GitHub, so physical two-process race/crash proofs are unavailable in this environment
-next_action: Finish concrete shared-state writer inventory (global record, raid KV, cleanup/highscore/DB optimization), then continue depot/inbox/stash and final house settlement exactly-once review before opening any remediation task.
+next_action: Finish concrete shared-state writer inventory (global record, raid KV, cleanup/highscore/DB optimization), then continue remaining depot/inbox/stash and final house settlement exactly-once review before opening any remediation task.
 ```
