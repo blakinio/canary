@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-gameplay-005-persistence-assertions
 base_branch: main
 created: 2026-07-18T23:32:00+02:00
-updated: 2026-07-19T00:13:00+02:00
-last_verified_commit: "f18eb252f743092443f00c94b878c25729b851bd"
+updated: 2026-07-19T00:15:00+02:00
+last_verified_commit: "5976bc7d3b0b5a71fbcaf51710c52e6ade2a7f2c"
 risk: medium
 related_issue: ""
 related_pr: "565"
@@ -81,8 +81,8 @@ The first slice deliberately covers one natural persistence type only: exact int
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T00:13:00+02:00
-head: f18eb252f743092443f00c94b878c25729b851bd
+updated_at: 2026-07-19T00:15:00+02:00
+head: 5976bc7d3b0b5a71fbcaf51710c52e6ade2a7f2c
 branch: feat/e2e-gameplay-005-persistence-assertions
 pr: 565
 status: validating
@@ -112,9 +112,10 @@ proven:
   - raw scenario-owned assertions.sql remains supported and unchanged for scenarios without typed persistence declarations
   - exact changed-file review found nine text/source/documentation paths and no OTBM maps, items.otb, client assets, database dumps, credentials or secrets
   - MODULE_CATALOG and CHANGELOG contain the reusable persistence interface and behavior-level change; the shared changelog conflict caused by merged PR 563 was reconciled without force-rewriting published history
-  - PR 565 is ready for review, labeled ci:final-gate, mergeable before the final checkpoint commit, and has no review threads or submitted requested-change reviews
+  - PR 565 is ready for review, labeled ci:final-gate, mergeable before final-gate checkpoint commits, and has no review threads or submitted requested-change reviews
   - pre-final head f18eb252f743092443f00c94b878c25729b851bd passed CI run 29662746814 and Agent Task Ownership run 29662746752
-  - pre-final Universal Agent E2E run 29662746820 passed exact scenario resolution, deterministic database bootstrap and exact Canary linux-release build before the final checkpoint synchronize superseded its still-running controlled-OTClient build
+  - pre-final Universal Agent E2E run 29662746820 passed exact scenario resolution, deterministic database bootstrap and exact Canary linux-release build before final-gate synchronization superseded its still-running controlled-OTClient build
+  - final-gate head 5976bc7d3b0b5a71fbcaf51710c52e6ade2a7f2c failed Agent Task Ownership only because this task record used unsupported validation result SUPERSEDED_BY_FINAL_HEAD; artifact 8434907618 identified that exact checkpoint-schema error and this commit repairs it to NOT_RUN
   - no local Git checkout is available in the execution sandbox; focused Python unit tests are committed but were not claimed as locally executed; exact-head scenario list/validate/resolve and physical E2E are the available integration/runtime evidence
   - repository writes were restricted to blakinio/canary; blakinio/otclient and upstream repositories remained read-only
 
@@ -159,7 +160,10 @@ validation:
     result: PASS
     evidence: workflow run 29662746752 completed success
   - command: Universal Agent E2E on pre-final head f18eb252f743092443f00c94b878c25729b851bd
-    result: SUPERSEDED_BY_FINAL_HEAD
-    evidence: run 29662746820 passed scenario resolution, DB bootstrap and exact Canary build; final checkpoint synchronize intentionally replaces this run with required full exact-final-head evidence
-next_action: Verify every required ci:final-gate workflow on the exact final task-record head. If all checks pass, PR 565 remains mergeable, and no review or ownership blocker appears, squash-merge PR 565. Make no further commit after the green final-head gate.
+    result: NOT_RUN
+    evidence: run 29662746820 passed scenario resolution, DB bootstrap and exact Canary build but was superseded before controlled-OTClient build and physical execution completed
+  - command: Agent Task Ownership final-gate attempt on head 5976bc7d3b0b5a71fbcaf51710c52e6ade2a7f2c
+    result: FAIL
+    evidence: run 29663063422 artifact 8434907618 reported only unsupported checkpoint validation result SUPERSEDED_BY_FINAL_HEAD; this checkpoint repair addresses that exact failure
+next_action: Verify every required ci:final-gate workflow on the exact new task-record head. If all checks pass, PR 565 remains mergeable, and no review or ownership blocker appears, squash-merge PR 565. Make no further commit after the green final-head gate.
 ```
