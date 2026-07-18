@@ -92,6 +92,17 @@ def _load_pr_scenario_selector():
     return module
 
 
+def _load_persistence_assertions():
+    module_path = Path(__file__).resolve().with_name("persistence_assertions.py")
+    spec = importlib.util.spec_from_file_location("canary_e2e_persistence_assertions", module_path)
+    if spec is None or spec.loader is None:
+        raise ScenarioError(f"cannot load persistence assertion compiler: {module_path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
 def _resolve_pr_fallback_selection(root: Path, suite: str, scenario_id: str) -> tuple[str, str]:
     """Replace only the canonical PR fallback with one exact changed scenario."""
 
@@ -344,7 +355,7 @@ def validate_scenario(path: Path, root: Path) -> Scenario:
     if not SLUG_RE.fullmatch(scenario_id):
         raise ScenarioError(f"{path}: id must match {SLUG_RE.pattern}")
     if not SLUG_RE.fullmatch(suite):
-        raise ScenarioError(f"{path}: suite must match {SLUG_RE.pattern}")
+        raise ScenarioError(f"{path}: suite must match its directory under tests/e2e/scenarios")
 
     relative = path.resolve().relative_to(scenario_root(root).resolve())
     if len(relative.parts) < 2 or relative.parts[0] != suite:
@@ -368,7 +379,7 @@ def validate_scenario(path: Path, root: Path) -> Scenario:
     fixture = _require_mapping(data.get("fixture"), "scenario.fixture")
     _require_string(fixture, "account", "scenario.fixture")
     _require_string(fixture, "password_env", "scenario.fixture")
-    _require_string(fixture, "character", "scenario.fixture")
+    character = _require_string(fixture, "character", "scenario.fixture")
     _require_string(fixture, "world", "scenario.fixture")
     _require_string(fixture, "host", "scenario.fixture")
     port = _require_positive_int(fixture, "game_port", "scenario.fixture")
@@ -387,6 +398,12 @@ def validate_scenario(path: Path, root: Path) -> Scenario:
     sql = _require_list(assertions.get("sql"), "scenario.assertions.sql")
     if not sql or any(not isinstance(item, str) or not item.strip() for item in sql):
         raise ScenarioError(f"{path}: assertions.sql must contain non-empty SQL statements")
+
+    persistence = _load_persistence_assertions()
+    try:
+        persistence.compile_persistence_assertions(assertions.get("persistence"), character=character)
+    except persistence.PersistenceAssertionError as exc:
+        raise ScenarioError(f"{path}: {exc}") from exc
 
     artifacts = _require_list(data.get("artifacts"), "scenario.artifacts")
     if not artifacts or any(not isinstance(item, str) or not item.strip() for item in artifacts):
@@ -441,11 +458,19 @@ def select(scenarios: Iterable[Scenario], suite: str, scenario_id: str) -> Scena
 
 
 def normalized_manifest(scenario: Scenario) -> dict[str, Any]:
+    data = json.loads(json.dumps(scenario.data))
+    persistence = _load_persistence_assertions()
+    compiled = persistence.compile_persistence_assertions(
+        data["assertions"].get("persistence"),
+        character=str(data["fixture"]["character"]),
+    )
+    if compiled:
+        data["assertions"]["sql"] = [*data["assertions"]["sql"], *compiled]
     return {
         "schema_version": SCHEMA_VERSION,
         "key": scenario.key,
         "source": scenario.path.as_posix(),
-        "scenario": scenario.data,
+        "scenario": data,
     }
 
 
