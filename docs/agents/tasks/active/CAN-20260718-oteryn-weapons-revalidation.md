@@ -2,12 +2,12 @@
 task_id: CAN-20260718-oteryn-weapons-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-015
-status: active
+status: review
 agent: "GPT-5.5 Thinking"
 branch: docs/oam-015-virtual-module-revalidation
 base_branch: main
 created: 2026-07-18
-updated: 2026-07-18T16:01:00+02:00
+updated: 2026-07-18T16:05:00+02:00
 last_verified_commit: "1dd21117ce06cc4463e6185f4ff74546031b55e6"
 risk: high
 related_issue: "blakinio/Otheryn#36"
@@ -18,6 +18,10 @@ blocks:
   - OAM-016
 modules_touched:
   - weapons
+owned_paths:
+  exclusive:
+    - docs/agents/OTERYN_OAM_015_WEAPONS_REVALIDATION.md
+    - docs/agents/tasks/active/CAN-20260718-oteryn-weapons-revalidation.md
 ---
 
 # Goal
@@ -78,3 +82,50 @@ Final target diff contained exactly two test paths and no production runtime/dat
 Target proof is complete. Canary governance PR #544 must merge next, followed by a separate authoritative lifecycle archive and separate durable program reconciliation. OAM-016 remains blocked until all three remaining stages merge.
 
 Any self-owned automatically opened `docs(agents): archive merged PR` duplicate must be closed after the authoritative manual lifecycle archive is established. Stale duplicates for completed OAM-010 through OAM-014 were closed during OAM-015 housekeeping.
+
+## Context checkpoint
+
+```yaml
+checkpoint_version: 1
+updated_at: 2026-07-18T16:05:00+02:00
+head: 78b127a9a0cd68c8aca559fb41397fd545825c35
+branch: docs/oam-015-virtual-module-revalidation
+pr: 544
+status: validating
+next_action: Merge governance PR #544 after Agent Task Ownership and CI pass on the exact updated head.
+context_routes:
+  - docs/agents/OTERYN_OAM_015_WEAPONS_REVALIDATION.md
+  - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
+owned_paths:
+  - docs/agents/OTERYN_OAM_015_WEAPONS_REVALIDATION.md
+  - docs/agents/tasks/active/CAN-20260718-oteryn-weapons-revalidation.md
+proven:
+  - OAM-015 target proof merged at 1dd21117ce06cc4463e6185f4ff74546031b55e6.
+  - Exact target proof passed 353 of 353 full tests and 2 of 2 focused tests.
+  - Target merge used expected head 183800b4a83f86ec0b5eb160501f293d9ae59399 with no task-start main drift.
+derived:
+  - Canonical OAM-015 disposition is REUSE while the separate cross-module display gap remains excluded.
+unknown:
+  - Canary governance merge SHA is unavailable until PR #544 merges.
+conflicts: []
+rejected_hypotheses:
+  - Importing only the legacy PR #78 runtime-file fragment as an isolated OAM-015 donor.
+changed_paths:
+  - docs/agents/OTERYN_OAM_015_WEAPONS_REVALIDATION.md
+  - docs/agents/tasks/active/CAN-20260718-oteryn-weapons-revalidation.md
+blockers:
+  - Agent Task Ownership must pass on the updated exact head before governance merge.
+first_failure:
+  marker: Agent Task Ownership run 29647221626
+  evidence: The changed active task lacked the required Context checkpoint section.
+validation:
+  - command: Otheryn CI run 29646448123
+    result: PASS
+    evidence: Exact target head passed full platform gates and 353 of 353 CTest cases.
+  - command: Canary CI run 29647221731
+    result: PASS
+    evidence: Governance CI passed on predecessor head 78b127a9a0cd68c8aca559fb41397fd545825c35.
+  - command: Canary Agent Task Ownership run 29647221626
+    result: FAIL
+    evidence: Missing Context checkpoint was the first failure; this update adds the required checkpoint.
+```
