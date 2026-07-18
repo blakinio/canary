@@ -2,13 +2,13 @@
 task_id: CAN-20260718-otbm-e2e-001-route-plan-export
 program_id: CAN-PROGRAM-OTBM-E2E-ROUTING
 coordination_id: OTBM-E2E-001
-status: validating
+status: implementing
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-001-route-plan-export
 base_branch: main
 created: 2026-07-18T23:45:00+02:00
-updated: 2026-07-19T00:11:00+02:00
-last_verified_commit: "0a4ff423403352d0986d8a68e1df1f2e6ed2d3ee"
+updated: 2026-07-19T00:13:00+02:00
+last_verified_commit: "cd6cb40609844b112a0b352b16c38bd8b056cdc0"
 risk: medium
 related_issue: ""
 related_pr: "567"
@@ -78,11 +78,11 @@ Implement `OTBM-E2E-001 — Reachability executable route export` as a bounded e
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T00:11:00+02:00
-head: 0a4ff423403352d0986d8a68e1df1f2e6ed2d3ee
+updated_at: 2026-07-19T00:13:00+02:00
+head: cd6cb40609844b112a0b352b16c38bd8b056cdc0
 branch: feat/otbm-e2e-001-route-plan-export
 pr: 567
-status: validating
+status: implementing
 context_routes:
   - agent-governance
   - otbm
@@ -117,7 +117,7 @@ proven:
   - PR #565 explicitly excludes OTBM parser, pathfinder and route-consumption changes; tools/e2e remains untouched by this task
   - live main remained c1c0d10ed1e758cb72728be5fe22458cd9d9e61a immediately before final gate
   - complete PR diff was reviewed before final gate; no OTBM, WIDX, items.otb, client assets, generated route reports or tools/e2e paths are present
-  - ci:final-gate was applied to PR 567 before this final checkpoint commit
+  - ci:final-gate was applied before the final checkpoint commit and explicitly removed/reapplied before this governance-only follow-up checkpoint fix
   - repository writes are restricted to blakinio/canary
   - no local Git checkout is available in the execution sandbox; GitHub connector state is authoritative for branch, PR and workflow operations
   - direct git clone is unavailable because the sandbox cannot resolve github.com
@@ -170,6 +170,9 @@ validation:
     evidence: main unchanged at c1c0d10ed1e758cb72728be5fe22458cd9d9e61a; no competing Reachability route-plan PR; no tools/e2e or forbidden binary/generated artifact paths in the diff
   - command: ci:final-gate label application
     result: PASS
-    evidence: label applied to PR 567 before this checkpoint commit
+    evidence: label applied before final checkpoint and reapplied before the governance-only follow-up checkpoint fix
+  - command: Agent Task Ownership workflow on cd6cb40609844b112a0b352b16c38bd8b056cdc0
+    result: FAIL
+    evidence: active task records require an active lifecycle status; status validating was rejected, so this checkpoint restores implementing and leaves archival to lifecycle automation after merge
 next_action: Verify every required workflow on the exact final head, inspect review threads and merge blockers, then mark PR ready and squash-merge only if the full merge gate is green.
 ```
