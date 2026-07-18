@@ -4,14 +4,14 @@ program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-015
 status: active
 agent: "GPT-5.5 Thinking"
-branch: docs/oam-015-weapons-revalidation
+branch: docs/oam-015-virtual-module-revalidation
 base_branch: main
 created: 2026-07-18
-updated: 2026-07-18T15:56:00+02:00
+updated: 2026-07-18T16:01:00+02:00
 last_verified_commit: "1dd21117ce06cc4463e6185f4ff74546031b55e6"
 risk: high
 related_issue: "blakinio/Otheryn#36"
-related_pr: "543"
+related_pr: "544"
 depends_on:
   - OAM-013
 blocks:
@@ -75,6 +75,6 @@ Final target diff contained exactly two test paths and no production runtime/dat
 
 # Lifecycle
 
-Target proof is complete. Canary governance PR #543 must merge next, followed by a separate authoritative lifecycle archive and separate durable program reconciliation. OAM-016 remains blocked until all three remaining stages merge.
+Target proof is complete. Canary governance PR #544 must merge next, followed by a separate authoritative lifecycle archive and separate durable program reconciliation. OAM-016 remains blocked until all three remaining stages merge.
 
 Any self-owned automatically opened `docs(agents): archive merged PR` duplicate must be closed after the authoritative manual lifecycle archive is established. Stale duplicates for completed OAM-010 through OAM-014 were closed during OAM-015 housekeeping.
