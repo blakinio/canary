@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-18T12:24:00+02:00
-last_verified_commit: "102ee803308b94faa21b328ff47cd2b06edd2a93"
+updated: 2026-07-18T14:09:26+02:00
+last_verified_commit: "9d492db84ee50d78c368b818b2ee9a7e297e8748"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -49,6 +49,7 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 | OAM-011 | `weapon-proficiency → ADAPT` | target `72f7bdc1a5afa9e9982c20bdcf3098c83dca543e`; feature `8df917cf34771e1388533915a6fa4e50aa91e1bb`; lifecycle `9627b7524c4da232a47d9c75f2da907cc918b0b6` |
 | OAM-012 | `achievements → ADAPT` | target `4a16ca17ebd098cf9763bb3c07755bfd31ac1c43`; feature `92b704415ffb53165647c0623d1ab273fc7b723f`; lifecycle `3dfb606d219006986461d31342260f724a5d84bf` |
 | OAM-013 | `combat → REUSE` | target proof `3628effc5f22e7edbdc66dc5f514e4df5c9f0cda`; feature `e4596861d8e8497645815d8eefb6cee3166b91d0`; lifecycle `102ee803308b94faa21b328ff47cd2b06edd2a93` |
+| OAM-014 | `combat-conditions → ADAPT` | target `9d797b547c3f85f6d210c6123202c7cae32d5133`; feature `c9ba742731ebea2ccaf73b8b7ae78ee855ad9109`; lifecycle `9d492db84ee50d78c368b818b2ee9a7e297e8748` |
 
 # OAM-009 durable boundary
 
@@ -128,15 +129,35 @@ Canary governance PR #533 was clean-synchronized onto non-overlapping OTBM roadm
 
 OAM-013 preserves OAM-004 SQL/KV non-atomicity and changes no generic combat production code, persistence, protocol, client, map or assets. It does not claim exhaustive combat correctness or full Real Tibia combat formula/value parity. The reviewed PR #297 light-condition fix remains downstream evidence for `combat-conditions`, not a residual defect claim against completed generic `combat` ownership.
 
+# OAM-014 durable completion
+
+Final disposition:
+
+```text
+combat-conditions ADAPT
+```
+
+Task-start baselines were Canary `0253b712cd4275e8ad72d5bca7020d1f4a2246b7`, Otheryn `3628effc5f22e7edbdc66dc5f514e4df5c9f0cda`, upstream `e0ac98e399d0f7e483f3668f57b78fcc45b6e53f`, and OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`. The canonical `combat-conditions` module depends on completed OAM-013 `combat`.
+
+Task-start target and pinned upstream shared `src/creatures/combat/condition.cpp` blob `5b15ed00c7e92eef6d8c719aec423443efae8b7a`. Reviewed Canary PR #297 final head `b7f5de1f04cd3b521ee9621a0f001f0ced5e6c39` supplied the exact accepted bounded donor: runtime blob `26a1cf0c9e01f4ab162438e8284f5cc73d129d11`, focused test blob `ee2f185042cdb359aac1a752dce971ec76c38f8d`, and condition-test CMake blob `b224d4eb1eb15eb92ca4a26f214c0764b82b03c3`. Reviewed-history audit found no second delivered `condition.cpp` fix requiring coupling.
+
+The accepted adaptation normalizes zero `ConditionLight` level to minimum valid level `1` before start-condition fade-interval division and when deserializing persisted state, while preserving valid nonzero behavior. It does not rewrite persisted data automatically and does not broaden condition ownership beyond this reviewed correctness boundary.
+
+Otheryn PR #35 final head `f4044811f2b930318ec6541a51e73a9a1b6fdce0` contained exactly the three accepted donor paths and no temporary materializer helpers. It passed CI `29642976283`, Required `29642976213`, autofix `29642976219`, Linux debug build, Canary runtime smoke, database schema import and actual CTest. The full target suite completed 351/351 with zero failures and `ConditionLightTest` passed 3/3. Primary test artifact `8429300008` has digest `sha256:328f60045be1d42e4fba0c6b80aa64a3b8e767553808d7c47119750922cc2e36`. Target merge is `9d797b547c3f85f6d210c6123202c7cae32d5133`.
+
+Canary governance PR #539 final head `9c806ec8524d59430395173d8187ef90d8b2e64d` passed Ownership `29643562904` and ready-state CI `29643583135` with Required PASS, zero comments/reviews/threads and no main drift, then merged as `c9ba742731ebea2ccaf73b8b7ae78ee855ad9109`. Lifecycle PR #541 final head `8434805bb80d5d9cd2c072e9bb857d6a09cd070f` passed Ownership `29643697230` and CI `29643697256` with Required PASS, zero comments/reviews/threads and no main drift, then merged as `9d492db84ee50d78c368b818b2ee9a7e297e8748`.
+
+OAM-014 preserves OAM-004 SQL/KV non-atomicity and completed OAM-013 generic combat ownership. It changes no spell definitions, protocol, client, map or assets and performs no broad persistence redesign. It does not claim exhaustive condition timing/stacking/persistence correctness or full Real Tibia condition formula/value parity.
+
 # Current state
 
 ```text
-Canary reconciliation base: 102ee803308b94faa21b328ff47cd2b06edd2a93
-Otheryn target head after OAM-013: 3628effc5f22e7edbdc66dc5f514e4df5c9f0cda
+Canary reconciliation base: 9d492db84ee50d78c368b818b2ee9a7e297e8748
+Otheryn target head after OAM-014: 9d797b547c3f85f6d210c6123202c7cae32d5133
 maintained OTClient: 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
-OAM-001..OAM-013: feature/lifecycle complete
-OAM-013 task: archived
-OAM-014: NOT STARTED
+OAM-001..OAM-014: feature/lifecycle complete
+OAM-014 task: archived
+OAM-015: NOT STARTED
 ```
 
 No OAM implementation task is active in this reconciliation record.
@@ -145,8 +166,8 @@ No OAM implementation task is active in this reconciliation record.
 
 | Package | Status | Next action |
 |---|---|---|
-| OAM-001..OAM-013 | completed | preserve durable evidence |
-| OAM-014+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
+| OAM-001..OAM-014 | completed | preserve durable evidence |
+| OAM-015+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
 
 # Invariants and known gaps
 
@@ -162,8 +183,9 @@ No OAM implementation task is active in this reconciliation record.
 - OAM-012 does not claim full Real Tibia achievement attainability parity; unrelated achievement hooks remain outside the accepted bounded package.
 - OAM-012 canonical registry data-path metadata should eventually be normalized to explicitly include the proven central catalogue path.
 - OAM-013 does not claim exhaustive combat correctness or full Real Tibia combat formula/value parity.
-- OAM-013 leaves the reviewed zero-level light-condition fix to downstream `combat-conditions`, preserving canonical ownership separation.
+- OAM-014 does not claim exhaustive condition timing, stacking or persistence correctness, nor full Real Tibia condition formula/value parity.
+- OAM-014 normalizes invalid zero light state in memory but does not claim automatic persisted-data repair or broader persistence completeness.
 
 # Exact next task
 
-Merge this program-only OAM-013 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-014 preflight begin. OAM-014 is NOT STARTED by this record.
+Merge this program-only OAM-014 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-015 preflight begin. OAM-015 is NOT STARTED by this record.
