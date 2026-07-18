@@ -6,8 +6,8 @@ agent: "GPT-5.5 Thinking"
 branch: docs/ots-security-shared-state-economy-audit-20260718
 base_branch: main
 created: 2026-07-18T09:58:00+02:00
-updated: 2026-07-18T10:14:00+02:00
-last_verified_commit: "848d81bc3d0c81b5483b55bc887c338ac65a242f"
+updated: 2026-07-18T10:32:00+02:00
+last_verified_commit: "1cb00a8f8d7c4db47e1f41f65a7aaf63b7854cc2"
 risk: high
 related_issue: ""
 related_pr: "526"
@@ -48,7 +48,7 @@ cross_repo_tasks: []
 
 ## Goal
 
-Continue the existing OTS security assessment from the durable PR #453 handover without restarting completed MyAAC/login-stack work. The first analysis scope is Canary multichannel global/shared state and exactly-once economy behavior. This task records evidence only and does not implement remediation.
+Continue the existing OTS security assessment from the durable PR #453 handover without restarting completed MyAAC/login-stack work. First analysis scope: Canary multichannel global/shared state and exactly-once economy behavior. This task records evidence only and does not implement remediation.
 
 ## Routes
 
@@ -59,27 +59,27 @@ Continue the existing OTS security assessment from the durable PR #453 handover 
 ## Repository boundary
 
 - Writable repository: `blakinio/canary` only.
-- `opentibiabr/canary`, `opentibiabr/login-server`, `slawkens/myaac`, `opentibiabr/otclient`, `opentibiabr/remeres-map-editor`, and `opentibiabr/client-editor` remain evidence-only/read-only.
+- Upstream/MyAAC/client/tool repositories remain evidence-only/read-only.
 - Dynamic testing, if added later, must use disposable local infrastructure only.
 - This task does not modify or extend lifecycle-only PR #522.
 
 ## Scope
 
-1. Mechanically identify global/shared tables, KV, caches and singleton-like jobs used across channel processes.
+1. Identify global/shared tables, KV, caches and singleton-like jobs used across channel processes.
 2. Trace writer multiplicity, partitioning, ownership, locking/fencing, transaction boundaries, retries, crash consistency, stale writers, duplicate execution and pruning.
-3. Continue exactly-once review of market partial fills, bank/guild transfers, GameStore/account coins, inbox/depot/stash handoff, trade completion, house auctions/payments and paid MyAAC operations where current evidence warrants follow-up.
-4. Preserve exact source baselines and classify each hypothesis as `PROVEN`, `DYNAMICALLY CONFIRMED`, `DERIVED`, `CONFIGURATION-DEPENDENT`, `CANDIDATE`, `UNKNOWN`, or `REJECTED`.
-5. Do not reopen explicitly rejected hypotheses without new evidence.
+3. Continue exactly-once review of market, bank/guild, GameStore/account coins, inbox/depot/stash, trade and house payment/auction flows.
+4. Preserve exact source baselines and evidence states.
+5. Do not reopen rejected hypotheses without new evidence.
 
 ## Acceptance criteria
 
 - [x] Durable PR #453 report/handover and live PR #453/#522 state revalidated.
-- [x] Current `main` verified as `d9c967d6e9b778da11a206d134d559f38ec1b8c8` through live GitHub compare evidence.
-- [x] Open-PR overlap checked; no exclusive path overlap with this task's two documentation paths identified.
+- [x] Task-start `main` verified as `d9c967d6e9b778da11a206d134d559f38ec1b8c8`.
+- [x] Open-PR overlap checked; no exclusive-path overlap with this task identified.
 - [x] Dedicated task branch and draft PR #526 created without mixing scope into PR #522.
-- [ ] Mechanical global/shared-state inventory completed for the highest-risk multichannel writers.
-- [ ] Exactly-once/economy continuation completed for the highest-risk remaining flows with concrete failure timelines.
-- [x] New findings and rejected candidates preserved in `docs/security/OTS_SECURITY_SHARED_STATE_ECONOMY_AUDIT_2026-07-18.md`.
+- [ ] Mechanical global/shared-state inventory completed for the highest-risk remaining writers.
+- [ ] Exactly-once/economy continuation completed for remaining depot/inbox/stash, house settlement and paid-operation flows.
+- [x] Qualified findings, revalidations and rejected candidates preserved in `docs/security/OTS_SECURITY_SHARED_STATE_ECONOMY_AUDIT_2026-07-18.md`.
 - [x] Changed-file scope remains documentation-only and limited to this task record plus its evidence document.
 - [ ] Required GitHub checks pass on the exact final head before readiness/merge.
 
@@ -87,8 +87,8 @@ Continue the existing OTS security assessment from the durable PR #453 handover 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T10:14:00+02:00
-head: 848d81bc3d0c81b5483b55bc887c338ac65a242f
+updated_at: 2026-07-18T10:32:00+02:00
+head: 1cb00a8f8d7c4db47e1f41f65a7aaf63b7854cc2
 branch: docs/ots-security-shared-state-economy-audit-20260718
 pr: 526
 status: implementing
@@ -101,30 +101,30 @@ owned_paths:
   - docs/security/OTS_SECURITY_SHARED_STATE_ECONOMY_AUDIT_2026-07-18.md
 proven:
   - PR 453 is squash-merged with merge SHA 6b42890347338a13daca5fd6291b56b8dc6aa091
-  - PR 522 is still open and lifecycle-only for the merged PR 453 task record
-  - current main at task start is d9c967d6e9b778da11a206d134d559f38ec1b8c8
-  - open PR 514 owns security runtime validation paths and does not overlap this task's exclusive documentation paths
-  - open PR 487 changes only tests/unit/game/multichannel/channel_registry_test.cpp
-  - draft PR 526 targets blakinio/canary:main from the dedicated same-repository task branch
-  - OTS-MC-SS-001: every channel periodically rebuilds global players_online from process-local player state and can prune other channels
-  - OTS-ECO-MKT-001: concurrent partial market fills can both pass a stale offer-amount check and perform value effects before final offer decrement
-  - OTS-ECO-GUILD-001: guild balance is loaded into process-local state and later saved as an absolute value, permitting multichannel stale-snapshot double-spend/lost update
-  - existing GameStore effect-before-debit and transferable-coin credit-before-debit findings remain current at this baseline
-  - existing market-expiry PENDING crash-recovery wedge remains current
+  - PR 522 remains lifecycle-only and is not part of this write scope
+  - task-start main is d9c967d6e9b778da11a206d134d559f38ec1b8c8
+  - OTS-MC-SS-001: every channel periodically rebuilds global players_online from process-local state and can prune other channels
+  - OTS-ECO-MKT-001: concurrent partial market fills can both pass a stale amount check and perform value effects before final offer decrement
+  - OTS-ECO-GUILD-001: process-local guild balances plus absolute saves permit cross-channel stale-snapshot double spend
+  - OTS-ECO-HOUSE-001: a house-auction refund applied directly to a bidder online on another channel can be erased by that bidder's later stale full save
+  - OTS-ECO-HOUSE-002: house-auction money/refund effects precede durable bid-state persistence, leaving a crash-time duplicate-refund or unbacked-state window
+  - OTS-ECO-TRADE-001: completed bilateral trade is persisted as two independently committing player snapshots, permitting crash-time duplication or loss
+  - existing house-isolation finding remains current: channel-scoped schema intent conflicts with UNIQUE(id), unpartitioned load/save/list paths and global cleanup behavior
+  - existing single-type account-coin RMW finding remains current; single-type add/remove use SELECT then absolute UPDATE
+  - existing bank-transfer crash-consistency, GameStore effect-before-debit, transferable-coin credit-before-debit and market-expiry PENDING findings remain current
   - no public or third-party deployment is authorized for testing
   - shell environment cannot resolve github.com, so local git fetch/worktree preflight is unavailable and live GitHub connector evidence is used instead
-derived:
-  - a fresh audit-continuation task avoids mixing new findings into lifecycle-only PR 522
 candidates:
-  - global server record writer race pending Game::loadPlayersRecord/checkPlayersRecord implementation trace
+  - global server record writer behavior pending exact Game::loadPlayersRecord/checkPlayersRecord implementation trace
   - raid daily-counter KV reset pending exact raid.kv persistence/namespace proof
   - individual global-event, cleanup, highscore and DB-optimization jobs pending concrete call-site classification
 unknown:
-  - complete current-source shared-state inventory
-  - remaining bank/trade/stash/house-payment exactly-once flows
+  - exhaustive current-source shared-state inventory
+  - remaining depot/inbox/stash and house transfer/settlement exactly-once flows
 conflicts: []
 rejected_hypotheses:
-  - OTS-MC-JOB-RJ-001: overlapping market.expire leaders alone cannot both apply the same expiry effect because deterministic economic_ledger transaction_uuid primary-key insertion fails closed for the second worker
+  - OTS-MC-JOB-RJ-001: overlapping market.expire leaders alone cannot both apply the same expiry effect because deterministic economic_ledger transaction_uuid insertion rejects the second worker
+  - OTS-ECO-COIN-RJ-001: dual-type Account::removeCoins(primary, secondary) does not have the single-type unlocked RMW race; it uses a rollback transaction and SELECT FOR UPDATE
   - previously documented rejected hypotheses remain closed unless new evidence appears
 changed_paths:
   - docs/agents/tasks/active/CAN-20260718-ots-security-shared-state-economy-audit.md
@@ -135,20 +135,20 @@ validation:
     evidence: shell DNS could not resolve github.com; no existing checkout was present
   - command: live GitHub main comparison
     result: PASS
-    evidence: main is identical to d9c967d6e9b778da11a206d134d559f38ec1b8c8 at task start
+    evidence: task-start main matched d9c967d6e9b778da11a206d134d559f38ec1b8c8
   - command: live open-PR/path overlap review
     result: PASS
-    evidence: no exclusive-path overlap identified for the new task/evidence paths
+    evidence: no exclusive-path overlap identified for the two task-owned documentation paths
   - command: draft PR creation safety check
     result: PASS
-    evidence: PR 526 base/head repositories are blakinio/canary and base is main
+    evidence: PR 526 is same-repository branch -> blakinio/canary:main
   - command: current-source audit continuation
     result: PASS
-    evidence: durable evidence report added at fad383bd15f58e99b086e5ca82ed5039eab34d06
+    evidence: report preserved through commit 1cb00a8f8d7c4db47e1f41f65a7aaf63b7854cc2
   - command: PR 526 changed-file scope
     result: PASS
-    evidence: exactly two changed files; both are the task-owned documentation paths
+    evidence: only the task record and audit evidence document are changed
 blockers:
-  - disposable shell currently cannot fetch/clone GitHub, so physical two-process dynamic race proofs are not available in this environment
-next_action: Trace Game::loadPlayersRecord/checkPlayersRecord, raid.kv persistence, concrete cleanup/highscore/DB-optimization writers, then continue bank/trade/depot-inbox-stash/house-payment exactly-once review before creating any remediation tasks.
+  - disposable shell cannot currently fetch/clone GitHub, so physical two-process race/crash proofs are unavailable in this environment
+next_action: Finish concrete shared-state writer inventory (global record, raid KV, cleanup/highscore/DB optimization), then continue depot/inbox/stash and house transfer/settlement exactly-once review before opening any remediation task.
 ```
