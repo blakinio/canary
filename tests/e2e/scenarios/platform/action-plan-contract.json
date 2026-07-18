@@ -58,6 +58,9 @@
       "ping_features_2=disabled",
       "login_2=success",
       "online_stable_2=confirmed",
+      "persistence_check_level=success",
+      "persistence_check_vocation=success",
+      "persistence_plan=success",
       "logout_request_2=safe",
       "logout_2=complete",
       "e2e=success"
