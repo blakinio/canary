@@ -97,7 +97,7 @@ The optional feature-owned contract is:
 }
 ```
 
-`required` must be explicit. A required persistence declaration must contain at least one check; checks are rejected when `required` is false. The initial `player_field` type supports only `level`, `vocation` and `experience`, because each value has both a durable `players` column and an existing read-only controlled-client getter after relog.
+`required` must be explicit. A required persistence declaration must contain at least one check; checks are rejected when `required` is false. The initial `player_field` type supports only `level` and `experience`, because those values have directly comparable durable `players` columns and controlled-client getters after relog. Raw server vocation IDs are deliberately excluded from this first slice because the maintained client exposes its own vocation representation; a future vocation contract needs an explicit normalization layer rather than assuming numeric identity.
 
 `tools/e2e/persistence_assertions.py` validates this typed contract. `run_agent_e2e.py` uses the same validated checks in two places:
 
@@ -131,7 +131,7 @@ A pre-logout SQL observation alone must not be reported as persistence proof. Fo
 }
 ```
 
-`tests/e2e/scenarios/platform/action-plan-contract.json` is the platform-owned contract scenario. It deliberately avoids map coordinates, item IDs, NPCs and monsters and now proves typed `level` and `vocation` persistence through the canonical relog cycle.
+`tests/e2e/scenarios/platform/action-plan-contract.json` is the platform-owned contract scenario. It deliberately avoids map coordinates, item IDs, NPCs and monsters and now proves typed `level` persistence through the canonical relog cycle.
 
 ## Feature scenario ownership
 
