@@ -6,8 +6,8 @@ agent: "GPT-5.5 Thinking"
 branch: docs/ots-security-shared-state-economy-audit-20260718
 base_branch: main
 created: 2026-07-18T09:58:00+02:00
-updated: 2026-07-18T10:32:00+02:00
-last_verified_commit: "1cb00a8f8d7c4db47e1f41f65a7aaf63b7854cc2"
+updated: 2026-07-18T10:36:00+02:00
+last_verified_commit: "d9d5ccb6eee431d70c6b01a424867bd75e8e5cd5"
 risk: high
 related_issue: ""
 related_pr: "526"
@@ -87,8 +87,8 @@ Continue the existing OTS security assessment from the durable PR #453 handover 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T10:32:00+02:00
-head: 1cb00a8f8d7c4db47e1f41f65a7aaf63b7854cc2
+updated_at: 2026-07-18T10:36:00+02:00
+head: d9d5ccb6eee431d70c6b01a424867bd75e8e5cd5
 branch: docs/ots-security-shared-state-economy-audit-20260718
 pr: 526
 status: implementing
@@ -114,11 +114,12 @@ proven:
   - existing bank-transfer crash-consistency, GameStore effect-before-debit, transferable-coin credit-before-debit and market-expiry PENDING findings remain current
   - no public or third-party deployment is authorized for testing
   - shell environment cannot resolve github.com, so local git fetch/worktree preflight is unavailable and live GitHub connector evidence is used instead
-candidates:
-  - global server record writer behavior pending exact Game::loadPlayersRecord/checkPlayersRecord implementation trace
-  - raid daily-counter KV reset pending exact raid.kv persistence/namespace proof
-  - individual global-event, cleanup, highscore and DB-optimization jobs pending concrete call-site classification
+derived:
+  - a fresh audit-continuation task avoids mixing new findings into lifecycle-only PR 522
 unknown:
+  - CANDIDATE OTS-MC-SS-C01: global server record writer behavior pending exact Game::loadPlayersRecord/checkPlayersRecord implementation trace
+  - CANDIDATE OTS-MC-SS-C02: raid daily-counter KV reset pending exact raid.kv persistence/namespace proof
+  - CANDIDATE OTS-MC-SS-C03: individual global-event, cleanup, highscore and DB-optimization jobs pending concrete call-site classification
   - exhaustive current-source shared-state inventory
   - remaining depot/inbox/stash and house transfer/settlement exactly-once flows
 conflicts: []
@@ -148,6 +149,9 @@ validation:
   - command: PR 526 changed-file scope
     result: PASS
     evidence: only the task record and audit evidence document are changed
+  - command: Agent Task Ownership diagnostics
+    result: FIXED_IN_HEAD
+    evidence: removed unsupported checkpoint candidates mapping; candidate items are preserved as prefixed entries in unknown
 blockers:
   - disposable shell cannot currently fetch/clone GitHub, so physical two-process race/crash proofs are unavailable in this environment
 next_action: Finish concrete shared-state writer inventory (global record, raid KV, cleanup/highscore/DB optimization), then continue depot/inbox/stash and house transfer/settlement exactly-once review before opening any remediation task.
