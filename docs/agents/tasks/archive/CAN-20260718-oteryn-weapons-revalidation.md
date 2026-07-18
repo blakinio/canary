@@ -2,13 +2,13 @@
 task_id: CAN-20260718-oteryn-weapons-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-015
-status: review
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: docs/oam-015-virtual-module-revalidation
 base_branch: main
 created: 2026-07-18
-updated: 2026-07-18T16:05:00+02:00
-last_verified_commit: "1dd21117ce06cc4463e6185f4ff74546031b55e6"
+updated: 2026-07-18T14:08:20Z
+last_verified_commit: "5b9a0a4c23e5114e59e36ad71fb20087473cd9d3"
 risk: high
 related_issue: "blakinio/Otheryn#36"
 related_pr: "544"
@@ -22,6 +22,7 @@ owned_paths:
   exclusive:
     - docs/agents/OTERYN_OAM_015_WEAPONS_REVALIDATION.md
     - docs/agents/tasks/active/CAN-20260718-oteryn-weapons-revalidation.md
+completed: 2026-07-18T14:08:20Z
 ---
 
 # Goal
@@ -129,3 +130,11 @@ validation:
     result: FAIL
     evidence: Missing Context checkpoint was the first failure; this update adds the required checkpoint.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #544.
+- Feature head: `e496185bb2aa384ad60ebb0ee36f4d11ee1fd6ce`.
+- Merge commit: `5b9a0a4c23e5114e59e36ad71fb20087473cd9d3`.
+- Merged at: `2026-07-18T14:08:20Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
