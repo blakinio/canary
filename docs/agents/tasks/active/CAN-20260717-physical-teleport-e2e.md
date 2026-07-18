@@ -7,8 +7,8 @@ agent: "Codex GPT-5"
 branch: test/e2e-physical-teleport-final-v2
 base_branch: main
 created: 2026-07-17T21:35:00+02:00
-updated: 2026-07-18T20:10:49+02:00
-last_verified_commit: "1494b0fe07e35f1ee815e6a1d3eb584d5c650168"
+updated: 2026-07-18T20:47:39+02:00
+last_verified_commit: "2b186bfc3f152887047986931cc61b709b17e3b8"
 risk: high
 related_issue: ""
 related_pr: "525"
@@ -55,8 +55,8 @@ Prove one deterministic real-client teleport traversal on the exact Canary map u
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T20:10:49+02:00
-head: 1494b0fe07e35f1ee815e6a1d3eb584d5c650168
+updated_at: 2026-07-18T20:47:39+02:00
+head: 2b186bfc3f152887047986931cc61b709b17e3b8
 branch: test/e2e-physical-teleport-final-v2
 pr: 525
 status: validating
@@ -87,9 +87,12 @@ proven:
   - repair commit 68c590a4fa671f678f087063b9e43278443569cf preserved the proven 48-tile route and used 2500 ms pacing, but exact-head run 29646361899 disconnected during route-north-1 at approximately 60 seconds before safe logout
   - exact-head run 29646361899 passed ownership, main CI, resolution, database, Canary build, and OTClient build on head 1494b0fe07e35f1ee815e6a1d3eb584d5c650168; only the selected physical client and its required aggregator failed
   - server movement timing for fixture Knight 1 is derived from level 500, vocation base speed 110, calculated step speed 1008, and audited route ground speeds; observed maxima are 200 ms cardinal and 600 ms diagonal
-  - exact map reachability and wall-ray analysis produced eleven deterministic route segments with anchors 32371,32239,7; 32371,32228,7; 32364,32228,7; 32365,32227,7; 32365,32214,7; 32362,32217,7; 32362,32213,7; 32352,32213,7; 32352,32217,7; and 32353,32217,7 before the final six south steps
-  - the first ten route segments intentionally include four diagonal or eight cardinal wall retries, so dropped or temporarily blocked requests are retried while static geometry prevents overshoot
-  - static simulation on exact map SHA a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2 reaches audited destination 32255,32204,8 with 46.8 seconds planned route-and-settle time, below the approximately 60-second ping timeout
+  - exact-head run 29655443234 passed ownership, resolution, database, exact Canary build, and controlled OTClient build on head 2b186bfc3f152887047986931cc61b709b17e3b8; physical artifact 8433004817 digest sha256:5bb6088c13ee661bce44129f3f30ead7e34383a89e44633505b0f6e565644286 ended at 32375,32209,7 with floor delta 0
+  - run 29655443234 proved server diagonal walking checks the target tile but permits corner cutting; the original strict reachability model had incorrectly required both adjacent cardinal tiles to be walkable
+  - target-tile-only replay of the committed route reproduces the physical endpoint 32375,32209,7 exactly, proving the anchor divergence rather than attributing it to random movement
+  - corrected exact-map wall-ray analysis produces nine deterministic route segments with anchors 32371,32239,7; 32371,32228,7; 32364,32228,7; 32370,32222,7; 32361,32213,7; 32352,32213,7; 32352,32217,7; and 32353,32217,7 before the final six south steps
+  - the first eight corrected route segments intentionally include four diagonal or eight cardinal wall retries, so dropped or temporarily blocked requests are retried while server-compatible target-tile geometry prevents overshoot
+  - corrected static simulation on exact map SHA a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2 reaches audited destination 32255,32204,8 with 43.75 seconds planned route-and-settle time, below the approximately 60-second ping timeout
   - the final six-step south segment starts from wall anchor 32353,32217,7, crosses no declared NPC or monster spawn, and contains no excess request after the teleport
   - exact-head ownership run 29646243455 failed because active task frontmatter used lifecycle-incompatible status validating; the checkpoint status itself remains valid
   - original PR 511 accumulated stale merge-base history while main advanced and was never force-pushed
@@ -103,12 +106,13 @@ derived:
   - clean reconstruction on latest main is safer than force-rebasing the stale-history PR 511 branch
   - the identical route's divergent endpoints after accepted walk requests make 800-1100 ms request pacing nondeterministic for this 48-tile physical traversal
   - static wall anchors turn excess accepted walk requests into bounded retries without changing the shared client driver or transport contract
+  - exact reproduction of the failed physical endpoint establishes target-tile-only diagonal semantics as the correct route model for this server path
 unknown:
-  - whether the wall-anchored route passes the exact-head physical runtime on its first CI execution
+  - whether the corrected server-compatible wall-anchored route passes the next exact-head physical runtime
 conflicts: []
 first_failure:
-  marker: exact-final-ping-timeout-before-route-completion
-  evidence: exact-head run 29646361899 disconnected during route-north-1 at approximately 60 seconds because 2500 ms pacing made the route exceed the no-pong connection lifetime
+  marker: diagonal-anchor-modeled-with-corner-blocking
+  evidence: exact-head run 29655443234 artifact 8433004817 ended at 32375,32209,7; target-tile-only replay reproduces that endpoint exactly while the prior model incorrectly stopped diagonal movement at blocked adjacent cardinal tiles
 rejected_hypotheses:
   - treating OTBM teleportDestination as runtime proof
   - guessing a destination from sprites or item names
@@ -116,6 +120,7 @@ rejected_hypotheses:
   - pinning exact destination before physical artifact evidence
   - solving long-route ping timeout by modifying shared E2E transport infrastructure
   - solving dropped steps only by increasing the unanchored route interval beyond the no-pong connection lifetime
+  - applying corner-blocking reachability semantics to direct player diagonal walk packets
   - force-pushing the stale-history PR 511 branch
   - treating accepted walk requests as proof of completed movement
 changed_paths:
@@ -143,6 +148,9 @@ validation:
   - command: PR 525 2500 ms exact-head final-gate selected physical teleport and Required physical E2E
     result: FAIL
     evidence: run 29646361899 disconnected during route-north-1 at approximately 60 seconds before safe logout
+  - command: PR 525 first wall-anchored exact-head final-gate selected physical teleport and Required physical E2E
+    result: FAIL
+    evidence: run 29655443234 artifact 8433004817 ended at 32375,32209,7; all ownership, resolver, database, and build prerequisites passed
   - command: python tools/agents/task_ownership.py
     result: PASS
     evidence: 13 active task records validated after merging origin/main 051f4101c
@@ -157,7 +165,7 @@ validation:
     evidence: 5 scenarios validated and movement/physical-teleport resolved with 2500 ms pacing
   - command: deterministic route and timing calculation
     result: PASS
-    evidence: exact-map wall simulation reaches each of ten anchors then audited source 32353,32223,7 and teleport destination 32255,32204,8; planned route-and-settle time is 46800 ms, with maximum cardinal and diagonal step durations 200 ms and 600 ms
+    evidence: server-compatible target-tile wall simulation reaches each of eight anchors then audited source 32353,32223,7 and teleport destination 32255,32204,8; planned route-and-settle time is 43750 ms, with maximum cardinal and diagonal step durations 200 ms and 600 ms
   - command: python tools/e2e/run_agent_e2e.py validate and resolve --suite movement --scenario physical-teleport
     result: PASS
     evidence: 5 scenarios validated and the wall-anchored physical teleport scenario resolved locally
@@ -171,5 +179,5 @@ validation:
     result: PASS
     evidence: corrected implementing frontmatter status validated with the same changed-task lifecycle command used by CI
 blockers: []
-next_action: Commit and push the wall-anchored scenario and checkpoint with ci:final-gate still applied, then require exact-head Ownership, CI, selected physical teleport, and Required physical E2E success before readiness or merge.
+next_action: Validate, commit, and push the corrected target-tile wall route with ci:final-gate still applied, then require exact-head Ownership, CI, selected physical teleport, and Required physical E2E success before readiness or merge.
 ```
