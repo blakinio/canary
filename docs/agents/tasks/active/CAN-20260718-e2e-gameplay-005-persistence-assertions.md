@@ -2,19 +2,19 @@
 task_id: CAN-20260718-e2e-gameplay-005-persistence-assertions
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-GAMEPLAY-005
-status: implementing
+status: review
 agent: "GPT-5.5 Thinking"
 branch: feat/e2e-gameplay-005-persistence-assertions
 base_branch: main
 created: 2026-07-18T23:32:00+02:00
-updated: 2026-07-18T23:47:00+02:00
-last_verified_commit: "4609a1e393ba4b55a6f1dcd611979c9e9038145b"
+updated: 2026-07-19T00:13:00+02:00
+last_verified_commit: "f18eb252f743092443f00c94b878c25729b851bd"
 risk: medium
 related_issue: ""
 related_pr: "565"
 depends_on:
   - CAN-PROGRAM-E2E-PLATFORM existing Universal Physical E2E two-session lifecycle
-  - PR #563 Universal E2E gameplay validation architecture/roadmap (read-only planning dependency; unmerged at task start)
+  - merged PR #563 Universal E2E gameplay validation architecture/roadmap
 blocks:
   - feature-owned scenarios requiring reusable M3 player-field persistence assertions
 owned_paths:
@@ -36,6 +36,7 @@ owned_paths:
     - docs/ai-agent/OTBM_E2E_ROUTE_INTEGRATION.md
     - docs/architecture/universal-e2e-gameplay-validation.md
     - docs/agents/decisions/ADR-20260718-universal-e2e-gameplay-validation-layers.md
+    - docs/agents/programs/E2E_AUTOMATION_PROGRAM.md
 modules_touched:
   - Universal OTS E2E physical gameplay persistence assertions
 reuses:
@@ -58,7 +59,7 @@ The first slice deliberately covers one natural persistence type only: exact int
 
 # Why this slice
 
-- Current Universal E2E already owns the two-session lifecycle and post-cycle read-only scalar SQL evaluator, so persistence assertions can extend those proven surfaces rather than creating a second runner or workflow.
+- Current Universal E2E already owns the two-session lifecycle and post-cycle read-only scalar SQL evaluator, so persistence assertions extend those proven surfaces rather than creating a second runner or workflow.
 - The controlled OTClient exposes read-only `LocalPlayer:getLevel()`, `Player:getVocation()` and `LocalPlayer:getExperience()`, allowing the same typed checks to be re-verified after relog before the second safe logout.
 - The disposable fixture already provides deterministic `level` and `vocation` values for `Knight 1`, allowing one real platform scenario to consume the contract without inventing item IDs, storages, quest values or map data.
 - No deterministic inventory mutation fixture or stable generic storage assertion contract was identified in the current physical platform baseline, so inventory/storage are deferred rather than guessed.
@@ -73,18 +74,18 @@ The first slice deliberately covers one natural persistence type only: exact int
 - [x] Add focused tests for valid compilation, invalid types/fields/values, SQL literal safety, plan rendering and manifest integration.
 - [x] Update at least one real existing physical scenario to use the new typed persistence assertion mechanism.
 - [x] Preserve the current login/logout/relog sentinel and leave OTBM routing paths untouched.
-- [ ] Update reusable-interface documentation/catalogue and changelog.
-- [ ] Run focused validation and required GitHub checks on the exact final head.
+- [x] Update reusable-interface documentation/catalogue and changelog.
+- [ ] Verify all required GitHub checks on the exact `ci:final-gate` head and merge only if the autonomous merge gate is satisfied.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T23:47:00+02:00
-head: 4609a1e393ba4b55a6f1dcd611979c9e9038145b
+updated_at: 2026-07-19T00:13:00+02:00
+head: f18eb252f743092443f00c94b878c25729b851bd
 branch: feat/e2e-gameplay-005-persistence-assertions
 pr: 565
-status: implementing
+status: validating
 context_routes:
   - agent-governance
   - universal-e2e
@@ -99,56 +100,66 @@ owned_paths:
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
 proven:
-  - main task-start SHA is be7842412beb5d240e76ffd4cd18aacdc3a2dcca
-  - PR 565 is the early draft PR for this task in blakinio/canary
-  - PR 562 merged to main as 59916930b08bafb87dcddec89230d16b8e1f0712; its programme still requires route-export and bridge implementation contracts before E2E route consumption, so E2E-GAMEPLAY-002 is not a higher-priority unblocked replacement for this task
-  - PR 563 was open and unmerged at task start; its architecture defines E2E-GAMEPLAY-005 and explicitly allows persistence work independently of OTBM route integration
-  - current generic gameplay driver executes physical action steps in phase 1 and preserves a phase-2 relog plus second safe logout
-  - run_physical_e2e.sh evaluates scenario assertions.sql only after the physical client exits following the second session
-  - controlled blakinio/otclient exposes LocalPlayer getLevel/getExperience and Player getVocation read APIs without client changes
-  - current platform fixture defines Knight 1 with level 500 and vocation 4
-  - typed player_field checks are rendered into scenario-plan.lua persistence_checks for phase-2 controlled-client verification and compiled into final post-cycle SQL checks
-  - action-plan-contract now requires persistence_check_level, persistence_check_vocation and persistence_plan success markers
-  - exact PR runner diff contains only intended persistence integration after repair of the accidental suite-validation message
-  - CI workflow completed successfully at head 4609a1e393ba4b55a6f1dcd611979c9e9038145b
-  - no open PR was found by targeted search for agent_e2e_scenario.lua ownership overlap
-  - no local Git checkout is available in the execution sandbox; GitHub connector state is authoritative for branch/PR operations
-  - repository writes are restricted to blakinio/canary
+  - task-start main SHA was be7842412beb5d240e76ffd4cd18aacdc3a2dcca
+  - PR 562 merged as 59916930b08bafb87dcddec89230d16b8e1f0712; its OTBM route-export and bridge contracts remain separate from this persistence slice
+  - PR 563 merged as c1c0d10ed1e758cb72728be5fe22458cd9d9e61a; its architecture, ADR and E2E automation programme were read after merge and explicitly permit E2E-GAMEPLAY-005 independently of route-consumption work
+  - merged architecture requires M3 evidence across safe logout, persisted-state verification, relog and re-verification
+  - one existing Universal Physical E2E orchestrator remains authoritative; no runner or workflow was added
+  - typed player_field assertions are strictly limited to level, vocation and experience and expose no arbitrary SQL through the reusable contract
+  - the same validated checks are rendered into scenario-plan.lua persistence_checks for phase-2 controlled-client verification and compiled into the existing post-cycle scalar SQL path
+  - controlled blakinio/otclient exposes LocalPlayer getLevel/getExperience and Player getVocation read APIs; no client repository mutation was made
+  - action-plan-contract uses deterministic Knight 1 fixture expectations level 500 and vocation 4 and requires post-relog persistence markers
+  - raw scenario-owned assertions.sql remains supported and unchanged for scenarios without typed persistence declarations
+  - exact changed-file review found nine text/source/documentation paths and no OTBM maps, items.otb, client assets, database dumps, credentials or secrets
+  - MODULE_CATALOG and CHANGELOG contain the reusable persistence interface and behavior-level change; the shared changelog conflict caused by merged PR 563 was reconciled without force-rewriting published history
+  - PR 565 is ready for review, labeled ci:final-gate, mergeable before the final checkpoint commit, and has no review threads or submitted requested-change reviews
+  - pre-final head f18eb252f743092443f00c94b878c25729b851bd passed CI run 29662746814 and Agent Task Ownership run 29662746752
+  - pre-final Universal Agent E2E run 29662746820 passed exact scenario resolution, deterministic database bootstrap and exact Canary linux-release build before the final checkpoint synchronize superseded its still-running controlled-OTClient build
+  - no local Git checkout is available in the execution sandbox; focused Python unit tests are committed but were not claimed as locally executed; exact-head scenario list/validate/resolve and physical E2E are the available integration/runtime evidence
+  - repository writes were restricted to blakinio/canary; blakinio/otclient and upstream repositories remained read-only
+
 derived:
-  - typed player_field assertions are checked twice: through the real client after relog and through the existing scalar SQL evaluator after the second safe logout
-  - compiling typed assertions during scenario resolution and executing them in the existing phase-2 driver preserves the single orchestrator and lifecycle
+  - typed player_field persistence evidence is fail-closed at two independent post-action layers: controlled-client value after relog and exact scalar SQL after the second safe logout
+  - feature-specific expected values stay in scenario manifests while tools/e2e owns only the reusable typed capability
 unknown:
   - whether a later storage assertion should target a dedicated table or another persistence abstraction; do not guess in this task
-  - deterministic inventory mutation fixture suitable for a reusable first-slice physical scenario
+  - deterministic inventory mutation fixture suitable for a reusable follow-up persistence slice
 conflicts: []
 blockers: []
 first_failure:
   marker: agent-task-ownership/validate-changed
-  evidence: First ownership run on head 4609a1e393ba4b55a6f1dcd611979c9e9038145b failed because checkpoint first_failure was encoded as scalar null; this checkpoint corrects it to the required mapping.
+  evidence: Initial ownership validation rejected scalar first_failure null; the task checkpoint was corrected to the required mapping and current-head ownership validation subsequently passed.
 rejected_hypotheses:
   - create a second persistence runner or workflow
   - treat a pre-logout static SQL check as persistence proof
   - add storage or inventory semantics without a proven deterministic fixture/contract
+  - duplicate or consume unfinished OTBM route contracts from PR 562
+  - force-rewrite the published task branch after main advanced
 changed_paths:
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260718-e2e-gameplay-005-persistence-assertions.md
+  - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
+  - tests/e2e/scenarios/platform/action-plan-contract.json
+  - tests/e2e/test_persistence_assertions.py
+  - tools/e2e/client/agent_e2e_scenario.lua
   - tools/e2e/persistence_assertions.py
   - tools/e2e/run_agent_e2e.py
-  - tools/e2e/client/agent_e2e_scenario.lua
-  - tests/e2e/test_persistence_assertions.py
-  - tests/e2e/scenarios/platform/action-plan-contract.json
-  - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
 validation:
   - command: lean startup repository/PR/path ownership review
     result: PASS
-    evidence: AGENTS.md, REPOSITORY_MAP.md, CONTEXT_ROUTING.md, MODULE_CATALOG targeted entry, PR 562 programme, PR 563 task/architecture diff and current Universal E2E lifecycle reviewed
-  - command: exact PR 565 runner and client-driver diff review
+    evidence: AGENTS.md, REPOSITORY_MAP.md, CONTEXT_ROUTING.md, targeted MODULE_CATALOG/BUILD_TEST_MATRIX, merged PR 562 programme, merged PR 563 architecture/ADR/programme and current Universal E2E lifecycle reviewed
+  - command: exact PR 565 full changed-file and focused patch review
     result: PASS
-    evidence: runner changes are limited to typed persistence validation, manifest SQL compilation and persistence_checks rendering; client changes are limited to phase-2 typed checks and plan contract extension
-  - command: GitHub CI workflow at 4609a1e393ba4b55a6f1dcd611979c9e9038145b
+    evidence: nine expected text/source/documentation paths only; runner/client changes are limited to typed persistence validation, plan rendering, phase-two checks and existing SQL compilation
+  - command: GitHub CI on pre-final head f18eb252f743092443f00c94b878c25729b851bd
     result: PASS
-    evidence: workflow run 29662197722 completed success
-  - command: Agent Task Ownership at 4609a1e393ba4b55a6f1dcd611979c9e9038145b
-    result: FAIL
-    evidence: validate-changed rejected scalar first_failure null; exact artifact recorded the schema error and this checkpoint repairs it
-next_action: Update MODULE_CATALOG.md and CHANGELOG.md for the reusable persistence interface, then inspect current-head CI including Universal Agent E2E and prepare the final-head gate.
+    evidence: workflow run 29662746814 completed success
+  - command: Agent Task Ownership on pre-final head f18eb252f743092443f00c94b878c25729b851bd
+    result: PASS
+    evidence: workflow run 29662746752 completed success
+  - command: Universal Agent E2E on pre-final head f18eb252f743092443f00c94b878c25729b851bd
+    result: SUPERSEDED_BY_FINAL_HEAD
+    evidence: run 29662746820 passed scenario resolution, DB bootstrap and exact Canary build; final checkpoint synchronize intentionally replaces this run with required full exact-final-head evidence
+next_action: Verify every required ci:final-gate workflow on the exact final task-record head. If all checks pass, PR 565 remains mergeable, and no review or ownership blocker appears, squash-merge PR 565. Make no further commit after the green final-head gate.
 ```
