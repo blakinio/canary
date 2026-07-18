@@ -33,7 +33,7 @@ class PersistenceAssertionCompilerTests(unittest.TestCase):
             "required": True,
             "checks": [
                 {"id": "level", "type": "player_field", "field": "level", "equals": 500},
-                {"id": "vocation", "type": "player_field", "field": "vocation", "equals": 4},
+                {"id": "experience", "type": "player_field", "field": "experience", "equals": 0},
             ],
         }
 
@@ -43,7 +43,7 @@ class PersistenceAssertionCompilerTests(unittest.TestCase):
             queries,
             [
                 "SELECT IF((SELECT `level` FROM `players` WHERE `name` = 'Knight 1') = 500, 1, 0)",
-                "SELECT IF((SELECT `vocation` FROM `players` WHERE `name` = 'Knight 1') = 4, 1, 0)",
+                "SELECT IF((SELECT `experience` FROM `players` WHERE `name` = 'Knight 1') = 0, 1, 0)",
             ],
         )
         self.assertTrue(all(";" not in query for query in queries))
@@ -68,12 +68,14 @@ class PersistenceAssertionCompilerTests(unittest.TestCase):
         with self.assertRaisesRegex(persistence.PersistenceAssertionError, "type unsupported"):
             persistence.compile_persistence_assertions(invalid_type, character="Knight 1")
 
-        invalid_field = {
-            "required": True,
-            "checks": [{"id": "x", "type": "player_field", "field": "lastip", "equals": 1}],
-        }
-        with self.assertRaisesRegex(persistence.PersistenceAssertionError, "field unsupported"):
-            persistence.compile_persistence_assertions(invalid_field, character="Knight 1")
+        for field in ("lastip", "vocation"):
+            invalid_field = {
+                "required": True,
+                "checks": [{"id": "x", "type": "player_field", "field": field, "equals": 1}],
+            }
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(persistence.PersistenceAssertionError, "field unsupported"):
+                    persistence.compile_persistence_assertions(invalid_field, character="Knight 1")
 
     def test_rejects_invalid_integer_values(self) -> None:
         for value in (-1, True, 9_223_372_036_854_775_808):
@@ -90,7 +92,7 @@ class PersistenceAssertionCompilerTests(unittest.TestCase):
             "required": True,
             "checks": [
                 {"id": "same", "type": "player_field", "field": "level", "equals": 500},
-                {"id": "same", "type": "player_field", "field": "vocation", "equals": 4},
+                {"id": "same", "type": "player_field", "field": "experience", "equals": 0},
             ],
         }
         with self.assertRaisesRegex(persistence.PersistenceAssertionError, "duplicate id"):
@@ -217,7 +219,7 @@ class PersistenceManifestIntegrationTests(unittest.TestCase):
             "required": True,
             "checks": [
                 {"id": "level", "type": "player_field", "field": "level", "equals": 500},
-                {"id": "vocation", "type": "player_field", "field": "vocation", "equals": 4},
+                {"id": "experience", "type": "player_field", "field": "experience", "equals": 0},
             ],
         }
         scenario = self.write(data)
@@ -226,9 +228,9 @@ class PersistenceManifestIntegrationTests(unittest.TestCase):
 
         self.assertIn("persistence_checks = {", rendered)
         self.assertIn('field = "level"', rendered)
-        self.assertIn('field = "vocation"', rendered)
+        self.assertIn('field = "experience"', rendered)
         self.assertIn("equals = 500", rendered)
-        self.assertIn("equals = 4", rendered)
+        self.assertIn("equals = 0", rendered)
 
     def test_scenario_without_persistence_is_backward_compatible(self) -> None:
         scenario = self.write(self.scenario_data())
@@ -258,7 +260,6 @@ class PersistenceManifestIntegrationTests(unittest.TestCase):
         self.assertIn('if finished or phase ~= 2 or not phaseStarted then', driver)
         self.assertIn('appendEvent("persistence_plan", "success")', driver)
         self.assertIn('return player:getLevel(), nil', driver)
-        self.assertIn('return player:getVocation(), nil', driver)
         self.assertIn('return player:getExperience(), nil', driver)
         self.assertIn('elseif plan and #plan.persistence_checks > 0 then', driver)
         self.assertLess(driver.index("runNextPersistenceCheck()"), driver.rindex("requestLogout(expectedPhase)"))
