@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 PERSISTENCE_PATH = ROOT / "tools" / "e2e" / "persistence_assertions.py"
 RUNNER_PATH = ROOT / "tools" / "e2e" / "run_agent_e2e.py"
+DRIVER_PATH = ROOT / "tools" / "e2e" / "client" / "agent_e2e_scenario.lua"
 
 
 def load_module(name: str, path: Path):
@@ -51,7 +52,7 @@ class PersistenceAssertionCompilerTests(unittest.TestCase):
         raw = {
             "required": True,
             "checks": [
-                {"id": "balance", "type": "player_field", "field": "balance", "equals": 0},
+                {"id": "experience", "type": "player_field", "field": "experience", "equals": 0},
             ],
         }
 
@@ -210,13 +211,34 @@ class PersistenceManifestIntegrationTests(unittest.TestCase):
         )
         self.assertEqual(manifest["scenario"]["assertions"]["persistence"], data["assertions"]["persistence"])
 
+    def test_lua_plan_contains_phase_two_persistence_checks(self) -> None:
+        data = self.scenario_data()
+        data["assertions"]["persistence"] = {
+            "required": True,
+            "checks": [
+                {"id": "level", "type": "player_field", "field": "level", "equals": 500},
+                {"id": "vocation", "type": "player_field", "field": "vocation", "equals": 4},
+            ],
+        }
+        scenario = self.write(data)
+
+        rendered = runner.render_lua_plan(scenario)
+
+        self.assertIn("persistence_checks = {", rendered)
+        self.assertIn('field = "level"', rendered)
+        self.assertIn('field = "vocation"', rendered)
+        self.assertIn("equals = 500", rendered)
+        self.assertIn("equals = 4", rendered)
+
     def test_scenario_without_persistence_is_backward_compatible(self) -> None:
         scenario = self.write(self.scenario_data())
 
         manifest = runner.normalized_manifest(scenario)
+        rendered = runner.render_lua_plan(scenario)
 
         self.assertEqual(manifest["scenario"]["assertions"]["sql"], ["SELECT 1"])
         self.assertNotIn("persistence", manifest["scenario"]["assertions"])
+        self.assertIn("persistence_checks = {\n  },", rendered)
 
     def test_invalid_persistence_contract_is_rejected_during_scenario_validation(self) -> None:
         data = self.scenario_data()
@@ -228,6 +250,18 @@ class PersistenceManifestIntegrationTests(unittest.TestCase):
 
         with self.assertRaisesRegex(runner.ScenarioError, "field unsupported"):
             runner.validate_scenario(self.path, self.root)
+
+    def test_runtime_driver_executes_persistence_checks_only_in_phase_two(self) -> None:
+        driver = DRIVER_PATH.read_text(encoding="utf-8")
+
+        self.assertIn("function runNextPersistenceCheck()", driver)
+        self.assertIn('if finished or phase ~= 2 or not phaseStarted then', driver)
+        self.assertIn('appendEvent("persistence_plan", "success")', driver)
+        self.assertIn('return player:getLevel(), nil', driver)
+        self.assertIn('return player:getVocation(), nil', driver)
+        self.assertIn('return player:getExperience(), nil', driver)
+        self.assertIn('elseif plan and #plan.persistence_checks > 0 then', driver)
+        self.assertLess(driver.index("runNextPersistenceCheck()"), driver.rindex("requestLogout(expectedPhase)"))
 
 
 if __name__ == "__main__":
