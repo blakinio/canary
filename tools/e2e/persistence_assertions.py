@@ -4,10 +4,9 @@ from __future__ import annotations
 import re
 from typing import Any
 
-SCHEMA_VERSION = 1
 MAX_ASSERTIONS = 32
 ASSERTION_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
-PLAYER_FIELDS = frozenset({"level", "vocation", "experience", "balance"})
+PLAYER_FIELDS = frozenset({"level", "vocation", "experience"})
 
 
 class PersistenceAssertionError(ValueError):
@@ -48,18 +47,11 @@ def _require_nonnegative_int(mapping: dict[str, Any], key: str, path: str) -> in
     return value
 
 
-def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
-    """Validate typed persistence assertions and compile them to scalar SQL checks.
-
-    The Universal Physical E2E SQL evaluator accepts one semicolon-free SELECT per
-    assertion and considers only stdout == "1" successful. This compiler emits
-    exactly that contract and exposes no arbitrary SQL surface.
-    """
+def validate_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
+    """Validate the feature-neutral persistence contract for runtime and SQL use."""
 
     if raw is None:
         return []
-    if not isinstance(character, str) or not character.strip():
-        raise PersistenceAssertionError("fixture character must be a non-empty string")
 
     config = _require_mapping(raw, "scenario.assertions.persistence")
     _reject_unknown_fields(config, {"required", "checks"}, "scenario.assertions.persistence")
@@ -84,8 +76,7 @@ def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
             "scenario.assertions.persistence.required must be true when persistence checks are declared"
         )
 
-    character_sql = _sql_string(character.strip())
-    queries: list[str] = []
+    validated: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
 
     for index, item in enumerate(checks):
@@ -115,14 +106,42 @@ def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
             )
         expected = _require_nonnegative_int(check, "equals", path)
 
+        validated.append(
+            {
+                "id": assertion_id,
+                "type": assertion_type,
+                "field": field,
+                "equals": expected,
+            }
+        )
+
+    return validated
+
+
+def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
+    """Compile validated checks to the existing post-cycle scalar SQL contract.
+
+    The Universal Physical E2E SQL evaluator accepts one semicolon-free SELECT per
+    assertion and considers only stdout == "1" successful. The same typed checks
+    are also emitted to the controlled-client phase-two plan by run_agent_e2e.py.
+    """
+
+    checks = validate_persistence_assertions(raw)
+    if not checks:
+        return []
+    if not isinstance(character, str) or not character.strip():
+        raise PersistenceAssertionError("fixture character must be a non-empty string")
+
+    character_sql = _sql_string(character.strip())
+    queries: list[str] = []
+    for check in checks:
         queries.append(
             "SELECT IF((SELECT `"
-            + field
+            + str(check["field"])
             + "` FROM `players` WHERE `name` = "
             + character_sql
             + ") = "
-            + str(expected)
+            + str(check["equals"])
             + ", 1, 0)"
         )
-
     return queries
