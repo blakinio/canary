@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-001-route-plan-export
 base_branch: main
 created: 2026-07-18T23:45:00+02:00
-updated: 2026-07-18T23:46:00+02:00
-last_verified_commit: "a55c107513d92fe2a8e1304cf2906f891f278d66"
+updated: 2026-07-19T00:01:00+02:00
+last_verified_commit: "e9c73b12e6846550bfc15d4a7dd54c695962b0e1"
 risk: medium
 related_issue: ""
 related_pr: "567"
@@ -77,8 +77,8 @@ Implement `OTBM-E2E-001 — Reachability executable route export` as a bounded e
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T23:46:00+02:00
-head: a55c107513d92fe2a8e1304cf2906f891f278d66
+updated_at: 2026-07-19T00:01:00+02:00
+head: e9c73b12e6846550bfc15d4a7dd54c695962b0e1
 branch: feat/otbm-e2e-001-route-plan-export
 pr: 567
 status: implementing
@@ -102,24 +102,28 @@ proven:
   - draft PR 567 is the early same-repository PR for this task with base main and head feat/otbm-e2e-001-route-plan-export
   - merged programme PR #562 defines OTBM-E2E-001 and requires reuse of the existing Reachability BFS/predecessor graph
   - existing _bfs stores previous[destination] = (parent, transition_id)
-  - existing _reconstruct_path truncates long public-report paths and therefore cannot itself be used as an executable full-route contract
+  - full route reconstruction now walks only the selected existing BFS predecessor map and does not perform another search
   - existing Reachability separates confirmed, conditional, unreachable and invalid geometry states
-  - existing reviewed transition state retains stable transition IDs, validation state, uncertainties and evidence
+  - route plan export preserves the selected Reachability status and BFS distance and attaches transition_id to the exact predecessor edge
+  - route-plan over-limit handling emits no partial path or edges and blocks execution with route-exceeds-supported-bound
+  - focused OTBM Reachability workflow passed on implementation-and-tests head 2ffccff2b0f8a8add4e612fd641a791005206130
   - live open-PR review found no owner of tools/ai-agent/otbm_reachability*.py or the planned route-plan contract paths
   - PR #565 explicitly excludes OTBM parser/pathfinder/routing changes and tools/e2e remains out of scope here
   - repository writes are restricted to blakinio/canary
   - no local Git checkout is available in the execution sandbox; GitHub connector state is authoritative for branch/PR operations
   - direct git clone is unavailable because the sandbox cannot resolve github.com
   - OTBM World Index map source SHA-256 is available through worldIndexManifest.source.sha256 when a validated world manifest is supplied
-  - executable route provenance must fail closed when required map or World Index identity is unavailable
+  - executable route provenance fails closed when required map, World Index or appearances identity is unavailable
 derived:
-  - a full edge-aware reconstruction helper can walk the same predecessor map without running any new search
   - pure confirmed movement can be executable when required provenance is present; conditional geometry and unresolved physical transition activation remain blocked
+  - route-plan input and plan hashes provide deterministic stale-plan identity for later runtime preflight
 unknown:
   - exact final GitHub required-check set for the future final head; verify from live workflow runs before merge
 conflicts: []
 blockers: []
-first_failure: null
+first_failure:
+  marker: none
+  evidence: initial changed-task validation rejected first_failure as null; checkpoint mapping repaired in this commit and no implementation test failure is unresolved
 rejected_hypotheses:
   - add an E2E-owned BFS, A*, Dijkstra or graph builder
   - infer stairs, ladders, holes, rope, doors or dynamic Lua behavior
@@ -127,9 +131,22 @@ rejected_hypotheses:
   - reuse the existing truncated head/tail path sample as executable output
 changed_paths:
   - docs/agents/tasks/active/CAN-20260718-otbm-e2e-001-route-plan-export.md
+  - tools/ai-agent/otbm_reachability_graph.py
+  - tools/ai-agent/otbm_reachability_analysis.py
+  - tools/ai-agent/otbm_reachability.py
+  - tools/ai-agent/otbm_reachability_tool.py
+  - tools/ai-agent/test_otbm_reachability.py
+  - docs/ai-agent/OTBM_E2E_ROUTE_PLAN.schema.json
+  - docs/ai-agent/OTBM_E2E_ROUTE_PLAN.md
 validation:
   - command: live repository, programme, routed OTBM docs, open PR and ownership preflight
     result: PASS
     evidence: main c1c0d10ed1e758cb72728be5fe22458cd9d9e61a; PR #562 merged; PR #563 merged; open PRs reviewed; no overlapping Reachability route-plan owner found
-next_action: Implement full predecessor-derived route reconstruction and deterministic route-plan export, then add focused contract tests and documentation without touching tools/e2e.
+  - command: OTBM Reachability workflow on 2ffccff2b0f8a8add4e612fd641a791005206130
+    result: PASS
+    evidence: workflow run 29662423170 completed successfully with focused route-plan tests included
+  - command: Agent Task Ownership workflow on 2ffccff2b0f8a8add4e612fd641a791005206130
+    result: FAIL
+    evidence: changed-task checkpoint validation required first_failure to be a YAML mapping instead of null; implementation tests were not the failure
+next_action: Verify ownership repair and current CI, then review the complete PR diff and finish catalogue/changelog documentation before the final gate.
 ```
