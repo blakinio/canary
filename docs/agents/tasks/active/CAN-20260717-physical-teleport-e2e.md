@@ -1,0 +1,183 @@
+---
+task_id: CAN-20260717-physical-teleport-e2e
+program_id: CAN-PROGRAM-E2E-PLATFORM
+coordination_id: "OTS-E2E-PHYSICAL-TELEPORT"
+status: implementing
+agent: "Codex GPT-5"
+branch: test/e2e-physical-teleport-final-v2
+base_branch: main
+created: 2026-07-17T21:35:00+02:00
+updated: 2026-07-18T20:47:39+02:00
+last_verified_commit: "2b186bfc3f152887047986931cc61b709b17e3b8"
+risk: high
+related_issue: ""
+related_pr: "525"
+depends_on:
+  - CAN-20260717-physical-movement-e2e-v2
+  - CAN-PROGRAM-E2E-PLATFORM
+blocks: []
+owned_paths:
+  exclusive:
+    - tests/e2e/scenarios/movement/physical-teleport.json
+    - docs/agents/tasks/active/CAN-20260717-physical-teleport-e2e.md
+  shared: []
+  read_only:
+    - .github/workflows/universal-agent-e2e.yml
+    - tools/e2e/run_agent_e2e.py
+    - tools/e2e/run_physical_e2e.sh
+    - tools/e2e/client/agent_e2e_scenario.lua
+modules_touched:
+  - Universal OTS E2E physical gameplay scenarios
+reuses:
+  - existing Universal Agent E2E lifecycle
+  - existing controlled OTClient action-plan driver
+  - existing OTBM item/mechanic audit scanner
+  - existing two-session login logout persistence relog sentinel
+public_interfaces: []
+cross_repo_tasks: []
+---
+
+# Goal
+
+Prove one deterministic real-client teleport traversal on the exact Canary map used by the accepted physical movement scenario, without creating another parser, renderer, workflow, orchestrator, or physical runner.
+
+# Acceptance criteria
+
+- [x] Reuse the existing `otbm_item_audit_scan.cpp` scanner on the exact map SHA used by physical movement.
+- [x] Select explicit teleport source `32353,32223,7` and destination `32255,32204,8` from static OTBM mechanic evidence.
+- [x] Keep the maintained OTClient and canonical physical login/logout/persistence/relog lifecycle unchanged.
+- [x] Obtain real physical-client evidence that the bounded route triggers the teleport.
+- [x] Pin exact destination only after real physical artifact evidence.
+- [ ] Pass exact-final-head Ownership, CI, selected physical E2E, and Required physical E2E on the latest-main reconstruction.
+- [ ] Squash merge, then archive through lifecycle automation.
+
+## Context checkpoint
+
+```yaml
+checkpoint_version: 1
+updated_at: 2026-07-18T20:47:39+02:00
+head: 2b186bfc3f152887047986931cc61b709b17e3b8
+branch: test/e2e-physical-teleport-final-v2
+pr: 525
+status: validating
+context_routes:
+  - universal-e2e
+  - otbm
+  - agent-governance
+owned_paths:
+  - tests/e2e/scenarios/movement/physical-teleport.json
+  - docs/agents/tasks/active/CAN-20260717-physical-teleport-e2e.md
+proven:
+  - OTBM audit selected source 32353,32223,7 item 1959 with teleportDestination 32255,32204,8 on the exact physical-movement map SHA a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2
+  - discovery run 29618756104 physically proved initial_position=32369,32241,7 endpoint=32255,32204,8 floor_delta=1 plan success safe logout persistence relog second safe logout and e2e success
+  - discovery artifact 8421982161 digest sha256:fef57aea0b47df739bce2636b68f996915c84cdb01c5241cf12518d8b9cea2fe
+  - exact destination 32255,32204,8 was pinned only after discovery artifact evidence
+  - exact-final attempt 29620535521 exposed an asynchronous intermediate observe_position_changed false negative and artifact 8422447484 isolated the first failure at probe-west-1
+  - intermediate diagnostic probes were removed without changing bounded route endpoint floor delta or lifecycle assertions
+  - corrected exact-final run 29633781590 passed Physical client movement/physical-teleport and Required physical E2E on head ab8138490c6a6fd8dee15b2e07451710201cd5af
+  - corrected exact-final artifact 8426633331 digest sha256:9dbfda5d6358bc0efbf20df2c4e09d197256e7018cce85db4fde0899a38ad111 proved endpoint 32255,32204,8 delta 1 persistence relog and e2e success
+  - synchronized run 29634778752 passed Physical client movement/physical-teleport and Required physical E2E on head 0bdc15202ac389ef1e0afe3005a5d3e1da273d2c
+  - synchronized artifact 8426999692 digest sha256:a737d6aa293e996c9578107843e1e8fc57afb6b8d6d6b8e2da41e8f196f35868 again proves initial_position=32369,32241,7 endpoint=32255,32204,8 floor_delta=1 plan success persistence relog and e2e success
+  - PR 525 run 29635866062 passed the selected physical teleport and Required physical E2E on head 08dc51bcda21786f144624e959fe2a0bf41292be
+  - PR 525 run 29638112035 passed the selected physical teleport and Required physical E2E on head fdf17d8e63cd9f17ca15b6201f97c256404c97e1
+  - later exact-head runs 29638851693, 29639687754, and 29640869875 accepted every scheduled walk request but stopped at three different non-teleport positions 32360,32217,7, 32365,32225,7, and 32362,32217,7
+  - current-head final-gate run 29640869875 first failed at floor-delta after endpoint-position reported 32362,32217,7; artifact 8428812587 digest sha256:87ecc2e7ecca37ba89307097c1f14065d35a7cda54c974bd1cfeed07f814d62e
+  - the action driver treats a walk step as successful after accepted requests and its configured delays; it does not confirm arrival at each intermediate tile
+  - branch merged current origin/main 051f4101cdd90b36c7f550d7f9f73c31db2a6575 before repair commit 68c590a4fa671f678f087063b9e43278443569cf
+  - repair commit 68c590a4fa671f678f087063b9e43278443569cf preserved the proven 48-tile route and used 2500 ms pacing, but exact-head run 29646361899 disconnected during route-north-1 at approximately 60 seconds before safe logout
+  - exact-head run 29646361899 passed ownership, main CI, resolution, database, Canary build, and OTClient build on head 1494b0fe07e35f1ee815e6a1d3eb584d5c650168; only the selected physical client and its required aggregator failed
+  - server movement timing for fixture Knight 1 is derived from level 500, vocation base speed 110, calculated step speed 1008, and audited route ground speeds; observed maxima are 200 ms cardinal and 600 ms diagonal
+  - exact-head run 29655443234 passed ownership, resolution, database, exact Canary build, and controlled OTClient build on head 2b186bfc3f152887047986931cc61b709b17e3b8; physical artifact 8433004817 digest sha256:5bb6088c13ee661bce44129f3f30ead7e34383a89e44633505b0f6e565644286 ended at 32375,32209,7 with floor delta 0
+  - run 29655443234 proved server diagonal walking checks the target tile but permits corner cutting; the original strict reachability model had incorrectly required both adjacent cardinal tiles to be walkable
+  - target-tile-only replay of the committed route reproduces the physical endpoint 32375,32209,7 exactly, proving the anchor divergence rather than attributing it to random movement
+  - corrected exact-map wall-ray analysis produces nine deterministic route segments with anchors 32371,32239,7; 32371,32228,7; 32364,32228,7; 32370,32222,7; 32361,32213,7; 32352,32213,7; 32352,32217,7; and 32353,32217,7 before the final six south steps
+  - the first eight corrected route segments intentionally include four diagonal or eight cardinal wall retries, so dropped or temporarily blocked requests are retried while server-compatible target-tile geometry prevents overshoot
+  - corrected static simulation on exact map SHA a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2 reaches audited destination 32255,32204,8 with 43.75 seconds planned route-and-settle time, below the approximately 60-second ping timeout
+  - the final six-step south segment starts from wall anchor 32353,32217,7, crosses no declared NPC or monster spawn, and contains no excess request after the teleport
+  - exact-head ownership run 29646243455 failed because active task frontmatter used lifecycle-incompatible status validating; the checkpoint status itself remains valid
+  - original PR 511 accumulated stale merge-base history while main advanced and was never force-pushed
+  - replacement PR 525 starts directly from main d9c967d6e9b778da11a206d134d559f38ec1b8c8 and changes exactly the two feature-owned files
+  - no shared E2E platform file is modified
+  - no OTBM or client asset is committed
+  - no external reference repository is modified
+derived:
+  - runtime evidence independently matches the OTBM-audited teleportDestination and proves actual teleport traversal
+  - exact endpoint and floor-delta assertions are authoritative final proof; intermediate position probes are unnecessary and race-prone
+  - clean reconstruction on latest main is safer than force-rebasing the stale-history PR 511 branch
+  - the identical route's divergent endpoints after accepted walk requests make 800-1100 ms request pacing nondeterministic for this 48-tile physical traversal
+  - static wall anchors turn excess accepted walk requests into bounded retries without changing the shared client driver or transport contract
+  - exact reproduction of the failed physical endpoint establishes target-tile-only diagonal semantics as the correct route model for this server path
+unknown:
+  - whether the corrected server-compatible wall-anchored route passes the next exact-head physical runtime
+conflicts: []
+first_failure:
+  marker: diagonal-anchor-modeled-with-corner-blocking
+  evidence: exact-head run 29655443234 artifact 8433004817 ended at 32375,32209,7; target-tile-only replay reproduces that endpoint exactly while the prior model incorrectly stopped diagonal movement at blocked adjacent cardinal tiles
+rejected_hypotheses:
+  - treating OTBM teleportDestination as runtime proof
+  - guessing a destination from sprites or item names
+  - building a second OTBM parser or physical E2E runner
+  - pinning exact destination before physical artifact evidence
+  - solving long-route ping timeout by modifying shared E2E transport infrastructure
+  - solving dropped steps only by increasing the unanchored route interval beyond the no-pong connection lifetime
+  - applying corner-blocking reachability semantics to direct player diagonal walk packets
+  - force-pushing the stale-history PR 511 branch
+  - treating accepted walk requests as proof of completed movement
+changed_paths:
+  - tests/e2e/scenarios/movement/physical-teleport.json
+  - docs/agents/tasks/active/CAN-20260717-physical-teleport-e2e.md
+validation:
+  - command: OTBM item/mechanic audit on exact movement map
+    result: PASS
+    evidence: source 32353,32223,7 -> destination 32255,32204,8
+  - command: Universal Agent E2E discovery
+    result: PASS
+    evidence: run 29618756104 artifact 8421982161
+  - command: corrected exact-final Universal Agent E2E
+    result: PASS
+    evidence: run 29633781590 artifact 8426633331
+  - command: synchronized exact-final Universal Agent E2E
+    result: PASS
+    evidence: run 29634778752 artifact 8426999692
+  - command: PR 525 selected physical teleport and Required physical E2E
+    result: PASS
+    evidence: runs 29635866062 and 29638112035
+  - command: PR 525 current-head final-gate selected physical teleport and Required physical E2E
+    result: FAIL
+    evidence: run 29640869875 artifact 8428812587; endpoint 32362,32217,7 and floor delta 0
+  - command: PR 525 2500 ms exact-head final-gate selected physical teleport and Required physical E2E
+    result: FAIL
+    evidence: run 29646361899 disconnected during route-north-1 at approximately 60 seconds before safe logout
+  - command: PR 525 first wall-anchored exact-head final-gate selected physical teleport and Required physical E2E
+    result: FAIL
+    evidence: run 29655443234 artifact 8433004817 ended at 32375,32209,7; all ownership, resolver, database, and build prerequisites passed
+  - command: python tools/agents/task_ownership.py
+    result: PASS
+    evidence: 13 active task records validated after merging origin/main 051f4101c
+  - command: python tools/agents/checkpoint.py docs/agents/tasks/active/CAN-20260717-physical-teleport-e2e.md --require-checkpoint
+    result: PASS
+    evidence: checkpoint validated locally before final commit
+  - command: python -m unittest tests.e2e.test_agent_e2e_pr_scenario_selection tests.e2e.test_agent_e2e_scenario_plan
+    result: PASS
+    evidence: 30 tests passed after merging origin/main 051f4101c
+  - command: python tools/e2e/run_agent_e2e.py validate and resolve --suite movement --scenario physical-teleport
+    result: PASS
+    evidence: 5 scenarios validated and movement/physical-teleport resolved with 2500 ms pacing
+  - command: deterministic route and timing calculation
+    result: PASS
+    evidence: server-compatible target-tile wall simulation reaches each of eight anchors then audited source 32353,32223,7 and teleport destination 32255,32204,8; planned route-and-settle time is 43750 ms, with maximum cardinal and diagonal step durations 200 ms and 600 ms
+  - command: python tools/e2e/run_agent_e2e.py validate and resolve --suite movement --scenario physical-teleport
+    result: PASS
+    evidence: 5 scenarios validated and the wall-anchored physical teleport scenario resolved locally
+  - command: python -m unittest tests.e2e.test_agent_e2e_pr_scenario_selection tests.e2e.test_agent_e2e_scenario_plan
+    result: PASS
+    evidence: 30 tests passed for the wall-anchored scenario
+  - command: Agent Task Ownership
+    result: FAIL
+    evidence: run 29646243455 on f021b7995 rejected active task frontmatter status validating
+  - command: python tools/agents/task_lifecycle.py validate-changed --current-pr 525
+    result: PASS
+    evidence: corrected implementing frontmatter status validated with the same changed-task lifecycle command used by CI
+blockers: []
+next_action: Validate, commit, and push the corrected target-tile wall route with ci:final-gate still applied, then require exact-head Ownership, CI, selected physical teleport, and Required physical E2E success before readiness or merge.
+```
