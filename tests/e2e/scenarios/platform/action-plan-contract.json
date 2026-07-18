@@ -65,7 +65,24 @@
     "sql": [
       "SELECT lastlogin > 0 FROM players WHERE name = 'Knight 1'",
       "SELECT lastlogout > 0 FROM players WHERE name = 'Knight 1'"
-    ]
+    ],
+    "persistence": {
+      "required": true,
+      "checks": [
+        {
+          "id": "level",
+          "type": "player_field",
+          "field": "level",
+          "equals": 500
+        },
+        {
+          "id": "vocation",
+          "type": "player_field",
+          "field": "vocation",
+          "equals": 4
+        }
+      ]
+    }
   },
   "artifacts": [
     "scenario-manifest.json",
