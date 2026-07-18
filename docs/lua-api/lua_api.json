@@ -1281,7 +1281,7 @@
         "params": [
           "path: string"
         ],
-        "return": "boolean, string?",
+        "return": "boolean success, string? errorMessage",
         "source": "src/lua/functions/core/game/global_functions.cpp"
       },
       {
@@ -1289,7 +1289,7 @@
         "params": [
           "path: string"
         ],
-        "return": "boolean, string?",
+        "return": "boolean success, string? errorMessage",
         "source": "src/lua/functions/core/game/global_functions.cpp"
       }
     ],
@@ -1497,7 +1497,9 @@
       },
       {
         "name": "getClusterOnlinePlayers",
-        "params": [],
+        "params": [
+          "...: any"
+        ],
         "return": "table[]",
         "source": "src/lua/functions/core/game/game_functions.cpp"
       },
@@ -6972,7 +6974,7 @@
       {
         "name": "isPremium",
         "params": [],
-        "return": "boolean",
+        "return": "boolean|nil",
         "source": "src/lua/functions/creatures/player/player_functions.cpp"
       },
       {
@@ -7864,6 +7866,14 @@
         "source": "src/lua/functions/creatures/player/player_functions.cpp"
       },
       {
+        "name": "setWheelHuntingTaskShopPoints",
+        "params": [
+          "points: number"
+        ],
+        "return": "boolean",
+        "source": "src/lua/functions/creatures/player/player_functions.cpp"
+      },
+      {
         "name": "setXpBoostPercent",
         "params": [
           "value: number"
@@ -7973,14 +7983,6 @@
         "name": "wheelUnlockScroll",
         "params": [
           "scrollName: string"
-        ],
-        "return": "boolean",
-        "source": "src/lua/functions/creatures/player/player_functions.cpp"
-      },
-      {
-        "name": "setWheelHuntingTaskShopPoints",
-        "params": [
-          "points: integer"
         ],
         "return": "boolean",
         "source": "src/lua/functions/creatures/player/player_functions.cpp"
@@ -9502,7 +9504,7 @@
         "params": [
           "query: string"
         ],
-        "return": "number|false",
+        "return": "boolean|number",
         "source": "src/lua/functions/core/libs/db_functions.cpp"
       },
       {
