@@ -4,8 +4,8 @@ name: OTS Security Validation Platform
 status: active
 owner: security-validation-agent
 created: 2026-07-16T20:10:00+02:00
-updated: 2026-07-17T22:07:49+02:00
-last_verified_commit: "cb149d427e6a954ee3ab163758465627bc1e643c"
+updated: 2026-07-18T01:05:00+02:00
+last_verified_commit: "c45050f81ce4b2f337b4573df60384627affd8fc"
 primary_paths:
   - tools/security/**
   - tests/security/**
@@ -28,7 +28,7 @@ The platform is not permanently tied to Canary. Canary is the first source/runti
 # Existing foundations to reuse
 
 - Universal OTS E2E owns disposable database/server/client lifecycle, controlled OTClient execution, SQL/protocol assertions, artifacts and cleanup.
-- Universal Agent Load owns literal-loopback-only bounded status-protocol load/stress evidence and exposes the code-owned server-only `RuntimeContext` / `run_runtime` callback used by OTS-SEC-003 and OTS-SEC-004.
+- Universal Agent Load owns literal-loopback-only bounded status-protocol load/stress evidence and exposes the code-owned server-only `RuntimeContext` / `run_runtime` callback used by OTS-SEC-003, OTS-SEC-004 and OTS-SEC-005.
 - Existing focused regressions remain authoritative implementation-level evidence and should be referenced by security scenarios rather than rewritten.
 - Repository CI and exact-final-head merge gates remain the delivery boundary.
 
@@ -93,6 +93,18 @@ The final Security Validation run included the exact-head Canary build, the exis
 
 The green run proves only the registered login-boundary assertions and the service control check after every case. It does not claim successful account authentication, character-list correctness, game-session establishment, post-login game transport coverage, session-race/replay resistance, maintained-client hostile-server handling or flood/sustained-DoS capacity.
 
+# Phase 5 — authenticated game-session and post-login transport (`OTS-SEC-005`)
+
+Active in PR #514. This phase adds a strict `ots-security-game-session-plan-v1` / `ots-security-game-session-report-v1` contract and the code-owned `canary-game-session-v1` runtime driver while reusing the existing disposable Canary/MariaDB `run_runtime` lifecycle.
+
+The runtime authenticates directly to the disposable Canary game port with repository-owned test fixtures that never enter the scenario manifest. It mirrors the maintained current-client first-game wire boundary: pre-XTEA Adler32 framing with modern padding and `ClientPendingGame`, then RSA handoff to XTEA and client sequence 1 for the first post-login packet. Five fixed cases cover authenticated control, zero sequence, sequence gap, sequence replay and invalid XTEA padding. Every malformed case requires same-session recovery with the still-expected sequence and is followed by a fresh authenticated control session from a distinct deterministic loopback source and fixture.
+
+Validated implementation head `c45050f81ce4b2f337b4573df60384627affd8fc` passed Agent Task Ownership run `29618885740`, repository CI run `29618885853` and Security Validation run `29618885799`. The Security Validation run passed focused security tests, exact-head Linux release build, SEC-003 malformed-status runtime, SEC-004 login-parser runtime and the new five-case SEC-005 authenticated game-session runtime.
+
+The SEC-005 artifact reported `status=success`, `failure=null`, five case probes PASS, five fresh control probes PASS and no fatal/sanitizer findings. Server diagnostics explicitly recorded rejection reasons `zero-sequence`, `sequence-mismatch` for gap and replay, and `decrypt-failure` after invalid modern padding `255 > 8`; each case then recovered using the expected accepted sequence.
+
+The bounded evidence proves successful authentication/session establishment for the repository-owned disposable fixtures and the registered post-login sequence/XTEA rejection-and-recovery assertions only. It does not prove authorization correctness across arbitrary accounts, session fixation/token replay, reconnect/logout races, multiclient concurrency, economy/transaction safety, sustained flood/DoS capacity, hostile-server client resilience or production deployment safety.
+
 # Ordered queue
 
 1. `DONE` — OTS-SEC-001 foundation merged in PR #433.
@@ -100,8 +112,8 @@ The green run proves only the registered login-boundary assertions and the servi
 3. `DONE` — OTS-SEC-003 runtime hook merged in PR #444; lifecycle completed in PR #450.
 4. `DONE` — OTS-SEC-003 bounded common-framing + unauthenticated `ProtocolStatus` runtime scenarios merged in PR #451; lifecycle completed in PR #459.
 5. `DONE` — OTS-SEC-004 bounded login protocol boundary scenarios merged in PR #462; lifecycle task archived automatically.
-6. `NEXT — NOT STARTED` — add authenticated game-session parser and post-login transport scenarios through a fresh bounded task after live ownership/overlap preflight. No task, branch or PR is created by this handoff.
-7. `QUEUED` — add authenticated session, race, economy and transaction-abuse scenarios with disposable MariaDB state assertions.
+6. `ACTIVE` — OTS-SEC-005 authenticated game-session and post-login sequence/XTEA validation in PR #514.
+7. `QUEUED` — add authenticated session fixation/replay/reconnect/logout race scenarios and economy/transaction-abuse scenarios with disposable MariaDB state assertions.
 8. `QUEUED` — add Redis/multichannel failure and ownership scenarios without targeting shared or production infrastructure.
 9. `QUEUED` — add maintained-client hostile-server scenarios through an explicit cross-repository contract.
 10. `QUEUED` — add MyAAC web/auth/session scenarios against a pinned disposable MyAAC build.
@@ -121,12 +133,10 @@ The green run proves only the registered login-boundary assertions and the servi
 
 # Handoff
 
-There is no active OTS-SEC implementation task after OTS-SEC-004 lifecycle completion. `OTS-SEC-005` is not created and not started.
+OTS-SEC-005 is active in PR #514. Its authoritative continuation record is:
 
-Durable workstream handoff:
+`docs/agents/tasks/active/CAN-20260718-security-authenticated-session-transport.md`
 
-`docs/agents/tasks/archive/CAN-20260717-security-validation-conversation-handoff.md`
+A continuation agent must start from current `AGENTS.md`, `docs/agents/REPOSITORY_MAP.md`, `docs/agents/CONTEXT_ROUTING.md`, this program, the active SEC-005 task checkpoint and live PR #514. It must verify current main/head and current-head workflow evidence rather than reconstructing state from chat history.
 
-A continuation agent must start from current `AGENTS.md`, `docs/agents/REPOSITORY_MAP.md`, `docs/agents/CONTEXT_ROUTING.md`, this program, the archived workstream handoff and live repository/PR/task state. It must not reconstruct completed SEC-001 through SEC-004 from chat history.
-
-Before creating OTS-SEC-005, repeat the live ownership and overlap preflight and create one fresh active task, branch and draft PR. The separate open PR #453 is an independent MyAAC/login-stack audit and must not be absorbed or modified by the next runtime-security package without a fresh overlap review. Load the Universal E2E route only when the new bounded task actually introduces or consumes runtime execution/delegation.
+Keep the separate PR #453 MyAAC/login-stack audit independent. Do not start the queued session-race/economy package until SEC-005 is merged and lifecycle archival completes, then repeat the live ownership and overlap preflight before creating a fresh bounded task.
