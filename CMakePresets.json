@@ -84,7 +84,6 @@
         "VCPKG_HOST_TRIPLET": "x64-windows",
         "VCPKG_INSTALLED_DIR": "${sourceDir}/vcpkg_installed/x64-windows-test-debug",
         "VCPKG_MANIFEST_FEATURES": "tests",
-        "VCPKG_BUILD_TYPE": "debug",
         "CANARY_BUILD_TESTS": "ON"
       }
     },
