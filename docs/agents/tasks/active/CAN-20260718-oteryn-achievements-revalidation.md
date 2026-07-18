@@ -47,12 +47,7 @@ public_interfaces:
   - unlocked achievement KV names and timestamps
   - aggregate achievement points KV
   - achievement attainability evidence and bounded award hooks
-cross_repo_tasks:
-  - repo: blakinio/Otheryn
-    issue: 30
-    pr: 31
-    final_head: 8ee4bfe3c6b867834447a5b9e206e1dbd44f66d2
-    merge: 4a16ca17ebd098cf9763bb3c07755bfd31ac1c43
+cross_repo_tasks: []
 ---
 
 # Goal
@@ -212,7 +207,7 @@ proven:
   - target PR 31 squash-merged with expected head protection
   - target issue 30 is closed completed
   - governance branch was clean-synced directly to Canary main 417571a0a3990ed406d894211f8f0d78b190eb33
-residual_gaps:
+unknown:
   - canonical module registry metadata should eventually name the proven central catalogue path explicitly
   - lifecycle archive PR remains pending after governance feature merge
   - durable program reconciliation remains pending after lifecycle merge
