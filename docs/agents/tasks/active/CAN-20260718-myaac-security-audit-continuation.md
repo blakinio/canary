@@ -6,8 +6,8 @@ agent: "GPT-5.5 Thinking"
 branch: docs/myaac-security-audit-continuation-20260718
 base_branch: main
 created: 2026-07-18T20:56:00+02:00
-updated: 2026-07-18T21:05:00+02:00
-last_verified_commit: "4de7775fa024b4a754f4844045ea31422b3a30ba"
+updated: 2026-07-18T21:12:00+02:00
+last_verified_commit: "9e6ff37e1dfeecd78004448c6a62d82a2fe83b94"
 risk: high
 related_issue: ""
 related_pr: "556"
@@ -37,7 +37,7 @@ cross_repo_tasks: []
 
 ## Status
 
-MyAAC-only continuation evidence has been preserved in a dedicated handover. The active task remains `implementing` while PR #556 is in validation.
+MyAAC-only continuation evidence is complete and preserved in the dedicated handover. The `ci:final-gate` label was applied before the final documentation/checkpoint commits. This is the final checkpoint commit; no further content changes are planned.
 
 ## Goal
 
@@ -63,8 +63,9 @@ Continue the MyAAC and MyAAC → login-server → Canary security audit, preserv
 - [x] Write a MyAAC-only handover with exact evidence states, limitations, branch/PR/task/head/CI/merge state, and one `next_action`.
 - [x] Keep changed-file scope documentation-only and limited to owned paths.
 - [x] Inspect PR changed-file list and full documentation diff.
-- [ ] Required task/checkpoint and security-validation checks pass on the final head.
-- [ ] Apply final-head CI gate and merge only after all required checks pass.
+- [x] Pre-final documentation head passed CI, Agent Task Ownership, and Security Validation.
+- [ ] Exact final checkpoint head passes all required `ci:final-gate` workflows.
+- [ ] PR is marked ready and squash-merged only after the exact final head is fully green and review-clean.
 
 ## Validation
 
@@ -72,13 +73,14 @@ Continue the MyAAC and MyAAC → login-server → Canary security audit, preserv
 - PHP CLI is available; Docker/MariaDB and PHP GD/ZipArchive are unavailable.
 - An isolated exact-logic `RateLimit` harness confirmed the reset bypass but is not represented as full-stack E2E.
 - PR #556 changed-file scope is limited to this active task and the MyAAC-only handover.
+- On pre-final head `9e6ff37e1dfeecd78004448c6a62d82a2fe83b94`: CI PASS, Agent Task Ownership PASS, Security Validation PASS.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T21:05:00+02:00
-head: 4de7775fa024b4a754f4844045ea31422b3a30ba
+updated_at: 2026-07-18T21:12:00+02:00
+head: 9e6ff37e1dfeecd78004448c6a62d82a2fe83b94
 branch: docs/myaac-security-audit-continuation-20260718
 pr: 556
 status: validating
@@ -103,8 +105,11 @@ proven:
   - MyAAC derives browser real IP from REMOTE_ADDR in the reviewed compatibility path; external login-server XFF spoofing does not transfer to this MyAAC path
   - isolated exact-logic RateLimit harness completed 80 victim guesses with max_attempts 5 by resetting after every 4 guesses; final bucket remained zero and unblocked
   - PR 556 changed-file list contains only the active task record and MyAAC-only handover
+  - pre-final head 9e6ff37e1dfeecd78004448c6a62d82a2fe83b94 passed CI run 3493, Agent Task Ownership run 2357, and Security Validation run 123
+  - Security Validation run 123 completed security scenarios, exact-head Canary build, login parser runtime, and malformed status parser runtime successfully
 derived:
   - the new rate-limit reset finding provides a deterministic brute-force throttle bypass to an attacker holding any valid account credential, including an unverified account on paths that reset before email verification rejection
+  - the same reset primitive applies to admin-login attempts because a valid non-admin account is rejected only after password verification while the shared IP bucket is still reset
   - forum cooldown precheck and insert are not atomic, so concurrent requests can pass the same precheck
 unknown:
   - full integrated behavior in a disposable MyAAC + MariaDB + login-server + Canary stack
@@ -113,7 +118,7 @@ unknown:
 conflicts: []
 first_failure:
   marker: Agent Task Ownership / Validate changed active task checkpoints
-  evidence: active task frontmatter used non-active status validating; corrected to implementing in the next commit
+  evidence: active task frontmatter used non-active status validating on head 4de7775fa024b4a754f4844045ea31422b3a30ba; corrected to implementing and subsequent ownership checks passed
 rejected_hypotheses:
   - forum global cooldown as a new finding; already preserved as SEC-28
   - current ZIP Slip arbitrary overwrite without target-runtime proof
@@ -138,9 +143,18 @@ validation:
     evidence: only the active task and MyAAC-only handover changed; no runtime, binary, map, workflow, production configuration, or upstream repository path changed
   - command: Agent Task Ownership on head 4de7775fa024b4a754f4844045ea31422b3a30ba
     result: FAIL
-    evidence: active task frontmatter status validating is not permitted under tasks/active; schema defect corrected to implementing
+    evidence: active task frontmatter status validating is not permitted under tasks/active; corrected to implementing
+  - command: CI on pre-final head 9e6ff37e1dfeecd78004448c6a62d82a2fe83b94
+    result: PASS
+    evidence: workflow run 3493 completed successfully
+  - command: Agent Task Ownership on pre-final head 9e6ff37e1dfeecd78004448c6a62d82a2fe83b94
+    result: PASS
+    evidence: workflow run 2357 completed successfully
+  - command: Security Validation on pre-final head 9e6ff37e1dfeecd78004448c6a62d82a2fe83b94
+    result: PASS
+    evidence: workflow run 123 completed successfully, including exact-head build and bounded runtime jobs
 blockers:
-  - full integrated E2E unavailable in current sandbox
-  - required GitHub checks must rerun and pass on the corrected head
-next_action: Re-check PR 556 Agent Task Ownership, Security Validation and general CI on the corrected head. If green, apply ci:final-gate before the final checkpoint update, then require all exact-final-head checks to pass before marking ready and merging.
+  - full integrated E2E unavailable in current sandbox; this is a documented validation limitation, not a merge blocker for the documentation-only PR
+  - exact final checkpoint head must pass the forced final gate before merge
+next_action: Verify all required workflows on the exact final checkpoint head. If every required check passes and PR 556 remains mergeable and review-clean, mark it ready and squash-merge. Make no further commits.
 ```
