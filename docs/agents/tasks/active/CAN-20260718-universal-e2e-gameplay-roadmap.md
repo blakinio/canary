@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: docs/e2e-gameplay-validation-roadmap-20260718
 base_branch: main
 created: 2026-07-18T23:08:00+02:00
-updated: 2026-07-18T23:19:00+02:00
-last_verified_commit: "9dd85acdb3af9a336fbe516954a5c36f30e6278f"
+updated: 2026-07-18T23:25:00+02:00
+last_verified_commit: "0c45f468cdf8c3a1e6f2425686d59db9120076d7"
 risk: low
 related_issue: ""
 related_pr: "563"
@@ -68,7 +68,8 @@ Publish one durable architecture and ordered implementation roadmap for the next
 - [x] Keep implementation/runtime/workflow paths read-only in this planning task.
 - [x] Update the programme handoff so future agents start from current architecture rather than superseded PR #224.
 - [x] Open draft PR #563 and keep changes documentation-only.
-- [ ] Verify exact changed-file scope and required current-head GitHub checks before readiness/merge.
+- [x] Verify exact changed-file scope contains only the five intended documentation paths.
+- [ ] Verify required current-head GitHub checks before readiness/merge.
 
 # Confirmed context
 
@@ -125,14 +126,14 @@ Publish one durable architecture and ordered implementation roadmap for the next
 
 # Remaining work
 
-1. Verify PR #563 changed files and current-head required checks; fix only task-scoped failures.
+1. Verify required current-head checks on the final-gate commit; fix only task-scoped failures.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T23:19:00+02:00
-head: 9dd85acdb3af9a336fbe516954a5c36f30e6278f
+updated_at: 2026-07-18T23:25:00+02:00
+head: 0c45f468cdf8c3a1e6f2425686d59db9120076d7
 branch: docs/e2e-gameplay-validation-roadmap-20260718
 pr: 563
 status: validating
@@ -151,12 +152,14 @@ proven:
   - PR 245 is the merged Universal E2E platform baseline
   - PRs 446, 477, 481, 512 and 525 provide merged gameplay-action, scenario-selection, movement, floor-change and teleport foundations
   - draft PR 562 owns the OTBM-aware route integration programme and has no exclusive-path overlap with PR 563
-  - PR 563 contains the umbrella architecture, ADR, reconciled E2E programme and changelog entry
+  - PR 563 changed-file list is exactly five intended documentation paths
+  - ci:final-gate label was applied before this final checkpoint commit
 derived:
   - future gameplay E2E work should be delivered as bounded vertical slices on the existing platform
   - nontrivial navigation should consume the OTBM route bridge once stable rather than embed blind directional scripts
 unknown:
   - final merged field-level contracts from draft PR 562
+  - current-head GitHub check conclusions after this final-gate commit
 conflicts: []
 first_failure:
   marker: none
@@ -173,10 +176,10 @@ validation:
   - command: repository instruction and routed-context review
     result: PASS
     evidence: AGENTS.md, REPOSITORY_MAP.md, CONTEXT_ROUTING.md, E2E_AUTOMATION_PROGRAM.md and PR 562 inspected
-  - command: documentation-only scope review
+  - command: exact PR 563 changed-file list review
     result: PASS
-    evidence: no tools/e2e, tests/e2e, workflow, runtime, OTBM binary or asset path intentionally edited
+    evidence: exactly five intended documentation paths; no runtime/workflow/OTBM binary/asset path
 blockers:
   - none
-next_action: Verify PR 563 exact changed-file list and current-head GitHub checks before readiness.
+next_action: Verify required GitHub checks on the final PR 563 head and merge only if the autonomous merge gate is satisfied.
 ```
