@@ -1,13 +1,13 @@
 ---
 task_id: CAN-20260718-myaac-security-audit-continuation
 program_id: CAN-PROGRAM-SECURITY-VALIDATION
-status: validating
+status: implementing
 agent: "GPT-5.5 Thinking"
 branch: docs/myaac-security-audit-continuation-20260718
 base_branch: main
 created: 2026-07-18T20:56:00+02:00
-updated: 2026-07-18T21:02:00+02:00
-last_verified_commit: "2224e67db3f77643fe9fda076ea69df345f38408"
+updated: 2026-07-18T21:05:00+02:00
+last_verified_commit: "4de7775fa024b4a754f4844045ea31422b3a30ba"
 risk: high
 related_issue: ""
 related_pr: "556"
@@ -37,7 +37,7 @@ cross_repo_tasks: []
 
 ## Status
 
-MyAAC-only continuation evidence has been preserved in a dedicated handover. The task is now validating documentation scope, checkpoint structure, PR state, and exact-head CI.
+MyAAC-only continuation evidence has been preserved in a dedicated handover. The active task remains `implementing` while PR #556 is in validation.
 
 ## Goal
 
@@ -62,7 +62,8 @@ Continue the MyAAC and MyAAC → login-server → Canary security audit, preserv
 - [x] Preserve one new rate-limit bypass finding and material extensions without duplicating existing findings.
 - [x] Write a MyAAC-only handover with exact evidence states, limitations, branch/PR/task/head/CI/merge state, and one `next_action`.
 - [x] Keep changed-file scope documentation-only and limited to owned paths.
-- [ ] Validate task/checkpoint structure and inspect final changed-file list/diff.
+- [x] Inspect PR changed-file list and full documentation diff.
+- [ ] Required task/checkpoint and security-validation checks pass on the final head.
 - [ ] Apply final-head CI gate and merge only after all required checks pass.
 
 ## Validation
@@ -70,13 +71,14 @@ Continue the MyAAC and MyAAC → login-server → Canary security audit, preserv
 - Full MyAAC + MariaDB + login-server + Canary E2E is unavailable in the current sandbox.
 - PHP CLI is available; Docker/MariaDB and PHP GD/ZipArchive are unavailable.
 - An isolated exact-logic `RateLimit` harness confirmed the reset bypass but is not represented as full-stack E2E.
+- PR #556 changed-file scope is limited to this active task and the MyAAC-only handover.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T21:02:00+02:00
-head: 2224e67db3f77643fe9fda076ea69df345f38408
+updated_at: 2026-07-18T21:05:00+02:00
+head: 4de7775fa024b4a754f4844045ea31422b3a30ba
 branch: docs/myaac-security-audit-continuation-20260718
 pr: 556
 status: validating
@@ -100,6 +102,7 @@ proven:
   - normal character-comment and guild-description update paths escape HTML before later raw rendering
   - MyAAC derives browser real IP from REMOTE_ADDR in the reviewed compatibility path; external login-server XFF spoofing does not transfer to this MyAAC path
   - isolated exact-logic RateLimit harness completed 80 victim guesses with max_attempts 5 by resetting after every 4 guesses; final bucket remained zero and unblocked
+  - PR 556 changed-file list contains only the active task record and MyAAC-only handover
 derived:
   - the new rate-limit reset finding provides a deterministic brute-force throttle bypass to an attacker holding any valid account credential, including an unverified account on paths that reset before email verification rejection
   - forum cooldown precheck and insert are not atomic, so concurrent requests can pass the same precheck
@@ -109,8 +112,8 @@ unknown:
   - current PHP ZipArchive/libzip traversal behavior in the unavailable target runtime
 conflicts: []
 first_failure:
-  marker: local source checkout
-  evidence: sandbox git clone could not resolve github.com; source review continued through the GitHub connector
+  marker: Agent Task Ownership / Validate changed active task checkpoints
+  evidence: active task frontmatter used non-active status validating; corrected to implementing in the next commit
 rejected_hypotheses:
   - forum global cooldown as a new finding; already preserved as SEC-28
   - current ZIP Slip arbitrary overwrite without target-runtime proof
@@ -130,8 +133,14 @@ validation:
   - command: predecessor durable report duplicate check
     result: PASS
     evidence: global forum cooldown was detected as existing SEC-28 and was not assigned a duplicate MYAAC number
+  - command: PR 556 changed-file list and documentation diff inspection
+    result: PASS
+    evidence: only the active task and MyAAC-only handover changed; no runtime, binary, map, workflow, production configuration, or upstream repository path changed
+  - command: Agent Task Ownership on head 4de7775fa024b4a754f4844045ea31422b3a30ba
+    result: FAIL
+    evidence: active task frontmatter status validating is not permitted under tasks/active; schema defect corrected to implementing
 blockers:
   - full integrated E2E unavailable in current sandbox
-  - final changed-file/diff inspection and GitHub CI still pending
-next_action: Inspect PR 556 changed-file list and full diff, verify task/checkpoint validation and required CI on the current head, apply ci:final-gate before the final checkpoint commit, then merge only if the exact final head is fully green and review-clean.
+  - required GitHub checks must rerun and pass on the corrected head
+next_action: Re-check PR 556 Agent Task Ownership, Security Validation and general CI on the corrected head. If green, apply ci:final-gate before the final checkpoint update, then require all exact-final-head checks to pass before marking ready and merging.
 ```
