@@ -6,8 +6,8 @@ agent: "GPT-5.5 Thinking"
 branch: docs/ots-security-shared-state-economy-audit-20260718
 base_branch: main
 created: 2026-07-18T09:58:00+02:00
-updated: 2026-07-18T10:36:00+02:00
-last_verified_commit: "d9d5ccb6eee431d70c6b01a424867bd75e8e5cd5"
+updated: 2026-07-18T10:40:00+02:00
+last_verified_commit: "7b268a3f536eb211392afdc3337c4bff757c9b80"
 risk: high
 related_issue: ""
 related_pr: "526"
@@ -87,8 +87,8 @@ Continue the existing OTS security assessment from the durable PR #453 handover 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T10:36:00+02:00
-head: d9d5ccb6eee431d70c6b01a424867bd75e8e5cd5
+updated_at: 2026-07-18T10:40:00+02:00
+head: 7b268a3f536eb211392afdc3337c4bff757c9b80
 branch: docs/ots-security-shared-state-economy-audit-20260718
 pr: 526
 status: implementing
@@ -122,7 +122,11 @@ unknown:
   - CANDIDATE OTS-MC-SS-C03: individual global-event, cleanup, highscore and DB-optimization jobs pending concrete call-site classification
   - exhaustive current-source shared-state inventory
   - remaining depot/inbox/stash and house transfer/settlement exactly-once flows
+  - exact-final-head Agent Task Ownership, CI and Security Validation results for the latest checkpoint commit
 conflicts: []
+first_failure:
+  marker: agent-task-ownership-checkpoint-schema
+  evidence: Agent Task Ownership run 29637494686 rejected an unsupported nested candidates mapping; after that correction run 29637583328 exposed the missing first_failure field and unsupported validation result tokens
 rejected_hypotheses:
   - OTS-MC-JOB-RJ-001: overlapping market.expire leaders alone cannot both apply the same expiry effect because deterministic economic_ledger transaction_uuid insertion rejects the second worker
   - OTS-ECO-COIN-RJ-001: dual-type Account::removeCoins(primary, secondary) does not have the single-type unlocked RMW race; it uses a rollback transaction and SELECT FOR UPDATE
@@ -131,9 +135,6 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260718-ots-security-shared-state-economy-audit.md
   - docs/security/OTS_SECURITY_SHARED_STATE_ECONOMY_AUDIT_2026-07-18.md
 validation:
-  - command: local disposable git clone/preflight
-    result: UNAVAILABLE
-    evidence: shell DNS could not resolve github.com; no existing checkout was present
   - command: live GitHub main comparison
     result: PASS
     evidence: task-start main matched d9c967d6e9b778da11a206d134d559f38ec1b8c8
@@ -145,13 +146,16 @@ validation:
     evidence: PR 526 is same-repository branch -> blakinio/canary:main
   - command: current-source audit continuation
     result: PASS
-    evidence: report preserved through commit 1cb00a8f8d7c4db47e1f41f65a7aaf63b7854cc2
+    evidence: durable evidence report is preserved in the task-owned security document
   - command: PR 526 changed-file scope
     result: PASS
     evidence: only the task record and audit evidence document are changed
-  - command: Agent Task Ownership diagnostics
-    result: FIXED_IN_HEAD
-    evidence: removed unsupported checkpoint candidates mapping; candidate items are preserved as prefixed entries in unknown
+  - command: Agent Task Ownership run 29637494686
+    result: FAIL
+    evidence: checkpoint used an unsupported nested candidates mapping
+  - command: Agent Task Ownership run 29637583328
+    result: FAIL
+    evidence: diagnostics required first_failure and rejected validation result tokens UNAVAILABLE and FIXED_IN_HEAD
 blockers:
   - disposable shell cannot currently fetch/clone GitHub, so physical two-process race/crash proofs are unavailable in this environment
 next_action: Finish concrete shared-state writer inventory (global record, raid KV, cleanup/highscore/DB optimization), then continue depot/inbox/stash and house transfer/settlement exactly-once review before opening any remediation task.
