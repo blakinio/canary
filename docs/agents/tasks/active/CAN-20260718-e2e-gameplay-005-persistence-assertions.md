@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-gameplay-005-persistence-assertions
 base_branch: main
 created: 2026-07-18T23:32:00+02:00
-updated: 2026-07-19T00:15:00+02:00
-last_verified_commit: "5976bc7d3b0b5a71fbcaf51710c52e6ade2a7f2c"
+updated: 2026-07-19T00:31:00+02:00
+last_verified_commit: "f6e27c67c787f001701b5782286680e2791213d6"
 risk: medium
 related_issue: ""
 related_pr: "565"
@@ -55,13 +55,14 @@ cross_repo_tasks: []
 
 Implement the smallest complete reusable slice of `E2E-GAMEPLAY-005`: a feature-neutral typed persistence assertion surface for durable player fields, verified through the existing Universal Physical E2E lifecycle as `login -> physical actions -> safe logout -> persisted state -> relog -> runtime verification -> safe logout -> final persisted SQL verification`.
 
-The first slice deliberately covers one natural persistence type only: exact integer assertions over a conservative whitelist of durable player progression/vocation fields (`level`, `vocation`, `experience`). Feature-specific expected values remain in scenario manifests.
+The first slice deliberately covers one natural persistence type only: exact integer assertions over a conservative whitelist of durable, directly comparable progression fields (`level`, `experience`). Feature-specific expected values remain in scenario manifests. Raw server vocation IDs are deferred because physical E2E proved that the controlled client uses a different numeric vocation representation.
 
 # Why this slice
 
 - Current Universal E2E already owns the two-session lifecycle and post-cycle read-only scalar SQL evaluator, so persistence assertions extend those proven surfaces rather than creating a second runner or workflow.
-- The controlled OTClient exposes read-only `LocalPlayer:getLevel()`, `Player:getVocation()` and `LocalPlayer:getExperience()`, allowing the same typed checks to be re-verified after relog before the second safe logout.
-- The disposable fixture already provides deterministic `level` and `vocation` values for `Knight 1`, allowing one real platform scenario to consume the contract without inventing item IDs, storages, quest values or map data.
+- The controlled OTClient exposes read-only `LocalPlayer:getLevel()` and `LocalPlayer:getExperience()` values that are directly comparable with persisted `players` columns after relog.
+- The disposable fixture provides deterministic `level=500` for `Knight 1`, allowing one real platform scenario to consume the contract without inventing item IDs, storages, quest values or map data.
+- Final-gate physical evidence rejected the initial assumption that raw server `vocation=4` is numerically identical to the controlled-client value: after relog the client reported `getVocation()=1`. The first slice therefore fails closed by excluding `vocation` until an explicit normalization contract exists.
 - No deterministic inventory mutation fixture or stable generic storage assertion contract was identified in the current physical platform baseline, so inventory/storage are deferred rather than guessed.
 
 # Acceptance criteria
@@ -75,14 +76,14 @@ The first slice deliberately covers one natural persistence type only: exact int
 - [x] Update at least one real existing physical scenario to use the new typed persistence assertion mechanism.
 - [x] Preserve the current login/logout/relog sentinel and leave OTBM routing paths untouched.
 - [x] Update reusable-interface documentation/catalogue and changelog.
-- [ ] Verify all required GitHub checks on the exact `ci:final-gate` head and merge only if the autonomous merge gate is satisfied.
+- [ ] Verify all required GitHub checks on the exact repaired `ci:final-gate` head and merge only if the autonomous merge gate is satisfied.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T00:15:00+02:00
-head: 5976bc7d3b0b5a71fbcaf51710c52e6ade2a7f2c
+updated_at: 2026-07-19T00:31:00+02:00
+head: f6e27c67c787f001701b5782286680e2791213d6
 branch: feat/e2e-gameplay-005-persistence-assertions
 pr: 565
 status: validating
@@ -105,37 +106,39 @@ proven:
   - PR 563 merged as c1c0d10ed1e758cb72728be5fe22458cd9d9e61a; its architecture, ADR and E2E automation programme were read after merge and explicitly permit E2E-GAMEPLAY-005 independently of route-consumption work
   - merged architecture requires M3 evidence across safe logout, persisted-state verification, relog and re-verification
   - one existing Universal Physical E2E orchestrator remains authoritative; no runner or workflow was added
-  - typed player_field assertions are strictly limited to level, vocation and experience and expose no arbitrary SQL through the reusable contract
+  - typed player_field assertions are now strictly limited to directly comparable level and experience values and expose no arbitrary SQL through the reusable contract
   - the same validated checks are rendered into scenario-plan.lua persistence_checks for phase-2 controlled-client verification and compiled into the existing post-cycle scalar SQL path
-  - controlled blakinio/otclient exposes LocalPlayer getLevel/getExperience and Player getVocation read APIs; no client repository mutation was made
-  - action-plan-contract uses deterministic Knight 1 fixture expectations level 500 and vocation 4 and requires post-relog persistence markers
+  - action-plan-contract now uses deterministic Knight 1 level 500 as its real typed persistence proof and requires persistence_check_level plus persistence_plan markers
+  - final-gate Universal Agent E2E run 29663122815 reached the real second login and proved persistence_check_level=success before failing persistence_check_vocation because the controlled client reported actual=1 while the persisted server fixture expected raw vocation=4
+  - artifact 8435191728 contains result.json and client-events.tsv proving the above runtime mismatch; this was classified as a representation-contract error, not persistence loss
+  - the public typed contract, tests, platform scenario, documentation, catalogue and changelog were narrowed to level/experience; vocation is rejected until an explicit normalization layer is designed
   - raw scenario-owned assertions.sql remains supported and unchanged for scenarios without typed persistence declarations
   - exact changed-file review found nine text/source/documentation paths and no OTBM maps, items.otb, client assets, database dumps, credentials or secrets
-  - MODULE_CATALOG and CHANGELOG contain the reusable persistence interface and behavior-level change; the shared changelog conflict caused by merged PR 563 was reconciled without force-rewriting published history
-  - PR 565 is ready for review, labeled ci:final-gate, mergeable before final-gate checkpoint commits, and has no review threads or submitted requested-change reviews
-  - pre-final head f18eb252f743092443f00c94b878c25729b851bd passed CI run 29662746814 and Agent Task Ownership run 29662746752
-  - pre-final Universal Agent E2E run 29662746820 passed exact scenario resolution, deterministic database bootstrap and exact Canary linux-release build before final-gate synchronization superseded its still-running controlled-OTClient build
-  - final-gate head 5976bc7d3b0b5a71fbcaf51710c52e6ade2a7f2c failed Agent Task Ownership only because this task record used unsupported validation result SUPERSEDED_BY_FINAL_HEAD; artifact 8434907618 identified that exact checkpoint-schema error and this commit repairs it to NOT_RUN
-  - no local Git checkout is available in the execution sandbox; focused Python unit tests are committed but were not claimed as locally executed; exact-head scenario list/validate/resolve and physical E2E are the available integration/runtime evidence
-  - repository writes were restricted to blakinio/canary; blakinio/otclient and upstream repositories remained read-only
+  - PR 565 remains ready for review and labeled ci:final-gate; no runner/workflow or OTBM routing paths were added
+  - final-gate head 27da7cee3cd8da5359881dddde3c312fce21278d passed Agent Task Ownership and full CI before Universal Agent E2E exposed the vocation representation mismatch
+  - no local Git checkout is available in the execution sandbox; focused Python unit tests are committed but are not claimed as locally executed; exact-head scenario validation and physical E2E are the available integration/runtime evidence
+  - repository writes were restricted to blakinio/canary; blakinio/otclient and upstream/reference repositories remained read-only
 
 derived:
   - typed player_field persistence evidence is fail-closed at two independent post-action layers: controlled-client value after relog and exact scalar SQL after the second safe logout
+  - directly comparable fields are a required invariant for the initial shared equals contract; representation-specific fields such as vocation require a future normalization contract rather than hidden mapping assumptions
   - feature-specific expected values stay in scenario manifests while tools/e2e owns only the reusable typed capability
 unknown:
+  - future normalization contract for raw server vocation IDs versus controlled-client vocation representation
   - whether a later storage assertion should target a dedicated table or another persistence abstraction; do not guess in this task
   - deterministic inventory mutation fixture suitable for a reusable follow-up persistence slice
 conflicts: []
 blockers: []
 first_failure:
   marker: agent-task-ownership/validate-changed
-  evidence: Initial ownership validation rejected scalar first_failure null; the task checkpoint was corrected to the required mapping and current-head ownership validation subsequently passed.
+  evidence: Initial ownership validation rejected scalar first_failure null; the task checkpoint was corrected to the required mapping and later ownership validation passed.
 rejected_hypotheses:
   - create a second persistence runner or workflow
   - treat a pre-logout static SQL check as persistence proof
   - add storage or inventory semantics without a proven deterministic fixture/contract
   - duplicate or consume unfinished OTBM route contracts from PR 562
   - force-rewrite the published task branch after main advanced
+  - assume raw server vocation IDs and controlled-client vocation values are numerically identical
 changed_paths:
   - docs/agents/CHANGELOG.md
   - docs/agents/MODULE_CATALOG.md
@@ -153,17 +156,14 @@ validation:
   - command: exact PR 565 full changed-file and focused patch review
     result: PASS
     evidence: nine expected text/source/documentation paths only; runner/client changes are limited to typed persistence validation, plan rendering, phase-two checks and existing SQL compilation
-  - command: GitHub CI on pre-final head f18eb252f743092443f00c94b878c25729b851bd
+  - command: GitHub CI on final-gate head 27da7cee3cd8da5359881dddde3c312fce21278d
     result: PASS
-    evidence: workflow run 29662746814 completed success
-  - command: Agent Task Ownership on pre-final head f18eb252f743092443f00c94b878c25729b851bd
+    evidence: full CI completed successfully before physical E2E failure classification
+  - command: Agent Task Ownership on final-gate head 27da7cee3cd8da5359881dddde3c312fce21278d
     result: PASS
-    evidence: workflow run 29662746752 completed success
-  - command: Universal Agent E2E on pre-final head f18eb252f743092443f00c94b878c25729b851bd
-    result: NOT_RUN
-    evidence: run 29662746820 passed scenario resolution, DB bootstrap and exact Canary build but was superseded before controlled-OTClient build and physical execution completed
-  - command: Agent Task Ownership final-gate attempt on head 5976bc7d3b0b5a71fbcaf51710c52e6ade2a7f2c
+    evidence: ownership validation completed successfully
+  - command: Universal Agent E2E on final-gate head 27da7cee3cd8da5359881dddde3c312fce21278d
     result: FAIL
-    evidence: run 29663063422 artifact 8434907618 reported only unsupported checkpoint validation result SUPERSEDED_BY_FINAL_HEAD; this checkpoint repair addresses that exact failure
-next_action: Verify every required ci:final-gate workflow on the exact new task-record head. If all checks pass, PR 565 remains mergeable, and no review or ownership blocker appears, squash-merge PR 565. Make no further commit after the green final-head gate.
+    evidence: run 29663122815 artifact 8435191728 proved level persistence after relog, then failed vocation exact equality because runtime actual=1 while raw persisted expectation=4; contract narrowed to comparable fields as the root-cause repair
+next_action: Verify every required ci:final-gate workflow on the exact new task-record head created by this checkpoint commit. If all checks pass, PR 565 remains mergeable, and no review or ownership blocker appears, squash-merge PR 565. Make no further commit after the green repaired final-head gate.
 ```
