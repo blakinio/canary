@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: docs/otbm-e2e-route-integration-program-20260718
 base_branch: main
 created: 2026-07-18T22:55:00+02:00
-updated: 2026-07-18T23:15:00+02:00
-last_verified_commit: "6a106f215adefe451904303d402d0d7411b6f9a1"
+updated: 2026-07-18T23:18:00+02:00
+last_verified_commit: "bb32478b3e834320f1d0b19ea42c3ed6ce9558d8"
 risk: medium
 related_issue: ""
 related_pr: "562"
@@ -86,8 +86,8 @@ This task is planning/documentation only. It must not implement a second OTBM pa
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T23:15:00+02:00
-head: 6a106f215adefe451904303d402d0d7411b6f9a1
+updated_at: 2026-07-18T23:18:00+02:00
+head: bb32478b3e834320f1d0b19ea42c3ed6ce9558d8
 branch: docs/otbm-e2e-route-integration-program-20260718
 pr: 562
 status: validating
@@ -107,8 +107,9 @@ proven:
   - Universal Physical E2E already owns disposable MariaDB, exact Canary, pinned controlled OTClient, physical login/logout/relog, evidence and cleanup.
   - The declarative physical action layer currently supports bounded direction/count walk commands but not a route-plan follower, exact-position step synchronization, generic map-item use or inventory-item-on-map use.
   - Current open Canary PRs observed during planning own security, OAM and MyAAC scopes; no planned exclusive document path overlap was identified.
-  - Draft PR 562 was created against blakinio/canary:main and the programme/architecture documents were added on the dedicated planning branch.
+  - Draft PR 562 targets blakinio/canary:main and changed-file scope is exactly the task record plus two new durable planning documents.
   - The durable programme defines OTBM-E2E-001, OTBM-E2E-002, OTBM-E2E-003, optional split OTBM-E2E-001B, E2E-ROUTE-001, OTBM-E2E-004 and OTBM-E2E-005 with dependency ordering and acceptance gates.
+  - ci:final-gate was applied to PR 562 before this final checkpoint commit.
 derived:
   - The smallest architecture is a bridge layer that exports the existing Reachability predecessor graph into an edge-aware executable route plan and lets the existing Universal E2E runner execute that plan.
   - Semantic place names and physical interaction activation semantics should be separate evidence-backed registries because neither is safely inferable from raw map geometry alone.
@@ -133,6 +134,9 @@ validation:
     evidence: programme explicitly reuses existing Reachability _bfs/predecessor graph and Universal E2E lifecycle and forbids parallel parser/pathfinder/orchestrator implementations.
   - command: planning scope review
     result: PASS
-    evidence: implementation paths remain read-only; intended changed paths are the active task plus two new durable docs only.
-next_action: Verify PR 562 exact changed-file list and current-head checks. If scope remains exactly three documentation files, apply final-gate discipline, complete required CI, mark ready and squash-merge. After lifecycle archive, start OTBM-E2E-001 and optionally OTBM-E2E-002 on separate fresh branches.
+    evidence: PR 562 changed-file list is exactly the active task plus two new durable docs; implementation paths remain read-only.
+  - command: final-gate preparation
+    result: PASS
+    evidence: ci:final-gate applied before this final checkpoint commit; no further content commits are planned.
+next_action: Require exact-final-head Agent Task Ownership and CI success for PR 562. Then mark ready and squash-merge if review-clean; allow lifecycle automation to archive this planning task. Start OTBM-E2E-001 and optionally OTBM-E2E-002 only from fresh current-main branches after this programme is merged.
 ```
