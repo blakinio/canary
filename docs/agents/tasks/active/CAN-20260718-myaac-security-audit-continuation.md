@@ -6,11 +6,11 @@ agent: "GPT-5.5 Thinking"
 branch: docs/myaac-security-audit-closeout-20260718
 base_branch: main
 created: 2026-07-18T20:56:00+02:00
-updated: 2026-07-18T21:40:00+02:00
-last_verified_commit: "382fbd0c2f8e0d9978b05582198d8ad3be1a92d0"
+updated: 2026-07-18T21:43:00+02:00
+last_verified_commit: "7ae578e31b54c0b9d090c69849fd2e82c43d2b59"
 risk: high
 related_issue: ""
-related_pr: "556"
+related_pr: "559"
 depends_on: []
 blocks: []
 owned_paths:
@@ -37,7 +37,7 @@ cross_repo_tasks: []
 
 ## Status
 
-The audit documentation feature PR #556 passed the exact-final-head gate and was squash-merged. This narrow closeout only synchronizes the durable handover/task state with the completed merge; it introduces no new finding and changes no runtime source.
+The audit documentation feature PR #556 passed the exact-final-head gate and was squash-merged. Post-merge handover state has now been synchronized in closeout PR #559. The `ci:final-gate` label was applied before this final closeout checkpoint commit; no further commits are planned.
 
 ## Goal
 
@@ -63,8 +63,9 @@ Continue the MyAAC and MyAAC → login-server → Canary security audit, preserv
 - [x] Write a MyAAC-only handover with exact evidence states and validation limitations.
 - [x] Feature PR #556 exact final head passed CI, Agent Task Ownership, Security Validation, and the required CI aggregator.
 - [x] Feature PR #556 was marked ready and squash-merged.
-- [ ] Synchronize the durable handover with final head/CI/merge state and one post-merge `next_action`.
-- [ ] Merge the closeout PR after its own exact-final-head gate; then allow post-merge lifecycle automation to archive this task record.
+- [x] Synchronize the durable handover with final head/CI/merge state and one post-merge `next_action`.
+- [ ] Exact final closeout head passes all required `ci:final-gate` workflows.
+- [ ] Closeout PR #559 is marked ready and squash-merged after the exact final head is fully green and review-clean.
 
 ## Validation
 
@@ -73,16 +74,17 @@ Continue the MyAAC and MyAAC → login-server → Canary security audit, preserv
 - An isolated exact-logic `RateLimit` harness confirmed the reset bypass but is not represented as full-stack E2E.
 - Feature PR #556 final head `cb127ee3d144bab1b5b50ecb91c3b880a96a4b8d` passed CI run 3495, Agent Task Ownership run 2358, and Security Validation run 124 before merge.
 - Feature PR #556 squash merge commit: `382fbd0c2f8e0d9978b05582198d8ad3be1a92d0`.
+- Closeout PR #559 changes only this task record and the durable MyAAC handover; no finding/source/runtime/configuration change is included.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T21:40:00+02:00
-head: 382fbd0c2f8e0d9978b05582198d8ad3be1a92d0
+updated_at: 2026-07-18T21:43:00+02:00
+head: 7ae578e31b54c0b9d090c69849fd2e82c43d2b59
 branch: docs/myaac-security-audit-closeout-20260718
-pr: null
-status: implementing
+pr: 559
+status: validating
 context_routes:
   - agent-governance
 owned_paths:
@@ -95,16 +97,17 @@ proven:
   - Security Validation run 124 completed successfully on the feature final head
   - PR 556 had no review submissions, review threads, or PR comments before merge
   - PR 556 was squash-merged as 382fbd0c2f8e0d9978b05582198d8ad3be1a92d0
-  - durable handover currently contains correct findings but its repository-state section still reflects the pre-merge checkpoint and requires synchronization
+  - durable handover now records feature PR 556 as merged, exact feature head cb127ee3d144bab1b5b50ecb91c3b880a96a4b8d, exact-head CI pass, merge commit 382fbd0c2f8e0d9978b05582198d8ad3be1a92d0, and the post-audit full-stack E2E next action
   - MyAAC-036 remains the only new finding promoted by this continuation; other discoveries were extensions or rejected/not promoted
+  - closeout PR 559 contains only documentation-state synchronization for the same task and handover
 derived:
-  - no further source audit change is required for this closeout; only durable post-merge state synchronization is needed
+  - no further source audit change is required for this closeout
 unknown:
   - post-merge lifecycle automation completion time for moving this task record from tasks/active to tasks/archive
 conflicts: []
 first_failure:
   marker: direct squash merge attempt before ready-triggered Required check completed
-  evidence: GitHub rejected the first merge attempt with required status check Required expected; after ready-triggered CI run 3495 completed successfully, the same exact head merged without bypassing branch protection
+  evidence: GitHub rejected the first PR 556 merge attempt with required status check Required expected; after ready-triggered CI run 3495 completed successfully, the same exact head merged without bypassing branch protection
 rejected_hypotheses:
   - forum global cooldown as a new finding; already preserved as SEC-28
   - current ZIP Slip arbitrary overwrite without target-runtime proof
@@ -124,8 +127,11 @@ validation:
   - command: feature PR 556 merge
     result: PASS
     evidence: squash merge commit 382fbd0c2f8e0d9978b05582198d8ad3be1a92d0
+  - command: closeout PR 559 changed-file scope
+    result: PASS
+    evidence: only the active task checkpoint and MyAAC handover state are changed; no source/runtime/configuration path is touched
 blockers:
   - full integrated MyAAC + MariaDB + login-server + Canary E2E remains unavailable and explicitly unclaimed
-  - closeout handover synchronization and its own final-head CI gate are pending
-next_action: Open the narrow closeout PR, update only the handover repository/task/PR state and exact next action, apply ci:final-gate before its final checkpoint commit, then merge only after all exact-head checks pass; make no audit/source changes.
+  - closeout PR 559 exact final head must pass the forced final gate before merge
+next_action: Verify all required workflows on the exact final closeout head. If every required check passes and PR 559 remains mergeable and review-clean, mark it ready and squash-merge. Make no further commits; after merge, allow repository lifecycle automation to archive this task. The next security-audit action is the disposable full-stack E2E set recorded in the durable handover.
 ```
