@@ -159,3 +159,8 @@ next_action: Require exact-final-head Agent Task Ownership, CI, AI Agent Tools a
 - Merge commit: `59916930b08bafb87dcddec89230d16b8e1f0712`.
 - Merged at: `2026-07-18T21:31:50Z`.
 - This record was moved from `tasks/active` by the post-merge lifecycle automation.
+
+## Lifecycle validation dispatch
+
+- The automation-token-created lifecycle PR initially produced `action_required` workflow states.
+- This documentation-only commit was made on the lifecycle branch to trigger the normal repository Ownership/CI checks; branch protection and the normal merge gate remain authoritative.
