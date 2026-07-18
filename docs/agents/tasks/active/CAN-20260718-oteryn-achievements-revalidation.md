@@ -2,13 +2,13 @@
 task_id: CAN-20260718-oteryn-achievements-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-012
-status: review
+status: ready
 agent: "GPT-5.5 Thinking"
 branch: docs/oam-012-achievements-revalidation
 base_branch: main
 created: 2026-07-18T09:20:00+02:00
-updated: 2026-07-18
-last_verified_commit: "ca0502bd04555bdea4687831c0f1a3aba2ada3da"
+updated: 2026-07-18T11:26:00+02:00
+last_verified_commit: "93064fda744b41d3dc96f231847f89cbe2f64f50"
 risk: medium
 related_issue: "blakinio/Otheryn#30"
 related_pr: "524"
@@ -182,17 +182,22 @@ sha256:f50ab03ace6982253968f47e34e8d64ee86ce5fc9f3e6c9b9bbe1a4e00b042a9
 ## Context checkpoint
 
 ```yaml
-checkpoint_version: 2
-status: review
+checkpoint_version: 1
+updated_at: 2026-07-18T11:26:00+02:00
+head: 93064fda744b41d3dc96f231847f89cbe2f64f50
 branch: docs/oam-012-achievements-revalidation
 pr: 524
-coordination: OAM-012
-module: achievements
-final_disposition: ADAPT
-canary_clean_sync_base: 417571a0a3990ed406d894211f8f0d78b190eb33
-target_final_head: 8ee4bfe3c6b867834447a5b9e206e1dbd44f66d2
-target_merge: 4a16ca17ebd098cf9763bb3c07755bfd31ac1c43
+status: ready
+context_routes:
+  - agent-governance
+  - oteryn-migration
+  - achievements
+owned_paths:
+  - docs/agents/tasks/active/CAN-20260718-oteryn-achievements-revalidation.md
+  - docs/agents/OTERYN_OAM_012_ACHIEVEMENTS_REVALIDATION.md
 proven:
+  - final disposition is achievements ADAPT
+  - immutable task-start baselines remain Canary d9c967d6e9b778da11a206d134d559f38ec1b8c8 Otheryn 72f7bdc1a5afa9e9982c20bdcf3098c83dca543e upstream e0ac98e399d0f7e483f3668f57b78fcc45b6e53f OTClient 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
   - PR 264 point metadata corrections and persisted aggregate reconciliation are one compatibility boundary
   - unresolved stored achievement names fail closed during reconciliation
   - PR 288 supplies achievement 567 and an exact reviewed twelve-weapon attainability condition
@@ -204,13 +209,24 @@ proven:
   - PlayerAchievement focused surface passed 7 of 7
   - WeaponProficiency focused surface passed 10 of 10
   - target PR review audit was clean and target main had no task-start drift immediately before merge
-  - target PR 31 squash-merged with expected head protection
+  - target PR 31 squash-merged with expected head protection as 4a16ca17ebd098cf9763bb3c07755bfd31ac1c43
   - target issue 30 is closed completed
   - governance branch was clean-synced directly to Canary main 417571a0a3990ed406d894211f8f0d78b190eb33
+  - governance PR final scope contains only the evidence report and active OAM-012 task
+derived:
+  - catalogue metadata correction and persisted aggregate reconciliation must remain coupled
+  - achievement 567 catalogue ownership belongs to OAM-012 and its exact reviewed Weapon Proficiency attainability integration is bounded to this package
+  - the canonical data glob mismatch is governance metadata drift rather than permission for a second runtime catalogue
+  - no physical-client E2E is required because no client or protocol boundary changed
 unknown:
   - canonical module registry metadata should eventually name the proven central catalogue path explicitly
-  - lifecycle archive PR remains pending after governance feature merge
-  - durable program reconciliation remains pending after lifecycle merge
+  - Canary governance feature merge SHA remains pending
+  - lifecycle archive merge SHA remains pending
+  - durable program reconciliation merge SHA remains pending
+conflicts: []
+first_failure:
+  marker: none
+  evidence: target delivery and target proof are complete; only Canary governance lifecycle and durable program closeout remain
 rejected_hypotheses:
   - target upstream identity proves whole-module REUSE
   - catalogue-only point edits are safe with incrementally persisted aggregate points
@@ -219,6 +235,22 @@ rejected_hypotheses:
   - a second catalogue or overlay is acceptable
   - legacy governance validators must be copied into Otheryn runtime
   - OAM-004 SQL and KV persistence may be treated as atomic
+changed_paths:
+  - docs/agents/OTERYN_OAM_012_ACHIEVEMENTS_REVALIDATION.md
+  - docs/agents/tasks/active/CAN-20260718-oteryn-achievements-revalidation.md
+validation:
+  - command: exact donor provenance revalidation for OAM-012 target files
+    result: PASS
+    evidence: seven donor-controlled files match pinned Git blob SHAs including corrected player achievement test blob c10d90aa649322520739696507ba8a0ff2d05a06
+  - command: exact-head Otheryn target CI and runtime proof
+    result: PASS
+    evidence: CI 29638502030 Required 29638501951 full CTest 346 of 346 PlayerAchievement 7 of 7 WeaponProficiency 10 of 10
+  - command: target merge race-safe audit
+    result: PASS
+    evidence: zero blocking comments reviews and review threads; target main identical to immutable baseline immediately before expected-head squash merge
+  - command: Canary governance clean synchronization
+    result: PASS
+    evidence: branch reset directly to Canary main 417571a0a3990ed406d894211f8f0d78b190eb33 before recreating only the two owned OAM-012 governance paths
 blockers: []
-next_action: Run exact-head Canary governance gates for PR 524, audit comments reviews and review threads, then squash-merge; do not start OAM-013.
+next_action: Pass exact-head Canary Agent Task Ownership and CI for PR 524 then audit comments reviews and review threads and squash-merge; do not start OAM-013.
 ```
