@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: test/e2e-physical-teleport-final-v2
 base_branch: main
 created: 2026-07-17T21:35:00+02:00
-updated: 2026-07-18T09:25:00+02:00
-last_verified_commit: "d9c967d6e9b778da11a206d134d559f38ec1b8c8"
+updated: 2026-07-18T09:30:00+02:00
+last_verified_commit: "52e3164ceceed431f8d08652100635e77515c416"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "525"
 depends_on:
   - CAN-20260717-physical-movement-e2e-v2
   - CAN-PROGRAM-E2E-PLATFORM
@@ -55,10 +55,10 @@ Prove one deterministic real-client teleport traversal on the exact Canary map u
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-18T09:25:00+02:00
-head: e04e8b212978359799bbc125171bdc9dd6cc2400
+updated_at: 2026-07-18T09:30:00+02:00
+head: 52e3164ceceed431f8d08652100635e77515c416
 branch: test/e2e-physical-teleport-final-v2
-pr: pending
+pr: 525
 status: implementing
 context_routes:
   - universal-e2e
@@ -76,10 +76,10 @@ proven:
   - intermediate diagnostic probes were removed without changing bounded route endpoint floor delta or lifecycle assertions
   - corrected exact-final run 29633781590 passed Physical client movement/physical-teleport and Required physical E2E on head ab8138490c6a6fd8dee15b2e07451710201cd5af
   - corrected exact-final artifact 8426633331 digest sha256:9dbfda5d6358bc0efbf20df2c4e09d197256e7018cce85db4fde0899a38ad111 proved endpoint 32255,32204,8 delta 1 persistence relog and e2e success
-  - subsequent synchronized run 29634778752 also passed Physical client movement/physical-teleport and Required physical E2E on head 0bdc15202ac389ef1e0afe3005a5d3e1da273d2c
+  - synchronized run 29634778752 passed Physical client movement/physical-teleport and Required physical E2E on head 0bdc15202ac389ef1e0afe3005a5d3e1da273d2c
   - synchronized artifact 8426999692 digest sha256:a737d6aa293e996c9578107843e1e8fc57afb6b8d6d6b8e2da41e8f196f35868 again proves initial_position=32369,32241,7 endpoint=32255,32204,8 floor_delta=1 plan success persistence relog and e2e success
-  - original PR 511 accumulated stale merge-base history while main advanced; no force push was used
-  - this replacement branch was created directly from current main d9c967d6e9b778da11a206d134d559f38ec1b8c8 and recreates only the two feature-owned files
+  - original PR 511 accumulated stale merge-base history while main advanced and was never force-pushed
+  - replacement PR 525 starts directly from main d9c967d6e9b778da11a206d134d559f38ec1b8c8 and changes exactly the two feature-owned files
   - no shared E2E platform file is modified
   - no OTBM or client asset is committed
   - no external reference repository is modified
@@ -88,8 +88,7 @@ derived:
   - exact endpoint and floor-delta assertions are authoritative final proof; intermediate position probes are unnecessary and race-prone
   - clean reconstruction on latest main is safer than force-rebasing the stale-history PR 511 branch
 unknown:
-  - replacement PR number until creation
-  - exact final-gate run identifiers on the clean latest-main branch
+  - exact final-gate workflow run identifiers on PR 525 after this task checkpoint commit
 conflicts: []
 first_failure:
   marker: exact-final-intermediate-probe-race
@@ -118,5 +117,5 @@ validation:
     result: PASS
     evidence: run 29634778752 artifact 8426999692
 blockers: []
-next_action: Create replacement draft PR on current main, record its number in this task, close PR 511 as superseded, then require exact-head Ownership CI selected physical teleport and Required physical E2E before ready, fresh ready-state CI, squash merge, and lifecycle archive.
+next_action: Close superseded PR 511, apply ci:final-gate to PR 525, require green Ownership CI selected physical teleport and Required physical E2E on the resulting exact head, then ready, fresh ready-state CI, squash merge, and lifecycle archive.
 ```
