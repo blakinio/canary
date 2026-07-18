@@ -8,59 +8,68 @@ Draft PR: #526
 
 ## Scope and baseline
 
-This document continues the durable OTS security audit from:
+This document continues:
 
 - `docs/security/MYAAC_CANARY_SECURITY_AUDIT_2026-07-17.md`
 - `docs/security/OTS_SECURITY_AUDIT_HANDOVER_2026-07-18.md`
 
 It does not restart completed MyAAC/login-stack work and does not reopen previously rejected hypotheses without new evidence.
 
-Writable repository: `blakinio/canary`.
+Writable repository: `blakinio/canary` only.
 
-Evidence-only/read-only repositories remain `opentibiabr/canary`, `opentibiabr/login-server`, `slawkens/myaac`, `opentibiabr/otclient`, `opentibiabr/remeres-map-editor`, and `opentibiabr/client-editor`.
+Evidence-only/read-only repositories remain:
+
+- `opentibiabr/canary`
+- `opentibiabr/login-server`
+- `slawkens/myaac`
+- `opentibiabr/otclient`
+- `opentibiabr/remeres-map-editor`
+- `opentibiabr/client-editor`
 
 Exact source baseline for source findings in this pass:
 
 - `blakinio/canary@d9c967d6e9b778da11a206d134d559f38ec1b8c8`
 
-Local shell Git preflight could not be completed because the disposable shell had no existing checkout and could not resolve `github.com`. Live GitHub state and source content were revalidated through the authenticated GitHub connector. No public or third-party deployment was scanned or tested.
+The disposable shell had no existing checkout and could not resolve `github.com`, so local `git status/branch/remote/worktree/fetch` preflight and physical runtime harness work were unavailable. Live GitHub state and source were revalidated through the authenticated GitHub connector. No public or third-party deployment was scanned or tested.
 
 ## Evidence-state contract
 
 - `PROVEN` — directly confirmed in current code or deterministic source-level proof.
 - `DYNAMICALLY CONFIRMED` — reproduced in an isolated runtime/harness.
-- `DERIVED` — strongly follows from code composition but lacks complete runtime proof.
+- `DERIVED` — strongly follows from code composition but lacks complete E2E proof.
 - `CONFIGURATION-DEPENDENT` — impact depends on deployment/configuration behavior.
 - `CANDIDATE` — suspicious path still requiring call-chain or runtime proof.
 - `UNKNOWN` — insufficient evidence.
-- `REJECTED` / `FALSE POSITIVE` — hypothesis tested and rejected.
+- `REJECTED` / `FALSE POSITIVE` — hypothesis checked and rejected.
 
 ---
 
-## Shared/global state inventory — continuation checkpoint
+# Shared/global state inventory — continuation checkpoint
 
-| Surface | Scope | Writer/coordination state | Audit state |
+| Surface | Data scope | Writer/coordination state | Audit state |
 |---|---|---|---|
-| `players_online` | global, keyed only by `player_id` | every channel rebuilds/prunes from process-local players | `PROVEN` — OTS-MC-SS-001 |
-| `cluster_sessions` | cluster-global account/player ownership | Redis lease + DB mirror | prior fencing/stale-writer findings preserved |
-| `channel_runtime_status` | per-channel row | keyed by `channel_id` | no new finding in this slice |
-| `market_offers` / `market_history` | global economy state | accept has no transactional row claim; expiry leader-gated | `PROVEN` partial-fill race — OTS-ECO-MKT-001 |
+| `players_online` | global | every channel rebuilds/prunes from process-local players | `PROVEN` — OTS-MC-SS-001 |
+| `cluster_sessions` | cluster-global ownership | Redis lease + DB mirror | prior fencing/stale-writer findings preserved |
+| `channel_runtime_status` | per-channel | keyed by `channel_id` | no new finding |
+| `market_offers` / `market_history` | global economy | accept has no transactional row claim | `PROVEN` — OTS-ECO-MKT-001 |
+| market counterparty Player snapshot | global player persistence | `getPlayerByGUID(..., true)` can load stale DB copy of remotely online counterparty | `PROVEN` — OTS-ECO-MKT-002 |
 | `economic_ledger` | global idempotency/audit | wired for selected market paths | overlap-leader duplicate rejected; prior crash wedge remains |
-| `guilds.balance` | global per-guild balance | copied into process-local Guild and saved absolutely | `PROVEN` — OTS-ECO-GUILD-001 |
-| `players.balance` | global per-player bank balance | direct SQL increments coexist with process-local absolute full saves | `PROVEN` house-refund lost update — OTS-ECO-HOUSE-001 |
-| house auction bid state | per-channel world object persisted in `houses` | money/refund effects precede later `Map::save()` | `PROVEN` — OTS-ECO-HOUSE-002 |
-| house transfer state | per-channel world object persisted in `houses` | accept/cancel/reject money effects and house-state persistence are separate | `PROVEN` — OTS-ECO-HOUSE-003 |
-| player inventory ownership | per-player durable rows | trade moves both sides in memory; players save independently | `PROVEN` — OTS-ECO-TRADE-001 |
-| `accounts.coins*` | global per-account balances | single-type add/remove are SELECT -> absolute UPDATE; dual-type remove uses row-lock transaction | prior RMW finding narrowed/revalidated |
-| `global_storage` | global key/value | daily reward individually leader-gated | wider writers still open |
+| `guilds.balance` | global per-guild balance | process-local snapshot + absolute save | `PROVEN` — OTS-ECO-GUILD-001 |
+| `players.balance` | global per-player balance | direct SQL increments coexist with process-local absolute full saves | `PROVEN` — OTS-ECO-HOUSE-001 |
+| house auction bid state | per-channel-intended world state | money/refund effects precede later `Map::save()` | `PROVEN` — OTS-ECO-HOUSE-002 |
+| house transfer state | per-channel-intended world state | payment/refund and House persistence are separate | `PROVEN` — OTS-ECO-HOUSE-003 |
+| bilateral trade inventory | per-player persistent inventory | both sides move in memory; players save independently | `PROVEN` — OTS-ECO-TRADE-001 |
+| mail handoff | cluster-global operation + player inbox | source removal, owned delivery, offline delivery and operation status are not one atomic operation | existing `PROVEN` class revalidated |
+| `accounts.coins*` | global per-account balance | single-type RMW unlocked; dual-type debit row-locked | existing finding narrowed/revalidated |
+| house rows/lists/items | intended per-channel world state | schema/query/save paths inconsistently partitioned | existing house-isolation finding revalidated |
+| `global_storage` | global KV | daily reward individually leader-gated | wider writers still open |
 | `kv_store` | global `key_name` PK | namespace/call-site dependent | raid-reset candidate open |
-| boosted creature/boss | global rows | one-shot leader gates wired | no new finding in this slice |
-| house rows/lists/items | intended per-channel world state | schema/query/save paths remain inconsistently partitioned | prior house-isolation finding revalidated |
-| global event framework | starts in every process | only selected jobs individually gated | candidate by concrete event |
-| highscore/query caches | process-local members observed in `Game` | persistent/shared rebuild writer not yet proven | `UNKNOWN` exact global effect |
-| cleanup/DB optimization/global record | intended singleton where truly global | runbook still marks wiring incomplete | concrete call-site proof pending |
+| boosted creature/boss | global | leader gates wired | no new finding |
+| highscore/query caches | process-local `Game` members observed | persistent/shared writer not proven | `UNKNOWN` shared-state impact |
+| global server record | one global DB record + process-local cache | implementation of writer still unresolved | `CANDIDATE` |
+| cleanup/DB optimization/global events | mixed | runbook says singleton wiring incomplete | classify concrete jobs before promotion |
 
-This is a checkpoint, not a claim that every shared table/KV writer is already exhaustively classified.
+This is a continuation checkpoint, not a claim that every shared writer is already exhaustively inventoried.
 
 ---
 
@@ -68,124 +77,215 @@ This is a checkpoint, not a claim that every shared table/KV writer is already e
 
 ## OTS-MC-SS-001 — `players_online` is destructively rebuilt from process-local state by every channel
 
+- ID: `OTS-MC-SS-001`
 - Severity: **MEDIUM**
-- Repository/component: `blakinio/canary` / multichannel shared persistence
+- Affected repository/component: `blakinio/canary` / multichannel shared persistence
 - Evidence state: **PROVEN**
-- Source baseline: `d9c967d6e9b778da11a206d134d559f38ec1b8c8`
-- Paths/functions: `src/game/game.cpp` (`Game::start`, `Game::updatePlayersOnline`), `schema.sql` (`players_online`)
-- Status: open; remediation not implemented
+- Exact source baseline: `d9c967d6e9b778da11a206d134d559f38ec1b8c8`
+- Affected paths/functions:
+  - `src/game/game.cpp` — `Game::start`, `Game::updatePlayersOnline`
+  - `schema.sql` — `players_online`
+- Status: open; evidence only, no remediation in PR #526
 
-### Trace
+### Source-to-impact trace
 
 1. Every process schedules `Game::updatePlayersOnline()`.
 2. The function derives IDs only from that process's local `Game::players`.
-3. It inserts local IDs and deletes every row not in that local set.
+3. It inserts local IDs and deletes every row not in the local set.
 4. A process with zero local players can delete the entire table.
-5. `players_online` has no `channel_id`, writer identity, ownership predicate, or fencing field.
-6. The transaction makes one local rebuild atomic but does not compose multiple local views into a cluster union.
+5. `players_online` has no `channel_id`, writer identity, ownership predicate, or fencing token.
+6. The transaction makes one local rebuild atomic but does not compose channel-local views into a cluster union.
 
 ### Deterministic failure timeline
 
-- Channel A local set: `{A1}`.
-- Channel B local set: `{B1}`.
+- A local set: `{A1}`.
+- B local set: `{B1}`.
 - A inserts A1 and prunes B1.
 - B inserts B1 and prunes A1.
-- Durable state is last-writer-wins, not `{A1,B1}`.
+- Durable state becomes whichever channel writes last, not `{A1,B1}`.
 
-### Qualification / impact
+### Qualification / limitations
 
-The table-integrity failure is proven. Current `ProtocolStatus` uses local `Game` statistics rather than this table, so exact downstream impact depends on external consumers. Any consumer treating `players_online` as cluster authority can falsely classify live characters as offline.
+Current `ProtocolStatus` uses local `Game` statistics rather than `players_online`; exact downstream impact depends on external consumers.
+
+### Impact
+
+Any component treating `players_online` as cluster authority can falsely report live characters as offline.
 
 ### Remediation direction
 
-Partition by `(channel_id, player_id)` and let each channel prune only its own rows, or replace this table as authority with cluster session/runtime state. Add a two-process regression including the zero-local-player case.
+Partition by `(channel_id, player_id)` and let each channel prune only its own rows, or replace this table as cluster authority with session/runtime ownership state. Regression: two processes, including a channel with zero local players.
 
-### Overlap
+### Conflicts / overlap
 
-Deepens the prior handover's global presence/shared-state finding.
+Deepens the prior handover's global presence/shared-state finding. No remediation overlap introduced.
 
 ---
 
 ## OTS-ECO-MKT-001 — concurrent partial market fills can over-consume one stale offer snapshot
 
+- ID: `OTS-ECO-MKT-001`
 - Severity: **HIGH**
-- Repository/component: `blakinio/canary` / market economy
+- Affected repository/component: `blakinio/canary` / market economy
 - Evidence state: **PROVEN**
-- Source baseline: `d9c967d6e9b778da11a206d134d559f38ec1b8c8`
-- Paths/functions: `Game::playerAcceptMarketOffer`, `IOMarket::{getOfferByCounter,acceptOffer,deleteOffer}`, `market_offers`
-- Status: open; priority dynamic proof recommended
+- Exact source baseline: `d9c967d6e9b778da11a206d134d559f38ec1b8c8`
+- Affected paths/functions:
+  - `src/game/game.cpp` — `Game::playerAcceptMarketOffer`
+  - `src/io/iomarket.cpp` — `IOMarket::getOfferByCounter`, `acceptOffer`, `deleteOffer`
+  - `schema.sql` — `market_offers`
+- Status: open; priority dynamic race proof recommended
 
-### Trace
+### Source-to-impact trace
 
 1. `getOfferByCounter()` performs a plain read; no row claim/lock is acquired.
-2. Acceptance validates requested amount against the local `offer.amount` snapshot.
-3. BUY/SELL branches perform value effects before final durable offer mutation.
+2. Acceptance validates requested amount against local `offer.amount`.
+3. BUY/SELL branches perform item/coin/gold effects before final offer mutation.
 4. Partial acceptance executes `UPDATE market_offers SET amount = amount - ? WHERE id = ?`.
 5. There is no `amount >= ?` predicate, affected-row ownership proof, or transaction coupling claim and effects.
 
 ### Deterministic failure timeline
 
-Offer amount is `100`.
+Offer amount = `100`.
 
-1. A reads `100` and accepts `60`.
-2. B reads `100` and also accepts `60`.
+1. A reads `100`, accepts `60`.
+2. B reads `100`, accepts `60`.
 3. A performs value effects for `60`.
 4. B performs value effects for `60`.
 5. Only afterward do both attempt durable decrements.
 
-`120` units of value can therefore be processed from a `100`-unit offer before the second persistence result can reject or reconcile anything. Exact unsigned-underflow DB behavior is configuration-dependent; the over-consumption window is not.
+Thus `120` units of value can be processed from a `100`-unit offer before the second persistence outcome can reject or reconcile anything.
 
-A related exact-fill race exists when two channels each accept `50` from a `100` snapshot: both local copies can choose the partial-update branch rather than deleting an exhausted offer.
+### Qualification / limitations
+
+Exact DB behavior if an unsigned decrement would underflow is configuration-dependent. The over-consumption window does not depend on that behavior. No physical two-process reproduction was executed in this pass.
 
 ### Impact
 
-Economy duplication/overpayment or unreconciled market state, potentially involving items, coins, or gold-equivalent credit.
+Economy duplication/overpayment or unreconciled market state involving items, coins, or gold-equivalent credit.
 
 ### Remediation direction
 
-Durably claim quantity before irreversible effects, using a conditional atomic decrement requiring exactly one affected row or a row-locked transaction with durable operation identity and explicit recovery. Add deterministic two-process partial-fill coverage.
+Durably claim quantity before irreversible effects: conditional atomic decrement requiring one affected row, or row-locked transaction with durable operation identity and recovery semantics.
 
-### Overlap
+### Conflicts / overlap
 
-Concrete partial-fill specialization of the prior market double-accept class.
+Concrete partial-fill specialization of the previously preserved market double-accept class.
+
+---
+
+## OTS-ECO-MKT-002 — market acceptance can load and full-save a stale DB copy of a counterparty who is online on another channel
+
+- ID: `OTS-ECO-MKT-002`
+- Severity: **HIGH**
+- Affected repository/component: `blakinio/canary` / market + multichannel player persistence
+- Evidence state: **PROVEN**
+- Exact source baseline: `d9c967d6e9b778da11a206d134d559f38ec1b8c8`
+- Affected paths/functions:
+  - `src/game/game.cpp` — `Game::getPlayerByGUID`
+  - `src/game/game.cpp` — `Game::playerAcceptMarketOffer`
+  - `src/io/iologindata.cpp` / `src/io/functions/iologindata_save_player.cpp` — full player save
+- Status: open; concrete market call-site of the prior cross-process offline-load/stale-save class
+
+### Source-to-impact trace
+
+1. `Game::getPlayerByGUID(guid, true)` searches only the current process's local player set.
+2. If not found locally, it loads the player from DB and marks the object offline; it does not consult multichannel live ownership.
+3. In market BUY-offer acceptance, the accepting channel calls `getPlayerByGUID(offer.playerId, true)` for the offer owner/buyer, inserts purchased items into that object's inbox, and saves it when `isOffline()` is true.
+4. In market SELL-offer acceptance, the accepting channel uses the same offline-load path for the seller, credits its bank balance, and saves the object when `isOffline()` is true.
+5. If the counterparty is actually online on another channel, this object is a stale snapshot of a record owned by another live process.
+6. The accepting channel can full-save that stale snapshot while the true owner continues mutating its live Player state.
+7. The remote owner can later full-save its own older inbox/balance snapshot and erase the market delivery/credit, or the stale market-side save can overwrite unrelated newer live state.
+
+### Deterministic failure timelines
+
+BUY-offer item delivery:
+
+1. Buyer B is online on channel 2; durable snapshot is older than B's live state.
+2. Seller A on channel 1 accepts B's buy offer.
+3. Channel 1 does not see B locally and loads B from DB with `allowOffline=true`.
+4. Channel 1 inserts the purchased item into stale B's inbox and full-saves B.
+5. B's real channel 2 process later full-saves its live state whose inbox did not contain that item.
+6. The market-delivered item can be erased.
+
+SELL-offer gold credit:
+
+1. Seller S is online on channel 2.
+2. Buyer A on channel 1 accepts S's sell offer.
+3. Channel 1 loads stale S as offline, credits its bank balance, and full-saves it.
+4. S's owning channel later saves its live pre-credit balance.
+5. The market sale credit can be erased; conversely the stale save can overwrite other newer S state.
+
+### Qualification / limitations
+
+This is a concrete current-source market specialization of an already known generic stale offline-player load/full-save class. No runtime E2E was executed. The exact set of overwritten fields follows the full player save surface.
+
+### Impact
+
+Normal cross-channel market activity can lose purchased items or sale proceeds and can overwrite unrelated live player state.
+
+### Remediation direction
+
+Do not use `allowOffline=true` for a record that can have a live owner on another channel. Resolve cluster ownership first and route mutation to the owning process through durable addressed operations; only perform offline direct apply after proving no live owner, with transactionally safe persistence.
+
+### Conflicts / overlap
+
+Deepens prior cross-process offline-player/stale-full-save evidence and market multichannel findings; no duplicate generic finding is opened.
 
 ---
 
 ## OTS-ECO-GUILD-001 — process-local guild balances plus absolute saves permit multichannel double-spend
 
+- ID: `OTS-ECO-GUILD-001`
 - Severity: **HIGH**
-- Repository/component: `blakinio/canary` / guild bank
+- Affected repository/component: `blakinio/canary` / guild bank
 - Evidence state: **PROVEN**
-- Source baseline: `d9c967d6e9b778da11a206d134d559f38ec1b8c8`
-- Paths/functions: `guilds.balance`, `IOGuild::{loadGuild,saveGuild}`, `Guild::bankBalance`, `Bank::{credit,debit,transferTo}`
+- Exact source baseline: `d9c967d6e9b778da11a206d134d559f38ec1b8c8`
+- Affected paths/functions:
+  - `schema.sql` — `guilds.balance`
+  - `src/io/ioguild.cpp` — `loadGuild`, `saveGuild`
+  - `Guild::bankBalance`
+  - `src/game/bank/bank.cpp`
 - Status: revalidated/deepened existing finding
 
-### Trace and timeline
+### Trace and deterministic reasoning
 
-One global `guilds.balance` is loaded into process-local `Guild::bankBalance`. `Bank::hasBalance()` / `debit()` authorize against that snapshot, while `IOGuild::saveGuild()` later writes an absolute balance. No CAS/version/conditional decrement/fencing protects the global value.
+One global `guilds.balance` is loaded into process-local `Guild::bankBalance`. Authorization/debit uses the local snapshot; save later writes an absolute balance. No CAS/version/conditional decrement/fencing protects the global value.
 
-Durable balance `100`: A loads `100`, B loads `100`, each spends `80`, each local balance becomes `20`, both effects are accepted, and both later save `20`. Durable balance is `20` although `160` was paid out.
+Balance `100`: A and B each load `100`, each spend `80`, both effects succeed, each local balance becomes `20`, and both later save `20`. Durable balance is `20` although `160` was paid out.
+
+### Impact
+
+Cross-channel guild-bank double-spend and hidden lost updates.
 
 ### Remediation direction
 
-Authorize/debit at the durable DB boundary with conditional atomic mutation and transactionally couple the corresponding effect. Prevent stale absolute guild-balance saves from overwriting newer global state.
+Authorize/debit at the durable DB boundary with conditional atomic mutation and transactionally coupled effect. Eliminate stale absolute balance overwrite.
+
+### Conflicts / overlap
+
+Existing handover class revalidated with exact current load/debit/save chain.
 
 ---
 
 ## OTS-ECO-HOUSE-001 — cross-channel house-auction refund can be erased by the remote bidder's later full save
 
+- ID: `OTS-ECO-HOUSE-001`
 - Severity: **HIGH**
-- Repository/component: `blakinio/canary` / house auction + player bank persistence
+- Affected repository/component: `blakinio/canary` / house auction + player bank persistence
 - Evidence state: **PROVEN**
-- Source baseline: `d9c967d6e9b778da11a206d134d559f38ec1b8c8`
-- Paths/functions: `Game::playerCyclopediaHouseBid`, `Game::processBankAuction`, `IOLoginData::increaseBankBalance`, `IOLoginDataSave::savePlayerFirst`
-- Status: open; concrete specialization of prior cross-process stale-save class
+- Exact source baseline: `d9c967d6e9b778da11a206d134d559f38ec1b8c8`
+- Affected paths/functions:
+  - `Game::playerCyclopediaHouseBid`
+  - `Game::processBankAuction`
+  - `IOLoginData::increaseBankBalance`
+  - `IOLoginDataSave::savePlayerFirst`
+- Status: open; concrete specialization of prior stale-save class
 
 ### Trace and timeline
 
-When refunding a previous bidder, `processBankAuction()` checks only the current process with `g_game().getPlayerByName()`. A bidder online on another channel is treated as non-local/offline and refunded by durable `balance = balance + refund`. The bidder's owning process retains the pre-refund in-memory balance. A later full player save writes `players.balance = player->bankBalance` absolutely, with no CAS/version/fencing check.
+`processBankAuction()` looks up the previous bidder only in the current process. A bidder online on another channel is treated as non-local/offline and receives a direct durable `balance = balance + refund`. The true owner process keeps its pre-refund in-memory balance and can later full-save an absolute value.
 
-V is online on B with local/DB balance `100`. A refunds `50` directly in DB, making `150`; B still holds `100`; B later full-saves and writes `100`, erasing the refund.
+V is online on B with local/DB balance `100`. A refunds `50` directly in DB, producing `150`. B still holds `100`; B later full-saves and writes `100`, erasing the refund.
 
 ### Impact
 
@@ -193,222 +293,270 @@ Normal cross-channel house-auction activity can destroy refunded bank value.
 
 ### Remediation direction
 
-Route the mutation to the current record owner through a durable addressed operation, or make bank balance DB-authoritative and exclude it from stale full-save overwrite. Require idempotent identity and ownership/fencing checks.
+Route mutation to the current record owner through a durable addressed operation, or make bank balance DB-authoritative and exclude it from stale full-save overwrite.
+
+### Conflicts / overlap
+
+Concrete house-auction call-site of the previously preserved cross-process stale-save class.
 
 ---
 
 ## OTS-ECO-HOUSE-002 — auction money/refund effects precede durable house bid-state persistence
 
+- ID: `OTS-ECO-HOUSE-002`
 - Severity: **HIGH**
-- Repository/component: `blakinio/canary` / house auction crash consistency
+- Affected repository/component: `blakinio/canary` / house auction crash consistency
 - Evidence state: **PROVEN**
-- Source baseline: `d9c967d6e9b778da11a206d134d559f38ec1b8c8`
-- Paths/functions: `Game::playerCyclopediaHouseBid`, `Game::processBankAuction`, house bid setters, `IOMapSerialize::{loadHouseInfo,saveHouseInfo,SaveHouseInfoGuard}`, `Map::save`, `IOLoginData::increaseBankBalance`
+- Exact source baseline: `d9c967d6e9b778da11a206d134d559f38ec1b8c8`
+- Affected paths/functions:
+  - `Game::playerCyclopediaHouseBid`
+  - `Game::processBankAuction`
+  - House bid setters
+  - `IOMapSerialize::{loadHouseInfo,saveHouseInfo,SaveHouseInfoGuard}`
+  - `Map::save`
 - Status: open
 
 ### Trace and timeline
 
-`playerCyclopediaHouseBid()` calls `processBankAuction()` before updating the House bidder/bid fields. `processBankAuction()` mutates the new bidder's local bank balance and can immediately persist the previous bidder's refund. House setters are in-memory. Durable house state is written later when `Map::save()` reaches `SaveHouseInfoGuard()`.
+Bid processing can durably refund the previous bidder before the new bidder/bid state, which exists only in memory, reaches a later `Map::save()`.
 
-DB still records previous bidder P. New bidder N bids; P is durably refunded; the in-memory House switches to N; the process crashes before a successful `Map::save()`. Restart reloads P as bidder while P's refund remains durable. A later outbid can refund the same hold again, or stale settlement can treat P as winner although the hold was already refunded.
+1. Durable House state still names previous bidder P.
+2. New bidder N outbids P.
+3. P is durably refunded.
+4. House object switches to N only in memory.
+5. Crash occurs before successful `Map::save()`.
+6. Restart reloads P as bidder while P's refund remains durable.
+7. A later outbid can refund the same hold again, or stale settlement can treat P as winner despite the hold having been returned.
 
-### Qualification
+### Qualification / limitations
 
-The effect-before-house-persistence crash window is proven. Exact new-bidder debit persistence depends on whether that player's state was saved separately before the crash; the duplicate-refund/unbacked-state branch does not require assuming that it was.
+The crash window is proven. Exact new-bidder debit persistence depends on independent player-save timing; duplicate-refund/unbacked-state branches do not require that assumption.
+
+### Impact
+
+Duplicate refunds, unbacked winning-bid state, or inconsistent bidder balances.
 
 ### Remediation direction
 
-Treat bid transition, reserve/debit, previous-bidder refund, and durable bidder state as one recoverable operation with durable identity and transaction/state-machine or idempotent PENDING/COMMITTED semantics.
+Treat bid state, reserve/debit and refund as one recoverable operation with durable identity and transactional or idempotent state-machine semantics.
 
 ---
 
-## OTS-ECO-HOUSE-003 — house-transfer payment/refund state is persisted independently from transfer acceptance/cancellation state
+## OTS-ECO-HOUSE-003 — house-transfer payment/refund state is persisted independently from transfer state
 
+- ID: `OTS-ECO-HOUSE-003`
 - Severity: **HIGH**
-- Repository/component: `blakinio/canary` / house transfer economy + crash consistency
+- Affected repository/component: `blakinio/canary` / house transfer economy
 - Evidence state: **PROVEN**
-- Source baseline: `d9c967d6e9b778da11a206d134d559f38ec1b8c8`
-- Paths/functions:
+- Exact source baseline: `d9c967d6e9b778da11a206d134d559f38ec1b8c8`
+- Affected paths/functions:
   - `Game::playerCyclopediaHouseTransfer`
   - `Game::playerCyclopediaHouseAcceptTransfer`
   - `Game::playerCyclopediaHouseCancelTransfer`
   - `Game::playerCyclopediaHouseRejectTransfer`
   - `Game::processBankAuction`
-  - `IOLoginData::increaseBankBalance`
   - per-player save path
   - `IOMapSerialize::SaveHouseInfoGuard` / `Map::save`
-- Status: open; distinct transfer-state specialization of the house exactly-once class
+- Status: open
 
-### Source -> validation -> authorization -> state transition -> persistence -> retry/crash -> impact
+### Source-to-impact trace
 
-1. `playerCyclopediaHouseTransfer()` creates the transfer by changing House bidder/bid/end/state fields only in memory.
-2. `playerCyclopediaHouseAcceptTransfer()` calls `processBankAuction()`, which deducts the buyer's bank balance in the Player object, then only sets `house->setTransferStatus(true)` in memory.
-3. The buyer's player state and the House transfer state have separate persistence boundaries: player save vs later `Map::save()`.
-4. If the buyer's post-accept player save commits before the House `transferStatus` update is durably saved, a crash can reload the transfer as not accepted while the payment debit remains durable.
-5. The buyer can then be asked/allowed to accept the same durable transfer state again, creating a repeated debit or stranded payment depending subsequent flow.
-6. Conversely, `playerCyclopediaHouseCancelTransfer()` and `playerCyclopediaHouseRejectTransfer()` refund the paid amount when `transferStatus` is true and then clear bidder/bid/state/transferStatus only in memory.
-7. When the target player is not local, the refund is a direct durable DB increment before the cleared House state reaches `Map::save()`.
-8. A crash after the refund but before House persistence can reload `transferStatus=true` and the old transfer metadata, allowing the same payment to be refunded again.
+1. Transfer creation changes House bidder/bid/end/state only in memory.
+2. Accept calls `processBankAuction()`, reducing buyer bank balance in Player state, then sets `transferStatus=true` only in memory.
+3. Player persistence and House persistence have separate commit boundaries.
+4. Cancel/reject can refund the paid amount, including a direct durable DB increment for a non-local target, before clearing House transfer state in memory.
+5. House state is persisted later by `Map::save()`.
 
 ### Deterministic failure timelines
 
 Acceptance/debit branch:
 
-1. Durable House state describes an offered transfer with `transferStatus=false`.
-2. Buyer accepts; local bank balance is reduced and in-memory `transferStatus=true`.
+1. Durable House transfer has `transferStatus=false`.
+2. Buyer accepts; local bank is reduced; in-memory `transferStatus=true`.
 3. Buyer save commits the reduced bank balance.
-4. Crash occurs before House state is saved.
-5. Restart reloads `transferStatus=false` from the durable House row although the debit remains.
-6. A second acceptance can debit the buyer again or leave the first debit economically orphaned.
+4. Crash occurs before House save.
+5. Restart reloads `transferStatus=false` although the debit remains.
+6. Re-accept can cause a repeated debit or the first payment becomes stranded.
 
 Cancel/reject/refund branch:
 
-1. Durable House state has `transferStatus=true` for buyer B.
-2. Cancel/reject refunds B; for a non-local B, DB balance is incremented immediately.
-3. House transfer fields are cleared only in memory.
-4. Crash occurs before `Map::save()`.
-5. Restart reloads the still-accepted transfer state.
-6. Repeating cancel/reject can refund the same payment again.
+1. Durable House transfer has `transferStatus=true`.
+2. Cancel/reject refunds the buyer.
+3. House fields are cleared only in memory.
+4. Crash occurs before House save.
+5. Restart reloads the still-accepted transfer.
+6. Repeated cancel/reject can refund the same payment again.
 
 ### Qualification / limitations
 
-The split persistence boundaries and crash windows are directly proven. The exact UI/action sequence after restart depends on house-transfer state handling, but durable money and durable House state can demonstrably diverge before restart recovery. No crash-injection runtime proof was executed.
+The split persistence boundaries are proven. Exact UI/action availability after restart depends on transfer-state handling. No crash-injection runtime proof was executed.
 
 ### Impact
 
-House transfer payments can be duplicated, refunded twice, or stranded through crash timing, producing player-value loss or economy inflation.
+Repeated debit, stranded payment, duplicate refund, or inconsistent transfer ownership state.
 
 ### Remediation direction
 
-Represent transfer acceptance/payment/refund as a durable idempotent operation. The House transition and corresponding bank mutation must commit together or be recoverable through a ledger/state machine that can safely resume exactly once after crash. Cross-channel player refunds must also respect record ownership rather than direct DB mutation followed by stale full saves.
+Persist transfer acceptance/payment/refund through one durable idempotent operation or recoverable state machine. Cross-channel refunds must also respect live record ownership.
 
 ---
 
-## OTS-ECO-TRADE-001 — completed two-player trade has no atomic persistence boundary across both inventories
+## OTS-ECO-TRADE-001 — completed bilateral trade has no atomic persistence boundary across both inventories
 
+- ID: `OTS-ECO-TRADE-001`
 - Severity: **HIGH**
-- Repository/component: `blakinio/canary` / player-to-player trade persistence
+- Affected repository/component: `blakinio/canary` / player trade persistence
 - Evidence state: **PROVEN**
-- Source baseline: `d9c967d6e9b778da11a206d134d559f38ec1b8c8`
-- Paths/functions:
+- Exact source baseline: `d9c967d6e9b778da11a206d134d559f38ec1b8c8`
+- Affected paths/functions:
   - `Game::playerAcceptTrade`
   - `SaveManager::{saveAll,schedulePlayer,doSavePlayer}`
   - `IOLoginData::{savePlayer,savePlayerGuard}`
   - `IOLoginDataSave::savePlayerItem`
-- Status: open; isolated crash-injection proof recommended
+- Status: open; crash-injection proof recommended
 
-### Trace
+### Source-to-impact trace
 
-1. Once both players accept, `playerAcceptTrade()` moves both traded items in memory.
-2. It closes trade state without synchronously persisting both players as one operation.
-3. `IOLoginData::savePlayer()` provides a DB transaction for one player's complete save only.
-4. One player's inventory rows are deleted/reinserted inside that one-player transaction.
-5. SaveManager can persist players independently or in parallel.
-6. No transaction or durable trade operation spans both inventories.
+1. Once both players accept, both item transfers complete in memory.
+2. Trade closes without synchronously persisting both players as one operation.
+3. `IOLoginData::savePlayer()` gives one DB transaction per player.
+4. SaveManager can persist players independently or in parallel.
+5. No transaction or durable trade operation spans both inventories.
 
 ### Deterministic failure timelines
 
-Before trade, X belongs durably to A and Y to B. In-memory trade completes: A receives Y and B receives X.
+Before trade: X belongs durably to A, Y to B. In-memory trade: A receives Y, B receives X.
 
-Duplication branch:
+Duplication:
 
-1. B's post-trade save commits, persisting X in B's inventory.
-2. A has not saved, so durable A inventory still contains X.
+1. B's post-trade save commits X into B's inventory.
+2. A has not saved, so durable A still contains X.
 3. Crash.
 4. Restart loads X for both A and B.
 
-Loss/asymmetry branch:
+Loss/asymmetry:
 
-1. A's post-trade save commits, removing X from A and adding Y.
-2. B has not saved, so durable B still has Y and does not yet have X.
+1. A's post-trade save commits, removing X and adding Y.
+2. B has not saved, so durable B still contains Y and lacks X.
 3. Crash.
-4. Restart can leave X absent from both durable inventories while Y is present on both, depending on which side/item is traced.
+4. Restart can leave X absent from both and Y present on both, depending on the side/item traced.
 
-### Qualification
+### Qualification / limitations
 
-Trade itself is local to one Canary process. The finding is crash consistency, not a cross-channel concurrent-trade claim.
+Trade itself is local to one Canary process. This is crash consistency, not a cross-channel concurrent-trade claim.
 
 ### Impact
 
-A crash during asymmetric persistence can duplicate or destroy high-value traded items.
+High-value item duplication or destruction.
 
 ### Remediation direction
 
-Persist completed trade as one durable operation: transactionally save ownership changes for both players together, or introduce a durable trade ledger/state machine with idempotent replay and recovery. Crash-injection coverage should stop the process after exactly one side commits.
+Persist both ownership changes in one durable operation or use a durable trade ledger/state machine with idempotent recovery.
 
 ---
 
 # Current-source revalidation of previously preserved findings
 
+## Mail handoff exactly-once failures remain current
+
+Evidence state: **PROVEN — existing finding revalidated/deepened**.
+
+Affected paths/functions:
+
+- `src/items/containers/mailbox/mailbox.cpp` — `Mailbox::sendItemAcrossCluster`
+- `src/game/multichannel/mail_delivery_operation_handler.cpp` — `applyOwned`, `applyUnowned`
+- `src/game/multichannel/cluster_record_handoff.cpp` — `tryApply`, `transitionAfterApply`, `enqueueAndTryApplyNow`
+
+Current exact failure windows:
+
+### Durable enqueue vs source-item removal persistence — duplication
+
+1. `sendItemAcrossCluster()` serializes the mail item and durably enqueues a random operation ID.
+2. Once the operation is durably captured, the source item is removed only from current in-memory state with `internalRemoveItem()`.
+3. Enqueue and persistence of the sender/map source removal are not one transaction.
+4. Crash after durable enqueue but before source-side persistence can restore the original source item after restart while the durable pending operation still delivers the serialized copy.
+5. Result: source item + delivered mail item can both survive.
+
+### Owned recipient apply vs operation `APPLIED` — loss
+
+1. `applyOwned()` inserts the reconstructed item into the live recipient's in-memory inbox and returns `Applied`.
+2. It does not save the Player.
+3. `ClusterRecordHandoff::transitionAfterApply()` then independently marks the operation applied.
+4. Crash after `markApplied` but before the recipient's next durable player save loses the in-memory inbox item while the operation is no longer pending.
+5. Result: permanent mail loss.
+
+### Offline apply commit vs operation `APPLIED` — duplication
+
+1. `applyUnowned()` locks the operation row, proves no live owner, loads an offline Player, inserts the item, and saves that Player inside its explicit DB transaction.
+2. The handler transaction commits before `ClusterRecordHandoff::transitionAfterApply()` marks the operation applied.
+3. Crash after offline player save commit but before `markApplied` leaves the operation pending although the first delivery is already durable.
+4. Retry can reconstruct and save the same mail item again.
+5. Result: duplicate mail delivery.
+
+These timelines directly revalidate the handover's existing mail handoff exactly-once class. No new generic ID is opened here.
+
+### Remediation direction
+
+Source consume, recipient delivery, and operation state need one recoverable idempotent protocol. For live-owned records, an `APPLIED` transition must not precede durable recipient persistence. For offline apply, player mutation and operation status must commit atomically or carry a recipient-side dedupe identity. Source removal also requires durable handoff identity that prevents the original item from reappearing as a second valid value after crash.
+
 ## House isolation failures remain current
 
 Evidence state: **PROVEN — existing finding revalidated/deepened**.
 
-Current schema comments intend physical house identity `(channel_id, id)`, but `houses` simultaneously defines `PRIMARY KEY (channel_id, id)` and `UNIQUE(id)`, preventing the same map house ID from existing independently per channel. `IOMapSerialize::loadHouseInfo()` selects house rows without a channel predicate and resolves only by `houseId`; `SaveHouseInfoGuard()` inserts/upserts without `channel_id`, relying on default channel `1`. `house_lists` has a `channel_id` column but its primary key omits it, save inserts omit it, and cleanup deletes by version without channel partitioning.
+Current schema comments intend physical house identity `(channel_id, id)`, but `houses` simultaneously defines `PRIMARY KEY (channel_id, id)` and `UNIQUE(id)`. `IOMapSerialize::loadHouseInfo()` reads house rows without a channel predicate and resolves by `houseId`; `SaveHouseInfoGuard()` inserts/upserts without `channel_id`, relying on default channel `1`. `house_lists` has `channel_id`, but its primary key omits it, save inserts omit it, and cleanup deletes by version without channel partitioning.
 
-This revalidates the prior handover class: schema identity conflicts with intended channel-scoped identity and house/list persistence is not consistently partitioned. It is not assigned a new finding ID here.
-
-`SaveHouseItemsGuard()` also begins by deleting all `tile_store` rows before rebuilding from the current process map. The broader tile-store channel impact remains part of the existing house-isolation class; this continuation does not promote a separate finding without re-tracing the complete current `tile_store` schema/migration contract.
+This revalidates the prior house-isolation class. `SaveHouseItemsGuard()` also starts by deleting all `tile_store` rows before rebuilding from the current process map; the broader tile-store impact remains within the existing class pending full schema/migration re-trace.
 
 ## Single-type account coin RMW remains current; dual-type debit is transactionally guarded
 
 Evidence state: **PROVEN — existing single-type finding revalidated and narrowed**.
 
-`Account::addCoins(type, amount)` and `Account::removeCoins(type, amount)` call `getCoins()`, then `setCoins()` with an absolute new value. `AccountRepositoryDB::getCoins()` is a plain SELECT and `setCoins()` is an absolute UPDATE. Two concurrent single-type mutations can read the same balance and overwrite one another.
+Single-type `Account::addCoins` / `removeCoins` perform plain read then absolute write. Concurrent `+50/+50` from `100` can both write `150`; concurrent `-80/-80` can both pass and both write `20`. Transaction history is registered after the balance update, so history failure can diverge from balance state.
 
-Examples:
-
-- balance `100`, concurrent `+50` and `+50` can both write `150`, losing one credit;
-- balance `100`, concurrent single-type `-80` operations can both pass and both write `20`, allowing two logical debits/effects against one starting balance.
-
-Coin transaction history is registered after the balance UPDATE in these single-type methods and registration failure is only logged by the void helper, so balance/history can diverge.
-
-By contrast, `Account::removeCoins(primaryType, secondaryType, ...)` delegates to a rollback-on-failure DB transaction, uses `SELECT ... FOR UPDATE`, checks the combined balance after taking the row lock, updates both columns, and records transaction entries inside that transaction. The hypothesis that this dual-type path has the same unlocked RMW race is rejected below.
+Dual-type `removeCoins(primary, secondary)` instead uses a rollback transaction, `SELECT ... FOR UPDATE`, combined balance check, update and history writes. The hypothesis that it has the same unlocked RMW race is rejected below.
 
 ## Bank transfer crash consistency remains current
 
 Evidence state: **PROVEN — existing finding revalidated**.
 
-`Bank::transferTo()` applies source debit and destination credit to process-local bankable objects. Player persistence remains one transaction per player, and SaveManager can save players independently/parallel. A bilateral transfer still lacks one durable atomic boundary across both player balances; asymmetric commit before crash can persist only the debit or only the credit.
+`Bank::transferTo()` mutates source and destination process-local bankable objects. Player saves are separate per-player transactions. A crash after only one player's save commits can persist only debit or only credit.
 
-## GameStore effect/delivery before final coin debit
-
-Evidence state: **PROVEN — existing finding revalidated**.
-
-`data/libs/gamestore/parsers.lua` performs `GameStore.process*Purchase(...)` effects before `player:makeCoinTransaction(offer)`. `data/libs/gamestore/player.lua` removes coins and writes history afterward; EXP-boost count KV is also mutated before coin removal. The prior effect-before-debit crash/failure window remains current.
-
-## Transferable coin transfer credits receiver before checked sender debit
+## GameStore effect/delivery before final coin debit remains current
 
 Evidence state: **PROVEN — existing finding revalidated**.
 
-`parseTransferableCoins` checks sender balance, directly increments receiver `accounts.coins_transferable`, then calls sender removal. Receiver credit is not transactionally coupled to a proven sender debit.
+Purchase effects run before `makeCoinTransaction`; coin removal/history occur afterward. EXP-boost count KV is also mutated before coin removal.
 
-## Market expiry PENDING crash-recovery wedge
+## Transferable coin receiver credit before sender debit remains current
 
 Evidence state: **PROVEN — existing finding revalidated**.
 
-Expiry inserts a deterministic `economic_ledger` PENDING row, moves/removes the active offer, then performs refund/delivery and commits the ledger. A crash after the offer transition can leave PENDING with no active offer; retry reuses the same UUID and duplicate insertion fails closed, so automatic effect replay does not occur.
+The receiver DB balance is incremented before sender transferable-coin removal, without one transaction coupling both sides.
+
+## Market expiry PENDING crash-recovery wedge remains current
+
+Evidence state: **PROVEN — existing finding revalidated**.
+
+Expiry creates deterministic `economic_ledger` PENDING, moves/removes the active offer, then performs refund/delivery and commits the ledger. Crash after offer transition can leave PENDING with no active offer; retry reuses the UUID and duplicate insertion fails closed, so automatic effect replay does not occur.
 
 ---
 
 # Rejected hypotheses
 
-## OTS-MC-JOB-RJ-001 — `market.expire` leader loss mid-run alone duplicates the same expiry effect
+## OTS-MC-JOB-RJ-001 — overlapping `market.expire` leaders alone duplicate one expiry effect
 
 - Evidence state: **REJECTED**
 
-The leader check is not fenced through asynchronous result mutation, so overlapping old/new leaders are possible in principle. However each offer expiry derives the same deterministic `economic_ledger.transaction_uuid`; it is the primary key and `beginPending()` fails closed on the second insert. Two workers cannot both pass the per-offer ledger gate and both apply the effect.
+Each offer expiry derives the same deterministic `economic_ledger.transaction_uuid`, which is unique/primary-key protected. The second worker cannot pass the same per-offer ledger insertion and apply the same effect. This does not reject the separate PENDING crash-recovery wedge.
 
-This rejection is narrow and does not reject the separate PENDING crash-recovery wedge.
-
-## OTS-ECO-COIN-RJ-001 — dual-type `Account::removeCoins(primary, secondary)` has the same unlocked RMW race as single-type coin removal
+## OTS-ECO-COIN-RJ-001 — dual-type `Account::removeCoins(primary, secondary)` has the single-type unlocked RMW race
 
 - Evidence state: **REJECTED / FALSE POSITIVE**
-- Source baseline: `d9c967d6e9b778da11a206d134d559f38ec1b8c8`
+- Baseline: `d9c967d6e9b778da11a206d134d559f38ec1b8c8`
 
-The dual-type repository path executes inside a rollback-on-failure transaction, obtains the account row with `SELECT ... FOR UPDATE`, checks the combined balance after locking, updates both coin columns, and records transaction entries before commit. Concurrent calls serialize on the row lock.
+The dual-type path uses a rollback-on-failure transaction and `SELECT ... FOR UPDATE`; concurrent calls serialize on the account row. Single-type add/remove remain unsafe.
 
-This does not make all account-coin mutations safe: single-type add/remove still use unlocked read -> absolute write.
+All rejected hypotheses from the prior durable handover remain closed absent new evidence.
 
 ---
 
@@ -422,15 +570,13 @@ Known:
 
 - `server_config` has one global `players_record` row;
 - every process calls `Game::loadPlayersRecord()` during `GAME_STATE_INIT`;
-- `Game` holds a process-local `playersRecord` value and declares `updatePlayersRecord()`;
-- the multichannel runbook still classifies global server record handling as unwired singleton work.
+- `Game` holds process-local `playersRecord` and declares `checkPlayersRecord()` / `updatePlayersRecord()`;
+- the multichannel runbook classifies global server record handling as unwired singleton work.
 
 Missing before promotion:
 
-- exact current `Game::loadPlayersRecord()` / `Game::updatePlayersRecord()` implementation and persistence predicate;
-- proof whether writers can lower/overwrite a record or merely compute a per-channel rather than cluster-wide peak.
-
-No finding is promoted from the runbook warning alone.
+- exact current `loadPlayersRecord` / `checkPlayersRecord` / `updatePlayersRecord` implementation and persistence predicate;
+- proof whether writers can lower/overwrite a record or merely compute a per-channel instead of cluster-wide peak.
 
 ## OTS-MC-SS-C02 — raid daily-counter KV reset from every channel global-server-save event
 
@@ -439,25 +585,25 @@ Evidence state: **CANDIDATE**.
 Known:
 
 - daily-reward reset is individually leader-gated;
-- the same global-server-save function resets each `Raid.registry` `checks-today` / `last-check-date` KV without that gate;
+- the same `global_server_save.lua` resets every `Raid.registry` `checks-today` / `last-check-date` KV without that gate;
 - the global-event framework starts in every process.
 
-Missing before promotion:
+Missing:
 
-- exact `raid.kv` namespace/backing persistence;
-- concrete reset/increment race impact.
+- exact `raid.kv` backing/namespace;
+- concrete reset-versus-increment race impact.
 
-## OTS-MC-SS-C03 — remaining unwired global-event / cleanup / highscore / DB-optimization jobs
+## OTS-MC-SS-C03 — cleanup/highscore/DB-optimization/global-event jobs
 
-Evidence state: **UNKNOWN / CANDIDATE by individual job**.
+Evidence state: **UNKNOWN / CANDIDATE by concrete job**.
 
-The runbook warning is not enough to manufacture findings. `Game` visibly owns process-local highscore/query cache maps, so a cluster-wide persistence problem must be proven at a concrete shared writer rather than inferred from the word "cache". Each scheduler still needs classification by data scope, writer count, ownership, fencing, transactions, retries and stale-writer behavior.
+The runbook warning is insufficient to manufacture findings. `Game` visibly owns process-local highscore/query cache maps, so a persistent/shared conflict must be proven at an actual global writer. Each scheduler still needs data-scope, writer-count, ownership, fencing, transaction, retry and stale-writer tracing.
 
-## Exactly-once flows still open
+## Remaining exactly-once scope
 
-- depot/inbox/stash handoff beyond already preserved mail findings;
-- final house settlement/ownership-transition paths beyond the bid/transfer findings above;
-- remaining account-coin call sites beyond the core Account API;
+- depot/inbox/stash paths beyond the now revalidated mail and market call-sites;
+- final house settlement/ownership transitions beyond bid/transfer findings;
+- remaining account-coin call-sites beyond the core Account API;
 - MyAAC premium-point paid-operation races not re-traced in this slice.
 
 ---
@@ -468,16 +614,18 @@ The runbook warning is not enough to manufacture findings. `Game` visibly owns p
 
 - `OTS-MC-SS-001` — destructive multiwriter rebuild of global `players_online`.
 - `OTS-ECO-MKT-001` — concurrent partial market over-consumption from stale offer snapshots.
-- `OTS-ECO-GUILD-001` — guild-bank stale snapshot/absolute-save double spend; existing class revalidated.
-- `OTS-ECO-HOUSE-001` — cross-channel house-auction refund can be erased by remote bidder's stale full save.
-- `OTS-ECO-HOUSE-002` — auction money/refund effects precede durable house bid-state persistence.
-- `OTS-ECO-HOUSE-003` — house-transfer debit/refund effects and transfer-state persistence have separate crash boundaries.
-- `OTS-ECO-TRADE-001` — bilateral trade is persisted as independently committing player snapshots, enabling crash-time duplication/loss.
-- Existing house-isolation class revalidated with current schema/load/save/list paths.
+- `OTS-ECO-MKT-002` — market acceptance can mutate/full-save stale DB copies of counterparties online on another channel.
+- `OTS-ECO-GUILD-001` — guild-bank stale snapshot/absolute-save double-spend.
+- `OTS-ECO-HOUSE-001` — cross-channel house-auction refund can be erased by remote stale full save.
+- `OTS-ECO-HOUSE-002` — auction money/refund effects precede durable bid-state persistence.
+- `OTS-ECO-HOUSE-003` — house-transfer payment/refund and transfer-state persistence have separate crash boundaries.
+- `OTS-ECO-TRADE-001` — bilateral trade persists as independently committing player snapshots.
+- Existing mail handoff exactly-once class revalidated with source-consume, owned-apply and offline-apply crash windows.
+- Existing house-isolation class revalidated.
 - Existing single-type account coin RMW class revalidated and narrowed.
 - Existing bank-transfer crash-consistency class revalidated.
-- Existing GameStore effect-before-debit path revalidated.
-- Existing transferable-coin receiver-credit-before-sender-debit path revalidated.
+- Existing GameStore effect-before-debit class revalidated.
+- Existing transferable-coin credit-before-debit class revalidated.
 - Existing market-expiry PENDING crash-recovery wedge revalidated.
 
 ## DYNAMICALLY CONFIRMED
@@ -490,24 +638,24 @@ The runbook warning is not enough to manufacture findings. `Game` visibly owns p
 
 ## CONFIGURATION-DEPENDENT
 
-- Exact DB outcome of a market partial-fill decrement that would underflow an unsigned column; over-consumption does not depend on it.
-- Downstream operational impact of corrupted `players_online` depends on table consumers.
+- Exact DB outcome of market amount underflow; `OTS-ECO-MKT-001` does not depend on it.
+- Downstream impact of corrupt `players_online` depends on consumers.
 
 ## CANDIDATE
 
 - `OTS-MC-SS-C01` — global server record writer behavior.
 - `OTS-MC-SS-C02` — raid daily-counter KV reset.
-- `OTS-MC-SS-C03` — concrete cleanup/highscore/DB-optimization/global-event jobs pending source proof.
+- `OTS-MC-SS-C03` — concrete cleanup/highscore/DB-optimization/global-event jobs.
 
 ## UNKNOWN
 
 - Exhaustive repository-wide shared-state writer inventory is not complete.
-- Remaining depot/inbox/stash and final house-settlement exactly-once flows are not fully traced.
+- Remaining depot/inbox/stash and final house-settlement exactly-once paths are not fully traced.
 
 ## REJECTED / FALSE POSITIVE
 
-- `OTS-MC-JOB-RJ-001` — overlapping `market.expire` leaders alone cannot both apply the same expiry effect because deterministic ledger-PK insertion rejects the second execution.
-- `OTS-ECO-COIN-RJ-001` — dual-type coin debit is not affected by the same unlocked RMW race as single-type coin add/remove; it is row-locked and transactional at the current baseline.
+- `OTS-MC-JOB-RJ-001` — overlapping expiry leaders alone do not duplicate one expiry effect because deterministic ledger identity rejects the second execution.
+- `OTS-ECO-COIN-RJ-001` — dual-type coin debit is row-locked/transactional and does not share the single-type unlocked RMW race.
 - Prior durable handover rejected hypotheses remain closed absent new evidence.
 
 ---
@@ -518,45 +666,48 @@ No dynamic race/crash proof was executed in this slice.
 
 Reason:
 
-- no existing local checkout was available in the disposable shell;
-- the shell could not resolve `github.com`, preventing a fresh local clone/fetch;
+- no existing local checkout in the disposable shell;
+- shell DNS could not resolve `github.com` for a fresh clone/fetch;
 - public/third-party deployment testing is explicitly out of scope.
 
 Priority isolated harness scenarios:
 
 1. two-process market partial overfill;
-2. cancel-versus-accept;
-3. mail retry duplication;
-4. stale persistent save after ownership loss;
-5. guild-bank double spend;
-6. cross-channel house-auction refund lost update;
-7. crash after persisted previous-bidder refund but before house `Map::save()`;
-8. house-transfer acceptance crash after player debit save but before House-state save;
-9. house-transfer cancel/reject crash after refund but before House-state save;
-10. crash after exactly one side of a completed player trade is saved;
-11. broader cross-channel house persistence corruption.
+2. market accept against counterparty live on another channel;
+3. cancel-versus-accept;
+4. mail source-removal crash after durable enqueue;
+5. mail owned-delivery crash after `markApplied` but before recipient save;
+6. mail offline-delivery crash after player commit but before `markApplied`;
+7. stale persistent save after ownership loss;
+8. guild-bank double spend;
+9. cross-channel house-auction refund lost update;
+10. house auction crash after refund but before `Map::save()`;
+11. house-transfer acceptance crash after debit save but before House save;
+12. house-transfer cancel/reject crash after refund but before House save;
+13. crash after exactly one side of completed trade is saved;
+14. broader cross-channel house persistence corruption.
 
-Target harness: minimum two Canary processes, shared MariaDB, Redis, deterministic synchronization/crash injection, disposable local/container environment.
+Target harness: at least two Canary processes, shared MariaDB, Redis, deterministic barriers/crash injection, disposable local/container environment.
 
 # Remediation workflow
 
-PR #526 remains evidence-only. No runtime remediation is mixed into this audit continuation.
+PR #526 remains evidence-only. No runtime remediation is mixed into this continuation.
 
-Each future fix must be a separate bounded task with exact ownership, overlap review, source provenance, narrow design and regression proof.
+Each confirmed problem must move to a separate bounded remediation task with exact ownership, overlap review, source provenance, narrow implementation strategy and regression proof.
 
 # Next continuation checkpoint
 
 Continue in this order unless stronger evidence changes priority:
 
-1. finish concrete shared-state writer inventory:
-   - `Game::loadPlayersRecord()` / `Game::updatePlayersRecord()` implementation;
+1. finish shared-state writer inventory:
+   - global player record implementation;
    - raid KV backing/reset semantics;
-   - cleanup jobs;
+   - concrete cleanup jobs;
    - concrete persistent/shared highscore behavior;
    - DB optimization scheduler;
-2. continue exactly-once tracing:
-   - depot/inbox/stash persistence beyond preserved mail handoff;
+2. continue exactly-once review:
+   - remaining depot/inbox/stash mutation paths;
    - final house settlement/ownership transitions;
-   - remaining account coin mutation call sites;
+   - remaining account-coin mutations;
    - MyAAC premium-point paid operations;
-3. build isolated two-process race/crash proofs when a local disposable runtime is available.
+3. run isolated two-process race/crash proofs when a local disposable runtime is available.
