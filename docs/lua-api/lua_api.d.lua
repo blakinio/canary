@@ -697,6 +697,19 @@ function EventsScheduler.getEventSSkill(...) end
 ---@return number
 function EventsScheduler.getSpawnMonsterSchedule(...) end
 
+---@class FileSystem
+FileSystem = {}
+
+---@param path string
+---@return boolean success
+---@return string? errorMessage
+function FileSystem.createDirectories(path) end
+
+---@param path string
+---@return boolean success
+---@return string? errorMessage
+function FileSystem.createDirectory(path) end
+
 ---@class Game
 Game = {}
 
@@ -704,6 +717,10 @@ Game = {}
 ---@param stack? number
 ---@return boolean
 function Game.addInfluencedMonster(monster, stack) end
+
+---@param player Player
+---@return Position|nil, string|nil
+function Game.closeInstanceArena(player) end
 
 ---@param id number
 ---@return nil|Charm
@@ -714,6 +731,10 @@ function Game.createBestiaryCharm(id) end
 ---@param position? Position
 ---@return Container|nil
 function Game.createContainer(itemIdOrName, size, position) end
+
+---@param player Player
+---@return Position|nil, string|nil
+function Game.createInstanceArena(player) end
 
 ---@param itemIdOrName number|string
 ---@param count? number
@@ -804,6 +825,10 @@ function Game.getBoostedCreature(...) end
 function Game.getClientVersion(...) end
 
 ---@param ... any
+---@return table[]
+function Game.getClusterOnlinePlayers(...) end
+
+---@param ... any
 ---@return table
 function Game.getDummies(...) end
 
@@ -872,9 +897,22 @@ function Game.getNpcCount(...) end
 ---@return nil|Player
 function Game.getOfflinePlayer(nameOrId) end
 
+---@param name string
+---@param limit number
+---@return table[]
+function Game.getPlayerChannelSwitchHistory(name, limit) end
+
+---@param name string
+---@return number|nil
+function Game.getPlayerClusterChannel(name) end
+
 ---@param ... any
 ---@return number
 function Game.getPlayerCount(...) end
+
+---@param name string
+---@return table|nil
+function Game.getPlayerSessionLockInfo(name) end
 
 ---@param ... any
 ---@return Player[]
@@ -926,6 +964,10 @@ function Game.hasDistanceEffect(effectId) end
 ---@return boolean
 function Game.hasEffect(effectId) end
 
+---@param player Player
+---@return Position|nil, string|nil
+function Game.leaveInstanceArena(player) end
+
 ---@param path string
 ---@return nil
 function Game.loadMap(path) end
@@ -972,6 +1014,10 @@ function Game.setWorldType(type) end
 ---@param raidName string
 ---@return number
 function Game.startRaid(raidName) end
+
+---@param jobName string
+---@return boolean
+function Game.tryClaimClusterJobLeadership(jobName) end
 
 ---@class GlobalEvent
 GlobalEvent = {}
@@ -3644,6 +3690,9 @@ function Player:isOffline() end
 function Player:isPlayer() end
 
 ---@return boolean|nil
+function Player:isPremium() end
+
+---@return boolean|nil
 function Player:isPromoted() end
 
 ---@return boolean|nil
@@ -3808,6 +3857,10 @@ function Player:removeTransferableAndTibiaCoins(coins) end
 ---@param coins number
 ---@return boolean|nil
 function Player:removeTransferableCoins(coins) end
+
+---@param targetChannelId number
+---@return boolean|nil
+function Player:requestChannelSwitch(targetChannelId) end
 
 ---@return boolean|nil
 function Player:resetCharmsBestiary() end
@@ -4102,6 +4155,10 @@ function Player:setVocation(idOrNameOrUserdata) end
 ---@return boolean|nil
 function Player:setVoucherXpBoost(value) end
 
+---@param points number
+---@return boolean
+function Player:setWheelHuntingTaskShopPoints(points) end
+
 ---@param value number
 ---@return boolean|nil
 function Player:setXpBoostPercent(value) end
@@ -4164,10 +4221,6 @@ function Player:upgradeSpellsWOD(name, add) end
 ---@param scrollName string
 ---@return boolean
 function Player:wheelUnlockScroll(scrollName) end
-
----@param points integer
----@return boolean
-function Player:setWheelHuntingTaskShopPoints(points) end
 
 ---@class Position
 ---@field x integer
@@ -4997,7 +5050,7 @@ function db.lastInsertId(...) end
 function db.query(query) end
 
 ---@param query string
----@return number|false
+---@return boolean|number
 function db.queryAffectedRows(query) end
 
 ---@param query string
