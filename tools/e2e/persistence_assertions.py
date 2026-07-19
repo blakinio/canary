@@ -12,6 +12,15 @@ PLAYER_ITEM_TABLES = {
     "depot": "player_depotitems",
     "inbox": "player_inboxitems",
 }
+PLAYER_SKILL_LEVELS = {
+    "fist": {"column": "skill_fist", "client_skill_id": 0},
+    "club": {"column": "skill_club", "client_skill_id": 1},
+    "sword": {"column": "skill_sword", "client_skill_id": 2},
+    "axe": {"column": "skill_axe", "client_skill_id": 3},
+    "distance": {"column": "skill_dist", "client_skill_id": 4},
+    "shielding": {"column": "skill_shielding", "client_skill_id": 5},
+    "fishing": {"column": "skill_fishing", "client_skill_id": 6},
+}
 MAX_UINT16 = 65_535
 MAX_UINT32 = 4_294_967_295
 MAX_SAFE_LUA_INTEGER = 9_007_199_254_740_991
@@ -243,9 +252,37 @@ def _validate_all_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
             )
             continue
 
+        if assertion_type == "player_skill_level":
+            _reject_unknown_fields(check, {"id", "type", "skill", "equals"}, path)
+            skill = _require_string(check, "skill", path)
+            if skill not in PLAYER_SKILL_LEVELS:
+                raise PersistenceAssertionError(
+                    f"{path}.skill unsupported: {skill!r}; allowed: "
+                    + ", ".join(sorted(PLAYER_SKILL_LEVELS))
+                )
+            expected = _require_int_range(
+                check,
+                "equals",
+                path,
+                minimum=0,
+                maximum=MAX_UINT16,
+                description="an unsigned skill level",
+            )
+            validated.append(
+                {
+                    "id": assertion_id,
+                    "type": assertion_type,
+                    "skill": skill,
+                    "client_skill_id": PLAYER_SKILL_LEVELS[skill]["client_skill_id"],
+                    "equals": expected,
+                }
+            )
+            continue
+
         raise PersistenceAssertionError(
             f"{path}.type unsupported: {assertion_type!r}; allowed: "
-            "player_field, player_storage, player_item_presence, player_balance, player_magic_level"
+            "player_field, player_storage, player_item_presence, player_balance, "
+            "player_magic_level, player_skill_level"
         )
 
     return validated
@@ -257,14 +294,16 @@ def validate_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
     `player_field` checks use directly comparable LocalPlayer getters. `player_balance`
     uses the maintained LocalPlayer resource-balance getter and is restricted to exact
     Lua-safe integers. `player_magic_level` uses the maintained uint16 magic-level
-    getter. Arbitrary `player_storage` values and cross-location `player_item_presence`
-    checks remain on the post-cycle SQL boundary.
+    getter. `player_skill_level` uses a fixed classic-skill mapping and the maintained
+    LocalPlayer base-skill getter. Arbitrary `player_storage` values and cross-location
+    `player_item_presence` checks remain on the post-cycle SQL boundary.
     """
 
     return [
         check
         for check in _validate_all_persistence_assertions(raw)
-        if check["type"] in {"player_field", "player_balance", "player_magic_level"}
+        if check["type"]
+        in {"player_field", "player_balance", "player_magic_level", "player_skill_level"}
     ]
 
 
@@ -273,9 +312,10 @@ def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
 
     The Universal Physical E2E SQL evaluator accepts one semicolon-free SELECT per
     assertion and considers only stdout == "1" successful. `player_field`,
-    `player_balance` and `player_magic_level` checks are also emitted to the
-    controlled-client phase-two plan by run_agent_e2e.py. Arbitrary `player_storage`
-    and fixed-location `player_item_presence` checks remain database-only.
+    `player_balance`, `player_magic_level` and `player_skill_level` checks are also
+    emitted to the controlled-client phase-two plan by run_agent_e2e.py. Arbitrary
+    `player_storage` and fixed-location `player_item_presence` checks remain
+    database-only.
     """
 
     checks = _validate_all_persistence_assertions(raw)
@@ -340,8 +380,21 @@ def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
             )
             continue
 
+        if check["type"] == "player_magic_level":
+            queries.append(
+                "SELECT IF((SELECT `maglevel` FROM `players` WHERE `name` = "
+                + character_sql
+                + ") = "
+                + str(check["equals"])
+                + ", 1, 0)"
+            )
+            continue
+
+        skill_column = PLAYER_SKILL_LEVELS[str(check["skill"])]["column"]
         queries.append(
-            "SELECT IF((SELECT `maglevel` FROM `players` WHERE `name` = "
+            "SELECT IF((SELECT `"
+            + str(skill_column)
+            + "` FROM `players` WHERE `name` = "
             + character_sql
             + ") = "
             + str(check["equals"])
