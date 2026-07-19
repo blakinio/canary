@@ -173,12 +173,15 @@ class ScenarioPlanTests(unittest.TestCase):
 
     def test_runtime_driver_loads_plan_through_host_filesystem(self) -> None:
         driver = DRIVER_PATH.read_text(encoding="utf-8")
-        self.assertIn('io.open(PLAN_PATH, "r")', driver)
-        self.assertIn('load(source, "@" .. PLAN_PATH)', driver)
+        self.assertIn("local function loadHostLuaModule(path, label)", driver)
+        self.assertIn('io.open(path, "r")', driver)
+        self.assertIn('load(source, "@" .. path)', driver)
         self.assertIn("pcall(chunk)", driver)
-        self.assertIn("failed to open scenario plan", driver)
-        self.assertIn("failed to compile scenario plan", driver)
-        self.assertIn("failed to execute scenario plan", driver)
+        self.assertIn('loadHostLuaModule(PLAN_PATH, "scenario plan")', driver)
+        self.assertIn('loadHostLuaModule(ROUTE_EXECUTOR_PATH, "route executor")', driver)
+        self.assertIn("failed to open " + '" .. label', driver)
+        self.assertIn("failed to compile " + '" .. label', driver)
+        self.assertIn("failed to execute " + '" .. label', driver)
         self.assertNotIn("pcall(dofile, PLAN_PATH)", driver)
 
     def test_runtime_driver_waits_for_initial_position_before_plan(self) -> None:
