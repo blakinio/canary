@@ -2,13 +2,13 @@
 task_id: CAN-20260719-e2e-route-001-follow-route
 program_id: CAN-PROGRAM-OTBM-E2E-ROUTING
 coordination_id: E2E-ROUTE-001
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/e2e-route-001-follow-route
 base_branch: main
 created: 2026-07-19
-updated: 2026-07-19
-last_verified_commit: "bb9e5334cee9a4e1e53857073ff7e8d82cdd91f7"
+updated: 2026-07-19T14:27:09Z
+last_verified_commit: "a596f213bf8babef2e8cce144f111c0a939d00ee"
 risk: medium
 related_issue: ""
 related_pr: "589"
@@ -52,6 +52,7 @@ reuses:
 public_interfaces:
   - follow_route physical action
 cross_repo_tasks: []
+completed: 2026-07-19T14:27:09Z
 ---
 
 # Goal
@@ -153,3 +154,11 @@ validation:
     evidence: Workflow run 29688305269 completed the controlled Canary/MariaDB/OTClient physical login-safe-logout-persistence-relog lifecycle successfully.
 next_action: Wait for exact-final-head Agent Task Ownership, CI/Required, focused Lua/Python route tests, and Universal Agent E2E on this final checkpoint commit; if all remain green and no review blocker appears, squash merge PR #589 with no further feature-branch commit.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #589.
+- Feature head: `f3fd125e346f109b69dd6ebd6956e84fb54c391b`.
+- Merge commit: `a596f213bf8babef2e8cce144f111c0a939d00ee`.
+- Merged at: `2026-07-19T14:27:09Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
