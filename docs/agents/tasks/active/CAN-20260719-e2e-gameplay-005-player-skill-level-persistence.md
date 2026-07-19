@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-player-skill-level-persistence
 base_branch: main
 created: 2026-07-19T22:25:00+02:00
-updated: 2026-07-19T22:25:00+02:00
-last_verified_commit: "7b659fc3ad2de16374adf5450e97a731406f92e6"
+updated: 2026-07-19T22:27:00+02:00
+last_verified_commit: "1c639d0167476fee2871f8325beab5da48287046"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "603"
 depends_on:
   - merged E2E-GAMEPLAY-005 typed persistence foundation
   - merged PR #595 player_magic_level persistence
@@ -66,12 +66,12 @@ Add one bounded reusable `player_skill_level` persistence assertion for the seve
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T22:25:00+02:00
-head: 7b659fc3ad2de16374adf5450e97a731406f92e6
+updated_at: 2026-07-19T22:27:00+02:00
+head: 1c639d0167476fee2871f8325beab5da48287046
 branch: feat/e2e-player-skill-level-persistence
-pr: none
+pr: 603
 status: implementing
-next_action: Open a draft PR, bind task ownership, then implement the fixed player_skill_level validator, SQL compiler, controlled-client base-skill reader, focused tests and contract documentation.
+next_action: Implement the fixed player_skill_level validator, SQL compiler, controlled-client base-skill reader, focused tests and contract documentation.
 context_routes:
   - agent-governance
   - e2e
@@ -84,6 +84,7 @@ owned_paths:
   - docs/agents/MODULE_CATALOG.md
 proven:
   - live main at task start is 7b659fc3ad2de16374adf5450e97a731406f92e6
+  - draft PR 603 owns branch feat/e2e-player-skill-level-persistence
   - no open PR matched player_skill_level or classic skill persistence ownership at task start
   - Canary schema stores the seven classic skill levels in fixed players.skill_* columns with separate *_tries columns
   - Canary load maps the seven fixed skill columns into player skills level values as uint16
@@ -94,7 +95,7 @@ proven:
 derived:
   - post-relog persistence verification should use getSkillBaseLevel rather than getSkillLevel so temporary or equipment bonuses cannot create a false mismatch against durable database state
 unknown:
-  - exact branch implementation head and CI outcomes are not known yet
+  - exact implementation head and CI outcomes are not known yet
 conflicts: []
 rejected_hypotheses:
   - expose a caller-provided SQL column
@@ -105,7 +106,7 @@ changed_paths:
 blockers: []
 first_failure:
   marker: No material failure observed yet.
-  evidence: Task has only established the evidence contract and ownership record so far.
+  evidence: Task has established the evidence contract and draft PR ownership but has not entered implementation validation yet.
 validation:
   - command: evidence review of Canary schema and player skill save/load implementation
     result: PASS
