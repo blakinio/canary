@@ -2,7 +2,7 @@
 task_id: CAN-20260719-oteryn-imbuements-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-019
-status: validating
+status: implementing
 agent: "GPT-5.5 Thinking"
 branch: docs/oam-019-imbuements-revalidation
 base_branch: main
@@ -10,7 +10,7 @@ created: 2026-07-19
 updated: 2026-07-19T14:05:00+02:00
 last_verified_commit: "e551f3fd33c9642399bb1e70d1f2f6383464b936"
 risk: high
-related_pr: ""
+related_pr: "588"
 depends_on:
   - OAM-013
 blocks:
