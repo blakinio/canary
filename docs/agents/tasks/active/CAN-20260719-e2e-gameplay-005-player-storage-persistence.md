@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-gameplay-005-player-storage-persistence
 base_branch: main
 created: 2026-07-19T13:00:00+02:00
-updated: 2026-07-19T13:08:00+02:00
-last_verified_commit: "ae6a2667da52b8671435a293f12a9f4386010606"
+updated: 2026-07-19T13:22:00+02:00
+last_verified_commit: "47265b892ef0804b806961022e51e128f9299da3"
 risk: medium
 related_issue: ""
 related_pr: "583"
@@ -23,14 +23,14 @@ owned_paths:
     - tests/e2e/test_player_storage_persistence.py
   shared:
     - tools/e2e/persistence_assertions.py
-    - tools/e2e/run_agent_e2e.py
-    - tests/e2e/test_persistence_assertions.py
     - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
     - docs/agents/MODULE_CATALOG.md
-    - docs/agents/CHANGELOG.md
   read_only:
+    - tools/e2e/run_agent_e2e.py
     - tools/e2e/client/agent_e2e_scenario.lua
     - tools/e2e/run_physical_e2e.sh
+    - tests/e2e/test_persistence_assertions.py
+    - docs/agents/CHANGELOG.md
     - .github/workflows/**
     - schema.sql
     - docs/agents/programs/E2E_AUTOMATION_PROGRAM.md
@@ -61,7 +61,7 @@ Extend the existing feature-neutral `scenario.assertions.persistence` contract w
 - [x] Exclude `player_storage` from generated phase-two client checks rather than pretending arbitrary storage is client-readable.
 - [x] Reject unknown fields/types and duplicate assertion IDs fail-closed.
 - [x] Add focused compiler and manifest/Lua-plan integration tests, including mixed `player_field` + `player_storage` checks.
-- [ ] Document the database-only verification boundary for `player_storage`.
+- [x] Document the database-only verification boundary for `player_storage`.
 - [x] Keep feature-specific storage keys and expected values in feature scenario manifests; do not add invented shared fixture storage IDs.
 - [ ] Apply `ci:final-gate` before the final checkpoint commit.
 - [ ] Require exact-final-head Ownership, CI and Universal Agent E2E success before merge.
@@ -70,11 +70,11 @@ Extend the existing feature-neutral `scenario.assertions.persistence` contract w
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T13:08:00+02:00
-head: ae6a2667da52b8671435a293f12a9f4386010606
+updated_at: 2026-07-19T13:22:00+02:00
+head: 47265b892ef0804b806961022e51e128f9299da3
 branch: feat/e2e-gameplay-005-player-storage-persistence
 pr: 583
-status: implementing
+status: validating
 context_routes:
   - universal-e2e
   - agent-governance
@@ -82,11 +82,8 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260719-e2e-gameplay-005-player-storage-persistence.md
   - tools/e2e/persistence_assertions.py
   - tests/e2e/test_player_storage_persistence.py
-  - tools/e2e/run_agent_e2e.py
-  - tests/e2e/test_persistence_assertions.py
   - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
   - docs/agents/MODULE_CATALOG.md
-  - docs/agents/CHANGELOG.md
 proven:
   - live main at task start is 7b517aec1dfe9e89befc68a53d7aece383098623
   - draft PR 583 owns branch feat/e2e-gameplay-005-player-storage-persistence
@@ -95,15 +92,21 @@ proven:
   - current schema defines player_storage.key as int(10) unsigned and player_storage.value as signed int(11)
   - E2E roadmap explicitly allows persistence assertion work to proceed independently of OTBM route planning
   - PR #580 owns OTBM-E2E-001B and does not touch tools/e2e paths
-  - player_storage validation and fixed-shape SQL compilation are implemented on ae6a2667da52b8671435a293f12a9f4386010606
+  - player_storage validation and fixed-shape SQL compilation are implemented without caller-controlled SQL identifiers, predicates or fragments
   - mixed-contract focused tests prove player_storage compiles to SQL while only player_field is emitted to the Lua phase-two plan
-  - CI run 29684541033 succeeded on ae6a2667da52b8671435a293f12a9f4386010606
+  - canonical PHYSICAL_GAMEPLAY_ACTION_PLANS documentation defines the database-only player_storage boundary and schema ranges
+  - MODULE_CATALOG public-surface update has exactly one intended Universal E2E row hunk after unrelated full-replacement drift was detected and restored
+  - CI run 29684541033 succeeded on implementation head ae6a2667da52b8671435a293f12a9f4386010606
+  - Agent Task Ownership run 29684624208 succeeded after related_pr was corrected
   - no feature-specific storage key or expected value was added to shared platform fixtures
-derived:
+  - main advanced after task start only through non-overlapping agent lifecycle workflow/task archival changes
+  - PR 583 remains mergeable against main before final gate
+  - docs/agents/CHANGELOG.md remains read-only in this package; the delivered public interface is documented in the canonical E2E contract and MODULE_CATALOG
+ derived:
   - player_storage safely reuses the existing post-cycle scalar SQL evaluator while player_field remains the only current phase-two client-readable persistence type
   - filtering runtime checks by assertion type preserves the real-client verification boundary without weakening database persistence proof
 unknown:
-  - exact-final-head workflow conclusions after documentation and final checkpoint
+  - exact-final-head workflow conclusions after final checkpoint
 conflicts: []
 first_failure:
   marker: ownership_related_pr_mismatch
@@ -113,17 +116,26 @@ rejected_hypotheses:
   - exposing arbitrary SQL through the typed persistence contract
   - pretending arbitrary player storage is readable from the controlled OTClient
   - modifying OTBM routing or PR #580 scope
+  - rewriting unrelated MODULE_CATALOG content as part of the public-surface update
 changed_paths:
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260719-e2e-gameplay-005-player-storage-persistence.md
-  - tools/e2e/persistence_assertions.py
+  - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
   - tests/e2e/test_player_storage_persistence.py
+  - tools/e2e/persistence_assertions.py
 validation:
   - command: CI run 29684541033
     result: PASS
     evidence: repository CI succeeded on implementation head ae6a2667da52b8671435a293f12a9f4386010606
   - command: Agent Task Ownership run 29684540982
     result: FAIL
-    evidence: initial task record related_pr was empty; corrected to 583 in the next checkpoint commit
+    evidence: initial task record related_pr was empty; corrected to 583
+  - command: Agent Task Ownership run 29684624208
+    result: PASS
+    evidence: corrected task-to-PR binding validated successfully
+  - command: PR #583 MODULE_CATALOG patch audit
+    result: PASS
+    evidence: patch contains only the intended Universal OTS E2E row update after unrelated text was restored
 blockers: []
-next_action: Complete public documentation/catalogue/changelog updates, verify ownership recovery and Universal Agent E2E, then apply ci:final-gate before the final checkpoint commit.
+next_action: Apply ci:final-gate, create the final checkpoint commit, make no further commits, mark PR ready, and require exact-final-head Ownership, CI and Universal Agent E2E success plus clean review/merge state before squash merge.
 ```
