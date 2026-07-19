@@ -2,13 +2,13 @@
 task_id: CAN-20260719-otbm-e2e-thais-landmark-binding
 program_id: CAN-PROGRAM-OTBM-E2E-ROUTING
 coordination_id: OTBM-E2E-005-LANDMARKS
-status: validating
+status: implementing
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-thais-landmark-binding
 base_branch: main
 created: 2026-07-19T21:05:00+02:00
-updated: 2026-07-19T21:50:00+02:00
-last_verified_commit: "7112eb246a1f9f0f25dd02a25567065b8f77d885"
+updated: 2026-07-19T21:55:00+02:00
+last_verified_commit: "ff9502ac87719767e45fa8850fb41ce1050a338a"
 risk: medium
 related_issue: ""
 related_pr: "599"
@@ -23,6 +23,7 @@ owned_paths:
     - docs/agents/tasks/active/CAN-20260719-otbm-e2e-thais-landmark-binding.md
     - docs/ai-agent/OTBM_SEMANTIC_LANDMARKS.json
     - docs/ai-agent/OTBM_THAIS_LANDMARK_EVIDENCE.md
+    - tools/ai-agent/test_otbm_semantic_landmarks.py
   shared:
     - docs/agents/MODULE_CATALOG.md
     - docs/agents/CHANGELOG.md
@@ -69,21 +70,22 @@ This is a bounded evidence prerequisite. It must turn the currently `unbound` re
 - [x] Define one bounded common routing region containing the selected temple and depot anchors without exceeding the existing Reachability coordinate bound.
 - [x] Update `OTBM_SEMANTIC_LANDMARKS.json` to `registryStatus=reviewed` with exact source-map and World Index SHA-256 provenance, evidence-reviewed anchors and deterministic IDs.
 - [x] Validate the updated registry with the existing `otbm_semantic_landmarks.py` contract and exact expected provenance.
+- [ ] Update the committed-registry regression test from the superseded unbound-seed expectation to exact reviewed Thais provenance and anchor resolution.
 - [x] Do not edit route planning, preflight, Universal E2E, workflow, OTClient, runtime map, OTBM, `.widx`, `items.otb` or client assets.
 - [x] Keep the actual OTBM-E2E-005 physical scenario out of this PR; it remains the downstream consumer after this binding merges.
 - [x] Update the module catalogue/changelog narrowly for the reviewed registry binding.
-- [x] Apply `ci:final-gate` before the final checkpoint commit and make no post-final-head commits.
+- [ ] Apply/reuse `ci:final-gate` before the replacement final checkpoint commit and make no post-final-head commits.
 - [ ] Require exact-final-head Ownership, CI and applicable OTBM validation checks plus a clean review blocker audit before squash merge.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T21:50:00+02:00
-head: 7112eb246a1f9f0f25dd02a25567065b8f77d885
+updated_at: 2026-07-19T21:55:00+02:00
+head: ff9502ac87719767e45fa8850fb41ce1050a338a
 branch: feat/otbm-e2e-thais-landmark-binding
 pr: 599
-status: validating
+status: implementing
 context_routes:
   - agent-governance
   - otbm
@@ -91,6 +93,7 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260719-otbm-e2e-thais-landmark-binding.md
   - docs/ai-agent/OTBM_SEMANTIC_LANDMARKS.json
   - docs/ai-agent/OTBM_THAIS_LANDMARK_EVIDENCE.md
+  - tools/ai-agent/test_otbm_semantic_landmarks.py
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
 proven:
@@ -107,22 +110,25 @@ proven:
   - deterministic minimum-strict-distance then lexicographic tie-break selects thais.depot route destination 32352,32226,7 adjacent to reviewed locker 32352,32225,7
   - final bounded region 32347,32216,7 through 32369,32241,7 contains 598 coordinates and produces confirmed strict/optimistic distance 66 with zero error findings, no path truncation and no transition IDs used
   - semantic landmark registry is reviewed with exact source-map/index provenance and resolves the temple/depot anchors inside the bounded region under the existing validator contract
-  - PR patch is confined to task record, reviewed registry, durable Thais evidence document, one module-catalogue row and one changelog entry; no route/E2E/workflow/runtime/map/client artifact path is changed
-  - ci:final-gate label was applied before this final checkpoint commit
+  - final-head AI Agent Tools on ff9502ac87719767e45fa8850fb41ce1050a338a failed because tools/ai-agent/test_otbm_semantic_landmarks.py still asserted that the committed registry seed must remain unbound and empty
+  - the failed final gate invalidated the ff9502ac87719767e45fa8850fb41ce1050a338a freeze and requires a replacement final head after the regression contract is updated
 blockers:
-  - exact-final-head Ownership, CI, OTBM Map Tools and AI Agent Tools are pending
-  - final review blocker audit and expected-head squash merge remain pending
+  - committed semantic-landmark regression test still encodes the superseded unbound-seed state
+  - replacement exact-final-head checks and review audit remain pending
 failed_approaches:
   - interpreted-Python bounded full-map scanning was too slow for the 184776037-byte map; the canonical native World Index scanner was reused instead of creating another parser
   - client minimap package inspection is only auxiliary visual evidence and was not used to establish strict walkability or executable route anchors
+  - first final head ff9502ac87719767e45fa8850fb41ce1050a338a failed AI Agent Tools because the old committed-seed unit test was not updated with the registry state transition
 next_actions:
-  - make no commits after this final checkpoint
-  - require exact-final-head checks and confirm autofix does not mutate the frozen head
-  - require clean review blocker audit and unchanged expected head before squash merge
+  - update the committed-registry regression test to require reviewed exact Thais provenance and deterministic route-origin/route-destination resolution
+  - require green pre-final AI Agent Tools and Ownership on the corrected head
+  - write one replacement final checkpoint commit under the already-applied ci:final-gate label, freeze it and make no further commits
+  - require exact-final-head checks and clean review blocker audit before expected-head squash merge
 validation:
   ownership: pending
   registry: passed
   world_index: passed
   reachability: passed
+  ai_agent_tools: failed-on-superseded-test
   ci: pending
 ```
