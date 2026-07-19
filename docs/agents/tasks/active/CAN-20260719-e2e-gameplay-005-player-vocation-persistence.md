@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-player-vocation-persistence
 base_branch: main
 created: 2026-07-19T23:38:00+02:00
-updated: 2026-07-19T23:38:00+02:00
+updated: 2026-07-19T23:44:00+02:00
 last_verified_commit: "183d7224cb5de57585294d72631f37783b93dc89"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "608"
 depends_on:
   - merged E2E-GAMEPLAY-005 typed persistence foundation
   - merged PR #603 player_skill_level persistence
@@ -67,12 +67,12 @@ Add one bounded reusable `player_vocation` persistence assertion that accepts on
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T23:38:00+02:00
-head: 183d7224cb5de57585294d72631f37783b93dc89
+updated_at: 2026-07-19T23:44:00+02:00
+head: 30ac202a26a30e47b1411b264186cb4d2d1adacb
 branch: feat/e2e-player-vocation-persistence
-pr: null
+pr: 608
 status: implementing
-next_action: Publish the draft PR, implement fixed semantic server/client vocation normalization in the existing typed persistence compiler, add focused tests and docs, then audit the exact diff.
+next_action: Complete the narrow MODULE_CATALOG update, resolve any focused CI findings, then apply ci:final-gate before the final checkpoint commit.
 context_routes:
   - agent-governance
   - universal-e2e
@@ -92,9 +92,14 @@ proven:
   - maintained OTClient Player.getVocation returns the client-facing vocation ID domain
   - existing Universal E2E Lua driver already reads player:getVocation() for runtime player_field vocation checks
   - existing typed persistence compiler and two-session relog verification are reusable
+  - implementation keeps raw player_field vocation unavailable to callers and normalizes only typed player_vocation checks into the existing runtime path
+  - implementation SQL uses only the fixed players.vocation column and fixed server vocation mapping
   - an earlier speculative player_soul draft PR 606 was closed without merge before implementation and is superseded by this evidence-backed vocation slice
+derived:
+  - client-side equality must use the fixed client vocation ID while post-cycle SQL must use the fixed Canary server vocation ID for the same semantic vocation
+  - retaining vocation outside caller-accessible player_field prevents bypassing the normalization boundary with a raw numeric equality check
 unknown:
-  - exact final-head validation outcomes are not known yet
+  - focused test and final exact-head validation outcomes are not known yet
 conflicts: []
 rejected_hypotheses:
   - compare raw Canary server vocation IDs directly to LocalPlayer.getVocation
@@ -103,9 +108,21 @@ rejected_hypotheses:
   - add a second E2E runner or lifecycle
 changed_paths:
   - docs/agents/tasks/active/CAN-20260719-e2e-gameplay-005-player-vocation-persistence.md
+  - docs/e2e/PLAYER_VOCATION_PERSISTENCE.md
+  - tests/e2e/test_player_vocation_persistence.py
+  - tools/e2e/persistence_assertions.py
 blockers: []
+first_failure:
+  marker: Agent Task Ownership rejected the first implementation checkpoint because required checkpoint fields derived and first_failure were absent.
+  evidence: Ownership artifact active-task-ownership from run 29704784426 reported exactly the two missing checkpoint fields; no path-overlap or task-ownership conflict was reported.
 validation:
   - command: evidence review of current Canary vocations.xml and maintained OTClient vocation constants/getter
     result: PASS
     evidence: The eleven server vocation IDs map deterministically to explicit client IDs, and LocalPlayer.getVocation exposes the client-facing domain used by maintained client logic.
+  - command: PR 608 implementation patch audit for tools/e2e/persistence_assertions.py
+    result: PASS
+    evidence: The patch is limited to the fixed vocation mapping, typed validation, normalized client check emission, fixed SQL compilation and related documentation strings.
+  - command: CI workflow on implementation head 30ac202a26a30e47b1411b264186cb4d2d1adacb
+    result: PASS
+    evidence: CI completed successfully; Agent Task Ownership failed only because this task checkpoint omitted required derived and first_failure fields, which this commit corrects.
 ```
