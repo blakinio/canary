@@ -46,17 +46,6 @@ local DIRECTIONS = {
 	northwest = NorthWest or 7,
 }
 
-local WALK_EDGE_DIRECTIONS = {
-	["0,-1"] = DIRECTIONS.north,
-	["1,-1"] = DIRECTIONS.northeast,
-	["1,0"] = DIRECTIONS.east,
-	["1,1"] = DIRECTIONS.southeast,
-	["0,1"] = DIRECTIONS.south,
-	["-1,1"] = DIRECTIONS.southwest,
-	["-1,0"] = DIRECTIONS.west,
-	["-1,-1"] = DIRECTIONS.northwest,
-}
-
 local function sanitize(value)
 	return tostring(value):gsub("[\t\r\n]", " ")
 end
@@ -317,50 +306,23 @@ function runNextStep()
 		return
 	end
 	if step.action == "walk_edge" then
-		local player = g_game.getLocalPlayer()
-		if not player then
-			failStep(step, "local player unavailable")
+		if not routeExecutor or type(routeExecutor.walkEdge) ~= "function" then
+			failStep(step, "exact movement edge executor unavailable")
 			return
 		end
-		local source = { x = step.from_x, y = step.from_y, z = step.from_z }
-		local destination = { x = step.to_x, y = step.to_y, z = step.to_z }
-		local current = player:getPosition()
-		if not samePosition(current, source) then
-			failStep(step, string.format("source mismatch actual=%s expected=%s", positionString(current), positionString(source)))
-			return
-		end
-		if source.z ~= destination.z then
-			failStep(step, "floor-changing movement edge is unsupported")
-			return
-		end
-		local deltaX = destination.x - source.x
-		local deltaY = destination.y - source.y
-		local direction = WALK_EDGE_DIRECTIONS[string.format("%d,%d", deltaX, deltaY)]
-		if direction == nil then
-			failStep(step, string.format("invalid adjacent edge delta=%d,%d", deltaX, deltaY))
-			return
-		end
-		if not g_game.walk(direction) then
-			failStep(step, "walk request rejected")
-			return
-		end
-		pollUntil(step, step.timeout_ms or 10000, function()
-			local livePlayer = g_game.getLocalPlayer()
-			local livePosition = livePlayer and livePlayer:getPosition() or nil
-			if not livePosition then
-				return false, "local player position unavailable"
-			end
-			if samePosition(livePosition, destination) then
-				return true, positionString(livePosition)
-			end
-			if not samePosition(livePosition, source) then
-				failStep(step, string.format("route drift actual=%s expected=%s", positionString(livePosition), positionString(destination)))
-				return false, "route drift"
-			end
-			return false, string.format("position=%s expected=%s", positionString(livePosition), positionString(destination))
-		end, function(detail)
-			completeStep(step, detail)
-		end)
+		routeExecutor.walkEdge(
+			{ x = step.from_x, y = step.from_y, z = step.from_z },
+			{ x = step.to_x, y = step.to_y, z = step.to_z },
+			step.timeout_ms or 10000,
+			{
+				onSuccess = function(detail)
+					completeStep(step, detail)
+				end,
+				onFailure = function(_, detail)
+					failStep(step, detail)
+				end,
+			}
+		)
 		return
 	end
 	if step.action == "follow_route" then
@@ -676,9 +638,16 @@ local function loadPlan()
 	for _ in pairs(loaded.routes) do
 		routeCount = routeCount + 1
 	end
-	if routeCount > 0 then
+	local needsExactMovementExecutor = routeCount > 0
+	for _, step in ipairs(loaded.steps) do
+		if step.action == "walk_edge" or step.action == "follow_route" then
+			needsExactMovementExecutor = true
+			break
+		end
+	end
+	if needsExactMovementExecutor then
 		routeExecutor = loadHostLuaModule(ROUTE_EXECUTOR_PATH, "route executor")
-		if type(routeExecutor) ~= "table" or type(routeExecutor.execute) ~= "function" then
+		if type(routeExecutor) ~= "table" or type(routeExecutor.walkEdge) ~= "function" or type(routeExecutor.execute) ~= "function" then
 			fail("invalid route executor contract")
 			return false
 		end
