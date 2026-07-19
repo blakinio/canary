@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-001b-executable-routing
 base_branch: main
 created: 2026-07-19T11:58:00+02:00
-updated: 2026-07-19T11:58:00+02:00
-last_verified_commit: ""
+updated: 2026-07-19T12:18:00+02:00
+last_verified_commit: "1e2e2d344a27f964bbfd908d5d3c859f2fe2f1a7"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "580"
 depends_on:
   - OTBM-E2E-001 route-plan contract merged as PR #567
   - OTBM-E2E-003 route interaction registry merged as PR #572
@@ -57,15 +57,15 @@ Implement `OTBM-E2E-001B — Executable interaction-aware routing mode` by rerun
 
 # Acceptance criteria
 
-- [ ] Reuse the existing `_bfs()` traversal; do not add another pathfinder.
-- [ ] Preserve existing strict and optimistic Reachability report behavior when executable interaction routing is not requested.
-- [ ] Add an executable movement/edge policy equivalent to strict walkability OR an exact conditional crossing with supported reviewed interaction evidence.
-- [ ] Keep unknown appearances, unresolved quest/dynamic state, conflicting Script Resolution and unsupported interactions blocked.
-- [ ] Require reviewed interaction semantics for transition edges used by an executable route.
-- [ ] Emit exact resolved interaction evidence on the route-plan edge where the conditional crossing/transition is used.
-- [ ] Pin the exact interaction-registry SHA-256 in route-plan provenance when it influences executability.
-- [ ] Provide the programme fixture: strict route unavailable, optimistic route can cross an unknown barrier or a reviewed door, executable BFS selects only a fully reviewed path, and removing interaction evidence makes the route non-executable.
-- [ ] Keep existing route-plan deterministic/full-path fail-closed behavior.
+- [x] Reuse the existing `_bfs()` traversal; do not add another pathfinder.
+- [x] Preserve existing strict and optimistic Reachability report behavior when executable interaction routing is not requested.
+- [x] Add an executable movement/edge policy equivalent to strict walkability OR an exact conditional crossing with supported reviewed interaction evidence.
+- [x] Keep unknown appearances, unresolved quest/dynamic state, conflicting Script Resolution and unsupported interactions blocked.
+- [x] Require reviewed interaction semantics for transition edges used by an executable route.
+- [x] Emit exact resolved interaction evidence on the route-plan edge where the conditional crossing/transition is used.
+- [x] Pin the exact interaction-registry SHA-256 in route-plan provenance when it influences executability.
+- [x] Provide the programme fixture: strict route unavailable, optimistic route can cross an unknown barrier or a reviewed door, executable BFS selects only a fully reviewed path, and removing interaction evidence makes the route non-executable.
+- [x] Keep existing route-plan deterministic/full-path fail-closed behavior.
 - [ ] Update the route-plan schema/docs plus catalogue/changelog for the changed reusable interface.
 - [ ] Apply `ci:final-gate` before the final checkpoint commit and merge only on green exact-final-head checks.
 
@@ -73,10 +73,10 @@ Implement `OTBM-E2E-001B — Executable interaction-aware routing mode` by rerun
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T11:58:00+02:00
-head: ""
+updated_at: 2026-07-19T12:18:00+02:00
+head: 1e2e2d344a27f964bbfd908d5d3c859f2fe2f1a7
 branch: feat/otbm-e2e-001b-executable-routing
-pr: null
+pr: 580
 status: implementing
 context_routes:
   - agent-governance
@@ -96,14 +96,24 @@ proven:
   - OTBM-E2E-001 merged as PR #567 and publishes canary-otbm-e2e-route-plan-v1 from the existing Reachability BFS/predecessor graph
   - OTBM-E2E-003 merged as PR #572 and publishes canary-otbm-route-interactions-v1 with deterministic fail-closed resolution
   - programme requires executable routing to reuse the same existing _bfs() and forbids treating plain optimistic walkability as executable
-  - current _bfs() chooses strict versus optimistic TileState predicates and retains transition_id on predecessor edges
-  - current route-plan exporter blocks all conditional routes and all routes containing unresolved transition interaction semantics
+  - PR #580 is the same-repository draft PR for this task with base main and head feat/otbm-e2e-001b-executable-routing
+  - _bfs() remains the only traversal and now accepts an optional movement-edge predicate without changing default strict/optimistic behavior
+  - validated transition edges accept an optional directional executable predicate while preserving existing strict/optimistic eligibility
+  - interaction-aware routing builds a narrower executable edge set and reruns the same _bfs() rather than introducing another pathfinder
+  - unknown appearances are rejected before registry lookup and therefore cannot be promoted by a reviewed selector
+  - exact conditional blocker placements must all resolve executable; AID/UID barriers additionally require an explicit safe Script Resolution status
+  - transition edges require exact reviewed transition-ID semantics and fail closed on unresolved dynamic/script uncertainty
+  - executable route-plan edges retain exact interaction-resolution evidence and interaction-registry provenance
+  - focused fixtures cover a shorter unsafe optimistic path versus a longer reviewed-door path, missing door evidence, unknown appearance fail-closed behavior, reviewed/unreviewed teleports, unresolved AID state and determinism
+  - route-plan CLI accepts optional --interactions and validates the reviewed registry against exact source-map and World Index provenance before executable routing
+  - route-plan schema/docs now describe executable routing mode, executableDistance and edge-level interaction evidence
   - no open PR was found claiming OTBM-E2E-001B or otbm_reachability paths at task start
   - repository writes are restricted to blakinio/canary
   - lifecycle cleanup PR #579 for merged PR #572 is separate; auto-merge is enabled and this task does not manually archive that record
   - no OTBM, WIDX, items.otb, client assets or tools/e2e changes are in scope
 unknown:
-  - exact final implementation head and CI evidence
+  - focused workflow results for the current implementation head are queued
+  - final shared catalogue/changelog update and exact final implementation head
 conflicts: []
 blockers: []
 first_failure: null
@@ -114,9 +124,19 @@ rejected_hypotheses:
   - modify Universal Physical E2E execution in this work package
 changed_paths:
   - docs/agents/tasks/active/CAN-20260719-otbm-e2e-001b-executable-routing.md
+  - docs/ai-agent/OTBM_E2E_ROUTE_PLAN.md
+  - docs/ai-agent/OTBM_E2E_ROUTE_PLAN.schema.json
+  - tools/ai-agent/otbm_reachability.py
+  - tools/ai-agent/otbm_reachability_analysis.py
+  - tools/ai-agent/otbm_reachability_graph.py
+  - tools/ai-agent/otbm_reachability_tool.py
+  - tools/ai-agent/test_otbm_reachability_executable.py
 validation:
   - command: live programme/dependency/ownership preflight
     result: PASS
     evidence: PR #567 and PR #572 are merged; no open overlapping OTBM-E2E-001B/reachability PR found
-next_action: Open the draft PR, then implement the smallest executable edge-policy extension around the existing Reachability _bfs() and add focused fixtures.
+  - command: changed-file scope review on PR #580
+    result: PASS
+    evidence: exactly eight task/Reachability/route-plan files are changed; no tools/e2e, OTBM, WIDX, items.otb or asset paths
+next_action: Wait for focused implementation workflows, repair any exact failures, then update shared catalogue/changelog, apply ci:final-gate and create the final task checkpoint commit.
 ```
