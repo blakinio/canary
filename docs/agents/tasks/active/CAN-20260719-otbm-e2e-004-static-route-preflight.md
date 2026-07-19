@@ -25,6 +25,7 @@ owned_paths:
     - docs/agents/tasks/active/CAN-20260719-otbm-e2e-004-static-route-preflight.md
     - tools/ai-agent/otbm_route_preflight.py
     - tools/ai-agent/test_otbm_route_preflight.py
+    - tools/ai-agent/test_otbm_route_preflight_paths.py
     - docs/ai-agent/OTBM_E2E_ROUTE_PREFLIGHT.md
     - docs/ai-agent/OTBM_E2E_ROUTE_PREFLIGHT.schema.json
   shared:
@@ -68,7 +69,7 @@ Implement `OTBM-E2E-004 — Exact-map static route preflight` as a deterministic
 - [x] Revalidate transition IDs, exact source/destination and expected item evidence through canonical route regeneration and transition-state comparison.
 - [x] Revalidate required interaction selectors and fail closed for unsupported activation or blocked Script Resolution evidence.
 - [x] Emit deterministic first blocker plus bounded findings without claiming runtime gameplay proof.
-- [x] Add focused tests for success, provenance mismatch, stale landmark, invalid walk/diagonal, stale transition, blocked script resolution, unsupported activation and truncated/incomplete route.
+- [x] Add focused tests for success, provenance mismatch, stale landmark, invalid walk/diagonal, stale transition, blocked script resolution, unsupported activation, truncated/incomplete route and canonical exporter path integration.
 - [x] Do not modify `.otbm`, `.widx`, `items.otb`, client assets, `tools/e2e/**` or workflows.
 - [ ] Apply `ci:final-gate` before the final checkpoint commit and pass exact-final-head required checks before squash merge.
 
@@ -87,6 +88,7 @@ context_routes:
 owned_paths:
   - tools/ai-agent/otbm_route_preflight.py
   - tools/ai-agent/test_otbm_route_preflight.py
+  - tools/ai-agent/test_otbm_route_preflight_paths.py
   - docs/ai-agent/OTBM_E2E_ROUTE_PREFLIGHT.md
   - docs/ai-agent/OTBM_E2E_ROUTE_PREFLIGHT.schema.json
 proven:
@@ -104,12 +106,14 @@ proven:
   - plain optimistic reachability remains insufficient for physical executability
   - unresolved/conflicting Script Resolution evidence is not promoted to executable
   - head 5e9930815d317b91f4f688cc91f1b79888ed51f6 passed AI Agent Tools, OTBM Map Tools and main CI
-  - AI Agent Tools test discovery executed the new focused test_otbm_route_preflight.py suite successfully
+  - AI Agent Tools test discovery executed the focused test_otbm_route_preflight.py suite successfully
+  - corrected task checkpoint passed Agent Task Ownership on head c332f5bd7cd66107f42fa563f71b79357bda1c3c
 
 derived:
   - exact canonical route regeneration is the narrowest way to re-check tile classification, diagonal corner constraints, transitions and interaction-aware executable policy without duplicating the existing parser, World Index, classifier or BFS
   - real Thais landmark binding and physical reference-route execution remain OTBM-E2E-005 scope
 unknown:
+  - result of the newly added canonical-exporter path integration tests
   - final MODULE_CATALOG and CHANGELOG shared-document reconciliation
   - exact-final-head final-gate results
 conflicts: []
@@ -123,10 +127,11 @@ changed_paths:
   - docs/ai-agent/OTBM_E2E_ROUTE_PREFLIGHT.schema.json
   - tools/ai-agent/otbm_route_preflight.py
   - tools/ai-agent/test_otbm_route_preflight.py
+  - tools/ai-agent/test_otbm_route_preflight_paths.py
 blockers: []
 first_failure:
   marker: Agent Task Ownership / Validate changed active task checkpoints
-  evidence: Run 29693397731 failed because first_failure was null instead of the required YAML mapping; the task record is corrected without weakening the validator.
+  evidence: Run 29693397731 failed because first_failure was null instead of the required YAML mapping; the task record was corrected without weakening the validator and ownership then passed.
 validation:
   - command: AI Agent Tools on head 5e9930815d317b91f4f688cc91f1b79888ed51f6
     result: PASS
@@ -140,5 +145,8 @@ validation:
   - command: Agent Task Ownership on head 5e9930815d317b91f4f688cc91f1b79888ed51f6
     result: FAIL
     evidence: Workflow run 29693397731 rejected only the null first_failure checkpoint field; implementation/tool tests were already green.
-next_action: Re-run ownership on the corrected checkpoint, reconcile shared MODULE_CATALOG and CHANGELOG without overwriting concurrent PR #591 content, apply ci:final-gate, make one final checkpoint commit, freeze that exact head and require all final gates before squash merge.
+  - command: Agent Task Ownership on head c332f5bd7cd66107f42fa563f71b79357bda1c3c
+    result: PASS
+    evidence: Workflow run 29693593019 completed successfully after correcting the checkpoint schema.
+next_action: Require the canonical-exporter path integration tests to pass in existing AI Agent Tools/OTBM Map Tools, reconcile shared MODULE_CATALOG and CHANGELOG without overwriting concurrent PR #591 content, apply ci:final-gate, make one final checkpoint commit, freeze that exact head and require all final gates before squash merge.
 ```
