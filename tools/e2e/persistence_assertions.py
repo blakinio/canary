@@ -7,6 +7,9 @@ from typing import Any
 MAX_ASSERTIONS = 32
 ASSERTION_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 PLAYER_FIELDS = frozenset({"level", "experience"})
+MAX_UINT32 = 4_294_967_295
+MIN_INT32 = -2_147_483_648
+MAX_INT32 = 2_147_483_647
 
 
 class PersistenceAssertionError(ValueError):
@@ -38,18 +41,35 @@ def _require_string(mapping: dict[str, Any], key: str, path: str) -> str:
     return value.strip()
 
 
-def _require_nonnegative_int(mapping: dict[str, Any], key: str, path: str) -> int:
+def _require_int_range(
+    mapping: dict[str, Any],
+    key: str,
+    path: str,
+    *,
+    minimum: int,
+    maximum: int,
+    description: str,
+) -> int:
     value = mapping.get(key)
-    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
-        raise PersistenceAssertionError(f"{path}.{key} must be a non-negative integer")
-    if value > 9_223_372_036_854_775_807:
-        raise PersistenceAssertionError(f"{path}.{key} exceeds signed BIGINT range")
+    if not isinstance(value, int) or isinstance(value, bool) or not minimum <= value <= maximum:
+        raise PersistenceAssertionError(
+            f"{path}.{key} must be {description} between {minimum} and {maximum}"
+        )
     return value
 
 
-def validate_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
-    """Validate the feature-neutral persistence contract for runtime and SQL use."""
+def _require_nonnegative_bigint(mapping: dict[str, Any], key: str, path: str) -> int:
+    return _require_int_range(
+        mapping,
+        key,
+        path,
+        minimum=0,
+        maximum=9_223_372_036_854_775_807,
+        description="a non-negative integer",
+    )
 
+
+def _validate_all_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
     if raw is None:
         return []
 
@@ -82,7 +102,6 @@ def validate_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
     for index, item in enumerate(checks):
         path = f"scenario.assertions.persistence.checks[{index}]"
         check = _require_mapping(item, path)
-        _reject_unknown_fields(check, {"id", "type", "field", "equals"}, path)
 
         assertion_id = _require_string(check, "id", path)
         if not ASSERTION_ID_RE.fullmatch(assertion_id):
@@ -94,39 +113,85 @@ def validate_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
         seen_ids.add(assertion_id)
 
         assertion_type = _require_string(check, "type", path)
-        if assertion_type != "player_field":
-            raise PersistenceAssertionError(
-                f"{path}.type unsupported: {assertion_type!r}; allowed: player_field"
+        if assertion_type == "player_field":
+            _reject_unknown_fields(check, {"id", "type", "field", "equals"}, path)
+            field = _require_string(check, "field", path)
+            if field not in PLAYER_FIELDS:
+                raise PersistenceAssertionError(
+                    f"{path}.field unsupported: {field!r}; allowed: {', '.join(sorted(PLAYER_FIELDS))}"
+                )
+            expected = _require_nonnegative_bigint(check, "equals", path)
+            validated.append(
+                {
+                    "id": assertion_id,
+                    "type": assertion_type,
+                    "field": field,
+                    "equals": expected,
+                }
             )
+            continue
 
-        field = _require_string(check, "field", path)
-        if field not in PLAYER_FIELDS:
-            raise PersistenceAssertionError(
-                f"{path}.field unsupported: {field!r}; allowed: {', '.join(sorted(PLAYER_FIELDS))}"
+        if assertion_type == "player_storage":
+            _reject_unknown_fields(check, {"id", "type", "key", "equals"}, path)
+            storage_key = _require_int_range(
+                check,
+                "key",
+                path,
+                minimum=0,
+                maximum=MAX_UINT32,
+                description="an unsigned integer",
             )
-        expected = _require_nonnegative_int(check, "equals", path)
+            expected = _require_int_range(
+                check,
+                "equals",
+                path,
+                minimum=MIN_INT32,
+                maximum=MAX_INT32,
+                description="a signed integer",
+            )
+            validated.append(
+                {
+                    "id": assertion_id,
+                    "type": assertion_type,
+                    "key": storage_key,
+                    "equals": expected,
+                }
+            )
+            continue
 
-        validated.append(
-            {
-                "id": assertion_id,
-                "type": assertion_type,
-                "field": field,
-                "equals": expected,
-            }
+        raise PersistenceAssertionError(
+            f"{path}.type unsupported: {assertion_type!r}; allowed: player_field, player_storage"
         )
 
     return validated
+
+
+def validate_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
+    """Return only checks that have a trustworthy controlled-client read surface.
+
+    `player_field` checks are directly comparable after relog through LocalPlayer getters.
+    Arbitrary `player_storage` values are server-side state and therefore stay on the
+    post-cycle SQL boundary instead of being fabricated as client-readable checks.
+    """
+
+    return [
+        check
+        for check in _validate_all_persistence_assertions(raw)
+        if check["type"] == "player_field"
+    ]
 
 
 def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
     """Compile validated checks to the existing post-cycle scalar SQL contract.
 
     The Universal Physical E2E SQL evaluator accepts one semicolon-free SELECT per
-    assertion and considers only stdout == "1" successful. The same typed checks
-    are also emitted to the controlled-client phase-two plan by run_agent_e2e.py.
+    assertion and considers only stdout == "1" successful. `player_field` checks are
+    also emitted to the controlled-client phase-two plan by run_agent_e2e.py, while
+    `player_storage` checks remain database-only because arbitrary server storages do
+    not have a generic trustworthy controlled-client read surface.
     """
 
-    checks = validate_persistence_assertions(raw)
+    checks = _validate_all_persistence_assertions(raw)
     if not checks:
         return []
     if not isinstance(character, str) or not character.strip():
@@ -135,13 +200,27 @@ def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
     character_sql = _sql_string(character.strip())
     queries: list[str] = []
     for check in checks:
+        if check["type"] == "player_field":
+            queries.append(
+                "SELECT IF((SELECT `"
+                + str(check["field"])
+                + "` FROM `players` WHERE `name` = "
+                + character_sql
+                + ") = "
+                + str(check["equals"])
+                + ", 1, 0)"
+            )
+            continue
+
         queries.append(
-            "SELECT IF((SELECT `"
-            + str(check["field"])
-            + "` FROM `players` WHERE `name` = "
+            "SELECT IF(EXISTS(SELECT 1 FROM `player_storage` AS `ps` "
+            "INNER JOIN `players` AS `p` ON `p`.`id` = `ps`.`player_id` "
+            "WHERE `p`.`name` = "
             + character_sql
-            + ") = "
+            + " AND `ps`.`key` = "
+            + str(check["key"])
+            + " AND `ps`.`value` = "
             + str(check["equals"])
-            + ", 1, 0)"
+            + "), 1, 0)"
         )
     return queries
