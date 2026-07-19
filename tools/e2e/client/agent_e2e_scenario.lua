@@ -489,6 +489,9 @@ local function persistenceCheckValue(check)
 	if check.type == "player_magic_level" then
 		return player:getMagicLevel(), nil
 	end
+	if check.type == "player_skill_level" then
+		return player:getSkillBaseLevel(check.client_skill_id), nil
+	end
 	if check.type ~= "player_field" then
 		return nil, "unsupported persistence check type"
 	end
@@ -505,7 +508,7 @@ local function persistenceCheckValue(check)
 end
 
 local function failPersistenceCheck(check, message)
-	local descriptor = check.field or check.type
+	local descriptor = check.field or check.skill or check.type
 	fail(string.format("persistence check %s (%s) failed: %s", tostring(check.id), tostring(descriptor), tostring(message)))
 end
 
@@ -554,6 +557,11 @@ function runNextPersistenceCheck()
 	elseif check.type == "player_magic_level" then
 		if check.field ~= nil then
 			fail("invalid runtime player_magic_level persistence check")
+			return
+		end
+	elseif check.type == "player_skill_level" then
+		if check.field ~= nil or type(check.skill) ~= "string" or type(check.client_skill_id) ~= "number" or check.client_skill_id % 1 ~= 0 or check.client_skill_id < 0 or check.client_skill_id > 6 then
+			fail("invalid runtime player_skill_level persistence check")
 			return
 		end
 	else
