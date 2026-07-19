@@ -25,7 +25,7 @@ A scenario may add an optional `steps` array. When present, `tools/e2e/run_agent
 - `player_field` persistence checks require the same expected value after relog through the controlled client and after the full cycle through compiled scalar SQL.
 - `player_storage` persistence checks are database-only after the full two-session cycle because arbitrary server-side storage values have no generic trustworthy controlled-client read surface; they must not be fabricated as phase-two client checks.
 - `player_item_presence` persistence checks are database-only row-presence assertions after the full two-session cycle. They support only the fixed inventory/depot/inbox persistence tables and deliberately do not expose serialized hierarchy or interpret the persisted `count` column as universal item quantity.
-- `player_balance` persistence checks are database-only exact unsigned-64 equality assertions against the durable `players.balance` column after the full two-session cycle. The platform does not fabricate a generic controlled-client bank-balance getter.
+- `player_balance` persistence checks require the same exact expected value after relog through the maintained OTClient resource-balance surface and after the full cycle through compiled scalar SQL. To keep Lua numeric equality exact, the reusable contract is bounded to `0..9007199254740991` (`2^53-1`).
 - The existing physical E2E lifecycle, exact-head provenance, MariaDB assertions, packet records and fatal-runtime-log checks remain authoritative.
 
 ## Server runtime selection
@@ -80,7 +80,7 @@ Every first-session step emits:
 
 After all first-session steps complete, the driver emits `plan=success` and enters the normal safe-logout/persistence/relog lifecycle. A failed action emits `e2e=failure` and terminates the client run.
 
-Each client-readable typed post-relog persistence check emits `persistence_check_<id>=start`, `persistence_check_<id>=success` and a bounded `persistence_check_<id>_detail=<actual>` value. After all client-readable checks pass, the driver emits `persistence_plan=success` before the second safe logout. Database-only `player_storage`, `player_item_presence` and `player_balance` checks do not emit client persistence markers; their evidence is the compiled post-cycle SQL assertion result after the second safe logout.
+Each client-readable typed post-relog persistence check emits `persistence_check_<id>=start`, `persistence_check_<id>=success` and a bounded `persistence_check_<id>_detail=<actual>` value. After all client-readable checks pass, the driver emits `persistence_plan=success` before the second safe logout. Database-only `player_storage` and `player_item_presence` checks do not emit client persistence markers; their evidence is the compiled post-cycle SQL assertion result after the second safe logout. `player_balance` is client-readable and emits the same persistence markers as `player_field` before its final SQL verification.
 
 Feature scenarios should include exact required step and client persistence markers in `assertions.required_markers` when applicable, in addition to the existing login/logout/relog markers.
 
@@ -126,18 +126,18 @@ The item-presence contract intentionally ignores the persisted `count` field. Ca
 
 `player_item_presence` also deliberately does not enter `scenario-plan.lua.persistence_checks`. Inventory, depot and inbox do not share one generic trustworthy controlled-client getter, so the reusable contract uses one consistent database-only boundary after the full two-session physical lifecycle. A feature may separately assert a client-visible inventory state when its action and maintained-client surface support that proof.
 
-`player_balance` accepts only an exact `equals` value in the unsigned 64-bit range (`0..18446744073709551615`) used by the current `players.balance` load path. The compiler emits one fixed-shape semicolon-free scalar equality query against the exact fixture character's `players.balance` column. Callers cannot select another table, column, predicate or SQL fragment.
+`player_balance` accepts only an exact `equals` value in the Lua-safe integer range `0..9007199254740991` (`2^53-1`). The maintained OTClient exposes `LocalPlayer:getResourceBalance`, and its resource enum defines bank balance as resource type `0`; the controlled driver therefore re-reads that bank resource after relog and requires exact equality before the second safe logout. The compiler also emits one fixed-shape semicolon-free scalar equality query against the exact fixture character's `players.balance` column for final verification. Callers cannot select another table, column, resource type, predicate or SQL fragment.
 
-`player_balance` deliberately does not enter `scenario-plan.lua.persistence_checks`. The maintained controlled-client surface does not provide one verified generic bank-balance getter suitable for this reusable boundary, so M3 evidence is the successful physical two-session lifecycle followed by the compiled SQL equality check after the second safe logout. Feature-owned bank/NPC scenarios may add a real client-visible bank or UI assertion when they have a maintained-client surface for it.
+The shared contract intentionally stops at `2^53-1` even though Canary persists `players.balance` as unsigned 64-bit. Generic Lua plan numbers cannot guarantee exact integer equality above that boundary. Scenarios that truly require larger balances need a separate string-safe client contract or feature-specific database evidence rather than an unsafe rounded comparison.
 
 `tools/e2e/persistence_assertions.py` validates the typed contract. `run_agent_e2e.py` uses validated assertions in two bounded outputs:
 
-1. client-readable `player_field` checks in `scenario-plan.lua.persistence_checks`, executed only after the second physical login by `agent_e2e_scenario.lua`;
+1. client-readable `player_field` and `player_balance` checks in `scenario-plan.lua.persistence_checks`, executed only after the second physical login by `agent_e2e_scenario.lua`;
 2. all typed checks compiled to semicolon-free scalar `SELECT` assertions appended to the normalized manifest and evaluated by the existing SQL assertion path only after the second safe logout.
 
 Feature-specific expected values, storage keys, item IDs and bank balances remain in feature scenario JSON. The shared E2E fixtures contain no invented quest storage numbers, item IDs, economy values or feature-specific outcomes. Arbitrary SQL is not accepted through the typed persistence contract; the legacy scenario-owned `assertions.sql` list remains separately supported for existing scenarios.
 
-A pre-logout SQL observation alone must not be reported as persistence proof. For `player_field`, M3 evidence requires successful safe logout, the existing server-persistence sentinel, relog, controlled-client re-verification, second safe logout and final compiled SQL verification. For `player_storage`, `player_item_presence` and `player_balance`, the same two-session lifecycle must complete before final compiled SQL verification; none of those database-only contracts makes a false claim of direct generic client visibility.
+A pre-logout SQL observation alone must not be reported as persistence proof. For `player_field` and `player_balance`, M3 evidence requires successful safe logout, the existing server-persistence sentinel, relog, controlled-client re-verification, second safe logout and final compiled SQL verification. For `player_storage` and `player_item_presence`, the same two-session lifecycle must complete before final compiled SQL verification; those database-only contracts make no false claim of direct generic client visibility.
 
 ## Example
 
