@@ -2,13 +2,13 @@
 task_id: CAN-20260719-otbm-e2e-thais-landmark-binding
 program_id: CAN-PROGRAM-OTBM-E2E-ROUTING
 coordination_id: OTBM-E2E-005-LANDMARKS
-status: validating
+status: implementing
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-thais-landmark-binding
 base_branch: main
 created: 2026-07-19T21:05:00+02:00
-updated: 2026-07-19T22:10:00+02:00
-last_verified_commit: "b394598c04eeab6e34ac22eb17483c0cc480a520"
+updated: 2026-07-19T22:15:00+02:00
+last_verified_commit: "766935f9801091bdfa6c643bcb79afda84892755"
 risk: medium
 related_issue: ""
 related_pr: "599"
@@ -81,8 +81,8 @@ This is a bounded evidence prerequisite. It must turn the currently `unbound` re
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T22:10:00+02:00
-head: b394598c04eeab6e34ac22eb17483c0cc480a520
+updated_at: 2026-07-19T22:15:00+02:00
+head: 766935f9801091bdfa6c643bcb79afda84892755
 branch: feat/otbm-e2e-thais-landmark-binding
 pr: 599
 status: validating
@@ -114,9 +114,9 @@ proven:
   - ci:final-gate remains applied before this corrected replacement final checkpoint commit
 derived:
   - deterministic minimum-strict-distance then lexicographic tie-break selects thais.depot route destination 32352,32226,7 adjacent to reviewed locker 32352,32225,7
-  - the failed Ownership runs were checkpoint-schema failures rather than ownership path conflicts because validation stopped at changed-task checkpoint parsing
+  - the failed Ownership runs were checkpoint-schema or active-status failures rather than ownership path conflicts because validation stopped before the ownership index step
 unknown:
-  - exact-final-head Ownership, CI and OTBM Map Tools outcomes for the corrected checkpoint schema are not known yet
+  - exact-final-head Ownership, CI and OTBM Map Tools outcomes for the corrected checkpoint and active-task status are not known yet
   - physical controlled-OTClient route success remains intentionally unproven until downstream OTBM-E2E-005
 conflicts: []
 rejected_hypotheses:
@@ -135,7 +135,7 @@ blockers:
   - final review blocker audit and expected-head squash merge remain pending
 first_failure:
   marker: AI Agent Tools failed on first frozen head ff9502ac87719767e45fa8850fb41ce1050a338a because the committed-registry test still required an unbound empty seed.
-  evidence: Workflow 29701124323 failed unit tests; corrected head 865644d3755af9949b3d54062ea5aca44dcae0b3 later passed AI Agent Tools, while Ownership artifacts 8446551313 and 8446566229 exposed checkpoint-only schema errors.
+  evidence: Workflow 29701124323 failed unit tests; corrected head 865644d3755af9949b3d54062ea5aca44dcae0b3 later passed AI Agent Tools, while Ownership artifacts 8446551313, 8446566229 and 8446586839 exposed checkpoint or active-status governance errors.
 validation:
   - command: python tools/ai-agent/test_otbm_semantic_landmarks.py
     result: PASS
