@@ -310,19 +310,14 @@ function runNextStep()
 			failStep(step, "exact movement edge executor unavailable")
 			return
 		end
-		routeExecutor.walkEdge(
-			{ x = step.from_x, y = step.from_y, z = step.from_z },
-			{ x = step.to_x, y = step.to_y, z = step.to_z },
-			step.timeout_ms or 10000,
-			{
-				onSuccess = function(detail)
-					completeStep(step, detail)
-				end,
-				onFailure = function(_, detail)
-					failStep(step, detail)
-				end,
-			}
-		)
+		routeExecutor.walkEdge({ x = step.from_x, y = step.from_y, z = step.from_z }, { x = step.to_x, y = step.to_y, z = step.to_z }, step.timeout_ms or 10000, {
+			onSuccess = function(detail)
+				completeStep(step, detail)
+			end,
+			onFailure = function(_, detail)
+				failStep(step, detail)
+			end,
+		})
 		return
 	end
 	if step.action == "follow_route" then

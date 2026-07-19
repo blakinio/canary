@@ -79,10 +79,7 @@ function M.walkEdge(sourceValue, destinationValue, timeoutMs, callbacks)
 		return
 	end
 	if not samePosition(actual, source) then
-		callbacks.onFailure(
-			"INITIAL_POSITION_MISMATCH",
-			string.format("source mismatch actual=%s expected=%s", positionString(actual), positionString(source))
-		)
+		callbacks.onFailure("INITIAL_POSITION_MISMATCH", string.format("source mismatch actual=%s expected=%s", positionString(actual), positionString(source)))
 		return
 	end
 	if source.z ~= destination.z then
@@ -113,18 +110,12 @@ function M.walkEdge(sourceValue, destinationValue, timeoutMs, callbacks)
 			return
 		end
 		if not samePosition(livePosition, source) then
-			callbacks.onFailure(
-				"MOVEMENT_DIVERGENCE",
-				string.format("route drift actual=%s expected=%s", positionString(livePosition), positionString(destination))
-			)
+			callbacks.onFailure("MOVEMENT_DIVERGENCE", string.format("route drift actual=%s expected=%s", positionString(livePosition), positionString(destination)))
 			return
 		end
 		remainingChecks = remainingChecks - 1
 		if remainingChecks <= 0 then
-			callbacks.onFailure(
-				"MOVEMENT_TIMEOUT",
-				string.format("position=%s expected=%s timeout_ms=%d", positionString(livePosition), positionString(destination), timeoutMs or 10000)
-			)
+			callbacks.onFailure("MOVEMENT_TIMEOUT", string.format("position=%s expected=%s timeout_ms=%d", positionString(livePosition), positionString(destination), timeoutMs or 10000))
 			return
 		end
 		scheduleEvent(check, 100)
