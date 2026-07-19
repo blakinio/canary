@@ -119,7 +119,7 @@ unknown:
   - final shared catalogue/changelog update and exact final implementation head
 conflicts: []
 blockers: []
-first_failure: null
+first_failure: {}
 rejected_hypotheses:
   - add another BFS/A*/Dijkstra implementation
   - treat optimistic unknown appearances as executable
