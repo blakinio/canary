@@ -69,7 +69,9 @@ Target PR: `blakinio/Otheryn#45`
 
 Target branch: `dudantas/oam-021-market-adapt`
 
-Exact reviewed target head before final CI/merge: `f13d4d2d0626c99dd2318ef088ce155f67b0b5ae`
+Exact final target head: `f13d4d2d0626c99dd2318ef088ce155f67b0b5ae`
+
+Target squash merge: `b90e287a40413102c87e8c7fa3d5c01ad401cb6d`
 
 The bounded target change contains exactly five intended paths:
 
@@ -86,23 +88,27 @@ It:
 - replaces parse-then-`uint8_t`-truncate tier handling with strict `std::from_chars` parsing and configured/range validation;
 - adds focused deterministic tests for those accepted boundaries.
 
-A temporary target materializer applied the exact `iomarket.cpp` hunk and removed itself before the target PR was opened. No materializer path remains in the target diff.
+A temporary target materializer applied the exact `iomarket.cpp` hunk and removed itself before the target PR was opened. No materializer path remained in the target diff.
 
-## Target proof status
+## Exact target proof
 
-At this governance draft checkpoint:
+```text
+Otheryn PR #45 final head: f13d4d2d0626c99dd2318ef088ce155f67b0b5ae
+target squash merge: b90e287a40413102c87e8c7fa3d5c01ad401cb6d
+autofix.ci #144 / 29704971999: SUCCESS
+CI #167 / 29704972077: SUCCESS
+Required #151 / 29704972006: SUCCESS
+full Linux debug CTest: 396/396 PASS
+focused Oam021MarketAdaptTest: 3/3 PASS
+test-log artifact: 8447725005
+test-log digest: sha256:f6f6b67fda044f1d8b88600a87234f4cb6559ae3e3d9270ddd2a98041948debb
+linux-debug binary artifact: 8447726445
+linux-debug binary digest: sha256:7075ee646302f99d111d0838a6f5943fa791545c0e1a8dee112c61ce4a857084
+```
 
-- target PR #45 head: `f13d4d2d0626c99dd2318ef088ce155f67b0b5ae`;
-- changed-file audit: exactly five intended paths;
-- comments: 0;
-- reviews: 0;
-- review threads: 0;
-- target `main` drift from task-start target base: none at the checked pre-merge checkpoint;
-- autofix ready-state run #144 / `29704971999`: SUCCESS without changing target head;
-- ready-state full CI #167 / `29704972077`: in progress at this checkpoint;
-- Required #151 / `29704972006`: in progress at this checkpoint.
+The ready-state full matrix passed Fast Checks and Lua Tests; Linux debug compiled, imported schema and passed all 396 CTest cases; Linux release compiled and passed Canary and Global runtime smoke tests; macOS release produced its release/runtime-smoke artifacts; Windows CMake compiled and passed runtime smoke; Windows Solution produced its debug artifact; and Docker image build/validation succeeded.
 
-The target must not merge until the exact final head has full required CI/proof, a fresh blocker audit, changed-file audit and final target-main drift check. This report must be updated with the exact target squash merge before Canary governance can merge.
+Pre-merge target audits were clean on the exact final head: exactly five intended paths, zero comments, zero reviews, zero review threads, and Otheryn `main` had no drift from the task-start target base. The merge used expected-head squash protection against `f13d4d2d0626c99dd2318ef088ce155f67b0b5ae`.
 
 ## Explicit exclusions and known gaps
 
@@ -124,11 +130,9 @@ These exclusions are deliberate boundaries, not hidden completion claims.
 
 ## Lifecycle gate
 
-OAM-021 is not complete at this draft checkpoint. Required order remains:
+The target stage is merged and proven. OAM-021 remains incomplete until the remaining governance lifecycle is performed in order:
 
-1. exact-head target CI/proof and expected-head target squash merge;
-2. update this report/task with final target evidence;
-3. exact-head Canary governance gates and expected-head governance merge;
-4. separate authoritative lifecycle archive;
-5. separate one-file durable program reconciliation;
-6. only then may OAM-022 start.
+1. exact-head Canary governance gates and expected-head governance merge;
+2. separate authoritative lifecycle archive;
+3. separate one-file durable program reconciliation;
+4. only then may OAM-022 start.
