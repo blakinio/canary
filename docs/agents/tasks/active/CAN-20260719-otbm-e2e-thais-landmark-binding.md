@@ -6,12 +6,12 @@ status: implementing
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-thais-landmark-binding
 base_branch: main
-created: 2026-07-19T20:00:00+02:00
-updated: 2026-07-19T20:00:00+02:00
-last_verified_commit: "c353b89b5a7f783cf4ee22fe1ba91850de837a68"
+created: 2026-07-19T21:05:00+02:00
+updated: 2026-07-19T21:06:00+02:00
+last_verified_commit: "59bdf3221ec4b5325d9b5f9961cf3d20a69cbbe8"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "599"
 depends_on:
   - merged PR #571 semantic landmark registry contract
   - merged PR #594 exact-map static route preflight
@@ -79,10 +79,10 @@ This is a bounded evidence prerequisite. It must turn the currently `unbound` re
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T20:00:00+02:00
-head: c353b89b5a7f783cf4ee22fe1ba91850de837a68
+updated_at: 2026-07-19T21:06:00+02:00
+head: 59bdf3221ec4b5325d9b5f9961cf3d20a69cbbe8
 branch: feat/otbm-e2e-thais-landmark-binding
-pr: null
+pr: 599
 status: implementing
 context_routes:
   - agent-governance
@@ -95,6 +95,7 @@ owned_paths:
   - docs/agents/CHANGELOG.md
 proven:
   - live main at task start is c353b89b5a7f783cf4ee22fe1ba91850de837a68
+  - draft PR 599 owns branch feat/otbm-e2e-thais-landmark-binding
   - no open PR matched OTBM-E2E-005, semantic landmark or Thais ownership at task start
   - PR #571 semantic landmark registry, PR #589 follow_route and PR #594 exact-map route preflight are merged
   - committed semantic landmark registry is intentionally unbound and empty before this task
