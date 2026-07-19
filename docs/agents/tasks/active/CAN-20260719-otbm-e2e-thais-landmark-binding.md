@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-thais-landmark-binding
 base_branch: main
 created: 2026-07-19T21:05:00+02:00
-updated: 2026-07-19T22:00:00+02:00
-last_verified_commit: "865644d3755af9949b3d54062ea5aca44dcae0b3"
+updated: 2026-07-19T22:05:00+02:00
+last_verified_commit: "66161a08fd7456da2ddb70a26df4c09a3f981dd9"
 risk: medium
 related_issue: ""
 related_pr: "599"
@@ -81,8 +81,8 @@ This is a bounded evidence prerequisite. It must turn the currently `unbound` re
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T22:00:00+02:00
-head: 865644d3755af9949b3d54062ea5aca44dcae0b3
+updated_at: 2026-07-19T22:05:00+02:00
+head: 66161a08fd7456da2ddb70a26df4c09a3f981dd9
 branch: feat/otbm-e2e-thais-landmark-binding
 pr: 599
 status: validating
@@ -111,17 +111,16 @@ proven:
   - final bounded region 32347,32216,7 through 32369,32241,7 contains 598 coordinates and produces confirmed strict/optimistic distance 66 with zero error findings, no path truncation and no transition IDs used
   - semantic landmark registry is reviewed with exact source-map/index provenance and resolves the temple/depot anchors inside the bounded region under the existing validator contract
   - first frozen head ff9502ac87719767e45fa8850fb41ce1050a338a failed AI Agent Tools because the committed-registry unit test still asserted the superseded unbound seed state
+  - corrected implementation head 865644d3755af9949b3d54062ea5aca44dcae0b3 passed AI Agent Tools including unit tests and all generated-audit steps
   - the regression test now validates exact committed map/index provenance plus deterministic Thais route-origin and route-destination resolution
+  - replacement frozen head 66161a08fd7456da2ddb70a26df4c09a3f981dd9 passed AI Agent Tools but Ownership rejected the non-schema checkpoint key failed_approaches before checking path ownership
+  - the unsupported failed_approaches checkpoint section has been removed; failure history is preserved in proven instead
   - ci:final-gate remains applied before this replacement final checkpoint commit
 blockers:
-  - exact-final-head Ownership, CI, OTBM Map Tools and AI Agent Tools are pending
+  - exact-final-head Ownership, CI and OTBM Map Tools are pending on the corrected checkpoint schema
   - final review blocker audit and expected-head squash merge remain pending
-failed_approaches:
-  - interpreted-Python bounded full-map scanning was too slow for the 184776037-byte map; the canonical native World Index scanner was reused instead of creating another parser
-  - client minimap package inspection is only auxiliary visual evidence and was not used to establish strict walkability or executable route anchors
-  - first final head ff9502ac87719767e45fa8850fb41ce1050a338a failed AI Agent Tools because the old committed-seed unit test was not updated with the registry state transition
 next_actions:
-  - make no commits after this replacement final checkpoint
+  - make no commits after this corrected replacement final checkpoint
   - require exact-final-head checks and confirm autofix does not mutate the frozen head
   - require clean review blocker audit and unchanged expected head before squash merge
 validation:
@@ -129,6 +128,6 @@ validation:
   registry: passed
   world_index: passed
   reachability: passed
-  ai_agent_tools: pending
+  ai_agent_tools: passed-on-parent-and-must-pass-final-head
   ci: pending
 ```
