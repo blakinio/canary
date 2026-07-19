@@ -49,20 +49,22 @@
       "properties": {
         "allowDiagonal": {"type": "boolean"},
         "diagonalCornerCutting": {"const": false},
-        "maxExecutablePositions": {"type": "integer", "minimum": 1, "maximum": 10000}
+        "maxExecutablePositions": {"type": "integer", "minimum": 1, "maximum": 10000},
+        "interactionAware": {"type": "boolean"}
       }
     },
     "routeStatus": {"enum": ["confirmed", "conditional", "unreachable", "invalid"]},
     "executionStatus": {"enum": ["executable", "blocked", "not-applicable"]},
     "routingMode": {
       "oneOf": [
-        {"enum": ["strict", "optimistic"]},
+        {"enum": ["strict", "optimistic", "executable"]},
         {"type": "null"}
       ]
     },
     "distance": {"$ref": "#/$defs/nullableDistance"},
     "strictDistance": {"$ref": "#/$defs/nullableDistance"},
     "optimisticDistance": {"$ref": "#/$defs/nullableDistance"},
+    "executableDistance": {"$ref": "#/$defs/nullableDistance"},
     "pathComplete": {"type": "boolean"},
     "path": {
       "type": "array",
@@ -87,7 +89,7 @@
       },
       "then": {
         "properties": {
-          "routeStatus": {"const": "confirmed"},
+          "routeStatus": {"enum": ["confirmed", "conditional"]},
           "pathComplete": {"const": true},
           "blockers": {"maxItems": 0},
           "provenance": {
@@ -98,6 +100,40 @@
             }
           }
         }
+      }
+    },
+    {
+      "if": {
+        "properties": {"routingMode": {"const": "executable"}},
+        "required": ["routingMode"]
+      },
+      "then": {
+        "required": ["executableDistance"],
+        "properties": {
+          "executableDistance": {"type": "integer", "minimum": 0},
+          "routingOptions": {
+            "required": ["interactionAware"],
+            "properties": {"interactionAware": {"const": true}}
+          },
+          "provenance": {
+            "required": ["interactionRegistry"],
+            "properties": {
+              "interactionRegistry": {"$ref": "#/$defs/hashedEvidence"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "routeStatus": {"const": "conditional"},
+          "executionStatus": {"const": "executable"}
+        },
+        "required": ["routeStatus", "executionStatus"]
+      },
+      "then": {
+        "properties": {"routingMode": {"const": "executable"}}
       }
     }
   ],
@@ -145,7 +181,8 @@
         "worldIndex": {"$ref": "#/$defs/nullableHashedEvidence"},
         "appearances": {"$ref": "#/$defs/nullableHashedEvidence"},
         "transitionManifest": {"$ref": "#/$defs/nullableHashedEvidence"},
-        "scriptResolution": {"$ref": "#/$defs/nullableHashedEvidence"}
+        "scriptResolution": {"$ref": "#/$defs/nullableHashedEvidence"},
+        "interactionRegistry": {"$ref": "#/$defs/nullableHashedEvidence"}
       }
     },
     "movementEvidence": {
@@ -155,7 +192,7 @@
       "properties": {
         "source": {"const": "reachability-bfs-predecessor"},
         "edgeSource": {"const": "_movement_neighbors"},
-        "routingMode": {"enum": ["strict", "optimistic"]}
+        "routingMode": {"enum": ["strict", "optimistic", "executable"]}
       }
     },
     "transitionEvidence": {
@@ -173,6 +210,43 @@
         }
       }
     },
+    "interactionResolution": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["format", "schemaVersion", "executionStatus", "selectorQuery", "matchedEntryIds", "blockers"],
+      "properties": {
+        "format": {"const": "canary-otbm-route-interaction-resolution-v1"},
+        "schemaVersion": {"const": 1},
+        "executionStatus": {"enum": ["executable", "blocked"]},
+        "selectorQuery": {"type": "object"},
+        "matchedEntryId": {
+          "oneOf": [
+            {"type": "string"},
+            {"type": "null"}
+          ]
+        },
+        "matchedEntryIds": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "activation": {
+          "oneOf": [
+            {"type": "object"},
+            {"type": "null"}
+          ]
+        },
+        "evidence": {
+          "oneOf": [
+            {"type": "object"},
+            {"type": "null"}
+          ]
+        },
+        "blockers": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/blocker"}
+        }
+      }
+    },
     "edge": {
       "oneOf": [
         {
@@ -185,7 +259,15 @@
             "kind": {"const": "movement"},
             "isTransition": {"const": false},
             "transitionId": {"type": "null"},
-            "evidence": {"$ref": "#/$defs/movementEvidence"}
+            "evidence": {"$ref": "#/$defs/movementEvidence"},
+            "interactions": {
+              "type": "array",
+              "items": {"$ref": "#/$defs/interactionResolution"}
+            },
+            "executionBlockers": {
+              "type": "array",
+              "items": {"$ref": "#/$defs/blocker"}
+            }
           }
         },
         {
@@ -198,7 +280,15 @@
             "kind": {"const": "transition"},
             "isTransition": {"const": true},
             "transitionId": {"type": "string", "minLength": 1, "maxLength": 160},
-            "evidence": {"$ref": "#/$defs/transitionEvidence"}
+            "evidence": {"$ref": "#/$defs/transitionEvidence"},
+            "interactions": {
+              "type": "array",
+              "items": {"$ref": "#/$defs/interactionResolution"}
+            },
+            "executionBlockers": {
+              "type": "array",
+              "items": {"$ref": "#/$defs/blocker"}
+            }
           }
         }
       ]

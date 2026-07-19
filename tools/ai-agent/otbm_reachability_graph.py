@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import deque
-from typing import Iterator, Mapping, Sequence
+from typing import Callable, Iterator, Mapping, Sequence
 
 from otbm_reachability_types import (
     CARDINAL_STEPS,
@@ -13,6 +13,9 @@ from otbm_reachability_types import (
     _in_bounds,
 )
 
+MovementEdgePolicy = Callable[[Position, Position, TileState], bool]
+TransitionEdgePolicy = Callable[[TransitionState, Position, Position], bool]
+
 
 def _movement_neighbors(
     position: Position,
@@ -20,28 +23,50 @@ def _movement_neighbors(
     *,
     strict: bool,
     allow_diagonal: bool,
+    edge_allowed: MovementEdgePolicy | None = None,
 ) -> Iterator[Position]:
-    walkable = (lambda state: state.strict_walkable) if strict else (lambda state: state.optimistic_walkable)
+    default_walkable = (lambda state: state.strict_walkable) if strict else (lambda state: state.optimistic_walkable)
+
+    def candidate_allowed(candidate: Position, state: TileState) -> bool:
+        if edge_allowed is not None:
+            return edge_allowed(position, candidate, state)
+        return default_walkable(state)
+
     for dx, dy, dz in CARDINAL_STEPS:
         candidate = (position[0] + dx, position[1] + dy, position[2] + dz)
         state = tiles.get(candidate)
-        if state is not None and walkable(state):
+        if state is not None and candidate_allowed(candidate, state):
             yield candidate
     if not allow_diagonal:
         return
     for dx, dy, dz in DIAGONAL_STEPS:
         candidate = (position[0] + dx, position[1] + dy, position[2] + dz)
         state = tiles.get(candidate)
-        if state is None or not walkable(state):
+        if state is None or not candidate_allowed(candidate, state):
             continue
         first = tiles.get((position[0] + dx, position[1], position[2]))
         second = tiles.get((position[0], position[1] + dy, position[2]))
-        if first is not None and second is not None and walkable(first) and walkable(second):
+        if first is None or second is None:
+            continue
+        if edge_allowed is not None:
+            # A diagonal edge cannot silently consume interactions on the two corner tiles.
+            # Executable interaction-aware routing therefore requires both corners to be
+            # strictly walkable; the edge policy may still fail closed on the diagonal
+            # destination itself.
+            corners_open = first.strict_walkable and second.strict_walkable
+        else:
+            corners_open = default_walkable(first) and default_walkable(second)
+        if corners_open:
             yield candidate
 
 
 def _transition_edges(
-    transitions: Sequence[TransitionState], lower: Position, upper: Position, *, strict: bool
+    transitions: Sequence[TransitionState],
+    lower: Position,
+    upper: Position,
+    *,
+    strict: bool,
+    edge_allowed: TransitionEdgePolicy | None = None,
 ) -> dict[Position, list[GraphEdge]]:
     result: dict[Position, list[GraphEdge]] = {}
     for transition in transitions:
@@ -49,10 +74,12 @@ def _transition_edges(
         if not eligible:
             continue
         spec = transition.spec
-        if _in_bounds(spec.source, lower, upper) and _in_bounds(spec.destination, lower, upper):
+        if not (_in_bounds(spec.source, lower, upper) and _in_bounds(spec.destination, lower, upper)):
+            continue
+        if edge_allowed is None or edge_allowed(transition, spec.source, spec.destination):
             result.setdefault(spec.source, []).append(GraphEdge(spec.destination, spec.transition_id))
-            if spec.bidirectional:
-                result.setdefault(spec.destination, []).append(GraphEdge(spec.source, spec.transition_id))
+        if spec.bidirectional and (edge_allowed is None or edge_allowed(transition, spec.destination, spec.source)):
+            result.setdefault(spec.destination, []).append(GraphEdge(spec.source, spec.transition_id))
     for edges in result.values():
         edges.sort(key=lambda edge: (edge.destination, edge.transition_id or ""))
     return result
@@ -65,6 +92,7 @@ def _bfs(
     *,
     strict: bool,
     allow_diagonal: bool,
+    edge_allowed: MovementEdgePolicy | None = None,
 ) -> tuple[dict[Position, int], dict[Position, tuple[Position, str | None]]]:
     start_state = tiles.get(start)
     if start_state is None or not (start_state.strict_walkable if strict else start_state.optimistic_walkable):
@@ -74,9 +102,16 @@ def _bfs(
     queue: deque[Position] = deque((start,))
     while queue:
         current = queue.popleft()
-        neighbors = [GraphEdge(value, None) for value in _movement_neighbors(
-            current, tiles, strict=strict, allow_diagonal=allow_diagonal
-        )]
+        neighbors = [
+            GraphEdge(value, None)
+            for value in _movement_neighbors(
+                current,
+                tiles,
+                strict=strict,
+                allow_diagonal=allow_diagonal,
+                edge_allowed=edge_allowed,
+            )
+        ]
         neighbors.extend(transitions.get(current, ()))
         neighbors.sort(key=lambda edge: (edge.destination, edge.transition_id or ""))
         for edge in neighbors:
