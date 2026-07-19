@@ -8,7 +8,7 @@ branch: feat/e2e-route-001-follow-route
 base_branch: main
 created: 2026-07-19
 updated: 2026-07-19
-last_verified_commit: "2e818f3ad0a05c4973629e93fa7d6e19cd769575"
+last_verified_commit: "ed64cf21397495a3066b8ae26f10aefa5ab0a937"
 risk: medium
 related_issue: ""
 related_pr: "589"
@@ -29,6 +29,7 @@ owned_paths:
     - tests/e2e/test_agent_e2e_scenario_plan.py
     - tests/e2e/test_exact_movement_edges.py
     - tests/e2e/test_follow_route_execution.py
+    - tests/lua/test_agent_e2e_route.lua
   shared:
     - docs/agents/MODULE_CATALOG.md
     - docs/agents/CHANGELOG.md
@@ -78,7 +79,7 @@ Add one reusable `follow_route` action to the existing Universal Physical E2E ac
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-19
-head: 2e818f3ad0a05c4973629e93fa7d6e19cd769575
+head: ed64cf21397495a3066b8ae26f10aefa5ab0a937
 branch: feat/e2e-route-001-follow-route
 pr: 589
 status: implementation-complete-testing
@@ -95,18 +96,21 @@ owned_paths:
   - tests/e2e/test_agent_e2e_scenario_plan.py
   - tests/e2e/test_exact_movement_edges.py
   - tests/e2e/test_follow_route_execution.py
+  - tests/lua/test_agent_e2e_route.lua
 proven:
   - live main equals handover SHA 0db6289cc55069ddb0194a58758bcc97c242bf8b
   - no pre-existing open PR or branch claimed E2E-ROUTE-001
-  - draft PR #589 owns feat/e2e-route-001-follow-route
+  - PR #589 owns feat/e2e-route-001-follow-route
   - PR #573 exact walk_edge and follow_route now delegate to one shared exact movement-edge executor
   - canonical route selection derives route-<logical-id>.json only from the runner-owned artifact directory
   - route plan hash, provenance hashes, executable status, blockers, path continuity, edge semantics, and interaction activation are validated fail-closed before client execution
   - plain optimistic routing is rejected for physical execution
+  - deterministic Lua route fixtures exercise exact movement success, divergence, bounded timeout, wrong transition destination, use-map-item, and use-inventory-on-map
+  - existing Lua Tests job also executes the focused Python E2E route contract suites without introducing a new workflow
   - maintained OTClient revision 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f binds g_game.use and g_game.useInventoryItemWith and exposes exact tile/item lookup primitives
   - no parser, World Index, pathfinder, runner, workflow, map, widx, items.otb, or client asset was added or modified
 unknown: []
 conflicts: []
 blockers: []
-next_action: Run live CI and focused tests, repair actual failures, then apply ci:final-gate and create the final checkpoint commit.
+next_action: Run live CI and focused tests, repair actual failures, then update shared module/changelog records, apply ci:final-gate, and create the final checkpoint commit.
 ```
