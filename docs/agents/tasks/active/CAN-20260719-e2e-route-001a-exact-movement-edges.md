@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-route-001a-exact-movement-edges
 base_branch: main
 created: 2026-07-19T10:20:00+02:00
-updated: 2026-07-19T10:48:00+02:00
-last_verified_commit: "533476adeb23737ecd43a3cf96235d590467956f"
+updated: 2026-07-19T10:55:00+02:00
+last_verified_commit: "672840aa41ca7c7bedf3639f207f857785a0dbe7"
 risk: medium
 related_issue: ""
 related_pr: "573"
@@ -73,18 +73,18 @@ This task does not claim full `E2E-ROUTE-001` completion. It deliberately exclud
 - [x] Reuse the previously physically proven movement fixture coordinates and select that scenario for a new real-client proof.
 - [x] Do not modify OTBM-E2E-002 or OTBM-E2E-003 owned paths or claim their work.
 - [x] Update reusable interface documentation/catalogue/changelog.
-- [ ] Apply `ci:final-gate` before final checkpoint commit.
+- [x] Apply `ci:final-gate` before final checkpoint commit.
 - [ ] Verify exact-final-head required checks and review/merge blockers before squash merge.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T10:48:00+02:00
-head: 533476adeb23737ecd43a3cf96235d590467956f
+updated_at: 2026-07-19T10:55:00+02:00
+head: 672840aa41ca7c7bedf3639f207f857785a0dbe7
 branch: feat/e2e-route-001a-exact-movement-edges
 pr: 573
-status: implementing
+status: validating
 context_routes:
   - agent-governance
   - universal-e2e
@@ -107,9 +107,10 @@ proven:
   - walk_edge validation accepts only one adjacent same-floor coordinate edge and derives direction from its delta
   - runtime walk_edge asserts exact source position sends one g_game.walk request and waits for exact destination with bounded timeout and route-drift failure
   - merged PR 481 physically proved the deterministic fixture starts at 32369,32241,7 and one east movement reaches 32370,32241,7
-  - the physical-movement scenario now uses those exact previously proven coordinates with walk_edge so Universal Agent E2E can re-prove the new primitive through the controlled real client
-  - MODULE_CATALOG diff was reduced to the single intended Universal E2E row after detecting and reverting an accidental unrelated wording change
+  - the physical-movement scenario uses those exact previously proven coordinates with walk_edge so Universal Agent E2E can re-prove the new primitive through the controlled real client
+  - MODULE_CATALOG diff is limited to the intended Universal E2E row after detecting and reverting an accidental unrelated wording change
   - CHANGELOG diff contains one intended walk_edge behavior entry while preserving the merged semantic-landmark entry from OTBM-E2E-002
+  - ci:final-gate was applied to PR 573 before this final checkpoint commit
   - repository writes are restricted to blakinio/canary
   - no OTBM WIDX items.otb client assets maps or generated route reports are in scope
 derived:
@@ -117,14 +118,15 @@ derived:
   - preserving the existing walk action avoids breaking existing feature scenarios while walk_edge can become the route-execution movement primitive
   - changing exactly the existing movement scenario makes the current PR eligible for deterministic same-repository scenario auto-selection and physical proof
 unknown:
-  - current in-progress CI conclusion on the implementation/documentation head
-  - current queued Universal Agent E2E physical conclusion on the implementation/documentation head
-  - exact-final-head CI and physical E2E conclusions after the final checkpoint commit
+  - exact-final-head CI conclusion
+  - exact-final-head Agent Task Ownership conclusion
+  - exact-final-head Universal Agent E2E physical conclusion and artifact markers
+  - exact-final-head review and mergeability state
 conflicts: []
 blockers: []
 first_failure:
   marker: agent-task-ownership-checkpoint
-  evidence: Agent Task Ownership run 29680262277 failed because CHANGED_TASK_VALIDATION.txt reported missing checkpoint field blockers; no ownership overlap was reported
+  evidence: Agent Task Ownership run 29680262277 failed because CHANGED_TASK_VALIDATION.txt reported missing checkpoint field blockers; no ownership overlap was reported and the checkpoint contract was corrected before final gate
 rejected_hypotheses:
   - implement full follow_route before route artifact ownership and interaction dependencies are ready
   - modify or claim OTBM-E2E-002
@@ -150,6 +152,9 @@ validation:
     evidence: controlled OTClient artifacts previously proved initial_position 32369,32241,7 and one east step destination 32370,32241,7 with canonical persistence relog success
   - command: Agent Task Ownership run 29680262277 artifact inspection
     result: FAIL
-    evidence: CHANGED_TASK_VALIDATION.txt reported only missing checkpoint field blockers; task record corrected on the next head
-next_action: Verify corrected ownership validation and real controlled-OTClient movement scenario on the current head, then apply ci:final-gate and create the final checkpoint commit.
+    evidence: CHANGED_TASK_VALIDATION.txt reported only missing checkpoint field blockers; task record corrected before final gate
+  - command: PR 573 shared-document diff review after merging main da36fedefdf7071ad3def46e497140418c9b2f84
+    result: PASS
+    evidence: MODULE_CATALOG contains only the intended Universal E2E row change and CHANGELOG contains only the intended walk_edge entry relative to current main
+next_action: Verify all required workflows and physical movement markers on the exact final PR head, confirm no review blockers and clean mergeability, then squash merge PR 573 without any further commits.
 ```
