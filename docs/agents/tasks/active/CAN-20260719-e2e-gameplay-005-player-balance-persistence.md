@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-gameplay-005-player-balance-persistence
 base_branch: main
 created: 2026-07-19T15:32:00+02:00
-updated: 2026-07-19T15:32:00+02:00
-last_verified_commit: "1e64918de8a53aaf15647ee602e02bad25d02387"
+updated: 2026-07-19T15:48:00+02:00
+last_verified_commit: "417b031e2e0d8e558dadecb0ccb4a0481221fbbf"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "591"
 depends_on:
   - merged PR #583 typed player_storage persistence assertions
   - merged PR #586 typed player_item_presence persistence assertions
@@ -73,10 +73,10 @@ The assertion proves exact post-cycle database equality for `players.balance` af
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T15:32:00+02:00
-head: 1e64918de8a53aaf15647ee602e02bad25d02387
+updated_at: 2026-07-19T15:48:00+02:00
+head: 417b031e2e0d8e558dadecb0ccb4a0481221fbbf
 branch: feat/e2e-gameplay-005-player-balance-persistence
-pr: null
+pr: 591
 status: implementing
 context_routes:
   - universal-e2e
@@ -89,6 +89,7 @@ owned_paths:
   - docs/agents/MODULE_CATALOG.md
 proven:
   - live main at task start is 1e64918de8a53aaf15647ee602e02bad25d02387 and includes merged PR 586
+  - draft PR 591 owns branch feat/e2e-gameplay-005-player-balance-persistence
   - E2E automation roadmap explicitly lists bank/economy in E2E-GAMEPLAY-005 and permits persistence work independently of route planning
   - no open PR matched player_balance or bank-balance typed persistence ownership at task start
   - schema.sql defines players.balance as bigint(20) UNSIGNED NOT NULL DEFAULT 0
@@ -116,5 +117,5 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260719-e2e-gameplay-005-player-balance-persistence.md
 validation: []
 blockers: []
-next_action: Open draft PR, bind related_pr, implement bounded player_balance validation and SQL compilation, add focused tests/docs, then run exact-head final gates.
+next_action: Implement bounded player_balance validation and SQL compilation, add focused tests/docs, then run exact-head final gates.
 ```
