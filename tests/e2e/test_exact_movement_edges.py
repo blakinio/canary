@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import importlib.util
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 RUNNER_PATH = ROOT / "tools" / "e2e" / "run_agent_e2e.py"
 DRIVER_PATH = ROOT / "tools" / "e2e" / "client" / "agent_e2e_scenario.lua"
+ROUTE_DRIVER_PATH = ROOT / "tools" / "e2e" / "client" / "agent_e2e_route.lua"
 
 
 def load_runner():
@@ -100,18 +102,45 @@ class ExactMovementEdgeTests(unittest.TestCase):
         self.assertIn("to_x = 32370", rendered)
         self.assertNotIn('direction = "east"', rendered)
 
-    def test_runtime_asserts_source_walks_once_and_waits_for_exact_destination(self):
-        source = DRIVER_PATH.read_text(encoding="utf-8")
-        start = source.index('if step.action == "walk_edge" then')
-        end = source.index('if step.action == "talk" then', start)
-        block = source[start:end]
-        self.assertIn("source mismatch actual=", block)
-        self.assertIn("samePosition(current, source)", block)
-        self.assertIn("WALK_EDGE_DIRECTIONS", block)
-        self.assertEqual(block.count("g_game.walk(direction)"), 1)
-        self.assertIn("pollUntil(step, step.timeout_ms or 10000", block)
-        self.assertIn("samePosition(livePosition, destination)", block)
-        self.assertIn("route drift actual=", block)
+    def test_walk_edge_and_follow_route_share_one_exact_movement_executor(self):
+        driver = DRIVER_PATH.read_text(encoding="utf-8")
+        route_driver = ROUTE_DRIVER_PATH.read_text(encoding="utf-8")
+
+        primitive_start = route_driver.index("function M.walkEdge(")
+        primitive_end = route_driver.index("\nend\n\nfunction M.execute", primitive_start) + len("\nend")
+        primitive = route_driver[primitive_start:primitive_end]
+        self.assertIn("source mismatch actual=", primitive)
+        self.assertIn("MOVEMENT_DIRECTIONS", primitive)
+        self.assertEqual(primitive.count("g_game.walk(direction)"), 1)
+        self.assertIn("samePosition(livePosition, destination)", primitive)
+        self.assertIn("route drift actual=", primitive)
+        self.assertIn('"MOVEMENT_TIMEOUT"', primitive)
+
+        walk_start = driver.index('if step.action == "walk_edge" then')
+        walk_end = driver.index('if step.action == "follow_route" then', walk_start)
+        walk_block = driver[walk_start:walk_end]
+        self.assertIn("routeExecutor.walkEdge(", walk_block)
+        self.assertNotIn("g_game.walk(", walk_block)
+
+        route_start = route_driver.index("executeMovementEdge = function")
+        route_end = route_driver.index("executeTransitionEdge = function", route_start)
+        route_block = route_driver[route_start:route_end]
+        self.assertIn("M.walkEdge(edge.from, edge.to, timeoutMs", route_block)
+        self.assertNotIn("g_game.walk(", route_block)
+
+    def test_walk_edge_plan_materializes_shared_executor(self):
+        data = {
+            "suite": "movement",
+            "id": "exact-edge-contract",
+            "fixture": {"character": "Knight 1"},
+            "steps": [edge()],
+            "assertions": {"persistence": None},
+        }
+        scenario = runner.Scenario(Path("tests/e2e/scenarios/movement/exact-edge-contract.json"), data)
+        with tempfile.TemporaryDirectory() as directory:
+            plan_path = Path(directory) / "scenario-plan.lua"
+            runner.write_lua_plan(plan_path, scenario)
+            self.assertTrue((plan_path.parent / "agent-e2e-route.lua").is_file())
 
 
 if __name__ == "__main__":
