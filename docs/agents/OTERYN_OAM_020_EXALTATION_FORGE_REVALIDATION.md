@@ -1,6 +1,6 @@
 # OAM-020 — Exaltation Forge Revalidation
 
-Status: **fresh preflight complete; target adaptation pending**
+Status: **fresh preflight complete; bounded target materialization in progress; no accepted target head yet**
 
 Program: `CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION`
 
@@ -68,12 +68,13 @@ Task-start evidence already proves material target gaps:
 3. `src/config/forge_config_defaults.hpp` exists in current legacy Canary and is absent from task-start Otheryn.
 4. `data/libs/systems/exaltation_forge.lua` is still the upstream/target blob with `maxFiendish = 3`, while current legacy Canary carries the reviewed `maxFiendish = 4` correction.
 5. `PlayerForgeHistory` in task-start Otheryn lacks the `firstItemId` / `secondItemId` fields present in current legacy Canary after the reviewed history-identity repair.
+6. Direct task-start target review confirms the older Transfer resource-tier semantics, pre-transaction Forge mutation flow and stale Momentum/Transcendence gating addressed by the reviewed donor chain.
 
 These are not accepted from file identity alone. They correlate with merged, bounded legacy delivery history and the paused Equipment Upgrade parity program.
 
 ## Reviewed donor chain for bounded adaptation
 
-The exact implementation hunks must be re-reviewed against task-start target before materialization. The coherent merged legacy evidence set is:
+The implementation boundaries were re-reviewed against the task-start target before materialization. The coherent merged legacy evidence set is:
 
 - PR #89 — normal Transfer classification, donor-tier cost/result and history correctness;
 - PR #110 — Forge history item identity by numeric item ID with fallback;
@@ -85,7 +86,7 @@ The exact implementation hunks must be re-reviewed against task-start target bef
 - PR #267 — Avatar mutual exclusion and truthful Momentum feedback;
 - PR #283 — Forge history action types and configured/actual amount correctness.
 
-No broad legacy `player.cpp` or `protocolgame.cpp` copy is authorized. Only Forge-specific hunks and isolated helpers/tests may be adapted after exact target-context review.
+No broad legacy `player.cpp` or `protocolgame.cpp` copy is authorized. The target materializer is restricted to explicit Forge production/test paths from those merge commits and uses three-way context application rather than whole-file replacement.
 
 ## Explicit exclusions
 
@@ -116,6 +117,17 @@ The maintained client is evidence-only for this package unless a later explicitl
 - physical-client E2E: current package does not claim unresolved bonus/result UI parity; any required Forge gameplay scenario must reuse the existing universal platform;
 - security/operations: validation-before-mutation and transactional rollback are in scope; production rollout is not.
 
+## Target lifecycle checkpoint
+
+- Otheryn target branch: `dudantas/oam-020-exaltation-forge-adapt` from exact baseline `63547f30fc21e495217b8a92fa44aaad2db188ef`;
+- target draft PR: `blakinio/Otheryn#44`;
+- current helper/materialization head at this checkpoint: `c6ba2bfde4b65b02fc018b3dce76f7d3460f12dc`;
+- controlled materializer run: `29700173439` (`OAM-020 bounded materializer`, run #11), queued at checkpoint capture;
+- temporary helper workflow/script are not accepted target scope and must be absent from the final diff;
+- no target implementation success, exact-head CI result or merge claim exists yet.
+
+The materializer is fail-closed: it pins legacy `c353b89b5a7f783cf4ee22fe1ba91850de837a68`, applies only explicit paths from the accepted donor commits with `git apply --3way`, checks a path allowlist, and leaves a temporary no-op script stub after success so stale queued runs cannot overwrite a valid materialized branch. That stub must be removed before final target validation.
+
 ## Next action
 
-Create the OAM-020 active task record and draft governance PR, create a dedicated `dudantas/` target branch from the immutable Otheryn baseline, then perform exact donor-hunk/target-context review before the first target implementation commit. Keep all target changes bounded and reviewable.
+Inspect materializer run `29700173439`. If it succeeds, verify the exact post-materialization changed-file set, confirm stale materializer runs are harmless or complete, remove the temporary no-op script stub, and trigger exact-head target CI on the clean implementation tree. If it fails, use only the committed fail-closed log to identify and repair the specific conflicting donor hunk.
