@@ -2,13 +2,13 @@
 task_id: CAN-20260718-otbm-e2e-001-route-plan-export
 program_id: CAN-PROGRAM-OTBM-E2E-ROUTING
 coordination_id: OTBM-E2E-001
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-001-route-plan-export
 base_branch: main
 created: 2026-07-18T23:45:00+02:00
-updated: 2026-07-19T00:13:00+02:00
-last_verified_commit: "cd6cb40609844b112a0b352b16c38bd8b056cdc0"
+updated: 2026-07-19T07:37:09Z
+last_verified_commit: "f962d7b606e29965fe091ea79ba154c27b22fe34"
 risk: medium
 related_issue: ""
 related_pr: "567"
@@ -51,6 +51,7 @@ reuses:
 public_interfaces:
   - canary-otbm-e2e-route-plan-v1
 cross_repo_tasks: []
+completed: 2026-07-19T07:37:09Z
 ---
 
 # Goal
@@ -176,3 +177,11 @@ validation:
     evidence: active task records require an active lifecycle status; status validating was rejected, so this checkpoint restores implementing and leaves archival to lifecycle automation after merge
 next_action: Verify every required workflow on the exact final head, inspect review threads and merge blockers, then mark PR ready and squash-merge only if the full merge gate is green.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #567.
+- Feature head: `bc81c6ae1ef3c0b7b2854dc6debe1d7771429ba1`.
+- Merge commit: `f962d7b606e29965fe091ea79ba154c27b22fe34`.
+- Merged at: `2026-07-19T07:37:09Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
