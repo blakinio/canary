@@ -17,6 +17,7 @@ A scenario may add an optional `steps` array. When present, `tools/e2e/run_agent
 - Text actions reject embedded newlines, carriage returns and NUL and are bounded to 512 characters.
 - Waits and polling timeouts are bounded to 120 seconds.
 - Walk repetitions are bounded to 64.
+- Exact movement-edge coordinates are bounded to the OTBM coordinate range (`x,y` 0..65535 and `z` 0..15), must remain on one floor and must describe exactly one adjacent tile edge.
 - Item identifiers are bounded unsigned 16-bit values and must be supplied by a feature-owned deterministic fixture; the platform never invents item IDs.
 - Creature names, map positions, NPC names, storage values and gameplay expectations belong to feature-owned scenario tasks and must be evidence-backed.
 - Credentials are referenced through environment variables; scenario JSON must not embed passwords, tokens or private keys.
@@ -46,6 +47,7 @@ Explicit non-canonical `workflow_dispatch` suite/scenario inputs are never repla
 |---|---|---|---|
 | `wait` | `id`, `action`, `ms` | — | Bounded dispatcher wait. |
 | `walk` | `id`, `action`, `direction` | `count`, `interval_ms` | Send bounded directional walk requests. |
+| `walk_edge` | `id`, `action`, `from_x`, `from_y`, `from_z`, `to_x`, `to_y`, `to_z` | `timeout_ms` | Assert the exact current source position, derive one adjacent movement direction from the coordinate delta, send exactly one walk request, and wait for the exact destination or fail closed on drift/timeout. |
 | `talk` | `id`, `action`, `text` | — | Send normal client talk text; feature scenarios may use this for spells or NPC dialogue only with evidence-backed text. |
 | `attack_visible` | `id`, `action`, `creature` | `timeout_ms` | Find a visible named creature and confirm it becomes the attacking target. |
 | `use_inventory_item` | `id`, `action`, `item_id` | — | Require the item in local-player inventory and send the inventory-use request. |
@@ -60,6 +62,10 @@ Explicit non-canonical `workflow_dispatch` suite/scenario inputs are never repla
 | `observe_attacking` | `id`, `action`, `expected` | — | Assert whether the client currently has an attacking target. |
 
 Directions accepted by `walk` are `north`, `east`, `south`, `west`, `northeast`, `southeast`, `southwest` and `northwest`.
+
+`walk` remains backward-compatible for tiny bounded probes whose directional movement is itself under test. OTBM-aware route execution must use `walk_edge` for ordinary same-floor movement so the real client is synchronized against each exact expected `P0 -> P1` edge rather than advancing through blind direction/count timing. `walk_edge` does not consume or plan a route by itself, does not cross floors and does not implement map-item interactions; full `follow_route` remains a separate route-plan consumption layer.
+
+For `walk_edge`, the caller supplies exact source and destination coordinates but never a direction. Validation derives the direction from the exact adjacent delta. At runtime the driver first requires `current == source`, sends exactly one `g_game.walk(derivedDirection)`, then polls until `current == destination`. Any observed third position is route drift and fails the action; timeout or a rejected walk request also fails closed. The success detail is the exact destination coordinate string.
 
 ## Evidence markers
 
@@ -132,6 +138,8 @@ A pre-logout SQL observation alone must not be reported as persistence proof. Fo
 ```
 
 `tests/e2e/scenarios/platform/action-plan-contract.json` is the platform-owned contract scenario. It deliberately avoids map coordinates, item IDs, NPCs and monsters and now proves typed `level` persistence through the canonical relog cycle.
+
+The existing `tests/e2e/scenarios/movement/physical-movement.json` scenario is the physical proof consumer for `walk_edge`. Its exact `32369,32241,7 -> 32370,32241,7` fixture was pinned from prior controlled-OTClient artifact evidence in merged PR #481 rather than inferred from memory or invented by the platform task.
 
 ## Feature scenario ownership
 
