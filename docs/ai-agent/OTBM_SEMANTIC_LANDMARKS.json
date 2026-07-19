@@ -1,8 +1,78 @@
 {
   "format": "canary-otbm-semantic-landmarks-v1",
-  "landmarks": [],
-  "provenance": null,
-  "regions": [],
-  "registryStatus": "unbound",
+  "landmarks": [
+    {
+      "anchors": [
+        {
+          "evidence": {
+            "note": "Exact OTBM town metadata identifies Thais town id 8 with this temple position on the pinned map snapshot.",
+            "references": [
+              "docs/ai-agent/OTBM_THAIS_LANDMARK_EVIDENCE.md#thais-temple"
+            ],
+            "status": "reviewed"
+          },
+          "id": "spawn",
+          "position": [
+            32369,
+            32241,
+            7
+          ],
+          "role": "route-origin"
+        }
+      ],
+      "id": "thais.temple",
+      "regionId": "thais.temple-depot"
+    },
+    {
+      "anchors": [
+        {
+          "evidence": {
+            "note": "Deterministically selected minimum-distance strict-walkable approach tile adjacent to the reviewed depotId=8 locker at 32352,32225,7; final bounded Reachability route is confirmed with distance 66 and no transition edges.",
+            "references": [
+              "docs/ai-agent/OTBM_THAIS_LANDMARK_EVIDENCE.md#thais-depot",
+              "src/items/containers/depot/depotlocker.cpp",
+              "src/lua/creature/actions.cpp"
+            ],
+            "status": "reviewed"
+          },
+          "id": "locker-32352-32225-approach",
+          "position": [
+            32352,
+            32226,
+            7
+          ],
+          "role": "route-destination"
+        }
+      ],
+      "id": "thais.depot",
+      "regionId": "thais.temple-depot"
+    }
+  ],
+  "provenance": {
+    "sourceMap": {
+      "sha256": "a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2"
+    },
+    "worldIndex": {
+      "sha256": "6c22cd26d4414aa094af1d00be7f62190a441e270ee7a478b55449bf92e55e7a"
+    }
+  },
+  "regions": [
+    {
+      "bounds": {
+        "from": [
+          32347,
+          32216,
+          7
+        ],
+        "to": [
+          32369,
+          32241,
+          7
+        ]
+      },
+      "id": "thais.temple-depot"
+    }
+  ],
+  "registryStatus": "reviewed",
   "schemaVersion": 1
 }
