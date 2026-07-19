@@ -486,6 +486,9 @@ local function persistenceCheckValue(check)
 	if check.type == "player_balance" then
 		return player:getResourceBalance(RESOURCE_BANK_BALANCE), nil
 	end
+	if check.type == "player_magic_level" then
+		return player:getMagicLevel(), nil
+	end
 	if check.type ~= "player_field" then
 		return nil, "unsupported persistence check type"
 	end
@@ -546,6 +549,11 @@ function runNextPersistenceCheck()
 	elseif check.type == "player_balance" then
 		if check.field ~= nil then
 			fail("invalid runtime player_balance persistence check")
+			return
+		end
+	elseif check.type == "player_magic_level" then
+		if check.field ~= nil then
+			fail("invalid runtime player_magic_level persistence check")
 			return
 		end
 	else
