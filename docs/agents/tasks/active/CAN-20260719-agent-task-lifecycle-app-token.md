@@ -6,11 +6,11 @@ agent: "GPT-5.5 Thinking"
 branch: ci/agent-task-lifecycle-app-token
 base_branch: main
 created: 2026-07-19T12:44:28+02:00
-updated: 2026-07-19T12:45:35+02:00
-last_verified_commit: "112a18d73f4131aa274f93b42ff4d470c6fb0849"
+updated: 2026-07-19T12:46:07+02:00
+last_verified_commit: "1446f7ead77ef873173cb27a722247e1309d40eb"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "582"
 blocks: []
 owned_paths:
   exclusive:
@@ -42,15 +42,15 @@ Remove the manual `Approve workflows to run` gate from automation-created agent-
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T12:45:35+02:00
-head: 112a18d73f4131aa274f93b42ff4d470c6fb0849
+updated_at: 2026-07-19T12:46:07+02:00
+head: 1446f7ead77ef873173cb27a722247e1309d40eb
 branch: ci/agent-task-lifecycle-app-token
-pr: UNKNOWN
+pr: 582
 status: implementing
-next_action: Open the same-repository draft PR, bind this task record to the PR number and exact head, then validate workflow syntax and required checks before final-gate merge.
+next_action: Inspect PR #582 exact-head workflow results and changed-file diff, repair any task or workflow validation failure, then apply the final-gate label before the final checkpoint commit.
 first_failure:
   marker: No failure observed at task start.
-  evidence: Preflight and bounded implementation completed; PR validation has not run yet.
+  evidence: Preflight and bounded implementation completed; PR validation is now starting on PR #582.
 context_routes:
   - agent-governance
   - ci-repair
@@ -65,10 +65,11 @@ proven:
   - Checkout persists the GitHub App token for lifecycle branch push and gh uses the same token for cleanup PR creation and auto-merge.
   - The redundant explicit workflow_dispatch step was removed, so the GitHub App does not require Actions write permission for this flow.
   - Current workflow cleanup operations remain confined to blakinio/canary and trusted main-derived lifecycle branches.
+  - PR #582 is the same-repository draft PR with base main and head ci/agent-task-lifecycle-app-token.
 derived:
   - Normal pull_request events from the App-created cleanup PR should replace the previous explicit workflow_dispatch workaround.
 unknown:
-  - Exact CI and Agent Task Ownership conclusions on the implementation PR head.
+  - Exact CI and Agent Task Ownership conclusions on the current PR #582 head.
   - End-to-end confirmation that the first post-merge App-created cleanup PR has no manual approval banner.
 conflicts: []
 rejected_hypotheses:
