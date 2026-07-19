@@ -11,15 +11,18 @@ Unified OTBM World Index
   -> existing Reachability tile classification and validated transitions
   -> existing _bfs()
   -> existing previous[position] = (parent, transition_id)
+  -> optional reviewed executable edge policy
   -> full edge-aware route reconstruction
   -> canary-otbm-e2e-route-plan-v1
 ```
 
-It is **not** a second pathfinder. The exporter does not run A*, Dijkstra, another BFS, another OTBM parser or another World Index builder.
+It is **not** a second pathfinder. The exporter does not run A*, Dijkstra, another BFS implementation, another OTBM parser or another World Index builder. Interaction-aware execution reruns the same existing `_bfs()` with a narrower fail-closed edge predicate.
 
 Schema: `docs/ai-agent/OTBM_E2E_ROUTE_PLAN.schema.json`
 
 ## Export
+
+Geometry-only route-plan export:
 
 ```bash
 PYTHONPATH=tools/ai-agent \
@@ -36,6 +39,12 @@ python tools/ai-agent/otbm_reachability_tool.py route-plan \
   --output /tmp/OTBM_E2E_ROUTE_PLAN.json
 ```
 
+Interaction-aware executable export adds the reviewed registry:
+
+```bash
+  --interactions /path/to/OTBM_ROUTE_INTERACTIONS.json
+```
+
 `--from` and `--to` are the same inclusive Reachability routing bounds. `--origin`, `--destination` and all emitted path positions are exact OTBM coordinates.
 
 `--max-positions` defaults to `10000`. It limits the complete executable path, including the origin and destination positions.
@@ -44,23 +53,77 @@ Generated route plans are artifacts and must not be committed.
 
 ## Relationship to the Reachability report
 
-The existing `canary-otbm-reachability-v1` report remains unchanged by normal `analyze` calls. Its public `path` may still be a deterministic head/tail sample controlled by `--path-limit`.
+The existing `canary-otbm-reachability-v1` geometry report remains unchanged when interaction-aware executable routing is not requested. Its public `path` may still be a deterministic head/tail sample controlled by `--path-limit`.
 
-The route-plan exporter does not reuse that sampled path. It selects the same strict or optimistic BFS cache that produced the existing route decision and reconstructs the route directly from the corresponding predecessor map.
+The route-plan exporter does not reuse that sampled path. It selects a predecessor map produced by the same canonical `_bfs()` implementation and reconstructs the route directly from that map.
 
 Therefore:
 
-- `routeStatus` is the existing Reachability route status;
-- `strictDistance` and `optimisticDistance` are the existing BFS distances;
-- `distance` is the selected route distance for `confirmed` or `conditional`;
-- every route-plan edge corresponds to one predecessor relation from that selected BFS result;
-- `transitionId` is preserved on the exact predecessor edge where Reachability used the validated transition.
+- `routeStatus` preserves the existing strict/optimistic geometry decision;
+- `strictDistance` and `optimisticDistance` remain the existing BFS distances;
+- `executableDistance` is present when interaction-aware routing was evaluated and is the distance under the executable edge policy, or `null` when no executable route exists;
+- `distance` is the distance of the predecessor map actually exported;
+- every route-plan edge corresponds to one predecessor relation from the selected `_bfs()` result;
+- `transitionId` remains attached to the exact predecessor edge where Reachability used the validated transition.
+
+A route may therefore have:
+
+```text
+routeStatus = conditional
+optimisticDistance = 4
+executableDistance = 6
+routingMode = executable
+executionStatus = executable
+```
+
+This means geometry found a shorter optimistic path, but executable routing rejected unsafe optimistic crossings and selected a different route whose every conditional crossing has explicit supported interaction evidence.
+
+## Interaction-aware executable routing
+
+Supplying `--interactions` enables `OTBM-E2E-001B` behavior.
+
+The exact reviewed `canary-otbm-route-interactions-v1` registry is validated against:
+
+- source-map SHA-256 from the World Index manifest;
+- actual World Index SHA-256;
+- transition-manifest SHA-256 when supplied;
+- Script Resolution SHA-256 when supplied.
+
+The registry file itself is also hashed and emitted as `provenance.interactionRegistry`.
+
+The executable movement predicate is equivalent to:
+
+```text
+strictly walkable destination
+OR
+optimistically walkable conditional destination
+  AND every exact conditional blocker placement resolves to a supported reviewed interaction
+  AND required handler evidence is explicitly handled
+```
+
+The following remain blocked:
+
+- static blockers;
+- unknown appearances, even when a registry selector mentions the unknown item ID;
+- missing exact blocker placement evidence;
+- unresolved or missing handler evidence for AID/UID-gated blockers;
+- unresolved, partially resolved, referenced-only or conflicting Script Resolution states;
+- unsupported or ambiguous interaction semantics;
+- conditional diagonal crossings that would require implicit interactions on corner tiles.
+
+Strict diagonal movement remains supported with the existing no-corner-cutting rule. Interaction-aware diagonal movement never treats a conditional corner tile as silently crossed.
+
+The executable transition predicate starts from existing validated optimistic transition edges and then requires the exact transition ID to resolve through the reviewed interaction registry. Fail-closed transition uncertainties and unsupported activation semantics remove that edge from the executable graph.
+
+`walk-direction` transition activations are additionally checked against the exact directional edge. A reviewed direction that does not match the selected edge is blocked.
+
+The traversal algorithm remains the existing `_bfs()` in `otbm_reachability_graph.py`.
 
 ## Full-path fail-closed rule
 
 An executable plan must contain the complete route.
 
-If the selected route requires more than `maxExecutablePositions` positions, the exporter emits:
+If the selected route requires more than `maxExecutablePositions` positions, the exporter emits a blocked plan with:
 
 ```json
 {
@@ -82,24 +145,24 @@ No head/tail sample is copied into executable output. A partial path is never pu
 
 ## Route and execution status
 
-`routeStatus` preserves the existing Reachability semantics:
+`routeStatus` preserves the existing Reachability geometry semantics:
 
 - `confirmed` — a strict path exists;
 - `conditional` — no strict path exists, but an optimistic path exists;
-- `unreachable` — neither route exists inside the explicit bounds;
+- `unreachable` — neither strict nor optimistic geometry route exists inside the explicit bounds;
 - `invalid` — the request is invalid, for example the destination is outside the explicit bounds.
 
-`executionStatus` is separate:
+`executionStatus` remains separate:
 
-- `executable` — currently possible only for a complete `confirmed` route whose required provenance is present and whose edges need no unresolved interaction semantics;
-- `blocked` — a geometrically selected route exists but is not safe to execute under the current contract;
+- `executable` — the selected complete route satisfies provenance and executable edge requirements;
+- `blocked` — geometry selected a route, but no safe complete executable route is available under the requested policy;
 - `not-applicable` — the route is `unreachable` or `invalid`.
 
-A plain optimistic `conditional` route is always blocked. Doors, quest gates and other conditional barriers are not promoted to executable by this contract.
+A plain optimistic route is never sufficient for `executionStatus=executable`.
 
-Transition activation semantics belong to `OTBM-E2E-003 — Route interaction semantics` and the possible later `OTBM-E2E-001B — Executable interaction-aware routing mode`. Until those semantics are explicitly resolved, a selected route containing a transition is exported with exact transition evidence but remains blocked by `transition-interaction-semantics-unresolved`.
+Without `--interactions`, a `conditional` geometry route remains blocked and a route containing transitions remains blocked by unresolved transition interaction semantics.
 
-This conservative rule does not alter Reachability's geometry decision or distance.
+With `--interactions`, the exporter builds an executable edge set and reruns the existing `_bfs()`. Only that executable predecessor map may promote a conditional geometry route to `executionStatus=executable`.
 
 ## Ordered path and edges
 
@@ -108,6 +171,8 @@ This conservative rule does not alter Reachability's geometry decision or distan
 `edges` has one entry for every adjacent pair in that path and preserves path order.
 
 ### Movement edge
+
+Geometry-only example:
 
 ```json
 {
@@ -125,6 +190,38 @@ This conservative rule does not alter Reachability's geometry decision or distan
 ```
 
 A movement edge is a predecessor edge whose stored `transition_id` is `None`. The edge therefore comes from the existing Reachability movement-neighbor path.
+
+When executable routing crosses a reviewed conditional blocker, the same edge also carries exact resolver evidence:
+
+```json
+{
+  "from": [100, 100, 7],
+  "to": [101, 100, 7],
+  "kind": "movement",
+  "isTransition": false,
+  "transitionId": null,
+  "evidence": {
+    "source": "reachability-bfs-predecessor",
+    "edgeSource": "_movement_neighbors",
+    "routingMode": "executable"
+  },
+  "interactions": [
+    {
+      "format": "canary-otbm-route-interaction-resolution-v1",
+      "schemaVersion": 1,
+      "executionStatus": "executable",
+      "matchedEntryId": "reviewed-door",
+      "activation": {
+        "kind": "use-map-item",
+        "target": "selector-position"
+      }
+    }
+  ],
+  "executionBlockers": []
+}
+```
+
+The full resolution object retains its exact selector query, matched IDs, reviewed evidence and blockers.
 
 ### Transition edge
 
@@ -152,6 +249,8 @@ A movement edge is a predecessor edge whose stored `transition_id` is `None`. Th
 
 The embedded transition object is copied from the already validated Reachability `TransitionState`. It retains the existing transition kind, source, destination, item/evidence fields, uncertainties, script status, eligibility and issues.
 
+In executable routing mode, the edge is present only if its exact transition interaction resolved as executable. The edge then includes `interactions` and `executionBlockers` just like a reviewed conditional movement edge.
+
 The exporter does not infer stairs, ladders, holes, rope destinations, door behavior or dynamic Lua behavior.
 
 ## Provenance and stale-plan detection
@@ -162,9 +261,10 @@ Top-level provenance is machine-readable:
 - `worldIndex` — actual `.widx` file identity calculated by Reachability;
 - `appearances` — exact appearances input identity;
 - `transitionManifest` — exact reviewed transition manifest identity when supplied;
-- `scriptResolution` — exact script-resolution report identity when supplied.
+- `scriptResolution` — exact script-resolution report identity when supplied;
+- `interactionRegistry` — exact reviewed route-interaction registry identity when supplied.
 
-A plan cannot be `executable` without SHA-256 identity for the source map, World Index and appearances. When transition-manifest or script-resolution evidence influenced the selected route, the corresponding SHA-256 identity is also required.
+A plan cannot be `executable` without SHA-256 identity for the source map, World Index and appearances. When transition-manifest, Script Resolution or interaction-registry evidence influences the executable decision, the corresponding SHA-256 identity is required.
 
 Two deterministic hashes are emitted:
 
@@ -177,19 +277,20 @@ A later static preflight must compare these identities with the exact runtime-se
 
 ## Determinism
 
-Route selection remains deterministic because the exporter reuses the existing Reachability BFS and its deterministic neighbor ordering. No route-plan-specific search ordering exists.
+Route selection remains deterministic because every mode reuses the existing Reachability `_bfs()` and deterministic neighbor ordering. No route-plan-specific search ordering exists.
 
 For identical:
 
 - map and World Index;
 - appearances;
 - transition and script evidence;
+- reviewed interaction registry;
 - bounds;
 - origin and destination;
 - diagonal option;
 - executable position bound;
 
-the route-plan output and both hashes are deterministic.
+route-plan output and hashes are deterministic.
 
 ## Safety boundary
 
@@ -199,7 +300,8 @@ The route plan is static evidence. It does not:
 - execute Lua;
 - prove door/quest/runtime state;
 - invent interaction semantics;
+- treat unknown appearances as reviewed mechanics;
 - modify OTBM or `.widx` files;
 - replace the Universal Physical E2E lifecycle.
 
-Universal `follow_route` belongs to `E2E-ROUTE-001` and is deliberately outside this work package.
+Universal `follow_route` belongs to `E2E-ROUTE-001` and remains outside this work package.

@@ -41,11 +41,40 @@ from otbm_reachability_types import (
     _validate_limits,
     normalize_bounds,
 )
+from otbm_route_interactions import (
+    SAFE_SCRIPT_STATUSES,
+    RouteInteractionError,
+    resolve_interaction,
+)
 
 ROUTE_PLAN_FORMAT = "canary-otbm-e2e-route-plan-v1"
 ROUTE_PLAN_SCHEMA_VERSION = 1
 MAX_EXECUTABLE_ROUTE_POSITIONS = MAX_PATH_LIMIT
 DEFAULT_EXECUTABLE_ROUTE_POSITIONS = MAX_EXECUTABLE_ROUTE_POSITIONS
+
+_FAIL_CLOSED_TRANSITION_UNCERTAINTIES = frozenset(
+    {
+        "quest-state",
+        "dynamic-script",
+        "runtime-condition",
+        "script-resolution-missing",
+        "script-resolution-unresolved",
+        "script-resolution-partially-resolved",
+        "script-resolution-referenced-only",
+        "script-resolution-conflicting",
+        "unknown",
+    }
+)
+_DIRECTION_BY_DELTA = {
+    (0, -1): "north",
+    (1, -1): "north-east",
+    (1, 0): "east",
+    (1, 1): "south-east",
+    (0, 1): "south",
+    (-1, 1): "south-west",
+    (-1, 0): "west",
+    (-1, -1): "north-west",
+}
 
 
 def _mapping_or_none(value: Any) -> dict[str, Any] | None:
@@ -62,6 +91,7 @@ def _route_plan_provenance(provenance: Mapping[str, Any] | None) -> dict[str, An
         "appearances": _mapping_or_none(source.get("appearances")),
         "transitionManifest": _mapping_or_none(source.get("transitionManifest")),
         "scriptResolution": _mapping_or_none(source.get("scriptResolution")),
+        "interactionRegistry": _mapping_or_none(source.get("interactionRegistry")),
     }
 
 
@@ -69,9 +99,310 @@ def _has_sha256(value: Any) -> bool:
     return isinstance(value, Mapping) and isinstance(value.get("sha256"), str) and len(value["sha256"]) == 64
 
 
+def _evidence_sha256(value: Any) -> str | None:
+    return str(value["sha256"]) if _has_sha256(value) else None
+
+
 def _hash_json(value: Mapping[str, Any]) -> str:
     encoded = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
+
+
+def _edge_execution_result(
+    *,
+    allowed: bool,
+    interactions: Sequence[Mapping[str, Any]] = (),
+    blockers: Sequence[Mapping[str, Any]] = (),
+) -> dict[str, Any]:
+    return {
+        "allowed": allowed,
+        "interactions": [dict(value) for value in interactions],
+        "blockers": [dict(value) for value in blockers],
+    }
+
+
+def _direction_for_edge(source: Position, destination: Position) -> str | None:
+    dx = destination[0] - source[0]
+    dy = destination[1] - source[1]
+    if abs(dx) > 1 or abs(dy) > 1 or (dx == 0 and dy == 0):
+        return None
+    return _DIRECTION_BY_DELTA.get((dx, dy))
+
+
+def _movement_execution_resolver(
+    *,
+    region_tiles: Mapping[Position, TileState],
+    placements_by_ordinal: Mapping[int, Mapping[str, Any]],
+    interaction_registry: Mapping[str, Any],
+    script_lookup: Mapping[tuple[Any, ...], str],
+    provenance: Mapping[str, Any] | None,
+):
+    route_provenance = _route_plan_provenance(provenance)
+    map_sha = _evidence_sha256(route_provenance.get("map"))
+    world_index_sha = _evidence_sha256(route_provenance.get("worldIndex"))
+    transition_manifest_sha = _evidence_sha256(route_provenance.get("transitionManifest"))
+    script_resolution_sha = _evidence_sha256(route_provenance.get("scriptResolution"))
+    cache: dict[tuple[Position, Position], dict[str, Any]] = {}
+
+    def resolve(source: Position, destination: Position) -> dict[str, Any]:
+        key = (source, destination)
+        if key in cache:
+            return cache[key]
+        state = region_tiles.get(destination)
+        if state is None:
+            result = _edge_execution_result(
+                allowed=False,
+                blockers=[{"code": "destination-tile-missing", "position": list(destination)}],
+            )
+            cache[key] = result
+            return result
+        if state.strict_walkable:
+            result = _edge_execution_result(allowed=True)
+            cache[key] = result
+            return result
+        if not state.optimistic_walkable:
+            result = _edge_execution_result(
+                allowed=False,
+                blockers=[{"code": "movement-not-optimistically-walkable", "position": list(destination)}],
+            )
+            cache[key] = result
+            return result
+        if state.unknown_appearances:
+            result = _edge_execution_result(
+                allowed=False,
+                blockers=[
+                    {
+                        "code": "unknown-appearance",
+                        "position": list(destination),
+                        "itemIds": list(state.unknown_appearances),
+                    }
+                ],
+            )
+            cache[key] = result
+            return result
+        dx = abs(destination[0] - source[0])
+        dy = abs(destination[1] - source[1])
+        if dx == 1 and dy == 1:
+            result = _edge_execution_result(
+                allowed=False,
+                blockers=[
+                    {
+                        "code": "conditional-diagonal-interaction-unsupported",
+                        "from": list(source),
+                        "to": list(destination),
+                    }
+                ],
+            )
+            cache[key] = result
+            return result
+
+        conditional_item_ids = set(state.conditional_blockers)
+        blocking_placements = [
+            placements_by_ordinal[ordinal]
+            for ordinal in state.placement_ordinals
+            if ordinal in placements_by_ordinal
+            and int(placements_by_ordinal[ordinal].get("itemId", -1)) in conditional_item_ids
+        ]
+        blocking_placements.sort(key=lambda entry: int(entry.get("placementOrdinal", 0)))
+        if not blocking_placements:
+            result = _edge_execution_result(
+                allowed=False,
+                blockers=[
+                    {
+                        "code": "conditional-blocker-evidence-missing",
+                        "position": list(destination),
+                        "itemIds": list(state.conditional_blockers),
+                    }
+                ],
+            )
+            cache[key] = result
+            return result
+
+        blockers: list[dict[str, Any]] = []
+        interactions: list[dict[str, Any]] = []
+        if map_sha is None:
+            blockers.append({"code": "map-provenance-missing"})
+        if world_index_sha is None:
+            blockers.append({"code": "world-index-provenance-missing"})
+        if blockers:
+            result = _edge_execution_result(allowed=False, blockers=blockers)
+            cache[key] = result
+            return result
+
+        for placement in blocking_placements:
+            script_status = _placement_script_status(placement, script_lookup)
+            if (placement.get("actionId") is not None or placement.get("uniqueId") is not None) and (
+                script_status not in SAFE_SCRIPT_STATUSES
+            ):
+                blockers.append(
+                    {
+                        "code": "script-status-fail-closed",
+                        "position": list(destination),
+                        "itemId": placement.get("itemId"),
+                        "placementOrdinal": placement.get("placementOrdinal"),
+                        "status": script_status,
+                    }
+                )
+                continue
+            try:
+                resolution = resolve_interaction(
+                    interaction_registry,
+                    expected_source_map_sha256=map_sha,
+                    expected_world_index_sha256=world_index_sha,
+                    position=list(destination),
+                    item_id=placement.get("itemId"),
+                    action_id=placement.get("actionId"),
+                    unique_id=placement.get("uniqueId"),
+                    house_door_id=placement.get("houseDoorId"),
+                    script_status=script_status,
+                    expected_transition_manifest_sha256=transition_manifest_sha,
+                    expected_script_resolution_sha256=script_resolution_sha,
+                )
+            except RouteInteractionError as exc:
+                blockers.append(
+                    {
+                        "code": "interaction-resolution-error",
+                        "position": list(destination),
+                        "placementOrdinal": placement.get("placementOrdinal"),
+                        "message": str(exc),
+                    }
+                )
+                continue
+            interactions.append(resolution)
+            if resolution.get("executionStatus") != "executable":
+                blockers.append(
+                    {
+                        "code": "interaction-not-executable",
+                        "position": list(destination),
+                        "placementOrdinal": placement.get("placementOrdinal"),
+                        "resolutionBlockers": resolution.get("blockers", []),
+                    }
+                )
+
+        result = _edge_execution_result(
+            allowed=not blockers and len(interactions) == len(blocking_placements),
+            interactions=interactions,
+            blockers=blockers,
+        )
+        cache[key] = result
+        return result
+
+    return resolve
+
+
+def _transition_execution_resolver(
+    *,
+    interaction_registry: Mapping[str, Any],
+    provenance: Mapping[str, Any] | None,
+):
+    route_provenance = _route_plan_provenance(provenance)
+    map_sha = _evidence_sha256(route_provenance.get("map"))
+    world_index_sha = _evidence_sha256(route_provenance.get("worldIndex"))
+    transition_manifest_sha = _evidence_sha256(route_provenance.get("transitionManifest"))
+    script_resolution_sha = _evidence_sha256(route_provenance.get("scriptResolution"))
+    cache: dict[tuple[str, Position, Position], dict[str, Any]] = {}
+
+    def resolve(transition: TransitionState, source: Position, destination: Position) -> dict[str, Any]:
+        key = (transition.spec.transition_id, source, destination)
+        if key in cache:
+            return cache[key]
+        spec = transition.spec
+        blockers: list[dict[str, Any]] = []
+        if not transition.optimistic_eligible:
+            blockers.append({"code": "transition-not-optimistically-eligible", "transitionId": spec.transition_id})
+        unresolved_uncertainties = sorted(
+            set(spec.uncertainties).intersection(_FAIL_CLOSED_TRANSITION_UNCERTAINTIES)
+        )
+        if unresolved_uncertainties:
+            blockers.append(
+                {
+                    "code": "transition-uncertainty-fail-closed",
+                    "transitionId": spec.transition_id,
+                    "uncertainties": unresolved_uncertainties,
+                }
+            )
+        if spec.script_status is not None and spec.script_status not in SAFE_SCRIPT_STATUSES:
+            blockers.append(
+                {
+                    "code": "script-status-fail-closed",
+                    "transitionId": spec.transition_id,
+                    "status": spec.script_status,
+                }
+            )
+        if map_sha is None:
+            blockers.append({"code": "map-provenance-missing"})
+        if world_index_sha is None:
+            blockers.append({"code": "world-index-provenance-missing"})
+        if blockers:
+            result = _edge_execution_result(allowed=False, blockers=blockers)
+            cache[key] = result
+            return result
+
+        try:
+            resolution = resolve_interaction(
+                interaction_registry,
+                expected_source_map_sha256=map_sha,
+                expected_world_index_sha256=world_index_sha,
+                transition_id=spec.transition_id,
+                transition_kind=spec.kind,
+                transition_evidence_source=("transitionManifest" if spec.origin == "manifest" else "worldIndex"),
+                script_status=spec.script_status,
+                expected_transition_manifest_sha256=transition_manifest_sha,
+                expected_script_resolution_sha256=script_resolution_sha,
+            )
+        except RouteInteractionError as exc:
+            result = _edge_execution_result(
+                allowed=False,
+                blockers=[
+                    {
+                        "code": "interaction-resolution-error",
+                        "transitionId": spec.transition_id,
+                        "message": str(exc),
+                    }
+                ],
+            )
+            cache[key] = result
+            return result
+
+        if resolution.get("executionStatus") != "executable":
+            result = _edge_execution_result(
+                allowed=False,
+                interactions=[resolution],
+                blockers=[
+                    {
+                        "code": "interaction-not-executable",
+                        "transitionId": spec.transition_id,
+                        "resolutionBlockers": resolution.get("blockers", []),
+                    }
+                ],
+            )
+            cache[key] = result
+            return result
+
+        activation = resolution.get("activation")
+        if isinstance(activation, Mapping) and activation.get("kind") == "walk-direction":
+            actual_direction = _direction_for_edge(source, destination)
+            if actual_direction is None or activation.get("direction") != actual_direction:
+                result = _edge_execution_result(
+                    allowed=False,
+                    interactions=[resolution],
+                    blockers=[
+                        {
+                            "code": "walk-direction-mismatch",
+                            "transitionId": spec.transition_id,
+                            "expected": activation.get("direction"),
+                            "actual": actual_direction,
+                        }
+                    ],
+                )
+                cache[key] = result
+                return result
+
+        result = _edge_execution_result(allowed=True, interactions=[resolution])
+        cache[key] = result
+        return result
+
+    return resolve
 
 
 def _build_route_plan(
@@ -89,10 +420,19 @@ def _build_route_plan(
     max_positions: int,
     provenance: Mapping[str, Any] | None,
     issues: Sequence[str],
+    routing_mode: str | None = None,
+    selected_distance: int | None = None,
+    executable_distance: int | None = None,
+    interaction_aware: bool = False,
+    movement_execution: Any = None,
+    transition_execution: Any = None,
 ) -> dict[str, Any]:
     route_provenance = _route_plan_provenance(provenance)
-    routing_mode = "strict" if status == "confirmed" else "optimistic" if status == "conditional" else None
-    distance = strict_distance if status == "confirmed" else optimistic_distance if status == "conditional" else None
+    if routing_mode is None:
+        routing_mode = "strict" if status == "confirmed" else "optimistic" if status == "conditional" else None
+    if selected_distance is None:
+        selected_distance = strict_distance if status == "confirmed" else optimistic_distance if status == "conditional" else None
+    distance = selected_distance
     blockers: list[dict[str, Any]] = []
     path_complete = status in {"invalid", "unreachable"}
     positions: list[Position] = []
@@ -119,22 +459,37 @@ def _build_route_plan(
     missing_transition_evidence: list[str] = []
     manifest_transition_used = False
     script_evidence_used = False
+    interaction_used = False
+    executable_policy_mismatches: list[dict[str, Any]] = []
     for source, destination, transition_id in predecessor_edges:
         if transition_id is None:
-            edges.append(
-                {
-                    "from": list(source),
-                    "to": list(destination),
-                    "kind": "movement",
-                    "isTransition": False,
-                    "transitionId": None,
-                    "evidence": {
-                        "source": "reachability-bfs-predecessor",
-                        "edgeSource": "_movement_neighbors",
-                        "routingMode": routing_mode,
-                    },
-                }
-            )
+            edge: dict[str, Any] = {
+                "from": list(source),
+                "to": list(destination),
+                "kind": "movement",
+                "isTransition": False,
+                "transitionId": None,
+                "evidence": {
+                    "source": "reachability-bfs-predecessor",
+                    "edgeSource": "_movement_neighbors",
+                    "routingMode": routing_mode,
+                },
+            }
+            if movement_execution is not None:
+                execution = movement_execution(source, destination)
+                edge["interactions"] = execution["interactions"]
+                edge["executionBlockers"] = execution["blockers"]
+                interaction_used = interaction_used or bool(execution["interactions"])
+                script_evidence_used = script_evidence_used or any(
+                    isinstance(resolution.get("selectorQuery"), Mapping)
+                    and resolution["selectorQuery"].get("scriptStatus") is not None
+                    for resolution in execution["interactions"]
+                )
+                if routing_mode == "executable" and not execution["allowed"]:
+                    executable_policy_mismatches.append(
+                        {"from": list(source), "to": list(destination), "transitionId": None}
+                    )
+            edges.append(edge)
             continue
 
         transition_ids.append(transition_id)
@@ -148,24 +503,37 @@ def _build_route_plan(
                 uncertainty.startswith("script-resolution-") or uncertainty == "dynamic-script"
                 for uncertainty in transition.spec.uncertainties
             )
-        edges.append(
-            {
-                "from": list(source),
-                "to": list(destination),
-                "kind": "transition",
-                "isTransition": True,
-                "transitionId": transition_id,
-                "evidence": {
-                    "source": "validated-transition-edge",
-                    "provenanceKey": (
-                        "transitionManifest"
-                        if transition is not None and transition.spec.origin == "manifest"
-                        else "worldIndex"
-                    ),
-                    "transition": transition_json,
-                },
-            }
-        )
+        edge = {
+            "from": list(source),
+            "to": list(destination),
+            "kind": "transition",
+            "isTransition": True,
+            "transitionId": transition_id,
+            "evidence": {
+                "source": "validated-transition-edge",
+                "provenanceKey": (
+                    "transitionManifest"
+                    if transition is not None and transition.spec.origin == "manifest"
+                    else "worldIndex"
+                ),
+                "transition": transition_json,
+            },
+        }
+        if transition_execution is not None and transition is not None:
+            execution = transition_execution(transition, source, destination)
+            edge["interactions"] = execution["interactions"]
+            edge["executionBlockers"] = execution["blockers"]
+            interaction_used = interaction_used or bool(execution["interactions"])
+            script_evidence_used = script_evidence_used or any(
+                isinstance(resolution.get("selectorQuery"), Mapping)
+                and resolution["selectorQuery"].get("scriptStatus") is not None
+                for resolution in execution["interactions"]
+            )
+            if routing_mode == "executable" and not execution["allowed"]:
+                executable_policy_mismatches.append(
+                    {"from": list(source), "to": list(destination), "transitionId": transition_id}
+                )
+        edges.append(edge)
 
     if missing_transition_evidence:
         blockers.append(
@@ -174,13 +542,22 @@ def _build_route_plan(
                 "transitionIds": sorted(set(missing_transition_evidence)),
             }
         )
+    if executable_policy_mismatches:
+        blockers.append(
+            {
+                "code": "executable-edge-policy-mismatch",
+                "edges": executable_policy_mismatches,
+            }
+        )
 
-    if status == "conditional":
+    if status == "conditional" and not interaction_aware:
         blockers.append({"code": "conditional-route-not-executable"})
     elif status in {"unreachable", "invalid"}:
         blockers.extend({"code": issue} for issue in issues)
+    if interaction_aware and status in {"confirmed", "conditional"} and routing_mode != "executable":
+        blockers.append({"code": "executable-route-unavailable"})
 
-    if status == "confirmed":
+    if status in {"confirmed", "conditional"}:
         if not _has_sha256(route_provenance.get("map")):
             blockers.append({"code": "map-provenance-missing"})
         if not _has_sha256(route_provenance.get("worldIndex")):
@@ -191,7 +568,9 @@ def _build_route_plan(
             blockers.append({"code": "transition-manifest-provenance-missing"})
         if script_evidence_used and not _has_sha256(route_provenance.get("scriptResolution")):
             blockers.append({"code": "script-resolution-provenance-missing"})
-        if transition_ids:
+        if interaction_used and not _has_sha256(route_provenance.get("interactionRegistry")):
+            blockers.append({"code": "interaction-registry-provenance-missing"})
+        if transition_ids and not interaction_aware:
             blockers.append(
                 {
                     "code": "transition-interaction-semantics-unresolved",
@@ -215,6 +594,7 @@ def _build_route_plan(
             "allowDiagonal": allow_diagonal,
             "diagonalCornerCutting": False,
             "maxExecutablePositions": max_positions,
+            "interactionAware": interaction_aware,
         },
     }
     plan: dict[str, Any] = {
@@ -232,6 +612,7 @@ def _build_route_plan(
         "distance": distance,
         "strictDistance": strict_distance,
         "optimisticDistance": optimistic_distance,
+        "executableDistance": executable_distance,
         "pathComplete": path_complete,
         "path": [list(position) for position in positions],
         "edges": edges,
@@ -251,6 +632,7 @@ def analyze_world(
     origins: Sequence[Position] = (),
     transition_entries: Sequence[dict[str, Any]] = (),
     script_resolution: dict[str, Any] | None = None,
+    interaction_registry: dict[str, Any] | None = None,
     allow_diagonal: bool = False,
     sample_limit: int = DEFAULT_SAMPLE_LIMIT,
     path_limit: int = DEFAULT_PATH_LIMIT,
@@ -376,6 +758,48 @@ def analyze_world(
             allow_diagonal=allow_diagonal,
         )
 
+    movement_execution = None
+    transition_execution = None
+    executable_cache: dict[
+        Position,
+        tuple[dict[Position, int], dict[Position, tuple[Position, str | None]]],
+    ] = {}
+    if interaction_registry is not None:
+        placements_by_ordinal = {
+            int(placement["placementOrdinal"]): placement
+            for placement in all_region_placements
+            if isinstance(placement.get("placementOrdinal"), int)
+        }
+        movement_execution = _movement_execution_resolver(
+            region_tiles=region_tiles,
+            placements_by_ordinal=placements_by_ordinal,
+            interaction_registry=interaction_registry,
+            script_lookup=script_lookup,
+            provenance=provenance,
+        )
+        transition_execution = _transition_execution_resolver(
+            interaction_registry=interaction_registry,
+            provenance=provenance,
+        )
+        executable_transition_edges = _transition_edges(
+            transitions,
+            lower,
+            upper,
+            strict=False,
+            edge_allowed=lambda transition, source, destination: transition_execution(
+                transition, source, destination
+            )["allowed"],
+        )
+        for origin in all_origins:
+            executable_cache[origin] = _bfs(
+                origin,
+                region_tiles,
+                executable_transition_edges,
+                strict=True,
+                allow_diagonal=allow_diagonal,
+                edge_allowed=lambda source, destination, _state: movement_execution(source, destination)["allowed"],
+            )
+
     route_results: list[dict[str, Any]] = []
     for start, goal in normalized_routes:
         if not _in_bounds(goal, lower, upper):
@@ -390,6 +814,8 @@ def analyze_world(
                 "transitionIdsUsed": [],
                 "issues": ["goal-outside-region"],
             }
+            if interaction_registry is not None:
+                result["executableDistance"] = None
             if route_plan_max_positions is not None:
                 result["routePlan"] = _build_route_plan(
                     start=start,
@@ -405,6 +831,10 @@ def analyze_world(
                     max_positions=route_plan_max_positions,
                     provenance=provenance,
                     issues=result["issues"],
+                    executable_distance=None,
+                    interaction_aware=interaction_registry is not None,
+                    movement_execution=movement_execution,
+                    transition_execution=transition_execution,
                 )
             findings.add(
                 "error",
@@ -457,6 +887,20 @@ def analyze_world(
             "transitionIdsUsed": used,
             "issues": issues,
         }
+
+        plan_previous = selected_previous
+        plan_routing_mode = "strict" if status == "confirmed" else "optimistic" if status == "conditional" else None
+        plan_distance = strict_distances.get(goal) if status == "confirmed" else optimistic_distances.get(goal)
+        executable_distance: int | None = None
+        if interaction_registry is not None:
+            executable_distances, executable_previous = executable_cache[start]
+            executable_distance = executable_distances.get(goal)
+            result["executableDistance"] = executable_distance
+            if executable_distance is not None:
+                plan_previous = executable_previous
+                plan_routing_mode = "executable"
+                plan_distance = executable_distance
+
         if route_plan_max_positions is not None:
             result["routePlan"] = _build_route_plan(
                 start=start,
@@ -464,7 +908,7 @@ def analyze_world(
                 status=status,
                 strict_distance=strict_distances.get(goal),
                 optimistic_distance=optimistic_distances.get(goal),
-                previous=selected_previous,
+                previous=plan_previous,
                 transitions_by_id=transitions_by_id,
                 lower=lower,
                 upper=upper,
@@ -472,6 +916,12 @@ def analyze_world(
                 max_positions=route_plan_max_positions,
                 provenance=provenance,
                 issues=issues,
+                routing_mode=plan_routing_mode,
+                selected_distance=plan_distance,
+                executable_distance=executable_distance,
+                interaction_aware=interaction_registry is not None,
+                movement_execution=movement_execution,
+                transition_execution=transition_execution,
             )
         route_results.append(result)
 

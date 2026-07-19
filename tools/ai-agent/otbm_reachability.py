@@ -30,6 +30,8 @@ from otbm_reachability_types import (
     load_transition_manifest,
     normalize_bounds,
 )
+from otbm_route_interactions import REGISTRY_FORMAT as INTERACTION_REGISTRY_FORMAT
+from otbm_route_interactions import load_registry as load_interaction_registry
 
 
 def _load_world_manifest(index_path: Path, manifest_path: Path | None, actual_hash: str) -> dict[str, Any] | None:
@@ -48,6 +50,16 @@ def _load_world_manifest(index_path: Path, manifest_path: Path | None, actual_ha
     return document
 
 
+def _manifest_source_sha256(world_manifest: Mapping[str, Any] | None) -> str | None:
+    if world_manifest is None:
+        return None
+    source = world_manifest.get("source")
+    if not isinstance(source, Mapping):
+        return None
+    value = source.get("sha256")
+    return value if isinstance(value, str) and len(value) == 64 else None
+
+
 def analyze_index_path(
     *,
     index_path: Path,
@@ -58,6 +70,7 @@ def analyze_index_path(
     origins: Sequence[Position],
     transitions_path: Path | None = None,
     script_resolution_path: Path | None = None,
+    interaction_registry_path: Path | None = None,
     world_manifest_path: Path | None = None,
     allow_diagonal: bool = False,
     sample_limit: int = DEFAULT_SAMPLE_LIMIT,
@@ -76,6 +89,35 @@ def analyze_index_path(
     script_resolution, script_provenance = load_script_resolution(script_resolution_path)
     index_hash = _sha256(index_path)
     world_manifest = _load_world_manifest(index_path, world_manifest_path, index_hash)
+
+    interaction_registry: dict[str, Any] | None = None
+    interaction_provenance: dict[str, Any] | None = None
+    if interaction_registry_path is not None:
+        source_map_hash = _manifest_source_sha256(world_manifest)
+        if source_map_hash is None:
+            raise ReachabilityError(
+                "Interaction-aware executable routing requires a World Index manifest with exact source-map SHA-256 provenance"
+            )
+        candidate = interaction_registry_path.expanduser().resolve()
+        interaction_registry = load_interaction_registry(
+            candidate,
+            expected_source_map_sha256=source_map_hash,
+            expected_world_index_sha256=index_hash,
+            expected_transition_manifest_sha256=(
+                transition_provenance.get("sha256") if transition_provenance is not None else None
+            ),
+            expected_script_resolution_sha256=(
+                script_provenance.get("sha256") if script_provenance is not None else None
+            ),
+            require_reviewed=True,
+        )
+        interaction_provenance = {
+            "path": candidate.name,
+            "size": candidate.stat().st_size,
+            "sha256": _sha256(candidate),
+            "format": INTERACTION_REGISTRY_FORMAT,
+        }
+
     provenance: dict[str, Any] = {
         "worldIndex": {
             "path": index_path.name,
@@ -86,6 +128,7 @@ def analyze_index_path(
         "appearances": appearances_provenance,
         "transitionManifest": transition_provenance,
         "scriptResolution": script_provenance,
+        "interactionRegistry": interaction_provenance,
     }
     if world_manifest is not None:
         provenance["worldIndexManifest"] = {
@@ -102,6 +145,7 @@ def analyze_index_path(
             origins=origins,
             transition_entries=transition_entries,
             script_resolution=script_resolution,
+            interaction_registry=interaction_registry,
             allow_diagonal=allow_diagonal,
             sample_limit=sample_limit,
             path_limit=path_limit,
@@ -120,6 +164,7 @@ def export_route_plan_index_path(
     destination: Position,
     transitions_path: Path | None = None,
     script_resolution_path: Path | None = None,
+    interaction_registry_path: Path | None = None,
     world_manifest_path: Path | None = None,
     allow_diagonal: bool = False,
     max_positions: int = DEFAULT_EXECUTABLE_ROUTE_POSITIONS,
@@ -134,6 +179,7 @@ def export_route_plan_index_path(
         origins=(),
         transitions_path=transitions_path,
         script_resolution_path=script_resolution_path,
+        interaction_registry_path=interaction_registry_path,
         world_manifest_path=world_manifest_path,
         allow_diagonal=allow_diagonal,
         sample_limit=DEFAULT_SAMPLE_LIMIT,
