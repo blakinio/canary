@@ -20,6 +20,7 @@ local DB_NAME = os.getenv("DB_NAME") or "agent_e2e"
 local EVENTS_PATH = ARTIFACT_DIR .. "/client-events.tsv"
 local INTERNAL_LOG_PATH = ARTIFACT_DIR .. "/otclient.internal.log"
 local PLAN_PATH = ARTIFACT_DIR .. "/scenario-plan.lua"
+local ROUTE_EXECUTOR_PATH = ARTIFACT_DIR .. "/agent-e2e-route.lua"
 
 local phase = 1
 local phaseStarted = false
@@ -29,6 +30,7 @@ local waitingForServerPersistence = false
 local finished = false
 local startedAt = os.time()
 local plan = nil
+local routeExecutor = nil
 local planIndex = 1
 local persistenceIndex = 1
 local initialPosition = nil
@@ -361,6 +363,23 @@ function runNextStep()
 		end)
 		return
 	end
+	if step.action == "follow_route" then
+		if not routeExecutor or type(routeExecutor.execute) ~= "function" then
+			failStep(step, "route executor unavailable")
+			return
+		end
+		local route = plan.routes and plan.routes[step.route] or nil
+		if type(route) ~= "table" then
+			failStep(step, "route plan unavailable for logical id " .. tostring(step.route))
+			return
+		end
+		routeExecutor.execute(step, route, {
+			appendEvent = appendEvent,
+			failStep = failStep,
+			completeStep = completeStep,
+		})
+		return
+	end
 	if step.action == "talk" then
 		g_game.talk(step.text)
 		scheduleEvent(function()
@@ -608,27 +627,41 @@ local function waitForInitialPositionAndStartPlan()
 	check()
 end
 
-local function loadPlan()
-	local file, openError = io.open(PLAN_PATH, "r")
+local function loadHostLuaModule(path, label)
+	local file, openError = io.open(path, "r")
 	if not file then
-		fail("failed to open scenario plan: " .. tostring(openError))
-		return false
+		fail("failed to open " .. label .. ": " .. tostring(openError))
+		return nil
 	end
 	local source = file:read("*a") or ""
 	file:close()
-
-	local chunk, compileError = load(source, "@" .. PLAN_PATH)
+	local chunk, compileError = load(source, "@" .. path)
 	if not chunk then
-		fail("failed to compile scenario plan: " .. tostring(compileError))
-		return false
+		fail("failed to compile " .. label .. ": " .. tostring(compileError))
+		return nil
 	end
 	local ok, loaded = pcall(chunk)
 	if not ok then
-		fail("failed to execute scenario plan: " .. tostring(loaded))
+		fail("failed to execute " .. label .. ": " .. tostring(loaded))
+		return nil
+	end
+	return loaded
+end
+
+local function loadPlan()
+	local loaded = loadHostLuaModule(PLAN_PATH, "scenario plan")
+	if not loaded then
 		return false
 	end
 	if type(loaded) ~= "table" or loaded.schema_version ~= 1 or type(loaded.steps) ~= "table" or type(loaded.persistence_checks) ~= "table" then
 		fail("invalid scenario plan contract")
+		return false
+	end
+	if loaded.routes == nil then
+		loaded.routes = {}
+	end
+	if type(loaded.routes) ~= "table" then
+		fail("invalid route plan contract")
 		return false
 	end
 	if #loaded.steps > 64 then
@@ -639,8 +672,20 @@ local function loadPlan()
 		fail("persistence plan exceeds runtime check limit")
 		return false
 	end
+	local routeCount = 0
+	for _ in pairs(loaded.routes) do
+		routeCount = routeCount + 1
+	end
+	if routeCount > 0 then
+		routeExecutor = loadHostLuaModule(ROUTE_EXECUTOR_PATH, "route executor")
+		if type(routeExecutor) ~= "table" or type(routeExecutor.execute) ~= "function" then
+			fail("invalid route executor contract")
+			return false
+		end
+	end
 	plan = loaded
 	appendEvent("plan_steps", #plan.steps)
+	appendEvent("route_plans", routeCount)
 	appendEvent("persistence_checks", #plan.persistence_checks)
 	return true
 end
