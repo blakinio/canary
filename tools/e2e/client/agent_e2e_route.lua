@@ -26,6 +26,9 @@ local function position(value)
 	if type(value) ~= "table" then
 		return nil
 	end
+	if value.x ~= nil or value.y ~= nil or value.z ~= nil then
+		return { x = value.x, y = value.y, z = value.z }
+	end
 	return { x = value[1], y = value[2], z = value[3] }
 end
 
@@ -65,6 +68,68 @@ local function findExactMapItem(targetPosition, itemId)
 		return nil, string.format("target item %d ambiguous at %s matches=%d", itemId, positionString(targetPosition), count)
 	end
 	return match, nil
+end
+
+function M.walkEdge(sourceValue, destinationValue, timeoutMs, callbacks)
+	local source = position(sourceValue)
+	local destination = position(destinationValue)
+	local actual = localPosition()
+	if not source or not destination then
+		callbacks.onFailure("MOVEMENT_DIVERGENCE", "invalid exact movement edge contract")
+		return
+	end
+	if not samePosition(actual, source) then
+		callbacks.onFailure(
+			"INITIAL_POSITION_MISMATCH",
+			string.format("source mismatch actual=%s expected=%s", positionString(actual), positionString(source))
+		)
+		return
+	end
+	if source.z ~= destination.z then
+		callbacks.onFailure("MOVEMENT_DIVERGENCE", "floor-changing movement edge is unsupported")
+		return
+	end
+	local deltaX = destination.x - source.x
+	local deltaY = destination.y - source.y
+	local direction = MOVEMENT_DIRECTIONS[string.format("%d,%d", deltaX, deltaY)]
+	if direction == nil then
+		callbacks.onFailure("MOVEMENT_DIVERGENCE", string.format("invalid adjacent edge delta=%d,%d", deltaX, deltaY))
+		return
+	end
+	if not g_game.walk(direction) then
+		callbacks.onFailure("MOVEMENT_DIVERGENCE", "walk request rejected")
+		return
+	end
+
+	local remainingChecks = math.max(1, math.floor((timeoutMs or 10000) / 100))
+	local function check()
+		local livePosition = localPosition()
+		if not livePosition then
+			callbacks.onFailure("MOVEMENT_DIVERGENCE", "local player position unavailable")
+			return
+		end
+		if samePosition(livePosition, destination) then
+			callbacks.onSuccess(positionString(livePosition))
+			return
+		end
+		if not samePosition(livePosition, source) then
+			callbacks.onFailure(
+				"MOVEMENT_DIVERGENCE",
+				string.format("route drift actual=%s expected=%s", positionString(livePosition), positionString(destination))
+			)
+			return
+		end
+		remainingChecks = remainingChecks - 1
+		if remainingChecks <= 0 then
+			callbacks.onFailure(
+				"MOVEMENT_TIMEOUT",
+				string.format("position=%s expected=%s timeout_ms=%d", positionString(livePosition), positionString(destination), timeoutMs or 10000)
+			)
+			return
+		end
+		scheduleEvent(check, 100)
+	end
+	check()
 end
 
 function M.execute(step, route, callbacks)
@@ -160,26 +225,18 @@ function M.execute(step, route, callbacks)
 		local interactionIndex = 1
 
 		local function walkOnce()
-			if not assertCurrent(source, "MOVEMENT_DIVERGENCE", "position changed before movement request") then
-				return
-			end
-			local dx = destination.x - source.x
-			local dy = destination.y - source.y
-			local direction = MOVEMENT_DIRECTIONS[string.format("%d,%d", dx, dy)]
-			if source.z ~= destination.z or direction == nil then
-				failRoute("MOVEMENT_DIVERGENCE", string.format("invalid exact movement edge from=%s to=%s", positionString(source), positionString(destination)))
-				return
-			end
-			if not g_game.walk(direction) then
-				failRoute("INTERACTION_FAILED", "movement request rejected")
-				return
-			end
-			pollExactDestination(source, destination, "MOVEMENT_TIMEOUT", "MOVEMENT_DIVERGENCE", function()
-				callbacks.appendEvent(marker, "success")
-				callbacks.appendEvent(marker .. "_detail", positionString(destination))
-				edgeIndex = edgeIndex + 1
-				scheduleEvent(executeNextEdge, 100)
-			end)
+			activeMarker = marker
+			M.walkEdge(edge.from, edge.to, timeoutMs, {
+				onSuccess = function(detail)
+					callbacks.appendEvent(marker, "success")
+					callbacks.appendEvent(marker .. "_detail", detail)
+					edgeIndex = edgeIndex + 1
+					scheduleEvent(executeNextEdge, 100)
+				end,
+				onFailure = function(code, detail)
+					failRoute(code, detail)
+				end,
+			})
 		end
 
 		local function executeNextInteraction()
@@ -221,9 +278,11 @@ function M.execute(step, route, callbacks)
 		callbacks.appendEvent(interactionMarker, "start")
 		activeMarker = interactionMarker
 
-		local function waitForDestination()
-			pollExactDestination(source, destination, "TRANSITION_NOT_TRIGGERED", "WRONG_TRANSITION_DESTINATION", function()
-				callbacks.appendEvent(interactionMarker, "success")
+		local function waitForDestination(timeoutCode, markInteractionOnDestination)
+			pollExactDestination(source, destination, timeoutCode, "WRONG_TRANSITION_DESTINATION", function()
+				if markInteractionOnDestination then
+					callbacks.appendEvent(interactionMarker, "success")
+				end
 				callbacks.appendEvent(marker, "success")
 				callbacks.appendEvent(marker .. "_detail", positionString(destination))
 				activeMarker = marker
@@ -233,7 +292,7 @@ function M.execute(step, route, callbacks)
 		end
 
 		if interaction.kind == "step-on" then
-			waitForDestination()
+			waitForDestination("TRANSITION_NOT_TRIGGERED", true)
 			return
 		end
 		if interaction.kind == "walk-direction" then
@@ -242,13 +301,13 @@ function M.execute(step, route, callbacks)
 				failRoute("INTERACTION_FAILED", "transition movement request rejected")
 				return
 			end
-			waitForDestination()
+			waitForDestination("TRANSITION_NOT_TRIGGERED", true)
 			return
 		end
 		if interaction.kind == "use-map-item" or interaction.kind == "use-inventory-on-map" then
 			executeUseInteraction(interaction, interactionMarker, function()
 				activeMarker = marker
-				waitForDestination()
+				waitForDestination("INTERACTION_TIMEOUT", false)
 			end)
 			return
 		end
