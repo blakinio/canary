@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import shutil
@@ -16,6 +17,7 @@ SUPPORTED_DIRECTIONS = frozenset(
     {"north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"}
 )
 ROUTE_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
 class RoutePlanExecutionError(ValueError):
@@ -47,6 +49,34 @@ def _uint16(value: Any, label: str) -> int:
     return value
 
 
+def _sha256(value: Any, label: str) -> str:
+    if not isinstance(value, str) or SHA256_RE.fullmatch(value) is None:
+        raise RoutePlanExecutionError(f"{label} must be a lowercase 64-character SHA-256")
+    return value
+
+
+def _hashed_evidence(value: Any, label: str) -> str:
+    evidence = _mapping(value, label)
+    return _sha256(evidence.get("sha256"), f"{label}.sha256")
+
+
+def _canonical_json_hash(value: Mapping[str, Any]) -> str:
+    encoded = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _verify_plan_hash(plan: Mapping[str, Any], route_id: str) -> str:
+    plan_hash = _sha256(plan.get("planHashSha256"), f"route {route_id}.planHashSha256")
+    unhashed = dict(plan)
+    unhashed.pop("planHashSha256", None)
+    actual = _canonical_json_hash(unhashed)
+    if actual != plan_hash:
+        raise RoutePlanExecutionError(
+            f"route {route_id!r} planHashSha256 mismatch: declared={plan_hash} actual={actual}"
+        )
+    return plan_hash
+
+
 def _canonical_route_path(artifact_dir: Path, route_id: str) -> Path:
     if not ROUTE_ID_RE.fullmatch(route_id):
         raise RoutePlanExecutionError(f"route id must match {ROUTE_ID_RE.pattern}")
@@ -57,12 +87,7 @@ def _canonical_route_path(artifact_dir: Path, route_id: str) -> Path:
     return candidate
 
 
-def _target_item_id(
-    *,
-    query: Mapping[str, Any],
-    edge: Mapping[str, Any],
-    label: str,
-) -> int:
+def _target_item_id(*, query: Mapping[str, Any], edge: Mapping[str, Any], label: str) -> int:
     if "itemId" in query:
         return _uint16(query["itemId"], f"{label}.selectorQuery.itemId")
     evidence = edge.get("evidence")
@@ -135,9 +160,11 @@ def validate_route_plan(document: Any, *, route_id: str) -> dict[str, Any]:
         raise RoutePlanExecutionError(f"route {route_id!r} has unsupported format {plan.get('format')!r}")
     if plan.get("schemaVersion") != ROUTE_PLAN_SCHEMA_VERSION:
         raise RoutePlanExecutionError(f"route {route_id!r} has unsupported schemaVersion {plan.get('schemaVersion')!r}")
+    plan_hash = _verify_plan_hash(plan, route_id)
     if plan.get("executionStatus") != "executable":
         raise RoutePlanExecutionError(f"route {route_id!r} executionStatus must be executable")
-    if plan.get("routingMode") not in {"strict", "executable"}:
+    routing_mode = plan.get("routingMode")
+    if routing_mode not in {"strict", "executable"}:
         raise RoutePlanExecutionError(
             f"route {route_id!r} routingMode must be strict or executable; optimistic routes are not physically executable"
         )
@@ -147,12 +174,21 @@ def validate_route_plan(document: Any, *, route_id: str) -> dict[str, Any]:
     if not isinstance(blockers, list) or blockers:
         raise RoutePlanExecutionError(f"route {route_id!r} must contain no blockers")
 
+    provenance = _mapping(plan.get("provenance"), f"route {route_id}.provenance")
+    for key in ("map", "worldIndex", "appearances"):
+        _hashed_evidence(provenance.get(key), f"route {route_id}.provenance.{key}")
+    if routing_mode == "executable":
+        _hashed_evidence(provenance.get("interactionRegistry"), f"route {route_id}.provenance.interactionRegistry")
+
     path = plan.get("path")
     edges = plan.get("edges")
     if not isinstance(path, list) or not 1 <= len(path) <= MAX_ROUTE_POSITIONS:
         raise RoutePlanExecutionError(f"route {route_id!r} path must contain 1..{MAX_ROUTE_POSITIONS} positions")
     if not isinstance(edges, list) or len(edges) > MAX_ROUTE_EDGES:
         raise RoutePlanExecutionError(f"route {route_id!r} edges must contain at most {MAX_ROUTE_EDGES} entries")
+    distance = plan.get("distance")
+    if not isinstance(distance, int) or isinstance(distance, bool) or distance != len(edges):
+        raise RoutePlanExecutionError(f"route {route_id!r} distance must equal its executable edge count")
     positions = [_position(value, f"route {route_id}.path[{index}]") for index, value in enumerate(path)]
     origin = _position(plan.get("origin"), f"route {route_id}.origin")
     destination = _position(plan.get("destination"), f"route {route_id}.destination")
@@ -162,6 +198,7 @@ def validate_route_plan(document: Any, *, route_id: str) -> dict[str, Any]:
         raise RoutePlanExecutionError(f"route {route_id!r} edge count does not match its complete path")
 
     normalized_edges: list[dict[str, Any]] = []
+    route_requires_interactions = False
     for index, edge_value in enumerate(edges):
         label = f"route {route_id}.edges[{index}]"
         edge = _mapping(edge_value, label)
@@ -192,9 +229,17 @@ def validate_route_plan(document: Any, *, route_id: str) -> dict[str, Any]:
                 raise RoutePlanExecutionError(f"{label} has inconsistent transition edge metadata")
             if len(interactions_value) != 1:
                 raise RoutePlanExecutionError(f"{label} must contain exactly one executable transition interaction")
+            route_requires_interactions = True
 
+        if interactions_value:
+            route_requires_interactions = True
         interactions = [
-            _normalize_interaction(value, edge=edge, edge_kind=edge_kind, label=f"{label}.interactions[{interaction_index}]")
+            _normalize_interaction(
+                value,
+                edge=edge,
+                edge_kind=edge_kind,
+                label=f"{label}.interactions[{interaction_index}]",
+            )
             for interaction_index, value in enumerate(interactions_value)
         ]
         normalized_edges.append(
@@ -208,9 +253,8 @@ def validate_route_plan(document: Any, *, route_id: str) -> dict[str, Any]:
             }
         )
 
-    plan_hash = plan.get("planHashSha256")
-    if not isinstance(plan_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", plan_hash):
-        raise RoutePlanExecutionError(f"route {route_id!r} planHashSha256 must be a lowercase SHA-256")
+    if route_requires_interactions and routing_mode != "executable":
+        raise RoutePlanExecutionError(f"route {route_id!r} contains interaction edges outside executable routing mode")
     return {
         "id": route_id,
         "plan_hash_sha256": plan_hash,
@@ -240,7 +284,14 @@ def load_route_plans(steps: Sequence[Mapping[str, Any]], artifact_dir: Path | No
 
 
 def _lua_string(value: str) -> str:
-    return '"' + value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t") + '"'
+    escaped = (
+        value.replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
+    )
+    return '"' + escaped + '"'
 
 
 def _lua_value(value: Any, indent: int = 0) -> str:
@@ -266,7 +317,12 @@ def _lua_value(value: Any, indent: int = 0) -> str:
         child_indent = indent + 2
         entries = []
         for key in sorted(value):
-            entries.append(" " * child_indent + f"[{_lua_string(str(key))}] = " + _lua_value(value[key], child_indent) + ",")
+            entries.append(
+                " " * child_indent
+                + f"[{_lua_string(str(key))}] = "
+                + _lua_value(value[key], child_indent)
+                + ","
+            )
         return "{\n" + "\n".join(entries) + "\n" + " " * indent + "}"
     raise RoutePlanExecutionError(f"unsupported Lua route value type: {type(value).__name__}")
 
