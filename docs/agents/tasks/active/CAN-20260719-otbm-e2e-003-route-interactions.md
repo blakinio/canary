@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-003-route-interactions
 base_branch: main
 created: 2026-07-19T09:53:00+02:00
-updated: 2026-07-19T09:53:00+02:00
-last_verified_commit: "f962d7b606e29965fe091ea79ba154c27b22fe34"
+updated: 2026-07-19T09:55:00+02:00
+last_verified_commit: "60b4051409a944c578c4609fdc13b2991f58f41d"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "572"
 depends_on:
   - CAN-PROGRAM-OTBM-E2E-ROUTING merged planning programme PR #562
   - OTBM-E2E-001 route-plan contract merged as PR #567
@@ -75,10 +75,10 @@ Implement `OTBM-E2E-003 — Route interaction semantics` as a deterministic revi
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T09:53:00+02:00
-head: f962d7b606e29965fe091ea79ba154c27b22fe34
+updated_at: 2026-07-19T09:55:00+02:00
+head: 60b4051409a944c578c4609fdc13b2991f58f41d
 branch: feat/otbm-e2e-003-route-interactions
-pr: null
+pr: 572
 status: implementing
 context_routes:
   - agent-governance
@@ -94,6 +94,7 @@ owned_paths:
   - docs/agents/CHANGELOG.md
 proven:
   - task branch was created from live main at f962d7b606e29965fe091ea79ba154c27b22fe34
+  - draft PR 572 is the early same-repository PR for this task with base main and head feat/otbm-e2e-003-route-interactions
   - OTBM-E2E-001 route-plan export merged as PR #567 and publishes canary-otbm-e2e-route-plan-v1
   - PR #571 owns OTBM-E2E-002 semantic-landmark exclusive paths; this task does not overlap those exclusive paths
   - no open PR or repository task matching OTBM-E2E-003 was found at task start
@@ -122,5 +123,5 @@ validation:
   - command: live main, programme, route-plan contract and open-PR ownership preflight
     result: PASS
     evidence: main f962d7b606e29965fe091ea79ba154c27b22fe34; PR #567 merged; PR #571 owns only semantic-landmark exclusive paths; no OTBM-E2E-003 owner found
-next_action: Open an early draft PR, then implement the versioned registry schema, resolver and focused tests without changing Reachability or tools/e2e.
+next_action: Implement the versioned registry schema, deterministic resolver, Script Resolution gating rules and focused tests without changing Reachability or tools/e2e.
 ```
