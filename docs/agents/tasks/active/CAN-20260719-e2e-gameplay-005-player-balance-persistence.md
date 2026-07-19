@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-gameplay-005-player-balance-persistence
 base_branch: main
 created: 2026-07-19T15:32:00+02:00
-updated: 2026-07-19T16:05:00+02:00
-last_verified_commit: "a23c1f50f1fbcfd81ffee6b5b308d790f17f1517"
+updated: 2026-07-19T16:20:00+02:00
+last_verified_commit: "e33f9aaabe030b648fd23a1ade7d14b425da6ccb"
 risk: medium
 related_issue: ""
 related_pr: "591"
@@ -55,31 +55,31 @@ cross_repo_tasks: []
 
 Extend the existing feature-neutral `scenario.assertions.persistence` contract with a bounded typed `player_balance` assertion for durable Canary bank balance state without exposing arbitrary SQL or encoding feature-specific economy values.
 
-For exact values representable by the controlled client's Lua number boundary, the assertion must prove the same expected bank balance after relog through the real maintained OTClient and again through post-cycle SQL after the second safe logout.
+For exact values representable by the controlled client's Lua number boundary, the assertion proves the same expected bank balance after relog through the real maintained OTClient and again through post-cycle SQL after the second safe logout.
 
 # Acceptance criteria
 
 - [x] Add `player_balance` checks with exact `equals` value.
-- [ ] Restrict `equals` to the exact Lua-safe integer range `0..9007199254740991` so client equality cannot silently round uint64 values.
+- [x] Restrict `equals` to the exact Lua-safe integer range `0..9007199254740991` so client equality cannot silently round uint64 values.
 - [x] Compile only one fixed-shape semicolon-free scalar SQL equality query against `players.balance` by exact fixture character name.
 - [x] Do not expose caller-controlled table names, columns, predicates or SQL fragments.
-- [ ] Emit `player_balance` into phase-two controlled-client persistence checks and read it from `LocalPlayer::getResourceBalance(RESOURCE_BANK_BALANCE)` through the maintained Lua binding.
-- [ ] Require the same expected balance through both post-relog client verification and final SQL verification.
-- [ ] Add focused validation/compiler, Lua-plan and runtime-source tests for the client-readable balance path.
-- [ ] Document the Lua-safe exact range, maintained-client resource-balance proof and feature-owned stronger UI assertions.
+- [x] Emit `player_balance` into phase-two controlled-client persistence checks and read it from `LocalPlayer::getResourceBalance(RESOURCE_BANK_BALANCE)` through the maintained Lua binding.
+- [x] Require the same expected balance through both post-relog client verification and final SQL verification.
+- [x] Add focused validation/compiler, Lua-plan and runtime-source tests for the client-readable balance path.
+- [x] Document the Lua-safe exact range, maintained-client resource-balance proof and feature-owned stronger UI assertions.
 - [x] Keep feature-specific expected balances and economy actions out of shared fixtures.
-- [x] Apply `ci:final-gate` before the eventual final checkpoint commit.
+- [x] Apply `ci:final-gate` before the final checkpoint commit.
 - [ ] Require exact-final-head Ownership, CI and Universal Agent E2E success before merge.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T16:05:00+02:00
-head: a23c1f50f1fbcfd81ffee6b5b308d790f17f1517
+updated_at: 2026-07-19T16:20:00+02:00
+head: e33f9aaabe030b648fd23a1ade7d14b425da6ccb
 branch: feat/e2e-gameplay-005-player-balance-persistence
 pr: 591
-status: implementing
+status: validating
 context_routes:
   - universal-e2e
   - agent-governance
@@ -102,13 +102,25 @@ proven:
   - maintained OTClient Lua registration binds LocalPlayer.getResourceBalance
   - maintained OTClient ResourceTypes_t defines RESOURCE_BANK_BALANCE = 0
   - the earlier database-only design was discovered to understate available physical-client evidence before merge and PR 591 was returned to draft
-  - exact Lua-number equality must not cover arbitrary uint64 values because values above 2^53-1 are not guaranteed exact under the reusable Lua plan boundary
-  - ci:final-gate remains applied; a new final checkpoint will be created only after the corrected client-readable implementation is complete
+  - player_balance validation now accepts only exact Lua-safe integers in 0..2^53-1 and rejects larger uint64 values at the reusable numeric plan boundary
+  - validate_persistence_assertions emits player_balance alongside player_field into the phase-two plan while player_storage and player_item_presence remain database-only
+  - controlled OTClient driver reads player_balance with getResourceBalance(RESOURCE_BANK_BALANCE) after relog and accepts only explicit player_field/player_balance runtime check types
+  - the same player_balance expected value is also compiled to fixed-shape semicolon-free SQL against players.balance for post-cycle verification
+  - focused tests cover SQL shape, Lua-safe boundaries, invalid values, arbitrary SQL field rejection, SQL escaping, mixed typed checks, rendered Lua plan and maintained-client runtime-source wiring
+  - corrected driver patch audit contains only the bank resource constant, generalized persistence value reader and explicit player_balance runtime validation/read path
+  - corrected MODULE_CATALOG patch audit contains exactly one intended Universal OTS E2E row update
+  - canonical PHYSICAL_GAMEPLAY_ACTION_PLANS documentation defines client-plus-SQL balance evidence and the 2^53-1 exact numeric boundary
+  - no feature-specific expected balance or bank/economy action was added to shared scenario fixtures
+  - CI run 29690547075 succeeded and Agent Task Ownership run 29690547021 succeeded on corrected implementation head e33f9aaabe030b648fd23a1ade7d14b425da6ccb
+  - ci:final-gate was applied before this final checkpoint commit and remains present
+  - PR body was corrected to describe client-plus-SQL evidence and the Lua-safe exact range
+  - PR remains draft until the new exact-final-head gates pass
+
 derived:
-  - player_balance should be a dual client-plus-SQL assertion for the Lua-safe exact integer range
-  - feature scenarios requiring larger uint64 values need a separate string-safe client contract or database-only feature-specific evidence rather than an unsafe numeric comparison
+  - player_balance is a dual client-plus-SQL assertion for the Lua-safe exact integer range
+  - feature scenarios requiring larger uint64 values need a separate string-safe client contract or feature-specific database evidence rather than an unsafe numeric comparison
 unknown:
-  - exact final implementation head and workflow conclusions after correction
+  - exact-final-head workflow conclusions after this final checkpoint
 conflicts: []
 first_failure:
   marker: ownership_related_pr_binding_window
@@ -133,12 +145,24 @@ validation:
   - command: maintained OTClient source review
     result: PASS
     evidence: LocalPlayer getResourceBalance is public, Lua-bound, and RESOURCE_BANK_BALANCE is enum value 0
-  - command: PR 591 MODULE_CATALOG patch audit before client-proof correction
+  - command: PR 591 corrected driver patch audit
     result: PASS
-    evidence: patch contained exactly one intended Universal OTS E2E row update
+    evidence: only resource-balance persistence read and explicit runtime type handling changed
+  - command: PR 591 corrected persistence compiler patch audit
+    result: PASS
+    evidence: bounded Lua-safe player_balance validation, phase-two inclusion and fixed SQL compilation only
+  - command: PR 591 corrected MODULE_CATALOG patch audit
+    result: PASS
+    evidence: patch contains exactly one intended Universal OTS E2E row update
+  - command: CI run 29690547075
+    result: PASS
+    evidence: corrected implementation head e33f9aaabe030b648fd23a1ade7d14b425da6ccb
+  - command: Agent Task Ownership run 29690547021
+    result: PASS
+    evidence: corrected implementation head e33f9aaabe030b648fd23a1ade7d14b425da6ccb
   - command: ci:final-gate label
     result: PASS
-    evidence: label was applied before the first checkpoint and remains present; corrected implementation will receive a new final checkpoint and exact-head runs
+    evidence: label applied before final checkpoint commit
 blockers: []
-next_action: Implement exact client-readable player_balance for 0..2^53-1, update focused tests/docs/catalog, audit the corrected diff, then create a new final checkpoint and freeze the new head.
+next_action: Make no further commits. Mark PR ready and require exact-final-head Agent Task Ownership, CI, Universal Agent E2E and autofix success plus clean review/merge state before expected-head squash merge.
 ```
