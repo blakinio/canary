@@ -2,13 +2,13 @@
 task_id: CAN-20260718-oteryn-containers-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-017
-status: implementing
+status: review
 agent: "GPT-5.5 Thinking"
 branch: docs/oam-017-containers-revalidation
 base_branch: main
 created: 2026-07-18
-updated: 2026-07-19T09:41:00+02:00
-last_verified_commit: "7dcdcff1dde59a702b00d77f5049bd99a126a6eb"
+updated: 2026-07-19T10:15:00+02:00
+last_verified_commit: "952e7550182df739824bddea687ef89bd8997674"
 risk: high
 related_issue: "blakinio/Otheryn#40"
 related_pr: "555"
@@ -28,13 +28,13 @@ owned_paths:
 
 Revalidate canonical OAM-017 `containers` against immutable task-start baselines and accept only the strongest dependency-valid target implementation.
 
-# Provisional disposition
+# Final disposition
 
 ```text
 containers → REUSE
 ```
 
-Not final. The current exact-target proof fails only in the two new focused tests.
+The target proof is complete. Canary governance, lifecycle archive and durable program reconciliation remain before OAM-017 is fully closed.
 
 # Immutable task-start baselines
 
@@ -45,66 +45,71 @@ upstream: 691614c1a302aee776002ca3851eca399be1a82c
 OTClient: 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
 ```
 
-# Handover state
+# Evidence decision
+
+Canonical `containers` depends only on completed OAM-007 `item-instances`. OAM-002 whole-tree provenance plus later target and upstream history through task start contains no canonical production mutation under `src/items/containers/**` or `src/items/cylinder.*`.
+
+Representative task-start blobs shared by target, pinned upstream and legacy are:
 
 ```text
-Otheryn issue #40: OPEN
-Otheryn PR #41: OPEN
-PR #41 head: 7dcdcff1dde59a702b00d77f5049bd99a126a6eb
-PR #41 scope: tests/unit/items/containers/container_test.cpp only
-autofix #106 / 29653898351: SUCCESS
-CI #125 / 29653898425: FAILURE
-Required #113 / 29653898361: FAILURE
-
-Canary governance PR #555: OPEN / DRAFT
-PR #555 head before handover: 3a41c15a36d6ec9eaefb25b105cba62c6c74dc0f
-Ownership #2350 / 29653964593: SUCCESS
-CI #3486 / 29653964672: SUCCESS
+src/items/containers/container.cpp  2688a2d59bebac33b801cfdd11d0aa5c26a07016
+src/items/cylinder.cpp              82c6cf3fd6dff9d579d35cfbaf1f4b52ec4c46b8
 ```
 
-The Canary governance checks above are preliminary only. Final governance gates must rerun after an accepted target proof is merged and final evidence is written.
+Reviewed legacy PR #60 changes house-transfer orchestration only. Reviewed legacy PR #108 changes Gameplay Analytics scripts only. Neither is a canonical container/cylinder runtime donor.
 
-# First failure
+# Initial proof-harness failure and resolution
 
-Linux debug job `88104873970` passed CMake, Canary runtime smoke and database schema import, then failed at `Run Tests`.
+Initial exact target head `7dcdcff1dde59a702b00d77f5049bd99a126a6eb` failed only the two new `ContainerReuseTest` cases in CI #125 / run `29653898425`:
 
 ```text
 357 total
 355 passed
 2 failed
 
-156 - ContainerReuseTest.PreservesDirectCapacityAndItemLifecycle (SEGFAULT)
-157 - ContainerReuseTest.PreservesBoundedNestedTraversal (SEGFAULT)
+ContainerReuseTest.PreservesDirectCapacityAndItemLifecycle — SEGFAULT
+ContainerReuseTest.PreservesBoundedNestedTraversal — SEGFAULT
 ```
 
-Both new tests terminate immediately after their GoogleTest `[ RUN ]` line. Existing tests were not reported as failures.
+The red proof was isolated to the proof harness, not production runtime. The unit-test process starts without loaded item definitions. `Items::Items()` therefore leaves its item-type vector empty, while synthetic `Item(0)` / `Container(0, ...)` construction reaches the item-type lookup fallback before the container behavior under test. The tests were corrected with a local `ScopedItemTypeRegistry` fixture that supplies the minimum synthetic item-type entry only when the registry starts empty and restores the original size afterward.
 
-Test artifact:
+No production container/cylinder or other runtime/data path was changed.
+
+# Accepted exact target proof
 
 ```text
-artifact: 8432436019
-name: linux-debug-test-logs
-digest: sha256:8a8e5dc2d3156f783880ad37672d4a6ad9e9f66739571994495fda73c984d6fc
+Otheryn issue #40: CLOSED / completed
+Otheryn PR #41: MERGED
+final target head: ee111cb6ef6299a0de7fb19de76934b6369b7cf0
+target squash merge: 952e7550182df739824bddea687ef89bd8997674
+autofix.ci #108 / 29679028025: SUCCESS
+CI #127 / 29679028059: SUCCESS
+Required #115 / 29679028000: SUCCESS
+full CTest: 357/357 PASS
+focused ContainerReuseTest: 2/2 PASS
+artifact: 8440064893
+artifact name: linux-debug-test-logs
+digest: sha256:28d82a5a1d36d89a8892280e73bb671a846743962786922093a907e8b80b79c1
 ```
 
-Other completed CI #125 jobs were green: macOS, Windows Solution, Windows CMake, Linux release, Fast Checks and Lua Tests.
+Final PR #41 scope is exactly `tests/unit/items/containers/container_test.cpp`. Target comments, reviews and review threads were empty. Otheryn `main` remained at task-start head `46cc7458d644da356371aabf3ff18c0e51d228a8` immediately before merge, so target-main drift was none. PR #41 merged with expected-head protection on `ee111cb6ef6299a0de7fb19de76934b6369b7cf0`.
 
-# Current diagnosis
+# Exclusions
 
-Treat this as a proof-harness failure unless further evidence isolates a production defect. The strongest current hypothesis is that the new tests construct synthetic `Container`/`Item` fixtures with type/id `0` in a unit-test process where the required item-definition state is not valid for that constructor path. This hypothesis is not yet proven by a stack trace.
+OAM-017 does not claim transactional move atomicity, absence of duplication or loss across generic move orchestration, exhaustive cycle safety, full serialization or persistence completeness, restart/crash recovery, depot/inbox/mailbox/reward parity, protocol/client UI parity, market/boss-reward/item-decay parity, or Real Tibia container semantics beyond the bounded proof.
 
-Do not change production container/cylinder code merely to make the focused tests pass. First use a valid existing test fixture/item-construction pattern or initialize the minimum required test state.
+OAM-004 SQL/KV non-atomicity and completed OAM-007 item-instance ownership remain authoritative.
 
 ## Context checkpoint
 
 ```yaml
-checkpoint_version: 2
-updated_at: 2026-07-19T09:41:00+02:00
-head: 3a41c15a36d6ec9eaefb25b105cba62c6c74dc0f
+checkpoint_version: 1
+updated_at: 2026-07-19T10:15:00+02:00
+head: 33d8fa2809f1ff6214f81d75ac6ea4f7a1fa5b19
 branch: docs/oam-017-containers-revalidation
 pr: 555
-status: handover_target_proof_failed
-next_action: Fix only the OAM-017 proof harness on Otheryn PR #41, push a new exact target head, and require fresh autofix, CI and Required. Do not reuse failed run 29653898425 as acceptance evidence.
+status: validating
+next_action: Pass final exact-head Agent Task Ownership and CI for Canary PR #555, then perform clean review and Canary-main drift audit before expected-head merge.
 context_routes:
   - docs/agents/OTERYN_OAM_017_CONTAINERS_REVALIDATION.md
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
@@ -113,59 +118,65 @@ owned_paths:
   - docs/agents/OTERYN_OAM_017_CONTAINERS_REVALIDATION.md
   - docs/agents/tasks/active/CAN-20260718-oteryn-containers-revalidation.md
 proven:
-  - Fresh task-start baselines are pinned above.
+  - Immutable task-start baselines are pinned above.
   - Canonical containers depends only on completed OAM-007 item-instances.
-  - Open-PR ownership audit found no overlap with the canonical container/cylinder runtime boundary.
-  - Target and upstream history through task start contain no canonical container production mutation.
-  - Task-start target, upstream and legacy share container.cpp blob 2688a2d59bebac33b801cfdd11d0aa5c26a07016 and cylinder.cpp blob 82c6cf3fd6dff9d579d35cfbaf1f4b52ec4c46b8.
+  - Open-PR ownership preflight found no overlap with the canonical container/cylinder runtime boundary.
+  - Target and upstream production history through task start contain no canonical container/cylinder mutation.
   - Reviewed legacy PR #60 and PR #108 are not canonical container-runtime donors.
-  - PR #41 head 7dcdcff1dde59a702b00d77f5049bd99a126a6eb changes one test file and no production code.
-  - CI #125 ran 357 tests; 355 passed and only the two new ContainerReuseTest cases segfaulted.
+  - The initial two-test SEGFAULT was isolated to an empty synthetic item-type registry in the proof harness.
+  - The corrected target proof changed exactly one test file and no production runtime/data path.
+  - Exact target head ee111cb6ef6299a0de7fb19de76934b6369b7cf0 passed autofix, CI, Required, 357 of 357 full tests and 2 of 2 focused ContainerReuseTest cases.
+  - Target comments, reviews and review threads were empty and target-main drift was none before expected-head merge.
+  - Otheryn PR #41 merged exact head ee111cb6ef6299a0de7fb19de76934b6369b7cf0 as 952e7550182df739824bddea687ef89bd8997674.
 derived:
-  - Current target/upstream container core remains the strongest dependency-valid candidate.
-  - The current red gate is best treated as proof-harness failure until stronger evidence says otherwise.
+  - Canonical OAM-017 disposition is REUSE.
+  - The initial red target proof was a proof-harness defect and does not justify production container/cylinder runtime changes.
 unknown:
-  - Exact root cause of the two focused-test SEGFAULTs.
-  - Final OAM-017 disposition until corrected exact-target proof passes and merges.
+  - Canary governance merge SHA is unavailable until PR #555 merges.
+  - Authoritative lifecycle and durable program reconciliation merge SHAs are unavailable until those stages merge.
 conflicts: []
+rejected_hypotheses:
+  - Treating the initial focused-test SEGFAULT as evidence of a production container/cylinder defect.
+  - Treating house-transfer orchestration PR #60 as a canonical container-runtime donor.
+  - Treating Gameplay Analytics PR #108 as a canonical container-runtime donor.
+changed_paths:
+  - docs/agents/OTERYN_OAM_017_CONTAINERS_REVALIDATION.md
+  - docs/agents/tasks/active/CAN-20260718-oteryn-containers-revalidation.md
 blockers:
-  - Correct PR #41 proof harness and push a new exact head.
-  - Fresh target autofix, CI and Required must all pass.
-  - Full CTest and focused tests must pass before target merge.
-  - Audit target comments/reviews/threads and main drift before expected-head merge.
-  - Finalize PR #555 evidence and rerun final exact-head Canary Ownership/CI.
-  - Merge separate lifecycle archive and one-file durable program reconciliation before OAM-018.
-  - Close any self-owned automatic docs(agents) archive duplicate after authoritative lifecycle is established.
+  - Final exact-head Canary governance Agent Task Ownership and CI must pass.
+  - Governance comments, reviews and review threads must be clean and Canary-main drift must be audited before expected-head merge.
+  - A separate authoritative lifecycle archive must merge.
+  - Any self-owned automatic docs(agents) archive duplicate for governance PR #555 must be closed after authoritative lifecycle is established.
+  - A separate one-file durable program reconciliation must merge before OAM-018.
 first_failure:
   marker: Otheryn CI #125 / Linux debug job 88104873970 / Run Tests
-  evidence: 357 total, 355 passed; two new ContainerReuseTest cases SEGFAULT.
+  evidence: 357 total, 355 passed; the two new focused tests SEGFAULT before behavior assertions because the synthetic unit fixture constructed item id 0 against an empty item-type registry.
 validation:
   - command: OAM-017 fresh preflight
     result: PASS
     evidence: Dependency and open-PR ownership checks passed.
-  - command: Otheryn PR #41 autofix #106 / 29653898351
+  - command: Initial Otheryn PR #41 exact-head CI #125 / 29653898425
+    result: FAIL
+    evidence: Linux debug passed build/runtime/database setup and failed only the two new focused tests.
+  - command: Corrected Otheryn PR #41 exact-head autofix.ci #108 / 29679028025
     result: PASS
-    evidence: Exact target head required no autofix mutation.
-  - command: Otheryn PR #41 CI #125 / 29653898425
-    result: FAIL
-    evidence: Linux debug failed only on the two new focused tests.
-  - command: Otheryn PR #41 Required #113 / 29653898361
-    result: FAIL
-    evidence: Target acceptance is not satisfied.
-  - command: Canary draft PR #555 Ownership #2350 and CI #3486
-    result: PASS_PRELIMINARY
-    evidence: Draft task/governance structure is valid; final gates must rerun later.
+    evidence: Exact final target head passed formatting/autofix without further mutation.
+  - command: Corrected Otheryn PR #41 exact-head CI #127 / 29679028059
+    result: PASS
+    evidence: Exact final target head passed all applicable CI, including Linux debug full CTest 357 of 357.
+  - command: Corrected Otheryn PR #41 exact-head Required #115 / 29679028000
+    result: PASS
+    evidence: Required acceptance gate passed on exact final target head.
+  - command: ContainerReuseTest corrected exact-target proof
+    result: PASS
+    evidence: 2 of 2 focused tests passed inside the 357 of 357 full CTest run; artifact 8440064893 digest sha256:28d82a5a1d36d89a8892280e73bb671a846743962786922093a907e8b80b79c1.
 ```
 
-# Next-agent sequence
+# Remaining sequence
 
-1. Read root `AGENTS.md`, repository/context routing docs, this task and the OAM-017 evidence report.
-2. Re-fetch live PR #41 and #555; do not assume heads are unchanged.
-3. Preserve the immutable task-start baselines above.
-4. Fix the focused proof harness first; do not modify production runtime without isolated evidence.
-5. Require fresh exact-head target gates after any new PR #41 head.
-6. After target proof passes, perform final target review/main-drift audit and expected-head merge.
-7. Finalize governance #555 and require new exact-head Ownership/CI before merge.
-8. Merge separate authoritative lifecycle-only archive and explicitly close any automatic duplicate archive PR.
-9. Merge separate one-file durable program reconciliation.
-10. Do not start OAM-018 before all OAM-017 stages merge.
+1. Pass final exact-head Canary governance Agent Task Ownership and CI on PR #555.
+2. Audit governance comments/reviews/threads and Canary-main drift, then expected-head squash merge #555.
+3. Merge a separate authoritative lifecycle-only archive.
+4. After authoritative lifecycle is established, explicitly close any self-owned automatic `docs(agents): archive merged PR #555 task` duplicate.
+5. Merge a separate one-file durable program reconciliation.
+6. Do not start OAM-018 before every OAM-017 stage above is merged.
