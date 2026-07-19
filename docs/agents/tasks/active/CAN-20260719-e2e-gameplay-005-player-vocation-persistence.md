@@ -2,12 +2,12 @@
 task_id: CAN-20260719-e2e-gameplay-005-player-vocation-persistence
 program_id: CAN-PROGRAM-E2E-AUTOMATION
 coordination_id: E2E-GAMEPLAY-005-VOCATION
-status: validating
+status: implementing
 agent: "GPT-5.5 Thinking"
 branch: feat/e2e-player-vocation-persistence
 base_branch: main
 created: 2026-07-19T23:38:00+02:00
-updated: 2026-07-19T23:49:00+02:00
+updated: 2026-07-19T23:52:00+02:00
 last_verified_commit: "183d7224cb5de57585294d72631f37783b93dc89"
 risk: medium
 related_issue: ""
@@ -67,12 +67,12 @@ Add one bounded reusable `player_vocation` persistence assertion that accepts on
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T23:49:00+02:00
-head: d92c23596203ca419ab89340c9e53d7616cb0e53
+updated_at: 2026-07-19T23:52:00+02:00
+head: 28f92e2736b854df1b57e95637d634cf0a464fef
 branch: feat/e2e-player-vocation-persistence
 pr: 608
-status: validating
-next_action: Inspect exact-final-head Ownership, CI, Universal Agent E2E and autofix outcomes for the checkpoint commit; if all required gates pass, perform the clean review blocker audit and squash merge with the frozen head SHA.
+status: implementing
+next_action: Inspect exact-final-head Ownership, CI, Universal Agent E2E and autofix outcomes for this repaired active-task checkpoint commit; if all required gates pass, perform the clean review blocker audit and squash merge with the frozen head SHA.
 context_routes:
   - agent-governance
   - universal-e2e
@@ -96,14 +96,15 @@ proven:
   - focused regression coverage checks all eleven mappings, numeric and unknown-name rejection, mapping/SQL surface rejection, raw player_field vocation rejection, SQL escaping, mixed existing-type preservation, normalized manifest rendering and reuse of the existing Lua vocation getter path
   - the final MODULE_CATALOG patch changes only the Universal OTS E2E physical gameplay action plans row
   - pre-final-head Agent Task Ownership succeeded after the checkpoint governance repair
-  - ci:final-gate was applied before this checkpoint commit
+  - ci:final-gate was applied before the final checkpoint sequence and remains present
+  - the first attempted final head 28f92e2736b854df1b57e95637d634cf0a464fef was rejected only because an active-task record used status validating; this checkpoint restores the required active status
   - an earlier speculative player_soul draft PR 606 was closed without merge before implementation and is superseded by this evidence-backed vocation slice
 derived:
   - client-side equality must use the fixed client vocation ID while post-cycle SQL must use the fixed Canary server vocation ID for the same semantic vocation
   - retaining vocation outside caller-accessible player_field prevents bypassing the normalization boundary with a raw numeric equality check
   - no maintained-client or controlled-client driver mutation is required because the existing player_field vocation path already reads LocalPlayer.getVocation
 unknown:
-  - the SHA produced by this final checkpoint commit is the frozen final PR head and is not known inside the commit itself
+  - the SHA produced by this repaired checkpoint commit becomes the new frozen final PR head and is not known inside the commit itself
   - exact-final-head Ownership, CI, Universal Agent E2E and autofix outcomes are pending after this commit
   - review/comment/thread blocker state must be re-audited against the frozen final head before merge
 conflicts: []
@@ -120,8 +121,8 @@ changed_paths:
   - tools/e2e/persistence_assertions.py
 blockers: []
 first_failure:
-  marker: Agent Task Ownership rejected the first implementation checkpoint because required checkpoint fields derived and first_failure were absent.
-  evidence: Ownership artifact active-task-ownership from run 29704784426 reported exactly the two missing checkpoint fields; no path-overlap or task-ownership conflict was reported. The repaired checkpoint then passed Agent Task Ownership on head d92c23596203ca419ab89340c9e53d7616cb0e53.
+  marker: The first attempted exact-final-head Agent Task Ownership run rejected the task checkpoint because a record under tasks/active used non-active status validating.
+  evidence: Ownership artifact active-task-ownership from run 29704996648 reported exactly that status error. The earlier implementation checkpoint had already passed ownership after adding required derived and first_failure fields.
 validation:
   - command: evidence review of current Canary vocations.xml and maintained OTClient vocation constants/getter
     result: PASS
@@ -135,7 +136,10 @@ validation:
   - command: Agent Task Ownership on pre-final head d92c23596203ca419ab89340c9e53d7616cb0e53
     result: PASS
     evidence: Workflow run 29704946030 completed successfully after the checkpoint governance repair.
+  - command: Agent Task Ownership on first attempted final head 28f92e2736b854df1b57e95637d634cf0a464fef
+    result: FAIL
+    evidence: Workflow run 29704996648 rejected only the non-active validating status in the active task record; this commit restores implementing.
   - command: exact-final-head Ownership, CI, Universal Agent E2E and autofix sequence
     result: NOT_RUN
-    evidence: This checkpoint commit creates the frozen final head; exact-head workflow outcomes necessarily occur after the commit and are recorded externally before merge.
+    evidence: This repaired checkpoint commit creates the new frozen final head; exact-head workflow outcomes necessarily occur after the commit and are recorded externally before merge.
 ```
