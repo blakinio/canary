@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-gameplay-005-player-magic-level-persistence
 base_branch: main
 created: 2026-07-19T18:05:00+02:00
-updated: 2026-07-19T18:08:00+02:00
-last_verified_commit: "98f300f90857f9a2dba335c4bffd3ad2e559465e"
+updated: 2026-07-19T18:14:00+02:00
+last_verified_commit: "62048ce3ab2f7e9ecda705f52cc6dab143793397"
 risk: medium
 related_issue: ""
 related_pr: "595"
@@ -20,13 +20,14 @@ blocks:
 owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260719-e2e-gameplay-005-player-magic-level-persistence.md
+    - docs/e2e/PLAYER_MAGIC_LEVEL_PERSISTENCE.md
     - tests/e2e/test_player_magic_level_persistence.py
   shared:
     - tools/e2e/persistence_assertions.py
     - tools/e2e/client/agent_e2e_scenario.lua
-    - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
     - docs/agents/MODULE_CATALOG.md
   read_only:
+    - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
     - tools/e2e/run_agent_e2e.py
     - tools/e2e/run_physical_e2e.sh
     - tools/e2e/client/agent_e2e_route.lua
@@ -59,16 +60,16 @@ This task deliberately covers only the durable magic-level value stored in `play
 
 # Acceptance criteria
 
-- [ ] Add `player_magic_level` checks with exact `equals` in `0..65535`, matching the maintained OTClient `uint16_t` getter boundary.
-- [ ] Compile only one fixed-shape semicolon-free scalar SQL equality query against `players.maglevel` by exact fixture character name.
-- [ ] Do not expose caller-controlled table names, columns, predicates or SQL fragments.
-- [ ] Emit `player_magic_level` into phase-two controlled-client persistence checks and read it through maintained `LocalPlayer:getMagicLevel()` after relog.
-- [ ] Require the same expected value through both post-relog client verification and final SQL verification.
-- [ ] Add focused validation/compiler, Lua-plan and runtime-source tests.
-- [ ] Document the exact durable-value boundary and explicitly exclude `manaspent`, percentages and temporary/base-vs-effective normalization questions from this slice.
-- [ ] Keep feature-specific expected magic levels and progression actions out of shared fixtures.
-- [ ] Preserve merged #589 `follow_route` behavior and merged #591 `player_balance` behavior in shared client/persistence files.
-- [ ] Keep PR #594 OTBM route-preflight ownership untouched; `MODULE_CATALOG.md` is shared-index-only overlap and must receive one narrow E2E row update.
+- [x] Add `player_magic_level` checks with exact `equals` in `0..65535`, matching the maintained OTClient `uint16_t` getter boundary.
+- [x] Compile only one fixed-shape semicolon-free scalar SQL equality query against `players.maglevel` by exact fixture character name.
+- [x] Do not expose caller-controlled table names, columns, predicates or SQL fragments.
+- [x] Emit `player_magic_level` into phase-two controlled-client persistence checks and read it through maintained `LocalPlayer:getMagicLevel()` after relog.
+- [x] Require the same expected value through both post-relog client verification and final SQL verification.
+- [x] Add focused validation/compiler, Lua-plan and runtime-source tests.
+- [x] Document the exact durable-value boundary and explicitly exclude `manaspent`, percentages and temporary/base-vs-effective normalization questions from this slice.
+- [x] Keep feature-specific expected magic levels and progression actions out of shared fixtures.
+- [x] Preserve merged #589 `follow_route` behavior and merged #591 `player_balance` behavior in shared client/persistence files.
+- [ ] Keep PR #594 OTBM route-preflight ownership untouched and update `MODULE_CATALOG.md` with one narrow E2E row change after rechecking live #594/main state.
 - [ ] Apply `ci:final-gate` before the final checkpoint commit.
 - [ ] Require exact-final-head Ownership, CI, Universal Agent E2E and autofix success before merge.
 
@@ -76,8 +77,8 @@ This task deliberately covers only the durable magic-level value stored in `play
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T18:08:00+02:00
-head: 98f300f90857f9a2dba335c4bffd3ad2e559465e
+updated_at: 2026-07-19T18:14:00+02:00
+head: 62048ce3ab2f7e9ecda705f52cc6dab143793397
 branch: feat/e2e-gameplay-005-player-magic-level-persistence
 pr: 595
 status: implementing
@@ -86,10 +87,10 @@ context_routes:
   - agent-governance
 owned_paths:
   - docs/agents/tasks/active/CAN-20260719-e2e-gameplay-005-player-magic-level-persistence.md
+  - docs/e2e/PLAYER_MAGIC_LEVEL_PERSISTENCE.md
   - tests/e2e/test_player_magic_level_persistence.py
   - tools/e2e/persistence_assertions.py
   - tools/e2e/client/agent_e2e_scenario.lua
-  - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
   - docs/agents/MODULE_CATALOG.md
 proven:
   - live main at task start is d4f8bb3aa3a6ca31b54f324797078360da28f8f8 and includes merged PR 591
@@ -102,23 +103,45 @@ proven:
   - loadPlayerBasicInfo restores player->magLevel from players.maglevel as uint32_t and derives manaSpent/percent separately
   - maintained OTClient LocalPlayer exposes getMagicLevel returning uint16_t
   - maintained OTClient Lua registration binds LocalPlayer.getMagicLevel
-  - exact reusable client-plus-SQL equality must therefore be bounded to 0..65535 even though the server DB load surface is wider
-  - the smallest complete progression slice is exact durable magic level only; manaspent, percentages, temporary/base-vs-effective bonuses and individual skills remain separate contracts
+  - exact reusable client-plus-SQL equality is bounded to 0..65535 even though the server DB load surface is wider
+  - persistence_assertions.py validates player_magic_level, emits it to phase-two client checks and compiles fixed-shape maglevel SQL while preserving player_balance and database-only storage/item contracts
+  - agent_e2e_scenario.lua reads player_magic_level through getMagicLevel and validates the explicit runtime type while preserving follow_route and player_balance behavior
+  - focused tests cover SQL shape, uint16 boundaries, invalid values, arbitrary SQL-field rejection, escaping, mixed typed checks, Lua-plan rendering and runtime-source wiring
+  - dedicated docs/e2e/PLAYER_MAGIC_LEVEL_PERSISTENCE.md defines the public contract and explicitly excludes manaspent, percentages, temporary/base-effective normalization, vocation and individual skills
+  - the attempted full replacement of PHYSICAL_GAMEPLAY_ACTION_PLANS.md was blocked by the tool safety layer; the task did not bypass that block and instead uses a dedicated narrow contract document
+  - CI run 29694251372 succeeded on implementation/documentation head 62048ce3ab2f7e9ecda705f52cc6dab143793397
+  - Agent Task Ownership run 29694251316 failed only because first_failure was null instead of the required YAML mapping; focused ownership tooling tests passed
+  - Universal Agent E2E run 29694251344 was still in progress on implementation/documentation head when this checkpoint metadata fix was prepared
 derived:
-  - a client-plus-SQL player_magic_level assertion can reuse the existing phase-two persistence plan and fixed scalar SQL boundary without runner or workflow changes
+  - a client-plus-SQL player_magic_level assertion reuses the existing phase-two persistence plan and fixed scalar SQL boundary without runner or workflow changes
 unknown:
-  - focused tests and final workflow conclusions
+  - corrected Ownership conclusion after this checkpoint fix
+  - live #594/main state before MODULE_CATALOG update
+  - final workflow conclusions
 conflicts: []
-first_failure: null
+first_failure:
+  marker: ownership_checkpoint_first_failure_shape
+  evidence: Agent Task Ownership run 29694251316 failed because first_failure was null; diagnostics require a YAML mapping. Focused ownership tooling tests passed.
 rejected_hypotheses:
   - bundling all skills and magic level into one broad progression PR
   - permitting values above 65535 that cannot be represented by the maintained client getter used for physical proof
   - treating manaspent or magic-level percent as the same durable equality contract
   - adding feature-specific progression expectations to shared fixtures
   - modifying OTBM route preflight or route execution packages
+  - bypassing the tool safety block on a large documentation replacement
 changed_paths:
   - docs/agents/tasks/active/CAN-20260719-e2e-gameplay-005-player-magic-level-persistence.md
-validation: []
+  - docs/e2e/PLAYER_MAGIC_LEVEL_PERSISTENCE.md
+  - tests/e2e/test_player_magic_level_persistence.py
+  - tools/e2e/client/agent_e2e_scenario.lua
+  - tools/e2e/persistence_assertions.py
+validation:
+  - command: CI run 29694251372
+    result: PASS
+    evidence: implementation/documentation head 62048ce3ab2f7e9ecda705f52cc6dab143793397
+  - command: Agent Task Ownership run 29694251316
+    result: FAIL
+    evidence: checkpoint schema required first_failure to be a YAML mapping; corrected in this metadata commit
 blockers: []
-next_action: Implement the bounded client-plus-SQL player_magic_level contract with focused tests and narrow shared-document updates, preserving merged follow_route and player_balance behavior.
+next_action: Require corrected Ownership success, audit the five-file implementation diff, recheck live main and PR 594, then perform one narrow MODULE_CATALOG update before pre-final validation.
 ```
