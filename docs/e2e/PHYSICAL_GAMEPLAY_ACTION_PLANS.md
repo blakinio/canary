@@ -6,7 +6,7 @@ The Universal OTS E2E platform already owns disposable MariaDB bootstrap, exact 
 
 This document defines the bounded client-action and persistence-assertion layers used to extend that same physical lifecycle into gameplay scenarios. It is not a second E2E orchestrator and it does not authorize production targets.
 
-A scenario may add an optional `steps` array. When present, `tools/e2e/run_agent_e2e.py` validates the plan and materializes a deterministic `scenario-plan.lua`. The scenario chooses `tools/e2e/client/agent_e2e_scenario.lua` as its client automation driver. The driver executes first-session actions, performs a safe logout, waits for server persistence, relogs, executes any typed persistence checks through the real client, then performs the second safe logout. The existing final SQL assertion evaluator runs only after that full two-session client cycle exits.
+A scenario may add an optional `steps` array. When present, `tools/e2e/run_agent_e2e.py` validates the plan and materializes a deterministic `scenario-plan.lua`. The scenario chooses `tools/e2e/client/agent_e2e_scenario.lua` as its client automation driver. The driver executes first-session actions, performs a safe logout, waits for server persistence, relogs, executes any client-readable typed persistence checks through the real client, then performs the second safe logout. The existing final SQL assertion evaluator runs only after that full two-session client cycle exits.
 
 ## Safety contract
 
@@ -19,10 +19,11 @@ A scenario may add an optional `steps` array. When present, `tools/e2e/run_agent
 - Walk repetitions are bounded to 64.
 - Exact movement-edge coordinates are bounded to the OTBM coordinate range (`x,y` 0..65535 and `z` 0..15), must remain on one floor and must describe exactly one adjacent tile edge.
 - Item identifiers are bounded unsigned 16-bit values and must be supplied by a feature-owned deterministic fixture; the platform never invents item IDs.
-- Creature names, map positions, NPC names, storage values and gameplay expectations belong to feature-owned scenario tasks and must be evidence-backed.
+- Creature names, map positions, NPC names, storage keys/values and gameplay expectations belong to feature-owned scenario tasks and must be evidence-backed.
 - Credentials are referenced through environment variables; scenario JSON must not embed passwords, tokens or private keys.
 - A successful action plan proves only the declared physical assertions. It does not prove full gameplay parity.
-- A typed persistence assertion succeeds only after the same expected value is observed by the controlled client after relog and by the existing post-cycle scalar SQL assertion path.
+- `player_field` persistence checks require the same expected value after relog through the controlled client and after the full cycle through compiled scalar SQL.
+- `player_storage` persistence checks are database-only after the full two-session cycle because arbitrary server-side storage values have no generic trustworthy controlled-client read surface; they must not be fabricated as phase-two client checks.
 - The existing physical E2E lifecycle, exact-head provenance, MariaDB assertions, packet records and fatal-runtime-log checks remain authoritative.
 
 ## Server runtime selection
@@ -77,13 +78,13 @@ Every first-session step emits:
 
 After all first-session steps complete, the driver emits `plan=success` and enters the normal safe-logout/persistence/relog lifecycle. A failed action emits `e2e=failure` and terminates the client run.
 
-Each typed post-relog persistence check emits `persistence_check_<id>=start`, `persistence_check_<id>=success` and a bounded `persistence_check_<id>_detail=<actual>` value. After all checks pass, the driver emits `persistence_plan=success` before the second safe logout.
+Each client-readable typed post-relog persistence check emits `persistence_check_<id>=start`, `persistence_check_<id>=success` and a bounded `persistence_check_<id>_detail=<actual>` value. After all client-readable checks pass, the driver emits `persistence_plan=success` before the second safe logout. Database-only `player_storage` checks do not emit client persistence markers; their evidence is the compiled post-cycle SQL assertion result after the second safe logout.
 
-Feature scenarios should include the exact required step and persistence markers in `assertions.required_markers` in addition to the existing login/logout/relog markers.
+Feature scenarios should include exact required step and client persistence markers in `assertions.required_markers` when applicable, in addition to the existing login/logout/relog markers.
 
 ## Typed persistence assertions
 
-The optional feature-owned contract is:
+The optional feature-owned contract supports directly comparable player fields and durable player storage rows:
 
 ```json
 {
@@ -96,6 +97,12 @@ The optional feature-owned contract is:
           "type": "player_field",
           "field": "level",
           "equals": 500
+        },
+        {
+          "id": "quest-stage",
+          "type": "player_storage",
+          "key": 123456,
+          "equals": 7
         }
       ]
     }
@@ -103,16 +110,22 @@ The optional feature-owned contract is:
 }
 ```
 
-`required` must be explicit. A required persistence declaration must contain at least one check; checks are rejected when `required` is false. The initial `player_field` type supports only `level` and `experience`, because those values have directly comparable durable `players` columns and controlled-client getters after relog. Raw server vocation IDs are deliberately excluded from this first slice because the maintained client exposes its own vocation representation; a future vocation contract needs an explicit normalization layer rather than assuming numeric identity.
+`required` must be explicit. A required persistence declaration must contain at least one check; checks are rejected when `required` is false.
 
-`tools/e2e/persistence_assertions.py` validates this typed contract. `run_agent_e2e.py` uses the same validated checks in two places:
+`player_field` supports only `level` and `experience`, because those values have directly comparable durable `players` columns and controlled-client getters after relog. Raw server vocation IDs remain deliberately excluded because the maintained client exposes its own vocation representation; a future vocation contract needs an explicit normalization layer rather than assuming numeric identity.
 
-1. `scenario-plan.lua.persistence_checks`, executed only after the second physical login by `agent_e2e_scenario.lua`;
-2. compiled semicolon-free scalar `SELECT` assertions appended to the normalized manifest and evaluated by the existing SQL assertion path only after the second safe logout.
+`player_storage` accepts an exact `key` in the current `player_storage.key` unsigned 32-bit range (`0..4294967295`) and an exact signed 32-bit `equals` value (`-2147483648..2147483647`). The compiler emits a fixed-shape semicolon-free `EXISTS` query that joins `player_storage` to the exact fixture character. Missing rows, wrong values and wrong characters evaluate false. The typed contract never accepts caller-supplied table names, columns, predicates or SQL fragments.
 
-Feature-specific expected values remain in scenario JSON. The shared E2E tooling contains no quest storage numbers, item IDs or feature-specific outcomes. Arbitrary SQL is not accepted through the typed persistence contract; the legacy scenario-owned `assertions.sql` list remains separately supported for existing scenarios.
+`player_storage` deliberately does not enter `scenario-plan.lua.persistence_checks`: arbitrary Canary player storages are server-side state and are not exposed through a generic trustworthy controlled-OTClient getter. Their M3 persistence evidence is therefore the successful physical two-session lifecycle followed by the compiled SQL check after the second safe logout. A future feature may add a separate client-visible quest/UI assertion when that feature has a real maintained-client surface; that must not be confused with generic storage access.
 
-A pre-logout SQL observation alone must not be reported as persistence proof. For the supported `player_field` slice, M3 evidence requires successful safe logout, the existing server-persistence sentinel, relog, controlled-client re-verification, second safe logout and final compiled SQL verification.
+`tools/e2e/persistence_assertions.py` validates the typed contract. `run_agent_e2e.py` uses validated assertions in two bounded outputs:
+
+1. client-readable `player_field` checks in `scenario-plan.lua.persistence_checks`, executed only after the second physical login by `agent_e2e_scenario.lua`;
+2. all typed checks compiled to semicolon-free scalar `SELECT` assertions appended to the normalized manifest and evaluated by the existing SQL assertion path only after the second safe logout.
+
+Feature-specific expected values and storage keys remain in feature scenario JSON. The shared E2E tooling contains no quest storage numbers, item IDs or feature-specific outcomes. Arbitrary SQL is not accepted through the typed persistence contract; the legacy scenario-owned `assertions.sql` list remains separately supported for existing scenarios.
+
+A pre-logout SQL observation alone must not be reported as persistence proof. For `player_field`, M3 evidence requires successful safe logout, the existing server-persistence sentinel, relog, controlled-client re-verification, second safe logout and final compiled SQL verification. For `player_storage`, the same two-session lifecycle must complete before the final compiled SQL verification; the contract makes no false claim of direct generic client visibility.
 
 ## Example
 
@@ -137,7 +150,7 @@ A pre-logout SQL observation alone must not be reported as persistence proof. Fo
 }
 ```
 
-`tests/e2e/scenarios/platform/action-plan-contract.json` is the platform-owned contract scenario. It deliberately avoids map coordinates, item IDs, NPCs and monsters and now proves typed `level` persistence through the canonical relog cycle.
+`tests/e2e/scenarios/platform/action-plan-contract.json` is the platform-owned contract scenario. It deliberately avoids map coordinates, item IDs, NPCs and monsters and proves typed `level` persistence through the canonical relog cycle. Storage keys are intentionally not invented in this shared fixture; feature-owned quest/NPC scenarios supply evidence-backed keys and expected values when they consume `player_storage`.
 
 The existing `tests/e2e/scenarios/movement/physical-movement.json` scenario is the physical proof consumer for `walk_edge`. Its exact `32369,32241,7 -> 32370,32241,7` fixture was pinned from prior controlled-OTClient artifact evidence in merged PR #481 rather than inferred from memory or invented by the platform task.
 
