@@ -2,13 +2,13 @@
 task_id: CAN-20260719-otbm-e2e-002-semantic-landmarks
 program_id: CAN-PROGRAM-OTBM-E2E-ROUTING
 coordination_id: OTBM-E2E-002
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-002-semantic-landmarks
 base_branch: main
 created: 2026-07-19T09:00:00+02:00
-updated: 2026-07-19T10:12:00+02:00
-last_verified_commit: "cd3ffac5f715f4d17a5d0affc8fb66e3d42b7dd1"
+updated: 2026-07-19T08:27:47Z
+last_verified_commit: "da36fedefdf7071ad3def46e497140418c9b2f84"
 risk: medium
 related_issue: ""
 related_pr: "571"
@@ -43,6 +43,7 @@ reuses:
 public_interfaces:
   - canary-otbm-semantic-landmarks-v1
 cross_repo_tasks: []
+completed: 2026-07-19T08:27:47Z
 ---
 
 # Goal
@@ -152,3 +153,11 @@ validation:
     evidence: runs 29679368864, 29679368761, 29679368824 and 29679368747 completed successfully; focused OTBM and full AI-agent unit discovery include the new region-bound regression
 next_action: Verify every required workflow on the exact checkpoint head; if all are successful and PR 571 is mergeable with no unresolved review blocker, mark ready and squash-merge without any post-green commit.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #571.
+- Feature head: `8acaf9a27b7425038dcbaa3bd3fe8ae12778f4e5`.
+- Merge commit: `da36fedefdf7071ad3def46e497140418c9b2f84`.
+- Merged at: `2026-07-19T08:27:47Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
