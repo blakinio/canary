@@ -16,6 +16,7 @@ local DB_HOST = os.getenv("DB_HOST") or "127.0.0.1"
 local DB_PORT = tonumber(os.getenv("DB_PORT") or "3306")
 local DB_USER = os.getenv("DB_USER") or "root"
 local DB_NAME = os.getenv("DB_NAME") or "agent_e2e"
+local RESOURCE_BANK_BALANCE = 0
 
 local EVENTS_PATH = ARTIFACT_DIR .. "/client-events.tsv"
 local INTERNAL_LOG_PATH = ARTIFACT_DIR .. "/otclient.internal.log"
@@ -501,25 +502,32 @@ function runNextStep()
 	failStep(step, "unsupported runtime action")
 end
 
-local function persistencePlayerFieldValue(field)
+local function persistenceCheckValue(check)
 	local player = g_game.getLocalPlayer()
 	if not player then
 		return nil, "local player unavailable"
 	end
-	if field == "level" then
+	if check.type == "player_balance" then
+		return player:getResourceBalance(RESOURCE_BANK_BALANCE), nil
+	end
+	if check.type ~= "player_field" then
+		return nil, "unsupported persistence check type"
+	end
+	if check.field == "level" then
 		return player:getLevel(), nil
 	end
-	if field == "vocation" then
+	if check.field == "vocation" then
 		return player:getVocation(), nil
 	end
-	if field == "experience" then
+	if check.field == "experience" then
 		return player:getExperience(), nil
 	end
 	return nil, "unsupported player field"
 end
 
 local function failPersistenceCheck(check, message)
-	fail(string.format("persistence check %s (%s) failed: %s", tostring(check.id), tostring(check.field), tostring(message)))
+	local descriptor = check.field or check.type
+	fail(string.format("persistence check %s (%s) failed: %s", tostring(check.id), tostring(descriptor), tostring(message)))
 end
 
 local function completePersistenceCheck(check, actual)
@@ -550,8 +558,22 @@ function runNextPersistenceCheck()
 	end
 
 	local check = plan.persistence_checks[persistenceIndex]
-	if type(check) ~= "table" or type(check.id) ~= "string" or check.type ~= "player_field" or type(check.field) ~= "string" or type(check.equals) ~= "number" then
+	if type(check) ~= "table" or type(check.id) ~= "string" or type(check.equals) ~= "number" then
 		fail("invalid runtime persistence check")
+		return
+	end
+	if check.type == "player_field" then
+		if type(check.field) ~= "string" then
+			fail("invalid runtime player_field persistence check")
+			return
+		end
+	elseif check.type == "player_balance" then
+		if check.field ~= nil then
+			fail("invalid runtime player_balance persistence check")
+			return
+		end
+	else
+		fail("unsupported runtime persistence check type")
 		return
 	end
 	appendEvent("persistence_check_" .. check.id, "start")
@@ -561,7 +583,7 @@ function runNextPersistenceCheck()
 		if finished or phase ~= 2 or not phaseStarted then
 			return
 		end
-		local actual, readError = persistencePlayerFieldValue(check.field)
+		local actual, readError = persistenceCheckValue(check)
 		if actual ~= nil and actual == check.equals then
 			completePersistenceCheck(check, actual)
 			return
