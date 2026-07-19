@@ -265,6 +265,12 @@ def validate_route_plan(document: Any, *, route_id: str) -> dict[str, Any]:
 
 
 def load_route_plans(steps: Sequence[Mapping[str, Any]], artifact_dir: Path | None) -> dict[str, dict[str, Any]]:
+    needs_exact_movement_executor = any(
+        step.get("action") in {"walk_edge", "follow_route"} for step in steps
+    )
+    if needs_exact_movement_executor and artifact_dir is not None:
+        materialize_client_executor(artifact_dir)
+
     route_ids = sorted({str(step["route"]) for step in steps if step.get("action") == "follow_route"})
     if not route_ids:
         return {}
