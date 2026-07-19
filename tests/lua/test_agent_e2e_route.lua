@@ -217,22 +217,18 @@ local function testFollowRouteMovementEvidenceAndCompletion()
 		return true
 	end
 	local result, routeCallbacks = callbacks()
-	routeExecutor.execute(
-		{ id = "fixture", action = "follow_route", timeout_ms = 500 },
-		{
-			origin = { 100, 100, 7 },
-			destination = { 101, 100, 7 },
-			edges = {
-				{
-					kind = "movement",
-					from = { 100, 100, 7 },
-					to = { 101, 100, 7 },
-					interactions = {},
-				},
+	routeExecutor.execute({ id = "fixture", action = "follow_route", timeout_ms = 500 }, {
+		origin = { 100, 100, 7 },
+		destination = { 101, 100, 7 },
+		edges = {
+			{
+				kind = "movement",
+				from = { 100, 100, 7 },
+				to = { 101, 100, 7 },
+				interactions = {},
 			},
 		},
-		routeCallbacks
-	)
+	}, routeCallbacks)
 	drainEvents()
 	assertEqual(result.failure, nil, "follow_route movement failure state")
 	assertEqual(result.completed, "101,100,7", "follow_route destination")
@@ -250,24 +246,20 @@ local function testWrongTransitionDestinationFailsWithExpectedActual()
 		return true
 	end
 	local result, routeCallbacks = callbacks()
-	routeExecutor.execute(
-		{ id = "transition", action = "follow_route", timeout_ms = 500 },
-		{
-			origin = { 100, 100, 7 },
-			destination = { 200, 200, 8 },
-			edges = {
-				{
-					kind = "transition",
-					from = { 100, 100, 7 },
-					to = { 200, 200, 8 },
-					interactions = {
-						{ kind = "walk-direction", direction = "east" },
-					},
+	routeExecutor.execute({ id = "transition", action = "follow_route", timeout_ms = 500 }, {
+		origin = { 100, 100, 7 },
+		destination = { 200, 200, 8 },
+		edges = {
+			{
+				kind = "transition",
+				from = { 100, 100, 7 },
+				to = { 200, 200, 8 },
+				interactions = {
+					{ kind = "walk-direction", direction = "east" },
 				},
 			},
 		},
-		routeCallbacks
-	)
+	}, routeCallbacks)
 	assertContains(result.failure, "WRONG_TRANSITION_DESTINATION", "wrong transition failure code")
 	assertContains(result.failure, "actual=999,999,7", "wrong transition actual position")
 	assertContains(result.failure, "expected=200,200,8", "wrong transition expected position")
@@ -283,28 +275,24 @@ local function testUseMapItemTransitionUsesExactTarget()
 		currentPosition = { x = 200, y = 200, z = 8 }
 	end
 	local result, routeCallbacks = callbacks()
-	routeExecutor.execute(
-		{ id = "use-map", action = "follow_route", timeout_ms = 500 },
-		{
-			origin = { 100, 100, 7 },
-			destination = { 200, 200, 8 },
-			edges = {
-				{
-					kind = "transition",
-					from = { 100, 100, 7 },
-					to = { 200, 200, 8 },
-					interactions = {
-						{
-							kind = "use-map-item",
-							target_position = { 100, 100, 7 },
-							target_item_id = 1387,
-						},
+	routeExecutor.execute({ id = "use-map", action = "follow_route", timeout_ms = 500 }, {
+		origin = { 100, 100, 7 },
+		destination = { 200, 200, 8 },
+		edges = {
+			{
+				kind = "transition",
+				from = { 100, 100, 7 },
+				to = { 200, 200, 8 },
+				interactions = {
+					{
+						kind = "use-map-item",
+						target_position = { 100, 100, 7 },
+						target_item_id = 1387,
 					},
 				},
 			},
 		},
-		routeCallbacks
-	)
+	}, routeCallbacks)
 	drainEvents()
 	assertEqual(useCalls, 1, "use-map request count")
 	assertEqual(result.failure, nil, "use-map transition failure state")
@@ -322,29 +310,25 @@ local function testUseInventoryOnMapTransitionUsesVerifiedApiShape()
 		currentPosition = { x = 200, y = 200, z = 8 }
 	end
 	local result, routeCallbacks = callbacks()
-	routeExecutor.execute(
-		{ id = "inventory-map", action = "follow_route", timeout_ms = 500 },
-		{
-			origin = { 100, 100, 7 },
-			destination = { 200, 200, 8 },
-			edges = {
-				{
-					kind = "transition",
-					from = { 100, 100, 7 },
-					to = { 200, 200, 8 },
-					interactions = {
-						{
-							kind = "use-inventory-on-map",
-							target_position = { 100, 100, 7 },
-							target_item_id = 1387,
-							inventory_item_id = 3147,
-						},
+	routeExecutor.execute({ id = "inventory-map", action = "follow_route", timeout_ms = 500 }, {
+		origin = { 100, 100, 7 },
+		destination = { 200, 200, 8 },
+		edges = {
+			{
+				kind = "transition",
+				from = { 100, 100, 7 },
+				to = { 200, 200, 8 },
+				interactions = {
+					{
+						kind = "use-inventory-on-map",
+						target_position = { 100, 100, 7 },
+						target_item_id = 1387,
+						inventory_item_id = 3147,
 					},
 				},
 			},
 		},
-		routeCallbacks
-	)
+	}, routeCallbacks)
 	drainEvents()
 	assertEqual(useInventoryCalls, 1, "use-inventory-on-map request count")
 	assertEqual(result.failure, nil, "use-inventory-on-map failure state")
@@ -359,11 +343,7 @@ testWrongTransitionDestinationFailsWithExpectedActual()
 testUseMapItemTransitionUsesExactTarget()
 testUseInventoryOnMapTransitionUsesVerifiedApiShape()
 
-local pythonStatus = os.execute(
-	"python3 tests/e2e/test_follow_route_execution.py"
-		.. " && python3 tests/e2e/test_exact_movement_edges.py"
-		.. " && python3 tests/e2e/test_agent_e2e_scenario_plan.py"
-)
+local pythonStatus = os.execute("python3 tests/e2e/test_follow_route_execution.py" .. " && python3 tests/e2e/test_exact_movement_edges.py" .. " && python3 tests/e2e/test_agent_e2e_scenario_plan.py")
 if pythonStatus ~= 0 and pythonStatus ~= true then
 	error("focused Python E2E route contract tests failed with status " .. tostring(pythonStatus))
 end
