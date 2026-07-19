@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 PERSISTENCE_PATH = ROOT / "tools" / "e2e" / "persistence_assertions.py"
 RUNNER_PATH = ROOT / "tools" / "e2e" / "run_agent_e2e.py"
+DRIVER_PATH = ROOT / "tools" / "e2e" / "client" / "agent_e2e_scenario.lua"
 
 
 def load_module(name: str, path: Path):
@@ -27,7 +28,7 @@ runner = load_module("test_e2e_run_agent_e2e_player_balance", RUNNER_PATH)
 
 
 class PlayerBalanceCompilerTests(unittest.TestCase):
-    def test_compiles_exact_unsigned_balance(self) -> None:
+    def test_compiles_exact_safe_balance(self) -> None:
         raw = {
             "required": True,
             "checks": [
@@ -47,8 +48,8 @@ class PlayerBalanceCompilerTests(unittest.TestCase):
         )
         self.assertNotIn(";", query)
 
-    def test_accepts_uint64_boundaries(self) -> None:
-        for value in (0, persistence.MAX_UINT64):
+    def test_accepts_lua_safe_boundaries(self) -> None:
+        for value in (0, persistence.MAX_SAFE_LUA_INTEGER):
             raw = {
                 "required": True,
                 "checks": [
@@ -63,8 +64,8 @@ class PlayerBalanceCompilerTests(unittest.TestCase):
                 [query] = persistence.compile_persistence_assertions(raw, character="Knight 1")
                 self.assertIn(f") = {value}, 1, 0)", query)
 
-    def test_rejects_invalid_uint64_values(self) -> None:
-        for value in (-1, True, 1.5, "1", persistence.MAX_UINT64 + 1):
+    def test_rejects_values_outside_exact_lua_range(self) -> None:
+        for value in (-1, True, 1.5, "1", persistence.MAX_SAFE_LUA_INTEGER + 1, 18_446_744_073_709_551_615):
             raw = {
                 "required": True,
                 "checks": [
@@ -110,7 +111,7 @@ class PlayerBalanceCompilerTests(unittest.TestCase):
 
         self.assertIn("WHERE `name` = 'O''Brien'", query)
 
-    def test_only_player_field_is_returned_for_phase_two(self) -> None:
+    def test_player_field_and_balance_are_returned_for_phase_two(self) -> None:
         raw = {
             "required": True,
             "checks": [
@@ -129,7 +130,10 @@ class PlayerBalanceCompilerTests(unittest.TestCase):
 
         self.assertEqual(
             persistence.validate_persistence_assertions(raw),
-            [{"id": "level", "type": "player_field", "field": "level", "equals": 500}],
+            [
+                {"id": "level", "type": "player_field", "field": "level", "equals": 500},
+                {"id": "bank-balance", "type": "player_balance", "equals": 1000},
+            ],
         )
         self.assertEqual(len(persistence.compile_persistence_assertions(raw, character="Knight 1")), 4)
 
@@ -197,7 +201,7 @@ class PlayerBalanceManifestTests(unittest.TestCase):
         self.path.write_text(json.dumps(self.scenario_data()), encoding="utf-8")
         return runner.validate_scenario(self.path, self.root)
 
-    def test_balance_appends_sql_but_not_phase_two_lua(self) -> None:
+    def test_balance_appends_sql_and_phase_two_lua(self) -> None:
         scenario = self.write()
 
         manifest = runner.normalized_manifest(scenario)
@@ -207,9 +211,21 @@ class PlayerBalanceManifestTests(unittest.TestCase):
         self.assertEqual(len(sql_checks), 3)
         self.assertTrue(any("SELECT `balance` FROM `players`" in query for query in sql_checks))
         self.assertIn('field = "level"', rendered)
-        self.assertNotIn('type = "player_balance"', rendered)
-        self.assertNotIn("bank-balance", rendered)
-        self.assertNotIn("equals = 1000", rendered)
+        self.assertIn('id = "bank-balance"', rendered)
+        self.assertIn('type = "player_balance"', rendered)
+        self.assertIn("equals = 1000", rendered)
+        self.assertNotIn('field = "balance"', rendered)
+
+
+class PlayerBalanceRuntimeSourceTests(unittest.TestCase):
+    def test_driver_reads_maintained_bank_resource_balance(self) -> None:
+        source = DRIVER_PATH.read_text(encoding="utf-8")
+
+        self.assertIn("local RESOURCE_BANK_BALANCE = 0", source)
+        self.assertIn('if check.type == "player_balance" then', source)
+        self.assertIn("player:getResourceBalance(RESOURCE_BANK_BALANCE)", source)
+        self.assertIn("local actual, readError = persistenceCheckValue(check)", source)
+        self.assertIn('elseif check.type == "player_balance" then', source)
 
 
 if __name__ == "__main__":
