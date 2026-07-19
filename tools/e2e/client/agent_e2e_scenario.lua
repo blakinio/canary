@@ -44,6 +44,17 @@ local DIRECTIONS = {
 	northwest = NorthWest or 7,
 }
 
+local WALK_EDGE_DIRECTIONS = {
+	["0,-1"] = DIRECTIONS.north,
+	["1,-1"] = DIRECTIONS.northeast,
+	["1,0"] = DIRECTIONS.east,
+	["1,1"] = DIRECTIONS.southeast,
+	["0,1"] = DIRECTIONS.south,
+	["-1,1"] = DIRECTIONS.southwest,
+	["-1,0"] = DIRECTIONS.west,
+	["-1,-1"] = DIRECTIONS.northwest,
+}
+
 local function sanitize(value)
 	return tostring(value):gsub("[\t\r\n]", " ")
 end
@@ -192,6 +203,13 @@ local function samePosition(a, b)
 	return a and b and a.x == b.x and a.y == b.y and a.z == b.z
 end
 
+local function positionString(position)
+	if not position then
+		return "unavailable"
+	end
+	return string.format("%d,%d,%d", position.x, position.y, position.z)
+end
+
 local function findVisibleCreature(name)
 	local player = g_game.getLocalPlayer()
 	if not player then
@@ -294,6 +312,53 @@ function runNextStep()
 			scheduleEvent(walkOnce, interval)
 		end
 		walkOnce()
+		return
+	end
+	if step.action == "walk_edge" then
+		local player = g_game.getLocalPlayer()
+		if not player then
+			failStep(step, "local player unavailable")
+			return
+		end
+		local source = { x = step.from_x, y = step.from_y, z = step.from_z }
+		local destination = { x = step.to_x, y = step.to_y, z = step.to_z }
+		local current = player:getPosition()
+		if not samePosition(current, source) then
+			failStep(step, string.format("source mismatch actual=%s expected=%s", positionString(current), positionString(source)))
+			return
+		end
+		if source.z ~= destination.z then
+			failStep(step, "floor-changing movement edge is unsupported")
+			return
+		end
+		local deltaX = destination.x - source.x
+		local deltaY = destination.y - source.y
+		local direction = WALK_EDGE_DIRECTIONS[string.format("%d,%d", deltaX, deltaY)]
+		if direction == nil then
+			failStep(step, string.format("invalid adjacent edge delta=%d,%d", deltaX, deltaY))
+			return
+		end
+		if not g_game.walk(direction) then
+			failStep(step, "walk request rejected")
+			return
+		end
+		pollUntil(step, step.timeout_ms or 10000, function()
+			local livePlayer = g_game.getLocalPlayer()
+			local livePosition = livePlayer and livePlayer:getPosition() or nil
+			if not livePosition then
+				return false, "local player position unavailable"
+			end
+			if samePosition(livePosition, destination) then
+				return true, positionString(livePosition)
+			end
+			if not samePosition(livePosition, source) then
+				failStep(step, string.format("route drift actual=%s expected=%s", positionString(livePosition), positionString(destination)))
+				return false, "route drift"
+			end
+			return false, string.format("position=%s expected=%s", positionString(livePosition), positionString(destination))
+		end, function(detail)
+			completeStep(step, detail)
+		end)
 		return
 	end
 	if step.action == "talk" then
@@ -678,7 +743,7 @@ end
 g_logger.setLogFile(INTERNAL_LOG_PATH)
 appendEvent("scenario", SCENARIO_KEY)
 appendEvent("client_version", CLIENT_VERSION)
-appendEvent("driver", "generic-gameplay-plan-v2")
+appendEvent("driver", "generic-gameplay-plan-v3")
 installStartupProfile()
 if not finished and loadPlan() then
 	scheduleEvent(startLogin, 2500)
