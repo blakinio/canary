@@ -2,7 +2,7 @@
 task_id: CAN-20260719-oteryn-exaltation-forge-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-020
-status: implementing
+status: target_merged_governance_reconciling
 agent: "GPT-5.5 Thinking"
 branch: docs/oam-020-exaltation-forge-revalidation
 base_branch: main
@@ -45,20 +45,20 @@ reuses:
 public_interfaces:
   - existing Forge runtime and configuration surfaces only
 cross_repo_tasks:
-  - blakinio/Otheryn#44 on dudantas/oam-020-exaltation-forge-adapt
+  - blakinio/Otheryn#44 merged as d59207d05ab6dd9450b05d0a6b4d9122fda60489
 ---
 
 # Goal
 
 Revalidate canonical OAM-020 `exaltation-forge`, adapt only the strongest coherent dependency-valid Forge corrections into Otheryn, prove the bounded target result on an exact head, then complete Canary governance, lifecycle archival and durable program reconciliation before OAM-021 starts.
 
-# Task-start disposition
+# Final disposition
 
 ```text
 exaltation-forge → ADAPT
 ```
 
-`REUSE` is rejected because task-start Otheryn and fresh upstream lack multiple merged legacy correctness repairs. A broad rebuild is rejected because the clean target/upstream Forge core remains usable and the reviewed legacy changes are bounded adaptations.
+`REUSE` was rejected because task-start Otheryn and fresh upstream lacked multiple merged legacy correctness repairs. A broad rebuild was rejected because the clean target/upstream Forge core remained usable and the reviewed legacy changes were bounded adaptations.
 
 # Immutable task-start baselines
 
@@ -68,121 +68,140 @@ exaltation-forge → ADAPT
 - previous OAM upstream pin: `691614c1a302aee776002ca3851eca399be1a82c`
 - maintained OTClient: `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`
 
-# Fresh preflight
+# Fresh preflight and ownership
 
-- [x] Canary `main` independently verified.
-- [x] Otheryn `main` independently verified.
-- [x] Maintained OTClient head independently verified.
-- [x] Fresh upstream head independently verified; one-commit drift is dispatcher-only and non-overlapping.
-- [x] All live/open Canary and Otheryn PRs reviewed.
-- [x] Active task ownership reviewed; no exclusive Forge runtime/data/test writer found.
-- [x] Durable OAM program and target architecture contract read.
-- [x] Canonical registry dependency gate reviewed.
-- [x] Local Otheryn `AGENTS.md` read; no nearer nested `AGENTS.md` exists at checked `src/`, `src/creatures/players/`, `data/` or `tests/` paths.
-- [x] Forge parity program, handoff and validation evidence read.
-- [x] Cross-repository contract registry reviewed.
+- [x] Canary and Otheryn task-start heads independently verified.
+- [x] Maintained OTClient and fresh upstream independently verified.
+- [x] Durable OAM program, target architecture contract, registry, Forge parity program/handoff/validation and cross-repo contract read.
+- [x] Active ownership reviewed; no exclusive Forge runtime/data/test writer found.
+- [x] Later Canary PRs #599/#600 checked by actual changed paths; OTBM/E2E-only and non-overlapping.
 - [x] Fresh target/upstream/legacy evidence reviewed before disposition.
 
-# Ownership audit
+Shared `MODULE_CATALOG.md` and `CHANGELOG.md` ownership was deliberately avoided. OAM-020 governance changes only its report and active task record.
 
-Open Canary PRs at task start:
+# Accepted donor chain
 
-- #559 — MyAAC documentation closeout; no overlap;
-- #526 — evidence-only security audit; source/data paths are read-only evidence;
-- #514 — authenticated-session security validation; `protocolgame.*` is read-only and Forge paths are not owned;
-- #479 — archive-only lifecycle cleanup.
+- #89 — normal Transfer rules/cost/history;
+- #110 — history item identity;
+- #177 — Dust killer/party/cap behavior;
+- #250 — server authority policies;
+- #257 — transaction safety;
+- #259 — live defaults;
+- #262 — Premium Dust semantics;
+- #267 — Forge effect correctness;
+- #283 — history correctness.
 
-Otheryn had no open PR at task start.
+No broad `player.cpp` or `protocolgame.cpp` copy was accepted.
 
-No active task owns Forge production paths exclusively. Shared `MODULE_CATALOG.md` and `CHANGELOG.md` are intentionally excluded from the start-up scope while unrelated security work is open.
-
-Fresh later Canary PRs #599 and #600 are OTBM/E2E work. Their live changed paths do not overlap the OAM-020 governance files or Forge target runtime/data/test boundary.
-
-# Reviewed donor evidence
-
-The exact target adaptation must remain narrower than legacy whole files. Reviewed merged donor candidates are:
-
-- #89 normal Transfer rules/cost/history;
-- #110 history item identity;
-- #177 Dust killer/party/cap behavior;
-- #250 server authority policies;
-- #257 transaction safety;
-- #259 live defaults;
-- #262 Premium Dust semantics;
-- #267 Forge effect correctness;
-- #283 history correctness.
-
-Fresh target evidence confirms missing/different bounded surfaces including Forge policy helpers, transaction/effect helpers, Forge config defaults, Fiendish default and Forge history item IDs. Direct target-context inspection also confirms the task-start Player Forge flow still has the pre-transaction mutation ordering, older Transfer tier-cost semantics and stale Momentum/Transcendence gating addressed by the accepted donor chain.
-
-Target-local architecture review additionally requires two bounded adaptations not present in the legacy donor commits themselves:
-
-- register the five newly introduced Forge/config helper headers in tracked `vcproj/canary.vcxproj`, as required by the target `AGENTS.md` build-entry policy;
-- guard donor standard-library includes with `#ifndef USE_PRECOMPILED_HEADERS` because `cstdint`, `functional`, `utility` and `vector` are already provided by target `src/pch.hpp`.
-
-These are build-contract adaptations only. They do not broaden Forge runtime behavior.
+Target-local build-contract adaptations registered five new helper headers in `vcproj/canary.vcxproj`, added PCH-safe fallback standard includes, and registered exact Forge tests in the target's current CMake layout instead of copying stale donor CMake files.
 
 # Explicit exclusions
 
 - F-014–F-019 bonus/result/protocol/maintained-client contract work;
-- F-009/F-010 rules lacking pinned authoritative evidence;
-- broad `player.cpp` or `protocolgame.cpp` copy;
+- F-009/F-010 evidence-blocked rules;
 - generic market/combat/item/persistence/protocol rewrites;
 - maps, OTBM, `items.otb`, assets, schema and deployment;
-- writes to `blakinio/otclient` or upstream repositories.
+- writes to maintained OTClient or upstream repositories;
+- claims of exhaustive current Real Tibia Forge parity or physical-client Forge E2E closure.
 
-# Target delivery rules
+# Target proof and merge
 
-- target branch must use the Otheryn-required `dudantas/` prefix;
-- no direct write to Otheryn `main`;
-- materialize only exact Forge-specific hunks/helpers after target-context review;
-- add focused target tests for every adapted boundary;
-- register new C++ sources/headers in every maintained build entry point when required;
-- inspect full changed-file list and diff before readiness;
-- run exact-head CI and applicable full/focused tests;
-- audit comments/reviews/threads and target-main drift before expected-head merge.
+Target PR: `blakinio/Otheryn#44`
+
+Accepted final head:
+
+```text
+f05787db7f165d0dae0584b3e06c6526f89a42cd
+```
+
+Final target scope: exactly 24 intended paths — 23 bounded Forge runtime/data/test/build paths plus one target-specific OAM-020 proof test. No temporary materializer workflow/script remained.
+
+Exact-head evidence:
+
+- autofix.ci #142 / `29701626292` — SUCCESS;
+- Repository Audit #19 / `29701626282` — SUCCESS;
+- CI #164 / `29701626343` — SUCCESS;
+- Required #149 / `29701626255` — SUCCESS;
+- Fast Checks — PASS;
+- Lua Tests — PASS;
+- Linux release compile and Canary/global runtime smoke — PASS;
+- Linux debug compile/schema/CTest — PASS;
+- macOS compile/runtime smoke — PASS;
+- Windows CMake compile/runtime smoke — PASS;
+- Windows Solution/MSBuild compile — PASS;
+- Docker image build/validation — PASS.
+
+Linux debug CTest:
+
+```text
+393/393 PASS
+```
+
+Focused target proof:
+
+```text
+Oam020ExaltationForgeAdaptTest: 2/2 PASS
+```
+
+Primary artifact:
+
+```text
+id: 8446751016
+name: linux-debug-test-logs
+digest: sha256:1bc0b22f42693c2eaa4404de0b4e66846d399a1046c1620254a493b9bcba5eef
+```
+
+Final target audit:
+
+- comments: 0;
+- reviews: 0;
+- review threads: 0;
+- target-main drift: none before merge;
+- changed files: exactly 24 intended paths.
+
+Expected-head squash merge:
+
+```text
+d59207d05ab6dd9450b05d0a6b4d9122fda60489
+```
+
+Post-merge Otheryn `main` is exactly one commit ahead of task-start baseline and the changed paths match the accepted scope.
+
+# Materializer failure record
+
+The temporary materializer failed closed several times before the accepted tree existed. The material failures were integration mechanics, not accepted Forge runtime failures:
+
+- stale donor CMake layout conflict — replaced with exact deterministic target test registration;
+- ignored tracked `vcproj/canary.vcxproj` required explicit force-staging;
+- direct execution of the self-modifying script reached EOF after replacing itself — corrected by executing a stable temporary copy.
+
+All nine donor patches subsequently applied cleanly. No failed materializer run produced the accepted target runtime tree. Temporary materializer paths were removed before final validation.
 
 # Acceptance criteria
 
 - [x] Dedicated Otheryn `dudantas/` branch created from exact task-start target SHA.
-- [x] Exact donor-hunk/target-context review completed for every selected production mutation boundary.
-- [ ] Target adaptation contains no unrelated paths and no broad legacy file copy.
-- [ ] Focused Forge regression tests cover the accepted adaptation.
-- [ ] Applicable full Otheryn validation passes on the exact final target head.
-- [ ] Target changed-file, review/thread and main-drift audits are clean.
-- [ ] Otheryn target PR merges by expected head.
-- [ ] Canary governance report/task record reconciled to exact target proof.
+- [x] Exact donor-hunk/target-context review completed.
+- [x] Target adaptation contains no unrelated paths and no broad legacy file copy.
+- [x] Focused Forge regression proof covers the accepted adaptation.
+- [x] Full applicable Otheryn validation passes on exact final target head.
+- [x] Target changed-file, review/thread and main-drift audits are clean.
+- [x] Otheryn target PR merged by expected head.
+- [x] Canary governance report/task record reconciled to exact target proof.
 - [ ] Canary governance exact final head passes ownership/CI and review gates.
 - [ ] Governance PR merges by expected head.
 - [ ] Separate authoritative active→archive lifecycle PR merges.
 - [ ] Separate one-file durable OAM program reconciliation merges.
 - [ ] OAM-021 remains not started until all preceding lifecycle/reconciliation steps complete.
 
-# Target materialization checkpoint
-
-Target PR: `blakinio/Otheryn#44`
-
-Target branch: `dudantas/oam-020-exaltation-forge-adapt`
-
-Current target helper head at this checkpoint: `7a3fdf87a9909dbd040f0d0e6a5e852c37943bd5`
-
-The temporary fail-closed materializer is pinned to legacy `c353b89b5a7f783cf4ee22fe1ba91850de837a68`, applies only explicit production/test paths from the nine accepted merge commits using three-way context checks, validates an explicit final-path allowlist, applies target PCH and Visual Studio project-registration requirements, and self-removes its workflow on success. A temporary no-op script stub is retained only to make stale queued runs harmless and must be deleted before final target validation.
-
-Observed materializer failures:
-
-- stale early run `29700037539` — failed inside the materialization step before any accepted target commit;
-- exact observable run `29700919724` / run #15 — failed inside the materialization step before any accepted target commit.
-
-Neither failure changed the accepted target tree. The first diagnostic wrapper did not persist a usable failure log, so the workflow has been changed to always upload the complete materializer log as artifact and fail only after artifact publication. The next controlled run must use that artifact to identify the first conflicting donor hunk rather than guessing.
-
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-19
-head: 10a46ab94f48bd98576c23d3772f6277f0638026
+head: 02a6578f0cd2e4672e8e71c142d892a03c53d41d
 branch: docs/oam-020-exaltation-forge-revalidation
 pr: 598
-status: implementing
+status: governance_reconciling
 context_routes:
   - agent-governance
   - cpp-runtime
@@ -192,54 +211,51 @@ owned_paths:
   - docs/agents/OTERYN_OAM_020_EXALTATION_FORGE_REVALIDATION.md
   - docs/agents/tasks/active/CAN-20260719-oteryn-exaltation-forge-revalidation.md
 proven:
-  - Canary task-start main is c353b89b5a7f783cf4ee22fe1ba91850de837a68
-  - Otheryn task-start main is 63547f30fc21e495217b8a92fa44aaad2db188ef
-  - maintained OTClient remains 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
-  - fresh upstream is 71a0f92b4da3f550b292fa7536a0e35c2769f1ae and its drift from 691614c1a302aee776002ca3851eca399be1a82c is dispatcher-only
-  - no active exclusive Forge writer exists in live Canary/Otheryn PR/task ownership
-  - canonical exaltation-forge dependencies player-persistence and protocol are completed
-  - task-start target/upstream lack multiple reviewed legacy Forge helper/default/history repairs
-  - whole-module REUSE is rejected and bounded ADAPT is selected
-  - unresolved F-014 through F-019 protocol/client work and F-009/F-010 evidence-blocked rules are excluded
-  - target branch dudantas/oam-020-exaltation-forge-adapt was created from exact baseline 63547f30fc21e495217b8a92fa44aaad2db188ef
-  - target draft PR 44 is open and remains based on exact task-start Otheryn main
-  - selected materialization scope is restricted to explicit Forge production/test paths from donor PRs 89 110 177 250 257 259 262 267 and 283
-  - target-local build contract requires vcproj registration and PCH-guard adaptation for newly added helper headers
+  - OAM-020 disposition is exaltation-forge ADAPT
+  - target PR 44 final head f05787db7f165d0dae0584b3e06c6526f89a42cd changed exactly 24 intended paths
+  - target exact-head autofix 29701626292 Repository Audit 29701626282 CI 29701626343 and Required 29701626255 succeeded
+  - Linux debug CTest passed 393 of 393 tests
+  - Oam020ExaltationForgeAdaptTest passed 2 of 2 focused cases
+  - test artifact 8446751016 digest sha256:1bc0b22f42693c2eaa4404de0b4e66846d399a1046c1620254a493b9bcba5eef
+  - target comments reviews and review threads were all zero
+  - target main had no drift before expected-head merge
+  - target PR 44 merged as d59207d05ab6dd9450b05d0a6b4d9122fda60489
+  - Canary main advanced one unrelated OTBM E2E commit after task start without overlap with the two OAM-020 governance paths
+derived:
+  - the unrelated Canary main drift does not invalidate the OAM-020 target proof or governance scope because the changed paths do not overlap
+  - OAM-021 remains blocked until governance merge lifecycle archive and durable program reconciliation all complete
 unknown:
-  - first exact conflicting donor hunk from the failed materializer runs
-  - accepted post-materialization target head
-  - exact final target changed-file set after helper removal
-  - exact focused/full target test results and artifacts
-  - exact target CI run IDs on the accepted final head
+  - exact final Canary governance head and gate run ids after this reconciliation commit
+  - whether Canary main will advance again before governance merge
 conflicts: []
 first_failure:
-  marker: target-materializer-failed
-  evidence: runs 29700037539 and 29700919724 failed inside the materialization step before any accepted target commit; artifact-based failure capture is now enabled for the next controlled run
+  marker: target-materializer-failed-closed
+  evidence: early materializer attempts failed before an accepted target runtime commit; exact artifact-driven diagnosis identified target CMake integration then tracked vcproj staging and self-modifying runner execution issues, all corrected before final proof
 rejected_hypotheses:
-  - infer REUSE from upstream/target file presence
+  - infer REUSE from upstream or target file presence
   - bulk-copy legacy player.cpp or protocolgame.cpp
   - absorb unresolved maintained-client Forge bonus/result work into OAM-020
-  - implement F-009/F-010 from memory or secondary unversioned summaries
+  - implement F-009 or F-010 from memory or secondary unversioned summaries
 changed_paths:
   - docs/agents/OTERYN_OAM_020_EXALTATION_FORGE_REVALIDATION.md
   - docs/agents/tasks/active/CAN-20260719-oteryn-exaltation-forge-revalidation.md
 validation:
-  - command: live GitHub head/open-PR/task ownership preflight
+  - command: live GitHub head open-PR and task ownership preflight
     result: PASS
-    evidence: exact baselines and non-overlapping active ownership recorded above
+    evidence: exact task-start baselines and non-overlapping active ownership recorded
   - command: canonical dependency and source-evidence review
     result: PASS
-    evidence: dependency-valid exaltation-forge selected and ADAPT disposition established from fresh target/upstream/legacy evidence
-  - command: target branch and draft PR creation
+    evidence: dependency-valid exaltation-forge selected and ADAPT disposition established from fresh evidence
+  - command: exact target CI and CTest on f05787db7f165d0dae0584b3e06c6526f89a42cd
     result: PASS
-    evidence: Otheryn PR 44 uses dudantas/oam-020-exaltation-forge-adapt from exact target base 63547f30fc21e495217b8a92fa44aaad2db188ef
-  - command: function-level donor and target-context review
+    evidence: CI 29701626343 Required 29701626255 and 393 of 393 CTest passed with 2 of 2 focused OAM-020 proof cases
+  - command: target changed-file review and review-thread audit
     result: PASS
-    evidence: exact donor merge/path set is bounded and task-start target retains the reviewed Forge correctness gaps without OAM-019 overlap
-  - command: target materializer runs 29700037539 and 29700919724
-    result: FAIL
-    evidence: both runs failed closed inside the materialization step and produced no accepted target implementation commit
+    evidence: exactly 24 intended paths and zero comments reviews or review threads
+  - command: expected-head target squash merge
+    result: PASS
+    evidence: PR 44 merged at expected head f05787db7f165d0dae0584b3e06c6526f89a42cd as d59207d05ab6dd9450b05d0a6b4d9122fda60489
 blockers:
-  - exact first donor conflict must be identified from the artifact-enabled materializer run before target implementation can proceed
-next_action: Run the artifact-enabled OAM-020 materializer on current target helper head 7a3fdf87a9909dbd040f0d0e6a5e852c37943bd5. Fetch the complete oam-020-materializer-log artifact. Repair only the first exact conflicting donor hunk or target-context mismatch, rerun, then inspect the post-materialization changed-file allowlist before any target CI or readiness claim.
+  - Canary governance PR 598 must pass exact-final-head ownership and CI then merge before lifecycle archive
+next_action: Validate Canary governance PR 598 on its exact final reconciliation head. Keep the diff limited to the two governance paths. If ownership and CI pass and review plus fresh main-drift audits are clean, squash-merge by expected head. Then create the separate authoritative active-to-archive lifecycle PR. Do not start OAM-021.
 ```
