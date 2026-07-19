@@ -1,0 +1,66 @@
+name: OAM-020 program reconciliation materializer
+
+on:
+  push:
+    branches:
+      - docs/oam-020-program-reconciliation
+    paths:
+      - .github/scripts/oam_020_program_reconcile.py
+      - .github/workflows/oam-020-program-reconcile.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: oam-020-program-reconciliation
+  cancel-in-progress: true
+
+jobs:
+  reconcile:
+    if: github.repository == 'blakinio/canary'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact reconciliation branch
+        uses: actions/checkout@v4
+        with:
+          ref: docs/oam-020-program-reconciliation
+          fetch-depth: 0
+
+      - name: Materialize one-file durable reconciliation
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="a3896b67e94990712e00e877666f2bd54dceb22a"
+          PROGRAM="docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md"
+
+          test "$(git branch --show-current)" = "docs/oam-020-program-reconciliation"
+          git merge-base --is-ancestor "${BASE}" HEAD
+
+          mapfile -t before < <(git diff --name-only "${BASE}" HEAD)
+          for path in "${before[@]}"; do
+            case "${path}" in
+              .github/scripts/oam_020_program_reconcile.py|.github/workflows/oam-020-program-reconcile.yml) ;;
+              *) echo "Unexpected pre-reconciliation path: ${path}" >&2; exit 1 ;;
+            esac
+          done
+
+          python3 .github/scripts/oam_020_program_reconcile.py
+          git diff --check
+          git rm .github/scripts/oam_020_program_reconcile.py .github/workflows/oam-020-program-reconcile.yml
+
+          mapfile -t staged < <(git status --short | awk '{print $2}')
+          printf '%s\n' "${staged[@]}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "${PROGRAM}"
+          git commit -m "docs(oam): reconcile OAM-020 durable completion"
+
+          mapfile -t final_paths < <(git diff --name-only "${BASE}" HEAD)
+          if [[ "${#final_paths[@]}" -ne 1 || "${final_paths[0]}" != "${PROGRAM}" ]]; then
+            echo "Final reconciliation scope must contain exactly ${PROGRAM}" >&2
+            printf '%s\n' "${final_paths[@]}" >&2
+            exit 1
+          fi
+          git diff --check "${BASE}"..HEAD
+          git push origin HEAD:docs/oam-020-program-reconciliation
