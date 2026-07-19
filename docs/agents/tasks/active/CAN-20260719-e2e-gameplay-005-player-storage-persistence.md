@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-gameplay-005-player-storage-persistence
 base_branch: main
 created: 2026-07-19T13:00:00+02:00
-updated: 2026-07-19T13:00:00+02:00
-last_verified_commit: "7b517aec1dfe9e89befc68a53d7aece383098623"
+updated: 2026-07-19T13:08:00+02:00
+last_verified_commit: "ae6a2667da52b8671435a293f12a9f4386010606"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "583"
 depends_on:
   - merged PR #565 typed player_field persistence assertions
   - existing Universal Physical E2E two-session lifecycle
@@ -20,6 +20,7 @@ blocks:
 owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260719-e2e-gameplay-005-player-storage-persistence.md
+    - tests/e2e/test_player_storage_persistence.py
   shared:
     - tools/e2e/persistence_assertions.py
     - tools/e2e/run_agent_e2e.py
@@ -52,16 +53,16 @@ Extend the existing feature-neutral `scenario.assertions.persistence` contract w
 
 # Acceptance criteria
 
-- [ ] Add `player_storage` persistence checks with exact `key` and `equals` integers.
-- [ ] Validate storage keys against the current schema `INT(10) UNSIGNED` range.
-- [ ] Validate storage values against the current schema signed `INT(11)` range.
-- [ ] Compile only fixed-shape semicolon-free scalar SELECT statements joining `player_storage` to the fixture player by exact character name.
-- [ ] Preserve `player_field` phase-two controlled-client checks unchanged.
-- [ ] Exclude `player_storage` from generated phase-two client checks rather than pretending arbitrary storage is client-readable.
-- [ ] Reject unknown fields/types and duplicate assertion IDs fail-closed.
-- [ ] Add focused compiler and manifest/Lua-plan integration tests, including mixed `player_field` + `player_storage` checks.
+- [x] Add `player_storage` persistence checks with exact `key` and `equals` integers.
+- [x] Validate storage keys against the current schema `INT(10) UNSIGNED` range.
+- [x] Validate storage values against the current schema signed `INT(11)` range.
+- [x] Compile only fixed-shape semicolon-free scalar SELECT statements joining `player_storage` to the fixture player by exact character name.
+- [x] Preserve `player_field` phase-two controlled-client checks unchanged.
+- [x] Exclude `player_storage` from generated phase-two client checks rather than pretending arbitrary storage is client-readable.
+- [x] Reject unknown fields/types and duplicate assertion IDs fail-closed.
+- [x] Add focused compiler and manifest/Lua-plan integration tests, including mixed `player_field` + `player_storage` checks.
 - [ ] Document the database-only verification boundary for `player_storage`.
-- [ ] Keep feature-specific storage keys and expected values in feature scenario manifests; do not add invented shared fixture storage IDs.
+- [x] Keep feature-specific storage keys and expected values in feature scenario manifests; do not add invented shared fixture storage IDs.
 - [ ] Apply `ci:final-gate` before the final checkpoint commit.
 - [ ] Require exact-final-head Ownership, CI and Universal Agent E2E success before merge.
 
@@ -69,10 +70,10 @@ Extend the existing feature-neutral `scenario.assertions.persistence` contract w
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T13:00:00+02:00
-head: 7b517aec1dfe9e89befc68a53d7aece383098623
+updated_at: 2026-07-19T13:08:00+02:00
+head: ae6a2667da52b8671435a293f12a9f4386010606
 branch: feat/e2e-gameplay-005-player-storage-persistence
-pr: null
+pr: 583
 status: implementing
 context_routes:
   - universal-e2e
@@ -80,6 +81,7 @@ context_routes:
 owned_paths:
   - docs/agents/tasks/active/CAN-20260719-e2e-gameplay-005-player-storage-persistence.md
   - tools/e2e/persistence_assertions.py
+  - tests/e2e/test_player_storage_persistence.py
   - tools/e2e/run_agent_e2e.py
   - tests/e2e/test_persistence_assertions.py
   - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
@@ -87,22 +89,25 @@ owned_paths:
   - docs/agents/CHANGELOG.md
 proven:
   - live main at task start is 7b517aec1dfe9e89befc68a53d7aece383098623
+  - draft PR 583 owns branch feat/e2e-gameplay-005-player-storage-persistence
   - no open PR matched E2E-GAMEPLAY-005 player_storage persistence ownership at task start
   - PR #565 merged the existing typed player_field persistence contract for level and experience
   - current schema defines player_storage.key as int(10) unsigned and player_storage.value as signed int(11)
   - E2E roadmap explicitly allows persistence assertion work to proceed independently of OTBM route planning
   - PR #580 owns OTBM-E2E-001B and does not touch tools/e2e paths
-  - no feature-specific storage key or expected value is required in shared platform code for this reusable compiler slice
+  - player_storage validation and fixed-shape SQL compilation are implemented on ae6a2667da52b8671435a293f12a9f4386010606
+  - mixed-contract focused tests prove player_storage compiles to SQL while only player_field is emitted to the Lua phase-two plan
+  - CI run 29684541033 succeeded on ae6a2667da52b8671435a293f12a9f4386010606
+  - no feature-specific storage key or expected value was added to shared platform fixtures
 derived:
-  - player_storage can safely reuse the existing post-cycle scalar SQL evaluator while player_field remains the only current phase-two client-readable persistence type
+  - player_storage safely reuses the existing post-cycle scalar SQL evaluator while player_field remains the only current phase-two client-readable persistence type
   - filtering runtime checks by assertion type preserves the real-client verification boundary without weakening database persistence proof
 unknown:
-  - exact final implementation head
-  - exact-final-head workflow conclusions
+  - exact-final-head workflow conclusions after documentation and final checkpoint
 conflicts: []
 first_failure:
-  marker: none
-  evidence: no implementation or validation failure observed yet
+  marker: ownership_related_pr_mismatch
+  evidence: Agent Task Ownership run 29684540982 failed because the initial active task had related_pr empty while the live current PR is 583; no code/test failure was reported
 rejected_hypotheses:
   - inventing a shared test storage key only to force a physical assertion
   - exposing arbitrary SQL through the typed persistence contract
@@ -110,7 +115,15 @@ rejected_hypotheses:
   - modifying OTBM routing or PR #580 scope
 changed_paths:
   - docs/agents/tasks/active/CAN-20260719-e2e-gameplay-005-player-storage-persistence.md
-validation: []
+  - tools/e2e/persistence_assertions.py
+  - tests/e2e/test_player_storage_persistence.py
+validation:
+  - command: CI run 29684541033
+    result: PASS
+    evidence: repository CI succeeded on implementation head ae6a2667da52b8671435a293f12a9f4386010606
+  - command: Agent Task Ownership run 29684540982
+    result: FAIL
+    evidence: initial task record related_pr was empty; corrected to 583 in the next checkpoint commit
 blockers: []
-next_action: Open an early draft PR, implement strict player_storage validation/SQL compilation plus runtime-check filtering, add focused tests and documentation, then run exact-head final gates.
+next_action: Complete public documentation/catalogue/changelog updates, verify ownership recovery and Universal Agent E2E, then apply ci:final-gate before the final checkpoint commit.
 ```
