@@ -2,13 +2,13 @@
 task_id: CAN-20260719-e2e-route-001-follow-route
 program_id: CAN-PROGRAM-OTBM-E2E-ROUTING
 coordination_id: E2E-ROUTE-001
-status: testing
+status: implementing
 agent: "GPT-5.5 Thinking"
 branch: feat/e2e-route-001-follow-route
 base_branch: main
 created: 2026-07-19
 updated: 2026-07-19
-last_verified_commit: "ed64cf21397495a3066b8ae26f10aefa5ab0a937"
+last_verified_commit: "3ba5e990aa7d3834c6605d347f7a19f7f0188077"
 risk: medium
 related_issue: ""
 related_pr: "589"
@@ -79,10 +79,10 @@ Add one reusable `follow_route` action to the existing Universal Physical E2E ac
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-19
-head: ed64cf21397495a3066b8ae26f10aefa5ab0a937
+head: 3ba5e990aa7d3834c6605d347f7a19f7f0188077
 branch: feat/e2e-route-001-follow-route
 pr: 589
-status: implementation-complete-testing
+status: validating
 context_routes:
   - universal-e2e
   - otbm
