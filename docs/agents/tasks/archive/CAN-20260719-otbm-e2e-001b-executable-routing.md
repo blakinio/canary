@@ -2,13 +2,13 @@
 task_id: CAN-20260719-otbm-e2e-001b-executable-routing
 program_id: CAN-PROGRAM-OTBM-E2E-ROUTING
 coordination_id: OTBM-E2E-001B
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-001b-executable-routing
 base_branch: main
 created: 2026-07-19T11:58:00+02:00
-updated: 2026-07-19T12:36:00+02:00
-last_verified_commit: "440a9e2ee1373baa30520c1cf9f2d1bc51cbed2a"
+updated: 2026-07-19T11:44:37Z
+last_verified_commit: "c9a5680c06c60ca6dd0e32ed067d4ab99a765fc4"
 risk: medium
 related_issue: ""
 related_pr: "580"
@@ -50,6 +50,7 @@ reuses:
 public_interfaces:
   - canary-otbm-e2e-route-plan-v1 executable routing mode
 cross_repo_tasks: []
+completed: 2026-07-19T11:44:37Z
 ---
 
 # Goal
@@ -170,3 +171,11 @@ validation:
     evidence: MODULE_CATALOG changes only the Reachability row; CHANGELOG changes only the route-plan bullet
 next_action: Verify exact-final-head workflows including stable Required, confirm no unresolved review threads and unchanged mergeability/head, then squash-merge PR #580 with expected_head_sha.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #580.
+- Feature head: `ebf36b85bef344b54e509bb181980f28f8c81c85`.
+- Merge commit: `c9a5680c06c60ca6dd0e32ed067d4ab99a765fc4`.
+- Merged at: `2026-07-19T11:44:37Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
