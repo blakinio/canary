@@ -21,6 +21,19 @@ PLAYER_SKILL_LEVELS = {
     "shielding": {"column": "skill_shielding", "client_skill_id": 5},
     "fishing": {"column": "skill_fishing", "client_skill_id": 6},
 }
+PLAYER_VOCATIONS = {
+    "none": {"server_vocation_id": 0, "client_vocation_id": 0},
+    "sorcerer": {"server_vocation_id": 1, "client_vocation_id": 3},
+    "druid": {"server_vocation_id": 2, "client_vocation_id": 4},
+    "paladin": {"server_vocation_id": 3, "client_vocation_id": 2},
+    "knight": {"server_vocation_id": 4, "client_vocation_id": 1},
+    "master_sorcerer": {"server_vocation_id": 5, "client_vocation_id": 13},
+    "elder_druid": {"server_vocation_id": 6, "client_vocation_id": 14},
+    "royal_paladin": {"server_vocation_id": 7, "client_vocation_id": 12},
+    "elite_knight": {"server_vocation_id": 8, "client_vocation_id": 11},
+    "monk": {"server_vocation_id": 9, "client_vocation_id": 5},
+    "exalted_monk": {"server_vocation_id": 10, "client_vocation_id": 15},
+}
 MAX_UINT16 = 65_535
 MAX_UINT32 = 4_294_967_295
 MAX_SAFE_LUA_INTEGER = 9_007_199_254_740_991
@@ -279,10 +292,29 @@ def _validate_all_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
             )
             continue
 
+        if assertion_type == "player_vocation":
+            _reject_unknown_fields(check, {"id", "type", "vocation"}, path)
+            vocation = _require_string(check, "vocation", path)
+            if vocation not in PLAYER_VOCATIONS:
+                raise PersistenceAssertionError(
+                    f"{path}.vocation unsupported: {vocation!r}; allowed: "
+                    + ", ".join(sorted(PLAYER_VOCATIONS))
+                )
+            validated.append(
+                {
+                    "id": assertion_id,
+                    "type": assertion_type,
+                    "vocation": vocation,
+                    "server_vocation_id": PLAYER_VOCATIONS[vocation]["server_vocation_id"],
+                    "client_vocation_id": PLAYER_VOCATIONS[vocation]["client_vocation_id"],
+                }
+            )
+            continue
+
         raise PersistenceAssertionError(
             f"{path}.type unsupported: {assertion_type!r}; allowed: "
             "player_field, player_storage, player_item_presence, player_balance, "
-            "player_magic_level, player_skill_level"
+            "player_magic_level, player_skill_level, player_vocation"
         )
 
     return validated
@@ -295,16 +327,32 @@ def validate_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
     uses the maintained LocalPlayer resource-balance getter and is restricted to exact
     Lua-safe integers. `player_magic_level` uses the maintained uint16 magic-level
     getter. `player_skill_level` uses a fixed classic-skill mapping and the maintained
-    LocalPlayer base-skill getter. Arbitrary `player_storage` values and cross-location
+    LocalPlayer base-skill getter. `player_vocation` maps a fixed semantic vocation to
+    the maintained client vocation ID and reuses the existing `player_field` vocation
+    getter path. Arbitrary `player_storage` values and cross-location
     `player_item_presence` checks remain on the post-cycle SQL boundary.
     """
 
-    return [
-        check
-        for check in _validate_all_persistence_assertions(raw)
-        if check["type"]
-        in {"player_field", "player_balance", "player_magic_level", "player_skill_level"}
-    ]
+    client_checks: list[dict[str, Any]] = []
+    for check in _validate_all_persistence_assertions(raw):
+        if check["type"] in {
+            "player_field",
+            "player_balance",
+            "player_magic_level",
+            "player_skill_level",
+        }:
+            client_checks.append(check)
+            continue
+        if check["type"] == "player_vocation":
+            client_checks.append(
+                {
+                    "id": check["id"],
+                    "type": "player_field",
+                    "field": "vocation",
+                    "equals": check["client_vocation_id"],
+                }
+            )
+    return client_checks
 
 
 def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
@@ -312,10 +360,10 @@ def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
 
     The Universal Physical E2E SQL evaluator accepts one semicolon-free SELECT per
     assertion and considers only stdout == "1" successful. `player_field`,
-    `player_balance`, `player_magic_level` and `player_skill_level` checks are also
-    emitted to the controlled-client phase-two plan by run_agent_e2e.py. Arbitrary
-    `player_storage` and fixed-location `player_item_presence` checks remain
-    database-only.
+    `player_balance`, `player_magic_level`, `player_skill_level` and normalized
+    `player_vocation` checks are also emitted to the controlled-client phase-two plan
+    by run_agent_e2e.py. Arbitrary `player_storage` and fixed-location
+    `player_item_presence` checks remain database-only.
     """
 
     checks = _validate_all_persistence_assertions(raw)
@@ -386,6 +434,16 @@ def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
                 + character_sql
                 + ") = "
                 + str(check["equals"])
+                + ", 1, 0)"
+            )
+            continue
+
+        if check["type"] == "player_vocation":
+            queries.append(
+                "SELECT IF((SELECT `vocation` FROM `players` WHERE `name` = "
+                + character_sql
+                + ") = "
+                + str(check["server_vocation_id"])
                 + ", 1, 0)"
             )
             continue
