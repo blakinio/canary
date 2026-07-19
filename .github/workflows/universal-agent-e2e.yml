@@ -31,6 +31,7 @@ on:
       - ".github/scripts/smoke_test_canary.py"
       - ".github/e2e-controlled-server.env"
       - "tools/agents/ci_incremental_validation.py"
+      - "tools/e2e/prepare_otbm_route.py"
       - "tools/e2e/run_agent_e2e.py"
       - "tools/e2e/run_physical_e2e.sh"
       - "tools/e2e/server_selection.py"
@@ -166,8 +167,8 @@ jobs:
           python tools/e2e/run_agent_e2e.py resolve \
             --suite "${REQUESTED_SUITE}" \
             --scenario "${REQUESTED_SCENARIO}" \
-            --manifest scenario-manifest.json \
-            --github-env "${GITHUB_ENV}"
+            --github-env "${GITHUB_ENV}" \
+            > scenario-manifest.json
       - name: Export scenario metadata
         id: metadata
         run: |
@@ -575,6 +576,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
+            g++-13 \
             imagemagick \
             libgl1 \
             libglu1-mesa \
@@ -611,6 +613,57 @@ jobs:
           echo "OTCLIENT_BIN=${GITHUB_WORKSPACE}/${OTCLIENT_PATH}" >> "${GITHUB_ENV}"
           sha256sum "${CANARY_PATH}" "${OTCLIENT_PATH}" | tee artifacts/executable-sha256.txt
           git -C otclient rev-parse HEAD | tee artifacts/otclient-source-commit.txt
+
+      - name: Resolve route preparation metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/e2e/run_agent_e2e.py resolve \
+            --suite "${AGENT_E2E_SUITE}" \
+            --scenario "${AGENT_E2E_SCENARIO_ID}" \
+            --github-env "${GITHUB_ENV}" \
+            > artifacts/scenario-manifest.json
+          python3 tools/e2e/server_selection.py \
+            --manifest artifacts/scenario-manifest.json \
+            --root "${GITHUB_WORKSPACE}" \
+            --github-env "${GITHUB_ENV}"
+
+      - name: Prepare exact OTBM route artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          route_count="$(python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          manifest = json.loads(Path("artifacts/scenario-manifest.json").read_text(encoding="utf-8"))
+          steps = manifest.get("scenario", {}).get("steps") or []
+          print(sum(1 for step in steps if isinstance(step, dict) and step.get("action") == "follow_route"))
+          PY
+          )"
+          if [[ "${route_count}" -eq 0 ]]; then
+            echo "No follow_route steps require OTBM route preparation."
+            exit 0
+          fi
+
+          if [[ ! -s "${AGENT_E2E_SERVER_MAP_PATH}" ]]; then
+            if [[ "${AGENT_E2E_SERVER_ALLOW_MAP_DOWNLOAD}" != "true" ]]; then
+              echo "selected non-default map is missing or empty: ${AGENT_E2E_SERVER_MAP_PATH}" >&2
+              exit 1
+            fi
+            mkdir -p "$(dirname "${AGENT_E2E_SERVER_MAP_PATH}")"
+            MAP_URL="$(grep -E '^mapDownloadUrl[[:space:]]*=' config.lua.dist | sed -E 's/.*"([^"]+)".*/\1/')"
+            test -n "${MAP_URL}"
+            curl --fail --location --retry 5 --retry-delay 5 "${MAP_URL}" --output "${AGENT_E2E_SERVER_MAP_PATH}"
+          fi
+
+          sha256sum tools/e2e/prepare_otbm_route.py > artifacts/route-preparer.sha256
+          python3 tools/e2e/prepare_otbm_route.py \
+            --manifest artifacts/scenario-manifest.json \
+            --runtime-map "${AGENT_E2E_SERVER_MAP_PATH}" \
+            --assets-dir "${AGENT_E2E_ASSET_SOURCE}" \
+            --artifact-dir "${AGENT_E2E_ARTIFACT_DIR}" \
+            --cxx "${CXX}"
 
       - name: Run selected physical-client scenario
         shell: bash
