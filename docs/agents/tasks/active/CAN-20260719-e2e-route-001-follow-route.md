@@ -8,10 +8,10 @@ branch: feat/e2e-route-001-follow-route
 base_branch: main
 created: 2026-07-19
 updated: 2026-07-19
-last_verified_commit: "0db6289cc55069ddb0194a58758bcc97c242bf8b"
+last_verified_commit: "343644c97fd4558fd215272ca5db6efb6d124554"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "589"
 depends_on:
   - merged PR #567 canary-otbm-e2e-route-plan-v1
   - merged PR #572 canary-otbm-route-interactions-v1
@@ -74,10 +74,10 @@ Add one reusable `follow_route` action to the existing Universal Physical E2E ac
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-19
-head: 0db6289cc55069ddb0194a58758bcc97c242bf8b
+head: 343644c97fd4558fd215272ca5db6efb6d124554
 branch: feat/e2e-route-001-follow-route
-pr: null
-status: preflight-complete
+pr: 589
+status: draft-pr-open
 context_routes:
   - universal-e2e
   - otbm
@@ -90,6 +90,7 @@ owned_paths:
 proven:
   - live main equals handover SHA 0db6289cc55069ddb0194a58758bcc97c242bf8b
   - no open PR or branch already claims E2E-ROUTE-001
+  - draft PR #589 owns feat/e2e-route-001-follow-route
   - PR #573 is merged and provides exact walk_edge source/destination synchronization
   - open PR #586 treats run_agent_e2e.py and agent_e2e_scenario.lua as read-only; its shared documentation/catalogue ownership is logically separate
   - maintained OTClient revision 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f binds g_game.use, g_game.useWith, g_game.useInventoryItem, and g_game.useInventoryItemWith to Lua
@@ -99,5 +100,5 @@ unknown:
   - exact focused implementation shape until current route-plan schema fields are inspected
 conflicts: []
 blockers: []
-next_action: Open draft PR, bind related_pr, inspect exact merged route-plan schema, then implement the smallest reusable follow_route bridge and focused tests.
+next_action: Inspect exact merged route-plan schema, then implement the smallest reusable follow_route bridge and focused tests.
 ```
