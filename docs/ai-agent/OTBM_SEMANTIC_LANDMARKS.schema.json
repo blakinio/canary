@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_SEMANTIC_LANDMARKS.schema.json",
+  "title": "Canary OTBM semantic landmark registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "registryStatus",
+    "provenance",
+    "regions",
+    "landmarks"
+  ],
+  "properties": {
+    "format": {"const": "canary-otbm-semantic-landmarks-v1"},
+    "schemaVersion": {"const": 1},
+    "registryStatus": {"enum": ["unbound", "reviewed"]},
+    "provenance": {
+      "oneOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/provenance"}
+      ]
+    },
+    "regions": {
+      "type": "array",
+      "maxItems": 1024,
+      "items": {"$ref": "#/$defs/region"}
+    },
+    "landmarks": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {"$ref": "#/$defs/landmark"}
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"registryStatus": {"const": "unbound"}},
+        "required": ["registryStatus"]
+      },
+      "then": {
+        "properties": {
+          "provenance": {"type": "null"},
+          "regions": {"maxItems": 0},
+          "landmarks": {"maxItems": 0}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"registryStatus": {"const": "reviewed"}},
+        "required": ["registryStatus"]
+      },
+      "then": {
+        "properties": {
+          "provenance": {"$ref": "#/$defs/provenance"}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$"
+    },
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceMap", "worldIndex"],
+      "properties": {
+        "sourceMap": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sha256"],
+          "properties": {
+            "sha256": {"$ref": "#/$defs/sha256"}
+          }
+        },
+        "worldIndex": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sha256"],
+          "properties": {
+            "sha256": {"$ref": "#/$defs/sha256"}
+          }
+        }
+      }
+    },
+    "bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {
+        "from": {"$ref": "#/$defs/position"},
+        "to": {"$ref": "#/$defs/position"}
+      }
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "bounds"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "bounds": {"$ref": "#/$defs/bounds"}
+      }
+    },
+    "anchorEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "references"],
+      "properties": {
+        "status": {"const": "reviewed"},
+        "references": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 2000
+        }
+      }
+    },
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "role", "position", "evidence"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "role": {
+          "enum": [
+            "route-origin",
+            "route-destination",
+            "entrance",
+            "exit",
+            "interaction"
+          ]
+        },
+        "position": {"$ref": "#/$defs/position"},
+        "evidence": {"$ref": "#/$defs/anchorEvidence"}
+      }
+    },
+    "landmark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "regionId", "anchors"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "regionId": {"$ref": "#/$defs/identifier"},
+        "anchors": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {"$ref": "#/$defs/anchor"}
+        }
+      }
+    }
+  }
+}
