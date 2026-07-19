@@ -68,6 +68,11 @@ def build_parser() -> argparse.ArgumentParser:
     _add_common_inputs(route_plan)
     route_plan.add_argument("--origin", type=parse_position, required=True)
     route_plan.add_argument("--destination", type=parse_position, required=True)
+    route_plan.add_argument(
+        "--interactions",
+        type=Path,
+        help="Reviewed canary-otbm-route-interactions-v1 registry enabling fail-closed executable routing",
+    )
     route_plan.add_argument("--max-positions", type=int, default=DEFAULT_EXECUTABLE_ROUTE_POSITIONS)
     return parser
 
@@ -85,6 +90,7 @@ def main(argv: list[str] | None = None) -> int:
                 destination=args.destination,
                 transitions_path=args.transitions,
                 script_resolution_path=args.script_resolution,
+                interaction_registry_path=args.interactions,
                 world_manifest_path=args.world_manifest,
                 allow_diagonal=args.allow_diagonal,
                 max_positions=args.max_positions,
@@ -96,7 +102,9 @@ def main(argv: list[str] | None = None) -> int:
                         "format": plan["format"],
                         "routeStatus": plan["routeStatus"],
                         "executionStatus": plan["executionStatus"],
+                        "routingMode": plan["routingMode"],
                         "distance": plan["distance"],
+                        "executableDistance": plan["executableDistance"],
                         "output": str(args.output),
                     },
                     sort_keys=True,
