@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-route-001a-exact-movement-edges
 base_branch: main
 created: 2026-07-19T10:20:00+02:00
-updated: 2026-07-19T10:35:00+02:00
-last_verified_commit: "6e4dba6b4516eee434d6688e40fd6c6e7a521e78"
+updated: 2026-07-19T10:48:00+02:00
+last_verified_commit: "533476adeb23737ecd43a3cf96235d590467956f"
 risk: medium
 related_issue: ""
 related_pr: "573"
@@ -72,7 +72,7 @@ This task does not claim full `E2E-ROUTE-001` completion. It deliberately exclud
 - [x] Preserve persistence checks and the canonical two-session lifecycle unchanged.
 - [x] Reuse the previously physically proven movement fixture coordinates and select that scenario for a new real-client proof.
 - [x] Do not modify OTBM-E2E-002 or OTBM-E2E-003 owned paths or claim their work.
-- [ ] Update reusable interface documentation/catalogue/changelog.
+- [x] Update reusable interface documentation/catalogue/changelog.
 - [ ] Apply `ci:final-gate` before final checkpoint commit.
 - [ ] Verify exact-final-head required checks and review/merge blockers before squash merge.
 
@@ -80,8 +80,8 @@ This task does not claim full `E2E-ROUTE-001` completion. It deliberately exclud
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T10:35:00+02:00
-head: 6e4dba6b4516eee434d6688e40fd6c6e7a521e78
+updated_at: 2026-07-19T10:48:00+02:00
+head: 533476adeb23737ecd43a3cf96235d590467956f
 branch: feat/e2e-route-001a-exact-movement-edges
 pr: 573
 status: implementing
@@ -99,17 +99,17 @@ owned_paths:
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
 proven:
-  - live main is f962d7b606e29965fe091ea79ba154c27b22fe34 with OTBM-E2E-001 merged as PR 567
-  - draft PR 573 is the early same-repository PR for this task with base main and head feat/e2e-route-001a-exact-movement-edges
-  - OTBM-E2E-002 remains owned separately and PR 571 is frozen as draft for the proper agent
-  - OTBM-E2E-003 is actively owned by draft PR 572 and declares tools/e2e read-only
+  - live main advanced to da36fedefdf7071ad3def46e497140418c9b2f84 when the separately owned OTBM-E2E-002 PR 571 was merged
+  - branch synchronization merge commit 20226ad0643668bc8bd8fdd7e68981e425f8fa87 preserves merged OTBM-E2E-002 while reapplying only this task's non-conflicting E2E files
+  - OTBM-E2E-003 remains separately owned by draft PR 572 and this task does not modify its owned paths
   - no open PR or branch matching E2E-ROUTE-001A or walk_edge was found before task creation
   - existing Universal E2E bounded walk behavior remains present and unchanged
-  - walk_edge validation now accepts only one adjacent same-floor coordinate edge and derives direction from its delta
+  - walk_edge validation accepts only one adjacent same-floor coordinate edge and derives direction from its delta
   - runtime walk_edge asserts exact source position sends one g_game.walk request and waits for exact destination with bounded timeout and route-drift failure
   - merged PR 481 physically proved the deterministic fixture starts at 32369,32241,7 and one east movement reaches 32370,32241,7
   - the physical-movement scenario now uses those exact previously proven coordinates with walk_edge so Universal Agent E2E can re-prove the new primitive through the controlled real client
-  - the merged routing programme requires exact P0 to P1 synchronization for physical route movement and forbids a second pathfinder
+  - MODULE_CATALOG diff was reduced to the single intended Universal E2E row after detecting and reverting an accidental unrelated wording change
+  - CHANGELOG diff contains one intended walk_edge behavior entry while preserving the merged semantic-landmark entry from OTBM-E2E-002
   - repository writes are restricted to blakinio/canary
   - no OTBM WIDX items.otb client assets maps or generated route reports are in scope
 derived:
@@ -117,32 +117,39 @@ derived:
   - preserving the existing walk action avoids breaking existing feature scenarios while walk_edge can become the route-execution movement primitive
   - changing exactly the existing movement scenario makes the current PR eligible for deterministic same-repository scenario auto-selection and physical proof
 unknown:
-  - current in-progress focused CI conclusion on the implementation head
-  - current in-progress selected Universal Agent E2E physical conclusion on the implementation head
-  - exact-final-head CI and physical E2E conclusions after documentation and final checkpoint
+  - current in-progress CI conclusion on the implementation/documentation head
+  - current queued Universal Agent E2E physical conclusion on the implementation/documentation head
+  - exact-final-head CI and physical E2E conclusions after the final checkpoint commit
 conflicts: []
+blockers: []
 first_failure:
-  marker: not-yet-run
-  evidence: no implementation validation failure has been observed yet; workflows on the implementation head are still running
+  marker: agent-task-ownership-checkpoint
+  evidence: Agent Task Ownership run 29680262277 failed because CHANGED_TASK_VALIDATION.txt reported missing checkpoint field blockers; no ownership overlap was reported
 rejected_hypotheses:
   - implement full follow_route before route artifact ownership and interaction dependencies are ready
-  - modify or merge OTBM-E2E-002
+  - modify or claim OTBM-E2E-002
   - modify OTBM-E2E-003
   - add pathfinding to Universal E2E
   - replace the existing walk action and break backward compatibility
   - invent new movement coordinates instead of reusing PR 481 physical evidence
 changed_paths:
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260719-e2e-route-001a-exact-movement-edges.md
-  - tests/e2e/test_exact_movement_edges.py
+  - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
   - tests/e2e/scenarios/movement/physical-movement.json
-  - tools/e2e/run_agent_e2e.py
+  - tests/e2e/test_exact_movement_edges.py
   - tools/e2e/client/agent_e2e_scenario.lua
+  - tools/e2e/run_agent_e2e.py
 validation:
   - command: live main plus targeted open PR and branch ownership preflight
     result: PASS
-    evidence: main f962d7b606e29965fe091ea79ba154c27b22fe34; PR 572 owns OTBM-E2E-003; PR 571 frozen draft for OTBM-E2E-002; no E2E-ROUTE-001A or walk_edge owner found
+    evidence: PR 572 owns OTBM-E2E-003; no E2E-ROUTE-001A or walk_edge owner was found before task creation
   - command: PR 481 prior physical movement evidence review
     result: PASS
     evidence: controlled OTClient artifacts previously proved initial_position 32369,32241,7 and one east step destination 32370,32241,7 with canonical persistence relog success
-next_action: Let implementation-head Ownership CI and selected Universal Agent E2E finish, repair the first concrete failure if any, then update reusable docs and freeze the final-gate checkpoint.
+  - command: Agent Task Ownership run 29680262277 artifact inspection
+    result: FAIL
+    evidence: CHANGED_TASK_VALIDATION.txt reported only missing checkpoint field blockers; task record corrected on the next head
+next_action: Verify corrected ownership validation and real controlled-OTClient movement scenario on the current head, then apply ci:final-gate and create the final checkpoint commit.
 ```
