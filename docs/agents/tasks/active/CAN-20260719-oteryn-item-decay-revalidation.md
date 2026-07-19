@@ -7,9 +7,10 @@ agent: "GPT-5.5 Thinking"
 branch: docs/oam-018-item-decay-revalidation
 base_branch: main
 created: 2026-07-19
-updated: 2026-07-19T11:16:32+02:00
+updated: 2026-07-19T11:18:08+02:00
 last_verified_commit: "3c4d2789ffa3d0c1e9453d20a8c5faeba35eb366"
 risk: high
+related_pr: "578"
 depends_on:
   - OAM-003
   - OAM-007
@@ -77,10 +78,10 @@ The next target step requires explicit authorization to mutate `blakinio/Otheryn
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T11:16:32+02:00
-head: d718fd0f3731a5fbb2afaebda383c377253306cc
+updated_at: 2026-07-19T11:18:08+02:00
+head: 211f6690ca5cd2a519a66d4b3b497d9c05138d28
 branch: docs/oam-018-item-decay-revalidation
-pr: null
+pr: 578
 status: preflight-complete
 next_action: After explicit user authorization to mutate blakinio/Otheryn for OAM-018, create a proof-only target branch/PR and add bounded item-decay tests without changing production decay runtime unless concrete evidence proves a defect.
 context_routes:
