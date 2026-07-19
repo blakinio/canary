@@ -9,6 +9,8 @@ import sys
 from pathlib import Path
 from typing import Any, Mapping
 
+from otbm_reachability_types import MAX_REGION_COORDINATES
+
 REGISTRY_FORMAT = "canary-otbm-semantic-landmarks-v1"
 RESOLUTION_FORMAT = "canary-otbm-semantic-landmark-resolution-v1"
 SCHEMA_VERSION = 1
@@ -183,6 +185,12 @@ def validate_registry(
         upper = _position(bounds["to"], f"regions[{index}].bounds.to")
         if any(lower[axis] > upper[axis] for axis in range(3)):
             raise SemanticLandmarkError(f"Region {region_id} bounds must be inclusive lower-to-upper coordinates")
+        coordinate_count = (upper[0] - lower[0] + 1) * (upper[1] - lower[1] + 1) * (upper[2] - lower[2] + 1)
+        if coordinate_count > MAX_REGION_COORDINATES:
+            raise SemanticLandmarkError(
+                f"Region {region_id} contains {coordinate_count} coordinates; "
+                f"Reachability maximum is {MAX_REGION_COORDINATES}"
+            )
         region_by_id[region_id] = (lower, upper)
 
     landmark_ids: set[str] = set()
