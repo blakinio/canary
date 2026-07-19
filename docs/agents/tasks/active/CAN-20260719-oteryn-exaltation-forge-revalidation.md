@@ -10,6 +10,7 @@ created: 2026-07-19
 updated: 2026-07-19
 last_verified_commit: "c353b89b5a7f783cf4ee22fe1ba91850de837a68"
 risk: high
+related_issue: ""
 related_pr: "598"
 depends_on:
   - OAM-004 player-persistence foundation
@@ -44,7 +45,7 @@ reuses:
 public_interfaces:
   - existing Forge runtime and configuration surfaces only
 cross_repo_tasks:
-  - target repository blakinio/Otheryn on dedicated dudantas branch
+  - blakinio/Otheryn#44 on dudantas/oam-020-exaltation-forge-adapt
 ---
 
 # Goal
@@ -109,7 +110,7 @@ The exact target adaptation must remain narrower than legacy whole files. Review
 - #267 Forge effect correctness;
 - #283 history correctness.
 
-Fresh target evidence confirms missing/different bounded surfaces including Forge policy helpers, transaction/effect helpers, Forge config defaults, Fiendish default and Forge history item IDs.
+Fresh target evidence confirms missing/different bounded surfaces including Forge policy helpers, transaction/effect helpers, Forge config defaults, Fiendish default and Forge history item IDs. Direct target-context inspection also confirms the task-start Player Forge flow still has the pre-transaction mutation ordering, older Transfer tier-cost semantics and stale Momentum/Transcendence gating addressed by the accepted donor chain.
 
 # Explicit exclusions
 
@@ -133,8 +134,8 @@ Fresh target evidence confirms missing/different bounded surfaces including Forg
 
 # Acceptance criteria
 
-- [ ] Dedicated Otheryn `dudantas/` branch created from exact task-start target SHA.
-- [ ] Exact donor-hunk/target-context review completed for every selected production mutation.
+- [x] Dedicated Otheryn `dudantas/` branch created from exact task-start target SHA.
+- [x] Exact donor-hunk/target-context review completed for every selected production mutation boundary.
 - [ ] Target adaptation contains no unrelated paths and no broad legacy file copy.
 - [ ] Focused Forge regression tests cover the accepted adaptation.
 - [ ] Applicable full Otheryn validation passes on the exact final target head.
@@ -147,12 +148,24 @@ Fresh target evidence confirms missing/different bounded surfaces including Forg
 - [ ] Separate one-file durable OAM program reconciliation merges.
 - [ ] OAM-021 remains not started until all preceding lifecycle/reconciliation steps complete.
 
+# Target materialization checkpoint
+
+Target PR: `blakinio/Otheryn#44`
+
+Target branch: `dudantas/oam-020-exaltation-forge-adapt`
+
+Current target head at this checkpoint: `c6ba2bfde4b65b02fc018b3dce76f7d3460f12dc`
+
+A temporary fail-closed materializer is present on the draft branch. It is pinned to legacy `c353b89b5a7f783cf4ee22fe1ba91850de837a68`, applies only explicit production/test paths from the nine accepted merge commits using three-way context checks, validates an explicit final-path allowlist, removes its workflow after successful materialization and leaves a temporary no-op script stub so stale queued runs cannot corrupt a successful result. The stub must be deleted before final target validation and must not appear in the accepted PR diff.
+
+Latest controlled materializer run observed at this checkpoint: `29700173439` (`OAM-020 bounded materializer`, run #11), queued. No target implementation success or CI claim is made while that run remains incomplete.
+
 # Context checkpoint
 
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-19
-head: 9f42b5054373f76b429e621e7443bfec742fb2d4
+head: ee9a16595acdb41ca03a1c3df55b161034143b05
 branch: docs/oam-020-exaltation-forge-revalidation
 pr: 598
 status: implementing
@@ -174,14 +187,18 @@ proven:
   - task-start target/upstream lack multiple reviewed legacy Forge helper/default/history repairs
   - whole-module REUSE is rejected and bounded ADAPT is selected
   - unresolved F-014 through F-019 protocol/client work and F-009/F-010 evidence-blocked rules are excluded
+  - target branch dudantas/oam-020-exaltation-forge-adapt was created from exact baseline 63547f30fc21e495217b8a92fa44aaad2db188ef
+  - target draft PR 44 is open and remains based on exact task-start Otheryn main
+  - selected materialization scope is restricted to explicit Forge production/test paths from donor PRs 89 110 177 250 257 259 262 267 and 283
 unknown:
-  - exact final selected hunk set after function-level target-context review
-  - exact focused test count and final target changed-file set
-  - exact target CI run IDs and artifacts
+  - accepted post-materialization target head
+  - exact final target changed-file set after helper removal
+  - exact focused/full target test results and artifacts
+  - exact target CI run IDs on the accepted final head
 conflicts: []
 first_failure:
   marker: none
-  evidence: no task failure before initial checkpoint
+  evidence: no completed materialization or target validation failure has been accepted at this checkpoint
 rejected_hypotheses:
   - infer REUSE from upstream/target file presence
   - bulk-copy legacy player.cpp or protocolgame.cpp
@@ -197,6 +214,12 @@ validation:
   - command: canonical dependency and source-evidence review
     result: PASS
     evidence: dependency-valid exaltation-forge selected and ADAPT disposition established from fresh target/upstream/legacy evidence
+  - command: target branch and draft PR creation
+    result: PASS
+    evidence: Otheryn PR 44 uses dudantas/oam-020-exaltation-forge-adapt from exact target base 63547f30fc21e495217b8a92fa44aaad2db188ef
+  - command: function-level donor and target-context review
+    result: PASS
+    evidence: exact donor merge/path set is bounded and task-start target retains the reviewed Forge correctness gaps without OAM-019 overlap
 blockers: []
-next_action: Create the dedicated Otheryn dudantas target branch from 63547f30fc21e495217b8a92fa44aaad2db188ef, then complete exact donor-patch versus target-context review before the first bounded target implementation commit.
+next_action: Inspect controlled materializer run 29700173439. On success, verify the workflow is removed, inspect the exact post-materialization diff and stale-run state, delete the temporary no-op script stub only after stale materializer runs are harmless or complete, then trigger exact-head target CI. On failure, inspect the committed fail-closed materializer log and repair only the specific conflicting donor hunk.
 ```
