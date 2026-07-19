@@ -6,7 +6,7 @@
     "landmarkId": "thais.depot"
   },
   "routingOptions": {
-    "allowDiagonal": false,
+    "allowDiagonal": true,
     "maxExecutablePositions": 10000
   }
 }
