@@ -8,7 +8,7 @@ branch: feat/otbm-e2e-005-thais-temple-depot
 base_branch: main
 created: 2026-07-19
 updated: 2026-07-19
-last_verified_commit: "078d43ac89cee34b1e35ef0f3fc6a5dedbf0e1c0"
+last_verified_commit: "c353b89b5a7f783cf4ee22fe1ba91850de837a68"
 risk: high
 related_issue: ""
 related_pr: "600"
@@ -30,9 +30,6 @@ owned_paths:
     - tests/e2e/routes/thais-temple-depot.json
     - tests/e2e/scenarios/movement/physical-thais-temple-depot.json
   shared:
-    - tools/e2e/run_agent_e2e.py
-    - tools/e2e/run_physical_e2e.sh
-    - tests/e2e/test_agent_e2e_scenario_plan.py
     - .github/workflows/universal-agent-e2e.yml
   read_only:
     - docs/agents/programs/OTBM_E2E_ROUTE_INTEGRATION_PROGRAM.md
@@ -52,6 +49,8 @@ owned_paths:
     - tools/ai-agent/otbm_route_preflight.py
     - tools/ai-agent/otbm_item_audit_scan.cpp
     - tools/e2e/route_plan_execution.py
+    - tools/e2e/run_agent_e2e.py
+    - tools/e2e/run_physical_e2e.sh
     - tools/e2e/client/agent_e2e_route.lua
     - tools/e2e/client/agent_e2e_scenario.lua
 modules_touched:
@@ -100,7 +99,7 @@ Deliver `OTBM-E2E-005 — Reference physical route: thais.temple -> thais.depot`
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-19
-head: 078d43ac89cee34b1e35ef0f3fc6a5dedbf0e1c0
+head: 0a8588d55222b51744f805e758ac76ed8345b6a1
 branch: feat/otbm-e2e-005-thais-temple-depot
 pr: 600
 status: implementing
@@ -114,9 +113,6 @@ owned_paths:
   - tests/e2e/test_prepare_otbm_route.py
   - tests/e2e/routes/thais-temple-depot.json
   - tests/e2e/scenarios/movement/physical-thais-temple-depot.json
-  - tools/e2e/run_agent_e2e.py
-  - tools/e2e/run_physical_e2e.sh
-  - tests/e2e/test_agent_e2e_scenario_plan.py
   - .github/workflows/universal-agent-e2e.yml
 proven:
   - live main at task start is c353b89b5a7f783cf4ee22fe1ba91850de837a68
@@ -132,14 +128,15 @@ proven:
   - PR #599 final bounded static route report records region 32347,32216,7 through 32369,32241,7, confirmed strict distance 66 and no transition IDs used
   - existing follow_route requires canonical runner-owned route-<logical-id>.json in the artifact directory and validates route hash, provenance, executability and exact final destination
   - E2E-ROUTE-001 explicitly scoped route production out and only implemented validated canonical artifact consumption
-  - current Universal Agent E2E workflow resolves the scenario before any route artifact generation or download step
-  - the narrowest reusable bridge is metadata-only initial resolution followed by exact-map route preparation/static preflight after map and client assets exist, then normal scenario-plan materialization and the unchanged physical client executor
-  - no other live open PR owns the planned shared Universal E2E paths at the latest overlap preflight
+  - the implemented minimal bridge keeps run_agent_e2e.py, run_physical_e2e.sh and both controlled-client Lua executors unchanged
+  - the Universal workflow now performs metadata-only scenario resolution, prepares exact-map route evidence only when follow_route is present, then delegates to the unchanged canonical physical lifecycle
+  - generated World Index state remains temporary while route-plan, request, World Index manifest, static preflight and route-preparation summary are retained as bounded evidence
+  - no other live open PR owns the modified Universal E2E workflow at the latest overlap preflight
 blockers:
   - PR #599 is not yet merged; final 005 implementation must consume its reviewed registry from current main rather than duplicate or race its owned paths
 first_failure:
-  marker: none
-  evidence: No validation failure has been observed on this task branch yet; the first commits establish the ownership/task boundary and proven route-artifact integration gap.
+  marker: Agent Task Ownership / Validate changed active task checkpoints
+  evidence: Workflow run 29701205563 on head 0a8588d55222b51744f805e758ac76ed8345b6a1 rejected the checkpoint because validation was encoded as a mapping of scalar pending values instead of the required list of validation-entry mappings; implementation-focused ownership unit tests had already passed and the validator was not weakened.
 conflicts: []
 rejected_hypotheses:
   - guessed Tibia coordinates are rejected; exact anchors come from reviewed exact-map evidence
@@ -148,12 +145,18 @@ rejected_hypotheses:
   - editing PR #599 landmark-registry paths from this branch is rejected because that active task owns them exclusively
   - storing the 842280592-byte generated World Index under the uploaded artifact directory is rejected; it is temporary build/preflight state only
 changed_paths:
+  - .github/workflows/universal-agent-e2e.yml
   - docs/agents/tasks/active/CAN-20260719-otbm-e2e-005-thais-temple-depot.md
+  - tests/e2e/routes/thais-temple-depot.json
+  - tests/e2e/scenarios/movement/physical-thais-temple-depot.json
+  - tests/e2e/test_prepare_otbm_route.py
+  - tools/e2e/prepare_otbm_route.py
 validation:
-  ownership: pending
-  focused: pending
-  static_preflight: pending
-  physical_e2e: pending
-  ci: pending
-next_action: Implement the bounded reusable route-artifact preparation bridge, focused tests, semantic route request and feature scenario without modifying PR #599 owned paths; after #599 merges, update from current main and run exact-map static plus real controlled-OTClient proof.
+  - command: Agent Task Ownership on head 0a8588d55222b51744f805e758ac76ed8345b6a1
+    result: FAIL
+    evidence: Workflow run 29701205563 failed at Validate changed active task checkpoints with invalid validation entry; artifact CHANGED_TASK_VALIDATION.txt points to the task checkpoint schema and the validator remains unchanged.
+  - command: focused implementation unit tests in Agent Task Ownership on head 0a8588d55222b51744f805e758ac76ed8345b6a1
+    result: PASS
+    evidence: Workflow run 29701205563 completed Run focused unit tests successfully before checkpoint validation failed.
+next_action: Require the corrected ownership checkpoint to pass, monitor prerequisite PR #599 to merge, update this branch from the resulting main, then run exact-map static route preparation and the real controlled-OTClient Universal Physical E2E proof before final-gate freeze.
 ```
