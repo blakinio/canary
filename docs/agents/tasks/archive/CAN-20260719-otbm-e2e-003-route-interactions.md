@@ -2,13 +2,13 @@
 task_id: CAN-20260719-otbm-e2e-003-route-interactions
 program_id: CAN-PROGRAM-OTBM-E2E-ROUTING
 coordination_id: OTBM-E2E-003
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-003-route-interactions
 base_branch: main
 created: 2026-07-19T09:53:00+02:00
-updated: 2026-07-19T10:50:00+02:00
-last_verified_commit: "9a5be3ebceae45a81d6502d28d0faa36d096e306"
+updated: 2026-07-19T09:33:34Z
+last_verified_commit: "cf456993dcf1891363657d91de9f5f06c9d7d8c2"
 risk: medium
 related_issue: ""
 related_pr: "572"
@@ -49,6 +49,7 @@ reuses:
 public_interfaces:
   - canary-otbm-route-interactions-v1
 cross_repo_tasks: []
+completed: 2026-07-19T09:33:34Z
 ---
 
 # Goal
@@ -165,3 +166,11 @@ validation:
     evidence: label remains applied to PR #572; post-sync exact-head workflows must complete before merge
 next_action: Treat the commit created by this checkpoint update as the final feature-head mutation. Verify all ci:final-gate workflows and the branch-protection Required check on its exact SHA, then verify review threads, approvals and mergeability before squash merge. Do not add another commit after a green final gate.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #572.
+- Feature head: `484be7276d00ec30565c475db166e64cc5dfacd8`.
+- Merge commit: `cf456993dcf1891363657d91de9f5f06c9d7d8c2`.
+- Merged at: `2026-07-19T09:33:34Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
