@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-gameplay-005-player-storage-persistence
 base_branch: main
 created: 2026-07-19T13:00:00+02:00
-updated: 2026-07-19T13:22:00+02:00
-last_verified_commit: "47265b892ef0804b806961022e51e128f9299da3"
+updated: 2026-07-19T13:24:00+02:00
+last_verified_commit: "100dac196e822c53da2a2c7ea28eadfceb5b5448"
 risk: medium
 related_issue: ""
 related_pr: "583"
@@ -63,15 +63,15 @@ Extend the existing feature-neutral `scenario.assertions.persistence` contract w
 - [x] Add focused compiler and manifest/Lua-plan integration tests, including mixed `player_field` + `player_storage` checks.
 - [x] Document the database-only verification boundary for `player_storage`.
 - [x] Keep feature-specific storage keys and expected values in feature scenario manifests; do not add invented shared fixture storage IDs.
-- [ ] Apply `ci:final-gate` before the final checkpoint commit.
+- [x] Apply `ci:final-gate` before the final checkpoint commit.
 - [ ] Require exact-final-head Ownership, CI and Universal Agent E2E success before merge.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T13:22:00+02:00
-head: 47265b892ef0804b806961022e51e128f9299da3
+updated_at: 2026-07-19T13:24:00+02:00
+head: 100dac196e822c53da2a2c7ea28eadfceb5b5448
 branch: feat/e2e-gameplay-005-player-storage-persistence
 pr: 583
 status: validating
@@ -102,11 +102,12 @@ proven:
   - main advanced after task start only through non-overlapping agent lifecycle workflow/task archival changes
   - PR 583 remains mergeable against main before final gate
   - docs/agents/CHANGELOG.md remains read-only in this package; the delivered public interface is documented in the canonical E2E contract and MODULE_CATALOG
- derived:
+  - ci:final-gate was applied to PR 583 before this final checkpoint commit
+derived:
   - player_storage safely reuses the existing post-cycle scalar SQL evaluator while player_field remains the only current phase-two client-readable persistence type
   - filtering runtime checks by assertion type preserves the real-client verification boundary without weakening database persistence proof
 unknown:
-  - exact-final-head workflow conclusions after final checkpoint
+  - exact-final-head workflow conclusions after this final checkpoint
 conflicts: []
 first_failure:
   marker: ownership_related_pr_mismatch
@@ -136,6 +137,9 @@ validation:
   - command: PR #583 MODULE_CATALOG patch audit
     result: PASS
     evidence: patch contains only the intended Universal OTS E2E row update after unrelated text was restored
+  - command: ci:final-gate label
+    result: PASS
+    evidence: label applied before final checkpoint commit
 blockers: []
-next_action: Apply ci:final-gate, create the final checkpoint commit, make no further commits, mark PR ready, and require exact-final-head Ownership, CI and Universal Agent E2E success plus clean review/merge state before squash merge.
+next_action: Make no further commits. Mark PR ready and require exact-final-head Ownership, CI and Universal Agent E2E success plus clean review/merge state before squash merge.
 ```
