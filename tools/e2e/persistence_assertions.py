@@ -14,6 +14,7 @@ PLAYER_ITEM_TABLES = {
 }
 MAX_UINT16 = 65_535
 MAX_UINT32 = 4_294_967_295
+MAX_SAFE_LUA_INTEGER = 9_007_199_254_740_991
 MIN_INT32 = -2_147_483_648
 MAX_INT32 = 2_147_483_647
 
@@ -204,26 +205,46 @@ def _validate_all_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
             )
             continue
 
+        if assertion_type == "player_balance":
+            _reject_unknown_fields(check, {"id", "type", "equals"}, path)
+            expected = _require_int_range(
+                check,
+                "equals",
+                path,
+                minimum=0,
+                maximum=MAX_SAFE_LUA_INTEGER,
+                description="an exact Lua-safe integer",
+            )
+            validated.append(
+                {
+                    "id": assertion_id,
+                    "type": assertion_type,
+                    "equals": expected,
+                }
+            )
+            continue
+
         raise PersistenceAssertionError(
             f"{path}.type unsupported: {assertion_type!r}; allowed: "
-            "player_field, player_storage, player_item_presence"
+            "player_field, player_storage, player_item_presence, player_balance"
         )
 
     return validated
 
 
 def validate_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
-    """Return only checks that have a trustworthy controlled-client read surface.
+    """Return checks with a trustworthy controlled-client read surface.
 
-    `player_field` checks are directly comparable after relog through LocalPlayer getters.
-    Arbitrary `player_storage` values and cross-location `player_item_presence` checks are
-    server-side persistence state and therefore stay on the post-cycle SQL boundary.
+    `player_field` checks use directly comparable LocalPlayer getters. `player_balance`
+    uses the maintained LocalPlayer resource-balance getter and is restricted to exact
+    Lua-safe integers. Arbitrary `player_storage` values and cross-location
+    `player_item_presence` checks remain on the post-cycle SQL boundary.
     """
 
     return [
         check
         for check in _validate_all_persistence_assertions(raw)
-        if check["type"] == "player_field"
+        if check["type"] in {"player_field", "player_balance"}
     ]
 
 
@@ -231,10 +252,10 @@ def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
     """Compile validated checks to the existing post-cycle scalar SQL contract.
 
     The Universal Physical E2E SQL evaluator accepts one semicolon-free SELECT per
-    assertion and considers only stdout == "1" successful. `player_field` checks are
-    also emitted to the controlled-client phase-two plan by run_agent_e2e.py. Arbitrary
-    `player_storage` and fixed-location `player_item_presence` checks remain database-only
-    because they do not share a generic trustworthy controlled-client read surface.
+    assertion and considers only stdout == "1" successful. `player_field` and
+    `player_balance` checks are also emitted to the controlled-client phase-two plan by
+    run_agent_e2e.py. Arbitrary `player_storage` and fixed-location
+    `player_item_presence` checks remain database-only.
     """
 
     checks = _validate_all_persistence_assertions(raw)
@@ -272,18 +293,28 @@ def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
             )
             continue
 
-        table = PLAYER_ITEM_TABLES[str(check["location"])]
-        existence = "EXISTS" if check["present"] else "NOT EXISTS"
+        if check["type"] == "player_item_presence":
+            table = PLAYER_ITEM_TABLES[str(check["location"])]
+            existence = "EXISTS" if check["present"] else "NOT EXISTS"
+            queries.append(
+                "SELECT IF("
+                + existence
+                + "(SELECT 1 FROM `"
+                + table
+                + "` AS `pi` INNER JOIN `players` AS `p` ON `p`.`id` = `pi`.`player_id` "
+                "WHERE `p`.`name` = "
+                + character_sql
+                + " AND `pi`.`itemtype` = "
+                + str(check["item_id"])
+                + "), 1, 0)"
+            )
+            continue
+
         queries.append(
-            "SELECT IF("
-            + existence
-            + "(SELECT 1 FROM `"
-            + table
-            + "` AS `pi` INNER JOIN `players` AS `p` ON `p`.`id` = `pi`.`player_id` "
-            "WHERE `p`.`name` = "
+            "SELECT IF((SELECT `balance` FROM `players` WHERE `name` = "
             + character_sql
-            + " AND `pi`.`itemtype` = "
-            + str(check["item_id"])
-            + "), 1, 0)"
+            + ") = "
+            + str(check["equals"])
+            + ", 1, 0)"
         )
     return queries
