@@ -1,6 +1,6 @@
 # OAM-017 — Containers Revalidation
 
-Status: **target proof in progress**
+Status: **target proof merged; governance closeout in progress**
 
 Program: `CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION`
 
@@ -15,10 +15,10 @@ upstream evidence: opentibiabr/canary@691614c1a302aee776002ca3851eca399be1a82c
 maintained OTClient: blakinio/otclient@2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
 ```
 
-## Canonical module and provisional disposition
+## Canonical module and final disposition
 
 ```text
-containers → REUSE (pending exact-target proof)
+containers → REUSE
 ```
 
 Canonical registry record: `docs/agents/real-tibia/registry/modules/containers.yaml`.
@@ -66,34 +66,41 @@ Two delivered PRs surfaced by container-related discovery but are outside the ca
 
 Neither is a container-runtime donor. OAM-017 does not import house-transfer orchestration or Analytics instrumentation.
 
-## Target proof
+## Initial proof-harness failure and resolution
 
-Otheryn issue:
-
-```text
-#40 — OAM-017: prove reusable containers core
-```
-
-Otheryn PR:
+The first target proof head `7dcdcff1dde59a702b00d77f5049bd99a126a6eb` failed only the two new focused tests in Linux debug CI #125 / run `29653898425`:
 
 ```text
-#41 — test(containers): prove OAM-017 reused containers core
+357 total
+355 passed
+2 failed
+
+ContainerReuseTest.PreservesDirectCapacityAndItemLifecycle — SEGFAULT
+ContainerReuseTest.PreservesBoundedNestedTraversal — SEGFAULT
 ```
 
-The target proof changes one already registered test path only:
+The failure was isolated to the proof harness. Unit test startup does not load item definitions; `Items::Items()` leaves the item-type vector empty, while an out-of-range `Items::getItemType()` falls back to `items.front()`. The new tests constructed synthetic id/type `0` objects before seeding any item type, so object construction entered undefined behavior before the container behavior under test.
+
+The correction is tests-only: `ScopedItemTypeRegistry` provides the minimum synthetic item-type registry state when the unit process starts empty and restores the original registry size after each focused test. No file under `src/items/containers/**`, `src/items/cylinder.*` or any other production runtime/data path changed.
+
+## Accepted exact target proof
 
 ```text
-tests/unit/items/containers/container_test.cpp
+Otheryn issue #40: CLOSED / completed
+Otheryn PR #41: MERGED
+final target head: ee111cb6ef6299a0de7fb19de76934b6369b7cf0
+target squash merge: 952e7550182df739824bddea687ef89bd8997674
+autofix.ci #108 / 29679028025: SUCCESS
+CI #127 / 29679028059: SUCCESS
+Required #115 / 29679028000: SUCCESS
+full CTest: 357/357 PASS
+focused ContainerReuseTest: 2/2 PASS
+artifact: 8440064893
+name: linux-debug-test-logs
+digest: sha256:28d82a5a1d36d89a8892280e73bb671a846743962786922093a907e8b80b79c1
 ```
 
-Focused `ContainerReuseTest` coverage:
-1. direct capacity/free-slot behavior;
-2. direct add/find/remove lifecycle;
-3. parent-backed holding discovery;
-4. nested depth-first traversal;
-5. maximum traversal-depth signaling.
-
-No production container/cylinder mutation is authorized.
+Both focused tests passed individually in the full CTest execution. The final target diff contains exactly `tests/unit/items/containers/container_test.cpp`. Target comments, reviews and review threads were all empty. Otheryn `main` remained at task-start head `46cc7458d644da356371aabf3ff18c0e51d228a8` before merge, so target-main drift was none. PR #41 merged with expected-head protection on `ee111cb6ef6299a0de7fb19de76934b6369b7cf0`.
 
 ## Explicit exclusions
 
@@ -110,15 +117,12 @@ OAM-017 does not claim:
 
 OAM-004 SQL/KV non-atomicity and completed OAM-007 item-instance ownership remain authoritative.
 
-## Completion gate
+## Remaining closeout
 
-`containers → REUSE` becomes final only after:
-1. exact target CI/Required/autofix and full CTest pass;
-2. focused `ContainerReuseTest` passes;
-3. target comments/reviews/threads are clean and target-main drift is checked;
-4. target proof merges with expected-head protection;
-5. final Canary governance exact-head gates and audit pass;
-6. separate authoritative lifecycle archive and durable program reconciliation merge;
-7. any self-owned automatic `docs(agents): archive merged PR` duplicate is explicitly closed after authoritative lifecycle is established.
+The target proof is complete and `containers → REUSE` is final. OAM-017 is not durably complete until:
+1. Canary governance PR #555 passes fresh final exact-head Agent Task Ownership and CI plus clean review/main-drift audit, then merges with expected-head protection;
+2. a separate authoritative lifecycle-only archive merges;
+3. any self-owned automatic `docs(agents): archive merged PR #555 task` duplicate is explicitly closed after the authoritative lifecycle archive is established;
+4. a separate one-file durable program reconciliation merges.
 
 OAM-018 remains NOT STARTED until the complete OAM-017 sequence finishes.
