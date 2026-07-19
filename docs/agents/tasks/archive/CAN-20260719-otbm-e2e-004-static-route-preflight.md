@@ -2,13 +2,13 @@
 task_id: CAN-20260719-otbm-e2e-004-static-route-preflight
 program_id: CAN-PROGRAM-OTBM-E2E-ROUTING
 coordination_id: OTBM-E2E-004
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-004-static-route-preflight
 base_branch: main
 created: 2026-07-19
-updated: 2026-07-19
-last_verified_commit: "0dc6078f3e39fdc4d21208ba8955a009cdf55537"
+updated: 2026-07-19T16:26:36Z
+last_verified_commit: "3d9f8590e1705b4d181471801dd79e8a844b81f1"
 risk: medium
 related_issue: ""
 related_pr: "594"
@@ -52,6 +52,7 @@ reuses:
 public_interfaces:
   - canary-otbm-e2e-route-preflight-v1
 cross_repo_tasks: []
+completed: 2026-07-19T16:26:36Z
 ---
 
 # Goal
@@ -165,3 +166,11 @@ validation:
     evidence: Workflow run 29694190967 completed successfully, including unit-test discovery and execution of the route-preflight suites.
 next_action: Freeze the commit created by this final checkpoint update. Require exact-final-head Agent Task Ownership, AI Agent Tools, OTBM Map Tools and full ci:final-gate CI/Required to pass with no further commit; recheck live main overlap and review blockers, then squash merge PR #594 using the exact validated head SHA. After merge, complete the active-to-archive lifecycle before starting OTBM-E2E-005.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #594.
+- Feature head: `ed370974638a55dc4730f0adcc5fc6ec09f4ff9c`.
+- Merge commit: `3d9f8590e1705b4d181471801dd79e8a844b81f1`.
+- Merged at: `2026-07-19T16:26:36Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
