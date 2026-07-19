@@ -2,13 +2,13 @@
 task_id: CAN-20260719-e2e-route-001a-exact-movement-edges
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-ROUTE-001A
-status: implementing
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/e2e-route-001a-exact-movement-edges
 base_branch: main
 created: 2026-07-19T10:20:00+02:00
-updated: 2026-07-19T10:55:00+02:00
-last_verified_commit: "672840aa41ca7c7bedf3639f207f857785a0dbe7"
+updated: 2026-07-19T10:20:24Z
+last_verified_commit: "c2e27060165b91c1de6a5f40571060e480cdcb06"
 risk: medium
 related_issue: ""
 related_pr: "573"
@@ -50,6 +50,7 @@ reuses:
 public_interfaces:
   - walk_edge exact-position-synchronized physical movement primitive
 cross_repo_tasks: []
+completed: 2026-07-19T10:20:24Z
 ---
 
 # Goal
@@ -158,3 +159,11 @@ validation:
     evidence: MODULE_CATALOG contains only the intended Universal E2E row change and CHANGELOG contains only the intended walk_edge entry relative to current main
 next_action: Verify all required workflows and physical movement markers on the exact final PR head, confirm no review blockers and clean mergeability, then squash merge PR 573 without any further commits.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #573.
+- Feature head: `2daf83730bb8acac3f49e7748deaf68d3eaa66f1`.
+- Merge commit: `c2e27060165b91c1de6a5f40571060e480cdcb06`.
+- Merged at: `2026-07-19T10:20:24Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
