@@ -2,13 +2,13 @@
 task_id: CAN-20260719-oteryn-item-decay-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-018
-status: implementing
+status: ready
 agent: "GPT-5.5 Thinking"
 branch: docs/oam-018-item-decay-revalidation
 base_branch: main
 created: 2026-07-19
-updated: 2026-07-19T12:27:00+02:00
-last_verified_commit: "cf456993dcf1891363657d91de9f5f06c9d7d8c2"
+updated: 2026-07-19T12:31:00+02:00
+last_verified_commit: "c2e27060165b91c1de6a5f40571060e480cdcb06"
 risk: high
 related_pr: "578"
 depends_on:
@@ -28,10 +28,10 @@ owned_paths:
 
 Revalidate canonical OAM-018 `item-decay` against immutable fresh task-start baselines and accept only the strongest dependency-valid target implementation.
 
-# Provisional disposition
+# Final disposition
 
 ```text
-item-decay → REUSE (candidate; target proof required)
+item-decay → REUSE
 ```
 
 # Immutable task-start baselines
@@ -68,34 +68,44 @@ all decay.hpp:              0d540e10dc73b65f2ce1aa00bfb9dd72994dcc5f
 
 The legacy `decay.cpp` delta removes the three `DispatcherLane::Maintenance` arguments from decay scheduling. OAM-003 already established the target/upstream lane scheduler as canonical and rejected the older legacy scheduler model. The legacy delta is therefore rejected as a stronger decay donor.
 
-# Target proof state
+# Exact target proof
 
-User authorization to mutate `blakinio/Otheryn` for OAM-018 is resolved.
+Target PR: `blakinio/Otheryn#42` — merged.
 
-Target PR: `blakinio/Otheryn#42` — `test(item-decay): prove OAM-018 reused decay core`.
+```text
+task-start target: 952e7550182df739824bddea687ef89bd8997674
+final target proof head: 13e245f3c49477fa75c20171f0c845dec91d0824
+target squash merge: 7ba76d2754a060a9a9eec0a23c686aefac725af2
+autofix.ci #110 / 29682419114: SUCCESS
+CI #130 / 29682419178: SUCCESS after one failed-job rerun
+Required #117 / 29682419125: SUCCESS after rerun against green CI #130
+full Linux debug CTest: 359/359 PASS
+focused ItemDecayReuseTest: 2/2 PASS
+linux-debug-test-logs artifact: 8441163603
+digest: sha256:de3f541b41aa9d4f39a4d8d629de52a51e09b8eaff461c8706bb7a296cfd9631
+comments: 0
+reviews: 0
+review threads: 0
+```
 
-Target branch: `dudantas/oam-018-item-decay-proof`.
-
-Current target proof head: `13e245f3c49477fa75c20171f0c845dec91d0824`.
-
-The target diff is proof-only:
+The target diff changed exactly:
 - `tests/unit/items/CMakeLists.txt`;
 - `tests/unit/items/decay/decay_test.cpp`.
 
-No production `src/items/decay/**`, scheduler, item runtime, persistence, protocol, data, map or client file is changed.
+No production `src/items/decay/**`, scheduler, item runtime, persistence, protocol, data, map or client path changed.
 
-Draft CI #129 and Required #116 completed successfully but skipped build/test jobs, so they are not accepted as target proof. PR #42 was marked ready to force the full applicable ready-cycle on the same exact head. Autofix #110 completed successfully without changing the head. CI #130 produced exact-head Linux debug proof with 359/359 CTest PASS and both `ItemDecayReuseTest` cases passing; its first attempt remained red only because the macOS smoke wrapper reported failure despite its artifact showing the server reached online state and shut down cleanly. The single failed-job rerun passed the macOS runtime smoke on the same exact head; `Required #117` is being rerun against the now-green CI #130.
+The first ready-cycle macOS job compiled successfully but reported a runtime-smoke wrapper failure. Its artifact showed the server reached online state and shut down cleanly with empty stderr. A single failed-job rerun on the same exact head passed the macOS runtime smoke without code changes. This is classified as a transient smoke-harness/timing false negative, not an `item-decay` defect.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T12:27:00+02:00
-head: 11624cde458b0be7f21c2e83caa5cc4171de54b7
+updated_at: 2026-07-19T12:31:00+02:00
+head: dd22f7babb80ff838bcd7c20e8df211e62f28659
 branch: docs/oam-018-item-decay-revalidation
 pr: 578
-status: validating
-next_action: Verify rerun Required #117 succeeds for Otheryn PR #42 exact head 13e245f3c49477fa75c20171f0c845dec91d0824, then perform the final target audit and expected-head squash merge before Canary governance closeout.
+status: ready
+next_action: Require fresh exact-final-head Agent Task Ownership and CI success for Canary PR #578 after this final task commit, then audit changed files, reviews, threads and main drift and squash-merge PR #578 with expected-head before starting the separate lifecycle archive.
 first_failure:
   marker: Canary Agent Task Ownership #2506 first exposed an invalid OAM-018 checkpoint schema; #2511 narrowed the next defect to first_failure being a scalar; #2523 then exposed the invalid frontmatter status active.
   evidence: Ownership artifacts successively reported missing first_failure plus unsupported preflight-complete status, first_failure must be a YAML mapping, and record under tasks/active has non-active status active; all are governance metadata defects and none implicates target item-decay runtime.
@@ -109,25 +119,27 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260719-oteryn-item-decay-revalidation.md
 proven:
   - OAM-017 is fully complete through target, governance, lifecycle and durable program reconciliation.
-  - Fresh task-start baselines are pinned above.
+  - Fresh OAM-018 task-start baselines are pinned above.
   - Canonical item-decay depends on completed OAM-003 engine-scheduler and OAM-007 item-instances boundaries.
-  - Otheryn had no open PR at preflight and the five live Canary PRs checked then did not overlap src/items/decay/**.
   - Target history since verified bootstrap contains no item-decay production mutation.
   - Pinned upstream history through task start contains no item-decay production mutation.
   - Target and upstream share decay.cpp blob a337b872755217d87ac2261de6c3c1a593d805a6.
-  - Legacy Canary decay.cpp differs only in the reviewed scheduler-lane call surface and uses the weaker legacy scheduler boundary rejected by OAM-003.
+  - Legacy Canary decay.cpp differs only at the weaker scheduler-lane call surface rejected as a stronger donor by OAM-003 architecture evidence.
   - All three repositories share decay.hpp blob 0d540e10dc73b65f2ce1aa00bfb9dd72994dcc5f.
-  - Otheryn PR #42 changes only two unit-test paths and no production runtime path.
-  - Otheryn PR #42 autofix #110 passed without mutating exact head 13e245f3c49477fa75c20171f0c845dec91d0824.
-  - Otheryn PR #42 Linux debug CTest passed 359 of 359 tests including both ItemDecayReuseTest focused cases on exact head 13e245f3c49477fa75c20171f0c845dec91d0824.
-  - The first macOS smoke failure compiled successfully and its uploaded runtime artifact showed the server reached online state and shut down cleanly.
-  - The single macOS failed-job rerun passed the runtime smoke on the same exact target head without any code change, confirming a transient smoke-harness or timing failure rather than an item-decay defect.
+  - Otheryn PR #42 changed only two unit-test paths and no production runtime path.
+  - Otheryn PR #42 exact head 13e245f3c49477fa75c20171f0c845dec91d0824 passed autofix #110, CI #130 and Required #117.
+  - Otheryn PR #42 Linux debug CTest passed 359 of 359 tests including both ItemDecayReuseTest focused cases.
+  - The first macOS smoke-wrapper failure was transient; a single same-head failed-job rerun passed without code changes.
+  - Otheryn PR #42 had zero comments, zero submitted reviews and zero review threads before merge.
+  - Otheryn main did not drift from task-start target before merge.
+  - Otheryn PR #42 was squash-merged as 7ba76d2754a060a9a9eec0a23c686aefac725af2.
+  - Final OAM-018 disposition is item-decay REUSE.
 derived:
-  - item-decay is the next dependency-valid canonical OAM package.
-  - The strongest current implementation candidate is target/upstream REUSE, not legacy import.
+  - The target/upstream decay lifecycle is the strongest dependency-valid implementation among the reviewed sources.
+  - No legacy runtime import or target production adaptation is justified for OAM-018.
 unknown:
-  - Final rerun outcome of Required #117 is pending.
-  - Final OAM-018 disposition remains provisional until the required exact-head target aggregator passes.
+  - Canary PR #578 exact-final-head ownership and CI results are pending after this final task commit.
+  - Canary main drift must be re-audited immediately before governance merge.
 conflicts: []
 rejected_hypotheses:
   - Treating legacy decay.cpp blob inequality as sufficient reason to import legacy runtime.
@@ -141,7 +153,7 @@ blockers: []
 validation:
   - command: OAM-018 fresh live-state and ownership preflight
     result: PASS
-    evidence: Canary/Otheryn/upstream/OTClient baselines pinned; Otheryn had zero open PRs; live Canary PR changed-file lists checked at preflight did not overlap src/items/decay/**.
+    evidence: Canary/Otheryn/upstream/OTClient baselines pinned; no preflight ownership overlap was found for src/items/decay/**.
   - command: Otheryn bootstrap-to-task-start boundary comparison
     result: PASS
     evidence: No src/items/decay/** file changed between 3cc7c1dfea747bb380f3761ee7ff7ac30141a115 and 952e7550182df739824bddea687ef89bd8997674.
@@ -153,24 +165,21 @@ validation:
     evidence: Target/upstream decay.cpp are identical; all decay.hpp blobs are identical; legacy decay.cpp differs at the scheduler lane call boundary already classified by OAM-003.
   - command: Otheryn PR #42 proof-only changed-file audit
     result: PASS
-    evidence: Only tests/unit/items/CMakeLists.txt and tests/unit/items/decay/decay_test.cpp changed; no production path changed.
-  - command: Otheryn PR #42 autofix #110
+    evidence: Exactly tests/unit/items/CMakeLists.txt and tests/unit/items/decay/decay_test.cpp changed; no production path changed.
+  - command: Otheryn PR #42 exact-head target gates
     result: PASS
-    evidence: Completed successfully on exact head 13e245f3c49477fa75c20171f0c845dec91d0824 without a head mutation.
-  - command: Otheryn PR #42 Linux debug full CTest
+    evidence: Autofix #110, CI #130 and Required #117 all succeeded on 13e245f3c49477fa75c20171f0c845dec91d0824; full CTest 359/359 and focused ItemDecayReuseTest 2/2 passed.
+  - command: Otheryn PR #42 expected-head squash merge
     result: PASS
-    evidence: linux-debug-test-logs artifact 8441163603 digest sha256:de3f541b41aa9d4f39a4d8d629de52a51e09b8eaff461c8706bb7a296cfd9631 reports 359/359 PASS and ItemDecayReuseTest 2/2 PASS.
-  - command: Otheryn PR #42 macOS failed-job rerun
-    result: PASS
-    evidence: The same-head rerun completed the macOS runtime smoke successfully without any target-head mutation.
+    evidence: Exact head 13e245f3c49477fa75c20171f0c845dec91d0824 merged as 7ba76d2754a060a9a9eec0a23c686aefac725af2.
 ```
 
 # Next-agent sequence
 
-1. Read this task and `docs/agents/OTERYN_OAM_018_ITEM_DECAY_REVALIDATION.md`.
-2. Verify live Canary/Otheryn `main`, open PRs and current task branch/head again.
-3. Continue target proof only through Otheryn PR #42; do not change production decay runtime unless concrete test evidence proves a defect.
-4. Treat any red focused proof as a proof-harness problem until concrete evidence demonstrates a production `item-decay` defect.
-5. Require fresh exact-head target gates after every target-head mutation.
-6. Only after target proof merge continue Canary governance → authoritative lifecycle archive → close automatic duplicate archive PR if created → one-file durable program reconciliation.
+1. Do not mutate this governance branch after the exact-final-head gate turns green.
+2. Verify PR #578 final changed-file list, comments, reviews, review threads, mergeability and current-main drift.
+3. Squash-merge PR #578 using its exact final head.
+4. Create a separate authoritative lifecycle-only PR that archives this task and removes the active record.
+5. Close any automation-created duplicate archive PR only after the authoritative lifecycle PR merges.
+6. Create a separate one-file durable program reconciliation PR for OAM-018.
 7. Do not start OAM-019 until every OAM-018 stage is merged.
