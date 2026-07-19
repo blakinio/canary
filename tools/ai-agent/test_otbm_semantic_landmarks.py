@@ -151,6 +151,15 @@ class SemanticLandmarkRegistryTests(unittest.TestCase):
         with self.assertRaisesRegex(SemanticLandmarkError, "inclusive lower-to-upper"):
             validate_registry(registry)
 
+    def test_enforces_reachability_region_coordinate_bound(self) -> None:
+        registry = reviewed_registry()
+        registry["regions"][0]["bounds"] = {"from": [0, 0, 7], "to": [999, 999, 7]}
+        validate_registry(registry)
+
+        registry["regions"][0]["bounds"] = {"from": [0, 0, 7], "to": [1000, 999, 7]}
+        with self.assertRaisesRegex(SemanticLandmarkError, "Reachability maximum is 1000000"):
+            validate_registry(registry)
+
     def test_rejects_anchor_outside_declared_region(self) -> None:
         registry = reviewed_registry()
         registry["landmarks"][0]["anchors"][0]["position"] = [121, 201, 7]
