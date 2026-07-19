@@ -2,12 +2,12 @@
 task_id: CAN-20260719-oteryn-item-decay-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-018
-status: active
+status: implementing
 agent: "GPT-5.5 Thinking"
 branch: docs/oam-018-item-decay-revalidation
 base_branch: main
 created: 2026-07-19
-updated: 2026-07-19T12:20:00+02:00
+updated: 2026-07-19T12:27:00+02:00
 last_verified_commit: "cf456993dcf1891363657d91de9f5f06c9d7d8c2"
 risk: high
 related_pr: "578"
@@ -84,21 +84,21 @@ The target diff is proof-only:
 
 No production `src/items/decay/**`, scheduler, item runtime, persistence, protocol, data, map or client file is changed.
 
-Draft CI #129 and Required #116 completed successfully but skipped build/test jobs, so they are not accepted as target proof. PR #42 was marked ready to force the full applicable ready-cycle on the same exact head. Autofix #110 completed successfully without changing the head. CI #130 produced exact-head Linux debug proof with 359/359 CTest PASS and both `ItemDecayReuseTest` cases passing; its first attempt remained red only because the macOS smoke wrapper reported failure despite its artifact showing the server reached online state and shut down cleanly. One failed-job rerun is in progress on the same exact head.
+Draft CI #129 and Required #116 completed successfully but skipped build/test jobs, so they are not accepted as target proof. PR #42 was marked ready to force the full applicable ready-cycle on the same exact head. Autofix #110 completed successfully without changing the head. CI #130 produced exact-head Linux debug proof with 359/359 CTest PASS and both `ItemDecayReuseTest` cases passing; its first attempt remained red only because the macOS smoke wrapper reported failure despite its artifact showing the server reached online state and shut down cleanly. The single failed-job rerun passed the macOS runtime smoke on the same exact head; `Required #117` is being rerun against the now-green CI #130.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T12:20:00+02:00
-head: 8a162d00eb63fba08ccff7265ac74ed5daa2e212
+updated_at: 2026-07-19T12:27:00+02:00
+head: 11624cde458b0be7f21c2e83caa5cc4171de54b7
 branch: docs/oam-018-item-decay-revalidation
 pr: 578
 status: validating
-next_action: Monitor the single failed-job rerun for Otheryn PR #42 on exact head 13e245f3c49477fa75c20171f0c845dec91d0824; once CI and Required are green, audit and merge target PR #42 before final Canary governance closeout.
+next_action: Verify rerun Required #117 succeeds for Otheryn PR #42 exact head 13e245f3c49477fa75c20171f0c845dec91d0824, then perform the final target audit and expected-head squash merge before Canary governance closeout.
 first_failure:
-  marker: Canary Agent Task Ownership #2506 first exposed an invalid OAM-018 checkpoint schema; #2511 then narrowed the remaining defect to first_failure being a scalar instead of a mapping.
-  evidence: The ownership artifacts reported missing first_failure and unsupported preflight-complete status on #2506, then first_failure must be a YAML mapping on #2511; this is governance metadata only and does not implicate target item-decay runtime.
+  marker: Canary Agent Task Ownership #2506 first exposed an invalid OAM-018 checkpoint schema; #2511 narrowed the next defect to first_failure being a scalar; #2523 then exposed the invalid frontmatter status active.
+  evidence: Ownership artifacts successively reported missing first_failure plus unsupported preflight-complete status, first_failure must be a YAML mapping, and record under tasks/active has non-active status active; all are governance metadata defects and none implicates target item-decay runtime.
 context_routes:
   - docs/agents/OTERYN_OAM_018_ITEM_DECAY_REVALIDATION.md
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
@@ -120,19 +120,20 @@ proven:
   - Otheryn PR #42 changes only two unit-test paths and no production runtime path.
   - Otheryn PR #42 autofix #110 passed without mutating exact head 13e245f3c49477fa75c20171f0c845dec91d0824.
   - Otheryn PR #42 Linux debug CTest passed 359 of 359 tests including both ItemDecayReuseTest focused cases on exact head 13e245f3c49477fa75c20171f0c845dec91d0824.
-  - The first macOS smoke failure compiled successfully and its uploaded runtime artifact showed the server reached online state and shut down cleanly; it is classified as smoke-harness or CI timing evidence, not an item-decay defect.
+  - The first macOS smoke failure compiled successfully and its uploaded runtime artifact showed the server reached online state and shut down cleanly.
+  - The single macOS failed-job rerun passed the runtime smoke on the same exact target head without any code change, confirming a transient smoke-harness or timing failure rather than an item-decay defect.
 derived:
   - item-decay is the next dependency-valid canonical OAM package.
   - The strongest current implementation candidate is target/upstream REUSE, not legacy import.
 unknown:
-  - Final rerun outcome for the macOS smoke wrapper and resulting Required status are pending.
-  - Final OAM-018 disposition remains provisional until all required exact-head target gates pass.
+  - Final rerun outcome of Required #117 is pending.
+  - Final OAM-018 disposition remains provisional until the required exact-head target aggregator passes.
 conflicts: []
 rejected_hypotheses:
   - Treating legacy decay.cpp blob inequality as sufficient reason to import legacy runtime.
   - Treating omission of DispatcherLane::Maintenance as a stronger item-decay behavior.
   - Treating draft CI #129 and Required #116 as sufficient target proof when build/test jobs were skipped.
-  - Treating the first macOS smoke-wrapper failure as a production item-decay defect despite successful compilation and an artifact showing clean runtime startup and shutdown.
+  - Treating the first macOS smoke-wrapper failure as a production item-decay defect despite successful compilation, clean runtime artifact evidence and a green same-head rerun.
 changed_paths:
   - docs/agents/OTERYN_OAM_018_ITEM_DECAY_REVALIDATION.md
   - docs/agents/tasks/active/CAN-20260719-oteryn-item-decay-revalidation.md
@@ -159,6 +160,9 @@ validation:
   - command: Otheryn PR #42 Linux debug full CTest
     result: PASS
     evidence: linux-debug-test-logs artifact 8441163603 digest sha256:de3f541b41aa9d4f39a4d8d629de52a51e09b8eaff461c8706bb7a296cfd9631 reports 359/359 PASS and ItemDecayReuseTest 2/2 PASS.
+  - command: Otheryn PR #42 macOS failed-job rerun
+    result: PASS
+    evidence: The same-head rerun completed the macOS runtime smoke successfully without any target-head mutation.
 ```
 
 # Next-agent sequence
