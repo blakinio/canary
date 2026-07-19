@@ -4,15 +4,16 @@
 
 The Universal OTS E2E platform already owns disposable MariaDB bootstrap, exact server builds, a controlled pinned OTClient build, matching client assets, physical login/logout/relog execution, runtime evidence and cleanup.
 
-This document defines the bounded client-action layer used to extend that same physical lifecycle into gameplay scenarios. It is not a second E2E orchestrator and it does not authorize production targets.
+This document defines the bounded client-action and persistence-assertion layers used to extend that same physical lifecycle into gameplay scenarios. It is not a second E2E orchestrator and it does not authorize production targets.
 
-A scenario may add an optional `steps` array. When present, `tools/e2e/run_agent_e2e.py` validates the plan and materializes a deterministic `scenario-plan.lua`. The scenario chooses `tools/e2e/client/agent_e2e_scenario.lua` as its client automation driver. The driver executes the plan during the first physical session, performs a safe logout, waits for server persistence, then executes the existing second login/logout sentinel.
+A scenario may add an optional `steps` array. When present, `tools/e2e/run_agent_e2e.py` validates the plan and materializes a deterministic `scenario-plan.lua`. The scenario chooses `tools/e2e/client/agent_e2e_scenario.lua` as its client automation driver. The driver executes first-session actions, performs a safe logout, waits for server persistence, relogs, executes any typed persistence checks through the real client, then performs the second safe logout. The existing final SQL assertion evaluator runs only after that full two-session client cycle exits.
 
 ## Safety contract
 
 - Maximum 64 actions per plan.
-- Unknown actions and unknown action fields fail validation.
-- Step IDs must be unique lowercase slugs.
+- Maximum 32 typed persistence checks per scenario.
+- Unknown actions, persistence types, player fields and unknown contract fields fail validation.
+- Step and persistence-check IDs must be unique lowercase slugs within their respective lists.
 - Text actions reject embedded newlines, carriage returns and NUL and are bounded to 512 characters.
 - Waits and polling timeouts are bounded to 120 seconds.
 - Walk repetitions are bounded to 64.
@@ -20,6 +21,7 @@ A scenario may add an optional `steps` array. When present, `tools/e2e/run_agent
 - Creature names, map positions, NPC names, storage values and gameplay expectations belong to feature-owned scenario tasks and must be evidence-backed.
 - Credentials are referenced through environment variables; scenario JSON must not embed passwords, tokens or private keys.
 - A successful action plan proves only the declared physical assertions. It does not prove full gameplay parity.
+- A typed persistence assertion succeeds only after the same expected value is observed by the controlled client after relog and by the existing post-cycle scalar SQL assertion path.
 - The existing physical E2E lifecycle, exact-head provenance, MariaDB assertions, packet records and fatal-runtime-log checks remain authoritative.
 
 ## Server runtime selection
@@ -61,7 +63,7 @@ Directions accepted by `walk` are `north`, `east`, `south`, `west`, `northeast`,
 
 ## Evidence markers
 
-Every step emits:
+Every first-session step emits:
 
 - `step_<id>=start` before execution;
 - `step_<id>=success` after the action or observation succeeds;
@@ -69,7 +71,42 @@ Every step emits:
 
 After all first-session steps complete, the driver emits `plan=success` and enters the normal safe-logout/persistence/relog lifecycle. A failed action emits `e2e=failure` and terminates the client run.
 
-Feature scenarios should include the exact required step markers in `assertions.required_markers` in addition to the existing login/logout/relog markers.
+Each typed post-relog persistence check emits `persistence_check_<id>=start`, `persistence_check_<id>=success` and a bounded `persistence_check_<id>_detail=<actual>` value. After all checks pass, the driver emits `persistence_plan=success` before the second safe logout.
+
+Feature scenarios should include the exact required step and persistence markers in `assertions.required_markers` in addition to the existing login/logout/relog markers.
+
+## Typed persistence assertions
+
+The optional feature-owned contract is:
+
+```json
+{
+  "assertions": {
+    "persistence": {
+      "required": true,
+      "checks": [
+        {
+          "id": "level",
+          "type": "player_field",
+          "field": "level",
+          "equals": 500
+        }
+      ]
+    }
+  }
+}
+```
+
+`required` must be explicit. A required persistence declaration must contain at least one check; checks are rejected when `required` is false. The initial `player_field` type supports only `level` and `experience`, because those values have directly comparable durable `players` columns and controlled-client getters after relog. Raw server vocation IDs are deliberately excluded from this first slice because the maintained client exposes its own vocation representation; a future vocation contract needs an explicit normalization layer rather than assuming numeric identity.
+
+`tools/e2e/persistence_assertions.py` validates this typed contract. `run_agent_e2e.py` uses the same validated checks in two places:
+
+1. `scenario-plan.lua.persistence_checks`, executed only after the second physical login by `agent_e2e_scenario.lua`;
+2. compiled semicolon-free scalar `SELECT` assertions appended to the normalized manifest and evaluated by the existing SQL assertion path only after the second safe logout.
+
+Feature-specific expected values remain in scenario JSON. The shared E2E tooling contains no quest storage numbers, item IDs or feature-specific outcomes. Arbitrary SQL is not accepted through the typed persistence contract; the legacy scenario-owned `assertions.sql` list remains separately supported for existing scenarios.
+
+A pre-logout SQL observation alone must not be reported as persistence proof. For the supported `player_field` slice, M3 evidence requires successful safe logout, the existing server-persistence sentinel, relog, controlled-client re-verification, second safe logout and final compiled SQL verification.
 
 ## Example
 
@@ -94,7 +131,7 @@ Feature scenarios should include the exact required step markers in `assertions.
 }
 ```
 
-`tests/e2e/scenarios/platform/action-plan-contract.json` is the platform-owned contract scenario. It deliberately avoids map coordinates, item IDs, NPCs and monsters.
+`tests/e2e/scenarios/platform/action-plan-contract.json` is the platform-owned contract scenario. It deliberately avoids map coordinates, item IDs, NPCs and monsters and now proves typed `level` persistence through the canonical relog cycle.
 
 ## Feature scenario ownership
 

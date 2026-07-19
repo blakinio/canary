@@ -30,6 +30,7 @@ local finished = false
 local startedAt = os.time()
 local plan = nil
 local planIndex = 1
+local persistenceIndex = 1
 local initialPosition = nil
 
 local DIRECTIONS = {
@@ -435,6 +436,85 @@ function runNextStep()
 	failStep(step, "unsupported runtime action")
 end
 
+local function persistencePlayerFieldValue(field)
+	local player = g_game.getLocalPlayer()
+	if not player then
+		return nil, "local player unavailable"
+	end
+	if field == "level" then
+		return player:getLevel(), nil
+	end
+	if field == "vocation" then
+		return player:getVocation(), nil
+	end
+	if field == "experience" then
+		return player:getExperience(), nil
+	end
+	return nil, "unsupported player field"
+end
+
+local function failPersistenceCheck(check, message)
+	fail(string.format("persistence check %s (%s) failed: %s", tostring(check.id), tostring(check.field), tostring(message)))
+end
+
+local function completePersistenceCheck(check, actual)
+	appendEvent("persistence_check_" .. check.id, "success")
+	appendEvent("persistence_check_" .. check.id .. "_detail", tostring(actual))
+	persistenceIndex = persistenceIndex + 1
+	scheduleEvent(function()
+		if not finished then
+			runNextPersistenceCheck()
+		end
+	end, 100)
+end
+
+function runNextPersistenceCheck()
+	if finished or phase ~= 2 or not phaseStarted then
+		return
+	end
+	if not plan or type(plan.persistence_checks) ~= "table" then
+		fail("persistence plan is unavailable")
+		return
+	end
+	if persistenceIndex > #plan.persistence_checks then
+		appendEvent("persistence_plan", "success")
+		scheduleEvent(function()
+			requestLogout(2)
+		end, 250)
+		return
+	end
+
+	local check = plan.persistence_checks[persistenceIndex]
+	if type(check) ~= "table" or type(check.id) ~= "string" or check.type ~= "player_field" or type(check.field) ~= "string" or type(check.equals) ~= "number" then
+		fail("invalid runtime persistence check")
+		return
+	end
+	appendEvent("persistence_check_" .. check.id, "start")
+
+	local remainingChecks = 50
+	local function verify()
+		if finished or phase ~= 2 or not phaseStarted then
+			return
+		end
+		local actual, readError = persistencePlayerFieldValue(check.field)
+		if actual ~= nil and actual == check.equals then
+			completePersistenceCheck(check, actual)
+			return
+		end
+		remainingChecks = remainingChecks - 1
+		if remainingChecks <= 0 then
+			if readError then
+				failPersistenceCheck(check, readError)
+			else
+				failPersistenceCheck(check, string.format("actual=%s expected=%s", tostring(actual), tostring(check.equals)))
+			end
+			return
+		end
+		scheduleEvent(verify, 100)
+	end
+	verify()
+end
+
 local function waitForInitialPositionAndStartPlan()
 	local remainingChecks = 50
 	local function check()
@@ -482,7 +562,7 @@ local function loadPlan()
 		fail("failed to execute scenario plan: " .. tostring(loaded))
 		return false
 	end
-	if type(loaded) ~= "table" or loaded.schema_version ~= 1 or type(loaded.steps) ~= "table" then
+	if type(loaded) ~= "table" or loaded.schema_version ~= 1 or type(loaded.steps) ~= "table" or type(loaded.persistence_checks) ~= "table" then
 		fail("invalid scenario plan contract")
 		return false
 	end
@@ -490,8 +570,13 @@ local function loadPlan()
 		fail("scenario plan exceeds runtime step limit")
 		return false
 	end
+	if #loaded.persistence_checks > 32 then
+		fail("persistence plan exceeds runtime check limit")
+		return false
+	end
 	plan = loaded
 	appendEvent("plan_steps", #plan.steps)
+	appendEvent("persistence_checks", #plan.persistence_checks)
 	return true
 end
 
@@ -517,6 +602,10 @@ connect(g_game, {
 		end, 1500)
 		if phase == 1 then
 			waitForInitialPositionAndStartPlan()
+		elseif plan and #plan.persistence_checks > 0 then
+			scheduleEvent(function()
+				runNextPersistenceCheck()
+			end, 1800)
 		else
 			scheduleEvent(function()
 				requestLogout(expectedPhase)
@@ -589,7 +678,7 @@ end
 g_logger.setLogFile(INTERNAL_LOG_PATH)
 appendEvent("scenario", SCENARIO_KEY)
 appendEvent("client_version", CLIENT_VERSION)
-appendEvent("driver", "generic-gameplay-plan-v1")
+appendEvent("driver", "generic-gameplay-plan-v2")
 installStartupProfile()
 if not finished and loadPlan() then
 	scheduleEvent(startLogin, 2500)
