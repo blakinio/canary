@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-002-semantic-landmarks
 base_branch: main
 created: 2026-07-19T09:00:00+02:00
-updated: 2026-07-19T09:48:00+02:00
-last_verified_commit: "bdc6bcb20b4a246b783fe48153a452b1b1f43d50"
+updated: 2026-07-19T09:55:00+02:00
+last_verified_commit: "740832cfc41849b412a24ed2fe27ddcf56a3f7e7"
 risk: medium
 related_issue: ""
 related_pr: "571"
@@ -59,19 +59,19 @@ Implement `OTBM-E2E-002 — Semantic Landmark Registry` as a deterministic revie
 - [x] Resolve exact landmark/anchor IDs deterministically; never guess from names, sprites, minimap text or item metadata.
 - [x] Add a bounded fail-closed unbound registry seed; do not invent claims for unverified real-map landmarks.
 - [x] Add focused tests for deterministic resolution, duplicate IDs, invalid bounds, out-of-bounds anchors, stale provenance and unknown landmark/anchor IDs.
-- [ ] Update catalogue/changelog for the delivered reusable interface.
-- [ ] Apply `ci:final-gate` before final checkpoint commit.
+- [x] Update catalogue/changelog for the delivered reusable interface.
+- [x] Apply `ci:final-gate` before final checkpoint commit.
 - [ ] Verify exact-final-head required checks and review/merge blockers before squash merge.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T09:48:00+02:00
-head: bdc6bcb20b4a246b783fe48153a452b1b1f43d50
+updated_at: 2026-07-19T09:55:00+02:00
+head: 740832cfc41849b412a24ed2fe27ddcf56a3f7e7
 branch: feat/otbm-e2e-002-semantic-landmarks
 pr: 571
-status: implementing
+status: validating
 context_routes:
   - agent-governance
   - otbm
@@ -94,11 +94,18 @@ proven:
   - registry implementation is standard-library-only and does not parse OTBM or add a pathfinder
   - committed registry seed is unbound with provenance null and no regions or landmarks, so no real-map coordinates are invented
   - reviewed registries require exact source-map and World Index SHA-256 values before resolution
-  - CI, OTBM Map Tools and AI Agent Tools passed on implementation/checkpoint head bdc6bcb20b4a246b783fe48153a452b1b1f43d50
+  - AI Agent Tools unit discovery passed with the semantic landmark tests on implementation head ec7eb905b1f22e1c253fbe6ca8592376d27fc375
+  - CI, OTBM Map Tools and AI Agent Tools passed on checkpoint head bdc6bcb20b4a246b783fe48153a452b1b1f43d50
+  - Agent Task Ownership passed on documentation-complete head 740832cfc41849b412a24ed2fe27ddcf56a3f7e7
+  - MODULE_CATALOG diff contains only review-date update, merged status for PR 567 and the reusable semantic-landmark row
+  - CHANGELOG diff contains exactly one semantic-landmark behavior entry
+  - ci:final-gate label was applied before this final checkpoint commit
   - repository writes are restricted to blakinio/canary
   - no OTBM, WIDX, items.otb, client assets or generated route reports are in scope
-derived: []
-unknown: []
+derived:
+  - OTBM-E2E-002 can merge independently of route interaction semantics because it only defines reviewed route anchors and regions, while execution remains blocked on later packages
+unknown:
+  - exact final-head workflow conclusions are pending after this checkpoint commit
 conflicts: []
 blockers: []
 first_failure:
@@ -110,6 +117,8 @@ rejected_hypotheses:
   - add semantic landmark resolution to the Universal E2E runner directly
 changed_paths:
   - docs/agents/tasks/active/CAN-20260719-otbm-e2e-002-semantic-landmarks.md
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
   - docs/ai-agent/OTBM_SEMANTIC_LANDMARKS.schema.json
   - docs/ai-agent/OTBM_SEMANTIC_LANDMARKS.json
   - tools/ai-agent/otbm_semantic_landmarks.py
@@ -117,15 +126,18 @@ changed_paths:
 validation:
   - command: live main, programme and open-PR ownership preflight
     result: PASS
-    evidence: main f962d7b606e29965fe091ea79ba154c27b22fe34; PR #567 merged; no open OTBM-E2E-002 owner found
+    evidence: main f962d7b606e29965fe091ea79ba154c27b22fe34; PR 567 merged; no open OTBM-E2E-002 owner found
   - command: AI Agent Tools run 29678546469 on ec7eb905b1f22e1c253fbe6ca8592376d27fc375
     result: PASS
     evidence: unittest discovery including test_otbm_semantic_landmarks.py and all downstream AI-agent validation steps completed successfully
   - command: CI, OTBM Map Tools and AI Agent Tools on bdc6bcb20b4a246b783fe48153a452b1b1f43d50
     result: PASS
     evidence: CI run 29678596022, OTBM Map Tools run 29678595946 and AI Agent Tools run 29678595934 completed successfully
-  - command: Agent Task Ownership runs 29678546429 and 29678595943
-    result: FAIL
-    evidence: checkpoint schema only; first_failure mapping and then missing required derived list were repaired without changing implementation behavior
-next_action: Verify Agent Task Ownership after adding derived, then update MODULE_CATALOG.md and CHANGELOG.md before applying ci:final-gate and making the final checkpoint commit.
+  - command: Agent Task Ownership run 29678889674 on 740832cfc41849b412a24ed2fe27ddcf56a3f7e7
+    result: PASS
+    evidence: repaired checkpoint schema validated successfully
+  - command: PR 571 shared-document patch review
+    result: PASS
+    evidence: MODULE_CATALOG has only intended status/catalogue edits and CHANGELOG has one intended new bullet
+next_action: Verify every required workflow on the exact new final head; if all are successful and PR 571 is mergeable with no unresolved review blocker, mark ready and squash-merge without any post-green commit.
 ```
