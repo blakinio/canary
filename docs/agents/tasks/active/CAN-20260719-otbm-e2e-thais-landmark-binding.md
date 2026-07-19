@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-thais-landmark-binding
 base_branch: main
 created: 2026-07-19T21:05:00+02:00
-updated: 2026-07-19T21:45:00+02:00
-last_verified_commit: "c1b06e03d5ec6bb016ff0a1c3930368cf4232586"
+updated: 2026-07-19T21:50:00+02:00
+last_verified_commit: "7112eb246a1f9f0f25dd02a25567065b8f77d885"
 risk: medium
 related_issue: ""
 related_pr: "599"
@@ -72,15 +72,15 @@ This is a bounded evidence prerequisite. It must turn the currently `unbound` re
 - [x] Do not edit route planning, preflight, Universal E2E, workflow, OTClient, runtime map, OTBM, `.widx`, `items.otb` or client assets.
 - [x] Keep the actual OTBM-E2E-005 physical scenario out of this PR; it remains the downstream consumer after this binding merges.
 - [x] Update the module catalogue/changelog narrowly for the reviewed registry binding.
-- [ ] Apply `ci:final-gate` before the final checkpoint commit and make no post-final-head commits.
+- [x] Apply `ci:final-gate` before the final checkpoint commit and make no post-final-head commits.
 - [ ] Require exact-final-head Ownership, CI and applicable OTBM validation checks plus a clean review blocker audit before squash merge.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T21:45:00+02:00
-head: c1b06e03d5ec6bb016ff0a1c3930368cf4232586
+updated_at: 2026-07-19T21:50:00+02:00
+head: 7112eb246a1f9f0f25dd02a25567065b8f77d885
 branch: feat/otbm-e2e-thais-landmark-binding
 pr: 599
 status: validating
@@ -108,16 +108,17 @@ proven:
   - final bounded region 32347,32216,7 through 32369,32241,7 contains 598 coordinates and produces confirmed strict/optimistic distance 66 with zero error findings, no path truncation and no transition IDs used
   - semantic landmark registry is reviewed with exact source-map/index provenance and resolves the temple/depot anchors inside the bounded region under the existing validator contract
   - PR patch is confined to task record, reviewed registry, durable Thais evidence document, one module-catalogue row and one changelog entry; no route/E2E/workflow/runtime/map/client artifact path is changed
+  - ci:final-gate label was applied before this final checkpoint commit
 blockers:
-  - pre-final branch workflows on the latest implementation head are still running/queued
-  - ci:final-gate and final checkpoint freeze have not yet been applied
+  - exact-final-head Ownership, CI, OTBM Map Tools and AI Agent Tools are pending
+  - final review blocker audit and expected-head squash merge remain pending
 failed_approaches:
   - interpreted-Python bounded full-map scanning was too slow for the 184776037-byte map; the canonical native World Index scanner was reused instead of creating another parser
   - client minimap package inspection is only auxiliary visual evidence and was not used to establish strict walkability or executable route anchors
 next_actions:
-  - require green pre-final Ownership plus applicable CI/OTBM tooling on the latest implementation head
-  - apply ci:final-gate, write the final checkpoint commit, freeze that exact head and make no further commits
-  - require exact-final-head checks and clean review blocker audit before expected-head squash merge
+  - make no commits after this final checkpoint
+  - require exact-final-head checks and confirm autofix does not mutate the frozen head
+  - require clean review blocker audit and unchanged expected head before squash merge
 validation:
   ownership: pending
   registry: passed
