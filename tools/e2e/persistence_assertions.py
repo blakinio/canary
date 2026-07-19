@@ -7,6 +7,12 @@ from typing import Any
 MAX_ASSERTIONS = 32
 ASSERTION_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 PLAYER_FIELDS = frozenset({"level", "experience"})
+PLAYER_ITEM_TABLES = {
+    "inventory": "player_items",
+    "depot": "player_depotitems",
+    "inbox": "player_inboxitems",
+}
+MAX_UINT16 = 65_535
 MAX_UINT32 = 4_294_967_295
 MIN_INT32 = -2_147_483_648
 MAX_INT32 = 2_147_483_647
@@ -39,6 +45,13 @@ def _require_string(mapping: dict[str, Any], key: str, path: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise PersistenceAssertionError(f"{path}.{key} must be a non-empty string")
     return value.strip()
+
+
+def _require_bool(mapping: dict[str, Any], key: str, path: str) -> bool:
+    value = mapping.get(key)
+    if not isinstance(value, bool):
+        raise PersistenceAssertionError(f"{path}.{key} must be a boolean")
+    return value
 
 
 def _require_int_range(
@@ -159,8 +172,41 @@ def _validate_all_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
             )
             continue
 
+        if assertion_type == "player_item_presence":
+            _reject_unknown_fields(
+                check,
+                {"id", "type", "location", "item_id", "present"},
+                path,
+            )
+            location = _require_string(check, "location", path)
+            if location not in PLAYER_ITEM_TABLES:
+                raise PersistenceAssertionError(
+                    f"{path}.location unsupported: {location!r}; allowed: "
+                    + ", ".join(sorted(PLAYER_ITEM_TABLES))
+                )
+            item_id = _require_int_range(
+                check,
+                "item_id",
+                path,
+                minimum=1,
+                maximum=MAX_UINT16,
+                description="an unsigned item id",
+            )
+            present = _require_bool(check, "present", path)
+            validated.append(
+                {
+                    "id": assertion_id,
+                    "type": assertion_type,
+                    "location": location,
+                    "item_id": item_id,
+                    "present": present,
+                }
+            )
+            continue
+
         raise PersistenceAssertionError(
-            f"{path}.type unsupported: {assertion_type!r}; allowed: player_field, player_storage"
+            f"{path}.type unsupported: {assertion_type!r}; allowed: "
+            "player_field, player_storage, player_item_presence"
         )
 
     return validated
@@ -170,8 +216,8 @@ def validate_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
     """Return only checks that have a trustworthy controlled-client read surface.
 
     `player_field` checks are directly comparable after relog through LocalPlayer getters.
-    Arbitrary `player_storage` values are server-side state and therefore stay on the
-    post-cycle SQL boundary instead of being fabricated as client-readable checks.
+    Arbitrary `player_storage` values and cross-location `player_item_presence` checks are
+    server-side persistence state and therefore stay on the post-cycle SQL boundary.
     """
 
     return [
@@ -186,9 +232,9 @@ def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
 
     The Universal Physical E2E SQL evaluator accepts one semicolon-free SELECT per
     assertion and considers only stdout == "1" successful. `player_field` checks are
-    also emitted to the controlled-client phase-two plan by run_agent_e2e.py, while
-    `player_storage` checks remain database-only because arbitrary server storages do
-    not have a generic trustworthy controlled-client read surface.
+    also emitted to the controlled-client phase-two plan by run_agent_e2e.py. Arbitrary
+    `player_storage` and fixed-location `player_item_presence` checks remain database-only
+    because they do not share a generic trustworthy controlled-client read surface.
     """
 
     checks = _validate_all_persistence_assertions(raw)
@@ -212,15 +258,32 @@ def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
             )
             continue
 
+        if check["type"] == "player_storage":
+            queries.append(
+                "SELECT IF(EXISTS(SELECT 1 FROM `player_storage` AS `ps` "
+                "INNER JOIN `players` AS `p` ON `p`.`id` = `ps`.`player_id` "
+                "WHERE `p`.`name` = "
+                + character_sql
+                + " AND `ps`.`key` = "
+                + str(check["key"])
+                + " AND `ps`.`value` = "
+                + str(check["equals"])
+                + "), 1, 0)"
+            )
+            continue
+
+        table = PLAYER_ITEM_TABLES[str(check["location"])]
+        existence = "EXISTS" if check["present"] else "NOT EXISTS"
         queries.append(
-            "SELECT IF(EXISTS(SELECT 1 FROM `player_storage` AS `ps` "
-            "INNER JOIN `players` AS `p` ON `p`.`id` = `ps`.`player_id` "
+            "SELECT IF("
+            + existence
+            + "(SELECT 1 FROM `"
+            + table
+            + "` AS `pi` INNER JOIN `players` AS `p` ON `p`.`id` = `pi`.`player_id` "
             "WHERE `p`.`name` = "
             + character_sql
-            + " AND `ps`.`key` = "
-            + str(check["key"])
-            + " AND `ps`.`value` = "
-            + str(check["equals"])
+            + " AND `pi`.`itemtype` = "
+            + str(check["item_id"])
             + "), 1, 0)"
         )
     return queries
