@@ -60,7 +60,7 @@ checkpoint_version: 1
 updated_at: 2026-07-19T14:05:00+02:00
 head: bb27b2592619a966280e63f85daa23d09f3dd4ac
 branch: docs/oam-019-imbuements-revalidation
-pr: null
+pr: 588
 status: validating
 next_action: Open the Canary governance draft PR, verify exact merged donor PR heads and path-level current blobs, then create the bounded Otheryn target branch and materialize only the coherent Imbuement adaptation with focused tests.
 first_failure:
