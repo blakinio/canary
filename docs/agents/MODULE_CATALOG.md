@@ -81,3 +81,9 @@ Update this file in the same PR that adds a reusable module/service/manager/pars
 - Status:
 - Responsibility/public surface:
 - Source paths:
+- Tests:
+- Documentation:
+- Depends on / used by:
+- Task/PR:
+- Last verified commit:
+```
