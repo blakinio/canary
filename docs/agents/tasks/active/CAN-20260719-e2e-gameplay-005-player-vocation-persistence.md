@@ -2,12 +2,12 @@
 task_id: CAN-20260719-e2e-gameplay-005-player-vocation-persistence
 program_id: CAN-PROGRAM-E2E-AUTOMATION
 coordination_id: E2E-GAMEPLAY-005-VOCATION
-status: implementing
+status: validating
 agent: "GPT-5.5 Thinking"
 branch: feat/e2e-player-vocation-persistence
 base_branch: main
 created: 2026-07-19T23:38:00+02:00
-updated: 2026-07-19T23:44:00+02:00
+updated: 2026-07-19T23:49:00+02:00
 last_verified_commit: "183d7224cb5de57585294d72631f37783b93dc89"
 risk: medium
 related_issue: ""
@@ -49,30 +49,30 @@ Add one bounded reusable `player_vocation` persistence assertion that accepts on
 
 # Acceptance criteria
 
-- [ ] Support exactly `none`, `sorcerer`, `druid`, `paladin`, `knight`, `master_sorcerer`, `elder_druid`, `royal_paladin`, `elite_knight`, `monk`, and `exalted_monk`.
-- [ ] Map every supported semantic vocation to one fixed Canary server vocation ID and one fixed maintained-OTClient client vocation ID.
-- [ ] Re-verify after relog through the existing maintained `LocalPlayer.getVocation()` runtime surface using the fixed client vocation ID.
-- [ ] Compile final scalar SQL only against the fixed Canary `players.vocation` column and fixed server vocation ID mapping.
-- [ ] Reject unknown vocation names, arbitrary numeric vocation IDs, booleans, empty values and unknown fields.
-- [ ] Do not expose caller-controlled SQL columns or caller-controlled server/client vocation IDs.
-- [ ] Keep vocation-change/promotion mechanics, custom dynamic vocations and unrelated progression state out of scope.
-- [ ] Preserve existing `player_field`, `player_storage`, `player_item_presence`, `player_balance`, `player_magic_level` and `player_skill_level` behavior.
-- [ ] Add focused regression coverage and a durable public contract document.
-- [ ] Do not modify the E2E runner, controlled-client Lua driver, workflows, route execution, OTBM tooling, map/client assets or reference repositories.
-- [ ] Update the module catalogue narrowly.
-- [ ] Apply `ci:final-gate` before the final checkpoint commit and make no post-final-head commits.
+- [x] Support exactly `none`, `sorcerer`, `druid`, `paladin`, `knight`, `master_sorcerer`, `elder_druid`, `royal_paladin`, `elite_knight`, `monk`, and `exalted_monk`.
+- [x] Map every supported semantic vocation to one fixed Canary server vocation ID and one fixed maintained-OTClient client vocation ID.
+- [x] Re-verify after relog through the existing maintained `LocalPlayer.getVocation()` runtime surface using the fixed client vocation ID.
+- [x] Compile final scalar SQL only against the fixed Canary `players.vocation` column and fixed server vocation ID mapping.
+- [x] Reject unknown vocation names, arbitrary numeric vocation IDs, booleans, empty values and unknown fields.
+- [x] Do not expose caller-controlled SQL columns or caller-controlled server/client vocation IDs.
+- [x] Keep vocation-change/promotion mechanics, custom dynamic vocations and unrelated progression state out of scope.
+- [x] Preserve existing `player_field`, `player_storage`, `player_item_presence`, `player_balance`, `player_magic_level` and `player_skill_level` behavior in the compiler contract and focused mixed-type regression coverage.
+- [x] Add focused regression coverage and a durable public contract document.
+- [x] Do not modify the E2E runner, controlled-client Lua driver, workflows, route execution, OTBM tooling, map/client assets or reference repositories.
+- [x] Update the module catalogue narrowly.
+- [x] Apply `ci:final-gate` before the final checkpoint commit and make no post-final-head commits after a green final checkpoint sequence.
 - [ ] Require exact-final-head Ownership, CI, Universal Agent E2E and autofix as applicable plus a clean review blocker audit before squash merge.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T23:44:00+02:00
-head: 30ac202a26a30e47b1411b264186cb4d2d1adacb
+updated_at: 2026-07-19T23:49:00+02:00
+head: d92c23596203ca419ab89340c9e53d7616cb0e53
 branch: feat/e2e-player-vocation-persistence
 pr: 608
-status: implementing
-next_action: Complete the narrow MODULE_CATALOG update, resolve any focused CI findings, then apply ci:final-gate before the final checkpoint commit.
+status: validating
+next_action: Inspect exact-final-head Ownership, CI, Universal Agent E2E and autofix outcomes for the checkpoint commit; if all required gates pass, perform the clean review blocker audit and squash merge with the frozen head SHA.
 context_routes:
   - agent-governance
   - universal-e2e
@@ -84,22 +84,28 @@ owned_paths:
   - tools/e2e/persistence_assertions.py
   - docs/agents/MODULE_CATALOG.md
 proven:
-  - live main at task start is 183d7224cb5de57585294d72631f37783b93dc89
-  - PR 600 remains separately owned OTBM route work and is not touched
+  - live main at task start and immediately before final checkpoint sequencing is 183d7224cb5de57585294d72631f37783b93dc89
+  - PR 600 remains separately owned OTBM route work and was not modified
   - no open E2E persistence PR owns this player_vocation contract
   - Canary data/XML/vocations.xml declares fixed server id and clientid pairs for the eleven maintained vocations
   - maintained blakinio/otclient defines matching VocationsServer and VocationsClient constants
   - maintained OTClient Player.getVocation returns the client-facing vocation ID domain
   - existing Universal E2E Lua driver already reads player:getVocation() for runtime player_field vocation checks
-  - existing typed persistence compiler and two-session relog verification are reusable
   - implementation keeps raw player_field vocation unavailable to callers and normalizes only typed player_vocation checks into the existing runtime path
   - implementation SQL uses only the fixed players.vocation column and fixed server vocation mapping
+  - focused regression coverage checks all eleven mappings, numeric and unknown-name rejection, mapping/SQL surface rejection, raw player_field vocation rejection, SQL escaping, mixed existing-type preservation, normalized manifest rendering and reuse of the existing Lua vocation getter path
+  - the final MODULE_CATALOG patch changes only the Universal OTS E2E physical gameplay action plans row
+  - pre-final-head Agent Task Ownership succeeded after the checkpoint governance repair
+  - ci:final-gate was applied before this checkpoint commit
   - an earlier speculative player_soul draft PR 606 was closed without merge before implementation and is superseded by this evidence-backed vocation slice
 derived:
   - client-side equality must use the fixed client vocation ID while post-cycle SQL must use the fixed Canary server vocation ID for the same semantic vocation
   - retaining vocation outside caller-accessible player_field prevents bypassing the normalization boundary with a raw numeric equality check
+  - no maintained-client or controlled-client driver mutation is required because the existing player_field vocation path already reads LocalPlayer.getVocation
 unknown:
-  - focused test and final exact-head validation outcomes are not known yet
+  - the SHA produced by this final checkpoint commit is the frozen final PR head and is not known inside the commit itself
+  - exact-final-head Ownership, CI, Universal Agent E2E and autofix outcomes are pending after this commit
+  - review/comment/thread blocker state must be re-audited against the frozen final head before merge
 conflicts: []
 rejected_hypotheses:
   - compare raw Canary server vocation IDs directly to LocalPlayer.getVocation
@@ -107,6 +113,7 @@ rejected_hypotheses:
   - mutate maintained OTClient for an already available getter and mapping
   - add a second E2E runner or lifecycle
 changed_paths:
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260719-e2e-gameplay-005-player-vocation-persistence.md
   - docs/e2e/PLAYER_VOCATION_PERSISTENCE.md
   - tests/e2e/test_player_vocation_persistence.py
@@ -114,7 +121,7 @@ changed_paths:
 blockers: []
 first_failure:
   marker: Agent Task Ownership rejected the first implementation checkpoint because required checkpoint fields derived and first_failure were absent.
-  evidence: Ownership artifact active-task-ownership from run 29704784426 reported exactly the two missing checkpoint fields; no path-overlap or task-ownership conflict was reported.
+  evidence: Ownership artifact active-task-ownership from run 29704784426 reported exactly the two missing checkpoint fields; no path-overlap or task-ownership conflict was reported. The repaired checkpoint then passed Agent Task Ownership on head d92c23596203ca419ab89340c9e53d7616cb0e53.
 validation:
   - command: evidence review of current Canary vocations.xml and maintained OTClient vocation constants/getter
     result: PASS
@@ -122,7 +129,13 @@ validation:
   - command: PR 608 implementation patch audit for tools/e2e/persistence_assertions.py
     result: PASS
     evidence: The patch is limited to the fixed vocation mapping, typed validation, normalized client check emission, fixed SQL compilation and related documentation strings.
-  - command: CI workflow on implementation head 30ac202a26a30e47b1411b264186cb4d2d1adacb
+  - command: PR 608 MODULE_CATALOG patch audit
     result: PASS
-    evidence: CI completed successfully; Agent Task Ownership failed only because this task checkpoint omitted required derived and first_failure fields, which this commit corrects.
+    evidence: The catalogue diff changes only the Universal OTS E2E physical gameplay action plans row and preserves unrelated OTBM catalogue material.
+  - command: Agent Task Ownership on pre-final head d92c23596203ca419ab89340c9e53d7616cb0e53
+    result: PASS
+    evidence: Workflow run 29704946030 completed successfully after the checkpoint governance repair.
+  - command: exact-final-head Ownership, CI, Universal Agent E2E and autofix sequence
+    result: NOT_RUN
+    evidence: This checkpoint commit creates the frozen final head; exact-head workflow outcomes necessarily occur after the commit and are recorded externally before merge.
 ```
