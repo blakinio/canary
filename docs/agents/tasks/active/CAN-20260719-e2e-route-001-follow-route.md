@@ -8,7 +8,7 @@ branch: feat/e2e-route-001-follow-route
 base_branch: main
 created: 2026-07-19
 updated: 2026-07-19
-last_verified_commit: "3ba5e990aa7d3834c6605d347f7a19f7f0188077"
+last_verified_commit: "4da8278ceeeaedc0e98fa944197998bedd6fb302"
 risk: medium
 related_issue: ""
 related_pr: "589"
@@ -79,7 +79,7 @@ Add one reusable `follow_route` action to the existing Universal Physical E2E ac
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-19
-head: 3ba5e990aa7d3834c6605d347f7a19f7f0188077
+head: 4da8278ceeeaedc0e98fa944197998bedd6fb302
 branch: feat/e2e-route-001-follow-route
 pr: 589
 status: validating
@@ -98,8 +98,8 @@ owned_paths:
   - tests/e2e/test_follow_route_execution.py
   - tests/lua/test_agent_e2e_route.lua
 proven:
-  - live main equals handover SHA 0db6289cc55069ddb0194a58758bcc97c242bf8b
-  - no pre-existing open PR or branch claimed E2E-ROUTE-001
+  - live main equals handover SHA 0db6289cc55069ddb0194a58758bcc97c242bf8b at work-package preflight
+  - no pre-existing open PR or branch claimed E2E-ROUTE-001 at work-package preflight
   - PR #589 owns feat/e2e-route-001-follow-route
   - PR #573 exact walk_edge and follow_route now delegate to one shared exact movement-edge executor
   - canonical route selection derives route-<logical-id>.json only from the runner-owned artifact directory
@@ -109,8 +109,37 @@ proven:
   - existing Lua Tests job also executes the focused Python E2E route contract suites without introducing a new workflow
   - maintained OTClient revision 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f binds g_game.use and g_game.useInventoryItemWith and exposes exact tile/item lookup primitives
   - no parser, World Index, pathfinder, runner, workflow, map, widx, items.otb, or client asset was added or modified
-unknown: []
+derived:
+  - the controlled client executes only the normalized route runtime contract emitted after host-side validation, not arbitrary manifest paths or unvalidated route JSON
+  - standalone walk_edge and follow_route cannot diverge into separate movement semantics because both call the same Lua exact-edge executor
+unknown:
+  - exact-final-head CI, Required, ownership, and Universal Agent E2E results remain pending until the final checkpoint commit
 conflicts: []
-blockers: []
-next_action: Run live CI and focused tests, repair actual failures, then update shared module/changelog records, apply ci:final-gate, and create the final checkpoint commit.
+rejected_hypotheses:
+  - arbitrary route file paths were rejected in favor of the documented route-<logical-id>.json canonical evidence layout
+  - a second movement primitive was rejected; follow_route reuses the same exact-edge executor as walk_edge
+  - workflow modification was rejected; focused route tests run through the existing Lua Tests workflow
+changed_paths:
+  - docs/agents/tasks/active/CAN-20260719-e2e-route-001-follow-route.md
+  - tools/e2e/run_agent_e2e.py
+  - tools/e2e/route_plan_execution.py
+  - tools/e2e/client/agent_e2e_scenario.lua
+  - tools/e2e/client/agent_e2e_route.lua
+  - tests/e2e/test_agent_e2e_scenario_plan.py
+  - tests/e2e/test_exact_movement_edges.py
+  - tests/e2e/test_follow_route_execution.py
+  - tests/lua/test_agent_e2e_route.lua
+blockers:
+  - exact-final-head gates are not yet complete
+first_failure:
+  marker: Agent Task Ownership / Validate changed active task checkpoints
+  evidence: Run 29687894902 failed because the task checkpoint did not yet contain the complete required checkpoint schema; focused governance unit tests passed before that validation step.
+validation:
+  - command: CI / Lua Tests / Run Lua Tests on head 3ba5e990aa7d3834c6605d347f7a19f7f0188077
+    result: PASS
+    evidence: The existing Lua Tests job completed successfully while running deterministic route fixtures and the three focused Python E2E route contract suites.
+  - command: Agent Task Ownership on head 4da8278ceeeaedc0e98fa944197998bedd6fb302
+    result: FAIL
+    evidence: Validate changed active task checkpoints failed; this commit completes the required checkpoint schema without weakening the validator.
+next_action: Validate the corrected task checkpoint on the new exact head, then finish shared catalogue/changelog records before ci:final-gate.
 ```
