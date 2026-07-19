@@ -2,9 +2,9 @@
   "schema_version": 1,
   "id": "physical-movement",
   "suite": "movement",
-  "name": "Physical client bounded east movement",
+  "name": "Physical client exact east movement edge",
   "program_id": "CAN-PROGRAM-E2E-PLATFORM",
-  "description": "Perform one bounded real-client east movement on the disposable Canary world while preserving the canonical logout, persistence, and relog sentinel. The exact first-session start and post-movement position are pinned from real physical-client artifact evidence.",
+  "description": "Execute one exact-position-synchronized real-client east movement edge on the disposable Canary world while preserving the canonical logout, persistence, and relog sentinel. The exact source 32369,32241,7 and destination 32370,32241,7 were pinned from prior real physical-client artifact evidence.",
   "client": {
     "repository": "blakinio/otclient",
     "ref": "2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f",
@@ -36,19 +36,14 @@
     },
     {
       "id": "east-one",
-      "action": "walk",
-      "direction": "east",
-      "count": 1,
-      "interval_ms": 500
-    },
-    {
-      "id": "movement-settle",
-      "action": "wait",
-      "ms": 1000
-    },
-    {
-      "id": "position-changed",
-      "action": "observe_position_changed"
+      "action": "walk_edge",
+      "from_x": 32369,
+      "from_y": 32241,
+      "from_z": 7,
+      "to_x": 32370,
+      "to_y": 32241,
+      "to_z": 7,
+      "timeout_ms": 5000
     }
   ],
   "assertions": {
@@ -59,9 +54,7 @@
       "online_stable_1=confirmed",
       "step_online=success",
       "step_east-one=success",
-      "step_movement-settle=success",
-      "step_position-changed=success",
-      "step_position-changed_detail=32370,32241,7",
+      "step_east-one_detail=32370,32241,7",
       "plan=success",
       "logout_request_1=safe",
       "logout_1=complete",
