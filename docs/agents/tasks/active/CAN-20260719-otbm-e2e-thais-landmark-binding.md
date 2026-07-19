@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-thais-landmark-binding
 base_branch: main
 created: 2026-07-19T21:05:00+02:00
-updated: 2026-07-19T22:05:00+02:00
-last_verified_commit: "66161a08fd7456da2ddb70a26df4c09a3f981dd9"
+updated: 2026-07-19T22:10:00+02:00
+last_verified_commit: "b394598c04eeab6e34ac22eb17483c0cc480a520"
 risk: medium
 related_issue: ""
 related_pr: "599"
@@ -81,11 +81,12 @@ This is a bounded evidence prerequisite. It must turn the currently `unbound` re
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T22:05:00+02:00
-head: 66161a08fd7456da2ddb70a26df4c09a3f981dd9
+updated_at: 2026-07-19T22:10:00+02:00
+head: b394598c04eeab6e34ac22eb17483c0cc480a520
 branch: feat/otbm-e2e-thais-landmark-binding
 pr: 599
 status: validating
+next_action: Require exact-final-head Ownership, AI Agent Tools, OTBM Map Tools and CI, then perform a clean review and expected-head merge audit.
 context_routes:
   - agent-governance
   - otbm
@@ -99,35 +100,50 @@ owned_paths:
 proven:
   - live main at task start is c353b89b5a7f783cf4ee22fe1ba91850de837a68
   - PR 599 owns branch feat/otbm-e2e-thais-landmark-binding and is ready for review
-  - no open PR matched OTBM-E2E-005, semantic landmark or Thais ownership at task start
-  - PR #571 semantic landmark registry, PR #589 follow_route and PR #594 exact-map route preflight are merged
+  - PR 571 semantic landmark registry, PR 589 follow_route and PR 594 exact-map route preflight are merged
   - exact local map SHA-256 is a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2 and its size is 184776037 bytes
   - current and historical official native scanner artifacts both rebuild byte-identical canonical World Index SHA-256 6c22cd26d4414aa094af1d00be7f62190a441e270ee7a478b55449bf92e55e7a with size 842280592 bytes
   - exact-map OTBM town metadata resolves Thais id 8 temple position to 32369,32241,7
   - existing repository OTBM scanning found depotId 8 lockers at 32352,32225,7; 32354,32225,7; 32352,32231,7; and 32354,32231,7
-  - current Canary DepotLocker reads ATTR_DEPOT_ID as uint16 and use-item handling opens player->getDepotLocker(depot->getDepotId()) while recording the same lastDepotId
+  - current Canary DepotLocker reads ATTR_DEPOT_ID as uint16 and use-item handling opens player getDepotLocker with the exact depotId while recording the same lastDepotId
   - all 14 unique orthogonal locker-neighbor candidates were evaluated with current Reachability against the exact World Index and appearances evidence
-  - deterministic minimum-strict-distance then lexicographic tie-break selects thais.depot route destination 32352,32226,7 adjacent to reviewed locker 32352,32225,7
-  - final bounded region 32347,32216,7 through 32369,32241,7 contains 598 coordinates and produces confirmed strict/optimistic distance 66 with zero error findings, no path truncation and no transition IDs used
-  - semantic landmark registry is reviewed with exact source-map/index provenance and resolves the temple/depot anchors inside the bounded region under the existing validator contract
-  - first frozen head ff9502ac87719767e45fa8850fb41ce1050a338a failed AI Agent Tools because the committed-registry unit test still asserted the superseded unbound seed state
+  - final bounded region 32347,32216,7 through 32369,32241,7 contains 598 coordinates and produces confirmed strict and optimistic distance 66 with zero error findings, no path truncation and no transition IDs used
+  - semantic landmark registry is reviewed with exact source-map and World Index provenance and resolves the temple and depot anchors inside the bounded region under the existing validator contract
   - corrected implementation head 865644d3755af9949b3d54062ea5aca44dcae0b3 passed AI Agent Tools including unit tests and all generated-audit steps
-  - the regression test now validates exact committed map/index provenance plus deterministic Thais route-origin and route-destination resolution
-  - replacement frozen head 66161a08fd7456da2ddb70a26df4c09a3f981dd9 passed AI Agent Tools but Ownership rejected the non-schema checkpoint key failed_approaches before checking path ownership
-  - the unsupported failed_approaches checkpoint section has been removed; failure history is preserved in proven instead
-  - ci:final-gate remains applied before this replacement final checkpoint commit
+  - replacement frozen head 66161a08fd7456da2ddb70a26df4c09a3f981dd9 passed AI Agent Tools before Ownership exposed the checkpoint schema mismatch
+  - ci:final-gate remains applied before this corrected replacement final checkpoint commit
+derived:
+  - deterministic minimum-strict-distance then lexicographic tie-break selects thais.depot route destination 32352,32226,7 adjacent to reviewed locker 32352,32225,7
+  - the failed Ownership runs were checkpoint-schema failures rather than ownership path conflicts because validation stopped at changed-task checkpoint parsing
+unknown:
+  - exact-final-head Ownership, CI and OTBM Map Tools outcomes for the corrected checkpoint schema are not known yet
+  - physical controlled-OTClient route success remains intentionally unproven until downstream OTBM-E2E-005
+conflicts: []
+rejected_hypotheses:
+  - treat the depot locker tile itself as automatically walkable
+  - guess a Thais depot coordinate from memory, minimap labels, sprites or chat history
+  - create a second OTBM parser, World Index implementation or pathfinder
+changed_paths:
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
+  - docs/agents/tasks/active/CAN-20260719-otbm-e2e-thais-landmark-binding.md
+  - docs/ai-agent/OTBM_SEMANTIC_LANDMARKS.json
+  - docs/ai-agent/OTBM_THAIS_LANDMARK_EVIDENCE.md
+  - tools/ai-agent/test_otbm_semantic_landmarks.py
 blockers:
-  - exact-final-head Ownership, CI and OTBM Map Tools are pending on the corrected checkpoint schema
+  - exact-final-head Ownership, CI, OTBM Map Tools and AI Agent Tools must pass before merge
   - final review blocker audit and expected-head squash merge remain pending
-next_actions:
-  - make no commits after this corrected replacement final checkpoint
-  - require exact-final-head checks and confirm autofix does not mutate the frozen head
-  - require clean review blocker audit and unchanged expected head before squash merge
+first_failure:
+  marker: AI Agent Tools failed on first frozen head ff9502ac87719767e45fa8850fb41ce1050a338a because the committed-registry test still required an unbound empty seed.
+  evidence: Workflow 29701124323 failed unit tests; corrected head 865644d3755af9949b3d54062ea5aca44dcae0b3 later passed AI Agent Tools, while Ownership artifacts 8446551313 and 8446566229 exposed checkpoint-only schema errors.
 validation:
-  ownership: pending
-  registry: passed
-  world_index: passed
-  reachability: passed
-  ai_agent_tools: passed-on-parent-and-must-pass-final-head
-  ci: pending
+  - command: python tools/ai-agent/test_otbm_semantic_landmarks.py
+    result: PASS
+    evidence: AI Agent Tools workflow 29701226000 completed successfully on corrected implementation head 865644d3755af9949b3d54062ea5aca44dcae0b3.
+  - command: canonical native otbm_item_audit_scan world-index build on exact source map
+    result: PASS
+    evidence: Current and historical official scanner artifacts both produced byte-identical World Index SHA-256 6c22cd26d4414aa094af1d00be7f62190a441e270ee7a478b55449bf92e55e7a.
+  - command: current OTBM Reachability strict route analysis for temple origin to selected depot approach
+    result: PASS
+    evidence: Final bounded report SHA-256 88b53c4fd45c627137ca47d5804bff8ef98df5b0e2643b02b0d5e10129ba349a is ok with zero error findings and strict distance 66.
 ```
