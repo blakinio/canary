@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-002-semantic-landmarks
 base_branch: main
 created: 2026-07-19T09:00:00+02:00
-updated: 2026-07-19T09:38:12+02:00
-last_verified_commit: "28dba1881aa217631d6caa8b64cf25757e4e462d"
+updated: 2026-07-19T09:44:00+02:00
+last_verified_commit: "ec7eb905b1f22e1c253fbe6ca8592376d27fc375"
 risk: medium
 related_issue: ""
 related_pr: "571"
@@ -50,15 +50,15 @@ Implement `OTBM-E2E-002 — Semantic Landmark Registry` as a deterministic revie
 
 # Acceptance criteria
 
-- [ ] Add versioned `canary-otbm-semantic-landmarks-v1` JSON Schema.
-- [ ] Add a deterministic validator/resolver using Python standard library only.
-- [ ] Validate unique region IDs, landmark IDs and per-landmark anchor IDs.
-- [ ] Validate inclusive 3D routing bounds and require every anchor to lie inside its declared region.
-- [ ] Support reviewed anchor roles including `route-origin`, `route-destination`, `entrance`, `exit`, and `interaction`.
-- [ ] Require explicit map SHA-256 and World Index SHA-256 provenance and reject caller-supplied stale evidence.
-- [ ] Resolve exact landmark/anchor IDs deterministically; never guess from names, sprites, minimap text or item metadata.
-- [ ] Add a bounded reviewed registry file with schema-valid fixture/example entries only; do not invent claims for unverified real-map landmarks.
-- [ ] Add focused tests for deterministic resolution, duplicate IDs, invalid bounds, out-of-bounds anchors, stale provenance and unknown landmark/anchor IDs.
+- [x] Add versioned `canary-otbm-semantic-landmarks-v1` JSON Schema.
+- [x] Add a deterministic validator/resolver using Python standard library only.
+- [x] Validate unique region IDs, landmark IDs and per-landmark anchor IDs.
+- [x] Validate inclusive 3D routing bounds and require every anchor to lie inside its declared region.
+- [x] Support reviewed anchor roles including `route-origin`, `route-destination`, `entrance`, `exit`, and `interaction`.
+- [x] Require explicit map SHA-256 and World Index SHA-256 provenance and reject caller-supplied stale evidence.
+- [x] Resolve exact landmark/anchor IDs deterministically; never guess from names, sprites, minimap text or item metadata.
+- [x] Add a bounded fail-closed unbound registry seed; do not invent claims for unverified real-map landmarks.
+- [x] Add focused tests for deterministic resolution, duplicate IDs, invalid bounds, out-of-bounds anchors, stale provenance and unknown landmark/anchor IDs.
 - [ ] Update catalogue/changelog/program record for the delivered reusable interface.
 - [ ] Apply `ci:final-gate` before final checkpoint commit.
 - [ ] Verify exact-final-head required checks and review/merge blockers before squash merge.
@@ -67,8 +67,8 @@ Implement `OTBM-E2E-002 — Semantic Landmark Registry` as a deterministic revie
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T09:38:12+02:00
-head: 28dba1881aa217631d6caa8b64cf25757e4e462d
+updated_at: 2026-07-19T09:44:00+02:00
+head: ec7eb905b1f22e1c253fbe6ca8592376d27fc375
 branch: feat/otbm-e2e-002-semantic-landmarks
 pr: 571
 status: implementing
@@ -90,23 +90,36 @@ proven:
   - OTBM-E2E-001 route-plan export merged as PR #567 before this task started
   - merged planning programme defines OTBM-E2E-002 as a separate landmark registry contract and permits it independently of E2E runner changes
   - no open PR matching OTBM-E2E-002 or semantic landmark registry ownership was found at task start
+  - World Index manifest provenance uses source.sha256 for the exact OTBM map and index.sha256 for the exact WIDX artifact
+  - AI Agent Tools discovers every tools/ai-agent/test_*.py file through Python unittest discovery
+  - registry implementation is standard-library-only and does not parse OTBM or add a pathfinder
+  - committed registry seed is unbound with provenance null and no regions or landmarks, so no real-map coordinates are invented
+  - reviewed registries require exact source-map and World Index SHA-256 values before resolution
   - repository writes are restricted to blakinio/canary
   - no OTBM, WIDX, items.otb, client assets or generated route reports are in scope
-  - real landmark coordinates must not be invented; initial registry content will remain explicitly non-authoritative example/fixture data unless exact map evidence is separately proven
 unknown:
-  - exact reusable validator patterns and World Index provenance field naming still need targeted source inspection
+  - current implementation workflow conclusions are still running after ec7eb905b1f22e1c253fbe6ca8592376d27fc375
 conflicts: []
 blockers: []
-first_failure: {}
+first_failure:
+  marker: agent-task-ownership-checkpoint-schema
+  evidence: run 29678546429 failed because first_failure was an empty mapping; checkpoint.py requires non-empty first_failure.marker and first_failure.evidence
 rejected_hypotheses:
   - infer Thais landmark coordinates from memory or map labels
   - parse OTBM again inside the landmark registry
   - add semantic landmark resolution to the Universal E2E runner directly
 changed_paths:
   - docs/agents/tasks/active/CAN-20260719-otbm-e2e-002-semantic-landmarks.md
+  - docs/ai-agent/OTBM_SEMANTIC_LANDMARKS.schema.json
+  - docs/ai-agent/OTBM_SEMANTIC_LANDMARKS.json
+  - tools/ai-agent/otbm_semantic_landmarks.py
+  - tools/ai-agent/test_otbm_semantic_landmarks.py
 validation:
   - command: live main, programme and open-PR ownership preflight
     result: PASS
     evidence: main f962d7b606e29965fe091ea79ba154c27b22fe34; PR #567 merged; no open OTBM-E2E-002 owner found
-next_action: Inspect reusable validation/provenance patterns, then implement and test the smallest complete semantic-landmark contract without inventing real-map coordinates.
+  - command: Agent Task Ownership run 29678546429 on ec7eb905b1f22e1c253fbe6ca8592376d27fc375
+    result: FAIL
+    evidence: changed-task checkpoint validation rejected empty first_failure mapping; implementation tests were not the failing step
+next_action: Verify the repaired ownership check and focused AI Agent Tools tests, then update the shared catalogue, changelog and routing programme before final gate.
 ```
