@@ -1,0 +1,267 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_ROUTE_INTERACTIONS.schema.json",
+  "title": "Canary OTBM route interaction registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "registryStatus", "provenance", "entries"],
+  "properties": {
+    "format": {"const": "canary-otbm-route-interactions-v1"},
+    "schemaVersion": {"const": 1},
+    "registryStatus": {"enum": ["unbound", "reviewed"]},
+    "provenance": {
+      "oneOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/provenance"}
+      ]
+    },
+    "entries": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {"$ref": "#/$defs/entry"}
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"registryStatus": {"const": "unbound"}}, "required": ["registryStatus"]},
+      "then": {
+        "properties": {
+          "provenance": {"type": "null"},
+          "entries": {"maxItems": 0}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"registryStatus": {"const": "reviewed"}}, "required": ["registryStatus"]},
+      "then": {
+        "properties": {
+          "provenance": {"$ref": "#/$defs/provenance"}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "hashEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256"],
+      "properties": {
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceMap", "worldIndex", "transitionManifest", "scriptResolution"],
+      "properties": {
+        "sourceMap": {"$ref": "#/$defs/hashEvidence"},
+        "worldIndex": {"$ref": "#/$defs/hashEvidence"},
+        "transitionManifest": {
+          "oneOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/hashEvidence"}
+          ]
+        },
+        "scriptResolution": {
+          "oneOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/hashEvidence"}
+          ]
+        }
+      }
+    },
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "transitionSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["transitionId"],
+      "properties": {
+        "transitionId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        }
+      }
+    },
+    "mechanicSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["position"],
+      "properties": {
+        "position": {"$ref": "#/$defs/position"},
+        "itemId": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "actionId": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "uniqueId": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "houseDoorId": {"type": "integer", "minimum": 0, "maximum": 65535}
+      },
+      "anyOf": [
+        {"required": ["itemId"]},
+        {"required": ["actionId"]},
+        {"required": ["uniqueId"]},
+        {"required": ["houseDoorId"]}
+      ]
+    },
+    "selector": {
+      "oneOf": [
+        {"$ref": "#/$defs/transitionSelector"},
+        {"$ref": "#/$defs/mechanicSelector"}
+      ]
+    },
+    "activation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": {
+            "kind": {"const": "step-on"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "direction"],
+          "properties": {
+            "kind": {"const": "walk-direction"},
+            "direction": {
+              "enum": ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "target"],
+          "properties": {
+            "kind": {"const": "use-map-item"},
+            "target": {"enum": ["transition-source", "selector-position", "explicit-position"]},
+            "targetPosition": {"$ref": "#/$defs/position"}
+          },
+          "allOf": [
+            {
+              "if": {"properties": {"target": {"const": "explicit-position"}}, "required": ["target"]},
+              "then": {"required": ["targetPosition"]},
+              "else": {"not": {"required": ["targetPosition"]}}
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "target", "inventoryItemId"],
+          "properties": {
+            "kind": {"const": "use-inventory-on-map"},
+            "target": {"enum": ["transition-source", "selector-position", "explicit-position"]},
+            "targetPosition": {"$ref": "#/$defs/position"},
+            "inventoryItemId": {"type": "integer", "minimum": 0, "maximum": 65535}
+          },
+          "allOf": [
+            {
+              "if": {"properties": {"target": {"const": "explicit-position"}}, "required": ["target"]},
+              "then": {"required": ["targetPosition"]},
+              "else": {"not": {"required": ["targetPosition"]}}
+            }
+          ]
+        }
+      ]
+    },
+    "scriptResolutionRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "allowedStatuses"],
+      "properties": {
+        "required": {"type": "boolean"},
+        "allowedStatuses": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "handled-directly",
+              "handled-by-range",
+              "handled-generically",
+              "handled-by-item-id",
+              "handled-by-action-id",
+              "handled-by-unique-id",
+              "handled-by-position",
+              "handled-as-target",
+              "handled-by-fallback",
+              "handled-by-engine",
+              "handled-multiple"
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"required": {"const": true}}, "required": ["required"]},
+          "then": {"properties": {"allowedStatuses": {"minItems": 1}}},
+          "else": {"properties": {"allowedStatuses": {"maxItems": 0}}}
+        }
+      ]
+    },
+    "requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["transitionKinds", "transitionEvidenceSources", "scriptResolution"],
+      "properties": {
+        "transitionKinds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"enum": ["teleport", "stairs", "ladder", "hole", "rope", "floor-change", "custom"]}
+        },
+        "transitionEvidenceSources": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"enum": ["worldIndex", "transitionManifest"]}
+        },
+        "scriptResolution": {"$ref": "#/$defs/scriptResolutionRequirement"}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "references"],
+      "properties": {
+        "status": {"const": "reviewed"},
+        "references": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1, "maxLength": 512}
+        },
+        "note": {"type": "string", "maxLength": 2000}
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "selector", "activation", "requirements", "evidence"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$"
+        },
+        "selector": {"$ref": "#/$defs/selector"},
+        "activation": {"$ref": "#/$defs/activation"},
+        "requirements": {"$ref": "#/$defs/requirements"},
+        "evidence": {"$ref": "#/$defs/evidence"}
+      }
+    }
+  }
+}
