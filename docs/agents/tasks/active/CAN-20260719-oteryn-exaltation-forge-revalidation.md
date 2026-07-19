@@ -201,7 +201,7 @@ updated_at: 2026-07-19
 head: 02a6578f0cd2e4672e8e71c142d892a03c53d41d
 branch: docs/oam-020-exaltation-forge-revalidation
 pr: 598
-status: governance_reconciling
+status: validating
 context_routes:
   - agent-governance
   - cpp-runtime
