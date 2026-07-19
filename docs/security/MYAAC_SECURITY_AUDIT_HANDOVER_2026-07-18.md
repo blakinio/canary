@@ -201,15 +201,17 @@ No public or third-party deployment was tested.
 
 - repository: `blakinio/canary`
 - task ID: `CAN-20260718-myaac-security-audit-continuation`
-- branch: `docs/myaac-security-audit-continuation-20260718`
-- PR: `#556` — draft
+- audit branch: `docs/myaac-security-audit-continuation-20260718`
+- audit PR: `#556` — squash-merged
 - base: `main`
-- base SHA at branch creation: `6c2ed7fd5d7e0f51bf7bfc75ebcc30b840315e41`
-- pre-final validation head: `8bf33f50ff075fa3bdaf14caf570af5c51090714`
-- CI status at handover-content update: general CI PASS; Agent Task Ownership PASS; Security Validation still running on the pre-final head
-- merge status: not merged
-- `ci:final-gate`: applied before this final handover-content commit
+- base SHA at audit-branch creation: `6c2ed7fd5d7e0f51bf7bfc75ebcc30b840315e41`
+- exact audit final head: `cb127ee3d144bab1b5b50ecb91c3b880a96a4b8d`
+- exact-head CI: PASS — CI run `3495`, Agent Task Ownership run `2358`, Security Validation run `124`
+- audit merge commit: `382fbd0c2f8e0d9978b05582198d8ad3be1a92d0`
+- audit merge status: merged on 2026-07-18
+- post-merge closeout PR: `#559`; documentation-only synchronization of this state, with no finding/source change
+- task lifecycle: audit work complete; the active task record remains only for closeout and is expected to move to `tasks/archive` through the repository post-merge lifecycle automation
 
 ## Exact next_action
 
-Wait only on repository automation already running for PR #556: verify Security Validation and all required checks on the post-handover exact head. If they pass, update the active task checkpoint once with the exact validation state, require the resulting final checkpoint head to pass the forced `ci:final-gate`, then mark the PR ready and squash-merge only if it remains mergeable and review-clean. Full MyAAC/login-server/Canary E2E remains unavailable and must not be represented as completed.
+Build a disposable local MyAAC + MariaDB + login-server + Canary stack and run the previously unavailable E2E set, prioritizing MYAAC-036 across web/admin/native login, password-change/reset external-session replay, login-server HTTP 8088 and direct gRPC 9090 behavior, direct Canary password-path policy bypass, XFF trusted-proxy bypass, and real MariaDB concurrency for premium-point, email-confirm reward, and forum cooldown flows. Do not reopen rejected findings or downgrade existing proven severity without new evidence.
