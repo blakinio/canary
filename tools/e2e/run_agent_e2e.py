@@ -33,9 +33,31 @@ DIRECTIONS = {
     "northwest",
 }
 
+WALK_EDGE_DIRECTIONS: dict[tuple[int, int], str] = {
+    (0, -1): "north",
+    (1, -1): "northeast",
+    (1, 0): "east",
+    (1, 1): "southeast",
+    (0, 1): "south",
+    (-1, 1): "southwest",
+    (-1, 0): "west",
+    (-1, -1): "northwest",
+}
+
 ACTION_FIELDS: dict[str, set[str]] = {
     "wait": {"id", "action", "ms"},
     "walk": {"id", "action", "direction", "count", "interval_ms"},
+    "walk_edge": {
+        "id",
+        "action",
+        "from_x",
+        "from_y",
+        "from_z",
+        "to_x",
+        "to_y",
+        "to_z",
+        "timeout_ms",
+    },
     "talk": {"id", "action", "text"},
     "attack_visible": {"id", "action", "creature", "timeout_ms"},
     "use_inventory_item": {"id", "action", "item_id"},
@@ -210,6 +232,19 @@ def _require_bounded_positive_int(
     return value
 
 
+def _require_bounded_int(
+    mapping: dict[str, Any],
+    key: str,
+    path: str,
+    minimum: int,
+    maximum: int,
+) -> int:
+    value = mapping.get(key)
+    if not isinstance(value, int) or isinstance(value, bool) or not minimum <= value <= maximum:
+        raise ScenarioError(f"{path}.{key} must be an integer between {minimum} and {maximum}")
+    return value
+
+
 def _require_bool(mapping: dict[str, Any], key: str, path: str) -> bool:
     value = mapping.get(key)
     if not isinstance(value, bool):
@@ -237,6 +272,26 @@ def _require_safe_text(mapping: dict[str, Any], key: str, path: str) -> str:
     if len(value) > MAX_STEP_TEXT:
         raise ScenarioError(f"{path}.{key} must be <= {MAX_STEP_TEXT} characters")
     return value
+
+
+def walk_edge_direction(mapping: dict[str, Any], path: str = "walk_edge") -> str:
+    """Validate one exact adjacent same-floor edge and derive its movement direction."""
+
+    from_x = _require_bounded_int(mapping, "from_x", path, 0, 65535)
+    from_y = _require_bounded_int(mapping, "from_y", path, 0, 65535)
+    from_z = _require_bounded_int(mapping, "from_z", path, 0, 15)
+    to_x = _require_bounded_int(mapping, "to_x", path, 0, 65535)
+    to_y = _require_bounded_int(mapping, "to_y", path, 0, 65535)
+    to_z = _require_bounded_int(mapping, "to_z", path, 0, 15)
+    if from_z != to_z:
+        raise ScenarioError(f"{path} must remain on one floor; from_z={from_z} to_z={to_z}")
+    delta = (to_x - from_x, to_y - from_y)
+    direction = WALK_EDGE_DIRECTIONS.get(delta)
+    if direction is None:
+        raise ScenarioError(
+            f"{path} must describe exactly one adjacent movement edge; delta={delta[0]},{delta[1]}"
+        )
+    return direction
 
 
 def _walk_for_embedded_secrets(value: Any, path: str = "scenario") -> Iterable[str]:
@@ -274,6 +329,9 @@ def _validate_step(step: Any, index: int) -> dict[str, Any]:
             raise ScenarioError(f"{path}.direction unsupported: {direction!r}")
         _require_bounded_positive_int(mapping, "count", path, MAX_STEP_COUNT, default=1)
         _require_bounded_positive_int(mapping, "interval_ms", path, 10_000, default=250)
+    elif action == "walk_edge":
+        walk_edge_direction(mapping, path)
+        _require_bounded_positive_int(mapping, "timeout_ms", path, MAX_STEP_DELAY_MS, default=10_000)
     elif action == "talk":
         _require_safe_text(mapping, "text", path)
     elif action == "attack_visible":
