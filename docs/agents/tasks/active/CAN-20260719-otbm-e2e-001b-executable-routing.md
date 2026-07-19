@@ -75,7 +75,7 @@ Implement `OTBM-E2E-001B — Executable interaction-aware routing mode` by rerun
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-19T12:36:00+02:00
-head: 9d6c7caf58d70ed528be593470b706a393125f08
+head: 6d5a555b3016aba1da512dddfd238fc45b57c539
 branch: feat/otbm-e2e-001b-executable-routing
 pr: 580
 status: implementing
@@ -121,11 +121,13 @@ proven:
   - lifecycle cleanup PR #579 for merged PR #572 is separate; auto-merge is enabled and this task does not manually archive that record
   - no OTBM, WIDX, items.otb, client assets or tools/e2e changes are in scope
 unknown:
-  - exact-final-head required workflow conclusions after this checkpoint commit
+  - exact-final-head required workflow conclusions after this checkpoint-format correction
   - final review-thread state and branch-protection Required conclusion immediately before merge
 conflicts: []
 blockers: []
-first_failure: {}
+first_failure:
+  marker: Agent Task Ownership run 2535 rejected inline empty first_failure mapping
+  evidence: checkpoint validator requires non-empty first_failure.marker and first_failure.evidence mapping fields
 rejected_hypotheses:
   - add another BFS/A*/Dijkstra implementation
   - treat optimistic unknown appearances as executable
@@ -156,9 +158,9 @@ validation:
   - command: exact implementation-head focused workflows on 440a9e2ee1373baa30520c1cf9f2d1bc51cbed2a
     result: PASS
     evidence: OTBM Reachability 90, CI 3670, AI Agent Tools 1135, OTBM Map Tools 689, OTBM Semantic Diff 105, OTBM Geometry Audit 95 and OTBM Spawn and NPC Validation 70 all succeeded
-  - command: Agent Task Ownership 2529 diagnostic artifact
-    result: FIXED
-    evidence: only failure was first_failure null instead of mapping; corrected to first_failure {}
+  - command: Agent Task Ownership 2535 diagnostic artifact and checkpoint parser contract
+    result: FAIL
+    evidence: inline first_failure empty mapping is rejected; validator requires first_failure.marker and first_failure.evidence, corrected in this commit
   - command: compare main...feat/otbm-e2e-001b-executable-routing before final checkpoint
     result: PASS
     evidence: live main c2e27060165b91c1de6a5f40571060e480cdcb06 is the merge base and branch is behind_by 0
