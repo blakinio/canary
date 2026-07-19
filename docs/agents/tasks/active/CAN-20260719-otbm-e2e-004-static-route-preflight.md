@@ -8,10 +8,10 @@ branch: feat/otbm-e2e-004-static-route-preflight
 base_branch: main
 created: 2026-07-19
 updated: 2026-07-19
-last_verified_commit: "a8ad5dcc0d1b5a2e399fc96d24d987fb633b7344"
+last_verified_commit: "f1f4a67c70909c93b1912f22e35f9350dc935d00"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "594"
 depends_on:
   - merged PR #567 canary-otbm-e2e-route-plan-v1
   - merged PR #571 canary-otbm-semantic-landmarks-v1
@@ -77,9 +77,9 @@ Implement `OTBM-E2E-004 — Exact-map static route preflight` as a deterministic
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-19
-head: UNKNOWN
+head: f1f4a67c70909c93b1912f22e35f9350dc935d00
 branch: feat/otbm-e2e-004-static-route-preflight
-pr: UNKNOWN
+pr: 594
 status: implementing
 context_routes:
   - otbm
@@ -94,6 +94,7 @@ proven:
   - OTBM-E2E-001, OTBM-E2E-002, OTBM-E2E-003, OTBM-E2E-001B and E2E-ROUTE-001 are merged and lifecycle-archived
   - no open PR or branch matching OTBM-E2E-004 or static route preflight was found at task start
   - open PR #591 does not touch the planned exclusive tools/ai-agent or docs/ai-agent paths
+  - PR #594 owns feat/otbm-e2e-004-static-route-preflight
   - programme requires OTBM-E2E-004 before OTBM-E2E-005
   - this package will remain a static evidence validator and will not add a second physical E2E runner/workflow or modify tools/e2e
   - no binary map/index/client asset will be committed
@@ -114,5 +115,5 @@ changed_paths:
 blockers: []
 first_failure: null
 validation: []
-next_action: Open the draft PR, bind the task record to the live PR/head, then inspect the exact merged route-plan, landmark, interaction, Reachability and World Index APIs to implement the smallest fail-closed preflight validator.
+next_action: Inspect the exact merged route-plan, landmark, interaction, Reachability and World Index APIs and implement the smallest fail-closed preflight validator.
 ```
