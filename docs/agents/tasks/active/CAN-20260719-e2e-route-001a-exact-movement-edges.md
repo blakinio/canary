@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-route-001a-exact-movement-edges
 base_branch: main
 created: 2026-07-19T10:20:00+02:00
-updated: 2026-07-19T10:20:00+02:00
-last_verified_commit: "f962d7b606e29965fe091ea79ba154c27b22fe34"
+updated: 2026-07-19T10:25:00+02:00
+last_verified_commit: "2f72fa30d8b0fa35d80a82b4b9af28fd0b48bd49"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "573"
 depends_on:
   - CAN-PROGRAM-E2E-PLATFORM existing Universal Physical E2E action-plan lifecycle
   - CAN-PROGRAM-OTBM-E2E-ROUTING merged planning programme PR #562
@@ -77,10 +77,10 @@ This task does not claim full `E2E-ROUTE-001` completion. It deliberately exclud
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T10:20:00+02:00
-head: f962d7b606e29965fe091ea79ba154c27b22fe34
+updated_at: 2026-07-19T10:25:00+02:00
+head: 2f72fa30d8b0fa35d80a82b4b9af28fd0b48bd49
 branch: feat/e2e-route-001a-exact-movement-edges
-pr: pending
+pr: 573
 status: implementing
 context_routes:
   - agent-governance
@@ -96,6 +96,7 @@ owned_paths:
   - docs/agents/CHANGELOG.md
 proven:
   - live main is f962d7b606e29965fe091ea79ba154c27b22fe34 with OTBM-E2E-001 merged as PR 567
+  - draft PR 573 is the early same-repository PR for this task with base main and head feat/e2e-route-001a-exact-movement-edges
   - OTBM-E2E-002 remains owned separately and PR 571 is frozen as draft for the proper agent
   - OTBM-E2E-003 is actively owned by draft PR 572 and declares tools/e2e read-only
   - no open PR or branch matching E2E-ROUTE-001A or walk_edge was found before task creation
@@ -125,5 +126,5 @@ validation:
   - command: live main plus targeted open PR and branch ownership preflight
     result: PASS
     evidence: main f962d7b606e29965fe091ea79ba154c27b22fe34; PR 572 owns OTBM-E2E-003; PR 571 frozen draft for OTBM-E2E-002; no E2E-ROUTE-001A or walk_edge owner found
-next_action: Open the early draft PR, bind this task to its PR number, then implement and test the exact movement-edge primitive without touching landmark or interaction-registry paths.
+next_action: Inspect current Universal E2E validator and driver source on the task branch, implement the exact movement-edge primitive, and run focused plus workflow validation.
 ```
