@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 from collections import Counter
 from typing import Any, Mapping, Sequence
 
@@ -7,6 +9,7 @@ from otbm_reachability_graph import (
     _bfs,
     _movement_neighbors,
     _reconstruct_path,
+    _reconstruct_route,
     _tarjan_cycles,
     _transition_edges,
 )
@@ -18,6 +21,7 @@ from otbm_reachability_transition import (
 from otbm_reachability_types import (
     DEFAULT_PATH_LIMIT,
     DEFAULT_SAMPLE_LIMIT,
+    MAX_PATH_LIMIT,
     MAX_ROUTES,
     MAX_ROUTE_STARTS,
     MAX_TRANSITIONS,
@@ -29,6 +33,7 @@ from otbm_reachability_types import (
     ReachabilityError,
     TileState,
     TransitionSpec,
+    TransitionState,
     _in_bounds,
     _placement_script_status,
     _position,
@@ -36,6 +41,204 @@ from otbm_reachability_types import (
     _validate_limits,
     normalize_bounds,
 )
+
+ROUTE_PLAN_FORMAT = "canary-otbm-e2e-route-plan-v1"
+ROUTE_PLAN_SCHEMA_VERSION = 1
+MAX_EXECUTABLE_ROUTE_POSITIONS = MAX_PATH_LIMIT
+DEFAULT_EXECUTABLE_ROUTE_POSITIONS = MAX_EXECUTABLE_ROUTE_POSITIONS
+
+
+def _mapping_or_none(value: Any) -> dict[str, Any] | None:
+    return dict(value) if isinstance(value, Mapping) else None
+
+
+def _route_plan_provenance(provenance: Mapping[str, Any] | None) -> dict[str, Any]:
+    source = dict(provenance or {})
+    world_manifest = source.get("worldIndexManifest")
+    manifest_mapping = dict(world_manifest) if isinstance(world_manifest, Mapping) else {}
+    return {
+        "map": _mapping_or_none(manifest_mapping.get("source")),
+        "worldIndex": _mapping_or_none(source.get("worldIndex")),
+        "appearances": _mapping_or_none(source.get("appearances")),
+        "transitionManifest": _mapping_or_none(source.get("transitionManifest")),
+        "scriptResolution": _mapping_or_none(source.get("scriptResolution")),
+    }
+
+
+def _has_sha256(value: Any) -> bool:
+    return isinstance(value, Mapping) and isinstance(value.get("sha256"), str) and len(value["sha256"]) == 64
+
+
+def _hash_json(value: Mapping[str, Any]) -> str:
+    encoded = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _build_route_plan(
+    *,
+    start: Position,
+    goal: Position,
+    status: str,
+    strict_distance: int | None,
+    optimistic_distance: int | None,
+    previous: Mapping[Position, tuple[Position, str | None]],
+    transitions_by_id: Mapping[str, TransitionState],
+    lower: Position,
+    upper: Position,
+    allow_diagonal: bool,
+    max_positions: int,
+    provenance: Mapping[str, Any] | None,
+    issues: Sequence[str],
+) -> dict[str, Any]:
+    route_provenance = _route_plan_provenance(provenance)
+    routing_mode = "strict" if status == "confirmed" else "optimistic" if status == "conditional" else None
+    distance = strict_distance if status == "confirmed" else optimistic_distance if status == "conditional" else None
+    blockers: list[dict[str, Any]] = []
+    path_complete = status in {"invalid", "unreachable"}
+    positions: list[Position] = []
+    predecessor_edges: list[tuple[Position, Position, str | None]] = []
+
+    if status in {"confirmed", "conditional"} and distance is not None:
+        required_positions = distance + 1
+        if required_positions > max_positions:
+            blockers.append(
+                {
+                    "code": "route-exceeds-supported-bound",
+                    "requiredPositions": required_positions,
+                    "supportedMaxPositions": max_positions,
+                }
+            )
+        else:
+            positions, predecessor_edges = _reconstruct_route(start, goal, previous)
+            path_complete = bool(positions)
+            if not path_complete:
+                blockers.append({"code": "predecessor-reconstruction-failed"})
+
+    edges: list[dict[str, Any]] = []
+    transition_ids: list[str] = []
+    missing_transition_evidence: list[str] = []
+    manifest_transition_used = False
+    script_evidence_used = False
+    for source, destination, transition_id in predecessor_edges:
+        if transition_id is None:
+            edges.append(
+                {
+                    "from": list(source),
+                    "to": list(destination),
+                    "kind": "movement",
+                    "isTransition": False,
+                    "transitionId": None,
+                    "evidence": {
+                        "source": "reachability-bfs-predecessor",
+                        "edgeSource": "_movement_neighbors",
+                        "routingMode": routing_mode,
+                    },
+                }
+            )
+            continue
+
+        transition_ids.append(transition_id)
+        transition = transitions_by_id.get(transition_id)
+        transition_json = transition.to_json() if transition is not None else None
+        if transition is None:
+            missing_transition_evidence.append(transition_id)
+        else:
+            manifest_transition_used = manifest_transition_used or transition.spec.origin == "manifest"
+            script_evidence_used = script_evidence_used or transition.spec.script_status is not None or any(
+                uncertainty.startswith("script-resolution-") or uncertainty == "dynamic-script"
+                for uncertainty in transition.spec.uncertainties
+            )
+        edges.append(
+            {
+                "from": list(source),
+                "to": list(destination),
+                "kind": "transition",
+                "isTransition": True,
+                "transitionId": transition_id,
+                "evidence": {
+                    "source": "validated-transition-edge",
+                    "provenanceKey": (
+                        "transitionManifest"
+                        if transition is not None and transition.spec.origin == "manifest"
+                        else "worldIndex"
+                    ),
+                    "transition": transition_json,
+                },
+            }
+        )
+
+    if missing_transition_evidence:
+        blockers.append(
+            {
+                "code": "validated-transition-evidence-missing",
+                "transitionIds": sorted(set(missing_transition_evidence)),
+            }
+        )
+
+    if status == "conditional":
+        blockers.append({"code": "conditional-route-not-executable"})
+    elif status in {"unreachable", "invalid"}:
+        blockers.extend({"code": issue} for issue in issues)
+
+    if status == "confirmed":
+        if not _has_sha256(route_provenance.get("map")):
+            blockers.append({"code": "map-provenance-missing"})
+        if not _has_sha256(route_provenance.get("worldIndex")):
+            blockers.append({"code": "world-index-provenance-missing"})
+        if not _has_sha256(route_provenance.get("appearances")):
+            blockers.append({"code": "appearances-provenance-missing"})
+        if manifest_transition_used and not _has_sha256(route_provenance.get("transitionManifest")):
+            blockers.append({"code": "transition-manifest-provenance-missing"})
+        if script_evidence_used and not _has_sha256(route_provenance.get("scriptResolution")):
+            blockers.append({"code": "script-resolution-provenance-missing"})
+        if transition_ids:
+            blockers.append(
+                {
+                    "code": "transition-interaction-semantics-unresolved",
+                    "transitionIds": list(dict.fromkeys(transition_ids)),
+                }
+            )
+
+    if status in {"unreachable", "invalid"}:
+        execution_status = "not-applicable"
+    elif blockers:
+        execution_status = "blocked"
+    else:
+        execution_status = "executable"
+
+    input_identity = {
+        "provenance": route_provenance,
+        "origin": list(start),
+        "destination": list(goal),
+        "routingBounds": {"from": list(lower), "to": list(upper)},
+        "routingOptions": {
+            "allowDiagonal": allow_diagonal,
+            "diagonalCornerCutting": False,
+            "maxExecutablePositions": max_positions,
+        },
+    }
+    plan: dict[str, Any] = {
+        "format": ROUTE_PLAN_FORMAT,
+        "schemaVersion": ROUTE_PLAN_SCHEMA_VERSION,
+        "provenance": route_provenance,
+        "inputHashSha256": _hash_json(input_identity),
+        "origin": list(start),
+        "destination": list(goal),
+        "routingBounds": {"from": list(lower), "to": list(upper)},
+        "routingOptions": input_identity["routingOptions"],
+        "routeStatus": status,
+        "executionStatus": execution_status,
+        "routingMode": routing_mode,
+        "distance": distance,
+        "strictDistance": strict_distance,
+        "optimisticDistance": optimistic_distance,
+        "pathComplete": path_complete,
+        "path": [list(position) for position in positions],
+        "edges": edges,
+        "blockers": blockers,
+    }
+    plan["planHashSha256"] = _hash_json(plan)
+    return plan
 
 
 def analyze_world(
@@ -52,8 +255,17 @@ def analyze_world(
     sample_limit: int = DEFAULT_SAMPLE_LIMIT,
     path_limit: int = DEFAULT_PATH_LIMIT,
     provenance: Mapping[str, Any] | None = None,
+    route_plan_max_positions: int | None = None,
 ) -> dict[str, Any]:
     _validate_limits(sample_limit, path_limit)
+    if route_plan_max_positions is not None and (
+        not isinstance(route_plan_max_positions, int)
+        or isinstance(route_plan_max_positions, bool)
+        or not 1 <= route_plan_max_positions <= MAX_EXECUTABLE_ROUTE_POSITIONS
+    ):
+        raise ReachabilityError(
+            f"route_plan_max_positions must be in 1..{MAX_EXECUTABLE_ROUTE_POSITIONS}"
+        )
     lower, upper = normalize_bounds(lower, upper)
     if len(routes) > MAX_ROUTES:
         raise ReachabilityError(f"At most {MAX_ROUTES} routes may be analyzed")
@@ -142,6 +354,7 @@ def analyze_world(
         )
         for spec in transition_specs
     ]
+    transitions_by_id = {transition.spec.transition_id: transition for transition in transitions}
 
     strict_transition_edges = _transition_edges(transitions, lower, upper, strict=True)
     optimistic_transition_edges = _transition_edges(transitions, lower, upper, strict=False)
@@ -177,6 +390,22 @@ def analyze_world(
                 "transitionIdsUsed": [],
                 "issues": ["goal-outside-region"],
             }
+            if route_plan_max_positions is not None:
+                result["routePlan"] = _build_route_plan(
+                    start=start,
+                    goal=goal,
+                    status="invalid",
+                    strict_distance=None,
+                    optimistic_distance=None,
+                    previous={},
+                    transitions_by_id=transitions_by_id,
+                    lower=lower,
+                    upper=upper,
+                    allow_diagonal=allow_diagonal,
+                    max_positions=route_plan_max_positions,
+                    provenance=provenance,
+                    issues=result["issues"],
+                )
             findings.add(
                 "error",
                 "route_goal_outside_region",
@@ -188,14 +417,17 @@ def analyze_world(
             continue
         strict_distances, strict_previous = strict_cache[start]
         optimistic_distances, optimistic_previous = optimistic_cache[start]
+        selected_previous: Mapping[Position, tuple[Position, str | None]] = {}
         if goal in strict_distances:
             path, used, truncated = _reconstruct_path(start, goal, strict_previous, limit=path_limit)
             status = "confirmed"
             issues: list[str] = []
+            selected_previous = strict_previous
         elif goal in optimistic_distances:
             path, used, truncated = _reconstruct_path(start, goal, optimistic_previous, limit=path_limit)
             status = "conditional"
             issues = ["strict-path-unavailable"]
+            selected_previous = optimistic_previous
             findings.add(
                 "warning",
                 "route_conditional",
@@ -214,19 +446,34 @@ def analyze_world(
                 source=list(start),
                 destination=list(goal),
             )
-        route_results.append(
-            {
-                "start": list(start),
-                "goal": list(goal),
-                "status": status,
-                "strictDistance": strict_distances.get(goal),
-                "optimisticDistance": optimistic_distances.get(goal),
-                "path": path,
-                "pathTruncated": truncated,
-                "transitionIdsUsed": used,
-                "issues": issues,
-            }
-        )
+        result = {
+            "start": list(start),
+            "goal": list(goal),
+            "status": status,
+            "strictDistance": strict_distances.get(goal),
+            "optimisticDistance": optimistic_distances.get(goal),
+            "path": path,
+            "pathTruncated": truncated,
+            "transitionIdsUsed": used,
+            "issues": issues,
+        }
+        if route_plan_max_positions is not None:
+            result["routePlan"] = _build_route_plan(
+                start=start,
+                goal=goal,
+                status=status,
+                strict_distance=strict_distances.get(goal),
+                optimistic_distance=optimistic_distances.get(goal),
+                previous=selected_previous,
+                transitions_by_id=transitions_by_id,
+                lower=lower,
+                upper=upper,
+                allow_diagonal=allow_diagonal,
+                max_positions=route_plan_max_positions,
+                provenance=provenance,
+                issues=issues,
+            )
+        route_results.append(result)
 
     strict_reachable = set().union(*(cache[0].keys() for cache in strict_cache.values()))
     optimistic_reachable = set().union(*(cache[0].keys() for cache in optimistic_cache.values()))

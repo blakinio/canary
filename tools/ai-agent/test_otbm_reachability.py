@@ -12,6 +12,7 @@ from otbm_reachability import (
     APPEARANCES_FORMAT,
     MAX_REGION_COORDINATES,
     REPORT_FORMAT,
+    ROUTE_PLAN_FORMAT,
     TRANSITION_FORMAT,
     AppearanceSemantics,
     ReachabilityError,
@@ -131,6 +132,37 @@ def line_world(length: int = 3) -> FakeWorldIndex:
     return world
 
 
+def route_provenance() -> dict:
+    return {
+        "worldIndex": {
+            "path": "fixture.widx",
+            "size": 123,
+            "sha256": "1" * 64,
+            "format": "canary-otbm-world-index-v1",
+        },
+        "appearances": {
+            "path": "appearances.json",
+            "size": 456,
+            "sha256": "2" * 64,
+            "format": APPEARANCES_FORMAT,
+            "objectCount": len(APPEARANCES),
+        },
+        "transitionManifest": None,
+        "scriptResolution": None,
+        "worldIndexManifest": {
+            "source": {
+                "path": "fixture.otbm",
+                "size": 789,
+                "sha256": "3" * 64,
+            },
+            "index": {
+                "path": "fixture.widx",
+                "sha256": "1" * 64,
+            },
+        },
+    }
+
+
 class ReachabilityTests(unittest.TestCase):
     def test_confirmed_route_around_static_blocker(self) -> None:
         world = FakeWorldIndex()
@@ -207,6 +239,159 @@ class ReachabilityTests(unittest.TestCase):
         )
         self.assertEqual(report["routes"][0]["status"], "confirmed")
         self.assertEqual(report["routes"][0]["transitionIdsUsed"], ["teleport:1"])
+
+    def test_route_plan_ordinary_movement_uses_full_path_not_report_sample(self) -> None:
+        report = analyze_world(
+            line_world(),
+            appearances=APPEARANCES,
+            lower=(0, 0, 7),
+            upper=(2, 0, 7),
+            routes=[((0, 0, 7), (2, 0, 7))],
+            path_limit=1,
+            route_plan_max_positions=10,
+            provenance=route_provenance(),
+        )
+        route = report["routes"][0]
+        plan = route["routePlan"]
+        self.assertTrue(route["pathTruncated"])
+        self.assertEqual(plan["format"], ROUTE_PLAN_FORMAT)
+        self.assertEqual(plan["routeStatus"], "confirmed")
+        self.assertEqual(plan["executionStatus"], "executable")
+        self.assertEqual(plan["distance"], route["strictDistance"])
+        self.assertTrue(plan["pathComplete"])
+        self.assertEqual(plan["path"], [[0, 0, 7], [1, 0, 7], [2, 0, 7]])
+        self.assertEqual(
+            [(edge["from"], edge["to"], edge["kind"], edge["transitionId"]) for edge in plan["edges"]],
+            [
+                ([0, 0, 7], [1, 0, 7], "movement", None),
+                ([1, 0, 7], [2, 0, 7], "movement", None),
+            ],
+        )
+
+    def _movement_transition_report(self) -> dict:
+        world = FakeWorldIndex()
+        world.add_tile((0, 0, 7), [{"itemId": 1}])
+        world.add_tile((1, 0, 7), [{"itemId": 1}, {"itemId": 4, "teleportDestination": [1, 0, 8]}])
+        world.add_tile((1, 0, 8), [{"itemId": 1}])
+        world.add_tile((2, 0, 8), [{"itemId": 1}])
+        return analyze_world(
+            world,
+            appearances=APPEARANCES,
+            lower=(0, 0, 7),
+            upper=(2, 0, 8),
+            routes=[((0, 0, 7), (2, 0, 8))],
+            route_plan_max_positions=10,
+            provenance=route_provenance(),
+        )
+
+    def test_route_plan_movement_and_transition_matches_reachability_decision(self) -> None:
+        report = self._movement_transition_report()
+        route = report["routes"][0]
+        plan = route["routePlan"]
+        self.assertEqual(plan["routeStatus"], route["status"])
+        self.assertEqual(plan["distance"], route["strictDistance"])
+        self.assertEqual(plan["path"], [[0, 0, 7], [1, 0, 7], [1, 0, 8], [2, 0, 8]])
+        self.assertEqual([edge["kind"] for edge in plan["edges"]], ["movement", "transition", "movement"])
+        self.assertEqual(plan["edges"][0]["evidence"]["edgeSource"], "_movement_neighbors")
+        self.assertEqual(plan["edges"][2]["evidence"]["edgeSource"], "_movement_neighbors")
+        transition = plan["edges"][1]["evidence"]["transition"]
+        self.assertTrue(transition["valid"])
+        self.assertTrue(transition["strictEligible"])
+        self.assertEqual(transition["source"], [1, 0, 7])
+        self.assertEqual(transition["destination"], [1, 0, 8])
+
+    def test_route_plan_transition_id_is_attached_to_exact_edge(self) -> None:
+        plan = self._movement_transition_report()["routes"][0]["routePlan"]
+        self.assertIsNone(plan["edges"][0]["transitionId"])
+        self.assertEqual(plan["edges"][1]["from"], [1, 0, 7])
+        self.assertEqual(plan["edges"][1]["to"], [1, 0, 8])
+        self.assertEqual(plan["edges"][1]["transitionId"], "teleport:2")
+        self.assertIsNone(plan["edges"][2]["transitionId"])
+        self.assertEqual(plan["edges"][1]["evidence"]["transition"]["id"], "teleport:2")
+
+    def test_route_plan_non_executable_statuses_fail_closed(self) -> None:
+        conditional_world = FakeWorldIndex()
+        conditional_world.add_tile((0, 0, 7), [{"itemId": 1}])
+        conditional_world.add_tile((1, 0, 7), [{"itemId": 1}, {"itemId": 3, "uniqueId": 5000}])
+        conditional_world.add_tile((2, 0, 7), [{"itemId": 1}])
+        conditional = analyze_world(
+            conditional_world,
+            appearances=APPEARANCES,
+            lower=(0, 0, 7),
+            upper=(2, 0, 7),
+            routes=[((0, 0, 7), (2, 0, 7))],
+            route_plan_max_positions=10,
+            provenance=route_provenance(),
+        )["routes"][0]["routePlan"]
+        self.assertEqual(conditional["routeStatus"], "conditional")
+        self.assertEqual(conditional["executionStatus"], "blocked")
+        self.assertIn("conditional-route-not-executable", {entry["code"] for entry in conditional["blockers"]})
+
+        unreachable_world = FakeWorldIndex()
+        unreachable_world.add_tile((0, 0, 7), [{"itemId": 1}])
+        unreachable_world.add_tile((2, 0, 7), [{"itemId": 1}])
+        unreachable = analyze_world(
+            unreachable_world,
+            appearances=APPEARANCES,
+            lower=(0, 0, 7),
+            upper=(2, 0, 7),
+            routes=[((0, 0, 7), (2, 0, 7))],
+            route_plan_max_positions=10,
+            provenance=route_provenance(),
+        )["routes"][0]["routePlan"]
+        self.assertEqual(unreachable["routeStatus"], "unreachable")
+        self.assertEqual(unreachable["executionStatus"], "not-applicable")
+
+        invalid = analyze_world(
+            line_world(),
+            appearances=APPEARANCES,
+            lower=(0, 0, 7),
+            upper=(2, 0, 7),
+            routes=[((0, 0, 7), (3, 0, 7))],
+            route_plan_max_positions=10,
+            provenance=route_provenance(),
+        )["routes"][0]["routePlan"]
+        self.assertEqual(invalid["routeStatus"], "invalid")
+        self.assertEqual(invalid["executionStatus"], "not-applicable")
+        self.assertNotEqual(conditional["executionStatus"], "executable")
+        self.assertNotEqual(unreachable["executionStatus"], "executable")
+        self.assertNotEqual(invalid["executionStatus"], "executable")
+
+    def test_route_plan_full_route_bound_never_returns_partial_executable_path(self) -> None:
+        plan = analyze_world(
+            line_world(length=4),
+            appearances=APPEARANCES,
+            lower=(0, 0, 7),
+            upper=(3, 0, 7),
+            routes=[((0, 0, 7), (3, 0, 7))],
+            route_plan_max_positions=2,
+            provenance=route_provenance(),
+        )["routes"][0]["routePlan"]
+        self.assertEqual(plan["routeStatus"], "confirmed")
+        self.assertEqual(plan["executionStatus"], "blocked")
+        self.assertFalse(plan["pathComplete"])
+        self.assertEqual(plan["path"], [])
+        self.assertEqual(plan["edges"], [])
+        blocker = next(entry for entry in plan["blockers"] if entry["code"] == "route-exceeds-supported-bound")
+        self.assertEqual(blocker["requiredPositions"], 4)
+        self.assertEqual(blocker["supportedMaxPositions"], 2)
+
+    def test_route_plan_is_deterministic_including_hashes(self) -> None:
+        kwargs = dict(
+            appearances=APPEARANCES,
+            lower=(0, 0, 7),
+            upper=(2, 0, 7),
+            routes=[((0, 0, 7), (2, 0, 7))],
+            route_plan_max_positions=10,
+            provenance=route_provenance(),
+        )
+        first = analyze_world(line_world(), **kwargs)["routes"][0]["routePlan"]
+        second = analyze_world(line_world(), **kwargs)["routes"][0]["routePlan"]
+        self.assertEqual(first, second)
+        self.assertEqual(first["inputHashSha256"], second["inputHashSha256"])
+        self.assertEqual(first["planHashSha256"], second["planHashSha256"])
+        self.assertEqual(len(first["inputHashSha256"]), 64)
+        self.assertEqual(len(first["planHashSha256"]), 64)
 
     def test_explicit_ladder_item_mismatch(self) -> None:
         world = FakeWorldIndex()
