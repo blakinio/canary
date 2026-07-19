@@ -7,9 +7,7 @@ on:
       - closed
 
 permissions:
-  actions: write
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   archive-merged-task:
@@ -20,9 +18,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Checkout trusted default branch
         uses: actions/checkout@v6
         with:
+          token: ${{ steps.app-token.outputs.token }}
           ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0
 
@@ -71,7 +79,7 @@ jobs:
         id: cleanup_pr
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           FEATURE_TITLE: ${{ github.event.pull_request.title }}
           LIFECYCLE_BRANCH: ${{ steps.commit.outputs.branch }}
@@ -87,7 +95,7 @@ jobs:
           - Generated from trusted \`${DEFAULT_BRANCH}\` after merge.
           - The workflow did not checkout or execute the feature PR head.
           - Scope is limited to the exact active task record whose parsed \`related_pr\` equals ${PR_NUMBER}.
-          - Required workflows are explicitly dispatched on this exact cleanup branch because PRs created with the repository automation token do not reliably trigger usable recursive PR checks.
+          - The cleanup PR is created with the repository GitHub App installation token so normal pull-request workflows can start without manual approval.
           - Normal CI, branch protection and auto-merge remain in force.
           EOF
 
@@ -99,25 +107,11 @@ jobs:
             --body-file "$body_file")"
           echo "url=$pr_url" >> "$GITHUB_OUTPUT"
 
-      - name: Dispatch required cleanup checks
-        if: steps.lifecycle.outputs.changed == 'true'
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          LIFECYCLE_BRANCH: ${{ steps.commit.outputs.branch }}
-        run: |
-          gh workflow run agent-task-ownership.yml \
-            --repo "$GITHUB_REPOSITORY" \
-            --ref "$LIFECYCLE_BRANCH"
-          gh workflow run ci.yml \
-            --repo "$GITHUB_REPOSITORY" \
-            --ref "$LIFECYCLE_BRANCH"
-
       - name: Enable cleanup auto-merge
         if: steps.lifecycle.outputs.changed == 'true'
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           CLEANUP_PR_URL: ${{ steps.cleanup_pr.outputs.url }}
         run: |
           gh pr merge "$CLEANUP_PR_URL" \
