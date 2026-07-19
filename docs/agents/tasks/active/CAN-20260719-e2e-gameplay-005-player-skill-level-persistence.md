@@ -7,7 +7,7 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-player-skill-level-persistence
 base_branch: main
 created: 2026-07-19T22:25:00+02:00
-updated: 2026-07-19T22:49:00+02:00
+updated: 2026-07-19T22:52:00+02:00
 last_verified_commit: "644fc0ec79bd89fae93bd14a6a443cfe57c7b004"
 risk: medium
 related_issue: ""
@@ -66,12 +66,12 @@ Add one bounded reusable `player_skill_level` persistence assertion for the seve
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T22:49:00+02:00
-head: 644fc0ec79bd89fae93bd14a6a443cfe57c7b004
+updated_at: 2026-07-19T22:52:00+02:00
+head: d1b63e68b6da2313d379d01b390b653b3cb3e5e7
 branch: feat/e2e-player-skill-level-persistence
 pr: 603
 status: validating
-next_action: Freeze this checkpoint commit as the final head, mark PR ready, require exact-final-head Ownership, CI, Universal Agent E2E and applicable autofix, then perform a clean review blocker and expected-head merge audit.
+next_action: Freeze this replacement checkpoint commit as the final head, require exact-final-head Ownership, CI, Universal Agent E2E and applicable autofix, then perform a clean review blocker and expected-head merge audit.
 context_routes:
   - agent-governance
   - e2e
@@ -98,12 +98,12 @@ proven:
   - current main advanced from task start to 2b6ae86539640dfc52323e9d5abbde31d6610c5f only through two unrelated OAM-020 documentation paths with no overlap with PR 603
   - implementation head 806412abc94163f6070649e21c41e5bb22ff80ca passed Agent Task Ownership and CI while autofix.ci was skipped
   - pre-final-checkpoint head 644fc0ec79bd89fae93bd14a6a443cfe57c7b004 passed Agent Task Ownership
-  - ci:final-gate was applied to PR 603 before this final checkpoint commit
+  - ci:final-gate was applied to PR 603 before both the original and replacement final checkpoint commits
 derived:
   - post-relog persistence verification uses getSkillBaseLevel rather than getSkillLevel so temporary or equipment bonuses cannot create a false mismatch against durable database state
   - fixed skill-name mappings keep both SQL column selection and maintained-client skill ids outside caller control
 unknown:
-  - exact-final-head Ownership, CI, Universal Agent E2E and applicable autofix outcomes are not known yet
+  - exact-replacement-final-head Ownership, CI, Universal Agent E2E and applicable autofix outcomes are not known yet
   - final review blocker audit and expected-head squash merge remain pending
 conflicts: []
 rejected_hypotheses:
@@ -119,11 +119,11 @@ changed_paths:
   - tools/e2e/client/agent_e2e_scenario.lua
   - tools/e2e/persistence_assertions.py
 blockers:
-  - exact-final-head Ownership, CI, Universal Agent E2E and applicable autofix must pass before merge
+  - exact-replacement-final-head Ownership, CI, Universal Agent E2E and applicable autofix must pass before merge
   - final review blocker audit and expected-head squash merge remain pending
 first_failure:
   marker: The first full-file MODULE_CATALOG.md update accidentally removed the phrase before create-new publication from the unrelated OTBM bounded raw tile insertion materializer row.
-  evidence: PR file-patch audit exposed the unrelated hunk immediately; the following correction restored the exact baseline phrase and the current catalog patch contains only the intended Universal OTS E2E row change.
+  evidence: PR file-patch audit exposed the unrelated hunk immediately and it was restored; later the first frozen checkpoint head d1b63e68b6da2313d379d01b390b653b3cb3e5e7 failed Ownership because validation result WARN is not supported, so this replacement checkpoint uses the parser-supported NOT_RUN result.
 validation:
   - command: evidence review of Canary schema and player skill save/load implementation
     result: PASS
@@ -139,8 +139,8 @@ validation:
     evidence: The current patch changes only the Universal OTS E2E physical gameplay action plans row to add PR 603, player_skill_level paths and the bounded fixed mapping/base-level contract.
   - command: Agent Task Ownership on pre-final-checkpoint head 644fc0ec79bd89fae93bd14a6a443cfe57c7b004
     result: PASS
-    evidence: Workflow completed successfully before the final checkpoint commit.
-  - command: exact-final-head required gate and review audit
-    result: WARN
-    evidence: Must run after this final checkpoint commit; no merge is permitted until Ownership, CI, Universal Agent E2E and applicable autofix are resolved on the exact frozen head and review blockers are clean.
+    evidence: Workflow completed successfully before the final checkpoint sequence.
+  - command: exact-replacement-final-head required gate and review audit
+    result: NOT_RUN
+    evidence: Must run after this replacement final checkpoint commit; no merge is permitted until Ownership, CI, Universal Agent E2E and applicable autofix are resolved on the exact frozen head and review blockers are clean.
 ```
