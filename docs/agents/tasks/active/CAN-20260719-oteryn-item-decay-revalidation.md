@@ -7,7 +7,7 @@ agent: "GPT-5.5 Thinking"
 branch: docs/oam-018-item-decay-revalidation
 base_branch: main
 created: 2026-07-19
-updated: 2026-07-19T12:02:00+02:00
+updated: 2026-07-19T12:20:00+02:00
 last_verified_commit: "cf456993dcf1891363657d91de9f5f06c9d7d8c2"
 risk: high
 related_pr: "578"
@@ -84,19 +84,21 @@ The target diff is proof-only:
 
 No production `src/items/decay/**`, scheduler, item runtime, persistence, protocol, data, map or client file is changed.
 
-Draft CI #129 and Required #116 completed successfully but skipped build/test jobs, so they are not accepted as target proof. PR #42 was marked ready to force the full applicable ready-cycle on the same exact head. Autofix #110 completed successfully without changing the head. CI #130 and Required #117 are the current exact-head target gates.
+Draft CI #129 and Required #116 completed successfully but skipped build/test jobs, so they are not accepted as target proof. PR #42 was marked ready to force the full applicable ready-cycle on the same exact head. Autofix #110 completed successfully without changing the head. CI #130 produced exact-head Linux debug proof with 359/359 CTest PASS and both `ItemDecayReuseTest` cases passing; its first attempt remained red only because the macOS smoke wrapper reported failure despite its artifact showing the server reached online state and shut down cleanly. One failed-job rerun is in progress on the same exact head.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T12:02:00+02:00
-head: e623a95b81e82d42c357f5226bb6cffda3b9cc44
+updated_at: 2026-07-19T12:20:00+02:00
+head: 8a162d00eb63fba08ccff7265ac74ed5daa2e212
 branch: docs/oam-018-item-decay-revalidation
 pr: 578
 status: validating
-next_action: Monitor Otheryn PR #42 exact-head ready-cycle on 13e245f3c49477fa75c20171f0c845dec91d0824; inspect CI #130 Linux debug CTest evidence and Required #117, fix only proof harness defects if red, then merge target before final Canary governance closeout.
-first_failure: Canary Agent Task Ownership #2506 failed because the checkpoint omitted required field first_failure and used unsupported status preflight-complete; this is a governance checkpoint-schema defect and does not implicate target item-decay runtime.
+next_action: Monitor the single failed-job rerun for Otheryn PR #42 on exact head 13e245f3c49477fa75c20171f0c845dec91d0824; once CI and Required are green, audit and merge target PR #42 before final Canary governance closeout.
+first_failure:
+  marker: Canary Agent Task Ownership #2506 first exposed an invalid OAM-018 checkpoint schema; #2511 then narrowed the remaining defect to first_failure being a scalar instead of a mapping.
+  evidence: The ownership artifacts reported missing first_failure and unsupported preflight-complete status on #2506, then first_failure must be a YAML mapping on #2511; this is governance metadata only and does not implicate target item-decay runtime.
 context_routes:
   - docs/agents/OTERYN_OAM_018_ITEM_DECAY_REVALIDATION.md
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
@@ -117,17 +119,20 @@ proven:
   - All three repositories share decay.hpp blob 0d540e10dc73b65f2ce1aa00bfb9dd72994dcc5f.
   - Otheryn PR #42 changes only two unit-test paths and no production runtime path.
   - Otheryn PR #42 autofix #110 passed without mutating exact head 13e245f3c49477fa75c20171f0c845dec91d0824.
+  - Otheryn PR #42 Linux debug CTest passed 359 of 359 tests including both ItemDecayReuseTest focused cases on exact head 13e245f3c49477fa75c20171f0c845dec91d0824.
+  - The first macOS smoke failure compiled successfully and its uploaded runtime artifact showed the server reached online state and shut down cleanly; it is classified as smoke-harness or CI timing evidence, not an item-decay defect.
 derived:
   - item-decay is the next dependency-valid canonical OAM package.
   - The strongest current implementation candidate is target/upstream REUSE, not legacy import.
 unknown:
-  - Final exact-head CI #130 and Required #117 outcomes are pending.
-  - Final OAM-018 disposition remains provisional until exact-head target proof passes.
+  - Final rerun outcome for the macOS smoke wrapper and resulting Required status are pending.
+  - Final OAM-018 disposition remains provisional until all required exact-head target gates pass.
 conflicts: []
 rejected_hypotheses:
   - Treating legacy decay.cpp blob inequality as sufficient reason to import legacy runtime.
   - Treating omission of DispatcherLane::Maintenance as a stronger item-decay behavior.
   - Treating draft CI #129 and Required #116 as sufficient target proof when build/test jobs were skipped.
+  - Treating the first macOS smoke-wrapper failure as a production item-decay defect despite successful compilation and an artifact showing clean runtime startup and shutdown.
 changed_paths:
   - docs/agents/OTERYN_OAM_018_ITEM_DECAY_REVALIDATION.md
   - docs/agents/tasks/active/CAN-20260719-oteryn-item-decay-revalidation.md
@@ -151,6 +156,9 @@ validation:
   - command: Otheryn PR #42 autofix #110
     result: PASS
     evidence: Completed successfully on exact head 13e245f3c49477fa75c20171f0c845dec91d0824 without a head mutation.
+  - command: Otheryn PR #42 Linux debug full CTest
+    result: PASS
+    evidence: linux-debug-test-logs artifact 8441163603 digest sha256:de3f541b41aa9d4f39a4d8d629de52a51e09b8eaff461c8706bb7a296cfd9631 reports 359/359 PASS and ItemDecayReuseTest 2/2 PASS.
 ```
 
 # Next-agent sequence
