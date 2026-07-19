@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-003-route-interactions
 base_branch: main
 created: 2026-07-19T09:53:00+02:00
-updated: 2026-07-19T10:20:00+02:00
-last_verified_commit: "6f6a98e992079dd127bea442492c71216e2fb7de"
+updated: 2026-07-19T10:50:00+02:00
+last_verified_commit: "9a5be3ebceae45a81d6502d28d0faa36d096e306"
 risk: medium
 related_issue: ""
 related_pr: "572"
@@ -75,8 +75,8 @@ Implement `OTBM-E2E-003 — Route interaction semantics` as a deterministic revi
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T10:20:00+02:00
-head: 6f6a98e992079dd127bea442492c71216e2fb7de
+updated_at: 2026-07-19T10:50:00+02:00
+head: 9a5be3ebceae45a81d6502d28d0faa36d096e306
 branch: feat/otbm-e2e-003-route-interactions
 pr: 572
 status: implementing
@@ -94,12 +94,15 @@ owned_paths:
   - docs/agents/CHANGELOG.md
 proven:
   - task branch was created from live main at f962d7b606e29965fe091ea79ba154c27b22fe34
-  - draft PR 572 is the early same-repository PR for this task with base main and head feat/otbm-e2e-003-route-interactions
+  - PR 572 is the same-repository PR for this task with base main and head feat/otbm-e2e-003-route-interactions
   - OTBM-E2E-001 route-plan export merged as PR #567 and publishes canary-otbm-e2e-route-plan-v1
-  - PR #570 remains the separate open automated lifecycle cleanup for merged PR #567; this task does not manually archive that task
-  - PR #571 remains the separate draft owner of OTBM-E2E-002 semantic-landmark exclusive paths; this task does not overlap those exclusive paths
-  - live main remains f962d7b606e29965fe091ea79ba154c27b22fe34 through this checkpoint
-  - no open PR or repository task matching OTBM-E2E-003 was found at task start
+  - PR #570 remains the separate lifecycle cleanup path for merged PR #567; this task does not manually archive that task
+  - OTBM-E2E-002 merged independently as PR #571 with main merge commit da36fedefdf7071ad3def46e497140418c9b2f84
+  - after PR #571 advanced main and made PR #572 non-mergeable, merge commit e8b73f45212594c36aa5f55d273656bd407ee0f0 synchronized this branch with main while preserving the six exclusive OTBM-E2E-003 files by exact blob identity
+  - PR #572 is mergeable again against base da36fedefdf7071ad3def46e497140418c9b2f84
+  - MODULE_CATALOG.md patch against current main contains exactly one added OTBM Route Interaction Registry row and preserves the merged Semantic Landmark Registry row
+  - CHANGELOG.md patch against current main contains exactly one added canary-otbm-route-interactions-v1 Unreleased bullet and preserves the semantic-landmarks entry
+  - changed-file inventory contains exactly eight files: the task record, three route-interaction docs/contracts, resolver, focused tests, MODULE_CATALOG.md and CHANGELOG.md
   - programme requires a separate interaction registry and forbids treating optimistic reachability as physical executability
   - Script Resolution preserves unresolved, partially-resolved, referenced-only and conflicting states; unresolved does not mean handled
   - canary-otbm-route-interactions-v1 schema and an empty unbound seed are implemented
@@ -110,13 +113,9 @@ proven:
   - reviewed transition-manifest and Script Resolution evidence can be SHA-256 pinned and exact caller expectations fail closed on stale evidence
   - engine teleport step-on and reviewed ladder use-map-item semantics are covered without modifying Reachability or Universal E2E
   - unknown doors and barriers resolve to interaction-not-reviewed rather than assumed usable
-  - MODULE_CATALOG.md PR patch is limited to Last reviewed 2026-07-19 plus one OTBM Route Interaction Registry row
-  - CHANGELOG.md PR patch is limited to one Unreleased bullet for canary-otbm-route-interactions-v1
-  - changed-file inventory contains exactly the task record, three route-interaction docs/contracts, resolver, focused tests, MODULE_CATALOG.md and CHANGELOG.md
-  - AI Agent Tools run 29679036887 passed including Run unit tests on implementation head e15bdc8ad9ad14fb448bcfeaf4b90f43be193832
-  - CI run 29679429456, Agent Task Ownership run 29679429392 and OTBM Map Tools run 29679429347 passed on documentation-complete head 6f6a98e992079dd127bea442492c71216e2fb7de
-  - OTBM Map Tools run 29679429347 passed Validate OTBM schema JSON and Run focused OTBM tests
-  - ci:final-gate label was applied to PR 572 before this final checkpoint commit
+  - pre-sync implementation validation passed AI Agent Tools, CI, Agent Task Ownership and OTBM Map Tools on exact historical heads
+  - pre-sync ci:final-gate on fa6d6a22e0a08c92128d6ad29dfba37ea7629449 passed AI Agent Tools, Agent Task Ownership, OTBM Map Tools and initial CI, but was superseded when PR #571 advanced main before branch protection completed the ready-for-review full CI matrix
+  - ci:final-gate label remains applied to PR #572 for the post-sync exact-head validation
   - repository writes are restricted to blakinio/canary
   - no local Git checkout is available because the execution sandbox cannot resolve github.com; GitHub connector state is authoritative for repository writes and CI observation
   - no OTBM, WIDX, items.otb, client assets, generated route reports, Reachability pathfinder changes or tools/e2e changes are in scope
@@ -124,17 +123,18 @@ derived:
   - the v1 registry can be implemented independently of executable interaction-aware routing because OTBM-E2E-001B is a later consumer of the stable interaction contract
   - a successful interaction resolution is static evidence only and does not prove runtime gameplay state
 unknown:
-  - exact final checkpoint commit SHA and its final-gate workflow results are pending after this commit
+  - exact final checkpoint commit SHA and its post-sync final-gate workflow results are pending after this commit
 conflicts: []
 blockers: []
 first_failure:
-  marker: docs/agents/MODULE_CATALOG.md temporary tail truncation during connector-only full-file replacement
-  evidence: repaired immediately; final PR patch proves only the intended review-date change and one registry row remain
+  marker: Agent Task Ownership rejected task status validating on historical final checkpoint 362889ec7707b65909d04c5201ca49327394285a
+  evidence: corrected to implementing; exact subsequent head fa6d6a22e0a08c92128d6ad29dfba37ea7629449 passed changed-active-task checkpoint validation
 rejected_hypotheses:
   - modify Reachability BFS or add a second pathfinder in this task
   - infer interaction semantics from sprite names, item names or optimistic walkability
   - treat unresolved or conflicting Script Resolution evidence as executable
   - add physical client execution under tools/e2e in this task
+  - overwrite or drop OTBM-E2E-002 shared documentation while synchronizing main
 changed_paths:
   - docs/agents/CHANGELOG.md
   - docs/agents/MODULE_CATALOG.md
@@ -145,29 +145,23 @@ changed_paths:
   - tools/ai-agent/otbm_route_interactions.py
   - tools/ai-agent/test_otbm_route_interactions.py
 validation:
-  - command: live main, programme, route-plan contract and open-PR ownership preflight
+  - command: initial live main, programme, route-plan contract and open-PR ownership preflight
     result: PASS
-    evidence: main f962d7b606e29965fe091ea79ba154c27b22fe34; PR #567 merged; PR #571 owns only semantic-landmark exclusive paths; no OTBM-E2E-003 owner found
-  - command: AI Agent Tools workflow on e15bdc8ad9ad14fb448bcfeaf4b90f43be193832
+    evidence: PR #567 merged; OTBM-E2E-003 had no live owner at task start; OTBM-E2E-002 was owned independently
+  - command: pre-sync AI Agent Tools, CI, Agent Task Ownership and OTBM Map Tools workflows
     result: PASS
-    evidence: run 29679036887 completed successfully; Run unit tests and all generation/validation steps passed
-  - command: MODULE_CATALOG.md changed-file patch review
+    evidence: implementation and documentation heads passed focused tests, schema validation, ownership and repository CI before main advanced
+  - command: synchronize PR #572 with main after PR #571 merge
     result: PASS
-    evidence: only Last reviewed date and one OTBM Route Interaction Registry row differ from main
-  - command: CHANGELOG.md changed-file patch review
+    evidence: merge commit e8b73f45212594c36aa5f55d273656bd407ee0f0 has feature head fa6d6a22e0a08c92128d6ad29dfba37ea7629449 and main da36fedefdf7071ad3def46e497140418c9b2f84 as parents; PR is mergeable again
+  - command: MODULE_CATALOG.md changed-file patch review against current main
     result: PASS
-    evidence: only one canary-otbm-route-interactions-v1 Unreleased bullet differs from main
-  - command: CI workflow on 6f6a98e992079dd127bea442492c71216e2fb7de
+    evidence: exactly one OTBM Route Interaction Registry row is added; no existing line changes remain
+  - command: CHANGELOG.md changed-file patch review against current main
     result: PASS
-    evidence: run 29679429456 completed successfully
-  - command: Agent Task Ownership workflow on 6f6a98e992079dd127bea442492c71216e2fb7de
+    evidence: exactly one canary-otbm-route-interactions-v1 Unreleased bullet is added
+  - command: ci:final-gate label
     result: PASS
-    evidence: run 29679429392 completed successfully
-  - command: OTBM Map Tools workflow on 6f6a98e992079dd127bea442492c71216e2fb7de
-    result: PASS
-    evidence: run 29679429347 completed successfully including schema JSON validation and focused OTBM tests
-  - command: ci:final-gate label application
-    result: PASS
-    evidence: label applied to PR 572 before final checkpoint commit
-next_action: Treat this commit as the final feature-head mutation. Verify all ci:final-gate workflows on its exact SHA, then verify review threads, approvals, mergeability and branch protection before squash merge. Do not add another commit after a green final gate.
+    evidence: label remains applied to PR #572; post-sync exact-head workflows must complete before merge
+next_action: Treat the commit created by this checkpoint update as the final feature-head mutation. Verify all ci:final-gate workflows and the branch-protection Required check on its exact SHA, then verify review threads, approvals and mergeability before squash merge. Do not add another commit after a green final gate.
 ```
