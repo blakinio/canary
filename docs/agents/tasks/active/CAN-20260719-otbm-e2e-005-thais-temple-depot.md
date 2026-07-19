@@ -99,7 +99,7 @@ Deliver `OTBM-E2E-005 — Reference physical route: thais.temple -> thais.depot`
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-19
-head: 0a8588d55222b51744f805e758ac76ed8345b6a1
+head: ac6b5cab7923b27b45e9a42865fa5350f4083776
 branch: feat/otbm-e2e-005-thais-temple-depot
 pr: 600
 status: implementing
@@ -132,6 +132,12 @@ proven:
   - the Universal workflow now performs metadata-only scenario resolution, prepares exact-map route evidence only when follow_route is present, then delegates to the unchanged canonical physical lifecycle
   - generated World Index state remains temporary while route-plan, request, World Index manifest, static preflight and route-preparation summary are retained as bounded evidence
   - no other live open PR owns the modified Universal E2E workflow at the latest overlap preflight
+derived:
+  - the narrowest missing integration contract is route-artifact preparation between metadata-only scenario selection and the existing physical lifecycle; it can be supplied by composing existing World Index, semantic landmark, Reachability and preflight APIs without changing the runner, physical shell lifecycle or controlled-client executors
+  - the reviewed Thais reference path is strict same-floor and uses no transition IDs, so OTBM-E2E-005 must not invent interaction evidence for this route
+unknown:
+  - final merged head and squash SHA of prerequisite PR #599
+  - exact physical-client outcome and retained route/preflight evidence on the eventual exact-final 005 head
 blockers:
   - PR #599 is not yet merged; final 005 implementation must consume its reviewed registry from current main rather than duplicate or race its owned paths
 first_failure:
@@ -158,5 +164,8 @@ validation:
   - command: focused implementation unit tests in Agent Task Ownership on head 0a8588d55222b51744f805e758ac76ed8345b6a1
     result: PASS
     evidence: Workflow run 29701205563 completed Run focused unit tests successfully before checkpoint validation failed.
+  - command: Agent Task Ownership on head ac6b5cab7923b27b45e9a42865fa5350f4083776
+    result: FAIL
+    evidence: Workflow run 29701324330 required the derived and unknown checkpoint fields; the task record was corrected without weakening the validator.
 next_action: Require the corrected ownership checkpoint to pass, monitor prerequisite PR #599 to merge, update this branch from the resulting main, then run exact-map static route preparation and the real controlled-OTClient Universal Physical E2E proof before final-gate freeze.
 ```
