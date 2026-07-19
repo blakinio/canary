@@ -2,13 +2,13 @@
 task_id: CAN-20260719-otbm-e2e-003-route-interactions
 program_id: CAN-PROGRAM-OTBM-E2E-ROUTING
 coordination_id: OTBM-E2E-003
-status: implementing
+status: validating
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-003-route-interactions
 base_branch: main
 created: 2026-07-19T09:53:00+02:00
-updated: 2026-07-19T10:10:00+02:00
-last_verified_commit: "e15bdc8ad9ad14fb448bcfeaf4b90f43be193832"
+updated: 2026-07-19T10:20:00+02:00
+last_verified_commit: "6f6a98e992079dd127bea442492c71216e2fb7de"
 risk: medium
 related_issue: ""
 related_pr: "572"
@@ -67,19 +67,19 @@ Implement `OTBM-E2E-003 — Route interaction semantics` as a deterministic revi
 - [x] Allow reviewed ladder-style transitions to resolve to `use-map-item` only with explicit interaction evidence.
 - [x] Keep unknown doors/barriers blocked rather than assuming they are open or usable.
 - [x] Add focused deterministic tests for accepted activations, selector matching, stale/unsupported evidence and fail-closed script statuses.
-- [ ] Update catalogue/changelog only for the delivered reusable interface.
-- [ ] Apply `ci:final-gate` before final checkpoint commit.
+- [x] Update catalogue/changelog only for the delivered reusable interface.
+- [x] Apply `ci:final-gate` before final checkpoint commit.
 - [ ] Verify exact-final-head required checks and review/merge blockers before squash merge.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T10:10:00+02:00
-head: e15bdc8ad9ad14fb448bcfeaf4b90f43be193832
+updated_at: 2026-07-19T10:20:00+02:00
+head: 6f6a98e992079dd127bea442492c71216e2fb7de
 branch: feat/otbm-e2e-003-route-interactions
 pr: 572
-status: implementing
+status: validating
 context_routes:
   - agent-governance
   - otbm
@@ -96,7 +96,9 @@ proven:
   - task branch was created from live main at f962d7b606e29965fe091ea79ba154c27b22fe34
   - draft PR 572 is the early same-repository PR for this task with base main and head feat/otbm-e2e-003-route-interactions
   - OTBM-E2E-001 route-plan export merged as PR #567 and publishes canary-otbm-e2e-route-plan-v1
-  - PR #571 owns OTBM-E2E-002 semantic-landmark exclusive paths; this task does not overlap those exclusive paths
+  - PR #570 remains the separate open automated lifecycle cleanup for merged PR #567; this task does not manually archive that task
+  - PR #571 remains the separate draft owner of OTBM-E2E-002 semantic-landmark exclusive paths; this task does not overlap those exclusive paths
+  - live main remains f962d7b606e29965fe091ea79ba154c27b22fe34 through this checkpoint
   - no open PR or repository task matching OTBM-E2E-003 was found at task start
   - programme requires a separate interaction registry and forbids treating optimistic reachability as physical executability
   - Script Resolution preserves unresolved, partially-resolved, referenced-only and conflicting states; unresolved does not mean handled
@@ -108,30 +110,38 @@ proven:
   - reviewed transition-manifest and Script Resolution evidence can be SHA-256 pinned and exact caller expectations fail closed on stale evidence
   - engine teleport step-on and reviewed ladder use-map-item semantics are covered without modifying Reachability or Universal E2E
   - unknown doors and barriers resolve to interaction-not-reviewed rather than assumed usable
-  - AI Agent Tools run 29679036887 passed including Run unit tests on head e15bdc8ad9ad14fb448bcfeaf4b90f43be193832
-  - CI run 29679036934, Agent Task Ownership run 29679036902 and OTBM Map Tools run 29679036864 passed on the same head
+  - MODULE_CATALOG.md PR patch is limited to Last reviewed 2026-07-19 plus one OTBM Route Interaction Registry row
+  - CHANGELOG.md PR patch is limited to one Unreleased bullet for canary-otbm-route-interactions-v1
+  - changed-file inventory contains exactly the task record, three route-interaction docs/contracts, resolver, focused tests, MODULE_CATALOG.md and CHANGELOG.md
+  - AI Agent Tools run 29679036887 passed including Run unit tests on implementation head e15bdc8ad9ad14fb448bcfeaf4b90f43be193832
+  - CI run 29679429456, Agent Task Ownership run 29679429392 and OTBM Map Tools run 29679429347 passed on documentation-complete head 6f6a98e992079dd127bea442492c71216e2fb7de
+  - OTBM Map Tools run 29679429347 passed Validate OTBM schema JSON and Run focused OTBM tests
+  - ci:final-gate label was applied to PR 572 before this final checkpoint commit
   - repository writes are restricted to blakinio/canary
   - no local Git checkout is available because the execution sandbox cannot resolve github.com; GitHub connector state is authoritative for repository writes and CI observation
   - no OTBM, WIDX, items.otb, client assets, generated route reports, Reachability pathfinder changes or tools/e2e changes are in scope
 derived:
   - the v1 registry can be implemented independently of executable interaction-aware routing because OTBM-E2E-001B is a later consumer of the stable interaction contract
   - a successful interaction resolution is static evidence only and does not prove runtime gameplay state
-unknown: []
+unknown:
+  - exact final checkpoint commit SHA and its final-gate workflow results are pending after this commit
 conflicts: []
 blockers: []
 first_failure:
-  marker: none
-  evidence: no validation failure observed through implementation head e15bdc8ad9ad14fb448bcfeaf4b90f43be193832
+  marker: docs/agents/MODULE_CATALOG.md temporary tail truncation during connector-only full-file replacement
+  evidence: repaired immediately; final PR patch proves only the intended review-date change and one registry row remain
 rejected_hypotheses:
   - modify Reachability BFS or add a second pathfinder in this task
   - infer interaction semantics from sprite names, item names or optimistic walkability
   - treat unresolved or conflicting Script Resolution evidence as executable
   - add physical client execution under tools/e2e in this task
 changed_paths:
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260719-otbm-e2e-003-route-interactions.md
-  - docs/ai-agent/OTBM_ROUTE_INTERACTIONS.schema.json
   - docs/ai-agent/OTBM_ROUTE_INTERACTIONS.json
   - docs/ai-agent/OTBM_ROUTE_INTERACTIONS.md
+  - docs/ai-agent/OTBM_ROUTE_INTERACTIONS.schema.json
   - tools/ai-agent/otbm_route_interactions.py
   - tools/ai-agent/test_otbm_route_interactions.py
 validation:
@@ -141,14 +151,23 @@ validation:
   - command: AI Agent Tools workflow on e15bdc8ad9ad14fb448bcfeaf4b90f43be193832
     result: PASS
     evidence: run 29679036887 completed successfully; Run unit tests and all generation/validation steps passed
-  - command: CI workflow on e15bdc8ad9ad14fb448bcfeaf4b90f43be193832
+  - command: MODULE_CATALOG.md changed-file patch review
     result: PASS
-    evidence: run 29679036934 completed successfully
-  - command: Agent Task Ownership workflow on e15bdc8ad9ad14fb448bcfeaf4b90f43be193832
+    evidence: only Last reviewed date and one OTBM Route Interaction Registry row differ from main
+  - command: CHANGELOG.md changed-file patch review
     result: PASS
-    evidence: run 29679036902 completed successfully
-  - command: OTBM Map Tools workflow on e15bdc8ad9ad14fb448bcfeaf4b90f43be193832
+    evidence: only one canary-otbm-route-interactions-v1 Unreleased bullet differs from main
+  - command: CI workflow on 6f6a98e992079dd127bea442492c71216e2fb7de
     result: PASS
-    evidence: run 29679036864 completed successfully
-next_action: Update MODULE_CATALOG.md and CHANGELOG.md narrowly for canary-otbm-route-interactions-v1, then revalidate before applying ci:final-gate.
+    evidence: run 29679429456 completed successfully
+  - command: Agent Task Ownership workflow on 6f6a98e992079dd127bea442492c71216e2fb7de
+    result: PASS
+    evidence: run 29679429392 completed successfully
+  - command: OTBM Map Tools workflow on 6f6a98e992079dd127bea442492c71216e2fb7de
+    result: PASS
+    evidence: run 29679429347 completed successfully including schema JSON validation and focused OTBM tests
+  - command: ci:final-gate label application
+    result: PASS
+    evidence: label applied to PR 572 before final checkpoint commit
+next_action: Treat this commit as the final feature-head mutation. Verify all ci:final-gate workflows on its exact SHA, then verify review threads, approvals, mergeability and branch protection before squash merge. Do not add another commit after a green final gate.
 ```
