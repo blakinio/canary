@@ -120,6 +120,7 @@ proven:
   - repository writes are restricted to blakinio/canary
   - lifecycle cleanup PR #579 for merged PR #572 is separate; auto-merge is enabled and this task does not manually archive that record
   - no OTBM, WIDX, items.otb, client assets or tools/e2e changes are in scope
+derived: []
 unknown:
   - exact-final-head required workflow conclusions after this checkpoint-format correction
   - final review-thread state and branch-protection Required conclusion immediately before merge
@@ -160,7 +161,7 @@ validation:
     evidence: OTBM Reachability 90, CI 3670, AI Agent Tools 1135, OTBM Map Tools 689, OTBM Semantic Diff 105, OTBM Geometry Audit 95 and OTBM Spawn and NPC Validation 70 all succeeded
   - command: Agent Task Ownership 2535 diagnostic artifact and checkpoint parser contract
     result: FAIL
-    evidence: inline first_failure empty mapping is rejected; validator requires first_failure.marker and first_failure.evidence, corrected in this commit
+    evidence: inline first_failure empty mapping is rejected; validator requires first_failure.marker and first_failure.evidence, corrected in commit e36552ff176e1cf578407efca02269dee2b259cb
   - command: compare main...feat/otbm-e2e-001b-executable-routing before final checkpoint
     result: PASS
     evidence: live main c2e27060165b91c1de6a5f40571060e480cdcb06 is the merge base and branch is behind_by 0
