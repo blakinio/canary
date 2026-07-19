@@ -15,6 +15,8 @@ from otbm_semantic_landmarks import (
 
 MAP_SHA256 = "1" * 64
 WORLD_INDEX_SHA256 = "2" * 64
+COMMITTED_MAP_SHA256 = "a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2"
+COMMITTED_WORLD_INDEX_SHA256 = "6c22cd26d4414aa094af1d00be7f62190a441e270ee7a478b55449bf92e55e7a"
 
 
 def reviewed_registry() -> dict:
@@ -111,20 +113,39 @@ class SemanticLandmarkRegistryTests(unittest.TestCase):
         self.assertEqual(destination["routingBounds"], {"from": [100, 200, 7], "to": [120, 220, 8]})
         self.assertEqual(destination, repeated)
 
-    def test_committed_seed_is_unbound_and_empty(self) -> None:
-        seed = load_registry(Path("docs/ai-agent/OTBM_SEMANTIC_LANDMARKS.json"))
-        self.assertEqual(seed["registryStatus"], "unbound")
-        self.assertIsNone(seed["provenance"])
-        self.assertEqual(seed["regions"], [])
-        self.assertEqual(seed["landmarks"], [])
-        with self.assertRaisesRegex(SemanticLandmarkError, "unbound"):
-            resolve_landmark_anchor(
-                seed,
-                landmark_id="fixture.origin",
-                role="route-origin",
-                expected_source_map_sha256=MAP_SHA256,
-                expected_world_index_sha256=WORLD_INDEX_SHA256,
-            )
+    def test_committed_registry_is_reviewed_and_resolves_thais_reference_route(self) -> None:
+        registry = load_registry(
+            Path("docs/ai-agent/OTBM_SEMANTIC_LANDMARKS.json"),
+            expected_source_map_sha256=COMMITTED_MAP_SHA256,
+            expected_world_index_sha256=COMMITTED_WORLD_INDEX_SHA256,
+            require_reviewed=True,
+        )
+        origin = resolve_landmark_anchor(
+            registry,
+            landmark_id="thais.temple",
+            role="route-origin",
+            expected_source_map_sha256=COMMITTED_MAP_SHA256,
+            expected_world_index_sha256=COMMITTED_WORLD_INDEX_SHA256,
+        )
+        destination = resolve_landmark_anchor(
+            registry,
+            landmark_id="thais.depot",
+            role="route-destination",
+            expected_source_map_sha256=COMMITTED_MAP_SHA256,
+            expected_world_index_sha256=COMMITTED_WORLD_INDEX_SHA256,
+        )
+
+        self.assertEqual(registry["registryStatus"], "reviewed")
+        self.assertEqual(origin["landmarkId"], "thais.temple")
+        self.assertEqual(origin["anchor"]["position"], [32369, 32241, 7])
+        self.assertEqual(destination["landmarkId"], "thais.depot")
+        self.assertEqual(destination["anchor"]["position"], [32352, 32226, 7])
+        self.assertEqual(origin["regionId"], "thais.temple-depot")
+        self.assertEqual(destination["regionId"], "thais.temple-depot")
+        self.assertEqual(
+            destination["routingBounds"],
+            {"from": [32347, 32216, 7], "to": [32369, 32241, 7]},
+        )
 
     def test_rejects_duplicate_region_ids(self) -> None:
         registry = reviewed_registry()
