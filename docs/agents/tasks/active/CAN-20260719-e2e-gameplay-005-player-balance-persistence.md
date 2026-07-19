@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-gameplay-005-player-balance-persistence
 base_branch: main
 created: 2026-07-19T15:32:00+02:00
-updated: 2026-07-19T17:28:00+02:00
-last_verified_commit: "021b18ce2cbf4cf001161d5335dd527ce7f37d4a"
+updated: 2026-07-19T17:34:00+02:00
+last_verified_commit: "f2f7255859e8cfc1762197c0fc84b1769bc7a5ed"
 risk: medium
 related_issue: ""
 related_pr: "591"
@@ -80,8 +80,8 @@ For exact values representable by the controlled client's Lua number boundary, t
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T17:28:00+02:00
-head: 021b18ce2cbf4cf001161d5335dd527ce7f37d4a
+updated_at: 2026-07-19T17:34:00+02:00
+head: f2f7255859e8cfc1762197c0fc84b1769bc7a5ed
 branch: feat/e2e-gameplay-005-player-balance-persistence
 pr: 591
 status: implementing
@@ -108,10 +108,13 @@ proven:
   - current main synchronization point is a8ad5dcc0d1b5a2e399fc96d24d987fb633b7344 and contains merged PR 589 plus lifecycle update 592
   - a temporary squash sync through PR 593 produced correct content but non-minimal ancestry, so it was rejected as the final branch shape
   - backup/pr591-pre-rebase preserves the pre-rebase PR 591 content
-  - feature branch was force-reset to current main a8ad5dcc0d1b5a2e399fc96d24d987fb633b7344 and only PR 591-owned changes are being reapplied
-  - shared client driver now preserves all merged PR 589 route executor, walk_edge and follow_route behavior while adding only the bank resource constant and player_balance persistence read/type handling
-  - MODULE_CATALOG preserves the merged PR 589 Universal OTS E2E route-plan execution row while updating only the Universal OTS E2E physical gameplay row for player_balance
+  - feature branch was force-reset to current main a8ad5dcc0d1b5a2e399fc96d24d987fb633b7344 and only PR 591-owned changes were reapplied
+  - PR 591 now has exactly six changed files relative to main
+  - shared client driver patch relative to main contains only the bank resource constant and player_balance persistence read/type handling; merged follow_route code is inherited unchanged
+  - MODULE_CATALOG patch relative to main contains exactly one Universal OTS E2E physical gameplay row update; merged route-plan execution row is inherited unchanged
   - PHYSICAL_GAMEPLAY_ACTION_PLANS and focused player-balance tests were restored from the pre-rebase backup without route ownership expansion
+  - post-rebase CI run 29692519567 succeeded on head f2f7255859e8cfc1762197c0fc84b1769bc7a5ed
+  - post-rebase Ownership run 29692519527 failed only because this checkpoint used an unsupported validation result label PASS_BUT_SUPERSEDED; the diagnostics artifact identified that exact parser error
   - ci:final-gate remains applied to PR 591
   - PR 591 is intentionally draft until the clean post-rebase exact-final-head gates pass
 derived:
@@ -119,8 +122,7 @@ derived:
   - clean rebase-on-main plus a minimal six-file PR diff is safer than carrying a squash-sync ancestry artifact
   - player_balance remains a dual client-plus-SQL assertion for the Lua-safe exact integer range
 unknown:
-  - post-rebase six-file diff audit result
-  - post-rebase pre-final workflow conclusions
+  - corrected post-rebase Ownership conclusion
   - exact final checkpoint SHA and final workflow conclusions
 conflicts: []
 first_failure:
@@ -145,14 +147,23 @@ validation:
     result: PASS
     evidence: LocalPlayer getResourceBalance is public, Lua-bound and RESOURCE_BANK_BALANCE is 0
   - command: exact-head gates on pre-main-drift head a4fa1d90b6e58fbfac06480e3d911702e15f3e79
-    result: PASS_BUT_SUPERSEDED
-    evidence: CI, Universal Agent E2E, Ownership and autofix all succeeded before overlapping PR 589 entered main
-  - command: post-589 shared-driver manual integration audit
     result: PASS
-    evidence: follow_route and route-executor loading from current main are preserved alongside the isolated player_balance persistence branch
+    evidence: CI, Universal Agent E2E, Ownership and autofix all succeeded, but this evidence was superseded for final merge by overlapping main changes from PR 589
+  - command: post-589 shared-driver integration audit
+    result: PASS
+    evidence: follow_route and route-executor loading from current main are preserved alongside isolated player_balance persistence handling
+  - command: post-rebase six-file scope audit
+    result: PASS
+    evidence: PR 591 changes exactly six owned/shared files and no route-plan execution implementation files from PR 589
+  - command: post-rebase CI run 29692519567
+    result: PASS
+    evidence: clean rebased head f2f7255859e8cfc1762197c0fc84b1769bc7a5ed
+  - command: post-rebase Ownership run 29692519527
+    result: FAIL
+    evidence: diagnostics artifact reported only unsupported validation result label PASS_BUT_SUPERSEDED; corrected in the next checkpoint metadata commit
   - command: ci:final-gate label
     result: PASS
-    evidence: label remains applied; a new final checkpoint will be the last commit after post-rebase pre-final validation
+    evidence: label remains applied; a new final checkpoint will be the last commit after corrected post-rebase Ownership validation
 blockers: []
-next_action: Audit PR 591 for exactly six changed files and balance-only shared-file hunks, run post-rebase pre-final CI and Ownership, then update this task as the single final checkpoint commit and freeze the new head for full exact-head gates.
+next_action: Require corrected post-rebase Ownership success, then update this task as the single final checkpoint commit and freeze the new head for full exact-head gates.
 ```
