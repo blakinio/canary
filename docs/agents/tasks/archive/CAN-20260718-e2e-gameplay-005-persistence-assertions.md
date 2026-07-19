@@ -2,13 +2,13 @@
 task_id: CAN-20260718-e2e-gameplay-005-persistence-assertions
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-GAMEPLAY-005
-status: review
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/e2e-gameplay-005-persistence-assertions
 base_branch: main
 created: 2026-07-18T23:32:00+02:00
-updated: 2026-07-19T00:31:00+02:00
-last_verified_commit: "f6e27c67c787f001701b5782286680e2791213d6"
+updated: 2026-07-19T07:32:32Z
+last_verified_commit: "f89b8aeff90c2b360acee43fe9cad3c75cf13c6a"
 risk: medium
 related_issue: ""
 related_pr: "565"
@@ -49,6 +49,7 @@ public_interfaces:
   - persistence assertion type player_field
   - generated scenario-plan.lua persistence_checks
 cross_repo_tasks: []
+completed: 2026-07-19T07:32:32Z
 ---
 
 # Goal
@@ -167,3 +168,11 @@ validation:
     evidence: run 29663122815 artifact 8435191728 proved level persistence after relog, then failed vocation exact equality because runtime actual=1 while raw persisted expectation=4; contract narrowed to comparable fields as the root-cause repair
 next_action: Verify every required ci:final-gate workflow on the exact new task-record head created by this checkpoint commit. If all checks pass, PR 565 remains mergeable, and no review or ownership blocker appears, squash-merge PR 565. Make no further commit after the green repaired final-head gate.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #565.
+- Feature head: `3dfe15d090b7a20e3f3dd56db41329c15791ed43`.
+- Merge commit: `f89b8aeff90c2b360acee43fe9cad3c75cf13c6a`.
+- Merged at: `2026-07-19T07:32:32Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
