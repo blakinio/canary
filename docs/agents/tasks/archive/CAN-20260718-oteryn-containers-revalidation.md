@@ -2,13 +2,13 @@
 task_id: CAN-20260718-oteryn-containers-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-017
-status: review
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: docs/oam-017-containers-revalidation
 base_branch: main
 created: 2026-07-18
-updated: 2026-07-19T10:15:00+02:00
-last_verified_commit: "952e7550182df739824bddea687ef89bd8997674"
+updated: 2026-07-19T08:39:27Z
+last_verified_commit: "b868e2855f6194d9fd4f88c5a56ba8e300e3c568"
 risk: high
 related_issue: "blakinio/Otheryn#40"
 related_pr: "555"
@@ -22,6 +22,7 @@ owned_paths:
   exclusive:
     - docs/agents/OTERYN_OAM_017_CONTAINERS_REVALIDATION.md
     - docs/agents/tasks/active/CAN-20260718-oteryn-containers-revalidation.md
+completed: 2026-07-19T08:39:27Z
 ---
 
 # Goal
@@ -180,3 +181,11 @@ validation:
 4. After authoritative lifecycle is established, explicitly close any self-owned automatic `docs(agents): archive merged PR #555 task` duplicate.
 5. Merge a separate one-file durable program reconciliation.
 6. Do not start OAM-018 before every OAM-017 stage above is merged.
+
+## Automated lifecycle completion
+
+- Feature PR: #555.
+- Feature head: `80650619eb9565398f1b8800ec1d463d90602a3c`.
+- Merge commit: `b868e2855f6194d9fd4f88c5a56ba8e300e3c568`.
+- Merged at: `2026-07-19T08:39:27Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
