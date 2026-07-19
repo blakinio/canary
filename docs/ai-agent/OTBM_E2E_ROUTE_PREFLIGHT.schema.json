@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_E2E_ROUTE_PREFLIGHT.schema.json",
+  "title": "Canary OTBM E2E exact-map route preflight result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "status",
+    "ok",
+    "staticEvidenceOnly",
+    "planHashSha256",
+    "runtimeEvidence",
+    "landmarkResolution",
+    "firstBlocker",
+    "findings",
+    "summary"
+  ],
+  "properties": {
+    "format": {"const": "canary-otbm-e2e-route-preflight-v1"},
+    "schemaVersion": {"const": 1},
+    "status": {"enum": ["passed", "blocked"]},
+    "ok": {"type": "boolean"},
+    "staticEvidenceOnly": {"const": true},
+    "planHashSha256": {
+      "oneOf": [
+        {"$ref": "#/$defs/sha256"},
+        {"type": "null"}
+      ]
+    },
+    "runtimeEvidence": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {"$ref": "#/$defs/sha256"},
+          {"type": "null"}
+        ]
+      }
+    },
+    "landmarkResolution": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["from", "to"],
+          "properties": {
+            "from": {"type": "object"},
+            "to": {"type": "object"}
+          }
+        },
+        {"type": "null"}
+      ]
+    },
+    "firstBlocker": {
+      "oneOf": [
+        {"$ref": "#/$defs/finding"},
+        {"type": "null"}
+      ]
+    },
+    "findings": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {"$ref": "#/$defs/finding"}
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "byCode", "truncated"],
+      "properties": {
+        "total": {"type": "integer", "minimum": 0},
+        "byCode": {
+          "type": "object",
+          "additionalProperties": {"type": "integer", "minimum": 1}
+        },
+        "truncated": {"type": "boolean"}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "passed"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "ok": {"const": true},
+          "firstBlocker": {"type": "null"},
+          "findings": {"maxItems": 0},
+          "summary": {"properties": {"total": {"const": 0}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "blocked"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "ok": {"const": false},
+          "firstBlocker": {"$ref": "#/$defs/finding"},
+          "summary": {"properties": {"total": {"minimum": 1}}}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "finding": {
+      "type": "object",
+      "required": ["severity", "code", "message"],
+      "properties": {
+        "severity": {"const": "error"},
+        "code": {"type": "string", "minLength": 1},
+        "message": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    }
+  }
+}
