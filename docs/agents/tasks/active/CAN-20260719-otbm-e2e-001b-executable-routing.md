@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-001b-executable-routing
 base_branch: main
 created: 2026-07-19T11:58:00+02:00
-updated: 2026-07-19T12:18:00+02:00
-last_verified_commit: "1e2e2d344a27f964bbfd908d5d3c859f2fe2f1a7"
+updated: 2026-07-19T12:22:00+02:00
+last_verified_commit: "7b3818fada2f998f25d2b2675a44531079784b6a"
 risk: medium
 related_issue: ""
 related_pr: "580"
@@ -27,6 +27,7 @@ owned_paths:
     - tools/ai-agent/test_otbm_reachability_executable.py
     - docs/ai-agent/OTBM_E2E_ROUTE_PLAN.md
     - docs/ai-agent/OTBM_E2E_ROUTE_PLAN.schema.json
+    - .github/workflows/otbm-reachability.yml
   shared:
     - docs/agents/MODULE_CATALOG.md
     - docs/agents/CHANGELOG.md
@@ -73,8 +74,8 @@ Implement `OTBM-E2E-001B — Executable interaction-aware routing mode` by rerun
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T12:18:00+02:00
-head: 1e2e2d344a27f964bbfd908d5d3c859f2fe2f1a7
+updated_at: 2026-07-19T12:22:00+02:00
+head: 7b3818fada2f998f25d2b2675a44531079784b6a
 branch: feat/otbm-e2e-001b-executable-routing
 pr: 580
 status: implementing
@@ -90,6 +91,7 @@ owned_paths:
   - tools/ai-agent/test_otbm_reachability_executable.py
   - docs/ai-agent/OTBM_E2E_ROUTE_PLAN.md
   - docs/ai-agent/OTBM_E2E_ROUTE_PLAN.schema.json
+  - .github/workflows/otbm-reachability.yml
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
 proven:
@@ -107,6 +109,7 @@ proven:
   - focused fixtures cover a shorter unsafe optimistic path versus a longer reviewed-door path, missing door evidence, unknown appearance fail-closed behavior, reviewed/unreviewed teleports, unresolved AID state and determinism
   - route-plan CLI accepts optional --interactions and validates the reviewed registry against exact source-map and World Index provenance before executable routing
   - route-plan schema/docs now describe executable routing mode, executableDistance and edge-level interaction evidence
+  - existing OTBM Reachability workflow now executes and compiles test_otbm_reachability*.py, validates the route-plan schema and packages the route-interaction runtime dependency instead of leaving the new fixtures unexecuted
   - no open PR was found claiming OTBM-E2E-001B or otbm_reachability paths at task start
   - repository writes are restricted to blakinio/canary
   - lifecycle cleanup PR #579 for merged PR #572 is separate; auto-merge is enabled and this task does not manually archive that record
@@ -123,6 +126,7 @@ rejected_hypotheses:
   - infer door or transition behavior from sprite/item names
   - modify Universal Physical E2E execution in this work package
 changed_paths:
+  - .github/workflows/otbm-reachability.yml
   - docs/agents/tasks/active/CAN-20260719-otbm-e2e-001b-executable-routing.md
   - docs/ai-agent/OTBM_E2E_ROUTE_PLAN.md
   - docs/ai-agent/OTBM_E2E_ROUTE_PLAN.schema.json
@@ -135,8 +139,11 @@ validation:
   - command: live programme/dependency/ownership preflight
     result: PASS
     evidence: PR #567 and PR #572 are merged; no open overlapping OTBM-E2E-001B/reachability PR found
-  - command: changed-file scope review on PR #580
+  - command: changed-file scope review on PR #580 before CI workflow update
     result: PASS
-    evidence: exactly eight task/Reachability/route-plan files are changed; no tools/e2e, OTBM, WIDX, items.otb or asset paths
-next_action: Wait for focused implementation workflows, repair any exact failures, then update shared catalogue/changelog, apply ci:final-gate and create the final task checkpoint commit.
+    evidence: implementation changes stayed inside task/Reachability/route-plan paths with no tools/e2e, OTBM, WIDX, items.otb or asset paths
+  - command: OTBM Reachability workflow coverage review
+    result: PASS
+    evidence: existing workflow was extended in place to execute the new focused fixture file, validate route-plan schema syntax and package otbm_route_interactions.py; no second workflow was created
+next_action: Read focused workflow results, repair any exact failures, then update shared catalogue/changelog, apply ci:final-gate and create the final task checkpoint commit.
 ```
