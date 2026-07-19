@@ -2,13 +2,13 @@
 task_id: CAN-20260719-otbm-e2e-005-thais-temple-depot
 program_id: CAN-PROGRAM-OTBM-E2E-ROUTING
 coordination_id: OTBM-E2E-005
-status: implementing
+status: ready
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-005-thais-temple-depot
 base_branch: main
 created: 2026-07-19
 updated: 2026-07-19
-last_verified_commit: "c353b89b5a7f783cf4ee22fe1ba91850de837a68"
+last_verified_commit: "2c448205d864f6388b8be932ecbb1a9e6dcaffe0"
 risk: high
 related_issue: ""
 related_pr: "600"
@@ -19,7 +19,7 @@ depends_on:
   - merged PR #580 executable interaction-aware Reachability
   - merged PR #589 Universal follow_route execution
   - merged PR #594 exact-map static route preflight
-  - PR #599 reviewed Thais semantic landmark binding must merge before final route generation and physical proof
+  - merged PR #599 reviewed Thais semantic landmark binding
 blocks:
   - OTBM-E2E-006 and later second-stage routing enhancements
 owned_paths:
@@ -71,38 +71,38 @@ cross_repo_tasks: []
 
 # Goal
 
-Deliver `OTBM-E2E-005 — Reference physical route: thais.temple -> thais.depot` as the first exact-map semantic landmark-to-landmark physical route proof. The scenario must reuse the merged OTBM evidence/planning/preflight contracts and the existing Universal Physical E2E lifecycle, physically reach the exact reviewed depot destination anchor with controlled OTClient `follow_route`, and preserve safe logout, persistence, relog and second safe logout evidence.
+Deliver `OTBM-E2E-005 — Reference physical route: thais.temple -> thais.depot` as the first exact-map semantic landmark-to-landmark physical route proof. The scenario reuses the merged OTBM evidence/planning/preflight contracts and the existing Universal Physical E2E lifecycle, physically reaches the exact reviewed depot destination anchor with controlled OTClient `follow_route`, and preserves safe logout, persistence, relog and second safe logout evidence.
 
 # Acceptance criteria
 
-- [ ] Consume semantic landmark IDs `thais.temple` and `thais.depot` from the reviewed exact-map registry; do not hard-code guessed landmark coordinates.
-- [ ] Require PR #599 landmark binding to be merged and update this branch from the resulting current `main` before final route generation.
-- [ ] Build/reuse the exact canonical World Index for source map SHA-256 `a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2` without committing `.widx` or the source map.
-- [ ] Generate the complete route with existing Reachability/exporter only; do not implement another parser, World Index, BFS/A*/Dijkstra/pathfinder or renderer.
-- [ ] Resolve only interactions actually required by the generated path; a strict same-floor path with no required interaction must not invent one.
-- [ ] Pass `canary-otbm-e2e-route-preflight-v1` against the exact runtime map, exact World Index, appearances and reviewed semantic registry.
-- [ ] Add feature-owned deterministic route request/fixture/assertion data plus only the proven minimal shared bridge required to materialize the canonical route artifact before the unchanged physical executor consumes it.
-- [ ] Do not create a second E2E runner, workflow or physical-client lifecycle.
-- [ ] Make the canonical runner own/materialize `route-<logical-id>.json` without committing generated route reports.
-- [ ] Keep generated `.widx` temporary and outside the uploaded Universal E2E evidence payload; retain only bounded route/preflight/provenance evidence.
-- [ ] Execute the existing `follow_route` action through a real controlled OTClient and assert the exact reviewed depot destination anchor.
-- [ ] Preserve route-plan provenance and runtime map hash in retained physical evidence.
-- [ ] Pass safe first logout, persistence sentinel, relog and second safe logout.
-- [ ] Keep the scenario reproducible on the reviewed exact map snapshot.
-- [ ] Run focused validation plus required Universal Agent E2E physical proof.
-- [ ] Apply `ci:final-gate` before the final checkpoint commit and make no post-final-head commits.
+- [x] Consume semantic landmark IDs `thais.temple` and `thais.depot` from the reviewed exact-map registry; do not hard-code guessed landmark coordinates.
+- [x] Require PR #599 landmark binding to be merged and update this branch from the resulting current `main` before final route generation.
+- [x] Build/reuse the exact canonical World Index for source map SHA-256 `a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2` without committing `.widx` or the source map.
+- [x] Generate the complete route with existing Reachability/exporter only; do not implement another parser, World Index, BFS/A*/Dijkstra/pathfinder or renderer.
+- [x] Resolve only interactions actually required by the generated path; the selected same-floor path uses no transition IDs and invents no interaction evidence.
+- [x] Pass `canary-otbm-e2e-route-preflight-v1` against the exact runtime map, exact World Index, appearances and reviewed semantic registry.
+- [x] Add feature-owned deterministic route request/fixture/assertion data plus only the proven minimal shared bridge required to materialize the canonical route artifact before the unchanged physical executor consumes it.
+- [x] Do not create a second E2E runner, workflow or physical-client lifecycle.
+- [x] Make the canonical runner own/materialize `route-<logical-id>.json` without committing generated route reports.
+- [x] Keep generated `.widx` temporary and outside the uploaded Universal E2E evidence payload; retain only bounded route/preflight/provenance evidence.
+- [x] Execute the existing `follow_route` action through a real controlled OTClient and assert the exact reviewed depot destination anchor.
+- [x] Preserve route-plan provenance and runtime map hash in retained physical evidence.
+- [x] Pass safe first logout, persistence sentinel, relog and second safe logout.
+- [x] Keep the scenario reproducible on the reviewed exact map snapshot.
+- [x] Run focused validation plus required Universal Agent E2E physical proof.
+- [x] Apply `ci:final-gate` before the final checkpoint commit and make no post-final-head commits.
 - [ ] Require exact-final-head required checks, clean review/comment/thread state, live-main overlap recheck and mergeability before squash merge with expected head SHA.
-- [ ] After feature merge, complete exact active-to-archive lifecycle before declaring programme v1 complete.
+- [ ] After feature merge, complete exact active-to-archive lifecycle before declaring this task complete.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-19
-head: ac6b5cab7923b27b45e9a42865fa5350f4083776
+head: 469428bbaad0eee3fb88a9472a7e7d389e8d9539
 branch: feat/otbm-e2e-005-thais-temple-depot
 pr: 600
-status: implementing
+status: ready
 context_routes:
   - agent-governance
   - otbm
@@ -115,41 +115,54 @@ owned_paths:
   - tests/e2e/scenarios/movement/physical-thais-temple-depot.json
   - .github/workflows/universal-agent-e2e.yml
 proven:
-  - live main at task start is c353b89b5a7f783cf4ee22fe1ba91850de837a68
-  - no actual OTBM-E2E-005 task, branch or PR existed before this task branch was created
-  - draft PR #600 owns feat/otbm-e2e-005-thais-temple-depot
-  - open PR #599 is a disjoint landmark-binding prerequisite and explicitly excludes the actual OTBM-E2E-005 physical scenario
-  - source map /mnt/data/otservbr(4).otbm is available with size 184776037 bytes and SHA-256 a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2
-  - exact current native OTBM scanner source blob dbc778b51f91f5a95203bb491ef772bfd3ab1e24 rebuilt the canonical World Index with 17972761 tiles, 23359571 placements, 9339 mechanic placements, 1171 indexed tile areas and zero unknown attribute tails
-  - generated exact World Index SHA-256 is 6c22cd26d4414aa094af1d00be7f62190a441e270ee7a478b55449bf92e55e7a and remains outside Git
-  - exact OTBM town evidence resolves town id 8 name Thais temple position 32369,32241,7
-  - exact map evidence correlates four nearby depotId 8 lockers with Thais
-  - PR #599 independently reviewed and selected route-destination anchor 32352,32226,7 using minimum strict Reachability distance plus deterministic lexicographic tie-break
-  - PR #599 final bounded static route report records region 32347,32216,7 through 32369,32241,7, confirmed strict distance 66 and no transition IDs used
-  - existing follow_route requires canonical runner-owned route-<logical-id>.json in the artifact directory and validates route hash, provenance, executability and exact final destination
-  - E2E-ROUTE-001 explicitly scoped route production out and only implemented validated canonical artifact consumption
-  - the implemented minimal bridge keeps run_agent_e2e.py, run_physical_e2e.sh and both controlled-client Lua executors unchanged
-  - the Universal workflow now performs metadata-only scenario resolution, prepares exact-map route evidence only when follow_route is present, then delegates to the unchanged canonical physical lifecycle
-  - generated World Index state remains temporary while route-plan, request, World Index manifest, static preflight and route-preparation summary are retained as bounded evidence
-  - no other live open PR owns the modified Universal E2E workflow at the latest overlap preflight
+  - PR #599 merged the reviewed Thais semantic landmark binding as 7b659fc3ad2de16374adf5450e97a731406f92e6 before final route generation
+  - source map /mnt/data/otservbr(4).otbm has size 184776037 bytes and SHA-256 a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2
+  - exact native OTBM scanner source blob dbc778b51f91f5a95203bb491ef772bfd3ab1e24 rebuilt the canonical World Index with 17972761 tiles, 23359571 placements, 9339 mechanic placements, 1171 indexed tile areas and zero unknown attribute tails
+  - generated exact World Index SHA-256 is 6c22cd26d4414aa094af1d00be7f62190a441e270ee7a478b55449bf92e55e7a and remains temporary and outside Git and retained Universal evidence
+  - reviewed semantic registry resolves thais.temple route-origin to 32369,32241,7 and thais.depot route-destination to 32352,32226,7 inside region 32347,32216,7 through 32369,32241,7
+  - reviewed landmark evidence established a four-direction strict baseline route distance 66 with no transition IDs before runtime execution
+  - the implemented bridge composes existing World Index, semantic landmark, Reachability route export and exact-map preflight APIs while leaving run_agent_e2e.py, run_physical_e2e.sh, route_plan_execution.py and both controlled-client Lua executors unchanged
+  - generated World Index state remains temporary while route plan, request, World Index manifest, static preflight and route-preparation summary are retained as bounded evidence
+  - initial Universal physical run 29702291544 proved exact route preparation and preflight but the first four-direction WEST movement edge from 32369,32241,7 to 32368,32241,7 was not observed within the runtime timeout
+  - the existing canonical diagonal Reachability option produced a 59-edge executable route from 32369,32241,7 to 32352,32226,7 with plan SHA-256 0736a819ef656f9040ea14c51f1ab474beabe9e4da50435e1eb9e7fd0c28974b and no transition IDs
+  - successful pre-sync Universal physical run 29703752964 confirmed the diagonal route end to end without weakening the exact destination or persistence assertions
+  - feature changes were cleanly replayed onto main 183d7224cb5de57585294d72631f37783b93dc89 through technical PR #609, producing validated implementation parent 469428bbaad0eee3fb88a9472a7e7d389e8d9539 with exactly the six OTBM-E2E-005 changed paths
+  - synchronized Agent Task Ownership run 29704821358 passed on implementation parent 469428bbaad0eee3fb88a9472a7e7d389e8d9539
+  - synchronized CI run 29704821457 passed on implementation parent 469428bbaad0eee3fb88a9472a7e7d389e8d9539
+  - synchronized Universal Agent E2E run 29704821423 passed Resolve scenario, exact Canary build, controlled OTClient build, Physical client movement/physical-thais-temple-depot and Required physical E2E
+  - synchronized Universal artifact 8447816376 digest sha256:131faa08eaaccdacda62788b2e173b0f9ecc422a62ecd4769e874e4d136aeb40 retains exact-map route/preflight/provenance and physical lifecycle evidence
+  - synchronized route preparation status is passed with runtime map SHA-256 a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2, World Index SHA-256 6c22cd26d4414aa094af1d00be7f62190a441e270ee7a478b55449bf92e55e7a, World Index retained false, distance 59 and preflight status passed
+  - synchronized route preflight status is passed with ok true, zero findings, exact semantic origin 32369,32241,7 and exact semantic destination 32352,32226,7
+  - synchronized physical evidence records route_plans=1, route_temple-to-depot=success, step_temple-to-depot=success and step_temple-to-depot_detail=32352,32226,7
+  - synchronized physical evidence records safe first logout, confirmed first persistence, successful second login, persistence_check_level=success with detail 500, safe second logout and e2e=success
+  - synchronized result records two server logins, two packet records, zero client exit code, no fatal runtime log hits and all scenario SQL assertions passed
+  - after synchronized proof, live main advanced from 183d7224cb5de57585294d72631f37783b93dc89 to 2c448205d864f6388b8be932ecbb1a9e6dcaffe0 only through two disjoint OAM-021 documentation additions; fresh compare found no overlap with OTBM-E2E-005 or its runtime dependencies
+  - ci:final-gate was applied to PR #600 before this final checkpoint commit
+  - no .otbm, .widx, appearances asset or generated route report is committed by this task
+  - OTBM-E2E-006 has not been started and remains blocked until OTBM-E2E-005 feature merge and exact active-to-archive lifecycle complete
+
 derived:
-  - the narrowest missing integration contract is route-artifact preparation between metadata-only scenario selection and the existing physical lifecycle; it can be supplied by composing existing World Index, semantic landmark, Reachability and preflight APIs without changing the runner, physical shell lifecycle or controlled-client executors
-  - the reviewed Thais reference path is strict same-floor and uses no transition IDs, so OTBM-E2E-005 must not invent interaction evidence for this route
+  - static exact-map Reachability intentionally cannot prove dynamic runtime occupancy; the runtime-rejected initial four-direction WEST edge therefore does not invalidate the reviewed map/WIDX walkability evidence
+  - reusing the existing diagonal Reachability mode is the narrowest canonical correction because it changes only route generation options, keeps exact reviewed semantic endpoints and preflight provenance, introduces no new pathfinder and requires no transition interactions
+  - the two post-proof OAM-021 documentation commits on main are disjoint from the feature and do not invalidate the synchronized exact-map or controlled-client runtime proof
 unknown:
-  - final merged head and squash SHA of prerequisite PR #599
-  - exact physical-client outcome and retained route/preflight evidence on the eventual exact-final 005 head
-blockers:
-  - PR #599 is not yet merged; final 005 implementation must consume its reviewed registry from current main rather than duplicate or race its owned paths
+  - exact final checkpoint commit SHA and its exact-final-head workflow conclusions are not knowable until this commit exists and must be verified before merge
+  - exact runtime actor or transient condition that rejected the original WEST edge is not proven and is not asserted
+  - final PR #600 squash merge SHA is unknown until merge
+  - exact active-to-archive lifecycle PR and merge SHA are unknown until post-feature lifecycle cleanup
+blockers: []
 first_failure:
   marker: Agent Task Ownership / Validate changed active task checkpoints
-  evidence: Workflow run 29701205563 on head 0a8588d55222b51744f805e758ac76ed8345b6a1 rejected the checkpoint because validation was encoded as a mapping of scalar pending values instead of the required list of validation-entry mappings; implementation-focused ownership unit tests had already passed and the validator was not weakened.
+  evidence: Workflow run 29701205563 on head 0a8588d55222b51744f805e758ac76ed8345b6a1 rejected the initial checkpoint validation shape; the validator was not weakened and the task record was corrected before implementation validation continued.
 conflicts: []
 rejected_hypotheses:
   - guessed Tibia coordinates are rejected; exact anchors come from reviewed exact-map evidence
   - a second OTBM parser, World Index, pathfinder, renderer, E2E runner or workflow is rejected
   - committing the generated .otbm, .widx, appearances asset or route report is rejected
-  - editing PR #599 landmark-registry paths from this branch is rejected because that active task owns them exclusively
-  - storing the 842280592-byte generated World Index under the uploaded artifact directory is rejected; it is temporary build/preflight state only
+  - editing PR #599 landmark-registry paths from this branch is rejected because that task owned them exclusively until merge
+  - storing the generated 842280592-byte World Index under the uploaded artifact directory is rejected; it is temporary build/preflight state only
+  - treating the first runtime WEST-edge timeout as proof that g_game.walk or the whole login session is broken is rejected because the maintained physical movement scenario had already runtime-proven movement from the same temple start and the diagonal canonical route later passed end to end
+  - claiming a specific NPC or creature blocked the original WEST edge is rejected because retained evidence proves only the movement timeout, not the identity of a dynamic blocker
 changed_paths:
   - .github/workflows/universal-agent-e2e.yml
   - docs/agents/tasks/active/CAN-20260719-otbm-e2e-005-thais-temple-depot.md
@@ -158,14 +171,26 @@ changed_paths:
   - tests/e2e/test_prepare_otbm_route.py
   - tools/e2e/prepare_otbm_route.py
 validation:
-  - command: Agent Task Ownership on head 0a8588d55222b51744f805e758ac76ed8345b6a1
-    result: FAIL
-    evidence: Workflow run 29701205563 failed at Validate changed active task checkpoints with invalid validation entry; artifact CHANGED_TASK_VALIDATION.txt points to the task checkpoint schema and the validator remains unchanged.
-  - command: focused implementation unit tests in Agent Task Ownership on head 0a8588d55222b51744f805e758ac76ed8345b6a1
+  - command: Agent Task Ownership on synchronized implementation parent 469428bbaad0eee3fb88a9472a7e7d389e8d9539
     result: PASS
-    evidence: Workflow run 29701205563 completed Run focused unit tests successfully before checkpoint validation failed.
-  - command: Agent Task Ownership on head ac6b5cab7923b27b45e9a42865fa5350f4083776
-    result: FAIL
-    evidence: Workflow run 29701324330 required the derived and unknown checkpoint fields; the task record was corrected without weakening the validator.
-next_action: Require the corrected ownership checkpoint to pass, monitor prerequisite PR #599 to merge, update this branch from the resulting main, then run exact-map static route preparation and the real controlled-OTClient Universal Physical E2E proof before final-gate freeze.
+    evidence: Workflow run 29704821358 completed successfully after clean replay onto main 183d7224cb5de57585294d72631f37783b93dc89.
+  - command: CI on synchronized implementation parent 469428bbaad0eee3fb88a9472a7e7d389e8d9539
+    result: PASS
+    evidence: Workflow run 29704821457 completed successfully.
+  - command: Universal Agent E2E synchronized exact-map physical proof
+    result: PASS
+    evidence: Workflow run 29704821423 completed Physical client / movement/physical-thais-temple-depot and Required physical E2E successfully and uploaded artifact 8447816376 with digest sha256:131faa08eaaccdacda62788b2e173b0f9ecc422a62ecd4769e874e4d136aeb40.
+  - command: canary-otbm-e2e-route-preflight-v1 in synchronized Universal evidence
+    result: PASS
+    evidence: route-thais-temple-depot-preflight.json reports status passed, ok true, zero findings and plan SHA-256 0736a819ef656f9040ea14c51f1ab474beabe9e4da50435e1eb9e7fd0c28974b against the exact runtime map and World Index hashes.
+  - command: controlled OTClient follow_route exact destination assertion
+    result: PASS
+    evidence: synchronized client evidence reports route_temple-to-depot=success and step_temple-to-depot_detail=32352,32226,7 after all 59 route edges.
+  - command: Universal two-session persistence lifecycle
+    result: PASS
+    evidence: synchronized result records safe logout, confirmed persistence, successful relog, level 500 persistence check, second safe logout, two server logins, two packet records and all SQL assertions passed.
+  - command: fresh live-main overlap audit after synchronized proof
+    result: PASS
+    evidence: compare 183d7224cb5de57585294d72631f37783b93dc89..2c448205d864f6388b8be932ecbb1a9e6dcaffe0 contains only docs/agents/OTERYN_OAM_021_MARKET_REVALIDATION.md and docs/agents/tasks/archive/CAN-20260719-oteryn-market-revalidation.md.
+next_action: Treat this checkpoint commit as the immutable final feature head; require exact-final-head Agent Task Ownership, CI and Universal Agent E2E, then perform clean comment/review/thread and live-main overlap audit, mark PR #600 ready, squash merge with expected head SHA, verify main, and complete the exact active-to-archive lifecycle before unblocking OTBM-E2E-006.
 ```
