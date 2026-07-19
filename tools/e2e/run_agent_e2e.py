@@ -58,6 +58,7 @@ ACTION_FIELDS: dict[str, set[str]] = {
         "to_z",
         "timeout_ms",
     },
+    "follow_route": {"id", "action", "route", "timeout_ms"},
     "talk": {"id", "action", "text"},
     "attack_visible": {"id", "action", "creature", "timeout_ms"},
     "use_inventory_item": {"id", "action", "item_id"},
@@ -119,6 +120,17 @@ def _load_persistence_assertions():
     spec = importlib.util.spec_from_file_location("canary_e2e_persistence_assertions", module_path)
     if spec is None or spec.loader is None:
         raise ScenarioError(f"cannot load persistence assertion compiler: {module_path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_route_plan_execution():
+    module_path = Path(__file__).resolve().with_name("route_plan_execution.py")
+    spec = importlib.util.spec_from_file_location("canary_e2e_route_plan_execution", module_path)
+    if spec is None or spec.loader is None:
+        raise ScenarioError(f"cannot load route plan execution compiler: {module_path}")
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
@@ -331,6 +343,11 @@ def _validate_step(step: Any, index: int) -> dict[str, Any]:
         _require_bounded_positive_int(mapping, "interval_ms", path, 10_000, default=250)
     elif action == "walk_edge":
         walk_edge_direction(mapping, path)
+        _require_bounded_positive_int(mapping, "timeout_ms", path, MAX_STEP_DELAY_MS, default=10_000)
+    elif action == "follow_route":
+        route = _require_string(mapping, "route", path)
+        if not SLUG_RE.fullmatch(route):
+            raise ScenarioError(f"{path}.route must match {SLUG_RE.pattern}")
         _require_bounded_positive_int(mapping, "timeout_ms", path, MAX_STEP_DELAY_MS, default=10_000)
     elif action == "talk":
         _require_safe_text(mapping, "text", path)
@@ -590,8 +607,13 @@ def _lua_value(value: Any) -> str:
     raise ScenarioError(f"unsupported Lua plan value type: {type(value).__name__}")
 
 
-def render_lua_plan(scenario: Scenario) -> str:
+def render_lua_plan(scenario: Scenario, *, artifact_dir: Path | None = None) -> str:
     steps = validate_steps(scenario.data)
+    route_execution = _load_route_plan_execution()
+    try:
+        routes = route_execution.load_route_plans(steps, artifact_dir)
+    except route_execution.RoutePlanExecutionError as exc:
+        raise ScenarioError(str(exc)) from exc
     persistence = _load_persistence_assertions()
     persistence_checks = persistence.validate_persistence_assertions(
         scenario.data["assertions"].get("persistence")
@@ -608,7 +630,7 @@ def render_lua_plan(scenario: Scenario) -> str:
         for key in sorted(step):
             fields.append(f"{key} = {_lua_value(step[key])}")
         lines.append("    { " + ", ".join(fields) + " },")
-    lines.extend(["  },", "  persistence_checks = {"])
+    lines.extend(["  },", "  routes = " + route_execution.render_routes_lua(routes, indent=2) + ",", "  persistence_checks = {"])
     for check in persistence_checks:
         fields = []
         for key in sorted(check):
@@ -620,7 +642,14 @@ def render_lua_plan(scenario: Scenario) -> str:
 
 def write_lua_plan(path: Path, scenario: Scenario) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(render_lua_plan(scenario), encoding="utf-8")
+    steps = validate_steps(scenario.data)
+    path.write_text(render_lua_plan(scenario, artifact_dir=path.parent), encoding="utf-8")
+    if any(step.get("action") == "follow_route" for step in steps):
+        route_execution = _load_route_plan_execution()
+        try:
+            route_execution.materialize_client_executor(path.parent)
+        except route_execution.RoutePlanExecutionError as exc:
+            raise ScenarioError(str(exc)) from exc
 
 
 def build_parser() -> argparse.ArgumentParser:
