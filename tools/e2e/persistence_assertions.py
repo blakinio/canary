@@ -224,9 +224,28 @@ def _validate_all_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
             )
             continue
 
+        if assertion_type == "player_magic_level":
+            _reject_unknown_fields(check, {"id", "type", "equals"}, path)
+            expected = _require_int_range(
+                check,
+                "equals",
+                path,
+                minimum=0,
+                maximum=MAX_UINT16,
+                description="an unsigned magic level",
+            )
+            validated.append(
+                {
+                    "id": assertion_id,
+                    "type": assertion_type,
+                    "equals": expected,
+                }
+            )
+            continue
+
         raise PersistenceAssertionError(
             f"{path}.type unsupported: {assertion_type!r}; allowed: "
-            "player_field, player_storage, player_item_presence, player_balance"
+            "player_field, player_storage, player_item_presence, player_balance, player_magic_level"
         )
 
     return validated
@@ -237,14 +256,15 @@ def validate_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
 
     `player_field` checks use directly comparable LocalPlayer getters. `player_balance`
     uses the maintained LocalPlayer resource-balance getter and is restricted to exact
-    Lua-safe integers. Arbitrary `player_storage` values and cross-location
-    `player_item_presence` checks remain on the post-cycle SQL boundary.
+    Lua-safe integers. `player_magic_level` uses the maintained uint16 magic-level
+    getter. Arbitrary `player_storage` values and cross-location `player_item_presence`
+    checks remain on the post-cycle SQL boundary.
     """
 
     return [
         check
         for check in _validate_all_persistence_assertions(raw)
-        if check["type"] in {"player_field", "player_balance"}
+        if check["type"] in {"player_field", "player_balance", "player_magic_level"}
     ]
 
 
@@ -252,10 +272,10 @@ def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
     """Compile validated checks to the existing post-cycle scalar SQL contract.
 
     The Universal Physical E2E SQL evaluator accepts one semicolon-free SELECT per
-    assertion and considers only stdout == "1" successful. `player_field` and
-    `player_balance` checks are also emitted to the controlled-client phase-two plan by
-    run_agent_e2e.py. Arbitrary `player_storage` and fixed-location
-    `player_item_presence` checks remain database-only.
+    assertion and considers only stdout == "1" successful. `player_field`,
+    `player_balance` and `player_magic_level` checks are also emitted to the
+    controlled-client phase-two plan by run_agent_e2e.py. Arbitrary `player_storage`
+    and fixed-location `player_item_presence` checks remain database-only.
     """
 
     checks = _validate_all_persistence_assertions(raw)
@@ -310,8 +330,18 @@ def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
             )
             continue
 
+        if check["type"] == "player_balance":
+            queries.append(
+                "SELECT IF((SELECT `balance` FROM `players` WHERE `name` = "
+                + character_sql
+                + ") = "
+                + str(check["equals"])
+                + ", 1, 0)"
+            )
+            continue
+
         queries.append(
-            "SELECT IF((SELECT `balance` FROM `players` WHERE `name` = "
+            "SELECT IF((SELECT `maglevel` FROM `players` WHERE `name` = "
             + character_sql
             + ") = "
             + str(check["equals"])
