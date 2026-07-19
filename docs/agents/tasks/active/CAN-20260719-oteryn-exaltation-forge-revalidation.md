@@ -96,6 +96,8 @@ Otheryn had no open PR at task start.
 
 No active task owns Forge production paths exclusively. Shared `MODULE_CATALOG.md` and `CHANGELOG.md` are intentionally excluded from the start-up scope while unrelated security work is open.
 
+Fresh later Canary PRs #599 and #600 are OTBM/E2E work. Their live changed paths do not overlap the OAM-020 governance files or Forge target runtime/data/test boundary.
+
 # Reviewed donor evidence
 
 The exact target adaptation must remain narrower than legacy whole files. Reviewed merged donor candidates are:
@@ -111,6 +113,13 @@ The exact target adaptation must remain narrower than legacy whole files. Review
 - #283 history correctness.
 
 Fresh target evidence confirms missing/different bounded surfaces including Forge policy helpers, transaction/effect helpers, Forge config defaults, Fiendish default and Forge history item IDs. Direct target-context inspection also confirms the task-start Player Forge flow still has the pre-transaction mutation ordering, older Transfer tier-cost semantics and stale Momentum/Transcendence gating addressed by the accepted donor chain.
+
+Target-local architecture review additionally requires two bounded adaptations not present in the legacy donor commits themselves:
+
+- register the five newly introduced Forge/config helper headers in tracked `vcproj/canary.vcxproj`, as required by the target `AGENTS.md` build-entry policy;
+- guard donor standard-library includes with `#ifndef USE_PRECOMPILED_HEADERS` because `cstdint`, `functional`, `utility` and `vector` are already provided by target `src/pch.hpp`.
+
+These are build-contract adaptations only. They do not broaden Forge runtime behavior.
 
 # Explicit exclusions
 
@@ -154,18 +163,23 @@ Target PR: `blakinio/Otheryn#44`
 
 Target branch: `dudantas/oam-020-exaltation-forge-adapt`
 
-Current target head at this checkpoint: `c6ba2bfde4b65b02fc018b3dce76f7d3460f12dc`
+Current target helper head at this checkpoint: `7a3fdf87a9909dbd040f0d0e6a5e852c37943bd5`
 
-A temporary fail-closed materializer is present on the draft branch. It is pinned to legacy `c353b89b5a7f783cf4ee22fe1ba91850de837a68`, applies only explicit production/test paths from the nine accepted merge commits using three-way context checks, validates an explicit final-path allowlist, removes its workflow after successful materialization and leaves a temporary no-op script stub so stale queued runs cannot corrupt a successful result. The stub must be deleted before final target validation and must not appear in the accepted PR diff.
+The temporary fail-closed materializer is pinned to legacy `c353b89b5a7f783cf4ee22fe1ba91850de837a68`, applies only explicit production/test paths from the nine accepted merge commits using three-way context checks, validates an explicit final-path allowlist, applies target PCH and Visual Studio project-registration requirements, and self-removes its workflow on success. A temporary no-op script stub is retained only to make stale queued runs harmless and must be deleted before final target validation.
 
-Latest controlled materializer run observed at this checkpoint: `29700173439` (`OAM-020 bounded materializer`, run #11), queued. No target implementation success or CI claim is made while that run remains incomplete.
+Observed materializer failures:
 
-# Context checkpoint
+- stale early run `29700037539` — failed inside the materialization step before any accepted target commit;
+- exact observable run `29700919724` / run #15 — failed inside the materialization step before any accepted target commit.
+
+Neither failure changed the accepted target tree. The first diagnostic wrapper did not persist a usable failure log, so the workflow has been changed to always upload the complete materializer log as artifact and fail only after artifact publication. The next controlled run must use that artifact to identify the first conflicting donor hunk rather than guessing.
+
+## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-19
-head: ee9a16595acdb41ca03a1c3df55b161034143b05
+head: 10a46ab94f48bd98576c23d3772f6277f0638026
 branch: docs/oam-020-exaltation-forge-revalidation
 pr: 598
 status: implementing
@@ -190,15 +204,17 @@ proven:
   - target branch dudantas/oam-020-exaltation-forge-adapt was created from exact baseline 63547f30fc21e495217b8a92fa44aaad2db188ef
   - target draft PR 44 is open and remains based on exact task-start Otheryn main
   - selected materialization scope is restricted to explicit Forge production/test paths from donor PRs 89 110 177 250 257 259 262 267 and 283
+  - target-local build contract requires vcproj registration and PCH-guard adaptation for newly added helper headers
 unknown:
+  - first exact conflicting donor hunk from the failed materializer runs
   - accepted post-materialization target head
   - exact final target changed-file set after helper removal
   - exact focused/full target test results and artifacts
   - exact target CI run IDs on the accepted final head
 conflicts: []
 first_failure:
-  marker: none
-  evidence: no completed materialization or target validation failure has been accepted at this checkpoint
+  marker: target-materializer-failed
+  evidence: runs 29700037539 and 29700919724 failed inside the materialization step before any accepted target commit; artifact-based failure capture is now enabled for the next controlled run
 rejected_hypotheses:
   - infer REUSE from upstream/target file presence
   - bulk-copy legacy player.cpp or protocolgame.cpp
@@ -220,6 +236,10 @@ validation:
   - command: function-level donor and target-context review
     result: PASS
     evidence: exact donor merge/path set is bounded and task-start target retains the reviewed Forge correctness gaps without OAM-019 overlap
-blockers: []
-next_action: Inspect controlled materializer run 29700173439. On success, verify the workflow is removed, inspect the exact post-materialization diff and stale-run state, delete the temporary no-op script stub only after stale materializer runs are harmless or complete, then trigger exact-head target CI. On failure, inspect the committed fail-closed materializer log and repair only the specific conflicting donor hunk.
+  - command: target materializer runs 29700037539 and 29700919724
+    result: FAIL
+    evidence: both runs failed closed inside the materialization step and produced no accepted target implementation commit
+blockers:
+  - exact first donor conflict must be identified from the artifact-enabled materializer run before target implementation can proceed
+next_action: Run the artifact-enabled OAM-020 materializer on current target helper head 7a3fdf87a9909dbd040f0d0e6a5e852c37943bd5. Fetch the complete oam-020-materializer-log artifact. Repair only the first exact conflicting donor hunk or target-context mismatch, rerun, then inspect the post-materialization changed-file allowlist before any target CI or readiness claim.
 ```
