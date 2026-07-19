@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-19T10:54:56+02:00
-last_verified_commit: "041ca9017fde929429ffb28fb6bfdc615f21b9f6"
+updated: 2026-07-19T13:54:27+02:00
+last_verified_commit: "5f0656442d6b7856dcc5099e29a78782abaa1170"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -53,6 +53,7 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 | OAM-015 | `weapons → REUSE` | target proof `1dd21117ce06cc4463e6185f4ff74546031b55e6`; feature `5b9a0a4c23e5114e59e36ad71fb20087473cd9d3`; lifecycle `ef553ef12e1a5b167dff6032b5b44b686dbf4675` |
 | OAM-016 | `spells → REUSE` | target proof `46cc7458d644da356371aabf3ff18c0e51d228a8`; feature `a646f0bba6e1a168c9e190abaf483cff817a5e9b`; lifecycle `c1925725f05fffb2b57971fa929e4af5dd06d6b0` |
 | OAM-017 | `containers → REUSE` | target proof `952e7550182df739824bddea687ef89bd8997674`; feature `b868e2855f6194d9fd4f88c5a56ba8e300e3c568`; lifecycle `041ca9017fde929429ffb28fb6bfdc615f21b9f6` |
+| OAM-018 | `item-decay → REUSE` | target proof `7ba76d2754a060a9a9eec0a23c686aefac725af2`; feature `df97440551ca141b340ff424b1d644430bbb3c28`; lifecycle `5f0656442d6b7856dcc5099e29a78782abaa1170` |
 
 # OAM-009 durable boundary
 
@@ -218,15 +219,35 @@ Authoritative lifecycle PR #576 final head `63d2f8067b8e53a5ae9c42dd6161fbf81d2a
 
 OAM-017 preserves OAM-004 SQL/KV non-atomicity and completed OAM-007 item-instance ownership. It does not claim transactional move atomicity, absence of duplication or item loss across generic move orchestration, exhaustive cycle safety, full serialization/persistence completeness, restart/crash recovery, depot/inbox/mailbox/reward parity, protocol/client UI parity, market/boss-reward/item-decay parity, or full Real Tibia container formula/value semantics.
 
+# OAM-018 durable completion
+
+Final disposition:
+
+```text
+item-decay REUSE
+```
+
+Task-start baselines were Canary `3c4d2789ffa3d0c1e9453d20a8c5faeba35eb366`, Otheryn `952e7550182df739824bddea687ef89bd8997674`, upstream `691614c1a302aee776002ca3851eca399be1a82c`, and OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`. Canonical `item-decay` depends on completed OAM-003 `engine-scheduler` and OAM-007 `item-instances`; OAM-017 `containers` is an interaction, not a fundamental dependency.
+
+Target history from verified OAM bootstrap through task start and pinned-upstream history through `691614c1a302aee776002ca3851eca399be1a82c` contained no production mutation under `src/items/decay/**`. Target and upstream shared `src/items/decay/decay.cpp` blob `a337b872755217d87ac2261de6c3c1a593d805a6`, while all reviewed sources shared `decay.hpp` blob `0d540e10dc73b65f2ce1aa00bfb9dd72994dcc5f`. The narrow legacy Canary `decay.cpp` difference omits `DispatcherLane::Maintenance` from the three decay scheduling calls; OAM-003 had already established the target/upstream lane/WDRR scheduler as canonical, so that legacy delta was rejected as a stronger donor.
+
+Proof-only Otheryn PR #42 final head `13e245f3c49477fa75c20171f0c845dec91d0824` changed exactly `tests/unit/items/CMakeLists.txt` and `tests/unit/items/decay/decay_test.cpp`, with no production `src/items/decay/**` or other runtime/data/client mutation. It passed autofix.ci #110 run `29682419114`, CI #130 run `29682419178`, Required #117 run `29682419125`, full Linux debug CTest 359/359 and focused `ItemDecayReuseTest` 2/2. Artifact `8441163603` has digest `sha256:de3f541b41aa9d4f39a4d8d629de52a51e09b8eaff461c8706bb7a296cfd9631`. The first ready-cycle macOS smoke wrapper failure was classified as transient because compilation succeeded, its runtime artifact showed a clean online startup and shutdown with empty stderr, and one same-head failed-job rerun passed without code changes. Target comments/reviews/threads were empty, target-main drift was none, and PR #42 merged by expected-head squash as `7ba76d2754a060a9a9eec0a23c686aefac725af2`.
+
+Canary governance PR #578 final head `80681dd0bbaa6bed0d212bc90b7a0c728e73b836` passed Agent Task Ownership #2531 run `29683370000` and full final-gate CI #3675 run `29683558587` with the Linux debug/release, macOS, both Windows, Docker, Fast Checks, Lua and Required chain green. It had zero comments/reviews/threads and exactly the two OAM-018 governance paths. Non-overlapping Canary-main drift was audited before merge, and PR #578 merged by expected-head squash as `df97440551ca141b340ff424b1d644430bbb3c28`.
+
+Authoritative lifecycle PR #584 final head `f8c8442f00fe829c78903116cde32733ae817dd1` passed Agent Task Ownership #2555 run `29684823002` and CI #3697 run `29684823101` with Required PASS. It changed exactly the active-delete/archive-add lifecycle paths; heavy build jobs were correctly skipped for lifecycle-only scope. Main drift before merge consisted only of unrelated task archival commits and did not overlap OAM-018 lifecycle paths. It merged by expected-head squash as `5f0656442d6b7856dcc5099e29a78782abaa1170`. No automation-created duplicate archive PR for governance #578 was found, so no duplicate closure was required.
+
+OAM-018 preserves OAM-004 SQL/KV non-atomicity and completed OAM-003 scheduler/OAM-007 item ownership. It does not claim scheduler fairness or starvation freedom, exact wall-clock decay timing, restart/crash decay recovery, persistence completeness, item move/container transaction atomicity, duplication/loss freedom, static decay metadata parity, exhaustive transform correctness, protocol/client UI parity, or full Real Tibia decay semantics.
+
 # Current state
 
 ```text
-Canary reconciliation base: 041ca9017fde929429ffb28fb6bfdc615f21b9f6
-Otheryn target head after OAM-017: 952e7550182df739824bddea687ef89bd8997674
+Canary reconciliation base: 5f0656442d6b7856dcc5099e29a78782abaa1170
+Otheryn target head after OAM-018: 7ba76d2754a060a9a9eec0a23c686aefac725af2
 maintained OTClient: 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
-OAM-001..OAM-017: feature/lifecycle complete
-OAM-017 task: archived
-OAM-018: NOT STARTED
+OAM-001..OAM-018: feature/lifecycle complete
+OAM-018 task: archived
+OAM-019: NOT STARTED
 ```
 
 No OAM implementation task is active in this reconciliation record.
@@ -235,8 +256,8 @@ No OAM implementation task is active in this reconciliation record.
 
 | Package | Status | Next action |
 |---|---|---|
-| OAM-001..OAM-017 | completed | preserve durable evidence |
-| OAM-018+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
+| OAM-001..OAM-018 | completed | preserve durable evidence |
+| OAM-019+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
 
 # Invariants and known gaps
 
@@ -257,7 +278,8 @@ No OAM implementation task is active in this reconciliation record.
 - OAM-015 does not claim exhaustive weapon correctness, full Real Tibia weapon formula/value parity, exhaustive resource/script parity, or closure of the separate upstream #3645 cross-module display compatibility gap.
 - OAM-016 does not claim exhaustive spell correctness, full Real Tibia spell formula/value parity, exhaustive cooldown/resource/script parity, Gameplay Analytics parity, or closure of the separate Wheel/spells cross-module gap.
 - OAM-017 does not claim transactional move atomicity, duplication/loss freedom across generic move orchestration, exhaustive cycle safety, full persistence/recovery, container UI/protocol parity, or full Real Tibia container semantics.
+- OAM-018 does not claim scheduler fairness/starvation freedom, exact wall-clock decay timing, restart/crash recovery, persistence completeness, movement/container atomicity, duplication/loss freedom, static metadata parity, exhaustive transform correctness, protocol/client UI parity, or full Real Tibia decay semantics.
 
 # Exact next task
 
-Merge this program-only OAM-017 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-018 preflight begin. OAM-018 is NOT STARTED by this record.
+Merge this program-only OAM-018 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-019 preflight begin. OAM-019 is NOT STARTED by this record.
