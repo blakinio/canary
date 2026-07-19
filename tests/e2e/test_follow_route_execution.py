@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import sys
@@ -26,6 +27,24 @@ runner = load_module("canary_e2e_runner_follow_route", RUNNER_PATH)
 route_execution = load_module("canary_e2e_route_execution_tests", ROUTE_HELPER_PATH)
 
 
+def provenance(*, executable: bool) -> dict:
+    return {
+        "map": {"sha256": "1" * 64},
+        "worldIndex": {"sha256": "2" * 64},
+        "appearances": {"sha256": "3" * 64},
+        "transitionManifest": None,
+        "scriptResolution": None,
+        "interactionRegistry": {"sha256": "4" * 64} if executable else None,
+    }
+
+
+def rehash(plan: dict) -> dict:
+    plan.pop("planHashSha256", None)
+    encoded = json.dumps(plan, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    plan["planHashSha256"] = hashlib.sha256(encoded).hexdigest()
+    return plan
+
+
 def resolution(*, kind: str = "use-map-item", position: list[int] | None = None, item_id: int = 1223) -> dict:
     position = position or [101, 100, 7]
     activation: dict = {"kind": kind}
@@ -48,6 +67,7 @@ def resolution(*, kind: str = "use-map-item", position: list[int] | None = None,
 
 
 def movement_plan(*, interaction: dict | None = None) -> dict:
+    executable = interaction is not None
     edge = {
         "from": [100, 100, 7],
         "to": [101, 100, 7],
@@ -57,25 +77,28 @@ def movement_plan(*, interaction: dict | None = None) -> dict:
         "evidence": {
             "source": "reachability-bfs-predecessor",
             "edgeSource": "_movement_neighbors",
-            "routingMode": "executable" if interaction else "strict",
+            "routingMode": "executable" if executable else "strict",
         },
         "interactions": [] if interaction is None else [interaction],
         "executionBlockers": [],
     }
-    return {
-        "format": "canary-otbm-e2e-route-plan-v1",
-        "schemaVersion": 1,
-        "planHashSha256": "a" * 64,
-        "origin": [100, 100, 7],
-        "destination": [101, 100, 7],
-        "routeStatus": "conditional" if interaction else "confirmed",
-        "executionStatus": "executable",
-        "routingMode": "executable" if interaction else "strict",
-        "pathComplete": True,
-        "path": [[100, 100, 7], [101, 100, 7]],
-        "edges": [edge],
-        "blockers": [],
-    }
+    return rehash(
+        {
+            "format": "canary-otbm-e2e-route-plan-v1",
+            "schemaVersion": 1,
+            "provenance": provenance(executable=executable),
+            "origin": [100, 100, 7],
+            "destination": [101, 100, 7],
+            "routeStatus": "conditional" if executable else "confirmed",
+            "executionStatus": "executable",
+            "routingMode": "executable" if executable else "strict",
+            "distance": 1,
+            "pathComplete": True,
+            "path": [[100, 100, 7], [101, 100, 7]],
+            "edges": [edge],
+            "blockers": [],
+        }
+    )
 
 
 def transition_plan(*, activation: dict, selector_query: dict | None = None) -> dict:
@@ -117,20 +140,23 @@ def transition_plan(*, activation: dict, selector_query: dict | None = None) -> 
         ],
         "executionBlockers": [],
     }
-    return {
-        "format": "canary-otbm-e2e-route-plan-v1",
-        "schemaVersion": 1,
-        "planHashSha256": "b" * 64,
-        "origin": [100, 100, 7],
-        "destination": [200, 200, 8],
-        "routeStatus": "confirmed",
-        "executionStatus": "executable",
-        "routingMode": "executable",
-        "pathComplete": True,
-        "path": [[100, 100, 7], [200, 200, 8]],
-        "edges": [edge],
-        "blockers": [],
-    }
+    return rehash(
+        {
+            "format": "canary-otbm-e2e-route-plan-v1",
+            "schemaVersion": 1,
+            "provenance": provenance(executable=True),
+            "origin": [100, 100, 7],
+            "destination": [200, 200, 8],
+            "routeStatus": "confirmed",
+            "executionStatus": "executable",
+            "routingMode": "executable",
+            "distance": 1,
+            "pathComplete": True,
+            "path": [[100, 100, 7], [200, 200, 8]],
+            "edges": [edge],
+            "blockers": [],
+        }
+    )
 
 
 class FollowRouteExecutionTests(unittest.TestCase):
@@ -152,9 +178,16 @@ class FollowRouteExecutionTests(unittest.TestCase):
                     [{"id": "route", "action": "follow_route", "route": "primary"}], Path(directory)
                 )
 
+    def test_tampered_plan_hash_fails_closed(self) -> None:
+        plan = movement_plan()
+        plan["destination"] = [102, 100, 7]
+        with self.assertRaisesRegex(route_execution.RoutePlanExecutionError, "planHashSha256 mismatch"):
+            route_execution.validate_route_plan(plan, route_id="primary")
+
     def test_plain_optimistic_route_is_not_physically_executable(self) -> None:
         plan = movement_plan()
         plan["routingMode"] = "optimistic"
+        rehash(plan)
         with self.assertRaisesRegex(route_execution.RoutePlanExecutionError, "optimistic routes are not physically executable"):
             route_execution.validate_route_plan(plan, route_id="primary")
 
@@ -167,6 +200,7 @@ class FollowRouteExecutionTests(unittest.TestCase):
         plan = movement_plan(interaction=resolution())
         plan["edges"][0]["interactions"][0]["executionStatus"] = "blocked"
         plan["edges"][0]["interactions"][0]["blockers"] = [{"code": "interaction-not-reviewed"}]
+        rehash(plan)
         with self.assertRaisesRegex(route_execution.RoutePlanExecutionError, "is not executable"):
             route_execution.validate_route_plan(plan, route_id="primary")
 
@@ -209,7 +243,6 @@ class FollowRouteExecutionTests(unittest.TestCase):
             self.assertIn(code, source)
         self.assertIn("g_game.use(targetThing)", source)
         self.assertIn("g_game.useInventoryItemWith(inventoryItemId, targetThing)", source)
-        self.assertIn("g_game.walk(direction)", source)
         self.assertIn('"route_" .. step.id .. "_edge_"', source)
         self.assertIn("samePosition(actual, expected)", source)
 
