@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-gameplay-005-player-item-presence
 base_branch: main
 created: 2026-07-19T13:58:00+02:00
-updated: 2026-07-19T13:58:00+02:00
-last_verified_commit: "bbf6e8d6c8f02129b196bc229cca66cebabf86e6"
+updated: 2026-07-19T14:00:00+02:00
+last_verified_commit: "ebfeb48d78b331b5e9854b5f128a6289e4e4de30"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "586"
 depends_on:
   - merged PR #583 typed player_storage persistence assertions
   - existing Universal Physical E2E two-session lifecycle
@@ -74,10 +74,10 @@ The assertion deliberately proves only database row presence/absence by exact it
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T13:58:00+02:00
-head: bbf6e8d6c8f02129b196bc229cca66cebabf86e6
+updated_at: 2026-07-19T14:00:00+02:00
+head: ebfeb48d78b331b5e9854b5f128a6289e4e4de30
 branch: feat/e2e-gameplay-005-player-item-presence
-pr: null
+pr: 586
 status: implementing
 context_routes:
   - universal-e2e
@@ -90,6 +90,7 @@ owned_paths:
   - docs/agents/MODULE_CATALOG.md
 proven:
   - live main at task start is bbf6e8d6c8f02129b196bc229cca66cebabf86e6 and includes merged PR #580 and PR #583
+  - draft PR 586 owns branch feat/e2e-gameplay-005-player-item-presence
   - no open PR matched player item inventory/depot/inbox typed persistence ownership at task start
   - existing merged PR #583 task claims the overlapping persistence compiler/documentation paths as shared, not exclusive
   - ownership validation enforces conflicts only between active exclusive claims
@@ -103,7 +104,6 @@ derived:
   - a location-to-fixed-table EXISTS/NOT EXISTS assertion can prove durable serialized item-row presence without interpreting pid/sid hierarchy or subtype/count semantics
   - one database-only contract across inventory, depot and inbox avoids claiming a uniform controlled-client getter that does not exist for all three locations
 unknown:
-  - current PR number until the early draft PR is created
   - exact final implementation head and workflow conclusions
 conflicts: []
 first_failure:
@@ -119,5 +119,5 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260719-e2e-gameplay-005-player-item-presence.md
 validation: []
 blockers: []
-next_action: Open the early draft PR, bind related_pr/checkpoint, implement fixed-table item-presence validation and SQL compilation, add focused tests/docs, then run exact-head final gates.
+next_action: Implement fixed-table item-presence validation and SQL compilation, add focused tests/docs, then run exact-head final gates.
 ```
