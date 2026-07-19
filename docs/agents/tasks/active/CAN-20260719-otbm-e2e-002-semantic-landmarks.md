@@ -7,11 +7,11 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-002-semantic-landmarks
 base_branch: main
 created: 2026-07-19T09:00:00+02:00
-updated: 2026-07-19T09:00:00+02:00
-last_verified_commit: "f962d7b606e29965fe091ea79ba154c27b22fe34"
+updated: 2026-07-19T09:38:12+02:00
+last_verified_commit: "28dba1881aa217631d6caa8b64cf25757e4e462d"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "571"
 depends_on:
   - CAN-PROGRAM-OTBM-E2E-ROUTING merged planning programme PR #562
 blocks:
@@ -67,10 +67,10 @@ Implement `OTBM-E2E-002 — Semantic Landmark Registry` as a deterministic revie
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T09:00:00+02:00
-head: f962d7b606e29965fe091ea79ba154c27b22fe34
+updated_at: 2026-07-19T09:38:12+02:00
+head: 28dba1881aa217631d6caa8b64cf25757e4e462d
 branch: feat/otbm-e2e-002-semantic-landmarks
-pr: null
+pr: 571
 status: implementing
 context_routes:
   - agent-governance
@@ -86,6 +86,7 @@ owned_paths:
   - docs/agents/programs/OTBM_E2E_ROUTE_INTEGRATION_PROGRAM.md
 proven:
   - task branch was created from live main at f962d7b606e29965fe091ea79ba154c27b22fe34
+  - draft PR 571 is the early same-repository PR for this task with base main and head feat/otbm-e2e-002-semantic-landmarks
   - OTBM-E2E-001 route-plan export merged as PR #567 before this task started
   - merged planning programme defines OTBM-E2E-002 as a separate landmark registry contract and permits it independently of E2E runner changes
   - no open PR matching OTBM-E2E-002 or semantic landmark registry ownership was found at task start
@@ -107,5 +108,5 @@ validation:
   - command: live main, programme and open-PR ownership preflight
     result: PASS
     evidence: main f962d7b606e29965fe091ea79ba154c27b22fe34; PR #567 merged; no open OTBM-E2E-002 owner found
-next_action: Open the early draft PR, bind the task record to its PR number, then inspect reusable validation/provenance patterns and implement the smallest complete semantic-landmark contract.
+next_action: Inspect reusable validation/provenance patterns, then implement and test the smallest complete semantic-landmark contract without inventing real-map coordinates.
 ```
