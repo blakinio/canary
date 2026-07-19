@@ -14,7 +14,7 @@ PLAYER_ITEM_TABLES = {
 }
 MAX_UINT16 = 65_535
 MAX_UINT32 = 4_294_967_295
-MAX_UINT64 = 18_446_744_073_709_551_615
+MAX_SAFE_LUA_INTEGER = 9_007_199_254_740_991
 MIN_INT32 = -2_147_483_648
 MAX_INT32 = 2_147_483_647
 
@@ -212,8 +212,8 @@ def _validate_all_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
                 "equals",
                 path,
                 minimum=0,
-                maximum=MAX_UINT64,
-                description="an unsigned 64-bit integer",
+                maximum=MAX_SAFE_LUA_INTEGER,
+                description="an exact Lua-safe integer",
             )
             validated.append(
                 {
@@ -233,17 +233,18 @@ def _validate_all_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
 
 
 def validate_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
-    """Return only checks that have a trustworthy controlled-client read surface.
+    """Return checks with a trustworthy controlled-client read surface.
 
-    `player_field` checks are directly comparable after relog through LocalPlayer getters.
-    Arbitrary `player_storage` values, cross-location `player_item_presence` checks and
-    `player_balance` remain server-side persistence state on the post-cycle SQL boundary.
+    `player_field` checks use directly comparable LocalPlayer getters. `player_balance`
+    uses the maintained LocalPlayer resource-balance getter and is restricted to exact
+    Lua-safe integers. Arbitrary `player_storage` values and cross-location
+    `player_item_presence` checks remain on the post-cycle SQL boundary.
     """
 
     return [
         check
         for check in _validate_all_persistence_assertions(raw)
-        if check["type"] == "player_field"
+        if check["type"] in {"player_field", "player_balance"}
     ]
 
 
@@ -251,11 +252,10 @@ def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
     """Compile validated checks to the existing post-cycle scalar SQL contract.
 
     The Universal Physical E2E SQL evaluator accepts one semicolon-free SELECT per
-    assertion and considers only stdout == "1" successful. `player_field` checks are
-    also emitted to the controlled-client phase-two plan by run_agent_e2e.py. Arbitrary
-    `player_storage`, fixed-location `player_item_presence` and `player_balance` checks
-    remain database-only because they do not share a generic trustworthy controlled-client
-    read surface.
+    assertion and considers only stdout == "1" successful. `player_field` and
+    `player_balance` checks are also emitted to the controlled-client phase-two plan by
+    run_agent_e2e.py. Arbitrary `player_storage` and fixed-location
+    `player_item_presence` checks remain database-only.
     """
 
     checks = _validate_all_persistence_assertions(raw)
