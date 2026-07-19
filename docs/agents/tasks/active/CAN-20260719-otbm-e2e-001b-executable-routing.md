@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-001b-executable-routing
 base_branch: main
 created: 2026-07-19T11:58:00+02:00
-updated: 2026-07-19T12:22:00+02:00
-last_verified_commit: "7b3818fada2f998f25d2b2675a44531079784b6a"
+updated: 2026-07-19T12:36:00+02:00
+last_verified_commit: "440a9e2ee1373baa30520c1cf9f2d1bc51cbed2a"
 risk: medium
 related_issue: ""
 related_pr: "580"
@@ -67,15 +67,15 @@ Implement `OTBM-E2E-001B — Executable interaction-aware routing mode` by rerun
 - [x] Pin the exact interaction-registry SHA-256 in route-plan provenance when it influences executability.
 - [x] Provide the programme fixture: strict route unavailable, optimistic route can cross an unknown barrier or a reviewed door, executable BFS selects only a fully reviewed path, and removing interaction evidence makes the route non-executable.
 - [x] Keep existing route-plan deterministic/full-path fail-closed behavior.
-- [ ] Update the route-plan schema/docs plus catalogue/changelog for the changed reusable interface.
-- [ ] Apply `ci:final-gate` before the final checkpoint commit and merge only on green exact-final-head checks.
+- [x] Update the route-plan schema/docs plus catalogue/changelog for the changed reusable interface.
+- [x] Apply `ci:final-gate` before the final checkpoint commit; merge remains contingent on green exact-final-head required checks.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T12:22:00+02:00
-head: 7b3818fada2f998f25d2b2675a44531079784b6a
+updated_at: 2026-07-19T12:36:00+02:00
+head: 9d6c7caf58d70ed528be593470b706a393125f08
 branch: feat/otbm-e2e-001b-executable-routing
 pr: 580
 status: implementing
@@ -108,15 +108,21 @@ proven:
   - executable route-plan edges retain exact interaction-resolution evidence and interaction-registry provenance
   - focused fixtures cover a shorter unsafe optimistic path versus a longer reviewed-door path, missing door evidence, unknown appearance fail-closed behavior, reviewed/unreviewed teleports, unresolved AID state and determinism
   - route-plan CLI accepts optional --interactions and validates the reviewed registry against exact source-map and World Index provenance before executable routing
-  - route-plan schema/docs now describe executable routing mode, executableDistance and edge-level interaction evidence
-  - existing OTBM Reachability workflow now executes and compiles test_otbm_reachability*.py, validates the route-plan schema and packages the route-interaction runtime dependency instead of leaving the new fixtures unexecuted
+  - route-plan schema/docs describe executable routing mode, executableDistance and edge-level interaction evidence
+  - existing OTBM Reachability workflow executes and compiles test_otbm_reachability*.py, validates route-plan schema syntax and packages the route-interaction runtime dependency instead of leaving the new fixtures unexecuted
+  - exact implementation head 440a9e2ee1373baa30520c1cf9f2d1bc51cbed2a passed OTBM Reachability run 90, CI run 3670, AI Agent Tools run 1135, OTBM Map Tools run 689, OTBM Semantic Diff run 105, OTBM Geometry Audit run 95 and OTBM Spawn and NPC Validation run 70
+  - Agent Task Ownership run 2529 failed only because checkpoint first_failure was null instead of the required YAML mapping; the checkpoint shape was corrected to an empty mapping in commit daae7f8b87b7cea82d9bf796330bd404da2fd87b
+  - branch was synchronized with live main c2e27060165b91c1de6a5f40571060e480cdcb06 through GitHub's conflict-free PR merge commit and PR base metadata was refreshed; compare reports behind_by 0
+  - PR #580 changed-file scope is exactly eleven task/Reachability/route-plan/workflow/catalogue/changelog files and contains no tools/e2e, OTBM, WIDX, items.otb or asset paths
+  - MODULE_CATALOG diff is limited to the OTBM Reachability row and CHANGELOG diff replaces only the stale route-plan bullet
+  - ci:final-gate was applied before this final checkpoint commit
   - no open PR was found claiming OTBM-E2E-001B or otbm_reachability paths at task start
   - repository writes are restricted to blakinio/canary
   - lifecycle cleanup PR #579 for merged PR #572 is separate; auto-merge is enabled and this task does not manually archive that record
   - no OTBM, WIDX, items.otb, client assets or tools/e2e changes are in scope
 unknown:
-  - focused workflow results for the current implementation head are queued
-  - final shared catalogue/changelog update and exact final implementation head
+  - exact-final-head required workflow conclusions after this checkpoint commit
+  - final review-thread state and branch-protection Required conclusion immediately before merge
 conflicts: []
 blockers: []
 first_failure: {}
@@ -127,6 +133,8 @@ rejected_hypotheses:
   - modify Universal Physical E2E execution in this work package
 changed_paths:
   - .github/workflows/otbm-reachability.yml
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260719-otbm-e2e-001b-executable-routing.md
   - docs/ai-agent/OTBM_E2E_ROUTE_PLAN.md
   - docs/ai-agent/OTBM_E2E_ROUTE_PLAN.schema.json
@@ -139,11 +147,23 @@ validation:
   - command: live programme/dependency/ownership preflight
     result: PASS
     evidence: PR #567 and PR #572 are merged; no open overlapping OTBM-E2E-001B/reachability PR found
-  - command: changed-file scope review on PR #580 before CI workflow update
+  - command: changed-file scope review on PR #580
     result: PASS
-    evidence: implementation changes stayed inside task/Reachability/route-plan paths with no tools/e2e, OTBM, WIDX, items.otb or asset paths
+    evidence: exactly eleven task/Reachability/route-plan/workflow/catalogue/changelog files; no tools/e2e, OTBM, WIDX, items.otb or asset paths
   - command: OTBM Reachability workflow coverage review
     result: PASS
     evidence: existing workflow was extended in place to execute the new focused fixture file, validate route-plan schema syntax and package otbm_route_interactions.py; no second workflow was created
-next_action: Read focused workflow results, repair any exact failures, then update shared catalogue/changelog, apply ci:final-gate and create the final task checkpoint commit.
+  - command: exact implementation-head focused workflows on 440a9e2ee1373baa30520c1cf9f2d1bc51cbed2a
+    result: PASS
+    evidence: OTBM Reachability 90, CI 3670, AI Agent Tools 1135, OTBM Map Tools 689, OTBM Semantic Diff 105, OTBM Geometry Audit 95 and OTBM Spawn and NPC Validation 70 all succeeded
+  - command: Agent Task Ownership 2529 diagnostic artifact
+    result: FIXED
+    evidence: only failure was first_failure null instead of mapping; corrected to first_failure {}
+  - command: compare main...feat/otbm-e2e-001b-executable-routing before final checkpoint
+    result: PASS
+    evidence: live main c2e27060165b91c1de6a5f40571060e480cdcb06 is the merge base and branch is behind_by 0
+  - command: shared-document PR patch review
+    result: PASS
+    evidence: MODULE_CATALOG changes only the Reachability row; CHANGELOG changes only the route-plan bullet
+next_action: Verify exact-final-head workflows including stable Required, confirm no unresolved review threads and unchanged mergeability/head, then squash-merge PR #580 with expected_head_sha.
 ```
