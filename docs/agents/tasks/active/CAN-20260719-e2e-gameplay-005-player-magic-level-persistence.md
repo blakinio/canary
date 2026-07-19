@@ -7,8 +7,8 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-gameplay-005-player-magic-level-persistence
 base_branch: main
 created: 2026-07-19T18:05:00+02:00
-updated: 2026-07-19T18:14:00+02:00
-last_verified_commit: "62048ce3ab2f7e9ecda705f52cc6dab143793397"
+updated: 2026-07-19T18:22:00+02:00
+last_verified_commit: "4bfd391f005a9b2f1219110fc8624fbdc6ce02fe"
 risk: medium
 related_issue: ""
 related_pr: "595"
@@ -69,19 +69,19 @@ This task deliberately covers only the durable magic-level value stored in `play
 - [x] Document the exact durable-value boundary and explicitly exclude `manaspent`, percentages and temporary/base-vs-effective normalization questions from this slice.
 - [x] Keep feature-specific expected magic levels and progression actions out of shared fixtures.
 - [x] Preserve merged #589 `follow_route` behavior and merged #591 `player_balance` behavior in shared client/persistence files.
-- [ ] Keep PR #594 OTBM route-preflight ownership untouched and update `MODULE_CATALOG.md` with one narrow E2E row change after rechecking live #594/main state.
-- [ ] Apply `ci:final-gate` before the final checkpoint commit.
+- [x] Keep PR #594 OTBM route-preflight ownership untouched and update `MODULE_CATALOG.md` with exactly one narrow E2E row change.
+- [x] Apply `ci:final-gate` before the final checkpoint commit.
 - [ ] Require exact-final-head Ownership, CI, Universal Agent E2E and autofix success before merge.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-19T18:14:00+02:00
-head: 62048ce3ab2f7e9ecda705f52cc6dab143793397
+updated_at: 2026-07-19T18:22:00+02:00
+head: 4bfd391f005a9b2f1219110fc8624fbdc6ce02fe
 branch: feat/e2e-gameplay-005-player-magic-level-persistence
 pr: 595
-status: implementing
+status: validating
 context_routes:
   - universal-e2e
   - agent-governance
@@ -97,7 +97,7 @@ proven:
   - draft PR 595 owns branch feat/e2e-gameplay-005-player-magic-level-persistence
   - E2E-GAMEPLAY-005 explicitly covers vocation/progression persistence and may proceed independently of route planning
   - no open PR matched magic-level or progression persistence ownership at task start
-  - open PR 594 owns OTBM-E2E-004 route preflight and overlaps only the shared MODULE_CATALOG.md index with this task
+  - PR 594 still owns OTBM-E2E-004 route preflight and remains open; this task changes none of its implementation or documentation paths
   - schema.sql defines players.maglevel as int(11) NOT NULL DEFAULT 0
   - savePlayerFirst writes players.maglevel from player->magLevel
   - loadPlayerBasicInfo restores player->magLevel from players.maglevel as uint32_t and derives manaSpent/percent separately
@@ -109,19 +109,22 @@ proven:
   - focused tests cover SQL shape, uint16 boundaries, invalid values, arbitrary SQL-field rejection, escaping, mixed typed checks, Lua-plan rendering and runtime-source wiring
   - dedicated docs/e2e/PLAYER_MAGIC_LEVEL_PERSISTENCE.md defines the public contract and explicitly excludes manaspent, percentages, temporary/base-effective normalization, vocation and individual skills
   - the attempted full replacement of PHYSICAL_GAMEPLAY_ACTION_PLANS.md was blocked by the tool safety layer; the task did not bypass that block and instead uses a dedicated narrow contract document
-  - CI run 29694251372 succeeded on implementation/documentation head 62048ce3ab2f7e9ecda705f52cc6dab143793397
-  - Agent Task Ownership run 29694251316 failed only because first_failure was null instead of the required YAML mapping; focused ownership tooling tests passed
-  - Universal Agent E2E run 29694251344 was still in progress on implementation/documentation head when this checkpoint metadata fix was prepared
+  - PR 595 changes exactly six files
+  - driver patch audit contains exactly two magic-level persistence hunks and no route execution changes
+  - persistence compiler patch audit contains only player_magic_level validation/client inclusion/SQL plus an explicit preserved player_balance compile branch
+  - MODULE_CATALOG patch audit contains exactly one Universal OTS E2E physical gameplay row update and leaves OTBM route-preflight and route-plan execution entries untouched
+  - corrected Agent Task Ownership run 29694378525 succeeded on checkpoint-fix head d9953e9a6ad8aac62a7079efc8958b3c1af41452
+  - pre-final CI run 29694568253 succeeded and Agent Task Ownership run 29694568151 succeeded on implementation/catalogue head 4bfd391f005a9b2f1219110fc8624fbdc6ce02fe
+  - main remained d4f8bb3aa3a6ca31b54f324797078360da28f8f8 immediately before final checkpoint preparation
+  - ci:final-gate was applied to PR 595 before this final checkpoint commit
 derived:
   - a client-plus-SQL player_magic_level assertion reuses the existing phase-two persistence plan and fixed scalar SQL boundary without runner or workflow changes
 unknown:
-  - corrected Ownership conclusion after this checkpoint fix
-  - live #594/main state before MODULE_CATALOG update
-  - final workflow conclusions
+  - exact-final-head workflow conclusions after this final checkpoint
 conflicts: []
 first_failure:
   marker: ownership_checkpoint_first_failure_shape
-  evidence: Agent Task Ownership run 29694251316 failed because first_failure was null; diagnostics require a YAML mapping. Focused ownership tooling tests passed.
+  evidence: Agent Task Ownership run 29694251316 failed because first_failure was null; diagnostics required a YAML mapping. Focused ownership tooling tests passed and the checkpoint was corrected.
 rejected_hypotheses:
   - bundling all skills and magic level into one broad progression PR
   - permitting values above 65535 that cannot be represented by the maintained client getter used for physical proof
@@ -130,6 +133,7 @@ rejected_hypotheses:
   - modifying OTBM route preflight or route execution packages
   - bypassing the tool safety block on a large documentation replacement
 changed_paths:
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260719-e2e-gameplay-005-player-magic-level-persistence.md
   - docs/e2e/PLAYER_MAGIC_LEVEL_PERSISTENCE.md
   - tests/e2e/test_player_magic_level_persistence.py
@@ -141,7 +145,28 @@ validation:
     evidence: implementation/documentation head 62048ce3ab2f7e9ecda705f52cc6dab143793397
   - command: Agent Task Ownership run 29694251316
     result: FAIL
-    evidence: checkpoint schema required first_failure to be a YAML mapping; corrected in this metadata commit
+    evidence: checkpoint schema required first_failure to be a YAML mapping; corrected in commit d9953e9a6ad8aac62a7079efc8958b3c1af41452
+  - command: Agent Task Ownership run 29694378525
+    result: PASS
+    evidence: corrected checkpoint schema
+  - command: PR 595 shared-driver patch audit
+    result: PASS
+    evidence: exactly two player_magic_level persistence hunks; follow_route and player_balance inherited unchanged
+  - command: PR 595 persistence compiler patch audit
+    result: PASS
+    evidence: bounded player_magic_level validation/client inclusion/fixed SQL only, with preserved explicit player_balance branch
+  - command: PR 595 MODULE_CATALOG patch audit
+    result: PASS
+    evidence: exactly one intended Universal OTS E2E row update
+  - command: CI run 29694568253
+    result: PASS
+    evidence: implementation/catalogue head 4bfd391f005a9b2f1219110fc8624fbdc6ce02fe
+  - command: Agent Task Ownership run 29694568151
+    result: PASS
+    evidence: implementation/catalogue head 4bfd391f005a9b2f1219110fc8624fbdc6ce02fe
+  - command: ci:final-gate label
+    result: PASS
+    evidence: applied before this final checkpoint commit
 blockers: []
-next_action: Require corrected Ownership success, audit the five-file implementation diff, recheck live main and PR 594, then perform one narrow MODULE_CATALOG update before pre-final validation.
+next_action: Make no further commits. Mark PR ready and require exact-final-head Agent Task Ownership, CI, Universal Agent E2E and autofix success plus clean review/merge state before expected-head squash merge.
 ```
