@@ -60,6 +60,6 @@ Target stage in `blakinio/Otheryn` is limited to the smallest `parties` proof/im
 - Preserve OAM-004 player SQL / later KV non-atomicity limitation.
 - Do not start OAM-024 until the separate OAM-023 lifecycle archive and durable program reconciliation are both merged.
 
-# Context checkpoint
+## Context checkpoint
 
 Task claimed after fresh live-state preflight. Current main/open-PR ownership shows no OAM implementation task and no `party.*` overlap. Initial exact blob comparison is identity-only evidence; next action is to review Party semantics/history and add the smallest focused target proof without production mutation unless a concrete defect is isolated.
