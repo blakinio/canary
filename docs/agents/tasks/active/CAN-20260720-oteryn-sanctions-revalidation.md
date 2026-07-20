@@ -10,7 +10,7 @@ created: 2026-07-20
 updated: 2026-07-20
 last_verified_commit: "3fe0130a408d201d0ca846f86a37b0ab20479932"
 risk: medium
-related_pr: ""
+related_pr: "621"
 depends_on:
   - OAM-004 database-connection
 blocks:
@@ -83,22 +83,21 @@ Blob identity is supporting evidence only and does not establish `REUSE`. Semant
 
 # Plan
 
-1. Bind this task to its early draft governance PR and freeze the current task head.
-2. Audit target/upstream/legacy sanctions semantics and relevant delivered legacy history for a stronger donor or blocking coupling.
-3. Classify `REUSE`, `ADAPT`, `REWRITE`, `DO_NOT_MIGRATE`, `EXPERIMENTAL_ONLY` or remain `REVALIDATE` strictly from evidence.
-4. Create one `dudantas/` target branch and the smallest target implementation/proof required by the disposition.
-5. Require exact-head target CI/review/changed-file/main-drift gates and expected-head squash merge.
-6. Reconcile Canary governance, then perform a separate active-to-archive lifecycle PR and separate one-file durable program reconciliation.
-7. Do not start OAM-025 before durable OAM-024 closure.
+1. Audit target/upstream/legacy sanctions semantics and relevant delivered legacy history for a stronger donor or blocking coupling.
+2. Classify `REUSE`, `ADAPT`, `REWRITE`, `DO_NOT_MIGRATE`, `EXPERIMENTAL_ONLY` or remain `REVALIDATE` strictly from evidence.
+3. Create one `dudantas/` target branch and the smallest target implementation/proof required by the disposition.
+4. Require exact-head target CI/review/changed-file/main-drift gates and expected-head squash merge.
+5. Reconcile Canary governance, then perform a separate active-to-archive lifecycle PR and separate one-file durable program reconciliation.
+6. Do not start OAM-025 before durable OAM-024 closure.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-20
-head: 3fe0130a408d201d0ca846f86a37b0ab20479932
+head: 451c4835a2e534283cbb02d5446b7c9231e07e03
 branch: docs/oam-024-sanctions-revalidation
-pr: null
+pr: 621
 status: implementing
 context_routes:
   - agent-governance
@@ -116,11 +115,12 @@ proven:
   - maintained OTClient is 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
   - task-start ban.cpp and ban.hpp blobs are identical across legacy target and fresh upstream
   - current open PR changed-file audits show no overlap with canonical ban.*
+  - draft governance PR 621 is bound to this task
+  - initial governance commit is 451c4835a2e534283cbb02d5446b7c9231e07e03
 derived:
   - sanctions is narrower than the other dependency-valid candidates chat-communication cyclopedia guilds and creature-definitions
   - blob identity alone is insufficient for REUSE and a stronger legacy donor or enforcement coupling would change the disposition
 unknown:
-  - exact governance PR number until the early draft PR is opened
   - final migration disposition until semantic and legacy-history review completes
   - exact target proof shape and final target head until classification completes
 blockers: []
@@ -136,5 +136,5 @@ validation:
     result: PASS
     evidence: exact task-start SHAs and open-PR changed-file audits recorded above
 first_failure: null
-next_action: open the early draft governance PR, bind related_pr/checkpoint metadata, then continue sanctions semantic and history review
+next_action: complete sanctions semantic and legacy-history review, then create only the target proof or adaptation required by the evidence-backed disposition
 ```
