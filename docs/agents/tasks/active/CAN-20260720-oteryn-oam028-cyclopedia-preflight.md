@@ -31,8 +31,8 @@ Revalidate canonical OAM-028 `cyclopedia` as the broad compatibility/discovery u
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-20T23:03:00Z
-head: 19c286762fb89ba3ed8d47ebf58538ff070a4d7f
+updated_at: 2026-07-20T23:06:00Z
+head: 79971ff78e0f7e50168c00792e38242be138047f
 branch: docs/oam-028-cyclopedia-preflight
 pr: 649
 status: ready
@@ -57,7 +57,6 @@ proven:
   - Merged legacy PR 188 contains Bestiary, Bosstiary, Charms and Cyclopedia Character child-boundary runtime fixes and explicitly no protocol or maintained-OTClient change.
   - Merged legacy PR 192 contains Bestiary/Bosstiary monster-data corrections and explicitly no protocol or maintained-OTClient change.
   - Cyclopedia validation PR 243 is validator/workflow control only and does not provide an umbrella runtime donor.
-  - Current open Canary PR 514 changes security runtime tooling/tests/docs only and does not touch production protocol paths; PRs 637/646 own NPC E2E and OTBM E2E work respectively.
   - Otheryn PR 57 changed exactly four proof-only paths and no production/runtime/data/client path.
   - Otheryn PR 57 final head 19c286762fb89ba3ed8d47ebf58538ff070a4d7f passed autofix 170 run 29785109223, CI 206 run 29785109355 and Required 189 run 29785109193.
   - Linux debug Run Tests passed on the exact final head; test-log artifact 8478394189 digest is sha256:152b153430d5ccd7953647f37e2d462b16c7aed30a7a027248195e698bdfa9cb.
@@ -65,11 +64,11 @@ proven:
 derived:
   - Final OAM-028 disposition is cyclopedia REUSE with proof-only target evidence, preserving completed OAM-006 protocol architecture and all TSD-004 child ownership boundaries.
 unknown:
-  - Final Canary governance exact-head gate outcome until PR 649 ready-state Ownership and CI complete.
+  - Final Canary governance exact-head gate outcome after compactness metadata repair.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: none
+  marker: checkpoint proven compactness limit
+  evidence: Agent Task Ownership 2944 rejected 17 proven items; compactness limit is 16
 rejected_hypotheses:
   - Import PR 188 wholesale as umbrella Cyclopedia work; rejected because its production fixes belong to bestiary, bosstiary, charms and cyclopedia-character child boundaries.
   - Import PR 192 as umbrella Cyclopedia work; rejected because it is Bestiary/Bosstiary data ownership.
@@ -87,6 +86,9 @@ validation:
   - command: Otheryn PR 57 exact-head target gate
     result: PASS
     evidence: autofix 170, CI 206, Required 189 on final head 19c286762fb89ba3ed8d47ebf58538ff070a4d7f; squash merge 7e03405aea50d88fdbc27d0d2a7d95c7f1745946
+  - command: Agent Task Ownership 2944
+    result: FAIL
+    evidence: proven list exceeded compactness limit by one; metadata-only repair applied
 blockers: []
-next_action: Mark Canary PR 649 ready, require Agent Task Ownership and final-gate CI success on the exact final head, audit exactly two governance files plus comments/reviews/threads and Canary-main drift, then expected-head squash merge if all gates remain clean.
+next_action: Require the repaired exact head to pass Agent Task Ownership, then reapply ci:final-gate and require final CI success; audit exactly two governance files plus comments/reviews/threads and Canary-main drift, then expected-head squash merge if all gates remain clean.
 ```
