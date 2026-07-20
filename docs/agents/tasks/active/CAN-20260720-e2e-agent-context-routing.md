@@ -11,7 +11,7 @@ updated: 2026-07-20
 last_verified_commit: "8ed836aae47d6bb882fb646169d2930f951c6c0d"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "632"
 depends_on:
   - merged ACO context routing and compact resume infrastructure
 blocks: []
@@ -47,11 +47,11 @@ Ensure Universal OTS E2E continuation agents automatically load the durable game
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-20T19:43:00+02:00
-head: 8ed836aae47d6bb882fb646169d2930f951c6c0d
+updated_at: 2026-07-20T19:44:00+02:00
+head: 7d22b2a8b3e3690bc708aa979a656055ea659ac1
 branch: docs/e2e-agent-context-routing-20260720-final
-pr: none
-status: implementing
+pr: 632
+status: validating
 context_routes:
   - agent-governance
   - universal-e2e
@@ -63,12 +63,12 @@ proven:
   - Canary AGENTS multi-agent concurrency defines one branch and one worktree per agent and advisory owned_paths locks, not a programme-wide single-task mutex.
   - The universal-e2e context route requires E2E_AUTOMATION_PROGRAM.md, docs/architecture/universal-e2e-gameplay-validation.md, and docs/agents/E2E_AGENT_CONTINUATION.md.
   - E2E_AGENT_CONTINUATION.md explicitly permits independent lifecycle cleanup when the merged feature task record has no live overlapping owner or ordering hold.
-  - Main drift since the original candidate touched only OAM-025 documentation and archive paths and did not overlap this task.
+  - Fresh PR 632 is based on current main after non-overlapping OAM-025 drift; superseded PR 629 is closed unmerged.
 derived:
   - Universal E2E resume routing supplies durable architecture without copying that architecture into a long handover.
   - Same-program active work blocks lifecycle cleanup only when a real ownership overlap, dependency/order constraint, atomic hold, or explicit repository stop condition exists.
 unknown:
-  - Final PR number and exact-head gate outcomes for the replayed branch.
+  - Exact-head Agent Task Ownership and CI outcomes for PR 632.
 conflicts: []
 first_failure:
   marker: e2e-agent-overconstrained-concurrency
@@ -85,7 +85,7 @@ validation:
     evidence: authoritative main files inspected before replay
   - command: main drift overlap audit
     result: PASS
-    evidence: two intervening main commits changed only OAM-025 documentation and archive paths
+    evidence: intervening main commits changed only OAM-025 documentation and archive paths
 blockers: []
-next_action: Open a fresh draft PR from the replayed branch, bind the PR number in this task record, then run exact-head Agent Task Ownership and CI gates.
+next_action: Verify PR 632 exact-head Agent Task Ownership and CI, then perform ready-state, review, mergeability and live-main drift gates before squash merge.
 ```
