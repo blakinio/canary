@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/ai-agent/OTBM_E2E_IMPACTED_SELECTION.schema.json",
+  "title": "Canary OTBM Semantic Diff impacted Physical E2E selection v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "ok", "semanticDiff", "policy", "summary", "scenarios"],
+  "properties": {
+    "format": {"const": "canary-otbm-e2e-impacted-selection-v1"},
+    "schemaVersion": {"const": 1},
+    "ok": {"const": true},
+    "semanticDiff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "beforeMapSha256", "afterMapSha256", "beforeWorldIndexSha256", "afterWorldIndexSha256", "scopeType", "findingsTotal", "findingsTruncated"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "beforeMapSha256": {"$ref": "#/$defs/sha256"},
+        "afterMapSha256": {"$ref": "#/$defs/sha256"},
+        "beforeWorldIndexSha256": {"$ref": "#/$defs/sha256"},
+        "afterWorldIndexSha256": {"$ref": "#/$defs/sha256"},
+        "scopeType": {"enum": ["full-index", "bounded-region"]},
+        "findingsTotal": {"type": "integer", "minimum": 0},
+        "findingsTruncated": {"type": "boolean"}
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fullIndexRequiredForSkip", "truncatedDiffSelectsAll", "unknownFindingPositionSelectsAll", "staleOrMissingBaselineRouteSelectsScenario", "otbmParsed", "worldIndexBuilt", "routeCalculated", "physicalE2eExecuted", "mapModified"],
+      "properties": {
+        "fullIndexRequiredForSkip": {"const": true},
+        "truncatedDiffSelectsAll": {"const": true},
+        "unknownFindingPositionSelectsAll": {"const": true},
+        "staleOrMissingBaselineRouteSelectsScenario": {"const": true},
+        "otbmParsed": {"const": false},
+        "worldIndexBuilt": {"const": false},
+        "routeCalculated": {"const": false},
+        "physicalE2eExecuted": {"const": false},
+        "mapModified": {"const": false}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenarioCount", "selectedCount", "skippedCount", "failClosedCount"],
+      "properties": {
+        "scenarioCount": {"type": "integer", "minimum": 1},
+        "selectedCount": {"type": "integer", "minimum": 0},
+        "skippedCount": {"type": "integer", "minimum": 0},
+        "failClosedCount": {"type": "integer", "minimum": 0}
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "items": {"$ref": "#/$defs/scenario"}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nullableSha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+    "reason": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code"],
+      "properties": {
+        "code": {"type": "string", "minLength": 1},
+        "detail": {"type": "string"}
+      }
+    },
+    "routePlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["routeId", "path", "sha256", "baselineCompatible", "positionCount"],
+      "properties": {
+        "routeId": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/nullableSha256"},
+        "baselineCompatible": {"type": "boolean"},
+        "positionCount": {"type": "integer", "minimum": 0}
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["suite", "id", "manifest", "selected", "decision", "failClosed", "reasons", "impactedFindingIds", "routePlans"],
+      "properties": {
+        "suite": {"type": "string", "minLength": 1},
+        "id": {"type": "string", "minLength": 1},
+        "manifest": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "minLength": 1},
+            "sha256": {"$ref": "#/$defs/sha256"}
+          }
+        },
+        "selected": {"type": "boolean"},
+        "decision": {"enum": ["selected", "skipped"]},
+        "failClosed": {"type": "boolean"},
+        "reasons": {"type": "array", "minItems": 1, "maxItems": 128, "items": {"$ref": "#/$defs/reason"}},
+        "impactedFindingIds": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^otbm-diff:[0-9a-f]{24}$"}},
+        "routePlans": {"type": "array", "maxItems": 64, "items": {"$ref": "#/$defs/routePlan"}}
+      }
+    }
+  }
+}
