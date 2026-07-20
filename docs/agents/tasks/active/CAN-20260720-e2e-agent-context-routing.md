@@ -47,8 +47,8 @@ Ensure Universal OTS E2E continuation agents automatically load the durable game
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-20T21:49:00+02:00
-head: 3b30f8fac424b26d5774bf1f6ee6e320cd4e45fd
+updated_at: 2026-07-20T21:52:00+02:00
+head: 4e2d8a57476bd00a6e4117fda432c7a00ef0a77b
 branch: docs/e2e-agent-context-routing-replay-20260720
 pr: 633
 status: validating
@@ -65,11 +65,12 @@ proven:
   - E2E_AGENT_CONTINUATION.md explicitly permits independent lifecycle cleanup when the merged feature task record has no live overlapping owner or ordering hold.
   - Original PR 629 exact head 3712f0a96ed107b0462f1bafc4d257378aceb196 passed Agent Task Ownership and CI and had no review threads, but main advanced by two unrelated OAM commits before merge.
   - Clean replay PR 633 starts from current main 8ed836aae47d6bb882fb646169d2930f951c6c0d and changes the same three bounded governance paths.
+  - Superseded PR 629 is closed without merge and PR 633 has ci:final-gate applied before this final checkpoint commit.
 derived:
   - A clean replay from current main preserves the exact three-path scope without force-updating published history.
   - Same-program active work blocks lifecycle cleanup only when a real ownership overlap, dependency/order constraint, atomic hold, or explicit repository stop condition exists.
 unknown:
-  - Exact-head PR 633 ownership, CI, review and mergeability outcomes.
+  - Exact-head PR 633 ownership, CI, review and mergeability outcomes after this final commit.
 conflicts: []
 first_failure:
   marker: base-modified-before-merge
@@ -93,6 +94,9 @@ validation:
   - command: clean replay scope reconstruction
     result: PASS
     evidence: PR 633 starts at current main and recreates only the same three task paths
+  - command: ci:final-gate application before final checkpoint commit
+    result: PASS
+    evidence: label applied to PR 633 before this commit
 blockers: []
-next_action: Close superseded PR 629, verify PR 633 exact-head Agent Task Ownership, CI, route-resolution behavior, review state, mergeability and main drift, then squash-merge only if all required gates pass.
+next_action: Verify PR 633 exact-head Agent Task Ownership, CI, route-resolution behavior, review state, mergeability and main drift; if all required gates pass, mark ready and squash-merge without creating another commit.
 ```
