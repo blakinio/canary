@@ -2,7 +2,7 @@
 task_id: CAN-20260720-oteryn-sanctions-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-024
-status: implementing
+status: ready
 agent: "GPT-5.5 Thinking"
 branch: docs/oam-024-sanctions-revalidation
 base_branch: main
@@ -30,7 +30,7 @@ modules_touched:
   - sanctions
 reuses:
   - OAM-004 database-connection boundary
-  - existing target/upstream sanctions core pending evidence-driven disposition
+  - existing sanctions enforcement core
 public_interfaces: []
 cross_repo_tasks: []
 ---
@@ -38,6 +38,12 @@ cross_repo_tasks: []
 # Goal
 
 Revalidate canonical OAM-024 `sanctions`, classify the smallest dependency-valid clean-target disposition from current evidence, deliver only the bounded target implementation or proof required by that disposition, and complete target, governance, lifecycle archive and durable program reconciliation without absorbing protocol transport, account authentication, generic security analytics or unrelated E2E work.
+
+# Final disposition
+
+```text
+sanctions → ADAPT
+```
 
 # Immutable task-start baselines
 
@@ -60,45 +66,76 @@ Canonical dependency: completed OAM-004 `database-connection`.
 
 Explicit exclusions include account credential verification, PvP skull/frag rules, chat moderation policy, generic security analytics, AI investigation, protocol packet redesign, maintained-client changes and any claim that every sanction is enforced at every entry point.
 
-# Fresh preflight
+# Fresh preflight and evidence
 
-- OAM-023 durable reconciliation is merged at Canary `3fe0130a408d201d0ca846f86a37b0ab20479932`.
-- Durable program state records OAM-001..OAM-023 complete, OAM-023 archived and OAM-024 NOT STARTED before this task.
-- Otheryn main is `bcc3e9f7e3e704f3c012bda8693648d52741630f`.
-- Fresh upstream Canary is `71a0f92b4da3f550b292fa7536a0e35c2769f1ae`.
-- Maintained OTClient is `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`.
-- Open Canary PRs #620, #559, #526 and #514 have no changed-file overlap with canonical `ban.*` or these OAM-024 governance paths.
-- Otheryn, maintained OTClient and upstream Canary have no open PRs at task start.
-- Parallel security work treats source/runtime paths as read-only evidence or owns separate validation tooling; no active task claims `ban.*` for mutation.
-- OTBM/E2E work remains independent and out of scope.
+- OAM-023 durable reconciliation was merged at Canary `3fe0130a408d201d0ca846f86a37b0ab20479932` before OAM-024 began.
+- Durable program state recorded OAM-001..OAM-023 complete, OAM-023 archived and OAM-024 NOT STARTED before this task.
+- Task-start Otheryn main was `bcc3e9f7e3e704f3c012bda8693648d52741630f`.
+- Fresh upstream Canary was `71a0f92b4da3f550b292fa7536a0e35c2769f1ae`.
+- Maintained OTClient was `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`.
+- Task-start open Canary PRs #620, #559, #526 and #514 had no changed-file overlap with canonical `ban.*` or these governance paths.
+- Otheryn, maintained OTClient and upstream Canary had no open PRs at task start.
+- Parallel security work treated source/runtime paths as read-only evidence or owned separate validation tooling; no active task claimed `ban.*` for mutation.
+- OTBM/E2E work remained independent and out of scope.
+- At immutable task-start baselines, `ban.cpp` blob `ca4c11ea98d6a8f4b6281f0bb5e84d742ff21ecc` and `ban.hpp` blob `48086b3efef370b2c0e1fab8f85513a95e47dcad` were identical across legacy, target and fresh upstream. Blob identity was not accepted as sufficient `REUSE` evidence.
+- Semantic review confirmed socket-accept throttling, login IP-ban lookup, game-login account-ban/namelock lookup and the expired account-ban history handoff.
+- Relevant target and legacy history identified no stronger independent donor for canonical `ban.*`.
+- The existing expired account-ban history `INSERT` and active-ban `DELETE` were two independent asynchronous writes without one rollback boundary.
+- Completed OAM-004 already provides the target `DBTransaction` primitive, making a bounded `ADAPT` the smallest valid disposition.
 
-# Initial evidence
+# Target delivery
 
-At immutable task-start baselines, both canonical files are blob-identical across legacy, target and fresh upstream:
+Otheryn PR #48 final head:
 
-- `ban.cpp`: `ca4c11ea98d6a8f4b6281f0bb5e84d742ff21ecc`
-- `ban.hpp`: `48086b3efef370b2c0e1fab8f85513a95e47dcad`
+```text
+58ba19e0affe75f47c4185c41327880f8403503b
+```
 
-Blob identity is supporting evidence only and does not establish `REUSE`. Semantic/history review and focused target proof remain required.
+The final target diff has exactly four paths:
 
-# Plan
+```text
+docs/oam-024-sanctions-adapt.md
+src/creatures/players/management/ban.cpp
+tests/integration/database/CMakeLists.txt
+tests/integration/database/sanctions_it.cpp
+```
 
-1. Audit target/upstream/legacy sanctions semantics and relevant delivered legacy history for a stronger donor or blocking coupling.
-2. Classify `REUSE`, `ADAPT`, `REWRITE`, `DO_NOT_MIGRATE`, `EXPERIMENTAL_ONLY` or remain `REVALIDATE` strictly from evidence.
-3. Create one `dudantas/` target branch and the smallest target implementation/proof required by the disposition.
-4. Require exact-head target CI/review/changed-file/main-drift gates and expected-head squash merge.
-5. Reconcile Canary governance, then perform a separate active-to-archive lifecycle PR and separate one-file durable program reconciliation.
-6. Do not start OAM-025 before durable OAM-024 closure.
+The adaptation moves only expired account-ban history insertion and active-row deletion into one `DBTransaction` under `SELECT ... FOR UPDATE`; active/permanent ban behavior is preserved and IP-ban behavior is unchanged.
+
+Exact-head gates:
+
+- autofix.ci #153 run `29734614481`: SUCCESS
+- CI #179 run `29734614607`: SUCCESS
+- Required #160 run `29734614503`: SUCCESS
+- Linux debug CTest: `406/406 PASS`
+- `SanctionsRepositoryDBTest`: `3/3 PASS`
+- test-log artifact `8458101363`
+- digest `sha256:97b9aeb5e93bac69461720671ee58bfe5742fd20df2710b139d0aa2298cd30fc`
+- target comments/reviews/review threads: 0/0/0
+- target-main drift from immutable target baseline before merge: 0
+
+PR #48 merged by expected-head squash as:
+
+```text
+65d364b216843db27e84a19a673eee4e6d766c68
+```
+
+# Remaining lifecycle
+
+1. Merge this governance reconciliation only after exact-head Ownership/CI/review/changed-file/main-drift gates.
+2. Archive this task in a separate authoritative lifecycle PR.
+3. Merge a separate one-file durable program reconciliation recording OAM-024 complete and OAM-025 NOT STARTED.
+4. Do not begin OAM-025 before that durable reconciliation is merged.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-20
-head: 451c4835a2e534283cbb02d5446b7c9231e07e03
+head: d22ccb90b46f5f348c696eb40040376d27c70ec5
 branch: docs/oam-024-sanctions-revalidation
 pr: 621
-status: implementing
+status: ready
 context_routes:
   - agent-governance
   - cpp-runtime
@@ -106,35 +143,42 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260720-oteryn-sanctions-revalidation.md
   - docs/agents/OTERYN_OAM_024_SANCTIONS_REVALIDATION.md
 proven:
-  - OAM-023 durable reconciliation is merged at Canary 3fe0130a408d201d0ca846f86a37b0ab20479932
-  - OAM-024 was not started in the durable program record before this task
+  - OAM-023 durable reconciliation preceded OAM-024 task start
   - canonical sanctions depends only on completed OAM-004 database-connection
   - canonical production boundary is src/creatures/players/management/ban.*
-  - task-start Otheryn main is bcc3e9f7e3e704f3c012bda8693648d52741630f
-  - fresh upstream Canary is 71a0f92b4da3f550b292fa7536a0e35c2769f1ae
-  - maintained OTClient is 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
-  - task-start ban.cpp and ban.hpp blobs are identical across legacy target and fresh upstream
-  - current open PR changed-file audits show no overlap with canonical ban.*
-  - draft governance PR 621 is bound to this task
-  - initial governance commit is 451c4835a2e534283cbb02d5446b7c9231e07e03
+  - task-start open PR and ownership audits found no overlapping ban.* writer
+  - blob identity was treated only as supporting evidence
+  - semantic and history review found no stronger independent legacy donor
+  - original account-ban expiry used separate asynchronous history insert and active-row delete writes
+  - bounded target adaptation uses existing OAM-004 DBTransaction for the expiry handoff
+  - final target head is 58ba19e0affe75f47c4185c41327880f8403503b
+  - target exact-head autofix CI and Required gates passed
+  - Linux debug CTest passed 406 of 406 and focused sanctions tests passed 3 of 3
+  - target merge is 65d364b216843db27e84a19a673eee4e6d766c68
+  - Canary main has no drift from immutable task-start baseline before final governance update
 derived:
-  - sanctions is narrower than the other dependency-valid candidates chat-communication cyclopedia guilds and creature-definitions
-  - blob identity alone is insufficient for REUSE and a stronger legacy donor or enforcement coupling would change the disposition
+  - sanctions ADAPT is narrower and better supported than selecting broader dependency-valid candidates
+  - rollback-safe expiry archival closes only the account-ban history handoff and does not claim generic persistence redesign
 unknown:
-  - final migration disposition until semantic and legacy-history review completes
-  - exact target proof shape and final target head until classification completes
+  - final governance merge SHA until PR 621 passes exact-head gates and merges
+  - lifecycle merge SHA until separate archive PR completes
+  - durable reconciliation merge SHA until separate program-only PR completes
 blockers: []
 conflicts: []
 rejected_hypotheses:
-  - selecting cyclopedia solely because it is the next broad progression family is rejected
-  - selecting wheel-of-destiny while its separate parity programme is active is rejected
-  - inferring REUSE solely from path or blob identity is rejected
+  - sanctions REUSE solely from blob identity is rejected
+  - broad protocol or authentication changes are rejected as outside canonical sanctions ownership
+  - IP-ban cleanup changes are rejected from OAM-024 because they were independent of the focused proven defect
 changed_paths:
   - docs/agents/tasks/active/CAN-20260720-oteryn-sanctions-revalidation.md
+  - docs/agents/OTERYN_OAM_024_SANCTIONS_REVALIDATION.md
 validation:
-  - command: live repository head and open-PR preflight
+  - command: target exact-head CI and focused integration proof
     result: PASS
-    evidence: exact task-start SHAs and open-PR changed-file audits recorded above
+    evidence: CI 179 run 29734614607; Required 160 run 29734614503; CTest 406/406; SanctionsRepositoryDBTest 3/3
+  - command: target review and main-drift audit
+    result: PASS
+    evidence: comments reviews threads 0/0/0; Otheryn main remained bcc3e9f7e3e704f3c012bda8693648d52741630f before merge
 first_failure: null
-next_action: complete sanctions semantic and legacy-history review, then create only the target proof or adaptation required by the evidence-backed disposition
+next_action: pass final exact-head governance gates on PR 621, audit and expected-head squash merge, then perform separate lifecycle archive
 ```
