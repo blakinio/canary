@@ -275,6 +275,23 @@ class OtbmRouteFailureTriageTests(unittest.TestCase):
         )
         self.assertEqual(self.category(), "PERSISTENCE_FAILURE")
 
+    def test_completed_route_context_is_not_attached_to_lifecycle_failure(self) -> None:
+        self.write_manifest()
+        self.write_route_preparation()
+        self.write_route()
+        self.write_events(
+            ("route_route-step_edge_1", "start"),
+            ("route_route-step_edge_1", "success"),
+            ("server_persistence_1", "confirmed"),
+            ("login_2", "success"),
+            ("e2e", "failure"),
+            ("error", "persistence check level (level) failed: actual=499 expected=500"),
+        )
+        result = triage.classify_artifacts(self.artifacts)
+        self.assertEqual(result["failureCategory"], "PERSISTENCE_FAILURE")
+        self.assertNotIn("routeId", result["firstFailure"])
+        self.assertNotIn("edgeIndex", result["firstFailure"])
+
     def test_persistence_failure_from_result_checks(self) -> None:
         self.write_manifest()
         self.write_route_preparation()
