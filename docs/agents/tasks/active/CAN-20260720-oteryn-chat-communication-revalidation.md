@@ -8,10 +8,10 @@ branch: docs/oam-025-chat-communication-revalidation
 base_branch: main
 created: 2026-07-20
 updated: 2026-07-20
-last_verified_commit: "9a7c5ebfa4cb35066293a8b75039fb61b8d8afe5"
+last_verified_commit: "fc60201c83fa273176cb35a6302e61f96a957c7a"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "626"
 depends_on:
   - OAM-005 character-lifecycle
 blocks:
@@ -38,7 +38,7 @@ public_interfaces:
   - ChatChannel
   - PrivateChatChannel
 cross_repo_tasks:
-  - blakinio/Otheryn:dudantas/oam-025-chat-communication-revalidation
+  - blakinio/Otheryn:dudantas/oam-025-chat-communication-adapt
 ---
 
 # Goal
@@ -50,10 +50,10 @@ Revalidate canonical OAM-025 `chat-communication`, classify the smallest depende
 - [x] Merge the OAM-024 durable reconciliation before starting OAM-025.
 - [x] Pin exact task-start Canary, Otheryn, upstream Canary and maintained OTClient heads.
 - [x] Confirm canonical dependencies and open-PR ownership overlap for the selected package.
-- [ ] Complete semantic/history/source revalidation beyond blob identity.
-- [ ] Classify every target-relevant boundary as applicable, not-applicable or unresolved.
-- [ ] Select exactly one disposition: `REUSE`, `ADAPT`, `REWRITE` or `DO_NOT_MIGRATE`.
-- [ ] Deliver the smallest target proof or implementation on a `dudantas/` branch with exact-head CI.
+- [x] Complete semantic/history/source revalidation beyond blob identity.
+- [x] Classify every target-relevant boundary as applicable, not-applicable or unresolved.
+- [x] Select exactly one disposition: `ADAPT`.
+- [ ] Deliver the smallest target adaptation on a `dudantas/` branch with exact-head CI.
 - [ ] Record governance evidence and pass exact-head Ownership/CI/review gates.
 - [ ] Merge target, governance, separate lifecycle archive and separate durable program reconciliation before OAM-026 starts.
 
@@ -68,11 +68,11 @@ Revalidate canonical OAM-025 `chat-communication`, classify the smallest depende
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-20T20:00:00+02:00
-head: 9a7c5ebfa4cb35066293a8b75039fb61b8d8afe5
+updated_at: 2026-07-20T21:05:00+02:00
+head: fc60201c83fa273176cb35a6302e61f96a957c7a
 branch: docs/oam-025-chat-communication-revalidation
-pr: null
-status: implementing
+pr: 626
+status: validating
 context_routes:
   - agent-governance
   - cpp-runtime
@@ -81,34 +81,39 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260720-oteryn-chat-communication-revalidation.md
   - docs/agents/OTERYN_OAM_025_CHAT_COMMUNICATION_REVALIDATION.md
 proven:
-  - OAM-024 durable reconciliation PR 624 merged as 9a7c5ebfa4cb35066293a8b75039fb61b8d8afe5 before OAM-025 started
-  - canonical chat-communication depends only on completed character-lifecycle and interacts with guilds parties and protocol without owning those lifecycles
-  - chat-communication is a smaller dependency-valid next package than guilds because guilds additionally owns persistence-facing paths and database-connection dependency
-  - no open Canary or Otheryn PR was found for chat-communication chatchannels or src/creatures/interactions/chat scope at task start
-  - legacy target and fresh upstream chat.cpp share blob 152a40857f4b184e968eb51601a75634d8d37946
-  - legacy target and fresh upstream chat.hpp share blob 09f8a727fef239b95b1bb5da20356801769732f0
-  - legacy target and fresh upstream chatchannels.xml share blob e819080856b4460524ca316099c043e8ab3fb4ff
-  - blob identity is supporting evidence only and does not establish REUSE
+  - OAM-024 durable reconciliation merged as 9a7c5ebfa4cb35066293a8b75039fb61b8d8afe5 before OAM-025 started
+  - canonical chat-communication depends only on completed character-lifecycle and is smaller than the broader persistence-bearing guilds package
+  - no task-start Canary or Otheryn open PR overlapped canonical chat paths
+  - legacy target and fresh upstream chat core XML and all eight configured channel scripts were content-identical at task start
+  - upstream commit e17d77ac11635c7ddb53c36f6347d88bd3d35223 migrated chat privilege decisions from account type to player group but left two mixed-domain target checks in help.lua
+  - disposition is ADAPT because playerGroupType was compared against target getAccountType for both mute and unmute authorization
+  - Otheryn PR 51 changes only two production Lua comparisons plus focused test registration test code and target evidence
+  - focused proof executes the real help.lua with deliberately conflicting group and account privilege values
+  - autofix formatting produced target head 5aa0259d2ef34d1803ab1fbae8d931ed5f330486 and exact-head autofix plus Repository Audit are success
 unknown:
-  - whether semantic and history review identifies a bounded target defect requiring ADAPT
-  - whether any data/chatchannels script differs across legacy target and fresh upstream
-  - exact target proof required for the final disposition
+  - exact-final-head CI and Required conclusions for Otheryn PR 51
+  - exact target squash merge SHA
 conflicts: []
 first_failure:
-  marker: none
-  evidence: no validation failure observed yet
+  marker: Otheryn PR 51 first ready-state autofix application
+  evidence: run 29770250714 failed while applying generated formatting; its artifact formatted only the new CMake and C++ test files and produced follow-up head 5aa0259d2ef34d1803ab1fbae8d931ed5f330486
 rejected_hypotheses:
-  - select guilds before chat-communication: both are dependency-valid but guilds is broader and persistence-bearing
+  - select guilds before chat-communication: guilds is broader and persistence-bearing
+  - declare REUSE from blob identity: semantic history review found the mixed group/account privilege-domain defect
 changed_paths:
   - docs/agents/tasks/active/CAN-20260720-oteryn-chat-communication-revalidation.md
+  - docs/agents/OTERYN_OAM_025_CHAT_COMMUNICATION_REVALIDATION.md
 validation:
   - command: live GitHub open-PR overlap audit
     result: PASS
-    evidence: no open PR matched chat communication chatchannels or src/creatures/interactions/chat scope
-  - command: canonical dependency review
+    evidence: no task-start PR matched canonical chat scope
+  - command: upstream history plus current help.lua semantic review
     result: PASS
-    evidence: chat-communication depends_on contains only character-lifecycle
+    evidence: historical group migration left two target getAccountType comparisons
+  - command: Otheryn PR 51 exact-head autofix and Repository Audit
+    result: PASS
+    evidence: head 5aa0259d2ef34d1803ab1fbae8d931ed5f330486; runs 29770310537 and 29770310698 succeeded
 blockers:
   - none
-next_action: Finish semantic history and data-script revalidation, classify the OAM-025 boundary, then open the smallest target proof or adaptation PR on a dudantas/ branch.
+next_action: Verify exact-head Otheryn PR 51 CI Required review/comment/thread and target-main drift gates; if green, squash-merge with expected head and record immutable target evidence in Canary PR 626.
 ```
