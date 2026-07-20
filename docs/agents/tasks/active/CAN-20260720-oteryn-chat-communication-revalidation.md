@@ -8,7 +8,7 @@ branch: docs/oam-025-chat-communication-revalidation
 base_branch: main
 created: 2026-07-20
 updated: 2026-07-20
-last_verified_commit: "fc60201c83fa273176cb35a6302e61f96a957c7a"
+last_verified_commit: "ee34db88041120c3e64af3e62300372f04394e78"
 risk: medium
 related_issue: ""
 related_pr: "626"
@@ -53,7 +53,7 @@ Revalidate canonical OAM-025 `chat-communication`, classify the smallest depende
 - [x] Complete semantic/history/source revalidation beyond blob identity.
 - [x] Classify every target-relevant boundary as applicable, not-applicable or unresolved.
 - [x] Select exactly one disposition: `ADAPT`.
-- [ ] Deliver the smallest target adaptation on a `dudantas/` branch with exact-head CI.
+- [x] Deliver the smallest target adaptation on a `dudantas/` branch with exact-head CI.
 - [ ] Record governance evidence and pass exact-head Ownership/CI/review gates.
 - [ ] Merge target, governance, separate lifecycle archive and separate durable program reconciliation before OAM-026 starts.
 
@@ -68,8 +68,8 @@ Revalidate canonical OAM-025 `chat-communication`, classify the smallest depende
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-20T21:05:00+02:00
-head: fc60201c83fa273176cb35a6302e61f96a957c7a
+updated_at: 2026-07-20T21:20:00+02:00
+head: ee34db88041120c3e64af3e62300372f04394e78
 branch: docs/oam-025-chat-communication-revalidation
 pr: 626
 status: validating
@@ -87,12 +87,14 @@ proven:
   - legacy target and fresh upstream chat core XML and all eight configured channel scripts were content-identical at task start
   - upstream commit e17d77ac11635c7ddb53c36f6347d88bd3d35223 migrated chat privilege decisions from account type to player group but left two mixed-domain target checks in help.lua
   - disposition is ADAPT because playerGroupType was compared against target getAccountType for both mute and unmute authorization
-  - Otheryn PR 51 changes only two production Lua comparisons plus focused test registration test code and target evidence
-  - focused proof executes the real help.lua with deliberately conflicting group and account privilege values
-  - autofix formatting produced target head 5aa0259d2ef34d1803ab1fbae8d931ed5f330486 and exact-head autofix plus Repository Audit are success
+  - Otheryn PR 51 changed only two production Lua comparisons plus focused test registration test code and target evidence
+  - final Otheryn PR 51 head 5aa0259d2ef34d1803ab1fbae8d931ed5f330486 passed autofix 29770310537 Repository Audit 29770310698 CI 29770311110 and Required 29770310554
+  - focused Linux debug Run Tests passed on the exact final target head
+  - target review submissions inline review threads and discussion comments were empty and Otheryn main had zero drift from 86a598426f65e51ff2864ccd1d0a1dbf818b526c at merge gate
+  - Otheryn PR 51 was expected-head squash-merged as 1c8e3e8b4fc29effb3b0cb882af94f7d26ed2554
 unknown:
-  - exact-final-head CI and Required conclusions for Otheryn PR 51
-  - exact target squash merge SHA
+  - exact-final-head Canary governance Ownership and CI conclusions
+  - governance squash merge SHA
 conflicts: []
 first_failure:
   marker: Otheryn PR 51 first ready-state autofix application
@@ -110,10 +112,13 @@ validation:
   - command: upstream history plus current help.lua semantic review
     result: PASS
     evidence: historical group migration left two target getAccountType comparisons
-  - command: Otheryn PR 51 exact-head autofix and Repository Audit
+  - command: Otheryn PR 51 exact-final-head gates
     result: PASS
-    evidence: head 5aa0259d2ef34d1803ab1fbae8d931ed5f330486; runs 29770310537 and 29770310698 succeeded
+    evidence: head 5aa0259d2ef34d1803ab1fbae8d931ed5f330486; runs 29770310537 29770310698 29770311110 and 29770310554 succeeded; no reviews comments threads or main drift
+  - command: Otheryn PR 51 expected-head squash merge
+    result: PASS
+    evidence: merge 1c8e3e8b4fc29effb3b0cb882af94f7d26ed2554
 blockers:
   - none
-next_action: Verify exact-head Otheryn PR 51 CI Required review/comment/thread and target-main drift gates; if green, squash-merge with expected head and record immutable target evidence in Canary PR 626.
+next_action: Run exact-final-head Canary PR 626 Ownership CI review comment thread and main-drift gates; if green, squash-merge governance before creating the separate lifecycle archive PR.
 ```
