@@ -2,13 +2,13 @@
 task_id: CAN-20260720-oteryn-chat-communication-revalidation
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-025
-status: implementing
+status: ready
 agent: "GPT-5.5 Thinking"
 branch: docs/oam-025-chat-communication-revalidation
 base_branch: main
 created: 2026-07-20
 updated: 2026-07-20
-last_verified_commit: "ee34db88041120c3e64af3e62300372f04394e78"
+last_verified_commit: "e8c47a1b7560874baf8b575c2614c30ff2d18f7f"
 risk: medium
 related_issue: ""
 related_pr: "626"
@@ -54,8 +54,9 @@ Revalidate canonical OAM-025 `chat-communication`, classify the smallest depende
 - [x] Classify every target-relevant boundary as applicable, not-applicable or unresolved.
 - [x] Select exactly one disposition: `ADAPT`.
 - [x] Deliver the smallest target adaptation on a `dudantas/` branch with exact-head CI.
-- [ ] Record governance evidence and pass exact-head Ownership/CI/review gates.
-- [ ] Merge target, governance, separate lifecycle archive and separate durable program reconciliation before OAM-026 starts.
+- [x] Record final target and governance evidence for exact-head review.
+- [ ] Pass Canary governance exact-head Ownership/CI/review gates and merge governance.
+- [ ] Merge separate lifecycle archive and separate durable program reconciliation before OAM-026 starts.
 
 # Immutable task-start baselines
 
@@ -68,11 +69,11 @@ Revalidate canonical OAM-025 `chat-communication`, classify the smallest depende
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-20T21:20:00+02:00
-head: ee34db88041120c3e64af3e62300372f04394e78
+updated_at: 2026-07-20T21:25:00+02:00
+head: e8c47a1b7560874baf8b575c2614c30ff2d18f7f
 branch: docs/oam-025-chat-communication-revalidation
 pr: 626
-status: validating
+status: ready
 context_routes:
   - agent-governance
   - cpp-runtime
