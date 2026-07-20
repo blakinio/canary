@@ -133,9 +133,12 @@
         "e2e artifact"
       ],
       "required_reads": [
-        "docs/agents/programs/E2E_AUTOMATION_PROGRAM.md"
+        "docs/agents/programs/E2E_AUTOMATION_PROGRAM.md",
+        "docs/architecture/universal-e2e-gameplay-validation.md",
+        "docs/agents/E2E_AGENT_CONTINUATION.md"
       ],
       "search_first": [
+        "docs/agents/MODULE_CATALOG.md",
         "docs/agents/BUILD_TEST_MATRIX.md"
       ],
       "optional_reads": []
