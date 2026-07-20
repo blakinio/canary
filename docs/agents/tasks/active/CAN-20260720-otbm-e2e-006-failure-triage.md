@@ -8,7 +8,7 @@ branch: feat/otbm-e2e-006-failure-triage-final
 base_branch: main
 created: 2026-07-20
 updated: 2026-07-20
-last_verified_commit: "c9e41d4515480a4776886e7d1eab5d51e6899c9e"
+last_verified_commit: "a87ed337cab28c569ef3276cd0b9ed5d89c87779"
 risk: medium
 related_issue: ""
 related_pr: "628"
@@ -67,7 +67,7 @@ Deliver OTBM-E2E-006 deterministic failure triage and preserve the existing E2E 
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-20
-head: c9e41d4515480a4776886e7d1eab5d51e6899c9e
+head: a87ed337cab28c569ef3276cd0b9ed5d89c87779
 branch: feat/otbm-e2e-006-failure-triage-final
 pr: 628
 status: validating
@@ -83,31 +83,30 @@ owned_paths:
   - tools/e2e/otbm_route_failure_triage.py
   - tools/e2e/run_agent_e2e.py
 proven:
-  - classifier contract and 26 focused classifier tests passed before the rejected final candidate
-  - Universal run 29734058030 exposed deterministic resolver stdout pollution before route preparation
-  - resolver diagnostics were moved to stderr in 5835b3d37a8179cf8ec901f6df0d42b0c9376404 without changing selection semantics
-  - corrected code head 5835b3d37a8179cf8ec901f6df0d42b0c9376404 passed Ownership 29736661974 CI 29736662272 and Universal Agent E2E 29736662236
-  - direct resolve stdout-purity regression is preserved in the clean replay
-  - clean replay branch started from main 9a7c5ebfa4cb35066293a8b75039fb61b8d8afe5 with exactly six bounded OTBM-E2E-006 changed files
-  - ci:final-gate was applied to PR 628 before final checkpoint mutations
-  - original PR 620 was closed as superseded without force-pushing
-  - first clean final checkpoint c9e41d4515480a4776886e7d1eab5d51e6899c9e failed only checkpoint schema because PENDING is not an allowed validation result
+  - OTBM-E2E-006 classifier and direct resolve stdout-purity regression are present on clean PR 628 with exactly six bounded changed files
+  - resolver selection diagnostics moved to stderr without changing selection semantics; corrected code head 5835b3d37a8179cf8ec901f6df0d42b0c9376404 previously passed Ownership CI and Universal Agent E2E
+  - original PR 620 was closed as superseded after non-ancestral squash synchronization polluted its review diff; clean replay PR 628 was created from current main without force-push
+  - ci:final-gate is applied to PR 628
+  - exact-head Agent Task Ownership run 29770068815 passed on a87ed337cab28c569ef3276cd0b9ed5d89c87779 including focused unit tests and checkpoint validation
+  - exact-head CI run 29770069685 passed on a87ed337cab28c569ef3276cd0b9ed5d89c87779 with Required success
+  - Universal Agent E2E run 29770069732 on a87ed337cab28c569ef3276cd0b9ed5d89c87779 has passed validation-scope decision database bootstrap scenario resolution and exact Canary build
+  - Universal run 29770069732 still had controlled OTClient build in progress at handoff checkpoint time
 
 derived:
-  - repeated retry of the rejected candidate could not fix deterministic stdout pollution
-  - the bounded stderr redirect plus direct resolve stdout regression covers the identified integration defect
-  - replacing checkpoint validation result PENDING with NOT_RUN is the smallest schema-only correction
+  - the original resolver JSON failure is repaired because the exact-head Resolve scenario job now succeeds
+  - OTBM-E2E-006 is waiting only for completion of the exact-head Universal Agent E2E gate and final merge review
 unknown:
-  - exact-final-head workflow conclusions for this schema-corrected checkpoint commit
-  - final merge SHA
-  - lifecycle archive SHA
-blockers: []
+  - final conclusion of Universal Agent E2E run 29770069732
+  - live branch head after this handoff checkpoint commit
+  - final merge and lifecycle archive SHAs
 conflicts: []
+first_failure:
+  marker: universal-e2e-route-preparation-metadata-json
+  evidence: run 29734058030 failed because resolver diagnostics preceded JSON on stdout; the stderr fix and direct regression removed that failure and exact-head Resolve scenario now passes
 rejected_hypotheses:
-  - change scenario selection semantics
-  - tolerate non-JSON resolver stdout in the workflow
-  - retry the same deterministic metadata failure without a fix
-  - weaken checkpoint validation to accept unsupported result values
+  - retry the original deterministic metadata failure without code change: run 29734058030 proved stdout pollution required a fix
+  - tolerate non-JSON resolver stdout in workflow: bounded stderr redirect preserves the machine-readable contract instead
+  - weaken checkpoint validation: unsupported PENDING result was corrected to the existing schema without changing validator rules
 changed_paths:
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260720-otbm-e2e-006-failure-triage.md
@@ -116,26 +115,15 @@ changed_paths:
   - tools/e2e/otbm_route_failure_triage.py
   - tools/e2e/run_agent_e2e.py
 validation:
-  - command: focused classifier tests
+  - command: Agent Task Ownership run 29770068815
     result: PASS
-    evidence: 26 focused cases passed before the rejected final candidate
-  - command: Universal Agent E2E on rejected candidate
-    result: FAIL
-    evidence: run 29734058030 identified deterministic resolver stdout pollution before route preparation
-  - command: corrected code-head Ownership CI and Universal Agent E2E
+    evidence: exact head a87ed337cab28c569ef3276cd0b9ed5d89c87779 passed focused tests ownership and checkpoint validation
+  - command: CI run 29770069685
     result: PASS
-    evidence: runs 29736661974 29736662272 and 29736662236 passed on 5835b3d37a8179cf8ec901f6df0d42b0c9376404
-  - command: clean current-main replay audit
-    result: PASS
-    evidence: replay head f9790611629e34199d7e18c45adc22282c248c91 was one commit ahead of main and zero behind with exactly six bounded changed files
-  - command: first clean final checkpoint Ownership
-    result: FAIL
-    evidence: run 29769967380 rejected only unsupported validation result PENDING in the task checkpoint
-  - command: exact-final-head gate after this schema correction
+    evidence: exact head a87ed337cab28c569ef3276cd0b9ed5d89c87779 completed successfully with Required success
+  - command: Universal Agent E2E run 29770069732
     result: NOT_RUN
-    evidence: Ownership CI and Universal Agent E2E must complete on the new immutable head before readiness or merge
-first_failure:
-  marker: universal-e2e-route-preparation-metadata-json
-  evidence: Universal run 29734058030 failed because resolver selection diagnostics preceded the JSON manifest on stdout; corrected by moving the diagnostic to stderr and adding direct stdout-purity coverage
-next_action: Run and inspect exact-final-head Ownership CI and Universal Agent E2E on this schema-corrected checkpoint commit; if green, verify final diff reviews threads and mergeability, mark PR 628 ready, squash-merge, and archive the task.
+    evidence: run was still in progress at handoff; scenario resolution database bootstrap and exact Canary build had passed while controlled OTClient build remained in progress
+blockers: []
+next_action: Verify the live head created by this handoff checkpoint commit and its exact-head Ownership CI and Universal Agent E2E state; if all required gates are green, inspect final diff reviews threads and mergeability, mark PR 628 ready, squash-merge, then archive the task lifecycle.
 ```
