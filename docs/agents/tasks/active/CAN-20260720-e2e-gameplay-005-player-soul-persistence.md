@@ -7,7 +7,7 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-player-soul-persistence-contract
 base_branch: main
 created: 2026-07-20T10:17:00+02:00
-updated: 2026-07-20T10:36:00+02:00
+updated: 2026-07-20T10:42:00+02:00
 last_verified_commit: "0a39a0f76d5f811098dfaa7be9deea40347279d5"
 risk: medium
 related_issue: ""
@@ -56,12 +56,12 @@ Add one bounded reusable `player_soul` persistence assertion that accepts an exa
 - [x] Modify the controlled-client Lua driver only by extending the existing persistence-check dispatch; do not add a second runner or lifecycle.
 - [x] Do not modify workflows, route execution, OTBM tooling, map/client assets or reference repositories.
 - [x] Update the module catalogue narrowly.
-- [ ] Apply `ci:final-gate` before the final checkpoint commit and make no post-green final-head commit.
+- [x] Apply `ci:final-gate` before the final checkpoint commit and make no post-green final-head commit.
 - [ ] Require exact-final-head Ownership, CI, Universal Agent E2E and autofix as applicable plus a clean review blocker audit before squash merge.
 
 # Confirmed context
 
-- Current `main` was exactly `0a39a0f76d5f811098dfaa7be9deea40347279d5` at task start.
+- Current `main` was exactly `0a39a0f76d5f811098dfaa7be9deea40347279d5` at task start and remained the latest main during pre-final validation.
 - Canary `schema.sql` defines `players.soul` as unsigned integer persistence state.
 - Maintained `blakinio/otclient` exposes `LocalPlayer.getSoul()` returning `uint8_t`.
 - Existing Universal E2E already compiles typed persistence checks into one phase-two controlled-client plan and fixed scalar SQL.
@@ -81,19 +81,23 @@ Add one bounded reusable `player_soul` persistence assertion that accepts an exa
 - Program record: `docs/agents/programs/E2E_AUTOMATION_PROGRAM.md`.
 - Open PRs inspected: narrow `soul` search returned no open match; PR #600 remains separate route ownership.
 - Active tasks inspected: prior merged vocation task record plus current `ACTIVE_WORK.md` convenience index; no soul contract owner identified.
+- Agent Task Ownership succeeded on repaired pre-final head `7386751046272221e0fe8562c2c273303628c2a2` in run `29728444212`.
 - Exclusive claims: task record, soul persistence doc, focused soul tests.
 - Shared claims: persistence compiler, existing controlled-client persistence dispatch, module catalogue row.
 - Read-only dependencies: runner, workflows, scenario registry/data, schema.
 - Overlaps: none identified.
-- Resolution: proceed with the narrow typed contract; stop if live ownership CI or PR state reveals a conflict.
+- Resolution: proceed to exact-final-head gates; stop if final ownership or blocker audit reveals a conflict.
 
 # Current state
 
-Implementation is complete on draft PR #615. The functional diff contains exactly one typed compiler/SQL extension, two small controlled-client dispatch additions, focused tests, one contract document, this task record and one narrowly updated catalogue row.
+Implementation is complete on draft PR #615. The functional diff contains exactly one typed compiler/SQL extension, two small controlled-client dispatch additions, focused tests, one contract document, this task record and one narrowly updated catalogue row. The `ci:final-gate` label was applied before this checkpoint commit. This commit is the final checkpoint commit; no further repository commit is permitted after its exact head becomes green.
 
 # Plan
 
-1. Repair the active-task PR/checkpoint metadata, confirm pre-final ownership/CI/E2E, apply `ci:final-gate`, write the final checkpoint commit, freeze its SHA, then require exact-head gates and a clean blocker audit before squash merge.
+1. Treat the SHA produced by this checkpoint commit as frozen final PR head.
+2. Require exact-head Agent Task Ownership, CI, Universal Agent E2E and autofix outcome as applicable.
+3. Audit changed files/diff, reviews, comments, review threads, mergeability and main drift against the frozen head.
+4. Squash merge PR #615 only with `expected_head_sha` equal to the frozen final head.
 
 # Work log
 
@@ -109,7 +113,14 @@ Implementation is complete on draft PR #615. The functional diff contains exactl
 - Changed: implemented typed `player_soul` validation/client emission/fixed SQL, added maintained-client `getSoul()` runtime verification, focused tests, durable docs and the narrow module-catalogue update.
 - Learned: the Lua driver needs only two bounded dispatch additions; no runner/workflow/client-repository mutation is required.
 - Failed/blocked: the first PR Ownership run rejected the initial task metadata because the draft PR had been opened after the task record and `related_pr`/checkpoint PR were still unset.
-- Result: PR #615 and pre-checkpoint head `63e75d7aeb53531c340426602db81999702d13ad` are now recorded for the next ownership run.
+- Result: governance metadata was repaired; pre-final Ownership and CI subsequently succeeded.
+
+## 2026-07-20T10:42:00+02:00
+
+- Changed: applied `ci:final-gate` before this final checkpoint commit.
+- Learned: pre-final E2E successfully completed scope selection, scenario resolution/validation and database bootstrap before its heavy builds queued; the exact final head will receive the authoritative full final-gate run.
+- Failed/blocked: none remaining before exact-final-head validation.
+- Result: the next SHA produced by this commit is frozen for final validation and merge gating.
 
 # Decisions
 
@@ -117,6 +128,7 @@ Implementation is complete on draft PR #615. The functional diff contains exactl
 |---|---|---|
 | Add a dedicated typed `player_soul` assertion rather than expose raw `player_field` soul. | Keeps the caller surface bounded to `0..255` and fixed SQL/runtime getters, matching the typed persistence pattern. | none |
 | Use maintained `LocalPlayer.getSoul()` after relog. | The maintained API already exposes the exact `uint8_t` client-visible value; no client fork or generic getter is needed. | none |
+| Use the exact-final-head E2E after the final checkpoint as authoritative. | `ci:final-gate` explicitly requires fresh full validation of the frozen final head; pre-final incremental/heavy work cannot substitute for it. | none |
 
 # Files and interfaces
 
@@ -133,17 +145,19 @@ Implementation is complete on draft PR #615. The functional diff contains exactl
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
 | `0a39a0f76d5f811098dfaa7be9deea40347279d5` | current `main` comparison at task start | passed | exact compare against `main` returned identical before branch creation |
-| `63e75d7aeb53531c340426602db81999702d13ad` | PR #615 changed-file audit | passed | exactly six intended paths; no workflow, route, OTBM, map/client asset or reference-repository changes |
-| `63e75d7aeb53531c340426602db81999702d13ad` | persistence compiler patch audit | passed | bounded `MAX_UINT8`, typed validation/client emission and fixed `players.soul` scalar SQL only |
-| `63e75d7aeb53531c340426602db81999702d13ad` | controlled-client Lua patch audit | passed | exactly `player:getSoul()` read dispatch plus typed runtime validation branch |
-| `63e75d7aeb53531c340426602db81999702d13ad` | MODULE_CATALOG patch audit | passed | exactly one Universal OTS E2E row changed; an accidental neighboring path edit was detected and corrected before this checkpoint |
-| `63e75d7aeb53531c340426602db81999702d13ad` | CI run 29728300555 | passed | completed success |
-| `63e75d7aeb53531c340426602db81999702d13ad` | first Agent Task Ownership run 29728300398 | failed | initial task record had no known PR number because it was committed before draft PR #615 existed; lifecycle metadata is repaired by this commit |
+| `63e75d7aeb53531c340426602db81999702d13ad` | PR #615 changed-file/diff audit | passed | exactly six intended paths; compiler and Lua patches bounded; catalogue reduced to one intended row after correction |
+| `63e75d7aeb53531c340426602db81999702d13ad` | CI run `29728300555` | passed | completed success |
+| `63e75d7aeb53531c340426602db81999702d13ad` | first Agent Task Ownership run `29728300398` | failed | initial changed task lacked current PR metadata because it was committed before draft PR creation |
+| `7386751046272221e0fe8562c2c273303628c2a2` | Agent Task Ownership run `29728444212` | passed | repaired active-task PR/checkpoint metadata accepted |
+| `7386751046272221e0fe8562c2c273303628c2a2` | CI run `29728444405` | passed | completed success |
+| `7386751046272221e0fe8562c2c273303628c2a2` | Universal Agent E2E run `29728444402` pre-final progress | superseded by final-gate head | scope, scenario resolution/validation and database bootstrap completed successfully before heavy builds queued; final checkpoint commit intentionally creates the authoritative exact final head |
+| final checkpoint head | exact-final-head Ownership, CI, Universal Agent E2E and autofix | not run yet | workflow outcomes necessarily occur after this commit and are audited externally before merge |
 
 # Failed approaches and dead ends
 
 - Reusing `feat/e2e-player-soul-persistence`: rejected because the ref still exists from closed, unmerged PR #606.
-- The first full-file `MODULE_CATALOG.md` replacement accidentally changed one unrelated Wheel of Destiny documentation path; patch audit detected it immediately and a follow-up commit restored the original entry. The resulting PR catalogue diff is now limited to the intended Universal E2E row.
+- The first full-file `MODULE_CATALOG.md` replacement accidentally changed one unrelated Wheel of Destiny documentation path; patch audit detected it immediately and a follow-up commit restored the original entry. The resulting PR catalogue diff is limited to the intended Universal E2E row.
+- The initial task record predated PR #615 and therefore failed changed-task lifecycle validation until `related_pr`, checkpoint PR and a concrete checkpoint head were recorded.
 
 # Risks and compatibility
 
@@ -156,16 +170,17 @@ Implementation is complete on draft PR #615. The functional diff contains exactl
 
 # Remaining work
 
-1. Confirm the repaired pre-final Ownership run and the physical E2E result.
-2. Apply `ci:final-gate`, write one final checkpoint commit, then make no more commits after the exact final head is green.
-3. Audit exact-final-head checks, reviews/comments/threads and main drift; squash merge only with the frozen head SHA.
+1. Inspect exact-final-head workflow outcomes without committing further changes.
+2. Perform the clean review/comment/thread/main-drift blocker audit against the frozen head.
+3. Mark PR ready only when appropriate and require any resulting exact-head workflows to finish without moving the head.
+4. Squash merge with the frozen `expected_head_sha` only after all gates are green.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-20T10:36:00+02:00
-head: 63e75d7aeb53531c340426602db81999702d13ad
+updated_at: 2026-07-20T10:42:00+02:00
+head: 7386751046272221e0fe8562c2c273303628c2a2
 branch: feat/e2e-player-soul-persistence-contract
 pr: 615
 status: implementing
@@ -181,7 +196,7 @@ owned_paths:
   - tools/e2e/client/agent_e2e_scenario.lua
   - docs/agents/MODULE_CATALOG.md
 proven:
-  - current main at task start was 0a39a0f76d5f811098dfaa7be9deea40347279d5
+  - current main at task start and during pre-final validation was 0a39a0f76d5f811098dfaa7be9deea40347279d5
   - Canary schema.sql persists player soul in players.soul
   - maintained blakinio/otclient LocalPlayer.getSoul returns uint8_t
   - no open PR matched the soul persistence contract in the narrow overlap search
@@ -192,17 +207,19 @@ proven:
   - PR patch audit shows exactly six intended paths
   - controlled-client Lua patch contains only the two intended soul dispatch additions
   - final MODULE_CATALOG patch changes only the Universal OTS E2E physical gameplay action plans row
-  - CI on pre-checkpoint head 63e75d7aeb53531c340426602db81999702d13ad succeeded
-derived:
+  - pre-final Agent Task Ownership run 29728444212 succeeded on 7386751046272221e0fe8562c2c273303628c2a2
+  - pre-final CI run 29728444405 succeeded on 7386751046272221e0fe8562c2c273303628c2a2
+  - ci:final-gate was applied before this final checkpoint commit
+  - pre-final E2E scope, scenario resolution and database bootstrap jobs succeeded before the final checkpoint superseded that head
+ derived:
   - a dedicated player_soul type enforces the exact 0..255 maintained-client domain while compiling only fixed players.soul SQL
   - extending the existing phase-two persistence dispatch is smaller and safer than exposing soul through caller-selectable raw player_field
   - no maintained-client repository mutation is needed because LocalPlayer.getSoul already exposes the required exact value
+  - the SHA produced by this commit is the only acceptable merge head after exact-final-head gates complete
 unknown:
-  - the SHA produced by this governance-repair commit
-  - repaired pre-final Agent Task Ownership outcome
-  - Universal Agent E2E outcome after the latest implementation head
-  - exact-final-head gate outcomes after ci:final-gate and final checkpoint commit
-  - review/comment/thread blocker state before merge
+  - the SHA produced by this final checkpoint commit
+  - exact-final-head Ownership, CI, Universal Agent E2E and autofix outcomes
+  - review/comment/thread blocker state against the frozen head
 conflicts: []
 first_failure:
   marker: historical branch name already existed
@@ -219,24 +236,27 @@ changed_paths:
   - tools/e2e/client/agent_e2e_scenario.lua
   - tools/e2e/persistence_assertions.py
 validation:
-  - command: compare 0a39a0f76d5f811098dfaa7be9deea40347279d5 to main at task start
+  - command: compare 0a39a0f76d5f811098dfaa7be9deea40347279d5 to main at task start and pre-final validation
     result: PASS
-    evidence: GitHub compare returned identical immediately before branch creation
-  - command: narrow open PR search for soul
-    result: PASS
-    evidence: no open PR result matched the contract
+    evidence: main remained on the same OAM-022 durable completion head with no overlapping drift
   - command: PR 615 compiler and Lua patch audit
     result: PASS
     evidence: fixed bounded compiler/SQL changes and exactly two controlled-client dispatch additions
   - command: PR 615 MODULE_CATALOG patch audit
     result: PASS
     evidence: only the Universal OTS E2E physical gameplay action plans row differs from base after correction
-  - command: CI run 29728300555 on 63e75d7aeb53531c340426602db81999702d13ad
+  - command: Agent Task Ownership run 29728444212 on 7386751046272221e0fe8562c2c273303628c2a2
+    result: PASS
+    evidence: repaired active-task metadata accepted
+  - command: CI run 29728444405 on 7386751046272221e0fe8562c2c273303628c2a2
     result: PASS
     evidence: workflow completed success
-  - command: Agent Task Ownership run 29728300398 on 63e75d7aeb53531c340426602db81999702d13ad
-    result: FAIL
-    evidence: the changed active task was committed before PR creation and still lacked related_pr/current checkpoint PR metadata; this governance-repair commit records PR 615 and a concrete pre-checkpoint head
+  - command: Universal Agent E2E run 29728444402 on 7386751046272221e0fe8562c2c273303628c2a2
+    result: SUPERSEDED
+    evidence: scope, scenario resolution/validation and database bootstrap succeeded; final checkpoint commit creates the authoritative exact final head for full final-gate validation
+  - command: exact-final-head Ownership, CI, Universal Agent E2E and autofix
+    result: NOT_RUN
+    evidence: this commit creates the new frozen final head; exact-head workflow outcomes necessarily occur after the commit
 blockers: []
-next_action: Confirm repaired pre-final ownership and Universal Agent E2E, then apply ci:final-gate before the one final checkpoint commit.
+next_action: Inspect exact-final-head gates for the frozen SHA produced by this commit, then perform the clean review blocker audit and squash merge with expected_head_sha if all required evidence is green.
 ```
