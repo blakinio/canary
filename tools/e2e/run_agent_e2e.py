@@ -197,7 +197,8 @@ def _resolve_pr_fallback_selection(root: Path, suite: str, scenario_id: str) -> 
     print(
         "Pull-request scenario selection: "
         f"{selection.suite}/{selection.scenario} reason={selection.reason}"
-        + (f" manifest={selection.manifest}" if selection.manifest else "")
+        + (f" manifest={selection.manifest}" if selection.manifest else ""),
+        file=sys.stderr,
     )
     return selection.suite, selection.scenario
 
