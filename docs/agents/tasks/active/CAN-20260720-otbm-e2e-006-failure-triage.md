@@ -2,13 +2,13 @@
 task_id: CAN-20260720-otbm-e2e-006-failure-triage
 program_id: CAN-PROGRAM-OTBM-E2E-ROUTING
 coordination_id: OTBM-E2E-006
-status: implementing
+status: ready
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-006-failure-triage
 base_branch: main
 created: 2026-07-20
 updated: 2026-07-20
-last_verified_commit: "060fe0fa018e55725c93daee5dd4cadec0a68162"
+last_verified_commit: "3fe0130a408d201d0ca846f86a37b0ab20479932"
 risk: medium
 related_issue: ""
 related_pr: "620"
@@ -52,97 +52,100 @@ cross_repo_tasks: []
 
 # Goal
 
-Deliver `OTBM-E2E-006 — Automatic E2E failure triage` as a deterministic, artifact-only classifier for the existing Universal Physical E2E route lifecycle. The classifier identifies the first supported failure category from retained route preparation, exact-map preflight, route plan, client event, result and lifecycle evidence without natural-language guessing and without creating a second runner, parser or physical-client lifecycle.
+Deliver `OTBM-E2E-006 — Automatic E2E failure triage` as a deterministic classifier over existing retained Universal Physical E2E route artifacts, without adding another OTBM parser, route planner, workflow, runner or client lifecycle.
 
 # Acceptance criteria
 
-- [x] Emit one deterministic machine-readable triage result for route-aware Universal Physical E2E evidence.
-- [x] Support the programme categories `ROUTE_RESOLUTION_FAILURE`, `ROUTE_PREFLIGHT_FAILURE`, `PLAN_LOAD_FAILURE`, `INITIAL_POSITION_MISMATCH`, `MOVEMENT_DIVERGENCE`, `BLOCKED_TILE`, `INTERACTION_UNSUPPORTED`, `INTERACTION_TIMEOUT`, `TELEPORT_NOT_TRIGGERED`, `WRONG_TRANSITION_DESTINATION`, `WRONG_FLOOR_DELTA`, `SERVER_DISCONNECT`, `PERSISTENCE_FAILURE`, and `RELOG_FAILURE`.
-- [x] Base classification only on retained deterministic artifacts and explicit existing failure markers/codes; do not guess the runtime actor or cause of a blocked tile.
-- [x] Preserve exact first-failure evidence and route edge/transition context when available.
-- [x] Distinguish route resolution from exact-map preflight failure using existing route/preflight evidence rather than a second static analyzer.
-- [x] Treat successful route physical E2E as `status=success` with no failure category.
-- [x] Fail closed to an explicit unclassified result when evidence is insufficient or contradictory instead of inventing a supported category.
-- [x] Keep the existing Universal E2E workflow and physical runner unchanged; OTBM-E2E-006 programme scope requires deterministic classification from current artifacts, not a new workflow hook.
-- [x] Do not modify OTClient route execution or persistence code owned by E2E gameplay tasks.
-- [x] Add focused Python regression coverage for every required category plus success/not-applicable/unclassified behavior.
-- [ ] Update `MODULE_CATALOG.md` after merged PR #615 completes active-to-archive lifecycle and releases its shared ownership of that path.
-- [ ] Run focused validation plus required Universal Agent E2E proof on the exact final head.
-- [ ] Apply `ci:final-gate` before the final checkpoint commit and make no post-final-head commits.
-- [ ] Require exact-final-head required checks, clean review/comment/thread state, live-main overlap recheck and mergeability before squash merge with expected head SHA.
-- [ ] After feature merge, complete exact active-to-archive lifecycle before declaring OTBM-E2E-006 complete.
+- [x] Emit `canary-otbm-e2e-failure-triage-v1` machine-readable output.
+- [x] Support all fourteen failure categories defined by the programme.
+- [x] Prefer structured artifacts and explicit existing failure codes over natural-language guessing.
+- [x] Preserve exact first-failure route edge/transition context only when evidence supports it.
+- [x] Distinguish route resolution from exact-map preflight failure using existing evidence.
+- [x] Emit explicit success, not-applicable and fail-closed unclassified states.
+- [x] Keep Universal workflow, physical runner, OTClient and persistence implementation unchanged.
+- [x] Cover all required categories plus success/not-applicable/unclassified behavior with focused tests.
+- [x] Catalogue the reusable classifier without overwriting current merged shared-index content.
+- [x] Apply `ci:final-gate` before the immutable final checkpoint commit.
+- [ ] Require exact-final-head Agent Task Ownership, CI and Universal Agent E2E success.
+- [ ] Require clean review/thread state, fresh live-main overlap review and mergeability before squash merge.
+- [ ] Complete active-to-archive lifecycle after feature merge before unblocking OTBM-E2E-007.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-20
-head: 2d0190266fe99953da8b52eb5cfcc806e8d56c4f
+head: 2bf4f45774b3374a72a1e5f1b66851366dd6bdbd
 branch: feat/otbm-e2e-006-failure-triage
 pr: 620
-status: implementing
+status: ready
 context_routes:
   - agent-governance
   - otbm
   - universal-e2e
 owned_paths:
-  - docs/agents/tasks/active/CAN-20260720-otbm-e2e-006-failure-triage.md
-  - tools/e2e/otbm_route_failure_triage.py
-  - tests/e2e/test_otbm_route_failure_triage.py
   - docs/agents/MODULE_CATALOG.md
+  - docs/agents/tasks/active/CAN-20260720-otbm-e2e-006-failure-triage.md
+  - tests/e2e/test_otbm_route_failure_triage.py
+  - tools/e2e/otbm_route_failure_triage.py
 proven:
-  - live main at task start is 060fe0fa018e55725c93daee5dd4cadec0a68162
-  - OTBM-E2E-005 feature PR #600 and lifecycle PR #617 are merged and archived
-  - the programme defines OTBM-E2E-006 only as first-failure classification from route plan plus current physical artifacts and prefers deterministic evidence over natural-language guessing
-  - PR #620 is the active draft delivery PR for this task
-  - classifier format is canary-otbm-e2e-failure-triage-v1 schemaVersion 1 with deterministic success, failure, not-applicable and fail-closed unclassified states
-  - classifier consumes existing route preparation, preflight, route plan, client event, result and lifecycle artifacts without modifying their producers
-  - focused sandbox unit run covered 25 cases and passed before publication of the implementation/test pair
-  - CI run 29731915802 passed on published classifier/test head d8f62d36da5173f3e7fe34f06624c97758def511
-  - initial ownership run 29731915649 failed only checkpoint schema validation because derived and first_failure were missing
-  - corrected checkpoint ownership run 29732167372 passed on head 2d0190266fe99953da8b52eb5cfcc806e8d56c4f
-  - corrected checkpoint CI run 29732167605 passed on head 2d0190266fe99953da8b52eb5cfcc806e8d56c4f
-  - PR #615 merged as 9648e213792c21b59e7c8b7c5310609e6b554141 after this task branch started
-  - PR #615 active task record still exists on main and still lists docs/agents/MODULE_CATALOG.md as shared ownership, so catalog editing remains deferred until lifecycle archive
+  - canonical OTBM-E2E-006 scope is deterministic first-failure classification from route plan plus current physical artifacts
+  - classifier format is canary-otbm-e2e-failure-triage-v1 schemaVersion 1
+  - all fourteen programme categories are implemented
+  - ambiguous evidence fails closed instead of being promoted to a guessed category
+  - MOVEMENT_TIMEOUT maps to BLOCKED_TILE without claiming which actor or dynamic condition caused the block
+  - completed successful route edges are cleared before later persistence or relog failures are classified
+  - exact current classifier and tests passed Python bytecode compilation and 26 focused unittest cases in isolated validation
+  - Agent Task Ownership run 29733310895 passed on implementation head 2bf4f45774b3374a72a1e5f1b66851366dd6bdbd
+  - CI run 29733310982 passed on implementation head 2bf4f45774b3374a72a1e5f1b66851366dd6bdbd
+  - current live main at checkpoint preparation is 3fe0130a408d201d0ca846f86a37b0ab20479932
+  - merged main drift from #615 is gameplay persistence plus shared catalogue and from #619 is Oteryn programme documentation
+  - classifier and focused test paths do not overlap those main changes
+  - branch MODULE_CATALOG preserves current main security, soul-persistence and route-plan rows and adds only the separate OTBM triage row
+  - open PR #514 touches shared catalogue metadata but its security row is semantically disjoint from the OTBM triage row
+  - ci:final-gate was applied to PR #620 before this checkpoint commit
+  - no OTBM, World Index, pathfinder, Universal workflow, physical runner, OTClient execution or persistence source was modified
 
 derived:
-  - route preparation invocation evidence plus absence of a passed preparation summary is sufficient for ROUTE_RESOLUTION_FAILURE only after exact preflight evidence has been checked first
-  - MOVEMENT_TIMEOUT proves that the controlled client remained at the source until timeout and is classified as BLOCKED_TILE without claiming which actor or dynamic condition blocked movement
-  - transition-specific categories require retained exact edge context; ambiguous INTERACTION_FAILED evidence remains unclassified instead of being promoted to handled or unsupported without proof
-  - the existing first client error event plus preceding route edge marker provides deterministic first-failure ordering without modifying the shared OTClient scenario executor
-  - adding an always() workflow hook is not required by the canonical OTBM-E2E-006 programme acceptance text and would unnecessarily widen shared integration scope; the bounded CLI classifier is the smaller compliant implementation
+  - route-preparation failure is classified only after exact preflight evidence is checked first
+  - transition-specific categories require retained exact edge evidence
+  - the first explicit client error plus an active or explicitly failed route edge gives deterministic route failure context
+  - successful completed route edges must not leak into later lifecycle failure context
+  - a workflow post-processing hook is outside the smallest canonical OTBM-E2E-006 scope because the programme requires classification over current artifacts
 unknown:
-  - exact PR #615 lifecycle archive PR/merge SHA and when its MODULE_CATALOG ownership will be released
-  - exact final synchronized head and final-gate workflow conclusions until the catalog update and final checkpoint exist
-blockers:
-  - docs/agents/MODULE_CATALOG.md remains shared-owned by the still-active PR #615 task record until its lifecycle archive merges
-conflicts:
-  - docs/agents/MODULE_CATALOG.md overlaps the still-active CAN-20260720-e2e-gameplay-005-player-soul-persistence task; no edit will be made until that task is archived
+  - exact final checkpoint commit SHA and exact-final-head workflow conclusions until this commit exists and checks complete
+  - whether live main advances again before merge
+  - final feature merge SHA and lifecycle archive PR/merge SHA until closure completes
+blockers: []
+conflicts: []
 rejected_hypotheses:
-  - modifying tools/e2e/client/agent_e2e_scenario.lua is rejected because existing error events already expose deterministic route failure codes and the path belongs to gameplay persistence work
-  - a second E2E workflow or runner is rejected by programme architecture
-  - log-only natural-language guessing is rejected; classification must prefer structured artifacts and explicit event codes
-  - treating ambiguous INTERACTION_FAILED evidence as INTERACTION_UNSUPPORTED is rejected unless retained detail explicitly proves an unsupported contract
-  - adding a Universal workflow post-processing hook is rejected as unnecessary scope expansion because the programme requires a deterministic classifier over current artifacts, not automatic workflow mutation
+  - build a second OTBM parser, World Index, route planner, E2E workflow or physical runner
+  - modify OTClient route execution solely to classify already-retained explicit failure events
+  - infer unsupported interactions or runtime blockers without deterministic evidence
+  - attach a previously successful route edge to a later persistence or relog failure
 changed_paths:
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260720-otbm-e2e-006-failure-triage.md
-  - tools/e2e/otbm_route_failure_triage.py
   - tests/e2e/test_otbm_route_failure_triage.py
+  - tools/e2e/otbm_route_failure_triage.py
 validation:
-  - command: focused unittest contract for OTBM route failure triage
+  - command: python -m py_compile tools/e2e/otbm_route_failure_triage.py
     result: PASS
-    evidence: 25 focused cases passed in the pre-publication sandbox run, covering all required programme categories plus success, not-applicable and unclassified states.
-  - command: CI on published classifier/test head d8f62d36da5173f3e7fe34f06624c97758def511
+    evidence: exact current classifier contents completed with process exit code 0 in isolated validation
+  - command: python -m unittest discover -s tests/e2e -p test_otbm_route_failure_triage.py -v
     result: PASS
-    evidence: Workflow run 29731915802 completed successfully.
-  - command: Agent Task Ownership after checkpoint schema correction
+    evidence: exact current classifier and tests passed 26 focused cases including stale-route-context regression
+  - command: Agent Task Ownership on 2bf4f45774b3374a72a1e5f1b66851366dd6bdbd
     result: PASS
-    evidence: Workflow run 29732167372 completed successfully on head 2d0190266fe99953da8b52eb5cfcc806e8d56c4f.
-  - command: CI after checkpoint schema correction
+    evidence: workflow run 29733310895
+  - command: CI on 2bf4f45774b3374a72a1e5f1b66851366dd6bdbd
     result: PASS
-    evidence: Workflow run 29732167605 completed successfully on head 2d0190266fe99953da8b52eb5cfcc806e8d56c4f.
+    evidence: workflow run 29733310982; incremental reuse is not substituted for focused Python validation
+  - command: live-main semantic overlap audit before final checkpoint
+    result: PASS
+    evidence: current main 3fe0130a408d201d0ca846f86a37b0ab20479932 has no classifier/test overlap and shared catalogue content is preserved
 first_failure:
   marker: Agent Task Ownership / Validate changed active task checkpoints
-  evidence: Workflow run 29731915649 rejected the initial task checkpoint because required derived and first_failure fields were absent; retained active-task-ownership artifact 8456622983 identified exactly those two missing fields.
-next_action: Wait only on PR #615 lifecycle archive to release MODULE_CATALOG ownership; then synchronize the catalog entry, revalidate against current main, apply ci:final-gate, write the immutable final checkpoint, and complete PR/lifecycle closure.
+  evidence: initial ownership run 29731915649 rejected the checkpoint because derived and first_failure were absent; the task record was corrected without weakening validation
+next_action: Treat this commit as the immutable final feature head; require exact-final-head Ownership, CI and Universal Agent E2E, then perform final review/thread/live-main/mergeability checks, mark PR #620 ready, squash merge with expected head SHA, verify main, and complete active-to-archive lifecycle before OTBM-E2E-007.
 ```
