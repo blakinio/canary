@@ -37,6 +37,15 @@ Before implementation:
 
 Do not recursively follow documentation links without evidence that they are relevant to the current task.
 
+## Low-noise progress and preflight reuse — mandatory
+
+- Run the full lean startup preflight once per bounded task or continuation session. After that, verify only the Git/PR/CI/files whose state may have changed.
+- Repeat a full preflight only after a material external repository-state change, a long interruption/session replacement, or evidence that the checkpoint and live state conflict.
+- Do not narrate routine file reads, searches, tool calls, commands, or unchanged checks to the user.
+- Send a user-facing progress update only for a material milestone, a blocker, a required user decision, or a material change in scope/risk. Do not send repetitive "still working" messages.
+- Keep progress updates to at most three short sentences and prefer exact identifiers over pasted logs, diffs, or command transcripts.
+- When the next action is safe and autonomous, continue without waiting for acknowledgement.
+
 ## Context pressure and continuation — mandatory
 
 - Chat history is disposable and never authoritative.

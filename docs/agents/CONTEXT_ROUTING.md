@@ -33,6 +33,14 @@ python tools/agents/context.py --task <active-task-path> --task-text "<bounded t
 
 The output is a bounded working set, not permission to skip required evidence or validation.
 
+## Preflight reuse and progress noise
+
+- Run the full startup/preflight sequence once per bounded task or continuation session.
+- After startup, re-check only state that can invalidate the next action: relevant head/branch, task/PR, ownership, changed files, required CI, or a directly affected external dependency.
+- Repeat the full preflight only after a material external state change, a long interruption/session replacement, or a detected checkpoint/live-state conflict.
+- Routine reads, searches, tool calls, commands and unchanged checks are internal work, not user-facing progress events.
+- User-facing progress should be milestone/blocker/decision driven and compact; do not paste full logs or diffs when identifiers and short evidence are sufficient.
+
 ## Routing table
 
 | Route | Trigger | Load/search |
@@ -111,7 +119,7 @@ For CODEX or WORK escalation, generate the bounded handoff instead of copying th
 python tools/agents/resume.py --task <active-task-path> [capability flags]
 ```
 
-The bundle must not include full logs, full diffs, whole source trees or unrelated optional documentation.
+The bundle must not include full logs, full diffs, whole source trees or unrelated optional documentation. Machine limits in `CONTEXT_ROUTES.json` intentionally trim continuation evidence; durable checkpoints are separately protected from runaway growth by `tools/agents/checkpoint.py`.
 
 ## Reuse discovery
 
