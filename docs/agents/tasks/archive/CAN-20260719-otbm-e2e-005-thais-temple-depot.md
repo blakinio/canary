@@ -2,13 +2,13 @@
 task_id: CAN-20260719-otbm-e2e-005-thais-temple-depot
 program_id: CAN-PROGRAM-OTBM-E2E-ROUTING
 coordination_id: OTBM-E2E-005
-status: ready
+status: completed
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-005-thais-temple-depot
 base_branch: main
 created: 2026-07-19
-updated: 2026-07-19
-last_verified_commit: "2c448205d864f6388b8be932ecbb1a9e6dcaffe0"
+updated: 2026-07-20T08:48:19Z
+last_verified_commit: "e81ae95d60096db84d00b0f4ff5516b58c1ecc2d"
 risk: high
 related_issue: ""
 related_pr: "600"
@@ -67,6 +67,7 @@ reuses:
   - Universal Agent E2E two-session lifecycle
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-20T08:48:19Z
 ---
 
 # Goal
@@ -194,3 +195,12 @@ validation:
     evidence: compare 183d7224cb5de57585294d72631f37783b93dc89..2c448205d864f6388b8be932ecbb1a9e6dcaffe0 contains only docs/agents/OTERYN_OAM_021_MARKET_REVALIDATION.md and docs/agents/tasks/archive/CAN-20260719-oteryn-market-revalidation.md.
 next_action: Treat this checkpoint commit as the immutable final feature head; require exact-final-head Agent Task Ownership, CI and Universal Agent E2E, then perform clean comment/review/thread and live-main overlap audit, mark PR #600 ready, squash merge with expected head SHA, verify main, and complete the exact active-to-archive lifecycle before unblocking OTBM-E2E-006.
 ```
+
+## Lifecycle completion
+
+- Feature PR: #600.
+- Feature head: `3fe899f8ea993f5706bce4f14e188a074d6cb88c`.
+- Merge commit: `e81ae95d60096db84d00b0f4ff5516b58c1ecc2d`.
+- Merged at: `2026-07-20T08:48:19Z`.
+- The initial exact-final-head physical failure was reproduced only once at route edge 1; the permitted same-head failed-jobs retry passed the physical scenario and Required physical E2E without any feature-head change.
+- This record is moved from `tasks/active` by the lifecycle cleanup PR after the post-merge automation did not create a cleanup PR.
