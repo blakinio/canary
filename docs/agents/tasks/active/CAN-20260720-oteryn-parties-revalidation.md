@@ -10,7 +10,7 @@ created: 2026-07-20
 updated: 2026-07-20
 last_verified_commit: "0a39a0f76d5f811098dfaa7be9deea40347279d5"
 risk: medium
-related_pr: pending
+related_pr: "616"
 depends_on:
   - OAM-005 character-lifecycle
 blocks:
