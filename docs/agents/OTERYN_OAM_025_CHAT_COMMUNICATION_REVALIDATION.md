@@ -46,18 +46,20 @@ This compares two different privilege domains. The acting character's group can 
 
 ## Target adaptation
 
-Otheryn PR #51 changes exactly the bounded authorization sites to:
+Otheryn PR #51 changed exactly the bounded authorization sites to:
 
 ```lua
 playerGroupType > target:getGroup():getId()
 ```
 
-It adds a focused C++/Lua execution test that loads the real `help.lua` and deliberately makes group rank conflict with account type. The proof covers:
+It added a focused C++/Lua execution test that loads the real `help.lua` and deliberately makes group rank conflict with account type. The proof covers:
 
 1. a Senior Tutor group cannot mute a higher-group target merely because the target exposes a lower account type;
 2. a Senior Tutor group can unmute a lower-group target even when the target exposes a higher account type.
 
-Current target PR head while validation is running: `27d46028243085aede7736b2202e74ebcedc1dca`.
+Final target PR head: `5aa0259d2ef34d1803ab1fbae8d931ed5f330486`.
+
+Target squash merge: `1c8e3e8b4fc29effb3b0cb882af94f7d26ed2554`.
 
 ## Boundary classification
 
@@ -80,9 +82,22 @@ Current target PR head while validation is running: `27d46028243085aede7736b2202
 
 No applicable boundary remains unresolved for this bounded adaptation.
 
-## Validation state
+## Immutable target validation evidence
 
-Target exact-head required CI and review/drift gates are still in progress. This document must be updated with immutable final target head, workflow conclusions and squash merge SHA before Canary governance merge.
+All required target gates were evaluated against exact final head `5aa0259d2ef34d1803ab1fbae8d931ed5f330486` before expected-head squash merge:
+
+- `autofix.ci` run `29770310537`: `success`;
+- `Repository Audit` run `29770310698`: `success`;
+- full `CI` run `29770311110`: `success`;
+- aggregate `Required` run `29770310554`: `success`;
+- focused Linux debug `Run Tests`: `success`, exercising the new OAM-025 real-script regression proof;
+- PR #51 mergeable: `true`;
+- review submissions: none;
+- inline review threads: none;
+- PR discussion comments: none;
+- Otheryn `main` remained at task-start baseline `86a598426f65e51ff2864ccd1d0a1dbf818b526c` through the final drift audit.
+
+PR #51 was then squash-merged with expected head `5aa0259d2ef34d1803ab1fbae8d931ed5f330486`, producing target merge `1c8e3e8b4fc29effb3b0cb882af94f7d26ed2554`.
 
 ## Explicit non-claims
 
