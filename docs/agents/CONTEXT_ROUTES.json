@@ -5,12 +5,12 @@
     "max_required_reads": 12,
     "max_search_first": 10,
     "max_optional_reads": 8,
-    "max_proven": 12,
-    "max_unknown": 8,
-    "max_conflicts": 6,
-    "max_changed_paths": 12,
-    "max_validation": 8,
-    "max_blockers": 6
+    "max_proven": 8,
+    "max_unknown": 5,
+    "max_conflicts": 4,
+    "max_changed_paths": 10,
+    "max_validation": 5,
+    "max_blockers": 4
   },
   "core_reads": [
     "AGENTS.md",
