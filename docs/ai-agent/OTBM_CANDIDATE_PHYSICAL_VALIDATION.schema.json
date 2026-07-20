@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/ai-agent/OTBM_CANDIDATE_PHYSICAL_VALIDATION.schema.json",
+  "title": "Canary OTBM Candidate Physical Validation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "ok", "mode", "source", "candidate", "evidence", "selection", "execution", "safety"],
+  "properties": {
+    "format": {"const": "canary-otbm-candidate-physical-validation-v1"},
+    "schemaVersion": {"const": 1},
+    "ok": {"const": true},
+    "mode": {"enum": ["validate-only", "execute"]},
+    "source": {"$ref": "#/$defs/source"},
+    "candidate": {"$ref": "#/$defs/candidate"},
+    "evidence": {"$ref": "#/$defs/evidence"},
+    "selection": {"$ref": "#/$defs/selection"},
+    "execution": {"$ref": "#/$defs/execution"},
+    "safety": {"$ref": "#/$defs/safety"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "fileEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "unchanged"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "unchanged": {"const": true}
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "createNew"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "createNew": {"const": true}
+      }
+    },
+    "semanticDiffEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "beforeWorldIndexSha256", "afterWorldIndexSha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "beforeWorldIndexSha256": {"$ref": "#/$defs/sha256"},
+        "afterWorldIndexSha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "optionalFileEvidence": {
+      "anyOf": [{"type": "null"}, {"$ref": "#/$defs/fileEvidence"}]
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pipelineResult", "semanticDiff", "impactedSelection", "candidateLandmarkRegistry"],
+      "properties": {
+        "pipelineResult": {"$ref": "#/$defs/fileEvidence"},
+        "semanticDiff": {"$ref": "#/$defs/semanticDiffEvidence"},
+        "impactedSelection": {"$ref": "#/$defs/fileEvidence"},
+        "candidateLandmarkRegistry": {"$ref": "#/$defs/optionalFileEvidence"}
+      }
+    },
+    "selectedScenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["suite", "id", "key", "manifestSha256", "failClosed", "impactedFindingIds"],
+      "properties": {
+        "suite": {"type": "string", "minLength": 1},
+        "id": {"type": "string", "minLength": 1},
+        "key": {"type": "string", "minLength": 3},
+        "manifestSha256": {"$ref": "#/$defs/sha256"},
+        "failClosed": {"type": "boolean"},
+        "impactedFindingIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^otbm-diff:[0-9a-f]{24}$"}
+        }
+      }
+    },
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenarioCount", "selectedCount", "skippedCount", "failClosedCount", "selectedScenarios"],
+      "properties": {
+        "scenarioCount": {"type": "integer", "minimum": 1},
+        "selectedCount": {"type": "integer", "minimum": 0},
+        "skippedCount": {"type": "integer", "minimum": 0},
+        "failClosedCount": {"type": "integer", "minimum": 0},
+        "selectedScenarios": {"type": "array", "items": {"$ref": "#/$defs/selectedScenario"}}
+      }
+    },
+    "scenarioExecution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["suite", "id", "key", "executed", "returnCode", "runtimeMapSha256", "routePreparation", "physicalResult"],
+      "properties": {
+        "suite": {"type": "string", "minLength": 1},
+        "id": {"type": "string", "minLength": 1},
+        "key": {"type": "string", "minLength": 3},
+        "executed": {"type": "boolean"},
+        "returnCode": {"type": ["integer", "null"]},
+        "runtimeMapSha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "routePreparation": {"type": ["object", "null"]},
+        "physicalResult": {"type": ["object", "null"]}
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requested", "required", "performed", "runtimeWorkspaceRemoved", "scenarios"],
+      "properties": {
+        "requested": {"type": "boolean"},
+        "required": {"type": "boolean"},
+        "performed": {"type": "boolean"},
+        "runtimeWorkspaceRemoved": {"const": true},
+        "scenarios": {"type": "array", "items": {"$ref": "#/$defs/scenarioExecution"}}
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceModifiedInPlace",
+        "candidateCopiedToActiveDatapack",
+        "productionMapDeployed",
+        "newOtbmParserCreated",
+        "newOtbmWriterCreated",
+        "newWorldIndexImplementationCreated",
+        "newPathfinderCreated",
+        "newPhysicalE2ERunnerCreated",
+        "newWorkflowCreated",
+        "existingMutationBoundaryReused",
+        "existingMapQualityGateReused",
+        "existingSemanticDiffReused",
+        "existingImpactedSelectionReused",
+        "existingRoutePreparationReused",
+        "existingPhysicalE2ERunnerReused"
+      ],
+      "properties": {
+        "sourceModifiedInPlace": {"const": false},
+        "candidateCopiedToActiveDatapack": {"const": false},
+        "productionMapDeployed": {"const": false},
+        "newOtbmParserCreated": {"const": false},
+        "newOtbmWriterCreated": {"const": false},
+        "newWorldIndexImplementationCreated": {"const": false},
+        "newPathfinderCreated": {"const": false},
+        "newPhysicalE2ERunnerCreated": {"const": false},
+        "newWorkflowCreated": {"const": false},
+        "existingMutationBoundaryReused": {"const": true},
+        "existingMapQualityGateReused": {"const": true},
+        "existingSemanticDiffReused": {"const": true},
+        "existingImpactedSelectionReused": {"const": true},
+        "existingRoutePreparationReused": {"const": true},
+        "existingPhysicalE2ERunnerReused": {"const": true}
+      }
+    }
+  }
+}
