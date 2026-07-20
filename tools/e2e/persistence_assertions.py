@@ -34,6 +34,7 @@ PLAYER_VOCATIONS = {
     "monk": {"server_vocation_id": 9, "client_vocation_id": 5},
     "exalted_monk": {"server_vocation_id": 10, "client_vocation_id": 15},
 }
+MAX_UINT8 = 255
 MAX_UINT16 = 65_535
 MAX_UINT32 = 4_294_967_295
 MAX_SAFE_LUA_INTEGER = 9_007_199_254_740_991
@@ -265,6 +266,25 @@ def _validate_all_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
             )
             continue
 
+        if assertion_type == "player_soul":
+            _reject_unknown_fields(check, {"id", "type", "equals"}, path)
+            expected = _require_int_range(
+                check,
+                "equals",
+                path,
+                minimum=0,
+                maximum=MAX_UINT8,
+                description="an unsigned soul value",
+            )
+            validated.append(
+                {
+                    "id": assertion_id,
+                    "type": assertion_type,
+                    "equals": expected,
+                }
+            )
+            continue
+
         if assertion_type == "player_skill_level":
             _reject_unknown_fields(check, {"id", "type", "skill", "equals"}, path)
             skill = _require_string(check, "skill", path)
@@ -314,7 +334,7 @@ def _validate_all_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
         raise PersistenceAssertionError(
             f"{path}.type unsupported: {assertion_type!r}; allowed: "
             "player_field, player_storage, player_item_presence, player_balance, "
-            "player_magic_level, player_skill_level, player_vocation"
+            "player_magic_level, player_soul, player_skill_level, player_vocation"
         )
 
     return validated
@@ -326,11 +346,12 @@ def validate_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
     `player_field` checks use directly comparable LocalPlayer getters. `player_balance`
     uses the maintained LocalPlayer resource-balance getter and is restricted to exact
     Lua-safe integers. `player_magic_level` uses the maintained uint16 magic-level
-    getter. `player_skill_level` uses a fixed classic-skill mapping and the maintained
-    LocalPlayer base-skill getter. `player_vocation` maps a fixed semantic vocation to
-    the maintained client vocation ID and reuses the existing `player_field` vocation
-    getter path. Arbitrary `player_storage` values and cross-location
-    `player_item_presence` checks remain on the post-cycle SQL boundary.
+    getter. `player_soul` uses the maintained uint8 soul getter. `player_skill_level`
+    uses a fixed classic-skill mapping and the maintained LocalPlayer base-skill getter.
+    `player_vocation` maps a fixed semantic vocation to the maintained client vocation ID
+    and reuses the existing `player_field` vocation getter path. Arbitrary
+    `player_storage` values and cross-location `player_item_presence` checks remain on
+    the post-cycle SQL boundary.
     """
 
     client_checks: list[dict[str, Any]] = []
@@ -339,6 +360,7 @@ def validate_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
             "player_field",
             "player_balance",
             "player_magic_level",
+            "player_soul",
             "player_skill_level",
         }:
             client_checks.append(check)
@@ -360,9 +382,9 @@ def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
 
     The Universal Physical E2E SQL evaluator accepts one semicolon-free SELECT per
     assertion and considers only stdout == "1" successful. `player_field`,
-    `player_balance`, `player_magic_level`, `player_skill_level` and normalized
-    `player_vocation` checks are also emitted to the controlled-client phase-two plan
-    by run_agent_e2e.py. Arbitrary `player_storage` and fixed-location
+    `player_balance`, `player_magic_level`, `player_soul`, `player_skill_level` and
+    normalized `player_vocation` checks are also emitted to the controlled-client
+    phase-two plan by run_agent_e2e.py. Arbitrary `player_storage` and fixed-location
     `player_item_presence` checks remain database-only.
     """
 
@@ -431,6 +453,16 @@ def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
         if check["type"] == "player_magic_level":
             queries.append(
                 "SELECT IF((SELECT `maglevel` FROM `players` WHERE `name` = "
+                + character_sql
+                + ") = "
+                + str(check["equals"])
+                + ", 1, 0)"
+            )
+            continue
+
+        if check["type"] == "player_soul":
+            queries.append(
+                "SELECT IF((SELECT `soul` FROM `players` WHERE `name` = "
                 + character_sql
                 + ") = "
                 + str(check["equals"])
