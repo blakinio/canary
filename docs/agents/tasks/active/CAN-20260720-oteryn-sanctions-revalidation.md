@@ -179,6 +179,6 @@ validation:
   - command: target review and main-drift audit
     result: PASS
     evidence: comments reviews threads 0/0/0; Otheryn main remained bcc3e9f7e3e704f3c012bda8693648d52741630f before merge
-first_failure: null
+first_failure: {}
 next_action: pass final exact-head governance gates on PR 621, audit and expected-head squash merge, then perform separate lifecycle archive
 ```
