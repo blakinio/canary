@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-20T11:15:00+02:00
-last_verified_commit: "060fe0fa018e55725c93daee5dd4cadec0a68162"
+updated: 2026-07-20T13:08:36+02:00
+last_verified_commit: "0de75bd2de28c80e9d9587bd3a2520c29c5f267c"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -59,6 +59,7 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 | OAM-021 | `market → ADAPT` | target `b90e287a40413102c87e8c7fa3d5c01ad401cb6d`; feature `76273c0cb7c2e297c8896a8e7fb6809649fa2870`; lifecycle `2c448205d864f6388b8be932ecbb1a9e6dcaffe0` |
 | OAM-022 | `prey → REUSE` | target proof `50dfa248251f245f5519495a4fbd430b6814ffe4`; feature `e3a5cc7321636270db150d289ba2da9ddb99ef0d`; lifecycle `4aa0a054cbd3fcbc45e2bda5b58ab016df6438e6` |
 | OAM-023 | `parties → REUSE` | target proof `bcc3e9f7e3e704f3c012bda8693648d52741630f`; feature `e78d927e54d965d742fe762e86c9ea454d068c4a`; lifecycle `060fe0fa018e55725c93daee5dd4cadec0a68162` |
+| OAM-024 | `sanctions → ADAPT` | target `65d364b216843db27e84a19a673eee4e6d766c68`; feature `7662d048a75df37f5bfc4238e12fd3b18c935151`; lifecycle `0de75bd2de28c80e9d9587bd3a2520c29c5f267c` |
 
 # OAM-009 durable boundary
 
@@ -348,15 +349,35 @@ Authoritative lifecycle PR #618 final head `6c8355c46102b2aa910cc29d02a76bba6c1f
 
 OAM-023 does not claim party chat/channel transport, protocol packet compatibility, maintained OTClient behavior, exhaustive shared-experience formula parity, generic combat correctness, vocation/Wheel correctness, guild lifecycle, generic persistence redesign, OAM-004 SQL/KV atomicity, physical-client Party E2E closure, or map/OTBM/`items.otb`/asset/schema/deployment changes.
 
+# OAM-024 durable completion
+
+Final disposition:
+
+```text
+sanctions ADAPT
+```
+
+Task-start baselines were Canary `3fe0130a408d201d0ca846f86a37b0ab20479932`, Otheryn `bcc3e9f7e3e704f3c012bda8693648d52741630f`, fresh upstream Canary `71a0f92b4da3f550b292fa7536a0e35c2769f1ae`, and maintained OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`. Canonical `sanctions` depends only on completed OAM-004 `database-connection`. Fresh task-start open-PR and ownership audits found no writer overlapping canonical `src/creatures/players/management/ban.*` or the OAM-024 governance paths.
+
+Task-start legacy, target and fresh upstream shared `ban.cpp` blob `ca4c11ea98d6a8f4b6281f0bb5e84d742ff21ecc` and `ban.hpp` blob `48086b3efef370b2c0e1fab8f85513a95e47dcad`, but blob identity was supporting evidence only. Semantic and history review found no stronger independent legacy donor while identifying one bounded durability defect: expired account-ban archival used an asynchronous history `INSERT` and active-ban `DELETE` as separate writes without one rollback boundary. Completed OAM-004 already provides `DBTransaction`, so the smallest valid disposition was `ADAPT` rather than unconditional `REUSE` or broad rewrite.
+
+Otheryn PR #48 final head `58ba19e0affe75f47c4185c41327880f8403503b` changed exactly four intended paths: `docs/oam-024-sanctions-adapt.md`, `src/creatures/players/management/ban.cpp`, `tests/integration/database/CMakeLists.txt`, and `tests/integration/database/sanctions_it.cpp`. The bounded adaptation moves only expired account-ban history insertion and active-row deletion into one `DBTransaction` under `SELECT ... FOR UPDATE`; active/permanent ban behavior is preserved and IP-ban behavior remains unchanged. Autofix.ci #153 run `29734614481`, CI #179 run `29734614607`, and Required #160 run `29734614503` all passed on the exact final target head. Linux debug CTest completed `406/406`, including `SanctionsRepositoryDBTest` `3/3`; test-log artifact `8458101363` has digest `sha256:97b9aeb5e93bac69461720671ee58bfe5742fd20df2710b139d0aa2298cd30fc`. Target comments/reviews/threads were empty, target-main drift was none, and PR #48 merged by expected-head squash as `65d364b216843db27e84a19a673eee4e6d766c68`.
+
+Canary governance PR #621 final head `894fa6be932937a7b124461dffe6ac2d3a414f84` changed exactly the OAM-024 report and active-task record. The first two Ownership attempts failed only the task checkpoint `first_failure` schema and were corrected without changing target scope or evidence. Final Agent Task Ownership #2805 run `29735949134`, draft CI #3956 run `29735949282`, and ready-state full final-gate CI #3957 run `29735989048` all succeeded on the exact final head. Comments/reviews/threads were empty and Canary `main` had no drift from the immutable task-start baseline before merge. PR #621 merged by expected-head squash as `7662d048a75df37f5bfc4238e12fd3b18c935151`.
+
+Authoritative lifecycle PR #622 final head `5473976a6b1b15bd55c4ed9c10eb6bb95474b3a1` changed exactly the active-delete/archive-add lifecycle paths. It passed Agent Task Ownership #2809 run `29736993817`, draft CI #3960 run `29736994154`, and ready-state CI #3961 run `29737033310`; comments/reviews/threads were empty and Canary `main` had no drift from the governance merge before lifecycle merge. PR #622 merged by expected-head squash as `0de75bd2de28c80e9d9587bd3a2520c29c5f267c`.
+
+OAM-024 preserves the known OAM-004 limitation that player SQL persistence and later KV durability are not atomic. It does not claim exhaustive sanction enforcement at every entry point, generic account-authentication security, protocol compatibility, distributed/multi-database sanctions replication, moderation policy, generic security analytics, AI investigation, PvP skull/frag parity, physical-client sanctions E2E closure, generic persistence redesign, or changes to maintained OTClient, maps, OTBM, `items.otb`, assets, schema or deployment.
+
 # Current state
 
 ```text
-Canary reconciliation base: 060fe0fa018e55725c93daee5dd4cadec0a68162
-Otheryn target head after OAM-023: bcc3e9f7e3e704f3c012bda8693648d52741630f
+Canary reconciliation base: 0de75bd2de28c80e9d9587bd3a2520c29c5f267c
+Otheryn target head after OAM-024: 65d364b216843db27e84a19a673eee4e6d766c68
 maintained OTClient: 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
-OAM-001..OAM-023: feature/lifecycle complete
-OAM-023 task: archived
-OAM-024: NOT STARTED
+OAM-001..OAM-024: feature/lifecycle complete
+OAM-024 task: archived
+OAM-025: NOT STARTED
 ```
 
 No OAM implementation task is active in this reconciliation record.
@@ -365,8 +386,8 @@ No OAM implementation task is active in this reconciliation record.
 
 | Package | Status | Next action |
 |---|---|---|
-| OAM-001..OAM-023 | completed | preserve durable evidence |
-| OAM-024+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
+| OAM-001..OAM-024 | completed | preserve durable evidence |
+| OAM-025+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
 
 # Invariants and known gaps
 
@@ -393,7 +414,8 @@ No OAM implementation task is active in this reconciliation record.
 - OAM-021 does not claim crash-safe exactly-once Market create/cancel/accept/expiry, cross-process or multiwriter Market safety, remote-player mutation routing, generic multichannel/economic-ledger/leader-election redesign, exhaustive Real Tibia Market parity, maintained-client changes, or physical-client Market E2E closure.
 - OAM-022 does not claim full modern Hunting Task/Taskboard parity, Wheel Bonus Promotion Shop or Wheel allocation ownership, exhaustive Prey formulas/rarity/reroll-price/monster-pool parity, physical-client Prey/Taskboard E2E closure, generic persistence/protocol redesign, or map/asset/schema/deployment migration.
 - OAM-023 does not claim party chat/channel transport, protocol packet compatibility, maintained-client behavior, exhaustive shared-experience formula parity, generic combat correctness, vocation/Wheel correctness, guild lifecycle, physical-client Party E2E closure, or map/asset/schema/deployment migration.
+- OAM-024 does not claim exhaustive sanction enforcement at every entry point, generic account-authentication security, protocol compatibility, distributed/multi-database sanctions replication, moderation policy, generic security analytics, AI investigation, PvP skull/frag parity, physical-client sanctions E2E closure, generic persistence redesign, or map/asset/schema/deployment migration.
 
 # Exact next task
 
-Merge this program-only OAM-023 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-024 preflight begin. OAM-024 is NOT STARTED by this record.
+Merge this program-only OAM-024 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-025 preflight begin. OAM-025 is NOT STARTED by this record.
