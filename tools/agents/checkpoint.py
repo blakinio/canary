@@ -36,6 +36,23 @@ MAP_KEYS = {"first_failure"}
 LIST_OF_MAP_KEYS = {"validation"}
 REQUIRED_KEYS = SCALAR_KEYS | LIST_KEYS | MAP_KEYS | LIST_OF_MAP_KEYS
 
+# Durable checkpoints are read directly by continuation agents before routing can
+# trim an evidence bundle. Keep generous hard ceilings here to prevent runaway
+# task records while allowing complex bounded tasks. CONTEXT_ROUTES.json applies
+# tighter limits to the actual continuation bundle.
+MAX_LIST_ITEMS = {
+    "context_routes": 8,
+    "owned_paths": 64,
+    "proven": 16,
+    "derived": 12,
+    "unknown": 12,
+    "conflicts": 8,
+    "rejected_hypotheses": 16,
+    "changed_paths": 32,
+    "validation": 12,
+    "blockers": 8,
+}
+
 
 class CheckpointError(ValueError):
     pass
@@ -212,6 +229,13 @@ def validate_checkpoint(data: dict[str, object], *, source: Path | None = None) 
     next_action = str(data.get("next_action", "")).strip()
     if next_action.casefold() in {"none", "unknown", "pending", "n/a"}:
         errors.append(f"{location}: next_action must be one concrete next step")
+
+    for key, limit in MAX_LIST_ITEMS.items():
+        raw = data.get(key)
+        if isinstance(raw, list) and len(raw) > limit:
+            errors.append(
+                f"{location}: {key} has {len(raw)} items; compactness limit is {limit}"
+            )
 
     first_failure = data.get("first_failure")
     if isinstance(first_failure, dict):

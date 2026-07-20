@@ -1,9 +1,9 @@
 ---
 program_id: CAN-PROGRAM-AGENT-ORCHESTRATION
-status: completed
+status: active
 owner: "GPT-5.5 Thinking"
 created: 2026-07-15T16:00:00Z
-updated: 2026-07-15T18:56:04Z
+updated: 2026-07-20T12:00:00Z
 ---
 
 # Agent Context Orchestration Program
@@ -58,6 +58,7 @@ Rules:
 | ACO-002 | Changed-task-aware CI checkpoint enforcement and lifecycle automation | completed by PR #391; repair #394; production cleanup proof #397 |
 | ACO-003 | Agent efficiency evals: files read, repeated reads, tool calls, time-to-first-action, handoff success | completed by PR #400; lifecycle cleanup #401 |
 | ACO-004 | Optional multi-agent supervisor queue for higher-license Codex/worktree execution | completed by PR #402; lifecycle cleanup #403 |
+| ACO-005 | Context-pressure hardening: low-noise progress, incremental preflight reuse, tighter handoff limits, checkpoint compactness ceilings | in progress via PR #623 |
 
 ## ACO-001 result
 
@@ -124,6 +125,12 @@ It does not:
 - parallelize overlapping non-read-only ownership claims;
 - bypass task ownership, CI, review or branch protection.
 
+## ACO-005 current package
+
+ACO-005 is a bounded follow-up based on live usage pressure rather than a new orchestration architecture. It tightens the existing operating contract so autonomous agents avoid narrating routine tool activity, reuse a completed preflight incrementally, keep generated continuation bundles smaller, and fail checkpoint validation when durable task evidence grows beyond generous hard ceilings.
+
+The package intentionally preserves all safety, ownership, CI and exact-final-head gates. It does not reduce required repository evidence, remove current blockers/conflicts from checkpoints, or hide failures to save context.
+
 ## Context pressure policy
 
 When an agent slows down, repeats searches, rereads the same files, loses earlier facts, or approaches context exhaustion:
@@ -166,8 +173,8 @@ The generated bundles are intentionally bounded. Workers verify live head/PR/CI 
 
 ## Current task
 
-No ACO task remains active after lifecycle cleanup PR #403. ACO-001 through ACO-004 are complete.
+ACO-005 is active in `docs/agents/tasks/active/CAN-20260720-agent-context-efficiency.md` and PR #623. ACO-001 through ACO-004 remain completed and must not be reopened.
 
 ## Handoff
 
-Use the merged ACO tooling as the stable foundation for future bounded work. New orchestration improvements must start as new, separately owned tasks; do not reopen completed ACO-001 through ACO-004 records. Ordinary Chat remains the default coordinator, and external multi-agent execution stays optional and capability-gated.
+Continue ACO-005 only from its active task checkpoint, current PR/head, routed context and live CI. New orchestration improvements after ACO-005 must start as separately owned bounded tasks. Ordinary Chat remains the default coordinator, and external multi-agent execution stays optional and capability-gated.
