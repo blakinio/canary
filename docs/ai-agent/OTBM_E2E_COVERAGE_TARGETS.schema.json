@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_E2E_COVERAGE_TARGETS.schema.json",
+  "title": "Canary OTBM mechanic to Physical E2E reviewed coverage targets",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "targets"],
+  "properties": {
+    "format": {"const": "canary-otbm-e2e-coverage-targets-v1"},
+    "schemaVersion": {"const": 1},
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10000,
+      "items": {"$ref": "#/$defs/target"}
+    }
+  },
+  "$defs": {
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "selector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["position"],
+      "properties": {
+        "position": {"$ref": "#/$defs/position"},
+        "itemId": {"type": ["integer", "null"], "minimum": 0, "maximum": 65535},
+        "actionId": {"type": ["integer", "null"], "minimum": 0, "maximum": 65535},
+        "uniqueId": {"type": ["integer", "null"], "minimum": 0, "maximum": 65535},
+        "houseDoorId": {"type": ["integer", "null"], "minimum": 0, "maximum": 255},
+        "teleportDestination": {
+          "oneOf": [{"$ref": "#/$defs/position"}, {"type": "null"}]
+        }
+      },
+      "anyOf": [
+        {"required": ["itemId"], "properties": {"itemId": {"type": "integer"}}},
+        {"required": ["actionId"], "properties": {"actionId": {"type": "integer"}}},
+        {"required": ["uniqueId"], "properties": {"uniqueId": {"type": "integer"}}},
+        {"required": ["houseDoorId"], "properties": {"houseDoorId": {"type": "integer"}}},
+        {"required": ["teleportDestination"], "properties": {"teleportDestination": {"$ref": "#/$defs/position"}}}
+      ]
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "reason", "selector"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 160},
+        "reason": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "selector": {"$ref": "#/$defs/selector"}
+      }
+    }
+  }
+}
