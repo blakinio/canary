@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-20T21:32:49+02:00
-last_verified_commit: "8ed836aae47d6bb882fb646169d2930f951c6c0d"
+updated: 2026-07-20T22:58:58+02:00
+last_verified_commit: "99b9dec84d953d3f200284d0cf193261027650ca"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -61,6 +61,7 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 | OAM-023 | `parties → REUSE` | target proof `bcc3e9f7e3e704f3c012bda8693648d52741630f`; feature `e78d927e54d965d742fe762e86c9ea454d068c4a`; lifecycle `060fe0fa018e55725c93daee5dd4cadec0a68162` |
 | OAM-024 | `sanctions → ADAPT` | target `65d364b216843db27e84a19a673eee4e6d766c68`; feature `7662d048a75df37f5bfc4238e12fd3b18c935151`; lifecycle `0de75bd2de28c80e9d9587bd3a2520c29c5f267c` |
 | OAM-025 | `chat-communication → ADAPT` | target `1c8e3e8b4fc29effb3b0cb882af94f7d26ed2554`; feature `791bca7403da1e93fba96143f42983f09aa10381`; lifecycle `8ed836aae47d6bb882fb646169d2930f951c6c0d` |
+| OAM-026 | `guilds → ADAPT` | target `418a9f0bfc72cc58b9806a49e966d9c3ea3c1a6d`; feature `5a2bc2be3b91abdd46c9edf2f825336472515299`; lifecycle `99b9dec84d953d3f200284d0cf193261027650ca` |
 
 # OAM-009 durable boundary
 
@@ -304,7 +305,7 @@ Otheryn PR #45 final head `f13d4d2d0626c99dd2318ef088ce155f67b0b5ae` changed exa
 
 Canary governance PR #607 final head `d2290f6072a8fd9e90f43a164a8426076ff6c718` changed exactly the OAM-021 report and active-task record. It passed Agent Task Ownership #2743 run `29705475496` and exact-head `ci:final-gate` CI #3892 run `29705479591`. Fast Checks, Lua Tests and aggregate Required passed; the final-gate build-scope/immediate-parent reuse policy deliberately skipped Linux/macOS/Windows/Docker rebuild jobs for the two-document governance diff, so OAM-021 does not misrepresent that governance run as a second heavy target matrix. Comments, reviews and review threads were empty, Canary `main` had no drift from the task-start Canary base, and PR #607 merged by expected-head squash as `76273c0cb7c2e297c8896a8e7fb6809649fa2870`.
 
-Authoritative lifecycle PR #610 final head `acd76122590584acb4f71db5786ff43e415f596a` changed exactly the active-delete/archive-add lifecycle paths. It passed Agent Task Ownership #2745 run `29705593288`, draft CI #3893 run `29705593339`, and ready-state CI #3894 run `29705635036`. Comments/reviews/threads were empty and Canary `main` had no drift from the governance merge before lifecycle merge. PR #610 merged by expected-head squash as `2c448205d864f6388b8be932ecbb1a9e6dcaffe0`.
+Authoritative lifecycle PR #610 final head `acd76122590584acb4f71db5786ff43e415f596a` changed exactly the active-delete/archive-add lifecycle paths. It passed Agent Task Ownership #2745 run `29705593288`, draft CI #3893 run `29705593339`, and ready-state CI #3894 run `29705635036`. Comments/reviews and review threads were empty and Canary `main` had no drift from the governance merge before lifecycle merge. PR #610 merged by expected-head squash as `2c448205d864f6388b8be932ecbb1a9e6dcaffe0`.
 
 OAM-021 does not import or claim generic multichannel Redis/session ownership, `economic_ledger` recovery, leader election, crash-safe exactly-once Market operations, cross-process/multiwriter Market safety, remote-player mutation routing, generic bank/account/guild economy redesign, exhaustive Real Tibia Market parity, NPC shops, store products, direct player trade, maps, OTBM, `items.otb`, world assets, schema, deployment, maintained-OTClient changes, or physical-client Market E2E closure.
 
@@ -390,15 +391,35 @@ Authoritative lifecycle PR #630 final head `7f0546a2070470cabb03ebda4cd0b3cca4eb
 
 OAM-025 does not claim Real Tibia chat parity, guild/party membership lifecycle, protocol compatibility, maintained-client UI behavior, generic moderation policy, message privacy or delivery guarantees, NPC conversations, distributed chat, physical-client chat E2E closure, generic persistence redesign, or changes to maps, OTBM, `items.otb`, assets, schema or deployment.
 
+# OAM-026 durable completion
+
+Final disposition:
+
+```text
+guilds ADAPT
+```
+
+Task-start baselines were Canary `052d96014c805aacaa120ce888b7bed038817a72`, Otheryn `1cf38d354b493b4cd9ec8e841ec8f2a6ff322029`, fresh upstream Canary `71a0f92b4da3f550b292fa7536a0e35c2769f1ae`, and maintained OTClient `a6868920443dc285656bd016acdb2c1ea566e511`. Canonical `guilds` depends only on completed `character-lifecycle` and `database-connection`; chat delivery, protocol/wire behavior and broader world persistence remain interaction boundaries rather than package expansion.
+
+Task-start legacy, target and fresh upstream shared exact `guild.cpp` blob `346bfc562275a5835fd81f146eb235048ce9d45b` and `guild.hpp` blob `0e4c53a615d5df90e561cc211da002a89c72a413`; the guild-specific player-load behavior was also semantically aligned. Blob identity was supporting evidence only. Whole-module `REUSE` was rejected because the target intentionally preserves completed OAM-004C persistence architecture: `IOGuild::saveGuild()` returns the underlying database status and `SaveManager` propagates guild-save failure into aggregate server-save status, unlike the legacy/upstream fire-and-forget boundary. OAM-026 therefore retained the upstream-compatible guild core without copying legacy/upstream `IOGuild` over that target-owned contract.
+
+Otheryn PR #53 final head `4709f0c49962dee14e98acb384baab75b21c97a8` changed exactly four proof/test paths and no production guild path. Autofix.ci run `29775483679`, CI run `29775483958`, and Required run `29775483628` succeeded on the exact final head; Linux debug `Run Tests`, both Windows build paths and macOS build passed. Comments/reviews/threads were empty, target `main` had no task-start drift through the merge gate, and PR #53 merged by expected-head squash as `418a9f0bfc72cc58b9806a49e966d9c3ea3c1a6d`.
+
+Canary governance PR #635 was reconstructed onto non-overlapping Canary `main` `191cad8779ec84aaa09c8f62e9b6ff76e958b8fa` after independent OTBM/E2E coverage and lifecycle drift. Final head `a81d637bd63b58a0e4df79e24a1cac64716bd7ae` changed exactly the OAM-026 report and active-task record, passed Agent Task Ownership #2891 run `29777372413` and final-gate CI #4045 run `29777392434`, had zero comments/reviews/threads, no further main drift and was mergeable, then merged by expected-head squash as `5a2bc2be3b91abdd46c9edf2f825336472515299`.
+
+Authoritative lifecycle PR #641 final head `d10008ad1f964ae33883a1d64095fb080307c25f` changed exactly the active-delete/archive-add lifecycle paths. It passed Agent Task Ownership #2893 run `29777615996` and final-gate CI #4047 run `29777622849`; Fast Checks, Lua Tests and Required passed while heavy builds were correctly skipped for lifecycle-only scope. Comments/reviews/threads were empty, Canary `main` had no drift from the governance merge, and PR #641 merged by expected-head squash as `99b9dec84d953d3f200284d0cf193261027650ca`.
+
+OAM-026 does not import the legacy multichannel guild ownership model and does not claim generic distributed guild ownership, atomic multiwriter guild-bank debit safety, Real Tibia guild parity, website guild-management parity, guild-chat delivery parity, protocol/client UI parity, generic transaction atomicity, generic crash/restart durability, physical-client guild E2E closure, or changes to maps, OTBM, `items.otb`, assets, schema or deployment. Legacy `OTS-ECO-GUILD-001` remains a future multiwriter guild-bank stale-balance boundary requiring a separate durable ownership/atomic-debit contract before concurrent guild-bank mutation is enabled.
+
 # Current state
 
 ```text
-Canary reconciliation base: 8ed836aae47d6bb882fb646169d2930f951c6c0d
-Otheryn target head after OAM-025: 1c8e3e8b4fc29effb3b0cb882af94f7d26ed2554
-maintained OTClient: 87124861eb0faa9134bdda062c881df70f17d495
-OAM-001..OAM-025: feature/lifecycle complete
-OAM-025 task: archived
-OAM-026: NOT STARTED
+Canary reconciliation base: 99b9dec84d953d3f200284d0cf193261027650ca
+Otheryn target head after OAM-026: 418a9f0bfc72cc58b9806a49e966d9c3ea3c1a6d
+maintained OTClient: a6868920443dc285656bd016acdb2c1ea566e511
+OAM-001..OAM-026: feature/lifecycle complete
+OAM-026 task: archived
+OAM-027: NOT STARTED
 ```
 
 No OAM implementation task is active in this reconciliation record.
@@ -407,8 +428,8 @@ No OAM implementation task is active in this reconciliation record.
 
 | Package | Status | Next action |
 |---|---|---|
-| OAM-001..OAM-025 | completed | preserve durable evidence |
-| OAM-026+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
+| OAM-001..OAM-026 | completed | preserve durable evidence |
+| OAM-027+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
 
 # Invariants and known gaps
 
@@ -437,7 +458,8 @@ No OAM implementation task is active in this reconciliation record.
 - OAM-023 does not claim party chat/channel transport, protocol packet compatibility, maintained-client behavior, exhaustive shared-experience formula parity, generic combat correctness, vocation/Wheel correctness, guild lifecycle, physical-client Party E2E closure, or map/asset/schema/deployment migration.
 - OAM-024 does not claim exhaustive sanction enforcement at every entry point, generic account-authentication security, protocol compatibility, distributed/multi-database sanctions replication, moderation policy, generic security analytics, AI investigation, PvP skull/frag parity, physical-client sanctions E2E closure, generic persistence redesign, or map/asset/schema/deployment migration.
 - OAM-025 does not claim Real Tibia chat parity, guild/party membership lifecycle, protocol compatibility, maintained-client UI behavior, generic moderation policy, message privacy or delivery guarantees, NPC conversations, distributed chat, physical-client chat E2E closure, generic persistence redesign, or map/asset/schema/deployment migration.
+- OAM-026 does not claim distributed guild ownership, multiwriter guild-bank safety, Real Tibia guild parity, website guild-management parity, guild-chat delivery parity, protocol/client UI parity, generic transaction atomicity, generic crash/restart durability, physical-client guild E2E closure, or map/asset/schema/deployment migration.
 
 # Exact next task
 
-Merge this program-only OAM-025 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-026 preflight begin. OAM-026 is NOT STARTED by this record.
+Merge this program-only OAM-026 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-027 preflight begin. OAM-027 is NOT STARTED by this record.
