@@ -489,6 +489,9 @@ local function persistenceCheckValue(check)
 	if check.type == "player_magic_level" then
 		return player:getMagicLevel(), nil
 	end
+	if check.type == "player_soul" then
+		return player:getSoul(), nil
+	end
 	if check.type == "player_skill_level" then
 		return player:getSkillBaseLevel(check.client_skill_id), nil
 	end
@@ -557,6 +560,11 @@ function runNextPersistenceCheck()
 	elseif check.type == "player_magic_level" then
 		if check.field ~= nil then
 			fail("invalid runtime player_magic_level persistence check")
+			return
+		end
+	elseif check.type == "player_soul" then
+		if check.field ~= nil then
+			fail("invalid runtime player_soul persistence check")
 			return
 		end
 	elseif check.type == "player_skill_level" then
