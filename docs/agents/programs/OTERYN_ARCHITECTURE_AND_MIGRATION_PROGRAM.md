@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-19T23:59:00+02:00
-last_verified_commit: "2c448205d864f6388b8be932ecbb1a9e6dcaffe0"
+updated: 2026-07-20T09:25:00+02:00
+last_verified_commit: "4aa0a054cbd3fcbc45e2bda5b58ab016df6438e6"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -57,6 +57,7 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 | OAM-019 | `imbuements → ADAPT` | target `63547f30fc21e495217b8a92fa44aaad2db188ef`; feature `f38832dd160910e76d1576bb2c1221374a6ae8b1`; lifecycle `f62481d7ab2e5d13bb74c53e57a5b79bd1d4eb29` |
 | OAM-020 | `exaltation-forge → ADAPT` | target `d59207d05ab6dd9450b05d0a6b4d9122fda60489`; feature `2b6ae86539640dfc52323e9d5abbde31d6610c5f`; lifecycle `a3896b67e94990712e00e877666f2bd54dceb22a` |
 | OAM-021 | `market → ADAPT` | target `b90e287a40413102c87e8c7fa3d5c01ad401cb6d`; feature `76273c0cb7c2e297c8896a8e7fb6809649fa2870`; lifecycle `2c448205d864f6388b8be932ecbb1a9e6dcaffe0` |
+| OAM-022 | `prey → REUSE` | target proof `50dfa248251f245f5519495a4fbd430b6814ffe4`; feature `e3a5cc7321636270db150d289ba2da9ddb99ef0d`; lifecycle `4aa0a054cbd3fcbc45e2bda5b58ab016df6438e6` |
 
 # OAM-009 durable boundary
 
@@ -304,15 +305,37 @@ Authoritative lifecycle PR #610 final head `acd76122590584acb4f71db5786ff43e415f
 
 OAM-021 does not import or claim generic multichannel Redis/session ownership, `economic_ledger` recovery, leader election, crash-safe exactly-once Market operations, cross-process/multiwriter Market safety, remote-player mutation routing, generic bank/account/guild economy redesign, exhaustive Real Tibia Market parity, NPC shops, store products, direct player trade, maps, OTBM, `items.otb`, world assets, schema, deployment, maintained-OTClient changes, or physical-client Market E2E closure.
 
+# OAM-022 durable completion
+
+Final disposition:
+
+```text
+prey REUSE
+```
+
+Task-start baselines were Canary `800142e65c2975e57647bf34128ab468532218f0`, Otheryn `b90e287a40413102c87e8c7fa3d5c01ad401cb6d`, fresh upstream Canary `71a0f92b4da3f550b292fa7536a0e35c2769f1ae`, and maintained OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`. Canonical `prey` depends on completed `player-persistence` and `protocol`; `wheel-of-destiny` is an interaction boundary and remains separately owned.
+
+The reviewed classic Prey/Task Hunting core has no stronger independent legacy donor. `src/io/ioprey.cpp` blob `b0e335f5a4f7f9d8a3da75196dedf0d49242ef17`, `src/io/ioprey.hpp` blob `52b5ebf36037e2c9eee8b24741075e24b1680410`, and `src/io/functions/iologindata_save_player.cpp` blob `5bb44a2f2e15c33b39a5b24206440057ded4ab5b` are identical across the pinned target, fresh upstream and legacy baselines; the reviewed Prey/Task Hunting load functions are functionally identical. Maintained OTClient already carries the standard `modules/game_prey/prey.lua` contract, so no client write was required.
+
+Legacy Canary's Taskboard difference was deliberately excluded from the independent Prey reuse boundary: merged Wheel PR #230 consumes Hunting Task points while persisting/applying purchased promotion points under the `wheel-of-destiny` KV scope and changes Wheel-owned components/bindings/tests. That is an explicit Prey↔Wheel integration and remains under the separately active Wheel parity program rather than being copied into OAM-022.
+
+Otheryn PR #46 final head `12d79e4532e5784e9530caf433cdad1c869f0142` changed exactly three proof-only paths and no production runtime/data/persistence/protocol/client/schema/map/asset/deployment path. Autofix.ci #145 run `29723046171`, CI #169 run `29723046359`, and Required #152 run `29723046189` succeeded. Linux debug CTest completed `400/400`, including `Oam022PreyReuseTest` `4/4`; test-log artifact `8453371882` has digest `sha256:23e923635138726a33e7900ff84cd481d2182994cb68020c5d03698e4804886c`. Target comments/reviews/threads were empty, target-main drift was none, and PR #46 merged by expected-head squash as `50dfa248251f245f5519495a4fbd430b6814ffe4`.
+
+Canary governance PR #612 final head `52b27ea5efedab9b0112c7e206e3c697e17a0ac3` changed exactly the OAM-022 report and active-task record. It passed Agent Task Ownership #2754 run `29723974759` and exact-head final-gate CI #3904 run `29723982438`; comments/reviews/threads were empty and Canary `main` had no drift from the immutable task-start baseline. PR #612 merged by expected-head squash as `e3a5cc7321636270db150d289ba2da9ddb99ef0d`.
+
+Authoritative lifecycle PR #613 final head `13531cdab812d169f21a2e724b71b4e157ca93d6` changed exactly the active-delete/archive-add lifecycle paths. It passed Agent Task Ownership #2756 run `29724219954`, draft CI #3905 run `29724220096`, and ready-state CI #3906 run `29724256954`; comments/reviews/threads were empty and Canary `main` had no drift from the governance merge. PR #613 merged by expected-head squash as `4aa0a054cbd3fcbc45e2bda5b58ab016df6438e6`.
+
+OAM-022 does not claim full modern official Hunting Task/Taskboard parity, Wheel Bonus Promotion Shop migration or Wheel allocation ownership, exhaustive Prey formulas/rarity/reroll-price/monster-pool parity, physical-client Prey or Taskboard E2E closure, generic persistence/protocol redesign, or map/OTBM/`items.otb`/asset/schema/deployment changes.
+
 # Current state
 
 ```text
-Canary reconciliation base: 2c448205d864f6388b8be932ecbb1a9e6dcaffe0
-Otheryn target head after OAM-021: b90e287a40413102c87e8c7fa3d5c01ad401cb6d
+Canary reconciliation base: 4aa0a054cbd3fcbc45e2bda5b58ab016df6438e6
+Otheryn target head after OAM-022: 50dfa248251f245f5519495a4fbd430b6814ffe4
 maintained OTClient: 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
-OAM-001..OAM-021: feature/lifecycle complete
-OAM-021 task: archived
-OAM-022: NOT STARTED
+OAM-001..OAM-022: feature/lifecycle complete
+OAM-022 task: archived
+OAM-023: NOT STARTED
 ```
 
 No OAM implementation task is active in this reconciliation record.
@@ -321,8 +344,8 @@ No OAM implementation task is active in this reconciliation record.
 
 | Package | Status | Next action |
 |---|---|---|
-| OAM-001..OAM-021 | completed | preserve durable evidence |
-| OAM-022+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
+| OAM-001..OAM-022 | completed | preserve durable evidence |
+| OAM-023+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
 
 # Invariants and known gaps
 
@@ -347,7 +370,8 @@ No OAM implementation task is active in this reconciliation record.
 - OAM-019 does not claim exhaustive Imbuement parity, exhaustive equipment eligibility, full live quest-unlock visibility, client/UI parity, physical-client E2E closure, exhaustive combat math, crash/restart persistence completeness, or generic resource transaction atomicity.
 - OAM-020 does not claim exhaustive Forge parity, physical-client Forge E2E closure, unresolved F-014 through F-019 server/client result parity, evidence-blocked F-009/F-010 rule parity, or generic cross-domain transaction/persistence redesign.
 - OAM-021 does not claim crash-safe exactly-once Market create/cancel/accept/expiry, cross-process or multiwriter Market safety, remote-player mutation routing, generic multichannel/economic-ledger/leader-election redesign, exhaustive Real Tibia Market parity, maintained-client changes, or physical-client Market E2E closure.
+- OAM-022 does not claim full modern Hunting Task/Taskboard parity, Wheel Bonus Promotion Shop or Wheel allocation ownership, exhaustive Prey formulas/rarity/reroll-price/monster-pool parity, physical-client Prey/Taskboard E2E closure, generic persistence/protocol redesign, or map/asset/schema/deployment migration.
 
 # Exact next task
 
-Merge this program-only OAM-021 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-022 preflight begin. OAM-022 is NOT STARTED by this record.
+Merge this program-only OAM-022 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-023 preflight begin. OAM-023 is NOT STARTED by this record.
