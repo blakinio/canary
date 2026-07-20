@@ -2,13 +2,13 @@
 task_id: CAN-20260720-otbm-e2e-008-semantic-diff-selection
 program_id: CAN-PROGRAM-OTBM-E2E-ROUTING
 coordination_id: OTBM-E2E-008
-status: validating
+status: review
 agent: "GPT-5.5 Thinking"
 branch: feat/otbm-e2e-008-semantic-diff-selection
 base_branch: main
 created: 2026-07-20
 updated: 2026-07-20
-last_verified_commit: "2d3ff9642abbc8b004c8cf496221273f0da5cc55"
+last_verified_commit: "6b0a74be21812e737ac44173be6a00d02d90769c"
 risk: medium
 related_issue: ""
 related_pr: "643"
@@ -68,8 +68,8 @@ Deliver OTBM-E2E-008 as a deterministic fail-closed selector that consumes exist
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-20T21:27:00Z
-head: 2d3ff9642abbc8b004c8cf496221273f0da5cc55
+updated_at: 2026-07-20T21:31:00Z
+head: 6b0a74be21812e737ac44173be6a00d02d90769c
 branch: feat/otbm-e2e-008-semantic-diff-selection
 pr: 643
 status: validating
@@ -96,12 +96,13 @@ proven:
   - pre-final implementation head 2d3ff9642abbc8b004c8cf496221273f0da5cc55 passed Agent Task Ownership run 29779969320 CI run 29779969506 OTBM Map Tools run 29779969340 and AI Agent Tools run 29779969291
   - MODULE_CATALOG changed by only two additions and one deletion to mark OTBM-E2E-007 merged and register the OTBM-E2E-008 reusable interface
   - current main drift is one unrelated OAM programme-document commit with no overlap against the six OTBM-E2E-008 changed paths and PR 643 is mergeable
-  - ci:final-gate was applied to PR 643 before this final checkpoint commit
+  - ci:final-gate was applied to PR 643 before the final checkpoint sequence
+  - exact-final-head attempt 6b0a74be21812e737ac44173be6a00d02d90769c passed CI run 29780139036 but Agent Task Ownership run 29780138976 failed because frontmatter used unsupported active status validating instead of review
 derived:
   - Semantic Diff can safely suppress a candidate OTBM-aware Physical E2E rerun only when exact complete evidence proves route and mechanic non-impact
-  - the initial ownership failure was task metadata only because compile and focused unit tests passed before checkpoint validation failed and corrected ownership runs now pass
+  - both ownership failures observed during this task were checkpoint metadata defects and not implementation failures because focused implementation tests passed before each checkpoint validation failure
 unknown:
-  - exact live branch head created by this final checkpoint commit and its exact-final-head workflow conclusions
+  - exact live branch head created by this corrected final checkpoint commit and its exact-final-head workflow conclusions
   - final review-ready CI conclusion after draft-to-ready transition
   - final feature and lifecycle merge SHAs
 conflicts: []
@@ -139,6 +140,12 @@ validation:
   - command: AI Agent Tools run 29779969291
     result: PASS
     evidence: pre-final implementation head passed repository AI agent unit tests and tooling validation
+  - command: Agent Task Ownership run 29780138976
+    result: FAIL
+    evidence: exact-final-head attempt failed checkpoint lifecycle compatibility because active frontmatter status validating is unsupported; corrected frontmatter now uses review with checkpoint status validating
+  - command: CI run 29780139036
+    result: PASS
+    evidence: exact-final-head attempt passed repository CI before the metadata-only checkpoint correction
 blockers: []
-next_action: Verify the exact live head created by this final checkpoint commit and all exact-final-head required workflows; if green, audit current main overlap reviews threads comments and mergeability, mark PR 643 ready, require ready-state CI success, squash-merge with expected head, then archive the task lifecycle.
+next_action: Verify the exact live head created by this corrected final checkpoint commit and all exact-final-head required workflows; if green, audit current main overlap reviews threads comments and mergeability, mark PR 643 ready, require ready-state CI success, squash-merge with expected head, then archive the task lifecycle.
 ```
