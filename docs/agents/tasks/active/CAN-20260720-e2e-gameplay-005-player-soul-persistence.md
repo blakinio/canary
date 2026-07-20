@@ -7,7 +7,7 @@ agent: "GPT-5.5 Thinking"
 branch: feat/e2e-player-soul-persistence-contract
 base_branch: main
 created: 2026-07-20T10:17:00+02:00
-updated: 2026-07-20T10:42:00+02:00
+updated: 2026-07-20T10:45:00+02:00
 last_verified_commit: "0a39a0f76d5f811098dfaa7be9deea40347279d5"
 risk: medium
 related_issue: ""
@@ -90,11 +90,11 @@ Add one bounded reusable `player_soul` persistence assertion that accepts an exa
 
 # Current state
 
-Implementation is complete on draft PR #615. The functional diff contains exactly one typed compiler/SQL extension, two small controlled-client dispatch additions, focused tests, one contract document, this task record and one narrowly updated catalogue row. The `ci:final-gate` label was applied before this checkpoint commit. This commit is the final checkpoint commit; no further repository commit is permitted after its exact head becomes green.
+Implementation is complete on draft PR #615. The functional diff contains exactly one typed compiler/SQL extension, two small controlled-client dispatch additions, focused tests, one contract document, this task record and one narrowly updated catalogue row. The `ci:final-gate` label was applied before the final checkpoint sequence. First attempted final head `f0108356d68aea01c92ddc5e65b9c52e7f7427aa` passed CI but failed only changed-task checkpoint parsing because `derived:` had one accidental leading space. This governance-only repair removes that indentation. The SHA produced by this commit becomes the new frozen final head; no further repository commit is permitted after it is green.
 
 # Plan
 
-1. Treat the SHA produced by this checkpoint commit as frozen final PR head.
+1. Treat the SHA produced by this repaired checkpoint commit as frozen final PR head.
 2. Require exact-head Agent Task Ownership, CI, Universal Agent E2E and autofix outcome as applicable.
 3. Audit changed files/diff, reviews, comments, review threads, mergeability and main drift against the frozen head.
 4. Squash merge PR #615 only with `expected_head_sha` equal to the frozen final head.
@@ -117,10 +117,17 @@ Implementation is complete on draft PR #615. The functional diff contains exactl
 
 ## 2026-07-20T10:42:00+02:00
 
-- Changed: applied `ci:final-gate` before this final checkpoint commit.
-- Learned: pre-final E2E successfully completed scope selection, scenario resolution/validation and database bootstrap before its heavy builds queued; the exact final head will receive the authoritative full final-gate run.
-- Failed/blocked: none remaining before exact-final-head validation.
-- Result: the next SHA produced by this commit is frozen for final validation and merge gating.
+- Changed: applied `ci:final-gate` before the final checkpoint sequence.
+- Learned: pre-final E2E successfully completed scope selection, scenario resolution/validation and database bootstrap before its heavy builds queued; the exact final head receives the authoritative full final-gate run.
+- Failed/blocked: none before the first final checkpoint attempt.
+- Result: first attempted final head was created as `f0108356d68aea01c92ddc5e65b9c52e7f7427aa`.
+
+## 2026-07-20T10:45:00+02:00
+
+- Changed: repaired only one YAML indentation in the active-task context checkpoint.
+- Learned: exact-final-head CI on `f0108356d68aea01c92ddc5e65b9c52e7f7427aa` succeeded; Ownership artifact `active-task-ownership` from run `29728647020` reported exactly `invalid list item under proven` because `derived:` had one leading space.
+- Failed/blocked: first attempted final Ownership run `29728647020` failed only the changed-task checkpoint parse; no ownership conflict or code/test failure was reported.
+- Result: this repair creates the new frozen final head for a clean exact-head gate sequence.
 
 # Decisions
 
@@ -128,7 +135,7 @@ Implementation is complete on draft PR #615. The functional diff contains exactl
 |---|---|---|
 | Add a dedicated typed `player_soul` assertion rather than expose raw `player_field` soul. | Keeps the caller surface bounded to `0..255` and fixed SQL/runtime getters, matching the typed persistence pattern. | none |
 | Use maintained `LocalPlayer.getSoul()` after relog. | The maintained API already exposes the exact `uint8_t` client-visible value; no client fork or generic getter is needed. | none |
-| Use the exact-final-head E2E after the final checkpoint as authoritative. | `ci:final-gate` explicitly requires fresh full validation of the frozen final head; pre-final incremental/heavy work cannot substitute for it. | none |
+| Use the exact-final-head E2E after the repaired final checkpoint as authoritative. | `ci:final-gate` explicitly requires fresh full validation of the frozen final head; earlier incremental/heavy work cannot substitute for it. | none |
 
 # Files and interfaces
 
@@ -150,14 +157,17 @@ Implementation is complete on draft PR #615. The functional diff contains exactl
 | `63e75d7aeb53531c340426602db81999702d13ad` | first Agent Task Ownership run `29728300398` | failed | initial changed task lacked current PR metadata because it was committed before draft PR creation |
 | `7386751046272221e0fe8562c2c273303628c2a2` | Agent Task Ownership run `29728444212` | passed | repaired active-task PR/checkpoint metadata accepted |
 | `7386751046272221e0fe8562c2c273303628c2a2` | CI run `29728444405` | passed | completed success |
-| `7386751046272221e0fe8562c2c273303628c2a2` | Universal Agent E2E run `29728444402` pre-final progress | superseded by final-gate head | scope, scenario resolution/validation and database bootstrap completed successfully before heavy builds queued; final checkpoint commit intentionally creates the authoritative exact final head |
-| final checkpoint head | exact-final-head Ownership, CI, Universal Agent E2E and autofix | not run yet | workflow outcomes necessarily occur after this commit and are audited externally before merge |
+| `7386751046272221e0fe8562c2c273303628c2a2` | Universal Agent E2E run `29728444402` pre-final progress | superseded by final-gate head | scope, scenario resolution/validation and database bootstrap completed successfully before heavy builds queued |
+| `f0108356d68aea01c92ddc5e65b9c52e7f7427aa` | exact-final-head CI run `29728647151` | passed | completed success |
+| `f0108356d68aea01c92ddc5e65b9c52e7f7427aa` | exact-final-head Agent Task Ownership run `29728647020` | failed | artifact reported exactly `invalid list item under proven`; this commit removes the single leading space before `derived:` |
+| repaired final checkpoint head | exact-final-head Ownership, CI, Universal Agent E2E and autofix | not run yet | workflow outcomes necessarily occur after this commit and are audited externally before merge |
 
 # Failed approaches and dead ends
 
 - Reusing `feat/e2e-player-soul-persistence`: rejected because the ref still exists from closed, unmerged PR #606.
 - The first full-file `MODULE_CATALOG.md` replacement accidentally changed one unrelated Wheel of Destiny documentation path; patch audit detected it immediately and a follow-up commit restored the original entry. The resulting PR catalogue diff is limited to the intended Universal E2E row.
 - The initial task record predated PR #615 and therefore failed changed-task lifecycle validation until `related_pr`, checkpoint PR and a concrete checkpoint head were recorded.
+- The first attempted final checkpoint used one accidental leading space before `derived:`. Exact-final Ownership failed closed on checkpoint parsing; no code change was needed.
 
 # Risks and compatibility
 
@@ -179,8 +189,8 @@ Implementation is complete on draft PR #615. The functional diff contains exactl
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-20T10:42:00+02:00
-head: 7386751046272221e0fe8562c2c273303628c2a2
+updated_at: 2026-07-20T10:45:00+02:00
+head: f0108356d68aea01c92ddc5e65b9c52e7f7427aa
 branch: feat/e2e-player-soul-persistence-contract
 pr: 615
 status: implementing
@@ -209,21 +219,23 @@ proven:
   - final MODULE_CATALOG patch changes only the Universal OTS E2E physical gameplay action plans row
   - pre-final Agent Task Ownership run 29728444212 succeeded on 7386751046272221e0fe8562c2c273303628c2a2
   - pre-final CI run 29728444405 succeeded on 7386751046272221e0fe8562c2c273303628c2a2
-  - ci:final-gate was applied before this final checkpoint commit
-  - pre-final E2E scope, scenario resolution and database bootstrap jobs succeeded before the final checkpoint superseded that head
- derived:
+  - ci:final-gate was applied before the final checkpoint sequence
+  - first attempted exact-final CI run 29728647151 succeeded on f0108356d68aea01c92ddc5e65b9c52e7f7427aa
+  - first attempted exact-final Ownership run 29728647020 failed only checkpoint parsing because derived had one leading space
+  - the Ownership artifact error was exactly invalid list item under proven
+derived:
   - a dedicated player_soul type enforces the exact 0..255 maintained-client domain while compiling only fixed players.soul SQL
   - extending the existing phase-two persistence dispatch is smaller and safer than exposing soul through caller-selectable raw player_field
   - no maintained-client repository mutation is needed because LocalPlayer.getSoul already exposes the required exact value
-  - the SHA produced by this commit is the only acceptable merge head after exact-final-head gates complete
+  - the SHA produced by this repair commit is the only acceptable merge head after exact-final-head gates complete
 unknown:
-  - the SHA produced by this final checkpoint commit
-  - exact-final-head Ownership, CI, Universal Agent E2E and autofix outcomes
-  - review/comment/thread blocker state against the frozen head
+  - the SHA produced by this repaired final checkpoint commit
+  - exact-final-head Ownership, CI, Universal Agent E2E and autofix outcomes for the repaired head
+  - review/comment/thread blocker state against the frozen repaired head
 conflicts: []
 first_failure:
-  marker: historical branch name already existed
-  evidence: GitHub create-branch returned Reference already exists for feat/e2e-player-soul-persistence; a fresh branch was created from current main instead
+  marker: The first attempted exact-final-head Agent Task Ownership run rejected the context checkpoint because derived had one accidental leading space and was parsed as an invalid list item under proven.
+  evidence: Ownership artifact active-task-ownership from run 29728647020 reported exactly invalid list item under proven; this repair changes only the active-task checkpoint indentation and governance evidence.
 rejected_hypotheses:
   - reuse the historical closed-PR branch: existing ref would blur task ownership and branch history
   - expose raw player_field soul: typed uint8 boundary is narrower and evidence-backed
@@ -251,12 +263,15 @@ validation:
   - command: CI run 29728444405 on 7386751046272221e0fe8562c2c273303628c2a2
     result: PASS
     evidence: workflow completed success
-  - command: Universal Agent E2E run 29728444402 on 7386751046272221e0fe8562c2c273303628c2a2
-    result: SUPERSEDED
-    evidence: scope, scenario resolution/validation and database bootstrap succeeded; final checkpoint commit creates the authoritative exact final head for full final-gate validation
-  - command: exact-final-head Ownership, CI, Universal Agent E2E and autofix
+  - command: CI run 29728647151 on f0108356d68aea01c92ddc5e65b9c52e7f7427aa
+    result: PASS
+    evidence: exact-final CI completed success
+  - command: Agent Task Ownership run 29728647020 on f0108356d68aea01c92ddc5e65b9c52e7f7427aa
+    result: FAIL
+    evidence: active-task-ownership artifact reported invalid list item under proven because derived had one accidental leading space; repaired in this checkpoint-only commit
+  - command: exact-final-head Ownership, CI, Universal Agent E2E and autofix on repaired head
     result: NOT_RUN
-    evidence: this commit creates the new frozen final head; exact-head workflow outcomes necessarily occur after the commit
+    evidence: this repair commit creates the new frozen final head; exact-head workflow outcomes necessarily occur after the commit
 blockers: []
-next_action: Inspect exact-final-head gates for the frozen SHA produced by this commit, then perform the clean review blocker audit and squash merge with expected_head_sha if all required evidence is green.
+next_action: Inspect exact-final-head gates for the repaired frozen SHA produced by this commit, then perform the clean review blocker audit and squash merge with expected_head_sha if all required evidence is green.
 ```
