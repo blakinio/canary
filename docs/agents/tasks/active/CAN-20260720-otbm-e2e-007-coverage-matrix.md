@@ -103,7 +103,7 @@ proven:
   - physical mechanic evidence requires an executed follow_route route plan with an exact transition or interaction selector reference and current runtime map.sha256 for current-map proof
   - retained successful OTBM-E2E-005 evidence is a current-map pure movement route and produces zero mechanic proof candidates
   - ci:final-gate was applied to PR 639 before this final checkpoint commit
- derived:
+derived:
   - reviewed exact target input keeps mechanic criticality outside automatic guessing
   - the delivered matrix separates static reachability evidence from physical gameplay proof and exposes missing physical scenarios as coverage gaps
 unknown:
