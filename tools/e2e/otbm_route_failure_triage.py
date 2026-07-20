@@ -5,42 +5,38 @@ import argparse
 import json
 import re
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Iterable, Mapping
 
 FORMAT = "canary-otbm-e2e-failure-triage-v1"
 SCHEMA_VERSION = 1
-DEFAULT_OUTPUT = "otbm-route-failure-triage.json"
 
-FAILURE_CATEGORIES = frozenset(
-    {
-        "ROUTE_RESOLUTION_FAILURE",
-        "ROUTE_PREFLIGHT_FAILURE",
-        "PLAN_LOAD_FAILURE",
-        "INITIAL_POSITION_MISMATCH",
-        "MOVEMENT_DIVERGENCE",
-        "BLOCKED_TILE",
-        "INTERACTION_UNSUPPORTED",
-        "INTERACTION_TIMEOUT",
-        "TELEPORT_NOT_TRIGGERED",
-        "WRONG_TRANSITION_DESTINATION",
-        "WRONG_FLOOR_DELTA",
-        "SERVER_DISCONNECT",
-        "PERSISTENCE_FAILURE",
-        "RELOG_FAILURE",
-    }
+FAILURE_CATEGORIES = (
+    "ROUTE_RESOLUTION_FAILURE",
+    "ROUTE_PREFLIGHT_FAILURE",
+    "PLAN_LOAD_FAILURE",
+    "INITIAL_POSITION_MISMATCH",
+    "MOVEMENT_DIVERGENCE",
+    "BLOCKED_TILE",
+    "INTERACTION_UNSUPPORTED",
+    "INTERACTION_TIMEOUT",
+    "TELEPORT_NOT_TRIGGERED",
+    "WRONG_TRANSITION_DESTINATION",
+    "WRONG_FLOOR_DELTA",
+    "SERVER_DISCONNECT",
+    "PERSISTENCE_FAILURE",
+    "RELOG_FAILURE",
 )
-
-ROUTE_MARKER_RE = re.compile(
+ROUTE_CODE_RE = re.compile(
+    r"\b(INITIAL_POSITION_MISMATCH|MOVEMENT_DIVERGENCE|MOVEMENT_TIMEOUT|"
+    r"INTERACTION_FAILED|INTERACTION_TIMEOUT|TRANSITION_NOT_TRIGGERED|"
+    r"WRONG_TRANSITION_DESTINATION|FINAL_POSITION_MISMATCH):\s*(.*)$"
+)
+EDGE_MARKER_RE = re.compile(
     r"^route_(?P<step>.+)_edge_(?P<edge>[1-9][0-9]*)(?:_interaction_[1-9][0-9]*)?$"
 )
 POSITION_PAIR_RE = re.compile(
-    r"actual=(?P<actual>-?[0-9]+,-?[0-9]+,-?[0-9]+)\s+"
-    r"expected=(?P<expected>-?[0-9]+,-?[0-9]+,-?[0-9]+)"
+    r"actual=(?P<actual>-?\d+,-?\d+,-?\d+)\s+expected=(?P<expected>-?\d+,-?\d+,-?\d+)"
 )
-
-
-class TriageError(ValueError):
-    pass
 
 
 def _read_json(path: Path) -> dict[str, Any] | None:
@@ -51,120 +47,86 @@ def _read_json(path: Path) -> dict[str, Any] | None:
     return value if isinstance(value, dict) else None
 
 
-def _read_events(path: Path) -> list[dict[str, str]]:
+def _read_events(path: Path) -> list[dict[str, Any]]:
     if not path.is_file():
         return []
-    events: list[dict[str, str]] = []
-    for line_number, line in enumerate(
-        path.read_text(encoding="utf-8", errors="replace").splitlines(), start=1
+    events = []
+    for line_no, line in enumerate(
+        path.read_text(encoding="utf-8", errors="replace").splitlines()[1:], start=1
     ):
-        if line_number == 1 and line == "timestamp\tkey\tvalue":
-            continue
         parts = line.split("\t", 2)
-        if len(parts) != 3:
-            continue
-        timestamp, key, value = parts
-        events.append(
-            {
-                "line": str(line_number),
-                "timestamp": timestamp,
-                "key": key,
-                "value": value,
-            }
-        )
+        if len(parts) == 3:
+            events.append(
+                {"line": line_no, "timestamp": parts[0], "key": parts[1], "value": parts[2]}
+            )
     return events
 
 
-def _route_steps(manifest: Mapping[str, Any]) -> list[dict[str, str]]:
-    scenario = manifest.get("scenario")
-    if not isinstance(scenario, Mapping):
+def _route_steps(manifest: Mapping[str, Any] | None) -> list[dict[str, str]]:
+    if not isinstance(manifest, Mapping):
         return []
-    steps = scenario.get("steps")
+    scenario = manifest.get("scenario")
+    steps = scenario.get("steps") if isinstance(scenario, Mapping) else None
     if not isinstance(steps, list):
         return []
-    result: list[dict[str, str]] = []
+    result = []
     for step in steps:
         if not isinstance(step, Mapping) or step.get("action") != "follow_route":
             continue
-        step_id = step.get("id")
-        route_id = step.get("route")
-        if isinstance(step_id, str) and isinstance(route_id, str):
+        step_id, route_id = step.get("id"), step.get("route")
+        if isinstance(step_id, str) and step_id and isinstance(route_id, str) and route_id:
             result.append({"stepId": step_id, "routeId": route_id})
     return result
 
 
-def _event_index(events: Sequence[Mapping[str, str]], key: str, value: str | None = None) -> int | None:
-    for index, event in enumerate(events):
-        if event.get("key") != key:
-            continue
-        if value is not None and event.get("value") != value:
-            continue
-        return index
-    return None
+def _has_event(events: Iterable[Mapping[str, Any]], key: str, value: str | None = None) -> bool:
+    return any(
+        event.get("key") == key and (value is None or event.get("value") == value)
+        for event in events
+    )
 
 
-def _first_event(events: Sequence[Mapping[str, str]], key: str) -> dict[str, str] | None:
-    index = _event_index(events, key)
-    return dict(events[index]) if index is not None else None
-
-
-def _has_event(events: Sequence[Mapping[str, str]], key: str, value: str | None = None) -> bool:
-    return _event_index(events, key, value) is not None
-
-
-def _active_route_marker(
-    events: Sequence[Mapping[str, str]], error_index: int | None
-) -> tuple[str, int, dict[str, str]] | None:
-    if error_index is None:
-        return None
-    active: dict[str, tuple[int, dict[str, str]]] = {}
-    for event in events[:error_index]:
-        key = event.get("key", "")
-        match = ROUTE_MARKER_RE.fullmatch(key)
-        if not match:
-            continue
-        if event.get("value") == "start":
-            active[key] = (int(match.group("edge")), dict(event))
-        elif event.get("value") in {"success", "failure"}:
-            active.pop(key, None)
-    if not active:
-        return None
-    key, (edge_index, event) = next(reversed(active.items()))
-    return key, edge_index, event
+def _first_error(events: list[dict[str, Any]]) -> dict[str, Any] | None:
+    return next((event for event in events if event["key"] == "error"), None)
 
 
 def _route_context(
     artifacts: Path,
-    route_steps: Sequence[Mapping[str, str]],
-    events: Sequence[Mapping[str, str]],
-    error_index: int | None,
+    route_steps: list[dict[str, str]],
+    events: list[dict[str, Any]],
+    error_event: Mapping[str, Any] | None,
 ) -> dict[str, Any]:
-    active = _active_route_marker(events, error_index)
-    if active is None:
+    if error_event is None:
         return {}
-    marker, edge_index, marker_event = active
-    match = ROUTE_MARKER_RE.fullmatch(marker)
-    if match is None:
-        return {}
-    step_id = match.group("step")
+    step_id = None
+    edge_index = None
+    marker = None
+    for event in events:
+        if int(event["line"]) >= int(error_event["line"]):
+            break
+        match = EDGE_MARKER_RE.fullmatch(str(event["key"]))
+        if match and event["value"] in {"start", "failure"}:
+            step_id = match.group("step")
+            edge_index = int(match.group("edge"))
+            marker = event["key"]
+
     route_id = next(
-        (step["routeId"] for step in route_steps if step.get("stepId") == step_id),
-        None,
+        (step["routeId"] for step in route_steps if step["stepId"] == step_id), None
     )
-    context: dict[str, Any] = {
-        "stepId": step_id,
-        "edgeIndex": edge_index,
-        "marker": marker,
-        "markerEvent": marker_event,
-    }
-    if route_id is None:
+    context: dict[str, Any] = {}
+    if step_id is not None:
+        context["routeStepId"] = step_id
+    if route_id is not None:
+        context["routeId"] = route_id
+    if edge_index is not None:
+        context["edgeIndex"] = edge_index
+    if marker is not None:
+        context["eventMarker"] = marker
+    if route_id is None or edge_index is None:
         return context
-    context["routeId"] = route_id
-    plan_path = artifacts / f"route-{route_id}.json"
-    plan = _read_json(plan_path)
-    if plan is None:
-        return context
-    edges = plan.get("edges")
+
+    plan = _read_json(artifacts / f"route-{route_id}.json")
+    edges = plan.get("edges") if isinstance(plan, Mapping) else None
     if isinstance(edges, list) and 1 <= edge_index <= len(edges):
         edge = edges[edge_index - 1]
         if isinstance(edge, Mapping):
@@ -172,157 +134,166 @@ def _route_context(
     return context
 
 
-def _position(value: str) -> tuple[int, int, int] | None:
-    parts = value.split(",")
-    if len(parts) != 3:
+def _transition_kind(context: Mapping[str, Any]) -> str | None:
+    edge = context.get("edge")
+    if not isinstance(edge, Mapping):
         return None
+    value = edge.get("transitionKind", edge.get("transition_kind"))
+    return value if isinstance(value, str) else None
+
+
+def _position(raw: str) -> tuple[int, int, int] | None:
     try:
-        return int(parts[0]), int(parts[1]), int(parts[2])
+        values = tuple(int(part) for part in raw.split(","))
     except ValueError:
         return None
+    return values if len(values) == 3 else None
 
 
-def _wrong_transition_category(error: str, context: Mapping[str, Any]) -> str:
-    match = POSITION_PAIR_RE.search(error)
-    if match is None:
-        return "WRONG_TRANSITION_DESTINATION"
-    actual = _position(match.group("actual"))
-    expected = _position(match.group("expected"))
+def _wrong_transition_category(detail: str, context: Mapping[str, Any]) -> str:
     edge = context.get("edge")
-    if actual is None or expected is None or not isinstance(edge, Mapping):
+    if not isinstance(edge, Mapping):
         return "WRONG_TRANSITION_DESTINATION"
-    source = edge.get("from")
-    destination = edge.get("to")
+    source, destination = edge.get("from"), edge.get("to")
     if not (
         isinstance(source, list)
         and len(source) == 3
         and isinstance(destination, list)
         and len(destination) == 3
+        and source[2] != destination[2]
     ):
         return "WRONG_TRANSITION_DESTINATION"
-    try:
-        floor_changes = int(source[2]) != int(destination[2])
-    except (TypeError, ValueError):
+    match = POSITION_PAIR_RE.search(detail)
+    if not match:
         return "WRONG_TRANSITION_DESTINATION"
-    if floor_changes and actual[:2] == expected[:2] and actual[2] != expected[2]:
+    actual, expected = _position(match.group("actual")), _position(match.group("expected"))
+    if actual and expected and actual[:2] == expected[:2] and actual[2] != expected[2]:
         return "WRONG_FLOOR_DELTA"
     return "WRONG_TRANSITION_DESTINATION"
 
 
-def _transition_not_triggered_category(context: Mapping[str, Any]) -> str:
-    edge = context.get("edge")
-    if isinstance(edge, Mapping):
-        transition_kind = edge.get("transitionKind", edge.get("transition_kind"))
-        if transition_kind == "teleport":
-            return "TELEPORT_NOT_TRIGGERED"
-    return "INTERACTION_TIMEOUT"
-
-
-def _client_error_category(error: str, context: Mapping[str, Any]) -> str | None:
-    if "INITIAL_POSITION_MISMATCH:" in error:
-        return "INITIAL_POSITION_MISMATCH"
-    if "MOVEMENT_DIVERGENCE:" in error or "FINAL_POSITION_MISMATCH:" in error:
-        return "MOVEMENT_DIVERGENCE"
-    if "MOVEMENT_TIMEOUT:" in error:
-        return "BLOCKED_TILE"
-    if "INTERACTION_TIMEOUT:" in error:
-        return "INTERACTION_TIMEOUT"
-    if "TRANSITION_NOT_TRIGGERED:" in error:
-        return _transition_not_triggered_category(context)
-    if "WRONG_TRANSITION_DESTINATION:" in error:
-        return _wrong_transition_category(error, context)
-    if "INTERACTION_FAILED:" in error:
-        lowered = error.lower()
-        unsupported_markers = (
-            "unsupported use interaction kind",
-            "unsupported movement interaction kind",
-            "unsupported transition interaction kind",
-            "invalid exact map target contract",
-            "transition requires exactly one interaction",
-        )
-        if any(marker in lowered for marker in unsupported_markers):
-            return "INTERACTION_UNSUPPORTED"
-        return None
-    lowered = error.lower()
+def _client_category(
+    message: str, context: Mapping[str, Any], events: list[dict[str, Any]]
+) -> tuple[str | None, str | None, str]:
+    lower = message.lower()
+    if "login error in phase 2" in lower or "connection error in phase 2" in lower:
+        return "RELOG_FAILURE", "CLIENT_LIFECYCLE", message
+    if "game ended before phase 2 entered the world" in lower:
+        return "RELOG_FAILURE", "CLIENT_LIFECYCLE", message
+    if "unexpected disconnect before safe logout" in lower or "connection error in phase 1" in lower:
+        return "SERVER_DISCONNECT", "CLIENT_LIFECYCLE", message
+    if "persistence check " in lower or "persistence plan" in lower:
+        return "PERSISTENCE_FAILURE", "CLIENT_LIFECYCLE", message
     if any(
-        marker in lowered
-        for marker in (
+        fragment in lower
+        for fragment in (
             "scenario plan is unavailable",
-            "invalid scenario plan contract",
-            "invalid route plan contract",
-            "route executor unavailable",
-            "invalid route executor contract",
-            "route plan unavailable for logical id",
             "failed to open scenario plan",
             "failed to compile scenario plan",
             "failed to execute scenario plan",
+            "invalid scenario plan contract",
+            "invalid route plan contract",
+            "route plan unavailable for logical id",
             "failed to open route executor",
             "failed to compile route executor",
             "failed to execute route executor",
+            "invalid route executor contract",
+            "route executor unavailable",
         )
     ):
-        return "PLAN_LOAD_FAILURE"
-    if "persistence check " in lowered or "persistence plan is unavailable" in lowered:
-        return "PERSISTENCE_FAILURE"
-    if "login error in phase 2" in lowered or "connection error in phase 2" in lowered:
-        return "RELOG_FAILURE"
-    if "game ended before phase 2 entered the world" in lowered:
-        return "RELOG_FAILURE"
-    if "unexpected disconnect before safe logout" in lowered:
-        return "SERVER_DISCONNECT"
-    if "connection error in phase 1" in lowered:
-        return "SERVER_DISCONNECT"
-    return None
+        return "PLAN_LOAD_FAILURE", "PLAN_LOAD", message
+    if "global timeout" in lower:
+        if _has_event(events, "server_persistence_1", "waiting") and not _has_event(
+            events, "server_persistence_1", "confirmed"
+        ):
+            return "PERSISTENCE_FAILURE", "CLIENT_LIFECYCLE", message
+        if _has_event(events, "server_persistence_1", "confirmed") and not _has_event(
+            events, "login_2", "success"
+        ):
+            return "RELOG_FAILURE", "CLIENT_LIFECYCLE", message
+
+    match = ROUTE_CODE_RE.search(message)
+    if not match:
+        return None, None, message
+    code, detail = match.group(1), match.group(2)
+    if code == "INITIAL_POSITION_MISMATCH":
+        return "INITIAL_POSITION_MISMATCH", code, detail
+    if code in {"MOVEMENT_DIVERGENCE", "FINAL_POSITION_MISMATCH"}:
+        return "MOVEMENT_DIVERGENCE", code, detail
+    if code == "MOVEMENT_TIMEOUT":
+        return "BLOCKED_TILE", code, detail
+    if code == "INTERACTION_TIMEOUT":
+        return "INTERACTION_TIMEOUT", code, detail
+    if code == "TRANSITION_NOT_TRIGGERED":
+        return (
+            "TELEPORT_NOT_TRIGGERED" if _transition_kind(context) == "teleport" else "INTERACTION_TIMEOUT"
+        ), code, detail
+    if code == "WRONG_TRANSITION_DESTINATION":
+        return _wrong_transition_category(detail, context), code, detail
+    if code == "INTERACTION_FAILED":
+        return (
+            ("INTERACTION_UNSUPPORTED", code, detail)
+            if "unsupported" in detail.lower()
+            else (None, code, detail)
+        )
+    return None, code, detail
 
 
-def _preflight_failure(artifacts: Path, route_steps: Sequence[Mapping[str, str]]) -> tuple[Path, dict[str, Any]] | None:
-    ordered_paths: list[Path] = []
-    seen: set[Path] = set()
-    for step in route_steps:
-        path = artifacts / f"route-{step['routeId']}-preflight.json"
-        if path not in seen:
-            ordered_paths.append(path)
-            seen.add(path)
+def _preflight_failure(
+    artifacts: Path, route_steps: list[dict[str, str]]
+) -> tuple[str, dict[str, Any]] | None:
+    route_ids = [step["routeId"] for step in route_steps]
     for path in sorted(artifacts.glob("route-*-preflight.json")):
-        if path not in seen:
-            ordered_paths.append(path)
-            seen.add(path)
-    for path in ordered_paths:
-        report = _read_json(path)
-        if report is None:
-            continue
-        if report.get("ok") is False or report.get("status") in {"blocked", "failed", "failure"}:
-            return path, report
+        route_id = path.name[len("route-") : -len("-preflight.json")]
+        if route_id not in route_ids:
+            route_ids.append(route_id)
+    for route_id in dict.fromkeys(route_ids):
+        path = artifacts / f"route-{route_id}-preflight.json"
+        document = _read_json(path)
+        if document and (
+            document.get("ok") is False
+            or document.get("status") in {"failed", "blocked", "failure"}
+        ):
+            return path.name, document
     return None
 
 
-def _failure_result(
-    category: str,
+def _result(
+    category: str | None,
     *,
-    evidence: Sequence[str],
-    first_failure: Mapping[str, Any],
+    source: str,
+    code: str | None = None,
+    detail: str | None = None,
     context: Mapping[str, Any] | None = None,
+    evidence: Iterable[str] = (),
+    unclassified_reason: str | None = None,
 ) -> dict[str, Any]:
-    if category not in FAILURE_CATEGORIES:
-        raise TriageError(f"unsupported failure category: {category}")
-    result: dict[str, Any] = {
+    first_failure: dict[str, Any] = {"source": source}
+    if code is not None:
+        first_failure["code"] = code
+    if detail is not None:
+        first_failure["detail"] = detail
+    if context:
+        first_failure.update(context)
+    output = {
         "format": FORMAT,
         "schemaVersion": SCHEMA_VERSION,
-        "status": "failure",
+        "status": "failure" if category else "unclassified",
         "routeAware": True,
         "failureCategory": category,
-        "firstFailure": dict(first_failure),
+        "firstFailure": first_failure,
         "evidence": sorted(set(evidence)),
     }
-    if context:
-        result["routeContext"] = dict(context)
-    return result
+    if unclassified_reason:
+        output["unclassifiedReason"] = unclassified_reason
+    return output
 
 
 def classify_artifacts(artifact_dir: Path) -> dict[str, Any]:
     artifacts = artifact_dir.expanduser().resolve()
     manifest_path = artifacts / "scenario-manifest.json"
     manifest = _read_json(manifest_path)
+    route_steps = _route_steps(manifest)
     if manifest is None:
         return {
             "format": FORMAT,
@@ -330,12 +301,10 @@ def classify_artifacts(artifact_dir: Path) -> dict[str, Any]:
             "status": "unclassified",
             "routeAware": None,
             "failureCategory": None,
-            "firstFailure": None,
+            "firstFailure": {"source": "scenario-manifest"},
             "evidence": [],
-            "unclassifiedReason": "scenario manifest is missing or invalid",
+            "unclassifiedReason": "scenario manifest is unavailable or invalid",
         }
-
-    route_steps = _route_steps(manifest)
     if not route_steps:
         return {
             "format": FORMAT,
@@ -347,184 +316,144 @@ def classify_artifacts(artifact_dir: Path) -> dict[str, Any]:
             "evidence": [manifest_path.name],
         }
 
-    preflight_failure = _preflight_failure(artifacts, route_steps)
-    if preflight_failure is not None:
-        path, report = preflight_failure
-        first_blocker = report.get("firstBlocker")
-        findings = report.get("findings")
-        first_failure: dict[str, Any] = {
-            "source": path.name,
-            "kind": "exact-map-preflight",
-            "firstBlocker": first_blocker,
-        }
-        if isinstance(findings, list) and findings:
-            first_failure["firstFinding"] = findings[0]
-        return _failure_result(
+    preflight = _preflight_failure(artifacts, route_steps)
+    if preflight:
+        filename, report = preflight
+        blocker = report.get("firstBlocker")
+        detail = json.dumps(blocker, sort_keys=True) if blocker is not None else "exact-map preflight failed"
+        return _result(
             "ROUTE_PREFLIGHT_FAILURE",
-            evidence=[manifest_path.name, path.name],
-            first_failure=first_failure,
+            source="route-preflight",
+            code="PREFLIGHT_BLOCKED",
+            detail=detail,
+            evidence=[manifest_path.name, filename],
         )
 
-    route_preparation_path = artifacts / "route-preparation.json"
-    preparation = _read_json(route_preparation_path)
-    if preparation is None or preparation.get("status") != "passed":
-        preparer_hash_path = artifacts / "route-preparer.sha256"
-        if preparer_hash_path.is_file():
-            return _failure_result(
+    preparation_path = artifacts / "route-preparation.json"
+    preparation = _read_json(preparation_path)
+    if not preparation or preparation.get("status") != "passed":
+        preparer_hash = artifacts / "route-preparer.sha256"
+        if preparer_hash.is_file():
+            return _result(
                 "ROUTE_RESOLUTION_FAILURE",
-                evidence=[manifest_path.name, preparer_hash_path.name],
-                first_failure={
-                    "source": "route-preparation",
-                    "kind": "route-resolution",
-                    "detail": "route preparer was invoked but no passed route-preparation summary was retained",
-                },
+                source="route-preparation",
+                code="ROUTE_PREPARATION_FAILED",
+                detail="route preparation did not produce a passed summary",
+                evidence=[manifest_path.name, preparer_hash.name],
             )
-        return {
-            "format": FORMAT,
-            "schemaVersion": SCHEMA_VERSION,
-            "status": "unclassified",
-            "routeAware": True,
-            "failureCategory": None,
-            "firstFailure": None,
-            "evidence": [manifest_path.name],
-            "unclassifiedReason": "route preparation did not pass and route preparer invocation evidence is absent",
-        }
+        return _result(
+            None,
+            source="route-preparation",
+            detail="route preparation evidence is absent before the canonical preparer was invoked",
+            evidence=[manifest_path.name],
+            unclassified_reason="insufficient evidence to classify route preparation as a resolution failure",
+        )
 
     events_path = artifacts / "client-events.tsv"
     events = _read_events(events_path)
-    error_index = _event_index(events, "error")
-    error_event = dict(events[error_index]) if error_index is not None else None
-    context = _route_context(artifacts, route_steps, events, error_index)
-    if error_event is not None:
-        category = _client_error_category(error_event["value"], context)
-        if category is not None:
-            return _failure_result(
-                category,
-                evidence=[manifest_path.name, route_preparation_path.name, events_path.name],
-                first_failure={
-                    "source": events_path.name,
-                    "kind": "client-error-event",
-                    "line": int(error_event["line"]),
-                    "timestamp": error_event["timestamp"],
-                    "key": error_event["key"],
-                    "value": error_event["value"],
-                },
-                context=context,
-            )
+    error = _first_error(events)
+    context = _route_context(artifacts, route_steps, events, error)
+    if error:
+        category, code, detail = _client_category(str(error["value"]), context, events)
+        evidence = [manifest_path.name, preparation_path.name, events_path.name]
+        route_id = context.get("routeId")
+        if isinstance(route_id, str) and (artifacts / f"route-{route_id}.json").is_file():
+            evidence.append(f"route-{route_id}.json")
+        return _result(
+            category,
+            source="client-event",
+            code=code,
+            detail=detail,
+            context={**context, "eventLine": error["line"], "eventKey": error["key"]},
+            evidence=evidence,
+            unclassified_reason=(
+                None
+                if category
+                else "explicit client failure does not map deterministically to a supported category"
+            ),
+        )
 
     result_path = artifacts / "result.json"
     result = _read_json(result_path)
-    if result is not None:
-        if result.get("status") == "success":
-            return {
-                "format": FORMAT,
-                "schemaVersion": SCHEMA_VERSION,
-                "status": "success",
-                "routeAware": True,
-                "failureCategory": None,
-                "firstFailure": None,
-                "evidence": sorted(
-                    {
-                        manifest_path.name,
-                        route_preparation_path.name,
-                        result_path.name,
-                        *([events_path.name] if events_path.is_file() else []),
-                    }
-                ),
-            }
-        if result.get("schema_version") == 1 and result.get("phase") == "scenario-resolution":
-            return _failure_result(
-                "PLAN_LOAD_FAILURE",
-                evidence=[manifest_path.name, route_preparation_path.name, result_path.name],
-                first_failure={
-                    "source": result_path.name,
-                    "kind": "runner-phase",
-                    "phase": result.get("phase"),
-                    "shellExitCode": result.get("shell_exit_code"),
-                },
-            )
-        checks = result.get("checks")
-        if isinstance(checks, Mapping):
-            if checks.get("scenario_sql_assertions") is False or checks.get("lastlogout_persisted") is False:
-                return _failure_result(
-                    "PERSISTENCE_FAILURE",
-                    evidence=[manifest_path.name, route_preparation_path.name, result_path.name],
-                    first_failure={
-                        "source": result_path.name,
-                        "kind": "result-checks",
-                        "checks": dict(checks),
-                    },
-                )
-            if checks.get("two_server_logins_observed") is False:
-                persistence_confirmed = _has_event(events, "server_persistence_1", "confirmed")
-                login_two = _has_event(events, "login_2", "success")
-                if persistence_confirmed and not login_two:
-                    return _failure_result(
-                        "RELOG_FAILURE",
-                        evidence=[
-                            manifest_path.name,
-                            route_preparation_path.name,
-                            result_path.name,
-                            events_path.name,
-                        ],
-                        first_failure={
-                            "source": result_path.name,
-                            "kind": "lifecycle-incomplete",
-                            "detail": "server persistence was confirmed but second login was not observed",
-                        },
-                    )
-
-    if error_event is not None:
+    if result and result.get("status") == "success":
         return {
             "format": FORMAT,
             "schemaVersion": SCHEMA_VERSION,
-            "status": "unclassified",
+            "status": "success",
             "routeAware": True,
             "failureCategory": None,
-            "firstFailure": {
-                "source": events_path.name,
-                "kind": "client-error-event",
-                "line": int(error_event["line"]),
-                "timestamp": error_event["timestamp"],
-                "key": error_event["key"],
-                "value": error_event["value"],
-            },
-            "evidence": [manifest_path.name, route_preparation_path.name, events_path.name],
-            "routeContext": context,
-            "unclassifiedReason": "explicit client error did not map deterministically to a supported programme category",
+            "firstFailure": None,
+            "evidence": sorted(
+                {
+                    manifest_path.name,
+                    preparation_path.name,
+                    result_path.name,
+                    *([events_path.name] if events_path.is_file() else []),
+                }
+            ),
         }
+    if result and result.get("schema_version") == 1 and result.get("phase") == "scenario-resolution":
+        return _result(
+            "PLAN_LOAD_FAILURE",
+            source="physical-runner",
+            code="SCENARIO_RESOLUTION_FAILED",
+            detail="physical runner failed while materializing the scenario plan",
+            evidence=[manifest_path.name, preparation_path.name, result_path.name],
+        )
 
-    return {
-        "format": FORMAT,
-        "schemaVersion": SCHEMA_VERSION,
-        "status": "unclassified",
-        "routeAware": True,
-        "failureCategory": None,
-        "firstFailure": None,
-        "evidence": sorted(
-            {
-                manifest_path.name,
-                route_preparation_path.name,
-                *([result_path.name] if result_path.is_file() else []),
-                *([events_path.name] if events_path.is_file() else []),
-            }
-        ),
-        "unclassifiedReason": "retained route-aware evidence does not deterministically identify a supported first-failure category",
-    }
+    checks = result.get("checks") if isinstance(result, Mapping) else None
+    if isinstance(checks, Mapping):
+        if any(
+            checks.get(name) is False
+            for name in ("scenario_sql_assertions", "lastlogin_persisted", "lastlogout_persisted")
+        ):
+            return _result(
+                "PERSISTENCE_FAILURE",
+                source="result",
+                code="PERSISTENCE_CHECK_FAILED",
+                detail="one or more durable persistence checks failed",
+                evidence=[manifest_path.name, preparation_path.name, result_path.name],
+            )
+        if (
+            checks.get("two_server_logins_observed") is False
+            and _has_event(events, "login_1", "success")
+            and _has_event(events, "server_persistence_1", "confirmed")
+            and not _has_event(events, "login_2", "success")
+        ):
+            return _result(
+                "RELOG_FAILURE",
+                source="result",
+                code="SECOND_LOGIN_NOT_OBSERVED",
+                detail="first login and persistence completed but second login was not observed",
+                evidence=[manifest_path.name, preparation_path.name, result_path.name, events_path.name],
+            )
+
+    return _result(
+        None,
+        source="evidence",
+        detail="route-aware evidence did not prove success or a supported first-failure category",
+        evidence=[
+            manifest_path.name,
+            preparation_path.name,
+            *([events_path.name] if events_path.is_file() else []),
+            *([result_path.name] if result_path.is_file() else []),
+        ],
+        unclassified_reason="insufficient deterministic evidence",
+    )
 
 
 def write_triage(artifact_dir: Path, output: Path | None = None) -> dict[str, Any]:
     artifacts = artifact_dir.expanduser().resolve()
+    artifacts.mkdir(parents=True, exist_ok=True)
+    target = output.expanduser().resolve() if output else artifacts / "otbm-route-failure-triage.json"
     result = classify_artifacts(artifacts)
-    destination = output.expanduser().resolve() if output is not None else artifacts / DEFAULT_OUTPUT
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    target.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return result
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Classify the first deterministic OTBM-aware Universal Physical E2E failure"
+        description="Classify the first deterministic failure in retained OTBM-aware Universal Physical E2E artifacts"
     )
     parser.add_argument("--artifact-dir", type=Path, required=True)
     parser.add_argument("--output", type=Path)
@@ -533,8 +462,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    result = write_triage(args.artifact_dir, args.output)
-    print(json.dumps(result, indent=2, sort_keys=True))
+    print(json.dumps(write_triage(args.artifact_dir, args.output), indent=2, sort_keys=True))
     return 0
 
 
