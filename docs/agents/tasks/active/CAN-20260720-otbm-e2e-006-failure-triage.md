@@ -8,7 +8,7 @@ branch: feat/otbm-e2e-006-failure-triage-final
 base_branch: main
 created: 2026-07-20
 updated: 2026-07-20
-last_verified_commit: "f9790611629e34199d7e18c45adc22282c248c91"
+last_verified_commit: "c9e41d4515480a4776886e7d1eab5d51e6899c9e"
 risk: medium
 related_issue: ""
 related_pr: "628"
@@ -67,7 +67,7 @@ Deliver OTBM-E2E-006 deterministic failure triage and preserve the existing E2E 
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-20
-head: f9790611629e34199d7e18c45adc22282c248c91
+head: c9e41d4515480a4776886e7d1eab5d51e6899c9e
 branch: feat/otbm-e2e-006-failure-triage-final
 pr: 628
 status: validating
@@ -86,19 +86,19 @@ proven:
   - classifier contract and 26 focused classifier tests passed before the rejected final candidate
   - Universal run 29734058030 exposed deterministic resolver stdout pollution before route preparation
   - resolver diagnostics were moved to stderr in 5835b3d37a8179cf8ec901f6df0d42b0c9376404 without changing selection semantics
-  - corrected code head 5835b3d37a8179cf8ec901f6df0d42b0c9376404 passed Ownership 29736661974, CI 29736662272 and Universal Agent E2E 29736662236
-  - direct resolve stdout-purity regression was added and preserved in the clean replay
-  - clean replay branch starts from current main 9a7c5ebfa4cb35066293a8b75039fb61b8d8afe5 and is one commit ahead with zero commits behind before this checkpoint
-  - clean replay diff contains exactly six bounded OTBM-E2E-006 files and no OTBM WIDX asset workflow or unrelated runtime changes
-  - ci:final-gate is applied to PR 628 before this final checkpoint mutation
-  - original PR 620 is superseded because its squash-based synchronization did not advance the merge base
+  - corrected code head 5835b3d37a8179cf8ec901f6df0d42b0c9376404 passed Ownership 29736661974 CI 29736662272 and Universal Agent E2E 29736662236
+  - direct resolve stdout-purity regression is preserved in the clean replay
+  - clean replay branch started from main 9a7c5ebfa4cb35066293a8b75039fb61b8d8afe5 with exactly six bounded OTBM-E2E-006 changed files
+  - ci:final-gate was applied to PR 628 before final checkpoint mutations
+  - original PR 620 was closed as superseded without force-pushing
+  - first clean final checkpoint c9e41d4515480a4776886e7d1eab5d51e6899c9e failed only checkpoint schema because PENDING is not an allowed validation result
 
 derived:
   - repeated retry of the rejected candidate could not fix deterministic stdout pollution
   - the bounded stderr redirect plus direct resolve stdout regression covers the identified integration defect
-  - this checkpoint commit is the intended final mutation before exact-final-head validation
+  - replacing checkpoint validation result PENDING with NOT_RUN is the smallest schema-only correction
 unknown:
-  - exact-final-head workflow conclusions for this checkpoint commit
+  - exact-final-head workflow conclusions for this schema-corrected checkpoint commit
   - final merge SHA
   - lifecycle archive SHA
 blockers: []
@@ -107,7 +107,7 @@ rejected_hypotheses:
   - change scenario selection semantics
   - tolerate non-JSON resolver stdout in the workflow
   - retry the same deterministic metadata failure without a fix
-  - add a second OTBM parser route planner E2E runner or workflow
+  - weaken checkpoint validation to accept unsupported result values
 changed_paths:
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260720-otbm-e2e-006-failure-triage.md
@@ -127,12 +127,15 @@ validation:
     evidence: runs 29736661974 29736662272 and 29736662236 passed on 5835b3d37a8179cf8ec901f6df0d42b0c9376404
   - command: clean current-main replay audit
     result: PASS
-    evidence: f9790611629e34199d7e18c45adc22282c248c91 is one commit ahead of main and zero behind with exactly six bounded changed files
-  - command: exact-final-head gate after this checkpoint commit
-    result: PENDING
-    evidence: Ownership CI and Universal Agent E2E must complete on the immutable checkpoint head before readiness or merge
+    evidence: replay head f9790611629e34199d7e18c45adc22282c248c91 was one commit ahead of main and zero behind with exactly six bounded changed files
+  - command: first clean final checkpoint Ownership
+    result: FAIL
+    evidence: run 29769967380 rejected only unsupported validation result PENDING in the task checkpoint
+  - command: exact-final-head gate after this schema correction
+    result: NOT_RUN
+    evidence: Ownership CI and Universal Agent E2E must complete on the new immutable head before readiness or merge
 first_failure:
   marker: universal-e2e-route-preparation-metadata-json
   evidence: Universal run 29734058030 failed because resolver selection diagnostics preceded the JSON manifest on stdout; corrected by moving the diagnostic to stderr and adding direct stdout-purity coverage
-next_action: Run and inspect exact-final-head Ownership CI and Universal Agent E2E on this checkpoint commit; if green, verify final diff reviews threads and mergeability, mark PR 628 ready, squash-merge, and archive the task.
+next_action: Run and inspect exact-final-head Ownership CI and Universal Agent E2E on this schema-corrected checkpoint commit; if green, verify final diff reviews threads and mergeability, mark PR 628 ready, squash-merge, and archive the task.
 ```
