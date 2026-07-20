@@ -8,10 +8,10 @@ branch: feat/otbm-e2e-009-candidate-map-physical-validation
 base_branch: main
 created: 2026-07-20
 updated: 2026-07-20
-last_verified_commit: "6b1bbadf5c9fdc9c4b5831dcfbdef9c9ed894b3d"
+last_verified_commit: "dbbbd416b849c9a4a9592d750700fae4e169a340"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "646"
 depends_on:
   - merged and archived OTBM-E2E-008
   - existing approved bounded repair or materialization pipeline
@@ -61,10 +61,10 @@ Deliver OTBM-E2E-009 as the bounded candidate-map physical validation consumer: 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-20T21:55:00Z
-head: 6b1bbadf5c9fdc9c4b5831dcfbdef9c9ed894b3d
+updated_at: 2026-07-20T21:56:00Z
+head: dbbbd416b849c9a4a9592d750700fae4e169a340
 branch: feat/otbm-e2e-009-candidate-map-physical-validation
-pr: 0
+pr: 646
 status: investigating
 context_routes:
   - agent-governance
@@ -75,14 +75,16 @@ owned_paths:
 proven:
   - OTBM-E2E-008 feature PR 643 merged as 944c2af02b0aa6619c78fcaf412d773d9aa6feb1 and lifecycle PR 645 merged as 6b1bbadf5c9fdc9c4b5831dcfbdef9c9ed894b3d before this task was claimed
   - no existing branch open PR or indexed active task matching OTBM-E2E-009 was found before task claim
+  - branch feat/otbm-e2e-009-candidate-map-physical-validation was created from post-lifecycle main and draft PR 646 was opened with only this task checkpoint
+  - no OTBM-E2E-009 implementation has started and no additional owned path has been claimed
   - OTBM-E2E-009 must reuse the approved bounded repair or materialization pipeline static validation Semantic Diff OTBM-E2E-008 impacted selection and Universal Physical E2E
   - source and candidate maps must remain distinct and production or source maps must never be overwritten or deployed by this flow
 derived:
   - the first implementation step must be a live dependency and ownership preflight that identifies the smallest missing bridge instead of creating a second orchestration stack
 unknown:
-  - final draft PR number
   - exact smallest implementation surface and additional owned paths
   - candidate-map fixture or approved artifact suitable for focused validation
+  - whether existing Universal E2E exposes all candidate-map injection seams required without modification
   - final feature and lifecycle merge SHAs
 conflicts: []
 first_failure:
@@ -96,5 +98,5 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260720-otbm-e2e-009-candidate-map-physical-validation.md
 validation: []
 blockers: []
-next_action: Open the draft PR, update this checkpoint with its exact PR number, validate the checkpoint, then perform the live dependency and ownership preflight to identify the smallest missing candidate-map validation bridge.
+next_action: Perform the live dependency and ownership preflight for PR 646 to identify the smallest missing candidate-map validation bridge, then claim only the exact additional paths required for that bounded implementation.
 ```
