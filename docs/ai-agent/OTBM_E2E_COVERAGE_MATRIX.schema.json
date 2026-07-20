@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_E2E_COVERAGE_MATRIX.schema.json",
+  "title": "Canary OTBM mechanic to Physical E2E coverage matrix",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "currentMap", "provenance", "summary", "mechanics", "findings", "notes"],
+  "properties": {
+    "format": {"const": "canary-otbm-e2e-coverage-matrix-v1"},
+    "schemaVersion": {"const": 1},
+    "currentMap": {"$ref": "#/$defs/mapIdentity"},
+    "provenance": {"type": "object", "additionalProperties": true},
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targets", "staticallyIndexed", "scriptResolved", "reachabilityCovered", "physicalScenarioPresent", "physicallyRuntimeProven", "physicallyRuntimeProvenOnCurrentMap", "staleAgainstCurrentMapProvenance", "missingPhysicalScenario", "findings"],
+      "properties": {
+        "targets": {"type": "integer", "minimum": 0},
+        "staticallyIndexed": {"type": "integer", "minimum": 0},
+        "scriptResolved": {"type": "integer", "minimum": 0},
+        "reachabilityCovered": {"type": "integer", "minimum": 0},
+        "physicalScenarioPresent": {"type": "integer", "minimum": 0},
+        "physicallyRuntimeProven": {"type": "integer", "minimum": 0},
+        "physicallyRuntimeProvenOnCurrentMap": {"type": "integer", "minimum": 0},
+        "staleAgainstCurrentMapProvenance": {"type": "integer", "minimum": 0},
+        "missingPhysicalScenario": {"type": "integer", "minimum": 0},
+        "findings": {"type": "integer", "minimum": 0}
+      }
+    },
+    "mechanics": {"type": "array", "items": {"$ref": "#/$defs/mechanic"}},
+    "findings": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+    "notes": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "selector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["position"],
+      "properties": {
+        "position": {"$ref": "#/$defs/position"},
+        "itemId": {"type": ["integer", "null"], "minimum": 0, "maximum": 65535},
+        "actionId": {"type": ["integer", "null"], "minimum": 0, "maximum": 65535},
+        "uniqueId": {"type": ["integer", "null"], "minimum": 0, "maximum": 65535},
+        "houseDoorId": {"type": ["integer", "null"], "minimum": 0, "maximum": 255},
+        "teleportDestination": {"oneOf": [{"$ref": "#/$defs/position"}, {"type": "null"}]}
+      }
+    },
+    "mapIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mapSha256", "worldIndexSha256"],
+      "properties": {
+        "mapSha256": {"$ref": "#/$defs/sha256"},
+        "worldIndexSha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "mechanic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "reason", "selector", "static", "script", "reachability", "physical", "staleAgainstCurrentMapProvenance", "missingPhysicalScenario"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "reason": {"type": "string", "minLength": 1},
+        "selector": {"$ref": "#/$defs/selector"},
+        "static": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["indexed", "uniqueMatch", "matchCount"],
+          "properties": {
+            "indexed": {"type": "boolean"},
+            "uniqueMatch": {"type": "boolean"},
+            "matchCount": {"type": "integer", "minimum": 0}
+          }
+        },
+        "script": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["covered", "uniqueMatch", "matchCount", "status", "resolved"],
+          "properties": {
+            "covered": {"type": "boolean"},
+            "uniqueMatch": {"type": "boolean"},
+            "matchCount": {"type": "integer", "minimum": 0},
+            "status": {"type": ["string", "null"]},
+            "resolved": {"type": "boolean"}
+          }
+        },
+        "reachability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["covered", "status", "currentEvidence", "staleEvidence", "staleStatus"],
+          "properties": {
+            "covered": {"type": "boolean"},
+            "status": {"type": ["string", "null"]},
+            "currentEvidence": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+            "staleEvidence": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+            "staleStatus": {"type": ["string", "null"]}
+          }
+        },
+        "physical": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["scenarioPresent", "scenarios", "runtimeProven", "runtimeProvenScenarios", "runtimeProvenOnCurrentMap", "currentMapScenarios", "staleMapScenarios"],
+          "properties": {
+            "scenarioPresent": {"type": "boolean"},
+            "scenarios": {"type": "array", "items": {"type": "string"}},
+            "runtimeProven": {"type": "boolean"},
+            "runtimeProvenScenarios": {"type": "array", "items": {"type": "string"}},
+            "runtimeProvenOnCurrentMap": {"type": "boolean"},
+            "currentMapScenarios": {"type": "array", "items": {"type": "string"}},
+            "staleMapScenarios": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "staleAgainstCurrentMapProvenance": {"type": ["boolean", "null"]},
+        "missingPhysicalScenario": {"type": "boolean"}
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetId", "code", "severity"],
+      "properties": {
+        "targetId": {"type": "string"},
+        "code": {
+          "enum": [
+            "STATIC_MECHANIC_NOT_INDEXED",
+            "STATIC_MECHANIC_AMBIGUOUS",
+            "SCRIPT_RESOLUTION_NOT_COVERED",
+            "SCRIPT_RESOLUTION_AMBIGUOUS",
+            "SCRIPT_NOT_RESOLVED",
+            "REACHABILITY_NOT_COVERED",
+            "PHYSICAL_SCENARIO_MISSING",
+            "PHYSICAL_RUNTIME_NOT_PROVEN_ON_CURRENT_MAP",
+            "STALE_MAP_PROVENANCE"
+          ]
+        },
+        "severity": {"enum": ["error", "unresolved", "warning"]}
+      }
+    }
+  }
+}
