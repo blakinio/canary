@@ -8,10 +8,10 @@ branch: feat/otbm-e2e-007-coverage-matrix
 base_branch: main
 created: 2026-07-20
 updated: 2026-07-20
-last_verified_commit: "052d96014c805aacaa120ce888b7bed038817a72"
+last_verified_commit: "c34cca6da19b05d8cc05d45d2cf25fb8d71ef81b"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "639"
 depends_on:
   - merged and archived OTBM-E2E-006
   - existing OTBM Item Audit and Unified World Index evidence
@@ -78,9 +78,9 @@ Deliver OTBM-E2E-007 as one deterministic read-only evidence aggregator that cor
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-20
-head: 052d96014c805aacaa120ce888b7bed038817a72
+head: c34cca6da19b05d8cc05d45d2cf25fb8d71ef81b
 branch: feat/otbm-e2e-007-coverage-matrix
-pr: none
+pr: 639
 status: implementing
 context_routes:
   - agent-governance
@@ -96,18 +96,18 @@ owned_paths:
   - tools/ai-agent/test_otbm_e2e_coverage.py
 proven:
   - OTBM-E2E-006 feature PR 628 merged as 94f21d32891978e115a11ddcbe2c0dbd77fea8bd and lifecycle PR 638 merged as 052d96014c805aacaa120ce888b7bed038817a72 before this task started
+  - draft PR 639 was opened from post-lifecycle main before implementation files were committed
   - existing Item Audit exposes exact mechanic placements without requiring this task to parse OTBM
   - existing Script Resolution preserves unresolved and conflicting runtime-handler states
   - existing Reachability retains map and World Index provenance and remains static evidence only
   - existing Universal Physical E2E artifacts retain scenario manifest result runtime map hash and route plans
   - local pre-implementation prototype passed 15 focused deterministic correlation and fail-closed tests
   - successful retained OTBM-E2E-005 pure movement artifact produced zero mechanic proof candidates
-  - missing runtime map.sha256 is rejected as current-map physical proof by the prototype
 derived:
   - reviewed exact target input is required because criticality must not be guessed from item names sprites identifiers coordinates or chat history
   - physical mechanic proof must require an exact executed route-plan mechanic reference rather than movement through a coordinate
 unknown:
-  - final PR number and exact final-head workflow conclusions
+  - exact final-head workflow conclusions
   - final feature and lifecycle merge SHAs
 conflicts: []
 first_failure:
@@ -129,5 +129,5 @@ validation:
     result: PASS
     evidence: successful current-map pure movement route exposes zero mechanic transition or interaction proof candidates
 blockers: []
-next_action: Open the draft PR, record its number in this task, then commit the bounded implementation and run focused repository validation.
+next_action: Commit the bounded implementation, schemas, documentation and module catalogue entry, then run focused repository validation.
 ```
