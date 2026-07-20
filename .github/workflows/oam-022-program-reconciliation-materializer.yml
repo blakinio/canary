@@ -1,9 +1,9 @@
 name: OAM-022 durable program reconciliation materializer
 
 on:
-  push:
+  pull_request:
     branches:
-      - docs/oam-022-program-reconciliation
+      - main
 
 permissions:
   contents: write
@@ -119,7 +119,8 @@ No OAM implementation task is active in this reconciliation record.
 
           path.write_text(text, encoding="utf-8")
           PY
-          rm .github/workflows/oam-022-program-reconciliation-materializer.yml
+          rm -f .github/workflows/oam-022-program-reconciliation-materializer.yml
+          rm -f .github/oam-022-program-reconciliation-trigger
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
