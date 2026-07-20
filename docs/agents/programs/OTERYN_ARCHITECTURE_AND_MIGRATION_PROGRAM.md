@@ -243,7 +243,7 @@ Canary governance PR #578 final head `80681dd0bbaa6bed0d212bc90b7a0c728e73b836` 
 
 Authoritative lifecycle PR #584 final head `f8c8442f00fe829c78903116cde32733ae817dd1` passed Agent Task Ownership #2555 run `29684823002` and CI #3697 run `29684823101` with Required PASS. It changed exactly the active-delete/archive-add lifecycle paths; heavy build jobs were correctly skipped for lifecycle-only scope. Main drift before merge consisted only of unrelated task archival commits and did not overlap OAM-018 lifecycle paths. It merged by expected-head squash as `5f0656442d6b7856dcc5099e29a78782abaa1170`. No automation-created duplicate archive PR for governance #578 was found, so no duplicate closure was required.
 
-OAM-018 preserves OAM-004 SQL/KV non-atomicity and completed OAM-003 scheduler/OAM-007 item ownership. It does not claim scheduler fairness or starvation freedom, exact wall-clock decay timing, restart/crash decay recovery, persistence completeness, item move/container transaction atomicity, duplication/loss freedom, static metadata parity, exhaustive transform correctness, protocol/client UI parity, or full Real Tibia decay semantics.
+OAM-018 preserves OAM-004 SQL/KV non-atomicity and completed OAM-003 scheduler/OAM-007 item ownership. It does not claim scheduler fairness or starvation freedom, exact wall-clock decay timing, restart/crash decay recovery, persistence completeness, item move/container transaction atomicity, duplication/loss freedom, static decay metadata parity, exhaustive transform correctness, protocol/client UI parity, or full Real Tibia decay semantics.
 
 # OAM-019 durable completion
 
