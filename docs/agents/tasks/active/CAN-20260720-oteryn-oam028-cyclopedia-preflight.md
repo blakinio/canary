@@ -2,7 +2,7 @@
 task_id: CAN-20260720-oteryn-oam028-cyclopedia-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-028
-status: implementing
+status: ready
 agent: "GPT-5.5 Thinking"
 branch: docs/oam-028-cyclopedia-preflight
 base_branch: main
@@ -10,7 +10,7 @@ created: 2026-07-20
 updated: 2026-07-20
 last_verified_commit: "85b26b41510101259f6138f2c864bf0c4a473f2a"
 risk: medium
-related_pr: ""
+related_pr: "649"
 owned_paths:
   - docs/agents/tasks/active/CAN-20260720-oteryn-oam028-cyclopedia-preflight.md
   - docs/agents/OTERYN_OAM_028_CYCLOPEDIA_REVALIDATION.md
@@ -31,11 +31,11 @@ Revalidate canonical OAM-028 `cyclopedia` as the broad compatibility/discovery u
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-20T22:42:00Z
-head: 85b26b41510101259f6138f2c864bf0c4a473f2a
+updated_at: 2026-07-20T23:03:00Z
+head: 19c286762fb89ba3ed8d47ebf58538ff070a4d7f
 branch: docs/oam-028-cyclopedia-preflight
-pr: none
-status: investigating
+pr: 649
+status: ready
 context_routes:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -58,10 +58,14 @@ proven:
   - Merged legacy PR 192 contains Bestiary/Bosstiary monster-data corrections and explicitly no protocol or maintained-OTClient change.
   - Cyclopedia validation PR 243 is validator/workflow control only and does not provide an umbrella runtime donor.
   - Current open Canary PR 514 changes security runtime tooling/tests/docs only and does not touch production protocol paths; PRs 637/646 own NPC E2E and OTBM E2E work respectively.
+  - Otheryn PR 57 changed exactly four proof-only paths and no production/runtime/data/client path.
+  - Otheryn PR 57 final head 19c286762fb89ba3ed8d47ebf58538ff070a4d7f passed autofix 170 run 29785109223, CI 206 run 29785109355 and Required 189 run 29785109193.
+  - Linux debug Run Tests passed on the exact final head; test-log artifact 8478394189 digest is sha256:152b153430d5ccd7953647f37e2d462b16c7aed30a7a027248195e698bdfa9cb.
+  - Target comments/reviews/threads were empty, target main had no task-start drift, and PR 57 merged by expected-head squash as 7e03405aea50d88fdbc27d0d2a7d95c7f1745946.
 derived:
-  - The smallest evidence-backed OAM-028 disposition candidate is cyclopedia REUSE with proof-only target evidence, preserving completed OAM-006 protocol architecture and all TSD-004 child ownership boundaries.
+  - Final OAM-028 disposition is cyclopedia REUSE with proof-only target evidence, preserving completed OAM-006 protocol architecture and all TSD-004 child ownership boundaries.
 unknown:
-  - Exact final target CI evidence until the target proof PR is gated.
+  - Final Canary governance exact-head gate outcome until PR 649 ready-state Ownership and CI complete.
 conflicts: []
 first_failure:
   marker: none
@@ -70,7 +74,9 @@ rejected_hypotheses:
   - Import PR 188 wholesale as umbrella Cyclopedia work; rejected because its production fixes belong to bestiary, bosstiary, charms and cyclopedia-character child boundaries.
   - Import PR 192 as umbrella Cyclopedia work; rejected because it is Bestiary/Bosstiary data ownership.
   - Treat broad cyclopedia registry path hints as exclusive edit ownership; rejected by TSD-004 many-to-many discovery contract.
-changed_paths: []
+changed_paths:
+  - docs/agents/tasks/active/CAN-20260720-oteryn-oam028-cyclopedia-preflight.md
+  - docs/agents/OTERYN_OAM_028_CYCLOPEDIA_REVALIDATION.md
 validation:
   - command: fresh live-state/open-PR/ownership audit
     result: PASS
@@ -78,6 +84,9 @@ validation:
   - command: canonical dependency and TSD-004 child-boundary audit
     result: PASS
     evidence: protocol/player-persistence complete; child roots remain separately owned
+  - command: Otheryn PR 57 exact-head target gate
+    result: PASS
+    evidence: autofix 170, CI 206, Required 189 on final head 19c286762fb89ba3ed8d47ebf58538ff070a4d7f; squash merge 7e03405aea50d88fdbc27d0d2a7d95c7f1745946
 blockers: []
-next_action: Create dedicated Otheryn branch dudantas/oam-028-cyclopedia-reuse from target main 2a008f1c8cfa679c9b70281e4c8c16120a7567fa and add proof-only evidence/tests for the existing Cyclopedia umbrella protocol surface and TSD-004 child delegation; do not mutate production protocol, child runtime/data or maintained OTClient paths.
+next_action: Mark Canary PR 649 ready, require Agent Task Ownership and final-gate CI success on the exact final head, audit exactly two governance files plus comments/reviews/threads and Canary-main drift, then expected-head squash merge if all gates remain clean.
 ```
