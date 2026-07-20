@@ -8,7 +8,7 @@ branch: docs/oam-025-chat-communication-revalidation
 base_branch: main
 created: 2026-07-20
 updated: 2026-07-20
-last_verified_commit: "e8c47a1b7560874baf8b575c2614c30ff2d18f7f"
+last_verified_commit: "35c18f897b5cd958291a254a0361d0050e94074c"
 risk: medium
 related_issue: ""
 related_pr: "626"
@@ -69,8 +69,8 @@ Revalidate canonical OAM-025 `chat-communication`, classify the smallest depende
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-20T21:25:00+02:00
-head: e8c47a1b7560874baf8b575c2614c30ff2d18f7f
+updated_at: 2026-07-20T21:30:00+02:00
+head: 35c18f897b5cd958291a254a0361d0050e94074c
 branch: docs/oam-025-chat-communication-revalidation
 pr: 626
 status: ready
@@ -93,6 +93,9 @@ proven:
   - focused Linux debug Run Tests passed on the exact final target head
   - target review submissions inline review threads and discussion comments were empty and Otheryn main had zero drift from 86a598426f65e51ff2864ccd1d0a1dbf818b526c at merge gate
   - Otheryn PR 51 was expected-head squash-merged as 1c8e3e8b4fc29effb3b0cb882af94f7d26ed2554
+derived:
+  - the accepted adaptation is limited to server-side Help moderation authorization and does not require protocol or maintained-client changes
+  - target evidence is immutable, so governance can close independently before the separate lifecycle archive and durable program reconciliation stages
 unknown:
   - exact-final-head Canary governance Ownership and CI conclusions
   - governance squash merge SHA
@@ -119,7 +122,10 @@ validation:
   - command: Otheryn PR 51 expected-head squash merge
     result: PASS
     evidence: merge 1c8e3e8b4fc29effb3b0cb882af94f7d26ed2554
+  - command: Canary PR 626 Agent Task Ownership run 29771649688
+    result: FAIL
+    evidence: changed-task checkpoint validation required the derived field; final-gate label was removed before this metadata-only checkpoint repair
 blockers:
   - none
-next_action: Run exact-final-head Canary PR 626 Ownership CI review comment thread and main-drift gates; if green, squash-merge governance before creating the separate lifecycle archive PR.
+next_action: Reapply ci:final-gate to PR 626 and verify exact-final-head Ownership CI review comment thread and main-drift gates; if green, squash-merge governance before creating the separate lifecycle archive PR.
 ```
