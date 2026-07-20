@@ -82,13 +82,19 @@ Omit empty historical detail; preserve only what a new agent needs to continue c
 
 The `## Context checkpoint` section is the authoritative machine-readable continuation state. Any additional prose `# Handoff` section is optional human-readable context and must not replace or override the checkpoint.
 
+### Checkpoint compactness ceilings
+
+`tools/agents/checkpoint.py` enforces generous hard ceilings on checkpoint list fields because continuation agents read the task record before the routed resume bundle can trim it. `docs/agents/CONTEXT_ROUTES.json` applies tighter limits to the generated evidence bundle.
+
+When a checkpoint approaches a ceiling, replace superseded history with the current proven conclusion and exact references. Do not preserve chronological diaries, repeated CI outcomes, stale changed-path inventories, or every rejected hypothesis. Never remove a current blocker, unresolved conflict, first-failure marker, or evidence required to justify the next action merely to satisfy compactness.
+
 Validate a checkpoint with:
 
 ```sh
 python tools/agents/checkpoint.py <active-task-path> --require-checkpoint
 ```
 
-The validator checks required fields, supported states/results, evidence-state overlap and the requirement for one concrete top-level `next_action`. It does not replace live Git/PR/CI verification.
+The validator checks required fields, supported states/results, evidence-state overlap, compactness ceilings, and the requirement for one concrete top-level `next_action`. It does not replace live Git/PR/CI verification.
 
 ## Evidence rules
 
