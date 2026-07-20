@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-19T22:48:11+02:00
-last_verified_commit: "a3896b67e94990712e00e877666f2bd54dceb22a"
+updated: 2026-07-19T23:59:00+02:00
+last_verified_commit: "2c448205d864f6388b8be932ecbb1a9e6dcaffe0"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -56,6 +56,7 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 | OAM-018 | `item-decay → REUSE` | target proof `7ba76d2754a060a9a9eec0a23c686aefac725af2`; feature `df97440551ca141b340ff424b1d644430bbb3c28`; lifecycle `5f0656442d6b7856dcc5099e29a78782abaa1170` |
 | OAM-019 | `imbuements → ADAPT` | target `63547f30fc21e495217b8a92fa44aaad2db188ef`; feature `f38832dd160910e76d1576bb2c1221374a6ae8b1`; lifecycle `f62481d7ab2e5d13bb74c53e57a5b79bd1d4eb29` |
 | OAM-020 | `exaltation-forge → ADAPT` | target `d59207d05ab6dd9450b05d0a6b4d9122fda60489`; feature `2b6ae86539640dfc52323e9d5abbde31d6610c5f`; lifecycle `a3896b67e94990712e00e877666f2bd54dceb22a` |
+| OAM-021 | `market → ADAPT` | target `b90e287a40413102c87e8c7fa3d5c01ad401cb6d`; feature `76273c0cb7c2e297c8896a8e7fb6809649fa2870`; lifecycle `2c448205d864f6388b8be932ecbb1a9e6dcaffe0` |
 
 # OAM-009 durable boundary
 
@@ -283,15 +284,35 @@ Authoritative lifecycle PR #604 final head `222ee3f7d751c30fd3ea5dfdeab0ffb0b4a1
 
 OAM-020 preserves OAM-004 SQL/KV non-atomicity and all previously completed persistence, protocol, combat and item ownership boundaries. It does not claim exhaustive current Real Tibia Forge parity, physical-client Forge E2E closure, unresolved F-014 through F-019 bonus/result/protocol/maintained-client parity, evidence-blocked F-009/F-010 rule parity, or generic market/combat/item/persistence/protocol redesign. It changes no maps, OTBM, `items.otb`, assets, schema or deployment and makes no maintained-OTClient or upstream write.
 
+# OAM-021 durable completion
+
+Final disposition:
+
+```text
+market ADAPT
+```
+
+Task-start baselines were Canary `183d7224cb5de57585294d72631f37783b93dc89`, Otheryn `d59207d05ab6dd9450b05d0a6b4d9122fda60489`, fresh upstream `71a0f92b4da3f550b292fa7536a0e35c2769f1ae`, and maintained OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`. Canonical `market` depends on completed `player-persistence` and `protocol`; completed `exaltation-forge` is an interaction boundary. Fresh ownership review found no target/client OAM-021 writer and no overlapping Canary runtime writer.
+
+The task-start Otheryn and fresh upstream Market core were content-identical in the reviewed `src/io/iomarket.cpp` and Market-owned `src/game/game.cpp` paths, but unconditional whole-module `REUSE` was rejected. Legacy Canary's selected Market deltas are coupled to multichannel `EconomicLedgerStore` and leader-election work and do not form a complete generic exactly-once design. Open shared-state/economy security evidence additionally proves a cross-process partial-fill race and a remote-owner stale-save hazard in the multichannel deployment. Those findings are important constraints for future multiwriter Market work, but they do not justify silently importing the separately owned cluster architecture into the clean single-dispatcher target. Generic crash/restart atomicity between offer/history persistence and item/balance effects remains an explicit known gap.
+
+Otheryn PR #45 final head `f13d4d2d0626c99dd2318ef088ce155f67b0b5ae` changed exactly five intended target paths and no materializer path. The bounded server-only adaptation centralizes deterministic 16-bit offer-counter derivation, fails closed on invalid timestamp/duration lookup windows, strictly parses persisted tier values without parse-then-`uint8_t` truncation, and adds focused deterministic proof. The maintained OTClient wire contract remained unchanged, so no client write was required. Autofix.ci #144 run `29704971999`, CI #167 run `29704972077`, and Required #151 run `29704972006` all passed on the exact final target head. Linux debug CTest completed `396/396`, and `Oam021MarketAdaptTest` passed `3/3`. Test-log artifact `8447725005` has digest `sha256:f6f6b67fda044f1d8b88600a87234f4cb6559ae3e3d9270ddd2a98041948debb`. Target comments/reviews/threads were empty, target-main drift was none, and PR #45 merged by expected-head squash as `b90e287a40413102c87e8c7fa3d5c01ad401cb6d`.
+
+Canary governance PR #607 final head `d2290f6072a8fd9e90f43a164a8426076ff6c718` changed exactly the OAM-021 report and active-task record. It passed Agent Task Ownership #2743 run `29705475496` and exact-head `ci:final-gate` CI #3892 run `29705479591`. Fast Checks, Lua Tests and aggregate Required passed; the final-gate build-scope/immediate-parent reuse policy deliberately skipped Linux/macOS/Windows/Docker rebuild jobs for the two-document governance diff, so OAM-021 does not misrepresent that governance run as a second heavy target matrix. Comments, reviews and review threads were empty, Canary `main` had no drift from the task-start Canary base, and PR #607 merged by expected-head squash as `76273c0cb7c2e297c8896a8e7fb6809649fa2870`.
+
+Authoritative lifecycle PR #610 final head `acd76122590584acb4f71db5786ff43e415f596a` changed exactly the active-delete/archive-add lifecycle paths. It passed Agent Task Ownership #2745 run `29705593288`, draft CI #3893 run `29705593339`, and ready-state CI #3894 run `29705635036`. Comments/reviews/threads were empty and Canary `main` had no drift from the governance merge before lifecycle merge. PR #610 merged by expected-head squash as `2c448205d864f6388b8be932ecbb1a9e6dcaffe0`.
+
+OAM-021 does not import or claim generic multichannel Redis/session ownership, `economic_ledger` recovery, leader election, crash-safe exactly-once Market operations, cross-process/multiwriter Market safety, remote-player mutation routing, generic bank/account/guild economy redesign, exhaustive Real Tibia Market parity, NPC shops, store products, direct player trade, maps, OTBM, `items.otb`, world assets, schema, deployment, maintained-OTClient changes, or physical-client Market E2E closure.
+
 # Current state
 
 ```text
-Canary reconciliation base: a3896b67e94990712e00e877666f2bd54dceb22a
-Otheryn target head after OAM-020: d59207d05ab6dd9450b05d0a6b4d9122fda60489
+Canary reconciliation base: 2c448205d864f6388b8be932ecbb1a9e6dcaffe0
+Otheryn target head after OAM-021: b90e287a40413102c87e8c7fa3d5c01ad401cb6d
 maintained OTClient: 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
-OAM-001..OAM-020: feature/lifecycle complete
-OAM-020 task: archived
-OAM-021: NOT STARTED
+OAM-001..OAM-021: feature/lifecycle complete
+OAM-021 task: archived
+OAM-022: NOT STARTED
 ```
 
 No OAM implementation task is active in this reconciliation record.
@@ -300,8 +321,8 @@ No OAM implementation task is active in this reconciliation record.
 
 | Package | Status | Next action |
 |---|---|---|
-| OAM-001..OAM-020 | completed | preserve durable evidence |
-| OAM-021+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
+| OAM-001..OAM-021 | completed | preserve durable evidence |
+| OAM-022+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
 
 # Invariants and known gaps
 
@@ -325,7 +346,8 @@ No OAM implementation task is active in this reconciliation record.
 - OAM-018 does not claim scheduler fairness/starvation freedom, exact wall-clock decay timing, restart/crash recovery, persistence completeness, movement/container atomicity, duplication/loss freedom, static metadata parity, exhaustive transform correctness, protocol/client UI parity, or full Real Tibia decay semantics.
 - OAM-019 does not claim exhaustive Imbuement parity, exhaustive equipment eligibility, full live quest-unlock visibility, client/UI parity, physical-client E2E closure, exhaustive combat math, crash/restart persistence completeness, or generic resource transaction atomicity.
 - OAM-020 does not claim exhaustive Forge parity, physical-client Forge E2E closure, unresolved F-014 through F-019 server/client result parity, evidence-blocked F-009/F-010 rule parity, or generic cross-domain transaction/persistence redesign.
+- OAM-021 does not claim crash-safe exactly-once Market create/cancel/accept/expiry, cross-process or multiwriter Market safety, remote-player mutation routing, generic multichannel/economic-ledger/leader-election redesign, exhaustive Real Tibia Market parity, maintained-client changes, or physical-client Market E2E closure.
 
 # Exact next task
 
-Merge this program-only OAM-020 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-021 preflight begin. OAM-021 is NOT STARTED by this record.
+Merge this program-only OAM-021 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-022 preflight begin. OAM-022 is NOT STARTED by this record.
