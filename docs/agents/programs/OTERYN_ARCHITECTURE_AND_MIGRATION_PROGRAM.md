@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-20T13:08:36+02:00
-last_verified_commit: "0de75bd2de28c80e9d9587bd3a2520c29c5f267c"
+updated: 2026-07-20T21:32:49+02:00
+last_verified_commit: "8ed836aae47d6bb882fb646169d2930f951c6c0d"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -60,6 +60,7 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 | OAM-022 | `prey → REUSE` | target proof `50dfa248251f245f5519495a4fbd430b6814ffe4`; feature `e3a5cc7321636270db150d289ba2da9ddb99ef0d`; lifecycle `4aa0a054cbd3fcbc45e2bda5b58ab016df6438e6` |
 | OAM-023 | `parties → REUSE` | target proof `bcc3e9f7e3e704f3c012bda8693648d52741630f`; feature `e78d927e54d965d742fe762e86c9ea454d068c4a`; lifecycle `060fe0fa018e55725c93daee5dd4cadec0a68162` |
 | OAM-024 | `sanctions → ADAPT` | target `65d364b216843db27e84a19a673eee4e6d766c68`; feature `7662d048a75df37f5bfc4238e12fd3b18c935151`; lifecycle `0de75bd2de28c80e9d9587bd3a2520c29c5f267c` |
+| OAM-025 | `chat-communication → ADAPT` | target `1c8e3e8b4fc29effb3b0cb882af94f7d26ed2554`; feature `791bca7403da1e93fba96143f42983f09aa10381`; lifecycle `8ed836aae47d6bb882fb646169d2930f951c6c0d` |
 
 # OAM-009 durable boundary
 
@@ -281,7 +282,7 @@ Target-local adaptation preserved Otheryn build contracts by registering the fiv
 
 Otheryn PR #44 final head `f05787db7f165d0dae0584b3e06c6526f89a42cd` changed exactly 24 intended paths: 23 bounded Forge runtime/data/test/build paths plus one target-specific OAM-020 proof test, with no temporary materializer paths. It passed autofix.ci #142 run `29701626292`, Repository Audit #19 run `29701626282`, CI #164 run `29701626343`, Required #149 run `29701626255`, Fast Checks, Lua Tests, Linux release/runtime smoke, Linux debug compile/schema/CTest, macOS runtime smoke, both Windows build paths and Docker image validation. Full Linux debug CTest completed `393/393` and `Oam020ExaltationForgeAdaptTest` passed `2/2`. Primary test artifact `8446751016` has digest `sha256:1bc0b22f42693c2eaa4404de0b4e66846d399a1046c1620254a493b9bcba5eef`. Target comments/reviews/threads were empty, target-main drift was none, and PR #44 merged by expected-head squash as `d59207d05ab6dd9450b05d0a6b4d9122fda60489`.
 
-Canary governance PR #598 final head `607b8a7af2f9025993964f858498a70e4bc29a38` changed exactly the two OAM-020 governance paths. It passed Agent Task Ownership #2708 run `29702328659` and full `ci:final-gate` CI #3855 run `29702328760`; Fast Checks, Lua Tests, Linux debug tests, Linux release, macOS, both Windows build paths and Docker image validation were green. It had zero comments/reviews/threads. One unrelated OTBM/E2E commit had advanced Canary `main` from the immutable task-start baseline, but its actual changed paths did not overlap OAM-020 governance. PR #598 merged by expected-head squash as `2b6ae86539640dfc52323e9d5abbde31d6610c5f`.
+Canary governance PR #598 final head `607b8a7af2f90259939640df858498a70e4bc29a38` changed exactly the two OAM-020 governance paths. It passed Agent Task Ownership #2708 run `29702328659` and full `ci:final-gate` CI #3855 run `29702328760`; Fast Checks, Lua Tests, Linux debug tests, Linux release, macOS, both Windows build paths and Docker image validation were green. It had zero comments/reviews/threads. One unrelated OTBM/E2E commit had advanced Canary `main` from the immutable task-start baseline, but its actual changed paths did not overlap OAM-020 governance. PR #598 merged by expected-head squash as `2b6ae86539640dfc52323e9d5abbde31d6610c5f`.
 
 Authoritative lifecycle PR #604 final head `222ee3f7d751c30fd3ea5dfdeab0ffb0b4a1835b` changed exactly the active-delete/archive-add lifecycle paths. It passed Agent Task Ownership #2716 run `29702985616`, draft CI #3862 run `29702985584` and ready-state CI #3863 run `29703010827`; comments/reviews/threads were empty and Canary `main` had no drift from the governance merge before lifecycle merge. PR #604 merged by expected-head squash as `a3896b67e94990712e00e877666f2bd54dceb22a`.
 
@@ -369,15 +370,35 @@ Authoritative lifecycle PR #622 final head `5473976a6b1b15bd55c4ed9c10eb6bb95474
 
 OAM-024 preserves the known OAM-004 limitation that player SQL persistence and later KV durability are not atomic. It does not claim exhaustive sanction enforcement at every entry point, generic account-authentication security, protocol compatibility, distributed/multi-database sanctions replication, moderation policy, generic security analytics, AI investigation, PvP skull/frag parity, physical-client sanctions E2E closure, generic persistence redesign, or changes to maintained OTClient, maps, OTBM, `items.otb`, assets, schema or deployment.
 
+# OAM-025 durable completion
+
+Final disposition:
+
+```text
+chat-communication ADAPT
+```
+
+Task-start baselines were Canary `9a7c5ebfa4cb35066293a8b75039fb61b8d8afe5`, Otheryn `86a598426f65e51ff2864ccd1d0a1dbf818b526c`, fresh upstream Canary `71a0f92b4da3f550b292fa7536a0e35c2769f1ae`, and maintained OTClient `87124861eb0faa9134bdda062c881df70f17d495`. Canonical `chat-communication` depends only on completed OAM-005 `character-lifecycle`. Fresh task-start open-PR and ownership audits found no writer overlapping canonical `src/creatures/interactions/chat.*`, `data/chatchannels/**`, or the OAM-025 governance paths.
+
+Task-start legacy, target and fresh upstream shared the reviewed chat core and all eight configured channel scripts, but blob/content identity was supporting evidence only. Semantic and history review found a bounded privilege-domain defect in `data/chatchannels/scripts/help.lua`: the acting moderator had already been migrated to player-group authorization while the target-side `!mute` and `!unmute` checks still compared that group rank against `target:getAccountType()`. The smallest valid disposition was `ADAPT`, changing only those two authorization comparisons to target player-group rank.
+
+Otheryn PR #51 final head `5aa0259d2ef34d1803ab1fbae8d931ed5f330486` changed the two Help-channel production comparisons plus focused test registration, a real-script Lua regression test, and target evidence. The focused proof deliberately made group rank conflict with account type and proved both changed authorization sites. The first ready-state autofix attempt `29770250714` failed only while applying generated formatting; after that formatting-only repair, autofix.ci run `29770310537`, Repository Audit run `29770310698`, CI run `29770311110`, and Required run `29770310554` all succeeded on the exact final head. Linux debug `Run Tests` passed. Target comments/reviews/threads were empty, target-main drift was none, and PR #51 merged by expected-head squash as `1c8e3e8b4fc29effb3b0cb882af94f7d26ed2554`.
+
+Canary governance PR #626 final head `ef06264fa64583ab33aa5cc3c8be733fa6fe1b93` changed exactly the OAM-025 report and active-task record. The first final Ownership attempt failed only because the active-task checkpoint omitted the required `derived` field; the final-gate label was removed before that metadata-only repair and reapplied afterward. Final Agent Task Ownership #2842 run `29771810195` and ready-state final-gate CI #3995 run `29771810912` succeeded on the exact final head. Comments/reviews/threads were empty and Canary `main` had no drift from the immutable task-start baseline before merge. PR #626 merged by expected-head squash as `791bca7403da1e93fba96143f42983f09aa10381`.
+
+Authoritative lifecycle PR #630 final head `7f0546a2070470cabb03ebda4cd0b3cca4eb0511` changed exactly the active-delete/archive-add lifecycle paths. It passed Agent Task Ownership #2846 run `29772019038`, draft CI #3998 run `29772019626`, and ready-state CI #3999 run `29772063171`; comments/reviews/threads were empty and Canary `main` had no drift from the governance merge before lifecycle merge. PR #630 merged by expected-head squash as `8ed836aae47d6bb882fb646169d2930f951c6c0d`.
+
+OAM-025 does not claim Real Tibia chat parity, guild/party membership lifecycle, protocol compatibility, maintained-client UI behavior, generic moderation policy, message privacy or delivery guarantees, NPC conversations, distributed chat, physical-client chat E2E closure, generic persistence redesign, or changes to maps, OTBM, `items.otb`, assets, schema or deployment.
+
 # Current state
 
 ```text
-Canary reconciliation base: 0de75bd2de28c80e9d9587bd3a2520c29c5f267c
-Otheryn target head after OAM-024: 65d364b216843db27e84a19a673eee4e6d766c68
-maintained OTClient: 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f
-OAM-001..OAM-024: feature/lifecycle complete
-OAM-024 task: archived
-OAM-025: NOT STARTED
+Canary reconciliation base: 8ed836aae47d6bb882fb646169d2930f951c6c0d
+Otheryn target head after OAM-025: 1c8e3e8b4fc29effb3b0cb882af94f7d26ed2554
+maintained OTClient: 87124861eb0faa9134bdda062c881df70f17d495
+OAM-001..OAM-025: feature/lifecycle complete
+OAM-025 task: archived
+OAM-026: NOT STARTED
 ```
 
 No OAM implementation task is active in this reconciliation record.
@@ -386,8 +407,8 @@ No OAM implementation task is active in this reconciliation record.
 
 | Package | Status | Next action |
 |---|---|---|
-| OAM-001..OAM-024 | completed | preserve durable evidence |
-| OAM-025+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
+| OAM-001..OAM-025 | completed | preserve durable evidence |
+| OAM-026+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
 
 # Invariants and known gaps
 
@@ -415,7 +436,8 @@ No OAM implementation task is active in this reconciliation record.
 - OAM-022 does not claim full modern Hunting Task/Taskboard parity, Wheel Bonus Promotion Shop or Wheel allocation ownership, exhaustive Prey formulas/rarity/reroll-price/monster-pool parity, physical-client Prey/Taskboard E2E closure, generic persistence/protocol redesign, or map/asset/schema/deployment migration.
 - OAM-023 does not claim party chat/channel transport, protocol packet compatibility, maintained-client behavior, exhaustive shared-experience formula parity, generic combat correctness, vocation/Wheel correctness, guild lifecycle, physical-client Party E2E closure, or map/asset/schema/deployment migration.
 - OAM-024 does not claim exhaustive sanction enforcement at every entry point, generic account-authentication security, protocol compatibility, distributed/multi-database sanctions replication, moderation policy, generic security analytics, AI investigation, PvP skull/frag parity, physical-client sanctions E2E closure, generic persistence redesign, or map/asset/schema/deployment migration.
+- OAM-025 does not claim Real Tibia chat parity, guild/party membership lifecycle, protocol compatibility, maintained-client UI behavior, generic moderation policy, message privacy or delivery guarantees, NPC conversations, distributed chat, physical-client chat E2E closure, generic persistence redesign, or map/asset/schema/deployment migration.
 
 # Exact next task
 
-Merge this program-only OAM-024 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-025 preflight begin. OAM-025 is NOT STARTED by this record.
+Merge this program-only OAM-025 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-026 preflight begin. OAM-026 is NOT STARTED by this record.
