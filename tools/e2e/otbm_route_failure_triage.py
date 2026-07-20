@@ -98,31 +98,44 @@ def _route_context(
 ) -> dict[str, Any]:
     if error_event is None:
         return {}
-    step_id = None
-    edge_index = None
-    marker = None
+
+    active: tuple[str, int, str] | None = None
+    failed: tuple[str, int, str] | None = None
     for event in events:
         if int(event["line"]) >= int(error_event["line"]):
             break
         match = EDGE_MARKER_RE.fullmatch(str(event["key"]))
-        if match and event["value"] in {"start", "failure"}:
-            step_id = match.group("step")
-            edge_index = int(match.group("edge"))
-            marker = event["key"]
+        if not match:
+            continue
+        marker = str(event["key"])
+        candidate = (match.group("step"), int(match.group("edge")), marker)
+        if event["value"] == "start":
+            active = candidate
+            continue
+        if event["value"] == "success":
+            if active and active[2] == marker:
+                active = None
+            continue
+        if event["value"] == "failure":
+            failed = candidate
+            if active and active[2] == marker:
+                active = None
 
+    selected = failed or active
+    if selected is None:
+        return {}
+    step_id, edge_index, marker = selected
     route_id = next(
         (step["routeId"] for step in route_steps if step["stepId"] == step_id), None
     )
-    context: dict[str, Any] = {}
-    if step_id is not None:
-        context["routeStepId"] = step_id
+    context: dict[str, Any] = {
+        "routeStepId": step_id,
+        "edgeIndex": edge_index,
+        "eventMarker": marker,
+    }
     if route_id is not None:
         context["routeId"] = route_id
-    if edge_index is not None:
-        context["edgeIndex"] = edge_index
-    if marker is not None:
-        context["eventMarker"] = marker
-    if route_id is None or edge_index is None:
+    else:
         return context
 
     plan = _read_json(artifacts / f"route-{route_id}.json")
