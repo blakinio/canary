@@ -1,0 +1,12 @@
+{
+  "from": {
+    "landmarkId": "thais.temple"
+  },
+  "to": {
+    "landmarkId": "thais.depot"
+  },
+  "routingOptions": {
+    "allowDiagonal": true,
+    "maxExecutablePositions": 10000
+  }
+}
