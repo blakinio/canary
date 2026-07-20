@@ -11,6 +11,9 @@ updated: 2026-07-20
 last_verified_commit: "6b1bbadf5c9fdc9c4b5831dcfbdef9c9ed894b3d"
 risk: medium
 related_pr: "644"
+owned_paths:
+  - docs/agents/tasks/active/CAN-20260720-oteryn-oam027-houses-preflight.md
+  - docs/agents/OTERYN_OAM_027_HOUSES_REVALIDATION.md
 depends_on:
   - canonical otbm-tooling active/mapped/audited foundation
   - completed OAM player-persistence foundation
@@ -28,8 +31,8 @@ Revalidate canonical OAM-027 `houses` from exact live baselines, adapt only inde
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-20T22:22:00Z
-head: e6efb626e61b74ddc17be1a382832aaf60fec2c2
+updated_at: 2026-07-20T22:24:00Z
+head: c0e7783ac04a3a7cd7273e7dc371fa13c793c520
 branch: docs/oam-027-houses-preflight
 pr: 644
 status: ready
@@ -55,11 +58,12 @@ proven:
   - Final Linux debug Run Tests passed after removal of one invalid synthetic House proof harness; test-log artifact 8477497565 digest is sha256:548c9077d94c94c515bff2e33c574bcb67b5b9a31eb09124b152976eb048b349.
   - Target PR 55 changed exactly five intended paths, had no comments/reviews/threads, no target-main drift, and merged by expected-head squash as c140c4bb9f40067acc36bc446c9e664e6f791c5a.
   - Canary main advanced to 6b1bbadf5c9fdc9c4b5831dcfbdef9c9ed894b3d only through independently owned OTBM/E2E work with no overlap in OAM-027 governance or house runtime; this branch was reconstructed onto that current main.
+  - Ownership run 2923 failed only because the checkpoint owned_paths were not duplicated in task frontmatter owned_paths; the production/evidence scope remained exactly two governance files.
 derived:
   - Final OAM-027 disposition is houses ADAPT using only the reviewed PR 60 transfer-safety boundary.
   - The first target CTest failure was a proof-harness defect, not evidence against the production adaptation.
 unknown:
-  - Final Canary governance exact-head gate outcome until PR 644 ready-state Ownership and CI complete.
+  - Final Canary governance exact-head gate outcome after metadata-only ownership repair.
 conflicts: []
 first_failure:
   marker: Oam027HousesAdaptTest.PreservesBasicHouseIdentityAndState SEGFAULT
@@ -84,6 +88,9 @@ validation:
   - command: Canary main drift audit 0251b961..6b1bbadf
     result: PASS
     evidence: only independent OTBM/E2E paths; no OAM-027 governance or canonical house runtime overlap
+  - command: Agent Task Ownership 2923
+    result: FAIL
+    evidence: checkpoint owned_paths absent from frontmatter owned_paths; metadata-only repair applied
 blockers: []
-next_action: Mark Canary PR 644 ready, require Agent Task Ownership and final-gate CI success on the resulting exact final head, audit exactly two governance files plus comments/reviews/threads and Canary-main drift, then expected-head squash merge if all gates remain clean.
+next_action: Require the repaired exact head to pass Agent Task Ownership, then reapply ci:final-gate and require final CI success; audit exactly two governance files plus comments/reviews/threads and Canary-main drift, then expected-head squash merge if all gates remain clean.
 ```
