@@ -2,12 +2,12 @@
 task_id: CAN-20260721-oteryn-oam032-titles-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-032
-status: validating
+status: active
 created: 2026-07-21
 updated: 2026-07-21
 branch: docs/oam-032-titles-preflight
 base_branch: main
-related_pr: ""
+related_pr: "691"
 modules_touched:
   - titles
 owned_paths:
@@ -31,11 +31,11 @@ optional_reads: []
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T22:20:00+02:00
-head: e02d1a1b9e35933e41c824000a75a2232762f863
+updated_at: 2026-07-21T22:25:00+02:00
+head: a42331420afbaabe436ed23b75ee1dfd97bc0c8c
 branch: docs/oam-032-titles-preflight
-pr: none
-status: validating
+pr: 691
+status: active
 context_routes:
   - docs/agents/OTERYN_OAM_032_TITLES_REVALIDATION.md
 owned_paths:
@@ -62,8 +62,8 @@ unknown:
   - Exact final Canary governance gate evidence until PR validation completes.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: No task-specific validation failure observed.
+  marker: metadata-only ownership validation repair
+  evidence: Initial Ownership run 29864420001 rejected non-active status and empty related_pr; no scope or evidence defect was reported.
 rejected_hypotheses:
   - Reuse based on blob identity alone; ownership decomposition and donor-history audit are also required and were completed.
   - Import PR 188 Cyclopedia fixes under Titles ownership; PR 188 contains no player_title path.
@@ -78,5 +78,5 @@ validation:
     result: PASS
     evidence: autofix 188 CI 228 Required 213 Linux-debug Run Tests and expected-head squash merge f5f21347c578a382cf0c52dbb4c69673ab3b05a9
 blockers: []
-next_action: Open the two-file Canary governance PR, require exact-head Agent Task Ownership and final-gate CI success, audit comments reviews threads and Canary main drift, then expected-head squash merge before a separate authoritative lifecycle archive.
+next_action: Re-run exact-head Agent Task Ownership and final-gate CI on PR 691 after this metadata-only repair; if clean, audit comments reviews threads and Canary main drift, then expected-head squash merge before a separate authoritative lifecycle archive.
 ```
