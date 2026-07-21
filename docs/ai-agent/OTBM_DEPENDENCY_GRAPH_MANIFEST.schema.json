@@ -1,0 +1,240 @@
+{
+  "$defs": {
+    "edge": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/evidenceRef"
+          },
+          "type": "array"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "relation": {
+          "enum": [
+            "activates",
+            "affected-by",
+            "consumes",
+            "covers",
+            "depends-on",
+            "guards",
+            "produces",
+            "references",
+            "routes-through",
+            "validates"
+          ]
+        },
+        "reviewState": {
+          "default": "reviewed",
+          "enum": [
+            "reviewed",
+            "ambiguous"
+          ]
+        },
+        "source": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "target": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "source",
+        "target",
+        "relation",
+        "evidence"
+      ],
+      "type": "object"
+    },
+    "evidenceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "expectation": {
+          "$ref": "#/$defs/expectation"
+        },
+        "pointer": {
+          "type": "string"
+        },
+        "reportSha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "required": [
+        "reportSha256",
+        "pointer"
+      ],
+      "type": "object"
+    },
+    "expectation": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "equals",
+            "subset"
+          ]
+        },
+        "value": {}
+      },
+      "required": [
+        "mode",
+        "value"
+      ],
+      "type": "object"
+    },
+    "node": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/evidenceRef"
+          },
+          "type": "array"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "action-id",
+            "coverage-target",
+            "house-door",
+            "item",
+            "landmark",
+            "mechanic",
+            "quest",
+            "route",
+            "scenario",
+            "script-handler",
+            "storage",
+            "teleport",
+            "tile",
+            "transition",
+            "unique-id"
+          ]
+        },
+        "reviewState": {
+          "default": "reviewed",
+          "enum": [
+            "reviewed",
+            "ambiguous"
+          ]
+        },
+        "selector": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "selector",
+        "evidence"
+      ],
+      "type": "object"
+    },
+    "query": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "maxDepth": {
+          "default": 256,
+          "maximum": 256,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "roots": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "roots"
+      ],
+      "type": "object"
+    },
+    "sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "source": {
+      "additionalProperties": false,
+      "properties": {
+        "mapSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "worldIndexSha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "mapSha256",
+        "worldIndexSha256"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_DEPENDENCY_GRAPH_MANIFEST.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "edges": {
+      "items": {
+        "$ref": "#/$defs/edge"
+      },
+      "type": "array"
+    },
+    "format": {
+      "const": "canary-otbm-dependency-graph-manifest-v1"
+    },
+    "nodes": {
+      "items": {
+        "$ref": "#/$defs/node"
+      },
+      "type": "array"
+    },
+    "queries": {
+      "items": {
+        "$ref": "#/$defs/query"
+      },
+      "type": "array"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    }
+  },
+  "required": [
+    "format",
+    "schemaVersion",
+    "source",
+    "nodes",
+    "edges",
+    "queries"
+  ],
+  "title": "Canary OTBM Dependency Graph Manifest v1",
+  "type": "object"
+}
