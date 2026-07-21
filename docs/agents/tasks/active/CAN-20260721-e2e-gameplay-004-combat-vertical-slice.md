@@ -8,10 +8,10 @@ branch: feat/e2e-gameplay-004-combat-vertical-slice
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
-last_verified_commit: "87c4f71b0deb880da7ba4228bc29e769db2c5818"
+last_verified_commit: "0fca8ced2d952eab744238f826af81cb9ee135b1"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "677"
 depends_on:
   - merged Universal physical gameplay action contract PR 446
   - merged Universal follow_route execution PR 589
@@ -47,15 +47,15 @@ cross_repo_tasks: []
 
 ## Goal
 
-Deliver one bounded deterministic real-client combat lifecycle on the existing Universal Physical E2E platform, with a source-evidenced creature fixture, bounded attack proof, first-failure evidence and cleanup, without adding a second runner or speculative platform capability.
+Deliver one bounded deterministic real-client combat lifecycle on the existing Universal Physical E2E platform, with a source-evidenced creature fixture, bounded combat proof, first-failure evidence and cleanup, without adding a second runner or speculative platform capability.
 
 ## Acceptance criteria
 
 - [ ] Prove an exact deterministic creature fixture or controlled scenario environment from current repository evidence.
-- [ ] Use the existing generic physical action contract; do not add a new shared action unless a concrete reusable gap is proven and split into a separate platform task.
-- [ ] Use `follow_route` for any nontrivial navigation rather than blind directional walking.
-- [ ] Physically observe the target, start attack through `attack_visible`, and prove the client enters attacking state.
-- [ ] Prove at least one deterministic combat outcome beyond target acquisition when the existing observable surfaces support it.
+- [ ] Reuse the existing generic physical action contract; split any proven missing generic capability into a separate platform task.
+- [ ] Use `follow_route` for nontrivial navigation rather than blind directional walking.
+- [ ] Physically observe the target, start combat through `attack_visible`, and prove the client enters attacking state.
+- [ ] Prove at least one deterministic combat outcome beyond target acquisition when existing observable surfaces support it.
 - [ ] Keep timeouts bounded and retain exact first-failure evidence.
 - [ ] Do not depend on random public-world occupancy, production systems or guessed monster names/positions.
 - [ ] Keep gameplay/datapack, OTBM binary, map and client asset paths unchanged unless a separately owned prerequisite is proven necessary.
@@ -66,10 +66,10 @@ Deliver one bounded deterministic real-client combat lifecycle on the existing U
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T13:40:00+02:00
-head: 87c4f71b0deb880da7ba4228bc29e769db2c5818
+updated_at: 2026-07-21T13:45:00+02:00
+head: 9e9b16eb2f002623e440639ccb7d64e0e3f2336a
 branch: feat/e2e-gameplay-004-combat-vertical-slice
-pr: ""
+pr: 677
 status: investigating
 context_routes:
   - universal-e2e
@@ -80,9 +80,10 @@ owned_paths:
 proven:
   - Universal physical gameplay action contract PR 446 is merged and exposes attack_visible, wait_creature, observe_attacking and bounded health observation surfaces.
   - Universal follow_route execution PR 589 and Thais temple-to-depot physical route proof PR 600 are merged.
-  - E2E-GAMEPLAY-003 quest/NPC feature PR 637 and lifecycle PR 663 are merged.
-  - E2E-GAMEPLAY-005 persistence closure PR 666 and lifecycle PR 673 are merged.
-  - no open pull request matched a deterministic E2E-GAMEPLAY-004 combat vertical slice during live preflight.
+  - E2E-GAMEPLAY-003 feature PR 637 and lifecycle PR 663 are merged.
+  - E2E-GAMEPLAY-005 feature PR 666 and lifecycle PR 673 are merged.
+  - PR 677 is the bounded draft owner for E2E-GAMEPLAY-004.
+  - the current scenario runner has no generic creature-spawn fixture field; the first implementation step is therefore source evidence, not speculative runner expansion.
 derived:
   - E2E-GAMEPLAY-004 is the nearest unconditional missing package in the ordered gameplay queue; multi-client and recovery work remain demand-gated.
 unknown:
@@ -91,19 +92,21 @@ unknown:
 conflicts: []
 first_failure:
   marker: none
-  evidence: no unresolved implementation or runtime failure is established at task start
+  evidence: no unresolved product/runtime failure is established; the current focused test is an intentional evidence probe and must be replaced before readiness
 rejected_hypotheses:
   - start E2E-GAMEPLAY-006 speculatively without a concrete multi-client feature consumer
   - start E2E-GAMEPLAY-007 before selecting a stable baseline scenario and explicit safe fault seam
 changed_paths:
   - docs/agents/tasks/active/CAN-20260721-e2e-gameplay-004-combat-vertical-slice.md
+  - tests/e2e/scenarios/combat/deterministic-combat.json
+  - tests/e2e/test_deterministic_combat.py
 validation:
-  - command: live open-PR search for deterministic combat physical E2E ownership
+  - command: live open-PR ownership audit
     result: PASS
-    evidence: no open PR matching the E2E-GAMEPLAY-004 combat vertical-slice scope was found
+    evidence: PR 677 is the only open PR for this combat vertical-slice scope
   - command: current programme and architecture queue audit
     result: PASS
-    evidence: E2E-GAMEPLAY-004 is defined as the deterministic combat slice; E2E-GAMEPLAY-006 and 007 remain conditional
+    evidence: E2E-GAMEPLAY-004 is the deterministic combat slice; E2E-GAMEPLAY-006 and 007 remain conditional
 blockers: []
-next_action: Audit current Knight 1 fixture position against data-otservbr-global/world/otservbr-monster.xml and select one exact isolated deterministic target, or prove that a separate generic fixture capability is required before scenario implementation.
+next_action: Read the focused spawn-evidence probe result from PR 677 CI, replace the probe with exact source assertions for one isolated deterministic target, then implement the bounded physical combat steps using only already-merged generic actions.
 ```
