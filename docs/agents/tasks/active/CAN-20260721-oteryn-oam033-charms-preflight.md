@@ -41,8 +41,8 @@ Perform a fresh bounded OAM-033 revalidation of canonical `charms` after complet
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T23:10:00+02:00
-head: 27a69c21126613a268786d28aa0669a0b5732fb5
+updated_at: 2026-07-21T23:15:00+02:00
+head: 3ecc817d8f2260256ded875330d87680748c2ad4
 branch: docs/oam-033-charms-preflight
 pr: 696
 status: investigating
