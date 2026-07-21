@@ -101,8 +101,8 @@ def _require_nonnegative_bigint(mapping: dict[str, Any], key: str, path: str) ->
         key,
         path,
         minimum=0,
-        maximum=9_223_372_036_854_775_807,
-        description="a non-negative integer",
+        maximum=MAX_SAFE_LUA_INTEGER,
+        description="an exact Lua-safe non-negative integer",
     )
 
 
