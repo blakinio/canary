@@ -2,7 +2,7 @@
 task_id: CAN-20260721-oteryn-oam032-titles-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-032
-status: active
+status: implementing
 created: 2026-07-21
 updated: 2026-07-21
 branch: docs/oam-032-titles-preflight
@@ -31,8 +31,8 @@ optional_reads: []
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T22:30:00+02:00
-head: 1f2df30bf7ebe9beea3263ec0373521a1c05162c
+updated_at: 2026-07-21T22:35:00+02:00
+head: af0f578a21425f547dd67f38e285d80b5288fa59
 branch: docs/oam-032-titles-preflight
 pr: 691
 status: validating
