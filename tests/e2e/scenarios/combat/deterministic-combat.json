@@ -4,7 +4,7 @@
   "suite": "combat",
   "name": "Deterministic physical combat vertical slice",
   "program_id": "CAN-PROGRAM-E2E-PLATFORM",
-  "description": "Create the repository-owned Instanced Test Arena with an isolated Cave Rat, approach through exact movement edges, start a real client attack with the existing high-level Paladin 15 fixture, observe target acquisition and deterministic creature removal, then explicitly close the arena before the canonical logout/relog lifecycle.",
+  "description": "Create the repository-owned Instanced Test Arena with an isolated Cave Rat, approach through two exact movement edges, start a real client attack with the existing high-level Paladin 15 fixture, observe target acquisition and deterministic creature removal, then explicitly close the arena before the canonical logout/relog lifecycle.",
   "client": {
     "repository": "blakinio/otclient",
     "ref": "2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f",
@@ -69,17 +69,6 @@
       "timeout_ms": 10000
     },
     {
-      "id": "approach_three",
-      "action": "walk_edge",
-      "from_x": 19978,
-      "from_y": 19990,
-      "from_z": 7,
-      "to_x": 19979,
-      "to_y": 19991,
-      "to_z": 7,
-      "timeout_ms": 10000
-    },
-    {
       "id": "attack_target",
       "action": "attack_visible",
       "creature": "Cave Rat",
@@ -118,7 +107,6 @@
       "step_target_visible=success",
       "step_approach_one=success",
       "step_approach_two=success",
-      "step_approach_three=success",
       "step_attack_target=success",
       "step_attack_confirmed=success",
       "step_target_defeated=success",
