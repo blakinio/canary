@@ -42,7 +42,7 @@ cross_repo_tasks: []
 
 ## Status
 
-COMPLETE — bounded implementation merged through feature PR #694.
+COMPLETE — bounded implementation merged through feature PR #694; lifecycle archive is isolated in PR #698.
 
 ## Delivered
 
@@ -69,10 +69,10 @@ COMPLETE — bounded implementation merged through feature PR #694.
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T23:34:00+02:00
-head: 5133b0dc42c4dd12cb30baad91a1d3a23e0dc744
+updated_at: 2026-07-21T23:38:00+02:00
+head: a68685fbfddb48ad9d10250f599454d155bb665d
 branch: docs/archive-otbm-qa-008-dependency-blast-radius-694
-pr: none
+pr: 698
 status: complete
 context_routes:
   - otbm
@@ -86,8 +86,9 @@ proven:
   - Exact-final-head Agent Task Ownership 29869152017, OTBM Map Tools 29869152565 and AI Agent Tools 29869152149 passed.
   - PR #694 had zero inline review threads and zero review submissions at final audit.
   - QA-008 public contracts are delivered as a read-only explicit-evidence dependency overlay.
+  - Lifecycle PR #698 changes only the active and archive task-record paths.
 derived:
-  - QA-009 becomes dependency-safe only after this lifecycle active-to-archive PR merges.
+  - QA-009 becomes dependency-safe only after lifecycle PR #698 merges.
 unknown: []
 conflicts: []
 first_failure:
@@ -110,5 +111,5 @@ validation:
     result: PASS
     evidence: exact-final-head AI-agent validation passed.
 blockers: []
-next_action: Complete the lifecycle-only active-to-archive PR. After it merges, perform a fresh live-state overlap preflight before establishing QA-009 ownership.
+next_action: Verify exact-final-head lifecycle CI and ownership on this immutable PR #698 head, merge the lifecycle PR, then perform a fresh overlap preflight and establish QA-009 ownership.
 ```
