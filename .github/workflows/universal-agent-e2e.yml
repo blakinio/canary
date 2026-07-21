@@ -370,6 +370,35 @@ jobs:
           vcpkgGitURL: "https://github.com/microsoft/vcpkg.git"
           vcpkgGitCommitId: ${{ env.VCPKG_GIT_COMMIT_ID }}
 
+      - name: Seed verified FreeType source fallback
+        env:
+          FREETYPE_SOURCE_URL: https://github.com/freetype/freetype/archive/refs/tags/VER-2-14-3.tar.gz
+          FREETYPE_SOURCE_SHA512: c3b6b0cc4b428c9c647ab2148386901dfd315273b68051940e8fea6010d46fdd2913467c3ef58be0d499b8e2ef5a0f1a4cc5e739756155587f4f7dff08ef9695
+        run: |
+          set -euo pipefail
+          vcpkg_root="${VCPKG_ROOT:-$(dirname "$(command -v vcpkg)")}" 
+          downloads_dir="${VCPKG_DOWNLOADS:-${vcpkg_root}/downloads}"
+          archive="${downloads_dir}/freetype-freetype-VER-2-14-3.tar.gz"
+          mkdir -p "${downloads_dir}"
+
+          if [[ -f "${archive}" ]] && printf '%s  %s\n' "${FREETYPE_SOURCE_SHA512}" "${archive}" | sha512sum --check --status; then
+            source_kind="existing-cache"
+          else
+            rm -f "${archive}"
+            curl --fail --location --retry 3 --retry-delay 5 \
+              "${FREETYPE_SOURCE_URL}" \
+              --output "${archive}"
+            printf '%s  %s\n' "${FREETYPE_SOURCE_SHA512}" "${archive}" | sha512sum --check -
+            source_kind="github-mirror"
+          fi
+
+          {
+            echo "url=${FREETYPE_SOURCE_URL}"
+            echo "sha512=${FREETYPE_SOURCE_SHA512}"
+            echo "archive=${archive}"
+            echo "source=${source_kind}"
+          } | tee freetype-source-fallback.txt
+
       - name: Configure NuGet package cache
         env:
           NUGET_AUTH_TOKEN: ${{ env.VCPKG_NUGET_API_KEY }}
@@ -391,39 +420,12 @@ jobs:
           mono "${nuget_path}" setapikey "${NUGET_AUTH_TOKEN}" \
             -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
 
-      - name: Configure OTClient release
-        shell: bash
-        run: |
-          set -euo pipefail
-          : > otclient-configure.log
-          for attempt in 1 2 3; do
-            attempt_log="otclient-configure-attempt-${attempt}.log"
-            echo "configure_attempt=${attempt}" | tee -a otclient-configure.log
-            if cmake --preset linux-release \
-              -DTOGGLE_BIN_FOLDER=ON \
-              -DOPTIONS_ENABLE_IPO=OFF \
-              2>&1 | tee "${attempt_log}"; then
-              cat "${attempt_log}" >> otclient-configure.log
-              exit 0
-            fi
-            cat "${attempt_log}" >> otclient-configure.log
-            if ! grep -Eq 'curl operation failed with response code (429|500|502|503|504)|Operation timed out|Could not resolve host|Failed to connect|Recv failure' "${attempt_log}"; then
-              echo "configure failure is not a recognized transient network error" | tee -a otclient-configure.log
-              exit 1
-            fi
-            if [[ "${attempt}" -eq 3 ]]; then
-              echo "configure failed after ${attempt} transient-network attempts" | tee -a otclient-configure.log
-              exit 1
-            fi
-            sleep "$((attempt * 15))"
-          done
-
       - name: Build OTClient release
-        shell: bash
-        run: |
-          set -euo pipefail
-          cmake --build --preset linux-release --parallel 2 \
-            2>&1 | tee otclient-build.log
+        uses: lukka/run-cmake@5d55ea7949e25f69f0ecb516d8d572297e03a956
+        with:
+          configurePreset: linux-release
+          buildPreset: linux-release
+          configurePresetAdditionalArgs: "['-DTOGGLE_BIN_FOLDER=ON', '-DOPTIONS_ENABLE_IPO=OFF']"
 
       - name: Upload controlled OTClient build diagnostics
         if: failure()
@@ -431,9 +433,7 @@ jobs:
         with:
           name: otclient-linux-release-build-diagnostics
           path: |
-            otclient-configure.log
-            otclient-configure-attempt-*.log
-            otclient-build.log
+            freetype-source-fallback.txt
             build/linux-release/CMakeCache.txt
             build/linux-release/.ninja_log
             build/linux-release/CMakeFiles/CMakeConfigureLog.yaml
@@ -461,6 +461,7 @@ jobs:
             build/linux-release/bin/
             otclient-commit.txt
             otclient-build.txt
+            freetype-source-fallback.txt
           if-no-files-found: error
           retention-days: 14
 
