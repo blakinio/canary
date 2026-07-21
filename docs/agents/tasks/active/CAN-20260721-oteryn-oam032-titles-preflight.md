@@ -31,11 +31,11 @@ optional_reads: []
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T22:25:00+02:00
-head: a42331420afbaabe436ed23b75ee1dfd97bc0c8c
+updated_at: 2026-07-21T22:30:00+02:00
+head: 1f2df30bf7ebe9beea3263ec0373521a1c05162c
 branch: docs/oam-032-titles-preflight
 pr: 691
-status: active
+status: validating
 context_routes:
   - docs/agents/OTERYN_OAM_032_TITLES_REVALIDATION.md
 owned_paths:
@@ -63,7 +63,7 @@ unknown:
 conflicts: []
 first_failure:
   marker: metadata-only ownership validation repair
-  evidence: Initial Ownership run 29864420001 rejected non-active status and empty related_pr; no scope or evidence defect was reported.
+  evidence: Initial Ownership runs rejected frontmatter/checkpoint status placement and empty related_pr; no scope or evidence defect was reported.
 rejected_hypotheses:
   - Reuse based on blob identity alone; ownership decomposition and donor-history audit are also required and were completed.
   - Import PR 188 Cyclopedia fixes under Titles ownership; PR 188 contains no player_title path.
