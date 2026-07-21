@@ -2,13 +2,13 @@
 task_id: CAN-20260721-e2e-gameplay-005-persistence-matrix-closure
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-GAMEPLAY-005-PERSISTENCE-MATRIX-CLOSURE
-status: validating
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: docs/e2e-gameplay-005-persistence-matrix-closure
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
-last_verified_commit: "f97863207ac7786cb7543fefb7f61b7e2f97eb31"
+last_verified_commit: "45cd01ebcc9ee32d6e6ad1a081e84579cd489351"
 risk: low
 related_issue: ""
 related_pr: "666"
@@ -65,11 +65,11 @@ Close `E2E-GAMEPLAY-005` with one durable, feature-neutral persistence assertion
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T12:42:00+02:00
-head: f97863207ac7786cb7543fefb7f61b7e2f97eb31
+updated_at: 2026-07-21T12:46:00+02:00
+head: 45cd01ebcc9ee32d6e6ad1a081e84579cd489351
 branch: docs/e2e-gameplay-005-persistence-matrix-closure
 pr: 666
-status: validating
+status: implementing
 context_routes:
   - universal-e2e
 owned_paths:
@@ -98,11 +98,11 @@ proven:
 derived:
   - E2E-GAMEPLAY-005 can close after final-head checkpoint, ownership, CI, and Universal Agent E2E gates pass because the declared priority domains are covered and the only concrete reusable audit gap has been corrected
 unknown:
-  - whether all required workflows pass on the compact checkpoint candidate head
+  - whether all required workflows pass on the active-status checkpoint candidate head
 conflicts: []
 first_failure:
   marker: checkpoint-validation
-  evidence: Agent Task Ownership first rejected missing derived and unsupported UNAVAILABLE, then rejected 17 proven items against the compactness limit of 16; both checkpoint-only defects are corrected on the current commit
+  evidence: ownership validation exposed three checkpoint-only defects in sequence: missing derived/unsupported UNAVAILABLE, proven compactness overflow, and non-active validating status; all are corrected on the current commit
 rejected_hypotheses:
   - OTBM-E2E-002 should be resumed by this task: user assigned that scope to another owner and the OTBM route programme is already closed
   - current persistence documentation already provides one complete merged-type inventory: rejected because PHYSICAL_GAMEPLAY_ACTION_PLANS.md still describes only the earlier subset and treats vocation normalization as future work
@@ -126,12 +126,12 @@ validation:
   - command: GitHub CI workflow at c14c057c1a1d27fe92b6d1f30f53350be17036ec
     result: PASS
     evidence: CI run 29822621295 completed successfully with the persistence code, regression test, matrix, and programme update
-  - command: Agent Task Ownership at f97863207ac7786cb7543fefb7f61b7e2f97eb31
+  - command: Agent Task Ownership at 45cd01ebcc9ee32d6e6ad1a081e84579cd489351
     result: FAIL
-    evidence: run 29822751253 reported only that proven exceeded the compactness limit; this commit removes the redundant seventeenth item
+    evidence: run 29822899609 rejected only the non-active validating status; this commit restores implementing while the task remains under tasks/active
   - command: local git/test execution
     result: NOT_RUN
     evidence: local container cannot resolve github.com; repository edits and executable validation use the authorized GitHub connector and PR workflows
 blockers: []
-next_action: Verify all required PR #666 workflows on the compact checkpoint head, then finalize the checkpoint and merge if the autonomous gate passes.
+next_action: Verify all required PR #666 workflows on the active-status checkpoint head, then finalize the checkpoint and merge if the autonomous gate passes.
 ```
