@@ -2,13 +2,13 @@
 task_id: CAN-20260721-e2e-controlled-otclient-build-stability
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-CONTROLLED-OTCLIENT-BUILD-STABILITY
-status: implementing
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: fix/e2e-controlled-otclient-build-stability
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
-last_verified_commit: "e11ad06beebb3cd7c11a4d686f749ac54155cce5"
+last_verified_commit: "d83563943e298df33edd084e944812464b8a3ff2"
 risk: medium
 related_issue: ""
 related_pr: "687"
@@ -34,29 +34,30 @@ cross_repo_tasks: []
 
 ## Goal
 
-Restore deterministic Universal Physical E2E availability after the pinned controlled OTClient build began failing reproducibly before physical scenario execution, without changing the pinned client revision or any feature scenario semantics.
+Restore deterministic Universal Physical E2E availability after the pinned controlled OTClient vcpkg configure path began failing before physical scenario execution, without changing the pinned client revision, vcpkg baseline, FreeType port semantics, or feature scenarios.
 
 ## Acceptance criteria
 
-- [x] Prove the failure is outside the blocked feature scenario: exact Canary build, scenario resolution, database bootstrap, ownership and incremental CI are green while physical execution is skipped because controlled OTClient build fails first.
-- [x] Prove the pinned OTClient revision and hosted runner image match a recent successful Universal E2E build.
-- [x] Test bounded controlled OTClient build parallelism without changing client source or revision and reject it as sufficient when the pre-Ninja failure persists.
-- [x] Retain failure-only build diagnostics as an artifact for future first-failure analysis.
-- [x] Isolate and prove the exact configure failure from retained logs.
-- [x] Add bounded retries only for recognized transient network failures while preserving fail-fast behavior for deterministic configure errors.
-- [x] Keep explicit logged configure and bounded build commands plus focused workflow-contract coverage.
-- [ ] Pass ownership, CI and Universal Agent E2E on the exact repair head.
-- [ ] Merge through the normal autonomous gate and archive this task in a separate lifecycle PR.
+- [x] Prove the failure is outside the blocked feature scenario and before physical execution.
+- [x] Isolate the first failure to the pinned vcpkg FreeType 2.14.3 source download.
+- [x] Reject build parallelism and bounded retry as sufficient fixes using retained exact failure evidence.
+- [x] Prove the GitHub `freetype/freetype` `VER-2-14-3` archive has the exact SHA512 required by the pinned vcpkg port.
+- [x] Pre-seed only the standard vcpkg downloads cache with the verified mirror archive; do not modify the pinned client, vcpkg baseline, port, or scenario semantics.
+- [x] Preserve the original pinned `run-cmake` configure/build contract.
+- [x] Retain fallback provenance in successful OTClient artifacts and failure diagnostics.
+- [x] Add focused workflow-contract coverage for source pinning, hash/cache placement, unchanged build contract, diagnostics, provenance, and unrelated route behavior.
+- [x] Pass ownership, CI and Universal Agent E2E on the exact implementation head, including a successful controlled OTClient build and physical login/relog scenario.
+- [ ] Merge through the normal autonomous final gate and archive this task in a separate lifecycle PR.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T18:50:00+02:00
-head: 8a946e0473be8235bf05e0d728d41d12b91fd689
+updated_at: 2026-07-21T23:35:00+02:00
+head: f395271524a380d3bf8b0b333b39ec23d96ed701
 branch: fix/e2e-controlled-otclient-build-stability
 pr: 687
-status: implementing
+status: ready
 context_routes:
   - universal-e2e
   - ci-repair
@@ -65,53 +66,46 @@ owned_paths:
   - .github/workflows/universal-agent-e2e.yml
   - tests/e2e/test_controlled_otclient_build_workflow.py
 proven:
-  - PR #685 feature head 68e93efddb47d460473ad5ddb69105ddabe87de8 passed ownership and incremental CI; its Universal E2E never reached physical execution because the generic controlled OTClient build failed first on three attempts.
-  - all blocked-feature failures used pinned blakinio/otclient revision 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f, which had built successfully earlier on the same ubuntu-24.04 image version 20260714.240.1 for accepted E2E-GAMEPLAY-004 evidence.
-  - initial PR #687 head b668699b3bf06341c2a1b1c25640ed8affe25757 passed ownership and CI, but Universal E2E 29848126832 still failed before Ninja despite --parallel 2; artifact 8502357355 contained CMakeCache.txt and no .ninja_log.
-  - explicit logged configure/build head 506689abbfb396aafb017f13112ae16f90cc6645 passed ownership and CI; Universal E2E 29848963387 isolated the failure specifically to Configure OTClient release and retained artifact 8502664982.
-  - otclient-configure.log from artifact 8502664982 proves vcpkg failed downloading freetype-VER-2-14-3.tar.gz from gitlab.freedesktop.org after three internal attempts, each returning HTTP 504.
-  - the same configure log proves CMake stopped during vcpkg manifest installation before any Ninja build phase; feature scenario, Canary runtime and OTClient compilation had not started.
-  - PR #687 now retries the idempotent configure command at most three workflow-level attempts only for recognized transient failures: HTTP 429/500/502/503/504, timeout, DNS, connection or receive errors.
-  - deterministic configure failures outside that transient allowlist still fail immediately; retry backoff is bounded to 15 seconds then 30 seconds.
-  - configure diagnostics retain a combined log plus per-attempt logs, while the explicit build remains `cmake --build --preset linux-release --parallel 2` with its own retained log.
-  - pinned client repository/ref resolution, vcpkg baseline, dependency source and feature scenario semantics are unchanged.
-  - focused coverage pins transient-only classification, bounded retry count/backoff, explicit build parallelism, diagnostics retention and the unchanged route-download expression.
-  - CI run 29849755892 passed on retry-policy head 8a946e0473be8235bf05e0d728d41d12b91fd689; ownership run 29849755628 failed only because this checkpoint exceeded the 16-item proven compactness limit, which this commit corrects.
-  - current main advanced only through unrelated OTBM repair work relative to the repair branch base; no repair-owned path overlap was identified.
+  - PR #685 feature head 68e93efddb47d460473ad5ddb69105ddabe87de8 passed ownership and incremental CI but its Universal E2E never reached physical execution because the generic controlled OTClient build failed first.
+  - all failures used pinned blakinio/otclient revision 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f, which had built successfully in accepted E2E-GAMEPLAY-004 evidence.
+  - bounded build parallelism was rejected by Universal E2E 29848126832 because the failure remained pre-Ninja; artifact 8502357355 contained no .ninja_log.
+  - explicit configure diagnostics from Universal E2E 29848963387 artifact 8502664982 proved vcpkg failed downloading FreeType 2.14.3 from gitlab.freedesktop.org with repeated HTTP 504 responses before compilation.
+  - three workflow-level configure retries in Universal E2E 29849912071 all hit the same FreeType HTTP 504, rejecting retry as a sufficient fix.
+  - one-shot mirror probe run 29851038067 proved the GitHub freetype/freetype VER-2-14-3 archive SHA512 is c3b6b0cc4b428c9c647ab2148386901dfd315273b68051940e8fea6010d46fdd2913467c3ef58be0d499b8e2ef5a0f1a4cc5e739756155587f4f7dff08ef9695, exactly matching the pinned vcpkg port; the probe workflow was removed before final validation.
+  - final workflow pre-seeds vcpkg/downloads/freetype-freetype-VER-2-14-3.tar.gz from the verified GitHub mirror and validates the exact SHA512 before the original vcpkg/run-cmake path consumes it.
+  - final workflow preserves the original pinned client ref, pinned vcpkg baseline, pinned run-cmake action, configure preset, build preset and configure options.
+  - successful OTClient artifact 8510661114 records source=github-mirror, the exact mirror URL and SHA512, and the standard vcpkg downloads cache path in freetype-source-fallback.txt.
+  - exact implementation head f395271524a380d3bf8b0b333b39ec23d96ed701 passed Agent Task Ownership 29867906121, CI 29867906077 and Universal Agent E2E 29867906420.
+  - Universal Agent E2E 29867906420 built the controlled OTClient successfully after the verified fallback step and passed Physical client / login/relog plus Required physical E2E.
+  - PR #687 changed-file inventory is limited to the workflow, focused contract test and this active task; there are no review threads, reviews or comments blocking merge.
+  - PR #687 is ready for review, mergeable, and labeled ci:final-gate before this final checkpoint commit.
 derived:
-  - the blocker is an external transient dependency-source availability failure, not feature code, Canary code, OTClient source compilation or build parallelism.
-  - bounded transient-only configure retry is narrower than changing the pinned OTClient revision, forking the vcpkg port, replacing the FreeType source URL or weakening deterministic configure failures.
-unknown:
-  - whether the external FreeType source recovers within the bounded workflow-level configure retries on the retry-policy runtime validation
+  - verified cache pre-seeding is narrower and safer than changing the pinned OTClient revision, vcpkg baseline, FreeType port/source semantics, or feature scenario.
+unknown: []
 conflicts: []
 first_failure:
-  marker: Universal Agent E2E / Build controlled OTClient / Configure OTClient release / vcpkg FreeType source download
-  evidence: run 29848963387 job 88696905854; artifact 8502664982 otclient-configure.log reports three HTTP 504 download failures for freetype-VER-2-14-3.tar.gz from gitlab.freedesktop.org
+  marker: none
+  evidence: exact implementation-head ownership, CI and Universal Agent E2E all passed; historical FreeType HTTP 504 is resolved by the verified cache fallback
 rejected_hypotheses:
-  - modify PR #685 NPC scenario; rejected because failure occurs before physical execution
-  - change pinned OTClient revision; rejected because the same revision built successfully in accepted evidence
-  - treat --parallel 2 as sufficient; rejected because the bounded attempt still failed before Ninja
-  - replace FreeType source or vcpkg port; rejected because transient-only retry is less invasive for the proven HTTP 504
+  - modify PR #685 NPC scenario; failure occurred before physical execution
+  - change pinned OTClient revision; same revision had accepted prior evidence
+  - treat --parallel 2 as sufficient; failure remained pre-Ninja
+  - rely only on workflow-level retry; all bounded attempts hit the same HTTP 504
+  - replace or fork the vcpkg FreeType port; identical mirror bytes can be supplied through the standard download cache instead
 changed_paths:
   - docs/agents/tasks/active/CAN-20260721-e2e-controlled-otclient-build-stability.md
   - .github/workflows/universal-agent-e2e.yml
   - tests/e2e/test_controlled_otclient_build_workflow.py
 validation:
-  - command: Agent Task Ownership run 29848126195 and CI run 29848126448 on b668699b3bf06341c2a1b1c25640ed8affe25757
+  - command: Agent Task Ownership run 29867906121 on f395271524a380d3bf8b0b333b39ec23d96ed701
     result: PASS
-    evidence: initial bounded-build repair passed governance and incremental CI
-  - command: Universal Agent E2E run 29848126832 on b668699b3bf06341c2a1b1c25640ed8affe25757
-    result: FAIL
-    evidence: failure remained pre-Ninja and diagnostics artifact 8502357355 was retained
-  - command: Agent Task Ownership run 29848962746 and CI run 29848963217 on 506689abbfb396aafb017f13112ae16f90cc6645
+    evidence: active ownership, focused tests and checkpoint governance passed
+  - command: CI run 29867906077 on f395271524a380d3bf8b0b333b39ec23d96ed701
     result: PASS
-    evidence: explicit logged configure/build repair passed governance and incremental CI
-  - command: Universal Agent E2E run 29848963387 on 506689abbfb396aafb017f13112ae16f90cc6645
-    result: FAIL
-    evidence: configure log proved external FreeType HTTP 504 and artifact 8502664982 retained exact output
-  - command: CI run 29849755892 on 8a946e0473be8235bf05e0d728d41d12b91fd689
+    evidence: exact implementation-head incremental CI passed
+  - command: Universal Agent E2E run 29867906420 on f395271524a380d3bf8b0b333b39ec23d96ed701
     result: PASS
-    evidence: retry-policy implementation passed incremental CI
+    evidence: verified FreeType fallback, controlled OTClient build, physical login/relog and Required physical E2E passed
 blockers: []
-next_action: Verify ownership, CI and Universal Agent E2E on the compact-checkpoint exact head; if the immediate-parent runtime evidence shows the retry policy succeeded, proceed to final gate, otherwise inspect retained per-attempt logs and change only the proven failure mode.
+next_action: Complete the normal final-gate and lifecycle closure for PR #687 by merging only after all exact checkpoint-head required checks are green, then archive the completed task in a separate lifecycle PR.
 ```
