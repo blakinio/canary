@@ -13,6 +13,11 @@ Persist the user's OTS gameplay/system redesign discussion so a continuation age
 - `docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md`
 - `docs/agents/tasks/active/CAN-20260721-ots-future-gameplay-roadmap.md`
 
+## Live PR
+
+- PR #664 — `docs(ai-agent): persist OTS future gameplay systems roadmap`
+- Branch: `docs/ots-future-roadmap-20260721`
+
 ## Scope
 
 - Record user-requested future systems, redesign directions, anti-frustration principles, anti-abuse constraints, and open design questions.
