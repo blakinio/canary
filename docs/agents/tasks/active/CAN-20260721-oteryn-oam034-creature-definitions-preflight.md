@@ -7,6 +7,7 @@ branch: docs/oam-034-creature-definitions-preflight
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
+related_pr: "701"
 modules_touched:
   - creature-definitions
 owned_paths:
@@ -36,6 +37,7 @@ checkpoint_version: 1
 updated_at: 2026-07-21T23:58:00+02:00
 head: 9a5709bee7083b4fd43c7ae0a91765874349c019
 branch: docs/oam-034-creature-definitions-preflight
+pr: 701
 status: implementing
 context_routes:
   - agent-governance
