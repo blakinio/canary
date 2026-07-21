@@ -19,4 +19,4 @@ INSERT INTO `accounts`
 (112 , 'test12', '@test12' , 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3', 1     , 10000),
 (113 , 'test13', '@test13' , 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3', 1     , 10000),
 (114 , 'test14', '@test14' , 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3', 1     , 10000),
-(115 , 'test15', '@test15' , 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3', 1     , 10000);
+(115 , 'test15', '@test15' , 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3', 6     , 10000);
