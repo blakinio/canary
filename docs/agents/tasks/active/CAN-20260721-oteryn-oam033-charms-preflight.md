@@ -41,15 +41,15 @@ Perform a fresh bounded OAM-033 revalidation of canonical `charms` after complet
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T23:08:00+02:00
-head: 5b435bf55a00d6c60ac127e61696d3ce28ea15c4
+updated_at: 2026-07-21T23:10:00+02:00
+head: 27a69c21126613a268786d28aa0669a0b5732fb5
 branch: docs/oam-033-charms-preflight
 pr: 696
 status: investigating
 context_routes:
-  - architecture
-  - testing
   - agent-governance
+  - cpp-runtime
+  - cross-repo
 owned_paths:
   - docs/agents/tasks/active/CAN-20260721-oteryn-oam033-charms-preflight.md
   - docs/agents/OTERYN_OAM_033_CHARMS_REVALIDATION.md
