@@ -80,8 +80,8 @@ Identify selected-scope dead/orphaned-content candidates and summarize reviewed 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T00:26:00+02:00
-head: 24b835781d16cb5b4a5f779483d6952f3c58a1df
+updated_at: 2026-07-22T00:30:00+02:00
+head: 6f1da704a3ae4c225d15f2ee56c414f7556216da
 branch: docs/archive-otbm-qa-009-content-completeness-700
 pr: 704
 status: ready
@@ -92,15 +92,15 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260721-otbm-qa-009-content-completeness.md
   - docs/agents/tasks/archive/CAN-20260721-otbm-qa-009-content-completeness.md
 proven:
-  - QA-008 feature PR #694 and lifecycle PR #698 are merged and complete.
-  - QA-009 feature PR #700 merged as 11e301005fd43f847b1a316f75fd8427abcaed98 from final head e15a178125acf3da20040e7d493ea8593e2ccf59.
+  - QA-008 feature PR 694 and lifecycle PR 698 are merged and complete.
+  - QA-009 feature PR 700 merged as 11e301005fd43f847b1a316f75fd8427abcaed98 from final head e15a178125acf3da20040e7d493ea8593e2ccf59.
   - Exact-final QA-009 CI 29872380096, Ownership 29872372611, OTBM Map Tools 29872372560 and AI Agent Tools 29872372558 passed.
-  - PR #700 changed exactly nine bounded implementation/task paths and had zero review threads or review submissions at final audit.
+  - PR 700 changed exactly nine bounded implementation/task paths and had zero review threads or review submissions at final audit.
   - Current main is identical to QA-009 squash merge 11e301005fd43f847b1a316f75fd8427abcaed98.
-  - Lifecycle-only follow-up is open as draft PR #704 and currently owns only the active/archive task-record paths.
+  - Lifecycle-only follow-up is open as draft PR 704 and currently owns only the active/archive task-record paths.
   - QA-009 runtime gameplay completion remains explicitly unproven; the delivered audit is selected-scope static evidence only.
 derived:
-  - The only remaining QA-009 work is lifecycle-only movement of this completed task record from active to archive on PR #704.
+  - The only remaining QA-009 work is lifecycle-only movement of this completed task record from active to archive on PR 704.
 unknown:
   - MODULE_CATALOG shared-path row was not modified in the bounded feature branch; delivered contracts are documented in OTBM_CONTENT_COMPLETENESS.md and task metadata.
 conflicts: []
@@ -127,5 +127,5 @@ validation:
     result: PASS
     evidence: Exact-final-head AI-agent validation passed.
 blockers: []
-next_action: On draft PR #704, complete the lifecycle-only active-to-archive move for this task without behavior changes; merge it after lifecycle gates, then perform a fresh preflight before any QA-010 work.
+next_action: On draft PR 704, complete the lifecycle-only active-to-archive move for this task without behavior changes; merge it after lifecycle gates, then perform a fresh preflight before any QA-010 work.
 ```
