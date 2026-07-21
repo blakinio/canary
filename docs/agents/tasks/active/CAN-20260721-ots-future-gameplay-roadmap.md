@@ -1,7 +1,7 @@
 ---
 task_id: CAN-20260721-ots-future-gameplay-roadmap
 program_id: CAN-PROGRAM-OTS-FUTURE-GAMEPLAY-SYSTEMS
-status: review
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: docs/ots-future-roadmap-20260721
 base_branch: main
@@ -29,7 +29,7 @@ cross_repo_tasks: []
 
 ## Status
 
-ACTIVE — durable design/handoff record. This task is documentation-only unless a later task explicitly implements one of the systems.
+READY — durable documentation roadmap is complete on PR #664; only the exact-final-head merge gate remains. Future gameplay implementation requires a separate bounded task.
 
 ## Goal
 
@@ -61,52 +61,51 @@ Persist the user's OTS gameplay/system redesign discussion so a continuation age
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T09:47:11Z
-head: 738981e019c9b0df04f56a587781928362b64fb2
+updated_at: 2026-07-21T09:49:38Z
+head: f103540934d2ba71b6e0d65763c82cc4da63b631
 branch: docs/ots-future-roadmap-20260721
 pr: 664
-status: validating
+status: ready
 context_routes:
   - agent-governance
 owned_paths:
   - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md
   - docs/agents/tasks/active/CAN-20260721-ots-future-gameplay-roadmap.md
 proven:
-  - PR #664 is open as a draft against blakinio/canary:main from docs/ots-future-roadmap-20260721.
-  - PR #664 changes only the roadmap and this active task record.
-  - CI run 29819035316 passed on head 8754737a60c622d9d480e42ce33bf555125dc8e9.
-  - AI Agent Tools run 29819035131 passed on head 8754737a60c622d9d480e42ce33bf555125dc8e9.
-  - Agent Task Ownership run 29819035179 first failed because the Context checkpoint had no fenced YAML block.
-  - Agent Task Ownership run 29819556712 then failed because the active task record had no opening front matter delimiter.
+  - PR #664 is an in-repository draft against main and changes only the roadmap plus this active task record.
+  - Earlier task-record failures were repaired by adding the required fenced YAML checkpoint and structured frontmatter.
+  - CI run 29819684765 passed on repair head f103540934d2ba71b6e0d65763c82cc4da63b631.
+  - Agent Task Ownership run 29819684580 passed on repair head f103540934d2ba71b6e0d65763c82cc4da63b631.
+  - AI Agent Tools run 29819684455 passed on repair head f103540934d2ba71b6e0d65763c82cc4da63b631.
+  - PR #664 had no comments, reviews, or review threads before the final-gate commit.
+  - The ci:final-gate label was applied before this final checkpoint commit.
   - The task is documentation-only and does not authorize gameplay, binary, map, datapack, or runtime implementation changes.
 derived:
-  - The immediate work is task-record contract and CI validation repair; gameplay implementation remains out of scope.
+  - The documentation change is ready for exact-final-head validation and merge if the final-gate checks remain green.
 unknown:
-  - Required GitHub check results for the post-frontmatter-repair PR head.
+  - Exact-final-head required check conclusions after this final checkpoint commit.
+  - Squash merge SHA for PR #664.
 conflicts: []
 first_failure:
-  marker: Agent Task Ownership / Validate changed active task checkpoints
-  evidence: Run 29819556712 artifact active-task-ownership/CHANGED_TASK_VALIDATION.txt reports missing opening front matter delimiter.
-rejected_hypotheses: []
+  marker: none
+  evidence: The latest pre-final-gate repair head passed CI, Agent Task Ownership, and AI Agent Tools.
+rejected_hypotheses:
+  - A fenced checkpoint alone would satisfy the active-task contract: run 29819556712 proved structured frontmatter was also required.
 changed_paths:
   - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md
   - docs/agents/tasks/active/CAN-20260721-ots-future-gameplay-roadmap.md
 validation:
-  - command: GitHub Actions CI run 29819035316
+  - command: GitHub Actions CI run 29819684765
     result: PASS
-    evidence: Completed successfully on head 8754737a60c622d9d480e42ce33bf555125dc8e9.
-  - command: GitHub Actions AI Agent Tools run 29819035131
+    evidence: Completed successfully on repair head f103540934d2ba71b6e0d65763c82cc4da63b631.
+  - command: GitHub Actions Agent Task Ownership run 29819684580
     result: PASS
-    evidence: Completed successfully on head 8754737a60c622d9d480e42ce33bf555125dc8e9.
-  - command: GitHub Actions Agent Task Ownership run 29819035179
-    result: FAIL
-    evidence: Missing fenced YAML Context checkpoint.
-  - command: GitHub Actions Agent Task Ownership run 29819556712
-    result: FAIL
-    evidence: Missing opening front matter delimiter after the checkpoint repair.
-blockers:
-  - Current-head required checks must be reverified after the frontmatter repair.
-next_action: Verify PR #664 current-head ownership and required CI after this frontmatter repair; if all required checks pass and no review blockers remain, mark the PR ready and squash-merge it.
+    evidence: Changed active task checkpoint and ownership validation completed successfully on repair head f103540934d2ba71b6e0d65763c82cc4da63b631.
+  - command: GitHub Actions AI Agent Tools run 29819684455
+    result: PASS
+    evidence: Completed successfully on repair head f103540934d2ba71b6e0d65763c82cc4da63b631.
+blockers: []
+next_action: Verify PR #664 exact-final-head CI, Agent Task Ownership, AI Agent Tools, mergeability, comments, reviews, and review threads; if all required gates pass, mark the PR ready and expected-head squash-merge it.
 ```
 
 ### User design philosophy
