@@ -397,6 +397,23 @@ jobs:
           configurePreset: linux-release
           buildPreset: linux-release
           configurePresetAdditionalArgs: "['-DTOGGLE_BIN_FOLDER=ON', '-DOPTIONS_ENABLE_IPO=OFF']"
+          buildPresetAdditionalArgs: "['--parallel', '2']"
+
+      - name: Upload controlled OTClient build diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: otclient-linux-release-build-diagnostics
+          path: |
+            build/linux-release/CMakeCache.txt
+            build/linux-release/.ninja_log
+            build/linux-release/CMakeFiles/CMakeConfigureLog.yaml
+            build/linux-release/CMakeFiles/CMakeOutput.log
+            build/linux-release/CMakeFiles/CMakeError.log
+            vcpkg_installed/vcpkg/issue_body.md
+            vcpkg_installed/vcpkg/*.log
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Verify OTClient executable
         run: |
@@ -652,7 +669,7 @@ jobs:
               exit 1
             fi
             mkdir -p "$(dirname "${AGENT_E2E_SERVER_MAP_PATH}")"
-            MAP_URL="$(grep -E '^mapDownloadUrl[[:space:]]*=' config.lua.dist | sed -E 's/.*"([^"]+)".*/\1/')"
+            MAP_URL="$(grep -E '^mapDownloadUrl[[:space:]]*=' config.lua.dist | sed -E 's/.*"([^\"]+)".*/\1/')"
             test -n "${MAP_URL}"
             curl --fail --location --retry 5 --retry-delay 5 "${MAP_URL}" --output "${AGENT_E2E_SERVER_MAP_PATH}"
           fi
