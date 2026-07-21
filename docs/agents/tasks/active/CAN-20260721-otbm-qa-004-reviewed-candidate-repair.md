@@ -1,7 +1,7 @@
 ---
 task_id: CAN-20260721-otbm-qa-004-reviewed-candidate-repair
 program_id: CAN-PROGRAM-OTBM
-status: active
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: feat/otbm-qa-004-reviewed-candidate-repair-20260721
 base_branch: main
