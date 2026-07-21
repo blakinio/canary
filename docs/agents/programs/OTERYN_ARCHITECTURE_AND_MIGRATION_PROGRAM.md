@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-21T09:05:00+02:00
-last_verified_commit: "2a4b717448e55e1a2c24578df44eb981f8ae4bfd"
+updated: 2026-07-21T12:30:00+02:00
+last_verified_commit: "994d1ffdfd6828688b1acc6cd7c0c519eab052ba"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -65,6 +65,7 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 | OAM-027 | `houses → ADAPT` | target `c140c4bb9f40067acc36bc446c9e664e6f791c5a`; feature `436b73863b81bfa1ba27f88642f3a816064759fc`; lifecycle `562961ee0dd0c2626ab845dc307ec748e2a6bfb7` |
 | OAM-028 | `cyclopedia → REUSE` | target `7e03405aea50d88fdbc27d0d2a7d95c7f1745946`; feature `a28e661c4119857eff36948c4549045f57eae545`; lifecycle `ff694b9e908148fb12cca69a76fc2786d9a0f2c3` |
 | OAM-029 | `cyclopedia-character → ADAPT` | target `908834adc7d7e7e4ced7404391c7966b1c961b18`; feature `a5e5565d546a530fc3a3010deb65e9283f6eacab`; lifecycle `2a4b717448e55e1a2c24578df44eb981f8ae4bfd` |
+| OAM-030 | `bosstiary → ADAPT` | target `dc483d6e8d659d61482da2af7abda9b46b1766ff`; feature `6c092568e44dcb0b13959a8f22c14a992565aa7b`; lifecycle `994d1ffdfd6828688b1acc6cd7c0c519eab052ba` |
 
 # OAM-009 durable boundary
 
@@ -204,7 +205,7 @@ Proof-only Otheryn PR #39 final head `62a61725c66a2c394327cb665f08d076c2b7d791` 
 
 Canary governance PR #549 final head `c9f6335f0c3361f47d154af00d123e8cf6ca238c` passed Agent Task Ownership #2338 run `29652474874` and CI #3476 run `29652474962` with Required PASS. It had zero comments/reviews/threads, exactly two governance paths, no Canary-main drift, and merged by expected-head squash as `a646f0bba6e1a168c9e190abaf483cff817a5e9b`. Earlier draft governance PR #548 was closed after final evidence was moved to non-draft PR #549 under a neutral branch label required by the tooling classifier.
 
-Lifecycle PR #551 final head `823e52fd02798514b5421e27552685a60cfdc5fc` passed Agent Task Ownership #2342 run `29652592820` and CI #3479 run `29652592881` with Required PASS. It had zero comments/reviews/threads, exactly the active-delete/archive-add lifecycle paths, no Canary-main drift, and merged by expected-head squash as `c1925725f05fffb2b57971fa929e4af5dd06d6b0`. The post-merge automation also opened duplicate archive PR #550 for governance PR #549; it was explicitly closed after authoritative lifecycle PR #551 was established.
+Lifecycle PR #551 final head `823e52fd02798514b5421e27552685a60cfdc5fc` passed Agent Task Ownership #2342 run `29652592820` and CI #3479 run `29652592881` with Required PASS. It had zero comments/reviews/threads, exactly the active-delete/archive-add lifecycle paths, no Canary-main drift, and merged by expected-head squash as `c1925725f05fffb2b57971fa929e4af5dd06d6b0`. The post-governance automation also opened duplicate archive PR #550 for governance PR #549; it was explicitly closed after authoritative lifecycle PR #551 was established.
 
 OAM-016 preserves OAM-004 SQL/KV non-atomicity and completed OAM-006/OAM-007/OAM-013/OAM-014/OAM-015 ownership. It does not claim exhaustive spell formula or hit/heal value correctness, exhaustive cooldown enforcement, exhaustive mana/soul/resource/rune consumption, full individual spell-script parity, Gameplay Analytics parity, Wheel spell-augmentation parity, protocol/client/map/asset parity, or persistence redesign.
 
@@ -224,7 +225,7 @@ The initial proof head `7dcdcff1dde59a702b00d77f5049bd99a126a6eb` failed only th
 
 Otheryn PR #41 final head `ee111cb6ef6299a0de7fb19de76934b6369b7cf0` changed exactly `tests/unit/items/containers/container_test.cpp`. It passed autofix.ci #108 run `29679028025`, CI #127 run `29679028059`, Required #115 run `29679028000`, full CTest 357/357 and focused `ContainerReuseTest` 2/2. Artifact `8440064893` has digest `sha256:28d82a5a1d36d89a8892280e73bb671a846743962786922093a907e8b80b79c1`. Target comments/reviews/threads were empty, target-main drift was none, issue #40 was closed completed, and PR #41 merged by expected-head squash as `952e7550182df739824bddea687ef89bd8997674`.
 
-Canary governance PR #555 final head `80650619eb9565398f1b8800ec1d463d90602a3c` passed Agent Task Ownership #2476 run `29679578835` and full final-gate CI #3618 run `29679591913`. It had zero comments/reviews/threads, exactly the two OAM-017 governance paths, and the 11-commit Canary-main drift from the immutable task-start base did not overlap those paths. It merged by expected-head squash as `b868e2855f6194d9fd4f88c5a56ba8e300e3c568`.
+Canary governance PR #555 final head `80650619eb9565398f1b8800ec1d463d90602a3c` passed Agent Task Ownership #2476 run `29679578835` and full final-gate CI #3618 run `29679591913`. It had zero comments/reviews/threads and exactly the two OAM-017 governance paths. Non-overlapping Canary-main drift was audited before merge, and PR #555 merged by expected-head squash as `b868e2855f6194d9fd4f88c5a56ba8e300e3c568`.
 
 Authoritative lifecycle PR #576 final head `63d2f8067b8e53a5ae9c42dd6161fbf81d2a7aa2` passed Agent Task Ownership #2494 run `29680259710` and CI #3635 run `29680259780` with Required PASS. It had zero comments/reviews/threads, exactly the active-delete/archive-add lifecycle paths, and no Canary-main drift before merge, then merged by expected-head squash as `041ca9017fde929429ffb28fb6bfdc615f21b9f6`. The post-governance automation also opened duplicate archive PR #575; it was explicitly closed unmerged only after authoritative lifecycle PR #576 was established.
 
@@ -474,15 +475,35 @@ Authoritative lifecycle PR #656 final head `ed14520d265efa00128437e99df1b76b4df7
 
 OAM-029 does not claim full Cyclopedia Character parity, exact packet-byte compatibility, death-history correctness, KV/store-summary parity, database query performance, retained-history policy, maintained-client rendering correctness, physical-client Cyclopedia Character E2E closure, or full Real Tibia parity.
 
+# OAM-030 durable completion
+
+Final disposition:
+
+```text
+bosstiary ADAPT
+```
+
+Task-start baselines were Canary `419d0848448c641561e7bc06392a4b17b95213b2`, Otheryn `68d48deea999990b1eab30858f3a85fc9fef7067`, fresh upstream Canary `71a0f92b4da3f550b292fa7536a0e35c2769f1ae`, and maintained OTClient `a6868920443dc285656bd016acdb2c1ea566e511`. Canonical `bosstiary` depends on completed `cyclopedia` and `player-persistence` and owns the narrow server root `src/io/io_bosstiary.*`.
+
+Semantic donor review selected exactly the Bosstiary hunk from merged legacy PR #188: `IOBosstiary::loadBoostedBoss()` no longer returns before a missing `boosted_boss` singleton row can be initialized, after which the existing reroll path continues. Later legacy multichannel leader-election behavior, Bestiary, Charms, monster data, protocol and maintained OTClient changes were deliberately excluded. Task-start target and fresh upstream shared the pre-fix `io_bosstiary.cpp` state; current legacy retained the reviewed recovery fix plus separately owned later multichannel logic, so whole-file legacy reuse was rejected.
+
+Otheryn PR #61 final head `4b6dd3fdca907d2f521cb366322dd5b007aca668` changed exactly five intended OAM-030 paths and no temporary helper/workflow path. Exact-head autofix.ci #185, CI #223 and Required #208 succeeded; Linux debug full `Run Tests` succeeded and test-log artifact `8488418806` has digest `sha256:1bf24e4a4d61bb8f0aab3769b2b19cfe7abd9c98507b691d9d034de07b476e29`. Comments/reviews/threads were empty, target `main` had no drift from the immutable base, and PR #61 merged by expected-head squash as `dc483d6e8d659d61482da2af7abda9b46b1766ff`.
+
+Canary governance PR #659 was reconstructed on non-overlapping Canary `main` `af27845b130a87d92f2794c2817d77cfe6d84825` after independent OTBM lifecycle drift. Final head `5cd38afab83e47aa7cdaa19691e5f0f28c4eef58` changed exactly the OAM-030 report and active-task record. Agent Task Ownership #2991 and final-gate CI #4147 succeeded; comments/reviews/threads were empty and no further drift occurred before expected-head squash merge `6c092568e44dcb0b13959a8f22c14a992565aa7b`.
+
+Authoritative lifecycle PR #662 was twice reconstructed onto newer non-overlapping Canary `main` states because independent OTBM/E2E work landed before merge. Final head `8570fd23da85b2f014bd17c8e8b38526a1c8f49f` still changed exactly the active-delete/archive-add lifecycle paths. Agent Task Ownership #2999 and CI #4153 succeeded on that exact head; comments/reviews/threads were empty, and PR #662 merged by expected-head squash as `994d1ffdfd6828688b1acc6cd7c0c519eab052ba`.
+
+OAM-030 does not claim full Bosstiary parity, exhaustive boosted-boss selection correctness, distributed or multiwriter leader election, cross-channel Bosstiary safety, Bestiary or Charms child correctness, exact protocol/client compatibility, maintained-client rendering correctness, monster-data parity, database availability or crash-recovery guarantees, physical-client Bosstiary E2E closure, or full Real Tibia parity.
+
 # Current state
 
 ```text
-Canary reconciliation base: 2a4b717448e55e1a2c24578df44eb981f8ae4bfd
-Otheryn target head after OAM-029: 908834adc7d7e7e4ced7404391c7966b1c961b18
+Canary reconciliation base: 994d1ffdfd6828688b1acc6cd7c0c519eab052ba
+Otheryn target head after OAM-030: dc483d6e8d659d61482da2af7abda9b46b1766ff
 maintained OTClient: a6868920443dc285656bd016acdb2c1ea566e511
-OAM-001..OAM-029: feature/lifecycle complete
-OAM-029 task: archived
-OAM-030: NOT STARTED
+OAM-001..OAM-030: feature/lifecycle complete
+OAM-030 task: archived
+OAM-031: NOT STARTED
 ```
 
 No OAM implementation task is active in this reconciliation record.
@@ -491,8 +512,8 @@ No OAM implementation task is active in this reconciliation record.
 
 | Package | Status | Next action |
 |---|---|---|
-| OAM-001..OAM-029 | completed | preserve durable evidence |
-| OAM-030+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
+| OAM-001..OAM-030 | completed | preserve durable evidence |
+| OAM-031+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
 
 # Invariants and known gaps
 
@@ -525,7 +546,8 @@ No OAM implementation task is active in this reconciliation record.
 - OAM-027 does not claim generic house purchase/auction transaction atomicity, crash-safe transfer recovery, distributed or multiwriter house ownership, cross-channel house safety, Cyclopedia house-tab correctness, protocol/client UI compatibility, exhaustive rent/auction parity, physical-client house E2E closure, full Real Tibia house parity, or map/OTBM correctness.
 - OAM-028 does not claim Bestiary, Bosstiary, Charm, Cyclopedia Character, Titles or Houses child correctness, exact packet-byte compatibility, maintained-client parsing/rendering correctness, item/map/house presentation correctness, persistence completeness, runtime behavior, physical-client Cyclopedia E2E closure, or full Real Tibia parity.
 - OAM-029 does not claim full Cyclopedia Character parity, exact packet-byte compatibility, death-history correctness, KV/store-summary parity, database query performance, retained-history policy, maintained-client rendering correctness, physical-client Cyclopedia Character E2E closure, or full Real Tibia parity.
+- OAM-030 does not claim full Bosstiary parity, exhaustive boosted-boss selection correctness, distributed or multiwriter leader election, cross-channel Bosstiary safety, Bestiary or Charms child correctness, exact protocol/client compatibility, maintained-client rendering correctness, monster-data parity, database availability or crash-recovery guarantees, physical-client Bosstiary E2E closure, or full Real Tibia parity.
 
 # Exact next task
 
-Merge this program-only OAM-029 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-030 preflight begin. OAM-030 is NOT STARTED by this record.
+Merge this program-only OAM-030 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-031 preflight begin. OAM-031 is NOT STARTED by this record.
