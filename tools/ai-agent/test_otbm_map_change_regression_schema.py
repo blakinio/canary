@@ -38,7 +38,7 @@ class RegressionGuardSchemaTests(unittest.TestCase):
         )
 
         self.assertEqual(set(report), set(schema["required"]))
-        self.assertEqual(set(report["source"]), set(schema["properties"]["source"]["required"]))
+        self.assertEqual(set(report["source"]), set(schema["$defs"]["sourceIdentity"]["required"]))
         self.assertEqual(set(report["policy"]), set(schema["properties"]["policy"]["required"]))
         self.assertEqual(set(report["provenance"]), set(schema["properties"]["provenance"]["required"]))
         self.assertEqual(set(report["semanticDiff"]), set(schema["properties"]["semanticDiff"]["required"]))
