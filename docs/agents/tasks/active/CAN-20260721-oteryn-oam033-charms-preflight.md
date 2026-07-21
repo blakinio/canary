@@ -41,8 +41,8 @@ Perform a fresh bounded OAM-033 revalidation of canonical `charms` after complet
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T23:35:00+02:00
-head: 6e8ff0e2ddad845ba7d685ab1bc1608af1054d57
+updated_at: 2026-07-21T23:40:00+02:00
+head: 17a63c5966bb1644e36f12f6aa67e499573e2728
 branch: docs/oam-033-charms-preflight
 pr: 696
 status: validating
@@ -54,8 +54,7 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260721-oteryn-oam033-charms-preflight.md
   - docs/agents/OTERYN_OAM_033_CHARMS_REVALIDATION.md
 proven:
-  - OAM-032 titles is fully complete with durable Canary reconciliation merge f05ea5e916af00ab1469a2332aaec2d3c9df7478.
-  - OAM-032 target-task archive is complete in Otheryn at 1a4bbceda2c805bc69c68c1592e04e63d7e9a269.
+  - OAM-032 is fully closed: Canary durable reconciliation f05ea5e916af00ab1469a2332aaec2d3c9df7478 and Otheryn target-task archive 1a4bbceda2c805bc69c68c1592e04e63d7e9a269.
   - Canonical charms depends on combat cyclopedia player-persistence and protocol; all four dependencies are completed OAM foundations.
   - TSD-004 preserves independent Charm ownership for definitions costs unlock state assignment and combat effects even where IOBestiary hosts Charm helpers.
   - Task-start Canary main is f05ea5e916af00ab1469a2332aaec2d3c9df7478.
@@ -94,5 +93,5 @@ validation:
     result: PASS
     evidence: final head e1fca0b372173db335118735f501f315d442888f passed autofix 192 Repository Audit 27 CI 233 Required 218 and Linux-debug full Run Tests before merge c887318a676998da5ef3224a3aa8d1e0df75e607
 blockers: []
-next_action: Mark PR 696 ready, apply final-gate, require exact-head Agent Task Ownership and CI success, audit exactly two governance paths plus comments reviews threads and Canary main drift, then expected-head squash merge before separate lifecycle and durable reconciliation.
+next_action: Require exact-head Agent Task Ownership and final-gate CI success on PR 696, audit exactly two governance paths plus comments reviews threads and Canary main drift, then expected-head squash merge before separate lifecycle and durable reconciliation.
 ```
