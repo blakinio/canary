@@ -113,8 +113,8 @@ Create a deterministic fail-closed evidence-chain orchestrator that binds one su
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T17:36:00+02:00
-head: 986f9f7261230a6f6846d52fb2b84ca990d2b91e
+updated_at: 2026-07-21T17:39:00+02:00
+head: 435e3be7c431278494e69013aa9e5213ab5b7c03
 branch: feat/otbm-qa-004-reviewed-candidate-repair-20260721
 pr: 684
 status: implementing
@@ -142,10 +142,11 @@ proven:
   - Canonical repair/materialization pipeline supports exactly one of fixed-width-attribute, tile-area, tile-replacement, tile-insertion, tile-deletion or tile-type-conversion per run and emits canary-otbm-repair-materialization-pipeline-v1.
   - OTBM-E2E-009 consumes successful pipeline evidence plus exact Semantic Diff and OTBM-E2E-008 selection and emits canary-otbm-candidate-physical-validation-v1 without adding another runner or workflow.
   - QA-004 core, CLI, approval/report schemas, focused evidence-chain tests, output-safety tests, schema-contract tests and contract documentation are present on PR #684.
+  - First complete implementation head 986f9f7261230a6f6846d52fb2b84ca990d2b91e passed CI run 29844442207, OTBM Map Tools run 29844441796 and AI Agent Tools run 29844441706.
 derived:
   - The smallest complete QA-004 v1 is an evidence-chain orchestrator/validator over explicit approval and already-produced canonical outputs; it need not execute or duplicate mutation or Physical E2E boundaries.
 unknown:
-  - Focused AI Agent/OTBM test outcomes on the first complete implementation head until GitHub Actions completes.
+  - Ownership outcome after checkpoint-shape corrections.
 conflicts: []
 first_failure:
   marker: Agent Task Ownership run 29844441699
@@ -169,16 +170,7 @@ changed_paths:
 validation:
   - command: Agent Task Ownership run 29844441699
     result: FAIL
-    evidence: Checkpoint-shape-only failure; fixed by adding required checkpoint fields and using status implementing.
-  - command: OTBM Map Tools run 29844441796
-    result: RUNNING
-    evidence: Schema JSON validation passed; focused OTBM tests still running at checkpoint update.
-  - command: AI Agent Tools run 29844441706
-    result: RUNNING
-    evidence: Full AI-agent unit-test discovery still running at checkpoint update.
-  - command: CI run 29844442207
-    result: RUNNING
-    evidence: Repository CI still running at checkpoint update.
+    evidence: Checkpoint-shape-only failure; required checkpoint fields/status were corrected, and a second checkpoint-only validation issue concerning unsupported RUNNING result values was then removed.
 blockers: []
-next_action: Require ownership and focused implementation gates to pass on the updated checkpoint head; fix only concrete failures, then add exactly one MODULE_CATALOG row before pre-final validation.
+next_action: Require ownership to pass after checkpoint-shape corrections; then add exactly one MODULE_CATALOG row and run pre-final validation on the complete intended diff.
 ```
