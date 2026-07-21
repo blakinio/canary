@@ -52,8 +52,8 @@ Persist the user's requested future gameplay rules for changing the skill wheel 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T10:45:00Z
-head: 61e665e60851ce4043b559ac0ffa288bf21d6c57
+updated_at: 2026-07-21T10:52:00Z
+head: 08b885608c8d052f9c50d325ba6b7e3a892b9772
 branch: docs/ots-skill-wheel-pz-20260721
 pr: 667
 status: validating
