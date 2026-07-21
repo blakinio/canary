@@ -4,7 +4,7 @@
   "suite": "combat",
   "name": "Deterministic physical combat vertical slice",
   "program_id": "CAN-PROGRAM-E2E-PLATFORM",
-  "description": "Create the repository-owned Instanced Test Arena with an isolated Cave Rat, approach through exact movement edges, start a real client attack with the existing high-level Knight 15 fixture, observe target acquisition and deterministic creature removal, then explicitly close the arena before the canonical logout/relog lifecycle.",
+  "description": "Create the repository-owned Instanced Test Arena with an isolated Cave Rat, approach through exact movement edges, start a real client attack with the existing high-level Paladin 15 fixture, observe target acquisition and deterministic creature removal, then explicitly close the arena before the canonical logout/relog lifecycle.",
   "client": {
     "repository": "blakinio/otclient",
     "ref": "2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f",
@@ -18,7 +18,7 @@
   "fixture": {
     "account": "@test15",
     "password_env": "AGENT_E2E_TEST_PASSWORD",
-    "character": "Knight 15",
+    "character": "Paladin 15",
     "world": "Canary E2E",
     "host": "127.0.0.1",
     "game_port": 7172
@@ -135,8 +135,8 @@
       "e2e=success"
     ],
     "sql": [
-      "SELECT lastlogin > 0 FROM players WHERE name = 'Knight 15'",
-      "SELECT lastlogout > 0 FROM players WHERE name = 'Knight 15'"
+      "SELECT lastlogin > 0 FROM players WHERE name = 'Paladin 15'",
+      "SELECT lastlogout > 0 FROM players WHERE name = 'Paladin 15'"
     ]
   },
   "artifacts": [
