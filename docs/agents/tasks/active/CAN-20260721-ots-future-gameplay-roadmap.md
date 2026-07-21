@@ -1,3 +1,30 @@
+---
+task_id: CAN-20260721-ots-future-gameplay-roadmap
+program_id: CAN-PROGRAM-OTS-FUTURE-GAMEPLAY-SYSTEMS
+status: review
+agent: "GPT-5.6 Thinking"
+branch: docs/ots-future-roadmap-20260721
+base_branch: main
+created: 2026-07-21
+updated: 2026-07-21
+last_verified_commit: "994d1ffdfd6828688b1acc6cd7c0c519eab052ba"
+risk: low
+related_issue: ""
+related_pr: "664"
+depends_on: []
+blocks: []
+owned_paths:
+  exclusive:
+    - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md
+    - docs/agents/tasks/active/CAN-20260721-ots-future-gameplay-roadmap.md
+  shared: []
+  read_only: []
+modules_touched: []
+reuses: []
+public_interfaces: []
+cross_repo_tasks: []
+---
+
 # CAN-20260721 — OTS future gameplay systems roadmap
 
 ## Status
@@ -34,8 +61,8 @@ Persist the user's OTS gameplay/system redesign discussion so a continuation age
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T09:44:54Z
-head: UNKNOWN
+updated_at: 2026-07-21T09:47:11Z
+head: 738981e019c9b0df04f56a587781928362b64fb2
 branch: docs/ots-future-roadmap-20260721
 pr: 664
 status: validating
@@ -47,18 +74,19 @@ owned_paths:
 proven:
   - PR #664 is open as a draft against blakinio/canary:main from docs/ots-future-roadmap-20260721.
   - PR #664 changes only the roadmap and this active task record.
-  - CI run 29819035316 passed on pre-repair head 8754737a60c622d9d480e42ce33bf555125dc8e9.
-  - AI Agent Tools run 29819035131 passed on pre-repair head 8754737a60c622d9d480e42ce33bf555125dc8e9.
-  - Agent Task Ownership run 29819035179 failed because this Context checkpoint heading had no fenced YAML block.
+  - CI run 29819035316 passed on head 8754737a60c622d9d480e42ce33bf555125dc8e9.
+  - AI Agent Tools run 29819035131 passed on head 8754737a60c622d9d480e42ce33bf555125dc8e9.
+  - Agent Task Ownership run 29819035179 first failed because the Context checkpoint had no fenced YAML block.
+  - Agent Task Ownership run 29819556712 then failed because the active task record had no opening front matter delimiter.
   - The task is documentation-only and does not authorize gameplay, binary, map, datapack, or runtime implementation changes.
 derived:
-  - The immediate work is checkpoint-contract and CI validation repair; gameplay implementation remains out of scope.
+  - The immediate work is task-record contract and CI validation repair; gameplay implementation remains out of scope.
 unknown:
-  - Required GitHub check results for the post-repair PR head.
+  - Required GitHub check results for the post-frontmatter-repair PR head.
 conflicts: []
 first_failure:
   marker: Agent Task Ownership / Validate changed active task checkpoints
-  evidence: Run 29819035179 artifact active-task-ownership/CHANGED_TASK_VALIDATION.txt reports that the Context checkpoint heading has no fenced YAML block.
+  evidence: Run 29819556712 artifact active-task-ownership/CHANGED_TASK_VALIDATION.txt reports missing opening front matter delimiter.
 rejected_hypotheses: []
 changed_paths:
   - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md
@@ -66,16 +94,19 @@ changed_paths:
 validation:
   - command: GitHub Actions CI run 29819035316
     result: PASS
-    evidence: Completed successfully on pre-repair head 8754737a60c622d9d480e42ce33bf555125dc8e9.
+    evidence: Completed successfully on head 8754737a60c622d9d480e42ce33bf555125dc8e9.
   - command: GitHub Actions AI Agent Tools run 29819035131
     result: PASS
-    evidence: Completed successfully on pre-repair head 8754737a60c622d9d480e42ce33bf555125dc8e9.
+    evidence: Completed successfully on head 8754737a60c622d9d480e42ce33bf555125dc8e9.
   - command: GitHub Actions Agent Task Ownership run 29819035179
     result: FAIL
-    evidence: Validate changed active task checkpoints failed; ownership artifact identifies the missing fenced YAML checkpoint as the first failure.
+    evidence: Missing fenced YAML Context checkpoint.
+  - command: GitHub Actions Agent Task Ownership run 29819556712
+    result: FAIL
+    evidence: Missing opening front matter delimiter after the checkpoint repair.
 blockers:
-  - Current-head required checks must be reverified after the checkpoint repair.
-next_action: Verify PR #664 current-head ownership and required CI after this checkpoint repair; if all required checks pass and no review blockers remain, mark the PR ready and squash-merge it.
+  - Current-head required checks must be reverified after the frontmatter repair.
+next_action: Verify PR #664 current-head ownership and required CI after this frontmatter repair; if all required checks pass and no review blockers remain, mark the PR ready and squash-merge it.
 ```
 
 ### User design philosophy
