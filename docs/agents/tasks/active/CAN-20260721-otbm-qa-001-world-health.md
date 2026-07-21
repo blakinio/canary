@@ -1,7 +1,7 @@
 ---
 task_id: CAN-20260721-otbm-qa-001-world-health
 program_id: CAN-PROGRAM-OTBM
-status: implementing
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/otbm-qa-001-world-health-20260721
 base_branch: main
@@ -48,7 +48,7 @@ cross_repo_tasks: []
 
 ## Status
 
-ACTIVE — bounded implementation of the first successor roadmap package in draft PR #672.
+READY — bounded implementation is complete in PR #672; `ci:final-gate` is applied and no further feature/checkpoint commits are permitted after the exact-final head turns green.
 
 ## Goal
 
@@ -89,11 +89,11 @@ Add one deterministic, read-only world-health aggregation contract over compatib
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T13:47:00+02:00
-head: 6455f34cae694c62073640bfb9641c367999a072
+updated_at: 2026-07-21T13:52:00+02:00
+head: a767c5783660eec4a26cc8b59de7f3fe993d27d9
 branch: feat/otbm-qa-001-world-health-20260721
 pr: 672
-status: implementing
+status: ready
 context_routes:
   - otbm
   - agent-governance
@@ -110,20 +110,24 @@ owned_paths:
 proven:
   - Consolidated roadmap OTBM-QA-001..018 merged through PR #669 and lifecycle archived through PR #671.
   - OTBM-QA-001 is the first unrealized package in the roadmap dependency sequence.
-  - PR #672 is the bounded draft implementation PR for this task.
+  - PR #672 is the bounded implementation PR for this task and is mergeable at the pre-final checkpoint audit.
   - Existing Map Quality, Reachability and OTBM-E2E coverage schemas expose the exact provenance and explicit health dimensions reused by this package.
   - World Health core, CLI, focused aggregation tests, output-safety tests, schema-contract tests, v1 schema and contract documentation are present on the feature branch.
-  - Corrected checkpoint head e825ffa91979af569b6ac514c65a9b238be2a541 passed CI run 29825728291, Agent Task Ownership run 29825728147, OTBM Map Tools run 29825728055 and AI Agent Tools run 29825728027.
-  - The final MODULE_CATALOG PR diff adds exactly one OTBM World Health Aggregator row and preserves all existing catalogue text.
+  - Pre-final checkpoint head a767c5783660eec4a26cc8b59de7f3fe993d27d9 passed CI run 29826816051, Agent Task Ownership run 29826815808, OTBM Map Tools run 29826815858 and AI Agent Tools run 29826815812.
+  - AI Agent Tools unit-test discovery passed with the schema-contract test included; OTBM Map Tools schema JSON and focused tests passed.
+  - PR #672 changes exactly nine intended task/module/documentation/test paths.
+  - The MODULE_CATALOG diff adds exactly one OTBM World Health Aggregator row and preserves all existing catalogue text.
+  - PR #672 has zero review submissions and zero inline review threads at the pre-final checkpoint audit.
   - Main advanced to e55e0d548d6013da6676cc7b06cbb8d459ccdd1f through independent Oteryn governance documentation; no path in that commit overlaps this task ownership.
+  - ci:final-gate was applied before this final checkpoint commit.
 derived:
   - The smallest complete v1 composes one required Map Quality report with zero or more current-map Reachability reports and zero or more current-map coverage matrices while leaving future compatible adapters additive.
 unknown:
-  - Exact-head focused-gate outcome after adding the schema-contract test and updating its ownership declaration.
+  - Exact-final-head CI and focused-gate outcomes for the final checkpoint commit until GitHub Actions completes.
 conflicts: []
 first_failure:
   marker: agent-task-ownership-related-pr
-  evidence: Agent Task Ownership run 29825597769 failed because changed active task related_pr was empty instead of current PR 672; the metadata was corrected and later ownership run 29825728147 passed.
+  evidence: Agent Task Ownership run 29825597769 failed because changed active task related_pr was empty instead of current PR 672; the metadata was corrected and subsequent ownership gates passed.
 rejected_hypotheses:
   - Rescanning OTBM to compute health.
   - Building another pathfinder or script resolver.
@@ -143,18 +147,18 @@ validation:
   - command: Agent Task Ownership run 29825597769
     result: FAIL
     evidence: Initial related_pr metadata mismatch only; corrected from empty to 672.
-  - command: CI run 29825728291
+  - command: CI run 29826816051
     result: PASS
-    evidence: Repository CI passed on corrected checkpoint head e825ffa91979af569b6ac514c65a9b238be2a541.
-  - command: Agent Task Ownership run 29825728147
+    evidence: Repository CI passed on pre-final checkpoint head a767c5783660eec4a26cc8b59de7f3fe993d27d9.
+  - command: Agent Task Ownership run 29826815808
     result: PASS
-    evidence: Active-task ownership and PR binding passed on corrected checkpoint head.
-  - command: OTBM Map Tools run 29825728055
+    evidence: Active-task ownership, owned path declarations and PR binding passed on pre-final checkpoint head.
+  - command: OTBM Map Tools run 29826815858
     result: PASS
-    evidence: Focused OTBM tooling validation passed on corrected checkpoint head.
-  - command: AI Agent Tools run 29825728027
+    evidence: OTBM schema JSON validation and focused OTBM tests passed on pre-final checkpoint head.
+  - command: AI Agent Tools run 29826815812
     result: PASS
-    evidence: Full tools/ai-agent unittest discovery and AI-agent validation passed on corrected checkpoint head.
+    evidence: Full tools/ai-agent unittest discovery and AI-agent validation passed on pre-final checkpoint head including the World Health schema-contract test.
 blockers: []
-next_action: Require current-head Ownership, AI Agent Tools, OTBM Map Tools and CI success including the new schema-contract test; fix any bounded failure, then apply ci:final-gate before the final checkpoint commit and perform exact-final-head validation with no post-green commits.
+next_action: Mark PR #672 ready for review without changing files. Require exact-final-head CI, Agent Task Ownership, OTBM Map Tools and AI Agent Tools success on this checkpoint commit, confirm mergeability and zero review threads, then squash-merge #672 and perform lifecycle archive in a separate bounded PR before starting the next roadmap package.
 ```
