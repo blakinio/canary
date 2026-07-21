@@ -7,7 +7,7 @@ branch: feat/otbm-qa-001-world-health-20260721
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
-last_verified_commit: "92ac0d378540f2c6f54d5399c849445e20772bd8"
+last_verified_commit: "e55e0d548d6013da6676cc7b06cbb8d459ccdd1f"
 risk: medium
 related_issue: ""
 related_pr: "672"
@@ -21,6 +21,7 @@ owned_paths:
     - tools/ai-agent/otbm_world_health_tool.py
     - tools/ai-agent/test_otbm_world_health.py
     - tools/ai-agent/test_otbm_world_health_output_safety.py
+    - tools/ai-agent/test_otbm_world_health_schema.py
     - docs/ai-agent/OTBM_WORLD_HEALTH.md
     - docs/ai-agent/OTBM_WORLD_HEALTH.schema.json
     - docs/agents/tasks/active/CAN-20260721-otbm-qa-001-world-health.md
@@ -60,7 +61,7 @@ Add one deterministic, read-only world-health aggregation contract over compatib
 - Preserve separate dimensions for structural findings, runtime-handler resolution, reachability states, stale evidence and missing Physical E2E coverage.
 - Preserve exact totals from source summaries and deterministic bounded samples without deduplicating distinct findings into inferred defects.
 - Pin every contributing report by SHA-256 and preserve bounded/global coverage semantics.
-- Fail closed on malformed, unsupported, stale or incompatible provenance.
+- Fail closed on malformed, unsupported or incompatible contributing-report provenance while preserving explicitly stale target evidence as its own health dimension.
 - Keep generated reports outside Git and use create-new/no-clobber output semantics.
 
 ## Explicit non-goals
@@ -82,14 +83,14 @@ Add one deterministic, read-only world-health aggregation contract over compatib
 - Stale and missing-physical-coverage totals preserve OTBM-E2E coverage semantics and remain coverage evidence rather than breakage claims.
 - Samples are deterministic and bounded while totals remain exact.
 - Output safety rejects symlinks/input collisions and does not clobber an existing report unless explicitly requested.
-- Focused unit/output-safety tests and relevant AI Agent/OTBM gates pass.
+- Focused aggregation, schema-contract and output-safety tests plus relevant AI Agent/OTBM gates pass.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T13:25:00Z
-head: c03ec22cfc83cfcfb87ad9b931b2312748ddbf20
+updated_at: 2026-07-21T13:47:00+02:00
+head: 6455f34cae694c62073640bfb9641c367999a072
 branch: feat/otbm-qa-001-world-health-20260721
 pr: 672
 status: implementing
@@ -101,30 +102,35 @@ owned_paths:
   - tools/ai-agent/otbm_world_health_tool.py
   - tools/ai-agent/test_otbm_world_health.py
   - tools/ai-agent/test_otbm_world_health_output_safety.py
+  - tools/ai-agent/test_otbm_world_health_schema.py
   - docs/ai-agent/OTBM_WORLD_HEALTH.md
   - docs/ai-agent/OTBM_WORLD_HEALTH.schema.json
   - docs/agents/tasks/active/CAN-20260721-otbm-qa-001-world-health.md
+  - docs/agents/MODULE_CATALOG.md
 proven:
   - Consolidated roadmap OTBM-QA-001..018 merged through PR #669 and lifecycle archived through PR #671.
-  - Main advanced after task creation to 92ac0d378540f2c6f54d5399c849445e20772bd8 through unrelated Weapon Proficiency documentation PR #667; its changed paths do not overlap this task.
-  - No open OTBM implementation PR overlaps this package; open PR #666 explicitly excludes OTBM tooling.
   - OTBM-QA-001 is the first unrealized package in the roadmap dependency sequence.
-  - Existing Map Quality, Reachability and OTBM-E2E coverage schemas expose the exact provenance and explicit health dimensions reused by this package.
   - PR #672 is the bounded draft implementation PR for this task.
-  - World Health core, CLI, focused aggregation tests, output-safety tests, v1 schema and contract documentation are present on the feature branch.
+  - Existing Map Quality, Reachability and OTBM-E2E coverage schemas expose the exact provenance and explicit health dimensions reused by this package.
+  - World Health core, CLI, focused aggregation tests, output-safety tests, schema-contract tests, v1 schema and contract documentation are present on the feature branch.
+  - Corrected checkpoint head e825ffa91979af569b6ac514c65a9b238be2a541 passed CI run 29825728291, Agent Task Ownership run 29825728147, OTBM Map Tools run 29825728055 and AI Agent Tools run 29825728027.
+  - The final MODULE_CATALOG PR diff adds exactly one OTBM World Health Aggregator row and preserves all existing catalogue text.
+  - Main advanced to e55e0d548d6013da6676cc7b06cbb8d459ccdd1f through independent Oteryn governance documentation; no path in that commit overlaps this task ownership.
 derived:
   - The smallest complete v1 composes one required Map Quality report with zero or more current-map Reachability reports and zero or more current-map coverage matrices while leaving future compatible adapters additive.
-unknown: []
+unknown:
+  - Exact-head focused-gate outcome after adding the schema-contract test and updating its ownership declaration.
 conflicts: []
 first_failure:
   marker: agent-task-ownership-related-pr
-  evidence: Agent Task Ownership run 29825597769 failed because changed active task related_pr was empty instead of current PR 672; compile and focused ownership-tool tests passed. Metadata corrected in the next task-record commit.
+  evidence: Agent Task Ownership run 29825597769 failed because changed active task related_pr was empty instead of current PR 672; the metadata was corrected and later ownership run 29825728147 passed.
 rejected_hypotheses:
   - Rescanning OTBM to compute health.
   - Building another pathfinder or script resolver.
   - Collapsing all evidence into one opaque health score.
   - Treating a missing Physical E2E scenario as proof a mechanic is broken.
 changed_paths:
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260721-otbm-qa-001-world-health.md
   - docs/ai-agent/OTBM_WORLD_HEALTH.md
   - docs/ai-agent/OTBM_WORLD_HEALTH.schema.json
@@ -132,10 +138,23 @@ changed_paths:
   - tools/ai-agent/otbm_world_health_tool.py
   - tools/ai-agent/test_otbm_world_health.py
   - tools/ai-agent/test_otbm_world_health_output_safety.py
+  - tools/ai-agent/test_otbm_world_health_schema.py
 validation:
   - command: Agent Task Ownership run 29825597769
     result: FAIL
-    evidence: related_pr metadata mismatch only; corrected from empty to 672.
+    evidence: Initial related_pr metadata mismatch only; corrected from empty to 672.
+  - command: CI run 29825728291
+    result: PASS
+    evidence: Repository CI passed on corrected checkpoint head e825ffa91979af569b6ac514c65a9b238be2a541.
+  - command: Agent Task Ownership run 29825728147
+    result: PASS
+    evidence: Active-task ownership and PR binding passed on corrected checkpoint head.
+  - command: OTBM Map Tools run 29825728055
+    result: PASS
+    evidence: Focused OTBM tooling validation passed on corrected checkpoint head.
+  - command: AI Agent Tools run 29825728027
+    result: PASS
+    evidence: Full tools/ai-agent unittest discovery and AI-agent validation passed on corrected checkpoint head.
 blockers: []
-next_action: Re-run ownership and focused OTBM/AI Agent gates on the corrected checkpoint, fix any implementation or schema failures, then update MODULE_CATALOG and prepare exact-final-head validation.
+next_action: Require current-head Ownership, AI Agent Tools, OTBM Map Tools and CI success including the new schema-contract test; fix any bounded failure, then apply ci:final-gate before the final checkpoint commit and perform exact-final-head validation with no post-green commits.
 ```
