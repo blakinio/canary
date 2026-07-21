@@ -8,10 +8,10 @@ branch: docs/e2e-gameplay-005-persistence-matrix-closure
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
-last_verified_commit: "994d1ffdfd6828688b1acc6cd7c0c519eab052ba"
+last_verified_commit: "14bb82c82aa3bde82b8fede71697f07c48cc23b8"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "666"
 depends_on:
   - merged E2E-GAMEPLAY-005 typed persistence slices PRs 565, 583, 586, 591, 595, 603, 608, 615
 blocks:
@@ -20,7 +20,7 @@ owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260721-e2e-gameplay-005-persistence-matrix-closure.md
     - docs/e2e/PERSISTENCE_ASSERTION_MATRIX.md
-    - docs/agents/programs/CAN-PROGRAM-E2E-PLATFORM.md
+    - docs/agents/programs/E2E_AUTOMATION_PROGRAM.md
   read_only:
     - docs/architecture/universal-e2e-gameplay-validation.md
     - tools/e2e/persistence_assertions.py
@@ -61,22 +61,23 @@ Close `E2E-GAMEPLAY-005` with one durable, feature-neutral persistence assertion
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T12:05:00+02:00
-head: 994d1ffdfd6828688b1acc6cd7c0c519eab052ba
+updated_at: 2026-07-21T12:07:00+02:00
+head: 14bb82c82aa3bde82b8fede71697f07c48cc23b8
 branch: docs/e2e-gameplay-005-persistence-matrix-closure
-pr: none
+pr: 666
 status: investigating
 context_routes:
   - universal-e2e
 owned_paths:
   - docs/agents/tasks/active/CAN-20260721-e2e-gameplay-005-persistence-matrix-closure.md
   - docs/e2e/PERSISTENCE_ASSERTION_MATRIX.md
-  - docs/agents/programs/CAN-PROGRAM-E2E-PLATFORM.md
+  - docs/agents/programs/E2E_AUTOMATION_PROGRAM.md
 proven:
   - E2E-GAMEPLAY-003 feature PR 637 and lifecycle PR 663 are merged
   - roadmap permits E2E-GAMEPLAY-005 to proceed independently of route planning
   - typed persistence slices PRs 565, 583, 586, 591, 595, 603, 608, and 615 are merged
   - player soul lifecycle debt was archived by merged PR 636
+  - draft PR 666 owns this bounded persistence matrix closure task
 derived:
   - the next bounded E2E platform task is a feature-neutral E2E-GAMEPLAY-005 matrix and programme-closure audit rather than another persistence implementation slice
 unknown:
@@ -85,7 +86,7 @@ unknown:
 conflicts: []
 first_failure:
   marker: none
-  evidence: no unresolved failure is established at task start
+  evidence: no unresolved failure is established at handover
 rejected_hypotheses:
   - OTBM-E2E-002 should be resumed by this task: user assigned that scope to another owner and the OTBM route programme is already closed
 changed_paths:
@@ -97,9 +98,9 @@ validation:
   - command: live GitHub PR state for E2E-GAMEPLAY-003 feature 637 and lifecycle 663
     result: PASS
     evidence: both PRs are closed and merged
-  - command: checkpoint validator
-    result: NOT_RUN
-    evidence: run after durable task claim is published
+  - command: python tools/agents/checkpoint.py docs/agents/tasks/active/CAN-20260721-e2e-gameplay-005-persistence-matrix-closure.md --require-checkpoint
+    result: PASS
+    evidence: Validated 1 task checkpoint(s).
 blockers: []
 next_action: Audit the current merged persistence contracts and focused tests on main, then draft docs/e2e/PERSISTENCE_ASSERTION_MATRIX.md and the narrow E2E programme status update without runtime changes unless a concrete reusable gap is proven.
 ```
