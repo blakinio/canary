@@ -1,0 +1,393 @@
+{
+  "$defs": {
+    "boundary": {
+      "properties": {
+        "blockers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "edgeId": {
+          "type": "string"
+        },
+        "relation": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "edgeId",
+        "source",
+        "target",
+        "relation",
+        "blockers"
+      ],
+      "type": "object"
+    },
+    "edge": {
+      "properties": {
+        "blockers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/evidence"
+          },
+          "type": "array"
+        },
+        "id": {
+          "type": "string"
+        },
+        "relation": {
+          "type": "string"
+        },
+        "reviewState": {
+          "enum": [
+            "reviewed",
+            "ambiguous"
+          ]
+        },
+        "source": {
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/state"
+        },
+        "target": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "source",
+        "target",
+        "relation",
+        "reviewState",
+        "state",
+        "blockers",
+        "evidence"
+      ],
+      "type": "object"
+    },
+    "evidence": {
+      "properties": {
+        "blockers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "expectation": {
+          "anyOf": [
+            {
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pointer": {
+          "type": "string"
+        },
+        "reportSha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/state"
+        }
+      },
+      "required": [
+        "reportSha256",
+        "pointer",
+        "expectation",
+        "state",
+        "blockers"
+      ],
+      "type": "object"
+    },
+    "impact": {
+      "properties": {
+        "depth": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "nodeId": {
+          "type": "string"
+        },
+        "nodeKind": {
+          "type": "string"
+        },
+        "pathEdgeIds": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "pathNodeIds": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "nodeId",
+        "nodeKind",
+        "depth",
+        "pathNodeIds",
+        "pathEdgeIds"
+      ],
+      "type": "object"
+    },
+    "node": {
+      "properties": {
+        "blockers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/evidence"
+          },
+          "type": "array"
+        },
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "reviewState": {
+          "enum": [
+            "reviewed",
+            "ambiguous"
+          ]
+        },
+        "selector": {
+          "type": "object"
+        },
+        "state": {
+          "$ref": "#/$defs/state"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "selector",
+        "reviewState",
+        "state",
+        "blockers",
+        "evidence"
+      ],
+      "type": "object"
+    },
+    "policy": {
+      "additionalProperties": false,
+      "properties": {
+        "dependencyEdgesInferred": {
+          "const": false
+        },
+        "mapModified": {
+          "const": false
+        },
+        "otbmParsedIndependently": {
+          "const": false
+        },
+        "pathfindingExecuted": {
+          "const": false
+        },
+        "physicalE2eExecuted": {
+          "const": false
+        },
+        "physicalE2eSelectionRecomputed": {
+          "const": false
+        },
+        "readOnly": {
+          "const": true
+        },
+        "routePlanningExecuted": {
+          "const": false
+        },
+        "scenarioPrioritizationDirected": {
+          "const": false
+        },
+        "scriptResolutionRecomputed": {
+          "const": false
+        },
+        "selectedScopeAbsenceMeansGlobalAbsence": {
+          "const": false
+        },
+        "storageGraphRecomputed": {
+          "const": false
+        },
+        "unprovenEdgesTraversed": {
+          "const": false
+        }
+      },
+      "required": [
+        "readOnly",
+        "mapModified",
+        "otbmParsedIndependently",
+        "scriptResolutionRecomputed",
+        "storageGraphRecomputed",
+        "pathfindingExecuted",
+        "routePlanningExecuted",
+        "physicalE2eSelectionRecomputed",
+        "physicalE2eExecuted",
+        "dependencyEdgesInferred",
+        "unprovenEdgesTraversed",
+        "selectedScopeAbsenceMeansGlobalAbsence",
+        "scenarioPrioritizationDirected"
+      ],
+      "type": "object"
+    },
+    "query": {
+      "properties": {
+        "directImpacts": {
+          "items": {
+            "$ref": "#/$defs/impact"
+          },
+          "type": "array"
+        },
+        "id": {
+          "type": "string"
+        },
+        "maxDepth": {
+          "type": "integer"
+        },
+        "provenRootNodeIds": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "roots": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "summary": {
+          "type": "object"
+        },
+        "transitiveImpacts": {
+          "items": {
+            "$ref": "#/$defs/impact"
+          },
+          "type": "array"
+        },
+        "unresolvedBoundaries": {
+          "items": {
+            "$ref": "#/$defs/boundary"
+          },
+          "type": "array"
+        },
+        "unresolvedRootNodeIds": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "roots",
+        "maxDepth",
+        "provenRootNodeIds",
+        "unresolvedRootNodeIds",
+        "directImpacts",
+        "transitiveImpacts",
+        "unresolvedBoundaries",
+        "summary"
+      ],
+      "type": "object"
+    },
+    "state": {
+      "enum": [
+        "proven",
+        "unresolved"
+      ]
+    }
+  },
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_DEPENDENCY_GRAPH.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "edges": {
+      "items": {
+        "$ref": "#/$defs/edge"
+      },
+      "type": "array"
+    },
+    "format": {
+      "const": "canary-otbm-dependency-blast-radius-v1"
+    },
+    "nodes": {
+      "items": {
+        "$ref": "#/$defs/node"
+      },
+      "type": "array"
+    },
+    "notes": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "policy": {
+      "$ref": "#/$defs/policy"
+    },
+    "provenance": {
+      "type": "object"
+    },
+    "queries": {
+      "items": {
+        "$ref": "#/$defs/query"
+      },
+      "type": "array"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "source": {
+      "type": "object"
+    },
+    "summary": {
+      "type": "object"
+    },
+    "unresolvedBoundaries": {
+      "items": {
+        "$ref": "#/$defs/boundary"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "format",
+    "schemaVersion",
+    "source",
+    "policy",
+    "provenance",
+    "summary",
+    "nodes",
+    "edges",
+    "unresolvedBoundaries",
+    "queries",
+    "notes"
+  ],
+  "title": "Canary OTBM Dependency Blast Radius v1",
+  "type": "object"
+}
