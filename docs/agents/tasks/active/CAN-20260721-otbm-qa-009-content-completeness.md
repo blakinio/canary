@@ -10,7 +10,7 @@ updated: 2026-07-21
 last_verified_commit: "7f32462c0e55f1efa397438652bb41f7e200f3d9"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "700"
 depends_on:
   - CAN-20260721-otbm-qa-008-dependency-blast-radius complete
   - CAN-20260721-otbm-qa-005-coverage-dashboard complete
@@ -51,7 +51,7 @@ cross_repo_tasks: []
 
 ## Status
 
-ACTIVE — QA-008 feature and lifecycle are complete; bounded QA-009 ownership starts from current `main`.
+ACTIVE — bounded implementation is isolated in draft PR #700.
 
 ## Goal
 
@@ -91,10 +91,10 @@ Identify selected-scope dead/orphaned-content candidates and summarize reviewed 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T23:55:00+02:00
-head: 7f32462c0e55f1efa397438652bb41f7e200f3d9
+updated_at: 2026-07-21T23:57:00+02:00
+head: 187433d27cfc153ebeeb859c7ede857a5801af22
 branch: feat/otbm-qa-009-content-completeness-20260721
-pr: none
+pr: 700
 status: implementing
 context_routes:
   - otbm
@@ -130,5 +130,5 @@ validation:
     result: PASS
     evidence: 17 tests passed in isolated QA-009 draft workspace before repository writes.
 blockers: []
-next_action: Open the draft QA-009 PR, set related_pr immediately, then land the bounded implementation, schemas, documentation and focused tests without widening ownership.
+next_action: Land the bounded implementation, schemas, documentation and focused tests on PR #700; then run corrected Ownership and pre-final CI/OTBM/AI Agent validation.
 ```
