@@ -50,7 +50,8 @@ class DeterministicCombatEvidenceTests(unittest.TestCase):
 
         self.assertIn("(115 , 'test15', '@test15'", accounts)
         self.assertIn("'@test15' , 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3', 6", accounts)
-        self.assertIn("'Knight 15'       , 1         , 115          , 500    , 4", players)
+        self.assertIn("'Paladin 15'      , 1         , 115          , 500    , 3", players)
+        self.assertNotIn("'Knight 15'", players)
 
         self.assertIn('TalkAction("/instancearena")', talkaction)
         self.assertIn('if param == "create" then', talkaction)
@@ -74,7 +75,7 @@ class DeterministicCombatEvidenceTests(unittest.TestCase):
         self.assertEqual(data["server"]["datapack"], "data-canary")
         self.assertEqual(data["server"]["map"], "canary")
         self.assertEqual(data["fixture"]["account"], "@test15")
-        self.assertEqual(data["fixture"]["character"], "Knight 15")
+        self.assertEqual(data["fixture"]["character"], "Paladin 15")
         self.assertEqual(data["client"]["automation"], "tools/e2e/client/agent_e2e_scenario.lua")
 
         self.assertEqual(steps[1], {"id": "create_arena", "action": "talk", "text": "/instancearena create"})
@@ -120,7 +121,7 @@ class DeterministicCombatEvidenceTests(unittest.TestCase):
         ):
             self.assertIn(marker, required)
 
-        self.assertTrue(all("WHERE name = 'Knight 15'" in query for query in data["assertions"]["sql"]))
+        self.assertTrue(all("WHERE name = 'Paladin 15'" in query for query in data["assertions"]["sql"]))
 
 
 if __name__ == "__main__":
