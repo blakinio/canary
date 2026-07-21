@@ -1,6 +1,6 @@
 # OAM-034 Creature definitions revalidation
 
-## Disposition
+## Final disposition
 
 `creature-definitions → ADAPT`
 
@@ -15,20 +15,20 @@ Canonical `creature-definitions` is dependency-valid with `depends_on: []` and o
 
 ## Selected adaptation boundary
 
-Merged legacy PR #192 is the accepted bounded donor. Six production monster definitions contain reviewed data corrections still absent from task-start Otheryn and fresh upstream:
+Merged legacy PR #192 is the accepted bounded donor. Six production monster definitions contain reviewed data corrections absent from task-start Otheryn and fresh upstream:
 
-1. Agrestic Chicken: add `BESTY_RACE_BIRD`.
-2. Terrified Elephant: add `BESTY_RACE_MAMMAL`.
-3. Alternate Eradicator: change `bossRaceId` from `1225` to `1226`.
-4. Monk's Apparition: change Bestiary `raceId` from `1946` to `2636`.
-5. Haunted Dragon: add `BESTY_RACE_DRAGON`.
-6. Crypt Warrior: add Bestiary `raceId = 1995` and `BESTY_RACE_UNDEAD`.
+1. Agrestic Chicken adds `BESTY_RACE_BIRD`.
+2. Terrified Elephant adds `BESTY_RACE_MAMMAL`.
+3. Alternate Eradicator changes `bossRaceId` from `1225` to `1226`.
+4. Monk's Apparition changes Bestiary `raceId` from `1946` to `2636`.
+5. Haunted Dragon adds `BESTY_RACE_DRAGON`.
+6. Crypt Warrior adds Bestiary `raceId = 1995` and `BESTY_RACE_UNDEAD`.
 
-Fresh file-by-file comparison confirmed that every selected task-start target file is exact-identical to fresh upstream pre-fix content and current legacy preserves the exact PR #192 correction. PR #192 validator, validator tests, Cyclopedia logs and governance files are excluded. The target package adds only one local focused source-contract proof plus its test registration, evidence and task checkpoint.
+Fresh file-by-file comparison confirmed that every selected task-start target file is exact-identical to fresh upstream pre-fix content and current legacy preserves the exact PR #192 correction. PR #192 validator, validator tests, Cyclopedia logs and governance files were excluded. The target package added only one local focused source-contract proof plus its test registration, evidence and task checkpoint.
 
-## Target delivery state
+## Target delivery
 
-Otheryn PR #69 is open from base `2fe646dfff3d4fc0672c3fbeca85708dabc4ce87` with initial exact head `dabc868c5ff9ca8009f20f1eb90645937ff18e22`. Its initial diff contains exactly ten intended paths: six production definitions, focused proof, test registration, target evidence and active task checkpoint. Exact-head autofix, Repository Audit, CI and Required validation are in progress.
+Otheryn PR #69 final head `dabc868c5ff9ca8009f20f1eb90645937ff18e22` changed exactly ten intended paths: six production definitions, focused proof, test registration, target evidence and active task checkpoint. Exact-head autofix.ci #193 run `29871761403`, Repository Audit #29 run `29871761411`, CI #235 run `29871761846`, and Required #220 run `29871761506` all succeeded. Linux-debug build, Canary datapack runtime smoke, schema import and full `Run Tests` succeeded. The suite completed `423/423`; both `Oam034CreatureDefinitionsAdaptTest` cases passed. Test-log artifact `8511786128` has digest `sha256:a53b92d60e34069d5fd0f52cd1ad94957edf757c2e8dd29c13ca5f2ec9ae30be`. Comments, reviews and review threads were empty; Otheryn `main` had no drift from immutable target base. PR #69 merged by expected-head squash as `566b3b001987f6f452663b77c380e6405bfc541b`.
 
 ## Governance drift audit
 
