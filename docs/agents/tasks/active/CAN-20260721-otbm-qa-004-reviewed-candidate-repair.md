@@ -113,14 +113,25 @@ Create a deterministic fail-closed evidence-chain orchestrator that binds one su
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T17:28:00+02:00
-head: d6da43d49f08f7d7a472f222fa914c46e39b3492
+updated_at: 2026-07-21T17:36:00+02:00
+head: 986f9f7261230a6f6846d52fb2b84ca990d2b91e
 branch: feat/otbm-qa-004-reviewed-candidate-repair-20260721
 pr: 684
-status: active
+status: implementing
 context_routes:
   - otbm
   - agent-governance
+owned_paths:
+  - tools/ai-agent/otbm_reviewed_candidate_repair.py
+  - tools/ai-agent/otbm_reviewed_candidate_repair_tool.py
+  - tools/ai-agent/test_otbm_reviewed_candidate_repair.py
+  - tools/ai-agent/test_otbm_reviewed_candidate_repair_output_safety.py
+  - tools/ai-agent/test_otbm_reviewed_candidate_repair_schema.py
+  - docs/ai-agent/OTBM_REVIEWED_CANDIDATE_REPAIR.md
+  - docs/ai-agent/OTBM_REVIEWED_CANDIDATE_REPAIR_APPROVAL.schema.json
+  - docs/ai-agent/OTBM_REVIEWED_CANDIDATE_REPAIR.schema.json
+  - docs/agents/tasks/active/CAN-20260721-otbm-qa-004-reviewed-candidate-repair.md
+  - docs/agents/MODULE_CATALOG.md
 proven:
   - OTBM-QA-003 feature PR #681 merged as 31257824fe7dde510fc2885f818732861e375efb.
   - OTBM-QA-003 lifecycle PR #682 merged as c35b44f04803bcd4e4bfa0c90df762d0425f88d1.
@@ -130,14 +141,44 @@ proven:
   - Live roadmap identifies OTBM-QA-004 Reviewed Candidate Repair Orchestration immediately after QA-003.
   - Canonical repair/materialization pipeline supports exactly one of fixed-width-attribute, tile-area, tile-replacement, tile-insertion, tile-deletion or tile-type-conversion per run and emits canary-otbm-repair-materialization-pipeline-v1.
   - OTBM-E2E-009 consumes successful pipeline evidence plus exact Semantic Diff and OTBM-E2E-008 selection and emits canary-otbm-candidate-physical-validation-v1 without adding another runner or workflow.
+  - QA-004 core, CLI, approval/report schemas, focused evidence-chain tests, output-safety tests, schema-contract tests and contract documentation are present on PR #684.
 derived:
   - The smallest complete QA-004 v1 is an evidence-chain orchestrator/validator over explicit approval and already-produced canonical outputs; it need not execute or duplicate mutation or Physical E2E boundaries.
 unknown:
-  - Exact approval/report field contract until implementation and focused tests land.
+  - Focused AI Agent/OTBM test outcomes on the first complete implementation head until GitHub Actions completes.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: No QA-004 implementation has been attempted yet.
+  marker: Agent Task Ownership run 29844441699
+  evidence: Changed-task checkpoint validation rejected missing changed_paths, owned_paths, rejected_hypotheses and validation fields and unsupported checkpoint status active; implementation code was not implicated.
+rejected_hypotheses:
+  - QA-004 should execute the repair/materialization pipeline itself.
+  - QA-004 should generate approval from a QA-003 recommendation.
+  - QA-004 should rerun Semantic Diff or OTBM-E2E-008 selection.
+  - QA-004 should add another Physical E2E runner or workflow.
+  - A successful static candidate is sufficient physical gameplay proof when selected scenarios exist.
+changed_paths:
+  - docs/agents/tasks/active/CAN-20260721-otbm-qa-004-reviewed-candidate-repair.md
+  - docs/ai-agent/OTBM_REVIEWED_CANDIDATE_REPAIR.md
+  - docs/ai-agent/OTBM_REVIEWED_CANDIDATE_REPAIR.schema.json
+  - docs/ai-agent/OTBM_REVIEWED_CANDIDATE_REPAIR_APPROVAL.schema.json
+  - tools/ai-agent/otbm_reviewed_candidate_repair.py
+  - tools/ai-agent/otbm_reviewed_candidate_repair_tool.py
+  - tools/ai-agent/test_otbm_reviewed_candidate_repair.py
+  - tools/ai-agent/test_otbm_reviewed_candidate_repair_output_safety.py
+  - tools/ai-agent/test_otbm_reviewed_candidate_repair_schema.py
+validation:
+  - command: Agent Task Ownership run 29844441699
+    result: FAIL
+    evidence: Checkpoint-shape-only failure; fixed by adding required checkpoint fields and using status implementing.
+  - command: OTBM Map Tools run 29844441796
+    result: RUNNING
+    evidence: Schema JSON validation passed; focused OTBM tests still running at checkpoint update.
+  - command: AI Agent Tools run 29844441706
+    result: RUNNING
+    evidence: Full AI-agent unit-test discovery still running at checkpoint update.
+  - command: CI run 29844442207
+    result: RUNNING
+    evidence: Repository CI still running at checkpoint update.
 blockers: []
-next_action: Implement the approval/report contracts, deterministic validator, CLI and focused tests on PR #684; re-check main overlap before final checkpointing.
+next_action: Require ownership and focused implementation gates to pass on the updated checkpoint head; fix only concrete failures, then add exactly one MODULE_CATALOG row before pre-final validation.
 ```
