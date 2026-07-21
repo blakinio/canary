@@ -7,10 +7,10 @@ branch: docs/otbm-roadmap-all-proposals-20260721
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
-last_verified_commit: "824abcfe3d39d274e8cad534fff06236085b129b"
+last_verified_commit: "c900a498fa5f3d26dc7e7e06f915c78268c78d80"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "669"
 depends_on:
   - CAN-20260721-otbm-quality-repair-roadmap complete
 blocks: []
@@ -66,6 +66,7 @@ Consolidate every OTBM-focused proposal raised in the current design discussion 
 
 - `PROVEN`: PR #665 merged the initial successor roadmap with OTBM-QA-001..007.
 - `PROVEN`: PR #668 archived the completed predecessor task, so this task owns the roadmap without active-task overlap.
+- `PROVEN`: draft PR #669 contains only this task record and the consolidated roadmap.
 - `DERIVED`: remaining proposals can be grouped into advanced analysis, world/domain integrity, lifecycle/provenance and downstream evidence-interface packages.
 - `DERIVED`: helping E2E through compact OTBM evidence is compatible with the current ownership model only when scenario/runtime ownership remains with Universal E2E.
 
@@ -73,11 +74,11 @@ Consolidate every OTBM-focused proposal raised in the current design discussion 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T12:25:00Z
-head: 824abcfe3d39d274e8cad534fff06236085b129b
+updated_at: 2026-07-21T12:30:00Z
+head: c900a498fa5f3d26dc7e7e06f915c78268c78d80
 branch: docs/otbm-roadmap-all-proposals-20260721
-pr: null
-status: implementing
+pr: 669
+status: validating
 context_routes:
   - otbm
   - agent-governance
@@ -88,19 +89,24 @@ proven:
   - Initial successor roadmap OTBM-QA-001..007 merged through PR #665.
   - Predecessor task lifecycle archived through PR #668.
   - Existing OTBM-E2E route programme remains closed and is reused only through its delivered contracts.
+  - Consolidated roadmap now maps every OTBM proposal from the discussion into OTBM-QA-001..018 or an existing package.
+  - OTBM-QA-018 explicitly limits downstream-agent/E2E support to compact read-only evidence and existing route/impact/coverage artifacts.
 derived:
-  - The consolidated roadmap should add advanced static analysis packages and one evidence-only downstream-agent gateway.
-unknown: []
+  - Advanced proposals are grouped into dependency/blast-radius, quest/content integrity, quest-state reachability, connectivity resilience, critical/domain integrity, asset/hotspot, lifecycle/provenance, deterministic risk and evidence-gateway packages.
+unknown:
+  - Required current-head workflow conclusions for PR #669.
 conflicts: []
 first_failure:
   marker: none
   evidence: No task-specific validation failure observed yet.
 rejected_hypotheses:
   - Giving OTBM ownership of E2E scenario generation or runtime orchestration.
+  - Giving OTBM ownership of E2E replay, general runtime failure investigation or E2E NEXT_ACTION generation.
   - Creating a second pathfinder, parser, renderer, writer, E2E runner or workflow.
 changed_paths:
+  - docs/ai-agent/OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md
   - docs/agents/tasks/active/CAN-20260721-otbm-roadmap-all-proposals.md
 validation: []
 blockers: []
-next_action: Open a draft PR, then expand the OTBM successor roadmap with the consolidated proposal inventory and explicit E2E-support boundary.
+next_action: Review the exact PR #669 changed-file list and diff, then verify required current-head documentation, ownership, OTBM and AI-agent checks.
 ```
