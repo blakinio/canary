@@ -8,7 +8,7 @@ branch: docs/e2e-gameplay-005-persistence-matrix-closure
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
-last_verified_commit: "c14c057c1a1d27fe92b6d1f30f53350be17036ec"
+last_verified_commit: "f97863207ac7786cb7543fefb7f61b7e2f97eb31"
 risk: low
 related_issue: ""
 related_pr: "666"
@@ -65,8 +65,8 @@ Close `E2E-GAMEPLAY-005` with one durable, feature-neutral persistence assertion
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T12:38:00+02:00
-head: c14c057c1a1d27fe92b6d1f30f53350be17036ec
+updated_at: 2026-07-21T12:42:00+02:00
+head: f97863207ac7786cb7543fefb7f61b7e2f97eb31
 branch: docs/e2e-gameplay-005-persistence-matrix-closure
 pr: 666
 status: validating
@@ -82,7 +82,6 @@ proven:
   - E2E-GAMEPLAY-003 feature PR 637 and lifecycle PR 663 are merged
   - roadmap permits E2E-GAMEPLAY-005 to proceed independently of route planning
   - typed persistence slices PRs 565, 583, 586, 591, 595, 603, 608, and 615 are merged
-  - player soul lifecycle debt was archived by merged PR 636
   - draft PR 666 owns this bounded persistence matrix closure task
   - current main at audit is 8dab3a1cbbd1fba4a438cb903b62339386d85813
   - the merged implementation exposes exactly eight typed persistence assertion types required by the task matrix
@@ -99,11 +98,11 @@ proven:
 derived:
   - E2E-GAMEPLAY-005 can close after final-head checkpoint, ownership, CI, and Universal Agent E2E gates pass because the declared priority domains are covered and the only concrete reusable audit gap has been corrected
 unknown:
-  - whether all required workflows pass on the checkpoint-schema-corrected final candidate head
+  - whether all required workflows pass on the compact checkpoint candidate head
 conflicts: []
 first_failure:
   marker: checkpoint-validation
-  evidence: Agent Task Ownership run 29822621190 rejected the prior checkpoint because derived was missing and UNAVAILABLE is not a supported validation result
+  evidence: Agent Task Ownership first rejected missing derived and unsupported UNAVAILABLE, then rejected 17 proven items against the compactness limit of 16; both checkpoint-only defects are corrected on the current commit
 rejected_hypotheses:
   - OTBM-E2E-002 should be resumed by this task: user assigned that scope to another owner and the OTBM route programme is already closed
   - current persistence documentation already provides one complete merged-type inventory: rejected because PHYSICAL_GAMEPLAY_ACTION_PLANS.md still describes only the earlier subset and treats vocation normalization as future work
@@ -124,18 +123,15 @@ validation:
   - command: live PR 666 ownership and overlap audit
     result: PASS
     evidence: PR 666 is the only open persistence-matrix closure PR; no open PR matched persistence_assertions.py or test_persistence_assertions.py
-  - command: initial current-head GitHub workflows at d3936b530e731066bcd94bc652c71a1f06af8e24
-    result: PASS
-    evidence: Agent Task Ownership and CI completed successfully before the precision fix
   - command: GitHub CI workflow at c14c057c1a1d27fe92b6d1f30f53350be17036ec
     result: PASS
-    evidence: CI run 29822621295 completed successfully
-  - command: Agent Task Ownership at c14c057c1a1d27fe92b6d1f30f53350be17036ec
+    evidence: CI run 29822621295 completed successfully with the persistence code, regression test, matrix, and programme update
+  - command: Agent Task Ownership at f97863207ac7786cb7543fefb7f61b7e2f97eb31
     result: FAIL
-    evidence: run 29822621190 reported missing checkpoint field derived and unsupported validation result UNAVAILABLE; this commit corrects both checkpoint-schema errors
+    evidence: run 29822751253 reported only that proven exceeded the compactness limit; this commit removes the redundant seventeenth item
   - command: local git/test execution
     result: NOT_RUN
     evidence: local container cannot resolve github.com; repository edits and executable validation use the authorized GitHub connector and PR workflows
 blockers: []
-next_action: Verify all required PR #666 workflows on the checkpoint-schema-corrected head, then finalize the checkpoint and merge if the autonomous gate passes.
+next_action: Verify all required PR #666 workflows on the compact checkpoint head, then finalize the checkpoint and merge if the autonomous gate passes.
 ```
