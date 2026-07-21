@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - docs/oam-034-creature-definitions-reconciliation
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
@@ -124,4 +126,4 @@ Merge this program-only OAM-034 completion reconciliation after exact-head Owner
           git add docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md .github/workflows/oam034-program-reconciliation-helper.yml
           git diff --cached --check
           git commit -m "docs(oam): reconcile OAM-034 durable completion"
-          git push origin HEAD:${GITHUB_REF_NAME}
+          git push origin HEAD:${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}
