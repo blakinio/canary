@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-21T00:30:38+02:00
-last_verified_commit: "562961ee0dd0c2626ab845dc307ec748e2a6bfb7"
+updated: 2026-07-21T01:12:00+02:00
+last_verified_commit: "ff694b9e908148fb12cca69a76fc2786d9a0f2c3"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -63,6 +63,7 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 | OAM-025 | `chat-communication → ADAPT` | target `1c8e3e8b4fc29effb3b0cb882af94f7d26ed2554`; feature `791bca7403da1e93fba96143f42983f09aa10381`; lifecycle `8ed836aae47d6bb882fb646169d2930f951c6c0d` |
 | OAM-026 | `guilds → ADAPT` | target `418a9f0bfc72cc58b9806a49e966d9c3ea3c1a6d`; feature `5a2bc2be3b91abdd46c9edf2f825336472515299`; lifecycle `99b9dec84d953d3f200284d0cf193261027650ca` |
 | OAM-027 | `houses → ADAPT` | target `c140c4bb9f40067acc36bc446c9e664e6f791c5a`; feature `436b73863b81bfa1ba27f88642f3a816064759fc`; lifecycle `562961ee0dd0c2626ab845dc307ec748e2a6bfb7` |
+| OAM-028 | `cyclopedia → REUSE` | target `7e03405aea50d88fdbc27d0d2a7d95c7f1745946`; feature `a28e661c4119857eff36948c4549045f57eae545`; lifecycle `ff694b9e908148fb12cca69a76fc2786d9a0f2c3` |
 
 # OAM-009 durable boundary
 
@@ -432,15 +433,35 @@ Authoritative lifecycle PR #647 final head `75decbd6b05e4f5a008f1db0dab110198439
 
 OAM-027 does not claim generic house purchase/auction transaction atomicity, crash-safe transfer recovery, distributed or multiwriter house ownership, cross-channel house safety, Cyclopedia house-tab correctness, protocol/client UI compatibility, exhaustive rent/auction parity, physical-client house E2E closure, full Real Tibia house parity, or map/OTBM correctness. It changes no maintained OTClient, map/OTBM data, schema, assets or deployment.
 
+# OAM-028 durable completion
+
+Final disposition:
+
+```text
+cyclopedia REUSE
+```
+
+Task-start baselines were Canary `85b26b41510101259f6138f2c864bf0c4a473f2a`, Otheryn `2a008f1c8cfa679c9b70281e4c8c16120a7567fa`, fresh upstream Canary `71a0f92b4da3f550b292fa7536a0e35c2769f1ae`, and maintained OTClient `a6868920443dc285656bd016acdb2c1ea566e511`. Canonical `cyclopedia` depends only on completed `protocol` and `player-persistence`; TSD-004 keeps it as a broad compatibility/discovery umbrella while Bestiary, Bosstiary, Cyclopedia Character, Titles, Charms and Houses retain narrower canonical ownership.
+
+Task-start Otheryn and fresh upstream shared exact `src/server/network/protocol/protocolgame.hpp` blob `082d66596a424fc44143298c41fe01ff4007a439`; task-start Otheryn, fresh upstream and legacy shared exact `src/enums/player_cyclopedia.hpp` blob `45fed9ad2f3b7e35bdc7afd9dbd52d5d1b736311`. Blob identity was supporting evidence only. Semantic review of delivered legacy work showed PR #188 belongs to Bestiary/Bosstiary/Charms/Cyclopedia Character child runtime boundaries, PR #192 belongs to Bestiary/Bosstiary data, and PR #243 is validator/workflow control. None requires replacing the selected umbrella protocol surface or maintained OTClient.
+
+Otheryn PR #57 final head `19c286762fb89ba3ed8d47ebf58538ff070a4d7f` changed exactly four proof-only paths and no production runtime/protocol/data/client path. Autofix.ci #170 run `29785109223`, CI #206 run `29785109355`, and Required #189 run `29785109193` succeeded on the exact final head, including Linux debug `Run Tests`. Test-log artifact `8478394189` has digest `sha256:152b153430d5ccd7953647f37e2d462b16c7aed30a7a027248195e698bdfa9cb`. Comments/reviews/threads were empty, target-main drift was none, and PR #57 merged by expected-head squash as `7e03405aea50d88fdbc27d0d2a7d95c7f1745946`.
+
+Canary governance PR #649 final head `52e765bcaba6dc4b96406e3fa27aa74e1d462e8f` changed exactly the OAM-028 report and active-task record. Initial Agent Task Ownership #2944 failed only because checkpoint `proven` exceeded the compactness limit by one item; after metadata-only compaction, Agent Task Ownership #2945 run `29786086600` and final-gate CI #4099 run `29786086762` succeeded. Comments/reviews/threads were empty, Canary `main` had no task-start drift, and PR #649 merged by expected-head squash as `a28e661c4119857eff36948c4549045f57eae545`.
+
+Authoritative lifecycle PR #650 final head `be8be4f5f3055d44e1f4af6523ec22869a160c83` changed exactly the active-delete/archive-add lifecycle paths. Agent Task Ownership #2947 run `29786292638` and final-gate CI #4101 run `29786301133` succeeded; comments/reviews/threads were empty, Canary `main` had no drift from the governance merge, and PR #650 merged by expected-head squash as `ff694b9e908148fb12cca69a76fc2786d9a0f2c3`.
+
+OAM-028 does not claim Bestiary, Bosstiary, Charm, Cyclopedia Character, Titles or Houses child correctness; exact packet-byte compatibility; maintained-client parsing/rendering correctness; item/map/house presentation correctness; persistence completeness; runtime behavior; physical-client Cyclopedia E2E closure; or full Real Tibia parity. It changes no production runtime, protocol, data, schema, map, asset, deployment or maintained OTClient path.
+
 # Current state
 
 ```text
-Canary reconciliation base: 562961ee0dd0c2626ab845dc307ec748e2a6bfb7
-Otheryn target head after OAM-027: c140c4bb9f40067acc36bc446c9e664e6f791c5a
+Canary reconciliation base: ff694b9e908148fb12cca69a76fc2786d9a0f2c3
+Otheryn target head after OAM-028: 7e03405aea50d88fdbc27d0d2a7d95c7f1745946
 maintained OTClient: a6868920443dc285656bd016acdb2c1ea566e511
-OAM-001..OAM-027: feature/lifecycle complete
-OAM-027 task: archived
-OAM-028: NOT STARTED
+OAM-001..OAM-028: feature/lifecycle complete
+OAM-028 task: archived
+OAM-029: NOT STARTED
 ```
 
 No OAM implementation task is active in this reconciliation record.
@@ -449,8 +470,8 @@ No OAM implementation task is active in this reconciliation record.
 
 | Package | Status | Next action |
 |---|---|---|
-| OAM-001..OAM-027 | completed | preserve durable evidence |
-| OAM-028+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
+| OAM-001..OAM-028 | completed | preserve durable evidence |
+| OAM-029+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
 
 # Invariants and known gaps
 
@@ -481,7 +502,8 @@ No OAM implementation task is active in this reconciliation record.
 - OAM-025 does not claim Real Tibia chat parity, guild/party membership lifecycle, protocol compatibility, maintained-client UI behavior, generic moderation policy, message privacy or delivery guarantees, NPC conversations, distributed chat, physical-client chat E2E closure, generic persistence redesign, or map/asset/schema/deployment migration.
 - OAM-026 does not claim distributed guild ownership, multiwriter guild-bank safety, Real Tibia guild parity, website guild-management parity, guild-chat delivery parity, protocol/client UI parity, generic transaction atomicity, generic crash/restart durability, physical-client guild E2E closure, or map/asset/schema/deployment migration.
 - OAM-027 does not claim generic house purchase/auction transaction atomicity, crash-safe transfer recovery, distributed or multiwriter house ownership, cross-channel house safety, Cyclopedia house-tab correctness, protocol/client UI compatibility, exhaustive rent/auction parity, physical-client house E2E closure, full Real Tibia house parity, or map/OTBM correctness.
+- OAM-028 does not claim Bestiary, Bosstiary, Charm, Cyclopedia Character, Titles or Houses child correctness, exact packet-byte compatibility, maintained-client parsing/rendering correctness, item/map/house presentation correctness, persistence completeness, runtime behavior, physical-client Cyclopedia E2E closure, or full Real Tibia parity.
 
 # Exact next task
 
-Merge this program-only OAM-027 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-028 preflight begin. OAM-028 is NOT STARTED by this record.
+Merge this program-only OAM-028 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-029 preflight begin. OAM-029 is NOT STARTED by this record.
