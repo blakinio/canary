@@ -4,8 +4,8 @@ name: Universal OTS E2E automation
 status: active
 owner: e2e-platform-agent
 created: 2026-07-13T00:00:00+02:00
-updated: 2026-07-18T23:08:00+02:00
-last_verified_commit: be7842412beb5d240e76ffd4cd18aacdc3a2dcca
+updated: 2026-07-21T00:00:00+02:00
+last_verified_commit: 8dab3a1cbbd1fba4a438cb903b62339386d85813
 primary_paths:
   - tools/e2e/**
   - tests/e2e/runtime/**
@@ -80,6 +80,7 @@ A feature task consumes platform implementation paths read-only unless a separat
 | Physical movement | merged and runtime-proven | PR #481 | baseline for position-aware execution |
 | Physical non-teleport floor change | merged and runtime-proven | PR #512 | baseline for cross-floor execution |
 | Physical teleport | merged and runtime-proven | PR #525 | baseline for mechanic + persistence/relog execution |
+| Typed persistence assertion surfaces | implementation merged; closure matrix delivered | PRs #565, #583, #586, #591, #595, #603, #608, #615 and closure PR #666 | use `docs/e2e/PERSISTENCE_ASSERTION_MATRIX.md`; add a new generic type only for a concrete evidence-backed reusable gap |
 | Cyclopedia-specific prototype | closed and superseded | PR #224 | historical evidence only; do not revive or copy its infrastructure |
 
 # Current active integration work
@@ -178,9 +179,26 @@ Use a controlled fixture; never depend on random public-world occupancy.
 
 ## E2E-GAMEPLAY-005 — persistence assertion matrix
 
-Purpose: add reusable assertion surfaces for storages/quest state, inventory/depot/inbox, bank/economy, vocation/progression and other durable feature rows.
+Purpose: provide reusable assertion surfaces for storages/quest state, inventory/depot/inbox, bank/economy, vocation/progression and other durable feature rows.
 
-This package may proceed independently of route planning because it reuses the already-proven two-session login/logout/relog lifecycle.
+Status: implementation complete through typed persistence slices PRs #565, #583, #586, #591, #595, #603, #608 and #615; canonical closure inventory delivered by PR #666 in `docs/e2e/PERSISTENCE_ASSERTION_MATRIX.md`.
+
+Current reusable types are:
+
+- `player_field`;
+- `player_storage`;
+- `player_item_presence`;
+- `player_balance`;
+- `player_magic_level`;
+- `player_soul`;
+- `player_skill_level`;
+- `player_vocation`.
+
+`player_field`, `player_balance`, `player_magic_level`, `player_soul`, `player_skill_level` and normalized `player_vocation` use controlled-client post-relog verification plus final fixed-shape SQL verification. `player_storage` and `player_item_presence` are intentionally database-only after the full canonical two-session lifecycle because the shared platform has no trustworthy universal client read surface for arbitrary storages or cross-location item persistence.
+
+The closure audit also aligned the pre-existing client-verified `player_field` expected-value range with the exact Lua integer boundary already used by `player_balance`. No new assertion type was required.
+
+This package proceeds independently of route planning because it reuses the already-proven two-session login/logout/relog lifecycle.
 
 ## E2E-GAMEPLAY-006 — multi-client orchestration
 
@@ -305,7 +323,7 @@ At the time of this reconciliation:
 
 - E2E-GAMEPLAY-001 is the active documentation package;
 - E2E-GAMEPLAY-002 is gated by the required stable outputs of the OTBM-aware routing programme;
-- E2E-GAMEPLAY-005 may be started independently if no conflicting owner exists;
+- E2E-GAMEPLAY-005 persistence assertion implementation and canonical matrix are complete through the merged typed slices and closure package PR #666;
 - feature vertical slices should start only one deterministic scenario at a time.
 
 Never infer dependency completion from this document alone. Verify current task/PR/merge state before claiming the next package.
