@@ -16,14 +16,25 @@ class ControlledOtclientBuildWorkflowTests(unittest.TestCase):
         self.assertIn("repository: ${{ needs.resolve.outputs.client_repository }}", workflow)
         self.assertIn("ref: ${{ needs.resolve.outputs.client_ref }}", workflow)
 
-    def test_controlled_otclient_configure_and_build_are_explicit_bounded_and_logged(self) -> None:
+    def test_controlled_otclient_configure_retries_only_transient_network_failures(self) -> None:
         workflow = WORKFLOW.read_text(encoding="utf-8")
 
         self.assertIn("- name: Configure OTClient release", workflow)
+        self.assertIn("for attempt in 1 2 3; do", workflow)
+        self.assertIn('attempt_log="otclient-configure-attempt-${attempt}.log"', workflow)
         self.assertIn("cmake --preset linux-release \\", workflow)
         self.assertIn("-DTOGGLE_BIN_FOLDER=ON", workflow)
         self.assertIn("-DOPTIONS_ENABLE_IPO=OFF", workflow)
-        self.assertIn("2>&1 | tee otclient-configure.log", workflow)
+        self.assertIn("curl operation failed with response code (429|500|502|503|504)", workflow)
+        self.assertIn("Operation timed out", workflow)
+        self.assertIn("Could not resolve host", workflow)
+        self.assertIn("Failed to connect", workflow)
+        self.assertIn("Recv failure", workflow)
+        self.assertIn("configure failure is not a recognized transient network error", workflow)
+        self.assertIn('sleep "$((attempt * 15))"', workflow)
+
+    def test_controlled_otclient_build_is_explicit_bounded_and_logged(self) -> None:
+        workflow = WORKFLOW.read_text(encoding="utf-8")
 
         self.assertIn("- name: Build OTClient release", workflow)
         self.assertIn("cmake --build --preset linux-release --parallel 2 \\", workflow)
@@ -40,6 +51,7 @@ class ControlledOtclientBuildWorkflowTests(unittest.TestCase):
 """
         self.assertIn(diagnostics, workflow)
         self.assertIn("otclient-configure.log", workflow)
+        self.assertIn("otclient-configure-attempt-*.log", workflow)
         self.assertIn("otclient-build.log", workflow)
         self.assertIn("build/linux-release/CMakeCache.txt", workflow)
         self.assertIn("build/linux-release/.ninja_log", workflow)
