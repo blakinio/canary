@@ -10,7 +10,7 @@ updated: 2026-07-22
 last_verified_commit: "11e301005fd43f847b1a316f75fd8427abcaed98"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "704"
 depends_on:
   - CAN-20260721-otbm-qa-008-dependency-blast-radius complete
   - CAN-20260721-otbm-qa-005-coverage-dashboard complete
@@ -43,7 +43,7 @@ cross_repo_tasks: []
 
 ## Status
 
-READY — feature implementation is merged through PR #700; only the separate lifecycle active-to-archive follow-up remains.
+READY — feature implementation is merged through PR #700; lifecycle-only archive follow-up is isolated in draft PR #704.
 
 ## Goal
 
@@ -80,10 +80,10 @@ Identify selected-scope dead/orphaned-content candidates and summarize reviewed 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T00:24:00+02:00
-head: 11e301005fd43f847b1a316f75fd8427abcaed98
+updated_at: 2026-07-22T00:26:00+02:00
+head: 24b835781d16cb5b4a5f779483d6952f3c58a1df
 branch: docs/archive-otbm-qa-009-content-completeness-700
-pr: none
+pr: 704
 status: ready
 context_routes:
   - otbm
@@ -97,9 +97,10 @@ proven:
   - Exact-final QA-009 CI 29872380096, Ownership 29872372611, OTBM Map Tools 29872372560 and AI Agent Tools 29872372558 passed.
   - PR #700 changed exactly nine bounded implementation/task paths and had zero review threads or review submissions at final audit.
   - Current main is identical to QA-009 squash merge 11e301005fd43f847b1a316f75fd8427abcaed98.
+  - Lifecycle-only follow-up is open as draft PR #704 and currently owns only the active/archive task-record paths.
   - QA-009 runtime gameplay completion remains explicitly unproven; the delivered audit is selected-scope static evidence only.
 derived:
-  - The only remaining QA-009 work is lifecycle-only movement of this completed task record from active to archive.
+  - The only remaining QA-009 work is lifecycle-only movement of this completed task record from active to archive on PR #704.
 unknown:
   - MODULE_CATALOG shared-path row was not modified in the bounded feature branch; delivered contracts are documented in OTBM_CONTENT_COMPLETENESS.md and task metadata.
 conflicts: []
@@ -126,5 +127,5 @@ validation:
     result: PASS
     evidence: Exact-final-head AI-agent validation passed.
 blockers: []
-next_action: Create the lifecycle-only PR, bind this active task to that PR, then move this completed task record from active to archive without behavior changes; do not start QA-010 before lifecycle merge and a fresh preflight.
+next_action: On draft PR #704, complete the lifecycle-only active-to-archive move for this task without behavior changes; merge it after lifecycle gates, then perform a fresh preflight before any QA-010 work.
 ```
