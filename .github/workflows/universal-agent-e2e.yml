@@ -391,13 +391,21 @@ jobs:
           mono "${nuget_path}" setapikey "${NUGET_AUTH_TOKEN}" \
             -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
 
+      - name: Configure OTClient release
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake --preset linux-release \
+            -DTOGGLE_BIN_FOLDER=ON \
+            -DOPTIONS_ENABLE_IPO=OFF \
+            2>&1 | tee otclient-configure.log
+
       - name: Build OTClient release
-        uses: lukka/run-cmake@5d55ea7949e25f69f0ecb516d8d572297e03a956
-        with:
-          configurePreset: linux-release
-          buildPreset: linux-release
-          configurePresetAdditionalArgs: "['-DTOGGLE_BIN_FOLDER=ON', '-DOPTIONS_ENABLE_IPO=OFF']"
-          buildPresetAdditionalArgs: "['--parallel', '2']"
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake --build --preset linux-release --parallel 2 \
+            2>&1 | tee otclient-build.log
 
       - name: Upload controlled OTClient build diagnostics
         if: failure()
@@ -405,6 +413,8 @@ jobs:
         with:
           name: otclient-linux-release-build-diagnostics
           path: |
+            otclient-configure.log
+            otclient-build.log
             build/linux-release/CMakeCache.txt
             build/linux-release/.ninja_log
             build/linux-release/CMakeFiles/CMakeConfigureLog.yaml
