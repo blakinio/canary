@@ -10,7 +10,7 @@ updated: 2026-07-21
 last_verified_commit: "901bd3db5aa8d6b7a7ef3799a033906aea900f3c"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "681"
 depends_on:
   - CAN-20260721-otbm-qa-002-map-change-regression complete
 blocks:
@@ -98,10 +98,10 @@ Generate deterministic review-only repair recommendations from one exact finding
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T16:20:00+02:00
-head: 901bd3db5aa8d6b7a7ef3799a033906aea900f3c
+updated_at: 2026-07-21T16:24:00+02:00
+head: 26e9baac32475e665e41bf426e32c027f3bcc02c
 branch: feat/otbm-qa-003-repair-recommendations-20260721
-pr: none
+pr: 681
 status: implementing
 context_routes:
   - otbm
@@ -125,6 +125,7 @@ proven:
   - Architecture Layer 5 requires a non-mutating recommendation carrying exact target position, expected old state, evidence hashes and blockers, with explicit review before mutation.
   - Repair Preflight v1 is the canonical exact mechanic-selector/anchor/runtime evidence source and exposes explicit matched/correlated/runtime/patch/review readiness.
   - Existing approved mutation families are Phase 8 existing-attribute replacement, complete same-coordinate zero-translation TILE_AREA materialization, and bounded raw-tile replacement/insertion/deletion/type-conversion.
+  - Draft PR #681 is the bounded implementation PR for this task.
 derived:
   - The smallest bounded v1 should classify exact caller-declared mutation shapes against the existing capability inventory while using Repair Preflight as the exact selector/runtime gate; it must not duplicate any writer or materializer implementation.
 unknown:
@@ -142,5 +143,5 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260721-otbm-qa-003-repair-recommendations.md
 validation: []
 blockers: []
-next_action: Open a draft PR, bind this task to it, then implement the smallest deterministic recommendation contract over exact request plus Repair Preflight evidence with conservative existing mutation-family classification and focused tests.
+next_action: Implement the smallest deterministic recommendation contract over exact request plus Repair Preflight evidence with conservative existing mutation-family classification and focused tests.
 ```
