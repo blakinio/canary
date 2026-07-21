@@ -395,10 +395,28 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cmake --preset linux-release \
-            -DTOGGLE_BIN_FOLDER=ON \
-            -DOPTIONS_ENABLE_IPO=OFF \
-            2>&1 | tee otclient-configure.log
+          : > otclient-configure.log
+          for attempt in 1 2 3; do
+            attempt_log="otclient-configure-attempt-${attempt}.log"
+            echo "configure_attempt=${attempt}" | tee -a otclient-configure.log
+            if cmake --preset linux-release \
+              -DTOGGLE_BIN_FOLDER=ON \
+              -DOPTIONS_ENABLE_IPO=OFF \
+              2>&1 | tee "${attempt_log}"; then
+              cat "${attempt_log}" >> otclient-configure.log
+              exit 0
+            fi
+            cat "${attempt_log}" >> otclient-configure.log
+            if ! grep -Eq 'curl operation failed with response code (429|500|502|503|504)|Operation timed out|Could not resolve host|Failed to connect|Recv failure' "${attempt_log}"; then
+              echo "configure failure is not a recognized transient network error" | tee -a otclient-configure.log
+              exit 1
+            fi
+            if [[ "${attempt}" -eq 3 ]]; then
+              echo "configure failed after ${attempt} transient-network attempts" | tee -a otclient-configure.log
+              exit 1
+            fi
+            sleep "$((attempt * 15))"
+          done
 
       - name: Build OTClient release
         shell: bash
@@ -414,6 +432,7 @@ jobs:
           name: otclient-linux-release-build-diagnostics
           path: |
             otclient-configure.log
+            otclient-configure-attempt-*.log
             otclient-build.log
             build/linux-release/CMakeCache.txt
             build/linux-release/.ninja_log
