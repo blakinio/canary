@@ -1,0 +1,22 @@
+name: OAM 033 Handoff
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  handoff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout pull request head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Validate checkpoint
+        run: python tools/agents/checkpoint.py docs/agents/tasks/active/CAN-20260721-oteryn-oam033-charms-preflight.md --require-checkpoint
+      - name: Generate resume bundle
+        run: python tools/agents/resume.py --task docs/agents/tasks/active/CAN-20260721-oteryn-oam033-charms-preflight.md
