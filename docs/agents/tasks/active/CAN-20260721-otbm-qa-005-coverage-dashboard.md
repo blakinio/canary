@@ -10,7 +10,7 @@ updated: 2026-07-21
 last_verified_commit: "951d04cb9bf4a51f6eddb8c2238b8e1157a9f252"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "688"
 depends_on:
   - CAN-20260721-otbm-qa-004-reviewed-candidate-repair complete
 blocks:
@@ -60,7 +60,7 @@ cross_repo_tasks: []
 
 ## Status
 
-ACTIVE — bounded implementation started from post-QA-004 lifecycle `main`.
+ACTIVE — bounded implementation is isolated in draft PR #688.
 
 ## Goal
 
@@ -113,10 +113,10 @@ Expose deterministic factual coverage state for explicitly reviewed world, regio
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T18:35:00+02:00
-head: 951d04cb9bf4a51f6eddb8c2238b8e1157a9f252
+updated_at: 2026-07-21T18:38:00+02:00
+head: b5dbd9e767bb0f7e9fdfd4e0bb99382d3a814043
 branch: feat/otbm-qa-005-coverage-dashboard-20260721
-pr: null
+pr: 688
 status: implementing
 context_routes:
   - otbm
@@ -136,7 +136,7 @@ proven:
   - OTBM-QA-004 feature PR #684 merged as e11ad06beebb3cd7c11a4d686f749ac54155cce5.
   - OTBM-QA-004 lifecycle PR #686 merged as 951d04cb9bf4a51f6eddb8c2238b8e1157a9f252.
   - Current main is identical to 951d04cb9bf4a51f6eddb8c2238b8e1157a9f252 at fresh post-lifecycle preflight.
-  - Fresh preflight found no open OTBM-QA PR, no otbm-qa branch and no existing QA-005 task.
+  - Fresh preflight found no open OTBM-QA PR, no otbm-qa branch and no existing QA-005 task before QA-005 ownership was established.
   - Live roadmap identifies OTBM-QA-005 Coverage Dashboard and Certification Model after QA-004 and reserves formal C0-C7 certification levels for QA-006.
   - Existing Coverage Matrix already provides exact current-map reviewed-mechanic indexed, script, reachability, physical and stale dimensions.
   - Map Quality v1 is bounded and explicitly sets globalCoverageProven=false; therefore it cannot authorize a full-world static-quality claim.
@@ -161,5 +161,5 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260721-otbm-qa-005-coverage-dashboard.md
 validation: []
 blockers: []
-next_action: Open a draft PR for this bounded ownership scope, bind related_pr, then implement the target/report contracts, deterministic aggregator, CLI and focused tests before pre-final checkpointing.
+next_action: Implement the target/report contracts, deterministic aggregator, CLI and focused tests on PR #688; re-check main overlap before final checkpointing.
 ```
