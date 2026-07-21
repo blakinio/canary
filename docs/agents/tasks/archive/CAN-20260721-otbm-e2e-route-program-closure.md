@@ -38,7 +38,7 @@ Close and archive the completed OTBM-aware Universal Physical E2E routing progra
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T08:05:00Z
+updated_at: 2026-07-21T08:08:00Z
 head: af27845b130a87d92f2794c2817d77cfe6d84825
 branch: main
 pr: 658
@@ -59,6 +59,7 @@ proven:
   - lifecycle ready-state full CI 29811455063 passed on unchanged head
   - lifecycle PR 658 changed exactly active-delete and archive-add task paths and had no reviews or review threads
   - lifecycle PR 658 squash-merged as af27845b130a87d92f2794c2817d77cfe6d84825
+  - post-lifecycle handover reconciliation PR 661 changes only this archived checkpoint and has ci:final-gate applied
 derived:
   - CAN-PROGRAM-OTBM-E2E-ROUTING is fully closed with no active task and future extensions require separately approved new live evidence
 unknown: []
