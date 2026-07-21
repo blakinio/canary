@@ -60,12 +60,13 @@ COMPLETE — the consolidated OTBM world-quality, repair, regression, certificat
 - OTBM Map Tools run `29822440948`: success.
 - AI Agent Tools run `29822441026`: success.
 - Review threads at merge: zero.
+- Lifecycle PR: #671 — lifecycle-only active-to-archive move; changed-file list is exactly the active and archive task paths.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T12:48:00Z
+updated_at: 2026-07-21T12:49:00Z
 head: 6fc625d36c0a791f19f0dc951455a6993be2d993
 branch: docs/otbm-roadmap-all-proposals-20260721
 pr: 669
@@ -82,6 +83,7 @@ proven:
   - AI Agent Tools run 29822441026 passed on the final feature head.
   - PR #669 changed only the consolidated roadmap and its active task record and had zero inline review threads at merge.
   - The durable roadmap on main defines OTBM-QA-001..018 and preserves the OTBM versus Universal E2E ownership boundary.
+  - Lifecycle PR #671 changes exactly the active and archive records for this completed task.
 derived:
   - The first unrealized package in the documented dependency sequence is OTBM-QA-001 World Health Aggregator.
 unknown: []
@@ -109,5 +111,5 @@ validation:
     result: PASS
     evidence: AI-agent tooling validation passed on the final feature head.
 blockers: []
-next_action: After this lifecycle archive PR is merged, start OTBM-QA-001 World Health Aggregator as a new bounded task from current main with a fresh ownership preflight and draft PR.
+next_action: After lifecycle PR #671 is merged, start OTBM-QA-001 World Health Aggregator as a new bounded task from current main with a fresh ownership preflight and draft PR.
 ```
