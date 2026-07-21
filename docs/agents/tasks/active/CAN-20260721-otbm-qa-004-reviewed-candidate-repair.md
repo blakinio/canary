@@ -7,10 +7,10 @@ branch: feat/otbm-qa-004-reviewed-candidate-repair-20260721
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
-last_verified_commit: "c35b44f04803bcd4e4bfa0c90df762d0425f88d1"
+last_verified_commit: "96abac79b10b8ccd19dd0915a074bd85710daea5"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "684"
 depends_on:
   - CAN-20260721-otbm-qa-003-repair-recommendations complete
 blocks:
@@ -57,7 +57,7 @@ cross_repo_tasks: []
 
 ## Status
 
-ACTIVE — bounded implementation started from post-QA-003 lifecycle `main`.
+ACTIVE — bounded implementation is isolated in draft PR #684.
 
 ## Goal
 
@@ -113,10 +113,10 @@ Create a deterministic fail-closed evidence-chain orchestrator that binds one su
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T17:20:00+02:00
-head: c35b44f04803bcd4e4bfa0c90df762d0425f88d1
+updated_at: 2026-07-21T17:28:00+02:00
+head: d6da43d49f08f7d7a472f222fa914c46e39b3492
 branch: feat/otbm-qa-004-reviewed-candidate-repair-20260721
-pr: null
+pr: 684
 status: active
 context_routes:
   - otbm
@@ -124,8 +124,9 @@ context_routes:
 proven:
   - OTBM-QA-003 feature PR #681 merged as 31257824fe7dde510fc2885f818732861e375efb.
   - OTBM-QA-003 lifecycle PR #682 merged as c35b44f04803bcd4e4bfa0c90df762d0425f88d1.
-  - Current main is identical to c35b44f04803bcd4e4bfa0c90df762d0425f88d1 at fresh post-lifecycle preflight.
-  - Fresh preflight found no open OTBM-QA PR, no otbm-qa branch and no existing QA-004 task.
+  - Fresh post-lifecycle preflight initially found main identical to c35b44f04803bcd4e4bfa0c90df762d0425f88d1, no open OTBM-QA PR, no otbm-qa branch and no existing QA-004 task.
+  - While draft PR #684 was opened, main advanced by one commit to 96abac79b10b8ccd19dd0915a074bd85710daea5.
+  - The intervening main delta changes only docker/data/01-test_account.sql, one deterministic combat E2E scenario, its focused test and its active task; it does not touch OTBM or QA-004 owned paths/contracts.
   - Live roadmap identifies OTBM-QA-004 Reviewed Candidate Repair Orchestration immediately after QA-003.
   - Canonical repair/materialization pipeline supports exactly one of fixed-width-attribute, tile-area, tile-replacement, tile-insertion, tile-deletion or tile-type-conversion per run and emits canary-otbm-repair-materialization-pipeline-v1.
   - OTBM-E2E-009 consumes successful pipeline evidence plus exact Semantic Diff and OTBM-E2E-008 selection and emits canary-otbm-candidate-physical-validation-v1 without adding another runner or workflow.
@@ -138,5 +139,5 @@ first_failure:
   marker: none
   evidence: No QA-004 implementation has been attempted yet.
 blockers: []
-next_action: Open a draft PR for this bounded ownership scope, bind related_pr, then implement the approval/report contracts, deterministic validator, CLI and focused tests before final-gate checkpointing.
+next_action: Implement the approval/report contracts, deterministic validator, CLI and focused tests on PR #684; re-check main overlap before final checkpointing.
 ```
