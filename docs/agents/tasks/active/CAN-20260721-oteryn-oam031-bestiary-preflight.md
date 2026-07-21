@@ -10,7 +10,7 @@ created: 2026-07-21
 updated: 2026-07-21
 last_verified_commit: "87c4f71b0deb880da7ba4228bc29e769db2c5818"
 risk: medium
-related_pr: ""
+related_pr: "675"
 owned_paths:
   - docs/agents/tasks/active/CAN-20260721-oteryn-oam031-bestiary-preflight.md
   - docs/agents/OTERYN_OAM_031_BESTIARY_REVALIDATION.md
@@ -31,10 +31,10 @@ Revalidate canonical OAM-031 `bestiary`, adapt only independently reviewed Besti
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T13:35:00+02:00
-head: 87c4f71b0deb880da7ba4228bc29e769db2c5818
+updated_at: 2026-07-21T13:40:00+02:00
+head: 51b57c70f640042868c98383b366def294d83521
 branch: docs/oam-031-bestiary-preflight
-pr: none
+pr: 675
 status: ready
 context_routes:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
@@ -62,8 +62,8 @@ unknown:
   - Final Canary governance exact-head gate outcome until Ownership and final-gate CI complete.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: No task-specific validation failure observed.
+  marker: governance checkpoint PR binding
+  evidence: Initial Ownership run 3068 failed because changed task was not bound to current PR 675; metadata-only repair applied with final-gate label removed.
 rejected_hypotheses:
   - Copy current legacy iobestiary.cpp wholesale.
   - Import Charm reset pricing under Bestiary ownership.
@@ -76,5 +76,5 @@ validation:
     result: PASS
     evidence: autofix 187 CI 226 Required 211 Linux-debug Run Tests and merge 86e4b08c28ede2f35c215a7c2327a579f4a61419
 blockers: []
-next_action: Open the two-file Canary governance PR, require exact-head Agent Task Ownership and ci:final-gate CI success, audit comments reviews threads and Canary-main drift, then expected-head squash merge before separate lifecycle closure.
+next_action: Require exact-head Agent Task Ownership and ci:final-gate CI success on PR 675, audit exactly two governance files plus comments reviews threads and Canary-main drift, then expected-head squash merge before separate lifecycle closure.
 ```
