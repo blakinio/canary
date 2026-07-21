@@ -7,7 +7,7 @@ branch: docs/otbm-quality-repair-roadmap-20260721
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
-last_verified_commit: "bf95326ab8231a5bdc7dbab50f9288387db702e5"
+last_verified_commit: "d4e347f7d9f5da28d948cba23121aa7a8ded3d18"
 risk: low
 related_issue: ""
 related_pr: "665"
@@ -79,8 +79,8 @@ Persist a successor OTBM roadmap and architecture after completion of OTBM-E2E-0
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T11:55:00Z
-head: bf95326ab8231a5bdc7dbab50f9288387db702e5
+updated_at: 2026-07-21T12:00:00Z
+head: d4e347f7d9f5da28d948cba23121aa7a8ded3d18
 branch: docs/otbm-quality-repair-roadmap-20260721
 pr: 665
 status: implementing
@@ -103,7 +103,9 @@ derived:
 unknown:
   - Exact implementation owners and CI placement for future OTBM-QA packages.
 conflicts: []
-first_failure: null
+first_failure:
+  marker: Agent Task Ownership / Validate changed active task checkpoints
+  evidence: Run 29820096255 rejected first_failure because it was null instead of a YAML mapping; this checkpoint repairs that contract.
 rejected_hypotheses:
   - Building a new automatic repair engine from scratch; existing repair/materialization pipeline must be reused.
   - Reopening the completed OTBM-E2E route programme for successor quality/certification work.
@@ -111,7 +113,13 @@ changed_paths:
   - docs/ai-agent/OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md
   - docs/architecture/otbm-world-quality-repair.md
   - docs/agents/tasks/active/CAN-20260721-otbm-quality-repair-roadmap.md
-validation: []
+validation:
+  - command: GitHub Actions CI run 29820096710
+    result: PASS
+    evidence: Repository CI passed on head d4e347f7d9f5da28d948cba23121aa7a8ded3d18.
+  - command: GitHub Actions Agent Task Ownership run 29820096255
+    result: FAIL
+    evidence: Checkpoint contract required first_failure to be a YAML mapping; repaired in the next commit.
 blockers: []
-next_action: Review the exact PR #665 diff and changed-file list, then run/verify required documentation and ownership checks on the current head.
+next_action: Verify current-head Agent Task Ownership, AI Agent Tools and OTBM Map Tools after the checkpoint-contract repair; then apply the exact-final-head gate if required.
 ```
