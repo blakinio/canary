@@ -9,7 +9,7 @@ base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
 completed: 2026-07-21
-last_verified_commit: "419d0848448c641561e7bc06392a4b17b95213b2"
+last_verified_commit: "af27845b130a87d92f2794c2817d77cfe6d84825"
 risk: low
 related_issue: ""
 related_pr: "654"
@@ -38,54 +38,53 @@ Close and archive the completed OTBM-aware Universal Physical E2E routing progra
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T07:42:00Z
-head: e39975907237f9fbb7b4d2ed5fd2f37624171469
-branch: docs/archive-otbm-e2e-route-closure
+updated_at: 2026-07-21T08:08:00Z
+head: af27845b130a87d92f2794c2817d77cfe6d84825
+branch: main
 pr: 658
-status: validating
+status: ready
 context_routes:
   - agent-governance
   - otbm
   - universal-e2e
 owned_paths:
   - docs/agents/tasks/archive/CAN-20260721-otbm-e2e-route-program-closure.md
-  - docs/agents/tasks/active/CAN-20260721-otbm-e2e-route-program-closure.md
+  - docs/agents/programs/OTBM_E2E_ROUTE_INTEGRATION_PROGRAM.md
 proven:
-  - all planned OTBM E2E route packages through OTBM-E2E-009 are merged and archived
-  - programme status is completed and no OTBM-E2E-010 package exists
+  - all planned OTBM E2E route packages through OTBM-E2E-009 are merged and lifecycle-archived
+  - programme status is completed and the roadmap defines no OTBM-E2E-010 package
   - exact final closure head ae55f53879746862790fd2344ac9168c7bf7ea1b passed Ownership 29809076635 and CI 29809076934
-  - ready-state CI 29809116742 passed on the unchanged exact final closure head
-  - PR 654 changed exactly two intended documentation paths and had no reviews or review threads
-  - PR 654 squash-merged as 419d0848448c641561e7bc06392a4b17b95213b2
-  - lifecycle PR 658 changes exactly the active-delete and archive-add task record paths and started zero commits behind post-closure main
-  - ci:final-gate was applied before this final lifecycle checkpoint commit
+  - closure ready-state CI 29809116742 passed and PR 654 squash-merged as 419d0848448c641561e7bc06392a4b17b95213b2
+  - lifecycle exact head 5ec0a84c862aed096c7fc4ef9452b4791de2096e passed Ownership 29811323436 and CI 29811323576
+  - lifecycle ready-state full CI 29811455063 passed on unchanged head
+  - lifecycle PR 658 changed exactly active-delete and archive-add task paths and had no reviews or review threads
+  - lifecycle PR 658 squash-merged as af27845b130a87d92f2794c2817d77cfe6d84825
+  - post-lifecycle handover reconciliation PR 661 changes only this archived checkpoint and has ci:final-gate applied
 derived:
-  - after lifecycle PR 658 merges the programme has no active task and future extensions require a separately approved task from new live evidence
-unknown:
-  - exact live lifecycle head created by this final checkpoint commit and its workflow conclusions
-  - lifecycle PR 658 merge SHA
+  - CAN-PROGRAM-OTBM-E2E-ROUTING is fully closed with no active task and future extensions require separately approved new live evidence
+unknown: []
 conflicts: []
 first_failure:
   marker: none
-  evidence: no unresolved programme or lifecycle blocker remains before final lifecycle validation
+  evidence: no unresolved programme closure or lifecycle blocker remains
 rejected_hypotheses:
   - create OTBM-E2E-010: completed roadmap defines no such package
 changed_paths:
-  - docs/agents/tasks/active/CAN-20260721-otbm-e2e-route-program-closure.md
+  - docs/agents/programs/OTBM_E2E_ROUTE_INTEGRATION_PROGRAM.md
   - docs/agents/tasks/archive/CAN-20260721-otbm-e2e-route-program-closure.md
 validation:
   - command: Agent Task Ownership run 29809076635
     result: PASS
     evidence: exact final closure head passed ownership governance
-  - command: CI run 29809076934
+  - command: closure ready-state CI run 29809116742
     result: PASS
-    evidence: exact final closure head passed repository CI
-  - command: ready-state CI run 29809116742
+    evidence: unchanged closure head passed full final-gate CI
+  - command: Agent Task Ownership run 29811323436
     result: PASS
-    evidence: unchanged exact final closure head passed full final-gate CI
-  - command: PR 658 lifecycle diff audit
+    evidence: exact lifecycle head passed ownership governance
+  - command: lifecycle ready-state CI run 29811455063
     result: PASS
-    evidence: exactly two lifecycle task-record paths changed from post-closure main
+    evidence: unchanged lifecycle head passed full final-gate CI
 blockers: []
-next_action: Require exact-head Ownership and CI success for PR 658, squash merge the lifecycle archive, then keep the completed programme closed unless new live evidence justifies a separately approved extension.
+next_action: Keep CAN-PROGRAM-OTBM-E2E-ROUTING closed; start any future OTBM E2E extension only as a separately approved task from new live repository evidence.
 ```
