@@ -9,17 +9,25 @@ WORKFLOW = ROOT / ".github" / "workflows" / "universal-agent-e2e.yml"
 
 
 class ControlledOtclientBuildWorkflowTests(unittest.TestCase):
-    def test_controlled_otclient_build_is_bounded_without_changing_pin_resolution(self) -> None:
+    def test_controlled_otclient_source_pin_resolution_is_unchanged(self) -> None:
         workflow = WORKFLOW.read_text(encoding="utf-8")
 
         self.assertIn("name: Build controlled OTClient", workflow)
         self.assertIn("repository: ${{ needs.resolve.outputs.client_repository }}", workflow)
         self.assertIn("ref: ${{ needs.resolve.outputs.client_ref }}", workflow)
-        self.assertIn(
-            "uses: lukka/run-cmake@5d55ea7949e25f69f0ecb516d8d572297e03a956",
-            workflow,
-        )
-        self.assertIn('buildPresetAdditionalArgs: "[\'--parallel\', \'2\']"', workflow)
+
+    def test_controlled_otclient_configure_and_build_are_explicit_bounded_and_logged(self) -> None:
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+
+        self.assertIn("- name: Configure OTClient release", workflow)
+        self.assertIn("cmake --preset linux-release \\", workflow)
+        self.assertIn("-DTOGGLE_BIN_FOLDER=ON", workflow)
+        self.assertIn("-DOPTIONS_ENABLE_IPO=OFF", workflow)
+        self.assertIn("2>&1 | tee otclient-configure.log", workflow)
+
+        self.assertIn("- name: Build OTClient release", workflow)
+        self.assertIn("cmake --build --preset linux-release --parallel 2 \\", workflow)
+        self.assertIn("2>&1 | tee otclient-build.log", workflow)
 
     def test_failed_controlled_otclient_build_retains_diagnostics(self) -> None:
         workflow = WORKFLOW.read_text(encoding="utf-8")
@@ -31,6 +39,8 @@ class ControlledOtclientBuildWorkflowTests(unittest.TestCase):
           name: otclient-linux-release-build-diagnostics
 """
         self.assertIn(diagnostics, workflow)
+        self.assertIn("otclient-configure.log", workflow)
+        self.assertIn("otclient-build.log", workflow)
         self.assertIn("build/linux-release/CMakeCache.txt", workflow)
         self.assertIn("build/linux-release/.ninja_log", workflow)
         self.assertIn("build/linux-release/CMakeFiles/CMakeConfigureLog.yaml", workflow)
