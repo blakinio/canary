@@ -52,6 +52,7 @@ class DeterministicCombatEvidenceTests(unittest.TestCase):
         groups = ET.parse(GROUPS_PATH).getroot()
 
         self.assertIn("(115 , 'test15', '@test15'", accounts)
+        self.assertIn("'@test15' , 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3', 6", accounts)
         self.assertIn("'ADM1'            , 6         , 115", players)
 
         god = next(group for group in groups.findall("group") if group.attrib["id"] == "6")
