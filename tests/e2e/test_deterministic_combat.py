@@ -89,7 +89,6 @@ class DeterministicCombatEvidenceTests(unittest.TestCase):
             [
                 (19976, 19988, 7, 19977, 19989, 7),
                 (19977, 19989, 7, 19978, 19990, 7),
-                (19978, 19990, 7, 19979, 19991, 7),
             ],
         )
         self.assertFalse(any(step["action"] == "walk" for step in steps))
@@ -111,6 +110,8 @@ class DeterministicCombatEvidenceTests(unittest.TestCase):
         for marker in (
             "step_create_arena=success",
             "step_target_visible=success",
+            "step_approach_one=success",
+            "step_approach_two=success",
             "step_attack_target=success",
             "step_attack_confirmed=success",
             "step_target_defeated=success",
@@ -120,6 +121,7 @@ class DeterministicCombatEvidenceTests(unittest.TestCase):
             "e2e=success",
         ):
             self.assertIn(marker, required)
+        self.assertNotIn("step_approach_three=success", required)
 
         self.assertTrue(all("WHERE name = 'Paladin 15'" in query for query in data["assertions"]["sql"]))
 
