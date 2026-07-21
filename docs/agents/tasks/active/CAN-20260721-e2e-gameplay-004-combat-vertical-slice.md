@@ -8,7 +8,7 @@ branch: feat/e2e-gameplay-004-combat-vertical-slice
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
-last_verified_commit: "70eedf733f39babebf578faa348d653d85d96d76"
+last_verified_commit: "d71aeabc65215ec51a175c5ee3f99829091129ca"
 risk: low
 related_issue: ""
 related_pr: "677"
@@ -59,7 +59,7 @@ Deliver one bounded deterministic real-client combat lifecycle on the existing U
 
 - [x] Prove an exact deterministic creature fixture or controlled scenario environment from current repository evidence.
 - [x] Reuse the existing generic physical action contract; no new shared action was required.
-- [x] Keep navigation bounded to three exact `walk_edge` transitions inside the fixed 12x7 arena; no blind multi-step `walk` is used.
+- [x] Keep navigation bounded to two exact `walk_edge` transitions inside the fixed 12x7 arena; stop before the creature-blocked third tile and use no blind multi-step `walk`.
 - [x] Physically observe the target and prove the client enters the expected engagement state.
 - [ ] Prove deterministic target removal after engagement begins.
 - [x] Keep timeouts bounded and retain exact first-failure evidence.
@@ -72,8 +72,8 @@ Deliver one bounded deterministic real-client combat lifecycle on the existing U
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T15:45:00+02:00
-head: a7e892fa8883b52f8a7e20171803fb55c1741d99
+updated_at: 2026-07-21T16:20:00+02:00
+head: 9bd5913b62a71ad428947806251f6b6a8cd26c44
 branch: feat/e2e-gameplay-004-combat-vertical-slice
 pr: 677
 status: implementing
@@ -86,44 +86,45 @@ owned_paths:
   - tests/e2e/test_deterministic_combat.py
 proven:
   - PR 677 is the bounded draft owner for E2E-GAMEPLAY-004.
+  - E2E-GAMEPLAY-004 requires one deterministic bounded combat lifecycle; the programme does not require a fixed three-edge approach.
   - InstanceArenaService provides an isolated 30-HP attackable Cave Rat at a fixed offset from entry 19976,19988,7.
   - TalkAction permission checks use accounts.type; @test15 is now the dedicated God-account fixture with type 6.
-  - Universal Agent E2E run 29830650905 proved arena creation, target visibility, all three exact walk_edge steps, attack_visible and observe_attacking=true with ADM1.
-  - run 29830650905 then remained in target_defeated until the existing controlled-client ping seam disconnected the session at about 30 seconds.
-  - exact-head Agent Task Ownership run 29833227470 and CI run 29833227606 passed on 70eedf733f39babebf578faa348d653d85d96d76.
-  - Universal Agent E2E run 29833227815 reached the physical job with exact Canary and controlled OTClient builds passing.
-  - run 29833227815 failed before gameplay because Knight 15 does not exist in docker/data/02-test_account_players.sql; Canary rejected the requested character for account 115.
-  - docker/data/02-test_account_players.sql instead provides Paladin 15 on account 115 at level 500, vocation 3.
-  - the scenario and focused evidence test now use the existing Paladin 15 fixture and explicitly reject the nonexistent Knight 15 assumption.
-  - no shared runner, workflow, map, datapack, OTBM binary, client source or client asset change is required by the three runtime failures.
+  - Universal Agent E2E run 29830650905 proved arena creation, target visibility, three exact walk_edge steps, attack_visible and observe_attacking=true with ADM1, then failed at target_defeated before the controlled-client ping disconnect seam.
+  - Universal Agent E2E run 29833227815 exposed and proved the nonexistent Knight 15 fixture assumption; source fixture instead provides Paladin 15 on account 115 at level 500, vocation 3.
+  - exact-head Agent Task Ownership run 29835915524 and CI run 29835915545 passed on d71aeabc65215ec51a175c5ee3f99829091129ca.
+  - Universal Agent E2E run 29835914774 proved Paladin 15 login, arena creation, target visibility and the first two exact movement edges.
+  - run 29835914774 first failed at approach_three because the normal combat character is not ignored by the Cave Rat and the requested destination 19979,19991,7 remained blocked while the client stayed at 19978,19990,7.
+  - the scenario now stops after the two physically proven approach edges and attacks the visible target instead of trying to enter the creature-contested tile.
+  - no shared runner, workflow, map, datapack, OTBM binary, client source or client asset change is required by the observed failures.
 derived:
-  - using Paladin 15 is the narrowest evidence-backed correction because it preserves the authorized account and high-level real-combat approach without adding fixture rows or privileged setup actions.
+  - removing the third edge is the narrowest evidence-backed correction because the fixed three-edge route was a local assumption, not a programme requirement, and the second-edge position is already sufficient to keep the target visible while avoiding the contested tile.
 unknown:
-  - whether Paladin 15 removes the 30-HP Cave Rat within the bounded 20000 ms target-defeated wait
+  - whether Paladin 15 acquires and removes the 30-HP Cave Rat from the second-edge position within the bounded target-defeated wait
 conflicts: []
 first_failure:
-  marker: Physical client / combat/deterministic-combat — login phase 1
-  evidence: Universal Agent E2E run 29833227815 logged Failed to get character Knight 15 from account 115 and trying to connect into another account character; the source fixture contains Paladin 15 but no Knight 15
+  marker: Physical client / combat/deterministic-combat — step approach_three
+  evidence: Universal Agent E2E run 29835914774 logged position=19978,19990,7 expected=19979,19991,7 timeout_ms=10000 after login, arena creation, target visibility and the first two exact edges had succeeded
 rejected_hypotheses:
   - add a generic creature-spawn fixture interface; the merged arena service already provides the deterministic target
   - extend target_defeated beyond 30 seconds; rejected because the existing controlled-client ping seam disconnects first
   - add privileged skill or spell setup for ADM1; rejected in favor of an existing high-level fixture on the same authorized account
   - use Knight 15 from account 115; rejected because that character does not exist in the bootstrap fixture
+  - force a third exact approach edge; rejected because the real target can occupy or contest that tile for a normal combat character and the programme does not require three movement steps
 changed_paths:
   - docs/agents/tasks/active/CAN-20260721-e2e-gameplay-004-combat-vertical-slice.md
   - docker/data/01-test_account.sql
   - tests/e2e/scenarios/combat/deterministic-combat.json
   - tests/e2e/test_deterministic_combat.py
 validation:
-  - command: Agent Task Ownership run 29833227470 on 70eedf733f39babebf578faa348d653d85d96d76
+  - command: Agent Task Ownership run 29835915524 on d71aeabc65215ec51a175c5ee3f99829091129ca
     result: PASS
     evidence: active-task ownership and checkpoint validation passed
-  - command: CI run 29833227606 on 70eedf733f39babebf578faa348d653d85d96d76
+  - command: CI run 29835915545 on d71aeabc65215ec51a175c5ee3f99829091129ca
     result: PASS
-    evidence: incremental repository CI completed successfully
-  - command: Universal Agent E2E run 29833227815 on 70eedf733f39babebf578faa348d653d85d96d76
+    evidence: incremental required CI completed successfully
+  - command: Universal Agent E2E run 29835914774 on d71aeabc65215ec51a175c5ee3f99829091129ca
     result: FAIL
-    evidence: exact builds passed; physical first failure was the nonexistent Knight 15 fixture requested on account 115 before gameplay began
+    evidence: physical client passed login, arena creation, target visibility and two movement edges; first failure was the creature-contested third destination tile
 blockers: []
-next_action: Verify ownership, CI and Universal Agent E2E on the exact head using existing Paladin 15; if target removal and the canonical two-session lifecycle pass, checkpoint the successful runtime evidence and proceed to the normal final gate without adding shared platform capability.
+next_action: Verify ownership, CI and Universal Agent E2E on the exact head with the two-edge Paladin 15 approach; if target acquisition, target removal and the canonical two-session lifecycle pass, checkpoint the successful runtime evidence and proceed to the normal final gate without adding shared platform capability.
 ```
