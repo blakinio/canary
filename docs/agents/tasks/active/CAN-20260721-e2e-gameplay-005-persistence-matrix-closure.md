@@ -2,13 +2,13 @@
 task_id: CAN-20260721-e2e-gameplay-005-persistence-matrix-closure
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-GAMEPLAY-005-PERSISTENCE-MATRIX-CLOSURE
-status: implementing
+status: validating
 agent: "GPT-5.6 Thinking"
 branch: docs/e2e-gameplay-005-persistence-matrix-closure
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
-last_verified_commit: "716930df5a1b5aa01050384c61574dab553c0986"
+last_verified_commit: "c14c057c1a1d27fe92b6d1f30f53350be17036ec"
 risk: low
 related_issue: ""
 related_pr: "666"
@@ -51,13 +51,13 @@ Close `E2E-GAMEPLAY-005` with one durable, feature-neutral persistence assertion
 
 # Acceptance criteria
 
-- [ ] Audit the current merged typed persistence assertion surfaces on `main`.
-- [ ] Add one durable matrix covering `player_field`, `player_storage`, `player_item_presence`, `player_balance`, `player_magic_level`, `player_skill_level`, `player_vocation`, and `player_soul`.
-- [ ] Record which types are verified through controlled-client post-relog plus SQL and which are intentionally database-only.
-- [ ] Keep quest storage keys, item IDs, economy values, progression values, and other feature-specific expectations out of shared platform documentation.
-- [ ] Do not add a new assertion type unless the audit proves a concrete reusable gap required for matrix completeness.
-- [ ] Close the proven `player_field` exact-integer gap without changing the canonical lifecycle or adding a new assertion type.
-- [ ] Update the Universal E2E programme record to reflect the actual `E2E-GAMEPLAY-005` closure state.
+- [x] Audit the current merged typed persistence assertion surfaces on `main`.
+- [x] Add one durable matrix covering `player_field`, `player_storage`, `player_item_presence`, `player_balance`, `player_magic_level`, `player_skill_level`, `player_vocation`, and `player_soul`.
+- [x] Record which types are verified through controlled-client post-relog plus SQL and which are intentionally database-only.
+- [x] Keep quest storage keys, item IDs, economy values, progression values, and other feature-specific expectations out of shared platform documentation.
+- [x] Do not add a new assertion type unless the audit proves a concrete reusable gap required for matrix completeness.
+- [x] Close the proven `player_field` exact-integer gap without changing the canonical lifecycle or adding a new assertion type.
+- [x] Update the Universal E2E programme record to reflect the actual `E2E-GAMEPLAY-005` closure state.
 - [ ] Pass checkpoint validation and applicable docs/ownership/CI checks on the final head.
 - [ ] Merge only after the normal autonomous merge gate passes, then archive this task in a separate lifecycle PR.
 
@@ -65,11 +65,11 @@ Close `E2E-GAMEPLAY-005` with one durable, feature-neutral persistence assertion
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T12:45:00+02:00
-head: 716930df5a1b5aa01050384c61574dab553c0986
+updated_at: 2026-07-21T12:38:00+02:00
+head: c14c057c1a1d27fe92b6d1f30f53350be17036ec
 branch: docs/e2e-gameplay-005-persistence-matrix-closure
 pr: 666
-status: implementing
+status: validating
 context_routes:
   - universal-e2e
 owned_paths:
@@ -93,19 +93,26 @@ proven:
   - maintained OTClient converts uint64 Lua-bound values to double, while player_field previously accepted signed-64 expected values for client-verified experience
   - exact client equality above the shared MAX_SAFE_LUA_INTEGER boundary is therefore not guaranteed for player_field experience
   - tools/e2e/persistence_assertions.py now applies the existing MAX_SAFE_LUA_INTEGER boundary to player_field expected values
+  - tests/e2e/test_player_field_persistence_precision.py covers the accepted and rejected boundary
+  - docs/e2e/PERSISTENCE_ASSERTION_MATRIX.md is the canonical eight-type closure inventory
   - no new persistence assertion type is required for matrix completeness
+derived:
+  - E2E-GAMEPLAY-005 can close after final-head checkpoint, ownership, CI, and Universal Agent E2E gates pass because the declared priority domains are covered and the only concrete reusable audit gap has been corrected
 unknown:
-  - whether the new player_field precision regression test and full applicable CI pass on the corrected branch head
+  - whether all required workflows pass on the checkpoint-schema-corrected final candidate head
 conflicts: []
 first_failure:
-  marker: player_field-lua-integer-precision
-  evidence: audit proved the typed contract accepted client-verified uint64 experience expectations beyond the exact Lua double integer range
+  marker: checkpoint-validation
+  evidence: Agent Task Ownership run 29822621190 rejected the prior checkpoint because derived was missing and UNAVAILABLE is not a supported validation result
 rejected_hypotheses:
   - OTBM-E2E-002 should be resumed by this task: user assigned that scope to another owner and the OTBM route programme is already closed
   - current persistence documentation already provides one complete merged-type inventory: rejected because PHYSICAL_GAMEPLAY_ACTION_PLANS.md still describes only the earlier subset and treats vocation normalization as future work
   - E2E-GAMEPLAY-005 requires another assertion domain before closure: rejected after auditing all merged typed contracts against the declared priority domains
 changed_paths:
+  - docs/agents/programs/E2E_AUTOMATION_PROGRAM.md
   - docs/agents/tasks/active/CAN-20260721-e2e-gameplay-005-persistence-matrix-closure.md
+  - docs/e2e/PERSISTENCE_ASSERTION_MATRIX.md
+  - tests/e2e/test_player_field_persistence_precision.py
   - tools/e2e/persistence_assertions.py
 validation:
   - command: live GitHub PR state for persistence slices 565, 583, 586, 591, 595, 603, 608, 615
@@ -120,9 +127,15 @@ validation:
   - command: initial current-head GitHub workflows at d3936b530e731066bcd94bc652c71a1f06af8e24
     result: PASS
     evidence: Agent Task Ownership and CI completed successfully before the precision fix
+  - command: GitHub CI workflow at c14c057c1a1d27fe92b6d1f30f53350be17036ec
+    result: PASS
+    evidence: CI run 29822621295 completed successfully
+  - command: Agent Task Ownership at c14c057c1a1d27fe92b6d1f30f53350be17036ec
+    result: FAIL
+    evidence: run 29822621190 reported missing checkpoint field derived and unsupported validation result UNAVAILABLE; this commit corrects both checkpoint-schema errors
   - command: local git/test execution
-    result: UNAVAILABLE
-    evidence: this CHAT environment cannot resolve github.com from the local container; repository changes are being performed through the authorized GitHub connector and must be verified by PR CI
+    result: NOT_RUN
+    evidence: local container cannot resolve github.com; repository edits and executable validation use the authorized GitHub connector and PR workflows
 blockers: []
-next_action: Add the focused player_field exact-integer regression test, then draft the canonical persistence assertion matrix and programme closure update before running the final PR gate.
+next_action: Verify all required PR #666 workflows on the checkpoint-schema-corrected head, then finalize the checkpoint and merge if the autonomous gate passes.
 ```
