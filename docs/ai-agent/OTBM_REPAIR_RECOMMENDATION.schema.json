@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/ai-agent/OTBM_REPAIR_RECOMMENDATION.schema.json",
+  "title": "Canary OTBM Repair Recommendation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "state",
+    "source",
+    "selector",
+    "mutation",
+    "provenance",
+    "preflight",
+    "capability",
+    "blockers",
+    "downstreamRequirements",
+    "review",
+    "rationale",
+    "notes"
+  ],
+  "properties": {
+    "format": {"const": "canary-otbm-repair-recommendation-v1"},
+    "schemaVersion": {"const": 1},
+    "state": {
+      "enum": [
+        "no-repair-evidence",
+        "review-required",
+        "supported-by-existing-attribute-path",
+        "supported-by-existing-tile-area-path",
+        "supported-by-existing-raw-tile-path",
+        "unsupported-mutation-shape",
+        "blocked-by-runtime-evidence",
+        "ambiguous-target"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mapSha256", "finding"],
+      "properties": {
+        "mapSha256": {"$ref": "#/$defs/sha256"},
+        "finding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reportFormat", "reportSha256", "id"],
+          "properties": {
+            "reportFormat": {"type": "string", "minLength": 1},
+            "reportSha256": {"$ref": "#/$defs/sha256"},
+            "id": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "selector": {"$ref": "#/$defs/selector"},
+    "mutation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "expectedOldState", "proposedTargetState"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "none",
+            "attribute-replacement",
+            "tile-area-materialization",
+            "raw-tile-replacement",
+            "raw-tile-insertion",
+            "raw-tile-deletion",
+            "raw-tile-type-conversion",
+            "unsupported"
+          ]
+        },
+        "operationKind": {"type": "string", "minLength": 1},
+        "expectedOldState": {},
+        "proposedTargetState": {},
+        "position": {"$ref": "#/$defs/position"},
+        "region": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["policy", "from", "to", "translationDelta"],
+          "properties": {
+            "policy": {"type": "string", "minLength": 1},
+            "from": {"$ref": "#/$defs/position"},
+            "to": {"$ref": "#/$defs/position"},
+            "translationDelta": {"$ref": "#/$defs/position"}
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request", "repairPreflight"],
+      "properties": {
+        "request": {"$ref": "#/$defs/requestPin"},
+        "repairPreflight": {"$ref": "#/$defs/preflightPin"}
+      }
+    },
+    "preflight": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "matchedCandidates",
+        "anchorStatuses",
+        "runtimeStatus",
+        "runtimeResolved",
+        "correlated",
+        "patchable",
+        "reviewReady"
+      ],
+      "properties": {
+        "matchedCandidates": {"type": "integer", "minimum": 0},
+        "anchorStatuses": {
+          "type": "array",
+          "items": {"enum": ["exact", "missing", "ambiguous"]}
+        },
+        "runtimeStatus": {"type": "string", "minLength": 1},
+        "runtimeResolved": {"type": "boolean"},
+        "correlated": {"type": "boolean"},
+        "patchable": {"type": "boolean"},
+        "reviewReady": {"type": "boolean"}
+      }
+    },
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["family", "mode", "technicalPathSupported", "capabilityOnly"],
+      "properties": {
+        "family": {"type": ["string", "null"]},
+        "mode": {"type": ["string", "null"]},
+        "technicalPathSupported": {"type": "boolean"},
+        "capabilityOnly": {"type": "boolean"}
+      }
+    },
+    "blockers": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "downstreamRequirements": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requiresHumanReview",
+        "approvalGenerated",
+        "mapModified",
+        "gameplayCorrectnessProven",
+        "playerIntentProven",
+        "supportedPathMeansRepairCorrect"
+      ],
+      "properties": {
+        "requiresHumanReview": {"const": true},
+        "approvalGenerated": {"const": false},
+        "mapModified": {"const": false},
+        "gameplayCorrectnessProven": {"const": false},
+        "playerIntentProven": {"const": false},
+        "supportedPathMeansRepairCorrect": {"const": false}
+      }
+    },
+    "rationale": {"type": "string", "minLength": 1},
+    "notes": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "selector": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "position": {"$ref": "#/$defs/position"},
+        "itemId": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "actionId": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "uniqueId": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "houseDoorId": {"type": "integer", "minimum": 0, "maximum": 255},
+        "teleportDestination": {"$ref": "#/$defs/position"}
+      }
+    },
+    "inputPin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fileName", "size", "sha256", "format"],
+      "properties": {
+        "fileName": {"type": "string", "minLength": 1},
+        "size": {"type": "integer", "minimum": 0},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "format": {"type": "string", "minLength": 1}
+      }
+    },
+    "requestPin": {
+      "allOf": [
+        {"$ref": "#/$defs/inputPin"},
+        {"properties": {"format": {"const": "canary-otbm-repair-recommendation-request-v1"}}}
+      ]
+    },
+    "preflightPin": {
+      "allOf": [
+        {"$ref": "#/$defs/inputPin"},
+        {"properties": {"format": {"const": "canary-otbm-repair-preflight-v1"}}}
+      ]
+    }
+  }
+}
