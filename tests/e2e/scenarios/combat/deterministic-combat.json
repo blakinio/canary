@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "id": "deterministic-combat",
+  "suite": "combat",
+  "name": "Deterministic physical combat vertical slice",
+  "program_id": "CAN-PROGRAM-E2E-PLATFORM",
+  "description": "Bounded real-client combat scenario. Target and exact navigation remain intentionally unfilled until current repository spawn evidence is proven by the focused combat fixture test.",
+  "client": {
+    "repository": "blakinio/otclient",
+    "ref": "2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f",
+    "automation": "tools/e2e/client/agent_e2e_scenario.lua"
+  },
+  "server": {
+    "database_image": "mariadb:11.4",
+    "datapack": "data-otservbr-global",
+    "map": "otservbr"
+  },
+  "fixture": {
+    "account": "@test1",
+    "password_env": "AGENT_E2E_TEST_PASSWORD",
+    "character": "Knight 1",
+    "world": "Canary E2E",
+    "host": "127.0.0.1",
+    "game_port": 7172
+  },
+  "timing": {
+    "global_timeout_seconds": 180,
+    "session_hold_ms": 7000,
+    "relog_delay_ms": 1500
+  },
+  "steps": [
+    {
+      "id": "online",
+      "action": "observe_online",
+      "expected": true
+    }
+  ],
+  "assertions": {
+    "required_markers": [
+      "ping_features_1=disabled",
+      "login_1=success",
+      "online_stable_1=confirmed",
+      "step_online=success",
+      "plan=success",
+      "logout_request_1=safe",
+      "logout_1=complete",
+      "ping_features_2=disabled",
+      "login_2=success",
+      "online_stable_2=confirmed",
+      "logout_request_2=safe",
+      "logout_2=complete",
+      "e2e=success"
+    ],
+    "sql": [
+      "SELECT lastlogin > 0 FROM players WHERE name = 'Knight 1'",
+      "SELECT lastlogout > 0 FROM players WHERE name = 'Knight 1'"
+    ]
+  },
+  "artifacts": [
+    "scenario-manifest.json",
+    "scenario-plan.lua",
+    "result.json",
+    "client-events.tsv",
+    "canary.stdout.log",
+    "canary.stderr.log",
+    "otclient.stdout.log",
+    "otclient.stderr.log",
+    "otclient.internal.log",
+    "database-online.tsv",
+    "database-after.tsv",
+    "server-login-matches.txt",
+    "client.png",
+    "session-1.record",
+    "session-2.record",
+    "runtime-hashes.txt"
+  ]
+}
