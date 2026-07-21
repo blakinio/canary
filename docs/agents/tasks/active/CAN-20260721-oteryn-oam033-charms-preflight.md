@@ -7,7 +7,7 @@ branch: docs/oam-033-charms-preflight
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
-related_pr: ""
+related_pr: "696"
 modules_touched:
   - charms
 owned_paths:
@@ -41,10 +41,10 @@ Perform a fresh bounded OAM-033 revalidation of canonical `charms` after complet
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T23:05:00+02:00
-head: f05ea5e916af00ab1469a2332aaec2d3c9df7478
+updated_at: 2026-07-21T23:08:00+02:00
+head: 5b435bf55a00d6c60ac127e61696d3ce28ea15c4
 branch: docs/oam-033-charms-preflight
-pr: none
+pr: 696
 status: investigating
 context_routes:
   - architecture
