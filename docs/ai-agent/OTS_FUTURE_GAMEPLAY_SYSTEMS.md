@@ -1163,3 +1163,20 @@ Threat-Based Collision
 6. Run abuse analysis for any system that creates transferable value, PvP rewards, disconnect protection, teleport convenience, personal loot or automated actions.
 7. Prefer incremental rollout and telemetry before irreversible balance decisions.
 8. Keep the game challenging; remove meaningless friction, not meaningful danger.
+
+---
+
+# 26. Skill Wheel Change Access
+
+`USER-DIRECTION`
+
+The skill wheel should be changeable outside the temple; being physically in a temple should not be a mandatory requirement for changing the wheel.
+
+Required restriction:
+
+- the character must have no PZ/combat lock;
+- changing the skill wheel while PZ/combat locked must be blocked.
+
+`OPEN`
+
+- Exact server/client enforcement and the current Canary/OTClient skill-wheel implementation must be reverified before implementation.
