@@ -1,0 +1,143 @@
+{
+  "$defs": {
+    "coverageRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "dimension": {"minLength": 1, "type": "string"},
+        "targetId": {"minLength": 1, "type": "string"}
+      },
+      "required": ["targetId", "dimension"],
+      "type": "object"
+    },
+    "orphanCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "counterpartKinds": {
+          "items": {"minLength": 1, "type": "string"},
+          "minItems": 1,
+          "type": "array"
+        },
+        "direction": {"enum": ["incoming", "outgoing", "either"]},
+        "findingKind": {
+          "enum": [
+            "placement-without-handler",
+            "handler-without-placement",
+            "unreachable-transition",
+            "disconnected-spawn-or-npc",
+            "storage-producer-consumer-gap",
+            "missing-route-interaction-evidence",
+            "disconnected-access-context"
+          ]
+        },
+        "id": {"minLength": 1, "type": "string"},
+        "missingClassification": {"enum": ["map-only", "script-only", "unresolved", "conflicting"]},
+        "nodeId": {"minLength": 1, "type": "string"},
+        "relations": {
+          "items": {
+            "enum": [
+              "depends-on",
+              "references",
+              "guards",
+              "routes-through",
+              "activates",
+              "produces",
+              "consumes",
+              "covers",
+              "validates",
+              "affected-by"
+            ]
+          },
+          "minItems": 1,
+          "type": "array"
+        }
+      },
+      "required": ["id", "nodeId", "direction", "relations", "counterpartKinds", "missingClassification", "findingKind"],
+      "type": "object"
+    },
+    "pathRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "queryId": {"minLength": 1, "type": "string"},
+        "targetNodeIds": {
+          "items": {"minLength": 1, "type": "string"},
+          "minItems": 1,
+          "type": "array"
+        }
+      },
+      "required": ["queryId", "targetNodeIds"],
+      "type": "object"
+    },
+    "sha256": {"pattern": "^[0-9a-f]{64}$", "type": "string"},
+    "source": {
+      "additionalProperties": false,
+      "properties": {
+        "mapSha256": {"$ref": "#/$defs/sha256"},
+        "worldIndexSha256": {"$ref": "#/$defs/sha256"}
+      },
+      "required": ["mapSha256", "worldIndexSha256"],
+      "type": "object"
+    },
+    "stage": {
+      "additionalProperties": false,
+      "properties": {
+        "coverageRequirements": {
+          "items": {"$ref": "#/$defs/coverageRequirement"},
+          "type": "array"
+        },
+        "id": {"minLength": 1, "type": "string"},
+        "missingClassification": {"enum": ["map-only", "script-only", "unresolved", "conflicting"]},
+        "nodeIds": {
+          "items": {"minLength": 1, "type": "string"},
+          "type": "array"
+        },
+        "pathRequirement": {"$ref": "#/$defs/pathRequirement"},
+        "required": {"default": true, "type": "boolean"},
+        "role": {
+          "enum": [
+            "entry",
+            "npc-source-trigger",
+            "storage-prerequisite",
+            "storage-result",
+            "mechanic",
+            "door",
+            "lever",
+            "passage",
+            "teleport",
+            "transition",
+            "boss",
+            "spawn",
+            "reward",
+            "exit",
+            "return"
+          ]
+        }
+      },
+      "required": ["id", "role"],
+      "type": "object"
+    },
+    "target": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {"minLength": 1, "type": "string"},
+        "kind": {"enum": ["quest", "mechanic-set"]},
+        "orphanChecks": {"items": {"$ref": "#/$defs/orphanCheck"}, "type": "array"},
+        "reason": {"minLength": 1, "type": "string"},
+        "stages": {"items": {"$ref": "#/$defs/stage"}, "type": "array"}
+      },
+      "required": ["id", "kind", "reason", "stages", "orphanChecks"],
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_CONTENT_COMPLETENESS_MANIFEST.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "format": {"const": "canary-otbm-content-completeness-manifest-v1"},
+    "schemaVersion": {"const": 1},
+    "source": {"$ref": "#/$defs/source"},
+    "targets": {"items": {"$ref": "#/$defs/target"}, "type": "array"}
+  },
+  "required": ["format", "schemaVersion", "source", "targets"],
+  "title": "Canary OTBM Content Completeness Manifest v1",
+  "type": "object"
+}
