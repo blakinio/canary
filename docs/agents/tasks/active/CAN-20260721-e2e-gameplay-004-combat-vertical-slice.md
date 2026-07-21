@@ -8,7 +8,7 @@ branch: feat/e2e-gameplay-004-combat-vertical-slice
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
-last_verified_commit: "cbe8d58778c8aa802b9e31a25eba16c8f2d3c3f4"
+last_verified_commit: "70eedf733f39babebf578faa348d653d85d96d76"
 risk: low
 related_issue: ""
 related_pr: "677"
@@ -72,8 +72,8 @@ Deliver one bounded deterministic real-client combat lifecycle on the existing U
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T15:10:00+02:00
-head: cbe8d58778c8aa802b9e31a25eba16c8f2d3c3f4
+updated_at: 2026-07-21T15:45:00+02:00
+head: a7e892fa8883b52f8a7e20171803fb55c1741d99
 branch: feat/e2e-gameplay-004-combat-vertical-slice
 pr: 677
 status: implementing
@@ -86,42 +86,44 @@ owned_paths:
   - tests/e2e/test_deterministic_combat.py
 proven:
   - PR 677 is the bounded draft owner for E2E-GAMEPLAY-004.
-  - InstanceArenaService provides an isolated Cave Rat at a fixed offset from entry 19976,19988,7.
-  - Cave Rat has 30 health and is attackable.
+  - InstanceArenaService provides an isolated 30-HP attackable Cave Rat at a fixed offset from entry 19976,19988,7.
   - TalkAction permission checks use accounts.type; @test15 is now the dedicated God-account fixture with type 6.
-  - Universal Agent E2E run 29830650905 proved arena creation and target visibility with the corrected account fixture.
-  - run 29830650905 also proved all three exact walk_edge steps, attack_visible and observe_attacking=true.
+  - Universal Agent E2E run 29830650905 proved arena creation, target visibility, all three exact walk_edge steps, attack_visible and observe_attacking=true with ADM1.
   - run 29830650905 then remained in target_defeated until the existing controlled-client ping seam disconnected the session at about 30 seconds.
-  - Knight 15 already belongs to account 115 and is level 500, vocation 4, unlike level-1 vocation-0 ADM1.
-  - the scenario now uses Knight 15 and caps target_defeated at 20000 ms, below the observed disconnect window.
-  - no shared runner, workflow, map, datapack, OTBM binary, client source or client asset change is required by either runtime failure.
+  - exact-head Agent Task Ownership run 29833227470 and CI run 29833227606 passed on 70eedf733f39babebf578faa348d653d85d96d76.
+  - Universal Agent E2E run 29833227815 reached the physical job with exact Canary and controlled OTClient builds passing.
+  - run 29833227815 failed before gameplay because Knight 15 does not exist in docker/data/02-test_account_players.sql; Canary rejected the requested character for account 115.
+  - docker/data/02-test_account_players.sql instead provides Paladin 15 on account 115 at level 500, vocation 3.
+  - the scenario and focused evidence test now use the existing Paladin 15 fixture and explicitly reject the nonexistent Knight 15 assumption.
+  - no shared runner, workflow, map, datapack, OTBM binary, client source or client asset change is required by the three runtime failures.
 derived:
-  - using the existing high-level Knight 15 fixture is narrower and more gameplay-realistic than adding privileged skill/spell setup actions solely to accelerate ADM1.
+  - using Paladin 15 is the narrowest evidence-backed correction because it preserves the authorized account and high-level real-combat approach without adding fixture rows or privileged setup actions.
 unknown:
-  - whether Knight 15 removes the 30-HP Cave Rat within the 20000 ms bounded target-defeated wait
+  - whether Paladin 15 removes the 30-HP Cave Rat within the bounded 20000 ms target-defeated wait
 conflicts: []
 first_failure:
-  marker: Physical client / combat/deterministic-combat — step target_defeated
-  evidence: Universal Agent E2E run 29830650905 passed target_visible, exact approach, attack_target and attack_confirmed, then the session disconnected at about 30 seconds while target_defeated was still pending
+  marker: Physical client / combat/deterministic-combat — login phase 1
+  evidence: Universal Agent E2E run 29833227815 logged Failed to get character Knight 15 from account 115 and trying to connect into another account character; the source fixture contains Paladin 15 but no Knight 15
 rejected_hypotheses:
   - add a generic creature-spawn fixture interface; the merged arena service already provides the deterministic target
   - extend target_defeated beyond 30 seconds; rejected because the existing controlled-client ping seam disconnects first
-  - add privileged skill or spell setup for ADM1; rejected in favor of the existing level-500 Knight 15 fixture on the same authorized account
+  - add privileged skill or spell setup for ADM1; rejected in favor of an existing high-level fixture on the same authorized account
+  - use Knight 15 from account 115; rejected because that character does not exist in the bootstrap fixture
 changed_paths:
   - docs/agents/tasks/active/CAN-20260721-e2e-gameplay-004-combat-vertical-slice.md
   - docker/data/01-test_account.sql
   - tests/e2e/scenarios/combat/deterministic-combat.json
   - tests/e2e/test_deterministic_combat.py
 validation:
-  - command: Agent Task Ownership run 29830650703 on c145b5e8ab7cf39f3425d932653f7e1f1b1f817a
+  - command: Agent Task Ownership run 29833227470 on 70eedf733f39babebf578faa348d653d85d96d76
     result: PASS
     evidence: active-task ownership and checkpoint validation passed
-  - command: CI run 29830650935 on c145b5e8ab7cf39f3425d932653f7e1f1b1f817a
+  - command: CI run 29833227606 on 70eedf733f39babebf578faa348d653d85d96d76
     result: PASS
     evidence: incremental repository CI completed successfully
-  - command: Universal Agent E2E run 29830650905 on c145b5e8ab7cf39f3425d932653f7e1f1b1f817a
+  - command: Universal Agent E2E run 29833227815 on 70eedf733f39babebf578faa348d653d85d96d76
     result: FAIL
-    evidence: arena creation, target visibility, exact movement, target acquisition and attacking-state proof passed; first failure moved to target_defeated before the existing ping disconnect seam
+    evidence: exact builds passed; physical first failure was the nonexistent Knight 15 fixture requested on account 115 before gameplay began
 blockers: []
-next_action: Verify ownership, CI and Universal Agent E2E on the exact head using Knight 15; if target removal and canonical two-session lifecycle pass, checkpoint the successful runtime evidence and proceed to the normal final gate without adding shared platform capability.
+next_action: Verify ownership, CI and Universal Agent E2E on the exact head using existing Paladin 15; if target removal and the canonical two-session lifecycle pass, checkpoint the successful runtime evidence and proceed to the normal final gate without adding shared platform capability.
 ```
