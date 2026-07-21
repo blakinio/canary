@@ -7,7 +7,7 @@ branch: docs/otbm-quality-repair-roadmap-20260721
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
-last_verified_commit: "d4e347f7d9f5da28d948cba23121aa7a8ded3d18"
+last_verified_commit: "eb495f895d8767b4d87d3973e693188bbba1c7a0"
 risk: low
 related_issue: ""
 related_pr: "665"
@@ -79,11 +79,11 @@ Persist a successor OTBM roadmap and architecture after completion of OTBM-E2E-0
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T12:00:00Z
-head: d4e347f7d9f5da28d948cba23121aa7a8ded3d18
+updated_at: 2026-07-21T12:05:00Z
+head: eb495f895d8767b4d87d3973e693188bbba1c7a0
 branch: docs/otbm-quality-repair-roadmap-20260721
 pr: 665
-status: implementing
+status: validating
 context_routes:
   - otbm
   - agent-governance
@@ -96,16 +96,17 @@ proven:
   - OTBM-E2E-008 selects impacted Physical E2E scenarios from Semantic OTBM Diff evidence.
   - OTBM-E2E-009 validates approved candidate maps with selected Physical E2E while preserving exact candidate provenance.
   - Existing OTBM repair/materialization tooling provides bounded attribute, TILE_AREA and raw-tile mutation paths on distinct copies.
-  - PR #665 is the draft documentation-only delivery branch for this reconciliation.
+  - PR #665 changes exactly the successor roadmap, successor architecture and this active task record.
+  - Pre-final head eb495f895d8767b4d87d3973e693188bbba1c7a0 passed CI, Agent Task Ownership, OTBM Map Tools and AI Agent Tools.
 derived:
   - Successor architecture should compose existing evidence and mutation boundaries rather than create a new parser, writer, pathfinder or E2E runner.
   - Completed historical roadmap/programme records should remain closed and the new work should be expressed as a successor roadmap.
 unknown:
-  - Exact implementation owners and CI placement for future OTBM-QA packages.
+  - Exact-final-head workflow conclusions after this checkpoint commit.
 conflicts: []
 first_failure:
   marker: Agent Task Ownership / Validate changed active task checkpoints
-  evidence: Run 29820096255 rejected first_failure because it was null instead of a YAML mapping; this checkpoint repairs that contract.
+  evidence: Run 29820096255 rejected first_failure because it was null instead of a YAML mapping; repaired on eb495f895d8767b4d87d3973e693188bbba1c7a0 and run 29820229913 then passed.
 rejected_hypotheses:
   - Building a new automatic repair engine from scratch; existing repair/materialization pipeline must be reused.
   - Reopening the completed OTBM-E2E route programme for successor quality/certification work.
@@ -114,12 +115,19 @@ changed_paths:
   - docs/architecture/otbm-world-quality-repair.md
   - docs/agents/tasks/active/CAN-20260721-otbm-quality-repair-roadmap.md
 validation:
-  - command: GitHub Actions CI run 29820096710
+  - command: GitHub Actions CI run 29820230144
     result: PASS
-    evidence: Repository CI passed on head d4e347f7d9f5da28d948cba23121aa7a8ded3d18.
-  - command: GitHub Actions Agent Task Ownership run 29820096255
-    result: FAIL
-    evidence: Checkpoint contract required first_failure to be a YAML mapping; repaired in the next commit.
-blockers: []
-next_action: Verify current-head Agent Task Ownership, AI Agent Tools and OTBM Map Tools after the checkpoint-contract repair; then apply the exact-final-head gate if required.
+    evidence: Repository CI passed on pre-final head eb495f895d8767b4d87d3973e693188bbba1c7a0.
+  - command: GitHub Actions Agent Task Ownership run 29820229913
+    result: PASS
+    evidence: Ownership and changed active task checkpoint validation passed on pre-final head.
+  - command: GitHub Actions OTBM Map Tools run 29820230038
+    result: PASS
+    evidence: OTBM Map Tools passed on pre-final head.
+  - command: GitHub Actions AI Agent Tools run 29820229845
+    result: PASS
+    evidence: AI Agent Tools passed on pre-final head.
+blockers:
+  - Exact-final-head checks triggered by ci:final-gate must pass before readiness/merge.
+next_action: Verify all required exact-final-head checks on the checkpoint head; if green and no review blockers remain, mark PR #665 ready and squash-merge without further feature-head commits.
 ```
