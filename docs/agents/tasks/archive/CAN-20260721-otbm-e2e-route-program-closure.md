@@ -38,10 +38,10 @@ Close and archive the completed OTBM-aware Universal Physical E2E routing progra
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T07:20:00Z
-head: 419d0848448c641561e7bc06392a4b17b95213b2
+updated_at: 2026-07-21T07:42:00Z
+head: e39975907237f9fbb7b4d2ed5fd2f37624171469
 branch: docs/archive-otbm-e2e-route-closure
-pr: none
+pr: 658
 status: validating
 context_routes:
   - agent-governance
@@ -57,14 +57,17 @@ proven:
   - ready-state CI 29809116742 passed on the unchanged exact final closure head
   - PR 654 changed exactly two intended documentation paths and had no reviews or review threads
   - PR 654 squash-merged as 419d0848448c641561e7bc06392a4b17b95213b2
+  - lifecycle PR 658 changes exactly the active-delete and archive-add task record paths and started zero commits behind post-closure main
+  - ci:final-gate was applied before this final lifecycle checkpoint commit
 derived:
-  - only lifecycle archival remains and future extensions require a separately approved task from new live evidence
+  - after lifecycle PR 658 merges the programme has no active task and future extensions require a separately approved task from new live evidence
 unknown:
-  - lifecycle archive PR number and merge SHA
+  - exact live lifecycle head created by this final checkpoint commit and its workflow conclusions
+  - lifecycle PR 658 merge SHA
 conflicts: []
 first_failure:
   marker: none
-  evidence: no unresolved programme blocker remains after closure merge
+  evidence: no unresolved programme or lifecycle blocker remains before final lifecycle validation
 rejected_hypotheses:
   - create OTBM-E2E-010: completed roadmap defines no such package
 changed_paths:
@@ -80,6 +83,9 @@ validation:
   - command: ready-state CI run 29809116742
     result: PASS
     evidence: unchanged exact final closure head passed full final-gate CI
+  - command: PR 658 lifecycle diff audit
+    result: PASS
+    evidence: exactly two lifecycle task-record paths changed from post-closure main
 blockers: []
-next_action: Merge the two-file lifecycle archive after Ownership and CI pass, then keep the completed programme closed unless new live evidence justifies a separately approved extension.
+next_action: Require exact-head Ownership and CI success for PR 658, squash merge the lifecycle archive, then keep the completed programme closed unless new live evidence justifies a separately approved extension.
 ```
