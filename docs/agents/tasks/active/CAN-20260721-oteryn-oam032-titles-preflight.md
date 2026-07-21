@@ -31,8 +31,8 @@ optional_reads: []
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T22:15:00+02:00
-head: db7cf6af480285ad4a87c3be2981a873f175eab6
+updated_at: 2026-07-21T22:20:00+02:00
+head: e02d1a1b9e35933e41c824000a75a2232762f863
 branch: docs/oam-032-titles-preflight
 pr: none
 status: validating
