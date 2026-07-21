@@ -1,13 +1,13 @@
 ---
 task_id: CAN-20260721-otbm-qa-009-content-completeness
 program_id: CAN-PROGRAM-OTBM
-status: implementing
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/otbm-qa-009-content-completeness-20260721
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
-last_verified_commit: "7f32462c0e55f1efa397438652bb41f7e200f3d9"
+last_verified_commit: "1aabdb80bd0b847d3354cbd26e8c7f3890c899cb"
 risk: medium
 related_issue: ""
 related_pr: "700"
@@ -51,7 +51,7 @@ cross_repo_tasks: []
 
 ## Status
 
-ACTIVE — bounded implementation is isolated in draft PR #700.
+READY — bounded QA-009 implementation is complete in PR #700; exact-final-head gates remain before merge.
 
 ## Goal
 
@@ -91,11 +91,11 @@ Identify selected-scope dead/orphaned-content candidates and summarize reviewed 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T23:57:00+02:00
-head: 187433d27cfc153ebeeb859c7ede857a5801af22
+updated_at: 2026-07-22T00:12:00+02:00
+head: 1aabdb80bd0b847d3354cbd26e8c7f3890c899cb
 branch: feat/otbm-qa-009-content-completeness-20260721
 pr: 700
-status: implementing
+status: ready
 context_routes:
   - otbm
   - agent-governance
@@ -111,24 +111,49 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260721-otbm-qa-009-content-completeness.md
 proven:
   - QA-008 feature PR #694 merged as d760ce44c55b9aa6f01e80d2d407f6833938bdce and lifecycle PR #698 merged as 7f32462c0e55f1efa397438652bb41f7e200f3d9.
-  - Current main is identical to 7f32462c0e55f1efa397438652bb41f7e200f3d9 at fresh QA-009 preflight.
-  - No open OTBM-QA PR and no existing QA-009 branch existed before ownership was established.
-  - QA-009 local draft semantics and 17 focused tests are prepared for bounded repository landing.
+  - Current main remained identical to 7f32462c0e55f1efa397438652bb41f7e200f3d9 through the QA-009 pre-final overlap check.
+  - QA-009 delivers canary-otbm-content-completeness-manifest-v1 and canary-otbm-content-completeness-audit-v1 over exact compatible QA-008 and QA-005 evidence.
+  - Required stages compose explicit dependency nodes, existing QA-008 query reachability results and exact QA-005 dimensions; the audit does not recompute dependency traversal or pathfinding.
+  - Orphan/disconnection checks are explicit reviewed node/direction/relation/counterpart-kind rules; unresolved matching QA-008 edges remain unresolved/conflicting rather than being promoted to map-only or script-only absence.
+  - Target requirementsSatisfied is selected-scope static evidence only; runtimeGameplayCompletionProven and runtimeGameplayCompletionClaimed remain false.
+  - Pre-final complete implementation head 1aabdb80bd0b847d3354cbd26e8c7f3890c899cb passed CI 29872181174, Agent Task Ownership 29872180917, OTBM Map Tools 29872180921 and AI Agent Tools 29872180910.
 derived:
-  - The smallest safe QA-009 v1 is an explicit selected-target completeness/orphan audit over QA-008 nodes, edges and queries plus QA-005 dimensions; it does not independently discover quest topology or global dead content.
-unknown: []
+  - QA-009 remains a conservative selected-target evidence audit rather than a second quest topology resolver, Script Resolution engine, storage graph, pathfinder or runtime acceptance layer.
+unknown:
+  - MODULE_CATALOG shared-path row was not modified in the bounded feature branch; delivered public contracts are documented in OTBM_CONTENT_COMPLETENESS.md and task metadata.
 conflicts: []
 first_failure:
   marker: none
-  evidence: No unresolved QA-009 implementation failure observed at task start.
+  evidence: No unresolved implementation, focused-test, provenance or ownership failure remains before exact-final-head validation.
 rejected_hypotheses:
   - Inferring quest stages or orphaned content from names/proximity: rejected because roadmap requires explicit compatible evidence.
+  - Treating missing selected-scope dependency edges as global dead content: rejected; explicit reviewed missing-side classifications are bounded to the supplied graph only.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260721-otbm-qa-009-content-completeness.md
+  - docs/ai-agent/OTBM_CONTENT_COMPLETENESS.md
+  - docs/ai-agent/OTBM_CONTENT_COMPLETENESS.schema.json
+  - docs/ai-agent/OTBM_CONTENT_COMPLETENESS_MANIFEST.schema.json
+  - tools/ai-agent/otbm_content_completeness.py
+  - tools/ai-agent/otbm_content_completeness_tool.py
+  - tools/ai-agent/test_otbm_content_completeness.py
+  - tools/ai-agent/test_otbm_content_completeness_output_safety.py
+  - tools/ai-agent/test_otbm_content_completeness_schema.py
 validation:
   - command: local focused unittest discovery for test_otbm_content_completeness*.py
     result: PASS
-    evidence: 17 tests passed in isolated QA-009 draft workspace before repository writes.
+    evidence: 17 tests passed in isolated QA-009 draft workspace before repository writes; repository focused OTBM and AI Agent suites subsequently passed.
+  - command: GitHub Actions CI run 29872181174
+    result: PASS
+    evidence: pre-final complete implementation head 1aabdb80bd0b847d3354cbd26e8c7f3890c899cb
+  - command: GitHub Actions Agent Task Ownership run 29872180917
+    result: PASS
+    evidence: pre-final complete implementation head 1aabdb80bd0b847d3354cbd26e8c7f3890c899cb
+  - command: GitHub Actions OTBM Map Tools run 29872180921
+    result: PASS
+    evidence: pre-final complete implementation head 1aabdb80bd0b847d3354cbd26e8c7f3890c899cb
+  - command: GitHub Actions AI Agent Tools run 29872180910
+    result: PASS
+    evidence: pre-final complete implementation head 1aabdb80bd0b847d3354cbd26e8c7f3890c899cb
 blockers: []
-next_action: Land the bounded implementation, schemas, documentation and focused tests on PR #700; then run corrected Ownership and pre-final CI/OTBM/AI Agent validation.
+next_action: Verify exact-final-head CI, Agent Task Ownership, OTBM Map Tools and AI Agent Tools on the immutable final feature head, audit reviews, then squash-merge PR #700; leave the merged feature task active only for the separate lifecycle active-to-archive follow-up and compact resume handoff.
 ```
