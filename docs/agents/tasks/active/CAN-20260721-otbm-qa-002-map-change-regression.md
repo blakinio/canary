@@ -10,7 +10,7 @@ updated: 2026-07-21
 last_verified_commit: "eb2e09bc0778f0e88446638edf15c9069e771b11"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "679"
 depends_on:
   - CAN-20260721-otbm-qa-001-world-health complete
 blocks:
@@ -49,7 +49,7 @@ cross_repo_tasks: []
 
 ## Status
 
-ACTIVE — bounded implementation of the next unrealized roadmap package after OTBM-QA-001 lifecycle closure.
+ACTIVE — bounded implementation of the next unrealized roadmap package in draft PR #679.
 
 ## Goal
 
@@ -90,10 +90,10 @@ Turn exact existing Semantic OTBM Diff evidence plus existing OTBM-E2E-008 impac
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T14:15:00+02:00
-head: eb2e09bc0778f0e88446638edf15c9069e771b11
+updated_at: 2026-07-21T14:17:00+02:00
+head: b3aa82d559dd3f22120de6996cab668a00eb0f2c
 branch: feat/otbm-qa-002-regression-guard-20260721
-pr: none
+pr: 679
 status: implementing
 context_routes:
   - otbm
@@ -113,6 +113,7 @@ proven:
   - Roadmap identifies OTBM-QA-002 Map Change Regression Guard immediately after delivered OTBM-QA-001.
   - No open PR matching OTBM-QA and no otbm-qa branch was found in the fresh post-lifecycle preflight.
   - Existing Semantic OTBM Diff and OTBM-E2E-008 impacted selection are the canonical change/physical-impact evidence surfaces to reuse.
+  - PR #679 is the bounded draft implementation PR for this task.
 derived:
   - The smallest bounded v1 should compose existing reports and select validators; it must not rerun Semantic Diff or duplicate OTBM-E2E-008 selection logic.
 unknown:
@@ -130,5 +131,5 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260721-otbm-qa-002-map-change-regression.md
 validation: []
 blockers: []
-next_action: Open a draft PR, bind this active task to it, inspect exact Semantic Diff and OTBM-E2E-008 schemas/implementations, then implement the smallest deterministic fail-closed regression-plan v1 with focused tests.
+next_action: Inspect exact Semantic Diff and OTBM-E2E-008 schemas/implementations, then implement the smallest deterministic fail-closed regression-plan v1 with focused tests.
 ```
