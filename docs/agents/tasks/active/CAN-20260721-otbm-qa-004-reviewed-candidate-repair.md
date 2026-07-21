@@ -1,13 +1,13 @@
 ---
 task_id: CAN-20260721-otbm-qa-004-reviewed-candidate-repair
 program_id: CAN-PROGRAM-OTBM
-status: implementing
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/otbm-qa-004-reviewed-candidate-repair-20260721
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
-last_verified_commit: "96abac79b10b8ccd19dd0915a074bd85710daea5"
+last_verified_commit: "c010d7a4a615541973df592343459db5c39c715a"
 risk: medium
 related_issue: ""
 related_pr: "684"
@@ -57,7 +57,7 @@ cross_repo_tasks: []
 
 ## Status
 
-ACTIVE — bounded implementation is isolated in draft PR #684.
+READY — bounded implementation is complete in PR #684; `ci:final-gate` is applied and no further feature/checkpoint commits are permitted after this final checkpoint commit.
 
 ## Goal
 
@@ -113,11 +113,11 @@ Create a deterministic fail-closed evidence-chain orchestrator that binds one su
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T17:39:00+02:00
-head: 435e3be7c431278494e69013aa9e5213ab5b7c03
+updated_at: 2026-07-21T17:50:00+02:00
+head: c010d7a4a615541973df592343459db5c39c715a
 branch: feat/otbm-qa-004-reviewed-candidate-repair-20260721
 pr: 684
-status: implementing
+status: ready
 context_routes:
   - otbm
   - agent-governance
@@ -135,22 +135,28 @@ owned_paths:
 proven:
   - OTBM-QA-003 feature PR #681 merged as 31257824fe7dde510fc2885f818732861e375efb.
   - OTBM-QA-003 lifecycle PR #682 merged as c35b44f04803bcd4e4bfa0c90df762d0425f88d1.
-  - Fresh post-lifecycle preflight initially found main identical to c35b44f04803bcd4e4bfa0c90df762d0425f88d1, no open OTBM-QA PR, no otbm-qa branch and no existing QA-004 task.
-  - While draft PR #684 was opened, main advanced by one commit to 96abac79b10b8ccd19dd0915a074bd85710daea5.
-  - The intervening main delta changes only docker/data/01-test_account.sql, one deterministic combat E2E scenario, its focused test and its active task; it does not touch OTBM or QA-004 owned paths/contracts.
+  - Fresh post-lifecycle preflight found no open OTBM-QA PR, no otbm-qa branch and no existing QA-004 task before QA-004 ownership was established.
   - Live roadmap identifies OTBM-QA-004 Reviewed Candidate Repair Orchestration immediately after QA-003.
   - Canonical repair/materialization pipeline supports exactly one of fixed-width-attribute, tile-area, tile-replacement, tile-insertion, tile-deletion or tile-type-conversion per run and emits canary-otbm-repair-materialization-pipeline-v1.
   - OTBM-E2E-009 consumes successful pipeline evidence plus exact Semantic Diff and OTBM-E2E-008 selection and emits canary-otbm-candidate-physical-validation-v1 without adding another runner or workflow.
   - QA-004 core, CLI, approval/report schemas, focused evidence-chain tests, output-safety tests, schema-contract tests and contract documentation are present on PR #684.
-  - First complete implementation head 986f9f7261230a6f6846d52fb2b84ca990d2b91e passed CI run 29844442207, OTBM Map Tools run 29844441796 and AI Agent Tools run 29844441706.
+  - Exact approval equality, deterministic mutation-mode binding, pipeline mutation-authorization pin matching, source-to-candidate Semantic Diff provenance, exact impacted-selection pinning and exact OTBM-E2E-009 evidence pinning all fail closed on mismatch.
+  - Selected represented Physical E2E scenarios require successful performed execution with exact candidate runtime map SHA-256; zero selected represented scenarios may produce only the bounded validated-no-physical-e2e-required state.
+  - PR #684 changes exactly ten intended task/module/documentation/schema/test paths.
+  - MODULE_CATALOG diff adds exactly one OTBM Reviewed Candidate Repair Orchestrator row and preserves all existing catalogue text.
+  - First complete implementation head 986f9f7261230a6f6846d52fb2b84ca990d2b91e passed CI run 29844442207, OTBM Map Tools run 29844441796 and AI Agent Tools run 29844441706; its only failure was task-checkpoint shape in Agent Task Ownership.
+  - Ownership checkpoint contract was corrected through required fields, supported validation result values and frontmatter/checkpoint lifecycle status implementing.
+  - Pre-final head c010d7a4a615541973df592343459db5c39c715a passed CI run 29845509855, Agent Task Ownership run 29845509606, OTBM Map Tools run 29845508736 and AI Agent Tools run 29845508361.
+  - main advanced after PR creation only through unrelated deterministic combat E2E feature/lifecycle changes; audited deltas did not touch OTBM or QA-004 owned paths/contracts.
+  - ci:final-gate was applied before this final checkpoint commit.
 derived:
   - The smallest complete QA-004 v1 is an evidence-chain orchestrator/validator over explicit approval and already-produced canonical outputs; it need not execute or duplicate mutation or Physical E2E boundaries.
 unknown:
-  - Ownership outcome after checkpoint-shape corrections.
+  - Exact-final-head CI and focused-gate outcomes for this final checkpoint commit until GitHub Actions completes.
 conflicts: []
 first_failure:
   marker: Agent Task Ownership run 29844441699
-  evidence: Changed-task checkpoint validation rejected missing changed_paths, owned_paths, rejected_hypotheses and validation fields and unsupported checkpoint status active; implementation code was not implicated.
+  evidence: Changed-task checkpoint validation rejected missing required checkpoint fields and unsupported lifecycle/status/result values; implementation code was not implicated and all checkpoint-shape failures were corrected before pre-final validation.
 rejected_hypotheses:
   - QA-004 should execute the repair/materialization pipeline itself.
   - QA-004 should generate approval from a QA-003 recommendation.
@@ -158,6 +164,7 @@ rejected_hypotheses:
   - QA-004 should add another Physical E2E runner or workflow.
   - A successful static candidate is sufficient physical gameplay proof when selected scenarios exist.
 changed_paths:
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260721-otbm-qa-004-reviewed-candidate-repair.md
   - docs/ai-agent/OTBM_REVIEWED_CANDIDATE_REPAIR.md
   - docs/ai-agent/OTBM_REVIEWED_CANDIDATE_REPAIR.schema.json
@@ -168,9 +175,18 @@ changed_paths:
   - tools/ai-agent/test_otbm_reviewed_candidate_repair_output_safety.py
   - tools/ai-agent/test_otbm_reviewed_candidate_repair_schema.py
 validation:
-  - command: Agent Task Ownership run 29844441699
-    result: FAIL
-    evidence: Checkpoint-shape-only failure; required checkpoint fields/status were corrected, and a second checkpoint-only validation issue concerning unsupported RUNNING result values was then removed.
+  - command: CI run 29845509855
+    result: PASS
+    evidence: Repository CI passed on pre-final head c010d7a4a615541973df592343459db5c39c715a.
+  - command: Agent Task Ownership run 29845509606
+    result: PASS
+    evidence: Active-task ownership, checkpoint contract, owned path declarations and PR binding passed on pre-final head.
+  - command: OTBM Map Tools run 29845508736
+    result: PASS
+    evidence: OTBM schema JSON validation and focused OTBM tests passed on pre-final head.
+  - command: AI Agent Tools run 29845508361
+    result: PASS
+    evidence: Full tools/ai-agent unit-test discovery and AI-agent validation passed on pre-final head including QA-004 tests.
 blockers: []
-next_action: Require ownership to pass after checkpoint-shape corrections; then add exactly one MODULE_CATALOG row and run pre-final validation on the complete intended diff.
+next_action: Mark PR #684 ready for review without changing files. Require exact-final-head CI, Agent Task Ownership, OTBM Map Tools and AI Agent Tools success on this checkpoint commit, confirm mergeability and zero review threads, then squash-merge #684 and perform lifecycle archive in a separate bounded PR before starting the next roadmap package.
 ```
