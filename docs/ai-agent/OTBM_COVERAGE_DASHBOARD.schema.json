@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/ai-agent/OTBM_COVERAGE_DASHBOARD.schema.json",
+  "title": "Canary OTBM factual coverage dashboard v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "currentMap", "policy", "provenance", "worldContext", "summary", "targets", "coverageGaps", "notes"],
+  "properties": {
+    "format": {"const": "canary-otbm-coverage-dashboard-v1"},
+    "schemaVersion": {"const": 1},
+    "currentMap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mapSha256", "worldIndexSha256"],
+      "properties": {
+        "mapSha256": {"$ref": "#/$defs/sha256"},
+        "worldIndexSha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["readOnly", "mapModified", "otbmParsedIndependently", "validatorsRecomputed", "routeGenerated", "physicalE2eExecuted", "candidateValidationExecuted", "formalCertificationAssigned", "opaqueScoreEmitted", "missingEvidenceMeansGlobalAbsence", "downstreamScenarioPrioritizationDirected"],
+      "properties": {
+        "readOnly": {"const": true},
+        "mapModified": {"const": false},
+        "otbmParsedIndependently": {"const": false},
+        "validatorsRecomputed": {"const": false},
+        "routeGenerated": {"const": false},
+        "physicalE2eExecuted": {"const": false},
+        "candidateValidationExecuted": {"const": false},
+        "formalCertificationAssigned": {"const": false},
+        "opaqueScoreEmitted": {"const": false},
+        "missingEvidenceMeansGlobalAbsence": {"const": false},
+        "downstreamScenarioPrioritizationDirected": {"const": false}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targets", "coverageMatrix", "mapQuality", "worldHealth", "questValidations", "routePlans", "candidateRepairs"],
+      "properties": {
+        "targets": {"$ref": "#/$defs/inputPin"},
+        "coverageMatrix": {"$ref": "#/$defs/inputPin"},
+        "mapQuality": {"$ref": "#/$defs/inputPin"},
+        "worldHealth": {"$ref": "#/$defs/inputPin"},
+        "questValidations": {"type": "array", "items": {"$ref": "#/$defs/inputPin"}},
+        "routePlans": {"type": "array", "items": {"$ref": "#/$defs/inputPin"}},
+        "candidateRepairs": {"type": "array", "items": {"$ref": "#/$defs/inputPin"}}
+      }
+    },
+    "worldContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary", "globalCoverageProven"],
+      "properties": {
+        "summary": {"type": "object"},
+        "globalCoverageProven": {"type": "boolean"}
+      }
+    },
+    "summary": {"type": "object"},
+    "targets": {"type": "array", "items": {"$ref": "#/$defs/target"}},
+    "coverageGaps": {"type": "array", "items": {"$ref": "#/$defs/gap"}},
+    "notes": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "inputPin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fileName", "size", "sha256", "format"],
+      "properties": {
+        "fileName": {"type": "string", "minLength": 1},
+        "size": {"type": "integer", "minimum": 0},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "format": {"type": "string", "minLength": 1}
+      }
+    },
+    "position": {
+      "type": "array",
+      "prefixItems": [{"type": "integer", "minimum": 0, "maximum": 65535}, {"type": "integer", "minimum": 0, "maximum": 65535}, {"type": "integer", "minimum": 0, "maximum": 15}],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {"from": {"$ref": "#/$defs/position"}, "to": {"$ref": "#/$defs/position"}}
+    },
+    "dimensionState": {"enum": ["proven", "blocked", "stale", "not-evaluated", "not-applicable"]},
+    "evidenceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "reportSha256"],
+      "properties": {
+        "format": {"type": "string", "minLength": 1},
+        "reportSha256": {"$ref": "#/$defs/sha256"},
+        "sourceId": {"type": "string", "minLength": 1}
+      }
+    },
+    "dimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "evidence", "memberIds", "blockers"],
+      "properties": {
+        "state": {"$ref": "#/$defs/dimensionState"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidenceRef"}},
+        "memberIds": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "blockers": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["indexedOnExactMap", "sourceCorrelated", "scriptResolved", "staticallyReachable", "interactionResolved", "staticQualityCompatible", "executableRouteCovered", "physicallyRuntimeProven", "candidateMapValidated"],
+      "properties": {
+        "indexedOnExactMap": {"$ref": "#/$defs/dimension"},
+        "sourceCorrelated": {"$ref": "#/$defs/dimension"},
+        "scriptResolved": {"$ref": "#/$defs/dimension"},
+        "staticallyReachable": {"$ref": "#/$defs/dimension"},
+        "interactionResolved": {"$ref": "#/$defs/dimension"},
+        "staticQualityCompatible": {"$ref": "#/$defs/dimension"},
+        "executableRouteCovered": {"$ref": "#/$defs/dimension"},
+        "physicallyRuntimeProven": {"$ref": "#/$defs/dimension"},
+        "candidateMapValidated": {"$ref": "#/$defs/dimension"}
+      }
+    },
+    "staleDimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "evidence", "blockers"],
+      "properties": {
+        "state": {"enum": ["current", "stale", "mixed", "not-evaluated"]},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidenceRef"}},
+        "blockers": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "reason", "region", "population", "requiredDimensions", "dimensions", "staleAgainstCurrentMap", "requirementsSatisfied", "formalCertificationLevel", "coverageGaps"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["world", "region", "landmark-route", "quest", "mechanic-set"]},
+        "reason": {"type": "string", "minLength": 1},
+        "region": {"oneOf": [{"$ref": "#/$defs/region"}, {"type": "null"}]},
+        "population": {"type": "object"},
+        "requiredDimensions": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "dimensions": {"$ref": "#/$defs/dimensions"},
+        "staleAgainstCurrentMap": {"$ref": "#/$defs/staleDimension"},
+        "requirementsSatisfied": {"type": "boolean"},
+        "formalCertificationLevel": {"type": "null"},
+        "coverageGaps": {"type": "array", "items": {"$ref": "#/$defs/gap"}}
+      }
+    },
+    "gap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetId", "dimension", "state", "required", "code"],
+      "properties": {
+        "targetId": {"type": "string", "minLength": 1},
+        "dimension": {"type": "string", "minLength": 1},
+        "state": {"enum": ["blocked", "stale", "not-evaluated", "mixed"]},
+        "required": {"type": "boolean"},
+        "code": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}
