@@ -2,15 +2,22 @@
 
 ## Purpose
 
-Durable design record for future active skilling, offline training and real-combat skill progression in the OTS stack.
+Durable design record for future active skilling, offline training, real-combat skill progression and its relationship to Tibia's existing Weapon Proficiency system in the OTS stack.
 
 This document records product/design direction only. It does not authorize gameplay implementation. Exact formulas, thresholds and current Canary/OTClient integration points must be reverified in a separate bounded implementation task.
 
 ## Evidence labels
 
+Use these labels consistently when reading or extending this document:
+
 - `USER-DIRECTION`: explicitly requested or accepted by the user.
+- `TIBIA-OFFICIAL`: verified behavior or direction from current official Tibia sources.
+- `CANARY-CURRENT`: verified behavior present in the current `blakinio/canary` / upstream Canary code or repository documentation.
+- `OTCLIENT-CURRENT`: verified behavior present in current OpenTibiaBR OTClient code/releases.
+- `OTS-EXTENSION-CLAIM`: an OTS publicly claims a related custom system, but the exact mechanics may not be sufficiently documented to prove a distinct implementation.
 - `DESIGN-DIRECTION`: accepted design direction whose exact balancing remains open.
-- `OPEN`: requires implementation analysis, simulation, balancing or abuse review.
+- `OPEN`: requires implementation analysis, parity verification, simulation, balancing or abuse review.
+- `CONFLICT`: available authoritative evidence disagrees and must be resolved before implementation.
 
 ## Core progression principle
 
@@ -24,7 +31,7 @@ The system should avoid making "skill training" and "playing the game" two compl
 
 `DESIGN-DIRECTION`
 
-Every qualifying weapon attack during real combat may contribute to the relevant skill, but the effective gain should depend on combat context rather than raw hit count alone.
+Every qualifying weapon attack during real combat may contribute to the relevant classic skill, but the effective gain should depend on combat context rather than raw hit count alone.
 
 Conceptual model:
 
@@ -176,6 +183,196 @@ Principles:
 - no pay-to-win dependency for normal competitive progression;
 - natural hunting must remain a meaningful source of long-term skill growth.
 
+# Weapon Proficiency relationship — verified 2026-07-21
+
+## Original Tibia baseline
+
+`TIBIA-OFFICIAL`
+
+Weapon Proficiency is already an official Tibia system and must not be described as an OTS-original concept.
+
+Current official behavior verified from Tibia's game guide and official update announcements:
+
+- nearly every weapon has its own Weapon Proficiency progression/tree;
+- a tree has one to seven proficiency levels;
+- each level can offer one to three perks, with one active perk per proficiency level;
+- proficiency progress is earned by defeating monsters while the relevant weapon is equipped;
+- progress follows Bestiary-like contribution rules, so characters that contributed damage can receive progress;
+- progression is character-bound;
+- Proficiency Catalysts can add direct progress;
+- after the weapon's final proficiency level, progression can continue toward Mastery;
+- Mastery is already the official end-state terminology for a mastered weapon and should not be duplicated by a second custom "Weapon Mastery" progression layer;
+- since the 2026 Weapon Proficiency Update, up to two perk slots can be modified: the first after reaching Proficiency Level 3 and the second after Mastery;
+- modified perks use dust-based modification and can then be refined/reshaped under the official system rules;
+- official perk selection/change rules use protection-zone restrictions for already-selected or modified perks.
+
+`CONFLICT`
+
+Official Tibia sources are not fully consistent on exact boss proficiency progress values: the current game guide describes bosses as granting up to `1,000`, while an official 2025 release/update text describes boss rewards up to `15,000`. Exact current boss values must therefore be treated as unresolved until verified against current live data/client assets or a newer unambiguous official source.
+
+Primary official references:
+
+- https://www.tibia.com/gameguides/?section=combat&subtopic=manual
+- https://www.tibia.com/news/?id=8421&subtopic=newsarchive
+- https://www.tibia.com/news/?id=8850&subtopic=newsarchive
+
+## Current Canary support
+
+`CANARY-CURRENT`
+
+The current Canary repository already contains a server-side Weapon Proficiency implementation documented for Protocol 15.11. The documented implementation includes:
+
+- proficiency experience;
+- perk selection;
+- Mastery progression;
+- combat perk effects;
+- persistence;
+- per-item proficiency assignment;
+- configurable proficiency level/perk limits and gain multiplier;
+- proficiency progress on monster kills;
+- catalysts that add weapon proficiency experience.
+
+The current Canary guide documents monster progress based on Bestiary stars and Bosstiary rarity and exposes concrete server-side values. This proves a working baseline implementation, but not exact parity with every current Tibia 2026 balance value or feature.
+
+`OPEN`
+
+The July 2026 official Weapon Proficiency perk-manipulation extension is not proven to exist in the current Canary implementation. Repository searches performed for modification-specific concepts such as Lunar Ascension Orb/refine/reshape/modified proficiency perks did not establish support. Before implementing any custom proficiency extension, first perform a bounded parity audit for the 2026 official manipulation system.
+
+Repository reference:
+
+- `docs/systems/weapon-proficiency.md`
+
+## Current OTClient support
+
+`OTCLIENT-CURRENT`
+
+OpenTibiaBR OTClient has a dedicated `game_proficiency` module and release 4.1 includes the proficiency feature from PR #1593. This proves client-side support for the base Weapon Proficiency UI/protocol path.
+
+Relevant paths include:
+
+- `modules/game_proficiency/proficiency.lua`
+- `modules/game_proficiency/proficiency.otui`
+- `modules/game_proficiency/proficiency_data.lua`
+
+`OPEN`
+
+Support for the July 2026 official perk-manipulation UI/flows is not proven by the current verification and must be audited separately before claiming current-Tibia parity.
+
+Repository reference:
+
+- https://github.com/opentibiabr/otclient
+
+## Other OTS comparison
+
+`OTS-EXTENSION-CLAIM`
+
+TibiaScape publicly announced "our own weapon proficiency" on 2026-05-20. The publicly indexed announcement does not document enough mechanics to prove which parts are genuinely distinct from Tibia's official Weapon Proficiency system.
+
+Therefore:
+
+- do not classify Weapon Proficiency itself as a TibiaScape/OTS-original feature;
+- do not import a supposed TibiaScape extension without concrete mechanical evidence;
+- if a future OTS comparison finds a documented mechanic that extends official Tibia, label only that specific mechanic as an OTS extension.
+
+Reference:
+
+- https://www.tibiascape.com/
+
+# Our proposal
+
+## Keep classic skills and Weapon Proficiency as separate systems
+
+`USER-DIRECTION`
+
+`DESIGN-DIRECTION`
+
+Do not introduce another generic "Weapon Mastery" system. Tibia already uses Weapon Proficiency and Mastery for per-weapon progression.
+
+The proposed architecture is:
+
+### Classic skill progression
+
+Examples: Sword Fighting, Axe Fighting, Club Fighting, Distance Fighting, Fist Fighting, Shielding and relevant magic progression.
+
+Purpose:
+
+- long-term character competence;
+- primarily use/training based;
+- affected by Real Combat Training rules;
+- active hunting should be a strong free progression path;
+- repetitive immortal-target training may receive diminishing returns;
+- offline and exercise training remain alternative paths.
+
+### Weapon Proficiency
+
+Purpose:
+
+- progression tied to a specific weapon/proficiency profile;
+- kill/encounter progression rather than raw hit-count training;
+- perk/build customisation;
+- existing official Mastery end-state;
+- should retain current-Tibia semantics as the baseline unless a deliberate, separately approved OTS extension is specified.
+
+## How both systems work together
+
+`DESIGN-DIRECTION`
+
+A normal hunt should naturally advance both systems, but for different reasons:
+
+- repeated qualifying weapon use advances the character's classic combat skill;
+- defeating relevant monsters while the weapon is equipped advances that weapon's Weapon Proficiency.
+
+This creates complementary progression without duplicating systems.
+
+Example:
+
+- a knight hunting with a sword develops Sword Fighting through real combat use;
+- the equipped sword/proficiency profile gains Weapon Proficiency progress through qualifying monster kills;
+- perk choices belong to Weapon Proficiency;
+- core weapon competence remains represented by Sword Fighting.
+
+## Interaction with Real Combat Training
+
+`DESIGN-DIRECTION`
+
+By default, threat/activity/repetition multipliers from Skill Progression 2.0 should apply to classic skill gain, not automatically multiply Weapon Proficiency progress.
+
+Reasoning:
+
+- Weapon Proficiency is already primarily kill-gated rather than raw-hit-gated;
+- applying the same activity multipliers to both systems could double-reward the same behavior and distort progression;
+- persistent regenerating training monsters are mainly a classic-skill exploit surface because they can generate many hits without kills;
+- keeping proficiency kill-based naturally prevents infinite per-hit proficiency farming.
+
+Any future coupling between activity score and Weapon Proficiency must be a separate, explicitly justified design change.
+
+## Parity before extension
+
+`DESIGN-DIRECTION`
+
+Before designing custom Weapon Proficiency mechanics, implementation work should follow this order:
+
+1. verify exact current official Tibia Weapon Proficiency behavior;
+2. audit current Canary parity;
+3. audit current OTClient UI/protocol parity;
+4. close high-value official parity gaps, especially the 2026 perk-manipulation flow if missing;
+5. only then evaluate documented OTS extensions;
+6. add a custom OTS extension only when it solves a concrete product problem not already solved by official Tibia.
+
+This avoids rebuilding systems that already exist in current Tibia.
+
+## Current recommendation
+
+`DESIGN-DIRECTION`
+
+For the current roadmap:
+
+- keep Weapon Proficiency as a first-class official-Tibia-derived system;
+- do not add a second weapon mastery/proficiency layer;
+- treat Skill Progression 2.0 as an enhancement to classic skill training and active skilling;
+- let normal hunting progress both classic skills and Weapon Proficiency independently;
+- prioritize a current-Tibia parity audit for the 2026 Weapon Proficiency perk-manipulation update before proposing custom proficiency features.
+
 ## Anti-abuse principles
 
 `USER-DIRECTION`
@@ -204,12 +401,17 @@ The preferred player experience is:
 
 Traditional monster training and offline training remain valid lower-intensity alternatives, while exercise weapons provide a faster controlled economy-sink option.
 
+Weapon Proficiency remains the separate per-weapon customisation/progression layer inherited from current Tibia rather than being reinvented as an OTS-original system.
+
 ## Open implementation questions
 
 `OPEN`
 
-- Current Canary skill-advance formulas and event hooks.
-- Current OTClient presentation/progress UI.
+- Current Canary classic skill-advance formulas and event hooks.
+- Current OTClient classic skill presentation/progress UI.
+- Exact current-Tibia versus Canary Weapon Proficiency parity, including boss progress values.
+- Canary support for the July 2026 Weapon Proficiency perk-manipulation system.
+- OTClient support for the July 2026 Weapon Proficiency perk-manipulation UI and protocol flows.
 - Threat classification source and whether it can reuse existing monster metadata.
 - Exact activity and repetition windows.
 - Party/shared-damage semantics.
