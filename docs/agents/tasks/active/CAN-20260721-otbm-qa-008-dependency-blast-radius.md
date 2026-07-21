@@ -1,13 +1,13 @@
 ---
 task_id: CAN-20260721-otbm-qa-008-dependency-blast-radius
 program_id: CAN-PROGRAM-OTBM
-status: implementing
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/otbm-qa-008-dependency-blast-radius-20260721
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
-last_verified_commit: "792bc6eae26043e5e24a7f7f2200c6468991818e"
+last_verified_commit: "529b58ef42faf8b4dbff59924280e36d080aee93"
 risk: medium
 related_issue: ""
 related_pr: "694"
@@ -51,7 +51,7 @@ cross_repo_tasks: []
 
 ## Status
 
-ACTIVE — bounded implementation is isolated in draft PR #694.
+READY — bounded QA-008 implementation is complete in PR #694; exact-final-head gates remain before merge.
 
 ## Goal
 
@@ -90,11 +90,11 @@ Build a deterministic read-only dependency overlay over explicitly reviewed node
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T23:12:00+02:00
-head: 792bc6eae26043e5e24a7f7f2200c6468991818e
+updated_at: 2026-07-21T23:18:00+02:00
+head: 529b58ef42faf8b4dbff59924280e36d080aee93
 branch: feat/otbm-qa-008-dependency-blast-radius-20260721
 pr: 694
-status: implementing
+status: ready
 context_routes:
   - otbm
   - agent-governance
@@ -108,20 +108,21 @@ owned_paths:
   - docs/ai-agent/OTBM_DEPENDENCY_GRAPH_MANIFEST.schema.json
   - docs/ai-agent/OTBM_DEPENDENCY_GRAPH.schema.json
   - docs/agents/tasks/active/CAN-20260721-otbm-qa-008-dependency-blast-radius.md
-  - docs/agents/MODULE_CATALOG.md
 proven:
-  - Current main was f05ea5e916af00ab1469a2332aaec2d3c9df7478 at task start with no OTBM-QA ownership overlap.
-  - QA-008 contracts, deterministic graph aggregator, CLI, two schemas, documentation and 15 focused semantic/schema/output-safety tests are implemented.
+  - Current main is still identical to task-start f05ea5e916af00ab1469a2332aaec2d3c9df7478 at the pre-final overlap check.
+  - QA-008 delivers canary-otbm-dependency-graph-manifest-v1 and canary-otbm-dependency-blast-radius-v1 as explicit reviewed-evidence contracts.
+  - Exact evidence references use supplied report SHA-256 plus RFC 6901 JSON Pointer and optional equals/subset expectations; unresolved evidence fails closed.
+  - Only proven reviewed directed edges are traversed; deterministic shortest paths are cycle-safe and unresolved boundaries remain separate.
   - Local isolated focused suite passed 15 tests.
-  - GitHub CI 29868583393, OTBM Map Tools 29868581578 and AI Agent Tools 29868581785 passed on implementation head 792bc6eae26043e5e24a7f7f2200c6468991818e.
-  - Agent Task Ownership 29868582020 failed only because related_pr was empty while the live PR is #694; this checkpoint corrects related_pr to 694.
+  - Pre-final complete implementation head 529b58ef42faf8b4dbff59924280e36d080aee93 passed CI 29868958752, Agent Task Ownership 29868958091, OTBM Map Tools 29868958405 and AI Agent Tools 29868958228.
+  - The earlier Ownership failure 29868582020 was limited to a related_pr mismatch and was corrected before this final checkpoint.
 derived:
-  - The QA-008 implementation preserves the roadmap boundary: explicit reviewed evidence edges only, deterministic proven-edge traversal, and unresolved boundaries without a second resolver/pathfinder/E2E selector.
+  - QA-008 remains an evidence overlay rather than a second Script Resolution, storage graph, pathfinder, route planner or E2E impact selector.
 unknown: []
 conflicts: []
 first_failure:
-  marker: active-task related_pr mismatch
-  evidence: Agent Task Ownership run 29868582020 reported that related_pr empty must match current PR 694; corrected in this commit.
+  marker: none
+  evidence: No unresolved implementation or governance failure remains before exact-final-head validation.
 rejected_hypotheses:
   - Building a second Script Resolution/storage/route dependency resolver: roadmap and AGENTS require reuse of existing canonical evidence instead.
 changed_paths:
@@ -138,18 +139,18 @@ validation:
   - command: local focused unittest discovery for test_otbm_dependency_graph*.py
     result: PASS
     evidence: 15 tests passed in isolated reconstructed QA-008 test workspace.
-  - command: GitHub Actions CI run 29868583393
+  - command: GitHub Actions CI run 29868958752
     result: PASS
-    evidence: implementation head 792bc6eae26043e5e24a7f7f2200c6468991818e
-  - command: GitHub Actions OTBM Map Tools run 29868581578
+    evidence: pre-final complete implementation head 529b58ef42faf8b4dbff59924280e36d080aee93
+  - command: GitHub Actions Agent Task Ownership run 29868958091
     result: PASS
-    evidence: implementation head 792bc6eae26043e5e24a7f7f2200c6468991818e
-  - command: GitHub Actions AI Agent Tools run 29868581785
+    evidence: pre-final complete implementation head 529b58ef42faf8b4dbff59924280e36d080aee93
+  - command: GitHub Actions OTBM Map Tools run 29868958405
     result: PASS
-    evidence: implementation head 792bc6eae26043e5e24a7f7f2200c6468991818e
-  - command: GitHub Actions Agent Task Ownership run 29868582020
-    result: FAIL
-    evidence: only related_pr mismatch; corrected by setting related_pr and checkpoint pr to 694.
+    evidence: pre-final complete implementation head 529b58ef42faf8b4dbff59924280e36d080aee93
+  - command: GitHub Actions AI Agent Tools run 29868958228
+    result: PASS
+    evidence: pre-final complete implementation head 529b58ef42faf8b4dbff59924280e36d080aee93
 blockers: []
-next_action: Add the required MODULE_CATALOG row, verify corrected Ownership and pre-final gates on the complete ten-path scope, then apply ci:final-gate before the final checkpoint commit.
+next_action: Verify exact-final-head CI, Agent Task Ownership, OTBM Map Tools and AI Agent Tools on the immutable final feature head, audit reviews, then squash-merge PR #694 and complete the separate lifecycle archive before starting QA-009.
 ```
