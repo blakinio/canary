@@ -1,0 +1,24 @@
+name: FreeType mirror hash probe
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/freetype-mirror-probe.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  hash:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Download exact FreeType mirror tag archive
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --retry-delay 5 \
+            https://github.com/freetype/freetype/archive/refs/tags/VER-2-14-3.tar.gz \
+            --output freetype-VER-2-14-3.tar.gz
+      - name: Report SHA512
+        run: sha512sum freetype-VER-2-14-3.tar.gz
