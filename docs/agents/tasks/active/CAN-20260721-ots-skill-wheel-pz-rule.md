@@ -1,7 +1,7 @@
 ---
 task_id: CAN-20260721-ots-skill-wheel-pz-rule
 program_id: CAN-PROGRAM-OTS-FUTURE-GAMEPLAY-SYSTEMS
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
 branch: docs/ots-skill-wheel-pz-20260721
 base_branch: main
@@ -43,11 +43,11 @@ Append the user's requested future gameplay rule for changing the skill wheel ou
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T10:11:00Z
-head: 7c9670370ed20777693336919991b32a590dffe3
+updated_at: 2026-07-21T10:13:00Z
+head: b34c7a95a28313ca16e5b986e306fb0386e30622
 branch: docs/ots-skill-wheel-pz-20260721
 pr: 667
-status: implementing
+status: validating
 context_routes:
   - agent-governance
 owned_paths:
@@ -56,7 +56,9 @@ owned_paths:
 proven:
   - The user requested that the skill wheel be changeable outside the temple only when the character has no PZ/combat lock.
   - PR #664 merged the durable OTS future gameplay roadmap to main as dbffdc996273bf2bd1315dd3b56881f222b61ce4.
-  - Draft PR #667 targets blakinio/canary:main from docs/ots-skill-wheel-pz-20260721.
+  - PR #667 targets blakinio/canary:main from docs/ots-skill-wheel-pz-20260721.
+  - PR #667 changes only the roadmap and this active task record.
+  - Roadmap section 26 records that temple presence is not mandatory and that changes are blocked while the character has PZ/combat lock.
 derived:
   - The requested change is a documentation-only roadmap addition and does not authorize implementation.
 unknown:
@@ -64,14 +66,22 @@ unknown:
 conflicts: []
 first_failure:
   marker: none
-  evidence: no validation failure observed before the bounded documentation edit
+  evidence: no validation failure observed before final-head CI
 rejected_hypotheses: []
 changed_paths:
+  - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md
   - docs/agents/tasks/active/CAN-20260721-ots-skill-wheel-pz-rule.md
 validation:
   - command: GitHub live-state preflight
     result: PASS
     evidence: PR #664 is merged and no open PR was found claiming OTS_FUTURE_GAMEPLAY_SYSTEMS.md before PR #667 was created.
-blockers: []
-next_action: Append the skill-wheel no-PZ-lock rule to docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md, update this checkpoint to the resulting head, and validate PR #667.
+  - command: PR #667 changed-file audit
+    result: PASS
+    evidence: Exactly the roadmap and bounded task record are changed.
+  - command: Roadmap tail verification
+    result: PASS
+    evidence: Section 26 explicitly permits changes outside the temple only without PZ/combat lock.
+blockers:
+  - Current-head required checks must pass after this final checkpoint commit.
+next_action: Verify PR #667 current-head ownership and required CI; if all required checks pass and no review blockers remain, mark the PR ready and enable squash auto-merge.
 ```
