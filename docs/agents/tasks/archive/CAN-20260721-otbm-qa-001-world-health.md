@@ -38,7 +38,7 @@ cross_repo_tasks: []
 
 ## Status
 
-COMPLETE — bounded implementation merged through feature PR #672.
+COMPLETE — bounded implementation merged through feature PR #672; lifecycle-only archive is in PR #678.
 
 ## Delivered
 
@@ -60,15 +60,16 @@ COMPLETE — bounded implementation merged through feature PR #672.
 - Exact-final-head OTBM Map Tools run `29826959240`: success.
 - Exact-final-head AI Agent Tools run `29826959256`: success.
 - Feature PR changed exactly nine intended paths and had zero inline review threads at the final pre-merge audit.
+- Lifecycle PR: #678 — lifecycle-only active-to-archive move; changed-file list is exactly the active and archive task paths.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T13:58:00+02:00
-head: 90fdaef3271431f1e2bd05753749a232235e4632
-branch: feat/otbm-qa-001-world-health-20260721
-pr: 672
+updated_at: 2026-07-21T14:00:00+02:00
+head: 26b8457b407b792e02f8132f475da447c8e0722c
+branch: docs/archive-otbm-qa-001-world-health-672
+pr: 678
 status: complete
 context_routes:
   - otbm
@@ -82,9 +83,12 @@ proven:
   - Exact-final-head AI Agent Tools run 29826959256 passed.
   - canary-otbm-world-health-v1 is now the delivered OTBM-QA-001 public evidence contract.
   - The implementation remains read-only and preserves the OTBM versus Universal E2E ownership boundary.
+  - Lifecycle PR #678 changes exactly docs/agents/tasks/active/CAN-20260721-otbm-qa-001-world-health.md and docs/agents/tasks/archive/CAN-20260721-otbm-qa-001-world-health.md.
+  - ci:final-gate was applied to lifecycle PR #678 before this final lifecycle checkpoint commit.
 derived:
-  - After lifecycle archive completion, the next dependency-order package may be started only after a fresh live-state preflight against the roadmap and open ownership.
-unknown: []
+  - After lifecycle PR #678 merges, the next dependency-order package may be started only after a fresh live-state preflight against the roadmap and open ownership.
+unknown:
+  - Exact-final-head lifecycle CI and ownership outcomes for this checkpoint commit until GitHub Actions completes.
 conflicts: []
 first_failure:
   marker: none
@@ -111,5 +115,5 @@ validation:
     result: PASS
     evidence: Exact-final-head AI-agent unit and validation suite passed.
 blockers: []
-next_action: Complete the lifecycle-only active-to-archive PR. After it merges, perform a fresh live-state preflight and select the first still-unrealized OTBM-QA package in dependency order; do not assume the next package number from this checkpoint alone.
+next_action: Mark lifecycle PR #678 ready for review without changing files. Require exact-final-head lifecycle CI and ownership success, confirm exactly two changed paths and no review threads, then squash-merge #678. Only after lifecycle merge perform a fresh live-state preflight and select the first still-unrealized OTBM-QA package in dependency order.
 ```
