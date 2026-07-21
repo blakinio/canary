@@ -1,0 +1,376 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/ai-agent/OTBM_MAP_CHANGE_REGRESSION.schema.json",
+  "title": "Canary OTBM Map Change Regression Guard v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "source",
+    "policy",
+    "provenance",
+    "semanticDiff",
+    "impactEvidence",
+    "staticValidation",
+    "physicalValidation",
+    "summary",
+    "notes"
+  ],
+  "properties": {
+    "format": {"const": "canary-otbm-map-change-regression-v1"},
+    "schemaVersion": {"const": 1},
+    "source": {"$ref": "#/$defs/sourceIdentity"},
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readOnly",
+        "mapModified",
+        "semanticDiffRecomputed",
+        "impactedSelectionRecomputed",
+        "physicalE2eExecuted",
+        "unrelatedNonOtbmSuitesSuppressed",
+        "uncertaintySelectsMoreValidation",
+        "selectedScopeAbsenceMeansGlobalAbsence",
+        "visualSimilarityAuthorizesSkip",
+        "skipRequiresExactFullIndexNonImpact"
+      ],
+      "properties": {
+        "readOnly": {"const": true},
+        "mapModified": {"const": false},
+        "semanticDiffRecomputed": {"const": false},
+        "impactedSelectionRecomputed": {"const": false},
+        "physicalE2eExecuted": {"const": false},
+        "unrelatedNonOtbmSuitesSuppressed": {"const": false},
+        "uncertaintySelectsMoreValidation": {"const": true},
+        "selectedScopeAbsenceMeansGlobalAbsence": {"const": false},
+        "visualSimilarityAuthorizesSkip": {"const": false},
+        "skipRequiresExactFullIndexNonImpact": {"const": true}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["semanticDiff", "impactedSelection"],
+      "properties": {
+        "semanticDiff": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "input",
+            "beforeMapSha256",
+            "afterMapSha256",
+            "beforeWorldIndexSha256",
+            "afterWorldIndexSha256"
+          ],
+          "properties": {
+            "input": {"$ref": "#/$defs/inputPinSemanticDiff"},
+            "beforeMapSha256": {"$ref": "#/$defs/sha256"},
+            "afterMapSha256": {"$ref": "#/$defs/sha256"},
+            "beforeWorldIndexSha256": {"$ref": "#/$defs/sha256"},
+            "afterWorldIndexSha256": {"$ref": "#/$defs/sha256"}
+          }
+        },
+        "impactedSelection": {
+          "oneOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["input", "semanticDiffSha256"],
+              "properties": {
+                "input": {"$ref": "#/$defs/inputPinImpactedSelection"},
+                "semanticDiffSha256": {"$ref": "#/$defs/sha256"}
+              }
+            }
+          ]
+        }
+      }
+    },
+    "semanticDiff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scopeType",
+        "from",
+        "to",
+        "changedPositions",
+        "findingsTotal",
+        "findingSampleCount",
+        "findingsTruncated",
+        "correlationRoles"
+      ],
+      "properties": {
+        "scopeType": {"enum": ["full-index", "bounded-region"]},
+        "from": {"oneOf": [{"$ref": "#/$defs/position"}, {"type": "null"}]},
+        "to": {"oneOf": [{"$ref": "#/$defs/position"}, {"type": "null"}]},
+        "changedPositions": {"type": "integer", "minimum": 0},
+        "findingsTotal": {"type": "integer", "minimum": 0},
+        "findingSampleCount": {"type": "integer", "minimum": 0},
+        "findingsTruncated": {"type": "boolean"},
+        "correlationRoles": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "impactEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sampledFindingIds",
+        "sampledPositions",
+        "sampledRegions",
+        "sampledMechanics",
+        "coverageIncomplete",
+        "unknownFindingKindIds",
+        "missingPositionFindingIds",
+        "uncertainFindingIds"
+      ],
+      "properties": {
+        "sampledFindingIds": {"$ref": "#/$defs/findingIds"},
+        "sampledPositions": {"type": "array", "items": {"$ref": "#/$defs/position"}},
+        "sampledRegions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["from", "to", "sampledPositionCount"],
+            "properties": {
+              "from": {"$ref": "#/$defs/position"},
+              "to": {"$ref": "#/$defs/position"},
+              "sampledPositionCount": {"type": "integer", "minimum": 1}
+            }
+          }
+        },
+        "sampledMechanics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["findingId", "kind", "position", "before", "after", "details"],
+            "properties": {
+              "findingId": {"$ref": "#/$defs/findingId"},
+              "kind": {"type": "string", "minLength": 1},
+              "position": {"oneOf": [{"$ref": "#/$defs/position"}, {"type": "null"}]},
+              "before": {},
+              "after": {},
+              "details": {"type": "object"}
+            }
+          }
+        },
+        "coverageIncomplete": {"type": "boolean"},
+        "unknownFindingKindIds": {"$ref": "#/$defs/findingIds"},
+        "missingPositionFindingIds": {"$ref": "#/$defs/findingIds"},
+        "uncertainFindingIds": {"$ref": "#/$defs/findingIds"}
+      }
+    },
+    "staticValidation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nonImpactProven", "failClosed", "reasonCodes", "selected", "skipped"],
+      "properties": {
+        "nonImpactProven": {"type": "boolean"},
+        "failClosed": {"type": "boolean"},
+        "reasonCodes": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "selected": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["validator", "reasonCodes", "impactedFindingIds", "findingIdsComplete", "selectionMode"],
+            "properties": {
+              "validator": {"$ref": "#/$defs/staticValidator"},
+              "reasonCodes": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+              "impactedFindingIds": {"$ref": "#/$defs/findingIds"},
+              "findingIdsComplete": {"type": "boolean"},
+              "selectionMode": {"enum": ["fail-closed", "changed-map"]}
+            }
+          }
+        },
+        "skipped": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["validator", "reason", "skipAuthorized"],
+            "properties": {
+              "validator": {"$ref": "#/$defs/staticValidator"},
+              "reason": {"const": "EXACT_FULL_INDEX_DIFF_PROVES_NO_OTBM_CHANGE"},
+              "skipAuthorized": {"const": true}
+            }
+          }
+        }
+      }
+    },
+    "physicalValidation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidencePresent",
+        "mode",
+        "manualSelectionRequired",
+        "canSkipAny",
+        "reasonCodes",
+        "summary",
+        "scenarios"
+      ],
+      "properties": {
+        "evidencePresent": {"type": "boolean"},
+        "mode": {"enum": ["manual-selection-required", "otbm-e2e-008"]},
+        "manualSelectionRequired": {"type": "boolean"},
+        "canSkipAny": {"type": "boolean"},
+        "reasonCodes": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "summary": {"$ref": "#/$defs/physicalSummary"},
+        "scenarios": {"type": "array", "items": {"$ref": "#/$defs/scenario"}}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "staticValidatorCount",
+        "selectedStaticValidatorCount",
+        "skippedStaticValidatorCount",
+        "physicalScenarioCount",
+        "selectedPhysicalScenarioCount",
+        "skippedPhysicalScenarioCount",
+        "failClosedPhysicalScenarioCount",
+        "manualPhysicalSelectionRequired"
+      ],
+      "properties": {
+        "staticValidatorCount": {"type": "integer", "minimum": 0},
+        "selectedStaticValidatorCount": {"type": "integer", "minimum": 0},
+        "skippedStaticValidatorCount": {"type": "integer", "minimum": 0},
+        "physicalScenarioCount": {"type": "integer", "minimum": 0},
+        "selectedPhysicalScenarioCount": {"type": "integer", "minimum": 0},
+        "skippedPhysicalScenarioCount": {"type": "integer", "minimum": 0},
+        "failClosedPhysicalScenarioCount": {"type": "integer", "minimum": 0},
+        "manualPhysicalSelectionRequired": {"type": "boolean"}
+      }
+    },
+    "notes": {"type": "array", "items": {"type": "string", "minLength": 1}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "findingId": {"type": "string", "pattern": "^otbm-diff:[0-9a-f]{24}$"},
+    "findingIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/findingId"}
+    },
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "sourceIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["beforeMapSha256", "afterMapSha256", "beforeWorldIndexSha256", "afterWorldIndexSha256"],
+      "properties": {
+        "beforeMapSha256": {"$ref": "#/$defs/sha256"},
+        "afterMapSha256": {"$ref": "#/$defs/sha256"},
+        "beforeWorldIndexSha256": {"$ref": "#/$defs/sha256"},
+        "afterWorldIndexSha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "inputPinBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fileName", "size", "sha256", "format"],
+      "properties": {
+        "fileName": {"type": "string", "minLength": 1},
+        "size": {"type": "integer", "minimum": 0},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "format": {"type": "string", "minLength": 1}
+      }
+    },
+    "inputPinSemanticDiff": {
+      "allOf": [
+        {"$ref": "#/$defs/inputPinBase"},
+        {"properties": {"format": {"const": "canary-otbm-semantic-diff-v1"}}}
+      ]
+    },
+    "inputPinImpactedSelection": {
+      "allOf": [
+        {"$ref": "#/$defs/inputPinBase"},
+        {"properties": {"format": {"const": "canary-otbm-e2e-impacted-selection-v1"}}}
+      ]
+    },
+    "staticValidator": {
+      "enum": [
+        "otbm-geometry-audit",
+        "otbm-reachability",
+        "otbm-script-resolution",
+        "quest-map-validation",
+        "otbm-spawn-npc-validation",
+        "otbm-storage-dependency-graph",
+        "otbm-map-quality"
+      ]
+    },
+    "reason": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code"],
+      "properties": {
+        "code": {"type": "string", "minLength": 1},
+        "detail": {"type": "string"}
+      }
+    },
+    "routePlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["routeId", "path", "sha256", "baselineCompatible", "positionCount"],
+      "properties": {
+        "routeId": {"type": "string", "minLength": 1},
+        "path": {"type": "string"},
+        "sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "baselineCompatible": {"type": "boolean"},
+        "positionCount": {"type": "integer", "minimum": 0}
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["suite", "id", "manifest", "selected", "decision", "failClosed", "reasons", "impactedFindingIds", "routePlans"],
+      "properties": {
+        "suite": {"type": "string", "minLength": 1},
+        "id": {"type": "string", "minLength": 1},
+        "manifest": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string"},
+            "sha256": {"$ref": "#/$defs/sha256"}
+          }
+        },
+        "selected": {"type": "boolean"},
+        "decision": {"enum": ["selected", "skipped"]},
+        "failClosed": {"type": "boolean"},
+        "reasons": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/reason"}},
+        "impactedFindingIds": {"$ref": "#/$defs/findingIds"},
+        "routePlans": {"type": "array", "items": {"$ref": "#/$defs/routePlan"}}
+      }
+    },
+    "physicalSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenarioCount", "selectedCount", "skippedCount", "failClosedCount"],
+      "properties": {
+        "scenarioCount": {"type": "integer", "minimum": 0},
+        "selectedCount": {"type": "integer", "minimum": 0},
+        "skippedCount": {"type": "integer", "minimum": 0},
+        "failClosedCount": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}
