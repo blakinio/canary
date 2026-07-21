@@ -119,3 +119,11 @@ validation:
 blockers: []
 next_action: Complete the lifecycle-only active-to-archive PR. After it merges, perform a fresh live-state preflight before starting any successor package.
 ```
+
+## Lifecycle checkpoint
+
+- Lifecycle PR: #689 — `docs(agents): archive OTBM-QA-005 coverage dashboard task`.
+- Lifecycle branch: `docs/archive-otbm-qa-005-coverage-dashboard-688`.
+- Base main at lifecycle start: `1387ca873ad159079d2d68899485dd9b91c167c4`.
+- `ci:final-gate` was applied before this final lifecycle checkpoint commit.
+- Lifecycle scope is exactly the active-task deletion plus archive-task addition/update; no implementation, schema, runtime, map, datapack, E2E or workflow behavior is changed.
