@@ -7,10 +7,10 @@ branch: feat/otbm-qa-001-world-health-20260721
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-21
-last_verified_commit: "71447e27175aabc47aaf30258f089795454b7df7"
+last_verified_commit: "92ac0d378540f2c6f54d5399c849445e20772bd8"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "672"
 depends_on:
   - CAN-20260721-otbm-roadmap-all-proposals complete
 blocks:
@@ -47,7 +47,7 @@ cross_repo_tasks: []
 
 ## Status
 
-ACTIVE — bounded implementation of the first successor roadmap package.
+ACTIVE — bounded implementation of the first successor roadmap package in draft PR #672.
 
 ## Goal
 
@@ -88,10 +88,10 @@ Add one deterministic, read-only world-health aggregation contract over compatib
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-21T13:10:00Z
-head: 71447e27175aabc47aaf30258f089795454b7df7
+updated_at: 2026-07-21T13:25:00Z
+head: c03ec22cfc83cfcfb87ad9b931b2312748ddbf20
 branch: feat/otbm-qa-001-world-health-20260721
-pr: none
+pr: 672
 status: implementing
 context_routes:
   - otbm
@@ -106,18 +106,19 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260721-otbm-qa-001-world-health.md
 proven:
   - Consolidated roadmap OTBM-QA-001..018 merged through PR #669 and lifecycle archived through PR #671.
-  - Current main at task start is 71447e27175aabc47aaf30258f089795454b7df7.
+  - Main advanced after task creation to 92ac0d378540f2c6f54d5399c849445e20772bd8 through unrelated Weapon Proficiency documentation PR #667; its changed paths do not overlap this task.
   - No open OTBM implementation PR overlaps this package; open PR #666 explicitly excludes OTBM tooling.
   - OTBM-QA-001 is the first unrealized package in the roadmap dependency sequence.
-  - Existing Map Quality and OTBM-E2E coverage contracts already preserve core health dimensions and exact provenance that this package can aggregate.
+  - Existing Map Quality, Reachability and OTBM-E2E coverage schemas expose the exact provenance and explicit health dimensions reused by this package.
+  - PR #672 is the bounded draft implementation PR for this task.
+  - World Health core, CLI, focused aggregation tests, output-safety tests, v1 schema and contract documentation are present on the feature branch.
 derived:
-  - The smallest complete v1 can compose Map Quality, zero or more current-map Reachability reports and zero or more current-map coverage matrices while leaving future compatible adapters additive.
-unknown:
-  - Exact Reachability and coverage schema fields required for conservative per-dimension adapters until inspected in implementation.
+  - The smallest complete v1 composes one required Map Quality report with zero or more current-map Reachability reports and zero or more current-map coverage matrices while leaving future compatible adapters additive.
+unknown: []
 conflicts: []
 first_failure:
-  marker: none
-  evidence: No implementation validation has run yet.
+  marker: agent-task-ownership-related-pr
+  evidence: Agent Task Ownership run 29825597769 failed because changed active task related_pr was empty instead of current PR 672; compile and focused ownership-tool tests passed. Metadata corrected in the next task-record commit.
 rejected_hypotheses:
   - Rescanning OTBM to compute health.
   - Building another pathfinder or script resolver.
@@ -125,7 +126,16 @@ rejected_hypotheses:
   - Treating a missing Physical E2E scenario as proof a mechanic is broken.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260721-otbm-qa-001-world-health.md
-validation: []
+  - docs/ai-agent/OTBM_WORLD_HEALTH.md
+  - docs/ai-agent/OTBM_WORLD_HEALTH.schema.json
+  - tools/ai-agent/otbm_world_health.py
+  - tools/ai-agent/otbm_world_health_tool.py
+  - tools/ai-agent/test_otbm_world_health.py
+  - tools/ai-agent/test_otbm_world_health_output_safety.py
+validation:
+  - command: Agent Task Ownership run 29825597769
+    result: FAIL
+    evidence: related_pr metadata mismatch only; corrected from empty to 672.
 blockers: []
-next_action: Open a draft PR, inspect the exact existing Map Quality, Reachability and OTBM-E2E coverage contracts, then implement the smallest deterministic fail-closed world-health v1 adapter and focused tests.
+next_action: Re-run ownership and focused OTBM/AI Agent gates on the corrected checkpoint, fix any implementation or schema failures, then update MODULE_CATALOG and prepare exact-final-head validation.
 ```
