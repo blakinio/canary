@@ -4,7 +4,7 @@
   "suite": "combat",
   "name": "Deterministic physical combat vertical slice",
   "program_id": "CAN-PROGRAM-E2E-PLATFORM",
-  "description": "Bounded real-client combat scenario. Target and exact navigation remain intentionally unfilled until current repository spawn evidence is proven by the focused combat fixture test.",
+  "description": "Create the repository-owned Instanced Test Arena with an isolated Cave Rat, approach through exact movement edges, start a real client attack, observe target acquisition and deterministic creature removal, then explicitly close the arena before the canonical logout/relog lifecycle.",
   "client": {
     "repository": "blakinio/otclient",
     "ref": "2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f",
@@ -12,13 +12,13 @@
   },
   "server": {
     "database_image": "mariadb:11.4",
-    "datapack": "data-otservbr-global",
-    "map": "otservbr"
+    "datapack": "data-canary",
+    "map": "canary"
   },
   "fixture": {
-    "account": "@test1",
+    "account": "@test15",
     "password_env": "AGENT_E2E_TEST_PASSWORD",
-    "character": "Knight 1",
+    "character": "ADM1",
     "world": "Canary E2E",
     "host": "127.0.0.1",
     "game_port": 7172
@@ -33,6 +33,79 @@
       "id": "online",
       "action": "observe_online",
       "expected": true
+    },
+    {
+      "id": "create_arena",
+      "action": "talk",
+      "text": "/instancearena create"
+    },
+    {
+      "id": "target_visible",
+      "action": "wait_creature",
+      "creature": "Cave Rat",
+      "present": true,
+      "timeout_ms": 10000
+    },
+    {
+      "id": "approach_one",
+      "action": "walk_edge",
+      "from_x": 19976,
+      "from_y": 19988,
+      "from_z": 7,
+      "to_x": 19977,
+      "to_y": 19989,
+      "to_z": 7,
+      "timeout_ms": 10000
+    },
+    {
+      "id": "approach_two",
+      "action": "walk_edge",
+      "from_x": 19977,
+      "from_y": 19989,
+      "from_z": 7,
+      "to_x": 19978,
+      "to_y": 19990,
+      "to_z": 7,
+      "timeout_ms": 10000
+    },
+    {
+      "id": "approach_three",
+      "action": "walk_edge",
+      "from_x": 19978,
+      "from_y": 19990,
+      "from_z": 7,
+      "to_x": 19979,
+      "to_y": 19991,
+      "to_z": 7,
+      "timeout_ms": 10000
+    },
+    {
+      "id": "attack_target",
+      "action": "attack_visible",
+      "creature": "Cave Rat",
+      "timeout_ms": 10000
+    },
+    {
+      "id": "attack_confirmed",
+      "action": "observe_attacking",
+      "expected": true
+    },
+    {
+      "id": "target_defeated",
+      "action": "wait_creature",
+      "creature": "Cave Rat",
+      "present": false,
+      "timeout_ms": 90000
+    },
+    {
+      "id": "attack_cleared",
+      "action": "observe_attacking",
+      "expected": false
+    },
+    {
+      "id": "close_arena",
+      "action": "talk",
+      "text": "/instancearena close"
     }
   ],
   "assertions": {
@@ -41,6 +114,16 @@
       "login_1=success",
       "online_stable_1=confirmed",
       "step_online=success",
+      "step_create_arena=success",
+      "step_target_visible=success",
+      "step_approach_one=success",
+      "step_approach_two=success",
+      "step_approach_three=success",
+      "step_attack_target=success",
+      "step_attack_confirmed=success",
+      "step_target_defeated=success",
+      "step_attack_cleared=success",
+      "step_close_arena=success",
       "plan=success",
       "logout_request_1=safe",
       "logout_1=complete",
@@ -52,8 +135,8 @@
       "e2e=success"
     ],
     "sql": [
-      "SELECT lastlogin > 0 FROM players WHERE name = 'Knight 1'",
-      "SELECT lastlogout > 0 FROM players WHERE name = 'Knight 1'"
+      "SELECT lastlogin > 0 FROM players WHERE name = 'ADM1'",
+      "SELECT lastlogout > 0 FROM players WHERE name = 'ADM1'"
     ]
   },
   "artifacts": [
