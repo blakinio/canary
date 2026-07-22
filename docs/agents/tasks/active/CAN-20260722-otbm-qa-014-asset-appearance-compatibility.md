@@ -7,10 +7,10 @@ branch: feat/otbm-qa-014-asset-appearance-compatibility-20260722
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "663de1726e82145f5b8027126dbe434cfa74440b"
+last_verified_commit: "64d52fb61e099a9434c429552b7afe066e259081"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "734"
 depends_on:
   - CAN-20260722-otbm-qa-013-identifier-selector-integrity complete
   - Unified OTBM World Index available
@@ -54,7 +54,7 @@ cross_repo_tasks: []
 
 ## Status
 
-IMPLEMENTING — bounded QA-014 read-only compatibility composer. No OTBM, items.otb, appearances, sprites or client assets are mutated.
+IMPLEMENTING — bounded QA-014 read-only compatibility composer is implemented on draft PR #734; focused and repository validation are running. No OTBM, items.otb, appearances, sprites or client assets are mutated.
 
 ## Goal
 
@@ -72,10 +72,10 @@ Detect exact current-map compatibility gaps and asset-driven semantic drift by c
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T21:20:00+02:00
-head: 663de1726e82145f5b8027126dbe434cfa74440b
+updated_at: 2026-07-22T21:35:00+02:00
+head: 64d52fb61e099a9434c429552b7afe066e259081
 branch: feat/otbm-qa-014-asset-appearance-compatibility-20260722
-pr: none
+pr: 734
 status: implementing
 context_routes:
   - otbm
@@ -96,22 +96,31 @@ proven:
   - Existing otbm_appearances.py already produces canary-appearances-index-v1 including object flags, frame groups and sprite IDs.
   - Existing otbm_assets.py already produces canary-client-assets-index-v1 including exact file existence and sprite-range coverage.
   - Existing World Index exposes exact used item IDs and placements; no new OTBM scanner is required.
+  - PR 734 contains a deterministic composer, exact-provenance CLI, schemas, documentation and focused semantic/schema/output-safety tests.
 derived:
-  - QA-014 can be implemented as a deterministic report composer over these three existing contracts plus an optional exact baseline appearance index.
+  - QA-014 can remain a report-composition layer; it does not need or own a parser, renderer or mutation path.
 unknown:
   - A baseline appearance index is optional; without one, current compatibility is provable but semantic-delta claims remain not-evaluated.
 conflicts: []
 first_failure:
   marker: none
-  evidence: No implementation validation has run yet.
+  evidence: No completed failing validation is currently known; current-head workflows are running.
 rejected_hypotheses:
   - Reparse appearances protobuf or client asset catalog inside QA-014: existing canonical indexes already expose required evidence.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260722-otbm-qa-014-asset-appearance-compatibility.md
+  - tools/ai-agent/otbm_asset_compatibility.py
+  - tools/ai-agent/otbm_asset_compatibility_tool.py
+  - tools/ai-agent/test_otbm_asset_compatibility.py
+  - tools/ai-agent/test_otbm_asset_compatibility_output_safety.py
+  - tools/ai-agent/test_otbm_asset_compatibility_schema.py
+  - docs/ai-agent/OTBM_ASSET_COMPATIBILITY.md
+  - docs/ai-agent/OTBM_ASSET_COMPATIBILITY_MANIFEST.schema.json
+  - docs/ai-agent/OTBM_ASSET_COMPATIBILITY.schema.json
 validation:
   - command: fresh live-state/overlap preflight
     result: PASS
     evidence: main 663de1726e82145f5b8027126dbe434cfa74440b; no competing QA-014 PR found.
 blockers: []
-next_action: Open a draft PR, implement the bounded compatibility composer and focused tests, then validate OTBM/AI workflows before shared-doc and final-gate updates.
+next_action: Wait for CI, Ownership, OTBM Map Tools and AI Agent Tools on the current implementation head; fix only evidence-backed failures before final-gate checkpointing.
 ```
