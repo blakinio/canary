@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "id": "oteryn-native-auth",
+  "suite": "login",
+  "name": "OTClient to Oteryn Gateway to Canary one-shot Game Session",
+  "program_id": "CAN-PROGRAM-E2E-PLATFORM",
+  "description": "Prove a maintained OTClient can submit a fresh Game Login Ticket to the exact Oteryn Game Gateway, receive a Canary Game Session, enter the intended character once, and fail closed when the same Game Session credential is replayed.",
+  "client": {
+    "repository": "blakinio/otclient",
+    "ref": "bb87346f6c516a19d19497d82bb01fb389334ff5",
+    "automation": "tools/e2e/client/oteryn_native_auth_e2e.lua"
+  },
+  "server": {
+    "database_image": "mariadb:11.4",
+    "datapack": "data-otservbr-global",
+    "map": "otservbr"
+  },
+  "auth": {
+    "mode": "oteryn_gateway",
+    "gateway_repository": "blakinio/Oteryn-Platform",
+    "gateway_ref": "8006534108d835474dadd208b0ec934e4a12528b",
+    "gateway_port": 18080,
+    "platform_stub_port": 18081,
+    "session_issuer_port": 18082,
+    "canary_account_id": 101,
+    "platform_world_id": 1
+  },
+  "fixture": {
+    "account": "@test1",
+    "password_env": "AGENT_E2E_TEST_PASSWORD",
+    "character": "Knight 1",
+    "world": "Canary E2E",
+    "host": "127.0.0.1",
+    "game_port": 7172
+  },
+  "timing": {
+    "global_timeout_seconds": 180,
+    "session_hold_ms": 5000,
+    "relog_delay_ms": 1500
+  },
+  "assertions": {
+    "required_markers": [
+      "gateway_login_request=started",
+      "gateway_session=received",
+      "login_1=success",
+      "online_stable_1=confirmed",
+      "logout_request_1=safe",
+      "logout_1=complete",
+      "replay_attempt=started",
+      "successful_world_entries=1",
+      "e2e=success"
+    ],
+    "sql": [
+      "SELECT lastlogin > 0 FROM players WHERE name = 'Knight 1'",
+      "SELECT lastlogout > 0 FROM players WHERE name = 'Knight 1'",
+      "SELECT COUNT(*) = 0 FROM players_online WHERE player_id = (SELECT id FROM players WHERE name = 'Knight 1')"
+    ]
+  },
+  "artifacts": [
+    "scenario-manifest.json",
+    "result.json",
+    "client-events.tsv",
+    "native-auth-runtime.json",
+    "gateway-source-commit.txt",
+    "gateway-binary-sha256.txt",
+    "gateway-build.log",
+    "gateway.stdout.log",
+    "gateway.stderr.log",
+    "platform-stub.stdout.log",
+    "platform-stub.stderr.log",
+    "canary.stdout.log",
+    "canary.stderr.log",
+    "otclient.stdout.log",
+    "otclient.stderr.log",
+    "otclient.internal.log",
+    "database-online.tsv",
+    "database-after.tsv",
+    "runtime-hashes.txt"
+  ]
+}
