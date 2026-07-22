@@ -10,7 +10,7 @@ updated: 2026-07-22
 last_verified_commit: "92698edd3ac8520c1095c698d9821426ced4b2d5"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "744"
 depends_on:
   - OAM-036 formally complete
 blocks:
@@ -47,10 +47,10 @@ The final OAM-037 disposition still requires bounded target-side proof. This pre
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T23:50:54+02:00
-head: 92698edd3ac8520c1095c698d9821426ced4b2d5
+updated_at: 2026-07-22T23:51:34+02:00
+head: 69808c8e07125823caaab9a5e0f25f55cd71ec1d
 branch: dudantas/oam-037-blocker-final-handover
-pr: none
+pr: 744
 status: blocked
 context_routes:
   - agent-governance
