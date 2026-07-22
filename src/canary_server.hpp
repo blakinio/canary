@@ -8,8 +8,6 @@
  */
 
 #pragma once
-
-#include "security/game_session_http_issuer.hpp"
 #include "security/rsa.hpp"
 #include "server/server.hpp"
 
@@ -51,7 +49,6 @@ private:
 	Logger &logger;
 	RSAManager &rsa;
 	ServiceManager &serviceManager;
-	std::unique_ptr<GameSessionHttpIssuer> gameSessionHttpIssuer;
 
 	LoaderStatus loaderStatus = LoaderStatus::LOADING;
 	std::mutex loaderMutex;
