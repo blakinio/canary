@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "canary-otbm-identifier-integrity-policy-v1",
+  "title": "Canary OTBM Identifier Integrity Policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "provenance", "expectations", "placementRoles"],
+  "properties": {
+    "format": {"const": "canary-otbm-identifier-integrity-policy-v1"},
+    "schemaVersion": {"const": 1},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceMap", "worldIndex", "scriptResolution", "transitionManifest", "interactionRegistry"],
+      "properties": {
+        "sourceMap": {"$ref": "#/$defs/hashPin"},
+        "worldIndex": {"$ref": "#/$defs/hashPin"},
+        "scriptResolution": {"oneOf": [{"$ref": "#/$defs/hashPin"}, {"type": "null"}]},
+        "transitionManifest": {"oneOf": [{"$ref": "#/$defs/hashPin"}, {"type": "null"}]},
+        "interactionRegistry": {"oneOf": [{"$ref": "#/$defs/hashPin"}, {"type": "null"}]}
+      }
+    },
+    "expectations": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {"$ref": "#/$defs/expectation"}
+    },
+    "placementRoles": {
+      "type": "array",
+      "maxItems": 8192,
+      "items": {"$ref": "#/$defs/placementRole"}
+    }
+  },
+  "$defs": {
+    "identifier": {"type": "string", "minLength": 1, "maxLength": 240},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "hashPin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256"],
+      "properties": {"sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "references"],
+      "properties": {
+        "status": {"const": "reviewed"},
+        "references": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1, "maxLength": 512}
+        },
+        "note": {"type": "string", "maxLength": 2000}
+      }
+    },
+    "worldScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {"kind": {"const": "world"}}
+    },
+    "houseScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "houseId"],
+      "properties": {
+        "kind": {"const": "house"},
+        "houseId": {"type": "integer", "minimum": 0, "maximum": 4294967295}
+      }
+    },
+    "scope": {"oneOf": [{"$ref": "#/$defs/worldScope"}, {"$ref": "#/$defs/houseScope"}]},
+    "expectation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "namespace", "value", "scope", "expectation", "evidence"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "namespace": {"enum": ["actionId", "uniqueId", "houseDoorId"]},
+        "value": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "scope": {"$ref": "#/$defs/scope"},
+        "expectation": {"enum": ["unique", "reviewed-reuse"]},
+        "evidence": {"$ref": "#/$defs/review"}
+      }
+    },
+    "placementRole": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "placementOrdinal", "namespace", "value", "role", "compatibilityClass", "evidence"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "placementOrdinal": {"type": "integer", "minimum": 0, "maximum": 4294967295},
+        "namespace": {"enum": ["actionId", "uniqueId", "houseDoorId"]},
+        "value": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "role": {"type": "string", "minLength": 1, "maxLength": 160},
+        "compatibilityClass": {"type": "string", "minLength": 1, "maxLength": 160},
+        "evidence": {"$ref": "#/$defs/review"}
+      }
+    }
+  }
+}
