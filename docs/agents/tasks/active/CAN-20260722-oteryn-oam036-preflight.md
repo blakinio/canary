@@ -3,21 +3,22 @@ task_id: CAN-20260722-oteryn-oam036-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 status: ready
 agent: "GPT-5.6 Thinking"
-branch: dudantas/oam-036-preflight
+branch: dudantas/oam-036-governance-finalize
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "27b49fbbdafda9c365bc25b0c2adb790337d42d4"
+last_verified_commit: "fce787f7427bc2d824cf528b7801d4b369089adc"
 risk: medium
 related_issue: ""
-related_pr: "715"
+related_pr: "725"
 depends_on:
   - OAM-035 formally complete
 blocks:
-  - OAM-036 target proof/delivery selection
+  - OAM-037 start
 owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260722-oteryn-oam036-preflight.md
+    - docs/agents/OTERYN_OAM_036_BOSS_ENCOUNTERS_REVALIDATION.md
   shared: []
   read_only:
     - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
@@ -28,71 +29,61 @@ modules_touched:
 cross_repo_tasks: []
 ---
 
-# OAM-036 Fresh Preflight
+# OAM-036 Boss Encounters governance
 
-## Goal
+## Final disposition
 
-Perform a fresh dependency-valid canonical-module preflight after formal OAM-035 closure. Do not implement OAM-036 in this task.
-
-## Selected package
-
-`boss-encounters` is the selected dependency-valid OAM-036 canonical package.
-
-Preflight disposition: `REUSE candidate`.
-
-The final OAM-036 disposition still requires bounded target-side proof. This preflight does not claim participant eligibility, scoring arithmetic, loot correctness, persistence atomicity, runtime correctness, physical-client E2E or Real Tibia parity.
+`boss-encounters → REUSE`
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T11:25:00+02:00
-head: 6fc9c7042b1e472d1c32c9f6986d67eb25f25089
-branch: dudantas/oam-036-preflight
-pr: 715
-status: ready
+updated_at: 2026-07-22T19:25:00+02:00
+head: 31623f3b02a9f09818bc752af589f21c7b9c5800
+branch: dudantas/oam-036-governance-finalize
+pr: 725
+status: validating
 context_routes:
   - agent-governance
   - cross-repo
 owned_paths:
   - docs/agents/tasks/active/CAN-20260722-oteryn-oam036-preflight.md
+  - docs/agents/OTERYN_OAM_036_BOSS_ENCOUNTERS_REVALIDATION.md
 proven:
-  - OAM-035 is formally complete after Otheryn target archive merge 6275021bbb83dc28d2f5d6cf8db5b16aa7206544.
-  - Fresh Canary main baseline is 27b49fbbdafda9c365bc25b0c2adb790337d42d4.
-  - Fresh Otheryn main baseline is 6275021bbb83dc28d2f5d6cf8db5b16aa7206544.
-  - Fresh upstream Canary baseline is 71a0f92b4da3f550b292fa7536a0e35c2769f1ae.
-  - Fresh maintained OTClient baseline is a6868920443dc285656bd016acdb2c1ea566e511.
+  - OAM-035 was formally complete before OAM-036 selection.
+  - OAM-036 preflight merged as 08434e88435cbebe6965d4bd2f13382fdc8a586e and selected boss-encounters as a REUSE candidate.
   - Canonical boss-encounters depends only on completed creature-definitions and player-persistence.
-  - Canonical ownership is bounded to reward-boss participation contribution scoring reward generation reward-container persistence handoff and encounter lifecycle discovery; generic boss AI definitions spawns raids cooldowns and Bosstiary remain excluded.
-  - Otheryn fresh upstream and legacy Canary share exact reward_boss.lua blob 72476dfcbdd8fd92d6b5bd3ad3015efef87cf2f3.
-  - Otheryn fresh upstream and legacy Canary share exact reward_chest.lua blob 4abe17ad2f3103f30f172f23ebdca391197f8646.
-  - Fresh open-PR searches found no OAM-036 or selected boss-encounter writer in Canary and no open Otheryn pull request.
-  - Semantic review confirms the selected scripts own target-list participation state contribution aggregation boss-death score normalization reward generation reward chest insertion and offline-player save handoff.
-  - Reviewed delivered-PR searches for reward boss reward chest GlobalBosses and BossParticipation surfaced no stronger bounded legacy donor for the selected canonical roots.
+  - Task-start Otheryn was 6275021bbb83dc28d2f5d6cf8db5b16aa7206544, fresh upstream was 71a0f92b4da3f550b292fa7536a0e35c2769f1ae and maintained OTClient was a6868920443dc285656bd016acdb2c1ea566e511.
+  - Otheryn fresh upstream and legacy Canary shared exact reward_boss.lua blob 72476dfcbdd8fd92d6b5bd3ad3015efef87cf2f3 and reward_chest.lua blob 4abe17ad2f3103f30f172f23ebdca391197f8646.
+  - Semantic review and bounded source-contract proof covered participant state target-list reconciliation score normalization reward generation reward-container insertion offline save handoff and encounter cleanup.
+  - Otheryn PR 74 final head 18153ce36b0d84e2b6b73e68579b2167c91fc03f changed exactly four intended proof/task paths and no production path.
+  - Exact-head autofix 29907996264 CI 29907997057 Required 29907996378 Linux-debug full Run Tests Linux release both Windows build paths and macOS all succeeded.
+  - PR 74 comments reviews and review threads were empty and target main had no drift from immutable target base before merge.
+  - Otheryn PR 74 squash-merged as c0a84977b574f287db2fb970a25e8041343b99c8.
 derived:
-  - boss-encounters is the next selected dependency-valid OAM-036 canonical package.
-  - Whole-module legacy import is not justified because all three reviewed server states share the exact selected roots and no stronger delivered legacy delta was identified.
-  - The smallest evidence-backed preflight outcome is boss-encounters as a REUSE candidate pending bounded target-side proof.
+  - OAM-036 final disposition is boss-encounters REUSE with proof-only target changes.
+  - No production runtime or maintained-client mutation was required.
+  - OAM-037 remains blocked until governance merge, separate lifecycle archive, durable program reconciliation and Otheryn target-task archive complete.
 unknown:
-  - Exact focused target proof boundary and resulting final REUSE or ADAPT disposition until OAM-036 target-side validation executes.
-  - Whether bounded proof exposes an existing target defect outside the reviewed exact roots that still belongs to boss-encounters ownership.
+  - Exact final Canary governance merge SHA until PR 725 completes.
 conflicts: []
 first_failure:
   marker: none
-  evidence: No OAM-036 implementation or target validation failure exists because this task is preflight-only.
+  evidence: No task-specific validation failure is currently open.
 rejected_hypotheses:
-  - Select raids before reviewing boss-encounters; both are dependency-valid but boss-encounters is the next independent TSD-006 boundary after completed creature definitions and Creature AI and has a smaller two-root proof surface.
-  - Infer final REUSE from blob identity alone; final disposition remains gated on target-side semantic proof.
-  - Expand boss-encounters into Bosstiary boss AI spawn scheduling quest cooldowns or raid orchestration; canonical registry excludes those ownership boundaries.
+  - Infer final REUSE from blob identity alone; semantic source-contract proof passed on the exact target head.
+  - Import unrelated boss AI definitions spawns raids Bosstiary or quest cooldown logic; canonical ownership excludes those boundaries.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260722-oteryn-oam036-preflight.md
+  - docs/agents/OTERYN_OAM_036_BOSS_ENCOUNTERS_REVALIDATION.md
 validation:
-  - command: fresh dependency ownership baseline and open-PR preflight
+  - command: Otheryn PR 74 exact-head target gates
     result: PASS
-    evidence: both hard dependencies completed exact baselines pinned and no overlapping open writer found
-  - command: exact-root and semantic donor preflight
+    evidence: final head 18153ce36b0d84e2b6b73e68579b2167c91fc03f passed autofix 29907996264 CI 29907997057 Required 29907996378 and Linux-debug full Run Tests before merge c0a84977b574f287db2fb970a25e8041343b99c8
+  - command: target changed-path and interaction audit
     result: PASS
-    evidence: both canonical roots match target upstream and legacy while semantic review and delivered-PR searches found no stronger bounded donor
+    evidence: exactly four intended proof/task paths no production changes and empty comments reviews threads
 blockers: []
-next_action: Require exact-current-head Agent Task Ownership and CI success on PR 715, audit the one-file preflight scope and review state, then expected-head squash merge before creating the bounded OAM-036 target proof in Otheryn.
+next_action: Require exact-current-head Agent Task Ownership and CI success on PR 725, audit exactly two governance paths plus comments reviews threads and Canary main drift, then expected-head squash merge before separate lifecycle archive.
 ```
