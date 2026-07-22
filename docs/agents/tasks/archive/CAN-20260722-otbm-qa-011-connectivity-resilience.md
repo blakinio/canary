@@ -10,7 +10,7 @@ updated: 2026-07-22
 last_verified_commit: "b2b34a12ca5d0c1b23e00e01eb6bdc8b2b3804b8"
 risk: medium
 related_issue: ""
-related_pr: "713"
+related_pr: "716"
 depends_on:
   - CAN-20260722-otbm-qa-010-quest-state-reachability complete
   - OTBM teleport and reachability validator merged
@@ -43,7 +43,7 @@ cross_repo_tasks: []
 
 ## Status
 
-COMPLETE — bounded QA-011 implementation merged through feature PR #713; lifecycle-only active-to-archive closure is isolated in a follow-up PR.
+COMPLETE — bounded QA-011 implementation merged through feature PR #713; lifecycle-only active-to-archive closure is isolated in PR #716.
 
 ## Goal
 
@@ -86,10 +86,10 @@ Analyze reviewed world-connectivity robustness by reusing the canonical OTBM Rea
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T12:25:00+02:00
-head: b2b34a12ca5d0c1b23e00e01eb6bdc8b2b3804b8
+updated_at: 2026-07-22T12:28:00+02:00
+head: 3d98f132b0617f2a31d23f18f11a63970cbe1740
 branch: docs/archive-otbm-qa-011-connectivity-resilience-713
-pr: none
+pr: 716
 status: complete
 context_routes:
   - otbm
@@ -103,9 +103,10 @@ proven:
   - Exact-final CI 29910433414, Ownership 29910433447, OTBM Map Tools 29910433280 and AI Agent Tools 29910432315 passed on the immutable final feature head.
   - Ready-for-review full CI 29910595415 also passed on the same immutable final feature head before auto-merge.
   - PR 713 changed exactly eleven bounded paths and had zero review threads or review submissions at final audit.
+  - Lifecycle PR 716 is based on exact feature merge b2b34a12ca5d0c1b23e00e01eb6bdc8b2b3804b8 and changes only the QA-011 active/archive task-record paths.
   - QA-011 reuses the canonical Reachability graph/BFS and reviewed transition model and does not prove runtime entrapment or global connectivity.
 derived:
-  - OTBM-QA-012 may begin only after lifecycle closure merges and a fresh live-state/ownership preflight passes.
+  - OTBM-QA-012 may begin only after lifecycle PR 716 merges and a fresh live-state/ownership preflight passes.
 unknown:
   - No committed reviewed target manifest for every concrete real-world route/entry/exit scope is guaranteed; real target evaluation remains evidence-dependent.
 conflicts: []
@@ -136,5 +137,5 @@ validation:
     result: PASS
     evidence: ready-for-review full final-gate matrix passed on the same immutable feature head.
 blockers: []
-next_action: Open the lifecycle-only PR, bind this archive checkpoint to that PR, verify exact-final-head lifecycle CI and ownership, audit reviews, merge the lifecycle PR, then perform a fresh live-state/ownership preflight before any QA-012 work.
+next_action: Verify lifecycle PR 716 changes exactly two task-record paths, run pre-final CI and ownership, apply ci:final-gate before the final lifecycle checkpoint commit, then make no further commits and complete review/merge validation before QA-012 preflight.
 ```
