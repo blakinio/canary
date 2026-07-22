@@ -1,13 +1,13 @@
 ---
 task_id: CAN-20260722-otbm-qa-011-connectivity-resilience
 program_id: CAN-PROGRAM-OTBM
-status: implementing
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/otbm-qa-011-connectivity-resilience-20260722
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "4bd646ab8ae0727123ad7589bac659f13ca7fb31"
+last_verified_commit: "8f989e83179fb3c3ff0839d32ed0fdc5f64713a5"
 risk: medium
 related_issue: ""
 related_pr: "713"
@@ -58,7 +58,7 @@ cross_repo_tasks: []
 
 ## Status
 
-IMPLEMENTING — QA-010 feature and lifecycle are complete; draft PR #713 owns the bounded QA-011 scope. `main` advanced by two unrelated OAM-035 documentation/lifecycle commits after branch creation; live compare shows no overlap with QA-011 owned paths.
+READY FOR FINAL GATE — bounded QA-011 implementation, schemas, CLI, focused tests and required shared documentation are complete on draft PR #713. `ci:final-gate` was applied before this final checkpoint commit; no further branch commits are permitted after this checkpoint.
 
 ## Goal
 
@@ -99,11 +99,11 @@ Analyze reviewed world-connectivity robustness by reusing the canonical OTBM Rea
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T10:52:00+02:00
-head: 4bd646ab8ae0727123ad7589bac659f13ca7fb31
+updated_at: 2026-07-22T12:02:26+02:00
+head: 8f989e83179fb3c3ff0839d32ed0fdc5f64713a5
 branch: feat/otbm-qa-011-connectivity-resilience-20260722
 pr: 713
-status: implementing
+status: ready
 context_routes:
   - otbm
   - agent-governance
@@ -121,32 +121,57 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260722-otbm-qa-011-connectivity-resilience.md
 proven:
   - QA-010 feature PR 709 and lifecycle PR 710 are merged and complete; lifecycle merge is 7b993dc48c6e0be5ddeb63f0f487bef5e774040e.
-  - No existing QA-011 task record and no open connectivity-resilience, route-fragility, entrapment or teleport-network PR existed at the initial fresh preflight.
-  - Roadmap requires all QA-011 path/connectivity calculations to reuse the existing Reachability graph/BFS and reviewed transition model.
-  - Canonical Reachability exposes _bfs, _movement_neighbors, _transition_edges, _reconstruct_route and _tarjan_cycles; QA-011 composes those functions rather than implementing a second pathfinder.
-  - After branch creation, main advanced to 1328fb42b03056a0f2571831a1a1eb7a5416f73a through OAM-035 documentation/lifecycle commits only.
-  - Compare 7b993dc48c6e0be5ddeb63f0f487bef5e774040e..1328fb42b03056a0f2571831a1a1eb7a5416f73a changes only OAM-035 documentation and its active/archive task records; none overlap QA-011 owned paths.
-  - PR 713 currently differs from live main only by the QA-011 active task record despite being two unrelated commits behind.
+  - Fresh QA-011 preflight found no competing task or open connectivity-resilience, route-fragility, entrapment or teleport-network PR.
+  - Roadmap requires QA-011 to reuse the existing Reachability graph/BFS and reviewed transition model; implementation calls canonical _bfs, _movement_neighbors, _transition_edges, _reconstruct_route and _tarjan_cycles rather than implementing a second pathfinder.
+  - Live main advanced to 08434e88435cbebe6965d4bd2f13382fdc8a586e through four unrelated OAM documentation/lifecycle commits since the branch merge base; compare shows no QA-011 or shared-doc overlap and PR 713 remains mergeable.
+  - PR 713 changes exactly 11 declared paths: two implementation modules, three focused test modules, three public docs/schema files, two shared agent docs and this active task record.
+  - Shared-doc patch audit proves MODULE_CATALOG.md has exactly one QA-011 row addition and CHANGELOG.md exactly one QA-011 Unreleased bullet addition.
+  - Pre-final head 8f989e83179fb3c3ff0839d32ed0fdc5f64713a5 passed CI run 29910252475, Agent Task Ownership 29910251524, OTBM Map Tools 29910251745 and AI Agent Tools 29910251543.
+  - Pre-final review audit found zero inline review threads and zero review submissions.
+  - ci:final-gate was applied to PR 713 before this final checkpoint commit.
 derived:
-  - QA-011 can proceed without integrating the unrelated OAM-035 commits; final mergeability must still be rechecked against live main before readiness.
+  - QA-011 is ready for exact-final-head validation; no implementation or documentation edits remain.
 unknown:
-  - No reviewed target manifest for concrete real-world route/entry/exit pairs is guaranteed to be committed; generic fixture tests can prove the reusable contract while real target evaluation remains evidence-dependent.
+  - No committed reviewed target manifest for concrete real-world route/entry/exit pairs is guaranteed; the delivered reusable contract is proven by deterministic fixture tests, while real target evaluation remains evidence-dependent.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: No ownership or overlapping-path blocker remains after reconciling the live-main advance.
+  marker: shared-doc-audit
+  evidence: An intermediate CHANGELOG.md rewrite accidentally omitted seven historical bootstrap bullets; the pre-final patch audit detected this before final-gate, commit 8f989e83179fb3c3ff0839d32ed0fdc5f64713a5 restored them, and the resulting PR patch is exactly one added QA-011 bullet.
 rejected_hypotheses:
   - Building a second BFS/pathfinder was rejected by the roadmap reuse boundary.
   - Treating bounded static no-exit evidence as runtime entrapment was rejected by the roadmap caveat.
+  - Rebasing only to absorb unrelated OAM documentation commits was rejected after live compare proved no overlapping paths and GitHub reported the PR mergeable.
 changed_paths:
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260722-otbm-qa-011-connectivity-resilience.md
+  - docs/ai-agent/OTBM_CONNECTIVITY_RESILIENCE.md
+  - docs/ai-agent/OTBM_CONNECTIVITY_RESILIENCE.schema.json
+  - docs/ai-agent/OTBM_CONNECTIVITY_RESILIENCE_MANIFEST.schema.json
+  - tools/ai-agent/otbm_connectivity_resilience.py
+  - tools/ai-agent/otbm_connectivity_resilience_tool.py
+  - tools/ai-agent/test_otbm_connectivity_resilience.py
+  - tools/ai-agent/test_otbm_connectivity_resilience_output_safety.py
+  - tools/ai-agent/test_otbm_connectivity_resilience_schema.py
 validation:
-  - command: post-QA-010 live main and overlap preflight
+  - command: focused QA-011 semantic/schema/output-safety tests through OTBM Map Tools
     result: PASS
-    evidence: no competing QA-011 PR/task found before branch creation.
-  - command: live compare 7b993dc4..1328fb42
+    evidence: run 29910251745 success on pre-final head 8f989e83179fb3c3ff0839d32ed0fdc5f64713a5.
+  - command: AI Agent Tools full validation
     result: PASS
-    evidence: only unrelated OAM-035 documentation/lifecycle paths changed on main; no QA-011 ownership overlap.
+    evidence: run 29910251543 success on pre-final head 8f989e83179fb3c3ff0839d32ed0fdc5f64713a5.
+  - command: repository CI
+    result: PASS
+    evidence: run 29910252475 success on pre-final head 8f989e83179fb3c3ff0839d32ed0fdc5f64713a5.
+  - command: Agent Task Ownership
+    result: PASS
+    evidence: run 29910251524 success on pre-final head 8f989e83179fb3c3ff0839d32ed0fdc5f64713a5.
+  - command: shared-doc and changed-path audit
+    result: PASS
+    evidence: PR 713 has exactly 11 declared changed paths; MODULE_CATALOG and CHANGELOG patches contain only the intended QA-011 additions.
+  - command: review audit
+    result: PASS
+    evidence: zero review threads and zero review submissions before final-gate.
 blockers: []
-next_action: Implement the bounded reviewed-route perturbation and entrapment/topology composition over canonical Reachability graph/BFS with focused tests, then recheck live-main mergeability before final validation.
+next_action: Make no further commits. Verify all required workflows on the exact final checkpoint head, then update PR evidence, mark ready, enable auto-merge, verify squash merge and complete active-to-archive lifecycle closure before starting QA-012.
 ```
