@@ -10,7 +10,7 @@ updated: 2026-07-22
 last_verified_commit: "6a87373e84073a84ccdbdb64f7d61b2747f40764"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "707"
 depends_on:
   - OAM-034 formally complete
 blocks:
@@ -37,10 +37,10 @@ Perform a fresh dependency-valid canonical-module preflight after formal OAM-034
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T09:09:00+02:00
-head: 6a87373e84073a84ccdbdb64f7d61b2747f40764
+updated_at: 2026-07-22T09:10:00+02:00
+head: 6823aeebb508d4fb2749eb13f11be54e8341a053
 branch: dudantas/oam-035-preflight
-pr: none
+pr: 707
 status: investigating
 context_routes:
   - agent-governance
