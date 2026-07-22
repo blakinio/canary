@@ -89,7 +89,7 @@ validation:
     result: PASS
     evidence: exactly four intended proof/task paths no production changes and empty comments reviews threads
   - command: Canary PR 711 initial Agent Task Ownership
-    result: FAIL_FIXED
+    result: FAIL
     evidence: run 29904327008 isolated changed active task PR identity mismatch; related_pr and checkpoint pr are now both 711
 blockers: []
 next_action: Require exact-current-head Agent Task Ownership and CI success on PR 711, audit exactly two governance paths plus comments reviews threads and Canary main drift, then expected-head squash merge before separate lifecycle archive.
