@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/ai-agent/OTBM_REVIEWED_CANDIDATE_REPAIR_APPROVAL.schema.json",
+  "title": "Canary OTBM Reviewed Candidate Repair Approval v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "approved",
+    "recommendationSha256",
+    "sourceMapSha256",
+    "selector",
+    "expectedOldState",
+    "intendedTargetState",
+    "pipelineMode",
+    "mutationAuthorization",
+    "review"
+  ],
+  "properties": {
+    "format": {"const": "canary-otbm-reviewed-candidate-repair-approval-v1"},
+    "schemaVersion": {"const": 1},
+    "approved": {"const": true},
+    "recommendationSha256": {"$ref": "#/$defs/sha256"},
+    "sourceMapSha256": {"$ref": "#/$defs/sha256"},
+    "selector": {"$ref": "#/$defs/selector"},
+    "expectedOldState": {},
+    "intendedTargetState": {},
+    "pipelineMode": {
+      "enum": [
+        "fixed-width-attribute",
+        "tile-area",
+        "tile-replacement",
+        "tile-insertion",
+        "tile-deletion",
+        "tile-type-conversion"
+      ]
+    },
+    "mutationAuthorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "sha256"],
+      "properties": {
+        "format": {
+          "enum": [
+            "canary-otbm-bounded-patch-plan-v1",
+            "canary-otbm-area-materialization-approval-v1",
+            "canary-otbm-tile-materialization-approval-v1",
+            "canary-otbm-tile-insertion-approval-v1",
+            "canary-otbm-tile-deletion-approval-v1",
+            "canary-otbm-tile-type-conversion-approval-v1"
+          ]
+        },
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewer", "rationale"],
+      "properties": {
+        "reviewer": {"type": "string", "minLength": 1},
+        "rationale": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "selector": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "position": {"$ref": "#/$defs/position"},
+        "itemId": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "actionId": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "uniqueId": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "houseDoorId": {"type": "integer", "minimum": 0, "maximum": 255},
+        "teleportDestination": {"$ref": "#/$defs/position"}
+      }
+    }
+  }
+}

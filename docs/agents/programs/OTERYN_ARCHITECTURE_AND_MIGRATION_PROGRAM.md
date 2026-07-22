@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-21T12:30:00+02:00
-last_verified_commit: "994d1ffdfd6828688b1acc6cd7c0c519eab052ba"
+updated: 2026-07-21T23:22:22+02:00
+last_verified_commit: "d83563943e298df33edd084e944812464b8a3ff2"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -66,6 +66,9 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 | OAM-028 | `cyclopedia → REUSE` | target `7e03405aea50d88fdbc27d0d2a7d95c7f1745946`; feature `a28e661c4119857eff36948c4549045f57eae545`; lifecycle `ff694b9e908148fb12cca69a76fc2786d9a0f2c3` |
 | OAM-029 | `cyclopedia-character → ADAPT` | target `908834adc7d7e7e4ced7404391c7966b1c961b18`; feature `a5e5565d546a530fc3a3010deb65e9283f6eacab`; lifecycle `2a4b717448e55e1a2c24578df44eb981f8ae4bfd` |
 | OAM-030 | `bosstiary → ADAPT` | target `dc483d6e8d659d61482da2af7abda9b46b1766ff`; feature `6c092568e44dcb0b13959a8f22c14a992565aa7b`; lifecycle `994d1ffdfd6828688b1acc6cd7c0c519eab052ba` |
+| OAM-031 | `bestiary → ADAPT` | target `86e4b08c28ede2f35c215a7c2327a579f4a61419`; feature `e55e0d548d6013da6676cc7b06cbb8d459ccdd1f`; lifecycle `0fca8ced2d952eab744238f826af81cb9ee135b1` |
+| OAM-032 | `titles → REUSE` | target `f5f21347c578a382cf0c52dbb4c69673ab3b05a9`; feature `212d5e5c4ecbb0bd392880019747e2370299c748`; lifecycle `fda6d01b93929ea998965354908062eb6e4e1424` |
+| OAM-033 | `charms → ADAPT` | target `c887318a676998da5ef3224a3aa8d1e0df75e607`; feature `5ecc72762feb6bda8f6549ac4238a75247752449`; lifecycle `d83563943e298df33edd084e944812464b8a3ff2` |
 
 # OAM-009 durable boundary
 
@@ -495,15 +498,75 @@ Authoritative lifecycle PR #662 was twice reconstructed onto newer non-overlappi
 
 OAM-030 does not claim full Bosstiary parity, exhaustive boosted-boss selection correctness, distributed or multiwriter leader election, cross-channel Bosstiary safety, Bestiary or Charms child correctness, exact protocol/client compatibility, maintained-client rendering correctness, monster-data parity, database availability or crash-recovery guarantees, physical-client Bosstiary E2E closure, or full Real Tibia parity.
 
+# OAM-031 durable completion
+
+Final disposition:
+
+```text
+bestiary ADAPT
+```
+
+Task-start baselines were Canary `9aa582eb6b8ab9444294e08798f628cd053d2428`, Otheryn `6a7e54ee3c9597e3ab265a14c2b783631ef3776f`, fresh upstream Canary `71a0f92b4da3f550b292fa7536a0e35c2769f1ae`, and maintained OTClient `a6868920443dc285656bd016acdb2c1ea566e511`. Canonical `bestiary` depends on completed `cyclopedia` and `player-persistence`, owns the narrow server root `src/io/iobestiary.*`, and keeps Charm policy plus monster-definition data outside this package boundary.
+
+Task-start Otheryn and fresh upstream shared exact `src/io/iobestiary.cpp` blob `c0497c4d1814e7950ad8fc27b9a4ec1f86d4a5cd`. Semantic decomposition of merged legacy PR #188 selected exactly two Bestiary-owned corrections: `IOBestiary::addBestiaryKill` validates `player` and `mtype` before dereferencing `mtype->info.raceid`, and `IOBestiary::calculateDifficult` converts `chance` to `double` before division by `1000.0` so fractional thresholds are not truncated. The PR #188 all-Charm reset-price correction and PR #192 monster-definition data were deliberately excluded; whole-file legacy reuse was rejected because the file also hosts separately owned Charm helpers and behavior.
+
+Otheryn PR #63 final head `c49796d696448aa168c34629dc9ebcd9fd7a9465` changed exactly five intended OAM-031 paths, with production diff limited to `src/io/iobestiary.cpp`. Exact-head autofix.ci #187 run `29825053904`, CI #226 run `29825054221`, and Required #211 run `29825053840` succeeded; Linux debug full `Run Tests` succeeded. Test-log artifact `8493329878` has digest `sha256:e99f341683bc432512ddd0dc235204f8b13510cd48eaf9f06c9cdf53d7dbc432`. Comments/reviews/threads were empty, target `main` had no task-start drift, and PR #63 merged by expected-head squash as `86e4b08c28ede2f35c215a7c2327a579f4a61419`.
+
+Canary governance PR #675 final head `1ce09da615e703ff72062c60093ae8b5173cf80b` was reconstructed on non-overlapping Canary `main` `87c4f71b0deb880da7ba4228bc29e769db2c5818`. It changed exactly the OAM-031 revalidation report and active-task record. Agent Task Ownership #3069 run `29826443473` and final-gate CI #4222 run `29826443642` succeeded; comments/reviews/threads were empty, and PR #675 merged by expected-head squash as `e55e0d548d6013da6676cc7b06cbb8d459ccdd1f`.
+
+Authoritative lifecycle PR #676 final head `7e722d1872db8e4e7beeb31feae28b1060ea4cde` changed exactly the active-delete/archive-add lifecycle paths. Agent Task Ownership #3073 run `29826706123` and CI #4225 run `29826706339` succeeded; comments/reviews/threads were empty, and PR #676 merged by expected-head squash as `0fca8ced2d952eab744238f826af81cb9ee135b1`.
+
+OAM-031 does not claim full Bestiary parity, exhaustive kill-stage/reward correctness, Charm correctness, monster-definition parity, exact protocol/client rendering compatibility, persistence completeness, tracker refresh correctness under every runtime state, database durability, physical-client Bestiary E2E closure, or full Real Tibia parity.
+
+# OAM-032 durable completion
+
+Final disposition:
+
+```text
+titles REUSE
+```
+
+Task-start baselines were Canary `db7cf6af480285ad4a87c3be2981a873f175eab6`, Otheryn `ad2bd2f187df057c47d05c121351159ce30cc457`, fresh upstream Canary `71a0f92b4da3f550b292fa7536a0e35c2769f1ae`, and maintained OTClient `a6868920443dc285656bd016acdb2c1ea566e511`. Canonical `titles` depends only on completed `cyclopedia-character` and `player-persistence`; TSD-004 owns the narrow server root `src/creatures/players/components/player_title.*` while Bestiary, Bosstiary, character progression, houses and protocol remain interactions rather than ownership transfers.
+
+Task-start target, current legacy and fresh upstream shared exact `player_title.cpp` blob `c885d5ee55970d8ce93a80bb477bc317fb9faa98` and `player_title.hpp` blob `118806fee9ca6d939d73067af14c63c59d291f25`. Blob identity was supporting evidence only. Semantic donor-history review found no accepted Titles-root delta: merged Cyclopedia runtime PR #188 contains no `player_title` path, PR #192 is monster-data remediation, and PR #243 is validator/workflow control. The final Cyclopedia zero-finding scan was not promoted into a claim about title definitions, thresholds, persistence, protocol, runtime behavior or maintained-client correctness.
+
+Otheryn PR #65 final head `3244c8b0993047d9fe72ed56125a6f9e218defbb` changed exactly four proof/task paths and no production path. Autofix.ci #188 run `29863062941`, CI #228 run `29863063433`, and Required #213 run `29863063406` succeeded; Linux debug full `Run Tests` succeeded. Test-log artifact `8508497986` has digest `sha256:2c2b98f96fe73bd8b2e9123f662779534a70ec7b0a5b7ebe895f1769b05ae9b3`. Comments/reviews/threads were empty, target `main` had no task-start drift, and PR #65 merged by expected-head squash as `f5f21347c578a382cf0c52dbb4c69673ab3b05a9`.
+
+Canary governance PR #691 final head `62af0071f777fd029c7c0718914375928ecf2389` changed exactly the OAM-032 report and active-task record. Three earlier Ownership attempts exposed only checkpoint metadata-contract issues and caused no scope or evidence change. Final Agent Task Ownership #3186 run `29864789104` and final-gate CI #4343 run `29864789391` succeeded; comments/reviews/threads were empty, Canary `main` had no task-start drift, and PR #691 merged by expected-head squash as `212d5e5c4ecbb0bd392880019747e2370299c748`.
+
+Authoritative lifecycle PR #692 final head `18751315a53c5f0af82581b447b14f90f9c9c742` changed exactly the active-delete/archive-add lifecycle paths. Agent Task Ownership #3188 run `29865034951` and final-gate CI #4344 run `29865035270` succeeded; comments/reviews/threads were empty, Canary `main` had no drift from the governance merge, and PR #692 merged by expected-head squash as `fda6d01b93929ea998965354908062eb6e4e1424`.
+
+OAM-032 does not claim title-definition or unlock-threshold parity, completeness of every cross-domain eligibility check, map/Drome/Goshnar or other TODO-backed title conditions, persistence atomicity or crash recovery, exact protocol compatibility, maintained-client parsing/rendering correctness, physical-client Titles E2E closure, or full Real Tibia parity.
+
+# OAM-033 durable completion
+
+Final disposition:
+
+```text
+charms ADAPT
+```
+
+Task-start baselines were Canary `f05ea5e916af00ab1469a2332aaec2d3c9df7478`, Otheryn `1a4bbceda2c805bc69c68c1592e04e63d7e9a269`, fresh upstream Canary `71a0f92b4da3f550b292fa7536a0e35c2769f1ae`, and maintained OTClient `a6868920443dc285656bd016acdb2c1ea566e511`. Canonical `charms` depends on completed `combat`, `cyclopedia`, `player-persistence` and `protocol`; TSD-004 preserves independent Charm ownership for definitions, costs, unlock state, assignment and combat effects even where `IOBestiary` hosts helper methods.
+
+Merged legacy PR #188 supplied exactly two selected Charm-owned corrections: `registerCharm.category` gates on `mask.category` before applying the category, and all-Charm reset pricing charges the `11,000` surcharge only for levels above 100 via `(playerLevel - 100) * 11000`. PR #188 Bestiary, Bosstiary and Cyclopedia Character hunks, PR #192 monster-data remediation and PR #243 validator/workflow control were excluded. No maintained OTClient change was selected.
+
+Otheryn PR #67 final head `e1fca0b372173db335118735f501f315d442888f` changed exactly seven intended paths. The first target Linux-debug full suite completed `421/422`; its sole failure was the superseded OAM-031 Charm reset-price exclusion assertion, while both OAM-033 focused tests passed. That obsolete proof-boundary assertion was removed without any further production change. Final autofix.ci #192 run `29867543037`, Repository Audit #27 run `29867542987`, CI #233 run `29867543182`, Required #218 run `29867542998`, and Linux-debug full `Run Tests` succeeded. Test-log artifact `8510218346` has digest `sha256:1bc7425f036bb5f39c19539590da0704f026718e4bbd54ad2ede79c023300cbc`. Comments/reviews/threads were empty, target `main` had no task-start drift, and PR #67 merged by expected-head squash as `c887318a676998da5ef3224a3aa8d1e0df75e607`.
+
+Canary governance PR #696 final head `34ca59c5ca53e7082d4e1ced1428b745bb8e91e1` changed exactly the OAM-033 revalidation report and active-task record. The initial Ownership failure was compactness-only (`proven` contained 17 items with a limit of 16) and was repaired without scope or evidence change. Final Agent Task Ownership #3213 run `29868982754` and final-gate CI #4369 run `29868983212` succeeded; comments/reviews/threads were empty, Canary `main` had no task-start drift, and PR #696 merged by expected-head squash as `5ecc72762feb6bda8f6549ac4238a75247752449`.
+
+Authoritative lifecycle PR #697 final head `0130b6c9944020c1185ded02dd67c2ca82e6d60f` changed exactly the active-delete/archive-add lifecycle paths. Agent Task Ownership #3216 run `29869194552` and final-gate CI #4372 run `29869195095` succeeded; comments/reviews/threads were empty, Canary `main` had no drift from the governance merge, and PR #697 merged by expected-head squash as `d83563943e298df33edd084e944812464b8a3ff2`.
+
+OAM-033 does not claim exhaustive Charm definition/value parity, all unlock costs, assignment-slot rules, combat proc formulas, element/resistance behavior, Bestiary progress correctness, protocol/client compatibility, maintained-client rendering, persistence atomicity, economy transaction atomicity, physical-client Charm E2E closure, or full Real Tibia parity.
+
 # Current state
 
 ```text
-Canary reconciliation base: 994d1ffdfd6828688b1acc6cd7c0c519eab052ba
-Otheryn target head after OAM-030: dc483d6e8d659d61482da2af7abda9b46b1766ff
+Canary reconciliation base: d83563943e298df33edd084e944812464b8a3ff2
+Otheryn target head after OAM-033: c887318a676998da5ef3224a3aa8d1e0df75e607
 maintained OTClient: a6868920443dc285656bd016acdb2c1ea566e511
-OAM-001..OAM-030: feature/lifecycle complete
-OAM-030 task: archived
-OAM-031: NOT STARTED
+OAM-001..OAM-033: feature/lifecycle complete
+OAM-033 task: archived
+OAM-034: NOT STARTED
 ```
 
 No OAM implementation task is active in this reconciliation record.
@@ -512,8 +575,8 @@ No OAM implementation task is active in this reconciliation record.
 
 | Package | Status | Next action |
 |---|---|---|
-| OAM-001..OAM-030 | completed | preserve durable evidence |
-| OAM-031+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
+| OAM-001..OAM-033 | completed | preserve durable evidence |
+| OAM-034+ | planned, not active | only after this reconciliation merges and the Otheryn OAM-033 target checkpoint is archived: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
 
 # Invariants and known gaps
 
@@ -547,7 +610,10 @@ No OAM implementation task is active in this reconciliation record.
 - OAM-028 does not claim Bestiary, Bosstiary, Charm, Cyclopedia Character, Titles or Houses child correctness, exact packet-byte compatibility, maintained-client parsing/rendering correctness, item/map/house presentation correctness, persistence completeness, runtime behavior, physical-client Cyclopedia E2E closure, or full Real Tibia parity.
 - OAM-029 does not claim full Cyclopedia Character parity, exact packet-byte compatibility, death-history correctness, KV/store-summary parity, database query performance, retained-history policy, maintained-client rendering correctness, physical-client Cyclopedia Character E2E closure, or full Real Tibia parity.
 - OAM-030 does not claim full Bosstiary parity, exhaustive boosted-boss selection correctness, distributed or multiwriter leader election, cross-channel Bosstiary safety, Bestiary or Charms child correctness, exact protocol/client compatibility, maintained-client rendering correctness, monster-data parity, database availability or crash-recovery guarantees, physical-client Bosstiary E2E closure, or full Real Tibia parity.
+- OAM-031 does not claim full Bestiary parity, exhaustive kill-stage/reward correctness, Charm correctness, monster-definition parity, exact protocol/client rendering compatibility, persistence completeness, tracker refresh correctness under every runtime state, database durability, physical-client Bestiary E2E closure, or full Real Tibia parity.
+- OAM-032 does not claim title-definition or unlock-threshold parity, completeness of every cross-domain eligibility check, map/Drome/Goshnar or other TODO-backed title conditions, persistence atomicity or crash recovery, exact protocol compatibility, maintained-client parsing/rendering correctness, physical-client Titles E2E closure, or full Real Tibia parity.
+- OAM-033 does not claim exhaustive Charm definition/value parity, all unlock costs, assignment-slot rules, combat proc formulas, element/resistance behavior, Bestiary progress correctness, protocol/client compatibility, maintained-client rendering, persistence atomicity, economy transaction atomicity, physical-client Charm E2E closure, or full Real Tibia parity.
 
 # Exact next task
 
-Merge this program-only OAM-030 completion reconciliation after exact-head Ownership/CI/review gates. Only then may a fresh OAM-031 preflight begin. OAM-031 is NOT STARTED by this record.
+Merge this program-only OAM-033 completion reconciliation after exact-head Ownership/CI/review gates. Only then may the Otheryn OAM-033 target checkpoint be archived; only after that archive merges may a fresh OAM-034 preflight begin. OAM-034 is NOT STARTED by this record.

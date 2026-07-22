@@ -1,0 +1,105 @@
+{
+  "$defs": {
+    "classification": {
+      "enum": ["confirmed", "map-only", "script-only", "unresolved", "conflicting", "not-applicable"]
+    },
+    "orphanCheck": {
+      "properties": {
+        "blockers": {"items": {"type": "string"}, "type": "array"},
+        "classification": {"$ref": "#/$defs/classification"},
+        "counterpartKinds": {"items": {"type": "string"}, "type": "array"},
+        "direction": {"type": "string"},
+        "finding": {"type": "boolean"},
+        "findingKind": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+        "id": {"type": "string"},
+        "nodeId": {"type": "string"},
+        "provenEdgeIds": {"items": {"type": "string"}, "type": "array"},
+        "relations": {"items": {"type": "string"}, "type": "array"},
+        "unresolvedEdgeIds": {"items": {"type": "string"}, "type": "array"}
+      },
+      "required": [
+        "id", "nodeId", "direction", "relations", "counterpartKinds", "classification", "finding",
+        "findingKind", "provenEdgeIds", "unresolvedEdgeIds", "blockers"
+      ],
+      "type": "object"
+    },
+    "policy": {
+      "additionalProperties": false,
+      "properties": {
+        "automaticRepairDirected": {"const": false},
+        "certificationAssigned": {"const": false},
+        "dependencyGraphRecomputed": {"const": false},
+        "dynamicLuaExecuted": {"const": false},
+        "globalAbsenceInferred": {"const": false},
+        "mapModified": {"const": false},
+        "otbmParsedIndependently": {"const": false},
+        "pathfindingExecuted": {"const": false},
+        "physicalE2eExecuted": {"const": false},
+        "readOnly": {"const": true},
+        "runtimeGameplayCompletionClaimed": {"const": false},
+        "scenarioPrioritizationDirected": {"const": false},
+        "scriptResolutionRecomputed": {"const": false},
+        "storageGraphRecomputed": {"const": false}
+      },
+      "required": [
+        "readOnly", "mapModified", "otbmParsedIndependently", "scriptResolutionRecomputed",
+        "storageGraphRecomputed", "pathfindingExecuted", "dependencyGraphRecomputed", "physicalE2eExecuted",
+        "dynamicLuaExecuted", "globalAbsenceInferred", "runtimeGameplayCompletionClaimed", "automaticRepairDirected",
+        "certificationAssigned", "scenarioPrioritizationDirected"
+      ],
+      "type": "object"
+    },
+    "stage": {
+      "properties": {
+        "blockers": {"items": {"type": "string"}, "type": "array"},
+        "classification": {"$ref": "#/$defs/classification"},
+        "coverageRequirements": {"items": {"type": "object"}, "type": "array"},
+        "findingCodes": {"items": {"type": "string"}, "type": "array"},
+        "id": {"type": "string"},
+        "nodeIds": {"items": {"type": "string"}, "type": "array"},
+        "pathRequirement": {"anyOf": [{"type": "object"}, {"type": "null"}]},
+        "required": {"type": "boolean"},
+        "role": {"type": "string"}
+      },
+      "required": [
+        "id", "role", "required", "classification", "nodeIds", "coverageRequirements", "pathRequirement",
+        "blockers", "findingCodes"
+      ],
+      "type": "object"
+    },
+    "target": {
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {"enum": ["quest", "mechanic-set"]},
+        "orphanChecks": {"items": {"$ref": "#/$defs/orphanCheck"}, "type": "array"},
+        "reason": {"type": "string"},
+        "requirementsSatisfied": {"type": "boolean"},
+        "runtimeGameplayCompletionProven": {"const": false},
+        "stages": {"items": {"$ref": "#/$defs/stage"}, "type": "array"},
+        "summary": {"type": "object"}
+      },
+      "required": [
+        "id", "kind", "reason", "requirementsSatisfied", "runtimeGameplayCompletionProven", "stages",
+        "orphanChecks", "summary"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_CONTENT_COMPLETENESS.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "findings": {"items": {"type": "object"}, "type": "array"},
+    "format": {"const": "canary-otbm-content-completeness-audit-v1"},
+    "notes": {"items": {"type": "string"}, "type": "array"},
+    "policy": {"$ref": "#/$defs/policy"},
+    "provenance": {"type": "object"},
+    "schemaVersion": {"const": 1},
+    "source": {"type": "object"},
+    "summary": {"type": "object"},
+    "targets": {"items": {"$ref": "#/$defs/target"}, "type": "array"}
+  },
+  "required": ["format", "schemaVersion", "source", "policy", "provenance", "summary", "targets", "findings", "notes"],
+  "title": "Canary OTBM Content Completeness Audit v1",
+  "type": "object"
+}

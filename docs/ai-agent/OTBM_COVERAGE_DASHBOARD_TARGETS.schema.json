@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/ai-agent/OTBM_COVERAGE_DASHBOARD_TARGETS.schema.json",
+  "title": "Canary OTBM Coverage Dashboard reviewed targets v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "targets"],
+  "properties": {
+    "format": {"const": "canary-otbm-coverage-dashboard-targets-v1"},
+    "schemaVersion": {"const": 1},
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10000,
+      "items": {"$ref": "#/$defs/target"}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {
+        "from": {"$ref": "#/$defs/position"},
+        "to": {"$ref": "#/$defs/position"}
+      }
+    },
+    "requiredDimension": {
+      "enum": [
+        "indexed-on-exact-map",
+        "source-correlated",
+        "script-resolved",
+        "statically-reachable",
+        "interaction-resolved",
+        "static-quality-compatible",
+        "executable-route-covered",
+        "physically-runtime-proven",
+        "candidate-map-validated",
+        "current-map-provenance"
+      ]
+    },
+    "sourceCorrelation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reportSha256", "evidenceIds"],
+      "properties": {
+        "reportSha256": {"$ref": "#/$defs/sha256"},
+        "evidenceIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "routePlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reportSha256", "interactionRequired"],
+      "properties": {
+        "reportSha256": {"$ref": "#/$defs/sha256"},
+        "interactionRequired": {"type": "boolean"}
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "reason", "requiredDimensions"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 160},
+        "kind": {"enum": ["world", "region", "landmark-route", "quest", "mechanic-set"]},
+        "reason": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "region": {"$ref": "#/$defs/region"},
+        "mechanicIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1, "maxLength": 160}
+        },
+        "requiredDimensions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/requiredDimension"}
+        },
+        "sourceCorrelation": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/sourceCorrelation"}
+        },
+        "routePlans": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/routePlan"}
+        },
+        "candidateRepairs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/sha256"}
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"kind": {"const": "region"}}, "required": ["kind"]},
+          "then": {"required": ["region"]}
+        },
+        {
+          "if": {"properties": {"kind": {"enum": ["landmark-route", "quest", "mechanic-set"]}}, "required": ["kind"]},
+          "then": {"required": ["mechanicIds"], "properties": {"mechanicIds": {"minItems": 1}}}
+        },
+        {
+          "if": {"properties": {"kind": {"const": "world"}}, "required": ["kind"]},
+          "then": {
+            "not": {"anyOf": [{"required": ["region"]}, {"required": ["mechanicIds"]}]}
+          }
+        }
+      ]
+    }
+  }
+}
