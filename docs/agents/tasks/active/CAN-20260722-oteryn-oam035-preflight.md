@@ -47,7 +47,7 @@ The final OAM-035 disposition still requires bounded target-side proof. This pre
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-22T09:22:00+02:00
-head: bb0554c8fa94fe0908be2cfa2ce7e371743382ed
+head: 4756e075023ac1376dfb88afc8deeef7bd833db2
 branch: dudantas/oam-035-preflight
 pr: 707
 status: ready
@@ -62,7 +62,7 @@ proven:
   - Fresh Otheryn main baseline is 4771350b44665c5a37b0c058b3d413c0c0de542d.
   - Fresh upstream Canary baseline is 71a0f92b4da3f550b292fa7536a0e35c2769f1ae.
   - Fresh maintained OTClient baseline is a6868920443dc285656bd016acdb2c1ea566e511.
-  - PR 707 live preflight head before this checkpoint update is bb0554c8fa94fe0908be2cfa2ce7e371743382ed and both CI and Agent Task Ownership succeeded on that head.
+  - PR 707 live preflight head before preflight-completion commits was bb0554c8fa94fe0908be2cfa2ce7e371743382ed and both CI and Agent Task Ownership succeeded on that head.
   - Canonical creature-ai depends only on creature-definitions, which OAM-034 completed, and owns Monster runtime think target friend follow flee movement attack defense and spawn/despawn interactions.
   - Fresh ownership search found no open Canary or Otheryn PR matching the selected monster creature targeting or pathfinding boundary.
   - Otheryn and fresh upstream Canary have identical creature-ai owned blobs: monster.cpp 30cdadf4076d29116eb96fb8bb5f7f46bebddcd5 and monster.hpp a5426fdd22533179a9d54834dbe7b340a5d45012.
