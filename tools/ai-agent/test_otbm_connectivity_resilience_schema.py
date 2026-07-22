@@ -16,7 +16,9 @@ class ConnectivityResilienceSchemaTests(unittest.TestCase):
         schema = json.loads(MANIFEST_SCHEMA.read_text(encoding="utf-8"))
         self.assertEqual(schema["properties"]["format"]["const"], MANIFEST_FORMAT)
         self.assertEqual(set(schema["$defs"]["mode"]["enum"]), MODES)
-        self.assertEqual(schema["properties"]["region"]["$ref"], "#/$defs/region" if "$ref" in schema["properties"]["region"] else schema["properties"]["region"].get("$ref"))
+        region = schema["properties"]["region"]
+        self.assertEqual(set(region["required"]), {"from", "to", "allowDiagonal"})
+        self.assertFalse(region["additionalProperties"])
 
     def test_report_schema_matches_route_classifications(self) -> None:
         schema = json.loads(REPORT_SCHEMA.read_text(encoding="utf-8"))
