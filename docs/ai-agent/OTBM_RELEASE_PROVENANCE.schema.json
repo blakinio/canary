@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.example/schemas/OTBM_RELEASE_PROVENANCE.schema.json",
+  "title": "Canary OTBM Release Provenance v1",
+  "type": "object",
+  "required": ["format", "schemaVersion", "currentReleaseId", "currentBomSha256", "componentChanges", "dimensionFreshness", "removedDimensions", "summary", "policy", "reportSha256"],
+  "properties": {
+    "format": {"const": "canary-otbm-release-provenance-v1"},
+    "schemaVersion": {"const": 1},
+    "currentReleaseId": {"type": "string"},
+    "previousReleaseId": {"type": ["string", "null"]},
+    "currentBomSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "previousBomSha256": {"type": ["string", "null"]},
+    "componentChanges": {"type": "array", "items": {"type": "object", "required": ["componentId", "status"]}},
+    "dimensionFreshness": {"type": "array", "items": {"type": "object", "required": ["dimensionId", "status", "changedDependencies"]}},
+    "removedDimensions": {"type": "array", "items": {"type": "string"}},
+    "summary": {"type": "object"},
+    "policy": {"type": "object"},
+    "reportSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

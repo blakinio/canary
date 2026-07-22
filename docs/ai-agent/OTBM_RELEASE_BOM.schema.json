@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.example/schemas/OTBM_RELEASE_BOM.schema.json",
+  "title": "Canary OTBM Release BOM v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "releaseId", "components", "dimensions"],
+  "properties": {
+    "format": {"const": "canary-otbm-release-bom-v1"},
+    "schemaVersion": {"const": 1},
+    "releaseId": {"type": "string", "minLength": 1},
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "sha256"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "kind": {"type": "string"},
+          "sha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"},
+          "format": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "dimensions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "dependsOn"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "dependsOn": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    }
+  }
+}
