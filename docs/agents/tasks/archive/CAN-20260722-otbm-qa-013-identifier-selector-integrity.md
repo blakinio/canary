@@ -7,10 +7,10 @@ branch: docs/archive-otbm-qa-013-identifier-selector-integrity-724
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "637c57d8744204490b452bdd935789ec0c4de23b"
+last_verified_commit: "457f40c72dd87994a74d205b7a743f747f647eb6"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "731"
 depends_on:
   - CAN-20260722-otbm-qa-012-critical-access-integrity complete
   - Unified OTBM World Index available
@@ -45,7 +45,7 @@ cross_repo_tasks: []
 
 ## Status
 
-COMPLETE — bounded QA-013 implementation merged through feature PR #724. The lifecycle-only active-to-archive closure is isolated on this branch; post-merge shared-doc governance is tracked in PR #727 and must merge before lifecycle finalization.
+COMPLETE — bounded QA-013 implementation merged through feature PR #724. Lifecycle PR #731 contains only the active-to-archive task-record move; post-merge shared-doc governance is tracked in PR #727 and must merge before lifecycle finalization.
 
 ## Goal
 
@@ -85,10 +85,10 @@ Provide deterministic read-only evidence for identifier and selector conflicts w
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T20:15:00+02:00
-head: 637c57d8744204490b452bdd935789ec0c4de23b
+updated_at: 2026-07-22T20:35:00+02:00
+head: 457f40c72dd87994a74d205b7a743f747f647eb6
 branch: docs/archive-otbm-qa-013-identifier-selector-integrity-724
-pr: none
+pr: 731
 status: complete
 context_routes:
   - otbm
@@ -102,8 +102,9 @@ proven:
   - Ready-for-review full CI 29936130293 passed on the same immutable feature head after exactly one failed-job rerun for a Docker build/export failure; all non-Docker matrix jobs were already green and no feature commit changed.
   - Feature PR 724 changed exactly nine bounded paths and final review audit found zero review threads and zero review submissions.
   - Governance PR 727 has a clean two-line shared-doc diff: one MODULE_CATALOG row and one CHANGELOG bullet for QA-013, with no deletions or unrelated modifications.
+  - Lifecycle PR 731 is open from main and changes exactly the active and archive QA-013 task-record paths.
 derived:
-  - QA-014 may begin only after governance PR 727 and this lifecycle PR merge, followed by a fresh live-state and ownership preflight.
+  - QA-014 may begin only after governance PR 727 and lifecycle PR 731 merge, followed by a fresh live-state and ownership preflight.
 unknown:
   - Intentional identifier reuse cannot be inferred from repetition alone; unreviewed reuse remains review-required unless exact conflict evidence or reviewed policy closes it.
 conflicts: []
@@ -135,5 +136,5 @@ validation:
     evidence: ready-for-review full final-gate matrix passed after one failed-job Docker rerun with no feature commit change.
 blockers:
   - Governance PR 727 must merge before lifecycle finalization.
-next_action: Merge governance PR 727 after its immutable full final-gate CI succeeds, then bind this lifecycle record to its PR, validate the two-path lifecycle diff and complete lifecycle final-gate/merge before QA-014 preflight.
+next_action: Merge governance PR 727 after its immutable full final-gate CI succeeds, then validate lifecycle PR 731 pre-final CI/Ownership, apply final-gate before its final checkpoint commit and complete lifecycle merge before QA-014 preflight.
 ```
