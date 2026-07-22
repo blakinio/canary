@@ -7,10 +7,10 @@ branch: feat/otbm-qa-010-quest-state-reachability-20260722
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "6a87373e84073a84ccdbdb64f7d61b2747f40764"
+last_verified_commit: "7bdfc5f276663393e6115d02de748026df7e8439"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "709"
 depends_on:
   - CAN-20260721-otbm-qa-009-content-completeness complete
   - CAN-20260713-otbm-storage-dependency-graph complete
@@ -56,7 +56,7 @@ cross_repo_tasks: []
 
 ## Status
 
-IMPLEMENTING — fresh post-QA-009 preflight completed; bounded QA-010 feature branch established from exact current `main`.
+IMPLEMENTING — bounded QA-010 implementation is present in draft PR #709; shared catalogue/changelog and final validation remain.
 
 ## Goal
 
@@ -97,10 +97,10 @@ Derive a conservative static state-reachability view for explicitly selected que
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T09:20:00+02:00
-head: 6a87373e84073a84ccdbdb64f7d61b2747f40764
+updated_at: 2026-07-22T09:36:00+02:00
+head: 7bdfc5f276663393e6115d02de748026df7e8439
 branch: feat/otbm-qa-010-quest-state-reachability-20260722
-pr: none
+pr: 709
 status: implementing
 context_routes:
   - otbm
@@ -119,27 +119,43 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260722-otbm-qa-010-quest-state-reachability.md
 proven:
   - QA-009 feature and lifecycle are complete; PR 704 merged as 6a87373e84073a84ccdbdb64f7d61b2747f40764.
-  - Current main is identical to 6a87373e84073a84ccdbdb64f7d61b2747f40764 at QA-010 preflight.
+  - Current main was identical to 6a87373e84073a84ccdbdb64f7d61b2747f40764 at QA-010 preflight.
   - No open QA-010 or quest-state-reachability PR was found during the fresh overlap preflight.
-  - The canonical Storage Dependency Graph emits only conservative exact same-key transitions and preserves dynamic/inequality/else cases as non-transition evidence.
-  - The canonical Route Interaction Registry is the existing fail-closed reviewed interaction resolver; unresolved/conflicting/ambiguous evidence is not executable.
+  - The canonical Storage Dependency Graph emits only conservative exact same-key transitions and preserves dynamic, inequality and else cases as non-transition evidence.
+  - The canonical Route Interaction Registry is reused through resolve_interaction; unresolved, conflicting or ambiguous evidence is not traversable.
+  - Draft PR 709 contains the bounded core, CLI, manifest/report schemas, documentation and focused semantic, schema and output-safety tests.
+  - Repository CI run 29900217346 passed on head 7bdfc5f276663393e6115d02de748026df7e8439.
 derived:
-  - QA-010 can remain a deterministic composition layer and must not reconstruct storage parsing, map scanning, Script Resolution or pathfinding.
+  - QA-010 remains a deterministic composition layer and does not reconstruct storage parsing, map scanning, Script Resolution or pathfinding.
 unknown:
-  - No committed reviewed interaction registry is guaranteed for any concrete quest scope; fixture-based focused tests may prove the generic composition contract while real target evaluation remains evidence-dependent.
+  - No committed reviewed interaction registry is guaranteed for any concrete quest scope; generic fixture tests can prove the composition contract while real target evaluation remains evidence-dependent.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: No ownership or overlap blocker was found before bounded implementation.
+  marker: Agent Task Ownership run 29900217186 / Validate changed active task checkpoints
+  evidence: The active task was opened in PR 709 while frontmatter related_pr remained empty and checkpoint pr remained none; lifecycle validation requires both to match the current PR.
 rejected_hypotheses:
-  - Inferring transition order from Lua/source proximity: rejected by Storage Graph evidence boundary.
-  - Treating missing selected-scope producers as global impossibility: rejected by roadmap safety boundary.
+  - Inferring transition order from Lua or source proximity was rejected by the Storage Graph evidence boundary.
+  - Treating missing selected-scope producers as global impossibility was rejected by the roadmap safety boundary.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260722-otbm-qa-010-quest-state-reachability.md
+  - tools/ai-agent/otbm_quest_state_reachability.py
+  - tools/ai-agent/otbm_quest_state_reachability_tool.py
+  - tools/ai-agent/test_otbm_quest_state_reachability.py
+  - tools/ai-agent/test_otbm_quest_state_reachability_output_safety.py
+  - tools/ai-agent/test_otbm_quest_state_reachability_schema.py
+  - docs/ai-agent/OTBM_QUEST_STATE_REACHABILITY.md
+  - docs/ai-agent/OTBM_QUEST_STATE_REACHABILITY_MANIFEST.schema.json
+  - docs/ai-agent/OTBM_QUEST_STATE_REACHABILITY.schema.json
 validation:
-  - command: post-QA-009 live main/PR/overlap preflight
+  - command: post-QA-009 live main and overlap preflight
     result: PASS
-    evidence: main 6a87373e84073a84ccdbdb64f7d61b2747f40764; no competing QA-010 PR/task found.
+    evidence: main 6a87373e84073a84ccdbdb64f7d61b2747f40764; no competing QA-010 PR or task found.
+  - command: GitHub Actions CI run 29900217346
+    result: PASS
+    evidence: repository CI passed on implementation head 7bdfc5f276663393e6115d02de748026df7e8439.
+  - command: GitHub Actions Agent Task Ownership run 29900217186
+    result: FAIL
+    evidence: lifecycle metadata mismatch for current PR 709; related_pr and checkpoint pr are corrected in the next task-record commit.
 blockers: []
-next_action: Open the early draft PR, then implement the smallest deterministic manifest/report composition over exact Storage Graph transitions and existing Route Interaction resolution with focused tests.
+next_action: Update shared MODULE_CATALOG and CHANGELOG entries, verify focused OTBM and AI Agent workflows, then prepare one final checkpoint commit under ci:final-gate.
 ```
