@@ -8,7 +8,6 @@
  */
 
 #pragma once
-
 #include "security/login_session_manager.hpp"
 
 #ifndef USE_PRECOMPILED_HEADERS
@@ -17,9 +16,11 @@
 	#include <cstdint>
 	#include <functional>
 	#include <memory>
+	#include <mutex>
 	#include <optional>
 	#include <string>
 	#include <string_view>
+	#include <unordered_map>
 	#include <vector>
 #endif
 
@@ -27,6 +28,7 @@ class GameSessionHttpIssuer {
 public:
 	static constexpr std::size_t MaxRequestBytes = 8192;
 	static constexpr std::size_t LoginAttemptIdHexLength = 32;
+	static constexpr std::size_t MaxTrackedLoginAttempts = 4096;
 	static constexpr std::chrono::milliseconds DefaultRequestTimeout { 5000 };
 
 	struct Config {
@@ -48,6 +50,7 @@ public:
 		Ok,
 		InvalidRequest,
 		WrongWorld,
+		DuplicateAttempt,
 		AccountUnavailable,
 		NoCharacters,
 		IssueFailed,
@@ -88,7 +91,18 @@ public:
 private:
 	class Impl;
 
+	enum class LoginAttemptReservation : uint8_t {
+		Reserved,
+		Duplicate,
+		CapacityExceeded,
+	};
+
+	[[nodiscard]] LoginAttemptReservation reserveLoginAttempt(const std::string &loginAttemptId, std::chrono::system_clock::time_point now) const;
+	void releaseLoginAttempt(const std::string &loginAttemptId) const;
+
 	Config config;
 	Dependencies dependencies;
 	std::unique_ptr<Impl> impl;
+	mutable std::mutex loginAttemptsMutex;
+	mutable std::unordered_map<std::string, std::chrono::system_clock::time_point> loginAttempts;
 };
