@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.example/schemas/OTBM_CRITICAL_ACCESS_TARGETS.schema.json",
+  "title": "Canary OTBM Critical Access Targets v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "provenance", "targets"],
+  "properties": {
+    "format": {"const": "canary-otbm-critical-access-targets-v1"},
+    "schemaVersion": {"const": 1},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceMap", "worldIndex"],
+      "properties": {
+        "sourceMap": {"$ref": "#/$defs/shaRecord"},
+        "worldIndex": {"$ref": "#/$defs/shaRecord"}
+      }
+    },
+    "targets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["criticalLandmarks", "houses", "spawnAccess"],
+      "properties": {
+        "criticalLandmarks": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {"$ref": "#/$defs/criticalLandmark"}
+        },
+        "houses": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {"$ref": "#/$defs/house"}
+        },
+        "spawnAccess": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {"$ref": "#/$defs/spawnAccess"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "shaRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256"],
+      "properties": {"sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "references"],
+      "properties": {
+        "status": {"const": "reviewed"},
+        "references": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1, "maxLength": 512}
+        },
+        "note": {"type": "string", "maxLength": 2000}
+      }
+    },
+    "criticalLandmark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "criticality", "landmarkId", "anchorId", "routeId", "review"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 240},
+        "criticality": {
+          "enum": [
+            "temple-recovery",
+            "depot",
+            "bank",
+            "transport-hub",
+            "city-entrance",
+            "quest-hub",
+            "other-reviewed-critical"
+          ]
+        },
+        "landmarkId": {"type": "string", "minLength": 1, "maxLength": 240},
+        "anchorId": {"type": "string", "minLength": 1, "maxLength": 240},
+        "routeId": {"type": "string", "minLength": 1, "maxLength": 240},
+        "review": {"$ref": "#/$defs/review"}
+      }
+    },
+    "house": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "houseId", "houseDoorId", "doorPosition", "interiorPosition", "routeId", "review"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 240},
+        "houseId": {"type": "integer", "minimum": 1, "maximum": 4294967295},
+        "houseDoorId": {"type": "integer", "minimum": 0, "maximum": 255},
+        "doorPosition": {"$ref": "#/$defs/position"},
+        "interiorPosition": {"$ref": "#/$defs/position"},
+        "routeId": {"type": "string", "minLength": 1, "maxLength": 240},
+        "review": {"$ref": "#/$defs/review"}
+      }
+    },
+    "spawnAccess": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "entityRole", "placementId", "position", "routeId", "accessExpectation", "review"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 240},
+        "entityRole": {"enum": ["monster", "npc", "boss"]},
+        "placementId": {"type": "string", "minLength": 1, "maxLength": 240},
+        "position": {"$ref": "#/$defs/position"},
+        "routeId": {"type": "string", "minLength": 1, "maxLength": 240},
+        "accessExpectation": {"enum": ["reviewed-context", "public"]},
+        "review": {"$ref": "#/$defs/review"}
+      }
+    }
+  }
+}
