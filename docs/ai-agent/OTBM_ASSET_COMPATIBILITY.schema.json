@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.example/schemas/OTBM_ASSET_COMPATIBILITY.schema.json",
+  "title": "Canary OTBM Asset Compatibility Report v1",
+  "type": "object",
+  "required": ["format", "schemaVersion", "ok", "provenance", "scope", "summary", "findings", "policy", "reportSha256"],
+  "properties": {
+    "format": {"const": "canary-otbm-asset-compatibility-v1"},
+    "schemaVersion": {"const": 1},
+    "ok": {"type": "boolean"},
+    "provenance": {"type": "object"},
+    "scope": {
+      "type": "object",
+      "required": ["usedItemIdCount", "baselineCompared"],
+      "properties": {
+        "usedItemIdCount": {"type": "integer", "minimum": 0},
+        "baselineCompared": {"type": "boolean"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["missingObjectAppearances", "uncoveredSpriteIds", "missingSpriteAssetFiles", "appearanceSemanticDeltas", "findings", "bySeverity"]
+    },
+    "findings": {"type": "array", "items": {"type": "object", "required": ["severity", "code", "message"]}},
+    "policy": {"type": "object"},
+    "reportSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

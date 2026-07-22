@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.example/schemas/OTBM_ASSET_COMPATIBILITY_MANIFEST.schema.json",
+  "title": "Canary OTBM Asset Compatibility Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "sourceMapSha256", "worldIndexSha256", "appearancesSha256", "assetIndexSha256"],
+  "properties": {
+    "format": {"const": "canary-otbm-asset-compatibility-manifest-v1"},
+    "sourceMapSha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"},
+    "worldIndexSha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"},
+    "appearancesSha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"},
+    "assetIndexSha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"},
+    "baselineAppearancesSha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"}
+  }
+}
