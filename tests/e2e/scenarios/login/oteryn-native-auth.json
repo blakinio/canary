@@ -50,6 +50,10 @@
       "successful_world_entries=1",
       "e2e=success"
     ],
+    "runtime_counts": {
+      "server_logins": 1,
+      "packet_records": 0
+    },
     "sql": [
       "SELECT lastlogin > 0 FROM players WHERE name = 'Knight 1'",
       "SELECT lastlogout > 0 FROM players WHERE name = 'Knight 1'",
