@@ -48,7 +48,6 @@ public:
 		Ok,
 		InvalidRequest,
 		WrongWorld,
-		Unavailable,
 		AccountUnavailable,
 		NoCharacters,
 		IssueFailed,
@@ -64,7 +63,6 @@ public:
 		std::function<std::optional<std::vector<std::string>>(uint32_t)> loadCharacters;
 		std::function<std::optional<std::string>(const LoginSessionIssueParams &)> issueToken;
 		std::function<int32_t()> currentWorldId;
-		std::function<bool()> isReady;
 		std::function<std::chrono::system_clock::time_point()> now;
 	};
 
@@ -80,7 +78,6 @@ public:
 	[[nodiscard]] bool start();
 	void stop();
 	[[nodiscard]] bool isRunning() const;
-	[[nodiscard]] bool isReady() const;
 
 	// Exposed as deterministic seams for focused unit coverage. The network
 	// boundary delegates to these methods and never logs the presented bearer
