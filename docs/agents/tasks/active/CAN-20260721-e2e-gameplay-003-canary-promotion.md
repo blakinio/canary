@@ -2,16 +2,16 @@
 task_id: CAN-20260721-e2e-gameplay-003-canary-promotion
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-GAMEPLAY-003-CANARY-PROMOTION
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
 branch: feat/e2e-gameplay-003-canary-promotion-v2
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-22
-last_verified_commit: "d7b3d8848b9676d7f844bd6c63dd521be31b2fda"
+last_verified_commit: "1d303f18f721eb1d0830ad2cab7c96f620d46ec7"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "718"
 depends_on:
   - merged PR #589 Universal follow_route execution
   - merged PR #600 Thais reference physical route proof
@@ -80,11 +80,11 @@ Deliver one bounded deterministic real-client NPC flow on the existing Universal
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T11:05:00Z
-head: d7b3d8848b9676d7f844bd6c63dd521be31b2fda
+updated_at: 2026-07-22T11:08:00Z
+head: 1d303f18f721eb1d0830ad2cab7c96f620d46ec7
 branch: feat/e2e-gameplay-003-canary-promotion-v2
-pr: none
-status: implementing
+pr: 718
+status: validating
 context_routes:
   - universal-e2e
   - agent-governance
@@ -95,18 +95,20 @@ owned_paths:
   - tests/e2e/scenarios/npc/canary-promotion.json
   - tests/e2e/test_canary_npc_promotion.py
 proven:
+  - original PR #685 was closed unmerged as superseded because its published branch diverged from main and the available connector exposes no safe native update-branch operation; plain force rewriting was rejected by repository policy.
+  - successor PR #718 starts from main 5b4402958daa6584f90b848f385ad24a391b03a4 and retains exactly the same four feature-owned paths.
   - the original PR #685 physical run 29872645552 reached npc/canary-promotion after the controlled OTClient build passed; artifact 8512445446 retained the first feature failure.
   - artifact 8512445446 proves /addmoney seeded 20000 successfully, while public MessageSay follow-ups promot and yes did not promote the player; after relog client vocation remained 2 instead of expected 12 and final SQL also failed server vocation 7 and balance 0.
   - controlled OTClient Game::talk is public MessageSay, while focused Canary follow-up keywords require TALKTYPE_PRIVATE_PN after NPC focus.
   - PR #708 merged as 5b4402958daa6584f90b848f385ad24a391b03a4 and delivers bounded talk_npc through g_game.talkPrivate(MessageModes.NpcTo, receiver, text) while preserving existing public talk.
   - PR #708 final platform head d5d918e81bb5979cc50f2defbde38e1cf1fe9e81 passed Agent Task Ownership 29910232184, full CI 29910232384, Universal Agent E2E 29910232428 and the later ready-triggered CI 29912528465.
-  - this refreshed feature branch starts from merged main 5b4402958daa6584f90b848f385ad24a391b03a4 and changes only the four feature-owned paths.
   - the feature scenario now keeps setup and hi on public talk, sends promot and yes through talk_npc to receiver Canary, and retains the original bounded waits and M3 persistence expectations.
+  - ci:final-gate is applied to PR #718 before this final task/checkpoint commit.
 derived:
   - the proven message-mode blocker is resolved by consuming the merged generic action without modifying shared runner or controlled-client automation paths in this feature branch.
 unknown:
   - whether the existing 250ms greet/offer settle waits are sufficient once promot and yes use NPC-private speech.
-  - whether the promotion and both M3 persistence assertions pass on the first physical run of this refreshed exact head.
+  - whether the promotion and both M3 persistence assertions pass on the first physical run of the exact final successor head.
 conflicts: []
 first_failure:
   marker: persistence_check_promoted-vocation failed: actual=2 expected=12
@@ -115,6 +117,7 @@ rejected_hypotheses:
   - the generic controlled OTClient build still blocks feature execution: run 29872645552 built the controlled client and reached the physical scenario.
   - failed /addmoney balance seeding caused the promotion failure: packet/server evidence confirms the 20000 credit succeeded before NPC dialogue.
   - an additional bounded wait alone is sufficient: timing cannot change public MessageSay into required focused NPC-private speech.
+  - rewrite the diverged published PR #685 branch with a plain force update: repository policy requires safe history handling and the connector lacks force-with-lease semantics.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260721-e2e-gameplay-003-canary-promotion.md
   - data-canary/world/canary-npc.xml
@@ -128,5 +131,5 @@ validation:
     result: PASS
     evidence: merged platform action is available on current main and passed exact-head platform validation.
 blockers: []
-next_action: Open the refreshed feature PR from this current-main branch, bind the task record to that PR, force exact-final-head ownership, CI and Universal Agent E2E, then inspect the first physical feature result.
+next_action: Verify Agent Task Ownership, full CI and Universal Agent E2E on the resulting exact final PR #718 head; inspect the first physical feature result and fix only the first proven feature-specific failure, or prepare merge if all gates and M3 assertions pass.
 ```
