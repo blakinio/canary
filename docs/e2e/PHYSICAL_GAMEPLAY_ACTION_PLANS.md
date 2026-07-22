@@ -51,7 +51,8 @@ Explicit non-canonical `workflow_dispatch` suite/scenario inputs are never repla
 | `wait` | `id`, `action`, `ms` | — | Bounded dispatcher wait. |
 | `walk` | `id`, `action`, `direction` | `count`, `interval_ms` | Send bounded directional walk requests. |
 | `walk_edge` | `id`, `action`, `from_x`, `from_y`, `from_z`, `to_x`, `to_y`, `to_z` | `timeout_ms` | Assert the exact current source position, derive one adjacent movement direction from the coordinate delta, send exactly one walk request, and wait for the exact destination or fail closed on drift/timeout. |
-| `talk` | `id`, `action`, `text` | — | Send normal client talk text; feature scenarios may use this for spells or NPC dialogue only with evidence-backed text. |
+| `talk` | `id`, `action`, `text` | — | Send normal public client talk text. |
+| `talk_npc` | `id`, `action`, `receiver`, `text` | — | Send focused player-to-NPC private speech to one exact named receiver through the fixed maintained-client NPC message mode. |
 | `attack_visible` | `id`, `action`, `creature` | `timeout_ms` | Find a visible named creature and confirm it becomes the attacking target. |
 | `use_inventory_item` | `id`, `action`, `item_id` | — | Require the item in local-player inventory and send the inventory-use request. |
 | `request_quest_log` | `id`, `action` | — | Request the quest log through the maintained-client game API. |
@@ -63,6 +64,8 @@ Explicit non-canonical `workflow_dispatch` suite/scenario inputs are never repla
 | `observe_inventory_count_at_least` | `id`, `action`, `item_id`, `count` | `tier` | Assert a minimum local-player inventory count. |
 | `wait_creature` | `id`, `action`, `creature`, `present` | `timeout_ms` | Poll bounded visible-creature presence or absence. |
 | `observe_attacking` | `id`, `action`, `expected` | — | Assert whether the client currently has an attacking target. |
+
+`talk` remains the generic public-speech action and preserves its existing behavior. `talk_npc` is deliberately narrower: both `receiver` and `text` use the same bounded safe-text validation, scenario data cannot select an arbitrary protocol message mode, and the controlled driver always calls `g_game.talkPrivate(MessageModes.NpcTo, receiver, text)`. Feature-owned scenarios remain responsible for evidence-backed NPC names, dialogue words and any bounded waits required by the concrete NPC flow.
 
 Directions accepted by `walk` are `north`, `east`, `south`, `west`, `northeast`, `southeast`, `southwest` and `northwest`.
 
