@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.example/schemas/OTBM_STATIC_HOTSPOT_POLICY.schema.json",
+  "title": "Canary OTBM Static Hotspot Policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "sourceMapSha256", "worldIndexSha256", "thresholds"],
+  "properties": {
+    "format": {"const": "canary-otbm-static-hotspot-policy-v1"},
+    "sourceMapSha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"},
+    "worldIndexSha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"},
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["placementsPerTile", "maxItemDepth", "mechanicsPerTile", "tilesPerArea", "placementsPerArea"],
+      "properties": {
+        "placementsPerTile": {"type": "integer", "minimum": 1},
+        "maxItemDepth": {"type": "integer", "minimum": 0},
+        "mechanicsPerTile": {"type": "integer", "minimum": 1},
+        "tilesPerArea": {"type": "integer", "minimum": 1},
+        "placementsPerArea": {"type": "integer", "minimum": 1}
+      }
+    }
+  }
+}
