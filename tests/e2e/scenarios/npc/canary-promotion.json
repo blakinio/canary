@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "id": "canary-promotion",
+  "suite": "npc",
+  "name": "Deterministic Canary NPC promotion vertical slice",
+  "program_id": "CAN-PROGRAM-E2E-PLATFORM",
+  "description": "Use the repository-owned stationary Canary NPC beside the proven data-canary Paladin 15 login position, seed exactly 20000 bank gold through the existing isolated God-only setup command, execute the real hi/promot/yes NPC dialogue, then prove Royal Paladin vocation and zero bank balance through the canonical two-session persistence lifecycle.",
+  "client": {
+    "repository": "blakinio/otclient",
+    "ref": "2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f",
+    "automation": "tools/e2e/client/agent_e2e_scenario.lua"
+  },
+  "server": {
+    "database_image": "mariadb:11.4",
+    "datapack": "data-canary",
+    "map": "canary"
+  },
+  "fixture": {
+    "account": "@test15",
+    "password_env": "AGENT_E2E_TEST_PASSWORD",
+    "character": "Paladin 15",
+    "world": "Canary E2E",
+    "host": "127.0.0.1",
+    "game_port": 7172
+  },
+  "timing": {
+    "global_timeout_seconds": 180,
+    "session_hold_ms": 7000,
+    "relog_delay_ms": 1500
+  },
+  "steps": [
+    {
+      "id": "online",
+      "action": "observe_online",
+      "expected": true
+    },
+    {
+      "id": "npc-visible",
+      "action": "wait_creature",
+      "creature": "Canary",
+      "present": true,
+      "timeout_ms": 10000
+    },
+    {
+      "id": "seed-balance",
+      "action": "talk",
+      "text": "/addmoney Paladin 15, 20000"
+    },
+    {
+      "id": "seed-settle",
+      "action": "wait",
+      "ms": 250
+    },
+    {
+      "id": "greet",
+      "action": "talk",
+      "text": "hi"
+    },
+    {
+      "id": "greet-settle",
+      "action": "wait",
+      "ms": 250
+    },
+    {
+      "id": "promotion-offer",
+      "action": "talk_npc",
+      "receiver": "Canary",
+      "text": "promot"
+    },
+    {
+      "id": "offer-settle",
+      "action": "wait",
+      "ms": 250
+    },
+    {
+      "id": "accept",
+      "action": "talk_npc",
+      "receiver": "Canary",
+      "text": "yes"
+    },
+    {
+      "id": "promote-settle",
+      "action": "wait",
+      "ms": 1000
+    }
+  ],
+  "assertions": {
+    "required_markers": [
+      "ping_features_1=disabled",
+      "login_1=success",
+      "initial_position=1942,1345,7",
+      "online_stable_1=confirmed",
+      "step_online=success",
+      "step_npc-visible=success",
+      "step_seed-balance=success",
+      "step_seed-settle=success",
+      "step_greet=success",
+      "step_greet-settle=success",
+      "step_promotion-offer=success",
+      "step_offer-settle=success",
+      "step_accept=success",
+      "step_promote-settle=success",
+      "plan=success",
+      "logout_request_1=safe",
+      "logout_1=complete",
+      "ping_features_2=disabled",
+      "login_2=success",
+      "online_stable_2=confirmed",
+      "persistence_check_promoted-vocation=success",
+      "persistence_check_promoted-vocation_detail=12",
+      "persistence_check_spent-balance=success",
+      "persistence_check_spent-balance_detail=0",
+      "persistence_plan=success",
+      "logout_request_2=safe",
+      "logout_2=complete",
+      "e2e=success"
+    ],
+    "sql": [
+      "SELECT lastlogin > 0 FROM players WHERE name = 'Paladin 15'",
+      "SELECT lastlogout > 0 FROM players WHERE name = 'Paladin 15'"
+    ],
+    "persistence": {
+      "required": true,
+      "checks": [
+        {
+          "id": "promoted-vocation",
+          "type": "player_vocation",
+          "vocation": "royal_paladin"
+        },
+        {
+          "id": "spent-balance",
+          "type": "player_balance",
+          "equals": 0
+        }
+      ]
+    }
+  },
+  "artifacts": [
+    "scenario-manifest.json",
+    "scenario-plan.lua",
+    "result.json",
+    "client-events.tsv",
+    "canary.stdout.log",
+    "canary.stderr.log",
+    "otclient.stdout.log",
+    "otclient.stderr.log",
+    "otclient.internal.log",
+    "database-online.tsv",
+    "database-after.tsv",
+    "sql-assertions.json",
+    "database-sql-assertions-passed.txt",
+    "server-login-matches.txt",
+    "client.png",
+    "session-1.record",
+    "session-2.record",
+    "runtime-hashes.txt"
+  ]
+}
