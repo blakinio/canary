@@ -345,6 +345,13 @@ function runNextStep()
 		end, 150)
 		return
 	end
+	if step.action == "talk_npc" then
+		g_game.talkPrivate(MessageModes.NpcTo, step.receiver, step.text)
+		scheduleEvent(function()
+			completeStep(step, string.format("%s:%s", step.receiver, step.text))
+		end, 150)
+		return
+	end
 	if step.action == "attack_visible" then
 		pollUntil(step, step.timeout_ms or 10000, function()
 			local target = findVisibleCreature(step.creature)
