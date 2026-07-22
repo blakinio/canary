@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "id": "shared-world-visibility",
+  "suite": "multiclient",
+  "name": "Two controlled clients share one Canary world",
+  "program_id": "CAN-PROGRAM-E2E-PLATFORM",
+  "description": "Run two distinct deterministic accounts against the same disposable Canary process, prove that both controlled OTClients are online concurrently and mutually visible, then release the bounded secondary actor and preserve the primary two-session safe logout/relog sentinel.",
+  "client": {
+    "repository": "blakinio/otclient",
+    "ref": "2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f",
+    "automation": "tools/e2e/client/agent_e2e_multi_client_visibility.lua"
+  },
+  "server": {
+    "database_image": "mariadb:11.4",
+    "datapack": "data-otservbr-global",
+    "map": "otservbr"
+  },
+  "fixture": {
+    "account": "@test1",
+    "password_env": "AGENT_E2E_TEST_PASSWORD",
+    "character": "Knight 1",
+    "world": "Canary E2E",
+    "host": "127.0.0.1",
+    "game_port": 7172
+  },
+  "multi_client": {
+    "schema_version": 1,
+    "secondary": {
+      "id": "beta",
+      "account": "@test2",
+      "password_env": "AGENT_E2E_TEST_PASSWORD",
+      "character": "Knight 2"
+    }
+  },
+  "timing": {
+    "global_timeout_seconds": 180,
+    "session_hold_ms": 7000,
+    "relog_delay_ms": 1500
+  },
+  "assertions": {
+    "required_markers": [
+      "ping_features_1=disabled",
+      "login_1=success",
+      "online_stable_1=confirmed",
+      "multi_client_primary_online=confirmed",
+      "multi_client_secondary_started=beta",
+      "multi_client_primary_peer_visible=Knight 2",
+      "multi_client_secondary_peer_visible=Knight 1",
+      "multi_client_mutual_visibility=confirmed",
+      "multi_client_secondary_release=sent",
+      "multi_client_secondary_exit=clean",
+      "logout_request_1=safe",
+      "logout_1=complete",
+      "server_persistence_1=confirmed",
+      "ping_features_2=disabled",
+      "login_2=success",
+      "online_stable_2=confirmed",
+      "logout_request_2=safe",
+      "logout_2=complete",
+      "e2e=success"
+    ],
+    "sql": [
+      "SELECT lastlogin > 0 FROM players WHERE name = 'Knight 1'",
+      "SELECT lastlogout > 0 FROM players WHERE name = 'Knight 1'",
+      "SELECT lastlogin > 0 FROM players WHERE name = 'Knight 2'",
+      "SELECT lastlogout > 0 FROM players WHERE name = 'Knight 2'",
+      "SELECT COUNT(*) = 0 FROM players_online"
+    ]
+  },
+  "artifacts": [
+    "scenario-manifest.json",
+    "result.json",
+    "client-events.tsv",
+    "multi-client-plan.json",
+    "multi-client-secondary.env",
+    "actors/beta/client-events.tsv",
+    "actors/beta/otclient.stdout.log",
+    "actors/beta/otclient.stderr.log",
+    "actors/beta/otclient.internal.log",
+    "actors/beta/otclient-exit-code.txt",
+    "actors/beta/session-1.record",
+    "canary.stdout.log",
+    "canary.stderr.log",
+    "otclient.stdout.log",
+    "otclient.stderr.log",
+    "otclient.internal.log",
+    "database-online.tsv",
+    "database-after.tsv",
+    "sql-assertions.json",
+    "database-sql-assertions-passed.txt",
+    "server-login-matches.txt",
+    "client.png",
+    "session-1.record",
+    "session-2.record",
+    "runtime-hashes.txt"
+  ]
+}
