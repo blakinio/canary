@@ -2,13 +2,13 @@
 task_id: CAN-20260722-vocation-forum-analysis
 program_id: CAN-PROGRAM-REAL-TIBIA-PARITY
 coordination_id: ""
-status: validating
+status: review
 agent: "Codex"
 branch: docs/vocation-forum-analysis-20260722
 base_branch: main
 created: 2026-07-22T20:00:00+02:00
-updated: 2026-07-22T20:25:00+02:00
-last_verified_commit: "a4388fb5"
+updated: 2026-07-22T20:35:00+02:00
+last_verified_commit: "5e825fc8be3294c75a9944bd9d205ced51a8c9b8"
 risk: low
 related_issue: ""
 related_pr: "729"
@@ -100,6 +100,13 @@ The durable report is drafted in the owned `docs/ai-agent/` path. Six displayed 
 - Failed/blocked: no new blocker; the six inaccessible results remain explicit `UNKNOWN` evidence.
 - Result: local documentation, ownership, registry, and whitespace validation pass; current-head CI remains pending after the report commit.
 
+### 2026-07-22T20:35:00+02:00
+
+- Changed: corrected the active-task lifecycle status and expanded the checkpoint head to a full commit SHA after CI validation.
+- Learned: `tasks/active` frontmatter requires an active lifecycle status such as `review`; checkpoint status may remain `validating` under that state.
+- Failed/blocked: PR #729 ownership run `29945541172`, job `89009865743`, rejected frontmatter status `validating` and abbreviated checkpoint head `a4388fb5`.
+- Result: the task record now uses `status: review` and full parent head `5e825fc8be3294c75a9944bd9d205ced51a8c9b8`.
+
 ## Decisions
 
 | Decision | Reason/evidence | ADR |
@@ -119,9 +126,10 @@ The durable report is drafted in the owned `docs/ai-agent/` path. Six displayed 
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
 | `88694e96` | `python tools/agents/task_ownership.py` | PASS | 28 pre-existing active task records validated before this task record was added. |
-| `a4388fb5` + working tree | `git diff --check` | PASS | No whitespace errors in the report/task delta. |
-| `a4388fb5` + working tree | `python tools/agents/task_ownership.py` | PASS | 29 active task records validated including this task. |
-| `a4388fb5` + working tree | `python tools/agents/real_tibia_registry.py validate` | PASS | Registry valid with zero warnings; no registry mutation required. |
+| `5e825fc8be3294c75a9944bd9d205ced51a8c9b8` | `git diff --check` | PASS | No whitespace errors in the report/task delta. |
+| `5e825fc8be3294c75a9944bd9d205ced51a8c9b8` | `python tools/agents/task_ownership.py` | PASS | 29 active task records validated including this task. |
+| `5e825fc8be3294c75a9944bd9d205ced51a8c9b8` | `python tools/agents/real_tibia_registry.py validate` | PASS | Registry valid with zero warnings; no registry mutation required. |
+| `5e825fc8be3294c75a9944bd9d205ced51a8c9b8` | PR #729 ownership run `29945541172` | FAIL | Job `89009865743` rejected non-active frontmatter status and abbreviated checkpoint SHA; both are corrected in the next commit. |
 
 ## Failed approaches and dead ends
 
@@ -144,8 +152,8 @@ The durable report is drafted in the owned `docs/ai-agent/` path. Six displayed 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T20:25:00+02:00
-head: a4388fb5
+updated_at: 2026-07-22T20:35:00+02:00
+head: 5e825fc8be3294c75a9944bd9d205ced51a8c9b8
 branch: docs/vocation-forum-analysis-20260722
 pr: 729
 status: validating
@@ -168,8 +176,8 @@ unknown:
   - Contents and authorship of the six inaccessible displayed results in thread 4996962.
 conflicts: []
 first_failure:
-  marker: thread 4996962 page 31 HTTP 403
-  evidence: repeated focused browser reads returned a Forbidden page with no post elements.
+  marker: PR 729 active task lifecycle validation rejected status and abbreviated checkpoint head
+  evidence: run 29945541172 job 89009865743 reported non-active status validating and non-40-hex head a4388fb5.
 rejected_hypotheses:
   - The six inaccessible posts can be inferred from nearby pages: no source evidence supports reconstruction.
 changed_paths:
@@ -185,6 +193,9 @@ validation:
   - command: git diff --check
     result: PASS
     evidence: No whitespace errors in the uncommitted report/checkpoint delta.
+  - command: PR 729 Agent Task Ownership run 29945541172 job 89009865743
+    result: FAIL
+    evidence: Frontmatter status and checkpoint SHA format were invalid; corrected in the next commit.
 blockers:
   - none for the bounded report; the six inaccessible results remain an explicit evidence limitation.
 next_action: Review the full changed-file diff, commit and push the report/checkpoint, then inspect PR 729 checks on the new head.
