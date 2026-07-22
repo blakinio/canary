@@ -2,13 +2,13 @@
 task_id: CAN-20260722-e2e-platform-npc-private-speech
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-PLATFORM-NPC-PRIVATE-SPEECH
-status: validating
+status: review
 agent: "GPT-5.6 Thinking"
 branch: feat/e2e-platform-npc-private-speech
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "460f0fbd2d37e67bdbd45c3ca064c4f1369da570"
+last_verified_commit: "8b613f2ee4175199006a3e4fbf008b1da8847663"
 risk: low
 related_issue: ""
 related_pr: "708"
@@ -64,8 +64,8 @@ Add one bounded generic Universal E2E scenario action that sends focused NPC fol
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T09:57:00Z
-head: 460f0fbd2d37e67bdbd45c3ca064c4f1369da570
+updated_at: 2026-07-22T10:01:00Z
+head: 8b613f2ee4175199006a3e4fbf008b1da8847663
 branch: feat/e2e-platform-npc-private-speech
 pr: 708
 status: validating
@@ -92,13 +92,14 @@ proven:
   - Agent Task Ownership run 29899797781 passed after correcting task metadata and checkpoint ownership syntax.
   - CI run 29900201989 passed on implementation head 9092e9ba9d7fda24c2dce4e80d7eaf36c5508ab3, but its incremental profile skipped Fast Checks and Lua Tests.
   - ci:final-gate was applied before the final validation sequence.
-  - current pre-checkpoint head 460f0fbd2d37e67bdbd45c3ca064c4f1369da570 passed Agent Task Ownership 29901867126, full CI 29901867397 and Universal Agent E2E 29901867222.
+  - pre-checkpoint head 460f0fbd2d37e67bdbd45c3ca064c4f1369da570 passed Agent Task Ownership 29901867126, full CI 29901867397 and Universal Agent E2E 29901867222.
   - live PR #708 is mergeable against current main and its changed-file set remains limited to the six declared platform/task/documentation paths.
+  - checkpoint-refresh head 8b613f2ee4175199006a3e4fbf008b1da8847663 passed full CI 29910090172; Agent Task Ownership 29910089925 failed only because active-task frontmatter used non-active status validating, while checkpoint status validating remains valid.
 derived:
   - the smallest reusable platform change is one fixed-purpose talk_npc action rather than a generic arbitrary-message-mode action.
   - the original PR #685 feature failure is blocked on this generic platform interface rather than on balance setup or wait cadence alone.
 unknown:
-  - whether the checkpoint-updated exact final head passes Agent Task Ownership, full CI and Universal Agent E2E.
+  - whether the corrected checkpoint exact final head passes Agent Task Ownership, full CI and Universal Agent E2E.
   - whether the first feature consumer needs additional bounded waits after switching to NPC-private speech; that remains feature-owned physical validation.
   - whether PR #685 promotion and both M3 persistence assertions pass after consuming talk_npc.
 conflicts: []
@@ -107,6 +108,7 @@ first_failure:
   evidence: run 29872645552 artifact 8512445446 plus packet and source evidence isolated public MessageSay versus required focused NPC-private speech.
 rejected_hypotheses:
   - PR #708 initial ownership failures prove a path conflict; both observed failures occurred in changed-task checkpoint validation before the global ownership-index step, and corrected ownership run 29899797781 passed.
+  - checkpoint-refresh ownership failure proves a new path conflict; artifact 8525492896 reports only that tasks/active frontmatter status validating is non-active, before global ownership-index validation.
   - modify Canary NPC handling to accept focused public speech; that changes gameplay behavior instead of the E2E client interaction surface.
   - expose arbitrary message modes in scenario JSON; the delivered talk_npc action fixes the protocol mode to MessageModes.NpcTo.
   - add only a longer bounded wait to PR #685; timing cannot change public MessageSay into required focused NPC-private speech.
@@ -132,7 +134,13 @@ validation:
     evidence: implementation-head incremental CI passed; Fast Checks and Lua Tests were skipped by the incremental profile.
   - command: Agent Task Ownership 29901867126, CI 29901867397 and Universal Agent E2E 29901867222 on 460f0fbd2d37e67bdbd45c3ca064c4f1369da570
     result: PASS
-    evidence: all required current-head platform gates passed before this checkpoint refresh.
+    evidence: all required current-head platform gates passed before the checkpoint refresh.
+  - command: Agent Task Ownership 29910089925 on 8b613f2ee4175199006a3e4fbf008b1da8847663
+    result: FAIL
+    evidence: artifact 8525492896 reports only non-active frontmatter status validating for a record under tasks/active; no path-overlap validation was reached.
+  - command: CI 29910090172 on 8b613f2ee4175199006a3e4fbf008b1da8847663
+    result: PASS
+    evidence: exact checkpoint-refresh head passed full CI.
 blockers: []
-next_action: Verify Agent Task Ownership, full CI and Universal Agent E2E on the resulting checkpoint-updated exact final head; if all pass and PR #708 remains mergeable with no unresolved review blockers, mark ready and squash-merge it, then return to PR #685 to consume talk_npc.
+next_action: Verify Agent Task Ownership, full CI and Universal Agent E2E on the corrected checkpoint exact final head; if all pass and PR #708 remains mergeable with no unresolved review blockers, mark ready and squash-merge it, then return to PR #685 to consume talk_npc.
 ```
