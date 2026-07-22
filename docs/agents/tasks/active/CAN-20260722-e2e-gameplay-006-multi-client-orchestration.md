@@ -8,7 +8,7 @@ branch: feat/e2e-gameplay-006-multi-client-orchestration-v2
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "4e06849bd15bdb614e48a97112ee8d7e30c42f20"
+last_verified_commit: "6821946357ea08ab6e2988f052324c7ad287b652"
 risk: medium
 related_issue: ""
 related_pr: "747"
@@ -56,16 +56,16 @@ Add exactly one bounded secondary controlled OTClient to the existing Universal 
 - [x] Support exactly one secondary controlled OTClient with distinct account, character and artifact directory.
 - [x] Keep raw passwords out of scenario data and materialized actor evidence by reusing `password_env`.
 - [x] Bound the secondary process with timeout and primary-death watchdog.
-- [x] Preserve exact byte identity with the physically successful predecessor implementation while replaying on clean current main.
-- [ ] Pass exact-final-head Ownership, CI and Universal Physical E2E on clean PR #747.
+- [x] Preserve exact behavior of the physically successful predecessor implementation while replaying on clean current main.
+- [ ] Pass exact-final-head Ownership, CI and Universal Physical E2E on clean PR #747 after formatter stabilization.
 - [ ] Merge, register shared docs, archive lifecycle, then start E2E-GAMEPLAY-007.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T00:05:00+02:00
-head: 4e06849bd15bdb614e48a97112ee8d7e30c42f20
+updated_at: 2026-07-23T00:12:00+02:00
+head: 6821946357ea08ab6e2988f052324c7ad287b652
 branch: feat/e2e-gameplay-006-multi-client-orchestration-v2
 pr: 747
 status: ready
@@ -81,23 +81,25 @@ owned_paths:
   - tests/e2e/scenarios/multiclient/shared-world-visibility.json
   - tests/e2e/test_multi_client_orchestration.py
 proven:
-  - The six implementation/test/scenario blobs on clean PR 747 are byte-identical to the physically successful PR 738 implementation.
+  - The six implementation/test/scenario blobs on clean PR 747 preserve the physically successful PR 738 behavior; the only post-replay mutation was StyLua formatting in agent_e2e_multi_client.lua.
   - Historical Universal Agent E2E run 29960268146 passed physical job 89066632624 and Required physical E2E 89067453724, proving simultaneous Knight 1 and Knight 2 presence, mutual visibility, clean secondary exit and primary relog/persistence.
   - PR 738 was closed unmerged because technical squash synchronization polluted its diff with unrelated main changes; clean PR 747 starts directly from current main 6b23be9f4eeb513cd181dba8ccbc9a96b98e739f.
   - Clean PR 747 changed-file scope is exactly the task record plus six bounded implementation/test/scenario paths.
-  - Agent Task Ownership run 29963381681 passed on clean head 4e06849bd15bdb614e48a97112ee8d7e30c42f20.
-  - ci:final-gate was applied to PR 747 before this final checkpoint commit.
+  - Agent Task Ownership run 29963530379 and CI run 29963530548 passed on clean pre-format final-checkpoint head 5e8772f5a9fe9cbf9f6fb742f2b577cfa27ddc44.
+  - Ready-triggered CI 29963602067 failed only because StyLua proposed quote normalization in agent_e2e_multi_client.lua; autofix applied that formatting as head 6821946357ea08ab6e2988f052324c7ad287b652.
+  - ci:final-gate remains applied to PR 747 before this post-format final checkpoint commit.
 derived:
-  - The clean replay removes the predecessor scope defect without changing the physically proven implementation blobs.
+  - The ready-triggered CI failure was formatting-only and did not invalidate the already-proven multi-client runtime contract; exact-final gates must still run on the formatter-stabilized head.
 unknown:
-  - Exact-final-head CI and Universal Agent E2E outcome after this checkpoint commit.
+  - Exact-final-head Ownership, CI and Universal Agent E2E outcome after this post-format checkpoint commit.
   - Shared MODULE_CATALOG and CHANGELOG registration remains a narrow governance follow-up before lifecycle archive and E2E-GAMEPLAY-007.
 conflicts: []
 first_failure:
   marker: none
-  evidence: No unresolved implementation failure remains; predecessor PR 738 was superseded solely for polluted scope.
+  evidence: No unresolved implementation failure remains; the only ready-triggered failure was deterministic StyLua formatting and has been applied.
 rejected_hypotheses:
   - Merge polluted PR 738; its changed-file scope included unrelated OTBM/OAM drift and therefore failed the autonomous merge scope gate.
+  - Treat ready-triggered CI 29963602067 as a runtime defect; the sole failing Fast Checks step reported formatter changes and the patch only normalized Lua string quoting.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260722-e2e-gameplay-006-multi-client-orchestration.md
   - tools/e2e/multi_client_orchestration.py
@@ -109,10 +111,16 @@ changed_paths:
 validation:
   - command: Historical Universal Agent E2E run 29960268146 / physical job 89066632624 / Required physical E2E 89067453724
     result: PASS
-    evidence: Byte-identical implementation passed the full real two-client scenario on predecessor PR 738.
-  - command: Clean PR 747 Agent Task Ownership run 29963381681
+    evidence: The bounded real two-client scenario completed successfully on the predecessor implementation.
+  - command: Clean PR 747 Agent Task Ownership run 29963530379
     result: PASS
-    evidence: Active task ownership and exact seven-file scope validation succeeded on the clean replay head before final checkpoint.
+    evidence: Ownership and exact seven-file scope validation succeeded on the clean replay pre-format head.
+  - command: Clean PR 747 CI run 29963530548
+    result: PASS
+    evidence: Repository CI succeeded before ready transition on the clean replay pre-format head.
+  - command: Ready-triggered CI run 29963602067
+    result: FAIL
+    evidence: Fast Checks failed only because StyLua produced a formatting diff; no functional or build failure occurred.
 blockers: []
-next_action: Require exact-final Ownership, CI and Universal Agent E2E on this final checkpoint head; if green, audit reviews and exact seven-file scope, mark PR 747 ready and squash-merge, then complete shared-doc governance and lifecycle archive before E2E-GAMEPLAY-007.
+next_action: Require exact-final Ownership, CI and Universal Agent E2E on this formatter-stabilized final checkpoint head; if green, audit reviews and exact seven-file scope, allow auto-merge, then complete shared-doc governance and lifecycle archive before E2E-GAMEPLAY-007.
 ```
