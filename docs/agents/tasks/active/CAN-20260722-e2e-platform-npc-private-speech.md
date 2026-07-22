@@ -8,7 +8,7 @@ branch: feat/e2e-platform-npc-private-speech
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "9f8e736a62058eab6afced43c095edef7becc692"
+last_verified_commit: "8be5f2d487ce5a69926f225809cae7554bd322b5"
 risk: low
 related_issue: ""
 related_pr: "708"
@@ -22,6 +22,7 @@ owned_paths:
     - tools/e2e/run_agent_e2e.py
     - tools/e2e/client/agent_e2e_scenario.lua
     - tests/e2e/test_npc_private_speech_action.py
+  shared:
     - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
     - docs/agents/MODULE_CATALOG.md
   read_only:
@@ -55,16 +56,16 @@ Add one bounded generic Universal E2E scenario action that sends focused NPC fol
 - [ ] Preserve existing public `talk` behavior unchanged.
 - [ ] Add focused tests for accepted rendering, missing/unsafe fields, and the controlled-client execution contract.
 - [ ] Document the stable action contract and register the reusable interface in the module catalogue.
-- [ ] Do not modify feature-owned scenario files, NPC gameplay source, fixtures, persistence assertions, OTBM/maps, controlled OTClient source, or client assets.
-- [ ] Pass ownership, focused validation, CI, and applicable Universal E2E gates before merge.
+- [ ] Do not modify feature-owned scenario files, NPC gameplay source, fixtures, persistence assertions, OTBM/maps, controlled OTClient source or client assets.
+- [ ] Pass ownership, focused validation, CI and applicable Universal E2E gates before merge.
 - [ ] Merge through the normal autonomous gate, then archive this task in a separate lifecycle PR.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T07:13:00Z
-head: 9f8e736a62058eab6afced43c095edef7becc692
+updated_at: 2026-07-22T07:16:30Z
+head: 8be5f2d487ce5a69926f225809cae7554bd322b5
 branch: feat/e2e-platform-npc-private-speech
 pr: 708
 status: implementing
@@ -73,12 +74,14 @@ context_routes:
   - agent-governance
   - cpp-runtime
 owned_paths:
-  - docs/agents/tasks/active/CAN-20260722-e2e-platform-npc-private-speech.md
-  - tools/e2e/run_agent_e2e.py
-  - tools/e2e/client/agent_e2e_scenario.lua
-  - tests/e2e/test_npc_private_speech_action.py
-  - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
-  - docs/agents/MODULE_CATALOG.md
+  exclusive:
+    - docs/agents/tasks/active/CAN-20260722-e2e-platform-npc-private-speech.md
+    - tools/e2e/run_agent_e2e.py
+    - tools/e2e/client/agent_e2e_scenario.lua
+    - tests/e2e/test_npc_private_speech_action.py
+  shared:
+    - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
+    - docs/agents/MODULE_CATALOG.md
 proven:
   - PR #685 physical artifact 8512445446 proves its current generic talk action sends focused follow-up NPC words as public MessageSay and the promotion does not occur.
   - controlled OTClient Game::talk always delegates to MessageSay, while Game::talkPrivate accepts an explicit message mode and receiver.
@@ -86,10 +89,11 @@ proven:
   - Canary NpcHandler processes focused-player keywords only for TALKTYPE_PRIVATE_PN, so a generic NPC-private speech surface is required for real focused dialogue flows.
   - PR #708 is the draft platform PR for this bounded capability; its initial Agent Task Ownership run 29899291064 failed only because the new task record had empty related_pr while the current PR is 708.
   - CI run 29899291505 passed on the initial task-only head 9f8e736a62058eab6afced43c095edef7becc692.
+  - merged platform precedent PR #589 declares MODULE_CATALOG.md and PHYSICAL_GAMEPLAY_ACTION_PLANS.md as shared ownership paths, so this task now follows the same governance classification.
 derived:
   - the smallest reusable platform change is one fixed-purpose talk_npc action rather than a generic arbitrary-message-mode action.
 unknown:
-  - whether any ownership conflict remains after correcting related_pr to 708.
+  - whether any ownership conflict remains after correcting related_pr and shared-path classification.
   - whether the first feature consumer needs additional bounded waits after switching to NPC-private speech; that remains feature-owned physical validation.
 conflicts: []
 first_failure:
