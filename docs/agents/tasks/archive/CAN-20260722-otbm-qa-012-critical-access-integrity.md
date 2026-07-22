@@ -10,7 +10,7 @@ updated: 2026-07-22
 last_verified_commit: "27a2f87d1a329d95f0d0e40622208dffbf42031f"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "721"
 depends_on:
   - CAN-20260722-otbm-qa-011-connectivity-resilience complete
   - OTBM Semantic Landmark Registry available
@@ -47,7 +47,7 @@ cross_repo_tasks: []
 
 ## Status
 
-COMPLETE — bounded QA-012 implementation merged through feature PR #717. This lifecycle record closes the active task without changing feature code, schemas, runtime, map, datapack, E2E, workflows, catalogue or changelog.
+COMPLETE — bounded QA-012 implementation merged through feature PR #717. Lifecycle-only active-to-archive closure is isolated in PR #721 without feature code, schema, runtime, map, datapack, E2E, workflow, catalogue or changelog changes.
 
 ## Goal
 
@@ -79,10 +79,10 @@ Provide targeted static integrity checks for explicitly reviewed high-value land
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T16:00:00+02:00
+updated_at: 2026-07-22T16:30:00+02:00
 head: 27a2f87d1a329d95f0d0e40622208dffbf42031f
 branch: docs/archive-otbm-qa-012-critical-access-integrity-717
-pr: none
+pr: 721
 status: complete
 context_routes:
   - otbm
@@ -95,8 +95,9 @@ proven:
   - Exact-final CI 29915659002, Ownership 29915658783, OTBM Map Tools 29915658846 and AI Agent Tools 29915658786 passed on the immutable feature head.
   - Ready-for-review full CI 29915819971 also passed on the same immutable feature head before auto-merge.
   - PR 717 changed exactly eleven bounded paths and had zero review threads or review submissions at final audit.
+  - Lifecycle PR 721 is based on current main 997343078104831ae3761e691c96fd8ff8d6cfa2 and owns only the QA-012 active/archive task-record paths.
 derived:
-  - OTBM-QA-013 may begin only after this lifecycle active-to-archive closure merges and a fresh live-state/ownership preflight passes.
+  - OTBM-QA-013 may begin only after lifecycle PR 721 merges and a fresh live-state/ownership preflight passes.
 unknown:
   - A reviewed critical-access target registry covering every real-world critical landmark, house and spawn is not guaranteed; real target evaluation remains evidence-dependent.
 conflicts: []
@@ -127,5 +128,5 @@ validation:
     result: PASS
     evidence: ready-for-review full final-gate matrix passed on the same immutable feature head.
 blockers: []
-next_action: Open the lifecycle-only PR, bind this archive record to that PR, remove the active task record, validate lifecycle gates, then merge before starting QA-013.
+next_action: Remove the active QA-012 task record, validate lifecycle CI and ownership on PR 721, then apply final-gate before the last lifecycle checkpoint commit.
 ```
