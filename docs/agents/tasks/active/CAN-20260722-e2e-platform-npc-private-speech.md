@@ -2,7 +2,7 @@
 task_id: CAN-20260722-e2e-platform-npc-private-speech
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-PLATFORM-NPC-PRIVATE-SPEECH
-status: validating
+status: review
 agent: "GPT-5.6 Thinking"
 branch: feat/e2e-platform-npc-private-speech
 base_branch: main
