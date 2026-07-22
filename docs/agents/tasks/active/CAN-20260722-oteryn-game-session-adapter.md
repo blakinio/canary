@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 base_branch: main
 created: 2026-07-22T16:00:00+02:00
-updated: 2026-07-22T18:19:31+02:00
-last_verified_commit: 991b7091405dbc2a53094641bfeff945910f382e
+updated: 2026-07-22T18:21:39+02:00
+last_verified_commit: e3dc14041c495c050af46164dc462dbe0432af94
 risk: high
 related_issue: ""
 related_pr: "722"
@@ -115,14 +115,14 @@ The existing `ProtocolGame` consume path remains authoritative for the selected 
 
 The merged Gateway MVP has one global session-service base URL and its session request does not carry Canary protocol profile or Identity `security_generation`. The bounded single-world/current-profile adapter can therefore be implemented without changing the game wire protocol, but immediate generation-based revocation, old-profile support, multi-world issuer selection and same-world horizontal scaling require explicit future contract work.
 
-Oteryn Platform PR #123 remains closed unmerged. Its advertised pre-auth throttling, rotating Gateway credential hashes and no-store coverage must not be treated as shipped through that PR; production readiness remains blocked until the live replacement state is proven or equivalent hardening is delivered.
+Oteryn Platform PR #123 is closed unmerged, and current Platform `main` confirms its three advertised hardening items are still absent: Gateway service authentication accepts one configured SHA-256 token hash rather than a rotating overlap set; the internal redeem/login-context routes run service authentication before their throttle; and the ticket issue/redeem controllers do not add no-store cache-control headers. Production readiness remains blocked until equivalent hardening is delivered and proven live.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T18:19:31+02:00
-head: 991b7091405dbc2a53094641bfeff945910f382e
+updated_at: 2026-07-22T18:21:39+02:00
+head: e3dc14041c495c050af46164dc462dbe0432af94
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 pr: 722
 status: implementing
@@ -141,7 +141,7 @@ proven:
   - Canary multi-channel architecture uses one OS process per channel and ChannelContext resolves the per-process channel id from CLI or CANARY_CHANNEL_ID with single-channel fallback.
   - Oteryn Platform PR 122 is merged as 8006534108d835474dadd208b0ec934e4a12528b and its Gateway SessionIssuer HTTP client calls POST /internal/v1/game-sessions with bearer authentication.
   - The merged Gateway MVP has one GAME_SESSION_SERVICE_BASE_URL, accepts exactly one login-context world, and sends canary_account_id, world_id and login_attempt_id without Canary protocol profile or Identity security_generation.
-  - Oteryn Platform PR 123 is closed unmerged; its advertised hardening is not present through that PR.
+  - Oteryn Platform PR 123 is closed unmerged, and current Platform main still has a single configured Gateway token hash, service-auth-before-throttle route ordering, and ticket controllers without no-store cache-control headers; the advertised PR 123 hardening is not superseded in current main.
   - Open Canary PR 514 changes security validation tooling/tests/docs only, PR 526 changes security-audit docs only, and no discovered open PR owns LoginSessionManager, ProtocolGame or ProtocolLogin runtime paths.
 derived:
   - Candidate B is selected because it preserves Canary's stronger existing single-use token semantics without introducing the replayable account_sessions compatibility path.
@@ -150,11 +150,10 @@ derived:
   - Current Gateway protocol v1 can safely support only ProtocolProfileId::Current unless the cross-repository request contract is expanded.
   - Immediate Identity-generation revocation after Game Session issuance is not enforceable from the current Gateway session request because security_generation is not forwarded.
 unknown:
-  - Whether Platform hardening missing from closed-unmerged PR 123 has been superseded by differently named live or merged work.
   - The exact production private-network/TLS boundary and credential-rotation mechanism for Gateway -> Canary issuer traffic.
   - Whether future production requirements mandate multi-world routing or same-world horizontal replicas in the first expansion after the single-world deployment.
 conflicts:
-  - Prior handoff narrative claimed Oteryn Platform PR 123 was squash-merged, but live GitHub state proves PR 123 closed unmerged with zero commits.
+  - Prior handoff narrative claimed Oteryn Platform PR 123 was squash-merged, but live GitHub state proves PR 123 closed unmerged with zero commits; current Platform main also lacks its advertised hardening.
 first_failure:
   marker: local-cpp-execution-capability
   evidence: Discovery, checkpoint validation, repository-wide ownership validation and CI pass on 991b7091405dbc2a53094641bfeff945910f382e; the first unmet implementation criterion now requires a bounded local C++ edit/build/test loop unavailable in the current connector-only CHAT execution path.
@@ -168,7 +167,7 @@ changed_paths:
 validation:
   - command: live PR/head/CI preflight via GitHub connector
     result: PASS
-    evidence: PR 722 head 991b7091405dbc2a53094641bfeff945910f382e; CI run 29937417007 and Agent Task Ownership run 29937416797 both completed successfully.
+    evidence: PR 722 head 991b7091405dbc2a53094641bfeff945910f382e before the latest checkpoint-only commits; CI run 29937417007 and Agent Task Ownership run 29937416797 both completed successfully.
   - command: targeted service/network/routing reuse discovery via GitHub connector
     result: PASS
     evidence: ServiceManager/ServicePort, Game::start, ChannelContext, ChannelRegistry and multi-channel process model inspected; no existing authenticated internal issuer was found.
@@ -178,11 +177,14 @@ validation:
   - command: Oteryn Platform merged Gateway contract inspection via GitHub connector
     result: PASS
     evidence: PR 122 merge plus current Gateway session client/config/service/types establish one HTTP session base URL, bearer auth, single-world fail-closed behavior and protocol-v1 request/response shape.
+  - command: Oteryn Platform hardening source-of-truth inspection via GitHub connector
+    result: PASS
+    evidence: current main RequireGatewayServiceCredential, game-auth config, internal route ordering and ticket issue/redeem controllers prove the PR 123 hardening items remain absent.
   - command: local C++ edit/build/test loop
     result: BLOCKED
     evidence: no usable local Canary checkout/runtime is available in this CHAT environment; critical C++ implementation requires the bounded local build/test loop before runtime code is claimed.
 blockers:
-  - Production readiness remains blocked until the Platform hardening state represented by closed-unmerged PR 123 is reconciled.
+  - Production readiness is blocked because current Oteryn Platform main lacks the pre-auth throttling, overlapping Gateway credential-hash rotation and no-store coverage advertised by closed-unmerged PR 123.
   - Production transport security for Gateway -> Canary issuer is not proven yet.
   - Immediate generation-based revocation, multi-world routing and same-world horizontal scaling are outside the current Gateway protocol-v1 session issuer contract.
 next_action: Claim the exact affected runtime/config/test paths, then implement the disabled-by-default per-process Candidate B HTTP issuer in a bounded local C++ edit/build/test loop, validating world_id against ChannelContext, resolving allowed characters from Canary account data, binding ProtocolProfileId::Current, preserving downstream ProtocolGame/IOLoginData admission checks, and adding focused issue/consume/expiry/replay/wrong-account/wrong-character/wrong-profile/restart/routing coverage.
