@@ -17,7 +17,7 @@ from otbm_connectivity_resilience import (
     build_connectivity_resilience_report,
     prepare_connectivity_context,
 )
-from otbm_reachability_types import APPEARANCES_FORMAT, TRANSITION_FORMAT
+from otbm_reachability_types import APPEARANCES_FORMAT, TRANSITION_FORMAT, ReachabilityError
 from otbm_route_interactions import REGISTRY_FORMAT as INTERACTION_REGISTRY_FORMAT
 
 MAX_JSON_BYTES = 256 * 1024 * 1024
