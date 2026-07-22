@@ -1,13 +1,13 @@
 ---
 task_id: CAN-20260722-otbm-qa-013-identifier-selector-integrity
 program_id: CAN-PROGRAM-OTBM
-status: implementing
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/otbm-qa-013-identifier-integrity-20260722
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "f3d850109e075368f04330b67230563c5332dc46"
+last_verified_commit: "6ceb02385c8c7609b1b32c9073dad419f22f3f89"
 risk: medium
 related_issue: ""
 related_pr: "724"
@@ -56,51 +56,41 @@ cross_repo_tasks: []
 
 ## Status
 
-IMPLEMENTING — QA-012 feature and lifecycle are complete; fresh QA-013 live-state and overlap preflight passed on `main` `f3d850109e075368f04330b67230563c5332dc46`. Draft feature PR #724 owns this bounded slice.
+READY — bounded QA-013 feature implementation is complete on draft PR #724. `ci:final-gate` was applied before this final checkpoint commit; no further feature-branch commits are permitted. Merge and lifecycle closure remain pending exact-final evidence.
 
 ## Goal
 
 Provide deterministic read-only evidence for identifier and selector conflicts without treating ordinary repeated AIDs/item IDs as defects and without rebuilding canonical map, script, transition or route-interaction logic.
 
-## Bounded slice
+## Delivered
 
-- Reuse the canonical World Index for exact mechanic placements and house/tile scope.
-- Reuse existing Script Resolution aggregate/placement statuses for handler conflicts; do not rescan Lua/XML.
-- Reuse the existing transition-manifest parser contract for duplicate/incompatible transition evidence; do not create a second transition validator.
-- Reuse the reviewed Route Interaction Registry validation contract and detect selector overlap that may match more than one reviewed entry.
-- Add an explicit reviewed policy for selected uniqueness/reuse expectations. Repetition without exact conflict evidence or reviewed uniqueness intent remains `review-required`.
-- Support exact reviewed role/compatibility evidence only when a caller needs to prove that one reused selector spans incompatible mechanic roles.
-- Preserve source-map, World Index and optional Script Resolution/transition/interaction evidence provenance and fail closed on stale or incompatible inputs.
+- Added reviewed `canary-otbm-identifier-integrity-policy-v1` and deterministic `canary-otbm-identifier-integrity-v1` contracts.
+- Reused canonical World Index mechanic placements for exact AID/UID/house-door inventory and house scope; no OTBM parser or scanner was added.
+- Reused existing Script Resolution aggregate evidence; `conflicting` remains conflict while `unresolved`, `partially-resolved` and `referenced-only` remain unresolved evidence.
+- Reused the existing transition parser contract and reports duplicate transition IDs without creating a second transition validator.
+- Reused the reviewed Route Interaction Registry and identifies non-identical reviewed mechanic selectors that can match the same exact witness query.
+- Added reviewed `unique` versus `reviewed-reuse` policy; repetition without reviewed intent or exact conflict evidence remains `review-required`.
+- Added exact reviewed placement-role compatibility evidence for incompatible-role conflicts without inferring roles from names, sprites, proximity or source location.
+- House-door uniqueness/reuse expectations require exact `houseId + houseDoorId` scope.
+- Added stable-input, exact-provenance, create-new/no-clobber CLI with symlink/input-output/hard-link protections and atomic overwrite.
+- Hardened Route Interaction Registry consumption so its internal source-map, World Index and optional transition/script provenance must match the same evidence set.
+- Added focused semantic, schema and output-safety tests plus dedicated documentation.
 
-## Explicit non-goals
+## Explicit proof boundary
 
-- No OTBM parser/scanner, World Index, Script Resolution engine, transition resolver, route planner or E2E runner.
-- No inference that repeated AIDs or item IDs are defects.
-- No guessing intentional reuse, mechanic roles, handler compatibility or house semantics.
-- No runtime execution, Lua execution, map mutation, repair recommendation or automatic identifier renumbering.
-- No global uniqueness claim when the reviewed policy is bounded to a selected namespace/value/scope.
-
-## Acceptance criteria
-
-- Duplicate/reused World Index identifiers are inventory evidence, not automatic errors.
-- A reviewed `unique` expectation violated by multiple exact matching placements is classified as conflicting.
-- A reviewed reusable selector remains explicitly reviewed reuse rather than conflict.
-- Existing Script Resolution `conflicting` evidence is preserved as conflict; unresolved/partial evidence is not promoted to conflict without other proof.
-- Duplicate transition IDs and incompatible duplicate transition definitions are reported using the existing transition contract.
-- Route Interaction selectors that can both match the same exact query are reported as ambiguous even when they are not byte-identical duplicate selectors.
-- House-door analysis is scoped by exact `houseId` plus `houseDoorId` where house semantics are required.
-- All outputs are deterministic, provenance-pinned, create-new/no-clobber and fail closed on truncated/missing/stale required evidence.
-- Focused semantic, schema and output-safety tests plus relevant OTBM/AI Agent workflows pass.
+- Repeated AIDs or item IDs are not automatically defects.
+- Static identifier/selector evidence does not prove runtime behavior, player intent or global uniqueness outside the reviewed scope.
+- No Lua/runtime execution, map/datapack mutation, repair recommendation or automatic identifier renumbering is performed.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T17:40:00+02:00
-head: 0b4b9aea3f8e41519bd59180c4dbfeb6b11b60a2
+updated_at: 2026-07-22T18:10:00+02:00
+head: 6ceb02385c8c7609b1b32c9073dad419f22f3f89
 branch: feat/otbm-qa-013-identifier-integrity-20260722
 pr: 724
-status: implementing
+status: ready
 context_routes:
   - otbm
   - agent-governance
@@ -113,35 +103,57 @@ owned_paths:
   - docs/ai-agent/OTBM_IDENTIFIER_INTEGRITY.md
   - docs/ai-agent/OTBM_IDENTIFIER_INTEGRITY_POLICY.schema.json
   - docs/ai-agent/OTBM_IDENTIFIER_INTEGRITY.schema.json
-  - docs/agents/MODULE_CATALOG.md
-  - docs/agents/CHANGELOG.md
   - docs/agents/tasks/active/CAN-20260722-otbm-qa-013-identifier-selector-integrity.md
 proven:
   - QA-012 feature PR 717 and lifecycle PR 721 are merged and complete; lifecycle squash merge is f3d850109e075368f04330b67230563c5332dc46.
-  - Fresh QA-013 searches found no existing QA-013 task and no open identifier/selector collision PR.
-  - World Index is the canonical exact placement/mechanic source and exposes actionId, uniqueId, houseDoorId, teleport destination, position, tileIndex and houseId without reparsing OTBM.
-  - Script Resolution already preserves conflicting, unresolved, partially-resolved and referenced-only identifier/placement evidence and must be consumed rather than reimplemented.
-  - Reachability transition parsing already rejects duplicate transition IDs and validates exact source/destination semantics.
-  - Route Interaction Registry rejects exact duplicate selectors, while its resolver may still match multiple non-identical overlapping selectors; such overlap is valid QA-013 ambiguity evidence.
-  - Draft PR 724 is open for the bounded QA-013 feature branch.
+  - Fresh QA-013 searches found no existing QA-013 task and no competing open identifier/selector collision PR.
+  - World Index is reused as the canonical exact placement/mechanic source; QA-013 adds no OTBM parser or scanner.
+  - Script Resolution conflicting evidence is preserved as conflict while unresolved/partially-resolved/referenced-only evidence remains unresolved.
+  - Existing transition parsing is reused for exact transition ID/source/destination semantics; duplicate IDs are reported without a second transition resolver.
+  - Route Interaction Registry validation is reused; QA-013 additionally proves non-identical mechanic-selector overlap only through an exact witness query compatible with both selectors.
+  - Reviewed unique expectations fail on multiple exact in-scope placements; reviewed-reuse remains non-conflicting; unreviewed repetition remains review-required.
+  - House-door expectations are scoped by exact houseId plus houseDoorId.
+  - Reviewed incompatible mechanic-role evidence requires exact placementOrdinal and namespace/value bindings.
+  - CLI pins exact source-map and World Index provenance plus optional evidence-file hashes and validates internal Route Interaction Registry provenance against the same evidence set.
+  - Pre-final CI 29935481525, Agent Task Ownership 29935481231, OTBM Map Tools 29935483454 and AI Agent Tools 29935483455 passed on provenance-hardened head 6ceb02385c8c7609b1b32c9073dad419f22f3f89.
+  - PR 724 pre-final review audit found zero inline review threads and zero review submissions; main remained f3d850109e075368f04330b67230563c5332dc46.
+  - ci:final-gate was applied to PR 724 before this final checkpoint commit.
 derived:
-  - QA-013 can be implemented as a fail-closed evidence composer plus reviewed uniqueness/reuse policy rather than a new scanner or resolver.
+  - QA-013 is ready for immutable exact-final-head validation and merge without further feature changes.
 unknown:
   - Intentional identifier reuse cannot be inferred from repetition alone; unreviewed reuse remains review-required unless exact conflict evidence or reviewed policy closes it.
+  - MODULE_CATALOG.md and CHANGELOG.md shared-path entries were not modified in the bounded feature branch; delivered public contracts are documented in OTBM_IDENTIFIER_INTEGRITY.md, the two JSON schemas and task metadata.
 conflicts: []
 first_failure:
   marker: none
-  evidence: No live-state, overlap or ownership blocker was found during fresh QA-013 preflight.
+  evidence: No unresolved feature, provenance, ownership, focused-test or pre-final validation failure remains.
 rejected_hypotheses:
   - Treating every repeated AID or itemId as a defect.
-  - Rebuilding Script Resolution or transition parsing inside QA-013.
-  - Inferring incompatible mechanic roles from names, proximity or source location.
+  - Rebuilding Script Resolution, transition parsing or Route Interaction resolution inside QA-013.
+  - Inferring incompatible mechanic roles from names, sprites, proximity or source location.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260722-otbm-qa-013-identifier-selector-integrity.md
+  - docs/ai-agent/OTBM_IDENTIFIER_INTEGRITY.md
+  - docs/ai-agent/OTBM_IDENTIFIER_INTEGRITY.schema.json
+  - docs/ai-agent/OTBM_IDENTIFIER_INTEGRITY_POLICY.schema.json
+  - tools/ai-agent/otbm_identifier_integrity.py
+  - tools/ai-agent/otbm_identifier_integrity_tool.py
+  - tools/ai-agent/test_otbm_identifier_integrity.py
+  - tools/ai-agent/test_otbm_identifier_integrity_output_safety.py
+  - tools/ai-agent/test_otbm_identifier_integrity_schema.py
 validation:
-  - command: post-QA-012 live main and overlap preflight
+  - command: GitHub Actions CI run 29935481525
     result: PASS
-    evidence: main f3d850109e075368f04330b67230563c5332dc46; no competing QA-013 task/PR; canonical reuse boundaries confirmed.
+    evidence: pre-final repository CI passed on provenance-hardened head 6ceb02385c8c7609b1b32c9073dad419f22f3f89.
+  - command: GitHub Actions Agent Task Ownership run 29935481231
+    result: PASS
+    evidence: pre-final ownership validation passed.
+  - command: GitHub Actions OTBM Map Tools run 29935483454
+    result: PASS
+    evidence: schema JSON validation and focused OTBM tests passed.
+  - command: GitHub Actions AI Agent Tools run 29935483455
+    result: PASS
+    evidence: AI-agent unit tests and repository audit pipeline passed.
 blockers: []
-next_action: Implement the smallest deterministic reviewed policy and read-only identifier/selector evidence composer with focused semantic, schema and output-safety tests before shared-doc updates.
+next_action: Make no further commits; verify exact-final-head CI, Ownership, OTBM Map Tools and AI Agent Tools plus review/mergeability on PR 724, then mark ready, enable auto-merge, confirm squash merge and complete lifecycle-only active-to-archive closure before QA-014 preflight.
 ```
