@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 base_branch: main
 created: 2026-07-22T16:00:00+02:00
-updated: 2026-07-22T22:21:00+02:00
-last_verified_commit: e55b4d2002c0cfff90a0cb738533a1989790e56c
+updated: 2026-07-22T22:30:00+02:00
+last_verified_commit: 65a259ec9d0e6339e98758a71c968f324db37d24
 risk: high
 related_issue: ""
 related_pr: "722"
@@ -75,43 +75,15 @@ Implement the Canary-side Game Session compatibility adapter for the Oteryn nati
 - [x] Register new C++ source in CMake and maintained Visual Studio build entry points.
 - [x] Prove Linux debug unit tests, Linux release/runtime smoke, macOS, Windows and Docker on the exact final validated implementation/documentation head.
 - [x] Update cross-repository contract, module catalogue and changelog with rollout/failure semantics.
-- [x] Prove the final documentation/checkpoint predecessor head through the repository exact-final-head gate.
+- [x] Prove the final documentation/checkpoint head through the repository exact-final-head gate.
 - [ ] Prove full OTClient -> Oteryn Gateway -> Canary native-auth E2E before any production-readiness claim.
-
-## Selected design and implementation
-
-Candidate B is implemented as a disabled-by-default dedicated Asio HTTP issuer that reuses the process-local LoginSessionManager.
-
-Supported initial contract:
-
-- `GET /health`;
-- bearer-authenticated `POST /internal/v1/game-sessions`;
-- exact Gateway protocol v1 fields: `protocol_version`, `canary_account_id`, Platform `world_id`, and a 32-hex-character `login_attempt_id`;
-- request body capped at 8 KiB with bounded read timeout;
-- `Cache-Control: no-store` and `Pragma: no-cache` responses;
-- expected service bearer configured only as a SHA-256 digest;
-- when enabled, `ServiceManager::run()` requires a positive `CANARY_GAME_SESSION_ISSUER_WORLD_ID` and overrides the issuer world callback with that Platform world ID before construction;
-- Canary `ChannelContext::channel_id` is logged only as process/channel identity and is not equated with Platform `game_worlds.id`;
-- the Gateway session-service base URL selects the exact Canary process for the supported single-world/single-process deployment;
-- account is loaded by numeric Canary account id and allowed character names are resolved from Canary account data without password authentication;
-- the issued credential is bound to ProtocolProfileId::Current and consumed by the unchanged ProtocolGame -> IOLoginData path;
-- LoginSessionManager stores only the credential hash, applies the 60-second TTL and atomically removes the token before validation/consume completion;
-- duplicate login_attempt_id requests are rejected for the same process/TTL; failed issuance releases the attempt reservation;
-- restart loses all unconsumed process-local credentials and attempt reservations;
-- absent or explicitly disabled issuer configuration preserves legacy authentication behavior.
-
-Environment contract: `CANARY_GAME_SESSION_ISSUER_ENABLED`, `CANARY_GAME_SESSION_ISSUER_BIND`, `CANARY_GAME_SESSION_ISSUER_PORT`, `CANARY_GAME_SESSION_ISSUER_WORLD_ID`, `CANARY_GAME_SESSION_SERVICE_TOKEN_SHA256`, and optional `CANARY_GAME_SESSION_ISSUER_REQUEST_TIMEOUT_MS`.
-
-Gateway protocol v1 still exposes one `GAME_SESSION_SERVICE_BASE_URL` and does not forward Canary protocol profile or Identity `security_generation`. Immediate generation-based revocation, old-profile support, multi-world issuer selection and same-world horizontal replicas therefore remain outside the current contract.
-
-Current Oteryn Platform main still lacks pre-auth throttling, overlapping Gateway service-credential hash rotation and full ticket-boundary no-store coverage advertised by closed-unmerged PR #123. Production readiness also remains gated on a proven private-network/TLS boundary for Gateway -> Canary traffic.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T22:21:00+02:00
-head: e55b4d2002c0cfff90a0cb738533a1989790e56c
+updated_at: 2026-07-22T22:30:00+02:00
+head: 65a259ec9d0e6339e98758a71c968f324db37d24
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 pr: 722
 status: blocked
@@ -153,7 +125,7 @@ proven:
   - Duplicate login_attempt_id issuance is fail-closed for the token TTL; failed issuance releases the reservation without retaining raw Game Session credentials.
   - Existing ProtocolGame and IOLoginData world-entry ownership/deletion/ban/runtime checks remain unchanged and authoritative after token issuance.
   - Cross-repository contract, module catalogue and changelog document the issuer, rollout order, retry/failure semantics and production blockers.
-  - Exact validated head e55b4d2002c0cfff90a0cb738533a1989790e56c passed CI run 29952685217, Security Validation run 29952685229, Agent Task Ownership run 29952684974 and autofix run 29952685032.
+  - Exact final head 65a259ec9d0e6339e98758a71c968f324db37d24 passed CI run 29954852793, Security Validation run 29954852817, Agent Task Ownership run 29954852481 and autofix run 29954852508.
 derived:
   - Candidate B preserves stronger single-use world-entry semantics than replayable account_sessions.
   - A lost successful create-session response intentionally cannot be recovered by repeating the same login_attempt_id; the orphan token expires and the client must start a fresh native-login attempt.
@@ -166,7 +138,7 @@ conflicts:
   - Prior handoff claimed Oteryn Platform PR 123 was merged; live PR state and current Platform main prove it was closed unmerged and its advertised hardening remains absent.
 first_failure:
   marker: cross-repo-native-auth-e2e-unproven
-  evidence: Canary exact-head compile/unit/security/ownership validation is green, but the existing Universal Agent E2E workflow does not orchestrate the Oteryn Platform Gateway, so no full OTClient -> Gateway -> Canary native-auth proof exists yet.
+  evidence: Canary exact-final-head compile/unit/security/ownership validation is green, but the existing Universal Agent E2E workflow does not orchestrate the Oteryn Platform Gateway, so no full OTClient -> Gateway -> Canary native-auth proof exists yet.
 rejected_hypotheses:
   - Reuse ProtocolLogin issuer unchanged: it requires account password authentication.
   - Use DB account_sessions as single-use: current contract records replay until expiry/deletion.
@@ -174,18 +146,18 @@ rejected_hypotheses:
   - Issue all tokens in the login-gateway process: LoginSessionManager storage is process-local.
   - Treat Platform game_worlds.id as Canary ChannelContext channel_id: ServiceManager uses a separately configured Platform world id and only logs local channel identity.
 validation:
-  - command: exact-head CI run 29952685217 on e55b4d2002c0cfff90a0cb738533a1989790e56c
+  - command: exact-head CI run 29954852793 on 65a259ec9d0e6339e98758a71c968f324db37d24
     result: PASS
     evidence: full final-gate matrix completed successfully, including Linux debug tests, Linux release/runtime smoke, Windows, macOS and Docker.
-  - command: Security Validation run 29952685229 on e55b4d2002c0cfff90a0cb738533a1989790e56c
+  - command: Security Validation run 29954852817 on 65a259ec9d0e6339e98758a71c968f324db37d24
     result: PASS
     evidence: security scenario validation and exact-head Linux release build completed successfully.
-  - command: Agent Task Ownership run 29952684974 on e55b4d2002c0cfff90a0cb738533a1989790e56c
+  - command: Agent Task Ownership run 29954852481 on 65a259ec9d0e6339e98758a71c968f324db37d24
     result: PASS
     evidence: changed checkpoint validation and full active ownership index validation completed successfully.
-  - command: autofix run 29952685032 on e55b4d2002c0cfff90a0cb738533a1989790e56c
+  - command: autofix run 29954852508 on 65a259ec9d0e6339e98758a71c968f324db37d24
     result: PASS
-    evidence: formatting validation completed with no further repository mutation.
+    evidence: formatting validation completed with no repository mutation.
   - command: local C++ edit/build/test loop
     result: BLOCKED
     evidence: no local Canary checkout was available; exact-head GitHub CI is the compile/test evidence and no local build is claimed.
