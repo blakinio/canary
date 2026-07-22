@@ -348,10 +348,10 @@ def validate_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
     Lua-safe integers. `player_magic_level` uses the maintained uint16 magic-level
     getter. `player_soul` uses the maintained uint8 soul getter. `player_skill_level`
     uses a fixed classic-skill mapping and the maintained LocalPlayer base-skill getter.
-    `player_vocation` maps a fixed semantic vocation to the maintained client vocation ID
-    and reuses the existing `player_field` vocation getter path. Arbitrary
-    `player_storage` values and cross-location `player_item_presence` checks remain on
-    the post-cycle SQL boundary.
+    `player_vocation`, arbitrary `player_storage` values, and cross-location
+    `player_item_presence` checks remain on the post-cycle SQL boundary because the
+    current physical protocol path does not provide a trustworthy exact promoted-vocation
+    value through `LocalPlayer.getVocation()`.
     """
 
     client_checks: list[dict[str, Any]] = []
@@ -364,16 +364,6 @@ def validate_persistence_assertions(raw: Any) -> list[dict[str, Any]]:
             "player_skill_level",
         }:
             client_checks.append(check)
-            continue
-        if check["type"] == "player_vocation":
-            client_checks.append(
-                {
-                    "id": check["id"],
-                    "type": "player_field",
-                    "field": "vocation",
-                    "equals": check["client_vocation_id"],
-                }
-            )
     return client_checks
 
 
@@ -382,10 +372,10 @@ def compile_persistence_assertions(raw: Any, *, character: str) -> list[str]:
 
     The Universal Physical E2E SQL evaluator accepts one semicolon-free SELECT per
     assertion and considers only stdout == "1" successful. `player_field`,
-    `player_balance`, `player_magic_level`, `player_soul`, `player_skill_level` and
-    normalized `player_vocation` checks are also emitted to the controlled-client
-    phase-two plan by run_agent_e2e.py. Arbitrary `player_storage` and fixed-location
-    `player_item_presence` checks remain database-only.
+    `player_balance`, `player_magic_level`, `player_soul`, and `player_skill_level`
+    checks are also emitted to the controlled-client phase-two plan by run_agent_e2e.py.
+    `player_storage`, `player_item_presence`, and normalized `player_vocation` checks
+    remain database-only after the full two-session cycle.
     """
 
     checks = _validate_all_persistence_assertions(raw)

@@ -11,7 +11,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 PERSISTENCE_PATH = ROOT / "tools" / "e2e" / "persistence_assertions.py"
 RUNNER_PATH = ROOT / "tools" / "e2e" / "run_agent_e2e.py"
-DRIVER_PATH = ROOT / "tools" / "e2e" / "client" / "agent_e2e_scenario.lua"
 
 
 EXPECTED_VOCATIONS = {
@@ -43,7 +42,7 @@ runner = load_module("test_e2e_run_agent_e2e_player_vocation", RUNNER_PATH)
 
 
 class PlayerVocationCompilerTests(unittest.TestCase):
-    def test_fixed_mapping_matches_server_and_client_vocation_contract(self) -> None:
+    def test_fixed_mapping_matches_reviewed_server_and_client_vocation_ids(self) -> None:
         self.assertEqual(
             {
                 name: (mapping["server_vocation_id"], mapping["client_vocation_id"])
@@ -52,8 +51,8 @@ class PlayerVocationCompilerTests(unittest.TestCase):
             EXPECTED_VOCATIONS,
         )
 
-    def test_compiles_each_semantic_vocation_to_fixed_server_id_and_client_id(self) -> None:
-        for vocation, (server_vocation_id, client_vocation_id) in EXPECTED_VOCATIONS.items():
+    def test_compiles_each_semantic_vocation_to_fixed_server_id_without_client_phase_two_check(self) -> None:
+        for vocation, (server_vocation_id, _client_vocation_id) in EXPECTED_VOCATIONS.items():
             raw = {
                 "required": True,
                 "checks": [
@@ -66,21 +65,13 @@ class PlayerVocationCompilerTests(unittest.TestCase):
             }
             with self.subTest(vocation=vocation):
                 [query] = persistence.compile_persistence_assertions(raw, character="Knight 1")
-                [client_check] = persistence.validate_persistence_assertions(raw)
+                client_checks = persistence.validate_persistence_assertions(raw)
                 self.assertEqual(
                     query,
                     "SELECT IF((SELECT `vocation` FROM `players` WHERE `name` = "
                     f"'Knight 1') = {server_vocation_id}, 1, 0)",
                 )
-                self.assertEqual(
-                    client_check,
-                    {
-                        "id": "vocation",
-                        "type": "player_field",
-                        "field": "vocation",
-                        "equals": client_vocation_id,
-                    },
-                )
+                self.assertEqual(client_checks, [])
                 self.assertNotIn(";", query)
 
     def test_rejects_unknown_or_numeric_vocation(self) -> None:
@@ -159,7 +150,7 @@ class PlayerVocationCompilerTests(unittest.TestCase):
         self.assertIn("WHERE `name` = 'O''Brien'", query)
         self.assertIn(") = 8, 1, 0)", query)
 
-    def test_existing_client_readable_types_are_preserved_with_normalized_vocation(self) -> None:
+    def test_existing_client_readable_types_are_preserved_while_vocation_stays_sql_only(self) -> None:
         raw = {
             "required": True,
             "checks": [
@@ -201,7 +192,6 @@ class PlayerVocationCompilerTests(unittest.TestCase):
                     "client_skill_id": 2,
                     "equals": 90,
                 },
-                {"id": "vocation", "type": "player_field", "field": "vocation", "equals": 11},
             ],
         )
         self.assertEqual(len(persistence.compile_persistence_assertions(raw, character="Knight 1")), 7)
@@ -273,7 +263,7 @@ class PlayerVocationManifestTests(unittest.TestCase):
         self.path.write_text(json.dumps(self.scenario_data()), encoding="utf-8")
         return runner.validate_scenario(self.path, self.root)
 
-    def test_vocation_uses_server_id_for_sql_and_client_id_for_phase_two_lua(self) -> None:
+    def test_vocation_uses_server_id_for_sql_and_is_omitted_from_phase_two_lua(self) -> None:
         scenario = self.write()
 
         manifest = runner.normalized_manifest(scenario)
@@ -284,20 +274,9 @@ class PlayerVocationManifestTests(unittest.TestCase):
         self.assertTrue(
             any("SELECT `vocation` FROM `players`" in query and ") = 4, 1, 0)" in query for query in sql_checks)
         )
-        self.assertIn('id = "vocation"', rendered)
-        self.assertIn('type = "player_field"', rendered)
-        self.assertIn('field = "vocation"', rendered)
-        self.assertIn("equals = 1", rendered)
+        self.assertNotIn('id = "vocation"', rendered)
+        self.assertNotIn('field = "vocation"', rendered)
         self.assertNotIn('type = "player_vocation"', rendered)
-
-
-class PlayerVocationRuntimeSourceTests(unittest.TestCase):
-    def test_driver_reuses_existing_maintained_vocation_getter_path(self) -> None:
-        source = DRIVER_PATH.read_text(encoding="utf-8")
-
-        self.assertIn('if check.field == "vocation" then', source)
-        self.assertIn("player:getVocation()", source)
-        self.assertNotIn('check.type == "player_vocation"', source)
 
 
 if __name__ == "__main__":
