@@ -2,16 +2,16 @@
 task_id: CAN-20260722-e2e-gameplay-006-multi-client-orchestration
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-GAMEPLAY-006-MULTI-CLIENT
-status: implementing
+status: validating
 agent: "GPT-5.6 Thinking"
 branch: feat/e2e-gameplay-006-multi-client-orchestration
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "663de1726e82145f5b8027126dbe434cfa74440b"
+last_verified_commit: "8f6482c57ddae1faee4e0feae15a20f5426d2dc5"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "738"
 depends_on:
   - stable Universal Physical E2E single-client lifecycle
   - merged deterministic gameplay vertical slices
@@ -56,13 +56,13 @@ Add the first bounded two-client capability to the existing Universal Physical E
 
 ## Acceptance criteria
 
-- [ ] Reuse the existing single Canary/MariaDB lifecycle; do not create a second server orchestrator or workflow.
-- [ ] Support exactly one secondary controlled OTClient in v1 with distinct account, character, scenario key and artifact directory.
-- [ ] Keep raw passwords out of scenario data, generated evidence and process-command materialization; reuse `password_env`.
-- [ ] Bound the secondary process with a timeout and terminate it when the primary client dies unexpectedly.
+- [x] Reuse the existing single Canary/MariaDB lifecycle; do not create a second server orchestrator or workflow.
+- [x] Support exactly one secondary controlled OTClient in v1 with distinct account, character, scenario key and artifact directory.
+- [x] Keep raw passwords out of scenario data, generated evidence and process-command materialization; reuse `password_env`.
+- [x] Bound the secondary process with a timeout and terminate it when the primary client dies unexpectedly.
 - [ ] Prove simultaneous primary/secondary presence and mutual creature visibility with deterministic markers.
-- [ ] Preserve the canonical primary two-session safe logout/relog lifecycle and final SQL assertions.
-- [ ] Ensure normal completion leaves no connected secondary client and no `players_online` rows.
+- [x] Preserve the canonical primary two-session safe logout/relog lifecycle and final SQL assertions by design; physical proof pending.
+- [ ] Ensure normal completion leaves no connected secondary client and no `players_online` rows through physical evidence.
 - [ ] Add focused contract tests and physical Universal Agent E2E evidence on the exact final head.
 - [ ] Merge through the normal autonomous gate, then archive this task before starting E2E-GAMEPLAY-007.
 
@@ -70,11 +70,11 @@ Add the first bounded two-client capability to the existing Universal Physical E
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T23:30:00+02:00
-head: 663de1726e82145f5b8027126dbe434cfa74440b
+updated_at: 2026-07-22T23:34:00+02:00
+head: 8f6482c57ddae1faee4e0feae15a20f5426d2dc5
 branch: feat/e2e-gameplay-006-multi-client-orchestration
-pr: none
-status: implementing
+pr: 738
+status: validating
 context_routes:
   - universal-e2e
   - agent-governance
@@ -87,24 +87,38 @@ owned_paths:
   - tests/e2e/scenarios/multiclient/shared-world-visibility.json
   - tests/e2e/test_multi_client_orchestration.py
 proven:
-  - Current main is 663de1726e82145f5b8027126dbe434cfa74440b.
   - E2E-GAMEPLAY-003, E2E-GAMEPLAY-004 and E2E-GAMEPLAY-005 feature work is merged and archived.
-  - No existing E2E-GAMEPLAY-006 implementation or competing multi-client PR was found.
-  - The canonical run_physical_e2e.sh owns one server/database lifecycle and evaluates only the primary character login/session artifacts, allowing a bounded secondary client to coexist without changing the primary sentinel.
-  - Deterministic fixtures @test1/Knight 1 and @test2/Knight 2 exist on distinct accounts and share the standard test password contract.
+  - No existing E2E-GAMEPLAY-006 implementation or competing multi-client PR was found before branch creation.
+  - The canonical run_physical_e2e.sh owns one server/database lifecycle and evaluates the primary character login/session artifacts, allowing a bounded secondary client to coexist without a second server orchestrator.
+  - Deterministic fixtures @test1/Knight 1 and @test2/Knight 2 exist on distinct accounts and share the standard password environment contract.
+  - The implemented v1 materializer exposes only one secondary actor, validates distinct account/character identity, carries only password_env, and writes isolated actor artifacts.
+  - The implemented Lua process helper bounds the child with timeout and a primary-process watchdog; primary and secondary automations coordinate mutual-visibility markers and secondary safe release before the primary canonical relog cycle.
+  - PR 738 was opened from feature head 8f6482c57ddae1faee4e0feae15a20f5426d2dc5.
+  - Main advanced once to 8bdeb2747356727df80a3b95073aa29a4dca7818 only by adding the unrelated OAM-037 task record; no E2E owned path overlap exists.
+  - Initial Ownership run 29959275464 failed only because related_pr was still empty after PR creation.
 derived:
-  - A secondary OTClient can be layered inside the existing physical runtime without a second server orchestrator if it has isolated artifacts and bounded cleanup.
+  - The initial Ownership failure is task metadata debt, not evidence of a multi-client implementation defect.
 unknown:
-  - Exact physical mutual visibility of Knight 1 and Knight 2 on the current global datapack has not yet been proven on this task head.
+  - Exact physical mutual visibility of Knight 1 and Knight 2 remains unproven until the Universal Agent E2E physical job completes.
+  - Exact current-head focused tests and full CI remain pending after the task metadata correction.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: No implementation or validation failure has occurred yet.
+  marker: changed active task related_pr mismatch
+  evidence: Agent Task Ownership run 29959275464 reported that related_pr '' must match current PR 738.
 rejected_hypotheses:
   - A second full run_physical_e2e.sh invocation is required; it would duplicate database/server lifecycle and violate the single-orchestrator boundary.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260722-e2e-gameplay-006-multi-client-orchestration.md
-validation: []
+  - tools/e2e/multi_client_orchestration.py
+  - tools/e2e/client/agent_e2e_multi_client.lua
+  - tools/e2e/client/agent_e2e_multi_client_secondary.lua
+  - tools/e2e/client/agent_e2e_multi_client_visibility.lua
+  - tests/e2e/scenarios/multiclient/shared-world-visibility.json
+  - tests/e2e/test_multi_client_orchestration.py
+validation:
+  - command: Agent Task Ownership run 29959275464
+    result: FAIL
+    evidence: Only changed-task metadata validation failed because related_pr was empty; focused ownership tooling setup/tests passed.
 blockers: []
-next_action: Implement the bounded secondary-client materializer, Lua process helper, primary/secondary visibility automations, committed scenario and focused tests, then open the draft PR for exact-head CI and Universal Physical E2E.
+next_action: Re-run ownership and inspect CI/Universal Agent E2E after this metadata correction; fix the first implementation or physical failure if present, then synchronize the one-file unrelated main drift before final-head gating.
 ```
