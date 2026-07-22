@@ -8,7 +8,7 @@ branch: feat/e2e-gameplay-003-canary-promotion-v2
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-22
-last_verified_commit: "1d303f18f721eb1d0830ad2cab7c96f620d46ec7"
+last_verified_commit: "ff3f4b499e23c56d4e45aa17a4cdcc1a3eaf7797"
 risk: low
 related_issue: ""
 related_pr: "718"
@@ -19,6 +19,7 @@ depends_on:
   - merged E2E-GAMEPLAY-004 administrative @test15 account authorization
   - merged PR #687 controlled OTClient verified FreeType fallback
   - merged PR #708 generic NPC-private speech action
+  - merged PR #719 corrected player_vocation persistence evidence boundary
 blocks:
   - representative deterministic NPC coverage required before E2E-GAMEPLAY-008 cross-system journeys
 owned_paths:
@@ -49,7 +50,8 @@ reuses:
   - canonical Universal E2E disposable Canary/MariaDB/controlled-OTClient lifecycle
   - existing public talk/wait/wait_creature actions for setup and greeting
   - merged generic talk_npc action for focused NPC follow-up speech
-  - existing player_vocation and player_balance M3 persistence assertions
+  - merged player_vocation SQL-only post-cycle persistence boundary
+  - existing player_balance client-plus-SQL M3 persistence assertion
   - existing data-canary Canary NPC promotion behavior
   - existing God-only addmoney talkaction as isolated deterministic setup
 public_interfaces: []
@@ -69,8 +71,9 @@ Deliver one bounded deterministic real-client NPC flow on the existing Universal
 - [x] Make the selected Canary test-datapack NPC spawn deterministic without changing the global datapack or production/external systems.
 - [x] Seed exactly the evidence-backed promotion cost through the existing isolated administrative setup surface without changing the shared player fixture.
 - [x] Consume the merged platform-owned generic `talk_npc` action for focused `promot` and `yes` follow-up speech while keeping public `hi` unchanged.
-- [ ] Physically greet the NPC and execute the bounded `promot` -> `yes` dialogue through the real controlled OTClient.
-- [ ] Prove M3 persistence as semantic `royal_paladin` and bank balance `0` after safe logout/relog plus final SQL verification.
+- [x] Physically greet the NPC and execute the bounded `promot` -> `yes` dialogue through the real controlled OTClient.
+- [x] Prove M3 persistence as semantic `royal_paladin` and bank balance `0` after safe logout/relog plus final SQL verification.
+- [x] Remove obsolete client-vocation success markers after the merged platform evidence-boundary correction while retaining semantic `player_vocation=royal_paladin` and exact server SQL.
 - [x] Retain exact first-failure evidence and bounded timeouts.
 - [x] Keep shared runner/workflow, player fixture SQL, OTBM binaries/maps, global datapack, OTClient source and client assets unchanged.
 - [ ] Pass focused tests, checkpoint validation, ownership and exact-final-head CI/Physical E2E gates before merge.
@@ -80,8 +83,8 @@ Deliver one bounded deterministic real-client NPC flow on the existing Universal
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T11:08:00Z
-head: 1d303f18f721eb1d0830ad2cab7c96f620d46ec7
+updated_at: 2026-07-22T13:42:00Z
+head: ff3f4b499e23c56d4e45aa17a4cdcc1a3eaf7797
 branch: feat/e2e-gameplay-003-canary-promotion-v2
 pr: 718
 status: validating
@@ -95,29 +98,36 @@ owned_paths:
   - tests/e2e/scenarios/npc/canary-promotion.json
   - tests/e2e/test_canary_npc_promotion.py
 proven:
-  - original PR #685 was closed unmerged as superseded because its published branch diverged from main and the available connector exposes no safe native update-branch operation; plain force rewriting was rejected by repository policy.
-  - successor PR #718 starts from main 5b4402958daa6584f90b848f385ad24a391b03a4 and retains exactly the same four feature-owned paths.
-  - the original PR #685 physical run 29872645552 reached npc/canary-promotion after the controlled OTClient build passed; artifact 8512445446 retained the first feature failure.
-  - artifact 8512445446 proves /addmoney seeded 20000 successfully, while public MessageSay follow-ups promot and yes did not promote the player; after relog client vocation remained 2 instead of expected 12 and final SQL also failed server vocation 7 and balance 0.
-  - controlled OTClient Game::talk is public MessageSay, while focused Canary follow-up keywords require TALKTYPE_PRIVATE_PN after NPC focus.
-  - PR #708 merged as 5b4402958daa6584f90b848f385ad24a391b03a4 and delivers bounded talk_npc through g_game.talkPrivate(MessageModes.NpcTo, receiver, text) while preserving existing public talk.
-  - PR #708 final platform head d5d918e81bb5979cc50f2defbde38e1cf1fe9e81 passed Agent Task Ownership 29910232184, full CI 29910232384, Universal Agent E2E 29910232428 and the later ready-triggered CI 29912528465.
-  - the feature scenario now keeps setup and hi on public talk, sends promot and yes through talk_npc to receiver Canary, and retains the original bounded waits and M3 persistence expectations.
-  - ci:final-gate is applied to PR #718 before this final task/checkpoint commit.
+  - original PR #685 was closed unmerged as superseded rather than rewriting its published history with a plain force update.
+  - successor PR #718 retains exactly four feature-owned paths.
+  - PR #708 merged as 5b4402958daa6584f90b848f385ad24a391b03a4 and provides bounded talk_npc through MessageModes.NpcTo while preserving public talk.
+  - PR #718 exact-head run 29914323150 reached the real npc/canary-promotion physical scenario after exact Canary and controlled OTClient builds passed.
+  - physical job 88909987894 artifact 8527963786 records successful /addmoney 20000 setup, public hi, NPC-private promot and yes, plan success, safe first logout, second login and durable post-cycle evaluation.
+  - the same artifact proves final SQL players.vocation=7 and players.balance=0 both passed, so Royal Paladin promotion and the 20000 bank cost persisted through the canonical two-session cycle.
+  - the only failure in that run was the shared platform phase-two client-vocation comparison actual=2 expected=12; it was not a gameplay or timing failure.
+  - PR #719 corrected that reusable evidence boundary by keeping semantic player_vocation exact server SQL after the full relog cycle while no longer materializing LocalPlayer.getVocation as exact promoted-vocation equality.
+  - PR #719 exact head 4463fcb8d4064d15362fbf41a3971bcb903f8ed6 passed Agent Task Ownership 29921435997, CI 29921436493, Universal Agent E2E 29921436878, ready-triggered autofix 29923472742 and ready-triggered CI 29923473076, then merged as 997343078104831ae3761e691c96fd8ff8d6cfa2.
+  - PR #718 was synchronized to merged main without force-push by building a current-main tree containing exactly its four feature-owned paths and fast-forwarding the branch to merge commit ff3f4b499e23c56d4e45aa17a4cdcc1a3eaf7797.
+  - the feature scenario retains semantic player_vocation=royal_paladin and player_balance=0; only obsolete required client markers persistence_check_promoted-vocation and its detail marker were removed.
+  - the focused feature test now proves player_vocation is absent from phase-two client checks while exact SQL vocation=7 remains compiled and balance remains client-plus-SQL verified.
+  - ci:final-gate remains applied to PR #718.
 derived:
-  - the proven message-mode blocker is resolved by consuming the merged generic action without modifying shared runner or controlled-client automation paths in this feature branch.
+  - the original message-mode blocker is resolved and the existing 250ms greet/offer settle waits were sufficient in physical execution.
+  - promotion mechanics and durable persistence are already proven; the fresh post-#719 run primarily validates the corrected evidence boundary and remaining feature-owned required markers.
+  - the prior artifact reported initial_position=1944,1346,7 while the manifest still requires initial_position=1942,1345,7; this is a candidate next feature-specific failure but must be confirmed by the fresh exact-head run before editing.
 unknown:
-  - whether the existing 250ms greet/offer settle waits are sufficient once promot and yes use NPC-private speech.
-  - whether the promotion and both M3 persistence assertions pass on the first physical run of the exact final successor head.
+  - whether the fresh exact-head physical run confirms the previous initial-position mismatch as the next first failure.
+  - whether any other feature-specific marker fails after removal of the obsolete client-vocation markers.
 conflicts: []
 first_failure:
-  marker: persistence_check_promoted-vocation failed: actual=2 expected=12
-  evidence: Universal Agent E2E run 29872645552, Physical client / npc/canary-promotion job 88781609132, artifact 8512445446; final SQL also failed vocation=7 and balance=0.
+  marker: persistence check promoted-vocation (vocation) failed: actual=2 expected=12
+  evidence: PR #718 Universal Agent E2E run 29914323150, Physical client job 88909987894, artifact 8527963786; final SQL simultaneously passed vocation=7 and balance=0. This reusable false-negative is resolved by merged PR #719.
 rejected_hypotheses:
-  - the generic controlled OTClient build still blocks feature execution: run 29872645552 built the controlled client and reached the physical scenario.
-  - failed /addmoney balance seeding caused the promotion failure: packet/server evidence confirms the 20000 credit succeeded before NPC dialogue.
-  - an additional bounded wait alone is sufficient: timing cannot change public MessageSay into required focused NPC-private speech.
-  - rewrite the diverged published PR #685 branch with a plain force update: repository policy requires safe history handling and the connector lacks force-with-lease semantics.
+  - NPC-private speech still fails to promote: final SQL proves vocation=7 and balance=0.
+  - failed /addmoney balance seeding caused the promotion failure: final balance=0 after a 20000 seed and promotion proves the economy path executed.
+  - a longer wait is required: the existing cadence produced the correct durable promotion state.
+  - change royal_paladin client expectation to 2: that would collapse promoted and base Paladin client values and was rejected in favor of the truthful SQL-only vocation boundary merged in PR #719.
+  - rewrite the diverged published PR #685 branch with a plain force update: repository policy requires safe history handling.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260721-e2e-gameplay-003-canary-promotion.md
   - data-canary/world/canary-npc.xml
@@ -126,10 +136,13 @@ changed_paths:
 validation:
   - command: Universal Agent E2E run 29872645552 / Physical client job 88781609132
     result: FAIL
-    evidence: first feature-specific physical failure retained in artifact 8512445446; vocation remained unpromoted after relog and final vocation/balance SQL assertions failed.
-  - command: PR #708 Agent Task Ownership 29910232184, CI 29910232384, Universal Agent E2E 29910232428 and ready-triggered CI 29912528465
+    evidence: original public MessageSay follow-ups did not promote; retained as historical first feature failure.
+  - command: PR #718 Universal Agent E2E run 29914323150 / Physical client job 88909987894
+    result: FAIL
+    evidence: real NPC-private dialogue and durable vocation=7 plus balance=0 succeeded; only the now-corrected shared client-vocation evidence boundary failed.
+  - command: PR #719 Agent Task Ownership 29921435997, CI 29921436493, Universal Agent E2E 29921436878, autofix 29923472742 and ready-triggered CI 29923473076
     result: PASS
-    evidence: merged platform action is available on current main and passed exact-head platform validation.
+    evidence: corrected player_vocation persistence boundary passed exact-head platform validation and merged as 997343078104831ae3761e691c96fd8ff8d6cfa2.
 blockers: []
-next_action: Verify Agent Task Ownership, full CI and Universal Agent E2E on the resulting exact final PR #718 head; inspect the first physical feature result and fix only the first proven feature-specific failure, or prepare merge if all gates and M3 assertions pass.
+next_action: Verify Agent Task Ownership, full CI and Universal Agent E2E on the resulting exact final PR #718 head; inspect the first fresh physical feature result and fix only the first proven remaining feature-specific failure, or prepare merge if all gates pass.
 ```
