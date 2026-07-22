@@ -212,12 +212,12 @@ namespace {
 	[[nodiscard]] std::string serializeResponse(const HttpResponse &response) {
 		std::ostringstream stream;
 		stream << "HTTP/1.1 " << response.status << ' ' << response.reason << "\r\n"
-		       << "Content-Type: application/json\r\n"
-		       << "Cache-Control: no-store\r\n"
-		       << "Pragma: no-cache\r\n"
-		       << "Connection: close\r\n"
-		       << "Content-Length: " << response.body.size() << "\r\n\r\n"
-		       << response.body;
+			   << "Content-Type: application/json\r\n"
+			   << "Cache-Control: no-store\r\n"
+			   << "Pragma: no-cache\r\n"
+			   << "Connection: close\r\n"
+			   << "Content-Length: " << response.body.size() << "\r\n\r\n"
+			   << response.body;
 		return stream.str();
 	}
 
@@ -453,12 +453,13 @@ private:
 					.status = 200,
 					.reason = "OK",
 					.body = json({
-						{ "protocol_version", 1 },
-						{ "session", {
-							{ "credential", result.credential },
-							{ "expires_at", formatUtc(result.expiresAt) },
-						} },
-					}).dump(),
+									 { "protocol_version", 1 },
+									 { "session", {
+													  { "credential", result.credential },
+													  { "expires_at", formatUtc(result.expiresAt) },
+												  } },
+								 })
+								.dump(),
 				};
 			case GameSessionHttpIssuer::CreateStatus::InvalidRequest:
 				return jsonError(400, "Bad Request", "invalid_request");
