@@ -7,10 +7,10 @@ branch: feat/otbm-qa-017-deterministic-change-risk-20260722
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "8bdeb2747356727df80a3b95073aa29a4dca7818"
+last_verified_commit: "0d5e8246e01b3a2398c1bdde3d2131a49eddf21d"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "739"
 depends_on:
   - OTBM-QA-014 implementation active on PR 734
   - OTBM-QA-015 implementation active on PR 735
@@ -45,7 +45,7 @@ cross_repo_tasks: []
 
 ## Status
 
-IMPLEMENTING — transparent review aid only; no opaque AI score and no skip/repair/merge authorization.
+IMPLEMENTING — transparent policy-driven review aid is implemented on draft PR #739; current-head validation is running. No opaque AI score and no skip/repair/merge authorization.
 
 ## Goal
 
@@ -55,10 +55,10 @@ Classify potential scope of one exact OTBM change from explicit evidence-backed 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T22:35:00+02:00
-head: 8bdeb2747356727df80a3b95073aa29a4dca7818
+updated_at: 2026-07-22T22:50:00+02:00
+head: 0d5e8246e01b3a2398c1bdde3d2131a49eddf21d
 branch: feat/otbm-qa-017-deterministic-change-risk-20260722
-pr: none
+pr: 739
 status: implementing
 context_routes:
   - otbm
@@ -76,23 +76,33 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260722-otbm-qa-017-deterministic-change-risk.md
 proven:
   - Roadmap QA-017 requires explicit visible contributing factors and forbids an opaque AI score from authorizing safe skip, repair or merge.
-  - Candidate factors include critical infrastructure, identifier semantics, quest dependencies, fragile routes, certification invalidation, multi-region impact, unresolved evidence and asset-driven walkability semantics.
+  - PR 739 implements exact before/after map hashes, exact evidence references, explicit factor statuses, visible weights and deterministic thresholds.
+  - Present and unresolved factors contribute visibly; unresolved factors are separately retained so uncertainty cannot silently reduce risk.
 derived:
-  - A versioned weight/threshold policy over exact caller-supplied factor evidence can provide a transparent deterministic review aid without duplicating upstream validators.
+  - The result is a transparent review aid and can compose evidence from QA-014/015/016 and earlier OTBM validators without duplicating them.
 unknown:
   - Risk classification cannot prove actual gameplay regression or authorize merge safety.
 conflicts: []
 first_failure:
   marker: none
-  evidence: No implementation validation has run yet.
+  evidence: Current-head validation has not completed yet.
 rejected_hypotheses:
   - Use model intuition or hidden weighting: roadmap requires explicit deterministic policy.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260722-otbm-qa-017-deterministic-change-risk.md
+  - tools/ai-agent/otbm_change_risk.py
+  - tools/ai-agent/otbm_change_risk_tool.py
+  - tools/ai-agent/test_otbm_change_risk.py
+  - tools/ai-agent/test_otbm_change_risk_output_safety.py
+  - tools/ai-agent/test_otbm_change_risk_schema.py
+  - docs/ai-agent/OTBM_CHANGE_RISK.md
+  - docs/ai-agent/OTBM_CHANGE_RISK_POLICY.schema.json
+  - docs/ai-agent/OTBM_CHANGE_RISK_INPUT.schema.json
+  - docs/ai-agent/OTBM_CHANGE_RISK.schema.json
 validation:
   - command: fresh live-state/overlap preflight
     result: PASS
     evidence: main 8bdeb2747356727df80a3b95073aa29a4dca7818; no competing QA-017 PR found.
 blockers: []
-next_action: Open a draft PR, implement policy-driven factor classification with exact evidence references and focused tests, then validate current-head workflows.
+next_action: Wait for current-head CI, Ownership, OTBM Map Tools and AI Agent Tools; fix only evidence-backed failures before combined governance and final-gate closure.
 ```
