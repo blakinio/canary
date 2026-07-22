@@ -1,0 +1,263 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.example/schemas/OTBM_CRITICAL_ACCESS_INTEGRITY.schema.json",
+  "title": "Canary OTBM Critical Access Integrity v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "ok",
+    "source",
+    "inputs",
+    "policy",
+    "summary",
+    "criticalLandmarks",
+    "houses",
+    "spawnAccess",
+    "findings"
+  ],
+  "properties": {
+    "format": {"const": "canary-otbm-critical-access-integrity-v1"},
+    "schemaVersion": {"const": 1},
+    "ok": {"type": "boolean"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mapSha256", "worldIndexSha256"],
+      "properties": {
+        "mapSha256": {"$ref": "#/$defs/sha256"},
+        "worldIndexSha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "inputs": {"type": "object"},
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readOnly",
+        "criticalityInferred",
+        "semanticLandmarkResolverReused",
+        "worldIndexReused",
+        "connectivityReportConsumed",
+        "pathfindingPerformed",
+        "geometryRecomputed",
+        "spawnNpcRescanned",
+        "dynamicLuaExecuted",
+        "runtimeAccessClaimed",
+        "publicAccessibilityInferred",
+        "mapModified",
+        "physicalE2EExecuted",
+        "changeBypassSeverClaimed"
+      ],
+      "properties": {
+        "readOnly": {"const": true},
+        "criticalityInferred": {"const": false},
+        "semanticLandmarkResolverReused": {"const": true},
+        "worldIndexReused": {"const": true},
+        "connectivityReportConsumed": {"const": true},
+        "pathfindingPerformed": {"const": false},
+        "geometryRecomputed": {"const": false},
+        "spawnNpcRescanned": {"const": false},
+        "dynamicLuaExecuted": {"const": false},
+        "runtimeAccessClaimed": {"const": false},
+        "publicAccessibilityInferred": {"const": false},
+        "mapModified": {"const": false},
+        "physicalE2EExecuted": {"const": false},
+        "changeBypassSeverClaimed": {"const": false}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "criticalLandmarkTargets",
+        "houseTargets",
+        "spawnAccessTargets",
+        "classifications",
+        "findings",
+        "errors",
+        "warnings"
+      ],
+      "properties": {
+        "criticalLandmarkTargets": {"type": "integer", "minimum": 0},
+        "houseTargets": {"type": "integer", "minimum": 0},
+        "spawnAccessTargets": {"type": "integer", "minimum": 0},
+        "classifications": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "conditional",
+            "confirmed",
+            "conflicting",
+            "review-required",
+            "unreachable-in-reviewed-context",
+            "unresolved"
+          ],
+          "properties": {
+            "conditional": {"type": "integer", "minimum": 0},
+            "confirmed": {"type": "integer", "minimum": 0},
+            "conflicting": {"type": "integer", "minimum": 0},
+            "review-required": {"type": "integer", "minimum": 0},
+            "unreachable-in-reviewed-context": {"type": "integer", "minimum": 0},
+            "unresolved": {"type": "integer", "minimum": 0}
+          }
+        },
+        "findings": {"type": "integer", "minimum": 0},
+        "errors": {"type": "integer", "minimum": 0},
+        "warnings": {"type": "integer", "minimum": 0}
+      }
+    },
+    "criticalLandmarks": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/landmarkResult"}
+    },
+    "houses": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/houseResult"}
+    },
+    "spawnAccess": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/spawnResult"}
+    },
+    "findings": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/finding"}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "classification": {
+      "enum": [
+        "confirmed",
+        "conditional",
+        "unreachable-in-reviewed-context",
+        "review-required",
+        "unresolved",
+        "conflicting"
+      ]
+    },
+    "position": {
+      "type": ["array", "null"],
+      "items": {"type": "integer"},
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "review": {"type": "object"},
+    "routeEvidence": {
+      "type": "object",
+      "required": ["status", "reason", "mode", "route"],
+      "properties": {
+        "status": {"$ref": "#/$defs/classification"},
+        "reason": {"type": "string"},
+        "mode": {"type": ["string", "null"]},
+        "route": {"type": ["object", "null"]}
+      }
+    },
+    "landmarkResult": {
+      "type": "object",
+      "required": [
+        "id",
+        "criticality",
+        "landmarkId",
+        "anchorId",
+        "position",
+        "routeId",
+        "routeEvidence",
+        "landmarkResolution",
+        "classification",
+        "runtimeAccessProven",
+        "review"
+      ],
+      "properties": {
+        "id": {"type": "string"},
+        "criticality": {"type": "string"},
+        "landmarkId": {"type": "string"},
+        "anchorId": {"type": "string"},
+        "position": {"$ref": "#/$defs/position"},
+        "routeId": {"type": "string"},
+        "routeEvidence": {"$ref": "#/$defs/routeEvidence"},
+        "landmarkResolution": {"type": ["object", "null"]},
+        "classification": {"$ref": "#/$defs/classification"},
+        "runtimeAccessProven": {"const": false},
+        "review": {"$ref": "#/$defs/review"}
+      }
+    },
+    "houseResult": {
+      "type": "object",
+      "required": [
+        "id",
+        "houseId",
+        "houseDoorId",
+        "doorPosition",
+        "interiorPosition",
+        "routeId",
+        "doorEvidence",
+        "geometryEvidence",
+        "routeEvidence",
+        "classification",
+        "runtimeAccessProven",
+        "review"
+      ],
+      "properties": {
+        "id": {"type": "string"},
+        "houseId": {"type": "integer"},
+        "houseDoorId": {"type": "integer"},
+        "doorPosition": {"$ref": "#/$defs/position"},
+        "interiorPosition": {"$ref": "#/$defs/position"},
+        "routeId": {"type": "string"},
+        "doorEvidence": {"type": "object"},
+        "geometryEvidence": {"type": "object"},
+        "routeEvidence": {"$ref": "#/$defs/routeEvidence"},
+        "classification": {"$ref": "#/$defs/classification"},
+        "runtimeAccessProven": {"const": false},
+        "review": {"$ref": "#/$defs/review"}
+      }
+    },
+    "spawnResult": {
+      "type": "object",
+      "required": [
+        "id",
+        "entityRole",
+        "placementId",
+        "position",
+        "routeId",
+        "accessExpectation",
+        "placementEvidence",
+        "routeEvidence",
+        "classification",
+        "intendedPublicAccessibilityDeclared",
+        "intendedPublicAccessibilityProven",
+        "runtimeAccessProven",
+        "review"
+      ],
+      "properties": {
+        "id": {"type": "string"},
+        "entityRole": {"enum": ["monster", "npc", "boss"]},
+        "placementId": {"type": "string"},
+        "position": {"$ref": "#/$defs/position"},
+        "routeId": {"type": "string"},
+        "accessExpectation": {"enum": ["reviewed-context", "public"]},
+        "placementEvidence": {"type": "object"},
+        "routeEvidence": {"$ref": "#/$defs/routeEvidence"},
+        "classification": {"$ref": "#/$defs/classification"},
+        "intendedPublicAccessibilityDeclared": {"type": "boolean"},
+        "intendedPublicAccessibilityProven": {"const": false},
+        "runtimeAccessProven": {"const": false},
+        "review": {"$ref": "#/$defs/review"}
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "targetId", "classification", "severity", "message"],
+      "properties": {
+        "code": {"type": "string"},
+        "targetId": {"type": "string"},
+        "classification": {"$ref": "#/$defs/classification"},
+        "severity": {"enum": ["error", "warning"]},
+        "message": {"type": "string"}
+      }
+    }
+  }
+}
