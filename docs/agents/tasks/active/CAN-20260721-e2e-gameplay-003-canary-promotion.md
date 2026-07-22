@@ -2,13 +2,13 @@
 task_id: CAN-20260721-e2e-gameplay-003-canary-promotion
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-GAMEPLAY-003-CANARY-PROMOTION
-status: implementing
+status: blocked
 agent: "GPT-5.6 Thinking"
 branch: feat/e2e-gameplay-003-canary-promotion
 base_branch: main
 created: 2026-07-21
-updated: 2026-07-21
-last_verified_commit: "751e45e2047987b89f42e6c2f609e2eb0d9cca9c"
+updated: 2026-07-22
+last_verified_commit: "49eb4c040135cadbfc2f3028c495462dfc10dea1"
 risk: low
 related_issue: ""
 related_pr: "685"
@@ -18,6 +18,7 @@ depends_on:
   - merged E2E-GAMEPLAY-005 typed persistence assertion matrix
   - merged E2E-GAMEPLAY-004 administrative @test15 account authorization
   - merged PR #687 controlled OTClient verified FreeType fallback
+  - pending platform-owned Universal E2E NPC-private speech action task
 blocks:
   - representative deterministic NPC coverage required before E2E-GAMEPLAY-008 cross-system journeys
 owned_paths:
@@ -33,6 +34,7 @@ owned_paths:
     - docs/e2e/PERSISTENCE_ASSERTION_MATRIX.md
     - data-canary/npc/canary.lua
     - data/npclib/npc_system/modules.lua
+    - data/npclib/npc_system/npc_handler.lua
     - data/scripts/talkactions/god/add_money.lua
     - docker/data/01-test_account.sql
     - docker/data/02-test_account_players.sql
@@ -45,7 +47,7 @@ modules_touched:
   - deterministic Canary test-datapack NPC fixture
 reuses:
   - canonical Universal E2E disposable Canary/MariaDB/controlled-OTClient lifecycle
-  - existing declarative talk/wait/wait_creature actions
+  - existing public talk/wait/wait_creature actions for setup and greeting
   - existing player_vocation and player_balance M3 persistence assertions
   - existing data-canary Canary NPC promotion behavior
   - existing God-only addmoney talkaction as isolated deterministic setup
@@ -62,9 +64,10 @@ Deliver one bounded deterministic real-client NPC flow on the existing Universal
 ## Acceptance criteria
 
 - [x] Select an existing repository-owned NPC and exact dialogue behavior from source evidence; do not invent NPC names or keywords.
-- [x] Use an existing deterministic player/account fixture and existing typed persistence assertions; no new shared action or assertion type is required.
+- [x] Use an existing deterministic player/account fixture and existing typed persistence assertions.
 - [x] Make the selected Canary test-datapack NPC spawn deterministic without changing the global datapack or production/external systems.
 - [x] Seed exactly the evidence-backed promotion cost through the existing isolated administrative setup surface without changing the shared player fixture.
+- [ ] Consume a platform-owned generic NPC-private speech action for focused NPC dialogue; do not implement the shared action in this feature PR.
 - [ ] Physically greet the NPC and execute the bounded `promot` -> `yes` dialogue through the real controlled OTClient.
 - [ ] Prove M3 persistence as semantic `royal_paladin` and bank balance `0` after safe logout/relog plus final SQL verification.
 - [x] Retain exact first-failure evidence and bounded timeouts.
@@ -76,63 +79,62 @@ Deliver one bounded deterministic real-client NPC flow on the existing Universal
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T00:15:00+02:00
-head: 68e93efddb47d460473ad5ddb69105ddabe87de8
+updated_at: 2026-07-22T07:07:05Z
+head: 49eb4c040135cadbfc2f3028c495462dfc10dea1
 branch: feat/e2e-gameplay-003-canary-promotion
 pr: 685
-status: validating
+status: blocked
 context_routes:
   - universal-e2e
+  - agent-governance
+  - cpp-runtime
 owned_paths:
   - docs/agents/tasks/active/CAN-20260721-e2e-gameplay-003-canary-promotion.md
   - data-canary/world/canary-npc.xml
   - tests/e2e/scenarios/npc/canary-promotion.json
   - tests/e2e/test_canary_npc_promotion.py
 proven:
-  - the feature implementation is complete on head 68e93efddb47d460473ad5ddb69105ddabe87de8: selected data-canary Canary NPC spawn is radius zero, scenario npc/canary-promotion exists, and focused evidence coverage exists.
-  - Canary NPC source wires promot followed by yes to StdModule.promotePlayer with cost 20000 and minimum level 20.
-  - Paladin 15 belongs to account 115, is level 500, starts as Paladin and is adjacent to the selected Canary spawn in the controlled data-canary world.
-  - @test15 account type 6 authorizes the existing God-only /addmoney setup command while Paladin 15 remains the normal player character used for the NPC outcome.
-  - the scenario seeds exactly 20000 through /addmoney, performs the real NPC dialogue, then uses existing player_vocation and player_balance persistence assertions expecting royal_paladin and zero balance after relog.
-  - feature head 68e93efddb47d460473ad5ddb69105ddabe87de8 passed Agent Task Ownership run 29845230906 and incremental CI run 29845231420.
-  - Universal Agent E2E run 29845231189 did not reach the feature physical scenario because the generic controlled OTClient build failed first; no NPC-flow first failure was observed.
-  - repair PR #687 merged as 5b6b904106856b861676bc7f4eaf52b34ddcef87 and restored controlled OTClient build availability with a SHA512-verified FreeType mirror cache fallback.
-  - repair final head passed full final-gate CI 29870292311 and Universal Agent E2E 29870291947, including controlled OTClient build, physical login/relog and Required physical E2E.
-  - repair lifecycle PR #702 merged as 751e45e2047987b89f42e6c2f609e2eb0d9cca9c; its archive exists on main and the repair active task has been removed.
-  - PR #685 feature diff does not modify shared Universal E2E runner/workflow, player fixture SQL, OTBM/map binaries, global datapack, OTClient source or client assets.
+  - PR #685 remains open and draft; branch feat/e2e-gameplay-003-canary-promotion consumed current main through merge commit 49eb4c040135cadbfc2f3028c495462dfc10dea1 without adding feature-semantic paths beyond the four owned files.
+  - head 49eb4c040135cadbfc2f3028c495462dfc10dea1 passed Agent Task Ownership run 29898211828 and CI run 29898212010; Universal Agent E2E run 29898211999 was still in progress when this checkpoint was written.
+  - the earlier unblocked PR validation run 29872645552 reached Physical client / npc/canary-promotion after the controlled OTClient build passed; physical artifact universal-agent-e2e-npc-canary-promotion id 8512445446 retained the first feature failure.
+  - result.json in artifact 8512445446 reports the first client assertion failure after relog as persistence check promoted-vocation failed with actual client vocation 2 and expected 12; final SQL also reports server vocation is not 7 and balance is not 0.
+  - the same physical evidence records successful /addmoney execution and Canary server log confirmation that 20000 gold coins were added to Paladin 15, rejecting failed balance seeding as the cause of the missing promotion.
+  - session-1.record shows hi, promot and yes were each sent by the controlled OTClient with talk mode byte 01, while no Canary promotion offer or congratulations response was received; only the delayed greeting response was observed.
+  - controlled OTClient Game::talk always delegates to MessageSay, while Game::talkPrivate is a separate API; the current Universal E2E talk action calls g_game.talk(step.text).
+  - Canary NpcHandler establishes interaction during greet, and once interaction exists its keyword handler processes player speech only when msgtype is TALKTYPE_PRIVATE_PN; therefore focused promot and yes sent through the current public talk action are not valid NPC-private dialogue messages.
+  - E2E programme interface-change rules require a separate Universal E2E platform task for a new generic action; this feature task owns the scenario and expectations but keeps shared runner/client automation read-only.
 derived:
-  - the remaining validation is now feature-specific physical evidence; the previous pre-physical controlled-OTClient blocker is resolved on current main.
-  - PR #685 must consume the merged main workflow repair before rerunning physical validation so the old branch copy of Universal E2E does not reproduce the already-fixed infrastructure failure.
+  - increasing only greet-settle or offer-settle cannot repair the proven failure because the follow-up message mode remains public MessageSay after NPC focus is established.
+  - PR #685 is blocked on a generic bounded NPC-private speech action that can use the controlled OTClient talkPrivate API with NPC message mode and an explicit receiver.
 unknown:
-  - whether the real controlled-client talk cadence completes hi -> promot -> yes without an additional bounded wait
-  - whether post-relog physical evidence confirms both royal_paladin and bank balance zero on the first unblocked run
+  - the final platform action name and manifest contract are not yet defined by a separate platform-owned task.
+  - whether the promotion and both M3 persistence assertions pass after the feature scenario consumes the future NPC-private speech action.
+  - the exact nonzero final bank balance in the failed run; retained SQL proves only that it was not zero.
 conflicts: []
 first_failure:
-  marker: Universal Agent E2E / Build controlled OTClient before feature physical execution
-  evidence: run 29845231189 failed in the generic controlled OTClient build before npc/canary-promotion started; PR #687 subsequently repaired and physically validated that platform path, so no feature-flow failure is currently known
+  marker: persistence_check_promoted-vocation failed: actual=2 expected=12
+  evidence: Universal Agent E2E run 29872645552, Physical client / npc/canary-promotion job 88781609132, artifact 8512445446 result.json and session-1.record; final SQL also failed vocation=7 and balance=0.
 rejected_hypotheses:
-  - add a new generic NPC dialogue action; existing talk plus bounded wait actions are sufficient unless physical evidence proves otherwise
-  - create a synthetic promotion NPC; repository-owned Canary NPC already exposes the exact promotion behavior
-  - modify docker/data/02-test_account_players.sql to seed balance; existing isolated God-only addmoney setup is narrower
-  - change the feature scenario to repair the controlled OTClient build; failure occurred before physical feature execution and is now resolved by merged PR #687
+  - the generic controlled OTClient build still blocks feature execution: run 29872645552 built the controlled client and reached the physical scenario.
+  - failed /addmoney balance seeding caused the promotion failure: packet/server evidence confirms the 20000 credit succeeded before NPC dialogue.
+  - an additional bounded wait alone is sufficient: Game::talk always emits MessageSay and focused Canary dialogue requires TALKTYPE_PRIVATE_PN, so timing does not change the required message mode.
+  - the existing generic talk action is sufficient for the complete focused NPC dialogue: physical packet evidence shows promot and yes remained public MessageSay and no promotion occurred.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260721-e2e-gameplay-003-canary-promotion.md
   - data-canary/world/canary-npc.xml
   - tests/e2e/scenarios/npc/canary-promotion.json
   - tests/e2e/test_canary_npc_promotion.py
 validation:
-  - command: Agent Task Ownership run 29845230906 on 68e93efddb47d460473ad5ddb69105ddabe87de8
+  - command: Universal Agent E2E run 29872645552 / Physical client job 88781609132
+    result: FAIL
+    evidence: first feature-specific physical failure retained in artifact 8512445446; vocation remained unpromoted after relog and final vocation/balance SQL assertions failed.
+  - command: Agent Task Ownership run 29898211828 on 49eb4c040135cadbfc2f3028c495462dfc10dea1
     result: PASS
-    evidence: feature ownership and task governance passed before the platform blocker was isolated
-  - command: CI run 29845231420 on 68e93efddb47d460473ad5ddb69105ddabe87de8
+    evidence: current merged-main feature head ownership gate passed before checkpoint update.
+  - command: CI run 29898212010 on 49eb4c040135cadbfc2f3028c495462dfc10dea1
     result: PASS
-    evidence: focused implementation and incremental CI passed
-  - command: Universal Agent E2E run 29845231189 on 68e93efddb47d460473ad5ddb69105ddabe87de8
-    result: BLOCKED
-    evidence: controlled OTClient build failed before physical npc/canary-promotion execution; no feature-flow failure was reached
-  - command: PR #687 final-gate CI 29870292311 and Universal Agent E2E 29870291947
-    result: PASS
-    evidence: merged platform repair restored controlled OTClient build availability and passed physical login/relog plus Required physical E2E
-blockers: []
-next_action: Update PR #685 branch to consume current main without changing feature semantics so the merged controlled-OTClient fallback is present, then use the resulting exact-head Universal E2E run as the first unblocked physical npc/canary-promotion validation.
+    evidence: current merged-main feature head CI passed before checkpoint update.
+blockers:
+  - the feature-owned scenario cannot send focused NPC follow-up speech with the current generic talk action; a separate Universal E2E platform task must add a bounded NPC-private speech action before PR #685 can complete physical M3 validation.
+next_action: Create a separate Universal E2E platform task and PR for one generic bounded NPC-private speech action using the controlled OTClient talkPrivate API, then return to PR #685 to consume that stable interface.
 ```
