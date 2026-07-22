@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "security/game_session_http_issuer.hpp"
 #include "security/rsa.hpp"
 #include "server/server.hpp"
 
@@ -23,7 +24,7 @@ public:
 	explicit FailedToInitializeCanary(const std::string &msg) :
 		message("Canary load couldn't be completed. " + msg) { }
 
-	// Override the what() method from std::exception
+	// Override the what() method
 	const char* what() const noexcept override {
 		return message.c_str();
 	}
@@ -50,6 +51,7 @@ private:
 	Logger &logger;
 	RSAManager &rsa;
 	ServiceManager &serviceManager;
+	std::unique_ptr<GameSessionHttpIssuer> gameSessionHttpIssuer;
 
 	LoaderStatus loaderStatus = LoaderStatus::LOADING;
 	std::mutex loaderMutex;
