@@ -280,15 +280,30 @@ def _unique_by_id(entries: Any, label: str) -> dict[str, Mapping[str, Any]]:
     return result
 
 
-def _route_result(route: Mapping[str, Any] | None, *, expected_goal: tuple[int, int, int], required_position: tuple[int, int, int] | None = None) -> dict[str, Any]:
+def _route_result(
+    route: Mapping[str, Any] | None,
+    *,
+    expected_goal: tuple[int, int, int],
+    required_position: tuple[int, int, int] | None = None,
+) -> dict[str, Any]:
     if route is None:
         return {"status": "unresolved", "reason": "route-id-missing", "mode": None, "route": None}
     try:
         goal = _position(route.get("goal"), "route.goal")
     except CriticalAccessIntegrityError:
-        return {"status": "conflicting", "reason": "route-goal-invalid", "mode": route.get("mode"), "route": dict(route)}
+        return {
+            "status": "conflicting",
+            "reason": "route-goal-invalid",
+            "mode": route.get("mode"),
+            "route": dict(route),
+        }
     if goal != expected_goal:
-        return {"status": "conflicting", "reason": "route-goal-mismatch", "mode": route.get("mode"), "route": dict(route)}
+        return {
+            "status": "conflicting",
+            "reason": "route-goal-mismatch",
+            "mode": route.get("mode"),
+            "route": dict(route),
+        }
     if not bool(route.get("reachable")):
         return {
             "status": "unreachable-in-reviewed-context",
@@ -299,12 +314,21 @@ def _route_result(route: Mapping[str, Any] | None, *, expected_goal: tuple[int, 
     if required_position is not None:
         path = route.get("baselinePath")
         if not isinstance(path, list):
-            return {"status": "unresolved", "reason": "route-baseline-path-missing", "mode": route.get("mode"), "route": dict(route)}
-        normalized: set[tuple[int, int, int]] = set()
+            return {
+                "status": "unresolved",
+                "reason": "route-baseline-path-missing",
+                "mode": route.get("mode"),
+                "route": dict(route),
+            }
         try:
             normalized = {_position(value, "route.baselinePath position") for value in path}
         except CriticalAccessIntegrityError:
-            return {"status": "conflicting", "reason": "route-baseline-path-invalid", "mode": route.get("mode"), "route": dict(route)}
+            return {
+                "status": "conflicting",
+                "reason": "route-baseline-path-invalid",
+                "mode": route.get("mode"),
+                "route": dict(route),
+            }
         if required_position not in normalized:
             return {
                 "status": "conflicting",
@@ -322,7 +346,13 @@ def _route_result(route: Mapping[str, Any] | None, *, expected_goal: tuple[int, 
     return {"status": status, "reason": "route-evidence", "mode": mode, "route": dict(route)}
 
 
-def _house_door_evidence(index: Any, *, position: tuple[int, int, int], house_id: int, house_door_id: int) -> dict[str, Any]:
+def _house_door_evidence(
+    index: Any,
+    *,
+    position: tuple[int, int, int],
+    house_id: int,
+    house_door_id: int,
+) -> dict[str, Any]:
     found = index.find_tile(position)
     if found is None:
         return {"status": "unresolved", "reason": "door-tile-missing", "matches": []}
@@ -342,9 +372,19 @@ def _house_door_evidence(index: Any, *, position: tuple[int, int, int], house_id
     door_placements = [entry for entry in placements if entry.get("houseDoorId") is not None]
     matches = [entry for entry in door_placements if entry.get("houseDoorId") == house_door_id]
     if len(matches) == 1:
-        return {"status": "confirmed", "reason": "exact-house-door-placement", "tileIndex": tile_index, "matches": matches}
+        return {
+            "status": "confirmed",
+            "reason": "exact-house-door-placement",
+            "tileIndex": tile_index,
+            "matches": matches,
+        }
     if len(matches) > 1:
-        return {"status": "conflicting", "reason": "house-door-selector-ambiguous", "tileIndex": tile_index, "matches": matches}
+        return {
+            "status": "conflicting",
+            "reason": "house-door-selector-ambiguous",
+            "tileIndex": tile_index,
+            "matches": matches,
+        }
     if door_placements:
         return {
             "status": "conflicting",
@@ -353,7 +393,12 @@ def _house_door_evidence(index: Any, *, position: tuple[int, int, int], house_id
             "availableHouseDoorIds": sorted({entry.get("houseDoorId") for entry in door_placements}),
             "matches": [],
         }
-    return {"status": "unresolved", "reason": "house-door-placement-missing", "tileIndex": tile_index, "matches": []}
+    return {
+        "status": "unresolved",
+        "reason": "house-door-placement-missing",
+        "tileIndex": tile_index,
+        "matches": [],
+    }
 
 
 def _geometry_house_evidence(geometry: Mapping[str, Any], house_id: int) -> dict[str, Any]:
@@ -387,7 +432,7 @@ def _spawn_role_matches(target_role: str, placement: Mapping[str, Any]) -> bool:
         return kind == "npc"
     if target_role == "monster":
         return kind == "monster"
-    return kind == "monster" and placement.get("spawnBossLiteral") is True
+    return kind == "monster" and placement.get("rewardBossLiteral") is True
 
 
 def _combine_statuses(statuses: Sequence[str]) -> str:
@@ -453,10 +498,17 @@ def build_critical_access_report(
             )
         except SemanticLandmarkError as exc:
             classification = "unresolved"
-            route_evidence = {"status": "unresolved", "reason": "landmark-resolution-failed", "mode": None, "route": None}
+            route_evidence = {
+                "status": "unresolved",
+                "reason": "landmark-resolution-failed",
+                "mode": None,
+                "route": None,
+            }
             position = None
             resolution_payload = None
-            findings.append(_finding("CRITICAL_LANDMARK_UNRESOLVED", target_id, classification, "error", str(exc)))
+            findings.append(
+                _finding("CRITICAL_LANDMARK_UNRESOLVED", target_id, classification, "error", str(exc))
+            )
         else:
             position = _position(resolution["anchor"]["position"], "resolved landmark anchor position")
             route_evidence = _route_result(routes.get(target["routeId"]), expected_goal=position)
@@ -507,7 +559,11 @@ def build_critical_access_report(
         )
         classification = _combine_statuses((door["status"], geometry["status"], route["status"]))
         if classification != "confirmed":
-            severity = "warning" if classification in {"conditional", "unreachable-in-reviewed-context", "review-required"} else "error"
+            severity = (
+                "warning"
+                if classification in {"conditional", "unreachable-in-reviewed-context", "review-required"}
+                else "error"
+            )
             findings.append(
                 _finding(
                     "HOUSE_ACCESS_INTEGRITY_NOT_CONFIRMED",
@@ -540,7 +596,11 @@ def build_critical_access_report(
         placement = placements.get(target["placementId"])
         if placement is None:
             placement_status = "unresolved"
-            placement_reason = "placement-id-not-visible-in-truncated-report" if placements_truncated else "placement-id-missing"
+            placement_reason = (
+                "placement-id-not-visible-in-truncated-report"
+                if placements_truncated
+                else "placement-id-missing"
+            )
             placement_payload = None
         else:
             placement_payload = dict(placement)
@@ -562,7 +622,12 @@ def build_critical_access_report(
                         placement_status = "confirmed"
                     elif source_status == "conditional":
                         placement_status = "conditional"
-                    elif source_status in {"blocked", "missing-tile", "missing-definition", "conflicting-definition"}:
+                    elif source_status in {
+                        "blocked",
+                        "missing-tile",
+                        "missing-definition",
+                        "conflicting-definition",
+                    }:
                         placement_status = "review-required"
                     else:
                         placement_status = "unresolved"
@@ -570,7 +635,11 @@ def build_critical_access_report(
         route = _route_result(routes.get(target["routeId"]), expected_goal=expected_position)
         classification = _combine_statuses((placement_status, route["status"]))
         if classification != "confirmed":
-            severity = "warning" if classification in {"conditional", "unreachable-in-reviewed-context", "review-required"} else "error"
+            severity = (
+                "warning"
+                if classification in {"conditional", "unreachable-in-reviewed-context", "review-required"}
+                else "error"
+            )
             findings.append(
                 _finding(
                     "SPAWN_ACCESS_INTEGRITY_NOT_CONFIRMED",
