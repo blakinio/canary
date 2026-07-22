@@ -47,7 +47,9 @@ head: 29d3831678e7f568cfbd218e0aadfd9ec64d51db
 branch: feat/otbm-qa-016-release-provenance-freshness-20260722
 pr: 737
 status: ready
-context_routes: [otbm, agent-governance]
+context_routes:
+  - otbm
+  - agent-governance
 owned_paths:
   - tools/ai-agent/otbm_release_provenance.py
   - tools/ai-agent/otbm_release_provenance_tool.py
@@ -69,7 +71,9 @@ derived:
 unknown:
   - Runtime/gameplay compatibility after changed dependencies still requires owning validators or Physical E2E.
 conflicts: []
-first_failure: {marker: none, evidence: No unresolved implementation, focused-test or governance failure remains.}
+first_failure:
+  marker: none
+  evidence: No unresolved implementation, focused-test or governance failure remains.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260722-otbm-qa-016-release-provenance-freshness.md
   - tools/ai-agent/otbm_release_provenance.py
