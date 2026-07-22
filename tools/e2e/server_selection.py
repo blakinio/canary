@@ -24,7 +24,7 @@ SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 NATIVE_AUTH_MODE = "oteryn_gateway"
 NATIVE_AUTH_GATEWAY_REPOSITORY = "blakinio/Oteryn-Platform"
 PROCESS_TIMEOUT_SECONDS = 3600
-NATIVE_AUTH_EXPORT_KEYS = (
+NATIVE_AUTH_REQUIRED_ENV = (
     "AGENT_E2E_AUTH_MODE",
     "AGENT_E2E_NATIVE_AUTH_RUNTIME_PREPARED",
     "AGENT_E2E_GATEWAY_BASE_URL",
@@ -69,6 +69,23 @@ class NativeAuthSelection:
     platform_world_id: int
 
 
+def _load_manifest(path: Path) -> dict[str, Any]:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ServerSelectionError(f"cannot read scenario manifest: {exc}") from exc
+    if not isinstance(value, dict):
+        raise ServerSelectionError("scenario manifest must be a JSON object")
+    return value
+
+
+def _scenario(manifest: dict[str, Any]) -> dict[str, Any]:
+    value = manifest.get("scenario")
+    if not isinstance(value, dict):
+        raise ServerSelectionError("scenario manifest is missing scenario object")
+    return value
+
+
 def _safe_segment(value: object, field: str) -> str:
     if not isinstance(value, str) or not SAFE_SEGMENT_RE.fullmatch(value):
         raise ServerSelectionError(
@@ -82,30 +99,10 @@ def _inside(path: Path, parent: Path, field: str) -> None:
         raise ServerSelectionError(f"scenario.server.{field} resolves outside the repository-selected runtime root")
 
 
-def _load_manifest(manifest_path: Path) -> dict[str, Any]:
-    try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise ServerSelectionError(f"cannot read scenario manifest: {exc}") from exc
-    if not isinstance(manifest, dict):
-        raise ServerSelectionError("scenario manifest must be a JSON object")
-    return manifest
-
-
-def _scenario(manifest: dict[str, Any]) -> dict[str, Any]:
-    scenario = manifest.get("scenario")
-    if not isinstance(scenario, dict):
-        raise ServerSelectionError("scenario manifest is missing scenario object")
-    return scenario
-
-
 def resolve_server_selection(manifest_path: Path, root: Path) -> ServerSelection:
-    manifest = _load_manifest(manifest_path)
-    scenario = _scenario(manifest)
-    server = scenario.get("server")
+    server = _scenario(_load_manifest(manifest_path)).get("server")
     if not isinstance(server, dict):
         raise ServerSelectionError("scenario manifest is missing scenario.server object")
-
     datapack = _safe_segment(server.get("datapack"), "datapack")
     map_name = _safe_segment(server.get("map"), "map")
 
@@ -114,7 +111,6 @@ def resolve_server_selection(manifest_path: Path, root: Path) -> ServerSelection
     _inside(datapack_path, repository_root, "datapack")
     if not datapack_path.is_dir():
         raise ServerSelectionError(f"selected datapack directory does not exist: {datapack_path}")
-
     world_path = (datapack_path / "world").resolve(strict=False)
     _inside(world_path, datapack_path, "datapack")
     map_path = (world_path / f"{map_name}.otbm").resolve(strict=False)
@@ -123,14 +119,7 @@ def resolve_server_selection(manifest_path: Path, root: Path) -> ServerSelection
     allow_map_download = datapack == DEFAULT_DATAPACK and map_name == DEFAULT_MAP
     if not allow_map_download and (not map_path.is_file() or map_path.stat().st_size <= 0):
         raise ServerSelectionError(f"selected non-default map is missing or empty: {map_path}")
-
-    return ServerSelection(
-        datapack=datapack,
-        map_name=map_name,
-        datapack_path=datapack_path,
-        map_path=map_path,
-        allow_map_download=allow_map_download,
-    )
+    return ServerSelection(datapack, map_name, datapack_path, map_path, allow_map_download)
 
 
 def _positive_int(value: object, field: str, maximum: int | None = None) -> int:
@@ -142,13 +131,11 @@ def _positive_int(value: object, field: str, maximum: int | None = None) -> int:
 
 
 def resolve_native_auth_selection(manifest_path: Path) -> NativeAuthSelection | None:
-    scenario = _scenario(_load_manifest(manifest_path))
-    auth = scenario.get("auth")
+    auth = _scenario(_load_manifest(manifest_path)).get("auth")
     if auth is None:
         return None
     if not isinstance(auth, dict):
         raise ServerSelectionError("scenario.auth must be an object when present")
-
     allowed = {
         "mode",
         "gateway_repository",
@@ -164,9 +151,7 @@ def resolve_native_auth_selection(manifest_path: Path) -> NativeAuthSelection | 
         raise ServerSelectionError(f"scenario.auth contains unknown field(s): {', '.join(unknown)}")
     if auth.get("mode") != NATIVE_AUTH_MODE:
         raise ServerSelectionError(f"scenario.auth.mode must be {NATIVE_AUTH_MODE!r}")
-
-    gateway_repository = auth.get("gateway_repository")
-    if gateway_repository != NATIVE_AUTH_GATEWAY_REPOSITORY:
+    if auth.get("gateway_repository") != NATIVE_AUTH_GATEWAY_REPOSITORY:
         raise ServerSelectionError(
             f"scenario.auth.gateway_repository must be {NATIVE_AUTH_GATEWAY_REPOSITORY!r} for the maintained native-auth proof"
         )
@@ -174,18 +159,19 @@ def resolve_native_auth_selection(manifest_path: Path) -> NativeAuthSelection | 
     if not isinstance(gateway_ref, str) or not SHA_RE.fullmatch(gateway_ref):
         raise ServerSelectionError("scenario.auth.gateway_ref must be an exact 40-character lowercase SHA")
 
-    gateway_port = _positive_int(auth.get("gateway_port"), "gateway_port", 65535)
-    platform_stub_port = _positive_int(auth.get("platform_stub_port"), "platform_stub_port", 65535)
-    session_issuer_port = _positive_int(auth.get("session_issuer_port"), "session_issuer_port", 65535)
-    if len({gateway_port, platform_stub_port, session_issuer_port}) != 3:
+    ports = (
+        _positive_int(auth.get("gateway_port"), "gateway_port", 65535),
+        _positive_int(auth.get("platform_stub_port"), "platform_stub_port", 65535),
+        _positive_int(auth.get("session_issuer_port"), "session_issuer_port", 65535),
+    )
+    if len(set(ports)) != 3:
         raise ServerSelectionError("scenario.auth gateway/stub/session ports must be distinct")
-
     return NativeAuthSelection(
-        gateway_repository=gateway_repository,
+        gateway_repository=NATIVE_AUTH_GATEWAY_REPOSITORY,
         gateway_ref=gateway_ref,
-        gateway_port=gateway_port,
-        platform_stub_port=platform_stub_port,
-        session_issuer_port=session_issuer_port,
+        gateway_port=ports[0],
+        platform_stub_port=ports[1],
+        session_issuer_port=ports[2],
         canary_account_id=_positive_int(auth.get("canary_account_id"), "canary_account_id"),
         platform_world_id=_positive_int(auth.get("platform_world_id"), "platform_world_id"),
     )
@@ -201,12 +187,10 @@ def github_environment(selection: ServerSelection) -> dict[str, str]:
     }
 
 
-def _native_auth_environment(selection: NativeAuthSelection) -> tuple[dict[str, str], dict[str, str]]:
+def _fresh_native_auth_environment(selection: NativeAuthSelection) -> tuple[dict[str, str], dict[str, str]]:
     platform_service_token = secrets.token_urlsafe(32)
     session_service_token = secrets.token_urlsafe(32)
-    game_login_ticket = secrets.token_urlsafe(32)
-    session_service_hash = hashlib.sha256(session_service_token.encode("utf-8")).hexdigest()
-
+    ticket = secrets.token_urlsafe(32)
     exported = {
         "AGENT_E2E_AUTH_MODE": NATIVE_AUTH_MODE,
         "AGENT_E2E_NATIVE_AUTH_RUNTIME_PREPARED": "true",
@@ -217,23 +201,24 @@ def _native_auth_environment(selection: NativeAuthSelection) -> tuple[dict[str, 
         "AGENT_E2E_PLATFORM_WORLD_ID": str(selection.platform_world_id),
         "AGENT_E2E_PLATFORM_SERVICE_TOKEN": platform_service_token,
         "AGENT_E2E_SESSION_SERVICE_TOKEN": session_service_token,
-        "AGENT_E2E_GAME_LOGIN_TICKET": game_login_ticket,
+        "AGENT_E2E_GAME_LOGIN_TICKET": ticket,
         "AGENT_E2E_GATEWAY_REPOSITORY": selection.gateway_repository,
         "AGENT_E2E_GATEWAY_REF": selection.gateway_ref,
         "CANARY_GAME_SESSION_ISSUER_ENABLED": "true",
         "CANARY_GAME_SESSION_ISSUER_BIND": "127.0.0.1",
         "CANARY_GAME_SESSION_ISSUER_PORT": str(selection.session_issuer_port),
-        "CANARY_GAME_SESSION_SERVICE_TOKEN_SHA256": session_service_hash,
+        "CANARY_GAME_SESSION_SERVICE_TOKEN_SHA256": hashlib.sha256(
+            session_service_token.encode("utf-8")
+        ).hexdigest(),
         "CANARY_GAME_SESSION_ISSUER_WORLD_ID": str(selection.platform_world_id),
     }
-    runtime = dict(exported)
-    return exported, runtime
+    return exported, dict(exported)
 
 
-def _existing_native_auth_environment(selection: NativeAuthSelection) -> dict[str, str] | None:
+def _prepared_native_auth_runtime_matches(selection: NativeAuthSelection) -> bool:
     if os.environ.get("AGENT_E2E_NATIVE_AUTH_RUNTIME_PREPARED") != "true":
-        return None
-    missing = [key for key in NATIVE_AUTH_EXPORT_KEYS if not os.environ.get(key)]
+        return False
+    missing = [key for key in NATIVE_AUTH_REQUIRED_ENV if not os.environ.get(key)]
     if missing:
         raise ServerSelectionError(
             "prepared native-auth runtime is missing environment value(s): " + ", ".join(sorted(missing))
@@ -257,27 +242,25 @@ def _existing_native_auth_environment(selection: NativeAuthSelection) -> dict[st
         raise ServerSelectionError(
             "prepared native-auth runtime does not match scenario value(s): " + ", ".join(sorted(mismatched))
         )
-    return {key: os.environ[key] for key in NATIVE_AUTH_EXPORT_KEYS}
+    return True
 
 
 def _run_checked(command: list[str], *, cwd: Path | None = None, stdout: Path | None = None) -> None:
-    output_handle = stdout.open("w", encoding="utf-8") if stdout else subprocess.DEVNULL
+    handle = stdout.open("w", encoding="utf-8") if stdout else subprocess.DEVNULL
     try:
         completed = subprocess.run(
             command,
             cwd=cwd,
-            stdout=output_handle,
+            stdout=handle,
             stderr=subprocess.STDOUT if stdout else subprocess.PIPE,
             text=True,
             check=False,
         )
     finally:
         if stdout:
-            output_handle.close()
+            handle.close()
     if completed.returncode != 0:
-        detail = ""
-        if not stdout and isinstance(completed.stderr, str):
-            detail = completed.stderr.strip()[:1000]
+        detail = completed.stderr.strip()[:1000] if not stdout and isinstance(completed.stderr, str) else ""
         raise ServerSelectionError(f"command failed ({completed.returncode}): {' '.join(command)} {detail}".strip())
 
 
@@ -311,29 +294,23 @@ def _start_bounded_process(command: list[str], *, env: dict[str, str], stdout: P
     return process.pid
 
 
-def prepare_native_auth_runtime(
-    manifest_path: Path,
-    root: Path,
-    selection: NativeAuthSelection,
-) -> dict[str, str]:
-    existing = _existing_native_auth_environment(selection)
-    if existing is not None:
+def prepare_native_auth_runtime(manifest_path: Path, root: Path, selection: NativeAuthSelection) -> dict[str, str]:
+    if _prepared_native_auth_runtime_matches(selection):
         _wait_http_ok(f"http://127.0.0.1:{selection.platform_stub_port}/health")
         _wait_http_ok(f"http://127.0.0.1:{selection.gateway_port}/health")
-        return existing
+        # The parent shell already inherited all ephemeral values through GITHUB_ENV.
+        # Returning them here would serialize raw credentials into artifacts/scenario.env.
+        return {}
 
-    manifest = _load_manifest(manifest_path)
-    scenario = _scenario(manifest)
+    scenario = _scenario(_load_manifest(manifest_path))
     fixture = scenario.get("fixture")
     if not isinstance(fixture, dict):
         raise ServerSelectionError("scenario manifest is missing scenario.fixture object")
-
-    required_fixture_fields = ("character", "world", "host", "game_port")
-    for field in required_fixture_fields:
+    for field in ("character", "world", "host", "game_port"):
         if fixture.get(field) in (None, ""):
             raise ServerSelectionError(f"scenario.fixture.{field} is required for native-auth runtime")
 
-    exported, runtime_values = _native_auth_environment(selection)
+    exported, runtime_values = _fresh_native_auth_environment(selection)
     artifact_dir = Path(os.environ.get("AGENT_E2E_ARTIFACT_DIR", root / "artifacts")).resolve()
     artifact_dir.mkdir(parents=True, exist_ok=True)
     runtime_root = (root / ".agent-e2e" / "oteryn-native-auth").resolve()
@@ -385,11 +362,9 @@ def prepare_native_auth_runtime(
             "AGENT_E2E_GAME_PORT": str(fixture["game_port"]),
         }
     )
-
     stub_script = root / "tools" / "e2e" / "oteryn_native_auth_platform_stub.py"
     if not stub_script.is_file():
         raise ServerSelectionError(f"native-auth Platform stub is missing: {stub_script}")
-    stub_ready = artifact_dir / "platform-stub-ready.txt"
     stub_pid = _start_bounded_process(
         [
             sys.executable,
@@ -399,7 +374,7 @@ def prepare_native_auth_runtime(
             "--port",
             str(selection.platform_stub_port),
             "--ready-file",
-            str(stub_ready),
+            str(artifact_dir / "platform-stub-ready.txt"),
         ],
         env=runtime_env,
         stdout=artifact_dir / "platform-stub.stdout.log",
@@ -427,7 +402,6 @@ def prepare_native_auth_runtime(
 
     _wait_http_ok(f"http://127.0.0.1:{selection.platform_stub_port}/health")
     _wait_http_ok(f"http://127.0.0.1:{selection.gateway_port}/health")
-
     (artifact_dir / "native-auth-runtime.json").write_text(
         json.dumps(
             {
@@ -474,8 +448,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         manifest_path = args.manifest.resolve()
         root = args.root.resolve()
-        selection = resolve_server_selection(manifest_path, root)
-        environment = github_environment(selection)
+        environment = github_environment(resolve_server_selection(manifest_path, root))
         native_auth = resolve_native_auth_selection(manifest_path)
         if native_auth is not None:
             environment.update(prepare_native_auth_runtime(manifest_path, root, native_auth))
