@@ -7,10 +7,10 @@ branch: feat/otbm-qa-011-connectivity-resilience-20260722
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "7b993dc48c6e0be5ddeb63f0f487bef5e774040e"
+last_verified_commit: "4bd646ab8ae0727123ad7589bac659f13ca7fb31"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "713"
 depends_on:
   - CAN-20260722-otbm-qa-010-quest-state-reachability complete
   - OTBM teleport and reachability validator merged
@@ -58,7 +58,7 @@ cross_repo_tasks: []
 
 ## Status
 
-IMPLEMENTING — QA-010 feature and lifecycle are complete; fresh QA-011 overlap preflight passed and a bounded feature branch was created from exact current `main`.
+IMPLEMENTING — QA-010 feature and lifecycle are complete; draft PR #713 owns the bounded QA-011 scope. `main` advanced by two unrelated OAM-035 documentation/lifecycle commits after branch creation; live compare shows no overlap with QA-011 owned paths.
 
 ## Goal
 
@@ -99,10 +99,10 @@ Analyze reviewed world-connectivity robustness by reusing the canonical OTBM Rea
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T10:45:00+02:00
-head: 7b993dc48c6e0be5ddeb63f0f487bef5e774040e
+updated_at: 2026-07-22T10:52:00+02:00
+head: 4bd646ab8ae0727123ad7589bac659f13ca7fb31
 branch: feat/otbm-qa-011-connectivity-resilience-20260722
-pr: none
+pr: 713
 status: implementing
 context_routes:
   - otbm
@@ -121,18 +121,20 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260722-otbm-qa-011-connectivity-resilience.md
 proven:
   - QA-010 feature PR 709 and lifecycle PR 710 are merged and complete; lifecycle merge is 7b993dc48c6e0be5ddeb63f0f487bef5e774040e.
-  - Current main is identical to 7b993dc48c6e0be5ddeb63f0f487bef5e774040e at QA-011 preflight.
-  - No existing QA-011 task record and no open connectivity-resilience, route-fragility, entrapment or teleport-network PR was found in the fresh preflight.
+  - No existing QA-011 task record and no open connectivity-resilience, route-fragility, entrapment or teleport-network PR existed at the initial fresh preflight.
   - Roadmap requires all QA-011 path/connectivity calculations to reuse the existing Reachability graph/BFS and reviewed transition model.
-  - Canonical Reachability exposes _bfs, _movement_neighbors, _transition_edges, _reconstruct_route and _tarjan_cycles; QA-011 will compose those functions rather than implement a second pathfinder.
+  - Canonical Reachability exposes _bfs, _movement_neighbors, _transition_edges, _reconstruct_route and _tarjan_cycles; QA-011 composes those functions rather than implementing a second pathfinder.
+  - After branch creation, main advanced to 1328fb42b03056a0f2571831a1a1eb7a5416f73a through OAM-035 documentation/lifecycle commits only.
+  - Compare 7b993dc48c6e0be5ddeb63f0f487bef5e774040e..1328fb42b03056a0f2571831a1a1eb7a5416f73a changes only OAM-035 documentation and its active/archive task records; none overlap QA-011 owned paths.
+  - PR 713 currently differs from live main only by the QA-011 active task record despite being two unrelated commits behind.
 derived:
-  - QA-011 can be implemented as a reviewed bounded perturbation/topology layer over canonical Reachability evidence.
+  - QA-011 can proceed without integrating the unrelated OAM-035 commits; final mergeability must still be rechecked against live main before readiness.
 unknown:
   - No reviewed target manifest for concrete real-world route/entry/exit pairs is guaranteed to be committed; generic fixture tests can prove the reusable contract while real target evaluation remains evidence-dependent.
 conflicts: []
 first_failure:
   marker: none
-  evidence: No ownership or overlap blocker was found before bounded QA-011 implementation.
+  evidence: No ownership or overlapping-path blocker remains after reconciling the live-main advance.
 rejected_hypotheses:
   - Building a second BFS/pathfinder was rejected by the roadmap reuse boundary.
   - Treating bounded static no-exit evidence as runtime entrapment was rejected by the roadmap caveat.
@@ -141,7 +143,10 @@ changed_paths:
 validation:
   - command: post-QA-010 live main and overlap preflight
     result: PASS
-    evidence: main 7b993dc48c6e0be5ddeb63f0f487bef5e774040e; no competing QA-011 PR/task found.
+    evidence: no competing QA-011 PR/task found before branch creation.
+  - command: live compare 7b993dc4..1328fb42
+    result: PASS
+    evidence: only unrelated OAM-035 documentation/lifecycle paths changed on main; no QA-011 ownership overlap.
 blockers: []
-next_action: Open the early draft PR, then implement the smallest deterministic reviewed-route perturbation and entrapment/topology composition over canonical Reachability graph/BFS with focused tests.
+next_action: Implement the bounded reviewed-route perturbation and entrapment/topology composition over canonical Reachability graph/BFS with focused tests, then recheck live-main mergeability before final validation.
 ```
