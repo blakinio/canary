@@ -8,7 +8,7 @@ branch: feat/e2e-platform-npc-private-speech
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "8be5f2d487ce5a69926f225809cae7554bd322b5"
+last_verified_commit: "1ccbf5e5c561df29a7c50f77aa07ea16f18c2e90"
 risk: low
 related_issue: ""
 related_pr: "708"
@@ -64,8 +64,8 @@ Add one bounded generic Universal E2E scenario action that sends focused NPC fol
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T07:16:30Z
-head: 8be5f2d487ce5a69926f225809cae7554bd322b5
+updated_at: 2026-07-22T07:19:30Z
+head: 1ccbf5e5c561df29a7c50f77aa07ea16f18c2e90
 branch: feat/e2e-platform-npc-private-speech
 pr: 708
 status: implementing
@@ -74,14 +74,12 @@ context_routes:
   - agent-governance
   - cpp-runtime
 owned_paths:
-  exclusive:
-    - docs/agents/tasks/active/CAN-20260722-e2e-platform-npc-private-speech.md
-    - tools/e2e/run_agent_e2e.py
-    - tools/e2e/client/agent_e2e_scenario.lua
-    - tests/e2e/test_npc_private_speech_action.py
-  shared:
-    - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
-    - docs/agents/MODULE_CATALOG.md
+  - docs/agents/tasks/active/CAN-20260722-e2e-platform-npc-private-speech.md
+  - tools/e2e/run_agent_e2e.py
+  - tools/e2e/client/agent_e2e_scenario.lua
+  - tests/e2e/test_npc_private_speech_action.py
+  - docs/e2e/PHYSICAL_GAMEPLAY_ACTION_PLANS.md
+  - docs/agents/MODULE_CATALOG.md
 proven:
   - PR #685 physical artifact 8512445446 proves its current generic talk action sends focused follow-up NPC words as public MessageSay and the promotion does not occur.
   - controlled OTClient Game::talk always delegates to MessageSay, while Game::talkPrivate accepts an explicit message mode and receiver.
@@ -89,18 +87,19 @@ proven:
   - Canary NpcHandler processes focused-player keywords only for TALKTYPE_PRIVATE_PN, so a generic NPC-private speech surface is required for real focused dialogue flows.
   - PR #708 is the draft platform PR for this bounded capability; its initial Agent Task Ownership run 29899291064 failed only because the new task record had empty related_pr while the current PR is 708.
   - CI run 29899291505 passed on the initial task-only head 9f8e736a62058eab6afced43c095edef7becc692.
-  - merged platform precedent PR #589 declares MODULE_CATALOG.md and PHYSICAL_GAMEPLAY_ACTION_PLANS.md as shared ownership paths, so this task now follows the same governance classification.
+  - merged platform precedent PR #589 declares MODULE_CATALOG.md and PHYSICAL_GAMEPLAY_ACTION_PLANS.md as shared frontmatter ownership paths.
+  - current checkpoint parser requires checkpoint owned_paths to remain a flat YAML list; ownership run 29899663981 failed before global overlap validation because the checkpoint incorrectly mirrored the nested frontmatter ownership structure.
 derived:
   - the smallest reusable platform change is one fixed-purpose talk_npc action rather than a generic arbitrary-message-mode action.
 unknown:
-  - whether any ownership conflict remains after correcting related_pr and shared-path classification.
+  - whether any ownership conflict remains after correcting related_pr, shared frontmatter classification and flat checkpoint ownership syntax.
   - whether the first feature consumer needs additional bounded waits after switching to NPC-private speech; that remains feature-owned physical validation.
 conflicts: []
 first_failure:
   marker: PR #685 persistence_check_promoted-vocation failed actual=2 expected=12
   evidence: run 29872645552 artifact 8512445446 plus packet and source evidence isolated public MessageSay versus required focused NPC-private speech.
 rejected_hypotheses:
-  - PR #708 initial ownership failure proves a path conflict; ownership artifact 8521219893 reports only related_pr mismatch.
+  - PR #708 initial ownership failures prove a path conflict; both observed failures occurred in changed-task checkpoint validation before the global ownership-index step.
   - modify Canary NPC handling to accept focused public speech; that changes gameplay behavior instead of the E2E client interaction surface.
   - expose arbitrary message modes in scenario JSON; the required capability is narrower and can fail closed to NPC-private speech only.
 changed_paths:
@@ -109,7 +108,10 @@ validation:
   - command: Agent Task Ownership run 29899291064 on 9f8e736a62058eab6afced43c095edef7becc692
     result: FAIL
     evidence: artifact 8521219893 reports changed active task related_pr empty must match current PR 708; no path-overlap validation was reached.
-  - command: CI run 29899291505 on 9f8e736a62058eab6afced43c095edef7becc692
+  - command: Agent Task Ownership run 29899663981 on 1ccbf5e5c561df29a7c50f77aa07ea16f18c2e90
+    result: FAIL
+    evidence: artifact 8521357280 reports invalid nested list item under checkpoint owned_paths; global ownership-index validation was skipped.
+  - command: CI run 29899664248 on 1ccbf5e5c561df29a7c50f77aa07ea16f18c2e90
     result: PASS
     evidence: task-only platform PR CI passed.
 blockers: []
