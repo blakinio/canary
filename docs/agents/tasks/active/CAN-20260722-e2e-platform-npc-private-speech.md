@@ -8,10 +8,10 @@ branch: feat/e2e-platform-npc-private-speech
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "6a87373e84073a84ccdbdb64f7d61b2747f40764"
+last_verified_commit: "9f8e736a62058eab6afced43c095edef7becc692"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "708"
 depends_on:
   - Universal E2E physical evidence from PR #685 run 29872645552 artifact 8512445446
 blocks:
@@ -63,10 +63,10 @@ Add one bounded generic Universal E2E scenario action that sends focused NPC fol
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T07:10:38Z
-head: 6a87373e84073a84ccdbdb64f7d61b2747f40764
+updated_at: 2026-07-22T07:13:00Z
+head: 9f8e736a62058eab6afced43c095edef7becc692
 branch: feat/e2e-platform-npc-private-speech
-pr: null
+pr: 708
 status: implementing
 context_routes:
   - universal-e2e
@@ -84,21 +84,30 @@ proven:
   - controlled OTClient Game::talk always delegates to MessageSay, while Game::talkPrivate accepts an explicit message mode and receiver.
   - maintained OTClient console code uses MessageModes.NpcTo for player-to-NPC private speech.
   - Canary NpcHandler processes focused-player keywords only for TALKTYPE_PRIVATE_PN, so a generic NPC-private speech surface is required for real focused dialogue flows.
-  - current main and this new task branch start at 6a87373e84073a84ccdbdb64f7d61b2747f40764.
+  - PR #708 is the draft platform PR for this bounded capability; its initial Agent Task Ownership run 29899291064 failed only because the new task record had empty related_pr while the current PR is 708.
+  - CI run 29899291505 passed on the initial task-only head 9f8e736a62058eab6afced43c095edef7becc692.
 derived:
   - the smallest reusable platform change is one fixed-purpose talk_npc action rather than a generic arbitrary-message-mode action.
 unknown:
+  - whether any ownership conflict remains after correcting related_pr to 708.
   - whether the first feature consumer needs additional bounded waits after switching to NPC-private speech; that remains feature-owned physical validation.
 conflicts: []
 first_failure:
   marker: PR #685 persistence_check_promoted-vocation failed actual=2 expected=12
   evidence: run 29872645552 artifact 8512445446 plus packet and source evidence isolated public MessageSay versus required focused NPC-private speech.
 rejected_hypotheses:
+  - PR #708 initial ownership failure proves a path conflict; ownership artifact 8521219893 reports only related_pr mismatch.
   - modify Canary NPC handling to accept focused public speech; that changes gameplay behavior instead of the E2E client interaction surface.
   - expose arbitrary message modes in scenario JSON; the required capability is narrower and can fail closed to NPC-private speech only.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260722-e2e-platform-npc-private-speech.md
-validation: []
+validation:
+  - command: Agent Task Ownership run 29899291064 on 9f8e736a62058eab6afced43c095edef7becc692
+    result: FAIL
+    evidence: artifact 8521219893 reports changed active task related_pr empty must match current PR 708; no path-overlap validation was reached.
+  - command: CI run 29899291505 on 9f8e736a62058eab6afced43c095edef7becc692
+    result: PASS
+    evidence: task-only platform PR CI passed.
 blockers: []
-next_action: Open the draft platform PR, then implement the bounded talk_npc validator/runtime/test/documentation surface only on this branch.
+next_action: Verify Agent Task Ownership on the corrected PR #708 head, then implement the bounded talk_npc validator/runtime/test/documentation surface only if ownership is green.
 ```
