@@ -7,10 +7,10 @@ branch: feat/otbm-qa-015-static-performance-hotspots-20260722
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "663de1726e82145f5b8027126dbe434cfa74440b"
+last_verified_commit: "1bd9f96c2b4c8a5188315fa46c5c9a43f5ad55b5"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "735"
 depends_on:
   - OTBM-QA-014 implementation pre-final validated on PR 734
   - Unified OTBM World Index available
@@ -46,7 +46,7 @@ cross_repo_tasks: []
 
 ## Status
 
-IMPLEMENTING — deterministic static hotspot candidates only. Runtime performance claims remain outside this task.
+IMPLEMENTING — deterministic static hotspot candidate composer is implemented on draft PR #735; current-head validation is running. Runtime performance claims remain outside this task.
 
 ## Goal
 
@@ -56,10 +56,10 @@ Identify exact map regions/tiles whose static OTBM density merits targeted runti
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T21:45:00+02:00
-head: 663de1726e82145f5b8027126dbe434cfa74440b
+updated_at: 2026-07-22T22:00:00+02:00
+head: 1bd9f96c2b4c8a5188315fa46c5c9a43f5ad55b5
 branch: feat/otbm-qa-015-static-performance-hotspots-20260722
-pr: none
+pr: 735
 status: implementing
 context_routes:
   - otbm
@@ -76,24 +76,32 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260722-otbm-qa-015-static-performance-hotspots.md
 proven:
   - Roadmap QA-015 requires static hotspot candidates and explicitly forbids runtime performance claims without subsystem-owned profiling.
-  - Unified World Index exposes exact tile placement counts, item depths, mechanic placements and 256x256 area postings.
-  - QA-015 does not require a second parser, pathfinder or runtime profiler.
+  - Unified World Index exposes exact tile placement counts, item depths, mechanic placements and area-local density evidence.
+  - PR 735 implements explicit-threshold tile and 256x256-floor area candidates without a second parser, pathfinder or runtime profiler.
 derived:
-  - Explicit policy thresholds over exact World Index metrics are sufficient for a deterministic static candidate report.
+  - Exact static density can prioritize bounded runtime investigation but cannot prove runtime impact.
 unknown:
   - Runtime CPU, memory, network and client-render impact are not established by static density evidence.
 conflicts: []
 first_failure:
   marker: none
-  evidence: No implementation validation has run yet.
+  evidence: Current-head validation is running; no completed failure is known.
 rejected_hypotheses:
   - Infer runtime slowness directly from static density: roadmap explicitly limits QA-015 to investigation candidates.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260722-otbm-qa-015-static-performance-hotspots.md
+  - tools/ai-agent/otbm_static_hotspots.py
+  - tools/ai-agent/otbm_static_hotspots_tool.py
+  - tools/ai-agent/test_otbm_static_hotspots.py
+  - tools/ai-agent/test_otbm_static_hotspots_output_safety.py
+  - tools/ai-agent/test_otbm_static_hotspots_schema.py
+  - docs/ai-agent/OTBM_STATIC_HOTSPOTS.md
+  - docs/ai-agent/OTBM_STATIC_HOTSPOT_POLICY.schema.json
+  - docs/ai-agent/OTBM_STATIC_HOTSPOTS.schema.json
 validation:
   - command: fresh live-state/overlap preflight
     result: PASS
     evidence: main 663de1726e82145f5b8027126dbe434cfa74440b; no competing QA-015 PR found.
 blockers: []
-next_action: Open a draft PR, implement explicit-threshold World Index hotspot analysis and focused tests, then validate current-head OTBM/AI workflows.
+next_action: Wait for CI, Ownership, OTBM Map Tools and AI Agent Tools on the current implementation head; fix only evidence-backed failures before final-gate checkpointing.
 ```
