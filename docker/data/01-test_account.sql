@@ -20,3 +20,11 @@ INSERT INTO `accounts`
 (113 , 'test13', '@test13' , 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3', 1     , 10000),
 (114 , 'test14', '@test14' , 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3', 1     , 10000),
 (115 , 'test15', '@test15' , 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3', 6     , 10000);
+
+-- The privileged @test15 account backs physical gameplay E2E scenarios that
+-- intentionally cross login boundaries. Keep it premium for a bounded window
+-- relative to each fresh fixture import so promotion state is not intentionally
+-- demoted by PlayerLoginGlobal during the relog phase.
+UPDATE `accounts`
+SET `premdays` = 30, `lastday` = UNIX_TIMESTAMP() + (30 * 24 * 60 * 60)
+WHERE `id` = 115;
