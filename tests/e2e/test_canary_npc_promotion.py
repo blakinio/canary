@@ -139,7 +139,6 @@ class CanaryNpcPromotionEvidenceTests(unittest.TestCase):
 
         required = data["assertions"]["required_markers"]
         for marker in (
-            "initial_position=1942,1345,7",
             "step_npc-visible=success",
             "step_seed-balance=success",
             "step_greet=success",
@@ -152,6 +151,7 @@ class CanaryNpcPromotionEvidenceTests(unittest.TestCase):
             "e2e=success",
         ):
             self.assertIn(marker, required)
+        self.assertFalse(any(marker.startswith("initial_position=") for marker in required))
         self.assertNotIn("persistence_check_promoted-vocation=success", required)
         self.assertNotIn("persistence_check_promoted-vocation_detail=12", required)
 
