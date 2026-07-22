@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 base_branch: main
 created: 2026-07-22T16:00:00+02:00
-updated: 2026-07-22T18:17:37+02:00
-last_verified_commit: 950af668e724bee2e306db55d169a09e9e5964fa
+updated: 2026-07-22T18:19:31+02:00
+last_verified_commit: 991b7091405dbc2a53094641bfeff945910f382e
 risk: high
 related_issue: ""
 related_pr: "722"
@@ -121,8 +121,8 @@ Oteryn Platform PR #123 remains closed unmerged. Its advertised pre-auth throttl
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T18:17:37+02:00
-head: 950af668e724bee2e306db55d169a09e9e5964fa
+updated_at: 2026-07-22T18:19:31+02:00
+head: 991b7091405dbc2a53094641bfeff945910f382e
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 pr: 722
 status: implementing
@@ -156,8 +156,8 @@ unknown:
 conflicts:
   - Prior handoff narrative claimed Oteryn Platform PR 123 was squash-merged, but live GitHub state proves PR 123 closed unmerged with zero commits.
 first_failure:
-  marker: agent-task-ownership-missing-program-id
-  evidence: Agent Task Ownership run 29937243153 passed changed-checkpoint validation but failed repository-wide ownership validation; active structured tasks require a non-empty program_id, while this task omitted it despite the continuation contract declaring PROGRAM none.
+  marker: local-cpp-execution-capability
+  evidence: Discovery, checkpoint validation, repository-wide ownership validation and CI pass on 991b7091405dbc2a53094641bfeff945910f382e; the first unmet implementation criterion now requires a bounded local C++ edit/build/test loop unavailable in the current connector-only CHAT execution path.
 rejected_hypotheses:
   - Reuse current ProtocolLogin issuer unchanged for Oteryn native auth: it is reached only after account password authentication.
   - Treat DB account_sessions as single-use: the current Platform contract explicitly records them as replayable until expiry or external deletion.
@@ -167,8 +167,8 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260722-oteryn-game-session-adapter.md
 validation:
   - command: live PR/head/CI preflight via GitHub connector
-    result: FAIL
-    evidence: PR 722 head 950af668e724bee2e306db55d169a09e9e5964fa; CI run 29937243523 passed, Agent Task Ownership run 29937243153 passed checkpoint validation but failed repository-wide ownership validation because the now-active structured task omitted required program_id.
+    result: PASS
+    evidence: PR 722 head 991b7091405dbc2a53094641bfeff945910f382e; CI run 29937417007 and Agent Task Ownership run 29937416797 both completed successfully.
   - command: targeted service/network/routing reuse discovery via GitHub connector
     result: PASS
     evidence: ServiceManager/ServicePort, Game::start, ChannelContext, ChannelRegistry and multi-channel process model inspected; no existing authenticated internal issuer was found.
@@ -185,5 +185,5 @@ blockers:
   - Production readiness remains blocked until the Platform hardening state represented by closed-unmerged PR 123 is reconciled.
   - Production transport security for Gateway -> Canary issuer is not proven yet.
   - Immediate generation-based revocation, multi-world routing and same-world horizontal scaling are outside the current Gateway protocol-v1 session issuer contract.
-next_action: Implement the disabled-by-default per-process Candidate B HTTP issuer in a bounded local C++ edit/build/test loop, validating world_id against ChannelContext, resolving allowed characters from Canary account data, binding ProtocolProfileId::Current, preserving downstream ProtocolGame/IOLoginData admission checks, and adding focused issue/consume/expiry/replay/wrong-account/wrong-character/wrong-profile/restart/routing coverage.
+next_action: Claim the exact affected runtime/config/test paths, then implement the disabled-by-default per-process Candidate B HTTP issuer in a bounded local C++ edit/build/test loop, validating world_id against ChannelContext, resolving allowed characters from Canary account data, binding ProtocolProfileId::Current, preserving downstream ProtocolGame/IOLoginData admission checks, and adding focused issue/consume/expiry/replay/wrong-account/wrong-character/wrong-profile/restart/routing coverage.
 ```
