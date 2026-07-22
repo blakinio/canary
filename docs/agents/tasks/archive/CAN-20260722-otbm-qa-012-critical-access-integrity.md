@@ -7,7 +7,7 @@ branch: feat/otbm-qa-012-critical-access-integrity-20260722
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "27a2f87d1a329d95f0d0e40622208dffbf42031f"
+last_verified_commit: "5556fe50374c0113cf98c0fcff8a4ab6e7448cc2"
 risk: medium
 related_issue: ""
 related_pr: "721"
@@ -47,7 +47,7 @@ cross_repo_tasks: []
 
 ## Status
 
-COMPLETE — bounded QA-012 implementation merged through feature PR #717. Lifecycle-only active-to-archive closure is isolated in PR #721 without feature code, schema, runtime, map, datapack, E2E, workflow, catalogue or changelog changes.
+COMPLETE — bounded QA-012 implementation merged through feature PR #717; lifecycle-only active-to-archive closure is isolated in PR #721. `ci:final-gate` was applied before this final lifecycle checkpoint commit; no further branch commits are permitted.
 
 ## Goal
 
@@ -79,8 +79,8 @@ Provide targeted static integrity checks for explicitly reviewed high-value land
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T16:30:00+02:00
-head: 27a2f87d1a329d95f0d0e40622208dffbf42031f
+updated_at: 2026-07-22T16:45:00+02:00
+head: 5556fe50374c0113cf98c0fcff8a4ab6e7448cc2
 branch: docs/archive-otbm-qa-012-critical-access-integrity-717
 pr: 721
 status: complete
@@ -95,7 +95,9 @@ proven:
   - Exact-final CI 29915659002, Ownership 29915658783, OTBM Map Tools 29915658846 and AI Agent Tools 29915658786 passed on the immutable feature head.
   - Ready-for-review full CI 29915819971 also passed on the same immutable feature head before auto-merge.
   - PR 717 changed exactly eleven bounded paths and had zero review threads or review submissions at final audit.
-  - Lifecycle PR 721 is based on current main 997343078104831ae3761e691c96fd8ff8d6cfa2 and owns only the QA-012 active/archive task-record paths.
+  - Lifecycle PR 721 is based on current main 997343078104831ae3761e691c96fd8ff8d6cfa2 and changes only the QA-012 active/archive task-record paths.
+  - Lifecycle pre-final CI 29928851583 and Agent Task Ownership 29928851278 passed on head 5556fe50374c0113cf98c0fcff8a4ab6e7448cc2.
+  - ci:final-gate was applied to PR 721 before this final lifecycle checkpoint commit.
 derived:
   - OTBM-QA-013 may begin only after lifecycle PR 721 merges and a fresh live-state/ownership preflight passes.
 unknown:
@@ -103,7 +105,7 @@ unknown:
 conflicts: []
 first_failure:
   marker: none
-  evidence: No unresolved feature, provenance, ownership, focused-test or merge failure remains.
+  evidence: No unresolved feature, provenance, ownership, focused-test or lifecycle pre-final failure remains.
 rejected_hypotheses:
   - Inferring critical infrastructure from names, sprites or proximity.
   - Recomputing route, geometry or spawn evidence inside QA-012.
@@ -127,6 +129,12 @@ validation:
   - command: GitHub Actions CI run 29915819971
     result: PASS
     evidence: ready-for-review full final-gate matrix passed on the same immutable feature head.
+  - command: GitHub Actions CI run 29928851583
+    result: PASS
+    evidence: lifecycle pre-final repository CI passed on the two-path lifecycle branch.
+  - command: GitHub Actions Agent Task Ownership run 29928851278
+    result: PASS
+    evidence: lifecycle pre-final ownership validation passed on the two-path lifecycle branch.
 blockers: []
-next_action: Remove the active QA-012 task record, validate lifecycle CI and ownership on PR 721, then apply final-gate before the last lifecycle checkpoint commit.
+next_action: Make no further commits. Verify exact-final-head lifecycle CI and ownership on PR 721, audit reviews, mark ready, enable auto-merge, verify squash merge, then perform a fresh live-state/ownership preflight before starting QA-013.
 ```
