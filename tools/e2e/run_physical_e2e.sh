@@ -204,7 +204,7 @@ sha256sum \
   "${REPO_ROOT}/tools/e2e/run_agent_e2e.py" \
   "${REPO_ROOT}/tools/e2e/server_selection.py" \
   "${REPO_ROOT}/tools/e2e/run_physical_e2e.sh" \
-  "${REPO_ROOT}/tools/e2e/client/agent_e2e.lua" \
+  "${REPO_ROOT}/${AGENT_E2E_CLIENT_AUTOMATION}" \
   > "${ARTIFACT_DIR}/runtime-hashes.txt"
 printf 'scenario=%s\ncanary_head=%s\notclient_repository=%s\notclient_ref=%s\nclient_version=%s\nasset_version=%s\nping_profile=%s\nserver_datapack=%s\nserver_map=%s\n' \
   "${AGENT_E2E_SCENARIO_KEY}" \
@@ -541,6 +541,17 @@ canary_head = sys.argv[2]
 manifest = json.loads((artifacts / "scenario-manifest.json").read_text(encoding="utf-8"))
 scenario = manifest["scenario"]
 required = scenario["assertions"]["required_markers"]
+runtime_counts = scenario["assertions"].get("runtime_counts", {})
+if not isinstance(runtime_counts, dict):
+    raise SystemExit("scenario.assertions.runtime_counts must be an object when present")
+expected_server_logins = runtime_counts.get("server_logins", 2)
+expected_packet_records = runtime_counts.get("packet_records", 2)
+for name, value in (
+    ("server_logins", expected_server_logins),
+    ("packet_records", expected_packet_records),
+):
+    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+        raise SystemExit(f"scenario.assertions.runtime_counts.{name} must be a non-negative integer")
 
 events = []
 event_pairs = set()
@@ -610,8 +621,8 @@ for name in (
 checks = {
     "required_markers": not missing,
     "client_exit_zero": client_exit == 0,
-    "two_server_logins_observed": server_login_count == 2,
-    "two_packet_records_present": session_record_count == 2,
+    "server_login_count_matches": server_login_count == expected_server_logins,
+    "packet_record_count_matches": session_record_count == expected_packet_records,
     "lastlogin_persisted": lastlogin_set == 1,
     "lastlogout_persisted": lastlogout_set == 1,
     "scenario_sql_assertions": sql_assertions_passed == 1,
@@ -619,7 +630,7 @@ checks = {
 }
 success = all(checks.values())
 result = {
-    "schema_version": 2,
+    "schema_version": 3,
     "status": "success" if success else "failure",
     "scenario": manifest["key"],
     "canary_head": canary_head,
@@ -628,7 +639,9 @@ result = {
     "checks": checks,
     "missing_markers": missing,
     "client_exit_code": client_exit,
+    "expected_server_login_count": expected_server_logins,
     "server_login_count": server_login_count,
+    "expected_session_record_count": expected_packet_records,
     "session_record_count": session_record_count,
     "lastlogin_set": lastlogin_set,
     "lastlogout_set": lastlogout_set,
