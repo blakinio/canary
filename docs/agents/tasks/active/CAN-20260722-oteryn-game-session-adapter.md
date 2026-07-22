@@ -6,11 +6,11 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 base_branch: main
 created: 2026-07-22T16:00:00+02:00
-updated: 2026-07-22T16:00:00+02:00
-last_verified_commit: UNKNOWN
+updated: 2026-07-22T16:37:31+02:00
+last_verified_commit: d9c6f15b31aeb94f469e1f3282610fb4b9b30912
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "722"
 depends_on:
   - "Oteryn Platform architecture/OAuth/ticket/Gateway phases"
   - "OTClient PR #17 merged as bb87346f6c516a19d19497d82bb01fb389334ff5"
@@ -61,10 +61,10 @@ Select and implement the production Game Session -> Canary compatibility adapter
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T16:00:00+02:00
-head: UNKNOWN
+updated_at: 2026-07-22T16:37:31+02:00
+head: d9c6f15b31aeb94f469e1f3282610fb4b9b30912
 branch: feat/CAN-20260722-oteryn-game-session-adapter
-pr: none
+pr: 722
 status: investigating
 context_routes:
   - agent-governance
@@ -80,6 +80,7 @@ proven:
   - Current ProtocolLogin authType=session path issues LoginSessionManager tokens only after legacy account password authentication and returns the token as the existing session key; this issuer cannot be reused directly by the Oteryn Gateway because the target path must not require the Oteryn password.
   - Oteryn Platform PR 123 is closed unmerged with zero commits; its advertised hardening for pre-auth throttling, rotating Gateway credential hashes and no-store coverage is therefore not present through that PR.
   - Canary PR 514 is open for authenticated game-session transport validation and changes security test tooling/docs only; it does not own LoginSessionManager or ProtocolGame runtime source paths.
+  - Canary draft PR 722 now owns the Phase 6 discovery task record and contains no runtime changes yet.
 derived:
   - Candidate B is the stronger current security direction because Canary already has single-use bounded session semantics; production use still requires a safe way for the Gateway or adapter to issue into the exact Canary process that will consume the token.
   - Candidate A should not be selected merely for compatibility because its replay window is weaker than the existing LoginSessionManager semantics and requires an explicit risk decision plus least-privilege database proof.
@@ -102,6 +103,9 @@ validation:
   - command: live source and contract preflight via GitHub connector
     result: PASS
     evidence: OTClient PR 17 merge, Platform contract, Canary LoginSessionManager and ProtocolLogin were revalidated against current repository state.
+  - command: Canary draft PR 722 creation and changed-file scope check
+    result: PASS
+    evidence: PR 722 targets blakinio/canary main from feat/CAN-20260722-oteryn-game-session-adapter and currently changes only the active task record.
   - command: local git clone/build/test
     result: BLOCKED
     evidence: sandbox DNS cannot resolve github.com; repository mutation and source inspection remain available through the GitHub connector.
