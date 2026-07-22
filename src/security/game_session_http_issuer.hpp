@@ -33,7 +33,6 @@ public:
 		bool enabled = false;
 		std::string bindAddress;
 		uint16_t port = 0;
-		int64_t worldId = 0;
 		std::string serviceTokenSha256;
 		std::chrono::milliseconds requestTimeout = DefaultRequestTimeout;
 	};
@@ -63,6 +62,7 @@ public:
 	struct Dependencies {
 		std::function<std::optional<std::vector<std::string>>(uint32_t)> loadCharacters;
 		std::function<std::optional<std::string>(const LoginSessionIssueParams &)> issueToken;
+		std::function<int64_t()> currentWorldId;
 		std::function<std::chrono::system_clock::time_point()> now;
 	};
 
