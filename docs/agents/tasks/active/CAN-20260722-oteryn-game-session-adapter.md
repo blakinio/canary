@@ -7,7 +7,7 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 base_branch: main
 created: 2026-07-22T16:00:00+02:00
-updated: 2026-07-22T21:45:00+02:00
+updated: 2026-07-22T21:52:00+02:00
 last_verified_commit: bdd95eb847f17713f2788c2a10092d864c17e666
 risk: high
 related_issue: ""
@@ -110,8 +110,8 @@ Current Oteryn Platform main still lacks pre-auth throttling, overlapping Gatewa
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T21:45:00+02:00
-head: bdd95eb847f17713f2788c2a10092d864c17e666
+updated_at: 2026-07-22T21:52:00+02:00
+head: 3de3619b609886525dba32d06f907832f3dfbc37
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 pr: 722
 status: blocked
@@ -119,6 +119,32 @@ context_routes:
   - agent-governance
   - cpp-runtime
   - cross-repo
+owned_paths:
+  - docs/agents/tasks/active/CAN-20260722-oteryn-game-session-adapter.md
+  - src/security/game_session_http_issuer.hpp
+  - src/security/game_session_http_issuer.cpp
+  - src/security/CMakeLists.txt
+  - src/server/server.cpp
+  - src/main.cpp
+  - vcproj/settings.props
+  - tests/unit/security/game_session_http_issuer_test.cpp
+  - tests/unit/security/CMakeLists.txt
+  - docs/agents/CROSS_REPO_CONTRACTS.md
+  - docs/agents/MODULE_CATALOG.md
+  - docs/agents/CHANGELOG.md
+changed_paths:
+  - docs/agents/CHANGELOG.md
+  - docs/agents/CROSS_REPO_CONTRACTS.md
+  - docs/agents/MODULE_CATALOG.md
+  - docs/agents/tasks/active/CAN-20260722-oteryn-game-session-adapter.md
+  - src/main.cpp
+  - src/security/CMakeLists.txt
+  - src/security/game_session_http_issuer.cpp
+  - src/security/game_session_http_issuer.hpp
+  - src/server/server.cpp
+  - tests/unit/security/CMakeLists.txt
+  - tests/unit/security/game_session_http_issuer_test.cpp
+  - vcproj/settings.props
 proven:
   - Candidate B is implemented as a disabled-by-default per-process HTTP issuer reusing LoginSessionManager.
   - LoginSessionManager provides SHA-256-only process-local storage, 60-second default TTL and atomic single-use consume bound to account, allowed character names and protocol profile.
@@ -156,8 +182,10 @@ validation:
     evidence: Linux debug Run Tests, Linux release/runtime smoke, macOS, Windows MSBuild and Docker completed successfully.
   - command: Security Validation run 29944179785 on runtime head f71ce24d75b920bac10fedb4b04601ac75c01a2f
     result: PASS
+    evidence: exact runtime-head Security Validation completed successfully.
   - command: documentation-head CI/Security/Ownership/autofix on 8b73252a5943d633a5d59d86114a3d72185f0258
     result: PASS
+    evidence: CI run 29947152600, Security Validation run 29947152617, Agent Task Ownership run 29947152833 and autofix run 29947152495 completed successfully.
   - command: local C++ edit/build/test loop
     result: BLOCKED
     evidence: no local Canary checkout was available; remote exact-head CI is the compile/test evidence and no local build is claimed.
