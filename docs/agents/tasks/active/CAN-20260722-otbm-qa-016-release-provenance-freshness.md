@@ -7,7 +7,7 @@ branch: feat/otbm-qa-016-release-provenance-freshness-20260722
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "f11672975f2c5996bf3614eedaa7638e163e2ffb"
+last_verified_commit: "9ddedc9b1fe94f45a6c3abb7c6e69403e531aca1"
 risk: medium
 related_issue: ""
 related_pr: "737"
@@ -36,14 +36,14 @@ cross_repo_tasks: []
 
 ## Status
 
-READY — bounded QA-016 implementation is complete on PR #737. Shared governance merged through PR #743. `ci:final-gate` was applied before the final checkpoint cycle; this commit completes the validator-required checkpoint contract only. No feature code changed and no further feature-branch commits are permitted.
+READY — bounded QA-016 implementation is complete on PR #737. Shared governance merged through PR #743. `ci:final-gate` was applied before the final checkpoint cycle; this commit only normalizes the checkpoint validation result enum. No feature code changed and no further feature-branch commits are permitted.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T23:29:00+02:00
-head: f11672975f2c5996bf3614eedaa7638e163e2ffb
+updated_at: 2026-07-22T23:32:00+02:00
+head: 9ddedc9b1fe94f45a6c3abb7c6e69403e531aca1
 branch: feat/otbm-qa-016-release-provenance-freshness-20260722
 pr: 737
 status: ready
@@ -65,16 +65,16 @@ proven:
   - The composer does not rerun validators, Semantic Diff or Physical E2E and does not mutate evidence or certification.
   - Pre-final CI 29959344000, Ownership 29959343913, OTBM Map Tools 29959343853 and AI Agent Tools 29959343638 passed on head 29d3831678e7f568cfbd218e0aadfd9ec64d51db.
   - Shared governance PR 743 merged as 47759e49fca04526ef24097e9f3cf859b0f66b3a after full final-gate CI 29960786583 succeeded.
-  - Exact-final Ownership 29962635996 on the prior checkpoint-normalization head failed only because the checkpoint omitted rejected_hypotheses; no feature-code or focused-test regression was reported.
-  - ci:final-gate was already applied before this checkpoint-contract correction commit.
+  - Exact-final Ownership 29962635996 failed only because rejected_hypotheses was missing from the checkpoint; the contract was completed on the prior correction commit.
+  - ci:final-gate was already applied before these checkpoint-contract correction commits.
 derived:
-  - QA-016 requires one fresh exact-final validation cycle on this corrected checkpoint head and no further commits.
+  - QA-016 requires a fresh exact-final validation cycle on this corrected checkpoint head and no further commits.
 unknown:
   - Runtime/gameplay compatibility after changed dependencies still requires owning validators or Physical E2E.
 conflicts: []
 first_failure:
-  marker: checkpoint-missing-rejected-hypotheses
-  evidence: Ownership 29962635996 diagnostic artifact reported only missing checkpoint field rejected_hypotheses.
+  marker: checkpoint-contract-normalization
+  evidence: Ownership diagnostics identified only checkpoint schema issues; feature code and focused tests remained green.
 rejected_hypotheses:
   - Treat timestamps as evidence of release freshness.
   - Treat dependency-hash stability as runtime gameplay proof.
@@ -92,9 +92,9 @@ validation:
   - command: GitHub Actions pre-final CI/Ownership/OTBM/AI
     result: PASS
     evidence: 29959344000, 29959343913, 29959343853 and 29959343638 all succeeded.
-  - command: Ownership diagnostic artifact for 29962635996
-    result: FIXED
-    evidence: The only reported error was missing checkpoint field rejected_hypotheses; the field is now present.
+  - command: Ownership diagnostic artifact 29962635996
+    result: PASS
+    evidence: The missing rejected_hypotheses checkpoint field was diagnosed and corrected; no feature-code failure was reported.
 blockers: []
 next_action: Verify exact-final-head CI, Ownership, OTBM Map Tools and AI Agent Tools on this corrected checkpoint head plus review/mergeability on PR 737, then mark ready, enable auto-merge and complete lifecycle closure after merge.
 ```
