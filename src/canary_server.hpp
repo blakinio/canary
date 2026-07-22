@@ -8,6 +8,7 @@
  */
 
 #pragma once
+
 #include "security/rsa.hpp"
 #include "server/server.hpp"
 
@@ -22,7 +23,7 @@ public:
 	explicit FailedToInitializeCanary(const std::string &msg) :
 		message("Canary load couldn't be completed. " + msg) { }
 
-	// Override the what() method
+	// Override the what() method from std::exception
 	const char* what() const noexcept override {
 		return message.c_str();
 	}
