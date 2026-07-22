@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import sys
 import threading
 import urllib.error
 import urllib.request
@@ -15,6 +16,7 @@ MODULE_PATH = ROOT / "tools" / "e2e" / "oteryn_native_auth_platform_stub.py"
 SPEC = importlib.util.spec_from_file_location("oteryn_native_auth_platform_stub", MODULE_PATH)
 assert SPEC is not None and SPEC.loader is not None
 stub = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = stub
 SPEC.loader.exec_module(stub)
 
 
