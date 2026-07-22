@@ -10,7 +10,7 @@ updated: 2026-07-22
 last_verified_commit: "f3d850109e075368f04330b67230563c5332dc46"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "724"
 depends_on:
   - CAN-20260722-otbm-qa-012-critical-access-integrity complete
   - Unified OTBM World Index available
@@ -56,7 +56,7 @@ cross_repo_tasks: []
 
 ## Status
 
-IMPLEMENTING — QA-012 feature and lifecycle are complete; fresh QA-013 live-state and overlap preflight passed on `main` `f3d850109e075368f04330b67230563c5332dc46`.
+IMPLEMENTING — QA-012 feature and lifecycle are complete; fresh QA-013 live-state and overlap preflight passed on `main` `f3d850109e075368f04330b67230563c5332dc46`. Draft feature PR #724 owns this bounded slice.
 
 ## Goal
 
@@ -96,10 +96,10 @@ Provide deterministic read-only evidence for identifier and selector conflicts w
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T17:35:00+02:00
-head: f3d850109e075368f04330b67230563c5332dc46
+updated_at: 2026-07-22T17:40:00+02:00
+head: 0b4b9aea3f8e41519bd59180c4dbfeb6b11b60a2
 branch: feat/otbm-qa-013-identifier-integrity-20260722
-pr: none
+pr: 724
 status: implementing
 context_routes:
   - otbm
@@ -123,6 +123,7 @@ proven:
   - Script Resolution already preserves conflicting, unresolved, partially-resolved and referenced-only identifier/placement evidence and must be consumed rather than reimplemented.
   - Reachability transition parsing already rejects duplicate transition IDs and validates exact source/destination semantics.
   - Route Interaction Registry rejects exact duplicate selectors, while its resolver may still match multiple non-identical overlapping selectors; such overlap is valid QA-013 ambiguity evidence.
+  - Draft PR 724 is open for the bounded QA-013 feature branch.
 derived:
   - QA-013 can be implemented as a fail-closed evidence composer plus reviewed uniqueness/reuse policy rather than a new scanner or resolver.
 unknown:
@@ -142,5 +143,5 @@ validation:
     result: PASS
     evidence: main f3d850109e075368f04330b67230563c5332dc46; no competing QA-013 task/PR; canonical reuse boundaries confirmed.
 blockers: []
-next_action: Open the draft QA-013 PR, bind this task record to it, then implement the smallest deterministic policy and evidence-composition contract with focused tests before shared-doc updates.
+next_action: Implement the smallest deterministic reviewed policy and read-only identifier/selector evidence composer with focused semantic, schema and output-safety tests before shared-doc updates.
 ```
