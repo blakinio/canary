@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.example/schemas/OTBM_STATIC_HOTSPOTS.schema.json",
+  "title": "Canary OTBM Static Hotspots Report v1",
+  "type": "object",
+  "required": ["format", "schemaVersion", "provenance", "thresholds", "summary", "candidates", "policy", "reportSha256"],
+  "properties": {
+    "format": {"const": "canary-otbm-static-hotspots-v1"},
+    "schemaVersion": {"const": 1},
+    "provenance": {"type": "object"},
+    "thresholds": {"type": "object"},
+    "summary": {"type": "object", "required": ["tileCount", "areaCount", "candidateCount", "byCode"]},
+    "candidates": {"type": "array", "items": {"type": "object", "required": ["severity", "code", "message", "value", "threshold"]}},
+    "policy": {"type": "object"},
+    "reportSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
