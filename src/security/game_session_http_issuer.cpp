@@ -212,12 +212,12 @@ namespace {
 	[[nodiscard]] std::string serializeResponse(const HttpResponse &response) {
 		std::ostringstream stream;
 		stream << "HTTP/1.1 " << response.status << ' ' << response.reason << "\r\n"
-			   << "Content-Type: application/json\r\n"
-			   << "Cache-Control: no-store\r\n"
-			   << "Pragma: no-cache\r\n"
-			   << "Connection: close\r\n"
-			   << "Content-Length: " << response.body.size() << "\r\n\r\n"
-			   << response.body;
+		       << "Content-Type: application/json\r\n"
+		       << "Cache-Control: no-store\r\n"
+		       << "Pragma: no-cache\r\n"
+		       << "Connection: close\r\n"
+		       << "Content-Length: " << response.body.size() << "\r\n\r\n"
+		       << response.body;
 		return stream.str();
 	}
 
@@ -453,18 +453,19 @@ private:
 					.status = 200,
 					.reason = "OK",
 					.body = json({
-									 { "protocol_version", 1 },
-									 { "session", {
-													  { "credential", result.credential },
-													  { "expires_at", formatUtc(result.expiresAt) },
-												  } },
-								 })
-								.dump(),
+						{ "protocol_version", 1 },
+						{ "session", {
+							{ "credential", result.credential },
+							{ "expires_at", formatUtc(result.expiresAt) },
+						} },
+					}).dump(),
 				};
 			case GameSessionHttpIssuer::CreateStatus::InvalidRequest:
 				return jsonError(400, "Bad Request", "invalid_request");
 			case GameSessionHttpIssuer::CreateStatus::WrongWorld:
 				return jsonError(409, "Conflict", "wrong_world");
+			case GameSessionHttpIssuer::CreateStatus::DuplicateAttempt:
+				return jsonError(409, "Conflict", "duplicate_login_attempt");
 			case GameSessionHttpIssuer::CreateStatus::AccountUnavailable:
 				return jsonError(404, "Not Found", "account_unavailable");
 			case GameSessionHttpIssuer::CreateStatus::NoCharacters:
@@ -598,6 +599,35 @@ bool GameSessionHttpIssuer::authenticateBearer(std::string_view credential) cons
 	return constantTimeEquals(sha256Hex(credential), config.serviceTokenSha256);
 }
 
+GameSessionHttpIssuer::LoginAttemptReservation GameSessionHttpIssuer::reserveLoginAttempt(
+	const std::string &loginAttemptId,
+	const std::chrono::system_clock::time_point now
+) const {
+	std::scoped_lock lock(loginAttemptsMutex);
+	for (auto it = loginAttempts.begin(); it != loginAttempts.end();) {
+		if (it->second <= now) {
+			it = loginAttempts.erase(it);
+		} else {
+			++it;
+		}
+	}
+
+	if (loginAttempts.contains(loginAttemptId)) {
+		return LoginAttemptReservation::Duplicate;
+	}
+	if (loginAttempts.size() >= MaxTrackedLoginAttempts) {
+		return LoginAttemptReservation::CapacityExceeded;
+	}
+
+	loginAttempts.emplace(loginAttemptId, now + LoginSessionManager::DefaultTtl);
+	return LoginAttemptReservation::Reserved;
+}
+
+void GameSessionHttpIssuer::releaseLoginAttempt(const std::string &loginAttemptId) const {
+	std::scoped_lock lock(loginAttemptsMutex);
+	loginAttempts.erase(loginAttemptId);
+}
+
 GameSessionHttpIssuer::CreateResult GameSessionHttpIssuer::createSession(const CreateRequest &request) const {
 	if (!config.enabled || request.protocolVersion != 1 || request.accountId == 0
 	    || request.loginAttemptId.size() != LoginAttemptIdHexLength || !isHex(request.loginAttemptId)) {
@@ -606,17 +636,31 @@ GameSessionHttpIssuer::CreateResult GameSessionHttpIssuer::createSession(const C
 	if (!dependencies.currentWorldId || request.worldId != dependencies.currentWorldId()) {
 		return { .status = CreateStatus::WrongWorld };
 	}
+
+	const auto now = dependencies.now ? dependencies.now() : std::chrono::system_clock::now();
+	const auto reservation = reserveLoginAttempt(request.loginAttemptId, now);
+	if (reservation == LoginAttemptReservation::Duplicate) {
+		return { .status = CreateStatus::DuplicateAttempt };
+	}
+	if (reservation == LoginAttemptReservation::CapacityExceeded) {
+		return { .status = CreateStatus::IssueFailed };
+	}
+
 	if (!dependencies.loadCharacters) {
+		releaseLoginAttempt(request.loginAttemptId);
 		return { .status = CreateStatus::AccountUnavailable };
 	}
 	const auto characters = dependencies.loadCharacters(request.accountId);
 	if (!characters) {
+		releaseLoginAttempt(request.loginAttemptId);
 		return { .status = CreateStatus::AccountUnavailable };
 	}
 	if (characters->empty()) {
+		releaseLoginAttempt(request.loginAttemptId);
 		return { .status = CreateStatus::NoCharacters };
 	}
 	if (!dependencies.issueToken) {
+		releaseLoginAttempt(request.loginAttemptId);
 		return { .status = CreateStatus::IssueFailed };
 	}
 
@@ -626,10 +670,10 @@ GameSessionHttpIssuer::CreateResult GameSessionHttpIssuer::createSession(const C
 	params.protocolProfile = ProtocolProfileId::Current;
 	const auto token = dependencies.issueToken(params);
 	if (!token) {
+		releaseLoginAttempt(request.loginAttemptId);
 		return { .status = CreateStatus::IssueFailed };
 	}
 
-	const auto now = dependencies.now ? dependencies.now() : std::chrono::system_clock::now();
 	return {
 		.status = CreateStatus::Ok,
 		.credential = *token,
