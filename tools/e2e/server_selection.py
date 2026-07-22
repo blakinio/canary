@@ -23,7 +23,26 @@ SAFE_SEGMENT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 NATIVE_AUTH_MODE = "oteryn_gateway"
 NATIVE_AUTH_GATEWAY_REPOSITORY = "blakinio/Oteryn-Platform"
-PROCESS_TIMEOUT_SECONDS = 900
+PROCESS_TIMEOUT_SECONDS = 3600
+NATIVE_AUTH_EXPORT_KEYS = (
+    "AGENT_E2E_AUTH_MODE",
+    "AGENT_E2E_NATIVE_AUTH_RUNTIME_PREPARED",
+    "AGENT_E2E_GATEWAY_BASE_URL",
+    "AGENT_E2E_PLATFORM_STUB_PORT",
+    "AGENT_E2E_SESSION_ISSUER_PORT",
+    "AGENT_E2E_CANARY_ACCOUNT_ID",
+    "AGENT_E2E_PLATFORM_WORLD_ID",
+    "AGENT_E2E_PLATFORM_SERVICE_TOKEN",
+    "AGENT_E2E_SESSION_SERVICE_TOKEN",
+    "AGENT_E2E_GAME_LOGIN_TICKET",
+    "AGENT_E2E_GATEWAY_REPOSITORY",
+    "AGENT_E2E_GATEWAY_REF",
+    "CANARY_GAME_SESSION_ISSUER_ENABLED",
+    "CANARY_GAME_SESSION_ISSUER_BIND",
+    "CANARY_GAME_SESSION_ISSUER_PORT",
+    "CANARY_GAME_SESSION_SERVICE_TOKEN_SHA256",
+    "CANARY_GAME_SESSION_ISSUER_WORLD_ID",
+)
 
 
 class ServerSelectionError(ValueError):
@@ -190,6 +209,7 @@ def _native_auth_environment(selection: NativeAuthSelection) -> tuple[dict[str, 
 
     exported = {
         "AGENT_E2E_AUTH_MODE": NATIVE_AUTH_MODE,
+        "AGENT_E2E_NATIVE_AUTH_RUNTIME_PREPARED": "true",
         "AGENT_E2E_GATEWAY_BASE_URL": f"http://127.0.0.1:{selection.gateway_port}",
         "AGENT_E2E_PLATFORM_STUB_PORT": str(selection.platform_stub_port),
         "AGENT_E2E_SESSION_ISSUER_PORT": str(selection.session_issuer_port),
@@ -208,6 +228,36 @@ def _native_auth_environment(selection: NativeAuthSelection) -> tuple[dict[str, 
     }
     runtime = dict(exported)
     return exported, runtime
+
+
+def _existing_native_auth_environment(selection: NativeAuthSelection) -> dict[str, str] | None:
+    if os.environ.get("AGENT_E2E_NATIVE_AUTH_RUNTIME_PREPARED") != "true":
+        return None
+    missing = [key for key in NATIVE_AUTH_EXPORT_KEYS if not os.environ.get(key)]
+    if missing:
+        raise ServerSelectionError(
+            "prepared native-auth runtime is missing environment value(s): " + ", ".join(sorted(missing))
+        )
+    expected = {
+        "AGENT_E2E_AUTH_MODE": NATIVE_AUTH_MODE,
+        "AGENT_E2E_GATEWAY_BASE_URL": f"http://127.0.0.1:{selection.gateway_port}",
+        "AGENT_E2E_PLATFORM_STUB_PORT": str(selection.platform_stub_port),
+        "AGENT_E2E_SESSION_ISSUER_PORT": str(selection.session_issuer_port),
+        "AGENT_E2E_CANARY_ACCOUNT_ID": str(selection.canary_account_id),
+        "AGENT_E2E_PLATFORM_WORLD_ID": str(selection.platform_world_id),
+        "AGENT_E2E_GATEWAY_REPOSITORY": selection.gateway_repository,
+        "AGENT_E2E_GATEWAY_REF": selection.gateway_ref,
+        "CANARY_GAME_SESSION_ISSUER_ENABLED": "true",
+        "CANARY_GAME_SESSION_ISSUER_BIND": "127.0.0.1",
+        "CANARY_GAME_SESSION_ISSUER_PORT": str(selection.session_issuer_port),
+        "CANARY_GAME_SESSION_ISSUER_WORLD_ID": str(selection.platform_world_id),
+    }
+    mismatched = [key for key, value in expected.items() if os.environ.get(key) != value]
+    if mismatched:
+        raise ServerSelectionError(
+            "prepared native-auth runtime does not match scenario value(s): " + ", ".join(sorted(mismatched))
+        )
+    return {key: os.environ[key] for key in NATIVE_AUTH_EXPORT_KEYS}
 
 
 def _run_checked(command: list[str], *, cwd: Path | None = None, stdout: Path | None = None) -> None:
@@ -266,6 +316,12 @@ def prepare_native_auth_runtime(
     root: Path,
     selection: NativeAuthSelection,
 ) -> dict[str, str]:
+    existing = _existing_native_auth_environment(selection)
+    if existing is not None:
+        _wait_http_ok(f"http://127.0.0.1:{selection.platform_stub_port}/health")
+        _wait_http_ok(f"http://127.0.0.1:{selection.gateway_port}/health")
+        return existing
+
     manifest = _load_manifest(manifest_path)
     scenario = _scenario(manifest)
     fixture = scenario.get("fixture")
