@@ -1,20 +1,18 @@
 ---
 task_id: CAN-20260722-otbm-qa-017-deterministic-change-risk
 program_id: CAN-PROGRAM-OTBM
-status: implementing
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/otbm-qa-017-deterministic-change-risk-20260722
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "0d5e8246e01b3a2398c1bdde3d2131a49eddf21d"
+last_verified_commit: "1700f64ffb95e0501b3bacaca8e78f5475bdffaf"
 risk: medium
 related_issue: ""
 related_pr: "739"
 depends_on:
-  - OTBM-QA-014 implementation active on PR 734
-  - OTBM-QA-015 implementation active on PR 735
-  - OTBM-QA-016 implementation active on PR 737
+  - shared-doc governance PR 743 merged
 owned_paths:
   exclusive:
     - tools/ai-agent/otbm_change_risk.py
@@ -27,13 +25,8 @@ owned_paths:
     - docs/ai-agent/OTBM_CHANGE_RISK_INPUT.schema.json
     - docs/ai-agent/OTBM_CHANGE_RISK.schema.json
     - docs/agents/tasks/active/CAN-20260722-otbm-qa-017-deterministic-change-risk.md
-  shared:
-    - docs/agents/MODULE_CATALOG.md
-    - docs/agents/CHANGELOG.md
 modules_touched:
   - otbm-change-risk
-reuses:
-  - exact finding IDs and provenance from already-delivered OTBM evidence producers
 public_interfaces:
   - canary-otbm-change-risk-policy-v1
   - canary-otbm-change-risk-input-v1
@@ -45,24 +38,18 @@ cross_repo_tasks: []
 
 ## Status
 
-IMPLEMENTING — transparent policy-driven review aid is implemented on draft PR #739; current-head validation is running. No opaque AI score and no skip/repair/merge authorization.
-
-## Goal
-
-Classify potential scope of one exact OTBM change from explicit evidence-backed factors and a versioned visible policy.
+READY — bounded QA-017 implementation is complete on PR #739. Shared governance merged through PR #743. `ci:final-gate` was applied before this final checkpoint commit; no further feature-branch commits are permitted.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T22:50:00+02:00
-head: 0d5e8246e01b3a2398c1bdde3d2131a49eddf21d
+updated_at: 2026-07-22T23:23:00+02:00
+head: 1700f64ffb95e0501b3bacaca8e78f5475bdffaf
 branch: feat/otbm-qa-017-deterministic-change-risk-20260722
 pr: 739
-status: implementing
-context_routes:
-  - otbm
-  - agent-governance
+status: ready
+context_routes: [otbm, agent-governance]
 owned_paths:
   - tools/ai-agent/otbm_change_risk.py
   - tools/ai-agent/otbm_change_risk_tool.py
@@ -75,19 +62,17 @@ owned_paths:
   - docs/ai-agent/OTBM_CHANGE_RISK.schema.json
   - docs/agents/tasks/active/CAN-20260722-otbm-qa-017-deterministic-change-risk.md
 proven:
-  - Roadmap QA-017 requires explicit visible contributing factors and forbids an opaque AI score from authorizing safe skip, repair or merge.
   - PR 739 implements exact before/after map hashes, exact evidence references, explicit factor statuses, visible weights and deterministic thresholds.
-  - Present and unresolved factors contribute visibly; unresolved factors are separately retained so uncertainty cannot silently reduce risk.
+  - The report is not an opaque AI score and never authorizes validation skip, repair or merge.
+  - Pre-final CI 29959602719, Ownership 29959601792, OTBM Map Tools 29959601766 and AI Agent Tools 29959602051 passed on head 1700f64ffb95e0501b3bacaca8e78f5475bdffaf.
+  - Shared governance PR 743 merged as 47759e49fca04526ef24097e9f3cf859b0f66b3a after full final-gate CI 29960786583 succeeded.
+  - ci:final-gate was applied to PR 739 before this final checkpoint commit.
 derived:
-  - The result is a transparent review aid and can compose evidence from QA-014/015/016 and earlier OTBM validators without duplicating them.
+  - QA-017 is ready for immutable exact-final-head validation and merge without further feature changes.
 unknown:
-  - Risk classification cannot prove actual gameplay regression or authorize merge safety.
+  - Risk classification does not prove actual gameplay regression or merge safety.
 conflicts: []
-first_failure:
-  marker: none
-  evidence: Current-head validation has not completed yet.
-rejected_hypotheses:
-  - Use model intuition or hidden weighting: roadmap requires explicit deterministic policy.
+first_failure: {marker: none, evidence: No unresolved implementation, focused-test or governance failure remains.}
 changed_paths:
   - docs/agents/tasks/active/CAN-20260722-otbm-qa-017-deterministic-change-risk.md
   - tools/ai-agent/otbm_change_risk.py
@@ -100,9 +85,9 @@ changed_paths:
   - docs/ai-agent/OTBM_CHANGE_RISK_INPUT.schema.json
   - docs/ai-agent/OTBM_CHANGE_RISK.schema.json
 validation:
-  - command: fresh live-state/overlap preflight
+  - command: GitHub Actions pre-final CI/Ownership/OTBM/AI
     result: PASS
-    evidence: main 8bdeb2747356727df80a3b95073aa29a4dca7818; no competing QA-017 PR found.
+    evidence: 29959602719, 29959601792, 29959601766 and 29959602051 all succeeded.
 blockers: []
-next_action: Wait for current-head CI, Ownership, OTBM Map Tools and AI Agent Tools; fix only evidence-backed failures before combined governance and final-gate closure.
+next_action: Verify exact-final-head CI, Ownership, OTBM Map Tools and AI Agent Tools plus review/mergeability on PR 739, then mark ready, enable auto-merge and complete lifecycle closure after merge.
 ```
