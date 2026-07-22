@@ -1,13 +1,14 @@
 ---
 task_id: CAN-20260722-oteryn-game-session-adapter
+program_id: none
 coordination_id: OTS-20260721-oteryn-identity-auth
 status: implementing
 agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 base_branch: main
 created: 2026-07-22T16:00:00+02:00
-updated: 2026-07-22T18:14:26+02:00
-last_verified_commit: d052fd48f94a0f53e1a2a6c097f0277c771c50d2
+updated: 2026-07-22T18:17:37+02:00
+last_verified_commit: 950af668e724bee2e306db55d169a09e9e5964fa
 risk: high
 related_issue: ""
 related_pr: "722"
@@ -120,8 +121,8 @@ Oteryn Platform PR #123 remains closed unmerged. Its advertised pre-auth throttl
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T18:14:26+02:00
-head: d052fd48f94a0f53e1a2a6c097f0277c771c50d2
+updated_at: 2026-07-22T18:17:37+02:00
+head: 950af668e724bee2e306db55d169a09e9e5964fa
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 pr: 722
 status: implementing
@@ -155,8 +156,8 @@ unknown:
 conflicts:
   - Prior handoff narrative claimed Oteryn Platform PR 123 was squash-merged, but live GitHub state proves PR 123 closed unmerged with zero commits.
 first_failure:
-  marker: agent-task-ownership-active-status
-  evidence: Agent Task Ownership run 29929564897 failed because the task record under tasks/active used unsupported frontmatter status investigating; active statuses are planned, implementing, blocked, review or ready.
+  marker: agent-task-ownership-missing-program-id
+  evidence: Agent Task Ownership run 29937243153 passed changed-checkpoint validation but failed repository-wide ownership validation; active structured tasks require a non-empty program_id, while this task omitted it despite the continuation contract declaring PROGRAM none.
 rejected_hypotheses:
   - Reuse current ProtocolLogin issuer unchanged for Oteryn native auth: it is reached only after account password authentication.
   - Treat DB account_sessions as single-use: the current Platform contract explicitly records them as replayable until expiry or external deletion.
@@ -167,13 +168,13 @@ changed_paths:
 validation:
   - command: live PR/head/CI preflight via GitHub connector
     result: FAIL
-    evidence: PR 722 head d052fd48f94a0f53e1a2a6c097f0277c771c50d2; CI workflow passed, Agent Task Ownership run 29929564897 failed only on invalid active-task frontmatter status investigating.
+    evidence: PR 722 head 950af668e724bee2e306db55d169a09e9e5964fa; CI run 29937243523 passed, Agent Task Ownership run 29937243153 passed checkpoint validation but failed repository-wide ownership validation because the now-active structured task omitted required program_id.
   - command: targeted service/network/routing reuse discovery via GitHub connector
     result: PASS
     evidence: ServiceManager/ServicePort, Game::start, ChannelContext, ChannelRegistry and multi-channel process model inspected; no existing authenticated internal issuer was found.
   - command: open PR path-ownership overlap check via GitHub connector
     result: PASS
-    evidence: PR 514 owns security runtime-validation tooling/docs, PR 526 owns audit docs, and PR 722 remains task-record-only before this checkpoint commit.
+    evidence: PR 514 owns security runtime-validation tooling/docs, PR 526 owns audit docs, and PR 722 remains task-record-only before runtime implementation.
   - command: Oteryn Platform merged Gateway contract inspection via GitHub connector
     result: PASS
     evidence: PR 122 merge plus current Gateway session client/config/service/types establish one HTTP session base URL, bearer auth, single-world fail-closed behavior and protocol-v1 request/response shape.
