@@ -1,13 +1,13 @@
 ---
 task_id: CAN-20260722-otbm-qa-010-quest-state-reachability
 program_id: CAN-PROGRAM-OTBM
-status: implementing
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/otbm-qa-010-quest-state-reachability-20260722
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "7bdfc5f276663393e6115d02de748026df7e8439"
+last_verified_commit: "115eb9d353f8d02795888c3bb85d2c307e49189a"
 risk: medium
 related_issue: ""
 related_pr: "709"
@@ -56,7 +56,7 @@ cross_repo_tasks: []
 
 ## Status
 
-IMPLEMENTING — bounded QA-010 implementation is present in draft PR #709; shared catalogue/changelog and final validation remain.
+READY — bounded QA-010 implementation and shared documentation are complete in draft PR #709; exact-final-head gates remain before merge.
 
 ## Goal
 
@@ -97,11 +97,11 @@ Derive a conservative static state-reachability view for explicitly selected que
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T09:36:00+02:00
-head: 7bdfc5f276663393e6115d02de748026df7e8439
+updated_at: 2026-07-22T09:48:00+02:00
+head: 115eb9d353f8d02795888c3bb85d2c307e49189a
 branch: feat/otbm-qa-010-quest-state-reachability-20260722
 pr: 709
-status: implementing
+status: ready
 context_routes:
   - otbm
   - agent-governance
@@ -123,39 +123,48 @@ proven:
   - No open QA-010 or quest-state-reachability PR was found during the fresh overlap preflight.
   - The canonical Storage Dependency Graph emits only conservative exact same-key transitions and preserves dynamic, inequality and else cases as non-transition evidence.
   - The canonical Route Interaction Registry is reused through resolve_interaction; unresolved, conflicting or ambiguous evidence is not traversable.
-  - Draft PR 709 contains the bounded core, CLI, manifest/report schemas, documentation and focused semantic, schema and output-safety tests.
-  - Repository CI run 29900217346 passed on head 7bdfc5f276663393e6115d02de748026df7e8439.
+  - PR 709 changes exactly eleven bounded implementation, test, documentation, catalogue, changelog and task-record paths with no map, datapack, runtime, E2E or workflow mutation.
+  - Implementation head 6d13ff280fa648866900ebdf29d5a5bec5d36aa1 passed CI 29900547078, Agent Task Ownership 29900546990, OTBM Map Tools 29900547004 and AI Agent Tools 29900547034.
+  - Shared-document audit reduced CHANGELOG to one QA-010 addition and MODULE_CATALOG to the review-date update plus one QA-010 module row.
 derived:
   - QA-010 remains a deterministic composition layer and does not reconstruct storage parsing, map scanning, Script Resolution or pathfinding.
 unknown:
-  - No committed reviewed interaction registry is guaranteed for any concrete quest scope; generic fixture tests can prove the composition contract while real target evaluation remains evidence-dependent.
+  - No committed reviewed interaction registry is guaranteed for any concrete quest scope; generic fixture tests prove the composition contract while real target evaluation remains evidence-dependent.
 conflicts: []
 first_failure:
   marker: Agent Task Ownership run 29900217186 / Validate changed active task checkpoints
-  evidence: The active task was opened in PR 709 while frontmatter related_pr remained empty and checkpoint pr remained none; lifecycle validation requires both to match the current PR.
+  evidence: The active task initially lacked PR 709 metadata; commit 6d13ff280fa648866900ebdf29d5a5bec5d36aa1 bound related_pr and checkpoint pr to 709, after which Agent Task Ownership run 29900546990 passed.
 rejected_hypotheses:
   - Inferring transition order from Lua or source proximity was rejected by the Storage Graph evidence boundary.
   - Treating missing selected-scope producers as global impossibility was rejected by the roadmap safety boundary.
 changed_paths:
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260722-otbm-qa-010-quest-state-reachability.md
+  - docs/ai-agent/OTBM_QUEST_STATE_REACHABILITY.md
+  - docs/ai-agent/OTBM_QUEST_STATE_REACHABILITY.schema.json
+  - docs/ai-agent/OTBM_QUEST_STATE_REACHABILITY_MANIFEST.schema.json
   - tools/ai-agent/otbm_quest_state_reachability.py
   - tools/ai-agent/otbm_quest_state_reachability_tool.py
   - tools/ai-agent/test_otbm_quest_state_reachability.py
   - tools/ai-agent/test_otbm_quest_state_reachability_output_safety.py
   - tools/ai-agent/test_otbm_quest_state_reachability_schema.py
-  - docs/ai-agent/OTBM_QUEST_STATE_REACHABILITY.md
-  - docs/ai-agent/OTBM_QUEST_STATE_REACHABILITY_MANIFEST.schema.json
-  - docs/ai-agent/OTBM_QUEST_STATE_REACHABILITY.schema.json
 validation:
   - command: post-QA-009 live main and overlap preflight
     result: PASS
     evidence: main 6a87373e84073a84ccdbdb64f7d61b2747f40764; no competing QA-010 PR or task found.
-  - command: GitHub Actions CI run 29900217346
+  - command: GitHub Actions CI run 29900547078
     result: PASS
-    evidence: repository CI passed on implementation head 7bdfc5f276663393e6115d02de748026df7e8439.
-  - command: GitHub Actions Agent Task Ownership run 29900217186
-    result: FAIL
-    evidence: lifecycle metadata mismatch for current PR 709; related_pr and checkpoint pr are corrected in the next task-record commit.
+    evidence: implementation head 6d13ff280fa648866900ebdf29d5a5bec5d36aa1.
+  - command: GitHub Actions Agent Task Ownership run 29900546990
+    result: PASS
+    evidence: lifecycle metadata fix verified on implementation head 6d13ff280fa648866900ebdf29d5a5bec5d36aa1.
+  - command: GitHub Actions OTBM Map Tools run 29900547004
+    result: PASS
+    evidence: focused OTBM validation passed on implementation head 6d13ff280fa648866900ebdf29d5a5bec5d36aa1.
+  - command: GitHub Actions AI Agent Tools run 29900547034
+    result: PASS
+    evidence: focused AI-agent validation passed on implementation head 6d13ff280fa648866900ebdf29d5a5bec5d36aa1.
 blockers: []
-next_action: Update shared MODULE_CATALOG and CHANGELOG entries, verify focused OTBM and AI Agent workflows, then prepare one final checkpoint commit under ci:final-gate.
+next_action: Verify exact-final-head CI, Agent Task Ownership, OTBM Map Tools and AI Agent Tools on the immutable final PR 709 head, audit review threads/submissions, then mark ready and squash-merge PR 709.
 ```
