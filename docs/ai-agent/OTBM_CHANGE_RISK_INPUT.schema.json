@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.example/schemas/OTBM_CHANGE_RISK_INPUT.schema.json",
+  "title": "Canary OTBM Change Risk Input v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "beforeMapSha256", "afterMapSha256", "factors"],
+  "properties": {
+    "format": {"const": "canary-otbm-change-risk-input-v1"},
+    "schemaVersion": {"const": 1},
+    "beforeMapSha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"},
+    "afterMapSha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"},
+    "factors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["factor", "status", "evidence"],
+        "properties": {
+          "factor": {"enum": ["critical-infrastructure", "identifier-semantics", "quest-dependency", "fragile-route", "certification-invalidated", "multi-region", "unresolved-evidence", "asset-walkability"]},
+          "status": {"enum": ["present", "unresolved", "absent"]},
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["sourceFormat", "sha256", "findingIds"],
+              "properties": {
+                "sourceFormat": {"type": "string", "minLength": 1},
+                "sha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"},
+                "findingIds": {"type": "array", "items": {"type": "string"}}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

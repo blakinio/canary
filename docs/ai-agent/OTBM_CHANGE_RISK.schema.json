@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.example/schemas/OTBM_CHANGE_RISK.schema.json",
+  "title": "Canary OTBM Change Risk v1",
+  "type": "object",
+  "required": ["format", "schemaVersion", "beforeMapSha256", "afterMapSha256", "score", "riskLevel", "thresholds", "contributions", "unresolvedFactors", "policy", "reportSha256"],
+  "properties": {
+    "format": {"const": "canary-otbm-change-risk-v1"},
+    "schemaVersion": {"const": 1},
+    "beforeMapSha256": {"type": "string"},
+    "afterMapSha256": {"type": "string"},
+    "score": {"type": "integer", "minimum": 0},
+    "riskLevel": {"enum": ["low", "medium", "high", "critical"]},
+    "thresholds": {"type": "object"},
+    "contributions": {"type": "array", "items": {"type": "object", "required": ["factor", "status", "weight", "contribution", "evidence"]}},
+    "unresolvedFactors": {"type": "array", "items": {"type": "string"}},
+    "policy": {"type": "object"},
+    "reportSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
