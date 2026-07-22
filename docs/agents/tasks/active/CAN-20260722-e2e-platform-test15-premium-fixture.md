@@ -10,7 +10,7 @@ created: 2026-07-22
 updated: 2026-07-22
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "723"
 depends_on: []
 blocks:
   - CAN-20260721-e2e-gameplay-003-canary-promotion
@@ -51,10 +51,10 @@ Make the existing privileged `@test15` Universal E2E fixture deterministically p
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T17:05:00+02:00
-head: db76461d4fd13509301da0f432cf47999da0b01f
+updated_at: 2026-07-22T17:00:00+02:00
+head: a28e1ec6b0ea6204be9cba016186375f3ca4f2fb
 branch: fix/e2e-test15-premium-fixture
-pr: null
+pr: 723
 status: validating
 context_routes:
   - universal-e2e
@@ -68,6 +68,7 @@ proven:
   - PlayerLoginGlobal demotes a promoted vocation on login when player:isPremium() is false.
   - Player.isPremium returns premium days or FREE_PREMIUM; the physical E2E runtime does not force FREE_PREMIUM.
   - fixture SQL now sets only account id 115 to 30 premium days with lastday derived from UNIX_TIMESTAMP at each fresh import.
+  - PR #723 is the bounded fixture-only platform change and has ci:final-gate applied before its immutable validation head.
 derived:
   - promotion relog coverage using @test15 now follows the premium persistence branch without changing production login or NPC behavior.
 unknown: []
@@ -87,5 +88,5 @@ validation:
     result: PASS
     evidence: non-premium promoted players are intentionally demoted on login; account 115 previously had no premium seed.
 blockers: []
-next_action: Open the narrow platform PR, apply ci:final-gate, and require exact-head ownership and CI success before merge.
+next_action: Require exact-head Agent Task Ownership, CI and Universal Agent E2E success on PR #723, audit reviews, then merge through the normal autonomous gate.
 ```
