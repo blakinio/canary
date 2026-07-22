@@ -7,7 +7,7 @@ branch: docs/archive-otbm-qa-013-identifier-selector-integrity-724
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "457f40c72dd87994a74d205b7a743f747f647eb6"
+last_verified_commit: "1cba80be50116cb936e805784e5c1abcdd98bc7e"
 risk: medium
 related_issue: ""
 related_pr: "731"
@@ -45,7 +45,7 @@ cross_repo_tasks: []
 
 ## Status
 
-COMPLETE — bounded QA-013 implementation merged through feature PR #724. Lifecycle PR #731 contains only the active-to-archive task-record move; post-merge shared-doc governance is tracked in PR #727 and must merge before lifecycle finalization.
+COMPLETE — bounded QA-013 implementation merged through feature PR #724, required shared-doc governance merged through PR #727, and lifecycle PR #731 contains only the active-to-archive task-record move.
 
 ## Goal
 
@@ -61,6 +61,7 @@ Provide deterministic read-only evidence for identifier and selector conflicts w
 - Added exact house-door `houseId + houseDoorId` scope and exact reviewed placement-role compatibility evidence.
 - Added stable-input, exact-provenance, create-new/no-clobber output safety and internal Route Interaction provenance compatibility.
 - Added focused semantic, schema and output-safety tests and dedicated documentation.
+- Registered the reusable public surface in `MODULE_CATALOG.md` and recorded the delivered behavior in `CHANGELOG.md` through governance PR #727.
 
 ## Proof boundary
 
@@ -72,21 +73,23 @@ Provide deterministic read-only evidence for identifier and selector conflicts w
 
 - Feature PR: #724 — `feat(otbm): add identifier and selector integrity analysis`.
 - Final feature head: `b9e4c954a4e9a2f2f5b13c2f593c0e47c3956e2b`.
-- Squash merge: `09e0324894f011b95e3fe132e0634d7fe40b0116`.
+- Feature squash merge: `09e0324894f011b95e3fe132e0634d7fe40b0116`.
 - Exact-final CI `29935892154`: success.
 - Exact-final Agent Task Ownership `29935891991`: success.
 - Exact-final OTBM Map Tools `29935892966`: success.
 - Exact-final AI Agent Tools `29935891913`: success.
 - Ready-for-review full CI `29936130293`: success after exactly one failed-job rerun of the transient Docker `Build and export (PR)` job; no feature commit changed.
-- Final review audit found zero inline review threads and zero review submissions.
+- Final feature review audit found zero inline review threads and zero review submissions.
 - Feature PR changed exactly nine bounded feature/test/docs/task paths.
+- Governance PR #727 changed exactly two shared-doc paths with two additions and zero deletions.
+- Governance PR #727 squash merged as `0d5f1be451b97e96add2066ee40d1ebca0e753a9` after pre-final CI `29945742703`, Ownership `29945742844` and full final-gate CI `29945834682` all succeeded.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T20:35:00+02:00
-head: 457f40c72dd87994a74d205b7a743f747f647eb6
+updated_at: 2026-07-22T20:42:00+02:00
+head: 1cba80be50116cb936e805784e5c1abcdd98bc7e
 branch: docs/archive-otbm-qa-013-identifier-selector-integrity-724
 pr: 731
 status: complete
@@ -101,10 +104,13 @@ proven:
   - Exact-final CI 29935892154, Ownership 29935891991, OTBM Map Tools 29935892966 and AI Agent Tools 29935891913 passed on the immutable feature head.
   - Ready-for-review full CI 29936130293 passed on the same immutable feature head after exactly one failed-job rerun for a Docker build/export failure; all non-Docker matrix jobs were already green and no feature commit changed.
   - Feature PR 724 changed exactly nine bounded paths and final review audit found zero review threads and zero review submissions.
-  - Governance PR 727 has a clean two-line shared-doc diff: one MODULE_CATALOG row and one CHANGELOG bullet for QA-013, with no deletions or unrelated modifications.
-  - Lifecycle PR 731 is open from main and changes exactly the active and archive QA-013 task-record paths.
+  - Governance PR 727 merged as 0d5f1be451b97e96add2066ee40d1ebca0e753a9 with exactly one MODULE_CATALOG row and one CHANGELOG bullet, zero deletions and no unrelated modifications.
+  - Governance pre-final CI 29945742703, Ownership 29945742844 and full final-gate CI 29945834682 all passed on immutable governance head f26ca429def377f2dcf2dca742134cdb92110e20.
+  - Lifecycle PR 731 changes exactly the active and archive QA-013 task-record paths.
+  - Lifecycle pre-final CI 29947390152 and Agent Task Ownership 29947389890 passed on head 1cba80be50116cb936e805784e5c1abcdd98bc7e.
+  - ci:final-gate was applied to lifecycle PR 731 before this final checkpoint commit.
 derived:
-  - QA-014 may begin only after governance PR 727 and lifecycle PR 731 merge, followed by a fresh live-state and ownership preflight.
+  - QA-014 may begin only after lifecycle PR 731 merges, followed by a fresh live-state and ownership preflight.
 unknown:
   - Intentional identifier reuse cannot be inferred from repetition alone; unreviewed reuse remains review-required unless exact conflict evidence or reviewed policy closes it.
 conflicts: []
@@ -134,7 +140,15 @@ validation:
   - command: GitHub Actions CI run 29936130293
     result: PASS
     evidence: ready-for-review full final-gate matrix passed after one failed-job Docker rerun with no feature commit change.
-blockers:
-  - Governance PR 727 must merge before lifecycle finalization.
-next_action: Merge governance PR 727 after its immutable full final-gate CI succeeds, then validate lifecycle PR 731 pre-final CI/Ownership, apply final-gate before its final checkpoint commit and complete lifecycle merge before QA-014 preflight.
+  - command: GitHub Actions CI run 29945834682
+    result: PASS
+    evidence: governance full final-gate matrix passed before PR 727 auto-merge.
+  - command: GitHub Actions CI run 29947390152
+    result: PASS
+    evidence: lifecycle pre-final repository CI passed before final checkpoint.
+  - command: GitHub Actions Agent Task Ownership run 29947389890
+    result: PASS
+    evidence: lifecycle pre-final ownership validation passed before final checkpoint.
+blockers: []
+next_action: Verify exact-final lifecycle CI and Ownership plus review/mergeability on the immutable lifecycle head, mark PR 731 ready with auto-merge, confirm its squash merge, then perform a fresh QA-014 live-state/overlap preflight and create the active QA-014 checkpoint for resume.py.
 ```
