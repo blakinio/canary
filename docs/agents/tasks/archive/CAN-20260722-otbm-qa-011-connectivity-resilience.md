@@ -7,7 +7,7 @@ branch: feat/otbm-qa-011-connectivity-resilience-20260722
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "b2b34a12ca5d0c1b23e00e01eb6bdc8b2b3804b8"
+last_verified_commit: "e266c5ce58dc885a8de44fa28b6b5232dc7a7f82"
 risk: medium
 related_issue: ""
 related_pr: "716"
@@ -43,7 +43,7 @@ cross_repo_tasks: []
 
 ## Status
 
-COMPLETE — bounded QA-011 implementation merged through feature PR #713; lifecycle-only active-to-archive closure is isolated in PR #716.
+COMPLETE — bounded QA-011 implementation merged through feature PR #713; lifecycle-only active-to-archive closure is isolated in PR #716. `ci:final-gate` was applied before this final lifecycle checkpoint commit; no further branch commits are permitted.
 
 ## Goal
 
@@ -86,8 +86,8 @@ Analyze reviewed world-connectivity robustness by reusing the canonical OTBM Rea
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T12:28:00+02:00
-head: 3d98f132b0617f2a31d23f18f11a63970cbe1740
+updated_at: 2026-07-22T12:31:00+02:00
+head: e266c5ce58dc885a8de44fa28b6b5232dc7a7f82
 branch: docs/archive-otbm-qa-011-connectivity-resilience-713
 pr: 716
 status: complete
@@ -104,6 +104,8 @@ proven:
   - Ready-for-review full CI 29910595415 also passed on the same immutable final feature head before auto-merge.
   - PR 713 changed exactly eleven bounded paths and had zero review threads or review submissions at final audit.
   - Lifecycle PR 716 is based on exact feature merge b2b34a12ca5d0c1b23e00e01eb6bdc8b2b3804b8 and changes only the QA-011 active/archive task-record paths.
+  - Lifecycle pre-final CI 29911947187 and Agent Task Ownership 29911946984 passed on head e266c5ce58dc885a8de44fa28b6b5232dc7a7f82.
+  - ci:final-gate was applied to PR 716 before this final lifecycle checkpoint commit.
   - QA-011 reuses the canonical Reachability graph/BFS and reviewed transition model and does not prove runtime entrapment or global connectivity.
 derived:
   - OTBM-QA-012 may begin only after lifecycle PR 716 merges and a fresh live-state/ownership preflight passes.
@@ -112,7 +114,7 @@ unknown:
 conflicts: []
 first_failure:
   marker: none
-  evidence: No unresolved feature, provenance, ownership, focused-test or final-gate failure remained at feature merge.
+  evidence: No unresolved feature, provenance, ownership, focused-test or lifecycle pre-final failure remains.
 rejected_hypotheses:
   - Building a second BFS/pathfinder.
   - Treating bounded static no-exit evidence as runtime entrapment.
@@ -136,6 +138,12 @@ validation:
   - command: GitHub Actions CI run 29910595415
     result: PASS
     evidence: ready-for-review full final-gate matrix passed on the same immutable feature head.
+  - command: GitHub Actions CI run 29911947187
+    result: PASS
+    evidence: lifecycle pre-final repository CI passed on the two-path lifecycle branch.
+  - command: GitHub Actions Agent Task Ownership run 29911946984
+    result: PASS
+    evidence: lifecycle pre-final ownership validation passed on the two-path lifecycle branch.
 blockers: []
-next_action: Verify lifecycle PR 716 changes exactly two task-record paths, run pre-final CI and ownership, apply ci:final-gate before the final lifecycle checkpoint commit, then make no further commits and complete review/merge validation before QA-012 preflight.
+next_action: Make no further commits. Verify exact-final-head lifecycle CI and ownership on PR 716, audit reviews, mark ready, enable auto-merge, verify squash merge, then perform a fresh live-state/ownership preflight before any QA-012 work.
 ```
