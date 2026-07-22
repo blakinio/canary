@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_CONNECTIVITY_RESILIENCE_MANIFEST.schema.json",
+  "title": "Canary OTBM connectivity resilience manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "source", "region", "routes", "entrapmentTargets", "topology"],
+  "properties": {
+    "format": {"const": "canary-otbm-connectivity-resilience-manifest-v1"},
+    "schemaVersion": {"const": 1},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mapSha256", "worldIndexSha256"],
+      "properties": {
+        "mapSha256": {"$ref": "#/$defs/hash64"},
+        "worldIndexSha256": {"$ref": "#/$defs/hash64"}
+      }
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "allowDiagonal"],
+      "properties": {
+        "from": {"$ref": "#/$defs/position"},
+        "to": {"$ref": "#/$defs/position"},
+        "allowDiagonal": {"type": "boolean"}
+      }
+    },
+    "routes": {"type": "array", "items": {"$ref": "#/$defs/route"}},
+    "entrapmentTargets": {"type": "array", "items": {"$ref": "#/$defs/entrapment"}},
+    "topology": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/topology"}]}
+  },
+  "anyOf": [
+    {"properties": {"routes": {"minItems": 1}}},
+    {"properties": {"entrapmentTargets": {"minItems": 1}}},
+    {"properties": {"topology": {"type": "object"}}}
+  ],
+  "$defs": {
+    "hash64": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "position": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "items": false
+    },
+    "mode": {"enum": ["strict", "optimistic", "executable"]},
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "reason", "mode", "start", "goal"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "reason": {"type": "string", "minLength": 1},
+        "mode": {"$ref": "#/$defs/mode"},
+        "start": {"$ref": "#/$defs/position"},
+        "goal": {"$ref": "#/$defs/position"}
+      }
+    },
+    "entrapment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "reason", "mode", "entry", "exits"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "reason": {"type": "string", "minLength": 1},
+        "mode": {"$ref": "#/$defs/mode"},
+        "entry": {"$ref": "#/$defs/position"},
+        "exits": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/position"}}
+      }
+    },
+    "topology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "kinds"],
+      "properties": {
+        "mode": {"$ref": "#/$defs/mode"},
+        "kinds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"enum": ["teleport", "stairs", "ladder", "hole", "rope", "floor-change", "custom"]}
+        }
+      }
+    }
+  }
+}
