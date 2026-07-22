@@ -7,7 +7,12 @@ import unittest
 from pathlib import Path
 
 from otbm_identifier_integrity import IdentifierIntegrityError
-from otbm_identifier_integrity_tool import _prepare_output, _stable_json, _write_json
+from otbm_identifier_integrity_tool import (
+    _prepare_output,
+    _stable_json,
+    _validate_interaction_provenance,
+    _write_json,
+)
 
 
 class IdentifierIntegrityOutputSafetyTests(unittest.TestCase):
@@ -47,6 +52,28 @@ class IdentifierIntegrityOutputSafetyTests(unittest.TestCase):
                 self.skipTest("symlinks are unavailable")
             with self.assertRaisesRegex(IdentifierIntegrityError, "must not be a symlink"):
                 _stable_json(link, "policy", "canary-otbm-identifier-integrity-policy-v1")
+
+    def test_interaction_registry_internal_provenance_must_match_evidence_set(self) -> None:
+        registry = {
+            "format": "canary-otbm-route-interactions-v1",
+            "schemaVersion": 1,
+            "registryStatus": "reviewed",
+            "provenance": {
+                "sourceMap": {"sha256": "f" * 64},
+                "worldIndex": {"sha256": "b" * 64},
+                "transitionManifest": None,
+                "scriptResolution": None,
+            },
+            "entries": [],
+        }
+        with self.assertRaisesRegex(IdentifierIntegrityError, "provenance is incompatible"):
+            _validate_interaction_provenance(
+                registry,
+                source_map_sha256="a" * 64,
+                world_index_sha256="b" * 64,
+                transition_manifest_sha256=None,
+                script_resolution_sha256=None,
+            )
 
     def test_create_new_writes_deterministic_json(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
