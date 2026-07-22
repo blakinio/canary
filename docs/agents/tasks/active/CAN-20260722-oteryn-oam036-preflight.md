@@ -39,8 +39,8 @@ cross_repo_tasks: []
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T19:20:00+02:00
-head: e385f581b31a1381da2802d6f771813452812e69
+updated_at: 2026-07-22T19:25:00+02:00
+head: 31623f3b02a9f09818bc752af589f21c7b9c5800
 branch: dudantas/oam-036-governance-finalize
 pr: 725
 status: validating
