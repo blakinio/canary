@@ -13,6 +13,11 @@
 #include "config/configmanager.hpp"
 #include "game/scheduling/dispatcher.hpp"
 #include "creatures/players/management/ban.hpp"
+#include "security/game_session_http_issuer.hpp"
+
+#ifndef USE_PRECOMPILED_HEADERS
+	#include <stdexcept>
+#endif
 
 ServiceManager::~ServiceManager() {
 	try {
@@ -32,9 +37,21 @@ void ServiceManager::run() {
 		return;
 	}
 
+	std::string issuerConfigError;
+	const auto issuerConfig = GameSessionHttpIssuer::loadConfigFromEnvironment(issuerConfigError);
+	if (!issuerConfig) {
+		throw std::runtime_error("Invalid Game Session issuer configuration: " + issuerConfigError);
+	}
+
+	GameSessionHttpIssuer gameSessionIssuer(*issuerConfig, GameSessionHttpIssuer::productionDependencies());
+	if (!gameSessionIssuer.start()) {
+		throw std::runtime_error("Failed to start configured Game Session issuer");
+	}
+
 	assert(!running);
 	running = true;
 	io_service.run();
+	gameSessionIssuer.stop();
 }
 
 void ServiceManager::stop() {
