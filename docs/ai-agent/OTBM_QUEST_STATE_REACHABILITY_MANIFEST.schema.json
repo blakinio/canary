@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_QUEST_STATE_REACHABILITY_MANIFEST.schema.json",
+  "title": "Canary OTBM quest state reachability manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "source", "targets"],
+  "properties": {
+    "format": {"const": "canary-otbm-quest-state-reachability-manifest-v1"},
+    "schemaVersion": {"const": 1},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mapSha256", "worldIndexSha256"],
+      "properties": {
+        "mapSha256": {"$ref": "#/$defs/hash64"},
+        "worldIndexSha256": {"$ref": "#/$defs/hash64"}
+      }
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/target"}
+    }
+  },
+  "$defs": {
+    "hash64": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "namespace": {
+      "enum": ["player-storage", "account-storage", "player-kv", "account-kv", "global-storage", "global-kv", "database"]
+    },
+    "key": {"oneOf": [{"type": "integer"}, {"type": "string", "minLength": 1}]},
+    "literal": {"type": ["integer", "string", "boolean", "null"]},
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["namespace", "key", "value"],
+      "properties": {
+        "namespace": {"$ref": "#/$defs/namespace"},
+        "key": {"$ref": "#/$defs/key"},
+        "value": {"$ref": "#/$defs/literal"}
+      }
+    },
+    "goal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "namespace", "key", "value"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "namespace": {"$ref": "#/$defs/namespace"},
+        "key": {"$ref": "#/$defs/key"},
+        "value": {"$ref": "#/$defs/literal"}
+      }
+    },
+    "interactionQuery": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "transitionId": {"type": "string", "minLength": 1},
+        "transitionKind": {"enum": ["teleport", "stairs", "ladder", "hole", "rope", "floor-change", "custom"]},
+        "transitionEvidenceSource": {"enum": ["worldIndex", "transitionManifest"]},
+        "position": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "prefixItems": [
+            {"type": "integer", "minimum": 0, "maximum": 65535},
+            {"type": "integer", "minimum": 0, "maximum": 65535},
+            {"type": "integer", "minimum": 0, "maximum": 15}
+          ],
+          "items": false
+        },
+        "itemId": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "actionId": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "uniqueId": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "houseDoorId": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "scriptStatus": {"type": "string", "minLength": 1}
+      },
+      "anyOf": [
+        {"required": ["transitionId"]},
+        {"required": ["position"]}
+      ]
+    },
+    "interaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["query"],
+      "properties": {
+        "query": {"$ref": "#/$defs/interactionQuery"},
+        "expectedTransitionManifestSha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/hash64"}]},
+        "expectedScriptResolutionSha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/hash64"}]}
+      }
+    },
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["transitionId", "mapContextExpected", "interaction"],
+      "properties": {
+        "transitionId": {"type": "string", "minLength": 1},
+        "mapContextExpected": {"type": "array", "items": {"type": "object"}},
+        "interaction": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/interaction"}]}
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "reason", "initialStates", "transitions", "goals"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["quest", "mechanic-set"]},
+        "reason": {"type": "string", "minLength": 1},
+        "initialStates": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/state"}},
+        "transitions": {"type": "array", "items": {"$ref": "#/$defs/transition"}},
+        "goals": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/goal"}}
+      }
+    }
+  }
+}

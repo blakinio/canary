@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/OTBM_QUEST_STATE_REACHABILITY.schema.json",
+  "title": "Canary OTBM quest state reachability report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "ok", "source", "inputs", "policy", "summary", "targets", "findings"],
+  "properties": {
+    "format": {"const": "canary-otbm-quest-state-reachability-v1"},
+    "schemaVersion": {"const": 1},
+    "ok": {"type": "boolean"},
+    "source": {"$ref": "#/$defs/source"},
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manifest", "storageGraph", "routeInteractions"],
+      "properties": {
+        "manifest": {"$ref": "#/$defs/input"},
+        "storageGraph": {"$ref": "#/$defs/input"},
+        "routeInteractions": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/input"}]}
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["storageGraphRecomputed", "routeInteractionResolverReused", "dynamicLuaExecuted", "executionOrderInferred", "globalImpossibilityClaimed", "runtimeGameplayCompletionClaimed", "missingSelectedProducerMeans"],
+      "properties": {
+        "storageGraphRecomputed": {"const": false},
+        "routeInteractionResolverReused": {"const": true},
+        "dynamicLuaExecuted": {"const": false},
+        "executionOrderInferred": {"const": false},
+        "globalImpossibilityClaimed": {"const": false},
+        "runtimeGameplayCompletionClaimed": {"const": false},
+        "missingSelectedProducerMeans": {"const": "external-or-unproven"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetCount", "selectedTransitionCount", "goalCount", "reachableGoalCount", "blockedGoalCount", "unreachableSelectedGoalCount", "externalOrUnprovenGoalCount", "findingCount"],
+      "properties": {
+        "targetCount": {"$ref": "#/$defs/count"},
+        "selectedTransitionCount": {"$ref": "#/$defs/count"},
+        "goalCount": {"$ref": "#/$defs/count"},
+        "reachableGoalCount": {"$ref": "#/$defs/count"},
+        "blockedGoalCount": {"$ref": "#/$defs/count"},
+        "unreachableSelectedGoalCount": {"$ref": "#/$defs/count"},
+        "externalOrUnprovenGoalCount": {"$ref": "#/$defs/count"},
+        "findingCount": {"$ref": "#/$defs/count"}
+      }
+    },
+    "targets": {"type": "array", "items": {"$ref": "#/$defs/target"}},
+    "findings": {"type": "array", "items": {"$ref": "#/$defs/finding"}}
+  },
+  "$defs": {
+    "count": {"type": "integer", "minimum": 0},
+    "hash64": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "namespace": {"enum": ["player-storage", "account-storage", "player-kv", "account-kv", "global-storage", "global-kv", "database"]},
+    "key": {"oneOf": [{"type": "integer"}, {"type": "string", "minLength": 1}]},
+    "literal": {"type": ["integer", "string", "boolean", "null"]},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mapSha256", "worldIndexSha256"],
+      "properties": {
+        "mapSha256": {"$ref": "#/$defs/hash64"},
+        "worldIndexSha256": {"$ref": "#/$defs/hash64"}
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fileName", "size", "sha256", "format"],
+      "properties": {
+        "fileName": {"type": "string", "minLength": 1},
+        "size": {"type": "integer", "minimum": 0},
+        "sha256": {"$ref": "#/$defs/hash64"},
+        "format": {"type": "string", "minLength": 1}
+      }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["namespace", "key", "value"],
+      "properties": {
+        "namespace": {"$ref": "#/$defs/namespace"},
+        "key": {"$ref": "#/$defs/key"},
+        "value": {"$ref": "#/$defs/literal"}
+      }
+    },
+    "reachableState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["namespace", "key", "value", "pathTransitionIds"],
+      "properties": {
+        "namespace": {"$ref": "#/$defs/namespace"},
+        "key": {"$ref": "#/$defs/key"},
+        "value": {"$ref": "#/$defs/literal"},
+        "pathTransitionIds": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "externalPrerequisite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["namespace", "key", "value", "classification"],
+      "properties": {
+        "namespace": {"$ref": "#/$defs/namespace"},
+        "key": {"$ref": "#/$defs/key"},
+        "value": {"$ref": "#/$defs/literal"},
+        "classification": {"const": "external-or-unproven"}
+      }
+    },
+    "blocker": {"type": "object", "required": ["code"], "properties": {"code": {"type": "string", "minLength": 1}}, "additionalProperties": true},
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["transitionId", "from", "to", "status", "blockers", "mapContextExpected", "interactionResolution"],
+      "properties": {
+        "transitionId": {"type": "string", "minLength": 1},
+        "from": {"$ref": "#/$defs/state"},
+        "to": {"$ref": "#/$defs/state"},
+        "status": {"enum": ["proven", "blocked"]},
+        "blockers": {"type": "array", "items": {"$ref": "#/$defs/blocker"}},
+        "mapContextExpected": {"type": "array", "items": {"type": "object"}},
+        "interactionResolution": {"type": ["object", "null"]}
+      }
+    },
+    "goal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "namespace", "key", "value", "classification", "pathTransitionIds", "blockers"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "namespace": {"$ref": "#/$defs/namespace"},
+        "key": {"$ref": "#/$defs/key"},
+        "value": {"$ref": "#/$defs/literal"},
+        "classification": {"enum": ["reachable", "blocked-by-evidence", "unreachable-in-selected-scope", "external-or-unproven"]},
+        "pathTransitionIds": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "blockers": {"type": "array", "items": {"$ref": "#/$defs/blocker"}}
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "reason", "initialStates", "transitions", "reachableStates", "externalPrerequisites", "goals", "requirementsSatisfied", "runtimeGameplayCompletionProven"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["quest", "mechanic-set"]},
+        "reason": {"type": "string", "minLength": 1},
+        "initialStates": {"type": "array", "items": {"$ref": "#/$defs/state"}},
+        "transitions": {"type": "array", "items": {"$ref": "#/$defs/transition"}},
+        "reachableStates": {"type": "array", "items": {"$ref": "#/$defs/reachableState"}},
+        "externalPrerequisites": {"type": "array", "items": {"$ref": "#/$defs/externalPrerequisite"}},
+        "goals": {"type": "array", "items": {"$ref": "#/$defs/goal"}},
+        "requirementsSatisfied": {"type": "boolean"},
+        "runtimeGameplayCompletionProven": {"const": false}
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetId", "goalId", "code", "classification", "state", "blockers"],
+      "properties": {
+        "targetId": {"type": "string", "minLength": 1},
+        "goalId": {"type": "string", "minLength": 1},
+        "code": {"enum": ["QUEST_STATE_BLOCKED_BY_EVIDENCE", "POTENTIALLY_UNREACHABLE_QUEST_STATE", "QUEST_STATE_EXTERNAL_OR_UNPROVEN"]},
+        "classification": {"enum": ["blocked-by-evidence", "unreachable-in-selected-scope", "external-or-unproven"]},
+        "state": {"$ref": "#/$defs/state"},
+        "blockers": {"type": "array", "items": {"$ref": "#/$defs/blocker"}}
+      }
+    }
+  }
+}
