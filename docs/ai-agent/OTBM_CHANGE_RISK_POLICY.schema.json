@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.example/schemas/OTBM_CHANGE_RISK_POLICY.schema.json",
+  "title": "Canary OTBM Change Risk Policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "weights", "thresholds"],
+  "properties": {
+    "format": {"const": "canary-otbm-change-risk-policy-v1"},
+    "schemaVersion": {"const": 1},
+    "weights": {
+      "type": "object",
+      "required": ["critical-infrastructure", "identifier-semantics", "quest-dependency", "fragile-route", "certification-invalidated", "multi-region", "unresolved-evidence", "asset-walkability"],
+      "additionalProperties": false,
+      "properties": {
+        "critical-infrastructure": {"type": "integer", "minimum": 0},
+        "identifier-semantics": {"type": "integer", "minimum": 0},
+        "quest-dependency": {"type": "integer", "minimum": 0},
+        "fragile-route": {"type": "integer", "minimum": 0},
+        "certification-invalidated": {"type": "integer", "minimum": 0},
+        "multi-region": {"type": "integer", "minimum": 0},
+        "unresolved-evidence": {"type": "integer", "minimum": 0},
+        "asset-walkability": {"type": "integer", "minimum": 0}
+      }
+    },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["low", "medium", "high", "critical"],
+      "properties": {
+        "low": {"const": 0},
+        "medium": {"type": "integer", "minimum": 1},
+        "high": {"type": "integer", "minimum": 2},
+        "critical": {"type": "integer", "minimum": 3}
+      }
+    }
+  }
+}
