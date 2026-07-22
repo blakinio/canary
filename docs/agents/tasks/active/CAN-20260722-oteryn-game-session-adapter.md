@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 base_branch: main
 created: 2026-07-22T16:00:00+02:00
-updated: 2026-07-22T22:30:00+02:00
-last_verified_commit: 65a259ec9d0e6339e98758a71c968f324db37d24
+updated: 2026-07-22T22:42:00+02:00
+last_verified_commit: 90687ecb13ec2e96a9f2a1ed3ae4ab514d84cd61
 risk: high
 related_issue: ""
 related_pr: "722"
@@ -82,8 +82,8 @@ Implement the Canary-side Game Session compatibility adapter for the Oteryn nati
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T22:30:00+02:00
-head: 65a259ec9d0e6339e98758a71c968f324db37d24
+updated_at: 2026-07-22T22:42:00+02:00
+head: 90687ecb13ec2e96a9f2a1ed3ae4ab514d84cd61
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 pr: 722
 status: blocked
@@ -125,7 +125,7 @@ proven:
   - Duplicate login_attempt_id issuance is fail-closed for the token TTL; failed issuance releases the reservation without retaining raw Game Session credentials.
   - Existing ProtocolGame and IOLoginData world-entry ownership/deletion/ban/runtime checks remain unchanged and authoritative after token issuance.
   - Cross-repository contract, module catalogue and changelog document the issuer, rollout order, retry/failure semantics and production blockers.
-  - Exact final head 65a259ec9d0e6339e98758a71c968f324db37d24 passed CI run 29954852793, Security Validation run 29954852817, Agent Task Ownership run 29954852481 and autofix run 29954852508.
+  - Exact final head 90687ecb13ec2e96a9f2a1ed3ae4ab514d84cd61 passed CI run 29956181134, Security Validation run 29956181252, Agent Task Ownership run 29956181022 and autofix run 29956180932.
 derived:
   - Candidate B preserves stronger single-use world-entry semantics than replayable account_sessions.
   - A lost successful create-session response intentionally cannot be recovered by repeating the same login_attempt_id; the orphan token expires and the client must start a fresh native-login attempt.
@@ -146,16 +146,16 @@ rejected_hypotheses:
   - Issue all tokens in the login-gateway process: LoginSessionManager storage is process-local.
   - Treat Platform game_worlds.id as Canary ChannelContext channel_id: ServiceManager uses a separately configured Platform world id and only logs local channel identity.
 validation:
-  - command: exact-head CI run 29954852793 on 65a259ec9d0e6339e98758a71c968f324db37d24
+  - command: exact-head CI run 29956181134 on 90687ecb13ec2e96a9f2a1ed3ae4ab514d84cd61
     result: PASS
     evidence: full final-gate matrix completed successfully, including Linux debug tests, Linux release/runtime smoke, Windows, macOS and Docker.
-  - command: Security Validation run 29954852817 on 65a259ec9d0e6339e98758a71c968f324db37d24
+  - command: Security Validation run 29956181252 on 90687ecb13ec2e96a9f2a1ed3ae4ab514d84cd61
     result: PASS
     evidence: security scenario validation and exact-head Linux release build completed successfully.
-  - command: Agent Task Ownership run 29954852481 on 65a259ec9d0e6339e98758a71c968f324db37d24
+  - command: Agent Task Ownership run 29956181022 on 90687ecb13ec2e96a9f2a1ed3ae4ab514d84cd61
     result: PASS
     evidence: changed checkpoint validation and full active ownership index validation completed successfully.
-  - command: autofix run 29954852508 on 65a259ec9d0e6339e98758a71c968f324db37d24
+  - command: autofix run 29956180932 on 90687ecb13ec2e96a9f2a1ed3ae4ab514d84cd61
     result: PASS
     evidence: formatting validation completed with no repository mutation.
   - command: local C++ edit/build/test loop
