@@ -2,13 +2,13 @@
 task_id: CAN-20260722-e2e-gameplay-006-multi-client-orchestration
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-GAMEPLAY-006-MULTI-CLIENT
-status: active
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: feat/e2e-gameplay-006-multi-client-orchestration
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "a6334d01b35a6f6059827d598982ce5a4d0d0a60"
+last_verified_commit: "f54bf6b93144b90d5c980000908d11590e316946"
 risk: medium
 related_issue: ""
 related_pr: "738"
@@ -70,8 +70,8 @@ Add the first bounded two-client capability to the existing Universal Physical E
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T23:35:00+02:00
-head: a6334d01b35a6f6059827d598982ce5a4d0d0a60
+updated_at: 2026-07-22T23:41:00+02:00
+head: f54bf6b93144b90d5c980000908d11590e316946
 branch: feat/e2e-gameplay-006-multi-client-orchestration
 pr: 738
 status: validating
@@ -96,16 +96,16 @@ proven:
   - PR 738 was opened from feature head 8f6482c57ddae1faee4e0feae15a20f5426d2dc5.
   - Main advanced once to 8bdeb2747356727df80a3b95073aa29a4dca7818 only by adding the unrelated OAM-037 task record; no E2E owned path overlap exists.
   - Initial Ownership run 29959275464 failed only because related_pr was still empty after PR creation.
-  - Ownership run 29959566082 then failed only because frontmatter status was validating instead of active; checkpoint status validating remains correct.
+  - Ownership run 29959566082 failed only because frontmatter status was validating; Ownership run 29959841690 confirmed that arbitrary status active is also invalid, and source inspection proves implementing is the correct active work status.
 derived:
-  - Both observed Ownership failures are task-record contract debt, not evidence of a multi-client implementation defect.
+  - All observed Ownership failures are task-record contract debt, not evidence of a multi-client implementation defect.
 unknown:
   - Exact physical mutual visibility of Knight 1 and Knight 2 remains unproven until the Universal Agent E2E physical job completes.
-  - Exact current-head focused tests and full CI remain pending after the task metadata corrections.
+  - Exact current-head ownership and Universal Agent E2E remain pending after the final frontmatter status correction.
 conflicts: []
 first_failure:
   marker: active task frontmatter status mismatch
-  evidence: Agent Task Ownership run 29959566082 reported record under tasks/active has non-active status 'validating'.
+  evidence: task_ownership.py ACTIVE_STATUSES is planned, implementing, blocked, review, ready; validating belongs only to checkpoint.py, while arbitrary active is also rejected.
 rejected_hypotheses:
   - A second full run_physical_e2e.sh invocation is required; it would duplicate database/server lifecycle and violate the single-orchestrator boundary.
 changed_paths:
@@ -123,6 +123,12 @@ validation:
   - command: Agent Task Ownership run 29959566082
     result: FAIL
     evidence: Changed-task metadata validation failed because active-task frontmatter status was validating; focused ownership tooling setup/tests passed.
+  - command: Agent Task Ownership run 29959841690
+    result: FAIL
+    evidence: Changed-task metadata validation failed because arbitrary frontmatter status active is not one of task_ownership.py ACTIVE_STATUSES.
+  - command: local bounded materializer py_compile and representative materialization
+    result: PASS
+    evidence: Python helper compiled; @test1/@test2 plan materialized with password_env only and no AGENT_E2E_PASSWORD value.
 blockers: []
-next_action: Re-run ownership and inspect CI/Universal Agent E2E after this active-status correction; fix the first implementation or physical failure if present, then synchronize the one-file unrelated main drift before final-head gating.
+next_action: Require exact-head Ownership, CI and Universal Agent E2E after this implementing-status correction; fix the first implementation or physical failure if present, then synchronize unrelated main drift before final-head gating.
 ```
