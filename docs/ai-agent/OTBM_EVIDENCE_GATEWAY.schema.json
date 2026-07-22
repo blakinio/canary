@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.example/schemas/OTBM_EVIDENCE_GATEWAY.schema.json",
+  "title": "Canary OTBM Evidence Bundle v1",
+  "type": "object",
+  "required": ["format", "schemaVersion", "manifestSha256", "sources", "extracts", "summary", "policy", "bundleSha256"],
+  "properties": {
+    "format": {"const": "canary-otbm-evidence-bundle-v1"},
+    "schemaVersion": {"const": 1},
+    "manifestSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "sources": {"type": "array", "items": {"type": "object", "required": ["id", "path", "sha256", "format"]}},
+    "extracts": {"type": "array", "items": {"type": "object", "required": ["id", "sourceId", "pointer", "value", "valueSha256"]}},
+    "summary": {"type": "object", "required": ["sourceCount", "extractCount"]},
+    "policy": {"type": "object"},
+    "bundleSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
