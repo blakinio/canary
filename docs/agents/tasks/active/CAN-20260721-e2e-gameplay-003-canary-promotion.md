@@ -8,7 +8,7 @@ branch: feat/e2e-gameplay-003-canary-promotion-v2
 base_branch: main
 created: 2026-07-21
 updated: 2026-07-22
-last_verified_commit: "ff3f4b499e23c56d4e45aa17a4cdcc1a3eaf7797"
+last_verified_commit: "c4ad42785f2629001aa5474b7da2a1b12b17ad4d"
 risk: low
 related_issue: ""
 related_pr: "718"
@@ -20,6 +20,7 @@ depends_on:
   - merged PR #687 controlled OTClient verified FreeType fallback
   - merged PR #708 generic NPC-private speech action
   - merged PR #719 corrected player_vocation persistence evidence boundary
+  - merged PR #723 deterministic @test15 premium fixture for promotion relog persistence
 blocks:
   - representative deterministic NPC coverage required before E2E-GAMEPLAY-008 cross-system journeys
 owned_paths:
@@ -54,6 +55,7 @@ reuses:
   - existing player_balance client-plus-SQL M3 persistence assertion
   - existing data-canary Canary NPC promotion behavior
   - existing God-only addmoney talkaction as isolated deterministic setup
+  - merged deterministic premium @test15 fixture required by promotion relog policy
 public_interfaces: []
 cross_repo_tasks: []
 ---
@@ -74,8 +76,9 @@ Deliver one bounded deterministic real-client NPC flow on the existing Universal
 - [x] Physically greet the NPC and execute the bounded `promot` -> `yes` dialogue through the real controlled OTClient.
 - [x] Prove M3 persistence as semantic `royal_paladin` and bank balance `0` after safe logout/relog plus final SQL verification.
 - [x] Remove obsolete client-vocation success markers after the merged platform evidence-boundary correction while retaining semantic `player_vocation=royal_paladin` and exact server SQL.
+- [x] Remove the unstable exact initial-position marker after repeated physical evidence showed adjacent safe-login tiles while NPC discovery remained deterministic.
 - [x] Retain exact first-failure evidence and bounded timeouts.
-- [x] Keep shared runner/workflow, player fixture SQL, OTBM binaries/maps, global datapack, OTClient source and client assets unchanged.
+- [x] Keep shared runner/workflow, OTBM binaries/maps, global datapack, OTClient source and client assets unchanged.
 - [ ] Pass focused tests, checkpoint validation, ownership and exact-final-head CI/Physical E2E gates before merge.
 - [ ] Merge through the normal autonomous gate, then archive this task in a separate lifecycle PR.
 
@@ -83,8 +86,8 @@ Deliver one bounded deterministic real-client NPC flow on the existing Universal
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T13:42:00Z
-head: ff3f4b499e23c56d4e45aa17a4cdcc1a3eaf7797
+updated_at: 2026-07-22T17:05:00Z
+head: c4ad42785f2629001aa5474b7da2a1b12b17ad4d
 branch: feat/e2e-gameplay-003-canary-promotion-v2
 pr: 718
 status: validating
@@ -98,51 +101,45 @@ owned_paths:
   - tests/e2e/scenarios/npc/canary-promotion.json
   - tests/e2e/test_canary_npc_promotion.py
 proven:
-  - original PR #685 was closed unmerged as superseded rather than rewriting its published history with a plain force update.
-  - successor PR #718 retains exactly four feature-owned paths.
-  - PR #708 merged as 5b4402958daa6584f90b848f385ad24a391b03a4 and provides bounded talk_npc through MessageModes.NpcTo while preserving public talk.
-  - PR #718 exact-head run 29914323150 reached the real npc/canary-promotion physical scenario after exact Canary and controlled OTClient builds passed.
-  - physical job 88909987894 artifact 8527963786 records successful /addmoney 20000 setup, public hi, NPC-private promot and yes, plan success, safe first logout, second login and durable post-cycle evaluation.
-  - the same artifact proves final SQL players.vocation=7 and players.balance=0 both passed, so Royal Paladin promotion and the 20000 bank cost persisted through the canonical two-session cycle.
-  - the only failure in that run was the shared platform phase-two client-vocation comparison actual=2 expected=12; it was not a gameplay or timing failure.
-  - PR #719 corrected that reusable evidence boundary by keeping semantic player_vocation exact server SQL after the full relog cycle while no longer materializing LocalPlayer.getVocation as exact promoted-vocation equality.
-  - PR #719 exact head 4463fcb8d4064d15362fbf41a3971bcb903f8ed6 passed Agent Task Ownership 29921435997, CI 29921436493, Universal Agent E2E 29921436878, ready-triggered autofix 29923472742 and ready-triggered CI 29923473076, then merged as 997343078104831ae3761e691c96fd8ff8d6cfa2.
-  - PR #718 was synchronized to merged main without force-push by building a current-main tree containing exactly its four feature-owned paths and fast-forwarding the branch to merge commit ff3f4b499e23c56d4e45aa17a4cdcc1a3eaf7797.
-  - the feature scenario retains semantic player_vocation=royal_paladin and player_balance=0; only obsolete required client markers persistence_check_promoted-vocation and its detail marker were removed.
-  - the focused feature test now proves player_vocation is absent from phase-two client checks while exact SQL vocation=7 remains compiled and balance remains client-plus-SQL verified.
-  - ci:final-gate remains applied to PR #718.
+  - PR #708 merged generic NPC-private talk_npc support, and PR #719 merged the SQL-only exact player_vocation persistence boundary.
+  - PR #718 physical run 29914323150 proved /addmoney 20000, public hi, NPC-private promot and yes, first safe logout, second login, final SQL vocation=7 and balance=0; its only failure was the corrected shared client-vocation comparison.
+  - Fresh PR #718 exact-head physical run 29925051292 reproduced successful NPC actions and balance debit but ended with vocation=3 after the second login/logout, while the scenario also observed an adjacent initial tile rather than the hard-coded marker.
+  - Source inspection proved PlayerLoginGlobal demotes promoted non-premium players on login, while the existing @test15 account fixture had no premium time; a second identical physical run reproduced the demotion, rejecting a transient-flake explanation.
+  - PR #723 added a bounded premium window to deterministic @test15 fixture imports, passed Agent Task Ownership, CI, Universal Agent E2E and physical login/relog, and merged to main as fce787f7427bc2d824cf528b7801d4b369089adc.
+  - PR #718 was synchronized to main containing PR #723 without force-push by merge commit a1f9518ccff87e7203eae5ee16e47c8abe8c8abc.
+  - Repeated physical runs reported differing adjacent initial positions, so exact initial_position equality is not a stable gameplay invariant; wait_creature Canary plus dialogue and persistence markers are the deterministic contract.
+  - The feature scenario and focused test now omit any exact initial_position required marker while retaining NPC visibility, dialogue, balance, semantic vocation SQL and two-session persistence evidence.
 derived:
-  - the original message-mode blocker is resolved and the existing 250ms greet/offer settle waits were sufficient in physical execution.
-  - promotion mechanics and durable persistence are already proven; the fresh post-#719 run primarily validates the corrected evidence boundary and remaining feature-owned required markers.
-  - the prior artifact reported initial_position=1944,1346,7 while the manifest still requires initial_position=1942,1345,7; this is a candidate next feature-specific failure but must be confirmed by the fresh exact-head run before editing.
+  - The deterministic premium fixture resolves the relog-time promotion demotion root cause without changing production login or NPC behavior.
+  - Removing exact initial_position evidence does not weaken the promotion contract because the scenario still requires successful login, online stability, Canary visibility, full dialogue, two safe logouts and post-cycle persistence.
 unknown:
-  - whether the fresh exact-head physical run confirms the previous initial-position mismatch as the next first failure.
-  - whether any other feature-specific marker fails after removal of the obsolete client-vocation markers.
+  - Whether the current final feature head passes the full exact-head Ownership, CI and Universal Physical E2E gates after integrating PR #723 and removing the unstable position marker.
 conflicts: []
 first_failure:
-  marker: persistence check promoted-vocation (vocation) failed: actual=2 expected=12
-  evidence: PR #718 Universal Agent E2E run 29914323150, Physical client job 88909987894, artifact 8527963786; final SQL simultaneously passed vocation=7 and balance=0. This reusable false-negative is resolved by merged PR #719.
+  marker: none
+  evidence: No unresolved current-head failure is known; exact-final-head validation is pending after the final feature-owned corrections.
 rejected_hypotheses:
-  - NPC-private speech still fails to promote: final SQL proves vocation=7 and balance=0.
-  - failed /addmoney balance seeding caused the promotion failure: final balance=0 after a 20000 seed and promotion proves the economy path executed.
-  - a longer wait is required: the existing cadence produced the correct durable promotion state.
-  - change royal_paladin client expectation to 2: that would collapse promoted and base Paladin client values and was rejected in favor of the truthful SQL-only vocation boundary merged in PR #719.
-  - rewrite the diverged published PR #685 branch with a plain force update: repository policy requires safe history handling.
+  - NPC-private speech still fails to promote: earlier final SQL proved vocation=7 and balance=0 after the full dialogue.
+  - The post-relog vocation=3 result was a transient flake: a second identical physical run reproduced it and source policy matched the non-premium fixture precondition.
+  - A single exact initial_position tile is required for deterministic NPC interaction: repeated runs used adjacent safe-login tiles while Canary remained discoverable through wait_creature.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260721-e2e-gameplay-003-canary-promotion.md
   - data-canary/world/canary-npc.xml
   - tests/e2e/scenarios/npc/canary-promotion.json
   - tests/e2e/test_canary_npc_promotion.py
 validation:
-  - command: Universal Agent E2E run 29872645552 / Physical client job 88781609132
-    result: FAIL
-    evidence: original public MessageSay follow-ups did not promote; retained as historical first feature failure.
   - command: PR #718 Universal Agent E2E run 29914323150 / Physical client job 88909987894
     result: FAIL
-    evidence: real NPC-private dialogue and durable vocation=7 plus balance=0 succeeded; only the now-corrected shared client-vocation evidence boundary failed.
-  - command: PR #719 Agent Task Ownership 29921435997, CI 29921436493, Universal Agent E2E 29921436878, autofix 29923472742 and ready-triggered CI 29923473076
+    evidence: Real NPC-private dialogue and final SQL vocation=7 plus balance=0 succeeded; only the subsequently corrected shared client-vocation evidence boundary failed.
+  - command: PR #718 Universal Agent E2E run 29925051292
+    result: FAIL
+    evidence: Fresh run exposed unstable initial-position equality and deterministic relog demotion of non-premium @test15.
+  - command: PR #723 required checks and Universal Agent E2E physical login/relog
     result: PASS
-    evidence: corrected player_vocation persistence boundary passed exact-head platform validation and merged as 997343078104831ae3761e691c96fd8ff8d6cfa2.
+    evidence: Premium fixture prerequisite passed required validation and merged as fce787f7427bc2d824cf528b7801d4b369089adc.
+  - command: Current PR #718 exact-final-head validation
+    result: NOT_RUN
+    evidence: Pending after integration of PR #723 and feature-owned removal of exact initial_position marker.
 blockers: []
-next_action: Verify Agent Task Ownership, full CI and Universal Agent E2E on the resulting exact final PR #718 head; inspect the first fresh physical feature result and fix only the first proven remaining feature-specific failure, or prepare merge if all gates pass.
+next_action: Verify focused test and checkpoint validation, then require Agent Task Ownership, full CI and Universal Agent E2E to pass on the exact current PR #718 head; if green, audit reviews and changed paths, mark ready, enable auto-merge and merge through the normal gate.
 ```
