@@ -60,6 +60,7 @@ ACTION_FIELDS: dict[str, set[str]] = {
     },
     "follow_route": {"id", "action", "route", "timeout_ms"},
     "talk": {"id", "action", "text"},
+    "talk_npc": {"id", "action", "receiver", "text"},
     "attack_visible": {"id", "action", "creature", "timeout_ms"},
     "use_inventory_item": {"id", "action", "item_id"},
     "request_quest_log": {"id", "action"},
@@ -351,6 +352,9 @@ def _validate_step(step: Any, index: int) -> dict[str, Any]:
             raise ScenarioError(f"{path}.route must match {SLUG_RE.pattern}")
         _require_bounded_positive_int(mapping, "timeout_ms", path, MAX_STEP_DELAY_MS, default=10_000)
     elif action == "talk":
+        _require_safe_text(mapping, "text", path)
+    elif action == "talk_npc":
+        _require_safe_text(mapping, "receiver", path)
         _require_safe_text(mapping, "text", path)
     elif action == "attack_visible":
         _require_safe_text(mapping, "creature", path)
