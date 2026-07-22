@@ -1,20 +1,21 @@
 ---
 task_id: CAN-20260722-oteryn-oam037-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
-status: ready
+status: blocked
 agent: "GPT-5.6 Thinking"
-branch: dudantas/oam-037-preflight
+branch: dudantas/oam-037-target-proof-blocker
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "663de1726e82145f5b8027126dbe434cfa74440b"
+last_verified_commit: "8bdeb2747356727df80a3b95073aa29a4dca7818"
 risk: medium
 related_issue: ""
-related_pr: "733"
+related_pr: "736"
 depends_on:
   - OAM-036 formally complete
 blocks:
-  - OAM-037 target proof/delivery selection
+  - OAM-037 target proof and final disposition
+  - OAM-038 through OAM-040
 owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260722-oteryn-oam037-preflight.md
@@ -46,11 +47,11 @@ The final OAM-037 disposition still requires bounded target-side proof. This pre
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T23:04:40+02:00
-head: 928d551497b716a6224b25da6c09717730e1a419
-branch: dudantas/oam-037-preflight
-pr: 733
-status: ready
+updated_at: 2026-07-22T23:26:00+02:00
+head: 43245a89336f55c09c0941ec0f04391f892b95d9
+branch: dudantas/oam-037-target-proof-blocker
+pr: 736
+status: blocked
 context_routes:
   - agent-governance
   - cross-repo
@@ -58,46 +59,42 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260722-oteryn-oam037-preflight.md
 proven:
   - OAM-036 is formally complete after Otheryn target archive merge 3aaf77fe27600b274d2b9c9e6bd30d887e0afd0e.
-  - Fresh Canary main baseline is 663de1726e82145f5b8027126dbe434cfa74440b.
-  - Fresh Otheryn main baseline is 3aaf77fe27600b274d2b9c9e6bd30d887e0afd0e.
-  - Fresh upstream Canary baseline is 7323503b3dc61ed86bf1f04a611b2d0aec64b35a.
-  - Fresh maintained OTClient baseline is 1e5305395159142634f182d9e888e5f9164228c6.
-  - Canonical raids depends only on completed creature-definitions and engine-scheduler; OAM-034 completed creature-definitions and OAM-003 completed engine-scheduler as REUSE.
-  - The OAM-036 preflight already established raids as dependency-valid but selected boss-encounters first because it was the smaller independent TSD-006 proof surface.
-  - Canonical raids ownership is bounded to raid XML registry load and reload interval margin repeat and running-state lifecycle periodic selection ordered announce spawn and script events plus stop reset and last-end state; static spawns individual raid definitions boss rewards and proof of exact probability or timing remain excluded.
+  - OAM-037 selected canonical raids as a REUSE candidate after fresh dependency ownership exact-root semantic donor and open-PR preflight.
   - Otheryn and fresh upstream share exact canonical raids.cpp blob d46a549a341e0872474bd723b10d1208fa22da8c and raids.hpp blob 777558e3e199816bb596636fc7487c38c29224ee.
-  - Legacy Canary shares raids.hpp blob 777558e3e199816bb596636fc7487c38c29224ee but diverges on raids.cpp as blob 57628effc46743000eab4e4c004cfdfa376114aa.
-  - Target and fresh upstream schedule raid checks on DispatcherLane::Maintenance and detect failed initial or repeat scheduling; the reviewed legacy Canary baseline lacks those safeguards in the same core scheduling path.
-  - Fresh open-PR searches found no overlapping raids writer in Canary or Otheryn and no separate OAM-037 pull request besides PR 733.
-  - The raids registry has no client paths, so the maintained OTClient head change does not create a direct client mutation requirement for this preflight.
+  - The reviewed legacy Canary raids.cpp blob 57628effc46743000eab4e4c004cfdfa376114aa is not a stronger donor because target and upstream retain maintenance-lane scheduling and scheduling-failure safeguards absent from that legacy core.
+  - PR 733 exact final head ae6b4689375cefb6963d0fd673d5b2121a6ff885 passed Agent Task Ownership run 29957807828 and full final-gate CI run 29957808101.
+  - PR 733 changed exactly the active OAM-037 task file had zero inline review threads zero requested-changes reviews and was mergeable.
+  - PR 733 was squash-merged to Canary main as 8bdeb2747356727df80a3b95073aa29a4dca7818.
+  - Program ordering requires bounded OAM-037 target proof final governance lifecycle durable reconciliation and target checkpoint archive before OAM-038 may start.
 derived:
-  - raids is the next selected dependency-valid OAM-037 canonical package after completed boss-encounters.
-  - Whole-module legacy import is not justified because the target matches fresh upstream on the canonical core and the reviewed legacy core is older at the scheduler boundary.
-  - The smallest evidence-backed preflight outcome is raids as a REUSE candidate pending bounded target-side proof.
+  - OAM-037 preflight is complete in Canary but OAM-037 itself is not formally complete.
+  - OAM-038 OAM-039 and OAM-040 cannot be started without violating the program ordering invariant.
 unknown:
   - Exact focused target proof boundary and resulting final REUSE or ADAPT disposition until OAM-037 target-side validation executes.
   - Whether bounded proof exposes a target defect that still belongs to raids ownership outside the reviewed scheduler and lifecycle core.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: No OAM-037 implementation or target validation failure exists because this task is preflight-only.
+  marker: OAM-037 target proof repository write boundary
+  evidence: Current execution authority permits repository writes only in blakinio/canary while the next mandatory bounded target proof must be created and validated in blakinio/Otheryn.
 rejected_hypotheses:
-  - Keep OAM-037 package selection UNKNOWN after OAM-036 closure; the canonical registry plus completed dependency chain now make raids the next bounded TSD-006 package.
-  - Infer final REUSE from blob identity alone; final disposition remains gated on target-side semantic proof.
-  - Prefer the divergent legacy raids.cpp as a stronger donor; targeted review shows the target and fresh upstream contain newer maintenance-lane and scheduling-failure safeguards absent from the legacy core.
-  - Expand raids into static spawns individual raid definitions boss rewards quests or multichannel redesign; the canonical registry excludes those ownership boundaries.
+  - Start OAM-038 through OAM-040 in Canary while OAM-037 target proof is pending; this would violate the program sequence and durable closure invariant.
+  - Treat the merged OAM-037 preflight as final REUSE; final disposition remains target-proof gated.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260722-oteryn-oam037-preflight.md
 validation:
-  - command: fresh dependency ownership baseline and open-PR preflight
+  - command: PR 733 exact-final-head Agent Task Ownership run 29957807828
     result: PASS
-    evidence: hard dependencies are completed exact baselines are pinned and no overlapping raids writer was found
-  - command: exact-root and semantic donor preflight
+    evidence: exact head ae6b4689375cefb6963d0fd673d5b2121a6ff885 completed successfully
+  - command: PR 733 exact-final-head full final-gate CI run 29957808101
     result: PASS
-    evidence: target and fresh upstream share the canonical core while the divergent legacy core lacks reviewed scheduler safeguards and is not a stronger whole-module donor
-  - command: PR 733 prior-head Agent Task Ownership run 29956286283 and CI run 29956286653
+    evidence: exact head ae6b4689375cefb6963d0fd673d5b2121a6ff885 completed successfully including full platform build matrix
+  - command: PR 733 changed-file and review audit
     result: PASS
-    evidence: exact prior head 928d551497b716a6224b25da6c09717730e1a419 completed both workflows successfully before this final preflight checkpoint update
-blockers: []
-next_action: Require exact-current-head Agent Task Ownership and full final-gate CI success on PR 733, audit the one-file preflight scope and review state, then expected-head squash merge before creating the bounded OAM-037 target proof in Otheryn.
+    evidence: exactly one active-task file zero inline review threads and zero requested-changes reviews
+  - command: PR 733 expected-head squash merge
+    result: PASS
+    evidence: ae6b4689375cefb6963d0fd673d5b2121a6ff885 merged as 8bdeb2747356727df80a3b95073aa29a4dca7818
+blockers:
+  - Current execution authority permits writes only in blakinio/canary; the mandatory OAM-037 raids target proof requires a separately authorized blakinio/Otheryn write context.
+next_action: Continue OAM-037 in a separately authorized blakinio/Otheryn context by creating and validating the bounded raids target proof before any OAM-038 work.
 ```
