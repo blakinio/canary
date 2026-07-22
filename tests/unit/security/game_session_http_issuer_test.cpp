@@ -146,6 +146,53 @@ TEST(GameSessionHttpIssuerTest, IssuedCredentialBindsAccountCharactersAndCurrent
 	EXPECT_EQ(42u, consumed.accountId);
 }
 
+TEST(GameSessionHttpIssuerTest, DuplicateLoginAttemptDoesNotMintSecondCredential) {
+	LoginSessionManager manager;
+	GameSessionHttpIssuer issuer(makeConfig(), makeDependencies(manager));
+
+	const auto first = issuer.createSession(makeRequest());
+	ASSERT_EQ(GameSessionHttpIssuer::CreateStatus::Ok, first.status);
+	EXPECT_EQ(1u, manager.activeTokenCount());
+
+	const auto duplicate = issuer.createSession(makeRequest());
+	EXPECT_EQ(GameSessionHttpIssuer::CreateStatus::DuplicateAttempt, duplicate.status);
+	EXPECT_TRUE(duplicate.credential.empty());
+	EXPECT_EQ(1u, manager.activeTokenCount());
+}
+
+TEST(GameSessionHttpIssuerTest, FailedIssuanceReleasesLoginAttemptReservation) {
+	LoginSessionManager manager;
+	int issueCalls = 0;
+	auto dependencies = makeDependencies(manager);
+	dependencies.issueToken = [&manager, &issueCalls](const LoginSessionIssueParams &params) -> std::optional<std::string> {
+		++issueCalls;
+		if (issueCalls == 1) {
+			return std::nullopt;
+		}
+		return manager.issueToken(params);
+	};
+	GameSessionHttpIssuer issuer(makeConfig(), std::move(dependencies));
+
+	EXPECT_EQ(GameSessionHttpIssuer::CreateStatus::IssueFailed, issuer.createSession(makeRequest()).status);
+	const auto retried = issuer.createSession(makeRequest());
+	EXPECT_EQ(GameSessionHttpIssuer::CreateStatus::Ok, retried.status);
+	EXPECT_EQ(2, issueCalls);
+}
+
+TEST(GameSessionHttpIssuerTest, ExpiredLoginAttemptReservationAllowsFreshIssuance) {
+	LoginSessionManager manager;
+	auto dependencies = makeDependencies(manager);
+	auto now = FixedNow;
+	dependencies.now = [&now] {
+		return now;
+	};
+	GameSessionHttpIssuer issuer(makeConfig(), std::move(dependencies));
+
+	ASSERT_EQ(GameSessionHttpIssuer::CreateStatus::Ok, issuer.createSession(makeRequest()).status);
+	now += LoginSessionManager::DefaultTtl + std::chrono::seconds(1);
+	EXPECT_EQ(GameSessionHttpIssuer::CreateStatus::Ok, issuer.createSession(makeRequest()).status);
+}
+
 TEST(GameSessionHttpIssuerTest, WrongCharacterBurnsIssuedCredential) {
 	LoginSessionManager manager;
 	GameSessionHttpIssuer issuer(makeConfig(), makeDependencies(manager));
