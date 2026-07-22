@@ -106,8 +106,6 @@
       "ping_features_2=disabled",
       "login_2=success",
       "online_stable_2=confirmed",
-      "persistence_check_promoted-vocation=success",
-      "persistence_check_promoted-vocation_detail=12",
       "persistence_check_spent-balance=success",
       "persistence_check_spent-balance_detail=0",
       "persistence_plan=success",

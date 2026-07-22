@@ -33,7 +33,7 @@ A client-readable type therefore requires both post-relog client equality and fi
 | `player_magic_level` | exact `equals` in `0..65535` | `LocalPlayer.getMagicLevel()` | fixed `players.maglevel` equality | Client + SQL. Does not cover `manaspent`, percentage, temporary modifiers, base/effective normalization, or skill-gain mechanics. |
 | `player_soul` | exact `equals` in `0..255` | `LocalPlayer.getSoul()` | fixed `players.soul` equality | Client + SQL. Does not cover regeneration timing, vocation maximums, spell/item costs, or offline-regeneration rules. |
 | `player_skill_level` | one classic `skill` name plus exact `equals` in `0..65535` | `LocalPlayer.getSkillBaseLevel(fixedClientSkillId)` | fixed matching `players.skill_*` column equality | Client + SQL. Supports only `fist`, `club`, `sword`, `axe`, `distance`, `shielding`, and `fishing`; excludes tries, percentages, loyalty, temporary bonuses, additional skills, and progression formulas. |
-| `player_vocation` | one reviewed semantic `vocation` name | normalized fixed client vocation ID through the existing `player_field` vocation getter path and `LocalPlayer.getVocation()` | fixed mapped Canary server vocation ID in `players.vocation` | Client + SQL. Server and client numeric vocation domains are intentionally distinct; callers cannot supply raw IDs or custom mappings. |
+| `player_vocation` | one reviewed semantic `vocation` name | none | fixed mapped Canary server vocation ID in `players.vocation` | Database-only after the full two-session cycle. Physical promotion evidence showed an exact persisted Royal Paladin server vocation while `LocalPlayer.getVocation()` exposed the base-family client value after relog, so the getter is not used as an exact promoted-vocation equality surface. Callers cannot supply raw IDs or custom mappings. |
 
 ## Fixed semantic mappings
 
@@ -51,7 +51,7 @@ A client-readable type therefore requires both post-relog client equality and fi
 
 ### Vocations
 
-| Semantic vocation | Canary server vocation ID | Controlled-client vocation ID |
+| Semantic vocation | Canary server vocation ID | Configured client vocation ID (reference only) |
 |---|---:|---:|
 | `none` | 0 | 0 |
 | `sorcerer` | 1 | 3 |
@@ -65,7 +65,7 @@ A client-readable type therefore requires both post-relog client equality and fi
 | `monk` | 9 | 5 |
 | `exalted_monk` | 10 | 15 |
 
-The fixed mappings are owned by `tools/e2e/persistence_assertions.py`. Feature scenarios select semantic values; they do not provide database columns, client IDs, server IDs, predicates, or SQL fragments.
+The fixed mappings are owned by `tools/e2e/persistence_assertions.py`. Feature scenarios select semantic values; they do not provide database columns, client IDs, server IDs, predicates, or SQL fragments. The configured client vocation IDs remain a reviewed reference mapping but are not used for exact M3 phase-two vocation equality unless a future independently proven client surface supports that distinction.
 
 ## Focused verification inventory
 
@@ -81,7 +81,7 @@ The fixed mappings are owned by `tools/e2e/persistence_assertions.py`. Feature s
 | `player_skill_level` | `tests/e2e/test_player_skill_level_persistence.py` |
 | `player_vocation` | `tests/e2e/test_player_vocation_persistence.py` |
 
-The implementation contract is centralized in `tools/e2e/persistence_assertions.py`; `tools/e2e/run_agent_e2e.py` materializes validated client-readable checks and final SQL assertions; `tools/e2e/client/agent_e2e_scenario.lua` executes client-readable checks only after the second physical login.
+The implementation contract is centralized in `tools/e2e/persistence_assertions.py`; `tools/e2e/run_agent_e2e.py` materializes only assertion types with trustworthy client-readable checks into the phase-two plan and compiles every typed assertion to final SQL; `tools/e2e/client/agent_e2e_scenario.lua` executes client-readable checks only after the second physical login.
 
 ## Safety and ownership boundaries
 
@@ -89,7 +89,7 @@ The implementation contract is centralized in `tools/e2e/persistence_assertions.
 - A scenario may declare at most 32 typed persistence checks.
 - Unknown assertion types and unknown type-specific fields fail validation.
 - The typed contract never accepts caller-selected table names, columns, predicates, or SQL fragments.
-- `player_storage` and `player_item_presence` must not be presented as directly client-verified generic state.
+- `player_storage`, `player_item_presence`, and `player_vocation` must not be presented as directly client-verified exact generic state under the current evidence boundary.
 - A successful SQL assertion before the canonical logout/relog cycle is not M3 persistence proof.
 - Feature suites own the action that changes state and the exact expected gameplay values. Shared platform documentation and fixtures must not invent quest storages, item IDs, balances, progression values, or feature outcomes.
 - A typed persistence assertion proves only its bounded durable value or row predicate. It does not prove the gameplay mechanic that produced that state unless the feature scenario separately performs and verifies that mechanic.
@@ -103,6 +103,6 @@ The merged typed persistence surface covers the programme priority domains with 
 - bank/economy state through `player_balance`;
 - durable player progression through `player_field`, `player_magic_level`, `player_soul`, `player_skill_level`, and normalized `player_vocation`.
 
-The closure audit found one reusable correctness gap in the pre-existing `player_field` contract: client-verified 64-bit experience expectations were accepted beyond the range where the maintained Lua numeric bridge guarantees exact integer equality. The contract now reuses the existing `MAX_SAFE_LUA_INTEGER` boundary already used by `player_balance`, and a focused regression test covers that boundary.
+The closure audit found one reusable correctness gap in the pre-existing `player_field` contract: client-verified 64-bit experience expectations were accepted beyond the range where the maintained Lua numeric bridge guarantees exact integer equality. The contract now reuses the existing `MAX_SAFE_LUA_INTEGER` boundary already used by `player_balance`, and a focused regression test covers that boundary. Later physical promotion evidence also corrected the `player_vocation` evidence boundary: semantic server-vocation equality remains exact after the full M3 cycle, while promoted-vocation equality is no longer inferred from `LocalPlayer.getVocation()`.
 
 No additional persistence assertion type is required to close the declared `E2E-GAMEPLAY-005` matrix. New durable domains should be added only when a concrete feature requires a reusable assertion surface and the client/database semantics are independently evidence-backed.

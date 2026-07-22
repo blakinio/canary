@@ -127,6 +127,10 @@ class CanaryNpcPromotionEvidenceTests(unittest.TestCase):
         )
         self.assertEqual(persistence.PLAYER_VOCATIONS["royal_paladin"]["server_vocation_id"], 7)
         self.assertEqual(persistence.PLAYER_VOCATIONS["royal_paladin"]["client_vocation_id"], 12)
+        self.assertEqual(
+            [check["id"] for check in persistence.validate_persistence_assertions(data["assertions"]["persistence"])],
+            ["spent-balance"],
+        )
 
         manifest = runner.normalized_manifest(scenario)
         sql = manifest["scenario"]["assertions"]["sql"]
@@ -142,14 +146,14 @@ class CanaryNpcPromotionEvidenceTests(unittest.TestCase):
             "step_promotion-offer=success",
             "step_accept=success",
             "plan=success",
-            "persistence_check_promoted-vocation=success",
-            "persistence_check_promoted-vocation_detail=12",
             "persistence_check_spent-balance=success",
             "persistence_check_spent-balance_detail=0",
             "persistence_plan=success",
             "e2e=success",
         ):
             self.assertIn(marker, required)
+        self.assertNotIn("persistence_check_promoted-vocation=success", required)
+        self.assertNotIn("persistence_check_promoted-vocation_detail=12", required)
 
 
 if __name__ == "__main__":
