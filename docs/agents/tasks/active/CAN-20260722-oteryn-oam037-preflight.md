@@ -10,7 +10,7 @@ updated: 2026-07-23
 last_verified_commit: "6b23be9f4eeb513cd181dba8ccbc9a96b98e739f"
 risk: medium
 related_issue: ""
-related_pr: "744"
+related_pr: "745"
 depends_on:
   - OAM-036 formally complete
 blocks:
@@ -58,10 +58,10 @@ The source-contract proof should bind the canonical `src/lua/creature/raids.cpp`
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T00:15:00+02:00
-head: 6b23be9f4eeb513cd181dba8ccbc9a96b98e739f
+updated_at: 2026-07-23T00:26:00+02:00
+head: 7a39c3775a181767b344aa7842be7ef57facc1a8
 branch: dudantas/oam-037-target-proof-plan
-pr: 744
+pr: 745
 status: blocked
 context_routes:
   - agent-governance
