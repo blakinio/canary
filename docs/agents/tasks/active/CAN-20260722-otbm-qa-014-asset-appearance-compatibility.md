@@ -1,23 +1,19 @@
 ---
 task_id: CAN-20260722-otbm-qa-014-asset-appearance-compatibility
 program_id: CAN-PROGRAM-OTBM
-status: implementing
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/otbm-qa-014-asset-appearance-compatibility-20260722
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "64d52fb61e099a9434c429552b7afe066e259081"
+last_verified_commit: "abd1372a9df33a097db333b18e7e5b629a3b85c5"
 risk: medium
 related_issue: ""
 related_pr: "734"
 depends_on:
   - CAN-20260722-otbm-qa-013-identifier-selector-integrity complete
-  - Unified OTBM World Index available
-  - canary-appearances-index-v1 available
-  - canary-client-assets-index-v1 available
-blocks:
-  - OTBM-QA-017 deterministic change risk
+  - shared-doc governance PR 743 merged
 owned_paths:
   exclusive:
     - tools/ai-agent/otbm_asset_compatibility.py
@@ -29,21 +25,12 @@ owned_paths:
     - docs/ai-agent/OTBM_ASSET_COMPATIBILITY_MANIFEST.schema.json
     - docs/ai-agent/OTBM_ASSET_COMPATIBILITY.schema.json
     - docs/agents/tasks/active/CAN-20260722-otbm-qa-014-asset-appearance-compatibility.md
-  shared:
-    - docs/agents/MODULE_CATALOG.md
-    - docs/agents/CHANGELOG.md
-  read_only:
-    - tools/ai-agent/otbm_world_index.py
-    - tools/ai-agent/otbm_appearances.py
-    - tools/ai-agent/otbm_assets.py
-    - tools/ai-agent/otbm_reachability_types.py
 modules_touched:
   - otbm-asset-compatibility
 reuses:
   - Unified OTBM World Index exact item placement inventory
   - canary-appearances-index-v1 object appearance records
   - canary-client-assets-index-v1 sprite coverage and asset-file evidence
-  - canonical Reachability appearance semantics for walkability-relevant flags
 public_interfaces:
   - canary-otbm-asset-compatibility-manifest-v1
   - canary-otbm-asset-compatibility-v1
@@ -54,29 +41,17 @@ cross_repo_tasks: []
 
 ## Status
 
-IMPLEMENTING — bounded QA-014 read-only compatibility composer is implemented on draft PR #734; focused and repository validation are running. No OTBM, items.otb, appearances, sprites or client assets are mutated.
-
-## Goal
-
-Detect exact current-map compatibility gaps and asset-driven semantic drift by composing the canonical World Index with existing appearance and client-asset indexes, without adding a second parser or renderer.
-
-## Safety boundaries
-
-- Missing appearance records or uncovered/missing sprite evidence fail closed for claims that depend on them.
-- Reuse the canonical appearance index and client asset index; do not decode protobuf/catalog formats independently.
-- Appearance-driven walkability deltas are reported only from explicit canonical flags and only for item IDs actually used by the exact World Index.
-- Static compatibility findings do not prove runtime/client rendering failure.
-- No map, items.otb, appearances or client-asset mutation.
+READY — bounded QA-014 feature implementation is complete on PR #734. Shared public-interface governance merged through PR #743. `ci:final-gate` was applied before this final checkpoint commit; no further feature-branch commits are permitted.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T21:35:00+02:00
-head: 64d52fb61e099a9434c429552b7afe066e259081
+updated_at: 2026-07-22T23:20:00+02:00
+head: abd1372a9df33a097db333b18e7e5b629a3b85c5
 branch: feat/otbm-qa-014-asset-appearance-compatibility-20260722
 pr: 734
-status: implementing
+status: ready
 context_routes:
   - otbm
   - agent-governance
@@ -91,22 +66,21 @@ owned_paths:
   - docs/ai-agent/OTBM_ASSET_COMPATIBILITY.schema.json
   - docs/agents/tasks/active/CAN-20260722-otbm-qa-014-asset-appearance-compatibility.md
 proven:
-  - QA-013 feature, governance and lifecycle are merged; lifecycle squash merge is 663de1726e82145f5b8027126dbe434cfa74440b.
-  - Roadmap QA-014 requires current-map item/appearance/asset compatibility plus appearance-driven walkability deltas and stale-evidence signaling.
-  - Existing otbm_appearances.py already produces canary-appearances-index-v1 including object flags, frame groups and sprite IDs.
-  - Existing otbm_assets.py already produces canary-client-assets-index-v1 including exact file existence and sprite-range coverage.
-  - Existing World Index exposes exact used item IDs and placements; no new OTBM scanner is required.
-  - PR 734 contains a deterministic composer, exact-provenance CLI, schemas, documentation and focused semantic/schema/output-safety tests.
+  - PR 734 implements exact World Index item-use correlation with canonical appearance and client-asset indexes plus optional exact baseline appearance semantic deltas.
+  - No second OTBM/appearance/asset parser or renderer is introduced; no map or client-asset mutation is performed.
+  - Pre-final CI 29958477383, Ownership 29958477100, OTBM Map Tools 29958477129 and AI Agent Tools 29958477193 passed on head abd1372a9df33a097db333b18e7e5b629a3b85c5.
+  - Shared governance PR 743 merged as 47759e49fca04526ef24097e9f3cf859b0f66b3a after full final-gate CI 29960786583 succeeded.
+  - ci:final-gate was applied to PR 734 before this final checkpoint commit.
 derived:
-  - QA-014 can remain a report-composition layer; it does not need or own a parser, renderer or mutation path.
+  - QA-014 is ready for immutable exact-final-head validation and merge without further feature changes.
 unknown:
-  - A baseline appearance index is optional; without one, current compatibility is provable but semantic-delta claims remain not-evaluated.
+  - Runtime/client rendering and gameplay correctness remain outside static compatibility proof.
 conflicts: []
 first_failure:
   marker: none
-  evidence: No completed failing validation is currently known; current-head workflows are running.
+  evidence: No unresolved implementation, provenance, focused-test or governance failure remains.
 rejected_hypotheses:
-  - Reparse appearances protobuf or client asset catalog inside QA-014: existing canonical indexes already expose required evidence.
+  - Reparse appearances or client assets inside QA-014.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260722-otbm-qa-014-asset-appearance-compatibility.md
   - tools/ai-agent/otbm_asset_compatibility.py
@@ -118,9 +92,9 @@ changed_paths:
   - docs/ai-agent/OTBM_ASSET_COMPATIBILITY_MANIFEST.schema.json
   - docs/ai-agent/OTBM_ASSET_COMPATIBILITY.schema.json
 validation:
-  - command: fresh live-state/overlap preflight
+  - command: GitHub Actions pre-final CI/Ownership/OTBM/AI
     result: PASS
-    evidence: main 663de1726e82145f5b8027126dbe434cfa74440b; no competing QA-014 PR found.
+    evidence: 29958477383, 29958477100, 29958477129 and 29958477193 all succeeded.
 blockers: []
-next_action: Wait for CI, Ownership, OTBM Map Tools and AI Agent Tools on the current implementation head; fix only evidence-backed failures before final-gate checkpointing.
+next_action: Verify exact-final-head CI, Ownership, OTBM Map Tools and AI Agent Tools plus review/mergeability on PR 734, then mark ready, enable auto-merge and complete lifecycle closure after merge.
 ```
