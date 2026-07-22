@@ -10,7 +10,7 @@ updated: 2026-07-22
 last_verified_commit: "c37c44b59476bc68c22d1805e7ab6ef76ea06c80"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "733"
 depends_on:
   - OAM-036 formally complete
 blocks:
@@ -37,10 +37,10 @@ Begin the next OAM package only from fresh live repository state after formal OA
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T20:55:00+02:00
-head: c37c44b59476bc68c22d1805e7ab6ef76ea06c80
+updated_at: 2026-07-22T21:00:00+02:00
+head: 88aac3568da123562ffc1377d3130a23d4559f2e
 branch: dudantas/oam-037-preflight
-pr: none
+pr: 733
 status: ready
 context_routes:
   - agent-governance
@@ -73,5 +73,5 @@ validation:
     result: PASS
     evidence: target proof c0a84977b574f287db2fb970a25e8041343b99c8 governance 54abf518a3470c0f1db08f0276164fe5c7e977e0 lifecycle 637c57d8744204490b452bdd935789ec0c4de23b reconciliation c37c44b59476bc68c22d1805e7ab6ef76ea06c80 target archive 3aaf77fe27600b274d2b9c9e6bd30d887e0afd0e
 blockers: []
-next_action: Open the one-file OAM-037 preflight checkpoint PR, bind its PR identity, validate exact-head ownership and CI, then merge; afterward perform fresh live-state, open-PR, ownership and exact target/upstream/legacy preflight before selecting one dependency-valid canonical package.
+next_action: Require exact-current-head Agent Task Ownership and CI success on PR 733, audit the one-file scope and review state, then merge; afterward perform fresh live-state, open-PR, ownership and exact target/upstream/legacy preflight before selecting one dependency-valid OAM-037 canonical package.
 ```
