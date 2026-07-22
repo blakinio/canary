@@ -16,6 +16,7 @@ from otbm_identifier_integrity import (
     IdentifierIntegrityError,
     build_identifier_integrity_report,
 )
+from otbm_route_interactions import RouteInteractionError, validate_registry
 from otbm_world_index import WORLD_INDEX_FORMAT, WorldIndex, WorldIndexError
 
 MAX_JSON_BYTES = 256 * 1024 * 1024
@@ -108,6 +109,29 @@ def _world_manifest_source_and_index(document: dict[str, Any]) -> tuple[str, str
     if not isinstance(index_hash, str) or len(index_hash) != 64:
         raise IdentifierIntegrityError("World Index manifest has no exact index SHA-256")
     return source_hash, index_hash
+
+
+def _validate_interaction_provenance(
+    document: dict[str, Any] | None,
+    *,
+    source_map_sha256: str,
+    world_index_sha256: str,
+    transition_manifest_sha256: str | None,
+    script_resolution_sha256: str | None,
+) -> None:
+    if document is None:
+        return
+    try:
+        validate_registry(
+            document,
+            expected_source_map_sha256=source_map_sha256,
+            expected_world_index_sha256=world_index_sha256,
+            expected_transition_manifest_sha256=transition_manifest_sha256,
+            expected_script_resolution_sha256=script_resolution_sha256,
+            require_reviewed=True,
+        )
+    except RouteInteractionError as exc:
+        raise IdentifierIntegrityError(f"Route Interaction Registry provenance is incompatible: {exc}") from exc
 
 
 def _prepare_output(path: Path, inputs: list[Path], overwrite: bool) -> Path:
@@ -224,6 +248,13 @@ def main(argv: list[str] | None = None) -> int:
         )
         interactions, interaction_pin, interaction_path = _stable_optional_json(
             args.interactions, "Route Interaction Registry", "canary-otbm-route-interactions-v1"
+        )
+        _validate_interaction_provenance(
+            interactions,
+            source_map_sha256=source_map_sha,
+            world_index_sha256=world_index_pin["sha256"],
+            transition_manifest_sha256=transition_pin["sha256"] if transition_pin is not None else None,
+            script_resolution_sha256=script_pin["sha256"] if script_pin is not None else None,
         )
         input_paths = [policy_path, world_index_path, world_manifest_path]
         input_paths.extend(path for path in (script_path, transition_path, interaction_path) if path is not None)
