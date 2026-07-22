@@ -10,7 +10,7 @@ updated: 2026-07-22
 last_verified_commit: "185cb10dc1f5baa8b820fad61d93b1d2daaee983"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "711"
 depends_on:
   - OAM-034 formally complete
 blocks:
@@ -39,10 +39,10 @@ cross_repo_tasks: []
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T10:45:00+02:00
-head: 929d7a09037fb09793b4bd79e27a117ce0f778cf
+updated_at: 2026-07-22T10:50:00+02:00
+head: 819f3405aaf72bc04c3a2b69eddcd5543e6cde8f
 branch: dudantas/oam-035-governance-finalize
-pr: none
+pr: 711
 status: validating
 context_routes:
   - agent-governance
@@ -71,9 +71,10 @@ unknown:
   - Exact final Canary governance merge SHA until this bounded governance PR completes.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: No OAM-035 target or governance failure observed.
+  marker: changed active task PR identity mismatch
+  evidence: Agent Task Ownership run 29904327008 failed Validate changed active task checkpoints because this changed active task initially had empty related_pr and checkpoint pr none while current PR is 711; task_lifecycle.py requires both values to match the current PR.
 rejected_hypotheses:
+  - Treat the ownership failure as a target or product regression; the failing gate was task checkpoint metadata only.
   - Import the older divergent legacy Monster core because the clean target already matched fresh upstream and bounded proof passed.
   - Expand OAM-035 into creature definitions spawns raids boss encounters generic combat protocol or client behavior because those are separate canonical boundaries.
   - Start OAM-036 before full OAM-035 lifecycle and durable reconciliation.
@@ -87,6 +88,9 @@ validation:
   - command: target changed-path review and interaction audit
     result: PASS
     evidence: exactly four intended proof/task paths no production changes and empty comments reviews threads
+  - command: Canary PR 711 initial Agent Task Ownership
+    result: FAIL_FIXED
+    evidence: run 29904327008 isolated changed active task PR identity mismatch; related_pr and checkpoint pr are now both 711
 blockers: []
-next_action: Open and exact-head validate the bounded two-file Canary OAM-035 governance finalization PR, then squash-merge it before a separate authoritative lifecycle archive.
+next_action: Require exact-current-head Agent Task Ownership and CI success on PR 711, audit exactly two governance paths plus comments reviews threads and Canary main drift, then expected-head squash merge before separate lifecycle archive.
 ```
