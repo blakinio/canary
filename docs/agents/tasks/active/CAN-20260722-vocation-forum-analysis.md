@@ -2,16 +2,16 @@
 task_id: CAN-20260722-vocation-forum-analysis
 program_id: CAN-PROGRAM-REAL-TIBIA-PARITY
 coordination_id: ""
-status: implementing
+status: validating
 agent: "Codex"
 branch: docs/vocation-forum-analysis-20260722
 base_branch: main
 created: 2026-07-22T20:00:00+02:00
-updated: 2026-07-22T20:00:00+02:00
-last_verified_commit: "88694e96"
+updated: 2026-07-22T20:25:00+02:00
+last_verified_commit: "a4388fb5"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "729"
 depends_on: []
 blocks: []
 owned_paths:
@@ -38,10 +38,10 @@ Add one bounded, provenance-aware analysis of the official Tibia `Vocation Adjus
 
 ## Acceptance criteria
 
-- [ ] Record both exact official forum URLs, thread IDs, observed result counts, accessible post counts, and collection dates.
-- [ ] Separate pre-release and post-release findings instead of merging them into one undifferentiated sentiment score.
-- [ ] State the keyword-taxonomy, quotation, deleted-post, and evidence-level limitations.
-- [ ] Include per-vocation findings, official-response chronology, and implementation-neutral recommendations.
+- [x] Record both exact official forum URLs, thread IDs, observed result counts, accessible post counts, and collection dates.
+- [x] Separate pre-release and post-release findings instead of merging them into one undifferentiated sentiment score.
+- [x] State the keyword-taxonomy, quotation, deleted-post, and evidence-level limitations.
+- [x] Include per-vocation findings, official-response chronology, and implementation-neutral recommendations.
 - [ ] Run documentation diff, link/provenance, ownership, and forbidden-file validation.
 - [ ] Verify current-head GitHub checks.
 - [ ] Confirm no module catalogue, changelog, program queue, or cross-repository update is required.
@@ -76,13 +76,13 @@ Add one bounded, provenance-aware analysis of the official Tibia `Vocation Adjus
 
 ## Current state
 
-The source analysis is complete enough to draft the durable report. Six displayed results from the pre-release thread remain inaccessible and must be recorded as a limitation rather than inferred.
+The durable report is drafted in the owned `docs/ai-agent/` path. Six displayed results from the pre-release thread remain inaccessible and are recorded as a limitation rather than inferred.
 
 ## Plan
 
-1. Publish this task record in an early draft PR.
-2. Add the bounded report with both-thread comparison and evidence limitations.
-3. Validate exact diff, ownership, paths, and links; update the checkpoint and PR.
+1. Publish this task record in an early draft PR. (complete: PR #729)
+2. Add the bounded report with both-thread comparison and evidence limitations. (complete)
+3. Validate exact diff, ownership, paths, and links; update the checkpoint and PR. (in progress)
 
 ## Work log
 
@@ -92,6 +92,13 @@ The source analysis is complete enough to draft the durable report. Six displaye
 - Learned: post-release feedback contains a materially higher critical-language rate than the pre-release state thread.
 - Failed/blocked: page 31 of thread `4996962` repeatedly returned HTTP 403, leaving 600 of 606 displayed results accessible.
 - Result: task is bounded to a transparent, implementation-neutral evidence report.
+
+### 2026-07-22T20:25:00+02:00
+
+- Changed: opened draft PR #729 and added the bounded two-thread report.
+- Learned: critical-language share rises from 43.5% in accessible pre-release posts to 70.3% post-release, with an 80.0% peak on July 7–8.
+- Failed/blocked: no new blocker; the six inaccessible results remain explicit `UNKNOWN` evidence.
+- Result: local documentation, ownership, registry, and whitespace validation pass; current-head CI remains pending after the report commit.
 
 ## Decisions
 
@@ -105,13 +112,16 @@ The source analysis is complete enough to draft the durable report. Six displaye
 | Path/interface/config/schema | Ownership mode | Purpose | Status |
 |---|---|---|---|
 | `docs/agents/tasks/active/CAN-20260722-vocation-forum-analysis.md` | exclusive | task state and durable handoff | active |
-| `docs/ai-agent/REAL_TIBIA_VOCATION_ADJUSTMENTS_FORUM_ANALYSIS.md` | exclusive | bounded official-forum analysis | planned |
+| `docs/ai-agent/REAL_TIBIA_VOCATION_ADJUSTMENTS_FORUM_ANALYSIS.md` | exclusive | bounded official-forum analysis | validating |
 
 ## Validation and CI
 
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
 | `88694e96` | `python tools/agents/task_ownership.py` | PASS | 28 pre-existing active task records validated before this task record was added. |
+| `a4388fb5` + working tree | `git diff --check` | PASS | No whitespace errors in the report/task delta. |
+| `a4388fb5` + working tree | `python tools/agents/task_ownership.py` | PASS | 29 active task records validated including this task. |
+| `a4388fb5` + working tree | `python tools/agents/real_tibia_registry.py validate` | PASS | Registry valid with zero warnings; no registry mutation required. |
 
 ## Failed approaches and dead ends
 
@@ -128,17 +138,17 @@ The source analysis is complete enough to draft the durable report. Six displaye
 
 ## Remaining work
 
-1. Commit and publish the task record, open the early draft PR, then add the report.
+1. Review the complete diff, commit and push the report/checkpoint, then inspect PR #729 current-head checks.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T20:00:00+02:00
-head: 88694e96
+updated_at: 2026-07-22T20:25:00+02:00
+head: a4388fb5
 branch: docs/vocation-forum-analysis-20260722
-pr: none
-status: implementing
+pr: 729
+status: validating
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -150,6 +160,8 @@ proven:
   - Thread 4997270 yielded 2863 unique posts matching its displayed result count.
   - Thread 4996962 displayed 606 results and yielded 600 unique accessible posts; page 31 repeatedly returned HTTP 403.
   - No exact path or intent overlap was found in active task and open PR searches.
+  - Draft PR 729 targets blakinio/canary main from a blakinio/canary task branch.
+  - The new report separates pre-release and post-release evidence and contains no gameplay-value implementation claim.
 derived:
   - The two threads support a bounded before-versus-after community-feedback comparison, not gameplay parity claims.
 unknown:
@@ -162,19 +174,26 @@ rejected_hypotheses:
   - The six inaccessible posts can be inferred from nearby pages: no source evidence supports reconstruction.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260722-vocation-forum-analysis.md
+  - docs/ai-agent/REAL_TIBIA_VOCATION_ADJUSTMENTS_FORUM_ANALYSIS.md
 validation:
   - command: python tools/agents/task_ownership.py
     result: PASS
-    evidence: 28 pre-existing active task records validated before task creation.
+    evidence: 29 active task records validated with the new task present.
+  - command: python tools/agents/real_tibia_registry.py validate
+    result: PASS
+    evidence: Registry valid with zero warnings; no registry edit required.
+  - command: git diff --check
+    result: PASS
+    evidence: No whitespace errors in the uncommitted report/checkpoint delta.
 blockers:
   - none for the bounded report; the six inaccessible results remain an explicit evidence limitation.
-next_action: Commit and push the task record, then open the early draft PR in blakinio/canary.
+next_action: Review the full changed-file diff, commit and push the report/checkpoint, then inspect PR 729 checks on the new head.
 ```
 
 # Completion
 
 - Final status: in progress
-- PR: none
+- PR: 729
 - Merge commit: none
 - Program record updated: not required yet
 - Catalogue updated: not required
