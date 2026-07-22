@@ -10,7 +10,7 @@ updated: 2026-07-22
 last_verified_commit: "27b49fbbdafda9c365bc25b0c2adb790337d42d4"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "715"
 depends_on:
   - OAM-035 formally complete
 blocks:
@@ -46,10 +46,10 @@ The final OAM-036 disposition still requires bounded target-side proof. This pre
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T11:20:00+02:00
-head: 27b49fbbdafda9c365bc25b0c2adb790337d42d4
+updated_at: 2026-07-22T11:25:00+02:00
+head: 6fc9c7042b1e472d1c32c9f6986d67eb25f25089
 branch: dudantas/oam-036-preflight
-pr: none
+pr: 715
 status: ready
 context_routes:
   - agent-governance
@@ -94,5 +94,5 @@ validation:
     result: PASS
     evidence: both canonical roots match target upstream and legacy while semantic review and delivered-PR searches found no stronger bounded donor
 blockers: []
-next_action: Open the bounded one-file Canary OAM-036 preflight PR, bind task/checkpoint PR identity, require exact-head Agent Task Ownership and CI success, then merge before creating the target proof in Otheryn.
+next_action: Require exact-current-head Agent Task Ownership and CI success on PR 715, audit the one-file preflight scope and review state, then expected-head squash merge before creating the bounded OAM-036 target proof in Otheryn.
 ```
