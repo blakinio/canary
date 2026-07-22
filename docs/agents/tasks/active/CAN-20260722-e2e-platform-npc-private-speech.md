@@ -2,13 +2,13 @@
 task_id: CAN-20260722-e2e-platform-npc-private-speech
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-PLATFORM-NPC-PRIVATE-SPEECH
-status: review
+status: validating
 agent: "GPT-5.6 Thinking"
 branch: feat/e2e-platform-npc-private-speech
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-22
-last_verified_commit: "5a5582d21fff2fc9bd96f88500fdfcea7501b2b0"
+last_verified_commit: "460f0fbd2d37e67bdbd45c3ca064c4f1369da570"
 risk: low
 related_issue: ""
 related_pr: "708"
@@ -64,8 +64,8 @@ Add one bounded generic Universal E2E scenario action that sends focused NPC fol
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T07:34:00Z
-head: 5a5582d21fff2fc9bd96f88500fdfcea7501b2b0
+updated_at: 2026-07-22T09:57:00Z
+head: 460f0fbd2d37e67bdbd45c3ca064c4f1369da570
 branch: feat/e2e-platform-npc-private-speech
 pr: 708
 status: validating
@@ -90,12 +90,15 @@ proven:
   - focused tests cover accepted validation/Lua-plan rendering, missing and unsafe receiver rejection, arbitrary message-mode rejection, the fixed NpcTo runtime contract and preservation of public talk.
   - PHYSICAL_GAMEPLAY_ACTION_PLANS.md documents the stable bounded talk_npc contract and MODULE_CATALOG.md registers PR #708 without unrelated catalogue drift.
   - Agent Task Ownership run 29899797781 passed after correcting task metadata and checkpoint ownership syntax.
-  - CI run 29900201989 passed on implementation head 9092e9ba9d7fda24c2dce4e80d7eaf36c5508ab3, but its incremental profile skipped Fast Checks and Lua Tests, so exact-final-head full validation remains required.
-  - ci:final-gate was applied to PR #708 before this final checkpoint commit, per the repository final-head gate contract.
+  - CI run 29900201989 passed on implementation head 9092e9ba9d7fda24c2dce4e80d7eaf36c5508ab3, but its incremental profile skipped Fast Checks and Lua Tests.
+  - ci:final-gate was applied before the final validation sequence.
+  - current pre-checkpoint head 460f0fbd2d37e67bdbd45c3ca064c4f1369da570 passed Agent Task Ownership 29901867126, full CI 29901867397 and Universal Agent E2E 29901867222.
+  - live PR #708 is mergeable against current main and its changed-file set remains limited to the six declared platform/task/documentation paths.
 derived:
   - the smallest reusable platform change is one fixed-purpose talk_npc action rather than a generic arbitrary-message-mode action.
+  - the original PR #685 feature failure is blocked on this generic platform interface rather than on balance setup or wait cadence alone.
 unknown:
-  - whether exact-final-head full CI and Universal Agent E2E pass after the final checkpoint commit.
+  - whether the checkpoint-updated exact final head passes Agent Task Ownership, full CI and Universal Agent E2E.
   - whether the first feature consumer needs additional bounded waits after switching to NPC-private speech; that remains feature-owned physical validation.
   - whether PR #685 promotion and both M3 persistence assertions pass after consuming talk_npc.
 conflicts: []
@@ -126,7 +129,10 @@ validation:
     evidence: corrected task metadata, categorized frontmatter ownership and flat checkpoint owned_paths passed the ownership gate.
   - command: CI run 29900201989 on 9092e9ba9d7fda24c2dce4e80d7eaf36c5508ab3
     result: PASS
-    evidence: implementation-head incremental CI passed; full focused/final-head coverage remains pending because Fast Checks and Lua Tests were skipped by the incremental profile.
+    evidence: implementation-head incremental CI passed; Fast Checks and Lua Tests were skipped by the incremental profile.
+  - command: Agent Task Ownership 29901867126, CI 29901867397 and Universal Agent E2E 29901867222 on 460f0fbd2d37e67bdbd45c3ca064c4f1369da570
+    result: PASS
+    evidence: all required current-head platform gates passed before this checkpoint refresh.
 blockers: []
-next_action: Validate PR #708 exact-final-head Agent Task Ownership, full CI and Universal Agent E2E; merge only if all required gates pass, then return to PR #685 to consume talk_npc.
+next_action: Verify Agent Task Ownership, full CI and Universal Agent E2E on the resulting checkpoint-updated exact final head; if all pass and PR #708 remains mergeable with no unresolved review blockers, mark ready and squash-merge it, then return to PR #685 to consume talk_npc.
 ```
