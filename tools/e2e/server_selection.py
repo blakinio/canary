@@ -294,6 +294,41 @@ def _start_bounded_process(command: list[str], *, env: dict[str, str], stdout: P
     return process.pid
 
 
+def _create_canary_session_wrapper(root: Path, runtime_root: Path) -> dict[str, str]:
+    raw_canary_bin = os.environ.get("CANARY_BIN", "")
+    if not raw_canary_bin:
+        raise ServerSelectionError("CANARY_BIN is required before native-auth runtime preparation")
+    real_canary_bin = Path(raw_canary_bin).resolve()
+    if not real_canary_bin.is_file() or not os.access(real_canary_bin, os.X_OK):
+        raise ServerSelectionError(f"CANARY_BIN is not an executable file: {real_canary_bin}")
+
+    config_path = (root / "config.lua").resolve()
+    wrapper_path = runtime_root / "canary-session-auth-wrapper.py"
+    wrapper_path.write_text(
+        "#!/usr/bin/env python3\n"
+        "from __future__ import annotations\n"
+        "import os\n"
+        "import re\n"
+        "import sys\n"
+        "from pathlib import Path\n"
+        f"config_path = Path({str(config_path)!r})\n"
+        f"real_canary_bin = {str(real_canary_bin)!r}\n"
+        "config = config_path.read_text(encoding='utf-8')\n"
+        "pattern = re.compile(r'^authType\\s*=.*$', re.MULTILINE)\n"
+        "matches = pattern.findall(config)\n"
+        "if len(matches) != 1:\n"
+        "    raise SystemExit(f'expected exactly one generated authType entry, got {len(matches)}')\n"
+        "config_path.write_text(pattern.sub('authType = \\\"session\\\"', config, count=1), encoding='utf-8')\n"
+        "os.execv(real_canary_bin, [real_canary_bin, *sys.argv[1:]])\n",
+        encoding="utf-8",
+    )
+    wrapper_path.chmod(0o700)
+    return {
+        "AGENT_E2E_REAL_CANARY_BIN": str(real_canary_bin),
+        "CANARY_BIN": str(wrapper_path),
+    }
+
+
 def prepare_native_auth_runtime(manifest_path: Path, root: Path, selection: NativeAuthSelection) -> dict[str, str]:
     if _prepared_native_auth_runtime_matches(selection):
         _wait_http_ok(f"http://127.0.0.1:{selection.platform_stub_port}/health")
@@ -318,6 +353,7 @@ def prepare_native_auth_runtime(manifest_path: Path, root: Path, selection: Nati
         raise ServerSelectionError("native-auth runtime root escaped repository workspace")
     shutil.rmtree(runtime_root, ignore_errors=True)
     runtime_root.mkdir(parents=True, exist_ok=True)
+    exported.update(_create_canary_session_wrapper(root, runtime_root))
 
     for command in ("git", "go"):
         if shutil.which(command) is None:
