@@ -1,7 +1,7 @@
 ---
 task_id: CAN-20260722-oteryn-oam035-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
-status: validating
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-035-governance-finalize
 base_branch: main
@@ -39,8 +39,8 @@ cross_repo_tasks: []
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T10:50:00+02:00
-head: 819f3405aaf72bc04c3a2b69eddcd5543e6cde8f
+updated_at: 2026-07-22T10:55:00+02:00
+head: 0ef184cee5d28fdb22d071b462b19a8d38372c61
 branch: dudantas/oam-035-governance-finalize
 pr: 711
 status: validating
@@ -71,10 +71,10 @@ unknown:
   - Exact final Canary governance merge SHA until this bounded governance PR completes.
 conflicts: []
 first_failure:
-  marker: changed active task PR identity mismatch
-  evidence: Agent Task Ownership run 29904327008 failed Validate changed active task checkpoints because this changed active task initially had empty related_pr and checkpoint pr none while current PR is 711; task_lifecycle.py requires both values to match the current PR.
+  marker: changed active task lifecycle metadata mismatch
+  evidence: Agent Task Ownership first failed because the changed active task had empty related_pr and checkpoint pr none for PR 711, and subsequent validation also exposed frontmatter status validating, which is not an allowed active-task status; PR identity is now 711 and frontmatter status is ready while checkpoint status remains validating.
 rejected_hypotheses:
-  - Treat the ownership failure as a target or product regression; the failing gate was task checkpoint metadata only.
+  - Treat the ownership failure as a target or product regression; the failing gate was active-task lifecycle metadata only.
   - Import the older divergent legacy Monster core because the clean target already matched fresh upstream and bounded proof passed.
   - Expand OAM-035 into creature definitions spawns raids boss encounters generic combat protocol or client behavior because those are separate canonical boundaries.
   - Start OAM-036 before full OAM-035 lifecycle and durable reconciliation.
@@ -90,7 +90,7 @@ validation:
     evidence: exactly four intended proof/task paths no production changes and empty comments reviews threads
   - command: Canary PR 711 initial Agent Task Ownership
     result: FAIL
-    evidence: run 29904327008 isolated changed active task PR identity mismatch; related_pr and checkpoint pr are now both 711
+    evidence: runs 29904327008 and 29904538959 exposed active-task lifecycle metadata mismatches; related_pr checkpoint pr and frontmatter active status have been corrected
 blockers: []
 next_action: Require exact-current-head Agent Task Ownership and CI success on PR 711, audit exactly two governance paths plus comments reviews threads and Canary main drift, then expected-head squash merge before separate lifecycle archive.
 ```
