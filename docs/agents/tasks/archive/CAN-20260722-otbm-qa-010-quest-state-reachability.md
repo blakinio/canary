@@ -42,7 +42,7 @@ cross_repo_tasks: []
 
 ## Status
 
-COMPLETE — bounded QA-010 implementation merged through feature PR #709; this record is being moved through the lifecycle-only archive follow-up.
+COMPLETE — bounded QA-010 implementation merged through feature PR #709; lifecycle-only active-to-archive closure is isolated in PR #710.
 
 ## Goal
 
@@ -83,10 +83,10 @@ Derive a conservative static state-reachability view for explicitly selected que
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T10:10:00+02:00
-head: 185cb10dc1f5baa8b820fad61d93b1d2daaee983
+updated_at: 2026-07-22T10:12:00+02:00
+head: 94df0ad3e4765edbcfee960c5983de1741bfbc96
 branch: docs/archive-otbm-qa-010-quest-state-reachability-709
-pr: none
+pr: 710
 status: complete
 context_routes:
   - otbm
@@ -100,9 +100,10 @@ proven:
   - Exact-final CI 29901396237, Ownership 29901395973, OTBM Map Tools 29901395980 and AI Agent Tools 29901395986 passed on the immutable final feature head.
   - Ready-for-review full CI 29901508605 also passed on the same immutable final feature head before auto-merge.
   - PR 709 changed exactly eleven bounded paths and had zero review threads or review submissions at final audit.
+  - Lifecycle PR 710 is based on exact feature merge 185cb10dc1f5baa8b820fad61d93b1d2daaee983 and changes only the QA-010 active/archive task-record paths.
   - QA-010 is a conservative selected-scope static evidence layer and does not prove runtime quest completion.
 derived:
-  - OTBM-QA-011 may begin only after this lifecycle archive follow-up merges and a fresh live-state/ownership preflight passes.
+  - OTBM-QA-011 may begin only after lifecycle PR 710 merges and a fresh live-state/ownership preflight passes.
 unknown:
   - No committed reviewed interaction registry is guaranteed for every concrete quest scope; real target evaluation remains dependent on exact supplied reviewed evidence.
 conflicts: []
@@ -132,5 +133,5 @@ validation:
     result: PASS
     evidence: ready-for-review full final-gate matrix passed on the same immutable feature head.
 blockers: []
-next_action: Open the lifecycle-only archive PR, verify it changes exactly the active/archive QA-010 task-record paths, pass lifecycle gates, merge it, then perform a fresh live-state/ownership preflight before any QA-011 work.
+next_action: Verify exact-final-head lifecycle CI and ownership on immutable PR 710, audit reviews, merge the lifecycle PR, then perform a fresh live-state/ownership preflight before any QA-011 work.
 ```
