@@ -7,7 +7,7 @@ branch: docs/archive-otbm-qa-014-018-20260723
 base_branch: main
 created: 2026-07-23
 updated: 2026-07-23
-last_verified_commit: "a69a8e9863aa4adaa3f7b453a7baf45dae16560a"
+last_verified_commit: "defe6ac319d7cff95718d1523bd6aab9d6385625"
 risk: low
 related_issue: ""
 related_pr: "752"
@@ -37,8 +37,8 @@ COMPLETE — lifecycle-only batch record for the five active-to-archive moves. N
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T10:25:00+02:00
-head: a69a8e9863aa4adaa3f7b453a7baf45dae16560a
+updated_at: 2026-07-23T10:28:00+02:00
+head: defe6ac319d7cff95718d1523bd6aab9d6385625
 branch: docs/archive-otbm-qa-014-018-20260723
 pr: 752
 status: complete
@@ -61,14 +61,15 @@ proven:
   - QA-014 through QA-018 feature PRs are merged and exact-final feature validation is green.
   - Shared public-interface governance PR 743 is merged.
   - PR 752 is the bounded lifecycle-only active-to-archive batch.
+  - ci:final-gate was applied before this final checkpoint commit.
 derived:
   - No active feature ownership remains necessary for QA-014 through QA-018 after PR 752 merges.
 unknown:
-  - Exact-head lifecycle CI and Ownership outcome for PR 752.
+  - Exact-final lifecycle CI and Ownership outcome after this final checkpoint commit.
 conflicts: []
 first_failure:
   marker: none
-  evidence: No lifecycle blocker observed before PR validation.
+  evidence: No lifecycle blocker observed before exact-final validation.
 rejected_hypotheses:
   - Keep merged completed feature tasks active after their exact-final evidence and shared governance are complete.
 changed_paths:
@@ -85,5 +86,5 @@ changed_paths:
   - docs/agents/tasks/archive/CAN-20260722-otbm-qa-014-018-lifecycle-batch.md
 validation: []
 blockers: []
-next_action: Verify PR 752 exact-head CI and Agent Task Ownership; if green and scope/reviews are clean, mark ready and squash-merge.
+next_action: Verify exact-final CI and Agent Task Ownership on this immutable head; if green and review/scope audit is clean, mark PR 752 ready and squash-merge without further commits.
 ```
