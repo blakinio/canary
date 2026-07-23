@@ -2,16 +2,16 @@
 task_id: CAN-20260723-e2e-qri-001-two-player-trade-persistence
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-QRI-001
-status: active
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: feat/e2e-qri-001-two-player-trade-persistence
 base_branch: main
 created: 2026-07-23
 updated: 2026-07-23
-last_verified_commit: "489607174f22b8b36663fe2251cdba0423388fbd"
+last_verified_commit: "b8a88f073b2609b444fa15370aae30ac9f80b908"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "806"
 depends_on:
   - canary-universal-e2e-two-client-orchestration-v1
   - existing Universal Physical E2E login and persistence assertion contracts
@@ -107,10 +107,10 @@ Explicitly excluded:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T16:20:00+02:00
-head: 489607174f22b8b36663fe2251cdba0423388fbd
+updated_at: 2026-07-23T16:16:00+02:00
+head: 3fd3156b616ae5e61b129bb8444e2c86737d766d
 branch: feat/e2e-qri-001-two-player-trade-persistence
-pr: null
+pr: 806
 status: implementing
 context_routes:
   - universal-e2e
@@ -123,30 +123,46 @@ owned_paths:
   - tests/e2e/scenarios/multiclient/player-trade-persistence/secondary.lua
   - tests/e2e/test_qri_001_two_player_trade.py
 proven:
-  - main is exactly 489607174f22b8b36663fe2251cdba0423388fbd at preflight.
-  - No PR tagged E2E-QRI-001, E2E-QRI-002, E2E-QRI-003, E2E-QRI-005 or E2E-QRI-006 was found during fresh PR search.
+  - Current main is exactly b8a88f073b2609b444fa15370aae30ac9f80b908; the intervening merged PR 722 changes auth/security paths and does not overlap the QRI-001 exclusive write set.
+  - QRI-002 is active in PR 805 and owns only its recovery task/scenario/client seam; QRI-003 is active in PR 803 and owns only Journey 002 task/scenario/test paths. Neither overlaps QRI-001 trade-owned paths.
+  - No PR for E2E-QRI-005 or E2E-QRI-006 was found after the refreshed main preflight.
   - The merged bounded two-client contract supports exactly one secondary controlled OTClient and is runtime-proven by the E2E-GAMEPLAY-006 lineage.
   - The pinned maintained OTClient ref exposes g_game.requestTrade, g_game.acceptTrade and trade lifecycle callbacks onOwnTrade/onCounterTrade/onCloseTrade.
-  - The existing god /i talk action accepts item names and creates backpack item id 2854 when needed; it will be used only for fixture preparation.
-  - The existing persistence assertion contract supports player_item_presence on player_items; cross-actor checks can use the existing semicolon-free SELECT SQL assertion boundary.
+  - The existing god /i talk action accepts item names and creates backpack item id 2854 when needed; it is used only for deterministic fixture preparation.
+  - The existing persistence assertion contract supports player_item_presence on player_items; cross-actor checks use the existing semicolon-free SELECT SQL assertion boundary.
   - Current main result.json is runner schema v2 but is not the QRI-005 standard result envelope, and current cleanup does not provide QRI-006 cleanup certification.
+  - QRI-001 implementation changes remain exactly the task record plus one scenario, two feature-owned controlled-client Lua drivers and one focused contract test; shared Universal E2E runner/workflow files remain unchanged.
 derived:
   - A single non-stackable backpack fixture avoids stack-split and recipient-container edge cases while preserving a real item transfer.
-  - Primary Paladin 15 can reuse the already-established administrator test account for the fixed fixture command while secondary Paladin 14 remains a normal distinct actor.
+  - Primary Paladin 15 reuses the already-established administrator test account for the fixed fixture command while secondary Paladin 14 remains a normal distinct actor.
 unknown:
-  - Exact maintained-client inventory slot behavior for the traded backpack until focused implementation/physical evidence runs.
+  - Exact maintained-client inventory slot behavior for the traded backpack until the selected physical scenario completes.
   - Exact final GitHub Actions outcome and physical runtime evidence for QRI-001.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: No QRI-001 implementation has run yet.
+  marker: ownership_checkpoint_metadata
+  evidence: Agent Task Ownership run 30014797912 failed only because the active-path status was declared as active instead of implementing and related_pr was empty instead of 806; focused ownership tooling tests passed and changed-file collection was correct.
 rejected_hypotheses:
+  - Increase runtime timeout for the ownership failure; rejected because diagnostics identify checkpoint metadata, not timing.
   - Add a second multi-client runner; rejected because the bounded reusable orchestration already exists.
   - Add a new scenario-specific SQL fixture contract; rejected because that would create a competing shared runner interface when the existing fixed god talk action can prepare the one-item fixture through a controlled client.
   - Implement QRI-005 or QRI-006 inside QRI-001; rejected because both are separate packages and absent dependencies are recorded as integration debt.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260723-e2e-qri-001-two-player-trade-persistence.md
-validation: []
+  - tests/e2e/scenarios/multiclient/player-trade-persistence.json
+  - tests/e2e/scenarios/multiclient/player-trade-persistence/primary.lua
+  - tests/e2e/scenarios/multiclient/player-trade-persistence/secondary.lua
+  - tests/e2e/test_qri_001_two_player_trade.py
+validation:
+  - command: Agent Task Ownership run 30014797912
+    result: FAIL
+    evidence: Checkpoint metadata only: status and related_pr; focused unit tooling and changed-file collection passed. This commit corrects both fields.
+  - command: CI run 30014794677
+    result: RUNNING
+    evidence: Repository CI is still executing on implementation head 3fd3156b616ae5e61b129bb8444e2c86737d766d.
+  - command: Universal Agent E2E run 30014796896
+    result: RUNNING
+    evidence: Selected physical two-client scenario is executing on implementation head 3fd3156b616ae5e61b129bb8444e2c86737d766d.
 blockers: []
-next_action: Open the draft PR, then add only the feature-owned scenario, primary/secondary controlled-client automations and focused contract tests; keep all shared Universal E2E paths read-only.
+next_action: Require fresh ownership/CI/Universal Agent E2E on this metadata-corrected head, inspect the first physical failure if any, and modify only feature-owned QRI-001 paths.
 ```
