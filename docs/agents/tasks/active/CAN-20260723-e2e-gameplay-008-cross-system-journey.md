@@ -2,7 +2,7 @@
 task_id: CAN-20260723-e2e-gameplay-008-cross-system-journey
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-GAMEPLAY-008-CROSS-SYSTEM-JOURNEY
-status: validating
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: docs/e2e-gameplay-008-final-checkpoint
 base_branch: main
@@ -11,7 +11,7 @@ updated: 2026-07-23
 last_verified_commit: "5f0ed6da6c07910730e8cb96115c8ec498931f70"
 risk: low
 related_issue: ""
-related_pr: "765"
+related_pr: "781"
 depends_on:
   - E2E-GAMEPLAY-003 Canary NPC promotion vertical slice merged in PR 718
   - E2E-GAMEPLAY-004 deterministic combat vertical slice merged in PR 677
@@ -62,7 +62,7 @@ Compose already physically proven deterministic combat, NPC/economy/vocation and
 - [x] Keep journey success as an integration sentinel; do not replace or delete the focused promotion or combat scenarios/tests.
 - [x] Pass exact-head Agent Task Ownership, CI and Universal Physical E2E validation after the evidence-backed ordering repair.
 - [x] Pass immutable exact-final-head gates and merge the feature PR.
-- [ ] Leave this final programme task in `docs/agents/tasks/active` with a validated final checkpoint and one concrete next action; do not archive it in this run.
+- [x] Leave this final programme task in `docs/agents/tasks/active` with a validated final checkpoint and one concrete next action; do not archive it in this run.
 
 ## Context checkpoint
 
@@ -71,8 +71,8 @@ checkpoint_version: 1
 updated_at: 2026-07-23T13:40:00+02:00
 head: 5f0ed6da6c07910730e8cb96115c8ec498931f70
 branch: docs/e2e-gameplay-008-final-checkpoint
-pr: 765
-status: validating
+pr: 781
+status: ready
 context_routes:
   - universal-e2e
   - agent-governance
@@ -88,15 +88,15 @@ proven:
   - Repaired head passed Agent Task Ownership run 29998764282, autofix run 29998764343, CI run 29998764500 and Universal Agent E2E run 29998764675; physical job 89185121476 and Required physical E2E completed successfully.
   - Immutable feature head f0369ab683b5e157dbb491ade028e8e1a8a5f8da passed Agent Task Ownership run 30000991590, autofix run 30000991570, full CI run 30000991832 and Universal Agent E2E run 30000991864; final physical job 89191443270 and Required physical E2E completed successfully.
   - PR 765 changed exactly the active task, journeys/promotion-combat-persistence manifest and focused composition-contract test, had no review threads, and squash-merged to main as 2b2eafcd0d7990f499f25acf74af6526ca72ceee.
-  - Shared E2E programme and Module Catalog registration merged through PR 780 as 5f0ed6da6c07910730e8cb96115c8ec498931f70, recording delivered 006/007 reusable contracts and the 008 integration sentinel without claiming a new generic 008 interface.
+  - Shared E2E programme and Module Catalog registration passed Agent Task Ownership run 30003684940 and CI run 30003685117, then squash-merged through PR 780 as 5f0ed6da6c07910730e8cb96115c8ec498931f70.
+  - The durable programme ledger now records E2E-GAMEPLAY-006 through 008 delivery, suite roots for multiclient/recovery/journeys, reusable contracts canary-universal-e2e-two-client-orchestration-v1 and canary-universal-e2e-client-disconnect-recovery-v1, and PR 765 as an integration sentinel rather than a new generic interface.
 derived:
-  - The successful final physical run proves an M4 cross-system integration sentinel by composing previously proven combat, NPC/economy/vocation and persistence systems without replacing their focused tests.
-  - E2E-GAMEPLAY-006, 007 and the first representative 008 journey are now durably registered; future expansion must start from fresh live-state and concrete feature demand rather than reopening these implementation packages.
-unknown:
-  - Final checkpoint-only PR number and exact final checkpoint validation outcome are not recorded yet.
+  - The successful immutable physical run proves an M4 cross-system integration sentinel by composing previously proven combat, NPC/economy/vocation and persistence systems without replacing their focused tests.
+  - E2E-GAMEPLAY-006, 007 and the first representative 008 journey are durably delivered and registered; future expansion must start from fresh live-state and concrete feature demand rather than reopening these implementation packages.
+unknown: []
 conflicts: []
 first_failure:
-  marker: none on accepted final feature head
+  marker: none on accepted immutable final feature head
   evidence: The earlier target_defeated timeout was resolved by preserving the exact proven combat-before-promotion state; repaired and immutable final physical jobs both completed successfully.
 rejected_hypotheses:
   - Increase the Cave Rat death timeout: rejected because standalone combat and repaired combat-first journey both remove the same deterministic target without a timeout change.
@@ -117,7 +117,7 @@ validation:
     evidence: Real controlled OTClient completed deterministic combat, arena return, Canary NPC promotion, safe logout, second login, Royal Paladin and zero-balance persistence, and final safe logout on immutable final head.
   - command: Shared documentation PR 780 Agent Task Ownership run 30003684940 and CI run 30003685117
     result: PASS
-    evidence: The exact two-file programme/catalog registration passed ownership and repository CI before squash merge.
+    evidence: The exact two-file programme/catalog registration passed ownership and repository CI before squash merge as 5f0ed6da6c07910730e8cb96115c8ec498931f70.
 blockers: []
-next_action: Open the final checkpoint-only PR for this task, apply ci:final-gate before its final checkpoint commit, validate the immutable checkpoint head, merge it while keeping this task active, then run the repository checkpoint and resume tools against current main.
+next_action: Run a fresh live-state and ownership preflight against current main before selecting any successor Universal E2E work; do not reopen E2E-GAMEPLAY-006, 007 or the delivered 008 journey unless new repository evidence or concrete feature demand justifies a separate bounded task.
 ```
