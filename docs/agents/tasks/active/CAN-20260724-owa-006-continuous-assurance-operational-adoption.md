@@ -139,6 +139,15 @@ derived:
   - No minimal code integration is justified because the canonical assurance and E2E composition capabilities already exist.
 unknown: []
 conflicts: []
+owned_paths:
+  - docs/agents/tasks/active/CAN-20260724-owa-006-continuous-assurance-operational-adoption.md
+  - docs/ai-agent/OTBM_CONTINUOUS_ASSURANCE_OPERATIONAL_ADOPTION.md
+  - docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md
+  - docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md
+changed_paths:
+  - docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md
+  - docs/agents/tasks/active/CAN-20260724-owa-006-continuous-assurance-operational-adoption.md
+  - docs/ai-agent/OTBM_CONTINUOUS_ASSURANCE_OPERATIONAL_ADOPTION.md
 first_failure:
   marker: OWA006_NO_RETAINED_REVIEWED_REAL_CANDIDATE_CHAIN
   evidence: current repository/task/PR evidence contains generic candidate tooling but no retained reviewed concrete real candidate chain eligible for the OWA-006 sequence
