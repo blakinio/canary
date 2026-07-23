@@ -10,7 +10,7 @@ updated: 2026-07-23
 last_verified_commit: "419536ce3dfe452f7af0a23c8c1f771d190d2eb5"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "759"
 depends_on:
   - CAN-20260723-otbm-qa-006-region-quest-certification complete in same bounded delivery
 owned_paths:
@@ -67,10 +67,10 @@ Emit one auditable assurance result for an exact before/after map change by veri
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T10:40:00+02:00
-head: 419536ce3dfe452f7af0a23c8c1f771d190d2eb5
+updated_at: 2026-07-23T11:10:00+02:00
+head: 41c2edd24b39a90c6c722d8efea3c8476d730239
 branch: feat/otbm-qa-006-007-certification-assurance-20260723
-pr: null
+pr: 759
 status: implementing
 context_routes:
   - otbm
@@ -95,8 +95,8 @@ unknown:
   - Exact feature-head CI outcomes until the implementation branch is validated.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: No implementation failure observed before branch validation.
+  marker: ownership-related-pr
+  evidence: Initial PR-head ownership validation required related_pr to match PR 759; this checkpoint binds the task to PR 759.
 rejected_hypotheses:
   - Rerun Semantic Diff or selected validators inside QA-007.
   - Create another Physical E2E runner or workflow.
@@ -111,7 +111,10 @@ changed_paths:
   - docs/ai-agent/OTBM_CONTINUOUS_ASSURANCE_EXECUTION.schema.json
   - docs/ai-agent/OTBM_CONTINUOUS_ASSURANCE.schema.json
   - docs/agents/tasks/active/CAN-20260723-otbm-qa-007-continuous-assurance.md
-validation: []
+validation:
+  - command: local focused QA-006/007 test run
+    result: PASS
+    evidence: 20 targeted semantic, schema and output-safety tests passed before publication.
 blockers: []
-next_action: Implement and validate QA-007 on the bounded combined QA-006/007 delivery branch.
+next_action: Re-run repository ownership and focused OTBM/AI validation on PR 759.
 ```
