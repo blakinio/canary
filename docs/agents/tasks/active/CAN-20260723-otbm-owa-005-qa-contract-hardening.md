@@ -128,12 +128,10 @@ context_routes:
   - otbm
   - agent-governance
 owned_paths:
-  exclusive:
-    - docs/agents/tasks/active/CAN-20260723-otbm-owa-005-qa-contract-hardening.md
-    - docs/ai-agent/OTBM_QA_CONTRACT_HARDENING.md
-    - tools/ai-agent/test_otbm_qa_contract_hardening.py
-    - tools/ai-agent/otbm_map_change_regression.py
-  shared: []
+  - docs/agents/tasks/active/CAN-20260723-otbm-owa-005-qa-contract-hardening.md
+  - docs/ai-agent/OTBM_QA_CONTRACT_HARDENING.md
+  - tools/ai-agent/test_otbm_qa_contract_hardening.py
+  - tools/ai-agent/otbm_map_change_regression.py
 proven:
   - Initial main at task creation was 489607174f22b8b36663fe2251cdba0423388fbd; main then advanced to b8a88f073b2609b444fa15370aae30ac9f80b908 through merged auth PR #722.
   - PR #722 changed auth/runtime/unit-test/shared-governance paths only and does not overlap this task's exclusive OTBM hardening paths.
@@ -163,7 +161,10 @@ rejected_hypotheses:
 changed_paths:
   - docs/agents/tasks/active/CAN-20260723-otbm-owa-005-qa-contract-hardening.md
   - tools/ai-agent/test_otbm_qa_contract_hardening.py
-validation: []
+validation:
+  - command: Agent Task Ownership / Validate changed active task checkpoints
+    result: FAIL
+    evidence: First PR run rejected nested checkpoint owned_paths; corrected to the required flat list in the next commit.
 blockers: []
 next_action: Apply the one-line canonical sampledMechanics ordering fix, add the invariant note, then inspect GitHub CI and any ownership/format failures on the exact branch head.
 ```
