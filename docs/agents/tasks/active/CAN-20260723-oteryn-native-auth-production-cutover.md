@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 base_branch: main
 created: 2026-07-23T15:00:00+02:00
-updated: 2026-07-23T15:00:00+02:00
-last_verified_commit: fd6fc67ba8aa11834cebb79cc7539599e3c16e72
+updated: 2026-07-23T15:05:00+02:00
+last_verified_commit: f6eb5892cdb0b38ace6126f72fbc2299cf5253a4
 risk: high
 related_issue: ""
 related_pr: "722"
@@ -54,8 +54,8 @@ Track the production activation boundary for Oteryn native authentication separa
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T15:00:00+02:00
-head: fd6fc67ba8aa11834cebb79cc7539599e3c16e72
+updated_at: 2026-07-23T15:05:00+02:00
+head: f6eb5892cdb0b38ace6126f72fbc2299cf5253a4
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 pr: 722
 status: blocked
@@ -66,7 +66,7 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260723-oteryn-native-auth-production-cutover.md
 proven:
   - Canary PR #722 implements the disabled-by-default Game Session issuer and its bounded native-auth E2E is proven.
-  - Cross-repository contract OTS-20260721-oteryn-identity-auth classifies activation as atomic-required while Canary deployment is server-first-safe when the issuer remains disabled.
+  - Cross-repository contract OTS-20260721-oteryn-identity-auth classifies activation as atomic-required while Canary deployment is deploy-first-safe when the issuer remains disabled.
   - Oteryn Platform PR #123 is closed unmerged and its advertised production hardening is absent from the proven Platform main state.
 derived:
   - Production activation gates are rollout concerns separate from merging the disabled-by-default Canary adapter implementation.
