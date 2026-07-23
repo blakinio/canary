@@ -10,7 +10,7 @@ updated: 2026-07-23
 last_verified_commit: "419536ce3dfe452f7af0a23c8c1f771d190d2eb5"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "759"
 depends_on:
   - CAN-20260721-otbm-qa-005-coverage-dashboard complete
 owned_paths:
@@ -65,7 +65,7 @@ checkpoint_version: 1
 updated_at: 2026-07-23T10:35:00+02:00
 head: 419536ce3dfe452f7af0a23c8c1f771d190d2eb5
 branch: feat/otbm-qa-006-007-certification-assurance-20260723
-pr: null
+pr: 759
 status: implementing
 context_routes:
   - otbm
@@ -89,8 +89,8 @@ unknown:
   - Exact feature-head CI outcomes until the implementation branch is validated.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: No implementation failure observed before branch validation.
+  marker: ownership-related-pr
+  evidence: Initial PR-head ownership validation required related_pr to match PR 759; this checkpoint binds the task to PR 759.
 rejected_hypotheses:
   - Recompute QA-005 evidence inside QA-006.
   - Treat stale evidence as current certification.
@@ -105,7 +105,10 @@ changed_paths:
   - docs/ai-agent/OTBM_REGION_QUEST_CERTIFICATION_MANIFEST.schema.json
   - docs/ai-agent/OTBM_REGION_QUEST_CERTIFICATION.schema.json
   - docs/agents/tasks/active/CAN-20260723-otbm-qa-006-region-quest-certification.md
-validation: []
+validation:
+  - command: local focused QA-006/007 test run
+    result: PASS
+    evidence: 20 targeted semantic, schema and output-safety tests passed before publication.
 blockers: []
-next_action: Implement and validate the bounded QA-006 feature on its dedicated branch.
+next_action: Re-run repository ownership and focused OTBM/AI validation on PR 759.
 ```
