@@ -18,7 +18,7 @@
   "fixture": {
     "account": "@test15",
     "password_env": "AGENT_E2E_TEST_PASSWORD",
-    "character": "ADM1",
+    "character": "Paladin 15",
     "world": "Canary E2E",
     "host": "127.0.0.1",
     "game_port": 7172
@@ -46,7 +46,7 @@
       "trade_primary_online=confirmed",
       "multi_client_secondary_started=trade-b",
       "trade_primary_peer_visible=Paladin 14",
-      "trade_secondary_peer_visible=ADM1",
+      "trade_secondary_peer_visible=Paladin 15",
       "trade_mutual_visibility=confirmed",
       "trade_fixture_precondition=empty",
       "trade_fixture_created=item-3043",
@@ -88,10 +88,10 @@
       ]
     },
     "sql": [
-      "SELECT COUNT(*) = 0 FROM player_items AS pi INNER JOIN players AS p ON p.id = pi.player_id WHERE p.name = 'ADM1' AND pi.itemtype = 3043",
+      "SELECT COUNT(*) = 0 FROM player_items AS pi INNER JOIN players AS p ON p.id = pi.player_id WHERE p.name = 'Paladin 15' AND pi.itemtype = 3043",
       "SELECT COUNT(*) = 1 FROM player_items AS pi INNER JOIN players AS p ON p.id = pi.player_id WHERE p.name = 'Paladin 14' AND pi.itemtype = 3043",
-      "SELECT COUNT(*) = 1 FROM player_items AS pi INNER JOIN players AS p ON p.id = pi.player_id WHERE p.name IN ('ADM1', 'Paladin 14') AND pi.itemtype = 3043",
-      "SELECT lastlogin > 0 AND lastlogout > 0 FROM players WHERE name = 'ADM1'",
+      "SELECT COUNT(*) = 1 FROM player_items AS pi INNER JOIN players AS p ON p.id = pi.player_id WHERE p.name IN ('Paladin 15', 'Paladin 14') AND pi.itemtype = 3043",
+      "SELECT lastlogin > 0 AND lastlogout > 0 FROM players WHERE name = 'Paladin 15'",
       "SELECT lastlogin > 0 AND lastlogout > 0 FROM players WHERE name = 'Paladin 14'",
       "SELECT COUNT(*) = 0 FROM players_online"
     ]
