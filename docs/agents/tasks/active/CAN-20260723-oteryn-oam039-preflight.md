@@ -10,7 +10,7 @@ updated: 2026-07-23
 last_verified_commit: "efaa970229346c13c9ccfe17805e4b914ec6e8ad"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "771"
 depends_on:
   - OAM-038 formally complete
 blocks:
@@ -43,10 +43,10 @@ The clean Otheryn target and fresh upstream do not contain the canonical `src/ga
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T12:30:00+02:00
-head: efaa970229346c13c9ccfe17805e4b914ec6e8ad
+updated_at: 2026-07-23T12:35:00+02:00
+head: 714af913864787fece328ed2d14c2783660679fb
 branch: dudantas/oam-039-preflight
-pr: null
+pr: 771
 status: ready
 context_routes:
   - agent-governance
@@ -97,5 +97,5 @@ validation:
     result: PASS
     evidence: target and upstream lack canonical InstanceManager roots while legacy contains a tested bounded instance lifecycle package and supporting adapters
 blockers: []
-next_action: Open the one-file Canary OAM-039 preflight PR, bind its PR number, require exact-current-head Agent Task Ownership and CI, audit scope and review state, then expected-head squash merge before bounded instances ADAPT implementation in Otheryn.
+next_action: Require exact-current-head Agent Task Ownership and CI success on PR 771, audit the one-file preflight scope and review state, then expected-head squash merge before bounded instances ADAPT implementation in Otheryn.
 ```
