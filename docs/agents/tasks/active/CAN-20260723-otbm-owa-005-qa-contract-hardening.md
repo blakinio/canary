@@ -7,10 +7,10 @@ branch: test/owa-005-qa-contract-hardening-20260723
 base_branch: main
 created: 2026-07-23
 updated: 2026-07-23
-last_verified_commit: "489607174f22b8b36663fe2251cdba0423388fbd"
+last_verified_commit: "b8a88f073b2609b444fa15370aae30ac9f80b908"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "802"
 depends_on:
   - OTBM-QA-001..018 delivered and lifecycle-closed
 blocks: []
@@ -62,7 +62,7 @@ cross_repo_tasks: []
 
 ## Status
 
-ACTIVE — fresh preflight completed from `main@489607174f22b8b36663fe2251cdba0423388fbd`. This task owns only a new focused adversarial regression suite, its hardening note, and this task record unless a failing invariant proves a minimal existing-contract defect.
+ACTIVE — bounded task is published in draft PR #802. Initial preflight used `main@489607174f22b8b36663fe2251cdba0423388fbd`; `main` then advanced to `b8a88f073b2609b444fa15370aae30ac9f80b908` through merged auth PR #722. Its changed paths are auth/runtime/shared governance only and do not overlap this task's exclusive OTBM hardening paths.
 
 ## Goal
 
@@ -117,10 +117,10 @@ Use only deterministic synthetic JSON/object fixtures and Python standard librar
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T15:00:00+02:00
-head: 489607174f22b8b36663fe2251cdba0423388fbd
+updated_at: 2026-07-23T15:58:00+02:00
+head: 76769fd14bc6d35e1491f1c0ba89853613e0588b
 branch: test/owa-005-qa-contract-hardening-20260723
-pr: null
+pr: 802
 status: active
 context_routes:
   - otbm
@@ -132,7 +132,9 @@ owned_paths:
     - tools/ai-agent/test_otbm_qa_contract_hardening.py
   shared: []
 proven:
-  - Current main is 489607174f22b8b36663fe2251cdba0423388fbd at task start.
+  - Initial main at task creation was 489607174f22b8b36663fe2251cdba0423388fbd; main then advanced to b8a88f073b2609b444fa15370aae30ac9f80b908 through merged auth PR #722.
+  - PR #722 changed auth/runtime/unit-test/shared-governance paths only and does not overlap this task's exclusive OTBM hardening paths.
+  - Draft PR #802 targets blakinio/canary:main from blakinio/canary:test/owa-005-qa-contract-hardening-20260723.
   - CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS is active and explicitly permits OWA-005 in parallel where path ownership is disjoint.
   - OTBM-QA-001..018 are delivered and lifecycle-closed; OWA-005 must harden those canonical contracts rather than create replacements.
   - No open GitHub PR or branch named for OWA-001 was found during preflight.
@@ -153,5 +155,5 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260723-otbm-owa-005-qa-contract-hardening.md
 validation: []
 blockers: []
-next_action: Open the draft PR, bind related_pr in this task record, then add the focused adversarial suite and run/inspect applicable GitHub validation on the exact head.
+next_action: Inspect the current candidate-validation and remaining QA composition seams, add the focused adversarial suite and hardening note, then use GitHub CI as execution evidence.
 ```
