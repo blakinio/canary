@@ -60,7 +60,7 @@ class CanaryRestartRecoveryContractTest(unittest.TestCase):
     def test_driver_mutates_and_confirms_state_before_restart_request(self) -> None:
         ordered = re.compile(
             r'appendEvent\("mutation_request", "bank_balance_12345"\)'
-            r'.*?g_game\.talk\("/addmoney " \..*?"12345"\)'
+            r'.*?g_game\.talk\("/addmoney " \.\. CHARACTER \.\. ", 12345"\)'
             r'.*?waitForBalance\(EXPECTED_BALANCE, "pre_restart_persistence_check"'
             r'.*?appendEvent\("save_request", "fixed_server_save"\)'
             r'.*?g_game\.talk\("/save"\)'
@@ -84,8 +84,8 @@ class CanaryRestartRecoveryContractTest(unittest.TestCase):
         self.assertIn('if [[ "${SUITE}/${SCENARIO}" != "${RECOVERY_KEY}" ]]', self.runner)
         self.assertIn("restart_disposable_canary()", self.runner)
         self.assertIn('old_pid="$(cat "${CANARY_PID_FILE}")"', self.runner)
-        self.assertIn('kill -TERM "${old_pid}"', self.runner)
-        self.assertIn('readlink -f "/proc/${old_pid}/exe"', self.runner)
+        self.assertIn('kill -TERM "${pid}"', self.runner)
+        self.assertIn('readlink -f "/proc/${pid}/exe"', self.runner)
         self.assertIn('readlink -f "${CANARY_BIN}"', self.runner)
         for forbidden in (
             "AGENT_E2E_RESTART_PID",
