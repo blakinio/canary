@@ -6,6 +6,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from otbm_world_assurance_map import (
     WorldAssuranceMapError,
@@ -174,6 +175,25 @@ class WorldAssuranceMapOutputSafetyTests(unittest.TestCase):
                 )
 
     @unittest.skipUnless(hasattr(os, "symlink"), "symlinks unavailable")
+    def test_symlink_artifact_root_is_rejected(self):
+        with tempfile.TemporaryDirectory() as raw:
+            parent = Path(raw)
+            real_root = parent / "real-root"
+            real_root.mkdir()
+            source_map, assets, plan = self._fixture(real_root)
+            link = parent / "root-link"
+            link.symlink_to(real_root, target_is_directory=True)
+            with self.assertRaisesRegex(WorldAssuranceMapError, "artifact root must not be a symlink"):
+                materialize_world_assurance_map(
+                    plan,
+                    artifact_root=link,
+                    map_path=source_map,
+                    assets_root=assets,
+                    output_directory=Path("out"),
+                    renderer=_fake_renderer,
+                )
+
+    @unittest.skipUnless(hasattr(os, "symlink"), "symlinks unavailable")
     def test_symlink_output_directory_is_rejected(self):
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw)
@@ -192,6 +212,28 @@ class WorldAssuranceMapOutputSafetyTests(unittest.TestCase):
                     renderer=_fake_renderer,
                 )
 
+    def test_cli_resolves_relative_map_and_assets_under_artifact_root(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            source_map, assets, _plan = self._fixture(root)
+            campaign_payload = _campaign_for_map(hashlib.sha256(source_map.read_bytes()).hexdigest())
+            campaign_path = root / "campaign.json"
+            campaign_path.write_text(json.dumps(campaign_payload), encoding="utf-8")
+            with patch("otbm_world_assurance_map_tool.materialize_world_assurance_map") as mocked:
+                mocked.side_effect = lambda plan, **kwargs: plan
+                rc = tool_main(
+                    [
+                        "--campaign", str(campaign_path),
+                        "--artifact-root", str(root),
+                        "--output-dir", "out",
+                        "--manifest", "manifest.json",
+                        "--map", "world.otbm",
+                        "--assets", "assets",
+                        "--execute",
+                    ]
+                )
+            self.assertEqual(rc, 0)
+
     def test_cli_rejects_manifest_collision_with_campaign_input(self):
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw)
@@ -199,14 +241,10 @@ class WorldAssuranceMapOutputSafetyTests(unittest.TestCase):
             campaign_path.write_text(json.dumps(campaign()), encoding="utf-8")
             rc = tool_main(
                 [
-                    "--campaign",
-                    str(campaign_path),
-                    "--artifact-root",
-                    str(root),
-                    "--output-dir",
-                    "out",
-                    "--manifest",
-                    str(campaign_path),
+                    "--campaign", str(campaign_path),
+                    "--artifact-root", str(root),
+                    "--output-dir", "out",
+                    "--manifest", str(campaign_path),
                 ]
             )
             self.assertEqual(rc, 2)
