@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: feat/owa-004-runtime-incident-evidence-bridge-20260723
 base_branch: main
 created: 2026-07-23T19:55:32+02:00
-updated: 2026-07-23T19:55:32+02:00
-last_verified_commit: "c35ba8dc2b684559f996e12bf4bdc1aa34321a7f"
+updated: 2026-07-23T19:57:00+02:00
+last_verified_commit: "ef434d829409b0808357cf067a7a39b24961f3c8"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "838"
 depends_on:
   - "OWA-002 lifecycle PR #834"
   - "QA-018 Compact Evidence Gateway"
@@ -122,10 +122,10 @@ The package must not:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T17:55:32Z
-head: c35ba8dc2b684559f996e12bf4bdc1aa34321a7f
+updated_at: 2026-07-23T17:57:00Z
+head: ef434d829409b0808357cf067a7a39b24961f3c8
 branch: feat/owa-004-runtime-incident-evidence-bridge-20260723
-pr: null
+pr: 838
 status: implementing
 context_routes:
   - agent-governance
@@ -144,6 +144,7 @@ proven:
   - QA-018 already provides exact hash/format/pointer-validated bounded evidence extraction and deterministic canary-otbm-evidence-bundle-v1 output.
   - Existing OTBM route failure triage owns runtime failure classification and OWA-004 must not replace it.
   - No OWA-004 task or PR and no exclusive-path collision was found in the fresh preflight.
+  - Draft PR 838 is open for the claimed branch.
 derived:
   - A reviewed unique selector-to-QA018-source/extract binding is sufficient to bridge explicit incident context to compact static evidence without log parsing or semantic reinterpretation.
 unknown:
@@ -162,5 +163,5 @@ changed_paths:
 validation: []
 blockers:
   - Implementation and exact-head validation remain.
-next_action: Open draft PR, pin its number into this task, then implement the reviewed selector binding resolver and direct QA-018 evidence-bundle delegation on the claimed exclusive paths.
+next_action: Implement the reviewed selector binding resolver and direct QA-018 evidence-bundle delegation on the claimed exclusive paths, then add focused fail-closed/output-safety/schema tests.
 ```
