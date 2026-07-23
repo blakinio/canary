@@ -2,13 +2,13 @@
 task_id: CAN-20260723-object-targeting-forum-evidence
 program_id: CAN-PROGRAM-REAL-TIBIA-PARITY
 coordination_id: PROTOCOL-OBJECT-TARGETING-EVIDENCE
-status: validating
+status: implementing
 agent: "Codex"
 branch: docs/can-20260723-object-targeting-forum-evidence
 base_branch: main
 created: 2026-07-23T19:04:22+02:00
-updated: 2026-07-23T19:08:32+02:00
-last_verified_commit: "c86c20362913737ab3350543ffa6b350614f3ea9"
+updated: 2026-07-23T19:13:32+02:00
+last_verified_commit: "f709456ea1038d4fc48bcec47255d62be8f9a89f"
 risk: low
 related_issue: ""
 related_pr: "824"
@@ -95,6 +95,12 @@ Preserve a bounded, provenance-linked aggregation of the official Tibia forum ev
 - Confirmed that only the task record and the new documentation report are in scope.
 - Local whitespace, ownership, checkpoint and Real Tibia registry checks pass.
 
+## 2026-07-23T19:13:32+02:00
+
+- Inspected the only failing current-head check, `Validate active ownership`.
+- Confirmed the failure is limited to the task record frontmatter: records under `tasks/active` must retain an active lifecycle status.
+- Restored the frontmatter status to the lifecycle-supported `implementing`; the evidence report itself required no correction.
+
 # Validation and CI
 
 | Commit | Command/check/workflow | Result | Evidence/notes |
@@ -104,6 +110,8 @@ Preserve a bounded, provenance-linked aggregation of the official Tibia forum ev
 | uncommitted | `python tools/agents/task_ownership.py` | PASS | 29 active task records validated. |
 | uncommitted | `python tools/agents/checkpoint.py --require-checkpoint docs/agents/tasks/active/CAN-20260723-object-targeting-forum-evidence.md` | PASS | One task checkpoint validated. |
 | uncommitted | `python tools/agents/real_tibia_registry.py validate` | PASS | Registry valid with zero warnings. |
+| uncommitted | `python tools/agents/task_lifecycle.py validate-changed ... --current-pr 824` | PASS | One changed active task checkpoint validated after restoring lifecycle-compatible status. |
+| `f709456` | `Agent Task Ownership / Validate active ownership` | FAIL | Run `30028250493`, job `89278063881`: task record under `tasks/active` had non-active frontmatter status `validating`. |
 
 # Risks and compatibility
 
@@ -116,14 +124,14 @@ Preserve a bounded, provenance-linked aggregation of the official Tibia forum ev
 
 # Remaining work
 
-1. Commit and push the completed report, then inspect current-head PR checks.
+1. Validate and push the lifecycle-status correction, then inspect final-head PR checks.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T19:08:32+02:00
-head: c86c20362913737ab3350543ffa6b350614f3ea9
+updated_at: 2026-07-23T19:13:32+02:00
+head: f709456ea1038d4fc48bcec47255d62be8f9a89f
 branch: docs/can-20260723-object-targeting-forum-evidence
 pr: 824
 status: validating
@@ -145,8 +153,8 @@ unknown:
   - Exact current Canary and maintained OTClient implementation status.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: none
+  marker: Validate active ownership
+  evidence: Run 30028250493 job 89278063881 rejected frontmatter status validating under tasks/active.
 rejected_hypotheses:
   - Forum feedback proves implementation parity: announcement and opinions do not prove runtime behavior.
 changed_paths:
@@ -168,9 +176,15 @@ validation:
   - command: python tools/agents/real_tibia_registry.py validate
     result: PASS
     evidence: Registry valid with zero warnings.
+  - command: python tools/agents/task_lifecycle.py validate-changed ... --current-pr 824
+    result: PASS
+    evidence: One changed active task checkpoint validated after restoring lifecycle-compatible status.
+  - command: Agent Task Ownership / Validate active ownership
+    result: FAIL
+    evidence: Run 30028250493 job 89278063881 rejected frontmatter status validating under tasks/active; corrected to implementing.
 blockers:
   - none
-next_action: Commit and push the completed report, then inspect current-head PR checks.
+next_action: Validate and push the lifecycle-status correction, then inspect final-head PR checks.
 ```
 
 # Handoff
