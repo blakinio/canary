@@ -63,3 +63,5 @@ jobs:
           git diff --cached --check
           git commit -m "docs(agents): register OTBM QA-006 and QA-007"
           git push origin HEAD:docs/otbm-qa-006-007-governance-20260723
+
+# pr-trigger
