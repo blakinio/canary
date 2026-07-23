@@ -1,0 +1,121 @@
+name: OTBM World Assurance Roadmap Helper
+
+on:
+  push:
+    branches:
+      - docs/otbm-world-assurance-operations-20260723
+
+permissions:
+  contents: write
+
+jobs:
+  patch-roadmap:
+    if: github.repository == 'blakinio/canary'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: docs/otbm-world-assurance-operations-20260723
+          fetch-depth: 0
+
+      - name: Apply bounded roadmap update
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('docs/ai-agent/OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md')
+          text = path.read_text(encoding='utf-8')
+
+          old_status = '> Status: complete / OTBM-QA-001..018 delivered and lifecycle-closed'
+          new_status = '> Status: complete / OTBM-QA-001..018 delivered and lifecycle-closed; operational successor: `CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS` / OWA-001..006'
+          if old_status in text:
+              text = text.replace(old_status, new_status, 1)
+          elif new_status not in text:
+              raise SystemExit('expected roadmap status anchor not found')
+
+          section_heading = '# Post-closure successor programme — OTBM World Assurance Operations'
+          if section_heading not in text:
+              marker = '# Proposal-to-package inventory'
+              if marker not in text:
+                  raise SystemExit('proposal inventory anchor not found')
+              section = '''# Post-closure successor programme — OTBM World Assurance Operations
+
+> Programme: `CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS`  
+> Queue: OWA-001..006  
+> Status: active successor planning/operations  
+> Invariant: OTBM-QA-001..018 remains complete; this section does **not** define OTBM-QA-019.
+
+The completed QA programme delivered the contracts needed to measure world quality, coverage, certification, freshness, impact and assurance. The operational successor uses those contracts against reviewed real-world targets; it does not create another analysis stack or claim that the whole current world is already globally certified.
+
+Durable programme record: `docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md`.
+
+## OWA-001 — Real-World Certification Campaign
+
+Systematically certify explicitly reviewed world, region, landmark-route, quest and mechanic-set targets by composing QA-005 coverage, QA-006 C0-C7 certification, QA-016 freshness and retained Physical E2E evidence where required. Campaign outputs remain exact-provenance external artifacts. The first pilot should prefer an already reviewed semantic target, such as `thais.temple -> thais.depot`, only when current provenance remains exact.
+
+## OWA-002 — Factual Certification and Coverage Map
+
+Visualize certification level, stale evidence, unresolved/conflicting handler state, reachability gaps, fragile reviewed routes, missing Physical E2E proof and other explicitly supported QA dimensions through the existing factual renderer and compatible real assets. Every overlay marker must retain an exact evidence reference. Colours, heat intensity and percentages are presentation only; AI-generated map imagery is never evidence.
+
+## OWA-003 — TCR-to-QA Drift and Freshness Integration
+
+After stable owning TCR packages are merged, consume their exact parity/drift findings through explicit dependency mappings into QA-016 staleness, QA-008 blast radius, QA-002 impacted validation and QA-007 assurance. OWA does not parse client reference files, guess identifier mappings or treat client reference data as map authority.
+
+## OWA-004 — Runtime Incident to OTBM Evidence Bridge
+
+Use QA-018 and existing route/failure-triage evidence to return compact OTBM-owned static context for an explicit runtime-reported position, transition, interaction, landmark or route reference. Runtime diagnosis, scenario design, replay/retry and acceptance remain with the owning runtime/E2E subsystem.
+
+## OWA-005 — QA Contract Hardening and Adversarial Fixtures
+
+Add deterministic synthetic/property-style regression coverage for existing contracts: deterministic output, dependency-scoped provenance invalidation, fail-closed unresolved/conflicting/stale/truncated evidence, no-clobber/path-confinement guarantees, explicit duplicate/unknown evidence and candidate/current hash mismatches. This package hardens canonical implementations; it must not create a second parser, World Index, pathfinder or mutation engine.
+
+## OWA-006 — Continuous Assurance Operational Adoption
+
+Apply the already-delivered QA-002/007 contracts to one bounded real map/candidate change path: exact provenance -> Semantic Diff -> selected validation -> owning validators/Physical E2E -> before/after World Health and certification -> QA-007 exact result-set assurance. Unrelated suites are never suppressed and assurance success never authorizes deployment by itself.
+
+## Recommended successor sequence
+
+1. OWA-001 real-world certification campaign.
+2. OWA-002 factual certification/coverage visualization once pilot evidence exists.
+3. OWA-005 contract hardening in parallel where ownership permits.
+4. OWA-004 runtime incident evidence bridge.
+5. OWA-003 TCR integration only after stable owning TCR outputs exist.
+6. OWA-006 continuous-assurance adoption on one bounded real change path.
+
+## Operational assurance loop
+
+```text
+reviewed real-world target
+  -> exact current map / World Index provenance
+  -> QA-005 coverage dimensions
+  -> QA-006 bounded certification
+  -> existing Physical E2E where required
+  -> QA-016 freshness state
+  -> map/source/client-reference change
+  -> QA-008 proven blast radius + QA-002 impacted validation
+  -> owning validators / Universal Physical E2E execute
+  -> QA-007 assurance
+  -> refreshed certification state
+```
+
+All original non-negotiable rules remain in force: source maps are immutable; generated `.otbm`, `.widx`, reports and renders stay outside Git; static evidence is not runtime proof; Universal Physical E2E retains runtime ownership; and World Index, Script Resolution, Reachability/BFS, Semantic Diff, factual renderer and approved mutation paths remain canonical single owners.
+
+'''
+              text = text.replace(marker, section + marker, 1)
+
+          path.write_text(text, encoding='utf-8')
+
+      - name: Commit roadmap update when needed
+        shell: bash
+        run: |
+          if git diff --quiet -- docs/ai-agent/OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md; then
+            echo "Roadmap already updated"
+            exit 0
+          fi
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/ai-agent/OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md
+          git commit -m "docs(otbm): route post-closure work to world assurance operations"
+          git push origin HEAD:docs/otbm-world-assurance-operations-20260723
