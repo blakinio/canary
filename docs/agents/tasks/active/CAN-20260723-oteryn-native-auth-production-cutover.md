@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 base_branch: main
 created: 2026-07-23T15:00:00+02:00
-updated: 2026-07-23T15:05:00+02:00
-last_verified_commit: f6eb5892cdb0b38ace6126f72fbc2299cf5253a4
+updated: 2026-07-23T15:10:00+02:00
+last_verified_commit: d6ac6e75027b936efff7076cef67a874fdba0002
 risk: high
 related_issue: ""
 related_pr: "722"
@@ -54,8 +54,8 @@ Track the production activation boundary for Oteryn native authentication separa
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T15:05:00+02:00
-head: f6eb5892cdb0b38ace6126f72fbc2299cf5253a4
+updated_at: 2026-07-23T15:10:00+02:00
+head: d6ac6e75027b936efff7076cef67a874fdba0002
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 pr: 722
 status: blocked
