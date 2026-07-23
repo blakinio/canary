@@ -2,13 +2,13 @@
 task_id: CAN-20260723-bounty-weekly-forum-evidence
 program_id: CAN-PROGRAM-REAL-TIBIA-PARITY
 coordination_id: PREY-BOUNTY-WEEKLY-FORUM-EVIDENCE
-status: ready
+status: completed
 agent: "Codex"
 branch: docs/can-20260723-bounty-weekly-forum-evidence
 base_branch: main
 created: 2026-07-23T19:08:01+02:00
-updated: 2026-07-23T19:12:37+02:00
-last_verified_commit: "88a9dd47f8f8ba12c297db0a26c231084bce2c11"
+updated: 2026-07-23T17:31:25Z
+last_verified_commit: "704eccb3084e9c0261723cb524d7d352e3268b61"
 risk: low
 related_issue: ""
 related_pr: "828"
@@ -31,6 +31,7 @@ reuses:
   - OTS Bounty and Weekly Tasks Rework design record
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-23T17:31:25Z
 ---
 
 # Goal
@@ -210,3 +211,11 @@ Start with this task record and the evidence report. Do not infer packet fields,
 - Catalogue updated: not required
 - Changelog updated: not required
 - Archived at: none
+
+## Automated lifecycle completion
+
+- Feature PR: #828.
+- Feature head: `347bb173db64b3c0a3a037c92382747ef47e16fc`.
+- Merge commit: `704eccb3084e9c0261723cb524d7d352e3268b61`.
+- Merged at: `2026-07-23T17:31:25Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
