@@ -15,6 +15,7 @@ local GLOBAL_TIMEOUT_SECONDS = tonumber(os.getenv("AGENT_E2E_GLOBAL_TIMEOUT_SECO
 local RELOG_DELAY_MS = tonumber(os.getenv("AGENT_E2E_RELOG_DELAY_MS") or "1500")
 
 local BACKPACK_SLOT = 3
+local RESOURCE_ITEM_ID = 3043
 local EVENTS_PATH = ARTIFACT_DIR .. "/client-events.tsv"
 local INTERNAL_LOG_PATH = ARTIFACT_DIR .. "/otclient.internal.log"
 local RELOG_SIGNAL_PATH = PRIMARY_ARTIFACT_DIR .. "/trade-relog-go"
@@ -114,12 +115,60 @@ local function fail(step, expected, observed)
 	exitSoon()
 end
 
-local function backpackCount()
+local function resourceCount()
 	local player = g_game.getLocalPlayer()
 	if not player then
 		return -1
 	end
-	return player:getInventoryItem(BACKPACK_SLOT) and 1 or 0
+	local total = 0
+	for slot = 1, 10 do
+		local item = player:getInventoryItem(slot)
+		if item and item:getId() == RESOURCE_ITEM_ID then
+			total = total + item:getCount()
+		end
+	end
+	for _, container in pairs(g_game.getContainers()) do
+		if container then
+			for _, item in ipairs(container:getItems()) do
+				if item and item:getId() == RESOURCE_ITEM_ID then
+					total = total + item:getCount()
+				end
+			end
+		end
+	end
+	return total
+end
+
+local function openStarterBackpack(onReady)
+	local player = g_game.getLocalPlayer()
+	local backpack = player and player:getInventoryItem(BACKPACK_SLOT) or nil
+	if not backpack then
+		fail("starter_backpack", "starter backpack in inventory slot 3", "missing")
+		return
+	end
+	local containerId = g_game.open(backpack, nil)
+	if containerId == nil or containerId < 0 then
+		fail("starter_backpack_open", "starter backpack open request accepted", tostring(containerId))
+		return
+	end
+	local checks = 100
+	local function poll()
+		if finished or not phaseStarted then
+			return
+		end
+		if g_game.getContainer(containerId) then
+			appendEvent("trade_backpack_open_" .. phase, "confirmed")
+			onReady()
+			return
+		end
+		checks = checks - 1
+		if checks <= 0 then
+			fail("starter_backpack_open", "opened starter backpack visible to controlled client", "timeout")
+			return
+		end
+		scheduleEvent(poll, 100)
+	end
+	poll()
 end
 
 local function configureTransportFeatures()
@@ -211,7 +260,7 @@ local function waitForImmediateOwnership()
 		if finished or phase ~= 1 or not phaseStarted then
 			return
 		end
-		local count = backpackCount()
+		local count = resourceCount()
 		if tradeClosed and count == 1 then
 			appendEvent("trade_immediate_secondary", "1")
 			appendEvent("trade_position_secondary", localPositionString())
@@ -221,7 +270,7 @@ local function waitForImmediateOwnership()
 		end
 		checks = checks - 1
 		if checks <= 0 then
-			fail("immediate_secondary_ownership", "closed trade and exactly one backpack in Player B backpack slot", string.format("tradeClosed=%s count=%d", tostring(tradeClosed), count))
+			fail("immediate_secondary_ownership", "closed trade and exactly one item 3043 in Player B inventory", string.format("tradeClosed=%s count=%d", tostring(tradeClosed), count))
 			return
 		end
 		scheduleEvent(poll, 100)
@@ -247,29 +296,29 @@ local function observeTradeOffer()
 	end, 100)
 end
 
-local function waitForPrimaryVisibility()
+local function waitForPrimaryVisibilityAndPrecondition()
 	local checks = 250
 	local function poll()
 		if finished or phase ~= 1 or not phaseStarted then
 			return
 		end
 		local primary = findVisibleCreature(PRIMARY_CHARACTER)
-		if primary then
-			local count = backpackCount()
-			if count ~= 0 then
-				fail("fixture_precondition", "Player B backpack slot empty", tostring(count))
-				return
-			end
+		local count = resourceCount()
+		if primary and count == 0 then
 			readyForTrade = true
 			appendEvent("trade_secondary_peer_visible", PRIMARY_CHARACTER)
 			appendEvent("trade_fixture_precondition_secondary", "empty")
 			appendEvent("trade_position_secondary", localPositionString())
-			markStep("primary_visible_and_empty_precondition")
+			markStep("primary_visible_and_empty_resource_precondition")
+			return
+		end
+		if count > 0 then
+			fail("fixture_precondition", "Player B has zero item 3043 before trade", tostring(count))
 			return
 		end
 		checks = checks - 1
 		if checks <= 0 then
-			fail("primary_visibility", "primary player visible", PRIMARY_CHARACTER .. " not visible")
+			fail("primary_visibility", "primary player visible with zero item 3043", string.format("visible=%s count=%d", tostring(primary ~= nil), count))
 			return
 		end
 		scheduleEvent(poll, 100)
@@ -291,20 +340,22 @@ connect(g_game, {
 				return
 			end
 			appendEvent("online_stable_" .. phase, "confirmed")
-			if phase == 1 then
-				markStep("secondary_online")
-				waitForPrimaryVisibility()
-			else
-				local count = backpackCount()
-				if count ~= 1 then
-					fail("relog_secondary_ownership", "exactly one backpack after relog", tostring(count))
-					return
+			openStarterBackpack(function()
+				if phase == 1 then
+					markStep("secondary_online_with_backpack_open")
+					waitForPrimaryVisibilityAndPrecondition()
+				else
+					local count = resourceCount()
+					if count ~= 1 then
+						fail("relog_secondary_ownership", "exactly one item 3043 after relog", tostring(count))
+						return
+					end
+					appendEvent("trade_relog_secondary", "1")
+					appendEvent("trade_position_secondary", localPositionString())
+					markStep("secondary_relog_ownership_confirmed")
+					waitForFinalRelease()
 				end
-				appendEvent("trade_relog_secondary", "1")
-				appendEvent("trade_position_secondary", localPositionString())
-				markStep("secondary_relog_ownership_confirmed")
-				waitForFinalRelease()
-			end
+			end)
 		end, 1500)
 	end,
 	onGameEnd = function()
@@ -366,7 +417,7 @@ end
 g_logger.setLogFile(INTERNAL_LOG_PATH)
 appendEvent("scenario", SCENARIO_KEY)
 appendEvent("actor", os.getenv("AGENT_E2E_ACTOR_ID") or "trade-b")
-appendEvent("driver", "e2e-qri-001-trade-secondary-v1")
+appendEvent("driver", "e2e-qri-001-trade-secondary-v2")
 scheduleEvent(startLogin, 1500)
 scheduleEvent(function()
 	if not finished then
