@@ -7,7 +7,7 @@ branch: test/owa-005-qa-contract-hardening-20260723
 base_branch: main
 created: 2026-07-23
 updated: 2026-07-23
-last_verified_commit: "ce41e78101259d8f3bdc885fdd37b9ea0a2752a1"
+last_verified_commit: "f6c399a4dc0e88eaf201b6e194bab99212a157ce"
 risk: medium
 related_issue: ""
 related_pr: "802"
@@ -62,7 +62,7 @@ cross_repo_tasks: []
 
 ## Status
 
-VALIDATING — bounded implementation is complete in PR #802 and the PR carries `ci:final-gate`. This is the final task/checkpoint commit before exact-head validation; no further commit is allowed unless a validation failure requires a real fix and therefore a new final-gate cycle.
+VALIDATING — bounded implementation is complete in PR #802 and the PR carries `ci:final-gate`. The first labelled exact-head attempt exposed only the task-checkpoint compactness limit (`proven` had 17 items; maximum 16). This final checkpoint removes one redundant proven item and records the failure; no implementation, fixture, ownership or scope behavior changes.
 
 The adversarial permutation fixture exposed one narrow deterministic-output defect in the existing Regression Guard: `impactEvidence.sampledMechanics` preserved the input Semantic Diff finding order even though findings are semantically unordered and sibling output dimensions are canonicalized. The production change is limited to sorting that emitted evidence list by stable `findingId`; selection semantics and evidence contents are unchanged.
 
@@ -122,8 +122,8 @@ Use only deterministic synthetic JSON/object fixtures and Python standard librar
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T16:25:00+02:00
-head: ce41e78101259d8f3bdc885fdd37b9ea0a2752a1
+updated_at: 2026-07-23T16:28:00+02:00
+head: f6c399a4dc0e88eaf201b6e194bab99212a157ce
 branch: test/owa-005-qa-contract-hardening-20260723
 pr: 802
 status: validating
@@ -137,7 +137,6 @@ owned_paths:
   - tools/ai-agent/otbm_map_change_regression.py
 proven:
   - Current main remains b8a88f073b2609b444fa15370aae30ac9f80b908; its post-preflight delta was merged auth PR #722 and does not overlap OWA-005 exclusive paths.
-  - PR #802 targets blakinio/canary:main from blakinio/canary:test/owa-005-qa-contract-hardening-20260723 and is mergeable.
   - OWA-001 subsequently started as PR #801; its declared exclusive campaign paths are disjoint from OWA-005 exclusive paths and PR #802 does not edit its shared programme paths.
   - OTBM-QA-001..018 are delivered and lifecycle-closed; OWA-005 hardens those canonical contracts rather than creating replacements.
   - Candidate Physical E2E already has direct mismatch coverage for pipeline candidate SHA, Semantic Diff candidate SHA and selected Semantic Diff hash binding.
@@ -151,13 +150,13 @@ proven:
   - CI run 30014667667 completed its Required aggregator successfully on ce41e78101259d8f3bdc885fdd37b9ea0a2752a1.
   - PR #802 has no reviews or unresolved review threads.
   - The full changed-file list contains only the four owned OWA-005 files; no .otbm, .widx, items.otb, active datapack content or secret path is changed.
-  - The ci:final-gate label was applied before this final checkpoint commit.
+  - The ci:final-gate label was applied before the final checkpoint cycle.
   - Local checkout execution is unavailable in this session because the environment cannot resolve github.com; GitHub repository state and CI are used for execution evidence.
 derived:
   - The previous Regression Guard sampled mechanic list was input-order dependent; stable sorting by findingId is the minimal contract-preserving deterministic fix.
-  - Exact final-head full validation must now run on the commit produced by this checkpoint update before readiness or merge.
+  - The first labelled exact-head ownership failure was checkpoint compactness only; reducing proven from 17 to the allowed 16 is the complete root-cause fix.
 unknown:
-  - Exact final-head workflow conclusions until GitHub Actions completes on this checkpoint commit.
+  - Exact final-head workflow conclusions until GitHub Actions completes on the commit produced by this compact checkpoint update.
 conflicts: []
 first_failure:
   marker: regression-guard-sampled-mechanics-order
@@ -185,6 +184,9 @@ validation:
   - command: CI / Required
     result: PASS
     evidence: Run 30014667667 Required aggregator completed successfully on ce41e78101259d8f3bdc885fdd37b9ea0a2752a1.
+  - command: ci:final-gate Agent Task Ownership
+    result: FAIL
+    evidence: Run 30014974379 on f6c399a4dc0e88eaf201b6e194bab99212a157ce rejected only checkpoint compactness because proven had 17 items; this commit reduces it to the allowed maximum 16.
 blockers: []
-next_action: Require the full ci:final-gate validation set to pass on this checkpoint commit's exact head; then mark PR #802 ready and squash-merge without further commits.
+next_action: Require the full ci:final-gate validation set to pass on this compact checkpoint commit's exact head; then mark PR #802 ready and squash-merge without further commits.
 ```
