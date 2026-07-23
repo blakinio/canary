@@ -108,7 +108,7 @@ Explicitly excluded:
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-23T16:16:00+02:00
-head: 3fd3156b616ae5e61b129bb8444e2c86737d766d
+head: fb811d4bf2cba072cdefd33d7031b86fc47cd657
 branch: feat/e2e-qri-001-two-player-trade-persistence
 pr: 806
 status: implementing
@@ -132,6 +132,7 @@ proven:
   - The existing persistence assertion contract supports player_item_presence on player_items; cross-actor checks use the existing semicolon-free SELECT SQL assertion boundary.
   - Current main result.json is runner schema v2 but is not the QRI-005 standard result envelope, and current cleanup does not provide QRI-006 cleanup certification.
   - QRI-001 implementation changes remain exactly the task record plus one scenario, two feature-owned controlled-client Lua drivers and one focused contract test; shared Universal E2E runner/workflow files remain unchanged.
+  - Exact-head scenario/schema resolution passed in Universal Agent E2E run 30015078155 before database-preflight evidence upload failed.
 derived:
   - A single non-stackable backpack fixture avoids stack-split and recipient-container edge cases while preserving a real item transfer.
   - Primary Paladin 15 reuses the already-established administrator test account for the fixed fixture command while secondary Paladin 14 remains a normal distinct actor.
@@ -141,9 +142,10 @@ unknown:
 conflicts: []
 first_failure:
   marker: ownership_checkpoint_metadata
-  evidence: Agent Task Ownership run 30014797912 failed only because the active-path status was declared as active instead of implementing and related_pr was empty instead of 806; focused ownership tooling tests passed and changed-file collection was correct.
+  evidence: Agent Task Ownership first failed on status/related_pr metadata, then on unsupported non-terminal RUNNING values in validation items; implementation code was not implicated.
 rejected_hypotheses:
   - Increase runtime timeout for the ownership failure; rejected because diagnostics identify checkpoint metadata, not timing.
+  - Treat Universal Agent E2E database evidence upload failure as a trade failure; rejected because scenario resolution and database import passed and physical execution never started.
   - Add a second multi-client runner; rejected because the bounded reusable orchestration already exists.
   - Add a new scenario-specific SQL fixture contract; rejected because that would create a competing shared runner interface when the existing fixed god talk action can prepare the one-item fixture through a controlled client.
   - Implement QRI-005 or QRI-006 inside QRI-001; rejected because both are separate packages and absent dependencies are recorded as integration debt.
@@ -156,13 +158,13 @@ changed_paths:
 validation:
   - command: Agent Task Ownership run 30014797912
     result: FAIL
-    evidence: Checkpoint metadata only: status and related_pr; focused unit tooling and changed-file collection passed. This commit corrects both fields.
-  - command: CI run 30014794677
-    result: RUNNING
-    evidence: Repository CI is still executing on implementation head 3fd3156b616ae5e61b129bb8444e2c86737d766d.
-  - command: Universal Agent E2E run 30014796896
-    result: RUNNING
-    evidence: Selected physical two-client scenario is executing on implementation head 3fd3156b616ae5e61b129bb8444e2c86737d766d.
+    evidence: Checkpoint metadata only: status and related_pr; focused unit tooling and changed-file collection passed. Corrected on the next checkpoint commit.
+  - command: Agent Task Ownership run 30015077770
+    result: FAIL
+    evidence: Checkpoint schema only: non-terminal RUNNING values are unsupported in validation results. This commit removes non-terminal validation entries.
+  - command: CI run 30015078311
+    result: PASS
+    evidence: Repository required CI completed successfully on implementation/checkpoint head fb811d4bf2cba072cdefd33d7031b86fc47cd657.
 blockers: []
-next_action: Require fresh ownership/CI/Universal Agent E2E on this metadata-corrected head, inspect the first physical failure if any, and modify only feature-owned QRI-001 paths.
+next_action: Require fresh ownership/CI/Universal Agent E2E on this schema-corrected checkpoint head, inspect the first physical failure if any, and modify only feature-owned QRI-001 paths.
 ```
