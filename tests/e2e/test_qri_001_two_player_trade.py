@@ -57,7 +57,10 @@ class Qri001TwoPlayerTradeTests(unittest.TestCase):
         self.assertNotIn("AGENT_E2E_PASSWORD", values)
 
     def test_trade_is_driven_through_real_maintained_client_protocol_surface(self) -> None:
-        self.assertIn('g_game.talk("/i backpack, 1")', self.primary)
+        self.assertIn('g_game.talk("/i 3043, 1")', self.primary)
+        self.assertIn("g_game.open(backpack, nil)", self.primary)
+        self.assertIn("g_game.open(backpack, nil)", self.secondary)
+        self.assertIn("g_game.findItemInContainers(RESOURCE_ITEM_ID, -1, 0)", self.primary)
         self.assertIn("g_game.requestTrade(item, peer)", self.primary)
         self.assertIn("g_game.acceptTrade()", self.primary)
         self.assertIn("g_game.acceptTrade()", self.secondary)
@@ -72,9 +75,20 @@ class Qri001TwoPlayerTradeTests(unittest.TestCase):
         self.assertNotIn("mariadb", self.primary + self.secondary)
         self.assertNotIn("io.popen", self.primary + self.secondary)
 
+    def test_fixture_uses_one_nonstarter_resource_inside_existing_backpack(self) -> None:
+        self.assertIn("local RESOURCE_ITEM_ID = 3043", self.primary)
+        self.assertIn("local RESOURCE_ITEM_ID = 3043", self.secondary)
+        self.assertIn('appendEvent("trade_fixture_created", "item-3043")', self.primary)
+        self.assertIn('appendEvent("trade_fixture_precondition", "empty")', self.primary)
+        self.assertIn('appendEvent("trade_fixture_precondition_secondary", "empty")', self.secondary)
+        self.assertIn('appendEvent("trade_backpack_open_" .. phase, "confirmed")', self.primary)
+        self.assertIn('appendEvent("trade_backpack_open_" .. phase, "confirmed")', self.secondary)
+
     def test_immediate_and_relog_conservation_markers_are_required(self) -> None:
         required = set(self.scenario["assertions"]["required_markers"])
         expected = {
+            "trade_backpack_open_1=confirmed",
+            "trade_fixture_created=item-3043",
             "trade_request=sent",
             "trade_offer_primary=observed",
             "trade_offer_secondary=observed",
@@ -83,6 +97,7 @@ class Qri001TwoPlayerTradeTests(unittest.TestCase):
             "trade_immediate_primary=0",
             "trade_immediate_secondary=1",
             "trade_immediate_conservation=1",
+            "trade_backpack_open_2=confirmed",
             "trade_relog_primary=0",
             "trade_relog_secondary=1",
             "trade_relog_conservation=1",
@@ -104,10 +119,10 @@ class Qri001TwoPlayerTradeTests(unittest.TestCase):
                 "required": True,
                 "checks": [
                     {
-                        "id": "primary-traded-backpack-absent",
+                        "id": "primary-traded-item-3043-absent",
                         "type": "player_item_presence",
                         "location": "inventory",
-                        "item_id": 2854,
+                        "item_id": 3043,
                         "present": False,
                     }
                 ],
@@ -115,17 +130,17 @@ class Qri001TwoPlayerTradeTests(unittest.TestCase):
         )
         self.assertEqual(len(compiled), 1)
         self.assertIn("NOT EXISTS", compiled[0])
-        self.assertIn("`pi`.`itemtype` = 2854", compiled[0])
+        self.assertIn("`pi`.`itemtype` = 3043", compiled[0])
         self.assertIn(
-            "SELECT COUNT(*) = 0 FROM player_items AS pi INNER JOIN players AS p ON p.id = pi.player_id WHERE p.name = 'Paladin 15' AND pi.itemtype = 2854",
+            "SELECT COUNT(*) = 0 FROM player_items AS pi INNER JOIN players AS p ON p.id = pi.player_id WHERE p.name = 'Paladin 15' AND pi.itemtype = 3043",
             sql,
         )
         self.assertIn(
-            "SELECT COUNT(*) = 1 FROM player_items AS pi INNER JOIN players AS p ON p.id = pi.player_id WHERE p.name = 'Paladin 14' AND pi.itemtype = 2854",
+            "SELECT COUNT(*) = 1 FROM player_items AS pi INNER JOIN players AS p ON p.id = pi.player_id WHERE p.name = 'Paladin 14' AND pi.itemtype = 3043",
             sql,
         )
         self.assertIn(
-            "SELECT COUNT(*) = 1 FROM player_items AS pi INNER JOIN players AS p ON p.id = pi.player_id WHERE p.name IN ('Paladin 15', 'Paladin 14') AND pi.itemtype = 2854",
+            "SELECT COUNT(*) = 1 FROM player_items AS pi INNER JOIN players AS p ON p.id = pi.player_id WHERE p.name IN ('Paladin 15', 'Paladin 14') AND pi.itemtype = 3043",
             sql,
         )
         self.assertIn("SELECT COUNT(*) = 0 FROM players_online", sql)
