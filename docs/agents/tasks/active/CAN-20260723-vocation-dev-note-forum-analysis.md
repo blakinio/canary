@@ -7,8 +7,8 @@ agent: "Codex"
 branch: agent/dev-note-vocation-forum-analysis
 base_branch: main
 created: 2026-07-23T19:11:40+02:00
-updated: 2026-07-23T19:19:13+02:00
-last_verified_commit: "4d0245346d394fb4b3cb5503626e35b0205010cc"
+updated: 2026-07-23T19:19:54+02:00
+last_verified_commit: "14e75ba64c4458850d7151230464bbdf496d4a7d"
 risk: low
 related_issue: ""
 related_pr: "831"
@@ -56,7 +56,7 @@ Add a complete, evidence-bounded analysis of official Dev Note thread `4989637` 
 
 # Current state
 
-The full corpus and reproducibility manifest are retained outside Git. The report now contains the complete foundational-thread analysis; local repository validation and the final-head CI gate remain.
+The full corpus and reproducibility manifest are retained outside Git. The complete report is committed and pushed to draft PR #831, local repository validation passes, and `ci:final-gate` is applied. Only the exact-final-head CI and merge gate remain.
 
 # Plan
 
@@ -68,11 +68,11 @@ The full corpus and reproducibility manifest are retained outside Git. The repor
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T19:19:13+02:00
-head: 4d0245346d394fb4b3cb5503626e35b0205010cc
+updated_at: 2026-07-23T19:19:54+02:00
+head: 14e75ba64c4458850d7151230464bbdf496d4a7d
 branch: agent/dev-note-vocation-forum-analysis
 pr: 831
-status: validating
+status: ready
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -97,12 +97,30 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260723-vocation-dev-note-forum-analysis.md
   - docs/ai-agent/REAL_TIBIA_VOCATION_ADJUSTMENTS_FORUM_ANALYSIS.md
 validation:
-  - "python tools/agents/task_ownership.py: pass (28 active task records)"
-  - "python tools/agents/checkpoint.py --require-checkpoint <task>: pass"
-  - "python tools/agents/real_tibia_registry.py validate: pass (0 warnings)"
-  - "git diff --check: pass"
-  - "exact changed-path and forbidden-file assertions: pass"
-  - "report corpus/total/hash/stale-text assertions: pass"
+  - command: python tools/agents/task_ownership.py
+    result: PASS
+    evidence: Validated 28 active task records.
+  - command: python tools/agents/checkpoint.py --require-checkpoint docs/agents/tasks/active/CAN-20260723-vocation-dev-note-forum-analysis.md
+    result: PASS
+    evidence: The task checkpoint satisfies the repository schema.
+  - command: python tools/agents/real_tibia_registry.py validate
+    result: PASS
+    evidence: Registry valid with zero warnings.
+  - command: git diff --check
+    result: PASS
+    evidence: No whitespace errors.
+  - command: exact changed-path and forbidden-file assertions
+    result: PASS
+    evidence: Only the task record and shared Markdown report changed; no map, item, datapack, secret, or credential paths changed.
+  - command: report corpus, total, manifest-hash, and stale-text assertions
+    result: PASS
+    evidence: The report records 1,625 collected posts, the 6,592-post combined primary corpus, 48 official markers, the canonical manifest hash, and no stale 4,967-post conclusion.
+  - command: complete browser-rendered forum corpus audit
+    result: PASS
+    evidence: 82 pages contain 1,625 unique post identifiers and zero duplicate identifiers.
+  - command: ci:final-gate label
+    result: PASS
+    evidence: Label applied to PR #831 before this final task commit.
 blockers: []
-next_action: Commit and push the report, apply ci:final-gate, then create the final checkpoint commit.
+next_action: Push this final checkpoint commit, wait for all required checks on its exact head, then mark PR #831 ready and squash-merge.
 ```
