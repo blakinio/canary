@@ -2,26 +2,27 @@
 
 > Status: community-feedback evidence, not gameplay parity proof
 >
-> Primary corpus collected: 2026-07-22
+> Primary release corpus collected: 2026-07-22
 >
-> Supplemental Druid design-thread sample reviewed: 2026-07-23
+> General Changes and supplemental Druid design threads reviewed: 2026-07-23
 >
 > Target use: bounded design and validation input for `blakinio/canary`
 
 ## Executive summary
 
-Two official Tibia forum threads provide the primary before-and-after view of the 2026 vocation adjustments:
+Three official Tibia forum threads provide a proposal-to-release view of the 2026 vocation adjustments:
 
-1. **Release State** records expectations, unresolved test concerns, and official clarifications before the live release.
-2. **Release** records live-server bugs, balance experience, subsequent numerical nerfs, and the community response through the thread's closure.
+1. **General Changes** records the first reaction to the system-wide proposal: charm and AoE scaling, Energy Ring, UH/IH support, combat mode, mitigation, and mana potions.
+2. **Release State** records expectations, unresolved test concerns, and official clarifications before the live release.
+3. **Release** records live-server bugs, balance experience, subsequent numerical nerfs, and the community response through the thread's closure.
 
 The strongest cross-thread conclusion is not that one vocation simply needs more power. Players repeatedly ask for a legible relationship between mechanical difficulty, risk, Wheel investment, role specialization, and practical reward.
 
-A supplemental review of the first page of the earlier official **Vocation Balancing Druid** thread adds design-stage evidence for Elder Druid. It is not included in the 3,463-post primary-corpus statistics because only 20 of the thread's 393 displayed results were accessible in this collection. Within the 17 deduplicated community contributions on that page, the clearest concerns were the doubled healing cooldown in the group stance, weak solo hunting, and insufficiently specified Forked Spells.
+A supplemental review of the first page of the earlier official **Vocation Balancing Druid** thread adds design-stage evidence for Elder Druid. It is not included in the 4,228-post primary-corpus statistics because only 20 of the thread's 393 displayed results were accessible in that collection. Within the 17 deduplicated community contributions on that page, the clearest concerns were the doubled healing cooldown in the group stance, weak solo hunting, and insufficiently specified Forked Spells.
 
-Pre-release discussion was mixed and often constructive. A lexical indicator marked 43.5% of accessible non-official Release State posts as critical. The same indicator reached 70.3% across the post-release thread and 80.0% during July 7–8, immediately after numerical corrections. The discussion therefore moved from *clarify and finish the mechanics* toward *justify the balance model and its combined effects*.
+The January General Changes discussion was broad and exploratory: all 765 displayed posts were accessible, representing 666 author names. A coarse critical-language indicator matched 29.5% of its non-official posts. The same indicator rose to 43.5% in Release State and 70.3% across the post-release thread, reaching 80.0% during July 7–8 immediately after numerical corrections. The discussion therefore moved from *define the compensation and preserve useful roles*, through *clarify and finish the mechanics*, toward *justify the balance model and its combined effects*.
 
-Several pre-release warnings later became major live topics:
+Several proposal-stage and pre-release warnings later became major live topics:
 
 - Elite Knight healing cooldown and stance trade-offs;
 - Master Sorcerer targeting, beam execution, and elemental-rotation complexity;
@@ -35,6 +36,7 @@ This report does not establish official formulas, live values, or Canary defects
 
 | Phase | Official thread | Thread ID | Displayed results | Accessible unique posts | Observed dates |
 |---|---|---:|---:|---:|---|
+| Proposal | [Vocation Balancing General Changes](https://www.tibia.com/forum/?action=thread&threadid=4992263&pagenumber=1) | `4992263` | 765 | 765 | 2026-01-22–2026-01-29 |
 | Pre-release | [Vocation Adjustments Release State](https://www.tibia.com/forum/?action=thread&threadid=4996962&pagenumber=1) | `4996962` | 606 | 600 | 2026-06-02–2026-06-11 |
 | Post-release | [Vocation Adjustments Release](https://www.tibia.com/forum/?action=thread&threadid=4997270&pagenumber=1) | `4997270` | 2,863 | 2,863 | 2026-06-16–2026-07-21 |
 
@@ -49,11 +51,12 @@ The supplemental source is reported separately because Chrome exposed the select
 Collection facts:
 
 - Post identifiers were used for uniqueness checks.
+- All 765 displayed results in thread `4992263` were collected from pages 1–39 without duplicate identifiers. The corpus contains 666 author names and three posts carrying the official-post marker.
 - All 2,863 displayed results in thread `4997270` were collected without duplicate identifiers.
 - Active content in thread `4997270` ended on page 144 even though navigation exposed pages through 147; pages 145–147 returned no posts.
 - Thread `4996962` yielded 600 unique posts on pages 1–30. Its linked page 31 repeatedly returned HTTP 403, so six displayed results were not accessible and are not inferred.
-- The combined accessible corpus contains 3,463 unique posts, 1,825 unique author names, and 33 posts carrying the forum's official-post marker.
-- Two hundred author names appear in both corpora, derived from the separate and combined unique-author counts.
+- The two later corpora contain 3,463 unique posts, 1,825 unique author names, and 33 official-marker posts. Two hundred author names appear in both later corpora.
+- Across all three threads, the accessible corpus contains 4,228 unique post identifiers and 36 official-marker posts. A three-thread unique-author total was not recomputed from the earlier retained aggregates, so per-thread author counts are reported instead.
 
 ## Evidence boundary
 
@@ -96,7 +99,7 @@ Forum posts may be edited or deleted after collection. Primary-corpus counts are
 
 ## Supplemental design-stage evidence: Vocation Balancing Druid
 
-This section analyzes only page one of thread `4992268`. It is a bounded design-stage sample, not a complete-thread sentiment result and not part of the later 3,463-post corpus.
+This section analyzes only page one of thread `4992268`. It is a bounded design-stage sample, not a complete-thread sentiment result and not part of either the 4,228-post primary corpus or its 3,463-post later-thread subset.
 
 ### Official proposal represented on the page
 
@@ -242,29 +245,81 @@ That hypothesis is actionable for prioritizing tests, but the sample is too smal
 
 ## Corpus composition
 
+### General Changes proposal corpus
+
+| Displayed author vocation | Posts | Share |
+|---|---:|---:|
+| Royal Paladin / Paladin | 214 | 28.0% |
+| Elite Knight / Knight | 182 | 23.8% |
+| Master Sorcerer / Sorcerer | 166 | 21.7% |
+| Elder Druid / Druid | 93 | 12.2% |
+| None, missing, or other | 69 | 9.0% |
+| Exalted Monk / Monk | 41 | 5.4% |
+
+Displayed levels were available for 698 posts and ranged from 2 to 3,076, with a median of 601. This is author-character context, not proof of the player's main vocation, experience, or the level at which the reported behavior occurred.
+
 ### Combined accessible corpus
 
 | Displayed author vocation | Posts | Share |
 |---|---:|---:|
-| Master Sorcerer / Sorcerer | 948 | 27.4% |
-| Elite Knight / Knight | 920 | 26.6% |
-| Exalted Monk / Monk | 531 | 15.3% |
-| Royal Paladin / Paladin | 487 | 14.1% |
-| Elder Druid / Druid | 444 | 12.8% |
-| None, missing, or other | 133 | 3.8% |
+| Master Sorcerer / Sorcerer | 1,114 | 26.3% |
+| Elite Knight / Knight | 1,102 | 26.1% |
+| Royal Paladin / Paladin | 701 | 16.6% |
+| Exalted Monk / Monk | 572 | 13.5% |
+| Elder Druid / Druid | 537 | 12.7% |
+| None, missing, or other | 202 | 4.8% |
 
 ### Phase comparison
 
-| Metric | Release State | Release |
-|---|---:|---:|
-| Accessible posts | 600 | 2,863 |
-| Unique author names | 440 | 1,585 |
-| Official-marker posts | 11 | 22 |
-| Accessible non-official posts | 589 | 2,841 |
-| Posts matching critical-language indicator | 256 | 1,996 |
-| Critical-language share | 43.5% | 70.3% |
+| Metric | General Changes | Release State | Release |
+|---|---:|---:|---:|
+| Accessible posts | 765 | 600 | 2,863 |
+| Unique author names | 666 | 440 | 1,585 |
+| Official-marker posts | 3 | 11 | 22 |
+| Accessible non-official posts | 762 | 589 | 2,841 |
+| Posts matching critical-language indicator | 225 | 256 | 1,996 |
+| Critical-language share | 29.5% | 43.5% | 70.3% |
 
 The post-release thread was broad rather than dominated by a small group: it contained 1,585 author names, had a median of one post per author, and 1,094 authors posted only once. The ten most active authors contributed 221 posts, or 7.7% of the thread.
+
+## January General Changes findings
+
+The proposal thread was unusually broad: 585 of its 666 author names posted only once, and the ten most active names contributed 32 posts, or 4.2% of the corpus. This limits the risk that the headline counts merely reflect a few highly active accounts.
+
+### Topic engagement
+
+| Proposed system-wide change | Non-official posts mentioning theme | Share of 762 non-official posts |
+|---|---:|---:|
+| Potion access, tiers, or mana restoration | 248 | 32.5% |
+| UH/IH use on other characters | 236 | 31.0% |
+| Energy Ring or mana shield | 218 | 28.6% |
+| AoE rune area or affected runes | 211 | 27.7% |
+| Autoattacks, charms, or diamond arrows | 203 | 26.6% |
+| Combat mode or battle stances | 93 | 12.2% |
+| Mitigation, dedication perks, or lesser gems | 90 | 11.8% |
+
+A post can match multiple themes. These are post-level engagement counts, not votes. Rendered quotations can carry a theme into a reply and therefore measure discussion propagation as well as independent reports.
+
+### Role and vocation signals
+
+- **Autoattacks and charms:** 106 of 203 matching posts displayed Paladin, making RP the source of 52.2% of engagement. Repeated concerns involved Diamond Arrow multi-target identity, Low Blow, Fatal Hold, and whether unspecified new spells and stances would fully compensate the loss.
+- **AoE runes:** Sorcerer and Druid authors contributed 111 of 211 matching posts, or 52.6%. The dominant uncertainty was not merely lower damage; it was the interaction among reduced area, target density, charms, level scaling, positioning, and the still-unknown damage increase.
+- **Energy Ring:** 109 of 218 matching posts displayed Paladin. The proposed 3 mana per absorbed damage point was frequently treated as a survivability and mana-pool question, with alternatives such as a lower ratio, cooldown, charge limit, or emergency-only barrier.
+- **UH/IH on others:** this was cross-vocation rather than an MS-only topic. The 236 matching posts included 75 Sorcerer, 57 Paladin, 50 Knight, and 29 Druid posts. Players linked external UH use to EK+MS duos, boss mechanics, quests, PvP, emergency saves, and the risk of making a Druid mandatory. Common alternatives preserved a short rescue action without enabling full-time off-vocation healing.
+- **Potions:** discussion was broad across RP (80 posts), EK (62), MS (50), and ED (24). Better access was often welcomed, while replies also questioned the Knight exception, the 50% universal-potion premium, how “next tier” applied to each vocation, and whether more potion throughput merely increased repetitive input.
+- **Combat mode and mitigation:** these generated fewer posts than the controversial survival and AoE changes. Many replies welcomed simplification, permanent attack compensation, better shield/spellbook defence, and stronger mitigation choices, while asking for exact formulas, caps, and vocation-specific consequences.
+
+### Official clarification and unresolved boundary
+
+On January 23, the official follow-up stated that Intense Healing Rune would be treated like Ultimate Healing Rune, while the team considered another way for non-healer vocations to save a player briefly without becoming full-time healers. It also clarified the new superior mana-potion tier and stated that vocation stances would behave like persistent Monk Virtues. On January 29, the thread closed with confirmation that developers were analysing the feedback.
+
+The thread therefore established problem statements and compensation requirements, not final values. For Canary, its most useful output is a scenario matrix:
+
+1. compare single-target and increasing-density outcomes for charm, rune, and signature-spell rotations;
+2. test emergency rescue separately from sustained healing throughput;
+3. model Energy Ring against realistic mana pools and incoming burst at several level bands;
+4. evaluate potion sustain, cost, and input rate together;
+5. test combat-mode removal and mitigation as complete offensive/defensive packages rather than isolated percentages.
 
 ## How the discussion changed after release
 
@@ -456,6 +511,12 @@ After July 7, many complaints focused on stacked changes rather than one coeffic
 
 ## Official-response chronology
 
+### General Changes thread
+
+- **January 22:** proposed main-target-only charm triggering for autoattacks, smaller but stronger AoE runes, a 3:1 Energy Ring mana cost, removal of external UH use, removal of combat mode with permanent attack compensation, stronger mitigation, and broader mana-potion access.
+- **January 23:** clarified that IH would follow UH, an emergency rescue alternative for non-healers was under consideration, superior mana potion would sit between Great and Ultimate and exclude Knights, and stances would persist like Monk Virtues.
+- **January 29:** closed the feedback cycle by stating that developers were analysing the input.
+
 ### Release State thread
 
 The official-marker posts were comparatively specific and operational:
@@ -478,15 +539,16 @@ The official response evolved in three stages:
 
 The response pattern suggests that discrete defects and factual questions were easier to address than the community's demand for a transparent multidimensional balance model.
 
-## What the two-thread comparison adds
+## What the three-stage comparison adds
 
-Analyzing only the post-release thread can make the July reaction look like resistance to any nerf. The pre-release thread shows a more nuanced sequence:
+Analyzing only the post-release thread can make the July reaction look like resistance to any nerf. The proposal and pre-release threads show a more nuanced sequence:
 
-1. Players welcomed several identity and quality-of-life directions.
-2. They identified specific mechanical, targeting, accessibility, and role concerns before launch.
-3. CipSoft intentionally moved to live observation to obtain better data.
-4. Live play expanded those concerns into sustain, hunting efficiency, team composition, and economy effects.
-5. Numerical corrections on July 7 sharply increased criticism because players perceived cumulative reductions without an equally concrete explanation of targets or trade-offs.
+1. Players welcomed potion access, simplification, mitigation improvements, stronger vocation identity, and several quality-of-life directions.
+2. They immediately asked how compensation would preserve AoE scaling, emergency support, survivability, and practical role identity.
+3. Release State narrowed those concerns to specific mechanics, targeting, accessibility, Wheel cost, and role performance.
+4. CipSoft intentionally moved to live observation to obtain better data.
+5. Live play expanded the concerns into sustain, hunting efficiency, team composition, and economy effects.
+6. Numerical corrections on July 7 sharply increased criticism because players perceived cumulative reductions without an equally concrete explanation of targets or trade-offs.
 
 The strongest interpretation is therefore not “players rejected balancing.” It is:
 
@@ -519,6 +581,6 @@ This report may nominate a future investigation but cannot authorize a gameplay 
 
 ## Conclusion
 
-Across 3,463 accessible posts, the community consistently supports stronger vocation identity, new rotations, and lower unnecessary input complexity. The main rejection concerns incomplete functional access, unclear role trade-offs, late Wheel availability, and numerical packages whose combined risk or complexity appears greater than their practical reward.
+Across 4,228 accessible posts in three official threads, the community consistently supports stronger vocation identity, new rotations, useful defensive choice, and lower unnecessary input complexity. The main rejection concerns incomplete functional access, unclear role trade-offs, late Wheel availability, and numerical packages whose combined risk or complexity appears greater than their practical reward.
 
 For Canary, the durable lesson is methodological: use the forum to identify high-value validation questions, then prove each mechanic independently. Community volume can prioritize investigation; it cannot replace authoritative values, current source inspection, or runtime evidence.
