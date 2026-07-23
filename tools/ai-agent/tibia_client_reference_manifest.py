@@ -67,10 +67,14 @@ def _safe_relative_path(value: str, label: str) -> tuple[str, tuple[str, ...]]:
 
 def _resolve_package_root(package_root: Path) -> Path:
     expanded = package_root.expanduser()
-    if expanded.is_symlink():
-        raise ClientReferenceManifestError(f"package root must not be a symlink: {package_root}")
+    lexical = Path(os.path.abspath(expanded))
+    cursor = Path(lexical.anchor)
+    for part in lexical.parts[1:]:
+        cursor = cursor / part
+        if cursor.is_symlink():
+            raise ClientReferenceManifestError(f"package root path contains a symlink: {package_root}")
     try:
-        root = expanded.resolve(strict=True)
+        root = lexical.resolve(strict=True)
     except OSError as exc:
         raise ClientReferenceManifestError(f"package root does not exist: {package_root}") from exc
     if not root.is_dir():
