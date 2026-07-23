@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 base_branch: main
 created: 2026-07-22T16:00:00+02:00
-updated: 2026-07-23T15:10:00+02:00
-last_verified_commit: 0d16b90d641655310142d7fa45b017bcb86684f9
+updated: 2026-07-23T15:15:00+02:00
+last_verified_commit: a09175b2567451375b197923cb14ece72e590f73
 risk: high
 related_issue: ""
 related_pr: "722"
@@ -63,8 +63,8 @@ Production activation is tracked separately by `CAN-20260723-oteryn-native-auth-
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T15:10:00+02:00
-head: 0d16b90d641655310142d7fa45b017bcb86684f9
+updated_at: 2026-07-23T15:15:00+02:00
+head: a09175b2567451375b197923cb14ece72e590f73
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 pr: 722
 status: ready
