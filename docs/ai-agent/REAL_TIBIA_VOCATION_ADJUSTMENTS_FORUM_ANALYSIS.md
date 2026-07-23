@@ -2,18 +2,22 @@
 
 > Status: community-feedback evidence, not gameplay parity proof
 >
-> Collected: 2026-07-22
+> Primary corpus collected: 2026-07-22
+>
+> Supplemental Druid design-thread sample reviewed: 2026-07-23
 >
 > Target use: bounded design and validation input for `blakinio/canary`
 
 ## Executive summary
 
-Two official Tibia forum threads provide a useful before-and-after view of the 2026 vocation adjustments:
+Two official Tibia forum threads provide the primary before-and-after view of the 2026 vocation adjustments:
 
 1. **Release State** records expectations, unresolved test concerns, and official clarifications before the live release.
 2. **Release** records live-server bugs, balance experience, subsequent numerical nerfs, and the community response through the thread's closure.
 
 The strongest cross-thread conclusion is not that one vocation simply needs more power. Players repeatedly ask for a legible relationship between mechanical difficulty, risk, Wheel investment, role specialization, and practical reward.
+
+A supplemental review of the first page of the earlier official **Vocation Balancing Druid** thread adds design-stage evidence for Elder Druid. It is not included in the 3,463-post primary-corpus statistics because only 20 of the thread's 393 displayed results were accessible in this collection. Within the 17 deduplicated community contributions on that page, the clearest concerns were the doubled healing cooldown in the group stance, weak solo hunting, and insufficiently specified Forked Spells.
 
 Pre-release discussion was mixed and often constructive. A lexical indicator marked 43.5% of accessible non-official Release State posts as critical. The same indicator reached 70.3% across the post-release thread and 80.0% during July 7–8, immediately after numerical corrections. The discussion therefore moved from *clarify and finish the mechanics* toward *justify the balance model and its combined effects*.
 
@@ -33,6 +37,14 @@ This report does not establish official formulas, live values, or Canary defects
 |---|---|---:|---:|---:|---|
 | Pre-release | [Vocation Adjustments Release State](https://www.tibia.com/forum/?action=thread&threadid=4996962&pagenumber=1) | `4996962` | 606 | 600 | 2026-06-02–2026-06-11 |
 | Post-release | [Vocation Adjustments Release](https://www.tibia.com/forum/?action=thread&threadid=4997270&pagenumber=1) | `4997270` | 2,863 | 2,863 | 2026-06-16–2026-07-21 |
+
+### Supplemental source (excluded from primary-corpus totals)
+
+| Phase | Official thread | Thread ID | Displayed results | Accessible page-one posts | Observed date |
+|---|---|---:|---:|---:|---|
+| Early design feedback | [Vocation Balancing Druid](https://www.tibia.com/forum/?action=thread&threadid=4992268&pagenumber=1) | `4992268` | 393 | 20 | 2026-01-22 |
+
+The supplemental source is reported separately because Chrome exposed the selected first page, while direct requests for the remaining pages were rejected by Tibia.com with HTTP 403 during this collection. No values or opinions from inaccessible pages are inferred.
 
 Collection facts:
 
@@ -80,7 +92,153 @@ The critical-language indicator matched words and phrases such as `nerf`, `broke
 
 Rendered quotations remain in many replies. A quoted issue can therefore increase the number of posts associated with a theme. This is useful as an engagement measure but must not be interpreted as an equal number of independent reports.
 
-Forum posts may be edited or deleted after collection. Counts are a snapshot from 2026-07-22.
+Forum posts may be edited or deleted after collection. Primary-corpus counts are a snapshot from 2026-07-22; the supplemental page-one sample is a snapshot from 2026-07-23.
+
+## Supplemental design-stage evidence: Vocation Balancing Druid
+
+This section analyzes only page one of thread `4992268`. It is a bounded design-stage sample, not a complete-thread sentiment result and not part of the later 3,463-post corpus.
+
+### Official proposal represented on the page
+
+The opening community-manager post proposed:
+
+- a group-healing stance with doubled cooldowns for Heal Friend and Mass Healing and 110% increased ally healing;
+- a solo stance with 10% increased self-healing;
+- a distributed stance that sends 30% of Heal Friend or Nature's Embrace healing to a second nearby lowest-health ally;
+- more reliable healing and damage spells, Nature's Embrace base power of 2,000, and stronger/range-seven Strike spells;
+- earth and ice Forked Spells;
+- Wheel changes for Healing Link, critical healing, Terra Wave life leech, and Strong Ice Wave;
+- a lethal-damage Barrier that converts overkill into eight times as much mana loss;
+- mana-generating, longer-range rods with intentionally modest damage.
+
+The Barrier was reiterated in a second official post after being restored to the opening note.
+
+These are proposal-state values from January 22, 2026. They are not evidence of current Real Tibia behavior and must not be copied into Canary without current authoritative and runtime validation.
+
+### Page-one composition
+
+| Metric | Count |
+|---|---:|
+| Visible posts | 20 |
+| Official posts | 2 |
+| Community posts | 18 |
+| Deduplicated community contributions | 17 |
+| Distinct community authors | 17 |
+| Authors with a displayed level | 14 |
+| Displayed level range | 470–1,604 |
+| Median displayed level | 656 |
+
+One author posted the same response twice. The thematic counts below remove that duplicate and ignore text reproduced inside quotation blocks where the author's own surrounding text does not independently raise the issue.
+
+| Displayed author vocation | Deduplicated contributions | Share |
+|---|---:|---:|
+| Elder Druid | 11 | 64.7% |
+| Elite Knight | 2 | 11.8% |
+| Master Sorcerer | 1 | 5.9% |
+| Missing or traded character | 3 | 17.6% |
+
+This is a high-level, Druid-heavy convenience sample. It cannot represent low-level players or the full thread.
+
+### Recurring page-one themes
+
+| Theme | Deduplicated contributions | Share | Interpretation boundary |
+|---|---:|---:|---|
+| Group stance or doubled healing cooldown concern | 11 | 64.7% | Ten were clearly negative; one reconsidered the stance after editing the post but retained downtime concerns. |
+| Solo, duo, damage, or experience-rate weakness | 10 | 58.8% | Mostly claims about practical hunting performance; no logs or controlled benchmarks were supplied on this page. |
+| Forked Spell targeting, geometry, or specification concern | 5 | 29.4% | Authors wanted automatic secondary targeting or enough detail to judge real rotations. |
+| Rune area or wave-area concern | 4 | 23.5% | Connected to mobile AoE hunting and compensation for a referenced rune-area reduction. |
+| Positive interest in distributed healing | 3 | 17.6% | Support included the automatic lowest-health target; one author expected it to dominate party choices. |
+| Positive interest in Wheel or critical-healing changes | 3 | 17.6% | These were among the few repeatedly praised support changes. |
+| Rod/mana-generation interest | 2 | 11.8% | A third author questioned whether rod damage would matter. |
+| Strong/Ultimate Strike relevance concern | 2 | 11.8% | Both argued that single-target Strike spells do not address the AoE gameplay loop. |
+| Heal variance or weak minimum-heal concern | 2 | 11.8% | Authors asked for more reliable base healing rather than longer cooldowns. |
+
+Counts overlap because one contribution can raise several issues.
+
+### Design implications
+
+#### 1. The group stance is primarily a burst-versus-gap trade
+
+Using only the proposal's headline multipliers, a baseline heal of `H` every `C` seconds becomes `2.10H` every `2C` seconds:
+
+`2.10H / 2C = 1.05H / C`
+
+The nominal sustained-healing increase is therefore only 5% before overhealing, missed timing, shared cooldowns, critical heals, and encounter damage cadence. The stance can still create a much larger single-heal rescue window, but it also doubles the interval in which a target may receive no Heal Friend or Mass Healing.
+
+For Canary, average healing per second is not enough. Validation should compare:
+
+- effective, non-overheal throughput;
+- maximum time without an ally heal;
+- target death probability during burst sequences;
+- the effect of low and high heal rolls;
+- duo, four-player hunt, and boss compositions;
+- interaction with cooldown resets and other healers.
+
+#### 2. The solo stance does not answer the dominant solo complaint
+
+A 10% self-healing increase improves sustain, but the sampled complaints mostly concern experience per hour, AoE coverage, damage rotation, and restricted hunting-ground choice. Treating self-healing as the complete solo compensation risks solving a different variable than the one players reported.
+
+Any Canary investigation should separate at least:
+
+- survival-limited solo performance;
+- damage-limited solo performance;
+- AoE geometry and pull size;
+- experience and profit across level bands;
+- dependence on runes versus vocation spells.
+
+#### 3. Forked Spells need a deterministic targeting contract
+
+The page did not give enough information to evaluate the new targeting mode. Before values are tuned, a parity investigation needs to establish:
+
+- maximum secondary-target count;
+- search radius and shape;
+- whether secondary targets are automatic;
+- tie-breaking and lowest-distance rules;
+- damage falloff, if any;
+- behavior when moving, changing target, or losing line of sight;
+- Wheel unlock point and the level at which the complete rotation is available.
+
+Without that contract, balance measurements mix targeting defects, execution difficulty, and raw damage.
+
+#### 4. AoE compensation should match the actual Druid loop
+
+Several authors connected solo weakness to narrow waves, rune-area changes, and the difficulty of aiming while kiting. Buffing Strong and Ultimate Strike spells does not automatically compensate an AoE-oriented rotation if those spells remain outside realistic hunt usage.
+
+The relevant comparison is not spell-sheet power. It is damage and sustain over complete rotations against representative target counts and layouts.
+
+#### 5. Barrier requires tail-risk tests, not only average sustain tests
+
+The proposed eight-times overkill conversion is intentionally severe: 500 overkill damage would consume 4,000 mana and 1,000 overkill would consume 8,000 mana. Deterministic tests should cover:
+
+- exact-lethal and one-point-over-lethal hits;
+- sufficient, exactly sufficient, and insufficient mana;
+- simultaneous or same-tick damage sources;
+- existing mana-shield interactions;
+- PvE and PvP rule differences;
+- whether the character remains at one hit point and how subsequent damage resolves.
+
+#### 6. Duo play needs its own stance analysis
+
+One Elite Knight author explicitly asked which stance fits an EK + ED duo. The distributed stance refers to a second ally, the group stance increases healing gaps, and the solo stance may not improve ally healing. Whether the caster can be the distributed secondary target is not established by this page and must be verified rather than assumed.
+
+### Bounded Canary validation matrix
+
+| Priority | Question | Minimum evidence before a code change |
+|---:|---|---|
+| 1 | Does the group stance reduce or increase ally deaths despite nominally higher healing? | Current Canary path, current authoritative behavior, deterministic cadence simulation, and duo/team fixtures. |
+| 2 | Is Druid solo performance damage-limited, survival-limited, or both by level band? | Repeatable hunt simulations or controlled telemetry with target layouts, full rotations, supplies, and equipment held constant. |
+| 3 | Are Forked Spells mechanically reliable before damage tuning? | Target-selection specification plus tests for count, range, ties, movement, and line of sight. |
+| 4 | Does the complete Druid rotation arrive at an appropriate Wheel investment? | Wheel-path audit and functional breakpoints across representative levels. |
+| 5 | Does Barrier prevent isolated one-shots without becoming a general-purpose extra health pool? | Exact boundary tests and representative mana-pool/overkill distributions. |
+| 6 | Do rods materially improve sustain without becoming the primary damage source? | Mana-per-turn, range, hit-rate, rotation, and leech accounting. |
+
+### Supplemental-source conclusion
+
+The first page does not support a flat “buff Druid” conclusion. It supports a more specific hypothesis:
+
+> The proposed Druid package may improve support flexibility while leaving solo damage and AoE constraints under-addressed, and the group-healing stance may exchange safer burst heals for dangerous cadence gaps with only a small nominal throughput gain.
+
+That hypothesis is actionable for prioritizing tests, but the sample is too small and incomplete to set values or prove parity.
 
 ## Corpus composition
 
