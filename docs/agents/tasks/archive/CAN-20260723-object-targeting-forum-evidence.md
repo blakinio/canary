@@ -2,13 +2,13 @@
 task_id: CAN-20260723-object-targeting-forum-evidence
 program_id: CAN-PROGRAM-REAL-TIBIA-PARITY
 coordination_id: PROTOCOL-OBJECT-TARGETING-EVIDENCE
-status: implementing
+status: completed
 agent: "Codex"
 branch: docs/can-20260723-object-targeting-forum-evidence
 base_branch: main
 created: 2026-07-23T19:04:22+02:00
-updated: 2026-07-23T19:13:32+02:00
-last_verified_commit: "f709456ea1038d4fc48bcec47255d62be8f9a89f"
+updated: 2026-07-23T17:34:48Z
+last_verified_commit: "0c053e8db5b175f2715a43d4eb26681c8d31aae1"
 risk: low
 related_issue: ""
 related_pr: "824"
@@ -33,6 +33,7 @@ reuses:
   - Real Tibia parity playbook
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-23T17:34:48Z
 ---
 
 # Goal
@@ -190,3 +191,11 @@ next_action: Validate and push the lifecycle-status correction, then inspect fin
 # Handoff
 
 Start with this task record and the evidence report. Do not infer packet fields, server changes, client code or automation semantics beyond the official statements.
+
+## Automated lifecycle completion
+
+- Feature PR: #824.
+- Feature head: `2ddb9cec86558659627f331d07ec2861c17df5a5`.
+- Merge commit: `0c053e8db5b175f2715a43d4eb26681c8d31aae1`.
+- Merged at: `2026-07-23T17:34:48Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
