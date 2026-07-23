@@ -7,7 +7,7 @@ branch: docs/archive-otbm-qa-014-018-20260723
 base_branch: main
 created: 2026-07-23
 updated: 2026-07-23
-last_verified_commit: "defe6ac319d7cff95718d1523bd6aab9d6385625"
+last_verified_commit: "49e2e5c1a9cb98f7782c6920a4963a7a7ad1b447"
 risk: low
 related_issue: ""
 related_pr: "752"
@@ -37,8 +37,8 @@ COMPLETE — lifecycle-only batch record for the five active-to-archive moves. N
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T10:28:00+02:00
-head: defe6ac319d7cff95718d1523bd6aab9d6385625
+updated_at: 2026-07-23T10:31:00+02:00
+head: 49e2e5c1a9cb98f7782c6920a4963a7a7ad1b447
 branch: docs/archive-otbm-qa-014-018-20260723
 pr: 752
 status: complete
@@ -61,11 +61,14 @@ proven:
   - QA-014 through QA-018 feature PRs are merged and exact-final feature validation is green.
   - Shared public-interface governance PR 743 is merged.
   - PR 752 is the bounded lifecycle-only active-to-archive batch.
-  - ci:final-gate was applied before this final checkpoint commit.
+  - ci:final-gate was applied before the final checkpoint cycle.
+  - Changed-file scope is exactly five active removals, five archive additions and this archival batch record.
+  - Final review audit before ready transition found zero inline review threads and zero review submissions.
+  - PR 752 was marked ready after the bounded scope and review audit.
 derived:
   - No active feature ownership remains necessary for QA-014 through QA-018 after PR 752 merges.
 unknown:
-  - Exact-final lifecycle CI and Ownership outcome after this final checkpoint commit.
+  - Exact-final lifecycle CI and Ownership outcome after this ready-state checkpoint commit.
 conflicts: []
 first_failure:
   marker: none
@@ -86,5 +89,5 @@ changed_paths:
   - docs/agents/tasks/archive/CAN-20260722-otbm-qa-014-018-lifecycle-batch.md
 validation: []
 blockers: []
-next_action: Verify exact-final CI and Agent Task Ownership on this immutable head; if green and review/scope audit is clean, mark PR 752 ready and squash-merge without further commits.
+next_action: Verify exact-final CI and Agent Task Ownership on the current immutable PR head; if green and mergeability is clean, squash-merge PR 752 without further commits.
 ```
