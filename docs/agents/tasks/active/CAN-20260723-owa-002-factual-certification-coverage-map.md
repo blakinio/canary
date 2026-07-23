@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/owa-002-factual-certification-coverage-map-20260723
 base_branch: main
 created: 2026-07-23T18:22:48+02:00
-updated: 2026-07-23T18:38:00+02:00
-last_verified_commit: "930d7553e87c66e9e00a68c640c86f3d22d16e88"
+updated: 2026-07-23T18:52:00+02:00
+last_verified_commit: "96b394a60e5ae9ba3d71119e28c2d9dc5e488c02"
 risk: medium
 related_issue: ""
 related_pr: "817"
@@ -103,7 +103,7 @@ Every visible annotation/panel must carry at least one exact evidence reference 
 - [x] stale/blocked/malformed or provenance-mismatched evidence fails closed rather than being upgraded;
 - [x] output paths use create-new semantics by default, support explicit atomic overwrite, reject symlinks and input/output collisions;
 - [x] deterministic manifest/SVG output for identical inputs;
-- [x] focused tests and schema validation pass locally (16 tests);
+- [x] focused tests and schema validation pass locally (20 tests);
 - [x] generated render/SVG/manifest artifacts remain outside Git;
 - [ ] `MODULE_CATALOG.md` and `CHANGELOG.md` are updated only for the delivered reusable/public interface;
 - [ ] final PR diff contains no `.otbm`, `.widx`, binary assets, generated renders or unrelated changes;
@@ -116,7 +116,7 @@ Every visible annotation/panel must carry at least one exact evidence reference 
 - OWA-001 lifecycle PR #810: merged;
 - programme queue marks OWA-002 `ready for next bounded task`;
 - no existing OWA-002 PR/task found;
-- open OWA-005 PR #816 is lifecycle-only and does not own the OWA-002 exclusive implementation paths;
+- OWA-005 lifecycle PR #816 is lifecycle-only, has since merged, and did not own the OWA-002 exclusive implementation paths;
 - existing factual renderer is `tools/ai-agent/otbm_renderer.py:render_region`;
 - existing Semantic Diff/Geometry render helpers already model renderer reuse without creating a second OTBM parser/renderer.
 
@@ -128,20 +128,22 @@ Every visible annotation/panel must carry at least one exact evidence reference 
 
 `DERIVED`: a deterministic SVG annotation layer over the renderer-produced base PNG is a presentation/annotation surface, not a second map renderer, provided it never draws or reconstructs map terrain and every shape is sourced from exact reviewed campaign coordinates/bounds.
 
-# Context checkpoint
+## Context checkpoint
 
-## Proven
+### Proven
 
 - OWA-001 exact pilot state is C0 / QA-005 not-evaluated / QA-016 current / route-level Physical E2E proven / blocked by explicit QA-005 and QA-006 blockers.
 - The OWA-001 campaign report contains reviewed definition bounds/endpoints and exact source-map provenance.
 - Existing factual map rendering is owned by `otbm_renderer.py:render_region`.
-- OWA-002 implementation is published on PR #817 with deterministic plan/materialization, CLI, schema, documentation and 16 focused local tests.
+- OWA-002 implementation is published on PR #817 with deterministic plan/materialization, CLI, schema, documentation and 20 focused local tests.
+- Exact evidence validation now requires the complete nine-dimension QA-005 shape, internally consistent QA-016 freshness, current freshness for `physicalE2e.state=proven`, exact renderer output bounds/dimensions/padding and valid renderer asset/appearance SHA-256 metadata.
+- Relative `--map` and `--assets` inputs are confined under `--artifact-root`; exact artifact-root and output symlinks fail closed.
 
-## Rejected hypotheses
+### Rejected hypotheses
 
 - Do not draw a reconstructed 59-edge route: the campaign report does not contain the full route path and OWA-002 must not rerun BFS or infer path geometry.
 - Do not encode a composite health score or use colour as certification proof.
 
-## Next action
+### Next action
 
 Update narrow discovery records, inspect exact PR diff and current-main overlap, then validate GitHub Actions and fix any exact-head failures before the final gate.
