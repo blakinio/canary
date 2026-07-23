@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: feat/owa-002-factual-certification-coverage-map-20260723
 base_branch: main
 created: 2026-07-23T18:22:48+02:00
-updated: 2026-07-23T18:22:48+02:00
+updated: 2026-07-23T18:38:00+02:00
 last_verified_commit: "930d7553e87c66e9e00a68c640c86f3d22d16e88"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "817"
 depends_on:
   - "OWA-001 feature PR #801 and lifecycle PR #810"
   - "existing factual OTBM renderer tools/ai-agent/otbm_renderer.py:render_region"
@@ -94,17 +94,17 @@ Every visible annotation/panel must carry at least one exact evidence reference 
 
 # Acceptance criteria
 
-- [ ] exact OWA-001 campaign report hash is validated fail-closed;
-- [ ] exact source map SHA-256 is validated before base render execution;
-- [ ] existing `render_region()` is the only map-image renderer used;
-- [ ] reviewed routing bounds and endpoints are visualized without inferring the actual path;
-- [ ] C0, QA-005 not-evaluated, QA-016 current, Physical E2E proven and blockers remain separate visible facts;
-- [ ] every visible overlay element has exact evidence references;
-- [ ] stale/blocked/malformed or provenance-mismatched evidence fails closed rather than being upgraded;
-- [ ] output paths use create-new semantics by default, support explicit atomic overwrite, reject symlinks and input/output collisions;
-- [ ] deterministic manifest/SVG output for identical inputs;
-- [ ] focused tests and schema validation pass;
-- [ ] generated render/SVG/manifest artifacts remain outside Git;
+- [x] exact OWA-001 campaign report hash is validated fail-closed;
+- [x] exact source map SHA-256 is validated before base render execution;
+- [x] existing `render_region()` is the only map-image renderer used;
+- [x] reviewed routing bounds and endpoints are visualized without inferring the actual path;
+- [x] C0, QA-005 not-evaluated, QA-016 current, Physical E2E proven and blockers remain separate visible facts;
+- [x] every visible overlay element has exact evidence references;
+- [x] stale/blocked/malformed or provenance-mismatched evidence fails closed rather than being upgraded;
+- [x] output paths use create-new semantics by default, support explicit atomic overwrite, reject symlinks and input/output collisions;
+- [x] deterministic manifest/SVG output for identical inputs;
+- [x] focused tests and schema validation pass locally (16 tests);
+- [x] generated render/SVG/manifest artifacts remain outside Git;
 - [ ] `MODULE_CATALOG.md` and `CHANGELOG.md` are updated only for the delivered reusable/public interface;
 - [ ] final PR diff contains no `.otbm`, `.widx`, binary assets, generated renders or unrelated changes;
 - [ ] exact final head passes required GitHub checks before merge.
@@ -135,6 +135,7 @@ Every visible annotation/panel must carry at least one exact evidence reference 
 - OWA-001 exact pilot state is C0 / QA-005 not-evaluated / QA-016 current / route-level Physical E2E proven / blocked by explicit QA-005 and QA-006 blockers.
 - The OWA-001 campaign report contains reviewed definition bounds/endpoints and exact source-map provenance.
 - Existing factual map rendering is owned by `otbm_renderer.py:render_region`.
+- OWA-002 implementation is published on PR #817 with deterministic plan/materialization, CLI, schema, documentation and 16 focused local tests.
 
 ## Rejected hypotheses
 
@@ -143,4 +144,4 @@ Every visible annotation/panel must carry at least one exact evidence reference 
 
 ## Next action
 
-Open a draft PR, pin its number into this task, then implement the campaign-to-factual-overlay composer and focused tests on the claimed exclusive paths.
+Update narrow discovery records, inspect exact PR diff and current-main overlap, then validate GitHub Actions and fix any exact-head failures before the final gate.
