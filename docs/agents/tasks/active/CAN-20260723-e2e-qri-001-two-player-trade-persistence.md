@@ -106,8 +106,8 @@ Explicitly excluded:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T19:00:00+02:00
-head: 8ae04c98c6f194dd589f46bb274b1649dab96ddf
+updated_at: 2026-07-23T19:03:00+02:00
+head: d4fdfaeeb7a2877d2528d5d5e00c34470c471dfb
 branch: feat/e2e-qri-001-two-player-trade-persistence
 pr: 806
 status: implementing
@@ -120,40 +120,28 @@ owned_paths:
   - tests/e2e/scenarios/multiclient/player-trade-persistence.json
   - tests/e2e/scenarios/multiclient/player-trade-persistence/primary.lua
   - tests/e2e/scenarios/multiclient/player-trade-persistence/secondary.lua
-  - tests/e2e/test_qri_001_two_player_trade.py
+  - tests/e2e/test_qri_001_two-player-trade.py
 proven:
   - Latest verified main before this checkpoint was 930d7553e87c66e9e00a68c640c86f3d22d16e88; exact compare showed only the five QRI-001 changed paths and no overlap with the merged QRI-003 paths.
   - The bounded two-client contract provides exactly one secondary controlled OTClient; no shared runner or workflow file is modified by QRI-001.
   - The maintained OTClient ref exposes requestTrade, acceptTrade and onOwnTrade/onCounterTrade/onCloseTrade. Its player-trade module enables acceptance only after a counter offer is received.
-  - Physical run 30020718345 proved the ADM1 primary fixture is asymmetric for player visibility: ADM1 saw Paladin 14 while Paladin 14 did not see ADM1. The actor was reverted to visible Paladin 15; timeout was not increased.
+  - Physical run 30020718345 proved the ADM1 primary fixture is asymmetric for player visibility; the actor was reverted to Paladin 15 without increasing timeout.
   - Physical run 30024132772 proved Paladin 15 and Paladin 14 mutual visibility, zero-item-3043 preconditions, /i fixture creation, and a real primary requestTrade. It failed before transfer because only the primary own offer was observed; the secondary received no offer callback and no counter offer existed.
-  - The current implementation therefore performs a real secondary requestTrade with one existing count-1 non-3043 item after the primary request marker, requires secondary own plus counter offer observations, and only then sends bilateral acceptance.
+  - The current implementation performs a real secondary requestTrade with one existing count-1 non-3043 item after the primary request marker, requires secondary own plus counter offer observations, and only then sends bilateral acceptance.
   - CI run 30027183101 and Agent Task Ownership run 30027182837 passed on head 8ae04c98c6f194dd589f46bb274b1649dab96ddf.
   - Universal Agent E2E run 30027183156 reached a Resolve scenario failure before physical execution; database bootstrap passed. No physical result is claimed from that run.
 derived:
-  - The physical run 30024132772 failure is a missing bilateral trade handshake, not a timing failure: the maintained client UI enables acceptance only after onCounterTrade, while the run recorded only the primary own offer.
+  - Run 30024132772 failed on a missing bilateral trade handshake, not timing: maintained-client acceptance requires counter-offer state while the run recorded only the primary own offer.
   - A count-1 non-3043 counter-offer avoids stack-split behavior and keeps item 3043 as the sole tracked conservation resource.
 unknown:
-  - Exact cause of the run 30027183156 scenario-resolution failure until the fresh checkpoint run resolves or reproduces it.
   - Exact physical runtime result for the bilateral handshake implementation.
   - Focused QRI-001 unittest result; local execution was attempted but the available local environment could not resolve github.com, so no PASS is claimed.
 conflicts: []
-first_failures:
-  - run: 30020718345
-    actor: Paladin 14
-    marker: mutual_visibility
-    expected: both players mutually visible with zero item 3043
-    observed: ADM1 visible to itself/primary side but invisible to Paladin 14
-    resolution: revert primary fixture actor to Paladin 15 while retaining @test15
-  - run: 30024132772
-    actor: Paladin 15
-    marker: trade_offer
-    last_successful_step: trade_request_sent
-    expected: both controlled clients observe a complete bilateral trade offer handshake
-    observed: primary own offer observed; secondary offer absent; tracked item remained with Player A; players_online returned to zero
-    resolution: add a real secondary count-1 counter-offer request and require own plus counter offer observations before acceptance
+first_failure:
+  marker: trade_offer
+  evidence: Physical run 30024132772 last succeeded at trade_request_sent; primary own offer was observed, secondary offer was absent, item 3043 remained with Player A, and players_online returned to zero. The implementation now adds the real secondary counter-offer request required before bilateral acceptance.
 rejected_hypotheses:
-  - Increase runtime timeout; rejected because both physical failures supplied deterministic protocol/visibility evidence rather than elapsed-time evidence.
+  - Increase runtime timeout; rejected because physical failures supplied deterministic protocol/visibility evidence rather than elapsed-time evidence.
   - Use ADM1 as the final primary actor; rejected because physical evidence proved asymmetric player visibility.
   - Treat fixture creation as trade proof; rejected because run 30024132772 created item 3043 but no transfer occurred.
   - Call acceptTrade on Player B immediately after Player A request; rejected because maintained-client protocol evidence shows acceptance becomes actionable only after a counter offer.
