@@ -55,8 +55,8 @@ Canonical `spawns` is a world-content module whose only hard dependency is canon
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T18:40:00+02:00
-head: 74844adc610fff8c0afb7c1b61906f285b1417fc
+updated_at: 2026-07-23T18:44:00+02:00
+head: b1727677e6534c5f2c71d63db3cd2661e84d8cea
 branch: dudantas/oam-041-target-proof-plan
 pr: 819
 status: blocked
@@ -71,18 +71,15 @@ proven:
   - OAM-041 preflight PR 813 final head d2fcc0572d2268d7f88ab8faae9eec8006697f5b changed exactly one task path, passed Agent Task Ownership run 30023734524, initial CI run 30023735027 and ready-state full final-gate CI run 30023784205, had zero comments reviews and review threads, and squash-merged as 82da6f6c5284b13446c5e71d075e7b06c9252b67.
   - Fresh Otheryn main remains 9369b0719ff94997a9cf5a2d62853939744e6338 with no open OAM-041 spawns PR and no OAM-041 branch.
   - Fresh upstream Canary baseline is 7323503b3dc61ed86bf1f04a611b2d0aec64b35a and maintained OTClient baseline is 1e5305395159142634f182d9e888e5f9164228c6.
-  - Canonical spawns registry record blob is 10d69a10a66610a19116f96f4d32e88a41ced0b5; it is category world-content and depends only on otbm-tooling.
-  - Canonical spawns owns static spawns dynamic creation inventory raids boss placement and definition-to-placement correlation while excluding monster combat AI and Bosstiary award logic.
+  - Canonical spawns registry record blob 10d69a10a66610a19116f96f4d32e88a41ced0b5 depends only on otbm-tooling and owns static spawns dynamic creation inventory raids boss placement and definition-to-placement correlation while excluding monster combat AI and Bosstiary award logic.
   - Canonical raids is a separate interacting module whose scope owns raid registry scheduling event ordering reset and reload lifecycle while explicitly excluding generic static spawn placement; OAM-041 must not remigrate or duplicate the OAM-037 raid lifecycle proof.
-  - Active global monster spawn root data-otservbr-global/world/otservbr-monster.xml is exact blob 65e87a4134a320d28b2270fa5a17917fc7b513a1 in Otheryn target upstream Canary and current Canary legacy evidence.
-  - Active global NPC spawn root data-otservbr-global/world/otservbr-npc.xml is exact blob 0a72085b7bbdfca73b794e631cc2bab790d8fcef in Otheryn target upstream Canary and current Canary legacy evidence.
-  - Otheryn and fresh upstream share exact spawn_monster.cpp blob 4c82217631ddf479faa5443025d43f99a0c927d1 and spawn_npc.cpp blob 21718ad80827a16e9a1b29bc9d649ad603bcf216.
-  - Current Canary legacy has different spawn_monster.cpp blob 8513d3c60d43021ee8b1305552b0e6294f8d4451 and spawn_npc.cpp blob 5d7c6c809f9eea339bea9b260691f0f15b6e9dd5.
+  - Active global monster and NPC spawn roots are exact across Otheryn target upstream Canary and current Canary legacy evidence: otservbr-monster.xml blob 65e87a4134a320d28b2270fa5a17917fc7b513a1 and otservbr-npc.xml blob 0a72085b7bbdfca73b794e631cc2bab790d8fcef.
+  - Otheryn and fresh upstream share spawn_monster.cpp blob 4c82217631ddf479faa5443025d43f99a0c927d1 and spawn_npc.cpp blob 21718ad80827a16e9a1b29bc9d649ad603bcf216 while current Canary legacy differs at blobs 8513d3c60d43021ee8b1305552b0e6294f8d4451 and 5d7c6c809f9eea339bea9b260691f0f15b6e9dd5 respectively.
   - Target and fresh upstream schedule periodic monster checks delayed non-blockable monster spawns periodic NPC checks and delayed NPC spawns on DispatcherLane::Maintenance, while the reviewed current Canary legacy call sites omit the Maintenance lane argument; legacy is therefore not a stronger whole-module donor for the reviewed scheduling surface.
   - Target monster spawn lifecycle loads center coordinates radius direction x-y offsets fixed center z weight and spawntime, uses default respawn fallback and configured rate/event/boost scaling with one-second to one-day bounds, enforces boss exclusivity in a spawn block, blocks configured spawns around players, cleans removed monsters, and preserves weighted monster selection.
   - Target NPC spawn lifecycle loads center coordinates radius direction x-y offsets fixed center z and bounded spawntime, resolves NPC types, blocks respawns around players, cleans removed NPCs, and runs respawn scheduling on the maintenance lane.
   - Current Canary external spawn proof tooling is pinned by otbm_spawn_npc.py blob 4339e94f5875f4d7fd443c2359c15d10f205004f otbm_spawn_npc_validation.py blob 7f66f74b68b66e9acabe1ea1a5cbd404b1637e9b and otbm_spawn_npc_tool.py blob 481c163d8048298900b33648b08b1fac5b60fefe.
-  - Spawn/NPC validation documentation blob is 0bd5242d919550f0fd97424afef5a0f1ae2ca89b and defines explicit active-datapack inputs world/otservbr-monster.xml and world/otservbr-npc.xml with no datapack mixing and fail-closed path XML and unresolved-Lua handling.
+  - Spawn/NPC validation documentation blob 0bd5242d919550f0fd97424afef5a0f1ae2ca89b defines explicit active-datapack inputs world/otservbr-monster.xml and world/otservbr-npc.xml with no datapack mixing and fail-closed path XML and unresolved-Lua handling.
   - The OTBM tooling roadmap records Phase 4 Spawns bosses and NPCs as merged and archived and requires static source/map evidence to remain distinct from live gameplay proof.
   - Prior OAM-037 and OAM-038 REUSE deliveries establish a target pattern of task record proof document source-contract unit test and tests/unit/game/CMakeLists.txt registration with no production mutation when the target implementation is already canonical.
 derived:
