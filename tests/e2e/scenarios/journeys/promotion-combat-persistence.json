@@ -2,9 +2,9 @@
   "schema_version": 1,
   "id": "promotion-combat-persistence",
   "suite": "journeys",
-  "name": "Cross-system promotion combat persistence journey",
+  "name": "Cross-system combat promotion persistence journey",
   "program_id": "CAN-PROGRAM-E2E-PLATFORM",
-  "description": "Compose the already-proven Canary NPC promotion flow and deterministic instance-arena combat flow for the same Paladin 15 fixture, then re-verify the durable Royal Paladin vocation and spent bank balance through the existing canonical two-session relog/persistence lifecycle.",
+  "description": "Compose the already-proven deterministic instance-arena combat flow first, return to the original world position through the existing arena close contract, then run the already-proven Canary NPC promotion flow for the same Paladin 15 fixture and re-verify durable Royal Paladin vocation and spent bank balance through the existing canonical two-session relog/persistence lifecycle.",
   "client": {
     "repository": "blakinio/otclient",
     "ref": "2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f",
@@ -33,55 +33,6 @@
       "id": "online",
       "action": "observe_online",
       "expected": true
-    },
-    {
-      "id": "npc-visible",
-      "action": "wait_creature",
-      "creature": "Canary",
-      "present": true,
-      "timeout_ms": 10000
-    },
-    {
-      "id": "seed-balance",
-      "action": "talk",
-      "text": "/addmoney Paladin 15, 20000"
-    },
-    {
-      "id": "seed-settle",
-      "action": "wait",
-      "ms": 250
-    },
-    {
-      "id": "greet",
-      "action": "talk",
-      "text": "hi"
-    },
-    {
-      "id": "greet-settle",
-      "action": "wait",
-      "ms": 250
-    },
-    {
-      "id": "promotion-offer",
-      "action": "talk_npc",
-      "receiver": "Canary",
-      "text": "promot"
-    },
-    {
-      "id": "offer-settle",
-      "action": "wait",
-      "ms": 250
-    },
-    {
-      "id": "accept",
-      "action": "talk_npc",
-      "receiver": "Canary",
-      "text": "yes"
-    },
-    {
-      "id": "promote-settle",
-      "action": "wait",
-      "ms": 1000
     },
     {
       "id": "create_arena",
@@ -144,6 +95,55 @@
       "id": "close_arena",
       "action": "talk",
       "text": "/instancearena close"
+    },
+    {
+      "id": "npc-visible",
+      "action": "wait_creature",
+      "creature": "Canary",
+      "present": true,
+      "timeout_ms": 10000
+    },
+    {
+      "id": "seed-balance",
+      "action": "talk",
+      "text": "/addmoney Paladin 15, 20000"
+    },
+    {
+      "id": "seed-settle",
+      "action": "wait",
+      "ms": 250
+    },
+    {
+      "id": "greet",
+      "action": "talk",
+      "text": "hi"
+    },
+    {
+      "id": "greet-settle",
+      "action": "wait",
+      "ms": 250
+    },
+    {
+      "id": "promotion-offer",
+      "action": "talk_npc",
+      "receiver": "Canary",
+      "text": "promot"
+    },
+    {
+      "id": "offer-settle",
+      "action": "wait",
+      "ms": 250
+    },
+    {
+      "id": "accept",
+      "action": "talk_npc",
+      "receiver": "Canary",
+      "text": "yes"
+    },
+    {
+      "id": "promote-settle",
+      "action": "wait",
+      "ms": 1000
     }
   ],
   "assertions": {
@@ -152,15 +152,6 @@
       "login_1=success",
       "online_stable_1=confirmed",
       "step_online=success",
-      "step_npc-visible=success",
-      "step_seed-balance=success",
-      "step_seed-settle=success",
-      "step_greet=success",
-      "step_greet-settle=success",
-      "step_promotion-offer=success",
-      "step_offer-settle=success",
-      "step_accept=success",
-      "step_promote-settle=success",
       "step_create_arena=success",
       "step_target_visible=success",
       "step_approach_one=success",
@@ -170,6 +161,15 @@
       "step_target_defeated=success",
       "step_attack_cleared=success",
       "step_close_arena=success",
+      "step_npc-visible=success",
+      "step_seed-balance=success",
+      "step_seed-settle=success",
+      "step_greet=success",
+      "step_greet-settle=success",
+      "step_promotion-offer=success",
+      "step_offer-settle=success",
+      "step_accept=success",
+      "step_promote-settle=success",
       "plan=success",
       "logout_request_1=safe",
       "logout_1=complete",
