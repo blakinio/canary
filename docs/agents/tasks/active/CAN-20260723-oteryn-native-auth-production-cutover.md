@@ -2,13 +2,13 @@
 task_id: CAN-20260723-oteryn-native-auth-production-cutover
 program_id: none
 coordination_id: OTS-20260721-oteryn-identity-auth
-status: validating
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260723-oteryn-native-auth-production-cutover
 base_branch: main
 created: 2026-07-23T15:00:00+02:00
-updated: 2026-07-23T17:25:00+02:00
-last_verified_commit: 1208be787c8c28a21037c9deb9c383bd31e60526
+updated: 2026-07-23T17:30:00+02:00
+last_verified_commit: 46f60f1efc04349e707250de8965338f94d90d71
 risk: high
 related_issue: ""
 related_pr: "807"
@@ -62,11 +62,11 @@ Complete the Canary-owned production-boundary prerequisite for safe Gateway -> C
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T17:25:00+02:00
-head: 1208be787c8c28a21037c9deb9c383bd31e60526
+updated_at: 2026-07-23T17:30:00+02:00
+head: 46f60f1efc04349e707250de8965338f94d90d71
 branch: feat/CAN-20260723-oteryn-native-auth-production-cutover
 pr: 807
-status: validating
+status: implementing
 context_routes:
   - agent-governance
   - cpp-runtime
@@ -90,6 +90,7 @@ proven:
   - PR #807 branch was rebased onto Canary main 014f156a8df4f7910a206f104c24842f3748cf99 and the resulting delta contained only intended issuer/test/task-lifecycle changes before durable contract synchronization.
   - Oteryn Platform PR #124 merged as 53158217a6c6017230301cf4daa783b04fcc13d5 after all final-head Platform CI, Gateway, governance, concurrency, DB outage, Phase 7 production-like and Acceptance E2E workflows passed.
   - docs/agents/CROSS_REPO_CONTRACTS.md now records Platform #124 as merged, separate Gateway->Platform and Gateway->Canary overlap rotation, non-loopback HTTPS enforcement, prior bounded E2E and the remaining hardened-E2E/production-environment activation gates.
+  - Exact-head ownership run 30019332976 failed only because an active task record used status validating; runtime/source ownership analysis did not run after the checkpoint validator rejected that non-active status.
 derived:
   - Current/previous hash overlap enables bounded zero-downtime Gateway -> Canary credential rotation without enabling the issuer by default.
   - Repository merge remains deploy-first-safe; actual production activation is a separate deployment action requiring evidence unavailable from Git state alone.
@@ -108,6 +109,7 @@ rejected_hypotheses:
   - Treat prior bounded E2E as proof of the hardened production boundary: prior runs do not include the new TLS/rotation hardening revisions.
   - Keep completed adapter task #722 under tasks/active: ownership validation proved stale exclusive issuer ownership conflicts with the follow-up task.
   - Rewrite MODULE_CATALOG.md from an incomplete/truncated connector read: that could discard unrelated catalogue updates made after PR #722.
+  - Use validating as an active-task status: Agent Task Ownership run 30019332976 rejects records under tasks/active with non-active status validating.
 changed_paths:
   - docs/agents/CROSS_REPO_CONTRACTS.md
   - docs/agents/tasks/active/CAN-20260723-oteryn-native-auth-production-cutover.md
@@ -129,9 +131,12 @@ validation:
   - command: Oteryn Platform PR #124 final-head validation and squash merge
     result: PASS
     evidence: all final-head workflows passed and PR #124 merged as 53158217a6c6017230301cf4daa783b04fcc13d5.
-  - command: exact final-head Canary validation after this checkpoint commit
+  - command: Agent Task Ownership 30019332976 on 46f60f1efc04349e707250de8965338f94d90d71
+    result: FAIL
+    evidence: checkpoint validator rejected status validating for a record under tasks/active; status is corrected to implementing in this final commit.
+  - command: exact final-head Canary validation after this checkpoint correction
     result: NOT_RUN
-    evidence: ci:final-gate is already applied; no further branch commits are permitted before evaluating exact-head CI/Security/Ownership/autofix.
+    evidence: ci:final-gate remains applied; no further branch commits are permitted before evaluating exact-head CI/Ownership/autofix. Security Validation is not path-triggered by this PR delta.
 blockers:
   - exact final-head Canary validation is pending
   - hardened cross-repository native-auth E2E is not yet re-proven
