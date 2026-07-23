@@ -4,21 +4,22 @@
 >
 > Primary release corpus collected: 2026-07-22
 >
-> General Changes and supplemental Druid design threads reviewed: 2026-07-23
+> General Changes, Sorcerer, and supplemental Druid design threads reviewed: 2026-07-23
 >
 > Target use: bounded design and validation input for `blakinio/canary`
 
 ## Executive summary
 
-Three official Tibia forum threads provide a proposal-to-release view of the 2026 vocation adjustments:
+Four complete official Tibia forum threads provide a proposal-to-release view of the 2026 vocation adjustments:
 
 1. **General Changes** records the first reaction to the system-wide proposal: charm and AoE scaling, Energy Ring, UH/IH support, combat mode, mitigation, and mana potions.
-2. **Release State** records expectations, unresolved test concerns, and official clarifications before the live release.
-3. **Release** records live-server bugs, balance experience, subsequent numerical nerfs, and the community response through the thread's closure.
+2. **Sorcerer** adds the vocation-specific design expectations and objections that preceded testing.
+3. **Release State** records expectations, unresolved test concerns, and official clarifications before the live release.
+4. **Release** records live-server bugs, balance experience, subsequent numerical nerfs, and the community response through the thread's closure.
 
 The strongest cross-thread conclusion is not that one vocation simply needs more power. Players repeatedly ask for a legible relationship between mechanical difficulty, risk, Wheel investment, role specialization, and practical reward.
 
-A supplemental review of the first page of the earlier official **Vocation Balancing Druid** thread adds design-stage evidence for Elder Druid. It is not included in the 4,228-post primary-corpus statistics because only 20 of the thread's 393 displayed results were accessible in that collection. Within the 17 deduplicated community contributions on that page, the clearest concerns were the doubled healing cooldown in the group stance, weak solo hunting, and insufficiently specified Forked Spells.
+A supplemental review of the first page of the earlier official **Vocation Balancing Druid** thread adds design-stage evidence for Elder Druid. It is not included in the 4,761-post complete-thread corpus because only 20 of the thread's 393 displayed results were accessible in that collection. Within the 17 deduplicated community contributions on that page, the clearest concerns were the doubled healing cooldown in the group stance, weak solo hunting, and insufficiently specified Forked Spells.
 
 The January General Changes discussion was broad and exploratory: all 765 displayed posts were accessible, representing 666 author names. A coarse critical-language indicator matched 29.5% of its non-official posts. The same indicator rose to 43.5% in Release State and 70.3% across the post-release thread, reaching 80.0% during July 7–8 immediately after numerical corrections. The discussion therefore moved from *define the compensation and preserve useful roles*, through *clarify and finish the mechanics*, toward *justify the balance model and its combined effects*.
 
@@ -57,7 +58,7 @@ Collection facts:
 - Active content in thread `4997270` ended on page 144 even though navigation exposed pages through 147; pages 145–147 returned no posts.
 - Thread `4996962` yielded 600 unique posts on pages 1–30. Its linked page 31 repeatedly returned HTTP 403, so six displayed results were not accessible and are not inferred.
 - The two later corpora contain 3,463 unique posts, 1,825 unique author names, and 33 official-marker posts. Two hundred author names appear in both later corpora.
-- Across all three threads, the accessible corpus contains 4,228 unique post identifiers and 36 official-marker posts. A three-thread unique-author total was not recomputed from the earlier retained aggregates, so per-thread author counts are reported instead.
+- Across the four complete threads, the accessible corpus contains 4,761 unique post identifiers and 40 official-marker posts. A four-thread unique-author total was not recomputed from the separately retained aggregates, so per-thread author counts are reported instead.
 
 ## Evidence boundary
 
@@ -96,11 +97,11 @@ The critical-language indicator matched words and phrases such as `nerf`, `broke
 
 Rendered quotations remain in many replies. A quoted issue can therefore increase the number of posts associated with a theme. This is useful as an engagement measure but must not be interpreted as an equal number of independent reports.
 
-Forum posts may be edited or deleted after collection. Primary-corpus counts are a snapshot from 2026-07-22; the supplemental page-one sample is a snapshot from 2026-07-23.
+Forum posts may be edited or deleted after collection. Release-phase counts are a snapshot from 2026-07-22; the January design-thread collections and supplemental page-one sample are snapshots from 2026-07-23.
 
 ## Supplemental design-stage evidence: Vocation Balancing Druid
 
-This section analyzes only page one of thread `4992268`. It is a bounded design-stage sample, not a complete-thread sentiment result and not part of either the 4,228-post primary corpus or its 3,463-post later-thread subset.
+This section analyzes only page one of thread `4992268`. It is a bounded design-stage sample, not a complete-thread sentiment result and not part of either the 4,761-post complete-thread corpus or its 3,463-post later-thread subset.
 
 ### Official proposal represented on the page
 
@@ -568,6 +569,200 @@ These recommendations define questions and evidence, not values to copy:
 7. **Keep positive outcomes.** Preserve smoother RP rotation, stronger Ice Wave identity, elemental MS identity, improved EK healing, and the overall move away from unnecessary inputs.
 8. **Communicate expected outcomes.** Future changes should state what behavior is being corrected and what observable result would indicate success.
 
+## Sorcerer design-thread supplement: January 2026
+
+This supplement adds the complete vocation-specific design discussion that preceded the release-state and release threads:
+
+| Official thread | Thread ID | Displayed results | Collected unique posts | Pages | Observed dates |
+|---|---:|---:|---:|---:|---|
+| [Vocation Balancing Sorcerer](https://www.tibia.com/forum/?action=thread&threadid=4992267&pagenumber=1) | `4992267` | 533 | 533 | 27 | 2026-01-22–2026-01-29 |
+
+The January corpus is kept separate from the 3,463-post release-phase corpus above. It represents design feedback before test-server and live-server observation, so combining its counts with the later threads would obscure the change in context.
+
+### Collection and composition
+
+- All pages 1–27 returned successfully on 2026-07-23.
+- All 533 displayed results were collected with 533 unique post identifiers.
+- The corpus contains 450 unique displayed author names and four posts by community manager Liamas.
+- Of 529 non-official posts, 389 (73.5%) display a Sorcerer or Master Sorcerer vocation.
+- The discussion was broad rather than controlled by a small group: 394 of 449 non-official author names posted once; the ten most active non-official authors contributed 42 posts, or 7.9%.
+- Activity was front-loaded: 279 posts (52.3%) appeared on January 22, and 375 (70.4%) appeared during the first two days.
+
+| Displayed author vocation | Posts | Share |
+|---|---:|---:|
+| Master Sorcerer / Sorcerer | 389 | 73.0% |
+| Elite Knight / Knight | 44 | 8.3% |
+| Royal Paladin / Paladin | 36 | 6.8% |
+| Elder Druid / Druid | 26 | 4.9% |
+| Exalted Monk / Monk | 9 | 1.7% |
+| None, missing, or other | 29 | 5.4% |
+
+Displayed vocation and level are profile metadata at collection time, not verified posting-time identity or experience. They are useful for describing the corpus, not for weighting an argument.
+
+### Theme breadth
+
+The same post-level keyword-family method used above was applied to the 529 non-official posts. Themes overlap: one post can discuss beams, solo hunting, targeting, and chain spells. Rendered quotations remain in the text and can increase a theme count when a proposal is repeated or challenged; counts therefore measure discussion breadth and engagement, not independent votes.
+
+| Theme family | Posts | Share of non-official posts |
+|---|---:|---:|
+| Damage, DPS, or spell power | 283 | 53.5% |
+| Solo versus team hunting | 226 | 42.7% |
+| Beam spells and Beam Mastery | 216 | 40.8% |
+| UH/IH and healing allies | 189 | 35.7% |
+| Elemental stances and conversion | 158 | 29.9% |
+| Targeting, aiming, latency, or positioning | 133 | 25.1% |
+| Wands and mana generation | 126 | 23.8% |
+| Chain-spell requests | 121 | 22.9% |
+| Barrier, mana shield, or survivability | 120 | 22.7% |
+| Ultimate-spell or group cooldown | 116 | 21.9% |
+| Utility stances and debuffs | 107 | 20.2% |
+| Lightning and strike spells | 98 | 18.5% |
+| Wheel of Destiny and augments | 94 | 17.8% |
+| PvP utility | 72 | 13.6% |
+| Repeated blast | 68 | 12.9% |
+| Exclusive death/area-rune requests | 32 | 6.0% |
+
+A coarse critical-language marker matched 223 of 529 non-official posts (42.2%). This does not mean that 42.2% opposed the package. Praise and criticism frequently coexist in the same post: players often welcomed the direction of elemental and utility stances while objecting to beam execution, party-role losses, or insufficient information.
+
+### What players broadly welcomed
+
+#### Elemental identity
+
+Elemental stances were the clearest identity success. Players liked the ability to use a fuller spell rotation where the natural elements of existing spells would otherwise be resisted. The recurring questions were operational rather than a rejection of the concept:
+
+- whether elemental and utility stances could coexist;
+- whether a stance could be disabled or changed without penalty;
+- which spell triggers conversion and how long conversion persists;
+- whether runes, ultimate spells, Wheel bonuses, Momentum, and equipment interact with conversion;
+- whether death had enough native spells to make a death stance practical;
+- how much matching-element power a stance actually grants.
+
+For Canary, elemental conversion should be treated as a deterministic state machine, not only as a damage modifier.
+
+#### Lower input load
+
+Turning Sap Strength and Expose Weakness into automatically applied utility stances was repeatedly praised for removing maintenance inputs. The remaining design question was whether the debuff values and party contribution would be strong enough to preserve a meaningful Sorcerer slot after UH removal.
+
+#### A survivability mechanism that preserves fragility
+
+Many players welcomed a barrier that mitigates one-shots without turning a mage into a tank. The official concept converts lethal overkill into mana loss at an 8:1 multiplier and still kills the player when mana is insufficient. A smaller but important counter-theme warned that an always-available effect could become a zero-cooldown Gift of Life for very large mana pools.
+
+The disagreement was therefore mainly about trigger rules, repeatability, and scaling—not the need to address mage one-shots.
+
+### Main unresolved design conflicts
+
+#### 1. Beam execution versus solo accessibility
+
+Beams were the strongest concrete objection. Of the 529 non-official posts:
+
+- 216 discussed beams;
+- 119 discussed both beams and solo/team hunting;
+- 82 discussed both beams and targeting, latency, aiming, or positioning;
+- 88 discussed both beams and chain spells.
+
+Players did not uniformly demand that beams disappear. Some defended them as a skill-rewarding spell shape. The common acceptance condition was that correct positioning and tracking must produce an observable advantage over a rune turn.
+
+The dominant alternative was a chain spell, especially chain lightning or a death chain. Chain behavior was framed as:
+
+- more reliable while kiting;
+- less sensitive to latency and rapid target movement;
+- usable without an EK holding a stable box;
+- a way to give Lightning a distinct purpose;
+- a bridge between solo and team play.
+
+This creates a testable design question: **what measurable performance premium compensates for beam miss risk, limited geometry, and positional cost?**
+
+#### 2. UH removal and party-role compensation
+
+UH/IH or healing allies appeared in 189 posts. The discussion was polarized:
+
+- identity-focused players welcomed removing a healing obligation from the destructive mage;
+- party-focused players described UH as necessary sustain in high-level hunts, boss rooms, duos, three-vocation teams, and teams without an Elder Druid;
+- several players feared that Monk healing and utility would make the Sorcerer easier to replace;
+- compromise proposals included party-only UH, boss-room UH, a long-cooldown Sorcerer heal, or stronger offensive/debuff compensation.
+
+The corpus does not support treating UH removal as an isolated rune permission. It changes viable team compositions and the value proposition of the Sorcerer slot. Validation needs three-, four-, and five-vocation scenarios plus boss encounters—not only a full standard party.
+
+#### 3. Numerical buffs to unused spells
+
+Lightning and strong/ultimate strikes appeared in 98 posts. A repeated objection was that higher base power and range do not correct the reasons these spells are skipped:
+
+- they compete with AoE turns;
+- they lack a distinct tactical purpose;
+- their damage may not cover target-count loss;
+- Lightning overlaps conceptually with strike spells;
+- ultimate spells retain a long group cooldown.
+
+Targeted lexical checks found at least 27 posts explicitly calling Lightning or strike spells useless, obsolete, never used, or otherwise irrelevant, and 35 posts explicitly linking ultimate spells to a four-second/global/group-cooldown complaint. These are lower-bound phrase matches, not exhaustive vote counts.
+
+#### 4. Repeated blast must work with moving combat
+
+Repeated blast appeared in 68 posts. Players asked for its element, area, range, targeting mode, cooldown, Wheel location, damage split, charm behavior, and interaction with stances. The most important gameplay concern was that a second hit two seconds later may land behind a solo mage who is continuously kiting.
+
+The January 23 official clarification stated that:
+
+- the first blast carries most of the damage;
+- the second blast deals reduced damage;
+- the second blast cannot trigger charms;
+- the second hit is intended to reward skillful use.
+
+That clarification defines an implementation constraint but not a complete behavior contract. Position anchoring, target anchoring, retargeting, floor/door behavior, and cast-mode semantics still require proof.
+
+#### 5. Wand changes were viewed as useful but too generic
+
+Wands appeared in 126 posts. Players generally accepted removing their mana cost and adding mana generation/range, but many considered the result too small or too similar to Druid rods. Forty-eight lower-bound phrase matches explicitly connected wands/rods with AoE, area damage, Explosion, or GFB-like behavior.
+
+Other proposals included stance-dependent elements, debuff stacks, proficiency effects, and different role-specific wand/rod identities. These are design requests, not Real Tibia parity evidence.
+
+#### 6. PvP identity remained unresolved
+
+PvP utility appeared in 72 posts. Recurring requests included:
+
+- Sorcerer-exclusive Sudden Death or a death-area rune;
+- a control effect comparable in role value, but not necessarily identical, to Paralyze or Wild Growth;
+- push/repel, anti-heal, or other offensive utility;
+- burst tools that reinforce the destructive-mage identity.
+
+The forum establishes demand for a legible PvP role. It does not establish which mechanic or value is balanced.
+
+### Official clarifications in the thread
+
+The four community-manager posts form a short official chronology:
+
+1. **January 22, opening post:** proposed elemental and utility stances, repeated blast, spell and Wheel changes, the lethal-overkill barrier, wand mana generation/range, and loss of UH-on-allies.
+2. **January 22, amendment:** confirmed that the barrier remained in the plan and restated the 8:1 overkill-to-mana rule.
+3. **January 23, developer clarification:** stated that repeated blast is front-loaded; its reduced second hit cannot trigger charms; Beam Mastery makes beams three squares wide with reduced damage on the outer squares.
+4. **January 29, closure response:** said that developers had begun analysing the feedback.
+
+These statements describe the proposal at that date. They are not proof of current live values or Canary behavior.
+
+### Cross-thread warning-to-outcome map
+
+| January design concern | Later release-phase feedback documented above |
+|---|---|
+| Beam positioning needs a visible skill premium | Players later described outer beams as too weak for their positional effort and objected to the combined Beam Mastery/base-damage reductions. |
+| Repeated blast needs clear targeting and moving-combat behavior | Death Echo was later considered interesting but execution-heavy, with cursor/crosshair and position issues. |
+| Elemental conversion needs explicit cooldown and rotation rules | Live feedback later reported unintuitive interactions between desired element, Momentum, and cooldown reductions. |
+| Barrier must balance one-shot protection against large mana pools | The live system appeared as Mana Buffer, and its multiplier was later increased from 8 to 10 during numerical corrections. |
+| Core functionality should not depend on deep Wheel investment | Mid-level Sorcerers later described the Wheel cost of the intended beam/elemental playstyle as excessive. |
+
+The January thread therefore strengthens the release-phase conclusion: several live controversies were identifiable as design-contract questions before testing, not only as reactions to later nerfs.
+
+### Sorcerer validation contract for Canary
+
+Before implementing any Sorcerer adjustment inspired by these threads:
+
+1. **Elemental conversion:** specify activation, exclusivity, trigger spell, consumed spell, duration, logout/death behavior, rune behavior, cooldown interaction, Wheel interaction, and damage-element attribution.
+2. **Beams:** compare expected damage and hit rate with rune/wave alternatives in solo kiting, stable team boxes, dispersed targets, and latency-sensitive movement.
+3. **Repeated blast / Death Echo:** test first/second-hit damage, area growth, anchor behavior, cast modes, target loss, movement between hits, charm eligibility, doors/floors, and cooldown.
+4. **Barrier / Mana Buffer:** test the exact lethal threshold, overkill calculation, exact and insufficient mana, consecutive lethal hits, cooldown/rearm rules, mana-shield interaction, PvP, and very large mana pools.
+5. **UH removal:** model duos, three-vocation teams, standard four-vocation teams, five-vocation teams, and boss rooms; measure both survivability and the opportunity cost of losing a damage turn.
+6. **Wands:** separate verified Real Tibia behavior from community AoE/proficiency proposals.
+7. **PvP utility:** treat any exclusive rune or control mechanic as a deliberate Canary design decision unless current authoritative Real Tibia evidence is pinned.
+8. **Difficulty premium:** define the expected benefit of correct beam/stance/blast execution over a simpler fallback and add a deterministic test or simulation that can falsify it.
+
+The forum should prioritize these investigations. It should not determine formulas or authorize copying a proposed value.
+
 ## Canary follow-up contract
 
 This report may nominate a future investigation but cannot authorize a gameplay change. A bounded follow-up must:
@@ -582,6 +777,6 @@ This report may nominate a future investigation but cannot authorize a gameplay 
 
 ## Conclusion
 
-Across 4,228 accessible posts in three official threads, the community consistently supports stronger vocation identity, new rotations, useful defensive choice, and lower unnecessary input complexity. The main rejection concerns incomplete functional access, unclear role trade-offs, late Wheel availability, and numerical packages whose combined risk or complexity appears greater than their practical reward.
+Across 4,761 accessible posts in four complete official threads, plus the bounded Druid page-one sample, the community consistently supports stronger vocation identity, new rotations, useful defensive choice, and lower unnecessary input complexity. The main rejection concerns incomplete functional access, unclear role trade-offs, late Wheel availability, and numerical packages whose combined risk or complexity appears greater than their practical reward.
 
 For Canary, the durable lesson is methodological: use the forum to identify high-value validation questions, then prove each mechanic independently. Community volume can prioritize investigation; it cannot replace authoritative values, current source inspection, or runtime evidence.
