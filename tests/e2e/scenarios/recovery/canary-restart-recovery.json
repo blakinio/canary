@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "id": "canary-restart-recovery",
+  "suite": "recovery",
+  "name": "Controlled disposable Canary restart and recovery",
+  "program_id": "CAN-PROGRAM-E2E-PLATFORM",
+  "description": "Log in through the controlled real OTClient, deterministically credit Paladin 15 with exactly 12345 bank gold through the already-proven God-only setup command, verify the new balance in the client, save, restart the same runner-owned disposable Canary process, observe the real transport loss, wait for the restarted server to become ready, relog physically, verify the same bank balance again, then perform safe cleanup.",
+  "client": {
+    "repository": "blakinio/otclient",
+    "ref": "2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f",
+    "automation": "tools/e2e/client/agent_e2e_canary_restart_recovery.lua"
+  },
+  "server": {
+    "database_image": "mariadb:11.4",
+    "datapack": "data-canary",
+    "map": "canary"
+  },
+  "fixture": {
+    "account": "@test15",
+    "password_env": "AGENT_E2E_TEST_PASSWORD",
+    "character": "Paladin 15",
+    "world": "Canary E2E",
+    "host": "127.0.0.1",
+    "game_port": 7172
+  },
+  "timing": {
+    "global_timeout_seconds": 300,
+    "session_hold_ms": 7000,
+    "relog_delay_ms": 1500
+  },
+  "assertions": {
+    "required_markers": [
+      "ping_features_1=disabled",
+      "login_1=success",
+      "online_stable_1=confirmed",
+      "recovery_baseline=confirmed",
+      "pre_restart_gameplay=start",
+      "mutation_request=bank_balance_12345",
+      "pre_restart_persistence_check=success",
+      "pre_restart_persistence_check_detail=12345",
+      "save_request=fixed_server_save",
+      "restart_request=disposable_canary",
+      "fault_expected=server_disconnect",
+      "fault_observed=server_disconnect",
+      "fault_classification=expected_injected_failure",
+      "recovery_server_ready=confirmed",
+      "ping_features_2=disabled",
+      "login_2=success",
+      "online_stable_2=confirmed",
+      "recovery_login=success",
+      "recovery_online=confirmed",
+      "persistence_check_balance=success",
+      "persistence_check_balance_detail=12345",
+      "persistence_plan=success",
+      "logout_request_2=safe",
+      "logout_2=complete",
+      "cleanup=safe_logout_complete",
+      "e2e=success"
+    ],
+    "sql": [
+      "SELECT lastlogin > 0 FROM players WHERE name = 'Paladin 15'",
+      "SELECT lastlogout > 0 FROM players WHERE name = 'Paladin 15'"
+    ],
+    "persistence": {
+      "required": true,
+      "checks": [
+        {
+          "id": "balance",
+          "type": "player_balance",
+          "equals": 12345
+        }
+      ]
+    }
+  },
+  "artifacts": [
+    "scenario-manifest.json",
+    "result.json",
+    "client-events.tsv",
+    "canary.stdout.log",
+    "canary.stderr.log",
+    "canary.pid",
+    "canary-old.pid",
+    "canary-restarted.pid",
+    "canary-restart-current-phase.txt",
+    "canary-restart-evidence.json",
+    "canary-restart-ready",
+    "database-restart-pre-relogin-online-count.txt",
+    "otclient.stdout.log",
+    "otclient.stderr.log",
+    "otclient.internal.log",
+    "database-online.tsv",
+    "database-after.tsv",
+    "sql-assertions.json",
+    "database-sql-assertions-passed.txt",
+    "server-login-matches.txt",
+    "client.png",
+    "session-1.record",
+    "session-2.record",
+    "runtime-hashes.txt"
+  ]
+}
