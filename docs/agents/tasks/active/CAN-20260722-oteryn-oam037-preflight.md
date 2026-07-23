@@ -3,14 +3,14 @@ task_id: CAN-20260722-oteryn-oam037-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 status: ready
 agent: "GPT-5.6 Thinking"
-branch: dudantas/oam-037-governance-finalize
+branch: dudantas/oam-037-governance-final
 base_branch: main
 created: 2026-07-22
 updated: 2026-07-23
 last_verified_commit: "4f074077da44d1cc9d77db7ac768be0589313332"
 risk: medium
 related_issue: ""
-related_pr: "749"
+related_pr: "750"
 depends_on:
   - OAM-036 formally complete
 blocks:
@@ -39,10 +39,10 @@ cross_repo_tasks: []
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T09:56:00+02:00
-head: f6c29227b0b7d862c112cf4ab22027424a7160d5
-branch: dudantas/oam-037-governance-finalize
-pr: 749
+updated_at: 2026-07-23T10:02:00+02:00
+head: ecdf940f8c154ea3b275b2f7063ed990b8ada7e6
+branch: dudantas/oam-037-governance-final
+pr: 750
 status: validating
 context_routes:
   - agent-governance
@@ -61,12 +61,13 @@ proven:
   - Exact-head autofix 29988627793 CI 29988627932 and Required 29988627768 succeeded; Linux release Linux debug full Run Tests both Windows build paths macOS Fast Checks Lua Tests and applicable runtime smokes all passed.
   - PR 77 comments reviews and review threads were empty and target main had no drift from immutable target base before merge.
   - Otheryn PR 77 squash-merged as d896141d084d381d12cc328d4b920c698eb1d55c.
+  - Staging governance PR 749 was not used for final validation because pull-request workflow evidence did not bind to its latest branch head.
 derived:
   - OAM-037 final disposition is raids REUSE with proof-only target changes.
   - No production runtime maintained-client or protocol mutation was required.
   - OAM-038 remains blocked until governance merge separate Canary lifecycle archive durable program reconciliation and Otheryn target-task archive complete.
 unknown:
-  - Exact final Canary governance merge SHA until PR 749 completes.
+  - Exact final Canary governance merge SHA until PR 750 completes.
 conflicts: []
 first_failure:
   marker: none
@@ -74,6 +75,7 @@ first_failure:
 rejected_hypotheses:
   - Infer final REUSE from blob identity alone; semantic source-contract proof passed on the exact target head.
   - Import the divergent legacy raids.cpp wholesale; target and fresh upstream retain stronger maintenance-lane scheduling and scheduling-failure safeguards.
+  - Reuse non-exact workflow evidence from staging PR 749; final governance gates must bind to the exact complete head.
   - Expand OAM-037 into boss encounters generic spawns raid content parity Bosstiary quests or protocol/client work because canonical ownership excludes those boundaries.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260722-oteryn-oam037-preflight.md
@@ -85,6 +87,9 @@ validation:
   - command: target changed-path and interaction audit
     result: PASS
     evidence: exactly four intended proof/task paths no production changes and empty comments reviews threads with no target-main drift
+  - command: governance changed-path audit
+    result: PASS
+    evidence: final governance branch changes exactly the active task checkpoint and OAM-037 revalidation report
 blockers: []
-next_action: Require exact-current-head Agent Task Ownership and CI success on PR 749, audit exactly two governance paths plus comments reviews threads and Canary main drift, then expected-head squash merge before separate lifecycle archive.
+next_action: Require exact-current-head Agent Task Ownership and full final-gate CI success on PR 750, audit exactly two governance paths plus comments reviews threads and Canary main drift, then expected-head squash merge before separate lifecycle archive.
 ```
