@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Authoritative classification index for proposals recorded in `docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md` and detailed design records including `docs/ai-agent/OTS_SKILL_PROGRESSION_2_0.md`, `docs/ai-agent/OTS_DYNAMIC_SPAWN_AND_HUNTING_CAPACITY.md`, `docs/ai-agent/OTS_BOUNTY_AND_WEEKLY_TASKS_REWORK.md` and `docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md`.
+Authoritative classification index for proposals recorded in `docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md` and detailed design records including `docs/ai-agent/OTS_SKILL_PROGRESSION_2_0.md`, `docs/ai-agent/OTS_DYNAMIC_SPAWN_AND_HUNTING_CAPACITY.md`, `docs/ai-agent/OTS_BOUNTY_AND_WEEKLY_TASKS_REWORK.md`, `docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md` and `docs/ai-agent/OTS_VOCATION_ROLE_AND_BALANCE_FRAMEWORK.md`.
 
 This index exists to prevent three recurring mistakes:
 
@@ -125,6 +125,11 @@ This index exists to prevent three recurring mistakes:
 | 86 | Imbuement Slot / Attunement Progression | `OUR-DESIGN` | `HYBRID` | Adds bounded long-term progression to slot flexibility/automation, potentially through levels, without treating placeholder level counts as final contracts. |
 | 87 | Imbuement Progression & Maintenance Sink | `OUR-DESIGN` | `META-ECONOMY` | Combines one-time slot/attunement progression costs with recurring recharge/renewal costs so convenience and flexibility continue to remove gold/resources from the economy. |
 | 88 | Effective-Use Imbuement Lifecycle | `OUR-DESIGN` | `TIBIA-EXTENSION` | Evaluates consuming specialized Imbuement duration only during relevant active use, avoiding waste on unrelated content while not draining faster merely because stronger monsters deal larger numbers. |
+| 89 | Vocation/Class Identity & Role Framework | `MIXED` | `TIBIA-EXTENSION` | Formalizes explicit identities, strengths, weaknesses, solo/party expectations and build boundaries around the existing vocation/class foundation without claiming current parity. |
+| 90 | Shared Role Taxonomy & Party Contribution Model | `OUR-DESIGN` | `HYBRID` | Defines reusable role tags and contribution dimensions for Party System 2.0, Party Finder, role markers and shared-EXP/bonus analysis without forcing a rigid hard-trinity composition. |
+| 91 | Vocation Balance Target Bands & Telemetry | `OUR-DESIGN` | `HYBRID` | Balances by role-appropriate target bands across damage, healing, defense, sustain, utility and mobility using aggregate telemetry and controlled tests rather than one global power score. |
+| 92 | Solo and Party Viability Balance Principle | `OUR-DESIGN` | `TIBIA-EXTENSION` | Requires every supported class to retain meaningful solo viability while preserving differentiated party value and intentional specialization. |
+| 93 | Context-Separated PvE/Boss/PvP Balance | `OUR-DESIGN` | `HYBRID` | Measures and tunes ordinary PvE, bossing and PvP separately where necessary so one context does not automatically dictate harmful changes in another. |
 
 ## Additional researched systems not yet promoted into the main proposal backlog
 
