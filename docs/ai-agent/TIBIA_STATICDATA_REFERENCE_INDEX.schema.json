@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.local/schemas/canary-tibia-staticdata-index-v1.json",
+  "title": "Canary Tibia StaticData Reference Index v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "source", "categories", "findings", "summary", "policy"],
+  "properties": {
+    "format": {"const": "canary-tibia-staticdata-index-v1"},
+    "schemaVersion": {"const": 1},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manifestFormat", "manifestSha256", "referenceId", "inputId", "manifestPath", "sizeBytes", "sha256", "encoding", "decodedSizeBytes", "schemaFamily", "schemaEvidence"],
+      "properties": {
+        "manifestFormat": {"const": "canary-tibia-client-reference-manifest-v1"},
+        "manifestSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "referenceId": {"type": "string", "minLength": 1},
+        "inputId": {"type": "string", "minLength": 1},
+        "manifestPath": {"type": "string", "minLength": 1},
+        "sizeBytes": {"type": "integer", "minimum": 0},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "encoding": {"enum": ["raw", "xz", "lzma"]},
+        "decodedSizeBytes": {"type": "integer", "minimum": 0},
+        "schemaFamily": {"enum": ["legacy", "newer"]},
+        "schemaEvidence": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true}
+      }
+    },
+    "categories": {
+      "type": "object",
+      "minProperties": 5,
+      "maxProperties": 6,
+      "additionalProperties": {"$ref": "#/$defs/category"}
+    },
+    "findings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["duplicateIds", "missingRequiredFields", "duplicateSingularFields"],
+      "properties": {
+        "duplicateIds": {"type": "array", "items": {"$ref": "#/$defs/duplicateId"}},
+        "missingRequiredFields": {"type": "array", "items": {"$ref": "#/$defs/missingField"}},
+        "duplicateSingularFields": {"type": "array", "items": {"$ref": "#/$defs/duplicateField"}}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["categoryCounts", "totalRecords", "duplicateIdCount", "missingRequiredFieldCount", "duplicateSingularFieldCount"],
+      "properties": {
+        "categoryCounts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "totalRecords": {"type": "integer", "minimum": 0},
+        "duplicateIdCount": {"type": "integer", "minimum": 0},
+        "missingRequiredFieldCount": {"type": "integer", "minimum": 0},
+        "duplicateSingularFieldCount": {"type": "integer", "minimum": 0}
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gameplayConclusions", "questInventoryOnly", "schemaAmbiguityFailsClosed", "maxSourceBytes", "maxDecompressedBytes", "maxRecords"],
+      "properties": {
+        "gameplayConclusions": {"const": false},
+        "questInventoryOnly": {"const": true},
+        "schemaAmbiguityFailsClosed": {"const": true},
+        "maxSourceBytes": {"type": "integer", "minimum": 1},
+        "maxDecompressedBytes": {"type": "integer", "minimum": 1},
+        "maxRecords": {"type": "integer", "minimum": 1}
+      }
+    }
+  },
+  "$defs": {
+    "category": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceCategory", "sourceSchema", "count", "records"],
+      "properties": {
+        "sourceCategory": {"type": "string", "minLength": 1},
+        "sourceSchema": {"enum": ["legacy", "newer"]},
+        "count": {"type": "integer", "minimum": 0},
+        "records": {"type": "array", "items": {"type": "object"}}
+      }
+    },
+    "duplicateId": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "id", "sourceOrdinals"],
+      "properties": {
+        "category": {"type": "string"},
+        "id": {"type": "integer", "minimum": 0},
+        "sourceOrdinals": {"type": "array", "items": {"type": "integer", "minimum": 1}, "minItems": 2}
+      }
+    },
+    "missingField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "field", "sourceOrdinal"],
+      "properties": {
+        "category": {"type": "string"},
+        "field": {"enum": ["id", "name"]},
+        "sourceOrdinal": {"type": "integer", "minimum": 1}
+      }
+    },
+    "duplicateField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "fieldNumber", "sourceOrdinal", "occurrences"],
+      "properties": {
+        "category": {"type": "string"},
+        "fieldNumber": {"type": "integer", "minimum": 1},
+        "sourceOrdinal": {"type": "integer", "minimum": 1},
+        "occurrences": {"type": "integer", "minimum": 2}
+      }
+    }
+  }
+}
