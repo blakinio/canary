@@ -7,11 +7,11 @@ agent: "Codex"
 branch: agent/dev-note-vocation-forum-analysis
 base_branch: main
 created: 2026-07-23T19:11:40+02:00
-updated: 2026-07-23T19:11:40+02:00
-last_verified_commit: "395dc7ba0710be1f2129ff891edc8272ad565c52"
+updated: 2026-07-23T19:19:13+02:00
+last_verified_commit: "4d0245346d394fb4b3cb5503626e35b0205010cc"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "831"
 depends_on: []
 blocks:
   - "PR #823 report edit until this task merges"
@@ -37,12 +37,12 @@ Add a complete, evidence-bounded analysis of official Dev Note thread `4989637` 
 
 # Acceptance criteria
 
-- [ ] Record all 1,625 displayed posts across all 82 pages with no duplicate identifiers.
-- [ ] Record provenance, author/vocation composition, official chronology, and quote-free theme breadth.
-- [ ] Separate engagement counts from votes, verified mechanics, and parity claims.
-- [ ] Add implementation-neutral Canary validation questions.
-- [ ] Preserve all previously merged forum evidence.
-- [ ] Validate ownership, registry, Markdown integrity, exact changed paths, and forbidden-file boundaries.
+- [x] Record all 1,625 displayed posts across all 82 pages with no duplicate identifiers.
+- [x] Record provenance, author/vocation composition, official chronology, and quote-free theme breadth.
+- [x] Separate engagement counts from votes, verified mechanics, and parity claims.
+- [x] Add implementation-neutral Canary validation questions.
+- [x] Preserve all previously merged forum evidence.
+- [x] Validate ownership, registry, Markdown integrity, exact changed paths, and forbidden-file boundaries.
 - [ ] Publish a draft PR and satisfy the autonomous merge gate.
 
 # Confirmed context
@@ -56,7 +56,7 @@ Add a complete, evidence-bounded analysis of official Dev Note thread `4989637` 
 
 # Current state
 
-The full corpus and reproducibility manifest are retained outside Git. Report editing has not started.
+The full corpus and reproducibility manifest are retained outside Git. The report now contains the complete foundational-thread analysis; local repository validation and the final-head CI gate remain.
 
 # Plan
 
@@ -68,11 +68,11 @@ The full corpus and reproducibility manifest are retained outside Git. Report ed
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T19:11:40+02:00
-head: 395dc7ba0710be1f2129ff891edc8272ad565c52
+updated_at: 2026-07-23T19:19:13+02:00
+head: 4d0245346d394fb4b3cb5503626e35b0205010cc
 branch: agent/dev-note-vocation-forum-analysis
-pr: none
-status: implementing
+pr: 831
+status: validating
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -95,7 +95,14 @@ first_failure:
 rejected_hypotheses: []
 changed_paths:
   - docs/agents/tasks/active/CAN-20260723-vocation-dev-note-forum-analysis.md
-validation: []
+  - docs/ai-agent/REAL_TIBIA_VOCATION_ADJUSTMENTS_FORUM_ANALYSIS.md
+validation:
+  - "python tools/agents/task_ownership.py: pass (28 active task records)"
+  - "python tools/agents/checkpoint.py --require-checkpoint <task>: pass"
+  - "python tools/agents/real_tibia_registry.py validate: pass (0 warnings)"
+  - "git diff --check: pass"
+  - "exact changed-path and forbidden-file assertions: pass"
+  - "report corpus/total/hash/stale-text assertions: pass"
 blockers: []
-next_action: Edit the report with the complete Dev Note analysis.
+next_action: Commit and push the report, apply ci:final-gate, then create the final checkpoint commit.
 ```

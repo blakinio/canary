@@ -4,25 +4,28 @@
 >
 > Primary release corpus collected: 2026-07-22
 >
-> General Changes, Sorcerer, Monk, and supplemental Druid design threads reviewed: 2026-07-23
+> Foundational Dev Note, General Changes, Sorcerer, Monk, and supplemental Druid design threads reviewed: 2026-07-23
 >
 > Target use: bounded design and validation input for `blakinio/canary`
 
 ## Executive summary
 
-Five complete official Tibia forum threads provide a proposal-to-release view of the 2026 vocation adjustments:
+Six official Tibia forum corpora provide a vision-to-release view of the 2026 vocation adjustments:
 
-1. **General Changes** records the first reaction to the system-wide proposal: charm and AoE scaling, Energy Ring, UH/IH support, combat mode, mitigation, and mana potions.
-2. **Sorcerer** adds the vocation-specific design expectations and objections that preceded testing.
-3. **Monk** adds the vocation-specific support, ranged, chain-targeting, solo, bossing, and progression questions that preceded testing.
-4. **Release State** records expectations, unresolved test concerns, and official clarifications before the live release.
-5. **Release** records live-server bugs, balance experience, subsequent numerical nerfs, and the community response through the thread's closure.
+1. **Dev Note: Vocation Balancing** records the foundational reaction to CipSoft's role, innovation, and input-reduction goals and the first stance, Barrier, and Mentor Other examples.
+2. **General Changes** records the reaction to the later system-wide proposal: charm and AoE scaling, Energy Ring, UH/IH support, combat mode, mitigation, and mana potions.
+3. **Sorcerer** adds the vocation-specific design expectations and objections that preceded testing.
+4. **Monk** adds the vocation-specific support, ranged, chain-targeting, solo, bossing, and progression questions that preceded testing.
+5. **Release State** records expectations, unresolved test concerns, and official clarifications before the live release.
+6. **Release** records live-server bugs, balance experience, subsequent numerical nerfs, and the community response through the thread's closure.
 
 The strongest cross-thread conclusion is not that one vocation simply needs more power. Players repeatedly ask for a legible relationship between mechanical difficulty, risk, Wheel investment, role specialization, and practical reward.
 
+The complete foundational **Dev Note: Vocation Balancing** thread adds 1,625 unique posts across all 82 pages. Its 1,620 community posts show that players broadly connected the announced goals to concrete rotation, role, solo/team, Wheel, targeting, sustain, and quality-of-life problems rather than evaluating the four teaser mechanics in isolation.
+
 The complete **Vocation Balancing Monk** thread adds 206 unique posts across all 11 pages. Its 203 community posts strongly connect Monk balance to damage after repeated nerfs, support identity, ranged completeness, solo performance, bossing, chain targeting, harmony, and Wheel access.
 
-A supplemental review of the first page of **Vocation Balancing Druid** adds design-stage evidence for Elder Druid. It is not included in the 4,967-post complete-thread corpus because only 20 of the thread's 393 displayed results were accessible in that collection. Within the 17 deduplicated community contributions on that page, the clearest concerns were the doubled healing cooldown in the group stance, weak solo hunting, and insufficiently specified Forked Spells.
+A supplemental review of the first page of **Vocation Balancing Druid** adds design-stage evidence for Elder Druid. It is not included in the 6,592-post primary accessible corpus because only 20 of the thread's 393 displayed results were accessible in that collection. Within the 17 deduplicated community contributions on that page, the clearest concerns were the doubled healing cooldown in the group stance, weak solo hunting, and insufficiently specified Forked Spells.
 
 The January General Changes discussion was broad and exploratory: all 765 displayed posts were accessible, representing 666 author names. A coarse critical-language indicator matched 29.5% of its non-official posts. The same indicator rose to 43.5% in Release State and 70.3% across the post-release thread, reaching 80.0% during July 7–8 immediately after numerical corrections. The discussion therefore moved from *define the compensation and preserve useful roles*, through *clarify and finish the mechanics*, toward *justify the balance model and its combined effects*.
 
@@ -40,6 +43,7 @@ This report does not establish official formulas, live values, or Canary defects
 
 | Phase | Official thread | Thread ID | Displayed results | Accessible unique posts | Observed dates |
 |---|---|---:|---:|---:|---|
+| Foundational vision | [Dev Note: Vocation Balancing](https://www.tibia.com/forum/?action=thread&threadid=4989637&pagenumber=1) | `4989637` | 1,625 | 1,625 | 2025-11-12–2025-11-19 |
 | Proposal | [Vocation Balancing General Changes](https://www.tibia.com/forum/?action=thread&threadid=4992263&pagenumber=1) | `4992263` | 765 | 765 | 2026-01-22–2026-01-29 |
 | Pre-release | [Vocation Adjustments Release State](https://www.tibia.com/forum/?action=thread&threadid=4996962&pagenumber=1) | `4996962` | 606 | 600 | 2026-06-02–2026-06-11 |
 | Post-release | [Vocation Adjustments Release](https://www.tibia.com/forum/?action=thread&threadid=4997270&pagenumber=1) | `4997270` | 2,863 | 2,863 | 2026-06-16–2026-07-21 |
@@ -56,6 +60,9 @@ The Druid source remains a page-one sample because direct requests for the remai
 Collection facts:
 
 - Post identifiers were used for uniqueness checks.
+- All 1,625 displayed results in thread `4989637` were collected from pages 1–82 without duplicate identifiers. Pages 1–81 contain 20 posts each and page 82 contains 5.
+- The thread `4989637` snapshot contains 5 official-marker posts and 1,620 community posts from 1,400 community author names. Of those names, 1,247 posted once; the 10 most active names contributed 50 posts, or 3.1% of community posts.
+- The thread `4989637` HTML snapshot was retrieved on 2026-07-23 as 82 rendered page documents totalling 14,608,900 bytes and retained outside Git. A canonical manifest of `filename<TAB>size<TAB>SHA-256<LF>` rows has SHA-256 `39cea2336a84b1621fdc52a19fc52763087660d492c5cb74cbe7467121c711af`.
 - All 765 displayed results in thread `4992263` were collected from pages 1–39 without duplicate identifiers. The corpus contains 666 author names and three posts carrying the official-post marker.
 - The thread `4992263` HTML snapshot was retrieved on 2026-07-23 as 39 page responses totalling 6,392,541 bytes and retained outside Git. A canonical manifest of `filename<TAB>size<TAB>SHA-256<LF>` rows has SHA-256 `5e175301a56477fa7bdedc9b88e39449e83045878f98eeefd8ae8738f8579553`.
 - All 2,863 displayed results in thread `4997270` were collected without duplicate identifiers.
@@ -64,7 +71,7 @@ Collection facts:
 - The two later corpora contain 3,463 unique posts, 1,825 unique author names, and 33 official-marker posts. Two hundred author names appear in both later corpora.
 - Thread `4992269` yielded exactly 206 unique post identifiers: 20 posts on each page 1-10 and 6 posts on page 11.
 - The Monk thread contains 3 community-manager posts and 203 community posts from 175 distinct author names.
-- Across the five complete threads, the accessible corpus contains 4,967 unique post identifiers and 43 official-marker posts. A five-thread unique-author total was not recomputed from the separately retained aggregates, so per-thread author counts are reported instead.
+- Across the six primary corpora, the accessible corpus contains 6,592 unique post identifiers and 48 official-marker posts. A six-corpus unique-author total was not recomputed from the separately retained aggregates, so per-thread author counts are reported instead.
 
 ## Evidence boundary
 
@@ -103,13 +110,175 @@ The critical-language indicator matched words and phrases such as `nerf`, `broke
 
 Rendered quotations remain in many replies in the primary corpus. A quoted issue can therefore increase the number of primary-corpus posts associated with a theme. This is useful as an engagement measure but must not be interpreted as an equal number of independent reports.
 
+For the foundational Dev Note analysis, 137 `blockquote.QuoteText` elements from 100 posts were removed before keyword-family matching. A post can still belong to several themes, and repeated posts by one author remain separate contributions. Theme breadth is therefore an engagement measure, not a vote count or a count of distinct reports.
+
 For the supplemental Monk analysis, `blockquote.QuoteText` content was removed before keyword-family and structured-answer counting. A Monk post can still belong to several overlapping themes, and repeated posts by one author remain separate contributions; distinct-author counts are therefore reported beside post counts.
 
-Forum posts may be edited or deleted after collection. Release-phase counts are a snapshot from 2026-07-22; the January design-thread collections and supplemental Druid page-one sample are snapshots from 2026-07-23.
+Forum posts may be edited or deleted after collection. Release-phase counts are a snapshot from 2026-07-22; the foundational Dev Note, January design-thread collections, and supplemental Druid page-one sample are snapshots from 2026-07-23.
+
+## Foundational feedback: Dev Note Vocation Balancing
+
+This section analyzes every displayed result in thread `4989637`. It captures reaction to an early design direction, before the later vocation-specific proposals, test-server iterations, or release changes. Proposed mechanics and values below describe the November 2025 note; they are not evidence of current Real Tibia or Canary behavior.
+
+### Official goals and examples
+
+The opening post framed the project around three pillars:
+
+1. strengthen each vocation's role;
+2. add gameplay innovation rather than only numerical changes;
+3. reduce unnecessary inputs and improve quality of life.
+
+It then used four early examples:
+
+- permanent Blood Rage and Protector stances for Elite Knight;
+- permanent Sharpshooter and Swift Foot stances for Royal Paladin;
+- a mage Barrier that would intercept lethal damage and remove eight times the overkill from mana, with death when the remaining mana was insufficient;
+- merging Virtue of Justice with Mentor Other and turning the latter into a party bonus for Monk.
+
+The note also signalled Wheel revisions, replacement of outdated mechanics, and new spells. The accompanying official questions asked about the overall direction, examples of meaningful innovation, and each vocation's must-have changes. These questions produced feedback about complete roles and rotations, not just the four previewed mechanics.
+
+### Full-thread composition
+
+| Metric | Count |
+|---|---:|
+| Displayed and collected posts | 1,625 |
+| Pages | 82 |
+| Unique post identifiers | 1,625 |
+| Duplicate identifiers | 0 |
+| Official-marker posts | 5 |
+| Community posts | 1,620 |
+| Community author names | 1,400 |
+| Community author names posting once | 1,247 |
+| Community posts by the 10 most active names | 50 (3.1%) |
+| Community posts with a displayed level | 1,395 |
+| Displayed community level range | 2–3,076 |
+| Median displayed community level | 580 |
+
+The low concentration matters: the most active 10 names produced only 3.1% of community posts, while 89.1% of community author names posted once. Recurring themes therefore came from a broad author base, although author names are not verified unique people and repeated posts remain separate contributions.
+
+| Displayed vocation family | Community posts | Share |
+|---|---:|---:|
+| Knight | 420 | 25.9% |
+| Sorcerer | 363 | 22.4% |
+| Paladin | 291 | 18.0% |
+| None or missing | 239 | 14.8% |
+| Druid | 214 | 13.2% |
+| Monk | 93 | 5.7% |
+
+The discussion was front-loaded: 901 posts appeared on November 12 and 314 on November 13. Those first two observed days account for 1,215 posts, or 74.8% of the corpus. This is rapid reaction to a high-level direction, not long-run evaluation of a stable implementation.
+
+### Quote-free theme breadth
+
+The following keyword families were matched after removing rendered quotation blocks. Counts overlap and measure how many community posts engaged with a topic; they are not approval totals, distinct-author counts, or verified defect reports.
+
+| Theme family | Community posts | Share |
+|---|---:|---:|
+| Requests for exact mechanics, numbers, or implementation details | 892 | 55.1% |
+| Vocation role or identity | 724 | 44.7% |
+| Quality of life, inputs, or rotation | 684 | 42.2% |
+| Stances | 650 | 40.1% |
+| Team or party play | 616 | 38.0% |
+| Solo play | 527 | 32.5% |
+| Wheel of Destiny | 319 | 19.7% |
+| Barrier | 276 | 17.0% |
+
+More than half the community posts matched the request-for-details family. This is the clearest evidence boundary in the thread: many contributors could not judge balance from direction alone because state transitions, interaction rules, ranges, areas, cooldowns, coefficients, Wheel placement, and compensation were not yet specified.
+
+### Vocation-specific problem signals
+
+Narrower keyword families show which existing pain points contributors used to test the announced goals. They remain engagement signals rather than validated mechanics.
+
+| Problem signal | Community posts | Share |
+|---|---:|---:|
+| Mage wand/rod basic attacks or autoattacks | 464 | 28.6% |
+| Sorcerer beams or waves | 283 | 17.5% |
+| Sorcerer Ultimate Healing Rune support | 254 | 15.7% |
+| Knight challenge/exeta reliability | 220 | 13.6% |
+| Knight mana or potion input | 183 | 11.3% |
+| Druid earth, ice, or AoE tools | 144 | 8.9% |
+| Paladin charm multi-proc behavior | 106 | 6.5% |
+| Barrier interactions and boundary cases | 104 | 6.4% |
+| Paladin stance safety, cancellation, or mobility | 64 | 4.0% |
+| Monk Mentor Other or virtues | 54 | 3.3% |
+| Elemental ammunition or weapons | 45 | 2.8% |
+
+The examples reveal five distinct validation clusters:
+
+- **Elite Knight:** reduce mana-potion input and improve challenge reliability without breaking existing taunt, sustain, or Blood Rage behavior.
+- **Royal Paladin:** define stance cancellation, healing, attack, movement, and debuff rules; preserve charm and elemental-ammunition interactions.
+- **Master Sorcerer:** make beam/wave execution and damage identity coherent while resolving awkward support and low-value wand attacks.
+- **Elder Druid:** preserve healing identity while addressing solo AoE, earth/ice coverage, and practical rotation constraints.
+- **Exalted Monk:** ensure Mentor Other and virtue changes do not remove value without compensation, and make the role and Wheel path legible in both solo and team play.
+
+### Design implications
+
+#### 1. The vision was easier to support than the previewed implementation
+
+Many posts welcomed clearer roles and fewer unnecessary inputs while questioning whether permanent stances and passive replacements qualified as gameplay innovation. For Canary, a feature should be evaluated against the stated pillar it is meant to satisfy: role clarity, a genuinely new decision, or reduced input burden. A passive or toggle can be useful without proving the innovation pillar.
+
+#### 2. Permanent stances require an operational contract before coefficient tuning
+
+Stance validation must specify:
+
+- activation and toggle cooldowns;
+- which actions cancel or suppress the stance;
+- whether healing, attacks, movement, death, dispels, or debuffs change its state;
+- persistence across login, vocation promotion, arena, and PvP boundaries;
+- interaction with existing spells and Wheel perks;
+- migration or replacement of old augments.
+
+Without those rules, reports about uptime and power mix state-machine defects with balance.
+
+#### 3. Barrier is a tail-risk system, not a flat effective-health bonus
+
+The opening post presented an approximate 73% effective-health interpretation, but the actual proposal depended on lethal overkill, remaining mana, and the eight-times conversion. Deterministic tests must cover exact lethal damage, one point of overkill, sufficient/exactly sufficient/insufficient mana, multiple same-tick hits, and subsequent damage. Interactions with Magic Shield, Mana Shield, Energy Ring, Gift of Life, death prevention, and PvP rules must be established before average effective health is used.
+
+#### 4. Solo and team outcomes need separate matrices
+
+Team or party play appeared in 616 posts and solo play in 527. A change can improve a formal party role while weakening solo access, duo utility, bossing, or general hunting. Each vocation therefore needs separate solo, duo, four-player hunt, and boss scenarios across representative level and Wheel-investment bands.
+
+#### 5. Reliability and input gaps should be resolved before interpreting damage
+
+Challenge reliability, mana-potion repetition, beam geometry, wand/rod attacks, UH support, charm processing, and elemental access are functional parts of the rotation. If they are unreliable or disproportionately laborious, raw damage telemetry will not isolate the balance question.
+
+#### 6. Broad participation strengthens prioritization, not correctness
+
+The corpus is not dominated by a handful of prolific accounts, which makes repeated themes useful for choosing validation work. It still does not make any requested mechanic or number correct. Current authoritative behavior, Canary source inspection, deterministic tests, and controlled measurements remain required.
+
+### Official chronology
+
+| Date and time | Post | Official action |
+|---|---|---|
+| 2025-11-12 10:59 | `#39551414` | Liamas opened the Dev Note with the three pillars and the stance, Barrier, and Mentor Other examples. |
+| 2025-11-12 10:59 | `#39551416` | Liamas asked for feedback on direction, innovation, and must-have vocation changes; the thread was scheduled to remain open until November 19 at 10:00 CET. |
+| 2025-11-12 15:27 | `#39551906` | Liamas thanked participants, said details could not yet be answered because work was in progress, requested on-topic replies, and stated that all feedback was being read. |
+| 2025-11-13 09:14 | `#39552606` | Niadus described the response as chaotic but insightful, said it was shaping both shown and unrevealed proposals, and reiterated that every post was being read. |
+| 2025-11-19 10:00 | `#39554066` | Liamas closed the thread and said engagement had exceeded expectations. |
+
+The official replies confirm intake and influence on work in progress, but they do not validate individual requests, commit to values, or establish final behavior.
+
+### Bounded Canary validation matrix
+
+| Priority | Question | Minimum evidence before a code change |
+|---:|---|---|
+| 1 | Are stance transitions and cancellation rules deterministic? | Current authoritative behavior or specification plus tests for every activation, cancellation, persistence, and Wheel interaction. |
+| 2 | Does Barrier resolve lethal boundaries and other defensive systems consistently? | Exact-damage fixtures covering mana thresholds, same-tick hits, death prevention, shields, rings, and PvE/PvP differences. |
+| 3 | Does each vocation meet its intended role in both solo and team contexts? | A documented role matrix and controlled comparisons across level, equipment, Wheel, party, boss, and target-layout bands. |
+| 4 | Do the changes reduce unnecessary inputs without hiding resource or timing costs? | Input-per-minute, mana/supply, cooldown, idle-time, and complete-rotation telemetry. |
+| 5 | Are targeting, area, and reliability correct before raw coefficients are compared? | Deterministic geometry, range, retargeting, movement, line-of-sight, and multi-target tests. |
+| 6 | Does the complete mechanic arrive at the intended progression point? | Wheel and equipment path audit with functional breakpoints and migration checks. |
+
+### Foundational-source conclusion
+
+The complete thread supports a bounded hypothesis:
+
+> Players broadly supported clearer vocation roles and lower unnecessary input, but expected innovation to be demonstrated through complete, reliable rotations and explicit interaction rules—not inferred from high-level stances or isolated numerical examples.
+
+That hypothesis prioritizes state-machine, boundary, targeting, rotation, and role tests. It does not prescribe coefficients or prove a Canary parity gap.
 
 ## Supplemental design-stage evidence: Vocation Balancing Druid
 
-This section analyzes only page one of thread `4992268`. It is a bounded design-stage sample, not a complete-thread sentiment result and not part of either the 4,967-post complete-thread corpus or its 3,463-post later-thread subset.
+This section analyzes only page one of thread `4992268`. It is a bounded design-stage sample, not a complete-thread sentiment result and not part of either the 6,592-post primary accessible corpus or its 3,463-post later-thread subset.
 
 ### Official proposal represented on the page
 
@@ -784,16 +953,17 @@ The official response evolved in three stages:
 
 The response pattern suggests that discrete defects and factual questions were easier to address than the community's demand for a transparent multidimensional balance model.
 
-## What the three-stage comparison adds
+## What the multi-stage comparison adds
 
-Analyzing only the post-release thread can make the July reaction look like resistance to any nerf. The proposal and pre-release threads show a more nuanced sequence:
+Analyzing only the post-release thread can make the July reaction look like resistance to any nerf. The foundational, proposal, and pre-release threads show a more nuanced sequence:
 
-1. Players welcomed potion access, simplification, mitigation improvements, stronger vocation identity, and several quality-of-life directions.
-2. They immediately asked how compensation would preserve AoE scaling, emergency support, survivability, and practical role identity.
-3. Release State narrowed those concerns to specific mechanics, targeting, accessibility, Wheel cost, and role performance.
-4. CipSoft intentionally moved to live observation to obtain better data.
-5. Live play expanded the concerns into sustain, hunting efficiency, team composition, and economy effects.
-6. Numerical corrections on July 7 sharply increased criticism because players perceived cumulative reductions without an equally concrete explanation of targets or trade-offs.
+1. Players welcomed stronger vocation identity, lower unnecessary input, and the promise of new gameplay while immediately requesting complete mechanics and role definitions.
+2. The later proposals made potion access, simplification, mitigation, stances, targeting, and vocation-specific trade-offs concrete.
+3. Players asked how compensation would preserve AoE scaling, emergency support, survivability, solo access, and practical role identity.
+4. Release State narrowed those concerns to specific mechanics, targeting, accessibility, Wheel cost, and role performance.
+5. CipSoft intentionally moved to live observation to obtain better data.
+6. Live play expanded the concerns into sustain, hunting efficiency, team composition, and economy effects.
+7. Numerical corrections on July 7 sharply increased criticism because players perceived cumulative reductions without an equally concrete explanation of targets or trade-offs.
 
 The strongest interpretation is therefore not “players rejected balancing.” It is:
 
@@ -1020,6 +1190,6 @@ This report may nominate a future investigation but cannot authorize a gameplay 
 
 ## Conclusion
 
-Across 4,967 accessible posts in five complete official threads, plus the bounded Druid page-one sample, the community consistently supports stronger vocation identity, new rotations, useful defensive choice, and lower unnecessary input complexity. The main rejection concerns incomplete functional access, unclear role trade-offs, late Wheel availability, and numerical packages whose combined risk or complexity appears greater than their practical reward.
+Across 6,592 accessible posts in six primary official corpora, plus the bounded Druid page-one sample, the community consistently supports stronger vocation identity, new rotations, useful defensive choice, and lower unnecessary input complexity. The main rejection concerns incomplete functional access, unclear role trade-offs, late Wheel availability, and numerical packages whose combined risk or complexity appears greater than their practical reward.
 
 For Canary, the durable lesson is methodological: use the forum to identify high-value validation questions, then prove each mechanic independently. Community volume can prioritize investigation; it cannot replace authoritative values, current source inspection, or runtime evidence.
