@@ -23,6 +23,8 @@ namespace {
 	constexpr int32_t WorldId = 7;
 	constexpr std::string_view GatewaySecret = "gateway-secret";
 	constexpr std::string_view GatewaySecretSha256 = "1e0baae50a6e2006d894f9e64c53a1317e6032f4ba67df08199d5378c5948ce6";
+	constexpr std::string_view PreviousGatewaySecret = "previous-gateway-secret";
+	constexpr std::string_view PreviousGatewaySecretSha256 = "c0459713d1786d519d9df15a74e111f14ae587a7428c19feee646148de43f6ea";
 	const auto FixedNow = std::chrono::system_clock::time_point(std::chrono::seconds(123456));
 
 	GameSessionHttpIssuer::Config makeConfig() {
@@ -72,6 +74,17 @@ TEST(GameSessionHttpIssuerTest, BearerAuthenticationUsesConfiguredSha256Hash) {
 	EXPECT_TRUE(issuer.authenticateBearer(GatewaySecret));
 	EXPECT_FALSE(issuer.authenticateBearer("wrong-secret"));
 	EXPECT_FALSE(issuer.authenticateBearer(""));
+}
+
+TEST(GameSessionHttpIssuerTest, BearerAuthenticationAcceptsPreviousCredentialDuringRotation) {
+	LoginSessionManager manager;
+	auto config = makeConfig();
+	config.previousServiceTokenSha256 = PreviousGatewaySecretSha256;
+	GameSessionHttpIssuer issuer(config, makeDependencies(manager));
+
+	EXPECT_TRUE(issuer.authenticateBearer(GatewaySecret));
+	EXPECT_TRUE(issuer.authenticateBearer(PreviousGatewaySecret));
+	EXPECT_FALSE(issuer.authenticateBearer("wrong-secret"));
 }
 
 TEST(GameSessionHttpIssuerTest, DisabledIssuerRejectsBearerAndCreateRequests) {
