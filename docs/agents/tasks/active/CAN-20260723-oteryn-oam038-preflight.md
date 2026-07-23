@@ -10,7 +10,7 @@ updated: 2026-07-23
 last_verified_commit: "5db171bbee0af3d3c64b88cb34a7fa936b037860"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "766"
 depends_on:
   - OAM-037 formally complete
 blocks:
@@ -39,10 +39,10 @@ cross_repo_tasks: []
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T12:00:00+02:00
-head: c8b346f5905821557ea7cac73b293a37cc85844b
+updated_at: 2026-07-23T12:03:00+02:00
+head: 8f90787f02ba5566b87c5c2f97b42d232713a7d0
 branch: dudantas/oam-038-governance-finalize
-pr: null
+pr: 766
 status: validating
 context_routes:
   - agent-governance
@@ -65,7 +65,7 @@ derived:
   - No production runtime maintained-client or protocol mutation was required.
   - OAM-039 remains blocked until governance merge separate Canary lifecycle archive durable program reconciliation and Otheryn target-task archive complete.
 unknown:
-  - Exact final Canary governance merge SHA until the governance PR completes.
+  - Exact final Canary governance merge SHA until PR 766 completes.
 conflicts: []
 first_failure:
   marker: none
@@ -85,5 +85,5 @@ validation:
     result: PASS
     evidence: exactly four intended proof/task paths no production changes and empty comments reviews threads with no target-main drift
 blockers: []
-next_action: Open the two-path Canary OAM-038 governance PR, bind its PR number, require exact-current-head Agent Task Ownership and full final-gate CI, audit comments reviews threads and Canary-main drift, then expected-head squash merge before separate lifecycle archive.
+next_action: Require exact-current-head Agent Task Ownership and full final-gate CI success on PR 766, audit exactly two governance paths plus comments reviews threads and Canary-main drift, then expected-head squash merge before separate lifecycle archive.
 ```
