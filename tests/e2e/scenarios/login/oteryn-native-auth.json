@@ -18,7 +18,7 @@
   "auth": {
     "mode": "oteryn_gateway",
     "gateway_repository": "blakinio/Oteryn-Platform",
-    "gateway_ref": "8006534108d835474dadd208b0ec934e4a12528b",
+    "gateway_ref": "53158217a6c6017230301cf4daa783b04fcc13d5",
     "gateway_port": 18080,
     "platform_stub_port": 18081,
     "session_issuer_port": 18082,
