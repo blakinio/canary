@@ -1,13 +1,13 @@
 ---
 task_id: CAN-20260723-otbm-qa-007-continuous-assurance
 program_id: CAN-PROGRAM-OTBM
-status: implementing
+status: validating
 agent: "GPT-5.6 Thinking"
 branch: feat/otbm-qa-006-007-certification-assurance-20260723
 base_branch: main
 created: 2026-07-23
 updated: 2026-07-23
-last_verified_commit: "419536ce3dfe452f7af0a23c8c1f771d190d2eb5"
+last_verified_commit: "bd3806aa9f273a1af6e4505485bb198d79b57fa6"
 risk: medium
 related_issue: ""
 related_pr: "759"
@@ -46,7 +46,7 @@ cross_repo_tasks: []
 
 ## Status
 
-IMPLEMENTING — bounded fail-closed orchestration over exact QA-002, QA-001 and QA-006 evidence plus an explicit execution ledger. No validator, E2E runner, workflow, map, datapack or runtime mutation is authorized.
+VALIDATING — bounded fail-closed orchestration over exact QA-002, QA-001 and QA-006 evidence plus an explicit execution ledger. No validator, E2E runner, workflow, map, datapack or runtime mutation is authorized.
 
 ## Goal
 
@@ -67,11 +67,11 @@ Emit one auditable assurance result for an exact before/after map change by veri
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T11:10:00+02:00
-head: 41c2edd24b39a90c6c722d8efea3c8476d730239
+updated_at: 2026-07-23T11:22:00+02:00
+head: bd3806aa9f273a1af6e4505485bb198d79b57fa6
 branch: feat/otbm-qa-006-007-certification-assurance-20260723
 pr: 759
-status: implementing
+status: validating
 context_routes:
   - otbm
   - agent-governance
@@ -89,18 +89,25 @@ proven:
   - QA-002 already owns deterministic static-validator and represented Physical E2E selection.
   - QA-001 already owns explicit World Health aggregation.
   - QA-006 provides formal bounded C0-C7 certification in the same delivery chain.
+  - Focused local combined QA-006/007 validation passed 20 semantic, schema and output-safety tests before publication.
+  - PR 759 pre-final CI run 29993845854 succeeded on head 96375947b358eb3256473b9c9aae80082582baff.
+  - PR 759 pre-final Agent Task Ownership run 29993845514 succeeded on the same head.
+  - PR 759 pre-final OTBM Map Tools run 29993845673 succeeded on the same head after dependency-free schema-test correction.
+  - PR 759 pre-final AI Agent Tools job in run 29993845590 completed successfully on the same head.
+  - ci:final-gate was applied before the final QA-006 and QA-007 checkpoint commits.
 derived:
-  - QA-007 can remain a pure composition gate and use an exact execution ledger instead of creating a second validator or E2E runner.
+  - QA-007 remains a pure composition gate and uses an exact execution ledger instead of creating a second validator or E2E runner.
 unknown:
-  - Exact feature-head CI outcomes until the implementation branch is validated.
+  - Exact-final-head CI, Ownership, OTBM Map Tools and AI Agent Tools conclusions after this immutable final checkpoint commit.
 conflicts: []
 first_failure:
-  marker: ownership-related-pr
-  evidence: Initial PR-head ownership validation required related_pr to match PR 759; this checkpoint binds the task to PR 759.
+  marker: checkpoint-and-test-boundary
+  evidence: Initial ownership validation required related_pr to bind both active tasks to PR 759; subsequent OTBM validation exposed only test-time jsonschema imports unavailable in the focused workflow. Both checkpoint and test-only dependency issues were corrected, after which all pre-final required validations passed.
 rejected_hypotheses:
   - Rerun Semantic Diff or selected validators inside QA-007.
   - Create another Physical E2E runner or workflow.
   - Treat a passed OTBM gate as deployment authorization.
+  - Add jsonschema as a production or workflow dependency solely for focused schema tests.
 changed_paths:
   - tools/ai-agent/otbm_continuous_assurance.py
   - tools/ai-agent/otbm_continuous_assurance_tool.py
@@ -115,6 +122,18 @@ validation:
   - command: local focused QA-006/007 test run
     result: PASS
     evidence: 20 targeted semantic, schema and output-safety tests passed before publication.
+  - command: GitHub Actions CI 29993845854
+    result: PASS
+    evidence: Pre-final CI passed on 96375947b358eb3256473b9c9aae80082582baff.
+  - command: GitHub Actions Agent Task Ownership 29993845514
+    result: PASS
+    evidence: Pre-final ownership validation passed.
+  - command: GitHub Actions OTBM Map Tools 29993845673
+    result: PASS
+    evidence: Pre-final focused OTBM suite passed after the test-only dependency correction.
+  - command: GitHub Actions AI Agent Tools 29993845590
+    result: PASS
+    evidence: Pre-final AI Agent Tools job completed successfully.
 blockers: []
-next_action: Re-run repository ownership and focused OTBM/AI validation on PR 759.
+next_action: Verify all exact-final-head required checks on the immutable PR head created by this commit; if green and review/scope audit is clean, mark PR 759 ready and merge without further feature commits.
 ```
