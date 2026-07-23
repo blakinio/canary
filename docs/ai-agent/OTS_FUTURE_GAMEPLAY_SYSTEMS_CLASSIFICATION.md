@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Authoritative classification index for proposals recorded in `docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md` and the detailed `docs/ai-agent/OTS_SKILL_PROGRESSION_2_0.md` design record.
+Authoritative classification index for proposals recorded in `docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md` and detailed design records including `docs/ai-agent/OTS_SKILL_PROGRESSION_2_0.md`, `docs/ai-agent/OTS_DYNAMIC_SPAWN_AND_HUNTING_CAPACITY.md` and `docs/ai-agent/OTS_BOUNTY_AND_WEEKLY_TASKS_REWORK.md`.
 
 This index exists to prevent three recurring mistakes:
 
@@ -95,6 +95,16 @@ This index exists to prevent three recurring mistakes:
 | 56 | Castle / Battleground | `OTS-INSPIRED` | `FULLY-CUSTOM` | Custom structured PvP/event concept inspired by RubinOT's Castle direction. |
 | 57 | Prestige Arena | `OTS-INSPIRED` | `FULLY-CUSTOM` | Ranked custom PvP arena direction inspired by RubinOT's Prestige Arena. |
 | 58 | Crash-aware boss cooldown compensation / Obelisk concept | `OTS-INSPIRED` | `HYBRID` | OTS-inspired operational/gameplay compensation around boss cooldowns and confirmed crashes. |
+| 59 | Dynamic Spawn and Hunting Capacity | `MIXED` | `HYBRID` | Current Tibia has official respawn-acceleration mechanisms such as Rapid Respawn and improved respawn-area bonuses; player-pressure detection, sector scaling, effective-power rules, spawn budgets and capacity-aware recommendations are our custom extension. |
+| 60 | Bounty and Weekly Tasks Rework | `MIXED` | `TIBIA-EXTENSION` | Reworks verified current-Tibia Bounty Tasks, Weekly Tasks, Preferred/Reroll controls and Bounty Talisman progression rather than inventing the underlying task system. |
+| 61 | Task Suitability and progression-aware Bounty offers | `OUR-DESIGN` | `TIBIA-EXTENSION` | Adds hidden suitability based on player progression, expected effort, spawn reality and access instead of relying only on broad official difficulty buckets. |
+| 62 | Dynamic Bounty/Weekly kill-count and reward scaling | `OUR-DESIGN` | `TIBIA-EXTENSION` | Extends official tasks with effort-, power- and capacity-aware objective sizes and rewards; formulas remain telemetry/simulation dependent. |
+| 63 | Dedicated Bounty Equipment Slot | `OUR-DESIGN` | `TIBIA-EXTENSION` | Moves the official Bounty Talisman concept into a dedicated Bounty-scoped slot rather than adding a second universal ring slot. |
+| 64 | Bounty Talisman Combat/Sustain/Spoils/Knowledge redesign | `MIXED` | `TIBIA-EXTENSION` | Builds on verified official Talisman damage, life leech, loot and Bestiary bonuses while adding custom Mana Leech, target-specific defense and post-Bestiary progression behavior. |
+| 65 | Weekly Delivery Economy Controller | `OUR-DESIGN` | `META-ECONOMY` | Uses total server supply, liquidity and reserved global per-item demand budgets so official Delivery Tasks act as a controlled item sink rather than independent random scarcity shocks. |
+| 66 | Weekly Delivery Price Shock Guard | `OUR-DESIGN` | `META-ECONOMY` | Stops or reduces new generated demand when task-driven demand destabilizes item supply or prices. |
+| 67 | AI-assisted economy forecasting with deterministic caps | `OUR-DESIGN` | `META-ECONOMY` | AI forecasts oversupply, liquidity and likely price impact while deterministic hard limits remain authoritative for generated demand. |
+| 68 | Bounty Spawn Allowance for overleveled task players | `OUR-DESIGN` | `HYBRID` | Temporarily relaxes custom dynamic-capacity eligibility for legitimate bounded Bounty completion without granting permanent high-level farming throughput. |
 
 ## Additional researched systems not yet promoted into the main proposal backlog
 
