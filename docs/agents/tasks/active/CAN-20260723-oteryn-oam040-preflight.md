@@ -58,7 +58,6 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260723-oteryn-oam040-preflight.md
 proven:
   - OAM-039 is formally complete after Canary durable program reconciliation f7981992d047b2d718989500ba4a1ef46ec68e3d and Otheryn target-task archive 5eea55ca3dd7689d097fadef3ff92eee84f8c163.
-  - Fresh Canary baseline is f7981992d047b2d718989500ba4a1ef46ec68e3d.
   - Fresh Otheryn baseline is 5eea55ca3dd7689d097fadef3ff92eee84f8c163.
   - Fresh upstream Canary baseline is 7323503b3dc61ed86bf1f04a611b2d0aec64b35a.
   - Fresh maintained OTClient baseline is 1e5305395159142634f182d9e888e5f9164228c6.
