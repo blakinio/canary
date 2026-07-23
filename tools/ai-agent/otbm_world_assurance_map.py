@@ -19,6 +19,17 @@ PANEL_MARGIN = 16
 MAX_TARGETS = 100
 TARGET_CLASSES = {"region", "landmark-route", "quest", "mechanic-set"}
 COVERAGE_STATES = {"proven", "blocked", "stale", "not-evaluated", "not-applicable"}
+COVERAGE_DIMENSIONS = {
+    "indexedOnExactMap",
+    "sourceCorrelated",
+    "scriptResolved",
+    "staticallyReachable",
+    "interactionResolved",
+    "staticQualityCompatible",
+    "executableRouteCovered",
+    "physicallyRuntimeProven",
+    "candidateMapValidated",
+}
 CERTIFICATION_LEVELS = {
     "C0_NOT_EVALUATED",
     "C1_STATIC_INDEXED",
@@ -133,9 +144,7 @@ def _evidence_ref(report_sha256: str, target_index: int, pointer: str) -> str:
     return f"campaign:{report_sha256}#/targets/{target_index}{suffix}"
 
 
-def _target_geometry(
-    target: Mapping[str, Any], target_id: str
-) -> tuple[tuple[int, int, int], tuple[int, int, int], tuple[int, int, int], tuple[int, int, int]]:
+def _target_geometry(target: Mapping[str, Any], target_id: str) -> tuple[tuple[int, int, int], tuple[int, int, int], tuple[int, int, int], tuple[int, int, int]]:
     reviewed = _obj(target.get("reviewedDefinition"), f"target {target_id}.reviewedDefinition")
     bounds = _obj(reviewed.get("routingBounds"), f"target {target_id}.reviewedDefinition.routingBounds")
     lower = _pos(bounds.get("from"), f"target {target_id}.routingBounds.from")
@@ -155,6 +164,10 @@ def _target_geometry(
 def _coverage_panel(target: Mapping[str, Any], target_index: int, report_sha256: str) -> dict[str, Any]:
     coverage = _obj(target.get("qa005Coverage"), "qa005Coverage")
     dimensions = _obj(coverage.get("dimensions"), "qa005Coverage.dimensions")
+    if set(dimensions) != COVERAGE_DIMENSIONS:
+        missing = sorted(COVERAGE_DIMENSIONS - set(dimensions))
+        extra = sorted(set(dimensions) - COVERAGE_DIMENSIONS)
+        raise WorldAssuranceMapError(f"qa005Coverage dimensions mismatch: missing={missing}, extra={extra}")
     rows: list[str] = []
     counts: Counter[str] = Counter()
     for name in sorted(dimensions):
@@ -193,13 +206,24 @@ def _proof_panels(target: Mapping[str, Any], target_index: int, report_sha256: s
     if physical_state not in PHYSICAL_STATES:
         raise WorldAssuranceMapError("physicalE2e.state is invalid")
     freshness_lines = []
-    for item in _arr(freshness.get("dimensions"), "qa016Freshness.dimensions"):
+    freshness_statuses: list[str] = []
+    freshness_dimensions = _arr(freshness.get("dimensions"), "qa016Freshness.dimensions")
+    if freshness_state in {"current", "stale"} and not freshness_dimensions:
+        raise WorldAssuranceMapError("current/stale QA-016 freshness requires dimension evidence")
+    for item in freshness_dimensions:
         item = _obj(item, "qa016Freshness.dimensions[]")
         dimension_id = _str(item.get("dimensionId"), "qa016Freshness.dimensions[].dimensionId")
         dimension_status = _str(item.get("status"), "qa016Freshness.dimensions[].status")
         if dimension_status not in FRESHNESS_DIMENSION_STATES:
             raise WorldAssuranceMapError(f"QA-016 dimension {dimension_id} has invalid status")
         freshness_lines.append(f"{dimension_id}: {dimension_status}")
+        freshness_statuses.append(dimension_status)
+    if freshness_state == "current" and any(status != "current" for status in freshness_statuses):
+        raise WorldAssuranceMapError("QA-016 current aggregate conflicts with dimension status")
+    if freshness_state == "stale" and "stale" not in freshness_statuses:
+        raise WorldAssuranceMapError("QA-016 stale aggregate requires a stale dimension")
+    if physical_state == "proven" and freshness_state != "current":
+        raise WorldAssuranceMapError("proven Physical E2E requires current QA-016 freshness")
     return [
         {
             "id": "qa006-certification",
@@ -233,14 +257,7 @@ def _proof_panels(target: Mapping[str, Any], target_index: int, report_sha256: s
     ]
 
 
-def _annotations(
-    target_index: int,
-    report_sha256: str,
-    lower: tuple[int, int, int],
-    upper: tuple[int, int, int],
-    origin: tuple[int, int, int],
-    destination: tuple[int, int, int],
-) -> list[dict[str, Any]]:
+def _annotations(target_index: int, report_sha256: str, lower: tuple[int, int, int], upper: tuple[int, int, int], origin: tuple[int, int, int], destination: tuple[int, int, int]) -> list[dict[str, Any]]:
     width_tiles = upper[0] - lower[0] + 1
     height_tiles = upper[1] - lower[1] + 1
 
@@ -277,7 +294,10 @@ def _annotations(
 
 
 def build_world_assurance_map_plan(
-    campaign: Mapping[str, Any], *, campaign_file_sha256: str, target_ids: Sequence[str] = ()
+    campaign: Mapping[str, Any],
+    *,
+    campaign_file_sha256: str,
+    target_ids: Sequence[str] = (),
 ) -> dict[str, Any]:
     report_sha256 = validate_campaign_report(campaign)
     campaign_file_sha256 = _sha(campaign_file_sha256, "campaign_file_sha256")
@@ -301,7 +321,7 @@ def build_world_assurance_map_plan(
         if status not in TARGET_STATES:
             raise WorldAssuranceMapError(f"target {target_id} has invalid status")
         status_counts[status] += 1
-        slug = _slug(target_id)
+        slug = f"{_slug(target_id)}-{hashlib.sha256(target_id.encode('utf-8')).hexdigest()[:8]}"
         targets.append(
             {
                 "id": target_id,
@@ -434,7 +454,7 @@ def _svg_for_target(target: Mapping[str, Any], *, image_href: str) -> str:
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{canvas_width}" height="{canvas_height}" viewBox="0 0 {canvas_width} {canvas_height}">',
         '<rect width="100%" height="100%" fill="#f5f5f5"/>',
         f'<image href="{html.escape(_str(image_href, "image_href"), quote=True)}" x="0" y="0" width="{map_width}" height="{map_height}">',
-        f'<title>{html.escape("map-sha256:" + target["exactProvenance"]["sourceMapSha256"])}</title>',
+        f'<title>{html.escape("; ".join([f"map-sha256:{target["exactProvenance"]["sourceMapSha256"]}"]))}</title>',
         '</image>',
     ]
     for annotation in _arr(overlay.get("annotations"), "overlay.annotations"):
@@ -445,41 +465,31 @@ def _svg_for_target(target: Mapping[str, Any], *, image_href: str) -> str:
         title = html.escape(f"{a.get('label')} | {' | '.join(refs)}")
         geometry = _obj(a.get("geometry"), "annotation.geometry")
         if a.get("kind") == "region-outline":
-            parts.extend(
-                [
-                    f'<rect x="{geometry["x"]}" y="{geometry["y"]}" width="{geometry["width"]}" height="{geometry["height"]}" fill="none" stroke="#202020" stroke-width="3" stroke-dasharray="8 5">',
-                    f'<title>{title}</title></rect>',
-                ]
-            )
+            parts.extend([
+                f'<rect x="{geometry["x"]}" y="{geometry["y"]}" width="{geometry["width"]}" height="{geometry["height"]}" fill="none" stroke="#202020" stroke-width="3" stroke-dasharray="8 5">',
+                f'<title>{title}</title></rect>',
+            ])
         elif a.get("kind") == "point":
             x, y, radius = geometry["x"], geometry["y"], geometry["radius"]
-            parts.extend(
-                [
-                    f'<circle cx="{x}" cy="{y}" r="{radius}" fill="#ffffff" stroke="#111111" stroke-width="3"><title>{title}</title></circle>',
-                    f'<text x="{x + 10}" y="{y - 10}" font-family="monospace" font-size="14" fill="#111111">{html.escape(_str(a.get("label"), "annotation.label"))}<title>{title}</title></text>',
-                ]
-            )
+            parts.extend([
+                f'<circle cx="{x}" cy="{y}" r="{radius}" fill="#ffffff" stroke="#111111" stroke-width="3"><title>{title}</title></circle>',
+                f'<text x="{x + 10}" y="{y - 10}" font-family="monospace" font-size="14" fill="#111111">{html.escape(_str(a.get("label"), "annotation.label"))}<title>{title}</title></text>',
+            ])
         else:
             raise WorldAssuranceMapError(f"unsupported annotation kind: {a.get('kind')}")
     y = PANEL_MARGIN
     for title, lines, refs in panel_lines:
         height = 48 + max(1, len(lines)) * 18 + 12
         evidence_title = html.escape(" | ".join(refs))
-        parts.append(
-            f'<g><title>{evidence_title}</title><rect x="{panel_x}" y="{y}" width="{PANEL_WIDTH - PANEL_MARGIN}" height="{height}" rx="8" fill="#ffffff" stroke="#444444" stroke-width="1"/>'
-        )
-        parts.append(
-            f'<text x="{panel_x + 14}" y="{y + 24}" font-family="sans-serif" font-size="16" font-weight="bold" fill="#111111">{html.escape(title)}</text>'
-        )
+        parts.append(f'<g><title>{evidence_title}</title><rect x="{panel_x}" y="{y}" width="{PANEL_WIDTH - PANEL_MARGIN}" height="{height}" rx="8" fill="#ffffff" stroke="#444444" stroke-width="1"/>')
+        parts.append(f'<text x="{panel_x + 14}" y="{y + 24}" font-family="sans-serif" font-size="16" font-weight="bold" fill="#111111">{html.escape(title)}</text>')
         line_y = y + 46
         for line in lines:
-            parts.append(
-                f'<text x="{panel_x + 14}" y="{line_y}" font-family="monospace" font-size="13" fill="#222222">{html.escape(line)}</text>'
-            )
+            parts.append(f'<text x="{panel_x + 14}" y="{line_y}" font-family="monospace" font-size="13" fill="#222222">{html.escape(line)}</text>')
             line_y += 18
-        parts.append("</g>")
+        parts.append('</g>')
         y += height + 10
-    parts.append("</svg>")
+    parts.append('</svg>')
     return "\n".join(parts) + "\n"
 
 
@@ -518,10 +528,11 @@ def materialize_world_assurance_map(
     unsigned.pop("reportSha256", None)
     if canonical_sha256(unsigned) != supplied_hash:
         raise WorldAssuranceMapError("plan reportSha256 does not match canonical plan content")
-    root = artifact_root.expanduser().resolve()
-    root.mkdir(parents=True, exist_ok=True)
-    if root.is_symlink():
+    raw_root = artifact_root.expanduser()
+    if raw_root.is_symlink():
         raise WorldAssuranceMapError("artifact root must not be a symlink")
+    root = raw_root.resolve()
+    root.mkdir(parents=True, exist_ok=True)
     source_map = _confined(root, map_path, "source map", must_exist=True)
     assets = _confined(root, assets_root, "assets root", must_exist=True)
     output = _confined(root, output_directory, "output directory", must_exist=False)
@@ -543,7 +554,7 @@ def materialize_world_assurance_map(
     if output.is_symlink():
         raise WorldAssuranceMapError("output directory must not be a symlink")
     if renderer is None:
-        from otbm_renderer import render_region as renderer
+        from otbm_renderer import render_region as renderer  # local import keeps pure planning dependency-light
 
     result = copy.deepcopy(dict(plan))
     result.pop("reportSha256", None)
@@ -571,9 +582,16 @@ def materialize_world_assurance_map(
             source = _obj(render_report.get("source"), "renderer.source")
             if source.get("mapSha256") != expected_map_sha:
                 raise WorldAssuranceMapError("existing factual renderer reported unexpected source-map SHA-256")
+            asset_catalog_sha = _sha(source.get("assetCatalogSha256"), "renderer.source.assetCatalogSha256")
+            appearances_sha = _sha(source.get("appearancesSha256"), "renderer.source.appearancesSha256")
             render_bounds = _obj(render_report.get("bounds"), "renderer.bounds")
             if render_bounds.get("from") != target["bounds"]["from"] or render_bounds.get("to") != target["bounds"]["to"]:
                 raise WorldAssuranceMapError("existing factual renderer reported unexpected bounds")
+            render_output = _obj(render_report.get("output"), "renderer.output")
+            if render_output.get("width") != base["width"] or render_output.get("height") != base["height"]:
+                raise WorldAssuranceMapError("existing factual renderer reported unexpected output dimensions")
+            if render_output.get("paddingPixels") != 0:
+                raise WorldAssuranceMapError("existing factual renderer reported unexpected padding")
             os.replace(temporary, base_path)
         except Exception:
             temporary.unlink(missing_ok=True)
@@ -583,8 +601,8 @@ def materialize_world_assurance_map(
         base["outputSha256"] = sha256_path(base_path)
         base["source"] = {
             "mapSha256": source.get("mapSha256"),
-            "assetCatalogSha256": source.get("assetCatalogSha256"),
-            "appearancesSha256": source.get("appearancesSha256"),
+            "assetCatalogSha256": asset_catalog_sha,
+            "appearancesSha256": appearances_sha,
         }
         base["summary"] = dict(_obj(render_report.get("summary"), "renderer.summary"))
         overlay["output"] = _relative(root, overlay_path)
