@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: test/CAN-20260723-native-auth-ephemeral-cutover-rehearsal
 base_branch: main
 created: 2026-07-23T23:00:00+02:00
-updated: 2026-07-23T23:00:00+02:00
-last_verified_commit: 0a2ae8e3d504ab2398395820512cd45f3b169722
+updated: 2026-07-23T23:35:00+02:00
+last_verified_commit: 457c48bb81f2bbc0bdf69bce46541015ab316124
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "841"
 depends_on:
   - "Oteryn Platform native-auth hardening 53158217a6c6017230301cf4daa783b04fcc13d5"
   - "Canary Game Session credential-rotation implementation 981c82f5ebb6bc22c867312c2b274a71f6aeeb3e"
@@ -67,14 +67,22 @@ The maximum evidence classification is `PRODUCTION_LIKE_PROVEN`; this task must 
 - [ ] `result.json` reports classification `PRODUCTION_LIKE_PROVEN` only when every required gate passes.
 - [ ] Production Go-Live Gate remains pending direct production verification.
 
+## Security boundaries
+
+- Trust boundary: OTClient -> Platform public OAuth/ticket API -> Gateway public login -> Platform private redeem/context -> Canary private Game Session issuer -> Canary game protocol.
+- Authentication/authorization invariant: the client never chooses the authoritative Canary account; one-time OAuth/code/ticket/session material must fail closed on expiry/replay and service credentials must be independently rotatable.
+- Schema/session compatibility: validation-only; no production schema migration or production session contract change is introduced.
+- Rollback: required and exercised by disabling native issuer/routing while preserving legacy auth code paths.
+- Secrets: only ephemeral generated credentials are used at runtime; no production secret is required or retained.
+
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T23:00:00+02:00
-head: 0a2ae8e3d504ab2398395820512cd45f3b169722
+updated_at: 2026-07-23T23:35:00+02:00
+head: 457c48bb81f2bbc0bdf69bce46541015ab316124
 branch: test/CAN-20260723-native-auth-ephemeral-cutover-rehearsal
-pr: null
+pr: 841
 status: implementing
 context_routes:
   - universal-e2e
@@ -87,24 +95,42 @@ owned_paths:
 proven:
   - Canary main preflight SHA is 0a2ae8e3d504ab2398395820512cd45f3b169722.
   - Oteryn Platform main/native-auth hardening SHA is 53158217a6c6017230301cf4daa783b04fcc13d5.
-  - OTClient main has advanced to 1e5305395159142634f182d9e888e5f9164228c6 and contains native-auth implementation commit bb87346f6c516a19d19497d82bb01fb389334ff5 in its history.
-  - Canary credential-rotation/native-auth implementation was proven at 981c82f5ebb6bc22c867312c2b274a71f6aeeb3e and current main is later.
+  - OTClient main has advanced to 1e5305395159142634f182d9e888e5f9164228c6 and its only commit after native-auth bb87346f6c516a19d19497d82bb01fb389334ff5 changes task documentation, not runtime code.
+  - Canary credential-rotation/native-auth implementation is pinned at 981c82f5ebb6bc22c867312c2b274a71f6aeeb3e for this rehearsal; later main changes do not touch its native-auth issuer implementation.
   - Hardened physical E2E run 30021347231 used real Gateway/Canary/OTClient but a local Platform upstream stub.
   - Production-like run 30025787404 proved TLS/hostname and credential-rotation boundary behavior but did not join the full OAuth/Platform/OTClient world-entry flow.
+  - Draft PR 841 owns only the new rehearsal workflow, harness directory and this task record.
+  - Agent Task Ownership run 30046454857 first failed because this checkpoint omitted mandatory blockers and rejected_hypotheses fields.
 derived:
   - The new rehearsal must compose existing evidence/harnesses rather than treat either historical run as sufficient.
   - Canary is the orchestration owner because the maintained physical OTClient/Universal Agent E2E driver lives here.
 unknown:
-  - exact feasibility of running every component inside Docker without extending existing build images
-  - exact HTTP automation hook required to complete browser authorization consent in the current Platform flow
-  - final workflow run/job/artifact identifiers
+  - final outcome of Native Auth Ephemeral Cutover Rehearsal run 30046454944
+  - final workflow job and evidence artifact identifiers
 conflicts:
-  - docs/agents/PROJECT_STATE.md in Oteryn Platform predates the native-auth commits and still describes the authoritative game-login bridge as unimplemented; current code/PR #124 evidence supersedes that stale statement for repository capability, not for production activation.
+  - docs/agents/PROJECT_STATE.md in Oteryn Platform predates the native-auth commits and still describes the authoritative game-login bridge as unimplemented; current native-auth code supersedes that stale repository-capability statement, not the production activation gate.
 first_failure:
-  marker: none
-  evidence: preflight only
+  marker: changed active task checkpoint validation
+  evidence: Agent Task Ownership run 30046454857 job 89338626717; artifact 8579302455 reports missing blockers and rejected_hypotheses
+rejected_hypotheses:
+  - product or native-auth runtime defect caused the first CI failure: disproven because the failing job stopped at deterministic task checkpoint validation before runtime execution
 changed_paths:
+  - .github/workflows/native-auth-ephemeral-cutover-rehearsal.yml
   - docs/agents/tasks/active/CAN-20260723-native-auth-ephemeral-cutover-rehearsal.md
-validation: []
-next_action: create the draft PR, then implement the smallest full-stack rehearsal workflow by reusing the prior physical E2E and production-like boundary harnesses while replacing the Platform stub with the real Platform OAuth/ticket service.
+  - tests/e2e/native_auth_ephemeral_cutover/browser_driver.py
+  - tests/e2e/native_auth_ephemeral_cutover/capture-xdg-open.sh
+  - tests/e2e/native_auth_ephemeral_cutover/oauth_probe.py
+  - tests/e2e/native_auth_ephemeral_cutover/otclient_native_flow_e2e.lua
+  - tests/e2e/native_auth_ephemeral_cutover/platform_bootstrap.php
+  - tests/e2e/native_auth_ephemeral_cutover/run_rehearsal.py
+validation:
+  - command: Agent Task Ownership run 30046454857 / job 89338626717
+    result: FAIL
+    evidence: artifact 8579302455; checkpoint omitted blockers and rejected_hypotheses, repaired in this update
+  - command: Native Auth Ephemeral Cutover Rehearsal run 30046454944
+    result: NOT_RUN
+    evidence: workflow still in progress at last verification
+blockers:
+  - none
+next_action: inspect run 30046454944 to identify the first runtime or harness failure and repair only that root cause on PR 841.
 ```
