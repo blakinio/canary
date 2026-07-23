@@ -7,7 +7,7 @@ branch: docs/otbm-module-catalog-status-cleanup-20260723
 base_branch: main
 created: 2026-07-23
 updated: 2026-07-23
-last_verified_commit: "e342ef7c9147623f60d523e9ce55831c22cfc249"
+last_verified_commit: "983bace43e292f7a32d66058f1159b5727f34452"
 risk: low
 related_issue: ""
 related_pr: "778"
@@ -57,12 +57,11 @@ Do not change module responsibilities, contracts, reuse boundaries, runtime, OTB
 
 ```yaml
 checkpoint_version: 1
-updated_at: "2026-07-23T13:35:00+02:00"
-head: "e342ef7c9147623f60d523e9ce55831c22cfc249"
+updated_at: "2026-07-23T13:40:00+02:00"
+head: "983bace43e292f7a32d66058f1159b5727f34452"
 branch: "docs/otbm-module-catalog-status-cleanup-20260723"
 pr: "778"
 status: "validating"
-next_action: "Make no further commits. Require exact-final-head Agent Task Ownership and repository CI/Required to finish green, recheck changed files/reviews/mergeability, mark PR #778 ready, squash-merge it, then archive this task in a separate lifecycle PR."
 context_routes:
   - "agent-governance"
   - "otbm"
@@ -77,11 +76,29 @@ proven:
   - "PR #778 changed-file scope is exactly MODULE_CATALOG.md plus this active task record."
   - "The MODULE_CATALOG patch contains exactly three status substitutions and no other catalogue semantic change."
   - "Coordination comments on PR #762 and PR #777 record cleanup-first ordering and preservation of the three merged statuses during TCR reconciliation."
+derived:
+  - "The three catalogue entries can be corrected without changing any OTBM contract, implementation, runtime behavior or TCR scope."
+unknown:
+  - "Exact-final-head CI and Agent Task Ownership run IDs/results for the corrected checkpoint head are pending."
 conflicts:
   - "Draft PR #762 and coordination PR #777 also touch MODULE_CATALOG.md; ordering is resolved as PR #778 first, then TCR reconciliation must preserve these three corrections."
+first_failure:
+  marker: ownership-checkpoint-schema
+  evidence: "Agent Task Ownership runs on earlier candidate heads rejected the active task checkpoint because required fields derived, first_failure, rejected_hypotheses, unknown and validation were absent; this commit adds the required fields without changing catalogue scope."
+rejected_hypotheses:
+  - "The three referenced OTBM modules are still active implementations; PR #594, PR #572 and PR #419 are all merged."
+  - "Correcting catalogue delivery status requires changing module responsibilities or runtime behavior."
 changed_paths:
   - "docs/agents/MODULE_CATALOG.md"
   - "docs/agents/tasks/active/CAN-20260723-otbm-module-catalog-status-cleanup.md"
+validation:
+  - command: "PR #778 changed-file and MODULE_CATALOG patch audit"
+    result: PASS
+    evidence: "Exactly two changed files; MODULE_CATALOG diff contains only active-to-merged substitutions for #594, #572 and #419."
+  - command: "Agent Task Ownership run 30003690796"
+    result: FAIL
+    evidence: "Checkpoint schema required derived, first_failure, rejected_hypotheses, unknown and validation fields; corrected in this commit."
 blockers:
   - "Exact-final-head required checks must be green before merge."
+next_action: "Make no further commits. Require exact-final-head Agent Task Ownership and repository CI/Required to finish green, recheck changed files/reviews/mergeability, mark PR #778 ready, squash-merge it, then archive this task in a separate lifecycle PR."
 ```
