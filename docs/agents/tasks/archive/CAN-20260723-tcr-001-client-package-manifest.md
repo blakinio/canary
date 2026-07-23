@@ -7,7 +7,7 @@ agent: GPT-5.6 Thinking
 branch: feat/tcr-001-client-package-manifest-20260723
 base_branch: main
 created: 2026-07-23T16:48:37+02:00
-updated: 2026-07-23T17:43:45+02:00
+updated: 2026-07-23T17:52:00+02:00
 last_verified_commit: "3227ee1e3b5f323656b101a601f873ae21b61f27"
 risk: medium
 related_issue: ""
@@ -41,8 +41,10 @@ Deliver and merge TCR-001 Client Package Manifest: deterministic, fail-closed, r
 - Delivery PR: #809
 - Delivery merge commit: `3227ee1e3b5f323656b101a601f873ae21b61f27`
 - Delivery final head: `87612fa0209a490a16bb7da9d58599f9aca424f8`
-- `ci:final-gate` applied before final-head validation and merge.
-- Post-ready repository CI run `30019230636` passed on the same immutable final head before merge.
+- Lifecycle/discovery closure PR: #812
+- `ci:final-gate` applied to PR #812 before this final lifecycle checkpoint commit.
+- Programme queue/stable-state updated in PR #812.
+- Existing `otbm-tooling`/TCR discovery module is reused; no duplicate registry or catalogue module was created.
 - Archived at: `docs/agents/tasks/archive/CAN-20260723-tcr-001-client-package-manifest.md`
 
 # Delivered
@@ -58,16 +60,34 @@ Deliver and merge TCR-001 Client Package Manifest: deterministic, fail-closed, r
 - JSON schema, contract documentation, 13 focused safety/determinism tests and dedicated `Tibia Client Reference` workflow;
 - no TCR-002/TCR-003 parser, no recursive package ingestion, no selected-content execution, no proprietary client input and no OTBM/runtime mutation.
 
-# Final validation evidence
+# Final delivery validation evidence
 
 Exact final delivery PR head: `87612fa0209a490a16bb7da9d58599f9aca424f8`.
 
 - Tibia Client Reference: PASS, run `30018945493`.
 - Agent Task Ownership: PASS, run `30018945592`.
 - AI Agent Tools: PASS, run `30018945525`.
-- Repository CI final-gate: PASS, run `30018946278`.
-- Post-ready repository CI: PASS, run `30019230636`.
+- Repository CI exact-final-gate: PASS, run `30018946278`.
+- Protected post-ready full repository CI: PASS, run `30019230636`.
+- Squash merge completed as `3227ee1e3b5f323656b101a601f873ae21b61f27`.
+
+# Stable producer contract state
+
+`canary-tibia-client-reference-manifest-v1` is now `stable/merged` and may be used by later bounded consumers only as the exact client package/reference provenance contract.
+
+This does not make any later TCR producer or parity output stable. The following remain planned/non-consumable until their own bounded packages merge:
+
+- `canary-tibia-staticdata-index-v1`;
+- `canary-tibia-staticmapdata-index-v1`;
+- `canary-tibia-proficiency-index-v1`;
+- `canary-otbm-house-reference-parity-v1`;
+- `canary-tibia-content-reference-correlation-v1`;
+- `canary-tibia-proficiency-reference-correlation-v1`;
+- `canary-tibia-client-reference-drift-v1`;
+- later evidence-gateway/adoption-routing outputs.
+
+OWA-003 may later consume the stable manifest only for package/reference identity and exact provenance where required. It must not treat the manifest as StaticData, StaticMapData, canonical OTBM geometry, gameplay parity, or proof that any later TCR contract is stable. This lifecycle closure does not implement OWA-003.
 
 # Next package
 
-TCR-002 — StaticData Reference Index is the next programme package. It must start as a separate bounded task/branch/PR and consume the merged `canary-tibia-client-reference-manifest-v1` provenance contract; this lifecycle closure does not implement TCR-002.
+After PR #812 merges, a continuation agent must perform a fresh current-main ownership/PR/reuse preflight. TCR-002 — StaticData Reference Index is the next programme candidate only if it remains the first unowned, unblocked and dependency-satisfied package. It must start as a separate bounded task/branch/PR and consume the merged `canary-tibia-client-reference-manifest-v1` provenance contract; TCR-003 must not be bundled into it.
