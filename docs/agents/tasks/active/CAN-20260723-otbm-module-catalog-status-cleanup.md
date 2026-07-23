@@ -58,7 +58,7 @@ Do not change module responsibilities, contracts, reuse boundaries, runtime, OTB
 ```yaml
 checkpoint_version: 1
 updated_at: "2026-07-23T13:35:00+02:00"
-head_parent: "e342ef7c9147623f60d523e9ce55831c22cfc249"
+head: "e342ef7c9147623f60d523e9ce55831c22cfc249"
 branch: "docs/otbm-module-catalog-status-cleanup-20260723"
 pr: "778"
 status: "validating"
