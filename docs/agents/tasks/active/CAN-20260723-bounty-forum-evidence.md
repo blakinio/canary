@@ -2,16 +2,16 @@
 task_id: CAN-20260723-bounty-forum-evidence
 program_id: CAN-PROGRAM-OTS-FUTURE-GAMEPLAY-SYSTEMS
 coordination_id: ""
-status: active
+status: validating
 agent: "Codex"
 branch: agent/bounty-forum-evidence
 base_branch: main
 created: 2026-07-23T19:07:45+02:00
-updated: 2026-07-23T19:07:45+02:00
+updated: 2026-07-23T19:14:41+02:00
 last_verified_commit: "bd65e83540a7862427bbf46479e78b666aa01e29"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "829"
 depends_on:
   - CAN-20260723-ots-dynamic-spawn-bounty-roadmap-integration
 blocks: []
@@ -38,14 +38,14 @@ Create a provenance-aware aggregation of official and community evidence from Ti
 
 # Acceptance criteria
 
-- [ ] The report separates official facts, official clarifications, community feedback, derived requirements and unknowns.
-- [ ] The report links every official claim to the official news, guide or forum source.
-- [ ] Forum feedback is paraphrased and grouped instead of copied wholesale.
-- [ ] Existing Bounty design work is reused without editing its currently recorded owned path.
-- [ ] Markdown/path review and `git diff --check` pass.
+- [x] The report separates official facts, official clarifications, community feedback, derived requirements and unknowns.
+- [x] The report links every official claim to the official news, guide or forum source.
+- [x] Forum feedback is paraphrased and grouped instead of copied wholesale.
+- [x] Existing Bounty design work is reused without editing its currently recorded owned path.
+- [x] Markdown/path review and `git diff --check` pass.
 - [ ] Current-head GitHub checks are verified.
-- [ ] Module catalogue impact is handled as none because no reusable interface changes.
-- [ ] Cross-repository impact is handled as none because this is server-side research only.
+- [x] Module catalogue impact is handled as none because no reusable interface changes.
+- [x] Cross-repository impact is handled as none because this is server-side research only.
 
 # Confirmed context
 
@@ -77,7 +77,7 @@ Create a provenance-aware aggregation of official and community evidence from Ti
 
 # Current state
 
-The source thread and the existing design record are identified. The evidence report is not yet written.
+The evidence report is written and locally validated. Draft PR #829 is open. Final commit, current-head CI, scope review, and merge-gate verification remain.
 
 # Plan
 
@@ -94,6 +94,13 @@ The source thread and the existing design record are identified. The evidence re
 - Failed/blocked: full Chrome control was interrupted; the report will state its exact review coverage and will not invent missing posts.
 - Result: implementation can proceed on non-overlapping paths.
 
+## 2026-07-23T19:14:41+02:00
+
+- Changed: added the forum evidence report with official baseline, teaser-to-release deltas, first-page theme aggregation, 15 parity requirements, 9 open contracts, backlog `BNT-001..008`, acceptance-test outline, and risks.
+- Learned: the released system renamed the Ring to Talisman and replaced teaser damage reduction with life leech; current official rules also specify one daily token claim, a 10-token cap, and a 5,000-gold Talisman purchase.
+- Failed/blocked: later forum pages remained unavailable to reliable automation; coverage is disclosed and no whole-thread sentiment claim is made.
+- Result: local ownership, registry, and whitespace checks pass.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |
@@ -105,7 +112,7 @@ The source thread and the existing design record are identified. The evidence re
 
 | Path/interface/config/schema | Ownership mode | Purpose | Status |
 |---|---|---|---|
-| `docs/ai-agent/OTS_BOUNTY_TASKS_FORUM_EVIDENCE.md` | exclusive | Forum evidence aggregation | planned |
+| `docs/ai-agent/OTS_BOUNTY_TASKS_FORUM_EVIDENCE.md` | exclusive | Forum evidence aggregation | complete |
 | `docs/agents/tasks/active/CAN-20260723-bounty-forum-evidence.md` | exclusive | Durable task state | active |
 | `docs/ai-agent/OTS_BOUNTY_AND_WEEKLY_TASKS_REWORK.md` | read_only | Existing design baseline | reused |
 
@@ -115,6 +122,9 @@ The source thread and the existing design record are identified. The evidence re
 |---|---|---|---|
 | `bd65e83540a7862427bbf46479e78b666aa01e29` | `python tools/agents/task_ownership.py` | passed | 28 active task records validated before task creation. |
 | `bd65e83540a7862427bbf46479e78b666aa01e29` | `python tools/agents/real_tibia_registry.py validate` | passed | Registry valid with zero warnings. |
+| working tree | `git diff --check` | passed | No whitespace errors. |
+| working tree | `python tools/agents/task_ownership.py` | passed | 29 active task records validated with the new ownership claims. |
+| working tree | `python tools/agents/real_tibia_registry.py validate` | passed | Registry remains valid with zero warnings. |
 
 # Failed approaches and dead ends
 
@@ -132,17 +142,17 @@ The source thread and the existing design record are identified. The evidence re
 
 # Remaining work
 
-1. Write `docs/ai-agent/OTS_BOUNTY_TASKS_FORUM_EVIDENCE.md`.
+1. Commit the report and checkpoint, apply the final-gate label, then verify PR #829 on the exact head.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T19:07:45+02:00
-head: bd65e83540a7862427bbf46479e78b666aa01e29
+updated_at: 2026-07-23T19:14:41+02:00
+head: d7f2bead0792f0db26f50629e6bd0f79080643a0
 branch: agent/bounty-forum-evidence
-pr: none
-status: implementing
+pr: 829
+status: validating
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -153,18 +163,21 @@ proven:
   - PR 772 merged the existing Bounty and Weekly Tasks design into blakinio/canary.
   - Forum thread 4989234 reports 203 entries on 11 pages.
   - The first official post provides a consolidated official-reply topic list.
+  - The current official guide documents three offers, four difficulties, daily and capped reroll tokens, current Talisman effects, equipped-state gating and character-bound upgrades.
+  - The report is complete without modifying the predecessor design path.
 derived:
   - A separate evidence report is the smallest non-overlapping deliverable.
 unknown:
   - Exact exhaustive sentiment counts across all 203 posts.
 conflicts: []
 first_failure:
-  marker: chrome-control-interrupted
-  evidence: The selected forum tab became unavailable to browser control after the first-page extraction.
+  marker: none
+  evidence: No current unmet local validation invariant; exact-head GitHub validation has not run yet.
 rejected_hypotheses:
   - Modify the merged design directly: rejected because the predecessor active task record still claims that path.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260723-bounty-forum-evidence.md
+  - docs/ai-agent/OTS_BOUNTY_TASKS_FORUM_EVIDENCE.md
 validation:
   - command: python tools/agents/task_ownership.py
     result: PASS
@@ -172,15 +185,21 @@ validation:
   - command: python tools/agents/real_tibia_registry.py validate
     result: PASS
     evidence: Registry valid with zero warnings.
+  - command: git diff --check
+    result: PASS
+    evidence: No whitespace errors in the report or task update.
+  - command: python tools/agents/task_ownership.py
+    result: PASS
+    evidence: 29 active task records validated with the new claims.
 blockers: []
-next_action: Write the bounded forum evidence report.
+next_action: Commit the report and checkpoint, apply ci:final-gate, and verify PR 829 on the exact head.
 ```
 
 # Handoff
 
 ## Start here
 
-Write the companion report without editing the existing Bounty/Weekly design document.
+Verify and deliver PR #829 without editing the existing Bounty/Weekly design document.
 
 ## Do not repeat
 
@@ -201,8 +220,8 @@ Do not retry unauthenticated forum scraping or infer unavailable posts.
 
 # Completion
 
-- Final status: active
-- PR:
+- Final status: validating
+- PR: 829
 - Merge commit:
 - Program record updated: not applicable
 - Catalogue updated: not applicable
