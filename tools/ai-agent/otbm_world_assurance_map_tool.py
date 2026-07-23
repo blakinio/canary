@@ -46,6 +46,19 @@ def _same_path(left: Path, right: Path) -> bool:
     return left.expanduser().resolve(strict=False) == right.expanduser().resolve(strict=False)
 
 
+def _resolve_input(root: Path, path: Path, label: str) -> Path:
+    candidate = path.expanduser()
+    candidate = candidate if candidate.is_absolute() else root / candidate
+    if candidate.is_symlink():
+        raise WorldAssuranceMapError(f"{label} must not be a symlink: {candidate}")
+    resolved = candidate.resolve(strict=True)
+    try:
+        resolved.relative_to(root)
+    except ValueError as exc:
+        raise WorldAssuranceMapError(f"{label} escapes artifact root {root}: {resolved}") from exc
+    return resolved
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Build a factual, evidence-linked OWA certification/coverage visualization manifest and optional render artifacts."
@@ -66,10 +79,11 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         campaign_path = args.campaign.expanduser().resolve(strict=True)
-        artifact_root = args.artifact_root.expanduser().resolve()
-        artifact_root.mkdir(parents=True, exist_ok=True)
-        if artifact_root.is_symlink():
+        raw_artifact_root = args.artifact_root.expanduser()
+        if raw_artifact_root.is_symlink():
             raise WorldAssuranceMapError("artifact root must not be a symlink")
+        artifact_root = raw_artifact_root.resolve()
+        artifact_root.mkdir(parents=True, exist_ok=True)
         manifest_path = _confined_output(artifact_root, args.manifest, "manifest output")
         if _same_path(campaign_path, manifest_path):
             raise WorldAssuranceMapError("manifest output must not collide with campaign input")
@@ -83,9 +97,10 @@ def main(argv: list[str] | None = None) -> int:
         if args.execute:
             if args.map_path is None or args.assets_root is None:
                 raise WorldAssuranceMapError("--map and --assets are required with --execute")
-            if _same_path(args.map_path, manifest_path):
+            map_resolved = _resolve_input(artifact_root, args.map_path, "source map")
+            assets_resolved = _resolve_input(artifact_root, args.assets_root, "assets root")
+            if _same_path(map_resolved, manifest_path):
                 raise WorldAssuranceMapError("manifest output must not collide with source map input")
-            assets_resolved = args.assets_root.expanduser().resolve(strict=True)
             try:
                 manifest_path.relative_to(assets_resolved)
             except ValueError:
@@ -104,12 +119,7 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, UnicodeError, json.JSONDecodeError, WorldAssuranceMapError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
-    print(
-        json.dumps(
-            {"format": report["format"], "reportSha256": report["reportSha256"], "targets": len(report["targets"])},
-            sort_keys=True,
-        )
-    )
+    print(json.dumps({"format": report["format"], "reportSha256": report["reportSha256"], "targets": len(report["targets"])}, sort_keys=True))
     return 0
 
 
