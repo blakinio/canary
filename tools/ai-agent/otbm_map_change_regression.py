@@ -391,6 +391,7 @@ def _static_plan(identity: Mapping[str, Any]) -> tuple[dict[str, Any], dict[str,
         for finding in findings
         if finding["kind"] in MECHANIC_FINDING_KINDS
     ]
+    mechanic_findings.sort(key=lambda item: item["findingId"])
     impact = {
         "sampledFindingIds": sampled_ids,
         "sampledPositions": position_lists,

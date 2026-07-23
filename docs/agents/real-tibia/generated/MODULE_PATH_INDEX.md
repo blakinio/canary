@@ -41,6 +41,7 @@
 | `data/scripts/weapons/**` | `weapons` | `data` |
 | `data/world/**` | `spawns` | `data` |
 | `docs/agents/programs/E2E_AUTOMATION_PROGRAM.md` | `physical-client-e2e` | `docs` |
+| `docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md` | `otbm-tooling` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `account-authentication` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `account-lifecycle` | `docs` |
 | `docs/agents/programs/TIBIA_SYSTEM_DECOMPOSITION_PROGRAM.md` | `bestiary` | `docs` |
@@ -136,6 +137,7 @@
 | `docs/ai-agent/CYCLOPEDIA_VALIDATION_REPORT.md` | `titles` | `docs` |
 | `docs/ai-agent/IMBUEMENT_RUNTIME_TEST_PLAN.json` | `imbuements` | `docs` |
 | `docs/ai-agent/IMBUEMENT_VALIDATION_REPORT.md` | `imbuements` | `docs` |
+| `docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md` | `otbm-tooling` | `docs` |
 | `docs/ai-agent/OTS_AI_CYCLOPEDIA_VALIDATION_PROJECT.md` | `bestiary` | `docs` |
 | `docs/ai-agent/OTS_AI_CYCLOPEDIA_VALIDATION_PROJECT.md` | `bosstiary` | `docs` |
 | `docs/ai-agent/OTS_AI_CYCLOPEDIA_VALIDATION_PROJECT.md` | `cyclopedia` | `docs` |
@@ -309,6 +311,7 @@
 | `tools/ai-agent/test_cyclopedia_validation.py` | `cyclopedia-character` | `tests` |
 | `tools/ai-agent/test_cyclopedia_validation.py` | `titles` | `tests` |
 | `tools/ai-agent/test_otbm_*.py` | `otbm-tooling` | `tests` |
+| `tools/ai-agent/test_tibia_client_reference*.py` | `otbm-tooling` | `tests` |
 | `tools/ai-agent/test_weapon_proficiency_achievement_audit.py` | `weapon-proficiency` | `tests` |
 | `tools/ai-agent/weapon_proficiency_achievement_audit.py` | `weapon-proficiency` | `tests` |
 | `tools/analytics/**` | `gameplay-analytics` | `tests` |

@@ -1,0 +1,46 @@
+---
+name: Tibia Client Reference
+
+on:
+  pull_request:
+    paths:
+      - "tools/ai-agent/tibia_client_reference_manifest.py"
+      - "tools/ai-agent/tibia_client_reference_manifest_tool.py"
+      - "tools/ai-agent/test_tibia_client_reference_manifest.py"
+      - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.md"
+      - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.schema.json"
+      - ".github/workflows/tibia-client-reference.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-manifest:
+    name: Validate client reference manifest
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run focused tests
+        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_client_reference_manifest.py" -v
+
+      - name: Compile manifest tooling
+        run: |
+          python -m py_compile \
+            tools/ai-agent/tibia_client_reference_manifest.py \
+            tools/ai-agent/tibia_client_reference_manifest_tool.py \
+            tools/ai-agent/test_tibia_client_reference_manifest.py
+
+      - name: Validate JSON schema syntax
+        run: python -m json.tool docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.schema.json > /dev/null
+
+      - name: Validate CLI construction
+        run: python tools/ai-agent/tibia_client_reference_manifest_tool.py --help > /dev/null

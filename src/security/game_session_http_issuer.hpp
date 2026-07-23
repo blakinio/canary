@@ -36,6 +36,7 @@ public:
 		std::string bindAddress;
 		uint16_t port = 0;
 		std::string serviceTokenSha256;
+		std::string previousServiceTokenSha256;
 		std::chrono::milliseconds requestTimeout = DefaultRequestTimeout;
 	};
 

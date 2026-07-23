@@ -2,7 +2,7 @@
 
 > Repository: `blakinio/canary`  
 > Coordination: `OTS-OTBM-VALIDATION`  
-> Last refreshed: 2026-07-18  
+> Last refreshed: 2026-07-23  
 > Evidence rule: static source/map evidence is not live gameplay proof
 
 ## Mission
@@ -41,6 +41,15 @@ Every numbered phase is a separate bounded task, branch and PR. Later structural
 - Map images must come from the real OTBM, compatible client assets and the factual renderer.
 - Do not use AI image generation to visualize or modify the map.
 - Upstream `opentibiabr/*` repositories are read-only for this programme.
+
+## TCR-000 — Tibia client reference evidence architecture
+
+The official-client reference route is defined by:
+
+- `docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md`;
+- `docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md`.
+
+TCR-000 is architecture/governance only. Future client-reference packages must reuse the canonical Unified World Index, `canary-appearances-index-v1`, `canary-client-assets-index-v1`, `canary-otbm-asset-compatibility-v1`, Script Resolution, canonical Reachability/BFS, factual renderer, Semantic Diff, existing repair/materialization/finalization paths and Universal Physical E2E. `staticmapdata` remains house-layout reference evidence; `staticmapdata.object_id` remains a separate identifier namespace until exact mapping is proven. No client-reference finding authorizes a map or gameplay mutation by itself.
 
 ## Phase 1 — Unified OTBM World Index
 

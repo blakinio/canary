@@ -4,8 +4,8 @@ name: OTBM World Assurance Operations
 status: active
 owner: OTBM analysis tooling / world assurance operations
 created: 2026-07-23T14:25:00+02:00
-updated: 2026-07-23T14:35:00+02:00
-last_verified_commit: "a950648d9fe0b04746b65055e045ba144213cc76"
+updated: 2026-07-23T17:10:00+02:00
+last_verified_commit: "3115185e4eaf95f0ff6319ec9949274e7573065d"
 primary_paths:
   - docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md
   - docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md
@@ -90,26 +90,28 @@ Included:
 
 | Task ID | Branch | PR | State | Exact next action |
 |---|---|---:|---|---|
-| CAN-20260723-otbm-world-assurance-operations-program | `docs/otbm-world-assurance-operations-20260723` | #795 | validating | Validate exact final scope/checks, merge, archive bootstrap task, then start OWA-001 separately. |
+| CAN-20260723-otbm-owa-005-qa-contract-hardening | `test/owa-005-qa-contract-hardening-20260723` | #802 | implementation merged; lifecycle record still active | Owning OWA-005 agent must lifecycle-close its own task; do not edit its exclusive paths from OWA-002. |
+
+OWA-001 is merged and archived. No OWA-002 task has been claimed yet.
 
 # Queue
 
 | ID | Scope | Status | Dependencies | Risk | Exact next action |
 |---|---|---|---|---|---|
-| OWA-001 | Real-World Certification Campaign | planned | QA-005/006/016/018 + current exact map evidence | medium | Select the first reviewed campaign target set and compose existing certification evidence; prefer an already reviewed semantic target only if current provenance is exact. |
-| OWA-002 | Factual Certification and Coverage Map | planned | OWA-001 pilot evidence + factual renderer | medium | Define evidence-linked factual overlays without changing the renderer or treating presentation as proof. |
-| OWA-003 | TCR-to-QA Drift and Freshness Integration | blocked on stable TCR outputs | stable owning TCR outputs + QA-008/016/002/007 | medium | After required TCR packages merge, map exact reference drift into dependency-scoped staleness and impacted validation without parsing TCR inputs in OWA. |
+| OWA-001 | Real-World Certification Campaign | completed via #801 | QA-005/006/016/018 + exact reviewed Thais route evidence | medium | Preserve the exact delivered state: QA-005 not-evaluated, QA-006 C0, QA-016 current, route-level Physical E2E proven, three explicit QA-005/006 blockers. |
+| OWA-002 | Factual Certification and Coverage Map | ready for next bounded task | OWA-001 reviewed manifest/campaign semantics + factual renderer | medium | Render evidence-linked factual overlays that keep C0, freshness, Physical E2E and blockers separate; do not turn route proof into mechanic coverage or one health score. |
+| OWA-003 | TCR-to-QA Drift and Freshness Integration | blocked on stable TCR outputs | stable owning TCR outputs + QA-008/016/002/007 | medium | Re-derive scope from the stable merged TCR producer contract before implementation; OWA consumes it but does not parse client reference inputs. |
 | OWA-004 | Runtime Incident to OTBM Evidence Bridge | planned | QA-018 + existing route/failure-triage evidence | medium | Return compact OTBM static context for explicit incident selectors while keeping runtime diagnosis and E2E ownership downstream. |
-| OWA-005 | QA Contract Hardening and Adversarial Fixtures | planned | delivered QA contracts | medium | Add deterministic synthetic/property-style invariants for provenance, fail-closed uncertainty, output safety and determinism. |
+| OWA-005 | QA Contract Hardening and Adversarial Fixtures | implementation merged in #802; lifecycle closure pending with owning task | delivered QA contracts | medium | Do not duplicate the merged adversarial-contract work; let its owning task close lifecycle independently. |
 | OWA-006 | Continuous Assurance Operational Adoption | planned | OWA-001 + QA-002/007 + CI/release governance | high | Integrate existing assurance evidence into one bounded real map/candidate change path without suppressing unrelated suites or authorizing deployment. |
 
 # Sequencing
 
-1. **OWA-001** — establish a real reviewed certification campaign and pilot target.
-2. **OWA-002** — visualize factual campaign state once real certification artifacts exist.
-3. **OWA-005** — harden cross-contract invariants in parallel where path ownership allows.
+1. **OWA-001** — completed: the first reviewed campaign target and fail-closed proof boundary are established.
+2. **OWA-002** — next bounded package: factual visualization of the exact OWA-001 campaign state.
+3. **OWA-005** — implementation merged independently; lifecycle closure remains owned by its existing task.
 4. **OWA-004** — expose incident-oriented static context through existing QA-018 evidence.
-5. **OWA-003** — begin only after stable owning TCR outputs exist.
+5. **OWA-003** — begin only from stable owning TCR outputs and explicit producer/consumer contracts.
 6. **OWA-006** — operationalize Continuous Assurance on one bounded real change path after campaign semantics are proven.
 
 OWA-003 may move based only on actual TCR delivery state. OWA-006 remains deliberately late because it can affect merge/release gating and therefore requires proven campaign semantics plus exact CI ownership.
@@ -118,13 +120,44 @@ OWA-003 may move based only on actual TCR delivery state. OWA-006 remains delibe
 
 ## OWA-001 — Real-World Certification Campaign
 
-Compose existing QA-005/006/016/018 evidence over reviewed target classes such as cities/regions, landmark routes, selected quest chains, teleport networks, dungeons, critical infrastructure sets and mechanic sets. C5/C6/C7 claims require the exact physical/candidate proof required by QA-006. Campaign result artifacts remain outside Git.
+Delivered by PR #801.
 
-Completion signal: a reproducible reviewed target inventory with exact current certification states and blockers, not a claim that the whole world is healthy.
+The durable campaign layer composes existing QA-005/006/016/018 evidence and retained Physical E2E over reviewed targets. It does not rerun canonical validators or execution systems and never promotes missing proof.
+
+First reviewed target:
+
+- target ID: `owa-001.thais-temple-to-depot`;
+- class: `landmark-route`;
+- semantic route: `thais.temple -> thais.depot`;
+- exact source-map SHA-256: `a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2`;
+- exact World Index SHA-256: `6c22cd26d4414aa094af1d00be7f62190a441e270ee7a478b55449bf92e55e7a`;
+- QA-005: all dimensions `not-evaluated` because no reviewed mechanic binding exists for this pure-movement route;
+- QA-006: `C0_NOT_EVALUATED`;
+- QA-016 static-route freshness: `current`;
+- QA-016 retained route-level Physical E2E freshness: `current`;
+- retained route-level Physical E2E: `proven` from workflow run `29704821423`, artifact `8447816376`;
+- target state: `blocked`.
+
+Exact blockers:
+
+- `QA005_LANDMARK_ROUTE_REQUIRES_REVIEWED_MECHANIC_IDS`;
+- `QA005_NO_REVIEWED_MECHANIC_BINDING_FOR_PURE_MOVEMENT_ROUTE`;
+- `QA006_REQUIRES_CANONICAL_QA005_TARGET`.
+
+Completion signal satisfied: a reproducible reviewed target inventory exists with exact current-compatible proof boundaries and blockers. This is not a claim that the target is formally C5 or that the whole world is healthy.
 
 ## OWA-002 — Factual Certification and Coverage Map
 
-Consume exact QA-005/006/016 evidence and supported QA findings to render evidence-linked overlays through the existing factual renderer. No AI-generated imagery, visual inference or presentation-only gate is allowed. Generated renders/manifests remain external.
+Consume exact OWA-001 campaign output semantics plus QA-005/006/016 evidence and supported QA findings to render evidence-linked overlays through the existing factual renderer.
+
+The first visualization must preserve four separate facts instead of collapsing them into a score:
+
+1. formal QA-006 certification is C0;
+2. QA-005 dimensions are not evaluated for the pilot;
+3. exact static-route and retained route-level Physical E2E evidence are current;
+4. route-level Physical E2E is proven but cannot manufacture mechanic coverage or formal certification.
+
+No AI-generated imagery, visual inference or presentation-only gate is allowed. Generated renders/manifests remain external.
 
 ## OWA-003 — TCR-to-QA Drift and Freshness Integration
 
@@ -184,9 +217,10 @@ Completion still does not imply that every tile, quest or mechanic in the entire
 
 # Dependencies and blockers
 
-- OWA-003 is blocked until the required owning TCR outputs are stable and merged.
+- OWA-001 is complete but formal certification for its first pilot remains blocked at C0 until a legitimate canonical QA-005 target binds exact reviewed mechanic evidence.
+- OWA-002 is not blocked by the C0 state; that C0 state and its blockers are factual content that must be visualized explicitly.
+- OWA-003 remains dependency-gated by stable owning TCR outputs and must be re-derived from the actual merged producer contract at task start.
 - Physical proof for OWA-001/006 depends on existing Universal Physical E2E evidence and remains owned by that subsystem.
-- No current blocker prevents programme bootstrap or future OWA-001 planning.
 
 # Decisions and invariants
 
@@ -197,10 +231,11 @@ Completion still does not imply that every tile, quest or mechanic in the entire
 - World Index, Script Resolution, Reachability/BFS, Semantic Diff, factual renderer, bounded mutation paths and Universal Physical E2E remain single canonical owners.
 - Static evidence, Physical E2E proof and candidate-change revalidation remain separate proof levels.
 - TCR and OWA remain separate programmes with explicit producer/consumer boundaries.
+- A successful pure-movement Physical E2E route does not by itself establish QA-005 mechanic coverage.
 
 # Validation strategy
 
-Programme/bootstrap tasks:
+Programme/lifecycle tasks:
 
 - Agent Task Ownership on exact PR head;
 - repository CI/Required on exact final head;
@@ -213,17 +248,31 @@ Future implementation tasks must additionally run the focused tests owned by eve
 
 # Handoff
 
-## Start here
+## OWA-001 delivered state
 
-Read:
+Start from the archived task:
 
-1. `AGENTS.md`;
-2. `docs/agents/README.md`;
-3. this programme record;
-4. `docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md`;
-5. the closed `docs/ai-agent/OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md` only for delivered QA contract boundaries;
-6. the one selected OWA active task and live PR;
-7. only the exact QA/TCR/E2E contracts required by that package.
+`docs/agents/tasks/archive/CAN-20260723-owa-001-real-world-certification-campaign.md`
+
+and the durable campaign documentation:
+
+`docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN.md`.
+
+The first target is intentionally **not formally certified above C0**. Its exact reviewed map/World Index provenance and route/preflight evidence are current, and exact retained route-level Physical E2E is proven, but no reviewed QA-005 mechanic binding exists for the pure-movement route.
+
+Do not repeat the OWA-001 investigation and do not invent a mechanic ID to make the route certifiable.
+
+## Next bounded task: OWA-002
+
+The next agent should:
+
+1. revalidate current `main`, this programme queue and active ownership;
+2. create exactly one OWA-002 active task, branch and draft PR;
+3. read only the OWA-001 campaign contract/manifest plus factual renderer and QA-005/006/016 evidence required for visualization;
+4. reuse the existing factual renderer;
+5. keep formal certification, freshness, Physical E2E and blockers as independent evidence-linked overlays;
+6. show the pilot as C0 with current route evidence and separate Physical E2E proof, not as a green/certified mechanic;
+7. keep generated renders and campaign outputs outside Git.
 
 ## Task creation protocol
 
@@ -242,8 +291,9 @@ Read:
 - Do not infer coordinates, identifier mappings, semantic criticality or quest topology from names/visual proximity.
 - Do not convert missing Physical E2E coverage into invented scenarios.
 - Do not treat a green static campaign state as global gameplay proof.
+- Do not promote the OWA-001 retained successful walk into QA-005 mechanic coverage or QA-006 C5.
 
 ## Open questions
 
-- Exact first OWA-001 target inventory must be selected from current reviewed evidence at task start; `thais.temple -> thais.depot` is only a preferred pilot candidate if its exact current provenance is still valid.
-- OWA-003 package scope must be re-derived from the TCR formats that are actually merged at that time.
+- Which existing factual renderer overlay surfaces best preserve the four independent OWA-001 facts for OWA-002 without introducing a composite health score?
+- OWA-003 package scope must be re-derived from the TCR formats that are actually stable and merged at that time.
