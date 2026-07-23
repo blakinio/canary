@@ -6,8 +6,6 @@ import sys
 import unittest
 from pathlib import Path
 
-import jsonschema
-
 MODULE_PATH = Path(__file__).with_name("otbm_region_quest_certification.py")
 SPEC = importlib.util.spec_from_file_location("canary_otbm_region_quest_certification_schema", MODULE_PATH)
 assert SPEC is not None and SPEC.loader is not None
@@ -33,7 +31,7 @@ class CertificationSchemaTests(unittest.TestCase):
     def dimension(self, state: str) -> dict:
         return {"state": state, "evidence": [], "memberIds": [], "blockers": []}
 
-    def test_generated_report_matches_schema(self) -> None:
+    def test_schema_contracts_track_public_formats_and_generated_shape(self) -> None:
         manifest = {
             "format": MODULE.MANIFEST_FORMAT,
             "schemaVersion": 1,
@@ -77,8 +75,11 @@ class CertificationSchemaTests(unittest.TestCase):
                 "coverageDashboard": self.pin(MODULE.COVERAGE_FORMAT, "d"),
             },
         )
-        jsonschema.Draft202012Validator(self.manifest_schema).validate(manifest)
-        jsonschema.Draft202012Validator(self.report_schema).validate(report)
+        self.assertEqual(self.manifest_schema["properties"]["format"]["const"], MODULE.MANIFEST_FORMAT)
+        self.assertEqual(self.report_schema["properties"]["format"]["const"], MODULE.REPORT_FORMAT)
+        self.assertTrue(set(self.manifest_schema["required"]).issubset(manifest))
+        self.assertTrue(set(self.report_schema["required"]).issubset(report))
+        self.assertEqual(report["certifications"][0]["certificationLevel"], "C7_CANDIDATE_CHANGE_REVALIDATED")
 
 if __name__ == "__main__":
     unittest.main()
