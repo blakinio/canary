@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 base_branch: main
 created: 2026-07-22T16:00:00+02:00
-updated: 2026-07-23T13:15:00+02:00
-last_verified_commit: 45c63c7d83acadc030e8a59741462f87b35f2257
+updated: 2026-07-23T13:23:00+02:00
+last_verified_commit: 358b19ae2dcb0407167d81ea4652861c754e5f2e
 risk: high
 related_issue: ""
 related_pr: "722"
@@ -72,8 +72,8 @@ Implement the Canary-side Game Session compatibility adapter for the Oteryn nati
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T13:15:00+02:00
-head: 45c63c7d83acadc030e8a59741462f87b35f2257
+updated_at: 2026-07-23T13:23:00+02:00
+head: 358b19ae2dcb0407167d81ea4652861c754e5f2e
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 pr: 722
 status: blocked
@@ -118,20 +118,19 @@ proven:
   - Bounded cross-repository E2E is proven: behavior run 29988893301 recorded one successful Knight 1 world entry and replay_rejected=login_error with successful_world_entries=1; final evidence run 29992417296 also passed physical job 89166128089 and Required physical E2E job 89167924405 using Canary 285dec6a034aa3620ae5ca12549fb9e8e1b35631, OTClient bb87346f6c516a19d19497d82bb01fb389334ff5 and Gateway 8006534108d835474dadd208b0ec934e4a12528b.
   - Documentation checkpoint head 9383fb3d7fa13e66b29bce798b3eaa2fddd4c2e9 passed CI run 29995633375, Security Validation run 29995633305, Agent Task Ownership run 29995632827 and autofix run 29995633398.
   - Exact head c75f90d97a33645bcd5e1654ae071add9b382839 passed final-gate CI run 29998294235, Security Validation run 29998294153, Agent Task Ownership run 29998294025 and autofix run 29998293999.
-  - PR #722 is open, non-draft and currently mergeable; current main is 5d5f719406746fba06aa1d9ed175edccc83bf05e and the branch is 40 commits behind main.
-  - Since PR #722 branched from 997343078104831ae3761e691c96fd8ff8d6cfa2, current main changed both docs/agents/CHANGELOG.md and docs/agents/MODULE_CATALOG.md while PR #722 also changes those shared files; GitHub nevertheless currently computes the PR as mergeable.
+  - PR #722 is open, non-draft and currently mergeable; current main was verified at 5d5f719406746fba06aa1d9ed175edccc83bf05e while the task branch remained behind it.
   - Oteryn Platform PR #123 remains closed unmerged with zero commits and zero changed files; a bounded PR search found no successor delivering its advertised throttling, overlapping service-credential hash rotation and full no-store/no-cache hardening.
+  - docs/agents/MODULE_CATALOG.md is synchronized on 358b19ae2dcb0407167d81ea4652861c754e5f2e: the bounded native-auth E2E is recorded as proven by runs 29988893301 and 29992417296, while Platform hardening and private/TLS transport remain production blockers.
 derived:
   - Candidate B preserves stronger single-use world-entry semantics than replayable account_sessions.
   - A lost successful create-session response intentionally cannot be recovered by repeating the same login_attempt_id; the orphan token expires and the client must start a fresh native-login attempt.
   - Gateway protocol v1 safely supports only ProtocolProfileId::Current without expanding the cross-repository request contract.
-  - Being 40 commits behind current main is not currently a proven merge conflict because GitHub reports PR #722 mergeable=true.
+  - Canary-side implementation, durable contract/catalogue synchronization and bounded native-auth E2E proof are complete; remaining blockers are production-readiness gates outside the completed Canary adapter scope.
 unknown:
   - Exact production private-network/TLS boundary and service-credential rotation mechanism for Gateway -> Canary remain unproven.
   - Future requirements for immediate security-generation revocation, multi-world routing and same-world horizontal replicas remain outside the proven v1 deployment model.
 conflicts:
   - Prior handoff claimed Oteryn Platform PR #123 was merged; live state on 2026-07-23 confirms it is closed unmerged and its advertised hardening remains absent.
-  - docs/agents/MODULE_CATALOG.md still describes full Gateway -> Canary -> OTClient E2E as a production blocker even though runs 29988893301 and 29992417296 prove the bounded E2E; the catalogue entry must be corrected before this task can be considered documentation-consistent.
 first_failure:
   marker: platform-production-hardening-unproven
   evidence: Oteryn Platform PR #123 remains closed unmerged with zero commits and zero changed files, and a bounded search found no successor delivering overlapping service credential-hash rotation, pre-auth throttling ordering and complete ticket-boundary no-store hardening on Platform main.
@@ -163,13 +162,15 @@ validation:
   - command: final-gate validation on c75f90d97a33645bcd5e1654ae071add9b382839
     result: PASS
     evidence: CI 29998294235, Security Validation 29998294153, Agent Task Ownership 29998294025 and autofix 29998293999 all completed successfully.
-  - command: final-gate validation on 45c63c7d83acadc030e8a59741462f87b35f2257
+  - command: MODULE_CATALOG durable-record synchronization on 358b19ae2dcb0407167d81ea4652861c754e5f2e
+    result: PASS
+    evidence: exact one-commit delta modifies only docs/agents/MODULE_CATALOG.md with two intended replacements: review date and Oteryn Game Session E2E status.
+  - command: final-gate validation after final checkpoint commit
     result: NOT_RUN
-    evidence: ci:final-gate remains applied and CI 30002309401, Security Validation 30002309379, Agent Task Ownership 30002309311 and autofix 30002309302 are currently in progress.
+    evidence: ci:final-gate remains applied; the final checkpoint commit must complete its pull-request validation before any merge consideration.
 blockers:
-  - docs/agents/MODULE_CATALOG.md must be synchronized with the proven bounded native-auth E2E before documentation consistency is claimed.
   - Production readiness remains blocked until the missing Oteryn Platform hardening is delivered and proven.
   - Production Gateway -> Canary private-network/TLS transport and service-credential rotation remain unproven.
   - Immediate generation-based revocation, multi-world routing and same-world horizontal scaling are outside Gateway protocol v1 and require separate design before they are claimed.
-next_action: Correct the Oteryn Game Session entry in docs/agents/MODULE_CATALOG.md to mark bounded E2E proven, then let the final gate complete on the resulting exact head.
+next_action: Deliver and prove the missing Oteryn Platform production hardening that supersedes closed-unmerged PR #123 before any production native-auth cutover.
 ```
