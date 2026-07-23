@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260722-e2e-oteryn-native-auth-gateway
 base_branch: main
 created: 2026-07-22T23:30:00+02:00
-updated: 2026-07-23T09:38:22+02:00
-last_verified_commit: aa4ffe9c00909f1990d4ae89540c4b2df8837137
+updated: 2026-07-23T10:16:00+02:00
+last_verified_commit: 1fda058b7cfc2c4d3a7f828a72a80f4c56d05041
 risk: high
 related_issue: ""
 related_pr: "740"
@@ -67,7 +67,7 @@ The test uses the real Gateway and real Canary issuer. A local disposable contra
 - [x] Enable the Canary issuer only inside the disposable test runtime with ephemeral service credentials and explicit Platform world id `1`.
 - [x] Keep raw Game Login Ticket, Gateway service credentials and Game Session credentials out of committed files and retained logs/artifacts.
 - [x] Prove one real maintained-OTClient world entry for account id `101`, character `Knight 1`, world id `1` through Gateway -> Canary issuer.
-- [ ] Prove replay of the same Game Session credential fails closed and does not produce a second successful world entry.
+- [x] Prove replay of the same Game Session credential fails closed and does not produce a second successful world entry.
 - [x] Retain exact server/client/Gateway commit and binary hash evidence plus machine-readable first-failure evidence.
 - [x] Keep claims bounded: this scenario does not prove production TLS/private-network routing, credential rotation, missing Platform hardening, full browser OAuth, or immediate security-generation revocation.
 
@@ -75,11 +75,11 @@ The test uses the real Gateway and real Canary issuer. A local disposable contra
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T09:38:22+02:00
-head: aa4ffe9c00909f1990d4ae89540c4b2df8837137
+updated_at: 2026-07-23T10:16:00+02:00
+head: 1fda058b7cfc2c4d3a7f828a72a80f4c56d05041
 branch: feat/CAN-20260722-e2e-oteryn-native-auth-gateway
 pr: 740
-status: validating
+status: ready
 context_routes:
   - universal-e2e
   - agent-governance
@@ -107,36 +107,39 @@ changed_paths:
   - tools/e2e/run_physical_e2e.sh
   - tools/e2e/server_selection.py
 proven:
-  - Universal Agent E2E run 29963476030 built the exact maintained OTClient, exact Canary adapter implementation commit and exact Oteryn Platform Gateway successfully before physical execution.
-  - Physical job 89075275034 proved Gateway session issuance, one successful Knight 1 world entry, stable online state and controlled safe logout; server_login_count was exactly 1 and SQL persistence/cleanup assertions passed.
-  - The first physical failure was in the OTClient E2E driver's safe-logout event ordering: onSessionEnd fired before onGameEnd and aborted before replay_attempt, while Canary had already accepted and completed the intended safe logout.
-  - Commit aad1d0af96b4a1d80305c931dcb6d025ac7ed3ed makes first-session logout completion idempotent across onSessionEnd/onGameEnd and bounds replay start retries until the client is offline.
-  - PR #748 appeared after this task started but its changed files are confined to its own task/scenario/test/fault-recovery driver and do not overlap PR #740 changed paths.
+  - Universal Agent E2E run 29988893301 passed on head 1fda058b7cfc2c4d3a7f828a72a80f4c56d05041, including Required physical E2E.
+  - Physical job 89151309201 used Canary adapter implementation 285dec6a034aa3620ae5ca12549fb9e8e1b35631, OTClient bb87346f6c516a19d19497d82bb01fb389334ff5 and Gateway 8006534108d835474dadd208b0ec934e4a12528b.
+  - Evidence recorded gateway_session=received, login_1=success, online_stable_1=confirmed, replay_attempt=started, replay_rejected=login_error, successful_world_entries=1 and e2e=success.
+  - Machine-readable result reported status=success, server_login_count=1, session_record_count=0 and all persistence/cleanup SQL assertions passed.
+  - Retained scenario.env contains only non-secret scenario keys; native-auth runtime evidence contains routing/process metadata without raw ticket, service credential or Game Session credential.
+  - The historical first failure was isolated to safe-logout event ordering in the E2E driver and resolved by commit aad1d0af96b4a1d80305c931dcb6d025ac7ed3ed.
+  - PR #748 changed files do not overlap PR #740 changed paths.
 derived:
-  - The remaining acceptance gap is replay rejection proof; the first native-auth Gateway to Canary world entry itself is no longer unknown.
-  - Adapter PR #722 head f7afb7d06b35fce1008861852caaffbf2ae93811 is one task-record-only commit ahead of tested implementation head 285dec6a034aa3620ae5ca12549fb9e8e1b35631, so the tested adapter source is unchanged.
+  - The bounded native-auth cross-repository acceptance gate for Canary adapter PR #722 is satisfied.
+  - Adapter PR #722 head f7afb7d06b35fce1008861852caaffbf2ae93811 is task-record-only ahead of tested implementation head 285dec6a034aa3620ae5ca12549fb9e8e1b35631, so tested adapter source is unchanged.
 unknown:
-  - Whether the corrected driver will complete the replay-rejection assertion on the next exact-head Universal Agent E2E run.
   - Production Gateway-to-Canary private-network/TLS and service-credential rotation remain unproven.
-conflicts:
-  - none
+conflicts: []
 first_failure:
   marker: safe-logout-session-end-before-replay
-  evidence: Universal Agent E2E run 29963476030, physical job 89075275034, artifact universal-agent-e2e-login-oteryn-native-auth; first session entered and logged out successfully, but onSessionEnd caused driver failure before replay_attempt.
+  evidence: Run 29963476030 failed before replay because onSessionEnd preceded onGameEnd; commit aad1d0af96b4a1d80305c931dcb6d025ac7ed3ed fixed the driver and run 29988893301 then passed replay rejection with exactly one world entry.
 rejected_hypotheses:
-  - Canary adapter or Gateway failed before world entry: run 29963476030 recorded gateway_session=received, login_1=success and online_stable_1=confirmed with one Canary server login.
-  - Create a second dedicated E2E orchestrator: forbidden by the Universal E2E programme; PR #740 extends the canonical orchestrator instead.
+  - Canary adapter or Gateway failed before world entry: both failing and passing runs proved successful first world entry.
+  - Replay could enter a second time: passing evidence recorded replay_rejected=login_error and successful_world_entries=1.
+  - Create a second dedicated E2E orchestrator: PR #740 extends the canonical Universal Agent E2E workflow.
 validation:
-  - command: Universal Agent E2E run 29963476030 on 5b7890c4c5cf419e9f72cd7da403940aab7525c6
-    result: FAIL
-    evidence: Physical job 89075275034 failed only after successful first world entry/safe logout and before replay_attempt; all build/bootstrap jobs passed.
-  - command: driver root-cause fix aad1d0af96b4a1d80305c931dcb6d025ac7ed3ed
-    result: NOT_RUN
-    evidence: exact-head rerun is pending after the safe-logout event-order fix.
-  - command: active ownership overlap check against PR #748
+  - command: Universal Agent E2E run 29988893301 on 1fda058b7cfc2c4d3a7f828a72a80f4c56d05041
     result: PASS
-    evidence: PR #748 changed-file list has no overlap with PR #740 changed paths.
-blockers:
-  - Replay of the same Game Session credential has not yet been proven fail-closed by a green physical E2E run.
-next_action: Run and inspect Universal Agent E2E on the corrected PR #740 head, fixing only the first remaining native-auth evidence boundary until replay rejection is green.
+    evidence: Physical client job 89151309201 and Required physical E2E job 89152397497 completed successfully.
+  - command: CI run 29988893330 on 1fda058b7cfc2c4d3a7f828a72a80f4c56d05041
+    result: PASS
+    evidence: exact-head CI completed successfully.
+  - command: Agent Task Ownership run 29988893207 on 1fda058b7cfc2c4d3a7f828a72a80f4c56d05041
+    result: PASS
+    evidence: active task ownership and checkpoint validation completed successfully.
+  - command: retained native-auth E2E artifact 8556895059
+    result: PASS
+    evidence: result.json status=success with replay_rejected=login_error, successful_world_entries=1, server_login_count=1 and all SQL assertions passing.
+blockers: []
+next_action: Merge PR #740 after the labeled final-head gate is green, then checkpoint its E2E evidence into Canary adapter task CAN-20260722-oteryn-game-session-adapter.
 ```
