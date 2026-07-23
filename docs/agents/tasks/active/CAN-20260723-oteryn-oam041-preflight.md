@@ -11,7 +11,7 @@ updated: 2026-07-23
 last_verified_commit: "82da6f6c5284b13446c5e71d075e7b06c9252b67"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "819"
 depends_on:
   - OAM-040 formally complete
 blocks:
@@ -55,10 +55,10 @@ Canonical `spawns` is a world-content module whose only hard dependency is canon
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T20:05:00+02:00
-head: 82da6f6c5284b13446c5e71d075e7b06c9252b67
+updated_at: 2026-07-23T18:40:00+02:00
+head: 74844adc610fff8c0afb7c1b61906f285b1417fc
 branch: dudantas/oam-041-target-proof-plan
-pr: null
+pr: 819
 status: blocked
 context_routes:
   - agent-governance
