@@ -1,7 +1,7 @@
 ---
 task_id: CAN-20260723-oteryn-oam039-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
-status: validating
+status: active
 agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-039-governance-finalize
 base_branch: main
