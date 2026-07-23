@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/owa-002-factual-certification-coverage-map-20260723
 base_branch: main
 created: 2026-07-23T18:22:48+02:00
-updated: 2026-07-23T18:52:00+02:00
-last_verified_commit: "96b394a60e5ae9ba3d71119e28c2d9dc5e488c02"
+updated: 2026-07-23T18:54:00+02:00
+last_verified_commit: "097a517384a1c5a2a833ebd7e182953e7e184e96"
 risk: medium
 related_issue: ""
 related_pr: "817"
@@ -130,20 +130,65 @@ Every visible annotation/panel must carry at least one exact evidence reference 
 
 ## Context checkpoint
 
-### Proven
-
-- OWA-001 exact pilot state is C0 / QA-005 not-evaluated / QA-016 current / route-level Physical E2E proven / blocked by explicit QA-005 and QA-006 blockers.
-- The OWA-001 campaign report contains reviewed definition bounds/endpoints and exact source-map provenance.
-- Existing factual map rendering is owned by `otbm_renderer.py:render_region`.
-- OWA-002 implementation is published on PR #817 with deterministic plan/materialization, CLI, schema, documentation and 20 focused local tests.
-- Exact evidence validation now requires the complete nine-dimension QA-005 shape, internally consistent QA-016 freshness, current freshness for `physicalE2e.state=proven`, exact renderer output bounds/dimensions/padding and valid renderer asset/appearance SHA-256 metadata.
-- Relative `--map` and `--assets` inputs are confined under `--artifact-root`; exact artifact-root and output symlinks fail closed.
-
-### Rejected hypotheses
-
-- Do not draw a reconstructed 59-edge route: the campaign report does not contain the full route path and OWA-002 must not rerun BFS or infer path geometry.
-- Do not encode a composite health score or use colour as certification proof.
-
-### Next action
-
-Update narrow discovery records, inspect exact PR diff and current-main overlap, then validate GitHub Actions and fix any exact-head failures before the final gate.
+```yaml
+checkpoint_version: 1
+updated_at: 2026-07-23T16:54:00Z
+head: 097a517384a1c5a2a833ebd7e182953e7e184e96
+branch: feat/owa-002-factual-certification-coverage-map-20260723
+pr: 817
+status: implementing
+context_routes:
+  - agent-governance
+  - otbm
+owned_paths:
+  - docs/agents/tasks/active/CAN-20260723-owa-002-factual-certification-coverage-map.md
+  - docs/ai-agent/OTBM_WORLD_ASSURANCE_MAP.md
+  - docs/ai-agent/OTBM_WORLD_ASSURANCE_MAP.schema.json
+  - tools/ai-agent/otbm_world_assurance_map.py
+  - tools/ai-agent/otbm_world_assurance_map_tool.py
+  - tools/ai-agent/test_otbm_world_assurance_map.py
+  - tools/ai-agent/test_otbm_world_assurance_map_output_safety.py
+  - tools/ai-agent/test_otbm_world_assurance_map_schema.py
+proven:
+  - OWA-001 pilot state is QA-006 C0, QA-005 not-evaluated, QA-016 current, route-level Physical E2E proven, with three explicit QA-005/QA-006 blockers.
+  - Existing factual map rendering is owned by tools/ai-agent/otbm_renderer.py:render_region and OWA-002 reuses it as the sole map-image renderer.
+  - PR 817 contains deterministic plan/materialization, CLI, schema, documentation and 20 passing focused local tests.
+  - Exact evidence validation requires all nine QA-005 dimensions, consistent QA-016 freshness, current freshness for proven Physical E2E and validated renderer bounds/dimensions/padding/hash metadata.
+  - Relative map/assets inputs are confined under artifact-root and exact artifact-root/output symlinks fail closed.
+derived:
+  - A deterministic SVG layer containing only reviewed bounds/endpoints and evidence panels is presentation over the canonical base render, not a second terrain/map renderer.
+unknown:
+  - Exact final-head CI outcome after checkpoint-schema repair.
+  - Final discovery-record diff until MODULE_CATALOG.md and CHANGELOG.md are updated.
+conflicts:
+  - none
+first_failure:
+  marker: Agent Task Ownership changed-task checkpoint validation
+  evidence: run 30026881377 artifact active-task-ownership reported that Context checkpoint lacked the required fenced YAML block.
+rejected_hypotheses:
+  - Reconstruct the 59-edge route for visualization: OWA-001 campaign evidence does not contain ordered route geometry and OWA-002 must not rerun BFS.
+  - Collapse certification/freshness/coverage/Physical-E2E into one score: programme contract requires them to remain independent.
+changed_paths:
+  - docs/agents/tasks/active/CAN-20260723-owa-002-factual-certification-coverage-map.md
+  - docs/ai-agent/OTBM_WORLD_ASSURANCE_MAP.md
+  - docs/ai-agent/OTBM_WORLD_ASSURANCE_MAP.schema.json
+  - tools/ai-agent/otbm_world_assurance_map.py
+  - tools/ai-agent/otbm_world_assurance_map_tool.py
+  - tools/ai-agent/test_otbm_world_assurance_map.py
+  - tools/ai-agent/test_otbm_world_assurance_map_output_safety.py
+  - tools/ai-agent/test_otbm_world_assurance_map_schema.py
+validation:
+  - command: PYTHONPATH=tools/ai-agent python -m unittest -v tools/ai-agent/test_otbm_world_assurance_map.py tools/ai-agent/test_otbm_world_assurance_map_output_safety.py tools/ai-agent/test_otbm_world_assurance_map_schema.py
+    result: PASS
+    evidence: 20 tests passed locally after hardening.
+  - command: GitHub Actions CI run 30026881615
+    result: PASS
+    evidence: CI run 5090 completed successfully on head 097a517384a1c5a2a833ebd7e182953e7e184e96.
+  - command: GitHub Actions Agent Task Ownership run 30026881377
+    result: FAIL
+    evidence: checkpoint section was not a fenced YAML block; this checkpoint commit repairs that contract.
+blockers:
+  - MODULE_CATALOG.md and CHANGELOG.md discovery updates remain before final gate.
+  - Exact final-head required workflows must pass after the checkpoint repair and discovery updates.
+next_action: Update the narrow MODULE_CATALOG.md and CHANGELOG.md discovery entries, then run exact-head ownership/OTBM/AI/CI validation and proceed to final gate only if all pass.
+```
