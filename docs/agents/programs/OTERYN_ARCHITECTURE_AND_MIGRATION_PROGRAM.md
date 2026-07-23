@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-23T14:00:00+02:00
-last_verified_commit: "5f434e9f1e792670545aaf818e34af47c40b2c88"
+updated: 2026-07-23T15:00:00+02:00
+last_verified_commit: "54ce97b3bcaac8c2e1a0d4cc6162a6ff975bbee9"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -75,6 +75,7 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 | OAM-037 | `raids → REUSE` | target proof `d896141d084d381d12cc328d4b920c698eb1d55c`; feature `841053a1800f4e8fdb338c31bac0534ae264dabd`; lifecycle `a3d4ea560f4793380dcb5f73f44eec11279eb44f` |
 | OAM-038 | `world-zones → REUSE` | target proof `d1ce61df934843e2f54800f4ea9efce6cf374a09`; feature `f9fc157dad3668b5051761264ebeecf5bdf1f055`; lifecycle `57e26e3a22db90b41a005a467c2f2411e0e1039b` |
 | OAM-039 | `instances → ADAPT` | target `a2a52e239d8e8a770ff7376fcbb9b5bfdcc8cc13`; feature `7f5fcfb77c35f83f0841ee1d57a70878b5e544d0`; lifecycle `5f434e9f1e792670545aaf818e34af47c40b2c88` |
+| OAM-040 | `otbm-tooling → DO_NOT_MIGRATE` | target proof `e607887533bbbff13ff36d781e3f7f25d2f71675`; feature `74121ca3d968ace7a68bcdb5cd7cd64e6e54d702`; lifecycle `54ce97b3bcaac8c2e1a0d4cc6162a6ff975bbee9` |
 
 # Durable evidence compaction
 
@@ -182,15 +183,35 @@ Authoritative lifecycle PR #786 final head `5159a8b28b3b920175285299a2bae4251c5a
 
 OAM-039 does not claim complete production instance activation through `Game`, ordinary spawn/NPC ownership, full spectator/target/combat isolation, logout/death/reconnect semantics, generic scheduler task cancellation, production arena coordinates, persistence semantics, admin Lua/talkaction reachability, two-parallel-instance physical E2E, multiworld support or full Real Tibia instance parity.
 
+# OAM-040 durable completion
+
+Final disposition:
+
+```text
+otbm-tooling DO_NOT_MIGRATE
+```
+
+OAM-040 selected canonical `otbm-tooling` after formal OAM-039 closure. Canary preflight PR #790 merged as `90b5054ebc8b2a19d52cc1bc2731e9dc6f3080f3`. The canonical module is dependency-free `platform-tooling`, owns no server/client/data paths, and represents the deterministic OTBM analysis/evidence stack maintained in the Canary laboratory and validation repository.
+
+The target architecture contract assigns Canary the legacy laboratory/evidence/validation responsibility and Otheryn the clean selectively populated target role. Canonical `spawns` and `npcs` depend on `otbm-tooling`; `quests` depends on it plus `player-persistence`. OAM-040 resolved those relationships as cross-repository evidence dependencies: downstream packages must pin exact Canary tooling/report provenance and prove their own target behavior, while no identified Otheryn runtime, service, protocol, client, map-loader, production build or data path requires a target-local copy.
+
+Otheryn PR #83 final head `06d1a692e2e6ed0eaaf98d7acb54281a1cd5d4c3` changed exactly two documentation/task paths and introduced zero target production mutation. Required run `30007035180` succeeded. Comments/reviews/threads were empty, target `main` had no task-start drift, and PR #83 merged by expected-head squash as `e607887533bbbff13ff36d781e3f7f25d2f71675`.
+
+Canary governance PR #792 final head `cdfa8edd72ecf80610fab28115538d689161191e` changed exactly the OAM-040 revalidation report and active-task checkpoint. Agent Task Ownership `30007303629` and CI `30007303732` succeeded with Required PASS; heavy builds were correctly skipped for the two-document scope. Comments/reviews/threads were empty, Canary `main` had no drift from governance base, and PR #792 merged by expected-head squash as `74121ca3d968ace7a68bcdb5cd7cd64e6e54d702`.
+
+Authoritative lifecycle PR #793 final head `2c26f722f454e9db85291f0af75f7b29b26bde87` changed exactly the active-delete/archive-add lifecycle paths. Agent Task Ownership `30007601961` and CI `30007601786` succeeded with Required PASS; heavy builds were correctly skipped for lifecycle-only scope. Comments/reviews/threads were empty, Canary `main` had no drift from lifecycle base, and PR #793 merged by expected-head squash as `54ce97b3bcaac8c2e1a0d4cc6162a6ff975bbee9`.
+
+OAM-040 does not claim that static OTBM evidence proves live gameplay, that the Canary toolchain is permanently feature-complete, that generated reports or map assets belong in Otheryn, or that downstream `spawns`, `npcs` or `quests` are already migrated or correct.
+
 # Current state
 
 ```text
-Canary reconciliation base: 5f434e9f1e792670545aaf818e34af47c40b2c88
-Otheryn target head after OAM-039: a2a52e239d8e8a770ff7376fcbb9b5bfdcc8cc13
+Canary reconciliation base: 54ce97b3bcaac8c2e1a0d4cc6162a6ff975bbee9
+Otheryn target head after OAM-040: e607887533bbbff13ff36d781e3f7f25d2f71675
 maintained OTClient: 1e5305395159142634f182d9e888e5f9164228c6
-OAM-001..OAM-039: feature/lifecycle complete
-OAM-039 task: archived in Canary
-OAM-040: NOT STARTED pending Otheryn OAM-039 target checkpoint archive
+OAM-001..OAM-040: feature/lifecycle complete
+OAM-040 task: archived in Canary
+OAM-041: NOT STARTED pending Otheryn OAM-040 target checkpoint archive
 ```
 
 No OAM implementation task is active in this reconciliation record.
@@ -199,8 +220,8 @@ No OAM implementation task is active in this reconciliation record.
 
 | Package | Status | Next action |
 |---|---|---|
-| OAM-001..OAM-039 | completed | preserve durable evidence |
-| OAM-040+ | planned, not active | only after this reconciliation merges and the Otheryn OAM-039 target checkpoint is archived: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
+| OAM-001..OAM-040 | completed | preserve durable evidence |
+| OAM-041+ | planned, not active | only after this reconciliation merges and the Otheryn OAM-040 target checkpoint is archived: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
 
 # Invariants and known gaps
 
@@ -243,7 +264,8 @@ No OAM implementation task is active in this reconciliation record.
 - OAM-037 does not claim exact official raid probability or timing parity, exact event timing under scheduler load, raid XML/data-definition completeness, restart/crash recovery semantics, distributed or multichannel raid coordination, exact spawn placement parity, webhook delivery guarantees, physical-client E2E closure or full Real Tibia parity.
 - OAM-038 does not claim exhaustive zone membership or eviction correctness under every movement/reload/concurrency schedule, tile protection/PvP flag correctness, quest/event behavior inside zones, instance isolation, exact monster-variant gameplay semantics, map-content parity, persistence guarantees, protocol/client compatibility, physical-client E2E closure or full Real Tibia parity.
 - OAM-039 does not claim complete production instance activation through Game ownership, ordinary spawn/NPC ownership, full spectator/target/combat isolation, logout/death/reconnect semantics, generic scheduler task cancellation, production arena coordinates, persistence semantics, admin Lua/talkaction reachability, two-parallel-instance physical E2E, multiworld support or full Real Tibia instance parity.
+- OAM-040 does not claim that static OTBM evidence proves live gameplay, that the Canary OTBM toolchain is permanently feature-complete, that generated reports/map assets belong in Otheryn, or that downstream spawns/NPCs/quests are already migrated or correct.
 
 # Exact next task
 
-Merge this program-only OAM-039 completion reconciliation after exact-head Ownership/CI/review gates. Only then may the Otheryn OAM-039 target checkpoint be archived; only after that archive merges may a fresh OAM-040 preflight begin. OAM-040 is NOT STARTED by this record.
+Merge this program-only OAM-040 completion reconciliation after exact-head Ownership/CI/review gates. Only then may the Otheryn OAM-040 target checkpoint be archived; only after that archive merges may a fresh OAM-041 preflight begin. OAM-041 is NOT STARTED by this record.

@@ -11,8 +11,41 @@
 
 #include "server/network/message/outputmessage.hpp"
 #include "config/configmanager.hpp"
+#include "game/multichannel/channel_context.hpp"
 #include "game/scheduling/dispatcher.hpp"
 #include "creatures/players/management/ban.hpp"
+#include "security/game_session_http_issuer.hpp"
+
+#ifndef USE_PRECOMPILED_HEADERS
+	#include <charconv>
+	#include <cstdlib>
+	#include <optional>
+	#include <stdexcept>
+	#include <string_view>
+	#include <system_error>
+	#include <utility>
+#endif
+
+namespace {
+	[[nodiscard]] std::optional<int64_t> configuredGameSessionWorldId() {
+		const char* rawValue = std::getenv("CANARY_GAME_SESSION_ISSUER_WORLD_ID");
+		if (!rawValue) {
+			return std::nullopt;
+		}
+
+		const std::string_view value(rawValue);
+		if (value.empty()) {
+			return std::nullopt;
+		}
+
+		int64_t parsed = 0;
+		const auto [end, error] = std::from_chars(value.data(), value.data() + value.size(), parsed);
+		if (error != std::errc {} || end != value.data() + value.size() || parsed < 1) {
+			return std::nullopt;
+		}
+		return parsed;
+	}
+}
 
 ServiceManager::~ServiceManager() {
 	try {
@@ -32,9 +65,37 @@ void ServiceManager::run() {
 		return;
 	}
 
+	std::string issuerConfigError;
+	const auto issuerConfig = GameSessionHttpIssuer::loadConfigFromEnvironment(issuerConfigError);
+	if (!issuerConfig) {
+		throw std::runtime_error("Invalid Game Session issuer configuration: " + issuerConfigError);
+	}
+
+	auto issuerDependencies = GameSessionHttpIssuer::productionDependencies();
+	if (issuerConfig->enabled) {
+		const auto platformWorldId = configuredGameSessionWorldId();
+		if (!platformWorldId) {
+			throw std::runtime_error("CANARY_GAME_SESSION_ISSUER_WORLD_ID must be a positive integer when the Game Session issuer is enabled");
+		}
+		issuerDependencies.currentWorldId = [worldId = *platformWorldId] {
+			return worldId;
+		};
+		g_logger().info(
+			"[GameSessionHttpIssuer] mapped Platform world_id {} to Canary channel {}",
+			*platformWorldId,
+			g_channelContext().getChannelId()
+		);
+	}
+
+	GameSessionHttpIssuer gameSessionIssuer(*issuerConfig, std::move(issuerDependencies));
+	if (!gameSessionIssuer.start()) {
+		throw std::runtime_error("Failed to start configured Game Session issuer");
+	}
+
 	assert(!running);
 	running = true;
 	io_service.run();
+	gameSessionIssuer.stop();
 }
 
 void ServiceManager::stop() {

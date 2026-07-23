@@ -3,4 +3,5 @@ target_sources(
     PRIVATE rsa_test.cpp
             rsa_backend_equivalence_test.cpp
             login_session_manager_test.cpp
+            game_session_http_issuer_test.cpp
 )
