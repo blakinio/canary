@@ -114,7 +114,7 @@ Focused OWA-006 functional validation cases are therefore not fabricated: there 
 
 An owning map-change/repair workflow must retain or explicitly reference one concrete reviewed real candidate/change chain with exact before/current/candidate identity and the evidence required by the OWA-006 sequence. OWA-006 may then resume and consume that chain without changing canonical ownership.
 
-# Context checkpoint
+## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
