@@ -10,7 +10,7 @@
 
 ## Executive summary
 
-Seven primary official Tibia forum corpora provide a vision-to-release view of the 2026 vocation adjustments:
+Seven complete official Tibia forum threads provide a vision-to-release view of the 2026 vocation adjustments:
 
 1. **Dev Note: Vocation Balancing** records the foundational reaction to CipSoft's role, innovation, and input-reduction goals and the first stance, Barrier, and Mentor Other examples.
 2. **General Changes** records the reaction to the later system-wide proposal: charm and AoE scaling, Energy Ring, UH/IH support, combat mode, mitigation, and mana potions.
@@ -28,7 +28,7 @@ The complete **Vocation Balancing Monk** thread adds 206 unique posts across all
 
 The complete **Vocation Balancing Knight** thread adds 595 unique posts across all 30 pages. Its 592 community posts most often discuss stances, two-second healing cadence, offensive and solo capability, shielding and mitigation, Exeta Amp Res, Front Sweep/Exori Min, and the Wheel.
 
-A supplemental review of the first page of **Vocation Balancing Druid** adds design-stage evidence for Elder Druid. It is not included in the 7,187-post primary accessible corpus because only 20 of the thread's 393 displayed results were accessible in that collection. Within the 17 deduplicated community contributions on that page, the clearest concerns were the doubled healing cooldown in the group stance, weak solo hunting, and insufficiently specified Forked Spells.
+A supplemental review of the first page of **Vocation Balancing Druid** adds design-stage evidence for Elder Druid. It is not included in the 7,187-post complete-thread corpus because only 20 of the thread's 393 displayed results were accessible in that collection. Within the 17 deduplicated community contributions on that page, the clearest concerns were the doubled healing cooldown in the group stance, weak solo hunting, and insufficiently specified Forked Spells.
 
 The January General Changes discussion was broad and exploratory: all 765 displayed posts were accessible, representing 666 author names. A coarse critical-language indicator matched 29.5% of its non-official posts. The same indicator rose to 43.5% in Release State and 70.3% across the post-release thread, reaching 80.0% during July 7–8 immediately after numerical corrections. The discussion therefore moved from *define the compensation and preserve useful roles*, through *clarify and finish the mechanics*, toward *justify the balance model and its combined effects*.
 
@@ -77,7 +77,7 @@ Collection facts:
 - The Monk thread contains 3 community-manager posts and 203 community posts from 175 distinct author names.
 - Thread `4992264` yielded exactly 595 unique post identifiers across all 30 pages, matching its displayed result count.
 - The Knight thread contains 3 community-manager posts and 592 community posts from 498 distinct author names.
-- Across the seven primary corpora, the accessible corpus contains 7,187 unique post identifiers and 51 official-marker posts. A seven-corpus unique-author total was not recomputed from the separately retained aggregates, so per-thread author counts are reported instead.
+- Across the seven complete threads, the accessible corpus contains 7,187 unique post identifiers and 51 official-marker posts. A seven-thread unique-author total was not recomputed from the separately retained aggregates, so per-thread author counts are reported instead.
 
 ## Evidence boundary
 
@@ -286,7 +286,7 @@ That hypothesis prioritizes state-machine, boundary, targeting, rotation, and ro
 
 ## Supplemental design-stage evidence: Vocation Balancing Druid
 
-This section analyzes only page one of thread `4992268`. It is a bounded design-stage sample, not a complete-thread sentiment result and not part of either the 7,187-post primary accessible corpus or its 3,463-post later-thread subset.
+This section analyzes only page one of thread `4992268`. It is a bounded design-stage sample, not a complete-thread sentiment result and not part of either the 7,187-post complete-thread corpus or its 3,463-post later-thread subset.
 
 ### Official proposal represented on the page
 
@@ -1368,6 +1368,6 @@ This report may nominate a future investigation but cannot authorize a gameplay 
 
 ## Conclusion
 
-Across 7,187 accessible posts in seven primary official corpora, plus the bounded Druid page-one sample, the community consistently supports stronger vocation identity, new rotations, useful defensive choice, and lower unnecessary input complexity. The main rejection concerns incomplete functional access, unclear role trade-offs, late Wheel availability, and numerical packages whose combined risk or complexity appears greater than their practical reward.
+Across 7,187 accessible posts in seven complete official threads, plus the bounded Druid page-one sample, the community consistently supports stronger vocation identity, new rotations, useful defensive choice, and lower unnecessary input complexity. The main rejection concerns incomplete functional access, unclear role trade-offs, late Wheel availability, and numerical packages whose combined risk or complexity appears greater than their practical reward.
 
 For Canary, the durable lesson is methodological: use the forum to identify high-value validation questions, then prove each mechanic independently. Community volume can prioritize investigation; it cannot replace authoritative values, current source inspection, or runtime evidence.

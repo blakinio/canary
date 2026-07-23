@@ -7,7 +7,7 @@ agent: "Codex"
 branch: agent/dev-note-vocation-forum-analysis
 base_branch: main
 created: 2026-07-23T19:11:40+02:00
-updated: 2026-07-23T20:11:44+02:00
+updated: 2026-07-23T20:14:01+02:00
 last_verified_commit: "2a3e6fa1dc87169ff65ee09f59195324bd5f7d3a"
 risk: low
 related_issue: ""
@@ -48,8 +48,7 @@ Add a complete, evidence-bounded analysis of official Dev Note thread `4989637` 
 # Confirmed context
 
 - Repository and PR target are exactly `blakinio/canary:main`.
-- PR #821 merged the current Druid, Monk, General Changes, Sorcerer, Release State, and Release report baseline.
-- PR #830 merged the complete Knight supplement while the final gate was running; its report content is preserved in the resolved current-main integration.
+- PR #821 merged the Druid, Monk, General Changes, Sorcerer, Release State, and Release report baseline; PR #830 later added the complete Knight corpus and PR #837 archived its task.
 - Draft PR #823 currently edits only its Paladin task record and keeps the report read-only. Coordination comment records that this task owns the report until merge.
 - Chrome collection returned all 82 rendered public pages and all 1,625 displayed post identifiers without duplicates.
 - The corpus contains five official-marker posts and 1,620 community posts from 1,400 community author names.
@@ -57,7 +56,7 @@ Add a complete, evidence-bounded analysis of official Dev Note thread `4989637` 
 
 # Current state
 
-The full corpus and reproducibility manifest are retained outside Git. The complete Dev Note and newly merged Knight analyses are combined without loss. Current `main` is integrated, `ci:final-gate` remains applied, and the refreshed exact-final-head CI and merge gate remain.
+The full corpus and reproducibility manifest are retained outside Git. The complete report is integrated with current `main` and the remotely updated task branch without dropping either the Dev Note or Knight corpus. Local repository validation passes and `ci:final-gate` remains applied. Only the refreshed exact-final-head CI and merge gate remain.
 
 # Plan
 
@@ -69,7 +68,7 @@ The full corpus and reproducibility manifest are retained outside Git. The compl
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T20:11:44+02:00
+updated_at: 2026-07-23T20:14:01+02:00
 head: 2a3e6fa1dc87169ff65ee09f59195324bd5f7d3a
 branch: agent/dev-note-vocation-forum-analysis
 pr: 831
@@ -116,7 +115,7 @@ validation:
     evidence: Only the task record and shared Markdown report changed; no map, item, datapack, secret, or credential paths changed.
   - command: report corpus, total, manifest-hash, and stale-text assertions
     result: PASS
-    evidence: The report records 1,625 collected posts, the 6,592-post combined primary corpus, 48 official markers, the canonical manifest hash, and no stale 4,967-post conclusion.
+    evidence: The report records 1,625 collected Dev Note posts, preserves 595 Knight posts, reports the 7,187-post combined complete-thread corpus and 51 official markers, and retains the canonical manifest hash.
   - command: complete browser-rendered forum corpus audit
     result: PASS
     evidence: 82 pages contain 1,625 unique post identifiers and zero duplicate identifiers.
@@ -136,5 +135,5 @@ validation:
     result: PASS
     evidence: Dev Note and Knight sections, methodologies, provenance, and totals are preserved; the aggregate is recomputed as 7,187 posts and 51 official markers.
 blockers: []
-next_action: Commit and push the resolved current-main integration, wait for all required checks on its exact head, then squash-merge PR #831.
+next_action: Commit and push the reconciled branch integration, wait for all required checks on its exact head, then squash-merge PR #831.
 ```
