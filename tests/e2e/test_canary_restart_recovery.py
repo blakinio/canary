@@ -44,8 +44,8 @@ class CanaryRestartRecoveryContractTest(unittest.TestCase):
         markers = set(self.manifest["assertions"]["required_markers"])
         self.assertTrue(
             {
-                "pre_restart_persistence_check=success",
-                "pre_restart_persistence_check_detail=12345",
+                "mutation_request=bank_balance_12345",
+                "save_request=fixed_server_save",
                 "restart_request=disposable_canary",
                 "fault_observed=server_disconnect",
                 "recovery_server_ready=confirmed",
@@ -57,13 +57,15 @@ class CanaryRestartRecoveryContractTest(unittest.TestCase):
                 "e2e=success",
             }.issubset(markers)
         )
+        self.assertNotIn("pre_restart_persistence_check=success", markers)
+        self.assertIn("database-restart-pre-balance.txt", set(self.manifest["artifacts"]))
 
-    def test_driver_mutates_and_confirms_state_before_restart_request(self) -> None:
+    def test_driver_mutates_saves_and_requests_restart_without_stale_cache_gate(self) -> None:
         mutation = re.compile(
             r"local function mutatePersistentState\(\)"
             r'.*?appendEvent\("mutation_request", "bank_balance_12345"\)'
             r'.*?g_game\.talk\("/addmoney " \.\. CHARACTER \.\. ", 12345"\)'
-            r'.*?waitForBalance\(EXPECTED_BALANCE, "pre_restart_persistence_check", saveAndRequestRestart\)',
+            r".*?scheduleEvent\(saveAndRequestRestart, 500\)",
             re.DOTALL,
         )
         save_callback = re.compile(
@@ -82,6 +84,23 @@ class CanaryRestartRecoveryContractTest(unittest.TestCase):
         self.assertRegex(self.driver, mutation)
         self.assertRegex(self.driver, save_callback)
         self.assertRegex(self.driver, restart_callback)
+        self.assertNotIn('waitForBalance(EXPECTED_BALANCE, "pre_restart_persistence_check"', self.driver)
+        self.assertIn('waitForBalance(EXPECTED_BALANCE, "persistence_check_balance"', self.driver)
+
+    def test_restart_seam_proves_exact_persisted_balance_before_sigterm(self) -> None:
+        persistence_check = re.compile(
+            r'wait_for_restart_client_marker "mutation_request" "bank_balance_12345"'
+            r'.*?wait_for_restart_client_marker "save_request" "fixed_server_save"'
+            r'.*?wait_for_restart_client_marker "restart_request" "disposable_canary"'
+            r".*?wait_for_persisted_restart_balance"
+            r'.*?record_restart_phase "pre-restart-gameplay" "success"',
+            re.DOTALL,
+        )
+        self.assertRegex(self.restart_seam, persistence_check)
+        self.assertIn('DISPOSABLE_CANARY_RESTART_EXPECTED_BALANCE="12345"', self.restart_seam)
+        self.assertIn("SELECT balance FROM players WHERE name='${DISPOSABLE_CANARY_RESTART_CHARACTER}' LIMIT 1;", self.restart_seam)
+        self.assertIn('DISPOSABLE_CANARY_RESTART_PRE_BALANCE_FILE="${ARTIFACT_DIR}/database-restart-pre-balance.txt"', self.restart_seam)
+        self.assertIn('"pre_restart_balance_persisted": pre_restart_balance == 12345', self.restart_seam)
 
     def test_driver_requires_real_disconnect_before_relogin(self) -> None:
         self.assertIn('appendEvent("fault_expected", "server_disconnect")', self.driver)
@@ -130,6 +149,7 @@ class CanaryRestartRecoveryContractTest(unittest.TestCase):
             self.assertIn(f'record_restart_phase "{phase}"', self.restart_seam)
         artifacts = set(self.manifest["artifacts"])
         self.assertIn("canary-restart-evidence.json", artifacts)
+        self.assertIn("database-restart-pre-balance.txt", artifacts)
         self.assertIn("database-restart-pre-relogin-online-count.txt", artifacts)
         self.assertIn("canary-old.pid", artifacts)
         self.assertIn("canary-restarted.pid", artifacts)
