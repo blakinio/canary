@@ -50,14 +50,18 @@ class CrossSystemPromotionCombatJourneyTests(unittest.TestCase):
                 self.assertEqual(self.journey[key], self.promotion[key])
                 self.assertEqual(self.journey[key], self.combat[key])
 
-    def test_journey_steps_are_exact_promotion_then_combat_composition(self) -> None:
-        expected_steps = [*self.promotion["steps"], *self.combat["steps"][1:]]
+    def test_journey_steps_are_exact_combat_then_promotion_composition(self) -> None:
+        expected_steps = [*self.combat["steps"], *self.promotion["steps"][1:]]
         self.assertEqual(self.journey["steps"], expected_steps)
 
         promotion_actions = {step["action"] for step in self.promotion["steps"]}
         combat_actions = {step["action"] for step in self.combat["steps"]}
         journey_actions = {step["action"] for step in self.journey["steps"]}
         self.assertLessEqual(journey_actions, promotion_actions | combat_actions)
+
+    def test_arena_cleanup_precedes_return_to_npc_flow(self) -> None:
+        step_ids = [step["id"] for step in self.journey["steps"]]
+        self.assertLess(step_ids.index("close_arena"), step_ids.index("npc-visible"))
 
     def test_journey_preserves_proven_persistence_contract(self) -> None:
         self.assertEqual(
