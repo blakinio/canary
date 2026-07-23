@@ -1,0 +1,105 @@
+{
+  "campaignId": "OWA-001-real-world-certification-campaign",
+  "format": "canary-otbm-world-assurance-campaign-manifest-v1",
+  "schemaVersion": 1,
+  "targets": [
+    {
+      "blockers": [],
+      "class": "landmark-route",
+      "conflictingEvidence": [],
+      "id": "owa-001.thais-temple-to-depot",
+      "physicalE2e": {
+        "artifactDigestSha256": "131faa08eaaccdacda62788b2e173b0f9ecc422a62ecd4769e874e4d136aeb40",
+        "artifactId": 8447816376,
+        "evidenceExtractIds": [
+          "thais.route-plan",
+          "thais.route-preflight",
+          "thais.world-index-manifest"
+        ],
+        "resultFileSha256": "b659bb99d7cab3eaf98a8f94673b2281d0bd1c0898ba289aa8843d60206ee3b3",
+        "runtimeMapSha256": "a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2",
+        "scenarioManifestFileSha256": "e8c1f802a51bfd0e9fd0559fbc09b107bc37e01a4c93e99eda61b8fd16ad8b95",
+        "scope": "landmark-route",
+        "status": "retained-success",
+        "workflowRunId": 29704821423
+      },
+      "provenance": {
+        "sourceMapSha256": "a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2",
+        "worldIndexSha256": "6c22cd26d4414aa094af1d00be7f62190a441e270ee7a478b55449bf92e55e7a"
+      },
+      "qa005": {
+        "bindingState": "unavailable",
+        "blockers": [
+          "QA005_LANDMARK_ROUTE_REQUIRES_REVIEWED_MECHANIC_IDS",
+          "QA005_NO_REVIEWED_MECHANIC_BINDING_FOR_PURE_MOVEMENT_ROUTE"
+        ],
+        "targetId": null
+      },
+      "qa006": {
+        "bindingState": "unavailable",
+        "blockers": [
+          "QA006_REQUIRES_CANONICAL_QA005_TARGET"
+        ],
+        "maximumLevel": "C5_PHYSICAL_ROUTE_PROVEN",
+        "targetId": null
+      },
+      "qa016": {
+        "freshnessDimensionIds": [
+          "owa-001.thais-route-physical-proof",
+          "owa-001.thais-route-static-proof"
+        ]
+      },
+      "qa018": {
+        "requiredExtracts": [
+          {
+            "id": "thais.route-plan",
+            "sourceSha256": "ef3257fd1f9330ebf13b583c176e109170f67c103afedc18a4212685dec03b16",
+            "valueSha256": "03d9217e35e2742adf0b47abe32b3e96f0318e21cb90fe3f7d244f8007371332"
+          },
+          {
+            "id": "thais.route-preflight",
+            "sourceSha256": "7dea691ee7a9bc30c2b392ea8d15db359672ef44c33f7b5ebff0a89c656a197f",
+            "valueSha256": "26936c5568d9aac47ebddbb646d1fb8c0fbdca61728644d44773724d82572e2f"
+          },
+          {
+            "id": "thais.world-index-manifest",
+            "sourceSha256": "6b4aec6c5500c19b3cbc3fdee60cf662d68f7907951d154397870e6749002d82",
+            "valueSha256": "bc61c85ec52a5f1398685724cc8e8be2f7a8b92e0eeba2a7efaae2b93a1ed8d3"
+          }
+        ]
+      },
+      "reviewedDefinition": {
+        "destination": [32352, 32226, 7],
+        "fromLandmarkId": "thais.temple",
+        "origin": [32369, 32241, 7],
+        "references": [
+          "docs/ai-agent/OTBM_SEMANTIC_LANDMARKS.json",
+          "docs/ai-agent/OTBM_THAIS_LANDMARK_EVIDENCE.md",
+          "tests/e2e/routes/thais-temple-depot.json",
+          "tests/e2e/scenarios/movement/physical-thais-temple-depot.json",
+          "docs/agents/tasks/archive/CAN-20260719-otbm-e2e-005-thais-temple-depot.md"
+        ],
+        "regionId": "thais.temple-depot",
+        "reviewStatus": "reviewed",
+        "routingBounds": {
+          "from": [32347, 32216, 7],
+          "to": [32369, 32241, 7]
+        },
+        "toLandmarkId": "thais.depot"
+      },
+      "routeEvidence": {
+        "destination": [32352, 32226, 7],
+        "distance": 59,
+        "interactionRequired": false,
+        "origin": [32369, 32241, 7],
+        "preflightFileSha256": "7dea691ee7a9bc30c2b392ea8d15db359672ef44c33f7b5ebff0a89c656a197f",
+        "preflightStatus": "passed",
+        "routeId": "thais-temple-depot",
+        "routePlanFileSha256": "ef3257fd1f9330ebf13b583c176e109170f67c103afedc18a4212685dec03b16",
+        "routePlanSha256": "0736a819ef656f9040ea14c51f1ab474beabe9e4da50435e1eb9e7fd0c28974b",
+        "transitionIds": []
+      },
+      "unresolvedEvidence": []
+    }
+  ]
+}

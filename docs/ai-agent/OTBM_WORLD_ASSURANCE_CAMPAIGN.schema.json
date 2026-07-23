@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN.schema.json",
+  "title": "Canary OTBM World Assurance Campaign Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "schemaVersion", "campaignId", "provenance", "targets",
+    "summary", "policy", "notes", "reportSha256"
+  ],
+  "properties": {
+    "format": {"const": "canary-otbm-world-assurance-campaign-v1"},
+    "schemaVersion": {"const": 1},
+    "campaignId": {"type": "string", "minLength": 1},
+    "provenance": {"type": "object"},
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id", "class", "reviewedDefinition", "exactProvenance",
+          "qa005Coverage", "qa006Certification", "qa016Freshness",
+          "qa018Evidence", "routeEvidence", "physicalE2e",
+          "unresolvedEvidence", "conflictingEvidence", "blockers", "status"
+        ]
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "targets", "byCertificationLevel", "byFreshness", "byStatus", "byPhysicalE2e"
+      ]
+    },
+    "policy": {
+      "type": "object",
+      "required": [
+        "readOnlyComposition", "parsesOtbm", "buildsWorldIndex", "resolvesScripts",
+        "pathfinds", "rerunsCoverageValidators", "assignsCertificationIndependently",
+        "runsPhysicalE2e", "runsCandidateValidation", "mutatesMap",
+        "timestampsUsedAsFreshnessEvidence", "staticEvidenceEqualsPhysicalProof",
+        "physicalProofEqualsCandidateRevalidation"
+      ]
+    },
+    "notes": {"type": "array", "items": {"type": "string"}},
+    "reportSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
