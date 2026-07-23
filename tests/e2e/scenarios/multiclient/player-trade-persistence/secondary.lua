@@ -18,6 +18,7 @@ local BACKPACK_SLOT = 3
 local RESOURCE_ITEM_ID = 3043
 local EVENTS_PATH = ARTIFACT_DIR .. "/client-events.tsv"
 local INTERNAL_LOG_PATH = ARTIFACT_DIR .. "/otclient.internal.log"
+local PRIMARY_EVENTS_PATH = PRIMARY_ARTIFACT_DIR .. "/client-events.tsv"
 local RELOG_SIGNAL_PATH = PRIMARY_ARTIFACT_DIR .. "/trade-relog-go"
 
 local phase = 1
@@ -26,7 +27,10 @@ local enteringWorld = false
 local logoutRequested = false
 local finished = false
 local readyForTrade = false
+local ownTradeObserved = false
+local counterTradeObserved = false
 local tradeOfferObserved = false
+local secondaryTradeRequestSent = false
 local tradeClosed = false
 local immediateCheckStarted = false
 local lastSuccessfulStep = "bootstrap"
@@ -58,6 +62,25 @@ local function fileExists(path)
 	end
 	file:close()
 	return true
+end
+
+local function hasEvent(path, expectedKey, expectedValue)
+	if path == "" then
+		return false
+	end
+	local file = io.open(path, "r")
+	if not file then
+		return false
+	end
+	for line in file:lines() do
+		local _, key, value = line:match("^([^\t]*)\t([^\t]*)\t(.*)$")
+		if key == expectedKey and value == expectedValue then
+			file:close()
+			return true
+		end
+	end
+	file:close()
+	return false
 end
 
 local function positionString(creature)
@@ -137,6 +160,31 @@ local function resourceCount()
 		end
 	end
 	return total
+end
+
+local function findCounterofferItem()
+	local player = g_game.getLocalPlayer()
+	if not player then
+		return nil
+	end
+	for slot = 1, 10 do
+		if slot ~= BACKPACK_SLOT then
+			local item = player:getInventoryItem(slot)
+			if item and item:getId() ~= RESOURCE_ITEM_ID and item:getCount() == 1 then
+				return item
+			end
+		end
+	end
+	for _, container in pairs(g_game.getContainers()) do
+		if container then
+			for _, item in ipairs(container:getItems()) do
+				if item and item:getId() ~= RESOURCE_ITEM_ID and item:getCount() == 1 then
+					return item
+				end
+			end
+		end
+	end
+	return nil
 end
 
 local function openStarterBackpack(onReady)
@@ -278,14 +326,14 @@ local function waitForImmediateOwnership()
 	poll()
 end
 
-local function observeTradeOffer()
-	if phase ~= 1 or not readyForTrade or tradeOfferObserved then
+local function maybeAcceptTrade()
+	if phase ~= 1 or not readyForTrade or tradeOfferObserved or not ownTradeObserved or not counterTradeObserved then
 		return
 	end
 	tradeOfferObserved = true
 	appendEvent("trade_offer_secondary", "observed")
 	appendEvent("trade_position_secondary", localPositionString())
-	markStep("trade_offer_observed")
+	markStep("bilateral_trade_offers_observed")
 	scheduleEvent(function()
 		if finished or phase ~= 1 or not phaseStarted then
 			return
@@ -294,6 +342,41 @@ local function observeTradeOffer()
 		appendEvent("trade_accept_secondary", "sent")
 		markStep("trade_accept_sent")
 	end, 100)
+end
+
+local function waitForPrimaryTradeRequest()
+	if secondaryTradeRequestSent then
+		return
+	end
+	local checks = 200
+	local function poll()
+		if finished or phase ~= 1 or not phaseStarted or secondaryTradeRequestSent then
+			return
+		end
+		if hasEvent(PRIMARY_EVENTS_PATH, "trade_request", "sent") then
+			local primary = findVisibleCreature(PRIMARY_CHARACTER)
+			local counterItem = findCounterofferItem()
+			if not primary or not counterItem then
+				fail("trade_counteroffer", "visible primary and one real count-1 counteroffer item", string.format("primary=%s item=%s", tostring(primary ~= nil), tostring(counterItem ~= nil)))
+				return
+			end
+			secondaryTradeRequestSent = true
+			appendEvent("trade_counteroffer_secondary", "selected")
+			appendEvent("trade_counteroffer_item_id", tostring(counterItem:getId()))
+			appendEvent("trade_position_secondary", localPositionString())
+			g_game.requestTrade(counterItem, primary)
+			appendEvent("trade_request_secondary", "sent")
+			markStep("secondary_trade_request_sent")
+			return
+		end
+		checks = checks - 1
+		if checks <= 0 then
+			fail("trade_request_primary", "primary trade_request=sent coordination event", "timeout")
+			return
+		end
+		scheduleEvent(poll, 100)
+	end
+	poll()
 end
 
 local function waitForPrimaryVisibilityAndPrecondition()
@@ -310,6 +393,7 @@ local function waitForPrimaryVisibilityAndPrecondition()
 			appendEvent("trade_fixture_precondition_secondary", "empty")
 			appendEvent("trade_position_secondary", localPositionString())
 			markStep("primary_visible_and_empty_resource_precondition")
+			waitForPrimaryTradeRequest()
 			return
 		end
 		if count > 0 then
@@ -384,10 +468,18 @@ connect(g_game, {
 		exitSoon()
 	end,
 	onOwnTrade = function()
-		observeTradeOffer()
+		if phase == 1 and not ownTradeObserved then
+			ownTradeObserved = true
+			appendEvent("trade_offer_secondary_own", "observed")
+			maybeAcceptTrade()
+		end
 	end,
 	onCounterTrade = function()
-		observeTradeOffer()
+		if phase == 1 and not counterTradeObserved then
+			counterTradeObserved = true
+			appendEvent("trade_offer_secondary_counter", "observed")
+			maybeAcceptTrade()
+		end
 	end,
 	onCloseTrade = function()
 		if phase == 1 and not tradeClosed then
@@ -417,7 +509,7 @@ end
 g_logger.setLogFile(INTERNAL_LOG_PATH)
 appendEvent("scenario", SCENARIO_KEY)
 appendEvent("actor", os.getenv("AGENT_E2E_ACTOR_ID") or "trade-b")
-appendEvent("driver", "e2e-qri-001-trade-secondary-v2")
+appendEvent("driver", "e2e-qri-001-trade-secondary-v3")
 scheduleEvent(startLogin, 1500)
 scheduleEvent(function()
 	if not finished then
