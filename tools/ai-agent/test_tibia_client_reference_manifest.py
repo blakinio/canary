@@ -106,6 +106,20 @@ class ClientReferenceManifestTests(unittest.TestCase):
             with self.assertRaises(ClientReferenceManifestError):
                 _build(root_link)
 
+    def test_package_root_parent_symlink_fails_closed(self) -> None:
+        if not hasattr(os, "symlink"):
+            self.skipTest("symlink unavailable")
+        with tempfile.TemporaryDirectory() as directory:
+            real_parent = Path(directory) / "real-parent"
+            self._root(str(real_parent))
+            parent_link = Path(directory) / "parent-link"
+            try:
+                parent_link.symlink_to(real_parent, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink unavailable: {exc}")
+            with self.assertRaises(ClientReferenceManifestError):
+                _build(parent_link / "client")
+
     def test_file_size_bound_is_checked_before_hashing(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = self._root(directory)
