@@ -39,8 +39,8 @@ cross_repo_tasks: []
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T10:02:00+02:00
-head: ecdf940f8c154ea3b275b2f7063ed990b8ada7e6
+updated_at: 2026-07-23T10:05:00+02:00
+head: 2086118bd38a96cf26b23cb91be9b59a6d867be8
 branch: dudantas/oam-037-governance-final
 pr: 750
 status: validating
@@ -61,7 +61,7 @@ proven:
   - Exact-head autofix 29988627793 CI 29988627932 and Required 29988627768 succeeded; Linux release Linux debug full Run Tests both Windows build paths macOS Fast Checks Lua Tests and applicable runtime smokes all passed.
   - PR 77 comments reviews and review threads were empty and target main had no drift from immutable target base before merge.
   - Otheryn PR 77 squash-merged as d896141d084d381d12cc328d4b920c698eb1d55c.
-  - Staging governance PR 749 was not used for final validation because pull-request workflow evidence did not bind to its latest branch head.
+  - Staging governance PR 749 was closed unmerged and superseded by final exact-head PR 750.
 derived:
   - OAM-037 final disposition is raids REUSE with proof-only target changes.
   - No production runtime maintained-client or protocol mutation was required.
@@ -89,7 +89,7 @@ validation:
     evidence: exactly four intended proof/task paths no production changes and empty comments reviews threads with no target-main drift
   - command: governance changed-path audit
     result: PASS
-    evidence: final governance branch changes exactly the active task checkpoint and OAM-037 revalidation report
+    evidence: final governance PR changes exactly the active task checkpoint and OAM-037 revalidation report
 blockers: []
 next_action: Require exact-current-head Agent Task Ownership and full final-gate CI success on PR 750, audit exactly two governance paths plus comments reviews threads and Canary main drift, then expected-head squash merge before separate lifecycle archive.
 ```
