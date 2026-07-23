@@ -2,7 +2,7 @@
 task_id: CAN-20260723-oteryn-oam041-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-041
-status: implementing
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-041-spawns-preflight
 base_branch: main
@@ -11,7 +11,7 @@ updated: 2026-07-23
 last_verified_commit: "3227ee1e3b5f323656b101a601f873ae21b61f27"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "813"
 depends_on:
   - OAM-040 formally complete
 blocks:
@@ -54,11 +54,11 @@ Canonical `spawns` is a world-content module whose only hard dependency is canon
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T19:30:00+02:00
-head: 3227ee1e3b5f323656b101a601f873ae21b61f27
+updated_at: 2026-07-23T19:36:00+02:00
+head: df7c6ef779881347822536734edcb76fa73f2f7c
 branch: dudantas/oam-041-spawns-preflight
-pr: null
-status: implementing
+pr: 813
+status: ready
 context_routes:
   - agent-governance
   - otbm
@@ -116,5 +116,5 @@ validation:
     result: PASS
     evidence: current Canary spawn validator entrypoints and documentation are pinned by exact blobs and define fail-closed explicit-datapack evidence boundaries
 blockers: []
-next_action: Open and bind the one-file Canary OAM-041 preflight PR, require exact-current-head Agent Task Ownership and CI success, audit scope and reviews, then expected-head squash merge before separately authorized Otheryn target proof.
+next_action: Require exact-current-head Agent Task Ownership and CI success on PR 813, audit the one-file preflight scope and review state, then expected-head squash merge before separately authorized Otheryn target proof.
 ```
