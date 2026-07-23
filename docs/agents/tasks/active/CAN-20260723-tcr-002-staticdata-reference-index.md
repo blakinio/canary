@@ -2,13 +2,13 @@
 task_id: CAN-20260723-tcr-002-staticdata-reference-index
 program_id: CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE
 coordination_id: OTBM-TIBIA-CLIENT-REFERENCE
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
 branch: feat/tcr-002-staticdata-reference-index-20260723
 base_branch: main
 created: 2026-07-23T19:05:00+02:00
-updated: 2026-07-23T19:10:00+02:00
-last_verified_commit: "ef68b42b8a116695ff8449abf1bc282a80763ad7"
+updated: 2026-07-23T19:35:49+02:00
+last_verified_commit: "2a622199e57bb90578d7d14ffece1ab6b4c97ca2"
 risk: medium
 related_issue: ""
 related_pr: "827"
@@ -59,16 +59,17 @@ Deliver exactly TCR-002 StaticData Reference Index: a deterministic, read-only `
 - No OTBM parsing, map mutation, runtime mutation, protocol mutation or client mutation.
 - No proprietary Tibia client files or derived large dumps committed to Git.
 - External `beats-dh/Beats-Assets-Editor@ed827be34c279d1279ad3dde3af434b148ac05c7` remains read-only format/interoperability research only; implementation is independent.
+- Shared discovery/changelog status is updated only after the producer actually merges and becomes stable; feature PR #827 does not publish premature `merged/stable` catalogue state.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T19:10:00+02:00
-head: ef68b42b8a116695ff8449abf1bc282a80763ad7
+updated_at: 2026-07-23T19:35:49+02:00
+head: 2a622199e57bb90578d7d14ffece1ab6b4c97ca2
 branch: feat/tcr-002-staticdata-reference-index-20260723
 pr: 827
-status: implementing
+status: review
 context_routes:
   - agent-governance
   - otbm
@@ -88,35 +89,59 @@ proven:
   - Existing MODULE_CATALOG keeps one otbm-tooling/TCR discovery owner; no second OTBM parser World Index pathfinder renderer Script Resolution engine or E2E platform is permitted.
   - Pinned research schemas define legacy top-level fields creatures=1 titles=2 houses=3 bosses=4 quests=5 and newer fields monsters=1 monster_classes=2 achievements=3 houses=4 bosses=5 quests=6.
   - Pinned research source confirms raw protobuf plus XZ/LZMA handling and documents Tibia LZMA streams with an incorrect 8-byte uncompressed-size header field; source code is not copied.
-  - A user-supplied external assets ZIP outside Git contains one staticdata DAT whose filename hash matches SHA-256 0bd51e1660f9d58594eb10000c35ea51113fc668aa3ee416c8c6b7ebb59b78ff and whose bytes begin as raw protobuf; it is available only for opt-in local validation and must not be committed.
-  - Draft PR 827 exists for this task at exact ownership head ef68b42b8a116695ff8449abf1bc282a80763ad7.
-  - Existing .github/workflows/tibia-client-reference.yml is the reusable validation workflow for this programme; TCR-002 will extend it instead of adding a second workflow.
+  - `canary-tibia-staticdata-index-v1` independently implements bounded protobuf wire parsing with strict legacy/newer field validation, explicit discriminators and fail-closed ambiguous/conflicting/unsupported schema handling.
+  - The indexer requires one explicit source file and exact stable-manifest selected-input ID, size and SHA-256 agreement before parsing; local absolute paths are not emitted.
+  - Raw protobuf, XZ, LZMA-alone and the reviewed Tibia LZMA header variant are supported under explicit encoded/decompressed/record bounds.
+  - Output preserves source-family categories, deterministic ordering and source ordinals; findings expose duplicate IDs, missing id/name fields and duplicate singular fields.
+  - Quest records are intentionally ID/name inventory only and policy.gameplayConclusions is false.
+  - Nineteen focused StaticData tests pass locally; the opt-in real-file test is skipped unless CANARY_TIBIA_STATICDATA_FILE is explicitly supplied.
+  - Private opt-in validation against the user-supplied external StaticData file outside Git selected legacy schema, parsed 2700 top-level records (812 creatures, 356 titles, 995 houses, 438 bosses, 99 quests) and reported zero duplicate-ID, missing-required-field or duplicate-singular-field findings; no proprietary bytes or record dump is committed.
+  - Draft head 2a622199e57bb90578d7d14ffece1ab6b4c97ca2 passed repository CI run 30028730076, AI Agent Tools run 30028729754, Agent Task Ownership run 30028729771 and Tibia Client Reference run 30028729701.
+  - An attempted shared MODULE_CATALOG status update was fully removed before finalization after detecting an unrelated stale-line replacement; PR #827 is back to exactly seven intended feature/task/workflow files and current main drift is non-overlapping.
+  - `ci:final-gate` is applied before this final task/checkpoint commit; no implementation or documentation commit is permitted after the resulting exact final head turns green.
 derived:
-  - The smallest complete implementation can remain Python 3.12 standard-library only by parsing the bounded protobuf wire format independently and using stdlib lzma for XZ/LZMA containers.
-  - Schema selection should use explicit top-level/category wire-shape discriminators and candidate structural validation; if both known schemas remain plausible without discriminating evidence, the tool must fail as ambiguous rather than apply a round-trip-length tie-breaker.
-  - The indexer can consume stable manifest provenance without duplicating package-root path confinement by requiring an explicit source file and verifying its exact size/SHA-256 against one selectedInputs entry from the manifest.
-  - Legacy title and newer achievement categories must remain separately named in output; quest records stay ID/name inventory only.
+  - The stable v1 output schema is now the committed `docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.schema.json` plus the producer implementation and documentation in this PR.
+  - Strict structural candidate validation plus schema-specific discriminators avoids the external implementation's permissive unknown-field/round-trip heuristic while remaining independently implemented.
+  - Stable manifest hash binding is sufficient for exact selected-input provenance without duplicating the TCR-001 package-root traversal implementation.
+  - Legacy title and newer achievement categories remain separately named; legacy/newer house field ordering is normalized only after exact schema selection.
+  - StaticData registry agreement can later feed bounded TCR correlation packages but cannot by itself prove Canary gameplay/runtime parity.
 unknown:
-  - Exact final output schema fields until the first implementation/test pass is reviewed against deterministic fixtures and the external real StaticData sample.
-  - Whether Python stdlib LZMA-alone decoding with the independently reproduced Tibia header correction covers the exact user-supplied compressed variant; focused synthetic tests will cover standard XZ/LZMA and external validation will remain fail-closed.
+  - The user-supplied real sample is raw protobuf; compressed real-client variants are covered by independent synthetic XZ/LZMA/Tibia-header fixtures but not by a second proprietary real compressed sample.
 conflicts: []
 first_failure:
   marker: none
-  evidence: fresh preflight found no ownership or dependency blocker
+  evidence: implementation, focused tests, private opt-in real-file validation and draft CI are green
 rejected_hypotheses:
   - Reuse the external Rust parser implementation directly; licensing boundary requires independent implementation.
   - Use successful protobuf decoding alone as schema proof; unknown fields can be skipped and silently relabel categories.
+  - Use a round-trip encoded-length tie-breaker when both schemas remain plausible; ambiguity must fail closed.
   - Treat static registry agreement as gameplay runtime quest or map parity proof.
   - Add a second dedicated StaticData workflow; the existing Tibia Client Reference workflow is the correct programme validation owner.
+  - Keep the accidental broad MODULE_CATALOG replacement; it was reverted completely rather than risking unrelated shared-file regression.
 changed_paths:
+  - .github/workflows/tibia-client-reference.yml
   - docs/agents/tasks/active/CAN-20260723-tcr-002-staticdata-reference-index.md
+  - docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.md
+  - docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.schema.json
+  - tools/ai-agent/test_tibia_staticdata_reference_index.py
+  - tools/ai-agent/tibia_staticdata_reference_index.py
+  - tools/ai-agent/tibia_staticdata_reference_index_tool.py
 validation:
   - command: fresh main/open-PR/branch/programme/module-catalog preflight
     result: PASS
-    evidence: TCR-002 unowned unblocked dependency-satisfied and no canonical StaticData index found
-  - command: early draft PR ownership publication
+    evidence: TCR-002 was unowned, unblocked and dependency-satisfied; no canonical StaticData index existed
+  - command: python -m unittest discover -s tools/ai-agent -p test_tibia_staticdata_reference_index.py -v
     result: PASS
-    evidence: PR 827 opened from feat/tcr-002-staticdata-reference-index-20260723 to blakinio/canary main
+    evidence: 19 focused tests pass; one opt-in real-file test is skipped without CANARY_TIBIA_STATICDATA_FILE
+  - command: CANARY_TIBIA_STATICDATA_FILE=/mnt/data/staticdata-user.dat python -m unittest discover -s tools/ai-agent -p test_tibia_staticdata_reference_index.py -v
+    result: PASS
+    evidence: private external real-file validation completed without committing proprietary input or record data
+  - command: GitHub Actions draft-head validation for 2a622199e57bb90578d7d14ffece1ab6b4c97ca2
+    result: PASS
+    evidence: CI 30028730076; AI Agent Tools 30028729754; Agent Task Ownership 30028729771; Tibia Client Reference 30028729701
+  - command: compare current main drift against PR base ownership paths
+    result: PASS
+    evidence: current main advance adds only bounty/weekly forum evidence paths and does not overlap TCR-002 owned paths
 blockers: []
-next_action: Independently implement the bounded StaticData index library CLI tests schema docs and extend the existing Tibia Client Reference workflow; validate Canary-owned legacy/new fixtures plus the opt-in user-supplied real file outside Git before final-gate readiness.
+next_action: Validate all required workflows on the immutable exact final head produced by this checkpoint commit under ci:final-gate; if green, mark PR 827 ready, require protected ready-state Required PASS, perform atomic head/review/main-drift checks, then squash-merge and close TCR-002 lifecycle in a separate bounded documentation PR.
 ```
