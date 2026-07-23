@@ -2,16 +2,16 @@
 task_id: CAN-20260723-bounty-weekly-forum-evidence
 program_id: CAN-PROGRAM-REAL-TIBIA-PARITY
 coordination_id: PREY-BOUNTY-WEEKLY-FORUM-EVIDENCE
-status: in-progress
+status: ready
 agent: "Codex"
 branch: docs/can-20260723-bounty-weekly-forum-evidence
 base_branch: main
 created: 2026-07-23T19:08:01+02:00
-updated: 2026-07-23T19:08:01+02:00
-last_verified_commit: "bd65e83540a7862427bbf46479e78b666aa01e29"
+updated: 2026-07-23T19:12:37+02:00
+last_verified_commit: "88a9dd47f8f8ba12c297db0a26c231084bce2c11"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "828"
 depends_on: []
 blocks: []
 owned_paths:
@@ -39,13 +39,13 @@ Preserve a bounded, provenance-linked aggregation of the official Tibia forum ev
 
 # Acceptance criteria
 
-- [ ] Record the official announcement contract and forum clarifications.
-- [ ] Aggregate community feedback into themes without presenting opinions as official behavior.
-- [ ] Reconcile preview-era statements with the current official game guide and update notes.
-- [ ] State the collection boundary and unresolved points explicitly.
-- [ ] Produce actionable implementation and acceptance-test candidates without claiming Canary parity.
-- [ ] Pass documentation, ownership and Real Tibia registry checks.
-- [ ] Publish through a PR targeting `blakinio/canary:main`.
+- [x] Record the official announcement contract and forum clarifications.
+- [x] Aggregate community feedback into themes without presenting opinions as official behavior.
+- [x] Reconcile preview-era statements with the current official game guide and update notes.
+- [x] State the collection boundary and unresolved points explicitly.
+- [x] Produce actionable implementation and acceptance-test candidates without claiming Canary parity.
+- [x] Pass documentation, ownership and Real Tibia registry checks.
+- [x] Publish through a PR targeting `blakinio/canary:main`.
 
 # Confirmed context
 
@@ -79,11 +79,12 @@ Preserve a bounded, provenance-linked aggregation of the official Tibia forum ev
 
 The repository already contains product direction for a Bounty/Weekly redesign but lacks a bounded record of the official forum clarifications and player-risk themes that motivated implementation requirements.
 
+The evidence report now records the bounded source set, direct official clarifications, topic-only official reply index, current released behavior, ten captured community themes, implementation requirements, seventeen acceptance-test candidates and explicit unknowns.
+
 # Plan
 
-1. Write the bounded evidence aggregation.
-2. Validate Markdown, ownership and registry state.
-3. Commit, push and open a draft PR.
+1. Verify the exact final-head CI on PR #828.
+2. If current-head checks are green and scope/review remain clean, mark ready and squash-merge under repository policy.
 
 # Work log
 
@@ -93,6 +94,14 @@ The repository already contains product direction for a Bounty/Weekly redesign b
 - Captured the first displayed forum page and official-reply index.
 - Located the official announcement, current game-guide rules and post-test-server changes.
 - Kept the existing Bounty product-design document read-only to avoid ownership overlap.
+
+## 2026-07-23T19:12:37+02:00
+
+- Added the 402-line evidence report.
+- Reconciled preview rules with the current official guide and final test-server changes.
+- Converted the captured community discussion into ten risk themes and seventeen bounded test candidates.
+- Passed documentation diff, ownership and registry validation.
+- Opened draft PR #828 in `blakinio/canary` and applied `ci:final-gate` before the final checkpoint commit.
 
 # Decisions
 
@@ -105,16 +114,17 @@ The repository already contains product direction for a Bounty/Weekly redesign b
 
 | Path/interface/config/schema | Ownership mode | Purpose | Status |
 |---|---|---|---|
-| `docs/agents/real-tibia/BOUNTY_AND_WEEKLY_TASKS_FORUM_EVIDENCE.md` | exclusive | Forum evidence, current-state reconciliation and test candidates | planned |
-| `docs/agents/tasks/active/CAN-20260723-bounty-weekly-forum-evidence.md` | exclusive | Durable task state and handoff | in-progress |
+| `docs/agents/real-tibia/BOUNTY_AND_WEEKLY_TASKS_FORUM_EVIDENCE.md` | exclusive | Forum evidence, current-state reconciliation and test candidates | complete |
+| `docs/agents/tasks/active/CAN-20260723-bounty-weekly-forum-evidence.md` | exclusive | Durable task state and handoff | ready |
 
 # Validation and CI
 
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
-| pending | `git diff --check` | NOT_RUN | Documentation validation pending. |
-| pending | `python tools/agents/task_ownership.py` | NOT_RUN | Must include this task record. |
-| pending | `python tools/agents/real_tibia_registry.py validate` | NOT_RUN | Registry must remain valid. |
+| `88a9dd47f8f8ba12c297db0a26c231084bce2c11` | `git diff --check` | PASS | No whitespace errors. |
+| `88a9dd47f8f8ba12c297db0a26c231084bce2c11` | `python tools/agents/task_ownership.py` | PASS | 29 active task records validated. |
+| `88a9dd47f8f8ba12c297db0a26c231084bce2c11` | `python tools/agents/real_tibia_registry.py validate` | PASS | Registry valid with 0 warnings. |
+| final head | GitHub Actions | NOT_RUN | Exact final-head checks start after the checkpoint push. |
 
 # Failed approaches and dead ends
 
@@ -133,17 +143,17 @@ The repository already contains product direction for a Bounty/Weekly redesign b
 
 # Remaining work
 
-1. Create and validate the evidence report.
+1. Verify exact final-head CI, review and mergeability for PR #828.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T19:08:01+02:00
-head: bd65e83540a7862427bbf46479e78b666aa01e29
+updated_at: 2026-07-23T19:12:37+02:00
+head: 88a9dd47f8f8ba12c297db0a26c231084bce2c11
 branch: docs/can-20260723-bounty-weekly-forum-evidence
-pr: none
-status: implementing
+pr: 828
+status: ready
 context_routes:
   - real-tibia-parity
   - agent-governance
@@ -155,11 +165,14 @@ proven:
   - The official thread reports 172 results across 9 pages and is closed.
   - The first displayed page and official-reply index were captured on 2026-07-23.
   - Official news item 8567 and the current official game guide document the released system.
+  - The evidence report records the bounded source set, direct forum clarifications, current released rules, ten feedback themes and seventeen test candidates.
+  - Local documentation, ownership and registry validation pass.
 derived:
   - The report can define implementation requirements and test candidates but cannot prove Canary parity.
 unknown:
   - Full per-post content outside the captured first displayed page.
   - Exact current Canary and maintained-client implementation coverage.
+  - Exact final-head GitHub Actions conclusions after the checkpoint commit.
 conflicts: []
 first_failure:
   marker: none
@@ -167,14 +180,21 @@ first_failure:
 rejected_hypotheses:
   - Forum feedback proves implementation parity: announcement and opinions do not prove runtime behavior.
 changed_paths:
+  - docs/agents/real-tibia/BOUNTY_AND_WEEKLY_TASKS_FORUM_EVIDENCE.md
   - docs/agents/tasks/active/CAN-20260723-bounty-weekly-forum-evidence.md
 validation:
   - command: git diff --check
-    result: NOT_RUN
-    evidence: pending
+    result: PASS
+    evidence: no whitespace errors at content head 88a9dd47f8f8ba12c297db0a26c231084bce2c11
+  - command: python tools/agents/task_ownership.py
+    result: PASS
+    evidence: 29 active task records validated
+  - command: python tools/agents/real_tibia_registry.py validate
+    result: PASS
+    evidence: registry valid with 0 warnings
 blockers:
   - none
-next_action: Write docs/agents/real-tibia/BOUNTY_AND_WEEKLY_TASKS_FORUM_EVIDENCE.md.
+next_action: Verify exact final-head CI, review and mergeability for PR 828; if green, mark ready and squash-merge.
 ```
 
 # Handoff
@@ -183,8 +203,8 @@ Start with this task record and the evidence report. Do not infer packet fields,
 
 # Completion
 
-- Final status: in-progress
-- PR: none
+- Final status: ready
+- PR: https://github.com/blakinio/canary/pull/828
 - Merge commit: none
 - Program record updated: not required
 - Catalogue updated: not required
