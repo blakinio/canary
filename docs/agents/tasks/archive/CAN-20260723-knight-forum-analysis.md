@@ -2,13 +2,13 @@
 task_id: CAN-20260723-knight-forum-analysis
 program_id: CAN-PROGRAM-REAL-TIBIA-PARITY
 coordination_id: ""
-status: ready
+status: completed
 agent: "Codex"
 branch: agent/add-knight-forum-balance-analysis
 base_branch: main
 created: 2026-07-23T19:10:00+02:00
-updated: 2026-07-23T19:21:00+02:00
-last_verified_commit: "d34e2651bf52c7e10036eb88b404445240291280"
+updated: 2026-07-23T17:52:00Z
+last_verified_commit: "73f6d8573ec2550784fda68ab315538a3d8bedcd"
 risk: low
 related_issue: ""
 related_pr: "830"
@@ -33,6 +33,7 @@ reuses:
   - docs/agents/REAL_TIBIA_PARITY_PLAYBOOK.md
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-23T17:52:00Z
 ---
 
 # Goal
@@ -180,3 +181,11 @@ next_action: Apply ci:final-gate, push this final checkpoint commit, mark PR #83
 - Catalogue updated: not required
 - Changelog updated: not required
 - Archived at: not applicable
+
+## Automated lifecycle completion
+
+- Feature PR: #830.
+- Feature head: `03d84e45174dd9c727bb789bd0b54bbb385e7008`.
+- Merge commit: `73f6d8573ec2550784fda68ab315538a3d8bedcd`.
+- Merged at: `2026-07-23T17:52:00Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
