@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 base_branch: main
 created: 2026-07-22T16:00:00+02:00
-updated: 2026-07-23T15:05:00+02:00
-last_verified_commit: 5e94fb6c81bf7ae69dcfc0e59b94243374a19718
+updated: 2026-07-23T15:10:00+02:00
+last_verified_commit: 0d16b90d641655310142d7fa45b017bcb86684f9
 risk: high
 related_issue: ""
 related_pr: "722"
@@ -31,12 +31,6 @@ owned_paths:
     - docs/agents/CROSS_REPO_CONTRACTS.md
     - docs/agents/MODULE_CATALOG.md
     - docs/agents/CHANGELOG.md
-  read_only:
-    - src/security/login_session_manager.hpp
-    - src/security/login_session_manager.cpp
-    - src/account/account.hpp
-    - src/account/account.cpp
-    - src/server/network/protocol/protocolgame.cpp
 modules_touched:
   - Canary login session authentication
   - Oteryn Game Session HTTP issuer
@@ -69,8 +63,8 @@ Production activation is tracked separately by `CAN-20260723-oteryn-native-auth-
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T15:05:00+02:00
-head: 5e94fb6c81bf7ae69dcfc0e59b94243374a19718
+updated_at: 2026-07-23T15:10:00+02:00
+head: 0d16b90d641655310142d7fa45b017bcb86684f9
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 pr: 722
 status: ready
@@ -100,7 +94,7 @@ proven:
   - docs/agents/CROSS_REPO_CONTRACTS.md records activation as atomic-required while Canary deployment is deploy-first-safe with the issuer disabled.
   - docs/agents/MODULE_CATALOG.md records bounded native-auth E2E as proven and keeps production activation controls separate.
   - Exact head fd6fc67ba8aa11834cebb79cc7539599e3c16e72 passed CI 30003004108, Security Validation 30003004106, Agent Task Ownership 30003003973 and autofix 30003003958.
-  - Production activation blockers have been moved to follow-up task CAN-20260723-oteryn-native-auth-production-cutover and do not block merging the disabled-by-default Canary implementation.
+  - Production activation blockers are tracked by separate follow-up task CAN-20260723-oteryn-native-auth-production-cutover and do not block merging the disabled-by-default Canary implementation.
 derived:
   - PR #722 can be merged independently without activating native auth because the issuer remains disabled unless explicitly configured.
   - Production hardening, private/TLS transport, service-credential rotation, security-generation revocation, multi-world routing and horizontal replicas remain outside this completed adapter implementation and are not claimed by this merge.
