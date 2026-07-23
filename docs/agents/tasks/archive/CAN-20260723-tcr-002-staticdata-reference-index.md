@@ -7,7 +7,7 @@ agent: "GPT-5.6 Thinking"
 branch: feat/tcr-002-staticdata-reference-index-20260723
 base_branch: main
 created: 2026-07-23T19:05:00+02:00
-updated: 2026-07-23T23:27:11+02:00
+updated: 2026-07-23T23:42:00+02:00
 last_verified_commit: "24d106b5eea40371833ce20de96184b55cd9b661"
 risk: medium
 related_issue: ""
@@ -40,6 +40,9 @@ Deliver and merge TCR-002 StaticData Reference Index as deterministic, fail-clos
 - Delivery PR: #827
 - Delivery merge commit: `24d106b5eea40371833ce20de96184b55cd9b661`
 - Delivery final head: `218e1a78f0294ec9fc64b286e5677532ca581e1c`
+- Lifecycle/discovery closure PR: #842
+- `ci:final-gate` applied to PR #842 before this final lifecycle checkpoint commit.
+- Programme queue/stable-state updated in PR #842.
 - Lifecycle closure branch: `docs/tcr-002-lifecycle-closure-20260723`
 - Archived at: `docs/agents/tasks/archive/CAN-20260723-tcr-002-staticdata-reference-index.md`
 
