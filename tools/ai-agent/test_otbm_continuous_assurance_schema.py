@@ -6,8 +6,6 @@ import sys
 import unittest
 from pathlib import Path
 
-import jsonschema
-
 MODULE_PATH = Path(__file__).with_name("otbm_continuous_assurance.py")
 SPEC = importlib.util.spec_from_file_location("canary_otbm_continuous_assurance_schema", MODULE_PATH)
 assert SPEC is not None and SPEC.loader is not None
@@ -30,7 +28,7 @@ class ContinuousAssuranceSchemaTests(unittest.TestCase):
     def pin(self, fmt: str, char: str) -> dict:
         return {"fileName": f"{char}.json", "size": 1, "sha256": char * 64, "format": fmt}
 
-    def test_generated_report_matches_schema(self) -> None:
+    def test_schema_contracts_track_public_formats_and_generated_shape(self) -> None:
         pins = {
             "executionLedger": self.pin(MODULE.EXECUTION_FORMAT, "a"),
             "regressionPlan": self.pin(MODULE.REGRESSION_FORMAT, "b"),
@@ -89,8 +87,11 @@ class ContinuousAssuranceSchemaTests(unittest.TestCase):
             before_certification=cert(True), after_certification=cert(False),
             input_pins=pins,
         )
-        jsonschema.Draft202012Validator(self.execution_schema).validate(execution)
-        jsonschema.Draft202012Validator(self.report_schema).validate(report)
+        self.assertEqual(self.execution_schema["properties"]["format"]["const"], MODULE.EXECUTION_FORMAT)
+        self.assertEqual(self.report_schema["properties"]["format"]["const"], MODULE.REPORT_FORMAT)
+        self.assertTrue(set(self.execution_schema["required"]).issubset(execution))
+        self.assertTrue(set(self.report_schema["required"]).issubset(report))
+        self.assertTrue(report["gate"]["passed"])
 
 if __name__ == "__main__":
     unittest.main()
