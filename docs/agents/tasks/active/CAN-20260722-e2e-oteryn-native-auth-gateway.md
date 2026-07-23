@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260722-e2e-oteryn-native-auth-gateway
 base_branch: main
 created: 2026-07-22T23:30:00+02:00
-updated: 2026-07-23T10:16:00+02:00
+updated: 2026-07-23T10:40:00+02:00
 last_verified_commit: 1fda058b7cfc2c4d3a7f828a72a80f4c56d05041
 risk: high
 related_issue: ""
-related_pr: "740"
+related_pr: "755"
 depends_on:
   - "Canary Game Session adapter PR #722 exact implementation head 285dec6a034aa3620ae5ca12549fb9e8e1b35631"
   - "OTClient PR #17 merged as bb87346f6c516a19d19497d82bb01fb389334ff5"
@@ -75,10 +75,10 @@ The test uses the real Gateway and real Canary issuer. A local disposable contra
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T10:16:00+02:00
+updated_at: 2026-07-23T10:40:00+02:00
 head: 1fda058b7cfc2c4d3a7f828a72a80f4c56d05041
 branch: feat/CAN-20260722-e2e-oteryn-native-auth-gateway
-pr: 740
+pr: 755
 status: ready
 context_routes:
   - universal-e2e
@@ -113,7 +113,7 @@ proven:
   - Machine-readable result reported status=success, server_login_count=1, session_record_count=0 and all persistence/cleanup SQL assertions passed.
   - Retained scenario.env contains only non-secret scenario keys; native-auth runtime evidence contains routing/process metadata without raw ticket, service credential or Game Session credential.
   - The historical first failure was isolated to safe-logout event ordering in the E2E driver and resolved by commit aad1d0af96b4a1d80305c931dcb6d025ac7ed3ed.
-  - PR #748 changed files do not overlap PR #740 changed paths.
+  - Formatter commit c3467f0853d4a0acc5432fd7e06886a7bb9c5acd changed only Lua formatting after the successful behavior run.
 derived:
   - The bounded native-auth cross-repository acceptance gate for Canary adapter PR #722 is satisfied.
   - Adapter PR #722 head f7afb7d06b35fce1008861852caaffbf2ae93811 is task-record-only ahead of tested implementation head 285dec6a034aa3620ae5ca12549fb9e8e1b35631, so tested adapter source is unchanged.
@@ -126,7 +126,7 @@ first_failure:
 rejected_hypotheses:
   - Canary adapter or Gateway failed before world entry: both failing and passing runs proved successful first world entry.
   - Replay could enter a second time: passing evidence recorded replay_rejected=login_error and successful_world_entries=1.
-  - Create a second dedicated E2E orchestrator: PR #740 extends the canonical Universal Agent E2E workflow.
+  - Create a second dedicated E2E orchestrator: the implementation extends the canonical Universal Agent E2E workflow.
 validation:
   - command: Universal Agent E2E run 29988893301 on 1fda058b7cfc2c4d3a7f828a72a80f4c56d05041
     result: PASS
@@ -141,5 +141,5 @@ validation:
     result: PASS
     evidence: result.json status=success with replay_rejected=login_error, successful_world_entries=1, server_login_count=1 and all SQL assertions passing.
 blockers: []
-next_action: Merge PR #740 after the labeled final-head gate is green, then checkpoint its E2E evidence into Canary adapter task CAN-20260722-oteryn-game-session-adapter.
+next_action: Merge PR #755 after the labeled exact-final-head gate is green, then checkpoint its E2E evidence into Canary adapter task CAN-20260722-oteryn-game-session-adapter.
 ```
