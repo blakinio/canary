@@ -52,6 +52,7 @@ Collection facts:
 
 - Post identifiers were used for uniqueness checks.
 - All 765 displayed results in thread `4992263` were collected from pages 1–39 without duplicate identifiers. The corpus contains 666 author names and three posts carrying the official-post marker.
+- The thread `4992263` HTML snapshot was retrieved on 2026-07-23 as 39 page responses totalling 6,392,541 bytes and retained outside Git. A canonical manifest of `filename<TAB>size<TAB>SHA-256<LF>` rows has SHA-256 `5e175301a56477fa7bdedc9b88e39449e83045878f98eeefd8ae8738f8579553`.
 - All 2,863 displayed results in thread `4997270` were collected without duplicate identifiers.
 - Active content in thread `4997270` ended on page 144 even though navigation exposed pages through 147; pages 145–147 returned no posts.
 - Thread `4996962` yielded 600 unique posts on pages 1–30. Its linked page 31 repeatedly returned HTTP 403, so six displayed results were not accessible and are not inferred.
