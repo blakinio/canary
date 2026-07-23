@@ -20,6 +20,6 @@ Otheryn target proof PR #77 final head `133c12f61a1e5e392be9ee7faa9236755cbe0225
 
 Canary governance PR #750 final head `63bd6f684e4d88c5dfe4dfbb79ec86dd01210d5f` changed exactly the two governance paths. Agent Task Ownership run `29990517255` and full final-gate CI run `29990517385` succeeded on the exact head after an unchanged-head failed-job retry; Linux-debug full tests, Linux release, both Windows build paths, macOS and Docker succeeded. Comments, reviews and review threads were empty. Canary main drift was limited to an unrelated E2E task archive with no OAM-037 path overlap. PR #750 squash-merged as `841053a1800f4e8fdb338c31bac0534ae264dabd`.
 
-Lifecycle PR #756 owns only the active-to-archive task transition represented by this record; it does not modify the durable program ledger or target task lifecycle.
+Lifecycle PR #757 owns only the active-to-archive task transition represented by this record; it does not modify the durable program ledger or target task lifecycle.
 
 A separate one-file durable program reconciliation and separate Otheryn target-task archive remain required before OAM-038 may start.
