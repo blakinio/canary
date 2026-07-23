@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/ai-agent/OTBM_REGION_QUEST_CERTIFICATION_MANIFEST.schema.json",
+  "title": "Canary OTBM bounded certification targets v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "targets"
+  ],
+  "properties": {
+    "format": {
+      "const": "canary-otbm-certification-targets-v1"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "targetId",
+          "maximumLevel",
+          "reason"
+        ],
+        "properties": {
+          "targetId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "maximumLevel": {
+            "enum": [
+              "C1_STATIC_INDEXED",
+              "C2_STATIC_CORRELATED",
+              "C3_STATIC_REACHABLE",
+              "C4_STATIC_QUALITY_GREEN",
+              "C5_PHYSICAL_ROUTE_PROVEN",
+              "C6_FEATURE_OR_MECHANIC_PHYSICALLY_PROVEN",
+              "C7_CANDIDATE_CHANGE_REVALIDATED"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}
