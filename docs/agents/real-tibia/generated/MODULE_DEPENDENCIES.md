@@ -45,7 +45,7 @@
 | `market` | `player-persistence`, `protocol` | `exaltation-forge` |
 | `network-transport` | — | `login-protocol`, `physical-client-e2e`, `protocol`, `protocol-compatibility`, `protocol-session-handoff` |
 | `npcs` | `otbm-tooling` | `quests`, `market`, `spawns` |
-| `otbm-tooling` | — | `quests`, `npcs`, `spawns`, `houses` |
+| `otbm-tooling` | — | `quests`, `npcs`, `spawns`, `houses`, `achievements` |
 | `parties` | `character-lifecycle` | `chat-communication`, `combat`, `protocol`, `vocations` |
 | `physical-client-e2e` | `protocol`, `player-persistence` | `cyclopedia`, `wheel-of-destiny` |
 | `player-persistence` | — | — |

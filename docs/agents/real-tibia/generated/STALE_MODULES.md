@@ -47,7 +47,7 @@ Evaluated as of **2026-07-14**.
 | `market` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `network-transport` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `npcs` | 2026-07-14 | 0 | `current` | 60 / 180 |
-| `otbm-tooling` | 2026-07-14 | 0 | `current` | 60 / 180 |
+| `otbm-tooling` | 2026-07-23 | -9 | `current` | 60 / 180 |
 | `parties` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `physical-client-e2e` | 2026-07-14 | 0 | `current` | 30 / 90 |
 | `player-persistence` | 2026-07-14 | 0 | `current` | 30 / 90 |
