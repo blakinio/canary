@@ -2,13 +2,13 @@
 task_id: CAN-20260722-e2e-oteryn-native-auth-gateway
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: OTS-20260721-oteryn-identity-auth
-status: validating
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260722-e2e-oteryn-native-auth-gateway
 base_branch: main
 created: 2026-07-22T23:30:00+02:00
-updated: 2026-07-23T09:34:44+02:00
-last_verified_commit: aad1d0af96b4a1d80305c931dcb6d025ac7ed3ed
+updated: 2026-07-23T09:38:22+02:00
+last_verified_commit: aa4ffe9c00909f1990d4ae89540c4b2df8837137
 risk: high
 related_issue: ""
 related_pr: "740"
@@ -75,8 +75,8 @@ The test uses the real Gateway and real Canary issuer. A local disposable contra
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T09:34:44+02:00
-head: aad1d0af96b4a1d80305c931dcb6d025ac7ed3ed
+updated_at: 2026-07-23T09:38:22+02:00
+head: aa4ffe9c00909f1990d4ae89540c4b2df8837137
 branch: feat/CAN-20260722-e2e-oteryn-native-auth-gateway
 pr: 740
 status: validating
