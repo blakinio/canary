@@ -2,6 +2,7 @@
 
 DISPOSABLE_CANARY_RESTART_SCENARIO_KEY="recovery/canary-restart-recovery"
 DISPOSABLE_CANARY_RESTART_CHARACTER="Paladin 15"
+DISPOSABLE_CANARY_RESTART_EXPECTED_BALANCE="12345"
 DISPOSABLE_CANARY_RESTART_READY_FILE="${ARTIFACT_DIR}/canary-restart-ready"
 DISPOSABLE_CANARY_RESTART_OLD_PID_FILE="${ARTIFACT_DIR}/canary-old.pid"
 DISPOSABLE_CANARY_RESTART_NEW_PID_FILE="${ARTIFACT_DIR}/canary-restarted.pid"
@@ -9,6 +10,7 @@ DISPOSABLE_CANARY_RESTART_PHASE_FILE="${ARTIFACT_DIR}/canary-restart-current-pha
 DISPOSABLE_CANARY_RESTART_PHASES_TSV="${ARTIFACT_DIR}/canary-restart-phases.tsv"
 DISPOSABLE_CANARY_RESTART_EVIDENCE="${ARTIFACT_DIR}/canary-restart-evidence.json"
 DISPOSABLE_CANARY_RESTART_EVENTS="${ARTIFACT_DIR}/client-events.tsv"
+DISPOSABLE_CANARY_RESTART_PRE_BALANCE_FILE="${ARTIFACT_DIR}/database-restart-pre-balance.txt"
 
 is_disposable_canary_restart_scenario() {
   [[ "${AGENT_E2E_SCENARIO_KEY:-${SUITE}/${SCENARIO}}" == "${DISPOSABLE_CANARY_RESTART_SCENARIO_KEY}" ]]
@@ -40,6 +42,7 @@ initialize_disposable_canary_restart() {
     "${DISPOSABLE_CANARY_RESTART_READY_FILE}" \
     "${DISPOSABLE_CANARY_RESTART_OLD_PID_FILE}" \
     "${DISPOSABLE_CANARY_RESTART_NEW_PID_FILE}" \
+    "${DISPOSABLE_CANARY_RESTART_PRE_BALANCE_FILE}" \
     "${DISPOSABLE_CANARY_RESTART_EVIDENCE}"
 }
 
@@ -61,6 +64,20 @@ wait_for_restart_client_marker() {
        awk -F '\t' -v key="${key}" -v value="${value}" \
          '$2 == key && $3 == value { found = 1 } END { exit(found ? 0 : 1) }' \
          "${DISPOSABLE_CANARY_RESTART_EVENTS}"; then
+      return 0
+    fi
+    sleep 0.1
+  done
+  return 1
+}
+
+wait_for_persisted_restart_balance() {
+  local balance=""
+  for _ in $(seq 1 100); do
+    balance="$(mariadb -N -s -h "${DB_HOST}" -P "${DB_PORT}" -u "${DB_USER}" "${DB_NAME}" \
+      -e "SELECT balance FROM players WHERE name='${DISPOSABLE_CANARY_RESTART_CHARACTER}' LIMIT 1;" 2>/dev/null || true)"
+    printf '%s\n' "${balance}" > "${DISPOSABLE_CANARY_RESTART_PRE_BALANCE_FILE}"
+    if [[ "${balance}" == "${DISPOSABLE_CANARY_RESTART_EXPECTED_BALANCE}" ]]; then
       return 0
     fi
     sleep 0.1
@@ -122,16 +139,23 @@ restart_disposable_canary() {
     return 1
   fi
 
-  if ! wait_for_restart_client_marker "pre_restart_persistence_check" "success"; then
-    fail_restart_phase "pre-restart-gameplay" "client did not prove balance 12345 before restart"
+  if ! wait_for_restart_client_marker "mutation_request" "bank_balance_12345"; then
+    fail_restart_phase "pre-restart-gameplay" "client did not issue the fixed bank-balance mutation"
     return 1
   fi
-  record_restart_phase "pre-restart-gameplay" "success" "client_balance_12345_confirmed"
-
+  if ! wait_for_restart_client_marker "save_request" "fixed_server_save"; then
+    fail_restart_phase "pre-restart-gameplay" "client did not request the fixed server save after mutation"
+    return 1
+  fi
   if ! wait_for_restart_client_marker "restart_request" "disposable_canary"; then
     fail_restart_phase "restart-request" "client did not request the fixed disposable Canary restart"
     return 1
   fi
+  if ! wait_for_persisted_restart_balance; then
+    fail_restart_phase "pre-restart-gameplay" "database did not persist exact balance 12345 before restart"
+    return 1
+  fi
+  record_restart_phase "pre-restart-gameplay" "success" "mutation=bank_balance_12345;save=requested;database_balance_12345_confirmed"
   record_restart_phase "restart-request" "success" "fixed_disposable_canary"
 
   local old_pid="${CANARY_PID}"
@@ -287,10 +311,12 @@ def read_int(name: str) -> int:
 
 old_pid = read_int("canary-old.pid")
 new_pid = read_int("canary-restarted.pid")
+pre_restart_balance = read_int("database-restart-pre-balance.txt")
 ghost_count = read_int("database-restart-pre-relogin-online-count.txt")
 final_online_count = read_int("database-after-online-count.txt")
 checks = {
     "all_restart_phases_success": all(phases.get(name, {}).get("status") == "success" for name in required),
+    "pre_restart_balance_persisted": pre_restart_balance == 12345,
     "old_process_terminated": phases.get("process-termination", {}).get("status") == "success",
     "replacement_process_started": phases.get("server-startup", {}).get("status") == "success",
     "restart_pid_changed": old_pid > 0 and new_pid > 0 and old_pid != new_pid,
@@ -306,6 +332,7 @@ payload = {
     "contract": "canary-universal-e2e-disposable-canary-restart-recovery-v1",
     "old_pid": old_pid,
     "new_pid": new_pid,
+    "pre_restart_persisted_balance": pre_restart_balance,
     "ghost_session_count_before_relogin": ghost_count,
     "final_players_online_count": final_online_count,
     "phases": {name: phases.get(name, {"status": "missing", "detail": ""}) for name in required},
