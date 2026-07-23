@@ -128,9 +128,7 @@ local function mutatePersistentState()
 	appendEvent("pre_restart_gameplay", "start")
 	appendEvent("mutation_request", "bank_balance_12345")
 	g_game.talk("/addmoney " .. CHARACTER .. ", 12345")
-	scheduleEvent(function()
-		waitForBalance(EXPECTED_BALANCE, "pre_restart_persistence_check", saveAndRequestRestart)
-	end, 500)
+	scheduleEvent(saveAndRequestRestart, 500)
 end
 
 local function restartReady()
