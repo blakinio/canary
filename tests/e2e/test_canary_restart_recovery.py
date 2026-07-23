@@ -117,10 +117,13 @@ class CanaryRestartRecoveryContractTest(unittest.TestCase):
             'DISPOSABLE_CANARY_RESTART_SCENARIO_KEY="recovery/canary-restart-recovery"',
             self.restart_seam,
         )
-        self.assertIn('local old_pid="${CANARY_PID}"', self.restart_seam)
+        self.assertIn('local lifecycle_pid="${CANARY_PID}"', self.restart_seam)
+        self.assertIn('resolve_exact_runner_owned_canary_pid "${lifecycle_pid}"', self.restart_seam)
+        self.assertIn('/proc/${lifecycle_pid}/task/${lifecycle_pid}/children', self.restart_seam)
         self.assertIn('kill -TERM "${pid}"', self.restart_seam)
         self.assertIn('readlink -f "/proc/${pid}/exe"', self.restart_seam)
         self.assertIn('readlink -f "${CANARY_BIN}"', self.restart_seam)
+        self.assertIn('exec "${CANARY_BIN}" >> "${ARTIFACT_DIR}/canary.stdout.log"', self.restart_seam)
         self.assertIn('CANARY_PID=$!', self.restart_seam)
         self.assertIn('CANARY_PID=""', self.restart_seam)
         for forbidden in (
