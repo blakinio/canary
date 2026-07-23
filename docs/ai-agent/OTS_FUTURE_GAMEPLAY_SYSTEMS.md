@@ -1106,6 +1106,14 @@ Huntfinder
 + Boss Finder
 + Soul Core Finder
 
+## Hunting/task capacity cluster
+
+Dynamic Spawn and Hunting Capacity
++ Hunting Spot Availability
++ Huntfinder
++ Bounty and Weekly Tasks Rework
++ Party Finder 2.0
+
 ## Boss cluster
 
 Adventure Guild Boss Hub
@@ -1134,6 +1142,7 @@ Bank UI
 + Cooking/Fishing
 + House services
 + Money Sink Framework
++ Weekly Delivery Economy Controller
 + optional Durability
 
 ## Client UX cluster
@@ -1180,3 +1189,73 @@ Required restriction:
 `OPEN`
 
 - Exact server/client enforcement and the current Canary/OTClient skill-wheel implementation must be reverified before implementation.
+
+---
+
+# 27. Dynamic Spawn and Hunting Capacity
+
+`USER-DIRECTION`
+
+Add a bounded open-world capacity layer for hunting grounds whose physical layout can support more activity than static respawn timing currently allows.
+
+Core direction:
+
+- scale suitable ordinary monster populations from sustained real hunting pressure, not raw character presence;
+- use hunting-area/sector capacity rather than accelerating one repeatedly farmed monster;
+- enforce per-area hard caps and additional spawn budgets;
+- reduce or remove scaling influence from heavily overleveled permanent farming;
+- allow a bounded Bounty/task exception where appropriate;
+- exclude or separately govern bosses, rares, quest monsters and progression-sensitive spawns;
+- expose capacity signals to Hunting Spot Availability, Huntfinder and Party Finder;
+- require telemetry and economy/XP abuse monitoring before broad rollout.
+
+Official-baseline note:
+
+Current Tibia has verified respawn-acceleration mechanisms, including Rapid Respawn events and improved respawn-area bonuses. The proposed player-pressure, sector-based, effective-power-aware capacity algorithm is **our extension**, not claimed as current official Tibia behavior.
+
+Detailed design:
+
+`docs/ai-agent/OTS_DYNAMIC_SPAWN_AND_HUNTING_CAPACITY.md`
+
+`OPEN`
+
+- Exact Canary spawn architecture and safe runtime integration.
+- Hunting-area/sector ownership model.
+- Effective-power model and per-area caps.
+- Interaction with global rapid-respawn modifiers.
+
+---
+
+# 28. Bounty and Weekly Tasks Rework
+
+`USER-DIRECTION`
+
+Rework the current Tibia-style Bounty and Weekly Task foundation into a more predictable, progression-aware and economy-aware gameplay loop, especially useful for shorter play sessions.
+
+Core direction:
+
+- keep the verified Bounty/Weekly foundation rather than inventing a parallel task system;
+- use richer hidden Task Suitability beyond broad visible difficulty buckets;
+- scale kill counts and rewards from expected real effort, player progression and spawn capacity;
+- improve Preferred/Unwanted controls and bounded rerolls;
+- redesign Bounty Talisman progression around Combat, Sustain, Spoils and Knowledge paths;
+- evaluate a dedicated Bounty Equipment Slot rather than a second universal ring slot;
+- make Weekly Kill tasks capacity-aware;
+- turn Weekly Delivery into a controlled item sink using total server supply, global per-item demand budgets and price-shock protection;
+- allow AI forecasting only as advisory input while deterministic economy safety caps remain authoritative;
+- integrate Bounty selection with Huntfinder, Hunting Spot Availability and Dynamic Spawn capacity.
+
+Official-baseline note:
+
+Current official Tibia documentation verifies Bounty Tasks, Beginner/Adept/Expert/Master groupings, Preferred List, rerolls, Silver/Gold tasks, the Bounty Talisman and Weekly Kill/Delivery Tasks. The redesign above is therefore classified as an extension of an original Tibia system, with custom sub-systems clearly separated in the classification index.
+
+Detailed design:
+
+`docs/ai-agent/OTS_BOUNTY_AND_WEEKLY_TASKS_REWORK.md`
+
+`OPEN`
+
+- Current Canary/OTClient implementation coverage and protocol/UI dependencies.
+- Exact reward, task-count and Talisman formulas.
+- Economy simulation and telemetry thresholds.
+- Modifier stacking with Prey, loot bonuses and dynamic respawn.
