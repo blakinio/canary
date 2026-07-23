@@ -27,6 +27,10 @@ Otheryn PR #77 final head `133c12f61a1e5e392be9ee7faa9236755cbe0225` changed exa
 
 Comments, submitted reviews and review threads were empty. Otheryn `main` had no drift from immutable target base before merge. PR #77 squash-merged as `d896141d084d381d12cc328d4b920c698eb1d55c`.
 
+## Governance package
+
+Canary PR #750 is the final bounded governance owner and changes only this revalidation report plus the active OAM-037 task checkpoint. Its merge remains gated on exact-current-head Agent Task Ownership, full `ci:final-gate` CI, clean interaction audit and Canary-main drift audit.
+
 ## Final conclusion
 
 OAM-037 is `REUSE`: preserve the existing canonical raid registry, scheduler and event lifecycle and add proof only. No production repair, maintained-client mutation or protocol change was required.
