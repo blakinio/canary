@@ -96,6 +96,27 @@ restart_pid_is_exact_canary() {
   [[ -n "${actual_exe}" && "${actual_exe}" == "${expected_exe}" ]]
 }
 
+resolve_exact_runner_owned_canary_pid() {
+  local lifecycle_pid="$1"
+  if restart_pid_is_exact_canary "${lifecycle_pid}"; then
+    printf '%s\n' "${lifecycle_pid}"
+    return 0
+  fi
+  [[ "${lifecycle_pid}" =~ ^[0-9]+$ ]] || return 1
+  kill -0 "${lifecycle_pid}" 2>/dev/null || return 1
+  local children_file="/proc/${lifecycle_pid}/task/${lifecycle_pid}/children"
+  [[ -r "${children_file}" ]] || return 1
+  local matches=()
+  local child_pid
+  for child_pid in $(cat "${children_file}"); do
+    if restart_pid_is_exact_canary "${child_pid}"; then
+      matches+=("${child_pid}")
+    fi
+  done
+  [[ "${#matches[@]}" -eq 1 ]] || return 1
+  printf '%s\n' "${matches[0]}"
+}
+
 wait_for_exact_canary_process() {
   local pid="$1"
   for _ in $(seq 1 80); do
@@ -112,7 +133,7 @@ terminate_exact_disposable_canary() {
   local pid="$1"
   local phase="$2"
   if ! restart_pid_is_exact_canary "${pid}"; then
-    fail_restart_phase "${phase}" "runner-owned PID is not the exact CANARY_BIN process"
+    fail_restart_phase "${phase}" "runner-owned process tree does not contain the exact CANARY_BIN process"
     return 1
   fi
   kill -TERM "${pid}"
@@ -158,9 +179,11 @@ restart_disposable_canary() {
   record_restart_phase "pre-restart-gameplay" "success" "mutation=bank_balance_12345;save=requested;database_balance_12345_confirmed"
   record_restart_phase "restart-request" "success" "fixed_disposable_canary"
 
-  local old_pid="${CANARY_PID}"
-  if ! restart_pid_is_exact_canary "${old_pid}"; then
-    fail_restart_phase "process-termination" "canonical lifecycle PID does not identify the exact CANARY_BIN process"
+  local lifecycle_pid="${CANARY_PID}"
+  local old_pid=""
+  old_pid="$(resolve_exact_runner_owned_canary_pid "${lifecycle_pid}" || true)"
+  if [[ -z "${old_pid}" ]] || ! restart_pid_is_exact_canary "${old_pid}"; then
+    fail_restart_phase "process-termination" "canonical lifecycle process tree does not identify exactly one CANARY_BIN process"
     return 1
   fi
   printf '%s\n' "${old_pid}" > "${DISPOSABLE_CANARY_RESTART_OLD_PID_FILE}"
@@ -172,7 +195,7 @@ restart_disposable_canary() {
     fail_restart_phase "process-termination" "old disposable Canary PID remains active"
     return 1
   fi
-  record_restart_phase "process-termination" "success" "old_pid=${old_pid};inactive=true"
+  record_restart_phase "process-termination" "success" "old_pid=${old_pid};lifecycle_pid=${lifecycle_pid};inactive=true"
 
   local initial_stdout_lines=0
   if [[ -f "${ARTIFACT_DIR}/canary.stdout.log" ]]; then
@@ -181,7 +204,7 @@ restart_disposable_canary() {
 
   (
     cd "${REPO_ROOT}"
-    "${CANARY_BIN}" >> "${ARTIFACT_DIR}/canary.stdout.log" 2>> "${ARTIFACT_DIR}/canary.stderr.log"
+    exec "${CANARY_BIN}" >> "${ARTIFACT_DIR}/canary.stdout.log" 2>> "${ARTIFACT_DIR}/canary.stderr.log"
   ) &
   CANARY_PID=$!
   local new_pid="${CANARY_PID}"
