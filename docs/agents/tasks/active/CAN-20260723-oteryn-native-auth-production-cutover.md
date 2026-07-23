@@ -11,7 +11,7 @@ updated: 2026-07-23T18:15:00+02:00
 last_verified_commit: 981c82f5ebb6bc22c867312c2b274a71f6aeeb3e
 risk: high
 related_issue: ""
-related_pr: "807"
+related_pr: "815"
 depends_on:
   - "Canary Game Session adapter PR #722 merged as b8a88f073b2609b444fa15370aae30ac9f80b908"
   - "Oteryn Platform hardening PR #124 merged as 53158217a6c6017230301cf4daa783b04fcc13d5"
