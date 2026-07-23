@@ -7,11 +7,11 @@ agent: "Codex"
 branch: agent/add-knight-forum-balance-analysis
 base_branch: main
 created: 2026-07-23T19:10:00+02:00
-updated: 2026-07-23T19:10:00+02:00
-last_verified_commit: "395dc7baff01214d2460505271c9614411389d6c"
+updated: 2026-07-23T19:20:00+02:00
+last_verified_commit: "d17d3ae135a2da0cde6a639bae3e60e65479c0e5"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "830"
 depends_on: []
 blocks: []
 owned_paths:
@@ -45,8 +45,8 @@ Add a complete, separately scoped analysis of official Knight design thread `499
 - [x] Separate the three official posts from 592 community posts.
 - [x] Record author/vocation composition, dates, and deterministic overlapping theme families.
 - [x] Remove repeated official proposal boilerplate before theme coding.
-- [ ] Add Knight findings, official clarification chronology, and a bounded Canary validation matrix.
-- [ ] Run documentation diff, ownership, checkpoint, registry, and forbidden-file validation.
+- [x] Add Knight findings, official clarification chronology, and a bounded Canary validation matrix.
+- [x] Run documentation diff, ownership, checkpoint, registry, and forbidden-file validation.
 - [ ] Verify current-head GitHub checks.
 - [ ] Satisfy the autonomous merge gate.
 
@@ -74,12 +74,33 @@ Add a complete, separately scoped analysis of official Knight design thread `499
 3. Validate counts, provenance, ownership, checkpoint, registry, and exact changed paths.
 4. Apply the final-head gate and squash-merge when all checks pass.
 
+# Work log
+
+## 2026-07-23T19:10:00+02:00
+
+- Changed: created a dedicated task branch, ownership record, and draft PR #830.
+- Learned: the full Knight corpus is broad rather than dominated by repeat posters; 426 of 498 community authors posted once.
+- Failed/blocked: an earlier shared-report task remained active after PR #821 merged; lifecycle PR #825 archived it before this task claimed the report.
+- Result: the complete Knight supplement has an exclusive, non-overlapping path claim.
+
+## 2026-07-23T19:20:00+02:00
+
+- Changed: added the full Knight source, composition, theme table, design findings, official chronology, representative evidence links, validation matrix, and report-level totals.
+- Learned: Exeta Amp Res is the strongest unprompted mechanic request, appearing in 197 community posts despite not being part of the opening proposal.
+- Failed/blocked: none.
+- Result: the report now incorporates all 595 displayed Knight posts without altering prior vocation sections.
+
 # Validation and CI
 
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
 | `395dc7baff01214d2460505271c9614411389d6c` | complete corpus assertion | PASS | 30/30 pages, 595/595 unique post IDs, 3 official and 592 community posts. |
 | `395dc7baff01214d2460505271c9614411389d6c` | `python tools/agents/task_ownership.py` | PASS | 27 active tasks before adding this record. |
+| `d17d3ae135a2da0cde6a639bae3e60e65479c0e5` | deterministic theme reconciliation | PASS | All 15 reported theme counts and author counts match `work/forum_analysis.json`. |
+| `d17d3ae135a2da0cde6a639bae3e60e65479c0e5` | `python tools/agents/checkpoint.py --require-checkpoint docs/agents/tasks/active/CAN-20260723-knight-forum-analysis.md` | PASS | Validated the task checkpoint. |
+| `d17d3ae135a2da0cde6a639bae3e60e65479c0e5` | `python tools/agents/task_ownership.py` | PASS | Validated 28 active task records. |
+| `d17d3ae135a2da0cde6a639bae3e60e65479c0e5` | `python tools/agents/real_tibia_registry.py validate` | PASS | Registry valid with zero warnings after including the referenced system documentation in the sparse checkout. |
+| `d17d3ae135a2da0cde6a639bae3e60e65479c0e5` | `git diff --check` and exact-path review | PASS | Only this task record and the target forum-analysis report are modified; no forbidden source, registry, or artifact paths are changed. |
 
 # Risks and compatibility
 
@@ -93,10 +114,10 @@ Add a complete, separately scoped analysis of official Knight design thread `499
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T19:10:00+02:00
-head: 395dc7baff01214d2460505271c9614411389d6c
+updated_at: 2026-07-23T19:20:00+02:00
+head: d17d3ae135a2da0cde6a639bae3e60e65479c0e5
 branch: agent/add-knight-forum-balance-analysis
-pr: null
+pr: 830
 status: implementing
 context_routes:
   - agent-governance
@@ -109,6 +130,7 @@ proven:
   - Thread 4992264 yielded all 595 displayed results across 30 pages without duplicate post identifiers.
   - The corpus contains 3 official posts and 592 community posts from 498 author names.
   - Repeated official proposal boilerplate is removed before deterministic theme coding.
+  - The report preserves the merged General Changes, Druid, Monk, and Sorcerer sections.
 derived:
   - Theme counts measure discussion breadth and engagement, not independent votes or gameplay correctness.
 unknown:
@@ -121,18 +143,34 @@ rejected_hypotheses:
   - The selected first page is sufficient: all 30 pages were collected and reconciled to the displayed result count.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260723-knight-forum-analysis.md
+  - docs/ai-agent/REAL_TIBIA_VOCATION_ADJUSTMENTS_FORUM_ANALYSIS.md
 validation:
   - command: complete corpus assertion
     result: PASS
     evidence: 595 unique post IDs across pages 1-30.
+  - command: deterministic theme reconciliation
+    result: PASS
+    evidence: All 15 reported theme counts and distinct-author counts match the retained aggregate.
+  - command: python tools/agents/checkpoint.py --require-checkpoint docs/agents/tasks/active/CAN-20260723-knight-forum-analysis.md
+    result: PASS
+    evidence: Validated the task checkpoint.
+  - command: python tools/agents/task_ownership.py
+    result: PASS
+    evidence: Validated 28 active task records.
+  - command: python tools/agents/real_tibia_registry.py validate
+    result: PASS
+    evidence: Registry valid with zero warnings.
+  - command: git diff --check and exact-path review
+    result: PASS
+    evidence: Only the task record and target report are modified; no forbidden paths are changed.
 blockers: []
-next_action: Publish the task record in a draft PR, then add the complete Knight section to the report.
+next_action: Run final local validation, update the checkpoint with exact evidence, apply ci:final-gate, and push the final commit.
 ```
 
 # Completion
 
 - Final status: in progress
-- PR: none
+- PR: 830
 - Merge commit: none
 - Program record updated: not required
 - Catalogue updated: not required
