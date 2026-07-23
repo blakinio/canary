@@ -7,8 +7,13 @@ on:
       - "tools/ai-agent/tibia_client_reference_manifest.py"
       - "tools/ai-agent/tibia_client_reference_manifest_tool.py"
       - "tools/ai-agent/test_tibia_client_reference_manifest.py"
+      - "tools/ai-agent/tibia_staticdata_reference_index.py"
+      - "tools/ai-agent/tibia_staticdata_reference_index_tool.py"
+      - "tools/ai-agent/test_tibia_staticdata_reference_index.py"
       - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.md"
       - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.schema.json"
+      - "docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.md"
+      - "docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.schema.json"
       - ".github/workflows/tibia-client-reference.yml"
   workflow_dispatch:
 
@@ -16,8 +21,8 @@ permissions:
   contents: read
 
 jobs:
-  validate-manifest:
-    name: Validate client reference manifest
+  validate-reference-tooling:
+    name: Validate client reference tooling
     runs-on: ubuntu-latest
 
     steps:
@@ -29,18 +34,28 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Run focused tests
+      - name: Run manifest focused tests
         run: python -m unittest discover -s tools/ai-agent -p "test_tibia_client_reference_manifest.py" -v
 
-      - name: Compile manifest tooling
+      - name: Run StaticData focused tests
+        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_staticdata_reference_index.py" -v
+
+      - name: Compile client reference tooling
         run: |
           python -m py_compile \
             tools/ai-agent/tibia_client_reference_manifest.py \
             tools/ai-agent/tibia_client_reference_manifest_tool.py \
-            tools/ai-agent/test_tibia_client_reference_manifest.py
+            tools/ai-agent/test_tibia_client_reference_manifest.py \
+            tools/ai-agent/tibia_staticdata_reference_index.py \
+            tools/ai-agent/tibia_staticdata_reference_index_tool.py \
+            tools/ai-agent/test_tibia_staticdata_reference_index.py
 
       - name: Validate JSON schema syntax
-        run: python -m json.tool docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.schema.json > /dev/null
+        run: |
+          python -m json.tool docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.schema.json > /dev/null
+          python -m json.tool docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.schema.json > /dev/null
 
       - name: Validate CLI construction
-        run: python tools/ai-agent/tibia_client_reference_manifest_tool.py --help > /dev/null
+        run: |
+          python tools/ai-agent/tibia_client_reference_manifest_tool.py --help > /dev/null
+          python tools/ai-agent/tibia_staticdata_reference_index_tool.py --help > /dev/null
