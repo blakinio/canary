@@ -1,0 +1,92 @@
+name: Native Auth Production-Like Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/native-auth-production-like-validation.yml"
+      - ".github/e2e-controlled-server.env"
+      - "tests/e2e/scenarios/login/oteryn-native-auth.json"
+      - "tests/e2e/test_native_auth_production_like_boundary.py"
+      - "docs/agents/tasks/active/CAN-20260723-native-auth-production-like-boundary.md"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-auth-production-like-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  boundary-simulation:
+    name: Gateway to Session production-like boundary
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout validation harness
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Checkout exact hardened Oteryn Platform
+        uses: actions/checkout@v6
+        with:
+          repository: blakinio/Oteryn-Platform
+          ref: 53158217a6c6017230301cf4daa783b04fcc13d5
+          path: oteryn-platform
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.0"
+          cache: false
+
+      - name: Verify exact source revisions
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C oteryn-platform rev-parse HEAD)" = "53158217a6c6017230301cf4daa783b04fcc13d5"
+          grep -Fx "SERVER_REPOSITORY=blakinio/canary" .github/e2e-controlled-server.env
+          grep -Fx "SERVER_REF=981c82f5ebb6bc22c867312c2b274a71f6aeeb3e" .github/e2e-controlled-server.env
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          scenario = json.loads(Path("tests/e2e/scenarios/login/oteryn-native-auth.json").read_text(encoding="utf-8"))
+          assert scenario["client"]["ref"] == "bb87346f6c516a19d19497d82bb01fb389334ff5"
+          assert scenario["auth"]["gateway_ref"] == "53158217a6c6017230301cf4daa783b04fcc13d5"
+          PY
+
+      - name: Run exact Gateway regression suite
+        working-directory: oteryn-platform/services/game-gateway
+        run: go test ./...
+
+      - name: Build exact Gateway
+        working-directory: oteryn-platform/services/game-gateway
+        run: go build -trimpath -o "${GITHUB_WORKSPACE}/game-gateway" ./cmd/game-gateway
+
+      - name: Run production-like TLS and credential-rotation simulation
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/native-auth-production-like
+          python3 tests/e2e/test_native_auth_production_like_boundary.py \
+            --gateway-bin "${GITHUB_WORKSPACE}/game-gateway" \
+            --gateway-source "${GITHUB_WORKSPACE}/oteryn-platform" \
+            --repo-root "${GITHUB_WORKSPACE}" \
+            --artifact-dir "${GITHUB_WORKSPACE}/artifacts/native-auth-production-like"
+
+      - name: Upload production-like boundary evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-auth-production-like-boundary
+          path: artifacts/native-auth-production-like/
+          if-no-files-found: warn
+          retention-days: 14
