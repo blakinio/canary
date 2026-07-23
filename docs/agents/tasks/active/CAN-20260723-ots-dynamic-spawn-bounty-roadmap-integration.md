@@ -7,7 +7,7 @@ branch: docs/dynamic-spawn-hunting-capacity-20260723
 base_branch: main
 created: 2026-07-23
 updated: 2026-07-23
-last_verified_commit: "8d864d70438463dff265b6bf6ef9ec86efee0cb9"
+last_verified_commit: "e06ce44119b1b0370a61e54b0b7ffa0de4a76ab7"
 risk: low
 related_issue: ""
 related_pr: "772"
@@ -70,8 +70,8 @@ References reviewed:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T13:40:00+02:00
-head: 8d864d70438463dff265b6bf6ef9ec86efee0cb9
+updated_at: 2026-07-23T13:46:00+02:00
+head: e06ce44119b1b0370a61e54b0b7ffa0de4a76ab7
 branch: docs/dynamic-spawn-hunting-capacity-20260723
 pr: 772
 status: ready
@@ -92,20 +92,21 @@ proven:
   - OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md now classifies the two top-level systems and the major approved sub-proposals through entries 59-68.
   - Current official Tibia documentation confirms Bounty Tasks, Weekly Tasks and Bounty Talisman as original-Tibia foundations.
   - Current official Tibia evidence confirms Rapid Respawn and improved respawn-area bonuses, but does not prove the proposed player-pressure sector-capacity algorithm as official behavior.
-  - The ci:final-gate label was applied to PR 772 before this immutable ready-state checkpoint commit.
+  - The ci:final-gate label was applied to PR 772 before the ready-state checkpoint cycle.
 derived:
   - Bounty and Weekly Tasks Rework is classified as MIXED / TIBIA-EXTENSION because it redesigns a verified current Tibia system with substantial custom behavior.
   - Dynamic Spawn and Hunting Capacity is classified as MIXED / HYBRID because it combines an official respawn-acceleration foundation with our custom player-pressure, sector, power-range, capacity-budget and anti-abuse design.
 unknown:
   - Exact current Canary and maintained OTClient implementation coverage for Bounty/Weekly Tasks and every proposed dynamic-spawn integration point; implementation-time audit remains required.
-  - Exact-final-head CI, Agent Task Ownership and AI Agent Tools conclusions after this ready-state checkpoint commit.
+  - Exact-final-head CI, Agent Task Ownership and AI Agent Tools conclusions after this checkpoint repair commit.
 conflicts: []
 first_failure:
-  marker: missing-roadmap-integration
-  evidence: PR 772 initially added two detailed design files but did not add a task record, central-roadmap entries or ORIGIN/TYPE classification entries; all three structural gaps are repaired in the current scope.
+  marker: checkpoint-validation-result-enum
+  evidence: Exact-final Agent Task Ownership run 30003003392 rejected validation result IN_PROGRESS in the task checkpoint; pending workflow state belongs in unknown, so the unsupported validation item was removed without changing product scope.
 rejected_hypotheses:
   - Delete the detailed design files and move all 1400+ lines into the central roadmap; rejected because the roadmap should remain a concise discoverability/index layer.
   - Classify Dynamic Spawn Scaling as TIBIA-OFFICIAL; rejected because current official evidence reviewed here proves respawn acceleration mechanisms, not the proposed player-pressure sector-capacity algorithm.
+  - Loosen or bypass the task-checkpoint validator; rejected because the failure correctly identified an invalid result enum and is repaired in the task record.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260723-ots-dynamic-spawn-bounty-roadmap-integration.md
   - docs/ai-agent/OTS_DYNAMIC_SPAWN_AND_HUNTING_CAPACITY.md
@@ -119,9 +120,6 @@ validation:
   - command: current official Tibia source verification
     result: PASS
     evidence: official game guide and 2026 news establish the bounded classification baseline recorded above.
-  - command: pre-final PR workflow cycle on head 8d864d70438463dff265b6bf6ef9ec86efee0cb9
-    result: IN_PROGRESS
-    evidence: CI, Agent Task Ownership and AI Agent Tools were triggered before the final checkpoint commit; exact-final-head runs triggered by this commit are authoritative.
 blockers: []
-next_action: Verify exact-final-head CI, Agent Task Ownership and AI Agent Tools on the resulting immutable head; if green and scope/review audit remains clean, update the PR body, mark ready and squash-merge under repository policy without further feature commits.
+next_action: Verify exact-final-head CI, Agent Task Ownership and AI Agent Tools on the resulting immutable head; if green and scope/review audit remains clean, mark ready and squash-merge under repository policy without further feature commits.
 ```
