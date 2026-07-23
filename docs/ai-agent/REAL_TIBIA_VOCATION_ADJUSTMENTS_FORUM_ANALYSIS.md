@@ -4,7 +4,7 @@
 >
 > Primary corpus collected: 2026-07-22
 >
-> Supplemental Druid design-thread sample reviewed: 2026-07-23
+> Supplemental Druid and Monk design threads reviewed: 2026-07-23
 >
 > Target use: bounded design and validation input for `blakinio/canary`
 
@@ -17,7 +17,12 @@ Two official Tibia forum threads provide the primary before-and-after view of th
 
 The strongest cross-thread conclusion is not that one vocation simply needs more power. Players repeatedly ask for a legible relationship between mechanical difficulty, risk, Wheel investment, role specialization, and practical reward.
 
-A supplemental review of the first page of the earlier official **Vocation Balancing Druid** thread adds design-stage evidence for Elder Druid. It is not included in the 3,463-post primary-corpus statistics because only 20 of the thread's 393 displayed results were accessible in this collection. Within the 17 deduplicated community contributions on that page, the clearest concerns were the doubled healing cooldown in the group stance, weak solo hunting, and insufficiently specified Forked Spells.
+Two earlier vocation-specific design threads add separately scoped evidence:
+
+- The first page of **Vocation Balancing Druid** contains 17 deduplicated community contributions. The clearest concerns were the doubled healing cooldown in the group stance, weak solo hunting, and insufficiently specified Forked Spells.
+- The complete **Vocation Balancing Monk** thread contains 206 unique posts across all 11 pages. Its 203 community posts strongly connect Monk balance to damage after repeated nerfs, support identity, ranged completeness, solo performance, bossing, chain targeting, harmony, and Wheel access.
+
+Neither design thread is included in the 3,463-post primary-corpus statistics. Their proposals, observation periods, collection coverage, and methods differ from the later Release State and Release threads.
 
 Pre-release discussion was mixed and often constructive. A lexical indicator marked 43.5% of accessible non-official Release State posts as critical. The same indicator reached 70.3% across the post-release thread and 80.0% during July 7–8, immediately after numerical corrections. The discussion therefore moved from *clarify and finish the mechanics* toward *justify the balance model and its combined effects*.
 
@@ -38,13 +43,14 @@ This report does not establish official formulas, live values, or Canary defects
 | Pre-release | [Vocation Adjustments Release State](https://www.tibia.com/forum/?action=thread&threadid=4996962&pagenumber=1) | `4996962` | 606 | 600 | 2026-06-02–2026-06-11 |
 | Post-release | [Vocation Adjustments Release](https://www.tibia.com/forum/?action=thread&threadid=4997270&pagenumber=1) | `4997270` | 2,863 | 2,863 | 2026-06-16–2026-07-21 |
 
-### Supplemental source (excluded from primary-corpus totals)
+### Supplemental sources (excluded from primary-corpus totals)
 
-| Phase | Official thread | Thread ID | Displayed results | Accessible page-one posts | Observed date |
-|---|---|---:|---:|---:|---|
-| Early design feedback | [Vocation Balancing Druid](https://www.tibia.com/forum/?action=thread&threadid=4992268&pagenumber=1) | `4992268` | 393 | 20 | 2026-01-22 |
+| Phase | Official thread | Thread ID | Displayed results | Accessible unique posts | Coverage | Observed dates |
+|---|---|---:|---:|---:|---|---|
+| Early design feedback | [Vocation Balancing Druid](https://www.tibia.com/forum/?action=thread&threadid=4992268&pagenumber=1) | `4992268` | 393 | 20 | page 1 only | 2026-01-22 |
+| Early design feedback | [Vocation Balancing Monk](https://www.tibia.com/forum/?action=thread&threadid=4992269&pagenumber=1) | `4992269` | 206 | 206 | all 11 pages | 2026-01-22-2026-01-29 |
 
-The supplemental source is reported separately because Chrome exposed the selected first page, while direct requests for the remaining pages were rejected by Tibia.com with HTTP 403 during this collection. No values or opinions from inaccessible pages are inferred.
+The Druid source remains a page-one sample because direct requests for the remaining pages were rejected by Tibia.com with HTTP 403 during that collection. The Monk thread was collected from rendered public pages with isolated headless Chrome profiles after direct HTTP requests encountered the same protection. No account, cookies, or authenticated browser state were used.
 
 Collection facts:
 
@@ -54,6 +60,8 @@ Collection facts:
 - Thread `4996962` yielded 600 unique posts on pages 1–30. Its linked page 31 repeatedly returned HTTP 403, so six displayed results were not accessible and are not inferred.
 - The combined accessible corpus contains 3,463 unique posts, 1,825 unique author names, and 33 posts carrying the forum's official-post marker.
 - Two hundred author names appear in both corpora, derived from the separate and combined unique-author counts.
+- Thread `4992269` yielded exactly 206 unique post identifiers: 20 posts on each page 1-10 and 6 posts on page 11.
+- The Monk thread contains 3 community-manager posts and 203 community posts from 175 distinct author names.
 
 ## Evidence boundary
 
@@ -90,9 +98,11 @@ The analysis used post-level keyword families rather than raw word occurrence co
 
 The critical-language indicator matched words and phrases such as `nerf`, `broken`, `weak`, `problem`, `bug`, `unfair`, and `disappoint`. It is a coarse lexical indicator, not a trained sentiment classifier. Positive and critical language can coexist in one constructive post.
 
-Rendered quotations remain in many replies. A quoted issue can therefore increase the number of posts associated with a theme. This is useful as an engagement measure but must not be interpreted as an equal number of independent reports.
+Rendered quotations remain in many replies in the primary corpus. A quoted issue can therefore increase the number of primary-corpus posts associated with a theme. This is useful as an engagement measure but must not be interpreted as an equal number of independent reports.
 
-Forum posts may be edited or deleted after collection. Primary-corpus counts are a snapshot from 2026-07-22; the supplemental page-one sample is a snapshot from 2026-07-23.
+For the supplemental Monk analysis, `blockquote.QuoteText` content was removed before keyword-family and structured-answer counting. A Monk post can still belong to several overlapping themes, and repeated posts by one author remain separate contributions; distinct-author counts are therefore reported beside post counts.
+
+Forum posts may be edited or deleted after collection. Primary-corpus counts are a snapshot from 2026-07-22; both supplemental collections are snapshots from 2026-07-23.
 
 ## Supplemental design-stage evidence: Vocation Balancing Druid
 
@@ -239,6 +249,241 @@ The first page does not support a flat “buff Druid” conclusion. It supports 
 > The proposed Druid package may improve support flexibility while leaving solo damage and AoE constraints under-addressed, and the group-healing stance may exchange safer burst heals for dangerous cadence gaps with only a small nominal throughput gain.
 
 That hypothesis is actionable for prioritizing tests, but the sample is too small and incomplete to set values or prove parity.
+
+## Supplemental design-stage evidence: Vocation Balancing Monk
+
+This section analyzes all 206 unique posts in thread `4992269`. It is a complete-thread design-stage corpus, but it remains separate from the later 3,463-post Release State/Release corpus.
+
+### Official proposal
+
+The opening community-manager post proposed:
+
+- Mass Spirit Mend without harmony consumption, with adjusted cooldown and higher base healing;
+- Virtue of Justice and Mentor Other bonuses for nearby allies: 3% damage reduction for Knight, 6% auto-attack damage for Paladin, 9% spell/rune damage for Sorcerer, 12% healing for Druid, and 15% fist fighting for Monk;
+- Thousand Fist Blows as a ranged builder with an area described as similar to diamond arrows;
+- Mystic Repulse cooldown reduced from 20 to 12 seconds;
+- Guiding Presence sharing 100% of mantra;
+- Sanctuary adding 10% damage and healing against adjacent targets;
+- Augmented Mystic Repulse I reducing cooldown by six seconds;
+- the Augmented Sweeping Takedown slot becoming Augmented Thousand Fist Blows;
+- Augmented Flurry of Blows I increasing area instead of granting life leech.
+
+These are January 2026 proposal-state descriptions, not current authoritative Real Tibia values.
+
+### Full-thread composition
+
+| Metric | Count |
+|---|---:|
+| Unique posts | 206 |
+| Pages collected | 11 of 11 |
+| Community-manager posts | 3 |
+| Community posts | 203 |
+| Distinct community author names | 175 |
+| Community posts with a displayed level | 163 |
+| Displayed community level range | 3-3,076 |
+| Median displayed community level | 592 |
+| Monk/Exalted Monk community posts | 129 |
+| Median displayed level among Monk/Exalted Monk posts | 610 |
+
+| Displayed author vocation | Community posts | Share |
+|---|---:|---:|
+| Exalted Monk / Monk | 129 | 63.5% |
+| Elite Knight / Knight | 11 | 5.4% |
+| Royal Paladin / Paladin | 11 | 5.4% |
+| Elder Druid / Druid | 8 | 3.9% |
+| Master Sorcerer / Sorcerer | 4 | 2.0% |
+| Missing or traded character | 40 | 19.7% |
+
+The 129 posts carrying a displayed Monk vocation cover a broad but high-level-skewed range:
+
+| Displayed Monk level band | Posts | Share of displayed Monk posts |
+|---|---:|---:|
+| 1-300 | 19 | 14.7% |
+| 301-600 | 44 | 34.1% |
+| 601-900 | 43 | 33.3% |
+| 901+ | 23 | 17.8% |
+
+Displayed forum levels are snapshot metadata, not proof of experience with every mechanic discussed. Counts are by post, so a repeat author can appear more than once.
+
+### Attention to proposed components
+
+The table below counts quote-free community posts that name each proposed component. It measures attention, not approval.
+
+| Proposed component | Posts | Distinct authors |
+|---|---:|---:|
+| Virtue of Justice / VoJ | 62 | 59 |
+| Thousand Fist Blows | 35 | 34 |
+| Mass Spirit Mend | 32 | 32 |
+| Flurry of Blows | 32 | 32 |
+| Mystic Repulse | 24 | 24 |
+| Sweeping Takedown replacement or takedown | 21 | 19 |
+| Guiding Presence | 16 | 16 |
+| Sanctuary | 13 | 13 |
+
+Ninety-six community posts contained a parseable numbered answer to question 1. Within those answer-1 segments, the following changes were named:
+
+| Change named in answer 1 | Answers | Share of parseable answer-1 segments |
+|---|---:|---:|
+| Virtue of Justice, Mentor Other, or party support | 29 | 30.2% |
+| Thousand Fist Blows or ranged builder/gameplay | 28 | 29.2% |
+| Mass Spirit Mend or healing | 19 | 19.8% |
+| Flurry area change | 14 | 14.6% |
+| Mystic Repulse | 6 | 6.3% |
+| Guiding Presence or Sanctuary | 6 | 6.3% |
+
+Because question 1 explicitly asks what is most exciting, this is stronger directional evidence than raw mentions. It is still not a clean approval poll: some replies copied the question text, named several features, or answered critically.
+
+### Full-thread theme breadth
+
+The following post-level keyword families were evaluated after removing rendered quote blocks. Families overlap.
+
+| Theme family | Community posts | Distinct authors | Share of community posts |
+|---|---:|---:|---:|
+| Damage, DPS, nerfs, or burst | 129 | 119 | 63.5% |
+| Support package or party buffs | 96 | 91 | 47.3% |
+| Ranged package | 83 | 80 | 40.9% |
+| Solo play | 76 | 72 | 37.4% |
+| Bossing, single target, or PvP | 68 | 65 | 33.5% |
+| Chain, bounce, or jump mechanics | 66 | 64 | 32.5% |
+| Harmony or builder/spender loop | 66 | 61 | 32.5% |
+| Wheel, gems, augments, Sanctuary, or Guiding Presence | 63 | 60 | 31.0% |
+| Healing, Sio, or Mend | 62 | 61 | 30.5% |
+| Elements, holy damage, or imbuements | 43 | 39 | 21.2% |
+| Survivability, defence, Energy Ring, or tanking | 41 | 39 | 20.2% |
+| Single-target Exeta, off-tanking, or trapped-player rescue | 14 | 14 | 6.9% |
+
+Concrete subtopic counts help separate broad theme families:
+
+- Chained Penance appeared in 30 posts, Spiritual Outburst in 35, and jump/bounce wording in 27.
+- Boss wording appeared in 61 posts; PvP appeared in 5.
+- Energy Ring appeared in 12 posts.
+- Serene or Serene Stance appeared in 20 posts.
+- Element, holy, or imbuement wording appeared in 40 posts.
+- Exact Exeta wording appeared in 11 posts.
+
+These counts show discussion breadth, not independent bug reproduction or agreement with a specific fix.
+
+### Additional changes requested in structured answers
+
+One hundred and two posts contained a parseable numbered answer 3. Their answer-3 segments produced the following overlapping request families:
+
+| Request family in answer 3 | Answers | Share of parseable answer-3 segments |
+|---|---:|---:|
+| Solo play, damage, DPS, nerfs, or burst | 69 | 67.6% |
+| Bossing, single target, or PvP | 40 | 39.2% |
+| Chain, bounce, or jump mechanics | 39 | 38.2% |
+| Wheel, gems, or augments | 27 | 26.5% |
+| Elements, holy damage, or imbuements | 26 | 25.5% |
+| Survivability or defence | 23 | 22.5% |
+| Healing | 23 | 22.5% |
+| Single-target Exeta, off-tanking, or rescue | 9 | 8.8% |
+| Serene stance | 9 | 8.8% |
+
+### Design implications
+
+#### 1. Support identity was welcomed, but uptime and party value need proof
+
+Virtue of Justice and party support led the parseable excitement answers. At the same time, authors questioned:
+
+- whether Serene/proximity conditions make the bonuses unreliable in overlure or split-frontline hunts;
+- whether a Monk becomes a mandatory buffer, a luxury fifth slot, or still loses to another damage vocation;
+- whether Virtue of Harmony and Virtue of Sustain retain meaningful identities;
+- how several nearby vocation bonuses stack on the Monk itself;
+- whether Mass Spirit Mend can replace or only supplement a dedicated healer.
+
+For Canary, nominal buff percentages are not enough. Tests need realistic party layouts, movement, off-tanking, proximity loss, buff uptime, stacking, effective healing, and total team damage.
+
+#### 2. A ranged builder is useful only if the ranged loop is coherent
+
+Thousand Fist Blows and the ranged direction were frequently welcomed, especially for mechanics that prevent adjacent attacks. The recurring qualification was that one ranged builder does not establish a complete ranged identity.
+
+Validation should establish:
+
+- target count, area, range, cooldown, damage, and harmony generation;
+- whether Monk has an appropriate ranged spender or only a builder;
+- auto-attack, weapon-proficiency, and gem interactions;
+- how Mystic Repulse fits the rotation;
+- whether ranged play is an emergency fallback, boss tool, or sustained alternative;
+- hotkey and rotation complexity compared with practical reward.
+
+#### 3. Chain reliability should be resolved before chain damage
+
+Chained Penance and Spiritual Outburst were the most concrete unplanned mechanic family. Authors repeatedly described chains selecting a low-health or out-of-cluster creature, stopping early, or failing to cover a box.
+
+A deterministic contract should define:
+
+- initial cast range and distance between jumps;
+- target priority;
+- maximum targets;
+- whether maximizing targets takes precedence over health;
+- tie-breaking and repeat-target rules;
+- behavior at walls, line of sight, changing health, and dispersed packs;
+- damage progression across the chain.
+
+Until those rules are proven, lower hit counts can be mistaken for a damage-scaling defect.
+
+#### 4. Solo, team, and bossing performance are separate balance questions
+
+The most common answer-3 family combined solo play and damage, while boss/single-target concerns appeared in 40 of 102 parseable answer-3 segments. Players also disagreed on direction: some wanted stronger solo burst, some wanted a clearer support slot, and some wanted rescue/off-tank utility.
+
+A useful Canary comparison must separate:
+
+- solo AoE hunting;
+- optimized four- and five-vocation team hunting;
+- bosses with adjacency restrictions or target-switch mechanics;
+- single-target and PvP pressure;
+- experience, profit, supplies, incoming turns, and leech;
+- Monk contribution as damage, healing, mitigation, rescue, or control.
+
+The forum does not establish that one global damage multiplier can solve these modes.
+
+#### 5. Harmony and Wheel changes must preserve existing build value
+
+Several replies welcomed a stronger builder/spender identity. Others argued that spenders no longer feel materially stronger, Harmony is under-rewarded, and replacing Augmented Sweeping Takedown removes a useful solo/Ascetic interaction.
+
+Canary validation should compare complete builds rather than isolated nodes:
+
+- base and harmony-scaled builder/spender rotations;
+- existing Sweeping Takedown critical or proficiency interactions;
+- the new Thousand Fist Blows augment;
+- Flurry area versus removed life leech;
+- Guiding Presence and Sanctuary opportunity cost;
+- access to core-spell gems and the level at which the complete rotation exists.
+
+#### 6. Survivability and elemental access affect viable content
+
+Survivability discussion linked melee exposure, weaker defensive equipment, Energy Ring efficiency, and reduced damage/leech. Elemental proposals focused on making weapons affect spell damage, adding holy access, or avoiding content where physical damage is heavily resisted.
+
+These are separate investigations. Element conversion requires authoritative spell/weapon/imbuement semantics; survivability requires full incoming-damage, kill-time, leech, mana, equipment, and emergency-tool accounting.
+
+### Official clarifications and chronology
+
+- **January 22, post `39563969`:** the community manager published the proposal and requested numbered answers about excitement, fit, and missing changes.
+- **January 23, post `39565886`:** the leading developer clarified that Sanctuary's adjacent-target bonus would be permanently active once unlocked. Virtue of Justice would grant a Serene Monk the listed bonuses for nearby party vocations; the Monk counts as being in a party with itself for the fist-fighting bonus.
+- **January 29, post `39568241`:** the community manager stated that developers were analyzing the input and would provide updates.
+
+The thread was then closed. These posts clarify proposal intent and feedback handling; they do not prove later release behavior.
+
+### Bounded Canary validation matrix
+
+| Priority | Question | Minimum evidence before a code change |
+|---:|---|---|
+| 1 | Do Chained Penance and Spiritual Outburst select and reach targets deterministically? | Current Canary path, authoritative target-selection rules, and fixtures for boxes, dispersed packs, health order, walls, ties, and maximum targets. |
+| 2 | Does Monk have a coherent ranged builder/spender rotation? | Full spell, harmony, cooldown, range, weapon, proficiency, gem, and boss-scenario comparison. |
+| 3 | What measurable party value does Monk add at realistic buff uptime? | Proximity/Serene simulation plus total team damage, mitigation, healing, rescue, and slot-replacement comparisons. |
+| 4 | Which mode is underperforming: solo AoE, team hunt, bossing, or single target? | Repeatable level-banded simulations with equipment, targets, supplies, leech, and rotation held constant. |
+| 5 | Do harmony spenders justify their setup and Wheel cost? | Complete build comparisons at representative Wheel totals, including the displaced Sweeping Takedown path. |
+| 6 | Is a single-target Exeta/rescue tool compatible with Monk's intended role? | Authoritative role evidence, exact target/control rules, abuse cases, cooldown tests, and party scenarios. |
+| 7 | Is survivability limited by equipment, damage/leech, Energy Ring, or melee exposure? | Incoming-damage and kill-time decomposition across representative content and level bands. |
+| 8 | Should elemental weapons or imbuements affect Monk spells? | Current server path, authoritative element-conversion behavior, protocol/client constraints, and deterministic spell/weapon tests. |
+
+### Supplemental-source conclusion
+
+The complete Monk thread does not support a simple "buff Monk" conclusion. It supports a more specific design hypothesis:
+
+> Players welcomed a clearer support role and a ranged builder, but repeatedly tied Monk viability to reliable chain targeting, a complete builder/spender loop, measurable party-slot value, and separate solo, bossing, survivability, and elemental-access outcomes.
+
+That hypothesis can prioritize bounded tests. It cannot set damage, healing, cooldown, range, target-count, Wheel, or buff values.
 
 ## Corpus composition
 
