@@ -4,13 +4,15 @@ on:
   push:
     branches:
       - docs/otbm-world-assurance-operations-20260723
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
 
 jobs:
   patch-roadmap:
-    if: github.repository == 'blakinio/canary'
+    if: github.repository == 'blakinio/canary' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout branch
