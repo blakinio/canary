@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/ai-agent/OTBM_CONTINUOUS_ASSURANCE.schema.json",
+  "title": "Canary OTBM continuous assurance v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "source", "policy", "provenance", "validation", "worldHealthDelta", "certificationDelta", "gate", "summary", "notes"],
+  "properties": {
+    "format": {"const": "canary-otbm-continuous-assurance-v1"},
+    "schemaVersion": {"const": 1},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["beforeMapSha256", "afterMapSha256", "beforeWorldIndexSha256", "afterWorldIndexSha256"],
+      "properties": {
+        "beforeMapSha256": {"$ref": "#/$defs/sha256"},
+        "afterMapSha256": {"$ref": "#/$defs/sha256"},
+        "beforeWorldIndexSha256": {"$ref": "#/$defs/sha256"},
+        "afterWorldIndexSha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "policy": {"type": "object"},
+    "provenance": {
+      "type": "object",
+      "required": ["executionLedger", "regressionPlan", "beforeWorldHealth", "afterWorldHealth", "beforeCertification", "afterCertification"],
+      "additionalProperties": false,
+      "properties": {
+        "executionLedger": {"$ref": "#/$defs/inputPin"},
+        "regressionPlan": {"$ref": "#/$defs/inputPin"},
+        "beforeWorldHealth": {"$ref": "#/$defs/inputPin"},
+        "afterWorldHealth": {"$ref": "#/$defs/inputPin"},
+        "beforeCertification": {"$ref": "#/$defs/inputPin"},
+        "afterCertification": {"$ref": "#/$defs/inputPin"}
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["static", "physical"],
+      "properties": {
+        "static": {"type": "array", "items": {"$ref": "#/$defs/staticResult"}},
+        "physical": {"type": "array", "items": {"$ref": "#/$defs/physicalResult"}}
+      }
+    },
+    "worldHealthDelta": {"type": "array", "items": {"$ref": "#/$defs/healthDelta"}},
+    "certificationDelta": {"type": "array", "items": {"$ref": "#/$defs/certDelta"}},
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed", "blockers"],
+      "properties": {
+        "passed": {"type": "boolean"},
+        "blockers": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selectedStaticValidatorCount", "selectedPhysicalScenarioCount", "worldHealthRegressionCount", "certificationRegressionCount", "blockerCount"],
+      "properties": {
+        "selectedStaticValidatorCount": {"type": "integer", "minimum": 0},
+        "selectedPhysicalScenarioCount": {"type": "integer", "minimum": 0},
+        "worldHealthRegressionCount": {"type": "integer", "minimum": 0},
+        "certificationRegressionCount": {"type": "integer", "minimum": 0},
+        "blockerCount": {"type": "integer", "minimum": 0}
+      }
+    },
+    "notes": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "inputPin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fileName", "size", "sha256", "format"],
+      "properties": {
+        "fileName": {"type": "string", "minLength": 1},
+        "size": {"type": "integer", "minimum": 0},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "format": {"type": "string", "minLength": 1}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "sha256"],
+      "properties": {
+        "format": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "staticResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["validator", "status", "evidence"],
+      "properties": {
+        "validator": {"type": "string", "minLength": 1},
+        "status": {"enum": ["passed", "failed", "not-run"]},
+        "evidence": {"$ref": "#/$defs/evidence"}
+      }
+    },
+    "physicalResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["suite", "id", "status", "evidence"],
+      "properties": {
+        "suite": {"type": "string", "minLength": 1},
+        "id": {"type": "string", "minLength": 1},
+        "status": {"enum": ["passed", "failed", "not-run"]},
+        "evidence": {"$ref": "#/$defs/evidence"}
+      }
+    },
+    "healthDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimension", "before", "after", "delta", "regressed"],
+      "properties": {
+        "dimension": {"type": "string", "minLength": 1},
+        "before": {"type": "integer", "minimum": 0},
+        "after": {"type": "integer", "minimum": 0},
+        "delta": {"type": "integer"},
+        "regressed": {"type": "boolean"}
+      }
+    },
+    "certDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetId", "beforeLevel", "afterLevel", "delta", "status", "regressed"],
+      "properties": {
+        "targetId": {"type": "string", "minLength": 1},
+        "beforeLevel": {"type": ["string", "null"]},
+        "afterLevel": {"type": ["string", "null"]},
+        "delta": {"type": ["integer", "null"]},
+        "status": {"enum": ["new", "missing-after", "improved", "unchanged", "regressed"]},
+        "regressed": {"type": "boolean"}
+      }
+    }
+  }
+}

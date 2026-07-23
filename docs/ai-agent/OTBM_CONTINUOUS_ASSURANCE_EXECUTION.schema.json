@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/ai-agent/OTBM_CONTINUOUS_ASSURANCE_EXECUTION.schema.json",
+  "title": "Canary OTBM continuous assurance execution ledger v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "inputs", "staticValidation", "physicalValidation"],
+  "properties": {
+    "format": {"const": "canary-otbm-continuous-assurance-execution-v1"},
+    "schemaVersion": {"const": 1},
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["regressionPlanSha256", "beforeWorldHealthSha256", "afterWorldHealthSha256", "beforeCertificationSha256", "afterCertificationSha256"],
+      "properties": {
+        "regressionPlanSha256": {"$ref": "#/$defs/sha256"},
+        "beforeWorldHealthSha256": {"$ref": "#/$defs/sha256"},
+        "afterWorldHealthSha256": {"$ref": "#/$defs/sha256"},
+        "beforeCertificationSha256": {"$ref": "#/$defs/sha256"},
+        "afterCertificationSha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "staticValidation": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["validator", "status", "evidence"],
+        "properties": {
+          "validator": {"type": "string", "minLength": 1},
+          "status": {"enum": ["passed", "failed", "not-run"]},
+          "evidence": {"$ref": "#/$defs/evidence"}
+        }
+      }
+    },
+    "physicalValidation": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["suite", "id", "status", "evidence"],
+        "properties": {
+          "suite": {"type": "string", "minLength": 1},
+          "id": {"type": "string", "minLength": 1},
+          "status": {"enum": ["passed", "failed", "not-run"]},
+          "evidence": {"$ref": "#/$defs/evidence"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "sha256"],
+      "properties": {
+        "format": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

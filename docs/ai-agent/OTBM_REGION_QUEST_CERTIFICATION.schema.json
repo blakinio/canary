@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/ai-agent/OTBM_REGION_QUEST_CERTIFICATION.schema.json",
+  "title": "Canary OTBM region and quest certification v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "currentMap", "policy", "provenance", "summary", "certifications", "notes"],
+  "properties": {
+    "format": {"const": "canary-otbm-region-quest-certification-v1"},
+    "schemaVersion": {"const": 1},
+    "currentMap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mapSha256", "worldIndexSha256"],
+      "properties": {
+        "mapSha256": {"$ref": "#/$defs/sha256"},
+        "worldIndexSha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["readOnly", "mapModified", "otbmParsedIndependently", "validatorsRecomputed", "physicalE2eExecuted", "candidateValidationExecuted", "strongestContiguousLevelOnly", "currentProvenanceRequired", "worldTargetsCertified", "opaqueScoreEmitted"],
+      "properties": {
+        "readOnly": {"const": true},
+        "mapModified": {"const": false},
+        "otbmParsedIndependently": {"const": false},
+        "validatorsRecomputed": {"const": false},
+        "physicalE2eExecuted": {"const": false},
+        "candidateValidationExecuted": {"const": false},
+        "strongestContiguousLevelOnly": {"const": true},
+        "currentProvenanceRequired": {"const": true},
+        "worldTargetsCertified": {"const": false},
+        "opaqueScoreEmitted": {"const": false}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manifest", "coverageDashboard"],
+      "properties": {
+        "manifest": {"$ref": "#/$defs/inputPin"},
+        "coverageDashboard": {"$ref": "#/$defs/inputPin"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targets", "byLevel", "byState"],
+      "properties": {
+        "targets": {"type": "integer", "minimum": 0},
+        "byLevel": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "byState": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}
+      }
+    },
+    "certifications": {"type": "array", "items": {"$ref": "#/$defs/certification"}},
+    "notes": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "inputPin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fileName", "size", "sha256", "format"],
+      "properties": {
+        "fileName": {"type": "string", "minLength": 1},
+        "size": {"type": "integer", "minimum": 0},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "format": {"type": "string", "minLength": 1}
+      }
+    },
+    "level": {
+      "enum": ["C0_NOT_EVALUATED", "C1_STATIC_INDEXED", "C2_STATIC_CORRELATED", "C3_STATIC_REACHABLE", "C4_STATIC_QUALITY_GREEN", "C5_PHYSICAL_ROUTE_PROVEN", "C6_FEATURE_OR_MECHANIC_PHYSICALLY_PROVEN", "C7_CANDIDATE_CHANGE_REVALIDATED"]
+    },
+    "requestedLevel": {
+      "enum": ["C1_STATIC_INDEXED", "C2_STATIC_CORRELATED", "C3_STATIC_REACHABLE", "C4_STATIC_QUALITY_GREEN", "C5_PHYSICAL_ROUTE_PROVEN", "C6_FEATURE_OR_MECHANIC_PHYSICALLY_PROVEN", "C7_CANDIDATE_CHANGE_REVALIDATED"]
+    },
+    "requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimension", "state", "acceptedStates", "met"],
+      "properties": {
+        "dimension": {"type": "string", "minLength": 1},
+        "state": {"enum": ["proven", "blocked", "stale", "not-evaluated", "not-applicable"]},
+        "acceptedStates": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "met": {"type": "boolean"}
+      }
+    },
+    "levelEvaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "met", "requirements", "blockers"],
+      "properties": {
+        "level": {"$ref": "#/$defs/requestedLevel"},
+        "met": {"type": "boolean"},
+        "requirements": {"type": "array", "items": {"$ref": "#/$defs/requirement"}},
+        "blockers": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "certification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetId", "kind", "reason", "requestedMaximumLevel", "certificationLevel", "certificationState", "staleAgainstCurrentMap", "coverageRequirementsSatisfied", "evaluatedLevels", "blockers", "evidence"],
+      "properties": {
+        "targetId": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["region", "landmark-route", "quest", "mechanic-set"]},
+        "reason": {"type": "string", "minLength": 1},
+        "requestedMaximumLevel": {"$ref": "#/$defs/requestedLevel"},
+        "certificationLevel": {"$ref": "#/$defs/level"},
+        "certificationState": {"enum": ["certified", "blocked", "stale", "not-evaluated"]},
+        "staleAgainstCurrentMap": {"type": "boolean"},
+        "coverageRequirementsSatisfied": {"type": "boolean"},
+        "evaluatedLevels": {"type": "array", "items": {"$ref": "#/$defs/levelEvaluation"}},
+        "blockers": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["format", "reportSha256", "sourceId"],
+          "properties": {
+            "format": {"const": "canary-otbm-coverage-dashboard-v1"},
+            "reportSha256": {"$ref": "#/$defs/sha256"},
+            "sourceId": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    }
+  }
+}
