@@ -2,13 +2,13 @@
 task_id: CAN-20260723-vocation-design-forum-analysis
 program_id: CAN-PROGRAM-REAL-TIBIA-PARITY
 coordination_id: ""
-status: validating
+status: completed
 agent: "Codex"
 branch: agent/add-druid-forum-balance-analysis
 base_branch: main
 created: 2026-07-23T18:52:41+02:00
-updated: 2026-07-23T19:04:00+02:00
-last_verified_commit: "2ba3cdd012951029162edfe176c20fa369d30558"
+updated: 2026-07-23T17:04:19Z
+last_verified_commit: "bd65e83540a7862427bbf46479e78b666aa01e29"
 risk: low
 related_issue: ""
 related_pr: "821"
@@ -33,6 +33,7 @@ reuses:
   - docs/agents/REAL_TIBIA_PARITY_PLAYBOOK.md
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-23T17:04:19Z
 ---
 
 # Goal
@@ -47,9 +48,9 @@ Extend the existing official-forum evidence report with separately scoped design
 - [x] Remove rendered quote blocks before calculating Monk theme-family counts.
 - [x] Separate proposal-component attention, structured answers, recurring requests, and implementation-neutral Canary validation questions.
 - [x] Run documentation diff, provenance, ownership, registry, and forbidden-file checks.
-- [ ] Verify current-head GitHub checks.
+- [x] Verify current-head GitHub checks.
 - [x] Confirm no runtime, catalogue, changelog, registry, or cross-repository change is required.
-- [ ] Satisfy the autonomous merge gate.
+- [x] Satisfy the autonomous merge gate.
 
 # Confirmed context
 
@@ -211,10 +212,12 @@ next_action: Commit and push the completed documentation, then inspect current-h
 
 # Completion
 
-- Final status: in progress
+- Final status: completed
 - PR: 821
-- Merge commit: none
+- Feature head: `e8a488d54ac64a72578e05dd584c99f548aa9d3a`
+- Merge commit: `bd65e83540a7862427bbf46479e78b666aa01e29`
+- Merged at: `2026-07-23T17:04:19Z`
 - Program record updated: not required
 - Catalogue updated: not required
 - Changelog updated: not required
-- Archived at: not applicable
+- Archived at: `2026-07-23T17:04:19Z`
