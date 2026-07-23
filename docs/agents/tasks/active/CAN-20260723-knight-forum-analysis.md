@@ -2,13 +2,13 @@
 task_id: CAN-20260723-knight-forum-analysis
 program_id: CAN-PROGRAM-REAL-TIBIA-PARITY
 coordination_id: ""
-status: implementing
+status: ready
 agent: "Codex"
 branch: agent/add-knight-forum-balance-analysis
 base_branch: main
 created: 2026-07-23T19:10:00+02:00
-updated: 2026-07-23T19:20:00+02:00
-last_verified_commit: "d17d3ae135a2da0cde6a639bae3e60e65479c0e5"
+updated: 2026-07-23T19:21:00+02:00
+last_verified_commit: "d34e2651bf52c7e10036eb88b404445240291280"
 risk: low
 related_issue: ""
 related_pr: "830"
@@ -47,7 +47,7 @@ Add a complete, separately scoped analysis of official Knight design thread `499
 - [x] Remove repeated official proposal boilerplate before theme coding.
 - [x] Add Knight findings, official clarification chronology, and a bounded Canary validation matrix.
 - [x] Run documentation diff, ownership, checkpoint, registry, and forbidden-file validation.
-- [ ] Verify current-head GitHub checks.
+- [x] Verify current-head GitHub checks.
 - [ ] Satisfy the autonomous merge gate.
 
 # Confirmed context
@@ -101,6 +101,7 @@ Add a complete, separately scoped analysis of official Knight design thread `499
 | `d17d3ae135a2da0cde6a639bae3e60e65479c0e5` | `python tools/agents/task_ownership.py` | PASS | Validated 28 active task records. |
 | `d17d3ae135a2da0cde6a639bae3e60e65479c0e5` | `python tools/agents/real_tibia_registry.py validate` | PASS | Registry valid with zero warnings after including the referenced system documentation in the sparse checkout. |
 | `d17d3ae135a2da0cde6a639bae3e60e65479c0e5` | `git diff --check` and exact-path review | PASS | Only this task record and the target forum-analysis report are modified; no forbidden source, registry, or artifact paths are changed. |
+| `d34e2651bf52c7e10036eb88b404445240291280` | GitHub ordinary current-head checks | PASS | AI Agent Tools run `30028598649`, Agent Task Ownership run `30028598595`, and CI scope run `30028598951` passed; documentation-only build and Lua jobs were correctly skipped. |
 
 # Risks and compatibility
 
@@ -114,11 +115,11 @@ Add a complete, separately scoped analysis of official Knight design thread `499
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T19:20:00+02:00
-head: d17d3ae135a2da0cde6a639bae3e60e65479c0e5
+updated_at: 2026-07-23T19:21:00+02:00
+head: d34e2651bf52c7e10036eb88b404445240291280
 branch: agent/add-knight-forum-balance-analysis
 pr: 830
-status: implementing
+status: ready
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -163,8 +164,11 @@ validation:
   - command: git diff --check and exact-path review
     result: PASS
     evidence: Only the task record and target report are modified; no forbidden paths are changed.
+  - command: GitHub ordinary current-head checks
+    result: PASS
+    evidence: AI Agent Tools 30028598649, Agent Task Ownership 30028598595, and CI scope 30028598951 passed on d34e2651bf52c7e10036eb88b404445240291280.
 blockers: []
-next_action: Run final local validation, update the checkpoint with exact evidence, apply ci:final-gate, and push the final commit.
+next_action: Apply ci:final-gate, push this final checkpoint commit, mark PR #830 ready, and merge only after the exact final head passes.
 ```
 
 # Completion
