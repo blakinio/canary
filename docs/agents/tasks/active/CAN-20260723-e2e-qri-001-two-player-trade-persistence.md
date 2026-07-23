@@ -2,13 +2,13 @@
 task_id: CAN-20260723-e2e-qri-001-two-player-trade-persistence
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-QRI-001
-status: implementing
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/e2e-qri-001-two-player-trade-persistence
 base_branch: main
 created: 2026-07-23
 updated: 2026-07-23
-last_verified_commit: "930d7553e87c66e9e00a68c640c86f3d22d16e88"
+last_verified_commit: "4e5a013c1bccfc3b359f6610d8f9ffc36275ec44"
 risk: medium
 related_issue: ""
 related_pr: "806"
@@ -83,18 +83,18 @@ Explicitly excluded:
 
 ## Acceptance criteria
 
-- [ ] Reuse the existing Universal Physical E2E lifecycle and bounded one-secondary-client orchestration without modifying shared runner/workflow files.
-- [ ] Keep feature-specific trade intent only in the QRI-001 task/scenario/test/Lua paths.
-- [ ] Prove distinct Player A and Player B controlled-client identities and artifact streams.
-- [ ] Prove the real maintained-OTClient bilateral player-trade request/counter-offer/accept path; no DB mutation or internal server trade function may substitute for the transfer.
-- [ ] Prove immediate tracked-resource ownership `A=0`, `B=1`, `A+B=1` after trade.
-- [ ] Safely logout and relog both actors and prove the same `A=0`, `B=1`, `A+B=1` tracked-resource state.
-- [ ] Reuse typed persistence assertions where supported and bounded post-cycle SQL for secondary/cross-actor conservation.
-- [ ] Prove no tracked-resource duplication/loss and `players_online=0` after both controlled clients exit.
+- [x] Reuse the existing Universal Physical E2E lifecycle and bounded one-secondary-client orchestration without modifying shared runner/workflow files.
+- [x] Keep feature-specific trade intent only in the QRI-001 task/scenario/test/Lua paths.
+- [x] Prove distinct Player A and Player B controlled-client identities and artifact streams.
+- [x] Prove the real maintained-OTClient bilateral player-trade request/counter-offer/accept path; no DB mutation or internal server trade function substitutes for the transfer.
+- [x] Prove immediate tracked-resource ownership `A=0`, `B=1`, `A+B=1` after trade.
+- [x] Safely logout and relog both actors and prove the same `A=0`, `B=1`, `A+B=1` tracked-resource state.
+- [x] Reuse typed persistence assertions where supported and bounded post-cycle SQL for secondary/cross-actor conservation.
+- [x] Prove no tracked-resource duplication/loss and `players_online=0` after both controlled clients exit.
 - [x] Preserve actor, last successful step, first failed step, expected/observed state and per-client logs in failure evidence.
-- [ ] Pass focused contract/static tests, scenario/schema validation, relevant integration tests, physical two-client E2E, persistence/cleanup validation, Agent Task Ownership and repository CI on the exact final head.
-- [ ] Apply `ci:final-gate` before the final checkpoint commit; make no post-gate head change without revalidation.
-- [ ] Audit exact changed paths, reviews/comments and final head before squash merge; then complete active-to-archive lifecycle closure.
+- [ ] Pass focused contract/static tests, scenario/schema validation, relevant integration tests, physical two-client E2E, persistence/cleanup validation, Agent Task Ownership and repository CI on the exact final checkpoint head.
+- [x] Apply `ci:final-gate` before the final checkpoint commit; make no post-gate head change without revalidation.
+- [ ] Audit exact changed paths, reviews/comments and final checkpoint head before squash merge; then complete active-to-archive lifecycle closure.
 
 ## Integration debt
 
@@ -102,15 +102,33 @@ Explicitly excluded:
 - `E2E-QRI-006` was not delivered on the verified baseline; QRI-001 proves bounded cleanup with controlled exits plus `players_online=0`, but does not claim or implement `cleanup_certified`.
 - Current typed persistence assertions are scoped to the primary scenario fixture. Secondary exact tracked-resource ownership and cross-actor conservation remain on the existing post-cycle SQL boundary.
 
+## Candidate evidence audit
+
+- Candidate feature head before this final checkpoint: `4e5a013c1bccfc3b359f6610d8f9ffc36275ec44`.
+- Candidate PR merge candidate exercised by the successful physical run: `6fcbd1e61394e7cbb0ca7c99186df41918a59fd8`.
+- Candidate Agent Task Ownership: PASS, run `30031054744`.
+- Candidate CI: PASS, run `30031054735`.
+- Physical Universal Agent E2E: PASS, run `30031054740`, physical job `89294034159`, required physical gate `89295543817`.
+- Physical evidence artifact: `8574255440`, digest `sha256:6c68eba232b908f9efb8575299c888db972fc0df93973da93ee742b10124d401`.
+- Physical result: `status=success`, primary client exit `0`, secondary client exit `0`, no fatal runtime log, required markers PASS, two primary packet records, two primary server logins, `lastlogin` and `lastlogout` persisted, all scenario SQL assertions PASS.
+- Trade evidence: mutual visibility at primary `32369,32241,7` and secondary `32369,32242,7`; primary real `requestTrade`; secondary real counter-offer `requestTrade` using existing count-1 item `3374`; own/counter offers observed; bilateral `acceptTrade`; both trade-close events observed.
+- Immediate conservation: `Paladin 15` tracked item `3043` count `0`, `Paladin 14` count `1`, total tracked count `1`.
+- Relog conservation: after both actors safely logout and relog, tracked state remains `A=0`, `B=1`, total `1`.
+- Post-cycle SQL: primary item `3043` absent, secondary item `3043` present exactly once, cross-actor total exactly one, both actors have persisted login/logout timestamps, final `players_online=0`, typed primary absence assertion PASS.
+- Teardown evidence: both secondary sessions and both primary sessions complete; secondary release received; secondary exit clean; final primary logout complete; both controlled client exit codes are zero; final online count is zero.
+- Latest verified `main` before this checkpoint: `baea9fc37156117be91dbcfc7985ef7b4ecd3573`. Changes since the physical run baseline do not modify QRI-001 paths, the shared Universal E2E runner/workflow, multi-client orchestration or persistence compiler; fresh PR compare still reports exactly five QRI-001 changed paths.
+- Review audit before final checkpoint: no PR comments, no review submissions and no inline review threads.
+- `ci:final-gate` was applied to PR #806 before this final checkpoint commit and the PR was marked ready for review.
+
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T19:03:00+02:00
-head: d4fdfaeeb7a2877d2528d5d5e00c34470c471dfb
+updated_at: 2026-07-23T20:27:28+02:00
+head: 4e5a013c1bccfc3b359f6610d8f9ffc36275ec44
 branch: feat/e2e-qri-001-two-player-trade-persistence
 pr: 806
-status: implementing
+status: ready
 context_routes:
   - universal-e2e
   - agent-governance
@@ -122,29 +140,32 @@ owned_paths:
   - tests/e2e/scenarios/multiclient/player-trade-persistence/secondary.lua
   - tests/e2e/test_qri_001_two_player_trade.py
 proven:
-  - Latest verified main before this checkpoint was 930d7553e87c66e9e00a68c640c86f3d22d16e88; exact compare showed only the five QRI-001 changed paths and no overlap with the merged QRI-003 paths.
-  - The bounded two-client contract provides exactly one secondary controlled OTClient; no shared runner or workflow file is modified by QRI-001.
-  - The maintained OTClient ref exposes requestTrade, acceptTrade and onOwnTrade/onCounterTrade/onCloseTrade. Its player-trade module enables acceptance only after a counter offer is received.
-  - Physical run 30020718345 proved the ADM1 primary fixture is asymmetric for player visibility; the actor was reverted to Paladin 15 without increasing timeout.
-  - Physical run 30024132772 proved Paladin 15 and Paladin 14 mutual visibility, zero-item-3043 preconditions, /i fixture creation, and a real primary requestTrade. It failed before transfer because only the primary own offer was observed; the secondary received no offer callback and no counter offer existed.
-  - The current implementation performs a real secondary requestTrade with one existing count-1 non-3043 item after the primary request marker, requires secondary own plus counter offer observations, and only then sends bilateral acceptance.
-  - CI run 30027183101 and Agent Task Ownership run 30027182837 passed on head 8ae04c98c6f194dd589f46bb274b1649dab96ddf.
-  - Universal Agent E2E run 30027183156 reached a Resolve scenario failure before physical execution; database bootstrap passed. No physical result is claimed from that run.
+  - Exact candidate branch head 4e5a013c1bccfc3b359f6610d8f9ffc36275ec44 passed Agent Task Ownership and repository CI.
+  - Universal Agent E2E run 30031054740 physically passed the QRI-001 two-client scenario; required physical gate 89295543817 passed.
+  - The physical run exercised real maintained-OTClient primary requestTrade, real secondary counter-offer requestTrade, bilateral offer observation, bilateral acceptTrade and both close events.
+  - Immediate tracked item 3043 conservation passed as A=0, B=1, total=1.
+  - Both actors safely logged out and relogged; post-relog tracked conservation remained A=0, B=1, total=1.
+  - All seven post-cycle SQL assertions passed, including typed primary absence and final players_online=0.
+  - Both controlled client exit codes are zero; no fatal runtime log was found.
+  - Physical artifact 8574255440 is retained with digest sha256:6c68eba232b908f9efb8575299c888db972fc0df93973da93ee742b10124d401.
+  - Fresh current-main audit at baea9fc37156117be91dbcfc7985ef7b4ecd3573 found no overlap with QRI-001 or its shared read-only Universal E2E contracts; PR diff remains exactly five feature-owned paths.
+  - PR #806 has no comments, reviews or review threads before the final checkpoint.
+  - ci:final-gate was applied before this final checkpoint commit.
 derived:
-  - Run 30024132772 failed on a missing bilateral trade handshake, not timing: maintained-client acceptance requires counter-offer state while the run recorded only the primary own offer.
-  - A count-1 non-3043 counter-offer avoids stack-split behavior and keeps item 3043 as the sole tracked conservation resource.
+  - The previous relog failure was client container-view materialization rather than persistence loss because post-cycle SQL already proved the secondary durable item; bounded re-open within the existing timeout resolved it without weakening persistence criteria.
+  - The real bilateral protocol handshake requires a secondary counter-offer before both clients can observe complete offer state and accept.
 unknown:
-  - Exact physical runtime result for the bilateral handshake implementation.
-  - Focused QRI-001 unittest result; local execution was attempted but the available local environment could not resolve github.com, so no PASS is claimed.
+  - Exact final checkpoint-head gate results until this commit completes Agent Task Ownership, full final-gate CI and Universal Agent E2E validation.
+  - Standalone local execution of tests/e2e/test_qri_001_two_player_trade.py remains unavailable because the local environment cannot resolve github.com; final-gate CI must provide the authoritative focused/static coverage required before merge.
 conflicts: []
 first_failure:
-  marker: trade_offer
-  evidence: Physical run 30024132772 last succeeded at trade_request_sent; primary own offer was observed, secondary offer was absent, item 3043 remained with Player A, and players_online returned to zero. The implementation now adds the real secondary counter-offer request required before bilateral acceptance.
+  marker: none
+  evidence: Candidate physical run 30031054740 passed real bilateral trade, immediate conservation, safe logout/relog, durable conservation, SQL persistence and cleanup. Only final checkpoint-head validation remains.
 rejected_hypotheses:
-  - Increase runtime timeout; rejected because physical failures supplied deterministic protocol/visibility evidence rather than elapsed-time evidence.
+  - Increase runtime timeout; rejected because physical failures supplied deterministic protocol, visibility or container-materialization evidence rather than elapsed-time evidence.
   - Use ADM1 as the final primary actor; rejected because physical evidence proved asymmetric player visibility.
-  - Treat fixture creation as trade proof; rejected because run 30024132772 created item 3043 but no transfer occurred.
-  - Call acceptTrade on Player B immediately after Player A request; rejected because maintained-client protocol evidence shows acceptance becomes actionable only after a counter offer.
+  - Treat fixture creation as trade proof; rejected because fixture creation without real transfer failed an earlier run.
+  - Call acceptTrade on Player B immediately after Player A request; rejected because maintained-client protocol evidence requires complete counter-offer state.
   - Add a server-side trade helper or direct DB transfer; rejected because QRI-001 must prove the real player protocol path.
   - Implement QRI-005 or QRI-006 inside QRI-001; rejected as separate packages/integration debt.
 changed_paths:
@@ -154,17 +175,23 @@ changed_paths:
   - tests/e2e/scenarios/multiclient/player-trade-persistence/secondary.lua
   - tests/e2e/test_qri_001_two_player_trade.py
 validation:
-  - command: CI run 30027183101
+  - command: Agent Task Ownership run 30031054744
     result: PASS
-    evidence: Repository CI passed on bilateral-handshake head 8ae04c98c6f194dd589f46bb274b1649dab96ddf.
-  - command: Agent Task Ownership run 30027182837
+    evidence: Ownership and task-record governance passed on candidate feature head 4e5a013c1bccfc3b359f6610d8f9ffc36275ec44.
+  - command: CI run 30031054735
     result: PASS
-    evidence: Ownership and task-record governance passed on bilateral-handshake head 8ae04c98c6f194dd589f46bb274b1649dab96ddf.
-  - command: Universal Agent E2E run 30027183156
-    result: FAIL
-    evidence: Resolve scenario failed before physical execution; database bootstrap passed. Fresh validation is required on this checkpoint successor.
+    evidence: Repository required CI passed on candidate feature head 4e5a013c1bccfc3b359f6610d8f9ffc36275ec44.
+  - command: Universal Agent E2E run 30031054740
+    result: PASS
+    evidence: Physical job 89294034159 and required gate 89295543817 passed real bilateral trade, relog persistence and cleanup; artifact 8574255440 retained exact evidence.
+  - command: Physical artifact SQL and lifecycle audit
+    result: PASS
+    evidence: All seven SQL assertions passed; immediate and relog conservation are A=0 B=1 total=1; both client exits are zero; final players_online=0.
+  - command: Current-main and review audit before final checkpoint
+    result: PASS
+    evidence: main baea9fc37156117be91dbcfc7985ef7b4ecd3573 adds no overlap with QRI-001/shared Universal E2E contracts; PR diff remains five feature-owned paths; comments, reviews and review threads are empty.
 blockers:
-  - Fresh Universal Agent E2E must resolve the scenario and execute the bilateral physical trade path successfully.
-  - Focused QRI-001 unittest still needs an executable repository environment; no PASS is claimed yet.
-next_action: Run fresh exact-head validation, inspect the first causal failure if any, then apply only QRI-001-owned fixes until physical trade, relog persistence and cleanup pass.
+  - Exact final checkpoint-head Agent Task Ownership, full ci:final-gate CI and Universal Agent E2E must pass with no later feature-branch commit.
+  - Focused/static QRI-001 contract coverage must be green in the authoritative final-gate validation before merge; no standalone local PASS is claimed.
+next_action: Make no further feature-branch commit. Require exact final checkpoint-head gates, then perform final scope/review audit, squash-merge PR #806 with expected head SHA, verify main, and complete lifecycle-only active-to-archive closure.
 ```
