@@ -1,0 +1,175 @@
+{
+  "$defs": {
+    "binding": {
+      "additionalProperties": false,
+      "properties": {
+        "bindingState": {"enum": ["bound", "unavailable"]},
+        "blockers": {"$ref": "#/$defs/strings"},
+        "targetId": {"type": ["string", "null"]}
+      },
+      "required": ["bindingState", "targetId", "blockers"],
+      "type": "object"
+    },
+    "position": {
+      "items": false,
+      "maxItems": 3,
+      "minItems": 3,
+      "prefixItems": [
+        {"maximum": 65535, "minimum": 0, "type": "integer"},
+        {"maximum": 65535, "minimum": 0, "type": "integer"},
+        {"maximum": 15, "minimum": 0, "type": "integer"}
+      ],
+      "type": "array"
+    },
+    "sha": {"pattern": "^[0-9a-f]{64}$", "type": "string"},
+    "strings": {"items": {"minLength": 1, "type": "string"}, "type": "array", "uniqueItems": true},
+    "target": {
+      "additionalProperties": false,
+      "properties": {
+        "blockers": {"$ref": "#/$defs/strings"},
+        "class": {"enum": ["region", "landmark-route", "quest", "mechanic-set"]},
+        "conflictingEvidence": {"$ref": "#/$defs/strings"},
+        "id": {"minLength": 1, "type": "string"},
+        "physicalE2e": {
+          "additionalProperties": false,
+          "properties": {
+            "artifactDigestSha256": {"$ref": "#/$defs/sha"},
+            "artifactId": {"minimum": 1, "type": "integer"},
+            "evidenceExtractIds": {"$ref": "#/$defs/strings"},
+            "resultFileSha256": {"$ref": "#/$defs/sha"},
+            "runtimeMapSha256": {"$ref": "#/$defs/sha"},
+            "scenarioManifestFileSha256": {"$ref": "#/$defs/sha"},
+            "scope": {"minLength": 1, "type": "string"},
+            "status": {"enum": ["retained-success", "missing"]},
+            "workflowRunId": {"minimum": 1, "type": "integer"}
+          },
+          "required": [
+            "status", "scope", "runtimeMapSha256", "workflowRunId", "artifactId",
+            "artifactDigestSha256", "evidenceExtractIds", "resultFileSha256",
+            "scenarioManifestFileSha256"
+          ],
+          "type": "object"
+        },
+        "provenance": {
+          "additionalProperties": false,
+          "properties": {
+            "sourceMapSha256": {"$ref": "#/$defs/sha"},
+            "worldIndexSha256": {"$ref": "#/$defs/sha"}
+          },
+          "required": ["sourceMapSha256", "worldIndexSha256"],
+          "type": "object"
+        },
+        "qa005": {"$ref": "#/$defs/binding"},
+        "qa006": {
+          "additionalProperties": false,
+          "properties": {
+            "bindingState": {"enum": ["bound", "unavailable"]},
+            "blockers": {"$ref": "#/$defs/strings"},
+            "maximumLevel": {
+              "enum": [
+                "C1_STATIC_INDEXED", "C2_STATIC_CORRELATED", "C3_STATIC_REACHABLE",
+                "C4_STATIC_QUALITY_GREEN", "C5_PHYSICAL_ROUTE_PROVEN",
+                "C6_FEATURE_OR_MECHANIC_PHYSICALLY_PROVEN", "C7_CANDIDATE_CHANGE_REVALIDATED"
+              ]
+            },
+            "targetId": {"type": ["string", "null"]}
+          },
+          "required": ["bindingState", "targetId", "maximumLevel", "blockers"],
+          "type": "object"
+        },
+        "qa016": {
+          "additionalProperties": false,
+          "properties": {"freshnessDimensionIds": {"$ref": "#/$defs/strings"}},
+          "required": ["freshnessDimensionIds"],
+          "type": "object"
+        },
+        "qa018": {
+          "additionalProperties": false,
+          "properties": {
+            "requiredExtracts": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {"minLength": 1, "type": "string"},
+                  "sourceSha256": {"$ref": "#/$defs/sha"},
+                  "valueSha256": {"$ref": "#/$defs/sha"}
+                },
+                "required": ["id", "sourceSha256", "valueSha256"],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "required": ["requiredExtracts"],
+          "type": "object"
+        },
+        "reviewedDefinition": {
+          "additionalProperties": false,
+          "properties": {
+            "destination": {"$ref": "#/$defs/position"},
+            "fromLandmarkId": {"minLength": 1, "type": "string"},
+            "origin": {"$ref": "#/$defs/position"},
+            "references": {"$ref": "#/$defs/strings"},
+            "regionId": {"minLength": 1, "type": "string"},
+            "reviewStatus": {"const": "reviewed"},
+            "routingBounds": {
+              "additionalProperties": false,
+              "properties": {
+                "from": {"$ref": "#/$defs/position"},
+                "to": {"$ref": "#/$defs/position"}
+              },
+              "required": ["from", "to"],
+              "type": "object"
+            },
+            "toLandmarkId": {"minLength": 1, "type": "string"}
+          },
+          "required": [
+            "reviewStatus", "fromLandmarkId", "toLandmarkId", "regionId", "origin",
+            "destination", "routingBounds", "references"
+          ],
+          "type": "object"
+        },
+        "routeEvidence": {
+          "additionalProperties": false,
+          "properties": {
+            "destination": {"$ref": "#/$defs/position"},
+            "distance": {"minimum": 0, "type": "integer"},
+            "interactionRequired": {"type": "boolean"},
+            "origin": {"$ref": "#/$defs/position"},
+            "preflightFileSha256": {"$ref": "#/$defs/sha"},
+            "preflightStatus": {"const": "passed"},
+            "routeId": {"minLength": 1, "type": "string"},
+            "routePlanFileSha256": {"$ref": "#/$defs/sha"},
+            "routePlanSha256": {"$ref": "#/$defs/sha"},
+            "transitionIds": {"$ref": "#/$defs/strings"}
+          },
+          "required": [
+            "routeId", "routePlanSha256", "routePlanFileSha256", "preflightFileSha256",
+            "preflightStatus", "origin", "destination", "distance", "interactionRequired",
+            "transitionIds"
+          ],
+          "type": "object"
+        },
+        "unresolvedEvidence": {"$ref": "#/$defs/strings"}
+      },
+      "required": [
+        "id", "class", "reviewedDefinition", "provenance", "qa005", "qa006", "qa016",
+        "qa018", "routeEvidence", "physicalE2e", "unresolvedEvidence", "conflictingEvidence",
+        "blockers"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/blakinio/canary/docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN_MANIFEST.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "campaignId": {"minLength": 1, "type": "string"},
+    "format": {"const": "canary-otbm-world-assurance-campaign-manifest-v1"},
+    "schemaVersion": {"const": 1},
+    "targets": {"items": {"$ref": "#/$defs/target"}, "minItems": 1, "type": "array"}
+  },
+  "required": ["format", "schemaVersion", "campaignId", "targets"],
+  "title": "Canary OTBM World Assurance Campaign Manifest v1",
+  "type": "object"
+}
