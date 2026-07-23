@@ -5,8 +5,8 @@ name: OTBM Tibia Client Reference Programme
 status: active
 owner: OTBM analysis tooling / Real Tibia parity
 created: 2026-07-23T10:00:00+02:00
-updated: 2026-07-23T10:00:00+02:00
-last_verified_commit: "8837f35eb43da6a3ed7efc6a1e8f3bca19342d2e"
+updated: 2026-07-23T16:25:23+02:00
+last_verified_commit: "d5a08db0502fb85ff807c9c18f02bf92bd1faaed"
 primary_paths:
   - docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md
   - docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
@@ -142,8 +142,8 @@ Mandatory reuse before implementation:
 
 | ID | Scope | Status | Evidence baseline | Dependencies | Risk | Exact next action |
 |---|---|---|---|---|---|---|
-| TCR-000 | Architecture, programme and discovery integration | active | Canary main `8837f35e...`; Beats research pin `ed827be3...` | none | low | Complete PR #762 documentation integration; no parser/runtime changes. |
-| TCR-001 | Client Package Manifest | planned | architecture v1 | TCR-000 merged | medium | Implement `canary-tibia-client-reference-manifest-v1` with explicit selected files, SHA-256, path confinement, build-evidence states, deterministic output and focused tests. |
+| TCR-000 | Architecture, programme and discovery integration | merged | Canary main `d5a08db0...`; Beats research pin `ed827be3...` | none | low | Complete. Architecture/governance merged in PR #762; no producer output format was delivered. |
+| TCR-001 | Client Package Manifest | planned (next) | architecture v1 | TCR-000 merged | medium | Implement `canary-tibia-client-reference-manifest-v1` with explicit selected files, SHA-256, path confinement, build-evidence states, deterministic output and focused tests. |
 | TCR-002 | StaticData Reference Index | planned | exact manifest + independently verified old/new fixtures | TCR-001 | medium | Implement `canary-tibia-staticdata-index-v1`; prove schema selection on Canary-owned fixtures and an opt-in real file outside Git. |
 | TCR-003 | StaticMapData House Index | planned | exact manifest + independently verified fixture | TCR-001 | medium | Implement `canary-tibia-staticmapdata-index-v1` with house/layout provenance, row/dimension consistency and unresolved object-ID namespace. |
 | TCR-004 | Proficiency Reference Index | planned | exact explicit proficiency file + appearances index | TCR-001 | medium | Implement `canary-tibia-proficiency-index-v1`; preserve levels/perks and correlate only explicit proficiency-ID evidence. |
@@ -154,6 +154,14 @@ Mandatory reuse before implementation:
 | TCR-009 | Client Reference Drift | planned | two complete exact reference manifests/index sets | TCR-002, TCR-003, TCR-004 | medium | Implement deterministic `canary-tibia-client-reference-drift-v1` and dependency-scoped staleness inputs. |
 | TCR-010 | Compact Evidence Gateway Integration | planned | stable TCR report formats | TCR-005, TCR-006, TCR-007, TCR-009 | low | Add reviewed JSON-pointer extracts to the existing QA-018 evidence gateway; do not reparse or reinterpret source semantics. |
 | TCR-011 | Reviewed Adoption Router | planned | stable parity/drift findings | TCR-005, TCR-006, TCR-007, TCR-009 | medium | Implement review-only routing to existing OTBM repair chains or subsystem tasks; no approval generation and no executor. |
+
+# Stable producer contract state
+
+TCR-000 stabilizes and merges the **architecture/governance contract only**.
+
+No TCR producer output format is `stable/merged` yet. In particular, `canary-tibia-client-reference-manifest-v1`, `canary-tibia-staticdata-index-v1`, `canary-tibia-staticmapdata-index-v1`, `canary-tibia-proficiency-index-v1`, the parity/correlation reports and `canary-tibia-client-reference-drift-v1` remain planned contracts until their owning bounded packages merge.
+
+Therefore OWA-003 must not consume any TCR producer artifact yet. The first producer dependency is TCR-001; later OWA consumption remains blocked until the exact required producer formats are individually stable/merged.
 
 # Package contracts
 
@@ -381,11 +389,12 @@ This proves the integration architecture before broader content correlation or a
 | TCR-010 | existing QA-018 | existing QA-018 | existing QA-018 | pointer fixtures | evidence gateway | no |
 | TCR-011 | required | exact finding refs | n/a | routing fixtures | repair/subsystem owners | downstream |
 
-# Active task
+# Last completed task
 
-- Task: `docs/agents/tasks/active/CAN-20260723-otbm-tibia-client-reference-architecture.md`
-- PR: `#762`
-- Scope: TCR-000 documentation/architecture only.
+- Task: `docs/agents/tasks/archive/CAN-20260723-otbm-tibia-client-reference-architecture.md`
+- PR: `#762` — merged.
+- Merge commit: `d5a08db0502fb85ff807c9c18f02bf92bd1faaed`.
+- Scope: TCR-000 documentation/architecture only; no parser, producer artifact or runtime/map mutation implementation.
 
 # Blockers and unresolved references
 
@@ -397,7 +406,7 @@ This proves the integration architecture before broader content correlation or a
 
 # Exact next action after TCR-000
 
-After PR #762 is merged and its task archived, start **only TCR-001 — Client Package Manifest** from then-current `main`.
+TCR-000 is merged. After this lifecycle archive lands, start **only TCR-001 — Client Package Manifest** from then-current `main` after a fresh ownership/PR/reuse preflight.
 
 Do not start TCR-002/TCR-003 parser implementation in the TCR-001 PR.
 
@@ -414,7 +423,8 @@ A continuation agent must:
 7. create one active task, branch and early draft PR;
 8. keep user-supplied client files outside Git;
 9. preserve `UNKNOWN` rather than guessing client build, item ID mappings or gameplay semantics;
-10. use existing OTBM/QA/repair/E2E owners instead of creating duplicates.
+10. use existing OTBM/QA/repair/E2E owners instead of creating duplicates;
+11. treat TCR-000 architecture/governance as merged, but treat all TCR producer/report formats as **not yet stable for OWA-003 consumption** until their owning packages merge.
 
 # Agent kickoff prompt
 
