@@ -56,12 +56,15 @@ class Qri001TwoPlayerTradeTests(unittest.TestCase):
         self.assertEqual(values["AGENT_E2E_PRIMARY_CHARACTER"], "Paladin 15")
         self.assertNotIn("AGENT_E2E_PASSWORD", values)
 
-    def test_trade_is_driven_through_real_maintained_client_protocol_surface(self) -> None:
+    def test_trade_is_driven_through_real_bilateral_maintained_client_protocol_surface(self) -> None:
         self.assertIn('g_game.talk("/i 3043, 1")', self.primary)
         self.assertIn("g_game.open(backpack, nil)", self.primary)
         self.assertIn("g_game.open(backpack, nil)", self.secondary)
         self.assertIn("g_game.findItemInContainers(RESOURCE_ITEM_ID, -1, 0)", self.primary)
         self.assertIn("g_game.requestTrade(item, peer)", self.primary)
+        self.assertIn("g_game.requestTrade(counterItem, primary)", self.secondary)
+        self.assertIn('hasEvent(PRIMARY_EVENTS_PATH, "trade_request", "sent")', self.secondary)
+        self.assertIn("item:getCount() == 1", self.secondary)
         self.assertIn("g_game.acceptTrade()", self.primary)
         self.assertIn("g_game.acceptTrade()", self.secondary)
         self.assertIn("onOwnTrade", self.primary)
@@ -70,17 +73,20 @@ class Qri001TwoPlayerTradeTests(unittest.TestCase):
         self.assertIn("onOwnTrade", self.secondary)
         self.assertIn("onCounterTrade", self.secondary)
         self.assertIn("onCloseTrade", self.secondary)
+        self.assertIn("not ownTradeObserved or not counterTradeObserved", self.secondary)
         self.assertNotIn("Game.createItem", self.primary + self.secondary)
         self.assertNotIn("player:addItem", self.primary + self.secondary)
         self.assertNotIn("mariadb", self.primary + self.secondary)
         self.assertNotIn("io.popen", self.primary + self.secondary)
 
-    def test_fixture_uses_one_nonstarter_resource_inside_existing_backpack(self) -> None:
+    def test_fixture_uses_one_tracked_resource_and_existing_count_one_counteroffer(self) -> None:
         self.assertIn("local RESOURCE_ITEM_ID = 3043", self.primary)
         self.assertIn("local RESOURCE_ITEM_ID = 3043", self.secondary)
         self.assertIn('appendEvent("trade_fixture_created", "item-3043")', self.primary)
         self.assertIn('appendEvent("trade_fixture_precondition", "empty")', self.primary)
         self.assertIn('appendEvent("trade_fixture_precondition_secondary", "empty")', self.secondary)
+        self.assertIn('appendEvent("trade_counteroffer_secondary", "selected")', self.secondary)
+        self.assertIn('appendEvent("trade_counteroffer_item_id", tostring(counterItem:getId()))', self.secondary)
         self.assertIn('appendEvent("trade_backpack_open_" .. phase, "confirmed")', self.primary)
         self.assertIn('appendEvent("trade_backpack_open_" .. phase, "confirmed")', self.secondary)
 
@@ -90,7 +96,11 @@ class Qri001TwoPlayerTradeTests(unittest.TestCase):
             "trade_backpack_open_1=confirmed",
             "trade_fixture_created=item-3043",
             "trade_request=sent",
+            "trade_counteroffer_secondary=selected",
+            "trade_request_secondary=sent",
             "trade_offer_primary=observed",
+            "trade_offer_secondary_own=observed",
+            "trade_offer_secondary_counter=observed",
             "trade_offer_secondary=observed",
             "trade_accept_primary=sent",
             "trade_accept_secondary=sent",
