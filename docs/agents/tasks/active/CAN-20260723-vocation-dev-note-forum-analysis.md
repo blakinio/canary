@@ -7,8 +7,8 @@ agent: "Codex"
 branch: agent/dev-note-vocation-forum-analysis
 base_branch: main
 created: 2026-07-23T19:11:40+02:00
-updated: 2026-07-23T19:26:29+02:00
-last_verified_commit: "074d27046037031b7d4947a3c4c3aeefc0cdb09e"
+updated: 2026-07-23T20:12:00+02:00
+last_verified_commit: "2a3e6fa1dc87169ff65ee09f59195324bd5f7d3a"
 risk: low
 related_issue: ""
 related_pr: "831"
@@ -48,7 +48,7 @@ Add a complete, evidence-bounded analysis of official Dev Note thread `4989637` 
 # Confirmed context
 
 - Repository and PR target are exactly `blakinio/canary:main`.
-- PR #821 merged the current Druid, Monk, General Changes, Sorcerer, Release State, and Release report baseline.
+- PR #821 merged the Druid, Monk, General Changes, Sorcerer, Release State, and Release report baseline; PR #830 later added the complete Knight corpus and PR #837 archived its task.
 - Draft PR #823 currently edits only its Paladin task record and keeps the report read-only. Coordination comment records that this task owns the report until merge.
 - Chrome collection returned all 82 rendered public pages and all 1,625 displayed post identifiers without duplicates.
 - The corpus contains five official-marker posts and 1,620 community posts from 1,400 community author names.
@@ -56,7 +56,7 @@ Add a complete, evidence-bounded analysis of official Dev Note thread `4989637` 
 
 # Current state
 
-The full corpus and reproducibility manifest are retained outside Git. The complete report is committed and pushed to draft PR #831, local repository validation passes, and `ci:final-gate` is applied. Only the exact-final-head CI and merge gate remain.
+The full corpus and reproducibility manifest are retained outside Git. The complete report is committed to PR #831 and rebased through the merged Knight analysis without dropping either corpus. Local repository validation passes and `ci:final-gate` is applied. Only the new exact-final-head CI and merge gate remain.
 
 # Plan
 
@@ -68,8 +68,8 @@ The full corpus and reproducibility manifest are retained outside Git. The compl
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T19:26:29+02:00
-head: 074d27046037031b7d4947a3c4c3aeefc0cdb09e
+updated_at: 2026-07-23T20:12:00+02:00
+head: 2a3e6fa1dc87169ff65ee09f59195324bd5f7d3a
 branch: agent/dev-note-vocation-forum-analysis
 pr: 831
 status: ready
@@ -114,7 +114,7 @@ validation:
     evidence: Only the task record and shared Markdown report changed; no map, item, datapack, secret, or credential paths changed.
   - command: report corpus, total, manifest-hash, and stale-text assertions
     result: PASS
-    evidence: The report records 1,625 collected posts, the 6,592-post combined primary corpus, 48 official markers, the canonical manifest hash, and no stale 4,967-post conclusion.
+    evidence: The report records 1,625 collected Dev Note posts, preserves 595 Knight posts, reports the 7,187-post combined complete-thread corpus and 51 official markers, and retains the canonical manifest hash.
   - command: complete browser-rendered forum corpus audit
     result: PASS
     evidence: 82 pages contain 1,625 unique post identifiers and zero duplicate identifiers.
@@ -128,5 +128,5 @@ validation:
     result: PASS
     evidence: Frontmatter status is now ready and matches checkpoint status ready; the final gate must rerun on the corrective head.
 blockers: []
-next_action: Push the corrective final checkpoint commit, wait for all required checks on its exact head, then mark PR #831 ready and squash-merge.
+next_action: Push the conflict-resolution checkpoint, wait for all required checks on its exact head, then squash-merge PR #831.
 ```

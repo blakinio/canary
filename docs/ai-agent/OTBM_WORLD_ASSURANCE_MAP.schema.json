@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/ai-agent/OTBM_WORLD_ASSURANCE_MAP.schema.json",
+  "title": "Canary OTBM World Assurance Map v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "campaign", "sourceMapSha256", "targets", "summary", "policy", "reportSha256"],
+  "properties": {
+    "format": {"const": "canary-otbm-world-assurance-map-v1"},
+    "schemaVersion": {"const": 1},
+    "campaign": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "campaignId", "fileSha256", "reportSha256"],
+      "properties": {
+        "format": {"const": "canary-otbm-world-assurance-campaign-v1"},
+        "campaignId": {"type": "string", "minLength": 1},
+        "fileSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "reportSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "sourceMapSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "class", "status", "exactProvenance", "bounds", "baseRender", "overlay"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "class": {"enum": ["region", "landmark-route", "quest", "mechanic-set"]},
+          "status": {"enum": ["certified", "blocked", "stale"]},
+          "exactProvenance": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sourceMapSha256", "worldIndexSha256"],
+            "properties": {
+              "sourceMapSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+              "worldIndexSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+            }
+          },
+          "bounds": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["from", "to"],
+            "properties": {
+              "from": {"$ref": "#/$defs/position"},
+              "to": {"$ref": "#/$defs/position"}
+            }
+          },
+          "baseRender": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["renderer", "output", "executed", "outputSha256", "width", "height", "source", "summary"],
+            "properties": {
+              "renderer": {"const": "tools/ai-agent/otbm_renderer.py:render_region"},
+              "output": {"type": "string", "minLength": 1},
+              "executed": {"type": "boolean"},
+              "outputSha256": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^[0-9a-f]{64}$"}]},
+              "width": {"type": "integer", "minimum": 1},
+              "height": {"type": "integer", "minimum": 1},
+              "source": {"oneOf": [{"type": "null"}, {"type": "object"}]},
+              "summary": {"oneOf": [{"type": "null"}, {"type": "object"}]}
+            }
+          },
+          "overlay": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["output", "executed", "outputSha256", "canvas", "annotations", "panels"],
+            "properties": {
+              "output": {"type": "string", "minLength": 1},
+              "executed": {"type": "boolean"},
+              "outputSha256": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^[0-9a-f]{64}$"}]},
+              "canvas": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["mapWidth", "mapHeight", "panelWidth"],
+                "properties": {
+                  "mapWidth": {"type": "integer", "minimum": 1},
+                  "mapHeight": {"type": "integer", "minimum": 1},
+                  "panelWidth": {"type": "integer", "minimum": 1}
+                }
+              },
+              "annotations": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["id", "kind", "geometry", "label", "evidenceRefs"],
+                  "properties": {
+                    "id": {"type": "string", "minLength": 1},
+                    "kind": {"enum": ["region-outline", "point"]},
+                    "geometry": {"type": "object"},
+                    "label": {"type": "string", "minLength": 1},
+                    "evidenceRefs": {"$ref": "#/$defs/evidenceRefs"}
+                  }
+                }
+              },
+              "panels": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["id", "title", "value", "detailLines", "evidenceRefs"],
+                  "properties": {
+                    "id": {"type": "string", "minLength": 1},
+                    "title": {"type": "string", "minLength": 1},
+                    "value": {"type": "string", "minLength": 1},
+                    "detailLines": {"type": "array", "items": {"type": "string", "minLength": 1}},
+                    "evidenceRefs": {"$ref": "#/$defs/evidenceRefs"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targets", "byStatus"],
+      "properties": {
+        "targets": {"type": "integer", "minimum": 1},
+        "byStatus": {"type": "object"}
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "existingRendererReused", "mapImageRenderer", "overlayContainsMapTerrain",
+        "routeGeometryInferred", "pathfindingPerformed", "qaValidatorsRerun",
+        "physicalE2eRun", "aiImageGenerationUsed", "mapModified",
+        "compositeHealthScoreProduced", "colourIsProof", "generatedArtifactsCommitted"
+      ],
+      "properties": {
+        "existingRendererReused": {"const": true},
+        "mapImageRenderer": {"const": "tools/ai-agent/otbm_renderer.py:render_region"},
+        "overlayContainsMapTerrain": {"const": false},
+        "routeGeometryInferred": {"const": false},
+        "pathfindingPerformed": {"const": false},
+        "qaValidatorsRerun": {"const": false},
+        "physicalE2eRun": {"const": false},
+        "aiImageGenerationUsed": {"const": false},
+        "mapModified": {"const": false},
+        "compositeHealthScoreProduced": {"const": false},
+        "colourIsProof": {"const": false},
+        "generatedArtifactsCommitted": {"const": false}
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifactRoot", "sourceMap", "assetsRoot", "outputDirectory", "sourceMapSha256"],
+      "properties": {
+        "artifactRoot": {"const": "."},
+        "sourceMap": {"type": "string", "minLength": 1},
+        "assetsRoot": {"type": "string", "minLength": 1},
+        "outputDirectory": {"type": "string", "minLength": 1},
+        "sourceMapSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "reportSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "evidenceRefs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^campaign:[0-9a-f]{64}#/targets/[0-9]+/"
+      }
+    }
+  }
+}
