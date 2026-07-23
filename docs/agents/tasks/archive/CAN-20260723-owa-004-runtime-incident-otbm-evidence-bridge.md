@@ -7,12 +7,13 @@ agent: "GPT-5.6 Thinking"
 branch: feat/owa-004-runtime-incident-evidence-bridge-20260723
 base_branch: main
 created: 2026-07-23T19:55:32+02:00
-updated: 2026-07-24T00:31:43+02:00
+updated: 2026-07-24T00:35:05+02:00
 completed: 2026-07-24T00:31:43+02:00
 last_verified_commit: "a3e7571303c5ce87ed85c054a8a7607cd4433d5c"
 risk: medium
 related_issue: ""
 related_pr: "838"
+lifecycle_pr: "847"
 depends_on:
   - "OWA-002 lifecycle PR #834"
   - "QA-018 Compact Evidence Gateway"
@@ -63,11 +64,11 @@ Deliver `OWA-004 — Runtime Incident to OTBM Evidence Bridge` as a bounded dete
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T22:31:43Z
-head: 01246f0c37c1656141302408bd139967b39f05fb
-branch: feat/owa-004-runtime-incident-evidence-bridge-20260723
-pr: 838
-status: completed
+updated_at: 2026-07-23T22:35:05Z
+head: a3e7571303c5ce87ed85c054a8a7607cd4433d5c
+branch: docs/archive-owa-004-20260724
+pr: 847
+status: lifecycle-closing
 context_routes:
   - agent-governance
   - otbm
@@ -78,6 +79,7 @@ proven:
   - Exact feature head 01246f0c37c1656141302408bd139967b39f05fb passed Agent Task Ownership run 30048976497, OTBM Map Tools run 30048976234, AI Agent Tools run 30048976525 and CI run 30048976533.
   - Protected ready-state CI run 30049111197 completed successfully on the unchanged exact feature head.
   - PR 838 was squash-merged as a3e7571303c5ce87ed85c054a8a7607cd4433d5c.
+  - Lifecycle PR 847 archives the task, removes active ownership and advances the programme to OWA-006 target selection while preserving OWA-003 TCR gating.
   - No generated OTBM, WIDX, evidence bundle, render or proprietary asset was committed.
 derived:
   - Reviewed exact selector bindings are the narrowest safe incident-to-static-evidence bridge without taking runtime diagnosis ownership.
@@ -104,7 +106,7 @@ validation:
     result: PASS
     evidence: run 30049111197 / CI #5211
 blockers: []
-next_action: Close OWA-004 lifecycle, update the OWA programme queue/handoff, then perform a fresh OWA-006 target-selection and ownership preflight without entering TCR-owned work.
+next_action: Merge lifecycle PR 847 after exact-final-head lifecycle gates, then perform a fresh OWA-006 target-selection and ownership preflight without entering TCR-owned work.
 ```
 
 ## Automated lifecycle completion
@@ -114,4 +116,5 @@ next_action: Close OWA-004 lifecycle, update the OWA programme queue/handoff, th
 - Merge commit: `a3e7571303c5ce87ed85c054a8a7607cd4433d5c`.
 - Merged at: `2026-07-23T22:31:43Z`.
 - Ready-state protected CI: run `30049111197`, success.
+- Lifecycle PR: #847.
 - This archive releases OWA-004 task ownership after lifecycle merge.
