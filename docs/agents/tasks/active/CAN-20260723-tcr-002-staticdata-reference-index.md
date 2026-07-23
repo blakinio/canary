@@ -2,13 +2,13 @@
 task_id: CAN-20260723-tcr-002-staticdata-reference-index
 program_id: CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE
 coordination_id: OTBM-TIBIA-CLIENT-REFERENCE
-status: validating
+status: active
 agent: "GPT-5.6 Thinking"
 branch: feat/tcr-002-staticdata-reference-index-20260723
 base_branch: main
 created: 2026-07-23T19:05:00+02:00
-updated: 2026-07-23T22:00:00+02:00
-last_verified_commit: "1efa5a157f05de96163329e92de5f103aaeb9f62"
+updated: 2026-07-23T22:05:00+02:00
+last_verified_commit: "a50823b41a784894cf5c1abf5b22f36cbf987d86"
 risk: medium
 related_issue: ""
 related_pr: "827"
@@ -65,8 +65,8 @@ Deliver exactly TCR-002 StaticData Reference Index: a deterministic, read-only `
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T22:00:00+02:00
-head: 1efa5a157f05de96163329e92de5f103aaeb9f62
+updated_at: 2026-07-23T22:05:00+02:00
+head: a50823b41a784894cf5c1abf5b22f36cbf987d86
 branch: feat/tcr-002-staticdata-reference-index-20260723
 pr: 827
 status: validating
@@ -97,8 +97,8 @@ proven:
   - Private opt-in validation against the user-supplied external StaticData file outside Git selected legacy schema, parsed 2700 top-level records (812 creatures, 356 titles, 995 houses, 438 bosses, 99 quests) and reported zero duplicate-ID, missing-required-field or duplicate-singular-field findings; no proprietary bytes or record dump is committed.
   - Draft head 2a622199e57bb90578d7d14ffece1ab6b4c97ca2 passed repository CI run 30028730076, AI Agent Tools run 30028729754, Agent Task Ownership run 30028729771 and Tibia Client Reference run 30028729701.
   - An attempted shared MODULE_CATALOG status update was fully removed before finalization after detecting an unrelated stale-line replacement; PR #827 is back to exactly seven intended feature/task/workflow files and current main drift is non-overlapping.
-  - First final-gate head 961e4dad1d7c50bd736d4ec6c6f800e06abc178b passed Tibia Client Reference but Agent Task Ownership rejected only checkpoint status `review`; the active-task validator accepts `validating`, which this checkpoint uses.
-  - Corrected final-gate head 1efa5a157f05de96163329e92de5f103aaeb9f62 passed repository CI, AI Agent Tools and Tibia Client Reference; Agent Task Ownership rejected only `proven` compactness because 17 items exceeded the 16-item limit, now corrected without implementation changes.
+  - First final-gate head 961e4dad1d7c50bd736d4ec6c6f800e06abc178b passed Tibia Client Reference but Agent Task Ownership rejected only checkpoint status `review`; the checkpoint now uses accepted `validating` status.
+  - Final-gate metadata corrections then reduced `proven` from 17 to 16 and restored the active task record's top-level `status: active`; these changes are task-record-only and do not alter the implementation.
 derived:
   - The stable v1 output schema is now the committed `docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.schema.json` plus the producer implementation and documentation in this PR.
   - Strict structural candidate validation plus schema-specific discriminators avoids the external implementation's permissive unknown-field/round-trip heuristic while remaining independently implemented.
@@ -109,8 +109,8 @@ unknown:
   - The user-supplied real sample is raw protobuf; compressed real-client variants are covered by independent synthetic XZ/LZMA/Tibia-header fixtures but not by a second proprietary real compressed sample.
 conflicts: []
 first_failure:
-  marker: checkpoint-proven-compactness
-  evidence: exact-head Agent Task Ownership run 30030291434 rejected only proven compactness because 17 items exceeded the 16-item limit; repository CI 30030291695, AI Agent Tools 30030291477 and Tibia Client Reference 30030291460 passed, and this commit reduces proven to 16 without implementation changes
+  marker: active-record-status
+  evidence: exact-head Agent Task Ownership run 30044538094 rejected only top-level status validating for a record under tasks/active; checkpoint status remains validating while the task record itself is restored to active in this commit
 rejected_hypotheses:
   - Reuse the external Rust parser implementation directly; licensing boundary requires independent implementation.
   - Use successful protobuf decoding alone as schema proof; unknown fields can be skipped and silently relabel categories.
@@ -142,9 +142,9 @@ validation:
   - command: GitHub Actions first final-gate validation for 961e4dad1d7c50bd736d4ec6c6f800e06abc178b
     result: FAIL
     evidence: Agent Task Ownership 30030157959 rejected only unsupported checkpoint status review; Tibia Client Reference 30030158023 passed
-  - command: GitHub Actions corrected final-gate validation for 1efa5a157f05de96163329e92de5f103aaeb9f62
+  - command: GitHub Actions compactness-corrected final-gate validation for a50823b41a784894cf5c1abf5b22f36cbf987d86
     result: FAIL
-    evidence: Agent Task Ownership 30030291434 rejected only proven compactness 17 > 16; repository CI 30030291695, AI Agent Tools 30030291477 and Tibia Client Reference 30030291460 passed
+    evidence: Agent Task Ownership 30044538094 rejected only top-level task status validating under tasks/active; repository CI 30044538353 and Tibia Client Reference 30044538140 passed, with AI Agent Tools still non-failing at inspection time
   - command: compare current main drift against PR base ownership paths
     result: PASS
     evidence: current main advance adds only bounty/weekly forum evidence paths and does not overlap TCR-002 owned paths
