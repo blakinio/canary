@@ -2,13 +2,13 @@
 task_id: CAN-20260723-owa-001-real-world-certification-campaign
 program_id: CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS
 coordination_id: OWA-001
-status: active
+status: review
 agent: "GPT-5.6 Thinking"
 branch: feat/owa-001-real-world-certification-campaign-20260723
 base_branch: main
 created: 2026-07-23T15:53:12+02:00
-updated: 2026-07-23T16:36:00+02:00
-last_verified_commit: "727566da09ebb93dd834316f8c0422f59b5be389"
+updated: 2026-07-23T16:40:00+02:00
+last_verified_commit: "77157119e8f9e6b181ba908138dfb636e104749f"
 risk: medium
 related_issue: ""
 related_pr: "801"
@@ -159,7 +159,8 @@ Generated QA-016, QA-018 and campaign result artifacts remain outside Git.
 | external campaign report | `reportSha256` | `d5bda59b5a6f46695ed9d4037bbbdf5c825b3aae214e4430fd2580d2eb4fc86d` |
 | `e11628dca57d6006381900eee469e164ec1a3817` | CI | PASS |
 | `8ac2a3bb90c665ddfa1ac8b130199ab4c706fd25` | OTBM Map Tools | FAIL only because `jsonschema` was not installed; test dependency removed in `bdc7db22f04d298859eeb6a186e8f34821a60c01` |
-| `727566da09ebb93dd834316f8c0422f59b5be389` | Agent Task Ownership | FAIL only because active task frontmatter used lifecycle-invalid `status: validating`; corrected in this update |
+| `77157119e8f9e6b181ba908138dfb636e104749f` | CI / AI Agent Tools / OTBM Map Tools | PASS |
+| `77157119e8f9e6b181ba908138dfb636e104749f` | Agent Task Ownership | FAIL only because frontmatter used unsupported literal `active`; corrected to supported `review` in this update |
 | current PR head | protected checks | pending |
 
 # Decisions
@@ -179,8 +180,8 @@ Generated QA-016, QA-018 and campaign result artifacts remain outside Git.
 
 ```yaml
 checkpoint_version: 1
-updated_at: "2026-07-23T16:36:00+02:00"
-head: "727566da09ebb93dd834316f8c0422f59b5be389"
+updated_at: "2026-07-23T16:40:00+02:00"
+head: "77157119e8f9e6b181ba908138dfb636e104749f"
 branch: "feat/owa-001-real-world-certification-campaign-20260723"
 pr: 801
 status: validating
