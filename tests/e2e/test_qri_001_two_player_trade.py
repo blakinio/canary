@@ -87,8 +87,18 @@ class Qri001TwoPlayerTradeTests(unittest.TestCase):
         self.assertIn('appendEvent("trade_fixture_precondition_secondary", "empty")', self.secondary)
         self.assertIn('appendEvent("trade_counteroffer_secondary", "selected")', self.secondary)
         self.assertIn('appendEvent("trade_counteroffer_item_id", tostring(counterItem:getId()))', self.secondary)
+        self.assertIn('appendEvent("trade_request_secondary", "sent")', self.secondary)
+        self.assertIn('appendEvent("trade_offer_secondary_own", "observed")', self.secondary)
+        self.assertIn('appendEvent("trade_offer_secondary_counter", "observed")', self.secondary)
         self.assertIn('appendEvent("trade_backpack_open_" .. phase, "confirmed")', self.primary)
         self.assertIn('appendEvent("trade_backpack_open_" .. phase, "confirmed")', self.secondary)
+
+    def test_secondary_relog_backpack_open_retries_within_existing_bound(self) -> None:
+        self.assertIn("local openAttempts = 0", self.secondary)
+        self.assertIn("if phase == 2 and checks % 10 == 0 then", self.secondary)
+        self.assertIn('appendEvent("trade_backpack_open_retry_2", tostring(openAttempts))', self.secondary)
+        self.assertIn("for _, container in pairs(g_game.getContainers()) do", self.secondary)
+        self.assertIn("local checks = 100", self.secondary)
 
     def test_immediate_and_relog_conservation_markers_are_required(self) -> None:
         required = set(self.scenario["assertions"]["required_markers"])
@@ -96,11 +106,7 @@ class Qri001TwoPlayerTradeTests(unittest.TestCase):
             "trade_backpack_open_1=confirmed",
             "trade_fixture_created=item-3043",
             "trade_request=sent",
-            "trade_counteroffer_secondary=selected",
-            "trade_request_secondary=sent",
             "trade_offer_primary=observed",
-            "trade_offer_secondary_own=observed",
-            "trade_offer_secondary_counter=observed",
             "trade_offer_secondary=observed",
             "trade_accept_primary=sent",
             "trade_accept_secondary=sent",
@@ -115,6 +121,13 @@ class Qri001TwoPlayerTradeTests(unittest.TestCase):
             "e2e=success",
         }
         self.assertTrue(expected.issubset(required))
+        secondary_only = {
+            "trade_counteroffer_secondary=selected",
+            "trade_request_secondary=sent",
+            "trade_offer_secondary_own=observed",
+            "trade_offer_secondary_counter=observed",
+        }
+        self.assertTrue(required.isdisjoint(secondary_only))
         self.assertIn('string.format("%s/session-%d.record", ARTIFACT_DIR, phase)', self.primary)
         self.assertIn('string.format("%s/session-%d.record", ARTIFACT_DIR, phase)', self.secondary)
 
