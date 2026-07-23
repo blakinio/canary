@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "id": "quentin-stone-thais-depot-persistence",
+  "suite": "journeys",
+  "name": "Representative Journey 002: Quentin reward to Thais depot persistence",
+  "program_id": "CAN-PROGRAM-E2E-PLATFORM",
+  "description": "Compose the already-proven Quentin Adventurer Stone NPC reward flow at the exact Thais temple origin with the already-proven exact-map-preflighted thais.temple-to-thais.depot follow_route path for the same Knight 1 fixture, then complete the canonical safe logout/relog lifecycle and re-prove durable inventory presence of reward item 16277.",
+  "client": {
+    "repository": "blakinio/otclient",
+    "ref": "2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f",
+    "automation": "tools/e2e/client/quentin_adventurer_stone.lua"
+  },
+  "server": {
+    "database_image": "mariadb:11.4",
+    "datapack": "data-otservbr-global",
+    "map": "otservbr"
+  },
+  "fixture": {
+    "account": "@test1",
+    "password_env": "AGENT_E2E_TEST_PASSWORD",
+    "character": "Knight 1",
+    "world": "Canary E2E",
+    "host": "127.0.0.1",
+    "game_port": 7172
+  },
+  "timing": {
+    "global_timeout_seconds": 300,
+    "session_hold_ms": 7000,
+    "relog_delay_ms": 1500
+  },
+  "steps": [
+    {
+      "id": "online",
+      "action": "observe_online",
+      "expected": true
+    },
+    {
+      "id": "quentin_visible",
+      "action": "wait_creature",
+      "creature": "Quentin",
+      "present": true,
+      "timeout_ms": 10000
+    },
+    {
+      "id": "greet",
+      "action": "talk",
+      "text": "hi"
+    },
+    {
+      "id": "dialogue_wait",
+      "action": "wait",
+      "ms": 5000
+    },
+    {
+      "id": "temple-to-depot",
+      "action": "follow_route",
+      "route": "thais-temple-depot",
+      "timeout_ms": 5000
+    }
+  ],
+  "assertions": {
+    "required_markers": [
+      "ping_features_1=disabled",
+      "login_1=success",
+      "initial_position=32369,32241,7",
+      "online_stable_1=confirmed",
+      "route_plans=1",
+      "step_online=success",
+      "step_quentin_visible=success",
+      "step_greet=success",
+      "quentin_greeting=confirmed",
+      "quentin_request_stone_sent=private_npc",
+      "quentin_free_stone_offer=confirmed",
+      "quentin_accept_stone_sent=private_npc",
+      "quentin_reward_response=confirmed",
+      "step_dialogue_wait=success",
+      "route_temple-to-depot=success",
+      "step_temple-to-depot=success",
+      "step_temple-to-depot_detail=32352,32226,7",
+      "plan=success",
+      "logout_request_1=safe",
+      "logout_1=complete",
+      "server_persistence_1=confirmed",
+      "ping_features_2=disabled",
+      "login_2=success",
+      "online_stable_2=confirmed",
+      "logout_request_2=safe",
+      "logout_2=complete",
+      "e2e=success"
+    ],
+    "sql": [
+      "SELECT lastlogin > 0 FROM players WHERE name = 'Knight 1'",
+      "SELECT lastlogout > 0 FROM players WHERE name = 'Knight 1'"
+    ],
+    "persistence": {
+      "required": true,
+      "checks": [
+        {
+          "id": "adventurer_stone_inventory",
+          "type": "player_item_presence",
+          "location": "inventory",
+          "item_id": 16277,
+          "present": true
+        }
+      ]
+    }
+  },
+  "artifacts": [
+    "scenario-manifest.json",
+    "scenario-plan.lua",
+    "result.json",
+    "client-events.tsv",
+    "map.sha256",
+    "route-thais-temple-depot.json",
+    "route-thais-temple-depot-request.json",
+    "route-thais-temple-depot-preflight.json",
+    "route-thais-temple-depot-world-index-manifest.json",
+    "route-preparation.json",
+    "route-preparer.sha256",
+    "canary.stdout.log",
+    "canary.stderr.log",
+    "otclient.stdout.log",
+    "otclient.stderr.log",
+    "otclient.internal.log",
+    "database-online.tsv",
+    "database-after.tsv",
+    "sql-assertions.json",
+    "database-sql-assertions-passed.txt",
+    "server-login-matches.txt",
+    "client.png",
+    "session-1.record",
+    "session-2.record",
+    "runtime-hashes.txt"
+  ]
+}
