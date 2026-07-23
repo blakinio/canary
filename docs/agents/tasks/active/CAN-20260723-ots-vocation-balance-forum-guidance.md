@@ -2,16 +2,16 @@
 task_id: CAN-20260723-ots-vocation-balance-forum-guidance
 program_id: CAN-PROGRAM-OTS-FUTURE-GAMEPLAY-SYSTEMS
 coordination_id: ""
-status: active
+status: blocked
 agent: "GPT-5.6 Thinking"
 branch: docs/ots-vocation-balance-forum-guidance-20260723
 base_branch: main
 created: 2026-07-23
 updated: 2026-07-23
-last_verified_commit: "9b40438fd8e66885cc9390ba6267af459af68298"
+last_verified_commit: "fcd258bb4f4702b8a735947afe38c3266242ce0b"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "843"
 depends_on:
   - "PR #799 for the proposed OTS vocation/class role and balance framework"
 blocks: []
@@ -37,7 +37,7 @@ cross_repo_tasks: []
 
 ## Status
 
-ACTIVE — documentation-only synthesis is drafted on a dedicated branch. The new document does not modify the forum analysis or any path owned by open PR #799.
+BLOCKED — documentation synthesis is complete in draft PR #843, but the upstream vocation/class framework is still owned by open PR #799. This task does not modify or duplicate PR #799 paths and should not merge ahead of the framework dependency without an explicit rebase/reconciliation review.
 
 ## Goal
 
@@ -75,18 +75,20 @@ Convert recurring design and validation lessons from `docs/ai-agent/REAL_TIBIA_V
 - [x] Cover cross-vocation methodology and all five supported vocation families discussed in the source.
 - [x] Record source incompleteness for Druid and pending Paladin supplement work.
 - [x] Define reusable per-vocation worksheet, decision pipeline and future research packages.
-- [ ] Open a draft PR and verify changed-file scope.
-- [ ] Run/verify applicable documentation ownership and CI gates on the final head.
+- [x] Open draft PR #843.
+- [ ] Verify exact changed-file scope and diff after the task-record PR update.
+- [ ] Verify applicable documentation ownership and CI gates on the newest head.
+- [ ] Reconcile dependency against PR #799 before readiness/merge.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: "2026-07-23T23:30:00+02:00"
-head: "9b40438fd8e66885cc9390ba6267af459af68298"
+updated_at: "2026-07-23T23:50:00+02:00"
+head: "fcd258bb4f4702b8a735947afe38c3266242ce0b"
 branch: "docs/ots-vocation-balance-forum-guidance-20260723"
-pr: ""
-status: "active"
+pr: "843"
+status: "blocked"
 context_routes:
   - "agent-governance"
   - "real-tibia-parity"
@@ -98,6 +100,7 @@ proven:
   - "At the observed source baseline the report states seven complete official Tibia forum threads with 7,187 accessible unique posts plus a bounded Druid page-one sample."
   - "PR #799 is open and owns the proposed OTS vocation/class role and balance framework; this task does not edit any of its owned paths."
   - "PR #823 is open and preparing a bounded Paladin design-thread supplement; the new guidance records that future RP work must re-read the updated source after that supplement lands."
+  - "PR #843 is an in-repository draft against blakinio/canary:main and contains the new forum-derived guidance plus this task record."
   - "The new guidance document defines package-level balance, compensation ledger, difficulty premium, functional-before-numeric ordering, progression breakpoints, context separation, human-input cost, reliability budget, balance debt, vocation-specific priorities, a standard worksheet, a decision pipeline and future research packages."
 derived:
   - "Future balance should define role/risk/execution/progression expectations before tuning coefficients."
@@ -123,6 +126,6 @@ validation:
     result: "PASS"
     evidence: "Reviewed AGENTS.md, repository/context routing, Real Tibia evidence/playbook, source forum analysis, merged PR #821, open PR #799 framework and open PR #823 Paladin supplement scope."
 blockers:
-  - "PR #799 is the upstream design-framework dependency and remains open; this task must not modify its owned paths."
-next_action: "Open a draft PR for the two owned documentation paths, inspect the exact changed-file list/diff, then verify applicable task-ownership and documentation CI gates."
+  - "PR #799 is the upstream design-framework dependency and remains open; this task must not modify its owned paths or merge without dependency reconciliation."
+next_action: "Inspect PR #843 exact changed-file list and diff, verify current-head workflow results, then hold readiness/merge until PR #799 dependency is resolved and the guidance is reconciled against the merged framework."
 ```
