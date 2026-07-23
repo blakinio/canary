@@ -7,8 +7,8 @@ agent: GPT-5.6 Thinking
 branch: docs/otbm-tibia-client-reference-20260723
 base_branch: main
 created: 2026-07-23T10:00:00+02:00
-updated: 2026-07-23T12:15:00+02:00
-last_verified_commit: "ac547147bfaa3d58b65307c394d48121979266e4"
+updated: 2026-07-23T12:30:00+02:00
+last_verified_commit: "59ef2007fe58635f9188dc2431159509d1099f2e"
 risk: low
 related_issue: ""
 related_pr: "762"
@@ -53,6 +53,8 @@ reuses:
   - Semantic OTBM Diff
   - bounded repair/materialization pipelines
   - release provenance/change risk/evidence gateway
+  - OTBM Region and Quest Certification
+  - OTBM Continuous Assurance Gate
 public_interfaces:
   - planned Tibia client reference evidence contracts and programme queue
 cross_repo_tasks: []
@@ -72,7 +74,7 @@ The architecture covers:
 - `staticdata` old/new schema evidence;
 - `staticmapdata` house-layout evidence;
 - proficiency reference evidence and item/appearance bindings;
-- reuse of existing appearances/assets indexes;
+- reuse of existing canonical appearances/assets evidence;
 - optional minimap/reference evidence boundaries;
 - parity consumers for houses, monsters/bosses/quests and proficiency;
 - deterministic drift between two client-reference snapshots;
@@ -91,21 +93,25 @@ The architecture covers:
 - [x] Include a bounded kickoff prompt for the implementation agent in the programme handoff.
 - [x] Regenerate and validate the derived Real Tibia registry indexes after the `otbm-tooling` registry change.
 - [x] Add only still-required narrow discovery mirrors to `MODULE_CATALOG.md`, `OTS_OTBM_TOOLING_ROADMAP.md`, `REAL_TIBIA_EVIDENCE_SOURCES.md`, `REAL_TIBIA_PARITY_PROGRAM.md` and `CHANGELOG.md` after re-reading current main.
-- [ ] Run repository-required documentation/registry validation and verify PR #762 CI on its immutable final head.
+- [ ] Verify PR #762 required CI on the immutable final head and merge under repository policy.
 
 # Evidence baseline
 
 ## PROVEN
 
 - The task branch started from `blakinio/canary:main` at `8837f35eb43da6a3ed7efc6a1e8f3bca19342d2e`.
-- Current `main` was re-fetched at `f9fc157dad3668b5051761264ebeecf5bdf1f055`; changes since the previous preflight are QA-006/QA-007, OAM-038 and lifecycle-only paths and do not overlap this task's TCR-000 paths.
-- PR #759 was merged as `cc376677178e7de3551675bc17639b1fe0422c6f`; its QA-006/QA-007 implementation paths do not overlap TCR-000 architecture/governance paths.
-- Draft PR #762 owns this task.
+- Current `main` was re-fetched at `57e26e3a22db90b41a005a467c2f2411e0e1039b`. Changes after the original base include OAM/lifecycle documentation and merged OTBM QA-006/QA-007; no post-base change creates a competing client-reference parser, OTBM parser, World Index, pathfinder, renderer or Physical E2E platform.
+- PR #759 merged as `cc376677178e7de3551675bc17639b1fe0422c6f`. Its QA-006 certification and QA-007 continuous-assurance layers are downstream evidence composition and remain compatible with TCR's existing QA/certification/E2E reuse boundary.
+- Draft PR #768 now has additive changes to the two TCR shared paths `docs/agents/MODULE_CATALOG.md` and `docs/agents/CHANGELOG.md`. Ownership remains `shared`; a coordination comment records merge order #762 first and refresh/reapply #768 afterward so both discovery entries are retained.
+- Draft PR #762 owns this task and remains mergeable before final-head validation.
 - Searches of current `MODULE_CATALOG.md`, repository code and `tools/ai-agent` found no existing equivalent canonical Tibia client-reference package/manifest interface; TCR-000 remains a governance extension of `otbm-tooling`, not a duplicate tooling module.
 - `beats-dh/Beats-Assets-Editor` baseline for the design is pinned to `ed827be34c279d1279ad3dde3af434b148ac05c7` and is read-only format/interoperability research.
 - Existing Canary OTBM tooling already owns canonical OTBM parsing/indexing, appearances/assets indexing, script resolution, reachability, semantic diff, geometry, QA evidence and bounded mutation pipelines.
 - Shared discovery mirrors are limited to narrow TCR-000 entries in the module catalogue, OTBM tooling roadmap, Real Tibia evidence registry, Real Tibia parity programme and agent changelog.
-- Derived registry output changed only `MODULE_DEPENDENCIES.md`, `MODULE_PATH_INDEX.md` and `STALE_MODULES.md`; fresh Real Tibia Module Registry CI passed `generate --check` on head `024694857957b62d8ecc7645a599447f4abe1d6d`.
+- Derived registry output changed only `MODULE_DEPENDENCIES.md`, `MODULE_PATH_INDEX.md` and `STALE_MODULES.md`; current candidate-head Real Tibia Module Registry CI passes `generate --check`.
+- Candidate head `59ef2007fe58635f9188dc2431159509d1099f2e` passed Real Tibia Module Registry, Agent Task Ownership, OTBM Map Tools, repository CI and Upstream Intelligence.
+- Review-thread inspection returned zero unresolved inline review threads and zero submitted reviews before the final checkpoint commit.
+- The `ci:final-gate` label was applied before this final checkpoint commit as required by repository policy.
 - One bounded local clone attempt failed with `Could not resolve host: github.com`; no local validation result is claimed. GitHub Actions is the authoritative execution environment for this task.
 
 ## UNKNOWN / deferred
@@ -113,18 +119,18 @@ The architecture covers:
 - Exact Tibia client build/version carried by future user-supplied files must be recorded per ingestion and never inferred from filename alone.
 - Exact filenames/packaging of proficiency data may vary by client build and must be discovered by a bounded implementation task rather than hard-coded by TCR-000.
 - Whether every proposed client-reference field has stable semantic meaning across builds remains implementation evidence, not assumed architecture truth.
-- Immutable-final-head CI and review-thread state remain pending.
+- The immutable final commit SHA and the CI run IDs triggered by that commit cannot be self-recorded inside the same commit; repository lifecycle/archive handling must record the exact final feature head, final-head CI and squash-merge SHA after merge.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: "2026-07-23T12:15:00+02:00"
-head: "ac547147bfaa3d58b65307c394d48121979266e4"
+updated_at: "2026-07-23T12:30:00+02:00"
+head: "59ef2007fe58635f9188dc2431159509d1099f2e"
 branch: "docs/otbm-tibia-client-reference-20260723"
 pr: "762"
 status: "validating"
-next_action: "Validate the review-status checkpoint on fresh PR CI, then audit the complete diff and review/ownership state before applying ci:final-gate and creating the immutable final checkpoint commit."
+next_action: "Make no further commits. Require the ci:final-gate workflows on the exact final PR head to finish green, recheck review threads and mergeability, mark PR 762 ready, squash-merge it, then archive the task through the separate lifecycle flow before starting TCR-001 on a new task/branch/PR."
 context_routes:
   - "agent-governance"
   - "otbm"
@@ -140,23 +146,30 @@ owned_paths:
   - "docs/agents/real-tibia/registry/modules/otbm-tooling.yaml"
   - "docs/agents/CHANGELOG.md"
 proven:
-  - "TCR-000 is architecture/governance only and adds no parser or runtime/map mutation implementation."
-  - "Current main f9fc157dad3668b5051761264ebeecf5bdf1f055 introduces no changed-path overlap with TCR-000."
-  - "PR 759 merged as cc376677178e7de3551675bc17639b1fe0422c6f and does not overlap TCR-000 paths."
-  - "Real Tibia Module Registry run 29997172825 passed on head 024694857957b62d8ecc7645a599447f4abe1d6d."
-  - "Repository CI run 29997172908 passed on head 024694857957b62d8ecc7645a599447f4abe1d6d."
-  - "Upstream Intelligence run 29997172716 passed on head 024694857957b62d8ecc7645a599447f4abe1d6d."
+  - "TCR-000 is architecture/governance only and adds no TCR-001/TCR-002/TCR-003 parser or runtime/map mutation implementation."
+  - "Current main 57e26e3a22db90b41a005a467c2f2411e0e1039b introduces no exclusive-path ownership conflict with TCR-000."
+  - "Merged PR 759 adds downstream QA-006/QA-007 evidence composition and does not duplicate TCR-owned parsing/indexing surfaces."
+  - "Real Tibia Module Registry run 29997673612 passed on candidate head 59ef2007fe58635f9188dc2431159509d1099f2e."
+  - "Agent Task Ownership run 29997673549 passed both changed-checkpoint validation and full ownership-index validation on candidate head 59ef2007fe58635f9188dc2431159509d1099f2e."
+  - "OTBM Map Tools run 29997673662 passed on candidate head 59ef2007fe58635f9188dc2431159509d1099f2e."
+  - "Repository CI run 29997674124 passed with Required success on candidate head 59ef2007fe58635f9188dc2431159509d1099f2e."
+  - "Upstream Intelligence run 29997673528 passed on candidate head 59ef2007fe58635f9188dc2431159509d1099f2e."
+  - "AI Agent Tools run 29997473114 passed on the preceding candidate head ac547147bfaa3d58b65307c394d48121979266e4; exact-final-head final-gate validation remains authoritative."
   - "Generated registry diffs are limited to one dependency edge, three path-index rows and otbm-tooling freshness."
+  - "Inline review-thread inspection returned zero threads and review-submission inspection returned zero reviews before the final checkpoint."
+  - "ci:final-gate was applied to PR 762 before the final checkpoint commit."
 derived:
-  - "The architecture remains compatible with current main because all post-baseline changes are outside the TCR-000 owned/shared paths and preserve the canonical OTBM reuse boundaries."
+  - "The architecture remains compatible with current main because post-base OTBM QA additions consume existing evidence and do not replace or weaken the canonical TCR reuse boundaries."
+  - "PR 768 is a non-exclusive shared-document coordination overlap rather than an ownership conflict; preserving both additive discovery entries requires explicit merge ordering."
 unknown:
-  - "AI Agent Tools and OTBM Map Tools results for the prior candidate head were still running at the last checkpoint."
-  - "Fresh Agent Task Ownership result after changing the frontmatter status to review is pending."
-  - "Immutable-final-head full CI and unresolved review-thread state are pending."
-conflicts: []
+  - "Exact-final-head ci:final-gate run IDs and results are pending and must be recorded by the post-merge lifecycle/archive update."
+  - "Exact squash-merge SHA is pending and must be recorded by the post-merge lifecycle/archive update."
+conflicts:
+  - "Draft PR 768 touches shared MODULE_CATALOG.md and CHANGELOG.md. Coordination is resolved as PR 762 first, then refresh/reapply PR 768 against updated main; a PR 768 conversation comment records this ordering."
 rejected_hypotheses:
-  - "Rejected: PR 759 overlaps TCR-000; changed-path comparison shows separate QA-006/QA-007 implementation paths."
+  - "Rejected: merged PR 759 overlaps TCR-000 implementation ownership; it adds downstream QA-006/QA-007 evidence composition only."
   - "Rejected: create a second canonical client-reference or OTBM analysis stack; current repository discovery shows the existing OTBM stack must be extended and reused."
+  - "Rejected: staticmapdata.object_id can be treated as OTBM/server itemId; exact mapping is unproven and the namespace remains separate."
 changed_paths:
   - "docs/agents/CHANGELOG.md"
   - "docs/agents/MODULE_CATALOG.md"
@@ -171,34 +184,40 @@ changed_paths:
   - "docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md"
   - "docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md"
 blockers:
-  - "Fresh Agent Task Ownership must pass with an allowed active-task frontmatter status and the fenced checkpoint contract."
-  - "All required exact-final-head checks and review/ownership gates must be green before merge."
+  - "All required ci:final-gate checks on the exact immutable final head must be green before readiness/merge."
+  - "If PR 768 merges first or changes shared-document state before PR 762 merges, re-evaluate mergeability without committing past the immutable final-head policy; otherwise preserve the recorded #762-first ordering."
 first_failure:
-  marker: "Agent Task Ownership run 29997473154 / Validate changed active task checkpoints"
-  evidence: "CHANGED_TASK_VALIDATION.txt reports: record under tasks/active has non-active status 'active'. The frontmatter is changed to the allowed review status in this commit."
+  marker: "Agent Task Ownership integration failures on heads 368ee3bbc42d48276761db056e5dd8e2ec11afed and ac547147bfaa3d58b65307c394d48121979266e4"
+  evidence: "The first failure was stale generated registry state plus a missing fenced checkpoint contract. After adding fenced YAML, the second ownership failure was exact: record under tasks/active has non-active status 'active'. Generated indexes, checkpoint schema, related_pr normalization and frontmatter status were corrected; candidate-head ownership run 29997673549 is green."
 validation:
   - command: "python -m py_compile tools/agents/real_tibia_registry.py tools/agents/real_tibia_registry_lib.py tools/agents/test_real_tibia_registry.py"
     result: "PASS"
-    evidence: "Real Tibia Module Registry run 29997172825"
+    evidence: "Real Tibia Module Registry run 29997673612"
   - command: "python -m unittest -v tools/agents/test_real_tibia_registry.py"
     result: "PASS"
-    evidence: "Real Tibia Module Registry run 29997172825"
+    evidence: "Real Tibia Module Registry run 29997673612"
   - command: "python tools/agents/real_tibia_registry.py validate"
     result: "PASS"
-    evidence: "Real Tibia Module Registry run 29997172825"
+    evidence: "Real Tibia Module Registry run 29997673612"
   - command: "python tools/agents/real_tibia_registry.py generate --check"
     result: "PASS"
-    evidence: "Real Tibia Module Registry run 29997172825"
+    evidence: "Real Tibia Module Registry run 29997673612"
   - command: "python tools/agents/task_lifecycle.py validate-changed --changed-files-file artifacts/agent-coordination/CHANGED_FILES.txt --current-pr 762"
-    result: "FAIL"
-    evidence: "Agent Task Ownership run 29997473154: prior frontmatter status active is not allowed under tasks/active; this commit changes it to review."
+    result: "PASS"
+    evidence: "Agent Task Ownership run 29997673549"
+  - command: "GitHub Actions workflow Agent Task Ownership"
+    result: "PASS"
+    evidence: "run 29997673549; changed checkpoint and full ownership index both succeeded"
+  - command: "GitHub Actions workflow OTBM Map Tools"
+    result: "PASS"
+    evidence: "run 29997673662"
   - command: "GitHub Actions workflow CI"
     result: "PASS"
-    evidence: "run 29997473323 on head ac547147bfaa3d58b65307c394d48121979266e4"
-  - command: "GitHub Actions workflow Real Tibia Module Registry"
-    result: "PASS"
-    evidence: "run 29997473106 on head ac547147bfaa3d58b65307c394d48121979266e4"
+    evidence: "run 29997674124; Required succeeded"
   - command: "GitHub Actions workflow Upstream Intelligence"
     result: "PASS"
-    evidence: "run 29997473063 on head ac547147bfaa3d58b65307c394d48121979266e4"
+    evidence: "run 29997673528"
+  - command: "GitHub Actions workflow AI Agent Tools"
+    result: "PASS"
+    evidence: "run 29997473114 on preceding candidate head; exact-final-head final-gate run remains required"
 ```
