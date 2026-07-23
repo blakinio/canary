@@ -510,6 +510,7 @@ std::optional<GameSessionHttpIssuer::Config> GameSessionHttpIssuer::loadConfigFr
 	const char* bindAddress = environmentValue("CANARY_GAME_SESSION_ISSUER_BIND");
 	const char* portValue = environmentValue("CANARY_GAME_SESSION_ISSUER_PORT");
 	const char* tokenHash = environmentValue("CANARY_GAME_SESSION_SERVICE_TOKEN_SHA256");
+	const char* previousTokenHash = environmentValue("CANARY_GAME_SESSION_PREVIOUS_SERVICE_TOKEN_SHA256");
 	if (!bindAddress || std::string_view(bindAddress).empty()) {
 		error = "CANARY_GAME_SESSION_ISSUER_BIND is required when the issuer is enabled";
 		return std::nullopt;
@@ -534,9 +535,22 @@ std::optional<GameSessionHttpIssuer::Config> GameSessionHttpIssuer::loadConfigFr
 		return std::nullopt;
 	}
 
+	std::string normalizedPreviousHash;
+	if (previousTokenHash && !trimAscii(previousTokenHash).empty()) {
+		normalizedPreviousHash = lowerAscii(trimAscii(previousTokenHash));
+		if (normalizedPreviousHash.size() != Sha256HexLength || !isHex(normalizedPreviousHash)) {
+			error = "CANARY_GAME_SESSION_PREVIOUS_SERVICE_TOKEN_SHA256 must be a 64-character SHA-256 hex digest";
+			return std::nullopt;
+		}
+		if (normalizedPreviousHash == normalizedHash) {
+			normalizedPreviousHash.clear();
+		}
+	}
+
 	loaded.bindAddress = bindAddress;
 	loaded.port = static_cast<uint16_t>(*port);
 	loaded.serviceTokenSha256 = normalizedHash;
+	loaded.previousServiceTokenSha256 = std::move(normalizedPreviousHash);
 
 	if (const char* timeoutValue = environmentValue("CANARY_GAME_SESSION_ISSUER_REQUEST_TIMEOUT_MS")) {
 		const auto timeout = parseUnsigned(timeoutValue);
@@ -597,7 +611,12 @@ bool GameSessionHttpIssuer::authenticateBearer(std::string_view credential) cons
 	if (!config.enabled || credential.empty() || config.serviceTokenSha256.size() != Sha256HexLength) {
 		return false;
 	}
-	return constantTimeEquals(sha256Hex(credential), config.serviceTokenSha256);
+
+	const auto presentedHash = sha256Hex(credential);
+	const bool currentMatches = constantTimeEquals(presentedHash, config.serviceTokenSha256);
+	const bool previousMatches = config.previousServiceTokenSha256.size() == Sha256HexLength
+		&& constantTimeEquals(presentedHash, config.previousServiceTokenSha256);
+	return currentMatches || previousMatches;
 }
 
 GameSessionHttpIssuer::LoginAttemptReservation GameSessionHttpIssuer::reserveLoginAttempt(
