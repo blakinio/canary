@@ -10,7 +10,7 @@ updated: 2026-07-23
 last_verified_commit: "f7981992d047b2d718989500ba4a1ef46ec68e3d"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "790"
 depends_on:
   - OAM-039 formally complete
 blocks:
@@ -45,10 +45,10 @@ Canonical `otbm-tooling` is a dependency-free platform-tooling module whose main
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T14:15:00+02:00
-head: f7981992d047b2d718989500ba4a1ef46ec68e3d
+updated_at: 2026-07-23T14:20:00+02:00
+head: 5507fbe61bf9ca200e209701c30a64d9bf1e950e
 branch: dudantas/oam-040-preflight
-pr: null
+pr: 790
 status: ready
 context_routes:
   - agent-governance
@@ -106,5 +106,5 @@ validation:
     result: PASS
     evidence: Canary is the explicit legacy laboratory/evidence/validation repository and world-content migration is required to reuse the existing deterministic analysis stack
 blockers: []
-next_action: Open the one-file Canary OAM-040 preflight PR, bind its PR number, require exact-current-head Agent Task Ownership and CI, audit scope and review state, then expected-head squash merge before bounded target-side otbm-tooling disposition proof in Otheryn.
+next_action: Require exact-current-head Agent Task Ownership and CI success on PR 790, audit the one-file preflight scope and review state, then expected-head squash merge before bounded target-side otbm-tooling disposition proof in Otheryn.
 ```
