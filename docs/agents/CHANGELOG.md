@@ -103,3 +103,4 @@ Curated behavior/architecture log for discovery; not a replacement for Git histo
 - Account-wide quest access exists with active hardening in PR #124.
 - AI overlay materialization and real staging/deployment merged in PRs #125 and #118.
 - DI migrations for `SharedPtrManager` and `Scripts` are merged.
+- Forge history resolution uses item IDs with name fallback.
