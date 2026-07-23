@@ -33,6 +33,8 @@ SCENARIO_ENV="${ARTIFACT_DIR}/scenario.env"
 SCENARIO_MANIFEST="${ARTIFACT_DIR}/scenario-manifest.json"
 RESULT_JSON="${ARTIFACT_DIR}/result.json"
 
+source "${REPO_ROOT}/tools/e2e/disposable_canary_restart.sh"
+
 log() {
   printf '[agent-e2e] %s\n' "$*"
 }
@@ -158,6 +160,9 @@ export AGENT_E2E_PASSWORD="${!PASSWORD_VARIABLE}"
 export AGENT_E2E_ARTIFACT_DIR="${ARTIFACT_DIR}"
 export AGENT_E2E_PING_PROFILE="${AGENT_E2E_PING_PROFILE:-disabled}"
 
+initialize_disposable_canary_restart
+validate_disposable_canary_restart_contract
+
 if [[ -z "${CANARY_BIN}" || ! -x "${CANARY_BIN}" ]]; then
   echo "CANARY_BIN must point to an executable exact-head Canary binary" >&2
   exit 1
@@ -204,6 +209,7 @@ sha256sum \
   "${REPO_ROOT}/tools/e2e/run_agent_e2e.py" \
   "${REPO_ROOT}/tools/e2e/server_selection.py" \
   "${REPO_ROOT}/tools/e2e/run_physical_e2e.sh" \
+  "${REPO_ROOT}/tools/e2e/disposable_canary_restart.sh" \
   "${REPO_ROOT}/tools/e2e/client/agent_e2e.lua" \
   > "${ARTIFACT_DIR}/runtime-hashes.txt"
 printf 'scenario=%s\ncanary_head=%s\notclient_repository=%s\notclient_ref=%s\nclient_version=%s\nasset_version=%s\nping_profile=%s\nserver_datapack=%s\nserver_map=%s\n' \
@@ -410,6 +416,10 @@ if command -v import >/dev/null 2>&1; then
   import -display "${DISPLAY_NUMBER}" -window root "${ARTIFACT_DIR}/client.png" || true
 fi
 
+if is_disposable_canary_restart_scenario; then
+  restart_disposable_canary
+fi
+
 set +e
 wait "${CLIENT_PID}"
 CLIENT_EXIT_CODE=$?
@@ -428,6 +438,11 @@ mariadb -N -s -h "${DB_HOST}" -P "${DB_PORT}" -u "${DB_USER}" "${DB_NAME}" \
   -e "SELECT lastlogin > 0 FROM players WHERE name='${AGENT_E2E_CHARACTER}';" > "${ARTIFACT_DIR}/database-lastlogin-set.txt"
 mariadb -N -s -h "${DB_HOST}" -P "${DB_PORT}" -u "${DB_USER}" "${DB_NAME}" \
   -e "SELECT lastlogout > 0 FROM players WHERE name='${AGENT_E2E_CHARACTER}';" > "${ARTIFACT_DIR}/database-lastlogout-set.txt"
+
+if is_disposable_canary_restart_scenario; then
+  finalize_disposable_canary_restart
+  write_disposable_canary_restart_evidence
+fi
 
 python3 - \
   "${SCENARIO_MANIFEST}" \
@@ -648,6 +663,8 @@ print(json.dumps(result, indent=2, sort_keys=True))
 if not success:
     raise SystemExit(1)
 PY
+
+augment_disposable_canary_restart_result
 
 CURRENT_PHASE="complete"
 log "scenario ${AGENT_E2E_SCENARIO_KEY} passed"
