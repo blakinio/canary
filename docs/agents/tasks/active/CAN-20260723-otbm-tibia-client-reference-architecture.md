@@ -2,13 +2,13 @@
 task_id: CAN-20260723-otbm-tibia-client-reference-architecture
 program_id: CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE
 coordination_id: OTBM-TIBIA-CLIENT-REFERENCE
-status: active
+status: review
 agent: GPT-5.6 Thinking
 branch: docs/otbm-tibia-client-reference-20260723
 base_branch: main
 created: 2026-07-23T10:00:00+02:00
-updated: 2026-07-23T12:05:00+02:00
-last_verified_commit: "024694857957b62d8ecc7645a599447f4abe1d6d"
+updated: 2026-07-23T12:15:00+02:00
+last_verified_commit: "ac547147bfaa3d58b65307c394d48121979266e4"
 risk: low
 related_issue: ""
 related_pr: "762"
@@ -119,12 +119,12 @@ The architecture covers:
 
 ```yaml
 checkpoint_version: 1
-updated_at: "2026-07-23T12:05:00+02:00"
-head: "024694857957b62d8ecc7645a599447f4abe1d6d"
+updated_at: "2026-07-23T12:15:00+02:00"
+head: "ac547147bfaa3d58b65307c394d48121979266e4"
 branch: "docs/otbm-tibia-client-reference-20260723"
 pr: "762"
 status: "validating"
-next_action: "Validate this corrected checkpoint on fresh PR CI, then audit the complete diff and review/ownership state before applying ci:final-gate and creating the immutable final checkpoint commit."
+next_action: "Validate the review-status checkpoint on fresh PR CI, then audit the complete diff and review/ownership state before applying ci:final-gate and creating the immutable final checkpoint commit."
 context_routes:
   - "agent-governance"
   - "otbm"
@@ -151,7 +151,7 @@ derived:
   - "The architecture remains compatible with current main because all post-baseline changes are outside the TCR-000 owned/shared paths and preserve the canonical OTBM reuse boundaries."
 unknown:
   - "AI Agent Tools and OTBM Map Tools results for the prior candidate head were still running at the last checkpoint."
-  - "Fresh Agent Task Ownership result after converting the checkpoint to the required fenced YAML v1 contract is pending."
+  - "Fresh Agent Task Ownership result after changing the frontmatter status to review is pending."
   - "Immutable-final-head full CI and unresolved review-thread state are pending."
 conflicts: []
 rejected_hypotheses:
@@ -171,11 +171,11 @@ changed_paths:
   - "docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md"
   - "docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md"
 blockers:
-  - "Fresh Agent Task Ownership must pass with the corrected checkpoint contract."
+  - "Fresh Agent Task Ownership must pass with an allowed active-task frontmatter status and the fenced checkpoint contract."
   - "All required exact-final-head checks and review/ownership gates must be green before merge."
 first_failure:
-  marker: "Agent Task Ownership run 29997172655 / Validate changed active task checkpoints"
-  evidence: "The task used prose after the checkpoint heading instead of the required fenced YAML v1 schema, and related_pr was encoded as #762 instead of 762."
+  marker: "Agent Task Ownership run 29997473154 / Validate changed active task checkpoints"
+  evidence: "CHANGED_TASK_VALIDATION.txt reports: record under tasks/active has non-active status 'active'. The frontmatter is changed to the allowed review status in this commit."
 validation:
   - command: "python -m py_compile tools/agents/real_tibia_registry.py tools/agents/real_tibia_registry_lib.py tools/agents/test_real_tibia_registry.py"
     result: "PASS"
@@ -191,11 +191,14 @@ validation:
     evidence: "Real Tibia Module Registry run 29997172825"
   - command: "python tools/agents/task_lifecycle.py validate-changed --changed-files-file artifacts/agent-coordination/CHANGED_FILES.txt --current-pr 762"
     result: "FAIL"
-    evidence: "Agent Task Ownership run 29997172655 diagnosed the prior invalid checkpoint contract; this commit corrects it."
+    evidence: "Agent Task Ownership run 29997473154: prior frontmatter status active is not allowed under tasks/active; this commit changes it to review."
   - command: "GitHub Actions workflow CI"
     result: "PASS"
-    evidence: "run 29997172908"
+    evidence: "run 29997473323 on head ac547147bfaa3d58b65307c394d48121979266e4"
+  - command: "GitHub Actions workflow Real Tibia Module Registry"
+    result: "PASS"
+    evidence: "run 29997473106 on head ac547147bfaa3d58b65307c394d48121979266e4"
   - command: "GitHub Actions workflow Upstream Intelligence"
     result: "PASS"
-    evidence: "run 29997172716"
+    evidence: "run 29997473063 on head ac547147bfaa3d58b65307c394d48121979266e4"
 ```
