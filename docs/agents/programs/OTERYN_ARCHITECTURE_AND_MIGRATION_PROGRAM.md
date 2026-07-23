@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-22T20:45:00+02:00
-last_verified_commit: "637c57d8744204490b452bdd935789ec0c4de23b"
+updated: 2026-07-23T10:55:00+02:00
+last_verified_commit: "a3d4ea560f4793380dcb5f73f44eec11279eb44f"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -72,6 +72,7 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 | OAM-034 | `creature-definitions → ADAPT` | target `566b3b001987f6f452663b77c380e6405bfc541b`; feature `2a63c4b1efe2a20bf653b419ffd6baea6cb2ee0d`; lifecycle `0ace0e6802501f1752405c4e15d75619171dd4cf` |
 | OAM-035 | `creature-ai → REUSE` | target proof `d9359bed541b06c4457d23a352b877caf5e88df7`; feature `dbb832d9f2ac141476b7d0496ceb6149a4101cac`; lifecycle `1328fb42b03056a0f2571831a1a1eb7a5416f73a` |
 | OAM-036 | `boss-encounters → REUSE` | target proof `c0a84977b574f287db2fb970a25e8041343b99c8`; feature `54abf518a3470c0f1db08f0276164fe5c7e977e0`; lifecycle `637c57d8744204490b452bdd935789ec0c4de23b` |
+| OAM-037 | `raids → REUSE` | target proof `d896141d084d381d12cc328d4b920c698eb1d55c`; feature `841053a1800f4e8fdb338c31bac0534ae264dabd`; lifecycle `a3d4ea560f4793380dcb5f73f44eec11279eb44f` |
 
 # Durable evidence compaction
 
@@ -117,15 +118,35 @@ Authoritative lifecycle PR #726 final head `d8d6d180daa7ce3a20f3d34165917b434a98
 
 OAM-036 does not claim exact participant eligibility, contribution-score arithmetic, loot factor/roll parity, reward-table correctness, Bosstiary bonus correctness, persistence atomicity, crash recovery, generic boss AI correctness, spawn/raid correctness, quest/cooldown behavior, protocol/client compatibility, physical-client boss E2E closure or full Real Tibia parity.
 
+# OAM-037 durable completion
+
+Final disposition:
+
+```text
+raids REUSE
+```
+
+OAM-037 selected canonical `raids` after OAM-036 formal closure. Canary preflight PR #733 merged as `8bdeb2747356727df80a3b95073aa29a4dca7818`; immutable Otheryn target task-start main was `3aaf77fe27600b274d2b9c9e6bd30d887e0afd0e`; the reviewed fresh upstream baseline retained exact canonical `raids.cpp` blob `d46a549a341e0872474bd723b10d1208fa22da8c` and `raids.hpp` blob `777558e3e199816bb596636fc7487c38c29224ee`.
+
+Identity alone was not accepted. Semantic review and the bounded target source-contract proof covered registry load/reload, interval/margin/repeat parsing, maintenance-lane periodic selection, scheduling-failure handling, running/non-repeat state, ordered event execution, reset/stop cleanup, and announce/single-spawn/area-spawn/script event dispatch. The older legacy Canary core was rejected as a stronger whole-module donor because target and fresh upstream retained maintenance-lane scheduling and explicit scheduling-failure safeguards absent from the reviewed legacy core.
+
+Otheryn PR #77 final head `133c12f61a1e5e392be9ee7faa9236755cbe0225` changed exactly four intended proof/task paths and no production path. Exact-head autofix `29988627793`, CI `29988627932`, Required `29988627768`, Linux-debug runtime smoke/schema/full `Run Tests`, Linux release, both Windows build paths and macOS succeeded. Comments/reviews/threads were empty, target `main` had no task-start drift, and PR #77 merged by expected-head squash as `d896141d084d381d12cc328d4b920c698eb1d55c`.
+
+Canary governance PR #750 final head `63bd6f684e4d88c5dfe4dfbb79ec86dd01210d5f` changed exactly the OAM-037 revalidation report and active-task checkpoint. Agent Task Ownership `29990517255` and full final-gate CI `29990517385` succeeded on the exact head after an unchanged-head failed-job retry; Linux-debug full tests and all platform builds passed. Comments/reviews/threads were empty, and PR #750 merged by expected-head squash as `841053a1800f4e8fdb338c31bac0534ae264dabd`.
+
+Authoritative lifecycle PR #758 final head `13201f341d8d20851e1ecf652f25ef38c680f27b` changed exactly the active-delete/archive-add lifecycle paths. Agent Task Ownership `29992792757` and CI `29992793019` succeeded with Required PASS; heavy builds were correctly skipped for lifecycle-only scope. Comments/reviews/threads were empty. Concurrent Canary drift was limited to unrelated OTBM task archives with no OAM-037 path overlap, and PR #758 merged by expected-head squash as `a3d4ea560f4793380dcb5f73f44eec11279eb44f`.
+
+OAM-037 does not claim exact official raid probability or timing parity, exact event timing under scheduler load, raid XML/data-definition completeness, restart/crash recovery semantics, distributed or multichannel raid coordination, exact spawn placement parity, webhook delivery guarantees, physical-client E2E closure or full Real Tibia parity.
+
 # Current state
 
 ```text
-Canary reconciliation base: 637c57d8744204490b452bdd935789ec0c4de23b
-Otheryn target head after OAM-036: c0a84977b574f287db2fb970a25e8041343b99c8
+Canary reconciliation base: a3d4ea560f4793380dcb5f73f44eec11279eb44f
+Otheryn target head after OAM-037: d896141d084d381d12cc328d4b920c698eb1d55c
 maintained OTClient: a6868920443dc285656bd016acdb2c1ea566e511
-OAM-001..OAM-036: feature/lifecycle complete
-OAM-036 task: archived in Canary
-OAM-037: NOT STARTED
+OAM-001..OAM-037: feature/lifecycle complete
+OAM-037 task: archived in Canary
+OAM-038: NOT STARTED
 ```
 
 No OAM implementation task is active in this reconciliation record.
@@ -134,8 +155,8 @@ No OAM implementation task is active in this reconciliation record.
 
 | Package | Status | Next action |
 |---|---|---|
-| OAM-001..OAM-036 | completed | preserve durable evidence |
-| OAM-037+ | planned, not active | only after this reconciliation merges and the Otheryn OAM-036 target checkpoint is archived: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
+| OAM-001..OAM-037 | completed | preserve durable evidence |
+| OAM-038+ | planned, not active | only after this reconciliation merges and the Otheryn OAM-037 target checkpoint is archived: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
 
 # Invariants and known gaps
 
@@ -174,8 +195,9 @@ No OAM implementation task is active in this reconciliation record.
 - OAM-033 does not claim exhaustive Charm definition/value parity, all unlock costs, assignment-slot rules, combat proc formulas, element/resistance behavior, Bestiary progress correctness, protocol/client compatibility, maintained-client rendering, persistence atomicity, economy transaction atomicity, physical-client Charm E2E closure, or full Real Tibia parity.
 - OAM-034 does not claim full monster catalogue parity, exhaustive creature stats, loot, spells, resistances or immunities, Creature AI, spawn placement, raid behavior, boss encounter mechanics, Bestiary or Bosstiary runtime correctness, protocol/client compatibility, persistence correctness, map/asset/schema/deployment parity, physical-client creature E2E closure, or full Real Tibia parity.
 - OAM-035 does not claim Real Tibia AI parity, exact target-choice weights, pathfinding parity, thread-safety proof, scheduler fairness, combat formula parity, spawn timing parity, summon ownership completeness, boss AI/reward correctness, raid behavior, protocol/client compatibility, physical-client gameplay E2E closure, or full Oteryn readiness.
-- OAM-036 does not claim exact participant eligibility, contribution-score arithmetic, loot factor/roll parity, reward-table correctness, Bosstiary bonus correctness, persistence atomicity, crash recovery, generic boss AI correctness, spawn/raid correctness, quest/cooldown behavior, protocol/client compatibility, physical-client boss E2E closure, or full Real Tibia parity.
+- OAM-036 does not claim exact participant eligibility, contribution-score arithmetic, loot factor/roll parity, reward-table correctness, Bosstiary bonus correctness, persistence atomicity, crash recovery, generic boss AI correctness, spawn/raid correctness, quest/cooldown behavior, protocol/client compatibility, physical-client boss E2E closure or full Real Tibia parity.
+- OAM-037 does not claim exact official raid probability or timing parity, exact event timing under scheduler load, raid XML/data-definition completeness, restart/crash recovery semantics, distributed or multichannel raid coordination, exact spawn placement parity, webhook delivery guarantees, physical-client E2E closure or full Real Tibia parity.
 
 # Exact next task
 
-Merge this program-only OAM-036 completion reconciliation after exact-head Ownership/CI/review gates. Only then may the Otheryn OAM-036 target checkpoint be archived; only after that archive merges may a fresh OAM-037 preflight begin. OAM-037 is NOT STARTED by this record.
+Merge this program-only OAM-037 completion reconciliation after exact-head Ownership/CI/review gates. Only then may the Otheryn OAM-037 target checkpoint be archived; only after that archive merges may a fresh OAM-038 preflight begin. OAM-038 is NOT STARTED by this record.
