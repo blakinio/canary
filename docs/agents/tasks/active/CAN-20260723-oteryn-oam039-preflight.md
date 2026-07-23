@@ -3,99 +3,90 @@ task_id: CAN-20260723-oteryn-oam039-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 status: ready
 agent: "GPT-5.6 Thinking"
-branch: dudantas/oam-039-preflight
+branch: dudantas/oam-039-governance-finalize
 base_branch: main
 created: 2026-07-23
 updated: 2026-07-23
-last_verified_commit: "efaa970229346c13c9ccfe17805e4b914ec6e8ad"
+last_verified_commit: "2b2eafcd0d7990f499f25acf74af6526ca72ceee"
 risk: high
 related_issue: ""
-related_pr: "771"
+related_pr: "779"
 depends_on:
   - OAM-038 formally complete
 blocks:
-  - OAM-039 target delivery selection
   - OAM-040 start
 owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260723-oteryn-oam039-preflight.md
+    - docs/agents/OTERYN_OAM_039_INSTANCES_REVALIDATION.md
   shared: []
   read_only:
     - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
-    - docs/agents/real-tibia/registry/modules/**
 modules_touched:
   - oteryn-architecture-migration
   - instances
 cross_repo_tasks: []
 ---
 
-# OAM-039 Fresh Preflight
+# OAM-039 Instances governance
 
-## Selected package
+## Final disposition
 
-`instances` is the selected dependency-valid OAM-039 canonical package.
-
-Preflight disposition: `ADAPT candidate`.
-
-The clean Otheryn target and fresh upstream do not contain the canonical `src/game/instance/instance_manager.{hpp,cpp}` roots, so `REUSE` is not available. Legacy Canary contains a bounded, tested implementation for region allocation, instance lifecycle, stable creature ownership, fail-closed relations, lazy event liveness and a bounded arena consumer. Final OAM-039 disposition and exact target edit boundary remain gated on target-side integration proof.
+`instances → ADAPT`
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T12:35:00+02:00
-head: 714af913864787fece328ed2d14c2783660679fb
-branch: dudantas/oam-039-preflight
-pr: 771
-status: ready
+updated_at: 2026-07-23T13:35:00+02:00
+head: d6ea4edd974b9cd89b7a2dbcdc7b1659cca5ae81
+branch: dudantas/oam-039-governance-finalize
+pr: 779
+status: validating
 context_routes:
   - agent-governance
   - cpp-runtime
   - cross-repo
 owned_paths:
   - docs/agents/tasks/active/CAN-20260723-oteryn-oam039-preflight.md
+  - docs/agents/OTERYN_OAM_039_INSTANCES_REVALIDATION.md
 proven:
   - OAM-038 is formally complete after Canary durable reconciliation efaa970229346c13c9ccfe17805e4b914ec6e8ad and Otheryn target archive a275f1d788b50164ffc79b6f6143e13b9150c82e.
-  - Fresh Canary baseline is efaa970229346c13c9ccfe17805e4b914ec6e8ad.
-  - Fresh Otheryn baseline is a275f1d788b50164ffc79b6f6143e13b9150c82e.
-  - Fresh upstream Canary baseline is 7323503b3dc61ed86bf1f04a611b2d0aec64b35a.
-  - Fresh maintained OTClient baseline is 1e5305395159142634f182d9e888e5f9164228c6.
-  - Canonical instances depends only on world-map-runtime which was completed in OAM-007.
-  - Canonical ownership covers configured map-region allocation InstanceState lifecycle stable creature-id ownership isolation summon inheritance cleanup quarantine expiration and the bounded arena consumer; generic map loading quest/boss design dynamic map generation and physical-client orchestration remain excluded.
-  - Otheryn and fresh upstream both lack src/game/instance/instance_manager.cpp and instance_manager.hpp at the fresh baselines.
-  - Legacy Canary contains instance_manager.cpp blob bce417535552176d7d760118a038075f2e6667c5 and instance_manager.hpp blob d0fe2160fda02b88c7987b8cd5815788ec284f8e.
-  - Legacy Canary contains instance_id.hpp blob 41cfa6dd8dd23c140b0787c945324110736574b7 instance_region_pool.hpp blob fd661edf45f88273393ac9ca5617fd284851f1a4 and instance_region_pool.inl blob 63931b9eede044b988805bb06b1277a5ebae7f37.
-  - Legacy Canary contains instance_creature_binder.hpp blob c913d6c5309e74a885bfa8155e4aab3d34623bcc instance_scoped_event.hpp blob aae6dbca7103f2d44d12f4ca93a8cc3f513c0d91 instance_arena_service.hpp blob 5c565bcf56af63f53ee9bf64c02feafbfb165c2c and instance_arena_service.cpp blob b2f8c53ecc2de19967c15f7348bc43bf7579fa8e.
-  - Legacy unit coverage includes InstanceRegionPool validation reservation reuse and concurrent reservation plus InstanceManager creation activation cleanup quarantine stable-id ownership fail-closed relation timeout sweeping and concurrency behavior.
-  - Historical legacy PR evidence shows the implementation was deliberately staged through region pool lifecycle ownership binder liveness Game ownership periodic expiration and a bounded InstanceArenaService rather than introduced as a second global world runtime.
-  - Fresh open-PR and branch searches found no overlapping OAM-039 instances owner in Canary or Otheryn.
-  - Canonical instances has no direct client path so no maintained OTClient mutation is implied by the registry boundary.
+  - Canary OAM-039 preflight PR 771 squash-merged as 5c0613fd853e85421a89f661e9b3774c4dd730ff and selected canonical instances as ADAPT candidate.
+  - Clean Otheryn and fresh upstream lacked canonical InstanceManager roots while legacy Canary provided the staged behavioral donor.
+  - Canonical target ownership remained bounded to src/game/instance subsystem behavior and focused tests/build registration; Game Creature Lua talkaction protocol client map-content asset schema and persistence paths were excluded.
+  - Otheryn PR 81 changed exactly 19 intended bounded paths.
+  - Initial target head 58c4d2cf2cb5f26d67974b78e9d8e16885eae702 exposed one owned Linux-debug lifecycle failure where Closing returned early and a quarantined region was not released after ownership drain.
+  - Bounded repair changed Closing retries to skip duplicate cleanup while retrying finalization and region release when ownership becomes empty.
+  - Otheryn PR 81 final head e216c3bb732bc6dc97374833bbfcb13a4f4ebc50 passed autofix 30002236999 CI 30002237279 Required 30002237057 Fast Checks Lua Linux release/debug full tests both Windows paths macOS and Docker validation.
+  - Final target comments reviews and review threads were empty and Otheryn main had no drift from task-start base before merge.
+  - Otheryn PR 81 squash-merged as a2a52e239d8e8a770ff7376fcbb9b5bfdcc8cc13.
 derived:
-  - instances is the smallest dependency-valid next package because its sole hard dependency is complete while spawns and NPCs still depend on otbm-tooling and quests depends on otbm-tooling plus player-persistence.
-  - OAM-039 requires ADAPT rather than REUSE because the clean target lacks the canonical runtime roots.
-  - The legacy implementation is a strong behavioral donor but must be adapted to the current Otheryn Game ownership scheduling and integration surfaces instead of blindly copied wholesale.
+  - OAM-039 final disposition is instances ADAPT.
+  - The clean target now contains the bounded instance lifecycle isolation foundation with one evidence-driven lifecycle repair.
+  - Cross-module production activation remains outside OAM-039 and is not implied by this governance closure.
+  - OAM-040 remains blocked until this governance merge separate Canary lifecycle archive durable program reconciliation and Otheryn target-task archive all complete.
 unknown:
-  - Exact target integration path set required beyond src/game/instance/** including current Game ownership removal hooks scheduler ownership and arena consumer wiring.
-  - Whether every legacy integration remains valid against current Otheryn architecture or some legacy arena/admin surface should be excluded while preserving the canonical instance lifecycle.
-  - Final OAM-039 ADAPT delivery size and exact target CI evidence until bounded target implementation executes.
+  - Exact final Canary governance merge SHA until PR 779 completes.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: No OAM-039 target implementation has run; this task is preflight-only.
+  marker: InstanceManagerTest.CleanupRunsExactlyOnceAndDirtyRegionIsQuarantined
+  evidence: Initial target CI found Closing retry did not finalize a previously quarantined region after ownership drain; exact-head bounded repair passed full post-fix target validation.
 rejected_hypotheses:
-  - Select spawns or NPCs first; both retain a hard otbm-tooling dependency and are broader data-placement surfaces.
-  - Select quests first; quests also depends on otbm-tooling and is a larger cross-domain data/script progression boundary.
-  - Classify instances as REUSE; target and fresh upstream do not contain the canonical InstanceManager roots.
-  - Copy legacy instances wholesale without integration analysis; the legacy package includes staged Game scheduler creature and arena integrations that must be reconciled with current target architecture.
+  - Classify instances as REUSE; clean target and fresh upstream lacked canonical runtime roots.
+  - Copy legacy cross-module Game Creature Lua or talkaction wiring; those remain interaction boundaries outside canonical ownership.
+  - Import hard-coded legacy data-canary arena coordinates; target map content requires separately owned evidence.
+  - Weaken the failing lifecycle test; the failure represented a real finalization defect and was repaired in the owned subsystem.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260723-oteryn-oam039-preflight.md
+  - docs/agents/OTERYN_OAM_039_INSTANCES_REVALIDATION.md
 validation:
-  - command: fresh dependency ownership and overlap preflight
+  - command: Otheryn PR 81 exact-head target gates
     result: PASS
-    evidence: world-map-runtime is complete and no overlapping OAM-039 instances writer was found
-  - command: target upstream legacy root comparison
+    evidence: final head e216c3bb732bc6dc97374833bbfcb13a4f4ebc50 passed autofix 30002236999 CI 30002237279 Required 30002237057 and full Linux-debug Run Tests after the bounded lifecycle repair
+  - command: target changed-path and interaction audit
     result: PASS
-    evidence: target and upstream lack canonical InstanceManager roots while legacy contains a tested bounded instance lifecycle package and supporting adapters
+    evidence: exactly 19 intended bounded paths no comments reviews or threads and no Otheryn-main drift before merge a2a52e239d8e8a770ff7376fcbb9b5bfdcc8cc13
 blockers: []
-next_action: Require exact-current-head Agent Task Ownership and CI success on PR 771, audit the one-file preflight scope and review state, then expected-head squash merge before bounded instances ADAPT implementation in Otheryn.
+next_action: Require exact-current-head Agent Task Ownership and full final-gate CI success on PR 779, audit exactly two governance paths plus comments reviews threads and Canary-main drift, then expected-head squash merge before separate lifecycle archive.
 ```
