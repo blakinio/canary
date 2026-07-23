@@ -24,7 +24,15 @@ jobs:
           ref: docs/otbm-qa-program-closure-20260723
           fetch-depth: 0
       - name: Apply bounded programme closure reconciliation
-        run: python .github/scripts/temporary_otbm_qa_program_closure_patch.py
+        run: |
+          python .github/scripts/temporary_otbm_qa_program_closure_patch.py
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("docs/ai-agent/OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md")
+          text = path.read_text(encoding="utf-8")
+          text = text.replace("> Status: complete / OTBM-QA-001..018 delivered and lifecycle-closed  \n", "> Status: complete / OTBM-QA-001..018 delivered and lifecycle-closed\n", 1)
+          path.write_text(text, encoding="utf-8")
+          PY
       - name: Commit bounded closure result
         run: |
           git config user.name "github-actions[bot]"
