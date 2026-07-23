@@ -7,7 +7,7 @@ agent: GPT-5.6 Thinking
 branch: docs/otbm-tibia-client-reference-20260723
 base_branch: main
 created: 2026-07-23T10:00:00+02:00
-updated: 2026-07-23T16:25:23+02:00
+updated: 2026-07-23T16:29:17+02:00
 last_verified_commit: "d5a08db0502fb85ff807c9c18f02bf92bd1faaed"
 risk: low
 related_issue: ""
@@ -48,9 +48,11 @@ Define and merge the durable architecture and bounded programme for using exact 
 # Completion
 
 - Final status: completed
-- PR: #762
-- Merge commit: `d5a08db0502fb85ff807c9c18f02bf92bd1faaed`
-- Program record updated: yes, in the TCR-000 lifecycle closure PR
+- Delivery PR: #762
+- Delivery merge commit: `d5a08db0502fb85ff807c9c18f02bf92bd1faaed`
+- Lifecycle closure PR: #808
+- `ci:final-gate` applied to lifecycle PR #808 before this final lifecycle checkpoint commit.
+- Program record updated: yes, in lifecycle PR #808
 - Catalogue updated: yes, in PR #762
 - Changelog updated: yes, in PR #762
 - Archived at: `docs/agents/tasks/archive/CAN-20260723-otbm-tibia-client-reference-architecture.md`
@@ -67,7 +69,7 @@ Define and merge the durable architecture and bounded programme for using exact 
 
 # Final validation evidence
 
-Exact final PR head: `aa92eb3f111060b6abff6e8ba2ad8950ed458842`.
+Exact final delivery PR head: `aa92eb3f111060b6abff6e8ba2ad8950ed458842`.
 
 - Agent Task Ownership: PASS, run `30014055193`.
 - Real Tibia Module Registry: PASS, run `30014055198`.
