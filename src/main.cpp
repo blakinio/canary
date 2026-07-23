@@ -8,6 +8,7 @@
  */
 
 #include "canary_server.hpp"
+#include "core.hpp"
 #include "game/multichannel/channel_context.hpp"
 #include "lib/di/container.hpp"
 
@@ -46,5 +47,10 @@ int main(int argc, char* argv[]) {
 		return server.generateLuaApiDocsOnly();
 	}
 
-	return server.run();
+	try {
+		return server.run();
+	} catch (const std::exception &error) {
+		g_logger().error("[main] Canary runtime failed: {}", error.what());
+		return EXIT_FAILURE;
+	}
 }
