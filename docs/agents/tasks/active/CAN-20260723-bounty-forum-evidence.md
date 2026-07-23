@@ -2,7 +2,7 @@
 task_id: CAN-20260723-bounty-forum-evidence
 program_id: CAN-PROGRAM-OTS-FUTURE-GAMEPLAY-SYSTEMS
 coordination_id: ""
-status: validating
+status: review
 agent: "Codex"
 branch: agent/bounty-forum-evidence
 base_branch: main
