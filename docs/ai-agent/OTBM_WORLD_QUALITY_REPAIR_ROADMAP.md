@@ -2,7 +2,7 @@
 
 > Repository: `blakinio/canary`  
 > Successor context: completed `OTS-OTBM-VALIDATION` phases 1–8 and completed `CAN-PROGRAM-OTBM-E2E-ROUTING` / OTBM-E2E-001..009  
-> Status: planning / consolidated successor roadmap  
+> Status: complete / OTBM-QA-001..018 delivered and lifecycle-closed
 > Evidence rule: static evidence, candidate validation and Physical E2E are distinct proof levels
 
 ## Mission
@@ -620,6 +620,62 @@ E2E/feature agent asks for map context
 -> compact exact evidence + blockers + provenance
 -> downstream agent keeps ownership of scenario/runtime decisions
 ```
+
+# Programme closure reconciliation — 2026-07-23
+
+> Delivery status: **COMPLETE — OTBM-QA-001..018 delivered**
+>
+> This closes the consolidated successor roadmap as a tooling/governance programme. It does **not** certify that an arbitrary or current world is globally healthy or gameplay-correct. Every health, regression, certification, repair, risk and evidence claim still requires the exact compatible inputs and proof level required by its own contract.
+
+## Delivery ledger
+
+| Package | Delivered feature PR | Lifecycle closure PR | Durable capability |
+|---|---:|---:|---|
+| OTBM-QA-001 | #672 | #678 | World Health Aggregator |
+| OTBM-QA-002 | #679 | #680 | Map Change Regression Guard |
+| OTBM-QA-003 | #681 | #682 | Repair Recommendation Orchestrator |
+| OTBM-QA-004 | #684 | #686 | Reviewed Candidate Repair Orchestration |
+| OTBM-QA-005 | #688 | #689 | Coverage Dashboard |
+| OTBM-QA-006 | #759 | #767 | Region and Quest Certification |
+| OTBM-QA-007 | #759 | #767 | Continuous World Assurance Gate |
+| OTBM-QA-008 | #694 | #698 | Dependency and Blast-Radius Graph |
+| OTBM-QA-009 | #700 | #704 | Dead/Orphaned Content and Completeness Audit |
+| OTBM-QA-010 | #709 | #710 | Quest State Reachability |
+| OTBM-QA-011 | #713 | #716 | Connectivity Resilience |
+| OTBM-QA-012 | #717 | #721 | Critical Access Integrity |
+| OTBM-QA-013 | #724 | #731 | Identifier and Selector Integrity |
+| OTBM-QA-014 | #734 | #752 | Asset and Appearance Compatibility |
+| OTBM-QA-015 | #735 | #752 | Static Map Performance Hotspots |
+| OTBM-QA-016 | #737 | #752 | Release Provenance and Certification Freshness |
+| OTBM-QA-017 | #739 | #752 | Deterministic Change Risk |
+| OTBM-QA-018 | #741 | #752 | Compact Evidence Gateway |
+
+Shared public-interface governance for QA-014..018 was reconciled in #743. QA-006/007 shared catalogue/changelog registration was reconciled in #768. Closure PR #773 also restores the previously missing shared discovery entries for QA-008 and QA-009.
+
+## Completion-definition reconciliation
+
+The sixteen programme completion conditions are satisfied by the delivered contracts as follows:
+
+1. Deterministic current-world health composition: QA-001.
+2. Fail-closed impacted static and represented Physical E2E selection for exact map changes: QA-002.
+3. Explicit proven dependency/blast-radius paths without invented edges: QA-008.
+4. Conservative dead/orphaned-content and selected quest/mechanic completeness auditing: QA-009.
+5. Selected quest-state reachability without dynamic Lua execution: QA-010.
+6. Connectivity fragility, reviewed transition/teleport topology and static entrapment candidates through the canonical Reachability graph: QA-011.
+7. Bounded critical-access, identifier, asset/appearance and static-hotspot evidence: QA-012..015.
+8. Reviewable repair recommendations without automatic mutation: QA-003.
+9. Reviewed candidate repair orchestration restricted to existing approved bounded mutation contracts: QA-004.
+10. Candidate evidence chains retain native reparse/reindex, Semantic Diff, quality and impacted Physical E2E boundaries through QA-004 and the existing OTBM-E2E candidate-validation stack.
+11. Exact release BOM/provenance, upgrade comparison and dependency-scoped certification freshness: QA-016.
+12. Explicit target coverage dimensions and bounded C0-C7 certification with stale-state handling: QA-005/006.
+13. Transparent evidence-derived change-risk classification: QA-017.
+14. Compact exact downstream evidence without transferring E2E/feature ownership: QA-018.
+15. Exact provenance and source-map immutability remain mandatory across the programme.
+16. The programme reuses the canonical World Index, Script Resolution, Reachability, Semantic Diff, renderer, bounded mutation pipeline and Universal Physical E2E; it introduces no parallel parser/pathfinder/writer/renderer/E2E stack.
+
+## Closure boundary
+
+Future work may consume or extend these stable contracts through new bounded tasks, but it does not reopen OTBM-QA-001..018. New Real Tibia/client-reference, parity, content-reconstruction or feature-runtime programmes remain separate ownership domains and must preserve the reuse and proof-level rules above.
 
 # Proposal-to-package inventory
 
