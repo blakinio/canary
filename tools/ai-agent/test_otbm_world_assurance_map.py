@@ -165,6 +165,21 @@ class WorldAssuranceMapTests(unittest.TestCase):
         with self.assertRaisesRegex(WorldAssuranceMapError, "unknown campaign target ids"):
             build_world_assurance_map_plan(campaign(), campaign_file_sha256=FILE_SHA, target_ids=["missing"])
 
+    def test_missing_qa005_dimension_fails_closed(self):
+        bad = campaign()
+        del bad["targets"][0]["qa005Coverage"]["dimensions"]["candidateMapValidated"]
+        bad.pop("reportSha256")
+        bad["reportSha256"] = canonical_sha256(bad)
+        with self.assertRaisesRegex(WorldAssuranceMapError, "dimensions mismatch"):
+            build_world_assurance_map_plan(bad, campaign_file_sha256=FILE_SHA)
+
+    def test_proven_physical_e2e_with_stale_freshness_fails_closed(self):
+        with self.assertRaisesRegex(WorldAssuranceMapError, "proven Physical E2E requires current"):
+            build_world_assurance_map_plan(
+                campaign(freshness="stale", physical="proven", status="stale"),
+                campaign_file_sha256=FILE_SHA,
+            )
+
     def test_stale_and_blocked_states_are_preserved_not_upgraded(self):
         plan = build_world_assurance_map_plan(
             campaign(freshness="stale", physical="stale", status="stale"),
