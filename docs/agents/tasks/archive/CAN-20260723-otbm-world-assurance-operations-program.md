@@ -7,7 +7,7 @@ agent: "GPT-5.6 Thinking"
 branch: docs/otbm-world-assurance-operations-20260723
 base_branch: main
 created: 2026-07-23T14:20:00+02:00
-updated: 2026-07-23T15:20:00+02:00
+updated: 2026-07-23T15:25:00+02:00
 last_verified_commit: "1d933c5dcffaa1bb55787b647ba0a50087e43f52"
 risk: low
 related_issue: ""
@@ -79,10 +79,10 @@ Start OWA-001 only as a new bounded task from then-current `main`. Revalidate cu
 
 ```yaml
 checkpoint_version: 1
-updated_at: "2026-07-23T15:20:00+02:00"
-head: "1d933c5dcffaa1bb55787b647ba0a50087e43f52"
+updated_at: "2026-07-23T15:25:00+02:00"
+head: "8fe4914e42c69f279e09b9237b0c295df0dcbaa1"
 branch: "docs/archive-otbm-world-assurance-operations-program-20260723"
-pr: "pending"
+pr: "798"
 status: "complete"
 context_routes:
   - "agent-governance"
@@ -94,10 +94,11 @@ proven:
   - "Protected ready-state CI 30009286918 succeeded before auto-merge."
   - "The feature PR changed exactly three documentation/task paths and left the closed OTBM QA roadmap unchanged."
   - "OWA-001..006 is now the active operational successor queue; QA-001..018 remains closed."
+  - "PR #798 is the lifecycle-only active-to-archive transition for the completed bootstrap task."
 derived:
   - "Bootstrap ownership can be released while CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS remains active for future separately owned OWA packages."
 unknown:
-  - "Lifecycle PR number and exact-final lifecycle check IDs are pending until the lifecycle PR is opened."
+  - "Exact-final lifecycle CI and Agent Task Ownership results for PR #798 are pending."
 conflicts: []
 first_failure:
   marker: "resolved-roadmap-edit-path"
@@ -116,6 +117,10 @@ validation:
   - command: "PR #795 scope/review audit"
     result: PASS
     evidence: "Exactly three feature paths; zero review threads and zero review submissions."
-blockers: []
-next_action: "Open lifecycle-only active-to-archive PR, bind its number if a final checkpoint update is required, validate exact-final lifecycle checks, merge, and verify main contains the archive record with no active bootstrap task."
+  - command: "PR #798 exact-final lifecycle validation"
+    result: NOT_RUN
+    evidence: "Pending pull_request synchronize workflows on the final lifecycle checkpoint head."
+blockers:
+  - "PR #798 exact-final lifecycle checks must pass before merge."
+next_action: "Make no further commits. Require exact-final lifecycle CI/Ownership on this final head, verify the two-path lifecycle scope and empty review audit, mark PR #798 ready, enable auto-merge, then verify main contains the archive record with no active bootstrap task."
 ```
