@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: docs/ots-social-itemization-qol-20260723
 base_branch: main
 created: 2026-07-23T15:31:47+02:00
-updated: 2026-07-23T16:48:00+02:00
-last_verified_commit: "2801973f6be6f4239e9e6575f4ca0cb05e083aba"
+updated: 2026-07-23T16:55:00+02:00
+last_verified_commit: "0af0302bc88118cc5565365c49e99f7b669c66de"
 risk: low
 related_issue: ""
 related_pr: "799"
@@ -47,7 +47,7 @@ cross_repo_tasks: []
 
 ## Status
 
-READY — user-approved 2026-07-23 future gameplay directions are persisted in PR #799, including Vocation/Class Identity, Roles and Balance plus a dedicated Gem Atelier / Fragment Workshop review mandate. Documentation/design only; exact-final CI and ownership validation remain the merge gate.
+READY — user-approved 2026-07-23 future gameplay directions are persisted and classified in PR #799, including Vocation/Class Identity, Roles and Balance plus a dedicated Gem Atelier / Fragment Workshop review mandate. Documentation/design only; exact-final CI and ownership validation remain the merge gate.
 
 ## Goal
 
@@ -76,10 +76,11 @@ Documentation/design only. No gameplay runtime, protocol, datapack, map, binary,
 
 - [x] Record the approved social/itemization/QoL design directions in a durable detailed design file.
 - [x] Add concise integration entries to `OTS_FUTURE_GAMEPLAY_SYSTEMS.md` without duplicating existing systems.
-- [x] Add explicit `ORIGIN` and `TYPE` entries to `OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md` for the promoted social/itemization/vocation proposals.
+- [x] Add explicit `ORIGIN` and `TYPE` entries to `OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md` for promoted proposals and official-system review mandates.
 - [x] Add a durable Vocation/Class Identity, Roles and Balance Framework with explicit solo/party/context balance principles.
 - [x] Classify the vocation/class balance proposals without introducing unsupported `TIBIA-OFFICIAL` claims.
 - [x] Add a durable Gem Atelier / Fragment Workshop review record grounded in current official Tibia documentation.
+- [x] Classify Gem Atelier / Fragment Workshop review as `TIBIA-OFFICIAL` / `PARITY-INTEGRATION`, while keeping Canary/OTClient implementation support explicitly unproven until audit.
 - [x] Record required Canary/OTClient parity audit, build/balance integration, RNG review and economy analysis for gems without inventing current fork support.
 - [x] Preserve open balance questions rather than inventing final numeric contracts.
 - [x] Keep all changes documentation-only.
@@ -88,8 +89,8 @@ Documentation/design only. No gameplay runtime, protocol, datapack, map, binary,
 
 ```yaml
 checkpoint_version: 1
-updated_at: "2026-07-23T16:48:00+02:00"
-head: "2801973f6be6f4239e9e6575f4ca0cb05e083aba"
+updated_at: "2026-07-23T16:55:00+02:00"
+head: "0af0302bc88118cc5565365c49e99f7b669c66de"
 branch: "docs/ots-social-itemization-qol-20260723"
 pr: "799"
 status: "ready"
@@ -111,9 +112,10 @@ proven:
   - "docs/ai-agent/OTS_GEM_ATELIER_AND_GEM_PROGRESSION_REVIEW.md records the full Gem Atelier / Fragment Workshop audit mandate, current official baseline, required Canary/OTClient support audit, build/class balance integration, RNG review, economy analysis and interaction with open PR #794."
   - "Current official Tibia Game Guides verified Gem Atelier as a Wheel of Destiny subsystem with Lesser/Regular/Greater vocation gems, domain affinity, vessels/Vessel Resonance, locking/dismantling and Fragment Workshop Grade I-IV mod progression using gold and fragments; exact values remain time-sensitive."
   - "A narrow repository search did not return direct Gem Atelier/Wheel matches, but that is explicitly insufficient evidence to claim current Canary/OTClient support is absent."
+  - "OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md now continues through entry 94; entry 94 classifies the Gem Atelier & Fragment Workshop parity/balance review as TIBIA-OFFICIAL / PARITY-INTEGRATION, while later custom changes must receive separate classifications."
+  - "The classification diff was rechecked after correcting one transient unintended wording change to existing entry 39; no existing classification note remains intentionally modified beyond the purpose-link expansion."
   - "The vocation framework deliberately avoids assigning speculative final numeric values or unsupported current-vocation mechanics before implementation-time audit."
   - "OTS_FUTURE_GAMEPLAY_SYSTEMS.md contains concise sections 29-35 integrating the social/itemization/QoL directions and dependency-map addendum."
-  - "OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md currently contains promoted entries 69-93; the Gem Atelier review is recorded as an official-foundation parity/design audit in its dedicated document and is not misattributed as an OTS invention."
   - "The feature scope remains documentation-only."
   - "PR #799 targets blakinio/canary:main from blakinio/canary:docs/ots-social-itemization-qol-20260723."
 derived:
@@ -158,7 +160,10 @@ validation:
     evidence: "Current official Game Guides and official update history support the recorded baseline: vocation-linked gems, sizes/mods, domains, vessels/resonance, locking/dismantling, fragments and Grade I-IV Fragment Workshop progression."
   - command: "Gem Atelier classification/provenance review"
     result: PASS
-    evidence: "The dedicated review explicitly treats the underlying system as official Tibia foundation and separates future custom changes from parity claims."
+    evidence: "Entry 94 treats the review as TIBIA-OFFICIAL / PARITY-INTEGRATION and explicitly separates later OTS changes from official behavior."
+  - command: "Classification diff review"
+    result: PASS
+    evidence: "Existing entry 39 wording restored; intended classification changes are purpose-link expansion plus entries 69-94 added by this task."
 blockers:
   - "Exact-final Agent Task Ownership, AI Agent Tools and CI runs for the newest head must pass before merge."
 next_action: "Make no further feature-content commits. Verify exact-final PR #799 workflow results and review threads; if required checks are green and the autonomous merge gate is satisfied, mark ready and squash-merge."
