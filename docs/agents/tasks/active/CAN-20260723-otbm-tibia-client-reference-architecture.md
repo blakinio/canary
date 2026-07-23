@@ -7,8 +7,8 @@ agent: GPT-5.6 Thinking
 branch: docs/otbm-tibia-client-reference-20260723
 base_branch: main
 created: 2026-07-23T10:00:00+02:00
-updated: 2026-07-23T12:30:00+02:00
-last_verified_commit: "59ef2007fe58635f9188dc2431159509d1099f2e"
+updated: 2026-07-23T14:46:31+02:00
+last_verified_commit: "b67d2f267f062dfb41dc5cc20e56a2dea012f6dc"
 risk: low
 related_issue: ""
 related_pr: "762"
@@ -62,75 +62,58 @@ cross_repo_tasks: []
 
 # Goal
 
-Define a concrete, durable architecture and phased implementation plan for ingesting exact user-supplied Tibia 15.x client reference files as read-only evidence and correlating them with the existing canonical OTBM/Canary analysis stack without creating a second OTBM parser, pathfinder, renderer, script resolver, mutation engine or E2E platform.
+Define a durable architecture and phased implementation plan for ingesting exact user-supplied Tibia 15.x client reference files as read-only evidence and correlating them with the existing canonical OTBM/Canary analysis stack without creating a second OTBM parser, pathfinder, renderer, script resolver, mutation engine or E2E platform.
 
 # Scope
 
-This task is documentation and architecture only. It does not implement parsers, mutate `.otbm`, `items.otb`, client assets or datapack/runtime code, and does not commit proprietary Tibia client files.
-
-The architecture covers:
-
-- exact client-package provenance and SHA-256 pinning;
-- `staticdata` old/new schema evidence;
-- `staticmapdata` house-layout evidence;
-- proficiency reference evidence and item/appearance bindings;
-- reuse of existing canonical appearances/assets evidence;
-- optional minimap/reference evidence boundaries;
-- parity consumers for houses, monsters/bosses/quests and proficiency;
-- deterministic drift between two client-reference snapshots;
-- adoption routing into existing bounded OTBM repair/materialization or non-OTBM subsystem tasks;
-- explicit licensing boundary for `beats-dh/Beats-Assets-Editor` as research/reference, not copied implementation.
+Documentation and architecture only. No parser implementation, `.otbm`, `items.otb`, client-asset or datapack/runtime mutation, and no proprietary Tibia client files committed.
 
 # Acceptance criteria
 
 - [x] Add a durable programme with bounded queue entries and exact next action.
 - [x] Add a technical architecture defining contracts, provenance, joins, failure states and non-goals.
-- [x] Update the OTBM real-Tibia registry record without creating a duplicate tooling module.
-- [x] Ensure the plan does not authorize raw client files, `.otbm`, `.widx`, `items.otb` or generated large artifacts in Git.
-- [x] Ensure `staticmapdata` is treated as bounded house-layout/reference evidence, not a full OTBM source or automatic map generator.
-- [x] Ensure minimap evidence cannot replace canonical World Index/Reachability mechanics evidence.
-- [x] Ensure all proposed mutation/adoption routes require existing review/approval and post-mutation validation contracts.
+- [x] Update the OTBM Real Tibia registry record without creating a duplicate tooling module.
+- [x] Keep raw client files, `.otbm`, `.widx`, `items.otb` and generated large artifacts out of Git.
+- [x] Treat `staticmapdata` as bounded house-layout/reference evidence, not a full OTBM source or automatic map generator.
+- [x] Keep minimap evidence subordinate to canonical World Index/Reachability mechanics evidence.
+- [x] Route proposed mutation/adoption through existing review/approval and post-mutation validation contracts.
 - [x] Include a bounded kickoff prompt for the implementation agent in the programme handoff.
-- [x] Regenerate and validate the derived Real Tibia registry indexes after the `otbm-tooling` registry change.
-- [x] Add only still-required narrow discovery mirrors to `MODULE_CATALOG.md`, `OTS_OTBM_TOOLING_ROADMAP.md`, `REAL_TIBIA_EVIDENCE_SOURCES.md`, `REAL_TIBIA_PARITY_PROGRAM.md` and `CHANGELOG.md` after re-reading current main.
+- [x] Regenerate and validate derived Real Tibia registry indexes after the `otbm-tooling` registry change.
+- [ ] Add the still-required narrow `CHANGELOG.md` discovery mirror; the live PR changed-file list currently excludes this file.
 - [ ] Verify PR #762 required CI on the immutable final head and merge under repository policy.
 
 # Evidence baseline
 
 ## PROVEN
 
-- The task branch started from `blakinio/canary:main` at `8837f35eb43da6a3ed7efc6a1e8f3bca19342d2e`.
-- Current `main` was re-fetched at `57e26e3a22db90b41a005a467c2f2411e0e1039b`. Changes after the original base include OAM/lifecycle documentation and merged OTBM QA-006/QA-007; no post-base change creates a competing client-reference parser, OTBM parser, World Index, pathfinder, renderer or Physical E2E platform.
-- PR #759 merged as `cc376677178e7de3551675bc17639b1fe0422c6f`. Its QA-006 certification and QA-007 continuous-assurance layers are downstream evidence composition and remain compatible with TCR's existing QA/certification/E2E reuse boundary.
-- Draft PR #768 now has additive changes to the two TCR shared paths `docs/agents/MODULE_CATALOG.md` and `docs/agents/CHANGELOG.md`. Ownership remains `shared`; a coordination comment records merge order #762 first and refresh/reapply #768 afterward so both discovery entries are retained.
-- Draft PR #762 owns this task and remains mergeable before final-head validation.
-- Searches of current `MODULE_CATALOG.md`, repository code and `tools/ai-agent` found no existing equivalent canonical Tibia client-reference package/manifest interface; TCR-000 remains a governance extension of `otbm-tooling`, not a duplicate tooling module.
-- `beats-dh/Beats-Assets-Editor` baseline for the design is pinned to `ed827be34c279d1279ad3dde3af434b148ac05c7` and is read-only format/interoperability research.
-- Existing Canary OTBM tooling already owns canonical OTBM parsing/indexing, appearances/assets indexing, script resolution, reachability, semantic diff, geometry, QA evidence and bounded mutation pipelines.
-- Shared discovery mirrors are limited to narrow TCR-000 entries in the module catalogue, OTBM tooling roadmap, Real Tibia evidence registry, Real Tibia parity programme and agent changelog.
-- Derived registry output changed only `MODULE_DEPENDENCIES.md`, `MODULE_PATH_INDEX.md` and `STALE_MODULES.md`; current candidate-head Real Tibia Module Registry CI passes `generate --check`.
-- Candidate head `59ef2007fe58635f9188dc2431159509d1099f2e` passed Real Tibia Module Registry, Agent Task Ownership, OTBM Map Tools, repository CI and Upstream Intelligence.
-- Review-thread inspection returned zero unresolved inline review threads and zero submitted reviews before the final checkpoint commit.
-- The `ci:final-gate` label was applied before this final checkpoint commit as required by repository policy.
-- One bounded local clone attempt failed with `Could not resolve host: github.com`; no local validation result is claimed. GitHub Actions is the authoritative execution environment for this task.
+- TCR-000 is architecture/governance only and adds no TCR-001/TCR-002/TCR-003 parser or runtime/map mutation implementation.
+- PR #762 is open and draft on branch `docs/otbm-tibia-client-reference-20260723`.
+- The branch was replayed cleanly on `main` commit `54ce97b3bcaac8c2e1a0d4cc6162a6ff975bbee9` as head `b67d2f267f062dfb41dc5cc20e56a2dea012f6dc`.
+- Current `main` then advanced to `115f3ac2fffc36bb4e415c2a6fb45908d9538ba3` through PR #796, which changed only `docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md`; PR #762 remains mergeable.
+- Live PR #762 has exactly 11 changed files and does not include `docs/agents/CHANGELOG.md`.
+- The `MODULE_CATALOG.md` TCR-000 change was reduced to one additive discovery row relative to the refreshed base.
+- On replay head `b67d2f267f062dfb41dc5cc20e56a2dea012f6dc`, Real Tibia Module Registry, Agent Task Ownership, repository CI and Upstream Intelligence completed successfully; AI Agent Tools and OTBM Map Tools were still in progress at the last check.
+- The immediately preceding head `826dcc8ab4fa7aa4905965a4beaf63ad0ec91618` had all six relevant workflow runs green.
+- PR #768, the former shared `MODULE_CATALOG.md`/`CHANGELOG.md` overlap, is merged and no longer an active ordering conflict.
+- A bounded local clone attempt failed with `Could not resolve host: github.com`; no local repository validation result is claimed from that attempt.
 
 ## UNKNOWN / deferred
 
 - Exact Tibia client build/version carried by future user-supplied files must be recorded per ingestion and never inferred from filename alone.
 - Exact filenames/packaging of proficiency data may vary by client build and must be discovered by a bounded implementation task rather than hard-coded by TCR-000.
 - Whether every proposed client-reference field has stable semantic meaning across builds remains implementation evidence, not assumed architecture truth.
-- The immutable final commit SHA and the CI run IDs triggered by that commit cannot be self-recorded inside the same commit; repository lifecycle/archive handling must record the exact final feature head, final-head CI and squash-merge SHA after merge.
+- Exact final-head CI results after the missing changelog/checkpoint commit are not yet available.
+- Exact squash-merge SHA remains pending.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: "2026-07-23T12:30:00+02:00"
-head: "59ef2007fe58635f9188dc2431159509d1099f2e"
+updated_at: "2026-07-23T14:46:31+02:00"
+head: "b67d2f267f062dfb41dc5cc20e56a2dea012f6dc"
 branch: "docs/otbm-tibia-client-reference-20260723"
 pr: "762"
-status: "validating"
-next_action: "Make no further commits. Require the ci:final-gate workflows on the exact final PR head to finish green, recheck review threads and mergeability, mark PR 762 ready, squash-merge it, then archive the task through the separate lifecycle flow before starting TCR-001 on a new task/branch/PR."
+status: "implementing"
 context_routes:
   - "agent-governance"
   - "otbm"
@@ -146,32 +129,33 @@ owned_paths:
   - "docs/agents/real-tibia/registry/modules/otbm-tooling.yaml"
   - "docs/agents/CHANGELOG.md"
 proven:
-  - "TCR-000 is architecture/governance only and adds no TCR-001/TCR-002/TCR-003 parser or runtime/map mutation implementation."
-  - "Current main 57e26e3a22db90b41a005a467c2f2411e0e1039b introduces no exclusive-path ownership conflict with TCR-000."
-  - "Merged PR 759 adds downstream QA-006/QA-007 evidence composition and does not duplicate TCR-owned parsing/indexing surfaces."
-  - "Real Tibia Module Registry run 29997673612 passed on candidate head 59ef2007fe58635f9188dc2431159509d1099f2e."
-  - "Agent Task Ownership run 29997673549 passed both changed-checkpoint validation and full ownership-index validation on candidate head 59ef2007fe58635f9188dc2431159509d1099f2e."
-  - "OTBM Map Tools run 29997673662 passed on candidate head 59ef2007fe58635f9188dc2431159509d1099f2e."
-  - "Repository CI run 29997674124 passed with Required success on candidate head 59ef2007fe58635f9188dc2431159509d1099f2e."
-  - "Upstream Intelligence run 29997673528 passed on candidate head 59ef2007fe58635f9188dc2431159509d1099f2e."
-  - "AI Agent Tools run 29997473114 passed on the preceding candidate head ac547147bfaa3d58b65307c394d48121979266e4; exact-final-head final-gate validation remains authoritative."
-  - "Generated registry diffs are limited to one dependency edge, three path-index rows and otbm-tooling freshness."
-  - "Inline review-thread inspection returned zero threads and review-submission inspection returned zero reviews before the final checkpoint."
-  - "ci:final-gate was applied to PR 762 before the final checkpoint commit."
+  - "PR 762 is open, draft and mergeable on replay head b67d2f267f062dfb41dc5cc20e56a2dea012f6dc."
+  - "Replay head b67d2f267f062dfb41dc5cc20e56a2dea012f6dc is based on main 54ce97b3bcaac8c2e1a0d4cc6162a6ff975bbee9; current main 115f3ac2fffc36bb4e415c2a6fb45908d9538ba3 adds only the unrelated OAM programme file from PR 796."
+  - "The live PR changed-file list contains 11 TCR files and excludes docs/agents/CHANGELOG.md."
+  - "The MODULE_CATALOG.md TCR change is one additive discovery row after current-main reconciliation."
+  - "Real Tibia Module Registry run 30008538433 passed on replay head b67d2f267f062dfb41dc5cc20e56a2dea012f6dc."
+  - "Agent Task Ownership run 30008538780 passed on replay head b67d2f267f062dfb41dc5cc20e56a2dea012f6dc."
+  - "Repository CI run 30008538742 passed on replay head b67d2f267f062dfb41dc5cc20e56a2dea012f6dc."
+  - "Upstream Intelligence run 30008538764 passed on replay head b67d2f267f062dfb41dc5cc20e56a2dea012f6dc."
+  - "Previous head 826dcc8ab4fa7aa4905965a4beaf63ad0ec91618 had Real Tibia Registry, Upstream Intelligence, Agent Task Ownership, CI, AI Agent Tools and OTBM Map Tools all green."
+  - "PR 768 is merged, so its former shared-document ordering conflict is resolved."
 derived:
-  - "The architecture remains compatible with current main because post-base OTBM QA additions consume existing evidence and do not replace or weaken the canonical TCR reuse boundaries."
-  - "PR 768 is a non-exclusive shared-document coordination overlap rather than an ownership conflict; preserving both additive discovery entries requires explicit merge ordering."
+  - "TCR-000 remains architecture-compatible with current main because post-replay main movement is outside all TCR-owned/shared paths."
+  - "PR 762 is not acceptance-complete until the missing changelog mirror is restored and exact-final-head validation reruns after the final commit."
 unknown:
-  - "Exact-final-head ci:final-gate run IDs and results are pending and must be recorded by the post-merge lifecycle/archive update."
-  - "Exact squash-merge SHA is pending and must be recorded by the post-merge lifecycle/archive update."
+  - "AI Agent Tools run 30008538935 and OTBM Map Tools run 30008538462 were still in progress on replay head b67d2f267f062dfb41dc5cc20e56a2dea012f6dc at the last check."
+  - "Exact final-head CI run IDs/results after the missing changelog and final checkpoint commit are pending."
+  - "Exact squash-merge SHA is pending."
 conflicts:
-  - "Draft PR 768 touches shared MODULE_CATALOG.md and CHANGELOG.md. Coordination is resolved as PR 762 first, then refresh/reapply PR 768 against updated main; a PR 768 conversation comment records this ordering."
+  - "The task/PR description previously claimed CHANGELOG.md delivery, but the live PR 762 changed-file list excludes docs/agents/CHANGELOG.md. Live diff is authoritative."
+first_failure:
+  marker: "TCR-000 acceptance: required CHANGELOG discovery mirror is absent from PR 762"
+  evidence: "GitHub list_pr_changed_filenames for PR 762 returned 11 files and did not include docs/agents/CHANGELOG.md."
 rejected_hypotheses:
-  - "Rejected: merged PR 759 overlaps TCR-000 implementation ownership; it adds downstream QA-006/QA-007 evidence composition only."
-  - "Rejected: create a second canonical client-reference or OTBM analysis stack; current repository discovery shows the existing OTBM stack must be extended and reused."
-  - "Rejected: staticmapdata.object_id can be treated as OTBM/server itemId; exact mapping is unproven and the namespace remains separate."
+  - "Rejected: PR 768 is still an active shared-document ordering blocker; it is merged."
+  - "Rejected: current main PR 796 overlaps TCR paths; it changes only docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md."
+  - "Rejected: staticmapdata.object_id can be treated as OTBM/server itemId; exact mapping remains unproven."
 changed_paths:
-  - "docs/agents/CHANGELOG.md"
   - "docs/agents/MODULE_CATALOG.md"
   - "docs/agents/REAL_TIBIA_EVIDENCE_SOURCES.md"
   - "docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md"
@@ -183,41 +167,24 @@ changed_paths:
   - "docs/agents/tasks/active/CAN-20260723-otbm-tibia-client-reference-architecture.md"
   - "docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md"
   - "docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md"
-blockers:
-  - "All required ci:final-gate checks on the exact immutable final head must be green before readiness/merge."
-  - "If PR 768 merges first or changes shared-document state before PR 762 merges, re-evaluate mergeability without committing past the immutable final-head policy; otherwise preserve the recorded #762-first ordering."
-first_failure:
-  marker: "Agent Task Ownership integration failures on heads 368ee3bbc42d48276761db056e5dd8e2ec11afed and ac547147bfaa3d58b65307c394d48121979266e4"
-  evidence: "The first failure was stale generated registry state plus a missing fenced checkpoint contract. After adding fenced YAML, the second ownership failure was exact: record under tasks/active has non-active status 'active'. Generated indexes, checkpoint schema, related_pr normalization and frontmatter status were corrected; candidate-head ownership run 29997673549 is green."
 validation:
-  - command: "python -m py_compile tools/agents/real_tibia_registry.py tools/agents/real_tibia_registry_lib.py tools/agents/test_real_tibia_registry.py"
+  - command: "GitHub Actions workflow Real Tibia Module Registry"
     result: "PASS"
-    evidence: "Real Tibia Module Registry run 29997673612"
-  - command: "python -m unittest -v tools/agents/test_real_tibia_registry.py"
-    result: "PASS"
-    evidence: "Real Tibia Module Registry run 29997673612"
-  - command: "python tools/agents/real_tibia_registry.py validate"
-    result: "PASS"
-    evidence: "Real Tibia Module Registry run 29997673612"
-  - command: "python tools/agents/real_tibia_registry.py generate --check"
-    result: "PASS"
-    evidence: "Real Tibia Module Registry run 29997673612"
-  - command: "python tools/agents/task_lifecycle.py validate-changed --changed-files-file artifacts/agent-coordination/CHANGED_FILES.txt --current-pr 762"
-    result: "PASS"
-    evidence: "Agent Task Ownership run 29997673549"
+    evidence: "run 30008538433 on replay head b67d2f267f062dfb41dc5cc20e56a2dea012f6dc"
   - command: "GitHub Actions workflow Agent Task Ownership"
     result: "PASS"
-    evidence: "run 29997673549; changed checkpoint and full ownership index both succeeded"
-  - command: "GitHub Actions workflow OTBM Map Tools"
-    result: "PASS"
-    evidence: "run 29997673662"
+    evidence: "run 30008538780 on replay head b67d2f267f062dfb41dc5cc20e56a2dea012f6dc"
   - command: "GitHub Actions workflow CI"
     result: "PASS"
-    evidence: "run 29997674124; Required succeeded"
+    evidence: "run 30008538742 on replay head b67d2f267f062dfb41dc5cc20e56a2dea012f6dc"
   - command: "GitHub Actions workflow Upstream Intelligence"
     result: "PASS"
-    evidence: "run 29997673528"
-  - command: "GitHub Actions workflow AI Agent Tools"
-    result: "PASS"
-    evidence: "run 29997473114 on preceding candidate head; exact-final-head final-gate run remains required"
+    evidence: "run 30008538764 on replay head b67d2f267f062dfb41dc5cc20e56a2dea012f6dc"
+  - command: "git clone --depth 1 https://github.com/blakinio/canary.git"
+    result: "BLOCKED"
+    evidence: "sandbox DNS failure: Could not resolve host github.com"
+blockers:
+  - "Restore the missing narrow docs/agents/CHANGELOG.md TCR-000 discovery entry from current main without overwriting unrelated entries."
+  - "After the final changelog/checkpoint commit, require all ci:final-gate workflows green on that exact immutable head before readiness/merge."
+next_action: "Add the missing narrow docs/agents/CHANGELOG.md TCR-000 discovery entry from current main and batch the final checkpoint update in the same ci:final-gate commit."
 ```
