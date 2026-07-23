@@ -2,13 +2,13 @@
 task_id: CAN-20260723-vocation-dev-note-forum-analysis
 program_id: CAN-PROGRAM-REAL-TIBIA-PARITY
 coordination_id: ""
-status: active
+status: ready
 agent: "Codex"
 branch: agent/dev-note-vocation-forum-analysis
 base_branch: main
 created: 2026-07-23T19:11:40+02:00
-updated: 2026-07-23T19:19:54+02:00
-last_verified_commit: "14e75ba64c4458850d7151230464bbdf496d4a7d"
+updated: 2026-07-23T19:26:29+02:00
+last_verified_commit: "074d27046037031b7d4947a3c4c3aeefc0cdb09e"
 risk: low
 related_issue: ""
 related_pr: "831"
@@ -68,8 +68,8 @@ The full corpus and reproducibility manifest are retained outside Git. The compl
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T19:19:54+02:00
-head: 14e75ba64c4458850d7151230464bbdf496d4a7d
+updated_at: 2026-07-23T19:26:29+02:00
+head: 074d27046037031b7d4947a3c4c3aeefc0cdb09e
 branch: agent/dev-note-vocation-forum-analysis
 pr: 831
 status: ready
@@ -121,6 +121,12 @@ validation:
   - command: ci:final-gate label
     result: PASS
     evidence: Label applied to PR #831 before this final task commit.
+  - command: Agent Task Ownership run 30029018042
+    result: FAIL
+    evidence: The first final-head run rejected frontmatter status active because active task records must use a lifecycle status from planned, implementing, blocked, review, or ready.
+  - command: lifecycle-status root-cause correction
+    result: PASS
+    evidence: Frontmatter status is now ready and matches checkpoint status ready; the final gate must rerun on the corrective head.
 blockers: []
-next_action: Push this final checkpoint commit, wait for all required checks on its exact head, then mark PR #831 ready and squash-merge.
+next_action: Push the corrective final checkpoint commit, wait for all required checks on its exact head, then mark PR #831 ready and squash-merge.
 ```
