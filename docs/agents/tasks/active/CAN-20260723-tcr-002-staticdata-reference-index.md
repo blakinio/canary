@@ -2,13 +2,13 @@
 task_id: CAN-20260723-tcr-002-staticdata-reference-index
 program_id: CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE
 coordination_id: OTBM-TIBIA-CLIENT-REFERENCE
-status: review
+status: validating
 agent: "GPT-5.6 Thinking"
 branch: feat/tcr-002-staticdata-reference-index-20260723
 base_branch: main
 created: 2026-07-23T19:05:00+02:00
-updated: 2026-07-23T19:35:49+02:00
-last_verified_commit: "2a622199e57bb90578d7d14ffece1ab6b4c97ca2"
+updated: 2026-07-23T19:39:00+02:00
+last_verified_commit: "961e4dad1d7c50bd736d4ec6c6f800e06abc178b"
 risk: medium
 related_issue: ""
 related_pr: "827"
@@ -65,11 +65,11 @@ Deliver exactly TCR-002 StaticData Reference Index: a deterministic, read-only `
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T19:35:49+02:00
-head: 2a622199e57bb90578d7d14ffece1ab6b4c97ca2
+updated_at: 2026-07-23T19:39:00+02:00
+head: 961e4dad1d7c50bd736d4ec6c6f800e06abc178b
 branch: feat/tcr-002-staticdata-reference-index-20260723
 pr: 827
-status: review
+status: validating
 context_routes:
   - agent-governance
   - otbm
@@ -98,7 +98,8 @@ proven:
   - Private opt-in validation against the user-supplied external StaticData file outside Git selected legacy schema, parsed 2700 top-level records (812 creatures, 356 titles, 995 houses, 438 bosses, 99 quests) and reported zero duplicate-ID, missing-required-field or duplicate-singular-field findings; no proprietary bytes or record dump is committed.
   - Draft head 2a622199e57bb90578d7d14ffece1ab6b4c97ca2 passed repository CI run 30028730076, AI Agent Tools run 30028729754, Agent Task Ownership run 30028729771 and Tibia Client Reference run 30028729701.
   - An attempted shared MODULE_CATALOG status update was fully removed before finalization after detecting an unrelated stale-line replacement; PR #827 is back to exactly seven intended feature/task/workflow files and current main drift is non-overlapping.
-  - `ci:final-gate` is applied before this final task/checkpoint commit; no implementation or documentation commit is permitted after the resulting exact final head turns green.
+  - First final-gate head 961e4dad1d7c50bd736d4ec6c6f800e06abc178b passed Tibia Client Reference but Agent Task Ownership rejected only checkpoint status `review`; the active-task validator explicitly accepts `validating`, which this checkpoint now uses.
+  - `ci:final-gate` remains applied before this corrected final task/checkpoint commit; no implementation or documentation commit is permitted after the resulting exact final head turns green.
 derived:
   - The stable v1 output schema is now the committed `docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.schema.json` plus the producer implementation and documentation in this PR.
   - Strict structural candidate validation plus schema-specific discriminators avoids the external implementation's permissive unknown-field/round-trip heuristic while remaining independently implemented.
@@ -109,8 +110,8 @@ unknown:
   - The user-supplied real sample is raw protobuf; compressed real-client variants are covered by independent synthetic XZ/LZMA/Tibia-header fixtures but not by a second proprietary real compressed sample.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: implementation, focused tests, private opt-in real-file validation and draft CI are green
+  marker: checkpoint-status-review
+  evidence: exact-head Agent Task Ownership run 30030157959 rejected unsupported checkpoint status review; no implementation/test failure was reported and status is corrected to validating in this commit
 rejected_hypotheses:
   - Reuse the external Rust parser implementation directly; licensing boundary requires independent implementation.
   - Use successful protobuf decoding alone as schema proof; unknown fields can be skipped and silently relabel categories.
@@ -139,9 +140,12 @@ validation:
   - command: GitHub Actions draft-head validation for 2a622199e57bb90578d7d14ffece1ab6b4c97ca2
     result: PASS
     evidence: CI 30028730076; AI Agent Tools 30028729754; Agent Task Ownership 30028729771; Tibia Client Reference 30028729701
+  - command: GitHub Actions first final-gate validation for 961e4dad1d7c50bd736d4ec6c6f800e06abc178b
+    result: FAIL
+    evidence: Agent Task Ownership 30030157959 rejected only unsupported checkpoint status review; Tibia Client Reference 30030158023 passed
   - command: compare current main drift against PR base ownership paths
     result: PASS
     evidence: current main advance adds only bounty/weekly forum evidence paths and does not overlap TCR-002 owned paths
 blockers: []
-next_action: Validate all required workflows on the immutable exact final head produced by this checkpoint commit under ci:final-gate; if green, mark PR 827 ready, require protected ready-state Required PASS, perform atomic head/review/main-drift checks, then squash-merge and close TCR-002 lifecycle in a separate bounded documentation PR.
+next_action: Validate all required workflows on the corrected immutable exact final head produced by this checkpoint commit under ci:final-gate; if green, mark PR 827 ready, require protected ready-state Required PASS, perform atomic head/review/main-drift checks, then squash-merge and close TCR-002 lifecycle in a separate bounded documentation PR.
 ```
