@@ -2,13 +2,13 @@
 task_id: CAN-20260723-bounty-forum-evidence
 program_id: CAN-PROGRAM-OTS-FUTURE-GAMEPLAY-SYSTEMS
 coordination_id: ""
-status: ready
+status: completed
 agent: "Codex"
 branch: agent/bounty-forum-evidence
 base_branch: main
 created: 2026-07-23T19:07:45+02:00
-updated: 2026-07-23T19:26:21+02:00
-last_verified_commit: "af7e257a170dc7c33c100c127e1f375030d893d4"
+updated: 2026-07-23T17:52:42Z
+last_verified_commit: "211b848b79ef2d50ac5bf37b952cfbd5c35f2244"
 risk: low
 related_issue: ""
 related_pr: "829"
@@ -30,6 +30,7 @@ reuses:
   - docs/agents/REAL_TIBIA_PARITY_PLAYBOOK.md
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-23T17:52:42Z
 ---
 
 # Goal
@@ -244,3 +245,11 @@ Do not retry unauthenticated forum scraping or infer unavailable posts.
 - Catalogue updated: not applicable
 - Changelog updated: not applicable
 - Archived at:
+
+## Automated lifecycle completion
+
+- Feature PR: #829.
+- Feature head: `2c191e11a037877ddefa7b0a5c9ac56e4d8fcfbc`.
+- Merge commit: `211b848b79ef2d50ac5bf37b952cfbd5c35f2244`.
+- Merged at: `2026-07-23T17:52:42Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
