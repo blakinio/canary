@@ -5,7 +5,7 @@ status: active
 owner: e2e-platform-agent
 created: 2026-07-13T00:00:00+02:00
 updated: 2026-07-23T00:00:00+02:00
-last_verified_commit: 2b2eafcd0d7990f499f25acf74af6526ca72ceee
+last_verified_commit: f8f8d0fd830a8e01aa1cbc93d9e41907cc8ea077
 primary_paths:
   - tools/e2e/**
   - tests/e2e/runtime/**
@@ -83,7 +83,7 @@ A feature task consumes platform implementation paths read-only unless a separat
 | Typed persistence assertion surfaces | implementation merged; closure matrix delivered | PRs #565, #583, #586, #591, #595, #603, #608, #615 and closure PR #666 | use `docs/e2e/PERSISTENCE_ASSERTION_MATRIX.md`; add a new generic type only for a concrete evidence-backed reusable gap |
 | Bounded two-client orchestration | merged and runtime-proven | PR #747; lifecycle archive #753 | reuse `canary-universal-e2e-two-client-orchestration-v1` for exactly one secondary controlled OTClient; do not generalize actor count or create a second server lifecycle without a separate platform task |
 | Controlled client-disconnect recovery | merged and runtime-proven | PR #751; lifecycle archive #764 | reuse `canary-universal-e2e-client-disconnect-recovery-v1` for the fixed maintained-client `g_game.forceLogout()` fault and real second-login recovery; it is not arbitrary fault injection |
-| Representative cross-system gameplay journey | merged and runtime-proven M4 sentinel | PR #765 | `journeys/promotion-combat-persistence` composes proven deterministic combat, arena return, Canary NPC promotion and typed relog/persistence; keep focused lower-level scenarios as the source of feature-specific proof |
+| Representative cross-system gameplay journey | merged and runtime-proven M4 sentinel | PR #765; lifecycle archive #791 | `journeys/promotion-combat-persistence` composes proven deterministic combat, arena return, Canary NPC promotion and typed relog/persistence; keep focused lower-level scenarios as the source of feature-specific proof |
 | Cyclopedia-specific prototype | closed and superseded | PR #224 | historical evidence only; do not revive or copy its infrastructure |
 
 # Current active integration work
@@ -223,7 +223,7 @@ Never target production or third-party systems. The delivered seam is fixed-purp
 
 Purpose: compose already-proven capabilities into representative player journeys such as temple -> depot -> NPC -> quest/combat -> reward -> relog/persistence.
 
-Status: first representative journey delivered through PR #765. `journeys/promotion-combat-persistence` physically composes deterministic combat, explicit arena close and return, Canary NPC promotion and durable Royal Paladin/zero-balance relog verification on the existing platform. The final task record intentionally remains active for durable programme handoff rather than archiving the integration sentinel in the same run.
+Status: first representative journey delivered through PR #765 and lifecycle archive PR #791. `journeys/promotion-combat-persistence` physically composes deterministic combat, explicit arena close and return, Canary NPC promotion and durable Royal Paladin/zero-balance relog verification on the existing platform. No active 008 implementation task remains after lifecycle closure; future journeys require a fresh bounded task justified by concrete feature demand.
 
 Journey tests are integration sentinels and never replace focused feature tests.
 
@@ -338,6 +338,6 @@ At the time of this reconciliation:
 - E2E-GAMEPLAY-005 persistence assertion implementation and canonical matrix are complete through the merged typed slices and closure package PR #666;
 - E2E-GAMEPLAY-006 bounded two-client orchestration is delivered through PR #747 and lifecycle archive #753;
 - E2E-GAMEPLAY-007 controlled client-disconnect recovery is delivered through PR #751 and lifecycle archive #764;
-- E2E-GAMEPLAY-008 has one representative M4 integration sentinel delivered through PR #765; its active task remains the durable handoff record for this run.
+- E2E-GAMEPLAY-008 has one representative M4 integration sentinel delivered through PR #765 and lifecycle archive #791; no active 008 implementation task remains.
 
 Never infer dependency completion from this document alone. Verify current task/PR/merge state before claiming the next package.
