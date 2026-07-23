@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: docs/tcr-003-continuation-checkpoint-20260724
 base_branch: main
 created: 2026-07-24T00:04:21+02:00
-updated: 2026-07-24T00:04:21+02:00
-last_verified_commit: "d1ad83056ec7930f067986909f66b8f20f1a1f44"
+updated: 2026-07-24T00:05:31+02:00
+last_verified_commit: "c63f8bdd15850c19a132edaf359f9fd2ba5750fa"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "844"
 depends_on:
   - TCR-001 merged stable canary-tibia-client-reference-manifest-v1
   - TCR-002 merged stable canary-tibia-staticdata-index-v1
@@ -47,10 +47,10 @@ Continue the programme with a fresh, bounded TCR-003 preflight for the planned r
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T00:04:21+02:00
-head: d1ad83056ec7930f067986909f66b8f20f1a1f44
+updated_at: 2026-07-24T00:05:31+02:00
+head: c63f8bdd15850c19a132edaf359f9fd2ba5750fa
 branch: docs/tcr-003-continuation-checkpoint-20260724
-pr: none
+pr: 844
 status: investigating
 context_routes:
   - agent-governance
@@ -64,7 +64,7 @@ proven:
   - The programme marks canary-tibia-staticdata-index-v1 stable/merged and TCR-003 StaticMapData House Index as the next candidate after a fresh ownership/reuse preflight.
   - Open-PR and branch searches found no TCR-003 or StaticMapData-index owner before this checkpoint branch was created.
   - Repository code search found no existing canary-tibia-staticmapdata-index-v1 implementation.
-  - No TCR-003 implementation, parser, workflow or proprietary client data was added by this handoff.
+  - Draft PR 844 contains only this active task/checkpoint; no TCR-003 implementation, parser, workflow or proprietary client data was added.
 derived:
   - The next session should perform only the fresh TCR-003 ownership/reuse/source-format preflight before claiming implementation paths.
 unknown:
@@ -86,5 +86,5 @@ validation:
     result: PASS
     evidence: no canonical implementation surfaced in the narrow search
 blockers: []
-next_action: Perform a fresh current-main TCR-003 ownership/reuse/source-format preflight, verify no equivalent canonical StaticMapData index exists, then claim exact implementation paths and open the bounded TCR-003 draft PR before substantive code changes.
+next_action: Perform a fresh current-main TCR-003 ownership/reuse/source-format preflight, verify no equivalent canonical StaticMapData index exists, then claim exact implementation paths and open the bounded TCR-003 implementation draft PR before substantive code changes.
 ```
