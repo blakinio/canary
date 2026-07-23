@@ -8,7 +8,7 @@ branch: docs/ots-vocation-balance-forum-guidance-20260723
 base_branch: main
 created: 2026-07-23
 updated: 2026-07-23
-last_verified_commit: "9b91951470e3d361c116196f7c80b88c076c028b"
+last_verified_commit: "fb44a78ab2471f8d79dd23458593f414835cb412"
 risk: low
 related_issue: ""
 related_pr: "843"
@@ -87,7 +87,7 @@ Convert recurring design and validation lessons from `docs/ai-agent/REAL_TIBIA_V
 - [x] Add a pinned CrystalServer comparison and keep it explicitly read-only/non-authoritative.
 - [x] Record stale donor values and formula-integration risks rather than presenting Crystal as parity proof.
 - [x] Open draft PR #843.
-- [ ] Verify exact changed-file scope and diff after the dataset/task-record updates.
+- [x] Verify exact changed-file scope after the dataset/task-record updates: exactly the two documentation files plus this task record.
 - [ ] Verify applicable documentation ownership and CI gates on the newest head.
 - [ ] Reconcile dependency against PR #799 before readiness/merge.
 
@@ -95,8 +95,8 @@ Convert recurring design and validation lessons from `docs/ai-agent/REAL_TIBIA_V
 
 ```yaml
 checkpoint_version: 1
-updated_at: "2026-07-23T23:59:00+02:00"
-head: "9b91951470e3d361c116196f7c80b88c076c028b"
+updated_at: "2026-07-24T00:08:00+02:00"
+head: "fb44a78ab2471f8d79dd23458593f414835cb412"
 branch: "docs/ots-vocation-balance-forum-guidance-20260723"
 pr: "843"
 status: "blocked"
@@ -119,6 +119,8 @@ proven:
   - "Crystal headline values are stale for several post-July mechanics, including Death Echo, Forked Glacier, Forked Thorns, Strong Ice Wave, Great Death Beam, Great Energy Beam and Mystic Repulse."
   - "Crystal Divine Barrage and Ethereal Barrage are comparatively strong implementation candidates but still require deterministic targeting/area/formula validation."
   - "The current official Death Echo mana value remains a recorded conflict: June release-state says 155 while the current official spell library says 150."
+  - "PR #843 changed-file scope is exactly three intended paths: the guidance, the reference dataset and this task record."
+  - "CI run 30048460362 and AI Agent Tools run 30048460185 passed on head fb44a78ab2471f8d79dd23458593f414835cb412."
 derived:
   - "Future balance should define role/risk/execution/progression expectations before tuning coefficients."
   - "Damage changes must be evaluated together with leech, kill time, incoming turns, supplies, economy and party value."
@@ -132,6 +134,9 @@ unknown:
   - "Whether the pending Paladin supplement or later broader Druid evidence will materially change vocation-specific prioritization."
 conflicts:
   - "Death Echo mana: official June release-state 155 versus current official spell library 150; resolve by current live/runtime evidence or later explicit official change."
+first_failure:
+  marker: "agent-task-ownership-missing-first-failure"
+  evidence: "Agent Task Ownership run 30048460208 failed only in changed active task checkpoint validation because this checkpoint omitted required field first_failure; the generated ownership artifact listed the exact missing-field error and the intended three changed paths."
 rejected_hypotheses:
   - "Forum post volume is sufficient numeric authority for Canary balance values."
   - "A flat global buff or nerf is the default answer to recurring vocation complaints."
@@ -152,7 +157,19 @@ validation:
   - command: "Pinned CrystalServer candidate inspection"
     result: "PASS"
     evidence: "Inspected representative new/changed spell implementations and formula callbacks at pinned Crystal commit; documented stale values and semantic/formula risks."
+  - command: "PR #843 changed-file scope"
+    result: "PASS"
+    evidence: "Exactly three intended documentation/task paths; no runtime, datapack, protocol, map, binary or production paths changed."
+  - command: "CI run 30048460362"
+    result: "PASS"
+    evidence: "Completed successfully on fb44a78ab2471f8d79dd23458593f414835cb412."
+  - command: "AI Agent Tools run 30048460185"
+    result: "PASS"
+    evidence: "Completed successfully on fb44a78ab2471f8d79dd23458593f414835cb412."
+  - command: "Agent Task Ownership run 30048460208"
+    result: "FAIL_REPAIRED_PENDING_RECHECK"
+    evidence: "Failure was missing checkpoint field first_failure; this commit adds the required field."
 blockers:
   - "PR #799 is the upstream design-framework dependency and remains open; this task must not modify its owned paths or merge without dependency reconciliation."
-next_action: "Inspect PR #843 exact changed-file list and newest-head diff, verify current-head workflow results, then hold readiness/merge until PR #799 dependency is resolved and the dataset/guidance are reconciled against the merged framework."
+next_action: "Verify newest-head Agent Task Ownership, CI and AI Agent Tools after the checkpoint-field repair, then hold readiness/merge until PR #799 dependency is resolved and the dataset/guidance are reconciled against the merged framework."
 ```
