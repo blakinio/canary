@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Authoritative classification index for proposals recorded in `docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md` and detailed design records including `docs/ai-agent/OTS_SKILL_PROGRESSION_2_0.md`, `docs/ai-agent/OTS_DYNAMIC_SPAWN_AND_HUNTING_CAPACITY.md`, `docs/ai-agent/OTS_BOUNTY_AND_WEEKLY_TASKS_REWORK.md`, `docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md` and `docs/ai-agent/OTS_VOCATION_ROLE_AND_BALANCE_FRAMEWORK.md`.
+Authoritative classification index for proposals recorded in `docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md` and detailed design records including `docs/ai-agent/OTS_SKILL_PROGRESSION_2_0.md`, `docs/ai-agent/OTS_DYNAMIC_SPAWN_AND_HUNTING_CAPACITY.md`, `docs/ai-agent/OTS_BOUNTY_AND_WEEKLY_TASKS_REWORK.md`, `docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md`, `docs/ai-agent/OTS_VOCATION_ROLE_AND_BALANCE_FRAMEWORK.md` and `docs/ai-agent/OTS_GEM_ATELIER_AND_GEM_PROGRESSION_REVIEW.md`.
 
 This index exists to prevent three recurring mistakes:
 
@@ -75,7 +75,7 @@ This index exists to prevent three recurring mistakes:
 | 36 | Cooking 2.0 | `OUR-DESIGN` | `HYBRID` | Expands existing food concepts into preparation/build-support crafting. |
 | 37 | House Chef | `MIXED` | `HYBRID` | Expands the existing house/hireling/cook concept into an ingredient-service-recipe loop; exact current baseline must be reverified. |
 | 38 | Economy Sink Framework | `OUR-DESIGN` | `META-ECONOMY` | Cross-system inflation-control strategy using desirable convenience/luxury sinks. |
-| 39 | House upgrades / services / luxury sinks | `OUR-DESIGN` | `META-ECONOMY` | Optional money sinks tied to housing and prestige rather than punitive basic costs. |
+| 39 | House upgrades / services / luxury sinks | `OUR-DESIGN` | `META-ECONOMY` | Optional money sinks tied to housing and prestige rather than mandatory combat power. |
 | 40 | Equipment Durability | `OUR-DESIGN` | `FULLY-CUSTOM` | Optional soft maintenance system; not assumed to be original Tibia parity. |
 | 41 | Repair All / Auto Repair | `OUR-DESIGN` | `HYBRID` | Convenience layer for the proposed custom durability system. |
 | 42 | Skill Wheel changes outside temple without PZ/combat lock | `MIXED` | `TIBIA-EXTENSION` | Extends original Tibia skill-wheel access rules; Wheel remains an original Tibia system. |
@@ -130,6 +130,7 @@ This index exists to prevent three recurring mistakes:
 | 91 | Vocation Balance Target Bands & Telemetry | `OUR-DESIGN` | `HYBRID` | Balances by role-appropriate target bands across damage, healing, defense, sustain, utility and mobility using aggregate telemetry and controlled tests rather than one global power score. |
 | 92 | Solo and Party Viability Balance Principle | `OUR-DESIGN` | `TIBIA-EXTENSION` | Requires every supported class to retain meaningful solo viability while preserving differentiated party value and intentional specialization. |
 | 93 | Context-Separated PvE/Boss/PvP Balance | `OUR-DESIGN` | `HYBRID` | Measures and tunes ordinary PvE, bossing and PvP separately where necessary so one context does not automatically dictate harmful changes in another. |
+| 94 | Gem Atelier & Fragment Workshop parity/balance review | `TIBIA-OFFICIAL` | `PARITY-INTEGRATION` | Audits the official Gem Atelier, vocation gems, domains, vessels/Vessel Resonance, dismantling, Fragment Workshop and Grade I-IV mod progression against current Canary/OTClient support before any custom redesign; later OTS changes must be classified separately. |
 
 ## Additional researched systems not yet promoted into the main proposal backlog
 
