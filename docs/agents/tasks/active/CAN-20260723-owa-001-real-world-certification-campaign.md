@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/owa-001-real-world-certification-campaign-20260723
 base_branch: main
 created: 2026-07-23T15:53:12+02:00
-updated: 2026-07-23T16:28:36+02:00
-last_verified_commit: "e11628dca57d6006381900eee469e164ec1a3817"
+updated: 2026-07-23T16:34:00+02:00
+last_verified_commit: "bdc7db22f04d298859eeb6a186e8f34821a60c01"
 risk: medium
 related_issue: ""
 related_pr: "801"
@@ -158,9 +158,9 @@ Generated QA-016, QA-018 and campaign result artifacts remain outside Git.
 | external exact evidence | repeated OWA-001 campaign composition | PASS; byte-identical outputs |
 | external campaign report | `reportSha256` | `d5bda59b5a6f46695ed9d4037bbbdf5c825b3aae214e4430fd2580d2eb4fc86d` |
 | `e11628dca57d6006381900eee469e164ec1a3817` | CI | PASS |
-| `e11628dca57d6006381900eee469e164ec1a3817` | Agent Task Ownership | FAIL only because `related_pr` was empty; corrected in this update to `801` |
-| current PR head | OTBM Map Tools | pending rerun after checkpoint update |
-| current PR head | AI Agent Tools | pending rerun after checkpoint update |
+| `8ac2a3bb90c665ddfa1ac8b130199ab4c706fd25` | OTBM Map Tools | FAIL only because `jsonschema` was not installed; test dependency removed in `bdc7db22f04d298859eeb6a186e8f34821a60c01` |
+| `8ac2a3bb90c665ddfa1ac8b130199ab4c706fd25` | Agent Task Ownership | FAIL only because checkpoint omitted required `owned_paths` and `rejected_hypotheses`; corrected in this update |
+| current PR head | protected checks | pending |
 
 # Decisions
 
@@ -171,7 +171,7 @@ Generated QA-016, QA-018 and campaign result artifacts remain outside Git.
 
 # Remaining work
 
-1. Re-run exact-head ownership and required CI after this checkpoint correction.
+1. Obtain green exact-head ownership, OTBM Map Tools, AI Agent Tools and repository CI.
 2. Apply final-gate protocol and merge PR #801 only after green protected checks.
 3. Archive this task after merge and update programme queue/handoff so OWA-002 starts from the exact OWA-001 result and blockers.
 
@@ -179,8 +179,8 @@ Generated QA-016, QA-018 and campaign result artifacts remain outside Git.
 
 ```yaml
 checkpoint_version: 1
-updated_at: "2026-07-23T16:28:36+02:00"
-head: "e11628dca57d6006381900eee469e164ec1a3817"
+updated_at: "2026-07-23T16:34:00+02:00"
+head: "bdc7db22f04d298859eeb6a186e8f34821a60c01"
 branch: "feat/owa-001-real-world-certification-campaign-20260723"
 pr: 801
 status: validating
@@ -188,6 +188,17 @@ context_routes:
   - agent-governance
   - otbm
   - universal-e2e
+owned_paths:
+  - docs/agents/tasks/active/CAN-20260723-owa-001-real-world-certification-campaign.md
+  - tools/ai-agent/otbm_world_assurance_campaign.py
+  - tools/ai-agent/otbm_world_assurance_campaign_tool.py
+  - tools/ai-agent/test_otbm_world_assurance_campaign.py
+  - tools/ai-agent/test_otbm_world_assurance_campaign_output_safety.py
+  - tools/ai-agent/test_otbm_world_assurance_campaign_schema.py
+  - docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN.md
+  - docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN.schema.json
+  - docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN_MANIFEST.schema.json
+  - docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN_TARGETS.json
 proven:
   - "Reviewed thais.temple -> thais.depot provenance matches exact source map a80de1dd... and World Index 6c22cd26...."
   - "Retained artifact 8447816376 digest is 131faa08... and exact route-level Physical E2E is available."
@@ -200,6 +211,9 @@ conflicts: []
 first_failure:
   marker: "QA005_NO_REVIEWED_MECHANIC_BINDING_FOR_PURE_MOVEMENT_ROUTE"
   evidence: "The reviewed route has no transition IDs or interactions, while QA-005 landmark-route coverage requires reviewed mechanicIds."
+rejected_hypotheses:
+  - "Invent a synthetic mechanicId for the pure-movement route: rejected because QA-005 critical mechanic membership is reviewed evidence and may not be guessed."
+  - "Promote retained route-level Physical E2E directly to QA-006 C5: rejected because QA-006 consumes contiguous canonical QA-005 dimensions and does not infer them from a successful walk."
 changed_paths:
   - docs/agents/tasks/active/CAN-20260723-owa-001-real-world-certification-campaign.md
   - docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN.md
@@ -214,10 +228,13 @@ changed_paths:
 validation:
   - command: "focused OWA-001 unittest suite"
     result: PASS
-    evidence: "14 tests passed"
+    evidence: "14 tests passed locally; exact core/CLI/test blobs matched the branch before the dependency-only schema-test adjustment"
   - command: "external campaign run repeated with exact evidence"
     result: PASS
     evidence: "byte-identical reports; reportSha256 d5bda59b5a6f46695ed9d4037bbbdf5c825b3aae214e4430fd2580d2eb4fc86d"
+  - command: "OTBM Map Tools run 30016071142"
+    result: FAIL
+    evidence: "campaign unit/output tests passed; sole failure was ModuleNotFoundError: jsonschema in schema test, dependency removed afterward"
 blockers:
   - "Formal QA-005/QA-006 certification remains blocked by missing reviewed mechanic binding for the pure movement route."
 next_action: "Obtain green exact-head protected CI for PR #801, merge, archive task, then advance programme handoff to OWA-002 without overstating OWA-001 certification."
