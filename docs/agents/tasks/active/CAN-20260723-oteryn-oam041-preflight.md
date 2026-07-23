@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-041-compact-handover
 base_branch: main
 created: 2026-07-23
-updated: 2026-07-23
-last_verified_commit: "0a2ae8e3d504ab2398395820512cd45f3b169722"
+updated: 2026-07-24
+last_verified_commit: "d1ad83056ec7930f067986909f66b8f20f1a1f44"
 risk: medium
 related_issue: ""
 related_pr: "840"
@@ -46,8 +46,8 @@ Final disposition remains gated on bounded target-side proof in `blakinio/Othery
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T23:59:00+02:00
-head: c67f0e6e62636b1f80601c068c97478e57324288
+updated_at: 2026-07-24T00:00:00+02:00
+head: 8955c28df047653bbe1b0d0dbed570fb271184dc
 branch: dudantas/oam-041-compact-handover
 pr: 840
 status: blocked
@@ -61,8 +61,9 @@ proven:
   - OAM-040 is formally complete after Canary durable reconciliation 115f3ac2fffc36bb4e415c2a6fb45908d9538ba3 and Otheryn target-task archive 9369b0719ff94997a9cf5a2d62853939744e6338.
   - OAM-041 preflight PR 813 final head d2fcc0572d2268d7f88ab8faae9eec8006697f5b passed Agent Task Ownership 30023734524 and ready-state full final-gate CI 30023784205 and squash-merged as 82da6f6c5284b13446c5e71d075e7b06c9252b67.
   - OAM-041 target-proof-plan PR 819 final head 61262b1f2ac03bd04d41221e7d3983b4dcad124b passed Agent Task Ownership 30026360598 and CI 30026360872 and squash-merged as 5c2ec1df1b5be9494fbf97ba389bea8fd9070f58.
-  - Current Canary main verified at 0a2ae8e3d504ab2398395820512cd45f3b169722; later unrelated main drift does not change the OAM-041 blocker.
-  - Current Otheryn main remains 9369b0719ff94997a9cf5a2d62853939744e6338 with no OAM-041 target delivery found.
+  - Current Canary main is d1ad83056ec7930f067986909f66b8f20f1a1f44; drift after the PR 840 base is unrelated to OAM-041 and does not remove the target-proof blocker.
+  - Current Otheryn main remains 9369b0719ff94997a9cf5a2d62853939744e6338 with no OAM-041 target PR or branch found.
+  - PR 840 pre-final checkpoint head 8955c28df047653bbe1b0d0dbed570fb271184dc passed Agent Task Ownership run 30045065536 and CI run 30045066045, with no comments, submitted reviews or inline review threads before the final checkpoint refresh.
   - Canonical spawns depends only on resolved otbm-tooling; active global monster and NPC spawn XML roots remain exact across Otheryn upstream and Canary at blobs 65e87a4134a320d28b2270fa5a17917fc7b513a1 and 0a72085b7bbdfca73b794e631cc2bab790d8fcef.
   - Otheryn and fresh upstream share spawn_monster.cpp blob 4c82217631ddf479faa5443025d43f99a0c927d1 and spawn_npc.cpp blob 21718ad80827a16e9a1b29bc9d649ad603bcf216; reviewed legacy Canary roots differ and omit DispatcherLane::Maintenance scheduling at the corresponding call sites.
   - Current Canary spawn proof tooling remains pinned by otbm_spawn_npc.py 4339e94f5875f4d7fd443c2359c15d10f205004f otbm_spawn_npc_validation.py 7f66f74b68b66e9acabe1ea1a5cbd404b1637e9b and otbm_spawn_npc_tool.py 481c163d8048298900b33648b08b1fac5b60fefe.
@@ -95,9 +96,12 @@ validation:
   - command: PR 819 exact-final-head ownership and CI
     result: PASS
     evidence: head 61262b1f2ac03bd04d41221e7d3983b4dcad124b passed runs 30026360598 and 30026360872 before merge 5c2ec1df1b5be9494fbf97ba389bea8fd9070f58
-  - command: fresh Otheryn main and OAM-041 delivery search
+  - command: PR 840 pre-final checkpoint ownership and CI
     result: PASS
-    evidence: Otheryn main remains 9369b0719ff94997a9cf5a2d62853939744e6338 and no OAM-041 target PR was found
+    evidence: head 8955c28df047653bbe1b0d0dbed570fb271184dc passed runs 30045065536 and 30045066045 before the final checkpoint refresh
+  - command: fresh Canary and Otheryn live-state verification
+    result: PASS
+    evidence: Canary main d1ad83056ec7930f067986909f66b8f20f1a1f44; Otheryn main 9369b0719ff94997a9cf5a2d62853939744e6338; no OAM-041 target PR or branch found
   - command: read-only target upstream legacy spawn comparison
     result: PASS
     evidence: target/upstream runtime roots align and legacy lacks reviewed Maintenance-lane scheduling arguments
