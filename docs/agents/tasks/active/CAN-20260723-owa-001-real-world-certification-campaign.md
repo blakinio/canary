@@ -2,16 +2,16 @@
 task_id: CAN-20260723-owa-001-real-world-certification-campaign
 program_id: CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS
 coordination_id: OWA-001
-status: implementing
+status: validating
 agent: "GPT-5.6 Thinking"
 branch: feat/owa-001-real-world-certification-campaign-20260723
 base_branch: main
 created: 2026-07-23T15:53:12+02:00
-updated: 2026-07-23T15:53:12+02:00
-last_verified_commit: "489607174f22b8b36663fe2251cdba0423388fbd"
+updated: 2026-07-23T16:28:36+02:00
+last_verified_commit: "e11628dca57d6006381900eee469e164ec1a3817"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "801"
 depends_on:
   - OTBM-QA-005 Coverage Dashboard
   - OTBM-QA-006 Region and Quest Certification
@@ -71,208 +71,154 @@ reuses:
   - canary-otbm-e2e-route-preflight-v1
   - Universal Physical E2E retained evidence
 public_interfaces:
-  - planned canary-otbm-world-assurance-campaign-manifest-v1
-  - planned canary-otbm-world-assurance-campaign-v1
+  - canary-otbm-world-assurance-campaign-manifest-v1
+  - canary-otbm-world-assurance-campaign-v1
 cross_repo_tasks: []
 ---
 
 # Goal
 
-Deliver the first reproducible reviewed OTBM world-assurance certification campaign over exact current-compatible evidence, beginning with `thais.temple -> thais.depot` only if the existing QA contracts can represent and certify it without invented mechanics or stale provenance.
+Deliver the first reproducible reviewed OTBM world-assurance certification campaign over exact current-compatible evidence without creating parallel canonical QA infrastructure.
 
 # Acceptance criteria
 
-- [ ] Add one reviewed target manifest with target ID/class, semantic definition, exact source-map and World Index provenance, existing route/preflight references and retained Physical E2E reference where applicable.
-- [ ] Compose existing QA-005, QA-006, QA-016 and QA-018 contracts without adding a parser, World Index, pathfinder, Script Resolution implementation, renderer or E2E runner.
-- [ ] Emit deterministic external campaign ledger/report data with explicit QA-005 dimensions, C0-C7, freshness, blockers and unresolved/conflicting evidence.
-- [ ] Fail closed on provenance mismatch, stale/mixed/not-evaluated freshness, missing required evidence and unsupported target composition.
-- [ ] Preserve region/landmark-route QA-006 certification caps and never promote static evidence to Physical E2E proof or Physical E2E proof to candidate revalidation.
-- [ ] Keep generated campaign reports, `.otbm`, `.widx`, renders and proprietary assets outside Git.
-- [ ] Add focused determinism, provenance mismatch, stale evidence, blocker and exact target certification tests.
-- [ ] Relevant focused checks completed.
-- [ ] Current-head GitHub checks verified.
-- [ ] Module catalogue impact handled.
-- [ ] Documentation/changelog impact handled.
-- [ ] Program queue/handoff updated with exact certified state and remaining gaps.
-- [ ] Cross-repository impact: none.
+- [x] Add one reviewed target manifest with target ID/class, semantic definition, exact source-map and World Index provenance, route/preflight references and retained Physical E2E reference.
+- [x] Compose existing QA-005, QA-006, QA-016 and QA-018 contracts without adding a parser, World Index, pathfinder, Script Resolution implementation, renderer or E2E runner.
+- [x] Emit deterministic external campaign ledger/report data with explicit QA-005 dimensions, C0-C7, freshness, blockers and unresolved/conflicting evidence.
+- [x] Fail closed on provenance mismatch, stale/not-current evidence, missing exact evidence and unsupported target composition.
+- [x] Preserve region/landmark-route QA-006 C5 cap and separate static evidence, Physical E2E and candidate-change revalidation.
+- [x] Keep generated campaign reports, `.otbm`, `.widx`, renders and proprietary assets outside Git.
+- [x] Add focused determinism, provenance mismatch, stale evidence, blocker, output-safety, schema and exact-target tests.
+- [x] Focused local checks completed.
+- [ ] Exact-final-head GitHub checks verified.
+- [ ] Module catalogue/changelog impact handled.
+- [ ] Programme queue/handoff updated with exact certified state and remaining gaps.
+- [x] Cross-repository impact: none.
 - [ ] Autonomous merge gate satisfied.
 
-# Confirmed context
+# Confirmed result
 
-- Current `main` at task start is `489607174f22b8b36663fe2251cdba0423388fbd`.
-- `CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS` is active and OWA-001 is the first planned package.
-- Programme bootstrap PR #795 and lifecycle archive PR #798 are merged; no existing OWA-001 PR was found.
-- Reviewed semantic landmarks on current `main` pin `thais.temple` at `[32369,32241,7]` and `thais.depot` route destination at `[32352,32226,7]` to source map SHA-256 `a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2` and World Index SHA-256 `6c22cd26d4414aa094af1d00be7f62190a441e270ee7a478b55449bf92e55e7a`.
-- Merged OTBM-E2E-005 PR #600 retains a successful exact-map physical route proof; Universal E2E run `29704821423` artifact `8447816376` is currently unexpired and pins the same map/World Index provenance in the archived task evidence.
-- The reviewed Thais route is a same-floor movement route with no transition IDs and no route interactions.
-- QA-005 `landmark-route` targets require explicit reviewed Coverage Matrix `mechanicIds`; whether the current pure-movement pilot has a valid existing mechanic binding is not yet proven and must fail closed rather than inventing one.
+Reviewed pilot target: `owa-001.thais-temple-to-depot` (`thais.temple -> thais.depot`), class `landmark-route`.
 
-# Existing work to reuse
+Exact provenance:
 
-| Module/task/PR | Reuse | Evidence/path | Why it fits |
-|---|---|---|---|
-| QA-005 Coverage Dashboard | exact factual dimensions | `tools/ai-agent/otbm_coverage_dashboard.py` | Canonical coverage composition; does not assign certification. |
-| QA-006 Region and Quest Certification | C0-C7 | `tools/ai-agent/otbm_region_quest_certification.py` | Canonical contiguous certification and target-class caps. |
-| QA-016 Release Provenance | freshness | `tools/ai-agent/otbm_release_provenance.py` | Exact component hashes and dependency-scoped staleness. |
-| QA-018 Evidence Gateway | compact evidence | `tools/ai-agent/otbm_evidence_gateway.py` | Exact read-only evidence transport without reinterpretation. |
-| OTBM-E2E-005 / PR #600 | retained runtime proof | archived task + Universal E2E artifact `8447816376` | Existing Physical E2E for the preferred pilot. |
+- source map SHA-256 `a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2`;
+- World Index SHA-256 `6c22cd26d4414aa094af1d00be7f62190a441e270ee7a478b55449bf92e55e7a`.
 
-# Ownership and overlap check
+Exact reviewed route evidence:
 
-- Program record: `docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md`.
-- Open PRs inspected: current open PR inventory, including TCR #762.
-- Active tasks inspected: TCR #762 task record for shared OTBM governance paths; no OWA-001 task existed.
-- Ownership checker result: local checkout unavailable in this connector-only session; current-main task/PR ownership was checked directly and exact-head Agent Task Ownership CI remains mandatory.
-- Exclusive claims: OWA-001 task, campaign composer/CLI/tests/docs/schema/reviewed target manifest listed in frontmatter.
-- Shared claims: OWA programme record, `MODULE_CATALOG.md`, `CHANGELOG.md`.
-- Read-only dependencies: existing QA, landmark, route, preflight and E2E contracts/evidence.
-- Overlaps: TCR #762 also declares `MODULE_CATALOG.md` and `CHANGELOG.md` as shared.
-- Resolution: any OWA edits to shared files must be narrow additive/current-main edits preserving TCR changes; no TCR-exclusive path will be edited. Recheck live PR overlap before final commit/merge.
+- origin `[32369,32241,7]`;
+- destination `[32352,32226,7]`;
+- route distance `59`;
+- canonical route plan hash `0736a819ef656f9040ea14c51f1ab474beabe9e4da50435e1eb9e7fd0c28974b`;
+- preflight `passed`;
+- no transition IDs;
+- no route interaction requirement.
 
-# Current state
+Retained Physical E2E:
 
-Investigating whether the preferred reviewed Thais route can be represented by existing QA-005 without an invented Coverage Matrix mechanic binding, and locating current-compatible retained evidence needed for the first campaign run.
+- workflow run `29704821423`;
+- artifact `8447816376`;
+- artifact ZIP SHA-256 `131faa08eaaccdacda62788b2e173b0f9ecc422a62ecd4769e874e4d136aeb40`;
+- exact runtime map hash matches the reviewed source map.
 
-# Plan
+First campaign state:
 
-1. Establish the exact compatible evidence set and pilot representability, then implement the smallest deterministic campaign composition over existing QA contracts.
-2. Add focused fail-closed/determinism tests and documentation; generate real campaign results externally only.
-3. Update programme handoff and shared discovery records, run exact-head validation, final gate, merge, then archive this task.
+- QA-005 dimensions: all `not-evaluated` because no reviewed mechanic binding exists for this pure movement landmark route;
+- QA-006: `C0_NOT_EVALUATED`;
+- QA-016 static-route freshness: `current`;
+- QA-016 route-level Physical E2E freshness: `current`;
+- retained route-level Physical E2E: `proven`;
+- target state: `blocked`.
 
-# Work log
+Exact formal blockers:
 
-## 2026-07-23T15:53:12+02:00
+- `QA005_LANDMARK_ROUTE_REQUIRES_REVIEWED_MECHANIC_IDS`;
+- `QA005_NO_REVIEWED_MECHANIC_BINDING_FOR_PURE_MOVEMENT_ROUTE`;
+- `QA006_REQUIRES_CANONICAL_QA005_TARGET`.
 
-- Changed: created dedicated OWA-001 branch and active ownership record.
-- Learned: preferred Thais route has exact reviewed semantic/map/World Index and retained Physical E2E evidence, but QA-005 mechanic binding remains unproven.
-- Failed/blocked: no local checkout is available for direct `python tools/agents/task_ownership.py`; GitHub ownership/PR records were inspected and CI validation remains required.
-- Result: bounded implementation ownership is claimed without touching any active task's exclusive paths.
+No alternative target was substituted because no stronger reviewed QA-005/QA-006 binding with equally exact current provenance was found. No coordinates, landmarks or mechanic IDs were invented.
 
-# Decisions
+# Implementation
 
-| Decision | Reason/evidence | ADR |
-|---|---|---|
-| Reuse QA-005/006/016/018 directly | Programme invariant forbids parallel QA infrastructure. | none |
-| Keep generated campaign ledger external | Programme and user require generated campaign results outside Git. | none |
-| Do not invent a Thais mechanic binding | QA-005 landmark-route requires explicit mechanic IDs and proof rules fail closed. | none |
+- `tools/ai-agent/otbm_world_assurance_campaign.py`: deterministic read-only composition over supplied canonical QA reports, QA-016 freshness, QA-018 exact evidence extracts and retained artifact digests.
+- `tools/ai-agent/otbm_world_assurance_campaign_tool.py`: create-new/no-clobber CLI with atomic overwrite.
+- `docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN_TARGETS.json`: durable reviewed target manifest.
+- `docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN*.schema.json`: manifest/report schemas.
+- `docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN.md`: usage and exact OWA-001 outcome.
+- focused tests cover deterministic output, exact provenance mismatch, stale QA-016, QA-018 hash mismatch, missing artifact digest, canonical C5 preservation, target-class cap, QA-006-to-QA-005 pinning, output safety and schemas.
 
-# Files and interfaces
-
-| Path/interface/config/schema | Ownership mode | Purpose | Status |
-|---|---|---|---|
-| `tools/ai-agent/otbm_world_assurance_campaign.py` | exclusive | deterministic campaign composition | planned |
-| `docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN_TARGETS.json` | exclusive | reviewed durable campaign target manifest | planned |
-| `docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md` | shared | queue/handoff | planned |
-| `docs/agents/MODULE_CATALOG.md` | shared | reusable interface discovery | planned |
+Generated QA-016, QA-018 and campaign result artifacts remain outside Git.
 
 # Validation and CI
 
-| Commit | Command/check/workflow | Result | Evidence/notes |
-|---|---|---|---|
-| `489607174f22b8b36663fe2251cdba0423388fbd` | current-main preflight | pass | GitHub repository/main/open PR/task records inspected |
-| pending | focused OWA-001 tests | not-run | implementation pending |
-| pending | Agent Task Ownership | not-run | exact PR head required |
-| pending | OTBM Map Tools | not-run | exact PR head required |
-| pending | AI Agent Tools | not-run | exact PR head if scope selects it |
-| pending | CI / Required | not-run | exact final head required |
+| Commit / evidence | Check | Result |
+|---|---|---|
+| local tested implementation | 14 focused unit/schema/output-safety tests | PASS |
+| external exact evidence | repeated OWA-001 campaign composition | PASS; byte-identical outputs |
+| external campaign report | `reportSha256` | `d5bda59b5a6f46695ed9d4037bbbdf5c825b3aae214e4430fd2580d2eb4fc86d` |
+| `e11628dca57d6006381900eee469e164ec1a3817` | CI | PASS |
+| `e11628dca57d6006381900eee469e164ec1a3817` | Agent Task Ownership | FAIL only because `related_pr` was empty; corrected in this update to `801` |
+| current PR head | OTBM Map Tools | pending rerun after checkpoint update |
+| current PR head | AI Agent Tools | pending rerun after checkpoint update |
 
-# Failed approaches and dead ends
+# Decisions
 
-- No guessed coordinates, mechanic IDs or landmark definitions are accepted.
-- Historical Physical E2E success will not be treated as QA-005 coverage or QA-006 certification by itself.
-
-# Risks and compatibility
-
-- Runtime: campaign only consumes retained Physical E2E evidence and does not execute runtime.
-- Data/migration: none; no map or datapack mutation.
-- Security: evidence paths/hashes must fail closed; generated reports remain external.
-- Backward compatibility: existing QA formats remain canonical and unchanged.
-- Cross-repo rollout: none.
-- Rollback: remove the additive campaign layer and reviewed manifest; source evidence remains untouched.
+- Physical route success is retained as route-level runtime proof only and cannot manufacture QA-005 mechanic coverage.
+- Formal certification remains C0 until a canonical reviewed QA-005 target exists and QA-006 consumes it.
+- QA-016 freshness is explicit and hash/dependency based; timestamps are not proof.
+- Generated campaign results stay external.
 
 # Remaining work
 
-1. Resolve pilot QA-005 representability and exact current-compatible evidence set.
+1. Re-run exact-head ownership and required CI after this checkpoint correction.
+2. Apply final-gate protocol and merge PR #801 only after green protected checks.
+3. Archive this task after merge and update programme queue/handoff so OWA-002 starts from the exact OWA-001 result and blockers.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: "2026-07-23T15:53:12+02:00"
-head: "489607174f22b8b36663fe2251cdba0423388fbd"
+updated_at: "2026-07-23T16:28:36+02:00"
+head: "e11628dca57d6006381900eee469e164ec1a3817"
 branch: "feat/owa-001-real-world-certification-campaign-20260723"
-pr: none
-status: investigating
+pr: 801
+status: validating
 context_routes:
   - agent-governance
   - otbm
   - universal-e2e
-owned_paths:
+proven:
+  - "Reviewed thais.temple -> thais.depot provenance matches exact source map a80de1dd... and World Index 6c22cd26...."
+  - "Retained artifact 8447816376 digest is 131faa08... and exact route-level Physical E2E is available."
+  - "OWA-001 external campaign report is deterministic and records C0, current freshness, Physical E2E proven, target blocked."
+  - "No canonical reviewed QA-005 mechanic binding exists for this pure-movement route."
+derived:
+  - "Route-level Physical E2E cannot independently raise QA-006 certification."
+unknown: []
+conflicts: []
+first_failure:
+  marker: "QA005_NO_REVIEWED_MECHANIC_BINDING_FOR_PURE_MOVEMENT_ROUTE"
+  evidence: "The reviewed route has no transition IDs or interactions, while QA-005 landmark-route coverage requires reviewed mechanicIds."
+changed_paths:
   - docs/agents/tasks/active/CAN-20260723-owa-001-real-world-certification-campaign.md
+  - docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN.md
+  - docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN.schema.json
+  - docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN_MANIFEST.schema.json
+  - docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN_TARGETS.json
   - tools/ai-agent/otbm_world_assurance_campaign.py
   - tools/ai-agent/otbm_world_assurance_campaign_tool.py
   - tools/ai-agent/test_otbm_world_assurance_campaign.py
   - tools/ai-agent/test_otbm_world_assurance_campaign_output_safety.py
   - tools/ai-agent/test_otbm_world_assurance_campaign_schema.py
-  - docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN.md
-  - docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN.schema.json
-  - docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN_MANIFEST.schema.json
-  - docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN_TARGETS.json
-  - docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md
-  - docs/agents/MODULE_CATALOG.md
-  - docs/agents/CHANGELOG.md
-proven:
-  - "Current main at task start is 489607174f22b8b36663fe2251cdba0423388fbd."
-  - "Reviewed Thais landmarks pin exact map a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2 and World Index 6c22cd26d4414aa094af1d00be7f62190a441e270ee7a478b55449bf92e55e7a."
-  - "Merged OTBM-E2E-005 retains successful physical route proof in currently unexpired artifact 8447816376 from run 29704821423."
-  - "The reviewed Thais route uses no transition IDs or route interactions."
-  - "QA-005 landmark-route manifests require explicit mechanicIds."
-derived:
-  - "Physical route proof alone cannot establish QA-005 coverage or QA-006 C5."
-unknown:
-  - "Whether an existing reviewed Coverage Matrix mechanic ID validly represents thais.temple -> thais.depot."
-  - "Whether all QA-005 required external evidence reports for the pilot remain retained and current-compatible."
-conflicts: []
-first_failure:
-  marker: "OWA-001 pilot formal QA-005 representation not yet proven"
-  evidence: "QA-005 requires explicit mechanicIds for landmark-route targets while the reviewed Thais path has no transition/interaction IDs."
-rejected_hypotheses:
-  - "Invent a synthetic mechanic ID for the pure movement route: rejected because QA-005 requires reviewed Coverage Matrix mechanics."
-  - "Promote retained Physical E2E directly to C5: rejected because QA-006 consumes contiguous QA-005 dimensions."
-changed_paths:
-  - docs/agents/tasks/active/CAN-20260723-owa-001-real-world-certification-campaign.md
 validation:
-  - command: "GitHub current-main/task/PR ownership preflight"
+  - command: "focused OWA-001 unittest suite"
     result: PASS
-    evidence: "main 489607174f22b8b36663fe2251cdba0423388fbd; no OWA-001 PR/task; TCR #762 shared overlap only on MODULE_CATALOG.md and CHANGELOG.md"
-  - command: "python tools/agents/task_ownership.py"
-    result: NOT_RUN
-    evidence: "no local checkout available; exact-head Agent Task Ownership CI is mandatory"
+    evidence: "14 tests passed"
+  - command: "external campaign run repeated with exact evidence"
+    result: PASS
+    evidence: "byte-identical reports; reportSha256 d5bda59b5a6f46695ed9d4037bbbdf5c825b3aae214e4430fd2580d2eb4fc86d"
 blockers:
-  - "Pilot QA-005 mechanic binding and current-compatible external evidence must be proven or formal certification must fail closed."
-next_action: "Inspect retained OTBM-E2E-007/QA evidence and QA-005 target semantics to determine the exact first certifiable target state without invented bindings."
+  - "Formal QA-005/QA-006 certification remains blocked by missing reviewed mechanic binding for the pure movement route."
+next_action: "Obtain green exact-head protected CI for PR #801, merge, archive task, then advance programme handoff to OWA-002 without overstating OWA-001 certification."
 ```
-
-# Handoff
-
-## Start here
-
-Read this task checkpoint, the live PR, the OTBM World Assurance Operations programme and only QA-005/006/016/018 plus the reviewed Thais route evidence.
-
-## Do not repeat
-
-Do not build a parser, World Index, pathfinder, Script Resolution engine, renderer or E2E runner. Do not invent a mechanic binding to make the pilot certify.
-
-## Required reads
-
-- `AGENTS.md`
-- `docs/agents/README.md`
-- `docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md`
-- `docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md`
-- QA-005/006/016/018 implementation/docs
-- reviewed Thais landmark and OTBM-E2E-005 evidence
-
-## Open questions
-
-- Can the preferred pure movement landmark route be represented by existing QA-005 without an existing reviewed mechanic ID?
-- Which exact retained current-compatible QA-005 inputs are available for the first campaign composition?
