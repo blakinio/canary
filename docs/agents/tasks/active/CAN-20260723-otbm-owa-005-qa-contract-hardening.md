@@ -1,7 +1,7 @@
 ---
 task_id: CAN-20260723-otbm-owa-005-qa-contract-hardening
 program_id: CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS
-status: active
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: test/owa-005-qa-contract-hardening-20260723
 base_branch: main
@@ -62,7 +62,7 @@ cross_repo_tasks: []
 
 ## Status
 
-ACTIVE — bounded task is published in draft PR #802. Initial preflight used `main@489607174f22b8b36663fe2251cdba0423388fbd`; `main` then advanced to `b8a88f073b2609b444fa15370aae30ac9f80b908` through merged auth PR #722. Its changed paths are auth/runtime/shared governance only and do not overlap this task's exclusive OTBM hardening paths.
+IMPLEMENTING — bounded task is published in draft PR #802. Initial preflight used `main@489607174f22b8b36663fe2251cdba0423388fbd`; `main` then advanced to `b8a88f073b2609b444fa15370aae30ac9f80b908` through merged auth PR #722. Its changed paths are auth/runtime/shared governance only and do not overlap this task's exclusive OTBM hardening paths.
 
 The new permutation fixture exposed one narrow deterministic-output defect by inspection of the current Regression Guard path: `impactEvidence.sampledMechanics` preserved the input Semantic Diff finding order even though findings are semantically unordered and sibling output dimensions are canonicalized. The canonical Regression Guard implementation path is explicitly claimed for the minimal ordering fix only.
 
@@ -119,8 +119,8 @@ Use only deterministic synthetic JSON/object fixtures and Python standard librar
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T16:14:00+02:00
-head: ca3f17a8f159707c66f5a4d233bf8da4493f8b6c
+updated_at: 2026-07-23T16:18:00+02:00
+head: 597d3e50ec98c908977bb3e03a907f633f3b4e50
 branch: test/owa-005-qa-contract-hardening-20260723
 pr: 802
 status: implementing
@@ -143,12 +143,14 @@ proven:
   - Dependency/Blast-Radius already covers unresolved evidence boundaries and exact current map/World Index provenance mismatches.
   - Compact Evidence Gateway already covers exact source hash mismatch, format mismatch and unsafe source path rejection.
   - The new OWA-005 suite adds missing permutation/cross-contract composition coverage instead of duplicating those focused tests.
+  - AI Agent Tools run 30014279914 and OTBM Map Tools run 30014282487 passed on ca3f17a8f159707c66f5a4d233bf8da4493f8b6c after the canonical-ordering fix; AI Agent Tools discovers every tools/ai-agent/test_*.py test.
+  - CI run 30014280323 passed on ca3f17a8f159707c66f5a4d233bf8da4493f8b6c.
   - Local checkout execution is unavailable in this session because the environment cannot resolve github.com; GitHub repository state and CI are used for execution evidence.
 derived:
-  - The Regression Guard's sampled mechanic list is built from Semantic Diff findings in input order; because the list is emitted directly, permuting otherwise equivalent findings changes deterministic JSON/hash output.
+  - The Regression Guard's sampled mechanic list was built from Semantic Diff findings in input order; because the list was emitted directly, permuting otherwise equivalent findings changed deterministic JSON/hash output.
   - The minimal fix is one stable sort of sampled mechanic entries by findingId after filtering, leaving selection semantics and evidence contents unchanged.
 unknown:
-  - GitHub CI result for the adversarial suite on the latest branch head.
+  - GitHub validation result on the latest documentation/task-record head.
 conflicts: []
 first_failure:
   marker: regression-guard-sampled-mechanics-order
@@ -160,15 +162,22 @@ rejected_hypotheses:
   - Broadly reordering or rewriting Semantic Diff evidence instead of fixing the one emitted unordered Regression Guard list.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260723-otbm-owa-005-qa-contract-hardening.md
+  - docs/ai-agent/OTBM_QA_CONTRACT_HARDENING.md
   - tools/ai-agent/test_otbm_qa_contract_hardening.py
   - tools/ai-agent/otbm_map_change_regression.py
 validation:
   - command: Agent Task Ownership / Validate changed active task checkpoints
     result: FAIL
-    evidence: First run rejected nested checkpoint owned_paths; corrected to flat list. Second run rejected unsupported checkpoint status active; corrected to implementing.
+    evidence: Initial runs exposed repository-format errors in checkpoint owned_paths and task/checkpoint status; all were corrected without scope changes.
+  - command: AI Agent Tools
+    result: PASS
+    evidence: Run 30014279914 passed on ca3f17a8f159707c66f5a4d233bf8da4493f8b6c after the determinism fix.
+  - command: OTBM Map Tools
+    result: PASS
+    evidence: Run 30014282487 passed on ca3f17a8f159707c66f5a4d233bf8da4493f8b6c after the determinism fix.
   - command: CI
     result: PASS
-    evidence: CI run 30014280323 completed successfully on ca3f17a8f159707c66f5a4d233bf8da4493f8b6c.
+    evidence: Run 30014280323 passed on ca3f17a8f159707c66f5a4d233bf8da4493f8b6c after the determinism fix.
 blockers: []
-next_action: Add the invariant note, inspect OTBM Map Tools and AI Agent Tools results on the canonical-ordering fix, then complete exact-final-head validation.
+next_action: Recheck ownership validation on the corrected task status, review the full PR diff and current-main delta, then enter the labelled exact-final-head validation sequence.
 ```
