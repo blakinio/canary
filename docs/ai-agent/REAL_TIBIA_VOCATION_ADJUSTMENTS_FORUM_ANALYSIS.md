@@ -4,25 +4,28 @@
 >
 > Primary release corpus collected: 2026-07-22
 >
-> General Changes, Sorcerer, Monk, and supplemental Druid design threads reviewed: 2026-07-23
+> General Changes, Knight, Sorcerer, Monk, and supplemental Druid design threads reviewed: 2026-07-23
 >
 > Target use: bounded design and validation input for `blakinio/canary`
 
 ## Executive summary
 
-Five complete official Tibia forum threads provide a proposal-to-release view of the 2026 vocation adjustments:
+Six complete official Tibia forum threads provide a proposal-to-release view of the 2026 vocation adjustments:
 
 1. **General Changes** records the first reaction to the system-wide proposal: charm and AoE scaling, Energy Ring, UH/IH support, combat mode, mitigation, and mana potions.
-2. **Sorcerer** adds the vocation-specific design expectations and objections that preceded testing.
-3. **Monk** adds the vocation-specific support, ranged, chain-targeting, solo, bossing, and progression questions that preceded testing.
-4. **Release State** records expectations, unresolved test concerns, and official clarifications before the live release.
-5. **Release** records live-server bugs, balance experience, subsequent numerical nerfs, and the community response through the thread's closure.
+2. **Knight** adds the vocation-specific stance, healing-cadence, tanking, aggro-control, offensive, and Wheel questions that preceded testing.
+3. **Sorcerer** adds the vocation-specific design expectations and objections that preceded testing.
+4. **Monk** adds the vocation-specific support, ranged, chain-targeting, solo, bossing, and progression questions that preceded testing.
+5. **Release State** records expectations, unresolved test concerns, and official clarifications before the live release.
+6. **Release** records live-server bugs, balance experience, subsequent numerical nerfs, and the community response through the thread's closure.
 
 The strongest cross-thread conclusion is not that one vocation simply needs more power. Players repeatedly ask for a legible relationship between mechanical difficulty, risk, Wheel investment, role specialization, and practical reward.
 
 The complete **Vocation Balancing Monk** thread adds 206 unique posts across all 11 pages. Its 203 community posts strongly connect Monk balance to damage after repeated nerfs, support identity, ranged completeness, solo performance, bossing, chain targeting, harmony, and Wheel access.
 
-A supplemental review of the first page of **Vocation Balancing Druid** adds design-stage evidence for Elder Druid. It is not included in the 4,967-post complete-thread corpus because only 20 of the thread's 393 displayed results were accessible in that collection. Within the 17 deduplicated community contributions on that page, the clearest concerns were the doubled healing cooldown in the group stance, weak solo hunting, and insufficiently specified Forked Spells.
+The complete **Vocation Balancing Knight** thread adds 595 unique posts across all 30 pages. Its 592 community posts most often discuss stances, two-second healing cadence, offensive and solo capability, shielding and mitigation, Exeta Amp Res, Front Sweep/Exori Min, and the Wheel.
+
+A supplemental review of the first page of **Vocation Balancing Druid** adds design-stage evidence for Elder Druid. It is not included in the 5,562-post complete-thread corpus because only 20 of the thread's 393 displayed results were accessible in that collection. Within the 17 deduplicated community contributions on that page, the clearest concerns were the doubled healing cooldown in the group stance, weak solo hunting, and insufficiently specified Forked Spells.
 
 The January General Changes discussion was broad and exploratory: all 765 displayed posts were accessible, representing 666 author names. A coarse critical-language indicator matched 29.5% of its non-official posts. The same indicator rose to 43.5% in Release State and 70.3% across the post-release thread, reaching 80.0% during July 7–8 immediately after numerical corrections. The discussion therefore moved from *define the compensation and preserve useful roles*, through *clarify and finish the mechanics*, toward *justify the balance model and its combined effects*.
 
@@ -49,6 +52,7 @@ This report does not establish official formulas, live values, or Canary defects
 | Phase | Official thread | Thread ID | Displayed results | Accessible unique posts | Coverage | Observed dates |
 |---|---|---:|---:|---:|---|---|
 | Early design feedback | [Vocation Balancing Druid](https://www.tibia.com/forum/?action=thread&threadid=4992268&pagenumber=1) | `4992268` | 393 | 20 | page 1 only | 2026-01-22 |
+| Early design feedback | [Vocation Balancing Knight](https://www.tibia.com/forum/?action=thread&threadid=4992264&pagenumber=1) | `4992264` | 595 | 595 | all 30 pages | 2026-01-22-2026-01-29 |
 | Early design feedback | [Vocation Balancing Monk](https://www.tibia.com/forum/?action=thread&threadid=4992269&pagenumber=1) | `4992269` | 206 | 206 | all 11 pages | 2026-01-22-2026-01-29 |
 
 The Druid source remains a page-one sample because direct requests for the remaining pages were rejected by Tibia.com with HTTP 403 during that collection. The Monk thread was collected from rendered public pages with isolated headless Chrome profiles after direct HTTP requests encountered the same protection. No account, cookies, or authenticated browser state were used.
@@ -64,7 +68,9 @@ Collection facts:
 - The two later corpora contain 3,463 unique posts, 1,825 unique author names, and 33 official-marker posts. Two hundred author names appear in both later corpora.
 - Thread `4992269` yielded exactly 206 unique post identifiers: 20 posts on each page 1-10 and 6 posts on page 11.
 - The Monk thread contains 3 community-manager posts and 203 community posts from 175 distinct author names.
-- Across the five complete threads, the accessible corpus contains 4,967 unique post identifiers and 43 official-marker posts. A five-thread unique-author total was not recomputed from the separately retained aggregates, so per-thread author counts are reported instead.
+- Thread `4992264` yielded exactly 595 unique post identifiers across all 30 pages, matching its displayed result count.
+- The Knight thread contains 3 community-manager posts and 592 community posts from 498 distinct author names.
+- Across the six complete threads, the accessible corpus contains 5,562 unique post identifiers and 46 official-marker posts. A six-thread unique-author total was not recomputed from the separately retained aggregates, so per-thread author counts are reported instead.
 
 ## Evidence boundary
 
@@ -105,11 +111,13 @@ Rendered quotations remain in many replies in the primary corpus. A quoted issue
 
 For the supplemental Monk analysis, `blockquote.QuoteText` content was removed before keyword-family and structured-answer counting. A Monk post can still belong to several overlapping themes, and repeated posts by one author remain separate contributions; distinct-author counts are therefore reported beside post counts.
 
+For the Knight analysis, repeated official proposal sentences and the three standard feedback questions were removed before keyword-family coding. Community quotations can remain and may increase engagement counts when a point is repeated or challenged. Each theme is counted at most once per post, and distinct-author counts are reported beside post counts.
+
 Forum posts may be edited or deleted after collection. Release-phase counts are a snapshot from 2026-07-22; the January design-thread collections and supplemental Druid page-one sample are snapshots from 2026-07-23.
 
 ## Supplemental design-stage evidence: Vocation Balancing Druid
 
-This section analyzes only page one of thread `4992268`. It is a bounded design-stage sample, not a complete-thread sentiment result and not part of either the 4,967-post complete-thread corpus or its 3,463-post later-thread subset.
+This section analyzes only page one of thread `4992268`. It is a bounded design-stage sample, not a complete-thread sentiment result and not part of either the 5,562-post complete-thread corpus or its 3,463-post later-thread subset.
 
 ### Official proposal represented on the page
 
@@ -1006,6 +1014,176 @@ Before implementing any Sorcerer adjustment inspired by these threads:
 
 The forum should prioritize these investigations. It should not determine formulas or authorize copying a proposed value.
 
+## Knight design-thread supplement: January 2026
+
+This supplement adds the complete vocation-specific design discussion that preceded the release-state and release threads:
+
+| Official thread | Thread ID | Displayed results | Collected unique posts | Pages | Observed dates |
+|---|---:|---:|---:|---:|---|
+| [Vocation Balancing Knight](https://www.tibia.com/forum/?action=thread&threadid=4992264&pagenumber=1) | `4992264` | 595 | 595 | 30 | 2026-01-22-2026-01-29 |
+
+### Collection and composition
+
+- All pages 1-30 were collected through Jina AI's public text renderer on 2026-07-23 after direct Tibia.com requests encountered Cloudflare HTTP 403.
+- All 595 displayed results were collected with 595 unique post identifiers.
+- The corpus contains three community-manager posts and 592 community posts from 498 distinct community author names.
+- Of the 592 community posts, 464 (78.4%) display a Knight or Elite Knight vocation; those posts come from 378 author names.
+- The discussion was broad: 426 of 498 community author names posted once; the ten most active authors contributed 38 posts, or 6.4% of community posts.
+- Among the 464 community posts displaying a Knight level, the median level is 750, the interquartile range is 390-1,069, 320 posts display level 500 or higher, and 137 display level 1,000 or higher.
+
+| Displayed author vocation | Posts | Share of community posts | Distinct author names |
+|---|---:|---:|---:|
+| Elite Knight / Knight | 464 | 78.4% | 378 |
+| Royal Paladin / Paladin | 25 | 4.2% | 23 |
+| Master Sorcerer / Sorcerer | 23 | 3.9% | 21 |
+| Elder Druid / Druid | 14 | 2.4% | 13 |
+| Exalted Monk / Monk | 4 | 0.7% | 4 |
+| None, missing, or other | 62 | 10.5% | 59 |
+
+Displayed vocation and level are profile metadata at collection time. They are useful for describing the participant pool, but they are not verified posting-time identity, expertise, or a reason to weight one opinion more heavily.
+
+### Theme breadth
+
+The same overlapping post-level method used elsewhere in this report was applied to the 592 community posts. Repeated official proposal boilerplate was removed before coding so quoting the opening announcement did not by itself create a theme match.
+
+| Theme family | Posts | Share of community posts | Distinct author names |
+|---|---:|---:|---:|
+| Stances, Blood Rage, Protector, or Utito/Utamo | 261 | 44.1% | 243 |
+| Two-second healing cadence or burst survivability | 211 | 35.6% | 196 |
+| Offensive, AoE, or solo damage | 206 | 34.8% | 186 |
+| Shielding skill, mitigation, or resistances | 200 | 33.8% | 181 |
+| Exeta Amp Res, ranged taunt, or challenge | 197 | 33.3% | 189 |
+| Front Sweep or Exori Min | 171 | 28.9% | 158 |
+| Wheel of Destiny | 147 | 24.8% | 134 |
+| Tank/blocker identity or durability | 136 | 23.0% | 127 |
+| Input/hotkey burden or rotation QoL | 118 | 19.9% | 113 |
+| Mana and potion economy | 89 | 15.0% | 87 |
+| PvP utility, Paralyze, or crowd control | 75 | 12.7% | 74 |
+| Utura Gran, recovery, or heal-over-time | 72 | 12.2% | 69 |
+| New defensive spells or forced auto-attack miss | 55 | 9.3% | 53 |
+| Weapon classes, elements, or imbuement slots | 43 | 7.3% | 43 |
+| Single-target damage | 35 | 5.9% | 35 |
+
+These are engagement counts, not approval votes. A post can support the direction of a feature while requesting different geometry, cadence, penalties, or scaling.
+
+### Main design findings
+
+#### 1. Stances were welcomed as QoL, but their state contract was underspecified
+
+Stances were the most discussed family, appearing in 261 community posts. The positive core was clear: removing repetitive Utito/Utamo recasts could reduce input load and avoid cooldown interference with challenge spells. At least 42 posts explicitly linked stances or Utito with fewer casts, presses, hotkeys, or inputs.
+
+The unresolved questions determine whether a stance is a choice or a permanent tax:
+
+- 72 posts discussed activation, switching, toggling, or stance cooldown behavior;
+- 34 connected stances or Utito with skill reductions or debuffs;
+- 26 connected Blood Rage/Utito with permanent uptime, the 15% incoming-damage penalty, or damage received all the time;
+- players asked whether a neutral state exists, whether switching is immediate, and how death, logout, dispels, and skill debuffs affect state.
+
+The acceptance condition is therefore not merely "convert spells to toggles." Each stance needs an explicit state machine and a measurable offensive/defensive trade.
+
+#### 2. More healing per cast does not automatically solve cadence risk
+
+Two-second healing cadence appeared in 211 community posts. The January 23 official clarification stated that the new scaling would more than double healing and could exceed three times current healing depending on level, magic level, and shielding skill.
+
+The clarification answered throughput but not every survival concern:
+
+- 58 posts connected healing/cooldown language with burst, death, fatal gaps, lag, spikes, or HP fluctuation;
+- 72 connected healing cadence with PvP or Paralyze;
+- 49 discussed the need for double/triple output or comparable compensation;
+- 47 discussed alternating heals, Exura Ico, multi-action, or the resulting rotation.
+
+Before the clarification, 125 of 318 community posts (39.3%) discussed healing cadence; after it, 86 of 274 (31.4%) did. The lower share suggests the numerical clarification reduced uncertainty, but the remaining volume shows that interval risk, input timing, and PvP cleansing were separate questions.
+
+#### 3. Tank identity was accepted; a defense-only package was not
+
+Offensive, AoE, or solo performance appeared in 206 community posts:
+
+- 119 mentioned Exori Mas or Groundshaker;
+- 103 discussed solo play or hunting;
+- 79 discussed AoE or area damage;
+- 30 explicitly requested a new offensive spell, offensive toolkit, or cleave behavior.
+
+Players generally accepted stronger blocker identity and better self-sustain. The objection was that every other role could receive new play patterns while Knight solo play, damage scaling, and wide-area rotation remained substantially unchanged. Forum volume cannot establish a damage coefficient, but it strongly supports separate solo, team-blocker, boss, and PvP performance tests.
+
+#### 4. Exeta Amp Res was the clearest unprompted aggro-control request
+
+Exeta Amp Res, ranged taunt, or challenge appeared in 197 community posts even though it was not part of the opening proposal. This makes it a particularly strong unprompted theme:
+
+- 84 linked Amp Res/challenge with area, range, radius, AoE, or mass behavior;
+- 22 requested ranged-target priority or exclusion of melee targets;
+- 20 compared the Knight implementation with Monk;
+- 12 discussed pulling or attracting ranged creatures into melee position;
+- 7 discussed a passive or toggle model.
+
+The repeated problem statement was control reliability: target selection, target cap, inability to move creatures into a stable box, and disruption caused by current lasso-like behavior. A faithful follow-up should prove the current selection and pathing contract before choosing a redesign.
+
+#### 5. Front Sweep and Exori Min had a geometry problem before a power problem
+
+Front Sweep or Exori Min appeared in 171 community posts. At least 54 linked them with area, squares, chain, cone, wave, or range, while 31 explicitly described the spell as unused, useless, inferior, or ignored.
+
+The proposed life-leech increase was not rejected in isolation. Players argued that a narrow or awkward hit shape remains unattractive even with higher sustain. Geometry, realistic target count, facing requirements, rotation opportunity cost, and Wheel access should therefore be measured before a flat power increase is interpreted.
+
+#### 6. Shielding must produce visible marginal value
+
+Shielding, mitigation, or resistances appeared in 200 community posts. Players welcomed healing scaling from shielding skill and shield-based damage, but repeatedly questioned whether:
+
+- training additional shielding levels creates observable mitigation;
+- one-handed plus shield remains competitive with two-handed weapons;
+- elemental-heavy content preserves the Knight's tank advantage;
+- Battle Healing and new shield mechanics create genuine build choice rather than mandatory equipment;
+- the proposed spell scales from shield defense, shielding skill, or both.
+
+The forum supplies test hypotheses, not formulas. Canary validation should compare marginal outcomes across shielding bands, damage profiles, equipment modes, and level ranges.
+
+#### 7. The Wheel should unlock coherent play, then scale it
+
+Wheel of Destiny appeared in 147 community posts. Recurring proposals included earlier Exori Mas cooldown access, useful offensive augments, weapon-class specialization without content lockout, and replacement of weak or overly expensive paths.
+
+This reinforces the cross-vocation rule already present in this report: the functional rotation should not arrive only after endgame point totals. Later Wheel investment may scale a coherent mechanic, but should not be required merely to make the base loop complete.
+
+### Official clarification chronology
+
+The three community-manager posts define the proposal-stage boundary:
+
+1. **[January 22 opening post](https://www.tibia.com/forum/?action=thread&threadid=4992264&pagenumber=1#post39563962):** proposed Blood Rage and Protector stances, two-second healing cooldowns with magic-level and shielding scaling, two defensive spells, Front Sweep life leech, and a shield-weighted Battle Healing augment.
+2. **[January 23 developer clarification](https://www.tibia.com/forum/?action=thread&threadid=4992264&pagenumber=16#post39565868):** stated that healing would more than double and could exceed three times current output depending on level, magic level, and shielding; also stated that wearing a shield was not required because the formula scales with shielding skill.
+3. **[January 29 closing response](https://www.tibia.com/forum/?action=thread&threadid=4992264&pagenumber=30#post39568244):** stated that developers had begun analysing the feedback.
+
+No official post in the thread resolved stance switching, neutral state, skill-debuff interaction, Exeta Amp Res behavior, offensive/AoE scope, Front Sweep geometry, or the PvP cleansing concern.
+
+### Representative evidence trail
+
+The following posts are useful entry points for manual review. They are examples, not the basis of the aggregate counts:
+
+| Post | Main subjects |
+|---|---|
+| [#39563982](https://www.tibia.com/forum/?action=thread&threadid=4992264&pagenumber=1#post39563982) | stances, healing compensation, AoE rotation, weapon classes, challenge behavior |
+| [#39563984](https://www.tibia.com/forum/?action=thread&threadid=4992264&pagenumber=1#post39563984) | HP fluctuation risk and Front Sweep demand |
+| [#39564002](https://www.tibia.com/forum/?action=thread&threadid=4992264&pagenumber=1#post39564002) | passive/toggle Amp Res proposal |
+| [#39564009](https://www.tibia.com/forum/?action=thread&threadid=4992264&pagenumber=1#post39564009) | PvP Paralyze and healing cadence |
+| [#39564028](https://www.tibia.com/forum/?action=thread&threadid=4992264&pagenumber=1#post39564028) | Amp Res discomfort and AoE damage |
+| [#39564133](https://www.tibia.com/forum/?action=thread&threadid=4992264&pagenumber=2#post39564133) | alternate-heal rotation, Amp Res priority, weapon-element disparity |
+| [#39564931](https://www.tibia.com/forum/?action=thread&threadid=4992264&pagenumber=10#post39564931) | long-form stance, healing, defense, and aggro-control analysis |
+| [#39566378](https://www.tibia.com/forum/?action=thread&threadid=4992264&pagenumber=20#post39566378) | defense-only package, offensive identity, and spell utility |
+| [#39567176](https://www.tibia.com/forum/?action=thread&threadid=4992264&pagenumber=24#post39567176) | healing intervals, stances, Exeta, offense, and Wheel trade-offs |
+| [#39567671](https://www.tibia.com/forum/?action=thread&threadid=4992264&pagenumber=28#post39567671) | consolidated high-level Knight design feedback |
+
+### Bounded Canary validation matrix
+
+| Area | Required bounded proof before a change |
+|---|---|
+| Healing cadence | Compare healing per second and minimum HP buffer at one- and two-second cadence; include delayed input, one missed turn, PvP Paralyze, potion overlap, magic/shielding bands, and no-shield equipment. |
+| Stances | Specify activation, neutral state, switch cooldown/cost, death/logout behavior, skill debuffs, dispels, equipment changes, and exact offense/defense penalties; prove that each state has a distinct useful scenario. |
+| Exeta Amp Res | Trace current target selection, target cap, ranged priority, pathing, duration, recast, immunity, and box-stability behavior before evaluating area, pull, passive, or toggle proposals. |
+| Offensive/AoE role | Measure solo, stable-box team, dispersed-target, and boss performance across level bands; include target count, kill time, leech, incoming attack turns, potion use, and profit effects. |
+| Front Sweep / Exori Min | Prove geometry, facing tolerance, realistic targets hit, rotation opportunity cost, cooldown, and Wheel access before changing damage or leech. |
+| Shielding and mitigation | Measure marginal benefit across shielding bands, physical/elemental mixtures, one-handed/shield and two-handed modes, and low/mid/high levels. |
+| Wheel of Destiny | Record the point and level at which the coherent AoE and healing loops become available; separate functional access from endgame scaling. |
+| Mana/input economy | Measure actions per minute, multi-action interactions, potion consumption, mana sustainability, and whether lower spell spam actually lowers required input. |
+| PvP utility | Test cleansing cadence, Paralyze recovery, front-line utility, and crowd-control hypotheses separately from PvE; treat any new control mechanic as Canary-specific design unless authoritative parity evidence is pinned. |
+
+The forum can prioritize these investigations. It cannot choose their numerical outcome.
+
 ## Canary follow-up contract
 
 This report may nominate a future investigation but cannot authorize a gameplay change. A bounded follow-up must:
@@ -1020,6 +1198,6 @@ This report may nominate a future investigation but cannot authorize a gameplay 
 
 ## Conclusion
 
-Across 4,967 accessible posts in five complete official threads, plus the bounded Druid page-one sample, the community consistently supports stronger vocation identity, new rotations, useful defensive choice, and lower unnecessary input complexity. The main rejection concerns incomplete functional access, unclear role trade-offs, late Wheel availability, and numerical packages whose combined risk or complexity appears greater than their practical reward.
+Across 5,562 accessible posts in six complete official threads, plus the bounded Druid page-one sample, the community consistently supports stronger vocation identity, new rotations, useful defensive choice, and lower unnecessary input complexity. The main rejection concerns incomplete functional access, unclear role trade-offs, late Wheel availability, and numerical packages whose combined risk or complexity appears greater than their practical reward.
 
 For Canary, the durable lesson is methodological: use the forum to identify high-value validation questions, then prove each mechanic independently. Community volume can prioritize investigation; it cannot replace authoritative values, current source inspection, or runtime evidence.
