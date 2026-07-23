@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 base_branch: main
 created: 2026-07-22T16:00:00+02:00
-updated: 2026-07-23T11:30:00+02:00
-last_verified_commit: 285dec6a034aa3620ae5ca12549fb9e8e1b35631
+updated: 2026-07-23T12:09:00+02:00
+last_verified_commit: 9383fb3d7fa13e66b29bce798b3eaa2fddd4c2e9
 risk: high
 related_issue: ""
 related_pr: "722"
@@ -72,8 +72,8 @@ Implement the Canary-side Game Session compatibility adapter for the Oteryn nati
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T11:30:00+02:00
-head: 285dec6a034aa3620ae5ca12549fb9e8e1b35631
+updated_at: 2026-07-23T12:09:00+02:00
+head: 3e439a59b1feef715235d3541e76b548a13591cd
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 pr: 722
 status: blocked
@@ -95,6 +95,9 @@ owned_paths:
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
 changed_paths:
+  - docs/agents/CHANGELOG.md
+  - docs/agents/CROSS_REPO_CONTRACTS.md
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260722-oteryn-game-session-adapter.md
   - src/main.cpp
   - src/security/CMakeLists.txt
@@ -104,7 +107,6 @@ changed_paths:
   - tests/unit/security/CMakeLists.txt
   - tests/unit/security/game_session_http_issuer_test.cpp
   - vcproj/settings.props
-  - docs/agents/CROSS_REPO_CONTRACTS.md
 proven:
   - Candidate B is implemented as a disabled-by-default per-process HTTP issuer reusing LoginSessionManager.
   - Account and allowed-character data are loaded authoritatively by numeric Canary account id without Oteryn password authentication.
@@ -114,6 +116,8 @@ proven:
   - Cross-repository contracts document the issuer and rollout; OTClient PR #17 is merged at bb87346f6c516a19d19497d82bb01fb389334ff5 and Oteryn Platform Gateway PR #122 is merged at 8006534108d835474dadd208b0ec934e4a12528b.
   - Canary implementation head 285dec6a034aa3620ae5ca12549fb9e8e1b35631 passed CI run 29957357479, Security Validation run 29957357463, Agent Task Ownership run 29957357248 and autofix run 29957357043.
   - Bounded cross-repository E2E is proven: behavior run 29988893301 recorded one successful Knight 1 world entry and replay_rejected=login_error with successful_world_entries=1; final evidence run 29992417296 also passed physical job 89166128089 and Required physical E2E job 89167924405 using Canary 285dec6a034aa3620ae5ca12549fb9e8e1b35631, OTClient bb87346f6c516a19d19497d82bb01fb389334ff5 and Gateway 8006534108d835474dadd208b0ec934e4a12528b.
+  - Documentation checkpoint head 9383fb3d7fa13e66b29bce798b3eaa2fddd4c2e9 passed CI run 29995633375, Security Validation run 29995633305, Agent Task Ownership run 29995632827 and autofix run 29995633398.
+  - PR #722 is open, non-draft, mergeable and has no review threads or submitted reviews as verified on 2026-07-23.
 derived:
   - Candidate B preserves stronger single-use world-entry semantics than replayable account_sessions.
   - A lost successful create-session response intentionally cannot be recovered by repeating the same login_attempt_id; the orphan token expires and the client must start a fresh native-login attempt.
@@ -123,6 +127,7 @@ unknown:
   - Future requirements for immediate security-generation revocation, multi-world routing and same-world horizontal replicas remain outside the proven v1 deployment model.
 conflicts:
   - Prior handoff claimed Oteryn Platform PR #123 was merged; live state on 2026-07-23 confirms it is closed unmerged and its advertised hardening remains absent.
+  - docs/agents/MODULE_CATALOG.md still describes full Gateway -> Canary -> OTClient E2E as a production blocker even though runs 29988893301 and 29992417296 prove the bounded E2E; the catalogue entry must be synchronized before this task can be considered documentation-consistent.
 first_failure:
   marker: platform-production-hardening-unproven
   evidence: Oteryn Platform PR #123 remains closed unmerged with zero changed files, so overlapping service credential-hash rotation, pre-auth throttling ordering and complete ticket-boundary no-store hardening are not proven on Platform main.
@@ -142,15 +147,21 @@ validation:
   - command: Agent Task Ownership run 29957357248 and autofix run 29957357043 on 285dec6a034aa3620ae5ca12549fb9e8e1b35631
     result: PASS
     evidence: ownership/checkpoint validation passed and formatting completed without mutation.
+  - command: exact-head documentation CI/Security/Ownership/autofix on 9383fb3d7fa13e66b29bce798b3eaa2fddd4c2e9
+    result: PASS
+    evidence: runs 29995633375, 29995633305, 29995632827 and 29995633398 all completed successfully.
   - command: Universal Agent E2E behavior run 29988893301
     result: PASS
     evidence: maintained OTClient entered Knight 1 exactly once through Gateway and Canary, then replay of the same Game Session failed with login_error and successful_world_entries=1.
   - command: Universal Agent E2E final evidence run 29992417296 on E2E head 804e7c0e233305592d941525951e2e124d407149
     result: PASS
     evidence: physical job 89166128089 and Required physical E2E job 89167924405 completed successfully; CI, ownership and autofix for the evidence head were also green.
+  - command: final-gate validation after durable-record synchronization
+    result: NOT_RUN
+    evidence: ci:final-gate label is applied; the new documentation commits must complete their pull-request validation before any merge consideration.
 blockers:
   - Production readiness remains blocked until the missing Oteryn Platform hardening is delivered and proven.
   - Production Gateway -> Canary private-network/TLS transport and service-credential rotation remain unproven.
   - Immediate generation-based revocation, multi-world routing and same-world horizontal scaling are outside Gateway protocol v1 and require separate design before they are claimed.
-next_action: Deliver and prove the missing Oteryn Platform production hardening that supersedes closed-unmerged PR #123 before any production native-auth cutover.
+next_action: Synchronize the Oteryn Game Session entry in docs/agents/MODULE_CATALOG.md with the proven E2E evidence, then run the final gate on the resulting exact head.
 ```
