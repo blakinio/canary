@@ -2,16 +2,16 @@
 task_id: CAN-20260723-otbm-world-assurance-operations-program
 program_id: CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS
 coordination_id: ""
-status: active
+status: review
 agent: "GPT-5.6 Thinking"
 branch: docs/otbm-world-assurance-operations-20260723
 base_branch: main
 created: 2026-07-23T14:20:00+02:00
-updated: 2026-07-23T14:20:00+02:00
-last_verified_commit: "54ce97b3bcaac8c2e1a0d4cc6162a6ff975bbee9"
+updated: 2026-07-23T14:40:00+02:00
+last_verified_commit: "5918789f5d247e9d824ab93195b5012897d04115"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "795"
 depends_on:
   - completed OTBM-QA-001..018 programme
   - merged OTBM-QA closure PR #773
@@ -21,9 +21,10 @@ owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260723-otbm-world-assurance-operations-program.md
     - docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md
-  shared:
-    - docs/ai-agent/OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md
+    - docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md
+  shared: []
   read_only:
+    - docs/ai-agent/OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md
     - docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
     - docs/agents/MODULE_CATALOG.md
 modules_touched:
@@ -43,144 +44,171 @@ cross_repo_tasks: []
 
 # Goal
 
-Create the post-closure successor programme for operational use of the completed OTBM-QA-001..018 stack, and update the closed OTBM QA roadmap so future work is routed into bounded world-certification, factual coverage visualization, TCR-to-QA freshness integration, runtime-incident evidence correlation and QA hardening packages without reopening QA-019.
+Create a separate post-closure OTBM World Assurance Operations programme and successor roadmap for operational use of the completed OTBM-QA-001..018 contracts, while leaving the formally closed OTBM QA roadmap unchanged and without creating OTBM-QA-019.
 
 # Acceptance criteria
 
-- [ ] A durable `CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS` programme record exists with a bounded package queue and explicit proof/ownership boundaries.
-- [ ] `OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md` remains marked complete for OTBM-QA-001..018 and points post-closure operational work to the new programme rather than defining QA-019.
-- [ ] The queue includes real-world certification, factual certification/coverage visualization, TCR-to-QA drift/freshness integration, runtime incident-to-OTBM evidence correlation and property/fuzz hardening of existing contracts.
-- [ ] The programme explicitly reuses canonical World Index, Script Resolution, Reachability/BFS, Semantic Diff, factual renderer and Universal Physical E2E and creates no parallel parser/pathfinder/writer/renderer/E2E stack.
-- [ ] TCR integration is dependency-gated on stable TCR formats and does not duplicate or take ownership from `CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE`.
-- [ ] No generated map, asset, `.widx`, certification artifact or factual render is committed.
-- [ ] Current-head GitHub CI and Agent Task Ownership checks pass before merge.
-- [ ] Program queue/handoff is self-sufficient for a future agent to start the first bounded package.
+- [x] A durable `CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS` programme record exists with a bounded OWA-001..006 queue and explicit proof/ownership boundaries.
+- [x] A separate `OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md` exists and the closed `OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md` remains unchanged as the source of truth for completed OTBM-QA-001..018.
+- [x] The queue includes real-world certification, factual certification/coverage visualization, TCR-to-QA drift/freshness integration, runtime incident-to-OTBM evidence correlation, QA contract hardening and Continuous Assurance operational adoption.
+- [x] The programme explicitly reuses canonical World Index, Script Resolution, Reachability/BFS, Semantic Diff, factual renderer and Universal Physical E2E and creates no parallel parser/pathfinder/writer/renderer/E2E stack.
+- [x] TCR integration is dependency-gated on stable merged TCR formats and does not duplicate or take ownership from `CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE`.
+- [x] No generated map, asset, `.widx`, certification artifact or factual render is committed.
+- [x] PR #795 scope is exactly the programme record, successor roadmap and this active task record.
+- [ ] Current exact-final-head GitHub CI and Agent Task Ownership checks pass before merge.
+- [x] Programme queue/handoff is self-sufficient for a future agent to start OWA-001 as a separate bounded task.
 
 # Confirmed context
 
-- `docs/ai-agent/OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md` marks OTBM-QA-001..018 complete and lifecycle-closed.
-- The roadmap closure boundary explicitly allows future bounded work to consume or extend the stable QA contracts without reopening OTBM-QA-001..018.
-- `CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE` is a separate active programme with TCR-000..011; TCR-010 already plans integration with the existing QA-018 evidence gateway.
-- Open TCR PR #762 touches `MODULE_CATALOG.md` and `OTS_OTBM_TOOLING_ROADMAP.md`; this task avoids those shared paths.
-- OAM-040 OTBM-tooling governance is complete and retained the canonical Canary tooling; it does not replace this operational-assurance successor scope.
+- `docs/ai-agent/OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md` marks OTBM-QA-001..018 complete and lifecycle-closed and explicitly allows future bounded consumers/extensions without reopening the programme.
+- `CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE` is a separate active programme with TCR-000..011; OWA-003 consumes only stable merged TCR outputs and does not parse client reference inputs.
+- Open TCR PR #762 and internal reconciliation PR #777 touch other shared OTBM discovery paths; PR #795 does not edit those paths.
+- OAM-040 retained the canonical Canary OTBM tooling and does not replace the operational-assurance successor scope.
+- The temporary helper approach for editing the closed QA roadmap was abandoned and removed; the final design uses a separate successor roadmap.
 
 # Existing work to reuse
 
 | Module/task/PR | Reuse | Evidence/path | Why it fits |
 |---|---|---|---|
-| OTBM-QA-001..018 | Compose delivered health, regression, certification, dependency, freshness, risk and evidence contracts | `docs/ai-agent/OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md` | Already-delivered canonical QA stack; successor work should operationalize it rather than add QA-019. |
-| TCR programme | Consume stable future reference/drift outputs only | `docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md` | TCR owns client reference parsing/correlation; world assurance should only consume stable outputs for freshness/blast-radius decisions. |
-| Universal Physical E2E | Runtime proof for selected scenarios | existing E2E programme/contracts | OTBM remains evidence/provider; it must not create a second runner or own feature-specific runtime expectations. |
+| OTBM-QA-001..018 | Compose delivered health, regression, certification, dependency, freshness, risk and evidence contracts | `docs/ai-agent/OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md` | Canonical delivered QA stack; operational work consumes it rather than adding QA-019. |
+| TCR programme | Consume stable future reference/drift outputs only | `docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md` | TCR owns client-reference parsing/correlation; OWA only consumes stable exact outputs. |
+| Universal Physical E2E | Runtime proof for selected scenarios | existing E2E programme/contracts | OTBM remains evidence provider and does not create another runner or own feature-specific runtime expectations. |
 
 # Ownership and overlap check
 
-- Program record: new `CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS`.
+- Program record: `CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS`.
 - Open PRs inspected: #762 and #777.
-- Active tasks inspected: no existing World Assurance / Certification Campaign task was found by targeted repository search.
-- Ownership checker result: pending GitHub Agent Task Ownership workflow after draft PR creation.
-- Exclusive claims: new programme record and this active task record.
-- Shared claims: closed OTBM QA roadmap only.
-- Read-only dependencies: active TCR programme and module catalogue.
-- Overlaps: TCR #762/#777 touch other OTBM discovery/shared docs, not the planned roadmap/program paths.
-- Resolution: keep this PR limited to the closed QA roadmap, new successor programme and task record; do not edit TCR-owned shared discovery paths.
+- Active tasks inspected: no existing World Assurance / Certification Campaign task found by targeted search.
+- Ownership checker result: exact-final GitHub workflow pending on the final head.
+- Exclusive claims: programme record, successor roadmap and this active task record.
+- Shared claims: none.
+- Read-only dependencies: closed QA roadmap, active TCR programme and module catalogue.
+- Overlaps: no final changed-path overlap with #762/#777.
+- Resolution: keep PR #795 to three new documentation/task paths and leave TCR/shared discovery files untouched.
 
 # Current state
 
-The OTBM-QA tooling programme is complete. The missing durable layer is an operational successor plan that uses those contracts against reviewed real-world targets and makes the resulting certification/freshness evidence actionable without inventing new canonical infrastructure.
+The OTBM-QA tooling programme is complete. PR #795 now adds the durable operational successor layer without changing any delivered QA contract or closed roadmap.
 
 # Plan
 
-1. Create the successor programme with packages OWA-001..005.
-2. Add a post-closure successor section to the completed OTBM QA roadmap.
-3. Open/update a draft PR, bind its number into this checkpoint, validate exact changed paths and current-head governance/CI.
-4. Merge after the autonomous gate and archive this programme-bootstrap task.
+1. Validate the exact final head of PR #795 with Agent Task Ownership and repository CI/Required.
+2. Audit the three-file scope and review state, mark ready and auto-merge after green gates.
+3. Archive this bootstrap task in a separate lifecycle-only PR.
+4. Leave OWA-001 as the next separately bounded implementation task from then-current `main`.
 
 # Work log
 
 ## 2026-07-23T14:20:00+02:00
 
 - Changed: created the programme-bootstrap task record on a dedicated branch.
-- Learned: the closed QA roadmap explicitly supports future bounded consumers/extensions; TCR remains a separate ownership domain and already plans QA-018 integration.
+- Learned: the closed QA roadmap supports future bounded consumers/extensions; TCR remains a separate ownership domain.
 - Failed/blocked: none.
-- Result: safe bounded successor-programme scope selected without reopening QA-019 or touching TCR shared discovery files.
+- Result: safe successor-programme scope selected without reopening QA-019.
+
+## 2026-07-23T14:35:00+02:00
+
+- Changed: added `OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md` and `OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md` with OWA-001..006.
+- Learned: preserving the formally closed QA roadmap unchanged is cleaner than appending operational work to a completed programme record.
+- Failed/blocked: a temporary workflow helper intended to patch the old roadmap was unnecessary under the corrected design; it was removed before final scope validation.
+- Result: final PR scope is exactly three documentation/task files with no workflow or closed-roadmap change.
 
 # Decisions
 
 | Decision | Reason/evidence | ADR |
 |---|---|---|
-| Do not create OTBM-QA-019 | QA-001..018 are formally complete and the closure boundary routes future work through new bounded programmes/tasks. | none |
-| Name successor `CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS` | Scope is operational certification/assurance over delivered QA contracts, not another QA implementation layer. | none |
-| Use package prefix `OWA` | Keeps successor work distinct from closed `OTBM-QA-*` and active `TCR-*`. | none |
-| Keep TCR integration dependency-gated | TCR owns reference formats; operational assurance may consume stable outputs but must not duplicate parsers or ownership. | none |
+| Do not create OTBM-QA-019 | QA-001..018 are formally complete and future operational work belongs to a new programme. | none |
+| Use `CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS` / `OWA-*` | Distinguishes operational certification/assurance from the closed QA tooling programme and active TCR programme. | none |
+| Keep the closed QA roadmap unchanged | It is the durable completion ledger/source of truth for QA-001..018; operational evolution has its own successor roadmap. | none |
+| Keep TCR integration dependency-gated | TCR owns reference formats and parsing; OWA consumes stable merged outputs only. | none |
+| Preserve factual-renderer-only evidence visualization | Prevents AI-generated or visually inferred map evidence from entering certification. | none |
 
 # Files and interfaces
 
 | Path/interface/config/schema | Ownership mode | Purpose | Status |
 |---|---|---|---|
-| `docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md` | exclusive | Durable successor programme and queue | planned |
-| `docs/ai-agent/OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md` | shared | Post-closure routing to successor programme | planned |
-| `docs/agents/tasks/active/CAN-20260723-otbm-world-assurance-operations-program.md` | exclusive | Task ownership/checkpoint | active |
+| `docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md` | exclusive | Durable successor programme and OWA-001..006 queue | complete in PR |
+| `docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md` | exclusive | Detailed operational successor roadmap | complete in PR |
+| `docs/agents/tasks/active/CAN-20260723-otbm-world-assurance-operations-program.md` | exclusive | Task ownership/checkpoint | validating |
+| `docs/ai-agent/OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md` | read_only | Closed OTBM-QA-001..018 source of truth | unchanged |
 
 # Validation and CI
 
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
-| `54ce97b3bcaac8c2e1a0d4cc6162a6ff975bbee9` | targeted overlap/reuse preflight | PASS | OTBM-QA closure and TCR programme inspected; #762/#777 overlap avoided. |
+| `5918789f5d247e9d824ab93195b5012897d04115` | PR #795 changed-file audit | PASS | Exactly three changed files: successor programme, successor roadmap, active task. |
+| `5918789f5d247e9d824ab93195b5012897d04115` | Closed QA roadmap scope check | PASS | `OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md` is not in PR #795 changed-file list. |
+| final head | Agent Task Ownership | NOT_RUN | Pending exact-final synchronize run after this checkpoint commit. |
+| final head | CI / Required | NOT_RUN | Pending exact-final synchronize run after this checkpoint commit. |
 
 # Failed approaches and dead ends
 
-- None.
+- A temporary helper workflow was created to append a post-closure section to the closed QA roadmap. The design was rejected because the closed roadmap should remain an immutable completion record; a separate successor roadmap is clearer and avoids coupling to TCR/shared governance. The helper was removed and is absent from the final diff.
 
 # Risks and compatibility
 
 - Runtime: none; documentation/programme planning only.
 - Data/migration: none.
 - Security: none.
-- Backward compatibility: no existing QA contract changes.
-- Cross-repo rollout: none; TCR is same-repo and remains separately owned.
-- Rollback: revert documentation/programme PR.
+- Backward compatibility: no existing QA contract or roadmap content changed.
+- Cross-repo rollout: none; TCR is same-repo and separately owned.
+- Rollback: revert the programme/bootstrap documentation PR.
 
 # Remaining work
 
-1. Create the programme record and roadmap successor section, then validate through the draft PR.
+1. Pass exact-final checks, merge PR #795 and archive this bootstrap task.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: "2026-07-23T14:20:00+02:00"
-head: "54ce97b3bcaac8c2e1a0d4cc6162a6ff975bbee9"
+updated_at: "2026-07-23T14:40:00+02:00"
+head: "5918789f5d247e9d824ab93195b5012897d04115"
 branch: "docs/otbm-world-assurance-operations-20260723"
-pr: "none"
-status: "implementing"
+pr: "795"
+status: "validating"
 context_routes:
   - "agent-governance"
   - "otbm"
 owned_paths:
   - "docs/agents/tasks/active/CAN-20260723-otbm-world-assurance-operations-program.md"
   - "docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md"
-  - "docs/ai-agent/OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md"
+  - "docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md"
 proven:
-  - "OTBM-QA-001..018 is complete and lifecycle-closed in the roadmap."
-  - "The QA closure boundary allows new bounded successor work without reopening OTBM-QA-001..018."
-  - "TCR is a separate active programme and PR #762/#777 shared-document scope is avoided by this task."
+  - "OTBM-QA-001..018 is complete and lifecycle-closed in the closed QA roadmap."
+  - "PR #795 adds a separate successor programme and successor roadmap with OWA-001..006."
+  - "The closed OTBM QA roadmap is unchanged by PR #795."
+  - "PR #795 final intended scope is exactly three documentation/task paths."
+  - "The temporary helper workflow was removed and is absent from final scope."
+  - "TCR #762/#777 changed-path overlap is avoided; OWA-003 is dependency-gated on stable merged TCR outputs."
+  - "ci:final-gate was applied before this final checkpoint commit."
 derived:
-  - "The safest next step is a separate operational-assurance programme that consumes delivered QA contracts and dependency-gates TCR integration."
+  - "A separate operational successor roadmap is safer and clearer than modifying the formally closed QA completion roadmap."
 unknown:
-  - "Draft PR number and current-head CI/ownership results are not available until the PR is opened."
+  - "Exact-final Agent Task Ownership and CI/Required run IDs/results are pending for the new final head."
 conflicts: []
 first_failure:
-  marker: "none"
-  evidence: "No unmet invariant found during targeted preflight."
+  marker: "resolved-roadmap-edit-path"
+  evidence: "The initial temporary-helper approach would have modified the closed QA roadmap; it was abandoned, the helper removed, and a separate successor roadmap created before final validation."
 rejected_hypotheses:
-  - "A new OTBM-QA-019 package is required: the closed roadmap explicitly routes future work to new bounded tasks/programmes."
-  - "The successor must modify TCR discovery files now: TCR owns those paths and stable TCR formats are not yet delivered."
+  - "A new OTBM-QA-019 package is required: the closed roadmap explicitly permits new bounded successor work without reopening QA-001..018."
+  - "The closed QA roadmap must be edited to hold future operational work: a separate successor roadmap preserves the completion record and gives OWA its own lifecycle."
+  - "The successor must modify TCR/shared discovery files now: TCR owns those paths and OWA-003 is explicitly dependency-gated."
 changed_paths:
+  - "docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md"
   - "docs/agents/tasks/active/CAN-20260723-otbm-world-assurance-operations-program.md"
+  - "docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md"
 validation:
-  - command: "targeted GitHub overlap and roadmap/TCR contract inspection"
+  - command: "PR #795 changed-file audit"
     result: PASS
-    evidence: "No existing World Assurance programme found; #762/#777 overlap avoided."
-blockers: []
-next_action: "Create the successor programme record, open a draft PR, bind its number, then update the closed OTBM QA roadmap with post-closure routing."
+    evidence: "Exactly three changed files and no workflow, MODULE_CATALOG, TCR or closed QA-roadmap path."
+  - command: "closed QA roadmap preservation check"
+    result: PASS
+    evidence: "OTBM_WORLD_QUALITY_REPAIR_ROADMAP.md is not changed by PR #795 and remains the QA-001..018 completion source of truth."
+  - command: "exact-final Agent Task Ownership and CI/Required"
+    result: NOT_RUN
+    evidence: "Pending automatic pull_request synchronize workflows on the final checkpoint head."
+blockers:
+  - "Exact-final required checks must pass before merge."
+next_action: "Make no further commits. Require exact-final Agent Task Ownership and CI/Required on this final head, audit review/scope, mark PR #795 ready, enable auto-merge, then archive the bootstrap task in a separate lifecycle PR."
 ```
