@@ -1,13 +1,13 @@
 ---
 task_id: CAN-20260723-otbm-owa-005-qa-contract-hardening
 program_id: CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS
-status: validating
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: test/owa-005-qa-contract-hardening-20260723
 base_branch: main
 created: 2026-07-23
 updated: 2026-07-23
-last_verified_commit: "f6c399a4dc0e88eaf201b6e194bab99212a157ce"
+last_verified_commit: "fbb7e20024e5f896429ea2d11dd28ec420506360"
 risk: medium
 related_issue: ""
 related_pr: "802"
@@ -62,7 +62,7 @@ cross_repo_tasks: []
 
 ## Status
 
-VALIDATING — bounded implementation is complete in PR #802 and the PR carries `ci:final-gate`. The first labelled exact-head attempt exposed only the task-checkpoint compactness limit (`proven` had 17 items; maximum 16). This final checkpoint removes one redundant proven item and records the failure; no implementation, fixture, ownership or scope behavior changes.
+VALIDATING — bounded implementation is complete in PR #802 and the PR carries `ci:final-gate`. The active-task frontmatter remains `implementing` because repository governance requires active records to use an active execution status; the checkpoint below is `validating`. Two labelled exact-head attempts exposed only task-record format constraints (compactness, then active-record status), both now corrected without implementation, fixture, ownership or scope changes.
 
 The adversarial permutation fixture exposed one narrow deterministic-output defect in the existing Regression Guard: `impactEvidence.sampledMechanics` preserved the input Semantic Diff finding order even though findings are semantically unordered and sibling output dimensions are canonicalized. The production change is limited to sorting that emitted evidence list by stable `findingId`; selection semantics and evidence contents are unchanged.
 
@@ -122,8 +122,8 @@ Use only deterministic synthetic JSON/object fixtures and Python standard librar
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T16:28:00+02:00
-head: f6c399a4dc0e88eaf201b6e194bab99212a157ce
+updated_at: 2026-07-23T16:31:00+02:00
+head: fbb7e20024e5f896429ea2d11dd28ec420506360
 branch: test/owa-005-qa-contract-hardening-20260723
 pr: 802
 status: validating
@@ -154,9 +154,9 @@ proven:
   - Local checkout execution is unavailable in this session because the environment cannot resolve github.com; GitHub repository state and CI are used for execution evidence.
 derived:
   - The previous Regression Guard sampled mechanic list was input-order dependent; stable sorting by findingId is the minimal contract-preserving deterministic fix.
-  - The first labelled exact-head ownership failure was checkpoint compactness only; reducing proven from 17 to the allowed 16 is the complete root-cause fix.
+  - The first labelled exact-head ownership failure was checkpoint compactness only; the second was the active-record frontmatter status only. Both root causes are now corrected.
 unknown:
-  - Exact final-head workflow conclusions until GitHub Actions completes on the commit produced by this compact checkpoint update.
+  - Exact final-head workflow conclusions until GitHub Actions completes on the commit produced by this status correction.
 conflicts: []
 first_failure:
   marker: regression-guard-sampled-mechanics-order
@@ -186,7 +186,10 @@ validation:
     evidence: Run 30014667667 Required aggregator completed successfully on ce41e78101259d8f3bdc885fdd37b9ea0a2752a1.
   - command: ci:final-gate Agent Task Ownership
     result: FAIL
-    evidence: Run 30014974379 on f6c399a4dc0e88eaf201b6e194bab99212a157ce rejected only checkpoint compactness because proven had 17 items; this commit reduces it to the allowed maximum 16.
+    evidence: Run 30014974379 on f6c399a4dc0e88eaf201b6e194bab99212a157ce rejected only checkpoint compactness because proven had 17 items; reduced to 16.
+  - command: ci:final-gate Agent Task Ownership retry
+    result: FAIL
+    evidence: Run 30015204409 on fbb7e20024e5f896429ea2d11dd28ec420506360 rejected only frontmatter status validating for a record under tasks/active; frontmatter is restored to implementing while checkpoint remains validating.
 blockers: []
-next_action: Require the full ci:final-gate validation set to pass on this compact checkpoint commit's exact head; then mark PR #802 ready and squash-merge without further commits.
+next_action: Require the full ci:final-gate validation set to pass on this active-status-corrected exact head; then mark PR #802 ready and squash-merge without further commits.
 ```
