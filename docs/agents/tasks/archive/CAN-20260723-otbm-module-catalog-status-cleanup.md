@@ -59,7 +59,7 @@ checkpoint_version: 1
 updated_at: "2026-07-23T14:00:00+02:00"
 head: "b58ae2a217dbbd42bd0316e7472947b0a8b42119"
 branch: "docs/archive-otbm-module-catalog-status-cleanup-20260723"
-pr: "pending"
+pr: "785"
 status: "complete"
 context_routes:
   - "agent-governance"
@@ -71,10 +71,11 @@ proven:
   - "Protected ready-state CI run 30003886611 succeeded before auto-merge."
   - "The feature diff changed exactly three MODULE_CATALOG status cells and the active task record only."
   - "PR #762 and PR #777 were explicitly notified to preserve merged (#594), merged (#572) and merged (#419) during later TCR reconciliation."
+  - "PR #785 is the lifecycle-only active-to-archive transition for this completed cleanup task."
 derived:
   - "The cleanup is complete and active ownership can be released without any product behavior change."
 unknown:
-  - "Lifecycle PR number and exact-final lifecycle check IDs are pending until the active-to-archive PR is opened."
+  - "Exact-final lifecycle CI and Agent Task Ownership results for PR #785 are pending."
 conflicts: []
 first_failure:
   marker: "resolved-checkpoint-schema"
@@ -93,6 +94,7 @@ validation:
   - command: "PR #778 scope and review audit"
     result: PASS
     evidence: "Exactly two feature paths; catalogue patch contained only three status substitutions; zero review threads and zero review submissions."
-blockers: []
-next_action: "Open lifecycle-only active-to-archive PR, bind its number in this checkpoint, run exact-final lifecycle checks, merge, and verify main."
+blockers:
+  - "PR #785 exact-final lifecycle checks must pass before merge."
+next_action: "Make no further commits. Require exact-final lifecycle CI/Ownership to finish green, verify the two-path lifecycle scope and empty review audit, mark PR #785 ready, enable auto-merge, then verify main after protected merge."
 ```
