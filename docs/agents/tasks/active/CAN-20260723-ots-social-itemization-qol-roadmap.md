@@ -1,8 +1,47 @@
-# CAN-20260723-ots-social-itemization-qol-roadmap
+---
+task_id: CAN-20260723-ots-social-itemization-qol-roadmap
+program_id: ""
+coordination_id: ""
+status: ready
+agent: "GPT-5.6 Thinking"
+branch: docs/ots-social-itemization-qol-20260723
+base_branch: main
+created: 2026-07-23T15:31:47+02:00
+updated: 2026-07-23T15:42:48+02:00
+last_verified_commit: "56abcd01630b03282ad9e6b970c49caaee0bd16e"
+risk: low
+related_issue: ""
+related_pr: "799"
+depends_on: []
+blocks: []
+owned_paths:
+  exclusive:
+    - docs/agents/tasks/active/CAN-20260723-ots-social-itemization-qol-roadmap.md
+    - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md
+    - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md
+    - docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md
+  shared: []
+  read_only: []
+modules_touched:
+  - OTS future gameplay roadmap
+  - OTS gameplay proposal classification
+reuses:
+  - Character markers on minimap
+  - Better Map UX
+  - Party Finder 2.0
+  - Loot System Rework
+  - Equipment Presets
+  - Financial & Trading System 2.0
+  - Bounty and Weekly Tasks Rework
+public_interfaces: []
+cross_repo_tasks: []
+---
+
+# CAN-20260723 — OTS Social, Itemization and QoL Roadmap
 
 ## Status
 
-ready
+READY — user-approved 2026-07-23 future gameplay directions are persisted and classified in PR #799. Documentation/design only; final-head CI and ownership validation remain the merge gate.
 
 ## Goal
 
@@ -17,13 +56,6 @@ Documentation/design only. No gameplay runtime, protocol, datapack, map, binary,
 - agent-governance
 - real-tibia-parity (classification/baseline cautions only where an existing Tibia mechanic is being extended)
 - cross-repo (future Canary/OTClient design surface only; no cross-repo write)
-
-## Owned paths
-
-- `docs/agents/tasks/active/CAN-20260723-ots-social-itemization-qol-roadmap.md`
-- `docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md`
-- `docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md`
-- `docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md`
 
 ## Reuse / overlap policy
 
@@ -41,46 +73,65 @@ Documentation/design only. No gameplay runtime, protocol, datapack, map, binary,
 
 ## Context checkpoint
 
-### PROVEN
-
-- `OTS_FUTURE_GAMEPLAY_SYSTEMS.md` already contained `Character markers on minimap`, `Party Finder 2.0`, `Loot System Rework`, `Equipment Presets` references, `Better Map UX`, Bank/Trade systems, and Bounty/Weekly redesign entries; the new roadmap sections extend those concepts rather than introducing parallel duplicates.
-- `docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md` now contains the detailed user-approved design record for world/social map, Friends/VIP privacy, active Party 2.0, party combat visibility/accounting, Itemization & Build 2.0, Training Arena, Inventory/Depot/Stash 2.0, Market/Trade additions and Imbuement System 2.0.
-- `OTS_FUTURE_GAMEPLAY_SYSTEMS.md` now contains concise sections 29-35 integrating the new directions and dependency-map addendum.
-- `OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md` now continues the authoritative proposal index with entries 69-88 and explicit `ORIGIN`/`TYPE` classifications.
-- Classification deliberately uses `MIXED`/`OUR-DESIGN` where the design combines an existing Tibia foundation with our custom direction; no new `TIBIA-OFFICIAL` claims were introduced without a dedicated parity proof.
-- The final diff is documentation-only: one active task record, one new detailed design record, and narrow roadmap/classification updates.
-- The branch was created from `blakinio/canary:main`; PR #799 targets `blakinio/canary:main` from `blakinio/canary:docs/ots-social-itemization-qol-20260723`.
-- Main advanced after branch creation by three commits, but the intervening main changes do not touch any owned path in this task; PR mergeability/CI remains the final live-state gate.
-- `ci:final-gate` was applied before this final checkpoint commit.
-
-### USER-DIRECTION PERSISTED
-
-- full/interactive world map with POIs, filters, search and navigation;
-- live party/guild/friend/VIP map markers with consent/privacy controls;
-- shared discovery markers for Echo Raid, Fiendish and similar discoveries;
-- mutual/permissioned Friends/VIP model to prevent unilateral tracking;
-- Party System 2.0: clearer combat visibility, party UI, roles/bonuses review and shared hunt accounting;
-- automatic party loot/supply/profit ledger to remove manual hunt settlements;
-- Itemization & Build System 2.0 with build impact comparison and practical Training Arena tests;
-- Inventory/Depot/Stash 2.0 with global search, smart containers, sorting, reservations and task-item protection;
-- Market/Trade 2.0 additions: no listing fee, commission on completed sale, multi-currency offers including TC, and high-value item support;
-- Imbuement System 2.0 redesign around equipment-slot libraries/profiles, active-channel limits defined by equipped items, separate elemental attunement, optional slot progression/automation, effective-use lifecycle, build-preset integration, and recurring progression/maintenance gold sinks.
-
-### OPEN
-
-- exact slot-level progression, maximum active channels, elemental attunement strength, timer/charge lifecycle and economic costs;
-- current Tibia/Canary/OTClient parity for every Imbuement detail before implementation;
-- privacy, PvP and information-leak rules for live map/social tracking;
-- TC/alternative-currency economic, legal/accounting and protocol constraints;
-- exact party accounting settlement mechanism and whether transfers are automatic or merely calculated.
-
-### Validation
-
-- Connector diff review: 4 expected documentation paths only.
-- Roadmap diff: one purpose-line adjustment plus appended sections 29-35; no unrelated roadmap sections removed.
-- Classification diff: purpose link plus entries 69-88; existing entries 1-68 preserved.
-- No runtime/build tests are applicable to this documentation-only change; required GitHub CI on the final head is still authoritative.
-
-### next_action
-
-Verify PR #799 current-head CI, mergeability and review-thread state; if required checks are green and the autonomous merge gate is satisfied, mark ready and squash-merge without another commit.
+```yaml
+checkpoint_version: 1
+updated_at: "2026-07-23T15:42:48+02:00"
+head: "56abcd01630b03282ad9e6b970c49caaee0bd16e"
+branch: "docs/ots-social-itemization-qol-20260723"
+pr: "799"
+status: "ready"
+context_routes:
+  - "agent-governance"
+  - "real-tibia-parity"
+  - "cross-repo"
+owned_paths:
+  - "docs/agents/tasks/active/CAN-20260723-ots-social-itemization-qol-roadmap.md"
+  - "docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md"
+  - "docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md"
+  - "docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md"
+proven:
+  - "The existing roadmap already contained Character markers on minimap, Party Finder 2.0, Loot System Rework, Equipment Presets references, Better Map UX, Bank/Trade systems and Bounty/Weekly redesign entries; the new sections extend those concepts instead of creating parallel duplicates."
+  - "docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md now contains the detailed user-approved design record for world/social map, Friends/VIP privacy, active Party 2.0, party combat visibility/accounting, Itemization & Build 2.0, Training Arena, Inventory/Depot/Stash 2.0, Market/Trade additions and Imbuement System 2.0."
+  - "OTS_FUTURE_GAMEPLAY_SYSTEMS.md contains concise sections 29-35 integrating the new directions and dependency-map addendum."
+  - "OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md continues the authoritative proposal index with entries 69-88 and explicit ORIGIN/TYPE classifications while preserving entries 1-68."
+  - "No new TIBIA-OFFICIAL claims were introduced without dedicated parity proof; mixed existing foundations and custom directions remain MIXED/OUR-DESIGN with implementation-time reverification required."
+  - "The final feature scope is documentation-only and contains exactly four expected paths."
+  - "PR #799 targets blakinio/canary:main from blakinio/canary:docs/ots-social-itemization-qol-20260723 and is mergeable."
+  - "Main advanced after branch creation only in unrelated paths, so there is no observed owned-path overlap."
+  - "CI run 30012290450 succeeded on pre-fix final head 56abcd01630b03282ad9e6b970c49caaee0bd16e."
+  - "Agent Task Ownership run 30012290185 failed only because the task Context checkpoint lacked the required fenced YAML block; this commit corrects that format defect."
+derived:
+  - "The user-approved design directions are durably recorded and classification-complete; remaining work is repository validation/merge coordination rather than product-design reconstruction."
+unknown:
+  - "Exact current Tibia/Canary/OTClient parity for every Imbuement detail remains implementation-time work."
+  - "Exact slot-level progression, active-channel counts, elemental attunement strength, lifecycle and economy costs remain open balance contracts."
+  - "Exact privacy/PvP information-leak rules for live social tracking remain open."
+  - "Exact TC/alternative-currency legal, accounting, protocol and abuse constraints remain open."
+  - "Exact party accounting settlement mechanism and whether transfers are automatic or calculation-only remains open."
+conflicts: []
+first_failure:
+  marker: "ownership-checkpoint-format"
+  evidence: "Agent Task Ownership run 30012290185 reported: context checkpoint heading has no fenced YAML block."
+rejected_hypotheses:
+  - "A new parallel Party Finder is required."
+  - "A new generic item rarity system should replace existing item classification/Forge foundations."
+  - "Elemental Imbuements must permanently compete with all Crit/Leech/Skill active channels in the proposed redesign."
+changed_paths:
+  - "docs/agents/tasks/active/CAN-20260723-ots-social-itemization-qol-roadmap.md"
+  - "docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md"
+  - "docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md"
+  - "docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md"
+validation:
+  - command: "Connector diff review"
+    result: PASS
+    evidence: "Four expected documentation paths only; roadmap has one purpose-line adjustment plus appended sections 29-35; classification has one purpose-link adjustment plus entries 69-88."
+  - command: "GitHub CI run 30012290450"
+    result: PASS
+    evidence: "Completed successfully on head 56abcd01630b03282ad9e6b970c49caaee0bd16e before the checkpoint-format repair."
+  - command: "Agent Task Ownership run 30012290185"
+    result: FAIL_FIXED
+    evidence: "Only failure was missing fenced YAML checkpoint; this commit adds the required machine-readable checkpoint."
+blockers:
+  - "Exact-final Agent Task Ownership, AI Agent Tools and CI runs for the checkpoint-format repair head must pass before merge."
+next_action: "Make no further commits. Verify exact-final PR #799 workflow results and empty review threads; if required checks are green and the autonomous merge gate is satisfied, mark ready and squash-merge."
+```
