@@ -10,7 +10,7 @@ updated: 2026-07-23
 last_verified_commit: "c5841f0b31b830cfb1497a67f44e29e0fc11e5ac"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "792"
 depends_on:
   - OAM-039 formally complete
 blocks:
@@ -39,10 +39,10 @@ cross_repo_tasks: []
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T14:45:00+02:00
-head: 3744510bb6d6168f26ba0fde907a4d545b0c4fd3
+updated_at: 2026-07-23T14:50:00+02:00
+head: 2a0fb19c97dad3c5aa14c21b6098b1b410a613e0
 branch: dudantas/oam-040-governance-finalize
-pr: null
+pr: 792
 status: validating
 context_routes:
   - agent-governance
@@ -70,7 +70,7 @@ derived:
   - Future world-content packages must independently pin exact Canary tooling and report evidence and prove their own target behavior.
   - OAM-041 remains blocked until this governance merge separate Canary lifecycle archive durable program reconciliation and Otheryn target-task archive all complete.
 unknown:
-  - Exact final Canary governance merge SHA until this PR completes.
+  - Exact final Canary governance merge SHA until PR 792 completes.
   - Which dependency-valid package will be selected by the future fresh OAM-041 preflight.
 conflicts: []
 first_failure:
@@ -91,5 +91,5 @@ validation:
     result: PASS
     evidence: downstream spawns npcs and quests retain external evidence dependencies without requiring a target-local tooling copy
 blockers: []
-next_action: Open the two-path Canary OAM-040 governance PR with ci:final-gate, bind its PR number, require exact-current-head Agent Task Ownership and full CI success, audit scope interactions and Canary-main drift, then expected-head squash merge before separate lifecycle archive.
+next_action: Require exact-current-head Agent Task Ownership and full final-gate CI success on PR 792, audit exactly two governance paths plus comments reviews threads and Canary-main drift, then expected-head squash merge before separate lifecycle archive.
 ```
