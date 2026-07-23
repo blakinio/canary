@@ -3,14 +3,14 @@
   "module_id": "otbm-tooling",
   "name": "OTBM analysis tooling",
   "category": "platform-tooling",
-  "description": "Read-only map indexing, mechanic resolution, reachability, semantic diff, geometry evidence and factual rendering.",
+  "description": "Read-only map indexing, mechanic resolution, reachability, semantic diff, geometry evidence, factual rendering and provenance-pinned official-client reference correlation.",
   "lifecycle": {"status": "active"},
-  "scope": {"includes": ["World Index", "item/mechanic audit", "script resolution", "reachability", "spawn/NPC evidence", "storage graph", "semantic diff", "geometry audit", "factual renderer"], "excludes": ["map mutation unless separately authorized and safety-gated", "AI-generated map evidence"]},
-  "paths": {"server": [], "client": [], "data": [], "tests": ["tools/ai-agent/test_otbm_*.py"], "docs": ["docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md"]},
-  "relationships": {"depends_on": [], "interacts_with": ["quests", "npcs", "spawns", "houses"]},
-  "documents": {"validation": []},
-  "source_requirements": [{"source": "canary-current", "mode": "required"}, {"source": "crystalserver", "mode": "comparison-only"}, {"source": "opentibiabr-canary", "mode": "comparison-only"}],
+  "scope": {"includes": ["World Index", "item/mechanic audit", "script resolution", "reachability", "spawn/NPC evidence", "storage graph", "semantic diff", "geometry audit", "factual renderer", "Tibia client reference manifest/index correlation", "house reference parity"], "excludes": ["map mutation unless separately authorized and safety-gated", "AI-generated map evidence", "automatic client-to-OTBM generation", "duplicate appearances/assets indexes", "proprietary client files in Git"]},
+  "paths": {"server": [], "client": [], "data": [], "tests": ["tools/ai-agent/test_otbm_*.py", "tools/ai-agent/test_tibia_client_reference*.py"], "docs": ["docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md", "docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md", "docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md"]},
+  "relationships": {"depends_on": [], "interacts_with": ["quests", "npcs", "spawns", "houses", "achievements"]},
+  "documents": {"validation": ["docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md"]},
+  "source_requirements": [{"source": "canary-current", "mode": "required"}, {"source": "tibia-official", "mode": "conditional"}, {"source": "crystalserver", "mode": "comparison-only"}, {"source": "opentibiabr-canary", "mode": "comparison-only"}],
   "maturity": {"implementation": "mapped", "evidence": "audited", "persistence": "not-assessed", "protocol": "not-assessed", "automated_tests": "integration", "runtime_validation": "not-applicable", "gameplay_e2e": "not-applicable"},
-  "freshness": {"class": "medium", "last_inventory": "2026-07-14", "warning_after_days": 60, "invalid_after_days": 180, "refresh_before_each_task": true},
-  "notes": []
+  "freshness": {"class": "medium", "last_inventory": "2026-07-23", "warning_after_days": 60, "invalid_after_days": 180, "refresh_before_each_task": true},
+  "notes": ["Official-client reference ingestion is planned by CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE. Raw client files stay outside Git; exact SHA-256 provenance is required; staticmapdata is reference evidence and never a full OTBM authority."]
 }

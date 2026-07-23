@@ -1,7 +1,7 @@
 # Real Tibia evidence source registry
 
 > Repository: `blakinio/canary`  
-> Last reviewed: 2026-07-14  
+> Last reviewed: 2026-07-23  
 > Scope: public evidence and donor candidates for moving this Canary fork closer to current Real Tibia  
 > Safety: external repositories, forums, maps, datapacks and client packages are read-only inputs; this registry authorizes no binary or datapack import
 
@@ -109,6 +109,17 @@ Limitations:
 - public news does not expose server implementation;
 - the client minimap does not contain server-side OTBM item stacks or mechanics;
 - proprietary client packages and assets must not be committed.
+
+### Exact user-supplied official-client reference packages
+
+The OTBM Tibia Client Reference Programme defines the bounded route for exact user-supplied client files that remain outside Git:
+
+- programme: `docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md`;
+- architecture: `docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md`.
+
+Use the route for provenance-pinned client-side registry, house-layout, proficiency and optional minimap reference evidence only. Select files explicitly below one package root, record byte size and SHA-256, preserve client-build evidence as `proven`, `declared`, `unknown` or `conflicting`, and never infer a build from filenames or directory names.
+
+`staticmapdata` is client-side house-layout reference evidence, not a complete OTBM source. Its `object_id` remains a separate identifier namespace until exact mapping is proven. Quest ID/name does not prove quest stages or mechanics; matching proficiency IDs do not prove runtime or persistence parity; minimap evidence cannot override canonical World Index/Reachability mechanics evidence. All OTBM mutation candidates remain subject to the existing reviewed approval, bounded candidate creation, native reparse, World Index, Semantic Diff, selected QA and Physical E2E chain when applicable.
 
 ### TibiaMaps official-client-derived minimap data
 
