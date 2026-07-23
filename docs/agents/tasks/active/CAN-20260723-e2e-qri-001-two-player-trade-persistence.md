@@ -120,7 +120,7 @@ owned_paths:
   - tests/e2e/scenarios/multiclient/player-trade-persistence.json
   - tests/e2e/scenarios/multiclient/player-trade-persistence/primary.lua
   - tests/e2e/scenarios/multiclient/player-trade-persistence/secondary.lua
-  - tests/e2e/test_qri_001_two-player-trade.py
+  - tests/e2e/test_qri_001_two_player_trade.py
 proven:
   - Latest verified main before this checkpoint was 930d7553e87c66e9e00a68c640c86f3d22d16e88; exact compare showed only the five QRI-001 changed paths and no overlap with the merged QRI-003 paths.
   - The bounded two-client contract provides exactly one secondary controlled OTClient; no shared runner or workflow file is modified by QRI-001.
