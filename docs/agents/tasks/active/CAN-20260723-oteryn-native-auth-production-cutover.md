@@ -62,12 +62,18 @@ checkpoint_version: 1
 updated_at: 2026-07-23T18:15:00+02:00
 head: 981c82f5ebb6bc22c867312c2b274a71f6aeeb3e
 branch: docs/CAN-20260723-native-auth-hardened-e2e-evidence
-implementation_pr: 807
+pr: 815
 status: blocked
 context_routes:
   - agent-governance
   - cpp-runtime
   - cross-repo
+owned_paths:
+  - docs/agents/tasks/active/CAN-20260723-oteryn-native-auth-production-cutover.md
+  - docs/agents/CROSS_REPO_CONTRACTS.md
+  - docs/agents/MODULE_CATALOG.md
+changed_paths:
+  - docs/agents/tasks/active/CAN-20260723-oteryn-native-auth-production-cutover.md
 proven:
   - Canary Game Session adapter PR #722 merged as b8a88f073b2609b444fa15370aae30ac9f80b908 and the issuer remains disabled unless explicitly enabled.
   - Oteryn Platform hardening PR #124 merged as 53158217a6c6017230301cf4daa783b04fcc13d5 after final-head CI, Gateway CI, governance, concurrency, DB outage, Phase 7 production-like and Acceptance E2E passed.
