@@ -7,8 +7,8 @@ agent: GPT-5.6 Thinking
 branch: feat/tcr-001-client-package-manifest-20260723
 base_branch: main
 created: 2026-07-23T16:48:37+02:00
-updated: 2026-07-23T16:58:01+02:00
-last_verified_commit: "d5f348a46ef3ad7d91fa7cb3029457795aecabce"
+updated: 2026-07-23T17:02:20+02:00
+last_verified_commit: "16d0f28344163a08bfc41df10aacb1abc1ad592c"
 risk: medium
 related_issue: ""
 related_pr: "809"
@@ -83,6 +83,7 @@ Implement only TCR-001 Client Package Manifest: deterministic, fail-closed, read
 - Dedicated Tibia Client Reference run `30017905949` PASS on published head `76eeae87d483ddfae5f141663c739a95cf4413c5`.
 - First ownership run `30017905484` failed only because checkpoint `pr` was empty.
 - Second ownership run `30018169688` failed only because frontmatter used unsupported active-task status `active`; repository `ACTIVE_STATUSES` requires `planned|implementing|blocked|review|ready`.
+- Third ownership run `30018357957` failed only because checkpoint field `derived` was missing; artifact `active-task-ownership` recorded the exact error.
 
 ## UNKNOWN
 
@@ -93,8 +94,8 @@ Implement only TCR-001 Client Package Manifest: deterministic, fail-closed, read
 
 ```yaml
 checkpoint_version: 1
-updated_at: "2026-07-23T16:58:01+02:00"
-head: "d5f348a46ef3ad7d91fa7cb3029457795aecabce"
+updated_at: "2026-07-23T17:02:20+02:00"
+head: "16d0f28344163a08bfc41df10aacb1abc1ad592c"
 branch: "feat/tcr-001-client-package-manifest-20260723"
 pr: "809"
 status: "implementing"
@@ -116,13 +117,15 @@ owned_paths:
   - "docs/agents/CHANGELOG.md"
 proven:
   - "Tibia Client Reference run 30017905949 PASS on 76eeae87d483ddfae5f141663c739a95cf4413c5."
-  - "Ownership failures 30017905484 and 30018169688 are checkpoint/frontmatter metadata failures, not implementation-path conflicts."
+  - "Ownership failures 30017905484, 30018169688 and 30018357957 are checkpoint/frontmatter metadata failures, not implementation-path conflicts."
+derived:
+  - "After restoring the required derived checkpoint field, the remaining bounded work is discovery/program integration and final-head validation."
 unknown:
   - "Exact future proprietary package build and selected files remain invocation evidence."
 conflicts: []
 first_failure:
   marker: "Agent Task Ownership lifecycle metadata"
-  evidence: "run 30018169688: tasks/active frontmatter status active is not in repository ACTIVE_STATUSES; corrected to implementing in this commit"
+  evidence: "run 30018357957 artifact CHANGED_TASK_VALIDATION.txt: missing checkpoint field derived; corrected in this commit"
 rejected_hypotheses:
   - "Rejected: TCR-001 needs a new module record; otbm-tooling already owns the scope."
   - "Rejected: filenames/directories prove client build; explicit evidence state remains mandatory."
@@ -143,7 +146,7 @@ validation:
     evidence: "run 30017905949 on head 76eeae87d483ddfae5f141663c739a95cf4413c5"
   - command: "GitHub Actions Agent Task Ownership"
     result: "FAIL"
-    evidence: "run 30018169688 on d5f348a46ef3ad7d91fa7cb3029457795aecabce; unsupported frontmatter status active; corrected here"
+    evidence: "run 30018357957 on f5b971178b0ed6e60648b876b7461edc2a0c708c; missing required checkpoint field derived; corrected here"
 blockers: []
 next_action: "Verify fresh ownership and broad tool/CI checks, then complete narrow discovery/program integration and final-gate validation without starting TCR-002/TCR-003."
 ```
