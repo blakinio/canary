@@ -5,8 +5,8 @@ name: OTBM Tibia Client Reference Programme
 status: active
 owner: OTBM analysis tooling / Real Tibia parity
 created: 2026-07-23T10:00:00+02:00
-updated: 2026-07-23T16:25:23+02:00
-last_verified_commit: "d5a08db0502fb85ff807c9c18f02bf92bd1faaed"
+updated: 2026-07-23T17:45:00+02:00
+last_verified_commit: "3227ee1e3b5f323656b101a601f873ae21b61f27"
 primary_paths:
   - docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md
   - docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
@@ -143,31 +143,39 @@ Mandatory reuse before implementation:
 | ID | Scope | Status | Evidence baseline | Dependencies | Risk | Exact next action |
 |---|---|---|---|---|---|---|
 | TCR-000 | Architecture, programme and discovery integration | merged | Canary main `d5a08db0...`; Beats research pin `ed827be3...` | none | low | Complete. Architecture/governance merged in PR #762; no producer output format was delivered. |
-| TCR-001 | Client Package Manifest | planned (next) | architecture v1 | TCR-000 merged | medium | Implement `canary-tibia-client-reference-manifest-v1` with explicit selected files, SHA-256, path confinement, build-evidence states, deterministic output and focused tests. |
-| TCR-002 | StaticData Reference Index | planned | exact manifest + independently verified old/new fixtures | TCR-001 | medium | Implement `canary-tibia-staticdata-index-v1`; prove schema selection on Canary-owned fixtures and an opt-in real file outside Git. |
-| TCR-003 | StaticMapData House Index | planned | exact manifest + independently verified fixture | TCR-001 | medium | Implement `canary-tibia-staticmapdata-index-v1` with house/layout provenance, row/dimension consistency and unresolved object-ID namespace. |
-| TCR-004 | Proficiency Reference Index | planned | exact explicit proficiency file + appearances index | TCR-001 | medium | Implement `canary-tibia-proficiency-index-v1`; preserve levels/perks and correlate only explicit proficiency-ID evidence. |
+| TCR-001 | Client Package Manifest | merged | `canary-tibia-client-reference-manifest-v1`; PR #809; merge `3227ee1e...` | TCR-000 merged | medium | Complete. Exact package/reference provenance producer is stable/merged. |
+| TCR-002 | StaticData Reference Index | planned (next candidate) | exact stable manifest + independently verified old/new fixtures | TCR-001 merged | medium | After fresh ownership/reuse preflight, implement only `canary-tibia-staticdata-index-v1`; prove schema selection on Canary-owned fixtures and an opt-in real file outside Git. |
+| TCR-003 | StaticMapData House Index | planned | exact stable manifest + independently verified fixture | TCR-001 merged | medium | Implement `canary-tibia-staticmapdata-index-v1` in its own later bounded package with house/layout provenance, row/dimension consistency and unresolved object-ID namespace. |
+| TCR-004 | Proficiency Reference Index | planned | exact explicit proficiency file + appearances index | TCR-001 merged | medium | Implement `canary-tibia-proficiency-index-v1`; preserve levels/perks and correlate only explicit proficiency-ID evidence. |
 | TCR-005 | OTBM House Reference Parity | planned | staticdata + staticmapdata + World Index | TCR-002, TCR-003 | medium | Build the first parity consumer `canary-otbm-house-reference-parity-v1`; compare one reviewed house-ID resolver and fail closed on ID-space/provenance uncertainty. |
 | TCR-006 | Global Content Registry Correlation | planned | staticdata index + existing subsystem evidence | TCR-002 | medium | Add read-only correlation for monsters/bosses/quests/achievements, routing each dimension to existing validators/programmes without duplicating ownership. |
 | TCR-007 | Proficiency Reference Correlation | planned | proficiency + appearances + Canary item/runtime evidence | TCR-004 | medium | Add `canary-tibia-proficiency-reference-correlation-v1`; keep OTBM/item evidence separate from runtime/persistence/protocol proof. |
-| TCR-008 | Optional Minimap Reference | planned | exact official-client tile/marker selection | TCR-001 | low | Add only if a concrete parity use case exists; preserve advisory-only status and never alter canonical Reachability/pathfinding. |
+| TCR-008 | Optional Minimap Reference | planned | exact official-client tile/marker selection | TCR-001 merged | low | Add only if a concrete parity use case exists; preserve advisory-only status and never alter canonical Reachability/pathfinding. |
 | TCR-009 | Client Reference Drift | planned | two complete exact reference manifests/index sets | TCR-002, TCR-003, TCR-004 | medium | Implement deterministic `canary-tibia-client-reference-drift-v1` and dependency-scoped staleness inputs. |
 | TCR-010 | Compact Evidence Gateway Integration | planned | stable TCR report formats | TCR-005, TCR-006, TCR-007, TCR-009 | low | Add reviewed JSON-pointer extracts to the existing QA-018 evidence gateway; do not reparse or reinterpret source semantics. |
 | TCR-011 | Reviewed Adoption Router | planned | stable parity/drift findings | TCR-005, TCR-006, TCR-007, TCR-009 | medium | Implement review-only routing to existing OTBM repair chains or subsystem tasks; no approval generation and no executor. |
 
 # Stable producer contract state
 
-TCR-000 stabilizes and merges the **architecture/governance contract only**.
+TCR-000 stabilizes the **architecture/governance contract**.
 
-No TCR producer output format is `stable/merged` yet. In particular, `canary-tibia-client-reference-manifest-v1`, `canary-tibia-staticdata-index-v1`, `canary-tibia-staticmapdata-index-v1`, `canary-tibia-proficiency-index-v1`, the parity/correlation reports and `canary-tibia-client-reference-drift-v1` remain planned contracts until their owning bounded packages merge.
+TCR-001 stabilizes the first producer contract:
 
-Therefore OWA-003 must not consume any TCR producer artifact yet. The first producer dependency is TCR-001; later OWA consumption remains blocked until the exact required producer formats are individually stable/merged.
+```text
+canary-tibia-client-reference-manifest-v1
+```
+
+The manifest is `stable/merged` as of PR #809 / merge `3227ee1e3b5f323656b101a601f873ae21b61f27`. It provides exact selected-input identity, size, SHA-256, source role, explicit client-build evidence state, parser revision, optional generated-index hash pins and deterministic provenance metadata. It is not StaticData, StaticMapData, map authority or gameplay parity evidence.
+
+The following remain planned and **not stable/merged**: `canary-tibia-staticdata-index-v1`, `canary-tibia-staticmapdata-index-v1`, `canary-tibia-proficiency-index-v1`, all parity/correlation reports and `canary-tibia-client-reference-drift-v1`.
+
+OWA-003 may later consume `canary-tibia-client-reference-manifest-v1` only as the stable package/reference provenance contract where that dependency is required. It must not consume or infer any still-planned TCR producer/parity output before the owning bounded package merges.
 
 # Package contracts
 
 ## TCR-001 — Client Package Manifest
 
-Planned public format:
+Stable public format:
 
 ```text
 canary-tibia-client-reference-manifest-v1
@@ -391,10 +399,10 @@ This proves the integration architecture before broader content correlation or a
 
 # Last completed task
 
-- Task: `docs/agents/tasks/archive/CAN-20260723-otbm-tibia-client-reference-architecture.md`
-- PR: `#762` — merged.
-- Merge commit: `d5a08db0502fb85ff807c9c18f02bf92bd1faaed`.
-- Scope: TCR-000 documentation/architecture only; no parser, producer artifact or runtime/map mutation implementation.
+- Task: `docs/agents/tasks/archive/CAN-20260723-tcr-001-client-package-manifest.md`
+- PR: `#809` — merged.
+- Merge commit: `3227ee1e3b5f323656b101a601f873ae21b61f27`.
+- Scope: TCR-001 exact client package manifest/provenance producer only; no StaticData/StaticMapData/proficiency parser and no runtime/map mutation.
 
 # Blockers and unresolved references
 
@@ -404,11 +412,11 @@ This proves the integration architecture before broader content correlation or a
 - New client schemas beyond the independently verified old/new staticdata families require a new bounded schema-discovery task.
 - Direct source-code reuse from the research repository is blocked by licensing review; independent implementation is the default.
 
-# Exact next action after TCR-000
+# Exact next action after TCR-001
 
-TCR-000 is merged. After this lifecycle archive lands, start **only TCR-001 — Client Package Manifest** from then-current `main` after a fresh ownership/PR/reuse preflight.
+TCR-001 is merged. After this lifecycle/discovery closure lands, perform a fresh ownership/PR/reuse preflight and start **only TCR-002 — StaticData Reference Index** if it remains the first unowned, unblocked, dependency-satisfied queue item.
 
-Do not start TCR-002/TCR-003 parser implementation in the TCR-001 PR.
+Do not start TCR-003 in the TCR-002 task or PR.
 
 # Handoff
 
@@ -424,7 +432,7 @@ A continuation agent must:
 8. keep user-supplied client files outside Git;
 9. preserve `UNKNOWN` rather than guessing client build, item ID mappings or gameplay semantics;
 10. use existing OTBM/QA/repair/E2E owners instead of creating duplicates;
-11. treat TCR-000 architecture/governance as merged, but treat all TCR producer/report formats as **not yet stable for OWA-003 consumption** until their owning packages merge.
+11. treat `canary-tibia-client-reference-manifest-v1` as stable/merged provenance only; do not upgrade planned StaticData, StaticMapData, proficiency, parity/correlation or drift contracts to stable without their own merged packages.
 
 # Agent kickoff prompt
 
@@ -480,21 +488,21 @@ SAFETY:
 TASK SELECTION:
 1. Revalidate the programme queue against current repository state.
 2. Select exactly one still-valid package.
-3. Unless already delivered, the next package is TCR-001 Client Package Manifest.
+3. The next candidate is TCR-002 StaticData Reference Index only if it remains unowned, unblocked and dependency-satisfied.
 4. Create a fresh active task, branch and early draft PR before substantial implementation.
 5. Implement only that bounded package with deterministic tests and exact provenance.
 6. Update the task checkpoint after material discoveries and before handoff.
-7. Do not silently continue into the next TCR package in the same PR.
+7. Do not silently continue into TCR-003 or another TCR package in the same PR.
 
-TCR-001 TARGET CONTRACT:
-- canary-tibia-client-reference-manifest-v1
-- explicit package root and explicit selected files;
-- safe relative paths, symlink/path-escape rejection and bounded file sizes;
-- byte size + SHA-256 per selected input;
-- source role and client build evidence state: proven/declared/unknown/conflicting;
-- parser revision and generated-index hash slots;
-- deterministic JSON and create-new/no-clobber output;
-- no recursive execution or loading of supplied binaries.
+TCR-002 TARGET CONTRACT:
+- canary-tibia-staticdata-index-v1;
+- consume exact stable `canary-tibia-client-reference-manifest-v1` provenance;
+- independently verify old/new schema selection on Canary-owned fixtures;
+- fail closed on wrong/ambiguous schema;
+- keep duplicate IDs explicit;
+- retain category/source schema in output;
+- quest records remain ID/name inventory only;
+- no gameplay conclusions, no OTBM mutation and no proprietary client data in Git.
 
-Before implementation, prove that no equivalent canonical manifest already exists. If one exists, stop duplication and update the programme with the reuse decision instead.
+Before implementation, prove that no equivalent canonical StaticData index already exists and that no active task/PR owns TCR-002. If one exists, stop duplication and update the programme with the reuse/ownership decision instead.
 ```
