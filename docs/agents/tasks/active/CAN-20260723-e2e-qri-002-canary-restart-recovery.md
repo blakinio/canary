@@ -8,7 +8,7 @@ branch: feat/e2e-qri-002-canary-restart-recovery-v2
 base_branch: main
 created: 2026-07-23
 updated: 2026-07-23
-last_verified_commit: "304c51ac46e2ddef53cd0ce3653d0609845ef315"
+last_verified_commit: "6f877989c9ce14d3d51e24ffe09422f36ab62a29"
 risk: medium
 related_issue: ""
 related_pr: "805"
@@ -68,8 +68,8 @@ Prove one deterministic real restart of the same disposable Canary process slot 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T16:15:00+02:00
-head: 304c51ac46e2ddef53cd0ce3653d0609845ef315
+updated_at: 2026-07-23T16:19:00+02:00
+head: 6f877989c9ce14d3d51e24ffe09422f36ab62a29
 branch: feat/e2e-qri-002-canary-restart-recovery-v2
 pr: 805
 status: implementing
@@ -101,8 +101,8 @@ unknown:
   - Whether the exact Canary process exits within the bounded SIGTERM wait on the hosted runner; no SIGKILL fallback is implemented.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: No implementation failure has been observed yet; current validation is entering CI/physical execution.
+  marker: active-task-validation
+  evidence: Ownership run 30014822357 failed only because the checkpoint used unsupported validation result RUNNING; changed-file collection exactly matched the declared implementation paths and the repository CI itself passed.
 rejected_hypotheses:
   - Reuse client forceLogout as QRI-002: rejected because it does not restart the Canary process.
   - Add a generic command/PID/host restart contract: rejected because the recovery seam is exact-scenario gated and resolves only the canonical canary.pid plus exact CANARY_BIN identity.
@@ -115,12 +115,14 @@ changed_paths:
   - tools/e2e/run_physical_e2e.sh
   - tools/e2e/run_physical_e2e_core.sh
 validation:
-  - command: CI run 30014586503 on implementation head a163d71775fc5705c4f4f52f55d1471ae9b73684
+  - command: CI run 30014822811 on head 6f877989c9ce14d3d51e24ffe09422f36ab62a29
     result: PASS
-    evidence: Repository CI completed successfully before the focused-test correction and ownership checkpoint commits; exact-current-head rerun remains required.
-  - command: Universal Agent E2E run 30014588310
-    result: RUNNING
-    evidence: Physical validation was queued from the implementation head; exact-current-head validation remains required after all implementation changes settle.
-blockers: []
-next_action: Register the reusable restart contract in shared docs, audit current-head CI/Ownership/Universal Agent E2E, fix any physical failure, then enter exact-final-head gate sequencing.
+    evidence: Repository CI completed successfully on the checkpoint head.
+  - command: Agent Task Ownership run 30014822357
+    result: FAIL
+    evidence: Changed task checkpoint validation rejected the unsupported literal RUNNING in validation item 2; this checkpoint removes that invalid transient result.
+blockers:
+  - exact-current-head Agent Task Ownership must pass after the checkpoint schema correction
+  - exact-current-head Universal Agent E2E must physically prove the restart path
+next_action: Audit the refreshed Ownership and Universal Agent E2E results, fix any physical failure, register the reusable restart contract, then enter exact-final-head gate sequencing.
 ```
