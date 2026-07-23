@@ -10,7 +10,7 @@ updated: 2026-07-23
 last_verified_commit: "2b2eafcd0d7990f499f25acf74af6526ca72ceee"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "779"
 depends_on:
   - OAM-038 formally complete
 blocks:
@@ -38,10 +38,10 @@ cross_repo_tasks: []
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T13:30:00+02:00
-head: c2debfd8f2604ccd6b4cc10f34b68c823a08317d
+updated_at: 2026-07-23T13:35:00+02:00
+head: d6ea4edd974b9cd89b7a2dbcdc7b1659cca5ae81
 branch: dudantas/oam-039-governance-finalize
-pr: null
+pr: 779
 status: validating
 context_routes:
   - agent-governance
@@ -67,7 +67,7 @@ derived:
   - Cross-module production activation remains outside OAM-039 and is not implied by this governance closure.
   - OAM-040 remains blocked until this governance merge separate Canary lifecycle archive durable program reconciliation and Otheryn target-task archive all complete.
 unknown:
-  - Exact final Canary governance merge SHA until this PR completes.
+  - Exact final Canary governance merge SHA until PR 779 completes.
 conflicts: []
 first_failure:
   marker: InstanceManagerTest.CleanupRunsExactlyOnceAndDirtyRegionIsQuarantined
@@ -88,5 +88,5 @@ validation:
     result: PASS
     evidence: exactly 19 intended bounded paths no comments reviews or threads and no Otheryn-main drift before merge a2a52e239d8e8a770ff7376fcbb9b5bfdcc8cc13
 blockers: []
-next_action: Open the two-path Canary OAM-039 governance PR with ci:final-gate, bind its PR number, require exact-current-head Agent Task Ownership and CI, audit scope interactions and Canary-main drift, then expected-head squash merge before separate lifecycle archive.
+next_action: Require exact-current-head Agent Task Ownership and full final-gate CI success on PR 779, audit exactly two governance paths plus comments reviews threads and Canary-main drift, then expected-head squash merge before separate lifecycle archive.
 ```
