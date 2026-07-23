@@ -1,13 +1,13 @@
 ---
 task_id: CAN-20260723-otbm-qa-program-closure
 program_id: CAN-PROGRAM-OTBM
-status: active
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: docs/otbm-qa-program-closure-20260723
 base_branch: main
 created: 2026-07-23
 updated: 2026-07-23
-last_verified_commit: "c55347aee2c5afdec508262c9800db5817b5a801"
+last_verified_commit: "39fb37e33ce3bdb1dcfa5752143ea924d5788d4e"
 risk: low
 related_issue: ""
 related_pr: "773"
@@ -38,7 +38,7 @@ cross_repo_tasks: []
 
 ## Status
 
-ACTIVE — documentation/governance-only reconciliation of the completed OTBM-QA-001..018 successor roadmap.
+READY — documentation/governance-only reconciliation of the completed OTBM-QA-001..018 successor roadmap is complete on the immutable feature head pending exact-final protected validation and merge.
 
 ## Goal
 
@@ -57,11 +57,11 @@ Close the consolidated OTBM World Quality, Repair and Certification successor pr
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T12:30:00+02:00
-head: c55347aee2c5afdec508262c9800db5817b5a801
+updated_at: 2026-07-23T12:35:00+02:00
+head: 39fb37e33ce3bdb1dcfa5752143ea924d5788d4e
 branch: docs/otbm-qa-program-closure-20260723
 pr: 773
-status: active
+status: ready
 context_routes:
   - otbm
   - agent-governance
@@ -76,17 +76,21 @@ proven:
   - QA-006/007 feature PR #759 is merged with exact-final and protected Required evidence.
   - QA-006/007 lifecycle PR #767 merged as a2a8b32e6a6cbd18d9225962e947a0c93858f291.
   - QA-006/007 shared governance PR #768 merged as d371846dc4adc9d32dbc8339967ea8bd0a9e10f5.
-  - The consolidated roadmap still reports planning status and therefore requires durable closure reconciliation.
-  - QA-008 and QA-009 delivered reusable public contracts but are absent from MODULE_CATALOG and CHANGELOG.
-  - PR #773 is the bounded closure PR for this task.
+  - PR #773 final intended scope is exactly four declared documentation/task paths; temporary helper workflow and script are absent from the final diff.
+  - The roadmap is reconciled to complete and contains a durable QA-001..018 feature/lifecycle delivery ledger plus a sixteen-condition completion mapping.
+  - Missing QA-008 Dependency/Blast-Radius and QA-009 Content Completeness shared discovery entries are restored in MODULE_CATALOG and CHANGELOG with their bounded evidence semantics preserved.
+  - Stale catalogue delivery statuses for completed QA packages are normalized from active to merged without changing public behavior.
+  - Programme closure explicitly does not certify that an arbitrary or current world is globally healthy or gameplay-correct.
+  - ci:final-gate was applied to PR #773 before this immutable ready-state checkpoint commit.
 derived:
   - Programme closure is documentation/governance work only; no new OTBM analysis or execution implementation is required.
-unknown: []
+unknown:
+  - Exact-final-head CI and Agent Task Ownership conclusions after this immutable ready-state checkpoint commit.
 conflicts:
-  - PR #762 also touches MODULE_CATALOG.md and CHANGELOG.md; closure edits are narrow, additive/current-main based, and must not modify PR #762 or its task branch.
+  - PR #762 also touches MODULE_CATALOG.md and CHANGELOG.md; closure edits are narrow, additive/current-main based, and do not modify PR #762 or its task branch.
 first_failure:
   marker: unbound-related-pr
-  evidence: Initial Agent Task Ownership run 29999351423 correctly rejected the changed active task because related_pr was empty after PR #773 was opened; this checkpoint binds related_pr to 773 before final validation.
+  evidence: Initial Agent Task Ownership run 29999351423 correctly rejected the changed active task because related_pr was empty after PR #773 was opened; the task was then bound to PR 773 before final validation.
 rejected_hypotheses:
   - Reopen any completed QA package to perform closure.
   - Treat programme completion as proof that the current world is globally healthy or gameplay-correct.
@@ -97,9 +101,15 @@ changed_paths:
   - docs/agents/CHANGELOG.md
   - docs/agents/tasks/active/CAN-20260723-otbm-qa-program-closure.md
 validation:
+  - command: GitHub Actions CI 29999351583
+    result: PASS
+    evidence: Initial draft-head CI succeeded before final document materialization/checkpoint.
   - command: GitHub Actions Agent Task Ownership 29999351423
     result: FAIL
     evidence: Expected pre-binding failure because related_pr was empty; corrected by binding this task to PR 773.
+  - command: final PR scope and patch audit
+    result: PASS
+    evidence: Exactly four declared paths remain; helper/script are absent; roadmap, catalogue and changelog changes preserve bounded proof semantics and contain no product/runtime/map/E2E changes.
 blockers: []
-next_action: Run the bounded closure helper, inspect the exact final document diff, then apply ci:final-gate before the immutable ready-state checkpoint commit.
+next_action: Verify exact-final-head CI and Agent Task Ownership on the immutable head created by this checkpoint commit, audit reviews and scope, then mark PR 773 ready and merge without further feature commits.
 ```
