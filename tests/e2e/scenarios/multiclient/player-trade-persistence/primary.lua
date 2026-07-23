@@ -13,6 +13,7 @@ local OTCLIENT_ROOT = os.getenv("AGENT_E2E_OTCLIENT_ROOT") or ""
 local OTCLIENT_BIN = os.getenv("OTCLIENT_BIN") or ""
 
 local BACKPACK_SLOT = 3
+local RESOURCE_ITEM_ID = 3043
 local EVENTS_PATH = ARTIFACT_DIR .. "/client-events.tsv"
 local INTERNAL_LOG_PATH = ARTIFACT_DIR .. "/otclient.internal.log"
 local MANIFEST_PATH = ARTIFACT_DIR .. "/scenario-manifest.json"
@@ -25,7 +26,6 @@ local logoutRequested = false
 local enteringWorld = false
 local finished = false
 local secondaryStarted = false
-local secondaryReleased = false
 local secondaryEnv = nil
 local secondaryArtifactDir = nil
 local secondaryEventsPath = nil
@@ -168,12 +168,74 @@ local function findVisibleCreature(name)
 	return nil
 end
 
-local function backpackCount()
+local function resourceCount()
 	local player = g_game.getLocalPlayer()
 	if not player then
 		return -1
 	end
-	return player:getInventoryItem(BACKPACK_SLOT) and 1 or 0
+	local total = 0
+	for slot = 1, 10 do
+		local item = player:getInventoryItem(slot)
+		if item and item:getId() == RESOURCE_ITEM_ID then
+			total = total + item:getCount()
+		end
+	end
+	for _, container in pairs(g_game.getContainers()) do
+		if container then
+			for _, item in ipairs(container:getItems()) do
+				if item and item:getId() == RESOURCE_ITEM_ID then
+					total = total + item:getCount()
+				end
+			end
+		end
+	end
+	return total
+end
+
+local function findResourceItem()
+	local player = g_game.getLocalPlayer()
+	if not player then
+		return nil
+	end
+	for slot = 1, 10 do
+		local item = player:getInventoryItem(slot)
+		if item and item:getId() == RESOURCE_ITEM_ID then
+			return item
+		end
+	end
+	return g_game.findItemInContainers(RESOURCE_ITEM_ID, -1, 0)
+end
+
+local function openStarterBackpack(onReady)
+	local player = g_game.getLocalPlayer()
+	local backpack = player and player:getInventoryItem(BACKPACK_SLOT) or nil
+	if not backpack then
+		fail("starter_backpack", "starter backpack in inventory slot 3", "missing")
+		return
+	end
+	local containerId = g_game.open(backpack, nil)
+	if containerId == nil or containerId < 0 then
+		fail("starter_backpack_open", "starter backpack open request accepted", tostring(containerId))
+		return
+	end
+	local checks = 100
+	local function poll()
+		if finished or not phaseStarted then
+			return
+		end
+		if g_game.getContainer(containerId) then
+			appendEvent("trade_backpack_open_" .. phase, "confirmed")
+			onReady()
+			return
+		end
+		checks = checks - 1
+		if checks <= 0 then
+			fail("starter_backpack_open", "opened starter backpack visible to controlled client", "timeout")
+			return
+		end
+		scheduleEvent(poll, 100)
+	end
+	poll()
 end
 
 local function configureTransportFeatures()
@@ -316,7 +378,7 @@ local function waitForRelogAssertions()
 		if finished or phase ~= 2 or not phaseStarted then
 			return
 		end
-		local primaryCount = backpackCount()
+		local primaryCount = resourceCount()
 		local secondaryReady = multiClient.hasEvent(secondaryEventsPath, "trade_relog_secondary", "1")
 		if primaryCount == 0 and secondaryReady then
 			appendEvent("trade_relog_primary", "0")
@@ -330,7 +392,6 @@ local function waitForRelogAssertions()
 				fail("secondary_release", "release file written", releaseError or "write failed")
 				return
 			end
-			secondaryReleased = true
 			appendEvent("multi_client_secondary_release", "sent")
 			waitForSecondaryCompletion()
 			return
@@ -355,7 +416,7 @@ local function waitForImmediateAssertions()
 		if finished or phase ~= 1 or not phaseStarted then
 			return
 		end
-		local primaryCount = backpackCount()
+		local primaryCount = resourceCount()
 		local secondaryReady = multiClient.hasEvent(secondaryEventsPath, "trade_immediate_secondary", "1")
 		local secondaryClosed = multiClient.hasEvent(secondaryEventsPath, "trade_close_secondary", "observed")
 		if primaryTradeClosed and secondaryClosed and primaryCount == 0 and secondaryReady then
@@ -446,10 +507,10 @@ end
 local function initiateTrade()
 	local secondaryCharacter = secondaryEnv.AGENT_E2E_CHARACTER
 	local peer = findVisibleCreature(secondaryCharacter)
-	local player = g_game.getLocalPlayer()
-	local item = player and player:getInventoryItem(BACKPACK_SLOT) or nil
-	if not peer or not item then
-		fail("trade_request", "visible secondary and one backpack in primary backpack slot", string.format("peer=%s item=%s", tostring(peer ~= nil), tostring(item ~= nil)))
+	local item = findResourceItem()
+	local count = resourceCount()
+	if not peer or not item or count ~= 1 then
+		fail("trade_request", "visible secondary and exactly one item 3043 in Player A inventory", string.format("peer=%s item=%s count=%d", tostring(peer ~= nil), tostring(item ~= nil), count))
 		return
 	end
 	appendEvent("trade_position_primary", localPositionString())
@@ -460,22 +521,23 @@ local function initiateTrade()
 end
 
 local function createFixture()
-	g_game.talk("/i backpack, 1")
+	g_game.talk("/i 3043, 1")
 	local checks = 100
 	local function poll()
 		if finished or phase ~= 1 or not phaseStarted then
 			return
 		end
-		local count = backpackCount()
-		if count == 1 then
-			appendEvent("trade_fixture_created", "backpack")
+		local count = resourceCount()
+		local item = findResourceItem()
+		if count == 1 and item then
+			appendEvent("trade_fixture_created", "item-3043")
 			markStep("fixture_created")
 			initiateTrade()
 			return
 		end
 		checks = checks - 1
 		if checks <= 0 then
-			fail("fixture_creation", "exactly one backpack in Player A backpack slot", tostring(count))
+			fail("fixture_creation", "exactly one item 3043 visible in Player A inventory", string.format("count=%d item=%s", count, tostring(item ~= nil)))
 			return
 		end
 		scheduleEvent(poll, 100)
@@ -494,9 +556,9 @@ local function waitForMutualVisibilityAndPrecondition()
 		local secondarySeesPrimary = multiClient.hasEvent(secondaryEventsPath, "trade_secondary_peer_visible", CHARACTER)
 		local secondaryEmpty = multiClient.hasEvent(secondaryEventsPath, "trade_fixture_precondition_secondary", "empty")
 		if peer and secondarySeesPrimary and secondaryEmpty then
-			local primaryCount = backpackCount()
+			local primaryCount = resourceCount()
 			if primaryCount ~= 0 then
-				fail("fixture_precondition", "Player A backpack slot empty", tostring(primaryCount))
+				fail("fixture_precondition", "Player A has zero item 3043 before fixture creation", tostring(primaryCount))
 				return
 			end
 			appendEvent("trade_primary_peer_visible", secondaryCharacter)
@@ -505,17 +567,17 @@ local function waitForMutualVisibilityAndPrecondition()
 			appendEvent("trade_fixture_precondition", "empty")
 			appendEvent("trade_position_primary", localPositionString())
 			appendEvent("trade_position_secondary", readEventValue(secondaryEventsPath, "trade_position_secondary") or "unavailable")
-			markStep("mutual_visibility_and_empty_precondition")
+			markStep("mutual_visibility_and_empty_resource_precondition")
 			createFixture()
 			return
 		end
 		if multiClient.hasEvent(secondaryEventsPath, "e2e", "failure") then
-			fail("mutual_visibility", "both players visible with empty backpack slots", "secondary failed")
+			fail("mutual_visibility", "both players visible with zero item 3043", "secondary failed")
 			return
 		end
 		checks = checks - 1
 		if checks <= 0 then
-			fail("mutual_visibility", "both players visible with empty backpack slots", string.format("primarySeesSecondary=%s secondarySeesPrimary=%s secondaryEmpty=%s", tostring(peer ~= nil), tostring(secondarySeesPrimary), tostring(secondaryEmpty)))
+			fail("mutual_visibility", "both players visible with zero item 3043", string.format("primarySeesSecondary=%s secondarySeesPrimary=%s secondaryEmpty=%s", tostring(peer ~= nil), tostring(secondarySeesPrimary), tostring(secondaryEmpty)))
 			return
 		end
 		scheduleEvent(poll, 100)
@@ -537,16 +599,18 @@ connect(g_game, {
 				return
 			end
 			appendEvent("online_stable_" .. phase, "confirmed")
-			if phase == 1 then
-				appendEvent("trade_primary_online", "confirmed")
-				markStep("primary_online")
-				if prepareSecondary() then
-					waitForMutualVisibilityAndPrecondition()
+			openStarterBackpack(function()
+				if phase == 1 then
+					appendEvent("trade_primary_online", "confirmed")
+					markStep("primary_online_with_backpack_open")
+					if prepareSecondary() then
+						waitForMutualVisibilityAndPrecondition()
+					end
+				else
+					markStep("primary_relogged_with_backpack_open")
+					waitForRelogAssertions()
 				end
-			else
-				markStep("primary_relogged")
-				waitForRelogAssertions()
-			end
+			end)
 		end, 1500)
 	end,
 	onGameEnd = function()
@@ -610,7 +674,7 @@ end
 
 g_logger.setLogFile(INTERNAL_LOG_PATH)
 appendEvent("scenario", SCENARIO_KEY)
-appendEvent("driver", "e2e-qri-001-trade-primary-v1")
+appendEvent("driver", "e2e-qri-001-trade-primary-v2")
 scheduleEvent(startLogin, 2500)
 scheduleEvent(function()
 	if not finished then
