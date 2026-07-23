@@ -10,7 +10,7 @@ updated: 2026-07-23
 last_verified_commit: "61163f5d9006351b9eaad799bd9dd0f825529db1"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "763"
 depends_on:
   - OAM-037 formally complete
 blocks:
@@ -46,10 +46,10 @@ The final OAM-038 disposition still requires bounded target-side proof. This pre
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T11:20:00+02:00
-head: 61163f5d9006351b9eaad799bd9dd0f825529db1
+updated_at: 2026-07-23T11:22:00+02:00
+head: c309f51f0ceead41c7b285fa04ee382f2631bb3d
 branch: dudantas/oam-038-preflight
-pr: null
+pr: 763
 status: ready
 context_routes:
   - agent-governance
@@ -97,5 +97,5 @@ validation:
     result: PASS
     evidence: target and fresh upstream share both canonical zone roots while legacy diverges and lacks reviewed membership-cache synchronization safeguards
 blockers: []
-next_action: Open the one-file Canary OAM-038 preflight PR, bind its PR number, require exact-current-head Agent Task Ownership and CI, audit scope and review state, then expected-head squash merge before creating the bounded world-zones target proof in Otheryn.
+next_action: Require exact-current-head Agent Task Ownership and CI success on PR 763, audit the one-file preflight scope and review state, then expected-head squash merge before creating the bounded world-zones target proof in Otheryn.
 ```
