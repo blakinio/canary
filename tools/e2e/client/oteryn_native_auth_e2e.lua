@@ -18,6 +18,8 @@ local phase = 0
 local successfulEntries = 0
 local firstSessionStarted = false
 local logoutRequested = false
+local firstLogoutCompleted = false
+local replayStartRetries = 0
 local replayAttempted = false
 local replayEntered = false
 local replayCredential = nil
@@ -149,12 +151,34 @@ local function loginWithCredential(credential, isReplay)
 end
 
 local function startReplay()
-    if finished or g_game.isOnline() then
-        fail("cannot start replay while the first session is still online")
+    if finished then
+        return
+    end
+    if g_game.isOnline() then
+        replayStartRetries = replayStartRetries + 1
+        if replayStartRetries > 20 then
+            fail("cannot start replay while the first session is still online")
+            return
+        end
+        scheduleEvent(startReplay, 250)
         return
     end
     local credential = replayCredential
     loginWithCredential(credential, true)
+end
+
+local function completeFirstLogout(source)
+    if finished or firstLogoutCompleted then
+        return
+    end
+    if phase ~= 1 or not firstSessionStarted or not logoutRequested then
+        fail("first session ended before the controlled safe logout")
+        return
+    end
+    firstLogoutCompleted = true
+    appendEvent("logout_1", "complete")
+    appendEvent("logout_signal", source)
+    scheduleEvent(startReplay, REPLAY_DELAY_MS)
 end
 
 local function requestFreshGatewaySession()
@@ -259,12 +283,7 @@ connect(g_game, {
             return
         end
         if phase == 1 then
-            if not firstSessionStarted or not logoutRequested then
-                fail("first session ended before the controlled safe logout")
-                return
-            end
-            appendEvent("logout_1", "complete")
-            scheduleEvent(startReplay, REPLAY_DELAY_MS)
+            completeFirstLogout("game_end")
             return
         end
         if phase == 2 and replayAttempted and not replayEntered then
@@ -281,6 +300,10 @@ connect(g_game, {
         fail("login error before successful native-auth world entry")
     end,
     onSessionEnd = function(_reason)
+        if phase == 1 and firstSessionStarted and logoutRequested then
+            completeFirstLogout("session_end")
+            return
+        end
         if phase == 2 and replayAttempted and not replayEntered then
             succeedReplayRejection("session_end")
             return
