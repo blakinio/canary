@@ -4,8 +4,8 @@ name: OTBM World Assurance Operations
 status: active
 owner: OTBM analysis tooling / world assurance operations
 created: 2026-07-23T14:25:00+02:00
-updated: 2026-07-23T19:44:52+02:00
-last_verified_commit: "077ad5753ac9aedf4a1c3b2380876e0fc2926989"
+updated: 2026-07-24T00:31:43+02:00
+last_verified_commit: "a3e7571303c5ce87ed85c054a8a7607cd4433d5c"
 primary_paths:
   - docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md
   - docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md
@@ -88,9 +88,9 @@ Included:
 
 # Active tasks
 
-No active OWA task is claimed after OWA-002 lifecycle closure.
+No active OWA task is claimed after OWA-004 feature merge and lifecycle closure preparation.
 
-OWA-001, OWA-002 and OWA-005 are merged and archived. A future agent must perform a fresh `main`, ownership and open-PR preflight before claiming the next bounded package.
+OWA-001, OWA-002, OWA-004 and OWA-005 are merged; OWA-001/002/005 are already archived and this lifecycle closes OWA-004. A future agent must perform a fresh `main`, ownership and open-PR preflight before claiming OWA-006.
 
 # Queue
 
@@ -99,18 +99,18 @@ OWA-001, OWA-002 and OWA-005 are merged and archived. A future agent must perfor
 | OWA-001 | Real-World Certification Campaign | completed via #801 | QA-005/006/016/018 + exact reviewed Thais route evidence | medium | Preserve the exact delivered state: QA-005 not-evaluated, QA-006 C0, QA-016 current, route-level Physical E2E proven, three explicit QA-005/006 blockers. |
 | OWA-002 | Factual Certification and Coverage Map | completed via #817 | OWA-001 reviewed manifest/campaign semantics + factual renderer | medium | Preserve `canary-otbm-world-assurance-map-v1`: factual renderer reuse, reviewed bounds/endpoints only, separate QA-006/QA-005/QA-016/Physical-E2E/blocker surfaces, no inferred route geometry or composite health score. |
 | OWA-003 | TCR-to-QA Drift and Freshness Integration | blocked on stable TCR parity/drift outputs | stable owning TCR outputs + QA-008/016/002/007 | medium | Re-derive scope from the stable merged TCR producer contracts only after the required parity/drift outputs exist; OWA consumes them but never parses client reference inputs. |
-| OWA-004 | Runtime Incident to OTBM Evidence Bridge | ready for next bounded task | QA-018 + existing route/failure-triage evidence | medium | Revalidate current QA-018 and failure-triage contracts, then return compact OTBM static context for explicit incident selectors while keeping runtime diagnosis and E2E ownership downstream. |
+| OWA-004 | Runtime Incident to OTBM Evidence Bridge | completed via #838; lifecycle closure in progress | QA-018 + existing route/failure-triage evidence | medium | Preserve the exact-selector, QA-018-delegating, no-diagnosis/no-E2E boundary delivered by #838. |
 | OWA-005 | QA Contract Hardening and Adversarial Fixtures | completed via #802; lifecycle closed via #816 | delivered QA contracts | medium | Preserve the merged deterministic adversarial/fail-closed contract coverage; do not duplicate canonical validators. |
-| OWA-006 | Continuous Assurance Operational Adoption | planned | OWA-001 + QA-002/007 + CI/release governance | high | Integrate existing assurance evidence into one bounded real map/candidate change path without suppressing unrelated suites or authorizing deployment. |
+| OWA-006 | Continuous Assurance Operational Adoption | ready for fresh target-selection preflight | OWA-001 + QA-002/007 + CI/release governance | high | Find one existing reviewed bounded real map/candidate change path with exact compatible before/current/candidate provenance and retained evidence; fail closed rather than invent a scenario if no eligible path exists. |
 
 # Sequencing
 
 1. **OWA-001** — completed: the first reviewed campaign target and fail-closed proof boundary are established.
 2. **OWA-002** — completed: factual evidence-linked visualization is delivered through the existing renderer.
 3. **OWA-005** — completed independently: adversarial/fail-closed QA contract hardening is merged and lifecycle-closed.
-4. **OWA-004** — next bounded package: expose incident-oriented static context through existing QA-018 evidence without taking runtime/E2E ownership.
-5. **OWA-003** — begin only after stable owning TCR parity/drift outputs and explicit producer/consumer contracts exist.
-6. **OWA-006** — operationalize Continuous Assurance on one bounded real change path after campaign semantics are proven.
+4. **OWA-004** — completed via #838: explicit runtime incident selectors resolve only to compact compatible existing OTBM evidence through QA-018 without taking runtime diagnosis or E2E ownership.
+5. **OWA-006** — next currently executable non-TCR package after a fresh ownership and real-target preflight.
+6. **OWA-003** — begin only after stable owning TCR parity/drift outputs and explicit producer/consumer contracts exist.
 
 OWA-003 may move based only on actual TCR delivery state. OWA-006 remains deliberately late because it can affect merge/release gating and therefore requires proven campaign semantics plus exact CI ownership.
 
@@ -183,9 +183,11 @@ Current gate: a stable package/reference manifest alone is insufficient. OWA-003
 
 ## OWA-004 — Runtime Incident to OTBM Evidence Bridge
 
-Accept explicit selectors such as `x,y,z`, transition ID, interaction ID, landmark ID or route/preflight reference and return only compatible existing OTBM evidence. It must not become a general log parser, runtime root-cause engine, E2E executor or `NEXT_ACTION` generator.
+Delivered by PR #838.
 
-OWA-004 should reuse QA-018 as the compact evidence transport boundary and existing route/failure-triage evidence as downstream-owned runtime context. Its exact selector and composition contract must be revalidated from current `main` at task start rather than inferred from this programme record.
+The package adds exact reviewed selector bindings for positions, transitions, interactions, semantic landmarks, routes and reviewed preflight references. It composes the canonical QA-018 manifest and delegates executed extraction directly to the existing Compact Evidence Gateway. Source/hash/format/pointer incompatibility remains fail closed.
+
+The bridge does not parse arbitrary runtime logs, perform fuzzy selector discovery, classify or reclassify Physical E2E failures, diagnose runtime root cause, parse OTBM, rebuild World Indexes, pathfind, regenerate routes, run or retry Physical E2E, mutate maps or emit feature-specific `NEXT_ACTION`.
 
 ## OWA-005 — QA Contract Hardening and Adversarial Fixtures
 
@@ -229,7 +231,8 @@ Completion still does not imply that every tile, quest or mechanic in the entire
 - OWA-001 is complete but formal certification for its first pilot remains blocked at C0 until a legitimate canonical QA-005 target binds exact reviewed mechanic evidence.
 - OWA-002 is complete and must continue to represent that C0 state, independent QA-005 dimensions, freshness, retained Physical E2E and blockers without promotion or collapse into a score.
 - OWA-003 remains dependency-gated by stable owning TCR parity/drift outputs and must be re-derived from the actual merged producer contracts at task start.
-- OWA-004 is ready for a fresh bounded-task preflight; its runtime diagnosis and Physical E2E inputs remain owned downstream.
+- OWA-004 is complete via #838 and remains bounded to compact exact static evidence correlation; runtime diagnosis and Physical E2E remain downstream-owned.
+- OWA-006 requires an existing reviewed real map/candidate change path with exact compatible evidence; absence of such a path must fail closed rather than be replaced by a synthetic production claim.
 - Physical proof for OWA-001/006 depends on existing Universal Physical E2E evidence and remains owned by that subsystem.
 
 # Decisions and invariants
@@ -285,18 +288,30 @@ and the durable visualization documentation:
 
 PR #817 delivered the deterministic `canary-otbm-world-assurance-map-v1` contract. Preserve the existing factual renderer as the only map-image renderer, do not infer route geometry, and keep certification, coverage, freshness, retained Physical E2E and blockers as independent evidence-linked facts.
 
-## Next bounded task: OWA-004
+## OWA-004 delivered state
+
+Start from the archived task:
+
+`docs/agents/tasks/archive/CAN-20260723-owa-004-runtime-incident-otbm-evidence-bridge.md`
+
+and the durable bridge documentation:
+
+`docs/ai-agent/OTBM_RUNTIME_INCIDENT_EVIDENCE_BRIDGE.md`.
+
+PR #838 delivered exact reviewed selector-to-QA-018 evidence correlation. Preserve QA-018 as the sole extraction owner and existing E2E failure triage as the failure-classification owner; do not extend the bridge into arbitrary log parsing, fuzzy discovery, root-cause diagnosis, pathfinding, Physical E2E execution or repair guidance.
+
+## Next bounded task: OWA-006
 
 The next agent should:
 
 1. revalidate current `main`, this programme queue, active ownership and open PRs;
 2. confirm OWA-003 is still blocked by the actual current TCR producer state rather than by this handoff alone;
-3. create exactly one OWA-004 active task, branch and draft PR if no ownership conflict exists;
-4. read only the current QA-018 Evidence Gateway contract plus exact route/preflight/failure-triage contracts required for the selected incident bridge;
-5. accept explicit reviewed selectors and return compact compatible existing OTBM evidence;
-6. keep runtime diagnosis, failure classification and Physical E2E execution owned by their existing downstream systems;
-7. do not become a log parser, root-cause engine, pathfinder, E2E runner or `NEXT_ACTION` generator;
-8. keep generated evidence bundles outside Git.
+3. search for exactly one existing reviewed bounded real map/candidate change path with exact before/current/candidate provenance, compatible Semantic Diff, QA-002 selection, owning validator results, required retained Physical E2E, before/after World Health and QA-006 certification evidence;
+4. do not invent a production scenario or manufacture missing proof; fail closed at the first concrete missing evidence if no eligible path exists;
+5. create exactly one OWA-006 active task, branch and early draft PR only when ownership is clear;
+6. use QA-002 to select scope and QA-007 only to validate the exact supplied result set;
+7. preserve unrelated CI suites and deployment/merge governance;
+8. keep generated maps, World Indexes, evidence bundles and certification reports outside Git.
 
 ## Task creation protocol
 
@@ -317,8 +332,9 @@ The next agent should:
 - Do not treat a green static campaign state as global gameplay proof.
 - Do not promote the OWA-001 retained successful walk into QA-005 mechanic coverage or QA-006 C5.
 - Do not reconstruct OWA-002 route geometry that was intentionally left unrepresented by exact campaign evidence.
+- Do not broaden OWA-004 into a generic runtime incident parser or root-cause engine.
 
 ## Open questions
 
 - OWA-003 package scope must be re-derived from the TCR formats that are actually stable and merged at that time.
-- OWA-004 must select its exact supported incident selector set from current QA-018 and downstream failure-triage contracts at task start; this programme record does not authorize a generic log/root-cause interface.
+- OWA-006 target selection must be based on an actually retained reviewed real candidate/change evidence chain; generic QA-004/OTBM-E2E-009 infrastructure alone is not proof that such a chain exists.
