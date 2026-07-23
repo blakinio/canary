@@ -75,7 +75,7 @@ This index exists to prevent three recurring mistakes:
 | 36 | Cooking 2.0 | `OUR-DESIGN` | `HYBRID` | Expands existing food concepts into preparation/build-support crafting. |
 | 37 | House Chef | `MIXED` | `HYBRID` | Expands the existing house/hireling/cook concept into an ingredient-service-recipe loop; exact current baseline must be reverified. |
 | 38 | Economy Sink Framework | `OUR-DESIGN` | `META-ECONOMY` | Cross-system inflation-control strategy using desirable convenience/luxury sinks. |
-| 39 | House upgrades / services / luxury sinks | `OUR-DESIGN` | `META-ECONOMY` | Optional money sinks tied to housing and prestige rather than mandatory combat power. |
+| 39 | House upgrades / services / luxury sinks | `OUR-DESIGN` | `META-ECONOMY` | Optional money sinks tied to housing and prestige rather than punitive basic costs. |
 | 40 | Equipment Durability | `OUR-DESIGN` | `FULLY-CUSTOM` | Optional soft maintenance system; not assumed to be original Tibia parity. |
 | 41 | Repair All / Auto Repair | `OUR-DESIGN` | `HYBRID` | Convenience layer for the proposed custom durability system. |
 | 42 | Skill Wheel changes outside temple without PZ/combat lock | `MIXED` | `TIBIA-EXTENSION` | Extends original Tibia skill-wheel access rules; Wheel remains an original Tibia system. |
