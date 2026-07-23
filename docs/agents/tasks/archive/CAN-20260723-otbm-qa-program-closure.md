@@ -61,10 +61,10 @@ COMPLETE — PR #773 merged the final documentation/governance reconciliation of
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T12:55:00+02:00
+updated_at: 2026-07-23T12:57:00+02:00
 head: 818bbf0c96215820da22a3024b67c177a979ce4d
 branch: docs/archive-otbm-qa-program-closure-20260723
-pr: null
+pr: 775
 status: complete
 context_routes:
   - otbm
@@ -76,6 +76,7 @@ proven:
   - Ready-state full CI 29999944370 completed successfully and satisfied protected branch requirements before auto-merge.
   - OTBM-QA-001..018 feature deliveries and lifecycle closures are durably enumerated in the completed roadmap.
   - QA-008/009 shared discovery debt and stale catalogue delivery statuses were reconciled without product behavior changes.
+  - PR 775 is the lifecycle-only active-to-archive transition for this completed closure task.
 derived:
   - The OTBM-QA successor programme and its final closure task can release active ownership.
 unknown: []
