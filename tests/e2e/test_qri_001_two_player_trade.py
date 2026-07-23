@@ -49,11 +49,11 @@ class Qri001TwoPlayerTradeTests(unittest.TestCase):
             values = MULTI_CLIENT.compile_secondary(manifest, artifact_dir=Path(temporary))
 
         self.assertEqual(self.scenario["fixture"]["account"], "@test15")
-        self.assertEqual(self.scenario["fixture"]["character"], "Paladin 15")
+        self.assertEqual(self.scenario["fixture"]["character"], "ADM1")
         self.assertEqual(values["AGENT_E2E_ACTOR_ID"], "trade-b")
         self.assertEqual(values["AGENT_E2E_ACCOUNT"], "@test14")
         self.assertEqual(values["AGENT_E2E_CHARACTER"], "Paladin 14")
-        self.assertEqual(values["AGENT_E2E_PRIMARY_CHARACTER"], "Paladin 15")
+        self.assertEqual(values["AGENT_E2E_PRIMARY_CHARACTER"], "ADM1")
         self.assertNotIn("AGENT_E2E_PASSWORD", values)
 
     def test_trade_is_driven_through_real_maintained_client_protocol_surface(self) -> None:
@@ -110,7 +110,7 @@ class Qri001TwoPlayerTradeTests(unittest.TestCase):
 
     def test_persistence_contract_proves_primary_absence_and_cross_actor_conservation(self) -> None:
         persistence = self.scenario["assertions"]["persistence"]
-        compiled = PERSISTENCE.compile_persistence_assertions(persistence, character="Paladin 15")
+        compiled = PERSISTENCE.compile_persistence_assertions(persistence, character="ADM1")
         sql = self.scenario["assertions"]["sql"]
 
         self.assertEqual(
@@ -132,7 +132,7 @@ class Qri001TwoPlayerTradeTests(unittest.TestCase):
         self.assertIn("NOT EXISTS", compiled[0])
         self.assertIn("`pi`.`itemtype` = 3043", compiled[0])
         self.assertIn(
-            "SELECT COUNT(*) = 0 FROM player_items AS pi INNER JOIN players AS p ON p.id = pi.player_id WHERE p.name = 'Paladin 15' AND pi.itemtype = 3043",
+            "SELECT COUNT(*) = 0 FROM player_items AS pi INNER JOIN players AS p ON p.id = pi.player_id WHERE p.name = 'ADM1' AND pi.itemtype = 3043",
             sql,
         )
         self.assertIn(
@@ -140,7 +140,7 @@ class Qri001TwoPlayerTradeTests(unittest.TestCase):
             sql,
         )
         self.assertIn(
-            "SELECT COUNT(*) = 1 FROM player_items AS pi INNER JOIN players AS p ON p.id = pi.player_id WHERE p.name IN ('Paladin 15', 'Paladin 14') AND pi.itemtype = 3043",
+            "SELECT COUNT(*) = 1 FROM player_items AS pi INNER JOIN players AS p ON p.id = pi.player_id WHERE p.name IN ('ADM1', 'Paladin 14') AND pi.itemtype = 3043",
             sql,
         )
         self.assertIn("SELECT COUNT(*) = 0 FROM players_online", sql)
