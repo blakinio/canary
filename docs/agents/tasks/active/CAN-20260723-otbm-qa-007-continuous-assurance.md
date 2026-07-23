@@ -111,32 +111,6 @@ changed_paths:
   - docs/ai-agent/OTBM_CONTINUOUS_ASSURANCE_EXECUTION.schema.json
   - docs/ai-agent/OTBM_CONTINUOUS_ASSURANCE.schema.json
   - docs/agents/tasks/active/CAN-20260723-otbm-qa-007-continuous-assurance.md
-proven:
-  - QA-002 already owns deterministic static-validator and represented Physical E2E selection.
-  - QA-001 already owns explicit World Health aggregation.
-  - QA-006 provides formal bounded C0-C7 certification in the same delivery chain.
-derived:
-  - QA-007 can remain a pure composition gate and use an exact execution ledger instead of creating a second validator or E2E runner.
-unknown:
-  - Exact feature-head CI outcomes until the implementation branch is validated.
-conflicts: []
-first_failure:
-  marker: none
-  evidence: No implementation failure observed before branch validation.
-rejected_hypotheses:
-  - Rerun Semantic Diff or selected validators inside QA-007.
-  - Create another Physical E2E runner or workflow.
-  - Treat a passed OTBM gate as deployment authorization.
-changed_paths:
-  - tools/ai-agent/otbm_continuous_assurance.py
-  - tools/ai-agent/otbm_continuous_assurance_tool.py
-  - tools/ai-agent/test_otbm_continuous_assurance.py
-  - tools/ai-agent/test_otbm_continuous_assurance_output_safety.py
-  - tools/ai-agent/test_otbm_continuous_assurance_schema.py
-  - docs/ai-agent/OTBM_CONTINUOUS_ASSURANCE.md
-  - docs/ai-agent/OTBM_CONTINUOUS_ASSURANCE_EXECUTION.schema.json
-  - docs/ai-agent/OTBM_CONTINUOUS_ASSURANCE.schema.json
-  - docs/agents/tasks/active/CAN-20260723-otbm-qa-007-continuous-assurance.md
 validation: []
 blockers: []
 next_action: Implement and validate QA-007 on the bounded combined QA-006/007 delivery branch.
