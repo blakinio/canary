@@ -7,8 +7,8 @@ agent: "Codex"
 branch: agent/bounty-forum-evidence
 base_branch: main
 created: 2026-07-23T19:07:45+02:00
-updated: 2026-07-23T19:14:41+02:00
-last_verified_commit: "bd65e83540a7862427bbf46479e78b666aa01e29"
+updated: 2026-07-23T19:16:51+02:00
+last_verified_commit: "3bb99ca36fbbfb3984595f300901f6e9a4b161f3"
 risk: low
 related_issue: ""
 related_pr: "829"
@@ -101,6 +101,13 @@ The evidence report is written and locally validated. Draft PR #829 is open. Fin
 - Failed/blocked: later forum pages remained unavailable to reliable automation; coverage is disclosed and no whole-thread sentiment claim is made.
 - Result: local ownership, registry, and whitespace checks pass.
 
+## 2026-07-23T19:16:51+02:00
+
+- Changed: synchronized the branch with current `origin/main` and pushed the complete two-file scope to PR #829.
+- Learned: the branch is mergeable against current `main`; the earlier ownership failure belonged to the initial task-only head.
+- Failed/blocked: none.
+- Result: `ci:final-gate` is applied before this final checkpoint commit; exact-head GitHub checks remain the final gate.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |
@@ -125,6 +132,8 @@ The evidence report is written and locally validated. Draft PR #829 is open. Fin
 | working tree | `git diff --check` | passed | No whitespace errors. |
 | working tree | `python tools/agents/task_ownership.py` | passed | 29 active task records validated with the new ownership claims. |
 | working tree | `python tools/agents/real_tibia_registry.py validate` | passed | Registry remains valid with zero warnings. |
+| `3bb99ca36fbbfb3984595f300901f6e9a4b161f3` | PR scope and mergeability review | passed | Only the task record and evidence report differ from current `main`; PR #829 reports mergeable. |
+| `3bb99ca36fbbfb3984595f300901f6e9a4b161f3` | `ci:final-gate` label | passed | Label applied before the final checkpoint commit. |
 
 # Failed approaches and dead ends
 
@@ -148,8 +157,8 @@ The evidence report is written and locally validated. Draft PR #829 is open. Fin
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T19:14:41+02:00
-head: d7f2bead0792f0db26f50629e6bd0f79080643a0
+updated_at: 2026-07-23T19:16:51+02:00
+head: 3bb99ca36fbbfb3984595f300901f6e9a4b161f3
 branch: agent/bounty-forum-evidence
 pr: 829
 status: validating
@@ -192,7 +201,7 @@ validation:
     result: PASS
     evidence: 29 active task records validated with the new claims.
 blockers: []
-next_action: Commit the report and checkpoint, apply ci:final-gate, and verify PR 829 on the exact head.
+next_action: Push this final checkpoint commit and verify PR 829 checks on its exact head.
 ```
 
 # Handoff
