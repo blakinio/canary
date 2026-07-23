@@ -11,7 +11,7 @@ updated: 2026-07-23
 last_verified_commit: "0a2ae8e3d504ab2398395820512cd45f3b169722"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "840"
 depends_on:
   - OAM-040 formally complete
 blocks:
@@ -47,9 +47,9 @@ Final disposition remains gated on bounded target-side proof in `blakinio/Othery
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-23T23:59:00+02:00
-head: 0a2ae8e3d504ab2398395820512cd45f3b169722
+head: c67f0e6e62636b1f80601c068c97478e57324288
 branch: dudantas/oam-041-compact-handover
-pr: none
+pr: 840
 status: blocked
 context_routes:
   - agent-governance
