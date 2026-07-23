@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Authoritative classification index for proposals recorded in `docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md` and detailed design records including `docs/ai-agent/OTS_SKILL_PROGRESSION_2_0.md`, `docs/ai-agent/OTS_DYNAMIC_SPAWN_AND_HUNTING_CAPACITY.md` and `docs/ai-agent/OTS_BOUNTY_AND_WEEKLY_TASKS_REWORK.md`.
+Authoritative classification index for proposals recorded in `docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md` and detailed design records including `docs/ai-agent/OTS_SKILL_PROGRESSION_2_0.md`, `docs/ai-agent/OTS_DYNAMIC_SPAWN_AND_HUNTING_CAPACITY.md`, `docs/ai-agent/OTS_BOUNTY_AND_WEEKLY_TASKS_REWORK.md` and `docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md`.
 
 This index exists to prevent three recurring mistakes:
 
@@ -105,6 +105,26 @@ This index exists to prevent three recurring mistakes:
 | 66 | Weekly Delivery Price Shock Guard | `OUR-DESIGN` | `META-ECONOMY` | Stops or reduces new generated demand when task-driven demand destabilizes item supply or prices. |
 | 67 | AI-assisted economy forecasting with deterministic caps | `OUR-DESIGN` | `META-ECONOMY` | AI forecasts oversupply, liquidity and likely price impact while deterministic hard limits remain authoritative for generated demand. |
 | 68 | Bounty Spawn Allowance for overleveled task players | `OUR-DESIGN` | `HYBRID` | Temporarily relaxes custom dynamic-capacity eligibility for legitimate bounded Bounty completion without granting permanent high-level farming throughput. |
+| 69 | World Map & Discovery System 2.0 | `MIXED` | `HYBRID` | Expands existing Better Map UX and character-marker directions with searchable/filterable POIs, discovery layers, navigation and dynamic/social map integration. |
+| 70 | Live Social Map & Permissioned Position Sharing | `OUR-DESIGN` | `HYBRID` | Adds consent-aware live party/guild/friend position sharing with server-authoritative privacy/PvP rules rather than unilateral tracking. |
+| 71 | Shared Discovery Markers | `OUR-DESIGN` | `HYBRID` | Lets players report/share time-sensitive discoveries such as Echo Raid, Fiendish, rare bosses, events and rally points to selected social scopes. |
+| 72 | Friends/VIP Mutual Consent & Privacy 2.0 | `OUR-DESIGN` | `HYBRID` | Replaces unilateral tracking semantics with request/accept/reject/block relationships and fine-grained social permissions. |
+| 73 | Party System 2.0 | `MIXED` | `TIBIA-EXTENSION` | Reworks the active party foundation around clearer group UX, bonus/shared-EXP review, roles, social-map integration and shared objectives without duplicating Party Finder 2.0. |
+| 74 | Party Combat Visibility | `OUR-DESIGN` | `CLIENT-UX` | Adds high-intensity-hunt readability such as member outlines, leader/role markers, low-HP/status emphasis, priority members and off-screen indicators. |
+| 75 | Shared Hunt Accounting / Party Loot Ledger | `OUR-DESIGN` | `HYBRID` | Tracks party loot, individual supplies, waste, profit and settlement shares so hunts no longer require manual spreadsheet/chat calculations. |
+| 76 | Itemization & Build System 2.0 | `MIXED` | `HYBRID` | Connects equipment, existing item classification/Forge foundations, Imbuements, Skill Wheel, classic skills, Weapon Proficiency and build presets into one coherent build-selection layer. |
+| 77 | Build Impact & Comparison System | `OUR-DESIGN` | `CLIENT-UX` | Uses authoritative formulas/contracts where practical to show real before/after damage, healing, mitigation and sustain effects for items, perks and full builds. |
+| 78 | Training Arena / Combat Simulation | `OUR-DESIGN` | `HYBRID` | Provides controlled build testing against non-rewarding training monsters with zero normal XP/loot/progression and standardized combat metrics. |
+| 79 | Inventory / Depot / Stash 2.0 | `OUR-DESIGN` | `TIBIA-EXTENSION` | Modernizes existing inventory/storage foundations with global search, smart containers, sorting, post-hunt deposit and a cleaner storage model while retaining physical backpack gameplay where meaningful. |
+| 80 | Smart Item Reservation & Task Protection | `OUR-DESIGN` | `HYBRID` | Quantity-aware protection prevents Bounty/Weekly/quest/build-reserved items from accidental sale, trade, drop or auto-sell while exposing the safe-to-sell surplus. |
+| 81 | Market sale-only commission | `OUR-DESIGN` | `TIBIA-EXTENSION` | Removes listing fees and charges commission only on successful sales, with separate anti-spam limits/expiry rather than monetary friction for unsold offers. |
+| 82 | Multi-Currency Market & Trade | `OUR-DESIGN` | `TIBIA-EXTENSION` | Extends Market/Trade settlement beyond gold, including TC where supported, with explicit currency selection, filtering/history and no implicit exchange-rate conversion. |
+| 83 | Imbuement System 2.0 | `MIXED` | `TIBIA-EXTENSION` | Reworks the existing Imbuement foundation to reduce item-duplication/timer friction while preserving meaningful preparation, costs and implementation-time parity verification. |
+| 84 | Slot-Based Imbuement Library & Active Channels | `OUR-DESIGN` | `HYBRID` | Stores charged/unlocked Imbuement options at equipment-slot/profile level while the equipped item controls legal categories and simultaneous active-channel capacity. |
+| 85 | Elemental Attunement Layer | `OUR-DESIGN` | `HYBRID` | Separates elemental protection from Crit/Leech/Skill active-channel competition and allows bounded automatic matching among charged protections for mixed-element content. |
+| 86 | Imbuement Slot / Attunement Progression | `OUR-DESIGN` | `HYBRID` | Adds bounded long-term progression to slot flexibility/automation, potentially through levels, without treating placeholder level counts as final contracts. |
+| 87 | Imbuement Progression & Maintenance Sink | `OUR-DESIGN` | `META-ECONOMY` | Combines one-time slot/attunement progression costs with recurring recharge/renewal costs so convenience and flexibility continue to remove gold/resources from the economy. |
+| 88 | Effective-Use Imbuement Lifecycle | `OUR-DESIGN` | `TIBIA-EXTENSION` | Evaluates consuming specialized Imbuement duration only during relevant active use, avoiding waste on unrelated content while not draining faster merely because stronger monsters deal larger numbers. |
 
 ## Additional researched systems not yet promoted into the main proposal backlog
 
