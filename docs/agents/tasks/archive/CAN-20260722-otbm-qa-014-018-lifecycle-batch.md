@@ -7,10 +7,10 @@ branch: docs/archive-otbm-qa-014-018-20260723
 base_branch: main
 created: 2026-07-23
 updated: 2026-07-23
-last_verified_commit: "4f074077da44d1cc9d77db7ac768be0589313332"
+last_verified_commit: "a69a8e9863aa4adaa3f7b453a7baf45dae16560a"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "752"
 depends_on:
   - OTBM-QA-014 feature PR 734 merged
   - OTBM-QA-015 feature PR 735 merged
@@ -37,22 +37,34 @@ COMPLETE — lifecycle-only batch record for the five active-to-archive moves. N
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T09:35:00+02:00
-head: d1f15ebd9d10062a37f0193371469c878f22685c
+updated_at: 2026-07-23T10:25:00+02:00
+head: a69a8e9863aa4adaa3f7b453a7baf45dae16560a
 branch: docs/archive-otbm-qa-014-018-20260723
-pr: null
+pr: 752
 status: complete
 context_routes:
   - otbm
   - agent-governance
-owned_paths: []
+owned_paths:
+  - docs/agents/tasks/active/CAN-20260722-otbm-qa-014-asset-appearance-compatibility.md
+  - docs/agents/tasks/archive/CAN-20260722-otbm-qa-014-asset-appearance-compatibility.md
+  - docs/agents/tasks/active/CAN-20260722-otbm-qa-015-static-performance-hotspots.md
+  - docs/agents/tasks/archive/CAN-20260722-otbm-qa-015-static-performance-hotspots.md
+  - docs/agents/tasks/active/CAN-20260722-otbm-qa-016-release-provenance-freshness.md
+  - docs/agents/tasks/archive/CAN-20260722-otbm-qa-016-release-provenance-freshness.md
+  - docs/agents/tasks/active/CAN-20260722-otbm-qa-017-deterministic-change-risk.md
+  - docs/agents/tasks/archive/CAN-20260722-otbm-qa-017-deterministic-change-risk.md
+  - docs/agents/tasks/active/CAN-20260722-otbm-qa-018-compact-evidence-gateway.md
+  - docs/agents/tasks/archive/CAN-20260722-otbm-qa-018-compact-evidence-gateway.md
+  - docs/agents/tasks/archive/CAN-20260722-otbm-qa-014-018-lifecycle-batch.md
 proven:
   - QA-014 through QA-018 feature PRs are merged and exact-final feature validation is green.
   - Shared public-interface governance PR 743 is merged.
-  - The lifecycle branch only moves completed task ownership from active to archive and adds this archival batch record.
+  - PR 752 is the bounded lifecycle-only active-to-archive batch.
 derived:
-  - No active feature ownership remains necessary for QA-014 through QA-018.
-unknown: []
+  - No active feature ownership remains necessary for QA-014 through QA-018 after PR 752 merges.
+unknown:
+  - Exact-head lifecycle CI and Ownership outcome for PR 752.
 conflicts: []
 first_failure:
   marker: none
@@ -73,5 +85,5 @@ changed_paths:
   - docs/agents/tasks/archive/CAN-20260722-otbm-qa-014-018-lifecycle-batch.md
 validation: []
 blockers: []
-next_action: Open lifecycle PR, run ownership and CI, then merge if exact-head gates are green.
+next_action: Verify PR 752 exact-head CI and Agent Task Ownership; if green and scope/reviews are clean, mark ready and squash-merge.
 ```
