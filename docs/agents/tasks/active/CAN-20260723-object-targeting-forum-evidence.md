@@ -2,21 +2,21 @@
 task_id: CAN-20260723-object-targeting-forum-evidence
 program_id: CAN-PROGRAM-REAL-TIBIA-PARITY
 coordination_id: PROTOCOL-OBJECT-TARGETING-EVIDENCE
-status: in-progress
+status: validating
 agent: "Codex"
 branch: docs/can-20260723-object-targeting-forum-evidence
 base_branch: main
 created: 2026-07-23T19:04:22+02:00
-updated: 2026-07-23T19:04:22+02:00
-last_verified_commit: "5c2ec1df1b5be9494fbf97ba389bea8fd9070f58"
+updated: 2026-07-23T19:08:32+02:00
+last_verified_commit: "c86c20362913737ab3350543ffa6b350614f3ea9"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "824"
 depends_on: []
 blocks: []
 owned_paths:
   exclusive:
-    - docs/agents/real-tibia/IMPROVED_OBJECT_TARGETING_MULTI_ACTION_FORUM_EVIDENCE.md
+    - docs/ai-agent/REAL_TIBIA_OBJECT_TARGETING_MULTI_ACTION_FORUM_ANALYSIS.md
     - docs/agents/tasks/active/CAN-20260723-object-targeting-forum-evidence.md
   shared: []
   read_only:
@@ -49,12 +49,13 @@ Preserve a bounded, provenance-linked aggregation of the official Tibia forum ev
 
 # Acceptance criteria
 
-- [ ] Record the official feature contract and official forum clarifications.
-- [ ] Separate observed community feedback from implementation requirements.
-- [ ] State the collection boundary and unresolved points explicitly.
-- [ ] Include actionable acceptance-test candidates without claiming implementation.
-- [ ] Pass documentation, ownership and registry checks.
-- [ ] Publish the change through a PR targeting `blakinio/canary:main`.
+- [x] Record the official feature contract and official forum clarifications.
+- [x] Separate observed community feedback from implementation requirements.
+- [x] State the collection boundary and unresolved points explicitly.
+- [x] Include actionable acceptance-test candidates without claiming implementation.
+- [x] Pass local documentation, ownership, checkpoint and registry checks.
+- [x] Publish the change through a PR targeting `blakinio/canary:main`.
+- [ ] Verify current-head GitHub checks.
 
 # Comparison matrix
 
@@ -70,10 +71,11 @@ Preserve a bounded, provenance-linked aggregation of the official Tibia forum ev
 - Ownership checker: 27 active records validated before this task was created.
 - Exclusive claims: the evidence report and this task record only.
 - Overlaps: none observed.
+- Resulting PR: `blakinio/canary#824`, base `main`, same-repository head.
 
 # Plan
 
-1. Write the bounded evidence aggregation.
+1. Write the bounded evidence aggregation in the repository's existing `docs/ai-agent` forum-analysis area.
 2. Validate links, Markdown, registry and ownership.
 3. Commit, push and open a draft PR.
 
@@ -86,13 +88,22 @@ Preserve a bounded, provenance-linked aggregation of the official Tibia forum ev
 - Located the official 2025 feature announcement and Winter Update release summary.
 - Classified the evidence as client-visible feature and feedback evidence; no server packet or runtime behavior is proven.
 
+## 2026-07-23T19:08:32+02:00
+
+- Rebased the initial task commit onto current `main` at `bd65e83540a7862427bbf46479e78b666aa01e29`.
+- Added the official contract, first-page sample, requirements inventory, risk register, acceptance-test candidates and client/server boundary report.
+- Confirmed that only the task record and the new documentation report are in scope.
+- Local whitespace, ownership, checkpoint and Real Tibia registry checks pass.
+
 # Validation and CI
 
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
-| pending | `git diff --check` | NOT_RUN | Documentation validation pending. |
-| pending | `python tools/agents/task_ownership.py` | NOT_RUN | Must include this task record. |
-| pending | `python tools/agents/real_tibia_registry.py validate` | NOT_RUN | Registry must remain valid. |
+| uncommitted | `git diff --check` | PASS | No whitespace errors. |
+| uncommitted | documentation assertions | PASS | Exactly two documentation paths, 9 `IOT-*` requirements, 12 `MAB-*` requirements, source links and corpus-boundary statements verified. |
+| uncommitted | `python tools/agents/task_ownership.py` | PASS | 29 active task records validated. |
+| uncommitted | `python tools/agents/checkpoint.py --require-checkpoint docs/agents/tasks/active/CAN-20260723-object-targeting-forum-evidence.md` | PASS | One task checkpoint validated. |
+| uncommitted | `python tools/agents/real_tibia_registry.py validate` | PASS | Registry valid with zero warnings. |
 
 # Risks and compatibility
 
@@ -105,27 +116,28 @@ Preserve a bounded, provenance-linked aggregation of the official Tibia forum ev
 
 # Remaining work
 
-1. Create and validate the evidence report.
+1. Commit and push the completed report, then inspect current-head PR checks.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T19:04:22+02:00
-head: 5c2ec1df1b5be9494fbf97ba389bea8fd9070f58
+updated_at: 2026-07-23T19:08:32+02:00
+head: c86c20362913737ab3350543ffa6b350614f3ea9
 branch: docs/can-20260723-object-targeting-forum-evidence
-pr: none
-status: implementing
+pr: 824
+status: validating
 context_routes:
   - real-tibia-parity
   - agent-governance
 owned_paths:
-  - docs/agents/real-tibia/IMPROVED_OBJECT_TARGETING_MULTI_ACTION_FORUM_EVIDENCE.md
+  - docs/ai-agent/REAL_TIBIA_OBJECT_TARGETING_MULTI_ACTION_FORUM_ANALYSIS.md
   - docs/agents/tasks/active/CAN-20260723-object-targeting-forum-evidence.md
 proven:
-  - Current main is 5c2ec1df1b5be9494fbf97ba389bea8fd9070f58.
+  - Current main is bd65e83540a7862427bbf46479e78b666aa01e29.
   - The official thread reports 340 results and is closed.
   - The first displayed page and official-reply index were captured on 2026-07-23.
+  - The report separates official statements, first-page community evidence, derived requirements and unresolved behavior.
 derived:
   - The report can define test candidates but cannot prove Canary or maintained-client behavior.
 unknown:
@@ -138,17 +150,29 @@ first_failure:
 rejected_hypotheses:
   - Forum feedback proves implementation parity: announcement and opinions do not prove runtime behavior.
 changed_paths:
+  - docs/ai-agent/REAL_TIBIA_OBJECT_TARGETING_MULTI_ACTION_FORUM_ANALYSIS.md
   - docs/agents/tasks/active/CAN-20260723-object-targeting-forum-evidence.md
 validation:
   - command: git diff --check
-    result: NOT_RUN
-    evidence: pending
+    result: PASS
+    evidence: No whitespace errors.
+  - command: documentation assertions
+    result: PASS
+    evidence: Two documentation paths, 9 IOT requirements, 12 MAB requirements, source links and corpus boundary verified.
+  - command: python tools/agents/task_ownership.py
+    result: PASS
+    evidence: 29 active task records validated.
+  - command: python tools/agents/checkpoint.py --require-checkpoint docs/agents/tasks/active/CAN-20260723-object-targeting-forum-evidence.md
+    result: PASS
+    evidence: One checkpoint validated.
+  - command: python tools/agents/real_tibia_registry.py validate
+    result: PASS
+    evidence: Registry valid with zero warnings.
 blockers:
   - none
-next_action: Write docs/agents/real-tibia/IMPROVED_OBJECT_TARGETING_MULTI_ACTION_FORUM_EVIDENCE.md.
+next_action: Commit and push the completed report, then inspect current-head PR checks.
 ```
 
 # Handoff
 
 Start with this task record and the evidence report. Do not infer packet fields, server changes, client code or automation semantics beyond the official statements.
-
