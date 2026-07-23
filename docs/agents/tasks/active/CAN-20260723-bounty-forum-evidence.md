@@ -2,13 +2,13 @@
 task_id: CAN-20260723-bounty-forum-evidence
 program_id: CAN-PROGRAM-OTS-FUTURE-GAMEPLAY-SYSTEMS
 coordination_id: ""
-status: review
+status: ready
 agent: "Codex"
 branch: agent/bounty-forum-evidence
 base_branch: main
 created: 2026-07-23T19:07:45+02:00
-updated: 2026-07-23T19:16:51+02:00
-last_verified_commit: "3bb99ca36fbbfb3984595f300901f6e9a4b161f3"
+updated: 2026-07-23T19:26:21+02:00
+last_verified_commit: "af7e257a170dc7c33c100c127e1f375030d893d4"
 risk: low
 related_issue: ""
 related_pr: "829"
@@ -43,7 +43,7 @@ Create a provenance-aware aggregation of official and community evidence from Ti
 - [x] Forum feedback is paraphrased and grouped instead of copied wholesale.
 - [x] Existing Bounty design work is reused without editing its currently recorded owned path.
 - [x] Markdown/path review and `git diff --check` pass.
-- [ ] Current-head GitHub checks are verified.
+- [x] Current-head GitHub checks are verified.
 - [x] Module catalogue impact is handled as none because no reusable interface changes.
 - [x] Cross-repository impact is handled as none because this is server-side research only.
 
@@ -77,7 +77,7 @@ Create a provenance-aware aggregation of official and community evidence from Ti
 
 # Current state
 
-The evidence report is written and locally validated. Draft PR #829 is open. Final commit, current-head CI, scope review, and merge-gate verification remain.
+The evidence report and durable checkpoint are complete. PR #829 is mergeable, its exact-head final gate is green, and only the final metadata checkpoint and merge remain.
 
 # Plan
 
@@ -108,6 +108,13 @@ The evidence report is written and locally validated. Draft PR #829 is open. Fin
 - Failed/blocked: none.
 - Result: `ci:final-gate` is applied before this final checkpoint commit; exact-head GitHub checks remain the final gate.
 
+## 2026-07-23T19:26:21+02:00
+
+- Changed: aligned the active task lifecycle status, reran the exact CI validator locally, and verified PR #829 at `af7e257a170dc7c33c100c127e1f375030d893d4`.
+- Learned: all exact-head checks pass, including `Validate active ownership`, `Validate AI agent tools`, `Detect Build Scope`, and `Required`.
+- Failed/blocked: the first lifecycle run rejected a non-compatible frontmatter status; `review` plus checkpoint `validating` resolved it, and this final record advances both to `ready`.
+- Result: delivery is ready for the final metadata-only CI run and squash merge.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |
@@ -134,6 +141,7 @@ The evidence report is written and locally validated. Draft PR #829 is open. Fin
 | working tree | `python tools/agents/real_tibia_registry.py validate` | passed | Registry remains valid with zero warnings. |
 | `3bb99ca36fbbfb3984595f300901f6e9a4b161f3` | PR scope and mergeability review | passed | Only the task record and evidence report differ from current `main`; PR #829 reports mergeable. |
 | `3bb99ca36fbbfb3984595f300901f6e9a4b161f3` | `ci:final-gate` label | passed | Label applied before the final checkpoint commit. |
+| `af7e257a170dc7c33c100c127e1f375030d893d4` | GitHub final gate | passed | Ownership, AI agent tools, scope detection, required CI, and triage all passed; documentation-only build jobs skipped as designed. |
 
 # Failed approaches and dead ends
 
@@ -151,17 +159,17 @@ The evidence report is written and locally validated. Draft PR #829 is open. Fin
 
 # Remaining work
 
-1. Commit the report and checkpoint, apply the final-gate label, then verify PR #829 on the exact head.
+1. Push this final metadata checkpoint, verify its exact-head checks, and squash-merge PR #829.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T19:16:51+02:00
-head: 3bb99ca36fbbfb3984595f300901f6e9a4b161f3
+updated_at: 2026-07-23T19:26:21+02:00
+head: af7e257a170dc7c33c100c127e1f375030d893d4
 branch: agent/bounty-forum-evidence
 pr: 829
-status: validating
+status: ready
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -201,7 +209,7 @@ validation:
     result: PASS
     evidence: 29 active task records validated with the new claims.
 blockers: []
-next_action: Push this final checkpoint commit and verify PR 829 checks on its exact head.
+next_action: Push this final metadata checkpoint, verify exact-head checks, and squash-merge PR 829.
 ```
 
 # Handoff
@@ -229,7 +237,7 @@ Do not retry unauthenticated forum scraping or infer unavailable posts.
 
 # Completion
 
-- Final status: validating
+- Final status: ready
 - PR: 829
 - Merge commit:
 - Program record updated: not applicable
