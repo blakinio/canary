@@ -4,8 +4,8 @@ name: Universal OTS E2E automation
 status: active
 owner: e2e-platform-agent
 created: 2026-07-13T00:00:00+02:00
-updated: 2026-07-21T00:00:00+02:00
-last_verified_commit: 8dab3a1cbbd1fba4a438cb903b62339386d85813
+updated: 2026-07-23T00:00:00+02:00
+last_verified_commit: 2b2eafcd0d7990f499f25acf74af6526ca72ceee
 primary_paths:
   - tools/e2e/**
   - tests/e2e/runtime/**
@@ -27,7 +27,7 @@ cross_repo_contracts:
 
 Maintain one reusable, disposable environment in which autonomous agents run real Canary and a real controlled OTClient, execute feature-specific scenarios, verify runtime/protocol/database effects, collect deterministic evidence, and clean up without touching production systems.
 
-The current programme phase is no longer platform bootstrap. The reusable physical platform is merged and has proven login/relog, movement, floor change and teleport. The next phase is broad gameplay validation through feature-owned vertical slices, evidence-backed navigation, reusable persistence assertions, justified multi-client orchestration and controlled recovery testing.
+The current programme phase is no longer platform bootstrap. The reusable physical platform is merged and has proven login/relog, movement, floor change, teleport, typed persistence, bounded two-client orchestration, controlled client-disconnect recovery, and one representative cross-system gameplay journey. Further expansion must remain feature-driven and reuse these proven contracts rather than creating parallel orchestration.
 
 Durable architecture: `docs/architecture/universal-e2e-gameplay-validation.md`.
 
@@ -81,6 +81,9 @@ A feature task consumes platform implementation paths read-only unless a separat
 | Physical non-teleport floor change | merged and runtime-proven | PR #512 | baseline for cross-floor execution |
 | Physical teleport | merged and runtime-proven | PR #525 | baseline for mechanic + persistence/relog execution |
 | Typed persistence assertion surfaces | implementation merged; closure matrix delivered | PRs #565, #583, #586, #591, #595, #603, #608, #615 and closure PR #666 | use `docs/e2e/PERSISTENCE_ASSERTION_MATRIX.md`; add a new generic type only for a concrete evidence-backed reusable gap |
+| Bounded two-client orchestration | merged and runtime-proven | PR #747; lifecycle archive #753 | reuse `canary-universal-e2e-two-client-orchestration-v1` for exactly one secondary controlled OTClient; do not generalize actor count or create a second server lifecycle without a separate platform task |
+| Controlled client-disconnect recovery | merged and runtime-proven | PR #751; lifecycle archive #764 | reuse `canary-universal-e2e-client-disconnect-recovery-v1` for the fixed maintained-client `g_game.forceLogout()` fault and real second-login recovery; it is not arbitrary fault injection |
+| Representative cross-system gameplay journey | merged and runtime-proven M4 sentinel | PR #765 | `journeys/promotion-combat-persistence` composes proven deterministic combat, arena return, Canary NPC promotion and typed relog/persistence; keep focused lower-level scenarios as the source of feature-specific proof |
 | Cyclopedia-specific prototype | closed and superseded | PR #224 | historical evidence only; do not revive or copy its infrastructure |
 
 # Current active integration work
@@ -204,17 +207,23 @@ This package proceeds independently of route planning because it reuses the alre
 
 Purpose: extend the single canonical orchestrator to multiple controlled OTClients only when a concrete feature requires it.
 
-Candidate first consumers: trade, party, PvP or direct player-to-player interaction.
+Status: delivered through feature PR #747 and lifecycle archive PR #753. The merged `canary-universal-e2e-two-client-orchestration-v1` contract supports exactly one secondary controlled OTClient and physically proved simultaneous two-client presence, mutual visibility, bounded secondary shutdown and preservation of the primary canonical relog/persistence lifecycle.
+
+Candidate consumers remain trade, party, PvP or direct player-to-player interaction; each must consume the bounded interface instead of copying orchestration.
 
 ## E2E-GAMEPLAY-007 — runtime fault and recovery validation
 
 Purpose: introduce bounded explicit fault-injection seams only after a stable baseline scenario exists, then prove expected recovery, rollback, idempotency or cleanup.
 
-Never target production or third-party systems.
+Status: delivered through feature PR #751 and lifecycle archive PR #764. The merged `canary-universal-e2e-client-disconnect-recovery-v1` contract physically proved one explicit maintained-client `g_game.forceLogout()` disconnect, expected-failure classification, real second-session recovery and clean safe logout.
+
+Never target production or third-party systems. The delivered seam is fixed-purpose client-disconnect recovery, not a generic arbitrary fault-command interface.
 
 ## E2E-GAMEPLAY-008 — cross-system gameplay journeys
 
 Purpose: compose already-proven capabilities into representative player journeys such as temple -> depot -> NPC -> quest/combat -> reward -> relog/persistence.
+
+Status: first representative journey delivered through PR #765. `journeys/promotion-combat-persistence` physically composes deterministic combat, explicit arena close and return, Canary NPC promotion and durable Royal Paladin/zero-balance relog verification on the existing platform. The final task record intentionally remains active for durable programme handoff rather than archiving the integration sentinel in the same run.
 
 Journey tests are integration sentinels and never replace focused feature tests.
 
@@ -241,8 +250,8 @@ E2E-GAMEPLAY-003 quests/NPC    E2E-GAMEPLAY-004 combat
                     v
            E2E-GAMEPLAY-008 journeys
 
-E2E-GAMEPLAY-006 multi-client: start from concrete feature demand.
-E2E-GAMEPLAY-007 recovery: start only after a stable baseline exists.
+E2E-GAMEPLAY-006 multi-client: delivered as a bounded reusable platform contract; extend only from concrete feature demand.
+E2E-GAMEPLAY-007 recovery: delivered as a bounded fixed client-disconnect recovery contract; add other fault seams only through separate evidence-backed platform tasks.
 ```
 
 # Suite roots
@@ -258,7 +267,10 @@ Feature-owned suites may live under roots including:
 - `tests/e2e/scenarios/npc/**`;
 - `tests/e2e/scenarios/combat/**`;
 - `tests/e2e/scenarios/instances/**`;
-- `tests/e2e/scenarios/protocol/**`.
+- `tests/e2e/scenarios/protocol/**`;
+- `tests/e2e/scenarios/multiclient/**`;
+- `tests/e2e/scenarios/recovery/**`;
+- `tests/e2e/scenarios/journeys/**`.
 
 Additional roots require normal programme/task ownership and registry integration; do not create complete parallel workflows per suite.
 
@@ -321,9 +333,11 @@ Choose the first queue item whose dependencies are already satisfied on current 
 
 At the time of this reconciliation:
 
-- E2E-GAMEPLAY-001 is the active documentation package;
-- E2E-GAMEPLAY-002 is gated by the required stable outputs of the OTBM-aware routing programme;
+- E2E-GAMEPLAY-001 remains the architecture/documentation package;
+- E2E-GAMEPLAY-002 remains governed by the current OTBM-aware routing programme state and must be verified live before further route-consumption work;
 - E2E-GAMEPLAY-005 persistence assertion implementation and canonical matrix are complete through the merged typed slices and closure package PR #666;
-- feature vertical slices should start only one deterministic scenario at a time.
+- E2E-GAMEPLAY-006 bounded two-client orchestration is delivered through PR #747 and lifecycle archive #753;
+- E2E-GAMEPLAY-007 controlled client-disconnect recovery is delivered through PR #751 and lifecycle archive #764;
+- E2E-GAMEPLAY-008 has one representative M4 integration sentinel delivered through PR #765; its active task remains the durable handoff record for this run.
 
 Never infer dependency completion from this document alone. Verify current task/PR/merge state before claiming the next package.
