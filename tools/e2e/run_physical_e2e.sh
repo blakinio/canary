@@ -29,6 +29,9 @@ if [[ "${SUITE}/${SCENARIO}" != "${RECOVERY_KEY}" ]]; then
   exec bash "${CORE_RUNNER}"
 fi
 
+cd "${REPO_ROOT}"
+python3 -m unittest tests.e2e.test_canary_restart_recovery
+
 mkdir -p "${ARTIFACT_DIR}"
 : > "${RESTART_PHASES_TSV}"
 rm -f "${RESTART_READY_FILE}" "${OLD_PID_FILE}" "${RESTARTED_PID_FILE}" "${RESTART_EVIDENCE}"
@@ -215,9 +218,6 @@ restart_disposable_canary() {
   record_restart_phase "readiness" "success" "new_server_online=true;ghost_session_count=0"
   printf 'ready\n' > "${RESTART_READY_FILE}"
 
-  if ! wait_for_client_marker "login_request_2="; then
-    :
-  fi
   if ! wait_for_client_marker "login_2=success"; then
     fail_restart "reconnect" "controlled OTClient did not reconnect after server readiness"
     return 1
