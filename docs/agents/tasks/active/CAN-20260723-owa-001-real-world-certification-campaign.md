@@ -2,13 +2,13 @@
 task_id: CAN-20260723-owa-001-real-world-certification-campaign
 program_id: CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS
 coordination_id: OWA-001
-status: review
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/owa-001-real-world-certification-campaign-20260723
 base_branch: main
 created: 2026-07-23T15:53:12+02:00
-updated: 2026-07-23T16:40:00+02:00
-last_verified_commit: "77157119e8f9e6b181ba908138dfb636e104749f"
+updated: 2026-07-23T16:47:00+02:00
+last_verified_commit: "924eaa0ad4f439351658cfcdc8943a3496f2d981"
 risk: medium
 related_issue: ""
 related_pr: "801"
@@ -90,41 +90,38 @@ Deliver the first reproducible reviewed OTBM world-assurance certification campa
 - [x] Keep generated campaign reports, `.otbm`, `.widx`, renders and proprietary assets outside Git.
 - [x] Add focused determinism, provenance mismatch, stale evidence, blocker, output-safety, schema and exact-target tests.
 - [x] Focused local checks completed.
-- [ ] Exact-final-head GitHub checks verified.
-- [ ] Module catalogue/changelog impact handled.
-- [ ] Programme queue/handoff updated with exact certified state and remaining gaps.
-- [x] Cross-repository impact: none.
-- [ ] Autonomous merge gate satisfied.
+- [x] Prefinal exact-current-main GitHub checks passed on `924eaa0ad4f439351658cfcdc8943a3496f2d981`.
+- [x] Changed-file scope reviewed against current `main`; only the ten bounded OWA-001 files differ.
+- [x] Post-merge lifecycle closure is explicitly required to archive this task and update programme queue/handoff plus discovery/changelog records.
+- [ ] Final-head protected CI after `ci:final-gate`.
+- [ ] Squash merge PR #801 and complete lifecycle closure.
 
-# Confirmed result
+# Confirmed campaign result
 
-Reviewed pilot target: `owa-001.thais-temple-to-depot` (`thais.temple -> thais.depot`), class `landmark-route`.
+Target: `owa-001.thais-temple-to-depot` (`thais.temple -> thais.depot`), class `landmark-route`.
 
 Exact provenance:
 
 - source map SHA-256 `a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2`;
 - World Index SHA-256 `6c22cd26d4414aa094af1d00be7f62190a441e270ee7a478b55449bf92e55e7a`.
 
-Exact reviewed route evidence:
+Exact route/runtime evidence:
 
 - origin `[32369,32241,7]`;
 - destination `[32352,32226,7]`;
 - route distance `59`;
 - canonical route plan hash `0736a819ef656f9040ea14c51f1ab474beabe9e4da50435e1eb9e7fd0c28974b`;
-- preflight `passed`;
-- no transition IDs;
-- no route interaction requirement.
-
-Retained Physical E2E:
-
-- workflow run `29704821423`;
-- artifact `8447816376`;
+- route preflight `passed`;
+- transition IDs: none;
+- route interactions: none;
+- retained Physical E2E workflow run `29704821423`;
+- retained artifact ID `8447816376`;
 - artifact ZIP SHA-256 `131faa08eaaccdacda62788b2e173b0f9ecc422a62ecd4769e874e4d136aeb40`;
-- exact runtime map hash matches the reviewed source map.
+- exact runtime-map hash matches reviewed source map.
 
-First campaign state:
+Current campaign state:
 
-- QA-005 dimensions: all `not-evaluated` because no reviewed mechanic binding exists for this pure movement landmark route;
+- QA-005 dimensions: all `not-evaluated`;
 - QA-006: `C0_NOT_EVALUATED`;
 - QA-016 static-route freshness: `current`;
 - QA-016 route-level Physical E2E freshness: `current`;
@@ -150,41 +147,35 @@ No alternative target was substituted because no stronger reviewed QA-005/QA-006
 
 Generated QA-016, QA-018 and campaign result artifacts remain outside Git.
 
-# Validation and CI
+# Validation
 
-| Commit / evidence | Check | Result |
-|---|---|---|
-| local tested implementation | 14 focused unit/schema/output-safety tests | PASS |
-| external exact evidence | repeated OWA-001 campaign composition | PASS; byte-identical outputs |
-| external campaign report | `reportSha256` | `d5bda59b5a6f46695ed9d4037bbbdf5c825b3aae214e4430fd2580d2eb4fc86d` |
-| `e11628dca57d6006381900eee469e164ec1a3817` | CI | PASS |
-| `8ac2a3bb90c665ddfa1ac8b130199ab4c706fd25` | OTBM Map Tools | FAIL only because `jsonschema` was not installed; test dependency removed in `bdc7db22f04d298859eeb6a186e8f34821a60c01` |
-| `77157119e8f9e6b181ba908138dfb636e104749f` | CI / AI Agent Tools / OTBM Map Tools | PASS |
-| `77157119e8f9e6b181ba908138dfb636e104749f` | Agent Task Ownership | FAIL only because frontmatter used unsupported literal `active`; corrected to supported `review` in this update |
-| current PR head | protected checks | pending |
+- Local focused suite: 14 tests passed.
+- Repeated external campaign composition: byte-identical outputs.
+- External generated report field `reportSha256`: `d5bda59b5a6f46695ed9d4037bbbdf5c825b3aae214e4430fd2580d2eb4fc86d`.
+- Prefinal head `924eaa0ad4f439351658cfcdc8943a3496f2d981`, based on current `main` `b9414cadf0b9cce263b3e79c4ac4e3829ba53769`:
+  - Agent Task Ownership: PASS;
+  - OTBM Map Tools: PASS;
+  - AI Agent Tools: PASS;
+  - CI: PASS.
+- PR #801 has no review threads or requested-change reviews and is mergeable.
+- `ci:final-gate` applied before this final checkpoint commit.
 
 # Decisions
 
-- Physical route success is retained as route-level runtime proof only and cannot manufacture QA-005 mechanic coverage.
+- Physical route success is retained as route-level Physical E2E only and cannot manufacture QA-005 mechanic coverage.
 - Formal certification remains C0 until a canonical reviewed QA-005 target exists and QA-006 consumes it.
 - QA-016 freshness is explicit and hash/dependency based; timestamps are not proof.
 - Generated campaign results stay external.
-
-# Remaining work
-
-1. Obtain green exact-head ownership, OTBM Map Tools, AI Agent Tools and repository CI.
-2. Apply final-gate protocol and merge PR #801 only after green protected checks.
-3. Archive this task after merge and update programme queue/handoff so OWA-002 starts from the exact OWA-001 result and blockers.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: "2026-07-23T16:40:00+02:00"
-head: "77157119e8f9e6b181ba908138dfb636e104749f"
+updated_at: "2026-07-23T16:47:00+02:00"
+head: "924eaa0ad4f439351658cfcdc8943a3496f2d981"
 branch: "feat/owa-001-real-world-certification-campaign-20260723"
 pr: 801
-status: validating
+status: ready
 context_routes:
   - agent-governance
   - otbm
@@ -201,10 +192,10 @@ owned_paths:
   - docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN_MANIFEST.schema.json
   - docs/ai-agent/OTBM_WORLD_ASSURANCE_CAMPAIGN_TARGETS.json
 proven:
-  - "Reviewed thais.temple -> thais.depot provenance matches exact source map a80de1dd... and World Index 6c22cd26...."
-  - "Retained artifact 8447816376 digest is 131faa08... and exact route-level Physical E2E is available."
-  - "OWA-001 external campaign report is deterministic and records C0, current freshness, Physical E2E proven, target blocked."
-  - "No canonical reviewed QA-005 mechanic binding exists for this pure-movement route."
+  - "Exact reviewed route/static provenance is current on map a80de1dd... and World Index 6c22cd26...."
+  - "Retained exact route-level Physical E2E artifact 8447816376 is available and proven."
+  - "Formal QA-005 is not evaluated and QA-006 remains C0 because no reviewed mechanic binding exists for this pure-movement route."
+  - "Prefinal ownership, OTBM Map Tools, AI Agent Tools and CI passed on current-main-integrated head 924eaa0a...."
 derived:
   - "Route-level Physical E2E cannot independently raise QA-006 certification."
 unknown: []
@@ -229,14 +220,14 @@ changed_paths:
 validation:
   - command: "focused OWA-001 unittest suite"
     result: PASS
-    evidence: "14 tests passed locally; exact core/CLI/test blobs matched the branch before the dependency-only schema-test adjustment"
+    evidence: "14 tests passed"
   - command: "external campaign run repeated with exact evidence"
     result: PASS
     evidence: "byte-identical reports; reportSha256 d5bda59b5a6f46695ed9d4037bbbdf5c825b3aae214e4430fd2580d2eb4fc86d"
-  - command: "OTBM Map Tools run 30016071142"
-    result: FAIL
-    evidence: "campaign unit/output tests passed; sole failure was ModuleNotFoundError: jsonschema in schema test, dependency removed afterward"
+  - command: "prefinal exact-current-main GitHub validation on 924eaa0ad4f439351658cfcdc8943a3496f2d981"
+    result: PASS
+    evidence: "Agent Task Ownership, OTBM Map Tools, AI Agent Tools and CI all passed"
 blockers:
   - "Formal QA-005/QA-006 certification remains blocked by missing reviewed mechanic binding for the pure movement route."
-next_action: "Obtain green exact-head protected CI for PR #801, merge, archive task, then advance programme handoff to OWA-002 without overstating OWA-001 certification."
+next_action: "Wait for full final-head protected CI on the commit created from this checkpoint, mark PR #801 ready, squash-merge if green, then archive the task and update programme queue/handoff plus discovery/changelog in lifecycle closure."
 ```
