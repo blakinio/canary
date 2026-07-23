@@ -2,13 +2,13 @@
 task_id: CAN-20260722-vocation-forum-analysis
 program_id: CAN-PROGRAM-REAL-TIBIA-PARITY
 coordination_id: ""
-status: ready
+status: completed
 agent: "Codex"
 branch: docs/vocation-forum-analysis-20260722
 base_branch: main
 created: 2026-07-22T20:00:00+02:00
-updated: 2026-07-22T20:50:00+02:00
-last_verified_commit: "e4d3abf0ee20575662804b6dc9a18c22a816b7d7"
+updated: 2026-07-22T18:46:30Z
+last_verified_commit: "10504600670d29eca891f69862300f95407a7173"
 risk: low
 related_issue: ""
 related_pr: "729"
@@ -28,6 +28,7 @@ reuses:
   - docs/agents/REAL_TIBIA_PARITY_PLAYBOOK.md
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-22T18:46:30Z
 ---
 
 # CAN-20260722 — Vocation adjustment forum analysis
@@ -231,3 +232,11 @@ next_action: Push the final checkpoint commit, verify the ci:final-gate checks o
 - Catalogue updated: not required
 - Changelog updated: not required
 - Archived at: not applicable
+
+## Automated lifecycle completion
+
+- Feature PR: #729.
+- Feature head: `fd7b73a0ba615266d88f78133628fd3bab069537`.
+- Merge commit: `10504600670d29eca891f69862300f95407a7173`.
+- Merged at: `2026-07-22T18:46:30Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
