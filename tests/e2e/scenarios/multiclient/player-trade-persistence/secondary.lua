@@ -194,25 +194,57 @@ local function openStarterBackpack(onReady)
 		fail("starter_backpack", "starter backpack in inventory slot 3", "missing")
 		return
 	end
-	local containerId = g_game.open(backpack, nil)
-	if containerId == nil or containerId < 0 then
-		fail("starter_backpack_open", "starter backpack open request accepted", tostring(containerId))
+
+	local containerId = nil
+	local openAttempts = 0
+	local function requestOpen()
+		containerId = g_game.open(backpack, nil)
+		openAttempts = openAttempts + 1
+		if containerId == nil or containerId < 0 then
+			fail("starter_backpack_open", "starter backpack open request accepted", tostring(containerId))
+			return false
+		end
+		if phase == 2 and openAttempts > 1 then
+			appendEvent("trade_backpack_open_retry_2", tostring(openAttempts))
+		end
+		return true
+	end
+
+	local function hasOpenedContainer()
+		if containerId ~= nil and g_game.getContainer(containerId) then
+			return true
+		end
+		for _, container in pairs(g_game.getContainers()) do
+			if container then
+				return true
+			end
+		end
+		return false
+	end
+
+	if not requestOpen() then
 		return
 	end
+
 	local checks = 100
 	local function poll()
 		if finished or not phaseStarted then
 			return
 		end
-		if g_game.getContainer(containerId) then
+		if hasOpenedContainer() then
 			appendEvent("trade_backpack_open_" .. phase, "confirmed")
 			onReady()
 			return
 		end
 		checks = checks - 1
 		if checks <= 0 then
-			fail("starter_backpack_open", "opened starter backpack visible to controlled client", "timeout")
+			fail("starter_backpack_open", "opened starter backpack visible to controlled client", string.format("timeout attempts=%d", openAttempts))
 			return
+		end
+		if phase == 2 and checks % 10 == 0 then
+			if not requestOpen() then
+				return
+			end
 		end
 		scheduleEvent(poll, 100)
 	end
@@ -509,7 +541,7 @@ end
 g_logger.setLogFile(INTERNAL_LOG_PATH)
 appendEvent("scenario", SCENARIO_KEY)
 appendEvent("actor", os.getenv("AGENT_E2E_ACTOR_ID") or "trade-b")
-appendEvent("driver", "e2e-qri-001-trade-secondary-v3")
+appendEvent("driver", "e2e-qri-001-trade-secondary-v4")
 scheduleEvent(startLogin, 1500)
 scheduleEvent(function()
 	if not finished then
