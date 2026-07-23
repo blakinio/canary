@@ -59,16 +59,29 @@ class CanaryRestartRecoveryContractTest(unittest.TestCase):
         )
 
     def test_driver_mutates_and_confirms_state_before_restart_request(self) -> None:
-        ordered = re.compile(
-            r'appendEvent\("mutation_request", "bank_balance_12345"\)'
+        mutation = re.compile(
+            r"local function mutatePersistentState\(\)"
+            r'.*?appendEvent\("mutation_request", "bank_balance_12345"\)'
             r'.*?g_game\.talk\("/addmoney " \.\. CHARACTER \.\. ", 12345"\)'
-            r'.*?waitForBalance\(EXPECTED_BALANCE, "pre_restart_persistence_check"'
+            r'.*?waitForBalance\(EXPECTED_BALANCE, "pre_restart_persistence_check", saveAndRequestRestart\)',
+            re.DOTALL,
+        )
+        save_callback = re.compile(
+            r"local function saveAndRequestRestart\(\)"
             r'.*?appendEvent\("save_request", "fixed_server_save"\)'
             r'.*?g_game\.talk\("/save"\)'
+            r".*?scheduleEvent\(requestRestart, 1000\)",
+            re.DOTALL,
+        )
+        restart_callback = re.compile(
+            r"local function requestRestart\(\)"
+            r".*?restartRequested = true"
             r'.*?appendEvent\("restart_request", "disposable_canary"\)',
             re.DOTALL,
         )
-        self.assertRegex(self.driver, ordered)
+        self.assertRegex(self.driver, mutation)
+        self.assertRegex(self.driver, save_callback)
+        self.assertRegex(self.driver, restart_callback)
 
     def test_driver_requires_real_disconnect_before_relogin(self) -> None:
         self.assertIn('appendEvent("fault_expected", "server_disconnect")', self.driver)
