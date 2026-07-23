@@ -19,10 +19,10 @@ owned_paths:
     - docs/agents/tasks/active/CAN-20260723-otbm-owa-005-qa-contract-hardening.md
     - docs/ai-agent/OTBM_QA_CONTRACT_HARDENING.md
     - tools/ai-agent/test_otbm_qa_contract_hardening.py
+    - tools/ai-agent/otbm_map_change_regression.py
   shared: []
   read_only:
     - tools/ai-agent/otbm_world_health.py
-    - tools/ai-agent/otbm_map_change_regression.py
     - tools/ai-agent/otbm_coverage_dashboard.py
     - tools/ai-agent/otbm_region_quest_certification.py
     - tools/ai-agent/otbm_continuous_assurance.py
@@ -63,6 +63,8 @@ cross_repo_tasks: []
 ## Status
 
 ACTIVE — bounded task is published in draft PR #802. Initial preflight used `main@489607174f22b8b36663fe2251cdba0423388fbd`; `main` then advanced to `b8a88f073b2609b444fa15370aae30ac9f80b908` through merged auth PR #722. Its changed paths are auth/runtime/shared governance only and do not overlap this task's exclusive OTBM hardening paths.
+
+The new permutation fixture exposed one narrow deterministic-output defect by inspection of the current Regression Guard path: `impactEvidence.sampledMechanics` preserved the input Semantic Diff finding order even though findings are semantically unordered and sibling output dimensions are canonicalized. The canonical Regression Guard implementation path is now explicitly claimed for the minimal ordering fix only.
 
 ## Goal
 
@@ -117,8 +119,8 @@ Use only deterministic synthetic JSON/object fixtures and Python standard librar
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T15:58:00+02:00
-head: 76769fd14bc6d35e1491f1c0ba89853613e0588b
+updated_at: 2026-07-23T16:10:00+02:00
+head: d35426d15cbd14f07e77bfcd51fe47c0213cb266
 branch: test/owa-005-qa-contract-hardening-20260723
 pr: 802
 status: active
@@ -130,6 +132,7 @@ owned_paths:
     - docs/agents/tasks/active/CAN-20260723-otbm-owa-005-qa-contract-hardening.md
     - docs/ai-agent/OTBM_QA_CONTRACT_HARDENING.md
     - tools/ai-agent/test_otbm_qa_contract_hardening.py
+    - tools/ai-agent/otbm_map_change_regression.py
   shared: []
 proven:
   - Initial main at task creation was 489607174f22b8b36663fe2251cdba0423388fbd; main then advanced to b8a88f073b2609b444fa15370aae30ac9f80b908 through merged auth PR #722.
@@ -138,22 +141,29 @@ proven:
   - CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS is active and explicitly permits OWA-005 in parallel where path ownership is disjoint.
   - OTBM-QA-001..018 are delivered and lifecycle-closed; OWA-005 must harden those canonical contracts rather than create replacements.
   - No open GitHub PR or branch named for OWA-001 was found during preflight.
-  - Existing QA implementations already provide focused unit/output-safety/schema suites; this task adds cross-contract adversarial/property-style coverage rather than duplicating them.
+  - Candidate Physical E2E already has direct mismatch coverage for pipeline candidate SHA, Semantic Diff candidate SHA and selected Semantic Diff hash binding.
+  - Dependency/Blast-Radius already covers unresolved evidence boundaries and exact current map/World Index provenance mismatches.
+  - Compact Evidence Gateway already covers exact source hash mismatch, format mismatch and unsafe source path rejection.
+  - The new OWA-005 suite adds missing permutation/cross-contract composition coverage instead of duplicating those focused tests.
   - Local checkout execution is unavailable in this session because the environment cannot resolve github.com; GitHub repository state and CI will be used for execution evidence.
 derived:
-  - The smallest useful package is one cross-contract synthetic suite plus a durable invariant/gap note, with implementation edits only if a new regression test exposes an existing deterministic/fail-closed contract violation.
+  - The Regression Guard's sampled mechanic list is built from Semantic Diff findings in input order; because the list is emitted directly, permuting otherwise equivalent findings changes deterministic JSON/hash output.
+  - The minimal fix is to canonicalize sampled mechanic entries by stable finding ID after filtering, leaving selection semantics and evidence contents unchanged.
 unknown:
-  - Whether semantic finding-order permutation is already canonical end-to-end until the focused adversarial test executes.
-  - Exact candidate Physical E2E pure-function seam suitable for a new bounded hash-mismatch test until its current source/test is inspected.
+  - GitHub CI result for the newly added adversarial suite until workflow execution is reported for the branch head.
 conflicts: []
-first_failure: null
+first_failure:
+  marker: regression-guard-sampled-mechanics-order
+  evidence: OWA-005 permutation fixture creates equivalent Semantic Diff reports with reversed finding order; current _static_plan emits sampledMechanics by input order rather than canonical finding ID order.
 rejected_hypotheses:
   - Building a new OTBM parser, index, pathfinder, diff or E2E harness for hardening.
   - Mutating a production OTBM as a fuzz target.
   - Editing OWA-001 campaign targets or TCR-owned paths.
+  - Broadly reordering or rewriting Semantic Diff evidence instead of fixing the one emitted unordered Regression Guard list.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260723-otbm-owa-005-qa-contract-hardening.md
+  - tools/ai-agent/test_otbm_qa_contract_hardening.py
 validation: []
 blockers: []
-next_action: Inspect the current candidate-validation and remaining QA composition seams, add the focused adversarial suite and hardening note, then use GitHub CI as execution evidence.
+next_action: Apply the one-line canonical sampledMechanics ordering fix, add the invariant note, then inspect GitHub CI and any ownership/format failures on the exact branch head.
 ```
