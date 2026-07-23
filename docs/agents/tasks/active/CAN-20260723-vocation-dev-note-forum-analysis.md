@@ -7,8 +7,8 @@ agent: "Codex"
 branch: agent/dev-note-vocation-forum-analysis
 base_branch: main
 created: 2026-07-23T19:11:40+02:00
-updated: 2026-07-23T19:26:29+02:00
-last_verified_commit: "074d27046037031b7d4947a3c4c3aeefc0cdb09e"
+updated: 2026-07-23T20:11:44+02:00
+last_verified_commit: "2a3e6fa1dc87169ff65ee09f59195324bd5f7d3a"
 risk: low
 related_issue: ""
 related_pr: "831"
@@ -49,6 +49,7 @@ Add a complete, evidence-bounded analysis of official Dev Note thread `4989637` 
 
 - Repository and PR target are exactly `blakinio/canary:main`.
 - PR #821 merged the current Druid, Monk, General Changes, Sorcerer, Release State, and Release report baseline.
+- PR #830 merged the complete Knight supplement while the final gate was running; its report content is preserved in the resolved current-main integration.
 - Draft PR #823 currently edits only its Paladin task record and keeps the report read-only. Coordination comment records that this task owns the report until merge.
 - Chrome collection returned all 82 rendered public pages and all 1,625 displayed post identifiers without duplicates.
 - The corpus contains five official-marker posts and 1,620 community posts from 1,400 community author names.
@@ -56,7 +57,7 @@ Add a complete, evidence-bounded analysis of official Dev Note thread `4989637` 
 
 # Current state
 
-The full corpus and reproducibility manifest are retained outside Git. The complete report is committed and pushed to draft PR #831, local repository validation passes, and `ci:final-gate` is applied. Only the exact-final-head CI and merge gate remain.
+The full corpus and reproducibility manifest are retained outside Git. The complete Dev Note and newly merged Knight analyses are combined without loss. Current `main` is integrated, `ci:final-gate` remains applied, and the refreshed exact-final-head CI and merge gate remain.
 
 # Plan
 
@@ -68,8 +69,8 @@ The full corpus and reproducibility manifest are retained outside Git. The compl
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T19:26:29+02:00
-head: 074d27046037031b7d4947a3c4c3aeefc0cdb09e
+updated_at: 2026-07-23T20:11:44+02:00
+head: 2a3e6fa1dc87169ff65ee09f59195324bd5f7d3a
 branch: agent/dev-note-vocation-forum-analysis
 pr: 831
 status: ready
@@ -84,14 +85,15 @@ proven:
   - The collected corpus has 1,625 unique post identifiers and no duplicates.
   - The corpus has 5 official-marker posts and 1,620 community posts.
   - A total of 137 rendered quote blocks from 100 posts were removed before theme matching.
+  - Current main adds the complete 595-post Knight corpus; the combined seven-corpus total is 7,187 accessible posts and 51 official markers.
 derived:
   - Theme counts prioritize validation questions but cannot authorize gameplay values.
 unknown:
   - Whether forum posts changed after the collection snapshot.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: none
+  marker: merge conflict after green final gate
+  evidence: PR #830 merged a Knight supplement into the shared report while the final gate ran; both supplements are preserved in the resolved current-main integration.
 rejected_hypotheses: []
 changed_paths:
   - docs/agents/tasks/active/CAN-20260723-vocation-dev-note-forum-analysis.md
@@ -127,6 +129,12 @@ validation:
   - command: lifecycle-status root-cause correction
     result: PASS
     evidence: Frontmatter status is now ready and matches checkpoint status ready; the final gate must rerun on the corrective head.
+  - command: exact-head final gate on 2a3e6fa1dc87169ff65ee09f59195324bd5f7d3a
+    result: PASS
+    evidence: Ownership, AI tools, fast checks, Lua tests, all platform builds, Docker image, quickstart smoke, and Required succeeded before main drift introduced a report conflict.
+  - command: current-main overlap resolution
+    result: PASS
+    evidence: Dev Note and Knight sections, methodologies, provenance, and totals are preserved; the aggregate is recomputed as 7,187 posts and 51 official markers.
 blockers: []
-next_action: Push the corrective final checkpoint commit, wait for all required checks on its exact head, then mark PR #831 ready and squash-merge.
+next_action: Commit and push the resolved current-main integration, wait for all required checks on its exact head, then squash-merge PR #831.
 ```
