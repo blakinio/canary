@@ -7,7 +7,7 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 base_branch: main
 created: 2026-07-22T16:00:00+02:00
-updated: 2026-07-22T23:54:00+02:00
+updated: 2026-07-23T11:30:00+02:00
 last_verified_commit: 285dec6a034aa3620ae5ca12549fb9e8e1b35631
 risk: high
 related_issue: ""
@@ -18,7 +18,7 @@ depends_on:
   - "Oteryn Platform Gateway PR #122 merged as 8006534108d835474dadd208b0ec934e4a12528b"
   - "Oteryn Platform docs/contracts/GAME_SESSION_CANARY_CONTRACT.md"
 blocks:
-  - "production Oteryn native-auth cross-repository E2E"
+  - "production Oteryn native-auth cutover pending Platform hardening and deployment-boundary proof"
   - "legacy password-auth cutover"
 owned_paths:
   exclusive:
@@ -66,13 +66,13 @@ Implement the Canary-side Game Session compatibility adapter for the Oteryn nati
 
 - [x] Canary adapter implementation, focused tests, build registration and documentation are complete.
 - [x] Exact-head Canary CI, security, ownership and formatting validation are green.
-- [ ] Prove full OTClient -> Oteryn Gateway -> Canary native-auth E2E before any production-readiness claim.
+- [x] Prove full OTClient -> Oteryn Gateway -> Canary native-auth E2E before any production-readiness claim.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-22T23:54:00+02:00
+updated_at: 2026-07-23T11:30:00+02:00
 head: 285dec6a034aa3620ae5ca12549fb9e8e1b35631
 branch: feat/CAN-20260722-oteryn-game-session-adapter
 pr: 722
@@ -95,9 +95,6 @@ owned_paths:
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
 changed_paths:
-  - docs/agents/CHANGELOG.md
-  - docs/agents/CROSS_REPO_CONTRACTS.md
-  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260722-oteryn-game-session-adapter.md
   - src/main.cpp
   - src/security/CMakeLists.txt
@@ -107,54 +104,53 @@ changed_paths:
   - tests/unit/security/CMakeLists.txt
   - tests/unit/security/game_session_http_issuer_test.cpp
   - vcproj/settings.props
+  - docs/agents/CROSS_REPO_CONTRACTS.md
 proven:
   - Candidate B is implemented as a disabled-by-default per-process HTTP issuer reusing LoginSessionManager.
   - Account and allowed-character data are loaded authoritatively by numeric Canary account id without Oteryn password authentication.
   - ServiceManager requires explicit CANARY_GAME_SESSION_ISSUER_WORLD_ID and does not equate Platform game_worlds.id with Canary ChannelContext channel_id.
-  - LoginSessionManager provides SHA-256-only process-local storage, 60-second TTL and atomic single-use consume bound to account, character names and protocol profile.
-  - Duplicate login_attempt_id issuance is fail-closed for the token TTL; failed issuance releases the reservation without retaining raw Game Session credentials.
-  - Existing ProtocolGame and IOLoginData world-entry ownership/deletion/ban/runtime checks remain unchanged and authoritative after token issuance.
-  - Cross-repository contract, module catalogue and changelog document the issuer, rollout order, retry/failure semantics and production blockers.
-  - Exact head 285dec6a034aa3620ae5ca12549fb9e8e1b35631 passed CI run 29957357479, Security Validation run 29957357463, Agent Task Ownership run 29957357248 and autofix run 29957357043.
+  - LoginSessionManager provides SHA-256-only process-local storage, 60-second TTL and atomic single-use consume; duplicate login_attempt_id issuance is fail-closed for the token TTL.
+  - Existing ProtocolGame and IOLoginData world-entry ownership, deletion, ban and runtime checks remain unchanged and authoritative after token issuance.
+  - Cross-repository contracts document the issuer and rollout; OTClient PR #17 is merged at bb87346f6c516a19d19497d82bb01fb389334ff5 and Oteryn Platform Gateway PR #122 is merged at 8006534108d835474dadd208b0ec934e4a12528b.
+  - Canary implementation head 285dec6a034aa3620ae5ca12549fb9e8e1b35631 passed CI run 29957357479, Security Validation run 29957357463, Agent Task Ownership run 29957357248 and autofix run 29957357043.
+  - Bounded cross-repository E2E is proven: behavior run 29988893301 recorded one successful Knight 1 world entry and replay_rejected=login_error with successful_world_entries=1; final evidence run 29992417296 also passed physical job 89166128089 and Required physical E2E job 89167924405 using Canary 285dec6a034aa3620ae5ca12549fb9e8e1b35631, OTClient bb87346f6c516a19d19497d82bb01fb389334ff5 and Gateway 8006534108d835474dadd208b0ec934e4a12528b.
 derived:
   - Candidate B preserves stronger single-use world-entry semantics than replayable account_sessions.
   - A lost successful create-session response intentionally cannot be recovered by repeating the same login_attempt_id; the orphan token expires and the client must start a fresh native-login attempt.
   - Gateway protocol v1 safely supports only ProtocolProfileId::Current without expanding the cross-repository request contract.
 unknown:
-  - Full native OTClient -> Oteryn Gateway -> Canary E2E behavior has not yet been proven by an orchestrator covering all three repositories.
   - Exact production private-network/TLS boundary and service-credential rotation mechanism for Gateway -> Canary remain unproven.
-  - Whether future production requirements mandate multi-world routing or same-world horizontal replicas in the first expansion remains unresolved.
+  - Future requirements for immediate security-generation revocation, multi-world routing and same-world horizontal replicas remain outside the proven v1 deployment model.
 conflicts:
-  - Prior handoff claimed Oteryn Platform PR 123 was merged; live PR state and current Platform main prove it was closed unmerged and its advertised hardening remains absent.
+  - Prior handoff claimed Oteryn Platform PR #123 was merged; live state on 2026-07-23 confirms it is closed unmerged and its advertised hardening remains absent.
 first_failure:
-  marker: cross-repo-native-auth-e2e-unproven
-  evidence: Canary exact-head validation is green, but the required bounded cross-repository runtime and physical-client environment is unavailable in this CHAT connector session.
+  marker: platform-production-hardening-unproven
+  evidence: Oteryn Platform PR #123 remains closed unmerged with zero changed files, so overlapping service credential-hash rotation, pre-auth throttling ordering and complete ticket-boundary no-store hardening are not proven on Platform main.
 rejected_hypotheses:
   - Reuse ProtocolLogin issuer unchanged: it requires account password authentication.
-  - Use DB account_sessions as single-use: current contract records replay until expiry/deletion.
-  - Serve the issuer through existing Tibia ServicePort multiplexing: it lacks the required HTTP/service-auth boundary.
+  - Use DB account_sessions as single-use: current contract records replay until expiry or deletion.
+  - Serve the issuer through existing Tibia ServicePort multiplexing: it lacks the required HTTP and service-auth boundary.
   - Issue all tokens in the login-gateway process: LoginSessionManager storage is process-local.
   - Treat Platform game_worlds.id as Canary ChannelContext channel_id: ServiceManager uses a separately configured Platform world id and only logs local channel identity.
 validation:
   - command: exact-head CI run 29957357479 on 285dec6a034aa3620ae5ca12549fb9e8e1b35631
     result: PASS
-    evidence: current-head CI completed successfully.
+    evidence: Canary implementation CI completed successfully.
   - command: Security Validation run 29957357463 on 285dec6a034aa3620ae5ca12549fb9e8e1b35631
     result: PASS
-    evidence: current-head security validation completed successfully.
-  - command: Agent Task Ownership run 29957357248 on 285dec6a034aa3620ae5ca12549fb9e8e1b35631
+    evidence: Canary implementation security validation completed successfully.
+  - command: Agent Task Ownership run 29957357248 and autofix run 29957357043 on 285dec6a034aa3620ae5ca12549fb9e8e1b35631
     result: PASS
-    evidence: current-head ownership and checkpoint validation completed successfully.
-  - command: autofix run 29957357043 on 285dec6a034aa3620ae5ca12549fb9e8e1b35631
+    evidence: ownership/checkpoint validation passed and formatting completed without mutation.
+  - command: Universal Agent E2E behavior run 29988893301
     result: PASS
-    evidence: current-head formatting validation completed without mutation.
-  - command: bounded cross-repository native-auth runtime E2E
-    result: BLOCKED
-    evidence: no local multi-repository checkout, Canary runtime, Oteryn Gateway, maintained OTClient or physical-client execution capability is available in this CHAT connector session.
+    evidence: maintained OTClient entered Knight 1 exactly once through Gateway and Canary, then replay of the same Game Session failed with login_error and successful_world_entries=1.
+  - command: Universal Agent E2E final evidence run 29992417296 on E2E head 804e7c0e233305592d941525951e2e124d407149
+    result: PASS
+    evidence: physical job 89166128089 and Required physical E2E job 89167924405 completed successfully; CI, ownership and autofix for the evidence head were also green.
 blockers:
-  - Full OTClient -> Oteryn Gateway -> Canary native-auth E2E is unproven.
-  - Production readiness remains blocked until missing Platform hardening is delivered and proven.
-  - Production Gateway -> Canary private-network/TLS transport and credential rotation are unproven.
-  - Immediate generation-based revocation, multi-world routing and same-world horizontal scaling are outside Gateway protocol v1.
-next_action: Escalate only the bounded cross-repository native-auth runtime E2E to CODEX with local checkouts and a maintained physical OTClient, then checkpoint its exact success or first failure back into this task.
+  - Production readiness remains blocked until the missing Oteryn Platform hardening is delivered and proven.
+  - Production Gateway -> Canary private-network/TLS transport and service-credential rotation remain unproven.
+  - Immediate generation-based revocation, multi-world routing and same-world horizontal scaling are outside Gateway protocol v1 and require separate design before they are claimed.
+next_action: Deliver and prove the missing Oteryn Platform production hardening that supersedes closed-unmerged PR #123 before any production native-auth cutover.
 ```
