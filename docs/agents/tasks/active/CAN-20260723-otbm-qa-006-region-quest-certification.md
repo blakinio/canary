@@ -1,7 +1,7 @@
 ---
 task_id: CAN-20260723-otbm-qa-006-region-quest-certification
 program_id: CAN-PROGRAM-OTBM
-status: validating
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/otbm-qa-006-007-certification-assurance-20260723
 base_branch: main
@@ -43,7 +43,7 @@ cross_repo_tasks: []
 
 ## Status
 
-VALIDATING — bounded certification composition over exact QA-005 Coverage Dashboard evidence. No map, datapack, runtime or E2E execution changes are authorized.
+READY — bounded certification composition over exact QA-005 Coverage Dashboard evidence. No map, datapack, runtime or E2E execution changes are authorized.
 
 ## Goal
 
@@ -62,11 +62,11 @@ Assign deterministic C0-C7 certification levels to explicitly reviewed bounded r
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T11:20:00+02:00
-head: 96375947b358eb3256473b9c9aae80082582baff
+updated_at: 2026-07-23T11:25:00+02:00
+head: ab47b0b7de40b5ee8701908cd283291d0d0400f9
 branch: feat/otbm-qa-006-007-certification-assurance-20260723
 pr: 759
-status: validating
+status: ready
 context_routes:
   - otbm
   - agent-governance
@@ -88,15 +88,15 @@ proven:
   - PR 759 pre-final Agent Task Ownership run 29993845514 succeeded on the same head.
   - PR 759 pre-final OTBM Map Tools run 29993845673 succeeded on the same head after dependency-free schema-test correction.
   - PR 759 pre-final AI Agent Tools job in run 29993845590 completed successfully on the same head.
-  - ci:final-gate was applied before this final checkpoint cycle.
+  - ci:final-gate was applied before the final checkpoint cycle.
 derived:
   - QA-006 remains a composition layer over QA-005 and does not need a new parser, validator, pathfinder or E2E runner.
 unknown:
-  - Exact-final-head CI, Ownership, OTBM Map Tools and AI Agent Tools conclusions after the final checkpoint commits.
+  - Exact-final-head CI, Ownership, OTBM Map Tools and AI Agent Tools conclusions after the final active-status normalization commits.
 conflicts: []
 first_failure:
-  marker: schema-test-runtime-dependency
-  evidence: Initial OTBM Map Tools validation exposed test-only jsonschema imports unavailable in the OTBM workflow; both schema tests were rewritten to use the standard library and repository JSON validation, after which pre-final OTBM validation passed.
+  marker: checkpoint-active-status
+  evidence: Exact-final Ownership rejected status validating for a record stored under tasks/active; the final checkpoint is normalized to the allowed ready state without changing feature behavior.
 rejected_hypotheses:
   - Recompute QA-005 evidence inside QA-006.
   - Treat stale evidence as current certification.
@@ -129,5 +129,5 @@ validation:
     result: PASS
     evidence: Pre-final AI Agent Tools job completed successfully.
 blockers: []
-next_action: Verify all exact-final-head required checks after the final QA-007 checkpoint commit; if green and review/scope audit is clean, mark PR 759 ready and merge without further feature commits.
+next_action: Verify all exact-final-head required checks after the final QA-007 ready-state checkpoint commit; if green and review/scope audit is clean, mark PR 759 ready and merge without further feature commits.
 ```
