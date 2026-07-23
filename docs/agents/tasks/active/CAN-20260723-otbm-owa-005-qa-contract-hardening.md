@@ -1,13 +1,13 @@
 ---
 task_id: CAN-20260723-otbm-owa-005-qa-contract-hardening
 program_id: CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS
-status: implementing
+status: validating
 agent: "GPT-5.6 Thinking"
 branch: test/owa-005-qa-contract-hardening-20260723
 base_branch: main
 created: 2026-07-23
 updated: 2026-07-23
-last_verified_commit: "b8a88f073b2609b444fa15370aae30ac9f80b908"
+last_verified_commit: "ce41e78101259d8f3bdc885fdd37b9ea0a2752a1"
 risk: medium
 related_issue: ""
 related_pr: "802"
@@ -62,9 +62,9 @@ cross_repo_tasks: []
 
 ## Status
 
-IMPLEMENTING — bounded task is published in draft PR #802. Initial preflight used `main@489607174f22b8b36663fe2251cdba0423388fbd`; `main` then advanced to `b8a88f073b2609b444fa15370aae30ac9f80b908` through merged auth PR #722. Its changed paths are auth/runtime/shared governance only and do not overlap this task's exclusive OTBM hardening paths.
+VALIDATING — bounded implementation is complete in PR #802 and the PR carries `ci:final-gate`. This is the final task/checkpoint commit before exact-head validation; no further commit is allowed unless a validation failure requires a real fix and therefore a new final-gate cycle.
 
-The new permutation fixture exposed one narrow deterministic-output defect by inspection of the current Regression Guard path: `impactEvidence.sampledMechanics` preserved the input Semantic Diff finding order even though findings are semantically unordered and sibling output dimensions are canonicalized. The canonical Regression Guard implementation path is explicitly claimed for the minimal ordering fix only.
+The adversarial permutation fixture exposed one narrow deterministic-output defect in the existing Regression Guard: `impactEvidence.sampledMechanics` preserved the input Semantic Diff finding order even though findings are semantically unordered and sibling output dimensions are canonicalized. The production change is limited to sorting that emitted evidence list by stable `findingId`; selection semantics and evidence contents are unchanged.
 
 ## Goal
 
@@ -72,7 +72,7 @@ Harden the delivered canonical OTBM QA contracts with deterministic synthetic/pr
 
 ## Bounded slice
 
-Prioritize missing cross-contract regression coverage for:
+The package protects:
 
 - canonical ordering and permutation-invariant deterministic outputs;
 - dependency-scoped provenance/freshness invalidation;
@@ -80,17 +80,20 @@ Prioritize missing cross-contract regression coverage for:
 - exact map/World Index provenance composition across Regression Guard, World Health, Certification and Continuous Assurance;
 - bounded/truncated evidence never authorizing safe skip;
 - unknown/missing appearance evidence remaining an explicit incompatibility;
-- input evidence immutability for pure composition contracts;
-- candidate/current hash mismatch behavior where the existing candidate Physical E2E contract exposes a bounded pure validation seam.
+- input evidence immutability for pure composition contracts.
 
-Use only deterministic synthetic JSON/object fixtures and Python standard library infrastructure. Do not commit generated `.otbm`, `.widx`, reports or production-map fixtures.
+Candidate/current hash mismatch, dependency unresolved boundaries and compact evidence hash/path mismatch were inspected and intentionally not duplicated because direct focused regression coverage already exists in their owning suites.
+
+Use only deterministic synthetic JSON/object fixtures and Python standard library infrastructure. No generated `.otbm`, `.widx`, reports or production-map fixtures are committed.
 
 ## Ownership and concurrency
 
-- OWA-001 was rechecked before task creation: no open PR or branch named for OWA-001 was found in current GitHub state.
-- No OWA-001 campaign target manifest or campaign implementation path is owned or edited by this task.
-- Open OTBM/TCR work remains independent; shared catalogue/changelog files are intentionally not claimed.
-- Any newly discovered path overlap is a stop condition until ownership is reconciled.
+- Initial preflight found no OWA-001 PR or branch.
+- OWA-001 subsequently started as PR #801 and owns campaign-specific task/tool/schema/target paths.
+- PR #802 owns only this task record, the hardening note, the focused hardening test suite and the one Regression Guard implementation path needed for the proven deterministic-output defect.
+- OWA-001 PR #801 currently changes only its task record and declares different exclusive campaign paths; no exclusive-path overlap exists with OWA-005.
+- OWA-005 does not edit OWA-001 campaign target manifests or campaign implementation paths.
+- Shared programme/catalogue/changelog paths are intentionally not edited in PR #802.
 
 ## Acceptance criteria
 
@@ -119,11 +122,11 @@ Use only deterministic synthetic JSON/object fixtures and Python standard librar
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-23T16:18:00+02:00
-head: 597d3e50ec98c908977bb3e03a907f633f3b4e50
+updated_at: 2026-07-23T16:25:00+02:00
+head: ce41e78101259d8f3bdc885fdd37b9ea0a2752a1
 branch: test/owa-005-qa-contract-hardening-20260723
 pr: 802
-status: implementing
+status: validating
 context_routes:
   - otbm
   - agent-governance
@@ -133,24 +136,28 @@ owned_paths:
   - tools/ai-agent/test_otbm_qa_contract_hardening.py
   - tools/ai-agent/otbm_map_change_regression.py
 proven:
-  - Initial main at task creation was 489607174f22b8b36663fe2251cdba0423388fbd; main then advanced to b8a88f073b2609b444fa15370aae30ac9f80b908 through merged auth PR #722.
-  - PR #722 changed auth/runtime/unit-test/shared-governance paths only and does not overlap this task's exclusive OTBM hardening paths.
-  - Draft PR #802 targets blakinio/canary:main from blakinio/canary:test/owa-005-qa-contract-hardening-20260723.
-  - CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS is active and explicitly permits OWA-005 in parallel where path ownership is disjoint.
-  - OTBM-QA-001..018 are delivered and lifecycle-closed; OWA-005 must harden those canonical contracts rather than create replacements.
-  - No open GitHub PR or branch named for OWA-001 was found during preflight.
+  - Current main remains b8a88f073b2609b444fa15370aae30ac9f80b908; its post-preflight delta was merged auth PR #722 and does not overlap OWA-005 exclusive paths.
+  - PR #802 targets blakinio/canary:main from blakinio/canary:test/owa-005-qa-contract-hardening-20260723 and is mergeable.
+  - OWA-001 subsequently started as PR #801; its declared exclusive campaign paths are disjoint from OWA-005 exclusive paths and PR #802 does not edit its shared programme paths.
+  - OTBM-QA-001..018 are delivered and lifecycle-closed; OWA-005 hardens those canonical contracts rather than creating replacements.
   - Candidate Physical E2E already has direct mismatch coverage for pipeline candidate SHA, Semantic Diff candidate SHA and selected Semantic Diff hash binding.
   - Dependency/Blast-Radius already covers unresolved evidence boundaries and exact current map/World Index provenance mismatches.
   - Compact Evidence Gateway already covers exact source hash mismatch, format mismatch and unsafe source path rejection.
-  - The new OWA-005 suite adds missing permutation/cross-contract composition coverage instead of duplicating those focused tests.
-  - AI Agent Tools run 30014279914 and OTBM Map Tools run 30014282487 passed on ca3f17a8f159707c66f5a4d233bf8da4493f8b6c after the canonical-ordering fix; AI Agent Tools discovers every tools/ai-agent/test_*.py test.
-  - CI run 30014280323 passed on ca3f17a8f159707c66f5a4d233bf8da4493f8b6c.
+  - The new OWA-005 suite adds missing permutation, dependency-scoped freshness, cross-contract provenance, stale-certification and immutability coverage instead of duplicating those focused tests.
+  - The only production-code diff is a stable findingId sort for Regression Guard impactEvidence.sampledMechanics.
+  - Agent Task Ownership run 30014666361 passed on ce41e78101259d8f3bdc885fdd37b9ea0a2752a1 after task/checkpoint format corrections.
+  - AI Agent Tools run 30014672577 passed on ce41e78101259d8f3bdc885fdd37b9ea0a2752a1; the workflow discovers all tools/ai-agent/test_*.py tests.
+  - OTBM Map Tools run 30014670468 completed its focused OTBM test job successfully on ce41e78101259d8f3bdc885fdd37b9ea0a2752a1.
+  - CI run 30014667667 completed its Required aggregator successfully on ce41e78101259d8f3bdc885fdd37b9ea0a2752a1.
+  - PR #802 has no reviews or unresolved review threads.
+  - The full changed-file list contains only the four owned OWA-005 files; no .otbm, .widx, items.otb, active datapack content or secret path is changed.
+  - The ci:final-gate label was applied before this final checkpoint commit.
   - Local checkout execution is unavailable in this session because the environment cannot resolve github.com; GitHub repository state and CI are used for execution evidence.
 derived:
-  - The Regression Guard's sampled mechanic list was built from Semantic Diff findings in input order; because the list was emitted directly, permuting otherwise equivalent findings changed deterministic JSON/hash output.
-  - The minimal fix is one stable sort of sampled mechanic entries by findingId after filtering, leaving selection semantics and evidence contents unchanged.
+  - The previous Regression Guard sampled mechanic list was input-order dependent; stable sorting by findingId is the minimal contract-preserving deterministic fix.
+  - Exact final-head full validation must now run on the commit produced by this checkpoint update before readiness or merge.
 unknown:
-  - GitHub validation result on the latest documentation/task-record head.
+  - Exact final-head workflow conclusions until GitHub Actions completes on this checkpoint commit.
 conflicts: []
 first_failure:
   marker: regression-guard-sampled-mechanics-order
@@ -158,7 +165,7 @@ first_failure:
 rejected_hypotheses:
   - Building a new OTBM parser, index, pathfinder, diff or E2E harness for hardening.
   - Mutating a production OTBM as a fuzz target.
-  - Editing OWA-001 campaign targets or TCR-owned paths.
+  - Editing OWA-001 campaign targets or campaign implementation paths.
   - Broadly reordering or rewriting Semantic Diff evidence instead of fixing the one emitted unordered Regression Guard list.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260723-otbm-owa-005-qa-contract-hardening.md
@@ -167,17 +174,17 @@ changed_paths:
   - tools/ai-agent/otbm_map_change_regression.py
 validation:
   - command: Agent Task Ownership / Validate changed active task checkpoints
-    result: FAIL
-    evidence: Initial runs exposed repository-format errors in checkpoint owned_paths and task/checkpoint status; all were corrected without scope changes.
+    result: PASS
+    evidence: Run 30014666361 passed on ce41e78101259d8f3bdc885fdd37b9ea0a2752a1 after initial task/checkpoint format failures were corrected without weakening scope or checks.
   - command: AI Agent Tools
     result: PASS
-    evidence: Run 30014279914 passed on ca3f17a8f159707c66f5a4d233bf8da4493f8b6c after the determinism fix.
+    evidence: Run 30014672577 passed on ce41e78101259d8f3bdc885fdd37b9ea0a2752a1.
   - command: OTBM Map Tools
     result: PASS
-    evidence: Run 30014282487 passed on ca3f17a8f159707c66f5a4d233bf8da4493f8b6c after the determinism fix.
-  - command: CI
+    evidence: Run 30014670468 focused OTBM test job completed successfully on ce41e78101259d8f3bdc885fdd37b9ea0a2752a1.
+  - command: CI / Required
     result: PASS
-    evidence: Run 30014280323 passed on ca3f17a8f159707c66f5a4d233bf8da4493f8b6c after the determinism fix.
+    evidence: Run 30014667667 Required aggregator completed successfully on ce41e78101259d8f3bdc885fdd37b9ea0a2752a1.
 blockers: []
-next_action: Recheck ownership validation on the corrected task status, review the full PR diff and current-main delta, then enter the labelled exact-final-head validation sequence.
+next_action: Require the full ci:final-gate validation set to pass on this checkpoint commit's exact head; then mark PR #802 ready and squash-merge without further commits.
 ```
