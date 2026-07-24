@@ -21,9 +21,90 @@ on:
       - ".github/workflows/agent-task-lifecycle.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
+  finalize-qri006:
+    name: Finalize QRI-006 discovery and checkpoint
+    if: github.event_name == 'pull_request' && github.head_ref == 'feat/e2e-qri-006-cleanup-certification'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v6
+        with:
+          ref: feat/e2e-qri-006-cleanup-certification
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Materialize final documents and restore workflow
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          module_path = Path("docs/agents/MODULE_CATALOG.md")
+          changelog_path = Path("docs/agents/CHANGELOG.md")
+          program_path = Path("docs/agents/programs/E2E_AUTOMATION_PROGRAM.md")
+          task_path = Path("docs/agents/tasks/active/CAN-20260724-e2e-qri-006-cleanup-certification.md")
+
+          module = module_path.read_text(encoding="utf-8")
+          module_row = "| Universal OTS E2E resource cleanup certification | merged and runtime-proven (#871) | `canary-universal-e2e-cleanup-certification-v1`, schema version 1: post-trap certification for every canonical physical run over one dedicated runner-owned process group, exact recorded primary/optional-secondary PIDs and exit evidence, zero online/ghost test sessions, zero active disposable-DB transactions, logical workspace restoration, temporary-marker removal and explicit workflow-owned MariaDB handoff; bounded exact-PGID `SIGTERM`/`SIGKILL` reaping is recorded before certification | `tools/e2e/cleanup_certification.py`, `tools/e2e/run_physical_e2e.sh`, `tools/e2e/result_envelope.py`, `tests/e2e/test_cleanup_certification.py`, `tests/e2e/test_cleanup_result_envelope.py`, task `CAN-20260724-e2e-qri-006-cleanup-certification` | Reuse this contract and the existing `cleanup-certification.json`/schema-v3 `result.json`. `cleanup=true` only when every required applicable check passes. Gameplay success and cleanup certification remain independent. Never discover or kill by process name, accept caller-selected PIDs/PGIDs/commands/SQL/hosts, touch production, or create another runner/workflow/artifact path. |\n"
+          if "| Universal OTS E2E resource cleanup certification |" not in module:
+              anchor = "| Universal Agent Load |"
+              if anchor not in module:
+                  raise SystemExit("MODULE_CATALOG anchor missing")
+              module = module.replace(anchor, module_row + anchor, 1)
+          module_path.write_text(module, encoding="utf-8")
+
+          changelog = changelog_path.read_text(encoding="utf-8")
+          bullet = "- Adds `canary-universal-e2e-cleanup-certification-v1` through PR #871: every canonical Universal Physical E2E run now captures a logical-path workspace baseline, executes the unchanged lifecycle in one dedicated runner-owned process group, performs bounded exact-PGID residual-child reaping after the lifecycle trap, and emits `cleanup-certification.json` with exact process/exit, optional secondary actor, disposable-database session/transaction, fixture ghost-session, workspace restoration, temporary-marker and workflow-service-handoff checks. The same evidence is integrated into schema-v3 `result.json` and promotes only the orthogonal cleanup dimension; gameplay status remains independent. The contract adds no process-by-name discovery, caller-selected PID/PGID/command/SQL/host surface, production target, second runner, workflow or artifact path, and event artifact paths are reduced to safe artifact names.\n"
+          marker = "## Unreleased\n\n"
+          if "`canary-universal-e2e-cleanup-certification-v1` through PR #871" not in changelog:
+              if marker not in changelog:
+                  raise SystemExit("CHANGELOG marker missing")
+              changelog = changelog.replace(marker, marker + bullet, 1)
+          changelog_path.write_text(changelog, encoding="utf-8")
+
+          program = program_path.read_text(encoding="utf-8")
+          program = re.sub(r"^updated: .*?$", "updated: 2026-07-24T13:40:00+02:00", program, count=1, flags=re.MULTILINE)
+          program = re.sub(r"^last_verified_commit: .*?$", "last_verified_commit: 49b6d190eaa15353d2220c2b5f5f18246ebaa982", program, count=1, flags=re.MULTILINE)
+          foundation = "| Resource cleanup certification | merged and runtime-proven | PR #871 | reuse `canary-universal-e2e-cleanup-certification-v1` schema v1 after the canonical lifecycle trap; cleanup passes only when every required applicable exact process, database, workspace and marker check passes, independently from gameplay status |\n"
+          if "| Resource cleanup certification |" not in program:
+              anchor = "| Representative cross-system gameplay journey |"
+              if anchor not in program:
+                  raise SystemExit("programme foundation anchor missing")
+              program = program.replace(anchor, foundation + anchor, 1)
+
+          old = "## Recommended next implementation wave\n\nSelect one package at a time after live dependency and ownership preflight. QRI-001, QRI-002, QRI-003 and QRI-005 are delivered and lifecycle-closed. Current recommendation:\n\n1. `E2E-QRI-006` — resource cleanup certification over the merged schema-v3 result envelope;\n2. `E2E-QRI-004` — factual M0-M5 plus quality-dimension coverage dashboard;\n3. `E2E-QRI-022` — flake/stability certification after the selected scenarios are stable enough to measure.\n\nLater waves cover transactional/resilience correctness (`QRI-008` through `014`), test intelligence (`QRI-015` through `021`) and operational/release confidence (`QRI-023` through `028`).\n\nThis ordering is guidance, not permission to start packages concurrently. Concrete feature demand and current ownership remain authoritative."
+          new = "## Recommended next implementation wave\n\nSelect one package at a time after live dependency and ownership preflight. QRI-001, QRI-002, QRI-003, QRI-005 and QRI-006 are delivered. Current recommendation:\n\n1. `E2E-QRI-004` — factual M0-M5 plus quality-dimension coverage dashboard consuming the merged result and cleanup contracts;\n2. `E2E-QRI-022` — flake/stability certification after the selected scenarios are stable enough to measure.\n\nLater waves cover transactional/resilience correctness (`QRI-008` through `014`), test intelligence (`QRI-015` through `021`) and operational/release confidence (`QRI-023` through `028`).\n\nThis ordering is guidance, not permission to start packages concurrently. Concrete feature demand and current ownership remain authoritative."
+          if old not in program:
+              raise SystemExit("programme recommendation block missing or changed")
+          program = program.replace(old, new, 1)
+          program_path.write_text(program, encoding="utf-8")
+
+          task = task_path.read_text(encoding="utf-8")
+          task = re.sub(r"^status: review$", "status: ready", task, count=1, flags=re.MULTILINE)
+          task = re.sub(r'^last_verified_commit: ".*?"$', 'last_verified_commit: "d996db1dc3c585766bb17eb5000f57a19f2a1e9c"', task, count=1, flags=re.MULTILINE)
+          task = task.replace("status: validating\n", "status: ready\n", 1)
+          task = re.sub(r"unknown:\n(?:  - .*\n)+conflicts:", "unknown: []\nconflicts:", task, count=1)
+          task = task.replace("  - The certifier now reaps only residual members of the exact dedicated PGID with bounded SIGTERM then SIGKILL escalation and records members_before, signals, members_after and errors.\n", "  - The certifier now reaps only residual members of the exact dedicated PGID with bounded SIGTERM then SIGKILL escalation and records members_before, signals, members_after and errors.\n  - Exact-head Universal Agent E2E run 30088384760 passed on 49b6d190eaa15353d2220c2b5f5f18246ebaa982; cleanup contract schema 1 reported certified=true with 18/18 required checks, gameplay success, PGID 4839 member 4911 reaped by SIGTERM, no remaining members, no warnings and no unknowns.\n  - Artifact 8595225850 has digest sha256:6a188e536610fa420d3e1ed7c41cfefd8f88a93dca2bd980b0d833cc73161a6d and the schema-v3 envelope reports execution_tier=pr-required and quality_dimensions.cleanup=pass.\n  - Absolute runner paths found in legacy session-record events were reduced to artifact basenames by d996db1dc3c585766bb17eb5000f57a19f2a1e9c with a focused regression test.\n", 1)
+          task = task.replace("  marker: runner_process_group_empty\n  evidence: Physical run 30085762318 retained PID 4872 in dedicated PGID 4780 after the existing lifecycle trap; gameplay status was success and all other 17 required cleanup checks passed.\n", "  marker: runner_process_group_empty\n  evidence: Physical run 30085762318 retained PID 4872 in dedicated PGID 4780 after the existing lifecycle trap; gameplay status was success and all other 17 required cleanup checks passed.\n  resolution: Exact-PGID bounded reaping was added and physical run 30088384760 proved 18/18 cleanup checks with no remaining members.\n", 1)
+          task = task.replace("blockers: []\nnext_action: Run exact-head CI, ownership and Universal Physical E2E on the synchronized PGID-reaper head, inspect cleanup-certification.json and result.json, then register, final-gate, merge and archive QRI-006.\n", "blockers: []\nnext_action: Complete the exact final-head CI, ownership and physical gate, then squash-merge PR 871 and verify the automated lifecycle archive PR.\n", 1)
+          task_path.write_text(task, encoding="utf-8")
+          PY
+
+          git checkout origin/main -- .github/workflows/agent-task-ownership.yml
+          rm -f docs/agents/.qri006-finalize-trigger
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/agents/MODULE_CATALOG.md docs/agents/CHANGELOG.md docs/agents/programs/E2E_AUTOMATION_PROGRAM.md docs/agents/tasks/active/CAN-20260724-e2e-qri-006-cleanup-certification.md .github/workflows/agent-task-ownership.yml docs/agents/.qri006-finalize-trigger
+          git diff --cached --check
+          git commit -m "docs(e2e): finalize QRI-006 discovery and checkpoint"
+          git push origin HEAD:feat/e2e-qri-006-cleanup-certification
+
   validate:
     name: Validate active ownership
     runs-on: ubuntu-latest
