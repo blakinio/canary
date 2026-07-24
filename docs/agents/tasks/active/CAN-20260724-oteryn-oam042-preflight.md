@@ -2,7 +2,7 @@
 task_id: CAN-20260724-oteryn-oam042-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-042
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-042-npcs-revalidation
 base_branch: main
@@ -11,7 +11,7 @@ updated: 2026-07-24
 last_verified_commit: "f28acc8e959e79448ea99dead2500a64460f3aff"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "862"
 depends_on:
   - Canary OAM-042 preflight merged as c86e805910d87dc8db9a212b18645e27c28c779c
   - Otheryn OAM-042 target proof merged as 0d01f077f80c2d4cd3d4231d2ffb9416874ba54e
@@ -59,10 +59,11 @@ Reconcile the completed Otheryn OAM-042 target proof into Canary governance with
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T10:18:00+02:00
-head: c76dbdb43825479fbee034ca27aa26a3eff04fe3
+updated_at: 2026-07-24T10:22:00+02:00
+head: c2d70bbc6682de0b4192409e0d65b79739b6ade6
 branch: dudantas/oam-042-npcs-revalidation
-status: implementing
+pr: 862
+status: validating
 context_routes:
   - agent-governance
   - otbm
@@ -80,6 +81,7 @@ proven:
   - Reviewed target/current-upstream NPC runtime, npclib, Harlow, Rashid and placement paths shared the exact blobs recorded in the revalidation report.
   - The target-local source-contract test covered loader/registration callbacks, Lua NPC interaction/shop surfaces, dialogue/travel, Harlow storage-gated travel and Rashid quest/shop gating.
   - OAM-041 deterministic placement/definition evidence remains external Canary evidence and retains duplicate Harlow plus 310 nonliteral dynamic calls as unresolved boundaries.
+  - PR 862 has ci:final-gate before this final checkpoint commit.
 derived:
   - No concrete npcs-owned target defect was isolated; bounded final disposition is npcs REUSE.
   - No legacy runtime, target adaptation, OTBM tool copy or generated evidence migration is justified.
@@ -112,5 +114,5 @@ validation:
     result: PASS
     evidence: registration, callback, Lua runtime, dialogue/travel, Harlow and Rashid contracts are source-covered while unresolved findings remain fail-closed.
 blockers: []
-next_action: Open the two-file Canary governance PR, bind its PR number into this checkpoint, apply ci:final-gate before the final checkpoint commit, then require exact-head ownership and CI before merge.
+next_action: Mark PR 862 ready, require exact-head Agent Task Ownership and full final-gate CI, then audit comments reviews threads and Canary-main drift before expected-head squash merge.
 ```
