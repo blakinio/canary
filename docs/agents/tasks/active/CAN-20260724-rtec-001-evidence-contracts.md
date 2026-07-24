@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/rtec-001-evidence-contracts-20260724
 base_branch: main
 created: 2026-07-24T21:45:37+02:00
-updated: 2026-07-24T22:45:00+02:00
-last_verified_commit: "a0ab0d2ab4d8bf386daa9b461975b81984afb5ae"
+updated: 2026-07-24T22:50:00+02:00
+last_verified_commit: "f9a86d1584adfa142d832f3847175fc29add14da"
 risk: medium
 related_issue: ""
 related_pr: "897"
@@ -143,8 +143,8 @@ The dedicated workflow also runs the existing canonical registry validator and d
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T22:45:00+02:00
-head: a0ab0d2ab4d8bf386daa9b461975b81984afb5ae
+updated_at: 2026-07-24T22:50:00+02:00
+head: f9a86d1584adfa142d832f3847175fc29add14da
 branch: feat/rtec-001-evidence-contracts-20260724
 pr: 897
 status: validating
@@ -168,8 +168,8 @@ proven:
   - PR 897 is open as a draft from the exact claimed base.
   - Five schema-version-1 contracts and the standard-library validator/generator are published.
   - Local compile, 22 focused tests, corpus validation and generated-index checks pass.
-  - Current-head dedicated evidence workflow, main CI, registry and upstream-intelligence checks passed at a0ab0d2.
-  - The ownership failure was isolated to an unsupported checkpoint status and corrected in this commit.
+  - Current-head dedicated evidence workflow, main CI, registry and upstream-intelligence checks passed at f9a86d1.
+  - The ownership failure is isolated to unsupported checkpoint result PARTIAL and is corrected by the next commit.
   - No module dossier, owner runner/parser or runtime behavior was added.
 derived:
   - The empty generated index is the deterministic factual baseline until RTEC-002 creates the first bounded module records.
@@ -177,8 +177,8 @@ unknown:
   - Current-head rerun after checkpoint correction and final review findings.
 conflicts: []
 first_failure:
-  marker: agent-task-ownership-checkpoint-status
-  evidence: unsupported checkpoint status implementation-published-draft-pr; corrected to validating
+  marker: agent-task-ownership-checkpoint-result
+  evidence: validation item 3 used unsupported result PARTIAL; corrected to FAIL for the failed workflow run
 rejected_hypotheses:
   - Populate all module dossiers now: rejected because RTEC-001 stabilizes contracts first.
   - Reuse or edit Universal E2E, OTBM/OWA or TCR implementation paths: rejected because owners retain execution authority.
@@ -201,9 +201,9 @@ validation:
   - command: evidence validate and deterministic generate --check
     result: PASS
     evidence: empty factual baseline valid at 2026-07-24
-  - command: GitHub Actions at a0ab0d2
-    result: PARTIAL
-    evidence: evidence contracts, CI, registry and upstream intelligence passed; ownership checkpoint status failed and was corrected
+  - command: GitHub Actions at f9a86d1
+    result: FAIL
+    evidence: evidence contracts, CI, registry and upstream intelligence passed; ownership checkpoint rejected unsupported result PARTIAL
 blockers: []
 next_action: Re-check current-head CI, inspect the complete PR diff and resolve review findings before applying ci:final-gate.
 ```
