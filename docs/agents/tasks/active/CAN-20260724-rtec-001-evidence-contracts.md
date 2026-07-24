@@ -2,13 +2,13 @@
 task_id: CAN-20260724-rtec-001-evidence-contracts
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-001
-status: review
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/rtec-001-evidence-contracts-20260724
 base_branch: main
 created: 2026-07-24T21:45:37+02:00
-updated: 2026-07-24T23:10:00+02:00
-last_verified_commit: "847cb18234026eb8b0c3a52f420c91fa7fc3d656"
+updated: 2026-07-24T23:37:05+02:00
+last_verified_commit: "43cea90a23632bf4d21ccc7ffd82a84ba0f21d53"
 risk: medium
 related_issue: ""
 related_pr: "897"
@@ -83,7 +83,8 @@ Implement the versioned evidence, owner-request, module-index and version-histor
 - [x] Add focused positive/negative tests for malformed, conflicting, stale, duplicate, unsafe and ordering cases.
 - [x] Keep external/proprietary artifacts outside Git and forbid committed artifact payloads.
 - [x] Keep gameplay/runtime/client/protocol/database/map/datapack behavior unchanged.
-- [ ] Complete current-head CI, full diff review, `ci:final-gate`, readiness and squash merge.
+- [x] Complete corrected current-head CI, full 17-file diff review, review-thread check, readiness and `ci:final-gate` application.
+- [ ] Squash-merge the exact green final head.
 - [ ] Verify post-merge lifecycle archival.
 
 # Confirmed context and boundaries
@@ -93,7 +94,7 @@ Implement the versioned evidence, owner-request, module-index and version-histor
 - PR #885 owns only Universal E2E dashboard paths and remains read-only.
 - The existing Real Tibia registry remains the sole canonical module-ID registry.
 - Universal E2E, OTBM/OWA, TCR, protocol/client and feature programmes retain execution/result ownership.
-- No Collector worker or module dossier population may start before RTEC-001 merges.
+- No Collector worker or module dossier population may start before RTEC-001 merges and its lifecycle task is archived.
 - No runtime, gameplay, protocol, client, map, datapack or database behavior is changed.
 
 # Implemented contracts
@@ -114,8 +115,9 @@ All use `schema_version: 1`. `.yaml` records use the YAML 1.2 JSON-compatible su
 - Explicit authority, evidence-state, proof-level, source-type, `proves`, `does_not_prove`, confidence and uncertainty validation.
 - Source proof caps and rejection of static/lower proof promotion to gameplay or physical-client proof.
 - Exact source URL/path/SHA/build/report/artifact-hash locators and outside-Git artifact retention.
-- Separate version lifecycle cells and separate official release/client build/protocol/commit/map/datapack/appearance/sidecar/database axes.
-- Derived/bounded/unknown ranges when exact first version is not proven.
+- Separate `announced_in`, `introduced_in`, `observed_in`, `changed_in`, `deprecated_in`, `removed_in`, `effective_from` and `effective_until` lifecycle cells.
+- Separate official release/client build/protocol/Canary commit/OTClient commit/map/datapack/appearances-sidecar/database axes.
+- Derived/bounded/unknown ranges when exact first version is not proven; ambiguous generic `version` values are rejected.
 - Cross-record references, reciprocal supersession and cycle validation.
 - Owner request routes and legal state transitions with owner evidence required for owner-controlled states.
 - Deterministic atomic generation using sorted facts, temporary files, `fsync` and `os.replace`.
@@ -137,17 +139,17 @@ python tools/agents/real_tibia_evidence.py generate --check --as-of 2026-07-24
 PASS
 ```
 
-The dedicated workflow also runs the existing canonical registry validator and deterministic registry generation check on Python 3.12.
+The dedicated workflow also validates the published Draft 2020-12 schemas and runs the existing canonical registry validator and deterministic registry generation check on Python 3.12.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T22:51:03+02:00
-head: f773097b5f22f5bab8ada275403f5f99a27c0339
+updated_at: 2026-07-24T23:37:05+02:00
+head: 43cea90a23632bf4d21ccc7ffd82a84ba0f21d53
 branch: feat/rtec-001-evidence-contracts-20260724
 pr: 897
-status: validating
+status: ready
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -165,21 +167,24 @@ owned_paths:
   - .github/workflows/real-tibia-evidence.yml
 proven:
   - RTEC-000 is merged and archived.
-  - PR 897 is open from the exact claimed base and owns the declared paths.
+  - PR 897 is open and ready from the exact claimed base and owns the declared paths.
   - Five schema-version-1 contracts and the standard-library validator/generator are published.
-  - Local compile, 27 focused tests, corpus validation and generated-index checks pass.
-  - CI, Agent Task Ownership, Real Tibia Evidence Contracts, Real Tibia Module Registry and Upstream Intelligence all passed at f773097b5f22f5bab8ada275403f5f99a27c0339.
-  - Review found and corrected a generic version-history field that violated mandatory lifecycle-cell separation.
-  - The premature ci:final-gate label was removed before publishing the semantic correction.
+  - Review found and corrected the generic version-history field that violated mandatory lifecycle-cell separation.
+  - Local compile, 27 focused tests, schema checks, corpus validation and generated-index checks pass.
+  - CI, Agent Task Ownership, Real Tibia Evidence Contracts, Real Tibia Module Registry, Upstream Intelligence and autofix all passed at 43cea90a23632bf4d21ccc7ffd82a84ba0f21d53.
+  - The complete net diff contains exactly 17 declared files, no temporary migration payloads and no proprietary artifacts.
+  - No review threads or review findings remain.
+  - The ci:final-gate label was applied before this final checkpoint commit.
   - No module dossier, owner runner/parser or runtime behavior was added.
 derived:
   - The empty generated index is the deterministic factual baseline until RTEC-002 creates the first bounded module records.
 unknown:
-  - Current-head CI outcome after the semantic correction.
+  - Exact final-head CI outcome for this checkpoint commit.
+  - Squash-merge result and automated lifecycle archival result.
 conflicts: []
 first_failure:
-  marker: version-history-generic-version-field
-  evidence: generic version field violated mandatory lifecycle separation; corrected before renewed final gate
+  marker: none
+  evidence: the version-history semantic defect and checkpoint validation defects were corrected; no unresolved current-head failure remains
 rejected_hypotheses:
   - Populate all module dossiers now: rejected because RTEC-001 stabilizes contracts first.
   - Reuse or edit Universal E2E, OTBM/OWA or TCR implementation paths: rejected because owners retain execution authority.
@@ -202,13 +207,13 @@ validation:
   - command: evidence validate and deterministic generate --check
     result: PASS
     evidence: empty factual baseline valid at 2026-07-24
-  - command: GitHub Actions at f773097b5f22f5bab8ada275403f5f99a27c0339
+  - command: GitHub Actions at 43cea90a23632bf4d21ccc7ffd82a84ba0f21d53
     result: PASS
-    evidence: CI, ownership, evidence contracts, canonical registry and upstream intelligence all succeeded
+    evidence: full CI, ownership, evidence contracts, canonical registry, upstream intelligence and autofix succeeded
 blockers: []
-next_action: Re-check the corrected current-head diff and CI, then reapply ci:final-gate before the final checkpoint commit.
+next_action: After the exact final-head gate is green, squash-merge PR 897 with expected-head protection and verify automated lifecycle archival before starting RTEC-002.
 ```
 
 # Handoff
 
-Re-fetch PR #897 head, checks and changed files before any edit. Do not create module dossiers, owner execution tooling, an alternate registry, an E2E runner, an OTBM parser/index/pathfinder/renderer/certifier or a TCR/client-package parser.
+Re-fetch PR #897 head, checks and changed files before merge. Do not commit after the green exact final-head gate. Do not create module dossiers, owner execution tooling, an alternate registry, an E2E runner, an OTBM parser/index/pathfinder/renderer/certifier or a TCR/client-package parser.
