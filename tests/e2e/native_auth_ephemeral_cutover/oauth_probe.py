@@ -213,7 +213,7 @@ def run_matrix(output: Path) -> int:
 
     if first_ok:
         ticket_status, ticket, ticket_headers = probe.issue_ticket(str(token["access_token"]))
-        result["game_ticket_issued"] = ticket_status == 201 and isinstance(ticket.get("ticket"), str) and bool(ticket.get("ticket"))
+        result["game_ticket_issued"] = ticket_status == 200 and isinstance(ticket.get("ticket"), str) and bool(ticket.get("ticket"))
         result["game_ticket_cache_headers"] = cache_headers_ok(ticket_headers)
         second_status, _, second_headers = probe.issue_ticket(str(token["access_token"]))
         result["oauth_token_family_revoked_after_ticket"] = second_status == 401
@@ -247,7 +247,7 @@ def issue_ticket(secret_output: Path) -> int:
     if status != 200 or not isinstance(token.get("access_token"), str):
         return 2
     ticket_status, ticket, _ = probe.issue_ticket(str(token["access_token"]))
-    if ticket_status != 201 or not isinstance(ticket.get("ticket"), str) or not ticket.get("ticket"):
+    if ticket_status != 200 or not isinstance(ticket.get("ticket"), str) or not ticket.get("ticket"):
         return 3
     secret_output.write_text(str(ticket["ticket"]), encoding="utf-8")
     return 0
