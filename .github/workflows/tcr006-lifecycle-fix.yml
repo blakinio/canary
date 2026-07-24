@@ -1,12 +1,10 @@
 name: TCR-006 Lifecycle Fix
-# trigger existing branch workflow
+# second trigger from an existing workflow revision
 
 on:
   push:
     branches:
       - docs/tcr-006-lifecycle-closeout
-    paths:
-      - .github/workflows/tcr006-lifecycle-fix.yml
 
 permissions:
   contents: write
