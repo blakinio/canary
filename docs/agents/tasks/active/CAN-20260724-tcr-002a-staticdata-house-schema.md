@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: fix/tcr-002a-staticdata-house-schema
 base_branch: main
 created: 2026-07-24T11:38:00+02:00
-updated: 2026-07-24T12:02:00+02:00
-last_verified_commit: "e54fb6e64a9d09dd95bd9ed03e583317cc14e3f7"
+updated: 2026-07-24T12:10:00+02:00
+last_verified_commit: "fc493be73a0dcce2467659d13ba37b0a78f7d4ad"
 risk: medium
 related_issue: ""
 related_pr: 870
@@ -63,11 +63,11 @@ Correct TCR-002 HouseData normalization for hybrid StaticData files where the to
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T12:02:00+02:00
-head: e54fb6e64a9d09dd95bd9ed03e583317cc14e3f7
+updated_at: 2026-07-24T12:10:00+02:00
+head: fc493be73a0dcce2467659d13ba37b0a78f7d4ad
 branch: fix/tcr-002a-staticdata-house-schema
 pr: 870
-status: validating
+status: final-gate
 context_routes:
   - agent-governance
   - otbm
@@ -79,20 +79,23 @@ owned_paths:
   - tools/ai-agent/test_tibia_staticdata_reference_index.py
   - docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.md
   - docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.schema.json
-  - .github/workflows/tibia-client-reference.yml
   - docs/agents/MODULE_CATALOG.md
 proven:
   - Draft PR 870 is the sole TCR-002A owner; TCR-005 PR 868 remains intentionally blocked and read-only toward this producer.
+  - PR 870 is synchronized with main b1d24ec362ec52652886f6be6129234ff44e7d4d and preserves the concurrent E2E module-catalogue registration.
   - Pinned legacy proto at beats-dh/Beats-Assets-Editor@ed827be34c279d1279ad3dde3af434b148ac05c7 defines HouseData field 5=size and field 7=beds.
   - Pinned newer proto at the same commit defines House field 5=beds and field 7=size.
   - Exact StaticData SHA-256 0bd51e1660f9d58594eb10000c35ea51113fc668aa3ee416c8c6b7ebb59b78ff selects the legacy top-level category layout but exhibits newer-style nested house values.
   - Exact field-5 values range 0..34 with median 2; exact field-7 values range 5..750 with median 26 across 995 houses.
   - Existing schemaVersion 1 normalizes Spiritkeep as size=23,beds=382 and Sunset Homes Flat 01 as size=1,beds=13, proving that top-level schema selection cannot safely determine nested house semantics.
-  - schemaVersion 2 implementation separates source.schemaFamily from source.houseFieldOrder.
+  - schemaVersion 2 separates source.schemaFamily from source.houseFieldOrder.
   - Default unresolved mode emits houseField5 and houseField7, omits semantic size/beds, records one unresolvedHouseFieldOrder finding and forbids claimed review metadata.
   - Reviewed legacy/newer modes require non-empty reviewId and statement; no distribution or numeric heuristic is used.
   - Reviewed newer exact-file output normalizes Spiritkeep as beds=23,size=382 and Sunset Homes Flat 01 as beds=1,size=13.
-  - Durable PR diff contains exactly the task, parser, CLI, focused tests, documentation and schema; temporary workflows removed themselves.
+  - Module catalogue explicitly warns consumers not to use semantic house size/beds unless houseFieldOrder is reviewed.
+  - Durable PR diff contains exactly seven expected task, parser, CLI, tests, docs, schema and catalogue paths; all temporary workflows are absent.
+  - Agent Task Ownership, Tibia Client Reference, repository CI/Required and AI Agent Tools passed on implementation head fc493be73a0dcce2467659d13ba37b0a78f7d4ad.
+  - The ci:final-gate label was applied before this final checkpoint commit.
 derived:
   - StaticData schema-family and HouseData field-order evidence are independent dimensions.
   - Default unresolved preservation is safer than silently applying either proto ordering.
@@ -111,6 +114,7 @@ rejected_hypotheses:
   - Treat all legacy top-level files as legacy HouseData forever: disproven by the exact selected file.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260724-tcr-002a-staticdata-house-schema.md
+  - docs/agents/MODULE_CATALOG.md
   - tools/ai-agent/tibia_staticdata_reference_index.py
   - tools/ai-agent/tibia_staticdata_reference_index_tool.py
   - tools/ai-agent/test_tibia_staticdata_reference_index.py
@@ -138,6 +142,18 @@ validation:
   - command: exact reviewed-newer output
     result: PASS
     evidence: 995 houses; SHA-256 0d07a36cd5bff13b73e46bfffed278c8499599ad18032e2b9d58a4bfe9222813; generated outside Git
+  - command: GitHub Agent Task Ownership on fc493be73a0dcce2467659d13ba37b0a78f7d4ad
+    result: PASS
+    evidence: run 30084990463
+  - command: GitHub Tibia Client Reference on fc493be73a0dcce2467659d13ba37b0a78f7d4ad
+    result: PASS
+    evidence: run 30084990631
+  - command: GitHub CI/Required on fc493be73a0dcce2467659d13ba37b0a78f7d4ad
+    result: PASS
+    evidence: run 30084990646
+  - command: GitHub AI Agent Tools on fc493be73a0dcce2467659d13ba37b0a78f7d4ad
+    result: PASS
+    evidence: run 30084990555
 blockers: []
-next_action: Flatten the exact six-file diff onto current main, update the module catalogue, verify standard workflows, apply ci:final-gate before the final checkpoint and merge PR 870 if green.
+next_action: Verify every final-gate workflow on the exact new checkpoint head, then mark PR 870 ready and enable auto-merge if green.
 ```
