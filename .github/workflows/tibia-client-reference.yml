@@ -1,47 +1,117 @@
-name: TCR-006 Closeout Finalizer
+---
+name: Tibia Client Reference
 
 on:
   pull_request:
-    branches:
-      - main
     paths:
-      - .tcr006-finalizer-trigger
-      - .github/workflows/tibia-client-reference.yml
+      - "tools/ai-agent/tibia_client_reference_manifest.py"
+      - "tools/ai-agent/tibia_client_reference_manifest_tool.py"
+      - "tools/ai-agent/test_tibia_client_reference_manifest.py"
+      - "tools/ai-agent/tibia_staticdata_reference_index.py"
+      - "tools/ai-agent/tibia_staticdata_reference_index_tool.py"
+      - "tools/ai-agent/test_tibia_staticdata_reference_index.py"
+      - "tools/ai-agent/tibia_staticmapdata_reference_index.py"
+      - "tools/ai-agent/tibia_staticmapdata_reference_index_tool.py"
+      - "tools/ai-agent/test_tibia_staticmapdata_reference_index.py"
+      - "tools/ai-agent/tibia_proficiency_reference_index.py"
+      - "tools/ai-agent/tibia_proficiency_reference_index_tool.py"
+      - "tools/ai-agent/test_tibia_proficiency_reference_index.py"
+      - "tools/ai-agent/otbm_house_reference_parity.py"
+      - "tools/ai-agent/otbm_house_reference_parity_tool.py"
+      - "tools/ai-agent/test_otbm_house_reference_parity.py"
+      - "tools/ai-agent/tibia_content_reference_correlation.py"
+      - "tools/ai-agent/tibia_content_reference_correlation_tool.py"
+      - "tools/ai-agent/test_tibia_content_reference_correlation.py"
+      - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.md"
+      - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.schema.json"
+      - "docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.md"
+      - "docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.schema.json"
+      - "docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.md"
+      - "docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.schema.json"
+      - "docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.md"
+      - "docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.schema.json"
+      - "docs/ai-agent/OTBM_HOUSE_REFERENCE_PARITY.md"
+      - "docs/ai-agent/OTBM_HOUSE_REFERENCE_PARITY.schema.json"
+      - "docs/ai-agent/OTBM_HOUSE_ID_RESOLVER.schema.json"
+      - "docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.md"
+      - "docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json"
+      - "docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json"
+      - ".github/workflows/tibia-client-reference.yml"
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  finalize:
-    if: github.event.pull_request.head.ref == 'docs/tcr-006-lifecycle-closeout'
+  validate-reference-tooling:
+    name: Validate client reference tooling
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          ref: docs/tcr-006-lifecycle-closeout
-          fetch-depth: 0
-      - name: Correct durable handoff
-        shell: bash
+          python-version: "3.12"
+
+      - name: Run manifest focused tests
+        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_client_reference_manifest.py" -v
+
+      - name: Run StaticData focused tests
+        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_staticdata_reference_index.py" -v
+
+      - name: Run StaticMapData focused tests
+        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_staticmapdata_reference_index.py" -v
+
+      - name: Run proficiency focused tests
+        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_proficiency_reference_index.py" -v
+
+      - name: Run house parity focused tests
+        run: python -m unittest discover -s tools/ai-agent -p "test_otbm_house_reference_parity.py" -v
+
+      - name: Run content correlation focused tests
+        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_content_reference_correlation.py" -v
+
+      - name: Compile client reference tooling
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md')
-          text = path.read_text(encoding='utf-8')
-          old = '7. Do not silently continue into TCR-007 or another TCR package in the same PR.'
-          new = '7. Do not silently continue into TCR-008 or another TCR package in the same PR.'
-          if old in text:
-              text = text.replace(old, new, 1)
-              path.write_text(text, encoding='utf-8')
-          elif new not in text:
-              raise SystemExit('neither expected handoff line is present')
-          PY
-          rm -f .tcr006-finalizer-trigger
-          grep -F '7. Do not silently continue into TCR-008 or another TCR package in the same PR.' docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
-          if git diff --quiet; then
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md .tcr006-finalizer-trigger
-          git commit -m "docs(tcr): finalize TCR-006 lifecycle handoff"
-          git push origin HEAD:docs/tcr-006-lifecycle-closeout
+          python -m py_compile \
+            tools/ai-agent/tibia_client_reference_manifest.py \
+            tools/ai-agent/tibia_client_reference_manifest_tool.py \
+            tools/ai-agent/test_tibia_client_reference_manifest.py \
+            tools/ai-agent/tibia_staticdata_reference_index.py \
+            tools/ai-agent/tibia_staticdata_reference_index_tool.py \
+            tools/ai-agent/test_tibia_staticdata_reference_index.py \
+            tools/ai-agent/tibia_staticmapdata_reference_index.py \
+            tools/ai-agent/tibia_staticmapdata_reference_index_tool.py \
+            tools/ai-agent/test_tibia_staticmapdata_reference_index.py \
+            tools/ai-agent/tibia_proficiency_reference_index.py \
+            tools/ai-agent/tibia_proficiency_reference_index_tool.py \
+            tools/ai-agent/test_tibia_proficiency_reference_index.py \
+            tools/ai-agent/otbm_house_reference_parity.py \
+            tools/ai-agent/otbm_house_reference_parity_tool.py \
+            tools/ai-agent/test_otbm_house_reference_parity.py \
+            tools/ai-agent/tibia_content_reference_correlation.py \
+            tools/ai-agent/tibia_content_reference_correlation_tool.py \
+            tools/ai-agent/test_tibia_content_reference_correlation.py
+
+      - name: Validate JSON schema syntax
+        run: |
+          python -m json.tool docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.schema.json > /dev/null
+          python -m json.tool docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.schema.json > /dev/null
+          python -m json.tool docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.schema.json > /dev/null
+          python -m json.tool docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.schema.json > /dev/null
+          python -m json.tool docs/ai-agent/OTBM_HOUSE_REFERENCE_PARITY.schema.json > /dev/null
+          python -m json.tool docs/ai-agent/OTBM_HOUSE_ID_RESOLVER.schema.json > /dev/null
+          python -m json.tool docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json > /dev/null
+          python -m json.tool docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json > /dev/null
+
+      - name: Validate CLI construction
+        run: |
+          python tools/ai-agent/tibia_client_reference_manifest_tool.py --help > /dev/null
+          python tools/ai-agent/tibia_staticdata_reference_index_tool.py --help > /dev/null
+          python tools/ai-agent/tibia_staticmapdata_reference_index_tool.py --help > /dev/null
+          python tools/ai-agent/tibia_proficiency_reference_index_tool.py --help > /dev/null
+          python tools/ai-agent/otbm_house_reference_parity_tool.py --help > /dev/null
+          python tools/ai-agent/tibia_content_reference_correlation_tool.py --help > /dev/null
