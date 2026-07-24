@@ -2,7 +2,7 @@
 task_id: CAN-20260723-native-auth-ephemeral-cutover-rehearsal
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: OTS-20260721-oteryn-identity-auth
-status: validating
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: test/CAN-20260723-native-auth-ephemeral-cutover-rehearsal
 base_branch: main
@@ -126,10 +126,10 @@ validation:
   - command: Platform Native Auth Ephemeral Cutover Rehearsal run 30083664968
     result: FAIL
     evidence: complete matrix through physical negative Game Session and Canary restart checks passed; first failure was malformed Gateway helper readiness before the fake boundary
-  - command: python/Lua source comparison against maintained happy-path helper
+  - command: Canary CI run 30084397393
     result: PASS
-    evidence: missing CharacterList readiness was the material helper difference before OterynIdentity.start
+    evidence: required CI passed for the helper change
 blockers:
   - none
-next_action: pass Canary CI and ownership on the helper fix, pin the resulting exact harness SHA in Platform PR 126, and rerun the full rehearsal.
+next_action: pass ownership on this checkpoint head, pin the exact harness revision in Platform PR 126, and rerun the full rehearsal.
 ```
