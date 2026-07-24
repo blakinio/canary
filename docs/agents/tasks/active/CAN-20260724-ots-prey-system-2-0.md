@@ -11,7 +11,7 @@ updated: 2026-07-24
 last_verified_commit: ""
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "894"
 depends_on: []
 blocks: []
 owned_paths:
@@ -64,9 +64,9 @@ Documentation and classification only. No runtime, protocol, OTClient, store, ec
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-24
-head: UNKNOWN
+head: 8fa902aa9552ffa4a3af4340ce31c530fff36b86
 branch: docs/ots-prey-system-2-0-20260724
-pr: ""
+pr: 894
 status: implementing
 context_routes:
   - agent-governance
@@ -104,5 +104,5 @@ validation:
     result: PASS
     evidence: Official Tibia manual/support, current fork Canary source and upstream OTClient game_prey module were inspected.
 blockers: []
-next_action: Create the detailed Prey System 2.0 design, open draft PR, bind the task to the PR, append roadmap section and classification entries, then validate the exact final head.
+next_action: Create the detailed Prey System 2.0 design, append roadmap section and classification entries 121 onward, then review the exact diff and final-gate the PR.
 ```
