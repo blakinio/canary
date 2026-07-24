@@ -1,21 +1,20 @@
-name: TCR-007 Materialize via Canonical Workflow
+---
+name: TCR-007 Validate Materialized Sources
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - .github/workflows/tibia-client-reference.yml
-      - .github/workflows/tcr007-materialize.yml
-      - .tcr007-stage/payload.tar.xz
-      - .tcr007-stage/payload.sha256.actual
-      - .tcr007-stage/payload-diagnostic.log
-      - docs/agents/tasks/active/CAN-20260724-tcr-007-proficiency-reference-correlation.md
+      - "tools/ai-agent/tibia_proficiency_reference_*.py"
+      - "docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_*.json"
+      - "docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.md"
+      - ".github/workflows/tibia-client-reference.yml"
 
 permissions:
   contents: write
 
 jobs:
-  materialize:
+  validate-and-fix:
     if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feat/tcr-007-proficiency-reference-correlation'
     runs-on: ubuntu-latest
     steps:
@@ -26,40 +25,55 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Capture exact staged archive diagnostics
-        shell: bash
+      - name: Apply bounded reviewed correction
         run: |
-          set +e
-          {
-            echo 'sha256:'
-            sha256sum .tcr007-stage/payload.tar.xz
-            echo 'file:'
-            file .tcr007-stage/payload.tar.xz
-            echo 'xz-test:'
-            xz -tv .tcr007-stage/payload.tar.xz
-            echo 'tar-list:'
-            tar -tvJf .tcr007-stage/payload.tar.xz
-            echo 'python-tarfile:'
-            python - <<'PY'
+          sed -i 's/is_shaa256/is_sha256/' tools/ai-agent/tibia_proficiency_reference_resolver.py
+          test "$(grep -c 'is_shaa256' tools/ai-agent/tibia_proficiency_reference_resolver.py)" -eq 0
+      - name: Run focused tests
+        env:
+          PYTHONPATH: tools/ai-agent
+        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_proficiency_reference_*.py" -v
+      - name: Compile TCR-007 tooling
+        run: |
+          python -m py_compile \
+            tools/ai-agent/tibia_proficiency_reference_common.py \
+            tools/ai-agent/tibia_proficiency_reference_inventory.py \
+            tools/ai-agent/tibia_proficiency_reference_resolver.py \
+            tools/ai-agent/tibia_proficiency_reference_correlation.py \
+            tools/ai-agent/tibia_proficiency_reference_correlation_tool.py \
+            tools/ai-agent/tibia_proficiency_reference_test_support.py \
+            tools/ai-agent/test_tibia_proficiency_reference_correlation.py \
+            tools/ai-agent/test_tibia_proficiency_reference_inventory.py
+      - name: Validate schemas and CLI
+        run: |
+          python -m json.tool docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_RESOLVER.schema.json >/dev/null
+          python -m json.tool docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.schema.json >/dev/null
+          python tools/ai-agent/tibia_proficiency_reference_correlation_tool.py --help >/dev/null
+      - name: Validate deterministic Canary evidence
+        env:
+          PYTHONPATH: tools/ai-agent
+        run: |
+          python tools/ai-agent/tibia_proficiency_reference_correlation_tool.py inventory --repository-root . --output /tmp/TCR007_CANARY_EVIDENCE_A.json
+          python tools/ai-agent/tibia_proficiency_reference_correlation_tool.py inventory --repository-root . --output /tmp/TCR007_CANARY_EVIDENCE_B.json
+          cmp /tmp/TCR007_CANARY_EVIDENCE_A.json /tmp/TCR007_CANARY_EVIDENCE_B.json
+          python - <<'PY'
           import json
-          import tarfile
-          rows = []
-          with tarfile.open('.tcr007-stage/payload.tar.xz', mode='r:xz') as archive:
-              for member in archive.getmembers():
-                  rows.append({
-                      'name': member.name,
-                      'type': 'file' if member.isfile() else 'directory' if member.isdir() else 'symlink' if member.issym() else 'hardlink' if member.islnk() else 'other',
-                      'size': member.size,
-                      'linkname': member.linkname,
-                  })
-          print(json.dumps(rows, indent=2, sort_keys=True))
+          from pathlib import Path
+          report = json.loads(Path('/tmp/TCR007_CANARY_EVIDENCE_A.json').read_text())
+          assert report['format'] == 'canary-tcr007-canary-evidence-v1'
+          assert report['runtimeDefinitions']['recordCount'] > 0
+          assert report['itemBindingContract']['objectIdAssignsItemId'] is True
+          assert report['itemBindingContract']['proficiencyFlagAssignsRuntimeBinding'] is True
+          assert report['itemBindingContract']['unknownRuntimeDefinitionsRejected'] is True
+          assert report['runtimeSupport']['persistence'] == 'source-supported'
           PY
-          } > .tcr007-stage/payload-diagnostic.log 2>&1
+      - name: Commit validated correction
+        run: |
+          rm -rf .tcr007-stage .github/workflows/tcr007-materialize.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .tcr007-stage/payload-diagnostic.log
+          git add -A
           if ! git diff --cached --quiet; then
-            git commit -m 'ci(tcr): record staged archive diagnostics'
+            git commit -m 'feat(tcr): finalize proficiency reference correlation sources'
             git push origin HEAD:feat/tcr-007-proficiency-reference-correlation
           fi
-          exit 1

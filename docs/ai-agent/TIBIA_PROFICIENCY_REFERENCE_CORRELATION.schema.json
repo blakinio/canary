@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.local/schemas/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.schema.json",
+  "title": "Canary Tibia proficiency reference correlation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "inputs", "rows", "summary", "policy"],
+  "properties": {
+    "format": {"const": "canary-tibia-proficiency-reference-correlation-v1"},
+    "schemaVersion": {"const": 1},
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["proficiencyIndexSha256", "appearancesIndexSha256", "canaryEvidenceSha256", "resolverSha256", "referenceId", "repositoryHead"],
+      "properties": {
+        "proficiencyIndexSha256": {"$ref": "#/$defs/sha256"},
+        "appearancesIndexSha256": {"$ref": "#/$defs/sha256"},
+        "canaryEvidenceSha256": {"$ref": "#/$defs/sha256"},
+        "resolverSha256": {"$ref": "#/$defs/sha256"},
+        "referenceId": {"type": "string", "minLength": 1},
+        "repositoryHead": {"type": "string", "minLength": 1}
+      }
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["rowKind", "state"],
+        "properties": {
+          "rowKind": {"enum": ["source", "target-only"]},
+          "state": {"enum": ["confirmed-reference", "reference-only", "target-only", "partial", "unresolved-id-space", "conflicting", "stale-evidence"]}
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["sourceRowCount", "targetOnlyRowCount", "rowCount", "stateCounts", "appearanceBindingCount", "runtimeDefinitionCount"],
+      "properties": {
+        "sourceRowCount": {"type": "integer", "minimum": 0},
+        "targetOnlyRowCount": {"type": "integer", "minimum": 0},
+        "rowCount": {"type": "integer", "minimum": 0},
+        "stateCounts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "appearanceBindingCount": {"type": "integer", "minimum": 0},
+        "runtimeDefinitionCount": {"type": "integer", "minimum": 0}
+      }
+    },
+    "policy": {"type": "object"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-fA-F]{64}$"}}
+}
