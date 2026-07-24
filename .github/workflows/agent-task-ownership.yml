@@ -21,37 +21,9 @@ on:
       - ".github/workflows/agent-task-lifecycle.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  sync-qri006:
-    name: Synchronize QRI-006 with main
-    if: github.event_name == 'pull_request' && github.head_ref == 'feat/e2e-qri-006-cleanup-certification'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Checkout task branch
-        uses: actions/checkout@v6
-        with:
-          ref: feat/e2e-qri-006-cleanup-certification
-          fetch-depth: 0
-          persist-credentials: true
-
-      - name: Merge current main and restore workflow
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git merge --no-commit --no-ff origin/main
-          git checkout origin/main -- .github/workflows/agent-task-ownership.yml
-          rm -f docs/agents/.qri006-sync-trigger
-          git add -A
-          git diff --cached --check
-          git commit -m "Merge main into E2E-QRI-006 cleanup certification"
-          git push origin HEAD:feat/e2e-qri-006-cleanup-certification
-
   validate:
     name: Validate active ownership
     runs-on: ubuntu-latest
