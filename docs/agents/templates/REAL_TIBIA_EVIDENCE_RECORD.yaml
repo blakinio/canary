@@ -1,162 +1,170 @@
-schema_version: 1
-
-evidence_id: RT-<MODULE>-NNNN
-module_id: <canonical-module-id>
-related_modules: []
-claim_key: <stable-kebab-case-claim>
-claim_summary: >-
-  One bounded factual statement. Split unrelated rules into separate records.
-
-status: discovered
-# discovered | normalized | review-needed | accepted | conflicting |
-# blocked-by-owner-request | superseded | rejected | stale
-
-evidence_state: UNKNOWN
-# PROVEN | DERIVED | UNKNOWN | CONFLICT | STALE | SUPERSEDED | REJECTED
-
-proof_level: definition-found
-# definition-found | registration-proven | runtime-path-proven |
-# persistence-proven | protocol-proven | behavior-proven |
-# gameplay-proven | physical-client-proven
-
-authority_dimension: visible-gameplay-behavior
-# official-feature-identity | visible-gameplay-behavior | current-canary-behavior |
-# protocol-client-interpretation | persistence-rollback | map-geometry |
-# map-mechanics | implementation-candidate | historical-version
-
-applicability:
-  announced_in: null
-  introduced_in: null
-  observed_in: []
-  changed_in: []
-  deprecated_in: null
-  removed_in: null
-  effective_from: null
-  effective_until: null
-  confidence: unknown
-  # proven-official | proven-observation | supported-secondary |
-  # derived-range | conflicting | unknown
-  notes: []
-
-baselines:
-  current_official:
-    release: null
-    client_build: null
-    observed_at: null
-  canary:
-    commit: null
-    server_revision: null
-    protocol_client_build: null
-    datapack_revision: null
-    map_sha256: null
-    appearances_revision: null
-    spawn_npc_sidecar_revision: null
-    database_schema_revision: null
-  maintained_client:
-    repository: blakinio/otclient
-    commit: null
-    build: null
-
-sources:
-  - source_id: <registered-source-id-or-bounded-local-id>
-    role: primary
-    type: official-news
-    # official-news | official-guide | official-forum | official-client-observation |
-    # maintained-wiki | current-canary | maintained-client | upstream-canary |
-    # crystalserver | map-reference | packet-capture | runtime-result | other
-    repository: null
-    commit_or_build: null
-    url: null
-    title: null
-    author: null
-    publication_date: null
-    observed_at: null
-    selected_paths: []
-    selected_symbols_or_sections: []
-    external_artifact:
-      filename: null
-      byte_size: null
-      sha256: null
-      committed_to_git: false
-    proves: []
-    does_not_prove: []
-    limitations: []
-
-behavior:
-  actors: []
-  preconditions: []
-  trigger: null
-  guards: []
-  inputs: []
-  state_before: null
-  state_after: null
-  server_effects: []
-  persistence_effects: []
-  client_protocol_effects: []
-  player_visible_effects: []
-  map_content_dependencies: []
-  consumed_resources: []
-  produced_resources: []
-  cooldown_or_time_window: null
-  account_character_world_scope: null
-  repetitions_observed: null
-  failure_behavior: []
-  concurrency_behavior: []
-  edge_cases: []
-
-values: []
-# Each entry should contain one independently sourced value:
-# - key: reward_experience
-#   value: 10000
-#   unit: experience
-#   rounding: exact
-#   conditions: []
-#   evidence_refs: [RT-...]
-
-canary_comparison:
-  state: not-assessed
-  # not-assessed | conforming | differing | partial | conflicting |
-  # blocked-by-reference | intentionally-unsupported
-  exact_paths: []
-  exact_symbols: []
-  current_behavior: null
-  differences: []
-  missing_proof: []
-  candidate_classification: UNVERIFIED
-
-proves: []
-does_not_prove: []
-unknowns: []
-conflicts: []
-
-relationships:
-  requires: []
-  consumes: []
-  produces: []
-  authorizes: []
-  persists_through: []
-  represented_by_client: []
-  located_on_map: []
-  validated_by: []
-  conflicts_with: []
-  supersedes: []
-  superseded_by: []
-
-owner_requests: []
-# - RTREQ-E2E-...
-# - RTREQ-OTBM-...
-
-freshness:
-  observed_or_verified_at: null
-  warning_after_days: null
-  invalid_after_days: null
-  refresh_before_each_task: true
-  stale_dimensions: []
-
-review:
-  task_id: null
-  pr: null
-  reviewer: null
-  reviewed_at: null
-  decision: pending
-  notes: []
+{
+  "applicability": {
+    "announced_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "Unknown until source-pinned."
+      ],
+      "upper_bound": null
+    },
+    "changed_in": [],
+    "deprecated_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "Unknown until source-pinned."
+      ],
+      "upper_bound": null
+    },
+    "effective_from": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "Unknown until source-pinned."
+      ],
+      "upper_bound": null
+    },
+    "effective_until": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "Unknown until source-pinned."
+      ],
+      "upper_bound": null
+    },
+    "introduced_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "Unknown until source-pinned."
+      ],
+      "upper_bound": null
+    },
+    "observed_in": [],
+    "removed_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "Unknown until source-pinned."
+      ],
+      "upper_bound": null
+    }
+  },
+  "authority_dimension": "current-canary-behavior",
+  "claim_key": "replace-with-bounded-claim",
+  "claim_statement": "Template example only: replace this with one bounded factual statement.",
+  "confidence": "UNKNOWN",
+  "conflict_refs": [],
+  "current_canary_comparison": {
+    "baseline": {
+      "appearances_items_revision": null,
+      "canary_commit": null,
+      "database_schema_revision": null,
+      "datapack_revision": null,
+      "maintained_otclient_commit": null,
+      "map_sha256": null,
+      "official_client_build": null,
+      "official_tibia_release": null,
+      "protocol_profile": null,
+      "spawn_npc_sidecar_revision": null
+    },
+    "current_behavior": null,
+    "differences": [],
+    "exact_paths": [],
+    "exact_symbols": [],
+    "missing_proof": [
+      "Replace template values with exact current Canary evidence."
+    ],
+    "state": "not-assessed"
+  },
+  "does_not_prove": [
+    "No gameplay, persistence, protocol, map, client or whole-game parity is proven by this template."
+  ],
+  "evidence_id": "RT-COMBAT-0000",
+  "evidence_state": "UNKNOWN",
+  "format": "canary-real-tibia-evidence-record-v1",
+  "freshness": {
+    "invalid_after_days": 90,
+    "invalidation_triggers": [
+      "Replace with source-specific invalidation triggers before use."
+    ],
+    "observed_or_verified_at": "2026-07-24",
+    "policy": "refresh-before-task",
+    "warning_after_days": 30
+  },
+  "module_id": "combat",
+  "owner_request_refs": [],
+  "proof_level": "definition-found",
+  "proves": [
+    "The record states only its explicit bounded evidence."
+  ],
+  "record_status": "discovered",
+  "related_modules": [],
+  "review": {
+    "notes": [
+      "Template only."
+    ],
+    "pr": null,
+    "reviewed_at": null,
+    "reviewer": null,
+    "status": "pending",
+    "task_id": null
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "author": null,
+      "does_not_prove": [
+        "The template does not prove any Tibia or Canary gameplay behavior."
+      ],
+      "external_artifact": null,
+      "limitations": [
+        "Replace every template value before creating a corpus record."
+      ],
+      "locator": {
+        "artifact_sha256": null,
+        "build": null,
+        "commit_sha": "93413bd53e9a40f0ff3c4f55986036b10be44e0f",
+        "report_id": null,
+        "repository": "blakinio/canary",
+        "repository_path": "docs/agents/templates/REAL_TIBIA_EVIDENCE_RECORD.yaml",
+        "url": null
+      },
+      "observation_date": null,
+      "proof_level_reached": "definition-found",
+      "proves": [
+        "The template demonstrates the version-1 record shape."
+      ],
+      "publication_date": null,
+      "role": "primary",
+      "selected": {
+        "files": [
+          "docs/agents/templates/REAL_TIBIA_EVIDENCE_RECORD.yaml"
+        ],
+        "observations": [],
+        "sections": [],
+        "symbols": []
+      },
+      "source_id": "template-source",
+      "source_type": "current-canary"
+    }
+  ],
+  "superseded_by": [],
+  "supersedes": [],
+  "uncertainty": [
+    "All mechanic-specific evidence is intentionally absent in the template."
+  ]
+}
