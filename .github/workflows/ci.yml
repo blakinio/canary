@@ -31,6 +31,102 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  register-qri005:
+    name: Register delivered QRI-005 contract
+    if: github.event_name == 'pull_request' && github.head_ref == 'docs/register-e2e-qri-005-v2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v6
+        with:
+          ref: docs/register-e2e-qri-005-v2
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Materialize discovery registration
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          module_path = Path("docs/agents/MODULE_CATALOG.md")
+          changelog_path = Path("docs/agents/CHANGELOG.md")
+          program_path = Path("docs/agents/programs/E2E_AUTOMATION_PROGRAM.md")
+
+          module = module_path.read_text(encoding="utf-8")
+          module_row = "| Universal OTS E2E result envelope | merged and runtime-proven (#850; lifecycle #861) | `canary-universal-e2e-result-envelope-v1`, schema version 3: deterministic machine-readable normalization of successful, assertion-failing, bootstrap and infrastructure outcomes through the canonical `result.json`, with preserved legacy fields, stable run/scenario identity, evidence maturity, orthogonal quality dimensions, ordered phases/steps, first-failure classification, attempt history, artifact references, warnings and explicit unknowns | `tools/e2e/result_envelope.py`, `tools/e2e/result_envelope_impl.py`, `tools/e2e/run_physical_e2e.sh`, `tools/e2e/run_physical_e2e_lifecycle.sh`, `tests/e2e/test_result_envelope.py`, archived task `CAN-20260724-e2e-qri-005-result-envelope` | Reuse this single envelope and existing artifact path for downstream diagnostics and QRI packages. Preserve M0-M5 separately from quality dimensions, retain all attempts and the first causal failure, sanitize credential-like values, and never infer proof from artifact presence. `cleanup_summary.status=not-certified` and `cleanup_certified=false` remain the explicit boundary for QRI-006; do not claim cleanup certification without that package's independent evidence. |\n"
+          if "| Universal OTS E2E result envelope |" not in module:
+              anchor = "| Universal Agent Load |"
+              if anchor not in module:
+                  raise SystemExit("MODULE_CATALOG anchor missing")
+              module = module.replace(anchor, module_row + anchor, 1)
+          module_path.write_text(module, encoding="utf-8")
+
+          changelog = changelog_path.read_text(encoding="utf-8")
+          bullet = "- Adds `canary-universal-e2e-result-envelope-v1` through merged PR #850 and lifecycle closure #861: the canonical Universal Physical E2E `result.json` now emits deterministic schema version 3 for successful, assertion, bootstrap and infrastructure outcomes while preserving legacy fields. The contract records stable run/scenario identity, execution tier, evidence maturity, orthogonal quality dimensions, ordered phases and steps, last-successful/first-failed evidence, typed failure classification, attempt history, artifact references, warnings and explicit unknowns; sanitizes credential-like values; retains earlier failed attempts; and introduces no second runner, workflow or artifact path. Cleanup remains explicitly not certified and is reserved for QRI-006.\n"
+          marker = "## Unreleased\n\n"
+          if "`canary-universal-e2e-result-envelope-v1` through merged PR #850" not in changelog:
+              if marker not in changelog:
+                  raise SystemExit("CHANGELOG marker missing")
+              changelog = changelog.replace(marker, marker + bullet, 1)
+          changelog_path.write_text(changelog, encoding="utf-8")
+
+          program = program_path.read_text(encoding="utf-8")
+          program = re.sub(r"^updated: .*?$", "updated: 2026-07-24T00:00:00+02:00", program, count=1, flags=re.MULTILINE)
+          program = re.sub(r"^last_verified_commit: .*?$", "last_verified_commit: cb5a22bb4319608a1b1c64b40dd274cac94e0002", program, count=1, flags=re.MULTILINE)
+          foundation = "| Standard machine-readable result envelope | merged and runtime-proven | PR #850; lifecycle archive #861 | reuse `canary-universal-e2e-result-envelope-v1` schema v3 and the existing `result.json`; keep M0-M5, orthogonal quality dimensions, failed attempts and QRI-006 cleanup certification boundaries explicit |\n"
+          if "| Standard machine-readable result envelope |" not in program:
+              anchor = "| Representative cross-system gameplay journey |"
+              if anchor not in program:
+                  raise SystemExit("programme foundation anchor missing")
+              program = program.replace(anchor, foundation + anchor, 1)
+
+          old = """## Recommended first implementation wave
+
+Select one package at a time after live dependency and ownership preflight. Current recommendation:
+
+1. `E2E-QRI-005` — standard machine-readable result envelope and richer first-failure evidence;
+2. `E2E-QRI-006` — resource cleanup certification;
+3. `E2E-QRI-001` — real two-player trade and persistence;
+4. `E2E-QRI-002` — Canary restart/reconnect recovery;
+5. `E2E-QRI-003` — broader representative Journey 002;
+6. `E2E-QRI-004` — factual M0-M5 plus quality-dimension coverage dashboard;
+7. `E2E-QRI-022` — flake/stability certification after the selected scenarios are stable enough to measure.
+
+Later waves cover transactional/resilience correctness (`QRI-008` through `014`), test intelligence (`QRI-015` through `021`) and operational/release confidence (`QRI-023` through `028`).
+
+This ordering is guidance, not permission to start all packages concurrently. Concrete feature demand and current ownership remain authoritative."""
+          new = """## Recommended next implementation wave
+
+Select one package at a time after live dependency and ownership preflight. QRI-001, QRI-002, QRI-003 and QRI-005 are delivered and lifecycle-closed. Current recommendation:
+
+1. `E2E-QRI-006` — resource cleanup certification over the merged schema-v3 result envelope;
+2. `E2E-QRI-004` — factual M0-M5 plus quality-dimension coverage dashboard;
+3. `E2E-QRI-022` — flake/stability certification after the selected scenarios are stable enough to measure.
+
+Later waves cover transactional/resilience correctness (`QRI-008` through `014`), test intelligence (`QRI-015` through `021`) and operational/release confidence (`QRI-023` through `028`).
+
+This ordering is guidance, not permission to start packages concurrently. Concrete feature demand and current ownership remain authoritative."""
+          if old not in program:
+              raise SystemExit("programme recommendation block missing or changed")
+          program = program.replace(old, new, 1)
+          program_path.write_text(program, encoding="utf-8")
+          PY
+
+          git checkout origin/main -- .github/workflows/ci.yml .github/workflows/agent-task-ownership.yml
+          rm -f docs/agents/.qri005-registration-trigger
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/agents/MODULE_CATALOG.md docs/agents/CHANGELOG.md docs/agents/programs/E2E_AUTOMATION_PROGRAM.md .github/workflows/ci.yml .github/workflows/agent-task-ownership.yml docs/agents/.qri005-registration-trigger
+          git diff --cached --check
+          git commit -m "docs(e2e): register delivered QRI-005 contract"
+          git push origin HEAD:docs/register-e2e-qri-005-v2
+
   changes:
     name: Detect Build Scope
     runs-on: ubuntu-latest
