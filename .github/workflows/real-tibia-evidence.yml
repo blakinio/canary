@@ -112,7 +112,7 @@ jobs:
           python tools/agents/real_tibia_evidence.py generate --check --as-of 2026-07-24
           python tools/agents/real_tibia_evidence.py show-index --as-of 2026-07-24 > /tmp/real-tibia-evidence-index.json
 
-      - name: Prepare exact reviewed result
+      - name: Remove temporary correction files
         run: |
           git checkout HEAD -- .github/workflows/real-tibia-evidence.yml
           rm -rf tools/agents/.rtec001-migration
@@ -121,10 +121,15 @@ jobs:
             tools/agents/rtec001_make_schemas.py \
             tools/agents/rtec001_small_migrate.py
           test ! -e tools/agents/.rtec001-migration
+
+      - name: Stage exact reviewed result
+        run: |
           git add -A
           git status --short
           git diff --cached --stat
-          git diff --cached --check
+
+      - name: Validate staged diff
+        run: git diff --cached --check
 
       - name: Create exact reviewed commit
         run: |
