@@ -1,0 +1,51 @@
+name: QRI-004 closure branch repair
+
+on:
+  push:
+    branches:
+      - docs/e2e-qri-004-task-closure
+    paths:
+      - .github/workflows/qri004-closure-branch-repair.yml
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.repository == 'blakinio/canary'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout closure branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: docs/e2e-qri-004-task-closure
+
+      - name: Rebase and finalize exact closure diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git rebase origin/main
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("docs/agents/MODULE_CATALOG.md")
+          text = path.read_text(encoding="utf-8")
+          unwanted = "`docs/ai-agent/OTBM_STATIC_HOTSPOTS.md`, policy/manifest/report schemas"
+          expected = "`docs/ai-agent/OTBM_STATIC_HOTSPOTS.md`, policy/report schemas"
+          if text.count(unwanted) != 1:
+              raise SystemExit("expected exactly one unrelated catalogue drift")
+          text = text.replace(unwanted, expected)
+          dashboard = "| Universal OTS E2E factual coverage dashboard | merged (#885) |"
+          if text.count(dashboard) != 1:
+              raise SystemExit("expected exactly one merged QRI-004 catalogue row")
+          path.write_text(text, encoding="utf-8")
+          PY
+          git rm .github/workflows/qri004-closure-branch-repair.yml
+          git add docs/agents/MODULE_CATALOG.md
+          git commit -m "docs(e2e): finalize QRI-004 closure branch"
+          git push --force-with-lease origin HEAD:docs/e2e-qri-004-task-closure
