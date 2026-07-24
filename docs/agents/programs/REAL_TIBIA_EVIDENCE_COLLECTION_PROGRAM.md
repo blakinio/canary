@@ -4,8 +4,8 @@ name: Real Tibia Evidence Collection
 status: active
 owner: Real Tibia evidence coordination / platform tooling
 created: 2026-07-24T20:20:00+02:00
-updated: 2026-07-24T22:40:00+02:00
-last_verified_commit: "23e5717a3cd0ed4246be51401f46e63330b2b6bd"
+updated: 2026-07-24T22:50:00+02:00
+last_verified_commit: "4420e7cfa326ea8ae7b31e0eb5c3f4cbd43167c9"
 primary_paths:
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
   - docs/ai-agent/REAL_TIBIA_EVIDENCE_COLLECTOR_ARCHITECTURE.md
@@ -96,7 +96,7 @@ When sources conflict, preserve `CONFLICT`. When evidence is absent, preserve `U
 
 # Version-history contract
 
-Every behavior claim and module dossier must distinguish:
+Every behavior claim and module dossier must distinguish these dates and versions:
 
 - `announced_in`: first exact official announcement, when known;
 - `introduced_in`: first proven live version or release state;
@@ -110,7 +110,7 @@ Every behavior claim and module dossier must distinguish:
 
 An official announcement proves announcement and intended release behavior, not necessarily the exact final live implementation. A wiki history note remains secondary until independently confirmed. Filenames, directory names, OTBM labels and donor branch names never prove a Tibia version.
 
-Official release, official client build, protocol profile, Canary commit, maintained OTClient commit, map SHA-256, datapack revision, appearances/items revision, spawn/NPC sidecar revision and database schema revision remain separate axes. They must not be compressed into one ambiguous `version` value.
+Official Tibia release, official client build, protocol profile, Canary commit, maintained OTClient commit, map SHA-256, datapack revision, appearances/items revision, spawn/NPC sidecar revision and database schema revision remain separate fields. Do not compress them into one ambiguous `version` value.
 
 # Evidence states and levels
 
@@ -139,17 +139,12 @@ Never promote a lower level into a higher level.
 
 # Durable file model
 
-RTEC-001 defines and validates this source layout:
+The implemented source layout is:
 
 ```text
 docs/agents/real-tibia/evidence/
 ├── README.md
 ├── schemas/
-│   ├── evidence-record.schema.json
-│   ├── owner-request.schema.json
-│   ├── module-evidence-index.schema.json
-│   ├── version-history.schema.json
-│   └── generated-indexes.schema.json
 ├── generated/
 │   └── EVIDENCE_INDEXES.json
 ├── modules/
@@ -171,7 +166,7 @@ docs/agents/real-tibia/evidence/
     └── feature/
 ```
 
-The validator forbids empty module directories and index-only placeholder dossier trees. Broad population remains blocked until RTEC-001 merges, then RTEC-002 must prove the full flow on one bounded module before any parallel wave.
+RTEC-001 implements validators and deterministic generation but does not create empty dossiers or placeholder records for all modules. Broad population remains blocked until RTEC-001 merges and the single-module RTEC-002 pilot proves the complete collection/review flow.
 
 Generated large reports, captures, screenshots, videos, maps, client packages and proprietary assets remain outside Git. Git stores compact metadata, hashes, references, findings and proof boundaries only.
 
@@ -205,52 +200,115 @@ The dossier records auditable rationale, not private chain-of-thought. Decisions
 
 ## Universal E2E
 
-The Collector may identify missing physical/runtime proof, prepare a structured request, reference stable scenario/result IDs, consume retained result envelopes and update records with exactly what those results prove and do not prove.
+The Collector may:
 
-The Collector must not create a second runner/lifecycle/workflow, edit `tools/e2e/**`, invent feature expectations, run or reclassify E2E without the owning task, or promote M0/static evidence to physical gameplay proof.
+- identify a missing physical/runtime proof;
+- prepare a structured request describing the behavior question and required maturity;
+- reference existing scenario/result IDs;
+- consume stable retained result envelopes;
+- update the evidence record with exactly what the retained result proves and does not prove.
 
-Capability-oriented E2E suggestions must be separate owner-reviewed proposals, never implementation inside a Collector task.
+The Collector must not:
+
+- create a second runner, lifecycle or workflow;
+- edit `tools/e2e/**` or shared platform paths;
+- invent feature expectations that belong to an owning feature programme;
+- run, retry, diagnose or reclassify E2E without the owning task;
+- promote M0/static evidence to physical gameplay proof.
+
+Suggested E2E expansion requests should be capability-oriented and reusable, for example:
+
+- deterministic UI assertion primitives;
+- controlled time/server-save advancement;
+- exact restart/recovery support;
+- reusable packet/event observation surfaces;
+- expanded compatibility matrices;
+- differential official-observation versus Canary scenario summaries.
+
+Each suggestion must be submitted as a separate owner-reviewed task proposal, never implemented inside a Collector task.
 
 ## OTBM/OWA
 
-The Collector may request exact World Index, Script Resolution, Reachability, Semantic Diff, certification or factual-render evidence; reference stable finding IDs and hashes; consume owner outputs without reinterpreting authority; and report missing/stale evidence as a blocker.
+The Collector may:
 
-The Collector must not parse OTBM, create another World Index/pathfinder/renderer/certifier, infer mechanics from visuals, classify a static gap as a gameplay defect without owner proof, or mutate map/datapack/proprietary assets.
+- request exact World Index, Script Resolution, Reachability, Semantic Diff, certification or factual-render evidence;
+- reference existing QA finding IDs and exact map/index hashes;
+- consume stable OTBM/OWA outputs without reinterpreting their authority;
+- report missing or stale map evidence as a blocker.
+
+The Collector must not:
+
+- parse OTBM;
+- create another World Index, pathfinder, renderer or certifier;
+- infer AID/UID/teleport/spawn/quest mechanics from visuals;
+- classify an OTBM gap as a gameplay defect without owner proof;
+- mutate map, datapack or proprietary assets.
+
+Suggested OTBM expansion requests may include:
+
+- compact evidence selectors for newly recurring module questions;
+- dependency mappings from stable TCR drift into QA freshness;
+- additional reviewed certification target classes;
+- exact map-mechanic evidence needed by a feature dossier.
 
 ## TCR
 
 The Collector consumes stable TCR manifests, indexes, parity and drift records. It does not parse official-client files, infer client builds or join identifier namespaces without explicit reviewed mappings.
 
-Suggested TCR expansions identify the missing client-reference dimension and exact downstream consumer while retaining proprietary inputs outside Git.
+Suggested TCR expansions should identify the missing client-reference dimension and the exact downstream consumer, while retaining all proprietary inputs outside Git.
 
 # Concurrency model
 
-## Roles and cap
+## Roles
 
 - **1 Coordinator** owns the programme queue, shared schemas, cross-module deduplication, shared indexes and wave planning.
-- **Up to 8 Collector workers** may run concurrently after RTEC-002/003 when each owns one distinct module dossier or non-overlapping bounded package.
+- **Up to 8 Collector workers** may run concurrently during evidence-only collection when each owns one distinct module dossier or one non-overlapping bounded behavior package.
 - **Up to 2 Reviewers** may independently review completed worker outputs without editing worker-owned files until handoff.
-- E2E, OTBM/OWA, TCR and feature agents retain their own queues and safe concurrency.
+- E2E, OTBM/OWA, TCR and feature agents retain their own queues and determine their own safe concurrency. Collector workers only create requests.
 
-Default campaign cap: **8 parallel Collector workers**, with at most **4 concurrently open Collector PRs**. The Coordinator may reduce this cap for CI, source, review or owner-queue constraints. Raising it requires a recorded concurrency experiment and ownership evidence.
+## Default operational cap
+
+Default campaign cap: **8 parallel Collector workers**, with at most **4 concurrently open Collector PRs** targeting shared repository CI/review capacity.
+
+Reasons:
+
+- 62 modules require parallelism;
+- one dossier directory per module supports path isolation;
+- shared programme/schema/index files remain coordinator-only;
+- four open PRs limit review, merge-conflict and GitHub Actions/storage pressure;
+- eight workers allow research to continue while earlier PRs validate or wait for review.
+
+The Coordinator may reduce the cap when CI, source access, review capacity or owner-programme queues are constrained. It must not raise the default above eight without a recorded concurrency experiment and ownership evidence.
 
 ## Serialization groups
 
-The following tightly coupled groups require one worker or an explicit coordination ID:
+The following tightly coupled groups require either one worker or an explicit coordination ID:
 
 1. `network-transport`, `login-protocol`, `protocol`, `protocol-compatibility`, `protocol-session-handoff`;
-2. `world-map-runtime`, `world-zones`, `houses`, `quests`, `npcs`, `spawns`, `raids`, `boss-encounters`, `instances` when sharing one region/mechanic package;
-3. `database-connection`, `database-migrations`, `player-persistence`, `world-persistence`, `account-lifecycle`, `character-lifecycle` when sharing stored state;
-4. `combat`, `combat-conditions`, `spells`, `weapons`, `vocations` when investigating one formula/state machine;
+2. `world-map-runtime`, `world-zones`, `houses`, `quests`, `npcs`, `spawns`, `raids`, `boss-encounters`, `instances` when sharing the same region/mechanic package;
+3. `database-connection`, `database-migrations`, `player-persistence`, `world-persistence`, `account-lifecycle`, `character-lifecycle` when sharing the same stored state;
+4. `combat`, `combat-conditions`, `spells`, `weapons`, `vocations` when investigating one shared formula/state machine;
 5. `cyclopedia`, `bestiary`, `bosstiary`, `charms`, `prey`, `achievements`, `titles` when sharing identifiers or UI/protocol surfaces.
 
-Different modules in a group may run concurrently only when owned dossier paths and investigated behavior surfaces are demonstrably independent.
+Different modules in a group may still run concurrently only if owned dossier paths and the investigated behavior surfaces are demonstrably independent.
 
 ## Worker write restrictions
 
-Workers may edit only their task record, one module dossier/bounded package directory and their own evidence/request records.
+Workers may edit only:
 
-Workers must not edit the programme record, schemas/templates, shared generated indexes, owner implementation paths or another worker's dossier/requests. The Coordinator performs shared-file integration after worker PRs merge.
+- their task record;
+- one module dossier directory or one explicitly bounded package directory;
+- their own evidence/request records.
+
+Workers must not edit:
+
+- the programme record;
+- schemas/templates;
+- shared generated indexes;
+- E2E, OTBM, TCR or feature owner paths;
+- another worker's dossier or requests.
+
+The Coordinator performs shared-file integration after worker PRs merge.
 
 # Queue
 
@@ -267,7 +325,7 @@ Workers must not edit the programme record, schemas/templates, shared generated 
 
 # Completion rules
 
-A module is `dossier-complete` only when every applicable dossier section is evidence-backed or explicitly marked `UNKNOWN`, `CONFLICT`, `not-applicable` or `blocked-by-owner-request`.
+A module is `dossier-complete` only when every applicable dossier section is either evidence-backed or explicitly marked `UNKNOWN`, `CONFLICT`, `not-applicable` or `blocked-by-owner-request`.
 
 A module is not `parity-complete` unless all required behavior, persistence, protocol, map, gameplay and physical-client dimensions are proven at the necessary level for its scope.
 
