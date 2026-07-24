@@ -4,7 +4,7 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-24T08:10:00+02:00
+updated: 2026-07-24T08:20:00+02:00
 last_verified_commit: "55f9e46ab0804ec2c7b58cfffc772a243234c956"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
@@ -223,6 +223,8 @@ Otheryn PR #92 final head `2168ff23a7415b9aea8f66b7051995e7fd148691` changed exa
 Canary governance PR #853 final head `b45d0f9ce5c7dc7d359364db013db509eeb4d035` changed exactly the revalidation report and active-task checkpoint. Agent Task Ownership `30069689973` and full final-gate CI `30069698603` succeeded. Comments/reviews/threads were empty, Canary `main` had no governance-base drift, and PR #853 merged by expected-head squash as `0dc3fa9d663af47f8808d2457c8108a63294c7c4`.
 
 Authoritative lifecycle PR #854 final head `72ba86574322927218d4d5b1a99062a5fa749961` changed exactly the active-delete/archive-add task paths. Agent Task Ownership `30070624817` and full final-gate CI `30070630936` succeeded. Comments/reviews/threads were empty; concurrent Canary drift was limited to unrelated TCR-003 OTBM paths with no OAM-041 overlap, and PR #854 merged by expected-head squash as `55f9e46ab0804ec2c7b58cfffc772a243234c956`.
+
+Canary PR #856 is the one-file durable reconciliation gate for this record and the final Canary-side prerequisite before the Otheryn OAM-041 target-task archive.
 
 OAM-041 does not claim execution or correctness of unresolved dynamic Lua creation calls, exhaustive live validation of all `84,294` static placements, exact Real Tibia spawn population/timing/placement parity, scheduler fairness under production load, raid lifecycle beyond the separated OAM-037 boundary, protocol/client compatibility, physical-client spawn/NPC gameplay E2E closure or full world-content parity.
 
