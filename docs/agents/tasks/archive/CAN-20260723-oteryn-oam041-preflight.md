@@ -11,7 +11,7 @@ updated: 2026-07-24
 last_verified_commit: "0dc3fa9d663af47f8808d2457c8108a63294c7c4"
 risk: medium
 related_issue: ""
-related_pr: "pending"
+related_pr: "854"
 depends_on:
   - OAM-040 formally complete
 blocks:
@@ -62,10 +62,10 @@ The active Canary OAM-041 task is retired. OAM-042 remains blocked until a separ
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T07:50:00+02:00
-head: pending
+updated_at: 2026-07-24T07:52:00+02:00
+head: 6175eabb5680846965ee33147fca378c01fa1630
 branch: dudantas/oam-041-spawns-lifecycle
-pr: pending
+pr: 854
 status: archived
 context_routes:
   - agent-governance
@@ -77,12 +77,12 @@ owned_paths:
 proven:
   - OAM-041 target proof and Canary governance are merged with exact-head green evidence.
   - Final disposition is spawns REUSE.
-  - This lifecycle package only moves the task from active to archive.
+  - PR 854 only moves the task from active to archive.
 derived:
   - Durable program reconciliation must be a separate one-file PR after this lifecycle merge.
   - OAM-042 remains not started until program reconciliation and target-task archive complete.
 unknown:
-  - Lifecycle PR number and merge SHA until delivery completes.
+  - Lifecycle merge SHA until PR 854 completes.
 conflicts: []
 first_failure:
   marker: none
@@ -97,5 +97,5 @@ validation:
     result: PASS
     evidence: target merge de061aa6c75114192f1ef6b33f7b4857e502936c and governance merge 0dc3fa9d663af47f8808d2457c8108a63294c7c4 are present on current main
 blockers: []
-next_action: Delete the active task, open the two-path lifecycle PR, apply ci:final-gate before the final archive checkpoint commit, pass exact-head ownership and CI, then squash merge before one-file program reconciliation.
+next_action: Require exact-head Agent Task Ownership and full final-gate CI on PR 854, audit the add/delete task paths plus comments reviews threads and Canary-main drift, then squash merge before one-file program reconciliation.
 ```
