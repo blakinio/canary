@@ -4,8 +4,8 @@ name: Real Tibia Evidence Collection
 status: active
 owner: Real Tibia evidence coordination / platform tooling
 created: 2026-07-24T20:20:00+02:00
-updated: 2026-07-24T22:50:00+02:00
-last_verified_commit: "4420e7cfa326ea8ae7b31e0eb5c3f4cbd43167c9"
+updated: 2026-07-24T23:56:17+02:00
+last_verified_commit: "eaed92c5f541cc4097a85bac5b39620d67dcf206"
 primary_paths:
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
   - docs/ai-agent/REAL_TIBIA_EVIDENCE_COLLECTOR_ARCHITECTURE.md
@@ -166,7 +166,7 @@ docs/agents/real-tibia/evidence/
     └── feature/
 ```
 
-RTEC-001 implements validators and deterministic generation but does not create empty dossiers or placeholder records for all modules. Broad population remains blocked until RTEC-001 merges and the single-module RTEC-002 pilot proves the complete collection/review flow.
+RTEC-001 implements validators and deterministic generation but does not create empty dossiers or placeholder records for all modules. Broad population remains blocked until the single-module RTEC-002 pilot proves the complete collection/review flow.
 
 Generated large reports, captures, screenshots, videos, maps, client packages and proprietary assets remain outside Git. Git stores compact metadata, hashes, references, findings and proof boundaries only.
 
@@ -315,8 +315,8 @@ The Coordinator performs shared-file integration after worker PRs merge.
 | ID | Scope | Status | Dependencies | Risk | Exact next action |
 |---|---|---|---|---|---|
 | RTEC-000 | Architecture, structure, boundaries, concurrency and prompts | merged | existing parity/E2E/OTBM/TCR governance | low | Architecture delivered by PR #889; lifecycle archived by PR #893. |
-| RTEC-001 | Evidence/request schemas, validator, deterministic indexes and tests | active — draft PR #897 | RTEC-000 | medium | Complete current-head CI/review/final gate and merge before any module worker starts. |
-| RTEC-002 | Pilot dossier on one bounded low-coupling module | blocked | RTEC-001 | medium | After RTEC-001 merges, select exactly one module after fresh ownership/source preflight and prove the end-to-end collection/review flow. |
+| RTEC-001 | Evidence/request schemas, validator, deterministic indexes and tests | merged | RTEC-000 | medium | Contracts delivered by PR #897; lifecycle archived by PR #908. |
+| RTEC-002 | Pilot dossier on one bounded low-coupling module | planned | RTEC-001 | medium | Run fresh main/open-PR/active-task/source preflight, select exactly one canonical low-coupling module and prove the end-to-end collection/review flow. |
 | RTEC-003 | Owner-request lifecycle integration | planned | RTEC-001/002 | medium | Validate request state transitions and stable output consumption for E2E/OTBM/TCR. |
 | RTEC-004 | Parallel campaign wave 1 | planned | RTEC-002/003 | medium | Start at most eight workers and four concurrent PRs using isolated dossier paths. |
 | RTEC-005 | Remaining module waves | planned | RTEC-004 evidence and concurrency review | medium | Continue bounded waves until all 62 modules have non-placeholder dossiers. |
@@ -333,4 +333,4 @@ The entire programme cannot claim that Canary faithfully reproduces Real Tibia m
 
 # Handoff
 
-Start from this programme, the Collector architecture, current registry module record and the first active bounded task. Re-fetch live PR/task/source state. Do not restart the full 62-module audit from chat history and do not create parallel execution infrastructure.
+Start RTEC-002 only through one new bounded active task after fresh main/open-PR/active-task/source and canonical-module preflight. Select exactly one low-coupling module, reuse the merged schema-version-1 contracts and do not start parallel Collector workers or broad dossier population until the pilot review flow succeeds.
