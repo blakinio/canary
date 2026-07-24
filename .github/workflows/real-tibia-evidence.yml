@@ -1,3 +1,4 @@
+# Restored exact bounded payload; trigger one-shot correction.
 name: RTEC-001 Reviewed Contract Correction
 
 on:
