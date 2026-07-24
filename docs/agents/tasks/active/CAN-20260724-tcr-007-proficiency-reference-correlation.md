@@ -2,7 +2,7 @@
 task_id: CAN-20260724-tcr-007-proficiency-reference-correlation
 program_id: CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE
 coordination_id: OTBM-TIBIA-CLIENT-REFERENCE
-status: active
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: feat/tcr-007-proficiency-reference-correlation
 base_branch: main
