@@ -1,22 +1,25 @@
 name: TCR-007 Materialize via Canonical Workflow
 
 on:
-  push:
-    branches:
-      - feat/tcr-007-proficiency-reference-correlation
+  pull_request:
+    types: [opened, synchronize, reopened]
     paths:
       - .github/workflows/tibia-client-reference.yml
+      - .github/workflows/tcr007-materialize.yml
       - .tcr007-stage/payload.tar.xz
+      - docs/agents/tasks/active/CAN-20260724-tcr-007-proficiency-reference-correlation.md
 
 permissions:
   contents: write
 
 jobs:
   materialize:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feat/tcr-007-proficiency-reference-correlation'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
