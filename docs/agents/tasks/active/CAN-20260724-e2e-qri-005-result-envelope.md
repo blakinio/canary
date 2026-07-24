@@ -8,7 +8,7 @@ branch: feat/e2e-qri-005-result-envelope
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "dce49d6d0804b5e10e2c557beff6f7c15e92b79d"
+last_verified_commit: "19b4e9df84d8f7d856c84746b18f1dd4441fa7ed"
 risk: medium
 related_issue: ""
 related_pr: "850"
@@ -20,6 +20,7 @@ blocks:
 owned_paths:
   exclusive:
     - tools/e2e/result_envelope.py
+    - tools/e2e/result_envelope_impl.py
     - tests/e2e/test_result_envelope.py
     - docs/agents/tasks/active/CAN-20260724-e2e-qri-005-result-envelope.md
   shared:
@@ -52,10 +53,10 @@ Deliver one stable, versioned, machine-readable Universal E2E result envelope wi
 
 ## Scope
 
-- Add one Python result-envelope module under the canonical `tools/e2e` platform.
+- Add one canonical Python result-envelope entrypoint plus a private implementation module under `tools/e2e`.
 - Preserve current top-level legacy fields as a compatibility superset while adding the versioned contract.
 - Normalize successful, assertion-failing and bootstrap/infrastructure failing physical runs after the canonical lifecycle completes.
-- Keep `tools/e2e/run_physical_e2e.sh` as the only canonical entrypoint; the prior script body is retained byte-for-byte as the internal lifecycle implementation and the entrypoint performs only result finalization.
+- Keep `tools/e2e/run_physical_e2e.sh` as the only canonical entrypoint; the prior script body is retained byte-for-byte as the internal lifecycle implementation and the entrypoint performs only contract tests and result finalization.
 - Use one existing physical scenario as the first real consumer without creating another workflow or alternative orchestration.
 - Add focused contract, validation, sanitization, deterministic serialization, first-failure and multiple-attempt tests.
 
@@ -70,8 +71,8 @@ Deliver one stable, versioned, machine-readable Universal E2E result envelope wi
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T05:42:00Z
-head: dce49d6d0804b5e10e2c557beff6f7c15e92b79d
+updated_at: 2026-07-24T06:15:00Z
+head: 19b4e9df84d8f7d856c84746b18f1dd4441fa7ed
 branch: feat/e2e-qri-005-result-envelope
 pr: 850
 status: validating
@@ -80,6 +81,7 @@ context_routes:
   - universal-e2e
 owned_paths:
   - tools/e2e/result_envelope.py
+  - tools/e2e/result_envelope_impl.py
   - tests/e2e/test_result_envelope.py
   - tools/e2e/run_physical_e2e.sh
   - tools/e2e/run_physical_e2e_lifecycle.sh
@@ -90,36 +92,44 @@ owned_paths:
 proven:
   - Fresh preflight found no open QRI pull request or active QRI-005/QRI-006 implementation before PR 850.
   - Open PR 841 does not modify the canonical Universal E2E runner or shared result contract.
-  - Main advanced from 332e47da1b1d8fb0d98fa4cf1e6698acb26f8e05 to 879fbfaff75b4255b4164b5132a0987e9aec8358 through unrelated OTBM lifecycle documentation.
   - Current physical result.json uses schema_version 2 for evaluated runs and schema_version 1 for bootstrap failures.
   - Restart recovery augments the same result.json with restart_evidence after base evaluation.
   - canary-universal-e2e-result-envelope-v1 implementation and focused unit tests are committed.
   - The canonical entrypoint executes focused contract tests and finalizes the same result.json after the unchanged physical lifecycle exits.
+  - Exact-head CI and both exact Canary and controlled OTClient builds passed on workflow run 30070070463.
+  - First physical attempt failed before gameplay because two focused tests exposed an IndexError when optional map.sha256 evidence was absent.
+  - The empty map identity path now returns sha256 null instead of indexing an empty token list.
 derived:
   - Post-lifecycle finalization is the smallest seam that observes normal, bootstrap and scenario-specific augmented results without adding a second result path.
+  - The first failure is a test-contract defect, not gameplay, server startup or client startup evidence.
 unknown:
-  - Exact current repository CI and physical-client outcome for head after this checkpoint.
+  - Exact current repository CI and physical-client outcome after the map-identity regression fix.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: implementation awaiting CI
+  marker: result-envelope-contract-tests.map-identity-empty
+  evidence: workflow 30070070463 artifact universal-agent-e2e-login-relog/result-envelope-contract-tests.log
 rejected_hypotheses:
   - A second workflow is required: the existing artifact upload consumes the canonical result.json.
   - Result generation can happen only in the success evaluator: that would omit bootstrap and infrastructure failures.
+  - The first failed physical attempt proves a gameplay regression: no physical client step ran because the focused contract tests failed first.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260724-e2e-qri-005-result-envelope.md
   - tests/e2e/test_result_envelope.py
   - tools/e2e/result_envelope.py
+  - tools/e2e/result_envelope_impl.py
   - tools/e2e/run_physical_e2e.sh
   - tools/e2e/run_physical_e2e_lifecycle.sh
 validation:
   - command: live GitHub preflight and exact changed-path audit
     result: PASS
     evidence: PR 850 and main/open-PR audit
-  - command: repository CI and Universal Agent E2E
+  - command: CI / Agent Task Ownership / Universal Agent E2E at 20909292263db26df73c8ff9bd4697527b8c99e6
+    result: FAIL
+    evidence: CI and ownership passed; physical run 30070070463 failed at focused contract tests with absent map.sha256 IndexError
+  - command: repository CI and Universal Agent E2E after causal fix
     result: NOT_RUN
-    evidence: replacement head queued after ownership lifecycle correction
+    evidence: replacement head queued
 blockers:
-  - Local sandbox cannot resolve github.com, so local full-repository build/runtime execution is unavailable; repository CI provides authoritative integration and physical validation.
-next_action: Inspect CI and physical E2E; fix the first causal failure without widening scope.
+  - Local sandbox cannot resolve github.com, so repository CI provides authoritative full integration and physical validation.
+next_action: Validate the causal fix on exact-head CI and inspect the resulting physical result.json envelope.
 ```
