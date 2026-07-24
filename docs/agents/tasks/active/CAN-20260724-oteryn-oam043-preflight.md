@@ -2,16 +2,16 @@
 task_id: CAN-20260724-oteryn-oam043-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-043
-status: review
+status: active
 agent: "GPT-5.6 Thinking"
-branch: dudantas/oam-043-quests-preflight
+branch: dudantas/oam-043-post-preflight-handoff
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "5470d5e3b5a88faea108941f4687d8a4a8e63a62"
+last_verified_commit: "b1d24ec362ec52652886f6be6129234ff44e7d4d"
 risk: high
 related_issue: ""
-related_pr: "866"
+related_pr: ""
 depends_on:
   - OAM-042 formally complete
   - canonical otbm-tooling resolved by OAM-040
@@ -87,11 +87,11 @@ This preflight performs no target, runtime, datapack, map, binary, protocol, cli
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T11:15:00+02:00
-head: 3de2fe200291997f9d50c3494acfb62d5aff7a74
-branch: dudantas/oam-043-quests-preflight
-pr: 866
-status: validating
+updated_at: 2026-07-24T12:17:22+02:00
+head: b1d24ec362ec52652886f6be6129234ff44e7d4d
+branch: dudantas/oam-043-post-preflight-handoff
+pr: none
+status: investigating
 context_routes:
   - agent-governance
   - otbm
@@ -99,10 +99,13 @@ context_routes:
 owned_paths:
   - docs/agents/tasks/active/CAN-20260724-oteryn-oam043-preflight.md
 proven:
-  - OAM-042 durable program reconciliation PR 864 merged as 5470d5e3b5a88faea108941f4687d8a4a8e63a62.
-  - Fresh Otheryn target baseline is 3a37f3d5e4c01ddf4469f1c71461c40ca749142f.
-  - Fresh current-upstream Canary baseline is 7323503b3dc61ed86bf1f04a611b2d0aec64b35a.
-  - Maintained OTClient baseline is b3bcea2a95959bb4e92cc0b80cd49f36b63699b2.
+  - Canary OAM-043 preflight PR 866 selected quests with disposition REVALIDATE and merged as df7abb0cfe4b05ed11da7b3a6a0dcddbefb62375.
+  - PR 866 final head 8ea49613bc37b152726d0afaf291ecaa450ee853 passed CI and Agent Task Ownership checks with no review comments or unresolved threads.
+  - Current Canary main is b1d24ec362ec52652886f6be6129234ff44e7d4d and contains the merged quests preflight.
+  - Duplicate Canary draft PR 867 overlapped the same exclusive task path and was closed as superseded without merge.
+  - Fresh Otheryn target baseline remains 3a37f3d5e4c01ddf4469f1c71461c40ca749142f.
+  - Fresh current-upstream Canary baseline remains 7323503b3dc61ed86bf1f04a611b2d0aec64b35a.
+  - Maintained OTClient baseline remains b3bcea2a95959bb4e92cc0b80cd49f36b63699b2.
   - Canonical quests registry blob is 61f3f8249a1b7b2efef956cbcec2b78da9dafc08 and declares category world-content.
   - Canonical quests owns quest source, storage transitions, AID/UID/item/position mechanics, rewards, access and NPC/spawn/map dependencies.
   - Canonical quests depends on otbm-tooling and player-persistence; OAM-040 and OAM-004 formally completed those dependencies.
@@ -112,7 +115,6 @@ proven:
   - The validator requires explicit include globs and never assumes every Lua file belongs to one quest.
   - The optional script-resolution input preserves reviewed unresolved identifiers as unresolved and detects competing handlers.
   - The existing resolver scans only active data and data-otservbr-global roots by default and does not mix data-canary unless explicitly requested.
-  - Fresh open-PR and branch searches found no OAM-043 owner in Canary or Otheryn.
   - Canary PR 789 is documentation/design-only and does not mutate quest runtime, datapack, map, client or this task path.
   - Canonical quests declares no direct maintained-client path; OTClient mutation is not implied by this preflight.
 derived:
@@ -124,11 +126,11 @@ unknown:
   - Exact number and classification of quest-owned AID, UID, item, position, teleport, storage and dynamic-expression findings.
   - Whether target-local source-contract tests are sufficient for every selected quest family or bounded runtime/physical-client proof is required.
   - Whether any target-local quest defect requires ADAPT or whether the complete package supports REUSE.
-  - Whether a canonical storage-transition graph implementation already exists outside the reviewed quest validator; no such module was proven during this preflight.
+  - Whether a canonical storage-transition graph implementation already exists outside the reviewed quest validator; no such module was proven during preflight.
 conflicts: []
 first_failure:
   marker: none
-  evidence: OAM-043 target proof has not run; this task is preflight-only.
+  evidence: OAM-043 target proof has not run; Canary preflight selection and ownership reconciliation are complete.
 rejected_hypotheses:
   - Finalize quests as REUSE from target/upstream path presence or blob identity alone.
   - Build a second OTBM parser, map scanner, registration resolver or quest-map validator.
@@ -136,18 +138,19 @@ rejected_hypotheses:
   - Resolve dynamic registrations, computed storages, generated rewards or runtime-loaded tables by guessing.
   - Treat PR 789 design direction as current runtime evidence.
   - Start target mutation before exact inventory and evidence classification.
+  - Continue duplicate PR 867 after canonical PR 866 merged the selected package preflight.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260724-oteryn-oam043-preflight.md
 validation:
-  - command: fresh programme, dependency and lifecycle verification
+  - command: live OAM-043 preflight merge and final-head verification
     result: PASS
-    evidence: OAM-001..OAM-042 are complete; quests hard dependencies and interacting completed packages are resolved.
-  - command: fresh ownership, open-PR and branch overlap audit
+    evidence: PR 866 merged as df7abb0cfe4b05ed11da7b3a6a0dcddbefb62375 after successful CI and Agent Task Ownership on head 8ea49613bc37b152726d0afaf291ecaa450ee853.
+  - command: duplicate ownership reconciliation
     result: PASS
-    evidence: no OAM-043 owner exists; PR 789 is design-only and path-disjoint.
+    evidence: overlapping draft PR 867 was commented and closed without merge; canonical main retains PR 866 content.
   - command: existing quest/OTBM evidence-contract review
     result: PASS
     evidence: quest map validation reuses canonical script resolution and world index, requires explicit source selection and preserves unresolved evidence fail-closed.
 blockers: []
-next_action: Mark PR 866 ready, require exact-head ownership and applicable CI, then audit comments reviews threads and Canary-main drift before expected-head squash merge.
+next_action: Create the Otheryn OAM-043 quests target-proof task from current Otheryn main and pin exact target, upstream, legacy and maintained-client baselines before any target mutation.
 ```
