@@ -114,6 +114,7 @@ jobs:
 
       - name: Commit exact reviewed result
         run: |
+          git checkout HEAD -- .github/workflows/real-tibia-evidence.yml
           rm -rf tools/agents/.rtec001-migration
           rm -f \
             tools/agents/rtec001_patch_lib.py \
