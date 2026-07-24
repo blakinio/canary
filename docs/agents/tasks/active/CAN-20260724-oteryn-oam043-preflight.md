@@ -8,7 +8,7 @@ branch: dudantas/oam-043-post-preflight-handoff
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "324fa55828f315973e5d36617b76008527354627"
+last_verified_commit: "61c4e9eedcdeb9579a2e726895d8dbbdc5f6f095"
 risk: high
 related_issue: ""
 related_pr: "872"
@@ -87,11 +87,11 @@ This preflight performs no target, runtime, datapack, map, binary, protocol, cli
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T12:18:32+02:00
-head: 324fa55828f315973e5d36617b76008527354627
+updated_at: 2026-07-24T12:20:10+02:00
+head: 61c4e9eedcdeb9579a2e726895d8dbbdc5f6f095
 branch: dudantas/oam-043-post-preflight-handoff
 pr: 872
-status: investigating
+status: validating
 context_routes:
   - agent-governance
   - otbm
@@ -151,6 +151,9 @@ validation:
   - command: existing quest/OTBM evidence-contract review
     result: PASS
     evidence: quest map validation reuses canonical script resolution and world index, requires explicit source selection and preserves unresolved evidence fail-closed.
+  - command: PR 872 final-head ownership and CI
+    result: NOT_RUN
+    evidence: ci:final-gate is applied; exact-head Agent Task Ownership and CI workflows must complete on the final synchronization commit.
 blockers: []
-next_action: Create the Otheryn OAM-043 quests target-proof task from current Otheryn main and pin exact target, upstream, legacy and maintained-client baselines before any target mutation.
+next_action: Require exact-head Agent Task Ownership and CI on PR 872, audit comments, reviews, threads and Canary-main drift, then squash-merge with the expected head.
 ```
