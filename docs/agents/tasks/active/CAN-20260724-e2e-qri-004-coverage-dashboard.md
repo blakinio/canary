@@ -2,13 +2,13 @@
 task_id: CAN-20260724-e2e-qri-004-coverage-dashboard
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-QRI-004
-status: implementing
+status: validating
 agent: "GPT-5.6 Thinking"
 branch: docs/e2e-qri-004-compact-handover
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "403dbaf6ba34b6060556b49114545ddcbe003bf1"
+last_verified_commit: "3dc2ac0dae6d155f4a93844a042d3ed8ecbea3fb"
 risk: medium
 related_issue: ""
 related_pr: "885"
@@ -55,11 +55,11 @@ Deliver a bounded factual M0-M5 and orthogonal quality-dimension coverage dashbo
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T20:02:00+02:00
-head: 403dbaf6ba34b6060556b49114545ddcbe003bf1
+updated_at: 2026-07-24T21:15:00+02:00
+head: 3dc2ac0dae6d155f4a93844a042d3ed8ecbea3fb
 branch: docs/e2e-qri-004-compact-handover
 pr: 885
-status: implementing
+status: validating
 context_routes:
   - agent-governance
   - universal-e2e
@@ -85,6 +85,9 @@ proven:
   - Cleanup is accepted only after full cleanup schema-v1 validation and exact agreement with the independent cleanup quality dimension.
   - Evidence paths are normalized repository-independent references; absolute paths, parent traversal and result symlinks escaping an evidence root are rejected or retained as invalid evidence without leaking host paths.
   - The exact GitHub blobs for tools/e2e/coverage_dashboard.py, tests/e2e/test_coverage_dashboard.py and the dashboard schema were reconstructed locally and matched SHA-1 values 3c08ff748fefe628e3c3f34293588b089d66ffc5, 243b2f3795be6d3ad3732d361a05857edaa79281 and 46769ffed08efe2e172f36c548caa3cb8663eadd.
+  - The focused suite passes 15 of 15 against the repository's actual canonical result-envelope, cleanup-certification and scenario-discovery modules under WSL2 Ubuntu; no validator stubs or reconstructed blobs are involved.
+  - The shared module catalogue now records the dashboard contract, paths and fail-closed reuse boundary adjacent to its result-envelope and cleanup-certification dependencies.
+  - Universal Agent E2E run 30114455072 completed successfully on PR head 3dc2ac0dae6d155f4a93844a042d3ed8ecbea3fb, including the physical client login/relog job and Required physical E2E aggregator.
 derived:
   - Registration defines the reviewed row population but cannot prove execution; retained valid evidence alone supplies maturity and quality states.
   - The stable v1 grouping key is suite/scenario_id; selected evidence references preserve exact run, revision, execution tier and timestamp fields.
@@ -94,7 +97,7 @@ unknown:
   - The exact current registered scenario count and which scenarios have complete retained schema-v3 result and cleanup evidence until the aggregator runs in an exact checkout against a selected retained artifact population.
   - Which retained workflow artifact set will be selected for the first repository-wide factual baseline.
   - Whether a later scheduled evidence-collection seam is justified after the first explicit extracted-artifact baseline.
-  - Whether the focused test suite passes unchanged against the repository's actual result-envelope and cleanup-certification modules; the current sandbox could execute the exact dashboard and test blobs only with validator-compatible boundary stubs because GitHub DNS and a checkout-capable connector were unavailable.
+  - Exact final-head Ownership, CI, Universal Agent E2E and applicable autofix outcomes after the catalogue/checkpoint commit.
 conflicts: []
 first_failure:
   marker: checkpoint-validation-unsupported-result
@@ -106,6 +109,7 @@ rejected_hypotheses:
   - Accept an exact cleanup contract header without validating the complete cleanup schema-v1 body.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260724-e2e-qri-004-coverage-dashboard.md
+  - docs/agents/MODULE_CATALOG.md
   - tools/e2e/coverage_dashboard.py
   - tests/e2e/test_coverage_dashboard.py
   - docs/e2e/E2E_COVERAGE_DASHBOARD.md
@@ -122,7 +126,10 @@ validation:
     evidence: Exact reconstructed blobs matching the GitHub source and test SHA-1 values compiled successfully.
   - command: python3 -m unittest -v tests/e2e/test_coverage_dashboard.py
     result: PASS
-    evidence: 15 of 15 focused tests passed using the exact GitHub dashboard and test blobs with validator-compatible local result-envelope and cleanup-certification boundary stubs; actual canonical-module execution remains explicitly unknown.
+    evidence: 15 of 15 focused tests passed in WSL2 Ubuntu with Python 3.14.4 against the checked-out repository's actual canonical result-envelope, cleanup-certification and scenario-discovery modules; the symlink escape case also executed and passed.
+  - command: python -m unittest -v tests/e2e/test_coverage_dashboard.py
+    result: FAIL
+    evidence: Native Windows Python 3.12.0 reached the actual canonical cleanup module but that POSIX lifecycle module cannot import because os.killpg is unavailable; 7 errors, 1 assertion mismatch and 1 platform-specific skip were observed. The dashboard's canonical physical-E2E execution environment is Linux, where the complete suite passes.
   - command: python3 -m json.tool docs/e2e/E2E_COVERAGE_DASHBOARD.schema.json
     result: PASS
     evidence: Parsed local reconstruction matched the exact GitHub schema blob SHA-1 46769ffed08efe2e172f36c548caa3cb8663eadd.
@@ -133,7 +140,7 @@ validation:
     result: PASS
     evidence: Generated reports stay outside Git; Python tool changes require bytecode compilation and focused unit tests, with no Canary compilation required by the changed implementation boundary.
 blockers:
-  - The available GitHub connector supports full-file replacement but no bounded patch for the large shared docs/agents/MODULE_CATALOG.md, and the sandbox cannot resolve GitHub for a checkout; rewriting the catalogue blindly was rejected.
-  - Exact focused execution against the repository's real canonical Python modules requires a checkout-capable environment.
-next_action: Run one checkout-capable finalization loop that adds the Universal E2E factual coverage dashboard row to docs/agents/MODULE_CATALOG.md, executes the focused test against the repository's actual canonical modules, validates the checkpoint, and records exact-head final-gate CI.
+  - Exact final-head Ownership, CI, Universal Agent E2E and applicable autofix must pass before merge.
+  - Final review-thread and changed-file audits remain pending on the frozen final head.
+next_action: Commit and push this catalogue/checkpoint finalization without further source changes, require exact-final-head Ownership, CI, Universal Agent E2E and applicable autofix, then perform the review and expected-head squash-merge audit.
 ```
