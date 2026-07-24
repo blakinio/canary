@@ -2,13 +2,13 @@
 task_id: CAN-20260724-e2e-qri-004-coverage-dashboard
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-QRI-004
-status: validating
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: docs/e2e-qri-004-compact-handover
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "1f93e0c3bd278699c797de65166a37f4f0abec0c"
+last_verified_commit: "4dd57158d8f49fd1b01b109fc1fcf1decd8b68df"
 risk: medium
 related_issue: ""
 related_pr: "885"
@@ -55,8 +55,8 @@ Deliver a bounded factual M0-M5 and orthogonal quality-dimension coverage dashbo
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T22:39:10+02:00
-head: 1f93e0c3bd278699c797de65166a37f4f0abec0c
+updated_at: 2026-07-24T22:41:20+02:00
+head: 4dd57158d8f49fd1b01b109fc1fcf1decd8b68df
 branch: docs/e2e-qri-004-compact-handover
 pr: 885
 status: validating
@@ -138,9 +138,9 @@ validation:
   - command: docs/agents/KNOWN_RISKS.md and docs/agents/BUILD_TEST_MATRIX.md targeted review
     result: PASS
     evidence: Generated reports stay outside Git; Python tool changes require bytecode compilation and focused unit tests, with no Canary compilation required by the changed implementation boundary.
-  - command: Agent Task Ownership run 30124758665
+  - command: Agent Task Ownership runs 30124758665 and 30124915271
     result: FAIL
-    evidence: Exact head 1f93e0c3bd278699c797de65166a37f4f0abec0c exceeded the checkpoint compactness limit with 17 proven items; the superseded reconstructed-blob evidence was removed so the next exact head has the allowed 16.
+    evidence: Head 1f93e0c3bd278699c797de65166a37f4f0abec0c exceeded the 16-item proven compactness limit, then head 4dd57158d8f49fd1b01b109fc1fcf1decd8b68df used the checkpoint phase `validating` as the active-record lifecycle status. The superseded evidence was removed and the record status restored to `implementing`, while checkpoint status remains `validating`.
 blockers:
   - Exact final-head Ownership, CI, Universal Agent E2E and applicable autofix must pass before merge.
   - Final review-thread and changed-file audits remain pending on the frozen final head.
