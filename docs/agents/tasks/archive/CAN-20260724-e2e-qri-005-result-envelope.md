@@ -37,6 +37,7 @@ cross_repo_tasks: []
 
 - Final status: completed.
 - Delivery PR: #850.
+- Lifecycle closure PR: #861.
 - Exact final delivery PR head: `8de40e5c697cbcefc22475356e32515e9c64ad58`.
 - Squash merge commit: `f28acc8e959e79448ea99dead2500a64460f3aff`.
 - Final Agent Task Ownership: PASS, run `30074433714`.
