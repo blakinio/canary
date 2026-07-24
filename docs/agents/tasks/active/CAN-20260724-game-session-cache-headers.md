@@ -1,12 +1,12 @@
 ---
 task_id: CAN-20260724-game-session-cache-headers
 program_id: CAN-PROGRAM-E2E-PLATFORM
-status: validating
+status: review
 agent: "GPT-5.6 Thinking"
 branch: fix/CAN-20260724-game-session-cache-headers
 base_branch: main
 created: 2026-07-24T00:45:00+02:00
-updated: 2026-07-24T10:55:00+02:00
+updated: 2026-07-24T11:00:00+02:00
 last_verified_commit: b15b7d544f4795e3a2a65b88de35391b9fd0a20d
 risk: medium
 related_pr: "852"
@@ -39,7 +39,7 @@ Bring every response from the private Canary Game Session issuer into the comple
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T10:55:00+02:00
+updated_at: 2026-07-24T11:00:00+02:00
 head: b15b7d544f4795e3a2a65b88de35391b9fd0a20d
 branch: fix/CAN-20260724-game-session-cache-headers
 pr: 852
@@ -65,8 +65,8 @@ unknown:
   - runtime header result over the private TLS proxy in the full rehearsal
 conflicts: []
 first_failure:
-  marker: checkpoint-status-enum
-  evidence: ownership run 30080195226 rejected unsupported checkpoint status review; supported validating status is now used
+  marker: dual-status-enums
+  evidence: task front matter requires active status review while checkpoint validation requires status validating; the two supported values are now used in their respective fields
 rejected_hypotheses:
   - fix only the rehearsal proxy: rejected because the security header belongs to the real issuer response contract
   - classify source inspection or Canary CI as private-TLS runtime proof: rejected because the cross-repository boundary still requires an executable rehearsal
