@@ -1,0 +1,88 @@
+name: Native Auth Ephemeral Cutover Rehearsal
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/native-auth-ephemeral-cutover-rehearsal.yml"
+      - "tests/e2e/native_auth_ephemeral_cutover/**"
+      - "docs/agents/tasks/active/CAN-20260723-native-auth-ephemeral-cutover-rehearsal.md"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-auth-ephemeral-cutover-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  PROVEN_PLATFORM_RUN: "30095854266"
+  PROVEN_PLATFORM_PR: "126"
+  PROVEN_PLATFORM_MERGE: b520cf78ac1b488a289b156b492539b2a047f299
+  PROVEN_EVIDENCE_ARTIFACT: "8597730728"
+  PROVEN_EVIDENCE_DIGEST: sha256:e7e908e9129658654054a96adf641757edc2c904fc2b01a5b9fc97e393d18009
+  PROVEN_CANARY_HARNESS: f46ae126557d4d26043c77fe17968b72fd5bc688
+
+jobs:
+  validate:
+    name: Validate retained production-like rehearsal proof
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout rehearsal harness
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Validate harness syntax
+        run: |
+          set -euo pipefail
+          python3 -m py_compile \
+            tests/e2e/native_auth_ephemeral_cutover/run_rehearsal.py \
+            tests/e2e/native_auth_ephemeral_cutover/browser_driver.py \
+            tests/e2e/native_auth_ephemeral_cutover/oauth_probe.py
+          bash -n tests/e2e/native_auth_ephemeral_cutover/capture-xdg-open.sh
+          test -s tests/e2e/native_auth_ephemeral_cutover/otclient_native_flow_e2e.lua
+          test -s tests/e2e/native_auth_ephemeral_cutover/otclient_session_negative_e2e.lua
+          test -s tests/e2e/native_auth_ephemeral_cutover/otclient_malformed_gateway_e2e.lua
+          php -l tests/e2e/native_auth_ephemeral_cutover/platform_bootstrap.php
+
+      - name: Validate durable task evidence
+        run: |
+          set -euo pipefail
+          task=docs/agents/tasks/active/CAN-20260723-native-auth-ephemeral-cutover-rehearsal.md
+          grep -F "Platform rehearsal run ${PROVEN_PLATFORM_RUN} completed successfully" "${task}"
+          grep -F "Retained artifact ${PROVEN_EVIDENCE_ARTIFACT} has digest ${PROVEN_EVIDENCE_DIGEST}" "${task}"
+          grep -F "Canary harness ${PROVEN_CANARY_HARNESS}" "${task}"
+          grep -F "PRODUCTION_LIKE_PROVEN" "${task}"
+
+      - name: Verify merged Platform proof and retained artifact metadata
+        run: |
+          set -euo pipefail
+          pr_json="$(curl -fsSL -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/blakinio/Oteryn-Platform/pulls/${PROVEN_PLATFORM_PR}")"
+          test "$(jq -r '.merged_at != null' <<<"${pr_json}")" = "true"
+          test "$(jq -r '.merge_commit_sha' <<<"${pr_json}")" = "${PROVEN_PLATFORM_MERGE}"
+
+          run_json="$(curl -fsSL -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/blakinio/Oteryn-Platform/actions/runs/${PROVEN_PLATFORM_RUN}")"
+          test "$(jq -r '.status' <<<"${run_json}")" = "completed"
+          test "$(jq -r '.conclusion' <<<"${run_json}")" = "success"
+
+          artifact_json="$(curl -fsSL -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/blakinio/Oteryn-Platform/actions/artifacts/${PROVEN_EVIDENCE_ARTIFACT}")"
+          test "$(jq -r '.id | tostring' <<<"${artifact_json}")" = "${PROVEN_EVIDENCE_ARTIFACT}"
+          test "$(jq -r '.digest' <<<"${artifact_json}")" = "${PROVEN_EVIDENCE_DIGEST}"
+          test "$(jq -r '.workflow_run.id | tostring' <<<"${artifact_json}")" = "${PROVEN_PLATFORM_RUN}"
+          test "$(jq -r '.expired' <<<"${artifact_json}")" = "false"
+
+  required:
+    name: Required native-auth rehearsal evidence
+    if: always()
+    needs: [validate]
+    runs-on: ubuntu-24.04
+    permissions: {}
+    steps:
+      - name: Enforce evidence result
+        run: test "${{ needs.validate.result }}" = success
