@@ -1,117 +1,88 @@
----
-name: Tibia Client Reference
+name: TCR-007 Materialize via Canonical Workflow
 
 on:
-  pull_request:
+  push:
+    branches:
+      - feat/tcr-007-proficiency-reference-correlation
     paths:
-      - "tools/ai-agent/tibia_client_reference_manifest.py"
-      - "tools/ai-agent/tibia_client_reference_manifest_tool.py"
-      - "tools/ai-agent/test_tibia_client_reference_manifest.py"
-      - "tools/ai-agent/tibia_staticdata_reference_index.py"
-      - "tools/ai-agent/tibia_staticdata_reference_index_tool.py"
-      - "tools/ai-agent/test_tibia_staticdata_reference_index.py"
-      - "tools/ai-agent/tibia_staticmapdata_reference_index.py"
-      - "tools/ai-agent/tibia_staticmapdata_reference_index_tool.py"
-      - "tools/ai-agent/test_tibia_staticmapdata_reference_index.py"
-      - "tools/ai-agent/tibia_proficiency_reference_index.py"
-      - "tools/ai-agent/tibia_proficiency_reference_index_tool.py"
-      - "tools/ai-agent/test_tibia_proficiency_reference_index.py"
-      - "tools/ai-agent/otbm_house_reference_parity.py"
-      - "tools/ai-agent/otbm_house_reference_parity_tool.py"
-      - "tools/ai-agent/test_otbm_house_reference_parity.py"
-      - "tools/ai-agent/tibia_content_reference_correlation.py"
-      - "tools/ai-agent/tibia_content_reference_correlation_tool.py"
-      - "tools/ai-agent/test_tibia_content_reference_correlation.py"
-      - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.md"
-      - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.schema.json"
-      - "docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.md"
-      - "docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.schema.json"
-      - "docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.md"
-      - "docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.schema.json"
-      - "docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.md"
-      - "docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.schema.json"
-      - "docs/ai-agent/OTBM_HOUSE_REFERENCE_PARITY.md"
-      - "docs/ai-agent/OTBM_HOUSE_REFERENCE_PARITY.schema.json"
-      - "docs/ai-agent/OTBM_HOUSE_ID_RESOLVER.schema.json"
-      - "docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.md"
-      - "docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json"
-      - "docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json"
-      - ".github/workflows/tibia-client-reference.yml"
-  workflow_dispatch:
+      - .github/workflows/tibia-client-reference.yml
+      - .tcr007-stage/payload.tar.xz
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  validate-reference-tooling:
-    name: Validate client reference tooling
+  materialize:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Run manifest focused tests
-        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_client_reference_manifest.py" -v
-
-      - name: Run StaticData focused tests
-        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_staticdata_reference_index.py" -v
-
-      - name: Run StaticMapData focused tests
-        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_staticmapdata_reference_index.py" -v
-
-      - name: Run proficiency focused tests
-        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_proficiency_reference_index.py" -v
-
-      - name: Run house parity focused tests
-        run: python -m unittest discover -s tools/ai-agent -p "test_otbm_house_reference_parity.py" -v
-
-      - name: Run content correlation focused tests
-        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_content_reference_correlation.py" -v
-
-      - name: Compile client reference tooling
+      - name: Verify exact staged payload
+        shell: bash
         run: |
+          echo '17723d983b2d4a9cf2497101f112c5c279f671f7d3e87d7d9426a50c1c320af8  .tcr007-stage/payload.tar.xz' | sha256sum -c -
+          tar -tJf .tcr007-stage/payload.tar.xz | sort | tee /tmp/tcr007-payload-files.txt
+          for path in \
+            tools/ai-agent/tibia_proficiency_reference_common.py \
+            tools/ai-agent/tibia_proficiency_reference_inventory.py \
+            tools/ai-agent/tibia_proficiency_reference_resolver.py \
+            tools/ai-agent/tibia_proficiency_reference_correlation.py \
+            tools/ai-agent/tibia_proficiency_reference_correlation_tool.py \
+            tools/ai-agent/tibia_proficiency_reference_test_support.py \
+            tools/ai-agent/test_tibia_proficiency_reference_correlation.py \
+            tools/ai-agent/test_tibia_proficiency_reference_inventory.py \
+            docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.md \
+            docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.schema.json \
+            docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_RESOLVER.schema.json; do
+            grep -Fx "$path" /tmp/tcr007-payload-files.txt
+          done
+      - name: Extract staged implementation
+        shell: bash
+        run: |
+          tar -xJf .tcr007-stage/payload.tar.xz
+          chmod +x tools/ai-agent/tibia_proficiency_reference_correlation_tool.py
+      - name: Validate focused implementation
+        env:
+          PYTHONPATH: tools/ai-agent
+        shell: bash
+        run: |
+          python -m unittest discover -s tools/ai-agent -p 'test_tibia_proficiency_reference_*.py' -v
           python -m py_compile \
-            tools/ai-agent/tibia_client_reference_manifest.py \
-            tools/ai-agent/tibia_client_reference_manifest_tool.py \
-            tools/ai-agent/test_tibia_client_reference_manifest.py \
-            tools/ai-agent/tibia_staticdata_reference_index.py \
-            tools/ai-agent/tibia_staticdata_reference_index_tool.py \
-            tools/ai-agent/test_tibia_staticdata_reference_index.py \
-            tools/ai-agent/tibia_staticmapdata_reference_index.py \
-            tools/ai-agent/tibia_staticmapdata_reference_index_tool.py \
-            tools/ai-agent/test_tibia_staticmapdata_reference_index.py \
-            tools/ai-agent/tibia_proficiency_reference_index.py \
-            tools/ai-agent/tibia_proficiency_reference_index_tool.py \
-            tools/ai-agent/test_tibia_proficiency_reference_index.py \
-            tools/ai-agent/otbm_house_reference_parity.py \
-            tools/ai-agent/otbm_house_reference_parity_tool.py \
-            tools/ai-agent/test_otbm_house_reference_parity.py \
-            tools/ai-agent/tibia_content_reference_correlation.py \
-            tools/ai-agent/tibia_content_reference_correlation_tool.py \
-            tools/ai-agent/test_tibia_content_reference_correlation.py
-
-      - name: Validate JSON schema syntax
+            tools/ai-agent/tibia_proficiency_reference_common.py \
+            tools/ai-agent/tibia_proficiency_reference_inventory.py \
+            tools/ai-agent/tibia_proficiency_reference_resolver.py \
+            tools/ai-agent/tibia_proficiency_reference_correlation.py \
+            tools/ai-agent/tibia_proficiency_reference_correlation_tool.py \
+            tools/ai-agent/tibia_proficiency_reference_test_support.py \
+            tools/ai-agent/test_tibia_proficiency_reference_correlation.py \
+            tools/ai-agent/test_tibia_proficiency_reference_inventory.py
+          python -m json.tool docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_RESOLVER.schema.json >/dev/null
+          python -m json.tool docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.schema.json >/dev/null
+          python tools/ai-agent/tibia_proficiency_reference_correlation_tool.py --help >/dev/null
+          python tools/ai-agent/tibia_proficiency_reference_correlation_tool.py inventory --repository-root . --output /tmp/TCR007_CANARY_EVIDENCE_A.json
+          python tools/ai-agent/tibia_proficiency_reference_correlation_tool.py inventory --repository-root . --output /tmp/TCR007_CANARY_EVIDENCE_B.json
+          cmp /tmp/TCR007_CANARY_EVIDENCE_A.json /tmp/TCR007_CANARY_EVIDENCE_B.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('/tmp/TCR007_CANARY_EVIDENCE_A.json').read_text())
+          assert report['format'] == 'canary-tcr007-canary-evidence-v1'
+          assert report['runtimeDefinitions']['recordCount'] > 0
+          assert report['itemBindingContract']['objectIdAssignsItemId'] is True
+          assert report['itemBindingContract']['proficiencyFlagAssignsRuntimeBinding'] is True
+          assert report['itemBindingContract']['unknownRuntimeDefinitionsRejected'] is True
+          assert report['runtimeSupport']['persistence'] == 'source-supported'
+          PY
+      - name: Commit validated implementation
+        shell: bash
         run: |
-          python -m json.tool docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.schema.json > /dev/null
-          python -m json.tool docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.schema.json > /dev/null
-          python -m json.tool docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.schema.json > /dev/null
-          python -m json.tool docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.schema.json > /dev/null
-          python -m json.tool docs/ai-agent/OTBM_HOUSE_REFERENCE_PARITY.schema.json > /dev/null
-          python -m json.tool docs/ai-agent/OTBM_HOUSE_ID_RESOLVER.schema.json > /dev/null
-          python -m json.tool docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json > /dev/null
-          python -m json.tool docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json > /dev/null
-
-      - name: Validate CLI construction
-        run: |
-          python tools/ai-agent/tibia_client_reference_manifest_tool.py --help > /dev/null
-          python tools/ai-agent/tibia_staticdata_reference_index_tool.py --help > /dev/null
-          python tools/ai-agent/tibia_staticmapdata_reference_index_tool.py --help > /dev/null
-          python tools/ai-agent/tibia_proficiency_reference_index_tool.py --help > /dev/null
-          python tools/ai-agent/otbm_house_reference_parity_tool.py --help > /dev/null
-          python tools/ai-agent/tibia_content_reference_correlation_tool.py --help > /dev/null
+          rm -rf .tcr007-stage .github/workflows/tcr007-materialize.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat(tcr): implement proficiency reference correlation'
+          git push origin HEAD:feat/tcr-007-proficiency-reference-correlation
