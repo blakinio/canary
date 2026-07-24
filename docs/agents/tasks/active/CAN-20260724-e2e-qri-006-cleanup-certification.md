@@ -107,10 +107,7 @@ proven:
   - The certifier now reaps only residual members of the exact dedicated PGID with bounded SIGTERM then SIGKILL escalation and records members_before, signals, members_after and errors.
   - Exact-head Universal Agent E2E run 30088384760 passed on 49b6d190eaa15353d2220c2b5f5f18246ebaa982; cleanup contract schema 1 reported certified=true with 18/18 required checks, gameplay success, PGID 4839 member 4911 reaped by SIGTERM, no remaining members, no warnings and no unknowns.
   - Artifact 8595225850 has digest sha256:6a188e536610fa420d3e1ed7c41cfefd8f88a93dca2bd980b0d833cc73161a6d and the schema-v3 envelope reports execution_tier=pr-required and quality_dimensions.cleanup=pass.
-  - Absolute runner paths found in legacy session-record events were reduced to artifact basenames by d996db1dc3c585766bb17eb5000f57a19f2a1e9c with a focused regression test.
-  - Delivery PR 871 merged as 6ad2172eb8e4d5a9fcda0d69f2b6c88906082bfb after exact-head ownership, full CI and Universal Agent E2E passed at 4a6d7c418f3dead8616862476971a2a8ee23e606.
-  - Post-merge artifact 8597198699 retained absolute /home/runner paths only in raw client-events.tsv packet_record_1/2 values; result.json and cleanup-certification.json remained sanitized and cleanup certified 18/18.
-  - The follow-up keeps the full packet-record path for loginWorld while emitting only session-N.record into client-events.tsv.
+  - Delivery PR 871 merged as 6ad2172eb8e4d5a9fcda0d69f2b6c88906082bfb after exact-head gates; post-merge artifact 8597198699 proved cleanup 18/18 but exposed absolute packet_record_1/2 values only in raw client-events.tsv, so PR 875 keeps the full loginWorld path while emitting only session-N.record events.
   - Cleanup baseline evidence now stores only logical repo/otclient roots and relative paths, not absolute runner paths.
   - Branch is synchronized with main commit 13ec3077babba0ac81bb1e30e79f0ea4827ae2fe through merge commit 8cd80cd92b3c5a904f3bfea910328ca828604a3a.
 derived:
