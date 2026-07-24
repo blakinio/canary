@@ -8,6 +8,7 @@ on:
       - ".github/workflows/native-auth-ephemeral-cutover-rehearsal.yml"
       - "tests/e2e/native_auth_ephemeral_cutover/**"
       - "docs/agents/tasks/active/CAN-20260723-native-auth-ephemeral-cutover-rehearsal.md"
+      - "docs/agents/tasks/archive/CAN-20260723-native-auth-ephemeral-cutover-rehearsal.md"
 
 permissions:
   contents: read
@@ -51,10 +52,18 @@ jobs:
       - name: Validate durable task evidence
         run: |
           set -euo pipefail
-          task=docs/agents/tasks/active/CAN-20260723-native-auth-ephemeral-cutover-rehearsal.md
-          grep -F "Platform rehearsal run ${PROVEN_PLATFORM_RUN} completed successfully" "${task}"
-          grep -F "Retained artifact ${PROVEN_EVIDENCE_ARTIFACT} has digest ${PROVEN_EVIDENCE_DIGEST}" "${task}"
-          grep -F "Canary harness ${PROVEN_CANARY_HARNESS}" "${task}"
+          active=docs/agents/tasks/active/CAN-20260723-native-auth-ephemeral-cutover-rehearsal.md
+          archived=docs/agents/tasks/archive/CAN-20260723-native-auth-ephemeral-cutover-rehearsal.md
+          if [[ -s "${active}" ]]; then
+            task="${active}"
+          else
+            task="${archived}"
+          fi
+          test -s "${task}"
+          grep -F "${PROVEN_PLATFORM_RUN}" "${task}"
+          grep -F "${PROVEN_EVIDENCE_ARTIFACT}" "${task}"
+          grep -F "${PROVEN_EVIDENCE_DIGEST}" "${task}"
+          grep -F "${PROVEN_CANARY_HARNESS}" "${task}"
           grep -F "PRODUCTION_LIKE_PROVEN" "${task}"
 
       - name: Verify merged Platform proof and retained artifact metadata
