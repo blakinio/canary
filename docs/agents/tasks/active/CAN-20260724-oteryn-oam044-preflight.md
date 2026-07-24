@@ -8,10 +8,10 @@ branch: dudantas/oam-044-protocol-compatibility-preflight
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "a5cafe1b7ce148af59c64d1382963ac6ac633334"
+last_verified_commit: "2f2cd8327941436ee6bb8a5d8e51de5e0970d2a8"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "879"
 depends_on:
   - OAM-043 durably completed as 9d99a0665050d244a0ee0beb0362080de0f3d19a
   - canonical protocol completed by OAM-006
@@ -83,10 +83,10 @@ This preflight performs no target, server runtime, maintained-client, transport,
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T16:55:00+02:00
-head: a5cafe1b7ce148af59c64d1382963ac6ac633334
+updated_at: 2026-07-24T17:04:00+02:00
+head: 2f2cd8327941436ee6bb8a5d8e51de5e0970d2a8
 branch: dudantas/oam-044-protocol-compatibility-preflight
-pr: none
+pr: 879
 status: validating
 context_routes:
   - agent-governance
@@ -107,6 +107,7 @@ proven:
   - TSD-010 explicitly treats server ProtocolFeature and client GameFeature records as inventories, not one-to-one semantic or byte-contract proof, and requires paired fixtures or captures for compatibility claims.
   - Fresh exact branch searches found no OAM-044 or protocol-compatibility owner in Canary or Otheryn; Otheryn has no open PRs.
   - Open Canary PR #514 owns authenticated game-session sequence/XTEA validation, so network-transport is rejected as the collision-free first OAM-044 choice.
+  - Canary PR 879 changes exactly this active task record and carries the ci:final-gate label before the final synchronization commit.
 derived:
   - protocol-compatibility is the narrowest dependency-valid remaining canonical boundary with no live owner and advances the dependency graph by unblocking protocol-session-handoff.
   - Exact target/upstream server identity supports reuse as a hypothesis only; legacy divergence and the independent client matrix require REVALIDATE.
@@ -139,7 +140,10 @@ validation:
     evidence: Exact Git blobs above establish target/upstream identity, legacy divergence and the maintained-client feature root without asserting compatibility.
   - command: live branch, PR and ownership preflight
     result: PASS
-    evidence: No OAM-044/protocol-compatibility branch or PR owner exists; open PR 514 is retained as an interacting network-transport constraint.
+    evidence: No prior OAM-044/protocol-compatibility branch or PR owner existed; open PR 514 is retained as an interacting network-transport constraint.
+  - command: PR 879 exact-head Agent Task Ownership and final-gate CI
+    result: NOT_RUN
+    evidence: Gates must run on this final synchronization head after the PR is marked ready.
 blockers: []
-next_action: Open the bounded Canary preflight PR, synchronize exact PR/head metadata, require exact-head Agent Task Ownership and final-gate CI, audit discussions and Canary-main drift, then squash-merge with the expected head.
+next_action: Require exact-head Agent Task Ownership and final-gate CI on PR 879, audit comments, reviews, threads and Canary-main drift, then squash-merge with the expected head.
 ```
