@@ -19,6 +19,9 @@ on:
       - "tools/ai-agent/otbm_house_reference_parity.py"
       - "tools/ai-agent/otbm_house_reference_parity_tool.py"
       - "tools/ai-agent/test_otbm_house_reference_parity.py"
+      - "tools/ai-agent/tibia_content_reference_correlation.py"
+      - "tools/ai-agent/tibia_content_reference_correlation_tool.py"
+      - "tools/ai-agent/test_tibia_content_reference_correlation.py"
       - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.md"
       - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.schema.json"
       - "docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.md"
@@ -30,6 +33,9 @@ on:
       - "docs/ai-agent/OTBM_HOUSE_REFERENCE_PARITY.md"
       - "docs/ai-agent/OTBM_HOUSE_REFERENCE_PARITY.schema.json"
       - "docs/ai-agent/OTBM_HOUSE_ID_RESOLVER.schema.json"
+      - "docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.md"
+      - "docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json"
+      - "docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json"
       - ".github/workflows/tibia-client-reference.yml"
   workflow_dispatch:
 
@@ -100,3 +106,179 @@ jobs:
           python tools/ai-agent/tibia_staticmapdata_reference_index_tool.py --help > /dev/null
           python tools/ai-agent/tibia_proficiency_reference_index_tool.py --help > /dev/null
           python tools/ai-agent/otbm_house_reference_parity_tool.py --help > /dev/null
+
+  tcr006-owner-inventory:
+    name: TCR-006 owner inventory
+    if: github.head_ref == 'feat/tcr-006-content-reference-correlation'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate compact owner inventories
+        env:
+          PYTHONPATH: tools/ai-agent
+        shell: python
+        run: |
+          from __future__ import annotations
+
+          import hashlib
+          import json
+          import subprocess
+          from pathlib import Path
+
+          from achievement_validation import parse_registry_text
+          from cyclopedia_validation import collect_monsters
+          from otbm_spawn_npc import scan_active_datapack
+
+          root = Path('.').resolve()
+
+          def sha(path: Path) -> str:
+              return hashlib.sha256(path.read_bytes()).hexdigest()
+
+          achievement_path = root / 'data/scripts/lib/register_achievements.lua'
+          definitions, achievement_findings = parse_registry_text(achievement_path.read_text(encoding='utf-8'))
+          achievements = [
+              {
+                  'id': item.id,
+                  'name': item.name,
+                  'grade': item.grade,
+                  'secret': item.secret,
+                  'points': item.points,
+                  'line': item.line,
+              }
+              for item in definitions
+          ]
+
+          cyclopedia = collect_monsters(root)
+          bestiary = sorted(
+              [
+                  {
+                      'id': item.get('raceId'),
+                      'name': item.get('name'),
+                      'path': item.get('path'),
+                      'class': item.get('bestiary', {}).get('class'),
+                      'occurrence': item.get('bestiary', {}).get('Occurrence'),
+                  }
+                  for item in cyclopedia['bestiaryEntries']
+              ],
+              key=lambda item: (item['id'] is None, item['id'] or 0, item['name'] or '', item['path']),
+          )
+          bosstiary = sorted(
+              [
+                  {
+                      'id': item.get('bosstiary', {}).get('bossRaceId'),
+                      'name': item.get('name'),
+                      'path': item.get('path'),
+                      'rarity': item.get('bosstiary', {}).get('bossRace'),
+                  }
+                  for item in cyclopedia['bosstiaryEntries']
+              ],
+              key=lambda item: (item['id'] is None, item['id'] or 0, item['name'] or '', item['path']),
+          )
+
+          spawn = scan_active_datapack(
+              datapack_root=root / 'data-otservbr-global',
+              monster_spawn_files=('world/otservbr-monster.xml',),
+              npc_spawn_files=('world/otservbr-npc.xml',),
+              monster_definition_globs=('monster/**/*.lua',),
+              npc_definition_globs=('npc/**/*.lua',),
+              dynamic_source_globs=(),
+              sample_limit=1,
+          )
+          spawn_definitions = sorted(
+              [
+                  {
+                      'kind': entry.get('kind'),
+                      'name': entry.get('name'),
+                      'source': entry.get('source'),
+                      'rewardBoss': entry.get('rewardBoss'),
+                      'spawnBossLiteral': entry.get('spawnBossLiteral'),
+                  }
+                  for entry in spawn.get('definitions', [])
+              ],
+              key=lambda item: (item['kind'] or '', item['name'] or '', item['source'] or ''),
+          )
+
+          payload = {
+              'format': 'canary-tcr006-owner-inventory-v1',
+              'repositoryHead': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+              'achievement': {
+                  'ownerFormat': 'canary-achievement-audit-v2',
+                  'sourcePath': achievement_path.relative_to(root).as_posix(),
+                  'sourceSha256': sha(achievement_path),
+                  'recordCount': len(achievements),
+                  'parserFindingCount': len(achievement_findings),
+                  'records': achievements,
+              },
+              'bestiary': {
+                  'owner': 'Cyclopedia Validation',
+                  'recordCount': len(bestiary),
+                  'records': bestiary,
+              },
+              'bosstiary': {
+                  'owner': 'Cyclopedia Validation',
+                  'recordCount': len(bosstiary),
+                  'records': bosstiary,
+              },
+              'spawnBossDefinitions': {
+                  'ownerFormat': spawn.get('format'),
+                  'summary': spawn.get('summary'),
+                  'recordCount': len(spawn_definitions),
+                  'records': spawn_definitions,
+              },
+              'quest': {
+                  'ownerFormat': 'canary-quest-map-evidence-v1',
+                  'automaticClientQuestIdJoinSupported': False,
+                  'requiredReviewedInputs': [
+                      'explicit quest source globs',
+                      'selected source file SHA-256 values',
+                      'reviewed client quest ID to source-selection mapping',
+                  ],
+                  'reason': 'Quest Map Validator exposes selected source AID/UID/item/position/storage evidence and no shared client quest-ID namespace.',
+              },
+              'policy': {
+                  'clientInputsIncluded': False,
+                  'fullOwnerReportsIncluded': False,
+                  'nameOnlyMappingsConfirmed': False,
+                  'numericIdentityMappingsConfirmed': False,
+              },
+          }
+          out = Path('artifacts/TCR006_OWNER_INVENTORY.json')
+          out.parent.mkdir(parents=True, exist_ok=True)
+          out.write_text(json.dumps(payload, indent=2, ensure_ascii=False, sort_keys=True) + '\n', encoding='utf-8')
+          print(json.dumps({
+              'achievements': len(achievements),
+              'bestiary': len(bestiary),
+              'bosstiary': len(bosstiary),
+              'spawnDefinitions': len(spawn_definitions),
+          }, sort_keys=True))
+
+      - name: Validate compact inventory
+        run: |
+          python -m json.tool artifacts/TCR006_OWNER_INVENTORY.json > /dev/null
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(Path('artifacts/TCR006_OWNER_INVENTORY.json').read_text(encoding='utf-8'))
+          assert payload['format'] == 'canary-tcr006-owner-inventory-v1'
+          assert payload['achievement']['recordCount'] > 0
+          assert payload['bestiary']['recordCount'] > 0
+          assert payload['bosstiary']['recordCount'] > 0
+          assert payload['spawnBossDefinitions']['recordCount'] > 0
+          assert payload['quest']['automaticClientQuestIdJoinSupported'] is False
+          assert payload['policy']['clientInputsIncluded'] is False
+          PY
+
+      - name: Upload owner inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: tcr006-owner-inventory
+          path: artifacts/TCR006_OWNER_INVENTORY.json
+          if-no-files-found: error
