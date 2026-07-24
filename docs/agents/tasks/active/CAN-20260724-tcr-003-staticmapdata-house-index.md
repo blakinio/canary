@@ -2,16 +2,16 @@
 task_id: CAN-20260724-tcr-003-staticmapdata-house-index
 program_id: CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE
 coordination_id: OTBM-TIBIA-CLIENT-REFERENCE
-status: active
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: feat/tcr-003-staticmapdata-house-index
 base_branch: main
 created: 2026-07-24T07:18:23+02:00
-updated: 2026-07-24T07:18:23+02:00
-last_verified_commit: "879fbfaff75b4255b4164b5132a0987e9aec8358"
+updated: 2026-07-24T07:39:00+02:00
+last_verified_commit: "93bb663d5c1d98243d67e960becfc49513e46712"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: 851
 depends_on:
   - TCR-001 merged stable canary-tibia-client-reference-manifest-v1
   - TCR-002 merged stable canary-tibia-staticdata-index-v1
@@ -28,13 +28,12 @@ owned_paths:
     - docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.schema.json
   shared:
     - .github/workflows/tibia-client-reference.yml
-    - docs/agents/MODULE_CATALOG.md
-    - docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
-    - docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md
-    - docs/agents/CHANGELOG.md
   read_only:
     - tools/ai-agent/tibia_client_reference_manifest.py
     - tools/ai-agent/tibia_staticdata_reference_index.py
+    - docs/agents/MODULE_CATALOG.md
+    - docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
+    - docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md
 modules_touched:
   - OTBM Tibia client reference architecture
   - official-client reference evidence
@@ -64,11 +63,11 @@ Implement the bounded, read-only `canary-tibia-staticmapdata-index-v1` producer 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T07:18:23+02:00
-head: UNKNOWN
+updated_at: 2026-07-24T07:39:00+02:00
+head: 93bb663d5c1d98243d67e960becfc49513e46712
 branch: feat/tcr-003-staticmapdata-house-index
-pr: none
-status: implementing
+pr: 851
+status: validating
 context_routes:
   - agent-governance
   - otbm
@@ -81,39 +80,57 @@ owned_paths:
   - docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.md
   - docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.schema.json
   - .github/workflows/tibia-client-reference.yml
-  - docs/agents/MODULE_CATALOG.md
-  - docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
-  - docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md
-  - docs/agents/CHANGELOG.md
 proven:
   - Current implementation base is main 879fbfaff75b4255b4164b5132a0987e9aec8358.
-  - PR 844 is a checkpoint-only draft with no implementation and is seven main commits behind at the preflight observation.
+  - PR 844 was checkpoint-only, contained no implementation and is closed as superseded by PR 851.
   - No other open TCR-003 or StaticMapData implementation owner was found.
   - The pinned research schema is beats-dh/Beats-Assets-Editor@ed827be34c279d1279ad3dde3af434b148ac05c7 and is read-only format evidence; source copying is excluded.
   - The exact user-supplied StaticMapData input remains outside Git, is 1469283 bytes, and has SHA-256 0967af2eacdd8f2a608e738b9042362676167d6c6455e60d08db7ae16cf7ea53.
-  - The reviewed real file is raw protobuf with 995 house records, no duplicate house IDs and no invalid declared dimension or encoded-cell-span relationships.
+  - The reviewed real file is raw protobuf with 995 houses, 117716 row records, 188014 tile records and no duplicate-house, missing-field, duplicate-singular-field or dimension findings.
   - For every reviewed house, encoded row count plus the sum of row flags equals width multiplied by height multiplied by floors.
+  - The producer, CLI, schema, documentation, focused tests and dedicated workflow integration are implemented on PR 851.
+  - Local fixture validation passed 15 tests with one opt-in real-file test skipped; opt-in validation passed all 16 tests against the exact user-supplied file.
+  - Python bytecode compilation, JSON schema syntax validation and CLI construction passed locally.
+  - GitHub Tibia Client Reference and general CI workflows passed on implementation head 93bb663d5c1d98243d67e960becfc49513e46712.
 derived:
-  - Row flags must be preserved as source evidence and may support deterministic encoded-cell-span validation without inventing OTBM coordinates or item mappings.
+  - Row flags are preserved as source evidence and support only deterministic encoded-cell-span validation; their broader semantics remain unresolved.
 unknown:
   - Exact client build identity remains unknown unless separately proven by the stable manifest.
-  - The semantic meaning of each row flag beyond its observed encoded-cell-span contribution remains unresolved and must not be renamed into stronger semantics.
+  - No mapping from staticmapdata.object_id to OTBM/server/appearance identifiers is proven.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: implementation has not started on this fresh branch
+  marker: Agent Task Ownership changed-task validation on head 93bb663d5c1d98243d67e960becfc49513e46712
+  evidence: task status was active instead of implementing and related_pr was empty instead of 851; implementation workflows were green
 rejected_hypotheses:
   - Reuse an existing Canary StaticMapData index: no canonical implementation or differently named equivalent surfaced in current repository, catalogue, task or PR searches.
   - Copy the external Rust/protobuf implementation: programme licensing and architecture boundaries require an independent Canary implementation.
 changed_paths:
+  - .github/workflows/tibia-client-reference.yml
   - docs/agents/tasks/active/CAN-20260724-tcr-003-staticmapdata-house-index.md
+  - docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.md
+  - docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.schema.json
+  - tools/ai-agent/test_tibia_staticmapdata_reference_index.py
+  - tools/ai-agent/tibia_staticmapdata_reference_index.py
+  - tools/ai-agent/tibia_staticmapdata_reference_index_tool.py
 validation:
-  - command: GitHub ownership/reuse/current-main preflight
+  - command: python -m unittest discover -s tools/ai-agent -p test_tibia_staticmapdata_reference_index.py -v
     result: PASS
-    evidence: no overlapping owner; fresh branch created from main 879fbfaff75b4255b4164b5132a0987e9aec8358
-  - command: bounded independent real-file wire-shape analysis outside Git
+    evidence: 15 passed; 1 opt-in test skipped
+  - command: CANARY_TIBIA_STATICMAPDATA_FILE=<external-file> python -m unittest discover -s tools/ai-agent -p test_tibia_staticmapdata_reference_index.py -v
     result: PASS
-    evidence: 995 houses; source SHA-256 0967af2eacdd8f2a608e738b9042362676167d6c6455e60d08db7ae16cf7ea53; all encoded cell spans match declared dimensions
+    evidence: 16 passed; exact source SHA-256 0967af2eacdd8f2a608e738b9042362676167d6c6455e60d08db7ae16cf7ea53
+  - command: python -m py_compile tools/ai-agent/tibia_staticmapdata_reference_index.py tools/ai-agent/tibia_staticmapdata_reference_index_tool.py tools/ai-agent/test_tibia_staticmapdata_reference_index.py
+    result: PASS
+    evidence: local Python compilation completed without output
+  - command: python -m json.tool docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.schema.json
+    result: PASS
+    evidence: schema syntax valid
+  - command: GitHub Tibia Client Reference workflow on 93bb663d5c1d98243d67e960becfc49513e46712
+    result: PASS
+    evidence: run 30069835475
+  - command: GitHub CI workflow on 93bb663d5c1d98243d67e960becfc49513e46712
+    result: PASS
+    evidence: run 30069835625
 blockers: []
-next_action: Open the bounded TCR-003 implementation draft PR from this fresh branch, then implement the independently defined producer and focused tests on the claimed paths.
+next_action: Verify the ownership metadata fix and all required workflows on the new PR 851 head, then perform the final readiness gate without changing implementation semantics.
 ```
