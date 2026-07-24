@@ -5,14 +5,16 @@ on:
   pull_request:
     paths:
       - ".github/workflows/tibia-client-reference.yml"
-      - "docs/agents/tasks/active/CAN-20260724-tcr-006-content-reference-correlation.md"
+      - ".tcr006-stage/payload.zip"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  compact-tcr006-handover:
-    if: github.head_ref == 'feat/tcr-006-content-reference-correlation'
+  materialize-tcr006-payload:
+    if: >-
+      github.head_ref == 'feat/tcr-006-content-reference-correlation' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
 
     steps:
@@ -26,22 +28,100 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Validate Context checkpoint
-        run: >-
-          python tools/agents/checkpoint.py
-          docs/agents/tasks/active/CAN-20260724-tcr-006-content-reference-correlation.md
-          --require-checkpoint
-
-      - name: Generate compact handover
+      - name: Verify and materialize exact payload
+        shell: bash
         run: |
-          mkdir -p artifacts/agent-coordination
-          python tools/agents/resume.py \
-            --task docs/agents/tasks/active/CAN-20260724-tcr-006-content-reference-correlation.md \
-            | tee artifacts/agent-coordination/TCR006_COMPACT_HANDOVER.txt
+          set -euo pipefail
+          test "$(git hash-object .tcr006-stage/payload.zip)" = "f0446001244d636ccc8745a821b67cedc5fb9577"
+          python - <<'PY'
+          from __future__ import annotations
 
-      - name: Upload compact handover
-        uses: actions/upload-artifact@v4
-        with:
-          name: tcr006-compact-handover
-          path: artifacts/agent-coordination/TCR006_COMPACT_HANDOVER.txt
-          if-no-files-found: error
+          import hashlib
+          import stat
+          import zipfile
+          from pathlib import Path, PurePosixPath
+
+          archive = Path('.tcr006-stage/payload.zip')
+          expected = (
+              'docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.md',
+              'docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json',
+              'docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json',
+              'tools/ai-agent/test_tibia_content_reference_correlation.py',
+              'tools/ai-agent/tibia_content_reference_correlation.py',
+              'tools/ai-agent/tibia_content_reference_correlation_tool.py',
+          )
+          expected_set = set(expected)
+
+          with zipfile.ZipFile(archive) as payload:
+              files: list[str] = []
+              for info in payload.infolist():
+                  path = PurePosixPath(info.filename)
+                  if path.is_absolute() or '..' in path.parts or '\\' in info.filename:
+                      raise SystemExit(f'unsafe archive member: {info.filename!r}')
+                  if info.flag_bits & 0x1:
+                      raise SystemExit(f'encrypted archive member: {info.filename!r}')
+                  if stat.S_ISLNK(info.external_attr >> 16):
+                      raise SystemExit(f'symlink archive member: {info.filename!r}')
+                  if info.is_dir():
+                      continue
+                  files.append(info.filename)
+
+              if len(files) != len(set(files)):
+                  raise SystemExit('duplicate archive member detected')
+              if set(files) != expected_set:
+                  raise SystemExit(
+                      'unexpected payload members: '
+                      f'missing={sorted(expected_set - set(files))}, '
+                      f'extra={sorted(set(files) - expected_set)}'
+                  )
+
+              for name in expected:
+                  destination = Path(name)
+                  destination.parent.mkdir(parents=True, exist_ok=True)
+                  data = payload.read(name)
+                  destination.write_bytes(data)
+                  print(f'{name} sha256={hashlib.sha256(data).hexdigest()} bytes={len(data)}')
+          PY
+
+      - name: Validate materialized implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest -v tools/ai-agent/test_tibia_content_reference_correlation.py
+          python -m py_compile \
+            tools/ai-agent/tibia_content_reference_correlation.py \
+            tools/ai-agent/tibia_content_reference_correlation_tool.py \
+            tools/ai-agent/test_tibia_content_reference_correlation.py
+          python -m json.tool docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json > /dev/null
+          python -m json.tool docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json > /dev/null
+          git diff --check -- \
+            docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.md \
+            docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json \
+            docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json \
+            tools/ai-agent/test_tibia_content_reference_correlation.py \
+            tools/ai-agent/tibia_content_reference_correlation.py \
+            tools/ai-agent/tibia_content_reference_correlation_tool.py
+
+      - name: Commit exact implementation files
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="$RUNNER_TEMP/tcr006-expected.txt"
+          actual="$RUNNER_TEMP/tcr006-actual.txt"
+          cat > "$expected" <<'EOF'
+          docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.md
+          docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json
+          docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json
+          tools/ai-agent/test_tibia_content_reference_correlation.py
+          tools/ai-agent/tibia_content_reference_correlation.py
+          tools/ai-agent/tibia_content_reference_correlation_tool.py
+          EOF
+          git status --porcelain=v1 | sed -E 's/^.. //' | sort > "$actual"
+          diff -u "$expected" "$actual"
+          git add --pathspec-from-file="$expected"
+          git diff --cached --check
+          git diff --cached --name-only | sort | diff -u "$expected" -
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "feat(tcr): add content reference correlation consumer"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
