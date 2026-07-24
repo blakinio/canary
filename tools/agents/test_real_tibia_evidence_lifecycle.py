@@ -9,9 +9,9 @@ class RealTibiaEvidenceLifecycleTests(EvidenceTestCase):
         self.write_record(record)
         self.assertIn("RTEC-INTRODUCTION-VERSION", self.codes())
         record["applicability"]["introduced_in"] = marker(); self.write_record(record)
-        h = history(); event = h["events"][0]
-        event.update(event_type="unknown-first-version", confidence="derived-range")
-        event["version"] = {
+        h = history(); entry = h["entries"][0]
+        entry.update(confidence="derived-range")
+        entry["lifecycle"]["introduced_in"] = {
             "mode": "DERIVED_RANGE", "exact": None,
             "lower_bound": axes(official_tibia_release="15.20"),
             "upper_bound": axes(official_tibia_release="15.25"),
@@ -55,7 +55,7 @@ class RealTibiaEvidenceLifecycleTests(EvidenceTestCase):
         record = self.record(); record["freshness"]["observed_or_verified_at"] = "2026-01-01"
         self.write_record(record); self.refresh()
         row = Corpus.load(self.root).generated_indexes(AS_OF)["stale_evidence"][0]
-        self.assertEqual((row["evidence_id"], row["reason"]), ("RT-COMBAT-0001", "freshness-window-expired"))
+        self.assertEqual((row["evidence_id"], row["reason"]), ("RT-COMBAT-0001", "invalidation-window-expired"))
         record["freshness"]["observed_or_verified_at"] = "2026-07-25"; self.write_record(record)
         self.assertIn("RTEC-FUTURE-EVIDENCE", self.codes())
 
@@ -105,8 +105,8 @@ class RealTibiaEvidenceLifecycleTests(EvidenceTestCase):
         self.write_request(old); self.write_request(new)
         self.assertIn("RTEC-REQUEST-SUPERSESSION-CYCLE", self.codes())
         shutil.rmtree(self.root / "docs/agents/real-tibia/evidence/requests")
-        h = history(); first = h["events"][0]; second = copy.deepcopy(first); second["history_id"] = "RTVH-COMBAT-0002"
-        first["superseded_by"] = [second["history_id"]]; second["supersedes"] = [first["history_id"]]; h["events"].append(second)
+        h = history(); first = h["entries"][0]; second = copy.deepcopy(first); second["history_id"] = "RTVH-COMBAT-0002"
+        first["superseded_by"] = [second["history_id"]]; second["supersedes"] = [first["history_id"]]; h["entries"].append(second)
         dump(self.root / "docs/agents/real-tibia/evidence/modules/combat/VERSION_HISTORY.yaml", h)
         self.assertNotIn("RTEC-HISTORY-SUPERSESSION-RECIPROCAL", self.codes())
         first["supersedes"] = [second["history_id"]]; second["superseded_by"] = [first["history_id"]]
@@ -123,6 +123,7 @@ class RealTibiaEvidenceLifecycleTests(EvidenceTestCase):
         self.assertEqual({path.name for path in schema_dir.glob("*.json")}, expected)
         for path in schema_dir.glob("*.json"):
             schema = json.loads(path.read_text())
+            jsonschema.Draft202012Validator.check_schema(schema)
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
             self.assertFalse(schema["additionalProperties"])
         for schema_name, template_name in (("evidence-record.schema.json","REAL_TIBIA_EVIDENCE_RECORD.yaml"),("owner-request.schema.json","REAL_TIBIA_EVIDENCE_REQUEST.yaml")):
@@ -134,6 +135,35 @@ class RealTibiaEvidenceLifecycleTests(EvidenceTestCase):
         (self.root / "docs/agents/real-tibia/evidence/schemas/evidence-record.schema.json").unlink()
         with self.assertRaises(EvidenceError):
             Corpus.load(self.root)
+
+
+    def test_freshness_warning_threshold_enters_stale_index(self) -> None:
+        record = self.record()
+        record["freshness"]["observed_or_verified_at"] = "2026-07-01"
+        record["freshness"]["warning_after_days"] = 20
+        record["freshness"]["invalid_after_days"] = 90
+        self.write_record(record)
+        self.refresh()
+        row = Corpus.load(self.root).generated_indexes(AS_OF)["stale_evidence"][0]
+        self.assertEqual(row["reason"], "freshness-warning-window-reached")
+
+    def test_generated_proof_maturity_shape_fails_closed(self) -> None:
+        self.write_record(self.record())
+        self.refresh()
+        path = self.root / "docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json"
+        value = json.loads(path.read_text())
+        value["proof_maturity_by_dimension"] = {"missing-module": {"invented": {}}}
+        dump(path, value)
+        self.assertIn("RTEC-GENERATED-INDEX-SHAPE", self.codes(False))
+
+    def test_commit_locator_requires_repository_and_windows_paths_are_unsafe(self) -> None:
+        record = self.record()
+        locator = record["sources"][0]["locator"]
+        locator["repository"] = None
+        record["current_canary_comparison"]["exact_paths"] = ["C:/escape.txt"]
+        self.write_record(record)
+        codes = self.codes()
+        self.assertTrue({"RTEC-SOURCE-LOCATOR", "RTEC-UNSAFE-PATH"} <= codes)
 
 
 if __name__ == "__main__":

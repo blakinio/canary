@@ -98,12 +98,12 @@
   "version_impact": {
     "appearances_items_revision": null,
     "canary_commit": null,
-    "client_build": null,
     "database_schema_revision": null,
     "datapack_revision": null,
     "maintained_otclient_commit": null,
     "map_sha256": null,
-    "official_release": null,
+    "official_client_build": null,
+    "official_tibia_release": null,
     "protocol_profile": null,
     "spawn_npc_sidecar_revision": null
   },

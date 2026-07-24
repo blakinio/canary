@@ -1,1 +1,688 @@
-{"$id":"owner-request.schema.json","$schema":"https://json-schema.org/draft/2020-12/schema","additionalProperties":false,"properties":{"available_inputs":{"additionalProperties":false,"properties":{"canary_paths":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"canary_symbols":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"exact_map_or_index_hashes":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"existing_result_ids":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"external_artifact_hashes":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"source_claims":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"source_urls":{"items":{"format":"uri","type":"string"},"type":"array","uniqueItems":true}},"required":["source_claims","source_urls","canary_paths","canary_symbols","exact_map_or_index_hashes","existing_result_ids","external_artifact_hashes"],"type":"object"},"blocking":{"type":"boolean"},"claim_refs":{"items":{"pattern":"^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$","type":"string"},"minItems":1,"type":"array","uniqueItems":true},"collector_must_not_edit":{"items":{"minLength":1,"type":"string"},"minItems":1,"type":"array","uniqueItems":true},"coordination":{"additionalProperties":false,"properties":{"blocks":{"items":{"pattern":"^RTREQ-(E2E|OTBM|TCR|PROTOCOL|FEATURE)-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$","type":"string"},"type":"array","uniqueItems":true},"collector_pr":{"minimum":1,"type":["integer","null"]},"collector_task":{"minLength":1,"type":"string"},"coordination_id":{"minLength":1,"type":"string"},"depends_on":{"items":{"pattern":"^RTREQ-(E2E|OTBM|TCR|PROTOCOL|FEATURE)-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$","type":"string"},"type":"array","uniqueItems":true},"owner_pr":{"minimum":1,"type":["integer","null"]},"owner_task":{"minLength":1,"type":["string","null"]}},"required":["collector_task","collector_pr","owner_task","owner_pr","coordination_id","depends_on","blocks"],"type":"object"},"format":{"const":"canary-real-tibia-owner-request-v1"},"history":{"items":{"additionalProperties":false,"properties":{"actor":{"minLength":1,"type":"string"},"actor_pr":{"minimum":1,"type":["integer","null"]},"actor_role":{"enum":["collector","owner","reviewer","automation"]},"actor_task":{"minLength":1,"type":"string"},"at":{"format":"date-time","type":"string"},"from_status":{"type":["string","null"]},"owner_evidence_ref":{"minLength":1,"type":["string","null"]},"reason":{"minLength":1,"type":"string"},"to_status":{"enum":["draft","ready-for-owner-triage","accepted-by-owner","planned","active","blocked","result-available","consumed","rejected","superseded"]}},"required":["at","actor","actor_role","actor_task","actor_pr","from_status","to_status","reason","owner_evidence_ref"],"type":"object"},"minItems":1,"type":"array"},"module_id":{"pattern":"^[a-z0-9]+(?:-[a-z0-9]+)*$","type":"string"},"owner_kind":{"enum":["e2e","otbm","tcr","protocol","feature"]},"owner_paths_read_only_for_collector":{"items":{"minLength":1,"type":"string"},"minItems":1,"type":"array","uniqueItems":true},"priority":{"enum":["low","medium","high","critical"]},"question":{"minLength":1,"type":"string"},"related_modules":{"items":{"pattern":"^[a-z0-9]+(?:-[a-z0-9]+)*$","type":"string"},"type":"array","uniqueItems":true},"request_id":{"pattern":"^RTREQ-(E2E|OTBM|TCR|PROTOCOL|FEATURE)-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$","type":"string"},"request_type":{"enum":["physical-gameplay-proof","runtime-behavior-proof","persistence-proof","protocol-proof","static-map-evidence","client-reference-evidence","implementation-audit","source-clarification"]},"requested_output_contract":{"additionalProperties":false,"properties":{"required_fields":{"items":{"minLength":1,"type":"string"},"minItems":1,"type":"array","uniqueItems":true},"requires_explicit_does_not_prove":{"const":true},"requires_explicit_proves":{"const":true},"result_format_or_schema":{"minLength":1,"type":["string","null"]},"retention_boundary":{"enum":["metadata-only-in-git","owner-retained-artifact","owner-retained-report"]}},"required":["result_format_or_schema","required_fields","requires_explicit_proves","requires_explicit_does_not_prove","retention_boundary"],"type":"object"},"requested_owner_program":{"pattern":"^CAN-(PROGRAM|OWNER)-[A-Z0-9]+(?:-[A-Z0-9]+)*$","type":"string"},"required_evidence":{"additionalProperties":false,"properties":{"authority_dimension":{"enum":["official-feature-identity","visible-gameplay-behavior","current-canary-behavior","protocol-client-interpretation","persistence-rollback","map-geometry","map-mechanics","implementation-candidate","historical-version"]},"minimum_e2e_maturity":{"enum":[null,"M0","M1","M2","M3","M4","M5"],"type":["string","null"]},"minimum_proof_level":{"enum":["definition-found","registration-proven","runtime-path-proven","persistence-proven","protocol-proven","behavior-proven","gameplay-proven","physical-client-proven"]},"required_quality_dimensions":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"required_static_dimensions":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"required_version_cells":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true}},"required":["authority_dimension","minimum_proof_level","minimum_e2e_maturity","required_quality_dimensions","required_static_dimensions","required_version_cells"],"type":"object"},"result":{"additionalProperties":false,"properties":{"available":{"type":"boolean"},"blockers":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"consumed_by_evidence_records":{"items":{"pattern":"^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$","type":"string"},"type":"array","uniqueItems":true},"does_not_prove":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"proof_level_reached":{"enum":[null,"definition-found","registration-proven","runtime-path-proven","persistence-proven","protocol-proven","behavior-proven","gameplay-proven","physical-client-proven"],"type":["string","null"]},"proves":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"result_refs":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true}},"required":["available","result_refs","consumed_by_evidence_records","proof_level_reached","proves","does_not_prove","blockers"],"type":"object"},"schema_version":{"const":1},"status":{"enum":["draft","ready-for-owner-triage","accepted-by-owner","planned","active","blocked","result-available","consumed","rejected","superseded"]},"suggested_owner_capability_gap":{"additionalProperties":false,"properties":{"note":{"minLength":1,"type":"string"},"present":{"type":"boolean"},"reuse_value":{"minLength":1,"type":["string","null"]},"summary":{"minLength":1,"type":["string","null"]}},"required":["present","summary","reuse_value","note"],"type":"object"},"superseded_by":{"items":{"pattern":"^RTREQ-(E2E|OTBM|TCR|PROTOCOL|FEATURE)-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$","type":"string"},"type":"array","uniqueItems":true},"supersedes":{"items":{"pattern":"^RTREQ-(E2E|OTBM|TCR|PROTOCOL|FEATURE)-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$","type":"string"},"type":"array","uniqueItems":true},"version_impact":{"additionalProperties":false,"properties":{"appearances_items_revision":{"minLength":1,"type":["string","null"]},"canary_commit":{"pattern":"^[0-9a-f]{40}$","type":["string","null"]},"client_build":{"minLength":1,"type":["string","null"]},"database_schema_revision":{"minLength":1,"type":["string","null"]},"datapack_revision":{"minLength":1,"type":["string","null"]},"maintained_otclient_commit":{"pattern":"^[0-9a-f]{40}$","type":["string","null"]},"map_sha256":{"pattern":"^[0-9a-f]{64}$","type":["string","null"]},"official_release":{"minLength":1,"type":["string","null"]},"protocol_profile":{"minLength":1,"type":["string","null"]},"spawn_npc_sidecar_revision":{"minLength":1,"type":["string","null"]}},"required":["official_release","client_build","protocol_profile","canary_commit","maintained_otclient_commit","map_sha256","datapack_revision","appearances_items_revision","spawn_npc_sidecar_revision","database_schema_revision"],"type":"object"},"why_existing_evidence_is_insufficient":{"items":{"minLength":1,"type":"string"},"minItems":1,"type":"array","uniqueItems":true}},"required":["available_inputs","blocking","claim_refs","collector_must_not_edit","coordination","format","history","module_id","owner_kind","owner_paths_read_only_for_collector","priority","question","related_modules","request_id","request_type","requested_output_contract","requested_owner_program","required_evidence","result","schema_version","status","suggested_owner_capability_gap","superseded_by","supersedes","version_impact","why_existing_evidence_is_insufficient"],"title":"Real Tibia owner request v1","type":"object"}
+{
+  "$id": "owner-request.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "available_inputs": {
+      "additionalProperties": false,
+      "properties": {
+        "canary_paths": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "canary_symbols": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "exact_map_or_index_hashes": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "existing_result_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "external_artifact_hashes": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "source_claims": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "source_urls": {
+          "items": {
+            "format": "uri",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "source_claims",
+        "source_urls",
+        "canary_paths",
+        "canary_symbols",
+        "exact_map_or_index_hashes",
+        "existing_result_ids",
+        "external_artifact_hashes"
+      ],
+      "type": "object"
+    },
+    "blocking": {
+      "type": "boolean"
+    },
+    "claim_refs": {
+      "items": {
+        "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "collector_must_not_edit": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "coordination": {
+      "additionalProperties": false,
+      "properties": {
+        "blocks": {
+          "items": {
+            "pattern": "^RTREQ-(E2E|OTBM|TCR|PROTOCOL|FEATURE)-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "collector_pr": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "collector_task": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "coordination_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "depends_on": {
+          "items": {
+            "pattern": "^RTREQ-(E2E|OTBM|TCR|PROTOCOL|FEATURE)-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "owner_pr": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "owner_task": {
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "collector_task",
+        "collector_pr",
+        "owner_task",
+        "owner_pr",
+        "coordination_id",
+        "depends_on",
+        "blocks"
+      ],
+      "type": "object"
+    },
+    "format": {
+      "const": "canary-real-tibia-owner-request-v1"
+    },
+    "history": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "actor_pr": {
+            "minimum": 1,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "actor_role": {
+            "enum": [
+              "collector",
+              "owner",
+              "reviewer",
+              "automation"
+            ]
+          },
+          "actor_task": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "from_status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "owner_evidence_ref": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reason": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "to_status": {
+            "enum": [
+              "draft",
+              "ready-for-owner-triage",
+              "accepted-by-owner",
+              "planned",
+              "active",
+              "blocked",
+              "result-available",
+              "consumed",
+              "rejected",
+              "superseded"
+            ]
+          }
+        },
+        "required": [
+          "at",
+          "actor",
+          "actor_role",
+          "actor_task",
+          "actor_pr",
+          "from_status",
+          "to_status",
+          "reason",
+          "owner_evidence_ref"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "module_id": {
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "type": "string"
+    },
+    "owner_kind": {
+      "enum": [
+        "e2e",
+        "otbm",
+        "tcr",
+        "protocol",
+        "feature"
+      ]
+    },
+    "owner_paths_read_only_for_collector": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "priority": {
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "question": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "related_modules": {
+      "items": {
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "request_id": {
+      "pattern": "^RTREQ-(E2E|OTBM|TCR|PROTOCOL|FEATURE)-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+      "type": "string"
+    },
+    "request_type": {
+      "enum": [
+        "physical-gameplay-proof",
+        "runtime-behavior-proof",
+        "persistence-proof",
+        "protocol-proof",
+        "static-map-evidence",
+        "client-reference-evidence",
+        "implementation-audit",
+        "source-clarification"
+      ]
+    },
+    "requested_output_contract": {
+      "additionalProperties": false,
+      "properties": {
+        "required_fields": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "requires_explicit_does_not_prove": {
+          "const": true
+        },
+        "requires_explicit_proves": {
+          "const": true
+        },
+        "result_format_or_schema": {
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "retention_boundary": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "result_format_or_schema",
+        "required_fields",
+        "requires_explicit_proves",
+        "requires_explicit_does_not_prove",
+        "retention_boundary"
+      ],
+      "type": "object"
+    },
+    "requested_owner_program": {
+      "pattern": "^CAN-(PROGRAM|OWNER)-[A-Z0-9]+(?:-[A-Z0-9]+)*$",
+      "type": "string"
+    },
+    "required_evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "authority_dimension": {
+          "enum": [
+            "official-feature-identity",
+            "visible-gameplay-behavior",
+            "current-canary-behavior",
+            "protocol-client-interpretation",
+            "persistence-rollback",
+            "map-geometry",
+            "map-mechanics",
+            "implementation-candidate",
+            "historical-version"
+          ]
+        },
+        "minimum_e2e_maturity": {
+          "enum": [
+            null,
+            "M0",
+            "M1",
+            "M2",
+            "M3",
+            "M4",
+            "M5"
+          ],
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "minimum_proof_level": {
+          "enum": [
+            "definition-found",
+            "registration-proven",
+            "runtime-path-proven",
+            "persistence-proven",
+            "protocol-proven",
+            "behavior-proven",
+            "gameplay-proven",
+            "physical-client-proven"
+          ]
+        },
+        "required_quality_dimensions": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "required_static_dimensions": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "required_version_cells": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "authority_dimension",
+        "minimum_proof_level",
+        "minimum_e2e_maturity",
+        "required_quality_dimensions",
+        "required_static_dimensions",
+        "required_version_cells"
+      ],
+      "type": "object"
+    },
+    "result": {
+      "additionalProperties": false,
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "blockers": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "consumed_by_evidence_records": {
+          "items": {
+            "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "does_not_prove": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "proof_level_reached": {
+          "enum": [
+            null,
+            "definition-found",
+            "registration-proven",
+            "runtime-path-proven",
+            "persistence-proven",
+            "protocol-proven",
+            "behavior-proven",
+            "gameplay-proven",
+            "physical-client-proven"
+          ],
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "proves": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "result_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "available",
+        "result_refs",
+        "consumed_by_evidence_records",
+        "proof_level_reached",
+        "proves",
+        "does_not_prove",
+        "blockers"
+      ],
+      "type": "object"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "ready-for-owner-triage",
+        "accepted-by-owner",
+        "planned",
+        "active",
+        "blocked",
+        "result-available",
+        "consumed",
+        "rejected",
+        "superseded"
+      ]
+    },
+    "suggested_owner_capability_gap": {
+      "additionalProperties": false,
+      "properties": {
+        "note": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "present": {
+          "type": "boolean"
+        },
+        "reuse_value": {
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "summary": {
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "present",
+        "summary",
+        "reuse_value",
+        "note"
+      ],
+      "type": "object"
+    },
+    "superseded_by": {
+      "items": {
+        "pattern": "^RTREQ-(E2E|OTBM|TCR|PROTOCOL|FEATURE)-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "supersedes": {
+      "items": {
+        "pattern": "^RTREQ-(E2E|OTBM|TCR|PROTOCOL|FEATURE)-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "version_impact": {
+      "additionalProperties": false,
+      "properties": {
+        "appearances_items_revision": {
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "canary_commit": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "database_schema_revision": {
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "datapack_revision": {
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "maintained_otclient_commit": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "map_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "official_client_build": {
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "official_tibia_release": {
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "protocol_profile": {
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "spawn_npc_sidecar_revision": {
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "official_tibia_release",
+        "official_client_build",
+        "protocol_profile",
+        "canary_commit",
+        "maintained_otclient_commit",
+        "map_sha256",
+        "datapack_revision",
+        "appearances_items_revision",
+        "spawn_npc_sidecar_revision",
+        "database_schema_revision"
+      ],
+      "type": "object"
+    },
+    "why_existing_evidence_is_insufficient": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "format",
+    "schema_version",
+    "request_id",
+    "module_id",
+    "related_modules",
+    "claim_refs",
+    "owner_kind",
+    "requested_owner_program",
+    "request_type",
+    "status",
+    "priority",
+    "blocking",
+    "version_impact",
+    "question",
+    "why_existing_evidence_is_insufficient",
+    "required_evidence",
+    "available_inputs",
+    "requested_output_contract",
+    "collector_must_not_edit",
+    "owner_paths_read_only_for_collector",
+    "suggested_owner_capability_gap",
+    "coordination",
+    "result",
+    "history",
+    "supersedes",
+    "superseded_by"
+  ],
+  "title": "Real Tibia owner request v1",
+  "type": "object"
+}

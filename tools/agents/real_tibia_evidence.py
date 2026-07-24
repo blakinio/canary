@@ -53,7 +53,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "evidence corpus valid "
                 f"({len(corpus.evidence_documents)} evidence, "
                 f"{len(corpus.request_documents)} requests, "
-                f"{sum(len(doc.value.get('events', [])) for doc in corpus.history_documents)} history events)"
+                f"{sum(len(doc.value.get('entries', [])) for doc in corpus.history_documents)} history records)"
             )
             return 0
         if args.command == "generate":

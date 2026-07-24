@@ -1,1 +1,826 @@
-{"$defs":{"source":{"additionalProperties":false,"properties":{"author":{"minLength":1,"type":["string","null"]},"does_not_prove":{"items":{"minLength":1,"type":"string"},"minItems":1,"type":"array","uniqueItems":true},"external_artifact":{"anyOf":[{"type":"null"},{"additionalProperties":false,"properties":{"byte_size":{"minimum":1,"type":"integer"},"filename":{"minLength":1,"type":"string"},"retained_outside_git":{"const":true},"sha256":{"pattern":"^[0-9a-f]{64}$","type":"string"}},"required":["retained_outside_git","filename","byte_size","sha256"],"type":"object"}]},"limitations":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"locator":{"additionalProperties":false,"properties":{"artifact_sha256":{"pattern":"^[0-9a-f]{64}$","type":["string","null"]},"build":{"minLength":1,"type":["string","null"]},"commit_sha":{"pattern":"^[0-9a-f]{40}$","type":["string","null"]},"report_id":{"minLength":1,"type":["string","null"]},"repository":{"minLength":1,"type":["string","null"]},"repository_path":{"minLength":1,"type":["string","null"]},"url":{"format":"uri","type":["string","null"]}},"required":["url","repository","repository_path","commit_sha","build","report_id","artifact_sha256"],"type":"object"},"observation_date":{"format":"date","type":["string","null"]},"proof_level_reached":{"enum":["definition-found","registration-proven","runtime-path-proven","persistence-proven","protocol-proven","behavior-proven","gameplay-proven","physical-client-proven"]},"proves":{"items":{"minLength":1,"type":"string"},"minItems":1,"type":"array","uniqueItems":true},"publication_date":{"format":"date","type":["string","null"]},"role":{"enum":["primary","corroborating","conflicting","comparison","implementation-candidate"]},"selected":{"additionalProperties":false,"properties":{"files":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"observations":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"sections":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"symbols":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true}},"required":["sections","symbols","files","observations"],"type":"object"},"source_id":{"minLength":1,"type":"string"},"source_type":{"enum":["official-news","official-guide","official-forum","official-client-observation","maintained-wiki","current-canary","maintained-client","upstream-canary","crystalserver","map-reference","packet-capture","canary-test-result","database-test-result","runtime-result","physical-e2e-result","otbm-owner-result","tcr-owner-result","feature-owner-result","other"]}},"required":["source_id","role","source_type","locator","author","publication_date","observation_date","selected","proves","does_not_prove","limitations","proof_level_reached","external_artifact"],"type":"object"},"versionAxes":{"additionalProperties":false,"properties":{"appearances_items_revision":{"maxLength":128,"minLength":1,"type":["string","null"]},"canary_commit":{"pattern":"^[0-9a-f]{40}$","type":["string","null"]},"database_schema_revision":{"maxLength":128,"minLength":1,"type":["string","null"]},"datapack_revision":{"maxLength":128,"minLength":1,"type":["string","null"]},"maintained_otclient_commit":{"pattern":"^[0-9a-f]{40}$","type":["string","null"]},"map_sha256":{"pattern":"^[0-9a-f]{64}$","type":["string","null"]},"official_client_build":{"maxLength":128,"minLength":1,"type":["string","null"]},"official_tibia_release":{"maxLength":128,"minLength":1,"type":["string","null"]},"protocol_profile":{"maxLength":128,"minLength":1,"type":["string","null"]},"spawn_npc_sidecar_revision":{"maxLength":128,"minLength":1,"type":["string","null"]}},"required":["official_tibia_release","official_client_build","protocol_profile","canary_commit","maintained_otclient_commit","map_sha256","datapack_revision","appearances_items_revision","spawn_npc_sidecar_revision","database_schema_revision"],"type":"object"},"versionMarker":{"additionalProperties":false,"properties":{"evidence_refs":{"items":{"pattern":"^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$","type":"string"},"type":"array","uniqueItems":true},"exact":{"anyOf":[{"$ref":"#/$defs/versionAxes"},{"type":"null"}]},"lower_bound":{"anyOf":[{"$ref":"#/$defs/versionAxes"},{"type":"null"}]},"mode":{"enum":["EXACT","DERIVED_RANGE","LOWER_BOUND","UPPER_BOUND","UNKNOWN","NOT_APPLICABLE"]},"notes":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"upper_bound":{"anyOf":[{"$ref":"#/$defs/versionAxes"},{"type":"null"}]}},"required":["mode","exact","lower_bound","upper_bound","evidence_refs","notes"],"type":"object"}},"$id":"evidence-record.schema.json","$schema":"https://json-schema.org/draft/2020-12/schema","additionalProperties":false,"properties":{"applicability":{"additionalProperties":false,"properties":{"announced_in":{"$ref":"#/$defs/versionMarker"},"changed_in":{"items":{"$ref":"#/$defs/versionMarker"},"type":"array"},"deprecated_in":{"$ref":"#/$defs/versionMarker"},"effective_from":{"$ref":"#/$defs/versionMarker"},"effective_until":{"$ref":"#/$defs/versionMarker"},"introduced_in":{"$ref":"#/$defs/versionMarker"},"observed_in":{"items":{"$ref":"#/$defs/versionMarker"},"type":"array"},"removed_in":{"$ref":"#/$defs/versionMarker"}},"required":["announced_in","introduced_in","observed_in","changed_in","deprecated_in","removed_in","effective_from","effective_until"],"type":"object"},"authority_dimension":{"enum":["official-feature-identity","visible-gameplay-behavior","current-canary-behavior","protocol-client-interpretation","persistence-rollback","map-geometry","map-mechanics","implementation-candidate","historical-version"]},"claim_key":{"pattern":"^[a-z0-9]+(?:-[a-z0-9]+)*$","type":"string"},"claim_statement":{"minLength":1,"type":"string"},"confidence":{"enum":["HIGH","MEDIUM","LOW","UNKNOWN"]},"conflict_refs":{"items":{"pattern":"^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$","type":"string"},"type":"array","uniqueItems":true},"current_canary_comparison":{"additionalProperties":false,"properties":{"baseline":{"$ref":"#/$defs/versionAxes"},"current_behavior":{"minLength":1,"type":["string","null"]},"differences":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"exact_paths":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"exact_symbols":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"missing_proof":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"state":{"enum":["not-assessed","conforming","differing","partial","conflicting","blocked-by-reference","intentionally-unsupported"]}},"required":["state","baseline","exact_paths","exact_symbols","current_behavior","differences","missing_proof"],"type":"object"},"does_not_prove":{"items":{"minLength":1,"type":"string"},"minItems":1,"type":"array","uniqueItems":true},"evidence_id":{"pattern":"^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$","type":"string"},"evidence_state":{"enum":["PROVEN","DERIVED","UNKNOWN","CONFLICT","STALE","SUPERSEDED","REJECTED"]},"format":{"const":"canary-real-tibia-evidence-record-v1"},"freshness":{"additionalProperties":false,"properties":{"invalid_after_days":{"minimum":1,"type":"integer"},"invalidation_triggers":{"items":{"minLength":1,"type":"string"},"minItems":1,"type":"array","uniqueItems":true},"observed_or_verified_at":{"format":"date","type":"string"},"policy":{"enum":["fixed-window","refresh-before-task","immutable-source","owner-result-lifecycle"]},"warning_after_days":{"minimum":1,"type":"integer"}},"required":["observed_or_verified_at","warning_after_days","invalid_after_days","policy","invalidation_triggers"],"type":"object"},"module_id":{"pattern":"^[a-z0-9]+(?:-[a-z0-9]+)*$","type":"string"},"owner_request_refs":{"items":{"pattern":"^RTREQ-(E2E|OTBM|TCR|PROTOCOL|FEATURE)-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$","type":"string"},"type":"array","uniqueItems":true},"proof_level":{"enum":["definition-found","registration-proven","runtime-path-proven","persistence-proven","protocol-proven","behavior-proven","gameplay-proven","physical-client-proven"]},"proves":{"items":{"minLength":1,"type":"string"},"minItems":1,"type":"array","uniqueItems":true},"record_status":{"enum":["discovered","normalized","review-needed","accepted","conflicting","blocked-by-owner-request","superseded","rejected","stale"]},"related_modules":{"items":{"pattern":"^[a-z0-9]+(?:-[a-z0-9]+)*$","type":"string"},"type":"array","uniqueItems":true},"review":{"additionalProperties":false,"properties":{"notes":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true},"pr":{"minimum":1,"type":["integer","null"]},"reviewed_at":{"format":"date-time","type":["string","null"]},"reviewer":{"minLength":1,"type":["string","null"]},"status":{"enum":["pending","accepted","changes-requested","rejected"]},"task_id":{"minLength":1,"type":["string","null"]}},"required":["status","task_id","pr","reviewer","reviewed_at","notes"],"type":"object"},"schema_version":{"const":1},"sources":{"items":{"$ref":"#/$defs/source"},"minItems":1,"type":"array"},"superseded_by":{"items":{"pattern":"^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$","type":"string"},"type":"array","uniqueItems":true},"supersedes":{"items":{"pattern":"^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$","type":"string"},"type":"array","uniqueItems":true},"uncertainty":{"items":{"minLength":1,"type":"string"},"type":"array","uniqueItems":true}},"required":["format","schema_version","evidence_id","module_id","related_modules","claim_key","claim_statement","record_status","authority_dimension","evidence_state","proof_level","sources","applicability","current_canary_comparison","proves","does_not_prove","confidence","uncertainty","conflict_refs","supersedes","superseded_by","owner_request_refs","freshness","review"],"title":"Real Tibia evidence record v1","type":"object"}
+{
+  "$defs": {
+    "source": {
+      "additionalProperties": false,
+      "properties": {
+        "author": {
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "does_not_prove": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "external_artifact": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "byte_size": {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "filename": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "retained_outside_git": {
+                  "const": true
+                },
+                "sha256": {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "retained_outside_git",
+                "filename",
+                "byte_size",
+                "sha256"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "limitations": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "locator": {
+          "additionalProperties": false,
+          "properties": {
+            "artifact_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "build": {
+              "minLength": 1,
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "commit_sha": {
+              "pattern": "^[0-9a-f]{40}$",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "report_id": {
+              "minLength": 1,
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "repository": {
+              "minLength": 1,
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "repository_path": {
+              "minLength": 1,
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "url": {
+              "format": "uri",
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "url",
+            "repository",
+            "repository_path",
+            "commit_sha",
+            "build",
+            "report_id",
+            "artifact_sha256"
+          ],
+          "type": "object"
+        },
+        "observation_date": {
+          "format": "date",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "proof_level_reached": {
+          "enum": [
+            "definition-found",
+            "registration-proven",
+            "runtime-path-proven",
+            "persistence-proven",
+            "protocol-proven",
+            "behavior-proven",
+            "gameplay-proven",
+            "physical-client-proven"
+          ]
+        },
+        "proves": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "publication_date": {
+          "format": "date",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "role": {
+          "enum": [
+            "primary",
+            "corroborating",
+            "conflicting",
+            "comparison",
+            "implementation-candidate"
+          ]
+        },
+        "selected": {
+          "additionalProperties": false,
+          "properties": {
+            "files": {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "type": "array",
+              "uniqueItems": true
+            },
+            "observations": {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "type": "array",
+              "uniqueItems": true
+            },
+            "sections": {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "type": "array",
+              "uniqueItems": true
+            },
+            "symbols": {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "type": "array",
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "sections",
+            "symbols",
+            "files",
+            "observations"
+          ],
+          "type": "object"
+        },
+        "source_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "source_type": {
+          "enum": [
+            "official-news",
+            "official-guide",
+            "official-forum",
+            "official-client-observation",
+            "maintained-wiki",
+            "current-canary",
+            "maintained-client",
+            "upstream-canary",
+            "crystalserver",
+            "map-reference",
+            "packet-capture",
+            "canary-test-result",
+            "database-test-result",
+            "runtime-result",
+            "physical-e2e-result",
+            "otbm-owner-result",
+            "tcr-owner-result",
+            "feature-owner-result",
+            "other"
+          ]
+        }
+      },
+      "required": [
+        "source_id",
+        "role",
+        "source_type",
+        "locator",
+        "author",
+        "publication_date",
+        "observation_date",
+        "selected",
+        "proves",
+        "does_not_prove",
+        "limitations",
+        "proof_level_reached",
+        "external_artifact"
+      ],
+      "type": "object"
+    },
+    "versionAxes": {
+      "additionalProperties": false,
+      "properties": {
+        "appearances_items_revision": {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "canary_commit": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "database_schema_revision": {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "datapack_revision": {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "maintained_otclient_commit": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "map_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "official_client_build": {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "official_tibia_release": {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "protocol_profile": {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "spawn_npc_sidecar_revision": {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "official_tibia_release",
+        "official_client_build",
+        "protocol_profile",
+        "canary_commit",
+        "maintained_otclient_commit",
+        "map_sha256",
+        "datapack_revision",
+        "appearances_items_revision",
+        "spawn_npc_sidecar_revision",
+        "database_schema_revision"
+      ],
+      "type": "object"
+    },
+    "versionMarker": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_refs": {
+          "items": {
+            "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "exact": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/versionAxes"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lower_bound": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/versionAxes"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mode": {
+          "enum": [
+            "EXACT",
+            "DERIVED_RANGE",
+            "LOWER_BOUND",
+            "UPPER_BOUND",
+            "UNKNOWN",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "notes": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "upper_bound": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/versionAxes"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "mode",
+        "exact",
+        "lower_bound",
+        "upper_bound",
+        "evidence_refs",
+        "notes"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "evidence-record.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "applicability": {
+      "additionalProperties": false,
+      "properties": {
+        "announced_in": {
+          "$ref": "#/$defs/versionMarker"
+        },
+        "changed_in": {
+          "items": {
+            "$ref": "#/$defs/versionMarker"
+          },
+          "type": "array"
+        },
+        "deprecated_in": {
+          "$ref": "#/$defs/versionMarker"
+        },
+        "effective_from": {
+          "$ref": "#/$defs/versionMarker"
+        },
+        "effective_until": {
+          "$ref": "#/$defs/versionMarker"
+        },
+        "introduced_in": {
+          "$ref": "#/$defs/versionMarker"
+        },
+        "observed_in": {
+          "items": {
+            "$ref": "#/$defs/versionMarker"
+          },
+          "type": "array"
+        },
+        "removed_in": {
+          "$ref": "#/$defs/versionMarker"
+        }
+      },
+      "required": [
+        "announced_in",
+        "introduced_in",
+        "observed_in",
+        "changed_in",
+        "deprecated_in",
+        "removed_in",
+        "effective_from",
+        "effective_until"
+      ],
+      "type": "object"
+    },
+    "authority_dimension": {
+      "enum": [
+        "official-feature-identity",
+        "visible-gameplay-behavior",
+        "current-canary-behavior",
+        "protocol-client-interpretation",
+        "persistence-rollback",
+        "map-geometry",
+        "map-mechanics",
+        "implementation-candidate",
+        "historical-version"
+      ]
+    },
+    "claim_key": {
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "type": "string"
+    },
+    "claim_statement": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "confidence": {
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "UNKNOWN"
+      ]
+    },
+    "conflict_refs": {
+      "items": {
+        "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "current_canary_comparison": {
+      "additionalProperties": false,
+      "properties": {
+        "baseline": {
+          "$ref": "#/$defs/versionAxes"
+        },
+        "current_behavior": {
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "differences": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "exact_paths": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "exact_symbols": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "missing_proof": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "state": {
+          "enum": [
+            "not-assessed",
+            "conforming",
+            "differing",
+            "partial",
+            "conflicting",
+            "blocked-by-reference",
+            "intentionally-unsupported"
+          ]
+        }
+      },
+      "required": [
+        "state",
+        "baseline",
+        "exact_paths",
+        "exact_symbols",
+        "current_behavior",
+        "differences",
+        "missing_proof"
+      ],
+      "type": "object"
+    },
+    "does_not_prove": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "evidence_id": {
+      "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+      "type": "string"
+    },
+    "evidence_state": {
+      "enum": [
+        "PROVEN",
+        "DERIVED",
+        "UNKNOWN",
+        "CONFLICT",
+        "STALE",
+        "SUPERSEDED",
+        "REJECTED"
+      ]
+    },
+    "format": {
+      "const": "canary-real-tibia-evidence-record-v1"
+    },
+    "freshness": {
+      "additionalProperties": false,
+      "properties": {
+        "invalid_after_days": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "invalidation_triggers": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "observed_or_verified_at": {
+          "format": "date",
+          "type": "string"
+        },
+        "policy": {
+          "enum": [
+            "fixed-window",
+            "refresh-before-task",
+            "immutable-source",
+            "owner-result-lifecycle"
+          ]
+        },
+        "warning_after_days": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "observed_or_verified_at",
+        "warning_after_days",
+        "invalid_after_days",
+        "policy",
+        "invalidation_triggers"
+      ],
+      "type": "object"
+    },
+    "module_id": {
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "type": "string"
+    },
+    "owner_request_refs": {
+      "items": {
+        "pattern": "^RTREQ-(E2E|OTBM|TCR|PROTOCOL|FEATURE)-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "proof_level": {
+      "enum": [
+        "definition-found",
+        "registration-proven",
+        "runtime-path-proven",
+        "persistence-proven",
+        "protocol-proven",
+        "behavior-proven",
+        "gameplay-proven",
+        "physical-client-proven"
+      ]
+    },
+    "proves": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "record_status": {
+      "enum": [
+        "discovered",
+        "normalized",
+        "review-needed",
+        "accepted",
+        "conflicting",
+        "blocked-by-owner-request",
+        "superseded",
+        "rejected",
+        "stale"
+      ]
+    },
+    "related_modules": {
+      "items": {
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "review": {
+      "additionalProperties": false,
+      "properties": {
+        "notes": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "pr": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "reviewed_at": {
+          "format": "date-time",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reviewer": {
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "accepted",
+            "changes-requested",
+            "rejected"
+          ]
+        },
+        "task_id": {
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "task_id",
+        "pr",
+        "reviewer",
+        "reviewed_at",
+        "notes"
+      ],
+      "type": "object"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/source"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "superseded_by": {
+      "items": {
+        "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "supersedes": {
+      "items": {
+        "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "uncertainty": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "format",
+    "schema_version",
+    "evidence_id",
+    "module_id",
+    "related_modules",
+    "claim_key",
+    "claim_statement",
+    "record_status",
+    "authority_dimension",
+    "evidence_state",
+    "proof_level",
+    "sources",
+    "applicability",
+    "current_canary_comparison",
+    "proves",
+    "does_not_prove",
+    "confidence",
+    "uncertainty",
+    "conflict_refs",
+    "supersedes",
+    "superseded_by",
+    "owner_request_refs",
+    "freshness",
+    "review"
+  ],
+  "title": "Real Tibia evidence record v1",
+  "type": "object"
+}

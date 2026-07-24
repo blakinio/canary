@@ -280,7 +280,9 @@ def _inside(root: Path, path: Path) -> bool:
 def safe_repo_path(value: object) -> bool:
     if not isinstance(value, str) or not value or value != value.strip():
         return False
-    if "\\" in value or "\x00" in value or value.startswith("/"):
+    if "\\" in value or value.startswith(("/", "//")) or re.match(r"^[A-Za-z]:", value):
+        return False
+    if any(ord(character) < 32 or ord(character) == 127 for character in value):
         return False
     raw_parts = value.split("/")
     if any(part in {"", ".", ".."} for part in raw_parts):
@@ -520,8 +522,10 @@ class Corpus:
                     allowed = True
                 elif len(pure.parts) == 3 and pure.parts[0] == "requests" and pure.parts[1] in REQUEST_OWNER_KINDS and pure.suffix == ".yaml":
                     allowed = True
-                if not allowed and candidate.suffix.lower() in {".yaml", ".yml", ".json"}:
-                    raise EvidenceError(f"unregistered machine-readable evidence file: {_relative(root, candidate)}")
+                if not candidate.is_file():
+                    raise EvidenceError(f"evidence tree entry must be a regular file: {_relative(root, candidate)}")
+                if not allowed:
+                    raise EvidenceError(f"unregistered or prohibited evidence file: {_relative(root, candidate)}")
 
     @classmethod
     def load(cls, root: Path = ROOT) -> "Corpus":
@@ -613,17 +617,17 @@ class Corpus:
 
         for document in self.history_documents:
             self._validate_history_document(document, errors)
-            events = document.value.get("events")
-            if isinstance(events, list):
-                for event in events:
-                    if not isinstance(event, dict):
+            entries = document.value.get("entries")
+            if isinstance(entries, list):
+                for entry in entries:
+                    if not isinstance(entry, dict):
                         continue
-                    history_id = event.get("history_id")
+                    history_id = entry.get("history_id")
                     if isinstance(history_id, str):
                         if history_id in history_by_id:
                             errors.append(Diagnostic("RTEC-DUPLICATE-HISTORY-ID", document.relative_path, f"duplicate history_id {history_id!r}; first defined in {history_by_id[history_id][0].relative_path}"))
                         else:
-                            history_by_id[history_id] = (document, event)
+                            history_by_id[history_id] = (document, entry)
 
         evidence_ids = set(evidence_by_id)
         request_ids = set(requests_by_id)
@@ -663,22 +667,23 @@ class Corpus:
             if isinstance(result, dict):
                 self._validate_references(result.get("consumed_by_evidence_records"), evidence_ids, "evidence", "RTEC-MISSING-EVIDENCE-REF", path, errors)
 
-        for history_id, (document, event) in sorted(history_by_id.items()):
+        for history_id, (document, entry) in sorted(history_by_id.items()):
             path = document.relative_path
-            self._validate_references(event.get("claim_refs"), evidence_ids, "evidence", "RTEC-MISSING-EVIDENCE-REF", path, errors)
-            self._validate_references(event.get("evidence_refs"), evidence_ids, "evidence", "RTEC-MISSING-EVIDENCE-REF", path, errors)
-            self._validate_references(event.get("supersedes"), history_ids, "history", "RTEC-MISSING-HISTORY-REF", path, errors, disallow=history_id)
-            self._validate_references(event.get("superseded_by"), history_ids, "history", "RTEC-MISSING-HISTORY-REF", path, errors, disallow=history_id)
-            marker = event.get("version")
-            if isinstance(marker, dict):
-                self._validate_references(marker.get("evidence_refs"), evidence_ids, "evidence", "RTEC-MISSING-EVIDENCE-REF", path, errors)
+            self._validate_references(entry.get("claim_refs"), evidence_ids, "evidence", "RTEC-MISSING-EVIDENCE-REF", path, errors)
+            self._validate_references(entry.get("evidence_refs"), evidence_ids, "evidence", "RTEC-MISSING-EVIDENCE-REF", path, errors)
+            self._validate_references(entry.get("supersedes"), history_ids, "history", "RTEC-MISSING-HISTORY-REF", path, errors, disallow=history_id)
+            self._validate_references(entry.get("superseded_by"), history_ids, "history", "RTEC-MISSING-HISTORY-REF", path, errors, disallow=history_id)
+            lifecycle = entry.get("lifecycle")
+            if isinstance(lifecycle, dict):
+                for marker in self._markers_from_applicability(lifecycle):
+                    self._validate_references(marker.get("evidence_refs"), evidence_ids, "evidence", "RTEC-MISSING-EVIDENCE-REF", path, errors)
 
         errors.extend(self._supersession_consistency(evidence_by_id))
         errors.extend(self._request_supersession_consistency(requests_by_id))
         errors.extend(self._history_supersession_consistency(history_by_id))
         errors.extend(self._cycle_errors({key: doc.value.get("supersedes", []) for key, doc in evidence_by_id.items()}, "evidence supersession", "RTEC-SUPERSESSION-CYCLE"))
         errors.extend(self._cycle_errors({key: doc.value.get("supersedes", []) for key, doc in requests_by_id.items()}, "request supersession", "RTEC-REQUEST-SUPERSESSION-CYCLE"))
-        errors.extend(self._cycle_errors({key: event.get("supersedes", []) for key, (_, event) in history_by_id.items()}, "history supersession", "RTEC-HISTORY-CYCLE"))
+        errors.extend(self._cycle_errors({key: entry.get("supersedes", []) for key, (_, entry) in history_by_id.items()}, "history supersession", "RTEC-HISTORY-CYCLE"))
         errors.extend(self._cycle_errors({key: doc.value.get("coordination", {}).get("depends_on", []) if isinstance(doc.value.get("coordination"), dict) else [] for key, doc in requests_by_id.items()}, "request dependency", "RTEC-REQUEST-CYCLE"))
 
         computed_as_of = as_of or self._generated_as_of()
@@ -927,6 +932,8 @@ class Corpus:
             errors.append(Diagnostic("RTEC-UNSAFE-PATH", path, f"{label}.locator.repository_path is unsafe"))
         if value["repository_path"] is not None and not _nonempty_string(value["repository"]):
             errors.append(Diagnostic("RTEC-SOURCE-LOCATOR", path, f"{label}.locator.repository is required with repository_path"))
+        if value["commit_sha"] is not None and not _nonempty_string(value["repository"]):
+            errors.append(Diagnostic("RTEC-SOURCE-LOCATOR", path, f"{label}.locator.repository is required with commit_sha"))
         if value["repository_path"] is not None and not isinstance(value["commit_sha"], str):
             errors.append(Diagnostic("RTEC-COMMIT-SHA", path, f"{label}.locator.commit_sha is required with repository_path"))
         if value["commit_sha"] is not None and (not isinstance(value["commit_sha"], str) or not COMMIT_RE.fullmatch(value["commit_sha"])):
@@ -1010,6 +1017,24 @@ class Corpus:
         baseline = value["baseline"]
         if isinstance(baseline, dict) and baseline.get("canary_commit") is not None and not COMMIT_RE.fullmatch(str(baseline["canary_commit"])):
             errors.append(Diagnostic("RTEC-COMMIT-SHA", path, "Canary comparison baseline canary_commit is malformed"))
+        state = value["state"]
+        assessed = {"conforming", "differing", "partial", "conflicting"}
+        if state == "not-assessed" and not value["missing_proof"]:
+            errors.append(Diagnostic("RTEC-CANARY-COMPARISON", path, "not-assessed comparison must state missing_proof"))
+        if state in assessed:
+            baseline_commit = baseline.get("canary_commit") if isinstance(baseline, dict) else None
+            if not isinstance(baseline_commit, str) or not COMMIT_RE.fullmatch(baseline_commit):
+                errors.append(Diagnostic("RTEC-CANARY-COMPARISON", path, f"comparison state {state} requires an exact Canary commit baseline"))
+            if not value["exact_paths"] and not value["exact_symbols"]:
+                errors.append(Diagnostic("RTEC-CANARY-COMPARISON", path, f"comparison state {state} requires exact_paths or exact_symbols"))
+            if not _nonempty_string(value["current_behavior"]):
+                errors.append(Diagnostic("RTEC-CANARY-COMPARISON", path, f"comparison state {state} requires current_behavior"))
+        if state in {"differing", "partial", "conflicting"} and not value["differences"]:
+            errors.append(Diagnostic("RTEC-CANARY-COMPARISON", path, f"comparison state {state} requires explicit differences"))
+        if state in {"partial", "conflicting", "blocked-by-reference"} and not value["missing_proof"]:
+            errors.append(Diagnostic("RTEC-CANARY-COMPARISON", path, f"comparison state {state} requires missing_proof"))
+        if state == "conforming" and value["differences"]:
+            errors.append(Diagnostic("RTEC-CANARY-COMPARISON", path, "conforming comparison must not list differences"))
 
     def _validate_freshness(self, value: object, evidence_state: object, path: str, errors: list[Diagnostic]) -> None:
         required = {"observed_or_verified_at", "warning_after_days", "invalid_after_days", "policy", "invalidation_triggers"}
@@ -1032,8 +1057,6 @@ class Corpus:
             errors.append(Diagnostic("RTEC-ENUM", path, f"unknown freshness policy {value['policy']!r}"))
         if not _string_list(value["invalidation_triggers"], nonempty=True):
             errors.append(Diagnostic("RTEC-FRESHNESS", path, "invalidation_triggers must be a non-empty unique string array"))
-        if evidence_state == "STALE" and value["policy"] == "immutable-source":
-            errors.append(Diagnostic("RTEC-FRESHNESS", path, "immutable-source evidence cannot be marked STALE without a different policy"))
 
     def _validate_review(self, value: object, path: str, errors: list[Diagnostic]) -> None:
         required = {"status", "task_id", "pr", "reviewer", "reviewed_at", "notes"}
@@ -1128,7 +1151,7 @@ class Corpus:
         self._validate_request_history(value["history"], value["status"], path, errors)
 
     def _validate_request_version_impact(self, value: object, path: str, errors: list[Diagnostic]) -> None:
-        required = {"official_release", "client_build", "protocol_profile", "canary_commit", "maintained_otclient_commit", "map_sha256", "datapack_revision", "appearances_items_revision", "spawn_npc_sidecar_revision", "database_schema_revision"}
+        required = set(VERSION_AXES)
         ok, detail = _object_keys(value, required)
         if not ok:
             errors.append(Diagnostic("RTEC-REQUEST-VERSION", path, detail))
@@ -1312,7 +1335,7 @@ class Corpus:
     def _validate_history_document(self, document: LoadedDocument, errors: list[Diagnostic]) -> None:
         value = document.value
         path = document.relative_path
-        required = {"format", "schema_version", "module_id", "events"}
+        required = {"format", "schema_version", "module_id", "entries"}
         ok, detail = _object_keys(value, required)
         if not ok:
             errors.append(Diagnostic("RTEC-HISTORY-SHAPE", path, detail))
@@ -1325,39 +1348,62 @@ class Corpus:
         expected = f"docs/agents/real-tibia/evidence/modules/{module_id}/VERSION_HISTORY.yaml"
         if path != expected:
             errors.append(Diagnostic("RTEC-HISTORY-PATH", path, f"version history path must be {expected}"))
-        events = value["events"]
-        if not isinstance(events, list) or not events:
-            errors.append(Diagnostic("RTEC-HISTORY-EVENTS", path, "events must be a non-empty array"))
+        entries = value["entries"]
+        if not isinstance(entries, list) or not entries:
+            errors.append(Diagnostic("RTEC-HISTORY-ENTRIES", path, "entries must be a non-empty array"))
             return
-        required_event = {"history_id", "event_type", "claim_refs", "version", "confidence", "statement", "evidence_refs", "proves", "does_not_prove", "supersedes", "superseded_by"}
-        for index, event in enumerate(events):
-            label = f"events[{index}]"
-            ok, detail = _object_keys(event, required_event)
+        required_entry = {
+            "history_id", "claim_refs", "lifecycle", "confidence", "statement", "evidence_refs",
+            "proves", "does_not_prove", "supersedes", "superseded_by",
+        }
+        for index, entry in enumerate(entries):
+            label = f"entries[{index}]"
+            ok, detail = _object_keys(entry, required_entry)
             if not ok:
-                errors.append(Diagnostic("RTEC-HISTORY-EVENT", path, f"{label} {detail}"))
+                errors.append(Diagnostic("RTEC-HISTORY-ENTRY", path, f"{label} {detail}"))
                 continue
-            assert isinstance(event, dict)
-            history_id = event["history_id"]
+            assert isinstance(entry, dict)
+            history_id = entry["history_id"]
             if not isinstance(history_id, str) or not HISTORY_ID_RE.fullmatch(history_id):
                 errors.append(Diagnostic("RTEC-HISTORY-ID", path, f"{label}.history_id is malformed"))
             elif isinstance(module_id, str) and not history_id.startswith(f"RTVH-{module_token(module_id)}-"):
                 errors.append(Diagnostic("RTEC-HISTORY-ID", path, f"{label}.history_id must use module token {module_token(module_id)}"))
-            if event["event_type"] not in VERSION_EVENT_TYPES:
-                errors.append(Diagnostic("RTEC-ENUM", path, f"{label}.event_type has unknown value {event['event_type']!r}"))
-            if event["confidence"] not in VERSION_CONFIDENCE:
-                errors.append(Diagnostic("RTEC-ENUM", path, f"{label}.confidence has unknown value {event['confidence']!r}"))
-            if not _nonempty_string(event["statement"]):
-                errors.append(Diagnostic("RTEC-HISTORY-EVENT", path, f"{label}.statement must be non-empty"))
+            if entry["confidence"] not in VERSION_CONFIDENCE:
+                errors.append(Diagnostic("RTEC-ENUM", path, f"{label}.confidence has unknown value {entry['confidence']!r}"))
+            if not _nonempty_string(entry["statement"]):
+                errors.append(Diagnostic("RTEC-HISTORY-ENTRY", path, f"{label}.statement must be non-empty"))
             for key in ("claim_refs", "evidence_refs", "proves", "does_not_prove", "supersedes", "superseded_by"):
-                if not _string_list(event[key], nonempty=key in {"claim_refs", "evidence_refs", "proves", "does_not_prove"}):
-                    errors.append(Diagnostic("RTEC-HISTORY-EVENT", path, f"{label}.{key} must be a {'non-empty ' if key in {'claim_refs','evidence_refs','proves','does_not_prove'} else ''}unique string array"))
-            marker = _validate_version_marker(event["version"], f"{label}.version", errors, path)
-            if event["event_type"] == "unknown-first-version" and marker and marker.get("mode") not in {"DERIVED_RANGE", "LOWER_BOUND", "UPPER_BOUND", "UNKNOWN"}:
-                errors.append(Diagnostic("RTEC-INTRODUCTION-VERSION", path, "unknown-first-version must preserve a range/bound/UNKNOWN rather than an invented exact version"))
-            if event["event_type"] == "introduced" and marker and marker.get("mode") == "EXACT" and event["confidence"] not in {"proven-official", "proven-observation"}:
-                errors.append(Diagnostic("RTEC-INTRODUCTION-VERSION", path, "exact introduced event requires proven-official or proven-observation confidence"))
-            if event["confidence"] == "derived-range" and marker and marker.get("mode") != "DERIVED_RANGE":
-                errors.append(Diagnostic("RTEC-VERSION-MODE", path, "derived-range confidence requires DERIVED_RANGE version mode"))
+                required_values = key in {"claim_refs", "evidence_refs", "proves", "does_not_prove"}
+                if not _string_list(entry[key], nonempty=required_values):
+                    qualifier = "non-empty " if required_values else ""
+                    errors.append(Diagnostic("RTEC-HISTORY-ENTRY", path, f"{label}.{key} must be a {qualifier}unique string array"))
+            lifecycle = entry["lifecycle"]
+            required_lifecycle = {
+                "announced_in", "introduced_in", "observed_in", "changed_in", "deprecated_in",
+                "removed_in", "effective_from", "effective_until",
+            }
+            ok, detail = _object_keys(lifecycle, required_lifecycle)
+            if not ok:
+                errors.append(Diagnostic("RTEC-HISTORY-LIFECYCLE", path, f"{label}.lifecycle {detail}"))
+                continue
+            assert isinstance(lifecycle, dict)
+            parsed: dict[str, dict[str, Any] | None] = {}
+            for key in ("announced_in", "introduced_in", "deprecated_in", "removed_in", "effective_from", "effective_until"):
+                parsed[key] = _validate_version_marker(lifecycle[key], f"{label}.lifecycle.{key}", errors, path)
+            for key in ("observed_in", "changed_in"):
+                items = lifecycle[key]
+                if not isinstance(items, list):
+                    errors.append(Diagnostic("RTEC-HISTORY-LIFECYCLE", path, f"{label}.lifecycle.{key} must be an array"))
+                    continue
+                for marker_index, marker in enumerate(items):
+                    _validate_version_marker(marker, f"{label}.lifecycle.{key}[{marker_index}]", errors, path)
+            introduced = parsed.get("introduced_in")
+            if introduced and introduced.get("mode") == "EXACT" and entry["confidence"] not in {"proven-official", "proven-observation"}:
+                errors.append(Diagnostic("RTEC-INTRODUCTION-VERSION", path, f"{label} exact introduced_in requires proven-official or proven-observation confidence"))
+            if entry["confidence"] == "derived-range" and (not introduced or introduced.get("mode") != "DERIVED_RANGE"):
+                errors.append(Diagnostic("RTEC-VERSION-MODE", path, f"{label} derived-range confidence requires DERIVED_RANGE introduced_in"))
+            if introduced and introduced.get("mode") == "EXACT" and entry["confidence"] in {"supported-secondary", "unknown", "conflicting"}:
+                errors.append(Diagnostic("RTEC-INTRODUCTION-VERSION", path, f"{label} must not invent an exact introduction version from secondary, unknown or conflicting evidence"))
 
     def _validate_module_index_document(self, document: LoadedDocument, errors: list[Diagnostic]) -> None:
         value = document.value
@@ -1435,7 +1481,7 @@ class Corpus:
         if not isinstance(value["input_sha256"], str) or not SHA256_RE.fullmatch(value["input_sha256"]):
             errors.append(Diagnostic("RTEC-SHA256", path, "generated index input_sha256 must be an exact lowercase SHA-256"))
         counts = value["source_counts"]
-        ok, detail = _object_keys(counts, {"evidence_records", "owner_requests", "version_history_events"})
+        ok, detail = _object_keys(counts, {"evidence_records", "owner_requests", "version_history_records"})
         if not ok:
             errors.append(Diagnostic("RTEC-GENERATED-INDEX-SHAPE", path, f"source_counts {detail}"))
         elif any(not isinstance(item, int) or isinstance(item, bool) or item < 0 for item in counts.values()):
@@ -1465,8 +1511,27 @@ class Corpus:
             for row in value["superseded_records"]
         ):
             errors.append(Diagnostic("RTEC-GENERATED-INDEX-SHAPE", path, "superseded_records rows are malformed"))
-        if not isinstance(value["proof_maturity_by_dimension"], dict):
-            errors.append(Diagnostic("RTEC-GENERATED-INDEX-SHAPE", path, "proof_maturity_by_dimension must be an object"))
+        maturity = value["proof_maturity_by_dimension"]
+        maturity_ok = isinstance(maturity, dict)
+        if maturity_ok:
+            for module_id, dimensions in maturity.items():
+                if module_id not in self.modules or not isinstance(dimensions, dict):
+                    maturity_ok = False
+                    break
+                for dimension, row in dimensions.items():
+                    if dimension not in AUTHORITY_DIMENSIONS or not isinstance(row, dict) or set(row) != {"proof_level", "evidence_ids", "evidence_states"}:
+                        maturity_ok = False
+                        break
+                    if row["proof_level"] not in PROOF_RANK or not _string_list(row["evidence_ids"], nonempty=True) or not _string_list(row["evidence_states"], nonempty=True):
+                        maturity_ok = False
+                        break
+                    if any(state not in EVIDENCE_STATES for state in row["evidence_states"]):
+                        maturity_ok = False
+                        break
+                if not maturity_ok:
+                    break
+        if not maturity_ok:
+            errors.append(Diagnostic("RTEC-GENERATED-INDEX-SHAPE", path, "proof_maturity_by_dimension must map canonical modules and authority dimensions to validated proof rows"))
         forbidden = {"overall_parity_percentage", "release_approval", "whole_game_parity"}
         if forbidden.intersection(value):
             errors.append(Diagnostic("RTEC-FORBIDDEN-AGGREGATE", path, "generated index contains a forbidden score or approval field"))
@@ -1543,16 +1608,24 @@ class Corpus:
                 continue
             observed = dt.date.fromisoformat(freshness["observed_or_verified_at"])
             age = (as_of - observed).days
+            warning = freshness.get("warning_after_days")
             invalid = freshness.get("invalid_after_days")
             explicit = value.get("evidence_state") == "STALE"
+            warned = isinstance(warning, int) and not isinstance(warning, bool) and age >= warning
             expired = isinstance(invalid, int) and not isinstance(invalid, bool) and age >= invalid
-            if explicit or expired:
+            if explicit or warned:
+                if explicit:
+                    reason = "explicit-state"
+                elif expired:
+                    reason = "invalidation-window-expired"
+                else:
+                    reason = "freshness-warning-window-reached"
                 rows.append(
                     {
                         "evidence_id": value.get("evidence_id"),
                         "module_id": value.get("module_id"),
                         "age_days": age,
-                        "reason": "explicit-state" if explicit else "freshness-window-expired",
+                        "reason": reason,
                     }
                 )
         return rows
@@ -1573,9 +1646,9 @@ class Corpus:
                 request_by_module[module_id].append(request_id)
         for document in self.history_documents:
             module_id = document.value.get("module_id")
-            events = document.value.get("events")
-            if isinstance(module_id, str) and isinstance(events, list):
-                history_by_module[module_id].extend(event["history_id"] for event in events if isinstance(event, dict) and isinstance(event.get("history_id"), str))
+            entries = document.value.get("entries")
+            if isinstance(module_id, str) and isinstance(entries, list):
+                history_by_module[module_id].extend(entry["history_id"] for entry in entries if isinstance(entry, dict) and isinstance(entry.get("history_id"), str))
         module_dirs = {
             path.name
             for path in (self.evidence_root / "modules").iterdir()
@@ -1656,23 +1729,24 @@ class Corpus:
                 superseded.append({"record_type": "request", "record_id": request_id})
             input_fingerprints.append(f"request:{document.relative_path}:{document.sha256}")
 
-        version_event_count = 0
+        version_history_count = 0
         for document in sorted(self.history_documents, key=lambda item: item.relative_path):
-            events = document.value.get("events", [])
-            for event in events:
-                if not isinstance(event, dict):
+            entries = document.value.get("entries", [])
+            for entry in entries:
+                if not isinstance(entry, dict):
                     continue
-                version_event_count += 1
-                history_id = event.get("history_id")
-                marker = event.get("version")
-                if isinstance(history_id, str) and isinstance(marker, dict):
-                    for location in ("exact", "lower_bound", "upper_bound"):
-                        axes = marker.get(location)
-                        if isinstance(axes, dict):
-                            for axis in VERSION_AXES:
-                                value = axes.get(axis)
-                                if isinstance(value, str):
-                                    by_version[axis][value].add(history_id)
+                version_history_count += 1
+                history_id = entry.get("history_id")
+                lifecycle = entry.get("lifecycle")
+                if isinstance(history_id, str) and isinstance(lifecycle, dict):
+                    for marker in self._markers_from_applicability(lifecycle):
+                        for location in ("exact", "lower_bound", "upper_bound"):
+                            axis_values = marker.get(location)
+                            if isinstance(axis_values, dict):
+                                for axis in VERSION_AXES:
+                                    axis_value = axis_values.get(axis)
+                                    if isinstance(axis_value, str):
+                                        by_version[axis][axis_value].add(history_id)
             input_fingerprints.append(f"history:{document.relative_path}:{document.sha256}")
 
         maturity: dict[str, dict[str, dict[str, Any]]] = {}
@@ -1698,7 +1772,7 @@ class Corpus:
             "source_counts": {
                 "evidence_records": len(self.evidence_documents),
                 "owner_requests": len(self.request_documents),
-                "version_history_events": version_event_count,
+                "version_history_records": version_history_count,
             },
             "evidence_by_module": {key: sorted(values) for key, values in sorted(by_module.items())},
             "evidence_by_authority_dimension": {key: sorted(values) for key, values in sorted(by_authority.items())},

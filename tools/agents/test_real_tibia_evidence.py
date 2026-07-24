@@ -39,7 +39,7 @@ class RealTibiaEvidenceContractTests(EvidenceTestCase):
         path.unlink()
         record = self.record(); self.write_record(record); self.write_record(record, module_dir="protocol")
         request = self.request(); self.write_request(request); self.write_request(request, "feature")
-        h = history(); h["events"].append(copy.deepcopy(h["events"][0]))
+        h = history(); h["entries"].append(copy.deepcopy(h["entries"][0]))
         dump(self.root / "docs/agents/real-tibia/evidence/modules/combat/VERSION_HISTORY.yaml", h)
         codes = self.codes()
         self.assertTrue({"RTEC-DUPLICATE-EVIDENCE-ID", "RTEC-DUPLICATE-REQUEST-ID", "RTEC-DUPLICATE-HISTORY-ID"} <= codes)
@@ -66,7 +66,10 @@ class RealTibiaEvidenceContractTests(EvidenceTestCase):
         with self.assertRaisesRegex(EvidenceError, "symlink"):
             Corpus.load(self.root)
         target.unlink(); dump(self.root / "docs/agents/real-tibia/evidence/manual.json", {})
-        with self.assertRaisesRegex(EvidenceError, "unregistered machine-readable"):
+        with self.assertRaisesRegex(EvidenceError, "unregistered or prohibited"):
+            Corpus.load(self.root)
+        (self.root / "docs/agents/real-tibia/evidence/capture.bin").write_bytes(b"proprietary")
+        with self.assertRaisesRegex(EvidenceError, "unregistered or prohibited"):
             Corpus.load(self.root)
 
     def test_empty_placeholder_module_tree_is_rejected(self) -> None:
@@ -117,6 +120,28 @@ class RealTibiaEvidenceContractTests(EvidenceTestCase):
         old["supersedes"] = ["RT-COMBAT-0002"]; new["superseded_by"] = ["RT-COMBAT-0001"]
         self.write_record(old); self.write_record(new)
         self.assertIn("RTEC-SUPERSESSION-CYCLE", self.codes())
+
+
+    def test_version_history_requires_distinct_lifecycle_cells(self) -> None:
+        self.write_record(self.record())
+        value = history()
+        entry = value["entries"][0]
+        entry["version"] = marker("EXACT", "RT-COMBAT-0001", official_tibia_release="15.25")
+        del entry["lifecycle"]["announced_in"]
+        dump(self.root / "docs/agents/real-tibia/evidence/modules/combat/VERSION_HISTORY.yaml", value)
+        codes = self.codes()
+        self.assertTrue({"RTEC-HISTORY-ENTRY"} <= codes)
+
+    def test_assessed_canary_comparison_requires_exact_baseline_and_paths(self) -> None:
+        record = self.record()
+        comparison = record["current_canary_comparison"]
+        comparison.update(state="conforming", current_behavior="Observed behavior.", missing_proof=[])
+        self.write_record(record)
+        self.assertIn("RTEC-CANARY-COMPARISON", self.codes())
+        comparison["baseline"]["canary_commit"] = COMMIT
+        comparison["exact_paths"] = ["src/example.cpp"]
+        self.write_record(record)
+        self.assertEqual(self.codes(), set())
 
 
 if __name__ == "__main__":

@@ -46,15 +46,20 @@ def marker(mode: str = "UNKNOWN", ref: str | None = None, **values: str) -> dict
 def history() -> dict[str, object]:
     return {
         "format": "canary-real-tibia-version-history-v1", "schema_version": 1, "module_id": "combat",
-        "events": [{
-            "history_id": "RTVH-COMBAT-0001", "event_type": "observed",
-            "claim_refs": ["RT-COMBAT-0001"],
-            "version": marker("EXACT", "RT-COMBAT-0001", canary_commit=COMMIT),
+        "entries": [{
+            "history_id": "RTVH-COMBAT-0001", "claim_refs": ["RT-COMBAT-0001"],
+            "lifecycle": {
+                "announced_in": marker(), "introduced_in": marker(),
+                "observed_in": [marker("EXACT", "RT-COMBAT-0001", canary_commit=COMMIT)],
+                "changed_in": [], "deprecated_in": marker(), "removed_in": marker(),
+                "effective_from": marker(), "effective_until": marker(),
+            },
             "confidence": "proven-observation", "statement": "Observed at the pinned Canary commit.",
             "evidence_refs": ["RT-COMBAT-0001"], "proves": ["Exact Canary observation."],
             "does_not_prove": ["No official Tibia introduction version."], "supersedes": [], "superseded_by": [],
         }],
     }
+
 
 
 class EvidenceTestCase(unittest.TestCase):

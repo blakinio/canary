@@ -2,13 +2,13 @@
 task_id: CAN-20260724-rtec-001-evidence-contracts
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-001
-status: ready
+status: review
 agent: "GPT-5.6 Thinking"
 branch: feat/rtec-001-evidence-contracts-20260724
 base_branch: main
 created: 2026-07-24T21:45:37+02:00
-updated: 2026-07-24T22:51:03+02:00
-last_verified_commit: "f773097b5f22f5bab8ada275403f5f99a27c0339"
+updated: 2026-07-24T23:10:00+02:00
+last_verified_commit: "847cb18234026eb8b0c3a52f420c91fa7fc3d656"
 risk: medium
 related_issue: ""
 related_pr: "897"
@@ -128,10 +128,10 @@ python -m py_compile tools/agents/real_tibia_evidence.py tools/agents/real_tibia
 PASS
 
 python -m unittest discover -v -s tools/agents -p 'test_real_tibia_evidence*.py'
-PASS: 22 tests
+PASS: 27 tests
 
 python tools/agents/real_tibia_evidence.py validate --as-of 2026-07-24
-PASS: evidence corpus valid (0 evidence, 0 requests, 0 history events)
+PASS: evidence corpus valid (0 evidence, 0 requests, 0 history records)
 
 python tools/agents/real_tibia_evidence.py generate --check --as-of 2026-07-24
 PASS
@@ -147,7 +147,7 @@ updated_at: 2026-07-24T22:51:03+02:00
 head: f773097b5f22f5bab8ada275403f5f99a27c0339
 branch: feat/rtec-001-evidence-contracts-20260724
 pr: 897
-status: ready
+status: validating
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -167,19 +167,19 @@ proven:
   - RTEC-000 is merged and archived.
   - PR 897 is open from the exact claimed base and owns the declared paths.
   - Five schema-version-1 contracts and the standard-library validator/generator are published.
-  - Local compile, 22 focused tests, corpus validation and generated-index checks pass.
+  - Local compile, 27 focused tests, corpus validation and generated-index checks pass.
   - CI, Agent Task Ownership, Real Tibia Evidence Contracts, Real Tibia Module Registry and Upstream Intelligence all passed at f773097b5f22f5bab8ada275403f5f99a27c0339.
-  - The complete 17-file changed-path list and implementation/test diff were reviewed with no unresolved findings.
-  - The ci:final-gate label was applied before this final checkpoint commit.
+  - Review found and corrected a generic version-history field that violated mandatory lifecycle-cell separation.
+  - The premature ci:final-gate label was removed before publishing the semantic correction.
   - No module dossier, owner runner/parser or runtime behavior was added.
 derived:
   - The empty generated index is the deterministic factual baseline until RTEC-002 creates the first bounded module records.
 unknown:
-  - Final-head gate outcome for this checkpoint commit.
+  - Current-head CI outcome after the semantic correction.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: no unresolved current-head failure remains
+  marker: version-history-generic-version-field
+  evidence: generic version field violated mandatory lifecycle separation; corrected before renewed final gate
 rejected_hypotheses:
   - Populate all module dossiers now: rejected because RTEC-001 stabilizes contracts first.
   - Reuse or edit Universal E2E, OTBM/OWA or TCR implementation paths: rejected because owners retain execution authority.
@@ -198,7 +198,7 @@ changed_paths:
 validation:
   - command: local compile and focused unittest discovery
     result: PASS
-    evidence: 22 tests passed
+    evidence: 27 tests passed
   - command: evidence validate and deterministic generate --check
     result: PASS
     evidence: empty factual baseline valid at 2026-07-24
@@ -206,7 +206,7 @@ validation:
     result: PASS
     evidence: CI, ownership, evidence contracts, canonical registry and upstream intelligence all succeeded
 blockers: []
-next_action: After the green final-head gate, mark PR 897 ready and squash-merge it; then verify automated lifecycle archival before starting RTEC-002.
+next_action: Re-check the corrected current-head diff and CI, then reapply ci:final-gate before the final checkpoint commit.
 ```
 
 # Handoff
