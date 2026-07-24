@@ -87,7 +87,7 @@ updated_at: 2026-07-24T22:52:15+02:00
 head: 0ee846353119ffa49413a4cd86df668389263fc3
 branch: feat/tcr-007-proficiency-reference-correlation
 pr: 898
-status: active
+status: validating
 context_routes:
   - agent-governance
   - real-tibia-parity
