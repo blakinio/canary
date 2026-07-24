@@ -7,6 +7,7 @@ on:
       - .github/workflows/tibia-client-reference.yml
       - .github/workflows/tcr007-materialize.yml
       - .tcr007-stage/payload.tar.xz
+      - .tcr007-stage/payload.sha256.actual
       - docs/agents/tasks/active/CAN-20260724-tcr-007-proficiency-reference-correlation.md
 
 permissions:
@@ -27,7 +28,20 @@ jobs:
       - name: Verify exact staged payload
         shell: bash
         run: |
-          echo '17723d983b2d4a9cf2497101f112c5c279f671f7d3e87d7d9426a50c1c320af8  .tcr007-stage/payload.tar.xz' | sha256sum -c -
+          expected='17723d983b2d4a9cf2497101f112c5c279f671f7d3e87d7d9426a50c1c320af8'
+          actual="$(sha256sum .tcr007-stage/payload.tar.xz | awk '{print $1}')"
+          if [ "$actual" != "$expected" ]; then
+            printf '%s\n' "$actual" > .tcr007-stage/payload.sha256.actual
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add .tcr007-stage/payload.sha256.actual
+            if ! git diff --cached --quiet; then
+              git commit -m 'ci(tcr): record exact staged payload digest'
+              git push origin HEAD:feat/tcr-007-proficiency-reference-correlation
+            fi
+            echo "staged payload digest mismatch" >&2
+            exit 1
+          fi
           tar -tJf .tcr007-stage/payload.tar.xz | sort | tee /tmp/tcr007-payload-files.txt
           for path in \
             tools/ai-agent/tibia_proficiency_reference_common.py \
