@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-24T08:20:00+02:00
-last_verified_commit: "55f9e46ab0804ec2c7b58cfffc772a243234c956"
+updated: 2026-07-24T10:50:00+02:00
+last_verified_commit: "cec180bf0fdcd894d71c8219ffab83f3d07a51b7"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -77,6 +77,7 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 | OAM-039 | `instances → ADAPT` | target `a2a52e239d8e8a770ff7376fcbb9b5bfdcc8cc13`; feature `7f5fcfb77c35f83f0841ee1d57a70878b5e544d0`; lifecycle `5f434e9f1e792670545aaf818e34af47c40b2c88` |
 | OAM-040 | `otbm-tooling → DO_NOT_MIGRATE` | target proof `e607887533bbbff13ff36d781e3f7f25d2f71675`; feature `74121ca3d968ace7a68bcdb5cd7cd64e6e54d702`; lifecycle `54ce97b3bcaac8c2e1a0d4cc6162a6ff975bbee9` |
 | OAM-041 | `spawns → REUSE` | target proof `de061aa6c75114192f1ef6b33f7b4857e502936c`; feature `0dc3fa9d663af47f8808d2457c8108a63294c7c4`; lifecycle `55f9e46ab0804ec2c7b58cfffc772a243234c956` |
+| OAM-042 | `npcs → REUSE` | target proof `0d01f077f80c2d4cd3d4231d2ffb9416874ba54e`; Otheryn lifecycle `3a37f3d5e4c01ddf4469f1c71461c40ca749142f`; feature `2f42260258f84b323bcd2a74d6107b10d4e01142`; Canary lifecycle `cec180bf0fdcd894d71c8219ffab83f3d07a51b7` |
 
 # Durable evidence compaction
 
@@ -224,19 +225,41 @@ Canary governance PR #853 final head `b45d0f9ce5c7dc7d359364db013db509eeb4d035` 
 
 Authoritative lifecycle PR #854 final head `72ba86574322927218d4d5b1a99062a5fa749961` changed exactly the active-delete/archive-add task paths. Agent Task Ownership `30070624817` and full final-gate CI `30070630936` succeeded. Comments/reviews/threads were empty; concurrent Canary drift was limited to unrelated TCR-003 OTBM paths with no OAM-041 overlap, and PR #854 merged by expected-head squash as `55f9e46ab0804ec2c7b58cfffc772a243234c956`.
 
-Canary PR #856 is the one-file durable reconciliation gate for this record and the final Canary-side prerequisite before the Otheryn OAM-041 target-task archive.
+Canary PR #856 completed the one-file durable reconciliation gate for OAM-041; the Otheryn OAM-041 target-task archive then merged before OAM-042 began.
 
 OAM-041 does not claim execution or correctness of unresolved dynamic Lua creation calls, exhaustive live validation of all `84,294` static placements, exact Real Tibia spawn population/timing/placement parity, scheduler fairness under production load, raid lifecycle beyond the separated OAM-037 boundary, protocol/client compatibility, physical-client spawn/NPC gameplay E2E closure or full world-content parity.
+
+# OAM-042 durable completion
+
+Final disposition:
+
+```text
+npcs REUSE
+```
+
+OAM-042 selected canonical `npcs` after formal OAM-041 closure. Canary preflight PR #859 merged as `c86e805910d87dc8db9a212b18645e27c28c779c`; immutable Otheryn target task-start main was `7c54172adfa612fa143d11630f5a341ff4c82338`. Canonical `npcs` depends only on externally resolved `otbm-tooling` and owns NPC definitions and registration, dialogue state, shops, travel, NPC-owned quest hooks and placement evidence. Generic quest progression remains assigned to canonical `quests`.
+
+The clean target and reviewed current upstream shared exact blobs for the bounded NPC runtime, npclib, Harlow, Rashid and placement paths recorded in `docs/agents/OTERYN_OAM_042_NPCS_REVALIDATION.md`. Identity alone was not accepted: the target-local source-contract proof covered core loading, case-insensitive registration, callback events, Lua interaction/shop surfaces, dialogue/travel rules, Harlow storage-gated travel and Rashid quest/shop gating. OAM-041 deterministic placement/definition evidence was reused without copying Canary OTBM tooling or generated evidence into Otheryn.
+
+Otheryn PR #96 final head `e7b8f3a121f931a83ef016ceb6d30ad21dcdf74d` changed exactly the proof document, task, focused source-contract test and existing test-target registration, with no production path mutation. Autofix `30077147255`, CI `30077147345` and Required `30077147262` succeeded across Fast Checks, Lua, Linux release/debug with full tests and smokes, macOS and both Windows paths. Comments/reviews/threads were empty, target `main` had no task-start drift, and PR #96 merged by expected-head squash as `0d01f077f80c2d4cd3d4231d2ffb9416874ba54e`.
+
+Otheryn lifecycle PR #97 changed only active-delete/archive-add task paths. Required `30078308339` succeeded without an application build, and PR #97 merged as `3a37f3d5e4c01ddf4469f1c71461c40ca749142f`.
+
+Canary governance PR #862 final head `28cc1fcda89025411e94b7d94004e02519292394` changed exactly the OAM-042 revalidation report and active-task record. Agent Task Ownership `30078712841` and final-gate CI `30078791535` succeeded across Fast Checks, Lua, Linux release/debug with tests and smokes, Windows Solution/CMake, Docker, Docker Quickstart Smoke and Required; no macOS job was emitted. Comments/reviews/threads were empty, unrelated main drift did not overlap OAM-042 paths, and PR #862 merged as `2f42260258f84b323bcd2a74d6107b10d4e01142`.
+
+Authoritative Canary lifecycle PR #863 final head `748533c9ab512e9449d3ac5a0bd8139ee26087bb` changed exactly the active-delete/archive-add task paths. Agent Task Ownership `30080083855` and CI `30080083988` succeeded with Required PASS; heavy builds were correctly skipped. Comments/reviews/threads were empty, and PR #863 merged as `cec180bf0fdcd894d71c8219ffab83f3d07a51b7`.
+
+OAM-042 does not claim factual completeness of every individual NPC conversation, resolution of the duplicate Harlow definition ambiguity, execution or correctness of every nonliteral dynamic NPC/quest-hook call, generic quest progression correctness, exact Real Tibia dialogue/shop/travel parity, protocol/client UI parity, production gameplay parity, physical-client NPC E2E closure or full world-content parity.
 
 # Current state
 
 ```text
-Canary reconciliation base: 55f9e46ab0804ec2c7b58cfffc772a243234c956
-Otheryn target head after OAM-041: de061aa6c75114192f1ef6b33f7b4857e502936c
-maintained OTClient: 1e5305395159142634f182d9e888e5f9164228c6
-OAM-001..OAM-041: feature/lifecycle complete
-OAM-041 task: archived in Canary
-OAM-042: NOT STARTED pending Otheryn OAM-041 target checkpoint archive
+Canary reconciliation base: cec180bf0fdcd894d71c8219ffab83f3d07a51b7
+Otheryn target head after OAM-042: 3a37f3d5e4c01ddf4469f1c71461c40ca749142f
+maintained OTClient: b3bcea2a95959bb4e92cc0b80cd49f36b63699b2
+OAM-001..OAM-042: feature/lifecycle complete
+OAM-042 task: archived in Canary and Otheryn
+OAM-043: NOT STARTED pending a fresh dependency-valid preflight
 ```
 
 No OAM implementation task is active in this reconciliation record.
@@ -245,8 +268,8 @@ No OAM implementation task is active in this reconciliation record.
 
 | Package | Status | Next action |
 |---|---|---|
-| OAM-001..OAM-041 | completed | preserve durable evidence |
-| OAM-042+ | planned, not active | only after this reconciliation merges and the Otheryn OAM-041 target checkpoint is archived: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
+| OAM-001..OAM-042 | completed | preserve durable evidence |
+| OAM-043+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
 
 # Invariants and known gaps
 
@@ -286,3 +309,4 @@ No OAM implementation task is active in this reconciliation record.
 - OAM-034 does not claim full monster catalogue parity, exhaustive creature stats, loot, spells, resistances or immunities, Creature AI, spawn placement, raid behavior, boss encounter mechanics, Bestiary or Bosstiary runtime correctness, protocol/client compatibility, persistence correctness, map/asset/schema/deployment parity, physical-client creature E2E closure, or full Real Tibia parity.
 - OAM-035 does not claim Real Tibia AI parity, exact target-choice weights, pathfinding parity, thread-safety proof, scheduler fairness, combat formula parity, spawn timing parity, summon ownership completeness, boss AI/reward correctness, raid behavior, protocol/client compatibility, physical-client gameplay E2E closure, or full Oteryn readiness.
 - OAM-041 does not promote static evidence into live gameplay proof and does not close the explicit Harlow or dynamic-Lua evidence boundaries.
+- OAM-042 does not promote bounded source-contract evidence into exhaustive individual-conversation, dynamic-call, production or physical-client parity and does not close the duplicate Harlow boundary.
