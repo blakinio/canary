@@ -2,7 +2,7 @@
 
 Status: approved future-design integration record
 
-This document promotes three already-merged detailed design packages into the future-gameplay roadmap without replacing their full specifications. It is a concise product index, not implementation proof.
+This document promotes detailed future-design packages into the future-gameplay roadmap without replacing their full specifications. It is a concise product index, not implementation proof.
 
 ## Practical change-kind labels
 
@@ -109,10 +109,42 @@ Required boundaries:
 
 ---
 
+# 39. Prey System 2.0
+
+`USER-DIRECTION`
+
+Detailed design:
+
+`docs/ai-agent/OTS_PREY_SYSTEM_2_0.md`
+
+Promoted proposal entries:
+
+- **121 — Selected-creature active-use Prey timer — `FIX`**: consume Prey time only from meaningful server-authoritative activity against the selected race instead of the generic experience/stamina path.
+- **122 — Dormant Prey target reservation — `FEATURE`**: keep the selected creature reserved after active time expires without granting a bonus or charging a recurring wildcard fee.
+- **123 — Separate target reservation, bonus preservation and time renewal — `FIX`**: replace the combined Lock Prey responsibility with explicit independent controls and costs.
+- **124 — Bankable free Prey Charges — `UPGRADE`**: accumulate bounded free list-reroll/reactivation decisions instead of forcing immediate use of each 20-hour opportunity.
+- **125 — Sustainable Prey maintenance paths — `UPGRADE`**: support transparent free-charge, gold, gameplay-earned and optional wildcard renewal sources without hidden conversion.
+- **126 — Mixed-spawn and party-safe Prey consumption — `FIX`**: consume time only through legitimate selected-race activity while preserving independent party-member slots and summon attribution.
+- **127 — Prey loadouts and cost controls — `FEATURE`**: remember target/bonus/renewal preferences and enforce player-defined spend limits without granting unavailable targets.
+- **128 — Prey migration and switching safeguards — `FIX`**: preserve existing target, bonus, remaining time, slots and wildcard value while blocking combat-state switching and duplicate charging.
+
+Required boundaries:
+
+- target-specific consumption is our extension, not claimed current Tibia parity;
+- reserving a creature grants no active combat bonus;
+- preserving a maximum bonus remains separate from preserving the creature;
+- Wildcards may remain optional convenience but must not be the only practical maintenance path;
+- Prey, Bounty and Weekly Tasks remain separate systems;
+- exact charge caps, costs, activity buckets, grace windows and protocol payloads remain `OPEN`;
+- implementation requires a new Canary/OTClient contract and migration task.
+
+---
+
 ## Integration status
 
 - entries **95-100** map to the Charm/Bestiary/Drome design;
 - entries **101-110** map to the Quest/Postal/Market Logistics design;
 - entries **111-120** map to the Forge Slot/Enhancement/Equipment Proficiency design;
-- all three full design files remain authoritative for detailed requirements and open questions;
+- entries **121-128** map to the Prey System 2.0 design;
+- all full design files remain authoritative for detailed requirements and open questions;
 - the classification index remains the authoritative source for `ORIGIN` and `TYPE`.
