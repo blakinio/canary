@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - docs/tcr-006-lifecycle-closeout
-    paths:
-      - .github/workflows/tibia-client-reference.yml
 
 permissions:
   contents: write
@@ -32,7 +30,7 @@ jobs:
           PY
           git fetch origin main
           git show origin/main:.github/workflows/tibia-client-reference.yml > .github/workflows/tibia-client-reference.yml
-          rm -f .github/workflows/tcr006-lifecycle-fix.yml
+          rm -f .github/workflows/tcr006-lifecycle-fix.yml .tcr006-finalizer-trigger
           python tools/agents/checkpoint.py docs/agents/tasks/archive/CAN-20260724-tcr-006-content-reference-correlation.md
           grep -F '7. Do not silently continue into TCR-008 or another TCR package in the same PR.' docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
           git config user.name "github-actions[bot]"
