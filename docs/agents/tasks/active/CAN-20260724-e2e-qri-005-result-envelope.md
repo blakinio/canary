@@ -2,13 +2,13 @@
 task_id: CAN-20260724-e2e-qri-005-result-envelope
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-QRI-005
-status: validating
+status: review
 agent: "GPT-5.6 Thinking"
 branch: feat/e2e-qri-005-result-envelope
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "d58695fa12e346916a8e34edbec9cbbe910d17be"
+last_verified_commit: "dce49d6d0804b5e10e2c557beff6f7c15e92b79d"
 risk: medium
 related_issue: ""
 related_pr: "850"
@@ -70,8 +70,8 @@ Deliver one stable, versioned, machine-readable Universal E2E result envelope wi
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T05:39:00Z
-head: d58695fa12e346916a8e34edbec9cbbe910d17be
+updated_at: 2026-07-24T05:42:00Z
+head: dce49d6d0804b5e10e2c557beff6f7c15e92b79d
 branch: feat/e2e-qri-005-result-envelope
 pr: 850
 status: validating
@@ -118,7 +118,7 @@ validation:
     evidence: PR 850 and main/open-PR audit
   - command: repository CI and Universal Agent E2E
     result: NOT_RUN
-    evidence: replacement head queued after ownership-state correction
+    evidence: replacement head queued after ownership lifecycle correction
 blockers:
   - Local sandbox cannot resolve github.com, so local full-repository build/runtime execution is unavailable; repository CI provides authoritative integration and physical validation.
 next_action: Inspect CI and physical E2E; fix the first causal failure without widening scope.
