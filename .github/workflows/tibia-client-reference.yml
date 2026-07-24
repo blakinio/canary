@@ -21,7 +21,8 @@ jobs:
       - name: Checkout pull request head
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
           show-progress: false
 
       - name: Set up Python
@@ -85,7 +86,14 @@ jobs:
           PY
 
       - name: Run focused tests
-        run: python -m unittest -v tools/ai-agent/test_tibia_content_reference_correlation.py
+        shell: bash
+        run: |
+          set +e
+          python -m unittest -v tools/ai-agent/test_tibia_content_reference_correlation.py \
+            > "$RUNNER_TEMP/tcr006-tests.log" 2>&1
+          status=$?
+          tail -n 120 "$RUNNER_TEMP/tcr006-tests.log"
+          exit "$status"
 
       - name: Compile implementation
         run: >-
