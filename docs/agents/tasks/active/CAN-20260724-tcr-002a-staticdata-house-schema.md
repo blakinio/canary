@@ -67,7 +67,7 @@ updated_at: 2026-07-24T12:10:00+02:00
 head: fc493be73a0dcce2467659d13ba37b0a78f7d4ad
 branch: fix/tcr-002a-staticdata-house-schema
 pr: 870
-status: final-gate
+status: validating
 context_routes:
   - agent-governance
   - otbm
