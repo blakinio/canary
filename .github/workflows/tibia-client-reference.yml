@@ -16,6 +16,14 @@ on:
       - "tools/ai-agent/tibia_proficiency_reference_index.py"
       - "tools/ai-agent/tibia_proficiency_reference_index_tool.py"
       - "tools/ai-agent/test_tibia_proficiency_reference_index.py"
+      - "tools/ai-agent/tibia_proficiency_reference_common.py"
+      - "tools/ai-agent/tibia_proficiency_reference_inventory.py"
+      - "tools/ai-agent/tibia_proficiency_reference_resolver.py"
+      - "tools/ai-agent/tibia_proficiency_reference_correlation.py"
+      - "tools/ai-agent/tibia_proficiency_reference_correlation_tool.py"
+      - "tools/ai-agent/tibia_proficiency_reference_test_support.py"
+      - "tools/ai-agent/test_tibia_proficiency_reference_correlation.py"
+      - "tools/ai-agent/test_tibia_proficiency_reference_inventory.py"
       - "tools/ai-agent/otbm_house_reference_parity.py"
       - "tools/ai-agent/otbm_house_reference_parity_tool.py"
       - "tools/ai-agent/test_otbm_house_reference_parity.py"
@@ -30,6 +38,9 @@ on:
       - "docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.schema.json"
       - "docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.md"
       - "docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.schema.json"
+      - "docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.md"
+      - "docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.schema.json"
+      - "docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_RESOLVER.schema.json"
       - "docs/ai-agent/OTBM_HOUSE_REFERENCE_PARITY.md"
       - "docs/ai-agent/OTBM_HOUSE_REFERENCE_PARITY.schema.json"
       - "docs/ai-agent/OTBM_HOUSE_ID_RESOLVER.schema.json"
@@ -46,6 +57,8 @@ jobs:
   validate-reference-tooling:
     name: Validate client reference tooling
     runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: tools/ai-agent
 
     steps:
       - name: Checkout repository
@@ -68,6 +81,11 @@ jobs:
       - name: Run proficiency focused tests
         run: python -m unittest discover -s tools/ai-agent -p "test_tibia_proficiency_reference_index.py" -v
 
+      - name: Run proficiency correlation focused tests
+        run: |
+          python -m unittest discover -s tools/ai-agent -p "test_tibia_proficiency_reference_correlation.py" -v
+          python -m unittest discover -s tools/ai-agent -p "test_tibia_proficiency_reference_inventory.py" -v
+
       - name: Run house parity focused tests
         run: python -m unittest discover -s tools/ai-agent -p "test_otbm_house_reference_parity.py" -v
 
@@ -89,6 +107,14 @@ jobs:
             tools/ai-agent/tibia_proficiency_reference_index.py \
             tools/ai-agent/tibia_proficiency_reference_index_tool.py \
             tools/ai-agent/test_tibia_proficiency_reference_index.py \
+            tools/ai-agent/tibia_proficiency_reference_common.py \
+            tools/ai-agent/tibia_proficiency_reference_inventory.py \
+            tools/ai-agent/tibia_proficiency_reference_resolver.py \
+            tools/ai-agent/tibia_proficiency_reference_correlation.py \
+            tools/ai-agent/tibia_proficiency_reference_correlation_tool.py \
+            tools/ai-agent/tibia_proficiency_reference_test_support.py \
+            tools/ai-agent/test_tibia_proficiency_reference_correlation.py \
+            tools/ai-agent/test_tibia_proficiency_reference_inventory.py \
             tools/ai-agent/otbm_house_reference_parity.py \
             tools/ai-agent/otbm_house_reference_parity_tool.py \
             tools/ai-agent/test_otbm_house_reference_parity.py \
@@ -102,6 +128,8 @@ jobs:
           python -m json.tool docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.schema.json > /dev/null
           python -m json.tool docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.schema.json > /dev/null
           python -m json.tool docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.schema.json > /dev/null
+          python -m json.tool docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.schema.json > /dev/null
+          python -m json.tool docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_RESOLVER.schema.json > /dev/null
           python -m json.tool docs/ai-agent/OTBM_HOUSE_REFERENCE_PARITY.schema.json > /dev/null
           python -m json.tool docs/ai-agent/OTBM_HOUSE_ID_RESOLVER.schema.json > /dev/null
           python -m json.tool docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json > /dev/null
@@ -113,5 +141,12 @@ jobs:
           python tools/ai-agent/tibia_staticdata_reference_index_tool.py --help > /dev/null
           python tools/ai-agent/tibia_staticmapdata_reference_index_tool.py --help > /dev/null
           python tools/ai-agent/tibia_proficiency_reference_index_tool.py --help > /dev/null
+          python tools/ai-agent/tibia_proficiency_reference_correlation_tool.py --help > /dev/null
           python tools/ai-agent/otbm_house_reference_parity_tool.py --help > /dev/null
           python tools/ai-agent/tibia_content_reference_correlation_tool.py --help > /dev/null
+
+      - name: Validate deterministic TCR-007 Canary evidence
+        run: |
+          python tools/ai-agent/tibia_proficiency_reference_correlation_tool.py inventory --repository-root . --output /tmp/TCR007_CANARY_EVIDENCE_A.json
+          python tools/ai-agent/tibia_proficiency_reference_correlation_tool.py inventory --repository-root . --output /tmp/TCR007_CANARY_EVIDENCE_B.json
+          cmp /tmp/TCR007_CANARY_EVIDENCE_A.json /tmp/TCR007_CANARY_EVIDENCE_B.json

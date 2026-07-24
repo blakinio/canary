@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.local/schemas/TIBIA_PROFICIENCY_REFERENCE_RESOLVER.schema.json",
+  "title": "Canary Tibia proficiency reference resolver v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "review", "inputs", "identifierNamespaces", "mappings", "findings", "summary", "policy"],
+  "properties": {
+    "format": {"const": "canary-tibia-proficiency-reference-resolver-v1"},
+    "schemaVersion": {"const": 1},
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "statement"],
+      "properties": {"id": {"type": "string", "minLength": 1}, "statement": {"type": "string", "minLength": 1}}
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["proficiencyIndexSha256", "appearancesIndexSha256", "canaryEvidenceSha256", "referenceId", "repositoryHead"],
+      "properties": {
+        "proficiencyIndexSha256": {"$ref": "#/$defs/sha256"},
+        "appearancesIndexSha256": {"$ref": "#/$defs/sha256"},
+        "canaryEvidenceSha256": {"$ref": "#/$defs/sha256"},
+        "referenceId": {"type": "string", "minLength": 1},
+        "repositoryHead": {"type": "string", "minLength": 1}
+      }
+    },
+    "identifierNamespaces": {"type": "object", "additionalProperties": {"type": "string", "minLength": 1}},
+    "mappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sourceOrdinal", "sourceProficiencyId", "appearanceProficiencyId", "runtimeProficiencyId", "method", "semanticSha256", "items"],
+        "properties": {
+          "sourceOrdinal": {"type": "integer", "minimum": 1},
+          "sourceProficiencyId": {"type": "integer", "minimum": 1},
+          "appearanceProficiencyId": {"type": "integer", "minimum": 1},
+          "runtimeProficiencyId": {"type": "integer", "minimum": 1},
+          "method": {"const": "reviewed-exact-definition-and-loader-binding"},
+          "semanticSha256": {"$ref": "#/$defs/sha256"},
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["appearanceObjectId", "canaryItemId", "appearanceName", "method"],
+              "properties": {
+                "appearanceObjectId": {"type": "integer", "minimum": 0},
+                "canaryItemId": {"type": "integer", "minimum": 0},
+                "appearanceName": {"type": "string"},
+                "method": {"const": "reviewed-canary-protobuf-loader-object-id"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "findings": {"type": "array", "items": {"type": "object"}},
+    "summary": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+    "policy": {"type": "object"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-fA-F]{64}$"}}
+}
