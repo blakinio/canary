@@ -22,6 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          show-progress: false
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -83,17 +84,23 @@ jobs:
                   print(f'{name} sha256={hashlib.sha256(data).hexdigest()} bytes={len(data)}')
           PY
 
-      - name: Validate materialized implementation
-        shell: bash
+      - name: Run focused tests
+        run: python -m unittest -v tools/ai-agent/test_tibia_content_reference_correlation.py
+
+      - name: Compile implementation
+        run: >-
+          python -m py_compile
+          tools/ai-agent/tibia_content_reference_correlation.py
+          tools/ai-agent/tibia_content_reference_correlation_tool.py
+          tools/ai-agent/test_tibia_content_reference_correlation.py
+
+      - name: Validate schema syntax
         run: |
-          set -euo pipefail
-          python -m unittest -v tools/ai-agent/test_tibia_content_reference_correlation.py
-          python -m py_compile \
-            tools/ai-agent/tibia_content_reference_correlation.py \
-            tools/ai-agent/tibia_content_reference_correlation_tool.py \
-            tools/ai-agent/test_tibia_content_reference_correlation.py
           python -m json.tool docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json > /dev/null
           python -m json.tool docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json > /dev/null
+
+      - name: Check materialized diff
+        run: |
           git diff --check -- \
             docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.md \
             docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json \
