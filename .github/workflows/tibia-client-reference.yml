@@ -86,6 +86,8 @@ jobs:
           PY
 
       - name: Run focused tests
+        env:
+          PYTHONPATH: tools/ai-agent
         shell: bash
         run: |
           set +e
