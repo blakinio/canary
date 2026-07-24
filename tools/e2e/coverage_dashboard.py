@@ -7,8 +7,8 @@ import json
 import sys
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence
+from pathlib import Path, PurePosixPath
+from typing import Any, Mapping, Sequence
 
 CONTRACT = "canary-universal-e2e-coverage-dashboard-v1"
 SCHEMA_VERSION = 1
@@ -35,6 +35,7 @@ RESULT_STATUSES = {"success", "failure", "cancelled", "timeout"}
 FRESHNESS_STATES = {"current", "stale", "missing", "not-evaluated"}
 
 _RESULT_ENVELOPE = None
+_CLEANUP_CERTIFICATION = None
 _SCENARIO_RUNNER = None
 
 
@@ -49,7 +50,9 @@ def repository_root() -> Path:
 def _load_module(name: str, path: Path):
     spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None:
-        raise CoverageDashboardError(f"cannot load required module from {path}")
+        raise CoverageDashboardError(
+            f"cannot load required module: {path.name}"
+        )
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
@@ -66,6 +69,16 @@ def _result_envelope_module():
     return _RESULT_ENVELOPE
 
 
+def _cleanup_certification_module():
+    global _CLEANUP_CERTIFICATION
+    if _CLEANUP_CERTIFICATION is None:
+        _CLEANUP_CERTIFICATION = _load_module(
+            "canary_e2e_coverage_cleanup_certification",
+            Path(__file__).with_name("cleanup_certification.py"),
+        )
+    return _CLEANUP_CERTIFICATION
+
+
 def _scenario_runner_module():
     global _SCENARIO_RUNNER
     if _SCENARIO_RUNNER is None:
@@ -76,20 +89,33 @@ def _scenario_runner_module():
     return _SCENARIO_RUNNER
 
 
-def canonical_json(value: Any) -> str:
-    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-
-
 def serialize_report(report: Mapping[str, Any]) -> str:
     validate_report(report)
     return json.dumps(report, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+
+
+def _safe_relative_path(value: Any, label: str) -> str:
+    if not isinstance(value, str) or not value:
+        raise CoverageDashboardError(f"{label} must be a non-empty relative path")
+    if "\\" in value or "\x00" in value:
+        raise CoverageDashboardError(f"{label} must use a safe POSIX relative path")
+    path = PurePosixPath(value)
+    if path.is_absolute() or any(part in {"", ".", ".."} for part in path.parts):
+        raise CoverageDashboardError(f"{label} must use a safe POSIX relative path")
+    normalized = path.as_posix()
+    if normalized != value:
+        raise CoverageDashboardError(f"{label} must be normalized")
+    return normalized
 
 
 def _read_json(path: Path) -> Any:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except OSError as exc:
-        raise CoverageDashboardError(f"cannot read JSON evidence: {exc}") from exc
+        reason = exc.strerror or exc.__class__.__name__
+        raise CoverageDashboardError(
+            f"cannot read JSON evidence: {reason}"
+        ) from exc
     except json.JSONDecodeError as exc:
         raise CoverageDashboardError(
             f"invalid JSON at line {exc.lineno}, column {exc.colno}: {exc.msg}"
@@ -111,7 +137,15 @@ def _parse_timestamp(value: Any, label: str) -> datetime:
     return parsed.astimezone(timezone.utc)
 
 
+def _normalize_as_of(value: datetime) -> datetime:
+    if not isinstance(value, datetime) or value.tzinfo is None:
+        raise CoverageDashboardError("as_of must be a timezone-aware datetime")
+    return value.astimezone(timezone.utc)
+
+
 def _format_timestamp(value: datetime) -> str:
+    if value.tzinfo is None:
+        raise CoverageDashboardError("timestamp must include a timezone")
     return value.astimezone(timezone.utc).isoformat(timespec="milliseconds").replace(
         "+00:00", "Z"
     )
@@ -138,6 +172,12 @@ def _scenario_key(result: Mapping[str, Any]) -> str:
     return key
 
 
+def _string_array(value: Any, label: str) -> list[str]:
+    if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
+        raise CoverageDashboardError(f"{label} must be an array of strings")
+    return sorted(set(value))
+
+
 def _validate_cleanup(result: Mapping[str, Any]) -> dict[str, Any]:
     summary = result.get("cleanup_summary")
     dimensions = result.get("quality_dimensions")
@@ -159,18 +199,18 @@ def _validate_cleanup(result: Mapping[str, Any]) -> dict[str, Any]:
             "cleanup_certified": False,
             "contract_valid": False,
         }
+    try:
+        _cleanup_certification_module().validate_report(summary)
+    except Exception as exc:
+        raise CoverageDashboardError(
+            f"invalid cleanup certification: {exc}"
+        ) from exc
     certified = summary.get("cleanup_certified")
     status = summary.get("status")
-    if not isinstance(certified, bool) or status not in {
-        "certified",
-        "partial",
-        "failed",
-    }:
-        raise CoverageDashboardError("cleanup_summary has an invalid schema-v1 status")
-    expected_dimension = "pass" if certified else "fail"
+    expected_dimension = "pass" if certified is True else "fail"
     if cleanup_dimension != expected_dimension:
         raise CoverageDashboardError(
-            "cleanup_summary certification disagrees with the cleanup quality dimension"
+            "cleanup certification disagrees with the cleanup quality dimension"
         )
     return {
         "status": status,
@@ -182,6 +222,9 @@ def _validate_cleanup(result: Mapping[str, Any]) -> dict[str, Any]:
 def normalize_result(
     payload: Mapping[str, Any], *, root_id: str, relative_path: str
 ) -> dict[str, Any]:
+    if not isinstance(root_id, str) or not root_id:
+        raise CoverageDashboardError("result source root_id must be non-empty")
+    source_path = _safe_relative_path(relative_path, "result source path")
     try:
         _result_envelope_module().validate_envelope(payload)
     except Exception as exc:
@@ -219,8 +262,8 @@ def normalize_result(
     cleanup = _validate_cleanup(payload)
     server = payload.get("server") if isinstance(payload.get("server"), Mapping) else {}
     client = payload.get("client") if isinstance(payload.get("client"), Mapping) else {}
-    warnings = payload.get("warnings") if isinstance(payload.get("warnings"), list) else []
-    unknowns = payload.get("unknowns") if isinstance(payload.get("unknowns"), list) else []
+    warnings = _string_array(payload.get("warnings"), "result.warnings")
+    unknowns = _string_array(payload.get("unknowns"), "result.unknowns")
     return {
         "scenario": key,
         "run_id": run_id,
@@ -236,9 +279,9 @@ def normalize_result(
         "client_revision": client.get("revision"),
         "datapack": server.get("datapack"),
         "cleanup": cleanup,
-        "warnings": sorted({str(item) for item in warnings}),
-        "unknowns": sorted({str(item) for item in unknowns}),
-        "source": {"root_id": root_id, "path": relative_path},
+        "warnings": warnings,
+        "unknowns": unknowns,
+        "source": {"root_id": root_id, "path": source_path},
     }
 
 
@@ -257,7 +300,12 @@ def discover_registered_scenarios(repo_root: Path) -> list[dict[str, str]]:
             raise CoverageDashboardError(
                 "registered scenario source escaped the repository root"
             ) from exc
-        registered.append({"scenario": scenario.key, "source": source})
+        registered.append(
+            {
+                "scenario": scenario.key,
+                "source": _safe_relative_path(source, "registered scenario source"),
+            }
+        )
     return sorted(registered, key=lambda item: item["scenario"])
 
 
@@ -276,11 +324,23 @@ def discover_result_evidence(
         result_paths = sorted(root.rglob("result.json"))
         roots.append({"id": root_id, "result_files": len(result_paths)})
         for path in result_paths:
+            relative = _safe_relative_path(
+                path.relative_to(root).as_posix(), "result source path"
+            )
             resolved = path.resolve()
+            try:
+                resolved.relative_to(root)
+            except ValueError:
+                invalid.append(
+                    {
+                        "source": {"root_id": root_id, "path": relative},
+                        "error": "result.json resolves outside the evidence root",
+                    }
+                )
+                continue
             if resolved in seen_files:
                 continue
             seen_files.add(resolved)
-            relative = resolved.relative_to(root).as_posix()
             try:
                 payload = _read_json(resolved)
                 if not isinstance(payload, Mapping):
@@ -390,7 +450,11 @@ def _freshness(
         return {"status": "missing", "age_days": None, "latest_ended_at": None}
     latest = max(items, key=lambda item: (item["ended_at_epoch"], item["run_id"]))
     ended = datetime.fromtimestamp(latest["ended_at_epoch"], timezone.utc)
-    age_seconds = max(0.0, (as_of - ended).total_seconds())
+    age_seconds = (as_of - ended).total_seconds()
+    if age_seconds < 0:
+        raise CoverageDashboardError(
+            f"retained evidence for {latest['scenario']} ends after as_of"
+        )
     age_days = round(age_seconds / 86400.0, 3)
     if stale_after_days is None:
         status = "not-evaluated"
@@ -469,9 +533,11 @@ def build_report(
     as_of: datetime,
     stale_after_days: int | None = None,
 ) -> dict[str, Any]:
-    as_of = as_of.astimezone(timezone.utc)
+    as_of = _normalize_as_of(as_of)
     if stale_after_days is not None and (
-        isinstance(stale_after_days, bool) or stale_after_days < 0
+        isinstance(stale_after_days, bool)
+        or not isinstance(stale_after_days, int)
+        or stale_after_days < 0
     ):
         raise CoverageDashboardError("stale_after_days must be a non-negative integer")
     registered_index: dict[str, str] = {}
@@ -480,11 +546,12 @@ def build_report(
         source = raw.get("source")
         if not isinstance(key, str) or key.count("/") != 1:
             raise CoverageDashboardError("registered scenario key must be suite/scenario_id")
-        if not isinstance(source, str) or not source:
-            raise CoverageDashboardError("registered scenario source must be repository-relative")
+        normalized_source = _safe_relative_path(
+            source, "registered scenario source"
+        )
         if key in registered_index:
             raise CoverageDashboardError(f"duplicate registered scenario: {key}")
-        registered_index[key] = source
+        registered_index[key] = normalized_source
 
     grouped: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
     for item in evidence:
@@ -596,49 +663,403 @@ def build_report(
     return report
 
 
+def _require_non_negative_int(value: Any, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise CoverageDashboardError(f"{label} must be a non-negative integer")
+    return value
+
+
+def _validate_source(value: Any, label: str) -> None:
+    if not isinstance(value, Mapping) or set(value) != {"root_id", "path"}:
+        raise CoverageDashboardError(f"{label} must contain root_id and path")
+    root_id = value.get("root_id")
+    if not isinstance(root_id, str) or not root_id.startswith("evidence-"):
+        raise CoverageDashboardError(f"{label}.root_id is invalid")
+    _safe_relative_path(value.get("path"), f"{label}.path")
+
+
+def _validate_cleanup_reference(value: Any, label: str) -> None:
+    if not isinstance(value, Mapping) or set(value) != {
+        "status",
+        "cleanup_certified",
+        "contract_valid",
+    }:
+        raise CoverageDashboardError(f"{label} is invalid")
+    if value.get("status") not in {"certified", "partial", "failed", "missing"}:
+        raise CoverageDashboardError(f"{label}.status is invalid")
+    if not isinstance(value.get("cleanup_certified"), bool) or not isinstance(
+        value.get("contract_valid"), bool
+    ):
+        raise CoverageDashboardError(f"{label} booleans are invalid")
+    if value.get("contract_valid") is False and (
+        value.get("status") != "missing" or value.get("cleanup_certified") is not False
+    ):
+        raise CoverageDashboardError(f"{label} missing contract state is inconsistent")
+    if value.get("contract_valid") is True and (
+        value.get("cleanup_certified") is True
+    ) != (value.get("status") == "certified"):
+        raise CoverageDashboardError(f"{label} certification state is inconsistent")
+
+
+def _validate_evidence_reference(value: Any, label: str) -> None:
+    expected = {
+        "run_id",
+        "status",
+        "evidence_maturity",
+        "started_at",
+        "ended_at",
+        "duration_ms",
+        "execution_tier",
+        "server_revision",
+        "client_revision",
+        "datapack",
+        "cleanup",
+        "warnings",
+        "unknowns",
+        "source",
+    }
+    if not isinstance(value, Mapping) or set(value) != expected:
+        raise CoverageDashboardError(f"{label} has an invalid field set")
+    if not isinstance(value.get("run_id"), str) or not value.get("run_id"):
+        raise CoverageDashboardError(f"{label}.run_id is invalid")
+    if value.get("status") not in RESULT_STATUSES:
+        raise CoverageDashboardError(f"{label}.status is invalid")
+    if value.get("evidence_maturity") not in {
+        *MATURITY_LEVELS,
+        "unknown",
+        "not_proven",
+    }:
+        raise CoverageDashboardError(f"{label}.evidence_maturity is invalid")
+    started = _parse_timestamp(value.get("started_at"), f"{label}.started_at")
+    ended = _parse_timestamp(value.get("ended_at"), f"{label}.ended_at")
+    if started > ended:
+        raise CoverageDashboardError(f"{label} timestamps are inconsistent")
+    _require_non_negative_int(value.get("duration_ms"), f"{label}.duration_ms")
+    if value.get("execution_tier") not in {
+        "pr-required",
+        "scheduled",
+        "release-certification",
+        "on-demand",
+        "unknown",
+    }:
+        raise CoverageDashboardError(f"{label}.execution_tier is invalid")
+    for optional in ("server_revision", "client_revision", "datapack"):
+        if value.get(optional) is not None and not isinstance(value.get(optional), str):
+            raise CoverageDashboardError(f"{label}.{optional} is invalid")
+    _validate_cleanup_reference(value.get("cleanup"), f"{label}.cleanup")
+    _string_array(value.get("warnings"), f"{label}.warnings")
+    _string_array(value.get("unknowns"), f"{label}.unknowns")
+    _validate_source(value.get("source"), f"{label}.source")
+
+
+def _validate_optional_reference(value: Any, label: str) -> None:
+    if value is not None:
+        _validate_evidence_reference(value, label)
+
+
+def _validate_count_map(value: Any, allowed: set[str], label: str) -> None:
+    if not isinstance(value, Mapping) or any(key not in allowed for key in value):
+        raise CoverageDashboardError(f"{label} contains unsupported keys")
+    for key, count in value.items():
+        _require_non_negative_int(count, f"{label}.{key}")
+
+
 def validate_report(report: Mapping[str, Any]) -> None:
+    top_level = {
+        "contract",
+        "schema_version",
+        "generated_at",
+        "evidence_boundary",
+        "freshness_policy",
+        "summary",
+        "scenarios",
+        "invalid_evidence",
+    }
+    if not isinstance(report, Mapping) or set(report) != top_level:
+        raise CoverageDashboardError("dashboard root has an invalid field set")
     if report.get("contract") != CONTRACT or report.get("schema_version") != SCHEMA_VERSION:
         raise CoverageDashboardError("unsupported coverage dashboard contract or schema")
-    _parse_timestamp(report.get("generated_at"), "generated_at")
+    generated_at = _parse_timestamp(report.get("generated_at"), "generated_at")
+
+    boundary = report.get("evidence_boundary")
+    boundary_keys = {
+        "source",
+        "roots",
+        "valid_result_count",
+        "invalid_result_count",
+        "collection_and_retention",
+    }
+    if not isinstance(boundary, Mapping) or set(boundary) != boundary_keys:
+        raise CoverageDashboardError("evidence_boundary has an invalid field set")
+    if boundary.get("source") != "explicit-local-extracted-artifact-roots":
+        raise CoverageDashboardError("evidence_boundary.source is invalid")
+    if boundary.get("collection_and_retention") != "external-to-this-contract":
+        raise CoverageDashboardError("evidence_boundary collection policy is invalid")
+    _require_non_negative_int(
+        boundary.get("valid_result_count"), "evidence_boundary.valid_result_count"
+    )
+    _require_non_negative_int(
+        boundary.get("invalid_result_count"), "evidence_boundary.invalid_result_count"
+    )
+    roots = boundary.get("roots")
+    if not isinstance(roots, list):
+        raise CoverageDashboardError("evidence_boundary.roots must be an array")
+    root_ids: list[str] = []
+    for index, root in enumerate(roots):
+        if not isinstance(root, Mapping) or set(root) != {"id", "result_files"}:
+            raise CoverageDashboardError(f"evidence_boundary.roots[{index}] is invalid")
+        root_id = root.get("id")
+        if not isinstance(root_id, str) or not root_id.startswith("evidence-"):
+            raise CoverageDashboardError(f"evidence_boundary.roots[{index}].id is invalid")
+        root_ids.append(root_id)
+        _require_non_negative_int(
+            root.get("result_files"),
+            f"evidence_boundary.roots[{index}].result_files",
+        )
+    if len(root_ids) != len(set(root_ids)):
+        raise CoverageDashboardError("evidence boundary root ids must be unique")
+
+    policy = report.get("freshness_policy")
+    if not isinstance(policy, Mapping) or set(policy) != {
+        "as_of",
+        "stale_after_days",
+        "status_without_threshold",
+    }:
+        raise CoverageDashboardError("freshness_policy has an invalid field set")
+    as_of = _parse_timestamp(policy.get("as_of"), "freshness_policy.as_of")
+    if as_of != generated_at:
+        raise CoverageDashboardError("generated_at must equal freshness_policy.as_of")
+    threshold = policy.get("stale_after_days")
+    if threshold is not None:
+        _require_non_negative_int(threshold, "freshness_policy.stale_after_days")
+    if policy.get("status_without_threshold") != "not-evaluated":
+        raise CoverageDashboardError("freshness_policy status fallback is invalid")
+
+    summary = report.get("summary")
+    summary_keys = {
+        "registered_scenarios",
+        "reported_scenarios",
+        "scenarios_with_valid_evidence",
+        "scenarios_with_success",
+        "maturity_counts",
+        "run_status_counts",
+        "quality_state_counts",
+        "coverage_gap_count",
+    }
+    if not isinstance(summary, Mapping) or set(summary) != summary_keys:
+        raise CoverageDashboardError("summary has an invalid field set")
+    for key in (
+        "registered_scenarios",
+        "reported_scenarios",
+        "scenarios_with_valid_evidence",
+        "scenarios_with_success",
+        "coverage_gap_count",
+    ):
+        _require_non_negative_int(summary.get(key), f"summary.{key}")
+    _validate_count_map(
+        summary.get("maturity_counts"),
+        {*MATURITY_LEVELS, "not-proven"},
+        "summary.maturity_counts",
+    )
+    _validate_count_map(
+        summary.get("run_status_counts"),
+        RESULT_STATUSES,
+        "summary.run_status_counts",
+    )
+    quality_counts = summary.get("quality_state_counts")
+    if not isinstance(quality_counts, Mapping) or set(quality_counts) != set(
+        QUALITY_DIMENSIONS
+    ):
+        raise CoverageDashboardError("summary.quality_state_counts is invalid")
+    for dimension in QUALITY_DIMENSIONS:
+        _validate_count_map(
+            quality_counts[dimension],
+            QUALITY_STATES,
+            f"summary.quality_state_counts.{dimension}",
+        )
+
     scenarios = report.get("scenarios")
     if not isinstance(scenarios, list):
         raise CoverageDashboardError("scenarios must be an array")
     keys: list[str] = []
     for index, row in enumerate(scenarios):
-        if not isinstance(row, Mapping):
-            raise CoverageDashboardError(f"scenarios[{index}] must be an object")
+        row_label = f"scenarios[{index}]"
+        row_keys = {
+            "scenario",
+            "registered",
+            "scenario_source",
+            "retained_result_count",
+            "strongest_proven_maturity",
+            "quality_dimensions",
+            "latest_run",
+            "last_success",
+            "last_failure",
+            "freshness",
+            "warnings",
+            "unknowns",
+            "coverage_gaps",
+        }
+        if not isinstance(row, Mapping) or set(row) != row_keys:
+            raise CoverageDashboardError(f"{row_label} has an invalid field set")
         key = row.get("scenario")
         if not isinstance(key, str) or key.count("/") != 1:
-            raise CoverageDashboardError(f"scenarios[{index}].scenario is invalid")
+            raise CoverageDashboardError(f"{row_label}.scenario is invalid")
         keys.append(key)
+        if not isinstance(row.get("registered"), bool):
+            raise CoverageDashboardError(f"{row_label}.registered is invalid")
+        source = row.get("scenario_source")
+        if source is not None:
+            _safe_relative_path(source, f"{row_label}.scenario_source")
+        retained = _require_non_negative_int(
+            row.get("retained_result_count"), f"{row_label}.retained_result_count"
+        )
+
+        strongest = row.get("strongest_proven_maturity")
+        if not isinstance(strongest, Mapping) or set(strongest) != {"level", "evidence"}:
+            raise CoverageDashboardError(f"{row_label}.strongest_proven_maturity is invalid")
+        level = strongest.get("level")
+        if level not in {*MATURITY_LEVELS, "not-proven"}:
+            raise CoverageDashboardError(f"{row_label} strongest maturity is invalid")
+        strongest_evidence = strongest.get("evidence")
+        if level == "not-proven":
+            if strongest_evidence is not None:
+                raise CoverageDashboardError(
+                    f"{row_label} not-proven maturity must not cite evidence"
+                )
+        else:
+            _validate_evidence_reference(
+                strongest_evidence, f"{row_label}.strongest_proven_maturity.evidence"
+            )
+            if (
+                strongest_evidence.get("status") != "success"
+                or strongest_evidence.get("evidence_maturity") != level
+            ):
+                raise CoverageDashboardError(
+                    f"{row_label} strongest maturity evidence is inconsistent"
+                )
+
         dimensions = row.get("quality_dimensions")
         if not isinstance(dimensions, Mapping) or set(dimensions) != set(
             QUALITY_DIMENSIONS
         ):
-            raise CoverageDashboardError(
-                f"scenarios[{index}].quality_dimensions is incomplete"
-            )
+            raise CoverageDashboardError(f"{row_label}.quality_dimensions is incomplete")
         for name, detail in dimensions.items():
-            if not isinstance(detail, Mapping) or detail.get("state") not in QUALITY_STATES:
+            if not isinstance(detail, Mapping) or set(detail) != {"state", "evidence"}:
                 raise CoverageDashboardError(
-                    f"scenarios[{index}].quality_dimensions.{name} is invalid"
+                    f"{row_label}.quality_dimensions.{name} is invalid"
                 )
-        freshness = row.get("freshness")
-        if not isinstance(freshness, Mapping) or freshness.get("status") not in FRESHNESS_STATES:
-            raise CoverageDashboardError(f"scenarios[{index}].freshness is invalid")
-        strongest = row.get("strongest_proven_maturity")
-        if not isinstance(strongest, Mapping) or strongest.get("level") not in {
-            *MATURITY_LEVELS,
-            "not-proven",
-        }:
+            state = detail.get("state")
+            if state not in QUALITY_STATES:
+                raise CoverageDashboardError(
+                    f"{row_label}.quality_dimensions.{name}.state is invalid"
+                )
+            evidence_reference = detail.get("evidence")
+            if state == "not-evaluated":
+                if evidence_reference is not None:
+                    raise CoverageDashboardError(
+                        f"{row_label}.quality_dimensions.{name} must not cite evidence"
+                    )
+            else:
+                _validate_evidence_reference(
+                    evidence_reference,
+                    f"{row_label}.quality_dimensions.{name}.evidence",
+                )
+
+        latest_run = row.get("latest_run")
+        last_success = row.get("last_success")
+        last_failure = row.get("last_failure")
+        _validate_optional_reference(latest_run, f"{row_label}.latest_run")
+        _validate_optional_reference(last_success, f"{row_label}.last_success")
+        _validate_optional_reference(last_failure, f"{row_label}.last_failure")
+        if last_success is not None and last_success.get("status") != "success":
+            raise CoverageDashboardError(f"{row_label}.last_success is inconsistent")
+        if last_failure is not None and last_failure.get("status") == "success":
+            raise CoverageDashboardError(f"{row_label}.last_failure is inconsistent")
+        if retained == 0 and any(
+            reference is not None
+            for reference in (latest_run, last_success, last_failure)
+        ):
             raise CoverageDashboardError(
-                f"scenarios[{index}].strongest_proven_maturity is invalid"
+                f"{row_label} without retained evidence must not cite runs"
             )
+        if retained > 0 and latest_run is None:
+            raise CoverageDashboardError(
+                f"{row_label} with retained evidence must cite latest_run"
+            )
+
+        freshness = row.get("freshness")
+        if not isinstance(freshness, Mapping) or set(freshness) != {
+            "status",
+            "age_days",
+            "latest_ended_at",
+        }:
+            raise CoverageDashboardError(f"{row_label}.freshness is invalid")
+        freshness_status = freshness.get("status")
+        if freshness_status not in FRESHNESS_STATES:
+            raise CoverageDashboardError(f"{row_label}.freshness.status is invalid")
+        age = freshness.get("age_days")
+        latest_ended_at = freshness.get("latest_ended_at")
+        if freshness_status == "missing":
+            if retained != 0 or age is not None or latest_ended_at is not None:
+                raise CoverageDashboardError(f"{row_label}.freshness missing state is inconsistent")
+        else:
+            if retained == 0 or not isinstance(age, (int, float)) or isinstance(age, bool) or age < 0:
+                raise CoverageDashboardError(f"{row_label}.freshness age is invalid")
+            _parse_timestamp(latest_ended_at, f"{row_label}.freshness.latest_ended_at")
+
+        _string_array(row.get("warnings"), f"{row_label}.warnings")
+        _string_array(row.get("unknowns"), f"{row_label}.unknowns")
+        gaps = row.get("coverage_gaps")
+        if not isinstance(gaps, list):
+            raise CoverageDashboardError(f"{row_label}.coverage_gaps must be an array")
+        gap_sort: list[tuple[str, str]] = []
+        for gap_index, gap in enumerate(gaps):
+            if not isinstance(gap, Mapping) or set(gap) != {"code", "detail"}:
+                raise CoverageDashboardError(
+                    f"{row_label}.coverage_gaps[{gap_index}] is invalid"
+                )
+            code = gap.get("code")
+            detail_text = gap.get("detail")
+            if not isinstance(code, str) or not code or not isinstance(detail_text, str) or not detail_text:
+                raise CoverageDashboardError(
+                    f"{row_label}.coverage_gaps[{gap_index}] is invalid"
+                )
+            gap_sort.append((code, detail_text))
+        if gap_sort != sorted(gap_sort):
+            raise CoverageDashboardError(f"{row_label}.coverage_gaps must be sorted")
+
     if keys != sorted(keys) or len(keys) != len(set(keys)):
         raise CoverageDashboardError("scenario rows must be unique and sorted")
+    if summary.get("reported_scenarios") != len(scenarios):
+        raise CoverageDashboardError("summary.reported_scenarios is inconsistent")
+    if summary.get("registered_scenarios") != sum(
+        row.get("registered") is True for row in scenarios
+    ):
+        raise CoverageDashboardError("summary.registered_scenarios is inconsistent")
+    if summary.get("scenarios_with_valid_evidence") != sum(
+        row.get("retained_result_count", 0) > 0 for row in scenarios
+    ):
+        raise CoverageDashboardError("summary.scenarios_with_valid_evidence is inconsistent")
+    if summary.get("scenarios_with_success") != sum(
+        row.get("last_success") is not None for row in scenarios
+    ):
+        raise CoverageDashboardError("summary.scenarios_with_success is inconsistent")
+    if summary.get("coverage_gap_count") != sum(
+        len(row.get("coverage_gaps", [])) for row in scenarios
+    ):
+        raise CoverageDashboardError("summary.coverage_gap_count is inconsistent")
+
     invalid = report.get("invalid_evidence")
     if not isinstance(invalid, list):
         raise CoverageDashboardError("invalid_evidence must be an array")
+    for index, item in enumerate(invalid):
+        if not isinstance(item, Mapping) or set(item) != {"source", "error"}:
+            raise CoverageDashboardError(f"invalid_evidence[{index}] is invalid")
+        _validate_source(item.get("source"), f"invalid_evidence[{index}].source")
+        if not isinstance(item.get("error"), str) or not item.get("error"):
+            raise CoverageDashboardError(f"invalid_evidence[{index}].error is invalid")
+    if boundary.get("invalid_result_count") != len(invalid):
+        raise CoverageDashboardError("evidence_boundary.invalid_result_count is inconsistent")
 
 
 def render_markdown(report: Mapping[str, Any]) -> str:
