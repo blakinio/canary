@@ -64,6 +64,7 @@ cross_repo_tasks: []
 - `python3 -m json.tool docs/e2e/E2E_COVERAGE_DASHBOARD.schema.json`: PASS.
 - Native Windows execution remains non-canonical for the POSIX cleanup lifecycle because `os.killpg` is unavailable; this platform boundary was retained rather than misreported as Linux contract failure.
 - Exact final-head Agent Task Ownership, autofix, full CI and Universal Agent E2E all passed before squash merge.
+- Lifecycle closure PR #900 uses an exact-head final gate and clean review audit before squash merge.
 
 ## Failure history retained
 
