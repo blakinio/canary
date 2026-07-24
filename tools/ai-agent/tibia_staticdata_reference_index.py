@@ -12,7 +12,7 @@ from typing import Iterable, Mapping, Sequence
 
 INDEX_FORMAT = "canary-tibia-staticdata-index-v1"
 MANIFEST_FORMAT = "canary-tibia-client-reference-manifest-v1"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 DEFAULT_MAX_SOURCE_BYTES = 64 * 1024 * 1024
 DEFAULT_MAX_DECOMPRESSED_BYTES = 256 * 1024 * 1024
 DEFAULT_MAX_MANIFEST_BYTES = 8 * 1024 * 1024
@@ -20,6 +20,7 @@ DEFAULT_MAX_RECORDS = 2_000_000
 MAX_NESTING_DEPTH = 8
 XZ_MAGIC = b"\xfd7zXZ\x00"
 _SHA256_HEX_LEN = 64
+HOUSE_FIELD_ORDERS = frozenset({"unresolved", "legacy", "newer"})
 
 
 class StaticDataReferenceError(RuntimeError):
@@ -504,7 +505,13 @@ def _coordinate_document(fields: Sequence[WireField]) -> dict[str, int]:
     return document
 
 
-def _record_document(message_type: str, fields: Sequence[WireField], ordinal: int) -> dict[str, object]:
+def _record_document(
+    message_type: str,
+    fields: Sequence[WireField],
+    ordinal: int,
+    *,
+    house_field_order: str,
+) -> dict[str, object]:
     grouped = _group_fields(fields)
     record: dict[str, object] = {"sourceOrdinal": ordinal}
     record_id = _first_uint(grouped, 1)
@@ -541,16 +548,25 @@ def _record_document(message_type: str, fields: Sequence[WireField], ordinal: in
             record["description"] = description
         if rent is not None:
             record["rent"] = rent
-        if message_type == "house_legacy":
-            size = _first_uint(grouped, 5)
-            beds = _first_uint(grouped, 7)
+        field5 = _first_uint(grouped, 5)
+        field7 = _first_uint(grouped, 7)
+        if house_field_order == "unresolved":
+            if field5 is not None:
+                record["houseField5"] = field5
+            if field7 is not None:
+                record["houseField7"] = field7
+        elif house_field_order == "legacy":
+            if field5 is not None:
+                record["size"] = field5
+            if field7 is not None:
+                record["beds"] = field7
+        elif house_field_order == "newer":
+            if field5 is not None:
+                record["beds"] = field5
+            if field7 is not None:
+                record["size"] = field7
         else:
-            beds = _first_uint(grouped, 5)
-            size = _first_uint(grouped, 7)
-        if beds is not None:
-            record["beds"] = beds
-        if size is not None:
-            record["size"] = size
+            raise AssertionError(house_field_order)
         if position is not None:
             record["position"] = _coordinate_document(position)
         guildhall = _first_bool(grouped, 8)
@@ -586,6 +602,7 @@ def _build_categories(
     top_fields: Sequence[WireField],
     schema: SchemaSpec,
     *,
+    house_field_order: str,
     max_records: int,
 ) -> tuple[dict[str, object], dict[str, object], int]:
     by_top: dict[int, list[WireField]] = defaultdict(list)
@@ -617,7 +634,12 @@ def _build_categories(
                             "occurrences": len(occurrences),
                         }
                     )
-            record = _record_document(message_type, nested, ordinal)
+            record = _record_document(
+                message_type,
+                nested,
+                ordinal,
+                house_field_order=house_field_order,
+            )
             if "id" not in record:
                 missing_fields.append({"category": category_name, "field": "id", "sourceOrdinal": ordinal})
             else:
@@ -635,17 +657,31 @@ def _build_categories(
                     }
                 )
         records.sort(key=_record_sort_key)
-        categories[category_name] = {
+        category_document: dict[str, object] = {
             "sourceCategory": category_name,
             "sourceSchema": schema.family,
             "count": len(records),
             "records": records,
         }
+        if category_name == "houses":
+            category_document["houseFieldOrder"] = house_field_order
+        categories[category_name] = category_document
 
+    unresolved_house_field_order: list[dict[str, object]] = []
+    houses = categories.get("houses")
+    if house_field_order == "unresolved" and isinstance(houses, dict) and int(houses["count"]) > 0:
+        unresolved_house_field_order.append(
+            {
+                "category": "houses",
+                "recordCount": int(houses["count"]),
+                "rawFields": ["houseField5", "houseField7"],
+            }
+        )
     findings = {
         "duplicateIds": duplicate_ids,
         "missingRequiredFields": missing_fields,
         "duplicateSingularFields": duplicate_fields,
+        "unresolvedHouseFieldOrder": unresolved_house_field_order,
     }
     return categories, findings, total_records
 
@@ -655,6 +691,9 @@ def build_index(
     manifest_path: Path,
     source_path: Path,
     input_id: str,
+    house_field_order: str = "unresolved",
+    house_field_order_review_id: str | None = None,
+    house_field_order_review_statement: str | None = None,
     max_source_bytes: int = DEFAULT_MAX_SOURCE_BYTES,
     max_decompressed_bytes: int = DEFAULT_MAX_DECOMPRESSED_BYTES,
     max_manifest_bytes: int = DEFAULT_MAX_MANIFEST_BYTES,
@@ -670,6 +709,30 @@ def build_index(
             raise StaticDataReferenceError(f"{label} must be a positive integer")
     if not isinstance(input_id, str) or not input_id:
         raise StaticDataReferenceError("input_id must be non-empty")
+    if house_field_order not in HOUSE_FIELD_ORDERS:
+        raise StaticDataReferenceError(
+            "house_field_order must be one of unresolved, legacy or newer"
+        )
+    if house_field_order == "unresolved":
+        if house_field_order_review_id is not None or house_field_order_review_statement is not None:
+            raise StaticDataReferenceError(
+                "unresolved house field order must not claim reviewed evidence"
+            )
+        house_field_order_evidence: dict[str, object] = {"state": "unresolved"}
+    else:
+        if not isinstance(house_field_order_review_id, str) or not house_field_order_review_id:
+            raise StaticDataReferenceError(
+                "resolved house field order requires a non-empty review ID"
+            )
+        if not isinstance(house_field_order_review_statement, str) or not house_field_order_review_statement:
+            raise StaticDataReferenceError(
+                "resolved house field order requires a non-empty review statement"
+            )
+        house_field_order_evidence = {
+            "state": "reviewed",
+            "reviewId": house_field_order_review_id,
+            "statement": house_field_order_review_statement,
+        }
 
     manifest, manifest_sha256, manifest_resolved = _load_manifest(
         manifest_path, max_manifest_bytes=max_manifest_bytes
@@ -688,7 +751,12 @@ def build_index(
     decoded, encoding, schema, top_fields, schema_reasons = _decode_staticdata_bytes(
         source_data, max_decompressed_bytes=max_decompressed_bytes
     )
-    categories, findings, total_records = _build_categories(top_fields, schema, max_records=max_records)
+    categories, findings, total_records = _build_categories(
+        top_fields,
+        schema,
+        house_field_order=house_field_order,
+        max_records=max_records,
+    )
     category_counts = {name: int(document["count"]) for name, document in categories.items()}
     payload: dict[str, object] = {
         "format": INDEX_FORMAT,
@@ -705,6 +773,8 @@ def build_index(
             "decodedSizeBytes": len(decoded),
             "schemaFamily": schema.family,
             "schemaEvidence": schema_reasons,
+            "houseFieldOrder": house_field_order,
+            "houseFieldOrderEvidence": house_field_order_evidence,
         },
         "categories": categories,
         "findings": findings,
@@ -714,11 +784,14 @@ def build_index(
             "duplicateIdCount": len(findings["duplicateIds"]),
             "missingRequiredFieldCount": len(findings["missingRequiredFields"]),
             "duplicateSingularFieldCount": len(findings["duplicateSingularFields"]),
+            "unresolvedHouseFieldOrderCount": len(findings["unresolvedHouseFieldOrder"]),
         },
         "policy": {
             "gameplayConclusions": False,
             "questInventoryOnly": True,
             "schemaAmbiguityFailsClosed": True,
+            "houseFieldOrderResolution": house_field_order,
+            "houseFieldOrderHeuristics": False,
             "maxSourceBytes": max_source_bytes,
             "maxDecompressedBytes": max_decompressed_bytes,
             "maxRecords": max_records,

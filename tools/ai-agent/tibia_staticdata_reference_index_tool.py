@@ -25,6 +25,17 @@ def main() -> int:
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--input-id", required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--house-field-order",
+        choices=("unresolved", "legacy", "newer"),
+        default="unresolved",
+        help=(
+            "interpret HouseData uint fields 5/7 only with explicit reviewed evidence; "
+            "unresolved preserves houseField5/houseField7"
+        ),
+    )
+    parser.add_argument("--house-field-order-review-id")
+    parser.add_argument("--house-field-order-review-statement")
     parser.add_argument("--max-source-bytes", type=int, default=DEFAULT_MAX_SOURCE_BYTES)
     parser.add_argument("--max-decompressed-bytes", type=int, default=DEFAULT_MAX_DECOMPRESSED_BYTES)
     parser.add_argument("--max-manifest-bytes", type=int, default=DEFAULT_MAX_MANIFEST_BYTES)
@@ -37,6 +48,9 @@ def main() -> int:
             manifest_path=args.manifest,
             source_path=args.source,
             input_id=args.input_id,
+            house_field_order=args.house_field_order,
+            house_field_order_review_id=args.house_field_order_review_id,
+            house_field_order_review_statement=args.house_field_order_review_statement,
             max_source_bytes=args.max_source_bytes,
             max_decompressed_bytes=args.max_decompressed_bytes,
             max_manifest_bytes=args.max_manifest_bytes,

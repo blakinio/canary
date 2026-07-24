@@ -143,10 +143,18 @@ class StaticDataReferenceIndexTests(unittest.TestCase):
             )
             return payload, tuple(protected)
 
-    def test_legacy_schema_preserves_source_categories_and_house_field_order(self):
-        payload, _ = self._build(_legacy_document())
+    def test_legacy_schema_preserves_source_categories_and_reviewed_house_field_order(self):
+        payload, _ = self._build(
+            _legacy_document(),
+            house_field_order="legacy",
+            house_field_order_review_id="fixture-legacy-review",
+            house_field_order_review_statement="Fixture uses the pinned legacy HouseData field ordering.",
+        )
         self.assertEqual(payload["format"], INDEX_FORMAT)
+        self.assertEqual(payload["schemaVersion"], 2)
         self.assertEqual(payload["source"]["schemaFamily"], "legacy")
+        self.assertEqual(payload["source"]["houseFieldOrder"], "legacy")
+        self.assertEqual(payload["source"]["houseFieldOrderEvidence"]["state"], "reviewed")
         self.assertEqual(set(payload["categories"]), {"creatures", "titles", "houses", "bosses", "quests"})
         house = payload["categories"]["houses"]["records"][0]
         self.assertEqual(house["size"], 42)
@@ -156,9 +164,15 @@ class StaticDataReferenceIndexTests(unittest.TestCase):
         self.assertFalse(payload["policy"]["gameplayConclusions"])
         self.assertTrue(payload["policy"]["questInventoryOnly"])
 
-    def test_newer_schema_preserves_achievement_and_monster_class_categories(self):
-        payload, _ = self._build(_newer_document())
+    def test_newer_schema_preserves_achievement_and_reviewed_house_field_order(self):
+        payload, _ = self._build(
+            _newer_document(),
+            house_field_order="newer",
+            house_field_order_review_id="fixture-newer-review",
+            house_field_order_review_statement="Fixture uses the pinned newer House field ordering.",
+        )
         self.assertEqual(payload["source"]["schemaFamily"], "newer")
+        self.assertEqual(payload["source"]["houseFieldOrder"], "newer")
         self.assertEqual(
             set(payload["categories"]),
             {"monsters", "monsterClasses", "achievements", "houses", "bosses", "quests"},
@@ -168,6 +182,53 @@ class StaticDataReferenceIndexTests(unittest.TestCase):
         self.assertEqual(house["size"], 55)
         self.assertEqual(payload["categories"]["monsterClasses"]["records"][0]["name"], "Dragonkin")
         self.assertEqual(payload["categories"]["achievements"]["records"][0]["grade"], 3)
+
+
+    def test_unresolved_house_field_order_preserves_raw_values_without_semantic_labels(self):
+        payload, _ = self._build(_legacy_document())
+        house = payload["categories"]["houses"]["records"][0]
+        self.assertEqual(house["houseField5"], 42)
+        self.assertEqual(house["houseField7"], 2)
+        self.assertNotIn("size", house)
+        self.assertNotIn("beds", house)
+        self.assertEqual(payload["categories"]["houses"]["houseFieldOrder"], "unresolved")
+        self.assertEqual(payload["source"]["houseFieldOrderEvidence"], {"state": "unresolved"})
+        self.assertEqual(
+            payload["findings"]["unresolvedHouseFieldOrder"],
+            [{"category": "houses", "recordCount": 1, "rawFields": ["houseField5", "houseField7"]}],
+        )
+        self.assertEqual(payload["summary"]["unresolvedHouseFieldOrderCount"], 1)
+        self.assertFalse(payload["policy"]["houseFieldOrderHeuristics"])
+
+    def test_resolved_house_field_order_requires_explicit_review_evidence(self):
+        with self.assertRaisesRegex(StaticDataReferenceError, "requires a non-empty review ID"):
+            self._build(_legacy_document(), house_field_order="legacy")
+        with self.assertRaisesRegex(StaticDataReferenceError, "requires a non-empty review statement"):
+            self._build(
+                _legacy_document(),
+                house_field_order="legacy",
+                house_field_order_review_id="review",
+            )
+        with self.assertRaisesRegex(StaticDataReferenceError, "must not claim reviewed evidence"):
+            self._build(
+                _legacy_document(),
+                house_field_order="unresolved",
+                house_field_order_review_id="review",
+                house_field_order_review_statement="statement",
+            )
+
+    def test_house_field_order_is_independent_from_top_level_schema_family(self):
+        payload, _ = self._build(
+            _legacy_document(),
+            house_field_order="newer",
+            house_field_order_review_id="hybrid-review",
+            house_field_order_review_statement="Legacy top-level fixture is intentionally reviewed with newer HouseData ordering.",
+        )
+        self.assertEqual(payload["source"]["schemaFamily"], "legacy")
+        self.assertEqual(payload["source"]["houseFieldOrder"], "newer")
+        house = payload["categories"]["houses"]["records"][0]
+        self.assertEqual(house["beds"], 42)
+        self.assertEqual(house["size"], 2)
 
     def test_ambiguous_schema_fails_closed(self):
         common_only = _message(1, _uint(1, 1), _string(2, "Common"))
@@ -301,12 +362,44 @@ class StaticDataReferenceIndexTests(unittest.TestCase):
     )
     def test_opt_in_real_staticdata_file(self):
         source = Path(os.environ["CANARY_TIBIA_STATICDATA_FILE"])
+        digest = hashlib.sha256(source.read_bytes()).hexdigest()
         with tempfile.TemporaryDirectory() as tmp:
             manifest = Path(tmp) / "manifest.json"
             manifest.write_text(json.dumps(_manifest(source)), encoding="utf-8")
-            payload, _ = build_index(manifest_path=manifest, source_path=source, input_id="staticdata")
-        self.assertGreater(payload["summary"]["totalRecords"], 0)
-        self.assertIn(payload["source"]["schemaFamily"], {"legacy", "newer"})
+            unresolved, _ = build_index(
+                manifest_path=manifest,
+                source_path=source,
+                input_id="staticdata",
+            )
+            reviewed, _ = build_index(
+                manifest_path=manifest,
+                source_path=source,
+                input_id="staticdata",
+                house_field_order="newer",
+                house_field_order_review_id="TCR-002A-EXACT-HYBRID-HOUSE-ORDER-20260724",
+                house_field_order_review_statement=(
+                    "Pinned legacy/newer protobuf comparison and exact house-value review identify newer House field ordering "
+                    "within this exact legacy top-level StaticData file."
+                ),
+            )
+        self.assertGreater(unresolved["summary"]["totalRecords"], 0)
+        self.assertEqual(unresolved["source"]["houseFieldOrder"], "unresolved")
+        house = unresolved["categories"]["houses"]["records"][0]
+        self.assertIn("houseField5", house)
+        self.assertIn("houseField7", house)
+        self.assertNotIn("size", house)
+        self.assertNotIn("beds", house)
+        self.assertEqual(reviewed["source"]["schemaFamily"], "legacy")
+        self.assertEqual(reviewed["source"]["houseFieldOrder"], "newer")
+        if digest == "0bd51e1660f9d58594eb10000c35ea51113fc668aa3ee416c8c6b7ebb59b78ff":
+            self.assertEqual(reviewed["summary"]["categoryCounts"]["houses"], 995)
+            by_name = {row["name"]: row for row in reviewed["categories"]["houses"]["records"]}
+            self.assertEqual((by_name["Spiritkeep"]["beds"], by_name["Spiritkeep"]["size"]), (23, 382))
+            self.assertEqual(
+                (by_name["Sunset Homes, Flat 01"]["beds"], by_name["Sunset Homes, Flat 01"]["size"]),
+                (1, 13),
+            )
+
 
 
 if __name__ == "__main__":
