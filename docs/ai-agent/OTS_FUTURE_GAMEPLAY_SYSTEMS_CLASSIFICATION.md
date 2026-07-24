@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Authoritative classification index for proposals recorded in `docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md` and detailed design records including `docs/ai-agent/OTS_SKILL_PROGRESSION_2_0.md`, `docs/ai-agent/OTS_DYNAMIC_SPAWN_AND_HUNTING_CAPACITY.md`, `docs/ai-agent/OTS_BOUNTY_AND_WEEKLY_TASKS_REWORK.md`, `docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md`, `docs/ai-agent/OTS_VOCATION_ROLE_AND_BALANCE_FRAMEWORK.md` and `docs/ai-agent/OTS_GEM_ATELIER_AND_GEM_PROGRESSION_REVIEW.md`.
+Authoritative classification index for proposals recorded in `docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md`, `docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_EXTENSION_PACKS.md` and detailed design records including `docs/ai-agent/OTS_SKILL_PROGRESSION_2_0.md`, `docs/ai-agent/OTS_DYNAMIC_SPAWN_AND_HUNTING_CAPACITY.md`, `docs/ai-agent/OTS_BOUNTY_AND_WEEKLY_TASKS_REWORK.md`, `docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md`, `docs/ai-agent/OTS_VOCATION_ROLE_AND_BALANCE_FRAMEWORK.md`, `docs/ai-agent/OTS_GEM_ATELIER_AND_GEM_PROGRESSION_REVIEW.md`, `docs/ai-agent/OTS_CHARM_BESTIARY_AND_DROME_MASTERY.md`, `docs/ai-agent/OTS_QUEST_JOURNAL_POSTAL_AND_MARKET_LOGISTICS.md` and `docs/ai-agent/OTS_FORGE_SLOT_ITEM_ENHANCEMENT_AND_EQUIPMENT_PROFICIENCY.md`.
 
 This index exists to prevent three recurring mistakes:
 
@@ -131,6 +131,32 @@ This index exists to prevent three recurring mistakes:
 | 92 | Solo and Party Viability Balance Principle | `OUR-DESIGN` | `TIBIA-EXTENSION` | Requires every supported class to retain meaningful solo viability while preserving differentiated party value and intentional specialization. |
 | 93 | Context-Separated PvE/Boss/PvP Balance | `OUR-DESIGN` | `HYBRID` | Measures and tunes ordinary PvE, bossing and PvP separately where necessary so one context does not automatically dictate harmful changes in another. |
 | 94 | Gem Atelier & Fragment Workshop parity/balance review | `TIBIA-OFFICIAL` | `PARITY-INTEGRATION` | Audits the official Gem Atelier, vocation gems, domains, vessels/Vessel Resonance, dismantling, Fragment Workshop and Grade I-IV mod progression against current Canary/OTClient support before any custom redesign; later OTS changes must be classified separately. |
+| 95 | Bestiary staged Charm Point rewards | `MIXED` | `TIBIA-EXTENSION` | Extends the existing Bestiary/Charm foundation by distributing the unchanged total Charm Point reward across milestones while keeping full completion as the largest reward. |
+| 96 | Bestiary knowledge-gated effective Charm levels | `MIXED` | `TIBIA-EXTENSION` | Caps a globally owned Charm's effective level against one creature by the player's verified Bestiary knowledge of that creature. |
+| 97 | Charm Level 3 Mastery and Level 4 Grandmaster | `MIXED` | `TIBIA-EXTENSION` | Adds bounded qualitative mastery and optional endgame specialization instead of unlimited linear percentage growth; exact effects and rollout remain open. |
+| 98 | Creature Family Mastery | `OUR-DESIGN` | `HYBRID` | Uses full Bestiary completion to earn stable family-level mastery and eligibility for Grandmaster effects on fully learned family members. |
+| 99 | Persistent Charm assignments and loadouts | `OUR-DESIGN` | `HYBRID` | Remembers preferred creature configurations and provides bounded hunting-ground loadouts while preserving limits on simultaneous active assignments. |
+| 100 | Drome Charm amplifiers and optional Grandmaster catalysts | `MIXED` | `TIBIA-EXTENSION` | Integrates existing Drome Charm-boost rewards as amplifiers or optional endgame components that never bypass Bestiary or family-mastery gates. |
+| 101 | Quest Journal 2.0 and quest dependency graph | `MIXED` | `TIBIA-EXTENSION` | Reworks the legacy quest-log foundation into searchable campaign/chain/quest/mission/objective hierarchy with explicit cross-quest dependencies. |
+| 102 | Current Objective and quest blocker explanation | `OUR-DESIGN` | `CLIENT-UX` | Shows the active step and explains missing prerequisite quests, accesses, items, NPC interactions or party-stage incompatibilities. |
+| 103 | Party Quest Sync | `OUR-DESIGN` | `HYBRID` | Exposes party quest-stage compatibility and exact missing prerequisites without granting skipped quest progress. |
+| 104 | Quest Renown / Adventure Points | `OUR-DESIGN` | `HYBRID` | Adds long-term exploration/completion progression focused on convenience, identity, titles, cosmetics and services rather than unrestricted combat power. |
+| 105 | Region Mastery | `OUR-DESIGN` | `HYBRID` | Connects related regional quest lines to durable exploration progress and bounded regional convenience, prestige or service rewards. |
+| 106 | Legacy quest reward modernization and bounded XP scaling | `OUR-DESIGN` | `TIBIA-EXTENSION` | Preserves iconic physical rewards while adding modern progression value and carefully bounded one-time XP where obsolete fixed rewards no longer reflect quest effort. |
+| 107 | Postman Quest modernization pilot | `MIXED` | `TIBIA-EXTENSION` | Uses the existing Postman chain as a pilot where long quest effort unlocks meaningful postal rank and service privileges without deleting historical rewards. |
+| 108 | Postal Network 2.0 | `MIXED` | `HYBRID` | Extends the existing postal foundation with item delivery, own-character transfers, COD, insurance, tracking, service tiers and guild/house/depot endpoints. |
+| 109 | Global Market plus Local Logistics | `OUR-DESIGN` | `HYBRID` | Preserves one searchable liquid market while retaining stock origin, optional pickup and postal delivery rather than fully fragmenting city markets. |
+| 110 | Consolidated market delivery | `OUR-DESIGN` | `HYBRID` | Combines purchases from multiple locations into one bounded delivery to a selected depot or mailbox. |
+| 111 | Forge Slot Mastery | `MIXED` | `TIBIA-EXTENSION` | Moves durable Forge-style tier progression from one physical item instance to the character's equipment slot so upgrades do not erase long-term slot investment. |
+| 112 | Item Enhancement +N | `OUR-DESIGN` | `HYBRID` | Adds bounded numerical development to one item instance while keeping enhancement separate from build identity and other progression layers. |
+| 113 | Equipment Proficiency | `MIXED` | `HYBRID` | Adds equipment-category perk and specialization choices beyond weapons while keeping official Weapon Proficiency separate and authoritative for its own domain. |
+| 114 | Item Classification as progression ceiling | `MIXED` | `TIBIA-EXTENSION` | Uses existing item classification to constrain maximum enhancement and proficiency depth rather than inventing a parallel rarity system. |
+| 115 | Equipment proficiency branches and qualitative capstones | `OUR-DESIGN` | `HYBRID` | Adds opportunity-cost paths such as Fortification, Retaliation or Sustain with bounded mastery effects rather than granting every bonus simultaneously. |
+| 116 | Controlled Enhancement RNG and pity | `OUR-DESIGN` | `HYBRID` | Allows bounded higher-level randomness while guaranteeing that extreme bad luck has a ceiling and avoiding catastrophic item destruction. |
+| 117 | Controlled duplicate-item sink | `OUR-DESIGN` | `META-ECONOMY` | Lets duplicate items support selected high-end progression without requiring routine destruction of many ultra-rare best-in-slot items. |
+| 118 | Enhancement Salvage and equipment-replacement protection | `OUR-DESIGN` | `HYBRID` | Recovers a bounded portion of item-specific investment when equipment is replaced so progression has a cost but is not wholly deleted. |
+| 119 | Existing tier migration contract | `OUR-DESIGN` | `PARITY-INTEGRATION` | Requires an inventory/economy migration that preserves legitimate investment without duplicating permanent power or creating cross-character exploits. |
+| 120 | Controlled Retaliation / reflect safety | `OUR-DESIGN` | `HYBRID` | Prefers proc, internal-cooldown and output-cap behavior over unrestricted percentage reflection that scales dangerously with attacker count. |
 
 ## Additional researched systems not yet promoted into the main proposal backlog
 
