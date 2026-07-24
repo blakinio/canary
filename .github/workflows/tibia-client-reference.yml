@@ -20,7 +20,7 @@ jobs:
         with:
           ref: docs/tcr-006-lifecycle-closeout
           fetch-depth: 0
-      - name: Correct handoff and restore workflows
+      - name: Correct durable handoff
         shell: bash
         run: |
           python - <<'PY'
@@ -29,17 +29,19 @@ jobs:
           text = path.read_text(encoding='utf-8')
           old = '7. Do not silently continue into TCR-007 or another TCR package in the same PR.'
           new = '7. Do not silently continue into TCR-008 or another TCR package in the same PR.'
-          if text.count(old) != 1:
-              raise SystemExit(f'expected one stale kickoff line, found {text.count(old)}')
-          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          if old in text:
+              text = text.replace(old, new, 1)
+              path.write_text(text, encoding='utf-8')
+          elif new not in text:
+              raise SystemExit('neither expected handoff line is present')
           PY
-          git fetch origin main
-          git show origin/main:.github/workflows/tibia-client-reference.yml > .github/workflows/tibia-client-reference.yml
-          rm -f .github/workflows/tcr006-lifecycle-fix.yml .tcr006-finalizer-trigger
-          python tools/agents/checkpoint.py docs/agents/tasks/archive/CAN-20260724-tcr-006-content-reference-correlation.md
+          rm -f .tcr006-finalizer-trigger
           grep -F '7. Do not silently continue into TCR-008 or another TCR package in the same PR.' docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
+          if git diff --quiet; then
+            exit 0
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
+          git add docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md .tcr006-finalizer-trigger
           git commit -m "docs(tcr): finalize TCR-006 lifecycle handoff"
           git push origin HEAD:docs/tcr-006-lifecycle-closeout
