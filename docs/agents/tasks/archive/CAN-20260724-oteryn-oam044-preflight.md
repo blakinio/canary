@@ -2,13 +2,14 @@
 task_id: CAN-20260724-oteryn-oam044-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-044
-status: review
+status: completed
 agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-044-protocol-compatibility-governance
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "e1eed52119ba21a29cb29cbac0793ed2a2b9d0c6"
+completed: 2026-07-24T19:47:00+02:00
+last_verified_commit: "766aa0198884243c8d9641e5a1e92cd605735500"
 risk: high
 related_issue: ""
 related_pr: "888"
@@ -16,12 +17,11 @@ depends_on:
   - OAM-043 durably completed as 9d99a0665050d244a0ee0beb0362080de0f3d19a
   - canonical protocol completed by OAM-006
 blocks:
-  - OAM-044 Canary lifecycle archive
   - OAM-044 durable program reconciliation
   - OAM-045 start
 owned_paths:
   exclusive:
-    - docs/agents/tasks/active/CAN-20260724-oteryn-oam044-preflight.md
+    - docs/agents/tasks/archive/CAN-20260724-oteryn-oam044-preflight.md
     - docs/agents/OTERYN_OAM_044_PROTOCOL_COMPATIBILITY_REVALIDATION.md
   shared: []
   read_only:
@@ -49,17 +49,17 @@ The separately ordered Otheryn proof retained the exact target/current-upstream 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T19:25:00+02:00
-head: 1bd7ef9724f498b3399809f1381bc69786f3eb57
-branch: dudantas/oam-044-protocol-compatibility-governance
+updated_at: 2026-07-24T19:47:00+02:00
+head: 766aa0198884243c8d9641e5a1e92cd605735500
+branch: main
 pr: 888
-status: validating
+status: completed
 context_routes:
   - agent-governance
   - cross-repo
   - protocol-client
 owned_paths:
-  - docs/agents/tasks/active/CAN-20260724-oteryn-oam044-preflight.md
+  - docs/agents/tasks/archive/CAN-20260724-oteryn-oam044-preflight.md
   - docs/agents/OTERYN_OAM_044_PROTOCOL_COMPATIBILITY_REVALIDATION.md
 proven:
   - OAM-043 quests ADAPT is durably complete through program reconciliation 9d99a0665050d244a0ee0beb0362080de0f3d19a.
@@ -74,8 +74,11 @@ proven:
   - Otheryn feature final-sync head 62a42372e2225b71aaa0066cc934f684e830913c passed Autofix 30111297337, CI 30111297597 and Required 30111297475.
   - Otheryn PR 100 had no comments, reviews or review threads, no target-main drift and squash-merged as 5c8f48e2a7cb7f841cfb6614e8e804245f17c0ca.
   - Otheryn lifecycle PR 101 changed one logical active/archive path, passed Required 30112638532, had a clean audit and merged as e1eed52119ba21a29cb29cbac0793ed2a2b9d0c6.
-  - Canary governance task-start main is ad8b978236e6dfa8c40b06170f19f281b84b395d; intervening OTS/native-auth/content-reference merges do not overlap the OAM-044 governance paths.
-  - Canary PR 888 changes exactly the governance report and active checkpoint and carries ci:final-gate before this synchronization commit.
+  - Canary governance task-start main was ad8b978236e6dfa8c40b06170f19f281b84b395d.
+  - Canary governance PR 888 final head 3a996c687106ea3d3c0f70257ebef650d3de80d3 passed Agent Task Ownership 30112911749 and final-gate CI 30112919837.
+  - The governance final-gate passed scope detection, Fast Checks, Lua, Docker, Linux debug/release with full tests and runtime smokes, and Windows CMake/Solution.
+  - PR 888 had no comments, reviews or review threads; Canary main remained ad8b978236e6dfa8c40b06170f19f281b84b395d before merge.
+  - PR 888 squash-merged as 766aa0198884243c8d9641e5a1e92cd605735500.
   - docs/agents/OTERYN_OAM_044_PROTOCOL_COMPATIBILITY_REVALIDATION.md records the exact evidence and nonclaim boundaries.
 derived:
   - protocol-compatibility supports bounded REUSE because no package-owned target defect was isolated and the current profile retains exact source/runtime continuity.
@@ -100,7 +103,7 @@ rejected_hypotheses:
   - Absorb network transport, login authentication or session-handoff behavior.
   - Treat blocked OTCv8 8.60 as ready.
 changed_paths:
-  - docs/agents/tasks/active/CAN-20260724-oteryn-oam044-preflight.md
+  - docs/agents/tasks/archive/CAN-20260724-oteryn-oam044-preflight.md
   - docs/agents/OTERYN_OAM_044_PROTOCOL_COMPATIBILITY_REVALIDATION.md
 validation:
   - command: exact target/upstream/legacy/client source and ownership review
@@ -109,18 +112,14 @@ validation:
   - command: Otheryn focused protocol compatibility contract
     result: PASS
     evidence: CI runs 30106676001 and 30111297597 compiled and executed the registered unit-test matrix.
-  - command: Otheryn feature exact-head gates and audit
+  - command: Otheryn feature and lifecycle exact-head gates and audits
     result: PASS
-    evidence: Ready and final-sync heads passed Autofix, CI and Required; discussions were empty and no main drift occurred before merge 5c8f48e2a7cb7f841cfb6614e8e804245f17c0ca.
-  - command: Otheryn lifecycle gate and audit
-    result: PASS
-    evidence: PR 101 passed Required 30112638532 and merged as e1eed52119ba21a29cb29cbac0793ed2a2b9d0c6 after clean audit.
+    evidence: PR 100 merged as 5c8f48e2a7cb7f841cfb6614e8e804245f17c0ca and PR 101 merged as e1eed52119ba21a29cb29cbac0793ed2a2b9d0c6 after green gates and clean audits.
   - command: Canary governance exact-head gates and audit
-    result: NOT_RUN
-    evidence: Final PR 888 head must pass Agent Task Ownership and final-gate CI before merge.
+    result: PASS
+    evidence: Final head 3a996c687106ea3d3c0f70257ebef650d3de80d3 passed Ownership 30112911749 and CI 30112919837, then merged as 766aa0198884243c8d9641e5a1e92cd605735500 after clean audit.
 blockers:
-  - Canary governance PR 888 merge
   - Canary lifecycle archive merge
   - durable OAM-044 program reconciliation
-next_action: Require exact-head Agent Task Ownership and final-gate CI on PR 888, audit comments, reviews, threads and Canary-main drift, then squash-merge with the expected head.
+next_action: Merge the separate Canary lifecycle archive PR, then reconcile OAM-044 durably in the program document before starting OAM-045.
 ```
