@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/tcr-006-content-reference-correlation
 base_branch: main
 created: 2026-07-24T17:00:00+02:00
-updated: 2026-07-24T17:39:06+02:00
-last_verified_commit: "77c38568fe02b55798d0710318c4f82c8d1fd3d8"
+updated: 2026-07-24T18:15:59+02:00
+last_verified_commit: "fcb8edf1be084511b4e4926808009b54884b597a"
 risk: medium
 related_issue: ""
 related_pr: 880
@@ -83,8 +83,8 @@ Implement the bounded, deterministic, read-only TCR-006 content reference correl
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T17:39:06+02:00
-head: 77c38568fe02b55798d0710318c4f82c8d1fd3d8
+updated_at: 2026-07-24T18:15:59+02:00
+head: fcb8edf1be084511b4e4926808009b54884b597a
 branch: feat/tcr-006-content-reference-correlation
 pr: 880
 status: implementing
@@ -103,23 +103,26 @@ owned_paths:
   - .github/workflows/tibia-client-reference.yml
   - docs/agents/MODULE_CATALOG.md
 proven:
-  - PR 880 is the sole open TCR-006 owner; it is draft, mergeable and targets blakinio/canary main from feat/tcr-006-content-reference-correlation.
-  - Live PR head is 77c38568fe02b55798d0710318c4f82c8d1fd3d8; current diff contains only the active task and temporary Tibia Client Reference workflow helper.
+  - PR 880 remains the sole open TCR-006 owner; it is draft, mergeable and targets blakinio/canary main from feat/tcr-006-content-reference-correlation.
   - Exact legacy StaticData inventory contains 812 creatures, 356 titles, 438 bosses and 99 quests with no duplicate or missing required-field findings.
   - Owner inventory workflow 30103563037 succeeded and published artifact 8600662164 with digest sha256:041b0d357e6e5df4ecfeb186aa4611d58ecbe3533a6e7a47ae9f32b64bc53f4a.
   - Reviewed resolver candidates retain 739 creature, 236 boss and 349 title identity mappings; shared target IDs and all quest joins remain unresolved.
   - Exact correlation contains 1705 source rows with 1324 confirmed-reference, 119 partial, 160 reference-only, 102 unresolved-id-space and zero conflicts.
-  - Local fixture and exact focused suites pass 20 tests; Python bytecode and both Draft 2020-12 schemas validate against exact resolver/correlation outputs.
   - Exact resolver SHA-256 is f1472c23 and exact correlation SHA-256 is 477c9ffa; full reports remain outside Git.
-  - Verified implementation payload is Git blob f0446001244d636ccc8745a821b67cedc5fb9577 and unattached staging commit e6ca779f47182d95cfadd052833c30af935dc582 adds only .tcr006-stage/payload.zip.
-  - Current-main catalogue helper run 30104916300 succeeded and published artifact 8601260482 with digest sha256:baf821bcc9fdc8f0bfa0df8bdcc8ceeac83a59f55979e1cee311228260776ff8.
-  - Repository CI run 30104916625 and Tibia Client Reference run 30104916300 succeeded on live head 77c38568fe02b55798d0710318c4f82c8d1fd3d8.
+  - Verified payload blob f0446001244d636ccc8745a821b67cedc5fb9577 was rebuilt on the live branch and materialized without byte changes into the six implementation files.
+  - Materialization workflow 30107920417 passed all extraction, 20 focused-test, bytecode, schema-syntax, diff and commit steps and produced implementation commit 5a37f276bed62cadadb0c039b80536ed69a2acbb.
+  - Finalization workflow 30108347547 passed focused tests, bytecode, schema syntax and CLI construction, added the module catalogue entry and removed all temporary staging paths.
+  - Live implementation head fcb8edf1be084511b4e4926808009b54884b597a contains exactly the task, six implementation/docs/schema files, final Tibia Client Reference workflow and module catalogue entry; no staged ZIP or diagnostic file remains in the PR diff.
+  - Tibia Client Reference workflow 30108460292 passed on fcb8edf1be084511b4e4926808009b54884b597a.
+  - Repository CI workflow 30108460520 passed on fcb8edf1be084511b4e4926808009b54884b597a.
+  - Agent Task Ownership workflow 30108460223 passed on fcb8edf1be084511b4e4926808009b54884b597a.
+  - AI Agent Tools workflow 30108460221 job 89531656374 passed all unit, index-generation, reference-validation, schema, realistic-content-pack and artifact steps on fcb8edf1be084511b4e4926808009b54884b597a.
 derived:
-  - A fresh staging commit must be rebuilt on the post-checkpoint branch head before materialization because e6ca779f47182d95cfadd052833c30af935dc582 is based on the prior live head.
-  - Final PR history must remove the temporary workflow helper and staged ZIP while retaining only task, implementation, schemas, documentation, workflow validation and catalogue changes.
+  - The implementation acceptance surface is complete; only the final task-checkpoint head validation and PR lifecycle action remain.
+  - Static correlation evidence does not prove runtime or gameplay parity and does not authorize source, datapack or map mutation.
 unknown:
-  - Whether the materialization helper will produce byte-identical target files after rebasing the staged payload onto the new checkpoint head.
-  - Final clean implementation commit SHA and final-head CI results.
+  - Exact workflow conclusions on the task-checkpoint commit created after fcb8edf1be084511b4e4926808009b54884b597a.
+  - Final squash-merge commit SHA.
 conflicts: []
 first_failure:
   marker: Agent Task Ownership run 30104916248 / Validate changed active task checkpoints
@@ -128,6 +131,8 @@ rejected_hypotheses:
   - Reparse StaticData inside TCR-006: TCR-002 owns parsing and TCR-006 consumes only schemaVersion 2 output.
   - Treat equal numeric IDs or normalized names as automatic equivalence: cross-namespace identity requires reviewed resolver evidence.
   - Rename legacy titles to achievements or select quest files by fuzzy name: both violate source vocabulary and fail-closed quest ownership.
+  - Treat the first materialization failure as an implementation defect: run 30107352531 failed because the helper omitted tools/ai-agent from PYTHONPATH; the identical payload passed after the helper environment was corrected.
+  - Push the final workflow rewrite from GITHUB_TOKEN: workflow-file mutation was separated from bot-authored catalogue/staging cleanup and applied through the authorized GitHub connector.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260724-tcr-006-content-reference-correlation.md
   - .github/workflows/tibia-client-reference.yml
@@ -139,24 +144,27 @@ changed_paths:
   - docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json
   - docs/agents/MODULE_CATALOG.md
 validation:
-  - command: python -m unittest -v tools/ai-agent/test_tibia_content_reference_correlation.py
+  - command: python -m unittest discover -s tools/ai-agent -p "test_tibia_content_reference_correlation.py" -v
     result: PASS
-    evidence: 20 fixture and exact-input tests passed locally.
+    evidence: 20 fixture and exact-input tests passed in materialization run 30107920417 and finalization run 30108347547.
   - command: python -m py_compile tools/ai-agent/tibia_content_reference_correlation.py tools/ai-agent/tibia_content_reference_correlation_tool.py tools/ai-agent/test_tibia_content_reference_correlation.py
     result: PASS
-    evidence: local verified implementation payload.
+    evidence: passed in materialization run 30107920417 and finalization run 30108347547.
   - command: Draft 2020-12 schema validation on exact resolver and correlation reports
     result: PASS
     evidence: resolver f1472c23; correlation 477c9ffa.
-  - command: Tibia Client Reference workflow 30104916300
+  - command: Tibia Client Reference workflow 30108460292
     result: PASS
-    evidence: current-main catalogue artifact 8601260482 produced successfully.
-  - command: Repository CI workflow 30104916625
+    evidence: completed successfully on fcb8edf1be084511b4e4926808009b54884b597a.
+  - command: Repository CI workflow 30108460520
     result: PASS
-    evidence: completed successfully on live head 77c38568fe02b55798d0710318c4f82c8d1fd3d8.
-  - command: Agent Task Ownership workflow 30104916248
-    result: FAIL
-    evidence: prior checkpoint serialized first_failure as null instead of required mapping; corrected in this checkpoint.
+    evidence: completed successfully on fcb8edf1be084511b4e4926808009b54884b597a.
+  - command: Agent Task Ownership workflow 30108460223
+    result: PASS
+    evidence: completed successfully on fcb8edf1be084511b4e4926808009b54884b597a.
+  - command: AI Agent Tools workflow 30108460221 / job 89531656374
+    result: PASS
+    evidence: all unit and generated-content validation steps completed successfully on fcb8edf1be084511b4e4926808009b54884b597a.
 blockers: []
-next_action: Rebuild the staged payload commit on the current checkpoint head from Git blob f0446001244d636ccc8745a821b67cedc5fb9577, attach it to PR 880, and run the existing materialization helper to produce the six verified implementation files.
+next_action: Verify the ci:final-gate workflows on the task-checkpoint commit, then mark PR 880 ready and squash-merge it if all required checks remain green.
 ```
