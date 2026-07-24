@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json",
+  "title": "Canary Tibia content reference resolver v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "provenance", "review", "identityMappings", "presenceMappings", "unresolved", "conflicts", "summary", "policy"],
+  "properties": {
+    "format": {"const": "canary-tibia-content-reference-resolver-v1"},
+    "schemaVersion": {"const": 1},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["staticdataIndexSha256", "staticdataManifestSha256", "staticdataSourceSha256", "referenceId", "schemaFamily", "ownerInventorySha256", "ownerInventoryFormat", "targetRepositoryHead"],
+      "properties": {
+        "staticdataIndexSha256": {"$ref": "#/$defs/sha256"},
+        "staticdataManifestSha256": {"$ref": "#/$defs/sha256"},
+        "staticdataSourceSha256": {"$ref": "#/$defs/sha256"},
+        "referenceId": {"type": "string", "minLength": 1},
+        "schemaFamily": {"enum": ["legacy", "newer"]},
+        "ownerInventorySha256": {"$ref": "#/$defs/sha256"},
+        "ownerInventoryFormat": {"const": "canary-tcr006-owner-inventory-v1"},
+        "targetRepositoryHead": {"type": "string", "minLength": 1}
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewId", "statement"],
+      "properties": {
+        "reviewId": {"type": "string", "minLength": 1},
+        "statement": {"type": "string", "minLength": 1}
+      }
+    },
+    "identityMappings": {"type": "array", "items": {"$ref": "#/$defs/identityMapping"}},
+    "presenceMappings": {"type": "array", "items": {"$ref": "#/$defs/presenceMapping"}},
+    "unresolved": {"type": "array", "items": {"$ref": "#/$defs/unresolved"}},
+    "conflicts": {"type": "array", "items": {"type": "object"}},
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceRecordCount", "identityMappingCount", "presenceMappingCount", "unresolvedCount", "conflictCount", "identityMappingsByCategory", "presenceMappingsByCategory", "unresolvedByReason"],
+      "properties": {
+        "sourceRecordCount": {"type": "integer", "minimum": 0},
+        "identityMappingCount": {"type": "integer", "minimum": 0},
+        "presenceMappingCount": {"type": "integer", "minimum": 0},
+        "unresolvedCount": {"type": "integer", "minimum": 0},
+        "conflictCount": {"type": "integer", "minimum": 0},
+        "identityMappingsByCategory": {"$ref": "#/$defs/countMap"},
+        "presenceMappingsByCategory": {"$ref": "#/$defs/countMap"},
+        "unresolvedByReason": {"$ref": "#/$defs/countMap"}
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceVocabularyPreserved", "housesExcluded", "numericIdentityHeuristics", "nameOnlyMappingsRequireReview", "sharedTargetIdsFailClosed", "questNameMapping", "gameplayConclusions", "mutation"],
+      "properties": {
+        "sourceVocabularyPreserved": {"const": true},
+        "housesExcluded": {"const": true},
+        "numericIdentityHeuristics": {"const": false},
+        "nameOnlyMappingsRequireReview": {"const": true},
+        "sharedTargetIdsFailClosed": {"const": true},
+        "questNameMapping": {"const": false},
+        "gameplayConclusions": {"const": false},
+        "mutation": {"const": false}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "sourceCategory": {"enum": ["creatures", "monsters", "monsterClasses", "titles", "achievements", "bosses", "quests"]},
+    "checks": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"const": true}
+    },
+    "identityMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceCategory", "sourceId", "sourceName", "targetSection", "targetOrdinal", "targetNamespace", "targetId", "targetName", "method", "checks"],
+      "properties": {
+        "sourceCategory": {"$ref": "#/$defs/sourceCategory"},
+        "sourceId": {"type": "integer", "minimum": 0},
+        "sourceName": {"type": "string", "minLength": 1},
+        "targetSection": {"enum": ["achievement", "bestiary", "bosstiary"]},
+        "targetOrdinal": {"type": "integer", "minimum": 0},
+        "targetNamespace": {"enum": ["canary-achievement-id", "canary-bestiary-race-id", "canary-bosstiary-boss-race-id"]},
+        "targetId": {"type": "integer", "minimum": 0},
+        "targetName": {"type": "string", "minLength": 1},
+        "method": {"enum": ["reviewed-unique-id-name", "reviewed-unique-id-name-grade"]},
+        "checks": {"$ref": "#/$defs/checks"}
+      }
+    },
+    "presenceMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceCategory", "sourceId", "sourceName", "targetSection", "targetOrdinal", "targetNamespace", "targetName", "targetPath", "method", "checks"],
+      "properties": {
+        "sourceCategory": {"enum": ["creatures", "monsters", "bosses"]},
+        "sourceId": {"type": "integer", "minimum": 0},
+        "sourceName": {"type": "string", "minLength": 1},
+        "targetSection": {"const": "spawnBossDefinitions"},
+        "targetOrdinal": {"type": "integer", "minimum": 0},
+        "targetNamespace": {"const": "canary-monster-definition-path"},
+        "targetName": {"type": "string", "minLength": 1},
+        "targetPath": {"type": "string", "minLength": 1},
+        "method": {"const": "reviewed-unique-normalized-name"},
+        "checks": {"$ref": "#/$defs/checks"}
+      }
+    },
+    "unresolved": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimension", "sourceCategory", "sourceId", "sourceName", "reason"],
+      "properties": {
+        "dimension": {"enum": ["identity", "definition-presence"]},
+        "sourceCategory": {"$ref": "#/$defs/sourceCategory"},
+        "sourceId": {"type": "integer", "minimum": 0},
+        "sourceName": {"type": "string", "minLength": 1},
+        "reason": {"type": "string", "minLength": 1},
+        "candidateTargetOrdinals": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+        "checks": {
+          "type": "object",
+          "additionalProperties": {"type": "boolean"}
+        }
+      }
+    },
+    "countMap": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    }
+  }
+}

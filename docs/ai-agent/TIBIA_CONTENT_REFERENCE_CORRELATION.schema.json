@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/blob/main/docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json",
+  "title": "Canary Tibia content reference correlation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "provenance", "records", "targetOnly", "findings", "summary", "policy"],
+  "properties": {
+    "format": {"const": "canary-tibia-content-reference-correlation-v1"},
+    "schemaVersion": {"const": 1},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["staticdataIndexSha256", "staticdataManifestSha256", "staticdataSourceSha256", "referenceId", "schemaFamily", "ownerInventorySha256", "targetRepositoryHead", "resolverSha256"],
+      "properties": {
+        "staticdataIndexSha256": {"$ref": "#/$defs/sha256"},
+        "staticdataManifestSha256": {"$ref": "#/$defs/sha256"},
+        "staticdataSourceSha256": {"$ref": "#/$defs/sha256"},
+        "referenceId": {"type": "string", "minLength": 1},
+        "schemaFamily": {"enum": ["legacy", "newer"]},
+        "ownerInventorySha256": {"$ref": "#/$defs/sha256"},
+        "targetRepositoryHead": {"type": "string", "minLength": 1},
+        "resolverSha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "records": {"type": "array", "items": {"$ref": "#/$defs/record"}},
+    "targetOnly": {"type": "array", "items": {"$ref": "#/$defs/targetOnly"}},
+    "findings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unresolved", "targetOnly", "conflicts"],
+      "properties": {
+        "unresolved": {"type": "array", "items": {"$ref": "TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json#/$defs/unresolved"}},
+        "targetOnly": {"type": "array", "items": {"$ref": "#/$defs/targetOnly"}},
+        "conflicts": {"type": "array", "items": {"type": "object"}}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceRecordCount", "targetOnlyCount", "stateCounts", "categoryStateCounts", "identityMappingCount", "presenceMappingCount", "unresolvedEvidenceCount", "conflictCount"],
+      "properties": {
+        "sourceRecordCount": {"type": "integer", "minimum": 0},
+        "targetOnlyCount": {"type": "integer", "minimum": 0},
+        "stateCounts": {"$ref": "#/$defs/countMap"},
+        "categoryStateCounts": {
+          "type": "object",
+          "additionalProperties": {"$ref": "#/$defs/countMap"}
+        },
+        "identityMappingCount": {"type": "integer", "minimum": 0},
+        "presenceMappingCount": {"type": "integer", "minimum": 0},
+        "unresolvedEvidenceCount": {"type": "integer", "minimum": 0},
+        "conflictCount": {"type": "integer", "minimum": 0}
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceVocabularyPreserved", "housesExcluded", "existingSubsystemOwnersReused", "questNameMapping", "runtimeProof", "gameplayConclusions", "mutation"],
+      "properties": {
+        "sourceVocabularyPreserved": {"const": true},
+        "housesExcluded": {"const": true},
+        "existingSubsystemOwnersReused": {"const": true},
+        "questNameMapping": {"const": false},
+        "runtimeProof": {"const": false},
+        "gameplayConclusions": {"const": false},
+        "mutation": {"const": false}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "sourceCategory": {"enum": ["creatures", "monsters", "monsterClasses", "titles", "achievements", "bosses", "quests"]},
+    "state": {"enum": ["confirmed-reference", "reference-only", "target-only", "partial", "unresolved-id-space", "conflicting", "stale-evidence"]},
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceCategory", "sourceId", "sourceName", "state", "identityResolution", "definitionPresence", "unresolvedEvidence"],
+      "properties": {
+        "sourceCategory": {"$ref": "#/$defs/sourceCategory"},
+        "sourceId": {"type": "integer", "minimum": 0},
+        "sourceName": {"type": "string", "minLength": 1},
+        "state": {"$ref": "#/$defs/state"},
+        "identityResolution": {"oneOf": [{"type": "null"}, {"$ref": "TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json#/$defs/identityMapping"}]},
+        "definitionPresence": {"oneOf": [{"type": "null"}, {"$ref": "TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json#/$defs/presenceMapping"}]},
+        "unresolvedEvidence": {"type": "array", "items": {"$ref": "TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json#/$defs/unresolved"}}
+      }
+    },
+    "targetOnly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "targetSection", "targetOrdinal", "targetId", "targetName"],
+      "properties": {
+        "state": {"const": "target-only"},
+        "targetSection": {"enum": ["achievement", "bestiary", "bosstiary"]},
+        "targetOrdinal": {"type": "integer", "minimum": 0},
+        "targetId": {"type": "integer", "minimum": 0},
+        "targetName": {"type": "string", "minLength": 1},
+        "targetPath": {"type": ["string", "null"]}
+      }
+    },
+    "countMap": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    }
+  }
+}
