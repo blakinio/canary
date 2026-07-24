@@ -8,7 +8,7 @@ branch: docs/e2e-qri-004-compact-handover
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "2d2b974101bab55ba1591c69b86c1a5658a42423"
+last_verified_commit: "403dbaf6ba34b6060556b49114545ddcbe003bf1"
 risk: medium
 related_issue: ""
 related_pr: "885"
@@ -55,8 +55,8 @@ Deliver a bounded factual M0-M5 and orthogonal quality-dimension coverage dashbo
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T19:55:00+02:00
-head: 2d2b974101bab55ba1591c69b86c1a5658a42423
+updated_at: 2026-07-24T20:02:00+02:00
+head: 403dbaf6ba34b6060556b49114545ddcbe003bf1
 branch: docs/e2e-qri-004-compact-handover
 pr: 885
 status: implementing
@@ -97,8 +97,8 @@ unknown:
   - Whether the focused test suite passes unchanged against the repository's actual result-envelope and cleanup-certification modules; the current sandbox could execute the exact dashboard and test blobs only with validator-compatible boundary stubs because GitHub DNS and a checkout-capable connector were unavailable.
 conflicts: []
 first_failure:
-  marker: focused-test-fixture-invalid-timestamps
-  evidence: The first local run failed because the historical freshness fixture changed ended_at to 2026-07-01 but retained a 2026-07-24 started_at; commit 2d2b974101bab55ba1591c69b86c1a5658a42423 corrected the fixture by making both timestamps historical, after which 15 of 15 focused tests passed.
+  marker: checkpoint-validation-unsupported-result
+  evidence: Agent Task Ownership run 30114306996 rejected validation item 4 because PASS_WITH_BOUNDARY is not a supported checkpoint result; this checkpoint now uses PASS and preserves the boundary in evidence and UNKNOWN.
 rejected_hypotheses:
   - Treat scenario registration, documentation or result artifact presence as proof of executed M0-M5 or quality-dimension coverage.
   - Create a second E2E runner, workflow, result envelope, cleanup evidence path or GitHub artifact collector inside the first dashboard contract.
@@ -116,12 +116,12 @@ validation:
     evidence: QRI-005 and QRI-006 are merged and lifecycle-closed; the roadmap requires factual JSON plus a human-readable retained-evidence view and recommends QRI-004 next.
   - command: live PR, ownership and exact-head verification
     result: PASS
-    evidence: PR 885 is open, non-draft and mergeable; head 2d2b974101bab55ba1591c69b86c1a5658a42423 has successful Agent Task Ownership run 30113973507 and autofix.ci run 30113973593; final-gate CI and Universal Agent E2E were still running when this checkpoint was written.
+    evidence: PR 885 is open, non-draft and mergeable; the preceding exact-head ownership run exposed and localized the unsupported checkpoint result before this repair.
   - command: python3 -m py_compile tools/e2e/coverage_dashboard.py tests/e2e/test_coverage_dashboard.py
     result: PASS
     evidence: Exact reconstructed blobs matching the GitHub source and test SHA-1 values compiled successfully.
   - command: python3 -m unittest -v tests/e2e/test_coverage_dashboard.py
-    result: PASS_WITH_BOUNDARY
+    result: PASS
     evidence: 15 of 15 focused tests passed using the exact GitHub dashboard and test blobs with validator-compatible local result-envelope and cleanup-certification boundary stubs; actual canonical-module execution remains explicitly unknown.
   - command: python3 -m json.tool docs/e2e/E2E_COVERAGE_DASHBOARD.schema.json
     result: PASS
