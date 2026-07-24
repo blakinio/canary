@@ -14,7 +14,9 @@ on:
       - "docs/agents/templates/REAL_TIBIA_EVIDENCE_REQUEST.yaml"
       - "tools/agents/real_tibia_evidence.py"
       - "tools/agents/real_tibia_evidence_lib.py"
+      - "tools/agents/real_tibia_evidence_test_support.py"
       - "tools/agents/test_real_tibia_evidence.py"
+      - "tools/agents/test_real_tibia_evidence_lifecycle.py"
       - ".github/workflows/real-tibia-evidence.yml"
   pull_request:
     paths:
@@ -23,7 +25,9 @@ on:
       - "docs/agents/templates/REAL_TIBIA_EVIDENCE_REQUEST.yaml"
       - "tools/agents/real_tibia_evidence.py"
       - "tools/agents/real_tibia_evidence_lib.py"
+      - "tools/agents/real_tibia_evidence_test_support.py"
       - "tools/agents/test_real_tibia_evidence.py"
+      - "tools/agents/test_real_tibia_evidence_lifecycle.py"
       - ".github/workflows/real-tibia-evidence.yml"
   workflow_dispatch:
 
@@ -55,10 +59,12 @@ jobs:
           python -m py_compile \
             tools/agents/real_tibia_evidence.py \
             tools/agents/real_tibia_evidence_lib.py \
-            tools/agents/test_real_tibia_evidence.py
+            tools/agents/real_tibia_evidence_test_support.py \
+            tools/agents/test_real_tibia_evidence.py \
+            tools/agents/test_real_tibia_evidence_lifecycle.py
 
       - name: Run focused positive and negative tests
-        run: python -m unittest -v tools/agents/test_real_tibia_evidence.py
+        run: python -m unittest discover -v -s tools/agents -p 'test_real_tibia_evidence*.py'
 
       - name: Validate canonical Real Tibia registry
         run: |
