@@ -2,13 +2,13 @@
 task_id: CAN-20260724-ots-roadmap-extension-packs
 program_id: CAN-PROGRAM-OTS-FUTURE-GAMEPLAY-SYSTEMS
 coordination_id: OTS-ROADMAP-EXTENSION-PACKS
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
 branch: docs/ots-roadmap-extension-packs-20260724
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: ""
+last_verified_commit: "7dbd7c34e6cff2b2b4c6dc5de86b9afb3ced7698"
 risk: low
 related_issue: ""
 related_pr: "887"
@@ -65,7 +65,7 @@ Documentation and classification only. No runtime, client, protocol, datapack, m
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-24
-head: 375fedaafb513b81b25e38af2ecb2b07a2fb88ac
+head: 7dbd7c34e6cff2b2b4c6dc5de86b9afb3ced7698
 branch: docs/ots-roadmap-extension-packs-20260724
 pr: 887
 status: validating
@@ -76,14 +76,16 @@ owned_paths:
   - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_EXTENSION_PACKS.md
   - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md
 proven:
-  - The three detailed design documents are already merged on main.
+  - The three detailed design documents are already merged on main and remain unchanged by this PR.
   - PR 884 merged as ad8b978236e6dfa8c40b06170f19f281b84b395d and released ownership of the central roadmap/classification paths.
-  - The authoritative classification now contains entries 95-120 derived from the three merged detailed designs.
+  - The authoritative classification contains entries 95-120 derived from the three merged detailed designs.
   - Account-wide quest progression remains entry 4 and is not duplicated.
   - Weapon Proficiency remains explicitly official and separate from proposed Equipment Proficiency.
   - PR 887 changes exactly the task record, the classification index and the integrated extension-pack addendum.
-  - Initial CI passed on feature head 099c443789cc4b2d93b8a66605738e8ee5afe39e.
-  - The repository lifecycle contract accepts frontmatter statuses planned, implementing, blocked, review or ready; implementing is compatible with checkpoint status validating.
+  - Agent Task Ownership run 30113143226 passed on pre-final head 7dbd7c34e6cff2b2b4c6dc5de86b9afb3ced7698.
+  - AI Agent Tools run 30113143239 passed on pre-final head 7dbd7c34e6cff2b2b4c6dc5de86b9afb3ced7698.
+  - CI run 30113143401 passed on pre-final head 7dbd7c34e6cff2b2b4c6dc5de86b9afb3ced7698.
+  - The ci:final-gate label was applied before this final checkpoint commit.
 derived:
   - The new packages require multiple proposal-level entries because they contain independent features, upgrades and safeguards.
 unknown:
@@ -91,7 +93,7 @@ unknown:
 conflicts: []
 first_failure:
   marker: checkpoint-schema
-  evidence: Early ownership validation exposed invalid guessed frontmatter values; the task now uses the repository-defined implementing status with validating checkpoint compatibility.
+  evidence: Early ownership validation exposed invalid guessed frontmatter values; the task now follows repository-defined review/validating lifecycle compatibility.
 rejected_hypotheses:
   - Add only three umbrella classification rows and hide all distinct sub-systems inside them.
   - Duplicate account-wide quest progression as a new proposal.
@@ -104,12 +106,12 @@ validation:
   - command: source-design review
     result: PASS
     evidence: Entries 95-120 and the addendum are derived only from the three merged detailed design records.
-  - command: changed-file review
+  - command: changed-file and full-diff review
     result: PASS
     evidence: The PR changes exactly three documentation/task paths and no runtime, client, protocol, map, datapack or production files.
-  - command: initial CI
+  - command: pre-final Agent Task Ownership, AI Agent Tools and CI
     result: PASS
-    evidence: CI run 30112612181 passed on feature head 099c443789cc4b2d93b8a66605738e8ee5afe39e.
+    evidence: Runs 30113143226, 30113143239 and 30113143401 passed on head 7dbd7c34e6cff2b2b4c6dc5de86b9afb3ced7698.
 blockers: []
-next_action: Confirm corrected ownership and AI Agent Tools, apply ci:final-gate, make the final checkpoint commit, then require exact-final validation before readiness and merge.
+next_action: Require exact-final Agent Task Ownership, AI Agent Tools and CI on the final checkpoint head; if green and review threads are clear, mark PR 887 ready and squash-merge without further commits.
 ```
