@@ -16,6 +16,9 @@ on:
       - "tools/ai-agent/tibia_proficiency_reference_index.py"
       - "tools/ai-agent/tibia_proficiency_reference_index_tool.py"
       - "tools/ai-agent/test_tibia_proficiency_reference_index.py"
+      - "tools/ai-agent/otbm_house_reference_parity.py"
+      - "tools/ai-agent/otbm_house_reference_parity_tool.py"
+      - "tools/ai-agent/test_otbm_house_reference_parity.py"
       - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.md"
       - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.schema.json"
       - "docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.md"
@@ -24,6 +27,9 @@ on:
       - "docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.schema.json"
       - "docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.md"
       - "docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.schema.json"
+      - "docs/ai-agent/OTBM_HOUSE_REFERENCE_PARITY.md"
+      - "docs/ai-agent/OTBM_HOUSE_REFERENCE_PARITY.schema.json"
+      - "docs/ai-agent/OTBM_HOUSE_ID_RESOLVER.schema.json"
       - ".github/workflows/tibia-client-reference.yml"
   workflow_dispatch:
 
@@ -56,6 +62,9 @@ jobs:
       - name: Run proficiency focused tests
         run: python -m unittest discover -s tools/ai-agent -p "test_tibia_proficiency_reference_index.py" -v
 
+      - name: Run house parity focused tests
+        run: python -m unittest discover -s tools/ai-agent -p "test_otbm_house_reference_parity.py" -v
+
       - name: Compile client reference tooling
         run: |
           python -m py_compile \
@@ -70,7 +79,10 @@ jobs:
             tools/ai-agent/test_tibia_staticmapdata_reference_index.py \
             tools/ai-agent/tibia_proficiency_reference_index.py \
             tools/ai-agent/tibia_proficiency_reference_index_tool.py \
-            tools/ai-agent/test_tibia_proficiency_reference_index.py
+            tools/ai-agent/test_tibia_proficiency_reference_index.py \
+            tools/ai-agent/otbm_house_reference_parity.py \
+            tools/ai-agent/otbm_house_reference_parity_tool.py \
+            tools/ai-agent/test_otbm_house_reference_parity.py
 
       - name: Validate JSON schema syntax
         run: |
@@ -78,6 +90,8 @@ jobs:
           python -m json.tool docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.schema.json > /dev/null
           python -m json.tool docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.schema.json > /dev/null
           python -m json.tool docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.schema.json > /dev/null
+          python -m json.tool docs/ai-agent/OTBM_HOUSE_REFERENCE_PARITY.schema.json > /dev/null
+          python -m json.tool docs/ai-agent/OTBM_HOUSE_ID_RESOLVER.schema.json > /dev/null
 
       - name: Validate CLI construction
         run: |
@@ -85,3 +99,4 @@ jobs:
           python tools/ai-agent/tibia_staticdata_reference_index_tool.py --help > /dev/null
           python tools/ai-agent/tibia_staticmapdata_reference_index_tool.py --help > /dev/null
           python tools/ai-agent/tibia_proficiency_reference_index_tool.py --help > /dev/null
+          python tools/ai-agent/otbm_house_reference_parity_tool.py --help > /dev/null
