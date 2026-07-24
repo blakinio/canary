@@ -155,8 +155,23 @@ jobs:
           git status --short
           git diff --cached --stat
 
+      - name: Capture staged correction
+        run: |
+          mkdir -p /tmp/rtec-correction
+          git diff --cached --binary > /tmp/rtec-correction/rtec-correction.patch
+          git diff --cached --check > /tmp/rtec-correction/diff-check.txt 2>&1 || true
+          git diff --cached --name-status > /tmp/rtec-correction/name-status.txt
+
+      - name: Upload staged correction
+        uses: actions/upload-artifact@v4
+        with:
+          name: rtec-001-staged-correction
+          path: /tmp/rtec-correction
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Validate staged diff
-        run: git diff --cached --check
+        run: test ! -s /tmp/rtec-correction/diff-check.txt
 
       - name: Create exact reviewed commit
         run: |
