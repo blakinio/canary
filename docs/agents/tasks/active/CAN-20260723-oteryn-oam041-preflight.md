@@ -11,7 +11,7 @@ updated: 2026-07-24
 last_verified_commit: "879fbfaff75b4255b4164b5132a0987e9aec8358"
 risk: medium
 related_issue: ""
-related_pr: "pending"
+related_pr: "853"
 depends_on:
   - OAM-040 formally complete
 blocks:
@@ -45,10 +45,10 @@ cross_repo_tasks: []
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T07:30:00+02:00
-head: 61c22fdc142cfc0ed535693b9537a01a1f8ce707
+updated_at: 2026-07-24T07:32:00+02:00
+head: 3cdb448d865867e2ab75b729aa7dbdd798ad627f
 branch: dudantas/oam-041-spawns-governance
-pr: pending
+pr: 853
 status: ready
 context_routes:
   - agent-governance
@@ -73,7 +73,7 @@ derived:
   - Legacy Canary spawn runtime is not a stronger whole-module donor because reviewed target/upstream roots retain stronger maintenance-lane scheduling safeguards.
   - OAM-042 remains blocked until governance merge, separate lifecycle archive, durable program reconciliation and Otheryn target-task archive all merge.
 unknown:
-  - Exact Canary governance PR number and final merge SHA until this branch is delivered.
+  - Exact Canary governance final merge SHA until PR 853 completes.
   - Which dependency-valid canonical package a future fresh OAM-042 preflight will select.
 conflicts: []
 first_failure:
@@ -99,5 +99,5 @@ validation:
     result: PASS
     evidence: exactly four proof/task/test-registration paths changed; comments reviews threads empty; no target-main drift or forbidden mutation
 blockers: []
-next_action: Open the two-path Canary governance PR, apply ci:final-gate before the final checkpoint commit, require exact-current-head Agent Task Ownership and CI success, audit comments reviews threads and Canary-main drift, then expected-head squash merge before separate lifecycle archive.
+next_action: Require exact-current-head Agent Task Ownership and full final-gate CI success on PR 853, audit exactly two governance paths plus comments reviews threads and Canary-main drift, then expected-head squash merge before separate lifecycle archive.
 ```
