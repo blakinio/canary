@@ -8,7 +8,7 @@ branch: docs/e2e-qri-004-compact-handover
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "3dc2ac0dae6d155f4a93844a042d3ed8ecbea3fb"
+last_verified_commit: "1f93e0c3bd278699c797de65166a37f4f0abec0c"
 risk: medium
 related_issue: ""
 related_pr: "885"
@@ -55,8 +55,8 @@ Deliver a bounded factual M0-M5 and orthogonal quality-dimension coverage dashbo
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T21:15:00+02:00
-head: 3dc2ac0dae6d155f4a93844a042d3ed8ecbea3fb
+updated_at: 2026-07-24T22:39:10+02:00
+head: 1f93e0c3bd278699c797de65166a37f4f0abec0c
 branch: docs/e2e-qri-004-compact-handover
 pr: 885
 status: validating
@@ -84,7 +84,6 @@ proven:
   - Strongest M0-M5 maturity is selected only from successful valid schema-v3 envelopes; a failed declared higher M-level remains visible but cannot promote coverage.
   - Cleanup is accepted only after full cleanup schema-v1 validation and exact agreement with the independent cleanup quality dimension.
   - Evidence paths are normalized repository-independent references; absolute paths, parent traversal and result symlinks escaping an evidence root are rejected or retained as invalid evidence without leaking host paths.
-  - The exact GitHub blobs for tools/e2e/coverage_dashboard.py, tests/e2e/test_coverage_dashboard.py and the dashboard schema were reconstructed locally and matched SHA-1 values 3c08ff748fefe628e3c3f34293588b089d66ffc5, 243b2f3795be6d3ad3732d361a05857edaa79281 and 46769ffed08efe2e172f36c548caa3cb8663eadd.
   - The focused suite passes 15 of 15 against the repository's actual canonical result-envelope, cleanup-certification and scenario-discovery modules under WSL2 Ubuntu; no validator stubs or reconstructed blobs are involved.
   - The shared module catalogue now records the dashboard contract, paths and fail-closed reuse boundary adjacent to its result-envelope and cleanup-certification dependencies.
   - Universal Agent E2E run 30114455072 completed successfully on PR head 3dc2ac0dae6d155f4a93844a042d3ed8ecbea3fb, including the physical client login/relog job and Required physical E2E aggregator.
@@ -139,6 +138,9 @@ validation:
   - command: docs/agents/KNOWN_RISKS.md and docs/agents/BUILD_TEST_MATRIX.md targeted review
     result: PASS
     evidence: Generated reports stay outside Git; Python tool changes require bytecode compilation and focused unit tests, with no Canary compilation required by the changed implementation boundary.
+  - command: Agent Task Ownership run 30124758665
+    result: FAIL
+    evidence: Exact head 1f93e0c3bd278699c797de65166a37f4f0abec0c exceeded the checkpoint compactness limit with 17 proven items; the superseded reconstructed-blob evidence was removed so the next exact head has the allowed 16.
 blockers:
   - Exact final-head Ownership, CI, Universal Agent E2E and applicable autofix must pass before merge.
   - Final review-thread and changed-file audits remain pending on the frozen final head.
