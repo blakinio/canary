@@ -148,9 +148,10 @@ local function startLogin()
 	g_game.chooseRsa(HOST)
 
 	local sessionKey = ACCOUNT .. "\n" .. PASSWORD
-	local packetRecord = string.format("%s/session-%d.record", ARTIFACT_DIR, phase)
+	local packetRecordName = string.format("session-%d.record", phase)
+	local packetRecord = string.format("%s/%s", ARTIFACT_DIR, packetRecordName)
 	appendEvent("login_request_" .. phase, string.format("%s:%d/%s/%s/v%d", HOST, GAME_PORT, WORLD, CHARACTER, CLIENT_VERSION))
-	appendEvent("packet_record_" .. phase, packetRecord)
+	appendEvent("packet_record_" .. phase, packetRecordName)
 
 	g_game.loginWorld(ACCOUNT, PASSWORD, WORLD, HOST, GAME_PORT, CHARACTER, "", sessionKey, packetRecord)
 end
