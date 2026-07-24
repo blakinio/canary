@@ -8,6 +8,7 @@ on:
       - .github/workflows/tcr007-materialize.yml
       - .tcr007-stage/payload.tar.xz
       - .tcr007-stage/payload.sha256.actual
+      - .tcr007-stage/payload-members.json
       - docs/agents/tasks/active/CAN-20260724-tcr-007-proficiency-reference-correlation.md
 
 permissions:
@@ -32,76 +33,26 @@ jobs:
           actual="$(sha256sum .tcr007-stage/payload.tar.xz | awk '{print $1}')"
           test "$actual" = "$expected"
           python - <<'PY'
-          from pathlib import PurePosixPath
+          import json
           import tarfile
+          from pathlib import Path
 
-          expected = {
-              'tools/ai-agent/tibia_proficiency_reference_common.py',
-              'tools/ai-agent/tibia_proficiency_reference_inventory.py',
-              'tools/ai-agent/tibia_proficiency_reference_resolver.py',
-              'tools/ai-agent/tibia_proficiency_reference_correlation.py',
-              'tools/ai-agent/tibia_proficiency_reference_correlation_tool.py',
-              'tools/ai-agent/tibia_proficiency_reference_test_support.py',
-              'tools/ai-agent/test_tibia_proficiency_reference_correlation.py',
-              'tools/ai-agent/test_tibia_proficiency_reference_inventory.py',
-              'docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.md',
-              'docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.schema.json',
-              'docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_RESOLVER.schema.json',
-          }
-          observed = set()
+          rows = []
           with tarfile.open('.tcr007-stage/payload.tar.xz', mode='r:xz') as archive:
               for member in archive.getmembers():
-                  normalized = member.name[2:] if member.name.startswith('./') else member.name
-                  path = PurePosixPath(normalized)
-                  assert normalized and not path.is_absolute() and '..' not in path.parts, member.name
-                  assert member.isfile() or member.isdir(), f'unsupported tar member: {member.name}'
-                  if member.isfile():
-                      observed.add(normalized)
-          assert observed == expected, {'missing': sorted(expected - observed), 'extra': sorted(observed - expected)}
+                  rows.append({
+                      'name': member.name,
+                      'type': 'file' if member.isfile() else 'directory' if member.isdir() else 'symlink' if member.issym() else 'hardlink' if member.islnk() else 'other',
+                      'size': member.size,
+                      'linkname': member.linkname,
+                  })
+          Path('.tcr007-stage/payload-members.json').write_text(json.dumps(rows, indent=2, sort_keys=True) + '\n', encoding='utf-8')
           PY
-      - name: Extract staged implementation
-        shell: bash
-        run: |
-          tar -xJf .tcr007-stage/payload.tar.xz
-          chmod +x tools/ai-agent/tibia_proficiency_reference_correlation_tool.py
-      - name: Validate focused implementation
-        env:
-          PYTHONPATH: tools/ai-agent
-        shell: bash
-        run: |
-          python -m unittest discover -s tools/ai-agent -p 'test_tibia_proficiency_reference_*.py' -v
-          python -m py_compile \
-            tools/ai-agent/tibia_proficiency_reference_common.py \
-            tools/ai-agent/tibia_proficiency_reference_inventory.py \
-            tools/ai-agent/tibia_proficiency_reference_resolver.py \
-            tools/ai-agent/tibia_proficiency_reference_correlation.py \
-            tools/ai-agent/tibia_proficiency_reference_correlation_tool.py \
-            tools/ai-agent/tibia_proficiency_reference_test_support.py \
-            tools/ai-agent/test_tibia_proficiency_reference_correlation.py \
-            tools/ai-agent/test_tibia_proficiency_reference_inventory.py
-          python -m json.tool docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_RESOLVER.schema.json >/dev/null
-          python -m json.tool docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.schema.json >/dev/null
-          python tools/ai-agent/tibia_proficiency_reference_correlation_tool.py --help >/dev/null
-          python tools/ai-agent/tibia_proficiency_reference_correlation_tool.py inventory --repository-root . --output /tmp/TCR007_CANARY_EVIDENCE_A.json
-          python tools/ai-agent/tibia_proficiency_reference_correlation_tool.py inventory --repository-root . --output /tmp/TCR007_CANARY_EVIDENCE_B.json
-          cmp /tmp/TCR007_CANARY_EVIDENCE_A.json /tmp/TCR007_CANARY_EVIDENCE_B.json
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          report = json.loads(Path('/tmp/TCR007_CANARY_EVIDENCE_A.json').read_text())
-          assert report['format'] == 'canary-tcr007-canary-evidence-v1'
-          assert report['runtimeDefinitions']['recordCount'] > 0
-          assert report['itemBindingContract']['objectIdAssignsItemId'] is True
-          assert report['itemBindingContract']['proficiencyFlagAssignsRuntimeBinding'] is True
-          assert report['itemBindingContract']['unknownRuntimeDefinitionsRejected'] is True
-          assert report['runtimeSupport']['persistence'] == 'source-supported'
-          PY
-      - name: Commit validated implementation
-        shell: bash
-        run: |
-          rm -rf .tcr007-stage .github/workflows/tcr007-materialize.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'feat(tcr): implement proficiency reference correlation'
-          git push origin HEAD:feat/tcr-007-proficiency-reference-correlation
+          git add .tcr007-stage/payload-members.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'ci(tcr): record exact staged tar members'
+            git push origin HEAD:feat/tcr-007-proficiency-reference-correlation
+          fi
+          exit 1
