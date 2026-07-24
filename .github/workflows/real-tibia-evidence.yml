@@ -112,7 +112,7 @@ jobs:
           python tools/agents/real_tibia_evidence.py generate --check --as-of 2026-07-24
           python tools/agents/real_tibia_evidence.py show-index --as-of 2026-07-24 > /tmp/real-tibia-evidence-index.json
 
-      - name: Commit exact reviewed result
+      - name: Prepare exact reviewed result
         run: |
           git checkout HEAD -- .github/workflows/real-tibia-evidence.yml
           rm -rf tools/agents/.rtec001-migration
@@ -121,9 +121,16 @@ jobs:
             tools/agents/rtec001_make_schemas.py \
             tools/agents/rtec001_small_migrate.py
           test ! -e tools/agents/.rtec001-migration
+          git add -A
+          git status --short
+          git diff --cached --stat
+          git diff --cached --check
+
+      - name: Create exact reviewed commit
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git diff --cached --check
           git commit -m "fix(agents): enforce distinct version history contracts"
-          git push origin HEAD:feat/rtec-001-evidence-contracts-20260724
+
+      - name: Push exact reviewed commit
+        run: git push origin HEAD:feat/rtec-001-evidence-contracts-20260724
