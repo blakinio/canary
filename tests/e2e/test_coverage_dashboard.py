@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -31,6 +32,25 @@ class CoverageDashboardTest(unittest.TestCase):
         dimensions.update(overrides)
         return dimensions
 
+    def cleanup_summary(self, certified: bool) -> dict[str, object]:
+        return {
+            "schema_version": coverage_dashboard.CLEANUP_SCHEMA_VERSION,
+            "contract": coverage_dashboard.CLEANUP_CONTRACT,
+            "status": "certified" if certified else "partial",
+            "cleanup_certified": certified,
+            "process_group_cleanup": {
+                "members_before": [],
+                "members_after": [],
+            },
+            "checks": [
+                {
+                    "id": "runner-owned-workspace-restored",
+                    "status": "pass" if certified else "fail",
+                    "required": True,
+                }
+            ],
+        }
+
     def envelope(
         self,
         *,
@@ -48,12 +68,9 @@ class CoverageDashboardTest(unittest.TestCase):
         quality = dimensions or self.dimensions(diagnostics="pass")
         if cleanup_certified is not None:
             quality["cleanup"] = "pass" if cleanup_certified else "fail"
-            cleanup_summary: dict[str, object] = {
-                "contract": coverage_dashboard.CLEANUP_CONTRACT,
-                "schema_version": coverage_dashboard.CLEANUP_SCHEMA_VERSION,
-                "status": "certified" if cleanup_certified else "failed",
-                "cleanup_certified": cleanup_certified,
-            }
+            cleanup_summary: dict[str, object] = self.cleanup_summary(
+                cleanup_certified
+            )
         else:
             cleanup_summary = {
                 "contract": None,
@@ -116,13 +133,14 @@ class CoverageDashboardTest(unittest.TestCase):
         evidence: list[dict[str, object]],
         invalid: list[dict[str, object]] | None = None,
         stale_after_days: int | None = None,
+        as_of: datetime = AS_OF,
     ) -> dict[str, object]:
         return coverage_dashboard.build_report(
             registered_scenarios=registered,
             evidence=evidence,
             invalid_evidence=invalid or [],
             evidence_roots=[{"id": "evidence-1", "result_files": len(evidence)}],
-            as_of=AS_OF,
+            as_of=as_of,
             stale_after_days=stale_after_days,
         )
 
@@ -237,12 +255,49 @@ class CoverageDashboardTest(unittest.TestCase):
             },
         )
 
+    def test_future_evidence_is_rejected_against_explicit_as_of(self) -> None:
+        evidence = self.normalize(
+            self.envelope(
+                run_id="future-run", ended_at="2026-07-24T13:00:00.000Z"
+            )
+        )
+
+        with self.assertRaisesRegex(
+            coverage_dashboard.CoverageDashboardError, "ends after as_of"
+        ):
+            self.build(registered=[], evidence=[evidence])
+
+    def test_naive_as_of_is_rejected(self) -> None:
+        with self.assertRaisesRegex(
+            coverage_dashboard.CoverageDashboardError, "timezone-aware"
+        ):
+            self.build(
+                registered=[],
+                evidence=[],
+                as_of=datetime(2026, 7, 24, 12, 0),
+            )
+
     def test_cleanup_contract_must_match_cleanup_dimension(self) -> None:
         payload = self.envelope(run_id="bad-cleanup", cleanup_certified=True)
         payload["quality_dimensions"]["cleanup"] = "fail"
 
         with self.assertRaisesRegex(
             coverage_dashboard.CoverageDashboardError, "disagrees"
+        ):
+            self.normalize(payload)
+
+    def test_exact_cleanup_header_without_schema_body_is_rejected(self) -> None:
+        payload = self.envelope(run_id="truncated-cleanup", cleanup_certified=True)
+        payload["cleanup_summary"] = {
+            "schema_version": coverage_dashboard.CLEANUP_SCHEMA_VERSION,
+            "contract": coverage_dashboard.CLEANUP_CONTRACT,
+            "status": "certified",
+            "cleanup_certified": True,
+        }
+
+        with self.assertRaisesRegex(
+            coverage_dashboard.CoverageDashboardError,
+            "invalid cleanup certification",
         ):
             self.normalize(payload)
 
@@ -268,6 +323,43 @@ class CoverageDashboardTest(unittest.TestCase):
         self.assertEqual(1, len(invalid))
         self.assertEqual("bad/result.json", invalid[0]["source"]["path"])
         self.assertEqual([{"id": "evidence-1", "result_files": 2}], roots)
+
+    @unittest.skipIf(os.name == "nt", "symlink behavior is platform-specific")
+    def test_discovery_rejects_result_symlink_outside_evidence_root(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            root = base / "evidence"
+            outside = base / "outside"
+            root.mkdir()
+            outside.mkdir()
+            target = outside / "result.json"
+            target.write_text(
+                json.dumps(self.envelope(run_id="outside-run")) + "\n",
+                encoding="utf-8",
+            )
+            link_dir = root / "linked"
+            link_dir.mkdir()
+            (link_dir / "result.json").symlink_to(target)
+
+            valid, invalid, _ = coverage_dashboard.discover_result_evidence([root])
+
+        self.assertEqual([], valid)
+        self.assertEqual(1, len(invalid))
+        self.assertEqual("linked/result.json", invalid[0]["source"]["path"])
+        self.assertEqual(
+            "result.json resolves outside the evidence root", invalid[0]["error"]
+        )
+        self.assertNotIn(directory, json.dumps(invalid))
+
+    def test_absolute_or_parent_source_paths_are_rejected(self) -> None:
+        payload = self.envelope(run_id="unsafe-source")
+        for path in ("/tmp/result.json", "../result.json", "a/../result.json"):
+            with self.subTest(path=path):
+                with self.assertRaisesRegex(
+                    coverage_dashboard.CoverageDashboardError,
+                    "safe POSIX relative path",
+                ):
+                    self.normalize(payload, path=path)
 
     def test_scenario_discovery_reuses_existing_runner_and_emits_relative_paths(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -328,11 +420,17 @@ class CoverageDashboardTest(unittest.TestCase):
         self.assertIn("unknown retained", first_markdown)
         self.assertIn("No score is calculated", first_markdown)
 
-    def test_report_validation_rejects_unsorted_or_duplicate_rows(self) -> None:
+    def test_report_validation_rejects_unsorted_rows(self) -> None:
         report = self.build(
             registered=[
-                {"scenario": "zeta/one", "source": "tests/e2e/scenarios/zeta/one.json"},
-                {"scenario": "alpha/one", "source": "tests/e2e/scenarios/alpha/one.json"},
+                {
+                    "scenario": "zeta/one",
+                    "source": "tests/e2e/scenarios/zeta/one.json",
+                },
+                {
+                    "scenario": "alpha/one",
+                    "source": "tests/e2e/scenarios/alpha/one.json",
+                },
             ],
             evidence=[],
         )
@@ -340,6 +438,19 @@ class CoverageDashboardTest(unittest.TestCase):
 
         with self.assertRaisesRegex(
             coverage_dashboard.CoverageDashboardError, "unique and sorted"
+        ):
+            coverage_dashboard.validate_report(report)
+
+    def test_report_validation_rejects_unproven_maturity_with_evidence(self) -> None:
+        evidence = self.normalize(self.envelope(run_id="success-run"))
+        report = self.build(registered=[], evidence=[evidence])
+        report["scenarios"][0]["strongest_proven_maturity"]["level"] = (
+            "not-proven"
+        )
+
+        with self.assertRaisesRegex(
+            coverage_dashboard.CoverageDashboardError,
+            "must not cite evidence",
         ):
             coverage_dashboard.validate_report(report)
 
