@@ -4,8 +4,8 @@ name: Universal OTS E2E automation
 status: active
 owner: e2e-platform-agent
 created: 2026-07-13T00:00:00+02:00
-updated: 2026-07-23T00:00:00+02:00
-last_verified_commit: 115f3ac2fffc36bb4e415c2a6fb45908d9538ba3
+updated: 2026-07-24T13:40:00+02:00
+last_verified_commit: 49b6d190eaa15353d2220c2b5f5f18246ebaa982
 primary_paths:
   - tools/e2e/**
   - tests/e2e/runtime/**
@@ -91,6 +91,8 @@ A feature task consumes platform implementation paths read-only unless a separat
 | Typed persistence assertion surfaces | implementation merged; closure matrix delivered | PRs #565, #583, #586, #591, #595, #603, #608, #615 and closure PR #666 | use `docs/e2e/PERSISTENCE_ASSERTION_MATRIX.md`; add a generic type only for a concrete reusable gap |
 | Bounded two-client orchestration | merged and runtime-proven | PR #747; lifecycle archive #753 | reuse `canary-universal-e2e-two-client-orchestration-v1` for exactly one secondary controlled OTClient |
 | Controlled client-disconnect recovery | merged and runtime-proven | PR #751; lifecycle archive #764 | reuse `canary-universal-e2e-client-disconnect-recovery-v1`; it is not arbitrary fault injection |
+| Standard machine-readable result envelope | merged and runtime-proven | PR #850; lifecycle archive #861 | reuse `canary-universal-e2e-result-envelope-v1` schema v3 and the existing `result.json`; keep M0-M5, orthogonal quality dimensions, failed attempts and QRI-006 cleanup certification boundaries explicit |
+| Resource cleanup certification | merged and runtime-proven | PR #871 | reuse `canary-universal-e2e-cleanup-certification-v1` schema v1 after the canonical lifecycle trap; cleanup passes only when every required applicable exact process, database, workspace and marker check passes, independently from gameplay status |
 | Representative cross-system gameplay journey | merged and runtime-proven M4 sentinel | PR #765; lifecycle archive #791 | `journeys/promotion-combat-persistence` is an integration sentinel; focused lower-level scenarios remain authoritative |
 | Cyclopedia-specific prototype | closed and superseded | PR #224 | historical evidence only; do not revive or copy its infrastructure |
 
@@ -200,21 +202,16 @@ The roadmap is organized into four workstreams:
 3. **Test intelligence/diagnostics** — standard result envelope, factual coverage dashboard, differential runtime comparison, deterministic replay, failure minimization, invariants, seeded reproducible fuzzing, state-machine misuse, dependency-driven selection, crash bundles and stability certification.
 4. **Operational/release confidence** — soak, performance regression, Canary/OTClient compatibility, datapack compatibility, migration E2E and a reviewed release gold suite.
 
-## Recommended first implementation wave
+## Recommended next implementation wave
 
-Select one package at a time after live dependency and ownership preflight. Current recommendation:
+Select one package at a time after live dependency and ownership preflight. QRI-001, QRI-002, QRI-003, QRI-005 and QRI-006 are delivered. Current recommendation:
 
-1. `E2E-QRI-005` — standard machine-readable result envelope and richer first-failure evidence;
-2. `E2E-QRI-006` — resource cleanup certification;
-3. `E2E-QRI-001` — real two-player trade and persistence;
-4. `E2E-QRI-002` — Canary restart/reconnect recovery;
-5. `E2E-QRI-003` — broader representative Journey 002;
-6. `E2E-QRI-004` — factual M0-M5 plus quality-dimension coverage dashboard;
-7. `E2E-QRI-022` — flake/stability certification after the selected scenarios are stable enough to measure.
+1. `E2E-QRI-004` — factual M0-M5 plus quality-dimension coverage dashboard consuming the merged result and cleanup contracts;
+2. `E2E-QRI-022` — flake/stability certification after the selected scenarios are stable enough to measure.
 
 Later waves cover transactional/resilience correctness (`QRI-008` through `014`), test intelligence (`QRI-015` through `021`) and operational/release confidence (`QRI-023` through `028`).
 
-This ordering is guidance, not permission to start all packages concurrently. Concrete feature demand and current ownership remain authoritative.
+This ordering is guidance, not permission to start packages concurrently. Concrete feature demand and current ownership remain authoritative.
 
 # Suite roots
 

@@ -1,0 +1,578 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.local/schemas/canary-otbm-house-reference-parity-v1.json",
+  "title": "Canary OTBM House Reference Parity v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "provenance",
+    "namespaces",
+    "resolver",
+    "houses",
+    "findings",
+    "orphanHouseDoorPlacements",
+    "summary",
+    "policy"
+  ],
+  "properties": {
+    "format": {
+      "const": "canary-otbm-house-reference-parity-v1"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "provenance": {
+      "$ref": "#/$defs/parityProvenance"
+    },
+    "namespaces": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clientHouseId",
+        "otbmHouseId",
+        "staticmapObjectId"
+      ],
+      "properties": {
+        "clientHouseId": {
+          "const": "client-reference.house-id"
+        },
+        "otbmHouseId": {
+          "const": "otbm.house-id"
+        },
+        "staticmapObjectId": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "resolution",
+            "otbmItemIdEquivalent"
+          ],
+          "properties": {
+            "name": {
+              "const": "staticmapdata.object_id"
+            },
+            "resolution": {
+              "const": "unresolved"
+            },
+            "otbmItemIdEquivalent": {
+              "const": false
+            }
+          }
+        }
+      }
+    },
+    "resolver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sha256",
+        "method",
+        "review",
+        "mappingCount"
+      ],
+      "properties": {
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "method": {
+          "enum": [
+            "exact-identity",
+            "one-to-one-mapped"
+          ]
+        },
+        "review": {
+          "$ref": "#/$defs/review"
+        },
+        "mappingCount": {
+          "$ref": "#/$defs/count"
+        }
+      }
+    },
+    "houses": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/houseRow"
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/parityFinding"
+      }
+    },
+    "orphanHouseDoorPlacements": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/doorPlacement"
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "staticdataHouseCount",
+        "staticdataHouseFieldOrder",
+        "staticmapdataHouseCount",
+        "otbmHouseCount",
+        "houseRecordCount",
+        "findingCount",
+        "orphanHouseDoorPlacementCount",
+        "stateCounts"
+      ],
+      "properties": {
+        "staticdataHouseCount": {
+          "$ref": "#/$defs/count"
+        },
+        "staticdataHouseFieldOrder": {
+          "enum": [
+            "unresolved",
+            "legacy",
+            "newer"
+          ]
+        },
+        "staticmapdataHouseCount": {
+          "$ref": "#/$defs/count"
+        },
+        "otbmHouseCount": {
+          "$ref": "#/$defs/count"
+        },
+        "houseRecordCount": {
+          "$ref": "#/$defs/count"
+        },
+        "findingCount": {
+          "$ref": "#/$defs/count"
+        },
+        "orphanHouseDoorPlacementCount": {
+          "$ref": "#/$defs/count"
+        },
+        "stateCounts": {
+          "$ref": "#/$defs/stateCounts"
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reviewFindingsOnly",
+        "otbmParsing",
+        "otbmWriting",
+        "pathfinding",
+        "geometryRecomputation",
+        "nameMapping",
+        "proximityMapping",
+        "numericIdentityInference",
+        "staticdataHouseFieldOrder",
+        "declaredSizeComparison",
+        "objectIdMapping",
+        "gameplayConclusions",
+        "maxJsonBytes",
+        "maxHouses",
+        "maxMappings"
+      ],
+      "properties": {
+        "reviewFindingsOnly": {
+          "const": true
+        },
+        "otbmParsing": {
+          "const": false
+        },
+        "otbmWriting": {
+          "const": false
+        },
+        "pathfinding": {
+          "const": false
+        },
+        "geometryRecomputation": {
+          "const": false
+        },
+        "nameMapping": {
+          "const": false
+        },
+        "proximityMapping": {
+          "const": false
+        },
+        "numericIdentityInference": {
+          "const": false
+        },
+        "staticdataHouseFieldOrder": {
+          "enum": [
+            "unresolved",
+            "legacy",
+            "newer"
+          ]
+        },
+        "declaredSizeComparison": {
+          "const": "enabled-only-when-reviewed-size-is-present"
+        },
+        "objectIdMapping": {
+          "const": false
+        },
+        "gameplayConclusions": {
+          "const": false
+        },
+        "maxJsonBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxHouses": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxMappings": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  },
+  "$defs": {
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "id": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4294967295
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nonEmpty": {
+      "type": "string",
+      "minLength": 1
+    },
+    "state": {
+      "enum": [
+        "conforming",
+        "reference-only",
+        "otbm-only",
+        "mismatch",
+        "partial",
+        "unresolved-id-space",
+        "conflicting",
+        "stale-evidence"
+      ]
+    },
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "reviewId",
+        "statement"
+      ],
+      "properties": {
+        "state": {
+          "const": "reviewed"
+        },
+        "reviewId": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "statement": {
+          "$ref": "#/$defs/nonEmpty"
+        }
+      }
+    },
+    "houseFieldEvidence": {
+      "type": "object",
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "unresolved",
+            "reviewed"
+          ]
+        },
+        "reviewId": {
+          "type": "string"
+        },
+        "statement": {
+          "type": "string"
+        }
+      }
+    },
+    "baseProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clientReferenceId",
+        "clientManifestSha256",
+        "staticdataIndexSha256",
+        "staticdataHouseFieldOrder",
+        "staticdataHouseFieldOrderEvidence",
+        "staticmapdataIndexSha256",
+        "worldIndexManifestSha256",
+        "worldIndexSha256",
+        "sourceMapSha256"
+      ],
+      "properties": {
+        "clientReferenceId": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "clientManifestSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "staticdataIndexSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "staticdataHouseFieldOrder": {
+          "enum": [
+            "unresolved",
+            "legacy",
+            "newer"
+          ]
+        },
+        "staticdataHouseFieldOrderEvidence": {
+          "$ref": "#/$defs/houseFieldEvidence"
+        },
+        "staticmapdataIndexSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "worldIndexManifestSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "worldIndexSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "sourceMapSha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "parityProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clientReferenceId",
+        "clientManifestSha256",
+        "staticdataIndexSha256",
+        "staticdataHouseFieldOrder",
+        "staticdataHouseFieldOrderEvidence",
+        "staticmapdataIndexSha256",
+        "worldIndexManifestSha256",
+        "worldIndexSha256",
+        "sourceMapSha256",
+        "resolverSha256"
+      ],
+      "properties": {
+        "clientReferenceId": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "clientManifestSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "staticdataIndexSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "staticdataHouseFieldOrder": {
+          "enum": [
+            "unresolved",
+            "legacy",
+            "newer"
+          ]
+        },
+        "staticdataHouseFieldOrderEvidence": {
+          "$ref": "#/$defs/houseFieldEvidence"
+        },
+        "staticmapdataIndexSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "worldIndexManifestSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "worldIndexSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "sourceMapSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "resolverSha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "doorPlacement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "houseDoorId",
+        "position",
+        "itemId",
+        "placementOrdinal"
+      ],
+      "properties": {
+        "houseDoorId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "position": {
+          "$ref": "#/$defs/position"
+        },
+        "itemId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "placementOrdinal": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "houseRow": {
+      "type": "object",
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "clientHouseId": {
+          "$ref": "#/$defs/id"
+        },
+        "otbmHouseId": {
+          "$ref": "#/$defs/id"
+        },
+        "state": {
+          "$ref": "#/$defs/state"
+        },
+        "registry": {
+          "type": "object"
+        },
+        "layout": {
+          "type": "object"
+        },
+        "otbm": {
+          "type": "object"
+        },
+        "comparisons": {
+          "type": "object"
+        },
+        "findingDimensions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmpty"
+          }
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "clientHouseId"
+          ]
+        },
+        {
+          "required": [
+            "otbmHouseId"
+          ]
+        }
+      ]
+    },
+    "parityFinding": {
+      "type": "object",
+      "required": [
+        "state",
+        "dimensions"
+      ],
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/state"
+        },
+        "clientHouseId": {
+          "$ref": "#/$defs/id"
+        },
+        "otbmHouseId": {
+          "$ref": "#/$defs/id"
+        },
+        "dimensions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonEmpty"
+          }
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "clientHouseId"
+          ]
+        },
+        {
+          "required": [
+            "otbmHouseId"
+          ]
+        }
+      ]
+    },
+    "stateCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "conforming",
+        "reference-only",
+        "otbm-only",
+        "mismatch",
+        "partial",
+        "unresolved-id-space",
+        "conflicting",
+        "stale-evidence"
+      ],
+      "properties": {
+        "conforming": {
+          "$ref": "#/$defs/count"
+        },
+        "reference-only": {
+          "$ref": "#/$defs/count"
+        },
+        "otbm-only": {
+          "$ref": "#/$defs/count"
+        },
+        "mismatch": {
+          "$ref": "#/$defs/count"
+        },
+        "partial": {
+          "$ref": "#/$defs/count"
+        },
+        "unresolved-id-space": {
+          "$ref": "#/$defs/count"
+        },
+        "conflicting": {
+          "$ref": "#/$defs/count"
+        },
+        "stale-evidence": {
+          "$ref": "#/$defs/count"
+        }
+      }
+    }
+  }
+}

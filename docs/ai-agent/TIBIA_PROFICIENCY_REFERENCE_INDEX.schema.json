@@ -1,0 +1,355 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.local/schemas/canary-tibia-proficiency-index-v1.json",
+  "title": "Canary Tibia Proficiency Reference Index v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "source",
+    "identifierNamespaces",
+    "proficiencies",
+    "findings",
+    "summary",
+    "policy"
+  ],
+  "properties": {
+    "format": {
+      "const": "canary-tibia-proficiency-index-v1"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
+    "identifierNamespaces": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["proficiencyId"],
+      "properties": {
+        "proficiencyId": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "resolution", "appearanceEquivalent", "canaryRuntimeEquivalent"],
+          "properties": {
+            "name": {
+              "const": "client-reference.proficiency-id"
+            },
+            "resolution": {
+              "const": "definition-only"
+            },
+            "appearanceEquivalent": {
+              "const": false
+            },
+            "canaryRuntimeEquivalent": {
+              "const": false
+            }
+          }
+        }
+      }
+    },
+    "proficiencies": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/proficiency"
+      }
+    },
+    "findings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["duplicateProficiencyIds", "duplicateNames"],
+      "properties": {
+        "duplicateProficiencyIds": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["proficiencyId", "sourceOrdinals"],
+            "properties": {
+              "proficiencyId": {
+                "$ref": "#/$defs/positiveUint32"
+              },
+              "sourceOrdinals": {
+                "$ref": "#/$defs/sourceOrdinals"
+              }
+            }
+          }
+        },
+        "duplicateNames": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "sourceOrdinals"],
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/nonEmptyString"
+              },
+              "sourceOrdinals": {
+                "$ref": "#/$defs/sourceOrdinals"
+              }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proficiencyCount",
+        "levelCount",
+        "perkCount",
+        "xpRequirementCount",
+        "duplicateProficiencyIdCount",
+        "duplicateNameCount"
+      ],
+      "properties": {
+        "proficiencyCount": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "levelCount": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "perkCount": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "xpRequirementCount": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "duplicateProficiencyIdCount": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "duplicateNameCount": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "definitionOnly",
+        "appearanceParsing",
+        "appearanceCorrelation",
+        "runtimeCorrelation",
+        "itemsXmlWriting",
+        "gameplayConclusions",
+        "maxSourceBytes",
+        "maxDecompressedBytes",
+        "maxProficiencies",
+        "maxLevels",
+        "maxPerks"
+      ],
+      "properties": {
+        "definitionOnly": {
+          "const": true
+        },
+        "appearanceParsing": {
+          "const": false
+        },
+        "appearanceCorrelation": {
+          "const": false
+        },
+        "runtimeCorrelation": {
+          "const": false
+        },
+        "itemsXmlWriting": {
+          "const": false
+        },
+        "gameplayConclusions": {
+          "const": false
+        },
+        "maxSourceBytes": {
+          "$ref": "#/$defs/positiveInteger"
+        },
+        "maxDecompressedBytes": {
+          "$ref": "#/$defs/positiveInteger"
+        },
+        "maxProficiencies": {
+          "$ref": "#/$defs/positiveInteger"
+        },
+        "maxLevels": {
+          "$ref": "#/$defs/positiveInteger"
+        },
+        "maxPerks": {
+          "$ref": "#/$defs/positiveInteger"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "nonNegativeInteger": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "positiveInteger": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "uint32": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "positiveUint32": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4294967295
+    },
+    "uint64": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 18446744073709551615
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "sourceOrdinals": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "integer",
+        "minimum": 1
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manifestFormat",
+        "manifestSha256",
+        "referenceId",
+        "inputId",
+        "manifestPath",
+        "sizeBytes",
+        "sha256",
+        "encoding",
+        "decodedSizeBytes"
+      ],
+      "properties": {
+        "manifestFormat": {
+          "const": "canary-tibia-client-reference-manifest-v1"
+        },
+        "manifestSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "referenceId": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "inputId": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "manifestPath": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "sizeBytes": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "encoding": {
+          "enum": ["raw", "xz", "lzma"]
+        },
+        "decodedSizeBytes": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        }
+      }
+    },
+    "proficiency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceOrdinal", "proficiencyId", "name", "levels"],
+      "properties": {
+        "sourceOrdinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "proficiencyId": {
+          "$ref": "#/$defs/positiveUint32"
+        },
+        "name": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "version": {
+          "$ref": "#/$defs/uint32"
+        },
+        "levels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/level"
+          }
+        }
+      }
+    },
+    "level": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceOrdinal", "perks"],
+      "properties": {
+        "sourceOrdinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "xpRequired": {
+          "$ref": "#/$defs/uint64"
+        },
+        "perks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/perk"
+          }
+        }
+      }
+    },
+    "perk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceOrdinal", "type", "value"],
+      "properties": {
+        "sourceOrdinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "augmentType": {
+          "$ref": "#/$defs/uint32"
+        },
+        "bestiaryId": {
+          "$ref": "#/$defs/uint32"
+        },
+        "bestiaryName": {
+          "type": "string"
+        },
+        "damageType": {
+          "$ref": "#/$defs/uint32"
+        },
+        "elementId": {
+          "$ref": "#/$defs/uint32"
+        },
+        "range": {
+          "$ref": "#/$defs/uint32"
+        },
+        "skillId": {
+          "$ref": "#/$defs/uint32"
+        },
+        "spellId": {
+          "$ref": "#/$defs/uint32"
+        },
+        "type": {
+          "$ref": "#/$defs/uint32"
+        },
+        "value": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

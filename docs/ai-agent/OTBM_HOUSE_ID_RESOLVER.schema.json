@@ -1,0 +1,335 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.local/schemas/canary-otbm-house-id-resolver-v1.json",
+  "title": "Canary OTBM House ID Resolver v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "provenance",
+    "namespaces",
+    "method",
+    "review",
+    "mappings",
+    "findings",
+    "summary",
+    "policy"
+  ],
+  "properties": {
+    "format": {
+      "const": "canary-otbm-house-id-resolver-v1"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    },
+    "namespaces": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "target"
+      ],
+      "properties": {
+        "source": {
+          "const": "client-reference.house-id"
+        },
+        "target": {
+          "const": "otbm.house-id"
+        }
+      }
+    },
+    "method": {
+      "enum": [
+        "exact-identity",
+        "one-to-one-mapped"
+      ]
+    },
+    "review": {
+      "$ref": "#/$defs/review"
+    },
+    "mappings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/mapping"
+      }
+    },
+    "findings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unresolved",
+        "conflicts"
+      ],
+      "properties": {
+        "unresolved": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/finding"
+          }
+        },
+        "conflicts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/finding"
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clientHouseCount",
+        "mappingCount",
+        "unresolvedCount",
+        "conflictCount"
+      ],
+      "properties": {
+        "clientHouseCount": {
+          "$ref": "#/$defs/count"
+        },
+        "mappingCount": {
+          "$ref": "#/$defs/count"
+        },
+        "unresolvedCount": {
+          "$ref": "#/$defs/count"
+        },
+        "conflictCount": {
+          "$ref": "#/$defs/count"
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "exactRegistryPositionOnly",
+        "nameMapping",
+        "proximityMapping",
+        "numericIdentityInference",
+        "objectIdMapping",
+        "requiresExactProvenance",
+        "staticdataHouseFieldOrder",
+        "declaredSizeComparison"
+      ],
+      "properties": {
+        "exactRegistryPositionOnly": {
+          "const": true
+        },
+        "nameMapping": {
+          "const": false
+        },
+        "proximityMapping": {
+          "const": false
+        },
+        "numericIdentityInference": {
+          "const": false
+        },
+        "objectIdMapping": {
+          "const": false
+        },
+        "requiresExactProvenance": {
+          "const": true
+        },
+        "staticdataHouseFieldOrder": {
+          "enum": [
+            "unresolved",
+            "legacy",
+            "newer"
+          ]
+        },
+        "declaredSizeComparison": {
+          "const": "enabled-only-when-reviewed-size-is-present"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "id": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4294967295
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nonEmpty": {
+      "type": "string",
+      "minLength": 1
+    },
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "reviewId",
+        "statement"
+      ],
+      "properties": {
+        "state": {
+          "const": "reviewed"
+        },
+        "reviewId": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "statement": {
+          "$ref": "#/$defs/nonEmpty"
+        }
+      }
+    },
+    "houseFieldEvidence": {
+      "type": "object",
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "unresolved",
+            "reviewed"
+          ]
+        },
+        "reviewId": {
+          "type": "string"
+        },
+        "statement": {
+          "type": "string"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clientReferenceId",
+        "clientManifestSha256",
+        "staticdataIndexSha256",
+        "staticdataHouseFieldOrder",
+        "staticdataHouseFieldOrderEvidence",
+        "staticmapdataIndexSha256",
+        "worldIndexManifestSha256",
+        "worldIndexSha256",
+        "sourceMapSha256"
+      ],
+      "properties": {
+        "clientReferenceId": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "clientManifestSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "staticdataIndexSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "staticdataHouseFieldOrder": {
+          "enum": [
+            "unresolved",
+            "legacy",
+            "newer"
+          ]
+        },
+        "staticdataHouseFieldOrderEvidence": {
+          "$ref": "#/$defs/houseFieldEvidence"
+        },
+        "staticmapdataIndexSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "worldIndexManifestSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "worldIndexSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "sourceMapSha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clientHouseId",
+        "otbmHouseId",
+        "method",
+        "position"
+      ],
+      "properties": {
+        "clientHouseId": {
+          "$ref": "#/$defs/id"
+        },
+        "otbmHouseId": {
+          "$ref": "#/$defs/id"
+        },
+        "method": {
+          "const": "exact-registry-position-house-tile"
+        },
+        "position": {
+          "$ref": "#/$defs/position"
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "required": [
+        "clientHouseId",
+        "reason"
+      ],
+      "properties": {
+        "clientHouseId": {
+          "$ref": "#/$defs/id"
+        },
+        "otbmHouseId": {
+          "$ref": "#/$defs/id"
+        },
+        "otherClientHouseId": {
+          "$ref": "#/$defs/id"
+        },
+        "reason": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "position": {
+          "$ref": "#/$defs/position"
+        },
+        "staticdataDuplicate": {
+          "type": "boolean"
+        },
+        "staticmapdataDuplicate": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
