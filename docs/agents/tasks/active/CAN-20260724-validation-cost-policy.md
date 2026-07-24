@@ -1,5 +1,6 @@
 ---
 task_id: CAN-20260724-validation-cost-policy
+program_id: OTS-20260724-validation-cost-policy
 coordination_id: OTS-20260724-validation-cost-policy
 status: review
 agent: "GPT-5.6 Thinking"
@@ -45,8 +46,8 @@ Make validation proportional to the changed paths, risk and coherent project mil
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T09:23:00+02:00
-head: 0bc7b1fd069ae57facb0e32089ff334ba0f9801b
+updated_at: 2026-07-24T09:28:00+02:00
+head: 943a227cda54fbafeca40664424d04caa4083f12
 branch: dudantas/validation-cost-policy
 pr: 857
 status: validating
@@ -64,17 +65,17 @@ proven:
   - build-macos was removed from the Required job dependencies and required_builds evaluation.
   - .github/workflows/reusable-build-macos.yml remains available for a future explicit re-enable task.
   - PR 857 has the ci:final-gate label before the final checkpoint commits.
-  - tools/agents/task_ownership.py defines review as an active task status and tools/agents/task_lifecycle.py permits review with checkpoint status validating.
+  - tools/agents/task_ownership.py defines review as an active task status and requires program_id, agent and branch for active structured tasks.
 derived:
   - Normal Canary CI can no longer schedule or require the macOS build while Linux, Windows, Docker and focused checks retain their existing selection logic.
 unknown:
   - Exact current-head CI conclusions until workflows complete.
 conflicts: []
 first_failure:
-  marker: task checkpoint contract
-  evidence: Ownership artifacts successively identified missing fields, an unsupported validation result and invalid frontmatter status values before the repository validator contract was read directly.
+  marker: task ownership contract
+  evidence: Ownership validation successively identified missing checkpoint fields, an unsupported validation result, invalid active status values and then the structured-task program_id requirement.
 rejected_hypotheses:
-  - The ownership failures were not caused by the macOS CI removal or YAML syntax; every artifact identified only task-record contract violations.
+  - The ownership failures were not caused by the macOS CI removal or YAML syntax; the changed-task artifact passed and the remaining failure occurred only in the ownership index stage.
 changed_paths:
   - .github/workflows/ci.yml
   - docs/agents/BUILD_TEST_MATRIX.md
@@ -83,9 +84,9 @@ validation:
   - command: exact PR patch and changed-file audit
     result: PASS
     evidence: PR 857 changes exactly the CI caller, build/test matrix and task record; macOS caller and Required references are absent while other job definitions remain intact.
-  - command: task lifecycle contract source review
+  - command: task ownership and lifecycle source review
     result: PASS
-    evidence: ACTIVE_STATUSES includes review and STATUS_COMPATIBILITY maps review to validating or ready.
+    evidence: Frontmatter now uses review, includes program_id, agent and branch, and checkpoint status validating is compatible.
 blockers: []
 next_action: Verify the new exact-head ownership and CI runs, confirm no macOS job is emitted and require all remaining selected checks to pass.
 ```
