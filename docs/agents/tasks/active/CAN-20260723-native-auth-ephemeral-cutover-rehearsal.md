@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: test/CAN-20260723-native-auth-ephemeral-cutover-rehearsal
 base_branch: main
 created: 2026-07-23T23:00:00+02:00
-updated: 2026-07-24T12:05:00+02:00
-last_verified_commit: fdab1a6b7e4fe8275f12c19812194fbc2ee01c2c
+updated: 2026-07-24T12:25:00+02:00
+last_verified_commit: 5b1a01850c6f04fc3c5319dbef40f43535918856
 risk: high
 related_issue: ""
 related_pr: "841"
@@ -71,14 +71,14 @@ The maximum evidence classification is `PRODUCTION_LIKE_PROVEN`; this task must 
 - Trust boundary: OTClient -> Platform public OAuth/ticket API -> Gateway public login -> Platform private redeem/context -> Canary private Game Session issuer -> Canary game protocol.
 - The client never chooses the authoritative Canary account; one-time OAuth/code/ticket/session material must fail closed on expiry/replay.
 - Validation-only: no production schema migration or production session contract change is introduced.
-- Only ephemeral generated credentials are used and retained evidence is scanned.
+- Browser diagnostics must never retain OAuth state, code challenge values, credentials, tokens or response bodies.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T12:05:00+02:00
-head: fdab1a6b7e4fe8275f12c19812194fbc2ee01c2c
+updated_at: 2026-07-24T12:25:00+02:00
+head: 5b1a01850c6f04fc3c5319dbef40f43535918856
 branch: test/CAN-20260723-native-auth-ephemeral-cutover-rehearsal
 pr: 841
 status: validating
@@ -91,27 +91,27 @@ owned_paths:
   - .github/workflows/native-auth-ephemeral-cutover-rehearsal.yml
   - tests/e2e/native_auth_ephemeral_cutover/**
 proven:
-  - Platform rehearsal run 30083664968 passed OAuth PKCE, real authorization-code expiry, ticket and service credential checks, outage recovery, cache headers, correlation, physical random-session rejection, unauthorized-character burn and Canary restart invalidation/recovery.
-  - The same run retained malformed-gateway-client-events.tsv with malformed_gateway_response rejected, successful_world_entries 0 and e2e success.
-  - The static malformed Gateway access log was empty and browser_driver recorded failure_HTTPError; Platform logged GET /oauth/authorize status 400 before the ticket could reach the fake Gateway boundary.
-  - The malformed Gateway helper was the only native OAuth helper that did not wait for CharacterList before starting OterynIdentity.
-  - Commit fdab1a6b7e4fe8275f12c19812194fbc2ee01c2c aligns its readiness predicate with the maintained happy-path helper by requiring CharacterList.
-  - No Platform, Gateway, Canary runtime or OTClient binary source was changed by this harness correction.
+  - Platform rehearsal run 30084930018 passed all matrix gates through cache headers, correlation, physical random-session rejection, unauthorized-character burn and Canary restart invalidation/recovery.
+  - The malformed Gateway helper still received HTTP 400 from Platform /oauth/authorize before the fake Gateway boundary; malformed-gateway-access.log remained empty.
+  - Waiting for CharacterList was insufficient, so the invalid authorization request must be diagnosed from the captured URL contract rather than inferred from UI readiness.
+  - Commit 5b1a01850c6f04fc3c5319dbef40f43535918856 records only sorted query parameter names, client-id equality, response type, scope presence, PKCE method, state/challenge lengths, redirect URI structure, HTTP status/path/phase and a fixed error classification.
+  - The diagnostic does not retain query values, state, code challenge, credentials, tokens, cookies or raw error bodies.
+  - Existing access-log proof remains mandatory; timeout-only Lua evidence cannot pass the physical malformed Gateway scenario.
 derived:
-  - The previous apparent malformed-response rejection was observation-only because the OTClient never reached the malformed Gateway; access-log proof remains mandatory.
-  - Waiting for the complete native-auth UI stack should allow the browser flow to obtain a real ticket and exercise malformed Gateway parsing physically.
+  - The next Platform-hosted run should identify whether the malformed helper emits an invalid client, redirect URI, PKCE parameter, response type or another request-contract defect.
 unknown:
-  - physical malformed Gateway request/access result after complete UI readiness
+  - sanitized authorization URL metadata for the malformed helper
+  - physical malformed Gateway request/access result after the exact request defect is repaired
   - final happy-path world entry, logout, replay, rotation, rollback and final smoke results
 conflicts: []
 first_failure:
-  marker: malformed-gateway-native-ui-readiness
-  evidence: Platform run 30083664968 artifact 8592956146; OAuth authorize returned 400, browser driver failed, and malformed Gateway access log remained empty
+  marker: malformed-gateway-oauth-authorize-400
+  evidence: Platform run 30084930018 artifact 8593440828; browser_driver retained failure_HTTPError and fake Gateway access remained empty
 rejected_hypotheses:
-  - accept the Lua timeout observation as physical malformed Gateway proof: rejected because the fake Gateway saw no POST /v1/login
-  - weaken the access-log requirement: rejected because the real OTClient must cross the malformed boundary
-  - classify the Platform 400 as an OAuth product defect: rejected because all maintained OAuth probes and previous physical flows passed on the same exact Platform revision
-  - change production rate limits or TLS verification: rejected because both controls are functioning and remain required
+  - accept the Lua rejection event as physical proof: rejected because the fake Gateway received no login request
+  - retain the full authorization URL or HTTP error body: rejected because they may contain OAuth state or other sensitive material
+  - classify the 400 as a Platform product defect without request metadata: rejected because all maintained OAuth probes pass on the same exact Platform revision
+  - weaken TLS, rate limits or access-log assertions: rejected because those controls remain required
 changed_paths:
   - .github/workflows/native-auth-ephemeral-cutover-rehearsal.yml
   - docs/agents/tasks/active/CAN-20260723-native-auth-ephemeral-cutover-rehearsal.md
@@ -123,13 +123,13 @@ changed_paths:
   - tests/e2e/native_auth_ephemeral_cutover/platform_bootstrap.php
   - tests/e2e/native_auth_ephemeral_cutover/run_rehearsal.py
 validation:
-  - command: Platform Native Auth Ephemeral Cutover Rehearsal run 30083664968
+  - command: Platform Native Auth Ephemeral Cutover Rehearsal run 30084930018
     result: FAIL
-    evidence: complete matrix through physical negative Game Session and Canary restart checks passed; first failure was malformed Gateway helper readiness before the fake boundary
-  - command: Canary CI run 30084397393
+    evidence: first failure remained the malformed Gateway physical OAuth request before the fake boundary
+  - command: Canary browser diagnostic source inspection
     result: PASS
-    evidence: required CI passed for the helper change
+    evidence: only non-secret structural metadata and fixed classifications are retained
 blockers:
   - none
-next_action: pass ownership on this checkpoint head, pin the exact harness revision in Platform PR 126, and rerun the full rehearsal.
+next_action: pass Canary CI and ownership, pin the diagnostic harness exact SHA in Platform PR 126, and inspect the retained structural OAuth failure metadata.
 ```
