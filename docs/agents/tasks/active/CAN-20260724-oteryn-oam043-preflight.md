@@ -2,13 +2,13 @@
 task_id: CAN-20260724-oteryn-oam043-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-043
-status: validating
+status: review
 agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-043-post-preflight-handoff
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "583f515d0af7bad64431bf39778c31c183319bf0"
+last_verified_commit: "c5abe56e568e4ee72814846a32b0c2ae4e4853d9"
 risk: high
 related_issue: ""
 related_pr: "872"
@@ -87,8 +87,8 @@ This preflight performs no target, runtime, datapack, map, binary, protocol, cli
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T12:31:00+02:00
-head: 583f515d0af7bad64431bf39778c31c183319bf0
+updated_at: 2026-07-24T12:34:00+02:00
+head: c5abe56e568e4ee72814846a32b0c2ae4e4853d9
 branch: dudantas/oam-043-post-preflight-handoff
 pr: 872
 status: validating
@@ -127,7 +127,7 @@ unknown:
 conflicts: []
 first_failure:
   marker: active task frontmatter status
-  evidence: PR 872 Agent Task Ownership run 30086304968 rejected frontmatter status active; this final checkpoint aligns it to validating.
+  evidence: PR 872 Agent Task Ownership runs rejected active and validating as frontmatter statuses; this final checkpoint restores accepted status review while retaining checkpoint status validating.
 rejected_hypotheses:
   - Finalize quests as REUSE from target/upstream path presence or blob identity alone.
   - Build a second OTBM parser, map scanner, registration resolver or quest-map validator.
@@ -150,7 +150,7 @@ validation:
     evidence: quest map validation reuses canonical script resolution and world index, requires explicit source selection and preserves unresolved evidence fail-closed.
   - command: PR 872 final-head ownership and CI
     result: FAIL
-    evidence: CI passed on 583f515d0af7bad64431bf39778c31c183319bf0; Agent Task Ownership first failed only on frontmatter status and must rerun on this corrected final head.
+    evidence: CI passed on c5abe56e568e4ee72814846a32b0c2ae4e4853d9; Agent Task Ownership rejected only the frontmatter status and must rerun on this corrected final head.
 blockers: []
 next_action: Require exact-head Agent Task Ownership and CI on PR 872, audit comments, reviews, threads and Canary-main drift, then squash-merge with the expected head.
 ```
