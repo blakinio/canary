@@ -512,7 +512,7 @@ TASK SELECTION:
 4. Create a fresh active task, branch and early draft PR before substantial implementation.
 5. Implement only that bounded package with deterministic tests and exact provenance.
 6. Update the task checkpoint after material discoveries and before handoff.
-7. Do not silently continue into TCR-007 or another TCR package in the same PR.
+7. Do not silently continue into TCR-008 or another TCR package in the same PR.
 
 TCR-007 TARGET CONTRACT:
 - canary-tibia-proficiency-reference-correlation-v1;
