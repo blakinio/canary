@@ -2,7 +2,7 @@
 task_id: CAN-20260724-ots-roadmap-extension-packs
 program_id: CAN-PROGRAM-OTS-FUTURE-GAMEPLAY-SYSTEMS
 coordination_id: OTS-ROADMAP-EXTENSION-PACKS
-status: active
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: docs/ots-roadmap-extension-packs-20260724
 base_branch: main
@@ -65,7 +65,7 @@ Documentation and classification only. No runtime, client, protocol, datapack, m
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-24
-head: 74439c05f201ccf14287974267685c29ba079492
+head: 375fedaafb513b81b25e38af2ecb2b07a2fb88ac
 branch: docs/ots-roadmap-extension-packs-20260724
 pr: 887
 status: validating
@@ -83,7 +83,7 @@ proven:
   - Weapon Proficiency remains explicitly official and separate from proposed Equipment Proficiency.
   - PR 887 changes exactly the task record, the classification index and the integrated extension-pack addendum.
   - Initial CI passed on feature head 099c443789cc4b2d93b8a66605738e8ee5afe39e.
-  - Ownership validation on head 74439c05f201ccf14287974267685c29ba079492 identified only the invalid active-task status value; the task remains correctly located under tasks/active.
+  - The repository lifecycle contract accepts frontmatter statuses planned, implementing, blocked, review or ready; implementing is compatible with checkpoint status validating.
 derived:
   - The new packages require multiple proposal-level entries because they contain independent features, upgrades and safeguards.
 unknown:
@@ -91,7 +91,7 @@ unknown:
 conflicts: []
 first_failure:
   marker: checkpoint-schema
-  evidence: Initial ownership validation required first_failure to be a YAML mapping; a second validation required an active-directory status value, so the frontmatter now uses status active.
+  evidence: Early ownership validation exposed invalid guessed frontmatter values; the task now uses the repository-defined implementing status with validating checkpoint compatibility.
 rejected_hypotheses:
   - Add only three umbrella classification rows and hide all distinct sub-systems inside them.
   - Duplicate account-wide quest progression as a new proposal.
