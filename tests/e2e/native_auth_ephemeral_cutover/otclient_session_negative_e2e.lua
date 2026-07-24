@@ -86,12 +86,23 @@ local function startBurnVerification()
     if finished or phaseTransitioned then
         return
     end
+
     phaseTransitioned = true
-    phase = 2
+    appendEvent("phase_1_cleanup", "cancel_login")
+
+    -- A login-error callback is delivered before the rejected ProtocolGame is
+    -- necessarily cleared. Cancel the current login synchronously before the
+    -- second attempt so the burn check cannot race the old connection teardown.
+    g_game.cancelLogin()
+
     scheduleEvent(function()
+        if finished then
+            return
+        end
+        phase = 2
         phaseTransitioned = false
         loginCharacter(AUTHORIZED_CHARACTER)
-    end, 750)
+    end, 250)
 end
 
 local function rejection(source)
