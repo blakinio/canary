@@ -2,13 +2,13 @@
 task_id: CAN-20260724-tcr-003-staticmapdata-house-index
 program_id: CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE
 coordination_id: OTBM-TIBIA-CLIENT-REFERENCE
-status: validating
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: feat/tcr-003-staticmapdata-house-index
 base_branch: main
 created: 2026-07-24T07:18:23+02:00
-updated: 2026-07-24T07:42:16+02:00
-last_verified_commit: "af4bf0ddac33ac3e4df7059048f11918daf09060"
+updated: 2026-07-24T07:44:29+02:00
+last_verified_commit: "c44eeba8e45d66653031a9b28a42b1bbcd01289e"
 risk: medium
 related_issue: ""
 related_pr: 851
@@ -63,8 +63,8 @@ Implement the bounded, read-only `canary-tibia-staticmapdata-index-v1` producer 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T07:42:16+02:00
-head: af4bf0ddac33ac3e4df7059048f11918daf09060
+updated_at: 2026-07-24T07:44:29+02:00
+head: c44eeba8e45d66653031a9b28a42b1bbcd01289e
 branch: feat/tcr-003-staticmapdata-house-index
 pr: 851
 status: validating
@@ -91,7 +91,8 @@ proven:
   - The producer, CLI, schema, documentation, focused tests and dedicated workflow integration are implemented on PR 851.
   - Local fixture validation passed 15 tests with one opt-in real-file test skipped; opt-in validation passed all 16 tests against the exact user-supplied file.
   - Python bytecode compilation, JSON schema syntax validation and CLI construction passed locally.
-  - Agent Task Ownership, Tibia Client Reference, CI and AI Agent Tools passed on head af4bf0ddac33ac3e4df7059048f11918daf09060.
+  - Agent Task Ownership, Tibia Client Reference, CI and AI Agent Tools passed on head af4bf0ddac33ac3e4df7059048f11918daf09060 before the final checkpoint.
+  - The ci:final-gate label is applied to PR 851 and the dedicated Tibia Client Reference workflow passed on final-gate checkpoint c44eeba8e45d66653031a9b28a42b1bbcd01289e.
 derived:
   - Row flags are preserved as source evidence and support only deterministic encoded-cell-span validation; their broader semantics remain unresolved.
 unknown:
@@ -99,8 +100,8 @@ unknown:
   - No mapping from staticmapdata.object_id to OTBM/server/appearance identifiers is proven.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: the earlier ownership-metadata failure was corrected; all applicable workflows passed on af4bf0ddac33ac3e4df7059048f11918daf09060
+  marker: Agent Task Ownership changed-task validation on c44eeba8e45d66653031a9b28a42b1bbcd01289e
+  evidence: frontmatter status validating is invalid for a record retained under docs/agents/tasks/active; it must remain implementing while the nested checkpoint may be validating
 rejected_hypotheses:
   - Reuse an existing Canary StaticMapData index: no canonical implementation or differently named equivalent surfaced in current repository, catalogue, task or PR searches.
   - Copy the external Rust/protobuf implementation: programme licensing and architecture boundaries require an independent Canary implementation.
@@ -137,6 +138,9 @@ validation:
   - command: GitHub AI Agent Tools workflow on af4bf0ddac33ac3e4df7059048f11918daf09060
     result: PASS
     evidence: run 30069982511
+  - command: GitHub Tibia Client Reference workflow on c44eeba8e45d66653031a9b28a42b1bbcd01289e
+    result: PASS
+    evidence: run 30070199240
 blockers: []
-next_action: Verify the full final-gate workflows on the exact checkpoint commit created after applying ci:final-gate, then mark PR 851 ready and merge it if every required check remains green.
+next_action: Verify every final-gate workflow on the new checkpoint head after restoring active-task frontmatter status to implementing, then mark PR 851 ready and merge it if all required checks are green.
 ```
