@@ -8,7 +8,7 @@ branch: feat/e2e-qri-006-cleanup-certification
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "0182ca6531e9639c73594f0426e2171aab392d58"
+last_verified_commit: "8cd80cd92b3c5a904f3bfea910328ca828604a3a"
 risk: medium
 related_issue: ""
 related_pr: "871"
@@ -41,7 +41,7 @@ modules_touched:
 reuses:
   - canary-universal-e2e-result-envelope-v1 schema version 3
   - canonical Universal Physical E2E wrapper, lifecycle and existing artifact upload
-  - exact runner-owned PID files, exit evidence and fixed disposable MariaDB authority
+  - exact runner-owned PID files, dedicated process group, exit evidence and fixed disposable MariaDB authority
 public_interfaces:
   - canary-universal-e2e-cleanup-certification-v1
 cross_repo_tasks: []
@@ -57,16 +57,17 @@ Deliver deterministic first-class cleanup certification after every canonical Un
 
 - Capture a bounded pre-run workspace baseline for files the canonical lifecycle may temporarily replace.
 - Run the unchanged lifecycle in one dedicated runner-owned process group.
-- After the lifecycle trap completes, certify exact process/PID cleanup, process-group emptiness, disposable database session/transaction state, fixture ghost-session absence, workspace restoration, temporary marker removal and explicit workflow-owned service handoff.
+- After the lifecycle trap completes, terminate only residual members of that exact runner-owned process group with bounded TERM/KILL escalation and certify group emptiness.
+- Certify exact recorded process/PID cleanup, disposable database session/transaction state, fixture ghost-session absence, workspace restoration, temporary marker removal and explicit workflow-owned service handoff.
 - Emit `canary-universal-e2e-cleanup-certification-v1` in `cleanup-certification.json` and integrate the same evidence into QRI-005 `cleanup_summary` and the orthogonal cleanup quality dimension.
 - Preserve gameplay status, failure classification, attempt history and all earlier QRI-005 evidence.
-- Add focused deterministic, invalid-PID, residual-process, multi-client, database, workspace, fault-marker and envelope-integration tests.
+- Add focused deterministic, invalid-PID, residual-process, multi-client, database, workspace, fault-marker, process-group reaping and envelope-integration tests.
 - Physically validate through the existing `login/relog` scenario and existing artifact upload.
 
 ## Non-goals
 
 - No process discovery or termination by executable/name/substring.
-- No caller-selected PID, command, SQL, host, table or target surface.
+- No caller-selected PID, process group, command, SQL, host, table or target surface.
 - No production/staging cleanup, container lifecycle ownership or external service shutdown.
 - No second E2E runner, workflow, artifact or result-envelope implementation.
 - No gameplay maturity or non-cleanup quality-dimension promotion.
@@ -75,8 +76,8 @@ Deliver deterministic first-class cleanup certification after every canonical Un
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T10:18:00Z
-head: 0182ca6531e9639c73594f0426e2171aab392d58
+updated_at: 2026-07-24T13:05:00+02:00
+head: 8cd80cd92b3c5a904f3bfea910328ca828604a3a
 branch: feat/e2e-qri-006-cleanup-certification
 pr: 871
 status: validating
@@ -95,25 +96,31 @@ proven:
   - QRI-005 lifecycle closure PR 861 merged as cb5a22bb4319608a1b1c64b40dd274cac94e0002.
   - QRI-005 discovery registration PR 869 merged as b1d24ec362ec52652886f6be6129234ff44e7d4d.
   - Fresh open-PR and active-task search found no prior QRI-006 implementation owner.
-  - Versioned cleanup certifier and focused deterministic process, database, workspace, marker, multi-client and gameplay-independence tests are committed.
-  - The canonical wrapper captures a pre-run baseline, executes the unchanged lifecycle in a dedicated process group, certifies after its trap, and finalizes the same schema-v3 result.json.
+  - Versioned cleanup certifier and focused process, database, workspace, marker, multi-client, gameplay-independence and result-envelope tests are committed.
+  - The canonical wrapper captures a logical-path pre-run baseline, executes the unchanged lifecycle in a dedicated process group, invokes the certifier after its trap, and finalizes the same schema-v3 result.json.
   - The QRI-005 shim consumes only the exact cleanup contract/schema, promotes only the cleanup quality dimension and retains gameplay status.
-  - Local focused cleanup suite passed 13 tests; certifier/shim py_compile and wrapper bash syntax passed.
-  - Exact-head CI run 30085549360 passed at 0182ca6531e9639c73594f0426e2171aab392d58.
+  - Local focused cleanup suite passes 15 tests; certifier/shim py_compile and wrapper bash syntax pass.
+  - Exact-head CI run 30085762248 and Agent Task Ownership run 30085762141 passed at b4555cc1f0283dd2c180dcd699224d8aef511b2d.
+  - Physical run 30085762318 proved gameplay success, client exit zero, two login sessions, persistence, zero players_online, zero active transactions, restored workspace and 17 of 18 required cleanup checks.
+  - The only physical cleanup failure was runner_process_group_empty with residual PID 4872 in dedicated PGID 4780; all recorded primary client, Canary wrapper, Xvfb and tcpdump PIDs were stopped.
+  - The certifier now reaps only residual members of the exact dedicated PGID with bounded SIGTERM then SIGKILL escalation and records members_before, signals, members_after and errors.
+  - Cleanup baseline evidence now stores only logical repo/otclient roots and relative paths, not absolute runner paths.
+  - Branch is synchronized with main commit 13ec3077babba0ac81bb1e30e79f0ea4827ae2fe through merge commit 8cd80cd92b3c5a904f3bfea910328ca828604a3a.
 derived:
-  - A post-trap read-only certifier is the smallest seam that independently evaluates gameplay-success and gameplay-failure runs.
-  - Dedicated process-group execution proves absence of in-group untracked descendants without scanning or killing unrelated host processes.
+  - A post-trap certifier with an exact-PGID reaper is the smallest safe seam that can independently evaluate and complete runner-owned cleanup after gameplay-success and gameplay-failure runs.
+  - Dedicated process-group ownership permits bounded cleanup of untracked descendants without scanning or killing unrelated host processes.
   - Database queries remain fixed code-owned statements against the disposable E2E schema and manifest-declared fixture identities.
 unknown:
-  - Exact first physical cleanup outcome from Universal Agent E2E run 30085549306.
+  - Exact physical cleanup result after the dedicated-PGID reaper fix.
   - Whether every optional secondary actor currently emits the exact PID and exit evidence paths required by the new contract.
 conflicts: []
 first_failure:
-  marker: ownership.missing-exclusive-test-path
-  evidence: Agent Task Ownership run 30085549088 did not include tests/e2e/test_cleanup_result_envelope.py in the task claim.
+  marker: runner_process_group_empty
+  evidence: Physical run 30085762318 retained PID 4872 in dedicated PGID 4780 after the existing lifecycle trap; gameplay status was success and all other 17 required cleanup checks passed.
 rejected_hypotheses:
   - Treat the existing teardown trap as certification without independent post-trap evidence.
   - Kill residual processes by name, executable scan or host-wide process matching.
+  - Modify the shared lifecycle when exact dedicated-PGID ownership can safely close residual descendants in the QRI-006 certifier.
   - Mark cleanup certified merely because gameplay status is success or players_online is zero.
   - Add another workflow, runner or result artifact.
 changed_paths:
@@ -129,13 +136,13 @@ validation:
     evidence: QRI-005 merged/archived/registered; no prior QRI-006 owner.
   - command: local focused cleanup contract suite plus py_compile and bash -n
     result: PASS
-    evidence: 13 cleanup tests; certifier/shim syntax; canonical wrapper syntax.
-  - command: exact-head CI at 0182ca6531e9639c73594f0426e2171aab392d58
+    evidence: 15 cleanup tests; certifier/shim syntax; canonical wrapper syntax.
+  - command: exact-head CI and Agent Task Ownership at b4555cc1f0283dd2c180dcd699224d8aef511b2d
     result: PASS
-    evidence: run 30085549360.
-  - command: Agent Task Ownership at 0182ca6531e9639c73594f0426e2171aab392d58
+    evidence: CI 30085762248; ownership 30085762141.
+  - command: Universal Agent E2E at b4555cc1f0283dd2c180dcd699224d8aef511b2d
     result: FAIL
-    evidence: run 30085549088; missing ownership declaration for the new envelope-integration test.
+    evidence: run 30085762318; gameplay success and 17/18 cleanup checks, residual dedicated-group PID 4872.
 blockers: []
-next_action: Re-run exact-head ownership and Universal Physical E2E after the ownership and focused-wrapper corrections, then inspect cleanup-certification.json and result.json.
+next_action: Run exact-head CI, ownership and Universal Physical E2E on the synchronized PGID-reaper head, inspect cleanup-certification.json and result.json, then register, final-gate, merge and archive QRI-006.
 ```
