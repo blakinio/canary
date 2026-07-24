@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-24T19:51:00+02:00
-last_verified_commit: "87c2204a822ffcdc40f7279f629b35ceec6c2556"
+updated: 2026-07-24T23:45:00+02:00
+last_verified_commit: "14e3d7b9b21e8fee443d4bc8ebc107dad7c4bdb6"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -80,10 +80,11 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 | OAM-042 | `npcs → REUSE` | target proof `0d01f077f80c2d4cd3d4231d2ffb9416874ba54e`; Otheryn lifecycle `3a37f3d5e4c01ddf4469f1c71461c40ca749142f`; feature `2f42260258f84b323bcd2a74d6107b10d4e01142`; Canary lifecycle `cec180bf0fdcd894d71c8219ffab83f3d07a51b7` |
 | OAM-043 | `quests → ADAPT` | target `6512d78004ae2540784b3e67592a92a903554cf6`; Otheryn lifecycle `3f3c15917610e45430aa3902d110806dd25e10a8`; feature `6e55eab72b6f7b164bb38ba2e08fa1a80cf5f8e5`; Canary lifecycle `6e223c142f34285b98ea70d79131c79b1680e2d0` |
 | OAM-044 | `protocol-compatibility → REUSE` | target `5c8f48e2a7cb7f841cfb6614e8e804245f17c0ca`; Otheryn lifecycle `e1eed52119ba21a29cb29cbac0793ed2a2b9d0c6`; feature `766aa0198884243c8d9641e5a1e92cd605735500`; Canary lifecycle `87c2204a822ffcdc40f7279f629b35ceec6c2556` |
+| OAM-045 | `protocol-session-handoff → ADAPT` | target `597ba62c558ed4e35db38502903ae83e0b2921ec`; Otheryn lifecycle `e8f683e61427e9967cbc180b837220d4b7487d85`; feature `8b24b6603c29250587949a0e1600aa981795f133`; Canary lifecycle `14e3d7b9b21e8fee443d4bc8ebc107dad7c4bdb6` |
 
 # Durable evidence compaction
 
-Detailed per-package narratives for OAM-001..OAM-044 remain authoritative in their archived task records, package revalidation reports and Git history. The completed-package table above preserves the exact durable merge references needed for sequencing. This compaction removes duplicated inline histories without weakening the archived evidence or explicit nonclaims.
+Detailed per-package narratives for OAM-001..OAM-045 remain authoritative in their archived task records, package revalidation reports and Git history. The completed-package table above preserves the exact durable merge references needed for sequencing. This compaction removes duplicated inline histories without weakening the archived evidence or explicit nonclaims.
 
 # OAM-043 durable completion
 
@@ -127,15 +128,35 @@ Canary governance PR #888 final head `3a996c687106ea3d3c0f70257ebef650d3de80d3` 
 
 OAM-044 does not claim exhaustive one-to-one or many-to-one correspondence between every server `ProtocolFeature` and client `GameFeature`, byte-level compatibility for every packet/profile, factual provenance of all proprietary asset signatures, physical-client login/world-entry parity for Tibia 11.00 or CipSoft 8.60, OTCv8 readiness, transport/login/session-handoff closure, production gameplay parity or full protocol-stack readiness.
 
+# OAM-045 durable completion
+
+Final disposition:
+
+```text
+protocol-session-handoff ADAPT
+```
+
+OAM-045 selected canonical `protocol-session-handoff` through fresh Canary preflight PR #895, merged as `2798dce948d8bf27f9b1325356d6db4676a8b6ba`. Exact target-task baselines were Otheryn `e1eed52119ba21a29cb29cbac0793ed2a2b9d0c6`, current upstream `7323503b3dc61ed86bf1f04a611b2d0aec64b35a`, live legacy Canary `92c550b41d0f7d1c8c71f4b85dfa81dfb6488f4f` and the OAM-006 physically tested target `c547d8ad70ef1252624c255476e6cb83fa125e14`.
+
+Before adaptation, all reviewed server baselines shared exact session-hint roots: header blob `446e7769196fb9a750e13c8402b38c8752243729` and implementation blob `3e57e16649e20121f52c6c4b67b632808b7af363`. Source identity did not prove every state invariant. Focused review isolated two package-owned defects: `consumeAndResolveProfile()` did not enforce the 30-second lease deadline while reusable hints can live for 24 hours, and full-capacity registration evicted the unrelated oldest hint before deleting an overlapping-character hint being replaced.
+
+The bounded target adaptation rejects `lease.expiresAt <= now` before candidate lookup and performs overlapping-character replacement cleanup before the unchanged 512-entry capacity check. A true independent 513th entry still evicts the oldest hint. The adapted implementation blob is `e53e430122c746ee9254e4e80eac66a247a59317`. Focused deterministic fixtures cover exact session/character/version matching, current one-shot consumption, reusable reclaim/cleanup, expired-lease rejection while preserving the reusable hint, ordinary replacement, replacement at capacity, mixed-wire ambiguity and filtering, blocked-profile rejection and true capacity overflow.
+
+Otheryn feature PR #103 final head `77c46466c79fd5bda02ee7cdf9c07af97c110705` passed Autofix `30125033564`, CI `30125033725` and Required `30125033619`. Comments, reviews and threads were empty, target `main` had no drift and expected-head squash merge produced `597ba62c558ed4e35db38502903ae83e0b2921ec`. Otheryn lifecycle PR #104 changed only its task lifecycle path, passed Required `30126189758`, had a clean audit and merged as `e8f683e61427e9967cbc180b837220d4b7487d85`.
+
+Canary governance PR #899 final head `adc653e7bc577e55c5062e02c0bb84e6409a4e3b` passed Agent Task Ownership `30126572073` and full final-gate CI `30126581250`, including Fast Checks, Lua, Docker, Linux debug/release with full tests and runtime smokes, and Windows CMake/Solution. Discussions were empty; concurrent E2E dashboard drift did not overlap OAM-045 paths, and expected-head squash merge produced `8b24b6603c29250587949a0e1600aa981795f133`. Canary lifecycle PR #901 final head `a8d27a429fbf0152af3174458bc88655129c174e` passed Ownership `30127900485` and CI/Required `30127900637`; heavy builds were correctly skipped, discussions were empty, concurrent TCR tooling drift did not overlap lifecycle paths and merge produced `14e3d7b9b21e8fee443d4bc8ebc107dad7c4bdb6`.
+
+OAM-045 does not claim cryptographic strength, collision resistance or constant-time session-hash comparison, replay resistance across complete login-to-game orchestration, race freedom beyond the reviewed process-local mutex, multi-process or distributed consistency, secure authentication-token behavior, transport/login-protocol closure, physical-client parity for Tibia 11.00, CipSoft 8.60 or OTCv8, production protocol-stack readiness or full gameplay parity.
+
 # Current state
 
 ```text
-Canary reconciliation base: 87c2204a822ffcdc40f7279f629b35ceec6c2556
-Otheryn target head after OAM-044: e1eed52119ba21a29cb29cbac0793ed2a2b9d0c6
+Canary reconciliation base: 14e3d7b9b21e8fee443d4bc8ebc107dad7c4bdb6
+Otheryn target head after OAM-045: e8f683e61427e9967cbc180b837220d4b7487d85
 maintained OTClient: b3bcea2a95959bb4e92cc0b80cd49f36b63699b2
-OAM-001..OAM-044: feature/lifecycle complete
-OAM-044 task: archived in Canary and Otheryn
-OAM-045: NOT STARTED pending a fresh dependency-valid preflight
+OAM-001..OAM-045: feature/lifecycle complete
+OAM-045 task: archived in Canary and Otheryn
+OAM-046: NOT STARTED pending a fresh dependency-valid preflight
 ```
 
 No OAM implementation task is active in this reconciliation record.
@@ -144,8 +165,8 @@ No OAM implementation task is active in this reconciliation record.
 
 | Package | Status | Next action |
 |---|---|---|
-| OAM-001..OAM-044 | completed | preserve durable evidence |
-| OAM-045+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
+| OAM-001..OAM-045 | completed | preserve durable evidence |
+| OAM-046+ | planned, not active | only after this reconciliation merges: perform fresh live-state/open-PR/ownership and exact target/upstream/legacy preflight, then select one dependency-valid canonical package |
 
 # Invariants and known gaps
 
@@ -193,3 +214,4 @@ No OAM implementation task is active in this reconciliation record.
 - OAM-042 does not promote bounded source-contract evidence into exhaustive individual-conversation, dynamic-call, production or physical-client parity and does not close the duplicate Harlow boundary.
 - OAM-043 does not promote static source/map evidence into exhaustive quest progression or gameplay proof and retains all shared script-only, dynamic-expression, storage-graph and physical-client/production boundaries.
 - OAM-044 does not promote current-profile source continuity and bounded fixtures into exhaustive legacy-profile, packet-byte, transport/login/session-handoff, physical-client or production protocol-stack parity.
+- OAM-045 does not promote bounded in-process lease/eviction corrections and fixtures into cryptographic, replay, distributed-consistency, authentication, transport/login, legacy-profile physical-client or production protocol-stack parity.
