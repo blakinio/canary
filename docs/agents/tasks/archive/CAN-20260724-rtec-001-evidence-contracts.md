@@ -2,13 +2,13 @@
 task_id: CAN-20260724-rtec-001-evidence-contracts
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-001
-status: ready
+status: completed
 agent: "GPT-5.6 Thinking"
 branch: feat/rtec-001-evidence-contracts-20260724
 base_branch: main
 created: 2026-07-24T21:45:37+02:00
-updated: 2026-07-24T23:37:05+02:00
-last_verified_commit: "43cea90a23632bf4d21ccc7ffd82a84ba0f21d53"
+updated: 2026-07-24T21:56:17Z
+last_verified_commit: "b830c9864b4d6cac4485bf03e237b3ce6f8a0113"
 risk: medium
 related_issue: ""
 related_pr: "897"
@@ -63,6 +63,7 @@ public_interfaces:
   - canary-real-tibia-version-history-v1
   - canary-real-tibia-generated-indexes-v1
 cross_repo_tasks: []
+completed: 2026-07-24T21:56:17Z
 ---
 
 # Goal
@@ -217,3 +218,11 @@ next_action: After the exact final-head gate is green, squash-merge PR 897 with 
 # Handoff
 
 Re-fetch PR #897 head, checks and changed files before merge. Do not commit after the green exact final-head gate. Do not create module dossiers, owner execution tooling, an alternate registry, an E2E runner, an OTBM parser/index/pathfinder/renderer/certifier or a TCR/client-package parser.
+
+## Automated lifecycle completion
+
+- Feature PR: #897.
+- Feature head: `09ebe2f19d3633f5ede90fa9cff154ed9209cb8a`.
+- Merge commit: `b830c9864b4d6cac4485bf03e237b3ce6f8a0113`.
+- Merged at: `2026-07-24T21:56:17Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
