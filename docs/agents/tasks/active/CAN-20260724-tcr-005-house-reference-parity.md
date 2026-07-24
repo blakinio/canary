@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/tcr-005-house-reference-parity
 base_branch: main
 created: 2026-07-24T10:35:00+02:00
-updated: 2026-07-24T13:46:00+02:00
-last_verified_commit: "74fbae108dc4a0461351f31515f6b1108311c027"
+updated: 2026-07-24T13:49:00+02:00
+last_verified_commit: "48c03907e313776360e7e13a1c26fb771889a827"
 risk: medium
 related_issue: ""
 related_pr: 868
@@ -78,8 +78,8 @@ Implement the bounded, deterministic, read-only TCR-005 `canary-otbm-house-refer
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T13:46:00+02:00
-head: 74fbae108dc4a0461351f31515f6b1108311c027
+updated_at: 2026-07-24T13:49:00+02:00
+head: 48c03907e313776360e7e13a1c26fb771889a827
 branch: feat/tcr-005-house-reference-parity
 pr: 868
 status: validating
@@ -111,7 +111,6 @@ proven:
   - Fixture validation passes 14 focused tests with one exact-input opt-in skipped; exact-input validation passes all 14 tests.
   - Exact resolver summary is 995 client houses, 993 mappings, two unresolved and zero conflicts.
   - Exact parity summary is 995 rows, 993 mismatch rows, two unresolved-id-space rows, 42 orphan house-door placements and zero conforming rows.
-  - Full resolver and parity outputs validate against their Draft 2020-12 schemas outside Git.
   - MODULE_CATALOG contains exactly one reusable TCR-005 contract row and preserves all concurrent catalogue entries.
   - Agent Task Ownership, Tibia Client Reference, OTBM Map Tools, AI Agent Tools and repository CI/Required passed on exact implementation head 74fbae108dc4a0461351f31515f6b1108311c027.
   - The ci:final-gate label was applied before this final checkpoint commit; no further implementation or documentation changes are planned before ready-state validation.
@@ -172,5 +171,5 @@ validation:
     result: PASS
     evidence: run 30090576191
 blockers: []
-next_action: Verify every workflow on the exact final checkpoint head, then mark PR 868 ready and enable auto-merge if all required checks are green.
+next_action: Verify every workflow on the exact corrected checkpoint head, then mark PR 868 ready and enable auto-merge if all required checks are green.
 ```
