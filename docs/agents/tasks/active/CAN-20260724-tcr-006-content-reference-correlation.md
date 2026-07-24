@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/tcr-006-content-reference-correlation
 base_branch: main
 created: 2026-07-24T17:00:00+02:00
-updated: 2026-07-24T17:05:00+02:00
-last_verified_commit: "7872bcede1712a2ed9e4874326741477000634f4"
+updated: 2026-07-24T17:39:06+02:00
+last_verified_commit: "77c38568fe02b55798d0710318c4f82c8d1fd3d8"
 risk: medium
 related_issue: ""
 related_pr: 880
@@ -83,8 +83,8 @@ Implement the bounded, deterministic, read-only TCR-006 content reference correl
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T17:05:00+02:00
-head: 7872bcede1712a2ed9e4874326741477000634f4
+updated_at: 2026-07-24T17:39:06+02:00
+head: 77c38568fe02b55798d0710318c4f82c8d1fd3d8
 branch: feat/tcr-006-content-reference-correlation
 pr: 880
 status: implementing
@@ -103,39 +103,60 @@ owned_paths:
   - .github/workflows/tibia-client-reference.yml
   - docs/agents/MODULE_CATALOG.md
 proven:
-  - TCR-005 lifecycle PR 874 merged as ced1c2f449d7c20f30cc236f8d6641f311c0a9e8 and advances the programme to TCR-006.
-  - No open TCR-006 PR or branch and no existing canary-tibia-content-reference-correlation-v1 contract were found in the fresh preflight.
-  - Draft PR 880 is the sole current TCR-006 owner.
-  - StaticData schemaVersion 2 preserves legacy creatures/titles and newer monsters/monsterClasses/achievements as different source categories.
-  - The exact outside-Git StaticData input is legacy with 812 creatures, 356 titles, 438 bosses, 99 quests and zero duplicate/missing-field findings.
-  - Achievement Validation owns stable Canary achievement IDs/names and static handler/persistence evidence through canary-achievement-audit-v2.
-  - Cyclopedia Validation owns Bestiary/Bosstiary technical ID and active monster-definition evidence.
-  - OTBM Spawn/Boss/NPC Validator owns selected active-datapack definition/spawn evidence and name-based definition resolution.
-  - Quest Map Validator owns explicit selected quest-source AID/UID/item/position/storage evidence and does not expose a shared client quest-ID namespace.
-  - Quest/storage progression and reachability remain owned by Storage Dependency Graph and Quest State Reachability.
+  - PR 880 is the sole open TCR-006 owner; it is draft, mergeable and targets blakinio/canary main from feat/tcr-006-content-reference-correlation.
+  - Live PR head is 77c38568fe02b55798d0710318c4f82c8d1fd3d8; current diff contains only the active task and temporary Tibia Client Reference workflow helper.
+  - Exact legacy StaticData inventory contains 812 creatures, 356 titles, 438 bosses and 99 quests with no duplicate or missing required-field findings.
+  - Owner inventory workflow 30103563037 succeeded and published artifact 8600662164 with digest sha256:041b0d357e6e5df4ecfeb186aa4611d58ecbe3533a6e7a47ae9f32b64bc53f4a.
+  - Reviewed resolver candidates retain 739 creature, 236 boss and 349 title identity mappings; shared target IDs and all quest joins remain unresolved.
+  - Exact correlation contains 1705 source rows with 1324 confirmed-reference, 119 partial, 160 reference-only, 102 unresolved-id-space and zero conflicts.
+  - Local fixture and exact focused suites pass 20 tests; Python bytecode and both Draft 2020-12 schemas validate against exact resolver/correlation outputs.
+  - Exact resolver SHA-256 is f1472c23 and exact correlation SHA-256 is 477c9ffa; full reports remain outside Git.
+  - Verified implementation payload is Git blob f0446001244d636ccc8745a821b67cedc5fb9577 and unattached staging commit e6ca779f47182d95cfadd052833c30af935dc582 adds only .tcr006-stage/payload.zip.
+  - Current-main catalogue helper run 30104916300 succeeded and published artifact 8601260482 with digest sha256:baf821bcc9fdc8f0bfa0df8bdcc8ceeac83a59f55979e1cee311228260776ff8.
+  - Repository CI run 30104916625 and Tibia Client Reference run 30104916300 succeeded on live head 77c38568fe02b55798d0710318c4f82c8d1fd3d8.
 derived:
-  - Each category needs its own target namespace and reviewed mapping policy; one universal numeric-ID equality rule would be unsound.
-  - Legacy titles may be correlated to achievement-owner evidence only as source titles; they must not be renamed achievements in the source layer.
-  - Quest name agreement can produce a review candidate but cannot automatically bind source globs, storage paths or map mechanics.
+  - A fresh staging commit must be rebuilt on the post-checkpoint branch head before materialization because e6ca779f47182d95cfadd052833c30af935dc582 is based on the prior live head.
+  - Final PR history must remove the temporary workflow helper and staged ZIP while retaining only task, implementation, schemas, documentation, workflow validation and catalogue changes.
 unknown:
-  - Exact equivalence between client creature IDs and Canary Bestiary race IDs.
-  - Exact equivalence between client boss IDs and Canary Bosstiary IDs.
-  - Exact equivalence between legacy title IDs and Canary achievement IDs.
-  - Reviewed client quest-ID to selected Canary quest-source mappings.
+  - Whether the materialization helper will produce byte-identical target files after rebasing the staged payload onto the new checkpoint head.
+  - Final clean implementation commit SHA and final-head CI results.
 conflicts: []
-first_failure: null
+first_failure:
+  marker: Agent Task Ownership run 30104916248 / Validate changed active task checkpoints
+  evidence: CHANGED_TASK_VALIDATION.txt reports first_failure must be a YAML mapping because the prior checkpoint used first_failure null.
 rejected_hypotheses:
-  - Reparse StaticData inside TCR-006: forbidden because TCR-002 owns parsing.
-  - Treat all equal numeric IDs as equivalent: unproven across namespaces.
-  - Rename legacy titles to achievements: violates source-family vocabulary.
-  - Select quest files by fuzzy name matching: unsupported and unsafe.
-  - Build second achievement, Cyclopedia, spawn/boss or quest validator: duplicates existing owners.
+  - Reparse StaticData inside TCR-006: TCR-002 owns parsing and TCR-006 consumes only schemaVersion 2 output.
+  - Treat equal numeric IDs or normalized names as automatic equivalence: cross-namespace identity requires reviewed resolver evidence.
+  - Rename legacy titles to achievements or select quest files by fuzzy name: both violate source vocabulary and fail-closed quest ownership.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260724-tcr-006-content-reference-correlation.md
+  - .github/workflows/tibia-client-reference.yml
+  - tools/ai-agent/tibia_content_reference_correlation.py
+  - tools/ai-agent/tibia_content_reference_correlation_tool.py
+  - tools/ai-agent/test_tibia_content_reference_correlation.py
+  - docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.md
+  - docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json
+  - docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json
+  - docs/agents/MODULE_CATALOG.md
 validation:
-  - command: fresh open-PR and branch ownership search
+  - command: python -m unittest -v tools/ai-agent/test_tibia_content_reference_correlation.py
     result: PASS
-    evidence: no prior TCR-006 owner or equivalent contract found; draft PR 880 now owns the package
+    evidence: 20 fixture and exact-input tests passed locally.
+  - command: python -m py_compile tools/ai-agent/tibia_content_reference_correlation.py tools/ai-agent/tibia_content_reference_correlation_tool.py tools/ai-agent/test_tibia_content_reference_correlation.py
+    result: PASS
+    evidence: local verified implementation payload.
+  - command: Draft 2020-12 schema validation on exact resolver and correlation reports
+    result: PASS
+    evidence: resolver f1472c23; correlation 477c9ffa.
+  - command: Tibia Client Reference workflow 30104916300
+    result: PASS
+    evidence: current-main catalogue artifact 8601260482 produced successfully.
+  - command: Repository CI workflow 30104916625
+    result: PASS
+    evidence: completed successfully on live head 77c38568fe02b55798d0710318c4f82c8d1fd3d8.
+  - command: Agent Task Ownership workflow 30104916248
+    result: FAIL
+    evidence: prior checkpoint serialized first_failure as null instead of required mapping; corrected in this checkpoint.
 blockers: []
-next_action: Generate compact exact owner inventories for Achievement, Bestiary/Bosstiary, Spawn/Boss definitions and quest evidence boundaries before selecting reviewed resolver methods.
+next_action: Rebuild the staged payload commit on the current checkpoint head from Git blob f0446001244d636ccc8745a821b67cedc5fb9577, attach it to PR 880, and run the existing materialization helper to produce the six verified implementation files.
 ```
