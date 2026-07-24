@@ -8,10 +8,10 @@ branch: feat/e2e-qri-006-cleanup-certification
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "b1d24ec362ec52652886f6be6129234ff44e7d4d"
+last_verified_commit: "0182ca6531e9639c73594f0426e2171aab392d58"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "871"
 depends_on:
   - merged and lifecycle-closed E2E-QRI-005 result envelope
   - canonical Universal Physical E2E lifecycle
@@ -21,6 +21,7 @@ owned_paths:
   exclusive:
     - tools/e2e/cleanup_certification.py
     - tests/e2e/test_cleanup_certification.py
+    - tests/e2e/test_cleanup_result_envelope.py
     - docs/agents/tasks/active/CAN-20260724-e2e-qri-006-cleanup-certification.md
   shared:
     - tools/e2e/run_physical_e2e.sh
@@ -74,17 +75,18 @@ Deliver deterministic first-class cleanup certification after every canonical Un
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T10:05:00Z
-head: b1d24ec362ec52652886f6be6129234ff44e7d4d
+updated_at: 2026-07-24T10:18:00Z
+head: 0182ca6531e9639c73594f0426e2171aab392d58
 branch: feat/e2e-qri-006-cleanup-certification
-pr: null
-status: implementing
+pr: 871
+status: validating
 context_routes:
   - agent-governance
   - universal-e2e
 owned_paths:
   - tools/e2e/cleanup_certification.py
   - tests/e2e/test_cleanup_certification.py
+  - tests/e2e/test_cleanup_result_envelope.py
   - tools/e2e/run_physical_e2e.sh
   - tools/e2e/result_envelope.py
   - docs/agents/tasks/active/CAN-20260724-e2e-qri-006-cleanup-certification.md
@@ -92,21 +94,23 @@ proven:
   - QRI-005 delivery PR 850 merged as f28acc8e959e79448ea99dead2500a64460f3aff.
   - QRI-005 lifecycle closure PR 861 merged as cb5a22bb4319608a1b1c64b40dd274cac94e0002.
   - QRI-005 discovery registration PR 869 merged as b1d24ec362ec52652886f6be6129234ff44e7d4d.
-  - Current main records cleanup_summary as not-certified and cleanup_certified false until QRI-006 evidence exists.
-  - Existing lifecycle owns exact CLIENT_PID, CANARY_PID, XVFB_PID and TCPDUMP_PID values and bounded restoration through its trap.
-  - Existing wrapper is the only public physical entrypoint and finalizes the same result.json after lifecycle completion.
-  - Fresh open-PR and active-task search found no QRI-006 implementation owner.
+  - Fresh open-PR and active-task search found no prior QRI-006 implementation owner.
+  - Versioned cleanup certifier and focused deterministic process, database, workspace, marker, multi-client and gameplay-independence tests are committed.
+  - The canonical wrapper captures a pre-run baseline, executes the unchanged lifecycle in a dedicated process group, certifies after its trap, and finalizes the same schema-v3 result.json.
+  - The QRI-005 shim consumes only the exact cleanup contract/schema, promotes only the cleanup quality dimension and retains gameplay status.
+  - Local focused cleanup suite passed 13 tests; certifier/shim py_compile and wrapper bash syntax passed.
+  - Exact-head CI run 30085549360 passed at 0182ca6531e9639c73594f0426e2171aab392d58.
 derived:
-  - A post-trap read-only certifier is the smallest seam that can independently evaluate both gameplay-success and gameplay-failure runs.
-  - Dedicated process-group execution proves absence of untracked descendants without scanning or killing unrelated host processes.
-  - Database queries must remain fixed code-owned statements against the disposable E2E schema and manifest-declared fixture identities.
+  - A post-trap read-only certifier is the smallest seam that independently evaluates gameplay-success and gameplay-failure runs.
+  - Dedicated process-group execution proves absence of in-group untracked descendants without scanning or killing unrelated host processes.
+  - Database queries remain fixed code-owned statements against the disposable E2E schema and manifest-declared fixture identities.
 unknown:
-  - Exact first physical cleanup result on the GitHub runner.
-  - Whether every existing optional secondary actor emits the expected exact PID and exit evidence names.
+  - Exact first physical cleanup outcome from Universal Agent E2E run 30085549306.
+  - Whether every optional secondary actor currently emits the exact PID and exit evidence paths required by the new contract.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: QRI-006 physical validation has not run.
+  marker: ownership.missing-exclusive-test-path
+  evidence: Agent Task Ownership run 30085549088 did not include tests/e2e/test_cleanup_result_envelope.py in the task claim.
 rejected_hypotheses:
   - Treat the existing teardown trap as certification without independent post-trap evidence.
   - Kill residual processes by name, executable scan or host-wide process matching.
@@ -114,10 +118,24 @@ rejected_hypotheses:
   - Add another workflow, runner or result artifact.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260724-e2e-qri-006-cleanup-certification.md
+  - tests/e2e/test_cleanup_certification.py
+  - tests/e2e/test_cleanup_result_envelope.py
+  - tools/e2e/cleanup_certification.py
+  - tools/e2e/result_envelope.py
+  - tools/e2e/run_physical_e2e.sh
 validation:
   - command: fresh main, open-PR and active-task preflight
     result: PASS
-    evidence: QRI-005 is merged/archived/registered; no QRI-006 owner found.
+    evidence: QRI-005 merged/archived/registered; no prior QRI-006 owner.
+  - command: local focused cleanup contract suite plus py_compile and bash -n
+    result: PASS
+    evidence: 13 cleanup tests; certifier/shim syntax; canonical wrapper syntax.
+  - command: exact-head CI at 0182ca6531e9639c73594f0426e2171aab392d58
+    result: PASS
+    evidence: run 30085549360.
+  - command: Agent Task Ownership at 0182ca6531e9639c73594f0426e2171aab392d58
+    result: FAIL
+    evidence: run 30085549088; missing ownership declaration for the new envelope-integration test.
 blockers: []
-next_action: Open the draft PR, implement the bounded certifier and focused tests, then run exact-head CI, ownership and Universal Physical E2E.
+next_action: Re-run exact-head ownership and Universal Physical E2E after the ownership and focused-wrapper corrections, then inspect cleanup-certification.json and result.json.
 ```
