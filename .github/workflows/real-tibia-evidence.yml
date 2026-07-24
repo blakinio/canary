@@ -91,6 +91,33 @@ jobs:
           path.write_text(text, encoding="utf-8")
           PY
 
+      - name: Normalize generated UTF-8 text
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import os
+          import subprocess
+
+          changed = subprocess.check_output(["git", "diff", "--name-only", "-z"])
+          for raw in changed.split(b"\0"):
+              if not raw:
+                  continue
+              path = Path(os.fsdecode(raw))
+              if not path.is_file():
+                  continue
+              data = path.read_bytes()
+              try:
+                  text = data.decode("utf-8")
+              except UnicodeDecodeError:
+                  continue
+              had_newline = text.endswith(("\n", "\r"))
+              normalized = "\n".join(line.rstrip(" \t") for line in text.splitlines())
+              if had_newline:
+                  normalized += "\n"
+              if normalized != text:
+                  path.write_text(normalized, encoding="utf-8", newline="\n")
+          PY
+
       - name: Install schema checker
         run: python -m pip install --disable-pip-version-check jsonschema
 
