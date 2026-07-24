@@ -2,13 +2,13 @@
 task_id: CAN-20260724-ots-prey-system-2-0
 program_id: CAN-PROGRAM-OTS-FUTURE-GAMEPLAY-SYSTEMS
 coordination_id: OTS-PREY-SYSTEM-2-0
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
 branch: docs/ots-prey-system-2-0-20260724
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: ""
+last_verified_commit: "11e8d113a164f342bf6b98b9eb2b784ea422fa9f"
 risk: low
 related_issue: ""
 related_pr: "894"
@@ -64,7 +64,7 @@ Documentation and classification only. No runtime, protocol, OTClient, store, ec
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-24
-head: c15e0284363640219aa04b6f831f58c2ecad3827
+head: 11e8d113a164f342bf6b98b9eb2b784ea422fa9f
 branch: docs/ots-prey-system-2-0-20260724
 pr: 894
 status: validating
@@ -86,7 +86,10 @@ proven:
   - Current OTClient exposes the official-style actions and only None, Automatic Reroll and Lock Prey options.
   - The detailed design defines entries 121-128 and preserves unresolved constants and official decrement semantics as OPEN.
   - PR 894 changes exactly four intended documentation/task paths and no runtime, protocol, client, datapack, map or production files.
-  - CI run 30117043486 passed on head c15e0284363640219aa04b6f831f58c2ecad3827.
+  - Agent Task Ownership run 30117267132 passed on pre-final head 11e8d113a164f342bf6b98b9eb2b784ea422fa9f.
+  - AI Agent Tools run 30117267258 passed on pre-final head 11e8d113a164f342bf6b98b9eb2b784ea422fa9f.
+  - CI run 30117267682 passed on pre-final head 11e8d113a164f342bf6b98b9eb2b784ea422fa9f.
+  - The ci:final-gate label was applied before this final checkpoint commit.
 derived:
   - Current Canary can consume active Prey time while the player hunts a different eligible monster.
   - Target reservation, bonus persistence and time renewal should be independent responsibilities.
@@ -96,7 +99,7 @@ unknown:
 conflicts: []
 first_failure:
   marker: checkpoint-schema
-  evidence: Ownership run 30117043661 rejected first_failure as a scalar null; it is now a required YAML mapping without changing product content.
+  evidence: Ownership run 30117043661 rejected first_failure as a scalar null; the corrected mapping passed on the pre-final head.
 rejected_hypotheses:
   - Treat target-specific time consumption as proven current Tibia parity.
   - Remove all Prey economy sinks or make maximum bonuses permanently free.
@@ -110,12 +113,12 @@ validation:
   - command: source evidence review
     result: PASS
     evidence: Official Tibia support/manual, current fork Canary source and upstream OTClient game_prey module were inspected with unresolved parity recorded as OPEN.
-  - command: changed-file and design-boundary review
+  - command: changed-file and full-diff review
     result: PASS
-    evidence: Four intended documentation/task paths changed; no runtime behavior or cross-repository write is included.
-  - command: normal CI
+    evidence: Four intended documentation/task paths changed; no runtime behavior, forbidden file or cross-repository write is included.
+  - command: pre-final Agent Task Ownership, AI Agent Tools and CI
     result: PASS
-    evidence: CI run 30117043486 passed on head c15e0284363640219aa04b6f831f58c2ecad3827.
+    evidence: Runs 30117267132, 30117267258 and 30117267682 passed on head 11e8d113a164f342bf6b98b9eb2b784ea422fa9f.
 blockers: []
-next_action: Confirm corrected ownership and AI Agent Tools, review the full PR diff, then apply ci:final-gate and create the final checkpoint commit.
+next_action: Require exact-final Agent Task Ownership, AI Agent Tools and CI on the final checkpoint head; if green and review threads are clear, mark PR 894 ready and squash-merge without further commits.
 ```
