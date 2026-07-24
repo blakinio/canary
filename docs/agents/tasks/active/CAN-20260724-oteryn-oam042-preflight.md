@@ -2,7 +2,7 @@
 task_id: CAN-20260724-oteryn-oam042-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-042
-status: active
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-042-npcs-preflight
 base_branch: main
@@ -11,7 +11,7 @@ updated: 2026-07-24
 last_verified_commit: "deceb2c451aaf101945b067d45042e5866f98cbf"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "859"
 depends_on:
   - OAM-041 formally complete
 blocks:
@@ -55,11 +55,11 @@ This preflight performs no target, runtime, datapack, map, binary, protocol or c
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T09:35:00+02:00
-head: pending-initial-commit
+updated_at: 2026-07-24T09:32:00+02:00
+head: c0c360d9c720e2421b590c97d21683eb10e9f3a3
 branch: dudantas/oam-042-npcs-preflight
-pr: pending
-status: active
+pr: 859
+status: ready
 context_routes:
   - agent-governance
   - otbm
@@ -115,5 +115,5 @@ validation:
     result: PASS
     evidence: existing fail-closed OTBM scanner covers explicit NPC definitions placements and literal dynamic calls while preserving unresolved evidence
 blockers: []
-next_action: Open the one-file Canary preflight PR, attach ci:final-gate before the final checkpoint commit, require exact-head Agent Task Ownership and CI, audit comments reviews threads scope and main drift, then expected-head squash merge before starting a separate Otheryn target-proof task.
+next_action: Require exact-current-head Agent Task Ownership and full final-gate CI on PR 859, audit the one-file preflight scope plus comments reviews threads and Canary-main drift, then expected-head squash merge before starting a separate Otheryn target-proof task.
 ```
