@@ -161,11 +161,38 @@ local function tryCharacterLogin()
         return
     end
 
+    local characterListWidget = rootWidget:recursiveGetChildById("characters")
+    if not characterListWidget or not characterListWidget:hasChildren() then
+        scheduleEvent(tryCharacterLogin, 100)
+        return
+    end
+
+    local selected = nil
+    for _, widget in ipairs(characterListWidget:getChildren()) do
+        if tostring(widget.characterName) == CHARACTER and tostring(widget.worldName) == WORLD and
+           tostring(widget.worldHost) == HOST and tonumber(widget.worldPort) == GAME_PORT then
+            selected = widget
+            break
+        end
+    end
+    if not selected then
+        fail("Character list did not expose the expected authorized character")
+        return
+    end
+
+    characterListWidget:focusChild(selected, KeyboardFocusReason)
+    local focused = characterListWidget:getFocusedChild()
+    if focused ~= selected or tostring(focused.characterName) ~= CHARACTER or tostring(focused.worldName) ~= WORLD then
+        fail("Could not focus the expected authorized character")
+        return
+    end
+
     replayCredential = G.sessionKey
     characterLoginStarted = true
     phase = 1
     appendEvent("gateway_session", "received")
     appendEvent("character_authorization", "matched")
+    appendEvent("character_selection", CHARACTER .. "@" .. WORLD)
     CharacterList.doLogin()
 end
 
@@ -235,6 +262,9 @@ local function beginNativeFlow()
         fail("could not configure client version widget")
         return
     end
+
+    g_settings.set("last-used-character", CHARACTER)
+    g_settings.set("last-used-world", WORLD)
 
     flowStarted = true
     appendEvent("native_flow", "started")
