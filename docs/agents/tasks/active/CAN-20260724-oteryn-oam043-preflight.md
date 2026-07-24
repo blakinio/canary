@@ -8,7 +8,7 @@ branch: dudantas/oam-043-post-preflight-handoff
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "61c4e9eedcdeb9579a2e726895d8dbbdc5f6f095"
+last_verified_commit: "610c78407200d1d6580f35969045ff43a58a75b4"
 risk: high
 related_issue: ""
 related_pr: "872"
@@ -87,8 +87,8 @@ This preflight performs no target, runtime, datapack, map, binary, protocol, cli
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T12:20:10+02:00
-head: 61c4e9eedcdeb9579a2e726895d8dbbdc5f6f095
+updated_at: 2026-07-24T12:27:55+02:00
+head: 610c78407200d1d6580f35969045ff43a58a75b4
 branch: dudantas/oam-043-post-preflight-handoff
 pr: 872
 status: validating
@@ -101,11 +101,8 @@ owned_paths:
 proven:
   - Canary OAM-043 preflight PR 866 selected quests with disposition REVALIDATE and merged as df7abb0cfe4b05ed11da7b3a6a0dcddbefb62375.
   - PR 866 final head 8ea49613bc37b152726d0afaf291ecaa450ee853 passed CI and Agent Task Ownership checks with no review comments or unresolved threads.
-  - Current Canary main is b1d24ec362ec52652886f6be6129234ff44e7d4d and contains the merged quests preflight.
-  - Duplicate Canary draft PR 867 overlapped the same exclusive task path and was closed as superseded without merge.
-  - Fresh Otheryn target baseline remains 3a37f3d5e4c01ddf4469f1c71461c40ca749142f.
-  - Fresh current-upstream Canary baseline remains 7323503b3dc61ed86bf1f04a611b2d0aec64b35a.
-  - Maintained OTClient baseline remains b3bcea2a95959bb4e92cc0b80cd49f36b63699b2.
+  - Current Canary main is b1d24ec362ec52652886f6be6129234ff44e7d4d, contains the merged quests preflight, and duplicate draft PR 867 was closed as superseded without merge.
+  - Current pinned baselines are Otheryn 3a37f3d5e4c01ddf4469f1c71461c40ca749142f, upstream Canary 7323503b3dc61ed86bf1f04a611b2d0aec64b35a, and maintained OTClient b3bcea2a95959bb4e92cc0b80cd49f36b63699b2.
   - Canonical quests registry blob is 61f3f8249a1b7b2efef956cbcec2b78da9dafc08 and declares category world-content.
   - Canonical quests owns quest source, storage transitions, AID/UID/item/position mechanics, rewards, access and NPC/spawn/map dependencies.
   - Canonical quests depends on otbm-tooling and player-persistence; OAM-040 and OAM-004 formally completed those dependencies.
@@ -129,8 +126,8 @@ unknown:
   - Whether a canonical storage-transition graph implementation already exists outside the reviewed quest validator; no such module was proven during preflight.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: OAM-043 target proof has not run; Canary preflight selection and ownership reconciliation are complete.
+  marker: checkpoint compactness limit
+  evidence: PR 872 Agent Task Ownership run 30085889736 failed because proven had 18 items; this final checkpoint compacts the list to 15 without removing current uncertainty or safety evidence.
 rejected_hypotheses:
   - Finalize quests as REUSE from target/upstream path presence or blob identity alone.
   - Build a second OTBM parser, map scanner, registration resolver or quest-map validator.
@@ -152,8 +149,8 @@ validation:
     result: PASS
     evidence: quest map validation reuses canonical script resolution and world index, requires explicit source selection and preserves unresolved evidence fail-closed.
   - command: PR 872 final-head ownership and CI
-    result: NOT_RUN
-    evidence: ci:final-gate is applied; exact-head Agent Task Ownership and CI workflows must complete on the final synchronization commit.
+    result: FAIL
+    evidence: CI passed on 610c78407200d1d6580f35969045ff43a58a75b4; Agent Task Ownership first failed only on checkpoint compactness and must rerun on this compacted final head.
 blockers: []
 next_action: Require exact-head Agent Task Ownership and CI on PR 872, audit comments, reviews, threads and Canary-main drift, then squash-merge with the expected head.
 ```
