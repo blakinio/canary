@@ -31,68 +31,15 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Restore current main shared files
+      - name: Restore current main catalogue
         run: |
           git fetch --depth=1 origin main
-          git show FETCH_HEAD:.github/workflows/tibia-client-reference.yml > .github/workflows/tibia-client-reference.yml
           git show FETCH_HEAD:docs/agents/MODULE_CATALOG.md > docs/agents/MODULE_CATALOG.md
 
-      - name: Add TCR-006 validation and catalogue entry
+      - name: Add TCR-006 catalogue entry
         shell: python
         run: |
           from pathlib import Path
-
-          workflow_path = Path('.github/workflows/tibia-client-reference.yml')
-          workflow = workflow_path.read_text(encoding='utf-8')
-
-          replacements = (
-              (
-                  '      - "tools/ai-agent/test_otbm_house_reference_parity.py"\n',
-                  '      - "tools/ai-agent/test_otbm_house_reference_parity.py"\n'
-                  '      - "tools/ai-agent/tibia_content_reference_correlation.py"\n'
-                  '      - "tools/ai-agent/tibia_content_reference_correlation_tool.py"\n'
-                  '      - "tools/ai-agent/test_tibia_content_reference_correlation.py"\n',
-              ),
-              (
-                  '      - "docs/ai-agent/OTBM_HOUSE_ID_RESOLVER.schema.json"\n',
-                  '      - "docs/ai-agent/OTBM_HOUSE_ID_RESOLVER.schema.json"\n'
-                  '      - "docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.md"\n'
-                  '      - "docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json"\n'
-                  '      - "docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json"\n',
-              ),
-              (
-                  '      - name: Run house parity focused tests\n'
-                  '        run: python -m unittest discover -s tools/ai-agent -p "test_otbm_house_reference_parity.py" -v\n',
-                  '      - name: Run house parity focused tests\n'
-                  '        run: python -m unittest discover -s tools/ai-agent -p "test_otbm_house_reference_parity.py" -v\n\n'
-                  '      - name: Run content correlation focused tests\n'
-                  '        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_content_reference_correlation.py" -v\n',
-              ),
-              (
-                  '            tools/ai-agent/test_otbm_house_reference_parity.py\n',
-                  '            tools/ai-agent/test_otbm_house_reference_parity.py \\\n'
-                  '            tools/ai-agent/tibia_content_reference_correlation.py \\\n'
-                  '            tools/ai-agent/tibia_content_reference_correlation_tool.py \\\n'
-                  '            tools/ai-agent/test_tibia_content_reference_correlation.py\n',
-              ),
-              (
-                  '          python -m json.tool docs/ai-agent/OTBM_HOUSE_ID_RESOLVER.schema.json > /dev/null\n',
-                  '          python -m json.tool docs/ai-agent/OTBM_HOUSE_ID_RESOLVER.schema.json > /dev/null\n'
-                  '          python -m json.tool docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json > /dev/null\n'
-                  '          python -m json.tool docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json > /dev/null\n',
-              ),
-              (
-                  '          python tools/ai-agent/otbm_house_reference_parity_tool.py --help > /dev/null\n',
-                  '          python tools/ai-agent/otbm_house_reference_parity_tool.py --help > /dev/null\n'
-                  '          python tools/ai-agent/tibia_content_reference_correlation_tool.py --help > /dev/null\n',
-              ),
-          )
-
-          for old, new in replacements:
-              if workflow.count(old) != 1:
-                  raise SystemExit(f'expected one workflow anchor: {old!r}')
-              workflow = workflow.replace(old, new, 1)
-          workflow_path.write_text(workflow, encoding='utf-8')
 
           catalog_path = Path('docs/agents/MODULE_CATALOG.md')
           catalog = catalog_path.read_text(encoding='utf-8')
@@ -121,7 +68,7 @@ jobs:
       - name: Remove temporary staging files
         run: rm -rf .tcr006-stage
 
-      - name: Validate final implementation package
+      - name: Validate implementation package
         env:
           PYTHONPATH: tools/ai-agent
         run: |
@@ -135,15 +82,13 @@ jobs:
           python tools/ai-agent/tibia_content_reference_correlation_tool.py --help > /dev/null
           git diff --check
 
-      - name: Commit final implementation package
+      - name: Commit catalogue and staging cleanup
         run: |
           set -euo pipefail
-          git add \
-            .github/workflows/tibia-client-reference.yml \
-            docs/agents/MODULE_CATALOG.md
+          git add docs/agents/MODULE_CATALOG.md
           git add -A -- .tcr006-stage
           git diff --cached --check
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "feat(tcr): finalize content reference correlation tooling"
+          git commit -m "feat(tcr): catalogue content reference correlation"
           git push origin "HEAD:${GITHUB_HEAD_REF}"
