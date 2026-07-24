@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: feat/tcr-004-proficiency-reference-index
 base_branch: main
 created: 2026-07-24T09:15:00+02:00
-updated: 2026-07-24T09:15:00+02:00
-last_verified_commit: "734351a48249d51df7d740521c34b4d563a92c5c"
+updated: 2026-07-24T09:25:00+02:00
+last_verified_commit: "dc4720ad43ddd098a8ab88d9cf30fa7fae841dc4"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: 858
 depends_on:
   - TCR-001 merged stable canary-tibia-client-reference-manifest-v1
   - TCR-003 lifecycle closure merged as 734351a48249d51df7d740521c34b4d563a92c5c
@@ -69,11 +69,11 @@ Implement the bounded, read-only `canary-tibia-proficiency-index-v1` producer fo
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T09:15:00+02:00
-head: 734351a48249d51df7d740521c34b4d563a92c5c
+updated_at: 2026-07-24T09:25:00+02:00
+head: dc4720ad43ddd098a8ab88d9cf30fa7fae841dc4
 branch: feat/tcr-004-proficiency-reference-index
-pr: none
-status: investigating
+pr: 858
+status: validating
 context_routes:
   - agent-governance
   - otbm
@@ -88,13 +88,17 @@ owned_paths:
   - .github/workflows/tibia-client-reference.yml
   - docs/agents/MODULE_CATALOG.md
 proven:
-  - Current main is 734351a48249d51df7d740521c34b4d563a92c5c and marks TCR-004 as the next candidate after a fresh preflight.
-  - No open PR or branch owns TCR-004 or canary-tibia-proficiency-index-v1.
-  - The supplied file proficiencies-1a915dffd9265cd1c18d39e55da7ede691b2e58add534bc186238ae028a73f22.json remains outside Git, is 462453 bytes and has the SHA-256 embedded in its filename.
+  - Current implementation base is main 734351a48249d51df7d740521c34b4d563a92c5c and PR 858 is the sole TCR-004 owner.
+  - The supplied file proficiencies-1a915dffd9265cd1c18d39e55da7ede691b2e58add534bc186238ae028a73f22.json remains outside Git, is 462453 bytes and has SHA-256 1a915dffd9265cd1c18d39e55da7ede691b2e58add534bc186238ae028a73f22.
   - The supplied file is byte-identical to current data/items/proficiencies.json with Git blob SHA 49ec7edc6dacdee4a055fc0f3a9544f15eafabdd.
-  - The supplied file contains 420 unique proficiency IDs, 2052 ordered levels and 3287 ordered perks with the reviewed field set.
-  - The pinned read-only research source at beats-dh/Beats-Assets-Editor@ed827be34c279d1279ad3dde3af434b148ac05c7 confirms optional XpRequired and the reviewed perk fields.
+  - The supplied file contains 420 unique proficiency IDs, 2052 ordered levels and 3287 ordered perks with zero XpRequired records.
+  - The pinned read-only research source beats-dh/Beats-Assets-Editor@ed827be34c279d1279ad3dde3af434b148ac05c7 confirms optional XpRequired and the reviewed perk fields.
   - Current WeaponProficiency runtime loading consumes IDs, levels and perks but drops Name and Version and silently overwrites duplicate IDs, so it is not the planned manifest-bound deterministic reference index.
+  - The producer, CLI, schema, documentation, focused tests and dedicated workflow integration are implemented on PR 858.
+  - Fixture-only validation passed 15 tests with one opt-in real-file test skipped; exact real-file validation passed all 15 tests.
+  - Real-file output has 420 definitions, 2052 levels, 3287 perks, zero duplicate IDs, zero duplicate names and zero XpRequired records.
+  - Python bytecode compilation, JSON schema syntax, representative Draft 2020-12 validation and CLI construction passed locally.
+  - Tibia Client Reference and repository CI passed on head dc4720ad43ddd098a8ab88d9cf30fa7fae841dc4.
 derived:
   - TCR-004 remains a distinct definition-only evidence producer even though the selected external bytes currently equal the Canary runtime JSON.
   - Appearance and runtime correlation belong to TCR-007 and must not be folded into this producer.
@@ -103,20 +107,41 @@ unknown:
   - Whether later client proficiency files introduce fields beyond the independently reviewed JSON shape.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: no current blocker or failed validation; implementation has not started
+  marker: Agent Task Ownership changed-task checkpoint validation on dc4720ad43ddd098a8ab88d9cf30fa7fae841dc4
+  evidence: related_pr was empty after draft PR 858 existed; implementation and dedicated workflow checks were already green
 rejected_hypotheses:
   - Reuse WeaponProficiency::loadFromJson as the TCR-004 index: it is runtime registration, not manifest-bound reference evidence, and does not retain the complete source contract.
   - Reparse appearances in TCR-004: the canonical appearance index already preserves proficiency IDs and TCR-007 owns correlation.
 changed_paths:
+  - .github/workflows/tibia-client-reference.yml
   - docs/agents/tasks/active/CAN-20260724-tcr-004-proficiency-reference-index.md
+  - docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.md
+  - docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.schema.json
+  - tools/ai-agent/test_tibia_proficiency_reference_index.py
+  - tools/ai-agent/tibia_proficiency_reference_index.py
+  - tools/ai-agent/tibia_proficiency_reference_index_tool.py
 validation:
-  - command: GitHub open PR and branch search for TCR-004 ownership
+  - command: python -m unittest discover -s tools/ai-agent -p test_tibia_proficiency_reference_index.py -v
     result: PASS
-    evidence: no exact TCR-004 or canary-tibia-proficiency-index-v1 owner found
-  - command: external-file inventory and JSON shape analysis
+    evidence: 15 passed; 1 opt-in test skipped
+  - command: CANARY_TIBIA_PROFICIENCY_FILE=<external-file> python -m unittest discover -s tools/ai-agent -p test_tibia_proficiency_reference_index.py -v
     result: PASS
-    evidence: 420 records, 2052 levels, 3287 perks, zero duplicate IDs; exact SHA-256 1a915dffd9265cd1c18d39e55da7ede691b2e58add534bc186238ae028a73f22
+    evidence: 15 passed; exact source SHA-256 1a915dffd9265cd1c18d39e55da7ede691b2e58add534bc186238ae028a73f22
+  - command: python -m py_compile tools/ai-agent/tibia_proficiency_reference_index.py tools/ai-agent/tibia_proficiency_reference_index_tool.py tools/ai-agent/test_tibia_proficiency_reference_index.py
+    result: PASS
+    evidence: local Python compilation completed without output
+  - command: python -m json.tool docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.schema.json
+    result: PASS
+    evidence: schema syntax valid and representative real-file payload validates under Draft 2020-12
+  - command: python tools/ai-agent/tibia_proficiency_reference_index_tool.py --help
+    result: PASS
+    evidence: CLI construction completed without output
+  - command: GitHub Tibia Client Reference workflow on dc4720ad43ddd098a8ab88d9cf30fa7fae841dc4
+    result: PASS
+    evidence: run 30074698335
+  - command: GitHub CI workflow on dc4720ad43ddd098a8ab88d9cf30fa7fae841dc4
+    result: PASS
+    evidence: run 30074698446
 blockers: []
-next_action: Create the early draft PR, then implement and locally validate only the bounded canary-tibia-proficiency-index-v1 producer on the claimed paths.
+next_action: Register canary-tibia-proficiency-index-v1 in MODULE_CATALOG, verify all checks on the resulting exact head, then apply ci:final-gate and merge PR 858 if green.
 ```
