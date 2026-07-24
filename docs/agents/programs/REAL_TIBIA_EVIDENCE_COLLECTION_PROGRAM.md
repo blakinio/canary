@@ -4,8 +4,8 @@ name: Real Tibia Evidence Collection
 status: active
 owner: Real Tibia evidence coordination / platform tooling
 created: 2026-07-24T20:20:00+02:00
-updated: 2026-07-24T20:20:00+02:00
-last_verified_commit: "0d70d181cdaf475ed80c3a3a9fb35aaa34a18016"
+updated: 2026-07-24T22:50:00+02:00
+last_verified_commit: "4420e7cfa326ea8ae7b31e0eb5c3f4cbd43167c9"
 primary_paths:
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
   - docs/ai-agent/REAL_TIBIA_EVIDENCE_COLLECTOR_ARCHITECTURE.md
@@ -110,7 +110,7 @@ Every behavior claim and module dossier must distinguish these dates and version
 
 An official announcement proves announcement and intended release behavior, not necessarily the exact final live implementation. A wiki history note remains secondary until independently confirmed. Filenames, directory names, OTBM labels and donor branch names never prove a Tibia version.
 
-Server revision, client/protocol build, map hash, items/appearances revision, datapack revision and spawn/NPC sidecar revision must remain separate fields. Do not compress them into one ambiguous `version` value.
+Official Tibia release, official client build, protocol profile, Canary commit, maintained OTClient commit, map SHA-256, datapack revision, appearances/items revision, spawn/NPC sidecar revision and database schema revision remain separate fields. Do not compress them into one ambiguous `version` value.
 
 # Evidence states and levels
 
@@ -139,11 +139,14 @@ Never promote a lower level into a higher level.
 
 # Durable file model
 
-The planned source layout is:
+The implemented source layout is:
 
 ```text
 docs/agents/real-tibia/evidence/
 ├── README.md
+├── schemas/
+├── generated/
+│   └── EVIDENCE_INDEXES.json
 ├── modules/
 │   └── <module-id>/
 │       ├── MODULE.md
@@ -151,20 +154,19 @@ docs/agents/real-tibia/evidence/
 │       ├── VERSION_HISTORY.yaml
 │       ├── EVIDENCE_INDEX.yaml
 │       ├── DECISIONS.md
-│       ├── GAPS_AND_REQUESTS.yaml
-│       └── records/
-│           └── RT-<MODULE>-NNNN.yaml
-├── requests/
-│   ├── e2e/
-│   ├── otbm/
-│   ├── tcr/
-│   ├── protocol/
-│   └── feature/
-└── reviews/
-    └── <module-id>/
+│       ├── records/
+│       │   └── RT-<MODULE>-NNNN.yaml
+│       └── reviews/
+│           └── <review-id>.md
+└── requests/
+    ├── e2e/
+    ├── otbm/
+    ├── tcr/
+    ├── protocol/
+    └── feature/
 ```
 
-The architecture package defines this structure but does not create empty dossiers or placeholder records for all modules. A later schema/tooling task must implement validators and deterministic generation before broad population begins.
+RTEC-001 implements validators and deterministic generation but does not create empty dossiers or placeholder records for all modules. Broad population remains blocked until RTEC-001 merges and the single-module RTEC-002 pilot proves the complete collection/review flow.
 
 Generated large reports, captures, screenshots, videos, maps, client packages and proprietary assets remain outside Git. Git stores compact metadata, hashes, references, findings and proof boundaries only.
 
@@ -312,9 +314,9 @@ The Coordinator performs shared-file integration after worker PRs merge.
 
 | ID | Scope | Status | Dependencies | Risk | Exact next action |
 |---|---|---|---|---|---|
-| RTEC-000 | Architecture, structure, boundaries, concurrency and prompts | active | existing parity/E2E/OTBM/TCR governance | low | Merge the docs-only architecture package. |
-| RTEC-001 | Evidence/request schemas, validator, deterministic indexes and tests | planned | RTEC-000 | medium | Implement standard-library validation and generation without broad data population. |
-| RTEC-002 | Pilot dossier on one bounded low-coupling module | planned | RTEC-001 | medium | Select a module after fresh ownership/source preflight; prove end-to-end collection/review flow. |
+| RTEC-000 | Architecture, structure, boundaries, concurrency and prompts | merged | existing parity/E2E/OTBM/TCR governance | low | Architecture delivered by PR #889; lifecycle archived by PR #893. |
+| RTEC-001 | Evidence/request schemas, validator, deterministic indexes and tests | active — draft PR #897 | RTEC-000 | medium | Complete current-head CI/review/final gate and merge before any module worker starts. |
+| RTEC-002 | Pilot dossier on one bounded low-coupling module | blocked | RTEC-001 | medium | After RTEC-001 merges, select exactly one module after fresh ownership/source preflight and prove the end-to-end collection/review flow. |
 | RTEC-003 | Owner-request lifecycle integration | planned | RTEC-001/002 | medium | Validate request state transitions and stable output consumption for E2E/OTBM/TCR. |
 | RTEC-004 | Parallel campaign wave 1 | planned | RTEC-002/003 | medium | Start at most eight workers and four concurrent PRs using isolated dossier paths. |
 | RTEC-005 | Remaining module waves | planned | RTEC-004 evidence and concurrency review | medium | Continue bounded waves until all 62 modules have non-placeholder dossiers. |

@@ -1,0 +1,260 @@
+{
+  "$id": "generated-indexes.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "active_owner_requests": {
+      "items": {
+        "pattern": "^RTREQ-(E2E|OTBM|TCR|PROTOCOL|FEATURE)-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "as_of": {
+      "format": "date",
+      "type": "string"
+    },
+    "evidence_by_authority_dimension": {
+      "additionalProperties": {
+        "items": {
+          "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+          "type": "string"
+        },
+        "type": "array",
+        "uniqueItems": true
+      },
+      "type": "object"
+    },
+    "evidence_by_module": {
+      "additionalProperties": {
+        "items": {
+          "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+          "type": "string"
+        },
+        "type": "array",
+        "uniqueItems": true
+      },
+      "type": "object"
+    },
+    "evidence_by_version_axis": {
+      "additionalProperties": {
+        "additionalProperties": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "type": "object"
+      },
+      "propertyNames": {
+        "enum": [
+          "official_tibia_release",
+          "official_client_build",
+          "protocol_profile",
+          "canary_commit",
+          "maintained_otclient_commit",
+          "map_sha256",
+          "datapack_revision",
+          "appearances_items_revision",
+          "spawn_npc_sidecar_revision",
+          "database_schema_revision"
+        ]
+      },
+      "type": "object"
+    },
+    "format": {
+      "const": "canary-real-tibia-generated-indexes-v1"
+    },
+    "input_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "nonclaims": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 3,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "proof_maturity_by_dimension": {
+      "additionalProperties": {
+        "additionalProperties": {
+          "additionalProperties": false,
+          "properties": {
+            "evidence_ids": {
+              "items": {
+                "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "evidence_states": {
+              "items": {
+                "enum": [
+                  "PROVEN",
+                  "DERIVED",
+                  "UNKNOWN",
+                  "CONFLICT",
+                  "STALE",
+                  "SUPERSEDED",
+                  "REJECTED"
+                ]
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "proof_level": {
+              "enum": [
+                "definition-found",
+                "registration-proven",
+                "runtime-path-proven",
+                "persistence-proven",
+                "protocol-proven",
+                "behavior-proven",
+                "gameplay-proven",
+                "physical-client-proven"
+              ]
+            }
+          },
+          "required": [
+            "proof_level",
+            "evidence_ids",
+            "evidence_states"
+          ],
+          "type": "object"
+        },
+        "propertyNames": {
+          "enum": [
+            "official-feature-identity",
+            "visible-gameplay-behavior",
+            "current-canary-behavior",
+            "protocol-client-interpretation",
+            "persistence-rollback",
+            "map-geometry",
+            "map-mechanics",
+            "implementation-candidate",
+            "historical-version"
+          ]
+        },
+        "type": "object"
+      },
+      "propertyNames": {
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+      },
+      "type": "object"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "source_counts": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_records": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "owner_requests": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "version_history_records": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "evidence_records",
+        "owner_requests",
+        "version_history_records"
+      ],
+      "type": "object"
+    },
+    "stale_evidence": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "age_days": {
+            "type": "integer"
+          },
+          "evidence_id": {
+            "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+            "type": "string"
+          },
+          "module_id": {
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "reason": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "evidence_id",
+          "module_id",
+          "age_days",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "superseded_records": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "record_id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "record_type": {
+            "enum": [
+              "evidence",
+              "request"
+            ]
+          }
+        },
+        "required": [
+          "record_type",
+          "record_id"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "unresolved_conflicts": {
+      "items": {
+        "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "format",
+    "schema_version",
+    "as_of",
+    "input_sha256",
+    "source_counts",
+    "evidence_by_module",
+    "evidence_by_authority_dimension",
+    "evidence_by_version_axis",
+    "unresolved_conflicts",
+    "stale_evidence",
+    "active_owner_requests",
+    "superseded_records",
+    "proof_maturity_by_dimension",
+    "nonclaims"
+  ],
+  "title": "Real Tibia generated factual indexes v1",
+  "type": "object"
+}

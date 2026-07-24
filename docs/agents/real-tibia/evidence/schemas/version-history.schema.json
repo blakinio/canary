@@ -1,0 +1,330 @@
+{
+  "$defs": {
+    "versionAxes": {
+      "additionalProperties": false,
+      "properties": {
+        "appearances_items_revision": {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "canary_commit": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "database_schema_revision": {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "datapack_revision": {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "maintained_otclient_commit": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "map_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "official_client_build": {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "official_tibia_release": {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "protocol_profile": {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "spawn_npc_sidecar_revision": {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "official_tibia_release",
+        "official_client_build",
+        "protocol_profile",
+        "canary_commit",
+        "maintained_otclient_commit",
+        "map_sha256",
+        "datapack_revision",
+        "appearances_items_revision",
+        "spawn_npc_sidecar_revision",
+        "database_schema_revision"
+      ],
+      "type": "object"
+    },
+    "versionMarker": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_refs": {
+          "items": {
+            "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "exact": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/versionAxes"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lower_bound": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/versionAxes"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mode": {
+          "enum": [
+            "EXACT",
+            "DERIVED_RANGE",
+            "LOWER_BOUND",
+            "UPPER_BOUND",
+            "UNKNOWN",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "notes": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "upper_bound": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/versionAxes"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "mode",
+        "exact",
+        "lower_bound",
+        "upper_bound",
+        "evidence_refs",
+        "notes"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "version-history.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "entries": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_refs": {
+            "items": {
+              "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "confidence": {
+            "enum": [
+              "proven-official",
+              "proven-observation",
+              "supported-secondary",
+              "derived-range",
+              "conflicting",
+              "unknown"
+            ]
+          },
+          "does_not_prove": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "evidence_refs": {
+            "items": {
+              "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "history_id": {
+            "pattern": "^RTVH-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+            "type": "string"
+          },
+          "lifecycle": {
+            "additionalProperties": false,
+            "properties": {
+              "announced_in": {
+                "$ref": "#/$defs/versionMarker"
+              },
+              "changed_in": {
+                "items": {
+                  "$ref": "#/$defs/versionMarker"
+                },
+                "type": "array"
+              },
+              "deprecated_in": {
+                "$ref": "#/$defs/versionMarker"
+              },
+              "effective_from": {
+                "$ref": "#/$defs/versionMarker"
+              },
+              "effective_until": {
+                "$ref": "#/$defs/versionMarker"
+              },
+              "introduced_in": {
+                "$ref": "#/$defs/versionMarker"
+              },
+              "observed_in": {
+                "items": {
+                  "$ref": "#/$defs/versionMarker"
+                },
+                "type": "array"
+              },
+              "removed_in": {
+                "$ref": "#/$defs/versionMarker"
+              }
+            },
+            "required": [
+              "announced_in",
+              "introduced_in",
+              "observed_in",
+              "changed_in",
+              "deprecated_in",
+              "removed_in",
+              "effective_from",
+              "effective_until"
+            ],
+            "type": "object"
+          },
+          "proves": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "statement": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "superseded_by": {
+            "items": {
+              "pattern": "^RTVH-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "supersedes": {
+            "items": {
+              "pattern": "^RTVH-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "history_id",
+          "claim_refs",
+          "lifecycle",
+          "confidence",
+          "statement",
+          "evidence_refs",
+          "proves",
+          "does_not_prove",
+          "supersedes",
+          "superseded_by"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "format": {
+      "const": "canary-real-tibia-version-history-v1"
+    },
+    "module_id": {
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1
+    }
+  },
+  "required": [
+    "format",
+    "schema_version",
+    "module_id",
+    "entries"
+  ],
+  "title": "Real Tibia version history v1",
+  "type": "object"
+}

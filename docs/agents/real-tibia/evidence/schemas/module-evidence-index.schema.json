@@ -1,0 +1,136 @@
+{
+  "$id": "module-evidence-index.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "as_of": {
+      "format": "date",
+      "type": "string"
+    },
+    "by_authority_dimension": {
+      "additionalProperties": {
+        "items": {
+          "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+          "type": "string"
+        },
+        "type": "array",
+        "uniqueItems": true
+      },
+      "type": "object"
+    },
+    "by_claim_key": {
+      "additionalProperties": {
+        "items": {
+          "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+          "type": "string"
+        },
+        "type": "array",
+        "uniqueItems": true
+      },
+      "type": "object"
+    },
+    "by_proof_level": {
+      "additionalProperties": {
+        "items": {
+          "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+          "type": "string"
+        },
+        "type": "array",
+        "uniqueItems": true
+      },
+      "type": "object"
+    },
+    "by_state": {
+      "additionalProperties": {
+        "items": {
+          "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+          "type": "string"
+        },
+        "type": "array",
+        "uniqueItems": true
+      },
+      "type": "object"
+    },
+    "evidence_ids": {
+      "items": {
+        "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "format": {
+      "const": "canary-real-tibia-module-evidence-index-v1"
+    },
+    "module_id": {
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "type": "string"
+    },
+    "owner_request_ids": {
+      "items": {
+        "pattern": "^RTREQ-(E2E|OTBM|TCR|PROTOCOL|FEATURE)-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "record_count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "stale_evidence_ids": {
+      "items": {
+        "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "superseded_evidence_ids": {
+      "items": {
+        "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "unresolved_conflict_ids": {
+      "items": {
+        "pattern": "^RT-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "version_history_ids": {
+      "items": {
+        "pattern": "^RTVH-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}$",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "format",
+    "schema_version",
+    "module_id",
+    "as_of",
+    "record_count",
+    "evidence_ids",
+    "by_claim_key",
+    "by_authority_dimension",
+    "by_state",
+    "by_proof_level",
+    "version_history_ids",
+    "owner_request_ids",
+    "unresolved_conflict_ids",
+    "stale_evidence_ids",
+    "superseded_evidence_ids"
+  ],
+  "title": "Real Tibia module evidence index v1",
+  "type": "object"
+}
