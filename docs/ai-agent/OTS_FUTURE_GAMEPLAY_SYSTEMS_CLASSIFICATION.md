@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Authoritative classification index for proposals recorded in `docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md`, `docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_EXTENSION_PACKS.md` and detailed design records including `docs/ai-agent/OTS_SKILL_PROGRESSION_2_0.md`, `docs/ai-agent/OTS_DYNAMIC_SPAWN_AND_HUNTING_CAPACITY.md`, `docs/ai-agent/OTS_BOUNTY_AND_WEEKLY_TASKS_REWORK.md`, `docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md`, `docs/ai-agent/OTS_VOCATION_ROLE_AND_BALANCE_FRAMEWORK.md`, `docs/ai-agent/OTS_GEM_ATELIER_AND_GEM_PROGRESSION_REVIEW.md`, `docs/ai-agent/OTS_CHARM_BESTIARY_AND_DROME_MASTERY.md`, `docs/ai-agent/OTS_QUEST_JOURNAL_POSTAL_AND_MARKET_LOGISTICS.md` and `docs/ai-agent/OTS_FORGE_SLOT_ITEM_ENHANCEMENT_AND_EQUIPMENT_PROFICIENCY.md`.
+Authoritative classification index for proposals recorded in `docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS.md`, `docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_EXTENSION_PACKS.md` and detailed design records including `docs/ai-agent/OTS_SKILL_PROGRESSION_2_0.md`, `docs/ai-agent/OTS_DYNAMIC_SPAWN_AND_HUNTING_CAPACITY.md`, `docs/ai-agent/OTS_BOUNTY_AND_WEEKLY_TASKS_REWORK.md`, `docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md`, `docs/ai-agent/OTS_VOCATION_ROLE_AND_BALANCE_FRAMEWORK.md`, `docs/ai-agent/OTS_GEM_ATELIER_AND_GEM_PROGRESSION_REVIEW.md`, `docs/ai-agent/OTS_CHARM_BESTIARY_AND_DROME_MASTERY.md`, `docs/ai-agent/OTS_QUEST_JOURNAL_POSTAL_AND_MARKET_LOGISTICS.md`, `docs/ai-agent/OTS_FORGE_SLOT_ITEM_ENHANCEMENT_AND_EQUIPMENT_PROFICIENCY.md` and `docs/ai-agent/OTS_PREY_SYSTEM_2_0.md`.
 
 This index exists to prevent three recurring mistakes:
 
@@ -157,6 +157,14 @@ This index exists to prevent three recurring mistakes:
 | 118 | Enhancement Salvage and equipment-replacement protection | `OUR-DESIGN` | `HYBRID` | Recovers a bounded portion of item-specific investment when equipment is replaced so progression has a cost but is not wholly deleted. |
 | 119 | Existing tier migration contract | `OUR-DESIGN` | `PARITY-INTEGRATION` | Requires an inventory/economy migration that preserves legitimate investment without duplicating permanent power or creating cross-character exploits. |
 | 120 | Controlled Retaliation / reflect safety | `OUR-DESIGN` | `HYBRID` | Prefers proc, internal-cooldown and output-cap behavior over unrestricted percentage reflection that scales dangerously with attacker count. |
+| 121 | Selected-creature active-use Prey timer | `MIXED` | `TIBIA-EXTENSION` | Extends the official Prey foundation so active time is consumed only by meaningful server-authoritative activity against the selected race; exact official decrement semantics remain unproven. |
+| 122 | Dormant Prey target reservation | `OUR-DESIGN` | `HYBRID` | Keeps the selected creature reserved after active time expires without granting a bonus or charging a recurring wildcard fee. |
+| 123 | Separate target reservation, bonus preservation and time renewal | `OUR-DESIGN` | `TIBIA-EXTENSION` | Splits the combined Lock Prey responsibility into explicit independent states, actions and costs. |
+| 124 | Bankable free Prey Charges | `OUR-DESIGN` | `TIBIA-EXTENSION` | Converts the recurring free reroll opportunity into bounded stored charges usable for list rerolls or reserved-target reactivation. |
+| 125 | Sustainable Prey maintenance paths | `OUR-DESIGN` | `META-ECONOMY` | Preserves useful sinks through transparent free-charge, gold, gameplay-earned and optional wildcard renewal sources instead of one mandatory recurring Store-linked path. |
+| 126 | Mixed-spawn and party-safe Prey consumption | `OUR-DESIGN` | `HYBRID` | Consumes time only through legitimate selected-race activity while keeping party-member slots independent and attributing valid summon participation to the owner. |
+| 127 | Prey loadouts and cost controls | `OUR-DESIGN` | `CLIENT-UX` | Remembers target, bonus and renewal preferences and exposes spend limits without granting unavailable targets or client authority over state. |
+| 128 | Prey migration and switching safeguards | `OUR-DESIGN` | `PARITY-INTEGRATION` | Preserves existing target, bonus, time, slot and wildcard value while introducing combat-safe switching, atomic spending and reconnect-safe state. |
 
 ## Additional researched systems not yet promoted into the main proposal backlog
 
