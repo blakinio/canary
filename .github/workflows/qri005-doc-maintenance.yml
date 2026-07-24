@@ -1,3 +1,4 @@
+# One-shot branch-local registration; the job removes this workflow before pushing.
 name: QRI-005 discovery registration
 
 on:
