@@ -6,12 +6,13 @@ on:
     paths:
       - ".github/workflows/tibia-client-reference.yml"
       - ".tcr006-stage/payload.zip"
+      - ".tcr006-stage/test-failure.txt"
 
 permissions:
   contents: write
 
 jobs:
-  materialize-tcr006-payload:
+  finalize-tcr006-implementation:
     if: >-
       github.head_ref == 'feat/tcr-006-content-reference-correlation' &&
       github.event.pull_request.head.repo.full_name == github.repository
@@ -22,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 1
+          fetch-depth: 0
           show-progress: false
 
       - name: Set up Python
@@ -30,123 +31,119 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Verify and materialize exact payload
-        shell: bash
+      - name: Restore current main shared files
         run: |
-          set -euo pipefail
-          test "$(git hash-object .tcr006-stage/payload.zip)" = "f0446001244d636ccc8745a821b67cedc5fb9577"
-          python - <<'PY'
-          from __future__ import annotations
+          git fetch origin main
+          git show origin/main:.github/workflows/tibia-client-reference.yml > .github/workflows/tibia-client-reference.yml
+          git show origin/main:docs/agents/MODULE_CATALOG.md > docs/agents/MODULE_CATALOG.md
 
-          import hashlib
-          import stat
-          import zipfile
-          from pathlib import Path, PurePosixPath
+      - name: Add TCR-006 validation and catalogue entry
+        shell: python
+        run: |
+          from pathlib import Path
 
-          archive = Path('.tcr006-stage/payload.zip')
-          expected = (
-              'docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.md',
-              'docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json',
-              'docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json',
-              'tools/ai-agent/test_tibia_content_reference_correlation.py',
-              'tools/ai-agent/tibia_content_reference_correlation.py',
-              'tools/ai-agent/tibia_content_reference_correlation_tool.py',
+          workflow_path = Path('.github/workflows/tibia-client-reference.yml')
+          workflow = workflow_path.read_text(encoding='utf-8')
+
+          replacements = (
+              (
+                  '      - "tools/ai-agent/test_otbm_house_reference_parity.py"\n',
+                  '      - "tools/ai-agent/test_otbm_house_reference_parity.py"\n'
+                  '      - "tools/ai-agent/tibia_content_reference_correlation.py"\n'
+                  '      - "tools/ai-agent/tibia_content_reference_correlation_tool.py"\n'
+                  '      - "tools/ai-agent/test_tibia_content_reference_correlation.py"\n',
+              ),
+              (
+                  '      - "docs/ai-agent/OTBM_HOUSE_ID_RESOLVER.schema.json"\n',
+                  '      - "docs/ai-agent/OTBM_HOUSE_ID_RESOLVER.schema.json"\n'
+                  '      - "docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.md"\n'
+                  '      - "docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json"\n'
+                  '      - "docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json"\n',
+              ),
+              (
+                  '      - name: Run house parity focused tests\n'
+                  '        run: python -m unittest discover -s tools/ai-agent -p "test_otbm_house_reference_parity.py" -v\n',
+                  '      - name: Run house parity focused tests\n'
+                  '        run: python -m unittest discover -s tools/ai-agent -p "test_otbm_house_reference_parity.py" -v\n\n'
+                  '      - name: Run content correlation focused tests\n'
+                  '        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_content_reference_correlation.py" -v\n',
+              ),
+              (
+                  '            tools/ai-agent/test_otbm_house_reference_parity.py\n',
+                  '            tools/ai-agent/test_otbm_house_reference_parity.py \\\n'
+                  '            tools/ai-agent/tibia_content_reference_correlation.py \\\n'
+                  '            tools/ai-agent/tibia_content_reference_correlation_tool.py \\\n'
+                  '            tools/ai-agent/test_tibia_content_reference_correlation.py\n',
+              ),
+              (
+                  '          python -m json.tool docs/ai-agent/OTBM_HOUSE_ID_RESOLVER.schema.json > /dev/null\n',
+                  '          python -m json.tool docs/ai-agent/OTBM_HOUSE_ID_RESOLVER.schema.json > /dev/null\n'
+                  '          python -m json.tool docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json > /dev/null\n'
+                  '          python -m json.tool docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json > /dev/null\n',
+              ),
+              (
+                  '          python tools/ai-agent/otbm_house_reference_parity_tool.py --help > /dev/null\n',
+                  '          python tools/ai-agent/otbm_house_reference_parity_tool.py --help > /dev/null\n'
+                  '          python tools/ai-agent/tibia_content_reference_correlation_tool.py --help > /dev/null\n',
+              ),
           )
-          expected_set = set(expected)
 
-          with zipfile.ZipFile(archive) as payload:
-              files: list[str] = []
-              for info in payload.infolist():
-                  path = PurePosixPath(info.filename)
-                  if path.is_absolute() or '..' in path.parts or '\\' in info.filename:
-                      raise SystemExit(f'unsafe archive member: {info.filename!r}')
-                  if info.flag_bits & 0x1:
-                      raise SystemExit(f'encrypted archive member: {info.filename!r}')
-                  if stat.S_ISLNK(info.external_attr >> 16):
-                      raise SystemExit(f'symlink archive member: {info.filename!r}')
-                  if info.is_dir():
-                      continue
-                  files.append(info.filename)
+          for old, new in replacements:
+              if workflow.count(old) != 1:
+                  raise SystemExit(f'expected one workflow anchor: {old!r}')
+              workflow = workflow.replace(old, new, 1)
+          workflow_path.write_text(workflow, encoding='utf-8')
 
-              if len(files) != len(set(files)):
-                  raise SystemExit('duplicate archive member detected')
-              if set(files) != expected_set:
-                  raise SystemExit(
-                      'unexpected payload members: '
-                      f'missing={sorted(expected_set - set(files))}, '
-                      f'extra={sorted(set(files) - expected_set)}'
-                  )
+          catalog_path = Path('docs/agents/MODULE_CATALOG.md')
+          catalog = catalog_path.read_text(encoding='utf-8')
+          row = (
+              '| Tibia content reference correlation | active TCR-006 (#880) | '
+              'Deterministic provenance-pinned `canary-tibia-content-reference-resolver-v1` and read-only '
+              '`canary-tibia-content-reference-correlation-v1` across StaticData creature/monster, boss, '
+              'title/achievement and quest registry evidence routed to existing subsystem owners | '
+              '`tools/ai-agent/tibia_content_reference_correlation*.py`, focused tests, '
+              '`docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.md`, resolver/correlation schemas, dedicated workflow | '
+              'Preserve legacy/newer source vocabulary, require reviewed per-namespace mappings, keep shared IDs and quest '
+              'source selection fail-closed, exclude houses owned by TCR-005, and never infer runtime/gameplay parity or mutate sources. |'
+          )
+          if row not in catalog:
+              lines = catalog.splitlines()
+              anchor = '| OTBM house reference parity |'
+              matches = [index for index, line in enumerate(lines) if line.startswith(anchor)]
+              if len(matches) != 1:
+                  raise SystemExit(f'expected one house-parity anchor, found {len(matches)}')
+              lines.insert(matches[0] + 1, row)
+              catalog = '\n'.join(lines) + '\n'
+          if catalog.count(row) != 1:
+              raise SystemExit(f'expected one TCR-006 row, found {catalog.count(row)}')
+          catalog_path.write_text(catalog, encoding='utf-8')
 
-              for name in expected:
-                  destination = Path(name)
-                  destination.parent.mkdir(parents=True, exist_ok=True)
-                  data = payload.read(name)
-                  destination.write_bytes(data)
-                  print(f'{name} sha256={hashlib.sha256(data).hexdigest()} bytes={len(data)}')
-          PY
+      - name: Remove temporary staging files
+        run: rm -rf .tcr006-stage
 
-      - name: Run focused tests
+      - name: Validate final implementation package
         env:
           PYTHONPATH: tools/ai-agent
-        shell: bash
         run: |
-          set +e
-          python -m unittest -v tools/ai-agent/test_tibia_content_reference_correlation.py \
-            > "$RUNNER_TEMP/tcr006-tests.log" 2>&1
-          status=$?
-          tail -n 120 "$RUNNER_TEMP/tcr006-tests.log"
-          if [ "$status" -ne 0 ]; then
-            tail -n 80 "$RUNNER_TEMP/tcr006-tests.log" > .tcr006-stage/test-failure.txt
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add .tcr006-stage/test-failure.txt
-            git commit -m "ci(tcr): capture focused test failure"
-            git push origin "HEAD:${GITHUB_HEAD_REF}"
-          fi
-          exit "$status"
-
-      - name: Compile implementation
-        run: >-
-          python -m py_compile
-          tools/ai-agent/tibia_content_reference_correlation.py
-          tools/ai-agent/tibia_content_reference_correlation_tool.py
-          tools/ai-agent/test_tibia_content_reference_correlation.py
-
-      - name: Validate schema syntax
-        run: |
+          python -m unittest discover -s tools/ai-agent -p "test_tibia_content_reference_correlation.py" -v
+          python -m py_compile \
+            tools/ai-agent/tibia_content_reference_correlation.py \
+            tools/ai-agent/tibia_content_reference_correlation_tool.py \
+            tools/ai-agent/test_tibia_content_reference_correlation.py
           python -m json.tool docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json > /dev/null
           python -m json.tool docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json > /dev/null
+          python tools/ai-agent/tibia_content_reference_correlation_tool.py --help > /dev/null
+          git diff --check
 
-      - name: Check materialized diff
-        run: |
-          git diff --check -- \
-            docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.md \
-            docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json \
-            docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json \
-            tools/ai-agent/test_tibia_content_reference_correlation.py \
-            tools/ai-agent/tibia_content_reference_correlation.py \
-            tools/ai-agent/tibia_content_reference_correlation_tool.py
-
-      - name: Commit exact implementation files
-        shell: bash
+      - name: Commit final implementation package
         run: |
           set -euo pipefail
-          expected="$RUNNER_TEMP/tcr006-expected.txt"
-          actual="$RUNNER_TEMP/tcr006-actual.txt"
-          cat > "$expected" <<'EOF'
-          docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.md
-          docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.schema.json
-          docs/ai-agent/TIBIA_CONTENT_REFERENCE_RESOLVER.schema.json
-          tools/ai-agent/test_tibia_content_reference_correlation.py
-          tools/ai-agent/tibia_content_reference_correlation.py
-          tools/ai-agent/tibia_content_reference_correlation_tool.py
-          EOF
-          git status --porcelain=v1 | sed -E 's/^.. //' | sort > "$actual"
-          diff -u "$expected" "$actual"
-          git add --pathspec-from-file="$expected"
+          git add \
+            .github/workflows/tibia-client-reference.yml \
+            docs/agents/MODULE_CATALOG.md \
+            .tcr006-stage
           git diff --cached --check
-          git diff --cached --name-only | sort | diff -u "$expected" -
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "feat(tcr): add content reference correlation consumer"
+          git commit -m "feat(tcr): finalize content reference correlation tooling"
           git push origin "HEAD:${GITHUB_HEAD_REF}"
