@@ -2,13 +2,13 @@
 task_id: CAN-20260724-rtec-001-evidence-contracts
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-001
-status: review
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/rtec-001-evidence-contracts-20260724
 base_branch: main
 created: 2026-07-24T21:45:37+02:00
-updated: 2026-07-24T22:50:00+02:00
-last_verified_commit: "f9a86d1584adfa142d832f3847175fc29add14da"
+updated: 2026-07-24T22:51:03+02:00
+last_verified_commit: "f773097b5f22f5bab8ada275403f5f99a27c0339"
 risk: medium
 related_issue: ""
 related_pr: "897"
@@ -143,11 +143,11 @@ The dedicated workflow also runs the existing canonical registry validator and d
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T22:50:00+02:00
-head: f9a86d1584adfa142d832f3847175fc29add14da
+updated_at: 2026-07-24T22:51:03+02:00
+head: f773097b5f22f5bab8ada275403f5f99a27c0339
 branch: feat/rtec-001-evidence-contracts-20260724
 pr: 897
-status: validating
+status: ready
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -165,20 +165,21 @@ owned_paths:
   - .github/workflows/real-tibia-evidence.yml
 proven:
   - RTEC-000 is merged and archived.
-  - PR 897 is open as a draft from the exact claimed base.
+  - PR 897 is open from the exact claimed base and owns the declared paths.
   - Five schema-version-1 contracts and the standard-library validator/generator are published.
   - Local compile, 22 focused tests, corpus validation and generated-index checks pass.
-  - Current-head dedicated evidence workflow, main CI, registry and upstream-intelligence checks passed at f9a86d1.
-  - The ownership failure is isolated to unsupported checkpoint result PARTIAL and is corrected by the next commit.
+  - CI, Agent Task Ownership, Real Tibia Evidence Contracts, Real Tibia Module Registry and Upstream Intelligence all passed at f773097b5f22f5bab8ada275403f5f99a27c0339.
+  - The complete 17-file changed-path list and implementation/test diff were reviewed with no unresolved findings.
+  - The ci:final-gate label was applied before this final checkpoint commit.
   - No module dossier, owner runner/parser or runtime behavior was added.
 derived:
   - The empty generated index is the deterministic factual baseline until RTEC-002 creates the first bounded module records.
 unknown:
-  - Current-head rerun after checkpoint correction and final review findings.
+  - Final-head gate outcome for this checkpoint commit.
 conflicts: []
 first_failure:
-  marker: agent-task-ownership-checkpoint-result
-  evidence: validation item 3 used unsupported result PARTIAL; corrected to FAIL for the failed workflow run
+  marker: none
+  evidence: no unresolved current-head failure remains
 rejected_hypotheses:
   - Populate all module dossiers now: rejected because RTEC-001 stabilizes contracts first.
   - Reuse or edit Universal E2E, OTBM/OWA or TCR implementation paths: rejected because owners retain execution authority.
@@ -201,11 +202,11 @@ validation:
   - command: evidence validate and deterministic generate --check
     result: PASS
     evidence: empty factual baseline valid at 2026-07-24
-  - command: GitHub Actions at f9a86d1
-    result: FAIL
-    evidence: evidence contracts, CI, registry and upstream intelligence passed; ownership checkpoint rejected unsupported result PARTIAL
+  - command: GitHub Actions at f773097b5f22f5bab8ada275403f5f99a27c0339
+    result: PASS
+    evidence: CI, ownership, evidence contracts, canonical registry and upstream intelligence all succeeded
 blockers: []
-next_action: Re-check current-head CI, inspect the complete PR diff and resolve review findings before applying ci:final-gate.
+next_action: After the green final-head gate, mark PR 897 ready and squash-merge it; then verify automated lifecycle archival before starting RTEC-002.
 ```
 
 # Handoff
