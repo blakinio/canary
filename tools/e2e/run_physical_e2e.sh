@@ -11,6 +11,50 @@ ARTIFACT_DIR="$(cd "${ARTIFACT_DIR}" && pwd)"
 RUN_STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)"
 printf '%s\n' "${RUN_STARTED_AT}" > "${ARTIFACT_DIR}/run-started-at.txt"
 
+(
+  cd "${REPO_ROOT}"
+  python3 -m unittest -v tests.e2e.test_result_envelope
+) > "${ARTIFACT_DIR}/result-envelope-contract-tests.log" 2>&1
+contract_status=$?
+if [[ "${contract_status}" -ne 0 ]]; then
+  cat "${ARTIFACT_DIR}/result-envelope-contract-tests.log" >&2 || true
+  python3 - "${ARTIFACT_DIR}/result.json" "${contract_status}" <<'PY'
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+status = int(sys.argv[2])
+path.write_text(
+    json.dumps(
+        {
+            "schema_version": 1,
+            "status": "failure",
+            "scenario": "static/result-envelope-contract",
+            "phase": "runtime-contract",
+            "shell_exit_code": status,
+            "checks": {"result_envelope_contract_tests": False},
+        },
+        indent=2,
+        sort_keys=True,
+    )
+    + "\n",
+    encoding="utf-8",
+)
+PY
+  python3 "${ENVELOPE}" finalize \
+    --artifact-dir "${ARTIFACT_DIR}" \
+    --phase "runtime-contract" \
+    --shell-exit-code "${contract_status}" \
+    --execution-tier "${AGENT_E2E_EXECUTION_TIER:-unknown}" \
+    --started-at "${RUN_STARTED_AT}" \
+    > "${ARTIFACT_DIR}/result-envelope.stdout.log" \
+    2> "${ARTIFACT_DIR}/result-envelope.stderr.log" || true
+  exit "${contract_status}"
+fi
+
 bash "${LIFECYCLE}"
 lifecycle_status=$?
 
