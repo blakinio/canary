@@ -5,12 +5,13 @@ on:
   pull_request:
     paths:
       - ".github/workflows/tibia-client-reference.yml"
+      - "docs/agents/tasks/active/CAN-20260724-tcr-006-content-reference-correlation.md"
 
 permissions:
   contents: read
 
 jobs:
-  render-tcr006-catalog:
+  compact-tcr006-handover:
     if: github.head_ref == 'feat/tcr-006-content-reference-correlation'
     runs-on: ubuntu-latest
 
@@ -20,42 +21,27 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Render from current main catalogue
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate Context checkpoint
+        run: >-
+          python tools/agents/checkpoint.py
+          docs/agents/tasks/active/CAN-20260724-tcr-006-content-reference-correlation.md
+          --require-checkpoint
+
+      - name: Generate compact handover
         run: |
-          git fetch origin main
-          git show origin/main:docs/agents/MODULE_CATALOG.md > docs/agents/MODULE_CATALOG.md
-          python - <<'PY'
-          from pathlib import Path
+          mkdir -p artifacts/agent-coordination
+          python tools/agents/resume.py \
+            --task docs/agents/tasks/active/CAN-20260724-tcr-006-content-reference-correlation.md \
+            | tee artifacts/agent-coordination/TCR006_COMPACT_HANDOVER.txt
 
-          path = Path('docs/agents/MODULE_CATALOG.md')
-          text = path.read_text(encoding='utf-8')
-          row = (
-              '| Tibia content reference correlation | active TCR-006 (#880) | '
-              'Deterministic provenance-pinned `canary-tibia-content-reference-resolver-v1` and read-only '
-              '`canary-tibia-content-reference-correlation-v1` across StaticData creature/monster, boss, '
-              'title/achievement and quest registry evidence routed to existing subsystem owners | '
-              '`tools/ai-agent/tibia_content_reference_correlation*.py`, focused tests, '
-              '`docs/ai-agent/TIBIA_CONTENT_REFERENCE_CORRELATION.md`, resolver/correlation schemas, dedicated workflow | '
-              'Preserve legacy/newer source vocabulary, require reviewed per-namespace mappings, keep shared IDs and quest '
-              'source selection fail-closed, exclude houses owned by TCR-005, and never infer runtime/gameplay parity or mutate sources. |'
-          )
-          if row not in text:
-              lines = text.splitlines()
-              anchor = '| OTBM house reference parity |'
-              matches = [index for index, line in enumerate(lines) if line.startswith(anchor)]
-              if len(matches) != 1:
-                  raise SystemExit(f'expected one house-parity anchor, found {len(matches)}')
-              lines.insert(matches[0] + 1, row)
-              text = '\n'.join(lines) + '\n'
-          if text.count(row) != 1:
-              raise SystemExit(f'expected one TCR-006 row, found {text.count(row)}')
-          path.write_text(text, encoding='utf-8')
-          PY
-          git diff --check -- docs/agents/MODULE_CATALOG.md
-
-      - name: Upload current catalogue
+      - name: Upload compact handover
         uses: actions/upload-artifact@v4
         with:
-          name: tcr006-module-catalog
-          path: docs/agents/MODULE_CATALOG.md
+          name: tcr006-compact-handover
+          path: artifacts/agent-coordination/TCR006_COMPACT_HANDOVER.txt
           if-no-files-found: error
