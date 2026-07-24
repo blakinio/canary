@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/tcr-005-house-reference-parity
 base_branch: main
 created: 2026-07-24T10:35:00+02:00
-updated: 2026-07-24T12:38:00+02:00
-last_verified_commit: "c0911f7755aac65c176be69070fb7ec07045baff"
+updated: 2026-07-24T13:46:00+02:00
+last_verified_commit: "74fbae108dc4a0461351f31515f6b1108311c027"
 risk: medium
 related_issue: ""
 related_pr: 868
@@ -78,8 +78,8 @@ Implement the bounded, deterministic, read-only TCR-005 `canary-otbm-house-refer
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T12:38:00+02:00
-head: c0911f7755aac65c176be69070fb7ec07045baff
+updated_at: 2026-07-24T13:46:00+02:00
+head: 74fbae108dc4a0461351f31515f6b1108311c027
 branch: feat/tcr-005-house-reference-parity
 pr: 868
 status: validating
@@ -99,7 +99,7 @@ owned_paths:
   - docs/agents/MODULE_CATALOG.md
 proven:
   - TCR-002A PR 870 merged as c0911f7755aac65c176be69070fb7ec07045baff and removes the HouseData field-order blocker.
-  - Draft PR 868 remains the sole current TCR-005 owner.
+  - Draft PR 868 remains the sole current TCR-005 owner and is a clean one-commit, nine-path diff based directly on main 13ec3077babba0ac81bb1e30e79f0ea4827ae2fe.
   - Exact user OTBM SHA-256 a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2 reproduces the canonical World Index with 17972761 tiles, 23359571 placements, 9339 mechanic placements and zero unknown attribute tails.
   - Exact user StaticData SHA-256 0bd51e1660f9d58594eb10000c35ea51113fc668aa3ee416c8c6b7ebb59b78ff produces 995 houses under reviewed newer HouseData field ordering in schemaVersion 2.
   - Exact user StaticMapData SHA-256 0967af2eacdd8f2a608e738b9042362676167d6c6455e60d08db7ae16cf7ea53 produces 995 houses, 117716 rows, 188014 tile records and zero duplicate/missing/dimension findings.
@@ -112,6 +112,9 @@ proven:
   - Exact resolver summary is 995 client houses, 993 mappings, two unresolved and zero conflicts.
   - Exact parity summary is 995 rows, 993 mismatch rows, two unresolved-id-space rows, 42 orphan house-door placements and zero conforming rows.
   - Full resolver and parity outputs validate against their Draft 2020-12 schemas outside Git.
+  - MODULE_CATALOG contains exactly one reusable TCR-005 contract row and preserves all concurrent catalogue entries.
+  - Agent Task Ownership, Tibia Client Reference, OTBM Map Tools, AI Agent Tools and repository CI/Required passed on exact implementation head 74fbae108dc4a0461351f31515f6b1108311c027.
+  - The ci:final-gate label was applied before this final checkpoint commit; no further implementation or documentation changes are planned before ready-state validation.
 derived:
   - Registry position is a viable explicit one-to-one resolver method for this exact evidence pair; it does not use names, proximity or numeric identity.
   - Corrected `size` semantics still differ from observed OTBM house-tile population for all 993 resolved houses; these are review findings, not automatic gameplay defects.
@@ -132,6 +135,7 @@ rejected_hypotheses:
   - Reinterpret unresolved StaticData field 5/7 inside TCR-005: TCR-002A owns that semantic boundary.
 changed_paths:
   - .github/workflows/tibia-client-reference.yml
+  - docs/agents/MODULE_CATALOG.md
   - docs/agents/tasks/active/CAN-20260724-tcr-005-house-reference-parity.md
   - docs/ai-agent/OTBM_HOUSE_ID_RESOLVER.schema.json
   - docs/ai-agent/OTBM_HOUSE_REFERENCE_PARITY.md
@@ -152,6 +156,21 @@ validation:
   - command: Draft 2020-12 schema validation of exact resolver and parity outputs
     result: PASS
     evidence: zero validation errors for both generated reports
+  - command: GitHub Agent Task Ownership workflow on 74fbae108dc4a0461351f31515f6b1108311c027
+    result: PASS
+    evidence: run 30090576047
+  - command: GitHub Tibia Client Reference workflow on 74fbae108dc4a0461351f31515f6b1108311c027
+    result: PASS
+    evidence: run 30090576041
+  - command: GitHub OTBM Map Tools workflow on 74fbae108dc4a0461351f31515f6b1108311c027
+    result: PASS
+    evidence: run 30090576018
+  - command: GitHub AI Agent Tools workflow on 74fbae108dc4a0461351f31515f6b1108311c027
+    result: PASS
+    evidence: run 30090575965
+  - command: GitHub repository CI/Required workflow on 74fbae108dc4a0461351f31515f6b1108311c027
+    result: PASS
+    evidence: run 30090576191
 blockers: []
-next_action: Publish the bounded consumer, schemas, docs, focused tests and dedicated workflow integration on PR 868, then register the reusable contracts in MODULE_CATALOG and run the exact final gate.
+next_action: Verify every workflow on the exact final checkpoint head, then mark PR 868 ready and enable auto-merge if all required checks are green.
 ```
