@@ -2,16 +2,16 @@
 task_id: CAN-20260724-e2e-qri-006-cleanup-certification
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-QRI-006
-status: ready
+status: implementing
 agent: "GPT-5.6 Thinking"
-branch: feat/e2e-qri-006-cleanup-certification
+branch: fix/e2e-qri-006-client-event-paths
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "d996db1dc3c585766bb17eb5000f57a19f2a1e9c"
+last_verified_commit: "6ad2172eb8e4d5a9fcda0d69f2b6c88906082bfb"
 risk: medium
 related_issue: ""
-related_pr: "871"
+related_pr: "875"
 depends_on:
   - merged and lifecycle-closed E2E-QRI-005 result envelope
   - canonical Universal Physical E2E lifecycle
@@ -23,8 +23,10 @@ owned_paths:
     - tests/e2e/test_cleanup_certification.py
     - tests/e2e/test_cleanup_result_envelope.py
     - docs/agents/tasks/active/CAN-20260724-e2e-qri-006-cleanup-certification.md
+    - tools/e2e/client/agent_e2e.lua
   shared:
     - tools/e2e/run_physical_e2e.sh
+  - tools/e2e/client/agent_e2e.lua
     - tools/e2e/result_envelope.py
     - docs/agents/MODULE_CATALOG.md
     - docs/agents/CHANGELOG.md
@@ -77,9 +79,9 @@ Deliver deterministic first-class cleanup certification after every canonical Un
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-24T13:05:00+02:00
-head: 8cd80cd92b3c5a904f3bfea910328ca828604a3a
+head: 4a6d7c418f3dead8616862476971a2a8ee23e606
 branch: feat/e2e-qri-006-cleanup-certification
-pr: 871
+pr: 875
 status: ready
 context_routes:
   - agent-governance
@@ -106,13 +108,17 @@ proven:
   - Exact-head Universal Agent E2E run 30088384760 passed on 49b6d190eaa15353d2220c2b5f5f18246ebaa982; cleanup contract schema 1 reported certified=true with 18/18 required checks, gameplay success, PGID 4839 member 4911 reaped by SIGTERM, no remaining members, no warnings and no unknowns.
   - Artifact 8595225850 has digest sha256:6a188e536610fa420d3e1ed7c41cfefd8f88a93dca2bd980b0d833cc73161a6d and the schema-v3 envelope reports execution_tier=pr-required and quality_dimensions.cleanup=pass.
   - Absolute runner paths found in legacy session-record events were reduced to artifact basenames by d996db1dc3c585766bb17eb5000f57a19f2a1e9c with a focused regression test.
+  - Delivery PR 871 merged as 6ad2172eb8e4d5a9fcda0d69f2b6c88906082bfb after exact-head ownership, full CI and Universal Agent E2E passed at 4a6d7c418f3dead8616862476971a2a8ee23e606.
+  - Post-merge artifact 8597198699 retained absolute /home/runner paths only in raw client-events.tsv packet_record_1/2 values; result.json and cleanup-certification.json remained sanitized and cleanup certified 18/18.
+  - The follow-up keeps the full packet-record path for loginWorld while emitting only session-N.record into client-events.tsv.
   - Cleanup baseline evidence now stores only logical repo/otclient roots and relative paths, not absolute runner paths.
   - Branch is synchronized with main commit 13ec3077babba0ac81bb1e30e79f0ea4827ae2fe through merge commit 8cd80cd92b3c5a904f3bfea910328ca828604a3a.
 derived:
   - A post-trap certifier with an exact-PGID reaper is the smallest safe seam that can independently evaluate and complete runner-owned cleanup after gameplay-success and gameplay-failure runs.
   - Dedicated process-group ownership permits bounded cleanup of untracked descendants without scanning or killing unrelated host processes.
   - Database queries remain fixed code-owned statements against the disposable E2E schema and manifest-declared fixture identities.
-unknown: []
+unknown:
+  - Raw client-events.tsv basename hardening is not physically re-proven until the follow-up login/relog artifact is inspected.
 conflicts: []
 first_failure:
   marker: runner_process_group_empty
@@ -145,5 +151,5 @@ validation:
     result: FAIL
     evidence: run 30085762318; gameplay success and 17/18 cleanup checks, residual dedicated-group PID 4872.
 blockers: []
-next_action: Complete the exact final-head CI, ownership and physical gate, then squash-merge PR 871 and verify the automated lifecycle archive PR.
+next_action: Run exact-head ownership, CI and physical login/relog; inspect raw client-events.tsv for zero absolute runner paths; merge the hardening PR and archive QRI-006.
 ```

@@ -172,6 +172,32 @@ class CleanupResultEnvelopeTests(unittest.TestCase):
         )
         self.assertNotIn("/home/runner", json.dumps(envelope))
 
+    def test_client_driver_emits_only_packet_record_artifact_name(self):
+        repo_root = Path(__file__).resolve().parents[2]
+        source = (repo_root / "tools/e2e/client/agent_e2e.lua").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            'local packetRecordName = string.format("session-%d.record", phase)',
+            source,
+        )
+        self.assertIn(
+            'local packetRecord = string.format("%s/%s", ARTIFACT_DIR, packetRecordName)',
+            source,
+        )
+        self.assertIn(
+            'appendEvent("packet_record_" .. phase, packetRecordName)',
+            source,
+        )
+        self.assertIn(
+            'g_game.loginWorld(ACCOUNT, PASSWORD, WORLD, HOST, GAME_PORT, CHARACTER, "", sessionKey, packetRecord)',
+            source,
+        )
+        self.assertNotIn(
+            'appendEvent("packet_record_" .. phase, packetRecord)',
+            source,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
