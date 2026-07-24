@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/rtec-001-evidence-contracts-20260724
 base_branch: main
 created: 2026-07-24T21:45:37+02:00
-updated: 2026-07-24T22:35:00+02:00
-last_verified_commit: "7932c0361a4764967fe8c9c036c1c5c5c680062f"
+updated: 2026-07-24T22:45:00+02:00
+last_verified_commit: "a0ab0d2ab4d8bf386daa9b461975b81984afb5ae"
 risk: medium
 related_issue: ""
 related_pr: "897"
@@ -143,11 +143,11 @@ The dedicated workflow also runs the existing canonical registry validator and d
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T22:35:00+02:00
-head: 7932c0361a4764967fe8c9c036c1c5c5c680062f
+updated_at: 2026-07-24T22:45:00+02:00
+head: a0ab0d2ab4d8bf386daa9b461975b81984afb5ae
 branch: feat/rtec-001-evidence-contracts-20260724
 pr: 897
-status: implementation-published-draft-pr
+status: validating
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -168,21 +168,25 @@ proven:
   - PR 897 is open as a draft from the exact claimed base.
   - Five schema-version-1 contracts and the standard-library validator/generator are published.
   - Local compile, 22 focused tests, corpus validation and generated-index checks pass.
+  - Current-head dedicated evidence workflow, main CI, registry and upstream-intelligence checks passed at a0ab0d2.
+  - The ownership failure was isolated to an unsupported checkpoint status and corrected in this commit.
   - No module dossier, owner runner/parser or runtime behavior was added.
 derived:
   - The empty generated index is the deterministic factual baseline until RTEC-002 creates the first bounded module records.
 unknown:
-  - Current-head GitHub Actions results and final review findings.
+  - Current-head rerun after checkpoint correction and final review findings.
 conflicts: []
 first_failure:
-  marker: local-checkout-dns
-  evidence: sandbox could not resolve github.com; connector writes and bounded local tests were used
+  marker: agent-task-ownership-checkpoint-status
+  evidence: unsupported checkpoint status implementation-published-draft-pr; corrected to validating
 rejected_hypotheses:
   - Populate all module dossiers now: rejected because RTEC-001 stabilizes contracts first.
   - Reuse or edit Universal E2E, OTBM/OWA or TCR implementation paths: rejected because owners retain execution authority.
 changed_paths:
   - .github/workflows/real-tibia-evidence.yml
+  - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
   - docs/agents/real-tibia/evidence/**
+  - docs/agents/tasks/active/CAN-20260724-rtec-001-evidence-contracts.md
   - docs/agents/templates/REAL_TIBIA_EVIDENCE_RECORD.yaml
   - docs/agents/templates/REAL_TIBIA_EVIDENCE_REQUEST.yaml
   - tools/agents/real_tibia_evidence.py
@@ -197,8 +201,11 @@ validation:
   - command: evidence validate and deterministic generate --check
     result: PASS
     evidence: empty factual baseline valid at 2026-07-24
+  - command: GitHub Actions at a0ab0d2
+    result: PARTIAL
+    evidence: evidence contracts, CI, registry and upstream intelligence passed; ownership checkpoint status failed and was corrected
 blockers: []
-next_action: Update programme state, inspect the complete PR diff and current-head CI, then resolve findings before applying ci:final-gate.
+next_action: Re-check current-head CI, inspect the complete PR diff and resolve review findings before applying ci:final-gate.
 ```
 
 # Handoff
