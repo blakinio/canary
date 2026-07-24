@@ -1,0 +1,36 @@
+name: TCR-006 Lifecycle Fix
+# trigger existing branch workflow
+
+on:
+  push:
+    branches:
+      - docs/tcr-006-lifecycle-closeout
+    paths:
+      - .github/workflows/tcr006-lifecycle-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md')
+          text = path.read_text(encoding='utf-8')
+          old = '7. Do not silently continue into TCR-007 or another TCR package in the same PR.'
+          new = '7. Do not silently continue into TCR-008 or another TCR package in the same PR.'
+          if text.count(old) != 1:
+              raise SystemExit(f'expected one stale kickoff line, found {text.count(old)}')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+          rm .github/workflows/tcr006-lifecycle-fix.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "docs(tcr): correct TCR-007 handoff boundary"
+          git push origin HEAD:docs/tcr-006-lifecycle-closeout
