@@ -1,0 +1,89 @@
+---
+name: TCR-007 Lifecycle Closeout
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/tcr007-lifecycle-closeout.yml"
+      - "docs/agents/tasks/archive/CAN-20260724-tcr-007-proficiency-reference-correlation.md"
+      - "docs/agents/tasks/active/CAN-20260724-tcr-007-proficiency-reference-correlation.md"
+      - "docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md"
+      - "docs/agents/MODULE_CATALOG.md"
+
+permissions:
+  contents: write
+
+jobs:
+  closeout:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'docs/tcr-007-lifecycle-closeout'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Patch programme and catalogue
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          programme_path = Path('docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md')
+          programme = programme_path.read_text(encoding='utf-8')
+
+          replacements = [
+              ('updated: 2026-07-24T16:58:27Z', 'updated: 2026-07-24T21:31:25Z'),
+              ('last_verified_commit: "78b3435510c7e09d10a87ca2338bef59a24475bb"', 'last_verified_commit: "89acb51d3f3c3b4d6de5c7c8a4557b2d931f88ed"'),
+              ('| TCR-007 | Proficiency Reference Correlation | planned | proficiency + appearances + Canary item/runtime evidence | TCR-004 | medium | Add `canary-tibia-proficiency-reference-correlation-v1`; keep OTBM/item evidence separate from runtime/persistence/protocol proof. |', '| TCR-007 | Proficiency Reference Correlation | merged | `canary-tibia-proficiency-reference-resolver-v1` + `canary-tibia-proficiency-reference-correlation-v1`; PR #898; merge `89acb51d...` | TCR-004 | medium | Complete. Exact reviewed proficiency/appearance/item resolution and read-only correlation are stable/merged; runtime, persistence, protocol/client, automated behavior, Physical E2E and gameplay parity remain separate evidence dimensions. |'),
+              ('TCR-001, TCR-002, TCR-003, TCR-004, TCR-005 and TCR-006 stabilize these reference, resolver and correlation contracts:', 'TCR-001, TCR-002, TCR-003, TCR-004, TCR-005, TCR-006 and TCR-007 stabilize these reference, resolver and correlation contracts:'),
+              ('canary-tibia-content-reference-correlation-v1\n```', 'canary-tibia-content-reference-correlation-v1\ncanary-tibia-proficiency-reference-resolver-v1\ncanary-tibia-proficiency-reference-correlation-v1\n```'),
+              ('The following remain planned and **not stable/merged**: TCR-007 proficiency correlation, optional TCR-008 minimap reference, `canary-tibia-client-reference-drift-v1`, gateway integration and adoption routing.', 'The following remain planned and **not stable/merged**: optional TCR-008 minimap reference, `canary-tibia-client-reference-drift-v1`, gateway integration and adoption routing.'),
+              ('## TCR-007 — Proficiency Reference Correlation\n\nPlanned public format:\n\n```text\ncanary-tibia-proficiency-reference-correlation-v1\n```', '## TCR-007 — Proficiency Reference Correlation\n\nStable public formats:\n\n```text\ncanary-tibia-proficiency-reference-resolver-v1\ncanary-tibia-proficiency-reference-correlation-v1\n```'),
+              ('# Last completed task\n\n- Task: `docs/agents/tasks/archive/CAN-20260724-tcr-006-content-reference-correlation.md`\n- PR: `#880` — merged.\n- Merge commit: `78b3435510c7e09d10a87ca2338bef59a24475bb`.\n- Scope: TCR-006 exact reviewed content-reference resolver and read-only StaticData-to-existing-owner correlation only; no runtime/gameplay parity, source/datapack/map mutation or automatic repair.', '# Last completed task\n\n- Task: `docs/agents/tasks/archive/CAN-20260724-tcr-007-proficiency-reference-correlation.md`\n- PR: `#898` — merged.\n- Merge commit: `89acb51d3f3c3b4d6de5c7c8a4557b2d931f88ed`.\n- Scope: TCR-007 exact reviewed proficiency-reference resolver and read-only definition/appearance/item/runtime-evidence correlation only; no mutation or runtime/gameplay parity claim.'),
+              ('# Exact next action after TCR-006\n\nTCR-006 is merged. After this lifecycle closure lands, perform a fresh ownership/PR/reuse/identifier-resolution preflight and start **only TCR-007 — Proficiency Reference Correlation** if it remains the first unowned, unblocked, dependency-satisfied queue item.\n\nDo not start TCR-008 or another TCR package in the TCR-007 task or PR.', '# Exact next action after TCR-007\n\nTCR-007 is merged. Perform a fresh ownership/PR/reuse/input-evidence preflight before selecting another package. Start **TCR-008 — Optional Minimap Reference** only when a concrete advisory minimap parity use case and exact selected input exist. Otherwise, **TCR-009 — Client Reference Drift** is the first non-optional dependency-satisfied candidate, but implementation remains blocked until two complete exact reference manifest/index sets are selected and pinned.\n\nDo not invent minimap authority or baseline/current snapshots merely to advance the queue.'),
+          ]
+          for old, new in replacements:
+              count = programme.count(old)
+              if count != 1:
+                  raise SystemExit(f'programme replacement mismatch ({count}): {old[:100]!r}')
+              programme = programme.replace(old, new, 1)
+
+          content_paragraph = 'The content-reference resolver and correlation contracts are `stable/merged` as of PR #880 / merge `78b3435510c7e09d10a87ca2338bef59a24475bb`. They consume exact manifest-bound StaticData evidence and explicit reviewed mappings to existing creature/spawn, boss, quest/storage and achievement owners while preserving source-family vocabulary and unresolved joins. They emit review evidence only and do not prove runtime behavior, gameplay parity or authorize mutation.\n'
+          proficiency_paragraph = content_paragraph + '\nThe proficiency-reference resolver and correlation contracts are `stable/merged` as of PR #898 / merge `89acb51d3f3c3b4d6de5c7c8a4557b2d931f88ed`. They consume exact TCR-004 proficiency definitions, canonical appearance proficiency/object bindings and compact Canary loader/runtime evidence through exact reviewed mappings. They keep definition, appearance, item, runtime, persistence, protocol/client, automated behavior and Physical E2E separate; they do not prove gameplay parity or authorize mutation.\n'
+          if programme.count(content_paragraph) != 1:
+              raise SystemExit('stable contract paragraph anchor mismatch')
+          programme = programme.replace(content_paragraph, proficiency_paragraph, 1)
+
+          old_owa = 'OWA-003 may later consume `canary-tibia-client-reference-manifest-v1`, `canary-tibia-staticdata-index-v1`, `canary-tibia-staticmapdata-index-v1`, `canary-tibia-proficiency-index-v1`, `canary-otbm-house-id-resolver-v1`, `canary-otbm-house-reference-parity-v1`, `canary-tibia-content-reference-resolver-v1` and `canary-tibia-content-reference-correlation-v1` only within their exact stable provenance/reference boundaries where that dependency is required. It must not infer map authority, `staticmapdata.object_id` equivalence, cross-namespace proficiency-ID equivalence, gameplay/runtime parity or any still-planned TCR proficiency correlation, minimap, drift, gateway or routing output before the owning bounded package merges.'
+          new_owa = 'OWA-003 may later consume `canary-tibia-client-reference-manifest-v1`, `canary-tibia-staticdata-index-v1`, `canary-tibia-staticmapdata-index-v1`, `canary-tibia-proficiency-index-v1`, `canary-otbm-house-id-resolver-v1`, `canary-otbm-house-reference-parity-v1`, `canary-tibia-content-reference-resolver-v1`, `canary-tibia-content-reference-correlation-v1`, `canary-tibia-proficiency-reference-resolver-v1` and `canary-tibia-proficiency-reference-correlation-v1` only within their exact stable provenance/reference boundaries where that dependency is required. It must not infer map authority, `staticmapdata.object_id` equivalence, unreviewed proficiency-ID equivalence, gameplay/runtime parity or any still-planned minimap, drift, gateway or routing output before the owning bounded package merges.'
+          if programme.count(old_owa) != 1:
+              raise SystemExit('OWA boundary anchor mismatch')
+          programme = programme.replace(old_owa, new_owa, 1)
+
+          old_handoff = 'treat `canary-tibia-client-reference-manifest-v1`, `canary-tibia-staticdata-index-v1`, `canary-tibia-staticmapdata-index-v1`, `canary-tibia-proficiency-index-v1`, `canary-otbm-house-id-resolver-v1`, `canary-otbm-house-reference-parity-v1`, `canary-tibia-content-reference-resolver-v1` and `canary-tibia-content-reference-correlation-v1` as stable/merged only within their exact provenance/reference boundaries; do not upgrade planned proficiency correlation, minimap, drift, gateway or routing contracts to stable without their own merged packages.'
+          new_handoff = 'treat `canary-tibia-client-reference-manifest-v1`, `canary-tibia-staticdata-index-v1`, `canary-tibia-staticmapdata-index-v1`, `canary-tibia-proficiency-index-v1`, `canary-otbm-house-id-resolver-v1`, `canary-otbm-house-reference-parity-v1`, `canary-tibia-content-reference-resolver-v1`, `canary-tibia-content-reference-correlation-v1`, `canary-tibia-proficiency-reference-resolver-v1` and `canary-tibia-proficiency-reference-correlation-v1` as stable/merged only within their exact provenance/reference boundaries; do not upgrade optional minimap, drift, gateway or routing contracts to stable without their own merged packages.'
+          if programme.count(old_handoff) != 1:
+              raise SystemExit('handoff anchor mismatch')
+          programme = programme.replace(old_handoff, new_handoff, 1)
+          programme_path.write_text(programme, encoding='utf-8')
+
+          catalog_path = Path('docs/agents/MODULE_CATALOG.md')
+          catalog = catalog_path.read_text(encoding='utf-8')
+          old_row = '| Tibia proficiency reference correlation | active TCR-007 (#898) | Deterministic provenance-pinned `canary-tibia-proficiency-reference-resolver-v1` and read-only `canary-tibia-proficiency-reference-correlation-v1` across exact TCR-004 definitions, canonical appearance proficiency/object bindings and compact Canary loader/runtime evidence | `tools/ai-agent/tibia_proficiency_reference_*.py`, focused tests, `docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.md`, resolver/correlation schemas, dedicated workflow | Reuse the canonical proficiency and appearance indexes plus loader-backed item binding evidence. Keep definition, appearance, item, runtime, persistence, protocol/client, automated behavior and Physical E2E dimensions separate; never infer numeric equivalence without reviewed resolver evidence, mutate sources or claim gameplay parity. |'
+          new_row = old_row.replace('active TCR-007 (#898)', 'merged TCR-007 (#898)')
+          if catalog.count(old_row) != 1:
+              raise SystemExit(f'catalogue row mismatch: {catalog.count(old_row)}')
+          catalog_path.write_text(catalog.replace(old_row, new_row, 1), encoding='utf-8')
+          PY
+
+      - name: Commit lifecycle closure and remove helper
+        shell: bash
+        run: |
+          rm .github/workflows/tcr007-lifecycle-closeout.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'docs(tcr): close TCR-007 lifecycle'
+          git push origin HEAD:docs/tcr-007-lifecycle-closeout
