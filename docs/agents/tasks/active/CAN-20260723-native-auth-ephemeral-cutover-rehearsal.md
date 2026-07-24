@@ -7,7 +7,7 @@ agent: "GPT-5.6 Thinking"
 branch: test/CAN-20260723-native-auth-ephemeral-cutover-rehearsal
 base_branch: main
 created: 2026-07-23T23:00:00+02:00
-updated: 2026-07-24T17:42:00+02:00
+updated: 2026-07-24T17:59:00+02:00
 last_verified_commit: f46ae126557d4d26043c77fe17968b72fd5bc688
 risk: high
 related_issue: ""
@@ -24,7 +24,14 @@ owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260723-native-auth-ephemeral-cutover-rehearsal.md
     - .github/workflows/native-auth-ephemeral-cutover-rehearsal.yml
-    - tests/e2e/native_auth_ephemeral_cutover/**
+    - tests/e2e/native_auth_ephemeral_cutover/browser_driver.py
+    - tests/e2e/native_auth_ephemeral_cutover/capture-xdg-open.sh
+    - tests/e2e/native_auth_ephemeral_cutover/oauth_probe.py
+    - tests/e2e/native_auth_ephemeral_cutover/otclient_malformed_gateway_e2e.lua
+    - tests/e2e/native_auth_ephemeral_cutover/otclient_native_flow_e2e.lua
+    - tests/e2e/native_auth_ephemeral_cutover/otclient_session_negative_e2e.lua
+    - tests/e2e/native_auth_ephemeral_cutover/platform_bootstrap.php
+    - tests/e2e/native_auth_ephemeral_cutover/run_rehearsal.py
   shared: []
   read_only:
     - .github/workflows/universal-agent-e2e.yml
@@ -77,8 +84,8 @@ The maximum evidence classification is `PRODUCTION_LIKE_PROVEN`; this task must 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T17:42:00+02:00
-head: f46ae126557d4d26043c77fe17968b72fd5bc688
+updated_at: 2026-07-24T17:59:00+02:00
+head: 79a17470babd1386e5ebd864d46b44ce19091020
 branch: test/CAN-20260723-native-auth-ephemeral-cutover-rehearsal
 pr: 841
 status: ready
@@ -150,5 +157,5 @@ validation:
     result: PASS
     evidence: PRODUCTION_LIKE_PROVEN with digest sha256:e7e908e9129658654054a96adf641757edc2c904fc2b01a5b9fc97e393d18009.
 blockers: []
-next_action: Integrate current main without changing the proven harness, pass the ci:final-gate checks, mark PR 841 ready, and squash-merge.
+next_action: Pass exact-head Agent Task Ownership, CI, Universal Agent E2E and retained-proof gate, then mark PR 841 ready and squash-merge.
 ```
