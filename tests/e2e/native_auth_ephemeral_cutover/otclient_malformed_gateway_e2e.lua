@@ -72,7 +72,7 @@ local function beginNativeFlow()
     if finished or flowStarted then
         return
     end
-    if not OterynIdentity or not EnterGame or not Services or not Servers_init then
+    if not OterynIdentity or not EnterGame or not CharacterList or not Services or not Servers_init then
         scheduleEvent(beginNativeFlow, 100)
         return
     end
