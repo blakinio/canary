@@ -1,10 +1,8 @@
-# Restored exact bounded payload; trigger one-shot correction.
 name: RTEC-001 Reviewed Contract Correction
 
 on:
-  push:
-    branches:
-      - feat/rtec-001-evidence-contracts-20260724
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - ".github/workflows/real-tibia-evidence.yml"
 
@@ -65,7 +63,7 @@ jobs:
           path = Path("docs/agents/tasks/active/CAN-20260724-rtec-001-evidence-contracts.md")
           text = path.read_text(encoding="utf-8")
           head = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
-          text = text.replace("status: ready\n", "status: active\n", 1)
+          text = text.replace("status: ready\n", "status: review\n", 1)
           text = text.replace('updated: 2026-07-24T22:51:03+02:00', 'updated: 2026-07-24T23:10:00+02:00')
           text = text.replace('last_verified_commit: "f773097b5f22f5bab8ada275403f5f99a27c0339"', f'last_verified_commit: "{head}"')
           text = text.replace("PASS: 22 tests", "PASS: 27 tests")
