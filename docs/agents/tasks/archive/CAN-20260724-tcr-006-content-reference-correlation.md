@@ -2,13 +2,13 @@
 task_id: CAN-20260724-tcr-006-content-reference-correlation
 program_id: CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE
 coordination_id: OTBM-TIBIA-CLIENT-REFERENCE
-status: implementing
+status: completed
 agent: "GPT-5.6 Thinking"
 branch: feat/tcr-006-content-reference-correlation
 base_branch: main
 created: 2026-07-24T17:00:00+02:00
-updated: 2026-07-24T18:15:59+02:00
-last_verified_commit: "fcb8edf1be084511b4e4926808009b54884b597a"
+updated: 2026-07-24T16:58:27Z
+last_verified_commit: "78b3435510c7e09d10a87ca2338bef59a24475bb"
 risk: medium
 related_issue: ""
 related_pr: 880
@@ -58,6 +58,7 @@ public_interfaces:
   - canary-tibia-content-reference-resolver-v1
   - canary-tibia-content-reference-correlation-v1
 cross_repo_tasks: []
+completed: 2026-07-24T16:58:27Z
 ---
 
 # Goal
@@ -83,11 +84,11 @@ Implement the bounded, deterministic, read-only TCR-006 content reference correl
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T18:15:59+02:00
-head: fcb8edf1be084511b4e4926808009b54884b597a
+updated_at: 2026-07-24T16:58:27Z
+head: 78b3435510c7e09d10a87ca2338bef59a24475bb
 branch: feat/tcr-006-content-reference-correlation
 pr: 880
-status: implementing
+status: ready
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -103,7 +104,7 @@ owned_paths:
   - .github/workflows/tibia-client-reference.yml
   - docs/agents/MODULE_CATALOG.md
 proven:
-  - PR 880 remains the sole open TCR-006 owner; it is draft, mergeable and targets blakinio/canary main from feat/tcr-006-content-reference-correlation.
+  - PR 880 squash-merged into blakinio/canary main as 78b3435510c7e09d10a87ca2338bef59a24475bb at 2026-07-24T16:58:27Z; feature head was 4ba3ff2f56ffa369c1274060cb16f22c9dba9b1e.
   - Exact legacy StaticData inventory contains 812 creatures, 356 titles, 438 bosses and 99 quests with no duplicate or missing required-field findings.
   - Owner inventory workflow 30103563037 succeeded and published artifact 8600662164 with digest sha256:041b0d357e6e5df4ecfeb186aa4611d58ecbe3533a6e7a47ae9f32b64bc53f4a.
   - Reviewed resolver candidates retain 739 creature, 236 boss and 349 title identity mappings; shared target IDs and all quest joins remain unresolved.
@@ -118,11 +119,9 @@ proven:
   - Agent Task Ownership workflow 30108460223 passed on fcb8edf1be084511b4e4926808009b54884b597a.
   - AI Agent Tools workflow 30108460221 job 89531656374 passed all unit, index-generation, reference-validation, schema, realistic-content-pack and artifact steps on fcb8edf1be084511b4e4926808009b54884b597a.
 derived:
-  - The implementation acceptance surface is complete; only the final task-checkpoint head validation and PR lifecycle action remain.
+  - TCR-006 is stable/merged within its exact read-only provenance and identifier-resolution boundaries.
   - Static correlation evidence does not prove runtime or gameplay parity and does not authorize source, datapack or map mutation.
-unknown:
-  - Exact workflow conclusions on the task-checkpoint commit created after fcb8edf1be084511b4e4926808009b54884b597a.
-  - Final squash-merge commit SHA.
+unknown: []
 conflicts: []
 first_failure:
   marker: Agent Task Ownership run 30104916248 / Validate changed active task checkpoints
@@ -166,5 +165,13 @@ validation:
     result: PASS
     evidence: all unit and generated-content validation steps completed successfully on fcb8edf1be084511b4e4926808009b54884b597a.
 blockers: []
-next_action: Verify the ci:final-gate workflows on the task-checkpoint commit, then mark PR 880 ready and squash-merge it if all required checks remain green.
+next_action: No further action in TCR-006; select the next dependency-satisfied programme package through a fresh task and PR.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #880.
+- Feature head: `4ba3ff2f56ffa369c1274060cb16f22c9dba9b1e`.
+- Merge commit: `78b3435510c7e09d10a87ca2338bef59a24475bb`.
+- Merged at: `2026-07-24T16:58:27Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle closeout.
