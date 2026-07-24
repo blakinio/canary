@@ -86,32 +86,8 @@ jobs:
                   raise SystemExit("programme foundation anchor missing")
               program = program.replace(anchor, foundation + anchor, 1)
 
-          old = """## Recommended first implementation wave
-
-Select one package at a time after live dependency and ownership preflight. Current recommendation:
-
-1. `E2E-QRI-005` — standard machine-readable result envelope and richer first-failure evidence;
-2. `E2E-QRI-006` — resource cleanup certification;
-3. `E2E-QRI-001` — real two-player trade and persistence;
-4. `E2E-QRI-002` — Canary restart/reconnect recovery;
-5. `E2E-QRI-003` — broader representative Journey 002;
-6. `E2E-QRI-004` — factual M0-M5 plus quality-dimension coverage dashboard;
-7. `E2E-QRI-022` — flake/stability certification after the selected scenarios are stable enough to measure.
-
-Later waves cover transactional/resilience correctness (`QRI-008` through `014`), test intelligence (`QRI-015` through `021`) and operational/release confidence (`QRI-023` through `028`).
-
-This ordering is guidance, not permission to start all packages concurrently. Concrete feature demand and current ownership remain authoritative."""
-          new = """## Recommended next implementation wave
-
-Select one package at a time after live dependency and ownership preflight. QRI-001, QRI-002, QRI-003 and QRI-005 are delivered and lifecycle-closed. Current recommendation:
-
-1. `E2E-QRI-006` — resource cleanup certification over the merged schema-v3 result envelope;
-2. `E2E-QRI-004` — factual M0-M5 plus quality-dimension coverage dashboard;
-3. `E2E-QRI-022` — flake/stability certification after the selected scenarios are stable enough to measure.
-
-Later waves cover transactional/resilience correctness (`QRI-008` through `014`), test intelligence (`QRI-015` through `021`) and operational/release confidence (`QRI-023` through `028`).
-
-This ordering is guidance, not permission to start packages concurrently. Concrete feature demand and current ownership remain authoritative."""
+          old = "## Recommended first implementation wave\n\nSelect one package at a time after live dependency and ownership preflight. Current recommendation:\n\n1. `E2E-QRI-005` — standard machine-readable result envelope and richer first-failure evidence;\n2. `E2E-QRI-006` — resource cleanup certification;\n3. `E2E-QRI-001` — real two-player trade and persistence;\n4. `E2E-QRI-002` — Canary restart/reconnect recovery;\n5. `E2E-QRI-003` — broader representative Journey 002;\n6. `E2E-QRI-004` — factual M0-M5 plus quality-dimension coverage dashboard;\n7. `E2E-QRI-022` — flake/stability certification after the selected scenarios are stable enough to measure.\n\nLater waves cover transactional/resilience correctness (`QRI-008` through `014`), test intelligence (`QRI-015` through `021`) and operational/release confidence (`QRI-023` through `028`).\n\nThis ordering is guidance, not permission to start all packages concurrently. Concrete feature demand and current ownership remain authoritative."
+          new = "## Recommended next implementation wave\n\nSelect one package at a time after live dependency and ownership preflight. QRI-001, QRI-002, QRI-003 and QRI-005 are delivered and lifecycle-closed. Current recommendation:\n\n1. `E2E-QRI-006` — resource cleanup certification over the merged schema-v3 result envelope;\n2. `E2E-QRI-004` — factual M0-M5 plus quality-dimension coverage dashboard;\n3. `E2E-QRI-022` — flake/stability certification after the selected scenarios are stable enough to measure.\n\nLater waves cover transactional/resilience correctness (`QRI-008` through `014`), test intelligence (`QRI-015` through `021`) and operational/release confidence (`QRI-023` through `028`).\n\nThis ordering is guidance, not permission to start packages concurrently. Concrete feature demand and current ownership remain authoritative."
           if old not in program:
               raise SystemExit("programme recommendation block missing or changed")
           program = program.replace(old, new, 1)
