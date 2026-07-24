@@ -95,7 +95,6 @@ proven:
   - QRI-005 delivery PR 850 merged as f28acc8e959e79448ea99dead2500a64460f3aff.
   - QRI-005 lifecycle closure PR 861 merged as cb5a22bb4319608a1b1c64b40dd274cac94e0002.
   - QRI-005 discovery registration PR 869 merged as b1d24ec362ec52652886f6be6129234ff44e7d4d.
-  - Fresh open-PR and active-task search found no prior QRI-006 implementation owner.
   - Versioned cleanup certifier and focused process, database, workspace, marker, multi-client, gameplay-independence and result-envelope tests are committed.
   - The canonical wrapper captures a logical-path pre-run baseline, executes the unchanged lifecycle in a dedicated process group, invokes the certifier after its trap, and finalizes the same schema-v3 result.json.
   - The QRI-005 shim consumes only the exact cleanup contract/schema, promotes only the cleanup quality dimension and retains gameplay status.
