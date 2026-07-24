@@ -7,30 +7,40 @@ from pathlib import Path
 from typing import Any, Mapping
 
 _IMPL_PATH = Path(__file__).with_name("result_envelope_impl.py")
-_SPEC = importlib.util.spec_from_file_location("canary_e2e_result_envelope_impl", _IMPL_PATH)
+_SPEC = importlib.util.spec_from_file_location(
+    "canary_e2e_result_envelope_impl", _IMPL_PATH
+)
 if _SPEC is None or _SPEC.loader is None:  # pragma: no cover
-    raise ImportError(f"cannot load result envelope implementation from {_IMPL_PATH}")
+    raise ImportError(
+        f"cannot load result envelope implementation from {_IMPL_PATH}"
+    )
 _IMPL = importlib.util.module_from_spec(_SPEC)
 sys.modules[_SPEC.name] = _IMPL
 _SPEC.loader.exec_module(_IMPL)
 
 CLEANUP_CONTRACT = "canary-universal-e2e-cleanup-certification-v1"
 CLEANUP_SCHEMA_VERSION = 1
-_GENERIC_CLEANUP_UNKNOWN = "Cleanup is observed only and is not QRI-006 certified."
+_GENERIC_CLEANUP_UNKNOWN = (
+    "Cleanup is observed only and is not QRI-006 certified."
+)
 _ORIGINAL_BUILD = _IMPL.build_envelope
 _ORIGINAL_CLEANUP = _IMPL._cleanup_summary
 _ORIGINAL_DIMENSIONS = _IMPL._quality_dimensions
 _ORIGINAL_ARTIFACTS = _IMPL._artifact_references
 
 
-def _safe_map_identity(artifacts: Path, scenario: Mapping[str, Any]) -> dict[str, Any]:
+def _safe_map_identity(
+    artifacts: Path, scenario: Mapping[str, Any]
+) -> dict[str, Any]:
     parts = _IMPL._read_text(artifacts / "map.sha256").split(maxsplit=1)
     digest = parts[0] if parts else None
     if not isinstance(digest, str) or not _IMPL._SHA256_RE.fullmatch(digest):
         digest = None
     server = scenario.get("server") if isinstance(scenario, Mapping) else None
     return {
-        "name": _IMPL.sanitize(server.get("map")) if isinstance(server, Mapping) else None,
+        "name": _IMPL.sanitize(server.get("map"))
+        if isinstance(server, Mapping)
+        else None,
         "sha256": digest,
     }
 
@@ -39,29 +49,47 @@ def _certified_cleanup(legacy: Mapping[str, Any]) -> Mapping[str, Any] | None:
     value = legacy.get("cleanup_summary")
     if not isinstance(value, Mapping):
         return None
-    if value.get("contract") != CLEANUP_CONTRACT or value.get("schema_version") != CLEANUP_SCHEMA_VERSION:
+    if (
+        value.get("contract") != CLEANUP_CONTRACT
+        or value.get("schema_version") != CLEANUP_SCHEMA_VERSION
+    ):
         return None
     if not isinstance(value.get("cleanup_certified"), bool):
         return None
     return value
 
 
-def _cleanup_summary(artifacts: Path, legacy: Mapping[str, Any]) -> dict[str, Any]:
+def _cleanup_summary(
+    artifacts: Path, legacy: Mapping[str, Any]
+) -> dict[str, Any]:
     value = _certified_cleanup(legacy)
-    return _IMPL.sanitize(dict(value)) if value is not None else _ORIGINAL_CLEANUP(artifacts, legacy)
+    return (
+        _IMPL.sanitize(dict(value))
+        if value is not None
+        else _ORIGINAL_CLEANUP(artifacts, legacy)
+    )
 
 
-def _quality_dimensions(legacy: Mapping[str, Any], status: str) -> dict[str, str]:
+def _quality_dimensions(
+    legacy: Mapping[str, Any], status: str
+) -> dict[str, str]:
     dimensions = _ORIGINAL_DIMENSIONS(legacy, status)
     cleanup = _certified_cleanup(legacy)
     if cleanup is not None:
-        dimensions["cleanup"] = "pass" if cleanup.get("cleanup_certified") is True else "fail"
+        dimensions["cleanup"] = (
+            "pass" if cleanup.get("cleanup_certified") is True else "fail"
+        )
     return dimensions
 
 
-def _artifact_references(artifacts: Path, manifest: Mapping[str, Any]) -> list[dict[str, Any]]:
+def _artifact_references(
+    artifacts: Path, manifest: Mapping[str, Any]
+) -> list[dict[str, Any]]:
     references = _ORIGINAL_ARTIFACTS(artifacts, manifest)
-    if any(item.get("path") == "cleanup-certification.json" for item in references):
+    if any(
+        item.get("path") == "cleanup-certification.json"
+        for item in references
+    ):
         return references
     path = artifacts / "cleanup-certification.json"
     reference: dict[str, Any] = {
@@ -78,19 +106,45 @@ def _artifact_references(artifacts: Path, manifest: Mapping[str, Any]) -> list[d
     return references
 
 
+def _redact_absolute_event_paths(events: Any) -> Any:
+    if not isinstance(events, list):
+        return events
+    redacted: list[Any] = []
+    for raw in events:
+        if not isinstance(raw, Mapping):
+            redacted.append(raw)
+            continue
+        event = dict(raw)
+        value = event.get("value")
+        if isinstance(value, str) and Path(value).is_absolute():
+            event["value"] = Path(value).name or "[redacted-path]"
+        redacted.append(event)
+    return redacted
+
+
 def build_envelope(*args: Any, **kwargs: Any) -> dict[str, Any]:
     envelope = _ORIGINAL_BUILD(*args, **kwargs)
+    envelope["events"] = _redact_absolute_event_paths(envelope.get("events"))
+    legacy = envelope.get("legacy_result")
+    if isinstance(legacy, Mapping):
+        safe_legacy = dict(legacy)
+        safe_legacy["events"] = _redact_absolute_event_paths(
+            safe_legacy.get("events")
+        )
+        envelope["legacy_result"] = safe_legacy
     cleanup = envelope.get("cleanup_summary")
     if isinstance(cleanup, Mapping) and cleanup.get("contract") == CLEANUP_CONTRACT:
         unknowns = envelope.get("unknowns")
         if isinstance(unknowns, list):
-            envelope["unknowns"] = [item for item in unknowns if item != _GENERIC_CLEANUP_UNKNOWN]
+            envelope["unknowns"] = [
+                item for item in unknowns if item != _GENERIC_CLEANUP_UNKNOWN
+            ]
             for item in cleanup.get("unknowns", []):
                 rendered = f"Cleanup certification: {item}"
                 if rendered not in envelope["unknowns"]:
                     envelope["unknowns"].append(rendered)
         envelope["unknowns"] = sorted(envelope.get("unknowns", []))
-        _IMPL.validate_envelope(envelope)
+    _IMPL.validate_envelope(envelope)
     return envelope
 
 
