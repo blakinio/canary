@@ -45,7 +45,7 @@ Make validation proportional to the changed paths, risk and coherent project mil
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T08:52:00+02:00
+updated_at: 2026-07-24T08:56:00+02:00
 branch: dudantas/validation-cost-policy
 pr: 857
 status: validating
@@ -58,6 +58,7 @@ proven:
   - The build-macos caller was removed from .github/workflows/ci.yml.
   - build-macos was removed from the Required job dependencies and required_builds evaluation.
   - .github/workflows/reusable-build-macos.yml remains available for a future explicit re-enable task.
+  - PR 857 has the ci:final-gate label before this final checkpoint commit.
 derived:
   - Normal Canary CI can no longer schedule or require the macOS build while Linux, Windows, Docker and focused checks retain their existing selection logic.
 unknown:
@@ -72,5 +73,5 @@ validation:
     result: PASS
     evidence: PR 857 changes exactly the CI caller, build/test matrix and task record; macOS caller and Required references are absent while other job definitions remain intact.
 blockers: []
-next_action: Apply ci:final-gate, mark PR 857 ready, verify the exact-head emitted jobs contain no macOS build and require all remaining selected checks to pass.
+next_action: Mark PR 857 ready, verify the exact-head emitted jobs contain no macOS build and require all remaining selected checks to pass.
 ```
