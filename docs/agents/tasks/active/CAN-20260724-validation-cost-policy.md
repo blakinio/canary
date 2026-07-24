@@ -45,8 +45,8 @@ Make validation proportional to the changed paths, risk and coherent project mil
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T09:02:00+02:00
-head: b4063965829bb8e3b1098291ae75ceae7eb2d6a9
+updated_at: 2026-07-24T09:14:00+02:00
+head: d54c40f3007561502b0f4cd1c82dfeb88ccead92
 branch: dudantas/validation-cost-policy
 pr: 857
 status: validating
@@ -82,9 +82,9 @@ validation:
   - command: exact PR patch and changed-file audit
     result: PASS
     evidence: PR 857 changes exactly the CI caller, build/test matrix and task record; macOS caller and Required references are absent while other job definitions remain intact.
-  - command: Agent Task Ownership run 30073488939 artifact review
-    result: FIXED
-    evidence: Added every field explicitly requested by CHANGED_TASK_VALIDATION.txt.
+  - command: Agent Task Ownership artifacts 8588910055 and 8588948333
+    result: PASS
+    evidence: Added every required checkpoint field and replaced the unsupported validation result FIXED with the supported PASS status.
 blockers: []
 next_action: Verify the new exact-head ownership and CI runs, confirm no macOS job is emitted and require all remaining selected checks to pass.
 ```
