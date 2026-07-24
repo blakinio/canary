@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/blakinio/canary/docs/ai-agent/OTBM_RUNTIME_INCIDENT_EVIDENCE_BRIDGE.schema.json",
+  "title": "Canary OTBM Runtime Incident Evidence Bridge v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "schemaVersion", "mode", "bindings", "bindingId", "selector",
+    "contextReferences", "gatewayManifest", "evidenceBundle", "evidenceBundleSha256",
+    "policy", "reportSha256"
+  ],
+  "properties": {
+    "format": {"const": "canary-otbm-runtime-incident-evidence-v1"},
+    "schemaVersion": {"const": 1},
+    "mode": {"enum": ["plan", "executed"]},
+    "bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "fileSha256", "canonicalSha256"],
+      "properties": {
+        "format": {"const": "canary-otbm-runtime-incident-evidence-bindings-v1"},
+        "fileSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "canonicalSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "bindingId": {"type": "string", "minLength": 1},
+    "selector": {"$ref": "#/$defs/selector"},
+    "contextReferences": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "gatewayManifest": {"$ref": "#/$defs/gatewayManifest"},
+    "evidenceBundle": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "required": ["format", "bundleSha256"],
+          "properties": {
+            "format": {"const": "canary-otbm-evidence-bundle-v1"},
+            "bundleSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          }
+        }
+      ]
+    },
+    "evidenceBundleSha256": {
+      "oneOf": [
+        {"type": "null"},
+        {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      ]
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reviewedSelectorsOnly", "parsesRuntimeLogs", "infersSelectors", "parsesOtbm",
+        "rebuildsWorldIndex", "validatesSourceSemantics", "classifiesFailure",
+        "diagnosesRootCause", "pathfinds", "regeneratesRouteOrPreflight", "runsE2e",
+        "mutatesMapOrEvidence", "emitsNextAction", "qa018EvidenceGatewayReused"
+      ],
+      "properties": {
+        "reviewedSelectorsOnly": {"const": true},
+        "parsesRuntimeLogs": {"const": false},
+        "infersSelectors": {"const": false},
+        "parsesOtbm": {"const": false},
+        "rebuildsWorldIndex": {"const": false},
+        "validatesSourceSemantics": {"const": false},
+        "classifiesFailure": {"const": false},
+        "diagnosesRootCause": {"const": false},
+        "pathfinds": {"const": false},
+        "regeneratesRouteOrPreflight": {"const": false},
+        "runsE2e": {"const": false},
+        "mutatesMapOrEvidence": {"const": false},
+        "emitsNextAction": {"const": false},
+        "qa018EvidenceGatewayReused": {"const": true}
+      }
+    },
+    "reportSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"mode": {"const": "plan"}}},
+      "then": {
+        "properties": {
+          "evidenceBundle": {"type": "null"},
+          "evidenceBundleSha256": {"type": "null"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"mode": {"const": "executed"}}},
+      "then": {
+        "properties": {
+          "evidenceBundle": {"type": "object"},
+          "evidenceBundleSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "position": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"type": "integer", "minimum": 0, "maximum": 15}
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "selector": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": {"const": "position"},
+            "value": {"$ref": "#/$defs/position"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": {"enum": ["transition-id", "interaction-id", "landmark-id", "route-id", "preflight-reference"]},
+            "value": {"type": "string", "minLength": 1}
+          }
+        }
+      ]
+    },
+    "extract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "pointer"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "pointer": {"type": "string"}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "sha256", "format", "extracts"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "format": {"type": "string", "minLength": 1},
+        "extracts": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/extract"}}
+      }
+    },
+    "gatewayManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "schemaVersion", "sources"],
+      "properties": {
+        "format": {"const": "canary-otbm-evidence-gateway-manifest-v1"},
+        "schemaVersion": {"const": 1},
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {"$ref": "#/$defs/source"}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,486 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.local/schemas/canary-tibia-staticdata-index-v1.json",
+  "title": "Canary Tibia StaticData Reference Index v1 schemaVersion 2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "source",
+    "categories",
+    "findings",
+    "summary",
+    "policy"
+  ],
+  "properties": {
+    "format": {
+      "const": "canary-tibia-staticdata-index-v1"
+    },
+    "schemaVersion": {
+      "const": 2
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manifestFormat",
+        "manifestSha256",
+        "referenceId",
+        "inputId",
+        "manifestPath",
+        "sizeBytes",
+        "sha256",
+        "encoding",
+        "decodedSizeBytes",
+        "schemaFamily",
+        "schemaEvidence",
+        "houseFieldOrder",
+        "houseFieldOrderEvidence"
+      ],
+      "properties": {
+        "manifestFormat": {
+          "const": "canary-tibia-client-reference-manifest-v1"
+        },
+        "manifestSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "referenceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "manifestPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sizeBytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "encoding": {
+          "enum": [
+            "raw",
+            "xz",
+            "lzma"
+          ]
+        },
+        "decodedSizeBytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "schemaFamily": {
+          "enum": [
+            "legacy",
+            "newer"
+          ]
+        },
+        "schemaEvidence": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "houseFieldOrder": {
+          "enum": [
+            "unresolved",
+            "legacy",
+            "newer"
+          ]
+        },
+        "houseFieldOrderEvidence": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "state"
+              ],
+              "properties": {
+                "state": {
+                  "const": "unresolved"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "state",
+                "reviewId",
+                "statement"
+              ],
+              "properties": {
+                "state": {
+                  "const": "reviewed"
+                },
+                "reviewId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "statement": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "categories": {
+      "type": "object",
+      "minProperties": 5,
+      "maxProperties": 6,
+      "additionalProperties": {
+        "$ref": "#/$defs/category"
+      }
+    },
+    "findings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "duplicateIds",
+        "missingRequiredFields",
+        "duplicateSingularFields",
+        "unresolvedHouseFieldOrder"
+      ],
+      "properties": {
+        "duplicateIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/duplicateId"
+          }
+        },
+        "missingRequiredFields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/missingField"
+          }
+        },
+        "duplicateSingularFields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/duplicateField"
+          }
+        },
+        "unresolvedHouseFieldOrder": {
+          "type": "array",
+          "maxItems": 1,
+          "items": {
+            "$ref": "#/$defs/unresolvedHouseFieldOrder"
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "categoryCounts",
+        "totalRecords",
+        "duplicateIdCount",
+        "missingRequiredFieldCount",
+        "duplicateSingularFieldCount",
+        "unresolvedHouseFieldOrderCount"
+      ],
+      "properties": {
+        "categoryCounts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "totalRecords": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "duplicateIdCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "missingRequiredFieldCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "duplicateSingularFieldCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unresolvedHouseFieldOrderCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gameplayConclusions",
+        "questInventoryOnly",
+        "schemaAmbiguityFailsClosed",
+        "maxSourceBytes",
+        "maxDecompressedBytes",
+        "maxRecords",
+        "houseFieldOrderResolution",
+        "houseFieldOrderHeuristics"
+      ],
+      "properties": {
+        "gameplayConclusions": {
+          "const": false
+        },
+        "questInventoryOnly": {
+          "const": true
+        },
+        "schemaAmbiguityFailsClosed": {
+          "const": true
+        },
+        "maxSourceBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxDecompressedBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxRecords": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "houseFieldOrderResolution": {
+          "enum": [
+            "unresolved",
+            "legacy",
+            "newer"
+          ]
+        },
+        "houseFieldOrderHeuristics": {
+          "const": false
+        }
+      }
+    }
+  },
+  "$defs": {
+    "category": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceCategory",
+        "sourceSchema",
+        "count",
+        "records"
+      ],
+      "properties": {
+        "sourceCategory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceSchema": {
+          "enum": [
+            "legacy",
+            "newer"
+          ]
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "houseFieldOrder": {
+          "enum": [
+            "unresolved",
+            "legacy",
+            "newer"
+          ]
+        }
+      }
+    },
+    "duplicateId": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "category",
+        "id",
+        "sourceOrdinals"
+      ],
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sourceOrdinals": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "minItems": 2
+        }
+      }
+    },
+    "missingField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "category",
+        "field",
+        "sourceOrdinal"
+      ],
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "field": {
+          "enum": [
+            "id",
+            "name"
+          ]
+        },
+        "sourceOrdinal": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "duplicateField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "category",
+        "fieldNumber",
+        "sourceOrdinal",
+        "occurrences"
+      ],
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "fieldNumber": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sourceOrdinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "occurrences": {
+          "type": "integer",
+          "minimum": 2
+        }
+      }
+    },
+    "unresolvedHouseFieldOrder": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "category",
+        "recordCount",
+        "rawFields"
+      ],
+      "properties": {
+        "category": {
+          "const": "houses"
+        },
+        "recordCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "rawFields": {
+          "const": [
+            "houseField5",
+            "houseField7"
+          ]
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "source": {
+            "properties": {
+              "houseFieldOrder": {
+                "const": "unresolved"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "source": {
+            "properties": {
+              "houseFieldOrderEvidence": {
+                "properties": {
+                  "state": {
+                    "const": "unresolved"
+                  }
+                }
+              }
+            }
+          },
+          "policy": {
+            "properties": {
+              "houseFieldOrderResolution": {
+                "const": "unresolved"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "source": {
+            "properties": {
+              "houseFieldOrder": {
+                "enum": [
+                  "legacy",
+                  "newer"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "source": {
+            "properties": {
+              "houseFieldOrderEvidence": {
+                "properties": {
+                  "state": {
+                    "const": "reviewed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

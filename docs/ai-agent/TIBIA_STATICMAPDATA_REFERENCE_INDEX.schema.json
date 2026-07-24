@@ -1,0 +1,314 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.local/schemas/TIBIA_STATICMAPDATA_REFERENCE_INDEX.schema.json",
+  "title": "Canary Tibia StaticMapData House Reference Index v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "source",
+    "objectIdNamespace",
+    "houses",
+    "findings",
+    "summary",
+    "policy"
+  ],
+  "properties": {
+    "format": { "const": "canary-tibia-staticmapdata-index-v1" },
+    "schemaVersion": { "const": 1 },
+    "source": { "$ref": "#/$defs/source" },
+    "objectIdNamespace": { "$ref": "#/$defs/objectIdNamespace" },
+    "houses": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/house" }
+    },
+    "findings": { "$ref": "#/$defs/findings" },
+    "summary": { "$ref": "#/$defs/summary" },
+    "policy": { "$ref": "#/$defs/policy" }
+  },
+  "$defs": {
+    "nonNegativeInteger": { "type": "integer", "minimum": 0 },
+    "positiveInteger": { "type": "integer", "minimum": 1 },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manifestFormat",
+        "manifestSha256",
+        "referenceId",
+        "inputId",
+        "manifestPath",
+        "sizeBytes",
+        "sha256",
+        "encoding",
+        "decodedSizeBytes"
+      ],
+      "properties": {
+        "manifestFormat": { "const": "canary-tibia-client-reference-manifest-v1" },
+        "manifestSha256": { "$ref": "#/$defs/sha256" },
+        "referenceId": { "type": "string", "minLength": 1 },
+        "inputId": { "type": "string", "minLength": 1 },
+        "manifestPath": { "type": "string", "minLength": 1 },
+        "sizeBytes": { "$ref": "#/$defs/nonNegativeInteger" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "encoding": { "enum": ["raw", "xz", "lzma"] },
+        "decodedSizeBytes": { "$ref": "#/$defs/nonNegativeInteger" }
+      }
+    },
+    "objectIdNamespace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "resolution", "otbmItemIdEquivalent"],
+      "properties": {
+        "name": { "const": "staticmapdata.object_id" },
+        "resolution": { "const": "unresolved" },
+        "otbmItemIdEquivalent": { "const": false }
+      }
+    },
+    "coordinate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": { "$ref": "#/$defs/nonNegativeInteger" },
+        "y": { "$ref": "#/$defs/nonNegativeInteger" },
+        "z": { "$ref": "#/$defs/nonNegativeInteger" }
+      }
+    },
+    "size": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "width": { "$ref": "#/$defs/nonNegativeInteger" },
+        "height": { "$ref": "#/$defs/nonNegativeInteger" },
+        "floors": { "$ref": "#/$defs/nonNegativeInteger" }
+      }
+    },
+    "tile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceOrdinal"],
+      "properties": {
+        "sourceOrdinal": { "$ref": "#/$defs/positiveInteger" },
+        "objectId": { "$ref": "#/$defs/nonNegativeInteger" },
+        "wallInfo": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "isWall": { "type": "boolean" } }
+        },
+        "doorInfo": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "isDoor": { "type": "boolean" } }
+        }
+      }
+    },
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceOrdinal", "tiles"],
+      "properties": {
+        "sourceOrdinal": { "$ref": "#/$defs/positiveInteger" },
+        "flags": { "$ref": "#/$defs/nonNegativeInteger" },
+        "tiles": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/tile" }
+        }
+      }
+    },
+    "layoutValidation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rowCount", "rowFlagSum", "encodedCellSpan"],
+      "properties": {
+        "rowCount": { "$ref": "#/$defs/nonNegativeInteger" },
+        "rowFlagSum": { "$ref": "#/$defs/nonNegativeInteger" },
+        "encodedCellSpan": { "$ref": "#/$defs/nonNegativeInteger" },
+        "declaredCellCount": { "$ref": "#/$defs/nonNegativeInteger" },
+        "matchesDeclaredDimensions": { "type": "boolean" }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["validation"],
+      "properties": {
+        "position": { "$ref": "#/$defs/coordinate" },
+        "size": { "$ref": "#/$defs/size" },
+        "tiles": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["floorData"],
+          "properties": {
+            "floorData": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["rows"],
+              "properties": {
+                "rows": {
+                  "type": "array",
+                  "items": { "$ref": "#/$defs/row" }
+                }
+              }
+            }
+          }
+        },
+        "validation": { "$ref": "#/$defs/layoutValidation" }
+      }
+    },
+    "house": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceOrdinal"],
+      "properties": {
+        "sourceOrdinal": { "$ref": "#/$defs/positiveInteger" },
+        "houseId": { "$ref": "#/$defs/nonNegativeInteger" },
+        "layout": { "$ref": "#/$defs/layout" }
+      }
+    },
+    "missingField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "field"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "field": { "type": "string", "minLength": 1 }
+      }
+    },
+    "duplicateField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "messageType", "fieldNumber", "occurrences"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "messageType": { "type": "string", "minLength": 1 },
+        "fieldNumber": { "$ref": "#/$defs/positiveInteger" },
+        "occurrences": { "type": "integer", "minimum": 2 }
+      }
+    },
+    "dimensionMismatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "houseSourceOrdinal",
+        "width",
+        "height",
+        "floors",
+        "declaredCellCount",
+        "rowCount",
+        "rowFlagSum",
+        "encodedCellSpan",
+        "reason"
+      ],
+      "properties": {
+        "houseSourceOrdinal": { "$ref": "#/$defs/positiveInteger" },
+        "houseId": { "$ref": "#/$defs/nonNegativeInteger" },
+        "width": { "$ref": "#/$defs/nonNegativeInteger" },
+        "height": { "$ref": "#/$defs/nonNegativeInteger" },
+        "floors": { "$ref": "#/$defs/nonNegativeInteger" },
+        "declaredCellCount": { "$ref": "#/$defs/nonNegativeInteger" },
+        "rowCount": { "$ref": "#/$defs/nonNegativeInteger" },
+        "rowFlagSum": { "$ref": "#/$defs/nonNegativeInteger" },
+        "encodedCellSpan": { "$ref": "#/$defs/nonNegativeInteger" },
+        "reason": { "enum": ["non-positive-dimension", "encoded-cell-span-mismatch"] }
+      }
+    },
+    "findings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "duplicateHouseIds",
+        "missingRequiredFields",
+        "duplicateSingularFields",
+        "dimensionMismatches"
+      ],
+      "properties": {
+        "duplicateHouseIds": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["houseId", "sourceOrdinals"],
+            "properties": {
+              "houseId": { "$ref": "#/$defs/nonNegativeInteger" },
+              "sourceOrdinals": {
+                "type": "array",
+                "minItems": 2,
+                "items": { "$ref": "#/$defs/positiveInteger" }
+              }
+            }
+          }
+        },
+        "missingRequiredFields": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/missingField" }
+        },
+        "duplicateSingularFields": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/duplicateField" }
+        },
+        "dimensionMismatches": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/dimensionMismatch" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "houseCount",
+        "rowCount",
+        "tileRecordCount",
+        "declaredCellCount",
+        "encodedCellSpan",
+        "duplicateHouseIdCount",
+        "missingRequiredFieldCount",
+        "duplicateSingularFieldCount",
+        "dimensionMismatchCount"
+      ],
+      "properties": {
+        "houseCount": { "$ref": "#/$defs/nonNegativeInteger" },
+        "rowCount": { "$ref": "#/$defs/nonNegativeInteger" },
+        "tileRecordCount": { "$ref": "#/$defs/nonNegativeInteger" },
+        "declaredCellCount": { "$ref": "#/$defs/nonNegativeInteger" },
+        "encodedCellSpan": { "$ref": "#/$defs/nonNegativeInteger" },
+        "duplicateHouseIdCount": { "$ref": "#/$defs/nonNegativeInteger" },
+        "missingRequiredFieldCount": { "$ref": "#/$defs/nonNegativeInteger" },
+        "duplicateSingularFieldCount": { "$ref": "#/$defs/nonNegativeInteger" },
+        "dimensionMismatchCount": { "$ref": "#/$defs/nonNegativeInteger" }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gameplayConclusions",
+        "otbmParsing",
+        "otbmWriting",
+        "objectIdMapping",
+        "rowFlagSemantics",
+        "maxSourceBytes",
+        "maxDecompressedBytes",
+        "maxHouses",
+        "maxRows",
+        "maxTileRecords",
+        "maxDeclaredCells"
+      ],
+      "properties": {
+        "gameplayConclusions": { "const": false },
+        "otbmParsing": { "const": false },
+        "otbmWriting": { "const": false },
+        "objectIdMapping": { "const": "unresolved" },
+        "rowFlagSemantics": { "const": "unresolved-beyond-encoded-cell-span" },
+        "maxSourceBytes": { "$ref": "#/$defs/positiveInteger" },
+        "maxDecompressedBytes": { "$ref": "#/$defs/positiveInteger" },
+        "maxHouses": { "$ref": "#/$defs/positiveInteger" },
+        "maxRows": { "$ref": "#/$defs/positiveInteger" },
+        "maxTileRecords": { "$ref": "#/$defs/positiveInteger" },
+        "maxDeclaredCells": { "$ref": "#/$defs/positiveInteger" }
+      }
+    }
+  }
+}
