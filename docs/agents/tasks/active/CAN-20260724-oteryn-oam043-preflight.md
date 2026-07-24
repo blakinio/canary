@@ -8,10 +8,10 @@ branch: dudantas/oam-043-preflight-handoff
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "5470d5e3b5a88faea108941f4687d8a4a8e63a62"
+last_verified_commit: "e377c36b61fa25c7446ffacd0db7f93e6e3ff962"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "867"
 depends_on:
   - OAM-042 formally complete
 blocks:
@@ -38,10 +38,10 @@ OAM-042 is formally complete. OAM-043 has started only as a bounded preflight ta
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T09:16:15Z
-head: 5470d5e3b5a88faea108941f4687d8a4a8e63a62
+updated_at: 2026-07-24T09:17:30Z
+head: e377c36b61fa25c7446ffacd0db7f93e6e3ff962
 branch: dudantas/oam-043-preflight-handoff
-pr: none
+pr: 867
 status: investigating
 context_routes:
   - agent-governance
@@ -55,7 +55,7 @@ proven:
   - Current task-start Canary main is 5470d5e3b5a88faea108941f4687d8a4a8e63a62.
   - Current task-start Otheryn main is 3a37f3d5e4c01ddf4469f1c71461c40ca749142f.
   - Current reviewed upstream Canary head is 7323503b3dc61ed86bf1f04a611b2d0aec64b35a.
-  - Fresh PR and branch searches found no existing OAM-043 owner.
+  - Fresh PR and branch searches found no existing OAM-043 owner before draft PR 867 was created.
 derived:
   - OAM-043 may proceed only through a fresh canonical registry dependency, ownership and open-PR preflight.
   - No package choice from an earlier OAM may be reused without current evidence.
@@ -75,7 +75,10 @@ changed_paths:
 validation:
   - command: live OAM-042 closure and OAM-043 overlap verification
     result: PASS
-    evidence: Canary PRs 862-864 and Otheryn PRs 96-97 are merged; no OAM-043 PR or branch was found.
+    evidence: Canary PRs 862-864 and Otheryn PRs 96-97 are merged; no earlier OAM-043 PR or branch was found.
+  - command: create bounded OAM-043 preflight draft
+    result: PASS
+    evidence: Canary draft PR 867 contains exactly the active task record and no package selection or implementation.
 blockers: []
 next_action: Run a fresh canonical registry dependency, open-PR and ownership preflight and select exactly one dependency-valid OAM-043 package without starting target implementation.
 ```
