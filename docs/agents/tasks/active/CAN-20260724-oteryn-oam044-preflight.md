@@ -4,90 +4,55 @@ program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-044
 status: review
 agent: "GPT-5.6 Thinking"
-branch: dudantas/oam-044-protocol-compatibility-preflight
+branch: dudantas/oam-044-protocol-compatibility-governance
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "422a97ceea07b91254b66411f7baf2c6896ccc85"
+last_verified_commit: "e1eed52119ba21a29cb29cbac0793ed2a2b9d0c6"
 risk: high
 related_issue: ""
-related_pr: "879"
+related_pr: ""
 depends_on:
   - OAM-043 durably completed as 9d99a0665050d244a0ee0beb0362080de0f3d19a
   - canonical protocol completed by OAM-006
 blocks:
-  - OAM-044 target proof and final disposition
+  - OAM-044 Canary lifecycle archive
+  - OAM-044 durable program reconciliation
   - OAM-045 start
 owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260724-oteryn-oam044-preflight.md
+    - docs/agents/OTERYN_OAM_044_PROTOCOL_COMPATIBILITY_REVALIDATION.md
   shared: []
   read_only:
     - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
     - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
     - docs/agents/real-tibia/registry/modules/protocol-compatibility.yaml
     - docs/agents/real-tibia/TSD_010_PROTOCOL_CLIENT_REPORT.md
-    - docs/agents/real-tibia/generated/MODULE_INDEX.md
-    - docs/agents/real-tibia/generated/MODULE_DEPENDENCIES.md
 modules_touched:
   - oteryn-architecture-migration
   - protocol-compatibility
-cross_repo_tasks: []
+cross_repo_tasks:
+  - Otheryn PR 100 feature merge 5c8f48e2a7cb7f841cfb6614e8e804245f17c0ca
+  - Otheryn PR 101 lifecycle merge e1eed52119ba21a29cb29cbac0793ed2a2b9d0c6
 ---
 
-# OAM-044 Fresh Preflight
+# OAM-044 protocol compatibility revalidation
 
-## Selected package
+## Final disposition
 
-`protocol-compatibility` is the selected dependency-valid OAM-044 canonical package.
+`protocol-compatibility → REUSE`
 
-Preflight disposition: `REVALIDATE`.
-
-No leading `REUSE`, `ADAPT`, `REWRITE` or `DO_NOT_MIGRATE` hypothesis is accepted before a separately ordered target proof compares the exact server profile registry with the maintained-client feature matrix and establishes bounded paired compatibility fixtures. Target/current-upstream server blob identity is inventory evidence only; it does not prove server/client feature, version, asset, handshake or packet-layout equivalence.
-
-Canonical `protocol-compatibility` owns server protocol-profile and support-state discovery, client version and asset-signature profile resolution, account/game login-layout metadata, transport/challenge selection metadata, server feature masks and the maintained-client version-gated feature matrix. It excludes individual gameplay behavior, broad packet implementation, transport runtime ownership, login authentication and physical-client orchestration.
-
-The package has no hard dependency and directly unblocks canonical `protocol-session-handoff`. `network-transport` is also dependency-valid, but open Canary PR #514 owns authenticated post-login sequence/XTEA validation and creates a live evidence/ownership interaction; OAM-044 therefore selects the narrower collision-free compatibility-profile boundary first.
-
-This preflight performs no target, server runtime, maintained-client, transport, login, packet, protocol, schema, asset or deployment mutation.
-
-## Required target-proof phases
-
-1. **Exact source inventory**
-   - pin Otheryn, current-upstream, legacy Canary and maintained-client revisions;
-   - compare exact `protocol_profile.*` blobs and the maintained-client `modules/game_features/**` inventory;
-   - classify target/upstream/legacy-only and divergent profile, feature, version and asset metadata without importing broad transport/login behavior.
-
-2. **Semantic compatibility matrix**
-   - inventory every server profile ID, client version, wire family, RSA family, support state, item-mapper policy, asset signature, transport/challenge profile, login layout and `ProtocolFeature` bit;
-   - inventory every maintained-client version gate and enabled `GameFeature` with exact source provenance;
-   - classify mappings as confirmed, server-only, client-only, conflicting or unresolved; never infer equivalence from similar names.
-
-3. **Bounded paired fixtures**
-   - prove server resolution by version, wire family and asset signatures;
-   - prove allowed/blocked support decisions and account/game login-layout selection;
-   - prove deterministic maintained-client feature sets for selected current and legacy versions;
-   - add explicit fixtures only where both sides expose a bounded reviewed contract.
-
-4. **Ownership boundaries**
-   - leave socket/framing/checksum/sequence/XTEA/compression behavior to `network-transport`;
-   - leave account-login request/response serialization to `login-protocol`;
-   - leave hint registration/lease/consume/expiry to `protocol-session-handoff`;
-   - leave broad game packet semantics to completed canonical `protocol`.
-
-5. **Conditional runtime evidence**
-   - reuse the exact OAM-006 physical current-profile proof only where the selected server/client roots are byte-identical;
-   - use additional packet captures or bounded physical-client login/world-entry proof only where exact source and paired fixtures cannot resolve a selected compatibility claim;
-   - retain unsupported versions, unmapped features and unavailable proprietary fixtures as explicit unknowns rather than guessing.
+The separately ordered Otheryn proof retained the exact target/current-upstream protocol-profile registry without production mutation. Bounded current-profile source continuity, inherited OAM-006 physical evidence and focused profile fixtures support REUSE. Tibia 11.00/8.60 physical parity, exhaustive feature mapping and transport/login/session-handoff behavior remain explicit nonclaims.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T17:14:00+02:00
-head: 422a97ceea07b91254b66411f7baf2c6896ccc85
-branch: dudantas/oam-044-protocol-compatibility-preflight
-pr: 879
+updated_at: 2026-07-24T19:24:00+02:00
+head: 6cfc7f349b491503b15a973164334b4353409bbe
+branch: dudantas/oam-044-protocol-compatibility-governance
+pr: none
 status: validating
 context_routes:
   - agent-governance
@@ -95,63 +60,66 @@ context_routes:
   - protocol-client
 owned_paths:
   - docs/agents/tasks/active/CAN-20260724-oteryn-oam044-preflight.md
+  - docs/agents/OTERYN_OAM_044_PROTOCOL_COMPATIBILITY_REVALIDATION.md
 proven:
-  - OAM-043 quests ADAPT is durably complete after Otheryn feature 6512d78004ae2540784b3e67592a92a903554cf6, Otheryn lifecycle 3f3c15917610e45430aa3902d110806dd25e10a8, Canary governance 6e55eab72b6f7b164bb38ba2e08fa1a80cf5f8e5, Canary lifecycle 6e223c142f34285b98ea70d79131c79b1680e2d0 and durable reconciliation 9d99a0665050d244a0ee0beb0362080de0f3d19a.
-  - Fresh Canary task-start main is a5cafe1b7ce148af59c64d1382963ac6ac633334; its only initial post-OAM-043 drift was independent E2E packet-record path redaction.
-  - Fresh Otheryn target main is 3f3c15917610e45430aa3902d110806dd25e10a8, reviewed current-upstream Canary is 7323503b3dc61ed86bf1f04a611b2d0aec64b35a and maintained OTClient is b3bcea2a95959bb4e92cc0b80cd49f36b63699b2.
-  - The canonical registry contains 62 modules; after OAM-003 through OAM-043 coverage, nine records remain outside durable OAM completion.
-  - Canonical protocol-compatibility registry blob 5fba5a2712aa17db68c5edba2a913ed09fa51a09 declares category client-protocol and no hard dependency.
-  - protocol-compatibility directly interacts with and unblocks protocol-session-handoff, whose hard dependency is protocol-compatibility.
-  - Otheryn and reviewed current-upstream share exact protocol_profile.hpp blob b9f1eec01e1ba348c22315be43ccefe74b210e45 and protocol_profile.cpp blob 5405c343cfa2c2d75a173d6678ecf8afc7690120.
-  - Legacy Canary diverges on protocol_profile.hpp blob d045189c02eedfc0c3c4d03c37052cc34390e5ae and protocol_profile.cpp blob d89d951c469547370ef4346b133e7c7e32a257cf, including a more granular current transport-profile split that must not be imported into this package without ownership review.
-  - Maintained-client modules/game_features/features.lua blob is 8b458b864ad765185fd856414f2c097d565a5a22 and contains version-gated GameFeature enablement.
-  - OAM-006 physical run 29531221365 passed two current-profile protocol-1525 login/relog cycles against Otheryn c547d8ad70ef1252624c255476e6cb83fa125e14 and maintained client 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f.
-  - The OAM-006 tested protocol_profile.hpp, protocol_profile.cpp and maintained-client features.lua blobs are still exactly b9f1eec01e1ba348c22315be43ccefe74b210e45, 5405c343cfa2c2d75a173d6678ecf8afc7690120 and 8b458b864ad765185fd856414f2c097d565a5a22; bounded current-profile source/runtime continuity is therefore proven without claiming 1100/860 parity.
-  - TSD-010 explicitly treats server ProtocolFeature and client GameFeature records as inventories, not one-to-one semantic or byte-contract proof, and requires paired fixtures or captures for compatibility claims.
-  - Fresh exact branch searches found no prior OAM-044 or protocol-compatibility owner in Canary or Otheryn; Otheryn has no open PRs.
-  - Open Canary PR #514 owns authenticated game-session sequence/XTEA validation, so network-transport was rejected as the collision-free first OAM-044 choice.
-  - Canary PR 879 changes exactly this active task record and carries the ci:final-gate label before its synchronization commits.
-  - Ready head 422a97ceea07b91254b66411f7baf2c6896ccc85 passed Agent Task Ownership 30102398900 and full CI 30102410130 across Fast Checks, Lua, Linux release/debug with tests and runtime smokes, Windows CMake/Solution and Docker.
+  - OAM-043 quests ADAPT is durably complete through program reconciliation 9d99a0665050d244a0ee0beb0362080de0f3d19a.
+  - Canary OAM-044 preflight selected canonical protocol-compatibility with REVALIDATE and merged as 47611c10be8a2262d66421c9da65de6cc5c7264d.
+  - Otheryn target task-start was 3f3c15917610e45430aa3902d110806dd25e10a8; reviewed upstream was 7323503b3dc61ed86bf1f04a611b2d0aec64b35a; legacy Canary was a5cafe1b7ce148af59c64d1382963ac6ac633334; maintained client was b3bcea2a95959bb4e92cc0b80cd49f36b63699b2.
+  - Target and reviewed current-upstream share protocol_profile.hpp blob b9f1eec01e1ba348c22315be43ccefe74b210e45 and protocol_profile.cpp blob 5405c343cfa2c2d75a173d6678ecf8afc7690120.
+  - Maintained-client modules/game_features/features.lua blob is 8b458b864ad765185fd856414f2c097d565a5a22.
+  - OAM-006 physical run 29531221365 passed two protocol-1525 login/relog cycles on server/client roots byte-identical to the current OAM-044 roots.
+  - Legacy Canary diverges at the server registry roots and contains transport-owned hardening rejected from this package.
+  - The target registry exposes six profiles and the focused test covers profile manifest, version/wire-family/asset resolution, support states, item-mapper policies, selected current feature pairs and bounded current/1100/860 login metadata.
+  - Otheryn feature ready head 29d196e1b7d084813e24d368bd9e70329e16d0b3 passed Autofix 30106675779, CI 30106676001 and Required 30106675816.
+  - Otheryn feature final-sync head 62a42372e2225b71aaa0066cc934f684e830913c passed Autofix 30111297337, CI 30111297597 and Required 30111297475.
+  - Otheryn PR 100 had no comments, reviews or review threads, no target-main drift and squash-merged as 5c8f48e2a7cb7f841cfb6614e8e804245f17c0ca.
+  - Otheryn lifecycle PR 101 changed one logical active/archive path, passed Required 30112638532, had a clean audit and merged as e1eed52119ba21a29cb29cbac0793ed2a2b9d0c6.
+  - Canary governance task-start main is ad8b978236e6dfa8c40b06170f19f281b84b395d; intervening OTS/native-auth/content-reference merges do not overlap the OAM-044 governance paths.
+  - docs/agents/OTERYN_OAM_044_PROTOCOL_COMPATIBILITY_REVALIDATION.md records the exact evidence and nonclaim boundaries.
 derived:
-  - protocol-compatibility is the narrowest dependency-valid remaining canonical boundary with no live owner and advances the dependency graph by unblocking protocol-session-handoff.
-  - Exact target/upstream server identity and unchanged OAM-006 tested current-profile roots support bounded REUSE as the target-proof leading hypothesis only; legacy divergence and independent 1100/860 evidence still require REVALIDATE.
-  - A safe final disposition requires explicit server/client mapping and bounded fixtures while preserving transport, login and handoff ownership boundaries.
+  - protocol-compatibility supports bounded REUSE because no package-owned target defect was isolated and the current profile retains exact source/runtime continuity.
+  - Tibia 11.00 and 8.60 remain source-fixture boundaries rather than physical parity claims.
+  - Legacy transport-profile differences remain assigned to network-transport and login-protocol.
 unknown:
-  - Exact one-to-one or many-to-one correspondence between every ProtocolFeature bit and maintained-client GameFeature gate.
-  - Exact compatibility of version, wire-family, RSA-family, asset-signature, challenge and login-layout combinations outside the proven current-profile boundary.
-  - Which legacy profile metadata is stronger evidence versus network-transport or login-protocol scope.
-  - Exact current and legacy packet layouts for every registered profile.
-  - Availability and provenance of representative official/proprietary client fixtures or captures.
-  - Physical-client login/world-entry parity for Tibia 11.00, CipSoft 8.60 variants and blocked OTCv8 8.60.
+  - Exhaustive one-to-one or many-to-one correspondence between every ProtocolFeature and GameFeature.
+  - Byte-level compatibility for every packet and registered profile.
+  - Provenance and factual correctness of every proprietary asset signature.
+  - Physical-client login/world-entry parity for Tibia 11.00 and CipSoft 8.60 variants.
+  - OTCv8 8.60 readiness.
+  - Production gameplay parity and full protocol-stack readiness.
 conflicts: []
 first_failure:
   marker: none
-  evidence: No protocol-compatibility-owned target defect has been isolated during preflight.
+  evidence: No protocol-compatibility-owned target defect was isolated.
 rejected_hypotheses:
-  - Finalize protocol-compatibility as REUSE from target/upstream protocol_profile blob identity alone.
-  - Extend the OAM-006 current-profile physical result to Tibia 11.00 or 8.60 profiles.
-  - Treat similar ProtocolFeature and GameFeature names as semantic or byte-layout equivalence.
-  - Absorb socket/framing/checksum/sequence/XTEA/compression work owned by network-transport.
-  - Absorb login serialization/authentication or session-handoff state into this package.
-  - Select network-transport while open PR 514 owns interacting authenticated transport validation.
+  - Finalize REUSE from server blob identity alone without paired fixtures and physical continuity review.
+  - Import legacy transport-profile splitting into protocol-compatibility.
+  - Infer semantic compatibility from similar server/client feature names.
+  - Extend OAM-006 current-profile physical evidence to legacy profiles.
+  - Absorb network transport, login authentication or session-handoff behavior.
+  - Treat blocked OTCv8 8.60 as ready.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260724-oteryn-oam044-preflight.md
+  - docs/agents/OTERYN_OAM_044_PROTOCOL_COMPATIBILITY_REVALIDATION.md
 validation:
-  - command: live canonical registry and dependency review
+  - command: exact target/upstream/legacy/client source and ownership review
     result: PASS
-    evidence: Generated module and dependency indexes preserve 62 canonical records; protocol-compatibility has no hard dependency and protocol-session-handoff depends on it.
-  - command: exact target/upstream/legacy/client source preflight
+    evidence: Exact roots, divergence and bounded ownership are recorded in the governance report.
+  - command: Otheryn focused protocol compatibility contract
     result: PASS
-    evidence: Exact Git blobs establish target/upstream identity, legacy divergence, maintained-client feature inventory and bounded OAM-006 current-profile continuity without asserting broad compatibility.
-  - command: live branch, PR and ownership preflight
+    evidence: CI runs 30106676001 and 30111297597 compiled and executed the registered unit-test matrix.
+  - command: Otheryn feature exact-head gates and audit
     result: PASS
-    evidence: No prior OAM-044/protocol-compatibility branch or PR owner existed; open PR 514 is retained as an interacting network-transport constraint.
-  - command: PR 879 ready-head Agent Task Ownership and final-gate CI
+    evidence: Ready and final-sync heads passed Autofix, CI and Required; discussions were empty and no main drift occurred before merge 5c8f48e2a7cb7f841cfb6614e8e804245f17c0ca.
+  - command: Otheryn lifecycle gate and audit
     result: PASS
-    evidence: Head 422a97ceea07b91254b66411f7baf2c6896ccc85 passed Agent Task Ownership 30102398900 and CI 30102410130.
-  - command: PR 879 synchronization-head exact gates
+    evidence: PR 101 passed Required 30112638532 and merged as e1eed52119ba21a29cb29cbac0793ed2a2b9d0c6 after clean audit.
+  - command: Canary governance exact-head gates and audit
     result: NOT_RUN
-    evidence: This validation-only synchronization commit must pass exact-head ownership and CI before merge.
-blockers: []
-next_action: Require exact-head Agent Task Ownership and final-gate CI on this validation-only synchronization commit, audit comments, reviews, threads and Canary-main drift, then squash-merge PR 879 with the expected head.
+    evidence: The governance PR must pass exact-head Agent Task Ownership and final-gate CI before merge.
+blockers:
+  - Canary governance PR merge
+  - Canary lifecycle archive merge
+  - durable OAM-044 program reconciliation
+next_action: Open the bounded Canary governance PR, synchronize exact PR/head metadata, require exact-head final gates, audit discussions and Canary-main drift, then squash-merge with the expected head.
 ```
