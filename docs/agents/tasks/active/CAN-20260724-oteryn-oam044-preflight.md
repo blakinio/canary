@@ -11,7 +11,7 @@ updated: 2026-07-24
 last_verified_commit: "e1eed52119ba21a29cb29cbac0793ed2a2b9d0c6"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "888"
 depends_on:
   - OAM-043 durably completed as 9d99a0665050d244a0ee0beb0362080de0f3d19a
   - canonical protocol completed by OAM-006
@@ -49,10 +49,10 @@ The separately ordered Otheryn proof retained the exact target/current-upstream 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T19:24:00+02:00
-head: 6cfc7f349b491503b15a973164334b4353409bbe
+updated_at: 2026-07-24T19:25:00+02:00
+head: 1bd7ef9724f498b3399809f1381bc69786f3eb57
 branch: dudantas/oam-044-protocol-compatibility-governance
-pr: none
+pr: 888
 status: validating
 context_routes:
   - agent-governance
@@ -75,6 +75,7 @@ proven:
   - Otheryn PR 100 had no comments, reviews or review threads, no target-main drift and squash-merged as 5c8f48e2a7cb7f841cfb6614e8e804245f17c0ca.
   - Otheryn lifecycle PR 101 changed one logical active/archive path, passed Required 30112638532, had a clean audit and merged as e1eed52119ba21a29cb29cbac0793ed2a2b9d0c6.
   - Canary governance task-start main is ad8b978236e6dfa8c40b06170f19f281b84b395d; intervening OTS/native-auth/content-reference merges do not overlap the OAM-044 governance paths.
+  - Canary PR 888 changes exactly the governance report and active checkpoint and carries ci:final-gate before this synchronization commit.
   - docs/agents/OTERYN_OAM_044_PROTOCOL_COMPATIBILITY_REVALIDATION.md records the exact evidence and nonclaim boundaries.
 derived:
   - protocol-compatibility supports bounded REUSE because no package-owned target defect was isolated and the current profile retains exact source/runtime continuity.
@@ -116,10 +117,10 @@ validation:
     evidence: PR 101 passed Required 30112638532 and merged as e1eed52119ba21a29cb29cbac0793ed2a2b9d0c6 after clean audit.
   - command: Canary governance exact-head gates and audit
     result: NOT_RUN
-    evidence: The governance PR must pass exact-head Agent Task Ownership and final-gate CI before merge.
+    evidence: Final PR 888 head must pass Agent Task Ownership and final-gate CI before merge.
 blockers:
-  - Canary governance PR merge
+  - Canary governance PR 888 merge
   - Canary lifecycle archive merge
   - durable OAM-044 program reconciliation
-next_action: Open the bounded Canary governance PR, synchronize exact PR/head metadata, require exact-head final gates, audit discussions and Canary-main drift, then squash-merge with the expected head.
+next_action: Require exact-head Agent Task Ownership and final-gate CI on PR 888, audit comments, reviews, threads and Canary-main drift, then squash-merge with the expected head.
 ```
