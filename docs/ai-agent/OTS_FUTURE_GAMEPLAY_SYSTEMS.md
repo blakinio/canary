@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Durable design record for future OTS gameplay, client, economy, security, PvP, bossing and quality-of-life work discussed with the user on 2026-07-21.
+Durable design record for future OTS gameplay, client, economy, security, PvP, bossing and quality-of-life work discussed with the user since 2026-07-21.
 
 This document is intentionally broader than one implementation task. It preserves product direction so future agents do not have to reconstruct it from chat history.
 
@@ -1259,3 +1259,261 @@ Detailed design:
 - Exact reward, task-count and Talisman formulas.
 - Economy simulation and telemetry thresholds.
 - Modifier stacking with Prey, loot bonuses and dynamic respawn.
+
+---
+
+# 29. World Map, Live Social Map and Shared Discoveries
+
+`USER-DIRECTION`
+
+Extend the existing minimap-character-marker and Better Map UX directions into a broader world-map system with:
+
+- searchable/filterable POIs such as NPCs, depots, transport and hunting locations;
+- optional navigation/route guidance where the world graph is known;
+- live party markers;
+- optional guild and accepted friend/VIP markers;
+- explicit consent/privacy rules for position sharing;
+- shared player-reported markers for time-sensitive discoveries such as Echo Raid, Fiendish, rare bosses, events and rally points.
+
+A player must not gain tracking privileges merely by unilaterally adding somebody to VIP. The preferred social model is request/accept/reject/block plus fine-grained permissions for online status, live position and shared discoveries.
+
+This section extends, rather than replaces, section 4 (`Character markers on minimap`) and the existing `Better Map UX` classification.
+
+Detailed design:
+
+`docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md`
+
+`OPEN`
+
+- Server-authoritative privacy and PvP information-leak rules.
+- Marker update frequency, expiry and anti-spam handling.
+- Discovery/spoiler policy and exact Echo/Fiendish disclosure semantics.
+- OTClient map/protocol integration.
+
+---
+
+# 30. Party System 2.0, Combat Visibility and Shared Hunt Accounting
+
+`USER-DIRECTION`
+
+Rebuild the active party experience in addition to the already planned Party Finder 2.0.
+
+Core directions:
+
+- clearer party panel and member states;
+- improved high-intensity-hunt visibility through optional member outlines, leader/role markers, low-HP/status emphasis, priority members and off-screen indicators;
+- review party bonuses/shared-EXP rules separately from finder UX;
+- integrate live party positions and shared discoveries with the social map;
+- add a party hunt ledger that records loot, individual supplies, waste, profit and final settlement shares.
+
+The accounting layer should remove the current manual workflow of one player collecting/selling loot and later manually calculating everybody's supplies and transfers. Automatic money movement remains `OPEN`; exact settlement calculation can exist independently of automatic transfer.
+
+Detailed design:
+
+`docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md`
+
+`OPEN`
+
+- Shared-EXP/party-bonus formulas and contribution rules.
+- Authoritative loot valuation.
+- Handling unsold rare items and alternate currencies.
+- Automatic settlement safety and audit.
+- OTClient protocol/state requirements for combat visibility.
+
+---
+
+# 31. Itemization & Build System 2.0 and Training Arena
+
+`USER-DIRECTION`
+
+Create a coherent build layer connecting equipment, existing item classification/Forge foundations, Imbuements, Skill Wheel, classic skills, Weapon Proficiency and Equipment/Build Presets rather than adding a duplicate generic mastery system.
+
+A core requirement is a Build Impact & Comparison surface that answers practical questions such as:
+
+- how much more damage does this weapon provide?;
+- how much more healing does this perk/item provide?;
+- what is the real defensive or sustain change?;
+- how does Build A compare with Build B?
+
+The comparison should use authoritative formulas/contracts where practical and clearly separate estimates from guaranteed values.
+
+Add a Training Arena / Combat Simulation where players can test builds against controlled training monsters. Training targets must provide no normal farmable progression/value: no EXP, loot, Bestiary/Bosstiary, Bounty/Task progress, Weapon Proficiency or classic skill gain.
+
+Detailed design:
+
+`docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md`
+
+`OPEN`
+
+- Formula ownership and client/server calculation boundary.
+- Standardized target profiles and practical A/B metrics.
+- Whether training supplies are virtual, consumed or refunded.
+- Instance/runtime architecture and exploit prevention.
+
+---
+
+# 32. Inventory, Depot, Stash and Smart Item Protection 2.0
+
+`USER-DIRECTION`
+
+Reduce the friction of large backpack/container trees and fragmented storage while preserving physical backpack gameplay where it remains meaningful.
+
+Core directions:
+
+- global item search across appropriate owned storage scopes;
+- smart containers/categories;
+- automatic sorting and post-hunt deposit;
+- stackability review for commodities/materials that unnecessarily occupy entire backpacks;
+- quantity-aware reservation/protection for Bounty, Weekly Delivery, quest, build and manually locked items;
+- show `owned`, `reserved` and `safe to sell` quantities;
+- prevent protected quantities from accidental NPC sale, Market listing, player trade, drop or auto-sell.
+
+This should integrate with the existing Loot System Rework and Bounty/Weekly economy design rather than creating separate item-filter logic per feature.
+
+Detailed design:
+
+`docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md`
+
+`OPEN`
+
+- Account versus character storage scopes.
+- Quest/task reservation authority.
+- Stateful item and stack migration semantics.
+- Large-storage UI/query performance.
+
+---
+
+# 33. Market and Trade 2.0 — sale-only commission and multi-currency settlement
+
+`USER-DIRECTION`
+
+Extend the existing Financial & Trading System 2.0 direction with:
+
+- no fee merely for listing a Market offer;
+- commission charged only when a sale successfully completes;
+- explicit sale price, commission and net proceeds;
+- anti-spam controls such as bounded offer limits/expiry instead of charging for every unsold listing;
+- Market and direct Trade support for alternate currencies such as Tibia Coins where the account/economy architecture supports them;
+- explicit currency selection and filtering/history;
+- no implicit gold/TC conversion unless a separate exchange system is deliberately designed;
+- support for very rare/high-value items whose real trading preference may be a non-gold currency.
+
+Detailed design:
+
+`docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md`
+
+`OPEN`
+
+- Current Market fee parity and exact replacement economics.
+- TC/account balance authority, protocol and legal/accounting constraints.
+- Commission currency and mixed-currency complexity.
+- RMT/abuse analysis and high-value audit/rollback.
+
+---
+
+# 34. Imbuement System 2.0 — slot library, active channels and elemental attunement
+
+`USER-DIRECTION`
+
+Reconsider the current item-bound Imbuement lifecycle because specialized timers and resistance configurations create increasing friction as the number of hunting spots, damage elements and build combinations grows.
+
+Preferred redesign direction:
+
+- store unlocked/charged Imbuement options at equipment-slot/profile level rather than permanently binding every configuration to one physical copy of an item;
+- keep the equipped item authoritative for how many active channels and which Imbuement categories are legal;
+- allow compatible active non-elemental channels such as Crit + Life Leech + Mana Leech when the equipped item supports them;
+- treat elemental protection as a separate bounded Attunement layer so mixed-element hunting does not force resistance to compete directly with all core sustain/offense channels;
+- allow multiple elemental protections to be charged/stored and, at sufficient future slot/attunement progression, automatically apply the appropriate charged protection to the matching incoming element;
+- use existing item classification/Forge foundations as inputs to flexibility/potential rather than inventing a parallel Common/Rare/Epic/Legendary classification;
+- evaluate an effective-use lifecycle so specialized defensive duration does not waste time on unrelated content and does not drain faster merely because stronger monsters deal larger damage numbers;
+- integrate the selected active channels/attunement with Build Presets and combat/PZ restrictions.
+
+Economy direction:
+
+- long-term slot/attunement progression may create a progression gold/resource sink;
+- recurring recharge/renewal remains a maintenance sink;
+- higher progression grants flexibility/automation, not permanently free Imbuements.
+
+Detailed design:
+
+`docs/ai-agent/OTS_SOCIAL_ITEMIZATION_AND_QOL_SYSTEMS.md`
+
+`OPEN`
+
+- Exact current Tibia/Canary/OTClient Imbuement parity and migration constraints.
+- Active channel counts and item-category compatibility.
+- Elemental Attunement power, simultaneous behavior and anti-overpower limits.
+- Exact slot-level progression; example `1-10` levels are placeholders only.
+- Effective-use trigger semantics for resistance, Crit, Leech, skills and utility.
+- Gold/material costs and economy simulation.
+
+---
+
+# 35. Dependency map addendum — social, itemization and QoL
+
+`DERIVED`
+
+## Expanded discovery/social cluster
+
+World Map & Discovery 2.0
++ Live Social Map
++ Friends/VIP Consent & Privacy
++ Shared Discovery Markers
++ Character markers on minimap
++ Party System 2.0
++ Party Finder 2.0
++ Huntfinder
++ Hunting Spot Availability
+
+## Party hunt cluster
+
+Party System 2.0
++ Party Combat Visibility
++ Shared Hunt Accounting
++ Loot System Rework
++ Bank/Transaction History
++ Live Social Map
+
+## Item/build cluster
+
+Itemization & Build System 2.0
++ Equipment/Build Presets
++ Build Impact & Comparison
++ Imbuement System 2.0
++ Skill Wheel
++ classic skills
++ Weapon Proficiency
++ Training Arena
++ Huntfinder/Boss preparation
+
+## Storage/task cluster
+
+Inventory/Depot/Stash 2.0
++ Global Item Search
++ Smart Containers/Sorting
++ Item Reservation & Protection
++ Bounty and Weekly Tasks Rework
++ Loot System Rework
+
+## Expanded market/economy cluster
+
+Bank UI
++ Trade System 2.0
++ Market 2.0
++ Transaction History
++ Multi-Currency Transactions
++ sale-only commission
++ Economy Sink Framework
++ Imbuement progression/maintenance sinks
+
+## Imbuement/build cluster
+
+Slot-Based Imbuement Library
++ Active Channels
++ Elemental Attunement
++ Slot/Attunement Progression
++ existing Item Classification/Forge foundations
++ Build Presets
++ Effective-Use Lifecycle
++ Progression Sink
++ Maintenance Sink
