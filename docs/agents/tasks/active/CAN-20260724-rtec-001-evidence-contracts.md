@@ -2,7 +2,7 @@
 task_id: CAN-20260724-rtec-001-evidence-contracts
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-001
-status: active
+status: review
 agent: "GPT-5.6 Thinking"
 branch: feat/rtec-001-evidence-contracts-20260724
 base_branch: main
