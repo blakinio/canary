@@ -31,6 +31,23 @@ local function sanitize(value)
     return tostring(value):gsub("[\t\r\n]", " ")
 end
 
+local function sanitizeDiagnostic(value)
+    local text = sanitize(value or "")
+    local words = {}
+    for word in text:gmatch("%S+") do
+        if #word > 48 and word:match("^[%w%._~%+/%-]+=*$") then
+            table.insert(words, "[redacted-long-token]")
+        else
+            table.insert(words, word)
+        end
+    end
+    text = table.concat(words, " ")
+    if #text > 240 then
+        text = text:sub(1, 240) .. "[truncated]"
+    end
+    return text
+end
+
 local function appendEvent(key, value)
     local file = assert(io.open(EVENTS_PATH, "a"))
     file:write(string.format("%d\t%s\t%s\n", os.time(), sanitize(key), sanitize(value)))
@@ -268,14 +285,15 @@ connect(g_game, {
         end
         fail("unexpected game-end transition")
     end,
-    onLoginError = function(_message)
+    onLoginError = function(message)
         if phase == 2 and replayAttempted and not replayEntered then
             succeedReplayRejection("login_error")
             return
         end
+        appendEvent("login_error_message", sanitizeDiagnostic(message))
         fail("login error before successful native-auth world entry")
     end,
-    onSessionEnd = function(_reason)
+    onSessionEnd = function(reason)
         if phase == 1 and firstSessionStarted and logoutRequested then
             completeFirstLogout("session_end")
             return
@@ -284,13 +302,16 @@ connect(g_game, {
             succeedReplayRejection("session_end")
             return
         end
+        appendEvent("session_end_reason", sanitizeDiagnostic(reason))
         fail("session ended before successful native-auth world entry")
     end,
-    onConnectionError = function(_message, _code)
+    onConnectionError = function(message, code)
         if phase == 2 and replayAttempted and not replayEntered then
             succeedReplayRejection("connection_error")
             return
         end
+        appendEvent("connection_error_code", tostring(code or ""))
+        appendEvent("connection_error_message", sanitizeDiagnostic(message))
         fail("connection error before successful native-auth world entry")
     end,
 })
