@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: feat/tcr-006-content-reference-correlation
 base_branch: main
 created: 2026-07-24T17:00:00+02:00
-updated: 2026-07-24T17:00:00+02:00
-last_verified_commit: "ced1c2f449d7c20f30cc236f8d6641f311c0a9e8"
+updated: 2026-07-24T17:05:00+02:00
+last_verified_commit: "7872bcede1712a2ed9e4874326741477000634f4"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: 880
 depends_on:
   - TCR-001 merged stable canary-tibia-client-reference-manifest-v1
   - TCR-002/TCR-002A merged stable canary-tibia-staticdata-index-v1 schemaVersion 2
@@ -83,10 +83,10 @@ Implement the bounded, deterministic, read-only TCR-006 content reference correl
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T17:00:00+02:00
-head: ced1c2f449d7c20f30cc236f8d6641f311c0a9e8
+updated_at: 2026-07-24T17:05:00+02:00
+head: 7872bcede1712a2ed9e4874326741477000634f4
 branch: feat/tcr-006-content-reference-correlation
-pr: null
+pr: 880
 status: implementing
 context_routes:
   - agent-governance
@@ -105,6 +105,7 @@ owned_paths:
 proven:
   - TCR-005 lifecycle PR 874 merged as ced1c2f449d7c20f30cc236f8d6641f311c0a9e8 and advances the programme to TCR-006.
   - No open TCR-006 PR or branch and no existing canary-tibia-content-reference-correlation-v1 contract were found in the fresh preflight.
+  - Draft PR 880 is the sole current TCR-006 owner.
   - StaticData schemaVersion 2 preserves legacy creatures/titles and newer monsters/monsterClasses/achievements as different source categories.
   - The exact outside-Git StaticData input is legacy with 812 creatures, 356 titles, 438 bosses, 99 quests and zero duplicate/missing-field findings.
   - Achievement Validation owns stable Canary achievement IDs/names and static handler/persistence evidence through canary-achievement-audit-v2.
@@ -134,7 +135,7 @@ changed_paths:
 validation:
   - command: fresh open-PR and branch ownership search
     result: PASS
-    evidence: no TCR-006 owner or equivalent contract found
+    evidence: no prior TCR-006 owner or equivalent contract found; draft PR 880 now owns the package
 blockers: []
-next_action: Open an early draft PR, then generate compact exact owner inventories for Achievement, Bestiary/Bosstiary, Spawn/Boss definitions and quest evidence boundaries before selecting reviewed resolver methods.
+next_action: Generate compact exact owner inventories for Achievement, Bestiary/Bosstiary, Spawn/Boss definitions and quest evidence boundaries before selecting reviewed resolver methods.
 ```
