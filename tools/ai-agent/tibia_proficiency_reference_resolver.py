@@ -250,7 +250,7 @@ def validate_resolver(
             raise ProficiencyReferenceCorrelationError("resolver proficiency IDs must match the reviewed source mapping")
         if item.get("method") != "reviewed-exact-definition-and-loader-binding":
             raise ProficiencyReferenceCorrelationError("resolver mapping method is unsupported")
-        if not is_shaa256(item.get("semanticSha256")):
+        if not is_sha256(item.get("semanticSha256")):
             raise ProficiencyReferenceCorrelationError("resolver semanticSha256 must be SHA-256")
         items = item.get("items")
         if not isinstance(items, list):
