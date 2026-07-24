@@ -13,12 +13,17 @@ on:
       - "tools/ai-agent/tibia_staticmapdata_reference_index.py"
       - "tools/ai-agent/tibia_staticmapdata_reference_index_tool.py"
       - "tools/ai-agent/test_tibia_staticmapdata_reference_index.py"
+      - "tools/ai-agent/tibia_proficiency_reference_index.py"
+      - "tools/ai-agent/tibia_proficiency_reference_index_tool.py"
+      - "tools/ai-agent/test_tibia_proficiency_reference_index.py"
       - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.md"
       - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.schema.json"
       - "docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.md"
       - "docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.schema.json"
       - "docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.md"
       - "docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.schema.json"
+      - "docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.md"
+      - "docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.schema.json"
       - ".github/workflows/tibia-client-reference.yml"
   workflow_dispatch:
 
@@ -48,6 +53,9 @@ jobs:
       - name: Run StaticMapData focused tests
         run: python -m unittest discover -s tools/ai-agent -p "test_tibia_staticmapdata_reference_index.py" -v
 
+      - name: Run proficiency focused tests
+        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_proficiency_reference_index.py" -v
+
       - name: Compile client reference tooling
         run: |
           python -m py_compile \
@@ -59,16 +67,21 @@ jobs:
             tools/ai-agent/test_tibia_staticdata_reference_index.py \
             tools/ai-agent/tibia_staticmapdata_reference_index.py \
             tools/ai-agent/tibia_staticmapdata_reference_index_tool.py \
-            tools/ai-agent/test_tibia_staticmapdata_reference_index.py
+            tools/ai-agent/test_tibia_staticmapdata_reference_index.py \
+            tools/ai-agent/tibia_proficiency_reference_index.py \
+            tools/ai-agent/tibia_proficiency_reference_index_tool.py \
+            tools/ai-agent/test_tibia_proficiency_reference_index.py
 
       - name: Validate JSON schema syntax
         run: |
           python -m json.tool docs/ai-agent/TIBIA_CLIENT_REFERENCE_MANIFEST.schema.json > /dev/null
           python -m json.tool docs/ai-agent/TIBIA_STATICDATA_REFERENCE_INDEX.schema.json > /dev/null
           python -m json.tool docs/ai-agent/TIBIA_STATICMAPDATA_REFERENCE_INDEX.schema.json > /dev/null
+          python -m json.tool docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.schema.json > /dev/null
 
       - name: Validate CLI construction
         run: |
           python tools/ai-agent/tibia_client_reference_manifest_tool.py --help > /dev/null
           python tools/ai-agent/tibia_staticdata_reference_index_tool.py --help > /dev/null
           python tools/ai-agent/tibia_staticmapdata_reference_index_tool.py --help > /dev/null
+          python tools/ai-agent/tibia_proficiency_reference_index_tool.py --help > /dev/null
