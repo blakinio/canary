@@ -5,12 +5,17 @@ on:
   push:
     branches:
       - dudantas/reconcile-oam-042-program
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
   reconcile:
+    if: github.head_ref == 'dudantas/reconcile-oam-042-program' || github.ref_name == 'dudantas/reconcile-oam-042-program'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout branch
