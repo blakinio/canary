@@ -28,21 +28,11 @@ jobs:
       - name: Verify exact staged payload
         shell: bash
         run: |
-          expected='17723d983b2d4a9cf2497101f112c5c279f671f7d3e87d7d9426a50c1c320af8'
+          expected='23c33d4bb1a79b3c70ac698e3a77c4e054b3ca061ce4a86610e0149cf8603547'
           actual="$(sha256sum .tcr007-stage/payload.tar.xz | awk '{print $1}')"
-          if [ "$actual" != "$expected" ]; then
-            printf '%s\n' "$actual" > .tcr007-stage/payload.sha256.actual
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add .tcr007-stage/payload.sha256.actual
-            if ! git diff --cached --quiet; then
-              git commit -m 'ci(tcr): record exact staged payload digest'
-              git push origin HEAD:feat/tcr-007-proficiency-reference-correlation
-            fi
-            echo "staged payload digest mismatch" >&2
-            exit 1
-          fi
+          test "$actual" = "$expected"
           tar -tJf .tcr007-stage/payload.tar.xz | sort | tee /tmp/tcr007-payload-files.txt
+          test "$(wc -l < /tmp/tcr007-payload-files.txt)" -eq 11
           for path in \
             tools/ai-agent/tibia_proficiency_reference_common.py \
             tools/ai-agent/tibia_proficiency_reference_inventory.py \
