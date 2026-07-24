@@ -193,17 +193,8 @@ jobs:
       run_canary_smoke: ${{ needs.changes.outputs.run_canary_smoke == 'true' }}
     secrets: inherit
 
-  build-macos:
-    name: Build - macOS
-    needs: [changes, checks, tests-lua]
-    if: needs.changes.outputs.full_matrix == 'true' && needs.checks.result == 'success' && needs.tests-lua.result == 'success' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false)
-    permissions:
-      contents: read
-      packages: write
-    uses: ./.github/workflows/reusable-build-macos.yml
-    with:
-      run_canary_smoke: ${{ needs.changes.outputs.run_canary_smoke == 'true' }}
-    secrets: inherit
+  # macOS compilation is intentionally suspended. The reusable workflow is
+  # retained for an explicit future re-enable task, but normal CI does not call it.
 
   build-docker:
     name: Build - Docker
@@ -232,7 +223,6 @@ jobs:
       - tests-lua
       - build-linux
       - build-windows
-      - build-macos
       - build-docker
       - docker-quickstart-smoke
     runs-on: ubuntu-latest
@@ -275,7 +265,6 @@ jobs:
           required_builds = {
               "build-linux": scopes.get("linux") == "true",
               "build-windows": scopes.get("full_matrix") == "true",
-              "build-macos": scopes.get("full_matrix") == "true",
               "build-docker": scopes.get("docker") == "true",
               "docker-quickstart-smoke": (
                   scopes.get("docker") == "true"
