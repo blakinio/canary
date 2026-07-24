@@ -2,13 +2,13 @@
 task_id: CAN-20260724-oteryn-oam043-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-043
-status: active
+status: validating
 agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-043-post-preflight-handoff
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "610c78407200d1d6580f35969045ff43a58a75b4"
+last_verified_commit: "583f515d0af7bad64431bf39778c31c183319bf0"
 risk: high
 related_issue: ""
 related_pr: "872"
@@ -87,8 +87,8 @@ This preflight performs no target, runtime, datapack, map, binary, protocol, cli
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T12:27:55+02:00
-head: 610c78407200d1d6580f35969045ff43a58a75b4
+updated_at: 2026-07-24T12:31:00+02:00
+head: 583f515d0af7bad64431bf39778c31c183319bf0
 branch: dudantas/oam-043-post-preflight-handoff
 pr: 872
 status: validating
@@ -126,8 +126,8 @@ unknown:
   - Whether a canonical storage-transition graph implementation already exists outside the reviewed quest validator; no such module was proven during preflight.
 conflicts: []
 first_failure:
-  marker: checkpoint compactness limit
-  evidence: PR 872 Agent Task Ownership run 30085889736 failed because proven had 18 items; this final checkpoint compacts the list to 15 without removing current uncertainty or safety evidence.
+  marker: active task frontmatter status
+  evidence: PR 872 Agent Task Ownership run 30086304968 rejected frontmatter status active; this final checkpoint aligns it to validating.
 rejected_hypotheses:
   - Finalize quests as REUSE from target/upstream path presence or blob identity alone.
   - Build a second OTBM parser, map scanner, registration resolver or quest-map validator.
@@ -150,7 +150,7 @@ validation:
     evidence: quest map validation reuses canonical script resolution and world index, requires explicit source selection and preserves unresolved evidence fail-closed.
   - command: PR 872 final-head ownership and CI
     result: FAIL
-    evidence: CI passed on 610c78407200d1d6580f35969045ff43a58a75b4; Agent Task Ownership first failed only on checkpoint compactness and must rerun on this compacted final head.
+    evidence: CI passed on 583f515d0af7bad64431bf39778c31c183319bf0; Agent Task Ownership first failed only on frontmatter status and must rerun on this corrected final head.
 blockers: []
 next_action: Require exact-head Agent Task Ownership and CI on PR 872, audit comments, reviews, threads and Canary-main drift, then squash-merge with the expected head.
 ```
