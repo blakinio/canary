@@ -93,6 +93,14 @@ jobs:
             > "$RUNNER_TEMP/tcr006-tests.log" 2>&1
           status=$?
           tail -n 120 "$RUNNER_TEMP/tcr006-tests.log"
+          if [ "$status" -ne 0 ]; then
+            tail -n 80 "$RUNNER_TEMP/tcr006-tests.log" > .tcr006-stage/test-failure.txt
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .tcr006-stage/test-failure.txt
+            git commit -m "ci(tcr): capture focused test failure"
+            git push origin "HEAD:${GITHUB_HEAD_REF}"
+          fi
           exit "$status"
 
       - name: Compile implementation
