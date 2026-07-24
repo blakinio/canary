@@ -8,10 +8,10 @@ branch: dudantas/oam-043-quests-revalidation
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "5641a7ac2420f5a3d512325423088890e92ac3cb"
+last_verified_commit: "95c743c657eb8a20eb8dbb82d32d773952377408"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "873"
 depends_on:
   - Canary OAM-043 preflight merged as df7abb0cfe4b05ed11da7b3a6a0dcddbefb62375
   - Otheryn OAM-043 feature merged as 6512d78004ae2540784b3e67592a92a903554cf6
@@ -58,10 +58,10 @@ Reconcile the completed Otheryn OAM-043 target adaptation into Canary governance
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T14:28:00+02:00
-head: 5641a7ac2420f5a3d512325423088890e92ac3cb
+updated_at: 2026-07-24T14:31:00+02:00
+head: 95c743c657eb8a20eb8dbb82d32d773952377408
 branch: dudantas/oam-043-quests-revalidation
-pr: none
+pr: 873
 status: validating
 context_routes:
   - agent-governance
@@ -114,7 +114,7 @@ validation:
     evidence: Feature PR 98 merged as 6512d78004ae2540784b3e67592a92a903554cf6 and lifecycle PR 99 merged as 3f3c15917610e45430aa3902d110806dd25e10a8 after exact-head gates and clean discussion/drift audits.
   - command: Canary governance exact-head ownership and CI
     result: NOT_RUN
-    evidence: A governance PR must be opened and synchronized to its exact final head.
+    evidence: PR 873 is opened; exact-head gates must complete after this metadata synchronization.
 blockers: []
-next_action: Open the bounded Canary governance PR, synchronize related PR/head metadata, require exact-head Agent Task Ownership and final-gate CI, audit discussions and Canary-main drift, then squash-merge with the expected head.
+next_action: Require exact-head Agent Task Ownership and final-gate CI on PR 873, audit discussions and Canary-main drift, then squash-merge with the expected head.
 ```
