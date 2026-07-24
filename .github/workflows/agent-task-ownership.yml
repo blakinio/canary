@@ -122,3 +122,49 @@ jobs:
             artifacts/agent-coordination/OWNERSHIP_INDEX.md
           if-no-files-found: warn
           retention-days: 14
+
+  qri006_checkpoint_alignment:
+    name: Align QRI-006 follow-up checkpoint
+    if: github.event_name == 'pull_request' && github.head_ref == 'fix/e2e-qri-006-client-event-paths'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Align checkpoint and restore workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f .github/qri006-checkpoint-alignment.trigger
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("docs/agents/tasks/active/CAN-20260724-e2e-qri-006-cleanup-certification.md")
+          text = path.read_text(encoding="utf-8")
+          if "branch: feat/e2e-qri-006-cleanup-certification" not in text:
+              raise SystemExit("checkpoint branch value missing")
+          if "status: ready" not in text:
+              raise SystemExit("checkpoint status value missing")
+          text = text.replace(
+              "branch: feat/e2e-qri-006-cleanup-certification",
+              "branch: fix/e2e-qri-006-client-event-paths",
+              1,
+          )
+          text = text.replace("status: ready", "status: implementing", 1)
+          path.write_text(text, encoding="utf-8")
+          PY
+          git fetch origin main
+          git checkout origin/main -- .github/workflows/agent-task-ownership.yml
+          rm -f .github/qri006-checkpoint-alignment.trigger
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/agents/tasks/active/CAN-20260724-e2e-qri-006-cleanup-certification.md .github/workflows/agent-task-ownership.yml .github/qri006-checkpoint-alignment.trigger
+          git commit -m "docs(e2e): align QRI-006 follow-up checkpoint"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
