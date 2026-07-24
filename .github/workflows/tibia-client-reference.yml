@@ -8,7 +8,7 @@ on:
       - .github/workflows/tcr007-materialize.yml
       - .tcr007-stage/payload.tar.xz
       - .tcr007-stage/payload.sha256.actual
-      - .tcr007-stage/payload-members.json
+      - .tcr007-stage/payload-diagnostic.log
       - docs/agents/tasks/active/CAN-20260724-tcr-007-proficiency-reference-correlation.md
 
 permissions:
@@ -26,17 +26,23 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Verify exact staged payload
+      - name: Capture exact staged archive diagnostics
         shell: bash
         run: |
-          expected='23c33d4bb1a79b3c70ac698e3a77c4e054b3ca061ce4a86610e0149cf8603547'
-          actual="$(sha256sum .tcr007-stage/payload.tar.xz | awk '{print $1}')"
-          test "$actual" = "$expected"
-          python - <<'PY'
+          set +e
+          {
+            echo 'sha256:'
+            sha256sum .tcr007-stage/payload.tar.xz
+            echo 'file:'
+            file .tcr007-stage/payload.tar.xz
+            echo 'xz-test:'
+            xz -tv .tcr007-stage/payload.tar.xz
+            echo 'tar-list:'
+            tar -tvJf .tcr007-stage/payload.tar.xz
+            echo 'python-tarfile:'
+            python - <<'PY'
           import json
           import tarfile
-          from pathlib import Path
-
           rows = []
           with tarfile.open('.tcr007-stage/payload.tar.xz', mode='r:xz') as archive:
               for member in archive.getmembers():
@@ -46,13 +52,14 @@ jobs:
                       'size': member.size,
                       'linkname': member.linkname,
                   })
-          Path('.tcr007-stage/payload-members.json').write_text(json.dumps(rows, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          print(json.dumps(rows, indent=2, sort_keys=True))
           PY
+          } > .tcr007-stage/payload-diagnostic.log 2>&1
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .tcr007-stage/payload-members.json
+          git add .tcr007-stage/payload-diagnostic.log
           if ! git diff --cached --quiet; then
-            git commit -m 'ci(tcr): record exact staged tar members'
+            git commit -m 'ci(tcr): record staged archive diagnostics'
             git push origin HEAD:feat/tcr-007-proficiency-reference-correlation
           fi
           exit 1
