@@ -75,7 +75,7 @@ updated_at: 2026-07-24T07:00:00Z
 head: cc074e7001324c2ad55e4d549f2cb7c43118cfa7
 branch: feat/e2e-qri-005-result-envelope
 pr: 850
-status: final-gate
+status: ready
 context_routes:
   - agent-governance
   - universal-e2e
