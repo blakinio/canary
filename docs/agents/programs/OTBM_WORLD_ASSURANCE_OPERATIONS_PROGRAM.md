@@ -4,8 +4,8 @@ name: OTBM World Assurance Operations
 status: active
 owner: OTBM analysis tooling / world assurance operations
 created: 2026-07-23T14:25:00+02:00
-updated: 2026-07-24T00:56:00+02:00
-last_verified_commit: "a21142eca8ba6c94e9b8577c6c4a5e898c45ff23"
+updated: 2026-07-24T01:22:00+02:00
+last_verified_commit: "332e47da1b1d8fb0d98fa4cf1e6698acb26f8e05"
 primary_paths:
   - docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md
   - docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md
@@ -88,9 +88,9 @@ Included:
 
 # Active tasks
 
-`CAN-20260724-owa-006-continuous-assurance-operational-adoption` is the only active OWA task, via draft PR #848.
+No active OWA task remains after the OWA-006 blocked-task lifecycle is merged.
 
-Its target-selection preflight is fail-closed because no retained reviewed concrete real candidate/change artifact chain was found. The task owns only its record and operational-adoption documentation plus shared programme/roadmap coordination; canonical QA/E2E contracts remain read-only.
+OWA-006 target-selection/preflight PR #848 is merged. The functional package remains blocked by `OWA006_NO_RETAINED_REVIEWED_REAL_CANDIDATE_CHAIN`; lifecycle closure archives that task and releases ownership without changing the functional blocker into completion.
 
 # Queue
 
@@ -101,7 +101,7 @@ Its target-selection preflight is fail-closed because no retained reviewed concr
 | OWA-003 | TCR-to-QA Drift and Freshness Integration | blocked on stable TCR parity/drift outputs | stable owning TCR outputs + QA-008/016/002/007 | medium | Re-derive scope from stable merged TCR producer contracts only after required parity/drift outputs exist; OWA consumes them but never parses client reference inputs. |
 | OWA-004 | Runtime Incident to OTBM Evidence Bridge | completed via #838; lifecycle closed via #847 | QA-018 + existing route/failure-triage evidence | medium | Preserve the exact-selector, QA-018-delegating, no-diagnosis/no-E2E boundary delivered by #838. |
 | OWA-005 | QA Contract Hardening and Adversarial Fixtures | completed via #802; lifecycle closed via #816 | delivered QA contracts | medium | Preserve the merged deterministic adversarial/fail-closed contract coverage; do not duplicate canonical validators. |
-| OWA-006 | Continuous Assurance Operational Adoption | blocked — `OWA006_NO_RETAINED_REVIEWED_REAL_CANDIDATE_CHAIN` | one retained reviewed real candidate/change chain + QA-001/002/006/007/016 + Semantic Diff + OTBM-E2E-008/009 | high | An owning map-change/repair workflow must first retain or explicitly reference one concrete reviewed real candidate chain with exact before/current/candidate identity and required downstream evidence; then re-enter OWA-006. |
+| OWA-006 | Continuous Assurance Operational Adoption | blocked — `OWA006_NO_RETAINED_REVIEWED_REAL_CANDIDATE_CHAIN`; preflight merged via #848 | one retained reviewed real candidate/change chain + QA-001/002/006/007/016 + Semantic Diff + OTBM-E2E-008/009 | high | An owning map-change/repair workflow must first retain or explicitly reference one concrete reviewed real candidate chain with exact before/current/candidate identity and required downstream evidence; then re-enter OWA-006. |
 
 # Sequencing
 
@@ -109,7 +109,7 @@ Its target-selection preflight is fail-closed because no retained reviewed concr
 2. **OWA-002** — completed: factual evidence-linked visualization is delivered through the existing renderer.
 3. **OWA-005** — completed independently: adversarial/fail-closed QA contract hardening is merged and lifecycle-closed.
 4. **OWA-004** — completed via #838 and lifecycle-closed via #847: explicit runtime incident selectors resolve only to compact compatible existing OTBM evidence through QA-018 without taking runtime diagnosis or E2E ownership.
-5. **OWA-006** — target-selection preflight executed; operational adoption is blocked before the first required provenance step because no retained reviewed concrete real candidate/change chain exists in current repository/task/PR evidence.
+5. **OWA-006** — target-selection preflight merged via #848; operational adoption is blocked before the first required provenance step because no retained reviewed concrete real candidate/change chain exists in current repository/task/PR evidence. Task ownership is lifecycle-closed separately without claiming functional completion.
 6. **OWA-003** — begin only after stable owning TCR parity/drift outputs and explicit producer/consumer contracts exist.
 
 All currently executable non-TCR OWA work has been performed. OWA-006 is not functionally complete and may resume only when its missing real candidate producer evidence exists. OWA-003 remains dependency-gated by TCR.
@@ -313,9 +313,11 @@ Start from:
 
 `docs/ai-agent/OTBM_CONTINUOUS_ASSURANCE_OPERATIONAL_ADOPTION.md`
 
-and the active/archived task record for `CAN-20260724-owa-006-continuous-assurance-operational-adoption`.
+and the archived task:
 
-The first failure is `OWA006_NO_RETAINED_REVIEWED_REAL_CANDIDATE_CHAIN`. Do not repeat generic capability development. Re-enter only after an owning map-change/repair workflow retains or explicitly references one concrete reviewed real candidate/change chain with exact before/current/candidate identity, compatible Semantic Diff, QA-002 selection, exact selected validator and required Physical E2E results, and compatible before/after QA-001 and QA-006 evidence.
+`docs/agents/tasks/archive/CAN-20260724-owa-006-continuous-assurance-operational-adoption.md`.
+
+PR #848 merged the fail-closed target-selection/adoption record. The first failure remains `OWA006_NO_RETAINED_REVIEWED_REAL_CANDIDATE_CHAIN`. Do not repeat generic capability development. Re-enter only after an owning map-change/repair workflow retains or explicitly references one concrete reviewed real candidate/change chain with exact before/current/candidate identity, compatible Semantic Diff, QA-002 selection, exact selected validator and required Physical E2E results, and compatible before/after QA-001 and QA-006 evidence.
 
 Then let QA-007 validate the exact supplied result set. Do not create another assurance wrapper or E2E workflow, and do not let a green result bypass branch protection or deployment governance.
 
