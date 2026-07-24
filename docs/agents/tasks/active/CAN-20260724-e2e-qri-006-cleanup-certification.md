@@ -80,9 +80,9 @@ Deliver deterministic first-class cleanup certification after every canonical Un
 checkpoint_version: 1
 updated_at: 2026-07-24T13:05:00+02:00
 head: 4a6d7c418f3dead8616862476971a2a8ee23e606
-branch: feat/e2e-qri-006-cleanup-certification
+branch: fix/e2e-qri-006-client-event-paths
 pr: 875
-status: ready
+status: implementing
 context_routes:
   - agent-governance
   - universal-e2e
