@@ -5,16 +5,20 @@ on:
   push:
     branches:
       - docs/register-e2e-qri-005
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
 
 jobs:
   register:
+    if: github.head_ref == 'docs/register-e2e-qri-005' || github.ref_name == 'docs/register-e2e-qri-005'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
         with:
+          ref: docs/register-e2e-qri-005
           persist-credentials: true
       - name: Register delivered QRI-005 contract
         shell: bash
@@ -93,4 +97,4 @@ This ordering is guidance, not permission to start packages concurrently. Concre
           git add docs/agents/MODULE_CATALOG.md docs/agents/CHANGELOG.md docs/agents/programs/E2E_AUTOMATION_PROGRAM.md .github/workflows/qri005-doc-maintenance.yml
           git diff --cached --check
           git commit -m "docs(e2e): register delivered QRI-005 contract"
-          git push
+          git push origin HEAD:docs/register-e2e-qri-005
