@@ -2,13 +2,13 @@
 task_id: CAN-20260724-real-tibia-evidence-collector-architecture
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RT-EVIDENCE-COLLECTOR-ARCHITECTURE
-status: review
+status: completed
 agent: "GPT-5.6 Thinking"
 branch: docs/real-tibia-evidence-collector-architecture-20260724
 base_branch: main
 created: 2026-07-24T20:15:00+02:00
-updated: 2026-07-24T20:50:00+02:00
-last_verified_commit: "b8a00ea792d0316a8419eac380db4aab6dd21355"
+updated: 2026-07-24T18:04:38Z
+last_verified_commit: "2dc9dc72c6de687d12c9cefd3ba86bbcc49ae85f"
 risk: low
 related_issue: ""
 related_pr: "889"
@@ -46,6 +46,7 @@ public_interfaces:
   - proposed module dossier contract
   - coordinator, worker and reviewer prompts
 cross_repo_tasks: []
+completed: 2026-07-24T18:04:38Z
 ---
 
 # Goal
@@ -239,3 +240,11 @@ Do not create a second E2E runner, OTBM parser/index/pathfinder/certifier, TCR p
 ## Open questions
 
 - None for architecture content; only current-head validation remains.
+
+## Automated lifecycle completion
+
+- Feature PR: #889.
+- Feature head: `d4f47fb6cb6a4ae6e70ae7507691ecc7a32aec17`.
+- Merge commit: `2dc9dc72c6de687d12c9cefd3ba86bbcc49ae85f`.
+- Merged at: `2026-07-24T18:04:38Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
