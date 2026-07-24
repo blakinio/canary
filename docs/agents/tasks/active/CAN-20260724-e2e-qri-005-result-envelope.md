@@ -74,7 +74,7 @@ updated_at: 2026-07-24T05:35:00Z
 head: 29d0928cfa3bd820043672555ea2c928b8175470
 branch: feat/e2e-qri-005-result-envelope
 pr: 850
-status: integration-validation
+status: validating
 context_routes:
   - agent-governance
   - universal-e2e
@@ -117,8 +117,8 @@ validation:
     result: PASS
     evidence: PR 850 and main/open-PR audit
   - command: repository CI and Universal Agent E2E
-    result: RUNNING
-    evidence: workflow runs for implementation head
+    result: NOT_RUN
+    evidence: replacement head queued after checkpoint correction
 blockers:
   - Local sandbox cannot resolve github.com, so local full-repository build/runtime execution is unavailable; repository CI provides authoritative integration and physical validation.
 next_action: Inspect CI and physical E2E; fix the first causal failure without widening scope.
