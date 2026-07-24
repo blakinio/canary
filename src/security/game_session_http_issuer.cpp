@@ -456,9 +456,9 @@ private:
 					.body = json({
 									 { "protocol_version", 1 },
 									 { "session", {
-												  { "credential", result.credential },
-												  { "expires_at", formatUtc(result.expiresAt) },
-											  } },
+													  { "credential", result.credential },
+													  { "expires_at", formatUtc(result.expiresAt) },
+												  } },
 								 })
 								.dump(),
 				};
