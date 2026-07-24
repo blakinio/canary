@@ -8,10 +8,10 @@ branch: docs/oam-044-compact-handover
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "47611c10be8a2262d66421c9da65de6cc5c7264d"
+last_verified_commit: "e58c9347aebef1032bf3a1659d543b1cf6a00297"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "883"
 depends_on:
   - OAM-043 durably completed as 9d99a0665050d244a0ee0beb0362080de0f3d19a
   - canonical protocol completed by OAM-006
@@ -84,10 +84,10 @@ This preflight performs no target, server runtime, maintained-client, transport,
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T17:43:10+02:00
-head: 47611c10be8a2262d66421c9da65de6cc5c7264d
+updated_at: 2026-07-24T17:47:20+02:00
+head: e58c9347aebef1032bf3a1659d543b1cf6a00297
 branch: docs/oam-044-compact-handover
-pr: none
+pr: 883
 status: ready
 context_routes:
   - agent-governance
@@ -136,8 +136,8 @@ validation:
     result: PASS
     evidence: PR 879 merged as 47611c10be8a2262d66421c9da65de6cc5c7264d and changed one task record.
   - command: python tools/agents/checkpoint.py docs/agents/tasks/active/CAN-20260724-oteryn-oam044-preflight.md --require-checkpoint
-    result: NOT_RUN
-    evidence: Run after the compact checkpoint is materialized.
+    result: PASS
+    evidence: Compact checkpoint validated locally before the final handover commit.
 blockers: []
 next_action: Create a dedicated OAM-044 target-proof branch from main 47611c10be8a2262d66421c9da65de6cc5c7264d, update this task ownership and PR identity, then execute phase 1 exact source inventory without mutating transport, login, handoff or runtime surfaces.
 ```
