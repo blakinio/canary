@@ -8,10 +8,10 @@ branch: dudantas/oam-045-protocol-session-handoff-governance
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "93413bd53e9a40f0ff3c4f55986036b10be44e0f"
+last_verified_commit: "e1ef6dcb8704ebd72e5fdc4576a03e7df6329aea"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "899"
 depends_on:
   - OAM-044 durably completed as 92c550b41d0f7d1c8c71f4b85dfa81dfb6488f4f
   - Canary OAM-045 preflight merged as 2798dce948d8bf27f9b1325356d6db4676a8b6ba
@@ -50,10 +50,10 @@ The inherited hint-store structure is retained, but two package-owned invariants
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T23:08:00+02:00
-head: 298a082579859ff8630c6706e73917bbebd22043
+updated_at: 2026-07-24T23:10:00+02:00
+head: e1ef6dcb8704ebd72e5fdc4576a03e7df6329aea
 branch: dudantas/oam-045-protocol-session-handoff-governance
-pr: none
+pr: 899
 status: validating
 context_routes:
   - agent-governance
@@ -75,6 +75,7 @@ proven:
   - Otheryn PR 103 had no comments, reviews or review threads, no target-main drift and squash-merged as 597ba62c558ed4e35db38502903ae83e0b2921ec.
   - Otheryn lifecycle PR 104 changed one logical active/archive path, passed Required 30126189758, had a clean audit and merged as e8f683e61427e9967cbc180b837220d4b7487d85.
   - Canary governance task-start main is 93413bd53e9a40f0ff3c4f55986036b10be44e0f.
+  - Canary governance PR 899 was opened from head e1ef6dcb8704ebd72e5fdc4576a03e7df6329aea with ci:final-gate applied before this synchronization commit.
   - docs/agents/OTERYN_OAM_045_PROTOCOL_SESSION_HANDOFF_REVALIDATION.md records the exact evidence and nonclaim boundaries.
 derived:
   - protocol-session-handoff requires ADAPT rather than REUSE because two package-owned invariants were ineffective.
@@ -110,10 +111,10 @@ validation:
     evidence: PR 103 merged as 597ba62c558ed4e35db38502903ae83e0b2921ec and PR 104 merged as e8f683e61427e9967cbc180b837220d4b7487d85 after green gates and clean audits.
   - command: Canary governance exact-head gates and audit
     result: NOT_RUN
-    evidence: The governance PR must pass Agent Task Ownership and final-gate CI before merge.
+    evidence: The final governance head must pass Agent Task Ownership and final-gate CI before merge.
 blockers:
   - Canary governance exact-head validation and merge
   - Canary lifecycle archive merge
   - durable OAM-045 program reconciliation
-next_action: Open the bounded Canary governance PR, apply ci:final-gate before the final metadata synchronization commit, require exact-head Agent Task Ownership and CI, audit discussions and Canary-main drift, then squash-merge with the expected head.
+next_action: Mark PR 899 ready, require exact-head Agent Task Ownership and final-gate CI, audit discussions and Canary-main drift, then squash-merge with the expected head.
 ```
