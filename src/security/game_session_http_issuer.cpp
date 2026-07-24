@@ -213,7 +213,7 @@ namespace {
 		std::ostringstream stream;
 		stream << "HTTP/1.1 " << response.status << ' ' << response.reason << "\r\n"
 			   << "Content-Type: application/json\r\n"
-			   << "Cache-Control: no-store\r\n"
+			   << "Cache-Control: no-store, no-cache, must-revalidate, private\r\n"
 			   << "Pragma: no-cache\r\n"
 			   << "Expires: 0\r\n"
 			   << "Connection: close\r\n"
