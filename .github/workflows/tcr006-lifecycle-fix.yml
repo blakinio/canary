@@ -1,5 +1,5 @@
 name: TCR-006 Lifecycle Fix
-# second trigger from an existing workflow revision
+# trigger after draft PR creation
 
 on:
   push:
