@@ -1,0 +1,100 @@
+schema_version: 1
+
+request_id: RTREQ-<OWNER>-<MODULE>-NNNN
+module_id: <canonical-module-id>
+related_modules: []
+claim_refs: []
+
+requested_owner_program: <program-id>
+# Examples:
+# CAN-PROGRAM-E2E-PLATFORM
+# CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS
+# CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE
+# a feature/module programme
+
+request_type: physical-gameplay-proof
+# physical-gameplay-proof | runtime-behavior-proof | persistence-proof |
+# protocol-proof | static-map-evidence | client-reference-evidence |
+# implementation-audit | source-clarification
+
+status: draft
+# draft | ready-for-owner-triage | accepted-by-owner | planned | active |
+# blocked | result-available | consumed | rejected | superseded
+
+priority: medium
+blocking: false
+version_impact:
+  official_release_or_range: null
+  client_builds: []
+  canary_commit: null
+  compatibility_profiles: []
+
+question: >-
+  State one exact question the owning programme can answer with a bounded result.
+
+why_existing_evidence_is_insufficient: []
+
+required_evidence:
+  authority_dimension: visible-gameplay-behavior
+  minimum_proof_level: gameplay-proven
+  minimum_e2e_maturity: null
+  required_quality_dimensions: []
+  required_static_dimensions: []
+  required_version_cells: []
+
+available_inputs:
+  source_claims: []
+  source_urls: []
+  canary_paths: []
+  canary_symbols: []
+  exact_map_or_index_hashes: []
+  existing_result_ids: []
+  external_artifact_hashes: []
+
+requested_output_contract:
+  result_format_or_schema: null
+  required_fields:
+    - exact owner task and PR
+    - exact server/client/map/data baselines
+    - result status
+    - strongest proof level reached
+    - what the result proves
+    - what the result does not prove
+    - first failure or blocker
+    - retained artifact or finding references
+    - freshness and invalidation dependencies
+
+collector_must_not_edit: []
+owner_paths_expected_read_only_for_collector: []
+
+suggested_owner_capability_gap:
+  present: false
+  summary: null
+  reuse_value: null
+  note: >-
+    A capability suggestion is not authorization for the Collector to implement it.
+
+coordination:
+  collector_task: null
+  collector_pr: null
+  owner_task: null
+  owner_pr: null
+  coordination_id: null
+  depends_on: []
+  blocks: []
+
+result:
+  available: false
+  result_refs: []
+  consumed_by_evidence_records: []
+  proof_level_reached: null
+  proves: []
+  does_not_prove: []
+  blockers: []
+
+history:
+  - at: null
+    actor: null
+    from_status: null
+    to_status: draft
+    reason: initial request
