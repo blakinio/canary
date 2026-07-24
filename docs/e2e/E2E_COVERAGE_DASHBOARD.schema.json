@@ -1,0 +1,426 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "canary-universal-e2e-coverage-dashboard-v1",
+  "title": "Universal E2E factual coverage dashboard",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "generated_at",
+    "evidence_boundary",
+    "freshness_policy",
+    "summary",
+    "scenarios",
+    "invalid_evidence"
+  ],
+  "properties": {
+    "contract": {
+      "const": "canary-universal-e2e-coverage-dashboard-v1"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "evidence_boundary": {
+      "$ref": "#/$defs/evidenceBoundary"
+    },
+    "freshness_policy": {
+      "$ref": "#/$defs/freshnessPolicy"
+    },
+    "summary": {
+      "$ref": "#/$defs/summary"
+    },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/scenarioCoverage"
+      }
+    },
+    "invalid_evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/invalidEvidence"
+      }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root_id", "path"],
+      "properties": {
+        "root_id": {
+          "type": "string",
+          "pattern": "^evidence-[1-9][0-9]*$"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "cleanup_certified", "contract_valid"],
+      "properties": {
+        "status": {
+          "enum": ["certified", "partial", "failed", "missing"]
+        },
+        "cleanup_certified": {
+          "type": "boolean"
+        },
+        "contract_valid": {
+          "type": "boolean"
+        }
+      }
+    },
+    "evidenceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "status",
+        "evidence_maturity",
+        "started_at",
+        "ended_at",
+        "duration_ms",
+        "execution_tier",
+        "server_revision",
+        "client_revision",
+        "datapack",
+        "cleanup",
+        "warnings",
+        "unknowns",
+        "source"
+      ],
+      "properties": {
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": ["success", "failure", "cancelled", "timeout"]
+        },
+        "evidence_maturity": {
+          "enum": ["M0", "M1", "M2", "M3", "M4", "M5", "unknown", "not_proven"]
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ended_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "execution_tier": {
+          "enum": ["pr-required", "scheduled", "release-certification", "on-demand", "unknown"]
+        },
+        "server_revision": {
+          "type": ["string", "null"]
+        },
+        "client_revision": {
+          "type": ["string", "null"]
+        },
+        "datapack": {
+          "type": ["string", "null"]
+        },
+        "cleanup": {
+          "$ref": "#/$defs/cleanup"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "unknowns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        }
+      }
+    },
+    "dimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "evidence"],
+      "properties": {
+        "state": {
+          "enum": ["not-evaluated", "pass", "fail", "unstable", "blocked"]
+        },
+        "evidence": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/evidenceReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "qualityDimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "determinism",
+        "stability",
+        "resilience",
+        "exactly_once",
+        "concurrency",
+        "cleanup",
+        "performance",
+        "compatibility",
+        "diagnostics"
+      ],
+      "properties": {
+        "determinism": { "$ref": "#/$defs/dimension" },
+        "stability": { "$ref": "#/$defs/dimension" },
+        "resilience": { "$ref": "#/$defs/dimension" },
+        "exactly_once": { "$ref": "#/$defs/dimension" },
+        "concurrency": { "$ref": "#/$defs/dimension" },
+        "cleanup": { "$ref": "#/$defs/dimension" },
+        "performance": { "$ref": "#/$defs/dimension" },
+        "compatibility": { "$ref": "#/$defs/dimension" },
+        "diagnostics": { "$ref": "#/$defs/dimension" }
+      }
+    },
+    "strongestMaturity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "evidence"],
+      "properties": {
+        "level": {
+          "enum": ["M0", "M1", "M2", "M3", "M4", "M5", "not-proven"]
+        },
+        "evidence": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/evidenceReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "freshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "age_days", "latest_ended_at"],
+      "properties": {
+        "status": {
+          "enum": ["current", "stale", "missing", "not-evaluated"]
+        },
+        "age_days": {
+          "type": ["number", "null"],
+          "minimum": 0
+        },
+        "latest_ended_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        }
+      }
+    },
+    "coverageGap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "detail"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "scenarioCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario",
+        "registered",
+        "scenario_source",
+        "retained_result_count",
+        "strongest_proven_maturity",
+        "quality_dimensions",
+        "latest_run",
+        "last_success",
+        "last_failure",
+        "freshness",
+        "warnings",
+        "unknowns",
+        "coverage_gaps"
+      ],
+      "properties": {
+        "scenario": {
+          "type": "string",
+          "pattern": "^[^/]+/[^/]+$"
+        },
+        "registered": {
+          "type": "boolean"
+        },
+        "scenario_source": {
+          "type": ["string", "null"]
+        },
+        "retained_result_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "strongest_proven_maturity": {
+          "$ref": "#/$defs/strongestMaturity"
+        },
+        "quality_dimensions": {
+          "$ref": "#/$defs/qualityDimensions"
+        },
+        "latest_run": {
+          "oneOf": [
+            { "$ref": "#/$defs/evidenceReference" },
+            { "type": "null" }
+          ]
+        },
+        "last_success": {
+          "oneOf": [
+            { "$ref": "#/$defs/evidenceReference" },
+            { "type": "null" }
+          ]
+        },
+        "last_failure": {
+          "oneOf": [
+            { "$ref": "#/$defs/evidenceReference" },
+            { "type": "null" }
+          ]
+        },
+        "freshness": {
+          "$ref": "#/$defs/freshness"
+        },
+        "warnings": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "unknowns": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "coverage_gaps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/coverageGap" }
+        }
+      }
+    },
+    "evidenceBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "roots",
+        "valid_result_count",
+        "invalid_result_count",
+        "collection_and_retention"
+      ],
+      "properties": {
+        "source": {
+          "const": "explicit-local-extracted-artifact-roots"
+        },
+        "roots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "result_files"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^evidence-[1-9][0-9]*$"
+              },
+              "result_files": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "valid_result_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "invalid_result_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "collection_and_retention": {
+          "const": "external-to-this-contract"
+        }
+      }
+    },
+    "freshnessPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["as_of", "stale_after_days", "status_without_threshold"],
+      "properties": {
+        "as_of": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "stale_after_days": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "status_without_threshold": {
+          "const": "not-evaluated"
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "registered_scenarios",
+        "reported_scenarios",
+        "scenarios_with_valid_evidence",
+        "scenarios_with_success",
+        "maturity_counts",
+        "run_status_counts",
+        "quality_state_counts",
+        "coverage_gap_count"
+      ],
+      "properties": {
+        "registered_scenarios": { "type": "integer", "minimum": 0 },
+        "reported_scenarios": { "type": "integer", "minimum": 0 },
+        "scenarios_with_valid_evidence": { "type": "integer", "minimum": 0 },
+        "scenarios_with_success": { "type": "integer", "minimum": 0 },
+        "maturity_counts": { "type": "object" },
+        "run_status_counts": { "type": "object" },
+        "quality_state_counts": { "type": "object" },
+        "coverage_gap_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "invalidEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "error"],
+      "properties": {
+        "source": { "$ref": "#/$defs/source" },
+        "error": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
