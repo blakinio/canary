@@ -34,7 +34,10 @@ fi
 
 (
   cd "${REPO_ROOT}"
-  python3 -m unittest -v tests.e2e.test_result_envelope tests.e2e.test_cleanup_certification
+  python3 -m unittest -v \
+    tests.e2e.test_result_envelope \
+    tests.e2e.test_cleanup_certification \
+    tests.e2e.test_cleanup_result_envelope
 ) > "${ARTIFACT_DIR}/e2e-contract-tests.log" 2>&1
 contract_status=$?
 if [[ "${contract_status}" -ne 0 ]]; then
