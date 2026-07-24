@@ -50,12 +50,12 @@ Documentation and classification only. No runtime, protocol, OTClient, store, ec
 
 ## Acceptance criteria
 
-- [ ] Record current official Tibia, Canary and OTClient evidence without claiming unresolved parity.
-- [ ] Define target-specific active-use time consumption.
-- [ ] Separate target reservation from bonus locking and bonus renewal.
-- [ ] Define bankable free reroll/reactivation charges and non-store maintenance paths.
-- [ ] Define anti-abuse, mixed-spawn, party and migration boundaries.
-- [ ] Add distinct proposal entries after classification entry 120.
+- [x] Record current official Tibia, Canary and OTClient evidence without claiming unresolved parity.
+- [x] Define target-specific active-use time consumption.
+- [x] Separate target reservation from bonus locking and bonus renewal.
+- [x] Define bankable free reroll/reactivation charges and non-store maintenance paths.
+- [x] Define anti-abuse, mixed-spawn, party and migration boundaries.
+- [x] Add distinct proposal entries after classification entry 120.
 - [ ] Pass exact-final Agent Task Ownership, AI Agent Tools and CI.
 - [ ] Mark ready and squash-merge through repository protection.
 
@@ -64,10 +64,10 @@ Documentation and classification only. No runtime, protocol, OTClient, store, ec
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-24
-head: 8fa902aa9552ffa4a3af4340ce31c530fff36b86
+head: c15e0284363640219aa04b6f831f58c2ecad3827
 branch: docs/ots-prey-system-2-0-20260724
 pr: 894
-status: implementing
+status: validating
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -80,29 +80,42 @@ owned_paths:
   - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_EXTENSION_PACKS.md
   - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md
 proven:
-  - Official Tibia currently offers up to three Prey slots, one free list reroll every 20 hours, 2 hours of hunting time, wildcard bonus reroll, one-wildcard automatic reroll and five-wildcard Lock Prey renewal.
-  - Current Canary calls removePreyStamina from the generic stamina path when experience is gained from a non-player target, before applying the selected-race Prey XP check.
-  - Current Canary Lock Prey renews the same target and bonus by consuming PREY_SELECTION_LIST_PRICE when the timer expires.
-  - Current OTClient exposes the official-style prey actions and only None, Automatic Reroll and Lock Prey options.
-  - No sufficiently evidenced custom OTS design was found that should be attributed as the origin of this redesign.
+  - Official Tibia documents up to three Prey slots, one free list reroll every 20 hours, two hours of hunting time, wildcard rerolls and five-wildcard Lock Prey renewal.
+  - Current Canary removes Prey time from the generic experience/stamina path before applying the selected-race Prey XP check.
+  - Current Canary Lock Prey couples preservation of the target, bonus and renewal time under PREY_SELECTION_LIST_PRICE.
+  - Current OTClient exposes the official-style actions and only None, Automatic Reroll and Lock Prey options.
+  - The detailed design defines entries 121-128 and preserves unresolved constants and official decrement semantics as OPEN.
+  - PR 894 changes exactly four intended documentation/task paths and no runtime, protocol, client, datapack, map or production files.
+  - CI run 30117043486 passed on head c15e0284363640219aa04b6f831f58c2ecad3827.
 derived:
   - Current Canary can consume active Prey time while the player hunts a different eligible monster.
-  - Target reservation, bonus persistence and time consumption should be independent responsibilities.
+  - Target reservation, bonus persistence and time renewal should be independent responsibilities.
 unknown:
-  - Exact current official Tibia server trigger for decrementing hunting time is not proven beyond the official wording that time decreases while hunting.
-  - Exact costs, charge caps, grace windows and protocol payload remain open until implementation-time simulation and client-contract design.
+  - Exact current official Tibia server trigger for decrementing hunting time is not proven beyond the public wording that time decreases while hunting.
+  - Exact costs, charge caps, grace windows, activity buckets and protocol payload remain open until implementation-time simulation and contract design.
 conflicts: []
-first_failure: null
+first_failure:
+  marker: checkpoint-schema
+  evidence: Ownership run 30117043661 rejected first_failure as a scalar null; it is now a required YAML mapping without changing product content.
 rejected_hypotheses:
   - Treat target-specific time consumption as proven current Tibia parity.
   - Remove all Prey economy sinks or make maximum bonuses permanently free.
   - Merge Prey and Bounty into one progression system.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260724-ots-prey-system-2-0.md
+  - docs/ai-agent/OTS_PREY_SYSTEM_2_0.md
+  - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_EXTENSION_PACKS.md
+  - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md
 validation:
   - command: source evidence review
     result: PASS
-    evidence: Official Tibia manual/support, current fork Canary source and upstream OTClient game_prey module were inspected.
+    evidence: Official Tibia support/manual, current fork Canary source and upstream OTClient game_prey module were inspected with unresolved parity recorded as OPEN.
+  - command: changed-file and design-boundary review
+    result: PASS
+    evidence: Four intended documentation/task paths changed; no runtime behavior or cross-repository write is included.
+  - command: normal CI
+    result: PASS
+    evidence: CI run 30117043486 passed on head c15e0284363640219aa04b6f831f58c2ecad3827.
 blockers: []
-next_action: Create the detailed Prey System 2.0 design, append roadmap section and classification entries 121 onward, then review the exact diff and final-gate the PR.
+next_action: Confirm corrected ownership and AI Agent Tools, review the full PR diff, then apply ci:final-gate and create the final checkpoint commit.
 ```
