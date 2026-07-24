@@ -54,10 +54,10 @@ Documentation and classification only. No runtime, client, protocol, datapack, m
 
 - [x] Preserve the three existing detailed design documents unchanged.
 - [x] Add a concise integrated roadmap addendum with practical `FEATURE`, `UPGRADE` and `FIX` labels.
-- [ ] Extend the authoritative classification after entry 94 with distinct proposal entries and explicit `ORIGIN` / `TYPE` labels.
+- [x] Extend the authoritative classification after entry 94 with distinct proposal entries and explicit `ORIGIN` / `TYPE` labels.
 - [x] Avoid duplicating existing entry 4 (`Account-wide quest progression`) or official Weapon Proficiency.
 - [x] Keep illustrative formulas, costs, caps and migration rules explicitly non-final.
-- [ ] Pass exact-final Agent Task Ownership and CI.
+- [ ] Pass exact-final Agent Task Ownership, AI Agent Tools and CI.
 - [ ] Mark ready and squash-merge through repository protection.
 
 ## Context checkpoint
@@ -65,10 +65,10 @@ Documentation and classification only. No runtime, client, protocol, datapack, m
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-24
-head: ""
+head: 099c443789cc4b2d93b8a66605738e8ee5afe39e
 branch: docs/ots-roadmap-extension-packs-20260724
 pr: 887
-status: implementing
+status: validating
 context_routes:
   - agent-governance
 owned_paths:
@@ -77,28 +77,38 @@ owned_paths:
   - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md
 proven:
   - The three detailed design documents are already merged on main.
-  - The authoritative classification currently ends at entry 94.
   - PR 884 merged as ad8b978236e6dfa8c40b06170f19f281b84b395d and released ownership of the central roadmap/classification paths.
-  - Account-wide quest progression already exists as classification entry 4 and is not duplicated.
-  - Weapon Proficiency is an official Tibia system and is not relabeled as an OTS-original feature.
-  - PR 887 contains the integrated extension-pack addendum and no runtime, map, datapack, protocol or client-binary changes.
+  - The authoritative classification now contains entries 95-120 derived from the three merged detailed designs.
+  - Account-wide quest progression remains entry 4 and is not duplicated.
+  - Weapon Proficiency remains explicitly official and separate from proposed Equipment Proficiency.
+  - PR 887 changes exactly the task record, the classification index and the integrated extension-pack addendum.
+  - Initial CI passed on feature head 099c443789cc4b2d93b8a66605738e8ee5afe39e.
 derived:
   - The new packages require multiple proposal-level entries because they contain independent features, upgrades and safeguards.
 unknown:
   - Exact current implementation parity for each future package remains outside this documentation-only task.
 conflicts: []
-first_failure: null
+first_failure:
+  marker: checkpoint-schema
+  evidence: Initial ownership validation required first_failure to be a YAML mapping; the checkpoint was corrected without changing feature content.
 rejected_hypotheses:
   - Add only three umbrella classification rows and hide all distinct sub-systems inside them.
   - Duplicate account-wide quest progression as a new proposal.
   - Treat Equipment Proficiency as a replacement for official Weapon Proficiency.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260724-ots-roadmap-extension-packs.md
+  - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md
   - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_EXTENSION_PACKS.md
 validation:
   - command: source-design review
     result: PASS
-    evidence: New addendum is derived only from the three merged detailed design records.
+    evidence: Entries 95-120 and the addendum are derived only from the three merged detailed design records.
+  - command: changed-file review
+    result: PASS
+    evidence: The PR changes exactly three documentation/task paths and no runtime, client, protocol, map, datapack or production files.
+  - command: initial CI
+    result: PASS
+    evidence: CI run 30112612181 passed on feature head 099c443789cc4b2d93b8a66605738e8ee5afe39e.
 blockers: []
-next_action: Append classification entries 95-120, review the exact diff, update the final checkpoint, apply ci:final-gate and validate the exact final head.
+next_action: Confirm corrected ownership and AI Agent Tools, apply ci:final-gate, make the final checkpoint commit, then require exact-final validation before readiness and merge.
 ```
