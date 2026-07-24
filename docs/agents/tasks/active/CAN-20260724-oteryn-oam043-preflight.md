@@ -2,7 +2,7 @@
 task_id: CAN-20260724-oteryn-oam043-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-043
-status: ready
+status: review
 agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-043-quests-preflight
 base_branch: main
@@ -11,7 +11,7 @@ updated: 2026-07-24
 last_verified_commit: "5470d5e3b5a88faea108941f4687d8a4a8e63a62"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "866"
 depends_on:
   - OAM-042 formally complete
   - canonical otbm-tooling resolved by OAM-040
@@ -87,10 +87,11 @@ This preflight performs no target, runtime, datapack, map, binary, protocol, cli
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T11:10:00+02:00
-head: 5470d5e3b5a88faea108941f4687d8a4a8e63a62
+updated_at: 2026-07-24T11:15:00+02:00
+head: 3de2fe200291997f9d50c3494acfb62d5aff7a74
 branch: dudantas/oam-043-quests-preflight
-status: ready
+pr: 866
+status: validating
 context_routes:
   - agent-governance
   - otbm
@@ -148,5 +149,5 @@ validation:
     result: PASS
     evidence: quest map validation reuses canonical script resolution and world index, requires explicit source selection and preserves unresolved evidence fail-closed.
 blockers: []
-next_action: Open the one-file Canary OAM-043 preflight PR, require exact-head ownership and applicable CI, audit comments reviews threads and Canary-main drift, then expected-head squash merge before starting a separate Otheryn target-proof task.
+next_action: Mark PR 866 ready, require exact-head ownership and applicable CI, then audit comments reviews threads and Canary-main drift before expected-head squash merge.
 ```
