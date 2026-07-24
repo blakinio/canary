@@ -11,7 +11,7 @@ updated: 2026-07-24
 last_verified_commit: "a5cafe1b7ce148af59c64d1382963ac6ac633334"
 risk: medium
 related_issue: ""
-related_pr: "871, 875"
+related_pr: "871, 875, 881"
 depends_on:
   - merged and lifecycle-closed E2E-QRI-005 result envelope
   - canonical Universal Physical E2E lifecycle
@@ -40,6 +40,7 @@ cross_repo_tasks: []
 - Delivery squash merge: `6ad2172eb8e4d5a9fcda0d69f2b6c88906082bfb`.
 - Post-merge evidence-hardening PR: #875.
 - Hardening squash merge: `a5cafe1b7ce148af59c64d1382963ac6ac633334`.
+- Lifecycle closure PR: #881.
 - Final exact-head candidate: `c94af1cec25c28763ad95f13a7ae06673b6551f7`.
 - Final Agent Task Ownership: PASS, run `30099655029`.
 - Final full `ci:final-gate` CI: PASS, run `30099655274`.
