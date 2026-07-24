@@ -2,7 +2,7 @@
 task_id: CAN-20260724-oteryn-oam045-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-045
-status: active
+status: review
 agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-045-protocol-session-handoff-preflight
 base_branch: main
@@ -11,7 +11,7 @@ updated: 2026-07-24
 last_verified_commit: "92c550b41d0f7d1c8c71f4b85dfa81dfb6488f4f"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "895"
 depends_on:
   - OAM-044 durably completed as 92c550b41d0f7d1c8c71f4b85dfa81dfb6488f4f
   - canonical protocol-compatibility completed by OAM-044
@@ -113,10 +113,10 @@ This package does not own or prove:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T20:15:00+02:00
-head: 92c550b41d0f7d1c8c71f4b85dfa81dfb6488f4f
+updated_at: 2026-07-24T20:25:00+02:00
+head: 09b77dcb898fa420b88e2b7ccf6706c523bed236
 branch: dudantas/oam-045-protocol-session-handoff-preflight
-pr: none
+pr: 895
 status: validating
 context_routes:
   - agent-governance
@@ -132,6 +132,7 @@ proven:
   - Open PR 514 remains network-transport-owned; open PR 526 is evidence-only and does not mutate the selected paths.
   - Target, upstream and live legacy share header blob 446e7769196fb9a750e13c8402b38c8752243729 and implementation blob 3e57e16649e20121f52c6c4b67b632808b7af363.
   - The same blobs existed at physically tested OAM-006 target revision c547d8ad70ef1252624c255476e6cb83fa125e14.
+  - Canary PR 895 changes exactly this active task record and carries ci:final-gate before this synchronization commit.
 derived:
   - protocol-session-handoff is the next dependency-valid, bounded, non-colliding canonical package.
   - Exact identity and inherited current-profile continuity justify target revalidation, not an automatic REUSE decision.
@@ -164,8 +165,8 @@ validation:
     evidence: Both selected roots are byte-identical across all reviewed revisions.
   - command: Canary preflight exact-head gates and audit
     result: NOT_RUN
-    evidence: The preflight PR must pass Agent Task Ownership and final-gate CI before merge.
+    evidence: Final PR 895 head must pass Agent Task Ownership and final-gate CI before merge.
 blockers:
-  - Canary preflight PR merge
-next_action: Open the one-task Canary OAM-045 preflight PR, synchronize exact PR/head metadata, require exact-head final gates, audit discussions and Canary-main drift, then squash-merge with the expected head.
+  - Canary preflight PR 895 merge
+next_action: Require exact-head Agent Task Ownership and final-gate CI on PR 895, audit comments, reviews, threads and Canary-main drift, then squash-merge with the expected head.
 ```
