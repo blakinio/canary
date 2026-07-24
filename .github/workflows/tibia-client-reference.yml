@@ -1,19 +1,24 @@
 name: TCR-006 Closeout Finalizer
 
 on:
-  push:
+  pull_request:
     branches:
-      - docs/tcr-006-lifecycle-closeout
+      - main
+    paths:
+      - .tcr006-finalizer-trigger
+      - .github/workflows/tibia-client-reference.yml
 
 permissions:
   contents: write
 
 jobs:
   finalize:
+    if: github.event.pull_request.head.ref == 'docs/tcr-006-lifecycle-closeout'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: docs/tcr-006-lifecycle-closeout
           fetch-depth: 0
       - name: Correct handoff and restore workflows
         shell: bash
