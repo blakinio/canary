@@ -2,13 +2,13 @@
 task_id: CAN-20260724-e2e-qri-006-cleanup-certification
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-QRI-006
-status: review
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/e2e-qri-006-cleanup-certification
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "8cd80cd92b3c5a904f3bfea910328ca828604a3a"
+last_verified_commit: "d996db1dc3c585766bb17eb5000f57a19f2a1e9c"
 risk: medium
 related_issue: ""
 related_pr: "871"
@@ -80,7 +80,7 @@ updated_at: 2026-07-24T13:05:00+02:00
 head: 8cd80cd92b3c5a904f3bfea910328ca828604a3a
 branch: feat/e2e-qri-006-cleanup-certification
 pr: 871
-status: validating
+status: ready
 context_routes:
   - agent-governance
   - universal-e2e
@@ -104,19 +104,21 @@ proven:
   - Physical run 30085762318 proved gameplay success, client exit zero, two login sessions, persistence, zero players_online, zero active transactions, restored workspace and 17 of 18 required cleanup checks.
   - The only physical cleanup failure was runner_process_group_empty with residual PID 4872 in dedicated PGID 4780; all recorded primary client, Canary wrapper, Xvfb and tcpdump PIDs were stopped.
   - The certifier now reaps only residual members of the exact dedicated PGID with bounded SIGTERM then SIGKILL escalation and records members_before, signals, members_after and errors.
+  - Exact-head Universal Agent E2E run 30088384760 passed on 49b6d190eaa15353d2220c2b5f5f18246ebaa982; cleanup contract schema 1 reported certified=true with 18/18 required checks, gameplay success, PGID 4839 member 4911 reaped by SIGTERM, no remaining members, no warnings and no unknowns.
+  - Artifact 8595225850 has digest sha256:6a188e536610fa420d3e1ed7c41cfefd8f88a93dca2bd980b0d833cc73161a6d and the schema-v3 envelope reports execution_tier=pr-required and quality_dimensions.cleanup=pass.
+  - Absolute runner paths found in legacy session-record events were reduced to artifact basenames by d996db1dc3c585766bb17eb5000f57a19f2a1e9c with a focused regression test.
   - Cleanup baseline evidence now stores only logical repo/otclient roots and relative paths, not absolute runner paths.
   - Branch is synchronized with main commit 13ec3077babba0ac81bb1e30e79f0ea4827ae2fe through merge commit 8cd80cd92b3c5a904f3bfea910328ca828604a3a.
 derived:
   - A post-trap certifier with an exact-PGID reaper is the smallest safe seam that can independently evaluate and complete runner-owned cleanup after gameplay-success and gameplay-failure runs.
   - Dedicated process-group ownership permits bounded cleanup of untracked descendants without scanning or killing unrelated host processes.
   - Database queries remain fixed code-owned statements against the disposable E2E schema and manifest-declared fixture identities.
-unknown:
-  - Exact physical cleanup result after the dedicated-PGID reaper fix.
-  - Whether every optional secondary actor currently emits the exact PID and exit evidence paths required by the new contract.
+unknown: []
 conflicts: []
 first_failure:
   marker: runner_process_group_empty
   evidence: Physical run 30085762318 retained PID 4872 in dedicated PGID 4780 after the existing lifecycle trap; gameplay status was success and all other 17 required cleanup checks passed.
+  resolution: Exact-PGID bounded reaping was added and physical run 30088384760 proved 18/18 cleanup checks with no remaining members.
 rejected_hypotheses:
   - Treat the existing teardown trap as certification without independent post-trap evidence.
   - Kill residual processes by name, executable scan or host-wide process matching.
@@ -144,5 +146,5 @@ validation:
     result: FAIL
     evidence: run 30085762318; gameplay success and 17/18 cleanup checks, residual dedicated-group PID 4872.
 blockers: []
-next_action: Run exact-head CI, ownership and Universal Physical E2E on the synchronized PGID-reaper head, inspect cleanup-certification.json and result.json, then register, final-gate, merge and archive QRI-006.
+next_action: Complete the exact final-head CI, ownership and physical gate, then squash-merge PR 871 and verify the automated lifecycle archive PR.
 ```
