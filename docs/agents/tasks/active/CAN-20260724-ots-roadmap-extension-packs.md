@@ -2,7 +2,7 @@
 task_id: CAN-20260724-ots-roadmap-extension-packs
 program_id: CAN-PROGRAM-OTS-FUTURE-GAMEPLAY-SYSTEMS
 coordination_id: OTS-ROADMAP-EXTENSION-PACKS
-status: blocked
+status: in_progress
 agent: "GPT-5.6 Thinking"
 branch: docs/ots-roadmap-extension-packs-20260724
 base_branch: main
@@ -11,17 +11,16 @@ updated: 2026-07-24
 last_verified_commit: ""
 risk: low
 related_issue: ""
-related_pr: ""
-depends_on:
-  - "PR #884 lifecycle archive must merge before classification ownership transfers"
+related_pr: "887"
+depends_on: []
 blocks: []
 owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260724-ots-roadmap-extension-packs.md
     - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_EXTENSION_PACKS.md
+    - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md
   shared: []
   read_only:
-    - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md
     - docs/ai-agent/OTS_CHARM_BESTIARY_AND_DROME_MASTERY.md
     - docs/ai-agent/OTS_QUEST_JOURNAL_POSTAL_AND_MARKET_LOGISTICS.md
     - docs/ai-agent/OTS_FORGE_SLOT_ITEM_ENHANCEMENT_AND_EQUIPMENT_PROFICIENCY.md
@@ -56,8 +55,8 @@ Documentation and classification only. No runtime, client, protocol, datapack, m
 - [x] Preserve the three existing detailed design documents unchanged.
 - [x] Add a concise integrated roadmap addendum with practical `FEATURE`, `UPGRADE` and `FIX` labels.
 - [ ] Extend the authoritative classification after entry 94 with distinct proposal entries and explicit `ORIGIN` / `TYPE` labels.
-- [ ] Avoid duplicating existing entry 4 (`Account-wide quest progression`) or official Weapon Proficiency.
-- [ ] Keep illustrative formulas, costs, caps and migration rules explicitly non-final.
+- [x] Avoid duplicating existing entry 4 (`Account-wide quest progression`) or official Weapon Proficiency.
+- [x] Keep illustrative formulas, costs, caps and migration rules explicitly non-final.
 - [ ] Pass exact-final Agent Task Ownership and CI.
 - [ ] Mark ready and squash-merge through repository protection.
 
@@ -68,19 +67,21 @@ checkpoint_version: 1
 updated_at: 2026-07-24
 head: ""
 branch: docs/ots-roadmap-extension-packs-20260724
-pr: ""
-status: blocked
+pr: 887
+status: implementing
 context_routes:
   - agent-governance
 owned_paths:
   - docs/agents/tasks/active/CAN-20260724-ots-roadmap-extension-packs.md
   - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_EXTENSION_PACKS.md
+  - docs/ai-agent/OTS_FUTURE_GAMEPLAY_SYSTEMS_CLASSIFICATION.md
 proven:
   - The three detailed design documents are already merged on main.
   - The authoritative classification currently ends at entry 94.
-  - PR 884 still owns the central roadmap/classification lifecycle paths until its archive change merges.
-  - Account-wide quest progression already exists as classification entry 4 and must not be duplicated.
-  - Weapon Proficiency is an official Tibia system and must not be relabeled as an OTS-original feature.
+  - PR 884 merged as ad8b978236e6dfa8c40b06170f19f281b84b395d and released ownership of the central roadmap/classification paths.
+  - Account-wide quest progression already exists as classification entry 4 and is not duplicated.
+  - Weapon Proficiency is an official Tibia system and is not relabeled as an OTS-original feature.
+  - PR 887 contains the integrated extension-pack addendum and no runtime, map, datapack, protocol or client-binary changes.
 derived:
   - The new packages require multiple proposal-level entries because they contain independent features, upgrades and safeguards.
 unknown:
@@ -98,7 +99,6 @@ validation:
   - command: source-design review
     result: PASS
     evidence: New addendum is derived only from the three merged detailed design records.
-blockers:
-  - PR 884 must merge before exclusive ownership of the classification index can transfer.
-next_action: After PR 884 merges, move the classification path into exclusive ownership, append proposal entries 95-120, update the checkpoint, apply ci:final-gate and validate the exact final head.
+blockers: []
+next_action: Append classification entries 95-120, review the exact diff, update the final checkpoint, apply ci:final-gate and validate the exact final head.
 ```
