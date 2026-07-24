@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
+          fetch-depth: 1
           show-progress: false
 
       - name: Set up Python
@@ -33,9 +33,9 @@ jobs:
 
       - name: Restore current main shared files
         run: |
-          git fetch origin main
-          git show origin/main:.github/workflows/tibia-client-reference.yml > .github/workflows/tibia-client-reference.yml
-          git show origin/main:docs/agents/MODULE_CATALOG.md > docs/agents/MODULE_CATALOG.md
+          git fetch --depth=1 origin main
+          git show FETCH_HEAD:.github/workflows/tibia-client-reference.yml > .github/workflows/tibia-client-reference.yml
+          git show FETCH_HEAD:docs/agents/MODULE_CATALOG.md > docs/agents/MODULE_CATALOG.md
 
       - name: Add TCR-006 validation and catalogue entry
         shell: python
@@ -140,8 +140,8 @@ jobs:
           set -euo pipefail
           git add \
             .github/workflows/tibia-client-reference.yml \
-            docs/agents/MODULE_CATALOG.md \
-            .tcr006-stage
+            docs/agents/MODULE_CATALOG.md
+          git add -A -- .tcr006-stage
           git diff --cached --check
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
