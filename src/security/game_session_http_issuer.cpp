@@ -215,6 +215,7 @@ namespace {
 			   << "Content-Type: application/json\r\n"
 			   << "Cache-Control: no-store\r\n"
 			   << "Pragma: no-cache\r\n"
+			   << "Expires: 0\r\n"
 			   << "Connection: close\r\n"
 			   << "Content-Length: " << response.body.size() << "\r\n\r\n"
 			   << response.body;
@@ -455,9 +456,9 @@ private:
 					.body = json({
 									 { "protocol_version", 1 },
 									 { "session", {
-													  { "credential", result.credential },
-													  { "expires_at", formatUtc(result.expiresAt) },
-												  } },
+												  { "credential", result.credential },
+												  { "expires_at", formatUtc(result.expiresAt) },
+											  } },
 								 })
 								.dump(),
 				};
