@@ -1,0 +1,72 @@
+name: TCR-007 Materialize
+
+on:
+  push:
+    branches:
+      - feat/tcr-007-proficiency-reference-correlation
+    paths:
+      - .github/workflows/tcr007-materialize.yml
+      - .tcr007-stage/payload.tar.xz
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify and extract payload
+        shell: bash
+        run: |
+          echo '17723d983b2d4a9cf2497101f112c5c279f671f7d3e87d7d9426a50c1c320af8  .tcr007-stage/payload.tar.xz' | sha256sum -c -
+          tar -xJf .tcr007-stage/payload.tar.xz
+          chmod +x tools/ai-agent/tibia_proficiency_reference_correlation_tool.py
+      - name: Validate focused implementation
+        env:
+          PYTHONPATH: tools/ai-agent
+        shell: bash
+        run: |
+          python -m unittest discover -s tools/ai-agent -p 'test_tibia_proficiency_reference_correlation.py' -v
+          python -m py_compile \
+            tools/ai-agent/tibia_proficiency_reference_correlation.py \
+            tools/ai-agent/tibia_proficiency_reference_correlation_tool.py \
+            tools/ai-agent/test_tibia_proficiency_reference_correlation.py
+          python -m json.tool docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_RESOLVER.schema.json >/dev/null
+          python -m json.tool docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.schema.json >/dev/null
+          python tools/ai-agent/tibia_proficiency_reference_correlation_tool.py --help >/dev/null
+          python tools/ai-agent/tibia_proficiency_reference_correlation_tool.py inventory --repository-root . --output /tmp/TCR007_CANARY_EVIDENCE_A.json
+          python tools/ai-agent/tibia_proficiency_reference_correlation_tool.py inventory --repository-root . --output /tmp/TCR007_CANARY_EVIDENCE_B.json
+          cmp /tmp/TCR007_CANARY_EVIDENCE_A.json /tmp/TCR007_CANARY_EVIDENCE_B.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('/tmp/TCR007_CANARY_EVIDENCE_A.json').read_text())
+          assert report['format'] == 'canary-tcr007-canary-evidence-v1'
+          assert report['runtimeDefinitions']['recordCount'] > 0
+          assert report['itemBindingContract']['objectIdAssignsItemId'] is True
+          assert report['itemBindingContract']['proficiencyFlagAssignsRuntimeBinding'] is True
+          assert report['runtimeSupport']['persistence'] == 'source-supported'
+          assert report['itemBindingContract']['source']['path'] == 'src/items/items.cpp'
+          PY
+      - name: Commit implementation
+        shell: bash
+        run: |
+          rm -rf .tcr007-stage
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            tools/ai-agent/tibia_proficiency_reference_correlation.py \
+            tools/ai-agent/tibia_proficiency_reference_correlation_tool.py \
+            tools/ai-agent/test_tibia_proficiency_reference_correlation.py \
+            docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.md \
+            docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.schema.json \
+            docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_RESOLVER.schema.json \
+            .tcr007-stage
+          git commit -m 'feat(tcr): implement proficiency reference correlation'
+          git push origin HEAD:feat/tcr-007-proficiency-reference-correlation
