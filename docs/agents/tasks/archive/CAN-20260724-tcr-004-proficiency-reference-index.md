@@ -7,7 +7,7 @@ agent: "GPT-5.6 Thinking"
 branch: feat/tcr-004-proficiency-reference-index
 base_branch: main
 created: 2026-07-24T09:15:00+02:00
-updated: 2026-07-24T09:46:00+02:00
+updated: 2026-07-24T10:08:00+02:00
 last_verified_commit: "ce2c6e611f98f82c4f84e948372da0e1d324761f"
 risk: medium
 related_issue: ""
@@ -44,7 +44,9 @@ Deliver and merge TCR-004 Proficiency Reference Index as deterministic, fail-clo
 - Delivery final head: `7ca341da78889e6a322de121d8d45a61f96fb542`.
 - `ci:final-gate` was applied before the final checkpoint commit.
 - Protected ready-state milestone CI passed without macOS.
+- Lifecycle/discovery closure PR: #860.
 - Lifecycle/discovery closure branch: `docs/tcr-004-lifecycle-closure-20260724`.
+- Programme queue and stable-contract state are updated by PR #860.
 - Archived at: `docs/agents/tasks/archive/CAN-20260724-tcr-004-proficiency-reference-index.md`.
 
 # Delivered
