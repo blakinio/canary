@@ -31,22 +31,34 @@ jobs:
           expected='23c33d4bb1a79b3c70ac698e3a77c4e054b3ca061ce4a86610e0149cf8603547'
           actual="$(sha256sum .tcr007-stage/payload.tar.xz | awk '{print $1}')"
           test "$actual" = "$expected"
-          tar -tJf .tcr007-stage/payload.tar.xz | sort | tee /tmp/tcr007-payload-files.txt
-          test "$(wc -l < /tmp/tcr007-payload-files.txt)" -eq 11
-          for path in \
-            tools/ai-agent/tibia_proficiency_reference_common.py \
-            tools/ai-agent/tibia_proficiency_reference_inventory.py \
-            tools/ai-agent/tibia_proficiency_reference_resolver.py \
-            tools/ai-agent/tibia_proficiency_reference_correlation.py \
-            tools/ai-agent/tibia_proficiency_reference_correlation_tool.py \
-            tools/ai-agent/tibia_proficiency_reference_test_support.py \
-            tools/ai-agent/test_tibia_proficiency_reference_correlation.py \
-            tools/ai-agent/test_tibia_proficiency_reference_inventory.py \
-            docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.md \
-            docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.schema.json \
-            docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_RESOLVER.schema.json; do
-            grep -Fx "$path" /tmp/tcr007-payload-files.txt
-          done
+          python - <<'PY'
+          from pathlib import PurePosixPath
+          import tarfile
+
+          expected = {
+              'tools/ai-agent/tibia_proficiency_reference_common.py',
+              'tools/ai-agent/tibia_proficiency_reference_inventory.py',
+              'tools/ai-agent/tibia_proficiency_reference_resolver.py',
+              'tools/ai-agent/tibia_proficiency_reference_correlation.py',
+              'tools/ai-agent/tibia_proficiency_reference_correlation_tool.py',
+              'tools/ai-agent/tibia_proficiency_reference_test_support.py',
+              'tools/ai-agent/test_tibia_proficiency_reference_correlation.py',
+              'tools/ai-agent/test_tibia_proficiency_reference_inventory.py',
+              'docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.md',
+              'docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_CORRELATION.schema.json',
+              'docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_RESOLVER.schema.json',
+          }
+          observed = set()
+          with tarfile.open('.tcr007-stage/payload.tar.xz', mode='r:xz') as archive:
+              for member in archive.getmembers():
+                  normalized = member.name[2:] if member.name.startswith('./') else member.name
+                  path = PurePosixPath(normalized)
+                  assert normalized and not path.is_absolute() and '..' not in path.parts, member.name
+                  assert member.isfile() or member.isdir(), f'unsupported tar member: {member.name}'
+                  if member.isfile():
+                      observed.add(normalized)
+          assert observed == expected, {'missing': sorted(expected - observed), 'extra': sorted(observed - expected)}
+          PY
       - name: Extract staged implementation
         shell: bash
         run: |
