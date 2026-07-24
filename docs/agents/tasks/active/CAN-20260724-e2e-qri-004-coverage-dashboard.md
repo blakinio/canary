@@ -2,13 +2,13 @@
 task_id: CAN-20260724-e2e-qri-004-coverage-dashboard
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-QRI-004
-status: planned
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: docs/e2e-qri-004-compact-handover
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "502ae8d54b9245f9608783612cf622becbea6454"
+last_verified_commit: "b0e2567656270f930778c652e4c4622867ef6102"
 risk: medium
 related_issue: ""
 related_pr: "885"
@@ -48,11 +48,11 @@ Prepare the bounded continuation for a factual M0-M5 and orthogonal quality-dime
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T18:07:00+02:00
-head: 502ae8d54b9245f9608783612cf622becbea6454
+updated_at: 2026-07-24T18:10:00+02:00
+head: b0e2567656270f930778c652e4c4622867ef6102
 branch: docs/e2e-qri-004-compact-handover
 pr: 885
-status: investigating
+status: ready
 context_routes:
   - agent-governance
   - universal-e2e
@@ -91,8 +91,11 @@ validation:
     result: PASS
     evidence: No earlier open E2E-QRI PR or active QRI-004 owner was found; PR 885 is the bounded continuation owner.
   - command: python tools/agents/checkpoint.py docs/agents/tasks/active/CAN-20260724-e2e-qri-004-coverage-dashboard.md --require-checkpoint
-    result: NOT_RUN
-    evidence: Agent Task Ownership must validate this PR-aware checkpoint commit.
+    result: PASS
+    evidence: Agent Task Ownership run 30108000959 validated the PR-aware checkpoint on b0e2567656270f930778c652e4c4622867ef6102.
+  - command: PR 885 focused CI
+    result: PASS
+    evidence: CI run 30108001172 succeeded on b0e2567656270f930778c652e4c4622867ef6102.
 blockers: []
 next_action: Inventory existing result-envelope consumers, scenario registries and coverage-report modules, then select the smallest QRI-004 output contract and exact owned paths without changing runtime state.
 ```
