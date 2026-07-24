@@ -8,10 +8,10 @@ branch: dudantas/oam-043-post-preflight-handoff
 base_branch: main
 created: 2026-07-24
 updated: 2026-07-24
-last_verified_commit: "b1d24ec362ec52652886f6be6129234ff44e7d4d"
+last_verified_commit: "324fa55828f315973e5d36617b76008527354627"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "872"
 depends_on:
   - OAM-042 formally complete
   - canonical otbm-tooling resolved by OAM-040
@@ -87,10 +87,10 @@ This preflight performs no target, runtime, datapack, map, binary, protocol, cli
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-24T12:17:22+02:00
-head: b1d24ec362ec52652886f6be6129234ff44e7d4d
+updated_at: 2026-07-24T12:18:32+02:00
+head: 324fa55828f315973e5d36617b76008527354627
 branch: dudantas/oam-043-post-preflight-handoff
-pr: none
+pr: 872
 status: investigating
 context_routes:
   - agent-governance
