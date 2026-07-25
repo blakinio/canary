@@ -2,13 +2,13 @@
 task_id: CAN-20260725-rtec-004-weapon-proficiency
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-004-W1-WEAPON-PROFICIENCY
-status: validating
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: feat/rtec-004-weapon-proficiency-20260725
 base_branch: main
 created: 2026-07-25T20:18:00+02:00
-updated: 2026-07-25T20:42:00+02:00
-last_verified_commit: "95976a5f4a892337ceeb95ae8f4bed08db770913"
+updated: 2026-07-25T20:46:00+02:00
+last_verified_commit: "be8e64707bea0c5fe4347b5dc5da8a6d82cf87a3"
 risk: medium
 related_issue: ""
 related_pr: "930"
@@ -68,10 +68,10 @@ Collect one bounded, version-aware evidence package for Summer Update 2026 weapo
 
 # Validation history
 
-- Exact-head run `30169850402` reached the repository-contract test and failed only on deterministic global-index drift.
-- The coordinator used one self-removing workflow to run the canonical generator and validator, then committed only `docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json` as `95976a5f4a892337ceeb95ae8f4bed08db770913`.
-- The temporary workflow is absent from the current diff.
-- Checks on the bot-authored integration commit returned `action_required` without jobs; this human-authored checkpoint commit is the clean re-trigger boundary.
+- Exact-head run `30169850402` failed only on deterministic global-index drift.
+- Canonical generation and validation produced `95976a5f4a892337ceeb95ae8f4bed08db770913`; the one-shot workflow removed itself.
+- Human-authored head `be8e64707bea0c5fe4347b5dc5da8a6d82cf87a3` passed Real Tibia Evidence Contracts, Module Registry, CI and Upstream Intelligence.
+- Agent Task Ownership run `30170005317` failed only because active-task frontmatter used unsupported status `validating`; this commit restores active status `implementing` while retaining checkpoint status `validating`.
 
 # Acceptance criteria
 
@@ -90,8 +90,8 @@ Collect one bounded, version-aware evidence package for Summer Update 2026 weapo
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T20:42:00+02:00
-head: 95976a5f4a892337ceeb95ae8f4bed08db770913
+updated_at: 2026-07-25T20:46:00+02:00
+head: be8e64707bea0c5fe4347b5dc5da8a6d82cf87a3
 branch: feat/rtec-004-weapon-proficiency-20260725
 pr: 930
 status: validating
@@ -110,20 +110,20 @@ proven:
   - official character-switch defect and correction date are source-pinned
   - current Canary and maintained-client character-switch conformance is unproven
   - three records module index version history review material and deterministic global index are present on PR 930
-  - exact-head run 30169850402 failed only on global-index drift before regeneration
-  - canonical generation and validation produced integration commit 95976a5f4a892337ceeb95ae8f4bed08db770913 and removed its temporary workflow
+  - Real Tibia Evidence Contracts Module Registry CI and Upstream Intelligence passed on be8e64707bea0c5fe4347b5dc5da8a6d82cf87a3
+  - ownership failure on run 30170005317 is isolated to unsupported active frontmatter status validating
 derived:
   - setSelectedPerk is not equivalent to official modified-slot manipulation
   - Player-owned server state cannot establish maintained-client notification isolation
 unknown:
   - exact maintained-client and protocol state for pending proficiency notifications
   - executed KV persistence and rollback behavior
-  - clean human-authored exact-head workflow results
+  - ownership and other clean exact-head results after status correction
   - structured review outcome
 conflicts: []
 first_failure:
-  marker: clean-exact-head-validation-pending
-  evidence: bot-authored integration checks on 95976a5f4a892337ceeb95ae8f4bed08db770913 required approval without jobs; this checkpoint creates a human-authored re-trigger
+  marker: active-task-frontmatter-status
+  evidence: run 30170005317 rejected non-active frontmatter status validating; corrected to implementing in this commit
 rejected_hypotheses:
   - implement or test the feature in this Collector task: owner implementation paths remain read-only
   - equate static original-tree selection with modified-slot manipulation: source state and operations differ
@@ -148,15 +148,18 @@ validation:
   - command: bounded Canary source data and test trace at 124b029d1a2498a64fa6612b16efa386b8786a83
     result: PASS
     evidence: exact paths and symbols retained in RT-WEAPON-PROFICIENCY-0002 and 0003
-  - command: Real Tibia Evidence Contracts run 30169850402
-    result: FAIL
-    evidence: first and only failure was deterministic global-index drift before canonical regeneration
-  - command: canonical generate validate and generate-check on the worker branch
+  - command: Real Tibia Evidence Contracts run 30170005212
     result: PASS
-    evidence: one-shot integration produced 95976a5f4a892337ceeb95ae8f4bed08db770913 and self-removed
-  - command: GitHub exact-head workflows after this checkpoint
+    evidence: focused tests registry corpus deterministic indexes factual output and unchanged production request passed
+  - command: Real Tibia Module Registry CI and Upstream Intelligence on be8e64707bea0c5fe4347b5dc5da8a6d82cf87a3
+    result: PASS
+    evidence: runs 30170005247 30170005361 and 30170005282
+  - command: Agent Task Ownership run 30170005317
+    result: FAIL
+    evidence: unsupported active frontmatter status validating; corrected here
+  - command: GitHub exact-head workflows after this status correction
     result: NOT_RUN
     evidence: pending new head
 blockers: []
-next_action: Inspect the human-authored exact-head workflow runs triggered by this checkpoint, fix the first remaining failure, and complete structured review only after all current-head contract checks pass.
+next_action: Inspect exact-head ownership and evidence checks after this status correction; if green, perform structured review and prepare PR 930 for the final gate.
 ```
