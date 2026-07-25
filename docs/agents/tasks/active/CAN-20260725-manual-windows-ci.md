@@ -1,11 +1,12 @@
 ---
 task_id: CAN-20260725-manual-windows-ci
+program_id: none
 status: implementing
 agent: "GPT-5.6 Thinking"
 branch: ci/manual-windows-build-20260725
 base_branch: main
 created: 2026-07-25T23:00:00+02:00
-updated: 2026-07-25T23:47:00+02:00
+updated: 2026-07-25T23:50:00+02:00
 risk: medium
 related_pr: "946"
 depends_on: []
@@ -52,8 +53,8 @@ Keep Canary Docker/Linux validation as the normal CI path and run the Windows bu
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T23:47:00+02:00
-head: a11af7ee780ce9cce2d11bceb3d59c242981e62f
+updated_at: 2026-07-25T23:50:00+02:00
+head: 4aa5118bc242dc54130a036e5f1f959f2751cf23
 branch: ci/manual-windows-build-20260725
 pr: "946"
 status: validating
@@ -69,6 +70,7 @@ proven:
   - the Required aggregator maps build-windows to the dedicated windows scope
   - PR run 30176156378 passed and Build - Windows was skipped while Required succeeded
   - changed files are limited to ci.yml and this task record
+  - changed-task checkpoint validation passed on ownership run 30176305440
 derived:
   - pull requests and main pushes cannot select Windows because the windows scope is true only for workflow_dispatch with run_windows true
   - Linux full_matrix behavior remains independent from the Windows selector
@@ -81,8 +83,8 @@ changed_paths:
   - .github/workflows/ci.yml
   - docs/agents/tasks/active/CAN-20260725-manual-windows-ci.md
 first_failure:
-  marker: active-task-status-invalid
-  evidence: Agent Task Ownership run 30176239883 rejected frontmatter status validating for a record under tasks/active
+  marker: active-structured-task-program-id-missing
+  evidence: Agent Task Ownership run 30176305440 passed checkpoint validation but rejected the structured active task because program_id was empty
 validation:
   - command: inspect PR diff and changed-file list
     result: PASS
@@ -90,9 +92,9 @@ validation:
   - command: CI pull_request run
     result: PASS
     evidence: run 30176156378; Required passed and Build - Windows was skipped
-  - command: repair active task lifecycle status
+  - command: active task metadata repair
     result: PASS
-    evidence: frontmatter status restored to implementing while checkpoint status remains validating
+    evidence: program_id is explicitly nonempty and set to none for this standalone CI task
 blockers: []
 next_action: Wait for exact-final-head CI and ownership, then squash-merge PR 946 without further commits.
 ```
