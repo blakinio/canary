@@ -1,0 +1,67 @@
+name: RTEC-003 Shared Integration Patch
+
+on:
+  push:
+    branches:
+      - feat/rtec-003-owner-request-lifecycle-20260725
+    paths:
+      - ".github/workflows/rtec-003-integration-patch.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v6
+        with:
+          ref: feat/rtec-003-owner-request-lifecycle-20260725
+          fetch-depth: 0
+
+      - name: Patch catalogue and programme once
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          catalog = Path("docs/agents/MODULE_CATALOG.md")
+          text = catalog.read_text(encoding="utf-8")
+          text = text.replace("Last reviewed: 2026-07-24", "Last reviewed: 2026-07-25", 1)
+          row = "| Real Tibia owner-request lifecycle | active (#921) | Dry-run-first, optimistic-locking lifecycle for validated Collector requests, stable owner results and exact evidence consumption across E2E, OTBM/OWA, TCR, protocol/client and feature owners | `tools/agents/real_tibia_owner_request.py`, `tools/agents/test_real_tibia_owner_request.py`, `docs/agents/real-tibia/evidence/OWNER_REQUEST_LIFECYCLE.md`, `.github/workflows/real-tibia-evidence.yml` | Reuse this CLI instead of editing request status/history by hand. Owner-controlled states require real owner task/PR evidence; one request is a serialization boundary; the tool never executes owner systems or authorizes proof promotion. |"
+          if row not in text:
+              lines = text.splitlines()
+              for index, line in enumerate(lines):
+                  if line.startswith("| Real Tibia module registry |"):
+                      lines.insert(index + 1, row)
+                      break
+              else:
+                  raise SystemExit("Real Tibia module registry catalogue anchor not found")
+              text = "\n".join(lines) + "\n"
+          catalog.write_text(text, encoding="utf-8")
+
+          program = Path("docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md")
+          text = program.read_text(encoding="utf-8")
+          text = text.replace("updated: 2026-07-25T15:06:21+02:00", "updated: 2026-07-25T16:05:00+02:00", 1)
+          text = text.replace('last_verified_commit: "a017e54c03df7ca46cbaaf92995942ffa67f9690"', 'last_verified_commit: "337812cf1d2fe587cabd6b5a71f38f149520fa83"', 1)
+          lines = text.splitlines()
+          for index, line in enumerate(lines):
+              if line.startswith("| RTEC-003 |"):
+                  lines[index] = "| RTEC-003 | Owner-request lifecycle integration | active | RTEC-001/002 | medium | Complete and validate PR #921; do not advance the real vocations request without owner evidence. |"
+                  break
+          else:
+              raise SystemExit("RTEC-003 programme row not found")
+          program.write_text("\n".join(lines) + "\n", encoding="utf-8")
+          PY
+          rm .github/workflows/rtec-003-integration-patch.yml
+
+      - name: Commit shared integration
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/agents/MODULE_CATALOG.md docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md .github/workflows/rtec-003-integration-patch.yml
+          git commit -m "docs(agents): integrate active RTEC-003 tooling"
+          git push origin HEAD:feat/rtec-003-owner-request-lifecycle-20260725
