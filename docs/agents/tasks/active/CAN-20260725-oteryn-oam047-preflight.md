@@ -2,16 +2,16 @@
 task_id: CAN-20260725-oteryn-oam047-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-047
-status: active
+status: review
 agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-047-lua-runtime-preflight
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "c468be4c34039b4b3e9f4e320c4b125cb6998d77"
+last_verified_commit: "8838a3ff743cdc4879c6652d60251ce92032fccd"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "922"
 depends_on:
   - OAM-046 durably completed as 2b09ef1acfe23d1ef4027c85f44b0093420d7434
 blocks:
@@ -98,11 +98,11 @@ Excludes:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T15:45:00+02:00
-head: c468be4c34039b4b3e9f4e320c4b125cb6998d77
+updated_at: 2026-07-25T15:46:00+02:00
+head: 8838a3ff743cdc4879c6652d60251ce92032fccd
 branch: dudantas/oam-047-lua-runtime-preflight
-pr: null
-status: selected
+pr: 922
+status: validating
 context_routes:
   - agent-governance
   - cross-repo
@@ -149,5 +149,5 @@ validation:
     evidence: CMake, LuaScriptInterface and LuaEnvironment blobs plus the child-reset TODO are pinned above.
 blockers:
   - Canary preflight exact-head gates and merge
-next_action: Open the Canary OAM-047 preflight PR, require exact-head Ownership and CI, audit discussions and main drift, then squash-merge before target work starts.
+next_action: Mark PR 922 ready, require exact-head Ownership and CI, audit discussions and main drift, then squash-merge before target work starts.
 ```
