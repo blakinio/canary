@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/rtec-004-cloud-in-a-bottle-20260725
 base_branch: main
 created: 2026-07-25T20:18:30+02:00
-updated: 2026-07-25T22:28:00+02:00
-last_verified_commit: "8a66836dbc201b3c6e1bf2a89e543f6a12d2d6b1"
+updated: 2026-07-25T22:33:00+02:00
+last_verified_commit: "519da23bdaedec8820708772bcce343aa55106b5"
 risk: low
 related_issue: ""
 related_pr: "931"
@@ -102,8 +102,8 @@ Collect one bounded evidence package for the official Cloud in a Bottle difficul
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T22:28:00+02:00
-head: 8a66836dbc201b3c6e1bf2a89e543f6a12d2d6b1
+updated_at: 2026-07-25T22:33:00+02:00
+head: 519da23bdaedec8820708772bcce343aa55106b5
 branch: feat/rtec-004-cloud-in-a-bottle-20260725
 pr: 931
 status: validating
@@ -125,6 +125,10 @@ proven:
   - deterministic module and global indexes were generated and validated in run 30173389633
   - RTREQ-TCR-ITEM-DEFINITIONS-0001 is ready for TCR owner triage
   - all temporary diagnostic and export tests are removed
+derived:
+  - current item correspondence is blocked by exact client-reference identity rather than proven absent
+  - candidate id 54651 cannot be promoted across identifier namespaces without accepted TCR evidence
+  - one bounded TCR request is the narrowest safe continuation because no new parser or capability is required
 unknown:
   - exact official client build object id name and description for Cloud in a Bottle
   - exact matching or conflicting Canary appearances identity
