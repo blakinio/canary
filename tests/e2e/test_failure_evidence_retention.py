@@ -11,6 +11,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "tools" / "e2e" / "run_physical_e2e.sh"
 WORKFLOW = ROOT / ".github" / "workflows" / "universal-agent-e2e.yml"
+TEMPORARY_PROBE = (
+    ROOT
+    / "tests"
+    / "e2e"
+    / "scenarios"
+    / "retention"
+    / "failure-evidence-probe.json"
+)
 
 
 class FailureEvidenceRetentionTest(unittest.TestCase):
@@ -106,6 +114,9 @@ class FailureEvidenceRetentionTest(unittest.TestCase):
             "physical scenario failed with captured status",
             propagate_block,
         )
+
+    def test_temporary_failure_probe_is_not_shipped(self) -> None:
+        self.assertFalse(TEMPORARY_PROBE.exists())
 
 
 if __name__ == "__main__":
