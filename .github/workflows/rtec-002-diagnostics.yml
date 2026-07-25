@@ -1,0 +1,50 @@
+name: RTEC-002 Diagnostics
+
+on:
+  push:
+    branches:
+      - docs/rtec-002-vocations-pilot-20260725
+    paths:
+      - ".github/workflows/rtec-002-diagnostics.yml"
+      - "docs/agents/real-tibia/evidence/**"
+      - "tools/agents/real_tibia_evidence*.py"
+      - "tools/agents/test_real_tibia_evidence*.py"
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Capture exact diagnostics
+        shell: bash
+        run: |
+          set +e
+          python -m unittest discover -v -s tools/agents -p 'test_real_tibia_evidence*.py' > unittest.log 2>&1
+          echo "$?" > unittest.exit
+          python tools/agents/real_tibia_evidence.py validate --as-of 2026-07-25 > validate.log 2>&1
+          echo "$?" > validate.exit
+          set -e
+      - name: Upload diagnostic logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: rtec-002-diagnostics
+          path: |
+            unittest.log
+            unittest.exit
+            validate.log
+            validate.exit
+          if-no-files-found: error
+      - name: Preserve failure state
+        shell: bash
+        run: |
+          test "$(cat unittest.exit)" = "0"
+          test "$(cat validate.exit)" = "0"
