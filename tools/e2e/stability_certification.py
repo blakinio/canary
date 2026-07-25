@@ -9,7 +9,7 @@ import sys
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from hashlib import sha256
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Mapping, Sequence
 
 CONTRACT = "canary-universal-e2e-stability-certification-v1"
@@ -106,6 +106,41 @@ def _safe_text(value: Any, label: str, *, allow_none: bool = False) -> str | Non
         raise StabilityCertificationError(f"{label} must be a non-empty string")
     if "\x00" in value or "\r" in value or "\n" in value:
         raise StabilityCertificationError(f"{label} contains unsafe characters")
+    return value
+
+
+def _safe_relative_path(value: Any, label: str) -> str:
+    text = _safe_text(value, label)
+    assert text is not None
+    if "\\" in text or text.startswith("/"):
+        raise StabilityCertificationError(f"{label} must be a normalized POSIX relative path")
+    raw_parts = text.split("/")
+    if any(part in {"", ".", ".."} for part in raw_parts):
+        raise StabilityCertificationError(f"{label} must be a normalized POSIX relative path")
+    path = PurePosixPath(text)
+    if path.is_absolute() or str(path) != text:
+        raise StabilityCertificationError(f"{label} must be a normalized POSIX relative path")
+    return text
+
+
+def _missing_provenance_fields(provenance: Mapping[str, Any]) -> list[str]:
+    return sorted(
+        key
+        for key, value in provenance.items()
+        if not isinstance(value, str) or not value or value == "unknown"
+    )
+
+
+def _validate_provenance(value: Any, label: str) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping) or set(value) != set(PROVENANCE_FIELDS):
+        raise StabilityCertificationError(f"{label} is invalid")
+    for field in ("server_revision", "client_revision", "datapack"):
+        field_value = value.get(field)
+        if field_value is not None:
+            _safe_text(field_value, f"{label}.{field}")
+    execution_tier = value.get("execution_tier")
+    if execution_tier is not None and execution_tier not in EXECUTION_TIERS:
+        raise StabilityCertificationError(f"{label}.execution_tier is invalid")
     return value
 
 
@@ -770,7 +805,7 @@ def _validate_source(value: Any, label: str) -> None:
     }:
         raise StabilityCertificationError(f"{label} has an invalid field set")
     _safe_text(value.get("root_id"), f"{label}.root_id")
-    _safe_text(value.get("path"), f"{label}.path")
+    _safe_relative_path(value.get("path"), f"{label}.path")
     index = value.get("attempt_history_index")
     if index is not None:
         _require_non_negative_int(index, f"{label}.attempt_history_index")
@@ -783,10 +818,13 @@ def _validate_cleanup(value: Any, label: str) -> None:
         "contract_valid",
     }:
         raise StabilityCertificationError(f"{label} has an invalid field set")
+    _safe_text(value.get("status"), f"{label}.status")
     if not isinstance(value.get("cleanup_certified"), bool) or not isinstance(
         value.get("contract_valid"), bool
     ):
         raise StabilityCertificationError(f"{label} booleans are invalid")
+    if value.get("cleanup_certified") is True and value.get("contract_valid") is not True:
+        raise StabilityCertificationError(f"{label} certification requires a valid contract")
 
 
 def validate_report(report: Mapping[str, Any]) -> None:
@@ -826,6 +864,10 @@ def validate_report(report: Mapping[str, Any]) -> None:
     minimum_runs = _require_positive_int(policy.get("minimum_runs"), "policy.minimum_runs")
     if policy.get("comparability_fields") != list(PROVENANCE_FIELDS):
         raise StabilityCertificationError("policy comparability fields are invalid")
+    if policy.get("pass_definition") != (
+        "every counted attempt has status success and exact cleanup certification pass"
+    ):
+        raise StabilityCertificationError("policy pass definition is invalid")
     if policy.get("mixed_result_state") != "unstable":
         raise StabilityCertificationError("policy mixed-result state is invalid")
     if policy.get("insufficient_result_state") != "not-evaluated":
@@ -860,6 +902,20 @@ def validate_report(report: Mapping[str, Any]) -> None:
     roots = boundary.get("roots")
     if not isinstance(roots, list):
         raise StabilityCertificationError("evidence_boundary.roots must be an array")
+    root_file_count = 0
+    for index, root in enumerate(roots, start=1):
+        root_label = f"evidence_boundary.roots[{index - 1}]"
+        if not isinstance(root, Mapping) or set(root) != {"id", "result_files"}:
+            raise StabilityCertificationError(f"{root_label} has an invalid field set")
+        if root.get("id") != f"evidence-{index}":
+            raise StabilityCertificationError(f"{root_label}.id is invalid")
+        root_file_count += _require_non_negative_int(
+            root.get("result_files"), f"{root_label}.result_files"
+        )
+    if root_file_count != (
+        boundary.get("valid_envelope_count") + boundary.get("invalid_result_count")
+    ):
+        raise StabilityCertificationError("evidence root file counts are inconsistent")
 
     certifications = report.get("certifications")
     if not isinstance(certifications, list):
@@ -905,11 +961,11 @@ def validate_report(report: Mapping[str, Any]) -> None:
             raise StabilityCertificationError(f"{label}.state is invalid")
         if cell.get("minimum_runs") != minimum_runs:
             raise StabilityCertificationError(f"{label}.minimum_runs disagrees with policy")
-        provenance = cell.get("provenance")
-        if not isinstance(provenance, Mapping) or set(provenance) != set(
-            PROVENANCE_FIELDS
-        ):
-            raise StabilityCertificationError(f"{label}.provenance is invalid")
+        provenance = _validate_provenance(
+            cell.get("provenance"), f"{label}.provenance"
+        )
+        if cell_id != _cell_id(scenario, provenance):
+            raise StabilityCertificationError(f"{label}.cell_id is inconsistent")
         attempts = cell.get("attempts")
         if not isinstance(attempts, list) or not attempts:
             raise StabilityCertificationError(f"{label}.attempts must be non-empty")
@@ -938,9 +994,17 @@ def validate_report(report: Mapping[str, Any]) -> None:
                 raise StabilityCertificationError(
                     f"{attempt_label} has an invalid field set"
                 )
-            _safe_text(attempt.get("identity"), f"{attempt_label}.identity")
-            _safe_text(attempt.get("run_id"), f"{attempt_label}.run_id")
-            _require_positive_int(attempt.get("attempt"), f"{attempt_label}.attempt")
+            identity = _safe_text(
+                attempt.get("identity"), f"{attempt_label}.identity"
+            )
+            run_id = _safe_text(attempt.get("run_id"), f"{attempt_label}.run_id")
+            attempt_number = _require_positive_int(
+                attempt.get("attempt"), f"{attempt_label}.attempt"
+            )
+            if identity != f"{run_id}#{attempt_number}":
+                raise StabilityCertificationError(
+                    f"{attempt_label}.identity is inconsistent"
+                )
             if attempt.get("status") not in RESULT_STATUSES:
                 raise StabilityCertificationError(f"{attempt_label}.status is invalid")
             if attempt.get("outcome") not in {"clean-pass", "failed", "blocked"}:
@@ -1007,6 +1071,10 @@ def validate_report(report: Mapping[str, Any]) -> None:
             raise StabilityCertificationError(f"{label} duplicate identities are invalid")
         if not isinstance(missing, list) or missing != sorted(set(missing)):
             raise StabilityCertificationError(f"{label} missing provenance is invalid")
+        if missing != _missing_provenance_fields(provenance):
+            raise StabilityCertificationError(
+                f"{label} missing provenance is inconsistent"
+            )
         expected_state, expected_reason = _classification(
             attempts=attempts,
             minimum_runs=minimum_runs,
@@ -1019,16 +1087,38 @@ def validate_report(report: Mapping[str, Any]) -> None:
             values = cell.get(field)
             if not isinstance(values, list) or values != sorted(set(values)):
                 raise StabilityCertificationError(f"{label}.{field} must be sorted unique")
-        for field in (
-            "failure_class_distribution",
-            "first_divergence_distribution",
-        ):
+        distribution_fields = {
+            "failure_class_distribution": "failure_classification",
+            "first_divergence_distribution": "first_divergence",
+        }
+        for field, attempt_field in distribution_fields.items():
             distribution = cell.get(field)
             if not isinstance(distribution, Mapping):
                 raise StabilityCertificationError(f"{label}.{field} is invalid")
             for key, count in distribution.items():
                 _safe_text(key, f"{label}.{field} key")
                 _require_positive_int(count, f"{label}.{field}.{key}")
+            if dict(distribution) != _distribution(attempts, attempt_field):
+                raise StabilityCertificationError(
+                    f"{label}.{field} is inconsistent"
+                )
+        expected_cleanup_failures = sum(
+            attempt["cleanup"].get("contract_valid") is True
+            and attempt["cleanup"].get("cleanup_certified") is False
+            for attempt in attempts
+        )
+        expected_cleanup_unknowns = sum(
+            attempt["cleanup"].get("contract_valid") is False
+            for attempt in attempts
+        )
+        if cell.get("cleanup_failure_count") != expected_cleanup_failures:
+            raise StabilityCertificationError(
+                f"{label}.cleanup_failure_count is inconsistent"
+            )
+        if cell.get("cleanup_unknown_count") != expected_cleanup_unknowns:
+            raise StabilityCertificationError(
+                f"{label}.cleanup_unknown_count is inconsistent"
+            )
         attempt_total += run_count
         clean_total += clean_count
         failed_total += failed_count
@@ -1065,6 +1155,25 @@ def validate_report(report: Mapping[str, Any]) -> None:
     invalid = report.get("invalid_evidence")
     if not isinstance(invalid, list):
         raise StabilityCertificationError("invalid_evidence must be an array")
+    invalid_keys: list[tuple[str, str, str]] = []
+    for index, item in enumerate(invalid):
+        label = f"invalid_evidence[{index}]"
+        if not isinstance(item, Mapping) or set(item) != {"source", "error"}:
+            raise StabilityCertificationError(f"{label} has an invalid field set")
+        source_value = item.get("source")
+        if not isinstance(source_value, Mapping) or set(source_value) != {
+            "root_id",
+            "path",
+        }:
+            raise StabilityCertificationError(f"{label}.source is invalid")
+        root_id = _safe_text(source_value.get("root_id"), f"{label}.source.root_id")
+        source_path = _safe_relative_path(
+            source_value.get("path"), f"{label}.source.path"
+        )
+        error = _safe_text(item.get("error"), f"{label}.error")
+        invalid_keys.append((root_id, source_path, error))
+    if invalid_keys != sorted(invalid_keys):
+        raise StabilityCertificationError("invalid_evidence must be sorted")
 
     summary = report.get("summary")
     summary_keys = {

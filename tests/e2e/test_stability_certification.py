@@ -290,6 +290,65 @@ class StabilityCertificationTest(unittest.TestCase):
         ):
             stability.validate_report(report)
 
+    def test_validation_rejects_tampered_cell_id(self) -> None:
+        report = self.build(
+            [self.envelope([self.attempt(1), self.attempt(2)])],
+            minimum_runs=2,
+        )
+        report["certifications"][0]["cell_id"] = "0" * 20
+        with self.assertRaisesRegex(
+            stability.StabilityCertificationError, "cell_id is inconsistent"
+        ):
+            stability.validate_report(report)
+
+    def test_validation_rejects_tampered_distribution(self) -> None:
+        report = self.build(
+            [self.envelope([self.attempt(1), self.attempt(2, status="failure")])],
+            minimum_runs=2,
+        )
+        report["certifications"][0]["failure_class_distribution"] = {"assertion": 2}
+        with self.assertRaisesRegex(
+            stability.StabilityCertificationError,
+            "failure_class_distribution is inconsistent",
+        ):
+            stability.validate_report(report)
+
+    def test_validation_rejects_tampered_cleanup_count(self) -> None:
+        report = self.build(
+            [self.envelope([self.attempt(1), self.attempt(2, cleanup_certified=False)])],
+            minimum_runs=2,
+        )
+        report["certifications"][0]["cleanup_failure_count"] = 0
+        with self.assertRaisesRegex(
+            stability.StabilityCertificationError,
+            "cleanup_failure_count is inconsistent",
+        ):
+            stability.validate_report(report)
+
+    def test_validation_rejects_unsafe_source_path(self) -> None:
+        report = self.build(
+            [self.envelope([self.attempt(1), self.attempt(2)])],
+            minimum_runs=2,
+        )
+        report["certifications"][0]["attempts"][0]["source"]["path"] = "../result.json"
+        with self.assertRaisesRegex(
+            stability.StabilityCertificationError,
+            "normalized POSIX relative path",
+        ):
+            stability.validate_report(report)
+
+    def test_validation_rejects_unsupported_execution_tier(self) -> None:
+        report = self.build(
+            [self.envelope([self.attempt(1), self.attempt(2)])],
+            minimum_runs=2,
+        )
+        report["certifications"][0]["provenance"]["execution_tier"] = "nightly"
+        with self.assertRaisesRegex(
+            stability.StabilityCertificationError,
+            "execution_tier is invalid",
+        ):
+            stability.validate_report(report)
+
     def test_normalize_envelope_reuses_coverage_normalization(self) -> None:
         calls: list[tuple[str, str]] = []
 
