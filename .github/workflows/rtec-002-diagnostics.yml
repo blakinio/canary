@@ -9,6 +9,12 @@ on:
       - "docs/agents/real-tibia/evidence/**"
       - "tools/agents/real_tibia_evidence*.py"
       - "tools/agents/test_real_tibia_evidence*.py"
+  pull_request:
+    paths:
+      - ".github/workflows/rtec-002-diagnostics.yml"
+      - "docs/agents/real-tibia/evidence/**"
+      - "tools/agents/real_tibia_evidence*.py"
+      - "tools/agents/test_real_tibia_evidence*.py"
 
 permissions:
   contents: read
