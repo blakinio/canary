@@ -4,7 +4,7 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-25T15:18:00+02:00
+updated: 2026-07-25T15:25:00+02:00
 last_verified_commit: "fd338ccc7864e572f8bed8e38144dc53e096293a"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
