@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import heapq
 from collections import Counter
 from dataclasses import asdict
-from typing import Any, Iterable, Iterator, Mapping
+from typing import Any, Iterator, Mapping
 
 from otbm_reachability_transition import _classify_tile
 from otbm_reachability_types import FindingCollector as ReachabilityFindingCollector
@@ -44,13 +43,13 @@ def _iter_area_region_tiles(
             yield tile_index, tile
 
 
-def _iter_region_tiles_ordered(
+def _iter_keyed_tiles(
     index: Any,
-    lower: Position,
-    upper: Position,
-) -> Iterator[tuple[int, Any]]:
-    heap: list[tuple[tuple[int, int, int], int, int, Any, Iterator[tuple[int, Any]]]] = []
-    serial = 0
+    bounds: tuple[Position, Position] | None,
+) -> Iterator[tuple[tuple[int, int, int, int, int], int, Any]]:
+    lower = bounds[0] if bounds is not None else (0, 0, 0)
+    upper = bounds[1] if bounds is not None else (0xFFFF, 0xFFFF, 15)
+    previous: tuple[int, int, int, int, int] | None = None
     for area in index.areas:
         if not lower[2] <= area.z <= upper[2]:
             continue
@@ -58,25 +57,19 @@ def _iter_region_tiles_ordered(
             continue
         if area.base_y > upper[1] or area.base_y + 255 < lower[1]:
             continue
-        iterator = _iter_area_region_tiles(index, area, lower, upper)
-        first = next(iterator, None)
-        if first is None:
-            continue
-        tile_index, tile = first
-        key = (int(tile.z), int(tile.y), int(tile.x))
-        heapq.heappush(heap, (key, serial, tile_index, tile, iterator))
-        serial += 1
-
-    while heap:
-        _key, _serial, tile_index, tile, iterator = heapq.heappop(heap)
-        yield tile_index, tile
-        following = next(iterator, None)
-        if following is None:
-            continue
-        next_tile_index, next_tile = following
-        next_key = (int(next_tile.z), int(next_tile.y), int(next_tile.x))
-        heapq.heappush(heap, (next_key, serial, next_tile_index, next_tile, iterator))
-        serial += 1
+        area_key = (int(area.z), int(area.base_y), int(area.base_x))
+        for tile_index, tile in _iter_area_region_tiles(index, area, lower, upper):
+            # World Index is intentionally area-major: areas are ordered by
+            # (z, baseY, baseX), while tiles inside each area are ordered by
+            # (y, x).  This compound key preserves that canonical physical
+            # layout and gives Semantic Diff a deterministic O(n) merge order
+            # without assuming the concatenated tile records are globally
+            # position-sorted.
+            key = (*area_key, int(tile.y), int(tile.x))
+            if previous is not None and key <= previous:
+                raise SemanticDiffError("World Index area/tile iteration is not strictly ordered")
+            previous = key
+            yield key, tile_index, tile
 
 
 def _semantic_placement(raw: Mapping[str, Any]) -> dict[str, Any]:
@@ -141,18 +134,120 @@ def snapshot_tile(
 
 
 def iter_snapshots(index: Any, appearances: Mapping[int, Any] | None, bounds: tuple[Position, Position] | None) -> Iterator[TileSnapshot]:
-    if bounds is None:
-        iterator: Iterable[tuple[int, Any]] = ((tile_index, index.tile(tile_index)) for tile_index in range(index.header.tile_count))
-    else:
-        iterator = _iter_region_tiles_ordered(index, bounds[0], bounds[1])
-    previous: tuple[int, int, int] | None = None
-    for tile_index, tile in iterator:
-        snapshot = snapshot_tile(index, tile_index, tile, appearances)
-        key = _position_key(snapshot.position)
-        if previous is not None and key <= previous:
-            raise SemanticDiffError("World Index tile iteration is not strictly ordered")
-        previous = key
-        yield snapshot
+    for _key, tile_index, tile in _iter_keyed_tiles(index, bounds):
+        yield snapshot_tile(index, tile_index, tile, appearances)
+
+
+def _mechanic_counts_by_tile(index: Any) -> dict[int, tuple[int, int]]:
+    counts: dict[int, list[int]] = {}
+    for mechanic_index in range(index.header.mechanic_count):
+        placement_ordinal, mechanic = index.mechanic_record(mechanic_index)
+        placement = index.placement(placement_ordinal)
+        tile_index = int(placement["tileIndex"])
+        bucket = counts.setdefault(tile_index, [0, 0])
+        bucket[0] += sum(
+            1
+            for field in MECHANIC_FIELDS
+            if field != "teleportDestination" and field in mechanic
+        )
+        bucket[1] += int("teleportDestination" in mechanic)
+    return {tile_index: (values[0], values[1]) for tile_index, values in counts.items()}
+
+
+def _emit_unmatched_tile_bulk(
+    collector: FindingCollector,
+    *,
+    tile: Any,
+    tile_index: int,
+    mechanic_counts: Mapping[int, tuple[int, int]],
+    added: bool,
+) -> None:
+    classification = "added" if added else "removed"
+    collector.add_count(
+        kind="tile-added" if added else "tile-removed",
+        classifications=[classification],
+        evidence_level="structural",
+        count=1,
+    )
+    collector.add_count(
+        kind="item-added" if added else "item-removed",
+        classifications=[classification],
+        evidence_level="semantic",
+        count=int(tile.placement_count),
+    )
+    generic_count, teleport_count = mechanic_counts.get(tile_index, (0, 0))
+    collector.add_count(
+        kind="mechanic-added" if added else "mechanic-removed",
+        classifications=[classification],
+        evidence_level="semantic",
+        count=generic_count,
+    )
+    collector.add_count(
+        kind="teleport-source-added" if added else "teleport-source-removed",
+        classifications=[classification],
+        evidence_level="semantic",
+        count=teleport_count,
+    )
+
+
+def _consume_unmatched_area(
+    current: tuple[tuple[int, int, int, int, int], int, Any],
+    iterator: Iterator[tuple[tuple[int, int, int, int, int], int, Any]],
+    mechanic_counts: Mapping[int, tuple[int, int]],
+) -> tuple[
+    tuple[tuple[int, int, int, int, int], int, Any] | None,
+    int,
+    int,
+    int,
+    int,
+]:
+    area_key = current[0][:3]
+    tile_count = placement_count = generic_count = teleport_count = 0
+    while current is not None and current[0][:3] == area_key:
+        _key, tile_index, tile = current
+        tile_count += 1
+        placement_count += int(tile.placement_count)
+        tile_generic, tile_teleport = mechanic_counts.get(tile_index, (0, 0))
+        generic_count += tile_generic
+        teleport_count += tile_teleport
+        current = next(iterator, None)
+    return current, tile_count, placement_count, generic_count, teleport_count
+
+
+def _emit_unmatched_area_bulk(
+    collector: FindingCollector,
+    *,
+    tile_count: int,
+    placement_count: int,
+    generic_mechanic_count: int,
+    teleport_count: int,
+    added: bool,
+) -> None:
+    classification = "added" if added else "removed"
+    collector.add_count(
+        kind="tile-added" if added else "tile-removed",
+        classifications=[classification],
+        evidence_level="structural",
+        count=tile_count,
+    )
+    collector.add_count(
+        kind="item-added" if added else "item-removed",
+        classifications=[classification],
+        evidence_level="semantic",
+        count=placement_count,
+    )
+    collector.add_count(
+        kind="mechanic-added" if added else "mechanic-removed",
+        classifications=[classification],
+        evidence_level="semantic",
+        count=generic_mechanic_count,
+    )
+    collector.add_count(
+        kind="teleport-source-added" if added else "teleport-source-removed",
+        classifications=[classification],
+        evidence_level="semantic",
+        count=teleport_count,
+    )
 
 
 def _walk_nodes(value: Any, *, path: tuple[str, ...] = (), depth: int = 0) -> Iterator[tuple[tuple[str, ...], Mapping[str, Any]]]:
@@ -676,67 +771,167 @@ def compare_worlds(
 ) -> dict[str, Any]:
     collector = FindingCollector(sample_limit)
     correlation_index = build_correlation_index(correlation_documents or {}) if correlation_documents else None
-    before_iterator = iter(iter_snapshots(before_index, appearances, bounds))
-    after_iterator = iter(iter_snapshots(after_index, appearances, bounds))
+    before_iterator = iter(_iter_keyed_tiles(before_index, bounds))
+    after_iterator = iter(_iter_keyed_tiles(after_index, bounds))
     before_current = next(before_iterator, None)
     after_current = next(after_iterator, None)
+    before_mechanic_counts = _mechanic_counts_by_tile(before_index)
+    after_mechanic_counts = _mechanic_counts_by_tile(after_index)
+    before_generic_total = sum(value[0] for value in before_mechanic_counts.values())
+    before_teleport_total = sum(value[1] for value in before_mechanic_counts.values())
+    after_generic_total = sum(value[0] for value in after_mechanic_counts.values())
+    after_teleport_total = sum(value[1] for value in after_mechanic_counts.values())
+    fully_disjoint_areas = bounds is None and {
+        (int(area.z), int(area.base_y), int(area.base_x)) for area in before_index.areas
+    }.isdisjoint(
+        (int(area.z), int(area.base_y), int(area.base_x)) for area in after_index.areas
+    )
     before_tiles = after_tiles = unchanged_tiles = changed_positions = 0
     before_placements = after_placements = 0
 
     while before_current is not None or after_current is not None:
+        if (
+            fully_disjoint_areas
+            and correlation_index is None
+            and len(collector.samples) >= collector.sample_limit
+        ):
+            remaining_before_tiles = int(before_index.header.tile_count) - before_tiles
+            remaining_before_placements = int(before_index.header.placement_count) - before_placements
+            remaining_after_tiles = int(after_index.header.tile_count) - after_tiles
+            remaining_after_placements = int(after_index.header.placement_count) - after_placements
+            _emit_unmatched_area_bulk(
+                collector,
+                tile_count=remaining_before_tiles,
+                placement_count=remaining_before_placements,
+                generic_mechanic_count=before_generic_total - collector.by_kind.get("mechanic-removed", 0),
+                teleport_count=before_teleport_total - collector.by_kind.get("teleport-source-removed", 0),
+                added=False,
+            )
+            _emit_unmatched_area_bulk(
+                collector,
+                tile_count=remaining_after_tiles,
+                placement_count=remaining_after_placements,
+                generic_mechanic_count=after_generic_total - collector.by_kind.get("mechanic-added", 0),
+                teleport_count=after_teleport_total - collector.by_kind.get("teleport-source-added", 0),
+                added=True,
+            )
+            before_tiles += remaining_before_tiles
+            before_placements += remaining_before_placements
+            after_tiles += remaining_after_tiles
+            after_placements += remaining_after_placements
+            changed_positions += remaining_before_tiles + remaining_after_tiles
+            before_current = None
+            after_current = None
+            break
+        if correlation_index is None and len(collector.samples) >= collector.sample_limit:
+            before_area_key = before_current[0][:3] if before_current is not None else None
+            after_area_key = after_current[0][:3] if after_current is not None else None
+            if before_current is not None and (after_area_key is None or before_area_key < after_area_key):
+                before_current, tiles, placements, generic, teleports = _consume_unmatched_area(
+                    before_current,
+                    before_iterator,
+                    before_mechanic_counts,
+                )
+                _emit_unmatched_area_bulk(
+                    collector,
+                    tile_count=tiles,
+                    placement_count=placements,
+                    generic_mechanic_count=generic,
+                    teleport_count=teleports,
+                    added=False,
+                )
+                before_tiles += tiles
+                before_placements += placements
+                changed_positions += tiles
+                continue
+            if after_current is not None and (before_area_key is None or after_area_key < before_area_key):
+                after_current, tiles, placements, generic, teleports = _consume_unmatched_area(
+                    after_current,
+                    after_iterator,
+                    after_mechanic_counts,
+                )
+                _emit_unmatched_area_bulk(
+                    collector,
+                    tile_count=tiles,
+                    placement_count=placements,
+                    generic_mechanic_count=generic,
+                    teleport_count=teleports,
+                    added=True,
+                )
+                after_tiles += tiles
+                after_placements += placements
+                changed_positions += tiles
+                continue
         if before_current is None:
             relation = 1
         elif after_current is None:
             relation = -1
         else:
-            relation = (_position_key(before_current.position) > _position_key(after_current.position)) - (
-                _position_key(before_current.position) < _position_key(after_current.position)
-            )
+            relation = (before_current[0] > after_current[0]) - (before_current[0] < after_current[0])
         start_total = collector.total
         if relation < 0:
-            snapshot = before_current
-            assert snapshot is not None
+            _key, tile_index, tile = before_current
             before_tiles += 1
-            before_placements += len(snapshot.placements)
-            _add(
-                collector,
-                correlation_index,
-                kind="tile-removed",
-                classifications=["removed"],
-                evidence_level="structural",
-                position=snapshot.position,
-                before=snapshot.tile_json(),
-                after=None,
-                message="An exact indexed tile position was removed",
-            )
-            _emit_all_items(collector, correlation_index, snapshot, added=False)
+            before_placements += int(tile.placement_count)
+            if correlation_index is None and len(collector.samples) >= collector.sample_limit:
+                _emit_unmatched_tile_bulk(
+                    collector,
+                    tile=tile,
+                    tile_index=tile_index,
+                    mechanic_counts=before_mechanic_counts,
+                    added=False,
+                )
+            else:
+                snapshot = snapshot_tile(before_index, tile_index, tile, appearances)
+                _add(
+                    collector,
+                    correlation_index,
+                    kind="tile-removed",
+                    classifications=["removed"],
+                    evidence_level="structural",
+                    position=snapshot.position,
+                    before=snapshot.tile_json(),
+                    after=None,
+                    message="An exact indexed tile position was removed",
+                )
+                _emit_all_items(collector, correlation_index, snapshot, added=False)
             before_current = next(before_iterator, None)
         elif relation > 0:
-            snapshot = after_current
-            assert snapshot is not None
+            _key, tile_index, tile = after_current
             after_tiles += 1
-            after_placements += len(snapshot.placements)
-            _add(
-                collector,
-                correlation_index,
-                kind="tile-added",
-                classifications=["added"],
-                evidence_level="structural",
-                position=snapshot.position,
-                before=None,
-                after=snapshot.tile_json(),
-                message="An exact indexed tile position was added",
-            )
-            _emit_all_items(collector, correlation_index, snapshot, added=True)
+            after_placements += int(tile.placement_count)
+            if correlation_index is None and len(collector.samples) >= collector.sample_limit:
+                _emit_unmatched_tile_bulk(
+                    collector,
+                    tile=tile,
+                    tile_index=tile_index,
+                    mechanic_counts=after_mechanic_counts,
+                    added=True,
+                )
+            else:
+                snapshot = snapshot_tile(after_index, tile_index, tile, appearances)
+                _add(
+                    collector,
+                    correlation_index,
+                    kind="tile-added",
+                    classifications=["added"],
+                    evidence_level="structural",
+                    position=snapshot.position,
+                    before=None,
+                    after=snapshot.tile_json(),
+                    message="An exact indexed tile position was added",
+                )
+                _emit_all_items(collector, correlation_index, snapshot, added=True)
             after_current = next(after_iterator, None)
         else:
-            before_snapshot = before_current
-            after_snapshot = after_current
-            assert before_snapshot is not None and after_snapshot is not None
+            _before_key, before_tile_index, before_tile = before_current
+            _after_key, after_tile_index, after_tile = after_current
+            before_snapshot = snapshot_tile(before_index, before_tile_index, before_tile, appearances)
+            after_snapshot = snapshot_tile(after_index, after_tile_index, after_tile, appearances)
             before_tiles += 1
             after_tiles += 1
-            before_placements += len(before_snapshot.placements)
-            after_placements += len(after_snapshot.placements)
+            before_placements += int(before_tile.placement_count)
+            after_placements += int(after_tile.placement_count)
             position = before_snapshot.position
             if before_snapshot.kind != after_snapshot.kind:
                 _add(

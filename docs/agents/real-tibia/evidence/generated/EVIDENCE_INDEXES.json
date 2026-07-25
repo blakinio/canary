@@ -7,13 +7,18 @@
     "current-canary-behavior": [
       "RT-VOCATIONS-0003",
       "RT-VOCATIONS-0004",
-      "RT-VOCATIONS-0005"
+      "RT-VOCATIONS-0005",
+      "RT-WEAPON-PROFICIENCY-0002"
     ],
     "historical-version": [
       "RT-VOCATIONS-0002"
     ],
     "official-feature-identity": [
-      "RT-VOCATIONS-0001"
+      "RT-VOCATIONS-0001",
+      "RT-WEAPON-PROFICIENCY-0001"
+    ],
+    "visible-gameplay-behavior": [
+      "RT-WEAPON-PROFICIENCY-0003"
     ]
   },
   "evidence_by_module": {
@@ -23,10 +28,19 @@
       "RT-VOCATIONS-0003",
       "RT-VOCATIONS-0004",
       "RT-VOCATIONS-0005"
+    ],
+    "weapon-proficiency": [
+      "RT-WEAPON-PROFICIENCY-0001",
+      "RT-WEAPON-PROFICIENCY-0002",
+      "RT-WEAPON-PROFICIENCY-0003"
     ]
   },
   "evidence_by_version_axis": {
     "canary_commit": {
+      "124b029d1a2498a64fa6612b16efa386b8786a83": [
+        "RT-WEAPON-PROFICIENCY-0002",
+        "RTVH-WEAPON-PROFICIENCY-0003"
+      ],
       "930e0a15767b7e5348bb36c679fa5e458a76f184": [
         "RT-VOCATIONS-0003",
         "RT-VOCATIONS-0004",
@@ -39,6 +53,10 @@
         "RT-VOCATIONS-0001",
         "RT-VOCATIONS-0004"
       ],
+      "Fixes and Changes 2026-07-14": [
+        "RT-WEAPON-PROFICIENCY-0003",
+        "RTVH-WEAPON-PROFICIENCY-0002"
+      ],
       "Monk announcement 2025-02-10": [
         "RT-VOCATIONS-0002",
         "RTVH-VOCATIONS-0001"
@@ -46,11 +64,23 @@
       "Monk release 2025-04-08": [
         "RT-VOCATIONS-0002",
         "RTVH-VOCATIONS-0001"
+      ],
+      "Summer Update 2026 released 2026-07-13": [
+        "RT-WEAPON-PROFICIENCY-0001",
+        "RTVH-WEAPON-PROFICIENCY-0001"
+      ],
+      "Summer Update 2026 verified 2026-07-25": [
+        "RT-WEAPON-PROFICIENCY-0001",
+        "RTVH-WEAPON-PROFICIENCY-0001"
+      ],
+      "Weapon Proficiency Update 2026-06-22": [
+        "RT-WEAPON-PROFICIENCY-0001",
+        "RTVH-WEAPON-PROFICIENCY-0001"
       ]
     }
   },
   "format": "canary-real-tibia-generated-indexes-v1",
-  "input_sha256": "8986f61407977df1ecb394c2568245d917cc8a185a8e96c0cf5e994d4a01aac0",
+  "input_sha256": "d02795be54aed8ae2bad404bd06f58d1b8550a82f156210a2e0bcfc191c3b11b",
   "nonclaims": [
     "No overall parity percentage is generated.",
     "No release approval or whole-game parity claim is generated.",
@@ -87,13 +117,42 @@
         ],
         "proof_level": "definition-found"
       }
+    },
+    "weapon-proficiency": {
+      "current-canary-behavior": {
+        "evidence_ids": [
+          "RT-WEAPON-PROFICIENCY-0002"
+        ],
+        "evidence_states": [
+          "PROVEN"
+        ],
+        "proof_level": "runtime-path-proven"
+      },
+      "official-feature-identity": {
+        "evidence_ids": [
+          "RT-WEAPON-PROFICIENCY-0001"
+        ],
+        "evidence_states": [
+          "PROVEN"
+        ],
+        "proof_level": "definition-found"
+      },
+      "visible-gameplay-behavior": {
+        "evidence_ids": [
+          "RT-WEAPON-PROFICIENCY-0003"
+        ],
+        "evidence_states": [
+          "UNKNOWN"
+        ],
+        "proof_level": "definition-found"
+      }
     }
   },
   "schema_version": 1,
   "source_counts": {
-    "evidence_records": 5,
+    "evidence_records": 8,
     "owner_requests": 1,
-    "version_history_records": 2
+    "version_history_records": 5
   },
   "stale_evidence": [],
   "superseded_records": [],
