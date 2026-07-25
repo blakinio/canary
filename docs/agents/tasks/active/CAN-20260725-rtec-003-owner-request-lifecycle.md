@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: feat/rtec-003-owner-request-lifecycle-20260725
 base_branch: main
 created: 2026-07-25T15:30:00+02:00
-updated: 2026-07-25T15:30:00+02:00
-last_verified_commit: "2372ce3898e12cc14ffda4626f638ad812b01533"
+updated: 2026-07-25T15:35:00+02:00
+last_verified_commit: "1b1a056200a878579082397fc3f712e430dc95d9"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "921"
 depends_on:
   - RTEC-001
   - RTEC-002
@@ -109,6 +109,7 @@ This task does not:
 | Head | Check | Result | Evidence |
 |---|---|---|---|
 | `2372ce3898e12cc14ffda4626f638ad812b01533` | fresh main / open PR / request-state preflight | PASS | no RTEC-003 overlap; RTEC-002 feature, lifecycle and programme closeout are merged |
+| `1b1a056200a878579082397fc3f712e430dc95d9` | early draft PR creation | PASS | PR #921 targets `blakinio/canary:main` from the dedicated task branch |
 
 # Remaining work
 
@@ -118,10 +119,10 @@ Implement the bounded lifecycle CLI and tests, then validate the exact diff and 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T15:30:00+02:00
-head: 2372ce3898e12cc14ffda4626f638ad812b01533
+updated_at: 2026-07-25T15:35:00+02:00
+head: 1b1a056200a878579082397fc3f712e430dc95d9
 branch: feat/rtec-003-owner-request-lifecycle-20260725
-pr: UNKNOWN
+pr: 921
 status: implementing
 context_routes:
   - real-tibia-evidence-collection
@@ -140,6 +141,7 @@ proven:
   - no overlapping RTEC-003 PR or active task was found
   - the v1 request schema and runtime validator already define legal transitions
   - the vocations request has no owner evidence and must remain ready-for-owner-triage
+  - draft PR 921 is open on the dedicated branch
 derived:
   - a separate dry-run-first mutation tool can reuse the canonical contracts without changing their schema
 unknown:
@@ -157,8 +159,11 @@ validation:
   - command: live GitHub preflight
     result: PASS
     evidence: current main 2372ce3898e12cc14ffda4626f638ad812b01533; no overlapping RTEC-003 work
+  - command: draft PR safety check
+    result: PASS
+    evidence: PR 921 uses approved base/head repository and task branch
 blockers: []
-next_action: Open the early draft PR, then implement the lifecycle CLI and focused tests.
+next_action: Implement the lifecycle CLI and focused tests.
 ```
 
 # Handoff
