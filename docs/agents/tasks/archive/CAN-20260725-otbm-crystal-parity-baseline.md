@@ -5,8 +5,8 @@ status: completed
 agent: "GPT-5.6 Thinking"
 owner: OTBM analysis tooling / Real Tibia parity
 created: 2026-07-25T08:00:00+02:00
-updated: 2026-07-25T20:50:00+02:00
-last_verified_commit: "5aaeb2373c4d5e2c8f5c592b629b646085277414"
+updated: 2026-07-25T20:45:00+02:00
+last_verified_commit: "20f0f9746b1c27d2c439647b261a562c1f27f15a"
 branch: docs/otbm-crystal-parity-lifecycle
 base_branch: main
 related_pr: "923, 935"
