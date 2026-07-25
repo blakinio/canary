@@ -2,13 +2,13 @@
 task_id: CAN-20260725-rtec-002-vocations-pilot
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-002
-status: ready
+status: completed
 agent: "GPT-5.6 Thinking"
 branch: docs/rtec-002-vocations-pilot-20260725
 base_branch: main
 created: 2026-07-25T09:42:45+02:00
-updated: 2026-07-25T10:40:00+02:00
-last_verified_commit: "3c832c018b10882bb3a89af0c5d26fa697b35c29"
+updated: 2026-07-25T08:52:56Z
+last_verified_commit: "fe35eda9c14766c80d13c161d38ce13a1db6e0d5"
 risk: medium
 related_issue: ""
 related_pr: "910"
@@ -58,6 +58,7 @@ reuses:
   - canary-real-tibia-module-registry
 public_interfaces: []
 cross_repo_tasks: []
+completed: 2026-07-25T08:52:56Z
 ---
 
 # Goal
@@ -191,3 +192,11 @@ next_action: Verify the exact final checkpoint head, make no further commits, ma
 - Program closeout: pending after feature/lifecycle merge
 - Catalogue/changelog: no change required
 - Archive: pending post-merge lifecycle
+
+## Automated lifecycle completion
+
+- Feature PR: #910.
+- Feature head: `a3ff7430e190a61ab2c6465b4ba1daa4526d6743`.
+- Merge commit: `fe35eda9c14766c80d13c161d38ce13a1db6e0d5`.
+- Merged at: `2026-07-25T08:52:56Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
