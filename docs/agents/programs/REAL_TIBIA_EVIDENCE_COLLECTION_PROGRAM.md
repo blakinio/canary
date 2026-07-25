@@ -4,8 +4,8 @@ name: Real Tibia Evidence Collection
 status: active
 owner: Real Tibia evidence coordination / platform tooling
 created: 2026-07-24T20:20:00+02:00
-updated: 2026-07-25T16:05:00+02:00
-last_verified_commit: "337812cf1d2fe587cabd6b5a71f38f149520fa83"
+updated: 2026-07-25T19:50:00+02:00
+last_verified_commit: "2505d8a9f9710745ef9df49dfa0ab76f9cad9635"
 primary_paths:
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
   - docs/ai-agent/REAL_TIBIA_EVIDENCE_COLLECTOR_ARCHITECTURE.md
@@ -317,8 +317,8 @@ The Coordinator performs shared-file integration after worker PRs merge.
 | RTEC-000 | Architecture, structure, boundaries, concurrency and prompts | merged | existing parity/E2E/OTBM/TCR governance | low | Architecture delivered by PR #889; lifecycle archived by PR #893. |
 | RTEC-001 | Evidence/request schemas, validator, deterministic indexes and tests | merged | RTEC-000 | medium | Contracts delivered by PR #897; lifecycle archived by PR #908. |
 | RTEC-002 | Pilot dossier on one bounded low-coupling module | merged | RTEC-001 | medium | Pilot delivered by PR #910; lifecycle archived by PR #915. Runtime level-gain and promotion application remain `UNKNOWN` behind `RTREQ-FEATURE-VOCATIONS-0001`. |
-| RTEC-003 | Owner-request lifecycle integration | active | RTEC-001/002 | medium | Complete and validate PR #921; do not advance the real vocations request without owner evidence. |
-| RTEC-004 | Parallel campaign wave 1 | planned | RTEC-002/003 | medium | Start at most eight workers and four concurrent PRs using isolated dossier paths. |
+| RTEC-003 | Owner-request lifecycle integration | merged | RTEC-001/002 | medium | Lifecycle CLI delivered by PR #921; task archived by PR #926. `RTREQ-FEATURE-VOCATIONS-0001` remains `ready-for-owner-triage` and requires real owner evidence. |
+| RTEC-004 | Parallel campaign wave 1 | planned | RTEC-002/003 | medium | Run fresh main/open-PR/active-task/module/request preflight, then start at most eight workers and four concurrent PRs using isolated dossier paths. |
 | RTEC-005 | Remaining module waves | planned | RTEC-004 evidence and concurrency review | medium | Continue bounded waves until all 62 modules have non-placeholder dossiers. |
 | RTEC-006 | Release/version refresh and drift operation | planned | populated dossiers and validator | medium | Add deterministic stale/version-delta selection for future Tibia/Canary changes. |
 | RTEC-007 | Coverage, confidence and unresolved-evidence dashboard | planned | stable records and owner results | medium | Generate factual dimensions without opaque parity score. |
@@ -333,4 +333,4 @@ The entire programme cannot claim that Canary faithfully reproduces Real Tibia m
 
 # Handoff
 
-Start RTEC-003 only through one new bounded active task after fresh main/open-PR/active-task/request-state preflight. Reuse the schema-version-1 contracts, the validated `vocations` pilot and `RTREQ-FEATURE-VOCATIONS-0001`; do not start RTEC-004 parallel Collector workers until owner-request lifecycle integration succeeds.
+Start RTEC-004 only through fresh main/open-PR/active-task/module/request preflight and one bounded coordinator task. Reuse the merged schema-version-1 contracts, the `vocations` pilot and owner-request lifecycle CLI; keep `RTREQ-FEATURE-VOCATIONS-0001` unclaimed until a real feature owner supplies task, PR and stable evidence. Limit wave 1 to at most eight workers and four concurrent PRs on isolated dossier paths.
