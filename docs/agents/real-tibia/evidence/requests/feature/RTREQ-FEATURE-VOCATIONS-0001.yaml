@@ -1,0 +1,158 @@
+{
+  "available_inputs": {
+    "canary_paths": [
+      "data/XML/vocations.xml",
+      "src/creatures/players/vocations/vocation.cpp",
+      "src/creatures/players/vocations/vocation.hpp"
+    ],
+    "canary_symbols": [
+      "Vocations::getPromotedVocation",
+      "Vocations::loadFromXml"
+    ],
+    "exact_map_or_index_hashes": [],
+    "existing_result_ids": [],
+    "external_artifact_hashes": [],
+    "source_claims": [
+      "RT-VOCATIONS-0003",
+      "RT-VOCATIONS-0004",
+      "RT-VOCATIONS-0005"
+    ],
+    "source_urls": []
+  },
+  "blocking": false,
+  "claim_refs": [
+    "RT-VOCATIONS-0005"
+  ],
+  "collector_must_not_edit": [
+    "data/XML/vocations.xml",
+    "src/creatures/players/vocations/vocation.cpp",
+    "src/creatures/players/vocations/vocation.hpp",
+    "tests/**",
+    "tools/e2e/**"
+  ],
+  "coordination": {
+    "blocks": [],
+    "collector_pr": 910,
+    "collector_task": "CAN-20260725-rtec-002-vocations-pilot",
+    "coordination_id": "RTEC-002-VOCATIONS-RUNTIME",
+    "depends_on": [],
+    "owner_pr": null,
+    "owner_task": null
+  },
+  "format": "canary-real-tibia-owner-request-v1",
+  "history": [
+    {
+      "actor": "RTEC-002 Collector",
+      "actor_pr": 910,
+      "actor_role": "collector",
+      "actor_task": "CAN-20260725-rtec-002-vocations-pilot",
+      "at": "2026-07-25T09:42:45+02:00",
+      "from_status": null,
+      "owner_evidence_ref": null,
+      "reason": "Initial bounded request created because static source and official evidence cannot prove executed level-gain or promotion application.",
+      "to_status": "draft"
+    },
+    {
+      "actor": "RTEC-002 structured evidence reviewer",
+      "actor_pr": 910,
+      "actor_role": "reviewer",
+      "actor_task": "CAN-20260725-rtec-002-vocations-pilot",
+      "at": "2026-07-25T09:42:45+02:00",
+      "from_status": "draft",
+      "owner_evidence_ref": null,
+      "reason": "The question is bounded, inputs are exact and Collector write exclusions preserve feature-owner authority.",
+      "to_status": "ready-for-owner-triage"
+    }
+  ],
+  "module_id": "vocations",
+  "owner_kind": "feature",
+  "owner_paths_read_only_for_collector": [
+    "data/XML/vocations.xml",
+    "src/creatures/players/vocations/vocation.cpp",
+    "src/creatures/players/vocations/vocation.hpp",
+    "tests/**",
+    "tools/e2e/**"
+  ],
+  "priority": "medium",
+  "question": "On exact Canary commit 930e0a15767b7e5348bb36c679fa5e458a76f184, does one controlled level advancement for each base vocation apply the configured HP, mana and capacity gains, and does one controlled authorized promotion apply the configured base-to-promoted relationship?",
+  "related_modules": [
+    "character-progression"
+  ],
+  "request_id": "RTREQ-FEATURE-VOCATIONS-0001",
+  "request_type": "runtime-behavior-proof",
+  "requested_output_contract": {
+    "required_fields": [
+      "exact owner task and PR",
+      "exact Canary commit and runtime configuration baseline",
+      "per-vocation pre-state and post-state",
+      "promotion pre-state and post-state",
+      "result status",
+      "strongest proof level reached",
+      "explicit proves",
+      "explicit does_not_prove",
+      "first failure or blocker",
+      "retained references",
+      "freshness and invalidation dependencies"
+    ],
+    "requires_explicit_does_not_prove": true,
+    "requires_explicit_proves": true,
+    "result_format_or_schema": null,
+    "retention_boundary": "owner-retained-report"
+  },
+  "requested_owner_program": "CAN-PROGRAM-TIBIA-SYSTEM-DECOMPOSITION",
+  "required_evidence": {
+    "authority_dimension": "current-canary-behavior",
+    "minimum_e2e_maturity": null,
+    "minimum_proof_level": "behavior-proven",
+    "required_quality_dimensions": [
+      "deterministic exact-baseline setup",
+      "per-vocation assertion isolation",
+      "explicit failure and rollback observations"
+    ],
+    "required_static_dimensions": [
+      "configured HP, mana and capacity gains",
+      "configured base-to-promoted relationships"
+    ],
+    "required_version_cells": [
+      "canary_commit"
+    ]
+  },
+  "result": {
+    "available": false,
+    "blockers": [
+      "Awaiting feature-owner triage and execution."
+    ],
+    "consumed_by_evidence_records": [],
+    "does_not_prove": [],
+    "proof_level_reached": null,
+    "proves": [],
+    "result_refs": []
+  },
+  "schema_version": 1,
+  "status": "ready-for-owner-triage",
+  "suggested_owner_capability_gap": {
+    "note": "No new runner or capability is requested; the owner may use existing controlled test/runtime facilities.",
+    "present": false,
+    "reuse_value": null,
+    "summary": null
+  },
+  "superseded_by": [],
+  "supersedes": [],
+  "version_impact": {
+    "appearances_items_revision": null,
+    "canary_commit": "930e0a15767b7e5348bb36c679fa5e458a76f184",
+    "database_schema_revision": null,
+    "datapack_revision": null,
+    "maintained_otclient_commit": null,
+    "map_sha256": null,
+    "official_client_build": null,
+    "official_tibia_release": null,
+    "protocol_profile": null,
+    "spawn_npc_sidecar_revision": null
+  },
+  "why_existing_evidence_is_insufficient": [
+    "Official material proves public definitions, not Canary execution.",
+    "Current XML and C++ source prove definitions and code paths, not the observed character state transition.",
+    "TSD-003 explicitly leaves runtime validation and gameplay E2E not assessed."
+  ]
+}
