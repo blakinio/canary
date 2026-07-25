@@ -4,8 +4,8 @@ name: Universal OTS E2E automation
 status: active
 owner: e2e-platform-agent
 created: 2026-07-13T00:00:00+02:00
-updated: 2026-07-25T10:40:00+02:00
-last_verified_commit: "52fc82d5a47727c78d8d58c7fb64823669cb8479"
+updated: 2026-07-25T13:00:00+02:00
+last_verified_commit: "5463786e682c7820d201eeaff268cb6ef6bfd4f7"
 primary_paths:
   - tools/e2e/**
   - tests/e2e/runtime/**
@@ -94,7 +94,7 @@ A feature task consumes platform implementation paths read-only unless a separat
 | Standard machine-readable result envelope | merged and runtime-proven | PR #850; lifecycle archive #861 | reuse `canary-universal-e2e-result-envelope-v1` schema v3 and the existing `result.json`; keep M0-M5, orthogonal quality dimensions, failed attempts and QRI-006 cleanup certification boundaries explicit |
 | Resource cleanup certification | merged and runtime-proven | PR #871 | reuse `canary-universal-e2e-cleanup-certification-v1` schema v1 after the canonical lifecycle trap; cleanup passes only when every required applicable exact process, database, workspace and marker check passes, independently from gameplay status |
 | Factual coverage dashboard | merged | PR #885; lifecycle archive #900 | reuse `canary-universal-e2e-coverage-dashboard-v1` schema v1 over explicit retained evidence; registration never proves execution |
-| Factual stability certification | active contract/tooling | PR #912 | reuse `canary-universal-e2e-stability-certification-v1` schema v1; first real repeated-run physical baseline remains separate evidence |
+| Factual stability certification | merged | PR #912; lifecycle #914 | reuse `canary-universal-e2e-stability-certification-v1` schema v1; first real repeated-run physical baseline remains separate evidence |
 | Representative cross-system gameplay journey | merged and runtime-proven M4 sentinel | PR #765; lifecycle archive #791 | `journeys/promotion-combat-persistence` is an integration sentinel; focused lower-level scenarios remain authoritative |
 | Cyclopedia-specific prototype | closed and superseded | PR #224 | historical evidence only; do not revive or copy its infrastructure |
 
@@ -208,9 +208,9 @@ The roadmap is organized into four workstreams:
 
 Select one package at a time after live dependency and ownership preflight. QRI-001 through QRI-006, including the factual QRI-004 dashboard, are delivered. Current recommendation:
 
-1. complete active `E2E-QRI-022` PR #912 as a deterministic retained-evidence certification contract without adding execution, retry or scheduling;
-2. after the contract merges, select exactly one stable physical scenario and explicit retained artifact population for the first repeated-run baseline;
-3. keep artifact collection/retention and any nightly execution seam separate until that factual baseline proves the need.
+1. `E2E-QRI-022` deterministic retained-evidence certification is delivered through PR #912 and lifecycle-closed through PR #914;
+2. select exactly one stable physical scenario and explicit retained artifact population for the first factual repeated-run baseline;
+3. keep artifact collection/retention and any nightly execution seam separate until that baseline proves the need.
 
 Later waves cover transactional/resilience correctness (`QRI-008` through `014`), test intelligence (`QRI-015` through `021`) and operational/release confidence (`QRI-023` through `028`).
 

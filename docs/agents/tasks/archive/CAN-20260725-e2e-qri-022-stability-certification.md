@@ -11,7 +11,7 @@ updated: 2026-07-25
 last_verified_commit: "5463786e682c7820d201eeaff268cb6ef6bfd4f7"
 risk: medium
 related_issue: ""
-related_pr: "912"
+related_pr: "912, 914"
 depends_on:
   - merged and lifecycle-closed E2E-QRI-004 factual coverage dashboard
   - merged and lifecycle-closed E2E-QRI-005 result envelope
@@ -42,7 +42,7 @@ cross_repo_tasks: []
 - Delivery PR: #912.
 - Exact final delivery PR head: `bf70034702987487bb2c6d94d60d281e71b02ddd`.
 - Squash merge commit: `5463786e682c7820d201eeaff268cb6ef6bfd4f7`.
-- Lifecycle closure PR: pending final linkage.
+- Lifecycle closure PR: #914.
 - Final Agent Task Ownership: PASS, run `30154299184`.
 - Final full `ci:final-gate` CI: PASS, run `30154299240`.
 - Final `autofix.ci`: PASS, run `30154299188`.
@@ -83,4 +83,4 @@ cross_repo_tasks: []
 
 ## Lifecycle closure
 
-Delivery PR #912 is merged. This archive record releases all E2E-QRI-022 owned paths; final closure linkage and the fresh physical E2E outcome are added before the docs-only lifecycle PR is merged.
+Delivery PR #912 is merged. Lifecycle closure PR #914 releases all E2E-QRI-022 owned paths. The first factual physical repeated-run baseline remains separate follow-up work.
