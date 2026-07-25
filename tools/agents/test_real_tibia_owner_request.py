@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import copy
 import hashlib
 import json
-from pathlib import Path
 from unittest import mock
 
 import real_tibia_owner_request as owner
@@ -12,56 +10,21 @@ from real_tibia_evidence_test_support import *
 
 RESULT_REF = f"repo-file:blakinio/canary@{COMMIT}:reports/owner-result.json"
 OWNER_REF = "github-pr:blakinio/canary#123"
-
 ROUTES = {
-    "e2e": {
-        "request_id": "RTREQ-E2E-COMBAT-0001",
-        "program": "CAN-PROGRAM-E2E-PLATFORM",
-        "request_type": "physical-gameplay-proof",
-        "source_type": "physical-e2e-result",
-        "proof_level": "physical-client-proven",
-    },
-    "otbm": {
-        "request_id": "RTREQ-OTBM-COMBAT-0001",
-        "program": "CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS",
-        "request_type": "static-map-evidence",
-        "source_type": "otbm-owner-result",
-        "proof_level": "behavior-proven",
-    },
-    "tcr": {
-        "request_id": "RTREQ-TCR-COMBAT-0001",
-        "program": "CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE",
-        "request_type": "client-reference-evidence",
-        "source_type": "tcr-owner-result",
-        "proof_level": "protocol-proven",
-    },
-    "protocol": {
-        "request_id": "RTREQ-PROTOCOL-COMBAT-0001",
-        "program": "CAN-PROGRAM-PROTOCOL-TEST",
-        "request_type": "protocol-proof",
-        "source_type": "packet-capture",
-        "proof_level": "protocol-proven",
-    },
-    "feature": {
-        "request_id": "RTREQ-FEATURE-COMBAT-0001",
-        "program": "CAN-PROGRAM-COMBAT-TEST",
-        "request_type": "runtime-behavior-proof",
-        "source_type": "feature-owner-result",
-        "proof_level": "behavior-proven",
-    },
+    "e2e": ("RTREQ-E2E-COMBAT-0001", "CAN-PROGRAM-E2E-PLATFORM", "physical-gameplay-proof", "physical-e2e-result", "physical-client-proven"),
+    "otbm": ("RTREQ-OTBM-COMBAT-0001", "CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS", "static-map-evidence", "otbm-owner-result", "behavior-proven"),
+    "tcr": ("RTREQ-TCR-COMBAT-0001", "CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE", "client-reference-evidence", "tcr-owner-result", "protocol-proven"),
+    "protocol": ("RTREQ-PROTOCOL-COMBAT-0001", "CAN-PROGRAM-PROTOCOL-TEST", "protocol-proof", "packet-capture", "protocol-proven"),
+    "feature": ("RTREQ-FEATURE-COMBAT-0001", "CAN-PROGRAM-COMBAT-TEST", "runtime-behavior-proof", "feature-owner-result", "behavior-proven"),
 }
 
 
 class RealTibiaOwnerRequestLifecycleTests(EvidenceTestCase):
     def route_request(self, route: str) -> dict[str, object]:
-        spec = ROUTES[route]
-        request = self.request(spec["request_id"])
-        request.update(
-            owner_kind=route,
-            requested_owner_program=spec["program"],
-            request_type=spec["request_type"],
-        )
-        request["required_evidence"]["minimum_proof_level"] = spec["proof_level"]
+        request_id, program, request_type, _, proof_level = ROUTES[route]
+        request = self.request(request_id)
+        request.update(owner_kind=route, requested_owner_program=program, request_type=request_type)
+        request["required_evidence"]["minimum_proof_level"] = proof_level
         request["required_evidence"]["minimum_e2e_maturity"] = "M5" if route == "e2e" else None
         return request
 
@@ -114,7 +77,7 @@ class RealTibiaOwnerRequestLifecycleTests(EvidenceTestCase):
         )
 
     def result_available(self, request: dict[str, object], route: str) -> dict[str, object]:
-        spec = ROUTES[route]
+        proof_level = ROUTES[route][4]
         return owner.record_result_value(
             self.advance_to_active(request),
             expected_status="active",
@@ -127,19 +90,19 @@ class RealTibiaOwnerRequestLifecycleTests(EvidenceTestCase):
             owner_task="CAN-OWNER",
             owner_pr=11,
             result_refs=[RESULT_REF],
-            proof_level=spec["proof_level"],
+            proof_level=proof_level,
             proves=["The bounded owner observation completed."],
             does_not_prove=["No broader module or whole-game parity is proven."],
             blockers=[],
         )
 
     def owner_record(self, route: str, request_id: str) -> dict[str, object]:
-        spec = ROUTES[route]
+        _, _, _, source_type, proof_level = ROUTES[route]
         record = self.record("RT-COMBAT-0002")
         record.update(
             record_status="accepted",
             evidence_state="PROVEN",
-            proof_level=spec["proof_level"],
+            proof_level=proof_level,
             confidence="HIGH",
             uncertainty=[],
             owner_request_refs=[request_id],
@@ -147,12 +110,13 @@ class RealTibiaOwnerRequestLifecycleTests(EvidenceTestCase):
         source = record["sources"][0]
         source.update(
             source_id=f"{route}-owner-result",
-            source_type=spec["source_type"],
-            proof_level_reached=spec["proof_level"],
+            source_type=source_type,
+            proof_level_reached=proof_level,
             observation_date="2026-07-25",
             proves=["The retained owner result proves the bounded observation."],
             does_not_prove=["The result does not prove unrelated behavior."],
             limitations=[],
+            external_artifact=None,
         )
         source["locator"] = {
             "url": None,
@@ -169,12 +133,26 @@ class RealTibiaOwnerRequestLifecycleTests(EvidenceTestCase):
             "files": ["reports/owner-result.json"],
             "observations": ["Bounded owner result."],
         }
-        source["external_artifact"] = None
         return record
+
+    def consume(self, request: dict[str, object], record: dict[str, object]) -> dict[str, object]:
+        self.write_record(record)
+        return owner.consume_result_value(
+            request,
+            expected_status="result-available",
+            at="2026-07-25T11:10:00+02:00",
+            actor="collector",
+            actor_role="collector",
+            actor_task="CAN-COLLECTOR",
+            actor_pr=10,
+            reason="Collector consumed the exact stable owner result.",
+            evidence_ids=[record["evidence_id"]],
+            evidence_documents=Corpus.load(self.root).evidence_documents,
+        )
 
     def test_stable_result_reference_contract(self) -> None:
         valid = [
-            "github-pr:blakinio/canary#123",
+            OWNER_REF,
             f"github-commit:blakinio/canary@{COMMIT}",
             "github-actions-run:blakinio/canary#123",
             "github-actions-job:blakinio/canary#456",
@@ -198,8 +176,7 @@ class RealTibiaOwnerRequestLifecycleTests(EvidenceTestCase):
         self.write_record(self.record())
         self.write_request(request)
         self.refresh()
-        corpus = Corpus.load(self.root)
-        document = next(item for item in corpus.request_documents if item.value["request_id"] == request["request_id"])
+        document = next(item for item in Corpus.load(self.root).request_documents if item.value["request_id"] == request["request_id"])
         with self.assertRaisesRegex(owner.RequestLifecycleError, "stale request state"):
             owner.apply_candidate(
                 root=self.root,
@@ -222,20 +199,8 @@ class RealTibiaOwnerRequestLifecycleTests(EvidenceTestCase):
             )
         self.assertEqual(len(document.sha256), 64)
 
-    def test_owner_controlled_states_and_result_commands_fail_closed(self) -> None:
+    def test_owner_states_dedicated_result_commands_and_actor_pr_fail_closed(self) -> None:
         request = self.route_request("feature")
-        with self.assertRaisesRegex(owner.RequestLifecycleError, "requires owner actor"):
-            owner.transition_value(
-                request,
-                expected_status="draft",
-                to_status="ready-for-owner-triage",
-                at="2026-07-25T10:00:00+02:00",
-                actor="collector",
-                actor_role="collector",
-                actor_task="CAN-COLLECTOR",
-                actor_pr=10,
-                reason="Ready.",
-            ) | {"status": "ready-for-owner-triage"}
         ready = owner.transition_value(
             request,
             expected_status="draft",
@@ -260,9 +225,10 @@ class RealTibiaOwnerRequestLifecycleTests(EvidenceTestCase):
                 owner_evidence_ref=OWNER_REF,
                 reason="Invalid self acceptance.",
             )
+        active = self.advance_to_active(request)
         with self.assertRaisesRegex(owner.RequestLifecycleError, "dedicated command"):
             owner.transition_value(
-                self.advance_to_active(request),
+                active,
                 expected_status="active",
                 to_status="result-available",
                 at="2026-07-25T11:00:00+02:00",
@@ -273,104 +239,53 @@ class RealTibiaOwnerRequestLifecycleTests(EvidenceTestCase):
                 owner_evidence_ref=OWNER_REF,
                 reason="Wrong command.",
             )
+        with self.assertRaisesRegex(owner.RequestLifecycleError, "positive actor PR"):
+            owner.record_result_value(
+                active,
+                expected_status="active",
+                at="2026-07-25T11:00:00+02:00",
+                actor="owner",
+                actor_task="CAN-OWNER",
+                actor_pr=None,
+                reason="Missing PR.",
+                owner_evidence_ref=OWNER_REF,
+                owner_task="CAN-OWNER",
+                owner_pr=None,
+                result_refs=[RESULT_REF],
+                proof_level="behavior-proven",
+                proves=["Bounded result."],
+                does_not_prove=["No broader claim."],
+                blockers=[],
+            )
 
     def test_all_owner_routes_reach_consumed_with_matching_evidence(self) -> None:
-        for route, spec in ROUTES.items():
+        for route in ROUTES:
             with self.subTest(route=route):
                 request = self.result_available(self.route_request(route), route)
-                record = self.owner_record(route, request["request_id"])
-                dump(
-                    self.root / f"docs/agents/real-tibia/evidence/modules/combat/records/{record['evidence_id']}.yaml",
-                    record,
-                )
-                corpus = Corpus.load(self.root)
-                consumed = owner.consume_result_value(
-                    request,
-                    expected_status="result-available",
-                    at="2026-07-25T11:10:00+02:00",
-                    actor="collector",
-                    actor_role="collector",
-                    actor_task="CAN-COLLECTOR",
-                    actor_pr=10,
-                    reason="Collector consumed the exact stable owner result.",
-                    evidence_ids=[record["evidence_id"]],
-                    evidence_documents=corpus.evidence_documents,
-                )
+                consumed = self.consume(request, self.owner_record(route, request["request_id"]))
                 self.assertEqual(consumed["status"], "consumed")
                 self.assertEqual(consumed["result"]["consumed_by_evidence_records"], ["RT-COMBAT-0002"])
                 (self.root / "docs/agents/real-tibia/evidence/modules/combat/records/RT-COMBAT-0002.yaml").unlink()
 
-    def test_consumption_rejects_missing_link_wrong_route_ref_and_proof_promotion(self) -> None:
+    def test_consumption_rejects_missing_link_route_ref_and_proof_promotion(self) -> None:
         request = self.result_available(self.route_request("feature"), "feature")
         record = self.owner_record("feature", request["request_id"])
         record["owner_request_refs"] = []
-        self.write_record(record)
-        corpus = Corpus.load(self.root)
         with self.assertRaisesRegex(owner.RequestLifecycleError, "must link owner request"):
-            owner.consume_result_value(
-                request,
-                expected_status="result-available",
-                at="2026-07-25T11:10:00+02:00",
-                actor="collector",
-                actor_role="collector",
-                actor_task="CAN-COLLECTOR",
-                actor_pr=10,
-                reason="Consume.",
-                evidence_ids=[record["evidence_id"]],
-                evidence_documents=corpus.evidence_documents,
-            )
-        record["owner_request_refs"] = [request["request_id"]]
+            self.consume(request, record)
+        record = self.owner_record("feature", request["request_id"])
         record["sources"][0]["source_type"] = "tcr-owner-result"
-        self.write_record(record)
-        corpus = Corpus.load(self.root)
         with self.assertRaisesRegex(owner.RequestLifecycleError, "lacks a feature owner-result source"):
-            owner.consume_result_value(
-                request,
-                expected_status="result-available",
-                at="2026-07-25T11:10:00+02:00",
-                actor="collector",
-                actor_role="collector",
-                actor_task="CAN-COLLECTOR",
-                actor_pr=10,
-                reason="Consume.",
-                evidence_ids=[record["evidence_id"]],
-                evidence_documents=corpus.evidence_documents,
-            )
+            self.consume(request, record)
         record = self.owner_record("feature", request["request_id"])
         record["sources"][0]["locator"]["repository_path"] = "reports/other.json"
         record["sources"][0]["selected"]["files"] = ["reports/other.json"]
-        self.write_record(record)
-        corpus = Corpus.load(self.root)
         with self.assertRaisesRegex(owner.RequestLifecycleError, "matching a stable result reference"):
-            owner.consume_result_value(
-                request,
-                expected_status="result-available",
-                at="2026-07-25T11:10:00+02:00",
-                actor="collector",
-                actor_role="collector",
-                actor_task="CAN-COLLECTOR",
-                actor_pr=10,
-                reason="Consume.",
-                evidence_ids=[record["evidence_id"]],
-                evidence_documents=corpus.evidence_documents,
-            )
+            self.consume(request, record)
         record = self.owner_record("feature", request["request_id"])
         record["proof_level"] = "physical-client-proven"
-        self.write_record(record)
-        corpus = Corpus.load(self.root)
         with self.assertRaisesRegex(owner.RequestLifecycleError, "exceeds owner result proof"):
-            owner.consume_result_value(
-                request,
-                expected_status="result-available",
-                at="2026-07-25T11:10:00+02:00",
-                actor="collector",
-                actor_role="collector",
-                actor_task="CAN-COLLECTOR",
-                actor_pr=10,
-                reason="Consume.",
-                evidence_ids=[record["evidence_id"]],
-                evidence_documents=corpus.evidence_documents,
-            )
+            self.consume(request, record)
 
     def test_dry_run_write_and_rollback_are_transactional(self) -> None:
         request = self.route_request("feature")
@@ -379,17 +294,20 @@ class RealTibiaOwnerRequestLifecycleTests(EvidenceTestCase):
         self.refresh()
         request_path = self.root / f"docs/agents/real-tibia/evidence/requests/feature/{request['request_id']}.yaml"
         before = request_path.read_bytes()
-        mutation = lambda value, corpus: owner.transition_value(
-            value,
-            expected_status="draft",
-            to_status="ready-for-owner-triage",
-            at="2026-07-25T10:00:00+02:00",
-            actor="collector",
-            actor_role="collector",
-            actor_task="CAN-COLLECTOR",
-            actor_pr=10,
-            reason="Ready.",
-        )
+
+        def ready(value: dict[str, object], corpus: Corpus) -> dict[str, object]:
+            return owner.transition_value(
+                value,
+                expected_status="draft",
+                to_status="ready-for-owner-triage",
+                at="2026-07-25T10:00:00+02:00",
+                actor="collector",
+                actor_role="collector",
+                actor_task="CAN-COLLECTOR",
+                actor_pr=10,
+                reason="Ready.",
+            )
+
         candidate = owner.apply_candidate(
             root=self.root,
             request_id=request["request_id"],
@@ -397,7 +315,7 @@ class RealTibiaOwnerRequestLifecycleTests(EvidenceTestCase):
             expected_document_sha256=hashlib.sha256(before).hexdigest(),
             as_of=AS_OF,
             write=False,
-            mutation=mutation,
+            mutation=ready,
         )
         self.assertEqual(candidate["status"], "ready-for-owner-triage")
         self.assertEqual(request_path.read_bytes(), before)
@@ -408,23 +326,26 @@ class RealTibiaOwnerRequestLifecycleTests(EvidenceTestCase):
             expected_document_sha256=hashlib.sha256(before).hexdigest(),
             as_of=AS_OF,
             write=True,
-            mutation=mutation,
+            mutation=ready,
         )
         self.assertEqual(json.loads(request_path.read_text())["status"], "ready-for-owner-triage")
         self.assertEqual(Corpus.load(self.root).validate(AS_OF).errors, ())
 
         rollback_before = request_path.read_bytes()
-        rollback_mutation = lambda value, corpus: owner.transition_value(
-            value,
-            expected_status="ready-for-owner-triage",
-            to_status="rejected",
-            at="2026-07-25T10:30:00+02:00",
-            actor="owner",
-            actor_role="owner",
-            actor_task="CAN-OWNER",
-            actor_pr=11,
-            reason="Owner rejected the request.",
-        )
+
+        def reject(value: dict[str, object], corpus: Corpus) -> dict[str, object]:
+            return owner.transition_value(
+                value,
+                expected_status="ready-for-owner-triage",
+                to_status="rejected",
+                at="2026-07-25T10:30:00+02:00",
+                actor="owner",
+                actor_role="owner",
+                actor_task="CAN-OWNER",
+                actor_pr=11,
+                reason="Owner rejected the request.",
+            )
+
         with mock.patch.object(owner, "write_generated", side_effect=owner.EvidenceError("forced failure")):
             with self.assertRaisesRegex(owner.EvidenceError, "forced failure"):
                 owner.apply_candidate(
@@ -434,7 +355,7 @@ class RealTibiaOwnerRequestLifecycleTests(EvidenceTestCase):
                     expected_document_sha256=hashlib.sha256(rollback_before).hexdigest(),
                     as_of=AS_OF,
                     write=True,
-                    mutation=rollback_mutation,
+                    mutation=reject,
                 )
         self.assertEqual(request_path.read_bytes(), rollback_before)
         self.assertEqual(Corpus.load(self.root).validate(AS_OF).errors, ())
