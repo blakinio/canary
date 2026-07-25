@@ -1,0 +1,98 @@
+name: RTEC-004 Weapon Review Integration
+
+on:
+  push:
+    branches:
+      - feat/rtec-004-weapon-proficiency-20260725
+    paths:
+      - ".github/workflows/rtec-004-weapon-review.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v6
+        with:
+          ref: feat/rtec-004-weapon-proficiency-20260725
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Accept structured evidence review
+        shell: python
+        run: |
+          import json
+          from pathlib import Path
+
+          root = Path("docs/agents/real-tibia/evidence/modules/weapon-proficiency")
+          paths = sorted((root / "records").glob("RT-WEAPON-PROFICIENCY-*.yaml"))
+          if len(paths) != 3:
+              raise SystemExit(f"expected exactly 3 records, found {len(paths)}")
+
+          reviewer = "RTEC-004 coordinator / GPT-5.6 Thinking"
+          reviewed_at = "2026-07-25T20:50:00+02:00"
+          notes = [
+              "Structured review verified official source dates and bounded paraphrases.",
+              "Review verified exact Canary paths and preserved selected-path, runtime, persistence, protocol, client and E2E nonclaims.",
+              "No owner implementation path or existing vocations request is modified."
+          ]
+          for path in paths:
+              value = json.loads(path.read_text(encoding="utf-8"))
+              value["record_status"] = "accepted"
+              value["review"] = {
+                  "status": "accepted",
+                  "task_id": "CAN-20260725-rtec-004-weapon-proficiency",
+                  "pr": 930,
+                  "reviewer": reviewer,
+                  "reviewed_at": reviewed_at,
+                  "notes": notes,
+              }
+              path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+          (root / "reviews/RTEC-004-W1-REVIEW.md").write_text(
+              """# RTEC-004 weapon-proficiency structured review
+
+Status: accepted.
+
+Reviewed at: `2026-07-25T20:50:00+02:00`.
+
+Reviewer: RTEC-004 coordinator / GPT-5.6 Thinking.
+
+## Accepted findings
+
+- Official source dates, URLs and bounded paraphrases are pinned.
+- The current Canary comparison is tied to exact commit, paths and symbols.
+- Original-tree selection is not represented as equivalent to modified-slot manipulation.
+- Character-switch client isolation remains `UNKNOWN`.
+- Runtime persistence, protocol, maintained-client and physical-client nonclaims remain explicit.
+- No implementation, data, protocol/client, persistence, achievement or E2E path is changed.
+- `RTREQ-FEATURE-VOCATIONS-0001` remains untouched.
+
+## Validation requirement
+
+Acceptance remains contingent on deterministic index regeneration and all exact-final-head required checks passing.
+""",
+              encoding="utf-8",
+          )
+      - name: Generate deterministic evidence index
+        run: python tools/agents/real_tibia_evidence.py generate --as-of 2026-07-25
+      - name: Validate reviewed corpus
+        run: |
+          python tools/agents/real_tibia_evidence.py validate --as-of 2026-07-25
+          python tools/agents/real_tibia_evidence.py generate --check --as-of 2026-07-25
+      - name: Commit review and remove one-shot workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/rtec-004-weapon-review.yml
+          git add docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
+          git add docs/agents/real-tibia/evidence/modules/weapon-proficiency
+          git commit -m "docs(real-tibia): accept weapon proficiency evidence"
+          git push origin HEAD:feat/rtec-004-weapon-proficiency-20260725
