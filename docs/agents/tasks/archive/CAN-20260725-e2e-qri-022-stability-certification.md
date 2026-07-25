@@ -47,7 +47,7 @@ cross_repo_tasks: []
 - Final full `ci:final-gate` CI: PASS, run `30154299240`.
 - Final `autofix.ci`: PASS, run `30154299188`.
 - Final focused Stability Certification: PASS, run `30154299179`.
-- Fresh Universal Agent E2E run `30154299235` remains to be recorded before closure merge.
+- Fresh Universal Agent E2E: PASS, run `30154299235`, on the exact final delivery head.
 
 ## Delivered contract
 
@@ -65,6 +65,7 @@ cross_repo_tasks: []
 - Exact-head Agent Task Ownership: PASS, run `30154299184`.
 - Exact-head full final-gate CI: PASS, run `30154299240`.
 - Exact-head autofix: PASS, run `30154299188`.
+- Exact-head Universal Agent E2E built Canary and the controlled OTClient in one workflow attempt, downloaded both exact artifacts, executed the physical `login/relog` scenario and passed the required aggregator: PASS, run `30154299235`.
 - PR #912 had no comments, review submissions or unresolved inline review threads before merge.
 
 ## Failure history retained
@@ -72,7 +73,7 @@ cross_repo_tasks: []
 - Initial integration tooling removed the checkpoint `head:` key; checkpoint validation rejected it before push, and the repaired integration passed.
 - A checkpoint used unsupported validation result `UNKNOWN`; Agent Task Ownership rejected it and the record was repaired to use `NOT_RUN`.
 - The first final-gate Universal Agent E2E run was cancelled during controlled OTClient compilation. A selective job rerun built OTClient but split Canary and OTClient artifacts across workflow attempts, causing the physical job to fail before scenario execution while downloading the exact-head Canary artifact.
-- One fresh workflow run was then triggered so both binaries and physical evidence would belong to one attempt; its exact outcome is recorded before lifecycle closure merge.
+- One fresh workflow run was then triggered so both binaries and physical evidence would belong to one attempt; run `30154299235` completed successfully, including the physical `login/relog` scenario and required aggregator.
 - Failed and superseded attempts remain documented and were not hidden.
 
 ## Evidence boundaries
