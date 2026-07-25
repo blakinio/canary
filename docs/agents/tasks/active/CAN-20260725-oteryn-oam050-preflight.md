@@ -8,7 +8,7 @@ branch: dudantas/oam-050-physical-client-e2e-governance
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-26
-last_verified_commit: "c19b7aad96f1a293cd135b449ba2820657658892"
+last_verified_commit: "82b443cb67b55a696572b9bb4399ff735bcc80e7"
 risk: high
 related_issue: ""
 related_pr: "947"
@@ -45,8 +45,8 @@ Universal Physical-Client E2E remains active in Canary as the single reusable va
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T00:38:00+02:00
-head: c19b7aad96f1a293cd135b449ba2820657658892
+updated_at: 2026-07-26T00:44:00+02:00
+head: 82b443cb67b55a696572b9bb4399ff735bcc80e7
 branch: dudantas/oam-050-physical-client-e2e-governance
 pr: 947
 status: validating
@@ -64,13 +64,16 @@ proven:
   - Otheryn lifecycle PR 114 passed Required 30177733797 and merged as ff90e93d872b6b47720f711483a9832203d5258d.
   - Otheryn added no runtime, build, startup, workflow, E2E runner, client harness, evidence schema, database fixture or deployment path.
   - Universal Agent E2E already accepts blakinio/Otheryn with an exact server_ref.
-  - Canary PR 925 remains authoritative for nine retained clean login/relog attempts and the missing tenth failure artifact.
-  - The PR 925 failure-retention gap remains separately owned by the Universal E2E programme.
+  - Canary PR 925 remains authoritative for its original nine retained clean login/relog attempts and the unretained failed tenth attempt.
+  - E2E repair PR 940 delivered and lifecycle-closed capture-upload-propagate failure evidence retention as ad647f040a0f0b5b515c2416bf8aa11705dd7e8e with controlled success and failure proofs.
+  - The original PR 925 population remains historically blocked; any replacement baseline requires fresh separately governed attempts.
 derived:
   - Physical-client-e2e belongs to Canary development and release validation, not Otheryn production runtime.
   - DO_NOT_MIGRATE preserves one canonical lifecycle while allowing exact Otheryn revisions to be validated externally.
+  - The merged retention repair strengthens the external platform and does not create target runtime ownership.
 unknown:
   - Complete stability and compatibility outside exact executed scenario/server/client/datapack cells remain unproven.
+  - A replacement ten-attempt baseline has not yet been executed and classified.
   - Future feature packages may require new feature-owned scenarios or assertions.
 conflicts: []
 first_failure:
@@ -81,7 +84,8 @@ first_failure:
 rejected_hypotheses:
   - Copy the Universal Physical-Client E2E platform into Otheryn.
   - Add a duplicate target runner, workflow or invocation adapter.
-  - Absorb PR 925 evidence-retention repair into OAM-050.
+  - Retroactively reclassify or replace PR 925's original failed population.
+  - Treat the merged retention repair as an Otheryn migration requirement.
   - Treat partial physical coverage as complete gameplay or protocol parity.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260725-oteryn-oam050-preflight.md
@@ -93,12 +97,15 @@ validation:
   - command: canonical E2E ownership and invocation review
     result: PASS
     evidence: Canary retains the platform and exact Otheryn server_ref selection already exists.
+  - command: current-main failure-retention reconciliation
+    result: PASS
+    evidence: PR 940 merged as ad647f040a0f0b5b515c2416bf8aa11705dd7e8e with controlled success/failure retention proof.
   - command: Canary governance exact-head gates
     result: NOT_RUN
-    evidence: PR 947 must pass Ownership and full CI on its final head.
+    evidence: PR 947 must rerun Ownership and CI after this material reconciliation update.
 blockers:
   - Canary governance exact-head Ownership and CI
   - clean discussion and Canary-main drift audit
   - governance merge, lifecycle archive and durable reconciliation
-next_action: Apply ci:final-gate to PR 947, require exact-head Ownership and full CI, then audit and merge before lifecycle plus durable reconciliation.
+next_action: Require exact-head Ownership and CI on PR 947 after the retention-repair reconciliation, then audit and merge before lifecycle plus durable reconciliation.
 ```
