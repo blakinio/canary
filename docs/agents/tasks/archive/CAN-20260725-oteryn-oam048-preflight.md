@@ -2,25 +2,25 @@
 task_id: CAN-20260725-oteryn-oam048-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-048
-status: review
+status: completed
 agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-048-gameplay-analytics-governance
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "e83086a584c8bb12a56a9a4b2ea99c8985540fef"
+completed: 2026-07-25T21:22:00+02:00
+last_verified_commit: "8c8d68b7f0fa523c919a786809ba4a72cbc5369d"
 risk: high
 related_issue: ""
 related_pr: "936"
 depends_on:
   - OAM-047 durably completed as 913a056058273bdd538f01c93b4cbb068759290e
 blocks:
-  - OAM-048 Canary governance and lifecycle
   - OAM-048 durable program reconciliation
   - OAM-049 start
 owned_paths:
   exclusive:
-    - docs/agents/tasks/active/CAN-20260725-oteryn-oam048-preflight.md
+    - docs/agents/tasks/archive/CAN-20260725-oteryn-oam048-preflight.md
     - docs/agents/OTERYN_OAM_048_GAMEPLAY_ANALYTICS_REVALIDATION.md
   shared: []
   read_only:
@@ -43,32 +43,31 @@ Final disposition: `gameplay-analytics → EXPERIMENTAL_ONLY`.
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T21:14:00+02:00
-head: e83086a584c8bb12a56a9a4b2ea99c8985540fef
-branch: dudantas/oam-048-gameplay-analytics-governance
+updated_at: 2026-07-25T21:22:00+02:00
+head: 8c8d68b7f0fa523c919a786809ba4a72cbc5369d
+branch: main
 pr: 936
-status: validating
+status: ready
 context_routes:
   - agent-governance
   - cross-repo
   - lua-runtime
 owned_paths:
-  - docs/agents/tasks/active/CAN-20260725-oteryn-oam048-preflight.md
+  - docs/agents/tasks/archive/CAN-20260725-oteryn-oam048-preflight.md
   - docs/agents/OTERYN_OAM_048_GAMEPLAY_ANALYTICS_REVALIDATION.md
 proven:
-  - OAM-047 durably completed as 913a056058273bdd538f01c93b4cbb068759290e.
   - Canary preflight PR 934 passed Ownership 30169843448 and CI 30169843496 and merged as 4d47714756b67cd632aeedd6c405a7fc8dba4a79.
-  - Otheryn task-start main was 68e2b233b02356a79a03422ed51d757b85915bc5 and reviewed upstream was 7644bcbcbbad4a09e52a5707ed531e4dd21d8a79.
-  - The target has no analytics implementation root or consumer and no canonical dependent requires Gameplay Analytics.
-  - Legacy config is disabled by default and anonymizePlayers is false by default.
-  - Privacy, retention, deletion, schema migration, capacity and production operations remain unresolved.
-  - EXPERIMENTAL_ONLY defines strict isolation and adds no target runtime, schema, workflow, data or test path.
-  - Otheryn head 620d29db5d7bb9ef1fa8b39f1d1b7f70dc91c75b passed Required 30170065044 and PR 109 merged as a6e2993ed32b1316168045ad0b97ddebb50a2128 after clean audit.
-  - Otheryn lifecycle head f5a8a05c942433a412300a8046f91c98eefc5362 passed Required 30170145992 and PR 110 merged as fc93848796f05108684dfbb218f7434a8cb88755 after clean audit.
-  - Canary governance PR 936 opened with exactly the active task and governance report.
+  - Otheryn proved no target implementation, consumer, canonical dependent or core startup/build/runtime dependency requires Gameplay Analytics.
+  - Legacy configuration is disabled by default and does not anonymize players by default; privacy, retention, deletion and production boundaries remain unresolved.
+  - Otheryn disposition head 620d29db5d7bb9ef1fa8b39f1d1b7f70dc91c75b passed Required 30170065044 and merged as a6e2993ed32b1316168045ad0b97ddebb50a2128 after clean audit.
+  - Otheryn lifecycle head f5a8a05c942433a412300a8046f91c98eefc5362 passed Required 30170145992 and merged as fc93848796f05108684dfbb218f7434a8cb88755 after clean audit.
+  - EXPERIMENTAL_ONLY preserves isolated laboratory usefulness and adds no target runtime, schema, workflow, data or test path.
+  - Canary governance head 3cb6cc5f578bc11dc389d416bb848498a42020ee passed Ownership 30170244241 and CI 30170244324.
+  - Canary PR 936 had no comments, reviews or review threads and zero main drift before expected-head merge.
+  - Canary governance PR 936 merged as 8c8d68b7f0fa523c919a786809ba4a72cbc5369d.
 derived:
   - Gameplay Analytics does not meet Otheryn core ownership criteria.
-  - EXPERIMENTAL_ONLY preserves laboratory usefulness while preventing accidental core dependency or production activation.
+  - EXPERIMENTAL_ONLY prevents accidental core dependency or production activation while retaining laboratory value.
 unknown:
   - Exact future product, privacy, retention, deletion and schema-migration requirements.
   - Realistic production load, performance and failure-isolation behavior.
@@ -83,21 +82,16 @@ rejected_hypotheses:
   - Classify DO_NOT_MIGRATE despite legitimate isolated laboratory usefulness.
   - Create target analytics globals, schema or workflows as proof.
 changed_paths:
-  - docs/agents/tasks/active/CAN-20260725-oteryn-oam048-preflight.md
+  - docs/agents/tasks/archive/CAN-20260725-oteryn-oam048-preflight.md
   - docs/agents/OTERYN_OAM_048_GAMEPLAY_ANALYTICS_REVALIDATION.md
 validation:
-  - command: target root, consumer and dependency review
+  - command: Otheryn target disposition and lifecycle gates
     result: PASS
-    evidence: No target implementation, consumer or canonical dependent requires analytics.
-  - command: Otheryn disposition and lifecycle gates
+    evidence: PR 109 and PR 110 passed Required and clean audits and merged as recorded above.
+  - command: Canary governance exact-head gates and audit
     result: PASS
-    evidence: PR 109 and PR 110 passed Required, clean discussions and zero target-main drift.
-  - command: Canary governance exact-head gates
-    result: NOT_RUN
-    evidence: PR 936 must pass Ownership and CI on the synchronized head.
+    evidence: Head 3cb6cc5f578bc11dc389d416bb848498a42020ee passed Ownership 30170244241 and CI 30170244324 and merged as 8c8d68b7f0fa523c919a786809ba4a72cbc5369d.
 blockers:
-  - Canary governance exact-head Ownership and CI
-  - clean discussion and Canary-main drift audit
-  - governance merge, lifecycle archive and durable reconciliation
-next_action: Require exact-head Ownership and CI on PR 936, audit discussions and Canary-main drift, then merge and finish lifecycle plus durable reconciliation before OAM-049.
+  - durable OAM-048 program reconciliation
+next_action: Merge this lifecycle-only archive and reconcile OAM-048 in the program document before starting OAM-049.
 ```
