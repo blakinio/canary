@@ -42,7 +42,7 @@ cross_repo_tasks: []
 
 Canonical scope is limited to typed configuration keys/access, `config.lua` loading/reload boundaries, default-distribution discovery and server/client feature-flag configuration under `src/config/**` and `config.lua.dist`. It excludes feature behavior controlled by those values, production configuration changes, secret management, protocol correctness and runtime feature validation.
 
-## Fresh live preflight
+## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
@@ -107,5 +107,5 @@ blockers:
   - Canary preflight exact-head validation and merge
   - Otheryn focused target proof
   - Canary governance/lifecycle and durable reconciliation
-next_action: Mark PR 911 ready, require exact-head Agent Task Ownership and CI, audit discussions and Canary-main drift, then squash-merge with the expected head before starting the Otheryn target proof.
+next_action: Require exact-head Agent Task Ownership and final-gate CI for PR 911, audit discussions and Canary-main drift, then squash-merge with the expected head before starting the Otheryn target proof.
 ```
