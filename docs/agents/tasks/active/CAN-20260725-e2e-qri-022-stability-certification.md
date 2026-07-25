@@ -8,7 +8,7 @@ branch: docs/e2e-qri-022-lifecycle-closure
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "91c461eba1be8a5ce342b686250682c0c3dd1252"
+last_verified_commit: "0e66db498641da8889b5b037419bf3e90930fad5"
 risk: low
 related_issue: ""
 related_pr: "912, 914"
@@ -52,8 +52,8 @@ Finish the docs-only lifecycle closure after delivery PR #912 without changing i
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T15:07:19+02:00
-head: 91c461eba1be8a5ce342b686250682c0c3dd1252
+updated_at: 2026-07-25T15:12:42+02:00
+head: 0e66db498641da8889b5b037419bf3e90930fad5
 branch: docs/e2e-qri-022-lifecycle-closure
 pr: 914
 status: validating
@@ -69,18 +69,19 @@ owned_paths:
 proven:
   - Delivery PR #912 merged from exact head bf70034702987487bb2c6d94d60d281e71b02ddd as squash commit 5463786e682c7820d201eeaff268cb6ef6bfd4f7.
   - Delivery exact-head Agent Task Ownership, autofix, Stability Certification, full final-gate CI and Universal Agent E2E run 30154299235 all passed.
-  - PR #914 is ready, mergeable, auto-merge enabled and limited to five lifecycle governance documents before this checkpoint commit.
+  - PR #914 is ready, mergeable, auto-merge enabled and limited to five lifecycle governance documents before the compact-handover sentinel was added.
   - PR #914 had no comments, reviews or unresolved review threads in the latest audit.
   - The prepared archive releases all owned paths and preserves failed and superseded workflow-attempt history.
+  - The active checkpoint and resume command both completed successfully in Universal E2E Stability Certification run 30159164102.
 derived:
   - No E2E-QRI-022 implementation work remains; only exact-head lifecycle validation and final active-record removal remain.
 unknown:
-  - Exact outcomes of required pull-request checks on the checkpoint commit head.
+  - Exact outcomes of required pull-request checks on the current checkpoint commit head.
   - Whether repository state or PR #914 head changes before continuation.
 conflicts: []
 first_failure:
   marker: closure-final-gate-not-complete
-  evidence: Required exact-head checks for PR #914 were queued before the compact-handover checkpoint update.
+  evidence: Required exact-head checks for PR #914 must be reverified after the compact-handover commits.
 rejected_hypotheses:
   - Manual merge before exact-head branch-protection checks: rejected because AGENTS.md requires all current-head checks to pass.
   - Treating contract tests as a physical repeated-run stability baseline: rejected because collection and retained-population selection remain a separate package.
@@ -96,13 +97,16 @@ validation:
     evidence: Agent Task Ownership 30154299184, autofix 30154299188, Stability Certification 30154299179, CI 30154299240 and Universal Agent E2E 30154299235 succeeded.
   - command: PR #914 changed-file and review audit
     result: PASS
-    evidence: Five governance documents only; no comments, reviews or review threads.
+    evidence: Five governance documents only before the temporary handover sentinel; no comments, reviews or review threads.
   - command: python tools/agents/checkpoint.py docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md --require-checkpoint
-    result: NOT_RUN
-    evidence: Run by the focused exact-head handover sentinel on this checkpoint.
+    result: PASS
+    evidence: Universal E2E Stability Certification run 30159164102 completed successfully on the checkpointed task.
+  - command: python tools/agents/resume.py --task docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md
+    result: PASS
+    evidence: Universal E2E Stability Certification run 30159164102 completed successfully and emitted the compact resume bundle.
   - command: PR #914 exact-head required checks
     result: NOT_RUN
-    evidence: Reverify on the new checkpoint commit before removing the active task record.
+    evidence: Reverify on the latest checkpoint commit before removing the active task record.
 blockers:
   - Exact-head closure checks must pass before the active record is removed and PR #914 merges.
 next_action: Verify the exact-head required checks for PR #914 and record their outcome before changing or merging any state.
