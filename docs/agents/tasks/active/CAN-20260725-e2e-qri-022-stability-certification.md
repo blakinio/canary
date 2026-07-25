@@ -8,7 +8,7 @@ branch: feat/e2e-qri-022-stability-certification
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "218a3f957a58b4d1a67f62d2cfb96f76241ae0cc"
+last_verified_commit: "52fc82d5a47727c78d8d58c7fb64823669cb8479"
 risk: medium
 related_issue: ""
 related_pr: "912"
@@ -26,7 +26,7 @@ owned_paths:
     - tests/e2e/test_stability_certification.py
     - docs/e2e/E2E_STABILITY_CERTIFICATION.md
     - docs/e2e/E2E_STABILITY_CERTIFICATION.schema.json
-    - .github/workflows/e2e-qri-022-integration.yml
+    - .github/workflows/e2e-stability-certification.yml
   shared:
     - docs/agents/MODULE_CATALOG.md
     - docs/agents/CHANGELOG.md
@@ -87,9 +87,9 @@ Deliver one deterministic, read-only certification contract over explicitly supp
 - [x] Mixed pass/failure evidence is `unstable`; all evaluated failures are `fail`; insufficient evidence is `not-evaluated`; unresolved provenance is `blocked`.
 - [x] Cleanup certification remains independent and a cleanup failure prevents a clean-pass attempt.
 - [x] Deterministic duration percentiles and exact failure/divergence distributions are covered by focused tests.
-- [ ] Focused tests, bytecode compilation and JSON schema parsing pass against canonical repository modules.
-- [ ] Catalogue/program/changelog entries are updated narrowly.
-- [ ] The temporary checkout validation/integration workflow removes itself and is absent from final diff.
+- [x] Focused tests, bytecode compilation and JSON schema parsing pass against canonical repository modules.
+- [x] Catalogue/program/changelog entries are updated narrowly.
+- [x] Failed temporary integration experiments are removed; the permanent PR-only focused validation workflow remains.
 - [ ] Exact final-head required checks pass before squash merge.
 - [x] A physical repeated-run baseline remains explicit follow-up evidence and is not falsely claimed by this implementation package.
 
@@ -97,8 +97,8 @@ Deliver one deterministic, read-only certification contract over explicitly supp
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T10:10:00+02:00
-head: 218a3f957a58b4d1a67f62d2cfb96f76241ae0cc
+updated_at: 2026-07-25T10:40:00+02:00
+head: 52fc82d5a47727c78d8d58c7fb64823669cb8479
 branch: feat/e2e-qri-022-stability-certification
 pr: 912
 status: implementing
@@ -111,7 +111,7 @@ owned_paths:
   - tests/e2e/test_stability_certification.py
   - docs/e2e/E2E_STABILITY_CERTIFICATION.md
   - docs/e2e/E2E_STABILITY_CERTIFICATION.schema.json
-  - .github/workflows/e2e-qri-022-integration.yml
+  - .github/workflows/e2e-stability-certification.yml
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
   - docs/agents/programs/E2E_AUTOMATION_PROGRAM.md
@@ -123,11 +123,11 @@ proven:
   - No open PR or active task with E2E-QRI-022 intent or planned exclusive paths was found during live preflight.
   - Draft PR #912 targets blakinio/canary:main from the dedicated same-repository task branch.
   - The current implementation, focused tests, strict schema and operator documentation are committed on the task branch.
+  - Universal E2E Stability Certification run 30150829220 passed bytecode compilation, all focused canonical-module tests and strict schema JSON parsing.
 derived:
   - Reusing coverage_dashboard discovery and canonical envelope validation avoids a second result parser and preserves its path-confinement rules.
   - A clean passing attempt requires gameplay status success and exact cleanup certification success; the two facts remain separately reported.
 unknown:
-  - Focused test outcome against the repository's actual canonical coverage/result/cleanup modules until the checkout workflow completes.
   - The first selected physical scenario set and exact retained artifact population for a real repeated-run baseline.
   - Whether a later scheduled execution seam is justified after the read-only certification contract is proven.
 conflicts: []
@@ -144,6 +144,10 @@ changed_paths:
   - tests/e2e/test_stability_certification.py
   - docs/e2e/E2E_STABILITY_CERTIFICATION.md
   - docs/e2e/E2E_STABILITY_CERTIFICATION.schema.json
+  - .github/workflows/e2e-stability-certification.yml
+  - docs/agents/MODULE_CATALOG.md
+  - docs/agents/CHANGELOG.md
+  - docs/agents/programs/E2E_AUTOMATION_PROGRAM.md
 validation:
   - command: live main and QRI dependency preflight
     result: PASS
@@ -151,10 +155,13 @@ validation:
   - command: same-repository draft PR safety check
     result: PASS
     evidence: PR #912 targets blakinio/canary:main from feat/e2e-qri-022-stability-certification
+  - command: Universal E2E Stability Certification workflow run 30150829220
+    result: PASS
+    evidence: bytecode compilation, focused canonical-module tests and strict schema JSON parsing all passed
   - command: local reconstructed source/test bytecode compilation and isolated focused suite
     result: PASS
     evidence: 13 local tests passed and one canonical-module integration test was explicitly skipped because the local sandbox has no repository checkout
 blockers:
   - A real multi-run physical stability baseline requires a selected retained artifact population and execution package after this contract is proven.
-next_action: Run the one-shot task-owned checkout integration workflow to patch shared records, execute focused tests against canonical modules, parse the schema and remove itself before final review.
+next_action: Review the exact PR #912 diff and all current-head workflow evidence, repair only evidenced defects, then apply and pass the exact final-head gate without claiming a physical repeated-run baseline.
 ```

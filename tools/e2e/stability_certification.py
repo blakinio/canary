@@ -366,9 +366,17 @@ def discover_evidence(
     envelopes: list[dict[str, Any]] = []
     for item in normalized:
         source = item["source"]
-        path = root_map[source["root_id"]] / source["path"]
+        root = root_map[source["root_id"]]
+        path = root / source["path"]
         try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
+            resolved = path.resolve()
+            try:
+                resolved.relative_to(root)
+            except ValueError as exc:
+                raise StabilityCertificationError(
+                    "result.json resolves outside the evidence root"
+                ) from exc
+            payload = json.loads(resolved.read_text(encoding="utf-8"))
             if not isinstance(payload, Mapping):
                 raise StabilityCertificationError(
                     "result envelope root must be an object"
@@ -380,7 +388,25 @@ def discover_evidence(
                     relative_path=source["path"],
                 )
             )
-        except (OSError, json.JSONDecodeError, StabilityCertificationError) as exc:
+        except OSError as exc:
+            reason = exc.strerror or exc.__class__.__name__
+            invalid.append(
+                {
+                    "source": dict(source),
+                    "error": f"cannot read result evidence: {reason}",
+                }
+            )
+        except json.JSONDecodeError as exc:
+            invalid.append(
+                {
+                    "source": dict(source),
+                    "error": (
+                        f"invalid JSON at line {exc.lineno}, "
+                        f"column {exc.colno}: {exc.msg}"
+                    ),
+                }
+            )
+        except StabilityCertificationError as exc:
             invalid.append(
                 {
                     "source": dict(source),
