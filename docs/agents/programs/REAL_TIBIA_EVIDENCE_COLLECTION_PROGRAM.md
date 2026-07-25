@@ -4,8 +4,8 @@ name: Real Tibia Evidence Collection
 status: active
 owner: Real Tibia evidence coordination / platform tooling
 created: 2026-07-24T20:20:00+02:00
-updated: 2026-07-25T15:06:21+02:00
-last_verified_commit: "a017e54c03df7ca46cbaaf92995942ffa67f9690"
+updated: 2026-07-25T16:05:00+02:00
+last_verified_commit: "337812cf1d2fe587cabd6b5a71f38f149520fa83"
 primary_paths:
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
   - docs/ai-agent/REAL_TIBIA_EVIDENCE_COLLECTOR_ARCHITECTURE.md
@@ -317,7 +317,7 @@ The Coordinator performs shared-file integration after worker PRs merge.
 | RTEC-000 | Architecture, structure, boundaries, concurrency and prompts | merged | existing parity/E2E/OTBM/TCR governance | low | Architecture delivered by PR #889; lifecycle archived by PR #893. |
 | RTEC-001 | Evidence/request schemas, validator, deterministic indexes and tests | merged | RTEC-000 | medium | Contracts delivered by PR #897; lifecycle archived by PR #908. |
 | RTEC-002 | Pilot dossier on one bounded low-coupling module | merged | RTEC-001 | medium | Pilot delivered by PR #910; lifecycle archived by PR #915. Runtime level-gain and promotion application remain `UNKNOWN` behind `RTREQ-FEATURE-VOCATIONS-0001`. |
-| RTEC-003 | Owner-request lifecycle integration | planned | RTEC-001/002 | medium | Run fresh main/open-PR/active-task/request-state preflight, then prove legal owner transitions and stable retained-result consumption without starting campaign workers. |
+| RTEC-003 | Owner-request lifecycle integration | active | RTEC-001/002 | medium | Complete and validate PR #921; do not advance the real vocations request without owner evidence. |
 | RTEC-004 | Parallel campaign wave 1 | planned | RTEC-002/003 | medium | Start at most eight workers and four concurrent PRs using isolated dossier paths. |
 | RTEC-005 | Remaining module waves | planned | RTEC-004 evidence and concurrency review | medium | Continue bounded waves until all 62 modules have non-placeholder dossiers. |
 | RTEC-006 | Release/version refresh and drift operation | planned | populated dossiers and validator | medium | Add deterministic stale/version-delta selection for future Tibia/Canary changes. |
