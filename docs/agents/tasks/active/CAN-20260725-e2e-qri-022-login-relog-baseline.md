@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: test/e2e-qri-022-login-relog-baseline
 base_branch: main
 created: 2026-07-25T18:53:04+02:00
-updated: 2026-07-25T20:52:00+02:00
-last_verified_commit: "8ea8460c1e5a599b3ef3e7dbde75524d85463c05"
+updated: 2026-07-25T20:53:00+02:00
+last_verified_commit: "9f90e4326e2739e7ea8a30de94109b148e1bf0ed"
 risk: medium
 related_issue: ""
 related_pr: "925"
@@ -109,7 +109,7 @@ The Markdown dossier contains all nine artifact IDs and digests, result/cleanup/
 | `30167381956` attempt 10 | Physical `login/relog` | fail | Physical job `89708625391`; Required `89708847588` |
 | `30167381956` diagnostic rerun | Failure-retention diagnostic | fail | Physical job `89709267589`; Required `89709498686` |
 | `bdf70b86db010951622529eb0d16b924ce189295` | Durable JSON/Markdown evidence committed | pass | Report and dossier paths exist on PR #925 |
-| `8ea8460c1e5a599b3ef3e7dbde75524d85463c05` | Blocked record locked | pass | No further task-record-only commits are required on PR #925 |
+| `9f90e4326e2739e7ea8a30de94109b148e1bf0ed` | Blocked handoff frozen | pass | This record is now immutable until the separate repair unblocks it |
 
 # Decisions
 
@@ -125,8 +125,8 @@ The Markdown dossier contains all nine artifact IDs and digests, result/cleanup/
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T20:52:00+02:00
-head: 8ea8460c1e5a599b3ef3e7dbde75524d85463c05
+updated_at: 2026-07-25T20:53:00+02:00
+head: 9f90e4326e2739e7ea8a30de94109b148e1bf0ed
 branch: test/e2e-qri-022-login-relog-baseline
 pr: 925
 status: blocked
