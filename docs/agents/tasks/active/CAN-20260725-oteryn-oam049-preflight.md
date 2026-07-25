@@ -2,13 +2,13 @@
 task_id: CAN-20260725-oteryn-oam049-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-049
-status: active
+status: in_progress
 agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-049-upstream-intelligence-preflight
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "06c4c41ca401a7d7eb6d9a8fd0a0076f09bc1bde"
+last_verified_commit: "36292e3e87f87e56f5fdfe02b307e4efee64c6b2"
 risk: medium
 related_issue: ""
 related_pr: "939"
@@ -47,8 +47,8 @@ This disposition does **not** disable Upstream Intelligence. The existing Canary
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T22:24:00+02:00
-head: 06c4c41ca401a7d7eb6d9a8fd0a0076f09bc1bde
+updated_at: 2026-07-25T22:31:00+02:00
+head: 36292e3e87f87e56f5fdfe02b307e4efee64c6b2
 branch: dudantas/oam-049-upstream-intelligence-preflight
 pr: 939
 status: validating
@@ -78,7 +78,7 @@ first_failure:
   marker: ownership-checkpoint-schema
   command: changed active task checkpoint validation
   result: FAIL
-  evidence: Initial head a13f20ef4dc4a3c9e02dee314fc6460a750f637f used null for first_failure; Ownership run 30171895810 required a YAML mapping. Head 06c4c41ca401a7d7eb6d9a8fd0a0076f09bc1bde then proved the mapping also requires marker and supported validation result values.
+  evidence: Initial head a13f20ef4dc4a3c9e02dee314fc6460a750f637f used null for first_failure; Ownership run 30171895810 required a YAML mapping. Head 06c4c41ca401a7d7eb6d9a8fd0a0076f09bc1bde then proved the mapping also requires marker and supported validation result values. Head 36292e3e87f87e56f5fdfe02b307e4efee64c6b2 proved active task records require a supported lifecycle status rather than the literal value active.
 rejected_hypotheses:
   - Disable or remove Upstream Intelligence because it is not migrated to Otheryn.
   - Copy the watcher and workflow into Otheryn for convenience.
@@ -95,7 +95,7 @@ validation:
     evidence: Watched repositories are read-only and the workflow cannot push to them.
   - command: changed active task checkpoint validation
     result: NOT_RUN
-    evidence: Exact-head Ownership must confirm the repaired marker and supported result values.
+    evidence: Exact-head Ownership must confirm the supported frontmatter status and checkpoint schema.
 blockers:
   - Canary preflight exact-head Ownership and CI
   - clean discussion and Canary-main drift audit
