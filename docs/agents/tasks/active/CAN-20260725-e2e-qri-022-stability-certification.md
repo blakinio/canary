@@ -1,0 +1,149 @@
+---
+task_id: CAN-20260725-e2e-qri-022-stability-certification
+program_id: CAN-PROGRAM-E2E-PLATFORM
+coordination_id: E2E-QRI-022
+status: implementing
+agent: "GPT-5.6 Thinking"
+branch: feat/e2e-qri-022-stability-certification
+base_branch: main
+created: 2026-07-25
+updated: 2026-07-25
+last_verified_commit: "930e0a15767b7e5348bb36c679fa5e458a76f184"
+risk: medium
+related_issue: ""
+related_pr: "0"
+depends_on:
+  - "E2E-QRI-004 factual coverage dashboard merged in PR #885 and lifecycle-closed in PR #900"
+  - "E2E-QRI-005 result envelope schema v3 merged in PR #850 and lifecycle-closed in PR #861"
+  - "E2E-QRI-006 cleanup certification schema v1 merged in PR #871 and lifecycle-closed in PR #881"
+blocks:
+  - "factual stability evidence for release-certification scenario selection"
+  - "later E2E-QRI-023 soak and E2E-QRI-024 performance trend packages"
+owned_paths:
+  exclusive:
+    - docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md
+    - tools/e2e/stability_certification.py
+    - tests/e2e/test_stability_certification.py
+    - docs/e2e/E2E_STABILITY_CERTIFICATION.md
+    - docs/e2e/E2E_STABILITY_CERTIFICATION.schema.json
+  shared:
+    - docs/agents/MODULE_CATALOG.md
+    - docs/agents/CHANGELOG.md
+    - docs/agents/programs/E2E_AUTOMATION_PROGRAM.md
+  read_only:
+    - tools/e2e/coverage_dashboard.py
+    - tools/e2e/result_envelope.py
+    - tools/e2e/result_envelope_impl.py
+    - tools/e2e/cleanup_certification.py
+    - tools/e2e/run_agent_e2e.py
+    - tests/e2e/scenarios/**
+    - docs/architecture/universal-e2e-quality-resilience-roadmap.md
+modules_touched:
+  - Universal E2E stability certification
+reuses:
+  - canary-universal-e2e-result-envelope-v1 schema version 3
+  - canary-universal-e2e-cleanup-certification-v1 schema version 1
+  - canary-universal-e2e-coverage-dashboard-v1 evidence discovery and normalization
+public_interfaces:
+  - canary-universal-e2e-stability-certification-v1
+cross_repo_tasks: []
+---
+
+# E2E-QRI-022 flake and stability certification
+
+## Goal
+
+Deliver one deterministic, read-only certification contract over explicitly supplied retained Universal E2E result envelopes. The package must preserve every attempt and classify repeatability without creating a second runner, scheduling workflow, artifact downloader, retention policy or hidden retry layer.
+
+## Scope
+
+- validate exact schema-v3 result envelopes through the existing coverage-dashboard evidence boundary;
+- group only directly comparable runs by exact scenario and execution provenance;
+- report run/pass/failure counts, success ratio, failure-class distribution, cleanup failures, duration distribution and first-divergence frequency;
+- classify a mixed result such as 9/10 as `unstable`, never as `pass`;
+- require an explicit minimum run count before certification;
+- emit deterministic JSON and Markdown from one normalized report;
+- preserve invalid inputs, duplicate run identities, missing provenance and UNKNOWN states.
+
+## Non-goals
+
+- no scenario execution or automatic retries;
+- no GitHub artifact discovery/download or retention management;
+- no nightly schedule in this contract PR;
+- no opaque score or inferred success from registration/documentation/artifact presence;
+- no modification of the canonical runner, result envelope or cleanup certification;
+- no claim that synthetic tests constitute physical stability certification.
+
+## Acceptance criteria
+
+- [x] Current `main`, QRI-004 closure, roadmap dependencies and open PR overlap are revalidated.
+- [x] One dedicated branch and task record claim exact bounded paths.
+- [ ] Draft PR is opened early and linked from this task.
+- [ ] Versioned stability certification contract and strict schema are implemented.
+- [ ] Every supplied attempt remains visible and duplicate run identities fail closed.
+- [ ] Comparability requires exact scenario, server revision, client revision, datapack and execution tier.
+- [ ] `pass` requires the explicit minimum run count and every evaluated clean run passing.
+- [ ] Mixed pass/failure evidence is `unstable`; all evaluated failures are `fail`; insufficient evidence is `not-evaluated`; unresolved provenance is `blocked`.
+- [ ] Cleanup certification remains independent and a cleanup failure prevents a clean-pass attempt.
+- [ ] Deterministic duration percentiles and exact failure/divergence distributions are tested.
+- [ ] Focused tests, bytecode compilation and JSON schema parsing pass against canonical repository modules.
+- [ ] Catalogue/program/changelog entries are updated narrowly.
+- [ ] Exact final-head required checks pass before squash merge.
+- [ ] A physical repeated-run baseline remains explicit follow-up evidence and is not falsely claimed by this implementation package.
+
+## Context checkpoint
+
+```yaml
+checkpoint_version: 1
+updated_at: 2026-07-25T00:00:00+02:00
+head: 930e0a15767b7e5348bb36c679fa5e458a76f184
+branch: feat/e2e-qri-022-stability-certification
+pr: 0
+status: implementing
+context_routes:
+  - agent-governance
+  - universal-e2e
+owned_paths:
+  - docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md
+  - tools/e2e/stability_certification.py
+  - tests/e2e/test_stability_certification.py
+  - docs/e2e/E2E_STABILITY_CERTIFICATION.md
+  - docs/e2e/E2E_STABILITY_CERTIFICATION.schema.json
+  - docs/agents/MODULE_CATALOG.md
+  - docs/agents/CHANGELOG.md
+  - docs/agents/programs/E2E_AUTOMATION_PROGRAM.md
+proven:
+  - QRI-004 is merged and lifecycle-closed; its dashboard validates explicit local extracted schema-v3 result roots and preserves invalid evidence without running scenarios.
+  - QRI-005 supplies exact run identity, status, duration, execution tier, revisions, failure classification, first failed step, attempt history and nine independent quality dimensions.
+  - QRI-006 supplies independent exact cleanup certification; cleanup success must not be inferred from gameplay success.
+  - The roadmap requires run count, pass/fail count, success ratio, failure-class distribution, latency distribution, cleanup failures and first-divergence frequency, and explicitly classifies 9/10 as unstable.
+  - No open PR or active task with E2E-QRI-022 intent or planned exclusive paths was found during live preflight.
+  - Current main at task creation is 930e0a15767b7e5348bb36c679fa5e458a76f184.
+derived:
+  - Reusing coverage_dashboard discovery and canonical envelope validation avoids a second result parser and preserves its path-confinement rules.
+  - A clean passing attempt requires gameplay status success and exact cleanup certification success; the two facts remain separately reported.
+unknown:
+  - The first selected physical scenario set and exact retained artifact population for a real repeated-run baseline.
+  - Whether a later scheduled execution seam is justified after the read-only certification contract is proven.
+  - Exact final implementation shape until focused canonical-module tests run.
+conflicts: []
+first_failure:
+  marker: none
+  evidence: no implementation or validation failure has occurred yet
+rejected_hypotheses:
+  - Treating the existing dashboard latest stability dimension as repeated-run certification.
+  - Hiding failed attempts behind automatic retry or selecting only successful artifacts.
+  - Creating another physical E2E runner, workflow lifecycle or artifact contract.
+changed_paths:
+  - docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md
+validation:
+  - command: live main and QRI dependency preflight
+    result: PASS
+    evidence: main 930e0a15767b7e5348bb36c679fa5e458a76f184 includes QRI-004 lifecycle closure PR #900
+  - command: live open PR and repository search for E2E-QRI-022 overlap
+    result: PASS
+    evidence: no overlapping QRI-022 task, PR or exclusive path owner was found
+blockers:
+  - A real multi-run physical stability baseline requires a selected retained artifact population and execution package after this contract is proven.
+next_action: Open the draft PR, link its number in this checkpoint, then implement and validate the smallest deterministic retained-evidence stability certification contract without adding execution or scheduling.
+```
