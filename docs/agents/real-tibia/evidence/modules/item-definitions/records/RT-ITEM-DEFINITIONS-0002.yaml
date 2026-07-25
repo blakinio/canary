@@ -1,1 +1,295 @@
-{"applicability":{"announced_in":{"evidence_refs":[],"exact":null,"lower_bound":null,"mode":"UNKNOWN","notes":["No announcement applies to this Canary source observation."],"upper_bound":null},"changed_in":[],"deprecated_in":{"evidence_refs":[],"exact":null,"lower_bound":null,"mode":"UNKNOWN","notes":["No deprecation is established."],"upper_bound":null},"effective_from":{"evidence_refs":[],"exact":null,"lower_bound":null,"mode":"UNKNOWN","notes":["No runtime effective boundary is established."],"upper_bound":null},"effective_until":{"evidence_refs":[],"exact":null,"lower_bound":null,"mode":"UNKNOWN","notes":["No exact effective-until boundary is established."],"upper_bound":null},"introduced_in":{"evidence_refs":[],"exact":null,"lower_bound":null,"mode":"UNKNOWN","notes":["No introduction boundary is established."],"upper_bound":null},"observed_in":[{"evidence_refs":["RT-ITEM-DEFINITIONS-0002"],"exact":{"appearances_items_revision":"data/items/appearances.dat git blob 2cc2f4910af4f002f99f39e486d1a91b1b56a728","canary_commit":"8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9","database_schema_revision":null,"datapack_revision":null,"maintained_otclient_commit":null,"map_sha256":null,"official_client_build":null,"official_tibia_release":null,"protocol_profile":null,"spawn_npc_sidecar_revision":null},"lower_bound":null,"mode":"EXACT","notes":["Selected source baseline; scan executed in PR merge workspace with no item-source changes."],"upper_bound":null}],"removed_in":{"evidence_refs":[],"exact":null,"lower_bound":null,"mode":"UNKNOWN","notes":["No removal is established."],"upper_bound":null}},"authority_dimension":"current-canary-behavior","claim_key":"cloud-in-a-bottle-selected-path-scan-and-loader-boundary","claim_statement":"At Canary baseline 8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9, the exact selected textual item-definition and parser paths contain no Cloud in a Bottle name variant or candidate ID 54651, while Items::loadFromProtobuf loads base item identity from appearances.dat; current item correspondence is therefore blocked by exact client-reference evidence rather than proven absent.","confidence":"HIGH","conflict_refs":[],"current_canary_comparison":{"baseline":{"appearances_items_revision":"data/items/appearances.dat git blob 2cc2f4910af4f002f99f39e486d1a91b1b56a728","canary_commit":"8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9","database_schema_revision":null,"datapack_revision":null,"maintained_otclient_commit":null,"map_sha256":null,"official_client_build":null,"official_tibia_release":null,"protocol_profile":null,"spawn_npc_sidecar_revision":null},"current_behavior":"Canary loads base item id, name and description from appearances.dat, then applies XML name and attribute overlays and lower-case name registration.","differences":["The selected textual paths contain no exact official name, bounded spelling variant or candidate ID 54651.","The exact client-derived object identity in appearances.dat was not inspected by the Collector."],"exact_paths":["data/items/appearances.dat","data/items/items.xml","src/items/items.cpp","src/items/items.hpp","src/items/functions/item/item_parse.cpp","src/items/functions/item/item_parse.hpp"],"exact_symbols":["Items::loadFromProtobuf","Items::loadFromXml","Items::parseItemNode","Items::getItemIdByName","ItemParse::initParse","ItemParse::parseDescription"],"missing_proof":["Exact official-client object id, name, description and build.","Exact comparison with the pinned Canary appearances revision.","Unlock authorization, acquisition and runtime behavior."],"state":"blocked-by-reference"},"does_not_prove":["This record does not prove that Cloud in a Bottle is absent from Canary under another name or identifier.","This record does not validate candidate ID 54651.","This record does not prove unlock, acquisition, runtime, protocol, client or appearance parity."],"evidence_id":"RT-ITEM-DEFINITIONS-0002","evidence_state":"PROVEN","format":"canary-real-tibia-evidence-record-v1","freshness":{"invalid_after_days":90,"invalidation_triggers":["Canary item registry, parser or appearances revision changes.","An accepted TCR result resolves the item identity.","Official Cloud in a Bottle documentation changes."],"observed_or_verified_at":"2026-07-25","policy":"refresh-before-task","warning_after_days":30},"module_id":"item-definitions","owner_request_refs":["RTREQ-TCR-CLOUD-IN-A-BOTTLE-0001"],"proof_level":"definition-found","proves":["The exact selected textual paths contain no bounded Cloud in a Bottle identity match or exact candidate ID 54651.","Items::loadFromProtobuf loads base item IDs, names and descriptions from appearances data.","XML loading may overlay names and description attributes.","Current correspondence cannot be resolved without exact client-reference evidence."],"record_status":"review-needed","related_modules":["items-assets-appearances","otbm-tooling"],"review":{"notes":["Pending structured review on worker PR #931."],"pr":931,"reviewed_at":null,"reviewer":null,"status":"pending","task_id":"CAN-20260725-rtec-004-cloud-in-a-bottle"},"schema_version":1,"sources":[{"author":"Canary contributors","does_not_prove":["Source tracing does not reveal the proprietary appearances object without exact reference tooling.","Loader source does not prove live item availability or acquisition."],"external_artifact":null,"limitations":["The binary appearances registry was not parsed by the Collector."],"locator":{"artifact_sha256":null,"build":null,"commit_sha":"8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9","report_id":null,"repository":"blakinio/canary","repository_path":"src/items/items.cpp","url":null},"observation_date":"2026-07-25","proof_level_reached":"definition-found","proves":["The current loader obtains base item identity from appearances and supports XML overlays."],"publication_date":null,"role":"primary","selected":{"files":["data/items/appearances.dat","data/items/items.xml","src/items/items.cpp","src/items/items.hpp","src/items/functions/item/item_parse.cpp","src/items/functions/item/item_parse.hpp"],"observations":["Items::loadFromProtobuf assigns object id, name and description and registers lower-case names.","Items::loadFromXml and parseItemNode process XML ids, names and attributes.","ItemParse::parseDescription overlays description attributes."],"sections":[],"symbols":["Items::loadFromProtobuf","Items::loadFromXml","Items::parseItemNode","Items::getItemIdByName","ItemParse::parseDescription"]},"source_id":"canary-current-item-loader-boundary","source_type":"current-canary"},{"author":"RTEC-004 Worker B","does_not_prove":["Search misses do not prove absence under another identity.","The scan does not inspect proprietary appearances contents or prove runtime behavior."],"external_artifact":{"byte_size":3962,"filename":"rtec-004-cloud-scan.zip","retained_outside_git":true,"sha256":"2ea96bb5feeaec8022ba5bbedb4a74c1fdd3af0019ba1473f3610d0a5541d637"},"limitations":["The scan is limited to declared textual paths and repository grep.","The PR merge workspace contains only Collector documentation/test changes over the pinned source baseline."],"locator":{"artifact_sha256":"2ea96bb5feeaec8022ba5bbedb4a74c1fdd3af0019ba1473f3610d0a5541d637","build":null,"commit_sha":"9236b5adfa5c40f170901d79d897f8b6694f4ba6","report_id":"GitHub Actions run 30171827237 artifact 8623126188","repository":"blakinio/canary","repository_path":null,"url":null},"observation_date":"2026-07-25","proof_level_reached":"definition-found","proves":["No bounded official-name, related-name or candidate-ID match exists in the selected textual paths.","items.xml contains no exact id 54651 entry."],"publication_date":null,"role":"corroborating","selected":{"files":["data/items/items.xml","src/items/items.cpp","src/items/items.hpp","src/items/functions/item/item_parse.cpp","src/items/functions/item/item_parse.hpp"],"observations":["Selected-path hits were empty for Cloud in a Bottle variants, Radiant Nimbus, Moonsilver and 54651.","Other cloud/bottle names in items.xml were unrelated.","Repository grep matches were limited to Collector/audit references."],"sections":[],"symbols":[]},"source_id":"rtec-004-cloud-selected-path-scan","source_type":"canary-test-result"}],"superseded_by":[],"supersedes":[],"uncertainty":["Exact client object identity and official build remain unresolved.","The item may exist under another identity in the appearances registry."]}
+{
+  "applicability": {
+    "announced_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No announcement applies to this Canary source observation."
+      ],
+      "upper_bound": null
+    },
+    "changed_in": [],
+    "deprecated_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No deprecation is established."
+      ],
+      "upper_bound": null
+    },
+    "effective_from": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No runtime effective boundary is established."
+      ],
+      "upper_bound": null
+    },
+    "effective_until": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No exact effective-until boundary is established."
+      ],
+      "upper_bound": null
+    },
+    "introduced_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No introduction boundary is established."
+      ],
+      "upper_bound": null
+    },
+    "observed_in": [
+      {
+        "evidence_refs": [
+          "RT-ITEM-DEFINITIONS-0002"
+        ],
+        "exact": {
+          "appearances_items_revision": "data/items/appearances.dat git blob 2cc2f4910af4f002f99f39e486d1a91b1b56a728",
+          "canary_commit": "8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9",
+          "database_schema_revision": null,
+          "datapack_revision": null,
+          "maintained_otclient_commit": null,
+          "map_sha256": null,
+          "official_client_build": null,
+          "official_tibia_release": null,
+          "protocol_profile": null,
+          "spawn_npc_sidecar_revision": null
+        },
+        "lower_bound": null,
+        "mode": "EXACT",
+        "notes": [
+          "Selected source baseline; scan executed in PR merge workspace with no item-source changes."
+        ],
+        "upper_bound": null
+      }
+    ],
+    "removed_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No removal is established."
+      ],
+      "upper_bound": null
+    }
+  },
+  "authority_dimension": "current-canary-behavior",
+  "claim_key": "cloud-in-a-bottle-selected-path-scan-and-loader-boundary",
+  "claim_statement": "At Canary baseline 8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9, the exact selected textual item-definition and parser paths contain no Cloud in a Bottle name variant or candidate ID 54651, while Items::loadFromProtobuf loads base item identity from appearances.dat; current item correspondence is therefore blocked by exact client-reference evidence rather than proven absent.",
+  "confidence": "HIGH",
+  "conflict_refs": [],
+  "current_canary_comparison": {
+    "baseline": {
+      "appearances_items_revision": "data/items/appearances.dat git blob 2cc2f4910af4f002f99f39e486d1a91b1b56a728",
+      "canary_commit": "8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9",
+      "database_schema_revision": null,
+      "datapack_revision": null,
+      "maintained_otclient_commit": null,
+      "map_sha256": null,
+      "official_client_build": null,
+      "official_tibia_release": null,
+      "protocol_profile": null,
+      "spawn_npc_sidecar_revision": null
+    },
+    "current_behavior": "Canary loads base item id, name and description from appearances.dat, then applies XML name and attribute overlays and lower-case name registration.",
+    "differences": [
+      "The selected textual paths contain no exact official name, bounded spelling variant or candidate ID 54651.",
+      "The exact client-derived object identity in appearances.dat was not inspected by the Collector."
+    ],
+    "exact_paths": [
+      "data/items/appearances.dat",
+      "data/items/items.xml",
+      "src/items/items.cpp",
+      "src/items/items.hpp",
+      "src/items/functions/item/item_parse.cpp",
+      "src/items/functions/item/item_parse.hpp"
+    ],
+    "exact_symbols": [
+      "Items::loadFromProtobuf",
+      "Items::loadFromXml",
+      "Items::parseItemNode",
+      "Items::getItemIdByName",
+      "ItemParse::initParse",
+      "ItemParse::parseDescription"
+    ],
+    "missing_proof": [
+      "Exact official-client object id, name, description and build.",
+      "Exact comparison with the pinned Canary appearances revision.",
+      "Unlock authorization, acquisition and runtime behavior."
+    ],
+    "state": "blocked-by-reference"
+  },
+  "does_not_prove": [
+    "This record does not prove that Cloud in a Bottle is absent from Canary under another name or identifier.",
+    "This record does not validate candidate ID 54651.",
+    "This record does not prove unlock, acquisition, runtime, protocol, client or appearance parity."
+  ],
+  "evidence_id": "RT-ITEM-DEFINITIONS-0002",
+  "evidence_state": "PROVEN",
+  "format": "canary-real-tibia-evidence-record-v1",
+  "freshness": {
+    "invalid_after_days": 90,
+    "invalidation_triggers": [
+      "Canary item registry, parser or appearances revision changes.",
+      "An accepted TCR result resolves the item identity.",
+      "Official Cloud in a Bottle documentation changes."
+    ],
+    "observed_or_verified_at": "2026-07-25",
+    "policy": "refresh-before-task",
+    "warning_after_days": 30
+  },
+  "module_id": "item-definitions",
+  "owner_request_refs": [
+    "RTREQ-TCR-ITEM-DEFINITIONS-0001"
+  ],
+  "proof_level": "definition-found",
+  "proves": [
+    "The exact selected textual paths contain no bounded Cloud in a Bottle identity match or exact candidate ID 54651.",
+    "Items::loadFromProtobuf loads base item IDs, names and descriptions from appearances data.",
+    "XML loading may overlay names and description attributes.",
+    "Current correspondence cannot be resolved without exact client-reference evidence."
+  ],
+  "record_status": "accepted",
+  "related_modules": [
+    "otbm-tooling"
+  ],
+  "review": {
+    "notes": [
+      "Structured review verified the official correction, source date and definition-found proof cap.",
+      "Review verified scan run 30171827237, artifact 8623126188, selected paths and the appearances.dat loader boundary.",
+      "Candidate ID 54651 remains discovery-only; no item data, assets, parser, runtime, client, map or E2E owner path changed."
+    ],
+    "pr": 931,
+    "reviewed_at": "2026-07-25T22:18:24+02:00",
+    "reviewer": "RTEC-004 coordinator / GPT-5.6 Thinking",
+    "status": "accepted",
+    "task_id": "CAN-20260725-rtec-004-cloud-in-a-bottle"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "author": "Canary contributors",
+      "does_not_prove": [
+        "Source tracing does not reveal the proprietary appearances object without exact reference tooling.",
+        "Loader source does not prove live item availability or acquisition."
+      ],
+      "external_artifact": null,
+      "limitations": [
+        "The binary appearances registry was not parsed by the Collector."
+      ],
+      "locator": {
+        "artifact_sha256": null,
+        "build": null,
+        "commit_sha": "8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9",
+        "report_id": null,
+        "repository": "blakinio/canary",
+        "repository_path": "src/items/items.cpp",
+        "url": null
+      },
+      "observation_date": "2026-07-25",
+      "proof_level_reached": "definition-found",
+      "proves": [
+        "The current loader obtains base item identity from appearances and supports XML overlays."
+      ],
+      "publication_date": null,
+      "role": "primary",
+      "selected": {
+        "files": [
+          "data/items/appearances.dat",
+          "data/items/items.xml",
+          "src/items/items.cpp",
+          "src/items/items.hpp",
+          "src/items/functions/item/item_parse.cpp",
+          "src/items/functions/item/item_parse.hpp"
+        ],
+        "observations": [
+          "Items::loadFromProtobuf assigns object id, name and description and registers lower-case names.",
+          "Items::loadFromXml and parseItemNode process XML ids, names and attributes.",
+          "ItemParse::parseDescription overlays description attributes."
+        ],
+        "sections": [],
+        "symbols": [
+          "Items::loadFromProtobuf",
+          "Items::loadFromXml",
+          "Items::parseItemNode",
+          "Items::getItemIdByName",
+          "ItemParse::parseDescription"
+        ]
+      },
+      "source_id": "canary-current-item-loader-boundary",
+      "source_type": "current-canary"
+    },
+    {
+      "author": "RTEC-004 Worker B",
+      "does_not_prove": [
+        "Search misses do not prove absence under another identity.",
+        "The scan does not inspect proprietary appearances contents or prove runtime behavior."
+      ],
+      "external_artifact": {
+        "byte_size": 3962,
+        "filename": "rtec-004-cloud-scan.zip",
+        "retained_outside_git": true,
+        "sha256": "2ea96bb5feeaec8022ba5bbedb4a74c1fdd3af0019ba1473f3610d0a5541d637"
+      },
+      "limitations": [
+        "The scan is limited to declared textual paths and repository grep.",
+        "The PR merge workspace contains only Collector documentation/test changes over the pinned source baseline."
+      ],
+      "locator": {
+        "artifact_sha256": "2ea96bb5feeaec8022ba5bbedb4a74c1fdd3af0019ba1473f3610d0a5541d637",
+        "build": null,
+        "commit_sha": "9236b5adfa5c40f170901d79d897f8b6694f4ba6",
+        "report_id": "GitHub Actions run 30171827237 artifact 8623126188",
+        "repository": "blakinio/canary",
+        "repository_path": null,
+        "url": null
+      },
+      "observation_date": "2026-07-25",
+      "proof_level_reached": "definition-found",
+      "proves": [
+        "No bounded official-name, related-name or candidate-ID match exists in the selected textual paths.",
+        "items.xml contains no exact id 54651 entry."
+      ],
+      "publication_date": null,
+      "role": "corroborating",
+      "selected": {
+        "files": [
+          "data/items/items.xml",
+          "src/items/items.cpp",
+          "src/items/items.hpp",
+          "src/items/functions/item/item_parse.cpp",
+          "src/items/functions/item/item_parse.hpp"
+        ],
+        "observations": [
+          "Selected-path hits were empty for Cloud in a Bottle variants, Radiant Nimbus, Moonsilver and 54651.",
+          "Other cloud/bottle names in items.xml were unrelated.",
+          "Repository grep matches were limited to Collector/audit references."
+        ],
+        "sections": [],
+        "symbols": []
+      },
+      "source_id": "rtec-004-cloud-selected-path-scan",
+      "source_type": "canary-test-result"
+    }
+  ],
+  "superseded_by": [],
+  "supersedes": [],
+  "uncertainty": [
+    "Exact client object identity and official build remain unresolved.",
+    "The item may exist under another identity in the appearances registry."
+  ]
+}
