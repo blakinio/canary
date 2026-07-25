@@ -35,7 +35,7 @@
   "format": "canary-real-tibia-module-evidence-index-v1",
   "module_id": "item-definitions",
   "owner_request_ids": [
-    "RTREQ-TCR-CLOUD-IN-A-BOTTLE-0001"
+    "RTREQ-TCR-ITEM-DEFINITIONS-0001"
   ],
   "record_count": 2,
   "schema_version": 1,
