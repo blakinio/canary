@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import shlex
 import subprocess
 import tempfile
 import unittest
@@ -30,7 +31,7 @@ class FailureEvidenceRetentionTest(unittest.TestCase):
             artifact_dir = Path(temporary)
             script = (
                 "set -uo pipefail\n"
-                f"ARTIFACT_DIR={artifact_dir!s!r}\n"
+                f"ARTIFACT_DIR={shlex.quote(str(artifact_dir))}\n"
                 f"{self.extracted_exit_function()}\n"
                 f"emit_workflow_exit {status}\n"
                 "exit $?\n"
@@ -62,7 +63,10 @@ class FailureEvidenceRetentionTest(unittest.TestCase):
         final_exit = text.rfind('emit_workflow_exit "${final_status}"')
         self.assertGreater(final_finalize, 0)
         self.assertGreater(final_exit, final_finalize)
-        self.assertIn('cleanup-certification.json', (ROOT / "tools" / "e2e" / "cleanup_certification.py").read_text(encoding="utf-8"))
+        cleanup_text = (
+            ROOT / "tools" / "e2e" / "cleanup_certification.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("cleanup-certification.json", cleanup_text)
 
     def test_signal_handlers_preserve_finalization_path(self) -> None:
         text = self.script_text()
