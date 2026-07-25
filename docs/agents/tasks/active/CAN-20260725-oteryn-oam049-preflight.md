@@ -2,26 +2,26 @@
 task_id: CAN-20260725-oteryn-oam049-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-049
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
-branch: dudantas/oam-049-upstream-intelligence-preflight
+branch: dudantas/oam-049-upstream-intelligence-governance
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "72003dc821e8c71faea165d18efb017de36137f2"
+last_verified_commit: "255856e361ee018b9bf3cedb590673ba3744e742"
 risk: medium
 related_issue: ""
-related_pr: "939"
+related_pr: ""
 depends_on:
   - OAM-048 durably completed as a22563088ebad86602dbd8cb9af0b120dcbfc94d
 blocks:
-  - OAM-049 target disposition and lifecycle
   - OAM-049 Canary governance and lifecycle
   - OAM-049 durable program reconciliation
   - OAM-050 start
 owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260725-oteryn-oam049-preflight.md
+    - docs/agents/OTERYN_OAM_049_UPSTREAM_INTELLIGENCE_REVALIDATION.md
   shared: []
   read_only:
     - docs/agents/real-tibia/registry/modules/upstream-intelligence.yaml
@@ -35,22 +35,20 @@ owned_paths:
     - zimbadev/crystalserver
 ---
 
-# OAM-049 Upstream Intelligence preflight
+# OAM-049 Upstream Intelligence governance
 
-Select canonical `upstream-intelligence → DO_NOT_MIGRATE candidate` after durable OAM-048 closure.
+Final disposition: `upstream-intelligence → DO_NOT_MIGRATE`.
 
-The package is repository-governance tooling: read-only source discovery, provenance, bounded drift inventory, source-policy-aware module mapping, reviewed triage, immutable workflow artifacts and a stable report issue. It is intentionally not server runtime. Otheryn may consume reviewed, revision-pinned conclusions through normal bounded tasks, but should not own or duplicate the watcher, mapper, report publisher or GitHub workflow.
-
-This disposition does **not** disable Upstream Intelligence. The existing Canary programme remains active and continues to check external repositories for potentially missed fixes, crashes, protocol changes, security signals and useful implementation ideas. External repositories remain read-only.
+This keeps Upstream Intelligence active in Canary and excludes only duplication of its repository-governance machinery in production Otheryn.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T22:37:00+02:00
-head: 72003dc821e8c71faea165d18efb017de36137f2
-branch: dudantas/oam-049-upstream-intelligence-preflight
-pr: 939
+updated_at: 2026-07-25T23:09:00+02:00
+head: 255856e361ee018b9bf3cedb590673ba3744e742
+branch: dudantas/oam-049-upstream-intelligence-governance
+pr: null
 status: validating
 context_routes:
   - agent-governance
@@ -58,46 +56,46 @@ context_routes:
   - github-actions
 owned_paths:
   - docs/agents/tasks/active/CAN-20260725-oteryn-oam049-preflight.md
+  - docs/agents/OTERYN_OAM_049_UPSTREAM_INTELLIGENCE_REVALIDATION.md
 proven:
-  - OAM-048 durably completed as a22563088ebad86602dbd8cb9af0b120dcbfc94d.
-  - Fresh Canary main is 8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9 and fresh Otheryn main is fc93848796f05108684dfbb218f7434a8cb88755.
-  - Canonical upstream-intelligence has no dependencies and is classified as platform-tooling.
-  - Its registry scope includes bounded discovery, provenance, module mapping, exact local ancestry/reference probes, reviewed decisions, report issues and immutable artifacts.
-  - Its explicit exclusions include automatic cherry-picks, automatic gameplay or protocol conclusions, implementation branches, writes to watched repositories and semantic-equivalence claims.
-  - The workflow grants watched-source access only for reading; its only write is the stable report issue in blakinio/canary.
-  - Otheryn has no upstream-intelligence implementation root or runtime consumer.
-  - Open Canary PR 925 owns physical-client E2E surfaces and PRs 929-931 own RTEC evidence surfaces; none owns this OAM task path or proposes an Otheryn watcher.
+  - Canary preflight head c5765904930c17be6131fe9459d9eaf67aafd321 passed Ownership 30172288302 and CI 30172288416 and PR 939 merged as 4ba73d72a26e10c8ff1a873a8267291fb2d93cf9.
+  - Otheryn disposition head d3d95828a4067012b87af9b8015cb7a420f70120 passed Required 30172471373 and PR 111 merged as 9632bf1a0721fb28f3596c57495ba008604587ec after clean audit.
+  - Otheryn lifecycle head 5daf45e3a3c4bd5a32aec3ac24351bee7c905dde passed Required 30172564823 and PR 112 merged as 877816a64e31c6d25815ebf6b7543e001648ca52 after clean audit.
+  - Otheryn added no runtime, workflow, scanner, registry, mapper, report publisher, data or deployment path.
+  - Canary Upstream Intelligence remains active and all watched external repositories remain read-only.
+  - Reviewed revision-pinned fixes may still reach Otheryn through separate bounded tasks and normal gates.
 derived:
-  - Upstream Intelligence is valuable development governance but is not part of the Otheryn production-server architecture.
-  - DO_NOT_MIGRATE preserves monitoring in Canary while preventing duplicate scanners, registries, mappers and GitHub workflows in Otheryn.
+  - Repository-watching infrastructure belongs to Canary development governance rather than Otheryn production runtime.
+  - DO_NOT_MIGRATE preserves upstream discovery while preventing duplicate sources of policy and triage truth.
 unknown:
-  - Operational success of the next scheduled production scan and stable report issue remains governed by UI-002.
-  - Individual future upstream candidates still require revision-pinned review and bounded implementation proof.
+  - UI-002 production-scan and stable-report verification remains separate.
+  - Future candidate correctness and target applicability remain unproven until reviewed against then-current state.
 conflicts: []
 first_failure:
   marker: ownership-checkpoint-schema
-  command: changed active task checkpoint validation
+  command: Canary preflight changed-task validation
   result: FAIL
-  evidence: Initial head a13f20ef4dc4a3c9e02dee314fc6460a750f637f used null for first_failure; Ownership run 30171895810 required a YAML mapping. Head 06c4c41ca401a7d7eb6d9a8fd0a0076f09bc1bde then proved the mapping also requires marker and supported validation result values. Heads 36292e3e87f87e56f5fdfe02b307e4efee64c6b2 and 72003dc821e8c71faea165d18efb017de36137f2 proved that active records require one of the repository-supported lifecycle statuses.
+  evidence: Early preflight heads exposed checkpoint-schema and unsupported lifecycle-status values; final preflight head corrected them and passed Ownership 30172288302.
 rejected_hypotheses:
-  - Disable or remove Upstream Intelligence because it is not migrated to Otheryn.
-  - Copy the watcher and workflow into Otheryn for convenience.
-  - Treat an external commit, issue or PR as automatic proof that Canary or Otheryn is wrong.
-  - Allow automatic cherry-picks or writes to watched repositories.
+  - Disable or remove Upstream Intelligence.
+  - Duplicate the watcher and workflow in Otheryn.
+  - Automatically import external changes or infer correctness from source activity.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260725-oteryn-oam049-preflight.md
+  - docs/agents/OTERYN_OAM_049_UPSTREAM_INTELLIGENCE_REVALIDATION.md
 validation:
-  - command: fresh main, open-PR, ownership, dependency and exact-root review
+  - command: Otheryn target disposition and lifecycle gates
     result: PASS
-    evidence: No conflicting OAM-049 ownership; package is dependency-valid and target has no implementation root.
-  - command: external repository write-boundary review
+    evidence: PR 111 and PR 112 passed Required, clean audits and expected-head merges.
+  - command: monitoring preservation and external write-boundary review
     result: PASS
-    evidence: Watched repositories are read-only and the workflow cannot push to them.
-  - command: changed active task checkpoint validation
+    evidence: Canary programme remains active and watched repositories remain read-only.
+  - command: Canary governance exact-head gates
     result: NOT_RUN
-    evidence: Exact-head Ownership must confirm the supported implementing frontmatter status and checkpoint schema.
+    evidence: Governance PR must pass Ownership and full CI on the synchronized head.
 blockers:
-  - Canary preflight exact-head Ownership and CI
+  - Canary governance exact-head Ownership and CI
   - clean discussion and Canary-main drift audit
-next_action: Require exact-head Ownership and full CI on PR 939, audit discussions and main drift, then merge before creating the Otheryn disposition task.
+  - governance merge, lifecycle archive and durable reconciliation
+next_action: Open the Canary governance PR, require exact-head Ownership and full CI, audit discussions and main drift, then merge and complete lifecycle plus durable reconciliation before OAM-050.
 ```
