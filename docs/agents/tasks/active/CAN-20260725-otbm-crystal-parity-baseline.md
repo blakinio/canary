@@ -1,15 +1,15 @@
 ---
 task_id: CAN-20260725-otbm-crystal-parity-baseline
 program_id: CAN-PROGRAM-REAL-TIBIA-PARITY
-status: ready
+status: validating
 agent: "GPT-5.6 Thinking"
 owner: OTBM analysis tooling / Real Tibia parity
 created: 2026-07-25T08:00:00+02:00
-updated: 2026-07-25T15:42:00+02:00
-last_verified_commit: "624f31a5898407f31c8bd58e1a50ad8dd511f193"
+updated: 2026-07-25T16:00:00+02:00
+last_verified_commit: "9c80397111f0e0c70be3b3fff23c3a85b2e35ce9"
 branch: analysis/otbm-crystal-parity-baseline
 base_branch: main
-base: main@2372ce3898e12cc14ffda4626f638ad812b01533
+base: main@c468be4c34039b4b3e9f4e320c4b125cb6998d77
 related_pr: "913"
 module_id: otbm-tooling
 routes:
@@ -108,8 +108,8 @@ Excluded:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T15:42:00+02:00
-head: 624f31a5898407f31c8bd58e1a50ad8dd511f193
+updated_at: 2026-07-25T16:00:00+02:00
+head: 9c80397111f0e0c70be3b3fff23c3a85b2e35ce9
 branch: analysis/otbm-crystal-parity-baseline
 pr: 913
 status: ready
@@ -183,10 +183,13 @@ validation:
   - command: pre-ready CI workflow run 30159732754
     result: PASS
     evidence: Fast Checks, Lua Tests, Linux compile and Required aggregation succeeded
-  - command: protected final-head workflow set
+  - command: current-main synchronization merge
+    result: PASS
+    evidence: current main was merged with both OTBM and QRI-022 changelog entries preserved
+  - command: protected final-head workflow set after current-main synchronization
     result: NOT_RUN
-    evidence: ci:final-gate must be applied after this durable ready checkpoint is validated
+    evidence: exact-head workflows must run on a connector-authored head after this checkpoint commit
 blockers:
   - Selected content adoption requires bounded reviewed evidence and the relevant current OTServBR Script Resolution, reachability or other subsystem proof.
-next_action: Validate this ready-checkpoint head, apply ci:final-gate, confirm the protected final workflow set on the unchanged head and squash-merge PR 913.
+next_action: Trigger and validate the exact-head workflow set after current-main synchronization, then apply ci:final-gate and squash-merge PR 913 without further code changes.
 ```
