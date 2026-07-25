@@ -1,11 +1,11 @@
 ---
 task_id: CAN-20260725-otbm-crystal-parity-baseline
 program_id: CAN-PROGRAM-REAL-TIBIA-PARITY
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
 owner: OTBM analysis tooling / Real Tibia parity
 created: 2026-07-25T08:00:00+02:00
-updated: 2026-07-25T16:00:00+02:00
+updated: 2026-07-25T16:08:00+02:00
 last_verified_commit: "624f31a5898407f31c8bd58e1a50ad8dd511f193"
 branch: analysis/otbm-crystal-global-parity-final
 base_branch: main
@@ -23,8 +23,6 @@ owned_paths:
     - tools/ai-agent/otbm_semantic_diff_analysis.py
     - tools/ai-agent/otbm_semantic_diff_types.py
     - tools/ai-agent/test_otbm_semantic_diff.py
-  shared:
-    - docs/agents/CHANGELOG.md
   read_only:
     - tools/ai-agent/otbm_item_audit_scan.cpp
     - tools/ai-agent/otbm_world_index.py
@@ -94,15 +92,15 @@ Excluded:
 3. `canary-otbm-semantic-diff-v1` completes with exact full-index counters.
 4. The area-major correction has focused tests and introduces no parser or format.
 5. The report separates static evidence from runtime, gameplay and repair claims.
-6. The final diff contains only seven text/source paths and no workflow or binary artifact.
+6. The final diff contains only six text/source paths and no workflow or binary artifact.
 7. Focused checks, ownership, pre-ready CI and protected final CI pass on the final head.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T16:00:00+02:00
-head: 9e11571445a15699cc3ec3e6b1c0f50e04084f03
+updated_at: 2026-07-25T16:08:00+02:00
+head: e59e22e6c73d6a57c6abc29e90cb8dede8b85e62
 branch: analysis/otbm-crystal-global-parity-final
 pr: 923
 status: validating
@@ -114,7 +112,6 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260725-otbm-crystal-parity-baseline.md
   - docs/agents/real-tibia/OTBM_CRYSTAL_PARITY_BASELINE_2026-07-25.md
   - docs/ai-agent/OTBM_SEMANTIC_DIFF.md
-  - docs/agents/CHANGELOG.md
   - tools/ai-agent/otbm_semantic_diff_analysis.py
   - tools/ai-agent/otbm_semantic_diff_types.py
   - tools/ai-agent/test_otbm_semantic_diff.py
@@ -149,7 +146,6 @@ rejected_hypotheses:
   - Treating matching numeric identifiers as automatically equivalent intent.
   - Creating a second parser, renderer or pathfinder.
 changed_paths:
-  - docs/agents/CHANGELOG.md
   - docs/agents/real-tibia/OTBM_CRYSTAL_PARITY_BASELINE_2026-07-25.md
   - docs/agents/tasks/active/CAN-20260725-otbm-crystal-parity-baseline.md
   - docs/ai-agent/OTBM_SEMANTIC_DIFF.md
@@ -168,11 +164,11 @@ validation:
     evidence: 34 focused tests passed on the corrected implementation source
   - command: exact-head PR 923 focused checks and pre-ready CI
     result: NOT_RUN
-    evidence: the clean branch has not completed its own workflow set yet
+    evidence: the six-path clean branch has not completed its own workflow set yet
   - command: protected final-head workflow set
     result: NOT_RUN
     evidence: final gate is applied only after the clean branch is ready
 blockers:
   - Any content adoption requires a separate bounded review with current OTServBR Script Resolution, reachability or other subsystem proof.
-next_action: Add the current-main changelog entry, verify the seven-path diff, run all focused and pre-ready checks, then record ready state and execute protected final CI before squash merge.
+next_action: Verify the six-path diff, run focused and pre-ready checks, record the ready checkpoint and execute protected final CI before squash merge.
 ```
