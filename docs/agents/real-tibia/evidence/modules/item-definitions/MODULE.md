@@ -31,7 +31,7 @@ Therefore the selected textual definitions cannot resolve whether Cloud in a Bot
 
 ## Owner request
 
-`RTREQ-TCR-CLOUD-IN-A-BOTTLE-0001` requests exact user-supplied official-client reference evidence from the existing OTBM Tibia Client Reference Programme. It must identify the exact object/name/description/build and compare that reference with the pinned Canary appearances revision without importing or mutating assets.
+`RTREQ-TCR-ITEM-DEFINITIONS-0001` requests exact user-supplied official-client reference evidence from the existing OTBM Tibia Client Reference Programme. It must identify the exact object/name/description/build and compare that reference with the pinned Canary appearances revision without importing or mutating assets.
 
 ## Evidence records
 
