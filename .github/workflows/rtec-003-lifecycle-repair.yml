@@ -1,0 +1,53 @@
+name: RTEC-003 Lifecycle Repair
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/rtec-003-lifecycle-repair.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  archive:
+    if: github.head_ref == 'automation/archive-agent-task-pr-921-manual'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repair branch
+        uses: actions/checkout@v6
+        with:
+          ref: automation/archive-agent-task-pr-921-manual
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Apply canonical lifecycle transformation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/agents/task_lifecycle.py archive-pr \
+            --pr-number 921 \
+            --merge-commit 55c6ad13a4ed5c2dde71131df5677476cefb3600 \
+            --merged-at 2026-07-25T17:43:43Z \
+            --feature-head d6b9ae490937f07a154205b040e4156355b25cbd \
+            --write
+          test ! -e docs/agents/tasks/active/CAN-20260725-rtec-003-owner-request-lifecycle.md
+          test -e docs/agents/tasks/archive/CAN-20260725-rtec-003-owner-request-lifecycle.md
+
+      - name: Commit exact lifecycle result
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/agents/tasks/active/CAN-20260725-rtec-003-owner-request-lifecycle.md \
+            docs/agents/tasks/archive/CAN-20260725-rtec-003-owner-request-lifecycle.md
+          git diff --cached --quiet && { echo "No lifecycle changes produced"; exit 1; }
+          git commit -m "docs(agents): archive merged PR #921 task"
+          git push origin "HEAD:automation/archive-agent-task-pr-921-manual"
