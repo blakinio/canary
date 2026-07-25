@@ -88,6 +88,17 @@ def make_multi_area_variant(path: Path) -> None:
     path.write_bytes(b"\0\0\0\0" + root)
 
 
+def make_single_area_variant(path: Path, *, base_x: int, base_y: int, x: int, y: int) -> None:
+    floor = 7
+    properties = bytes((x - base_x, y - base_y))
+    properties += bytes((ATTR_ITEM,)) + struct.pack("<H", 100)
+    tile_node = node(OTBM_TILE, properties, [item(200)])
+    area = node(OTBM_TILE_AREA, struct.pack("<HHB", base_x, base_y, floor), [tile_node])
+    map_data = node(OTBM_MAP_DATA, b"", [area])
+    root = node(0, struct.pack("<IHHII", 4, 2048, 2048, 4, 4), [map_data])
+    path.write_bytes(b"\0\0\0\0" + root)
+
+
 def base_tiles() -> list[dict[str, object]]:
     return [
         {
@@ -458,6 +469,65 @@ class SemanticDiffTests(unittest.TestCase):
         report = self.analyze(lower=(256, 512, 7), upper=(767, 767, 7))
         self.assertEqual(report["summary"]["findings"]["total"], 0)  # type: ignore[index]
         self.assertEqual(report["summary"]["unchangedTiles"], 2)  # type: ignore[index]
+
+    def test_32_full_index_merges_adjacent_areas_in_position_order(self) -> None:
+        make_multi_area_variant(self.before_map)
+        make_multi_area_variant(self.after_map)
+        build_world_index(
+            map_path=self.before_map,
+            scanner=self.scanner,
+            output=self.before_index,
+            manifest_output=self.before_manifest,
+        )
+        build_world_index(
+            map_path=self.after_map,
+            scanner=self.scanner,
+            output=self.after_index,
+            manifest_output=self.after_manifest,
+        )
+        report = self.analyze()
+        self.assertEqual(report["scope"]["type"], "full-index")  # type: ignore[index]
+        self.assertEqual(report["summary"]["findings"]["total"], 0)  # type: ignore[index]
+        self.assertEqual(report["summary"]["unchangedTiles"], 2)  # type: ignore[index]
+
+    def test_33_full_sample_budget_bulk_counts_unmatched_tiles(self) -> None:
+        before = [{"x": 300, "ground": 100, "items": [{"id": 200}]}]
+        after = [
+            {"x": 300, "ground": 100, "items": [{"id": 200}]},
+            {"x": 301, "ground": 100, "items": [{"id": 200}]},
+            {"x": 302, "ground": 100, "items": [{"id": 200}]},
+        ]
+        self.build(before, after)
+        report = self.analyze(sample_limit=1)
+        summary = report["summary"]["findings"]  # type: ignore[index]
+        self.assertEqual(summary["total"], 6)
+        self.assertEqual(summary["byKind"], {"item-added": 4, "tile-added": 2})
+        self.assertEqual(summary["sampleCount"], 1)
+        self.assertTrue(summary["truncated"])
+
+    def test_34_disjoint_area_fast_path_preserves_exact_counts(self) -> None:
+        make_single_area_variant(self.before_map, base_x=256, base_y=512, x=300, y=600)
+        make_single_area_variant(self.after_map, base_x=768, base_y=512, x=800, y=600)
+        build_world_index(
+            map_path=self.before_map,
+            scanner=self.scanner,
+            output=self.before_index,
+            manifest_output=self.before_manifest,
+        )
+        build_world_index(
+            map_path=self.after_map,
+            scanner=self.scanner,
+            output=self.after_index,
+            manifest_output=self.after_manifest,
+        )
+        report = self.analyze(sample_limit=1)
+        summary = report["summary"]["findings"]  # type: ignore[index]
+        self.assertEqual(summary["total"], 6)
+        self.assertEqual(
+            summary["byKind"],
+            {"item-added": 2, "item-removed": 2, "tile-added": 1, "tile-removed": 1},
+        )
+        self.assertEqual(report["summary"]["changedPositions"], 2)  # type: ignore[index]
 
 
 if __name__ == "__main__":
