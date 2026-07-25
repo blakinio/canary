@@ -2,16 +2,16 @@
 task_id: CAN-20260725-rtec-002-vocations-pilot
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-002
-status: planned
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: docs/rtec-002-vocations-pilot-20260725
 base_branch: main
 created: 2026-07-25T09:42:45+02:00
-updated: 2026-07-25T09:42:45+02:00
+updated: 2026-07-25T10:05:00+02:00
 last_verified_commit: "930e0a15767b7e5348bb36c679fa5e458a76f184"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "910"
 depends_on:
   - RTEC-001
 blocks:
@@ -20,10 +20,11 @@ owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260725-rtec-002-vocations-pilot.md
     - docs/agents/real-tibia/evidence/modules/vocations/**
-    - docs/agents/real-tibia/evidence/requests/feature/RTR-VOCATIONS-0001.yaml
+    - docs/agents/real-tibia/evidence/requests/feature/RTREQ-FEATURE-VOCATIONS-0001.yaml
   shared:
     - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
     - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
+    - .github/workflows/real-tibia-evidence.yml
   read_only:
     - AGENTS.md
     - docs/agents/REPOSITORY_MAP.md
@@ -63,198 +64,140 @@ Prove the complete RTEC collection/review workflow on exactly one canonical low-
 
 # Acceptance criteria
 
-- [ ] Create a complete `vocations` dossier whose required sections are evidence-backed or explicitly marked `UNKNOWN`, `CONFLICT`, `not-applicable` or `blocked-by-owner-request`.
-- [ ] Publish bounded machine-readable evidence for official vocation identity/purpose and exact current Canary vocation definitions on a pinned commit.
-- [ ] Publish version history without compressing release/build/protocol/commit axes into one generic version.
-- [ ] Create exactly one feature-owner request only for proof that cannot be established by static Collector evidence.
-- [ ] Regenerate deterministic module/global factual indexes from validated records.
-- [ ] Include an independent review record covering provenance, claim decomposition, proof boundaries, conflicts, unknowns and owner-request correctness.
-- [ ] Make no gameplay/runtime/client/protocol/database/map/datapack or owner-tooling changes.
-- [ ] Relevant focused checks completed.
+- [x] Create a complete `vocations` dossier whose required sections are evidence-backed or explicitly marked `UNKNOWN`, `CONFLICT`, `not-applicable` or `blocked-by-owner-request`.
+- [x] Publish bounded machine-readable evidence for official vocation identity/purpose and exact current Canary vocation definitions on a pinned commit.
+- [x] Publish version history without compressing release/build/protocol/commit axes into one generic version.
+- [x] Create exactly one feature-owner request only for proof that cannot be established by static Collector evidence.
+- [x] Regenerate deterministic module/global factual indexes from the source records.
+- [x] Include a structured independent review pass covering provenance, claim decomposition, proof boundaries, conflicts, unknowns and owner-request correctness.
+- [x] Make no gameplay/runtime/client/protocol/database/map/datapack or owner-tooling changes.
+- [ ] Relevant focused checks completed on the current head.
 - [ ] Current-head GitHub checks verified.
-- [ ] Module catalogue impact handled: no reusable interface change expected.
-- [ ] Documentation/changelog impact handled: programme queue updated only at closeout; no changelog entry unless behavior changes.
-- [ ] Cross-repository impact handled: all external repositories and official sources remain read-only.
+- [x] Module catalogue impact handled: no reusable interface change.
+- [x] Documentation/changelog impact handled: programme queue changes only after feature merge; no behavior changelog entry.
+- [x] Cross-repository impact handled: external repositories and official sources remain read-only.
 - [ ] Autonomous merge gate satisfied.
 
 # Confirmed context
 
-- Current base is `main@930e0a15767b7e5348bb36c679fa5e458a76f184`.
-- RTEC-001 contracts and validator merged in PR #897, lifecycle archived in PR #908, programme state reconciled in PR #909.
-- No open PR or branch matching RTEC-002 existed at preflight.
-- The canonical `vocations` registry record has no `depends_on` entries and confines current implementation discovery to `src/creatures/players/vocations/vocation.*` and `data/XML/vocations.xml`.
-- Combat formula parity, spell/weapon eligibility and Wheel/client presentation are excluded from this pilot.
-- Open PRs #815, #559, #526 and #514 were inspected; none owns the new dossier/request paths. Their authentication, transport, security-audit and lifecycle scopes remain independent and read-only.
-- External official material may prove public identity, purpose and chronology but not hidden formulas or current Canary runtime behavior.
+- Base: `main@930e0a15767b7e5348bb36c679fa5e458a76f184`.
+- Draft PR: #910.
+- RTEC-001 contracts, validator and lifecycle are merged and archived.
+- The canonical `vocations` record has no hard dependency edges and confines current implementation discovery to `vocation.*` and `vocations.xml`.
+- Combat formulas, spell/weapon eligibility, Wheel/client presentation, protocol, persistence and physical-client execution are outside this pilot.
+- Open PRs #815, #559, #526 and #514 do not own the dossier, request, generated index or workflow paths changed here.
 
-# Existing work to reuse
+# Delivered evidence package
 
-| Module/task/PR | Reuse | Evidence/path | Why it fits |
-|---|---|---|---|
-| RTEC-001 / PR #897 | v1 schemas, validator, generator and tests | `docs/agents/real-tibia/evidence/**`, `tools/agents/real_tibia_evidence*.py` | Canonical machine-readable contracts for the pilot. |
-| Real Tibia module registry | canonical module ID, scope and source requirements | `docs/agents/real-tibia/registry/modules/vocations.yaml` | Prevents a duplicate or 63rd module. |
-| TSD-003 | prior bounded Canary inventory | `docs/agents/real-tibia/TSD_003_ACCOUNT_CHARACTER_PROGRESSION_REPORT.md` | Reusable discovery evidence, subject to current-main refresh. |
-| Current Canary vocation implementation | exact source definitions | `src/creatures/players/vocations/vocation.*`, `data/XML/vocations.xml` | Primary authority for current target implementation only. |
+| Artifact | Result |
+|---|---|
+| `MODULE.md` | complete bounded dossier with explicit unknowns/nonclaims |
+| `BEHAVIOR_MODEL.md` | source-visible registry, lookup, level-gain and promotion transition model |
+| `DECISIONS.md` | selected authorities, exclusions and rejected overclaims |
+| `RT-VOCATIONS-0001` | current official five-vocation table |
+| `RT-VOCATIONS-0002` | Monk announcement and release chronology |
+| `RT-VOCATIONS-0003` | exact Canary registry/XML source evidence |
+| `RT-VOCATIONS-0004` | static official/Canary gain and promotion correspondence |
+| `RT-VOCATIONS-0005` | explicit UNKNOWN runtime application claim |
+| `RTREQ-FEATURE-VOCATIONS-0001` | one non-blocking feature-owner runtime proof request |
+| `VERSION_HISTORY.yaml` | two separate-axis history entries |
+| `EVIDENCE_INDEX.yaml` and global index | deterministic factual indexes as of 2026-07-25 |
+| structured review | accepted for repository validation; no external human approval claim |
 
 # Ownership and overlap check
 
-- Program record: `CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION`; RTEC-002 was `planned` after PR #909.
-- Open PRs inspected: #815, #559, #526, #514.
-- Active tasks inspected: task records referenced by those four open PRs; no exact dossier/request path collision identified.
-- Ownership checker result: pending first branch CI.
-- Exclusive claims: this task record, `evidence/modules/vocations/**`, and one feature request ID/path.
-- Shared claims: generated factual index and programme queue closeout only.
-- Read-only dependencies: registry, schemas/templates/tooling, current Canary source, TSD report and external evidence.
-- Overlaps: source-level thematic interaction with character progression/combat/spells/Wheel, but no write ownership and those behaviors are expressly excluded.
-- Resolution: keep all source/owner paths read-only and record missing proof as one owner request.
+- Exclusive: this task, one module dossier tree and one request.
+- Shared: global generated index, programme closeout path and evidence workflow date.
+- Read-only: schemas, validator, registry, source/runtime, TSD report and all external sources.
+- The workflow date moved from 2026-07-24 to 2026-07-25 because the validator correctly rejects evidence dated after `as_of`.
+- No broad module population, alternate registry, runtime test infrastructure or owner implementation was added.
 
 # Current state
 
-The pilot is claimed. No dossier or evidence record has been created yet.
-
-# Plan
-
-1. Pin current Canary source evidence and official vocation material.
-2. Decompose bounded claims and explicit unknowns.
-3. Create the dossier, behavior model, version history, decisions, evidence records and one owner request.
-4. Generate and validate deterministic indexes.
-5. Add independent review evidence, update the checkpoint, run exact-head CI/final gate and merge.
-
-# Work log
-
-## 2026-07-25T09:42:45+02:00
-
-- Changed: claimed the bounded RTEC-002 `vocations` pilot on a dedicated branch.
-- Learned: `vocations` has zero hard registry dependencies and narrow current-source paths.
-- Failed/blocked: local network clone is unavailable; repository reads/writes use the GitHub connector and validation will run in repository CI.
-- Result: ready to open an early draft PR and begin source-pinned collection.
-
-# Decisions
-
-| Decision | Reason/evidence | ADR |
-|---|---|---|
-| Select `vocations` for RTEC-002 | Zero hard dependencies, narrow source paths, explicit exclusions and available official/current-source evidence make it lower-coupling than persistence/protocol/map/economy candidates. | none |
-| Keep runtime and interacting modules read-only | The Collector owns evidence, not implementation; missing behavior proof becomes an owner request. | none |
-
-# Files and interfaces
-
-| Path/interface/config/schema | Ownership mode | Purpose | Status |
-|---|---|---|---|
-| `docs/agents/real-tibia/evidence/modules/vocations/**` | exclusive | Pilot dossier, records, history and review | planned |
-| `docs/agents/real-tibia/evidence/requests/feature/RTR-VOCATIONS-0001.yaml` | exclusive | One genuine owner-proof request | planned |
-| `docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json` | shared | Deterministic factual integration | planned |
-| v1 RTEC contracts | read_only/reused | Validation and interchange | merged |
+The first complete pilot corpus exists on PR #910: five evidence records, one active owner request, two version-history records and deterministic module/global indexes. Static official/Canary correspondence is bounded to the published HP/mana/capacity table and promotion names. Runtime level-gain and promotion application remain `UNKNOWN` pending owner evidence.
 
 # Validation and CI
 
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
-| `930e0a15767b7e5348bb36c679fa5e458a76f184` | preflight: main/open PRs/branches/program/registry | PASS | no existing RTEC-002 task/PR/branch; `vocations` canonical and dependency-free |
-| branch head | Agent Task Ownership | NOT_RUN | runs after draft PR opens |
-| branch head | Real Tibia Evidence Contracts | NOT_RUN | runs after corpus files exist |
+| `930e0a15767b7e5348bb36c679fa5e458a76f184` | preflight: main/open PRs/branches/program/registry | PASS | no existing RTEC-002 work; canonical `vocations` dependency-free |
+| `755715fc726b8c7f781418dde31097591bab56a2` | corpus/index construction and workflow as-of integration | NOT_RUN | exact-head GitHub validation pending after this checkpoint |
 
-Never write `passed` without verification on the stated commit.
-
-# Failed approaches and dead ends
-
-- A local sparse clone could not resolve `github.com`; no local repository state was used as evidence.
+Never write `PASS` without verification on the stated commit.
 
 # Risks and compatibility
 
-- Runtime: no runtime changes; static evidence must not be promoted to gameplay proof.
-- Data/migration: no database or datapack changes.
-- Security: no credentials, captures, binaries or proprietary packages are committed.
-- Backward compatibility: no public/runtime interface changes.
-- Cross-repo rollout: none; all external repositories are read-only.
-- Rollback: close the draft PR and delete its branch; no production state is touched.
+- Static evidence is capped at `registration-proven` and cannot become gameplay proof.
+- The owner request is `ready-for-owner-triage`, non-blocking for this pilot and blocking only for promotion of the runtime claim.
+- No runtime, database, protocol, client, map, datapack, proprietary artifact or production state is changed.
+- Rollback is the closure of PR #910; no deployment rollback is required.
 
 # Remaining work
 
-1. Open the early draft PR and pin exact current-source/official evidence for bounded vocation claims.
+1. Read exact current-head workflow failures, correct only grounded contract/index/ownership issues, then perform final review/gate/merge and lifecycle archival.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T09:42:45+02:00
-head: UNKNOWN
+updated_at: 2026-07-25T10:05:00+02:00
+head: 755715fc726b8c7f781418dde31097591bab56a2
 branch: docs/rtec-002-vocations-pilot-20260725
-pr: none
-status: investigating
+pr: 910
+status: validating
 context_routes:
   - real-tibia-evidence-collection
   - documentation-and-governance
 owned_paths:
   - docs/agents/tasks/active/CAN-20260725-rtec-002-vocations-pilot.md
   - docs/agents/real-tibia/evidence/modules/vocations/**
-  - docs/agents/real-tibia/evidence/requests/feature/RTR-VOCATIONS-0001.yaml
+  - docs/agents/real-tibia/evidence/requests/feature/RTREQ-FEATURE-VOCATIONS-0001.yaml
   - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
+  - .github/workflows/real-tibia-evidence.yml
 proven:
-  - main base is 930e0a15767b7e5348bb36c679fa5e458a76f184
-  - RTEC-001 is merged and archived
-  - no open RTEC-002 PR or branch existed at preflight
-  - canonical vocations has zero hard dependencies and narrow source paths
-  - open PRs 815, 559, 526 and 514 do not own the new dossier/request paths
+  - current official manual defines five vocations and the bounded gain/promotion table
+  - official Monk announcement and release dates are separately pinned
+  - exact Canary baseline contains the XML-backed shared vocation registry and promotion relationships
+  - deterministic source corpus contains five evidence records, one request and two history records
 derived:
-  - vocations is a lower-coupling pilot than modules requiring protocol, map, persistence or economy ownership
+  - the selected official and Canary definitions correspond for the bounded gain and promotion fields
 unknown:
-  - exact current official vocation publication set and chronology to cite
-  - exact current Canary values and symbols on the selected base
-  - which single missing proof genuinely requires a feature-owner request
+  - executed level-gain and promotion application on the exact Canary baseline
+  - promotion eligibility, payment, persistence, protocol, client, combat, spells and Wheel behavior
 conflicts: []
 first_failure:
-  marker: none
-  evidence: no validation run yet
+  marker: pending-current-head-ci
+  evidence: no current-head workflow result has been accepted yet
 rejected_hypotheses:
-  - achievements is the safest pilot: it depends on player-persistence and interacts with combat, quests and spells
-  - titles is the safest pilot: it depends on cyclopedia-character and player-persistence and has broad cross-domain unlock interactions
+  - static source correspondence proves runtime or gameplay parity
+  - one module dossier proves whole-game parity or release readiness
 changed_paths:
+  - .github/workflows/real-tibia-evidence.yml
   - docs/agents/tasks/active/CAN-20260725-rtec-002-vocations-pilot.md
+  - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
+  - docs/agents/real-tibia/evidence/modules/vocations/**
+  - docs/agents/real-tibia/evidence/requests/feature/RTREQ-FEATURE-VOCATIONS-0001.yaml
 validation:
   - command: fresh GitHub preflight
     result: PASS
     evidence: main/open PR/branch/program/registry state verified
-  - command: Agent Task Ownership
+  - command: exact current-head GitHub workflows
     result: NOT_RUN
-    evidence: draft PR not opened yet
+    evidence: checkpoint commit will trigger validation
 blockers: []
-next_action: Open a draft PR, then collect exact current-source and official evidence for bounded vocation claims.
+next_action: Inspect exact current-head ownership, schema, corpus and deterministic-index workflow results; fix only verified failures.
 ```
 
 # Handoff
 
-## Start here
-
-Read this checkpoint, the live draft PR, the v1 RTEC README/contracts, the canonical `vocations` registry record, current vocation source and TSD-003.
-
-## Do not repeat
-
-Do not restart broad module selection, create another registry, populate other module dossiers or edit runtime/owner paths.
-
-## Required reads
-
-- `AGENTS.md`
-- `docs/agents/REPOSITORY_MAP.md`
-- `docs/agents/CONTEXT_ROUTING.md`
-- `docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md`
-- `docs/ai-agent/REAL_TIBIA_EVIDENCE_COLLECTOR_ARCHITECTURE.md`
-- `docs/agents/real-tibia/evidence/README.md`
-- `docs/agents/real-tibia/registry/modules/vocations.yaml`
-- `docs/agents/real-tibia/TSD_003_ACCOUNT_CHARACTER_PROGRESSION_REPORT.md`
-
-## Open questions
-
-- Which current official pages provide exact source-pinned public vocation identity and purpose?
-- Which current Canary values can be represented as static definition evidence without overclaiming runtime behavior?
-- Which one missing proof should become `RTR-VOCATIONS-0001`?
+Read this checkpoint, PR #910, the v1 RTEC contracts, canonical `vocations` registry record, current source and the generated indexes. Do not restart module selection, create another registry, populate other modules or edit runtime/owner paths.
 
 # Completion
 
 - Final status: active
-- PR: pending
+- PR: #910
 - Merge commit: pending
-- Program record updated: pending closeout
-- Catalogue updated: none expected
-- Changelog updated: none expected
+- Program record updated: pending post-merge closeout
+- Catalogue/changelog: no change expected
 - Archived at: pending
