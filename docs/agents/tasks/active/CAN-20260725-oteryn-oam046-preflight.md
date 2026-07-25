@@ -8,10 +8,10 @@ branch: dudantas/oam-046-configuration-governance
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "eb22f3c8585a6a10bab935add6549cf6172ced9e"
+last_verified_commit: "a5b9c9aed17d2044ca5da0218f53025dd76d2cd3"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "917"
 depends_on:
   - OAM-045 durably completed as d103add3c3a0f9cb026f3ec5b0aad73f13a71e18
 blocks:
@@ -48,10 +48,10 @@ The inherited typed configuration model remains canonical. One bounded target de
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T15:02:00+02:00
-head: eb22f3c8585a6a10bab935add6549cf6172ced9e
+updated_at: 2026-07-25T15:04:00+02:00
+head: a5b9c9aed17d2044ca5da0218f53025dd76d2cd3
 branch: dudantas/oam-046-configuration-governance
-pr: ""
+pr: 917
 status: validating
 context_routes:
   - agent-governance
@@ -76,6 +76,7 @@ proven:
   - Otheryn PR 105 had no comments, reviews or threads and squash-merged as e05109ac6b98fe6761ed7ed7e933b0610b219911.
   - Otheryn lifecycle PR 106 changed only the task lifecycle path, passed Required 30158852271, had clean discussions and merged as 415f559f829c83d79d9c609e7f421d2449e59d74.
   - The Canary governance report records exact baselines, bounded adaptation, focused contract and explicit nonclaims.
+  - Canary governance PR 917 opened from head a5b9c9aed17d2044ca5da0218f53025dd76d2cd3 with exactly two governance-owned paths.
 derived:
   - configuration requires ADAPT rather than REUSE because successful-load snapshot replacement was ineffective.
   - One local parser correction and one focused contract are sufficient; no rewrite or ownership expansion is justified.
@@ -113,10 +114,10 @@ validation:
     evidence: Feature PR 105 and lifecycle PR 106 passed their required gates, had clean discussions and merged as recorded above.
   - command: Canary governance exact-head ownership and final-gate CI
     result: NOT_RUN
-    evidence: The governance PR must be opened and validated on its exact final head.
+    evidence: PR 917 must pass on the exact synchronized head.
 blockers:
   - Canary governance exact-head Agent Task Ownership and final-gate CI
   - clean discussion and Canary-main drift audit
   - governance merge, Canary lifecycle archive and durable program reconciliation
-next_action: Open the Canary governance PR, require exact-head Agent Task Ownership and final-gate CI, audit discussions and Canary-main drift, then squash-merge with the expected head.
+next_action: Require exact-head Agent Task Ownership and final-gate CI for PR 917, audit discussions and Canary-main drift, then squash-merge with the expected head.
 ```
