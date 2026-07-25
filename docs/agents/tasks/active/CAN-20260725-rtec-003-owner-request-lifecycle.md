@@ -2,13 +2,13 @@
 task_id: CAN-20260725-rtec-003-owner-request-lifecycle
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-003
-status: review
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/rtec-003-owner-request-lifecycle-20260725
 base_branch: main
 created: 2026-07-25T15:30:00+02:00
-updated: 2026-07-25T16:55:00+02:00
-last_verified_commit: "e2ed6adf897ed325b2d4011846b4d825281b66a8"
+updated: 2026-07-25T19:17:35+02:00
+last_verified_commit: "7f6b612e2c56e86a850370e5c3e80979b1fc0479"
 risk: medium
 related_issue: ""
 related_pr: "921"
@@ -128,38 +128,34 @@ This task does not:
 
 # Ownership incidents
 
-Several delayed builder/review commits introduced temporary workflows and helpers on the shared task branch. All such files and injected write jobs were removed. The final checkpoint parent contains exactly the eight declared paths and no owner implementation path. Old queued jobs can no longer mutate the current branch because their referenced helpers are absent.
+Several delayed builder/review commits introduced temporary workflows and helpers on the shared task branch. All such files and injected write jobs were removed. The final package contains exactly the eight declared paths and no owner implementation path.
 
 # Validation
 
 | Head | Check | Result | Evidence |
 |---|---|---|---|
 | `2372ce3898e12cc14ffda4626f638ad812b01533` | fresh main/open-PR/active-task/request-state preflight | PASS | RTEC-001/002 merged and archived; no initial RTEC-003 overlap |
-| `8cddd9f1716b20dde315da26b27685df3c3c85b0` | changed-file and ownership boundary review | PASS | exactly eight declared paths |
-| `8cddd9f1716b20dde315da26b27685df3c3c85b0` | Universal E2E Stability Certification | PASS | run `30161374330` |
-| `8cddd9f1716b20dde315da26b27685df3c3c85b0` | CI Required aggregator | PASS | job `89687735445`; outer run later cancelled after Required completed |
-| `8cddd9f1716b20dde315da26b27685df3c3c85b0` | Upstream Intelligence | PASS | run `30161374296` |
-| `6598519585d5e44392ccad9ce80362ec906f422f` | final pre-checkpoint scope cleanup | PASS | delayed review helper/write-job removed; exactly eight changed paths |
-| `e2ed6adf897ed325b2d4011846b4d825281b66a8` | Agent Task Ownership | FAIL | only checkpoint validation state was invalid: `IN_PROGRESS` is unsupported; tooling/unit-test steps passed |
-| exact final head | Real Tibia Evidence Contracts, Agent Task Ownership, Registry and required CI | NOT_RUN | `ci:final-gate` reapplied before this corrective checkpoint commit |
+| `7f6b612e2c56e86a850370e5c3e80979b1fc0479` | changed-file and ownership boundary review | PASS | exactly eight declared paths; approved repository/base/head; no owner implementation path |
+| `7f6b612e2c56e86a850370e5c3e80979b1fc0479` | Real Tibia Evidence Contracts | PASS | run `30163159309`; focused tests, registry, corpus, deterministic indexes and vocations dry-run all passed |
+| `7f6b612e2c56e86a850370e5c3e80979b1fc0479` | Agent Task Ownership and Real Tibia Module Registry | PASS | runs `30163159324` and `30163159291` |
+| `7f6b612e2c56e86a850370e5c3e80979b1fc0479` | Universal E2E, Upstream Intelligence and CI | PASS | runs `30163159296`, `30163159317` and `30163159388` |
 
 # Remaining work
 
-1. Inspect exact-final-head workflow results and logs.
-2. Repair only genuine current-head failures; any repair requires a renewed final gate.
-3. Verify the final changed-file list, PR comments and review threads.
-4. Mark ready and squash merge only after every required current-head check passes.
-5. Verify lifecycle archival and reconcile RTEC-003 as merged before starting RTEC-004.
+1. Validate this checkpoint and generate the compact resume bundle.
+2. Allow the checkpoint commit to complete the renewed exact-head final gate.
+3. Mark PR #921 ready and squash-merge with expected-head protection.
+4. Verify canonical lifecycle archival and reconcile RTEC-003 as merged before any RTEC-004 work.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T16:55:00+02:00
-head: e2ed6adf897ed325b2d4011846b4d825281b66a8
+updated_at: 2026-07-25T19:17:35+02:00
+head: 7f6b612e2c56e86a850370e5c3e80979b1fc0479
 branch: feat/rtec-003-owner-request-lifecycle-20260725
 pr: 921
-status: validating
+status: ready
 context_routes:
   - real-tibia-evidence-collection
   - agent-governance
@@ -174,27 +170,24 @@ owned_paths:
   - tools/agents/test_real_tibia_owner_request.py
 proven:
   - RTEC-001 and RTEC-002 prerequisites are merged and archived
-  - PR 921 uses the approved repository, main base and dedicated task branch
-  - the final pre-checkpoint diff contains exactly eight declared paths
-  - the lifecycle CLI, tests, docs, catalogue and programme integration are present
+  - PR 921 targets blakinio/canary main from the dedicated task branch and is mergeable
+  - the final package contains exactly eight declared changed paths
+  - the lifecycle CLI, focused tests, operator guide, catalogue and programme integration are present
   - owner implementation paths remain unchanged
-  - the real vocations request remains ready-for-owner-triage without owner evidence
-  - every delayed builder/review helper and write job was removed
-  - prior exact-scope E2E, Required and Upstream checks passed
-  - ownership tooling and focused unit-test steps passed before the checkpoint result-enum failure
-derived:
+  - RTREQ-FEATURE-VOCATIONS-0001 remains ready-for-owner-triage without fabricated owner evidence
+  - all exact-head GitHub workflows passed on 7f6b612e2c56e86a850370e5c3e80979b1fc0479
+  - RTEC-004 has not started
+ derived:
   - the separate lifecycle CLI reuses schema version 1 without creating another owner execution system
-unknown:
-  - exact-final-head focused and required workflow conclusions
+unknown: []
 conflicts: []
 first_failure:
-  marker: checkpoint validation item 2 used unsupported result IN_PROGRESS
-  evidence: Agent Task Ownership job 89689385066
+  marker: none
+  evidence: all current exact-head checks are green
 rejected_hypotheses:
-  - Collector should self-accept or execute the vocations request
-  - Collector should implement missing E2E, OTBM/OWA, TCR, protocol/client or feature capabilities
-  - delayed builder/review workflows and helpers belong in the final package
-  - ownership failure indicates a tool or runtime-code defect
+  - Collector should self-accept or execute the vocations request: owner boundaries and the unchanged production request disprove this
+  - Collector should implement missing E2E, OTBM/OWA, TCR, protocol/client or feature capabilities: those paths remain read-only
+  - the operator guide belongs inside the strict evidence corpus: fail-closed corpus audit required relocation to docs/agents/real-tibia
 changed_paths:
   - .github/workflows/real-tibia-evidence.yml
   - docs/agents/MODULE_CATALOG.md
@@ -205,17 +198,19 @@ changed_paths:
   - tools/agents/real_tibia_owner_request.py
   - tools/agents/test_real_tibia_owner_request.py
 validation:
-  - command: live GitHub preflight and exact changed-file review
+  - command: Real Tibia Evidence Contracts run 30163159309
     result: PASS
-    evidence: current PR metadata and eight declared changed paths
-  - command: exact-final-head GitHub workflows
-    result: NOT_RUN
-    evidence: queued after the corrective checkpoint commit
-blockers:
-  - GitHub Actions runners must complete the exact-final-head checks
-next_action: Inspect the exact-final-head Real Tibia Evidence Contracts and Agent Task Ownership runs.
+    evidence: focused tests, registry, corpus, deterministic indexes and vocations dry-run passed
+  - command: Agent Task Ownership and Real Tibia Module Registry
+    result: PASS
+    evidence: runs 30163159324 and 30163159291
+  - command: Universal E2E, Upstream Intelligence and CI
+    result: PASS
+    evidence: runs 30163159296, 30163159317 and 30163159388
+blockers: []
+next_action: Mark PR #921 ready and squash-merge exact head after the renewed final gate passes.
 ```
 
 # Handoff
 
-Read this task, PR #921, the programme, Collector architecture, request schema and `RTREQ-FEATURE-VOCATIONS-0001`. Do not cross owner boundaries or invent owner evidence.
+Use the generated `resume.py` bundle. Do not cross owner boundaries, mutate `RTREQ-FEATURE-VOCATIONS-0001`, or start RTEC-004 before RTEC-003 lifecycle and programme closeout are complete.
