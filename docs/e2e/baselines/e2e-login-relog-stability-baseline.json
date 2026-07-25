@@ -1,0 +1,334 @@
+{
+  "certifications": [
+    {
+      "attempts": [
+        {
+          "attempt": 1,
+          "clean_pass": true,
+          "cleanup": {
+            "cleanup_certified": true,
+            "contract_valid": true,
+            "status": "certified"
+          },
+          "duration_ms": 57104,
+          "ended_at": "2026-07-25T17:48:09.704Z",
+          "failure_category": null,
+          "failure_classification": null,
+          "first_divergence": null,
+          "identity": "github-30167381956-1-login-relog#1",
+          "outcome": "clean-pass",
+          "run_id": "github-30167381956-1-login-relog",
+          "source": {
+            "attempt_history_index": 0,
+            "path": "result.json",
+            "root_id": "evidence-1"
+          },
+          "started_at": "2026-07-25T17:47:12.600Z",
+          "status": "success"
+        },
+        {
+          "attempt": 2,
+          "clean_pass": true,
+          "cleanup": {
+            "cleanup_certified": true,
+            "contract_valid": true,
+            "status": "certified"
+          },
+          "duration_ms": 59493,
+          "ended_at": "2026-07-25T17:51:51.666Z",
+          "failure_category": null,
+          "failure_classification": null,
+          "first_divergence": null,
+          "identity": "github-30167381956-2-login-relog#2",
+          "outcome": "clean-pass",
+          "run_id": "github-30167381956-2-login-relog",
+          "source": {
+            "attempt_history_index": 0,
+            "path": "result.json",
+            "root_id": "evidence-2"
+          },
+          "started_at": "2026-07-25T17:50:52.173Z",
+          "status": "success"
+        },
+        {
+          "attempt": 3,
+          "clean_pass": true,
+          "cleanup": {
+            "cleanup_certified": true,
+            "contract_valid": true,
+            "status": "certified"
+          },
+          "duration_ms": 58861,
+          "ended_at": "2026-07-25T17:54:53.261Z",
+          "failure_category": null,
+          "failure_classification": null,
+          "first_divergence": null,
+          "identity": "github-30167381956-3-login-relog#3",
+          "outcome": "clean-pass",
+          "run_id": "github-30167381956-3-login-relog",
+          "source": {
+            "attempt_history_index": 0,
+            "path": "result.json",
+            "root_id": "evidence-3"
+          },
+          "started_at": "2026-07-25T17:53:54.400Z",
+          "status": "success"
+        },
+        {
+          "attempt": 4,
+          "clean_pass": true,
+          "cleanup": {
+            "cleanup_certified": true,
+            "contract_valid": true,
+            "status": "certified"
+          },
+          "duration_ms": 60126,
+          "ended_at": "2026-07-25T17:58:43.795Z",
+          "failure_category": null,
+          "failure_classification": null,
+          "first_divergence": null,
+          "identity": "github-30167381956-4-login-relog#4",
+          "outcome": "clean-pass",
+          "run_id": "github-30167381956-4-login-relog",
+          "source": {
+            "attempt_history_index": 0,
+            "path": "result.json",
+            "root_id": "evidence-4"
+          },
+          "started_at": "2026-07-25T17:57:43.669Z",
+          "status": "success"
+        },
+        {
+          "attempt": 5,
+          "clean_pass": true,
+          "cleanup": {
+            "cleanup_certified": true,
+            "contract_valid": true,
+            "status": "certified"
+          },
+          "duration_ms": 58714,
+          "ended_at": "2026-07-25T18:08:36.885Z",
+          "failure_category": null,
+          "failure_classification": null,
+          "first_divergence": null,
+          "identity": "github-30167381956-5-login-relog#5",
+          "outcome": "clean-pass",
+          "run_id": "github-30167381956-5-login-relog",
+          "source": {
+            "attempt_history_index": 0,
+            "path": "result.json",
+            "root_id": "evidence-5"
+          },
+          "started_at": "2026-07-25T18:07:38.171Z",
+          "status": "success"
+        },
+        {
+          "attempt": 6,
+          "clean_pass": true,
+          "cleanup": {
+            "cleanup_certified": true,
+            "contract_valid": true,
+            "status": "certified"
+          },
+          "duration_ms": 61885,
+          "ended_at": "2026-07-25T18:12:18.812Z",
+          "failure_category": null,
+          "failure_classification": null,
+          "first_divergence": null,
+          "identity": "github-30167381956-6-login-relog#6",
+          "outcome": "clean-pass",
+          "run_id": "github-30167381956-6-login-relog",
+          "source": {
+            "attempt_history_index": 0,
+            "path": "result.json",
+            "root_id": "evidence-6"
+          },
+          "started_at": "2026-07-25T18:11:16.927Z",
+          "status": "success"
+        },
+        {
+          "attempt": 7,
+          "clean_pass": true,
+          "cleanup": {
+            "cleanup_certified": true,
+            "contract_valid": true,
+            "status": "certified"
+          },
+          "duration_ms": 57503,
+          "ended_at": "2026-07-25T18:16:40.663Z",
+          "failure_category": null,
+          "failure_classification": null,
+          "first_divergence": null,
+          "identity": "github-30167381956-7-login-relog#7",
+          "outcome": "clean-pass",
+          "run_id": "github-30167381956-7-login-relog",
+          "source": {
+            "attempt_history_index": 0,
+            "path": "result.json",
+            "root_id": "evidence-7"
+          },
+          "started_at": "2026-07-25T18:15:43.160Z",
+          "status": "success"
+        },
+        {
+          "attempt": 8,
+          "clean_pass": true,
+          "cleanup": {
+            "cleanup_certified": true,
+            "contract_valid": true,
+            "status": "certified"
+          },
+          "duration_ms": 58792,
+          "ended_at": "2026-07-25T18:21:30.318Z",
+          "failure_category": null,
+          "failure_classification": null,
+          "first_divergence": null,
+          "identity": "github-30167381956-8-login-relog#8",
+          "outcome": "clean-pass",
+          "run_id": "github-30167381956-8-login-relog",
+          "source": {
+            "attempt_history_index": 0,
+            "path": "result.json",
+            "root_id": "evidence-8"
+          },
+          "started_at": "2026-07-25T18:20:31.526Z",
+          "status": "success"
+        },
+        {
+          "attempt": 9,
+          "clean_pass": true,
+          "cleanup": {
+            "cleanup_certified": true,
+            "contract_valid": true,
+            "status": "certified"
+          },
+          "duration_ms": 59692,
+          "ended_at": "2026-07-25T18:26:20.961Z",
+          "failure_category": null,
+          "failure_classification": null,
+          "first_divergence": null,
+          "identity": "github-30167381956-9-login-relog#9",
+          "outcome": "clean-pass",
+          "run_id": "github-30167381956-9-login-relog",
+          "source": {
+            "attempt_history_index": 0,
+            "path": "result.json",
+            "root_id": "evidence-9"
+          },
+          "started_at": "2026-07-25T18:25:21.270Z",
+          "status": "success"
+        }
+      ],
+      "blocked_attempt_count": 0,
+      "cell_id": "aa3660dd10a3cc8615e2",
+      "clean_pass_count": 9,
+      "cleanup_failure_count": 0,
+      "cleanup_unknown_count": 0,
+      "duplicate_attempt_identities": [],
+      "duration_ms": {
+        "count": 9,
+        "max_ms": 61885,
+        "min_ms": 57104,
+        "p50_ms": 58861,
+        "p95_ms": 61885
+      },
+      "failed_attempt_count": 0,
+      "failure_class_distribution": {},
+      "first_divergence_distribution": {},
+      "minimum_runs": 10,
+      "missing_provenance": [],
+      "provenance": {
+        "client_revision": "2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f",
+        "datapack": "data-otservbr-global",
+        "execution_tier": "pr-required",
+        "server_revision": "770bb4ba9bf9dbf2fd32c3342b30cd6ab93f991d"
+      },
+      "reason": "insufficient-runs",
+      "run_count": 9,
+      "scenario": "login/relog",
+      "state": "not-evaluated",
+      "success_ratio": 1.0,
+      "unknowns": [
+        "No route-plan identity was present for this run; the scenario may not use routed execution.",
+        "Scenario evidence maturity is not declared in the current scenario manifest."
+      ],
+      "warnings": []
+    }
+  ],
+  "contract": "canary-universal-e2e-stability-certification-v1",
+  "duplicate_attempt_identities": [],
+  "evidence_boundary": {
+    "collection_execution_and_retention": "external-to-this-contract",
+    "invalid_result_count": 0,
+    "roots": [
+      {
+        "id": "evidence-1",
+        "result_files": 1
+      },
+      {
+        "id": "evidence-2",
+        "result_files": 1
+      },
+      {
+        "id": "evidence-3",
+        "result_files": 1
+      },
+      {
+        "id": "evidence-4",
+        "result_files": 1
+      },
+      {
+        "id": "evidence-5",
+        "result_files": 1
+      },
+      {
+        "id": "evidence-6",
+        "result_files": 1
+      },
+      {
+        "id": "evidence-7",
+        "result_files": 1
+      },
+      {
+        "id": "evidence-8",
+        "result_files": 1
+      },
+      {
+        "id": "evidence-9",
+        "result_files": 1
+      }
+    ],
+    "source": "explicit-local-extracted-artifact-roots",
+    "valid_envelope_count": 9
+  },
+  "generated_at": "2026-07-25T18:40:00.000Z",
+  "invalid_evidence": [],
+  "policy": {
+    "comparability_fields": [
+      "server_revision",
+      "client_revision",
+      "datapack",
+      "execution_tier"
+    ],
+    "incomplete_evidence_state": "blocked",
+    "insufficient_result_state": "not-evaluated",
+    "minimum_runs": 10,
+    "mixed_result_state": "unstable",
+    "pass_definition": "every counted attempt has status success and exact cleanup certification pass",
+    "retry_policy": "all-attempts-retained-no-hidden-retry"
+  },
+  "schema_version": 1,
+  "summary": {
+    "attempt_count": 9,
+    "blocked_attempt_count": 0,
+    "certification_cell_count": 1,
+    "clean_pass_count": 9,
+    "cleanup_failure_count": 0,
+    "duplicate_attempt_identity_count": 0,
+    "failed_attempt_count": 0,
+    "scenario_count": 1,
+    "state_counts": {
+      "not-evaluated": 1
+    }
+  }
+}
