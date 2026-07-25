@@ -8,10 +8,10 @@ branch: dudantas/oam-049-upstream-intelligence-governance
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "255856e361ee018b9bf3cedb590673ba3744e742"
+last_verified_commit: "d07a7981c8fe6ea3add894f9084e039696e55728"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "941"
 depends_on:
   - OAM-048 durably completed as a22563088ebad86602dbd8cb9af0b120dcbfc94d
 blocks:
@@ -45,10 +45,10 @@ This keeps Upstream Intelligence active in Canary and excludes only duplication 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T23:09:00+02:00
-head: 255856e361ee018b9bf3cedb590673ba3744e742
+updated_at: 2026-07-25T23:15:00+02:00
+head: d07a7981c8fe6ea3add894f9084e039696e55728
 branch: dudantas/oam-049-upstream-intelligence-governance
-pr: null
+pr: 941
 status: validating
 context_routes:
   - agent-governance
@@ -75,7 +75,7 @@ first_failure:
   marker: ownership-checkpoint-schema
   command: Canary preflight changed-task validation
   result: FAIL
-  evidence: Early preflight heads exposed checkpoint-schema and unsupported lifecycle-status values; final preflight head corrected them and passed Ownership 30172288302.
+  evidence: Early preflight heads exposed checkpoint-schema and unsupported lifecycle-status values; final preflight head corrected them and passed Ownership 30172288302. Governance head d07a7981c8fe6ea3add894f9084e039696e55728 then required explicit PR 941 binding.
 rejected_hypotheses:
   - Disable or remove Upstream Intelligence.
   - Duplicate the watcher and workflow in Otheryn.
@@ -92,10 +92,10 @@ validation:
     evidence: Canary programme remains active and watched repositories remain read-only.
   - command: Canary governance exact-head gates
     result: NOT_RUN
-    evidence: Governance PR must pass Ownership and full CI on the synchronized head.
+    evidence: Governance PR 941 must pass Ownership and full CI on the synchronized head.
 blockers:
   - Canary governance exact-head Ownership and CI
   - clean discussion and Canary-main drift audit
   - governance merge, lifecycle archive and durable reconciliation
-next_action: Open the Canary governance PR, require exact-head Ownership and full CI, audit discussions and main drift, then merge and complete lifecycle plus durable reconciliation before OAM-050.
+next_action: Require exact-head Ownership and full CI on PR 941, audit discussions and main drift, then merge and complete lifecycle plus durable reconciliation before OAM-050.
 ```
