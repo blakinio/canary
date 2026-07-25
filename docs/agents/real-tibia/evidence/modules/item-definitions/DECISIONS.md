@@ -18,7 +18,7 @@
 
 **Rejected alternative:** infer absence from `items.xml` and code-search misses. This ignores `Items::loadFromProtobuf()`.
 
-**Revisit trigger:** `RTREQ-TCR-CLOUD-IN-A-BOTTLE-0001` reaches a stable reviewed result.
+**Revisit trigger:** `RTREQ-TCR-ITEM-DEFINITIONS-0001` reaches a stable reviewed result.
 
 ## RTEC-CLOUD-DEC-0003 — keep visible difficulty separate from runtime availability
 
