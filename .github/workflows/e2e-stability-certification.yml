@@ -10,6 +10,10 @@ on:
       - "tests/e2e/test_stability_certification.py"
       - "docs/e2e/E2E_STABILITY_CERTIFICATION.md"
       - "docs/e2e/E2E_STABILITY_CERTIFICATION.schema.json"
+      - "docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md"
+      - "docs/agents/MODULE_CATALOG.md"
+      - "docs/agents/CHANGELOG.md"
+      - "docs/agents/programs/E2E_AUTOMATION_PROGRAM.md"
   workflow_dispatch:
 
 permissions:
