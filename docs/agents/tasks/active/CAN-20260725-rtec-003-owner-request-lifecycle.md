@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/rtec-003-owner-request-lifecycle-20260725
 base_branch: main
 created: 2026-07-25T15:30:00+02:00
-updated: 2026-07-25T15:35:00+02:00
-last_verified_commit: "1b1a056200a878579082397fc3f712e430dc95d9"
+updated: 2026-07-25T16:00:00+02:00
+last_verified_commit: "552301ea062ce80b920c15fe41f41f5f71adbc6a"
 risk: medium
 related_issue: ""
 related_pr: "921"
@@ -23,6 +23,7 @@ owned_paths:
     - tools/agents/real_tibia_owner_request.py
     - tools/agents/test_real_tibia_owner_request.py
     - docs/agents/real-tibia/evidence/OWNER_REQUEST_LIFECYCLE.md
+    - .github/workflows/rtec-003-integration-patch.yml
   shared:
     - .github/workflows/real-tibia-evidence.yml
     - docs/agents/real-tibia/evidence/README.md
@@ -64,16 +65,16 @@ Implement one bounded, dry-run-first integration layer that safely advances vali
 
 # Acceptance criteria
 
-- [ ] Add a standard-library CLI for request transition, owner-result recording and Collector consumption.
-- [ ] Require optimistic expected-status checks so stale agents cannot overwrite newer request state.
-- [ ] Enforce the existing legal transition graph and owner-controlled state evidence rules.
-- [ ] Require stable result references, explicit proof/nonproof boundaries and exact owner task/PR metadata.
-- [ ] Permit `consumed` only when referenced evidence records exist, link the request and contain owner-result sources consistent with the request owner kind.
-- [ ] Prevent result proof from being promoted beyond owner-produced proof.
-- [ ] Keep writes atomic, regenerate deterministic indexes and restore prior files on failure.
-- [ ] Add focused positive/negative tests for E2E, OTBM, TCR, protocol and feature routes.
-- [ ] Document the operator workflow and keep the existing vocations request unchanged until real owner evidence exists.
-- [ ] Preserve all owner implementation paths as read-only and start no RTEC-004 campaign workers.
+- [x] Add a standard-library CLI for request transition, owner-result recording and Collector consumption.
+- [x] Require optimistic expected-status checks so stale agents cannot overwrite newer request state.
+- [x] Enforce the existing legal transition graph and owner-controlled state evidence rules.
+- [x] Require stable result references, explicit proof/nonproof boundaries and exact owner task/PR metadata.
+- [x] Permit `consumed` only when referenced evidence records exist, link the request and contain owner-result sources consistent with the request owner kind.
+- [x] Prevent result proof from being promoted beyond owner-produced proof.
+- [x] Keep writes atomic, regenerate deterministic indexes and restore prior files on failure.
+- [x] Add focused positive/negative tests for E2E, OTBM, TCR, protocol and feature routes.
+- [x] Document the operator workflow and keep the existing vocations request unchanged until real owner evidence exists.
+- [x] Preserve all owner implementation paths as read-only and start no RTEC-004 campaign workers.
 - [ ] Run exact applicable tests and protected final-head checks before squash merge.
 
 # Confirmed context
@@ -96,13 +97,34 @@ This task does not:
 - start parallel Collector workers;
 - commit external/proprietary result payloads.
 
-# Implementation plan
+# Delivered implementation
 
-1. Add pure request-mutation and consumption checks in a separate reusable CLI module that imports the canonical RTEC v1 contracts.
-2. Validate a candidate request against the full in-memory corpus before writing.
-3. Write the request and derived indexes transactionally with rollback.
-4. Exercise all owner routes and failure modes in isolated temporary corpora.
-5. Add operator documentation, workflow coverage and module-catalogue visibility.
+1. `tools/agents/real_tibia_owner_request.py`:
+   - dry-run default and explicit `--write`;
+   - expected-status and optional request SHA-256 fencing;
+   - legal transition enforcement;
+   - stable GitHub/repository/artifact result-reference grammar;
+   - dedicated owner-result and Collector-consumption commands;
+   - owner-kind source routing and proof-level caps;
+   - atomic request/index writes and rollback.
+2. `tools/agents/test_real_tibia_owner_request.py`:
+   - all five owner routes;
+   - stale-writer checks;
+   - owner-control failures;
+   - missing link, wrong route/reference and proof-promotion failures;
+   - dry-run, write and rollback behavior;
+   - regression guard that the vocations request remains unclaimed.
+3. Operator documentation and dedicated workflow coverage.
+
+# Ownership incident
+
+Three undeclared files appeared on the shared task branch while the task was active:
+
+- `.github/workflows/rtec-003-bootstrap.yml`;
+- `.github/workflows/rtec-003-implementation.yml`;
+- `tools/agents/rtec_003_apply_patch.py`.
+
+They were not part of the task ownership contract and were removed before readiness. The current changed-file set contains only the six declared implementation/documentation paths. No owner implementation path was changed.
 
 # Validation
 
@@ -110,17 +132,22 @@ This task does not:
 |---|---|---|---|
 | `2372ce3898e12cc14ffda4626f638ad812b01533` | fresh main / open PR / request-state preflight | PASS | no RTEC-003 overlap; RTEC-002 feature, lifecycle and programme closeout are merged |
 | `1b1a056200a878579082397fc3f712e430dc95d9` | early draft PR creation | PASS | PR #921 targets `blakinio/canary:main` from the dedicated task branch |
+| `552301ea062ce80b920c15fe41f41f5f71adbc6a` | changed-file boundary review | PASS | six declared paths; undeclared builder workflows/helper removed |
+| current | Real Tibia Evidence Contracts / ownership / CI | IN_PROGRESS | exact implementation-head workflows queued |
 
 # Remaining work
 
-Implement the bounded lifecycle CLI and tests, then validate the exact diff and current head.
+1. Inspect focused workflow results and repair root causes.
+2. Add the reusable catalogue row and mark RTEC-003 active in the programme.
+3. Review the exact final diff, apply `ci:final-gate`, update this checkpoint and run the full final-head gate.
+4. Mark ready and squash-merge only after every required current-head check passes.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T15:35:00+02:00
-head: 1b1a056200a878579082397fc3f712e430dc95d9
+updated_at: 2026-07-25T16:00:00+02:00
+head: 552301ea062ce80b920c15fe41f41f5f71adbc6a
 branch: feat/rtec-003-owner-request-lifecycle-20260725
 pr: 921
 status: implementing
@@ -133,39 +160,52 @@ owned_paths:
   - tools/agents/test_real_tibia_owner_request.py
   - docs/agents/real-tibia/evidence/OWNER_REQUEST_LIFECYCLE.md
   - .github/workflows/real-tibia-evidence.yml
+  - .github/workflows/rtec-003-integration-patch.yml
   - docs/agents/real-tibia/evidence/README.md
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
   - docs/agents/MODULE_CATALOG.md
 proven:
   - RTEC-001 and RTEC-002 prerequisites are merged and archived
-  - no overlapping RTEC-003 PR or active task was found
-  - the v1 request schema and runtime validator already define legal transitions
-  - the vocations request has no owner evidence and must remain ready-for-owner-triage
-  - draft PR 921 is open on the dedicated branch
+  - no overlapping RTEC-003 task was present at preflight
+  - v1 request contracts define legal transitions and owner-controlled states
+  - vocations has no owner evidence and remains ready-for-owner-triage
+  - PR 921 is open on the dedicated branch
+  - bounded lifecycle CLI, tests, docs and workflow integration exist
+  - undeclared branch files were removed before readiness
 derived:
-  - a separate dry-run-first mutation tool can reuse the canonical contracts without changing their schema
+  - the separate lifecycle CLI safely reuses canonical contracts without changing schema version 1
 unknown:
-  - exact focused and CI results for the implementation head
-conflicts: []
+  - exact focused and required CI results for the current implementation head
+conflicts:
+  - undeclared workflow/helper commits appeared on the branch; their files are removed and no current path overlap remains
 first_failure:
   marker: none
   evidence: none
 rejected_hypotheses:
   - RTEC-003 should self-accept or execute the vocations request
   - Collector should implement missing owner capabilities
+  - undeclared builder workflows should remain in the final diff
 changed_paths:
+  - .github/workflows/real-tibia-evidence.yml
+  - docs/agents/real-tibia/evidence/OWNER_REQUEST_LIFECYCLE.md
+  - docs/agents/real-tibia/evidence/README.md
   - docs/agents/tasks/active/CAN-20260725-rtec-003-owner-request-lifecycle.md
+  - tools/agents/real_tibia_owner_request.py
+  - tools/agents/test_real_tibia_owner_request.py
 validation:
   - command: live GitHub preflight
     result: PASS
-    evidence: current main 2372ce3898e12cc14ffda4626f638ad812b01533; no overlapping RTEC-003 work
-  - command: draft PR safety check
+    evidence: main 2372ce3898e12cc14ffda4626f638ad812b01533 and no initial RTEC-003 overlap
+  - command: changed-file boundary review
     result: PASS
-    evidence: PR 921 uses approved base/head repository and task branch
+    evidence: PR 921 currently contains six declared paths only
+  - command: exact implementation-head workflows
+    result: IN_PROGRESS
+    evidence: Real Tibia Evidence Contracts, Agent Task Ownership and CI queued
 blockers: []
-next_action: Implement the lifecycle CLI and focused tests.
+next_action: Inspect the focused Real Tibia Evidence Contracts run, then repair or complete shared catalogue/program integration.
 ```
 
 # Handoff
 
-Read this task, PR, programme, architecture, current request schema and `RTREQ-FEATURE-VOCATIONS-0001`. Do not cross owner boundaries or invent owner evidence.
+Read this task, PR #921, programme, architecture, current request schema and `RTREQ-FEATURE-VOCATIONS-0001`. Do not cross owner boundaries or invent owner evidence.
