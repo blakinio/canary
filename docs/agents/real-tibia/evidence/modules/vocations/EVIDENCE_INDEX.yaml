@@ -1,0 +1,78 @@
+{
+  "as_of": "2026-07-25",
+  "by_authority_dimension": {
+    "current-canary-behavior": [
+      "RT-VOCATIONS-0003",
+      "RT-VOCATIONS-0004",
+      "RT-VOCATIONS-0005"
+    ],
+    "historical-version": [
+      "RT-VOCATIONS-0002"
+    ],
+    "official-feature-identity": [
+      "RT-VOCATIONS-0001"
+    ]
+  },
+  "by_claim_key": {
+    "current-canary-vocation-registry": [
+      "RT-VOCATIONS-0003"
+    ],
+    "monk-announcement-and-release": [
+      "RT-VOCATIONS-0002"
+    ],
+    "official-current-vocation-table": [
+      "RT-VOCATIONS-0001"
+    ],
+    "runtime-level-gain-and-promotion-application": [
+      "RT-VOCATIONS-0005"
+    ],
+    "static-official-canary-gain-and-promotion-conformance": [
+      "RT-VOCATIONS-0004"
+    ]
+  },
+  "by_proof_level": {
+    "definition-found": [
+      "RT-VOCATIONS-0001",
+      "RT-VOCATIONS-0002",
+      "RT-VOCATIONS-0005"
+    ],
+    "registration-proven": [
+      "RT-VOCATIONS-0003",
+      "RT-VOCATIONS-0004"
+    ]
+  },
+  "by_state": {
+    "DERIVED": [
+      "RT-VOCATIONS-0004"
+    ],
+    "PROVEN": [
+      "RT-VOCATIONS-0001",
+      "RT-VOCATIONS-0002",
+      "RT-VOCATIONS-0003"
+    ],
+    "UNKNOWN": [
+      "RT-VOCATIONS-0005"
+    ]
+  },
+  "evidence_ids": [
+    "RT-VOCATIONS-0001",
+    "RT-VOCATIONS-0002",
+    "RT-VOCATIONS-0003",
+    "RT-VOCATIONS-0004",
+    "RT-VOCATIONS-0005"
+  ],
+  "format": "canary-real-tibia-module-evidence-index-v1",
+  "module_id": "vocations",
+  "owner_request_ids": [
+    "RTREQ-FEATURE-VOCATIONS-0001"
+  ],
+  "record_count": 5,
+  "schema_version": 1,
+  "stale_evidence_ids": [],
+  "superseded_evidence_ids": [],
+  "unresolved_conflict_ids": [],
+  "version_history_ids": [
+    "RTVH-VOCATIONS-0001",
+    "RTVH-VOCATIONS-0002"
+  ]
+}
