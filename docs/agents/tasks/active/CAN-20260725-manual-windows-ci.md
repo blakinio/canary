@@ -6,16 +6,16 @@ agent: "GPT-5.6 Thinking"
 branch: ci/manual-windows-build-20260725
 base_branch: main
 created: 2026-07-25T23:00:00+02:00
-updated: 2026-07-25T23:50:00+02:00
+updated: 2026-07-25T23:53:00+02:00
 risk: medium
 related_pr: "946"
 depends_on: []
 blocks: []
 owned_paths:
   exclusive:
-    - .github/workflows/ci.yml
     - docs/agents/tasks/active/CAN-20260725-manual-windows-ci.md
-  shared: []
+  shared:
+    - .github/workflows/ci.yml
   read_only:
     - .github/workflows/reusable-build-windows.yml
 modules_touched:
@@ -53,8 +53,8 @@ Keep Canary Docker/Linux validation as the normal CI path and run the Windows bu
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T23:50:00+02:00
-head: 4aa5118bc242dc54130a036e5f1f959f2751cf23
+updated_at: 2026-07-25T23:53:00+02:00
+head: e11abfb66f5a1109d78261c24ec3435a5ce9d9bd
 branch: ci/manual-windows-build-20260725
 pr: "946"
 status: validating
@@ -70,7 +70,7 @@ proven:
   - the Required aggregator maps build-windows to the dedicated windows scope
   - PR run 30176156378 passed and Build - Windows was skipped while Required succeeded
   - changed files are limited to ci.yml and this task record
-  - changed-task checkpoint validation passed on ownership run 30176305440
+  - changed-task checkpoint validation passed on ownership runs 30176305440 and 30176394780
 derived:
   - pull requests and main pushes cannot select Windows because the windows scope is true only for workflow_dispatch with run_windows true
   - Linux full_matrix behavior remains independent from the Windows selector
@@ -79,12 +79,13 @@ unknown:
 conflicts: []
 rejected_hypotheses:
   - keep Windows coupled to full_matrix and rely on path filters
+  - claim exclusive ownership of the shared primary CI workflow
 changed_paths:
   - .github/workflows/ci.yml
   - docs/agents/tasks/active/CAN-20260725-manual-windows-ci.md
 first_failure:
-  marker: active-structured-task-program-id-missing
-  evidence: Agent Task Ownership run 30176305440 passed checkpoint validation but rejected the structured active task because program_id was empty
+  marker: active-ci-workflow-exclusive-ownership-overlap
+  evidence: Full active-task ownership validation still failed after checkpoint schema and required metadata passed; the primary CI workflow is therefore recorded as shared infrastructure rather than an exclusive task path
 validation:
   - command: inspect PR diff and changed-file list
     result: PASS
@@ -92,9 +93,9 @@ validation:
   - command: CI pull_request run
     result: PASS
     evidence: run 30176156378; Required passed and Build - Windows was skipped
-  - command: active task metadata repair
+  - command: active task ownership scope correction
     result: PASS
-    evidence: program_id is explicitly nonempty and set to none for this standalone CI task
+    evidence: only the task record remains exclusive and the primary CI workflow is declared shared
 blockers: []
 next_action: Wait for exact-final-head CI and ownership, then squash-merge PR 946 without further commits.
 ```
