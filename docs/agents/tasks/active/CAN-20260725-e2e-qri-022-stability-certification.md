@@ -8,10 +8,10 @@ branch: feat/e2e-qri-022-stability-certification
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "930e0a15767b7e5348bb36c679fa5e458a76f184"
+last_verified_commit: "203e5d83e377b0a8f14d387409b041fcd0956499"
 risk: medium
 related_issue: ""
-related_pr: "0"
+related_pr: "912"
 depends_on:
   - "E2E-QRI-004 factual coverage dashboard merged in PR #885 and lifecycle-closed in PR #900"
   - "E2E-QRI-005 result envelope schema v3 merged in PR #850 and lifecycle-closed in PR #861"
@@ -78,7 +78,7 @@ Deliver one deterministic, read-only certification contract over explicitly supp
 
 - [x] Current `main`, QRI-004 closure, roadmap dependencies and open PR overlap are revalidated.
 - [x] One dedicated branch and task record claim exact bounded paths.
-- [ ] Draft PR is opened early and linked from this task.
+- [x] Draft PR #912 is opened early and linked from this task.
 - [ ] Versioned stability certification contract and strict schema are implemented.
 - [ ] Every supplied attempt remains visible and duplicate run identities fail closed.
 - [ ] Comparability requires exact scenario, server revision, client revision, datapack and execution tier.
@@ -95,10 +95,10 @@ Deliver one deterministic, read-only certification contract over explicitly supp
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T00:00:00+02:00
-head: 930e0a15767b7e5348bb36c679fa5e458a76f184
+updated_at: 2026-07-25T09:50:00+02:00
+head: 203e5d83e377b0a8f14d387409b041fcd0956499
 branch: feat/e2e-qri-022-stability-certification
-pr: 0
+pr: 912
 status: implementing
 context_routes:
   - agent-governance
@@ -119,6 +119,7 @@ proven:
   - The roadmap requires run count, pass/fail count, success ratio, failure-class distribution, latency distribution, cleanup failures and first-divergence frequency, and explicitly classifies 9/10 as unstable.
   - No open PR or active task with E2E-QRI-022 intent or planned exclusive paths was found during live preflight.
   - Current main at task creation is 930e0a15767b7e5348bb36c679fa5e458a76f184.
+  - Draft PR #912 targets blakinio/canary:main from the dedicated same-repository task branch.
 derived:
   - Reusing coverage_dashboard discovery and canonical envelope validation avoids a second result parser and preserves its path-confinement rules.
   - A clean passing attempt requires gameplay status success and exact cleanup certification success; the two facts remain separately reported.
@@ -128,8 +129,8 @@ unknown:
   - Exact final implementation shape until focused canonical-module tests run.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: no implementation or validation failure has occurred yet
+  marker: draft-pr-connector-safety-retry
+  evidence: The first verbose create-pull-request invocation was blocked before mutation by the connector safety layer; the minimal same-repository retry created draft PR #912 successfully.
 rejected_hypotheses:
   - Treating the existing dashboard latest stability dimension as repeated-run certification.
   - Hiding failed attempts behind automatic retry or selecting only successful artifacts.
@@ -143,7 +144,10 @@ validation:
   - command: live open PR and repository search for E2E-QRI-022 overlap
     result: PASS
     evidence: no overlapping QRI-022 task, PR or exclusive path owner was found
+  - command: same-repository draft PR safety check
+    result: PASS
+    evidence: PR #912 targets blakinio/canary:main from feat/e2e-qri-022-stability-certification
 blockers:
   - A real multi-run physical stability baseline requires a selected retained artifact population and execution package after this contract is proven.
-next_action: Open the draft PR, link its number in this checkpoint, then implement and validate the smallest deterministic retained-evidence stability certification contract without adding execution or scheduling.
+next_action: Implement the smallest deterministic retained-evidence stability certification contract and focused canonical-module tests without adding execution, automatic retry, artifact download, retention or scheduling.
 ```
