@@ -2,13 +2,13 @@
 task_id: CAN-20260725-rtec-004-cloud-in-a-bottle
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-004-W1-CLOUD-IN-A-BOTTLE
-status: implementing
+status: validating
 agent: "GPT-5.6 Thinking"
 branch: feat/rtec-004-cloud-in-a-bottle-20260725
 base_branch: main
 created: 2026-07-25T20:18:30+02:00
-updated: 2026-07-25T21:38:00+02:00
-last_verified_commit: "6b80b3f835515667a5a807c499a56aca24c11e65"
+updated: 2026-07-25T22:28:00+02:00
+last_verified_commit: "8a66836dbc201b3c6e1bf2a89e543f6a12d2d6b1"
 risk: low
 related_issue: ""
 related_pr: "931"
@@ -19,7 +19,7 @@ owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260725-rtec-004-cloud-in-a-bottle.md
     - docs/agents/real-tibia/evidence/modules/item-definitions/**
-    - docs/agents/real-tibia/evidence/requests/tcr/RTREQ-TCR-CLOUD-IN-A-BOTTLE-0001.yaml
+    - docs/agents/real-tibia/evidence/requests/tcr/RTREQ-TCR-ITEM-DEFINITIONS-0001.yaml
   shared:
     - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
   read_only:
@@ -50,115 +50,109 @@ cross_repo_tasks: []
 
 Collect one bounded evidence package for the official Cloud in a Bottle difficulty/description correction and compare it with exact current Canary item-definition and registration evidence without changing item data, assets, map, runtime, client or owner paths.
 
-# Current baselines
+# Final bounded result
 
-- Initial Canary baseline: `124b029d1a2498a64fa6612b16efa386b8786a83`.
-- Refreshed Worker B baseline after Worker A merge: `8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9`.
-- Worker A PR #930 is merged; the shared deterministic evidence index is no longer blocked by Worker A.
-- Official target: 2026-07-21 fix statement that Cloud in a Bottle is available from difficulty 10 rather than 15.
+- Official correction: Cloud in a Bottle is available from difficulty `10`, not `15`; record `RT-ITEM-DEFINITIONS-0001` is `PROVEN` at `definition-found`.
+- Current Canary loader boundary and exact selected-path scan: record `RT-ITEM-DEFINITIONS-0002` is `PROVEN` at `definition-found`.
+- Exact selected textual paths contain no official-name variant or exact candidate ID `54651` entry.
+- The miss is not promoted to item absence because `Items::loadFromProtobuf()` loads base ID, name and description from `appearances.dat` before XML overlays.
+- Candidate ID `54651` remains discovery-only.
+- Exact official-client identity and correspondence with the pinned Canary appearances revision remain `blocked-by-reference`.
+- `RTREQ-TCR-ITEM-DEFINITIONS-0001` is ready for owner triage under the existing `CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE` programme.
 
-# Proven bounded discovery
+# Evidence and provenance
 
-- Canonical scan run `30171827237`, diagnostics artifact `8623126188`, executed against merge workspace `9236b5adfa5c40f170901d79d897f8b6694f4ba6` composed from Worker B and `main@8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9`.
-- Exact selected-path searches found no `Cloud in a Bottle`, bounded spelling variant, `Radiant Nimbus`, `Moonsilver` or candidate ID `54651` in:
-  - `data/items/items.xml`;
-  - `src/items/items.cpp`;
-  - `src/items/items.hpp`;
-  - `src/items/functions/item/item_parse.cpp`;
-  - `src/items/functions/item/item_parse.hpp`.
-- `data/items/items.xml` contains no exact `id="54651"` entry. Other names containing `cloud` or `bottle` are unrelated and do not resolve the official item.
-- Repository grep matches are limited to the Collector task/discovery diagnostics and achievement-audit references; no selected item-definition match was found.
-- Search misses are not absolute absence proof.
+- Refreshed Canary baseline after Worker A merge: `8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9`.
+- Selected appearances blob: `2cc2f4910af4f002f99f39e486d1a91b1b56a728`.
+- Exact bounded scan: GitHub Actions run `30171827237`, artifact `8623126188`.
+- Scan artifact SHA-256: `2ea96bb5feeaec8022ba5bbedb4a74c1fdd3af0019ba1473f3610d0a5541d637`.
+- Validated package export: run `30173389633`, artifact `8623535515`.
+- The canonical generator and corpus validator passed in the export workspace before exact bytes were integrated and the exporter removed.
 
 # Loader boundary
 
-- `Items::loadFromProtobuf()` loads item IDs, names and descriptions from the selected `appearances.dat` package and registers lower-case names.
-- `Items::loadFromXml()` and `Items::parseItemNode()` overlay XML IDs, names and parsed attributes; `ItemParse::parseDescription()` overlays XML description attributes.
-- Therefore an XML/search miss cannot establish that the official item is absent, renamed or assigned candidate ID `54651` in the exact client-derived appearances registry.
-- `data/items/appearances.dat` is proprietary/binary reference material and remains read-only. The Collector will not parse it or infer identifiers.
-
-# Owner request decision
-
-Create one TCR client-reference request, `RTREQ-TCR-CLOUD-IN-A-BOTTLE-0001`, for the existing `CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE` owner. It must identify the exact official-client object/name/description/build and compare that evidence with the exact Canary appearances revision without importing or mutating assets. No duplicate request was found.
+- `Items::loadFromProtobuf()` assigns client-derived item IDs, names and descriptions and registers lower-case names.
+- `Items::loadFromXml()` and `Items::parseItemNode()` process XML IDs, names and attributes.
+- `ItemParse::parseDescription()` may overlay an XML description.
+- Therefore selected XML and source-search misses cannot resolve the proprietary appearances object or establish absence.
 
 # Boundaries
 
-- Scope is only Cloud in a Bottle identity, visible difficulty/description correction and selected item registration evidence.
-- Do not expand into broad item catalogue, weapon proficiency, store delivery, map placement, asset import, gameplay remediation or physical E2E.
-- Do not invent item IDs, appearance IDs, difficulty mechanics, description text, protocol fields or runtime authorization.
-- Missing definition, registration, runtime or client evidence remains explicit `UNKNOWN` or `blocked-by-owner-request`.
+- Scope is only Cloud in a Bottle identity, the visible difficulty/description correction and selected item-registration evidence.
+- No item data, assets, parser, runtime, client, map or E2E owner path was modified.
+- No item ID, appearance ID, difficulty mechanic, protocol field, authorization or runtime behavior was invented.
+- The owner request does not import or commit proprietary client payloads.
 
 # Acceptance criteria
 
 - [x] Refresh the branch after Worker A merge without discarding the task record.
 - [x] Pin the exact official URL/date and bounded visible correction.
-- [x] Preserve secondary candidate ID `54651` as discovery-only.
+- [x] Preserve candidate ID `54651` as discovery-only.
 - [x] Run an exact selected-path scan and retain its diagnostics artifact.
 - [x] Trace protobuf/XML/name/description loader boundaries.
 - [x] Separate documented difficulty requirement from description display, item identity, unlock authorization and runtime acquisition.
-- [ ] Create the module dossier, bounded evidence records and version history.
-- [ ] Create one non-duplicative TCR owner request for exact client-reference identity.
-- [ ] Generate and verify the combined deterministic global index.
-- [ ] Complete structured review while preserving `UNKNOWN` boundaries.
-- [ ] Remove temporary scan tooling and pass exact-final-head CI gates.
+- [x] Create the module dossier, behavior model, decisions, bounded records and version history.
+- [x] Create one non-duplicative TCR owner request for exact client-reference identity.
+- [x] Generate and verify the combined deterministic module/global indexes in the validated export workspace.
+- [x] Complete structured review while preserving blocked and unknown boundaries.
+- [x] Remove all temporary scan/export tooling.
+- [ ] Pass exact-final-head repository checks and merge PR #931.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T21:38:00+02:00
-head: 6b80b3f835515667a5a807c499a56aca24c11e65
+updated_at: 2026-07-25T22:28:00+02:00
+head: 8a66836dbc201b3c6e1bf2a89e543f6a12d2d6b1
 branch: feat/rtec-004-cloud-in-a-bottle-20260725
 pr: 931
-status: implementing
+status: validating
 context_routes:
   - agent-governance
   - real-tibia-parity
 owned_paths:
   - docs/agents/tasks/active/CAN-20260725-rtec-004-cloud-in-a-bottle.md
   - docs/agents/real-tibia/evidence/modules/item-definitions/**
-  - docs/agents/real-tibia/evidence/requests/tcr/RTREQ-TCR-CLOUD-IN-A-BOTTLE-0001.yaml
+  - docs/agents/real-tibia/evidence/requests/tcr/RTREQ-TCR-ITEM-DEFINITIONS-0001.yaml
   - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
 proven:
-  - Worker A PR 930 merged and Worker B refreshed from main 8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9
-  - official 2026-07-21 fix states Cloud in a Bottle is available from difficulty 10 rather than 15
-  - exact selected-path scan run 30171827237 artifact 8623126188 found no official name variants or candidate id 54651 in canonical textual item-definition paths
+  - Worker A PR 930 merged and Worker B was refreshed from main 8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9
+  - official 2026-07-21 correction states difficulty 10 rather than 15
+  - exact selected-path scan run 30171827237 artifact 8623126188 found no bounded identity or candidate id 54651 match
   - scan misses do not establish absolute absence
   - current Canary item names and descriptions may originate from appearances.dat through Items::loadFromProtobuf
-  - XML overlays names and descriptions but cannot resolve a missing client-derived identity alone
-  - no duplicate Cloud in a Bottle owner request was found
-  - CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE owns exact user-supplied client reference evidence
-derived:
-  - the current comparison is blocked by exact client-reference identity rather than proven item absence
-  - candidate id 54651 cannot be promoted without TCR evidence
-  - one TCR request is the narrowest safe route
+  - two evidence records and their structured review are accepted
+  - deterministic module and global indexes were generated and validated in run 30173389633
+  - RTREQ-TCR-ITEM-DEFINITIONS-0001 is ready for TCR owner triage
+  - all temporary diagnostic and export tests are removed
 unknown:
   - exact official client build object id name and description for Cloud in a Bottle
-  - exact matching Canary appearances identity and revision
+  - exact matching or conflicting Canary appearances identity
   - unlock authorization acquisition runtime and maintained-client behavior
 conflicts: []
 first_failure:
   marker: exact-client-reference-missing
-  evidence: selected textual definitions do not resolve the item while names and descriptions may be loaded from proprietary appearances.dat
+  evidence: textual definitions cannot resolve identity because base names and descriptions may originate from proprietary appearances.dat
 rejected_hypotheses:
-  - correct Canary data in this Collector task: item implementation and data paths remain read-only
-  - infer item id 54651 from secondary material: no official or Canary identity proof exists
-  - treat selected search misses as absence: protobuf appearances may supply the identity
+  - infer candidate id 54651 from secondary material
+  - treat selected textual misses as item absence
+  - mutate item data or proprietary assets in the Collector task
 changed_paths:
   - docs/agents/tasks/active/CAN-20260725-rtec-004-cloud-in-a-bottle.md
-  - docs/agents/real-tibia/evidence/modules/item-definitions/DISCOVERY.md
-  - tools/agents/test_real_tibia_rtec_004_cloud_scan.py
+  - docs/agents/real-tibia/evidence/modules/item-definitions/**
+  - docs/agents/real-tibia/evidence/requests/tcr/RTREQ-TCR-ITEM-DEFINITIONS-0001.yaml
+  - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
 validation:
-  - command: safe Worker B merge refresh from main
-    result: PASS
-    evidence: merge commit 8bf62092d6d8bc0221e765f9efa7faa829f117c8 without force update
   - command: bounded selected-path item scan
     result: PASS
-    evidence: run 30171827237 artifact 8623126188; no bounded identity or candidate-id match
-  - command: current Canary item loader trace at 8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9
+    evidence: run 30171827237 artifact 8623126188
+  - command: canonical generator and corpus validator in clean export workspace
     result: PASS
-    evidence: Items::loadFromProtobuf loadFromXml parseItemNode getItemIdByName and ItemParse::parseDescription
+    evidence: run 30173389633 artifact 8623535515; 45 canonical tests passed before intentional export stop
+  - command: structured evidence review
+    result: PASS
+    evidence: docs/agents/real-tibia/evidence/modules/item-definitions/reviews/RTEC-004-W1-CLOUD-REVIEW.md
 blockers:
-  - exact official client reference identity requires TCR owner evidence
-next_action: Create the two bounded item-definition records, the TCR owner request, module indexes and version history without promoting candidate ID 54651.
+  - exact final head checks are pending
+next_action: Pass all exact-final-head checks, transition PR 931 to ready, and merge without further content changes.
 ```
