@@ -24,6 +24,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          echo "Bootstrapping existing builder workflow"
           python - <<'PY'
           from pathlib import Path
           path = Path('.github/workflows/rtec-003-implementation.yml')
