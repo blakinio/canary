@@ -8,7 +8,7 @@ branch: dudantas/oam-049-upstream-intelligence-preflight
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "a13f20ef4dc4a3c9e02dee314fc6460a750f637f"
+last_verified_commit: "06c4c41ca401a7d7eb6d9a8fd0a0076f09bc1bde"
 risk: medium
 related_issue: ""
 related_pr: "939"
@@ -47,8 +47,8 @@ This disposition does **not** disable Upstream Intelligence. The existing Canary
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T22:18:00+02:00
-head: a13f20ef4dc4a3c9e02dee314fc6460a750f637f
+updated_at: 2026-07-25T22:24:00+02:00
+head: 06c4c41ca401a7d7eb6d9a8fd0a0076f09bc1bde
 branch: dudantas/oam-049-upstream-intelligence-preflight
 pr: 939
 status: validating
@@ -75,9 +75,10 @@ unknown:
   - Individual future upstream candidates still require revision-pinned review and bounded implementation proof.
 conflicts: []
 first_failure:
+  marker: ownership-checkpoint-schema
   command: changed active task checkpoint validation
   result: FAIL
-  evidence: Initial head a13f20ef4dc4a3c9e02dee314fc6460a750f637f used null for first_failure; Ownership run 30171895810 required a YAML mapping. This commit repairs the schema without changing disposition or repository boundaries.
+  evidence: Initial head a13f20ef4dc4a3c9e02dee314fc6460a750f637f used null for first_failure; Ownership run 30171895810 required a YAML mapping. Head 06c4c41ca401a7d7eb6d9a8fd0a0076f09bc1bde then proved the mapping also requires marker and supported validation result values.
 rejected_hypotheses:
   - Disable or remove Upstream Intelligence because it is not migrated to Otheryn.
   - Copy the watcher and workflow into Otheryn for convenience.
@@ -93,8 +94,8 @@ validation:
     result: PASS
     evidence: Watched repositories are read-only and the workflow cannot push to them.
   - command: changed active task checkpoint validation
-    result: PENDING
-    evidence: Exact-head Ownership must confirm the repaired schema.
+    result: NOT_RUN
+    evidence: Exact-head Ownership must confirm the repaired marker and supported result values.
 blockers:
   - Canary preflight exact-head Ownership and CI
   - clean discussion and Canary-main drift audit
