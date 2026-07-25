@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: test/e2e-qri-022-login-relog-baseline-v2
 base_branch: main
 created: 2026-07-26T00:35:00+02:00
-updated: 2026-07-26T00:37:00+02:00
-last_verified_commit: "50e372571ebecaaf8d90672c290d3dc30eeb5c49"
+updated: 2026-07-26T00:40:00+02:00
+last_verified_commit: "ef831709721b1a3c6130ddf81d6a2867a3bb1640"
 risk: medium
 related_issue: ""
 related_pr: "948"
@@ -87,8 +87,8 @@ QRI-022 decides the outcome from the preserved evidence:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T00:37:00+02:00
-head: 50e372571ebecaaf8d90672c290d3dc30eeb5c49
+updated_at: 2026-07-26T00:40:00+02:00
+head: ef831709721b1a3c6130ddf81d6a2867a3bb1640
 branch: test/e2e-qri-022-login-relog-baseline-v2
 pr: 948
 status: in_progress
@@ -105,21 +105,27 @@ proven:
   - The repair has controlled success and failure proofs and exact-head full CI.
   - PR #925 is closed without merge and remains an incomplete historical population.
   - Draft PR #948 targets repaired main and owns only new v2 output paths.
+  - No physical attempt started on ef831709721b1a3c6130ddf81d6a2867a3bb1640 before the ownership failure was observed.
 derived:
   - A new exact ten-attempt population is required; the old nine-envelope report cannot be upgraded by inference.
 unknown:
   - Final stability classification of the new ten-attempt population.
 conflicts: []
 first_failure:
-  marker: null
-  evidence: null
+  marker: ownership-checkpoint-changed-paths-incomplete
+  evidence: Agent Task Ownership run 30177921265 failed before any physical job; the checkpoint omitted tests/e2e/baselines/login-relog-stability-baseline-v2.md from changed_paths.
 rejected_hypotheses:
   - Reuse nine successes from PR #925: rejected because they belong to a pre-repair population and the intended tenth attempt lacked evidence.
   - Modify workflow or scenario while measuring: rejected because this task owns evidence collection and classification only.
   - Retry until ten successes: rejected because every attempt must remain visible in the population.
+  - Count the cancelled preflight run as attempt 1: rejected because no physical client job started.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260726-e2e-qri-022-login-relog-baseline-v2.md
-validation: []
+  - tests/e2e/baselines/login-relog-stability-baseline-v2.md
+validation:
+  - command: Agent Task Ownership
+    result: FAIL
+    evidence: run 30177921265; checkpoint changed_paths omitted the immutable manifest.
 blockers: []
-next_action: Add the immutable measurement manifest, freeze the resulting PR head and collect exactly ten sequential physical attempts without further commits.
+next_action: Treat the commit containing this corrected checkpoint as the frozen measurement head, require ownership PASS, then collect exactly ten sequential physical attempts without further commits.
 ```
