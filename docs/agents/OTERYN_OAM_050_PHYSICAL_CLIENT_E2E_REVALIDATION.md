@@ -15,13 +15,14 @@ Universal Physical-Client E2E remains the canonical Canary-hosted validation pla
 - Otheryn lifecycle PR #114 passed Required `30177733797` and merged as `ff90e93d872b6b47720f711483a9832203d5258d`.
 - The target added no runtime, build, startup, workflow, E2E runner, controlled-client harness, evidence schema, database fixture system or deployment path.
 - Universal Agent E2E already accepts `blakinio/Otheryn` as a controlled server repository with an exact 40-character `server_ref`.
-- Canary PR #925 remains authoritative for the first login/relog repeated-run baseline: nine complete clean attempts were retained, while the tenth failed without a retained result envelope or cleanup certification.
+- Canary PR #925 remains authoritative for its original first login/relog repeated-run population: nine complete clean attempts were retained, while the tenth failed without a retained result envelope or cleanup certification.
+- The separate E2E repair PR #940 delivered and lifecycle-closed failure evidence retention as `ad647f040a0f0b5b515c2416bf8aa11705dd7e8e`, with controlled success and failure proofs for the `capture → upload → propagate` sequence.
 
 ## Retained programme boundary
 
 The Universal E2E programme remains active in Canary. Generic orchestration, lifecycle, retention, cleanup and evidence-contract changes require separate bounded E2E-platform tasks. Feature programmes may own scenarios and assertions but must not create parallel runners or workflows.
 
-The PR #925 failure/cancellation evidence-retention gap remains a separate Canary E2E concern. It must be repaired before repeating the ten-attempt baseline, but it neither creates Otheryn runtime ownership nor blocks the OAM-050 target disposition.
+The failure/cancellation evidence-retention defect observed by PR #925 is repaired on current Canary `main`. The original incomplete ten-attempt population remains historically blocked and must not be retroactively reclassified or replaced. Repeating the baseline is separate E2E work requiring a fresh ownership preflight and newly retained attempts; neither the repair nor a future repeat creates Otheryn runtime ownership or changes the OAM-050 disposition.
 
 ## Target consumption model
 
@@ -29,4 +30,4 @@ Future Otheryn packages may request physical-client proof by selecting an exact 
 
 ## Nonclaims
 
-OAM-050 does not claim complete gameplay coverage, general stability, compatibility with every server/client/datapack combination, successful retention of every failure, production deployment readiness, or that static and unit evidence replace exact-revision physical-client execution.
+OAM-050 does not claim complete gameplay coverage, general stability, compatibility with every server/client/datapack combination, successful retention under every possible infrastructure failure, completion of a replacement ten-attempt baseline, production deployment readiness, or that static and unit evidence replace exact-revision physical-client execution.
