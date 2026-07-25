@@ -109,3 +109,5 @@ jobs:
             .github/workflows/otbm-crystal-sync-main.yml
           git commit -m "docs(otbm): checkpoint current-main synchronization"
           git push origin HEAD:analysis/otbm-crystal-parity-baseline
+
+# synchronize trigger
