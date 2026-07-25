@@ -2,26 +2,26 @@
 task_id: CAN-20260725-oteryn-oam050-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-050
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
-branch: dudantas/oam-050-physical-client-e2e-preflight
+branch: dudantas/oam-050-physical-client-e2e-governance
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-26
-last_verified_commit: "c5eac78b962829ae88640771f022c5b1a6671f01"
+last_verified_commit: "82b443cb67b55a696572b9bb4399ff735bcc80e7"
 risk: high
 related_issue: ""
-related_pr: "944"
+related_pr: "947"
 depends_on:
   - OAM-049 durably completed as f8a96b8b7c80528e9129bdfbd5778d606f762d19
 blocks:
-  - OAM-050 target disposition and lifecycle
   - OAM-050 Canary governance and lifecycle
   - OAM-050 durable program reconciliation
   - OAM-051 start
 owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260725-oteryn-oam050-preflight.md
+    - docs/agents/OTERYN_OAM_050_PHYSICAL_CLIENT_E2E_REVALIDATION.md
   shared: []
   read_only:
     - docs/agents/real-tibia/registry/modules/physical-client-e2e.yaml
@@ -35,77 +35,77 @@ owned_paths:
     - blakinio/otclient
 ---
 
-# OAM-050 Physical Client E2E preflight
+# OAM-050 Physical Client E2E governance
 
-Select canonical `physical-client-e2e → DO_NOT_MIGRATE candidate` after durable OAM-049 closure.
+Final disposition: `physical-client-e2e → DO_NOT_MIGRATE`.
 
-Universal Physical-Client E2E is separately governed validation platform tooling. It owns the reusable scenario registry, controlled client automation, disposable database lifecycle, deterministic evidence and cleanup. Its canonical module scope excludes production deployment and has no server, client or data implementation roots to transfer into Otheryn.
-
-Otheryn already participates as a controlled exact-SHA server target through the Canary-owned Universal Agent E2E workflow. The workflow explicitly accepts `server_repository=blakinio/Otheryn` plus an exact 40-character `server_ref`; therefore no Otheryn-side platform adapter, duplicate runner or additional invocation contract is required for this package. Existing feature/session contracts remain separately authoritative.
-
-Draft PR #925 remains authoritative for its QRI-022 login/relog baseline paths. Its exact-head dossier records nine clean retained attempts and one failed tenth attempt whose evidence was not retained. That finding proves a separate E2E-platform failure-retention gap; it does not create Otheryn runtime ownership or block this non-overlapping migration disposition.
+Universal Physical-Client E2E remains active in Canary as the single reusable validation platform. Otheryn consumes exact-revision validation results and does not duplicate the runner, workflow, controlled-client harness, disposable database lifecycle, evidence schemas or cleanup orchestration.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T00:00:00+02:00
-head: c5eac78b962829ae88640771f022c5b1a6671f01
-branch: dudantas/oam-050-physical-client-e2e-preflight
-pr: 944
+updated_at: 2026-07-26T00:44:00+02:00
+head: 82b443cb67b55a696572b9bb4399ff735bcc80e7
+branch: dudantas/oam-050-physical-client-e2e-governance
+pr: 947
 status: validating
 context_routes:
   - agent-governance
   - cross-repo
   - universal-e2e
-  - ci-repair
+  - github-actions
 owned_paths:
   - docs/agents/tasks/active/CAN-20260725-oteryn-oam050-preflight.md
+  - docs/agents/OTERYN_OAM_050_PHYSICAL_CLIENT_E2E_REVALIDATION.md
 proven:
-  - OAM-049 durably completed as f8a96b8b7c80528e9129bdfbd5778d606f762d19.
-  - Fresh Canary main is 0b65d2e6045c26c5e5295c12a74c627a5f67668f, fresh Otheryn main is 877816a64e31c6d25815ebf6b7543e001648ca52 and upstream Canary is 7644bcbcbbad4a09e52a5707ed531e4dd21d8a79.
-  - Canonical physical-client-e2e is platform-tooling with no server, client or data roots; its scope excludes production deployment and duplicate module-specific orchestration.
-  - The Oteryn target architecture requires future target proof to reuse the merged Universal Physical-Client E2E platform; generic orchestration changes remain separate E2E-platform tasks.
-  - Universal Agent E2E already accepts blakinio/Otheryn as the controlled server repository when pinned to an exact SHA.
-  - Existing cross-repository contracts already cover Otheryn login/session producer behavior and exact maintained-client evidence without transferring the E2E platform.
-  - PR 925 remains open and draft at 9bb202793f9d9726103cbf21a67792c4e519b927 with exact-head Ownership, CI and Universal Agent E2E successful.
-  - PR 925 records nine clean retained login/relog attempts and one failed tenth attempt with missing failure/cancellation evidence; its first failure is physical-failure-evidence-not-retained.
-  - PR 944 changes only this task record, has no comments, reviews or review threads, and current-head Ownership and CI were successful before this final checkpoint update.
+  - Canary preflight PR 944 passed exact-head Ownership 30176758049 and full CI 30176758136 and merged as 515af061dda97173cb5ac6cc7885b7cdc3c4504f.
+  - Otheryn disposition PR 113 passed Required 30177667228 and merged as 92cc602332f0ea86dbb669541020112c299ec66c.
+  - Otheryn lifecycle PR 114 passed Required 30177733797 and merged as ff90e93d872b6b47720f711483a9832203d5258d.
+  - Otheryn added no runtime, build, startup, workflow, E2E runner, client harness, evidence schema, database fixture or deployment path.
+  - Universal Agent E2E already accepts blakinio/Otheryn with an exact server_ref.
+  - Canary PR 925 remains authoritative for its original nine retained clean login/relog attempts and the unretained failed tenth attempt.
+  - E2E repair PR 940 delivered and lifecycle-closed capture-upload-propagate failure evidence retention as ad647f040a0f0b5b515c2416bf8aa11705dd7e8e with controlled success and failure proofs.
+  - The original PR 925 population remains historically blocked; any replacement baseline requires fresh separately governed attempts.
 derived:
-  - DO_NOT_MIGRATE is the evidence-backed target disposition because the responsibility is validation infrastructure external to Otheryn production runtime.
-  - No bounded Otheryn-side adapter or new invocation contract is needed: exact-SHA target selection already exists in the Canary-owned workflow.
-  - PR 925 failure-retention repair must remain under a separate E2E-platform task and must not be absorbed into OAM-050.
+  - Physical-client-e2e belongs to Canary development and release validation, not Otheryn production runtime.
+  - DO_NOT_MIGRATE preserves one canonical lifecycle while allowing exact Otheryn revisions to be validated externally.
+  - The merged retention repair strengthens the external platform and does not create target runtime ownership.
 unknown:
-  - Physical-client behavior outside exact maintained client, server, datapack and scenario cells remains unproven.
-  - Future feature packages may require new feature-specific scenarios or assertions, but that does not imply migration of the orchestration platform.
+  - Complete stability and compatibility outside exact executed scenario/server/client/datapack cells remain unproven.
+  - A replacement ten-attempt baseline has not yet been executed and classified.
+  - Future feature packages may require new feature-owned scenarios or assertions.
 conflicts: []
 first_failure:
-  marker: final-head-gates-pending
-  command: PR 944 exact-head Ownership and CI after ci:final-gate checkpoint update
-  result: NOT_RUN
-  evidence: Final checkpoint commit has not yet completed its synchronize-triggered gates.
+  marker: no-target-runtime-responsibility
+  command: target ownership and invocation-contract review
+  result: PASS
+  evidence: Otheryn has no production consumer for the platform and the canonical Canary workflow already accepts exact Otheryn SHAs.
 rejected_hypotheses:
-  - Copy the Universal Physical-Client E2E platform into Otheryn production runtime.
-  - Add an Otheryn-side duplicate runner or generic orchestration adapter.
-  - Treat PR 925 failure-retention gap as an Otheryn runtime responsibility.
-  - Treat partial physical-client coverage as complete gameplay or protocol parity.
+  - Copy the Universal Physical-Client E2E platform into Otheryn.
+  - Add a duplicate target runner, workflow or invocation adapter.
+  - Retroactively reclassify or replace PR 925's original failed population.
+  - Treat the merged retention repair as an Otheryn migration requirement.
+  - Treat partial physical coverage as complete gameplay or protocol parity.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260725-oteryn-oam050-preflight.md
+  - docs/agents/OTERYN_OAM_050_PHYSICAL_CLIENT_E2E_REVALIDATION.md
 validation:
-  - command: fresh live-state, dependency and canonical-scope review
+  - command: Otheryn target disposition and lifecycle gates
     result: PASS
-    evidence: Package is dependency-valid platform tooling with production deployment explicitly excluded.
-  - command: PR 925 exact-head evidence and ownership review
+    evidence: PR 113 and PR 114 passed Required, clean audits and expected-head merges.
+  - command: canonical E2E ownership and invocation review
     result: PASS
-    evidence: Its blocked QRI-022 result and failure-retention finding are reviewable; OAM-050 owns none of its paths.
-  - command: target invocation-contract proof
+    evidence: Canary retains the platform and exact Otheryn server_ref selection already exists.
+  - command: current-main failure-retention reconciliation
     result: PASS
-    evidence: Universal Agent E2E explicitly accepts blakinio/Otheryn with an exact server_ref; no target-side adapter is required.
-  - command: PR 944 exact-head Ownership and CI
+    evidence: PR 940 merged as ad647f040a0f0b5b515c2416bf8aa11705dd7e8e with controlled success/failure retention proof.
+  - command: Canary governance exact-head gates
     result: NOT_RUN
-    evidence: Required after this ci:final-gate checkpoint update.
+    evidence: PR 947 must rerun Ownership and CI after this material reconciliation update.
 blockers:
-  - PR 944 exact-head Ownership and CI
-  - Current user repository-write scope permits mutations only in blakinio/canary, so a later Otheryn target-disposition PR is not authorized by this task.
-next_action: Require exact-head Ownership and CI on PR 944, audit discussions and Canary-main drift, then merge the completed preflight.
+  - Canary governance exact-head Ownership and CI
+  - clean discussion and Canary-main drift audit
+  - governance merge, lifecycle archive and durable reconciliation
+next_action: Require exact-head Ownership and CI on PR 947 after the retention-repair reconciliation, then audit and merge before lifecycle plus durable reconciliation.
 ```
