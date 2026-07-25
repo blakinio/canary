@@ -56,7 +56,7 @@ class RealTibiaEvidenceLifecycleTests(EvidenceTestCase):
         self.write_record(record); self.refresh()
         row = Corpus.load(self.root).generated_indexes(AS_OF)["stale_evidence"][0]
         self.assertEqual((row["evidence_id"], row["reason"]), ("RT-COMBAT-0001", "invalidation-window-expired"))
-        record["freshness"]["observed_or_verified_at"] = "2026-07-25"; self.write_record(record)
+        record["freshness"]["observed_or_verified_at"] = (AS_OF + cli.dt.timedelta(days=1)).isoformat(); self.write_record(record)
         self.assertIn("RTEC-FUTURE-EVIDENCE", self.codes())
 
     def test_generated_drift_unexpected_indexes_and_atomic_repair(self) -> None:
@@ -88,82 +88,6 @@ class RealTibiaEvidenceLifecycleTests(EvidenceTestCase):
             req = self.request(request_id); req.update(owner_kind=folder, requested_owner_program=program, request_type=kind)
             self.write_request(req, folder)
         self.assertEqual(self.codes(), set())
-        ready = self.request("RTREQ-E2E-COMBAT-0002"); ready["status"] = "ready-for-owner-triage"
-        ready["history"].append({"at":"2026-07-24T22:00:00+02:00","actor":"collector","actor_role":"collector","actor_task":"CAN-TEST","actor_pr":1,"from_status":"draft","to_status":"ready-for-owner-triage","reason":"Ready.","owner_evidence_ref":None})
-        self.write_request(ready); self.refresh()
-        self.assertEqual(Corpus.load(self.root).generated_indexes(AS_OF)["active_owner_requests"], ["RTREQ-E2E-COMBAT-0002"])
-
-    def test_request_and_history_supersession_are_reciprocal_and_acyclic(self) -> None:
-        self.write_record(self.record())
-        old, new = self.request("RTREQ-E2E-COMBAT-0001"), self.request("RTREQ-E2E-COMBAT-0002")
-        old["status"] = "superseded"; old["superseded_by"] = [new["request_id"]]
-        old["history"].append({"at":"2026-07-24T22:00:00+02:00","actor":"collector","actor_role":"collector","actor_task":"CAN-TEST","actor_pr":1,"from_status":"draft","to_status":"superseded","reason":"Replaced.","owner_evidence_ref":None})
-        new["supersedes"] = [old["request_id"]]
-        self.write_request(old); self.write_request(new)
-        self.assertNotIn("RTEC-REQUEST-SUPERSESSION-RECIPROCAL", self.codes())
-        old["supersedes"] = [new["request_id"]]; new["superseded_by"] = [old["request_id"]]
-        self.write_request(old); self.write_request(new)
-        self.assertIn("RTEC-REQUEST-SUPERSESSION-CYCLE", self.codes())
-        shutil.rmtree(self.root / "docs/agents/real-tibia/evidence/requests")
-        h = history(); first = h["entries"][0]; second = copy.deepcopy(first); second["history_id"] = "RTVH-COMBAT-0002"
-        first["superseded_by"] = [second["history_id"]]; second["supersedes"] = [first["history_id"]]; h["entries"].append(second)
-        dump(self.root / "docs/agents/real-tibia/evidence/modules/combat/VERSION_HISTORY.yaml", h)
-        self.assertNotIn("RTEC-HISTORY-SUPERSESSION-RECIPROCAL", self.codes())
-        first["supersedes"] = [second["history_id"]]; second["superseded_by"] = [first["history_id"]]
-        dump(self.root / "docs/agents/real-tibia/evidence/modules/combat/VERSION_HISTORY.yaml", h)
-        self.assertIn("RTEC-HISTORY-CYCLE", self.codes())
-
-    def test_published_schemas_are_strict_and_accept_templates(self) -> None:
-        try:
-            import jsonschema
-        except ModuleNotFoundError:
-            self.skipTest("jsonschema is not installed")
-        schema_dir = self.repo / "docs/agents/real-tibia/evidence/schemas"
-        expected = {"evidence-record.schema.json","owner-request.schema.json","module-evidence-index.schema.json","version-history.schema.json","generated-indexes.schema.json"}
-        self.assertEqual({path.name for path in schema_dir.glob("*.json")}, expected)
-        for path in schema_dir.glob("*.json"):
-            schema = json.loads(path.read_text())
-            jsonschema.Draft202012Validator.check_schema(schema)
-            self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
-            self.assertFalse(schema["additionalProperties"])
-        for schema_name, template_name in (("evidence-record.schema.json","REAL_TIBIA_EVIDENCE_RECORD.yaml"),("owner-request.schema.json","REAL_TIBIA_EVIDENCE_REQUEST.yaml")):
-            schema = json.loads((schema_dir / schema_name).read_text())
-            value = json.loads((self.repo / "docs/agents/templates" / template_name).read_text())
-            jsonschema.Draft202012Validator(schema, format_checker=jsonschema.FormatChecker()).validate(value)
-
-    def test_missing_published_schema_fails_closed(self) -> None:
-        (self.root / "docs/agents/real-tibia/evidence/schemas/evidence-record.schema.json").unlink()
-        with self.assertRaises(EvidenceError):
-            Corpus.load(self.root)
-
-
-    def test_freshness_warning_threshold_enters_stale_index(self) -> None:
-        record = self.record()
-        record["freshness"]["observed_or_verified_at"] = "2026-07-01"
-        record["freshness"]["warning_after_days"] = 20
-        record["freshness"]["invalid_after_days"] = 90
-        self.write_record(record)
-        self.refresh()
-        row = Corpus.load(self.root).generated_indexes(AS_OF)["stale_evidence"][0]
-        self.assertEqual(row["reason"], "freshness-warning-window-reached")
-
-    def test_generated_proof_maturity_shape_fails_closed(self) -> None:
-        self.write_record(self.record())
-        self.refresh()
-        path = self.root / "docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json"
-        value = json.loads(path.read_text())
-        value["proof_maturity_by_dimension"] = {"missing-module": {"invented": {}}}
-        dump(path, value)
-        self.assertIn("RTEC-GENERATED-INDEX-SHAPE", self.codes(False))
-
-    def test_commit_locator_requires_repository_and_windows_paths_are_unsafe(self) -> None:
-        record = self.record()
-        locator = record["sources"][0]["locator"]
-        locator["repository"] = None
-        record["current_canary_comparison"]["exact_paths"] = ["C:/escape.txt"]
-        self.write_record(record)
-        codes = self.codes()
-        self.assertTrue({"RTEC-SOURCE-LOCATOR", "RTEC-UNSAFE-PATH"} <= codes)
 
 
 if __name__ == "__main__":

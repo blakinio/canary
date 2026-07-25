@@ -1,0 +1,298 @@
+{
+  "applicability": {
+    "announced_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No exact announcement is established for this bounded claim."
+      ],
+      "upper_bound": null
+    },
+    "changed_in": [],
+    "deprecated_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No deprecation is established for this bounded claim."
+      ],
+      "upper_bound": null
+    },
+    "effective_from": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No exact effective-from boundary is established for this bounded claim."
+      ],
+      "upper_bound": null
+    },
+    "effective_until": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No exact effective-until boundary is established for this bounded claim."
+      ],
+      "upper_bound": null
+    },
+    "introduced_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No exact introduction is established for this bounded claim."
+      ],
+      "upper_bound": null
+    },
+    "observed_in": [
+      {
+        "evidence_refs": [
+          "RT-VOCATIONS-0004"
+        ],
+        "exact": {
+          "appearances_items_revision": null,
+          "canary_commit": "930e0a15767b7e5348bb36c679fa5e458a76f184",
+          "database_schema_revision": null,
+          "datapack_revision": null,
+          "maintained_otclient_commit": null,
+          "map_sha256": null,
+          "official_client_build": null,
+          "official_tibia_release": "Current Tibia game manual verified 2026-07-25",
+          "protocol_profile": null,
+          "spawn_npc_sidecar_revision": null
+        },
+        "lower_bound": null,
+        "mode": "EXACT",
+        "notes": [
+          "Bounded cross-source static comparison."
+        ],
+        "upper_bound": null
+      }
+    ],
+    "removed_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No removal is established for this bounded claim."
+      ],
+      "upper_bound": null
+    }
+  },
+  "authority_dimension": "current-canary-behavior",
+  "claim_key": "static-official-canary-gain-and-promotion-conformance",
+  "claim_statement": "On the official manual snapshot verified 2026-07-25 and Canary commit 930e0a15767b7e5348bb36c679fa5e458a76f184, the five base vocation HP/mana/capacity gain triples and promotion titles represented in Canary XML match the official table.",
+  "confidence": "HIGH",
+  "conflict_refs": [],
+  "current_canary_comparison": {
+    "baseline": {
+      "appearances_items_revision": null,
+      "canary_commit": "930e0a15767b7e5348bb36c679fa5e458a76f184",
+      "database_schema_revision": null,
+      "datapack_revision": null,
+      "maintained_otclient_commit": null,
+      "map_sha256": null,
+      "official_client_build": null,
+      "official_tibia_release": null,
+      "protocol_profile": null,
+      "spawn_npc_sidecar_revision": null
+    },
+    "current_behavior": "Canary XML represents Druid 5/30/10 → Elder Druid, Knight 15/5/25 → Elite Knight, Monk 10/10/25 → Exalted Monk, Paladin 10/15/20 → Royal Paladin and Sorcerer 5/30/10 → Master Sorcerer; gaincap is converted by the loader from XML units to internal hundredths.",
+    "differences": [],
+    "exact_paths": [
+      "data/XML/vocations.xml",
+      "src/creatures/players/vocations/vocation.cpp"
+    ],
+    "exact_symbols": [
+      "Vocations::loadFromXml",
+      "Vocations::getPromotedVocation"
+    ],
+    "missing_proof": [
+      "Runtime level-up and promotion application remains unproven and is requested through RTREQ-FEATURE-VOCATIONS-0001."
+    ],
+    "state": "conforming"
+  },
+  "does_not_prove": [
+    "This static conformance does not prove runtime level advancement, promotion purchase/application, reload, persistence, protocol or physical-client behavior.",
+    "This does not compare skill multipliers, regeneration, mitigation, PvP, combat, spells, Wheel or equipment."
+  ],
+  "evidence_id": "RT-VOCATIONS-0004",
+  "evidence_state": "DERIVED",
+  "format": "canary-real-tibia-evidence-record-v1",
+  "freshness": {
+    "invalid_after_days": 90,
+    "invalidation_triggers": [
+      "The official manual vocation table or promotion section changes.",
+      "The exact current Canary source baseline changes for records that compare against it."
+    ],
+    "observed_or_verified_at": "2026-07-25",
+    "policy": "refresh-before-task",
+    "warning_after_days": 30
+  },
+  "module_id": "vocations",
+  "owner_request_refs": [
+    "RTREQ-FEATURE-VOCATIONS-0001"
+  ],
+  "proof_level": "registration-proven",
+  "proves": [
+    "The selected static official table and selected current Canary XML agree on five base HP/mana/capacity gain triples.",
+    "The selected static sources agree on the five promotion names and base-to-promoted relationships."
+  ],
+  "record_status": "accepted",
+  "related_modules": [
+    "character-progression"
+  ],
+  "review": {
+    "notes": [
+      "Structured review checked source authority, bounded wording and explicit nonclaims."
+    ],
+    "pr": 910,
+    "reviewed_at": "2026-07-25T09:42:45+02:00",
+    "reviewer": "RTEC-002 structured evidence reviewer (GPT-5.6 Thinking)",
+    "status": "accepted",
+    "task_id": "CAN-20260725-rtec-002-vocations-pilot"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "author": "CipSoft GmbH",
+      "does_not_prove": [
+        "The manual does not prove Canary source values or runtime application.",
+        "The manual does not expose hidden server formulas, protocol fields or persistence behavior."
+      ],
+      "external_artifact": null,
+      "limitations": [
+        "The page does not expose an exact official client build or a machine-readable revision identifier.",
+        "The live official manual page has no source-pinned publication date."
+      ],
+      "locator": {
+        "artifact_sha256": null,
+        "build": null,
+        "commit_sha": null,
+        "report_id": null,
+        "repository": null,
+        "repository_path": null,
+        "url": "https://www.tibia.com/gameguides/?section=characters&subtopic=manual"
+      },
+      "observation_date": "2026-07-25",
+      "proof_level_reached": "definition-found",
+      "proves": [
+        "The current official manual identifies five selectable vocations.",
+        "The current official manual publishes the base per-level HP, mana and capacity gains and promotion titles used by this record."
+      ],
+      "publication_date": null,
+      "role": "primary",
+      "selected": {
+        "files": [],
+        "observations": [
+          "The manual states that players choose from five vocations after level 8.",
+          "The vocation table lists HP, mana and capacity gain per level and promotion titles for Druid, Knight, Monk, Paladin and Sorcerer."
+        ],
+        "sections": [
+          "5.1.6 Promotion",
+          "5.1.9 Vocations"
+        ],
+        "symbols": []
+      },
+      "source_id": "tibia-official-vocations-manual",
+      "source_type": "other"
+    },
+    {
+      "author": "Canary contributors",
+      "does_not_prove": [
+        "XML presence does not prove that the server loaded the file or applied values to a player."
+      ],
+      "external_artifact": null,
+      "limitations": [],
+      "locator": {
+        "artifact_sha256": null,
+        "build": null,
+        "commit_sha": "930e0a15767b7e5348bb36c679fa5e458a76f184",
+        "report_id": null,
+        "repository": "blakinio/canary",
+        "repository_path": "data/XML/vocations.xml",
+        "url": null
+      },
+      "observation_date": "2026-07-25",
+      "proof_level_reached": "registration-proven",
+      "proves": [
+        "The exact current XML snapshot defines the selected vocation identities, relationships and numeric configuration values."
+      ],
+      "publication_date": null,
+      "role": "primary",
+      "selected": {
+        "files": [
+          "data/XML/vocations.xml"
+        ],
+        "observations": [
+          "The file defines IDs 0 through 10, including five base vocation entries and five promoted entries.",
+          "Base entries are Sorcerer, Druid, Paladin, Knight and Monk; promoted entries are Master Sorcerer, Elder Druid, Royal Paladin, Elite Knight and Exalted Monk.",
+          "The base gaincap values are 10,10,20,25,25 and are multiplied by 100 by the loader."
+        ],
+        "sections": [],
+        "symbols": []
+      },
+      "source_id": "canary-vocations-xml",
+      "source_type": "current-canary"
+    },
+    {
+      "author": "Canary contributors",
+      "does_not_prove": [
+        "Source inspection alone does not prove successful startup, reload, level-up or promotion behavior.",
+        "Source inspection does not prove official parity."
+      ],
+      "external_artifact": null,
+      "limitations": [
+        "No controlled runtime result is selected."
+      ],
+      "locator": {
+        "artifact_sha256": null,
+        "build": null,
+        "commit_sha": "930e0a15767b7e5348bb36c679fa5e458a76f184",
+        "report_id": null,
+        "repository": "blakinio/canary",
+        "repository_path": "src/creatures/players/vocations/vocation.cpp",
+        "url": null
+      },
+      "observation_date": "2026-07-25",
+      "proof_level_reached": "registration-proven",
+      "proves": [
+        "The exact current source contains an XML-backed vocation registry load/reload path.",
+        "The exact current source defines promotion lookup through fromVocation."
+      ],
+      "publication_date": null,
+      "role": "primary",
+      "selected": {
+        "files": [
+          "src/creatures/players/vocations/vocation.cpp"
+        ],
+        "observations": [
+          "loadFromXml reads CORE_DIRECTORY/XML/vocations.xml and inserts records by ID.",
+          "The loader parses identity, gain, regeneration, promotion, skill, mitigation, PvP and gem fields.",
+          "getPromotedVocation selects a different entry whose fromVocation equals the base ID."
+        ],
+        "sections": [],
+        "symbols": [
+          "Vocations::loadFromXml",
+          "Vocations::reload",
+          "Vocations::getPromotedVocation"
+        ]
+      },
+      "source_id": "canary-vocation-loader",
+      "source_type": "current-canary"
+    }
+  ],
+  "superseded_by": [],
+  "supersedes": [],
+  "uncertainty": [
+    "The official manual does not expose an immutable page revision or exact client build."
+  ]
+}

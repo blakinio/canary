@@ -1,0 +1,255 @@
+{
+  "applicability": {
+    "announced_in": {
+      "evidence_refs": [
+        "RT-VOCATIONS-0002"
+      ],
+      "exact": {
+        "appearances_items_revision": null,
+        "canary_commit": null,
+        "database_schema_revision": null,
+        "datapack_revision": null,
+        "maintained_otclient_commit": null,
+        "map_sha256": null,
+        "official_client_build": null,
+        "official_tibia_release": "Monk announcement 2025-02-10",
+        "protocol_profile": null,
+        "spawn_npc_sidecar_revision": null
+      },
+      "lower_bound": null,
+      "mode": "EXACT",
+      "notes": [
+        "Exact official publication date."
+      ],
+      "upper_bound": null
+    },
+    "changed_in": [],
+    "deprecated_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No deprecation is established for this bounded claim."
+      ],
+      "upper_bound": null
+    },
+    "effective_from": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No exact effective-from boundary is established for this bounded claim."
+      ],
+      "upper_bound": null
+    },
+    "effective_until": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No exact effective-until boundary is established for this bounded claim."
+      ],
+      "upper_bound": null
+    },
+    "introduced_in": {
+      "evidence_refs": [
+        "RT-VOCATIONS-0002"
+      ],
+      "exact": {
+        "appearances_items_revision": null,
+        "canary_commit": null,
+        "database_schema_revision": null,
+        "datapack_revision": null,
+        "maintained_otclient_commit": null,
+        "map_sha256": null,
+        "official_client_build": null,
+        "official_tibia_release": "Monk release 2025-04-08",
+        "protocol_profile": null,
+        "spawn_npc_sidecar_revision": null
+      },
+      "lower_bound": null,
+      "mode": "EXACT",
+      "notes": [
+        "Exact official release publication states the vocation is available."
+      ],
+      "upper_bound": null
+    },
+    "observed_in": [
+      {
+        "evidence_refs": [
+          "RT-VOCATIONS-0002"
+        ],
+        "exact": {
+          "appearances_items_revision": null,
+          "canary_commit": null,
+          "database_schema_revision": null,
+          "datapack_revision": null,
+          "maintained_otclient_commit": null,
+          "map_sha256": null,
+          "official_client_build": null,
+          "official_tibia_release": "Monk release 2025-04-08",
+          "protocol_profile": null,
+          "spawn_npc_sidecar_revision": null
+        },
+        "lower_bound": null,
+        "mode": "EXACT",
+        "notes": [
+          "Official release observation."
+        ],
+        "upper_bound": null
+      }
+    ],
+    "removed_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No removal is established for this bounded claim."
+      ],
+      "upper_bound": null
+    }
+  },
+  "authority_dimension": "historical-version",
+  "claim_key": "monk-announcement-and-release",
+  "claim_statement": "Monk was officially announced as Tibia's fifth playable vocation on 2025-02-10 and officially released on 2025-04-08.",
+  "confidence": "HIGH",
+  "conflict_refs": [],
+  "current_canary_comparison": {
+    "baseline": {
+      "appearances_items_revision": null,
+      "canary_commit": null,
+      "database_schema_revision": null,
+      "datapack_revision": null,
+      "maintained_otclient_commit": null,
+      "map_sha256": null,
+      "official_client_build": null,
+      "official_tibia_release": null,
+      "protocol_profile": null,
+      "spawn_npc_sidecar_revision": null
+    },
+    "current_behavior": null,
+    "differences": [],
+    "exact_paths": [],
+    "exact_symbols": [],
+    "missing_proof": [
+      "Current Canary representation is a separate source-pinned claim in RT-VOCATIONS-0003."
+    ],
+    "state": "not-assessed"
+  },
+  "does_not_prove": [
+    "This does not prove Monk's complete current gameplay, later balancing changes or Canary parity."
+  ],
+  "evidence_id": "RT-VOCATIONS-0002",
+  "evidence_state": "PROVEN",
+  "format": "canary-real-tibia-evidence-record-v1",
+  "freshness": {
+    "invalid_after_days": 90,
+    "invalidation_triggers": [
+      "The official manual vocation table or promotion section changes.",
+      "The exact current Canary source baseline changes for records that compare against it."
+    ],
+    "observed_or_verified_at": "2026-07-25",
+    "policy": "refresh-before-task",
+    "warning_after_days": 30
+  },
+  "module_id": "vocations",
+  "owner_request_refs": [],
+  "proof_level": "definition-found",
+  "proves": [
+    "The official announcement date and live release date for Monk are distinct and source-pinned."
+  ],
+  "record_status": "accepted",
+  "related_modules": [],
+  "review": {
+    "notes": [
+      "Structured review checked source authority, bounded wording and explicit nonclaims."
+    ],
+    "pr": 910,
+    "reviewed_at": "2026-07-25T09:42:45+02:00",
+    "reviewer": "RTEC-002 structured evidence reviewer (GPT-5.6 Thinking)",
+    "status": "accepted",
+    "task_id": "CAN-20260725-rtec-002-vocations-pilot"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "author": "CipSoft GmbH / Tibia Community Managers",
+      "does_not_prove": [
+        "The announcement did not prove the final release date or final live implementation."
+      ],
+      "external_artifact": null,
+      "limitations": [],
+      "locator": {
+        "artifact_sha256": null,
+        "build": null,
+        "commit_sha": null,
+        "report_id": null,
+        "repository": null,
+        "repository_path": null,
+        "url": "https://www.tibia.com/news/?id=8214&subtopic=newsarchive"
+      },
+      "observation_date": "2026-07-25",
+      "proof_level_reached": "definition-found",
+      "proves": [
+        "Monk was officially announced on 2025-02-10 as a new playable vocation."
+      ],
+      "publication_date": "2025-02-10",
+      "role": "primary",
+      "selected": {
+        "files": [],
+        "observations": [
+          "The official news announces Monk as a new playable vocation."
+        ],
+        "sections": [
+          "The Fifth Vocation"
+        ],
+        "symbols": []
+      },
+      "source_id": "tibia-official-monk-announcement",
+      "source_type": "official-news"
+    },
+    {
+      "author": "CipSoft GmbH / Tibia Community Managers",
+      "does_not_prove": [
+        "The release notice does not prove every later balance value or current Canary implementation."
+      ],
+      "external_artifact": null,
+      "limitations": [],
+      "locator": {
+        "artifact_sha256": null,
+        "build": null,
+        "commit_sha": null,
+        "report_id": null,
+        "repository": null,
+        "repository_path": null,
+        "url": "https://www.tibia.com/news/?id=8317&subtopic=newsarchive"
+      },
+      "observation_date": "2026-07-25",
+      "proof_level_reached": "definition-found",
+      "proves": [
+        "Monk was officially released and available on 2025-04-08."
+      ],
+      "publication_date": "2025-04-08",
+      "role": "primary",
+      "selected": {
+        "files": [],
+        "observations": [
+          "The official news states that Monk is now officially available in Tibia."
+        ],
+        "sections": [
+          "Monk Release and Monk Bundle"
+        ],
+        "symbols": []
+      },
+      "source_id": "tibia-official-monk-release",
+      "source_type": "official-news"
+    }
+  ],
+  "superseded_by": [],
+  "supersedes": [],
+  "uncertainty": []
+}

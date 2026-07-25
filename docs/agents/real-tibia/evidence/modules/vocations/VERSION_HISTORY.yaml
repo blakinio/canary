@@ -1,0 +1,253 @@
+{
+  "entries": [
+    {
+      "claim_refs": [
+        "RT-VOCATIONS-0002"
+      ],
+      "confidence": "proven-official",
+      "does_not_prove": [
+        "This history entry does not represent later balance changes or current Canary gameplay parity."
+      ],
+      "evidence_refs": [
+        "RT-VOCATIONS-0002"
+      ],
+      "history_id": "RTVH-VOCATIONS-0001",
+      "lifecycle": {
+        "announced_in": {
+          "evidence_refs": [
+            "RT-VOCATIONS-0002"
+          ],
+          "exact": {
+            "appearances_items_revision": null,
+            "canary_commit": null,
+            "database_schema_revision": null,
+            "datapack_revision": null,
+            "maintained_otclient_commit": null,
+            "map_sha256": null,
+            "official_client_build": null,
+            "official_tibia_release": "Monk announcement 2025-02-10",
+            "protocol_profile": null,
+            "spawn_npc_sidecar_revision": null
+          },
+          "lower_bound": null,
+          "mode": "EXACT",
+          "notes": [
+            "Official announcement publication."
+          ],
+          "upper_bound": null
+        },
+        "changed_in": [],
+        "deprecated_in": {
+          "evidence_refs": [],
+          "exact": null,
+          "lower_bound": null,
+          "mode": "UNKNOWN",
+          "notes": [
+            "No deprecation is established for this bounded claim."
+          ],
+          "upper_bound": null
+        },
+        "effective_from": {
+          "evidence_refs": [],
+          "exact": null,
+          "lower_bound": null,
+          "mode": "UNKNOWN",
+          "notes": [
+            "No exact effective-from boundary is established for this bounded claim."
+          ],
+          "upper_bound": null
+        },
+        "effective_until": {
+          "evidence_refs": [],
+          "exact": null,
+          "lower_bound": null,
+          "mode": "UNKNOWN",
+          "notes": [
+            "No exact effective-until boundary is established for this bounded claim."
+          ],
+          "upper_bound": null
+        },
+        "introduced_in": {
+          "evidence_refs": [
+            "RT-VOCATIONS-0002"
+          ],
+          "exact": {
+            "appearances_items_revision": null,
+            "canary_commit": null,
+            "database_schema_revision": null,
+            "datapack_revision": null,
+            "maintained_otclient_commit": null,
+            "map_sha256": null,
+            "official_client_build": null,
+            "official_tibia_release": "Monk release 2025-04-08",
+            "protocol_profile": null,
+            "spawn_npc_sidecar_revision": null
+          },
+          "lower_bound": null,
+          "mode": "EXACT",
+          "notes": [
+            "Official release publication states Monk is available."
+          ],
+          "upper_bound": null
+        },
+        "observed_in": [
+          {
+            "evidence_refs": [
+              "RT-VOCATIONS-0002"
+            ],
+            "exact": {
+              "appearances_items_revision": null,
+              "canary_commit": null,
+              "database_schema_revision": null,
+              "datapack_revision": null,
+              "maintained_otclient_commit": null,
+              "map_sha256": null,
+              "official_client_build": null,
+              "official_tibia_release": "Monk release 2025-04-08",
+              "protocol_profile": null,
+              "spawn_npc_sidecar_revision": null
+            },
+            "lower_bound": null,
+            "mode": "EXACT",
+            "notes": [
+              "Official release observation."
+            ],
+            "upper_bound": null
+          }
+        ],
+        "removed_in": {
+          "evidence_refs": [],
+          "exact": null,
+          "lower_bound": null,
+          "mode": "UNKNOWN",
+          "notes": [
+            "No removal is established for this bounded claim."
+          ],
+          "upper_bound": null
+        }
+      },
+      "proves": [
+        "The announcement and introduction cells are distinct and pinned to official publications."
+      ],
+      "statement": "Monk was announced on 2025-02-10 and officially released on 2025-04-08.",
+      "superseded_by": [],
+      "supersedes": []
+    },
+    {
+      "claim_refs": [
+        "RT-VOCATIONS-0003",
+        "RT-VOCATIONS-0004",
+        "RT-VOCATIONS-0005"
+      ],
+      "confidence": "proven-observation",
+      "does_not_prove": [
+        "The observation does not establish when each Canary definition was first introduced or whether runtime behavior conforms."
+      ],
+      "evidence_refs": [
+        "RT-VOCATIONS-0003",
+        "RT-VOCATIONS-0004",
+        "RT-VOCATIONS-0005"
+      ],
+      "history_id": "RTVH-VOCATIONS-0002",
+      "lifecycle": {
+        "announced_in": {
+          "evidence_refs": [],
+          "exact": null,
+          "lower_bound": null,
+          "mode": "UNKNOWN",
+          "notes": [
+            "No exact announcement is established for this bounded claim."
+          ],
+          "upper_bound": null
+        },
+        "changed_in": [],
+        "deprecated_in": {
+          "evidence_refs": [],
+          "exact": null,
+          "lower_bound": null,
+          "mode": "UNKNOWN",
+          "notes": [
+            "No deprecation is established for this bounded claim."
+          ],
+          "upper_bound": null
+        },
+        "effective_from": {
+          "evidence_refs": [],
+          "exact": null,
+          "lower_bound": null,
+          "mode": "UNKNOWN",
+          "notes": [
+            "No exact effective-from boundary is established for this bounded claim."
+          ],
+          "upper_bound": null
+        },
+        "effective_until": {
+          "evidence_refs": [],
+          "exact": null,
+          "lower_bound": null,
+          "mode": "UNKNOWN",
+          "notes": [
+            "No exact effective-until boundary is established for this bounded claim."
+          ],
+          "upper_bound": null
+        },
+        "introduced_in": {
+          "evidence_refs": [],
+          "exact": null,
+          "lower_bound": null,
+          "mode": "UNKNOWN",
+          "notes": [
+            "No exact introduction is established for this bounded claim."
+          ],
+          "upper_bound": null
+        },
+        "observed_in": [
+          {
+            "evidence_refs": [
+              "RT-VOCATIONS-0003",
+              "RT-VOCATIONS-0004",
+              "RT-VOCATIONS-0005"
+            ],
+            "exact": {
+              "appearances_items_revision": null,
+              "canary_commit": "930e0a15767b7e5348bb36c679fa5e458a76f184",
+              "database_schema_revision": null,
+              "datapack_revision": null,
+              "maintained_otclient_commit": null,
+              "map_sha256": null,
+              "official_client_build": null,
+              "official_tibia_release": null,
+              "protocol_profile": null,
+              "spawn_npc_sidecar_revision": null
+            },
+            "lower_bound": null,
+            "mode": "EXACT",
+            "notes": [
+              "Exact current Canary source snapshot used by the pilot."
+            ],
+            "upper_bound": null
+          }
+        ],
+        "removed_in": {
+          "evidence_refs": [],
+          "exact": null,
+          "lower_bound": null,
+          "mode": "UNKNOWN",
+          "notes": [
+            "No removal is established for this bounded claim."
+          ],
+          "upper_bound": null
+        }
+      },
+      "proves": [
+        "The current Canary source comparison is tied to one exact commit axis."
+      ],
+      "statement": "The RTEC-002 pilot observed the current Canary vocation registry and XML definitions at commit 930e0a15767b7e5348bb36c679fa5e458a76f184.",
+      "superseded_by": [],
+      "supersedes": []
+    }
+  ],
+  "format": "canary-real-tibia-version-history-v1",
+  "module_id": "vocations",
+  "schema_version": 1
+}
