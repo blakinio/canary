@@ -4,22 +4,24 @@ program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-047
 status: review
 agent: "GPT-5.6 Thinking"
-branch: dudantas/oam-047-lua-runtime-preflight
+branch: dudantas/oam-047-lua-runtime-governance
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "8838a3ff743cdc4879c6652d60251ce92032fccd"
+last_verified_commit: "9ca36f79483e9ade00fae0fc407e7b68f29bf00e"
 risk: high
 related_issue: ""
-related_pr: "922"
+related_pr: "928"
 depends_on:
   - OAM-046 durably completed as 2b09ef1acfe23d1ef4027c85f44b0093420d7434
 blocks:
-  - OAM-047 Otheryn target proof
+  - OAM-047 Canary governance and lifecycle
+  - OAM-047 durable program reconciliation
   - OAM-048 start
 owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260725-oteryn-oam047-preflight.md
+    - docs/agents/OTERYN_OAM_047_LUA_RUNTIME_REVALIDATION.md
   shared: []
   read_only:
     - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
@@ -28,80 +30,27 @@ owned_paths:
 modules_touched:
   - oteryn-architecture-migration
   - lua-runtime
-cross_repo_tasks: []
+cross_repo_tasks:
+  - Otheryn PR 107 feature merge 5b3bee0dd6eedf8c2f9578c686ca85c0fde519cf
+  - Otheryn PR 108 lifecycle merge 68e2b233b02356a79a03422ed51d757b85915bc5
 ---
 
-# OAM-047 fresh preflight: Lua Runtime
+# OAM-047 Lua Runtime governance
 
-## Selection
+## Final disposition
 
-Canonical package: `lua-runtime`
+`lua-runtime → ADAPT`
 
-Initial disposition: `REVALIDATE`
-
-The package has no canonical dependencies, owns the shared `src/lua/**` runtime boundary and is narrower than the dependency-valid `build-system` package. Completing it also unblocks the separate `gameplay-analytics` dependency. This preflight does not infer `REUSE` from source identity or successful unrelated gameplay tests.
-
-## Fresh live-state preflight
-
-- Canary task-start main: `c468be4c34039b4b3e9f4e320c4b125cb6998d77`.
-- Otheryn target main: `415f559f829c83d79d9c609e7f421d2449e59d74`.
-- reviewed current upstream: `opentibiabr/canary@7323503b3dc61ed86bf1f04a611b2d0aec64b35a`.
-- OAM-046 durable completion: `2b09ef1acfe23d1ef4027c85f44b0093420d7434`.
-- Otheryn has no open pull request.
-- Open Canary PRs do not own `src/lua/**` or this checkpoint. In particular PR `#514` owns security workflow/runtime fixtures, PR `#921` owns Real Tibia owner-request tooling, and the active E2E/map/docs PRs remain outside the Lua runtime paths.
-
-## Candidate evaluation
-
-- `network-transport` remains collision-blocked by open Canary PR `#514`.
-- `login-protocol` remains dependency-invalid because it depends on `network-transport`.
-- `physical-client-e2e` remains active under the separate E2E Automation Program.
-- `gameplay-analytics` is dependency-invalid until `lua-runtime` completes.
-- `deployment-operations` is dependency-invalid until `build-system` completes.
-- `build-system` has no dependencies but owns broad CMake, vcpkg, Visual Studio and CI entry points. `lua-runtime` is selected first as the narrower runtime package and the direct prerequisite for gameplay analytics.
-
-## Exact reviewed roots
-
-- canonical registry blob: `10040d899de61dd0f0e6aa80d68d040c34f92847`.
-- target/upstream/live-legacy `src/lua/CMakeLists.txt`: `6c4ca0fb88057c4760d118e61f416a987338b17e`.
-- target/upstream/live-legacy `src/lua/scripts/CMakeLists.txt`: `d7c8525af3fd29a01e0cbb6fc04a1371eea6e90c`.
-- target/upstream/live-legacy `src/lua/scripts/luascript.hpp`: `e65ac8fab062491a8d60a951d38ff6b57e025f4a`.
-- target/upstream/live-legacy `src/lua/scripts/luascript.cpp`: `2bbfed787aaa39f63f11a69165e9d47fca8aa067`.
-- target `src/lua/scripts/lua_environment.hpp`: `9e5d8d8b5224eed6f23da01d99bd9f2f419aaeda`; reviewed upstream header: `4ce01411f23f120040d5bfd4fdb4bc39929be401`.
-- target `src/lua/scripts/lua_environment.cpp`: `060a735293a5b89abe98e58a40000d9b264818f9`; reviewed upstream and live legacy implementation: `c28c3a77824fc7fc997940921b039a3eeca1a6ce`.
-
-The target-specific Lua environment variant adds shutdown guards, `reloadCore()` and an idempotent `shutdown()` path. It nevertheless retains the inherited `LuaEnvironment::reInitState()` TODO to discover and reload child interfaces.
-
-## First bounded failure candidate
-
-Every ordinary `LuaScriptInterface::initState()` stores the shared main `lua_State*` and creates a registry event table. `LuaEnvironment::reInitState()` currently closes that shared state and creates a new one without inventorying, invalidating or reinitializing child interfaces. The explicit source TODO is therefore a real ownership/lifetime gap candidate, not proof of a crash in every reload path.
-
-Marker: `untracked-child-interface-reset`.
-
-## Canonical boundary
-
-Includes:
-
-- shared Lua state and environment lifecycle;
-- script-interface initialization and teardown;
-- runtime callback ownership boundaries;
-- reload and shutdown safety inventory.
-
-Excludes:
-
-- individual gameplay scripts;
-- feature-specific Lua registration families;
-- a separate package for every binding family;
-- arbitrary Lua execution by analytics or AI systems;
-- object-lifetime, serialization, race-freedom or reload-safety claims without focused evidence.
+The shared Lua architecture remains suitable. Main-state replacement required one bounded adaptation so attached child script interfaces no longer retain pointers and registry references belonging to the closed state.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T15:46:00+02:00
-head: 8838a3ff743cdc4879c6652d60251ce92032fccd
-branch: dudantas/oam-047-lua-runtime-preflight
-pr: 922
+updated_at: 2026-07-25T20:18:00+02:00
+head: 9ca36f79483e9ade00fae0fc407e7b68f29bf00e
+branch: dudantas/oam-047-lua-runtime-governance
+pr: 928
 status: validating
 context_routes:
   - agent-governance
@@ -109,45 +58,61 @@ context_routes:
   - lua-runtime
 owned_paths:
   - docs/agents/tasks/active/CAN-20260725-oteryn-oam047-preflight.md
+  - docs/agents/OTERYN_OAM_047_LUA_RUNTIME_REVALIDATION.md
 proven:
-  - OAM-046 is durably complete as 2b09ef1acfe23d1ef4027c85f44b0093420d7434.
-  - The canonical lua-runtime record has no dependencies and owns src/lua/** while excluding individual gameplay scripts and feature-specific registration families.
-  - Otheryn has no open pull request and current open Canary PRs do not own src/lua/**.
-  - The compiled Lua and scripts CMake roots plus LuaScriptInterface header/implementation are byte-identical across target, reviewed upstream and live legacy.
-  - The target LuaEnvironment variant has additional shutdown/reloadCore guards but retains the inherited child-interface reload TODO.
-  - Child LuaScriptInterface instances store the shared main lua_State pointer and registry references, while the main reInitState closes and replaces the state without child inventory.
+  - OAM-046 durable reconciliation merged as 2b09ef1acfe23d1ef4027c85f44b0093420d7434 before OAM-047.
+  - Canary preflight PR 922 selected dependency-valid lua-runtime and merged as bc8d7827f652b8b8b3200f7ef81818e8d5d149f5.
+  - Otheryn task-start main was 415f559f829c83d79d9c609e7f421d2449e59d74 and reviewed upstream was 7323503b3dc61ed86bf1f04a611b2d0aec64b35a.
+  - Child LuaScriptInterface objects retained the shared main lua_State and event-table references while reInitState closed and replaced that state without child inventory.
+  - The adaptation inventories only registered children attached to the old state, closes their registry tables and rebinds them after replacement-state creation.
+  - Focused fixtures cover active children, stale registry IDs, new event registration, dormant interfaces, destroyed interfaces and the shared test interface.
+  - The first final-head CI isolated a CMake-only translation-unit registration defect in the maintained Visual Studio Solution path.
+  - Folding the registry into existing lua_environment.cpp preserved one implementation across CMake and Visual Studio without expanding build-system ownership.
+  - Final Otheryn head a7349190a51d627e4668af56912337ff8cadec46 passed Autofix 30167797667, CI 30167797744 and Required 30167797642.
+  - Windows CMake/Solution, Linux release/debug, macOS, Docker, Lua tests, focused tests and runtime smokes passed on the final attempt.
+  - PR 107 had clean discussions and zero target-main drift and merged as 5b3bee0dd6eedf8c2f9578c686ca85c0fde519cf.
+  - Otheryn lifecycle PR 108 passed Required 30169112582, had clean discussions and merged as 68e2b233b02356a79a03422ed51d757b85915bc5.
+  - Canary governance PR 928 opened from task-start main 124b029d1a2498a64fa6612b16efa386b8786a83 with exactly the task and package report paths.
 derived:
-  - lua-runtime is the next narrower dependency-valid canonical package.
-  - The child-interface reset boundary requires focused target proof before final REUSE, ADAPT or DO_NOT_MIGRATE disposition.
+  - lua-runtime requires ADAPT rather than REUSE because main-state replacement did not preserve attached child-interface validity.
+  - The correction remains inside shared Lua lifecycle and does not own feature-specific script reload policy.
 unknown:
-  - Which production reload sequences reinitialize every child interface after the main state changes.
-  - Whether any child callback can execute between main-state replacement and subsystem-specific reload.
-  - Complete userdata, callback and registry-reference lifetime safety across reload and shutdown.
-  - Concurrent reload/callback behavior, thread safety and race freedom.
-  - Exhaustive runtime behavior of feature-specific binding families outside this package.
+  - Complete production subsystem reload ordering and callback timing.
+  - Concurrent reload/read/callback safety and race freedom.
+  - Exhaustive userdata, timer parameter and external wrapper lifetime safety.
+  - Physical-client, protocol and production gameplay effects.
 conflicts: []
 first_failure:
   marker: untracked-child-interface-reset
-  evidence: LuaEnvironment::reInitState closes and recreates the shared state while source retains an explicit TODO to get/reload children; child interfaces retain shared-state pointers and registry refs unless separately reinitialized.
+  evidence: LuaEnvironment::reInitState closed the main state while attached child interfaces retained pointers and registry IDs unless separately reinitialized.
 rejected_hypotheses:
-  - Select network-transport while PR 514 owns related validation surfaces.
-  - Select login-protocol before network-transport is dependency-complete.
-  - Select gameplay-analytics before lua-runtime is complete.
-  - Infer Lua runtime reuse from byte-identical interface roots, compilation or unrelated gameplay tests.
-  - Expand the preflight into every feature-specific Lua registration or individual gameplay script.
+  - Finalize REUSE from source identity or compilation alone.
+  - Reload all gameplay scripts inside the main-state primitive.
+  - Expand into feature bindings, userdata redesign or concurrent reload orchestration.
+  - Edit Visual Studio project ownership when an existing supported translation unit is sufficient.
+  - Claim physical-client or production safety from focused lifecycle proof.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260725-oteryn-oam047-preflight.md
+  - docs/agents/OTERYN_OAM_047_LUA_RUNTIME_REVALIDATION.md
 validation:
-  - command: fresh live main, open-PR and ownership review
+  - command: exact target/upstream/legacy lifecycle review
     result: PASS
-    evidence: Exact live baselines and active PR path ownership were reviewed after durable OAM-046 closure.
-  - command: canonical dependency and scope review
+    evidence: Task-start roots, child-interface state ownership and target-specific LuaEnvironment deltas are recorded in the governance report.
+  - command: focused child-interface lifecycle contract
     result: PASS
-    evidence: lua-runtime has no dependencies, is narrower than build-system and directly unblocks gameplay-analytics.
-  - command: exact compiled-root and lifecycle-source review
+    evidence: Final CI 30167797744 compiled and executed the OAM-047 fixtures.
+  - command: maintained cross-platform builds and runtime smokes
     result: PASS
-    evidence: CMake, LuaScriptInterface and LuaEnvironment blobs plus the child-reset TODO are pinned above.
+    evidence: Final CI passed Windows CMake/Solution, Linux release/debug, macOS, Docker and runtime smokes.
+  - command: Otheryn exact-head gates, audit and lifecycle
+    result: PASS
+    evidence: Feature and lifecycle PRs passed their required gates, had clean discussions and merged as recorded above.
+  - command: Canary governance exact-head gates
+    result: NOT_RUN
+    evidence: PR 928 must pass on the synchronized exact head.
 blockers:
-  - Canary preflight exact-head gates and merge
-next_action: Mark PR 922 ready, require exact-head Ownership and CI, audit discussions and main drift, then squash-merge before target work starts.
+  - Canary governance exact-head Ownership and CI
+  - clean discussion and Canary-main drift audit
+  - governance merge, Canary lifecycle archive and durable program reconciliation
+next_action: Require exact-head Ownership and CI on PR 928, audit discussions and Canary-main drift, then merge and finish lifecycle plus durable reconciliation before OAM-048.
 ```
