@@ -46,7 +46,7 @@ cross_repo_tasks: []
 
 ## Goal
 
-Finish the docs-only lifecycle closure after delivery PR #912 without changing implementation, runner, workflow, artifact, retention or scheduling behavior.
+Finish the docs-only lifecycle closure after delivery PR #912 without changing implementation, runner, workflow, artifact, retention or scheduling behavior. Preserve a validated compact handover while final checks are pending.
 
 ## Context checkpoint
 
