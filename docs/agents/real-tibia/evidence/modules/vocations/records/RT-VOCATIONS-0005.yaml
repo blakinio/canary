@@ -1,0 +1,295 @@
+{
+  "applicability": {
+    "announced_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No exact announcement is established for this bounded claim."
+      ],
+      "upper_bound": null
+    },
+    "changed_in": [],
+    "deprecated_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No deprecation is established for this bounded claim."
+      ],
+      "upper_bound": null
+    },
+    "effective_from": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No exact effective-from boundary is established for this bounded claim."
+      ],
+      "upper_bound": null
+    },
+    "effective_until": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No exact effective-until boundary is established for this bounded claim."
+      ],
+      "upper_bound": null
+    },
+    "introduced_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No exact introduction is established for this bounded claim."
+      ],
+      "upper_bound": null
+    },
+    "observed_in": [
+      {
+        "evidence_refs": [
+          "RT-VOCATIONS-0005"
+        ],
+        "exact": {
+          "appearances_items_revision": null,
+          "canary_commit": "930e0a15767b7e5348bb36c679fa5e458a76f184",
+          "database_schema_revision": null,
+          "datapack_revision": null,
+          "maintained_otclient_commit": null,
+          "map_sha256": null,
+          "official_client_build": null,
+          "official_tibia_release": null,
+          "protocol_profile": null,
+          "spawn_npc_sidecar_revision": null
+        },
+        "lower_bound": null,
+        "mode": "EXACT",
+        "notes": [
+          "The evidence gap is evaluated against this exact source snapshot."
+        ],
+        "upper_bound": null
+      }
+    ],
+    "removed_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No removal is established for this bounded claim."
+      ],
+      "upper_bound": null
+    }
+  },
+  "authority_dimension": "current-canary-behavior",
+  "claim_key": "runtime-level-gain-and-promotion-application",
+  "claim_statement": "No selected owner-produced runtime result on Canary commit 930e0a15767b7e5348bb36c679fa5e458a76f184 proves that level advancement applies each configured HP/mana/capacity gain or that promotion applies the configured promoted vocation relationship.",
+  "confidence": "UNKNOWN",
+  "conflict_refs": [],
+  "current_canary_comparison": {
+    "baseline": {
+      "appearances_items_revision": null,
+      "canary_commit": "930e0a15767b7e5348bb36c679fa5e458a76f184",
+      "database_schema_revision": null,
+      "datapack_revision": null,
+      "maintained_otclient_commit": null,
+      "map_sha256": null,
+      "official_client_build": null,
+      "official_tibia_release": null,
+      "protocol_profile": null,
+      "spawn_npc_sidecar_revision": null
+    },
+    "current_behavior": null,
+    "differences": [],
+    "exact_paths": [
+      "src/creatures/players/vocations/vocation.cpp",
+      "data/XML/vocations.xml"
+    ],
+    "exact_symbols": [
+      "Vocations::loadFromXml",
+      "Vocations::getPromotedVocation"
+    ],
+    "missing_proof": [
+      "A feature-owner controlled runtime result must exercise level advancement and promotion against the exact baseline."
+    ],
+    "state": "blocked-by-reference"
+  },
+  "does_not_prove": [
+    "This UNKNOWN record does not establish that the runtime behavior is correct or incorrect.",
+    "This does not authorize the Collector to add tests or modify vocation/player runtime code."
+  ],
+  "evidence_id": "RT-VOCATIONS-0005",
+  "evidence_state": "UNKNOWN",
+  "format": "canary-real-tibia-evidence-record-v1",
+  "freshness": {
+    "invalid_after_days": 90,
+    "invalidation_triggers": [
+      "The official manual vocation table or promotion section changes.",
+      "The exact current Canary source baseline changes for records that compare against it."
+    ],
+    "observed_or_verified_at": "2026-07-25",
+    "policy": "refresh-before-task",
+    "warning_after_days": 30
+  },
+  "module_id": "vocations",
+  "owner_request_refs": [
+    "RTREQ-FEATURE-VOCATIONS-0001"
+  ],
+  "proof_level": "definition-found",
+  "proves": [
+    "The selected corpus contains definitions and source paths but no owner-produced runtime result for the requested behavior."
+  ],
+  "record_status": "blocked-by-owner-request",
+  "related_modules": [
+    "character-progression"
+  ],
+  "review": {
+    "notes": [
+      "Structured review confirmed that absence of owner evidence remains UNKNOWN rather than inferred success or failure."
+    ],
+    "pr": 910,
+    "reviewed_at": "2026-07-25T09:42:45+02:00",
+    "reviewer": "RTEC-002 structured evidence reviewer (GPT-5.6 Thinking)",
+    "status": "accepted",
+    "task_id": "CAN-20260725-rtec-002-vocations-pilot"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "author": "Canary contributors",
+      "does_not_prove": [
+        "Source inspection alone does not prove successful startup, reload, level-up or promotion behavior.",
+        "Source inspection does not prove official parity."
+      ],
+      "external_artifact": null,
+      "limitations": [
+        "No controlled runtime result is selected."
+      ],
+      "locator": {
+        "artifact_sha256": null,
+        "build": null,
+        "commit_sha": "930e0a15767b7e5348bb36c679fa5e458a76f184",
+        "report_id": null,
+        "repository": "blakinio/canary",
+        "repository_path": "src/creatures/players/vocations/vocation.cpp",
+        "url": null
+      },
+      "observation_date": "2026-07-25",
+      "proof_level_reached": "registration-proven",
+      "proves": [
+        "The exact current source contains an XML-backed vocation registry load/reload path.",
+        "The exact current source defines promotion lookup through fromVocation."
+      ],
+      "publication_date": null,
+      "role": "primary",
+      "selected": {
+        "files": [
+          "src/creatures/players/vocations/vocation.cpp"
+        ],
+        "observations": [
+          "loadFromXml reads CORE_DIRECTORY/XML/vocations.xml and inserts records by ID.",
+          "The loader parses identity, gain, regeneration, promotion, skill, mitigation, PvP and gem fields.",
+          "getPromotedVocation selects a different entry whose fromVocation equals the base ID."
+        ],
+        "sections": [],
+        "symbols": [
+          "Vocations::loadFromXml",
+          "Vocations::reload",
+          "Vocations::getPromotedVocation"
+        ]
+      },
+      "source_id": "canary-vocation-loader",
+      "source_type": "current-canary"
+    },
+    {
+      "author": "Canary contributors",
+      "does_not_prove": [
+        "XML presence does not prove that the server loaded the file or applied values to a player."
+      ],
+      "external_artifact": null,
+      "limitations": [],
+      "locator": {
+        "artifact_sha256": null,
+        "build": null,
+        "commit_sha": "930e0a15767b7e5348bb36c679fa5e458a76f184",
+        "report_id": null,
+        "repository": "blakinio/canary",
+        "repository_path": "data/XML/vocations.xml",
+        "url": null
+      },
+      "observation_date": "2026-07-25",
+      "proof_level_reached": "registration-proven",
+      "proves": [
+        "The exact current XML snapshot defines the selected vocation identities, relationships and numeric configuration values."
+      ],
+      "publication_date": null,
+      "role": "primary",
+      "selected": {
+        "files": [
+          "data/XML/vocations.xml"
+        ],
+        "observations": [
+          "The file defines IDs 0 through 10, including five base vocation entries and five promoted entries.",
+          "Base entries are Sorcerer, Druid, Paladin, Knight and Monk; promoted entries are Master Sorcerer, Elder Druid, Royal Paladin, Elite Knight and Exalted Monk.",
+          "The base gaincap values are 10,10,20,25,25 and are multiplied by 100 by the loader."
+        ],
+        "sections": [],
+        "symbols": []
+      },
+      "source_id": "canary-vocations-xml",
+      "source_type": "current-canary"
+    },
+    {
+      "author": "Canary agent governance",
+      "does_not_prove": [
+        "The inventory report does not prove current runtime behavior or official parity."
+      ],
+      "external_artifact": null,
+      "limitations": [
+        "The report predates the exact selected current-source commit and is used only for boundary rationale."
+      ],
+      "locator": {
+        "artifact_sha256": null,
+        "build": null,
+        "commit_sha": "930e0a15767b7e5348bb36c679fa5e458a76f184",
+        "report_id": "TSD-003",
+        "repository": "blakinio/canary",
+        "repository_path": "docs/agents/real-tibia/TSD_003_ACCOUNT_CHARACTER_PROGRESSION_REPORT.md",
+        "url": null
+      },
+      "observation_date": "2026-07-25",
+      "proof_level_reached": "definition-found",
+      "proves": [
+        "The existing decomposition inventory establishes the intended module boundary and previous proof ceiling."
+      ],
+      "publication_date": null,
+      "role": "corroborating",
+      "selected": {
+        "files": [],
+        "observations": [
+          "TSD-003 classifies vocations as one independent registry with no hard dependency edge.",
+          "TSD-003 explicitly leaves runtime validation and gameplay E2E not assessed."
+        ],
+        "sections": [
+          "Current-main evidence inventory / Vocations",
+          "Relationships",
+          "Maturity"
+        ],
+        "symbols": []
+      },
+      "source_id": "canary-tsd003-vocations-inventory",
+      "source_type": "other"
+    }
+  ],
+  "superseded_by": [],
+  "supersedes": [],
+  "uncertainty": [
+    "Actual runtime application and rollback/reload effects remain unknown."
+  ]
+}
