@@ -50,7 +50,7 @@
     }
   },
   "format": "canary-real-tibia-generated-indexes-v1",
-  "input_sha256": "07d857961780d2ccad0f94f96f6f2cec20036a124f9f103021db2bfc7e7187dd",
+  "input_sha256": "bf676e12db10abf92147d9622b531c841e08d86aece22b7f6b617e73f2ffb7af",
   "nonclaims": [
     "No overall parity percentage is generated.",
     "No release approval or whole-game parity claim is generated.",
