@@ -1,5 +1,6 @@
 name: E2E QRI-022 Record Integration V2
 
+# This same-repository workflow removes itself after one successful integration.
 on:
   pull_request:
     branches: [main]
