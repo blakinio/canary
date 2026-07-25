@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-25T15:25:00+02:00
-last_verified_commit: "fd338ccc7864e572f8bed8e38144dc53e096293a"
+updated: 2026-07-25T20:34:00+02:00
+last_verified_commit: "62c3124fa2331e58ad675e059f8e33f87cb15ad7"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -47,34 +47,33 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 | OAM-044 | `protocol-compatibility → REUSE` | target `5c8f48e2a7cb7f841cfb6614e8e804245f17c0ca`; Otheryn lifecycle `e1eed52119ba21a29cb29cbac0793ed2a2b9d0c6`; feature `766aa0198884243c8d9641e5a1e92cd605735500`; Canary lifecycle `87c2204a822ffcdc40f7279f629b35ceec6c2556` |
 | OAM-045 | `protocol-session-handoff → ADAPT` | target `597ba62c558ed4e35db38502903ae83e0b2921ec`; Otheryn lifecycle `e8f683e61427e9967cbc180b837220d4b7487d85`; feature `8b24b6603c29250587949a0e1600aa981795f133`; Canary lifecycle `14e3d7b9b21e8fee443d4bc8ebc107dad7c4bdb6` |
 | OAM-046 | `configuration → ADAPT` | target `e05109ac6b98fe6761ed7ed7e933b0610b219911`; Otheryn lifecycle `415f559f829c83d79d9c609e7f421d2449e59d74`; governance `a49f3a3d5fc7bcbca823ec7acf9c3e9a822f1e2e`; Canary lifecycle `fd338ccc7864e572f8bed8e38144dc53e096293a` |
+| OAM-047 | `lua-runtime → ADAPT` | target `5b3bee0dd6eedf8c2f9578c686ca85c0fde519cf`; Otheryn lifecycle `68e2b233b02356a79a03422ed51d757b85915bc5`; governance `06f3f78724f8f74b704272b9b97837b2ba1819d7`; Canary lifecycle `62c3124fa2331e58ad675e059f8e33f87cb15ad7` |
 
-Detailed package narratives, exact task-start baselines, gate runs, rejected hypotheses and nonclaims remain authoritative in archived Canary/Otheryn task records and package revalidation reports. This document preserves sequencing and the exact recent merge chain without duplicating those records.
+Detailed package narratives, exact task-start baselines, gate runs, rejected hypotheses and nonclaims remain authoritative in archived Canary/Otheryn task records and package revalidation reports.
 
-# OAM-046 durable completion
+# OAM-047 durable completion
 
 Final disposition:
 
 ```text
-configuration ADAPT
+lua-runtime ADAPT
 ```
 
-OAM-046 retained the typed configuration architecture and corrected one package-owned state defect: every successful `OTCRFeatures` load appended into retained enabled/disabled vectors instead of replacing the current snapshot. Otheryn now parses local vectors, applies fallback enabled IDs `101`, `102`, `103`, `118` with no disabled IDs when the table is omitted, and replaces both retained vectors after each successful load. Failed Lua-file execution still preserves the prior snapshot.
+OAM-047 preserved the shared Lua architecture and corrected one lifecycle defect: attached child `LuaScriptInterface` objects retained pointers and registry references belonging to a main Lua state after `LuaEnvironment::reInitState()` closed and replaced it. Otheryn now inventories only live children attached to the old shared state, closes their event tables before `lua_close()`, creates the replacement state and rebinds the same children. Dormant, destroyed and independently overridden interfaces are excluded.
 
-Focused target fixtures proved custom snapshot replacement, stale-ID removal, omitted-table fallback and repeated-fallback idempotency. Otheryn feature head `f9aa4261302eb3a42b7b9d9d5bb8e907f5cde7f8` passed Autofix `30151341764`, CI `30151341862` and Required `30151341775`, then merged as `e05109ac6b98fe6761ed7ed7e933b0610b219911`. Otheryn lifecycle merged as `415f559f829c83d79d9c609e7f421d2449e59d74` after Required `30158852271` and a clean audit.
+Focused fixtures cover active children, stale IDs, new event registration, dormant/destroyed interfaces and the shared test interface. Final target head `a7349190a51d627e4668af56912337ff8cadec46` passed Autofix `30167797667`, CI `30167797744` and Required `30167797642`, then merged as `5b3bee0dd6eedf8c2f9578c686ca85c0fde519cf`. Target lifecycle merged as `68e2b233b02356a79a03422ed51d757b85915bc5`. Canary governance head `4ed59d4d11bd8d9f82f95c25ddb50a08f6103c7b` passed Ownership `30169261944` and CI `30169262061`, merged as `06f3f78724f8f74b704272b9b97837b2ba1819d7`, and Canary lifecycle merged as `62c3124fa2331e58ad675e059f8e33f87cb15ad7` after Ownership `30169502984` and CI `30169503091`.
 
-Canary governance head `15087861b9d879342769fbf33be2f5245d5b7f02` passed Agent Task Ownership `30159032723` and full final-gate CI `30159032840`, then merged as `a49f3a3d5fc7bcbca823ec7acf9c3e9a822f1e2e`. Canary lifecycle head `cdc96455350de37bfac3c5ac50ef5f3108512a44` passed Ownership `30159205977` and CI `30159206069`, then merged as `fd338ccc7864e572f8bed8e38144dc53e096293a`.
-
-OAM-046 does not claim exhaustive key/default correspondence, concurrent full-map reload atomicity, production configuration or secret correctness, controlled-feature behavior, protocol/client correctness, physical-client parity or full production readiness.
+OAM-047 does not claim complete production reload ordering, callback timing, concurrent reload safety, exhaustive userdata or wrapper lifetime safety, feature-specific script reload, physical-client behavior, protocol/client compatibility, production gameplay parity or full server readiness.
 
 # Current state
 
 ```text
-Canary reconciliation base: fd338ccc7864e572f8bed8e38144dc53e096293a
-Otheryn target head after OAM-046: 415f559f829c83d79d9c609e7f421d2449e59d74
-reviewed upstream: 7323503b3dc61ed86bf1f04a611b2d0aec64b35a
-OAM-001..OAM-046: feature/proof and lifecycle complete
-OAM-046 task: archived in Canary and Otheryn
-OAM-047: NOT STARTED pending a fresh dependency-valid preflight
+Canary reconciliation base: 62c3124fa2331e58ad675e059f8e33f87cb15ad7
+Otheryn target head after OAM-047: 68e2b233b02356a79a03422ed51d757b85915bc5
+reviewed upstream for OAM-047: 7323503b3dc61ed86bf1f04a611b2d0aec64b35a
+OAM-001..OAM-047: feature/proof and lifecycle complete
+OAM-047 task: archived in Canary and Otheryn
+OAM-048: NOT STARTED pending a fresh dependency-valid preflight
 ```
 
 No OAM implementation task is active in this reconciliation record.
@@ -83,13 +82,13 @@ No OAM implementation task is active in this reconciliation record.
 
 | Package | Status | Next action |
 |---|---|---|
-| OAM-001..OAM-046 | completed | preserve durable evidence and nonclaims |
-| OAM-047+ | planned, not active | perform fresh live-state, open-PR, ownership, dependency and exact target/upstream/legacy preflight; select exactly one dependency-valid canonical package |
+| OAM-001..OAM-047 | completed | preserve durable evidence and nonclaims |
+| OAM-048+ | planned, not active | perform fresh live-state, open-PR, ownership, dependency and exact target/upstream/legacy preflight; select exactly one dependency-valid canonical package |
 
 # Retained boundaries
 
 - Canonical registry records remain the sole logical migration inventory; paths and PR history are discovery evidence only.
 - `network-transport` remains blocked by overlapping authenticated transport work in Canary PR #514; `login-protocol` remains dependency-blocked behind `network-transport`.
-- `physical-client-e2e`, `upstream-intelligence` and `wheel-of-destiny` remain separately governed active programme surfaces until a fresh bounded OAM package proves a target disposition.
-- `deployment-operations` and `gameplay-analytics` remain broader platform surfaces and require explicit target-ownership proof before any migration disposition.
+- `physical-client-e2e`, `upstream-intelligence` and `wheel-of-destiny` remain separately governed programme surfaces until a fresh bounded OAM package proves a target disposition.
+- `deployment-operations` and `gameplay-analytics` require explicit target-ownership proof before any migration disposition.
 - Completed package nonclaims in archived records remain in force; this compaction does not upgrade static, unit, runtime or physical-client evidence.
