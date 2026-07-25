@@ -8,7 +8,7 @@ branch: dudantas/oam-050-physical-client-e2e-preflight
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "69f5db10b3944c6ace14a4a9aa3e35fc4c610f5c"
+last_verified_commit: "8b0a1416dcc58b22ffb648ec53d8b267a6b690a3"
 risk: high
 related_issue: ""
 related_pr: "944"
@@ -43,16 +43,16 @@ Fresh ownership review found active draft Canary PR #925 performing the QRI-022 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T23:58:00+02:00
-head: 69f5db10b3944c6ace14a4a9aa3e35fc4c610f5c
+updated_at: 2026-07-26T00:04:00+02:00
+head: 8b0a1416dcc58b22ffb648ec53d8b267a6b690a3
 branch: dudantas/oam-050-physical-client-e2e-preflight
 pr: 944
 status: blocked
 context_routes:
   - agent-governance
   - cross-repo
-  - github-actions
-  - physical-client-e2e
+  - universal-e2e
+  - ci-repair
 owned_paths:
   - docs/agents/tasks/active/CAN-20260725-oteryn-oam050-preflight.md
 proven:
