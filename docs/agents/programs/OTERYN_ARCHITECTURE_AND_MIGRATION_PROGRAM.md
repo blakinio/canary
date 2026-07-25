@@ -4,7 +4,7 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-25T15:13:00+02:00
+updated: 2026-07-25T15:18:00+02:00
 last_verified_commit: "fd338ccc7864e572f8bed8e38144dc53e096293a"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
@@ -30,6 +30,8 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 - Upstream, OTClient and donor repositories remain read-only unless separately authorized.
 - One bounded OAM package/task/branch/PR at a time with exact SHAs.
 - Never infer `REUSE` from file presence, matching blobs or compilation alone.
+- Never bulk-copy legacy Player/IOLoginData or the repository.
+- Preserve OAM-004 persistence gaps: player SQL state and later KV durability are not atomic.
 - Feature/proof merge must be followed by separate lifecycle archive, Canary governance/lifecycle and durable program reconciliation before the next OAM starts.
 - Reuse shared deterministic evidence and Universal Physical-Client E2E; do not create duplicate registries, parsers or orchestrators.
 - Final merge requires exact-head gates and clean comments, reviews and review threads.
