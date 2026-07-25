@@ -22,7 +22,7 @@ owned_paths:
     - docs/agents/tasks/active/CAN-20260725-rtec-003-owner-request-lifecycle.md
     - tools/agents/real_tibia_owner_request.py
     - tools/agents/test_real_tibia_owner_request.py
-    - docs/agents/real-tibia/evidence/OWNER_REQUEST_LIFECYCLE.md
+    - docs/agents/real-tibia/OWNER_REQUEST_LIFECYCLE.md
   shared:
     - .github/workflows/real-tibia-evidence.yml
     - docs/agents/real-tibia/evidence/README.md
@@ -106,7 +106,7 @@ Implement a bounded, dry-run-first integration layer that safely advances valida
 
 ## Durable integration
 
-- `docs/agents/real-tibia/evidence/OWNER_REQUEST_LIFECYCLE.md` defines the operator sequence and proof boundaries.
+- `docs/agents/real-tibia/OWNER_REQUEST_LIFECYCLE.md` defines the operator sequence and proof boundaries.
 - `docs/agents/real-tibia/evidence/README.md` exposes the CLI and validation flow.
 - `docs/agents/MODULE_CATALOG.md` registers the reusable tool.
 - `docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md` records RTEC-003 as active and leaves RTEC-004 blocked.
@@ -167,7 +167,7 @@ owned_paths:
   - .github/workflows/real-tibia-evidence.yml
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
-  - docs/agents/real-tibia/evidence/OWNER_REQUEST_LIFECYCLE.md
+  - docs/agents/real-tibia/OWNER_REQUEST_LIFECYCLE.md
   - docs/agents/real-tibia/evidence/README.md
   - docs/agents/tasks/active/CAN-20260725-rtec-003-owner-request-lifecycle.md
   - tools/agents/real_tibia_owner_request.py
@@ -199,7 +199,7 @@ changed_paths:
   - .github/workflows/real-tibia-evidence.yml
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
-  - docs/agents/real-tibia/evidence/OWNER_REQUEST_LIFECYCLE.md
+  - docs/agents/real-tibia/OWNER_REQUEST_LIFECYCLE.md
   - docs/agents/real-tibia/evidence/README.md
   - docs/agents/tasks/active/CAN-20260725-rtec-003-owner-request-lifecycle.md
   - tools/agents/real_tibia_owner_request.py

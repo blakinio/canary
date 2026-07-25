@@ -21,7 +21,6 @@ Files with a `.yaml` suffix use the YAML 1.2 JSON-compatible subset. The standar
 ```text
 docs/agents/real-tibia/evidence/
 ├── README.md
-├── OWNER_REQUEST_LIFECYCLE.md
 ├── schemas/
 ├── generated/
 │   └── EVIDENCE_INDEXES.json
@@ -105,7 +104,7 @@ python tools/agents/real_tibia_owner_request.py consume-result --help
 
 Every command requires the current expected status and supports the exact current request-document SHA-256 as an optimistic lock. No file is changed unless `--write` is supplied. Stable result references, proof/nonproof boundaries, owner source routing, deterministic index regeneration and rollback are enforced.
 
-Read `OWNER_REQUEST_LIFECYCLE.md` before moving a request. One request is a serialization boundary: never run concurrent writes for the same request/behavior/version tuple.
+Read `../OWNER_REQUEST_LIFECYCLE.md` before moving a request. One request is a serialization boundary: never run concurrent writes for the same request/behavior/version tuple.
 
 ## Generated factual indexes
 
