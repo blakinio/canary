@@ -1,0 +1,47 @@
+name: E2E QRI-022 Record Integration V2
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/e2e-qri-022-record-integration-v2.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/e2e-qri-022-stability-certification'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v6
+        with:
+          ref: feat/e2e-qri-022-stability-certification
+          fetch-depth: 0
+
+      - name: Apply bounded records
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 tools/e2e/qri022_integrate_records.py
+
+      - name: Validate integrated package
+        run: |
+          set -euo pipefail
+          python3 -m py_compile tools/e2e/stability_certification.py tests/e2e/test_stability_certification.py
+          python3 -m unittest -v tests/e2e/test_stability_certification.py
+          python3 -m json.tool docs/e2e/E2E_STABILITY_CERTIFICATION.schema.json >/dev/null
+          python3 tools/agents/checkpoint.py docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md --require-checkpoint
+
+      - name: Remove temporary integration files and push
+        run: |
+          set -euo pipefail
+          rm .github/workflows/e2e-qri-022-record-integration.yml
+          rm .github/workflows/e2e-qri-022-record-integration-v2.yml
+          rm tools/e2e/qri022_integrate_records.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore(e2e): integrate QRI-022 shared records"
+          git push origin HEAD:feat/e2e-qri-022-stability-certification
