@@ -1,0 +1,78 @@
+name: RTEC-003 Programme Closeout
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/rtec-003-program-closeout.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: github.head_ref == 'docs/rtec-003-program-closeout'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout closeout branch
+        uses: actions/checkout@v6
+        with:
+          ref: docs/rtec-003-program-closeout
+          fetch-depth: 0
+
+      - name: Reconcile programme and catalogue
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          program = Path('docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md')
+          text = program.read_text(encoding='utf-8')
+          replacements = {
+              'updated: 2026-07-25T16:05:00+02:00': 'updated: 2026-07-25T19:50:00+02:00',
+              'last_verified_commit: "337812cf1d2fe587cabd6b5a71f38f149520fa83"': 'last_verified_commit: "2505d8a9f9710745ef9df49dfa0ab76f9cad9635"',
+              '| RTEC-003 | Owner-request lifecycle integration | active | RTEC-001/002 | medium | Complete and validate PR #921; do not advance the real vocations request without owner evidence. |': '| RTEC-003 | Owner-request lifecycle integration | merged | RTEC-001/002 | medium | Lifecycle CLI delivered by PR #921; task archived by PR #926. `RTREQ-FEATURE-VOCATIONS-0001` remains `ready-for-owner-triage` and requires real owner evidence. |',
+              '| RTEC-004 | Parallel campaign wave 1 | planned | RTEC-002/003 | medium | Start at most eight workers and four concurrent PRs using isolated dossier paths. |': '| RTEC-004 | Parallel campaign wave 1 | planned | RTEC-002/003 | medium | Run fresh main/open-PR/active-task/module/request preflight, then start at most eight workers and four concurrent PRs using isolated dossier paths. |',
+              'Start RTEC-003 only through one new bounded active task after fresh main/open-PR/active-task/request-state preflight. Reuse the schema-version-1 contracts, the validated `vocations` pilot and `RTREQ-FEATURE-VOCATIONS-0001`; do not start RTEC-004 parallel Collector workers until owner-request lifecycle integration succeeds.': 'Start RTEC-004 only through fresh main/open-PR/active-task/module/request preflight and one bounded coordinator task. Reuse the merged schema-version-1 contracts, the `vocations` pilot and owner-request lifecycle CLI; keep `RTREQ-FEATURE-VOCATIONS-0001` unclaimed until a real feature owner supplies task, PR and stable evidence. Limit wave 1 to at most eight workers and four concurrent PRs on isolated dossier paths.'
+          }
+          for old, new in replacements.items():
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'programme replacement expected once, found {count}: {old[:90]}')
+              text = text.replace(old, new)
+          program.write_text(text, encoding='utf-8')
+
+          catalogue = Path('docs/agents/MODULE_CATALOG.md')
+          text = catalogue.read_text(encoding='utf-8')
+          old = '| Real Tibia owner-request lifecycle | active (#921) |'
+          new = '| Real Tibia owner-request lifecycle | merged (#921) |'
+          count = text.count(old)
+          if count != 1:
+              raise SystemExit(f'catalogue replacement expected once, found {count}')
+          catalogue.write_text(text.replace(old, new), encoding='utf-8')
+          PY
+
+      - name: Validate closeout state
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -F '| RTEC-003 | Owner-request lifecycle integration | merged |' docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
+          grep -F '| RTEC-004 | Parallel campaign wave 1 | planned |' docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
+          grep -F '| Real Tibia owner-request lifecycle | merged (#921) |' docs/agents/MODULE_CATALOG.md
+          test ! -e docs/agents/tasks/active/CAN-20260725-rtec-003-owner-request-lifecycle.md
+          test -e docs/agents/tasks/archive/CAN-20260725-rtec-003-owner-request-lifecycle.md
+          test "$(python -c 'import json; print(json.load(open("docs/agents/real-tibia/evidence/requests/feature/RTREQ-FEATURE-VOCATIONS-0001.yaml"))["status"])')" = "ready-for-owner-triage"
+
+      - name: Commit programme closeout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md docs/agents/MODULE_CATALOG.md
+          git diff --cached --quiet && { echo "No closeout changes produced"; exit 1; }
+          git commit -m "docs(agents): close RTEC-003 programme state"
+          git push origin "HEAD:docs/rtec-003-program-closeout"
