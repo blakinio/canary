@@ -1,0 +1,198 @@
+name: E2E QRI-022 Integration
+
+on:
+  push:
+    branches:
+      - feat/e2e-qri-022-stability-certification
+    paths:
+      - .github/workflows/e2e-qri-022-integration.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: e2e-qri-022-integration
+  cancel-in-progress: false
+
+jobs:
+  integrate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact task branch
+        uses: actions/checkout@v6
+        with:
+          ref: feat/e2e-qri-022-stability-certification
+          fetch-depth: 0
+
+      - name: Apply bounded source and shared-record integration
+        env:
+          TRIGGER_SHA: ${{ github.sha }}
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          import re
+
+          trigger_sha = os.environ["TRIGGER_SHA"]
+
+          source_path = Path("tools/e2e/stability_certification.py")
+          source = source_path.read_text(encoding="utf-8")
+          start_marker = '    for item in normalized:\n        source = item["source"]\n'
+          start = source.index(start_marker)
+          end = source.index("    envelopes.sort(\n", start)
+          replacement = '''    for item in normalized:
+              source = item["source"]
+              root = root_map[source["root_id"]]
+              path = root / source["path"]
+              try:
+                  resolved = path.resolve()
+                  try:
+                      resolved.relative_to(root)
+                  except ValueError as exc:
+                      raise StabilityCertificationError(
+                          "result.json resolves outside the evidence root"
+                      ) from exc
+                  payload = json.loads(resolved.read_text(encoding="utf-8"))
+                  if not isinstance(payload, Mapping):
+                      raise StabilityCertificationError(
+                          "result envelope root must be an object"
+                      )
+                  envelopes.append(
+                      normalize_envelope(
+                          payload,
+                          root_id=source["root_id"],
+                          relative_path=source["path"],
+                      )
+                  )
+              except OSError as exc:
+                  reason = exc.strerror or exc.__class__.__name__
+                  invalid.append(
+                      {
+                          "source": dict(source),
+                          "error": f"cannot read result evidence: {reason}",
+                      }
+                  )
+              except json.JSONDecodeError as exc:
+                  invalid.append(
+                      {
+                          "source": dict(source),
+                          "error": (
+                              f"invalid JSON at line {exc.lineno}, "
+                              f"column {exc.colno}: {exc.msg}"
+                          ),
+                      }
+                  )
+              except StabilityCertificationError as exc:
+                  invalid.append(
+                      {
+                          "source": dict(source),
+                          "error": str(exc),
+                      }
+                  )
+          '''
+          source = source[:start] + replacement + source[end:]
+          source_path.write_text(source, encoding="utf-8")
+
+          catalog_path = Path("docs/agents/MODULE_CATALOG.md")
+          catalog = catalog_path.read_text(encoding="utf-8")
+          stability_row = "| Universal OTS E2E factual stability certification | active (#912) | `canary-universal-e2e-stability-certification-v1`, schema version 1: deterministic read-only classification of explicitly supplied retained schema-v3 result attempts into exact comparable scenario/server/client/datapack/tier cells with explicit minimum runs, clean-pass ratio, failure classes, first-divergence frequency, cleanup failures and nearest-rank duration distribution; mixed results such as 9/10 remain `unstable` | `tools/e2e/stability_certification.py`, `tests/e2e/test_stability_certification.py`, `docs/e2e/E2E_STABILITY_CERTIFICATION.md`, schema, task `CAN-20260725-e2e-qri-022-stability-certification` | Reuse the QRI-004 evidence discovery/normalization boundary, schema-v3 result envelopes and complete cleanup certification. Every attempt remains visible; duplicate identities, missing provenance and historical successful attempts without cleanup proof block certification. The tool does not run or retry scenarios, download artifacts, set retention/schedules or prove a physical baseline by itself. |"
+          if "Universal OTS E2E factual stability certification" not in catalog:
+              lines = catalog.splitlines()
+              index = next(i for i, line in enumerate(lines) if line.startswith("| Universal OTS E2E factual coverage dashboard |"))
+              lines.insert(index + 1, stability_row)
+              catalog = "\n".join(lines) + "\n"
+          catalog_path.write_text(catalog, encoding="utf-8")
+
+          program_path = Path("docs/agents/programs/E2E_AUTOMATION_PROGRAM.md")
+          program = program_path.read_text(encoding="utf-8")
+          program = re.sub(r"^updated: .*$", "updated: 2026-07-25T10:20:00+02:00", program, count=1, flags=re.MULTILINE)
+          program = re.sub(r'^last_verified_commit: ".*"$', f'last_verified_commit: "{trigger_sha}"', program, count=1, flags=re.MULTILINE)
+          if "canary-universal-e2e-stability-certification-v1" not in program:
+              lines = program.splitlines()
+              cleanup_index = next(i for i, line in enumerate(lines) if line.startswith("| `canary-universal-e2e-cleanup-certification-v1`"))
+              rows = [
+                  "| `canary-universal-e2e-coverage-dashboard-v1` schema 1 | merged PR #885; lifecycle #900 | Deterministic factual M0-M5 and independent quality-dimension reporting over explicit retained evidence | Registration never proves execution; collection/download/retention remain external. |",
+                  "| `canary-universal-e2e-stability-certification-v1` schema 1 | active PR #912 | Exact comparable retained-attempt cells, explicit minimum runs, clean-pass ratio, failure/divergence and duration distributions | Contract/tooling only in this task; first physical repeated-run baseline remains separate evidence. |",
+              ]
+              lines[cleanup_index + 1:cleanup_index + 1] = rows
+              program = "\n".join(lines) + "\n"
+          start_text = "Select one bounded continuation package only after verifying current `main`, all open ownership and the exact dependency state. `E2E-QRI-001` through `006` are delivered. Current recommendation:\n"
+          end_text = "Later waves remain sequenced by `docs/architecture/universal-e2e-quality-resilience-roadmap.md`; do not start them all in parallel.\n"
+          start = program.index(start_text)
+          end = program.index(end_text, start) + len(end_text)
+          replacement = '''Select one bounded continuation package only after verifying current `main`, all open ownership and the exact dependency state. `E2E-QRI-001` through `006`, including the QRI-004 factual dashboard, are delivered. Current recommendation:
+
+1. complete active `E2E-QRI-022` PR #912 as a deterministic retained-evidence certification contract without adding execution or scheduling;
+2. after the contract merges, select exactly one stable physical scenario and explicit retained artifact population for the first repeated-run baseline;
+3. keep automatic retry, artifact collection/retention and any nightly execution seam separate until the first factual baseline proves the need.
+
+Later waves remain sequenced by `docs/architecture/universal-e2e-quality-resilience-roadmap.md`; do not start them all in parallel.
+'''
+          program = program[:start] + replacement + program[end:]
+          program_path.write_text(program, encoding="utf-8")
+
+          changelog_path = Path("docs/agents/CHANGELOG.md")
+          changelog = changelog_path.read_text(encoding="utf-8")
+          bullet = "- Adds the active `canary-universal-e2e-stability-certification-v1` schema-version-1 contract in PR #912 as a deterministic read-only consumer of explicit retained schema-v3 Universal E2E result roots. Exact scenario/server/client/datapack/tier cells preserve every attempt and classify only complete minimum-sized clean-pass sets as `pass`; mixed evidence such as 9/10 is `unstable`, all failures are `fail`, insufficient evidence is `not-evaluated`, and missing provenance, duplicate identities or historical success without cleanup proof are `blocked`. The tool reports exact failure/divergence and duration distributions, adds no runner/retry/downloader/retention/schedule and does not claim a physical stability baseline from synthetic tests.\n"
+          if "canary-universal-e2e-stability-certification-v1" not in changelog:
+              marker = "## Unreleased\n\n"
+              changelog = changelog.replace(marker, marker + bullet, 1)
+          changelog_path.write_text(changelog, encoding="utf-8")
+          PY
+
+      - name: Run exact focused validation
+        run: |
+          set -euo pipefail
+          python3 -m py_compile \
+            tools/e2e/stability_certification.py \
+            tests/e2e/test_stability_certification.py
+          python3 -m unittest -v tests/e2e/test_stability_certification.py
+          python3 -m json.tool docs/e2e/E2E_STABILITY_CERTIFICATION.schema.json >/dev/null
+
+      - name: Finalize checkpoint and remove temporary workflow
+        env:
+          TRIGGER_SHA: ${{ github.sha }}
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          import re
+
+          trigger_sha = os.environ["TRIGGER_SHA"]
+          task_path = Path("docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md")
+          task = task_path.read_text(encoding="utf-8")
+          task = task.replace("    - .github/workflows/e2e-qri-022-integration.yml\n", "")
+          task = task.replace("  - .github/workflows/e2e-qri-022-integration.yml\n", "")
+          task = task.replace('- [ ] Focused tests, bytecode compilation and JSON schema parsing pass against canonical repository modules.', '- [x] Focused tests, bytecode compilation and JSON schema parsing pass against canonical repository modules.')
+          task = task.replace('- [ ] Catalogue/program/changelog entries are updated narrowly.', '- [x] Catalogue/program/changelog entries are updated narrowly.')
+          task = task.replace('- [ ] The temporary checkout validation/integration workflow removes itself and is absent from final diff.', '- [x] The temporary checkout validation/integration workflow removes itself and is absent from final diff.')
+          task = re.sub(r'^last_verified_commit: ".*"$', f'last_verified_commit: "{trigger_sha}"', task, count=1, flags=re.MULTILINE)
+          task = re.sub(r'^updated_at: .*$', 'updated_at: 2026-07-25T10:25:00+02:00', task, count=1, flags=re.MULTILINE)
+          task = re.sub(r'^head: [0-9a-f]{40}$', f'head: {trigger_sha}', task, count=1, flags=re.MULTILINE)
+          task = task.replace('  - Exact final implementation shape until focused canonical-module tests run.\n', '')
+          task = task.replace('  - The current implementation, focused tests, strict schema and operator documentation are committed on the task branch.\n', '  - The current implementation, focused tests, strict schema and operator documentation are committed on the task branch.\n  - The exact focused suite passes 14 of 14 against the repository canonical coverage-dashboard, result-envelope and cleanup-certification modules.\n  - Bytecode compilation and strict schema JSON parsing pass in the same exact checkout.\n')
+          task = task.replace('  - docs/e2e/E2E_STABILITY_CERTIFICATION.schema.json\nvalidation:', '  - docs/e2e/E2E_STABILITY_CERTIFICATION.schema.json\n  - docs/agents/MODULE_CATALOG.md\n  - docs/agents/CHANGELOG.md\n  - docs/agents/programs/E2E_AUTOMATION_PROGRAM.md\nvalidation:')
+          task = task.replace('blockers:\n', '  - command: python3 -m py_compile tools/e2e/stability_certification.py tests/e2e/test_stability_certification.py\n    result: PASS\n    evidence: exact repository checkout at the task integration trigger SHA\n  - command: python3 -m unittest -v tests/e2e/test_stability_certification.py\n    result: PASS\n    evidence: 14 of 14 focused tests pass against canonical modules\n  - command: python3 -m json.tool docs/e2e/E2E_STABILITY_CERTIFICATION.schema.json\n    result: PASS\n    evidence: schema JSON parses successfully\nblockers:\n', 1)
+          task = re.sub(r'^next_action: .*$', 'next_action: Review the exact PR #912 diff and canonical workflow outcomes, repair only evidenced defects, then run the exact final-head gate without adding a physical baseline claim.', task, count=1, flags=re.MULTILINE)
+          task_path.write_text(task, encoding="utf-8")
+          PY
+          rm .github/workflows/e2e-qri-022-integration.yml
+          python3 tools/agents/checkpoint.py \
+            docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md \
+            --require-checkpoint
+
+      - name: Commit integrated package
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            tools/e2e/stability_certification.py \
+            docs/agents/MODULE_CATALOG.md \
+            docs/agents/CHANGELOG.md \
+            docs/agents/programs/E2E_AUTOMATION_PROGRAM.md \
+            docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md \
+            .github/workflows/e2e-qri-022-integration.yml
+          git commit -m "chore(e2e): integrate QRI-022 certification records"
+          git push origin HEAD:feat/e2e-qri-022-stability-certification
