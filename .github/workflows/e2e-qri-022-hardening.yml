@@ -1,0 +1,43 @@
+name: E2E QRI-022 Validator Hardening
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/e2e-qri-022-hardening.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  harden:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/e2e-qri-022-stability-certification'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v6
+        with:
+          ref: feat/e2e-qri-022-stability-certification
+          fetch-depth: 0
+
+      - name: Apply validator hardening
+        run: python3 tools/e2e/qri022_harden_validation.py
+
+      - name: Validate hardened package
+        run: |
+          set -euo pipefail
+          python3 -m py_compile tools/e2e/stability_certification.py tests/e2e/test_stability_certification.py
+          python3 -m unittest -v tests/e2e/test_stability_certification.py
+          python3 -m json.tool docs/e2e/E2E_STABILITY_CERTIFICATION.schema.json >/dev/null
+
+      - name: Remove temporary hardening files and push
+        run: |
+          set -euo pipefail
+          rm .github/workflows/e2e-qri-022-hardening.yml
+          rm tools/e2e/qri022_harden_validation.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(e2e): harden stability report validation"
+          git push origin HEAD:feat/e2e-qri-022-stability-certification
