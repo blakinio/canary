@@ -8,48 +8,63 @@
   "client": {
     "repository": "blakinio/otclient",
     "ref": "2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f",
-    "automation": "tools/e2e/client/agent_login_relog.lua"
+    "automation": "tools/e2e/client/agent_e2e.lua"
   },
   "server": {
+    "database_image": "mariadb:11.4",
     "datapack": "data-otservbr-global",
-    "map": "otservbr",
-    "database_image": "mariadb:11.4"
+    "map": "otservbr"
   },
   "fixture": {
     "account": "@test1",
     "password_env": "AGENT_E2E_TEST_PASSWORD",
     "character": "Knight 1",
-    "world": "OTServBR-Global",
+    "world": "Canary E2E",
     "host": "127.0.0.1",
     "game_port": 7172
   },
   "timing": {
     "global_timeout_seconds": 180,
-    "session_hold_ms": 10000,
-    "relog_delay_ms": 2000
+    "session_hold_ms": 7000,
+    "relog_delay_ms": 1500
   },
   "assertions": {
     "required_markers": [
-      "phase=first-login",
-      "first_game_start=1",
-      "logout_sent=1",
-      "phase=second-login",
-      "second_game_start=1",
-      "second_login_success=1",
+      "ping_features_1=disabled",
+      "login_1=success",
+      "online_stable_1=confirmed",
+      "logout_request_1=safe",
+      "logout_1=complete",
+      "ping_features_2=disabled",
+      "login_2=success",
+      "online_stable_2=confirmed",
+      "logout_request_2=safe",
+      "logout_2=complete",
+      "e2e=success",
       "retention_probe=must_fail"
     ],
     "sql": [
-      "SELECT COUNT(*) = 1 AS ok FROM accounts WHERE id = 101;",
-      "SELECT COUNT(*) = 1 AS ok FROM players WHERE account_id = 101 AND name = 'Knight 1';"
-    ],
-    "persistence": []
+      "SELECT lastlogin > 0 FROM players WHERE name = 'Knight 1'",
+      "SELECT lastlogout > 0 FROM players WHERE name = 'Knight 1'",
+      "SELECT vocation = 4 FROM players WHERE name = 'Knight 1'"
+    ]
   },
   "artifacts": [
-    "server.log",
-    "client.log",
-    "client.markers",
-    "display.log",
+    "scenario-manifest.json",
     "result.json",
+    "client-events.tsv",
+    "canary.stdout.log",
+    "canary.stderr.log",
+    "otclient.stdout.log",
+    "otclient.stderr.log",
+    "otclient.internal.log",
+    "database-online.tsv",
+    "database-after.tsv",
+    "server-login-matches.txt",
+    "client.png",
+    "session-1.record",
+    "session-2.record",
+    "runtime-hashes.txt",
     "cleanup-certification.json",
     "physical-exit-code.txt"
   ]
