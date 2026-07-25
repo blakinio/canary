@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: test/e2e-qri-022-login-relog-baseline-v2
 base_branch: main
 created: 2026-07-26T00:35:00+02:00
-updated: 2026-07-26T00:35:00+02:00
-last_verified_commit: "ad647f040a0f0b5b515c2416bf8aa11705dd7e8e"
+updated: 2026-07-26T00:37:00+02:00
+last_verified_commit: "50e372571ebecaaf8d90672c290d3dc30eeb5c49"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "948"
 depends_on:
   - "QRI-022 certification merged in PR #912, lifecycle-closed in PR #914 and stale ownership removed in PR #924"
   - "Failure evidence retention repair merged in PR #940 as ad647f040a0f0b5b515c2416bf8aa11705dd7e8e"
@@ -87,10 +87,10 @@ QRI-022 decides the outcome from the preserved evidence:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T00:35:00+02:00
-head: ad647f040a0f0b5b515c2416bf8aa11705dd7e8e
+updated_at: 2026-07-26T00:37:00+02:00
+head: 50e372571ebecaaf8d90672c290d3dc30eeb5c49
 branch: test/e2e-qri-022-login-relog-baseline-v2
-pr: null
+pr: 948
 status: in_progress
 context_routes:
   - agent-governance
@@ -104,6 +104,7 @@ proven:
   - PR #940 merged the failure-evidence retention repair as ad647f040a0f0b5b515c2416bf8aa11705dd7e8e.
   - The repair has controlled success and failure proofs and exact-head full CI.
   - PR #925 is closed without merge and remains an incomplete historical population.
+  - Draft PR #948 targets repaired main and owns only new v2 output paths.
 derived:
   - A new exact ten-attempt population is required; the old nine-envelope report cannot be upgraded by inference.
 unknown:
@@ -120,5 +121,5 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260726-e2e-qri-022-login-relog-baseline-v2.md
 validation: []
 blockers: []
-next_action: Open the draft PR, bind its number into this task, add the immutable measurement manifest and freeze the resulting measurement HEAD.
+next_action: Add the immutable measurement manifest, freeze the resulting PR head and collect exactly ten sequential physical attempts without further commits.
 ```
