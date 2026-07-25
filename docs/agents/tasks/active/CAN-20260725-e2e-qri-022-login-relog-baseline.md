@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: test/e2e-qri-022-login-relog-baseline
 base_branch: main
 created: 2026-07-25T18:53:04+02:00
-updated: 2026-07-25T20:50:00+02:00
-last_verified_commit: "143cf1d8dbf2517649857507f9b320015a5d27a3"
+updated: 2026-07-25T20:51:00+02:00
+last_verified_commit: "76fe91e664a8b8a29e26a1a38012306f61de1337"
 risk: medium
 related_issue: ""
 related_pr: "925"
@@ -109,9 +109,7 @@ The Markdown dossier contains all nine artifact IDs and digests, result/cleanup/
 | `30167381956` attempt 10 | Physical `login/relog` | fail | Physical job `89708625391`; Required `89708847588` |
 | `30167381956` diagnostic rerun | Failure-retention diagnostic | fail | Physical job `89709267589`; Required `89709498686` |
 | `bdf70b86db010951622529eb0d16b924ce189295` | Durable JSON/Markdown evidence committed | pass | Report and dossier paths exist on PR #925 |
-| `dc981222524ea69717571bebc527a3704b4f8ec1` | Blocked checkpoint committed | pass | Active task records blocker and exactly one next action |
-| `e0225932a8fc03ca75fd388e1b805e0d9eec59a5` | Checkpoint head correction | pass | Durable state references the actual preceding head |
-| `143cf1d8dbf2517649857507f9b320015a5d27a3` | Final checkpoint verification | pass | No further checkpoint-only commit should be created on PR #925 |
+| `76fe91e664a8b8a29e26a1a38012306f61de1337` | Frozen blocked checkpoint | pass | No more checkpoint-only updates are needed on PR #925 |
 
 # Decisions
 
@@ -127,8 +125,8 @@ The Markdown dossier contains all nine artifact IDs and digests, result/cleanup/
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T20:50:00+02:00
-head: 143cf1d8dbf2517649857507f9b320015a5d27a3
+updated_at: 2026-07-25T20:51:00+02:00
+head: 76fe91e664a8b8a29e26a1a38012306f61de1337
 branch: test/e2e-qri-022-login-relog-baseline
 pr: 925
 status: blocked
