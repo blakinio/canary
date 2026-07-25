@@ -2,13 +2,13 @@
 task_id: CAN-20260725-rtec-003-owner-request-lifecycle
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-003
-status: ready
+status: completed
 agent: "GPT-5.6 Thinking"
 branch: feat/rtec-003-owner-request-lifecycle-20260725
 base_branch: main
 created: 2026-07-25T15:30:00+02:00
-updated: 2026-07-25T19:17:35+02:00
-last_verified_commit: "7f6b612e2c56e86a850370e5c3e80979b1fc0479"
+updated: 2026-07-25T17:43:43Z
+last_verified_commit: "55c6ad13a4ed5c2dde71131df5677476cefb3600"
 risk: medium
 related_issue: ""
 related_pr: "921"
@@ -56,6 +56,7 @@ reuses:
 public_interfaces:
   - dry-run-first owner-request lifecycle CLI
 cross_repo_tasks: []
+completed: 2026-07-25T17:43:43Z
 ---
 
 # Goal
@@ -214,3 +215,11 @@ next_action: Mark PR #921 ready and squash-merge exact head after the renewed fi
 # Handoff
 
 Use the generated `resume.py` bundle. Do not cross owner boundaries, mutate `RTREQ-FEATURE-VOCATIONS-0001`, or start RTEC-004 before RTEC-003 lifecycle and programme closeout are complete.
+
+## Automated lifecycle completion
+
+- Feature PR: #921.
+- Feature head: `d6b9ae490937f07a154205b040e4156355b25cbd`.
+- Merge commit: `55c6ad13a4ed5c2dde71131df5677476cefb3600`.
+- Merged at: `2026-07-25T17:43:43Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
