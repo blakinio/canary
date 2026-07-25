@@ -1,0 +1,44 @@
+name: E2E QRI-022 Lifecycle Records
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/e2e-qri-022-lifecycle-records.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'docs/e2e-qri-022-lifecycle-closure'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout closure branch
+        uses: actions/checkout@v6
+        with:
+          ref: docs/e2e-qri-022-lifecycle-closure
+          fetch-depth: 0
+
+      - name: Apply bounded shared-record updates
+        run: python3 tools/e2e/qri022_close_records.py
+
+      - name: Validate closure shape
+        run: |
+          set -euo pipefail
+          test ! -e docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md
+          test -e docs/agents/tasks/archive/CAN-20260725-e2e-qri-022-stability-certification.md
+          grep -F "merged (#912; lifecycle #914)" docs/agents/MODULE_CATALOG.md
+          grep -F "Factual stability certification | merged | PR #912; lifecycle #914" docs/agents/programs/E2E_AUTOMATION_PROGRAM.md
+
+      - name: Remove temporary integration files and push
+        run: |
+          set -euo pipefail
+          rm .github/workflows/e2e-qri-022-lifecycle-records.yml
+          rm tools/e2e/qri022_close_records.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "docs(e2e): integrate QRI-022 lifecycle records"
+          git push origin HEAD:docs/e2e-qri-022-lifecycle-closure
