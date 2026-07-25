@@ -2,13 +2,13 @@
 task_id: CAN-20260725-e2e-qri-022-login-relog-baseline
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-QRI-022-BASELINE-001
-status: implementing
+status: blocked
 agent: "GPT-5.6 Thinking"
 branch: test/e2e-qri-022-login-relog-baseline
 base_branch: main
 created: 2026-07-25T18:53:04+02:00
-updated: 2026-07-25T19:06:00+02:00
-last_verified_commit: "64b51cb32600da2693f84e5468c98ca746a15aef"
+updated: 2026-07-25T20:45:00+02:00
+last_verified_commit: "bdf70b86db010951622529eb0d16b924ce189295"
 risk: medium
 related_issue: ""
 related_pr: "925"
@@ -16,7 +16,7 @@ depends_on:
   - "E2E-QRI-022 certification merged in PR #912, lifecycle-closed in PR #914 and stale ownership removed in PR #924"
   - "Canonical physical login/relog scenario at tests/e2e/scenarios/login/scenario.json"
 blocks:
-  - "First factual Universal E2E repeated-run stability baseline"
+  - "First complete factual Universal E2E repeated-run stability classification"
   - "Evidence-backed threshold selection for E2E-QRI-023 and E2E-QRI-024"
 owned_paths:
   exclusive:
@@ -48,63 +48,87 @@ cross_repo_tasks: []
 
 # Goal
 
-Produce the first factual Universal E2E repeated-run stability baseline from exactly ten preserved executions of canonical physical `login/relog` in one exact comparable certification cell.
+Produce the first factual Universal E2E repeated-run stability baseline from ten preserved canonical physical `login/relog` attempts in one exact comparable cell.
 
 # Acceptance criteria
 
-- [ ] Exactly ten counted attempts use suite `login`, scenario `relog` and one exact Canary revision.
-- [ ] Every retained attempt contains schema-v3 `result.json` and complete schema-v1 cleanup certification.
-- [ ] Failures, cancellations, timeouts and superseded attempts remain visible.
-- [ ] Scenario, Canary revision, OTClient revision, datapack and execution tier match across the counted cell.
-- [ ] Workflow run/attempt IDs, artifact IDs, artifact digests and extracted-root digests are recorded.
-- [ ] Stability JSON is built with `--minimum-runs 10`, validates, and renders reviewed Markdown.
-- [ ] Existing factual classification is preserved, including `9/10 -> unstable`.
-- [ ] No scenario, runner, workflow, retention, scheduling, retry or runtime behavior changes.
-- [ ] Exact-final-head ownership, Stability Certification and CI pass before merge.
+- [x] One exact scenario/server/client/datapack/execution-tier cell was selected.
+- [x] Nine complete attempts retain schema-v3 results and certified schema-v1 cleanup evidence.
+- [x] Workflow run, job, artifact and digest evidence is recorded for every retained complete attempt.
+- [x] The original tenth failure and one diagnostic rerun remain visible and are not replaced by later success.
+- [x] The retained nine-envelope QRI-022 report uses explicit `minimum_runs=10` and truthfully returns `not-evaluated`.
+- [x] No scenario, runner, workflow, retention, scheduling, retry or runtime behavior was changed in this PR.
+- [ ] The tenth required attempt retains its result envelope and cleanup evidence.
+- [ ] A complete ten-attempt QRI-022 classification is available.
+- [ ] Autonomous merge gate is satisfied.
 
-# Confirmed context
+# Factual result
 
-- Draft PR #925 is the bounded owner.
-- Canonical scenario is `login/relog` at `tests/e2e/scenarios/login/scenario.json`.
-- Scenario pins OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`, datapack `data-otservbr-global`, map `otservbr`, account `@test1`, character `Knight 1`.
-- QRI-022 requires exact scenario/server/client/datapack/tier comparability and defaults to ten runs.
-- Exact-head Agent Task Ownership `30166716019` and CI `30166716083` passed on `64b51cb32600da2693f84e5468c98ca746a15aef`.
-- The connector cannot create `workflow_dispatch`, but the existing PR workflow is triggered by behaviorless files under `tests/e2e/**` and falls back to canonical `login/relog` when no single scenario manifest is selected.
+- Draft PR: #925.
+- Trigger/head SHA: `ef5153d09a2dc70469daf360020b81986949bb69`.
+- Workflow run: `30167381956`.
+- Comparable runtime server revision: `770bb4ba9bf9dbf2fd32c3342b30cd6ab93f991d`.
+- Maintained OTClient: `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`.
+- Datapack/tier: `data-otservbr-global` / `pr-required`.
+- Retained attempts 1-9: clean gameplay success plus certified cleanup.
+- Machine QRI-022 cell: `aa3660dd10a3cc8615e2`, `not-evaluated`, reason `insufficient-runs`, 9/10 complete envelopes.
+- Overall intended population: `BLOCKED` because the tenth failed attempt retained no Universal E2E artifact, result envelope or cleanup certification.
 
-# Execution method
+# Failure and diagnostic evidence
 
-1. Add the behaviorless evidence manifest `tests/e2e/baselines/login-relog-stability-baseline.md`.
-2. Treat that manifest commit as the exact Canary revision for the repeated-run cell.
-3. Let the existing PR-triggered Universal Agent E2E run canonical `login/relog` without modifying the scenario, runner or workflow.
-4. Inspect the first result and cleanup evidence before repeating the physical job.
-5. Re-run the completed physical job sequentially on the same workflow run/head, preserving every run attempt and artifact.
-6. Build and validate the QRI-022 report from exactly ten retained attempts.
+## Required attempt 10
 
-# Work log
+- Physical job `89708625391`: failed in `Run selected physical-client scenario`.
+- Evidence upload step declared with `if: always()` was recorded as skipped.
+- Required physical E2E job `89708847588`: failure because `physical-client` failed.
+- Exact lower-level cause inside `run_physical_e2e.sh`: `UNKNOWN` from connector-visible retained evidence.
 
-## 2026-07-25T19:06:00+02:00
+## One diagnostic rerun
 
-- Added exclusive ownership for a behaviorless `tests/e2e/**` baseline manifest.
-- Rejected modifying the scenario or workflow merely to trigger execution.
-- The exact measured server revision will be the next commit that adds the trigger manifest.
+- Physical job `89709267589`: physical scenario step cancelled.
+- Evidence upload was again skipped.
+- Required physical E2E job `89709498686`: failure.
+- This rerun is diagnostic only and does not replace attempt 10.
+- No further rerun is allowed for this baseline.
+
+# Durable outputs
+
+- `tests/e2e/baselines/login-relog-stability-baseline.md`
+- `docs/e2e/baselines/e2e-login-relog-stability-baseline.json`
+- `docs/e2e/baselines/E2E_LOGIN_RELOG_STABILITY_BASELINE.md`
+
+The Markdown dossier contains all nine artifact IDs and digests, result/cleanup/root hashes, the unretained attempt evidence and the generated QRI-022 interpretation.
 
 # Validation and CI
 
-| Commit | Check | Result | Evidence |
+| Commit/run | Check | Result | Evidence |
 |---|---|---|---|
-| `64b51cb32600da2693f84e5468c98ca746a15aef` | Agent Task Ownership | pass | `30166716019` |
-| `64b51cb32600da2693f84e5468c98ca746a15aef` | CI | pass | `30166716083` |
-| pending | Ownership after new exclusive claim | not-run | Must pass before trigger manifest is added. |
+| `ef5153d09a2dc70469daf360020b81986949bb69` | Agent Task Ownership | pass | `30167381859` |
+| `ef5153d09a2dc70469daf360020b81986949bb69` | CI | pass | `30167381945` |
+| `30167381956` attempts 1-9 | Physical `login/relog` and cleanup | pass | Artifacts `8622212268` through `8622546348`, exact list in baseline dossier |
+| `30167381956` attempt 10 | Physical `login/relog` | fail | Physical job `89708625391`; Required `89708847588` |
+| `30167381956` diagnostic rerun | Failure-retention diagnostic | fail | Physical job `89709267589`; Required `89709498686` |
+| `bdf70b86db010951622529eb0d16b924ce189295` | Durable JSON/Markdown evidence committed | pass | Report and dossier paths exist on PR #925 |
+
+# Decisions
+
+| Decision | Reason/evidence |
+|---|---|
+| Do not classify the complete population as pass | The tenth required attempt failed and has no contract envelope. |
+| Do not classify it as ordinary `9/10 unstable` | QRI-022 can classify only preserved normalized attempts; the failed attempt lacks required evidence. |
+| Keep the machine report at nine roots / `not-evaluated` | It truthfully represents the explicit valid extracted artifact population. |
+| Mark the programme-level population `BLOCKED` | Collection and retention are external to QRI-022, and the missing failure evidence prevents complete classification. |
+| Repair retention in a separate task | PR #925 explicitly owns evidence measurement only and must not change the workflow under measurement. |
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T19:06:00+02:00
-head: 64b51cb32600da2693f84e5468c98ca746a15aef
+updated_at: 2026-07-25T20:45:00+02:00
+head: bdf70b86db010951622529eb0d16b924ce189295
 branch: test/e2e-qri-022-login-relog-baseline
 pr: 925
-status: implementing
+status: blocked
 context_routes:
   - agent-governance
   - universal-e2e
@@ -115,31 +139,40 @@ owned_paths:
   - docs/e2e/baselines/e2e-login-relog-stability-baseline.json
   - docs/agents/programs/E2E_AUTOMATION_PROGRAM.md
 proven:
-  - PR 925 owns the bounded baseline task.
-  - Canonical login/relog pins OTClient 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f and data-otservbr-global.
-  - Existing PR path filters can trigger Universal Agent E2E from a behaviorless tests/e2e baseline manifest without changing scenario or workflow behavior.
-  - Ownership and CI passed on 64b51cb32600da2693f84e5468c98ca746a15aef before the new claim.
+  - Attempts 1 through 9 are clean physical login/relog passes with complete schema-v3 result envelopes and certified schema-v1 cleanup in one exact cell.
+  - The retained QRI-022 cell aa3660dd10a3cc8615e2 has nine clean passes and is not-evaluated because minimum_runs is 10.
+  - Required attempt 10 job 89708625391 failed and its evidence upload step was skipped, leaving no result envelope or cleanup certification.
+  - One diagnostic rerun job 89709267589 was cancelled in the physical step and again retained no Universal E2E artifact.
+  - The complete intended population cannot be truthfully classified as pass, unstable or fail and is blocked on evidence retention.
 derived:
-  - A PR-triggered run plus sequential physical-job reruns can produce distinct preserved run attempts on one exact head.
+  - Failure and cancellation evidence retention is a prerequisite to repeating the baseline and to any later soak/performance threshold work.
 unknown:
-  - Exact trigger-manifest commit SHA.
-  - Exact execution tier emitted by the first physical result.
-  - Whether all ten attempts form one complete comparable cell.
-  - Final factual classification.
+  - Exact lower-level failure inside run_physical_e2e.sh for attempt 10.
+  - Why GitHub skipped the declared if-always upload and post-job steps after the physical failure/cancellation.
 conflicts: []
 first_failure:
-  marker: trigger-manifest-not-created
-  evidence: New path ownership is declared but the behaviorless tests/e2e manifest has not yet been committed.
+  marker: physical-failure-evidence-not-retained
+  evidence: attempt 10 physical job 89708625391 failed; upload skipped; Required job 89708847588 failed.
 rejected_hypotheses:
-  - Modify scenario or workflow to start the baseline: rejected because this task measures existing behavior.
-  - Pool historical successes without complete artifacts: rejected by QRI-022 evidence requirements.
+  - Treat nine retained successes as a stability pass: rejected because minimum_runs is 10 and the tenth required attempt failed.
+  - Replace attempt 10 with a successful retry: rejected by the all-attempts-retained-no-hidden-retry policy.
+  - Modify the workflow inside PR 925: rejected because this PR measures the existing lifecycle and does not own workflow behavior.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260725-e2e-qri-022-login-relog-baseline.md
+  - tests/e2e/baselines/login-relog-stability-baseline.md
+  - docs/e2e/baselines/e2e-login-relog-stability-baseline.json
+  - docs/e2e/baselines/E2E_LOGIN_RELOG_STABILITY_BASELINE.md
 validation:
   - command: Agent Task Ownership
     result: PASS
-    evidence: run 30166716019 on 64b51cb32600da2693f84e5468c98ca746a15aef before the new path claim.
+    evidence: run 30167381859 on ef5153d09a2dc70469daf360020b81986949bb69.
+  - command: CI
+    result: PASS
+    evidence: run 30167381945 on ef5153d09a2dc70469daf360020b81986949bb69.
+  - command: QRI-022 retained-envelope classification
+    result: BLOCKED
+    evidence: nine valid clean envelopes produce not-evaluated; tenth failed attempt lacks retained contract evidence.
 blockers:
-  - Exact-head Agent Task Ownership must validate the added tests/e2e baseline-manifest claim before its creation.
-next_action: Wait for exact-head Agent Task Ownership on this claim commit, then create tests/e2e/baselines/login-relog-stability-baseline.md to start the first physical run.
+  - Universal Agent E2E does not retain result and cleanup evidence for the observed physical failure/cancellation condition.
+next_action: Open a separate bounded repair task and draft PR that makes Universal Agent E2E failure and cancellation evidence durable before repeating this ten-attempt baseline.
 ```
