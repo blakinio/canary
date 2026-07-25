@@ -10,11 +10,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "tools" / "e2e" / "run_physical_e2e.sh"
+WORKFLOW = ROOT / ".github" / "workflows" / "universal-agent-e2e.yml"
 
 
 class FailureEvidenceRetentionTest(unittest.TestCase):
     def script_text(self) -> str:
         return SCRIPT.read_text(encoding="utf-8")
+
+    def workflow_text(self) -> str:
+        return WORKFLOW.read_text(encoding="utf-8")
 
     def extracted_exit_function(self) -> str:
         match = re.search(
@@ -57,7 +61,7 @@ class FailureEvidenceRetentionTest(unittest.TestCase):
         self.assertEqual(1, returncode)
         self.assertEqual("143\n", recorded)
 
-    def test_evidence_finalization_precedes_workflow_failure(self) -> None:
+    def test_evidence_finalization_precedes_script_failure(self) -> None:
         text = self.script_text()
         final_finalize = text.rfind('python3 "${ENVELOPE}" finalize')
         final_exit = text.rfind('emit_workflow_exit "${final_status}"')
@@ -73,6 +77,35 @@ class FailureEvidenceRetentionTest(unittest.TestCase):
         self.assertIn("trap 'handle_signal 143' TERM", text)
         self.assertIn("trap 'handle_signal 130' INT", text)
         self.assertIn('lifecycle_status="${signal_status}"', text)
+
+    def test_workflow_uploads_before_propagating_physical_failure(self) -> None:
+        text = self.workflow_text()
+        capture = text.index("      - name: Run selected physical-client scenario")
+        upload = text.index("      - name: Upload universal E2E evidence")
+        propagate = text.index("      - name: Propagate physical-client scenario result")
+        self.assertLess(capture, upload)
+        self.assertLess(upload, propagate)
+
+        capture_block = text[capture:upload]
+        self.assertIn("        id: physical", capture_block)
+        self.assertIn("          status=$?", capture_block)
+        self.assertIn("          printf 'status=%s\\n'", capture_block)
+        self.assertTrue(capture_block.rstrip().endswith("exit 0"))
+
+        upload_block = text[upload:propagate]
+        self.assertIn("        if: always()", upload_block)
+        self.assertIn("        uses: actions/upload-artifact@v4", upload_block)
+
+        propagate_block = text[propagate:]
+        self.assertIn("        if: always()", propagate_block)
+        self.assertIn(
+            "          PHYSICAL_STATUS: ${{ steps.physical.outputs.status }}",
+            propagate_block,
+        )
+        self.assertIn(
+            "physical scenario failed with captured status",
+            propagate_block,
+        )
 
 
 if __name__ == "__main__":
