@@ -1,1 +1,228 @@
-{"applicability":{"announced_in":{"evidence_refs":[],"exact":null,"lower_bound":null,"mode":"UNKNOWN","notes":["No separate announcement is established for this bounded correction."],"upper_bound":null},"changed_in":[{"evidence_refs":["RT-ITEM-DEFINITIONS-0001"],"exact":{"appearances_items_revision":null,"canary_commit":null,"database_schema_revision":null,"datapack_revision":null,"maintained_otclient_commit":null,"map_sha256":null,"official_client_build":null,"official_tibia_release":"Fixes and Changes 2026-07-21","protocol_profile":null,"spawn_npc_sidecar_revision":null},"lower_bound":null,"mode":"EXACT","notes":["Official correction publication."],"upper_bound":null}],"deprecated_in":{"evidence_refs":[],"exact":null,"lower_bound":null,"mode":"UNKNOWN","notes":["No deprecation is established."],"upper_bound":null},"effective_from":{"evidence_refs":[],"exact":null,"lower_bound":null,"mode":"UNKNOWN","notes":["The exact deployment boundary is not published."],"upper_bound":null},"effective_until":{"evidence_refs":[],"exact":null,"lower_bound":null,"mode":"UNKNOWN","notes":["No exact effective-until boundary is established."],"upper_bound":null},"introduced_in":{"evidence_refs":[],"exact":null,"lower_bound":null,"mode":"UNKNOWN","notes":["The selected fix does not establish item introduction."],"upper_bound":null},"observed_in":[{"evidence_refs":["RT-ITEM-DEFINITIONS-0001"],"exact":{"appearances_items_revision":null,"canary_commit":null,"database_schema_revision":null,"datapack_revision":null,"maintained_otclient_commit":null,"map_sha256":null,"official_client_build":null,"official_tibia_release":"Fixes and Changes 2026-07-21 verified 2026-07-25","protocol_profile":null,"spawn_npc_sidecar_revision":null},"lower_bound":null,"mode":"EXACT","notes":["Official latest-news page verified by the Collector."],"upper_bound":null}],"removed_in":{"evidence_refs":[],"exact":null,"lower_bound":null,"mode":"UNKNOWN","notes":["No removal is established."],"upper_bound":null}},"authority_dimension":"visible-gameplay-behavior","claim_key":"cloud-in-a-bottle-difficulty-description-correction","claim_statement":"The official 2026-07-21 fix states that the Cloud in a Bottle description was wrong: the item becomes available from difficulty 10 rather than difficulty 15.","confidence":"HIGH","conflict_refs":[],"current_canary_comparison":{"baseline":{"appearances_items_revision":"data/items/appearances.dat git blob 2cc2f4910af4f002f99f39e486d1a91b1b56a728","canary_commit":"8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9","database_schema_revision":null,"datapack_revision":null,"maintained_otclient_commit":null,"map_sha256":null,"official_client_build":null,"official_tibia_release":null,"protocol_profile":null,"spawn_npc_sidecar_revision":null},"current_behavior":null,"differences":[],"exact_paths":[],"exact_symbols":[],"missing_proof":["Exact current Canary item identity and appearances correspondence are handled by RT-ITEM-DEFINITIONS-0002 and RTREQ-TCR-CLOUD-IN-A-BOTTLE-0001."],"state":"blocked-by-reference"},"does_not_prove":["This record does not prove item ID, appearance ID, official client build or Canary correspondence.","This record does not prove unlock authorization, acquisition, runtime, persistence, protocol or client behavior."],"evidence_id":"RT-ITEM-DEFINITIONS-0001","evidence_state":"PROVEN","format":"canary-real-tibia-evidence-record-v1","freshness":{"invalid_after_days":90,"invalidation_triggers":["Official Cloud in a Bottle documentation or fixes change.","A newer exact official-client reference supersedes the selected statement."],"observed_or_verified_at":"2026-07-25","policy":"refresh-before-task","warning_after_days":30},"module_id":"item-definitions","owner_request_refs":["RTREQ-TCR-CLOUD-IN-A-BOTTLE-0001"],"proof_level":"definition-found","proves":["The official visible item name is Cloud in a Bottle.","The official correction identifies difficulty 10 as the availability threshold rather than 15.","The incorrect value was in the description."],"record_status":"review-needed","related_modules":["items-assets-appearances"],"review":{"notes":["Pending structured review on worker PR #931."],"pr":931,"reviewed_at":null,"reviewer":null,"status":"pending","task_id":"CAN-20260725-rtec-004-cloud-in-a-bottle"},"schema_version":1,"sources":[{"author":"CipSoft GmbH","does_not_prove":["The fix note does not expose item IDs, client build, server implementation, unlock logic or acquisition flow."],"external_artifact":null,"limitations":["The rolling latest-news page does not provide an immutable content revision or exact official client build."],"locator":{"artifact_sha256":null,"build":null,"commit_sha":null,"report_id":null,"repository":null,"repository_path":null,"url":"https://www.tibia.com/news/?subtopic=latestnews"},"observation_date":"2026-07-25","proof_level_reached":"definition-found","proves":["The visible description/difficulty correction was published on 2026-07-21."],"publication_date":"2026-07-21","role":"primary","selected":{"files":[],"observations":["The description incorrectly stated difficulty 15; Cloud in a Bottle is available from difficulty 10."],"sections":["Fixes and Changes — Jul 21 2026"],"symbols":[]},"source_id":"tibia-official-cloud-in-a-bottle-fix","source_type":"official-news"}],"superseded_by":[],"supersedes":[],"uncertainty":["The exact official client build and object identity are not published in the selected fix note."]}
+{
+  "applicability": {
+    "announced_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No separate announcement is established for this bounded correction."
+      ],
+      "upper_bound": null
+    },
+    "changed_in": [
+      {
+        "evidence_refs": [
+          "RT-ITEM-DEFINITIONS-0001"
+        ],
+        "exact": {
+          "appearances_items_revision": null,
+          "canary_commit": null,
+          "database_schema_revision": null,
+          "datapack_revision": null,
+          "maintained_otclient_commit": null,
+          "map_sha256": null,
+          "official_client_build": null,
+          "official_tibia_release": "Fixes and Changes 2026-07-21",
+          "protocol_profile": null,
+          "spawn_npc_sidecar_revision": null
+        },
+        "lower_bound": null,
+        "mode": "EXACT",
+        "notes": [
+          "Official correction publication."
+        ],
+        "upper_bound": null
+      }
+    ],
+    "deprecated_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No deprecation is established."
+      ],
+      "upper_bound": null
+    },
+    "effective_from": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "The exact deployment boundary is not published."
+      ],
+      "upper_bound": null
+    },
+    "effective_until": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No exact effective-until boundary is established."
+      ],
+      "upper_bound": null
+    },
+    "introduced_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "The selected fix does not establish item introduction."
+      ],
+      "upper_bound": null
+    },
+    "observed_in": [
+      {
+        "evidence_refs": [
+          "RT-ITEM-DEFINITIONS-0001"
+        ],
+        "exact": {
+          "appearances_items_revision": null,
+          "canary_commit": null,
+          "database_schema_revision": null,
+          "datapack_revision": null,
+          "maintained_otclient_commit": null,
+          "map_sha256": null,
+          "official_client_build": null,
+          "official_tibia_release": "Fixes and Changes 2026-07-21 verified 2026-07-25",
+          "protocol_profile": null,
+          "spawn_npc_sidecar_revision": null
+        },
+        "lower_bound": null,
+        "mode": "EXACT",
+        "notes": [
+          "Official latest-news page verified by the Collector."
+        ],
+        "upper_bound": null
+      }
+    ],
+    "removed_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No removal is established."
+      ],
+      "upper_bound": null
+    }
+  },
+  "authority_dimension": "visible-gameplay-behavior",
+  "claim_key": "cloud-in-a-bottle-difficulty-description-correction",
+  "claim_statement": "The official 2026-07-21 fix states that the Cloud in a Bottle description was wrong: the item becomes available from difficulty 10 rather than difficulty 15.",
+  "confidence": "HIGH",
+  "conflict_refs": [],
+  "current_canary_comparison": {
+    "baseline": {
+      "appearances_items_revision": "data/items/appearances.dat git blob 2cc2f4910af4f002f99f39e486d1a91b1b56a728",
+      "canary_commit": "8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9",
+      "database_schema_revision": null,
+      "datapack_revision": null,
+      "maintained_otclient_commit": null,
+      "map_sha256": null,
+      "official_client_build": null,
+      "official_tibia_release": null,
+      "protocol_profile": null,
+      "spawn_npc_sidecar_revision": null
+    },
+    "current_behavior": null,
+    "differences": [],
+    "exact_paths": [],
+    "exact_symbols": [],
+    "missing_proof": [
+      "Exact current Canary item identity and appearances correspondence are handled by RT-ITEM-DEFINITIONS-0002 and RTREQ-TCR-ITEM-DEFINITIONS-0001."
+    ],
+    "state": "blocked-by-reference"
+  },
+  "does_not_prove": [
+    "This record does not prove item ID, appearance ID, official client build or Canary correspondence.",
+    "This record does not prove unlock authorization, acquisition, runtime, persistence, protocol or client behavior."
+  ],
+  "evidence_id": "RT-ITEM-DEFINITIONS-0001",
+  "evidence_state": "PROVEN",
+  "format": "canary-real-tibia-evidence-record-v1",
+  "freshness": {
+    "invalid_after_days": 90,
+    "invalidation_triggers": [
+      "Official Cloud in a Bottle documentation or fixes change.",
+      "A newer exact official-client reference supersedes the selected statement."
+    ],
+    "observed_or_verified_at": "2026-07-25",
+    "policy": "refresh-before-task",
+    "warning_after_days": 30
+  },
+  "module_id": "item-definitions",
+  "owner_request_refs": [
+    "RTREQ-TCR-ITEM-DEFINITIONS-0001"
+  ],
+  "proof_level": "definition-found",
+  "proves": [
+    "The official visible item name is Cloud in a Bottle.",
+    "The official correction identifies difficulty 10 as the availability threshold rather than 15.",
+    "The incorrect value was in the description."
+  ],
+  "record_status": "accepted",
+  "related_modules": [],
+  "review": {
+    "notes": [
+      "Structured review verified the official correction, source date and definition-found proof cap.",
+      "Review verified scan run 30171827237, artifact 8623126188, selected paths and the appearances.dat loader boundary.",
+      "Candidate ID 54651 remains discovery-only; no item data, assets, parser, runtime, client, map or E2E owner path changed."
+    ],
+    "pr": 931,
+    "reviewed_at": "2026-07-25T22:18:24+02:00",
+    "reviewer": "RTEC-004 coordinator / GPT-5.6 Thinking",
+    "status": "accepted",
+    "task_id": "CAN-20260725-rtec-004-cloud-in-a-bottle"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "author": "CipSoft GmbH",
+      "does_not_prove": [
+        "The fix note does not expose item IDs, client build, server implementation, unlock logic or acquisition flow."
+      ],
+      "external_artifact": null,
+      "limitations": [
+        "The rolling latest-news page does not provide an immutable content revision or exact official client build."
+      ],
+      "locator": {
+        "artifact_sha256": null,
+        "build": null,
+        "commit_sha": null,
+        "report_id": null,
+        "repository": null,
+        "repository_path": null,
+        "url": "https://www.tibia.com/news/?subtopic=latestnews"
+      },
+      "observation_date": "2026-07-25",
+      "proof_level_reached": "definition-found",
+      "proves": [
+        "The visible description/difficulty correction was published on 2026-07-21."
+      ],
+      "publication_date": "2026-07-21",
+      "role": "primary",
+      "selected": {
+        "files": [],
+        "observations": [
+          "The description incorrectly stated difficulty 15; Cloud in a Bottle is available from difficulty 10."
+        ],
+        "sections": [
+          "Fixes and Changes — Jul 21 2026"
+        ],
+        "symbols": []
+      },
+      "source_id": "tibia-official-cloud-in-a-bottle-fix",
+      "source_type": "official-news"
+    }
+  ],
+  "superseded_by": [],
+  "supersedes": [],
+  "uncertainty": [
+    "The exact official client build and object identity are not published in the selected fix note."
+  ]
+}
