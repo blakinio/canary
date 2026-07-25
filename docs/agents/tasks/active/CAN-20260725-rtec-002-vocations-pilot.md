@@ -2,13 +2,13 @@
 task_id: CAN-20260725-rtec-002-vocations-pilot
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-002
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
 branch: docs/rtec-002-vocations-pilot-20260725
 base_branch: main
 created: 2026-07-25T09:42:45+02:00
-updated: 2026-07-25T10:05:00+02:00
-last_verified_commit: "930e0a15767b7e5348bb36c679fa5e458a76f184"
+updated: 2026-07-25T10:30:00+02:00
+last_verified_commit: "4ed45d88c729c669356fe23d050edeb0b059ca89"
 risk: medium
 related_issue: ""
 related_pr: "910"
@@ -25,6 +25,8 @@ owned_paths:
     - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
     - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
     - .github/workflows/real-tibia-evidence.yml
+    - tools/agents/real_tibia_evidence_test_support.py
+    - tools/agents/test_real_tibia_evidence_lifecycle.py
   read_only:
     - AGENTS.md
     - docs/agents/REPOSITORY_MAP.md
@@ -68,11 +70,11 @@ Prove the complete RTEC collection/review workflow on exactly one canonical low-
 - [x] Publish bounded machine-readable evidence for official vocation identity/purpose and exact current Canary vocation definitions on a pinned commit.
 - [x] Publish version history without compressing release/build/protocol/commit axes into one generic version.
 - [x] Create exactly one feature-owner request only for proof that cannot be established by static Collector evidence.
-- [x] Regenerate deterministic module/global factual indexes from the source records.
+- [x] Regenerate deterministic module/global factual indexes with the repository generator.
 - [x] Include a structured independent review pass covering provenance, claim decomposition, proof boundaries, conflicts, unknowns and owner-request correctness.
 - [x] Make no gameplay/runtime/client/protocol/database/map/datapack or owner-tooling changes.
-- [ ] Relevant focused checks completed on the current head.
-- [ ] Current-head GitHub checks verified.
+- [x] Relevant focused checks completed on validated implementation head `4ed45d88c729c669356fe23d050edeb0b059ca89`.
+- [ ] Exact current-head GitHub checks verified after cleanup/checkpoint commits.
 - [x] Module catalogue impact handled: no reusable interface change.
 - [x] Documentation/changelog impact handled: programme queue changes only after feature merge; no behavior changelog entry.
 - [x] Cross-repository impact handled: external repositories and official sources remain read-only.
@@ -85,7 +87,7 @@ Prove the complete RTEC collection/review workflow on exactly one canonical low-
 - RTEC-001 contracts, validator and lifecycle are merged and archived.
 - The canonical `vocations` record has no hard dependency edges and confines current implementation discovery to `vocation.*` and `vocations.xml`.
 - Combat formulas, spell/weapon eligibility, Wheel/client presentation, protocol, persistence and physical-client execution are outside this pilot.
-- Open PRs #815, #559, #526 and #514 do not own the dossier, request, generated index or workflow paths changed here.
+- Open PRs #815, #559, #526 and #514 do not own the dossier, request, generated index, fixture or workflow paths changed here.
 
 # Delivered evidence package
 
@@ -94,54 +96,66 @@ Prove the complete RTEC collection/review workflow on exactly one canonical low-
 | `MODULE.md` | complete bounded dossier with explicit unknowns/nonclaims |
 | `BEHAVIOR_MODEL.md` | source-visible registry, lookup, level-gain and promotion transition model |
 | `DECISIONS.md` | selected authorities, exclusions and rejected overclaims |
-| `RT-VOCATIONS-0001` | current official five-vocation table |
+| `RT-VOCATIONS-0001` | current official five-vocation table observation |
 | `RT-VOCATIONS-0002` | Monk announcement and release chronology |
 | `RT-VOCATIONS-0003` | exact Canary registry/XML source evidence |
 | `RT-VOCATIONS-0004` | static official/Canary gain and promotion correspondence |
 | `RT-VOCATIONS-0005` | explicit UNKNOWN runtime application claim |
 | `RTREQ-FEATURE-VOCATIONS-0001` | one non-blocking feature-owner runtime proof request |
 | `VERSION_HISTORY.yaml` | two separate-axis history entries |
-| `EVIDENCE_INDEX.yaml` and global index | deterministic factual indexes as of 2026-07-25 |
+| generated indexes | repository-generated deterministic module/global indexes as of 2026-07-25 |
 | structured review | accepted for repository validation; no external human approval claim |
 
 # Ownership and overlap check
 
 - Exclusive: this task, one module dossier tree and one request.
-- Shared: global generated index, programme closeout path and evidence workflow date.
+- Shared: global generated index, programme closeout path, evidence workflow date and the two date-relative evidence test fixtures.
 - Read-only: schemas, validator, registry, source/runtime, TSD report and all external sources.
-- The workflow date moved from 2026-07-24 to 2026-07-25 because the validator correctly rejects evidence dated after `as_of`.
+- The workflow and fixture `as_of` moved from 2026-07-24 to 2026-07-25 because the validator correctly rejects evidence dated after `as_of`.
+- The future-date regression test now derives its future date from `AS_OF`, preserving the tested invariant.
 - No broad module population, alternate registry, runtime test infrastructure or owner implementation was added.
+- The temporary diagnostic workflow was removed; it is absent from the final net diff.
 
 # Current state
 
-The first complete pilot corpus exists on PR #910: five evidence records, one active owner request, two version-history records and deterministic module/global indexes. Static official/Canary correspondence is bounded to the published HP/mana/capacity table and promotion names. Runtime level-gain and promotion application remain `UNKNOWN` pending owner evidence.
+The complete pilot corpus validates: five evidence records, one active owner request, two version-history records and deterministic module/global indexes. Static official/Canary correspondence is bounded to the published HP/mana/capacity table and promotion names. Runtime level-gain and promotion application remain `UNKNOWN` pending owner evidence.
 
 # Validation and CI
 
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
 | `930e0a15767b7e5348bb36c679fa5e458a76f184` | preflight: main/open PRs/branches/program/registry | PASS | no existing RTEC-002 work; canonical `vocations` dependency-free |
-| `755715fc726b8c7f781418dde31097591bab56a2` | corpus/index construction and workflow as-of integration | NOT_RUN | exact-head GitHub validation pending after this checkpoint |
+| `4ed45d88c729c669356fe23d050edeb0b059ca89` | Real Tibia Evidence Contracts | PASS | compile, 27 focused tests, Draft 2020-12, 62-module registry, corpus validation, deterministic generate/check and show-index |
+| `4ed45d88c729c669356fe23d050edeb0b059ca89` | CI / Agent Task Ownership / Module Registry / Upstream Intelligence | PASS | all required workflows completed successfully |
+| current cleanup/checkpoint head | exact current-head workflows | NOT_RUN | must be reverified before final gate |
 
 Never write `PASS` without verification on the stated commit.
 
+# Review findings
+
+- The live official manual URL has no source-pinned publication date; the evidence retains URL, author and observation date without inventing publication metadata.
+- The official/Canary comparison is `DERIVED` and capped at `registration-proven`.
+- The runtime claim remains `UNKNOWN` and links to one feature-owner request.
+- The generator-produced global input digest is `8986f61407977df1ecb394c2568245d917cc8a185a8e96c0cf5e994d4a01aac0`.
+- No review threads or submitted review blockers were present at the implementation checkpoint.
+
 # Risks and compatibility
 
-- Static evidence is capped at `registration-proven` and cannot become gameplay proof.
+- Static evidence cannot become gameplay proof.
 - The owner request is `ready-for-owner-triage`, non-blocking for this pilot and blocking only for promotion of the runtime claim.
 - No runtime, database, protocol, client, map, datapack, proprietary artifact or production state is changed.
 - Rollback is the closure of PR #910; no deployment rollback is required.
 
 # Remaining work
 
-1. Read exact current-head workflow failures, correct only grounded contract/index/ownership issues, then perform final review/gate/merge and lifecycle archival.
+1. Verify exact current-head checks, apply final gate, make one final checkpoint commit, then make no further commits after the green exact-head gate.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T10:05:00+02:00
-head: 755715fc726b8c7f781418dde31097591bab56a2
+updated_at: 2026-07-25T10:30:00+02:00
+head: 99e69ddcbf1b20c7d700b8fa01d11495ac11c572
 branch: docs/rtec-002-vocations-pilot-20260725
 pr: 910
 status: validating
@@ -155,11 +169,14 @@ owned_paths:
   - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
   - .github/workflows/real-tibia-evidence.yml
+  - tools/agents/real_tibia_evidence_test_support.py
+  - tools/agents/test_real_tibia_evidence_lifecycle.py
 proven:
   - current official manual defines five vocations and the bounded gain/promotion table
   - official Monk announcement and release dates are separately pinned
   - exact Canary baseline contains the XML-backed shared vocation registry and promotion relationships
-  - deterministic source corpus contains five evidence records, one request and two history records
+  - repository validation accepts five evidence records, one request and two history records
+  - deterministic repository generator accepts the committed indexes
 derived:
   - the selected official and Canary definitions correspond for the bounded gain and promotion fields
 unknown:
@@ -167,8 +184,8 @@ unknown:
   - promotion eligibility, payment, persistence, protocol, client, combat, spells and Wheel behavior
 conflicts: []
 first_failure:
-  marker: pending-current-head-ci
-  evidence: no current-head workflow result has been accepted yet
+  marker: resolved-generated-index-drift
+  evidence: repository generator output accepted at 4ed45d88c729c669356fe23d050edeb0b059ca89
 rejected_hypotheses:
   - static source correspondence proves runtime or gameplay parity
   - one module dossier proves whole-game parity or release readiness
@@ -178,20 +195,25 @@ changed_paths:
   - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
   - docs/agents/real-tibia/evidence/modules/vocations/**
   - docs/agents/real-tibia/evidence/requests/feature/RTREQ-FEATURE-VOCATIONS-0001.yaml
+  - tools/agents/real_tibia_evidence_test_support.py
+  - tools/agents/test_real_tibia_evidence_lifecycle.py
 validation:
   - command: fresh GitHub preflight
     result: PASS
     evidence: main/open PR/branch/program/registry state verified
+  - command: Real Tibia Evidence Contracts at 4ed45d88c729c669356fe23d050edeb0b059ca89
+    result: PASS
+    evidence: 27 tests, schemas, registry, corpus and deterministic indexes passed
   - command: exact current-head GitHub workflows
     result: NOT_RUN
-    evidence: checkpoint commit will trigger validation
+    evidence: cleanup/checkpoint head requires verification
 blockers: []
-next_action: Inspect exact current-head ownership, schema, corpus and deterministic-index workflow results; fix only verified failures.
+next_action: Verify exact current-head workflows, apply ci:final-gate before the final checkpoint commit and do not commit after the green final-head gate.
 ```
 
 # Handoff
 
-Read this checkpoint, PR #910, the v1 RTEC contracts, canonical `vocations` registry record, current source and the generated indexes. Do not restart module selection, create another registry, populate other modules or edit runtime/owner paths.
+Read this checkpoint, PR #910, the v1 RTEC contracts, canonical `vocations` registry record, current source and generated indexes. Do not restart module selection, create another registry, populate other modules or edit runtime/owner paths.
 
 # Completion
 
