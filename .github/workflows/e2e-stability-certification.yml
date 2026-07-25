@@ -1,11 +1,19 @@
 name: Universal E2E Stability Certification
 
+# Contract-only validation: this workflow never executes physical scenarios.
 on:
   pull_request:
     branches: [main]
     paths:
       - ".github/workflows/e2e-stability-certification.yml"
+      - "tools/e2e/stability_certification.py"
+      - "tests/e2e/test_stability_certification.py"
+      - "docs/e2e/E2E_STABILITY_CERTIFICATION.md"
+      - "docs/e2e/E2E_STABILITY_CERTIFICATION.schema.json"
       - "docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md"
+      - "docs/agents/MODULE_CATALOG.md"
+      - "docs/agents/CHANGELOG.md"
+      - "docs/agents/programs/E2E_AUTOMATION_PROGRAM.md"
   workflow_dispatch:
 
 permissions:
@@ -15,12 +23,26 @@ jobs:
   validate:
     name: Validate stability certification contract
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
-      - name: Run exact compact handover
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
-          TASK_PATH: docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md
-        run: git clone --quiet --depth 1 --branch "$HEAD_REF" "https://x-access-token:${GH_TOKEN}@github.com/${REPOSITORY}.git" repo && cd repo && python tools/agents/checkpoint.py "$TASK_PATH" --require-checkpoint >/dev/null && python tools/agents/resume.py --task "$TASK_PATH"
+      - name: Checkout exact head
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile focused tooling and tests
+        run: |
+          python -m py_compile \
+            tools/e2e/stability_certification.py \
+            tests/e2e/test_stability_certification.py
+
+      - name: Run focused canonical-module tests
+        run: python -m unittest -v tests/e2e/test_stability_certification.py
+
+      - name: Parse strict report schema
+        run: python -m json.tool docs/e2e/E2E_STABILITY_CERTIFICATION.schema.json >/dev/null
