@@ -1,0 +1,64 @@
+name: RTEC-002 Programme Closeout
+
+on:
+  push:
+    branches:
+      - docs/rtec-002-program-closeout
+    paths:
+      - ".github/workflows/rtec-002-program-closeout.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/rtec-002-program-closeout.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: github.head_ref == 'docs/rtec-002-program-closeout' || github.ref_name == 'docs/rtec-002-program-closeout'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout closeout branch
+        uses: actions/checkout@v6
+        with:
+          ref: docs/rtec-002-program-closeout
+          fetch-depth: 0
+
+      - name: Reconcile programme record
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md")
+          text = path.read_text(encoding="utf-8")
+          replacements = {
+              "updated: 2026-07-24T23:56:17+02:00": "updated: 2026-07-25T15:06:21+02:00",
+              'last_verified_commit: "eaed92c5f541cc4097a85bac5b39620d67dcf206"': 'last_verified_commit: "a017e54c03df7ca46cbaaf92995942ffa67f9690"',
+              "RTEC-001 implements validators and deterministic generation but does not create empty dossiers or placeholder records for all modules. Broad population remains blocked until the single-module RTEC-002 pilot proves the complete collection/review flow.": "RTEC-001 implements validators and deterministic generation but does not create empty dossiers or placeholder records for all modules. RTEC-002 proves the complete collection/review flow on `vocations`; broad population remains blocked until RTEC-003 validates owner-request lifecycle integration.",
+              "| RTEC-002 | Pilot dossier on one bounded low-coupling module | planned | RTEC-001 | medium | Run fresh main/open-PR/active-task/source preflight, select exactly one canonical low-coupling module and prove the end-to-end collection/review flow. |": "| RTEC-002 | Pilot dossier on one bounded low-coupling module | merged | RTEC-001 | medium | Pilot delivered by PR #910; lifecycle archived by PR #915. Runtime level-gain and promotion application remain `UNKNOWN` behind `RTREQ-FEATURE-VOCATIONS-0001`. |",
+              "| RTEC-003 | Owner-request lifecycle integration | planned | RTEC-001/002 | medium | Validate request state transitions and stable output consumption for E2E/OTBM/TCR. |": "| RTEC-003 | Owner-request lifecycle integration | planned | RTEC-001/002 | medium | Run fresh main/open-PR/active-task/request-state preflight, then prove legal owner transitions and stable retained-result consumption without starting campaign workers. |",
+              "Start RTEC-002 only through one new bounded active task after fresh main/open-PR/active-task/source and canonical-module preflight. Select exactly one low-coupling module, reuse the merged schema-version-1 contracts and do not start parallel Collector workers or broad dossier population until the pilot review flow succeeds.": "Start RTEC-003 only through one new bounded active task after fresh main/open-PR/active-task/request-state preflight. Reuse the schema-version-1 contracts, the validated `vocations` pilot and `RTREQ-FEATURE-VOCATIONS-0001`; do not start RTEC-004 parallel Collector workers until owner-request lifecycle integration succeeds."
+          }
+          for old, new in replacements.items():
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"expected exactly one occurrence, found {count}: {old[:80]}")
+              text = text.replace(old, new)
+          path.write_text(text, encoding="utf-8")
+          PY
+
+      - name: Commit programme reconciliation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
+          git diff --cached --quiet && { echo "No programme change produced"; exit 1; }
+          git commit -m "docs(agents): close RTEC-002 programme state"
+          git push origin "HEAD:docs/rtec-002-program-closeout"
