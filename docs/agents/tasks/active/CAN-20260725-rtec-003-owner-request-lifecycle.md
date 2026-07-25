@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/rtec-003-owner-request-lifecycle-20260725
 base_branch: main
 created: 2026-07-25T15:30:00+02:00
-updated: 2026-07-25T16:50:00+02:00
-last_verified_commit: "6598519585d5e44392ccad9ce80362ec906f422f"
+updated: 2026-07-25T16:55:00+02:00
+last_verified_commit: "e2ed6adf897ed325b2d4011846b4d825281b66a8"
 risk: medium
 related_issue: ""
 related_pr: "921"
@@ -140,7 +140,8 @@ Several delayed builder/review commits introduced temporary workflows and helper
 | `8cddd9f1716b20dde315da26b27685df3c3c85b0` | CI Required aggregator | PASS | job `89687735445`; outer run later cancelled after Required completed |
 | `8cddd9f1716b20dde315da26b27685df3c3c85b0` | Upstream Intelligence | PASS | run `30161374296` |
 | `6598519585d5e44392ccad9ce80362ec906f422f` | final pre-checkpoint scope cleanup | PASS | delayed review helper/write-job removed; exactly eight changed paths |
-| exact final head | Real Tibia Evidence Contracts, Agent Task Ownership, Registry and required CI | IN_PROGRESS | `ci:final-gate` reapplied before this checkpoint commit |
+| `e2ed6adf897ed325b2d4011846b4d825281b66a8` | Agent Task Ownership | FAIL | only checkpoint validation state was invalid: `IN_PROGRESS` is unsupported; tooling/unit-test steps passed |
+| exact final head | Real Tibia Evidence Contracts, Agent Task Ownership, Registry and required CI | NOT_RUN | `ci:final-gate` reapplied before this corrective checkpoint commit |
 
 # Remaining work
 
@@ -154,8 +155,8 @@ Several delayed builder/review commits introduced temporary workflows and helper
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T16:50:00+02:00
-head: 6598519585d5e44392ccad9ce80362ec906f422f
+updated_at: 2026-07-25T16:55:00+02:00
+head: e2ed6adf897ed325b2d4011846b4d825281b66a8
 branch: feat/rtec-003-owner-request-lifecycle-20260725
 pr: 921
 status: validating
@@ -180,18 +181,20 @@ proven:
   - the real vocations request remains ready-for-owner-triage without owner evidence
   - every delayed builder/review helper and write job was removed
   - prior exact-scope E2E, Required and Upstream checks passed
+  - ownership tooling and focused unit-test steps passed before the checkpoint result-enum failure
 derived:
   - the separate lifecycle CLI reuses schema version 1 without creating another owner execution system
 unknown:
   - exact-final-head focused and required workflow conclusions
 conflicts: []
 first_failure:
-  marker: none
-  evidence: none
+  marker: checkpoint validation item 2 used unsupported result IN_PROGRESS
+  evidence: Agent Task Ownership job 89689385066
 rejected_hypotheses:
   - Collector should self-accept or execute the vocations request
   - Collector should implement missing E2E, OTBM/OWA, TCR, protocol/client or feature capabilities
   - delayed builder/review workflows and helpers belong in the final package
+  - ownership failure indicates a tool or runtime-code defect
 changed_paths:
   - .github/workflows/real-tibia-evidence.yml
   - docs/agents/MODULE_CATALOG.md
@@ -206,11 +209,11 @@ validation:
     result: PASS
     evidence: current PR metadata and eight declared changed paths
   - command: exact-final-head GitHub workflows
-    result: IN_PROGRESS
-    evidence: final checkpoint commit must trigger the protected final-head gate
+    result: NOT_RUN
+    evidence: queued after the corrective checkpoint commit
 blockers:
   - GitHub Actions runners must complete the exact-final-head checks
-next_action: Inspect the exact-final-head Real Tibia Evidence Contracts run and repair only a proven failure.
+next_action: Inspect the exact-final-head Real Tibia Evidence Contracts and Agent Task Ownership runs.
 ```
 
 # Handoff
