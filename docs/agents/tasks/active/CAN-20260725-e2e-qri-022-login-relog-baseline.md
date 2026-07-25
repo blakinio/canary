@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: test/e2e-qri-022-login-relog-baseline
 base_branch: main
 created: 2026-07-25T18:53:04+02:00
-updated: 2026-07-25T18:56:35+02:00
-last_verified_commit: "6824b584f8358009658a86ea6eae7dc0bc1b3ec1"
+updated: 2026-07-25T18:58:13+02:00
+last_verified_commit: "dbd1129ee6cdf83b3f1d9a1f8a0c4aa542ff747c"
 risk: medium
 related_issue: ""
 related_pr: "925"
@@ -51,7 +51,7 @@ Produce the first factual Universal E2E repeated-run stability baseline from exa
 
 # Acceptance criteria
 
-- [ ] Exactly ten independently triggered Universal Agent E2E executions target suite `login`, scenario `relog` and one pinned Canary server revision.
+- [ ] Exactly ten independently triggered Universal Agent E2E executions target suite `login`, scenario `relog` and pinned Canary server revision `3f1f492079709d9562c9c027cfc48a183fa00eb6`.
 - [ ] Every retained run contains schema-v3 `result.json` and complete schema-v1 cleanup certification.
 - [ ] Failed, cancelled, timed-out and superseded attempts remain visible; retries never replace earlier evidence.
 - [ ] Scenario, Canary revision, OTClient revision, datapack and emitted execution tier match across the counted cell.
@@ -59,18 +59,19 @@ Produce the first factual Universal E2E repeated-run stability baseline from exa
 - [ ] Stability JSON is built with `--minimum-runs 10`, validates, and renders the reviewed Markdown baseline.
 - [ ] Existing factual classification is preserved, including `9/10 -> unstable`.
 - [ ] No scenario, runner, workflow, retention, scheduling, retry or runtime behavior changes.
-- [ ] Exact-head ownership, Stability Certification and CI pass before merge.
+- [ ] Exact-final-head ownership, Stability Certification and CI pass before merge.
 - [ ] Program handoff records the result without starting QRI-023, QRI-024 or nightly/retention work.
 
 # Confirmed context
 
-- Task-start `main`: `3f1f492079709d9562c9c027cfc48a183fa00eb6`.
-- Draft PR: #925; first task-record head: `6824b584f8358009658a86ea6eae7dc0bc1b3ec1`.
+- Task-start and pinned server revision: `3f1f492079709d9562c9c027cfc48a183fa00eb6`.
+- Draft PR: #925; current verified preflight head: `dbd1129ee6cdf83b3f1d9a1f8a0c4aa542ff747c`.
 - Canonical scenario: `tests/e2e/scenarios/login/scenario.json`, suite/id `login/relog`.
 - Scenario pins OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`, datapack `data-otservbr-global`, map `otservbr`, account `@test1`, character `Knight 1`.
 - It requires two world entries, two safe logouts and persisted `lastlogin`, `lastlogout` and vocation assertions.
 - QRI-022 requires exact scenario/server/client/datapack/tier comparability; CLI default minimum is ten.
 - Certification consumes extracted artifacts and does not execute/download/schedule runs or set retention.
+- Exact-head Agent Task Ownership `30166657875` and CI `30166657927` passed on `dbd1129ee6cdf83b3f1d9a1f8a0c4aa542ff747c`.
 
 # Ownership and overlap check
 
@@ -78,15 +79,13 @@ Produce the first factual Universal E2E repeated-run stability baseline from exa
 - Open PRs inspected: #923, #921, #815, #559, #526 and #514.
 - Targeted open-E2E search found no PR claiming `login/relog`, stability implementation or planned baseline report paths.
 - PR #815 changes only `docs/agents/tasks/active/CAN-20260723-oteryn-native-auth-production-cutover.md`.
-- Repository code search is unavailable; exact-head Agent Task Ownership remains the authoritative full active-record check.
-- Local `task_ownership.py` was not run because CHAT has no local checkout.
-- Proven overlap: none. Stop if Ownership CI reports one.
+- Exact-head Agent Task Ownership passed and found no structured overlap on the declared claims.
 
 # Plan
 
-1. Validate exact ownership on draft PR #925.
-2. Pin one Canary server revision and inspect the first result's exact comparability fields.
-3. Trigger ten independent `login/relog` physical executions, preserving every attempt.
+1. Dispatch the first physical run from PR #925 using `suite=login`, `scenario=relog`, `server_repository=blakinio/canary`, `server_ref=3f1f492079709d9562c9c027cfc48a183fa00eb6`.
+2. Inspect its schema-v3 result and cleanup artifact before counting further runs; pin the emitted execution tier.
+3. Trigger nine additional independent runs with identical inputs, preserving every attempt.
 4. Download/extract every evidence artifact and record IDs/digests.
 5. Build, validate and render QRI-022 output with `--minimum-runs 10`.
 6. Commit deterministic JSON plus reviewed Markdown, update program handoff, pass final-head gates and merge.
@@ -97,17 +96,23 @@ Produce the first factual Universal E2E repeated-run stability baseline from exa
 
 - Created branch `test/e2e-qri-022-login-relog-baseline` from exact `main`.
 - Created draft PR #925 with one task-record file.
-- Agent Task Ownership and CI were queued on head `6824b584f8358009658a86ea6eae7dc0bc1b3ec1` before this PR-number checkpoint commit.
-- No physical attempt has been counted.
+- No physical attempt was counted.
+
+## 2026-07-25T18:58:13+02:00
+
+- Agent Task Ownership run `30166657875`: PASS on `dbd1129ee6cdf83b3f1d9a1f8a0c4aa542ff747c`.
+- CI run `30166657927`: PASS on the same head.
+- Selected exact server revision `3f1f492079709d9562c9c027cfc48a183fa00eb6` for all ten physical runs.
+- First physical workflow-dispatch run remains not started.
 
 # Validation and CI
 
 | Commit | Check | Result | Evidence |
 |---|---|---|---|
 | `3f1f492079709d9562c9c027cfc48a183fa00eb6` | Main/open-PR preflight | pass | No proven overlap on intended paths. |
-| `6824b584f8358009658a86ea6eae7dc0bc1b3ec1` | Agent Task Ownership | queued | Run `30166614836`; superseded by this checkpoint commit once emitted. |
-| `6824b584f8358009658a86ea6eae7dc0bc1b3ec1` | CI | queued | Run `30166614919`; superseded by this checkpoint commit once emitted. |
-| pending | checkpoint validator / Ownership / CI | not-run | Required on the current PR head. |
+| `dbd1129ee6cdf83b3f1d9a1f8a0c4aa542ff747c` | Agent Task Ownership | pass | Run `30166657875`. |
+| `dbd1129ee6cdf83b3f1d9a1f8a0c4aa542ff747c` | CI | pass | Run `30166657927`. |
+| pending | First Universal Agent E2E `login/relog` workflow dispatch | not-run | Must use the pinned server revision and preserve the full artifact. |
 
 # Risks and boundaries
 
@@ -121,8 +126,8 @@ Produce the first factual Universal E2E repeated-run stability baseline from exa
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T18:56:35+02:00
-head: 6824b584f8358009658a86ea6eae7dc0bc1b3ec1
+updated_at: 2026-07-25T18:58:13+02:00
+head: dbd1129ee6cdf83b3f1d9a1f8a0c4aa542ff747c
 branch: test/e2e-qri-022-login-relog-baseline
 pr: 925
 status: implementing
@@ -135,21 +140,21 @@ owned_paths:
   - docs/e2e/baselines/e2e-login-relog-stability-baseline.json
   - docs/agents/programs/E2E_AUTOMATION_PROGRAM.md
 proven:
-  - Main at task selection is 3f1f492079709d9562c9c027cfc48a183fa00eb6 and QRI-022 lifecycle debt is closed through PR 924.
-  - Draft PR 925 exists in blakinio/canary with the bounded task record and no physical attempts counted.
+  - Main at task selection and the pinned server revision are 3f1f492079709d9562c9c027cfc48a183fa00eb6.
+  - Draft PR 925 exists in blakinio/canary and no physical attempt is counted.
   - Canonical login/relog pins OTClient 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f, data-otservbr-global and the two-session Knight 1 lifecycle.
   - QRI-022 requires exact comparability, defaults minimum_runs to 10 and classifies 9/10 as unstable.
-  - Targeted open-PR inspection found no claim on the scenario, stability implementation or planned baseline outputs.
+  - Agent Task Ownership 30166657875 and CI 30166657927 passed on dbd1129ee6cdf83b3f1d9a1f8a0c4aa542ff747c with no ownership conflict.
 derived:
-  - Existing execution and certification contracts are sufficient; this task needs evidence collection and durable reporting, not reusable implementation changes.
+  - Existing execution and certification contracts are sufficient; the task now needs physical evidence collection and durable reporting.
 unknown:
-  - Exact execution_tier emitted by the first current workflow-dispatch result.
+  - Exact execution_tier emitted by the first workflow-dispatch result.
   - Whether ten attempts form one complete comparable cell.
   - Final factual classification.
 conflicts: []
 first_failure:
-  marker: current-head-ownership-ci-not-yet-run
-  evidence: PR 925 was checkpointed after creation; exact-head Agent Task Ownership must run on the new commit.
+  marker: first-counted-physical-run-not-started
+  evidence: Ownership and CI preflight passed, but no Universal Agent E2E workflow_dispatch run has been triggered for this baseline.
 rejected_hypotheses:
   - Start QRI-023 or QRI-024 first: rejected because the programme orders the factual baseline first.
   - Add runner, retry, collector, retention or scheduling behavior: rejected as outside the bounded baseline contract.
@@ -160,10 +165,13 @@ validation:
   - command: live main and targeted open-PR overlap preflight
     result: PASS
     evidence: main 3f1f492079709d9562c9c027cfc48a183fa00eb6; no proven overlap; PR 815 changes one unrelated task record.
-  - command: exact-head Agent Task Ownership and checkpoint validation
-    result: NOT_RUN
-    evidence: Await workflow on the current PR head after this checkpoint commit.
+  - command: Agent Task Ownership
+    result: PASS
+    evidence: run 30166657875 on dbd1129ee6cdf83b3f1d9a1f8a0c4aa542ff747c.
+  - command: CI
+    result: PASS
+    evidence: run 30166657927 on dbd1129ee6cdf83b3f1d9a1f8a0c4aa542ff747c.
 blockers:
-  - Exact-head Agent Task Ownership must validate PR 925 before the first counted physical run.
-next_action: Verify exact-head Agent Task Ownership on PR 925, then pin the Canary server revision and trigger the first counted login/relog execution.
+  - The current GitHub connector exposes workflow inspection and reruns but not creation of a new workflow_dispatch run; the first counted physical execution requires the bounded local/GitHub CLI execution step.
+next_action: Trigger the first Universal Agent E2E workflow_dispatch run for PR 925 with suite=login, scenario=relog, server_repository=blakinio/canary and server_ref=3f1f492079709d9562c9c027cfc48a183fa00eb6, then inspect its result.json and cleanup certification before counting further runs.
 ```
