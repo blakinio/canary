@@ -8,10 +8,10 @@ branch: dudantas/oam-050-physical-client-e2e-governance
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-26
-last_verified_commit: "bcc9c3b9708559d8162d2455a5206ad86ddb8eca"
+last_verified_commit: "c19b7aad96f1a293cd135b449ba2820657658892"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "947"
 depends_on:
   - OAM-049 durably completed as f8a96b8b7c80528e9129bdfbd5778d606f762d19
 blocks:
@@ -45,10 +45,10 @@ Universal Physical-Client E2E remains active in Canary as the single reusable va
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T00:36:00+02:00
-head: bcc9c3b9708559d8162d2455a5206ad86ddb8eca
+updated_at: 2026-07-26T00:38:00+02:00
+head: c19b7aad96f1a293cd135b449ba2820657658892
 branch: dudantas/oam-050-physical-client-e2e-governance
-pr: null
+pr: 947
 status: validating
 context_routes:
   - agent-governance
@@ -95,10 +95,10 @@ validation:
     evidence: Canary retains the platform and exact Otheryn server_ref selection already exists.
   - command: Canary governance exact-head gates
     result: NOT_RUN
-    evidence: Governance PR must pass Ownership and full CI on its final head.
+    evidence: PR 947 must pass Ownership and full CI on its final head.
 blockers:
   - Canary governance exact-head Ownership and CI
   - clean discussion and Canary-main drift audit
   - governance merge, lifecycle archive and durable reconciliation
-next_action: Open the Canary governance PR, bind this task to it, require exact-head Ownership and full CI, then merge and complete lifecycle plus durable reconciliation before OAM-051.
+next_action: Apply ci:final-gate to PR 947, require exact-head Ownership and full CI, then audit and merge before lifecycle plus durable reconciliation.
 ```
