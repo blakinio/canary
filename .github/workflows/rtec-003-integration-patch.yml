@@ -1,0 +1,259 @@
+name: RTEC-003 Lifecycle Hardening Patch
+
+on:
+  push:
+    branches:
+      - feat/rtec-003-owner-request-lifecycle-20260725
+    paths:
+      - ".github/workflows/rtec-003-integration-patch.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feat/rtec-003-owner-request-lifecycle-20260725
+          fetch-depth: 0
+
+      - name: Apply exact lifecycle hardening
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def once(text: str, old: str, new: str, label: str) -> str:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected one match, found {count}")
+              return text.replace(old, new)
+
+          path = Path("tools/agents/real_tibia_owner_request.py")
+          text = path.read_text(encoding="utf-8")
+          text = once(text, "def _history_event(\n", '''def _owner_identity(
+              *,
+              actor_task: str,
+              actor_pr: int | None,
+              owner_task: str | None,
+              owner_pr: int | None,
+          ) -> tuple[str, int]:
+              resolved_pr = _positive_pr(actor_pr, "owner action")
+              if owner_task is not None and owner_task != actor_task:
+                  raise RequestLifecycleError("owner task metadata must match the owner actor task")
+              if owner_pr is not None and owner_pr != resolved_pr:
+                  raise RequestLifecycleError("owner PR metadata must match the owner actor PR")
+              return actor_task, resolved_pr
+
+
+          def _history_event(
+          ''', "owner identity helper")
+          text = once(text, '''    if to_status in OWNER_CONTROLLED_STATUSES:
+              if actor_role != "owner":
+                  raise RequestLifecycleError(
+                      f"transition to {to_status} requires owner actor and positive owner PR"
+                  )
+              actor_pr = _positive_pr(actor_pr, f"transition to {to_status}")
+              if owner_evidence_ref is None:
+                  raise RequestLifecycleError(
+                      f"transition to {to_status} requires stable owner evidence"
+                  )
+              parse_stable_result_ref(owner_evidence_ref)
+          elif owner_evidence_ref is not None:
+              parse_stable_result_ref(owner_evidence_ref)
+          ''', '''    resolved_owner: tuple[str, int] | None = None
+              if to_status in OWNER_CONTROLLED_STATUSES:
+                  if actor_role != "owner":
+                      raise RequestLifecycleError(
+                          f"transition to {to_status} requires owner actor and positive owner PR"
+                      )
+                  resolved_owner = _owner_identity(
+                      actor_task=actor_task,
+                      actor_pr=actor_pr,
+                      owner_task=owner_task,
+                      owner_pr=owner_pr,
+                  )
+                  actor_pr = resolved_owner[1]
+                  if owner_evidence_ref is None:
+                      raise RequestLifecycleError(
+                          f"transition to {to_status} requires stable owner evidence"
+                      )
+                  parse_stable_result_ref(owner_evidence_ref)
+              elif actor_role == "owner":
+                  resolved_owner = _owner_identity(
+                      actor_task=actor_task,
+                      actor_pr=actor_pr,
+                      owner_task=owner_task,
+                      owner_pr=owner_pr,
+                  )
+                  actor_pr = resolved_owner[1]
+                  if owner_evidence_ref is not None:
+                      parse_stable_result_ref(owner_evidence_ref)
+              elif owner_evidence_ref is not None:
+                  parse_stable_result_ref(owner_evidence_ref)
+          ''', "owner transition validation")
+          text = once(text, '''    if actor_role == "owner":
+              value["coordination"]["owner_task"] = owner_task or actor_task
+              value["coordination"]["owner_pr"] = owner_pr or actor_pr
+          ''', '''    if resolved_owner is not None:
+              value["coordination"]["owner_task"] = resolved_owner[0]
+              value["coordination"]["owner_pr"] = resolved_owner[1]
+          ''', "owner transition assignment")
+          text = once(text, '''    actor_pr = _positive_pr(actor_pr, "owner result")
+              if proof_level not in PROOF_RANK:
+          ''', '''    resolved_owner = _owner_identity(
+                  actor_task=actor_task,
+                  actor_pr=actor_pr,
+                  owner_task=owner_task,
+                  owner_pr=owner_pr,
+              )
+              actor_pr = resolved_owner[1]
+              if proof_level not in PROOF_RANK:
+          ''', "result owner identity")
+          text = once(text, '''    value["coordination"]["owner_task"] = owner_task or actor_task
+              value["coordination"]["owner_pr"] = owner_pr or actor_pr
+          ''', '''    value["coordination"]["owner_task"] = resolved_owner[0]
+              value["coordination"]["owner_pr"] = resolved_owner[1]
+          ''', "result owner assignment")
+          text = once(text, '''        repository_ok = (
+                  reference.repository is None
+                  or locator.get("repository") in {None, reference.repository}
+              )
+              return repository_ok and reference.sha256 in {
+                  locator.get("artifact_sha256"),
+                  external_digest,
+              }
+          ''', '''        repository_ok = (
+                  reference.repository is None
+                  or locator.get("repository") in {None, reference.repository}
+              )
+              report_ok = (
+                  reference.kind == "external-report"
+                  or locator.get("report_id") == reference.raw
+              )
+              return repository_ok and report_ok and reference.sha256 in {
+                  locator.get("artifact_sha256"),
+                  external_digest,
+              }
+          ''', "artifact identity")
+          text = once(text, '''    _, parsed_refs = _stable_refs(result.get("result_refs", []), "result refs")
+              owner_kind = str(request.get("owner_kind"))
+          ''', '''    _, parsed_refs = _stable_refs(result.get("result_refs", []), "result refs")
+              result_proves = set(_unique_nonempty(result.get("proves", []), "result proves"))
+              result_nonproof = set(
+                  _unique_nonempty(result.get("does_not_prove", []), "result does_not_prove")
+              )
+              owner_kind = str(request.get("owner_kind"))
+          ''', "retained boundaries")
+          text = once(text, '''            if any(
+                      _source_matches_ref(source, reference)
+                      for reference in parsed_refs
+                  ):
+                      matching = True
+          ''', '''            if any(
+                      _source_matches_ref(source, reference)
+                      for reference in parsed_refs
+                  ):
+                      source_proves = set(
+                          _unique_nonempty(source.get("proves", []), f"{evidence_id} source proves")
+                      )
+                      source_nonproof = set(
+                          _unique_nonempty(
+                              source.get("does_not_prove", []),
+                              f"{evidence_id} source does_not_prove",
+                          )
+                      )
+                      extra_proves = sorted(source_proves - result_proves)
+                      if extra_proves:
+                          raise RequestLifecycleError(
+                              f"evidence source in {evidence_id} claims owner proof absent "
+                              f"from the retained result: {extra_proves}"
+                          )
+                      missing_nonproof = sorted(result_nonproof - source_nonproof)
+                      if missing_nonproof:
+                          raise RequestLifecycleError(
+                              f"evidence source in {evidence_id} drops retained result "
+                              f"nonproof boundaries: {missing_nonproof}"
+                          )
+                      matching = True
+          ''', "source boundaries")
+          text = once(text, '''    generated_paths = set(candidate.generated_files(as_of))
+          ''', '''    fenced = Corpus.load(corpus.root)
+              fenced_document = _request_document(fenced, request_id)
+              _check_expected(fenced_document, expected_status, document.sha256)
+
+              generated_paths = set(candidate.generated_files(as_of))
+          ''', "write fence")
+          path.write_text(text, encoding="utf-8")
+
+          path = Path("tools/agents/test_real_tibia_owner_request.py")
+          text = path.read_text(encoding="utf-8")
+          text = once(text, '''OWNER_REF = "github-pr:blakinio/canary#123"
+          ROUTES = {
+          ''', '''OWNER_REF = "github-pr:blakinio/canary#123"
+          RESULT_PROVES = "The bounded owner observation completed."
+          RESULT_NONPROOF = "No broader module or whole-game parity is proven."
+          ROUTES = {
+          ''', "test constants")
+          text = text.replace('proves=["The bounded owner observation completed."]', 'proves=[RESULT_PROVES]')
+          text = text.replace('does_not_prove=["No broader module or whole-game parity is proven."]', 'does_not_prove=[RESULT_NONPROOF]')
+          text = text.replace('proves=["The retained owner result proves the bounded observation."]', 'proves=[RESULT_PROVES]')
+          text = text.replace('does_not_prove=["The result does not prove unrelated behavior."]', 'does_not_prove=[RESULT_NONPROOF]')
+          marker = '''        with self.assertRaisesRegex(owner.RequestLifecycleError, "positive actor PR"):
+                  owner.record_result_value(
+          '''
+          if marker not in text:
+              raise SystemExit("owner PR test anchor missing")
+          insertion = '''        with self.assertRaisesRegex(owner.RequestLifecycleError, "owner task metadata must match"):
+                  owner.transition_value(
+                      ready,
+                      expected_status="ready-for-owner-triage",
+                      to_status="accepted-by-owner",
+                      at="2026-07-25T10:10:00+02:00",
+                      actor="owner",
+                      actor_role="owner",
+                      actor_task="CAN-OWNER",
+                      actor_pr=11,
+                      owner_task="CAN-DIFFERENT-OWNER",
+                      owner_pr=11,
+                      owner_evidence_ref=OWNER_REF,
+                      reason="Mismatched durable owner metadata.",
+                  )
+          '''
+          text = text.replace(marker, insertion + marker, 1)
+          marker = '''        record = self.owner_record("feature", request["request_id"])
+              record["proof_level"] = "physical-client-proven"
+              with self.assertRaisesRegex(owner.RequestLifecycleError, "exceeds owner result proof"):
+                  self.consume(request, record)
+          '''
+          addition = marker + '''        record = self.owner_record("feature", request["request_id"])
+              record["sources"][0]["proves"] = ["An owner claim absent from the retained result."]
+              with self.assertRaisesRegex(owner.RequestLifecycleError, "claims owner proof absent"):
+                  self.consume(request, record)
+              record = self.owner_record("feature", request["request_id"])
+              record["sources"][0]["does_not_prove"] = ["A different limitation."]
+              with self.assertRaisesRegex(owner.RequestLifecycleError, "drops retained result nonproof"):
+                  self.consume(request, record)
+          '''
+          text = once(text, marker, addition, "proof-boundary tests")
+          path.write_text(text, encoding="utf-8")
+          PY
+          rm .github/workflows/rtec-003-integration-patch.yml
+
+      - name: Compile and test hardening patch
+        shell: bash
+        run: |
+          python -m py_compile tools/agents/real_tibia_owner_request.py tools/agents/test_real_tibia_owner_request.py
+          python -m unittest -v tools.agents.test_real_tibia_owner_request
+
+      - name: Commit hardening
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/agents/real_tibia_owner_request.py tools/agents/test_real_tibia_owner_request.py .github/workflows/rtec-003-integration-patch.yml
+          git commit -m "fix(agents): harden RTEC owner-result boundaries"
+          git push origin HEAD:feat/rtec-003-owner-request-lifecycle-20260725
