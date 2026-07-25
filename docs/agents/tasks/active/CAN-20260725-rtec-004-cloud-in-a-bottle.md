@@ -2,13 +2,13 @@
 task_id: CAN-20260725-rtec-004-cloud-in-a-bottle
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-004-W1-CLOUD-IN-A-BOTTLE
-status: validating
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: feat/rtec-004-cloud-in-a-bottle-20260725
 base_branch: main
 created: 2026-07-25T20:18:30+02:00
-updated: 2026-07-25T22:33:00+02:00
-last_verified_commit: "519da23bdaedec8820708772bcce343aa55106b5"
+updated: 2026-07-25T22:35:00+02:00
+last_verified_commit: "9da81d1d5782486b6ee4610c1867487cd06c5c1e"
 risk: low
 related_issue: ""
 related_pr: "931"
@@ -102,11 +102,11 @@ Collect one bounded evidence package for the official Cloud in a Bottle difficul
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T22:33:00+02:00
-head: 519da23bdaedec8820708772bcce343aa55106b5
+updated_at: 2026-07-25T22:35:00+02:00
+head: 9da81d1d5782486b6ee4610c1867487cd06c5c1e
 branch: feat/rtec-004-cloud-in-a-bottle-20260725
 pr: 931
-status: validating
+status: implementing
 context_routes:
   - agent-governance
   - real-tibia-parity
