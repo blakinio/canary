@@ -1,5 +1,6 @@
 name: Universal E2E Stability Certification
 
+# Contract-only validation: this workflow never executes physical scenarios.
 on:
   pull_request:
     branches: [main]
