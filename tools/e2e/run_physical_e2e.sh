@@ -19,6 +19,15 @@ ARTIFACT_DIR="$(cd "${ARTIFACT_DIR}" && pwd)"
 RUN_STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)"
 printf '%s\n' "${RUN_STARTED_AT}" > "${ARTIFACT_DIR}/run-started-at.txt"
 
+emit_workflow_exit() {
+  local status="${1:-1}"
+  printf '%s\n' "${status}" > "${ARTIFACT_DIR}/physical-exit-code.txt"
+  if [[ "${status}" -eq 0 ]]; then
+    return 0
+  fi
+  return 1
+}
+
 execution_tier="${AGENT_E2E_EXECUTION_TIER:-}"
 if [[ -z "${execution_tier}" ]]; then
   if [[ "${GITHUB_EVENT_NAME:-}" == "pull_request" ]]; then
@@ -37,7 +46,8 @@ fi
   python3 -m unittest -v \
     tests.e2e.test_result_envelope \
     tests.e2e.test_cleanup_certification \
-    tests.e2e.test_cleanup_result_envelope
+    tests.e2e.test_cleanup_result_envelope \
+    tests.e2e.test_failure_evidence_retention
 ) > "${ARTIFACT_DIR}/e2e-contract-tests.log" 2>&1
 contract_status=$?
 if [[ "${contract_status}" -ne 0 ]]; then
@@ -72,7 +82,8 @@ PY
     --started-at "${RUN_STARTED_AT}" \
     > "${ARTIFACT_DIR}/result-envelope.stdout.log" \
     2> "${ARTIFACT_DIR}/result-envelope.stderr.log" || true
-  exit "${contract_status}"
+  emit_workflow_exit "${contract_status}"
+  exit $?
 fi
 
 python3 "${CLEANUP}" baseline \
@@ -84,8 +95,22 @@ python3 "${CLEANUP}" baseline \
 baseline_status=$?
 if [[ "${baseline_status}" -ne 0 ]]; then
   cat "${ARTIFACT_DIR}/cleanup-baseline.stderr.log" >&2 || true
-  exit "${baseline_status}"
+  emit_workflow_exit "${baseline_status}"
+  exit $?
 fi
+
+signal_status=0
+lifecycle_pid=""
+lifecycle_pgid=""
+handle_signal() {
+  local status="$1"
+  signal_status="${status}"
+  if [[ -n "${lifecycle_pgid}" ]]; then
+    kill -TERM -- "-${lifecycle_pgid}" 2>/dev/null || true
+  fi
+}
+trap 'handle_signal 143' TERM
+trap 'handle_signal 130' INT
 
 setsid bash "${LIFECYCLE}" &
 lifecycle_pid=$!
@@ -95,6 +120,10 @@ if [[ -z "${lifecycle_pgid}" ]]; then
 fi
 wait "${lifecycle_pid}"
 lifecycle_status=$?
+if [[ "${signal_status}" -ne 0 ]]; then
+  lifecycle_status="${signal_status}"
+fi
+trap - TERM INT
 
 MARIADB_PWD="${DB_PASSWORD}" python3 "${CLEANUP}" certify \
   --artifact-dir "${ARTIFACT_DIR}" \
@@ -168,4 +197,5 @@ fi
 if [[ "${envelope_status}" -ne 0 ]]; then
   cat "${ARTIFACT_DIR}/result-envelope.stderr.log" >&2 || true
 fi
-exit "${final_status}"
+emit_workflow_exit "${final_status}"
+exit $?

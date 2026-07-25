@@ -713,8 +713,14 @@ jobs:
             --cxx "${CXX}"
 
       - name: Run selected physical-client scenario
+        id: physical
         shell: bash
-        run: bash tools/e2e/run_physical_e2e.sh
+        run: |
+          set +e
+          bash tools/e2e/run_physical_e2e.sh
+          status=$?
+          printf 'status=%s\n' "${status}" >> "${GITHUB_OUTPUT}"
+          exit 0
 
       - name: Upload universal E2E evidence
         if: always()
@@ -724,6 +730,26 @@ jobs:
           path: artifacts/
           if-no-files-found: warn
           retention-days: 14
+
+      - name: Propagate physical-client scenario result
+        if: always()
+        shell: bash
+        env:
+          PHYSICAL_STATUS: ${{ steps.physical.outputs.status }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${PHYSICAL_STATUS}" ]]; then
+            echo "physical scenario did not publish an exit status" >&2
+            exit 1
+          fi
+          if [[ ! "${PHYSICAL_STATUS}" =~ ^[0-9]+$ ]]; then
+            echo "physical scenario published an invalid exit status: ${PHYSICAL_STATUS}" >&2
+            exit 1
+          fi
+          if [[ "${PHYSICAL_STATUS}" -ne 0 ]]; then
+            echo "physical scenario failed with captured status ${PHYSICAL_STATUS}" >&2
+            exit 1
+          fi
 
   required:
     name: Required physical E2E
