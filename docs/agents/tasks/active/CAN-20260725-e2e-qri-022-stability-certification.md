@@ -8,7 +8,7 @@ branch: feat/e2e-qri-022-stability-certification
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "486c2fe49316afaeb5dc0bac7649b2b2a6431080"
+last_verified_commit: "775adde566e19b120fe812db350731d8d12515b4"
 risk: medium
 related_issue: ""
 related_pr: "912"
@@ -98,8 +98,8 @@ Deliver one deterministic, read-only certification contract over explicitly supp
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T10:45:00+02:00
-head: 486c2fe49316afaeb5dc0bac7649b2b2a6431080
+updated_at: 2026-07-25T10:50:00+02:00
+head: 775adde566e19b120fe812db350731d8d12515b4
 branch: feat/e2e-qri-022-stability-certification
 pr: 912
 status: validating
@@ -129,12 +129,12 @@ derived:
   - Reusing the QRI-004 evidence boundary avoids a second parser while preserving its fail-closed path rules.
   - Physical repeated-run collection, artifact selection and scheduling remain separate from the certification contract.
 unknown:
-  - Exact final-head workflow outcomes after this checkpoint commit.
+  - Exact final-head workflow outcomes after this checkpoint repair commit.
   - The first selected physical scenario and retained artifact population for a real stability baseline.
 conflicts: []
 first_failure:
-  marker: checkpoint-integration-head-key
-  evidence: The first integration attempt removed the checkpoint `head:` key and was rejected before push; the repaired integration passed. Earlier connector and duplicate temporary-workflow attempts were superseded without partial final-diff changes.
+  marker: final-checkpoint-unsupported-validation-result
+  evidence: Agent Task Ownership run 30151490550 rejected validation item 5 because `UNKNOWN` is unsupported; this checkpoint uses the supported `NOT_RUN` state. Earlier integration and temporary-workflow attempts remain superseded without partial final-diff changes.
 rejected_hypotheses:
   - Treating the dashboard's latest stability dimension as repeated-run certification.
   - Hiding failed attempts behind automatic retry or selecting only successful artifacts.
@@ -162,9 +162,12 @@ validation:
   - command: PR #912 comments, reviews and review threads audit
     result: PASS
     evidence: no comments, reviews or unresolved threads
-  - command: exact final-head gate after this checkpoint commit
-    result: UNKNOWN
-    evidence: ci:final-gate is applied; workflows have not yet completed on the new head
+  - command: Agent Task Ownership workflow run 30151490550
+    result: FAIL
+    evidence: validation item 5 used unsupported result `UNKNOWN`; no implementation defect was reported
+  - command: exact final-head gate after this checkpoint repair commit
+    result: NOT_RUN
+    evidence: ci:final-gate remains applied; workflows have not yet completed on the repaired head
 blockers:
   - A real multi-run physical stability baseline requires a separately selected scenario, retained artifact population and execution package after this contract merges.
 next_action: Verify exact final-head Ownership, focused validation, CI and Universal Agent E2E, then squash-merge PR #912 only if all required checks pass and no review blocker appears.
