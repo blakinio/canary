@@ -2,16 +2,16 @@
 task_id: CAN-20260725-oteryn-oam048-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-048
-status: active
+status: review
 agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-048-gameplay-analytics-preflight
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "913a056058273bdd538f01c93b4cbb068759290e"
+last_verified_commit: "774cee760dde9e0e718fe30e3620686f7e658663"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "934"
 depends_on:
   - OAM-047 durably completed as 913a056058273bdd538f01c93b4cbb068759290e
 blocks:
@@ -40,19 +40,17 @@ Canonical package: `gameplay-analytics`.
 
 Initial disposition: `EXPERIMENTAL_ONLY candidate`.
 
-The package is now dependency-valid after OAM-047 completed `lua-runtime`. It is optional platform tooling rather than core gameplay responsibility, owns only legacy Global datapack, analytics tools/workflows and documentation paths, is disabled by default, and has no target implementation root at the pinned Otheryn head. The current relational model may retain player identifiers and its privacy, retention and production-readiness contracts remain explicitly unresolved.
-
-Final disposition requires bounded target-side proof that Otheryn core does not depend on this telemetry, that the package can remain isolated outside core, and that no consumer requires target-local migration.
+The package is dependency-valid after OAM-047 completed `lua-runtime`. It is optional platform tooling rather than core gameplay responsibility, owns only legacy Global datapack, analytics tools/workflows and documentation paths, is disabled by default, and has no target implementation root at the pinned Otheryn head. The current relational model may retain player identifiers and its privacy, retention and production-readiness contracts remain unresolved.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T20:42:00+02:00
-head: 913a056058273bdd538f01c93b4cbb068759290e
+updated_at: 2026-07-25T20:46:00+02:00
+head: 774cee760dde9e0e718fe30e3620686f7e658663
 branch: dudantas/oam-048-gameplay-analytics-preflight
-pr: pending
-status: investigating
+pr: 934
+status: validating
 context_routes:
   - agent-governance
   - cross-repo
@@ -71,8 +69,8 @@ proven:
   - The representative target config path is absent from Otheryn at task start.
   - Otheryn has no open pull request and current open Canary work does not own analytics implementation paths or this checkpoint.
 derived:
-  - gameplay-analytics is dependency-valid but does not yet satisfy core target ownership or privacy/production criteria.
-  - EXPERIMENTAL_ONLY is the strongest current candidate because the legacy laboratory implementation is useful but should remain isolated from Otheryn core unless separately approved.
+  - gameplay-analytics is dependency-valid but does not satisfy core target ownership or privacy/production criteria.
+  - EXPERIMENTAL_ONLY is the strongest current candidate because the legacy laboratory implementation is useful but must remain isolated from Otheryn core unless separately approved.
 unknown:
   - Whether any target startup path or operator workflow has an undocumented dependency on analytics Lua globals.
   - Exact privacy, retention, schema migration and deletion requirements for a future target analytics product.
@@ -84,7 +82,7 @@ first_failure:
 rejected_hypotheses:
   - Select network-transport while Canary PR 514 owns overlapping authenticated transport validation.
   - Treat existing dry-run or MariaDB tests as production readiness or target ownership.
-  - Import the full legacy analytics stack merely because lua-runtime is now complete.
+  - Import the full legacy analytics stack merely because lua-runtime is complete.
   - Claim anonymization, privacy or retention safety from disabled-by-default configuration.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260725-oteryn-oam048-preflight.md
@@ -98,8 +96,11 @@ validation:
   - command: exact legacy and target root review
     result: PASS
     evidence: Legacy config/loader blobs were pinned and the representative target config path is absent.
+  - command: Canary preflight exact-head gates
+    result: NOT_RUN
+    evidence: PR 934 must pass Ownership and CI on the synchronized head.
 blockers:
   - Canary preflight exact-head Ownership and CI
   - bounded Otheryn core-isolation and target-consumer proof
-next_action: Open and validate the OAM-048 preflight PR, then create the bounded Otheryn disposition task from current target main.
+next_action: Require exact-head Ownership and CI on PR 934, audit discussions and main drift, then merge before creating the Otheryn target disposition task.
 ```
