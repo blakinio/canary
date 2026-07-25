@@ -1,0 +1,85 @@
+name: QRI-022 Compact Handover
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/qri022-compact-handover.yml"
+      - "docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md"
+
+permissions:
+  contents: write
+
+jobs:
+  handover:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'docs/e2e-qri-022-lifecycle-closure'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      TASK_PATH: docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md
+      PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - name: Checkout closure branch
+        uses: actions/checkout@v6
+        with:
+          ref: docs/e2e-qri-022-lifecycle-closure
+          fetch-depth: 0
+
+      - name: Validate checkpoint
+        run: python tools/agents/checkpoint.py "$TASK_PATH" --require-checkpoint
+
+      - name: Record checkpoint validation
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          path = Path(os.environ["TASK_PATH"])
+          text = path.read_text(encoding="utf-8")
+          head = os.environ["PR_HEAD_SHA"]
+          updated = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+          text, count = re.subn(r'last_verified_commit: "[0-9a-fA-F]+"', f'last_verified_commit: "{head}"', text, count=1)
+          if count != 1:
+              raise SystemExit("expected one last_verified_commit")
+          text, count = re.subn(r'^updated_at: .+$', f'updated_at: {updated}', text, count=1, flags=re.MULTILINE)
+          if count != 1:
+              raise SystemExit("expected one checkpoint updated_at")
+          text, count = re.subn(r'^head: [0-9a-fA-F]+$', f'head: {head}', text, count=1, flags=re.MULTILINE)
+          if count != 1:
+              raise SystemExit("expected one checkpoint head")
+          old = """  - command: python tools/agents/checkpoint.py docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md --require-checkpoint
+    result: NOT_RUN
+    evidence: Run immediately after writing this checkpoint."""
+          new = """  - command: python tools/agents/checkpoint.py docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md --require-checkpoint
+    result: PASS
+    evidence: Validated by the QRI-022 Compact Handover workflow on the recorded checkpoint head."""
+          if text.count(old) != 1:
+              raise SystemExit("expected one checkpoint validation placeholder")
+          path.write_text(text.replace(old, new), encoding="utf-8")
+          PY
+
+      - name: Validate finalized checkpoint
+        run: python tools/agents/checkpoint.py "$TASK_PATH" --require-checkpoint
+
+      - name: Generate compact resume bundle
+        run: python tools/agents/resume.py --task "$TASK_PATH" > resume.txt
+
+      - name: Upload compact resume bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: qri022-compact-handover
+          path: resume.txt
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Remove temporary workflow and push checkpoint
+        run: |
+          set -euo pipefail
+          rm .github/workflows/qri022-compact-handover.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "docs(e2e): finalize QRI-022 compact checkpoint"
+          git push origin HEAD:docs/e2e-qri-022-lifecycle-closure
