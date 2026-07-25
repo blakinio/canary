@@ -161,7 +161,8 @@
       ],
       "external_artifact": null,
       "limitations": [
-        "The page does not expose an exact official client build or a machine-readable revision identifier."
+        "The page does not expose an exact official client build or a machine-readable revision identifier.",
+        "The live official manual page has no source-pinned publication date."
       ],
       "locator": {
         "artifact_sha256": null,
@@ -193,7 +194,7 @@
         "symbols": []
       },
       "source_id": "tibia-official-vocations-manual",
-      "source_type": "official-guide"
+      "source_type": "other"
     }
   ],
   "superseded_by": [],
