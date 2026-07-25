@@ -16,6 +16,7 @@ on:
       - "tools/agents/real_tibia_evidence_lib.py"
       - "tools/agents/real_tibia_evidence_test_support.py"
       - "tools/agents/real_tibia_owner_request.py"
+      - "tools/agents/rtec_003_hardening.py"
       - "tools/agents/test_real_tibia_evidence.py"
       - "tools/agents/test_real_tibia_evidence_lifecycle.py"
       - "tools/agents/test_real_tibia_owner_request.py"
@@ -29,6 +30,7 @@ on:
       - "tools/agents/real_tibia_evidence_lib.py"
       - "tools/agents/real_tibia_evidence_test_support.py"
       - "tools/agents/real_tibia_owner_request.py"
+      - "tools/agents/rtec_003_hardening.py"
       - "tools/agents/test_real_tibia_evidence.py"
       - "tools/agents/test_real_tibia_evidence_lifecycle.py"
       - "tools/agents/test_real_tibia_owner_request.py"
@@ -39,6 +41,54 @@ permissions:
   contents: read
 
 jobs:
+  rtec003-hardening:
+    if: github.event_name == 'pull_request' && github.head_ref == 'feat/rtec-003-owner-request-lifecycle-20260725'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v6
+        with:
+          ref: feat/rtec-003-owner-request-lifecycle-20260725
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Apply review hardening
+        run: |
+          python tools/agents/rtec_003_hardening.py
+          git show HEAD^:.github/workflows/real-tibia-evidence.yml > .github/workflows/real-tibia-evidence.yml
+
+      - name: Validate hardened package
+        run: |
+          python -m py_compile \
+            tools/agents/real_tibia_evidence.py \
+            tools/agents/real_tibia_evidence_lib.py \
+            tools/agents/real_tibia_evidence_test_support.py \
+            tools/agents/real_tibia_owner_request.py \
+            tools/agents/test_real_tibia_owner_request.py
+          python -m unittest -v tools/agents/test_real_tibia_owner_request.py
+          python -m unittest discover -v -s tools/agents -p 'test_real_tibia*.py'
+          python tools/agents/real_tibia_registry.py validate
+          python tools/agents/real_tibia_registry.py generate --check
+          python tools/agents/real_tibia_evidence.py validate --as-of 2026-07-25
+          python tools/agents/real_tibia_evidence.py generate --check --as-of 2026-07-25
+          git diff --exit-code -- docs/agents/real-tibia/evidence/requests/feature/RTREQ-FEATURE-VOCATIONS-0001.yaml
+
+      - name: Commit validated hardening
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && { echo "No hardening changes produced"; exit 1; }
+          git commit -m "fix(agents): harden RTEC-003 owner result consumption"
+          git push origin HEAD:feat/rtec-003-owner-request-lifecycle-20260725
+
   validate:
     name: Validate evidence contracts and indexes
     runs-on: ubuntu-24.04
