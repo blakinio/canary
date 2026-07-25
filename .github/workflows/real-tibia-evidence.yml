@@ -41,37 +41,6 @@ permissions:
   contents: read
 
 jobs:
-  compact-handover:
-    if: github.event_name == 'pull_request' && github.head_ref == 'feat/rtec-003-owner-request-lifecycle-20260725'
-    name: Validate checkpoint and generate resume bundle
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    steps:
-      - name: Checkout exact head
-        uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Validate active task checkpoint
-        run: python tools/agents/checkpoint.py docs/agents/tasks/active/CAN-20260725-rtec-003-owner-request-lifecycle.md --require-checkpoint
-
-      - name: Generate compact resume bundle
-        run: python tools/agents/resume.py --task docs/agents/tasks/active/CAN-20260725-rtec-003-owner-request-lifecycle.md > /tmp/rtec-003-resume.txt
-
-      - name: Upload exact resume output
-        uses: actions/upload-artifact@v4
-        with:
-          name: rtec-003-compact-handover
-          path: /tmp/rtec-003-resume.txt
-          if-no-files-found: error
-          retention-days: 14
-
   validate:
     name: Validate evidence contracts and indexes
     runs-on: ubuntu-24.04
