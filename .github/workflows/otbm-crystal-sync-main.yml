@@ -1,0 +1,111 @@
+name: OTBM Crystal Controlled Main Sync
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/otbm-crystal-sync-main.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'analysis/otbm-crystal-parity-baseline'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: analysis/otbm-crystal-parity-baseline
+          fetch-depth: 0
+
+      - name: Merge current main and preserve both changelog entries
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+
+          otbm_line=$(grep -F -- '- Fixes full-index `canary-otbm-semantic-diff-v1`' docs/agents/CHANGELOG.md)
+          main_sha=$(git rev-parse origin/main)
+
+          set +e
+          git merge --no-ff --no-commit origin/main
+          merge_status=$?
+          set -e
+
+          if [[ $merge_status -ne 0 ]]; then
+            conflicts=$(git diff --name-only --diff-filter=U)
+            if [[ "$conflicts" != "docs/agents/CHANGELOG.md" ]]; then
+              echo "Unexpected merge conflicts:"
+              printf '%s\n' "$conflicts"
+              exit 1
+            fi
+            git checkout --theirs docs/agents/CHANGELOG.md
+            OTBM_LINE="$otbm_line" python - <<'PY'
+          import os
+          from pathlib import Path
+
+          path = Path("docs/agents/CHANGELOG.md")
+          text = path.read_text(encoding="utf-8")
+          line = os.environ["OTBM_LINE"]
+          if line not in text:
+              marker = "## Unreleased\n\n"
+              if marker not in text:
+                  raise SystemExit("missing Unreleased marker")
+              text = text.replace(marker, marker + line + "\n", 1)
+          path.write_text(text, encoding="utf-8")
+          PY
+            git add docs/agents/CHANGELOG.md
+          fi
+
+          unresolved=$(git diff --name-only --diff-filter=U)
+          if [[ -n "$unresolved" ]]; then
+            echo "Unresolved paths remain:"
+            printf '%s\n' "$unresolved"
+            exit 1
+          fi
+
+          git commit -m "chore(otbm): sync current main"
+          merge_sha=$(git rev-parse HEAD)
+
+          MAIN_SHA="$main_sha" MERGE_SHA="$merge_sha" python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          path = Path("docs/agents/tasks/active/CAN-20260725-otbm-crystal-parity-baseline.md")
+          text = path.read_text(encoding="utf-8")
+          main_sha = os.environ["MAIN_SHA"]
+          merge_sha = os.environ["MERGE_SHA"]
+          stamp = "2026-07-25T16:00:00+02:00"
+
+          text = re.sub(r"^updated: .+$", f"updated: {stamp}", text, count=1, flags=re.MULTILINE)
+          text = re.sub(r'^last_verified_commit: ".+"$', f'last_verified_commit: "{merge_sha}"', text, count=1, flags=re.MULTILINE)
+          text = re.sub(r"^base: main@[0-9a-f]{40}$", f"base: main@{main_sha}", text, count=1, flags=re.MULTILINE)
+          text = re.sub(r"^updated_at: .+$", f"updated_at: {stamp}", text, count=1, flags=re.MULTILINE)
+          text = re.sub(r"^head: [0-9a-f]{40}$", f"head: {merge_sha}", text, count=1, flags=re.MULTILINE)
+          text = re.sub(r"^status: ready$", "status: validating", text, count=1, flags=re.MULTILINE)
+          text = text.replace(
+              "  - command: protected final-head workflow set\n    result: NOT_RUN\n    evidence: ci:final-gate must be applied after this durable ready checkpoint is validated",
+              "  - command: current-main synchronization merge\n    result: PASS\n    evidence: current main was merged with both OTBM and QRI-022 changelog entries preserved\n  - command: protected final-head workflow set after current-main synchronization\n    result: NOT_RUN\n    evidence: exact-head workflows must run on a connector-authored head after this checkpoint commit",
+              1,
+          )
+          text = re.sub(
+              r"^next_action: .+$",
+              "next_action: Trigger and validate the exact-head workflow set after current-main synchronization, then apply ci:final-gate and squash-merge PR 913 without further code changes.",
+              text,
+              count=1,
+              flags=re.MULTILINE,
+          )
+          path.write_text(text, encoding="utf-8")
+          PY
+
+          rm .github/workflows/otbm-crystal-sync-main.yml
+          git add docs/agents/tasks/active/CAN-20260725-otbm-crystal-parity-baseline.md \
+            .github/workflows/otbm-crystal-sync-main.yml
+          git commit -m "docs(otbm): checkpoint current-main synchronization"
+          git push origin HEAD:analysis/otbm-crystal-parity-baseline
