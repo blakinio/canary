@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: fix/e2e-failure-evidence-retention
 base_branch: main
 created: 2026-07-25T21:05:00+02:00
-updated: 2026-07-25T21:05:00+02:00
-last_verified_commit: "8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9"
+updated: 2026-07-25T21:48:00+02:00
+last_verified_commit: "3e58a12c94cc6c336005b8ea28d97e4f725a5d0a"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "940"
 depends_on:
   - "Blocked baseline PR #925 and Universal Agent E2E run 30167381956"
 blocks:
@@ -68,13 +68,21 @@ The workflow will capture the physical command status, upload the artifact direc
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T21:05:00+02:00
-head: 8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9
+updated_at: 2026-07-25T21:48:00+02:00
+head: 3e58a12c94cc6c336005b8ea28d97e4f725a5d0a
 branch: fix/e2e-failure-evidence-retention
+pr: 940
 status: implementing
 context_routes:
   - agent-governance
   - universal-e2e
+owned_paths:
+  - docs/agents/tasks/active/CAN-20260725-e2e-failure-evidence-retention.md
+  - .github/workflows/universal-agent-e2e.yml
+  - tools/e2e/run_physical_e2e.sh
+  - tests/e2e/test_failure_evidence_retention.py
+  - tests/e2e/scenarios/retention/failure-evidence-probe.json
+  - docs/agents/programs/E2E_AUTOMATION_PROGRAM.md
 proven:
   - PR 925 is blocked because a failed physical job retained no result or cleanup artifact.
   - The existing workflow uploads evidence only after the physical shell step.
@@ -84,11 +92,17 @@ unknown:
   - Exact lower-level cause of the original physical failure.
 conflicts: []
 first_failure:
-  marker: physical-failure-evidence-not-retained
-  evidence: run 30167381956, physical job 89708625391, upload step skipped.
+  marker: active-task-checkpoint-incomplete
+  evidence: ownership run 30172109973 required checkpoint fields pr, owned_paths and rejected_hypotheses.
+rejected_hypotheses:
+  - Treat the missing artifact as an acceptable flaky retry: rejected because the stability contract requires every attempt to remain visible.
+  - Change PR 925 workflow behavior in place: rejected because the baseline PR measures the existing lifecycle and owns evidence only.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260725-e2e-failure-evidence-retention.md
-validation: []
+validation:
+  - command: Agent Task Ownership
+    result: FAIL
+    evidence: run 30172109973; checkpoint fields only.
 blockers: []
-next_action: Open the bounded draft PR and wait for ownership preflight before changing the workflow.
+next_action: Wait for exact-head ownership preflight, then implement capture, upload and explicit failure propagation.
 ```
