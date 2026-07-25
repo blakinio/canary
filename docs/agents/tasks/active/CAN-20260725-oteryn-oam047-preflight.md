@@ -8,10 +8,10 @@ branch: dudantas/oam-047-lua-runtime-governance
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "e2b5cb97abfb0b9fee8d83a863437ada42347069"
+last_verified_commit: "9ca36f79483e9ade00fae0fc407e7b68f29bf00e"
 risk: high
 related_issue: ""
-related_pr: "pending"
+related_pr: "928"
 depends_on:
   - OAM-046 durably completed as 2b09ef1acfe23d1ef4027c85f44b0093420d7434
 blocks:
@@ -47,10 +47,10 @@ The shared Lua architecture remains suitable. Main-state replacement required on
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T20:16:00+02:00
-head: e2b5cb97abfb0b9fee8d83a863437ada42347069
+updated_at: 2026-07-25T20:18:00+02:00
+head: 9ca36f79483e9ade00fae0fc407e7b68f29bf00e
 branch: dudantas/oam-047-lua-runtime-governance
-pr: pending
+pr: 928
 status: validating
 context_routes:
   - agent-governance
@@ -72,6 +72,7 @@ proven:
   - Windows CMake/Solution, Linux release/debug, macOS, Docker, Lua tests, focused tests and runtime smokes passed on the final attempt.
   - PR 107 had clean discussions and zero target-main drift and merged as 5b3bee0dd6eedf8c2f9578c686ca85c0fde519cf.
   - Otheryn lifecycle PR 108 passed Required 30169112582, had clean discussions and merged as 68e2b233b02356a79a03422ed51d757b85915bc5.
+  - Canary governance PR 928 opened from task-start main 124b029d1a2498a64fa6612b16efa386b8786a83 with exactly the task and package report paths.
 derived:
   - lua-runtime requires ADAPT rather than REUSE because main-state replacement did not preserve attached child-interface validity.
   - The correction remains inside shared Lua lifecycle and does not own feature-specific script reload policy.
@@ -108,10 +109,10 @@ validation:
     evidence: Feature and lifecycle PRs passed their required gates, had clean discussions and merged as recorded above.
   - command: Canary governance exact-head gates
     result: NOT_RUN
-    evidence: Governance PR must be opened and validated on its synchronized exact head.
+    evidence: PR 928 must pass on the synchronized exact head.
 blockers:
   - Canary governance exact-head Ownership and CI
   - clean discussion and Canary-main drift audit
   - governance merge, Canary lifecycle archive and durable program reconciliation
-next_action: Open the Canary governance PR, synchronize its checkpoint, require exact-head Ownership and CI, then merge and finish lifecycle plus durable reconciliation before OAM-048.
+next_action: Require exact-head Ownership and CI on PR 928, audit discussions and Canary-main drift, then merge and finish lifecycle plus durable reconciliation before OAM-048.
 ```
