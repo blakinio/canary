@@ -177,7 +177,7 @@ proven:
   - RTREQ-FEATURE-VOCATIONS-0001 remains ready-for-owner-triage without fabricated owner evidence
   - all exact-head GitHub workflows passed on 7f6b612e2c56e86a850370e5c3e80979b1fc0479
   - RTEC-004 has not started
- derived:
+derived:
   - the separate lifecycle CLI reuses schema version 1 without creating another owner execution system
 unknown: []
 conflicts: []
