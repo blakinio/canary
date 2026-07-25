@@ -8,7 +8,7 @@ branch: dudantas/oam-051-wheel-of-destiny-preflight
 base_branch: main
 created: 2026-07-26
 updated: 2026-07-26
-last_verified_commit: "0a2d7377a7ed53dd49dccb672446e1e30de9edde"
+last_verified_commit: "6bd092a8f32f96bb7e94860a13a474eb2b8587ab"
 risk: high
 related_issue: ""
 related_pr: "951"
@@ -106,8 +106,8 @@ The current Canary implementation removes Hunting Task Points before writing Whe
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T01:42:00+02:00
-head: 0a2d7377a7ed53dd49dccb672446e1e30de9edde
+updated_at: 2026-07-26T01:50:00+02:00
+head: 6bd092a8f32f96bb7e94860a13a474eb2b8587ab
 branch: dudantas/oam-051-wheel-of-destiny-preflight
 pr: 951
 status: validating
@@ -178,9 +178,9 @@ validation:
     evidence: First target package is restricted to Wheel safety/state-integrity hunks plus focused tests and excludes balance/effect and Task Shop behavior.
   - command: Canary preflight exact-head gates
     result: NOT_RUN
-    evidence: PR 951 must pass Ownership and CI on the final synchronized head.
+    evidence: The ci:final-gate label is applied; this final checkpoint commit must trigger full Ownership and CI on the exact new head.
 blockers:
-  - Canary preflight exact-head Ownership and CI
+  - Canary preflight exact-head Ownership and full CI
   - clean discussion and Canary-main drift audit
-next_action: Merge PR 951 after exact-head gates and clean audits, then open Otheryn OAM-051A from ff90e93d872b6b47720f711483a9832203d5258d with only the approved Wheel safety/state-integrity hunks and focused deterministic tests.
+next_action: Merge PR 951 after exact-head full gates and clean audits, then open Otheryn OAM-051A from ff90e93d872b6b47720f711483a9832203d5258d with only the approved Wheel safety/state-integrity hunks and focused deterministic tests.
 ```
