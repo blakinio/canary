@@ -8,10 +8,10 @@ branch: dudantas/oam-048-gameplay-analytics-governance
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "83cc363eeebf960ee5c4660a012e8cc27be588e8"
+last_verified_commit: "e83086a584c8bb12a56a9a4b2ea99c8985540fef"
 risk: high
 related_issue: ""
-related_pr: "pending"
+related_pr: "936"
 depends_on:
   - OAM-047 durably completed as 913a056058273bdd538f01c93b4cbb068759290e
 blocks:
@@ -43,10 +43,10 @@ Final disposition: `gameplay-analytics → EXPERIMENTAL_ONLY`.
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T21:10:00+02:00
-head: 83cc363eeebf960ee5c4660a012e8cc27be588e8
+updated_at: 2026-07-25T21:14:00+02:00
+head: e83086a584c8bb12a56a9a4b2ea99c8985540fef
 branch: dudantas/oam-048-gameplay-analytics-governance
-pr: pending
+pr: 936
 status: validating
 context_routes:
   - agent-governance
@@ -65,7 +65,7 @@ proven:
   - EXPERIMENTAL_ONLY defines strict isolation and adds no target runtime, schema, workflow, data or test path.
   - Otheryn head 620d29db5d7bb9ef1fa8b39f1d1b7f70dc91c75b passed Required 30170065044 and PR 109 merged as a6e2993ed32b1316168045ad0b97ddebb50a2128 after clean audit.
   - Otheryn lifecycle head f5a8a05c942433a412300a8046f91c98eefc5362 passed Required 30170145992 and PR 110 merged as fc93848796f05108684dfbb218f7434a8cb88755 after clean audit.
-  - The Canary governance report records exact baselines, isolation contract, rejected alternatives and nonclaims.
+  - Canary governance PR 936 opened with exactly the active task and governance report.
 derived:
   - Gameplay Analytics does not meet Otheryn core ownership criteria.
   - EXPERIMENTAL_ONLY preserves laboratory usefulness while preventing accidental core dependency or production activation.
@@ -94,10 +94,10 @@ validation:
     evidence: PR 109 and PR 110 passed Required, clean discussions and zero target-main drift.
   - command: Canary governance exact-head gates
     result: NOT_RUN
-    evidence: The governance PR must be opened and validated.
+    evidence: PR 936 must pass Ownership and CI on the synchronized head.
 blockers:
   - Canary governance exact-head Ownership and CI
   - clean discussion and Canary-main drift audit
   - governance merge, lifecycle archive and durable reconciliation
-next_action: Open the Canary governance PR, require exact-head Ownership and CI, then merge and finish lifecycle plus durable reconciliation before OAM-049.
+next_action: Require exact-head Ownership and CI on PR 936, audit discussions and Canary-main drift, then merge and finish lifecycle plus durable reconciliation before OAM-049.
 ```
