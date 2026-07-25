@@ -15,8 +15,10 @@ on:
       - "tools/agents/real_tibia_evidence.py"
       - "tools/agents/real_tibia_evidence_lib.py"
       - "tools/agents/real_tibia_evidence_test_support.py"
+      - "tools/agents/real_tibia_owner_request.py"
       - "tools/agents/test_real_tibia_evidence.py"
       - "tools/agents/test_real_tibia_evidence_lifecycle.py"
+      - "tools/agents/test_real_tibia_owner_request.py"
       - ".github/workflows/real-tibia-evidence.yml"
   pull_request:
     paths:
@@ -26,8 +28,10 @@ on:
       - "tools/agents/real_tibia_evidence.py"
       - "tools/agents/real_tibia_evidence_lib.py"
       - "tools/agents/real_tibia_evidence_test_support.py"
+      - "tools/agents/real_tibia_owner_request.py"
       - "tools/agents/test_real_tibia_evidence.py"
       - "tools/agents/test_real_tibia_evidence_lifecycle.py"
+      - "tools/agents/test_real_tibia_owner_request.py"
       - ".github/workflows/real-tibia-evidence.yml"
   workflow_dispatch:
 
@@ -60,11 +64,13 @@ jobs:
             tools/agents/real_tibia_evidence.py \
             tools/agents/real_tibia_evidence_lib.py \
             tools/agents/real_tibia_evidence_test_support.py \
+            tools/agents/real_tibia_owner_request.py \
             tools/agents/test_real_tibia_evidence.py \
-            tools/agents/test_real_tibia_evidence_lifecycle.py
+            tools/agents/test_real_tibia_evidence_lifecycle.py \
+            tools/agents/test_real_tibia_owner_request.py
 
       - name: Run focused positive and negative tests
-        run: python -m unittest discover -v -s tools/agents -p 'test_real_tibia_evidence*.py'
+        run: python -m unittest discover -v -s tools/agents -p 'test_real_tibia*.py'
 
       - name: Validate canonical Real Tibia registry
         run: |
@@ -79,3 +85,17 @@ jobs:
 
       - name: Exercise factual index output
         run: python tools/agents/real_tibia_evidence.py show-index --as-of 2026-07-25 > /tmp/real-tibia-evidence-index.json
+
+      - name: Verify production request stays unclaimed
+        run: |
+          python tools/agents/real_tibia_owner_request.py transition \
+            --request-id RTREQ-FEATURE-VOCATIONS-0001 \
+            --expected-status ready-for-owner-triage \
+            --as-of 2026-07-25 \
+            --at 2026-07-25T12:00:00+02:00 \
+            --actor ci-dry-run \
+            --actor-role reviewer \
+            --actor-task CAN-RTEC-CI-DRY-RUN \
+            --reason "CI dry-run verifies validation without owner-state mutation." \
+            --to-status rejected > /tmp/real-tibia-owner-request-dry-run.json
+          test "$(python -c 'import json; print(json.load(open("docs/agents/real-tibia/evidence/requests/feature/RTREQ-FEATURE-VOCATIONS-0001.yaml"))["status"])')" = "ready-for-owner-triage"
