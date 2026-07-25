@@ -9,7 +9,7 @@ updated: 2026-07-25T20:50:00+02:00
 last_verified_commit: "5aaeb2373c4d5e2c8f5c592b629b646085277414"
 branch: docs/otbm-crystal-parity-lifecycle
 base_branch: main
-related_pr: "923"
+related_pr: "923, 935"
 module_id: otbm-tooling
 routes:
   - otbm
@@ -34,7 +34,7 @@ blockers: []
 - Delivery PR: #923.
 - Exact final delivery head: `68ec4b58bc407979e7c03eb5eb9a280b74c06e24`.
 - Squash merge commit: `5aaeb2373c4d5e2c8f5c592b629b646085277414`.
-- Lifecycle closure PR: pending.
+- Lifecycle closure PR: #935.
 - Final Agent Task Ownership: PASS, run `30169021582`.
 - Final OTBM Semantic Diff: PASS, run `30169021566`.
 - Final OTBM Map Tools: PASS, run `30169021595`.
@@ -76,4 +76,4 @@ blockers: []
 
 ## Lifecycle closure
 
-Delivery PR #923 is merged. The lifecycle closure releases every task-owned path and records the global-world baseline as durable read-only evidence.
+Delivery PR #923 is merged. Lifecycle closure PR #935 releases every task-owned path and records the global-world baseline as durable read-only evidence.

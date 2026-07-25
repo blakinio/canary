@@ -4,8 +4,8 @@ name: CrystalServer Comparison Program
 status: active
 owner: GPT-5.6 Thinking
 created: 2026-07-13T21:01:05Z
-updated: 2026-07-14T13:35:00+02:00
-last_verified_commit: "d991f38a2d99ce71db50e3c70b41a95b48b9c338"
+updated: 2026-07-25T20:55:00+02:00
+last_verified_commit: "5aaeb2373c4d5e2c8f5c592b629b646085277414"
 primary_paths:
   - docs/agents/programs/CRYSTALSERVER_COMPARISON_PROGRAM.md
   - artifacts/upstream/crystalserver/**
@@ -31,6 +31,8 @@ Stage 1 analysis date: 2026-07-13.
 Last analyzed CrystalServer commit: `fc0d53b9f9965463b6082c07e6d3d482294541a7`.
 
 Stage 1 merged through PR [#291](https://github.com/blakinio/canary/pull/291), squash commit `bceccba9349d35a1d84f446757e53ac3adb602e1`.
+
+A separate exact global-world OTBM baseline was completed through delivery PR #923 and lifecycle closure #935. It pins `zimbadev/crystalserver@75e9c72e33ce2c3f193e4f2d2ff17ebae4bbfaac` path `data-global/world/world.otbm`, compares it read-only with the external OTServBR map through the canonical World Index and Semantic Diff, and records exact static differences without authorizing content import or map mutation.
 
 Every later task must re-fetch all repository heads, open PRs, active ownership, relevant contracts, and the selected candidate diff.
 
@@ -130,6 +132,7 @@ Text similarity, `patch-id`, symbol search, and commit messages are signals, not
 | `CAN-20260713-crystalserver-comparison-inventory` / [#291](https://github.com/blakinio/canary/pull/291) | Stage 1 program, ten-candidate Markdown report, and machine-readable JSON; no functional changes | `bceccba9349d35a1d84f446757e53ac3adb602e1` | Select candidates only through new bounded tasks after fresh checks. |
 | `CAN-20260713-conditionlight-zero-level` / [#297](https://github.com/blakinio/canary/pull/297) | Normalized zero-level `ConditionLight` state at start/deserialization boundaries and added three focused C++ regressions | `b06079f9bc75f0c108720e2674438a2f539c8631` | Preserve the two-boundary invariant and regression tests; no further CS-001 work is open. |
 | `CAN-20260714-fs-mkdir-shell-injection` / [#326](https://github.com/blakinio/canary/pull/326) | Replaced shell-backed `FS.mkdir`/`FS.mkdir_p` with native `std::filesystem` bindings and added standalone Lua plus real-binding C++ security regressions | `70f6930647d818edfdf0a30b745aabe8d4fdaa29` | Preserve compatibility wrappers, error returns and the no-shell invariant; CS-007 remains independent. |
+| `CAN-20260725-otbm-crystal-parity-baseline` / [#923](https://github.com/blakinio/canary/pull/923), lifecycle [#935](https://github.com/blakinio/canary/pull/935) | Corrected full-world Semantic OTBM Diff area-major ordering and published the exact read-only Crystal global ↔ OTServBR baseline: 1,159 shared areas, 17,214,872 unchanged tiles and 3,277,274 exact findings | `5aaeb2373c4d5e2c8f5c592b629b646085277414` | Use the baseline only to select separate bounded reviews with current script, reachability and subsystem evidence; never copy Crystal content or mutate maps automatically. |
 
 # Closed candidates
 
