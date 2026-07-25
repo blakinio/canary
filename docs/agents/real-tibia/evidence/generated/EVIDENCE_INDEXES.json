@@ -1,10 +1,12 @@
 {
   "active_owner_requests": [
-    "RTREQ-FEATURE-VOCATIONS-0001"
+    "RTREQ-FEATURE-VOCATIONS-0001",
+    "RTREQ-TCR-ITEM-DEFINITIONS-0001"
   ],
   "as_of": "2026-07-25",
   "evidence_by_authority_dimension": {
     "current-canary-behavior": [
+      "RT-ITEM-DEFINITIONS-0002",
       "RT-VOCATIONS-0003",
       "RT-VOCATIONS-0004",
       "RT-VOCATIONS-0005",
@@ -18,10 +20,15 @@
       "RT-WEAPON-PROFICIENCY-0001"
     ],
     "visible-gameplay-behavior": [
+      "RT-ITEM-DEFINITIONS-0001",
       "RT-WEAPON-PROFICIENCY-0003"
     ]
   },
   "evidence_by_module": {
+    "item-definitions": [
+      "RT-ITEM-DEFINITIONS-0001",
+      "RT-ITEM-DEFINITIONS-0002"
+    ],
     "vocations": [
       "RT-VOCATIONS-0001",
       "RT-VOCATIONS-0002",
@@ -36,10 +43,20 @@
     ]
   },
   "evidence_by_version_axis": {
+    "appearances_items_revision": {
+      "data/items/appearances.dat git blob 2cc2f4910af4f002f99f39e486d1a91b1b56a728": [
+        "RT-ITEM-DEFINITIONS-0002",
+        "RTVH-ITEM-DEFINITIONS-0002"
+      ]
+    },
     "canary_commit": {
       "124b029d1a2498a64fa6612b16efa386b8786a83": [
         "RT-WEAPON-PROFICIENCY-0002",
         "RTVH-WEAPON-PROFICIENCY-0003"
+      ],
+      "8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9": [
+        "RT-ITEM-DEFINITIONS-0002",
+        "RTVH-ITEM-DEFINITIONS-0002"
       ],
       "930e0a15767b7e5348bb36c679fa5e458a76f184": [
         "RT-VOCATIONS-0003",
@@ -56,6 +73,14 @@
       "Fixes and Changes 2026-07-14": [
         "RT-WEAPON-PROFICIENCY-0003",
         "RTVH-WEAPON-PROFICIENCY-0002"
+      ],
+      "Fixes and Changes 2026-07-21": [
+        "RT-ITEM-DEFINITIONS-0001",
+        "RTVH-ITEM-DEFINITIONS-0001"
+      ],
+      "Fixes and Changes 2026-07-21 verified 2026-07-25": [
+        "RT-ITEM-DEFINITIONS-0001",
+        "RTVH-ITEM-DEFINITIONS-0001"
       ],
       "Monk announcement 2025-02-10": [
         "RT-VOCATIONS-0002",
@@ -80,13 +105,33 @@
     }
   },
   "format": "canary-real-tibia-generated-indexes-v1",
-  "input_sha256": "d02795be54aed8ae2bad404bd06f58d1b8550a82f156210a2e0bcfc191c3b11b",
+  "input_sha256": "83c29dc938c5838b925aa18d2eacb436f0bd3c8d9f1a1783d5ed52e1f8e2440c",
   "nonclaims": [
     "No overall parity percentage is generated.",
     "No release approval or whole-game parity claim is generated.",
     "File presence alone is not evidence."
   ],
   "proof_maturity_by_dimension": {
+    "item-definitions": {
+      "current-canary-behavior": {
+        "evidence_ids": [
+          "RT-ITEM-DEFINITIONS-0002"
+        ],
+        "evidence_states": [
+          "PROVEN"
+        ],
+        "proof_level": "definition-found"
+      },
+      "visible-gameplay-behavior": {
+        "evidence_ids": [
+          "RT-ITEM-DEFINITIONS-0001"
+        ],
+        "evidence_states": [
+          "PROVEN"
+        ],
+        "proof_level": "definition-found"
+      }
+    },
     "vocations": {
       "current-canary-behavior": {
         "evidence_ids": [
@@ -150,9 +195,9 @@
   },
   "schema_version": 1,
   "source_counts": {
-    "evidence_records": 8,
-    "owner_requests": 1,
-    "version_history_records": 5
+    "evidence_records": 10,
+    "owner_requests": 2,
+    "version_history_records": 7
   },
   "stale_evidence": [],
   "superseded_records": [],
