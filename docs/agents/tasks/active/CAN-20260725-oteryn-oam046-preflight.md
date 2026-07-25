@@ -2,16 +2,16 @@
 task_id: CAN-20260725-oteryn-oam046-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-046
-status: active
+status: review
 agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-046-configuration-preflight
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "930e0a15767b7e5348bb36c679fa5e458a76f184"
+last_verified_commit: "b733b0e42dbd0087c957b4fa8e5bcff2cba94708"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "911"
 depends_on:
   - OAM-045 durably completed as d103add3c3a0f9cb026f3ec5b0aad73f13a71e18
 blocks:
@@ -46,11 +46,11 @@ Canonical scope is limited to typed configuration keys/access, `config.lua` load
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T00:10:00+02:00
-head: 930e0a15767b7e5348bb36c679fa5e458a76f184
+updated_at: 2026-07-25T10:00:00+02:00
+head: b733b0e42dbd0087c957b4fa8e5bcff2cba94708
 branch: dudantas/oam-046-configuration-preflight
-pr: ""
-status: active
+pr: 911
+status: validating
 context_routes:
   - agent-governance
   - cross-repo
@@ -73,6 +73,7 @@ proven:
   - Target retains package-external Forge defaults blob f5fab42df536304baa8fe034d2a7e8ac245204fd; upstream has no such file and live legacy has blob 7ebf71e9b6c47f3213aff229002aab9d5d116d60.
   - Target config.lua.dist is blob add3df239fb22592b7c63d166f880d0c31098ba2, upstream is 08ffe407ac4dadcfe787a13cc54df9c705565226 and live legacy is 021dc3e49aadbecead4d5b6d7d3b7ca6243b776e.
   - In all reviewed implementations, loadLuaOTCFeatures appends directly to enabledFeaturesOTC and disabledFeaturesOTC; repeated successful loads do not replace the previous feature snapshot.
+  - Canary preflight PR 911 opened from b733b0e42dbd0087c957b4fa8e5bcff2cba94708.
 derived:
   - Source identity alone cannot justify REUSE because target contains accepted earlier composition/Forge deltas and the reload state machine requires behavioral proof.
   - Repeated successful configuration loads can duplicate retained OTCR feature IDs and can preserve feature IDs removed from a later configuration.
@@ -106,5 +107,5 @@ blockers:
   - Canary preflight exact-head validation and merge
   - Otheryn focused target proof
   - Canary governance/lifecycle and durable reconciliation
-next_action: Open the Canary preflight PR, require exact-head Ownership and CI, audit discussions and main drift, then merge before starting the Otheryn target proof.
+next_action: Mark PR 911 ready, require exact-head Agent Task Ownership and CI, audit discussions and Canary-main drift, then squash-merge with the expected head before starting the Otheryn target proof.
 ```
