@@ -1,5 +1,6 @@
 name: RTEC-004 Weapon Review Integration
 
+# Bounded one-shot integration; this workflow removes itself after success.
 on:
   push:
     branches:
