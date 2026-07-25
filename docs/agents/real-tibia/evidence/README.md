@@ -21,6 +21,7 @@ Files with a `.yaml` suffix use the YAML 1.2 JSON-compatible subset. The standar
 ```text
 docs/agents/real-tibia/evidence/
 ├── README.md
+├── OWNER_REQUEST_LIFECYCLE.md
 ├── schemas/
 ├── generated/
 │   └── EVIDENCE_INDEXES.json
@@ -48,12 +49,12 @@ Do not create empty module directories or index-only placeholder dossier trees. 
 ## Validation
 
 ```sh
-python tools/agents/real_tibia_evidence.py validate
-python tools/agents/real_tibia_evidence.py generate --check --as-of 2026-07-24
-python -m unittest -v tools/agents/test_real_tibia_evidence.py
+python tools/agents/real_tibia_evidence.py validate --as-of 2026-07-25
+python tools/agents/real_tibia_evidence.py generate --check --as-of 2026-07-25
+python -m unittest discover -v -s tools/agents -p 'test_real_tibia*.py'
 ```
 
-The runtime validator and generator use only Python 3.12 standard-library modules. Published Draft 2020-12 JSON Schemas provide an interchange contract; CI may use `jsonschema` to verify schema/example compatibility, but corpus acceptance does not depend on it.
+The runtime validator, generator and owner-request lifecycle tool use only Python 3.12 standard-library modules. Published Draft 2020-12 JSON Schemas provide an interchange contract; CI may use `jsonschema` to verify schema/example compatibility, but corpus acceptance does not depend on it.
 
 Validation fails closed for:
 
@@ -93,6 +94,18 @@ Use `DERIVED_RANGE`, `LOWER_BOUND`, `UPPER_BOUND` or `UNKNOWN` when the first ex
 Requests are contracts directed to Universal E2E, OTBM/OWA, TCR, protocol/client owners or feature programmes. The Collector may create and advance Collector-controlled states, but transitions to `accepted-by-owner`, `active` and `result-available` require an owner actor and stable owner evidence reference.
 
 Owner execution paths remain read-only for the Collector. A request does not authorize a Collector task to implement an E2E runner, OTBM parser, client-reference parser, protocol change or feature behavior.
+
+Use the dry-run-first lifecycle tool for mutations:
+
+```sh
+python tools/agents/real_tibia_owner_request.py transition --help
+python tools/agents/real_tibia_owner_request.py record-result --help
+python tools/agents/real_tibia_owner_request.py consume-result --help
+```
+
+Every command requires the current expected status and supports the exact current request-document SHA-256 as an optimistic lock. No file is changed unless `--write` is supplied. Stable result references, proof/nonproof boundaries, owner source routing, deterministic index regeneration and rollback are enforced.
+
+Read `OWNER_REQUEST_LIFECYCLE.md` before moving a request. One request is a serialization boundary: never run concurrent writes for the same request/behavior/version tuple.
 
 ## Generated factual indexes
 
