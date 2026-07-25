@@ -1,0 +1,35 @@
+name: RTEC-004 Index Export
+
+on:
+  push:
+    branches:
+      - feat/rtec-004-weapon-proficiency-20260725
+    paths:
+      - ".github/workflows/rtec-004-index-export.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Generate deterministic evidence index
+        run: python tools/agents/real_tibia_evidence.py generate --as-of 2026-07-25
+      - name: Upload generated index
+        uses: actions/upload-artifact@v4
+        with:
+          name: rtec-004-weapon-proficiency-index
+          path: docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
+          if-no-files-found: error
+          retention-days: 1
