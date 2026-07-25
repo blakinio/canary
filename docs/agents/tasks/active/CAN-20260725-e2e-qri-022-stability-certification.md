@@ -8,7 +8,7 @@ branch: docs/e2e-qri-022-lifecycle-closure
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "a2fe27e7db8b2a247c7a873cf6b6c46aa272d771"
+last_verified_commit: "91c461eba1be8a5ce342b686250682c0c3dd1252"
 risk: low
 related_issue: ""
 related_pr: "912, 914"
@@ -52,8 +52,8 @@ Finish the docs-only lifecycle closure after delivery PR #912 without changing i
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T14:55:22+02:00
-head: a2fe27e7db8b2a247c7a873cf6b6c46aa272d771
+updated_at: 2026-07-25T15:07:19+02:00
+head: 91c461eba1be8a5ce342b686250682c0c3dd1252
 branch: docs/e2e-qri-022-lifecycle-closure
 pr: 914
 status: validating
@@ -80,7 +80,7 @@ unknown:
 conflicts: []
 first_failure:
   marker: closure-final-gate-not-complete
-  evidence: Required exact-head checks for PR #914 were queued on a2fe27e7db8b2a247c7a873cf6b6c46aa272d771 before this checkpoint commit.
+  evidence: Required exact-head checks for PR #914 were queued before the compact-handover checkpoint update.
 rejected_hypotheses:
   - Manual merge before exact-head branch-protection checks: rejected because AGENTS.md requires all current-head checks to pass.
   - Treating contract tests as a physical repeated-run stability baseline: rejected because collection and retained-population selection remain a separate package.
@@ -99,7 +99,7 @@ validation:
     evidence: Five governance documents only; no comments, reviews or review threads.
   - command: python tools/agents/checkpoint.py docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md --require-checkpoint
     result: NOT_RUN
-    evidence: Run immediately after writing this checkpoint.
+    evidence: Run by the focused exact-head handover sentinel on this checkpoint.
   - command: PR #914 exact-head required checks
     result: NOT_RUN
     evidence: Reverify on the new checkpoint commit before removing the active task record.
