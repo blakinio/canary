@@ -1,11 +1,11 @@
 ---
 task_id: CAN-20260725-manual-windows-ci
-status: validating
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: ci/manual-windows-build-20260725
 base_branch: main
 created: 2026-07-25T23:00:00+02:00
-updated: 2026-07-25T23:44:00+02:00
+updated: 2026-07-25T23:47:00+02:00
 risk: medium
 related_pr: "946"
 depends_on: []
@@ -52,8 +52,8 @@ Keep Canary Docker/Linux validation as the normal CI path and run the Windows bu
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T23:44:00+02:00
-head: b0b54150ba59366bd211cd168f6f11c291627813
+updated_at: 2026-07-25T23:47:00+02:00
+head: a11af7ee780ce9cce2d11bceb3d59c242981e62f
 branch: ci/manual-windows-build-20260725
 pr: "946"
 status: validating
@@ -81,8 +81,8 @@ changed_paths:
   - .github/workflows/ci.yml
   - docs/agents/tasks/active/CAN-20260725-manual-windows-ci.md
 first_failure:
-  marker: checkpoint-schema-missing-fields
-  evidence: Agent Task Ownership run 30176156288 rejected the initial task checkpoint before workflow ownership validation
+  marker: active-task-status-invalid
+  evidence: Agent Task Ownership run 30176239883 rejected frontmatter status validating for a record under tasks/active
 validation:
   - command: inspect PR diff and changed-file list
     result: PASS
@@ -90,9 +90,9 @@ validation:
   - command: CI pull_request run
     result: PASS
     evidence: run 30176156378; Required passed and Build - Windows was skipped
-  - command: checkpoint schema repair
+  - command: repair active task lifecycle status
     result: PASS
-    evidence: all required checkpoint fields are now present for the final ownership run
+    evidence: frontmatter status restored to implementing while checkpoint status remains validating
 blockers: []
-next_action: Wait for exact-final-head CI and ownership, then mark PR 946 ready and squash-merge without further commits.
+next_action: Wait for exact-final-head CI and ownership, then squash-merge PR 946 without further commits.
 ```
