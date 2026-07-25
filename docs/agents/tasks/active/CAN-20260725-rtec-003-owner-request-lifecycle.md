@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/rtec-003-owner-request-lifecycle-20260725
 base_branch: main
 created: 2026-07-25T15:30:00+02:00
-updated: 2026-07-25T16:25:00+02:00
-last_verified_commit: "3bea0ad0ffb2bcdb4ee6841d6c840277c6ff30d6"
+updated: 2026-07-25T16:50:00+02:00
+last_verified_commit: "6598519585d5e44392ccad9ce80362ec906f422f"
 risk: medium
 related_issue: ""
 related_pr: "921"
@@ -126,18 +126,21 @@ This task does not:
 - start RTEC-004 parallel workers;
 - commit external or proprietary result payloads.
 
-# Ownership incident
+# Ownership incidents
 
-During implementation, delayed builder commits introduced undeclared temporary workflows/helpers on the task branch. Every undeclared file and the injected temporary workflow job were removed. The exact final pre-checkpoint diff contains only the eight declared paths and no owner implementation path.
+Several delayed builder/review commits introduced temporary workflows and helpers on the shared task branch. All such files and injected write jobs were removed. The final checkpoint parent contains exactly the eight declared paths and no owner implementation path. Old queued jobs can no longer mutate the current branch because their referenced helpers are absent.
 
 # Validation
 
 | Head | Check | Result | Evidence |
 |---|---|---|---|
 | `2372ce3898e12cc14ffda4626f638ad812b01533` | fresh main/open-PR/active-task/request-state preflight | PASS | RTEC-001/002 merged and archived; no initial RTEC-003 overlap |
-| `3bea0ad0ffb2bcdb4ee6841d6c840277c6ff30d6` | changed-file and ownership boundary review | PASS | exactly eight declared paths; no temporary builder/helper paths |
-| `3bea0ad0ffb2bcdb4ee6841d6c840277c6ff30d6` | production request inspection | PASS | vocations request remains `ready-for-owner-triage` with no owner task/PR/result |
-| exact final head | Real Tibia Evidence Contracts, Agent Task Ownership, Registry and CI | IN_PROGRESS | final-gate label applied before this checkpoint commit; GitHub runners queued |
+| `8cddd9f1716b20dde315da26b27685df3c3c85b0` | changed-file and ownership boundary review | PASS | exactly eight declared paths |
+| `8cddd9f1716b20dde315da26b27685df3c3c85b0` | Universal E2E Stability Certification | PASS | run `30161374330` |
+| `8cddd9f1716b20dde315da26b27685df3c3c85b0` | CI Required aggregator | PASS | job `89687735445`; outer run later cancelled after Required completed |
+| `8cddd9f1716b20dde315da26b27685df3c3c85b0` | Upstream Intelligence | PASS | run `30161374296` |
+| `6598519585d5e44392ccad9ce80362ec906f422f` | final pre-checkpoint scope cleanup | PASS | delayed review helper/write-job removed; exactly eight changed paths |
+| exact final head | Real Tibia Evidence Contracts, Agent Task Ownership, Registry and required CI | IN_PROGRESS | `ci:final-gate` reapplied before this checkpoint commit |
 
 # Remaining work
 
@@ -151,8 +154,8 @@ During implementation, delayed builder commits introduced undeclared temporary w
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T16:25:00+02:00
-head: 3bea0ad0ffb2bcdb4ee6841d6c840277c6ff30d6
+updated_at: 2026-07-25T16:50:00+02:00
+head: 6598519585d5e44392ccad9ce80362ec906f422f
 branch: feat/rtec-003-owner-request-lifecycle-20260725
 pr: 921
 status: validating
@@ -175,7 +178,8 @@ proven:
   - the lifecycle CLI, tests, docs, catalogue and programme integration are present
   - owner implementation paths remain unchanged
   - the real vocations request remains ready-for-owner-triage without owner evidence
-  - every undeclared builder/helper path was removed
+  - every delayed builder/review helper and write job was removed
+  - prior exact-scope E2E, Required and Upstream checks passed
 derived:
   - the separate lifecycle CLI reuses schema version 1 without creating another owner execution system
 unknown:
@@ -187,7 +191,7 @@ first_failure:
 rejected_hypotheses:
   - Collector should self-accept or execute the vocations request
   - Collector should implement missing E2E, OTBM/OWA, TCR, protocol/client or feature capabilities
-  - temporary builder workflows/helpers belong in the final package
+  - delayed builder/review workflows and helpers belong in the final package
 changed_paths:
   - .github/workflows/real-tibia-evidence.yml
   - docs/agents/MODULE_CATALOG.md
