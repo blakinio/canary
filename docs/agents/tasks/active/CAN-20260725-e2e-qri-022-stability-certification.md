@@ -8,7 +8,7 @@ branch: feat/e2e-qri-022-stability-certification
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "775adde566e19b120fe812db350731d8d12515b4"
+last_verified_commit: "a6858acd390c0bbb469d0ccbfe5c48419cdb1435"
 risk: medium
 related_issue: ""
 related_pr: "912"
@@ -98,8 +98,8 @@ Deliver one deterministic, read-only certification contract over explicitly supp
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T10:50:00+02:00
-head: 775adde566e19b120fe812db350731d8d12515b4
+updated_at: 2026-07-25T12:20:00+02:00
+head: a6858acd390c0bbb469d0ccbfe5c48419cdb1435
 branch: feat/e2e-qri-022-stability-certification
 pr: 912
 status: validating
@@ -122,22 +122,25 @@ proven:
   - Clean pass requires gameplay success plus complete cleanup certification; 9/10 is unstable and historical success without cleanup proof is blocked.
   - Duplicate identities, future evidence, missing provenance, unsafe paths and evidence-root escapes fail closed without host-path leakage.
   - Runtime validation recomputes cell IDs, attempt identities, missing provenance, distributions, duration summaries, cleanup counts and report summary.
-  - Focused workflow run 30151336607 passed exact source/test compilation, all hardened canonical-module tests and strict schema parsing on head 486c2fe49316afaeb5dc0bac7649b2b2a6431080.
-  - Agent Task Ownership run 30151336633 and CI run 30151336661 passed on the same pre-final head.
-  - PR #912 has exactly nine intended changed files and no comments, reviews or unresolved review threads.
+  - Exact-head Stability Certification, Agent Task Ownership, full CI and autofix passed on a6858acd390c0bbb469d0ccbfe5c48419cdb1435.
+  - Universal Agent E2E run 30151582097 built the exact Canary head and, after a selective job rerun, built and verified the controlled OTClient successfully.
+  - The selective rerun produced the OTClient artifact in the new attempt while the Canary artifact remained from the original attempt; the physical job then failed at `Download exact-head Canary binary` before scenario execution.
+  - PR #912 has exactly nine intended changed files and no comments, reviews or unresolved review threads in the latest completed audit.
 derived:
   - Reusing the QRI-004 evidence boundary avoids a second parser while preserving its fail-closed path rules.
+  - The failed physical rerun is an Actions attempt/artifact boundary rather than evidence of a QRI-022 implementation defect; one fresh workflow run is required so both binaries are produced in the same attempt.
   - Physical repeated-run collection, artifact selection and scheduling remain separate from the certification contract.
 unknown:
-  - Exact final-head workflow outcomes after this checkpoint repair commit.
+  - Exact workflow outcomes on the fresh final-head run triggered by this checkpoint-only commit.
   - The first selected physical scenario and retained artifact population for a real stability baseline.
 conflicts: []
 first_failure:
   marker: final-checkpoint-unsupported-validation-result
-  evidence: Agent Task Ownership run 30151490550 rejected validation item 5 because `UNKNOWN` is unsupported; this checkpoint uses the supported `NOT_RUN` state. Earlier integration and temporary-workflow attempts remain superseded without partial final-diff changes.
+  evidence: Agent Task Ownership run 30151490550 rejected validation item 5 because `UNKNOWN` is unsupported; the checkpoint was repaired to use `NOT_RUN`. Later final-gate run 30151582097 exposed a separate cross-attempt artifact boundary without changing implementation scope.
 rejected_hypotheses:
   - Treating the dashboard's latest stability dimension as repeated-run certification.
   - Hiding failed attempts behind automatic retry or selecting only successful artifacts.
+  - Treating the cross-attempt artifact-download failure as a stability-certification implementation failure.
   - Creating another physical runner, downloader, retention policy or scheduled execution path.
 changed_paths:
   - .github/workflows/e2e-stability-certification.yml
@@ -150,25 +153,28 @@ changed_paths:
   - tests/e2e/test_stability_certification.py
   - tools/e2e/stability_certification.py
 validation:
-  - command: Universal E2E Stability Certification workflow run 30151336607
+  - command: Universal E2E Stability Certification workflow run 30151582013
     result: PASS
-    evidence: exact source/test compilation, hardened canonical-module suite and schema parsing passed
-  - command: Agent Task Ownership workflow run 30151336633
+    evidence: exact source/test compilation, hardened canonical-module suite and schema parsing passed on a6858acd390c0bbb469d0ccbfe5c48419cdb1435
+  - command: Agent Task Ownership workflow run 30151582012
     result: PASS
-    evidence: active ownership and checkpoint structure passed on head 486c2fe49316afaeb5dc0bac7649b2b2a6431080
-  - command: CI workflow run 30151336661
+    evidence: active ownership and checkpoint structure passed on a6858acd390c0bbb469d0ccbfe5c48419cdb1435
+  - command: CI workflow run 30151582092
     result: PASS
-    evidence: applicable pre-final-head CI passed
+    evidence: full ci:final-gate matrix passed on a6858acd390c0bbb469d0ccbfe5c48419cdb1435
+  - command: autofix workflow run 30151582031
+    result: PASS
+    evidence: autofix completed successfully on a6858acd390c0bbb469d0ccbfe5c48419cdb1435
+  - command: Universal Agent E2E workflow run 30151582097
+    result: FAIL
+    evidence: exact Canary and controlled OTClient builds passed, but the selective rerun split binary artifacts across attempts and the physical job failed before execution while downloading the Canary artifact
   - command: PR #912 comments, reviews and review threads audit
     result: PASS
-    evidence: no comments, reviews or unresolved threads
-  - command: Agent Task Ownership workflow run 30151490550
-    result: FAIL
-    evidence: validation item 5 used unsupported result `UNKNOWN`; no implementation defect was reported
-  - command: exact final-head gate after this checkpoint repair commit
+    evidence: no comments, reviews or unresolved threads were present in the latest completed audit
+  - command: fresh exact final-head gate after this checkpoint-only commit
     result: NOT_RUN
-    evidence: ci:final-gate remains applied; workflows have not yet completed on the repaired head
+    evidence: ci:final-gate remains applied; the new pull_request workflows have not yet completed
 blockers:
   - A real multi-run physical stability baseline requires a separately selected scenario, retained artifact population and execution package after this contract merges.
-next_action: Verify exact final-head Ownership, focused validation, CI and Universal Agent E2E, then squash-merge PR #912 only if all required checks pass and no review blocker appears.
+next_action: Verify the fresh exact-head Stability Certification, Ownership, full CI, autofix and Universal Agent E2E; squash-merge PR #912 only if every required check passes and no review blocker appears.
 ```
