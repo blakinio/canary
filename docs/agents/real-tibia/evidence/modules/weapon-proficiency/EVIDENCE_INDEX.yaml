@@ -1,0 +1,61 @@
+{
+  "as_of": "2026-07-25",
+  "by_authority_dimension": {
+    "current-canary-behavior": [
+      "RT-WEAPON-PROFICIENCY-0002"
+    ],
+    "official-feature-identity": [
+      "RT-WEAPON-PROFICIENCY-0001"
+    ],
+    "visible-gameplay-behavior": [
+      "RT-WEAPON-PROFICIENCY-0003"
+    ]
+  },
+  "by_claim_key": {
+    "current-canary-static-tree-and-kv-lifecycle": [
+      "RT-WEAPON-PROFICIENCY-0002"
+    ],
+    "official-weapon-proficiency-manipulation": [
+      "RT-WEAPON-PROFICIENCY-0001"
+    ],
+    "pending-level-up-character-switch-isolation": [
+      "RT-WEAPON-PROFICIENCY-0003"
+    ]
+  },
+  "by_proof_level": {
+    "definition-found": [
+      "RT-WEAPON-PROFICIENCY-0001",
+      "RT-WEAPON-PROFICIENCY-0003"
+    ],
+    "runtime-path-proven": [
+      "RT-WEAPON-PROFICIENCY-0002"
+    ]
+  },
+  "by_state": {
+    "PROVEN": [
+      "RT-WEAPON-PROFICIENCY-0001",
+      "RT-WEAPON-PROFICIENCY-0002"
+    ],
+    "UNKNOWN": [
+      "RT-WEAPON-PROFICIENCY-0003"
+    ]
+  },
+  "evidence_ids": [
+    "RT-WEAPON-PROFICIENCY-0001",
+    "RT-WEAPON-PROFICIENCY-0002",
+    "RT-WEAPON-PROFICIENCY-0003"
+  ],
+  "format": "canary-real-tibia-module-evidence-index-v1",
+  "module_id": "weapon-proficiency",
+  "owner_request_ids": [],
+  "record_count": 3,
+  "schema_version": 1,
+  "stale_evidence_ids": [],
+  "superseded_evidence_ids": [],
+  "unresolved_conflict_ids": [],
+  "version_history_ids": [
+    "RTVH-WEAPON-PROFICIENCY-0001",
+    "RTVH-WEAPON-PROFICIENCY-0002",
+    "RTVH-WEAPON-PROFICIENCY-0003"
+  ]
+}
