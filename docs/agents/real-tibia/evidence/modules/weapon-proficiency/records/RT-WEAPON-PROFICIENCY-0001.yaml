@@ -1,0 +1,285 @@
+{
+  "applicability": {
+    "announced_in": {
+      "evidence_refs": [
+        "RT-WEAPON-PROFICIENCY-0001"
+      ],
+      "exact": {
+        "appearances_items_revision": null,
+        "canary_commit": null,
+        "database_schema_revision": null,
+        "datapack_revision": null,
+        "maintained_otclient_commit": null,
+        "map_sha256": null,
+        "official_client_build": null,
+        "official_tibia_release": "Weapon Proficiency Update 2026-06-22",
+        "protocol_profile": null,
+        "spawn_npc_sidecar_revision": null
+      },
+      "lower_bound": null,
+      "mode": "EXACT",
+      "notes": [
+        "Official feature announcement."
+      ],
+      "upper_bound": null
+    },
+    "changed_in": [],
+    "deprecated_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No deprecation is established for this bounded claim."
+      ],
+      "upper_bound": null
+    },
+    "effective_from": {
+      "evidence_refs": [
+        "RT-WEAPON-PROFICIENCY-0001"
+      ],
+      "exact": {
+        "appearances_items_revision": null,
+        "canary_commit": null,
+        "database_schema_revision": null,
+        "datapack_revision": null,
+        "maintained_otclient_commit": null,
+        "map_sha256": null,
+        "official_client_build": null,
+        "official_tibia_release": "Summer Update 2026 released 2026-07-13",
+        "protocol_profile": null,
+        "spawn_npc_sidecar_revision": null
+      },
+      "lower_bound": null,
+      "mode": "EXACT",
+      "notes": [
+        "Official release boundary."
+      ],
+      "upper_bound": null
+    },
+    "effective_until": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No exact effective-until boundary is established for this bounded claim."
+      ],
+      "upper_bound": null
+    },
+    "introduced_in": {
+      "evidence_refs": [
+        "RT-WEAPON-PROFICIENCY-0001"
+      ],
+      "exact": {
+        "appearances_items_revision": null,
+        "canary_commit": null,
+        "database_schema_revision": null,
+        "datapack_revision": null,
+        "maintained_otclient_commit": null,
+        "map_sha256": null,
+        "official_client_build": null,
+        "official_tibia_release": "Summer Update 2026 released 2026-07-13",
+        "protocol_profile": null,
+        "spawn_npc_sidecar_revision": null
+      },
+      "lower_bound": null,
+      "mode": "EXACT",
+      "notes": [
+        "Official Summer Update release announcement."
+      ],
+      "upper_bound": null
+    },
+    "observed_in": [
+      {
+        "evidence_refs": [
+          "RT-WEAPON-PROFICIENCY-0001"
+        ],
+        "exact": {
+          "appearances_items_revision": null,
+          "canary_commit": null,
+          "database_schema_revision": null,
+          "datapack_revision": null,
+          "maintained_otclient_commit": null,
+          "map_sha256": null,
+          "official_client_build": null,
+          "official_tibia_release": "Summer Update 2026 verified 2026-07-25",
+          "protocol_profile": null,
+          "spawn_npc_sidecar_revision": null
+        },
+        "lower_bound": null,
+        "mode": "EXACT",
+        "notes": [
+          "Official pages verified by the Collector."
+        ],
+        "upper_bound": null
+      }
+    ],
+    "removed_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No removal is established for this bounded claim."
+      ],
+      "upper_bound": null
+    }
+  },
+  "authority_dimension": "official-feature-identity",
+  "claim_key": "official-weapon-proficiency-manipulation",
+  "claim_statement": "The official Weapon Proficiency Update defines a manipulation layer that can replace up to two perk slots per weapon and supports refinement, maximisation, reshaping and clearing under documented resource, progression and protection-zone conditions.",
+  "confidence": "HIGH",
+  "conflict_refs": [],
+  "current_canary_comparison": {
+    "baseline": {
+      "appearances_items_revision": null,
+      "canary_commit": null,
+      "database_schema_revision": null,
+      "datapack_revision": null,
+      "maintained_otclient_commit": null,
+      "map_sha256": null,
+      "official_client_build": null,
+      "official_tibia_release": null,
+      "protocol_profile": null,
+      "spawn_npc_sidecar_revision": null
+    },
+    "current_behavior": null,
+    "differences": [],
+    "exact_paths": [],
+    "exact_symbols": [],
+    "missing_proof": [
+      "Current Canary correspondence is decomposed into RT-WEAPON-PROFICIENCY-0002."
+    ],
+    "state": "not-assessed"
+  },
+  "does_not_prove": [
+    "This record does not prove exact randomisation probabilities, hidden formulas, packet fields, persistence, concurrency or rollback.",
+    "This record does not prove current Canary support or physical-client behavior."
+  ],
+  "evidence_id": "RT-WEAPON-PROFICIENCY-0001",
+  "evidence_state": "PROVEN",
+  "format": "canary-real-tibia-evidence-record-v1",
+  "freshness": {
+    "invalid_after_days": 90,
+    "invalidation_triggers": [
+      "Official Weapon Proficiency documentation or fixes change.",
+      "The selected Canary weapon-proficiency source, data, tests or maintained-client baseline changes."
+    ],
+    "observed_or_verified_at": "2026-07-25",
+    "policy": "refresh-before-task",
+    "warning_after_days": 30
+  },
+  "module_id": "weapon-proficiency",
+  "owner_request_refs": [],
+  "proof_level": "definition-found",
+  "proves": [
+    "The official feature definition includes at most two modified perk slots per weapon.",
+    "The official feature definition distinguishes first-slot and second-slot requirements.",
+    "The official feature definition names refine, maximise, reshape and clear operations and requires a protection zone for changes."
+  ],
+  "record_status": "accepted",
+  "related_modules": [
+    "character-progression"
+  ],
+  "review": {
+    "notes": [
+      "Structured review verified official source dates and bounded paraphrases.",
+      "Review verified exact Canary paths and preserved selected-path, runtime, persistence, protocol, client and E2E nonclaims.",
+      "No owner implementation path or existing vocations request is modified."
+    ],
+    "pr": 930,
+    "reviewed_at": "2026-07-25T20:50:00+02:00",
+    "reviewer": "RTEC-004 coordinator / GPT-5.6 Thinking",
+    "status": "accepted",
+    "task_id": "CAN-20260725-rtec-004-weapon-proficiency"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "author": "CipSoft GmbH",
+      "does_not_prove": [
+        "The news does not expose hidden random-selection probabilities, server storage, packet layout or Canary implementation.",
+        "The news does not prove the final live implementation by itself."
+      ],
+      "external_artifact": null,
+      "limitations": [
+        "The page does not identify an exact official client build or immutable content revision."
+      ],
+      "locator": {
+        "artifact_sha256": null,
+        "build": null,
+        "commit_sha": null,
+        "report_id": null,
+        "repository": null,
+        "repository_path": null,
+        "url": "https://www.tibia.com/news/?id=8850&subtopic=newsarchive"
+      },
+      "observation_date": "2026-07-25",
+      "proof_level_reached": "definition-found",
+      "proves": [
+        "The official pre-release feature definition includes a two-slot manipulation lifecycle.",
+        "The official text defines visible resource, progression and location guards for manipulation."
+      ],
+      "publication_date": "2026-06-22",
+      "role": "primary",
+      "selected": {
+        "files": [],
+        "observations": [
+          "The update permits modification of up to two perk slots per weapon.",
+          "The first and second modified slots have different dust and progression requirements.",
+          "Modified effects can be refined, maximised, reshaped or cleared, and changes are restricted to protection zones."
+        ],
+        "sections": [
+          "Weapon Proficiency Update in detail"
+        ],
+        "symbols": []
+      },
+      "source_id": "tibia-official-weapon-proficiency-update",
+      "source_type": "official-news"
+    },
+    {
+      "author": "CipSoft GmbH",
+      "does_not_prove": [
+        "The release announcement does not prove server implementation details, persistence or protocol."
+      ],
+      "external_artifact": null,
+      "limitations": [
+        "No exact official client build is published in the selected page."
+      ],
+      "locator": {
+        "artifact_sha256": null,
+        "build": null,
+        "commit_sha": null,
+        "report_id": null,
+        "repository": null,
+        "repository_path": null,
+        "url": "https://www.tibia.com/news/?id=8845&subtopic=newsarchive"
+      },
+      "observation_date": "2026-07-25",
+      "proof_level_reached": "definition-found",
+      "proves": [
+        "The manipulation feature was included in the official Summer Update 2026 release announcement."
+      ],
+      "publication_date": "2026-07-13",
+      "role": "corroborating",
+      "selected": {
+        "files": [],
+        "observations": [
+          "The release announcement says the update lets players modify up to two perk slots and replace, refine, maximise or reshape effects."
+        ],
+        "sections": [
+          "Summer Update 2026"
+        ],
+        "symbols": []
+      },
+      "source_id": "tibia-official-summer-update-2026",
+      "source_type": "official-news"
+    }
+  ],
+  "superseded_by": [],
+  "supersedes": [],
+  "uncertainty": [
+    "The selected official pages expose no exact client build or immutable page revision."
+  ]
+}

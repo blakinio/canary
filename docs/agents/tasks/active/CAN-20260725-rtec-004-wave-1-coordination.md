@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/rtec-004-wave-1-coordinator-20260725
 base_branch: main
 created: 2026-07-25T20:11:38+02:00
-updated: 2026-07-25T21:02:00+02:00
-last_verified_commit: "db865ac22906c839e5a52812251882cf1340ebf5"
+updated: 2026-07-25T23:05:00+02:00
+last_verified_commit: "a29bd6a05ea641f0a01cfdcd67fa8ac1b6fc7866"
 risk: medium
 related_issue: ""
 related_pr: "929"
@@ -47,37 +47,50 @@ cross_repo_tasks: []
 
 Coordinate the first bounded parallel Collector campaign after RTEC-003 with two independent evidence-only packages while preserving owner boundaries and serialising the shared generated index.
 
-# Wave decision
+# Final wave outcome
 
-The programme permits up to eight workers and four concurrent Collector PRs. Wave 1 uses two workers because the repository already had six open PRs, including active OTBM PR #923 and Universal E2E PR #925. The reduced cap limits CI, storage and review pressure while still proving isolated dossier ownership.
-
-# Worker state
+RTEC-004 wave 1 completed with two isolated Collector workers and one serialized global-index lane.
 
 ## Worker A — weapon proficiency
 
 - Task: `CAN-20260725-rtec-004-weapon-proficiency`.
 - PR: #930.
-- Exclusive module root: `docs/agents/real-tibia/evidence/modules/weapon-proficiency/**`.
-- Delivered three records, dossier, behavior model, decisions, version history, module index and deterministic global index.
-- Main finding: current selected Canary paths implement original-tree selection and per-player/per-weapon KV state, not the official 2026 modified-slot manipulation lifecycle.
+- Merge commit: `8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9`.
+- Delivered three accepted records, dossier, behavior model, decisions, version history, module index and deterministic global index.
+- Current selected Canary paths implement original-tree perk selection and player-scoped per-weapon KV state; they do not establish the official 2026 modified-slot manipulation lifecycle.
 - Character-switch pending-notification isolation remains `UNKNOWN`.
-- Exact-head contract, registry, ownership, CI and upstream checks passed before structured-review integration.
-- `ci:final-gate` is applied; structured review and final deterministic regeneration are in progress.
+- Exact-head and Ready-state final gates passed before squash merge.
 
 ## Worker B — item definitions
 
 - Task: `CAN-20260725-rtec-004-cloud-in-a-bottle`.
 - PR: #931.
-- Exclusive module root: `docs/agents/real-tibia/evidence/modules/item-definitions/**`.
-- Official 2026-07-21 visible correction is pinned: availability begins at difficulty 10, not 15 as the description stated.
-- Bounded Canary searches found no indexed match for the official name or secondary candidate identifiers; this is not an absolute absence claim.
-- Worker B is serialised behind Worker A for the single global evidence index and will refresh from main after PR #930 merges.
+- Merge commit: `a29bd6a05ea641f0a01cfdcd67fa8ac1b6fc7866`.
+- Delivered two accepted records, dossier, behavior model, decisions, version history, module index, deterministic global index and structured review.
+- Official correction is pinned: Cloud in a Bottle is available from difficulty `10`, not `15`.
+- Selected textual paths contain no official-name variant or exact candidate ID `54651`, but the miss is not promoted to item absence because base identity may originate from `appearances.dat`.
+- `RTREQ-TCR-ITEM-DEFINITIONS-0001` is ready for owner triage to resolve exact official-client object identity and Canary appearances correspondence.
+- Exact-head and Ready-state final gates passed before squash merge.
+
+# Concurrency outcome
+
+- Two workers were viable because they owned separate module roots and did not edit feature, client, protocol, map, TCR implementation or E2E owner paths.
+- The shared deterministic global index could not safely be published concurrently. Worker B refreshed after Worker A merged and generated the combined index once.
+- Review and CI load remained bounded by running only two Collector workers rather than the programme maximum of eight.
+- No worker result was promoted beyond its strongest proof level; unresolved behavior and identity questions were preserved as `UNKNOWN` or owner requests.
+
+# RTEC-005 decision
+
+RTEC-005 will use a maximum of two concurrent Collector workers and exactly one serialized global-index integration lane. It may start only after a fresh repository, ownership, CI-load and evidence-corpus preflight selects two independent module roots. No RTEC-005 worker may publish the shared generated index concurrently with another worker.
+
+This is a concurrency/governance decision only. It does not preselect module claims or authorize owner-path implementation.
 
 # Shared boundaries
 
-- `RTREQ-FEATURE-VOCATIONS-0001` remains unclaimed and unchanged.
-- Workers do not edit OTBM/OWA, Universal E2E, TCR, protocol/client or feature-owner implementation paths.
-- Shared generated index integration occurs only on one worker/final coordinator path at a time.
+- `RTREQ-FEATURE-VOCATIONS-0001` remains an independent owner request.
+- `RTREQ-TCR-ITEM-DEFINITIONS-0001` remains ready for TCR owner triage.
+- Collector completion does not imply gameplay parity, release approval, item presence/absence or runtime behavior beyond accepted evidence records.
+- Worker implementation, data, assets, map, maintained-client, protocol and E2E paths remained unchanged.
 
 # Acceptance criteria
 
@@ -87,18 +100,19 @@ The programme permits up to eight workers and four concurrent Collector PRs. Wav
 - [x] Create one branch, task and draft PR for each worker.
 - [x] Assign exact package scopes, coordination IDs and dossier roots.
 - [x] Establish shared-index serialisation between workers.
-- [ ] Merge PR #930 after structured review and exact-final-head gates.
-- [ ] Refresh PR #931 from main, finish its bounded dossier and pass exact-final-head gates.
-- [ ] Merge PR #931 without owner-path edits.
-- [ ] Refresh coordinator PR #929 from main and reconcile programme state.
-- [ ] Record concurrency outcome and one exact RTEC-005 decision.
+- [x] Merge PR #930 after structured review and exact-final-head gates.
+- [x] Refresh PR #931 from main, finish its bounded dossier and pass exact-final-head gates.
+- [x] Merge PR #931 without owner-path edits.
+- [x] Refresh coordinator PR #929 from current main and reconcile wave state.
+- [x] Record concurrency outcome and one exact RTEC-005 decision.
+- [ ] Pass exact-final-head coordinator checks and merge PR #929.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T21:02:00+02:00
-head: db865ac22906c839e5a52812251882cf1340ebf5
+updated_at: 2026-07-25T23:05:00+02:00
+head: a29bd6a05ea641f0a01cfdcd67fa8ac1b6fc7866
 branch: feat/rtec-004-wave-1-coordinator-20260725
 pr: 929
 status: implementing
@@ -107,42 +121,42 @@ context_routes:
   - real-tibia-parity
 owned_paths:
   - docs/agents/tasks/active/CAN-20260725-rtec-004-wave-1-coordination.md
-  - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
-  - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
 proven:
-  - Worker A is PR 930 and Worker B is PR 931 with separate module roots
-  - Worker A produced three records and a deterministic index package without owner-path edits
-  - Worker A exact-head contract registry ownership CI and upstream checks passed before final review integration
-  - Worker B official correction is source-pinned and repository search misses remain non-absence evidence
-  - RTREQ-FEATURE-VOCATIONS-0001 remains unclaimed
-  - the shared global evidence index requires worker serialization
+  - Worker A PR 930 merged as 8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9 after exact-head and Ready-state final gates
+  - Worker B PR 931 merged as a29bd6a05ea641f0a01cfdcd67fa8ac1b6fc7866 after exact-head and Ready-state final gates
+  - Worker A and Worker B used separate module roots and did not edit owner implementation paths
+  - Worker B refreshed after Worker A and published the combined deterministic global index once
+  - RTEC-004 added five accepted evidence records and one bounded TCR request across two modules
+  - RTREQ-TCR-ITEM-DEFINITIONS-0001 is ready for owner triage
+  - all temporary diagnostic and export tooling was removed before each worker merge
 derived:
-  - two-worker concurrency is viable when module roots are isolated and the global index is serialized
-  - Worker B should refresh after Worker A merges rather than publish a stale parallel generated index
+  - two-worker Collector concurrency is viable when module roots are isolated and the global index is serialized
+  - the programme maximum of eight workers is not appropriate under the observed repository CI and review load
+  - RTEC-005 should retain a two-worker cap and one global-index lane until a later campaign proves a higher safe limit
 unknown:
-  - Worker A exact-final-head review integration result
-  - Worker B exact current-main identity and definition findings
-  - final merge SHAs and lifecycle outcomes
+  - feature-owner runtime result for official weapon-proficiency manipulation
+  - maintained-client character-switch pending-notification isolation
+  - exact official-client Cloud in a Bottle object identity and Canary appearances correspondence
 conflicts: []
 first_failure:
-  marker: worker-a-final-gate-pending
-  evidence: PR 930 has final-gate label and reviewed index integration is not yet on a green exact final head
+  marker: owner-evidence-deferred
+  evidence: Collector work completed, while runtime and proprietary client-reference questions remain correctly routed to owner evidence rather than guessed
 rejected_hypotheses:
-  - start eight workers immediately: current repository load supports a lower cap
-  - permit both workers to publish shared indexes concurrently: deterministic index serialization is required
-  - treat Worker B code-search misses as item absence proof: alternate identity and indexing remain unresolved
+  - start eight workers immediately because current CI storage and review load supported only a bounded two-worker wave
+  - permit both workers to publish the shared index concurrently because deterministic index serialization was required
+  - promote selected textual search misses or secondary candidate identifiers into absence or identity claims
 changed_paths:
   - docs/agents/tasks/active/CAN-20260725-rtec-004-wave-1-coordination.md
 validation:
-  - command: worker ownership and independence review
+  - command: Worker A exact-head and Ready-state final gates
     result: PASS
-    evidence: PRs 930 and 931 own distinct module roots and implementation paths remain read-only
-  - command: Worker A pre-review exact-head workflows
+    evidence: PR 930 merged as 8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9
+  - command: Worker B exact-head and Ready-state final gates
     result: PASS
-    evidence: Evidence Contracts Module Registry Ownership CI and Upstream Intelligence passed on e1be6262698f6eaf07ba7a91070a9dcf4517f9af
-  - command: Worker B official and bounded discovery review
+    evidence: PR 931 merged as a29bd6a05ea641f0a01cfdcd67fa8ac1b6fc7866
+  - command: concurrency and ownership reconciliation
     result: PASS
-    evidence: exact visible correction retained; search misses not promoted to absence
+    evidence: separate module roots, no owner-path edits and one serialized combined index integration
 blockers: []
-next_action: Finish the self-removing structured-review integration on PR 930, write one final human checkpoint, and merge only after all exact-final-head checks pass.
+next_action: Pass exact-final-head checks on PR 929, transition it to Ready, and merge without further scope changes.
 ```

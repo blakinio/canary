@@ -187,13 +187,26 @@ class FindingCollector:
         message: str,
         details: Mapping[str, Any] | None = None,
         correlations: list[dict[str, Any]] | None = None,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | None:
         if evidence_level not in EVIDENCE_LEVELS:
             raise SemanticDiffError(f"Unsupported evidence level: {evidence_level}")
         normalized = sorted(set(classifications))
         unknown = set(normalized) - CLASSIFICATIONS
         if unknown:
             raise SemanticDiffError(f"Unsupported classifications: {sorted(unknown)}")
+        self.total += 1
+        self.by_kind[kind] += 1
+        self.by_evidence[evidence_level] += 1
+        for classification in normalized:
+            self.by_classification[classification] += 1
+        if len(self.samples) >= self.sample_limit:
+            return None
+
+        # Exact totals are unbounded, but detailed findings are deliberately
+        # sampled.  Avoid stable-ID hashing and large transient dictionaries
+        # after the sample budget is full; otherwise a legitimate full-world
+        # comparison with tens of millions of findings spends most of its time
+        # constructing objects that the bounded report must discard.
         output_details = dict(details or {})
         id_details = {
             key: value
@@ -218,14 +231,34 @@ class FindingCollector:
             "message": message,
             "correlations": correlations or [],
         }
-        self.total += 1
-        self.by_kind[kind] += 1
-        self.by_evidence[evidence_level] += 1
-        for classification in normalized:
-            self.by_classification[classification] += 1
-        if len(self.samples) < self.sample_limit:
-            self.samples.append(finding)
+        self.samples.append(finding)
         return finding
+
+    def add_count(
+        self,
+        *,
+        kind: str,
+        classifications: list[str] | tuple[str, ...],
+        evidence_level: str,
+        count: int,
+    ) -> None:
+        if not isinstance(count, int) or isinstance(count, bool) or count < 0:
+            raise SemanticDiffError("count must be a non-negative integer")
+        if count == 0:
+            return
+        if evidence_level not in EVIDENCE_LEVELS:
+            raise SemanticDiffError(f"Unsupported evidence level: {evidence_level}")
+        normalized = sorted(set(classifications))
+        unknown = set(normalized) - CLASSIFICATIONS
+        if unknown:
+            raise SemanticDiffError(f"Unsupported classifications: {sorted(unknown)}")
+        if len(self.samples) < self.sample_limit:
+            raise SemanticDiffError("bulk finding counts require a full sample budget")
+        self.total += count
+        self.by_kind[kind] += count
+        self.by_evidence[evidence_level] += count
+        for classification in normalized:
+            self.by_classification[classification] += count
 
     def finish(self) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         self.samples.sort(

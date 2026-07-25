@@ -46,6 +46,20 @@ python tools/ai-agent/otbm_world_index_tool.py build artifacts/after.otbm \
 
 ## Full-index comparison
 
+World Index storage is deterministic and area-major rather than one globally
+position-sorted tile array: areas are ordered by `(z, baseY, baseX)` and tiles
+inside each area by `(y, x)`. Semantic Diff therefore merges the exact
+compound area/tile keys instead of assuming that concatenated horizontal areas
+remain globally sorted by `(z, y, x)`.
+
+After the bounded finding sample is full and no optional correlation report is
+present, unmatched tiles use exact bulk counters instead of constructing
+discarded finding objects. A full-index pair whose validated 256x256-floor area
+sets are completely disjoint is counted from the exact World Index header and
+mechanic inventory totals. This changes neither the report format nor the
+meaning of any count: retained samples keep stable IDs, all totals remain exact,
+and correlation-enabled comparisons continue through the detailed path.
+
 All paths are confined below `--artifact-root`. Direct symlink inputs and outputs are rejected.
 
 ```bash
@@ -224,7 +238,7 @@ PYTHONPATH=tools/ai-agent \
 python -m unittest -v tools/ai-agent/test_otbm_semantic_diff.py
 ```
 
-The focused suite compiles the existing native scanner and builds two synthetic canonical indexes. It covers identical inputs, tile/item/mechanic changes, pure reorder, Phase 3 walkability transitions, bounded scope, exact truncated counts, determinism, corrupt/mismatched provenance, overwrite/symlink safety, Phase 2–5 correlation, renderer API integration and source-map immutability.
+The focused suite compiles the existing native scanner and builds two synthetic canonical indexes. It covers identical inputs, tile/item/mechanic changes, pure reorder, Phase 3 walkability transitions, bounded scope, exact truncated counts, deterministic adjacent-area ordering in bounded and full-index modes, fully disjoint area-set bulk totals, determinism, corrupt/mismatched provenance, overwrite/symlink safety, Phase 2–5 correlation, renderer API integration and source-map immutability.
 
 ## Evidence levels
 
