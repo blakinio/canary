@@ -1,5 +1,6 @@
 name: E2E QRI-022 Lifecycle Records
 
+# One-shot same-repository integration; removes itself after bounded validation.
 on:
   pull_request:
     branches: [main]
