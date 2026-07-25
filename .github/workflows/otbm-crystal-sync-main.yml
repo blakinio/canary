@@ -1,6 +1,11 @@
 name: OTBM Crystal Controlled Main Sync
 
 on:
+  push:
+    branches:
+      - analysis/otbm-crystal-parity-baseline
+    paths:
+      - ".github/workflows/otbm-crystal-sync-main.yml"
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
@@ -12,7 +17,7 @@ permissions:
 
 jobs:
   sync:
-    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'analysis/otbm-crystal-parity-baseline'
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'analysis/otbm-crystal-parity-baseline' || github.ref == 'refs/heads/analysis/otbm-crystal-parity-baseline'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -109,5 +114,3 @@ jobs:
             .github/workflows/otbm-crystal-sync-main.yml
           git commit -m "docs(otbm): checkpoint current-main synchronization"
           git push origin HEAD:analysis/otbm-crystal-parity-baseline
-
-# synchronize trigger
