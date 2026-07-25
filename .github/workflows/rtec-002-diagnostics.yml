@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Capture exact diagnostics
+      - name: Capture exact diagnostics and generated output
         shell: bash
         run: |
           set +e
@@ -38,6 +38,11 @@ jobs:
           echo "$?" > unittest.exit
           python tools/agents/real_tibia_evidence.py validate --as-of 2026-07-25 > validate.log 2>&1
           echo "$?" > validate.exit
+          python tools/agents/real_tibia_evidence.py generate --as-of 2026-07-25 > generate.log 2>&1
+          echo "$?" > generate.exit
+          mkdir -p diagnostic-generated
+          cp docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json diagnostic-generated/EVIDENCE_INDEXES.json
+          cp docs/agents/real-tibia/evidence/modules/vocations/EVIDENCE_INDEX.yaml diagnostic-generated/VOCATIONS_EVIDENCE_INDEX.yaml
           set -e
       - name: Upload diagnostic logs
         uses: actions/upload-artifact@v4
@@ -48,9 +53,13 @@ jobs:
             unittest.exit
             validate.log
             validate.exit
+            generate.log
+            generate.exit
+            diagnostic-generated/**
           if-no-files-found: error
       - name: Preserve failure state
         shell: bash
         run: |
           test "$(cat unittest.exit)" = "0"
           test "$(cat validate.exit)" = "0"
+          test "$(cat generate.exit)" = "0"
