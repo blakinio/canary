@@ -8,7 +8,7 @@ branch: feat/e2e-qri-022-stability-certification
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "203e5d83e377b0a8f14d387409b041fcd0956499"
+last_verified_commit: "218a3f957a58b4d1a67f62d2cfb96f76241ae0cc"
 risk: medium
 related_issue: ""
 related_pr: "912"
@@ -26,6 +26,7 @@ owned_paths:
     - tests/e2e/test_stability_certification.py
     - docs/e2e/E2E_STABILITY_CERTIFICATION.md
     - docs/e2e/E2E_STABILITY_CERTIFICATION.schema.json
+    - .github/workflows/e2e-qri-022-integration.yml
   shared:
     - docs/agents/MODULE_CATALOG.md
     - docs/agents/CHANGELOG.md
@@ -79,24 +80,25 @@ Deliver one deterministic, read-only certification contract over explicitly supp
 - [x] Current `main`, QRI-004 closure, roadmap dependencies and open PR overlap are revalidated.
 - [x] One dedicated branch and task record claim exact bounded paths.
 - [x] Draft PR #912 is opened early and linked from this task.
-- [ ] Versioned stability certification contract and strict schema are implemented.
-- [ ] Every supplied attempt remains visible and duplicate run identities fail closed.
-- [ ] Comparability requires exact scenario, server revision, client revision, datapack and execution tier.
-- [ ] `pass` requires the explicit minimum run count and every evaluated clean run passing.
-- [ ] Mixed pass/failure evidence is `unstable`; all evaluated failures are `fail`; insufficient evidence is `not-evaluated`; unresolved provenance is `blocked`.
-- [ ] Cleanup certification remains independent and a cleanup failure prevents a clean-pass attempt.
-- [ ] Deterministic duration percentiles and exact failure/divergence distributions are tested.
+- [x] Versioned stability certification implementation, strict schema and operator documentation are present.
+- [x] Every supplied attempt remains visible and duplicate run identities fail closed in implementation/tests.
+- [x] Comparability requires exact scenario, server revision, client revision, datapack and execution tier.
+- [x] `pass` requires the explicit minimum run count and every evaluated clean run passing.
+- [x] Mixed pass/failure evidence is `unstable`; all evaluated failures are `fail`; insufficient evidence is `not-evaluated`; unresolved provenance is `blocked`.
+- [x] Cleanup certification remains independent and a cleanup failure prevents a clean-pass attempt.
+- [x] Deterministic duration percentiles and exact failure/divergence distributions are covered by focused tests.
 - [ ] Focused tests, bytecode compilation and JSON schema parsing pass against canonical repository modules.
 - [ ] Catalogue/program/changelog entries are updated narrowly.
+- [ ] The temporary checkout validation/integration workflow removes itself and is absent from final diff.
 - [ ] Exact final-head required checks pass before squash merge.
-- [ ] A physical repeated-run baseline remains explicit follow-up evidence and is not falsely claimed by this implementation package.
+- [x] A physical repeated-run baseline remains explicit follow-up evidence and is not falsely claimed by this implementation package.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T09:50:00+02:00
-head: 203e5d83e377b0a8f14d387409b041fcd0956499
+updated_at: 2026-07-25T10:10:00+02:00
+head: 218a3f957a58b4d1a67f62d2cfb96f76241ae0cc
 branch: feat/e2e-qri-022-stability-certification
 pr: 912
 status: implementing
@@ -109,6 +111,7 @@ owned_paths:
   - tests/e2e/test_stability_certification.py
   - docs/e2e/E2E_STABILITY_CERTIFICATION.md
   - docs/e2e/E2E_STABILITY_CERTIFICATION.schema.json
+  - .github/workflows/e2e-qri-022-integration.yml
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
   - docs/agents/programs/E2E_AUTOMATION_PROGRAM.md
@@ -118,15 +121,15 @@ proven:
   - QRI-006 supplies independent exact cleanup certification; cleanup success must not be inferred from gameplay success.
   - The roadmap requires run count, pass/fail count, success ratio, failure-class distribution, latency distribution, cleanup failures and first-divergence frequency, and explicitly classifies 9/10 as unstable.
   - No open PR or active task with E2E-QRI-022 intent or planned exclusive paths was found during live preflight.
-  - Current main at task creation is 930e0a15767b7e5348bb36c679fa5e458a76f184.
   - Draft PR #912 targets blakinio/canary:main from the dedicated same-repository task branch.
+  - The current implementation, focused tests, strict schema and operator documentation are committed on the task branch.
 derived:
   - Reusing coverage_dashboard discovery and canonical envelope validation avoids a second result parser and preserves its path-confinement rules.
   - A clean passing attempt requires gameplay status success and exact cleanup certification success; the two facts remain separately reported.
 unknown:
+  - Focused test outcome against the repository's actual canonical coverage/result/cleanup modules until the checkout workflow completes.
   - The first selected physical scenario set and exact retained artifact population for a real repeated-run baseline.
   - Whether a later scheduled execution seam is justified after the read-only certification contract is proven.
-  - Exact final implementation shape until focused canonical-module tests run.
 conflicts: []
 first_failure:
   marker: draft-pr-connector-safety-retry
@@ -137,17 +140,21 @@ rejected_hypotheses:
   - Creating another physical E2E runner, workflow lifecycle or artifact contract.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260725-e2e-qri-022-stability-certification.md
+  - tools/e2e/stability_certification.py
+  - tests/e2e/test_stability_certification.py
+  - docs/e2e/E2E_STABILITY_CERTIFICATION.md
+  - docs/e2e/E2E_STABILITY_CERTIFICATION.schema.json
 validation:
   - command: live main and QRI dependency preflight
     result: PASS
     evidence: main 930e0a15767b7e5348bb36c679fa5e458a76f184 includes QRI-004 lifecycle closure PR #900
-  - command: live open PR and repository search for E2E-QRI-022 overlap
-    result: PASS
-    evidence: no overlapping QRI-022 task, PR or exclusive path owner was found
   - command: same-repository draft PR safety check
     result: PASS
     evidence: PR #912 targets blakinio/canary:main from feat/e2e-qri-022-stability-certification
+  - command: local reconstructed source/test bytecode compilation and isolated focused suite
+    result: PASS
+    evidence: 13 local tests passed and one canonical-module integration test was explicitly skipped because the local sandbox has no repository checkout
 blockers:
   - A real multi-run physical stability baseline requires a selected retained artifact population and execution package after this contract is proven.
-next_action: Implement the smallest deterministic retained-evidence stability certification contract and focused canonical-module tests without adding execution, automatic retry, artifact download, retention or scheduling.
+next_action: Run the one-shot task-owned checkout integration workflow to patch shared records, execute focused tests against canonical modules, parse the schema and remove itself before final review.
 ```
