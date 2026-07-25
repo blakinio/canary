@@ -8,10 +8,10 @@ branch: dudantas/oam-049-upstream-intelligence-preflight
 base_branch: main
 created: 2026-07-25
 updated: 2026-07-25
-last_verified_commit: "8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9"
+last_verified_commit: "a13f20ef4dc4a3c9e02dee314fc6460a750f637f"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "939"
 depends_on:
   - OAM-048 durably completed as a22563088ebad86602dbd8cb9af0b120dcbfc94d
 blocks:
@@ -47,11 +47,11 @@ This disposition does **not** disable Upstream Intelligence. The existing Canary
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T22:05:00+02:00
-head: 8ef88972fd1c473b9f3c0a5cfb9bed98c78bdbc9
+updated_at: 2026-07-25T22:18:00+02:00
+head: a13f20ef4dc4a3c9e02dee314fc6460a750f637f
 branch: dudantas/oam-049-upstream-intelligence-preflight
-pr: null
-status: active
+pr: 939
+status: validating
 context_routes:
   - agent-governance
   - cross-repo
@@ -74,7 +74,10 @@ unknown:
   - Operational success of the next scheduled production scan and stable report issue remains governed by UI-002.
   - Individual future upstream candidates still require revision-pinned review and bounded implementation proof.
 conflicts: []
-first_failure: null
+first_failure:
+  command: changed active task checkpoint validation
+  result: FAIL
+  evidence: Initial head a13f20ef4dc4a3c9e02dee314fc6460a750f637f used null for first_failure; Ownership run 30171895810 required a YAML mapping. This commit repairs the schema without changing disposition or repository boundaries.
 rejected_hypotheses:
   - Disable or remove Upstream Intelligence because it is not migrated to Otheryn.
   - Copy the watcher and workflow into Otheryn for convenience.
@@ -89,8 +92,11 @@ validation:
   - command: external repository write-boundary review
     result: PASS
     evidence: Watched repositories are read-only and the workflow cannot push to them.
+  - command: changed active task checkpoint validation
+    result: PENDING
+    evidence: Exact-head Ownership must confirm the repaired schema.
 blockers:
   - Canary preflight exact-head Ownership and CI
   - clean discussion and Canary-main drift audit
-next_action: Open the Canary preflight PR, require exact-head Ownership and full CI, audit discussions and main drift, then merge before creating the Otheryn disposition task.
+next_action: Require exact-head Ownership and full CI on PR 939, audit discussions and main drift, then merge before creating the Otheryn disposition task.
 ```
