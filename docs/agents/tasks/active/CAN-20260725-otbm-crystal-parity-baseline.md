@@ -5,8 +5,8 @@ status: review
 agent: "GPT-5.6 Thinking"
 owner: OTBM analysis tooling / Real Tibia parity
 created: 2026-07-25T08:00:00+02:00
-updated: 2026-07-25T19:55:00+02:00
-last_verified_commit: "a364ec028105f7663fb40ec75e5c1b0607706d2a"
+updated: 2026-07-25T20:08:00+02:00
+last_verified_commit: "91a342be588d9a5975814246c9d859a5d303a775"
 branch: analysis/otbm-crystal-global-parity-final
 base_branch: main
 base: main@c468be4c34039b4b3e9f4e320c4b125cb6998d77
@@ -78,11 +78,11 @@ Produce a deterministic, read-only comparison between the user-supplied OTServBR
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T19:55:00+02:00
-head: a364ec028105f7663fb40ec75e5c1b0607706d2a
+updated_at: 2026-07-25T20:08:00+02:00
+head: 91a342be588d9a5975814246c9d859a5d303a775
 branch: analysis/otbm-crystal-global-parity-final
 pr: 923
-status: final-gate
+status: validating
 context_routes:
   - agent-governance
   - otbm
@@ -143,13 +143,13 @@ validation:
   - command: previous corrected implementation head 624f31a5898407f31c8bd58e1a50ad8dd511f193
     result: PASS
     evidence: Ownership, Semantic Diff, OTBM Map Tools, AI Agent Tools and CI were green before the branch was superseded by clean PR 923
-  - command: PR 923 head a364ec028105f7663fb40ec75e5c1b0607706d2a
-    result: BLOCKED
-    evidence: pull-request workflow records ended action_required before creating jobs because the head was emitted by github-actions bot
-  - command: protected exact-head workflow set after final checkpoint commit
+  - command: PR 923 head 91a342be588d9a5975814246c9d859a5d303a775
+    result: FAIL
+    evidence: ownership validator rejected unsupported checkpoint status final-gate; all other completed checks were green and the task record is corrected in this commit
+  - command: protected exact-head workflow set after corrected checkpoint commit
     result: NOT_RUN
-    evidence: ci:final-gate was applied before this connector-authored checkpoint commit
+    evidence: ci:final-gate remains applied and this connector-authored commit retriggers the full exact-head set
 blockers:
   - No merge blocker remains outside exact-head final CI.
-next_action: Verify all required workflows on the connector-authored final checkpoint head and squash-merge PR 923 only when every required check is green.
+next_action: Verify all required workflows on the corrected exact head and squash-merge PR 923 only when every required check is green.
 ```
