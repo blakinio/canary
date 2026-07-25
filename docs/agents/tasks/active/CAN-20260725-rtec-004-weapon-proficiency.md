@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/rtec-004-weapon-proficiency-20260725
 base_branch: main
 created: 2026-07-25T20:18:00+02:00
-updated: 2026-07-25T20:35:00+02:00
-last_verified_commit: "6ea899e6a2e2dd097a519ea6da87808182340a3a"
+updated: 2026-07-25T20:42:00+02:00
+last_verified_commit: "95976a5f4a892337ceeb95ae8f4bed08db770913"
 risk: medium
 related_issue: ""
 related_pr: "930"
@@ -55,7 +55,7 @@ Collect one bounded, version-aware evidence package for Summer Update 2026 weapo
   - `RT-WEAPON-PROFICIENCY-0001`: official manipulation lifecycle, `PROVEN`, `definition-found`;
   - `RT-WEAPON-PROFICIENCY-0002`: current Canary static tree and player-scoped KV runtime path, `PROVEN`, `runtime-path-proven`;
   - `RT-WEAPON-PROFICIENCY-0003`: pending level-up character-switch isolation, `UNKNOWN`, `definition-found`.
-- module evidence index, version history and pending structured-review checklist.
+- module evidence index, deterministic shared global index, version history and pending structured-review checklist.
 
 # Findings
 
@@ -64,7 +64,14 @@ Collect one bounded, version-aware evidence package for Summer Update 2026 weapo
 - The selected canonical paths do not model modified slots, dust costs, rolled replacement effects, refinement, maximisation, reshaping or clearing. This is a bounded selected-path finding, not an absolute repository-wide absence claim.
 - Focused current tests cover mastery and achievement helpers, not manipulation or selected-perk persistence.
 - The official 2026-07-14 character-switch display correction remains unproven for current Canary/OTClient; Player ownership does not prove client notification-state isolation.
-- No owner request was created because the package can remain dossier-complete with the missing client/runtime dimensions explicit; the coordinator may nominate a later owner package without duplicating the active vocations request.
+- No owner request was created because the package can remain dossier-complete with missing client/runtime dimensions explicit; the coordinator may nominate a later owner package without duplicating the active vocations request.
+
+# Validation history
+
+- Exact-head run `30169850402` reached the repository-contract test and failed only on deterministic global-index drift.
+- The coordinator used one self-removing workflow to run the canonical generator and validator, then committed only `docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json` as `95976a5f4a892337ceeb95ae8f4bed08db770913`.
+- The temporary workflow is absent from the current diff.
+- Checks on the bot-authored integration commit returned `action_required` without jobs; this human-authored checkpoint commit is the clean re-trigger boundary.
 
 # Acceptance criteria
 
@@ -75,15 +82,16 @@ Collect one bounded, version-aware evidence package for Summer Update 2026 weapo
 - [x] Separate official release, client build, protocol, Canary, OTClient, data/assets and schema axes.
 - [x] Record proof/nonproof boundaries, unknowns, freshness and invalidation triggers.
 - [x] Create no duplicate owner request.
-- [ ] Pass exact-head evidence, deterministic-index, ownership and applicable CI gates.
+- [x] Regenerate the shared factual index using the canonical generator and remove temporary integration scaffolding.
+- [ ] Pass exact-head evidence, ownership and applicable CI gates.
 - [ ] Complete structured review and accept or revise the three records.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-25T20:35:00+02:00
-head: 6ea899e6a2e2dd097a519ea6da87808182340a3a
+updated_at: 2026-07-25T20:42:00+02:00
+head: 95976a5f4a892337ceeb95ae8f4bed08db770913
 branch: feat/rtec-004-weapon-proficiency-20260725
 pr: 930
 status: validating
@@ -101,25 +109,29 @@ proven:
   - focused tests do not cover manipulation or selected-perk persistence
   - official character-switch defect and correction date are source-pinned
   - current Canary and maintained-client character-switch conformance is unproven
-  - three evidence records module index version history and review material are present on PR 930
+  - three records module index version history review material and deterministic global index are present on PR 930
+  - exact-head run 30169850402 failed only on global-index drift before regeneration
+  - canonical generation and validation produced integration commit 95976a5f4a892337ceeb95ae8f4bed08db770913 and removed its temporary workflow
 derived:
   - setSelectedPerk is not equivalent to official modified-slot manipulation
   - Player-owned server state cannot establish maintained-client notification isolation
 unknown:
   - exact maintained-client and protocol state for pending proficiency notifications
   - executed KV persistence and rollback behavior
-  - exact-head corpus and deterministic global-index result
+  - clean human-authored exact-head workflow results
   - structured review outcome
 conflicts: []
 first_failure:
-  marker: exact-head-validation-pending
-  evidence: Real Tibia Evidence Contracts run 30169850402 and related checks are queued on 6ea899e6a2e2dd097a519ea6da87808182340a3a
+  marker: clean-exact-head-validation-pending
+  evidence: bot-authored integration checks on 95976a5f4a892337ceeb95ae8f4bed08db770913 required approval without jobs; this checkpoint creates a human-authored re-trigger
 rejected_hypotheses:
   - implement or test the feature in this Collector task: owner implementation paths remain read-only
   - equate static original-tree selection with modified-slot manipulation: source state and operations differ
   - infer character-switch isolation from Player ownership: client and session state are unproven
+  - hand-edit generated hashes: canonical generation produced the exact global index instead
 changed_paths:
   - docs/agents/tasks/active/CAN-20260725-rtec-004-weapon-proficiency.md
+  - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
   - docs/agents/real-tibia/evidence/modules/weapon-proficiency/BEHAVIOR_MODEL.md
   - docs/agents/real-tibia/evidence/modules/weapon-proficiency/DECISIONS.md
   - docs/agents/real-tibia/evidence/modules/weapon-proficiency/EVIDENCE_INDEX.yaml
@@ -136,9 +148,15 @@ validation:
   - command: bounded Canary source data and test trace at 124b029d1a2498a64fa6612b16efa386b8786a83
     result: PASS
     evidence: exact paths and symbols retained in RT-WEAPON-PROFICIENCY-0002 and 0003
-  - command: GitHub exact-head workflows on 6ea899e6a2e2dd097a519ea6da87808182340a3a
+  - command: Real Tibia Evidence Contracts run 30169850402
+    result: FAIL
+    evidence: first and only failure was deterministic global-index drift before canonical regeneration
+  - command: canonical generate validate and generate-check on the worker branch
+    result: PASS
+    evidence: one-shot integration produced 95976a5f4a892337ceeb95ae8f4bed08db770913 and self-removed
+  - command: GitHub exact-head workflows after this checkpoint
     result: NOT_RUN
-    evidence: queued at checkpoint time
+    evidence: pending new head
 blockers: []
-next_action: Inspect Real Tibia Evidence Contracts run 30169850402 on the current head, fix the first contract failure, and regenerate the shared global index through the coordinator-owned integration path if required.
+next_action: Inspect the human-authored exact-head workflow runs triggered by this checkpoint, fix the first remaining failure, and complete structured review only after all current-head contract checks pass.
 ```
