@@ -44,29 +44,39 @@ The report records normalized evidence only:
 
 It does not serialize passwords or arbitrary response bodies and contains no timestamp.
 
-## First real exact-head evidence
+## Historical source evidence
 
-Validated implementation head:
+The original implementation was completed on stale PR #514. Its first fully passing runtime head was:
 
 `c45050f81ce4b2f337b4573df60384627affd8fc`
 
-Validation:
+Historical validation:
 
 - Agent Task Ownership run `29618885740`: PASS;
 - repository CI run `29618885853`: PASS;
 - Security Validation run `29618885799`: PASS.
 
-The Security Validation run passed focused security tests, exact-head Linux release build, the existing SEC-003 malformed-status runtime, the existing SEC-004 login-parser runtime and the new SEC-005 authenticated game-session runtime.
+That Security Validation run passed focused security tests, an exact-head Linux release build, the existing SEC-003 malformed-status runtime, the existing SEC-004 login-parser runtime and the SEC-005 authenticated game-session runtime. Its SEC-005 artifact reported five passing case probes, five passing fresh authenticated controls and no fatal/sanitizer findings.
 
-The SEC-005 artifact reported:
+This historical evidence proves that the package design worked on that exact old Canary head. It is retained as source-package evidence only and is not current-main merge evidence.
 
-- `status=success`;
-- `failure=null`;
-- five case probes PASS;
-- five fresh authenticated control probes PASS;
-- no fatal/sanitizer findings.
+## Current-main recovery
 
-Server-side transport diagnostics recorded the expected rejection classes for the bounded negative cases:
+Draft PR #974 recovers SEC-005 from stale PR #514 onto current `main` under task `CAN-20260726-security-authenticated-session-transport-recovery`.
+
+The seven package-specific files were transferred byte-for-byte from the proven PR #514 head. The Security Validation workflow, programme, catalogue and changelog were integrated manually against their current contents so newer repository work was not overwritten. No runtime C++, datapack, production configuration, external repository or public target is changed.
+
+On replacement head `8c9a2a2ad90e5aa44c72dd782c2ccdcaaeadaff0`:
+
+- Agent Task Ownership run `30220289801`: PASS;
+- focused Security Validation job in run `30220289843`: PASS, including Python compilation, all focused security tests, scenario registry validation, runtime-adapter validation and registered static scenarios;
+- full current-main Canary build and disposable SEC-003/SEC-004/SEC-005 runtime remain required on the exact final PR head before merge.
+
+The replacement must not use historical PR #514 checks as a substitute for a fresh exact-final-head runtime result.
+
+## Rejection evidence
+
+The historical passing runtime recorded the expected server-side rejection classes for the bounded negative cases:
 
 - zero sequence;
 - sequence mismatch for the gap case;
@@ -77,7 +87,7 @@ Each affected connection then completed the expected valid recovery exchange.
 
 ## Evidence boundary
 
-This evidence proves successful authentication and game-session establishment for the repository-owned disposable fixtures and the registered post-login sequence/XTEA rejection-and-recovery assertions on the tested exact Canary binary.
+A passing exact-head result proves successful authentication and game-session establishment for the repository-owned disposable fixtures and the registered post-login sequence/XTEA rejection-and-recovery assertions on the tested exact Canary binary.
 
 It does not prove:
 
