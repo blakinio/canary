@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-wave-1-coordinator-20260726
 base_branch: main
 created: 2026-07-26T11:30:00+02:00
-updated: 2026-07-26T23:43:00+02:00
-last_verified_commit: "479fb9dc7eb5f66556ac21cb439de19da62c1cc9"
+updated: 2026-07-27T00:04:00+02:00
+last_verified_commit: "7d71cceb807c24d64af39088f09fc1da934878fc"
 risk: medium
 related_issue: ""
 related_pr: "955"
@@ -23,16 +23,16 @@ owned_paths:
     - docs/agents/tasks/active/CAN-20260726-rtec-005-wave-1-coordination.md
     - docs/agents/real-tibia/evidence/modules/item-decay/**
     - docs/agents/real-tibia/evidence/modules/parties/**
-    - docs/agents/real-tibia/evidence/modules/item-definitions/EVIDENCE_INDEX.yaml
-    - docs/agents/real-tibia/evidence/modules/vocations/EVIDENCE_INDEX.yaml
-    - docs/agents/real-tibia/evidence/modules/weapon-proficiency/EVIDENCE_INDEX.yaml
     - .github/workflows/real-tibia-evidence.yml
-    - tools/agents/real_tibia_evidence_test_support.py
-    - tools/agents/test_real_tibia_evidence.py
-    - tools/agents/test_real_tibia_owner_request_prepublication.py
   shared:
     - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
     - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
+    - docs/agents/real-tibia/evidence/modules/item-definitions/EVIDENCE_INDEX.yaml
+    - docs/agents/real-tibia/evidence/modules/vocations/EVIDENCE_INDEX.yaml
+    - docs/agents/real-tibia/evidence/modules/weapon-proficiency/EVIDENCE_INDEX.yaml
+    - tools/agents/real_tibia_evidence_test_support.py
+    - tools/agents/test_real_tibia_evidence.py
+    - tools/agents/test_real_tibia_owner_request_prepublication.py
   read_only:
     - docs/agents/tasks/archive/CAN-20260726-rtec-005-item-decay.md
     - docs/agents/tasks/archive/CAN-20260726-rtec-005-parties.md
@@ -81,8 +81,8 @@ Complete RTEC-005 wave 1 by independently adjudicating the merged `item-decay` a
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T23:43:00+02:00
-head: 479fb9dc7eb5f66556ac21cb439de19da62c1cc9
+updated_at: 2026-07-27T00:04:00+02:00
+head: 7d71cceb807c24d64af39088f09fc1da934878fc
 branch: docs/rtec-005-wave-1-coordinator-20260726
 pr: 955
 status: validating
@@ -103,11 +103,8 @@ owned_paths:
   - tools/agents/test_real_tibia_evidence.py
   - tools/agents/test_real_tibia_owner_request_prepublication.py
 proven:
-  - item-decay PR 957 passed Required run 30216659464 and merged as 7e6d0078d7ad87a82aea092ff4285256fcae746f
-  - item-decay lifecycle PR 973 merged as ad734f81772eb840c7e1ce18b27ac9ed0d2a4c50
-  - parties PR 958 passed Required run 30219648745 and merged as 7a09367589dfc08e482edadbe77e556ecf0cfaa7
-  - parties lifecycle PR 976 passed Ownership run 30220366677 and CI run 30220366776 and merged as 86ad1fc0e69ef4450871173735346af6a20d4eba
-  - coordinator artifact run 30220767816 validated the bounded acceptance view and generated deterministic indexes
+  - worker PRs 957 and 958 passed Ready-state Required and merged; lifecycle PRs 973 and 976 archived both worker tasks
+  - artifact run 30220767816 validated the bounded acceptance view and generated deterministic indexes
   - artifact 8637133045 has digest sha256:4adeb6625a0953223d3fed469c32b65b439061cbcddb9879a9b6079a9451c82a
   - commit 2a74acaa57413a3fb95529ba9c8c4196d6907d9b publishes the exact validated artifact outputs
   - RT-ITEM-DECAY-0001 is accepted only for the selected current Canary duration-bucket and transform/removal source path at runtime-path-proven
@@ -116,8 +113,9 @@ proven:
   - the global index is as_of 2026-07-26 with 13 evidence records, 2 owner requests and 10 version-history records
   - generated input_sha256 is 8572712a873048c4385e471008c42c97fe09310bafb6d7a0874e8aa6b2ade03b
   - RTREQ-FEATURE-VOCATIONS-0001 and RTREQ-TCR-ITEM-DEFINITIONS-0001 remain unchanged; no new owner request was created
-  - workflow commit ec2a824d53b9901f5a86ce2a4c88d62c3035077e restores contents read, non-persistent checkout credentials and check-only validation at as_of 2026-07-26
-  - check-only diagnostics isolated only canonical-date propagation into shared test support, three older module indexes and relative future-date fixtures
+  - final workflow is contents-read, uses non-persistent checkout credentials and validates deterministically at as_of 2026-07-26
+  - Evidence Contracts, Module Registry, Upstream Intelligence and ordinary CI passed on head 7d71cceb807c24d64af39088f09fc1da934878fc
+  - the remaining Ownership failure is limited to exclusive claims for shared canonical-date support paths
   - no validator, schema or evidence-rule change was made
 derived:
   - the wave publishes three bounded evidence records but makes no whole-module or Real Tibia parity claim
@@ -128,8 +126,8 @@ unknown:
   - protocol/client interpretation and physical gameplay parity for both modules
 conflicts: []
 first_failure:
-  marker: canonical-date-propagation-incomplete
-  evidence: final diagnostics require only three older module index dates and future-evidence fixtures to follow canonical AS_OF 2026-07-26
+  marker: shared-support-paths-claimed-exclusive
+  evidence: Ownership run 30221765055 passed checkpoint validation but rejected global exclusive ownership; support tests and older module indexes are shared canonical-date surfaces
 rejected_hypotheses:
   - backdate evidence to 2026-07-25
   - weaken future-evidence validation
@@ -148,18 +146,15 @@ changed_paths:
   - tools/agents/test_real_tibia_evidence.py
   - tools/agents/test_real_tibia_owner_request_prepublication.py
 validation:
-  - command: worker Ready-state final gates
+  - command: worker Ready-state and lifecycle gates
     result: PASS
-    evidence: runs 30216659464 and 30219648745
-  - command: worker lifecycle cleanup gates
-    result: PASS
-    evidence: PRs 973 and 976 merged after Ownership and CI
+    evidence: Required runs 30216659464 and 30219648745; lifecycle PRs 973 and 976 merged
   - command: bounded adjudication artifact generation
     result: PASS
     evidence: Evidence Contracts run 30220767816 generated, validated and rechecked artifact 8637133045
-  - command: final check-only diagnostics
-    result: FAIL
-    evidence: runs 30221056246 and 30221494445 isolated canonical-date propagation only
+  - command: exact-head standard gates on 7d71cceb807c24d64af39088f09fc1da934878fc
+    result: PARTIAL
+    evidence: Evidence Contracts, Registry, Upstream and CI pass; Ownership run 30221765055 isolates exclusive shared-support claims
 blockers: []
-next_action: Update the three deterministic module index dates and use AS_OF-relative future fixtures, then pass exact-head standard gates and the Ready-state final gate.
+next_action: Pass Ownership with support paths marked shared, then run the Ready-state final gate, squash-merge PR 955 and archive its coordinator task.
 ```
