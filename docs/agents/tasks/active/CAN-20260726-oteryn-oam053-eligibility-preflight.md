@@ -8,10 +8,10 @@ branch: dudantas/oam-053-blocked-preflight
 base_branch: main
 created: 2026-07-26
 updated: 2026-07-26
-last_verified_commit: "4dac672b7d7cd67e467411c3c27c85b47f736833"
+last_verified_commit: "0c57476f7bb0fb91933b585449abe2403df86a0a"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "970"
 depends_on:
   - OAM-052 durable program reconciliation merged as 4dac672b7d7cd67e467411c3c27c85b47f736833
 blocks:
@@ -56,10 +56,10 @@ This task records the blocker only. It makes no source, protocol, client, securi
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T20:20:00+02:00
-head: 4dac672b7d7cd67e467411c3c27c85b47f736833
+updated_at: 2026-07-26T20:30:00+02:00
+head: 0c57476f7bb0fb91933b585449abe2403df86a0a
 branch: dudantas/oam-053-blocked-preflight
-pr: pending
+pr: 970
 status: blocked
 context_routes:
   - agent-governance
@@ -81,7 +81,7 @@ proven:
   - The durable programme already records PR 514 as an ownership blocker for network-transport.
   - Canonical login-protocol registry blob is fc0cd7b18452701cb12e7c3ea5acc820dea866c7 and depends on account-authentication plus network-transport.
   - account-authentication is completed, but network-transport remains unresolved; login-protocol is therefore dependency-blocked.
-  - No open Canary or Otheryn PR owns OAM-053 itself.
+  - PR 970 changes exactly this one blocker checkpoint and creates no target task.
 derived:
   - Starting network-transport now would create overlapping evidence and decision ownership with active PR 514.
   - Starting login-protocol now would violate dependency ordering.
