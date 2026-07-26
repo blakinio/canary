@@ -105,8 +105,8 @@ The target task must search current ownership and open PRs again, start from cur
 ## Context checkpoint
 
 ```yaml
-checkpoint_version: 2
-updated_at: 2026-07-26T14:30:00+02:00
+checkpoint_version: 1
+updated_at: 2026-07-26T14:35:00+02:00
 head: 525bfb3f81e11771b215b48f72cfb78b0d4071ac
 branch: dudantas/oam-051b-task-shop-preflight
 pr: 959
@@ -165,9 +165,6 @@ validation:
   - command: target storage reservation review
     result: PASS
     evidence: wheel storage range 1000000..2000000 currently reserves keys 1..5; key 6 is unassigned.
-  - command: current-head Agent Task Ownership and CI
-    result: PENDING
-    evidence: required on the exact final head produced by this checkpoint commit.
 blockers: []
 next_action: Require Agent Task Ownership and CI to pass on the exact final head, recheck changed paths, discussions and mergeability, then squash-merge PR 959 and start the bounded Otheryn OAM-051B target task from current main.
 ```
