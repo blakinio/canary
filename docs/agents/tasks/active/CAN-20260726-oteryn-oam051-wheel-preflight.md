@@ -2,16 +2,16 @@
 task_id: CAN-20260726-oteryn-oam051-wheel-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-051
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-051a-wheel-governance
 base_branch: main
 created: 2026-07-26
 updated: 2026-07-26
-last_verified_commit: "477a3b9b6938e4777ec0df5b2b38ef021b60ece1"
+last_verified_commit: "8e8a827a356f8aa0a74c1a47fab3a53e50aac1f8"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "956"
 depends_on:
   - OAM-050 durably completed as d0c76c6f964a5266789b252173eb24832a309e80
 blocks:
@@ -97,11 +97,11 @@ Generated `docs/lua-api/*` remain generated outputs. Canary validation scripts r
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T10:35:00+02:00
-head: e4a29ce11ca4bc68d4dfa81595dabf46e2961c71
+updated_at: 2026-07-26T10:42:00+02:00
+head: 8e8a827a356f8aa0a74c1a47fab3a53e50aac1f8
 branch: dudantas/oam-051a-wheel-governance
-pr: null
-status: implementing
+pr: 956
+status: validating
 context_routes:
   - agent-governance
   - cross-repo
@@ -161,7 +161,7 @@ validation:
     evidence: parent remains active because OAM-051B was explicitly declared by preflight and is not yet classified
   - command: Canary governance exact-head Ownership and CI
     result: NOT_RUN
-    evidence: governance PR has not yet been opened and synchronized
+    evidence: PR 956 must pass final synchronized exact-head gates
 blockers:
   - Canary governance exact-head Ownership and CI
   - clean governance discussion and Canary-main drift audit
