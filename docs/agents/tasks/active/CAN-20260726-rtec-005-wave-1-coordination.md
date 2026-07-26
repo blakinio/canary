@@ -7,7 +7,7 @@ agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-wave-1-coordinator-20260726
 base_branch: main
 created: 2026-07-26T11:30:00+02:00
-updated: 2026-07-26T23:28:00+02:00
+updated: 2026-07-26T23:32:00+02:00
 last_verified_commit: "2a74acaa57413a3fb95529ba9c8c4196d6907d9b"
 risk: medium
 related_issue: ""
@@ -24,6 +24,7 @@ owned_paths:
     - docs/agents/real-tibia/evidence/modules/item-decay/**
     - docs/agents/real-tibia/evidence/modules/parties/**
     - .github/workflows/real-tibia-evidence.yml
+    - tools/agents/real_tibia_evidence_test_support.py
   shared:
     - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
     - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
@@ -75,8 +76,8 @@ Complete RTEC-005 wave 1 by independently adjudicating the merged `item-decay` a
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T23:28:00+02:00
-head: ec2a824d53b9901f5a86ce2a4c88d62c3035077e
+updated_at: 2026-07-26T23:32:00+02:00
+head: 996ffa9a6a142082102829ef467bf1b4792a7e4f
 branch: docs/rtec-005-wave-1-coordinator-20260726
 pr: 955
 status: validating
@@ -90,6 +91,7 @@ owned_paths:
   - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
   - .github/workflows/real-tibia-evidence.yml
+  - tools/agents/real_tibia_evidence_test_support.py
 proven:
   - item-decay PR 957 passed Required run 30216659464 and merged as 7e6d0078d7ad87a82aea092ff4285256fcae746f
   - item-decay lifecycle PR 973 merged as ad734f81772eb840c7e1ce18b27ac9ed0d2a4c50
@@ -106,19 +108,19 @@ proven:
   - RTREQ-FEATURE-VOCATIONS-0001 and RTREQ-TCR-ITEM-DEFINITIONS-0001 remain unchanged and active
   - no new owner request was created
   - workflow commit ec2a824d53b9901f5a86ce2a4c88d62c3035077e restores contents read, non-persistent checkout credentials and check-only validation at as_of 2026-07-26
-derived:
-  - the wave publishes three bounded evidence records but makes no whole-module or Real Tibia parity claim
-  - the next RTEC-005 wave requires a fresh ownership preflight and the same single serialized shared-index lane
+  - the first final check-only run exposed only a stale test-support AS_OF constant still set to 2026-07-25
+  - no validator, schema or evidence-rule change is required
 unknown:
   - runtime timing and restart behavior for item decay
   - exact active party configuration, bonus/distribution formulas, activity call sites and battle-sign behavior
   - protocol/client interpretation and physical gameplay parity for both modules
 conflicts: []
 first_failure:
-  marker: final-exact-head-gates-not-yet-recorded
-  evidence: reviewed records and deterministic indexes are committed and CI is check-only; the checkpoint commit still requires exact-head gates
+  marker: test-support-as-of-lags-canonical-publication-date
+  evidence: focused test test_repository_contracts_and_generated_files_are_current rejected honest accepted 2026-07-26 records only because shared AS_OF remained 2026-07-25
 rejected_hypotheses:
   - backdate evidence to 2026-07-25
+  - weaken future-evidence validation
   - claim whole-module parity from static source and current web documentation
   - create broad owner requests without a narrowed, non-duplicative question
   - retain temporary contents-write or materialization logic in the final workflow
@@ -129,6 +131,7 @@ changed_paths:
   - docs/agents/real-tibia/evidence/modules/parties/**
   - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
   - .github/workflows/real-tibia-evidence.yml
+  - tools/agents/real_tibia_evidence_test_support.py
 validation:
   - command: worker Ready-state final gates
     result: PASS
@@ -142,6 +145,9 @@ validation:
   - command: artifact publication commit
     result: PASS
     evidence: commit 2a74acaa57413a3fb95529ba9c8c4196d6907d9b matches the validated artifact outputs
+  - command: first final check-only Evidence Contracts run 30221056246
+    result: FAIL
+    evidence: only shared test-support AS_OF remained 2026-07-25; production workflow and accepted evidence use 2026-07-26
 blockers: []
-next_action: Pass exact-head Evidence Contracts, Ownership, Registry, Upstream and ordinary CI, then apply the final-gate label and mark PR 955 Ready.
+next_action: Advance only the shared evidence test-support AS_OF constant to 2026-07-26, then pass the exact-head standard gates and Ready-state final gate.
 ```
