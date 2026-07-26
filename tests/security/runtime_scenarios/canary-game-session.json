@@ -1,0 +1,14 @@
+{
+  "schema": "ots-security-game-session-plan-v1",
+  "id": "canary-game-session-baseline",
+  "authorized_repository": "blakinio/canary",
+  "driver": "canary-game-session-v1",
+  "service": "game",
+  "cases": [
+    "authenticated-control",
+    "post-login-zero-sequence",
+    "post-login-sequence-gap",
+    "post-login-sequence-replay",
+    "post-login-invalid-xtea-padding"
+  ]
+}
