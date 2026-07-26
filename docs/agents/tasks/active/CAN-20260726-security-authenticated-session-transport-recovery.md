@@ -11,7 +11,7 @@ updated: 2026-07-26
 last_verified_commit: "ad734f81772eb840c7e1ce18b27ac9ed0d2a4c50"
 risk: high
 related_issue: ""
-related_pr: "pending"
+related_pr: "974"
 depends_on:
   - stale SEC-005 PR 514 at 3fbaba7fe44808b889c5409ff844b796d9283554
 blocks:
@@ -80,7 +80,7 @@ checkpoint_version: 1
 updated_at: 2026-07-26T21:25:00+02:00
 head: ad734f81772eb840c7e1ce18b27ac9ed0d2a4c50
 branch: feat/security-authenticated-session-transport-recovery
-pr: pending
+pr: 974
 status: implementing
 context_routes:
   - agent-governance
