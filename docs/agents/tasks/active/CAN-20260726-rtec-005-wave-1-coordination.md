@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-wave-1-coordinator-20260726
 base_branch: main
 created: 2026-07-26T11:30:00+02:00
-updated: 2026-07-27T00:04:00+02:00
-last_verified_commit: "7d71cceb807c24d64af39088f09fc1da934878fc"
+updated: 2026-07-27T00:08:00+02:00
+last_verified_commit: "d8df7b21adabcf959858a13bc1fbb5caa1fe764d"
 risk: medium
 related_issue: ""
 related_pr: "955"
@@ -81,8 +81,8 @@ Complete RTEC-005 wave 1 by independently adjudicating the merged `item-decay` a
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-27T00:04:00+02:00
-head: 7d71cceb807c24d64af39088f09fc1da934878fc
+updated_at: 2026-07-27T00:08:00+02:00
+head: d8df7b21adabcf959858a13bc1fbb5caa1fe764d
 branch: docs/rtec-005-wave-1-coordinator-20260726
 pr: 955
 status: validating
@@ -115,7 +115,7 @@ proven:
   - RTREQ-FEATURE-VOCATIONS-0001 and RTREQ-TCR-ITEM-DEFINITIONS-0001 remain unchanged; no new owner request was created
   - final workflow is contents-read, uses non-persistent checkout credentials and validates deterministically at as_of 2026-07-26
   - Evidence Contracts, Module Registry, Upstream Intelligence and ordinary CI passed on head 7d71cceb807c24d64af39088f09fc1da934878fc
-  - the remaining Ownership failure is limited to exclusive claims for shared canonical-date support paths
+  - Ownership run 30222445667 isolated only the unsupported checkpoint result value PARTIAL
   - no validator, schema or evidence-rule change was made
 derived:
   - the wave publishes three bounded evidence records but makes no whole-module or Real Tibia parity claim
@@ -126,8 +126,8 @@ unknown:
   - protocol/client interpretation and physical gameplay parity for both modules
 conflicts: []
 first_failure:
-  marker: shared-support-paths-claimed-exclusive
-  evidence: Ownership run 30221765055 passed checkpoint validation but rejected global exclusive ownership; support tests and older module indexes are shared canonical-date surfaces
+  marker: unsupported-checkpoint-validation-result
+  evidence: Ownership run 30222445667 rejected only validation.result PARTIAL; supported fail-closed value FAIL now records the same historical outcome
 rejected_hypotheses:
   - backdate evidence to 2026-07-25
   - weaken future-evidence validation
@@ -153,8 +153,8 @@ validation:
     result: PASS
     evidence: Evidence Contracts run 30220767816 generated, validated and rechecked artifact 8637133045
   - command: exact-head standard gates on 7d71cceb807c24d64af39088f09fc1da934878fc
-    result: PARTIAL
-    evidence: Evidence Contracts, Registry, Upstream and CI pass; Ownership run 30221765055 isolates exclusive shared-support claims
+    result: FAIL
+    evidence: Evidence Contracts, Registry, Upstream and CI passed; Ownership failed only because validation result PARTIAL is unsupported
 blockers: []
-next_action: Pass Ownership with support paths marked shared, then run the Ready-state final gate, squash-merge PR 955 and archive its coordinator task.
+next_action: Pass exact-head standard gates, then run the Ready-state final gate, squash-merge PR 955 and archive its coordinator task.
 ```
