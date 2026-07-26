@@ -1,0 +1,94 @@
+---
+name: SEC-005 lifecycle materializer
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/sec005-lifecycle-materialize.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sec005-lifecycle-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  materialize:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'docs/security-sec005-recovery-lifecycle'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout lifecycle branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          persist-credentials: true
+          fetch-depth: 0
+      - name: Finalize current records
+        env:
+          LIFECYCLE_PR: ${{ github.event.pull_request.number }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          catalog_path = Path("docs/agents/MODULE_CATALOG.md")
+          catalog = catalog_path.read_text(encoding="utf-8")
+          old = "| OTS Security Validation Platform | active (#433, #440, #451, #462, #974; stale source #514) | Product-neutral source-regression registry and runtime delegation layer with bounded exact-head unauthenticated status-parser, login-boundary and authenticated game-session/post-login sequence/XTEA packs using fixed code-owned cases, deterministic isolated loopback sources, protocol-aware controls, process/fatal diagnostics and SHA-256 evidence | `tools/security/**`, `tests/security/**`, `docs/security/SECURITY_VALIDATION_PLATFORM.md`, `docs/security/SECURITY_VALIDATION_SEC005.md`, `.github/workflows/security-validation.yml` | Reuse the source-regression, delegation and bounded runtime contracts. Runtime drivers must stay on explicitly authorized disposable targets and reuse Universal E2E/Agent Load lifecycle; never add arbitrary manifest commands, packet payloads, credentials or network targets. SEC-005 proves only its registered disposable-fixture authentication and sequence/XTEA rejection-and-recovery assertions; session races, economy/transactions, Redis/multichannel, hostile-server client behavior, sustained capacity and production remain separate evidence. |"
+          new = "| OTS Security Validation Platform | active; SEC-001..005 merged and runtime-proven (#433, #440, #451, #462, #974; #514 superseded) | Product-neutral source-regression registry and runtime delegation layer with bounded exact-head unauthenticated status-parser, login-boundary and authenticated game-session/post-login sequence/XTEA packs using fixed code-owned cases, deterministic isolated loopback sources, protocol-aware controls, process/fatal diagnostics and SHA-256 evidence | `tools/security/**`, `tests/security/**`, `docs/security/SECURITY_VALIDATION_PLATFORM.md`, `docs/security/SECURITY_VALIDATION_SEC005.md`, `.github/workflows/security-validation.yml` | Reuse the source-regression, delegation and bounded runtime contracts. Runtime drivers must stay on explicitly authorized disposable targets and reuse Universal E2E/Agent Load lifecycle; never add arbitrary manifest commands, packet payloads, credentials or network targets. SEC-005 exact-final evidence is pinned in its handover and archived task; it proves only registered disposable-fixture authentication and sequence/XTEA rejection-and-recovery assertions. |"
+          if new not in catalog:
+              if old not in catalog:
+                  raise SystemExit("security catalogue row mismatch")
+              catalog_path.write_text(catalog.replace(old, new, 1), encoding="utf-8")
+
+          sec_path = Path("docs/security/SECURITY_VALIDATION_SEC005.md")
+          sec = sec_path.read_text(encoding="utf-8")
+          old_block = """Draft PR #974 recovers SEC-005 from stale PR #514 onto current `main` under task `CAN-20260726-security-authenticated-session-transport-recovery`.
+
+The seven package-specific files were transferred byte-for-byte from the proven PR #514 head. The Security Validation workflow, programme, catalogue and changelog were integrated manually against their current contents so newer repository work was not overwritten. No runtime C++, datapack, production configuration, external repository or public target is changed.
+
+On replacement head `8c9a2a2ad90e5aa44c72dd782c2ccdcaaeadaff0`:
+
+- Agent Task Ownership run `30220289801`: PASS;
+- focused Security Validation job in run `30220289843`: PASS, including Python compilation, all focused security tests, scenario registry validation, runtime-adapter validation and registered static scenarios;
+- full current-main Canary build and disposable SEC-003/SEC-004/SEC-005 runtime remain required on the exact final PR head before merge.
+
+The replacement must not use historical PR #514 checks as a substitute for a fresh exact-final-head runtime result."""
+          new_block = """PR #974 recovered SEC-005 from stale PR #514 onto current `main` and merged as `1408aaa886240034a90fc33873e9b9e0fa47cab6` from exact head `37ccd806c4843739a79b2c5a394e35ac4ae3bacf`. PR #514 was then closed unmerged as superseded.
+
+The seven package-specific files were transferred from the proven PR #514 blobs. The Security Validation workflow, programme, catalogue and changelog were integrated manually against current contents so newer repository work was not overwritten. No runtime C++, datapack, production configuration, external repository or public target changed.
+
+Exact-final evidence:
+
+- Agent Task Ownership run `30220958387`: PASS;
+- repository CI run `30220958452` and stable `Required`: PASS;
+- autofix run `30220958405`: PASS with no follow-up commit;
+- Security Validation run `30220958474`: PASS, including fresh exact-head build and disposable SEC-003, SEC-004 and SEC-005 runtimes;
+- artifact `8637308071`, digest `sha256:3c5ef16d0a6b7a3a25cfa0f2c2ed78a883de4a2ea65a06736ce3044c25939cd8`;
+- report status success, failure null, five passing case probes, five passing fresh controls and no fatal/sanitizer findings.
+
+The durable lifecycle record is `docs/agents/tasks/archive/CAN-20260726-security-authenticated-session-transport-recovery.md`."""
+          if new_block not in sec:
+              if old_block not in sec:
+                  raise SystemExit("SEC-005 recovery block mismatch")
+              sec_path.write_text(sec.replace(old_block, new_block, 1), encoding="utf-8")
+
+          task_path = Path("docs/agents/tasks/archive/CAN-20260726-security-authenticated-session-transport-recovery.md")
+          task = task_path.read_text(encoding="utf-8")
+          task = task.replace("pr: pending", f"pr: {os.environ['LIFECYCLE_PR']}", 1)
+          task_path.write_text(task, encoding="utf-8")
+          PY
+      - name: Commit lifecycle records and remove helper
+        run: |
+          set -euo pipefail
+          git diff --check
+          git rm .github/workflows/sec005-lifecycle-materialize.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/agents/MODULE_CATALOG.md docs/security/SECURITY_VALIDATION_SEC005.md docs/agents/tasks/archive/CAN-20260726-security-authenticated-session-transport-recovery.md
+          git commit -m "docs(security): finalize SEC-005 lifecycle records"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
