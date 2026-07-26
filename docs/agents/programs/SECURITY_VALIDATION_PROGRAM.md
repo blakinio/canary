@@ -4,8 +4,8 @@ name: OTS Security Validation Platform
 status: active
 owner: security-validation-agent
 created: 2026-07-16T20:10:00+02:00
-updated: 2026-07-26T23:05:00+02:00
-last_verified_commit: "ad734f81772eb840c7e1ce18b27ac9ed0d2a4c50"
+updated: 2026-07-26T23:55:00+02:00
+last_verified_commit: "1408aaa886240034a90fc33873e9b9e0fa47cab6"
 primary_paths:
   - tools/security/**
   - tests/security/**
@@ -28,7 +28,7 @@ The platform is not permanently tied to Canary. Canary is the first source/runti
 # Existing foundations to reuse
 
 - Universal OTS E2E owns disposable database/server/client lifecycle, controlled OTClient execution, SQL/protocol assertions, artifacts and cleanup.
-- Universal Agent Load owns literal-loopback-only bounded status-protocol load/stress evidence and exposes the code-owned server-only `RuntimeContext` / `run_runtime` callback used by OTS-SEC-003, OTS-SEC-004 and the active OTS-SEC-005 recovery.
+- Universal Agent Load owns literal-loopback-only bounded status-protocol load/stress evidence and exposes the code-owned server-only `RuntimeContext` / `run_runtime` callback used by OTS-SEC-003, OTS-SEC-004 and OTS-SEC-005.
 - Existing focused regressions remain authoritative implementation-level evidence and should be referenced by security scenarios rather than rewritten.
 - Repository CI and exact-final-head merge gates remain the delivery boundary.
 
@@ -95,11 +95,18 @@ The green run proves only the registered login-boundary assertions and the servi
 
 # Phase 5 — authenticated game-session transport runtime (`OTS-SEC-005`)
 
-Active recovery in draft PR #974 under `docs/agents/tasks/active/CAN-20260726-security-authenticated-session-transport-recovery.md`. The replacement starts from current `main` and supersedes stale PR #514 only after successful merge and lifecycle closure.
+Merged in current-main recovery PR #974 from exact feature head `37ccd806c4843739a79b2c5a394e35ac4ae3bacf`; squash merge `1408aaa886240034a90fc33873e9b9e0fa47cab6`. Stale source PR #514 was closed unmerged as superseded after the replacement merge.
 
 The bounded package authenticates repository-owned disposable fixtures directly to the literal-loopback game service through the current first-game Adler32/RSA handoff, then enables XTEA/sequenced transport and exercises five code-owned cases: authenticated control, zero sequence, sequence gap, sequence replay and invalid XTEA padding. Each negative case requires same-session recovery with the still-expected sequence plus a fresh distinct-source authenticated control session. Plans cannot supply credentials, packet bytes, key material, commands or network targets.
 
-Historical PR #514 exact-head evidence is retained only as the source package proof; it is not treated as current-main final evidence. PR #974 must independently pass current exact-head Agent Task Ownership, repository CI and Security Validation, including a fresh Canary build and disposable SEC-003/SEC-004/SEC-005 runtime execution, before merge.
+Exact-final-head evidence:
+
+- Agent Task Ownership run `30220958387`: PASS;
+- repository CI run `30220958452`: PASS, including stable `Required`, Linux release/debug, full debug tests and Docker Quickstart;
+- autofix run `30220958405`: PASS with no follow-up commit;
+- Security Validation run `30220958474`: PASS, including fresh exact-head build and disposable SEC-003, SEC-004 and SEC-005 runtimes;
+- `security-game-session` artifact `8637308071`, digest `sha256:3c5ef16d0a6b7a3a25cfa0f2c2ed78a883de4a2ea65a06736ce3044c25939cd8`;
+- report status success, failure null, five passing case probes, five passing fresh controls and no fatal/sanitizer findings.
 
 OTS-SEC-005 does not claim session lifecycle race coverage, economy or transaction-abuse resistance, Redis/multichannel behavior, hostile-server maintained-client resilience, sustained capacity or production-target safety.
 
@@ -110,7 +117,7 @@ OTS-SEC-005 does not claim session lifecycle race coverage, economy or transacti
 3. `DONE` — OTS-SEC-003 runtime hook merged in PR #444; lifecycle completed in PR #450.
 4. `DONE` — OTS-SEC-003 bounded common-framing + unauthenticated `ProtocolStatus` runtime scenarios merged in PR #451; lifecycle completed in PR #459.
 5. `DONE` — OTS-SEC-004 bounded login protocol boundary scenarios merged in PR #462; lifecycle task archived automatically.
-6. `ACTIVE — RECOVERY` — OTS-SEC-005 authenticated game-session and post-login sequence/XTEA scenarios in draft PR #974; stale PR #514 remains historical source evidence until replacement merge.
+6. `DONE` — OTS-SEC-005 authenticated game-session and post-login sequence/XTEA scenarios merged in PR #974; stale PR #514 closed as superseded; lifecycle recorded in `docs/agents/tasks/archive/CAN-20260726-security-authenticated-session-transport-recovery.md`.
 7. `QUEUED` — add authenticated session lifecycle race, economy and transaction-abuse scenarios with disposable MariaDB state assertions.
 8. `QUEUED` — add Redis/multichannel failure and ownership scenarios without targeting shared or production infrastructure.
 9. `QUEUED` — add maintained-client hostile-server scenarios through an explicit cross-repository contract.
@@ -131,10 +138,12 @@ OTS-SEC-005 does not claim session lifecycle race coverage, economy or transacti
 
 # Handoff
 
-The active OTS Security Validation implementation task is `CAN-20260726-security-authenticated-session-transport-recovery` in draft PR #974. Continue from that task checkpoint and exact current PR head. Do not modify or merge stale PR #514 directly; it remains the pinned historical package source until #974 succeeds, after which #514 must close as superseded.
+No OTS Security Validation implementation task is currently active after SEC-005 completion. The durable completed task is `docs/agents/tasks/archive/CAN-20260726-security-authenticated-session-transport-recovery.md`.
+
+The next Security Validation package must begin with a fresh ownership and dependency preflight. OAM-053 may separately re-evaluate `network-transport` now that PR #514 is closed and SEC-005 lifecycle evidence is durable; it must not treat SEC-005 as complete transport equivalence.
 
 Durable completed-workstream handoff before SEC-005:
 
 `docs/agents/tasks/archive/CAN-20260717-security-validation-conversation-handoff.md`
 
-A continuation agent must start from current `AGENTS.md`, `docs/agents/REPOSITORY_MAP.md`, `docs/agents/CONTEXT_ROUTING.md`, this program, the active recovery task, live PR #974 and current repository state. It must not reconstruct completed SEC-001 through SEC-004 or the stale #514 package from chat history.
+A continuation agent must start from current `AGENTS.md`, `docs/agents/REPOSITORY_MAP.md`, `docs/agents/CONTEXT_ROUTING.md`, this program, the archived SEC-005 task and current repository state. It must not reconstruct completed SEC-001 through SEC-005 from chat history.
