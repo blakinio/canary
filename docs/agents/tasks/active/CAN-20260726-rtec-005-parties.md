@@ -2,13 +2,13 @@
 task_id: CAN-20260726-rtec-005-parties
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-005-W1-PARTIES
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
 branch: feat/rtec-005-parties-20260726
 base_branch: main
 created: 2026-07-26T10:35:03+02:00
-updated: 2026-07-26T22:50:00+02:00
-last_verified_commit: "ad734f81772eb840c7e1ce18b27ac9ed0d2a4c50"
+updated: 2026-07-26T22:44:00+02:00
+last_verified_commit: "c6449642a12e6b9ab4f03e384eea9d288cbec6e3"
 risk: medium
 related_issue: ""
 related_pr: "958"
@@ -59,19 +59,19 @@ Deliver one bounded prepublication evidence package that keeps official visible 
 - [x] Keep both candidates `review-needed` and the published module index empty at `as_of=2026-07-25`.
 - [x] Create no owner request because review has not narrowed one non-duplicative owner dimension.
 - [x] Make no global-index, programme, runtime, client, protocol, map, workflow or E2E edit.
-- [ ] Pass Evidence Contracts, Agent Task Ownership and ordinary CI on the post-cleanup exact head.
-- [ ] Hand the validated candidate package to the coordinator for independent adjudication of both records.
+- [x] Pass Evidence Contracts, Agent Task Ownership and ordinary CI on the post-cleanup exact head.
+- [x] Hand the validated candidate package to the coordinator for independent adjudication of both records.
 - [ ] Pass the Ready-state final gate and squash-merge the worker package.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T22:50:00+02:00
-head: ad734f81772eb840c7e1ce18b27ac9ed0d2a4c50
+updated_at: 2026-07-26T22:44:00+02:00
+head: c6449642a12e6b9ab4f03e384eea9d288cbec6e3
 branch: feat/rtec-005-parties-20260726
 pr: 958
-status: implementing
+status: validating
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -92,16 +92,21 @@ proven:
   - both records remain review-needed with pending coordinator review
   - the module index remains the empty published view at 2026-07-25
   - no owner request or shared global-index edit was made
+  - exact head c6449642a12e6b9ab4f03e384eea9d288cbec6e3 passed Evidence Contracts run 30219568735
+  - exact head c6449642a12e6b9ab4f03e384eea9d288cbec6e3 passed Agent Task Ownership run 30219568730
+  - exact head c6449642a12e6b9ab4f03e384eea9d288cbec6e3 passed ordinary CI run 30219568887
+  - exact head c6449642a12e6b9ab4f03e384eea9d288cbec6e3 passed Module Registry run 30219568686 and Upstream Intelligence run 30219568759
 derived:
-  - active ownership is now disjoint because the completed item-decay task is archived
+  - active ownership is disjoint because the completed item-decay task is archived
   - the parties package can coexist with merged item-decay evidence without factual publication
+  - the candidate package is structurally valid and ready for final-gate execution
 unknown:
   - whether the coordinator will accept, change or reject either parties record
   - active multiplier, battle-sign gate, activity call sites, formulas, runtime, protocol, client and physical gameplay proof
 conflicts: []
 first_failure:
-  marker: post-cleanup-refresh-not-yet-validated
-  evidence: the lifecycle conflict is resolved and the branch is refreshed, but exact-head gates have not rerun
+  marker: final-gate-not-yet-run
+  evidence: all exact-head ordinary gates are green; Ready-state Required validation remains
 rejected_hypotheses:
   - weaken glob overlap validation
   - claim whole-module conformance from partial source comparison
@@ -111,9 +116,21 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260726-rtec-005-parties.md
   - docs/agents/real-tibia/evidence/modules/parties/**
 validation:
-  - command: item-decay lifecycle cleanup PR 973
+  - command: Real Tibia Evidence Contracts run 30219568735
     result: PASS
-    evidence: active task moved to archive; Ownership 30217579309 and CI 30217579385 succeeded
+    evidence: source contracts, publication view, generated indexes and production owner-request dry-run succeeded
+  - command: Agent Task Ownership run 30219568730
+    result: PASS
+    evidence: changed-task checkpoint and active ownership validation succeeded
+  - command: ordinary CI run 30219568887
+    result: PASS
+    evidence: exact-head ordinary CI succeeded
+  - command: Real Tibia Module Registry run 30219568686
+    result: PASS
+    evidence: canonical module registry validation succeeded
+  - command: Upstream Intelligence run 30219568759
+    result: PASS
+    evidence: upstream intelligence validation succeeded
 blockers: []
-next_action: Recreate the parties candidate package on ad734f81772eb840c7e1ce18b27ac9ed0d2a4c50 and pass exact-head evidence, ownership, registry, upstream and CI gates.
+next_action: Apply the final-gate label, mark PR 958 Ready, pass the Required check, then squash-merge the parties worker package.
 ```
