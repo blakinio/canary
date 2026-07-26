@@ -2,13 +2,14 @@
 task_id: CAN-20260726-rtec-005-item-decay
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-005-W1-ITEM-DECAY
-status: implementing
+status: completed
 agent: "GPT-5.6 Thinking"
 branch: feat/rtec-005-item-decay-20260726
 base_branch: main
 created: 2026-07-26T10:34:53+02:00
-updated: 2026-07-26T22:10:00+02:00
-last_verified_commit: "97cf0b1367db6845f86b0169aa4d08ab01ca0d4f"
+updated: 2026-07-26T19:37:34Z
+completed: 2026-07-26T19:37:34Z
+last_verified_commit: "7e6d0078d7ad87a82aea092ff4285256fcae746f"
 risk: medium
 related_issue: ""
 related_pr: "957"
@@ -55,7 +56,7 @@ Deliver one bounded prepublication evidence package for the exact current Canary
 - [x] Make no global-index, programme, runtime, data, client, protocol, map, workflow or E2E edit.
 - [x] Pass Evidence Contracts, Agent Task Ownership and ordinary CI on the exact candidate head.
 - [x] Hand the validated candidate package to the coordinator for adjudication.
-- [ ] Pass the Ready-state final gate and squash-merge the worker package.
+- [x] Pass the Ready-state final gate and squash-merge the worker package.
 
 ## Context checkpoint
 
@@ -115,3 +116,11 @@ validation:
 blockers: []
 next_action: Apply the final-gate label, mark PR 957 Ready, pass the Required check, then squash-merge the item-decay worker package.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #957.
+- Feature head: `c80a4a9fb170f66379a6be4e3ede6b1908b5c808`.
+- Merge commit: `7e6d0078d7ad87a82aea092ff4285256fcae746f`.
+- Merged at: `2026-07-26T19:37:34Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle cleanup.
