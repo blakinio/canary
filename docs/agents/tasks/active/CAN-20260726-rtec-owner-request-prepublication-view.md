@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: fix/rtec-owner-request-prepublication-view-20260726
 base_branch: main
 created: 2026-07-26T20:50:00+02:00
-updated: 2026-07-26T21:15:00+02:00
-last_verified_commit: "6a403bed0fdf840cee0bada5496c4ea50ada7d0f"
+updated: 2026-07-26T21:20:00+02:00
+last_verified_commit: "de1ec5e1b73c2035748f776d0617ef169f7e61bc"
 risk: medium
 related_issue: ""
 related_pr: "968"
@@ -68,8 +68,8 @@ Make owner-request lifecycle dry-runs and mutations use the same prepublication-
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T21:15:00+02:00
-head: 6a403bed0fdf840cee0bada5496c4ea50ada7d0f
+updated_at: 2026-07-26T21:20:00+02:00
+head: de1ec5e1b73c2035748f776d0617ef169f7e61bc
 branch: fix/rtec-owner-request-prepublication-view-20260726
 pr: 968
 status: implementing
@@ -91,12 +91,15 @@ proven:
   - new regression tests for future review-needed and accepted future records pass in workflow run 30215290057
   - the first patched run failed only because the legacy transactional test asserted full-corpus index bytes after publication-aware generation
   - that legacy assertion now uses validate_for_publication
+derived:
+  - owner-request dry-runs and writes can coexist with honest unpublished candidate evidence without publishing candidate records
+  - accepted future evidence remains controlled by the existing publication as_of gate
 unknown:
-  - first exact-head workflow failure after the legacy assertion update
+  - first exact-head workflow failure after the checkpoint-contract correction
 conflicts: []
 first_failure:
   marker: repair-not-yet-revalidated
-  evidence: the only observed test failure was corrected; exact-head workflow results for the corrected test suite are pending
+  evidence: implementation and test failures are corrected; exact-head workflow results for the corrected checkpoint are pending
 rejected_hypotheses:
   - backdate candidate evidence
   - advance the published as_of date before review
@@ -109,8 +112,11 @@ changed_paths:
   - tools/agents/test_real_tibia_owner_request_prepublication.py
 validation:
   - command: workflow run 30215290057 focused tests
-    result: PARTIAL
+    result: FAIL
     evidence: both new regressions passed; one legacy full-corpus assertion failed and was updated to the publication-aware contract
+  - command: workflow run 30215396653 changed-task checkpoint validation
+    result: FAIL
+    evidence: checkpoint required derived and canonical validation result enum; both are corrected in this commit
 blockers: []
 next_action: Pass exact-head Evidence Contracts, Ownership and ordinary CI for PR 968, then run the Ready-state final gate and squash-merge it before refreshing worker validation.
 ```
