@@ -7,7 +7,7 @@ agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-wave-1-coordinator-20260726
 base_branch: main
 created: 2026-07-26T11:30:00+02:00
-updated: 2026-07-26T23:38:00+02:00
+updated: 2026-07-26T23:39:00+02:00
 last_verified_commit: "9fe4e49078eda40740a6040c2136bddfa749e2f1"
 risk: medium
 related_issue: ""
@@ -76,7 +76,7 @@ Complete RTEC-005 wave 1 by independently adjudicating the merged `item-decay` a
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T23:38:00+02:00
+updated_at: 2026-07-26T23:39:00+02:00
 head: 9fe4e49078eda40740a6040c2136bddfa749e2f1
 branch: docs/rtec-005-wave-1-coordinator-20260726
 pr: 955
@@ -110,7 +110,7 @@ proven:
   - workflow commit ec2a824d53b9901f5a86ce2a4c88d62c3035077e restores contents read, non-persistent checkout credentials and check-only validation at as_of 2026-07-26
   - first check-only run 30221056246 isolated the stale shared test-support AS_OF constant; commit 9fe4e49078eda40740a6040c2136bddfa749e2f1 advances only that constant
   - no validator, schema or evidence-rule change was made
- derived:
+derived:
   - the wave publishes three bounded evidence records but makes no whole-module or Real Tibia parity claim
   - the next RTEC-005 wave requires a fresh ownership preflight and the same single serialized shared-index lane
 unknown:
