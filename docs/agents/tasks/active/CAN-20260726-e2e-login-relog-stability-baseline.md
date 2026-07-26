@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: test/e2e-login-relog-stability-baseline-20260726
 base_branch: main
 created: 2026-07-26T12:15:00+02:00
-updated: 2026-07-26T12:15:00+02:00
-last_verified_commit: "ec0d815570415a4c7ca7217e3e2aca41f6023dab"
+updated: 2026-07-26T12:20:00+02:00
+last_verified_commit: "2eb25c2c335b9e02ede2ea064e7213eb4f6f759e"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "961"
 depends_on:
   - "QRI-022 stability certification merged in PR #912 and lifecycle-closed in PR #914"
   - "Failure evidence retention repaired by PR #940"
@@ -79,10 +79,10 @@ Produce a fresh factual Universal E2E stability baseline from exactly ten preser
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T12:15:00+02:00
-head: bb9600f9b02a2ea08da83ca6944fa8bc2f1b61b0
+updated_at: 2026-07-26T12:20:00+02:00
+head: 2eb25c2c335b9e02ede2ea064e7213eb4f6f759e
 branch: test/e2e-login-relog-stability-baseline-20260726
-pr: none
+pr: 961
 status: validating
 context_routes:
   - agent-governance
@@ -95,21 +95,23 @@ owned_paths:
   - .github/e2e-controlled-server.env
 proven:
   - main is ec0d815570415a4c7ca7217e3e2aca41f6023dab after merged PR 953
+  - draft PR 961 targets blakinio/canary main from the isolated baseline branch
   - no open PR claims the fresh login/relog repeated-run baseline paths
   - QRI-022 requires an explicit minimum of ten and does not execute or download physical evidence
   - closed PR 925 retained only nine valid attempts and explicitly requires a fresh isolated population
   - the temporary pin fixes the runtime server revision to ec0d815570415a4c7ca7217e3e2aca41f6023dab
   - the initial baseline dossier contains no reused historical attempt
- derived:
-  - one PR workflow run plus nine sequential physical-job reruns can produce ten distinct counted workflow attempts without changing runtime code
+  - CI run 30198015400 passed on the first task head
+  - ownership run 30198015351 failed only because derived had one leading space in the checkpoint
+ derived: []
 unknown:
-  - initial Universal Agent E2E run id and physical job id
-  - maintained OTClient revision and datapack identity emitted by the initial attempt
+  - corrected-head Universal Agent E2E run id and physical job id
+  - maintained OTClient revision and datapack identity emitted by attempt 1
   - outcome and retained evidence identifiers for attempts 1 through 10
 conflicts: []
 first_failure:
-  marker: none
-  evidence: collection has not started
+  marker: checkpoint-format
+  evidence: ownership run 30198015351 reported invalid list item under proven; corrected in this commit
 rejected_hypotheses:
   - reuse PR 925 attempts because its closure explicitly forbids reuse in a later baseline
   - create a second physical runner or workflow because the existing canonical lifecycle and rerun API are sufficient
@@ -121,9 +123,15 @@ validation:
   - command: live main and overlap preflight
     result: PASS
     evidence: main ec0d815570415a4c7ca7217e3e2aca41f6023dab; no open matching baseline PR
+  - command: CI
+    result: PASS
+    evidence: run 30198015400 on 2eb25c2c335b9e02ede2ea064e7213eb4f6f759e
+  - command: Agent Task Ownership
+    result: FAIL
+    evidence: run 30198015351 failed only on checkpoint indentation; corrected in this commit
   - command: physical ten-attempt population
     result: NOT_RUN
-    evidence: draft PR not opened yet
+    evidence: corrected-head initial attempt pending
 blockers: []
-next_action: Open the draft PR and require the initial Universal Agent E2E physical login/relog attempt to retain complete evidence before scheduling attempt 2.
+next_action: Require the corrected-head initial Universal Agent E2E physical login/relog attempt to retain complete evidence before scheduling attempt 2.
 ```
