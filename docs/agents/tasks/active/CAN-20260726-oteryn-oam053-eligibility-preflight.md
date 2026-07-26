@@ -8,10 +8,10 @@ branch: dudantas/oam-053-network-transport-preflight
 base_branch: main
 created: 2026-07-26
 updated: 2026-07-27
-last_verified_commit: "ba08e346540f017773b9268832d304c7f5664ac2"
+last_verified_commit: "f14b2e26536b191504ae5b0428ef5f8814ffdbcd"
 risk: high
 related_issue: ""
-related_pr: "pending"
+related_pr: "979"
 depends_on:
   - OAM-052 durable program reconciliation merged as 4dac672b7d7cd67e467411c3c27c85b47f736833
   - SEC-005 lifecycle merged as ba08e346540f017773b9268832d304c7f5664ac2
@@ -81,10 +81,10 @@ Excluded:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-27T00:20:00+02:00
-head: ba08e346540f017773b9268832d304c7f5664ac2
+updated_at: 2026-07-27T00:25:00+02:00
+head: f14b2e26536b191504ae5b0428ef5f8814ffdbcd
 branch: dudantas/oam-053-network-transport-preflight
-pr: pending
+pr: 979
 status: implementing
 context_routes:
   - agent-governance
