@@ -11,7 +11,7 @@ updated: 2026-07-26
 last_verified_commit: "d8416553be77d4999d81afcce2399a37a25337a6"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "959"
 depends_on:
   - OAM-051A durably completed as bd0b58a362d89e449a6863ba299d1c50ad4e6685
 blocks:
@@ -78,8 +78,8 @@ checkpoint_version: 1
 updated_at: 2026-07-26T11:10:00+02:00
 head: d8416553be77d4999d81afcce2399a37a25337a6
 branch: dudantas/oam-051b-task-shop-preflight
-pr: null
-status: investigating
+pr: 959
+status: validating
 context_routes:
   - agent-governance
   - cross-repo
