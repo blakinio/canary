@@ -2,13 +2,13 @@
 task_id: CAN-20260726-security-authenticated-session-transport-recovery
 program_id: CAN-PROGRAM-SECURITY-VALIDATION
 coordination_id: OTS-SEC-005-RECOVERY
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
 branch: feat/security-authenticated-session-transport-recovery
 base_branch: main
 created: 2026-07-26
 updated: 2026-07-26
-last_verified_commit: "ad734f81772eb840c7e1ce18b27ac9ed0d2a4c50"
+last_verified_commit: "a401233f08bacd9c46025b51e1337c4cad251bac"
 risk: high
 related_issue: ""
 related_pr: "974"
@@ -63,25 +63,25 @@ Recover the completed authenticated game-session and post-login sequence/XTEA va
 
 - [x] Start from current `main` and record stale PR #514 head, checks, path set and divergence.
 - [x] Confirm SEC-005 package-specific files are absent from current `main` and not superseded.
-- [ ] Port the package-specific runtime, runner, tests, scenario and documentation without weakening their fail-closed boundaries.
-- [ ] Integrate SEC-005 manually into the current Security Validation workflow.
-- [ ] Update current programme, catalogue and changelog narrowly without reverting newer entries.
-- [ ] Run focused Python compile/tests and scenario validation.
-- [ ] Pass exact-head Agent Task Ownership, CI and Security Validation, including the real disposable authenticated-session runtime.
-- [ ] Review the full changed-file set and confirm no runtime source, production configuration, credential, map or unrelated path changed.
-- [ ] Squash-merge the replacement PR.
-- [ ] Close PR #514 as superseded and archive both the stale and recovery task lifecycle records.
-- [ ] Notify OAM-053 that interacting transport ownership is released for a fresh eligibility preflight.
+- [x] Port the package-specific runtime, runner, tests, scenario and documentation without weakening fail-closed boundaries.
+- [x] Integrate SEC-005 manually into the current Security Validation workflow.
+- [x] Update the current programme, catalogue and changelog without reverting newer entries.
+- [x] Pass focused Python compilation, unit tests, scenario registry and adapter validation.
+- [ ] Pass exact-final-head Agent Task Ownership, CI, autofix and Security Validation including the real disposable authenticated-session runtime.
+- [x] Review the full changed-file set and confirm no runtime source, production configuration, credential, map or unrelated path changed.
+- [ ] Squash-merge replacement PR #974.
+- [ ] Close PR #514 as superseded and archive the recovery lifecycle.
+- [ ] Release interacting ownership and resume OAM-053 eligibility.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T21:25:00+02:00
-head: ad734f81772eb840c7e1ce18b27ac9ed0d2a4c50
+updated_at: 2026-07-26T23:20:00+02:00
+head: a401233f08bacd9c46025b51e1337c4cad251bac
 branch: feat/security-authenticated-session-transport-recovery
 pr: 974
-status: implementing
+status: validating
 context_routes:
   - agent-governance
   - cpp-runtime
@@ -100,33 +100,64 @@ owned_paths:
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/programs/SECURITY_VALIDATION_PROGRAM.md
 proven:
-  - Current main is ad734f81772eb840c7e1ce18b27ac9ed0d2a4c50.
-  - Stale PR 514 remains open at head 3fbaba7fe44808b889c5409ff844b796d9283554 and is not mergeable.
-  - Its historical head passed Ownership, CI, Security Validation and autofix.
-  - Its package-specific SEC-005 runtime, runner, tests, scenario and docs are absent from current main.
-  - Its four shared integration paths have materially diverged and must be reapplied against current contents.
-  - No newer open PR supersedes SEC-005.
+  - PR 974 is the owner-controlled current-main replacement for stale PR 514.
+  - Seven package-specific files were transferred byte-for-byte from proven PR 514 blobs.
+  - Current workflow integration adds focused compilation/tests and one disposable game-session job without changing existing SEC-003 or SEC-004 jobs.
+  - Current programme, catalogue and changelog integrations preserve newer unrelated content.
+  - Temporary materialization and main-sync workflows removed themselves and are absent from the final changed-file set.
+  - PR 974 changes exactly twelve intended paths and no C++ runtime, datapack, map, production configuration, credential or external repository path.
+  - Replacement CI run 30220015807 passed on implementation head 205ab3f1055c5fc06b120f700898727a7a4b9240.
+  - Focused Security Validation jobs passed in runs 30220015814 and 30220289843.
+  - Agent Task Ownership run 30220289801 passed after binding related_pr to 974.
+  - Branch was synchronized with current main 7a09367589dfc08e482edadbe77e556ecf0cfaa7 and helper removal produced head a401233f08bacd9c46025b51e1337c4cad251bac.
+  - ci:final-gate is applied before this final checkpoint commit.
+  - Historical PR 514 remains unchanged and supplies source-package evidence only.
 derived:
-  - A fresh replacement branch is safer than merge or wholesale rebase of PR 514.
-  - Package-specific files can be transferred exactly, while shared files require narrow current-main integration.
+  - The recovered implementation is source-identical to the historically passing package while shared integration is current-main-native.
+  - Only a fresh exact-final-head full Security Validation run may authorize merge.
 unknown:
-  - Whether current runtime/workflow evolution requires bounded compatibility repairs after the first exact-head run.
+  - Exact-final-head Linux build and disposable SEC-003 SEC-004 SEC-005 runtime results.
 conflicts:
-  - PR 514 retains historical ownership until replacement lifecycle resolves it.
+  - PR 514 retains historical ownership until PR 974 merges and closes it as superseded.
 first_failure:
-  marker: stale-pr-integration-age
-  result: RECOVERY_REQUIRED
-  evidence: PR 514 is hundreds of commits behind current main and all shared integration blobs differ.
+  marker: replacement-task-related-pr
+  result: FIXED
+  evidence: Ownership run 30220015705 rejected related_pr pending; PR 974 was bound and run 30220289801 passed.
 rejected_hypotheses:
   - merge stale PR 514 directly
   - wholesale rebase and accept shared-file conflicts mechanically
-  - reimplement SEC-005 from scratch without preserving proven package behavior
+  - use historical runtime evidence as current-main final proof
+  - weaken runtime cases or exact-head gates to finish recovery
 changed_paths:
+  - .github/workflows/security-validation.yml
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
+  - docs/agents/programs/SECURITY_VALIDATION_PROGRAM.md
   - docs/agents/tasks/active/CAN-20260726-security-authenticated-session-transport-recovery.md
+  - docs/security/SECURITY_VALIDATION_SEC005.md
+  - docs/security/SECURITY_VALIDATION_SEC005_HANDOVER.md
+  - tests/security/runtime_scenarios/canary-game-session.json
+  - tests/security/test_game_session_runtime.py
+  - tests/security/test_game_session_runtime_runner.py
+  - tools/security/game_session_runtime.py
+  - tools/security/game_session_runtime_runner.py
 validation:
-  - command: lean startup and live overlap audit
+  - command: exact blob transfer and current-main shared integration review
     result: PASS
-    evidence: replacement owns the bounded SEC-005 paths; unrelated security audits remain disjoint.
-blockers: []
-next_action: Open the draft replacement PR, bind its number to this task, then port the seven package files from PR 514 and manually integrate the four current shared paths.
+    evidence: package blobs match PR 514 source; shared files were updated against current contents.
+  - command: replacement focused validation
+    result: PASS
+    evidence: CI 30220015807 and focused Security Validation jobs in 30220015814 and 30220289843 passed.
+  - command: Agent Task Ownership 30220289801
+    result: PASS
+    evidence: corrected replacement ownership metadata accepted.
+  - command: changed-file and forbidden-path audit
+    result: PASS
+    evidence: exactly twelve intended paths; no source runtime, production, map, credential or external-repository writes.
+  - command: exact-final-head full gates
+    result: PENDING
+    evidence: ci:final-gate applied before this checkpoint commit.
+blockers:
+  - exact-final-head Ownership CI autofix and Security Validation must all pass without another commit
+next_action: Mark PR 974 ready and keep this exact head unchanged. After all exact-final-head gates pass, audit drift, discussions and twelve paths, squash-merge with expected-head protection, close PR 514 as superseded, then complete lifecycle archival and resume OAM-053.
 ```
