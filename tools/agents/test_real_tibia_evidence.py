@@ -6,8 +6,9 @@ from real_tibia_evidence_test_support import *
 class RealTibiaEvidenceContractTests(EvidenceTestCase):
     def test_repository_contracts_and_generated_files_are_current(self) -> None:
         corpus = Corpus.load(self.repo)
-        self.assertEqual(corpus.validate(AS_OF).errors, ())
-        self.assertEqual(write_generated(corpus, check=True, as_of=AS_OF), 0)
+        published, result = cli.validate_for_publication(corpus, AS_OF)
+        self.assertEqual(result.errors, ())
+        self.assertEqual(write_generated(published, check=True, as_of=AS_OF), 0)
 
     def test_valid_record_request_history_and_indexes(self) -> None:
         record = self.record()
@@ -121,7 +122,6 @@ class RealTibiaEvidenceContractTests(EvidenceTestCase):
         self.write_record(old); self.write_record(new)
         self.assertIn("RTEC-SUPERSESSION-CYCLE", self.codes())
 
-
     def test_version_history_requires_distinct_lifecycle_cells(self) -> None:
         self.write_record(self.record())
         value = history()
@@ -142,6 +142,45 @@ class RealTibiaEvidenceContractTests(EvidenceTestCase):
         comparison["exact_paths"] = ["src/example.cpp"]
         self.write_record(record)
         self.assertEqual(self.codes(), set())
+
+    def test_future_review_needed_record_is_validated_but_not_published(self) -> None:
+        record = self.record()
+        record.update(record_status="review-needed", evidence_state="PROVEN", confidence="HIGH")
+        record["freshness"]["observed_or_verified_at"] = "2026-07-26"
+        record["review"].update(status="pending", task_id="CAN-TEST", pr=1)
+        self.write_record(record)
+        dump(self.root / "docs/agents/real-tibia/evidence/modules/combat/VERSION_HISTORY.yaml", history())
+
+        corpus = Corpus.load(self.root)
+        published = cli.publication_view(corpus)
+        self.assertEqual(write_generated(published, check=False, as_of=AS_OF), 0)
+
+        corpus = Corpus.load(self.root)
+        published, result = cli.validate_for_publication(corpus, AS_OF)
+        self.assertEqual(result.errors, ())
+        self.assertEqual(published.generated_indexes(AS_OF)["source_counts"]["evidence_records"], 0)
+        self.assertEqual(published.module_indexes(AS_OF)["combat"]["record_count"], 0)
+        self.assertEqual(published.module_indexes(AS_OF)["combat"]["version_history_ids"], [])
+
+    def test_future_accepted_record_still_fails_publication_as_of_gate(self) -> None:
+        record = self.record()
+        record.update(record_status="accepted", evidence_state="PROVEN", confidence="HIGH")
+        record["freshness"]["observed_or_verified_at"] = "2026-07-26"
+        record["review"].update(
+            status="accepted",
+            task_id="CAN-TEST",
+            pr=1,
+            reviewer="test-reviewer",
+            reviewed_at="2026-07-26T10:00:00+00:00",
+        )
+        self.write_record(record)
+        dump(self.root / "docs/agents/real-tibia/evidence/modules/combat/VERSION_HISTORY.yaml", history())
+
+        corpus = Corpus.load(self.root)
+        published = cli.publication_view(corpus)
+        self.assertEqual(write_generated(published, check=False, as_of=AS_OF), 0)
+        _, result = cli.validate_for_publication(Corpus.load(self.root), AS_OF)
+        self.assertIn("RTEC-FUTURE-EVIDENCE", {item.code for item in result.errors})
 
 
 if __name__ == "__main__":
