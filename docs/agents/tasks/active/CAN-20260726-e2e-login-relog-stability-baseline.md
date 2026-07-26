@@ -2,13 +2,13 @@
 task_id: CAN-20260726-e2e-login-relog-stability-baseline
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-QRI-022-BASELINE-002
-status: active
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: test/e2e-login-relog-stability-baseline-20260726
 base_branch: main
 created: 2026-07-26T12:15:00+02:00
-updated: 2026-07-26T12:25:00+02:00
-last_verified_commit: "a6b9053ed40969537af00fdfaa8c02d5bdd93e75"
+updated: 2026-07-26T12:28:00+02:00
+last_verified_commit: "313f34cba35124e782da6809cc98c32ea1d48a46"
 risk: medium
 related_issue: ""
 related_pr: "961"
@@ -79,8 +79,8 @@ Produce a fresh factual Universal E2E stability baseline from exactly ten preser
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T12:25:00+02:00
-head: a6b9053ed40969537af00fdfaa8c02d5bdd93e75
+updated_at: 2026-07-26T12:28:00+02:00
+head: 313f34cba35124e782da6809cc98c32ea1d48a46
 branch: test/e2e-login-relog-stability-baseline-20260726
 pr: 961
 status: validating
@@ -102,16 +102,16 @@ proven:
   - the temporary pin fixes the runtime server revision to ec0d815570415a4c7ca7217e3e2aca41f6023dab
   - the initial baseline dossier contains no reused historical attempt
   - CI run 30198015400 passed on the first task head
-  - ownership run 30198015351 failed on checkpoint indentation and run 30198118061 then proved frontmatter tasks/active status must be active
+  - ownership failures 30198015351 and 30198118061 and 30198205878 occurred only during pre-collection task-schema correction
 derived: []
 unknown:
-  - active-status-head Universal Agent E2E run id and physical job id
+  - implementing-status-head Universal Agent E2E run id and physical job id
   - maintained OTClient revision and datapack identity emitted by attempt 1
   - outcome and retained evidence identifiers for attempts 1 through 10
 conflicts: []
 first_failure:
-  marker: task-frontmatter-status
-  evidence: ownership run 30198118061 rejected non-active frontmatter status validating; corrected before the counted population
+  marker: task-frontmatter-phase
+  evidence: ownership run 30198205878 proved tasks/active requires an active phase such as implementing; corrected before the counted population
 rejected_hypotheses:
   - reuse PR 925 attempts because its closure explicitly forbids reuse in a later baseline
   - create a second physical runner or workflow because the existing canonical lifecycle and rerun API are sufficient
@@ -126,12 +126,12 @@ validation:
   - command: CI
     result: PASS
     evidence: run 30198015400 on 2eb25c2c335b9e02ede2ea064e7213eb4f6f759e
-  - command: Agent Task Ownership
+  - command: Agent Task Ownership pre-collection schema checks
     result: FAIL
-    evidence: run 30198118061 rejected the frontmatter status; corrected before collection
+    evidence: runs 30198015351 30198118061 and 30198205878 identified and bounded checkpoint/frontmatter schema errors; all corrected before collection
   - command: physical ten-attempt population
     result: NOT_RUN
-    evidence: active-status-head initial attempt pending
+    evidence: implementing-status-head initial attempt pending
 blockers: []
-next_action: Require the active-status-head initial Universal Agent E2E physical login/relog attempt to retain complete evidence before scheduling attempt 2.
+next_action: Require the implementing-status-head initial Universal Agent E2E physical login/relog attempt to retain complete evidence before scheduling attempt 2.
 ```
