@@ -1,15 +1,17 @@
 name: Apply E2E resolved scenario repair
 
 on:
-  push:
-    branches:
-      - fix/e2e-resolved-scenario-reuse
+  pull_request:
+    types: [ready_for_review]
 
 permissions:
   contents: write
 
 jobs:
   apply:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'fix/e2e-resolved-scenario-reuse'
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repair branch
@@ -17,49 +19,27 @@ jobs:
         with:
           ref: fix/e2e-resolved-scenario-reuse
           fetch-depth: 2
+          token: ${{ github.token }}
 
-      - name: Apply exact resolver patch and tests
+      - name: Apply exact selector patch and focused tests
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
 
-          source = Path("tools/e2e/run_agent_e2e.py")
+          source = Path("tools/e2e/pr_scenario_selection.py")
           text = source.read_text(encoding="utf-8")
-          needle = '''def _resolve_pr_fallback_selection(root: Path, suite: str, scenario_id: str) -> tuple[str, str]:
-              """Replace only the canonical PR fallback with one exact changed scenario."""
+          import_anchor = "import json\nimport re\n"
+          if text.count(import_anchor) != 1:
+              raise SystemExit("selector import anchor was not found exactly once")
+          text = text.replace(import_anchor, "import json\nimport os\nimport re\n", 1)
 
-              if (suite, scenario_id) != (CANONICAL_PR_SUITE, CANONICAL_PR_SCENARIO):
-          '''
-          replacement = '''def _resolve_pr_fallback_selection(root: Path, suite: str, scenario_id: str) -> tuple[str, str]:
-              """Replace only the canonical PR fallback with one exact changed scenario."""
-
-              if os.environ.get("GITHUB_JOB") == "physical-client":
-                  resolved_suite = os.environ.get("AGENT_E2E_SUITE", "").strip()
-                  resolved_scenario = os.environ.get("AGENT_E2E_SCENARIO_ID", "").strip()
-                  if not resolved_suite or not resolved_scenario:
-                      raise ScenarioError(
-                          "physical-client job requires the workflow-resolved scenario identity"
-                      )
-                  if (resolved_suite, resolved_scenario) != (suite, scenario_id):
-                      raise ScenarioError(
-                          "physical-client resolved scenario mismatch: "
-                          f"requested={suite}/{scenario_id} "
-                          f"resolved={resolved_suite}/{resolved_scenario}"
-                      )
-                  print(
-                      "Reusing workflow-resolved scenario selection: "
-                      f"{resolved_suite}/{resolved_scenario}",
-                      file=sys.stderr,
-                  )
-                  return resolved_suite, resolved_scenario
-
-              if (suite, scenario_id) != (CANONICAL_PR_SUITE, CANONICAL_PR_SCENARIO):
-          '''
-          if text.count(needle) != 1:
-              raise SystemExit("resolver patch anchor was not found exactly once")
-          source.write_text(text.replace(needle, replacement, 1), encoding="utf-8")
+          function_anchor = ") -> ScenarioSelection:\n    changed_paths: list[str] = []\n"
+          replacement = ") -> ScenarioSelection:\n    if os.environ.get(\"GITHUB_JOB\") == \"physical-client\":\n        resolved_suite = os.environ.get(\"AGENT_E2E_SUITE\", \"\").strip()\n        resolved_scenario = os.environ.get(\"AGENT_E2E_SCENARIO_ID\", \"\").strip()\n        if not resolved_suite or not resolved_scenario:\n            raise SelectionError(\n                \"physical-client job requires the workflow-resolved scenario identity\"\n            )\n        if (resolved_suite, resolved_scenario) != (requested_suite, requested_scenario):\n            raise SelectionError(\n                \"physical-client resolved scenario mismatch: \"\n                f\"requested={requested_suite}/{requested_scenario} \"\n                f\"resolved={resolved_suite}/{resolved_scenario}\"\n            )\n        return ScenarioSelection(\n            resolved_suite,\n            resolved_scenario,\n            \"workflow-resolved-physical-job\",\n        )\n\n    changed_paths: list[str] = []\n"
+          if text.count(function_anchor) != 1:
+              raise SystemExit("selector function anchor was not found exactly once")
+          source.write_text(text.replace(function_anchor, replacement, 1), encoding="utf-8")
 
           test = Path("tests/e2e/test_resolved_scenario_reuse.py")
           test.write_text('''from __future__ import annotations
@@ -67,13 +47,14 @@ jobs:
 import importlib.util
 import os
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[2]
-MODULE_PATH = ROOT / "tools" / "e2e" / "run_agent_e2e.py"
+MODULE_PATH = ROOT / "tools" / "e2e" / "pr_scenario_selection.py"
 SPEC = importlib.util.spec_from_file_location("canary_e2e_resolved_scenario_reuse", MODULE_PATH)
 if SPEC is None or SPEC.loader is None:
     raise RuntimeError(f"cannot load {MODULE_PATH}")
@@ -83,63 +64,75 @@ SPEC.loader.exec_module(MODULE)
 
 
 class ResolvedScenarioReuseTest(unittest.TestCase):
+    def call(self, *, suite: str = "login", scenario: str = "relog"):
+        with tempfile.TemporaryDirectory() as temporary:
+            return MODULE.select_for_event(
+                event_name="pull_request",
+                current_repository="blakinio/canary",
+                pr_head_repository="blakinio/canary",
+                requested_suite=suite,
+                requested_scenario=scenario,
+                base_sha="a" * 40,
+                head_sha="b" * 40,
+                repo_root=Path(temporary),
+            )
+
     def test_physical_job_reuses_exact_workflow_resolved_identity(self) -> None:
         environment = {
             "GITHUB_JOB": "physical-client",
-            "GITHUB_EVENT_NAME": "pull_request",
             "AGENT_E2E_SUITE": "login",
             "AGENT_E2E_SCENARIO_ID": "relog",
         }
         with mock.patch.dict(os.environ, environment, clear=True):
             with mock.patch.object(
                 MODULE,
-                "_load_pr_scenario_selector",
-                side_effect=AssertionError("PR selection must not run twice"),
+                "git_changed_paths",
+                side_effect=AssertionError("PR delta must not be inspected twice"),
             ):
-                self.assertEqual(
-                    ("login", "relog"),
-                    MODULE._resolve_pr_fallback_selection(ROOT, "login", "relog"),
-                )
+                selection = self.call()
+        self.assertEqual("login", selection.suite)
+        self.assertEqual("relog", selection.scenario)
+        self.assertEqual("workflow-resolved-physical-job", selection.reason)
 
     def test_physical_job_rejects_missing_resolved_identity(self) -> None:
-        environment = {
-            "GITHUB_JOB": "physical-client",
-            "GITHUB_EVENT_NAME": "pull_request",
-            "AGENT_E2E_SUITE": "login",
-        }
-        with mock.patch.dict(os.environ, environment, clear=True):
+        with mock.patch.dict(
+            os.environ,
+            {"GITHUB_JOB": "physical-client", "AGENT_E2E_SUITE": "login"},
+            clear=True,
+        ):
             with self.assertRaisesRegex(
-                MODULE.ScenarioError,
+                MODULE.SelectionError,
                 "requires the workflow-resolved scenario identity",
             ):
-                MODULE._resolve_pr_fallback_selection(ROOT, "login", "relog")
+                self.call()
 
     def test_physical_job_rejects_resolved_identity_mismatch(self) -> None:
         environment = {
             "GITHUB_JOB": "physical-client",
-            "GITHUB_EVENT_NAME": "pull_request",
             "AGENT_E2E_SUITE": "login",
             "AGENT_E2E_SCENARIO_ID": "other",
         }
         with mock.patch.dict(os.environ, environment, clear=True):
             with self.assertRaisesRegex(
-                MODULE.ScenarioError,
+                MODULE.SelectionError,
                 "requested=login/relog resolved=login/other",
             ):
-                MODULE._resolve_pr_fallback_selection(ROOT, "login", "relog")
+                self.call()
 
     def test_non_physical_non_pr_caller_keeps_existing_selection(self) -> None:
-        environment = {
-            "GITHUB_JOB": "resolve",
-            "GITHUB_EVENT_NAME": "workflow_dispatch",
-            "AGENT_E2E_SUITE": "login",
-            "AGENT_E2E_SCENARIO_ID": "other",
-        }
-        with mock.patch.dict(os.environ, environment, clear=True):
-            self.assertEqual(
-                ("login", "relog"),
-                MODULE._resolve_pr_fallback_selection(ROOT, "login", "relog"),
-            )
+        with mock.patch.dict(os.environ, {"GITHUB_JOB": "resolve"}, clear=True):
+            with tempfile.TemporaryDirectory() as temporary:
+                selection = MODULE.select_for_event(
+                    event_name="workflow_dispatch",
+                    current_repository="blakinio/canary",
+                    pr_head_repository="",
+                    requested_suite="login",
+                    requested_scenario="relog",
+                    base_sha="",
+                    head_sha="",
+                    repo_root=Path(temporary),
+                )
+        self.assertEqual("explicit-or-canonical-non-pr", selection.reason)
 
 
 if __name__ == "__main__":
@@ -147,16 +140,16 @@ if __name__ == "__main__":
 ''', encoding="utf-8")
           PY
 
-          python3 -m py_compile tools/e2e/run_agent_e2e.py
+          python3 -m py_compile tools/e2e/pr_scenario_selection.py
           python3 -m unittest -v tests.e2e.test_resolved_scenario_reuse
 
-      - name: Commit bounded repair
+      - name: Commit bounded repair and remove patcher
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm .github/workflows/apply-e2e-resolved-scenario-repair.yml
-          git add tools/e2e/run_agent_e2e.py tests/e2e/test_resolved_scenario_reuse.py
+          git add tools/e2e/pr_scenario_selection.py tests/e2e/test_resolved_scenario_reuse.py
           git commit -m "fix(e2e): reuse resolved scenario in physical job"
           git push origin HEAD:fix/e2e-resolved-scenario-reuse
