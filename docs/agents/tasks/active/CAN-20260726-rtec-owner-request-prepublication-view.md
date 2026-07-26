@@ -2,13 +2,13 @@
 task_id: CAN-20260726-rtec-owner-request-prepublication-view
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-OWNER-REQUEST-PREPUBLICATION-VIEW
-status: validating
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: fix/rtec-owner-request-prepublication-view-20260726
 base_branch: main
 created: 2026-07-26T20:50:00+02:00
-updated: 2026-07-26T21:25:00+02:00
-last_verified_commit: "338fc3b9aff09622cba6ce322a5adbfa96484d1b"
+updated: 2026-07-26T21:30:00+02:00
+last_verified_commit: "96e69bd51e3dbec797c8b76b97ae1d16a61b8f03"
 risk: medium
 related_issue: ""
 related_pr: "968"
@@ -68,11 +68,11 @@ Make owner-request lifecycle dry-runs and mutations use the same prepublication-
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T21:25:00+02:00
-head: 338fc3b9aff09622cba6ce322a5adbfa96484d1b
+updated_at: 2026-07-26T21:30:00+02:00
+head: 96e69bd51e3dbec797c8b76b97ae1d16a61b8f03
 branch: fix/rtec-owner-request-prepublication-view-20260726
 pr: 968
-status: validating
+status: implementing
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -92,15 +92,17 @@ proven:
   - exact head 338fc3b9aff09622cba6ce322a5adbfa96484d1b passed Evidence Contracts run 30215446474
   - exact head 338fc3b9aff09622cba6ce322a5adbfa96484d1b passed Agent Task Ownership run 30215446481
   - exact head 338fc3b9aff09622cba6ce322a5adbfa96484d1b passed ordinary CI run 30215446655
+  - checkpoint head 96e69bd51e3dbec797c8b76b97ae1d16a61b8f03 passed Evidence Contracts run 30215497237 and CI run 30215497334
+  - the only checkpoint-head failure was the non-active status value, corrected by retaining implementing until merge
 derived:
   - owner-request dry-runs and writes can coexist with honest unpublished candidate evidence without publishing candidate records
   - accepted future evidence remains controlled by the existing publication as_of gate
 unknown:
-  - Ready-state final-gate result on the checkpointed head
+  - Ready-state final-gate result on the corrected active-task head
 conflicts: []
 first_failure:
-  marker: final-gate-not-yet-run
-  evidence: implementation and exact-head validation are green; Ready-state full gate has not yet completed
+  marker: final-gate-not-yet-passed
+  evidence: implementation and evidence/CI validation are green; active-task correction and Ready-state Required check remain
 rejected_hypotheses:
   - backdate candidate evidence
   - advance the published as_of date before review
@@ -121,6 +123,12 @@ validation:
   - command: ordinary CI run 30215446655
     result: PASS
     evidence: exact-head ordinary CI succeeded
+  - command: checkpoint-head workflow runs 30215497237 and 30215497334
+    result: PASS
+    evidence: Evidence Contracts and CI stayed green after final-gate checkpointing
+  - command: checkpoint-head Agent Task Ownership run 30215497241
+    result: FAIL
+    evidence: validating is not an active-task status; status is restored to implementing in this commit
 blockers: []
-next_action: Apply the final-gate label, mark PR 968 Ready, pass the Ready-state Required check, then squash-merge and refresh worker validation.
+next_action: Pass exact-head ownership on the corrected active-task head, mark PR 968 Ready, pass the Required final gate, then squash-merge and refresh worker validation.
 ```
