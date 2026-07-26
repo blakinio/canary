@@ -8,7 +8,7 @@ branch: feat/security-authenticated-session-transport-recovery
 base_branch: main
 created: 2026-07-26
 updated: 2026-07-26
-last_verified_commit: "a401233f08bacd9c46025b51e1337c4cad251bac"
+last_verified_commit: "607b703d65278759d595de453f722bfc519919c1"
 risk: high
 related_issue: ""
 related_pr: "974"
@@ -77,8 +77,8 @@ Recover the completed authenticated game-session and post-login sequence/XTEA va
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T23:20:00+02:00
-head: a401233f08bacd9c46025b51e1337c4cad251bac
+updated_at: 2026-07-26T23:35:00+02:00
+head: 607b703d65278759d595de453f722bfc519919c1
 branch: feat/security-authenticated-session-transport-recovery
 pr: 974
 status: validating
@@ -109,8 +109,9 @@ proven:
   - Replacement CI run 30220015807 passed on implementation head 205ab3f1055c5fc06b120f700898727a7a4b9240.
   - Focused Security Validation jobs passed in runs 30220015814 and 30220289843.
   - Agent Task Ownership run 30220289801 passed after binding related_pr to 974.
-  - Branch was synchronized with current main 7a09367589dfc08e482edadbe77e556ecf0cfaa7 and helper removal produced head a401233f08bacd9c46025b51e1337c4cad251bac.
-  - ci:final-gate is applied before this final checkpoint commit.
+  - Ownership run 30220558657 identified unsupported validation result PENDING; the value was corrected to BLOCKED and run 30220703023 passed.
+  - Branch was synchronized with current main 86ad1fc0e69ef4450871173735346af6a20d4eba and helper removal produced head 607b703d65278759d595de453f722bfc519919c1.
+  - ci:final-gate remains applied before this final checkpoint commit.
   - Historical PR 514 remains unchanged and supplies source-package evidence only.
 derived:
   - The recovered implementation is source-identical to the historically passing package while shared integration is current-main-native.
@@ -120,9 +121,9 @@ unknown:
 conflicts:
   - PR 514 retains historical ownership until PR 974 merges and closes it as superseded.
 first_failure:
-  marker: replacement-task-related-pr
+  marker: checkpoint-validation-result-enum
   result: FIXED
-  evidence: Ownership run 30220015705 rejected related_pr pending; PR 974 was bound and run 30220289801 passed.
+  evidence: Ownership run 30220558657 rejected PENDING; the supported BLOCKED value passed in run 30220703023.
 rejected_hypotheses:
   - merge stale PR 514 directly
   - wholesale rebase and accept shared-file conflicts mechanically
@@ -148,9 +149,9 @@ validation:
   - command: replacement focused validation
     result: PASS
     evidence: CI 30220015807 and focused Security Validation jobs in 30220015814 and 30220289843 passed.
-  - command: Agent Task Ownership 30220289801
+  - command: corrected Agent Task Ownership 30220703023
     result: PASS
-    evidence: corrected replacement ownership metadata accepted.
+    evidence: final checkpoint schema and active ownership validation passed after the enum repair.
   - command: changed-file and forbidden-path audit
     result: PASS
     evidence: exactly twelve intended paths; no source runtime, production, map, credential or external-repository writes.
