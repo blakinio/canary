@@ -155,9 +155,9 @@ validation:
     result: PASS
     evidence: exactly twelve intended paths; no source runtime, production, map, credential or external-repository writes.
   - command: exact-final-head full gates
-    result: PENDING
-    evidence: ci:final-gate applied before this checkpoint commit.
+    result: BLOCKED
+    evidence: ci:final-gate applied; exact-final-head gates must pass before merge.
 blockers:
   - exact-final-head Ownership CI autofix and Security Validation must all pass without another commit
-next_action: Mark PR 974 ready and keep this exact head unchanged. After all exact-final-head gates pass, audit drift, discussions and twelve paths, squash-merge with expected-head protection, close PR 514 as superseded, then complete lifecycle archival and resume OAM-053.
+next_action: Keep this exact head unchanged. After all exact-final-head gates pass, audit drift, discussions and twelve paths, squash-merge with expected-head protection, close PR 514 as superseded, then complete lifecycle archival and resume OAM-053.
 ```
