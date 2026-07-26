@@ -2,16 +2,16 @@
 task_id: CAN-20260726-oteryn-oam052-deployment-operations-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-052
-status: implementing
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-052-deployment-operations-preflight
 base_branch: main
 created: 2026-07-26
 updated: 2026-07-26
-last_verified_commit: "4bb098d6401a40659b3de2ef506f093eb35ea8d8"
+last_verified_commit: "bd7adfd1b7a7cfe92a66ef301659432cd0732807"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "964"
 depends_on:
   - OAM-051 durable program reconciliation merged as 4bb098d6401a40659b3de2ef506f093eb35ea8d8
   - OAM-003 build-system foundation completed
@@ -54,11 +54,11 @@ The other unresolved canonical records are not eligible now. `network-transport`
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T17:30:00+02:00
-head: 4bb098d6401a40659b3de2ef506f093eb35ea8d8
+updated_at: 2026-07-26T17:35:00+02:00
+head: bd7adfd1b7a7cfe92a66ef301659432cd0732807
 branch: dudantas/oam-052-deployment-operations-preflight
-pr: pending
-status: implementing
+pr: 964
+status: ready
 context_routes:
   - agent-governance
   - cross-repo
@@ -126,5 +126,5 @@ validation:
     result: PASS
     evidence: exact Canary registry/docs/CLI blobs are pinned and current Otheryn has no matching Canary deployment entrypoint
 blockers: []
-next_action: Open the one-file OAM-052 preflight PR, bind its number into this checkpoint, require exact-head Agent Task Ownership and CI success, then expected-head squash merge before any separately authorized Otheryn target proof.
+next_action: Require exact-current-head Agent Task Ownership and CI success on PR 964, audit the one-file preflight scope and review state, then expected-head squash merge before any separately authorized Otheryn target proof.
 ```
