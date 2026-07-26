@@ -20,10 +20,10 @@ owned_paths:
     - docs/agents/tasks/archive/CAN-20260726-security-authenticated-session-transport-recovery.md
   shared:
     - docs/agents/programs/SECURITY_VALIDATION_PROGRAM.md
-    - docs/agents/MODULE_CATALOG.md
-    - docs/security/SECURITY_VALIDATION_SEC005.md
     - docs/security/SECURITY_VALIDATION_SEC005_HANDOVER.md
   read_only:
+    - docs/agents/MODULE_CATALOG.md
+    - docs/security/SECURITY_VALIDATION_SEC005.md
     - .github/workflows/security-validation.yml
     - tools/security/game_session_runtime.py
     - tools/security/game_session_runtime_runner.py
@@ -74,10 +74,10 @@ The result proves only the registered repository-owned disposable-fixture authen
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T23:55:00+02:00
+updated_at: 2026-07-26T23:58:00+02:00
 head: 37ccd806c4843739a79b2c5a394e35ac4ae3bacf
 branch: docs/security-sec005-recovery-lifecycle
-pr: pending
+pr: 977
 status: completed
 context_routes:
   - agent-governance
@@ -108,8 +108,6 @@ changed_paths:
   - docs/agents/tasks/archive/CAN-20260726-security-authenticated-session-transport-recovery.md
   - docs/agents/tasks/active/CAN-20260726-security-authenticated-session-transport-recovery.md
   - docs/agents/programs/SECURITY_VALIDATION_PROGRAM.md
-  - docs/agents/MODULE_CATALOG.md
-  - docs/security/SECURITY_VALIDATION_SEC005.md
   - docs/security/SECURITY_VALIDATION_SEC005_HANDOVER.md
 validation:
   - command: feature exact-final gates
@@ -122,5 +120,5 @@ validation:
     result: PASS
     evidence: PR 514 closed as superseded after PR 974 merge.
 blockers: []
-next_action: Merge the docs-only lifecycle PR, then refresh OAM-053 eligibility from current cross-repository heads.
+next_action: Merge lifecycle PR 977, then refresh OAM-053 eligibility from current cross-repository heads.
 ```
