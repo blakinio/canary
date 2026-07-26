@@ -54,8 +54,8 @@ The other unresolved canonical records are not eligible now. `network-transport`
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T17:35:00+02:00
-head: bd7adfd1b7a7cfe92a66ef301659432cd0732807
+updated_at: 2026-07-26T17:40:00+02:00
+head: bad893ba9d815cd76d285956c8ad4ecf2af884a3
 branch: dudantas/oam-052-deployment-operations-preflight
 pr: 964
 status: ready
@@ -68,28 +68,20 @@ context_routes:
 owned_paths:
   - docs/agents/tasks/active/CAN-20260726-oteryn-oam052-deployment-operations-preflight.md
 proven:
-  - OAM-051 is durably complete after Canary program reconciliation merge 4bb098d6401a40659b3de2ef506f093eb35ea8d8.
-  - Fresh Canary task-start main is 4bb098d6401a40659b3de2ef506f093eb35ea8d8.
-  - Fresh Otheryn main is db10096f0ebb484f05883dbde4dd895744fbe8c6.
-  - Fresh upstream Canary baseline is 7644bcbcbbad4a09e52a5707ed531e4dd21d8a79.
-  - Canonical registry contains 62 records.
-  - Historical durable OAM evidence covers all canonical records except deployment-operations, network-transport and login-protocol.
+  - OAM-051 is durably complete at Canary merge 4bb098d6401a40659b3de2ef506f093eb35ea8d8; fresh task-start baselines are Canary 4bb098d6401a40659b3de2ef506f093eb35ea8d8, Otheryn db10096f0ebb484f05883dbde4dd895744fbe8c6 and upstream Canary 7644bcbcbbad4a09e52a5707ed531e4dd21d8a79.
+  - The canonical registry contains 62 records; durable OAM evidence covers every record except deployment-operations, network-transport and login-protocol.
   - OAM-003 completed build-system, configuration, engine-runtime-lifecycle, engine-scheduler, engine-service-container, lua-runtime and lua-bindings; governance merged as 780704f3b77c459f852319a249425614b21246fd.
-  - Canonical deployment-operations registry blob is 914f9364da7a13bef5a2c61f88d6649926ab938a.
-  - deployment-operations depends only on build-system and interacts with configuration plus engine-runtime-lifecycle.
-  - The module owns reviewed-overlay staging, real-Canary preflight, atomic release publication, active/previous switching, rollback, manifests, dry-run and explicit production confirmation gates.
-  - The module explicitly excludes content authoring, map mutation, host supervisor ownership, automatic production approval, guaranteed rollback-target availability and production-safety claims.
-  - Current Canary deployment documentation blob is 7a3a2417b524ff08007bdee85307f98e5a0a3680.
-  - Current Canary generic deployment CLI blob is 78eee1c58ab5aaf07c84de4e530dd59b24d8d9a4.
-  - Current Canary Canary-aware deployment CLI blob is fb8bff79a13ff663564b73244d713ea8047cfaf1.
+  - Canonical deployment-operations registry blob 914f9364da7a13bef5a2c61f88d6649926ab938a depends only on build-system and interacts with configuration plus engine-runtime-lifecycle.
+  - The module owns reviewed-overlay staging, real-Canary preflight, atomic release publication, active/previous switching, rollback, manifests, dry-run and explicit production confirmation gates while excluding authoring, map mutation, supervisor ownership, automatic approval, guaranteed rollback targets and production-safety claims.
+  - Current Canary evidence is pinned by deployment documentation blob 7a3a2417b524ff08007bdee85307f98e5a0a3680, generic CLI blob 78eee1c58ab5aaf07c84de4e530dd59b24d8d9a4 and Canary-aware CLI blob fb8bff79a13ff663564b73244d713ea8047cfaf1.
   - The Canary-aware path assembles a trusted datapack plus symlink-free reviewed overlay, runs the compiled Canary binary before publication, atomically publishes and switches the release, performs post-switch smoke and rolls back when possible.
   - Search of current Otheryn found no run_canary_deployment.py or equivalent tools/deploy entrypoint.
-  - Open Otheryn PR #123 owns deploy/production backup and PITR proof, not tools/deploy reviewed-content release paths; it forbids automatic restore, failover and production-readiness claims.
+  - Open Otheryn PR #123 owns deploy/production backup and PITR proof, not reviewed datapack release paths, and forbids automatic restore, failover and production-readiness claims.
   - Open Otheryn PR #133 owns typed startup configuration and explicitly excludes deployment changes.
-  - Open Canary PR #526 is evidence-only and forbids public or third-party deployment testing; it does not own tools/deploy runtime paths.
-  - Open Canary PR #514 remains the reason network-transport is not selectable.
+  - Open Canary PR #526 is evidence-only, forbids public or third-party deployment testing and does not own tools/deploy runtime paths.
+  - Open Canary PR #514 owns interacting authenticated transport validation and keeps network-transport ineligible.
   - No open Canary or Otheryn PR owns OAM-052 or the exact tools/deploy reviewed-content release boundary.
-  - The maintained OTClient is not applicable to this platform-tooling preflight because the module has no client or protocol path.
+  - Maintained OTClient evidence is not applicable because this platform-tooling package has no client or protocol path.
 derived:
   - deployment-operations is the only currently dependency-valid unresolved canonical record.
   - The existing implementation is Canary-specific validation and datapack publication tooling rather than evidence of an Otheryn-owned production deployment subsystem.
@@ -104,8 +96,9 @@ unknown:
   - Final migration disposition and target proof path set.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: OAM-052 target proof has not started; this task is preflight-only.
+  marker: checkpoint-compactness
+  result: RESOLVED
+  evidence: The initial checkpoint contained 22 proven entries; related evidence was compacted below the validator limit without changing facts or scope.
 rejected_hypotheses:
   - Select network-transport; it remains blocked by open interacting PR #514.
   - Select login-protocol; its hard dependency network-transport remains unresolved.
