@@ -60,6 +60,10 @@ OAM-051B does not authorize Wheel balance constants, formulas, areas, effect ord
 
 Generated Lua API documents remain generated outputs. Canary Python validators remain external evidence tooling.
 
+## Governance checkpoint
+
+Canary PR #959 owns only this report and the active OAM-051 task. The `ci:final-gate` label was applied before this final checkpoint commit. Exact-head Ownership and full CI must pass before merge. The merge records a blocked preflight only; it does not authorize an Otheryn source branch.
+
 ## Nonclaims
 
 OAM-051 does not yet prove Task Shop interoperability, atomic purchase durability, DB/KV failure recovery, physical-client behavior, complete Wheel parity or current authoritative gameplay balance.
