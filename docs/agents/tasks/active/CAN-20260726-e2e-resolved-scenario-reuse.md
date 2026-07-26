@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: fix/e2e-resolved-scenario-reuse
 base_branch: main
 created: 2026-07-26T09:08:00+02:00
-updated: 2026-07-26T10:55:00+02:00
-last_verified_commit: "cdba01cbdb9764ac1dae5ca38a0466c025b8cadc"
+updated: 2026-07-26T11:05:00+02:00
+last_verified_commit: "79a24319c3df69bdfb4ba1eb5f008a245dc744fb"
 risk: medium
 related_issue: ""
 related_pr: "953"
@@ -64,6 +64,9 @@ Make the physical-client job reuse the exact scenario identity already proven by
 - PR #953 exact-head run `30193944277` completed the full `login/relog` path successfully, including evidence upload, propagation and the required gate.
 - Artifact `8629798669` has digest `sha256:8ed8b3240b2131d65d0f8ab75ee1d32922cf8e51b94b3b9325dbc5396875f4a5`; `result.json` is schema v3 success, cleanup certification is schema v1 certified and `physical-exit-code.txt` is `0`.
 - Exact-head ownership, autofix, CI and Universal Agent E2E runs all completed successfully on `cdba01cbdb9764ac1dae5ca38a0466c025b8cadc`.
+- Live PR #953 is open, conflict-free and mergeable against current `main` `d8416553be77d4999d81afcce2399a37a25337a6`; the task branch is three commits behind and has no overlapping changed paths with that base delta.
+- PR #953 has no comments, submitted reviews or unresolved review threads as of 2026-07-26T11:05:00+02:00.
+- The `ci:final-gate` label was applied before this final checkpoint commit.
 
 # Delivered implementation
 
@@ -81,8 +84,8 @@ No scenario semantics, Canary runtime, OTClient code, workflow ordering, runner 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T10:55:00+02:00
-head: cdba01cbdb9764ac1dae5ca38a0466c025b8cadc
+updated_at: 2026-07-26T11:05:00+02:00
+head: 79a24319c3df69bdfb4ba1eb5f008a245dc744fb
 branch: fix/e2e-resolved-scenario-reuse
 pr: 953
 status: validating
@@ -99,20 +102,23 @@ proven:
   - Exact-head ownership, autofix, CI and Universal Agent E2E passed on cdba01cbdb9764ac1dae5ca38a0466c025b8cadc.
   - Run 30193944277 completed canonical physical login/relog, evidence upload, propagation and Required physical E2E successfully.
   - Artifact 8629798669 digest sha256:8ed8b3240b2131d65d0f8ab75ee1d32922cf8e51b94b3b9325dbc5396875f4a5 contains schema-v3 success result, schema-v1 certified cleanup and physical exit code 0.
-  - PR 953 has no review comments recorded as of 2026-07-26T10:55:00+02:00.
+  - PR 953 is open, mergeable and conflict-free against main d8416553be77d4999d81afcce2399a37a25337a6; the branch is three commits behind with no overlapping changed paths.
+  - PR 953 has no comments, submitted reviews or unresolved review threads as of 2026-07-26T11:05:00+02:00.
+  - The ci:final-gate label was applied before the final checkpoint commit.
 derived:
   - The redundant scenario-resolution and capture-shell termination defects are repaired on the verified implementation head.
+  - A base merge is not required to establish conflict freedom because GitHub reports the current PR mergeable and the three-commit base delta does not overlap this PR's five changed paths.
 unknown:
-  - Whether PR 953 remains mergeable after refreshing against the current main branch.
-  - Whether the protected final gate has been forced and passed on the final task head.
+  - Whether all protected workflows pass on the exact final head produced by this checkpoint commit.
 conflicts: []
 first_failure:
   marker: none
-  evidence: No unmet runtime invariant remains in exact-head run 30193944277; only lifecycle and final-gate verification remain.
+  evidence: No unmet runtime invariant remains; only exact-final-head protected validation remains.
 rejected_hypotheses:
   - Treat route-resolution repair alone as complete: rejected by run 30192743545 capture-shell termination.
   - Retry the pre-isolation head: rejected because it could not guarantee failure evidence upload.
   - Change login/relog semantics: rejected because exact-head run 30193944277 passed without scenario changes.
+  - Treat 79a24319c3df69bdfb4ba1eb5f008a245dc744fb as the protected final head: rejected because ci:final-gate was not present before that commit.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260726-e2e-resolved-scenario-reuse.md
   - tools/e2e/pr_scenario_selection.py
@@ -125,13 +131,13 @@ validation:
     evidence: Exact reuse, fail-closed mismatch/missing identity, ordinary exit and SIGTERM isolation tests passed.
   - command: Agent Task Ownership run 30193944171
     result: PASS
-    evidence: Exact-head ownership workflow completed successfully.
+    evidence: Exact-head ownership workflow completed successfully on cdba01cbdb9764ac1dae5ca38a0466c025b8cadc.
   - command: CI run 30193944299
     result: PASS
-    evidence: Exact-head CI workflow completed successfully.
+    evidence: Exact-head CI workflow completed successfully on cdba01cbdb9764ac1dae5ca38a0466c025b8cadc.
   - command: Universal Agent E2E run 30193944277
     result: PASS
     evidence: Physical login/relog, upload, propagation and required gate completed successfully; artifact 8629798669 retained.
 blockers: []
-next_action: Verify PR 953 current base and mergeability, apply ci:final-gate, perform the final task checkpoint commit, and require full protected checks on that exact final head before merge.
+next_action: Require Agent Task Ownership, autofix, full CI and Universal Agent E2E to pass on the exact final head created by this checkpoint commit, then recheck review state and mergeability and squash-merge PR 953 without another commit.
 ```
