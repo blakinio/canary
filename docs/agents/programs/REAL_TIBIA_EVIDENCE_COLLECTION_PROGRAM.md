@@ -4,8 +4,8 @@ name: Real Tibia Evidence Collection
 status: active
 owner: Real Tibia evidence coordination / platform tooling
 created: 2026-07-24T20:20:00+02:00
-updated: 2026-07-25T19:50:00+02:00
-last_verified_commit: "2505d8a9f9710745ef9df49dfa0ab76f9cad9635"
+updated: 2026-07-26T10:15:00+02:00
+last_verified_commit: "a4a35495d4a8dc047bd3315b95c9fb577ac597af"
 primary_paths:
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
   - docs/ai-agent/REAL_TIBIA_EVIDENCE_COLLECTOR_ARCHITECTURE.md
@@ -166,7 +166,7 @@ docs/agents/real-tibia/evidence/
     └── feature/
 ```
 
-RTEC-001 implements validators and deterministic generation but does not create empty dossiers or placeholder records for all modules. RTEC-002 proves the complete collection/review flow on `vocations`; broad population remains blocked until RTEC-003 validates owner-request lifecycle integration.
+RTEC-001 implements validators and deterministic generation. RTEC-002 proved the collection/review flow on `vocations`; RTEC-003 validated owner-request lifecycle integration; RTEC-004 delivered the first bounded two-worker campaign across `weapon-proficiency` and `item-definitions`.
 
 Generated large reports, captures, screenshots, videos, maps, client packages and proprietary assets remain outside Git. Git stores compact metadata, hashes, references, findings and proof boundaries only.
 
@@ -280,6 +280,10 @@ Reasons:
 
 The Coordinator may reduce the cap when CI, source access, review capacity or owner-programme queues are constrained. It must not raise the default above eight without a recorded concurrency experiment and ownership evidence.
 
+## RTEC-005 bounded cap
+
+RTEC-004 proved a safe operational limit of **2 concurrent Collector workers**, at most **2 concurrently open RTEC worker PRs**, and exactly **1 serialized global-index integration lane** under the observed repository CI and review load. RTEC-005 retains this lower cap until a later reviewed campaign proves a higher safe limit.
+
 ## Serialization groups
 
 The following tightly coupled groups require either one worker or an explicit coordination ID:
@@ -318,8 +322,8 @@ The Coordinator performs shared-file integration after worker PRs merge.
 | RTEC-001 | Evidence/request schemas, validator, deterministic indexes and tests | merged | RTEC-000 | medium | Contracts delivered by PR #897; lifecycle archived by PR #908. |
 | RTEC-002 | Pilot dossier on one bounded low-coupling module | merged | RTEC-001 | medium | Pilot delivered by PR #910; lifecycle archived by PR #915. Runtime level-gain and promotion application remain `UNKNOWN` behind `RTREQ-FEATURE-VOCATIONS-0001`. |
 | RTEC-003 | Owner-request lifecycle integration | merged | RTEC-001/002 | medium | Lifecycle CLI delivered by PR #921; task archived by PR #926. `RTREQ-FEATURE-VOCATIONS-0001` remains `ready-for-owner-triage` and requires real owner evidence. |
-| RTEC-004 | Parallel campaign wave 1 | planned | RTEC-002/003 | medium | Run fresh main/open-PR/active-task/module/request preflight, then start at most eight workers and four concurrent PRs using isolated dossier paths. |
-| RTEC-005 | Remaining module waves | planned | RTEC-004 evidence and concurrency review | medium | Continue bounded waves until all 62 modules have non-placeholder dossiers. |
+| RTEC-004 | Parallel campaign wave 1 | merged | RTEC-002/003 | medium | Weapon-proficiency PR #930, item-definitions PR #931 and coordinator PR #929 merged; lifecycle archived by PR #945. Five evidence records and `RTREQ-TCR-ITEM-DEFINITIONS-0001` were added without owner-path changes. |
+| RTEC-005 | Remaining module waves | active | RTEC-004 evidence and concurrency review | medium | Preflight PR #952 selected independent `item-decay` and `parties` roots with two workers and one serialized global-index lane. Merge/archive the preflight, then create one wave coordinator task before worker branches. |
 | RTEC-006 | Release/version refresh and drift operation | planned | populated dossiers and validator | medium | Add deterministic stale/version-delta selection for future Tibia/Canary changes. |
 | RTEC-007 | Coverage, confidence and unresolved-evidence dashboard | planned | stable records and owner results | medium | Generate factual dimensions without opaque parity score. |
 
@@ -333,4 +337,4 @@ The entire programme cannot claim that Canary faithfully reproduces Real Tibia m
 
 # Handoff
 
-Start RTEC-004 only through fresh main/open-PR/active-task/module/request preflight and one bounded coordinator task. Reuse the merged schema-version-1 contracts, the `vocations` pilot and owner-request lifecycle CLI; keep `RTREQ-FEATURE-VOCATIONS-0001` unclaimed until a real feature owner supplies task, PR and stable evidence. Limit wave 1 to at most eight workers and four concurrent PRs on isolated dossier paths.
+Complete and archive `CAN-20260726-rtec-005-preflight` through PR #952. Then create one active RTEC-005 wave coordinator task from fresh `main`, with at most two Collector workers: `item-decay` and `parties`. Workers own only their task, one dossier root and their own request records; they must not edit the programme or shared index. The coordinator alone integrates `docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json` after worker merges. Preserve `RTREQ-FEATURE-VOCATIONS-0001` and `RTREQ-TCR-ITEM-DEFINITIONS-0001` until real owners supply stable evidence.
