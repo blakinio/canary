@@ -2,13 +2,13 @@
 task_id: CAN-20260726-rtec-005-wave-1-coordination
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-005-WAVE-1
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-wave-1-coordinator-20260726
 base_branch: main
 created: 2026-07-26T11:30:00+02:00
-updated: 2026-07-26T23:15:00+02:00
-last_verified_commit: "86ad1fc0e69ef4450871173735346af6a20d4eba"
+updated: 2026-07-26T23:28:00+02:00
+last_verified_commit: "2a74acaa57413a3fb95529ba9c8c4196d6907d9b"
 risk: medium
 related_issue: ""
 related_pr: "955"
@@ -62,23 +62,24 @@ Complete RTEC-005 wave 1 by independently adjudicating the merged `item-decay` a
 - [x] Refresh the parties worker after the first merge and lifecycle cleanup.
 - [x] Merge parties worker PR #958 after exact-head and Ready-state gates.
 - [x] Archive the completed parties task through PR #976.
-- [ ] Independently adjudicate `RT-ITEM-DECAY-0001`, `RT-PARTIES-0001` and `RT-PARTIES-0002` without broadening their claims.
-- [ ] Preserve runtime, persistence, formulas, protocol/client and physical gameplay dimensions as explicit nonclaims.
-- [ ] Keep both existing owner requests unchanged and create no new request without a narrowed non-duplicative owner contract.
-- [ ] Advance the canonical Evidence Contracts `as_of` date to 2026-07-26 without backdating evidence.
-- [ ] Generate deterministic item-decay, parties and global indexes exactly once from accepted source records.
-- [ ] Reconcile the programme queue and pass exact-head Evidence Contracts, Ownership, Registry, Upstream and CI.
+- [x] Independently adjudicate `RT-ITEM-DECAY-0001`, `RT-PARTIES-0001` and `RT-PARTIES-0002` without broadening their claims.
+- [x] Preserve runtime, persistence, formulas, protocol/client and physical gameplay dimensions as explicit nonclaims.
+- [x] Keep both existing owner requests unchanged and create no new request without a narrowed non-duplicative owner contract.
+- [x] Advance the canonical Evidence Contracts `as_of` date to 2026-07-26 without backdating evidence.
+- [x] Generate deterministic item-decay, parties and global indexes exactly once from accepted source records.
+- [x] Reconcile the programme queue and restore read-only, check-only Evidence Contracts CI.
+- [ ] Pass exact-head Evidence Contracts, Ownership, Registry, Upstream and CI.
 - [ ] Pass the Ready-state final gate, squash-merge PR #955 and archive this coordinator task.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T23:15:00+02:00
-head: 86ad1fc0e69ef4450871173735346af6a20d4eba
+updated_at: 2026-07-26T23:28:00+02:00
+head: ec2a824d53b9901f5a86ce2a4c88d62c3035077e
 branch: docs/rtec-005-wave-1-coordinator-20260726
 pr: 955
-status: implementing
+status: validating
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -94,29 +95,40 @@ proven:
   - item-decay lifecycle PR 973 merged as ad734f81772eb840c7e1ce18b27ac9ed0d2a4c50
   - parties PR 958 passed Required run 30219648745 and merged as 7a09367589dfc08e482edadbe77e556ecf0cfaa7
   - parties lifecycle PR 976 passed Ownership run 30220366677 and CI run 30220366776 and merged as 86ad1fc0e69ef4450871173735346af6a20d4eba
-  - RT-ITEM-DECAY-0001 is bounded to the selected current Canary duration-bucket and transform/removal source path
-  - RT-PARTIES-0001 is bounded to current official visible party and Shared Experience requirements
-  - RT-PARTIES-0002 is bounded to the selected current Canary party lifecycle and Shared Experience source path
-  - all three records preserve explicit whole-module and parity nonclaims
-  - no worker created an owner request or edited the shared global index
-  - RTREQ-FEATURE-VOCATIONS-0001 and RTREQ-TCR-ITEM-DEFINITIONS-0001 remain unchanged
+  - coordinator artifact run 30220767816 validated the bounded acceptance view and generated deterministic indexes
+  - artifact 8637133045 has digest sha256:4adeb6625a0953223d3fed469c32b65b439061cbcddb9879a9b6079a9451c82a
+  - commit 2a74acaa57413a3fb95529ba9c8c4196d6907d9b publishes the exact validated artifact outputs
+  - RT-ITEM-DECAY-0001 is accepted only for the selected current Canary duration-bucket and transform/removal source path at runtime-path-proven
+  - RT-PARTIES-0001 is accepted only for current official visible party and Shared Experience requirements at definition-found
+  - RT-PARTIES-0002 is accepted only for the selected current Canary party lifecycle and Shared Experience source path at runtime-path-proven
+  - the global index is as_of 2026-07-26 with 13 evidence records, 2 owner requests and 10 version-history records
+  - generated input_sha256 is 8572712a873048c4385e471008c42c97fe09310bafb6d7a0874e8aa6b2ade03b
+  - RTREQ-FEATURE-VOCATIONS-0001 and RTREQ-TCR-ITEM-DEFINITIONS-0001 remain unchanged and active
+  - no new owner request was created
+  - workflow commit ec2a824d53b9901f5a86ce2a4c88d62c3035077e restores contents read, non-persistent checkout credentials and check-only validation at as_of 2026-07-26
 derived:
-  - the coordinator may now review and publish the three bounded records because worker ownership has been released
-  - the fixed 2026-07-25 workflow date must advance before honest 2026-07-26 evidence can be accepted
+  - the wave publishes three bounded evidence records but makes no whole-module or Real Tibia parity claim
+  - the next RTEC-005 wave requires a fresh ownership preflight and the same single serialized shared-index lane
 unknown:
   - runtime timing and restart behavior for item decay
   - exact active party configuration, bonus/distribution formulas, activity call sites and battle-sign behavior
   - protocol/client interpretation and physical gameplay parity for both modules
 conflicts: []
 first_failure:
-  marker: accepted-records-and-indexes-not-yet-materialized
-  evidence: worker candidates are merged and archived, but remain review-needed and absent from the published indexes
+  marker: final-exact-head-gates-not-yet-recorded
+  evidence: reviewed records and deterministic indexes are committed and CI is check-only; the checkpoint commit still requires exact-head gates
 rejected_hypotheses:
   - backdate evidence to 2026-07-25
   - claim whole-module parity from static source and current web documentation
   - create broad owner requests without a narrowed, non-duplicative question
+  - retain temporary contents-write or materialization logic in the final workflow
 changed_paths:
   - docs/agents/tasks/active/CAN-20260726-rtec-005-wave-1-coordination.md
+  - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
+  - docs/agents/real-tibia/evidence/modules/item-decay/**
+  - docs/agents/real-tibia/evidence/modules/parties/**
+  - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
+  - .github/workflows/real-tibia-evidence.yml
 validation:
   - command: worker Ready-state final gates
     result: PASS
@@ -124,6 +136,12 @@ validation:
   - command: worker lifecycle cleanup gates
     result: PASS
     evidence: PRs 973 and 976 merged after Ownership and CI
+  - command: bounded adjudication artifact generation
+    result: PASS
+    evidence: Evidence Contracts run 30220767816 generated, validated and rechecked artifact 8637133045
+  - command: artifact publication commit
+    result: PASS
+    evidence: commit 2a74acaa57413a3fb95529ba9c8c4196d6907d9b matches the validated artifact outputs
 blockers: []
-next_action: Materialize the bounded coordinator acceptance view, generate deterministic indexes at as_of 2026-07-26, then commit the reviewed outputs and restore fail-closed check-only CI.
+next_action: Pass exact-head Evidence Contracts, Ownership, Registry, Upstream and ordinary CI, then apply the final-gate label and mark PR 955 Ready.
 ```
