@@ -5,6 +5,7 @@ import json
 from unittest import mock
 
 import real_tibia_owner_request as owner
+from real_tibia_evidence import validate_for_publication
 from real_tibia_evidence_test_support import *
 
 
@@ -329,7 +330,7 @@ class RealTibiaOwnerRequestLifecycleTests(EvidenceTestCase):
             mutation=ready,
         )
         self.assertEqual(json.loads(request_path.read_text())["status"], "ready-for-owner-triage")
-        self.assertEqual(Corpus.load(self.root).validate(AS_OF).errors, ())
+        self.assertEqual(validate_for_publication(Corpus.load(self.root), AS_OF)[1].errors, ())
 
         rollback_before = request_path.read_bytes()
 
@@ -358,7 +359,7 @@ class RealTibiaOwnerRequestLifecycleTests(EvidenceTestCase):
                     mutation=reject,
                 )
         self.assertEqual(request_path.read_bytes(), rollback_before)
-        self.assertEqual(Corpus.load(self.root).validate(AS_OF).errors, ())
+        self.assertEqual(validate_for_publication(Corpus.load(self.root), AS_OF)[1].errors, ())
 
     def test_repository_vocations_request_remains_unclaimed(self) -> None:
         path = self.repo / "docs/agents/real-tibia/evidence/requests/feature/RTREQ-FEATURE-VOCATIONS-0001.yaml"
