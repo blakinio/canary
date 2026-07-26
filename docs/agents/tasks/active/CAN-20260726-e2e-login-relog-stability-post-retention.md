@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: test/e2e-login-relog-stability-post-retention-20260726
 base_branch: main
 created: 2026-07-26T23:03:00+02:00
-updated: 2026-07-26T23:05:00+02:00
-last_verified_commit: "7a09367589dfc08e482edadbe77e556ecf0cfaa7"
+updated: 2026-07-26T23:07:00+02:00
+last_verified_commit: "1c877d40332f0986fae58573cbd8fe1675fb6efe"
 risk: medium
 related_issue: ""
 related_pr: "975"
@@ -70,7 +70,7 @@ Produce one fresh factual QRI-022 stability classification from exactly ten sequ
 
 - [x] Fresh isolated branch and task claim only the new evidence outputs and one temporary controlled-server pin.
 - [x] Draft PR #975 targets `blakinio/canary:main` from the same repository.
-- [ ] Controlled server is pinned to `7a09367589dfc08e482edadbe77e556ecf0cfaa7` for the counted population.
+- [x] Controlled server is pinned to `7a09367589dfc08e482edadbe77e556ecf0cfaa7` for the counted population.
 - [ ] Exactly ten sequential physical attempts complete with no replacement retries and no attempt 11.
 - [ ] Every counted attempt has retained authoritative schema-v3 result and schema-v1 cleanup evidence, or the missing evidence is preserved as a factual blocker without synthesis.
 - [ ] All comparable attempts normalize into one exact scenario/server/client/datapack/tier cell.
@@ -83,8 +83,8 @@ Produce one fresh factual QRI-022 stability classification from exactly ten sequ
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T21:05:00Z
-head: da92990195da9e30c42810909bea27a4713577b2
+updated_at: 2026-07-26T21:07:00Z
+head: 1c877d40332f0986fae58573cbd8fe1675fb6efe
 branch: test/e2e-login-relog-stability-post-retention-20260726
 pr: 975
 status: implementing
@@ -99,32 +99,38 @@ owned_paths:
   - .github/e2e-controlled-server.env
 proven:
   - current main is 7a09367589dfc08e482edadbe77e556ecf0cfaa7 after disjoint RTEC parties evidence PR 958
-  - PR 975 is an open same-repository draft targeting main
+  - PR 975 is an open mergeable same-repository draft targeting main
+  - temporary controlled-server pin selects blakinio/canary at 7a09367589dfc08e482edadbe77e556ecf0cfaa7
+  - Universal Agent E2E run 30220358871 was queued from exact population head 1c877d40332f0986fae58573cbd8fe1675fb6efe
   - PR 965 is merged as 698c8698a98571ca61715779f8bb67af6f659fc7 with no comments reviews or unresolved review threads
   - controlled-server physical validation in run 30212632481 passed login/relog while skipping the redundant exact-head Canary download
   - no open PR was found for QRI-022 controlled-server or login/relog stability work before PR 975 was created
   - prior PR 961 preserved its blocked population without replacement retries
-  - PR 958 passed Evidence Contracts Agent Task Ownership CI Module Registry Upstream Intelligence and Ready-state final gate before merge
   - the canonical QRI-022 builder requires explicit comparable retained evidence and defaults to minimum_runs 10
 derived:
   - the disjoint main advance does not alter the repaired Universal E2E workflow and 7a09367589dfc08e482edadbe77e556ecf0cfaa7 is the exact current-main server revision for this population
-  - a fresh ten-attempt population can exercise the repaired controlled-server path without changing the workflow
+  - the initial physical job from run 30220358871 is attempt 1 regardless of pass or failure
 unknown:
-  - outcome and retained evidence completeness of attempts 1 through 10
+  - physical job identity outcome artifact and evidence completeness for attempt 1
+  - outcome and retained evidence completeness of attempts 2 through 10
 conflicts: []
 first_failure:
   marker: none
-  evidence: no attempt has started for this fresh population
+  evidence: run 30220358871 is queued and no counted outcome exists yet
 rejected_hypotheses:
   - reuse or extend the PR 961 population because the requested classification requires a fresh post-repair population
   - modify the Universal Agent E2E workflow because PR 965 already repaired the controlled-server path
   - replace any failed counted attempt because the measurement contract forbids replacement retries
 changed_paths:
   - docs/agents/tasks/active/CAN-20260726-e2e-login-relog-stability-post-retention.md
+  - .github/e2e-controlled-server.env
 validation:
   - command: live repository PR CI and ownership preflight
     result: PASS
-    evidence: current main 7a09367589dfc08e482edadbe77e556ecf0cfaa7; PR 975 same-repository draft; PR 965 merged cleanly; PR 958 final gates passed before merge
+    evidence: current main 7a09367589dfc08e482edadbe77e556ecf0cfaa7; PR 975 same-repository draft; PR 965 merged cleanly
+  - command: Universal Agent E2E initial population run
+    result: NOT_RUN
+    evidence: run 30220358871 queued from head 1c877d40332f0986fae58573cbd8fe1675fb6efe
 blockers: []
-next_action: Add the temporary controlled-server pin for 7a09367589dfc08e482edadbe77e556ecf0cfaa7, then inspect the initial Universal Agent E2E physical job as attempt 1.
+next_action: Inspect Universal Agent E2E run 30220358871 and count its physical job as attempt 1 regardless of outcome; after completion rerun that exact physical job once for attempt 2.
 ```
