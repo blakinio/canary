@@ -14,7 +14,7 @@ related_issue: ""
 related_pr: "966"
 feature_head: "37aab5fa102fbf6e5ee7093e84dbef9e3da9a79e"
 feature_merge: "b5a45d32b015965fd79aece734857edf4bdc0bac"
-lifecycle_pr: "pending"
+lifecycle_pr: "967"
 depends_on:
   - OAM-051 durable program reconciliation merged as 4bb098d6401a40659b3de2ef506f093eb35ea8d8
   - Otheryn OAM-052 target lifecycle merged as 2c085eee1b1c430d09a87f567aac1a8e701721a4
@@ -45,11 +45,11 @@ The Canary reviewed-content staging and atomic datapack release stack remains la
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T19:35:00+02:00
-head: b5a45d32b015965fd79aece734857edf4bdc0bac
-branch: main
-pr: 966
-status: completed
+updated_at: 2026-07-26T19:45:00+02:00
+head: f8d15453cf22ced4e615828b5327c2f66234d519
+branch: dudantas/oam-052-deployment-operations-lifecycle
+pr: 967
+status: validating
 context_routes:
   - agent-governance
   - cross-repo
@@ -59,10 +59,10 @@ proven:
   - Canary preflight PR 964 passed exact-head Ownership and CI and merged as 80d5daebd1804edc6208e2312733b5b484490587.
   - Otheryn feature PR 136 head b0e6a965399008a9834f8449c95981d78885ed10 passed Required 30214361783 and merged as 2afcaef4a3d023a7ec987e4380e80905534fdd2b.
   - Otheryn lifecycle PR 138 head b5e6fbb7b99280c2d3cc011386d7e23e3a26c8ba passed Required 30214475223 and merged as 2c085eee1b1c430d09a87f567aac1a8e701721a4.
-  - Canary governance PR 966 final head 37aab5fa102fbf6e5ee7093e84dbef9e3da9a79e changed exactly the task and report.
-  - Governance Ownership 30214671974 and CI 30214672059 completed successfully; Required passed and heavy builds were correctly skipped for docs-only scope.
-  - PR 966 had no comments, reviews or review threads, was behind main by zero and squash-merged with expected-head protection as b5a45d32b015965fd79aece734857edf4bdc0bac.
+  - Canary governance PR 966 final head 37aab5fa102fbf6e5ee7093e84dbef9e3da9a79e passed Ownership 30214671974 and CI 30214672059 and merged as b5a45d32b015965fd79aece734857edf4bdc0bac.
+  - PR 966 had no comments, reviews or review threads, was behind main by zero and changed exactly the task and report.
   - No runtime, deployment script, workflow, Compose, scheduler, schema, map/datapack content, endpoint, secret, production configuration or host action was added.
+  - Lifecycle PR 967 contains only active-task deletion, archive addition and report evidence update.
 derived:
   - Canary deployment tooling remains useful without becoming Otheryn production ownership.
   - A future Otheryn release mechanism requires a separate target-owned package under current PRS and operational requirements.
@@ -90,7 +90,8 @@ validation:
     result: PASS
     evidence: Two intended files, no discussions and behind_by 0 before expected-head merge.
 blockers:
-  - lifecycle archive merge
+  - lifecycle exact-head Ownership and CI
+  - clean lifecycle discussion path and drift audit
   - durable program reconciliation
-next_action: Merge the lifecycle archive, then update only the durable programme record before any OAM-053 preflight.
+next_action: Require exact-head Ownership and CI on PR 967, audit three lifecycle paths and merge, then update only the durable programme record before any OAM-053 preflight.
 ```
