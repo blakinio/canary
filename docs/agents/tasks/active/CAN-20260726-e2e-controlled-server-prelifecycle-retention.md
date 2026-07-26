@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: fix/e2e-controlled-server-prelifecycle-retention
 base_branch: main
 created: 2026-07-26T19:08:00+02:00
-updated: 2026-07-26T19:26:00+02:00
-last_verified_commit: "61d3bf82099646f1e5aeee1c53c43972835a5589"
+updated: 2026-07-26T19:31:00+02:00
+last_verified_commit: "638900ceded56e703c037e29552fdf18b63d6a9d"
 risk: medium
 related_issue: ""
 related_pr: "965"
@@ -73,8 +73,8 @@ Remove the redundant exact-head Canary artifact download from controlled-server 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T19:26:00+02:00
-head: 61d3bf82099646f1e5aeee1c53c43972835a5589
+updated_at: 2026-07-26T19:31:00+02:00
+head: 638900ceded56e703c037e29552fdf18b63d6a9d
 branch: fix/e2e-controlled-server-prelifecycle-retention
 pr: 965
 status: validating
@@ -124,8 +124,8 @@ validation:
     result: PASS
     evidence: implementation CI completed successfully
   - command: ordinary exact-head Universal Agent E2E
-    result: IN_PROGRESS
-    evidence: run 30212484393
+    result: NOT_RUN
+    evidence: run 30212484393 was cancelled by a newer checkpoint before physical validation completed
 blockers: []
-next_action: Complete the ordinary exact-head E2E run, then add one temporary controlled-server pin and require the repaired path to retain complete physical evidence.
+next_action: Add one temporary controlled-server pin and require the repaired path to retain complete physical evidence.
 ```
