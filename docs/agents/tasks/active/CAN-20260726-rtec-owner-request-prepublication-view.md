@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: fix/rtec-owner-request-prepublication-view-20260726
 base_branch: main
 created: 2026-07-26T20:50:00+02:00
-updated: 2026-07-26T21:05:00+02:00
-last_verified_commit: "dcbfcfa73348f4fd75da05485f8b682875d89b53"
+updated: 2026-07-26T21:15:00+02:00
+last_verified_commit: "6a403bed0fdf840cee0bada5496c4ea50ada7d0f"
 risk: medium
 related_issue: ""
 related_pr: "968"
@@ -21,12 +21,12 @@ owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260726-rtec-owner-request-prepublication-view.md
     - tools/agents/real_tibia_owner_request.py
+    - tools/agents/test_real_tibia_owner_request.py
     - tools/agents/test_real_tibia_owner_request_prepublication.py
   shared: []
   read_only:
     - tools/agents/real_tibia_evidence.py
     - tools/agents/real_tibia_evidence_lib.py
-    - tools/agents/test_real_tibia_owner_request.py
     - .github/workflows/real-tibia-evidence.yml
     - docs/agents/real-tibia/evidence/**
 modules_touched:
@@ -46,10 +46,11 @@ Make owner-request lifecycle dry-runs and mutations use the same prepublication-
 
 # Delivered
 
-- `_blocking_diagnostics()` now reuses `validate_for_publication()`.
+- `_blocking_diagnostics()` reuses `validate_for_publication()`.
 - Write-mode lifecycle operations generate from `publication_view()` and validate the complete-plus-published views after the transaction.
 - Focused coverage proves a future-dated `review-needed` record does not block a request dry-run.
 - Focused coverage proves an accepted future-dated record still emits `RTEC-FUTURE-EVIDENCE`.
+- The existing transactional lifecycle test now validates the canonical publication boundary after successful writes and rollback.
 
 # Acceptance criteria
 
@@ -58,6 +59,7 @@ Make owner-request lifecycle dry-runs and mutations use the same prepublication-
 - [x] Add focused owner-lifecycle coverage with a future-dated `review-needed` record.
 - [x] Confirm an accepted future-dated record remains fail-closed.
 - [x] Make write-mode generated indexes use the published view.
+- [x] Update existing transactional coverage to assert the publication-aware post-write contract.
 - [x] Change no workflow, schema, evidence/request data, request state, runtime, data, client, map or E2E path.
 - [ ] Pass exact-head Evidence Contracts, Ownership and ordinary CI.
 - [ ] Mark Ready and squash-merge before rerunning worker PRs #957 and #958.
@@ -66,8 +68,8 @@ Make owner-request lifecycle dry-runs and mutations use the same prepublication-
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T21:05:00+02:00
-head: dcbfcfa73348f4fd75da05485f8b682875d89b53
+updated_at: 2026-07-26T21:15:00+02:00
+head: 6a403bed0fdf840cee0bada5496c4ea50ada7d0f
 branch: fix/rtec-owner-request-prepublication-view-20260726
 pr: 968
 status: implementing
@@ -78,22 +80,23 @@ context_routes:
 owned_paths:
   - docs/agents/tasks/active/CAN-20260726-rtec-owner-request-prepublication-view.md
   - tools/agents/real_tibia_owner_request.py
+  - tools/agents/test_real_tibia_owner_request.py
   - tools/agents/test_real_tibia_owner_request_prepublication.py
 proven:
   - evidence CLI publication view is merged in PR 960
   - PR 957 corpus/index validation passed and failed only the production request dry-run
   - owner lifecycle previously called full Corpus.validate with published as_of
   - owner lifecycle write mode previously generated indexes from the full candidate corpus
-  - the patch reuses publication_view and validate_for_publication for both dry-run and write-mode boundaries
-  - regression tests cover future review-needed allowance and accepted-future rejection
-derived:
-  - request lifecycle operations can coexist with honest prepublication worker evidence without publishing it
+  - the patch reuses publication_view and validate_for_publication for dry-run, write generation and post-write validation
+  - new regression tests for future review-needed and accepted future records pass in workflow run 30215290057
+  - the first patched run failed only because the legacy transactional test asserted full-corpus index bytes after publication-aware generation
+  - that legacy assertion now uses validate_for_publication
 unknown:
-  - first exact-head workflow failure after the patch and new focused tests
+  - first exact-head workflow failure after the legacy assertion update
 conflicts: []
 first_failure:
-  marker: repair-not-yet-validated
-  evidence: implementation and focused regression tests are committed, but exact-head workflow results are pending
+  marker: repair-not-yet-revalidated
+  evidence: the only observed test failure was corrected; exact-head workflow results for the corrected test suite are pending
 rejected_hypotheses:
   - backdate candidate evidence
   - advance the published as_of date before review
@@ -102,11 +105,12 @@ rejected_hypotheses:
 changed_paths:
   - docs/agents/tasks/active/CAN-20260726-rtec-owner-request-prepublication-view.md
   - tools/agents/real_tibia_owner_request.py
+  - tools/agents/test_real_tibia_owner_request.py
   - tools/agents/test_real_tibia_owner_request_prepublication.py
 validation:
-  - command: bounded source inspection and regression design
-    result: PASS
-    evidence: one existing publication filter is reused; no workflow/schema/data path changed
+  - command: workflow run 30215290057 focused tests
+    result: PARTIAL
+    evidence: both new regressions passed; one legacy full-corpus assertion failed and was updated to the publication-aware contract
 blockers: []
 next_action: Pass exact-head Evidence Contracts, Ownership and ordinary CI for PR 968, then run the Ready-state final gate and squash-merge it before refreshing worker validation.
 ```
