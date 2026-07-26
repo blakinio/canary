@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-preflight-20260726
 base_branch: main
 created: 2026-07-26T10:00:00+02:00
-updated: 2026-07-26T10:00:00+02:00
-last_verified_commit: "d0c76c6f964a5266789b252173eb24832a309e80"
+updated: 2026-07-26T10:25:00+02:00
+last_verified_commit: "c0441d5ed0b05646bfdc7fecc6c97d03af571aff"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "952"
 depends_on:
   - RTEC-004
 blocks:
@@ -50,7 +50,7 @@ Reconcile the durable RTEC programme state after RTEC-004 and perform one fresh 
 
 # Preflight result
 
-- Repository baseline: `main@d0c76c6f964a5266789b252173eb24832a309e80`.
+- Repository baseline: `main@a4a35495d4a8dc047bd3315b95c9fb577ac597af`.
 - RTEC-004 lifecycle is durably complete through PR #945, merge `0b65d2e6045c26c5e5295c12a74c627a5f67668f`.
 - Current evidence corpus contains ten accepted/retained evidence records across `vocations`, `weapon-proficiency` and `item-definitions`, plus two active owner requests.
 - Open PRs #951, #948, #815, #559, #526 and #514 do not own the proposed RTEC task, programme or dossier paths.
@@ -61,6 +61,7 @@ Reconcile the durable RTEC programme state after RTEC-004 and perform one fresh 
   - `parties`: `docs/agents/real-tibia/registry/modules/parties.yaml`, `src/creatures/players/grouping/party.*`.
 - Workers must own only their task, one dossier root and their own owner-request records. They must not edit the programme or shared generated index.
 - The coordinator must serialize `docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json` after worker merges.
+- PR #952 contains only this task record and the reconciled programme record.
 
 # RTEC-005 wave contract
 
@@ -80,8 +81,9 @@ Reconcile the durable RTEC programme state after RTEC-004 and perform one fresh 
 - [x] Select exactly two independent absent dossier roots.
 - [x] Verify exact registry and source roots for both selections.
 - [x] Preserve the RTEC-004 two-worker and serialized-index constraint.
-- [ ] Reconcile RTEC-004/RTEC-005 state and handoff in the programme record.
-- [ ] Open a draft PR and pass exact-head ownership/CI checks.
+- [x] Reconcile RTEC-004/RTEC-005 state and handoff in the programme record.
+- [x] Open draft PR #952 and refresh its branch to current main.
+- [ ] Pass exact-head ownership/CI checks.
 - [ ] Complete review, apply `ci:final-gate`, pass the final head, squash merge and archive this preflight task.
 - [ ] Create the next active RTEC-005 wave coordinator task only after this task is durably complete.
 
@@ -89,11 +91,11 @@ Reconcile the durable RTEC programme state after RTEC-004 and perform one fresh 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T10:00:00+02:00
-head: d0c76c6f964a5266789b252173eb24832a309e80
+updated_at: 2026-07-26T10:25:00+02:00
+head: c0441d5ed0b05646bfdc7fecc6c97d03af571aff
 branch: docs/rtec-005-preflight-20260726
-pr: none
-status: implementing
+pr: 952
+status: validating
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -102,32 +104,44 @@ owned_paths:
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
 proven:
   - RTEC-004 worker PRs 930 and 931, coordinator PR 929 and lifecycle PR 945 are merged
-  - main baseline for this preflight is d0c76c6f964a5266789b252173eb24832a309e80
+  - main baseline for the synchronized preflight is a4a35495d4a8dc047bd3315b95c9fb577ac597af
   - evidence index has ten records across vocations, weapon-proficiency and item-definitions and two active owner requests
   - item-decay and parties dossier roots are absent at the pinned baseline
   - registry and source roots exist for item-decay and parties and are disjoint
   - current open PRs do not own the proposed RTEC programme/task/dossier paths
+  - programme queue now records RTEC-004 merged and RTEC-005 active with the two-worker serialized-index constraint
+  - branch was merged with current main and the intervening main change touched only the OAM-051 task record
 derived:
   - item-decay and parties are suitable independent candidates for a two-worker RTEC-005 wave
   - the shared deterministic evidence index must remain coordinator-only
-  - programme state must be reconciled before starting worker branches
+  - worker branches must wait until this preflight is merged and archived
 unknown:
   - exact evidence claims each worker will accept after source collection and review
   - whether either worker will require a new owner request
 conflicts: []
 first_failure:
-  marker: programme-state-stale
-  evidence: programme queue still marks RTEC-004 planned and RTEC-005 planned despite merged RTEC-004 lifecycle
+  marker: exact-head-checks-pending
+  evidence: PR 952 exact-head ownership and CI must complete after this checkpoint commit
 rejected_hypotheses:
   - start eight workers because RTEC-004 proved only a two-worker safe cap under observed CI and review load
   - select wheel-of-destiny because open PR 951 owns current OAM Wheel preflight state
   - allow workers to publish the shared global index concurrently
 changed_paths:
   - docs/agents/tasks/active/CAN-20260726-rtec-005-preflight.md
+  - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
 validation:
   - command: connector-based repository, PR, module and evidence preflight
     result: PASS
-    evidence: main d0c76c6f964a5266789b252173eb24832a309e80; PRs 951, 948, 815, 559, 526, 514; canonical registry and evidence index
+    evidence: main a4a35495d4a8dc047bd3315b95c9fb577ac597af; PRs 951, 948, 815, 559, 526, 514; canonical registry and evidence index
+  - command: programme queue and handoff reconciliation
+    result: PASS
+    evidence: RTEC-004 merged, RTEC-005 active, two-worker cap and one serialized index lane recorded
+  - command: current-main drift reconciliation
+    result: PASS
+    evidence: merge commit c0441d5ed0b05646bfdc7fecc6c97d03af571aff includes main a4a35495d4a8dc047bd3315b95c9fb577ac597af; only non-overlapping OAM-051 task changed
+  - command: PR 952 exact-head ownership and CI
+    result: NOT_RUN
+    evidence: pending checkpoint head
 blockers: []
-next_action: Open the draft PR, reconcile the programme queue and handoff, then validate ownership and CI on the exact head.
+next_action: Inspect exact-head ownership and CI for PR 952, fix any root cause, then apply the final gate and merge without expanding scope.
 ```
