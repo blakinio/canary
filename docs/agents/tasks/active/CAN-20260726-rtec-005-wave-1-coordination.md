@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-wave-1-coordinator-20260726
 base_branch: main
 created: 2026-07-26T11:30:00+02:00
-updated: 2026-07-26T23:32:00+02:00
-last_verified_commit: "2a74acaa57413a3fb95529ba9c8c4196d6907d9b"
+updated: 2026-07-26T23:38:00+02:00
+last_verified_commit: "9fe4e49078eda40740a6040c2136bddfa749e2f1"
 risk: medium
 related_issue: ""
 related_pr: "955"
@@ -66,7 +66,7 @@ Complete RTEC-005 wave 1 by independently adjudicating the merged `item-decay` a
 - [x] Independently adjudicate `RT-ITEM-DECAY-0001`, `RT-PARTIES-0001` and `RT-PARTIES-0002` without broadening their claims.
 - [x] Preserve runtime, persistence, formulas, protocol/client and physical gameplay dimensions as explicit nonclaims.
 - [x] Keep both existing owner requests unchanged and create no new request without a narrowed non-duplicative owner contract.
-- [x] Advance the canonical Evidence Contracts `as_of` date to 2026-07-26 without backdating evidence.
+- [x] Advance the canonical Evidence Contracts `as_of` date and shared test support to 2026-07-26 without backdating evidence.
 - [x] Generate deterministic item-decay, parties and global indexes exactly once from accepted source records.
 - [x] Reconcile the programme queue and restore read-only, check-only Evidence Contracts CI.
 - [ ] Pass exact-head Evidence Contracts, Ownership, Registry, Upstream and CI.
@@ -76,8 +76,8 @@ Complete RTEC-005 wave 1 by independently adjudicating the merged `item-decay` a
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T23:32:00+02:00
-head: 996ffa9a6a142082102829ef467bf1b4792a7e4f
+updated_at: 2026-07-26T23:38:00+02:00
+head: 9fe4e49078eda40740a6040c2136bddfa749e2f1
 branch: docs/rtec-005-wave-1-coordinator-20260726
 pr: 955
 status: validating
@@ -108,16 +108,19 @@ proven:
   - RTREQ-FEATURE-VOCATIONS-0001 and RTREQ-TCR-ITEM-DEFINITIONS-0001 remain unchanged and active
   - no new owner request was created
   - workflow commit ec2a824d53b9901f5a86ce2a4c88d62c3035077e restores contents read, non-persistent checkout credentials and check-only validation at as_of 2026-07-26
-  - the first final check-only run exposed only a stale test-support AS_OF constant still set to 2026-07-25
-  - no validator, schema or evidence-rule change is required
+  - first check-only run 30221056246 isolated the stale shared test-support AS_OF constant; commit 9fe4e49078eda40740a6040c2136bddfa749e2f1 advances only that constant
+  - no validator, schema or evidence-rule change was made
+ derived:
+  - the wave publishes three bounded evidence records but makes no whole-module or Real Tibia parity claim
+  - the next RTEC-005 wave requires a fresh ownership preflight and the same single serialized shared-index lane
 unknown:
   - runtime timing and restart behavior for item decay
   - exact active party configuration, bonus/distribution formulas, activity call sites and battle-sign behavior
   - protocol/client interpretation and physical gameplay parity for both modules
 conflicts: []
 first_failure:
-  marker: test-support-as-of-lags-canonical-publication-date
-  evidence: focused test test_repository_contracts_and_generated_files_are_current rejected honest accepted 2026-07-26 records only because shared AS_OF remained 2026-07-25
+  marker: final-exact-head-gates-not-yet-recorded
+  evidence: canonical dates now align in evidence, workflow and test support; the compact checkpoint commit requires standard exact-head gates
 rejected_hypotheses:
   - backdate evidence to 2026-07-25
   - weaken future-evidence validation
@@ -147,7 +150,7 @@ validation:
     evidence: commit 2a74acaa57413a3fb95529ba9c8c4196d6907d9b matches the validated artifact outputs
   - command: first final check-only Evidence Contracts run 30221056246
     result: FAIL
-    evidence: only shared test-support AS_OF remained 2026-07-25; production workflow and accepted evidence use 2026-07-26
+    evidence: only shared test-support AS_OF remained 2026-07-25; production workflow and accepted evidence already used 2026-07-26
 blockers: []
-next_action: Advance only the shared evidence test-support AS_OF constant to 2026-07-26, then pass the exact-head standard gates and Ready-state final gate.
+next_action: Pass the exact-head standard gates, then apply the final-gate label and mark PR 955 Ready.
 ```
