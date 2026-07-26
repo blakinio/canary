@@ -2,13 +2,13 @@
 task_id: CAN-20260726-rtec-owner-request-prepublication-view
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-OWNER-REQUEST-PREPUBLICATION-VIEW
-status: implementing
+status: validating
 agent: "GPT-5.6 Thinking"
 branch: fix/rtec-owner-request-prepublication-view-20260726
 base_branch: main
 created: 2026-07-26T20:50:00+02:00
-updated: 2026-07-26T21:20:00+02:00
-last_verified_commit: "de1ec5e1b73c2035748f776d0617ef169f7e61bc"
+updated: 2026-07-26T21:25:00+02:00
+last_verified_commit: "338fc3b9aff09622cba6ce322a5adbfa96484d1b"
 risk: medium
 related_issue: ""
 related_pr: "968"
@@ -50,7 +50,7 @@ Make owner-request lifecycle dry-runs and mutations use the same prepublication-
 - Write-mode lifecycle operations generate from `publication_view()` and validate the complete-plus-published views after the transaction.
 - Focused coverage proves a future-dated `review-needed` record does not block a request dry-run.
 - Focused coverage proves an accepted future-dated record still emits `RTEC-FUTURE-EVIDENCE`.
-- The existing transactional lifecycle test now validates the canonical publication boundary after successful writes and rollback.
+- The existing transactional lifecycle test validates the canonical publication boundary after successful writes and rollback.
 
 # Acceptance criteria
 
@@ -61,18 +61,18 @@ Make owner-request lifecycle dry-runs and mutations use the same prepublication-
 - [x] Make write-mode generated indexes use the published view.
 - [x] Update existing transactional coverage to assert the publication-aware post-write contract.
 - [x] Change no workflow, schema, evidence/request data, request state, runtime, data, client, map or E2E path.
-- [ ] Pass exact-head Evidence Contracts, Ownership and ordinary CI.
-- [ ] Mark Ready and squash-merge before rerunning worker PRs #957 and #958.
+- [x] Pass exact-head Evidence Contracts, Ownership and ordinary CI.
+- [ ] Pass the Ready-state final gate and squash-merge before rerunning worker PRs #957 and #958.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T21:20:00+02:00
-head: de1ec5e1b73c2035748f776d0617ef169f7e61bc
+updated_at: 2026-07-26T21:25:00+02:00
+head: 338fc3b9aff09622cba6ce322a5adbfa96484d1b
 branch: fix/rtec-owner-request-prepublication-view-20260726
 pr: 968
-status: implementing
+status: validating
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -88,18 +88,19 @@ proven:
   - owner lifecycle previously called full Corpus.validate with published as_of
   - owner lifecycle write mode previously generated indexes from the full candidate corpus
   - the patch reuses publication_view and validate_for_publication for dry-run, write generation and post-write validation
-  - new regression tests for future review-needed and accepted future records pass in workflow run 30215290057
-  - the first patched run failed only because the legacy transactional test asserted full-corpus index bytes after publication-aware generation
-  - that legacy assertion now uses validate_for_publication
+  - future review-needed and accepted-future regression tests pass
+  - exact head 338fc3b9aff09622cba6ce322a5adbfa96484d1b passed Evidence Contracts run 30215446474
+  - exact head 338fc3b9aff09622cba6ce322a5adbfa96484d1b passed Agent Task Ownership run 30215446481
+  - exact head 338fc3b9aff09622cba6ce322a5adbfa96484d1b passed ordinary CI run 30215446655
 derived:
   - owner-request dry-runs and writes can coexist with honest unpublished candidate evidence without publishing candidate records
   - accepted future evidence remains controlled by the existing publication as_of gate
 unknown:
-  - first exact-head workflow failure after the checkpoint-contract correction
+  - Ready-state final-gate result on the checkpointed head
 conflicts: []
 first_failure:
-  marker: repair-not-yet-revalidated
-  evidence: implementation and test failures are corrected; exact-head workflow results for the corrected checkpoint are pending
+  marker: final-gate-not-yet-run
+  evidence: implementation and exact-head validation are green; Ready-state full gate has not yet completed
 rejected_hypotheses:
   - backdate candidate evidence
   - advance the published as_of date before review
@@ -111,12 +112,15 @@ changed_paths:
   - tools/agents/test_real_tibia_owner_request.py
   - tools/agents/test_real_tibia_owner_request_prepublication.py
 validation:
-  - command: workflow run 30215290057 focused tests
-    result: FAIL
-    evidence: both new regressions passed; one legacy full-corpus assertion failed and was updated to the publication-aware contract
-  - command: workflow run 30215396653 changed-task checkpoint validation
-    result: FAIL
-    evidence: checkpoint required derived and canonical validation result enum; both are corrected in this commit
+  - command: Real Tibia Evidence Contracts run 30215446474
+    result: PASS
+    evidence: full focused tests, corpus/index validation and production request dry-run succeeded
+  - command: Agent Task Ownership run 30215446481
+    result: PASS
+    evidence: changed-task checkpoint and ownership validation succeeded
+  - command: ordinary CI run 30215446655
+    result: PASS
+    evidence: exact-head ordinary CI succeeded
 blockers: []
-next_action: Pass exact-head Evidence Contracts, Ownership and ordinary CI for PR 968, then run the Ready-state final gate and squash-merge it before refreshing worker validation.
+next_action: Apply the final-gate label, mark PR 968 Ready, pass the Ready-state Required check, then squash-merge and refresh worker validation.
 ```
