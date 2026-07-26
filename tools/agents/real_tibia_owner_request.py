@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from real_tibia_evidence import publication_view, validate_for_publication  # noqa: E402
 from real_tibia_evidence_lib import (  # noqa: E402
     Corpus,
     EvidenceError,
@@ -219,9 +220,10 @@ def _candidate_corpus(
 
 
 def _blocking_diagnostics(corpus: Corpus, as_of: dt.date) -> list[str]:
+    _, result = validate_for_publication(corpus, as_of)
     return [
         diagnostic.render()
-        for diagnostic in corpus.validate(as_of).errors
+        for diagnostic in result.errors
         if diagnostic.code not in REPAIRABLE_INDEX_CODES
     ]
 
@@ -636,7 +638,8 @@ def apply_candidate(
     if not write:
         return candidate_value
 
-    generated_paths = set(candidate.generated_files(as_of))
+    published_candidate = publication_view(candidate)
+    generated_paths = set(published_candidate.generated_files(as_of))
     generated_paths.update(
         item.path for item in corpus.module_index_documents
     )
@@ -650,11 +653,12 @@ def apply_candidate(
             document.path, _canonical_text(candidate_value), corpus.root
         )
         updated = Corpus.load(corpus.root)
-        write_generated(updated, check=False, as_of=as_of)
+        write_generated(publication_view(updated), check=False, as_of=as_of)
         final = Corpus.load(corpus.root)
+        _, final_result = validate_for_publication(final, as_of)
         final_errors = [
             diagnostic.render()
-            for diagnostic in final.validate(as_of).errors
+            for diagnostic in final_result.errors
         ]
         if final_errors:
             raise RequestLifecycleError(
