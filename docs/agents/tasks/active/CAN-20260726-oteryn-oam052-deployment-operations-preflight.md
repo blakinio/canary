@@ -2,13 +2,13 @@
 task_id: CAN-20260726-oteryn-oam052-deployment-operations-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-052
-status: validating
+status: review
 agent: "GPT-5.6 Thinking"
 branch: dudantas/oam-052-deployment-operations-governance
 base_branch: main
 created: 2026-07-26
 updated: 2026-07-26
-last_verified_commit: "2757690aa135b387f733516dee9fca503e15fd0e"
+last_verified_commit: "ff7f92526f37f4c0723aa3deb3a3728f165a2164"
 risk: high
 related_issue: ""
 related_pr: "966"
@@ -47,8 +47,8 @@ The Canary reviewed-content staging and atomic datapack release stack remains la
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T19:05:00+02:00
-head: 2757690aa135b387f733516dee9fca503e15fd0e
+updated_at: 2026-07-26T19:15:00+02:00
+head: ff7f92526f37f4c0723aa3deb3a3728f165a2164
 branch: dudantas/oam-052-deployment-operations-governance
 pr: 966
 status: validating
@@ -72,6 +72,7 @@ proven:
   - Otheryn lifecycle PR 138 final head b5e6fbb7b99280c2d3cc011386d7e23e3a26c8ba passed Required 30214475223 and merged as 2c085eee1b1c430d09a87f567aac1a8e701721a4.
   - Both target PRs had clean discussion/path/drift audits and added no runtime or deployment behavior.
   - PR 966 contains exactly this active task and the final OAM-052 revalidation report.
+  - Initial governance Ownership failure was limited to invalid active-task frontmatter status and is corrected to review.
 derived:
   - Copying Canary tools/deploy into Otheryn would duplicate laboratory infrastructure without a proven target owner or consumer.
   - DO_NOT_MIGRATE preserves Canary validation capability and PRS target ownership without preventing future separately authorized target deployment engineering.
@@ -80,9 +81,9 @@ unknown:
   - Production readiness, operator correctness and real-host behavior remain unproven.
 conflicts: []
 first_failure:
-  marker: no-target-release-consumer
-  result: RESOLVED_BY_DISPOSITION
-  evidence: No current target owner or interface requires migration of the Canary-specific content-release stack.
+  marker: active-task-status
+  result: RESOLVED
+  evidence: Ownership rejected frontmatter status validating for tasks/active; frontmatter is now review while checkpoint status remains validating.
 rejected_hypotheses:
   - Copy Canary tools/deploy and its workflows wholesale.
   - Treat PRS-001 backup publication as datapack release deployment.
