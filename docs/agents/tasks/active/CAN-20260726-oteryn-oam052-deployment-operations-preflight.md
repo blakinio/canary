@@ -8,10 +8,10 @@ branch: dudantas/oam-052-deployment-operations-governance
 base_branch: main
 created: 2026-07-26
 updated: 2026-07-26
-last_verified_commit: "75a2d722ec881ea06ecd10ecb261db3784d924ce"
+last_verified_commit: "2757690aa135b387f733516dee9fca503e15fd0e"
 risk: high
 related_issue: ""
-related_pr: "pending"
+related_pr: "966"
 depends_on:
   - OAM-051 durable program reconciliation merged as 4bb098d6401a40659b3de2ef506f093eb35ea8d8
   - Otheryn OAM-052 target lifecycle merged as 2c085eee1b1c430d09a87f567aac1a8e701721a4
@@ -47,10 +47,10 @@ The Canary reviewed-content staging and atomic datapack release stack remains la
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T18:55:00+02:00
-head: 75a2d722ec881ea06ecd10ecb261db3784d924ce
+updated_at: 2026-07-26T19:05:00+02:00
+head: 2757690aa135b387f733516dee9fca503e15fd0e
 branch: dudantas/oam-052-deployment-operations-governance
-pr: pending
+pr: 966
 status: validating
 context_routes:
   - agent-governance
@@ -71,7 +71,7 @@ proven:
   - Otheryn feature PR 136 final head b0e6a965399008a9834f8449c95981d78885ed10 passed Required 30214361783 and merged as 2afcaef4a3d023a7ec987e4380e80905534fdd2b.
   - Otheryn lifecycle PR 138 final head b5e6fbb7b99280c2d3cc011386d7e23e3a26c8ba passed Required 30214475223 and merged as 2c085eee1b1c430d09a87f567aac1a8e701721a4.
   - Both target PRs had clean discussion/path/drift audits and added no runtime or deployment behavior.
-  - Final Canary governance scope is exactly this active task and the OAM-052 revalidation report.
+  - PR 966 contains exactly this active task and the final OAM-052 revalidation report.
 derived:
   - Copying Canary tools/deploy into Otheryn would duplicate laboratory infrastructure without a proven target owner or consumer.
   - DO_NOT_MIGRATE preserves Canary validation capability and PRS target ownership without preventing future separately authorized target deployment engineering.
@@ -105,5 +105,5 @@ validation:
 blockers:
   - exact-head Canary Agent Task Ownership and CI
   - clean discussion, path and Canary-main drift audit
-next_action: Open the two-file Canary governance PR, bind its number, require exact-head Ownership and CI, then merge and archive before durable program reconciliation.
+next_action: Require exact-current-head Ownership and CI on PR 966, then audit two-file scope, discussions and main drift before expected-head squash merge and separate lifecycle archive.
 ```
