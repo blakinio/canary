@@ -14,6 +14,22 @@ DB_USER="${DB_USER:-root}"
 DB_PASSWORD="${DB_PASSWORD:-root}"
 DB_NAME="${DB_NAME:-agent_e2e}"
 
+run_isolated_physical() {
+  local script="$1"
+  set +e
+  AGENT_E2E_CAPTURE_SESSION=1 setsid bash "${script}"
+  local status=$?
+  if [[ "${status}" -gt 128 ]]; then
+    return 1
+  fi
+  return "${status}"
+}
+
+if [[ "${AGENT_E2E_CAPTURE_SESSION:-}" != "1" ]]; then
+  run_isolated_physical "${BASH_SOURCE[0]}"
+  exit $?
+fi
+
 mkdir -p "${ARTIFACT_DIR}"
 ARTIFACT_DIR="$(cd "${ARTIFACT_DIR}" && pwd)"
 RUN_STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)"

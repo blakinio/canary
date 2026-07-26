@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -245,6 +246,25 @@ def select_for_event(
     api_url: str = "https://api.github.com",
     api_token: str = "",
 ) -> ScenarioSelection:
+    if os.environ.get("GITHUB_JOB") == "physical-client":
+        resolved_suite = os.environ.get("AGENT_E2E_SUITE", "").strip()
+        resolved_scenario = os.environ.get("AGENT_E2E_SCENARIO_ID", "").strip()
+        if not resolved_suite or not resolved_scenario:
+            raise SelectionError(
+                "physical-client job requires the workflow-resolved scenario identity"
+            )
+        if (resolved_suite, resolved_scenario) != (requested_suite, requested_scenario):
+            raise SelectionError(
+                "physical-client resolved scenario mismatch: "
+                f"requested={requested_suite}/{requested_scenario} "
+                f"resolved={resolved_suite}/{resolved_scenario}"
+            )
+        return ScenarioSelection(
+            resolved_suite,
+            resolved_scenario,
+            "workflow-resolved-physical-job",
+        )
+
     changed_paths: list[str] = []
     if event_name == "pull_request" and current_repository and pr_head_repository == current_repository:
         _validate_exact_shas(base_sha, head_sha)
