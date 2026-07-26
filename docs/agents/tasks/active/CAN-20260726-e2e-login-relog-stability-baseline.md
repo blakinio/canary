@@ -7,14 +7,14 @@ agent: "GPT-5.6 Thinking"
 branch: test/e2e-login-relog-stability-baseline-20260726
 base_branch: main
 created: 2026-07-26T12:15:00+02:00
-updated: 2026-07-26T12:28:00+02:00
-last_verified_commit: "313f34cba35124e782da6809cc98c32ea1d48a46"
+updated: 2026-07-26T18:56:00+02:00
+last_verified_commit: "540a4e68cafb04fa00e963e39b05b75715bc8b38"
 risk: medium
 related_issue: ""
 related_pr: "961"
 depends_on:
   - "QRI-022 stability certification merged in PR #912 and lifecycle-closed in PR #914"
-  - "Failure evidence retention repaired by PR #940"
+  - "Controlled physical-lifecycle failure retention repaired by PR #940"
   - "Resolved physical scenario reuse repaired by PR #953 and merged as ec0d815570415a4c7ca7217e3e2aca41f6023dab"
 blocks:
   - "First complete factual Universal E2E repeated-run stability classification"
@@ -59,7 +59,7 @@ Produce a fresh factual Universal E2E stability baseline from exactly ten preser
 - Attempt 1 is the initial PR-triggered Universal Agent E2E run.
 - Attempts 2 through 10 are sequential reruns of the same physical job so the workflow run identity remains stable and `GITHUB_RUN_ATTEMPT` remains distinct.
 - Stop after attempt 10 regardless of outcome. Do not replace, hide or retry a failed counted attempt.
-- Every attempt must retain its schema-v3 `result.json`, schema-v1 cleanup certification, artifact ID and digest.
+- Every attempt should retain its schema-v3 `result.json`, schema-v1 cleanup certification, artifact ID and digest.
 - Build the QRI-022 report with explicit `minimum_runs=10` from only this fresh population.
 - Remove `.github/e2e-controlled-server.env` before readiness so no permanent controlled-server pin is merged.
 
@@ -67,23 +67,33 @@ Produce a fresh factual Universal E2E stability baseline from exactly ten preser
 
 - [x] Fresh isolated branch and task own only evidence/governance paths plus one temporary controlled-server pin.
 - [x] Runtime server revision is fixed to repaired main `ec0d815570415a4c7ca7217e3e2aca41f6023dab`.
-- [ ] Exactly ten counted physical attempts complete without replacement retries.
+- [x] Exactly ten counted physical attempts completed without replacement retries.
 - [ ] Every counted attempt retains complete result and cleanup evidence.
 - [ ] All ten attempts normalize into one exact scenario/server/client/datapack/tier cell.
-- [ ] QRI-022 classification with `minimum_runs=10` is generated and committed as JSON and Markdown.
-- [ ] The baseline dossier records run, job, artifact, digest and outcome for every attempt.
-- [ ] The temporary controlled-server pin is removed before final validation.
+- [x] QRI-022 classification with `minimum_runs=10` is generated and committed as JSON and Markdown.
+- [x] The baseline dossier records run, job, artifact, digest and outcome for every attempt.
+- [x] The temporary controlled-server pin is removed before final validation.
 - [ ] Exact-final-head ownership, CI, review and merge gates pass.
+
+# Result
+
+The population is **blocked / not evaluated**, not stable:
+
+- attempts 1–7 are complete clean passes in cell `b262885c08b70ee4d9d6`;
+- attempts 8–10 failed before the lifecycle at `Download exact-head Canary binary`;
+- their partial artifacts contain no schema-v3 `result.json` or schema-v1 cleanup certification;
+- QRI-022 therefore sees seven valid envelopes and reports `not-evaluated` / `insufficient-runs` for explicit `minimum_runs=10`;
+- no missing result or cleanup evidence is synthesized.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T12:28:00+02:00
-head: 313f34cba35124e782da6809cc98c32ea1d48a46
+updated_at: 2026-07-26T18:56:00+02:00
+head: 540a4e68cafb04fa00e963e39b05b75715bc8b38
 branch: test/e2e-login-relog-stability-baseline-20260726
 pr: 961
-status: validating
+status: blocked
 context_routes:
   - agent-governance
   - universal-e2e
@@ -92,46 +102,46 @@ owned_paths:
   - tests/e2e/baselines/login-relog-stability-baseline-20260726.md
   - docs/e2e/baselines/E2E_LOGIN_RELOG_STABILITY_BASELINE_20260726.md
   - docs/e2e/baselines/e2e-login-relog-stability-baseline-20260726.json
-  - .github/e2e-controlled-server.env
 proven:
-  - main is ec0d815570415a4c7ca7217e3e2aca41f6023dab after merged PR 953
-  - draft PR 961 targets blakinio/canary main from the isolated baseline branch
-  - no open PR claims the fresh login/relog repeated-run baseline paths
-  - QRI-022 requires an explicit minimum of ten and does not execute or download physical evidence
-  - closed PR 925 retained only nine valid attempts and explicitly requires a fresh isolated population
-  - the temporary pin fixes the runtime server revision to ec0d815570415a4c7ca7217e3e2aca41f6023dab
-  - the initial baseline dossier contains no reused historical attempt
-  - CI run 30198015400 passed on the first task head
-  - ownership failures 30198015351 and 30198118061 and 30198205878 occurred only during pre-collection task-schema correction
-derived: []
-unknown:
-  - implementing-status-head Universal Agent E2E run id and physical job id
-  - maintained OTClient revision and datapack identity emitted by attempt 1
-  - outcome and retained evidence identifiers for attempts 1 through 10
-conflicts: []
+  - workflow run 30198264756 completed exactly ten sequential physical-job attempts and no attempt 11 was started
+  - attempts 1 through 7 retained schema-v3 success results and certified schema-v1 cleanup with physical exit code zero
+  - all seven complete envelopes share server ec0d815570415a4c7ca7217e3e2aca41f6023dab, client 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f, datapack data-otservbr-global, tier pr-required, and cell b262885c08b70ee4d9d6
+  - attempts 8 through 10 stopped at Download exact-head Canary binary before gameplay
+  - artifacts 8634324416 8634412535 and 8634518646 are preserved but contain no result.json or cleanup certification
+  - the controlled-server job builds CONTROLLED_SERVER_BIN before the unconditional exact-head Canary artifact download
+  - executable resolution already prefers CONTROLLED_SERVER_BIN when it is present
+  - QRI-022 generated from ten extracted roots discovers seven valid envelopes and reports not-evaluated with insufficient-runs
+  - temporary controlled-server pin is removed from the readiness candidate
+derived:
+  - the exact-head Canary artifact download is redundant when a controlled server repository is selected
+  - PR 940 covers controlled lifecycle nonzero-result retention but not failures before the lifecycle command starts
+unknown: []
+conflicts:
+  - measurement contract requires complete result and cleanup evidence for every attempt but attempts 8 through 10 have only partial pre-lifecycle artifacts
 first_failure:
-  marker: task-frontmatter-phase
-  evidence: ownership run 30198205878 proved tasks/active requires an active phase such as implementing; corrected before the counted population
+  marker: controlled-server-redundant-canary-download
+  evidence: attempts 8 9 and 10 failed consistently at Download exact-head Canary binary after controlled-server build success
 rejected_hypotheses:
-  - reuse PR 925 attempts because its closure explicitly forbids reuse in a later baseline
-  - create a second physical runner or workflow because the existing canonical lifecycle and rerun API are sufficient
+  - replace attempts 8 through 10 with green reruns because the measurement contract forbids hidden or replacement attempts
+  - synthesize result envelopes for pre-lifecycle failures because QRI-022 accepts only authoritative schema-v3 evidence
+  - classify the seven complete passes as stable because the explicit minimum is ten
 changed_paths:
-  - .github/e2e-controlled-server.env
   - tests/e2e/baselines/login-relog-stability-baseline-20260726.md
+  - docs/e2e/baselines/E2E_LOGIN_RELOG_STABILITY_BASELINE_20260726.md
+  - docs/e2e/baselines/e2e-login-relog-stability-baseline-20260726.json
   - docs/agents/tasks/active/CAN-20260726-e2e-login-relog-stability-baseline.md
+  - .github/e2e-controlled-server.env
 validation:
-  - command: live main and overlap preflight
+  - command: exact ten-attempt collection
+    result: BLOCKED
+    evidence: 7 complete clean passes and 3 preserved pre-lifecycle partial artifacts in run 30198264756
+  - command: QRI-022 build with minimum_runs=10
     result: PASS
-    evidence: main ec0d815570415a4c7ca7217e3e2aca41f6023dab; no open matching baseline PR
-  - command: CI
+    evidence: cell b262885c08b70ee4d9d6 is not-evaluated reason insufficient-runs run_count 7
+  - command: deterministic report consistency validation
     result: PASS
-    evidence: run 30198015400 on 2eb25c2c335b9e02ede2ea064e7213eb4f6f759e
-  - command: Agent Task Ownership pre-collection schema checks
-    result: FAIL
-    evidence: runs 30198015351 30198118061 and 30198205878 identified and bounded checkpoint/frontmatter schema errors; all corrected before collection
-  - command: physical ten-attempt population
-    result: NOT_RUN
-    evidence: implementing-status-head initial attempt pending
-blockers: []
-next_action: Require the implementing-status-head initial Universal Agent E2E physical login/relog attempt to retain complete evidence before scheduling attempt 2.
+    evidence: cell digest counts ratios duration distribution and evidence-root totals match repository contract
+blockers:
+  - controlled-server physical jobs must skip the redundant exact-head Canary artifact download and retain fail-closed pre-lifecycle evidence before a fresh baseline can certify ten attempts
+next_action: Open one isolated workflow-fix task and PR that guards the exact-head Canary artifact download for controlled-server scenarios and adds pre-lifecycle failure retention.
 ```
