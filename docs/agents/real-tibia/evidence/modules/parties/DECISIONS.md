@@ -1,17 +1,17 @@
-# Parties candidate decisions
+# Parties decisions
 
-## Decision: preserve two independent claims
+## Decision: accept two independent bounded claims
 
-The official visible model and the current Canary implementation path are represented by separate records. Neither record is promoted into a whole-module parity conclusion.
+`RT-PARTIES-0001` is accepted at `definition-found` for current official visible requirements. `RT-PARTIES-0002` is accepted at `runtime-path-proven` for the selected current Canary lifecycle and Shared Experience source path. Neither record is a whole-module conformance or parity conclusion.
 
 ## Decision: comparison remains partial
 
-The selected files expose a configurable share-range multiplier, `30x30x1` distance/floor checks and recent activity. Exact multiplier configuration, battle-sign gating, bonus/equal-distribution behavior, external activity call sites and protocol/client semantics remain unresolved.
+Exact active multiplier configuration, battle-sign gating, activity-update call sites, bonus/equal-distribution formulas, disconnect/death runtime outcomes, protocol/client interpretation and physical gameplay remain unresolved.
 
-## Decision: do not create an owner request yet
+## Decision: do not create an owner request
 
-No owner request is created. Coordinator review must first decide which missing dimension is sufficiently bounded and verify that no existing runtime, feature, protocol or E2E request already owns it.
+No new request is created because this wave did not narrow one non-duplicative owner question sufficiently.
 
-## Decision: do not publish indexes
+## Decision: publish through the serialized coordinator lane
 
-The committed module index is the deterministic empty published view. The worker does not edit the shared global index.
+Both accepted records are included in deterministic module/global indexes at `as_of=2026-07-26`.

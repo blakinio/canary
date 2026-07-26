@@ -144,9 +144,10 @@ class RealTibiaEvidenceContractTests(EvidenceTestCase):
         self.assertEqual(self.codes(), set())
 
     def test_future_review_needed_record_is_validated_but_not_published(self) -> None:
+        future_date = AS_OF + cli.dt.timedelta(days=1)
         record = self.record()
         record.update(record_status="review-needed", evidence_state="PROVEN", confidence="HIGH")
-        record["freshness"]["observed_or_verified_at"] = "2026-07-26"
+        record["freshness"]["observed_or_verified_at"] = future_date.isoformat()
         record["review"].update(status="pending", task_id="CAN-TEST", pr=1)
         self.write_record(record)
         dump(self.root / "docs/agents/real-tibia/evidence/modules/combat/VERSION_HISTORY.yaml", history())
@@ -163,15 +164,16 @@ class RealTibiaEvidenceContractTests(EvidenceTestCase):
         self.assertEqual(published.module_indexes(AS_OF)["combat"]["version_history_ids"], [])
 
     def test_future_accepted_record_still_fails_publication_as_of_gate(self) -> None:
+        future_date = AS_OF + cli.dt.timedelta(days=1)
         record = self.record()
         record.update(record_status="accepted", evidence_state="PROVEN", confidence="HIGH")
-        record["freshness"]["observed_or_verified_at"] = "2026-07-26"
+        record["freshness"]["observed_or_verified_at"] = future_date.isoformat()
         record["review"].update(
             status="accepted",
             task_id="CAN-TEST",
             pr=1,
             reviewer="test-reviewer",
-            reviewed_at="2026-07-26T10:00:00+00:00",
+            reviewed_at=f"{future_date.isoformat()}T10:00:00+00:00",
         )
         self.write_record(record)
         dump(self.root / "docs/agents/real-tibia/evidence/modules/combat/VERSION_HISTORY.yaml", history())

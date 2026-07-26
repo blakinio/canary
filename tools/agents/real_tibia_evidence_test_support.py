@@ -14,7 +14,7 @@ assert SPEC and SPEC.loader
 cli = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(cli)
 Corpus, EvidenceError, write_generated = cli.Corpus, cli.EvidenceError, cli.write_generated
-AS_OF = cli.dt.date(2026, 7, 25)
+AS_OF = cli.dt.date(2026, 7, 26)
 COMMIT = "93413bd53e9a40f0ff3c4f55986036b10be44e0f"
 SHA256 = "a" * 64
 AXES = (

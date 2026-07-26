@@ -4,8 +4,8 @@ name: Real Tibia Evidence Collection
 status: active
 owner: Real Tibia evidence coordination / platform tooling
 created: 2026-07-24T20:20:00+02:00
-updated: 2026-07-26T10:15:00+02:00
-last_verified_commit: "a4a35495d4a8dc047bd3315b95c9fb577ac597af"
+updated: 2026-07-26T23:15:00+02:00
+last_verified_commit: "86ad1fc0e69ef4450871173735346af6a20d4eba"
 primary_paths:
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
   - docs/ai-agent/REAL_TIBIA_EVIDENCE_COLLECTOR_ARCHITECTURE.md
@@ -323,7 +323,7 @@ The Coordinator performs shared-file integration after worker PRs merge.
 | RTEC-002 | Pilot dossier on one bounded low-coupling module | merged | RTEC-001 | medium | Pilot delivered by PR #910; lifecycle archived by PR #915. Runtime level-gain and promotion application remain `UNKNOWN` behind `RTREQ-FEATURE-VOCATIONS-0001`. |
 | RTEC-003 | Owner-request lifecycle integration | merged | RTEC-001/002 | medium | Lifecycle CLI delivered by PR #921; task archived by PR #926. `RTREQ-FEATURE-VOCATIONS-0001` remains `ready-for-owner-triage` and requires real owner evidence. |
 | RTEC-004 | Parallel campaign wave 1 | merged | RTEC-002/003 | medium | Weapon-proficiency PR #930, item-definitions PR #931 and coordinator PR #929 merged; lifecycle archived by PR #945. Five evidence records and `RTREQ-TCR-ITEM-DEFINITIONS-0001` were added without owner-path changes. |
-| RTEC-005 | Remaining module waves | active | RTEC-004 evidence and concurrency review | medium | Preflight PR #952 selected independent `item-decay` and `parties` roots with two workers and one serialized global-index lane. Merge/archive the preflight, then create one wave coordinator task before worker branches. |
+| RTEC-005 | Remaining module waves | active | RTEC-004 evidence and concurrency review | medium | Wave 1 worker PRs #957 and #958 and lifecycle PRs #973 and #976 merged. Coordinator PR #955 accepts and publishes three bounded `item-decay`/`parties` records at `as_of=2026-07-26`; broader parity dimensions remain unresolved. Select the next independent wave through a fresh bounded preflight. |
 | RTEC-006 | Release/version refresh and drift operation | planned | populated dossiers and validator | medium | Add deterministic stale/version-delta selection for future Tibia/Canary changes. |
 | RTEC-007 | Coverage, confidence and unresolved-evidence dashboard | planned | stable records and owner results | medium | Generate factual dimensions without opaque parity score. |
 
@@ -337,4 +337,4 @@ The entire programme cannot claim that Canary faithfully reproduces Real Tibia m
 
 # Handoff
 
-Complete and archive `CAN-20260726-rtec-005-preflight` through PR #952. Then create one active RTEC-005 wave coordinator task from fresh `main`, with at most two Collector workers: `item-decay` and `parties`. Workers own only their task, one dossier root and their own request records; they must not edit the programme or shared index. The coordinator alone integrates `docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json` after worker merges. Preserve `RTREQ-FEATURE-VOCATIONS-0001` and `RTREQ-TCR-ITEM-DEFINITIONS-0001` until real owners supply stable evidence.
+RTEC-005 wave 1 completed the bounded `item-decay` and `parties` worker sequence through PRs #957/#958 and lifecycle PRs #973/#976. Coordinator PR #955 accepts only three source-scoped records and publishes deterministic indexes at `as_of=2026-07-26`; runtime, persistence, formula, protocol/client and physical-gameplay gaps remain explicit. Preserve `RTREQ-FEATURE-VOCATIONS-0001` and `RTREQ-TCR-ITEM-DEFINITIONS-0001` until real owners supply stable evidence. Start the next RTEC-005 wave only through a fresh preflight that proves disjoint ownership and retains one serialized shared-index lane.
