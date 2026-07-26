@@ -2,13 +2,13 @@
 task_id: CAN-20260726-e2e-login-relog-stability-baseline
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-QRI-022-BASELINE-002
-status: implementing
+status: blocked
 agent: "GPT-5.6 Thinking"
 branch: test/e2e-login-relog-stability-baseline-20260726
 base_branch: main
 created: 2026-07-26T12:15:00+02:00
-updated: 2026-07-26T18:56:00+02:00
-last_verified_commit: "540a4e68cafb04fa00e963e39b05b75715bc8b38"
+updated: 2026-07-26T20:21:00+02:00
+last_verified_commit: "fe184baa4d1e85d1f189db1b83ecbf295701386d"
 risk: medium
 related_issue: ""
 related_pr: "961"
@@ -89,8 +89,8 @@ The population is **blocked / not evaluated**, not stable:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T18:56:00+02:00
-head: 540a4e68cafb04fa00e963e39b05b75715bc8b38
+updated_at: 2026-07-26T18:21:00Z
+head: fe184baa4d1e85d1f189db1b83ecbf295701386d
 branch: test/e2e-login-relog-stability-baseline-20260726
 pr: 961
 status: blocked
@@ -112,6 +112,8 @@ proven:
   - executable resolution already prefers CONTROLLED_SERVER_BIN when it is present
   - QRI-022 generated from ten extracted roots discovers seven valid envelopes and reports not-evaluated with insufficient-runs
   - temporary controlled-server pin is removed from the readiness candidate
+  - pre-checkpoint head fe184baa4d1e85d1f189db1b83ecbf295701386d passed Agent Task Ownership, CI and Universal Agent E2E
+  - main advanced only on disjoint OTERYNA governance paths since merge base ec0d815570415a4c7ca7217e3e2aca41f6023dab
 derived:
   - the exact-head Canary artifact download is redundant when a controlled server repository is selected
   - PR 940 covers controlled lifecycle nonzero-result retention but not failures before the lifecycle command starts
@@ -130,7 +132,6 @@ changed_paths:
   - docs/e2e/baselines/E2E_LOGIN_RELOG_STABILITY_BASELINE_20260726.md
   - docs/e2e/baselines/e2e-login-relog-stability-baseline-20260726.json
   - docs/agents/tasks/active/CAN-20260726-e2e-login-relog-stability-baseline.md
-  - .github/e2e-controlled-server.env
 validation:
   - command: exact ten-attempt collection
     result: BLOCKED
@@ -141,7 +142,10 @@ validation:
   - command: deterministic report consistency validation
     result: PASS
     evidence: cell digest counts ratios duration distribution and evidence-root totals match repository contract
+  - command: pre-checkpoint exact-head GitHub gates
+    result: PASS
+    evidence: head fe184baa4d1e85d1f189db1b83ecbf295701386d passed ownership CI and Universal Agent E2E
 blockers:
   - controlled-server physical jobs must skip the redundant exact-head Canary artifact download and retain fail-closed pre-lifecycle evidence before a fresh baseline can certify ten attempts
-next_action: Open one isolated workflow-fix task and PR that guards the exact-head Canary artifact download for controlled-server scenarios and adds pre-lifecycle failure retention.
+next_action: Merge PR 961 as the factual blocked baseline, then open one isolated workflow-fix task and PR for the controlled-server artifact download and pre-lifecycle evidence gap.
 ```
