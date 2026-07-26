@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: fix/rtec-owner-request-prepublication-view-20260726
 base_branch: main
 created: 2026-07-26T20:50:00+02:00
-updated: 2026-07-26T20:50:00+02:00
-last_verified_commit: "b5a45d32b015965fd79aece734857edf4bdc0bac"
+updated: 2026-07-26T21:05:00+02:00
+last_verified_commit: "dcbfcfa73348f4fd75da05485f8b682875d89b53"
 risk: medium
 related_issue: ""
-related_pr: "pending"
+related_pr: "968"
 depends_on:
   - PR-960-PREPUBLICATION-INDEX-GATE
 blocks:
@@ -21,40 +21,44 @@ owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260726-rtec-owner-request-prepublication-view.md
     - tools/agents/real_tibia_owner_request.py
-    - tools/agents/test_real_tibia_owner_request.py
+    - tools/agents/test_real_tibia_owner_request_prepublication.py
   shared: []
   read_only:
     - tools/agents/real_tibia_evidence.py
     - tools/agents/real_tibia_evidence_lib.py
+    - tools/agents/test_real_tibia_owner_request.py
     - .github/workflows/real-tibia-evidence.yml
     - docs/agents/real-tibia/evidence/**
 modules_touched:
   - real-tibia-evidence-collection
 reuses:
+  - publication_view
   - validate_for_publication
   - canary-real-tibia-owner-request-v1
 public_interfaces:
-  - owner-request lifecycle corpus validation
+  - owner-request lifecycle corpus validation and generated-index write boundary
 cross_repo_tasks: []
 ---
 
 # Goal
 
-Make owner-request lifecycle dry-runs and mutations use the same prepublication-aware validation boundary as the evidence CLI, without weakening candidate source-contract validation or changing request states.
+Make owner-request lifecycle dry-runs and mutations use the same prepublication-aware validation and index-generation boundary as the evidence CLI, without weakening candidate source-contract validation or changing request states.
 
-# Proven failure
+# Delivered
 
-- PR #960 separated full source-contract validation from published freshness/index validation.
-- `real_tibia_owner_request.py::_blocking_diagnostics()` still calls `Corpus.validate(as_of)` directly.
-- An honest `review-needed` record dated 2026-07-26 therefore blocks the workflow dry-run fixed at published `as_of=2026-07-25`, even though the evidence CLI validates the package successfully.
+- `_blocking_diagnostics()` now reuses `validate_for_publication()`.
+- Write-mode lifecycle operations generate from `publication_view()` and validate the complete-plus-published views after the transaction.
+- Focused coverage proves a future-dated `review-needed` record does not block a request dry-run.
+- Focused coverage proves an accepted future-dated record still emits `RTEC-FUTURE-EVIDENCE`.
 
 # Acceptance criteria
 
-- [ ] Reuse the existing `validate_for_publication()` helper; do not create a second publication filter.
-- [ ] Preserve complete source-contract validation for candidate evidence and requests.
-- [ ] Add a focused owner-lifecycle test with a future-dated `review-needed` record.
-- [ ] Confirm an accepted future-dated record still blocks lifecycle validation.
-- [ ] Change no workflow, schema, evidence record, request state, runtime, data, client, map or E2E path.
+- [x] Reuse the existing publication helpers; create no second publication filter.
+- [x] Preserve complete source-contract validation for candidate evidence and requests.
+- [x] Add focused owner-lifecycle coverage with a future-dated `review-needed` record.
+- [x] Confirm an accepted future-dated record remains fail-closed.
+- [x] Make write-mode generated indexes use the published view.
+- [x] Change no workflow, schema, evidence/request data, request state, runtime, data, client, map or E2E path.
 - [ ] Pass exact-head Evidence Contracts, Ownership and ordinary CI.
 - [ ] Mark Ready and squash-merge before rerunning worker PRs #957 and #958.
 
@@ -62,10 +66,10 @@ Make owner-request lifecycle dry-runs and mutations use the same prepublication-
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T20:50:00+02:00
-head: b5a45d32b015965fd79aece734857edf4bdc0bac
+updated_at: 2026-07-26T21:05:00+02:00
+head: dcbfcfa73348f4fd75da05485f8b682875d89b53
 branch: fix/rtec-owner-request-prepublication-view-20260726
-pr: pending
+pr: 968
 status: implementing
 context_routes:
   - agent-governance
@@ -74,30 +78,35 @@ context_routes:
 owned_paths:
   - docs/agents/tasks/active/CAN-20260726-rtec-owner-request-prepublication-view.md
   - tools/agents/real_tibia_owner_request.py
-  - tools/agents/test_real_tibia_owner_request.py
+  - tools/agents/test_real_tibia_owner_request_prepublication.py
 proven:
   - evidence CLI publication view is merged in PR 960
-  - owner-request lifecycle still calls full Corpus.validate with the published as_of date
-  - PR 957 evidence corpus validation passed but the production request dry-run failed
-  - the failure is caused by a future review-needed record, not a request mutation or index drift
+  - PR 957 corpus/index validation passed and failed only the production request dry-run
+  - owner lifecycle previously called full Corpus.validate with published as_of
+  - owner lifecycle write mode previously generated indexes from the full candidate corpus
+  - the patch reuses publication_view and validate_for_publication for both dry-run and write-mode boundaries
+  - regression tests cover future review-needed allowance and accepted-future rejection
 derived:
-  - owner lifecycle must reuse validate_for_publication before applying request transition checks
+  - request lifecycle operations can coexist with honest prepublication worker evidence without publishing it
 unknown:
-  - first focused-test failure after the minimal patch
+  - first exact-head workflow failure after the patch and new focused tests
 conflicts: []
 first_failure:
-  marker: owner-lifecycle-bypasses-prepublication-view
-  evidence: workflow run 30214892792 passed corpus/index validation and failed only the production request dry-run
+  marker: repair-not-yet-validated
+  evidence: implementation and focused regression tests are committed, but exact-head workflow results are pending
 rejected_hypotheses:
   - backdate candidate evidence
   - advance the published as_of date before review
-  - disable the workflow dry-run
+  - disable or weaken the production request dry-run
+  - generate indexes from the complete candidate corpus
 changed_paths:
   - docs/agents/tasks/active/CAN-20260726-rtec-owner-request-prepublication-view.md
+  - tools/agents/real_tibia_owner_request.py
+  - tools/agents/test_real_tibia_owner_request_prepublication.py
 validation:
-  - command: inspect workflow and owner-request validation call path
+  - command: bounded source inspection and regression design
     result: PASS
-    evidence: .github/workflows/real-tibia-evidence.yml step 12 invokes the lifecycle tool at as_of 2026-07-25; _blocking_diagnostics calls Corpus.validate directly
+    evidence: one existing publication filter is reused; no workflow/schema/data path changed
 blockers: []
-next_action: Reuse validate_for_publication in owner-request validation and add focused future review-needed versus accepted regression coverage.
+next_action: Pass exact-head Evidence Contracts, Ownership and ordinary CI for PR 968, then run the Ready-state final gate and squash-merge it before refreshing worker validation.
 ```
