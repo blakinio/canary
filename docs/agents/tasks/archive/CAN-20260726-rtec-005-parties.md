@@ -2,13 +2,14 @@
 task_id: CAN-20260726-rtec-005-parties
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-005-W1-PARTIES
-status: review
+status: completed
 agent: "GPT-5.6 Thinking"
 branch: feat/rtec-005-parties-20260726
 base_branch: main
 created: 2026-07-26T10:35:03+02:00
-updated: 2026-07-26T22:44:00+02:00
-last_verified_commit: "c6449642a12e6b9ab4f03e384eea9d288cbec6e3"
+updated: 2026-07-26T21:04:06Z
+completed: 2026-07-26T21:04:06Z
+last_verified_commit: "7a09367589dfc08e482edadbe77e556ecf0cfaa7"
 risk: medium
 related_issue: ""
 related_pr: "958"
@@ -61,7 +62,7 @@ Deliver one bounded prepublication evidence package that keeps official visible 
 - [x] Make no global-index, programme, runtime, client, protocol, map, workflow or E2E edit.
 - [x] Pass Evidence Contracts, Agent Task Ownership and ordinary CI on the post-cleanup exact head.
 - [x] Hand the validated candidate package to the coordinator for independent adjudication of both records.
-- [ ] Pass the Ready-state final gate and squash-merge the worker package.
+- [x] Pass the Ready-state final gate and squash-merge the worker package.
 
 ## Context checkpoint
 
@@ -134,3 +135,11 @@ validation:
 blockers: []
 next_action: Apply the final-gate label, mark PR 958 Ready, pass the Required check, then squash-merge the parties worker package.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #958.
+- Feature head: `93e5a97a0400f250f51d90f60a822b26c0c2d196`.
+- Merge commit: `7a09367589dfc08e482edadbe77e556ecf0cfaa7`.
+- Merged at: `2026-07-26T21:04:06Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle cleanup.
