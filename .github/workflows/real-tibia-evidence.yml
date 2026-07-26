@@ -38,7 +38,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   validate:
@@ -49,7 +49,7 @@ jobs:
       - name: Checkout exact head
         uses: actions/checkout@v6
         with:
-          persist-credentials: true
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Set up Python
@@ -92,136 +92,11 @@ jobs:
           python tools/agents/real_tibia_registry.py validate
           python tools/agents/real_tibia_registry.py generate --check
 
-      - name: Materialize bounded RTEC-005 adjudication candidate
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-
-          record_paths = [
-              Path("docs/agents/real-tibia/evidence/modules/item-decay/records/RT-ITEM-DECAY-0001.yaml"),
-              Path("docs/agents/real-tibia/evidence/modules/parties/records/RT-PARTIES-0001.yaml"),
-              Path("docs/agents/real-tibia/evidence/modules/parties/records/RT-PARTIES-0002.yaml"),
-          ]
-          accepted_note = "Coordinator accepted only the bounded claim statement and its explicit proves/does_not_prove limits; no whole-module or parity claim is made."
-          for path in record_paths:
-              record = json.loads(path.read_text(encoding="utf-8"))
-              record["record_status"] = "accepted"
-              review = record["review"]
-              review.update({
-                  "status": "accepted",
-                  "task_id": "CAN-20260726-rtec-005-wave-1-coordination",
-                  "pr": 955,
-                  "reviewer": "RTEC-005 coordinator / GPT-5.6 Thinking",
-                  "reviewed_at": "2026-07-26T23:15:00+02:00",
-              })
-              notes = list(review.get("notes", []))
-              if accepted_note not in notes:
-                  notes.append(accepted_note)
-              review["notes"] = notes
-              path.write_text(json.dumps(record, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
-
-          item_module = Path("docs/agents/real-tibia/evidence/modules/item-decay/MODULE.md")
-          text = item_module.read_text(encoding="utf-8")
-          text = text.replace("- Dossier state: `review-needed`.", "- Dossier state: `accepted` (bounded source claim only).")
-          text = text.replace("| `runtime-path-proven` | `review-needed` |", "| `runtime-path-proven` | `accepted` |")
-          text = text.replace("The candidate is intentionally absent from published module/global indexes until coordinator adjudication.", "The accepted bounded record is published in the 2026-07-26 module/global indexes; all listed runtime, restart, persistence, metadata, gameplay and client dimensions remain nonclaims.")
-          item_module.write_text(text, encoding="utf-8")
-
-          Path("docs/agents/real-tibia/evidence/modules/item-decay/DECISIONS.md").write_text("""# Item Decay decisions\n\n## Decision: accept the bounded source-path finding\n\n`RT-ITEM-DECAY-0001` is accepted at `runtime-path-proven` only for the selected current-Canary duration-bucket and transform/removal source path. Acceptance does not promote scheduler execution, timing, restart recovery, persistence, item metadata, gameplay, client behavior or Real Tibia parity.\n\n## Decision: do not create an owner request\n\nNo owner request is created in this wave. The unresolved dimensions remain broad and no single non-duplicative owner contract has been narrowed sufficiently.\n\n## Decision: publish through the serialized coordinator lane\n\nThe accepted record is included in deterministic module/global indexes at `as_of=2026-07-26`.\n""", encoding="utf-8")
-
-          Path("docs/agents/real-tibia/evidence/modules/item-decay/reviews/RTEC-005-W1-ITEM-DECAY-REVIEW.md").write_text("""# RTEC-005 item-decay coordinator review\n\nStatus: **accepted with bounded nonclaims**\n\n## Decision\n\n- Accepted record: `RT-ITEM-DECAY-0001`.\n- Accepted proof level: `runtime-path-proven`.\n- Accepted scope: the selected exact Canary duration registration, due-item handling and transform/removal source path.\n- Explicitly not accepted: runtime scheduler execution, wall-clock timing, restart recovery, persistence, item-specific metadata, official visible behavior, gameplay, client behavior or whole-module parity.\n- No owner request was created.\n\n## Publication\n\nReview metadata is assigned to coordinator task `CAN-20260726-rtec-005-wave-1-coordination` / PR #955 and the record is published through deterministic indexes at `as_of=2026-07-26`.\n""", encoding="utf-8")
-
-          parties_module = Path("docs/agents/real-tibia/evidence/modules/parties/MODULE.md")
-          text = parties_module.read_text(encoding="utf-8")
-          text = text.replace("- Dossier state: `review-needed`.", "- Dossier state: `accepted` (two bounded claims only).")
-          text = text.replace("| `definition-found` | `review-needed` |", "| `definition-found` | `accepted` |")
-          text = text.replace("| `runtime-path-proven` | `review-needed` |", "| `runtime-path-proven` | `accepted` |")
-          text = text.replace("Both records remain absent from published module/global indexes until coordinator adjudication. No owner request is created by this worker.", "Both bounded records are published in the 2026-07-26 module/global indexes. No owner request is created; configuration, formula, runtime, protocol/client and physical-gameplay dimensions remain unresolved.")
-          parties_module.write_text(text, encoding="utf-8")
-
-          Path("docs/agents/real-tibia/evidence/modules/parties/DECISIONS.md").write_text("""# Parties decisions\n\n## Decision: accept two independent bounded claims\n\n`RT-PARTIES-0001` is accepted at `definition-found` for current official visible requirements. `RT-PARTIES-0002` is accepted at `runtime-path-proven` for the selected current Canary lifecycle and Shared Experience source path. Neither record is a whole-module conformance or parity conclusion.\n\n## Decision: comparison remains partial\n\nExact active multiplier configuration, battle-sign gating, activity-update call sites, bonus/equal-distribution formulas, disconnect/death runtime outcomes, protocol/client interpretation and physical gameplay remain unresolved.\n\n## Decision: do not create an owner request\n\nNo new request is created because this wave did not narrow one non-duplicative owner question sufficiently.\n\n## Decision: publish through the serialized coordinator lane\n\nBoth accepted records are included in deterministic module/global indexes at `as_of=2026-07-26`.\n""", encoding="utf-8")
-
-          Path("docs/agents/real-tibia/evidence/modules/parties/reviews/RTEC-005-W1-PARTIES-REVIEW.md").write_text("""# RTEC-005 parties coordinator review\n\nStatus: **both records accepted with bounded nonclaims**\n\n## Decisions\n\n- `RT-PARTIES-0001` is accepted at `definition-found` for the current official visible party and Shared Experience requirements stated by its selected sources.\n- `RT-PARTIES-0002` is accepted at `runtime-path-proven` for the selected exact Canary invitation, membership, leadership, disband and Shared Experience source path.\n- The records remain independent; neither proves complete Canary conformance.\n- Active configuration, formulas, activity call sites, battle-sign behavior, runtime transition outcomes, persistence, protocol/client interpretation and physical gameplay remain explicit nonclaims.\n- No owner request was created.\n\n## Publication\n\nReview metadata is assigned to coordinator task `CAN-20260726-rtec-005-wave-1-coordination` / PR #955 and both records are published through deterministic indexes at `as_of=2026-07-26`.\n""", encoding="utf-8")
-
-          program = Path("docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md")
-          text = program.read_text(encoding="utf-8")
-          text = text.replace("updated: 2026-07-26T10:15:00+02:00", "updated: 2026-07-26T23:15:00+02:00")
-          text = text.replace('last_verified_commit: "a4a35495d4a8dc047bd3315b95c9fb577ac597af"', 'last_verified_commit: "86ad1fc0e69ef4450871173735346af6a20d4eba"')
-          old_row = "| RTEC-005 | Remaining module waves | active | RTEC-004 evidence and concurrency review | medium | Preflight PR #952 selected independent `item-decay` and `parties` roots with two workers and one serialized global-index lane. Merge/archive the preflight, then create one wave coordinator task before worker branches. |"
-          new_row = "| RTEC-005 | Remaining module waves | active | RTEC-004 evidence and concurrency review | medium | Wave 1 worker PRs #957 and #958 and lifecycle PRs #973 and #976 merged. Coordinator PR #955 accepts and publishes three bounded `item-decay`/`parties` records at `as_of=2026-07-26`; broader parity dimensions remain unresolved. Select the next independent wave through a fresh bounded preflight. |"
-          if old_row in text:
-              text = text.replace(old_row, new_row)
-          elif new_row not in text:
-              raise SystemExit("RTEC-005 queue row changed unexpectedly")
-          old_handoff = "Complete and archive `CAN-20260726-rtec-005-preflight` through PR #952. Then create one active RTEC-005 wave coordinator task from fresh `main`, with at most two Collector workers: `item-decay` and `parties`. Workers own only their task, one dossier root and their own request records; they must not edit the programme or shared index. The coordinator alone integrates `docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json` after worker merges. Preserve `RTREQ-FEATURE-VOCATIONS-0001` and `RTREQ-TCR-ITEM-DEFINITIONS-0001` until real owners supply stable evidence."
-          new_handoff = "RTEC-005 wave 1 completed the bounded `item-decay` and `parties` worker sequence through PRs #957/#958 and lifecycle PRs #973/#976. Coordinator PR #955 accepts only three source-scoped records and publishes deterministic indexes at `as_of=2026-07-26`; runtime, persistence, formula, protocol/client and physical-gameplay gaps remain explicit. Preserve `RTREQ-FEATURE-VOCATIONS-0001` and `RTREQ-TCR-ITEM-DEFINITIONS-0001` until real owners supply stable evidence. Start the next RTEC-005 wave only through a fresh preflight that proves disjoint ownership and retains one serialized shared-index lane."
-          if old_handoff in text:
-              text = text.replace(old_handoff, new_handoff)
-          elif new_handoff not in text:
-              raise SystemExit("programme handoff changed unexpectedly")
-          program.write_text(text, encoding="utf-8")
-          PY
-
-      - name: Generate deterministic RTEC-005 publication candidate
-        run: python tools/agents/real_tibia_evidence.py generate --as-of 2026-07-26
-
       - name: Validate evidence corpus
         run: python tools/agents/real_tibia_evidence.py validate --as-of 2026-07-26
 
       - name: Verify deterministic generated indexes
         run: python tools/agents/real_tibia_evidence.py generate --check --as-of 2026-07-26
-
-      - name: Upload RTEC-005 adjudicated evidence and indexes
-        uses: actions/upload-artifact@v4
-        with:
-          name: rtec-005-adjudicated-evidence
-          path: |
-            docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
-            docs/agents/real-tibia/evidence/modules/item-decay/MODULE.md
-            docs/agents/real-tibia/evidence/modules/item-decay/DECISIONS.md
-            docs/agents/real-tibia/evidence/modules/item-decay/reviews/RTEC-005-W1-ITEM-DECAY-REVIEW.md
-            docs/agents/real-tibia/evidence/modules/item-decay/records/RT-ITEM-DECAY-0001.yaml
-            docs/agents/real-tibia/evidence/modules/item-decay/EVIDENCE_INDEX.yaml
-            docs/agents/real-tibia/evidence/modules/parties/MODULE.md
-            docs/agents/real-tibia/evidence/modules/parties/DECISIONS.md
-            docs/agents/real-tibia/evidence/modules/parties/reviews/RTEC-005-W1-PARTIES-REVIEW.md
-            docs/agents/real-tibia/evidence/modules/parties/records/RT-PARTIES-0001.yaml
-            docs/agents/real-tibia/evidence/modules/parties/records/RT-PARTIES-0002.yaml
-            docs/agents/real-tibia/evidence/modules/parties/EVIDENCE_INDEX.yaml
-            docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Commit validated RTEC-005 outputs once
-        if: github.event_name == 'push'
-        shell: bash
-        env:
-          TARGET_BRANCH: ${{ github.ref_name }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md \
-            docs/agents/real-tibia/evidence/modules/item-decay/MODULE.md \
-            docs/agents/real-tibia/evidence/modules/item-decay/DECISIONS.md \
-            docs/agents/real-tibia/evidence/modules/item-decay/reviews/RTEC-005-W1-ITEM-DECAY-REVIEW.md \
-            docs/agents/real-tibia/evidence/modules/item-decay/records/RT-ITEM-DECAY-0001.yaml \
-            docs/agents/real-tibia/evidence/modules/item-decay/EVIDENCE_INDEX.yaml \
-            docs/agents/real-tibia/evidence/modules/parties/MODULE.md \
-            docs/agents/real-tibia/evidence/modules/parties/DECISIONS.md \
-            docs/agents/real-tibia/evidence/modules/parties/reviews/RTEC-005-W1-PARTIES-REVIEW.md \
-            docs/agents/real-tibia/evidence/modules/parties/records/RT-PARTIES-0001.yaml \
-            docs/agents/real-tibia/evidence/modules/parties/records/RT-PARTIES-0002.yaml \
-            docs/agents/real-tibia/evidence/modules/parties/EVIDENCE_INDEX.yaml \
-            docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
-          if git diff --cached --quiet; then
-            echo "Validated RTEC-005 outputs already match the branch."
-          else
-            git commit -m "docs(real-tibia): publish RTEC-005 accepted evidence"
-            git push origin "HEAD:${TARGET_BRANCH}"
-          fi
 
       - name: Exercise factual index output
         run: python tools/agents/real_tibia_evidence.py show-index --as-of 2026-07-26 > /tmp/real-tibia-evidence-index.json
