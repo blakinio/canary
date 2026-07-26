@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/rtec-005-item-decay-20260726
 base_branch: main
 created: 2026-07-26T10:34:53+02:00
-updated: 2026-07-26T22:00:00+02:00
-last_verified_commit: "414be71495fdfdccc089c7b0cab2e7006b28dc30"
+updated: 2026-07-26T22:10:00+02:00
+last_verified_commit: "97cf0b1367db6845f86b0169aa4d08ab01ca0d4f"
 risk: medium
 related_issue: ""
 related_pr: "957"
@@ -53,15 +53,16 @@ Deliver one bounded prepublication evidence package for the exact current Canary
 - [x] Keep the candidate `review-needed` and the published module index empty at `as_of=2026-07-25`.
 - [x] Create no owner request because the missing owner dimension is not sufficiently narrowed.
 - [x] Make no global-index, programme, runtime, data, client, protocol, map, workflow or E2E edit.
-- [ ] Pass Evidence Contracts, Agent Task Ownership and ordinary CI on the exact refreshed head.
-- [ ] Hand the validated candidate package to the coordinator for adjudication.
+- [x] Pass Evidence Contracts, Agent Task Ownership and ordinary CI on the exact candidate head.
+- [x] Hand the validated candidate package to the coordinator for adjudication.
+- [ ] Pass the Ready-state final gate and squash-merge the worker package.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T22:00:00+02:00
-head: 414be71495fdfdccc089c7b0cab2e7006b28dc30
+updated_at: 2026-07-26T22:10:00+02:00
+head: 97cf0b1367db6845f86b0169aa4d08ab01ca0d4f
 branch: feat/rtec-005-item-decay-20260726
 pr: 957
 status: implementing
@@ -81,15 +82,19 @@ proven:
   - the record remains review-needed with pending coordinator review
   - the module index is the empty published view at 2026-07-25
   - no owner request or shared global-index edit was made
+  - exact head 97cf0b1367db6845f86b0169aa4d08ab01ca0d4f passed Evidence Contracts run 30216450484
+  - exact head 97cf0b1367db6845f86b0169aa4d08ab01ca0d4f passed Agent Task Ownership run 30216450461
+  - exact head 97cf0b1367db6845f86b0169aa4d08ab01ca0d4f passed ordinary CI run 30216450568
+  - exact head 97cf0b1367db6845f86b0169aa4d08ab01ca0d4f passed Module Registry run 30216450483 and Upstream Intelligence run 30216450469
 derived:
-  - the candidate can now pass both evidence and owner-request dry-run validation without factual publication
+  - the candidate is structurally valid and remains unpublished pending coordinator adjudication
 unknown:
   - whether the coordinator will accept, change or reject RT-ITEM-DECAY-0001
   - runtime timing, restart recovery, persistence, metadata, gameplay and physical-client proof
 conflicts: []
 first_failure:
-  marker: refreshed-package-not-yet-validated
-  evidence: the dependency repair is merged and the branch is refreshed, but exact-head workflow results are not yet recorded
+  marker: final-gate-not-yet-run
+  evidence: the candidate head is green and handed to the coordinator; Ready-state Required validation remains
 rejected_hypotheses:
   - backdate evidence
   - publish candidate IDs from the worker
@@ -98,9 +103,15 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260726-rtec-005-item-decay.md
   - docs/agents/real-tibia/evidence/modules/item-decay/**
 validation:
-  - command: verify main after PR 968
+  - command: Real Tibia Evidence Contracts run 30216450484
     result: PASS
-    evidence: main is 414be71495fdfdccc089c7b0cab2e7006b28dc30 and contains publication-aware owner lifecycle validation
+    evidence: source contracts, publication view, generated indexes and production owner-request dry-run succeeded
+  - command: Agent Task Ownership run 30216450461
+    result: PASS
+    evidence: changed-task checkpoint and ownership validation succeeded
+  - command: ordinary CI run 30216450568
+    result: PASS
+    evidence: exact-head ordinary CI succeeded
 blockers: []
-next_action: Recreate the bounded item-decay candidate files on the refreshed branch, then run exact-head evidence, ownership and ordinary CI validation.
+next_action: Apply the final-gate label, mark PR 957 Ready, pass the Required check, then squash-merge the item-decay worker package.
 ```
