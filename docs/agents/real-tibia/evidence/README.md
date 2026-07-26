@@ -71,6 +71,21 @@ Validation fails closed for:
 
 `UNKNOWN`, `CONFLICT`, `STALE`, `SUPERSEDED` and `REJECTED` are valid explicit states. They are never normalized into success.
 
+## Review and publication boundary
+
+Every evidence record is source-contract validated immediately, including records in `discovered`, `normalized` and `review-needed` status. Those three prepublication statuses are excluded from the deterministic factual publication view until review advances the record to an adjudicated status.
+
+The publication view controls:
+
+- freshness checks against the published `as_of` date;
+- generated per-module evidence indexes;
+- the shared generated factual index;
+- dependent owner requests and version-history entries whose claim references must all be published first.
+
+A prepublication dossier may therefore contain candidate records and history plus the deterministic empty module index produced for the current published view. It must not manually publish candidate IDs or edit the shared global index. The coordinator or other declared serialized integration owner accepts the reviewed records, advances the published `as_of` boundary when required, and regenerates module/global indexes exactly once.
+
+This separation does not weaken validation. Malformed candidate records, unsafe paths, invalid references, proof promotion, missing boundaries and every other source-contract error still fail closed. An accepted record dated after the published `as_of` boundary still fails with `RTEC-FUTURE-EVIDENCE` until the serialized publisher advances and regenerates the indexes.
+
 ## Version history
 
 Every record keeps these lifecycle cells distinct:
@@ -108,7 +123,7 @@ Read `../OWNER_REQUEST_LIFECYCLE.md` before moving a request. One request is a s
 
 ## Generated factual indexes
 
-`generated/EVIDENCE_INDEXES.json` and per-module `EVIDENCE_INDEX.yaml` files are derived only from validated records. Generation is deterministic, filesystem-order-independent and atomic.
+`generated/EVIDENCE_INDEXES.json` and per-module `EVIDENCE_INDEX.yaml` files are derived only from validated, published records. Generation is deterministic, filesystem-order-independent and atomic.
 
 Generated facts include:
 
