@@ -2,21 +2,21 @@
 task_id: CAN-20260726-oteryn-oam051-wheel-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-051
-status: review
+status: implementing
 agent: "GPT-5.6 Thinking"
-branch: dudantas/oam-051a-wheel-governance
+branch: dudantas/oam-051b-task-shop-preflight
 base_branch: main
 created: 2026-07-26
 updated: 2026-07-26
-last_verified_commit: "8e8a827a356f8aa0a74c1a47fab3a53e50aac1f8"
+last_verified_commit: "d8416553be77d4999d81afcce2399a37a25337a6"
 risk: high
 related_issue: ""
-related_pr: "956"
+related_pr: ""
 depends_on:
-  - OAM-050 durably completed as d0c76c6f964a5266789b252173eb24832a309e80
+  - OAM-051A durably completed as bd0b58a362d89e449a6863ba299d1c50ad4e6685
 blocks:
-  - OAM-051B Hunting Task Shop contract and target adaptation
-  - OAM-051 final governance, lifecycle and durable reconciliation
+  - OAM-051B target implementation
+  - OAM-051 final lifecycle and durable reconciliation
   - OAM-052 start
 owned_paths:
   exclusive:
@@ -24,146 +24,114 @@ owned_paths:
     - docs/agents/OTERYN_OAM_051_WHEEL_OF_DESTINY_REVALIDATION.md
   shared: []
   read_only:
-    - docs/agents/real-tibia/registry/modules/wheel-of-destiny.yaml
-    - docs/agents/programs/WHEEL_OF_DESTINY_PARITY_PROGRAM.md
-    - docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION.md
-    - docs/ai-agent/OTS_AI_WHEEL_OF_DESTINY_VALIDATION_PROJECT.md
+    - data/modules/scripts/taskboard/taskboard.lua
     - src/creatures/players/components/wheel/**
-    - src/io/io_wheel.*
-    - src/server/network/protocol/protocolgame.*
-    - src/creatures/combat/**
-    - data/scripts/spells/**
-    - data/modules/scripts/taskboard/**
+    - src/lua/functions/creatures/player/player_functions.*
     - tests/unit/players/**
-    - tests/integration/**
     - blakinio/Otheryn
     - blakinio/otclient
-    - opentibiabr/canary
-    - zimbadev/crystalserver
 ---
 
-# OAM-051 Wheel of Destiny governance
+# OAM-051B Hunting Task Shop preflight
 
-Current disposition: `wheel-of-destiny → ADAPT`.
+OAM-051 remains `wheel-of-destiny → ADAPT`. Phase A is durably complete. Phase B is limited to the Hunting Task Shop Bonus Promotion contract and is not yet authorized for target implementation.
 
-OAM-051 remains active and decomposed. OAM-051A is durably complete in Otheryn as the bounded server-side safety and state-integrity adaptation selected by preflight PR #951. OAM-051B remains pending for the separately client- and persistence-coupled Hunting Task Shop Bonus Promotion contract. The complete Wheel subsystem must not be bulk-copied, and deferred current-balance or gameplay-parity behavior remains outside OAM migration permission.
+## Candidate boundary
 
-## Phase ledger
+Candidate donor behavior from Canary PR #230 is limited to:
 
-### OAM-051A — completed
+- one Bonus Promotion offer in the Task Shop;
+- points 1 through 50 with cost `100 * (1 + n * (n - 1) / 2)`;
+- bounded purchased-point state under `wheel-of-destiny/hunting-task-shop-points`;
+- Wheel extra-point accounting and current-client payload field;
+- one Player Lua binding used by the Taskboard script;
+- focused validation for malformed requests, insufficient balance, cap, load and relog.
 
-Delivered target boundary:
+Generated Lua API documents and Canary-only Python validators are not migrated.
 
-- atomic allocation proposal validation before mutation;
-- temple-only decrease enforcement;
-- saturating point accounting;
-- safe gem, grade, index, affinity and persisted-state handling;
-- permanent point-source load ordering;
-- current-protocol malformed-input rejection without wire-shape changes;
-- focused deterministic tests.
+## Transaction contract required before target writes
 
-Exact target evidence:
+The legacy sequence removes Hunting Task Points before writing Wheel KV. That sequence does not prove atomic durable purchase behavior. The target package must choose and test one explicit model:
 
-- feature head `1f4ce3c11f6acf292775daac886e9dace7e8280f`;
-- autofix `30193154587` success;
-- full CI `30193154684` success;
-- Required `30193154608` success;
-- feature merge `47863ce250bce73c1b9af3077f82e9bf6e99e3d1`;
-- lifecycle head `299b85cddd61dc24054becc33a9188d4c2e38c99`;
-- lifecycle Required `30193946125` success;
-- lifecycle merge `bd0b58a362d89e449a6863ba299d1c50ad4e6685`.
+1. rollback the resource mutation when Wheel-state persistence fails; or
+2. stage a recoverable purchase intent that is replayed or compensated after relog; or
+3. use an existing target transaction boundary proven to cover both mutations.
 
-### OAM-051B — pending bounded contract
+A target PR must not claim durability from in-memory success alone. Required failure cells include mutation rejection, KV write failure, interrupted save/relog, duplicate replay and already-at-cap state.
 
-Candidate behavior roots from Canary PR #230:
+## Maintained-client contract required before target writes
 
-- `data/modules/scripts/taskboard/taskboard.lua`;
-- selected `player_wheel.cpp/.hpp` state, load, payload and accounting additions;
-- selected `player_functions.cpp/.hpp` Lua binding additions;
-- focused target tests.
+Current maintained client baseline is `blakinio/otclient@ce4329ee13b39576915240605c2fe6657096c517`. Repository search did not isolate an authoritative parser/UI interpretation for the Task Shop Wheel field. Before target implementation, evidence must identify:
 
-Required before target implementation:
+- exact server packet field order and width;
+- whether the client derives purchased count as `value - 1`;
+- status values for available, insufficient points and bought;
+- behavior at point 50 and after relog;
+- whether server-only delivery is compatible or a separately authorized client change is required.
 
-- exact maintained-client field and UI interpretation proof;
-- 1 through 50 purchase-cost contract;
-- invalid offer, insufficient points and cap behavior;
-- KV clamp/load/relog proof;
-- explicit resource-mutation versus persisted-Wheel transaction/failure semantics;
-- decision whether rollback, recoverable staging or another bounded durability model is required.
-
-Generated `docs/lua-api/*` remain generated outputs. Canary validation scripts remain evidence tooling and are not migrated.
+Static donor comments are not sufficient. Exact source or physical-client evidence is required.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T10:42:00+02:00
-head: 8e8a827a356f8aa0a74c1a47fab3a53e50aac1f8
-branch: dudantas/oam-051a-wheel-governance
-pr: 956
-status: validating
+updated_at: 2026-07-26T11:10:00+02:00
+head: d8416553be77d4999d81afcce2399a37a25337a6
+branch: dudantas/oam-051b-task-shop-preflight
+pr: null
+status: investigating
 context_routes:
   - agent-governance
   - cross-repo
   - real-tibia-parity
   - protocol
   - player-persistence
-  - github-actions
+  - universal-e2e
 owned_paths:
   - docs/agents/tasks/active/CAN-20260726-oteryn-oam051-wheel-preflight.md
   - docs/agents/OTERYN_OAM_051_WHEEL_OF_DESTINY_REVALIDATION.md
 proven:
-  - Canary OAM-051 preflight PR 951 merged as a4a35495d4a8dc047bd3315b95c9fb577ac597af.
-  - Current Canary governance base is 477a3b9b6938e4777ec0df5b2b38ef021b60ece1.
-  - Current Otheryn main is bd0b58a362d89e449a6863ba299d1c50ad4e6685.
-  - No open Canary PR claims OAM-051 or Wheel migration paths.
-  - OAM-051A feature PR 115 passed exact-head autofix 30193154587, full CI 30193154684 and Required 30193154608 and merged as 47863ce250bce73c1b9af3077f82e9bf6e99e3d1.
-  - Full target CI included Fast Checks, Lua, Linux debug/release, all C++ tests, schema import, Canary and Global runtime smoke, macOS, Windows CMake, Windows Solution and Docker validation.
-  - Feature PR 115 changed exactly eight implementation/test paths plus task and report and had no discussion or review blockers.
-  - Otheryn lifecycle PR 118 changed only active/archive/report documentation, passed Required 30193946125 on exact head 299b85cddd61dc24054becc33a9188d4c2e38c99 and merged as bd0b58a362d89e449a6863ba299d1c50ad4e6685.
-  - OAM-051A preserved Task Shop, WheelBalance, full-resonance, combat-effect, spell-area, legacy game-parser and client exclusions.
-  - Historical Supreme Grade II value 12000000 remained unchanged.
-  - Current Canary PR 230 proves a bounded Task Shop candidate but removes Hunting Task Points before writing Wheel KV.
+  - Canary OAM-051A governance merged as d8416553be77d4999d81afcce2399a37a25337a6.
+  - Otheryn main after OAM-051A lifecycle is bd0b58a362d89e449a6863ba299d1c50ad4e6685.
+  - Maintained-client main is ce4329ee13b39576915240605c2fe6657096c517.
+  - Current Otheryn still lacks the bounded Task Shop Bonus Promotion package.
+  - Canary PR 230 is a candidate donor, not a complete transaction or interoperability proof.
+  - The donor removes Hunting Task Points before persisting purchased Wheel points.
+  - No exact maintained-client Task Shop field interpretation was isolated by repository search.
 derived:
-  - OAM-051A is durably complete, but the parent OAM-051 task must remain active until the separately declared OAM-051B boundary is classified and delivered or explicitly rejected.
-  - OAM-051B requires a fresh transaction and maintained-client contract preflight before any target source branch.
-  - OAM-051A validation of existing packet shapes does not prove Task Shop payload interoperability.
-  - Deferred balance, critical-healing, stance, replacement-spell and geometry work remains Wheel parity work, not an automatic OAM-051B scope expansion.
+  - OAM-051B remains blocked for contract evidence and must not start target source changes yet.
+  - The smallest safe target package is server plus tests only if exact maintained-client evidence proves wire compatibility.
+  - Any necessary client mutation requires separate repository ownership and a cross-repository rollout contract.
 unknown:
-  - Whether current maintained OTClient interprets the PR 230 Task Shop field exactly as assumed under physical runtime proof.
-  - Whether a durable Task Shop purchase requires rollback, recoverable staging or another explicit failure model across Hunting Task Points and Wheel KV.
-  - Exact target test seam for failure injection and relog proof.
-  - Current authoritative behavior for deferred Wheel balance and gameplay-parity packages.
+  - Exact maintained-client parser/UI interpretation for the Bonus Promotion field.
+  - Exact failure-safe transaction model for resource and Wheel-state persistence.
+  - Exact target failure-injection seam and physical-client scenario.
 conflicts: []
 first_failure:
-  marker: task-shop-transaction-contract-unproven
-  command: current Canary PR 230 purchase-sequence review
+  marker: task-shop-contract-evidence-incomplete
   result: BLOCKED_FOR_PREFLIGHT
-  evidence: the candidate removes Hunting Task Points before persisting the purchased Wheel point; no exact rollback or recoverability proof has yet been established for Otheryn
+  evidence: neither exact client interpretation nor cross-resource durability is proven
 rejected_hypotheses:
-  - Archive OAM-051 after only OAM-051A despite the preflight-declared second package.
-  - Bulk-copy Canary PR 230 or the complete Wheel subsystem.
-  - Claim atomic Task Shop durability from the current donor sequence.
-  - Include current-balance, effect, stance, replacement-spell or geometry changes in OAM-051B.
-  - Modify OTClient before an exact cross-repository contract proves that a client change is necessary.
+  - Copy PR 230 wholesale.
+  - Treat Lua/KV success in one process as durable atomic purchase proof.
+  - Modify OTClient without proving a client change is required.
+  - Expand OAM-051B into balance, effects, stances, spells or geometry.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260726-oteryn-oam051-wheel-preflight.md
   - docs/agents/OTERYN_OAM_051_WHEEL_OF_DESTINY_REVALIDATION.md
 validation:
-  - command: OAM-051A target feature and lifecycle evidence reconciliation
+  - command: fresh Canary Otheryn and maintained-client baseline review
     result: PASS
-    evidence: exact feature/lifecycle heads, runs, paths, audits and merge commits are recorded
-  - command: OAM-051A exclusion reconciliation
+    evidence: exact current heads recorded after durable OAM-051A governance
+  - command: donor transaction-sequence review
     result: PASS
-    evidence: target report and merged diff retain every preflight exclusion
-  - command: OAM-051 parent lifecycle decision
-    result: PASS
-    evidence: parent remains active because OAM-051B was explicitly declared by preflight and is not yet classified
-  - command: Canary governance exact-head Ownership and CI
-    result: NOT_RUN
-    evidence: PR 956 must pass final synchronized exact-head gates
+    evidence: resource mutation precedes Wheel KV update and therefore requires a new failure contract
+  - command: maintained-client parser/UI proof
+    result: BLOCKED
+    evidence: repository search did not isolate authoritative interpretation; exact source or physical evidence is still required
 blockers:
-  - Canary governance exact-head Ownership and CI
-  - clean governance discussion and Canary-main drift audit
-next_action: Merge the OAM-051A governance checkpoint after exact-head gates, then perform a fresh OAM-051B Task Shop transaction and maintained-client contract preflight before any target source change.
+  - exact maintained-client Task Shop field proof
+  - explicit target durability and failure-recovery model
+  - deterministic failure-injection and relog validation plan
+next_action: Identify the exact maintained-client Task Shop parser/UI field semantics and define a tested rollback or recoverable-staging transaction model before opening any Otheryn OAM-051B source branch.
 ```
