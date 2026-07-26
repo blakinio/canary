@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: fix/e2e-controlled-server-prelifecycle-retention
 base_branch: main
 created: 2026-07-26T19:08:00+02:00
-updated: 2026-07-26T21:03:00+02:00
-last_verified_commit: "45668db9cac3a543acd30254617e08e7d25e6e5a"
+updated: 2026-07-26T21:07:00+02:00
+last_verified_commit: "8b9546302fc8038e8f7e3113bef87a38d16db543"
 risk: medium
 related_issue: ""
 related_pr: "965"
@@ -22,7 +22,6 @@ owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260726-e2e-controlled-server-prelifecycle-retention.md
     - .github/workflows/universal-agent-e2e.yml
-    - .github/e2e-controlled-server.env
     - tests/e2e/test_failure_evidence_retention.py
   shared: []
   read_only:
@@ -78,14 +77,14 @@ The isolated repair is ready for final-head validation:
 - setup failures after exact-head checkout and before physical lifecycle execution finalize the canonical schema-v3 infrastructure failure envelope;
 - pre-lifecycle failures do not synthesize cleanup certification;
 - evidence upload remains ordered before failure propagation;
-- the temporary controlled-server validation pin was removed and is absent from the final changed-file set.
+- the temporary controlled-server validation pin was removed and its path is no longer claimed by this completed repair.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T21:03:00+02:00
-head: 45668db9cac3a543acd30254617e08e7d25e6e5a
+updated_at: 2026-07-26T21:07:00+02:00
+head: 8b9546302fc8038e8f7e3113bef87a38d16db543
 branch: fix/e2e-controlled-server-prelifecycle-retention
 pr: 965
 status: ready
@@ -95,40 +94,36 @@ context_routes:
 owned_paths:
   - docs/agents/tasks/active/CAN-20260726-e2e-controlled-server-prelifecycle-retention.md
   - .github/workflows/universal-agent-e2e.yml
-  - .github/e2e-controlled-server.env
   - tests/e2e/test_failure_evidence_retention.py
 proven:
-  - PR 961 merged the factual blocked ten-attempt baseline as 191d628259c05048cae3c9b9a0a9b233de6294f4
-  - attempts 8 through 10 of baseline run 30198264756 failed before lifecycle at Download exact-head Canary binary after controlled-server build success
-  - controlled-server physical jobs now skip the exact-head canary-linux-release download
-  - executable resolution searches only artifact roots required for the selected server source
-  - normal exact-head physical jobs still retain the canary-linux-release download and resolution path
-  - pre-lifecycle setup failures invoke the canonical result-envelope finalizer before evidence upload
-  - pre-lifecycle cleanup remains not certified because no cleanup certification is synthesized
-  - focused workflow-structure and behavioral tests passed in CI run 30212484302 on implementation head 61d3bf82099646f1e5aeee1c53c43972835a5589
-  - temporary controlled-server validation head e40ed1ce7314d3fb0b453e36ff3bce8693bb2f57 passed Universal Agent E2E run 30212632481
-  - controlled physical job 89823920090 built server revision 4bb098d6401a40659b3de2ef506f093eb35ea8d8 and skipped Download exact-head Canary binary
-  - controlled physical login/relog completed successfully and Required physical E2E passed
-  - artifact 8635242125 digest sha256:ed35af46b32947de0dfe256c5c34b23f56f0d47fdeb0f5ef404b0bf30c15fa93 retains schema-v3 success result and schema-v1 cleanup certification
-  - retained result identifies login/relog, server 4bb098d6401a40659b3de2ef506f093eb35ea8d8, client 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f, datapack data-otservbr-global and tier pr-required
-  - retained cleanup certification is certified with all 18 required checks passing
+  - PR 961 merged the factual blocked baseline; attempts 8 through 10 of run 30198264756 failed before lifecycle at Download exact-head Canary binary after controlled-server build success
+  - controlled-server jobs now skip canary-linux-release while normal exact-head jobs preserve the existing download and executable-resolution path
+  - pre-lifecycle setup failures finalize the canonical result envelope before upload without synthesizing cleanup certification
+  - focused workflow-structure and behavioral tests passed in CI run 30212484302 on 61d3bf82099646f1e5aeee1c53c43972835a5589
+  - temporary controlled-server head e40ed1ce7314d3fb0b453e36ff3bce8693bb2f57 passed Universal Agent E2E run 30212632481
+  - physical job 89823920090 built server 4bb098d6401a40659b3de2ef506f093eb35ea8d8, skipped Download exact-head Canary binary and passed login/relog plus Required physical E2E
+  - artifact 8635242125 digest sha256:ed35af46b32947de0dfe256c5c34b23f56f0d47fdeb0f5ef404b0bf30c15fa93 retains schema-v3 success and schema-v1 cleanup certified with 18 of 18 checks
+  - retained cell is login/relog with server 4bb098d6401a40659b3de2ef506f093eb35ea8d8, client 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f, data-otservbr-global and pr-required
   - temporary pin was removed by 45668db9cac3a543acd30254617e08e7d25e6e5a and .github/e2e-controlled-server.env is absent from the final changed-file set
-  - pre-checkpoint head 45668db9cac3a543acd30254617e08e7d25e6e5a passed ownership run 30214008198, CI run 30214008285, autofix run 30214008168 and Universal Agent E2E run 30214008379
-  - current PR diff is limited to the workflow, focused test and this task record
-  - live PR is ready, mergeable and has no known ownership conflict
-  - ci:final-gate label was applied before this final checkpoint commit
+  - pre-checkpoint head 45668db9cac3a543acd30254617e08e7d25e6e5a passed ownership 30214008198, CI 30214008285, autofix 30214008168 and Universal Agent E2E 30214008379
+  - PR diff is limited to the workflow, focused test and this task record; the PR is ready and was mergeable before the final-gate commit
+  - ci:final-gate was applied before final checkpoint commits
+  - first final-gate ownership run 30216082439 found only checkpoint compactness overflow, with focused ownership tests and changed-file collection passing
+  - this correction reduces proven evidence below the 16-item limit and releases the removed temporary-pin path from final ownership
+  - no implementation or test behavior changed after the controlled-path validation
+
 derived:
-  - current final-head physical validation must run in full because the final-gate label invalidates incremental physical reuse
+  - the corrected final-head physical validation must run in full because ci:final-gate remains applied
 unknown:
-  - outcome of exact-final-head ownership CI physical E2E and review gates after this checkpoint commit
+  - outcome of corrected exact-final-head ownership CI physical E2E and review gates
 conflicts: []
 first_failure:
   marker: controlled-server-redundant-canary-download
-  evidence: workflow run 30198264756 attempts 8 9 and 10 failed consistently at Download exact-head Canary binary after controlled-server build success
+  evidence: workflow run 30198264756 attempts 8 9 and 10 failed consistently after controlled-server build success
 rejected_hypotheses:
   - retry or replace failed baseline attempts because the baseline contract forbids hidden replacement
   - create a new workflow or evidence schema because canonical Universal E2E and result envelope already exist
-  - rely only on static validation because the repaired controlled-server path was exercised with a temporary same-repository pin
+  - rely only on static validation because the repaired controlled-server path was physically exercised
 changed_paths:
   - .github/workflows/universal-agent-e2e.yml
   - tests/e2e/test_failure_evidence_retention.py
@@ -136,16 +131,13 @@ changed_paths:
 validation:
   - command: focused failure evidence retention tests
     result: PASS
-    evidence: CI run 30212484302 on 61d3bf82099646f1e5aeee1c53c43972835a5589
-  - command: controlled-server physical login/relog
+    evidence: CI run 30212484302
+  - command: controlled-server physical login/relog and artifact retention
     result: PASS
-    evidence: run 30212632481 job 89823920090 on e40ed1ce7314d3fb0b453e36ff3bce8693bb2f57
-  - command: controlled-server artifact retention
-    result: PASS
-    evidence: artifact 8635242125 digest sha256:ed35af46b32947de0dfe256c5c34b23f56f0d47fdeb0f5ef404b0bf30c15fa93 contains schema-v3 result and certified schema-v1 cleanup
-  - command: pre-checkpoint exact-head GitHub gates
-    result: PASS
-    evidence: ownership 30214008198 CI 30214008285 autofix 30214008168 Universal Agent E2E 30214008379
+    evidence: run 30212632481 job 89823920090 artifact 8635242125
+  - command: first exact-final-head ownership gate
+    result: FAIL
+    evidence: run 30216082439 reported proven compactness 19 greater than 16; no code or test failure
 blockers: []
-next_action: Require all exact-final-head checks on this checkpoint commit to pass, verify no comments reviews or unresolved threads, then squash-merge PR 965.
+next_action: Require all corrected exact-final-head checks to pass, verify no comments reviews or unresolved threads, then squash-merge PR 965.
 ```
