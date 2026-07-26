@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import datetime as dt
+
 import real_tibia_owner_request as owner
 from real_tibia_evidence import publication_view
 from real_tibia_evidence_test_support import AS_OF, Corpus, EvidenceTestCase, write_generated
@@ -24,13 +26,14 @@ class RealTibiaOwnerRequestPrepublicationTests(EvidenceTestCase):
         )
 
     def test_review_needed_future_record_does_not_block_request_dry_run(self) -> None:
+        future_date = AS_OF + dt.timedelta(days=1)
         self.write_record(self.record())
         request = self.feature_request()
         self.write_request(request, "feature")
 
         candidate = self.record("RT-COMBAT-0002")
         candidate["record_status"] = "review-needed"
-        candidate["freshness"]["observed_or_verified_at"] = "2026-07-26"
+        candidate["freshness"]["observed_or_verified_at"] = future_date.isoformat()
         candidate["review"].update(
             task_id="CAN-RTEC-PREPUBLICATION-TEST",
             pr=968,
@@ -49,7 +52,7 @@ class RealTibiaOwnerRequestPrepublicationTests(EvidenceTestCase):
                 value,
                 expected_status="draft",
                 to_status="ready-for-owner-triage",
-                at="2026-07-25T10:00:00+02:00",
+                at=f"{AS_OF.isoformat()}T10:00:00+02:00",
                 actor="collector",
                 actor_role="collector",
                 actor_task="CAN-RTEC-PREPUBLICATION-TEST",
@@ -69,18 +72,19 @@ class RealTibiaOwnerRequestPrepublicationTests(EvidenceTestCase):
         self.assertEqual(result["status"], "ready-for-owner-triage")
 
     def test_accepted_future_record_still_blocks_request_validation(self) -> None:
+        future_date = AS_OF + dt.timedelta(days=1)
         self.write_record(self.record())
         self.write_request(self.feature_request(), "feature")
 
         accepted = self.record("RT-COMBAT-0002")
         accepted["record_status"] = "accepted"
-        accepted["freshness"]["observed_or_verified_at"] = "2026-07-26"
+        accepted["freshness"]["observed_or_verified_at"] = future_date.isoformat()
         accepted["review"].update(
             task_id="CAN-RTEC-PREPUBLICATION-TEST",
             pr=968,
             status="accepted",
             reviewer="test-reviewer",
-            reviewed_at="2026-07-26T12:00:00+02:00",
+            reviewed_at=f"{future_date.isoformat()}T12:00:00+02:00",
         )
         self.write_record(accepted)
         self.refresh_publication()
