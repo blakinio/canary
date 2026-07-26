@@ -513,9 +513,20 @@ jobs:
           persist-credentials: false
 
       - name: Prepare evidence directory
-        run: mkdir -p artifacts
+        id: evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          date -u +%Y-%m-%dT%H:%M:%S.%3NZ > artifacts/run-started-at.txt
+          python3 tools/e2e/run_agent_e2e.py resolve \
+            --suite "${AGENT_E2E_SUITE}" \
+            --scenario "${AGENT_E2E_SCENARIO_ID}" \
+            --github-env "${GITHUB_ENV}" \
+            > artifacts/scenario-manifest.json
 
       - name: Checkout controlled server source
+        id: controlled_server_checkout
         if: needs.resolve.outputs.server_repository != ''
         uses: actions/checkout@v6
         with:
@@ -525,6 +536,7 @@ jobs:
           persist-credentials: false
 
       - name: Record controlled server revision
+        id: controlled_server_revision
         if: needs.resolve.outputs.server_repository != ''
         run: |
           set -euo pipefail
@@ -532,6 +544,7 @@ jobs:
           printf 'repository=%s\nref=%s\n' "${{ needs.resolve.outputs.server_repository }}" "${{ needs.resolve.outputs.server_ref }}" > artifacts/server-source-request.txt
 
       - name: Install controlled server build dependencies
+        id: controlled_server_dependencies
         if: needs.resolve.outputs.server_repository != ''
         run: |
           sudo apt-get update
@@ -540,6 +553,7 @@ jobs:
           ninja --version
 
       - name: Read controlled server vcpkg baseline
+        id: controlled_server_baseline
         if: needs.resolve.outputs.server_repository != ''
         run: |
           set -euo pipefail
@@ -548,6 +562,7 @@ jobs:
           echo "VCPKG_GIT_COMMIT_ID=${vcpkg_commit_id}" >> "${GITHUB_ENV}"
 
       - name: Set up controlled server vcpkg
+        id: controlled_server_vcpkg
         if: needs.resolve.outputs.server_repository != ''
         uses: lukka/run-vcpkg@b1a0dd252f06b9e25b3c022a9a03bd7a427fb6a2
         with:
@@ -555,6 +570,7 @@ jobs:
           vcpkgGitCommitId: ${{ env.VCPKG_GIT_COMMIT_ID }}
 
       - name: Configure controlled server NuGet package cache
+        id: controlled_server_nuget
         if: needs.resolve.outputs.server_repository != ''
         env:
           NUGET_AUTH_TOKEN: ${{ env.VCPKG_NUGET_API_KEY }}
@@ -577,6 +593,7 @@ jobs:
             -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
 
       - name: Build controlled server release
+        id: controlled_server_build
         if: needs.resolve.outputs.server_repository != ''
         working-directory: controlled-server
         run: |
@@ -592,6 +609,7 @@ jobs:
           sha256sum "${controlled_server_bin}" | tee "${GITHUB_WORKSPACE}/artifacts/server-binary-sha256.txt"
 
       - name: Checkout controlled OTClient source
+        id: otclient_checkout
         uses: actions/checkout@v6
         with:
           repository: ${{ needs.resolve.outputs.client_repository }}
@@ -599,7 +617,13 @@ jobs:
           path: otclient
           persist-credentials: false
 
+      - name: Record controlled OTClient revision
+        id: otclient_revision
+        shell: bash
+        run: git -C otclient rev-parse HEAD | tee artifacts/otclient-source-commit.txt
+
       - name: Checkout matching client assets
+        id: asset_checkout
         uses: actions/checkout@v6
         with:
           repository: dudantas/tibia-client
@@ -608,18 +632,22 @@ jobs:
           persist-credentials: false
 
       - name: Download exact-head Canary binary
+        id: canary_download
+        if: needs.resolve.outputs.server_repository == ''
         uses: actions/download-artifact@v4
         with:
           name: canary-linux-release
           path: canary-bin
 
       - name: Download controlled OTClient binary
+        id: otclient_download
         uses: actions/download-artifact@v4
         with:
           name: otclient-linux-release
           path: otclient-bin
 
       - name: Install runtime dependencies
+        id: runtime_dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -639,10 +667,15 @@ jobs:
             xvfb
 
       - name: Resolve executable artifacts
+        id: executable_resolution
         shell: bash
         run: |
           set -euo pipefail
-          find canary-bin otclient-bin -maxdepth 6 -type f -print | tee artifacts/downloaded-files.txt
+          download_roots=(otclient-bin)
+          if [[ -z "${CONTROLLED_SERVER_BIN:-}" ]]; then
+            download_roots+=(canary-bin)
+          fi
+          find "${download_roots[@]}" -maxdepth 6 -type f -print | tee artifacts/downloaded-files.txt
           if [[ -n "${CONTROLLED_SERVER_BIN:-}" ]]; then
             CANARY_PATH="${CONTROLLED_SERVER_BIN}"
           else
@@ -659,23 +692,19 @@ jobs:
           echo "CANARY_BIN=${CANARY_PATH}" >> "${GITHUB_ENV}"
           echo "OTCLIENT_BIN=${GITHUB_WORKSPACE}/${OTCLIENT_PATH}" >> "${GITHUB_ENV}"
           sha256sum "${CANARY_PATH}" "${OTCLIENT_PATH}" | tee artifacts/executable-sha256.txt
-          git -C otclient rev-parse HEAD | tee artifacts/otclient-source-commit.txt
 
       - name: Resolve route preparation metadata
+        id: route_metadata
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/e2e/run_agent_e2e.py resolve \
-            --suite "${AGENT_E2E_SUITE}" \
-            --scenario "${AGENT_E2E_SCENARIO_ID}" \
-            --github-env "${GITHUB_ENV}" \
-            > artifacts/scenario-manifest.json
           python3 tools/e2e/server_selection.py \
             --manifest artifacts/scenario-manifest.json \
             --root "${GITHUB_WORKSPACE}" \
             --github-env "${GITHUB_ENV}"
 
       - name: Prepare exact OTBM route artifact
+        id: route_preparation
         shell: bash
         run: |
           set -euo pipefail
@@ -699,7 +728,7 @@ jobs:
               exit 1
             fi
             mkdir -p "$(dirname "${AGENT_E2E_SERVER_MAP_PATH}")"
-            MAP_URL="$(grep -E '^mapDownloadUrl[[:space:]]*=' config.lua.dist | sed -E 's/.*"([^"]+)".*/\1/')"
+            MAP_URL="$(grep -E '^mapDownloadUrl[[:space:]]*=' config.lua.dist | sed -E 's/.*"([^\"]+)".*/\1/')"
             test -n "${MAP_URL}"
             curl --fail --location --retry 5 --retry-delay 5 "${MAP_URL}" --output "${AGENT_E2E_SERVER_MAP_PATH}"
           fi
@@ -722,6 +751,97 @@ jobs:
           printf 'status=%s\n' "${status}" >> "${GITHUB_OUTPUT}"
           exit 0
 
+      - name: Finalize pre-lifecycle failure evidence
+        id: pre_lifecycle
+        if: always() && steps.physical.outcome == 'skipped'
+        shell: bash
+        env:
+          STEPS_JSON: ${{ toJSON(steps) }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          ended_at="$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)"
+          started_at="$(cat artifacts/run-started-at.txt 2>/dev/null || printf '%s' "${ended_at}")"
+          readarray -t failure_metadata < <(
+            python3 - "${STEPS_JSON}" <<'PY'
+          import json
+          import sys
+
+          steps = json.loads(sys.argv[1])
+          ordered = (
+              ("evidence", "scenario-resolution"),
+              ("controlled_server_checkout", "server-startup"),
+              ("controlled_server_revision", "server-startup"),
+              ("controlled_server_dependencies", "server-startup"),
+              ("controlled_server_baseline", "server-startup"),
+              ("controlled_server_vcpkg", "server-startup"),
+              ("controlled_server_nuget", "server-startup"),
+              ("controlled_server_build", "server-startup"),
+              ("otclient_checkout", "client-configuration"),
+              ("otclient_revision", "client-configuration"),
+              ("asset_checkout", "client-configuration"),
+              ("canary_download", "server-startup"),
+              ("otclient_download", "client-configuration"),
+              ("runtime_dependencies", "bootstrap"),
+              ("executable_resolution", "runtime-contract"),
+              ("route_metadata", "server-configuration"),
+              ("route_preparation", "runtime-contract"),
+          )
+          for step_id, phase in ordered:
+              outcome = (steps.get(step_id) or {}).get("outcome")
+              if outcome in {"failure", "cancelled"}:
+                  print(step_id)
+                  print(phase)
+                  break
+          else:
+              print("pre_lifecycle_unknown")
+              print("bootstrap")
+          PY
+          )
+          failed_step="${failure_metadata[0]}"
+          phase="${failure_metadata[1]}"
+          python3 - artifacts/result.json "${failed_step}" "${phase}" "${AGENT_E2E_SUITE}/${AGENT_E2E_SCENARIO_ID}" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          target = Path(sys.argv[1])
+          target.write_text(
+              json.dumps(
+                  {
+                      "schema_version": 1,
+                      "status": "failure",
+                      "scenario": sys.argv[4],
+                      "phase": sys.argv[3],
+                      "shell_exit_code": 1,
+                      "pre_lifecycle_failure_step": sys.argv[2],
+                  },
+                  indent=2,
+                  sort_keys=True,
+              )
+              + "\n",
+              encoding="utf-8",
+          )
+          PY
+          case "${GITHUB_EVENT_NAME}" in
+            pull_request) execution_tier="pr-required" ;;
+            schedule) execution_tier="scheduled" ;;
+            workflow_dispatch) execution_tier="on-demand" ;;
+            *) execution_tier="unknown" ;;
+          esac
+          python3 tools/e2e/result_envelope.py finalize \
+            --artifact-dir artifacts \
+            --phase "${phase}" \
+            --shell-exit-code 1 \
+            --execution-tier "${execution_tier}" \
+            --started-at "${started_at}" \
+            --ended-at "${ended_at}" \
+            > artifacts/pre-lifecycle-result-envelope.stdout.log \
+            2> artifacts/pre-lifecycle-result-envelope.stderr.log
+          printf '1\n' > artifacts/physical-exit-code.txt
+          printf '%s\n' "${failed_step}" > artifacts/pre-lifecycle-failure-step.txt
+          printf 'status=1\n' >> "${GITHUB_OUTPUT}"
+
       - name: Upload universal E2E evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -735,7 +855,7 @@ jobs:
         if: always()
         shell: bash
         env:
-          PHYSICAL_STATUS: ${{ steps.physical.outputs.status }}
+          PHYSICAL_STATUS: ${{ steps.physical.outputs.status || steps.pre_lifecycle.outputs.status }}
         run: |
           set -euo pipefail
           if [[ -z "${PHYSICAL_STATUS}" ]]; then
