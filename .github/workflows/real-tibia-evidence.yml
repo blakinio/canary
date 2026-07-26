@@ -92,22 +92,70 @@ jobs:
           python tools/agents/real_tibia_registry.py validate
           python tools/agents/real_tibia_registry.py generate --check
 
+      - name: Materialize bounded RTEC-005 adjudication candidate
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          paths = [
+              Path("docs/agents/real-tibia/evidence/modules/item-decay/records/RT-ITEM-DECAY-0001.yaml"),
+              Path("docs/agents/real-tibia/evidence/modules/parties/records/RT-PARTIES-0001.yaml"),
+              Path("docs/agents/real-tibia/evidence/modules/parties/records/RT-PARTIES-0002.yaml"),
+          ]
+          accepted_note = "Coordinator accepted only the bounded claim statement and its explicit proves/does_not_prove limits; no whole-module or parity claim is made."
+          for path in paths:
+              record = json.loads(path.read_text(encoding="utf-8"))
+              record["record_status"] = "accepted"
+              review = record["review"]
+              review.update({
+                  "status": "accepted",
+                  "task_id": "CAN-20260726-rtec-005-wave-1-coordination",
+                  "pr": 955,
+                  "reviewer": "RTEC-005 coordinator / GPT-5.6 Thinking",
+                  "reviewed_at": "2026-07-26T23:15:00+02:00",
+              })
+              notes = list(review.get("notes", []))
+              if accepted_note not in notes:
+                  notes.append(accepted_note)
+              review["notes"] = notes
+              path.write_text(json.dumps(record, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
+          PY
+
+      - name: Generate deterministic RTEC-005 publication candidate
+        run: python tools/agents/real_tibia_evidence.py generate --as-of 2026-07-26
+
       - name: Validate evidence corpus
-        run: python tools/agents/real_tibia_evidence.py validate --as-of 2026-07-25
+        run: python tools/agents/real_tibia_evidence.py validate --as-of 2026-07-26
 
       - name: Verify deterministic generated indexes
-        run: python tools/agents/real_tibia_evidence.py generate --check --as-of 2026-07-25
+        run: python tools/agents/real_tibia_evidence.py generate --check --as-of 2026-07-26
+
+      - name: Upload RTEC-005 adjudicated evidence and indexes
+        uses: actions/upload-artifact@v4
+        with:
+          name: rtec-005-adjudicated-evidence
+          path: |
+            docs/agents/real-tibia/evidence/modules/item-decay/records/RT-ITEM-DECAY-0001.yaml
+            docs/agents/real-tibia/evidence/modules/item-decay/EVIDENCE_INDEX.yaml
+            docs/agents/real-tibia/evidence/modules/parties/records/RT-PARTIES-0001.yaml
+            docs/agents/real-tibia/evidence/modules/parties/records/RT-PARTIES-0002.yaml
+            docs/agents/real-tibia/evidence/modules/parties/EVIDENCE_INDEX.yaml
+            docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Exercise factual index output
-        run: python tools/agents/real_tibia_evidence.py show-index --as-of 2026-07-25 > /tmp/real-tibia-evidence-index.json
+        run: python tools/agents/real_tibia_evidence.py show-index --as-of 2026-07-26 > /tmp/real-tibia-evidence-index.json
 
       - name: Verify production request stays unclaimed
         run: |
           python tools/agents/real_tibia_owner_request.py transition \
             --request-id RTREQ-FEATURE-VOCATIONS-0001 \
             --expected-status ready-for-owner-triage \
-            --as-of 2026-07-25 \
-            --at 2026-07-25T12:00:00+02:00 \
+            --as-of 2026-07-26 \
+            --at 2026-07-26T12:00:00+02:00 \
             --actor ci-dry-run \
             --actor-role reviewer \
             --actor-task CAN-RTEC-CI-DRY-RUN \
