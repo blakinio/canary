@@ -1,17 +1,37 @@
 {
-  "as_of": "2026-07-25",
-  "by_authority_dimension": {},
-  "by_claim_key": {},
-  "by_proof_level": {},
-  "by_state": {},
-  "evidence_ids": [],
+  "as_of": "2026-07-26",
+  "by_authority_dimension": {
+    "current-canary-behavior": [
+      "RT-ITEM-DECAY-0001"
+    ]
+  },
+  "by_claim_key": {
+    "current-canary-duration-bucket-transform-removal-path": [
+      "RT-ITEM-DECAY-0001"
+    ]
+  },
+  "by_proof_level": {
+    "runtime-path-proven": [
+      "RT-ITEM-DECAY-0001"
+    ]
+  },
+  "by_state": {
+    "PROVEN": [
+      "RT-ITEM-DECAY-0001"
+    ]
+  },
+  "evidence_ids": [
+    "RT-ITEM-DECAY-0001"
+  ],
   "format": "canary-real-tibia-module-evidence-index-v1",
   "module_id": "item-decay",
   "owner_request_ids": [],
-  "record_count": 0,
+  "record_count": 1,
   "schema_version": 1,
   "stale_evidence_ids": [],
   "superseded_evidence_ids": [],
   "unresolved_conflict_ids": [],
-  "version_history_ids": []
+  "version_history_ids": [
+    "RTVH-ITEM-DECAY-0001"
+  ]
 }

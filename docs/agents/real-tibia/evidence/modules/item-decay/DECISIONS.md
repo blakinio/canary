@@ -1,13 +1,13 @@
-# Item Decay candidate decisions
+# Item Decay decisions
 
-## Decision: keep the source finding prepublication
+## Decision: accept the bounded source-path finding
 
-`RT-ITEM-DECAY-0001` remains `review-needed`. Its selected current-Canary source can reach `runtime-path-proven`, but no runtime execution or official visible comparison was performed.
+`RT-ITEM-DECAY-0001` is accepted at `runtime-path-proven` only for the selected current-Canary duration-bucket and transform/removal source path. Acceptance does not promote scheduler execution, timing, restart recovery, persistence, item metadata, gameplay, client behavior or Real Tibia parity.
 
-## Decision: do not create an owner request yet
+## Decision: do not create an owner request
 
-No owner request is created in this worker. The missing dimensions are broad—runtime timing, restart recovery, persistence, item-specific metadata and physical gameplay—and the candidate does not yet narrow one non-duplicative owner contract sufficiently.
+No owner request is created in this wave. The unresolved dimensions remain broad and no single non-duplicative owner contract has been narrowed sufficiently.
 
-## Decision: do not publish indexes
+## Decision: publish through the serialized coordinator lane
 
-The committed module index represents the current published view and is empty. The worker does not edit the coordinator-owned shared global index.
+The accepted record is included in deterministic module/global indexes at `as_of=2026-07-26`.

@@ -1,1 +1,240 @@
-{"applicability":{"announced_in":{"evidence_refs":[],"exact":null,"lower_bound":null,"mode":"UNKNOWN","notes":["No separate announcement is established for this source observation."],"upper_bound":null},"changed_in":[],"deprecated_in":{"evidence_refs":[],"exact":null,"lower_bound":null,"mode":"UNKNOWN","notes":["No deprecation is established."],"upper_bound":null},"effective_from":{"evidence_refs":[],"exact":null,"lower_bound":null,"mode":"UNKNOWN","notes":["Static source inspection does not establish a runtime effective boundary."],"upper_bound":null},"effective_until":{"evidence_refs":[],"exact":null,"lower_bound":null,"mode":"UNKNOWN","notes":["No exact effective-until boundary is established."],"upper_bound":null},"introduced_in":{"evidence_refs":[],"exact":null,"lower_bound":null,"mode":"UNKNOWN","notes":["The selected source path does not establish the feature introduction version."],"upper_bound":null},"observed_in":[{"evidence_refs":["RT-PARTIES-0002"],"exact":{"appearances_items_revision":null,"canary_commit":"80d5daebd1804edc6208e2312733b5b484490587","database_schema_revision":null,"datapack_revision":null,"maintained_otclient_commit":null,"map_sha256":null,"official_client_build":null,"official_tibia_release":null,"protocol_profile":null,"spawn_npc_sidecar_revision":null},"lower_bound":null,"mode":"EXACT","notes":["Exact current Canary source baseline."],"upper_bound":null}],"removed_in":{"evidence_refs":[],"exact":null,"lower_bound":null,"mode":"UNKNOWN","notes":["No removal is established."],"upper_bound":null}},"authority_dimension":"current-canary-behavior","claim_key":"current-canary-party-lifecycle-shared-experience-path","claim_statement":"At Canary baseline 80d5daebd1804edc6208e2312733b5b484490587, Party maintains leader, member and invitee state; its selected source implements invite, join, leave, leadership transfer and disband paths and computes Shared Experience eligibility through party-size, level, range and recent-activity checks.","confidence":"HIGH","conflict_refs":[],"current_canary_comparison":{"baseline":{"appearances_items_revision":null,"canary_commit":"80d5daebd1804edc6208e2312733b5b484490587","database_schema_revision":null,"datapack_revision":null,"maintained_otclient_commit":null,"map_sha256":null,"official_client_build":null,"official_tibia_release":null,"protocol_profile":null,"spawn_npc_sidecar_revision":null},"current_behavior":"The selected source manages ephemeral party state and exposes invitation, membership, leadership, disband and Shared Experience paths.","differences":[],"exact_paths":["src/creatures/players/grouping/party.cpp","src/creatures/players/grouping/party.hpp"],"exact_symbols":["Party::create","Party::invitePlayer","Party::joinParty","Party::leaveParty","Party::passPartyLeadership","Party::disband","Party::setSharedExperience","Party::getMemberSharedExperienceStatus","Party::shareExperience"],"missing_proof":["Runtime transition correctness and callback outcomes.","Exact active configuration and formula behavior.","Disconnect/death cleanup and persistence boundaries.","Protocol/client and physical gameplay behavior."],"state":"not-assessed"},"does_not_prove":["This record does not prove exact official conformance or formula correctness.","This record does not prove runtime, persistence, protocol, client, gameplay or whole-module parity."],"evidence_id":"RT-PARTIES-0002","evidence_state":"PROVEN","format":"canary-real-tibia-evidence-record-v1","freshness":{"invalid_after_days":90,"invalidation_triggers":["The selected party source files or relevant configuration semantics change.","Runtime, protocol or physical-client evidence supersedes this static path observation."],"observed_or_verified_at":"2026-07-26","policy":"refresh-before-task","warning_after_days":30},"module_id":"parties","owner_request_refs":[],"proof_level":"runtime-path-proven","proves":["Current Canary has a concrete selected source path for party lifecycle transitions.","Current Canary has a concrete selected source path for Shared Experience eligibility and distribution callbacks."],"record_status":"review-needed","related_modules":["character-lifecycle","combat","protocol","vocations"],"review":{"notes":["Worker candidate only; coordinator adjudication is required before publication.","No owner request is created until review narrows a missing authority dimension and verifies non-duplication."],"pr":958,"reviewed_at":null,"reviewer":null,"status":"pending","task_id":"CAN-20260726-rtec-005-parties"},"schema_version":1,"sources":[{"author":"Canary contributors","does_not_prove":["Static source does not prove runtime correctness under disconnect, death, callback failure or concurrent state changes.","Static source does not prove exact official bonus, distribution, protocol or client behavior."],"external_artifact":null,"limitations":["Only party.hpp and party.cpp are selected; external call sites, configuration values and client packet handlers are outside this record.","No runtime, database or physical-client execution was performed."],"locator":{"artifact_sha256":null,"build":null,"commit_sha":"80d5daebd1804edc6208e2312733b5b484490587","report_id":null,"repository":"blakinio/canary","repository_path":"src/creatures/players/grouping/party.cpp","url":null},"observation_date":"2026-07-26","proof_level_reached":"runtime-path-proven","proves":["The selected current Canary source contains explicit party lifecycle transitions.","The selected source contains an explicit Shared Experience eligibility and distribution call path."],"publication_date":null,"role":"primary","selected":{"files":["src/creatures/players/grouping/party.cpp","src/creatures/players/grouping/party.hpp"],"observations":["Party stores a weak leader plus member and invitee lists.","Join requires removal from the invite list; leave transfers leadership or disbands and updates Shared Experience.","Shared Experience status checks nonempty membership, configured level spread, 30x30x1 range and recent activity."],"sections":[],"symbols":["Party::create","Party::invitePlayer","Party::joinParty","Party::leaveParty","Party::passPartyLeadership","Party::disband","Party::setSharedExperience","Party::getMemberSharedExperienceStatus","Party::getSharedExperienceStatus","Party::shareExperience"]},"source_id":"current-canary-party-lifecycle-path","source_type":"current-canary"}],"superseded_by":[],"supersedes":[],"uncertainty":["Configuration values and external activity-update call sites were not selected.","Runtime transition and distribution behavior were not executed."]}
+{
+  "applicability": {
+    "announced_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No separate announcement is established for this source observation."
+      ],
+      "upper_bound": null
+    },
+    "changed_in": [],
+    "deprecated_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No deprecation is established."
+      ],
+      "upper_bound": null
+    },
+    "effective_from": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "Static source inspection does not establish a runtime effective boundary."
+      ],
+      "upper_bound": null
+    },
+    "effective_until": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No exact effective-until boundary is established."
+      ],
+      "upper_bound": null
+    },
+    "introduced_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "The selected source path does not establish the feature introduction version."
+      ],
+      "upper_bound": null
+    },
+    "observed_in": [
+      {
+        "evidence_refs": [
+          "RT-PARTIES-0002"
+        ],
+        "exact": {
+          "appearances_items_revision": null,
+          "canary_commit": "80d5daebd1804edc6208e2312733b5b484490587",
+          "database_schema_revision": null,
+          "datapack_revision": null,
+          "maintained_otclient_commit": null,
+          "map_sha256": null,
+          "official_client_build": null,
+          "official_tibia_release": null,
+          "protocol_profile": null,
+          "spawn_npc_sidecar_revision": null
+        },
+        "lower_bound": null,
+        "mode": "EXACT",
+        "notes": [
+          "Exact current Canary source baseline."
+        ],
+        "upper_bound": null
+      }
+    ],
+    "removed_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No removal is established."
+      ],
+      "upper_bound": null
+    }
+  },
+  "authority_dimension": "current-canary-behavior",
+  "claim_key": "current-canary-party-lifecycle-shared-experience-path",
+  "claim_statement": "At Canary baseline 80d5daebd1804edc6208e2312733b5b484490587, Party maintains leader, member and invitee state; its selected source implements invite, join, leave, leadership transfer and disband paths and computes Shared Experience eligibility through party-size, level, range and recent-activity checks.",
+  "confidence": "HIGH",
+  "conflict_refs": [],
+  "current_canary_comparison": {
+    "baseline": {
+      "appearances_items_revision": null,
+      "canary_commit": "80d5daebd1804edc6208e2312733b5b484490587",
+      "database_schema_revision": null,
+      "datapack_revision": null,
+      "maintained_otclient_commit": null,
+      "map_sha256": null,
+      "official_client_build": null,
+      "official_tibia_release": null,
+      "protocol_profile": null,
+      "spawn_npc_sidecar_revision": null
+    },
+    "current_behavior": "The selected source manages ephemeral party state and exposes invitation, membership, leadership, disband and Shared Experience paths.",
+    "differences": [],
+    "exact_paths": [
+      "src/creatures/players/grouping/party.cpp",
+      "src/creatures/players/grouping/party.hpp"
+    ],
+    "exact_symbols": [
+      "Party::create",
+      "Party::invitePlayer",
+      "Party::joinParty",
+      "Party::leaveParty",
+      "Party::passPartyLeadership",
+      "Party::disband",
+      "Party::setSharedExperience",
+      "Party::getMemberSharedExperienceStatus",
+      "Party::shareExperience"
+    ],
+    "missing_proof": [
+      "Runtime transition correctness and callback outcomes.",
+      "Exact active configuration and formula behavior.",
+      "Disconnect/death cleanup and persistence boundaries.",
+      "Protocol/client and physical gameplay behavior."
+    ],
+    "state": "not-assessed"
+  },
+  "does_not_prove": [
+    "This record does not prove exact official conformance or formula correctness.",
+    "This record does not prove runtime, persistence, protocol, client, gameplay or whole-module parity."
+  ],
+  "evidence_id": "RT-PARTIES-0002",
+  "evidence_state": "PROVEN",
+  "format": "canary-real-tibia-evidence-record-v1",
+  "freshness": {
+    "invalid_after_days": 90,
+    "invalidation_triggers": [
+      "The selected party source files or relevant configuration semantics change.",
+      "Runtime, protocol or physical-client evidence supersedes this static path observation."
+    ],
+    "observed_or_verified_at": "2026-07-26",
+    "policy": "refresh-before-task",
+    "warning_after_days": 30
+  },
+  "module_id": "parties",
+  "owner_request_refs": [],
+  "proof_level": "runtime-path-proven",
+  "proves": [
+    "Current Canary has a concrete selected source path for party lifecycle transitions.",
+    "Current Canary has a concrete selected source path for Shared Experience eligibility and distribution callbacks."
+  ],
+  "record_status": "accepted",
+  "related_modules": [
+    "character-lifecycle",
+    "combat",
+    "protocol",
+    "vocations"
+  ],
+  "review": {
+    "notes": [
+      "Worker candidate only; coordinator adjudication is required before publication.",
+      "No owner request is created until review narrows a missing authority dimension and verifies non-duplication.",
+      "Coordinator accepted only the bounded claim statement and its explicit proves/does_not_prove limits; no whole-module or parity claim is made."
+    ],
+    "pr": 955,
+    "reviewed_at": "2026-07-26T23:15:00+02:00",
+    "reviewer": "RTEC-005 coordinator / GPT-5.6 Thinking",
+    "status": "accepted",
+    "task_id": "CAN-20260726-rtec-005-wave-1-coordination"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "author": "Canary contributors",
+      "does_not_prove": [
+        "Static source does not prove runtime correctness under disconnect, death, callback failure or concurrent state changes.",
+        "Static source does not prove exact official bonus, distribution, protocol or client behavior."
+      ],
+      "external_artifact": null,
+      "limitations": [
+        "Only party.hpp and party.cpp are selected; external call sites, configuration values and client packet handlers are outside this record.",
+        "No runtime, database or physical-client execution was performed."
+      ],
+      "locator": {
+        "artifact_sha256": null,
+        "build": null,
+        "commit_sha": "80d5daebd1804edc6208e2312733b5b484490587",
+        "report_id": null,
+        "repository": "blakinio/canary",
+        "repository_path": "src/creatures/players/grouping/party.cpp",
+        "url": null
+      },
+      "observation_date": "2026-07-26",
+      "proof_level_reached": "runtime-path-proven",
+      "proves": [
+        "The selected current Canary source contains explicit party lifecycle transitions.",
+        "The selected source contains an explicit Shared Experience eligibility and distribution call path."
+      ],
+      "publication_date": null,
+      "role": "primary",
+      "selected": {
+        "files": [
+          "src/creatures/players/grouping/party.cpp",
+          "src/creatures/players/grouping/party.hpp"
+        ],
+        "observations": [
+          "Party stores a weak leader plus member and invitee lists.",
+          "Join requires removal from the invite list; leave transfers leadership or disbands and updates Shared Experience.",
+          "Shared Experience status checks nonempty membership, configured level spread, 30x30x1 range and recent activity."
+        ],
+        "sections": [],
+        "symbols": [
+          "Party::create",
+          "Party::invitePlayer",
+          "Party::joinParty",
+          "Party::leaveParty",
+          "Party::passPartyLeadership",
+          "Party::disband",
+          "Party::setSharedExperience",
+          "Party::getMemberSharedExperienceStatus",
+          "Party::getSharedExperienceStatus",
+          "Party::shareExperience"
+        ]
+      },
+      "source_id": "current-canary-party-lifecycle-path",
+      "source_type": "current-canary"
+    }
+  ],
+  "superseded_by": [],
+  "supersedes": [],
+  "uncertainty": [
+    "Configuration values and external activity-update call sites were not selected.",
+    "Runtime transition and distribution behavior were not executed."
+  ]
+}

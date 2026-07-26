@@ -1,17 +1,49 @@
 {
-  "as_of": "2026-07-25",
-  "by_authority_dimension": {},
-  "by_claim_key": {},
-  "by_proof_level": {},
-  "by_state": {},
-  "evidence_ids": [],
+  "as_of": "2026-07-26",
+  "by_authority_dimension": {
+    "current-canary-behavior": [
+      "RT-PARTIES-0002"
+    ],
+    "visible-gameplay-behavior": [
+      "RT-PARTIES-0001"
+    ]
+  },
+  "by_claim_key": {
+    "current-canary-party-lifecycle-shared-experience-path": [
+      "RT-PARTIES-0002"
+    ],
+    "official-party-membership-shared-experience-requirements": [
+      "RT-PARTIES-0001"
+    ]
+  },
+  "by_proof_level": {
+    "definition-found": [
+      "RT-PARTIES-0001"
+    ],
+    "runtime-path-proven": [
+      "RT-PARTIES-0002"
+    ]
+  },
+  "by_state": {
+    "PROVEN": [
+      "RT-PARTIES-0001",
+      "RT-PARTIES-0002"
+    ]
+  },
+  "evidence_ids": [
+    "RT-PARTIES-0001",
+    "RT-PARTIES-0002"
+  ],
   "format": "canary-real-tibia-module-evidence-index-v1",
   "module_id": "parties",
   "owner_request_ids": [],
-  "record_count": 0,
+  "record_count": 2,
   "schema_version": 1,
   "stale_evidence_ids": [],
   "superseded_evidence_ids": [],
   "unresolved_conflict_ids": [],
-  "version_history_ids": []
+  "version_history_ids": [
+    "RTVH-PARTIES-0001",
+    "RTVH-PARTIES-0002"
+  ]
 }

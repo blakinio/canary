@@ -8,7 +8,7 @@
 - Registry blob: `03901f5a28e0dbc4a8db55fdf892410b730558b7`.
 - Source blobs: `decay.hpp@0d540e10dc73b65f2ce1aa00bfb9dd72994dcc5f`, `decay.cpp@458cda4ac92f21289ca1072447e79c71de645ae8`.
 - Verification date: `2026-07-26`.
-- Dossier state: `review-needed`.
+- Dossier state: `accepted` (bounded source claim only).
 
 This candidate covers only the exact current Canary source path from duration registration to scheduled due-item handling and transform/removal handoff. It does not claim item-specific metadata correctness or Real Tibia parity.
 
@@ -20,8 +20,8 @@ This candidate covers only the exact current Canary source path from duration re
 
 | ID | Claim | State | Proof | Publication |
 |---|---|---|---|---|
-| `RT-ITEM-DECAY-0001` | current Canary duration-bucket and transform/removal path | `PROVEN` | `runtime-path-proven` | `review-needed` |
+| `RT-ITEM-DECAY-0001` | current Canary duration-bucket and transform/removal path | `PROVEN` | `runtime-path-proven` | `accepted` |
 
 ## Review boundary
 
-The record proves a source-level runtime path, not scheduler execution, wall-clock accuracy, restart recovery, persistence, item metadata, gameplay or client behavior. The candidate is intentionally absent from published module/global indexes until coordinator adjudication.
+The record proves a source-level runtime path, not scheduler execution, wall-clock accuracy, restart recovery, persistence, item metadata, gameplay or client behavior. The accepted bounded record is published in the 2026-07-26 module/global indexes; all listed runtime, restart, persistence, metadata, gameplay and client dimensions remain nonclaims.

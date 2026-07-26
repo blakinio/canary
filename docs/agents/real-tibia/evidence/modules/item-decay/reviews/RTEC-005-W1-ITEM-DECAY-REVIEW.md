@@ -1,15 +1,15 @@
-# RTEC-005 item-decay candidate review
+# RTEC-005 item-decay coordinator review
 
-Status: **pending coordinator adjudication**
+Status: **accepted with bounded nonclaims**
 
-## Candidate checks
+## Decision
 
-- Exact module registry and selected source blobs are pinned.
-- The claim is limited to `decay.hpp` and `decay.cpp` at `80d5daebd1804edc6208e2312733b5b484490587`.
-- `current-canary` proof is capped at `runtime-path-proven`.
-- Scheduler execution, restart recovery, persistence, metadata correctness, gameplay and client behavior remain explicit nonclaims.
-- No owner request, programme, generated global index, runtime, data, client, map, protocol, workflow or E2E path is changed.
+- Accepted record: `RT-ITEM-DECAY-0001`.
+- Accepted proof level: `runtime-path-proven`.
+- Accepted scope: the selected exact Canary duration registration, due-item handling and transform/removal source path.
+- Explicitly not accepted: runtime scheduler execution, wall-clock timing, restart recovery, persistence, item-specific metadata, official visible behavior, gameplay, client behavior or whole-module parity.
+- No owner request was created.
 
-## Requested coordinator decision
+## Publication
 
-Accept, request changes or reject `RT-ITEM-DECAY-0001`. Acceptance would require advancing review metadata and regenerating the published module/global indexes in the serialized coordinator lane.
+Review metadata is assigned to coordinator task `CAN-20260726-rtec-005-wave-1-coordination` / PR #955 and the record is published through deterministic indexes at `as_of=2026-07-26`.

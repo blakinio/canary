@@ -1,13 +1,91 @@
 {
   "applicability": {
-    "announced_in": {"evidence_refs": [], "exact": null, "lower_bound": null, "mode": "UNKNOWN", "notes": ["No separate announcement is established for this source observation."], "upper_bound": null},
+    "announced_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No separate announcement is established for this source observation."
+      ],
+      "upper_bound": null
+    },
     "changed_in": [],
-    "deprecated_in": {"evidence_refs": [], "exact": null, "lower_bound": null, "mode": "UNKNOWN", "notes": ["No deprecation is established."], "upper_bound": null},
-    "effective_from": {"evidence_refs": [], "exact": null, "lower_bound": null, "mode": "UNKNOWN", "notes": ["Static source inspection does not establish a runtime effective boundary."], "upper_bound": null},
-    "effective_until": {"evidence_refs": [], "exact": null, "lower_bound": null, "mode": "UNKNOWN", "notes": ["No exact effective-until boundary is established."], "upper_bound": null},
-    "introduced_in": {"evidence_refs": [], "exact": null, "lower_bound": null, "mode": "UNKNOWN", "notes": ["The selected source path does not establish the feature introduction version."], "upper_bound": null},
-    "observed_in": [{"evidence_refs": ["RT-ITEM-DECAY-0001"], "exact": {"appearances_items_revision": null, "canary_commit": "80d5daebd1804edc6208e2312733b5b484490587", "database_schema_revision": null, "datapack_revision": null, "maintained_otclient_commit": null, "map_sha256": null, "official_client_build": null, "official_tibia_release": null, "protocol_profile": null, "spawn_npc_sidecar_revision": null}, "lower_bound": null, "mode": "EXACT", "notes": ["Exact current Canary source baseline."], "upper_bound": null}],
-    "removed_in": {"evidence_refs": [], "exact": null, "lower_bound": null, "mode": "UNKNOWN", "notes": ["No removal is established."], "upper_bound": null}
+    "deprecated_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No deprecation is established."
+      ],
+      "upper_bound": null
+    },
+    "effective_from": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "Static source inspection does not establish a runtime effective boundary."
+      ],
+      "upper_bound": null
+    },
+    "effective_until": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No exact effective-until boundary is established."
+      ],
+      "upper_bound": null
+    },
+    "introduced_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "The selected source path does not establish the feature introduction version."
+      ],
+      "upper_bound": null
+    },
+    "observed_in": [
+      {
+        "evidence_refs": [
+          "RT-ITEM-DECAY-0001"
+        ],
+        "exact": {
+          "appearances_items_revision": null,
+          "canary_commit": "80d5daebd1804edc6208e2312733b5b484490587",
+          "database_schema_revision": null,
+          "datapack_revision": null,
+          "maintained_otclient_commit": null,
+          "map_sha256": null,
+          "official_client_build": null,
+          "official_tibia_release": null,
+          "protocol_profile": null,
+          "spawn_npc_sidecar_revision": null
+        },
+        "lower_bound": null,
+        "mode": "EXACT",
+        "notes": [
+          "Exact current Canary source baseline."
+        ],
+        "upper_bound": null
+      }
+    ],
+    "removed_in": {
+      "evidence_refs": [],
+      "exact": null,
+      "lower_bound": null,
+      "mode": "UNKNOWN",
+      "notes": [
+        "No removal is established."
+      ],
+      "upper_bound": null
+    }
   },
   "authority_dimension": "current-canary-behavior",
   "claim_key": "current-canary-duration-bucket-transform-removal-path",
@@ -15,43 +93,136 @@
   "confidence": "HIGH",
   "conflict_refs": [],
   "current_canary_comparison": {
-    "baseline": {"appearances_items_revision": null, "canary_commit": "80d5daebd1804edc6208e2312733b5b484490587", "database_schema_revision": null, "datapack_revision": null, "maintained_otclient_commit": null, "map_sha256": null, "official_client_build": null, "official_tibia_release": null, "protocol_profile": null, "spawn_npc_sidecar_revision": null},
+    "baseline": {
+      "appearances_items_revision": null,
+      "canary_commit": "80d5daebd1804edc6208e2312733b5b484490587",
+      "database_schema_revision": null,
+      "datapack_revision": null,
+      "maintained_otclient_commit": null,
+      "map_sha256": null,
+      "official_client_build": null,
+      "official_tibia_release": null,
+      "protocol_profile": null,
+      "spawn_npc_sidecar_revision": null
+    },
     "current_behavior": "The selected source registers duration timestamps, schedules the earliest bucket, processes elapsed buckets and hands items to transform or removal branches.",
     "differences": [],
-    "exact_paths": ["src/items/decay/decay.cpp", "src/items/decay/decay.hpp"],
-    "exact_symbols": ["Decay::startDecay", "Decay::stopDecay", "Decay::checkDecay", "Decay::internalDecayItem"],
-    "missing_proof": ["Exact runtime timing and scheduler execution.", "Restart recovery and persistence semantics.", "Item-specific metadata correctness and official visible behavior.", "Physical-client and gameplay parity."],
+    "exact_paths": [
+      "src/items/decay/decay.cpp",
+      "src/items/decay/decay.hpp"
+    ],
+    "exact_symbols": [
+      "Decay::startDecay",
+      "Decay::stopDecay",
+      "Decay::checkDecay",
+      "Decay::internalDecayItem"
+    ],
+    "missing_proof": [
+      "Exact runtime timing and scheduler execution.",
+      "Restart recovery and persistence semantics.",
+      "Item-specific metadata correctness and official visible behavior.",
+      "Physical-client and gameplay parity."
+    ],
     "state": "not-assessed"
   },
-  "does_not_prove": ["This record does not prove that every decaying item has correct metadata or transform targets.", "This record does not prove timing, restart, persistence, gameplay, protocol, client or whole-module parity."],
+  "does_not_prove": [
+    "This record does not prove that every decaying item has correct metadata or transform targets.",
+    "This record does not prove timing, restart, persistence, gameplay, protocol, client or whole-module parity."
+  ],
   "evidence_id": "RT-ITEM-DECAY-0001",
   "evidence_state": "PROVEN",
   "format": "canary-real-tibia-evidence-record-v1",
-  "freshness": {"invalid_after_days": 90, "invalidation_triggers": ["The selected decay source files or scheduler integration change.", "Runtime or persistence evidence supersedes the static path observation."], "observed_or_verified_at": "2026-07-26", "policy": "refresh-before-task", "warning_after_days": 30},
+  "freshness": {
+    "invalid_after_days": 90,
+    "invalidation_triggers": [
+      "The selected decay source files or scheduler integration change.",
+      "Runtime or persistence evidence supersedes the static path observation."
+    ],
+    "observed_or_verified_at": "2026-07-26",
+    "policy": "refresh-before-task",
+    "warning_after_days": 30
+  },
   "module_id": "item-decay",
   "owner_request_refs": [],
   "proof_level": "runtime-path-proven",
-  "proves": ["Current Canary has a concrete source path from duration registration through due-item processing.", "Current Canary source distinguishes decay transformation from removal handling."],
-  "record_status": "review-needed",
-  "related_modules": ["engine-scheduler", "item-definitions", "item-instances"],
-  "review": {"notes": ["Worker candidate only; coordinator adjudication is required before publication.", "No owner request is created because the candidate currently proves only the selected Canary source path."], "pr": 957, "reviewed_at": null, "reviewer": null, "status": "pending", "task_id": "CAN-20260726-rtec-005-item-decay"},
+  "proves": [
+    "Current Canary has a concrete source path from duration registration through due-item processing.",
+    "Current Canary source distinguishes decay transformation from removal handling."
+  ],
+  "record_status": "accepted",
+  "related_modules": [
+    "engine-scheduler",
+    "item-definitions",
+    "item-instances"
+  ],
+  "review": {
+    "notes": [
+      "Worker candidate only; coordinator adjudication is required before publication.",
+      "No owner request is created because the candidate currently proves only the selected Canary source path.",
+      "Coordinator accepted only the bounded claim statement and its explicit proves/does_not_prove limits; no whole-module or parity claim is made."
+    ],
+    "pr": 955,
+    "reviewed_at": "2026-07-26T23:15:00+02:00",
+    "reviewer": "RTEC-005 coordinator / GPT-5.6 Thinking",
+    "status": "accepted",
+    "task_id": "CAN-20260726-rtec-005-wave-1-coordination"
+  },
   "schema_version": 1,
-  "sources": [{
-    "author": "Canary contributors",
-    "does_not_prove": ["Static source inspection does not prove wall-clock accuracy, scheduler execution or live transform correctness.", "Static source inspection does not prove restart recovery, persistence, official-client behavior or Real Tibia parity."],
-    "external_artifact": null,
-    "limitations": ["Only decay.hpp and decay.cpp are selected; item metadata, persistence call sites and runtime execution are outside this record.", "The configured decayTo values and every item-specific lifecycle are not enumerated."],
-    "locator": {"artifact_sha256": null, "build": null, "commit_sha": "80d5daebd1804edc6208e2312733b5b484490587", "report_id": null, "repository": "blakinio/canary", "repository_path": "src/items/decay/decay.cpp", "url": null},
-    "observation_date": "2026-07-26",
-    "proof_level_reached": "runtime-path-proven",
-    "proves": ["The selected current Canary source contains an explicit duration scheduling and due-item handoff path.", "The selected source contains separate transform and bounded removal branches."],
-    "publication_date": null,
-    "role": "primary",
-    "selected": {"files": ["src/items/decay/decay.cpp", "src/items/decay/decay.hpp"], "observations": ["startDecay reads duration, records DURATION_TIMESTAMP and stores the item in an ordered timestamp bucket.", "checkDecay copies due items out of elapsed buckets, resets decay state and invokes internalDecayItem.", "internalDecayItem transforms to decayTo when nonzero; otherwise it preserves map-loaded items or requests internal removal."], "sections": [], "symbols": ["Decay::startDecay", "Decay::stopDecay", "Decay::checkDecay", "Decay::internalDecayItem"]},
-    "source_id": "current-canary-item-decay-path",
-    "source_type": "current-canary"
-  }],
+  "sources": [
+    {
+      "author": "Canary contributors",
+      "does_not_prove": [
+        "Static source inspection does not prove wall-clock accuracy, scheduler execution or live transform correctness.",
+        "Static source inspection does not prove restart recovery, persistence, official-client behavior or Real Tibia parity."
+      ],
+      "external_artifact": null,
+      "limitations": [
+        "Only decay.hpp and decay.cpp are selected; item metadata, persistence call sites and runtime execution are outside this record.",
+        "The configured decayTo values and every item-specific lifecycle are not enumerated."
+      ],
+      "locator": {
+        "artifact_sha256": null,
+        "build": null,
+        "commit_sha": "80d5daebd1804edc6208e2312733b5b484490587",
+        "report_id": null,
+        "repository": "blakinio/canary",
+        "repository_path": "src/items/decay/decay.cpp",
+        "url": null
+      },
+      "observation_date": "2026-07-26",
+      "proof_level_reached": "runtime-path-proven",
+      "proves": [
+        "The selected current Canary source contains an explicit duration scheduling and due-item handoff path.",
+        "The selected source contains separate transform and bounded removal branches."
+      ],
+      "publication_date": null,
+      "role": "primary",
+      "selected": {
+        "files": [
+          "src/items/decay/decay.cpp",
+          "src/items/decay/decay.hpp"
+        ],
+        "observations": [
+          "startDecay reads duration, records DURATION_TIMESTAMP and stores the item in an ordered timestamp bucket.",
+          "checkDecay copies due items out of elapsed buckets, resets decay state and invokes internalDecayItem.",
+          "internalDecayItem transforms to decayTo when nonzero; otherwise it preserves map-loaded items or requests internal removal."
+        ],
+        "sections": [],
+        "symbols": [
+          "Decay::startDecay",
+          "Decay::stopDecay",
+          "Decay::checkDecay",
+          "Decay::internalDecayItem"
+        ]
+      },
+      "source_id": "current-canary-item-decay-path",
+      "source_type": "current-canary"
+    }
+  ],
   "superseded_by": [],
   "supersedes": [],
-  "uncertainty": ["Runtime scheduling and restart behavior were not executed.", "The official visible item-decay semantics were not selected for this candidate."]
+  "uncertainty": [
+    "Runtime scheduling and restart behavior were not executed.",
+    "The official visible item-decay semantics were not selected for this candidate."
+  ]
 }
