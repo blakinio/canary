@@ -58,6 +58,10 @@ The next bounded package is the Hunting Task Shop Bonus Promotion contract prove
 
 Current Canary PR #230 is evidence and a candidate donor, not permission to copy the whole patch. Its sequence removes Hunting Task Points before writing Wheel KV, so OAM-051B must establish an explicit transaction/failure contract and must not claim atomic durable purchase behavior without rollback or recoverability proof.
 
+## Governance checkpoint
+
+Canary governance PR #956 owns only this report and the active OAM-051 task. The `ci:final-gate` label is applied; the final synchronized head must pass Agent Task Ownership and full CI before merge. OAM-051 remains active after that merge, and no target OAM-051B source change is authorized until its transaction and maintained-client preflight is complete.
+
 ## Nonclaims
 
 OAM-051A does not prove complete Wheel parity, physical-client gameplay, Task Shop interoperability, DB/KV failure injection, current official balance behavior, critical-healing correctness, stance behavior, replacement-spell behavior or authoritative geometry.
