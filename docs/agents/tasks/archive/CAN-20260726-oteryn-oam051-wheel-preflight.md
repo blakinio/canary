@@ -14,7 +14,7 @@ otheryn_feature_pr: "128"
 otheryn_feature_merge: "546eac0a00ec620e7293d0548e30662024464084"
 otheryn_lifecycle_pr: "134"
 otheryn_lifecycle_merge: "db10096f0ebb484f05883dbde4dd895744fbe8c6"
-lifecycle_pr: "pending"
+lifecycle_pr: "962"
 owned_paths:
   - docs/agents/OTERYN_OAM_051_WHEEL_OF_DESTINY_REVALIDATION.md
 required_reads:
@@ -98,5 +98,5 @@ validation:
     result: PASS
     evidence: docs-only lifecycle gate succeeded before merge db10096f0ebb484f05883dbde4dd895744fbe8c6
 blockers: []
-next_action: Merge the Canary final-governance lifecycle PR, then perform fresh selection for OAM-052 without reopening OAM-051 deferred nonclaims.
+next_action: Merge Canary final-governance PR 962, then perform fresh selection for OAM-052 without reopening OAM-051 deferred nonclaims.
 ```
