@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import json
+import os
 import re
 import shlex
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,6 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "tools" / "e2e" / "run_physical_e2e.sh"
 WORKFLOW = ROOT / ".github" / "workflows" / "universal-agent-e2e.yml"
+ENVELOPE = ROOT / "tools" / "e2e" / "result_envelope.py"
 TEMPORARY_PROBE = (
     ROOT
     / "tests"
@@ -89,16 +93,29 @@ class FailureEvidenceRetentionTest(unittest.TestCase):
     def test_workflow_uploads_before_propagating_physical_failure(self) -> None:
         text = self.workflow_text()
         capture = text.index("      - name: Run selected physical-client scenario")
+        setup_finalize = text.index(
+            "      - name: Finalize pre-lifecycle failure evidence"
+        )
         upload = text.index("      - name: Upload universal E2E evidence")
         propagate = text.index("      - name: Propagate physical-client scenario result")
-        self.assertLess(capture, upload)
+        self.assertLess(capture, setup_finalize)
+        self.assertLess(setup_finalize, upload)
         self.assertLess(upload, propagate)
 
-        capture_block = text[capture:upload]
+        capture_block = text[capture:setup_finalize]
         self.assertIn("        id: physical", capture_block)
         self.assertIn("          status=$?", capture_block)
         self.assertIn("          printf 'status=%s\\n'", capture_block)
         self.assertTrue(capture_block.rstrip().endswith("exit 0"))
+
+        finalize_block = text[setup_finalize:upload]
+        self.assertIn("        id: pre_lifecycle", finalize_block)
+        self.assertIn(
+            "if: always() && steps.physical.outcome == 'skipped'",
+            finalize_block,
+        )
+        self.assertIn("tools/e2e/result_envelope.py finalize", finalize_block)
+        self.assertIn("printf 'status=1\\n'", finalize_block)
 
         upload_block = text[upload:propagate]
         self.assertIn("        if: always()", upload_block)
@@ -107,13 +124,111 @@ class FailureEvidenceRetentionTest(unittest.TestCase):
         propagate_block = text[propagate:]
         self.assertIn("        if: always()", propagate_block)
         self.assertIn(
-            "          PHYSICAL_STATUS: ${{ steps.physical.outputs.status }}",
+            "PHYSICAL_STATUS: ${{ steps.physical.outputs.status || steps.pre_lifecycle.outputs.status }}",
             propagate_block,
         )
         self.assertIn(
             "physical scenario failed with captured status",
             propagate_block,
         )
+
+    def test_controlled_server_skips_redundant_exact_head_download(self) -> None:
+        text = self.workflow_text()
+        start = text.index("      - name: Download exact-head Canary binary")
+        end = text.index("      - name: Download controlled OTClient binary")
+        block = text[start:end]
+        self.assertIn("        id: canary_download", block)
+        self.assertIn(
+            "        if: needs.resolve.outputs.server_repository == ''",
+            block,
+        )
+        self.assertIn("        uses: actions/download-artifact@v4", block)
+
+    def test_executable_resolution_tolerates_missing_canary_artifact_dir(self) -> None:
+        text = self.workflow_text()
+        start = text.index("      - name: Resolve executable artifacts")
+        end = text.index("      - name: Resolve route preparation metadata")
+        block = text[start:end]
+        self.assertIn("download_roots=(otclient-bin)", block)
+        self.assertIn('download_roots+=(canary-bin)', block)
+        self.assertIn('find "${download_roots[@]}"', block)
+
+    def test_pre_lifecycle_envelope_is_valid_and_cleanup_is_not_certified(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            artifact_dir = Path(temporary)
+            manifest = {
+                "key": "login/relog",
+                "scenario": {
+                    "suite": "login",
+                    "id": "relog",
+                    "server": {"datapack": "data-otservbr-global"},
+                    "client": {
+                        "repository": "opentibiabr/otclient",
+                        "ref": "2" * 40,
+                    },
+                    "fixture": {
+                        "account": "101",
+                        "character": "Knight 1",
+                        "world": "Canary",
+                        "password_env": "AGENT_E2E_TEST_PASSWORD",
+                    },
+                },
+            }
+            legacy = {
+                "schema_version": 1,
+                "status": "failure",
+                "scenario": "login/relog",
+                "phase": "server-startup",
+                "shell_exit_code": 1,
+                "pre_lifecycle_failure_step": "canary_download",
+            }
+            (artifact_dir / "scenario-manifest.json").write_text(
+                json.dumps(manifest),
+                encoding="utf-8",
+            )
+            (artifact_dir / "result.json").write_text(
+                json.dumps(legacy),
+                encoding="utf-8",
+            )
+            environment = os.environ.copy()
+            environment.update(
+                {
+                    "GITHUB_REPOSITORY": "blakinio/canary",
+                    "GITHUB_SHA": "1" * 40,
+                    "GITHUB_RUN_ID": "1234",
+                    "GITHUB_RUN_ATTEMPT": "8",
+                    "GITHUB_EVENT_NAME": "pull_request",
+                }
+            )
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    str(ENVELOPE),
+                    "finalize",
+                    "--artifact-dir",
+                    str(artifact_dir),
+                    "--phase",
+                    "server-startup",
+                    "--shell-exit-code",
+                    "1",
+                    "--execution-tier",
+                    "pr-required",
+                ],
+                cwd=ROOT,
+                env=environment,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(0, completed.returncode, completed.stderr)
+            payload = json.loads(
+                (artifact_dir / "result.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(3, payload["schema_version"])
+            self.assertEqual("failure", payload["status"])
+            self.assertEqual("infrastructure", payload["failure"]["category"])
+            self.assertFalse(payload["cleanup_summary"]["cleanup_certified"])
+            self.assertNotEqual("pass", payload["quality_dimensions"]["cleanup"])
 
     def test_temporary_failure_probe_is_not_shipped(self) -> None:
         self.assertFalse(TEMPORARY_PROBE.exists())
