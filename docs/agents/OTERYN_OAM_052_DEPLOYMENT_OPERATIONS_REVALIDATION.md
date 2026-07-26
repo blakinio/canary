@@ -1,6 +1,6 @@
 # OAM-052 Deployment Operations revalidation
 
-Status: **target disposition and lifecycle complete; Canary governance pending**
+Status: **target disposition, target lifecycle and Canary governance complete; lifecycle archive pending**
 
 Program: `CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION`
 
@@ -26,6 +26,8 @@ Otheryn feature head:       b0e6a965399008a9834f8449c95981d78885ed10
 Otheryn feature merge:      2afcaef4a3d023a7ec987e4380e80905534fdd2b
 Otheryn lifecycle head:     b5e6fbb7b99280c2d3cc011386d7e23e3a26c8ba
 Otheryn lifecycle merge:    2c085eee1b1c430d09a87f567aac1a8e701721a4
+Canary governance head:     37aab5fa102fbf6e5ee7093e84dbef9e3da9a79e
+Canary governance merge:    b5a45d32b015965fd79aece734857edf4bdc0bac
 upstream evidence baseline: 7644bcbcbbad4a09e52a5707ed531e4dd21d8a79
 ```
 
@@ -70,6 +72,12 @@ Final head `b0e6a965399008a9834f8449c95981d78885ed10` passed exact-head Required
 Lifecycle PR #138 moved the task to archive and updated only the disposition report. Final lifecycle head `b5e6fbb7b99280c2d3cc011386d7e23e3a26c8ba` passed Required run `30214475223`, had a clean discussion/path/drift audit and squash-merged as `2c085eee1b1c430d09a87f567aac1a8e701721a4`.
 
 No target runtime, deployment script, workflow, Compose file, scheduler, service, schema, map/datapack content, endpoint, secret, production configuration or host action was added.
+
+## Canary governance evidence
+
+Canary PR #966 changed exactly the active OAM-052 task and this revalidation report. Final head `37aab5fa102fbf6e5ee7093e84dbef9e3da9a79e` passed Agent Task Ownership run `30214671974` and CI run `30214672059`, including successful Fast Checks, Lua Tests and `Required`; heavy builds were correctly skipped for the documentation-only scope.
+
+The initial governance Ownership failure was limited to an unsupported active-task frontmatter status and was corrected from `validating` to `review`. No behavior or disposition changed. PR #966 had no comments, reviews or review threads, was behind Canary `main` by zero and squash-merged with expected-head protection as `b5a45d32b015965fd79aece734857edf4bdc0bac`.
 
 ## Cross-repository responsibility
 
