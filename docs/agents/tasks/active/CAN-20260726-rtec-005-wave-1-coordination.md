@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-wave-1-coordinator-20260726
 base_branch: main
 created: 2026-07-26T11:30:00+02:00
-updated: 2026-07-26T23:39:00+02:00
-last_verified_commit: "9fe4e49078eda40740a6040c2136bddfa749e2f1"
+updated: 2026-07-26T23:43:00+02:00
+last_verified_commit: "479fb9dc7eb5f66556ac21cb439de19da62c1cc9"
 risk: medium
 related_issue: ""
 related_pr: "955"
@@ -23,8 +23,13 @@ owned_paths:
     - docs/agents/tasks/active/CAN-20260726-rtec-005-wave-1-coordination.md
     - docs/agents/real-tibia/evidence/modules/item-decay/**
     - docs/agents/real-tibia/evidence/modules/parties/**
+    - docs/agents/real-tibia/evidence/modules/item-definitions/EVIDENCE_INDEX.yaml
+    - docs/agents/real-tibia/evidence/modules/vocations/EVIDENCE_INDEX.yaml
+    - docs/agents/real-tibia/evidence/modules/weapon-proficiency/EVIDENCE_INDEX.yaml
     - .github/workflows/real-tibia-evidence.yml
     - tools/agents/real_tibia_evidence_test_support.py
+    - tools/agents/test_real_tibia_evidence.py
+    - tools/agents/test_real_tibia_owner_request_prepublication.py
   shared:
     - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
     - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
@@ -76,8 +81,8 @@ Complete RTEC-005 wave 1 by independently adjudicating the merged `item-decay` a
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T23:39:00+02:00
-head: 9fe4e49078eda40740a6040c2136bddfa749e2f1
+updated_at: 2026-07-26T23:43:00+02:00
+head: 479fb9dc7eb5f66556ac21cb439de19da62c1cc9
 branch: docs/rtec-005-wave-1-coordinator-20260726
 pr: 955
 status: validating
@@ -88,10 +93,15 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260726-rtec-005-wave-1-coordination.md
   - docs/agents/real-tibia/evidence/modules/item-decay/**
   - docs/agents/real-tibia/evidence/modules/parties/**
+  - docs/agents/real-tibia/evidence/modules/item-definitions/EVIDENCE_INDEX.yaml
+  - docs/agents/real-tibia/evidence/modules/vocations/EVIDENCE_INDEX.yaml
+  - docs/agents/real-tibia/evidence/modules/weapon-proficiency/EVIDENCE_INDEX.yaml
   - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
   - .github/workflows/real-tibia-evidence.yml
   - tools/agents/real_tibia_evidence_test_support.py
+  - tools/agents/test_real_tibia_evidence.py
+  - tools/agents/test_real_tibia_owner_request_prepublication.py
 proven:
   - item-decay PR 957 passed Required run 30216659464 and merged as 7e6d0078d7ad87a82aea092ff4285256fcae746f
   - item-decay lifecycle PR 973 merged as ad734f81772eb840c7e1ce18b27ac9ed0d2a4c50
@@ -105,10 +115,9 @@ proven:
   - RT-PARTIES-0002 is accepted only for the selected current Canary party lifecycle and Shared Experience source path at runtime-path-proven
   - the global index is as_of 2026-07-26 with 13 evidence records, 2 owner requests and 10 version-history records
   - generated input_sha256 is 8572712a873048c4385e471008c42c97fe09310bafb6d7a0874e8aa6b2ade03b
-  - RTREQ-FEATURE-VOCATIONS-0001 and RTREQ-TCR-ITEM-DEFINITIONS-0001 remain unchanged and active
-  - no new owner request was created
+  - RTREQ-FEATURE-VOCATIONS-0001 and RTREQ-TCR-ITEM-DEFINITIONS-0001 remain unchanged; no new owner request was created
   - workflow commit ec2a824d53b9901f5a86ce2a4c88d62c3035077e restores contents read, non-persistent checkout credentials and check-only validation at as_of 2026-07-26
-  - first check-only run 30221056246 isolated the stale shared test-support AS_OF constant; commit 9fe4e49078eda40740a6040c2136bddfa749e2f1 advances only that constant
+  - check-only diagnostics isolated only canonical-date propagation into shared test support, three older module indexes and relative future-date fixtures
   - no validator, schema or evidence-rule change was made
 derived:
   - the wave publishes three bounded evidence records but makes no whole-module or Real Tibia parity claim
@@ -119,8 +128,8 @@ unknown:
   - protocol/client interpretation and physical gameplay parity for both modules
 conflicts: []
 first_failure:
-  marker: final-exact-head-gates-not-yet-recorded
-  evidence: canonical dates now align in evidence, workflow and test support; the compact checkpoint commit requires standard exact-head gates
+  marker: canonical-date-propagation-incomplete
+  evidence: final diagnostics require only three older module index dates and future-evidence fixtures to follow canonical AS_OF 2026-07-26
 rejected_hypotheses:
   - backdate evidence to 2026-07-25
   - weaken future-evidence validation
@@ -130,11 +139,14 @@ rejected_hypotheses:
 changed_paths:
   - docs/agents/tasks/active/CAN-20260726-rtec-005-wave-1-coordination.md
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
+  - docs/agents/real-tibia/evidence/modules/*/EVIDENCE_INDEX.yaml
   - docs/agents/real-tibia/evidence/modules/item-decay/**
   - docs/agents/real-tibia/evidence/modules/parties/**
   - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
   - .github/workflows/real-tibia-evidence.yml
   - tools/agents/real_tibia_evidence_test_support.py
+  - tools/agents/test_real_tibia_evidence.py
+  - tools/agents/test_real_tibia_owner_request_prepublication.py
 validation:
   - command: worker Ready-state final gates
     result: PASS
@@ -145,12 +157,9 @@ validation:
   - command: bounded adjudication artifact generation
     result: PASS
     evidence: Evidence Contracts run 30220767816 generated, validated and rechecked artifact 8637133045
-  - command: artifact publication commit
-    result: PASS
-    evidence: commit 2a74acaa57413a3fb95529ba9c8c4196d6907d9b matches the validated artifact outputs
-  - command: first final check-only Evidence Contracts run 30221056246
+  - command: final check-only diagnostics
     result: FAIL
-    evidence: only shared test-support AS_OF remained 2026-07-25; production workflow and accepted evidence already used 2026-07-26
+    evidence: runs 30221056246 and 30221494445 isolated canonical-date propagation only
 blockers: []
-next_action: Pass the exact-head standard gates, then apply the final-gate label and mark PR 955 Ready.
+next_action: Update the three deterministic module index dates and use AS_OF-relative future fixtures, then pass exact-head standard gates and the Ready-state final gate.
 ```
