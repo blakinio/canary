@@ -2,13 +2,13 @@
 task_id: CAN-20260726-e2e-login-relog-stability-baseline
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-QRI-022-BASELINE-002
-status: validating
+status: active
 agent: "GPT-5.6 Thinking"
 branch: test/e2e-login-relog-stability-baseline-20260726
 base_branch: main
 created: 2026-07-26T12:15:00+02:00
-updated: 2026-07-26T12:20:00+02:00
-last_verified_commit: "d4ebf83b3c7438ab2ea84dae6410820edd5770bd"
+updated: 2026-07-26T12:25:00+02:00
+last_verified_commit: "a6b9053ed40969537af00fdfaa8c02d5bdd93e75"
 risk: medium
 related_issue: ""
 related_pr: "961"
@@ -79,8 +79,8 @@ Produce a fresh factual Universal E2E stability baseline from exactly ten preser
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T12:20:00+02:00
-head: d4ebf83b3c7438ab2ea84dae6410820edd5770bd
+updated_at: 2026-07-26T12:25:00+02:00
+head: a6b9053ed40969537af00fdfaa8c02d5bdd93e75
 branch: test/e2e-login-relog-stability-baseline-20260726
 pr: 961
 status: validating
@@ -102,16 +102,16 @@ proven:
   - the temporary pin fixes the runtime server revision to ec0d815570415a4c7ca7217e3e2aca41f6023dab
   - the initial baseline dossier contains no reused historical attempt
   - CI run 30198015400 passed on the first task head
-  - ownership run 30198015351 failed only because derived had one leading space in the checkpoint
+  - ownership run 30198015351 failed on checkpoint indentation and run 30198118061 then proved frontmatter tasks/active status must be active
 derived: []
 unknown:
-  - corrected-head Universal Agent E2E run id and physical job id
+  - active-status-head Universal Agent E2E run id and physical job id
   - maintained OTClient revision and datapack identity emitted by attempt 1
   - outcome and retained evidence identifiers for attempts 1 through 10
 conflicts: []
 first_failure:
-  marker: checkpoint-format
-  evidence: ownership run 30198015351 reported invalid list item under proven; corrected before the counted population
+  marker: task-frontmatter-status
+  evidence: ownership run 30198118061 rejected non-active frontmatter status validating; corrected before the counted population
 rejected_hypotheses:
   - reuse PR 925 attempts because its closure explicitly forbids reuse in a later baseline
   - create a second physical runner or workflow because the existing canonical lifecycle and rerun API are sufficient
@@ -128,10 +128,10 @@ validation:
     evidence: run 30198015400 on 2eb25c2c335b9e02ede2ea064e7213eb4f6f759e
   - command: Agent Task Ownership
     result: FAIL
-    evidence: run 30198015351 failed only on checkpoint indentation; corrected before collection
+    evidence: run 30198118061 rejected the frontmatter status; corrected before collection
   - command: physical ten-attempt population
     result: NOT_RUN
-    evidence: corrected-head initial attempt pending
+    evidence: active-status-head initial attempt pending
 blockers: []
-next_action: Require the corrected-head initial Universal Agent E2E physical login/relog attempt to retain complete evidence before scheduling attempt 2.
+next_action: Require the active-status-head initial Universal Agent E2E physical login/relog attempt to retain complete evidence before scheduling attempt 2.
 ```
