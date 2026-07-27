@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: docs/oam-054-compact-handover-20260727
 base_branch: main
 created: 2026-07-27
-updated: 2026-07-27T10:11:00+02:00
-last_verified_commit: "ad0f8507a40af03709c55ecf8cc972d7725cda66"
+updated: 2026-07-27T08:17:00Z
+last_verified_commit: "f9bd694db24a0b2d4c519e0427f57d8988094f3a"
 risk: high
 related_issue: ""
 related_pr: "984"
@@ -74,8 +74,8 @@ Excluded:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-27T10:11:00+02:00
-head: ad0f8507a40af03709c55ecf8cc972d7725cda66
+updated_at: 2026-07-27T08:17:00Z
+head: f9bd694db24a0b2d4c519e0427f57d8988094f3a
 branch: docs/oam-054-compact-handover-20260727
 pr: 984
 status: blocked
@@ -94,23 +94,25 @@ proven:
   - Otheryn PR 165 is open and mergeable from branch dudantas/oam-054-login-protocol-adapt at restacked head 2b25c874cab063b9d2e428b63fd6ad7b648c1860.
   - Live compare reports Otheryn PR 165 ahead_by 24 and behind_by 0 against current main ec5038a7f132a4c2ed030edda38a56b5b1ec916a.
   - Otheryn PR 165 changes exactly six intended paths: its task record, durable adaptation document, login_protocol_wire.hpp, protocollogin.cpp, focused test registration and oam_054_login_protocol_test.cpp.
+  - Otheryn PR 165 has no inline review threads at the current verification.
   - The target-owned serializer writes opcode 0x28 plus deterministic modern and legacy opcode 0x64 responses while ProtocolLogin retains request parsing, profile selection, RSA/XTEA, authentication integration, secure-token issuance, session hints, send and disconnect lifecycle.
   - Modern account-tail serialization is explicit AccountStatus Ok, SubscriptionStatus Free or Premium and premium-expiry u32 in maintained-client field order; legacy serialization retains premium-days u16.
   - One capped snapshot of at most 255 character names feeds token authorization, serialized payload and session hints.
   - Six deterministic tests decode the session key, modern premium/free responses, legacy response and modern/legacy count caps to exact message end.
   - Otheryn implementation head c6fe5d8a2f48e6c8425c3db39ff2372a7cde3c3f passed CI 30245438536, Required 30245438107 and autofix 30245438145, including the full platform matrix and runtime smoke.
+  - Otheryn restacked-head autofix run 30248804539 passed.
   - No maintained OTClient implementation change is present or required by the current server-side serializer proof.
 derived:
   - The exact Otheryn target file set is resolved and the validated disposition remains bounded ADAPT rather than wholesale ProtocolLogin migration.
   - The maintained-client correspondence gap is closed by the server-side serializer and deterministic decoding tests without an OTClient write.
-  - The stale-base blocker is resolved, but the restacked head requires a fresh exact-final CI, Required and autofix result before merge.
+  - The stale-base blocker is resolved; CI and Required remain the only pending exact-final gates on the restacked head.
 unknown:
-  - Exact-final CI, Required and autofix result for Otheryn restacked head 2b25c874cab063b9d2e428b63fd6ad7b648c1860 and the eventual merge result.
+  - Exact-final CI and Required result for Otheryn restacked head 2b25c874cab063b9d2e428b63fd6ad7b648c1860 and the eventual merge result.
   - Whether physical login/relog evidence is required beyond deterministic target unit, full CI and runtime-smoke proof.
 conflicts: []
 first_failure:
-  marker: otheryn-exact-final-gates-pending
-  evidence: Restacked Otheryn head 2b25c874cab063b9d2e428b63fd6ad7b648c1860 has behind_by zero, but CI 30248806007, Required 30248804496 and autofix 30248804539 are queued.
+  marker: otheryn-exact-final-ci-required-pending
+  evidence: Restacked Otheryn head 2b25c874cab063b9d2e428b63fd6ad7b648c1860 has behind_by zero and autofix 30248804539 passed, but CI 30248806007 is queued and Required 30248804496 is in progress.
 rejected_hypotheses:
   - classify ProtocolLogin as REUSE from profile and token code alone
   - copy Canary multichannel or complete ProtocolLogin wholesale
@@ -128,16 +130,19 @@ validation:
   - command: Otheryn implementation-head CI 30245438536, Required 30245438107 and autofix 30245438145
     result: PASS
     evidence: Exact implementation head c6fe5d8a2f48e6c8425c3db39ff2372a7cde3c3f passed the complete applicable matrix without a follow-up implementation change.
-  - command: live Otheryn PR 165 scope and overlap audit
+  - command: live Otheryn PR 165 scope and review-thread audit
     result: PASS
-    evidence: Six intended paths, no review threads and no maintained-client implementation PR overlap were found.
+    evidence: Six intended paths and zero inline review threads were found.
   - command: live Otheryn main/head compare
     result: PASS
     evidence: Restacked PR head 2b25c874cab063b9d2e428b63fd6ad7b648c1860 is ahead by 24 and behind current main by zero.
-  - command: Otheryn restacked exact-final gates
+  - command: Otheryn restacked autofix 30248804539
+    result: PASS
+    evidence: Exact restacked head autofix completed successfully.
+  - command: Otheryn restacked CI 30248806007 and Required 30248804496
     result: PENDING
-    evidence: CI 30248806007, Required 30248804496 and autofix 30248804539 are queued for the restacked head.
+    evidence: CI is queued and Required is in progress for the restacked head.
 blockers:
-  - Otheryn remains read-only under this request; exact-final CI, Required and autofix must pass on restacked head 2b25c874cab063b9d2e428b63fd6ad7b648c1860 before merge.
-next_action: Verify exact-final CI 30248806007, Required 30248804496 and autofix 30248804539 on Otheryn restacked head 2b25c874cab063b9d2e428b63fd6ad7b648c1860; if PR 165 merges, finalize this Canary checkpoint and PR 984, otherwise record the first failing gate without mutating Otheryn.
+  - Otheryn remains read-only under this request; exact-final CI and Required must pass on restacked head 2b25c874cab063b9d2e428b63fd6ad7b648c1860 before merge.
+next_action: Verify exact-final CI 30248806007 and Required 30248804496 on Otheryn restacked head 2b25c874cab063b9d2e428b63fd6ad7b648c1860; if PR 165 merges, finalize this Canary checkpoint and PR 984, otherwise record the first failing gate without mutating Otheryn.
 ```
