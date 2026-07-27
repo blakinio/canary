@@ -4,7 +4,7 @@ name: Oteryn Architecture and Migration
 status: completed
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-27T19:51:00+02:00
+updated: 2026-07-27T19:53:00+02:00
 last_verified_commit: "774bd588906d0ba8b527695a4afe9b4b04ca820f"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
@@ -113,4 +113,4 @@ No OAM implementation or lifecycle task is active in this reconciliation record.
 
 # Reconciliation delivery
 
-Programme reconciliation PR: pending.
+Programme reconciliation PR: #988.
